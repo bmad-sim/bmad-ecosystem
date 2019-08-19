@@ -2179,24 +2179,24 @@ class tao_ele_window(tao_list_window):
     name.grid(row=0, column = 0, columnspan = 4)
 
     #Fixed parameters
-    tk.Label(self.head_frame, text="Key").grid(row=1, column=0, sticky='E')
+    tk.Label(self.head_frame, text="Key").grid(row=1, column=0, sticky='W')
     self.element.params["key"].tk_wid.grid(row=1, column=1, sticky='EW')
-    tk.Label(self.head_frame, text="s").grid(row=2, column=0, sticky='E')
+    tk.Label(self.head_frame, text="s").grid(row=2, column=0, sticky='W')
     self.element.params["s"].tk_wid.grid(row=2, column=1, sticky='EW')
-    tk.Label(self.head_frame, text="s_start").grid(row=3, column=0, sticky='E')
+    tk.Label(self.head_frame, text="s_start").grid(row=3, column=0, sticky='W')
     self.element.params["s_start"].tk_wid.grid(row=3, column=1, sticky='EW')
-    tk.Label(self.head_frame, text="Ref time").grid(row=4, column=0, sticky='E')
+    tk.Label(self.head_frame, text="Ref time").grid(row=4, column=0, sticky='W')
     self.element.params["ref_time"].tk_wid.grid(row=4, column=1, sticky='EW')
 
     #Variable parameters
-    tk.Label(self.head_frame, text="Type").grid(row=1, column=2, sticky='E')
+    tk.Label(self.head_frame, text="Type").grid(row=1, column=2, sticky='W')
     self.element.params["type"].tk_wid.grid(row=1, column=3, sticky='EW')
-    tk.Label(self.head_frame, text="Alias").grid(row=2, column=2, sticky='E')
+    tk.Label(self.head_frame, text="Alias").grid(row=2, column=2, sticky='W')
     self.element.params["alias"].tk_wid.grid(row=2, column=3, sticky='EW')
     tk.Label(self.head_frame, text="Description").grid(
-        row=3, column=2, sticky='E')
+        row=3, column=2, sticky='W')
     self.element.params["descrip"].tk_wid.grid(row=3, column=3, sticky='EW')
-    tk.Label(self.head_frame, text="is_on").grid(row=4, column=2, sticky='E')
+    tk.Label(self.head_frame, text="is_on").grid(row=4, column=2, sticky='W')
     self.element.params["is_on"].tk_wid.grid(row=4, column=3, sticky='EW')
     # Set button
     tk.Button(self.top_frame, text='Apply all\nchanges',
@@ -2331,7 +2331,7 @@ class tao_ele_window(tao_list_window):
               + self.element.id + ' err')
           sym_err = tk_tao_parameter(str_to_tao_param(sym_err),
               self.p_frames[i], self.pipe)
-          sym_err.tk_label.grid(row=0, column=0, sticky='E')
+          sym_err.tk_label.grid(row=0, column=0, sticky='W')
           sym_err.tk_wid.grid(row=0, column=1, sticky='W')
           # add vec0
           vec0 = self.pipe.cmd_in('python ele:mat6 '
@@ -5059,6 +5059,9 @@ class tao_new_plot_template_window(Tao_Toplevel):
           graph = clone_dict[self.clone_plot.get()][i+1].split(';')[3]
           self.add_graph_frame(graph)
       self.notebook.select(0)
+    # Handle the right data_type_x widget for the curve frames
+    for g in self.graph_frame_list:
+      g.fill_curve_frame()
 
 
   def create_template(self, event=None):
@@ -5185,6 +5188,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
     if self.notebook.select() == self.new_tab_frame._w:
       # Add new tab
       self.graph_frame_list.append(new_graph_frame(self))
+      self.graph_frame_list[-1].fill_curve_frame()
       self.graph_index = len(self.graph_frame_list)-1
       self.notebook.insert(self.graph_index, self.graph_frame_list[-1])
       self.notebook.tab(self.graph_index, text='New graph')
@@ -5206,6 +5210,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.graph_frame_list.append(
         new_graph_frame(self, name=graph))
     ix = len(self.graph_frame_list) - 1
+    self.graph_frame_list[-1].fill_curve_frame()
     self.notebook.insert(ix, self.graph_frame_list[-1])
     self.notebook.tab(ix, text=graph)
 
@@ -5228,7 +5233,7 @@ class new_graph_frame(tk.Frame):
     self.handler_block = False
     # Defined here for convenience
     self._scroll_frames = [tao_scroll_frame(self), tao_scroll_frame(self)]
-    self.column_widths = [0,0,0] #used for consistent gridding
+    self.column_widths = [0,0] #used for consistent gridding
     if name == "":
       self.name = "New graph" #Default
     else:
@@ -5249,6 +5254,18 @@ class new_graph_frame(tk.Frame):
     def graph_ttp(x):
       ''' Shortcut for commonly used construct '''
       return tk_tao_parameter(str_to_tao_param(x), self.graph_frame, self.pipe)
+    def qp_axis_props(x):
+      '''Adds the props of a qp-axis-struct to the parameter string x'''
+      if self.parent.root.plot_mode == 'matplotlib':
+        x += ';label;STR;;min;REAL;;max;REAL;;draw_label;LOGIC;T'
+      else:
+        x += ';label;STR;;min;REAL;;max;REAL;;number_offset;REAL;'
+        x += ';label_offset;REAL;;label_color;ENUM;;major_tick_len;REAL;'
+        x += ';minor_tick_len;REAL;;major_div;INT;;major_div_nominal;INT;'
+        x += ';minor_div;INT;;minor_div_max;INT;;places;INT;;type;ENUM;'
+        x += ';bounds;ENUM;;tick_side;ENUM;;number_side;ENUM;'
+        x += ';draw_label;LOGIC;T;draw_numbers;LOGIC;T'
+      return x
 
     self.graph_wids = ["name;STR;T;",
         "graph^type;ENUM;T;",
@@ -5256,10 +5273,10 @@ class new_graph_frame(tk.Frame):
         "title;STR;T;",
         "margin;STR;T;", #ENUM?
         "scale_margin;STR;T;", #ENUM?
-        "x;STR;T;", #TODO:qp_axis_struct
-        "y;STR;T;", #TODO:qp_axis_struct
-        "x2;STR;T;", #TODO:qp_axis_struct
-        "y2;STR;T;", #TODO:qp_axis_struct
+        qp_axis_props("x;STRUCT;T"),
+        qp_axis_props("y;STRUCT;T"),
+        qp_axis_props("x2;STRUCT;T"),
+        qp_axis_props("y2;STRUCT;T"),
         "clip;LOGIC;T;T",
         "draw_axes;LOGIC;T;T",
         "draw_grid;LOGIC;T;T",
@@ -5277,12 +5294,15 @@ class new_graph_frame(tk.Frame):
         "floor_plan_draw_only_first_pass;LOGIC;T;F",
         "draw_only_good_user_data_or_vars;LOGIC;T;T",
         "x_axis_scale_factor;REAL;T;",
-        "n_curve;INT;T;"]
+        "n_curve;INT;T;1"]
     self.graph_wids = list(map(graph_ttp, self.graph_wids))
     self.ixd = {} #index dictionary, used for lookup
     for i in range(len(self.graph_wids)):
       self.ixd[self.graph_wids[i].param.name] = i
     # graph labels (NAMES AS STRINGS ONLY)
+    def graph_label_maker(x):
+      '''Helper function'''
+      return tk.Label(self.graph_frame, text=x)
     self.graph_labels = ["Graph name:", "Graph type:", "Box:",
         "Graph title:", "Graph margin:", "Graph scale margin:",
         "X-axis:", "Y-axis:", "X2-axis:", "Y2-axis",
@@ -5293,11 +5313,13 @@ class new_graph_frame(tk.Frame):
         "Flip label side:", "Absolute size:", "Draw only first pass:",
         "Draw only good_user data/variables:", "X-axis scale factor:",
         "Number of curves"]
+    self.graph_labels = list(map(graph_label_maker, self.graph_labels))
     # Grid widgets and labels:
     for i in range(len(self.graph_wids)):
-      tk.Label(self.graph_frame, text=self.graph_labels[i]).grid(
-          row=i, column=0, sticky='W')
+      self.graph_labels[i].grid(row=i, column=0, sticky='W')
       self.graph_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
+      if self.graph_wids[i].param.type == 'STRUCT':
+        self.graph_wids[i].tk_wid.bind('<Configure>', self.width_handler)
     # Set name
     if self.name != "New graph":
       self.d1_array_wids[self.ixd['name']].tk_var.set(self.name)
@@ -5317,16 +5339,28 @@ class new_graph_frame(tk.Frame):
     # Curves
     self.curve_dict = {}
     self.curve_frame = self._scroll_frames[1].frame
+    self._scroll_frames[1].grid(row=6, column=0, columnspan=3, sticky='NSEW')
+    self.grid_rowconfigure(6, weight=1)
     tk.Label(self, text="Curve:").grid(row=4, column=0, sticky='W')
     self.curve_ix = tk.StringVar()
-    self.n_curve = -1
+    self.curve_ix.set(1)
+    self.n_curve = 1
     self.curve_chooser = ttk.Combobox(self, textvariable=self.curve_ix,
-        values=['PLEASE SPECIFY NUMBER OF CURVES'], state='readonly')
-    self.curve_chooser.bind('<<ComboboxSelected>>', self.make_curve_frame)
-    self.curve_chooser.grid(row=4, column=1, sticky='EW')
+        values=list(range(1, self.n_curve+1)), state='readonly')
+    self._spacer = tk.Frame(self, width=15)
+    self._spacer.grid(row=4, column=2, sticky='W')
+    self.curve_chooser.bind('<<ComboboxSelected>>', self.fill_curve_frame)
+    self.curve_chooser.grid(row=4, column=1, sticky='W')
+    ttk.Separator(self, orient='horizontal').grid(row=5, column=0, columnspan=3, sticky='EW')
 
     # Focus the d1 name widget
     self.graph_wids[0].tk_wid.focus_set()
+
+    self.width_handler()
+    self._scroll_frames[0].bind('<Configure>', self.width_handler)
+    self._scroll_frames[1].bind('<Configure>', self.width_handler)
+    self.graph_wids[self.ixd['type']].tk_var.trace('w', self.floor_plan_sh)
+    self.floor_plan_sh()
 
   def delete(self, ask=True, event=None):
     '''
@@ -5375,53 +5409,6 @@ class new_graph_frame(tk.Frame):
     self.parent.graph_frame_list[-1].name_handler()
     self.parent.graph_frame_list[-1].n_curve_handler()
 
-  def clone(self, event=None):
-    '''
-    Clones an existing graph
-    '''
-    return #TODO
-    # Clone the graph parameters
-
-    # Set n_curve for existing graphs
-    if self.name != "New graph":
-      ix_data = self.pipe.cmd_in('python data_d1_array ' + full_name)
-      ix_data = ix_data.splitlines()
-      for line in ix_data:
-        if line.split(';')[3] == self.name:
-          break
-      #line is now set to the relevant line
-      self.d1_array_wids[-2].tk_var.set(line.split(';')[5])
-      self.d1_array_wids[-1].tk_var.set(line.split(';')[6])
-      self.ix_min_handler()
-      self.ix_max_handler()
-    # Fill self.data_dict for existing d1 arrays
-    data_dict_params = ['data_source', 'data_type', 'ele_name', 'ele_start_name', 'ele_ref_name',
-        'data^merit_type', 'meas_value', 'ref_value', 'weight', 'good_user', '1^ix_bunch',
-        'eval_point', 's_offset']
-    if self.name != "New d1_array":
-      self.d2_array.pw.label_vars[self.d2_array.pw.ix].set(
-          'Loading ' + self.d2_array.name + '.' + self.name + '...')
-      self.d2_array.pw.set_max(self.d2_array.pw.ix, self.ix_max-self.ix_min+1)
-      #self.d2_array.update_idletasks()
-      for i in range(self.ix_min, self.ix_max+1):
-        self.d2_array.pw.set_val(self.d2_array.pw.ix, i-self.ix_min)
-        #self.d2_array.update_idletasks()
-        self.data_dict[i] = {}
-        existing_data = self.pipe.cmd_in(
-            'python data ' + full_name + '[' + str(i) + ']')
-        existing_data = existing_data.splitlines()
-        for p in data_dict_params:
-          # Find correct line
-          for line in existing_data:
-            if line.find(p + ';') == 0:
-              break
-          # Write to self.data_dict
-          self.data_dict[i][p] = line.split(';')[3].strip()
-      self.d2_array.pw.ix += 1
-      # Load first datum
-      self.data_ix.set(self.ix_min)
-      self.make_datum_frame()
-
   def fill_curve_frame(self, event=None):
     '''
     Adds an entry to self.curve_dict if necessary, and updates
@@ -5431,109 +5418,72 @@ class new_graph_frame(tk.Frame):
     if ix == 'PLEASE SPECIFY NUMBER OF CURVES':
       return
     ix = int(ix)
-    if ix not in self.curve_dict.keys():
-      self.curve_dict[ix] = {}
-    self.curve_frame.destroy()
-    self.curve_frame = tk.Frame(self)
+    for child in self.curve_frame.winfo_children():
+      child.grid_forget()
+    # Set up widgets for this curve
     def curve_ttp(x):
       ''' Shortcut for commonly used construct '''
-      return tk_tao_parameter(x, self.curve_frame, self.pipe)
-    # Parameters
-    param_list = ['name;STR;T;',
-        'data_source;ENUM;T;',
-        'data_type_x;DAT_TYPE_Z;T;',
-        'data_type;DAT_TYPE;T;',
-        'component;STR;T;',
-        'data_index;STR;T;', #maybe remove
-        'legend_text;STR;T;',
-        'y_axis_scale_factor;REAL;T;',
-        'use_y2;LOGIC;T;F',
-        'draw_line;LOGIC;T;T',
-        'draw_symbols;LOGIC;T;T;',
-        'draw_symbol_index;LOGIC;T;F',
-        'ix_universe;INT;T;',
-        'ix_branch;INT;T;',
-        'ix_bunch;INT;T;',
-        'line;STR;T;', #TODO: qp_line_struct
-        'symbol;STR;T;', #TODO: qp_symbol_struct
-        'symbol_every;INT;T;',
-        'ele_ref_name;STR;T;',
-        'smooth_line_calc;LOGIC;T;',
-        'units;STR;T;']
-    param_list = list(map(str_to_tao_param, param_list))
-    # Set parameter values if specified
-    for i in range(len(param_list)):
-      if param_list[i].name in self.curve_dict[ix].keys():
-        param_list[i].value = self.curve_dict[ix][param_list[i].name]
-    # Create widgets
-    self.curve_wid_list = list(map(curve_ttp, param_list))
-    def data_writer(i):
-      ''' Writes the contents of self.datum_wid_list[i] into self.data_dict '''
-      if self.datum_wid_list[i].param.type == 'LOGIC':
-        val = bool(self.datum_wid_list[i].tk_var.get())
-      else:
-        val = self.datum_wid_list[i].tk_var.get()
-      self.data_dict[ix][self.datum_wid_list[i].param.name] = val
-    def data_writer_callback(i):
-      ''' Callback for data_writer() '''
-      return lambda *args : data_writer(i)
+      return tk_tao_parameter(str_to_tao_param(x), self.curve_frame, self.pipe)
+    if ix not in self.curve_dict.keys():
+      # Parameters
+      param_list = ['name;STR;T;',
+          'data_source;ENUM;T;',
+          'data_type_x;DAT_TYPE_Z;T;',
+          'data_type;DAT_TYPE;T;',
+          'component;STR;T;',
+          'data_index;STR;T;', #maybe remove
+          'legend_text;STR;T;',
+          'y_axis_scale_factor;REAL;T;',
+          'use_y2;LOGIC;T;F',
+          'draw_line;LOGIC;T;T',
+          'draw_symbols;LOGIC;T;T;',
+          'draw_symbol_index;LOGIC;T;F',
+          'ix_universe;INT;T;',
+          'ix_branch;INT;T;',
+          'ix_bunch;INT;T;',
+          'line;STRUCT;T;width;INT;1;color;ENUM;;pattern;ENUM;',
+          'symbol;STRUCT;T;type;ENUM;;height;REAL;6.0;color;ENUM;;fill_pattern;ENUM;;line_width;INT;1',
+          'symbol_every;INT;T;',
+          'ele_ref_name;STR;T;',
+          'smooth_line_calc;LOGIC;T;',
+          'units;STR;T;']
+      self.curve_dict[ix] = list(map(curve_ttp, param_list))
 
-    # Set state of ele_names and s_offset for selected data_type
-    def data_type_callback(*args):
-      # ele_names
-      if self.datum_wid_list[1]._has_ele():
-        for i in range(2, 5):
-          self.datum_wid_list[i].tk_wid.configure(state='normal')
+    # Adjust data_type_x as necessary
+    if self.parent.plot_param_list[self.parent.ixd['x_axis_type']].tk_var.get() == 'data':
+      if self.curve_dict[ix][2].param.type != 'DAT_TYPE':
+        self.curve_dict[ix][2] = curve_ttp('data_type_x;DAT_TYPE;T;')
+    else:
+      if self.curve_dict[ix][2].param.type != 'ENUM_Z':
+        self.curve_dict[ix][2] = curve_ttp('data_type_x;ENUM_Z;T;')
+
+    # Adjust DAT_TYPE widgets for the selected data_source
+    def data_source_handler(*args):
+      if self.curve_dict[ix][1].tk_var.get() == 'beam':
+        for i in range(len(curve_dict[ix])):
+          if curve_dict[ix][i].param.type == 'DAT_TYPE':
+            curve_dict[ix][i]._data_source = 'beam'
+      elif self.curve_dict[ix][1].tk_var.get() == 'lat':
+        for i in range(len(curve_dict[ix])):
+          if curve_dict[ix][i].param.type == 'DAT_TYPE':
+            curve_dict[ix][i]._data_source = 'beam'
       else:
-        for i in range(2, 5):
-          self.datum_wid_list[i].tk_wid.configure(state='disabled')
-      # s_offset
-      if self.datum_wid_list[1]._has_s_offset():
-        self.datum_wid_list[11].tk_wid.configure(state='normal')
-      else:
-        self.datum_wid_list[11].tk_wid.configure(state='disabled')
+        for i in range(len(curve_dict[ix])):
+          if curve_dict[ix][i].param.type == 'DAT_TYPE':
+            curve_dict[ix][i]._data_source = ''
+    if self.curve_dict[ix][1].tk_var.trace_vinfo() == []:
+      self.curve_dict[ix][1].tk_var.trace('w', data_source_handler)
+
+
     # Grid widgets
-    for i in range(len(self.datum_wid_list)):
-      self.datum_wid_list[i].tk_label.grid(row=i, column=0, sticky='E')
-      self.datum_wid_list[i].tk_wid.grid(row=i, column=1, sticky='EW')
-      # Write changes into self.data_dict
-      self.datum_wid_list[i].tk_var.trace('w', data_writer_callback(i))
-    self.datum_wid_list[1].tk_var.trace('w', data_type_callback)
-    self.datum_frame.grid(row=20, column=0, columnspan=3, sticky='EW')
+    for i in range(len(self.curve_dict[ix])):
+      self.curve_dict[ix][i].tk_label.grid(row=i, column=0, sticky='W')
+      self.curve_dict[ix][i].tk_wid.grid(row=i, column=1, sticky='EW')
+      if self.curve_dict[ix][i].param.type == 'STRUCT':
+        self.curve_dict[ix][i].tk_wid.bind('<Configure>', self.width_handler)
 
-  def datum_fill(self, ix):
-    '''
-    "Fills" the value in self.d1_array_wids[ix] to all datums in self.data_dict
-    Actually just erases the values in self.data_dict, which produces the same effect
-    '''
-    for i in self.data_dict.keys():
-      param = self.d1_array_wids[ix].param.name
-      if param in self.data_dict[i].keys():
-        self.data_dict[i].pop(param)
-      elif 'data^'+param in self.data_dict[i].keys():
-        self.data_dict[i].pop('data^'+param)
-    # Redraw datum frame to reflect changes
-    try:
-      int(self.data_ix.get())
-      self.make_datum_frame()
-    except ValueError:
-      pass
-
-  def lat_browser(self, which):
-    '''
-    Opens a modified lattice table window to select elements en masse
-    which should be either 'name', 'start_name', or 'ref_name'
-    When the elements are chosen, ele_which will be set for each of this
-    d1_array's data sequentially
-    '''
-    # Make sure the name, ix_min, and ix_max are set
-    if (bool(self.name_handler()) | bool(self.ix_min_handler())
-        | bool(self.ix_max_handler())):
-      return
-    #
-    name = self.d2_array.name + '.' + self.name
-    win = tao_ele_browser(self.d2_array.root, self.pipe, name, self,
-        'data', which, self.d2_array.uni.get())
+    # Column widths
+    self.width_handler()
 
   def name_handler(self, event=None):
     '''
@@ -5549,7 +5499,8 @@ class new_graph_frame(tk.Frame):
       for graph in self.parent.graph_frame_list:
         if (graph.name == name) & (self != self.parent.graph_frame_list[i]):
           self.name_warning_1.grid_forget()
-          self.name_warning_2.grid(row=self.ixd['name']+self.ix_offset, column=2, sticky='W')
+          self.name_warning_2.grid(row=self.ixd['name'], column=2, sticky='W')
+          self.width_handler()
           return 1
         i = i+1
 
@@ -5557,15 +5508,86 @@ class new_graph_frame(tk.Frame):
       self.parent.notebook.tab(self.parent.graph_index, text=self.name)
       self.name_warning_1.grid_forget()
       self.name_warning_2.grid_forget()
+      self.width_handler()
     else:
       self.name_warning_2.grid_forget()
-      self.name_warning_1.grid(row=2, column=2, sticky='W')
+      self.name_warning_1.grid(row=self.ixd['name'], column=2, sticky='W')
       self.name = "New graph"
       self.parent.notebook.tab(self.parent.graph_index, text="New graph")
+      self.width_handler()
       return 1
 
   def n_curve_handler(self, event=None):
-    pass #TODO
+    if self.handler_block:
+      return
+    try:
+      n_curve = int(self.graph_wids[self.ixd['n_curve']].tk_var.get())
+    except ValueError:
+      n_curve = -1
+    if n_curve < 0:
+      self.n_curve_warning.grid(row=self.ixd['n_curve'], column=2, sticky='W')
+      return 1
+    else:
+      self.n_curve_warning.grid_forget()
+      self.n_curve = n_curve
+      self.curve_chooser.configure(values = list(range(1, self.n_curve+1)))
+    self.width_handler()
+
+  def floor_plan_sh(self, *args):
+    '''
+    Shows/hides the floor_plan settiings if the graph type is set to floor plan
+    '''
+    if self.graph_wids[self.ixd['type']].tk_var.get() == 'floor_plan':
+      for w in self.graph_wids:
+        if w.grid_info() == {}:
+          w.tk_wid.grid(row=self.ixd[w.param.name], column=1, sticky='EW')
+          self.graph_labels[self.ixd[w.param_name]].grid(row=self.ixd[w.param_name], column=0, sticky='W')
+    else:
+      for w in self.graph_wids:
+        if w.param.name.find('floor_plan') == 0:
+          w.tk_wid.grid_forget()
+          self.graph_labels[self.ixd[w.param.name]].grid_forget()
+
+  def width_handler(self, event=None):
+    '''
+    Sets the column widths of the various sub-frames to be the same
+    '''
+    self.column_widths = [0,0,0]
+    # Graph settings
+    for w in self.graph_frame.grid_slaves():
+      c = w.grid_info()['column']
+      if c > 2:
+        continue
+      width = w.winfo_width()
+      if width > self.column_widths[c]:
+        self.column_widths[c] = width
+
+    # Curve picker
+    if self.curve_chooser.winfo_width() - 15 > self.column_widths[1]:
+      self.column_widths[1] = self.curve_chooser.winfo_width()
+
+    # Curve parameters
+    for w in self.curve_frame.grid_slaves():
+      c = w.grid_info()['column']
+      if c > 2:
+        continue
+      width = w.winfo_width()
+      if width > self.column_widths[c]:
+        self.column_widths[c] = width
+
+    # Set the column widths
+    self.grid_columnconfigure(0, minsize=self.column_widths[0])
+    self.grid_columnconfigure(1, minsize=self.column_widths[1])
+    self.grid_columnconfigure(2, minsize=self.column_widths[2]+15)
+    self._spacer.configure(width=15+self.column_widths[2])
+    self.graph_frame.grid_columnconfigure(0, minsize=self.column_widths[0])
+    self.graph_frame.grid_columnconfigure(1, minsize=self.column_widths[1])
+    self.graph_frame.grid_columnconfigure(2, minsize=self.column_widths[2])
+    self.curve_frame.grid_columnconfigure(0, minsize=self.column_widths[0])
+    self.curve_frame.grid_columnconfigure(1, minsize=self.column_widths[1])
+    self.curve_frame.grid_columnconfigure(2, minsize=self.column_widths[2])
+
+
 
 
 
