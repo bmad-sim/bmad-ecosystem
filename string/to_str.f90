@@ -34,10 +34,12 @@ if (num == 0) then
 endif
 
 pl = floor(log10(abs(num)))
-if (abs(pl) < 10) then
-  fmt = '(2a, i2.2)'
-else
+if (abs(pl) >= 10) then
   fmt = '(2a, i0)'
+elseif (pl < 0) then
+  fmt = '(2a, i3.2)'
+else
+  fmt = '(2a, i2.2)'
 endif
 
 !
