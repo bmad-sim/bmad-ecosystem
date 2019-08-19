@@ -210,11 +210,25 @@ class taotoolbar(NavigationToolbar2Tk):
 		image = None
 
 		win = tk.Toplevel(self.parent)
+
 		# Title string
 		title = 'Graph Help'
-		# Help items
+
+		#Help items and descriptions
 		help_items = ['Home    ','', 'Back    ','','Forward    ','','Pan/Zoom    ','','Zoom Rectangle    ','','Recalculate Points    ','','Width Slider','','Save    ']
-		help_descrips = ["Returns to original view with original points, shortcuts are 'h' or 'r'.",'',"Returns to previous view, shortcuts are 'c' or 'left arrow'.",'',"Undoes the last back command, shortcuts are 'v' or 'right arrow'.",'',"Toggles panning by left clicking and dragging, and zooming by using the scroll wheel or by right clicking and dragging. Holding 'x' restricts panning and zooming to the x axis, holding 'y' restricts panning and zooming to the y axis, and holding control maintains the aspect ratio.",'',"Toggles zooming by left clicking and dragging to select the new window. Holding 'x' restricts zooming to the x axis, holding 'y' restricts zooming to the y axis, and holding control maintains the aspect ratio.",'','Recalculates points to better fit the current window size','','Makes a slider that changes the size of a lat layout if one is drawn below a graph, or changes width of elements in a floor plan.','',"Saves the current figure as an image file, shortcut is 'ctrl + s'."]
+		help_descrips = ["Returns to original view with original points, shortcuts are 'h' or 'r'.",
+				'',
+				"Returns to previous view, shortcuts are 'c' or 'left arrow'.",
+				'',
+				"Undoes the last back command, shortcuts are 'v' or 'right arrow'.",
+				'',
+				"Toggles panning by left clicking and dragging, and zooming by using the scroll wheel or by right clicking and dragging. Holding 'x' restricts panning and zooming to the x axis, holding 'y' restricts panning and zooming to the y axis, and holding control maintains the aspect ratio.",
+				'',
+				"Toggles zooming by left clicking and dragging to select the new window. Holding 'x' restricts zooming to the x axis, holding 'y' restricts zooming to the y axis, and holding control maintains the aspect ratio.",'','Recalculates points to better fit the current window size',
+				'',
+				'Makes a slider that changes the size of a lat layout if one is drawn below a graph, or changes width of elements in a floor plan.',
+				'',
+				"Saves the current figure as an image file, shortcut is 'ctrl + s'."]
 		wl = 600
 
 		tk.Label(win, text=title).grid(row=0, column=0, columnspan=2, sticky='EW')
