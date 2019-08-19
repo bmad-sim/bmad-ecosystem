@@ -94,11 +94,7 @@ if (err) return
 ! representing the region
 
 call tao_plot_struct_transfer (template(1)%p, region%plot)
-if (s%global%plot_on) then
-  region%visible = .true.
-else
-  region%visible = .false.
-endif
+region%visible = .true.
 region%plot%r => region
 
 ! If the plot has a phase_space curve then recalculate the lattice
@@ -124,7 +120,7 @@ enddo
 ! Turn off overlapping plots.
 ! Do this even if plot_on = F since in a command file might have plot_on = F.
 
-if (s%plot_page%delete_overlapping_plots) then
+if (s%plot_page%delete_overlapping_plots .and. .not. s%global%external_plotting) then
   do i = 1, size(s%plot_page%region)
     r2 => s%plot_page%region(i)
     if (.not. r2%visible) cycle

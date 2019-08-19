@@ -104,12 +104,6 @@ calculate points for plotting, the \vn{force_plot_data_calc} component of the \v
   set global force_plot_data_calc = T
 \end{example}
 
-When \tao is calculating data points with \vn{global%plot_on} set to False and
-\vn{global%force_plot_data_calc} set to True, to prevent unneeded computation, the
-\vn{visible} parameter of template plots that are placed (\sref{s:place}) is set to False and must
-be set to True, using the \vn{set plot} command (\sref{s:set.plot}), to enable computation of the
-curve points.
-
 To make plot references unambiguous, plot can be referred to by their index number. The plot index
 number can be viewed using the \vn{python plot_list} command. Template plots can be referenced using
 the syntax ``\vn{@Tnnn}'' where \vn{nnn} is the index number. For example, \vn{@T3} referrers to the
