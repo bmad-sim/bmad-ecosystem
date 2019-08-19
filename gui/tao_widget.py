@@ -66,6 +66,8 @@ class tk_tao_parameter():
         self.param.type = 'ENUM'
       if options == [""]:
         options = [self.param.value]
+      if options[0].find('[FATAL') == 0:
+        options = ['[ERROR]']
       if self.param.value == "":
         self.tk_var.set(options[0])
       if self.param.can_vary:
@@ -138,6 +140,7 @@ class tk_tao_parameter():
       self.tk_var = tk.StringVar()
       self.tk_var.set('STRUCT')
       self.tk_wid = tk.Frame(frame)
+      self.tk_wid.grid_columnconfigure(1, weight=1)
       self._shown = False
       self._m_label = tk.StringVar()
       self._m_label.set("Configure..." if self.param.can_vary else "View...")
@@ -160,6 +163,36 @@ class tk_tao_parameter():
       elif self.param.type != 'STRUCT':
         for widget in self._s:
           widget.config(state="disabled")
+
+  def value(self):
+    '''
+    Returns the value in the input field(s) of self, appropriately typed
+    If an invalid value is input, returns None
+    '''
+    if self.param.type in ['STR', 'ENUM', 'FILE']:
+      return self.tk_var.get()
+    elif self.param.type in ['INT', 'INUM']:
+      try:
+        return int(self.tk_var.get())
+      except:
+        return None
+    elif self.param.type == 'REAL':
+      try:
+        return float(self.tk_var.get())
+      except:
+        return None
+    elif self.param.type == 'LOGIC':
+      return bool(self.tk_var.get())
+    elif self.param.type == 'DAT_TYPE':
+      if self._is_valid_dat_type(self.tk_var.get()):
+        return self.tk_var.get()
+      else:
+        return None
+    elif self.param.type == 'STRUCT':
+      d = {}
+      for ttp in self._s:
+        d[ttp.param.name] = ttp.value()
+      return d
 
   def _show_hide_struct(self, event=None, *args):
     '''

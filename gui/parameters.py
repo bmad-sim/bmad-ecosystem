@@ -52,7 +52,7 @@ class tao_parameter():
       self.value = param_value
     elif param_type == 'LOGIC':
       self.value = (param_value == 'T')
-    elif param_type == 'ENUM':
+    elif param_type in ['ENUM', 'ENUM_Z']:
       self.value = param_value
     elif param_type == 'INUM':
       try:
