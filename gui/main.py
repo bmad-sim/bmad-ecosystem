@@ -35,8 +35,9 @@ class tao_root_window(tk.Tk):
     #default_font.configure(size=14)
     #self.option_add("*Font", default_font)
 
-    # Menu bar
-    #self.menubar_init()
+    self.GUI_DIR = (os.environ['ACC_LOCAL_ROOT'] if
+        'ACC_LOCAL_ROOT' in os.environ.keys() else os.environ['ACC_ROOT_DIR'])
+    self.GUI_DIR += '/tao/gui'
 
     # Window lists (accessible for refreshing)
     self.refresh_windows = {}
