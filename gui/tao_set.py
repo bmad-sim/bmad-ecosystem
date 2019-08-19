@@ -87,7 +87,7 @@ def tao_set(tao_list,set_str,pipe, overide=False):
       for ttp in item._s:
         unrolled_list.append(ttp)
         # the name to use for setting is struct_name.component_name
-        unrolled_list[-1].param.name = item.param.name + '.' + ttp.param.name
+        unrolled_list[-1].param.name = item.param.name + '.' + ttp.param._name
     else:
       unrolled_list.append(item)
   tao_list = unrolled_list
