@@ -1941,11 +1941,55 @@ machine centerline.
 With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}), phase space plots are produced.
 
 %-----------------------------------------------------------------
-\subsection{Curve Line and Symbol Parameters}
+\subsection{Quick Plot Plotting}
 \label{s:line.symb}
 
-Parameters for lines and symbols drawn for a given \vn{curve}
+\vn{Quick PLot} is an interface library developed for \bmad for graphics plotting. \vn{Quick Plot} defines
+a number of structures to parameterize such things like line and symbol properties. The ones that \tao uses
+are as follows
 
+The \vn{qp_axis_struct} structure that defines the properties of a graph axis
+\begin{example}
+  type qp_axis_struct
+    label             = <string>
+    min               = <real>
+    max               = <real>     ! min is actually left or bottom axis number.
+    number_offset     = <real>    ! offset from axis line in inches.
+    label_offset      = <real>     ! offset from numbers in inches.
+    major_tick_len    = <real>   ! in inches.
+    minor_tick_len    = <real>   ! in inches.
+    label_color       = <string>
+    major_div         = <integer>
+    major_div_nominal = <integer>Nominal value.
+    minor_div         = <integer>      ! 0 = auto choose.
+    minor_div_max     = <integer>  ! max number for auto choose.
+    places            = <integer>
+    type              = <string>  'LINEAR'      ! or 'LOG', or 'CUSTOM'
+    bounds            = <string>    'GENERAL'   ! or 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
+    tick_side         = <integer>1 = draw to the inside, 0 = both, -1 = outside.
+    number_side       = <integer>= draw to the inside, -1 = outside.
+    draw_label        = <logical>
+    draw_numbers      = <logical>
+  end type
+\end{example}
+
+\begin{example}
+  type qp_line_struct
+    width             = <integer>
+    color             = <string>  'black'
+    pattern           = <string>  'solid'
+  end type
+\end{example}
+
+\begin{example}
+  type qp_symbol_struct
+    type              = <string>dot'
+    height            = <real>! in points (same as text height)
+    color             = <string>
+    fill_pattern      = <string>ill'
+    line_width        = <integer>
+  end type
+\end{example}
 
 %-----------------------------------------------------------------
 \subsection{Data and Variable plotting}
