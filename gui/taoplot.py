@@ -541,9 +541,8 @@ class taoplot:
 			plt.title(pgp_to_mpl(gInfoDict['title'].value)+' '+gInfoDict['title_suffix'].value)
 			#plot title
 
-			LegendList = []
-			LabelList = []
-
+			LegendList = [] #legends for each graph
+			LabelList = [] #labels in each legend
 			try:
 				for i in range(len(CurvesList)):
 					LegendList.append(LineList[i][0])
