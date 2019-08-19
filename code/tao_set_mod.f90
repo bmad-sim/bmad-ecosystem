@@ -2628,10 +2628,10 @@ logical error
 
 error = .true.
 
-call match_word(value_str, name_list, ix, .false., .true.)
+call match_word(remove_quotes(value_str), name_list, ix, .false., .true.)
 
 if (ix == 0) then
-  call out_io (s_error$, r_name, trim(err_str) // ' IS UNKNOWN.')
+  call out_io (s_error$, r_name, trim(err_str) // ' VALUE IS UNKNOWN.')
   return 
 endif
 
@@ -2641,7 +2641,7 @@ if (ix < 0) then
 endif
 
 switch_val = ix + (l_bound - 1)
-if (present(switch_str)) switch_str = downcase(name_list(ix))
+if (present(switch_str)) switch_str = downcase(name_list(switch_val))
 
 error = .false.
 
