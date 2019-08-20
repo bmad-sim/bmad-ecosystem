@@ -1,7 +1,7 @@
 #! /usr/bin/python
  
 # Parse opera field map table to bmad field map format.
-# Developed by: henry Lovelace III
+# Developed by: Henry Lovelace III
 
 import os, sys, stat, math
 import glob
