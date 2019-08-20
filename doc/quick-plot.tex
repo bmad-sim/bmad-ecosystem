@@ -3,27 +3,13 @@
 \index{quick_plot|hyperbf}
 \index{pgplot!and Quick_Plot}
 
-The plotting package included in the \bmad distribution is PGPLOT
-(see \sref{s:libs}).
-One drawback of PGPLOT is that the arguments to
-PGPLOT's subroutines are not always conveniently structured. to remedy
-this a suite of wrapper routines have been developed which can be
-used to drive PGPLOT. This suite is called \quickplot and lives in the
-\vn{sim_utils} library which comes with the Bmad distribution. A quick
-reference guide can be seen online by using the command \vn{getf
-quick_plot}. For quick identification in a program, all \quickplot
-subroutines start with a \vn{qp_} prefix. Also, by convention, all
-PGPLOT subroutines start with a \vn{pg} prefix.
-
-While \quickplot covers most of the features of PGPLOT, \quickplot is
-still a work in progress.  For example, contour plots have not yet
-been implemented in \quickplot. If you see a feature that is lacking
-in \quickplot please do not hesitate to make a request to
-\vn{dcs16@cornell.edu}.
-
-Note: PGPLOT uses single precision real(4) numbers while \quickplot
-uses real(rp) numbers.  If you use any PGPLOT subroutines directly be
-careful of this.
+\quickplot is an interface layer to either the \vn{PGPLOT}\cite{b:pgplot} or
+\vn{PLPLOT}\cite{plplot} plotting libraries. Whether \vn{PGPLOT} or \vn{PLPLOT} is used depends upon
+an environmental switch set when the \bmad library and other associated libraries are compiled
+(\sref{s:libs}). [Note: \quickplot lives in the \vn{sim_utils} library which comes with the Bmad
+distribution.] A quick reference guide can be seen online by using the command \vn{getf
+quick_plot}. For identification in a program, all \quickplot subroutines start with a \vn{qp_}
+prefix. Also, by convention, all PGPLOT subroutines start with a \vn{pg} prefix.
 
 %----------------------------------------------------------------------------
 
@@ -89,16 +75,16 @@ careful of this.
     call qp_draw_data (x, y, symbol_every = 0)
 
     call qp_save_state (.true.)
-    call qp_set_symbol_attrib (times$, color = blue$, height = 20.0_rp)
-    call qp_set_line_attrib ("PLOT", color = blue$, style = dashed$)
+    call qp_set_symbol_attrib ('times', color = 'blue', height = 20.0_rp)
+    call qp_set_line_attrib ("PLOT", color = 'blue', style = 'dashed')
     call qp_draw_data (x, z, symbol_every = 5)
     call qp_restore_state
 
-    ! draw the right graph. star5_filled$ is a five pointed star.
+    ! draw the right graph. 'star5_filled' is a five pointed star.
     call qp_save_state (.true.)
     call qp_set_box (2, 1, 2, 1)
     call qp_set_graph_attrib (draw_grid = .false.)
-    call qp_set_symbol_attrib (star5_filled$, height = 10.0_rp)
+    call qp_set_symbol_attrib ('star5_filled', height = 10.0_rp)
     call qp_set_axis ("Y", -0.1_rp, 0.1_rp, 4, 2)
     call qp_set_axis ('Y2', 1.0_rp, 100.0_rp, label = 'Y2 axis', &
                                 draw_numbers = .true., ax_type = 'LOG')
@@ -364,9 +350,8 @@ To plot data using the \vn{X2} or \vn{Y2} scale use the
 \section{Text}
 \label{s:text}
 
-PGPLOT defines certain escape sequences that can be used in text strings
-to draw Greek letters, etc. These escape sequences are given in 
-Table~\ref{t:pgplot.escape}.
+PGPLOT defines certain escape sequences that can be used in text strings to draw Greek letters,
+etc. These escape sequences are given in Table~\ref{t:pgplot.escape}.
 
 PGPLOT defines a text background index:
 \begin{example}
@@ -379,10 +364,9 @@ PGPLOT defines a text background index:
 \section{Styles}
 \label{s:styles}
 
-Symbolic constants have been defined for \quickplot subroutine
-arguments that are used to choose various styles. As an example of
-this is in lines 44 and 45 of \fig{f:plot.example}. The
-numbers in the following are the PGPLOT equivalents.
+Symbolic constants have been defined for \quickplot subroutine arguments that are used to choose
+various styles. As an example of this is in lines 44 and 45 of \fig{f:plot.example}. The numbers in
+the following are the PGPLOT equivalents.
 
 \index{quick_plot!line styles}
 The \quickplot line styles are:
