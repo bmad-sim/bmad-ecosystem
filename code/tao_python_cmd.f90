@@ -2018,7 +2018,7 @@ case ('evaluate')
 
 case ('enum')
 
-  if (index(line, '.color') /= 0) then
+  if (index(line, 'color') /= 0) then
     do i = lbound(qp_color_name, 1), ubound(qp_color_name, 1)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_color_name(i))
     enddo
@@ -2027,6 +2027,15 @@ case ('enum')
   endif
 
   select case (line)
+  case ('axis^type')
+    nl=incr(nl); write(li(nl), '(i0, 2a)') 1, ';LINEAR'
+    nl=incr(nl); write(li(nl), '(i0, 2a)') 2, ';LOG'
+
+  case ('bounds')
+    nl=incr(nl); write(li(nl), '(i0, 2a)') 1, ';GENERAL'
+    nl=incr(nl); write(li(nl), '(i0, 2a)') 2, ';ZERO_AT_END'
+    nl=incr(nl); write(li(nl), '(i0, 2a)') 3, ';ZERO_SYMMETRIC'
+
   case ('data^merit_type')
     do i = 1, size(data_merit_type_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_merit_type_name(i))
@@ -2470,6 +2479,10 @@ case ('inum')
   case ('interpolation_order')
     nl=incr(nl); write (li(nl), '(i0)') 1
     nl=incr(nl); write (li(nl), '(i0)') 3
+
+  case('tick_side', 'number_side')
+    nl=incr(nl); write (li(nl), '(i0)') -1
+    nl=incr(nl); write (li(nl), '(i0)') +1
 
   case default
     call invalid ('Not a recognized inum')
@@ -2949,20 +2962,45 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'draw_grid;LOGIC;T;',                      g%draw_grid
   nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
-  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
-                            ';max;REAL;', to_str(x_ax%max), ';min;REAL;', to_str(x_ax%min), ';major_div;INT;', x_ax%major_div, &
-                            ';major_div_nominal;INT;', x_ax%major_div_nominal, ';places;INT;', x_ax%places, &
+  if (s%global%external_plotting) then
+    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
+                            ';max;REAL;', to_str(x_ax%max), ';min;REAL;', to_str(x_ax%min), &
                             ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers
-
-  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                            ';max;REAL;', to_str(y_ax%max), ';min;REAL;', to_str(y_ax%min), ';major_div;INT;', y_ax%major_div, &
-                            ';major_div_nominal;INT;', y_ax%major_div_nominal, ';places;INT;', y_ax%places, &
+    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
+                            ';max;REAL;', to_str(y_ax%max), ';min;REAL;', to_str(y_ax%min), &
                             ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers
-
-  nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                            ';max;REAL;', to_str(g%y2%max), ';min;REAL;', to_str(g%y2%min), ';major_div;INT;', g%y2%major_div, &
-                            ';major_div_nominal;INT;', g%y2%major_div_nominal, ';places;INT;', g%y2%places, &
+    nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
+                            ';max;REAL;', to_str(g%y2%max), ';min;REAL;', to_str(g%y2%min), &
                             ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers
+  else
+    nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
+                    ';label_color;ENUM;', x_ax%label_color, 'label_offset;REAL;', x_ax%label_offset, &
+                    ';max;REAL;', to_str(x_ax%max), ';min;REAL;', to_str(x_ax%min), &
+                    ';axis^type;ENUM;', x_ax%type, ';bounds;ENUM;', x_ax%bounds, &
+                    ';number_offset;REAL;', to_str(x_ax%number_offset), ';major_div_nominal;INT;', x_ax%major_div_nominal, &
+                    ';minor_div;REAL;', x_ax%minor_div, ';minor_div_max;REAL;', x_ax%minor_div_max, &
+                    ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers, &
+                    ';tick_side;INUM;', x_ax%tick_side, ';number_side;INUM;', x_ax%number_side, &
+                    ';major_tick_len;REAL;', x_ax%major_tick_len, ';minor_tick_len;REAL;', x_ax%minor_tick_len
+    nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
+                    ';label_color;ENUM;', y_ax%label_color, 'label_offset;REAL;', y_ax%label_offset, &
+                    ';max;REAL;', to_str(y_ax%max), ';min;REAL;', to_str(y_ax%min), &
+                    ';axis^type;ENUM;', y_ax%type, ';bounds;ENUM;', y_ax%bounds, &
+                    ';number_offset;REAL;', to_str(y_ax%number_offset), ';major_div_nominal;INT;', y_ax%major_div_nominal, &
+                    ';minor_div;REAL;', y_ax%minor_div, ';minor_div_max;REAL;', y_ax%minor_div_max, &
+                    ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers, &
+                    ';tick_side;INUM;', y_ax%tick_side, ';number_side;INUM;', y_ax%number_side, &
+                    ';major_tick_len;REAL;', y_ax%major_tick_len, ';minor_tick_len;REAL;', y_ax%minor_tick_len
+    nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
+                    ';label_color;ENUM;', g%y2%label_color, 'label_offset;REAL;', g%y2%label_offset, &
+                    ';max;REAL;', to_str(g%y2%max), ';min;REAL;', to_str(g%y2%min), &
+                    ';axis^type;ENUM;', g%y2%type, ';bounds;ENUM;', g%y2%bounds, &
+                    ';number_offset;REAL;', to_str(g%y2%number_offset), ';major_div_nominal;INT;', g%y2%major_div_nominal, &
+                    ';minor_div;REAL;', g%y2%minor_div, ';minor_div_max;REAL;', g%y2%minor_div_max, &
+                    ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers, &
+                    ';tick_side;INUM;', g%y2%tick_side, ';number_side;INUM;', g%y2%number_side, &
+                    ';major_tick_len;REAL;', g%y2%major_tick_len, ';minor_tick_len;REAL;', g%y2%minor_tick_len
+  endif
 
 !----------------------------------------------------------------------
 ! Plot Histogram
