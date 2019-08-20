@@ -1,6 +1,5 @@
 import matplotlib as mp
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
 from tao_interface import *
 from parameters import *
 import matplotlib.patches as patches
@@ -563,16 +562,6 @@ class taoplot:
 			plt.xlabel(pgp_to_mpl(gInfoDict['x'].get_component('label')))
 			plt.ylabel(pgp_to_mpl(gInfoDict['y'].get_component('label')))
 			#plot axis labels
-
-			try:
-				xmajorLocator=MultipleLocator((gInfoDict['x'].get_component('max')-gInfoDict['x'].get_component('min'))/gInfoDict['x'].get_component('major_div'))
-				ymajorLocator=MultipleLocator((gInfoDict['y'].get_component('max')-gInfoDict['y'].get_component('min'))/gInfoDict['y'].get_component('major_div'))
-			except ValueError:
-				raise ValueError('graph missing, make sure the lattice is properly initialized')
-
-			#GraphDict['graph'+str(gNumber+1)].xaxis.set_major_locator(xmajorLocator)
-			#GraphDict['graph'+str(gNumber+1)].yaxis.set_major_locator(ymajorLocator)
-			#find locations for grid lines
 
 			GraphDict['graph'+str(gNumber+1)].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
 			#plot grid
@@ -1249,10 +1238,6 @@ class taoplot:
 			plt.ylabel(pgp_to_mpl(gInfoDict['y'].get_component('label')))
 			#plot floor plan axis labels
 
-			xmajorLocator=MultipleLocator((gInfoDict['x'].get_component('max')-gInfoDict['x'].get_component('min'))/gInfoDict['x'].get_component('major_div'))
-			ymajorLocator=MultipleLocator((gInfoDict['y'].get_component('max')-gInfoDict['y'].get_component('min'))/gInfoDict['y'].get_component('major_div'))
-			#GraphDict['FloorPlan'].xaxis.set_major_locator(xmajorLocator)
-			#GraphDict['FloorPlan'].yaxis.set_major_locator(ymajorLocator)
 			GraphDict['FloorPlan'].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
 			plt.xlim(gInfoDict['x'].get_component('min'),gInfoDict['x'].get_component('max'))
 			plt.ylim(gInfoDict['y'].get_component('min'),gInfoDict['y'].get_component('max'))
