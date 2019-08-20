@@ -2964,42 +2964,45 @@ case ('plot_graph')
 
   if (s%global%external_plotting) then
     nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
-                            ';max;REAL;', to_str(x_ax%max), ';min;REAL;', to_str(x_ax%min), &
+                            ';max;REAL;', to_str(x_ax%max,6), ';min;REAL;', to_str(x_ax%min,6), &
                             ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers
     nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                            ';max;REAL;', to_str(y_ax%max), ';min;REAL;', to_str(y_ax%min), &
+                            ';max;REAL;', to_str(y_ax%max,6), ';min;REAL;', to_str(y_ax%min,6), &
                             ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers
     nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                            ';max;REAL;', to_str(g%y2%max), ';min;REAL;', to_str(g%y2%min), &
+                            ';max;REAL;', to_str(g%y2%max,6), ';min;REAL;', to_str(g%y2%min,6), &
                             ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers
   else
-    nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
-                    ';label_color;ENUM;', x_ax%label_color, 'label_offset;REAL;', x_ax%label_offset, &
-                    ';max;REAL;', to_str(x_ax%max), ';min;REAL;', to_str(x_ax%min), &
-                    ';axis^type;ENUM;', x_ax%type, ';bounds;ENUM;', x_ax%bounds, &
-                    ';number_offset;REAL;', to_str(x_ax%number_offset), ';major_div_nominal;INT;', x_ax%major_div_nominal, &
-                    ';minor_div;REAL;', x_ax%minor_div, ';minor_div_max;REAL;', x_ax%minor_div_max, &
+    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'x;STRUCT;T;label;STR;', trim(x_ax%label), &
+                    ';label_color;ENUM;', trim(x_ax%label_color), ';label_offset;REAL;', to_str(x_ax%label_offset,6), &
+                    ';max;REAL;', to_str(x_ax%max,6), ';min;REAL;', to_str(x_ax%min,6), &
+                    ';axis^type;ENUM;', trim(x_ax%type), ';bounds;ENUM;', trim(x_ax%bounds), &
+                    ';number_offset;REAL;', to_str(x_ax%number_offset,6), ';major_div_nominal;INT;', x_ax%major_div_nominal, &
+                    ';minor_div;INT;', x_ax%minor_div, ';minor_div_max;INT;', x_ax%minor_div_max, &
                     ';draw_label;LOGIC;', x_ax%draw_label, ';draw_numbers;LOGIC;', x_ax%draw_numbers, &
                     ';tick_side;INUM;', x_ax%tick_side, ';number_side;INUM;', x_ax%number_side, &
-                    ';major_tick_len;REAL;', x_ax%major_tick_len, ';minor_tick_len;REAL;', x_ax%minor_tick_len
-    nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                    ';label_color;ENUM;', y_ax%label_color, 'label_offset;REAL;', y_ax%label_offset, &
-                    ';max;REAL;', to_str(y_ax%max), ';min;REAL;', to_str(y_ax%min), &
-                    ';axis^type;ENUM;', y_ax%type, ';bounds;ENUM;', y_ax%bounds, &
-                    ';number_offset;REAL;', to_str(y_ax%number_offset), ';major_div_nominal;INT;', y_ax%major_div_nominal, &
-                    ';minor_div;REAL;', y_ax%minor_div, ';minor_div_max;REAL;', y_ax%minor_div_max, &
+                    ';major_tick_len;REAL;', to_str(x_ax%major_tick_len,6), ';minor_tick_len;REAL;', to_str(x_ax%minor_tick_len,6)
+
+    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
+                    ';label_color;ENUM;', trim(y_ax%label_color), 'label_offset;REAL;', to_str(y_ax%label_offset,6), &
+                    ';max;REAL;', to_str(y_ax%max,6), ';min;REAL;', to_str(y_ax%min,6), &
+                    ';axis^type;ENUM;', trim(y_ax%type), ';bounds;ENUM;', trim(y_ax%bounds), &
+                    ';number_offset;REAL;', to_str(y_ax%number_offset,6), ';major_div_nominal;INT;', y_ax%major_div_nominal, &
+                    ';minor_div;INT;', y_ax%minor_div, ';minor_div_max;INT;', y_ax%minor_div_max, &
                     ';draw_label;LOGIC;', y_ax%draw_label, ';draw_numbers;LOGIC;', y_ax%draw_numbers, &
                     ';tick_side;INUM;', y_ax%tick_side, ';number_side;INUM;', y_ax%number_side, &
-                    ';major_tick_len;REAL;', y_ax%major_tick_len, ';minor_tick_len;REAL;', y_ax%minor_tick_len
-    nl=incr(nl); write (li(nl), '(6a, 3(a, i0), 2(a, l1))') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                    ';label_color;ENUM;', g%y2%label_color, 'label_offset;REAL;', g%y2%label_offset, &
-                    ';max;REAL;', to_str(g%y2%max), ';min;REAL;', to_str(g%y2%min), &
-                    ';axis^type;ENUM;', g%y2%type, ';bounds;ENUM;', g%y2%bounds, &
-                    ';number_offset;REAL;', to_str(g%y2%number_offset), ';major_div_nominal;INT;', g%y2%major_div_nominal, &
-                    ';minor_div;REAL;', g%y2%minor_div, ';minor_div_max;REAL;', g%y2%minor_div_max, &
+                    ';major_tick_len;REAL;', to_str(y_ax%major_tick_len,6), ';minor_tick_len;REAL;', to_str(y_ax%minor_tick_len,6)
+
+    nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
+                    ';label_color;ENUM;', trim(g%y2%label_color), 'label_offset;REAL;', to_str(g%y2%label_offset,6), &
+                    ';max;REAL;', to_str(g%y2%max,6), ';min;REAL;', to_str(g%y2%min,6), &
+                    ';axis^type;ENUM;', trim(g%y2%type), ';bounds;ENUM;', trim(g%y2%bounds), &
+                    ';number_offset;REAL;', to_str(g%y2%number_offset,6), ';major_div_nominal;INT;', g%y2%major_div_nominal, &
+                    ';minor_div;INT;', g%y2%minor_div, ';minor_div_max;INT;', g%y2%minor_div_max, &
                     ';draw_label;LOGIC;', g%y2%draw_label, ';draw_numbers;LOGIC;', g%y2%draw_numbers, &
                     ';tick_side;INUM;', g%y2%tick_side, ';number_side;INUM;', g%y2%number_side, &
-                    ';major_tick_len;REAL;', g%y2%major_tick_len, ';minor_tick_len;REAL;', g%y2%minor_tick_len
+                    ';major_tick_len;REAL;', to_str(g%y2%major_tick_len,6), ';minor_tick_len;REAL;', to_str(g%y2%minor_tick_len,6)
+
   endif
 
 !----------------------------------------------------------------------
