@@ -421,7 +421,10 @@ class taoplot:
 				CurveData.append(SymbolSuperList[i]) #symbols for each curve
 				CurveData.append(color(cInfoDictList[i]['line'].get_component('color'))) #line color
 				CurveData.append(StylesDict[cInfoDictList[i]['line'].get_component('pattern').lower()]) #line style
-				CurveData.append(cInfoDictList[i]['line'].get_component('width')) #line width
+				if (cInfoDictList[i]['draw_line'].value == True): #line width if drawn
+					CurveData.append(cInfoDictList[i]['line'].get_component('width'))
+				else:
+					CurveData.append(0)
 				CurveData.append(color(cInfoDictList[i]['symbol'].get_component('color'))) #symbol color
 
 				if cInfoDictList[i]['symbol'].get_component('type') == 'dot' or cInfoDictList[i]['symbol'].get_component('type') == '1': #determine if symbol should be filled
@@ -530,6 +533,10 @@ class taoplot:
 				gList = []
 				plt.axis('off')
 			#sets up floor plan plot	
+
+			if gInfoDict['draw_axes'].value == False:
+				plt.axis('off')
+			#hides axes if draw_axes is turned off
 
 			#plots line and symbol graphs and histograms, lat layouts and floor plans are drawn later
 			#LineList gives names of curves
@@ -863,7 +870,8 @@ class taoplot:
 			conv = (180)/(np.pi) #radian to degree conversion
 			for i in fpeIndexList:
 				fpeCenterDict[str(i)]=([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2])
-				fpeRadiusDict[str(i)]=fpeY1Dict[str(i)]
+				fpeRadiusDict[str(i)]=fpeY1Dict[str(i)] #for click detection
+
 				try:
 					if fpeTypeDict[str(i)] == 'drift' or fpeTypeDict[str(i)] == 'kicker':
 						GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],color='black')
@@ -1088,9 +1096,13 @@ class taoplot:
 						corner4[str(i)] = [fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]
 					#coordinates of corners of a floor plan element for clickable region
 
+					
 				except KeyError:
 					pass
-			
+
+				if gInfoDict['draw_axes'].value == False:
+					plt.axis('off')
+				#hides axes if draw_axes is turned off
 
 			
 			'''Floor Plan Building Wall'''
