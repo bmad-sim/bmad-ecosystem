@@ -33,9 +33,9 @@
 !
 ! Output:
 !   err      -- logical: Set True on error. False otherwise.
-!   plot(:)  -- Tao_plot_array_struct, allocatable, optional: Array of plots.
-!   graph(:) -- Tao_graph_array_struct, allocatable, optional: Array of graphs.
-!   curve(:) -- Tao_curve_array_struct, allocatable, optional: Array of curves.
+!   plot(:)  -- Tao_plot_array_struct, allocatable, optional: Array of plots. If error => size set to 0.
+!   graph(:) -- Tao_graph_array_struct, allocatable, optional: Array of graphs. If error => size set to 0.
+!   curve(:) -- Tao_curve_array_struct, allocatable, optional: Array of curves. If error => size set to 0.
 !-
 
 subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, always_allocate)
@@ -77,10 +77,6 @@ if (present(curve)) then
   if (allocated(curve)) deallocate(curve)
 endif
 
-if (allocated(p)) deallocate(p)
-if (allocated(g)) deallocate(g)
-if (allocated(c)) deallocate(c)
-
 ! Parse name argument
 
 where_str = where
@@ -110,20 +106,25 @@ if (plot_name(1:1) == '@') then
   select case (plot_name(1:2))
   case ('@R')
     call tao_find_plot_region (err, plot_name, region, print_flag)
-    if (err) return
+    if (err) then
+      if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'BAD PLOT REGION INDEX: ' // plot_name)
+      call err_end_stuff()
+      return
+    endif
     call point_to_plot (region%plot, p, np)
 
   case ('@T')
     call tao_set_integer_value (ix, '', plot_name(3:), err, 1, size(s%plot_page%template))
     if (err) then
       if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'BAD PLOT TEMPLATE INDEX: ' // plot_name)
+      call err_end_stuff()
       return
     endif
     call point_to_plot (s%plot_page%template(ix), p, np)
 
   case default
     if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'CONFUSED PLOT INDEX: ' // plot_name)
-    err = .true.
+    call err_end_stuff()
     return
   end select
 
@@ -154,7 +155,8 @@ else
               count(s%plot_page%template%name == plot_name)
   case default
     if (logic_option(.true., print_flag)) call out_io (s_fatal$, r_name, 'BAD "WHERE" LOCATION: ' // where)
-    call err_exit
+    call err_end_stuff()
+    return
   end select
 
   have_exact_match = (n_exact /= 0)
@@ -223,6 +225,7 @@ else
           'USE THE COMMAND "show plot" AND "show plot -templates" TO SEE A LIST OF REGIONS AND TEMPLATES.')
     end select
     err = .true.
+    call err_end_stuff()
     return
   endif
 
@@ -256,7 +259,7 @@ enddo
 if (ng == 0) then
   if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
                   'GRAPH NOT FOUND: ' // trim(plot_name) // '.' // graph_name)
-  err = .true.
+  call err_end_stuff()
   return
 endif
 
@@ -292,9 +295,8 @@ do j = 1, ng
 enddo
 
 if (nc == 0) then
-  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-                  'CURVE NOT FOUND: ' // name)
-  err = .true.
+  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'CURVE NOT FOUND: ' // name)
+  call err_end_stuff()
   return
 endif
 
@@ -337,5 +339,18 @@ np = np + 1
 p(np)%p => this_plot
 
 end subroutine point_to_plot
+
+!------------------------------------------------------------
+! contains
+
+subroutine err_end_stuff()
+
+err = .true.
+
+if (present(plot))  allocate(plot(0))
+if (present(graph)) allocate(graph(0))
+if (present(curve)) allocate(curve(0))
+
+end subroutine err_end_stuff
 
 end subroutine tao_find_plots
