@@ -561,7 +561,11 @@ class tao_root_window(tk.Tk):
     result = messagebox.askquestion("Quit", "Are You Sure?", icon='warning')
     if result == 'yes':
       for child in self.winfo_children():
-        child.destroy()
+        # better safe than sorry
+        try:
+          child.destroy()
+        except:
+          pass
       sys.exit(0)
     else:
       return
