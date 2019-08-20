@@ -2122,7 +2122,7 @@ case ('floor_building_wall')
   call tao_find_plots (err, line(1:ix_line), 'COMPLETE', graph = graphs)
   call string_trim(line(ix_line+1:), line, ix_line)
 
-  if (err .or. .not. allocated(graphs)) then
+  if (err .or. size(graphs) > 1) then
     call invalid ('Bad graph name')
     return
   endif
@@ -2160,7 +2160,7 @@ case ('floor_plan')
 
   call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
 
-  if (err .or. .not. allocated(graphs)) then
+  if (err .or. size(graphs) > 1) then
     call invalid ('Bad graph name')
     return
   endif
@@ -2231,7 +2231,7 @@ case ('floor_orbit')
 
   call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
 
-  if (err .or. .not. allocated(graphs)) then
+  if (err .or. size(graphs) > 1) then
     call invalid ('Bad graph name')
     return
   endif
@@ -2795,7 +2795,7 @@ case ('plot_curve')
 
   call tao_find_plots (err, line, 'COMPLETE', curve = curves)
 
-  if (err .or. .not. allocated(curves)) then
+  if (err .or. size(curves) > 1) then
     call invalid ('Not a valid curve')
     return
   endif
@@ -2912,7 +2912,7 @@ case ('plot_graph')
 
   call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
 
-  if (err .or. .not. allocated(graphs)) then
+  if (err .or. size(graphs) > 1) then
     call invalid ('Bad graph name')
     return
   endif
@@ -3014,7 +3014,7 @@ case ('plot_histogram')
 
   call tao_find_plots (err, line, 'COMPLETE', curve = curves)
 
-  if (err .or. .not. allocated(curves)) then
+  if (err .or. size(curves) > 1) then
     call invalid ('Bad curve name')
     return
   endif
