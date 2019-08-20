@@ -673,6 +673,8 @@ case ('namelist')
     enddo
   end select
 
+  close (iu)
+
 !---------------------------------------------------
 ! orbit
 

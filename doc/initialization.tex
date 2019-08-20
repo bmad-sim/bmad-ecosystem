@@ -1944,52 +1944,172 @@ With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}), phase space
 \subsection{Quick Plot Plotting}
 \label{s:line.symb}
 
-\vn{Quick PLot} is an interface library developed for \bmad for graphics plotting. \vn{Quick Plot} defines
-a number of structures to parameterize such things like line and symbol properties. The ones that \tao uses
-are as follows
+\vn{Quick PLot} is an interface library developed for \bmad for graphics plotting. \vn{Quick Plot}
+defines a number of structures to parameterize such things like line and symbol properties. The
+structures that \tao uses are as follows.
 
-The \vn{qp_axis_struct} structure that defines the properties of a graph axis
+The \vn{qp_axis_struct} structure defines the properties of a graph axis
 \begin{example}
   type qp_axis_struct
-    label             = <string>
-    min               = <real>
-    max               = <real>     ! min is actually left or bottom axis number.
-    number_offset     = <real>    ! offset from axis line in inches.
-    label_offset      = <real>     ! offset from numbers in inches.
-    major_tick_len    = <real>   ! in inches.
-    minor_tick_len    = <real>   ! in inches.
-    label_color       = <string>
-    major_div         = <integer>
-    major_div_nominal = <integer>Nominal value.
-    minor_div         = <integer>      ! 0 = auto choose.
-    minor_div_max     = <integer>  ! max number for auto choose.
-    places            = <integer>
-    type              = <string>  'LINEAR'      ! or 'LOG', or 'CUSTOM'
-    bounds            = <string>    'GENERAL'   ! or 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
-    tick_side         = <integer>1 = draw to the inside, 0 = both, -1 = outside.
-    number_side       = <integer>= draw to the inside, -1 = outside.
-    draw_label        = <logical>
-    draw_numbers      = <logical>
+    label             = <string>   ! Axis label string.
+    min               = <real>     ! Min is the left or bottom axis number.
+    max               = <real>     ! Max is the right or top axis number.
+    number_offset     = <real>     ! Offset from axis line in inches.
+    label_offset      = <real>     ! Offset from numbers in inches.
+    major_tick_len    = <real>     ! Major tick length in inches.
+    minor_tick_len    = <real>     ! Minor tick length in inches.
+    label_color       = <string>   ! Color of the label string
+    major_div         = <integer>  ! Number of major divisions
+    major_div_nominal = <integer>  ! Major divisions nominal value.
+    minor_div         = <integer>  ! Minor divisions. 0 = Tao will choose.
+    minor_div_max     = <integer>  ! Max minor div number if Tao chooses.
+    places            = <integer>  ! Number of digits to print
+    type              = <string>   ! Axis type: 'LINEAR' or 'LOG'.
+    bounds            = <string>   ! Axis bounds: 'GENERAL', 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
+    tick_side         = <integer>  ! 1 = draw to the inside, 0 = both, -1 = outside.
+    number_side       = <integer>  ! 1 = draw to the inside, -1 = outside.
+    draw_label        = <logical>  ! Draw the label string
+    draw_numbers      = <logical>  ! Draw the numbers.
   end type
 \end{example}
 
+The \vn{major_div} parameter is not settable directly. Rather, \vn{major_div_nominal} may be set by
+the user and then \tao will calculate the value of \vn{major_div} such that the value of
+\vn{major_div} is ``close'' to the value of \vn{major_div_nominal} with the constraint that the value
+of \vn{major_div} ``nicely'' divides the range from given by the values for \vn{min} and \vn{max}.
+
+The \vn{places} parameter set the number of places to display a number. \tao will automatically
+calculate this number and it is not user settable.
+
+The \vn{label} parameter may include Greek letters, subscripts, superscripts, and special characters.
+Encoding for these are given in Table~\ref{t:plot.escape}. 
+
+\begin{table}
+\begin{tabular}{ll} \toprule
+{\B}u       & Start a superscript or end a subscript \\[0.5ex]
+{\B}d       & Start a subscript or end a superscript.
+              {\B}u and {\B}d must always be used in pairs \\[0.5ex]
+{\B}b       & Backspace (i.e., do not advance text pointer  
+               after plotting the previous character) \\[0.5ex]
+{\B}fn      & Switch to Normal font (1)       \\[0.5ex]
+{\B}fr      & Switch to Roman font (2)        \\[0.5ex]
+{\B}fi      & Switch to Italic font (3)       \\[0.5ex]
+{\B}fs      & Switch to Script font (4)       \\[0.5ex]
+{\B}{\B}    & Backslash character (\B)        \\[0.5ex]
+{\B}x       & Multiplication sign ($\times$)  \\[0.5ex]
+{\B}.       & Centered dot ($\cdot$)          \\[0.5ex]
+{\B}A       & Angstrom symbol (\AA)         \\[0.5ex]
+{\B}gx      & Greek letter corresponding to roman letter x \\[0.5ex]
+{\B}mn {\B}mnn & Graph marker number $n$ or $nn$ (1-31) \\[1ex]
+{\B}(nnnn)  & 
+\parbox{4.8in}{\setstretch{0.5} Character number nnnn (1 to 4 decimal digits) from the
+Hershey character set; the closing parenthesis may be omitted if the
+next character is neither a digit nor ``)''. This makes a number of
+special characters (e.g., mathematical, musical, astronomical, and
+cartographical symbols) available.} \\ \bottomrule
+\end{tabular}
+\caption{Label Escape Sequences.}
+\label{t:plot.escape}
+\end{table}
+
+Table~\ref{t:greek} shows how the character string \vn{"{\B}g<r>"}, where \vn{"<r>"} 
+is a Roman letter, map onto the Greek character set.
+\begin{table}
+  \centering
+  \includegraphics[width=5.5in]{greek.pdf}
+  \caption[Roman to Greek Character Conversion]{Conversion for the string 
+\vn{"{\B}g<r>"} where \vn{"<r>"} is a Roman character to the corresponding 
+Greek character.}
+\label{t:greek}
+\end{table}
+
+The \vn{label_color} parameter sets the color of the label string. Possible settings for the color are:
+\begin{example}
+  White   (actually the background color)
+  Black   (actually the foreground color)
+  Red
+  Green
+  Blue
+  Cyan
+  Magenta
+  Yellow 
+  Orange
+  Yellow_Green
+  Light_Green
+  Navy_Blue
+  Purple
+  Reddish_Purple
+  Dark_Grey
+  Light_Grey
+\end{example}
+Color names are case insensitive.
+
+The parameters associated with data lines drawn in a graph are contained in the \vn{qp_line_struct}:
 \begin{example}
   type qp_line_struct
-    width             = <integer>
-    color             = <string>  'black'
-    pattern           = <string>  'solid'
+    width          = <integer>  ! Default = 1
+    color          = <string>   ! Default = 'black'
+    pattern        = <string>   ! Default = 'solid'
   end type
 \end{example}
 
+The possible colors for a line are given above. The \vn{pattern} parameter sets how the line is
+drawn. Possible settings are:
+\begin{example}
+  solid                  Solid line
+  dashed                 Dashed line
+  dash_dot               Dash--dot line
+  dotted                 Dotted line
+  dash_dot3              Dash--dot--dot--dot line
+\end{example}
+
+The parameters associated with symbols that are drawn are contained in the \vn{qp_symbol_struct}:
 \begin{example}
   type qp_symbol_struct
-    type              = <string>dot'
-    height            = <real>! in points (same as text height)
-    color             = <string>
-    fill_pattern      = <string>ill'
-    line_width        = <integer>
+    type          = <string>  ! Default = 'dot'
+    height        = <real>    ! Size in points. Default = 10
+    color         = <string>  ! Default = 'black'
+    fill_pattern  = <string>  ! Default = 'solid_fill'
+    line_width    = <integer> ! Default = 1.
   end type
 \end{example}
+
+Possible \vn{fill_pattern} settings are:
+\begin{example}
+  solid_fill        
+  no_fill           
+  hatched           
+  cross_hatched     
+\end{example}
+
+The symbol types are:
+\begin{example}
+  square_sym
+  dot_sym
+  plus_sym
+  times_sym
+  circle_sym
+  x_sym
+  triangle_sym
+  circle_plus_sym
+  circle_dot_sym
+  square_concave_sym
+  diamond_sym
+  star5_sym
+  triangle_filled_sym
+  red_cross_sym
+  star_of_david_sym
+  square_filled_sym
+  circle_filled_sym
+  star5_filled_sym
+\end{example}
+
+\begin{table}
+  \centering
+  \includegraphics{plot-syms.pdf}
+  \caption{Plotting Symbols at Height = 40.0}
+  \label{t:plot.syms}
+\end{table}
 
 %-----------------------------------------------------------------
 \subsection{Data and Variable plotting}
