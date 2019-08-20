@@ -132,9 +132,9 @@ endif
 call convert_pc_to (start%p0c * (1 + start%vec(6)), start%species, beta = start%beta)
 
 if (start_orb%beta == 0) then
-  start%t = start_orb%t + start%vec(5) / (c_light * start%beta)
+  start%t = start_orb%t - start%vec(5) / (c_light * start%beta)
 else
-  start%t = start_orb%t + start%vec(5) / (c_light * start%beta) - start_orb%vec(5) / (c_light * start_orb%beta)
+  start%t = start_orb%t - start%vec(5) / (c_light * start%beta) + start_orb%vec(5) / (c_light * start_orb%beta)
 endif
 
 end subroutine adjust_this
