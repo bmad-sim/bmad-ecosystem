@@ -522,6 +522,9 @@ class taoplot:
 					LineList.append(GraphDict['graph'+str(gNumber+1)].hist(xpList,bins=int(hInfoDictList[CurvesList.index(i)]['number'].value),weights=ypList,histtype='step',color=i[5]))
 				#histogram	
 
+			if gInfoDict['graph^type'].value == 'key_table':
+				raise NotImplementedError('key table is not available in the GUI')
+
 			if gInfoDict['graph^type'].value == 'lat_layout':
 				LatLayout = True
 				gList = []
@@ -537,6 +540,9 @@ class taoplot:
 			if gInfoDict['draw_axes'].value == False:
 				plt.axis('off')
 			#hides axes if draw_axes is turned off
+
+			if gInfoDict['why_invalid'].value != '':
+				raise ValueError(gInfoDict['why_invalid'].value + ', make sure graph is properly initialized')
 
 			#plots line and symbol graphs and histograms, lat layouts and floor plans are drawn later
 			#LineList gives names of curves
@@ -561,6 +567,7 @@ class taoplot:
 				#list of curves to be added to a legend and list of labels for each curve in the legend
 			except IndexError:
 				raise NotImplementedError('unknown graph type')
+
 
 			if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']) and gInfoDict['graph^type'].value != 'lat_layout' and gInfoDict['graph^type'].value != 'floor_plan':
 				GraphDict['graph'+str(gNumber+1)].legend(LegendList,LabelList)
