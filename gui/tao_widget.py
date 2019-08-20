@@ -82,6 +82,8 @@ class tk_tao_parameter():
       options = inum_fetch(self.param.name,pipe)
       if options == [""]:
         options = [self.param.value]
+      if self.param.value == None:
+        self.tk_var.set(options[0])
       self.tk_wid = tk.OptionMenu(frame, self.tk_var, *options)
       # Check for and remove num^ from self.param.name
       self.param.name = self.param.name.split('^')[-1]
@@ -198,6 +200,9 @@ class tk_tao_parameter():
     '''
     Shows or hides a struct's components as appropriate
     '''
+    # Safeguard
+    if self.param.type != 'STRUCT':
+      return
     if self._shown:
       for ttp in self._s:
         ttp.tk_wid.grid_forget()
@@ -217,6 +222,9 @@ class tk_tao_parameter():
     Takes a real array's slave variables and puts their data
     into the master tk_var
     '''
+    # Safeguard
+    if self.param.type != 'REAL_ARR':
+      return
     new_val = ""
     for i in range(len(self._svar)):
       # Check that the variable contains a float
@@ -259,12 +267,16 @@ class tk_tao_parameter():
     makes new slave widgets and variables, and populates them
     if necessary
     '''
+    # Safeguard in case this method gets called for a normal tk_tao_param
+    if self.param.type != 'DAT_TYPE':
+      return
     # Clear the existing slaves
     for item in self._s:
       item.destroy()
     self._svar = []
     self._stype = []
     self._s = []
+    self._m.configure(values=self._get_dat_types(True))
 
     try:
       m_ix = (self._get_dat_types()).index(self._mvar.get())
@@ -336,6 +348,8 @@ class tk_tao_parameter():
     Updates self.tk_var with the current contents of
     self._mvar and self._svar
     '''
+    if self.param.type != 'DAT_TYPE':
+      return
     new_tk_var = self._mvar.get()
     for k in range(len(self._svar)):
       # Input validation (TODO)
@@ -463,6 +477,8 @@ class tk_tao_parameter():
     Runs self._s_refresh() and then fills the slave widgets
     with data from self.tk_var, but only if self.is_valid_dat_type(self.tk_var.get()) is True
     '''
+    if self.param.type != 'DAT_TYPE':
+      return
     if not self._is_valid_dat_type(self.tk_var.get()):
       return
 
