@@ -79,6 +79,7 @@ integer :: status, j
 !
 
 status = 0
+x_zero = real_garbage$
 
 call funcs(x1, fl, df, status); if (status /= 0) return
 call funcs(x2, fh, df, status); if (status /= 0) return
