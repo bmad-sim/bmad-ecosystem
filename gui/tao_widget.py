@@ -190,11 +190,40 @@ class tk_tao_parameter():
         return self.tk_var.get()
       else:
         return None
+    elif self.param.type == 'REAL_ARR':
+      output = []
+      for i in range(len(self._svar)):
+        try:
+          output.append(float(self._svar[i].get()))
+        except:
+          output.append(None)
+      return output
     elif self.param.type == 'STRUCT':
       d = {}
       for ttp in self._s:
-        d[ttp.param.name] = ttp.value()
+        if ttp.value() != None:
+          d[ttp.param.name] = ttp.value()
       return d
+
+  def copy(self, ttp):
+    '''
+    Copy the the value(s) of the tk_var(s) of ttp into self
+    Does nothing if ttp.param.type != self.param.type
+    '''
+    if not isinstance(ttp, tk_tao_parameter):
+      return
+    if self.param.type != ttp.param.type:
+      return
+    if self.param.type == 'REAL_ARR':
+      if len(ttp._svar) != len(self._svar):
+        return
+      for i in range(len(self._svar)):
+        if ttp.value()[i] != None:
+          self._svar[i].set(ttp.value()[i])
+    elif self.param.type == 'STRUCT':
+      for i in range(len(self._s)):
+        if self._s[i].param.name in ttp.value().keys():
+          self._s[i].tk_var.set(ttp.value()[self._s[i].param.name])
 
   def _show_hide_struct(self, event=None, *args):
     '''
