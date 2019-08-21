@@ -24,7 +24,7 @@ class tao_plot_dict(dict):
       self['@R'+ix] = template
       self[region_name] = template
       self.pipe.cmd_in('place -no_buffer ' + '@R'+ix + ' ' + template)
-      self.pipe.cmd_in('set plot ' + '@R'+ix + ' visible = T')
+      #self.pipe.cmd_in('set plot ' + '@R'+ix + ' visible = T')
       return region_name
     # Try to place in any region if region was specified
     if region:
@@ -40,3 +40,20 @@ class tao_plot_dict(dict):
           if key.find('@R')==0:
             self.pipe.cmd_in('place -no_buffer ' + key + ' none')
           break
+  def unplace_region(self, region):
+    '''
+    Unplace whatever template is in the specified region, and remove the
+    corresponding entry(ies) from self
+    '''
+    plot_list_r = self.pipe.cmd_in('python plot_list r').splitlines()
+    for line in plot_list_r:
+      if region in line.split(';'):
+        ix_region = '@R' + line.split(';')[0] #e.g. @R3
+        name_region = line.split(';')[1] #e.g. r11, top, etc
+        # remove from self
+        if ix_region in self:
+          self.pop(ix_region)
+        if name_region in self:
+          self.pop(name_region)
+        # unplace in tao
+        self.pipe.cmd_in('place -no_buffer ' + ix_region + ' none')
