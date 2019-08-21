@@ -54,7 +54,7 @@ class tao_interface():
   Provides an interface between the GUI and
   the Tao command line
   '''
-  debug = True # set true to print debug messages
+  debug = False # set true to print debug messages
   # Put patterns of interest here
   debug_patterns = ['python', 'place']
   def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>", so_lib=""):
