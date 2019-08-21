@@ -8,7 +8,7 @@ import os
 import copy
 from tao_widget import *
 from taoplot import taoplot
-from parameters import str_to_tao_param
+from parameters import str_to_tao_param, tao_parameter_dict
 from elements import *
 from tao_set import *
 import matplotlib
@@ -1539,6 +1539,25 @@ class tao_plot_window(Tao_Toplevel):
   def __init__(self, root, template, pipe, region=None, *args, **kwargs):
     if region == 'layout': # do not place plots in the layout region
       return
+    if template == "key_table":
+      messagebox.showwarning("Warning", "Key table not available in the GUI")
+      return
+    # verify that the graphs for this template are valid
+    # must place the template first to get accurate info
+    tmp_reg = root.placed.place_template(template)
+    plot1 = pipe.cmd_in('python plot1 ' + tmp_reg).splitlines()
+    valid = True
+    for i in range(str_to_tao_param(plot1[0]).value):
+      plot_graph = pipe.cmd_in("python plot_graph " + tmp_reg + '.'
+          + str_to_tao_param(plot1[i+1]).value).splitlines()
+      if not tao_parameter_dict(plot_graph)['valid'].value:
+        valid = False
+        break
+    root.placed.unplace_region(tmp_reg)
+    if not valid:
+      messagebox.showwarning("Warning", "The plot you have selected ("
+          + template + ") has one or more invalid graphs.")
+      return
     self.root = root
     self.tao_id = 'plot'
     Tao_Toplevel.__init__(self, root, *args, **kwargs)
@@ -1611,10 +1630,8 @@ class tao_plot_window(Tao_Toplevel):
     self.pack_propagate(False)
 
   def destroy(self):
-    # Note: lat_layout should not be automatically removed from r1
-    if self.template != "lat_layout":
-      # Unplace the template from its region
-      self.root.placed.unplace_template(self.template)
+    # Clear self.region
+    self.root.placed.unplace_region(self.region)
     Tao_Toplevel.destroy(self)
 
 #-----------------------------------------------------
@@ -5364,23 +5381,32 @@ class new_graph_frame(tk.Frame):
     # Don't run any handlers for this graph_frame
     self.handler_block = True
     self.parent.graph_frame_list.append(new_graph_frame(self.parent))
+    new_frame = self.parent.graph_frame_list[-1]
     ix = len(self.parent.graph_frame_list) - 1
     # Copy properties into new frame
-    self.parent.graph_frame_list[-1].name = self.name + '_copy'
-    self.parent.graph_frame_list[-1].n_curve = self.n_curve
-    self.parent.graph_frame_list[-1].curve_dict = self.curve_dict
+    #new_frame.name = self.name + '_copy'
+    #new_frame.n_curve = self.n_curve
+    # Copy graph widgets
     for i in range(len(self.graph_wids)):
+      w = self.graph_wids[i]
       if i == self.ixd['name']:
-        self.parent.graph_frame_list[-1].graph_wids[i].tk_var.set(self.graph_wids[i].tk_var.get() + '_copy')
+        new_frame.graph_wids[i].tk_var.set(w.tk_var.get() + '_copy')
       else:
-        self.parent.graph_frame_list[-1].graph_wids[i].tk_var.set(self.graph_wids[i].tk_var.get())
+        new_frame.graph_wids[i].copy(w)
     # Run all input validation handlers
-    self.parent.notebook.insert(ix, self.parent.graph_frame_list[-1])
+    self.parent.notebook.insert(ix, new_frame)
     self.parent.notebook.select(ix)
     self.parent.tab_handler()
     self.update_idletasks()
-    self.parent.graph_frame_list[-1].name_handler()
-    self.parent.graph_frame_list[-1].n_curve_handler()
+    new_frame.name_handler()
+    new_frame.n_curve_handler()
+    # Copy curve widgets
+    for i in range(1, self.n_curve + 1):
+      new_frame.curve_ix.set(i)
+      new_frame.fill_curve_frame() # create the widgets
+      for j in range(len(self.curve_dict[i])):
+        w = self.curve_dict[i][j]
+        new_frame.curve_dict[i][j].copy(w)
 
   def fill_curve_frame(self, event=None):
     '''
