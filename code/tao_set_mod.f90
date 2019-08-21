@@ -1107,6 +1107,7 @@ i_branch = this_curve%ix_branch
 i_uni = tao_universe_number(tao_curve_ix_uni(this_curve))
 
 this_graph => this_curve%g
+this_graph%p%default_plot = .true.   ! Plot has been modified
 
 ! if the universe is changed then need to check ele_ref
 
@@ -1302,6 +1303,7 @@ implicit none
 
 type (tao_plot_array_struct), allocatable, save :: plot(:)
 type (tao_universe_struct), pointer :: u
+type (tao_plot_struct), pointer :: p
 
 character(*) plot_name, component, value_str
 character(40) comp, sub_comp
@@ -1333,52 +1335,53 @@ endif
 found = .false.
 
 do i = 1, size(plot)
+  p%default_plot = .false.  ! Plot has been modified
 
   select case (comp)
 
     case ('autoscale_x')
-      call tao_set_logical_value (plot(i)%p%autoscale_x, component, value_str, err_flag)
+      call tao_set_logical_value (p%autoscale_x, component, value_str, err_flag)
 
     case ('autoscale_y')
-      call tao_set_logical_value (plot(i)%p%autoscale_y, component, value_str, err_flag)
+      call tao_set_logical_value (p%autoscale_y, component, value_str, err_flag)
 
     case ('autoscale_gang_x')
-      call tao_set_logical_value (plot(i)%p%autoscale_gang_x, component, value_str, err_flag)
+      call tao_set_logical_value (p%autoscale_gang_x, component, value_str, err_flag)
 
     case ('autoscale_gang_y')
-      call tao_set_logical_value (plot(i)%p%autoscale_gang_y, component, value_str, err_flag)
+      call tao_set_logical_value (p%autoscale_gang_y, component, value_str, err_flag)
 
     case ('description')
-      plot(i)%p%description = value_str
+      p%description = value_str
 
     case ('component')
-      do j = 1, size(plot(i)%p%graph)
-        plot(i)%p%graph(j)%component = remove_quotes(value_str)
+      do j = 1, size(p%graph)
+        p%graph(j)%component = remove_quotes(value_str)
       enddo
 
     case ('n_curve_pts')
-      call tao_set_integer_value (plot(i)%p%n_curve_pts, component, value_str, err_flag)
+      call tao_set_integer_value (p%n_curve_pts, component, value_str, err_flag)
 
     case ('name')
-      plot(i)%p%name = value_str
+      p%name = value_str
 
     case ('visible')
-      if (.not. associated(plot(i)%p%r)) cycle
-      call tao_set_logical_value (plot(i)%p%r%visible, component, value_str, err_flag)
+      if (.not. associated(p%r)) cycle
+      call tao_set_logical_value (p%r%visible, component, value_str, err_flag)
       call tao_turn_on_special_calcs_if_needed_for_plotting()
       found = .true.
 
     case ('x')
-      call tao_set_qp_axis_struct('x', sub_comp, plot(i)%p%x, value_str, err_flag)
-      if (allocated(plot(i)%p%graph)) then
-        do j = 1, size(plot(i)%p%graph)
-          plot(i)%p%graph(i)%x = plot(i)%p%x
+      call tao_set_qp_axis_struct('x', sub_comp, p%x, value_str, err_flag)
+      if (allocated(p%graph)) then
+        do j = 1, size(p%graph)
+          p%graph(i)%x = p%x
         enddo
       endif
 
     case ('x_axis_type')
       call tao_set_switch_value (ix, component, value_str, x_axis_type_name, lbound(x_axis_type_name,1), err_flag)
-      if (.not. err_flag) plot(i)%p%x_axis_type = x_axis_type_name(ix)
+      if (.not. err_flag) p%x_axis_type = x_axis_type_name(ix)
 
     case default
       call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
@@ -1469,6 +1472,7 @@ if (ix /= 0) then
 endif
 
 u => tao_pointer_to_universe(this_graph%ix_universe)
+this_graph%p%default_plot = .false. ! Plot has been modified
 
 select case (comp)
 

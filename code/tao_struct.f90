@@ -261,6 +261,7 @@ type tao_plot_struct
   logical :: autoscale_gang_y = .true.             ! scale cmd scales graphs together?
   logical :: list_with_show_plot_command = .true.  ! False used for default plots to shorten the output of "show plot"
   logical :: phantom = .false.                     ! True used to insert info into output of "show plot"
+  logical :: default_plot = .false.                ! One of Tao's default plots? 
 end type
 
 ! A region defines a plot and where to position the plot on the plot page
