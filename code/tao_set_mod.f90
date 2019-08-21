@@ -1335,6 +1335,7 @@ endif
 found = .false.
 
 do i = 1, size(plot)
+  p => plot(i)%p
   p%default_plot = .false.  ! Plot has been modified
 
   select case (comp)
