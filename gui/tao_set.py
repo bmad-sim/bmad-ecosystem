@@ -111,7 +111,7 @@ def tao_set(tao_list,set_str,pipe, overide=False):
             "Error",item.param.name + " must be a real number")
         new_val = item.param.value
     else:
-      new_val = item.tk_var.get()
+      new_val = str(item.tk_var.get()).split(';')[0]
     #Check for any change
     if item.param.type == 'INUM':
       cond = (str(new_val) != str(item.param.value))
