@@ -1,4 +1,5 @@
-To speed up the initialization process, you can make an init file for the GUI.  This file should be called "gui.init", and it should be in the same directory from which you initialize the GUI.
+To speed up the initialization process, you can make an init file for the GUI.  This file should be called "gui.init", and it should be placed in your home directory.  If you want to use a different name/location, start the gui with the command
+$ python3 $GUI -gui_init path/to/your/init/file
 
 gui.init should have each option on a separate line, and each option should be listed in the form "parameter:value".  For example, the text below would constitute a good gui.init file:
 
