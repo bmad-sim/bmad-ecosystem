@@ -251,6 +251,7 @@ class tao_root_window(tk.Tk):
     init_frame.grid_columnconfigure(0, weight=1, pad=10)
     init_frame.grid_columnconfigure(1, weight=1)
     warning_messages = []
+    gui_init_file = None
 
     # Parse command line arguments
     clargs = {} # keys: command line switches, values: switch value
@@ -262,6 +263,12 @@ class tao_root_window(tk.Tk):
           arg = arg[1:]
           # Determine if arg is a valid switch name
           matches = [] # list of startup params that arg might refer to
+          # Special handling for gui_init
+          if arg == 'gui_init':
+            gui_init_file = ""
+            looking_for = 'file'
+            continue
+          # Generic case
           for param in param_dict.keys():
             if param.find(arg) == 0:
               matches.append(param)
@@ -275,21 +282,36 @@ class tao_root_window(tk.Tk):
       elif looking_for == 'file':
         arg_file = sys.argv[i]
         if arg_file.find('-') == 0: #not a file
-          # Remove previous argument from list
-          clargs.pop(arg)
+          if arg == 'gui_init':
+            pass
+          else:
+            # Remove previous argument from list
+            clargs.pop(arg)
         else:
-          clargs[arg] = arg_file
-          looking_for = 'switch'
+          if arg == 'gui_init':
+            gui_init_file = arg_file
+          else:
+            clargs[arg] = arg_file
+        looking_for = 'switch'
 
     #Look for and read gui.init
-    #gui.init should be in the same directory that
-    #main.py is run from
     #each line should have the form
     #parameter:value
     #E.g. init_file:tao.init
     #E.g. rf_on:T
+    if gui_init_file == None:
+      # Try to use ~/gui.init if init file not specified
+      gui_init_file = os.path.expanduser('~/gui.init')
+      try:
+        f = open(gui_init_file)
+        f.close()
+      except: # default to basic gui.init
+        gui_init_file = os.path.expandvars('$ACC_LOCAL_ROOT/tao/gui/gui.init')
+    else:
+      gui_init_file = os.path.expanduser(gui_init_file)
+      gui_init_file = os.path.expandvars(gui_init_file)
     try:
-      init_file = open('gui.init')
+      init_file = open(gui_init_file)
       init_list = init_file.read()
       init_list = init_list.splitlines()
       init_file.close()
