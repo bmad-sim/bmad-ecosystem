@@ -3069,11 +3069,8 @@ case ('plot_manage_plot')
 
   !
 
+  if (allocated(p%graph)) deallocate(p%graph)
   allocate(p%graph(n))
-
-  if (allocated(p%graph)) then
-    deallocate(p%graph)
-  endif
 
   p%name = name1(2)
 
@@ -4227,7 +4224,7 @@ end subroutine orbit_out
 subroutine coord_out(bunch, coordinate)
 type (bunch_struct) :: bunch
 character(20) coordinate
-integer :: i_vec
+integer :: i_vec, n
 
 if (.not. allocated(beam%bunch)) then
     print *, 'no beam'
@@ -4296,8 +4293,6 @@ endif
 tao_c_interface_com%n_int = n
 end subroutine
 
-
-
 !----------------------------------------------------------------------
 ! contains
 
@@ -4333,7 +4328,8 @@ endif
 
 end subroutine twiss_out
 
-
+!----------------------------------------------------------------------
+! contains
 
 subroutine xy_disp_out (xy_disp, suffix, can_vary)
 ! Similar to twiss_out
@@ -4355,7 +4351,6 @@ nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                         
 nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          xy_disp%etap
 
 end subroutine xy_disp_out
-
 
 !----------------------------------------------------------------------
 ! contains

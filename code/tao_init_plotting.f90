@@ -2771,6 +2771,7 @@ integer np
 np = np + 1
 plt => s%plot_page%template(np)
 plt%ix_plot = np
+plt%default_plot = .true.
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)

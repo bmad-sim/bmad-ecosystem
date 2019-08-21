@@ -1599,8 +1599,8 @@ rectangle within this border is called the plot area.
 
 \vn{plot_page%title(i)} set the page title. There are two title areas (i = 1,2). If only the title
 string is given then the other variables are set to the defaults \vn{x} = 0.5, \vn{y} = 0.995,
-\vn{justify} = "CC" and \vn{units} = "\vn{%PAGE}". See the quickplot documentation for the
-\vn{justify} variable syntax.
+\vn{justify} = "CC" and \vn{units} = "\vn{%PAGE}". See the QuickPlot documentation
+(\sref{s:line.symb}) for more details.
 
 The plot area is divided up into rectangular regions where plots may be placed (what defines a plot
 is discussed below).  \vn{region(i)} in the \vn{tao_plot_page} namelist is an array of five elements
@@ -1695,53 +1695,29 @@ For example:
   /
 \end{example}
 
-\vn{default_graph} sets defaults for the \vn{graph} structure defined
-in the \vn{tao_template_graph} namelist (\sref{s:template}). This
-overrides \vn{default_graph} settings made in the
-\vn{tao_template_plot} namelist (\sref{s:init.plot}) but only for
-graphs associated with the \vn{tao_template_plot} the
-\vn{default_graph} is defined in.
+\vn{default_graph} sets defaults for the \vn{graph} structure defined in the \vn{tao_template_graph}
+namelist (\sref{s:template}). This overrides \vn{default_graph} settings made in the
+\vn{tao_template_plot} namelist (\sref{s:init.plot}) but only for graphs associated with the
+\vn{tao_template_plot} the \vn{default_graph} is defined in.
 
-\vn{plot%x} sets the properties of the horizontal axis. For more
-information see the \vn{Quick Plot} documentation on the
-\vn{qp_axis_struct} in the Bmad manual. The major components are
-\index{qp_axis_struct!min}
-\index{qp_axis_struct!max}
-\index{qp_axis_struct!major_div_nominal}
-\index{qp_axis_struct!major_div}
-\index{qp_axis_struct!minor_div}
-\index{qp_axis_struct!label}
-\begin{example}
-  min        ! Left edge value.
-  max        ! Right edge value.
-  major_div  ! Number of major divisions. 
-             !  Number of major tick marks is one less.
-  major_div_nominal ! Nominal number of major divisions
-  minor_div  ! Number of minor divisions. 0 = auto choose.
-  label      ! Axis label.
-\end{example}
-If \vn{min} and \vn{max} are absent, then \tao will autoscale the
-axis.  If it is desired to have differing scales for different graphs,
+\vn{plot%x} sets the properties of the horizontal axis. For more information see the \vn{QuickPlot}
+documentation (\sref{s:line.symb}) on the \vn{qp_axis_struct}.  If \vn{min} and \vn{max} are absent,
+then \tao will autoscale the axis.  If it is desired to have differing scales for different graphs,
 the \vn{graph%x} component can be used (see below).
 
-Both \vn{major_div} and \vn{major_div_nominal} set the number of major
-divisions in the plot. The difference between the two is that with
-\vn{major_div} the number of major divisions is fixed at the set value
-and with \vn{major_div_nominal} the number of major divisions can vary
-from the set value when \tao scales a graph. If
-\vn{major_div_nominal} is set, this will override any setting of
-\vn{major_div}. If neither \vn{major_div} nor \vn{major_div_nominal}
-is set, a value will be chosen for \vn{major_div_nominal} by \tao. If
-you are unsure which to set, it is recommended that
+Both \vn{major_div} and \vn{major_div_nominal} set the number of major divisions in the plot. The
+difference between the two is that with \vn{major_div} the number of major divisions is fixed at the
+set value and with \vn{major_div_nominal} the number of major divisions can vary from the set value
+when \tao scales a graph. If \vn{major_div_nominal} is set, this will override any setting of
+\vn{major_div}. If neither \vn{major_div} nor \vn{major_div_nominal} is set, a value will be chosen
+for \vn{major_div_nominal} by \tao. If you are unsure which to set, it is recommended that
 \vn{major_div_nominal} be used.
 
-Plots with \vn{plot%autoscale_x} and/or \vn{plot%autoscale_y}
-logicals, set to true will automatically rescale after any
-calculation. The \vn{plot%autoscale_gang_x} and
-\vn{plot%autoscale_gang_y} components set how the \vn{x_scale}
-(\sref{s:x.scale}) and \vn{scale} (\sref{s:scale}) commands behave
-when autoscaling entire plots. See these individual commands for more
-details.
+Plots with \vn{plot%autoscale_x} and/or \vn{plot%autoscale_y} logicals, set to true will
+automatically rescale after any calculation. The \vn{plot%autoscale_gang_x} and
+\vn{plot%autoscale_gang_y} components set how the \vn{x_scale} (\sref{s:x.scale}) and \vn{scale}
+(\sref{s:scale}) commands behave when autoscaling entire plots. See these individual commands for
+more details.
 
 The \vn{plot%n_plot_pts} parameter sets the number of points to use for drawing ``smooth''
 curves. This overrides the setting of \vn{plot_page%n_plot_pts} (\sref{s:init.plot}). Warning: \tao
@@ -1750,9 +1726,8 @@ other smooth curves. \tao will only do this for curves that have \vn{plot_page%n
 of points. Depending upon the circumstances, setting \vn{plot%n_curve_pts} for individual plots may
 slow down plotting calculations significantly.
 
-\vn{plot%name} is the name that is used with \tao commands to identify
-the plot. It is important that this name not contain any blank spaces since
-\tao uses this fact in parsing the command line. 
+\vn{plot%name} is the name that is used with \tao commands to identify the plot. It is important
+that this name not contain any blank spaces since \tao uses this fact in parsing the command line.
 
 \vn{plot%x_axis_type} sets what is plotted along the
 \vn{x_axis}. Possibilities are:
@@ -1869,7 +1844,7 @@ For example:
     curve(1)%use_y2           = F
   /
 \end{example}
-See the Quick Plot chapter of the \bmad manual for description of the \vn{qp_symbol_struct} and the
+See the QuickPlot documentation (\sref{s:line.symb}) description of the \vn{qp_symbol_struct} and the
 \vn{qp_line_struct}.
 
 \vn{graph%title} is the string just above the graph. The full string will also include information
@@ -1888,9 +1863,8 @@ important that these names do not contain any blank spaces since \tao uses this 
 command line.
 
 \vn{graph%box} sets the layout of the box which the \vn{graph} is placed in. For a definition of
-what a box is see the Quick Plot documentation in the \bmad reference manual. In the above example
-the graph divides the region into two vertically stacked boxes and places itself into the bottom
-one.
+what a box is see the QuickPlot documentation (\sref{s:line.symb}). In the above example the graph
+divides the region into two vertically stacked boxes and places itself into the bottom one.
 
 \vn{graph%allow_wrap_around} sets if, for a lattice with closed geometry, the curves contained in
 the graph are ``wrapped'' around the ends of the lattice. The default is \vn{True}.
@@ -1939,177 +1913,6 @@ symbolical drawn in a one dimensional line as a function of the longitudinal dis
 machine centerline.
 
 With \vn{graph%type} set to \vn{phase_space} (\sref{s:phase.space}), phase space plots are produced.
-
-%-----------------------------------------------------------------
-\subsection{Quick Plot Plotting}
-\label{s:line.symb}
-
-\vn{Quick PLot} is an interface library developed for \bmad for graphics plotting. \vn{Quick Plot}
-defines a number of structures to parameterize such things like line and symbol properties. The
-structures that \tao uses are as follows.
-
-The \vn{qp_axis_struct} structure defines the properties of a graph axis
-\begin{example}
-  type qp_axis_struct
-    label             = <string>   ! Axis label string.
-    min               = <real>     ! Min is the left or bottom axis number.
-    max               = <real>     ! Max is the right or top axis number.
-    number_offset     = <real>     ! Offset from axis line in inches.
-    label_offset      = <real>     ! Offset from numbers in inches.
-    major_tick_len    = <real>     ! Major tick length in inches.
-    minor_tick_len    = <real>     ! Minor tick length in inches.
-    label_color       = <string>   ! Color of the label string
-    major_div         = <integer>  ! Number of major divisions
-    major_div_nominal = <integer>  ! Major divisions nominal value.
-    minor_div         = <integer>  ! Minor divisions. 0 = Tao will choose.
-    minor_div_max     = <integer>  ! Max minor div number if Tao chooses.
-    places            = <integer>  ! Number of digits to print
-    type              = <string>   ! Axis type: 'LINEAR' or 'LOG'.
-    bounds            = <string>   ! Axis bounds: 'GENERAL', 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
-    tick_side         = <integer>  ! 1 = draw to the inside, 0 = both, -1 = outside.
-    number_side       = <integer>  ! 1 = draw to the inside, -1 = outside.
-    draw_label        = <logical>  ! Draw the label string
-    draw_numbers      = <logical>  ! Draw the numbers.
-  end type
-\end{example}
-
-The \vn{major_div} parameter is not settable directly. Rather, \vn{major_div_nominal} may be set by
-the user and then \tao will calculate the value of \vn{major_div} such that the value of
-\vn{major_div} is ``close'' to the value of \vn{major_div_nominal} with the constraint that the value
-of \vn{major_div} ``nicely'' divides the range from given by the values for \vn{min} and \vn{max}.
-
-The \vn{places} parameter set the number of places to display a number. \tao will automatically
-calculate this number and it is not user settable.
-
-The \vn{label} parameter may include Greek letters, subscripts, superscripts, and special characters.
-Encoding for these are given in Table~\ref{t:plot.escape}. 
-
-\begin{table}
-\begin{tabular}{ll} \toprule
-{\B}u       & Start a superscript or end a subscript \\[0.5ex]
-{\B}d       & Start a subscript or end a superscript.
-              {\B}u and {\B}d must always be used in pairs \\[0.5ex]
-{\B}b       & Backspace (i.e., do not advance text pointer  
-               after plotting the previous character) \\[0.5ex]
-{\B}fn      & Switch to Normal font (1)       \\[0.5ex]
-{\B}fr      & Switch to Roman font (2)        \\[0.5ex]
-{\B}fi      & Switch to Italic font (3)       \\[0.5ex]
-{\B}fs      & Switch to Script font (4)       \\[0.5ex]
-{\B}{\B}    & Backslash character (\B)        \\[0.5ex]
-{\B}x       & Multiplication sign ($\times$)  \\[0.5ex]
-{\B}.       & Centered dot ($\cdot$)          \\[0.5ex]
-{\B}A       & Angstrom symbol (\AA)         \\[0.5ex]
-{\B}gx      & Greek letter corresponding to roman letter x \\[0.5ex]
-{\B}mn {\B}mnn & Graph marker number $n$ or $nn$ (1-31) \\[1ex]
-{\B}(nnnn)  & 
-\parbox{4.8in}{\setstretch{0.5} Character number nnnn (1 to 4 decimal digits) from the
-Hershey character set; the closing parenthesis may be omitted if the
-next character is neither a digit nor ``)''. This makes a number of
-special characters (e.g., mathematical, musical, astronomical, and
-cartographical symbols) available.} \\ \bottomrule
-\end{tabular}
-\caption{Label Escape Sequences.}
-\label{t:plot.escape}
-\end{table}
-
-Table~\ref{t:greek} shows how the character string \vn{"{\B}g<r>"}, where \vn{"<r>"} 
-is a Roman letter, map onto the Greek character set.
-\begin{table}
-  \centering
-  \includegraphics[width=5.5in]{greek.pdf}
-  \caption[Roman to Greek Character Conversion]{Conversion for the string 
-\vn{"{\B}g<r>"} where \vn{"<r>"} is a Roman character to the corresponding 
-Greek character.}
-\label{t:greek}
-\end{table}
-
-The \vn{label_color} parameter sets the color of the label string. Possible settings for the color are:
-\begin{example}
-  White   (actually the background color)
-  Black   (actually the foreground color)
-  Red
-  Green
-  Blue
-  Cyan
-  Magenta
-  Yellow 
-  Orange
-  Yellow_Green
-  Light_Green
-  Navy_Blue
-  Purple
-  Reddish_Purple
-  Dark_Grey
-  Light_Grey
-\end{example}
-Color names are case insensitive.
-
-The parameters associated with data lines drawn in a graph are contained in the \vn{qp_line_struct}:
-\begin{example}
-  type qp_line_struct
-    width          = <integer>  ! Default = 1
-    color          = <string>   ! Default = 'black'
-    pattern        = <string>   ! Default = 'solid'
-  end type
-\end{example}
-
-The possible colors for a line are given above. The \vn{pattern} parameter sets how the line is
-drawn. Possible settings are:
-\begin{example}
-  solid                  Solid line
-  dashed                 Dashed line
-  dash_dot               Dash--dot line
-  dotted                 Dotted line
-  dash_dot3              Dash--dot--dot--dot line
-\end{example}
-
-The parameters associated with symbols that are drawn are contained in the \vn{qp_symbol_struct}:
-\begin{example}
-  type qp_symbol_struct
-    type          = <string>  ! Default = 'dot'
-    height        = <real>    ! Size in points. Default = 10
-    color         = <string>  ! Default = 'black'
-    fill_pattern  = <string>  ! Default = 'solid_fill'
-    line_width    = <integer> ! Default = 1.
-  end type
-\end{example}
-
-Possible \vn{fill_pattern} settings are:
-\begin{example}
-  solid_fill        
-  no_fill           
-  hatched           
-  cross_hatched     
-\end{example}
-
-The symbol types are:
-\begin{example}
-  square_sym
-  dot_sym
-  plus_sym
-  times_sym
-  circle_sym
-  x_sym
-  triangle_sym
-  circle_plus_sym
-  circle_dot_sym
-  square_concave_sym
-  diamond_sym
-  star5_sym
-  triangle_filled_sym
-  red_cross_sym
-  star_of_david_sym
-  square_filled_sym
-  circle_filled_sym
-  star5_filled_sym
-\end{example}
-
-\begin{table}
-  \centering
-  \includegraphics{plot-syms.pdf}
-  \caption{Plotting Symbols at Height = 40.0}
-  \label{t:plot.syms}
-\end{table}
 
 %-----------------------------------------------------------------
 \subsection{Data and Variable plotting}
@@ -3105,3 +2908,199 @@ parameters, and the normal mode emittances. If the normal mode
 emittances have not been computed then a nominal value of 1e-6~m-rad
 is used.
 
+
+%-----------------------------------------------------------------
+\subsection{QuickPlot Plotting}
+\label{s:line.symb}
+
+\vn{QuickPLot} is an interface library developed for \bmad for graphics plotting. QuickPlot uses
+the following concepts:
+\begin{example}
+  PAGE  -- The entire drawing surface.
+  BOX   -- The area that the graph with axes, titles, etc. is placed into.
+  GRAPH -- The actual plotting area within the bounds of the axes.
+\end{example}
+
+For text that has an associated \vn{justify} parameter, the \vn{justify} parameter is a two
+character string.  The first character gives the horizontal justification:
+\begin{example}
+   'L' -- Left justify
+   'C' -- Center justify
+   'R' -- Right justify
+\end{example}
+The second character gives the vertical justification
+\begin{example}
+   'B' -- Bottom justify
+   'C' -- Center justify
+   'T' -- Top justify
+\end{example}
+
+For text that has an associated \vn{units} parameter, the \vn{units} parameter is a character string
+which is divided up into three parts. The syntax of the \vn{units} parameter is:
+\begin{example}
+   'unit_type/ref_object/corner'
+\end{example}
+Where \vn{unit_type} is the type of units:
+\begin{example}
+   '%'       - Percent.
+   'DATA'    - Data units.
+   'MM'      - millimeters.
+   'INCH'    - Inches.
+   'POINTS'  - Printers points (72 points = 1 inch, 1pt ~ 1pixel).
+\end{example}
+\vn{ref_object} is a reference object (optional except if \vn{unit_type} = "\%").
+\begin{example}
+   'PAGE'  -- Relative to the page.
+   'BOX'   -- Relative to the box.
+   'GRAPH' -- Relative to the graph.
+\end{example}
+And \vn{corner} is the origin location (optional):
+\begin{example}
+   'LB' -- Left Bottom.
+   'LT' -- Left Top.
+   'RB' -- Right Bottom.
+   'RT' -- Right Top.
+\end{example}
+
+\vn{QuickPlot} defines a number of structures to parameterize such things like line and symbol
+properties. The structures that \tao uses are as follows.
+
+The \vn{qp_axis_struct} structure defines the properties of a graph axis
+\begin{example}
+  type qp_axis_struct
+    label             = <string>   ! Axis label string.
+    min               = <real>     ! Min is the left or bottom axis number.
+    max               = <real>     ! Max is the right or top axis number.
+    number_offset     = <real>     ! Offset from axis line in inches.
+    label_offset      = <real>     ! Offset from numbers in inches.
+    major_tick_len    = <real>     ! Major tick length in inches.
+    minor_tick_len    = <real>     ! Minor tick length in inches.
+    label_color       = <string>   ! Color of the label string
+    major_div         = <integer>  ! Number of major divisions
+    major_div_nominal = <integer>  ! Major divisions nominal value.
+    minor_div         = <integer>  ! Minor divisions. 0 = Tao will choose.
+    minor_div_max     = <integer>  ! Max minor div number if Tao chooses.
+    places            = <integer>  ! Number of digits to print
+    type              = <string>   ! Axis type: 'LINEAR' or 'LOG'.
+    bounds            = <string>   ! Axis bounds: 'GENERAL', 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
+    tick_side         = <integer>  ! 1 = draw to the inside, 0 = both, -1 = outside.
+    number_side       = <integer>  ! 1 = draw to the inside, -1 = outside.
+    draw_label        = <logical>  ! Draw the label string
+    draw_numbers      = <logical>  ! Draw the numbers.
+  end type
+\end{example}
+
+\begin{table}
+\begin{tabular}{ll} \toprule
+{\B}u       & Start a superscript or end a subscript \\[0.3ex]
+{\B}d       & Start a subscript or end a superscript.
+              {\B}u and {\B}d must always be used in pairs \\[0.3ex]
+{\B}b       & Backspace (i.e., do not advance text pointer  
+               after plotting the previous character) \\[0.3ex]
+{\B}fn      & Switch to Normal font (1)       \\[0.3ex]
+{\B}fr      & Switch to Roman font (2)        \\[0.3ex]
+{\B}fi      & Switch to Italic font (3)       \\[0.3ex]
+{\B}fs      & Switch to Script font (4)       \\[0.3ex]
+{\B}{\B}    & Backslash character (\B)        \\[0.3ex]
+{\B}x       & Multiplication sign ($\times$)  \\[0.3ex]
+{\B}.       & Centered dot ($\cdot$)          \\[0.3ex]
+{\B}A       & Angstrom symbol (\AA)         \\[0.3ex]
+{\B}gx      & Greek letter corresponding to roman letter x. See Table~\ref{t:greek}. \\[0.3ex]
+{\B}mN {\B}mNN & Graph marker number \vn{N} or \vn{NN} (1-31) \\[1ex]
+{\B}(NNNN)  & 
+\parbox{5.2in} {Character number NNNN (1 to 4 decimal digits) from the Hershey character set which
+includes a number of special characters including mathematical, musical, astronomical, and
+cartographical symbols.} \\ \bottomrule
+\end{tabular}
+\caption{Escape Sequences for Labels.}
+\label{t:plot.escape}
+\end{table}
+
+The \vn{major_div} parameter is not settable directly. Rather, \vn{major_div_nominal} may be set by
+the user and then \tao will calculate the value of \vn{major_div} such that the value of
+\vn{major_div} is ``close'' to the value of \vn{major_div_nominal} with the constraint that the value
+of \vn{major_div} ``nicely'' divides the range from given by the values for \vn{min} and \vn{max}.
+
+The \vn{places} parameter set the number of places to display a number. \tao will automatically
+calculate this number and it is not user settable.
+
+The \vn{label} parameter may include Greek letters, subscripts, superscripts, and special characters.
+Encoding for these are given in Table~\ref{t:plot.escape}. 
+
+The \vn{label_color} parameter sets the color of the label string. Possible settings for the color are:
+\begin{example}
+  White   (actually the background color)       Orange          
+  Black   (actually the foreground color)       Yellow_Green    
+  Red                                           Light_Green         
+  Green                                         Navy_Blue       
+  Blue                                          Purple          
+  Cyan                                          Reddish_Purple  
+  Magenta                                       Dark_Grey        
+  Yellow                                        Light_Grey       
+\end{example}
+Color names are case insensitive.
+
+Table~\ref{t:greek} shows how the character string \vn{"{\B}g<r>"}, where \vn{"<r>"} 
+is a Roman letter, map onto the Greek character set.
+\begin{table}
+  \centering
+  \includegraphics[width=5.0in]{greek.pdf}
+  \caption[Roman to Greek Character Conversion]{Conversion for the string 
+\vn{"{\B}g<r>"} where \vn{"<r>"} is a Roman character to the corresponding 
+Greek character.}
+\label{t:greek}
+\end{table}
+
+The parameters associated with data lines drawn in a graph are contained in the \vn{qp_line_struct}:
+\begin{example}
+  type qp_line_struct
+    width          = <integer>  ! Default = 1
+    color          = <string>   ! Default = 'black'
+    pattern        = <string>   ! Default = 'solid'
+  end type
+\end{example}
+
+The possible colors for a line are given above. The \vn{pattern} parameter sets how the line is
+drawn. Possible settings are:
+\begin{example}
+  solid      ! Solid line                 dotted     ! Dotted line             
+  dashed     ! Dashed line                dash_dot3  ! Dash--dot--dot--dot line
+  dash_dot   ! Dash--dot line
+\end{example}
+Pattern names are case insensitive.
+
+The parameters associated with symbols that are drawn are contained in the \vn{qp_symbol_struct}:
+\begin{example}
+  type qp_symbol_struct
+    type          = <string>  ! Default = 'dot'
+    height        = <real>    ! Size in points. Default = 10
+    color         = <string>  ! Default = 'black'
+    fill_pattern  = <string>  ! Default = 'solid_fill'
+    line_width    = <integer> ! Default = 1.
+  end type
+\end{example}
+
+Possible \vn{fill_pattern} settings are:
+\begin{example}
+  solid_fill                    hatched           
+  no_fill                       cross_hatched     
+\end{example}
+Fill pattern names are case insensitive.
+
+The symbol types are:
+\begin{example}
+  square                 triangle                    square_concave              
+  dot                    circle_plus                 diamond                     
+  plus                   circle_dot                  star5                       
+  times                  square_filled               triangle_filled           
+  circle                 circle_filled               red_cross                 
+  x                      star5_filled                star_of_david             
+\end{example}
+These symbols are illustrated in Table~\ref{t:plot.syms}. Symbol type names are case insensitive.
+
+\begin{table}
+  \centering
+  \includegraphics[width=5in]{plot-syms.pdf}
+  \caption{Plotting Symbols.}
+  \label{t:plot.syms}
+\end{table}

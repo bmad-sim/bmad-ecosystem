@@ -26,6 +26,7 @@ implicit none
 type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_curve_struct), pointer :: c
 type (tao_plot_struct), pointer :: tp
+type (tao_plot_region_struct), pointer :: r
 type (tao_universe_struct), pointer :: u
 type (beam_struct), pointer :: beam
 type (bunch_struct), pointer :: bunch
@@ -471,13 +472,13 @@ case ('namelist')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(16):: '-data', '-variable', '-append'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-data', '-plot', '-variable', '-append'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
-    case ('');                    exit
-    case ('-data', '-variable');  which = switch
-    case ('-append');             append = .true.
+    case ('');                             exit
+    case ('-data', '-plot', '-variable');  which = switch
+    case ('-append');                      append = .true.
     case default
       if (file_name /= '') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
@@ -502,7 +503,7 @@ case ('namelist')
     open (iu, file = file_name)
   endif
 
-  !
+  !--------------------------------------------
 
   select case (which)
   case ('-data')
@@ -627,7 +628,16 @@ case ('namelist')
       enddo
     enddo
 
-  !
+  !--------------------------------------------
+
+  case ('-plot')
+
+    do i = 1, size(s%plot_page%region)
+      r => s%plot_page%region(i)
+      if (r%plot%name == '' .or. .not. r%visible) cycle
+    enddo
+
+  !--------------------------------------------
 
   case ('-variable')
 
