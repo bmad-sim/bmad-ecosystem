@@ -3099,27 +3099,31 @@ case ('plot_manage_curve')
   endif
 
   g => graphs(1)%g
-  
+
+  if (allocated(g%curve)) then
+    n0 = size(g%curve)
+    call move_alloc(g%curve, curve_temp)
+  else
+    n0 = 0
+  endif
+
   if (.not. is_integer(name1(2))) then
     call invalid ('Curve index not an integer: ' // name1(2))
     return
   endif
   read(name1(2), *) n
-  if (n > size(g%curve) + 1) then
+  if (n > n0 + 1) then
     call invalid ('Curve index out of range: ' // name1(2))
     return
   endif
 
-  n0 = size(g%curve)
-  call move_alloc(g%curve, curve_temp)
-
   if (n == n0 + 1) then
     allocate (g%curve(n))
-    g%curve(1:n0) = curve_temp
+    if (n0 /= 0) g%curve(1:n0) = curve_temp
     g%curve(n)%name = name1(3)
     g%curve(n)%g => g
 
-  else
+  else  ! Remove curve
     allocate (g%curve(n0-1))
     g%curve(1:n-1) = curve_temp(1:n-1)
     g%curve(n:n0-1) = curve_temp(n+1:n0)
@@ -3145,27 +3149,31 @@ case ('plot_manage_graph')
   endif
 
   p => plots(1)%p
-  
+
+  if (allocated(p%graph)) then
+    n0 = size(p%graph)
+    call move_alloc(p%graph, graph_temp)
+  else
+    n0 = 0
+  endif
+
   if (.not. is_integer(name1(2))) then
     call invalid ('Graph index not an integer: ' // name1(2))
     return
   endif
   read(name1(2), *) n
-  if (n > size(p%graph) + 1) then
+  if (n > n0 + 1) then
     call invalid ('Graph index out of range: ' // name1(2))
     return
   endif
 
-  n0 = size(p%graph)
-  call move_alloc(p%graph, graph_temp)
-
   if (n == n0 + 1) then
     allocate (p%graph(n))
-    p%graph(1:n0) = graph_temp
+    if (n0 /= 0) p%graph(1:n0) = graph_temp
     p%graph(n)%name = name1(3)
     p%graph(n)%p => p
 
-  else
+  else  ! Remove graph
     allocate (p%graph(n0-1))
     p%graph(1:n-1) = graph_temp(1:n-1)
     p%graph(n:n0-1) = graph_temp(n+1:n0)
