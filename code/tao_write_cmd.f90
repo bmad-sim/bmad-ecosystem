@@ -276,7 +276,7 @@ case ('covariance_matrix')
 
 case ('curve')
 
-  call tao_find_plots (err, word(1), 'BOTH', curve = curve, always_allocate = .true.)
+  call tao_find_plots (err, word(1), 'BOTH', curve = curve, blank_means_all = .true.)
   if (err .or. size(curve) == 0) then
     call out_io (s_error$, r_name, 'CANNOT FIND CURVE')
     return
@@ -632,10 +632,17 @@ case ('namelist')
 
   case ('-plot')
 
+    write (iu, '(a)') '&tao_plot_page'
+    j = 0
     do i = 1, size(s%plot_page%region)
       r => s%plot_page%region(i)
       if (r%plot%name == '' .or. .not. r%visible) cycle
+      j = j + 1
+      write (iu, '(a, i0, a, i0, 2a)') '  place(', j, ') = @R', r%plot%ix_plot, ', ',  r%plot%name 
     enddo
+    write (iu, '(a, /)') '/'
+
+
 
   !--------------------------------------------
 

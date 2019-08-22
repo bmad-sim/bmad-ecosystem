@@ -712,7 +712,7 @@ case ('curve')
 
   ! Find particular plot
 
-  call tao_find_plots (err, attrib0, 'BOTH', curve = curve, always_allocate = .true.)
+  call tao_find_plots (err, attrib0, 'BOTH', curve = curve, blank_means_all = .true.)
   if (err) return
 
   ! print info on particular plot, graph, or curve
@@ -1710,7 +1710,7 @@ case ('graph')
 
   ! Find particular graph
 
-  call tao_find_plots (err, what2, 'BOTH', graph = graph, always_allocate = .true.)
+  call tao_find_plots (err, what2, 'BOTH', graph = graph, blank_means_all = .true.)
   if (err) return
 
   if (allocated(graph)) then
