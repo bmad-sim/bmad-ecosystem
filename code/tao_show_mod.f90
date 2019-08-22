@@ -3688,7 +3688,7 @@ case ('taylor_map', 'matrix')
       call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), &
                                                       one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       if (err) then
-        nl = 1; lines(1) = 'TAYLOR MAP TERMP OVERFLOW.'
+        nl = 1; lines(1) = 'TAYLOR MAP TERM OVERFLOW.'
         return
       endif
 

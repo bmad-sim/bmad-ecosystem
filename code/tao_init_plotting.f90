@@ -130,6 +130,7 @@ default_graph%margin                = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%B
 
 if (plot_file_in == '') then
   call tao_setup_default_plotting()
+  call number_template_plots()
   return
 endif
 
@@ -145,6 +146,7 @@ call tao_open_file (plot_file, iu, full_file_name, s_error$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE: ' // plot_file)
   call tao_setup_default_plotting()
+  call number_template_plots()
   return
 endif
 
@@ -419,7 +421,6 @@ if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
 plt%graph(1)%p => plt
 plt%name = 'scratch'
-plt%ix_plot = ip + 1
 plt%graph(1)%name = 'g'
 
 ! Now read in the plots
@@ -457,7 +458,6 @@ do  ! Loop over plot files
     plt => s%plot_page%template(ip)
     nullify(plt%r)
     plt%name                 = plot%name
-    plt%ix_plot              = ip
     plt%description          = plot%description
     plt%x_axis_type          = plot%x_axis_type
     plt%x                    = plot%x
@@ -807,6 +807,7 @@ endif
 
 ! Hook
 
+call number_template_plots()
 call tao_hook_init_plotting()
 
 ! And finish
@@ -870,6 +871,16 @@ do n = 1, size(ele_shape)
 enddo
 
 end subroutine tao_uppercase_shapes
+
+!----------------------------------------------------------------------------------------
+! contains
+
+subroutine number_template_plots()
+integer i
+do i = 1, size(s%plot_page%template)
+  s%plot_page%template(i)%ix_plot = i
+enddo
+end subroutine number_template_plots
 
 !----------------------------------------------------------------------------------------
 ! contains
@@ -1427,7 +1438,6 @@ endif
 
 np = np + 1
 plt => s%plot_page%template(np)
-plt%ix_plot = np
 plt%phantom = .true.
 plt%name = 'bunch_<R1>_<R2>'
 plt%description = 'Bunch phase space plot. <R1>, <R2> -> x, px, y, py, z, or pz. EG: bunch_z_pz'
@@ -1480,7 +1490,6 @@ enddo
 
 np = np + 1
 plt => s%plot_page%template(np)
-plt%ix_plot = np
 plt%phantom = .true.
 plt%name = 'bunch_density_<R>'
 plt%description = 'Bunch Charge Density Histogram. <R> -> x, px, y, py, z, or pz. EG: bunch_density_z'
@@ -2770,7 +2779,6 @@ integer np
 
 np = np + 1
 plt => s%plot_page%template(np)
-plt%ix_plot = np
 plt%default_plot = .true.
 
 nullify(plt%r)
