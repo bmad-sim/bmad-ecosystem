@@ -268,14 +268,14 @@ subroutine tao_find_plot_region (err, where, region, print_flag)
   logical err
 end subroutine
 
-subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, always_allocate)
+subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, blank_means_all)
   import
   implicit none
   type (tao_plot_array_struct), allocatable, optional :: plot(:)
   type (tao_graph_array_struct), allocatable, optional :: graph(:)
   type (tao_curve_array_struct), allocatable, optional :: curve(:)
   character(*) name, where
-  logical, optional :: print_flag, always_allocate
+  logical, optional :: print_flag, blank_means_all
   logical err
 end subroutine
  

@@ -49,7 +49,7 @@ logical err_flag, err
 err_flag = .true.
 
 if (any(curve_name == wave_data_name)) then
-  call tao_find_plots (err, '*', 'REGION', curve = curve_array, always_allocate = .true.)
+  call tao_find_plots (err, '*', 'REGION', curve = curve_array, blank_means_all = .true.)
   if (err) return
 
   ix_curve = 0
@@ -63,7 +63,7 @@ if (any(curve_name == wave_data_name)) then
   enddo
 
 else
-  call tao_find_plots (err, curve_name, 'REGION', curve = curve_array, always_allocate = .true.)
+  call tao_find_plots (err, curve_name, 'REGION', curve = curve_array, blank_means_all = .true.)
   if (err) return
 
   ix_curve = 0
@@ -1110,6 +1110,7 @@ if (curve%data_source == 'data') then
   ele => branch%ele(ix_ele)
 else
   call out_io (s_error$, r_name, 'ANALYSIS FOR THIS DATA_SOURCE NOT YET IMPLEMENTED: ' // curve%data_source)
+  nullify(ele)
   return
 endif
 
