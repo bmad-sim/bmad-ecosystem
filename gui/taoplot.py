@@ -188,6 +188,7 @@ class taoplot:
 			}
 
 		SymbolsDict = {
+			'do_not_draw':'',
 			'square':'s', #no fill
 			'dot':'.',
 			'plus':'+',
@@ -438,12 +439,15 @@ class taoplot:
 				else:
 					CurveData.append('none')
 
-				if (cInfoDictList[i]['draw_symbols'].value == True): #symbol size if drawn
+				if (cInfoDictList[i]['draw_symbols'].value == True) and SymbolsDict[cInfoDictList[i]['symbol'].get_component('type')] != '': #symbol size if drawn
 					CurveData.append(cInfoDictList[i]['symbol'].get_component('height'))
 				else:
 					CurveData.append(0)
 
-				CurveData.append(SymbolsDict[cInfoDictList[i]['symbol'].get_component('type')]) #symbol type
+				if SymbolsDict[cInfoDictList[i]['symbol'].get_component('type')] != '':
+					CurveData.append(SymbolsDict[cInfoDictList[i]['symbol'].get_component('type')]) #symbol type
+				else:
+					CurveData.append('.')
 				CurveData.append(cInfoDictList[i]['symbol'].get_component('line_width')) #symbol line width
 				CurvesList.append(CurveData)
 				CurveData = []
