@@ -4931,9 +4931,14 @@ class tao_new_plot_template_window(Tao_Toplevel):
     existing_plot_templates = ['None'] + existing_plot_templates
     self.clone_plot = tk.StringVar()
     self.clone_plot.set('None')
+    self.clone_chooser = ttk.Combobox(self.plot_frame,
+        textvariable=self.clone_plot, values=existing_plot_templates, state='readonly')
+    tk.Label(self.plot_frame, text="Clone existing plot:").grid(row=i+2, column=0, sticky='W')
+    self.clone_chooser.grid(row=i+2, column=1, sticky='EW')
 
     # Widgets
     params = ["name;STR;T;",
+        "description;STR;T;",
         "x_axis_type;ENUM;T;",
         "autoscale_gang_x;LOGIC;T;T",
         "autoscale_gang_y;LOGIC;T;T",
@@ -4948,13 +4953,18 @@ class tao_new_plot_template_window(Tao_Toplevel):
       self.ixd[self.plot_param_list[i].param.name] = i
 
     # Labels
-    self.plot_label_list = [tk.Label(self.plot_frame, text="Plot Name:"),
-        tk.Label(self.plot_frame, text="X-axis Type:"),
-        tk.Label(self.plot_frame, text="Autoscale gang X:"),
-        tk.Label(self.plot_frame, text="Autoscale gang Y:"),
-        tk.Label(self.plot_frame, text="Autoscale X:"),
-        tk.Label(self.plot_frame, text="Autoscale Y:"),
-        tk.Label(self.plot_frame, text="Number of curve points:")]
+    def plot_label_maker(x):
+      ''' Helper function '''
+      return tk.Label(self.plot_frame, text=x)
+    labels = ["Plot Name:",
+        "Description:",
+        "X-axis Type:",
+        "Autoscale gang X:",
+        "Autoscale gang Y:",
+        "Autoscale X:",
+        "Autoscale Y:",
+        "Number of curve points:"]
+    self.plot_label_list = list(map(plot_label_maker, labels))
 
     # Grid widgets and labels
     for i in range(len(self.plot_param_list)):
@@ -4966,7 +4976,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.name_warning_2 = tk.Label(self.plot_frame, text="Name already in use")
     # Next button
     self.next_b = tk.Button(self.plot_frame, text="Next", command=self.load_graph_frame)
-    self.next_b.grid(row=i+2, column=1, sticky='W')
+    self.next_b.grid(row=i+3, column=1, sticky='E')
 
     # Focus the name entry
     self.plot_param_list[0].tk_wid.focus_set()
@@ -4987,12 +4997,13 @@ class tao_new_plot_template_window(Tao_Toplevel):
     if name == "":
       self.name_warning_1.grid(row=1, column=2, sticky='W')
       return
+    # Cloning
 
     # Conditions
     template_list = self.pipe.cmd_in('python plot_list t').splitlines()
     for i in range(len(template_list)):
       template_list[i] = template_list[i].split(';')[1]
-    c1 = (name in self.pipe.cmd_in('python plot_list t').splitlines()) #name in use
+    c1 = (name in template_list) #name in use
     c2 = (self.clone_plot.get() != 'None') #clone has been specified
     c3 = (self.name != name) #name has changed
     c4 = False #discard existing work
@@ -5018,10 +5029,54 @@ class tao_new_plot_template_window(Tao_Toplevel):
         ans = True
       if ans:
         # Will need to read in data for existing plot
-        clone_dict[name] = self.pipe.cmd_in('python plot1 ' + name).splitlines()
-    # Clone existing data
+        clone_dict[name] = []
+        plot1 = tao_parameter_dict(self.pipe.cmd_in('python plot1 ' + name).splitlines())
+        num_graphs = plot1['num_graphs'].value
+        for i in range(1, num_graphs+1):
+          clone_dict[name].append(plot1['graph['+str(i)+']'].value)
+    # Specified plot to clone
     if c2 and (self.clone_plot.get() != name):
-      clone_dict[self.clone_plot.get()] = self.pipe.cmd_in('python plot1 ' + self.clone_plot.get()).splitlines()
+      clone_name = self.clone_plot.get()
+      clone_dict[clone_name] = []
+      plot1 = tao_parameter_dict(self.pipe.cmd_in('python plot1 ' + clone_name).splitlines())
+      num_graphs = plot1['num_graphs'].value
+      for i in range(1, num_graphs+1):
+        clone_dict[clone_name].append(plot1['graph['+str(i)+']'].value)
+    # Ask what to do about plot properties
+    use_plot_props = None
+    cdk = list(clone_dict.keys())
+    if len(clone_dict) == 2:
+      ans_var.set("")
+      msg = "You have chosen to import the existing plots "
+      msg += cdk[0] + " and " + cdk[1]
+      msg += ".  Would you like to copy the plot-level properties of either"
+      msg += " plot, or use the properties you have specified here?"
+      choices = []
+      for p in clone_dict.keys():
+        choices.append("Use properties of " + p)
+      choices.append("Use the properties I have specified")
+      tao_message_box(self.root, self, ans_var, title='Plot parameters', message=msg, choices=choices)
+      if ans_var.get() == choices[0]:
+        use_plot_props = cdk[0]
+      elif ans_var.get() == choices[1]:
+        use_plot_props = cdk[1]
+    elif len(clone_dict) == 1:
+      msg = "Would you like to use the plot-level properties of "
+      msg += cdk[0] + ", or use the properties you have specified?"
+      choices = []
+      for p in clone_dict.keys():
+        choices.append("Use properties of " + p)
+      choices.append("Use the properties I have specified")
+      tao_message_box(self.root, self, ans_var, title='Plot parameters', message=msg, choices=choices)
+      if ans_var.get() == choices[0]:
+        use_plot_props = cdk[0]
+    # Copy in plot properties if necessary
+    if use_plot_props != None:
+      plot1 = tao_parameter_dict(
+          self.pipe.cmd_in("python plot1 " + use_plot_props).splitlines())
+      for w in self.plot_param_list:
+        if w.param.name in plot1.keys():
+          w.param_copy(plot1[w.param.name])
     # Remake d1_frames and notebook if necessary
     if c4 and self.nb_exists:
       for frame in self.d1_frame_list:
@@ -5062,19 +5117,17 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.graph_frame.pack(fill='both', expand=1)
     self.title("New plot: " + self.name)
 
-    # Clone the requested d2 array(s)
+    # Clone the requested graphs
     if clone_dict != {}:
+      # First clone the graphs corresponding to self.name
       if name in clone_dict.keys():
-        # Find the graph names
-        num_graphs = str_to_tao_param(clone_dict[name][0]).value
-        for i in range(num_graphs):
-          graph = clone_dict[name][i+1].split(';')[3]
+        for graph in clone_dict[name]:
+          graph = name + '.' + graph
           self.add_graph_frame(graph)
+      # Now try self.clone_plot
       if (self.clone_plot.get() in clone_dict.keys()) and (name != self.clone_plot.get()):
-        # Find the graph names
-        num_graphs = str_to_tao_param(clone_dict[self.clone_plot.get()][0]).value
-        for i in range(num_graphs):
-          graph = clone_dict[self.clone_plot.get()][i+1].split(';')[3]
+        for graph in clone_dict[self.clone_plot.get()]:
+          graph = self.clone_plot.get() + '.' + graph
           self.add_graph_frame(graph)
       self.notebook.select(0)
     # Handle the right data_type_x widget for the curve frames
@@ -5145,22 +5198,37 @@ class tao_new_plot_template_window(Tao_Toplevel):
     cmd_str += self.name + '^^' + n_graph
     for graph_frame in self.graph_frame_list:
       cmd_str += '^^' + graph_frame.name
-    #self.pipe.cmd_in(cmd_str)
-    # Set the plot properties
-    tao_set(self.plot_param_list, "set plot @T" + template_ix + ' ', self.pipe)
+    self.pipe.cmd_in(cmd_str)
+    # Set the plot properties (but not name)
+    set_list = []
+    for ttp in self.plot_param_list:
+      if ttp.param.name != 'name':
+        set_list.append(ttp)
+    tao_set(set_list, "set plot @T" + template_ix + ' ', self.pipe)
     # Set graph properties
     for gf in self.graph_frame_list:
       graph_name = "@T" + template_ix + '.' + gf.name
-      tao_set(gf.graph_wids, "set graph " + graph_name + ' ', self.pipe)
+      # Set graph properties (but not name or n_curve)
+      set_list = []
+      for ttp in gf.graph_wids:
+        if ttp.param.name not in ['name', 'n_curve']:
+          set_list.append(ttp)
+      tao_set(set_list, "set graph " + graph_name + ' ', self.pipe)
       # Create curves
       curve_nums = range(1, gf.n_curve+1)
       for c in curve_nums:
-        curve_name = gf.curve_dict[c][0].tk_var.get()
+        curve_name = gf.curve_dict[c][0].tk_var.get().strip()
+        if curve_name == "": #default to c1, c2, etc
+          curve_name = "c" + str(c)
         self.pipe.cmd_in('python plot_manage_curve ' + graph_name
             + '^^' + str(c) + '^^' + curve_name)
         curve_name = graph_name + '.' + curve_name
-        # Set curve properties
-        tao_set(gf.curve_dict[c], 'set curve ' + curve_name + ' ', self.pipe)
+        # Set curve properties (but not the name)
+        set_list = []
+        for ttp in gf.curve_dict[c]:
+          if ttp.param.name != 'name':
+            set_list.append(ttp)
+        tao_set(set_list, 'set curve ' + curve_name + ' ', self.pipe)
     # Close the window
     self.destroy()
     # Refresh plot-related windows
@@ -5190,16 +5258,21 @@ class tao_new_plot_template_window(Tao_Toplevel):
           frame.handler_block = False
           break
 
-  def add_graph_frame(self, graph, event=None):
+  def add_graph_frame(self, graph=None, event=None):
     '''
     Creates a new graph_frame for graph and reads existing data in from Tao if present
     '''
     self.graph_frame_list.append(
-        new_graph_frame(self, name=graph))
+        new_graph_frame(self))
     ix = len(self.graph_frame_list) - 1
     self.graph_frame_list[-1].fill_curve_frame()
     self.notebook.insert(ix, self.graph_frame_list[-1])
-    self.notebook.tab(ix, text=graph)
+    self.notebook.tab(ix, text=graph.split('.')[-1])
+    if graph:
+      old_ix = self.graph_index
+      self.graph_index = ix
+      self.graph_frame_list[-1].clone(graph)
+      self.graph_index = old_ix
 
   def refresh(self):
     '''
@@ -5221,10 +5294,7 @@ class new_graph_frame(tk.Frame):
     # Defined here for convenience
     self._scroll_frames = [tao_scroll_frame(self), tao_scroll_frame(self)]
     self._width_binds = [] # used in conjunction with self.width_handler
-    if name == "":
-      self.name = "New graph" #Default
-    else:
-      self.name = name
+    self.name = "New graph"
 
     # Delete button
     tk.Button(self, text="DELETE THIS GRAPH", fg='red', command=self.delete).grid(
@@ -5308,9 +5378,6 @@ class new_graph_frame(tk.Frame):
       if self.graph_wids[i].param.type == 'STRUCT':
         self.graph_wids[i].tk_wid.bind('<Configure>', self.width_handler)
         self._width_binds.append(self.graph_wids[i].tk_wid)
-    # Set name
-    if self.name != "New graph":
-      self.d1_array_wids[self.ixd['name']].tk_var.set(self.name)
 
     # Warning labels
     # (defined here to be gridded/ungridded as necessary)
@@ -5326,6 +5393,7 @@ class new_graph_frame(tk.Frame):
 
     # Curves
     self.curve_dict = {}
+    self.curve_ixd = {}
     self.curve_frame = self._scroll_frames[1].frame
     self._scroll_frames[1].grid(row=6, column=0, columnspan=3, sticky='NSEW')
     self.grid_rowconfigure(6, weight=1)
@@ -5340,6 +5408,10 @@ class new_graph_frame(tk.Frame):
     self.curve_chooser.bind('<<ComboboxSelected>>', self.fill_curve_frame)
     self.curve_chooser.grid(row=4, column=1, sticky='EW')
     ttk.Separator(self, orient='horizontal').grid(row=5, column=0, columnspan=3, sticky='EW')
+
+    # Clone graph if specified
+    if name != "":
+      self.clone(name)
 
     # Focus the d1 name widget
     self.graph_wids[0].tk_wid.focus_set()
@@ -5408,6 +5480,38 @@ class new_graph_frame(tk.Frame):
         w = self.curve_dict[i][j]
         new_frame.curve_dict[i][j].copy(w)
 
+  def clone(self, graph, event=None):
+    '''
+    Clone an existing graph (already defined in tao, use self.duplicate() to
+    make copies of graphs already defined in the new plot template window
+    Does not clone plot properties
+    '''
+    # Grab the graph info
+    plot_graph = self.pipe.cmd_in("python plot_graph " + graph)
+    graph_dict = tao_parameter_dict(plot_graph.splitlines())
+    # Copy in the graph info
+    for key in graph_dict.keys():
+      gkey = key.split('^')[-1] #key as it appears in self.ixd
+      if gkey in self.ixd.keys():
+        self.graph_wids[self.ixd[gkey]].param_copy(graph_dict[key])
+    self.name_handler()
+    # Copy the curves
+    if ('num_curves' in graph_dict.keys()) and (graph_dict['num_curves'] != None):
+      num_curves = graph_dict['num_curves'].value
+      self.graph_wids[self.ixd['n_curve']].tk_var.set(num_curves)
+      self.n_curve_handler()
+      for i in range(1, num_curves+1):
+        self.curve_ix.set(i)
+        self.fill_curve_frame() # create the widgets if necessary
+        curve = graph_dict['curve[' + str(i) + ']'].value
+        plot_curve = self.pipe.cmd_in("python plot_curve " + graph + '.' + curve)
+        curve_dict = tao_parameter_dict(plot_curve.splitlines())
+        for key in curve_dict.keys():
+          ckey = key.split('^')[-1] #key as it appears in self.curve_ixd
+          if ckey in self.curve_ixd.keys():
+            self.curve_dict[i][self.curve_ixd[ckey]].param_copy(curve_dict[key])
+
+
   def fill_curve_frame(self, event=None):
     '''
     Adds an entry to self.curve_dict if necessary, and updates
@@ -5447,6 +5551,10 @@ class new_graph_frame(tk.Frame):
           'smooth_line_calc;LOGIC;T;',
           'units;STR;T;']
       self.curve_dict[ix] = list(map(curve_ttp, param_list))
+    # Set up self.curve_ixd if necessary
+    if self.curve_ixd == {}:
+      for i in range(len(self.curve_dict[ix])):
+        self.curve_ixd[self.curve_dict[ix][i].param.name] = i
 
     # Adjust data_type_x as necessary
     if self.parent.plot_param_list[self.parent.ixd['x_axis_type']].tk_var.get() == 'data':
