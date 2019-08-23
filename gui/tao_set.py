@@ -131,14 +131,14 @@ def tao_set(tao_list,set_str,pipe, overide=False):
     elif update_dict[item.param.name]:
       #print(set_str + item.param.name + " = " + str(item.param.value))
       if item.param.type == 'STR':
-        if item.param.value.strip().find(' ') != -1:
-          if ((item.param.value[0] not in ['"',"'"])
-              & (item.param.value[-1] != item.param.value[0])):
-            set_val = '"' + item.param.value + '"'
-          else:
-            set_val = item.param.value
-        else:
-          set_val = item.param.value
+        #if item.param.value.strip().find(' ') != -1:
+        #  if ((item.param.value[0] not in ['"',"'"])
+        #      & (item.param.value[-1] != item.param.value[0])):
+        #    set_val = '"' + item.param.value + '"'
+        #  else:
+        #    set_val = item.param.value
+        #else:
+        set_val = item.param.value
         msg = pipe.cmd_in(set_str + item.param.name + " = " + set_val)
       else:
         msg = pipe.cmd_in(
