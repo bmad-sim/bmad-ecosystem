@@ -225,6 +225,55 @@ class tk_tao_parameter():
         if self._s[i].param.name in ttp.value().keys():
           self._s[i].tk_var.set(ttp.value()[self._s[i].param.name])
 
+  def param_copy(self, tao_param):
+    '''
+    Copies tao_param.value into self.tk_var (and slaves if appropriate)
+    '''
+    if not isinstance(tao_param, tao_parameter):
+      return
+    if self.param.type in ['STR', 'INT', 'REAL']:
+      if tao_param.value == None:
+        self.tk_var.set("")
+      else:
+        self.tk_var.set(str(tao_param.value))
+    elif self.param.type in ['ENUM', 'ENUM_Z']:
+      self.tk_var.set(tao_param.value)
+    elif self.param.type == 'INUM':
+      self.tk_var.set(tao_param.value)
+    elif self.param.type == 'FILE':
+      self.tk_var.set(tao_param.value)
+      if self.tk_var.get() == "":
+        self.tk_var.set("Browse...")
+    elif self.param.type == 'LOGIC':
+      self.tk_var.set(tao_param.value)
+      if not self.param.can_vary:
+        self.tk_wid.configure(text=str(self.tk_var.get()))
+    elif self.param.type == 'REAL_ARR':
+      self.tk_var = tk.StringVar()
+      val = ""
+      for i in range(len(tao_param.value)):
+        val = val+str(tao_param.value[i])
+        val = val+';'
+      self.tk_var.set(val) #; delimited list of values
+      # Hack to prevent _update_real_arr from running:
+      self.param.type = '~REAL_ARR'
+      for i in range(len(tao_param.value)):
+        self._svar[i].set(str(tao_param.value[i]))
+      # Fix self.param.type
+      self.param.type = 'REAL_ARR'
+    elif self.param.type == 'DAT_TYPE':
+      self.tk_var.set(tao_param.value)
+      self._mvar.set((self.tk_var.get()).split('.')[0])
+      self._mvar_old = self._mvar.get() # Tracks changes inn self._mvar
+      self._s_refresh()
+    elif self.param.type == 'STRUCT':
+      for i in range(len(tao_param.value)):
+        for j in range(len(self.param.value)):
+          # tao_param.value and self.param.value may not be in the same order
+          if self.param.value[j].name == tao_param.value[i].name:
+            self._s[j].param_copy(tao_param.value[i])
+            break
+
   def _show_hide_struct(self, event=None, *args):
     '''
     Shows or hides a struct's components as appropriate

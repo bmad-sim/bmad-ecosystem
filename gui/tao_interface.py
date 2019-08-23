@@ -56,7 +56,7 @@ class tao_interface():
   '''
   debug = False # set true to print debug messages
   # Put patterns of interest here
-  debug_patterns = ['python', 'place']
+  debug_patterns = ['python plot_manage']
   def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>", so_lib=""):
     # DEBUG
     if self.debug:
@@ -165,8 +165,9 @@ class tao_interface():
     # DEBUG
     if self.debug:
       for p in self.debug_patterns:
-        if cmd_str.find(p) != 0:
+        if cmd_str.find(p) == 0:
           print(cmd_str)
+          break #only print once
     if cmd_str.find("dev ") ==0:
       cmd_str = cmd_str[4:]
       with new_stdout() as output:
@@ -234,8 +235,7 @@ class tao_interface():
     '''
     Runs cmd_str at the Tao command line and prints the output
     '''
-    self.cmd_in(cmd_str, no_warn=True)
-    if self.is_open:
-      print (self.pipe.after + self.pipe.before)
-    else:
-      print ('Not connected to Tao...')
+    output = self.cmd_in(cmd_str, no_warn=True)
+    self.message_type = "normal"
+    self.message = output
+    self.printed.set(True)
