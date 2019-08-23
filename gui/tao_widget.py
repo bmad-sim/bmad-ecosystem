@@ -122,8 +122,7 @@ class tk_tao_parameter():
       self.tk_var = tk.StringVar() #This is for the entire value
       self.tk_var.set(self.param.value)
       self.tk_wid = tk.Frame(frame) #The "widget" that should be placed by the gui
-      if data_source != '':
-        self._data_source = data_source
+      self._data_source = data_source
       self._mvar = tk.StringVar() # The master variable
       self._mvar.set((self.tk_var.get()).split('.')[0])
       self._mvar_old = self._mvar.get() # Tracks changes inn self._mvar
@@ -322,24 +321,41 @@ class tk_tao_parameter():
     If filter_data_source is set True, data types whose
     data_source does not match self._data_source are removed
     (no difference if self._data_source is not defined)
+    Returns existing d1_data arrays if self._data_source == 'data'
+    and existing v1_var arrays if self._data_source == 'var'
     '''
     master_list = []
-    for item in data_type_list:
-      # Filter out data_types not allowed for this data source
-      if filter_data_source:
-        try:
-          if self._data_source not in item['data_source']:
-            continue
-        except:
-          pass
-      item = item['name'].split('<')[0]
-      if item != "":
-        if item[-1] == '.':
-          item = item[:-1]
-      master_list.append(item)
+    # Don't filter if self._data_source = ""
+    filter_data_source = False
+    if self._data_source not in ['data', 'var']:
+      for item in data_type_list:
+        # Filter out data_types not allowed for this data source
+        if filter_data_source:
+          try:
+            if self._data_source not in item['data_source']:
+              continue
+          except:
+            pass
+        item = item['name'].split('<')[0]
+        if item != "":
+          if item[-1] == '.':
+            item = item[:-1]
+        master_list.append(item)
+    elif self._data_source == 'data':
+      # Fetch d2 arrays
+      d2_arr = self.pipe.cmd_in('python data_d2_array 1').splitlines()
+      for d2 in d2_arr:
+        d1_list = self.pipe.cmd_in('python data_d1_array ' + d2).splitlines()
+        for line in d1_list:
+          master_list.append(d2 + '.' + line.split(';')[3])
+    else:
+      # Fetch v1 arrays
+      var_gen = self.pipe.cmd_in('python var_general').splitlines()
+      for line in var_gen:
+        master_list.append(line.split(';')[0])
     return master_list
 
-  def _s_refresh(self, event=None, *args):
+  def _s_refresh(self, event=None, dat_source_swap=False, *args):
     '''
     Clears the existing slave widgets and variables,
     makes new slave widgets and variables, and populates them
@@ -355,9 +371,21 @@ class tk_tao_parameter():
     self._stype = []
     self._s = []
     self._m.configure(values=self._get_dat_types(True))
+    if dat_source_swap:
+      if self._data_source in ['data', 'var']:
+        self._mvar.set(self.tk_var.get())
+      else:
+        if self._mvar.get().find('normal.h') == 0:
+          self._mvar.set('normal.h')
+        else:
+          self._mvar.set(self._mvar.get().split('.')[0])
+      self._mvar_old = self._mvar.get()
 
     try:
-      m_ix = (self._get_dat_types()).index(self._mvar.get())
+      if self._data_source in ['data' , 'var']:
+        m_ix = 0
+      else:
+        m_ix = (self._get_dat_types()).index(self._mvar.get())
     except ValueError:
       m_ix = 0
 
@@ -427,6 +455,8 @@ class tk_tao_parameter():
     self._mvar and self._svar
     '''
     if self.param.type != 'DAT_TYPE':
+      return
+    if self._data_source not in ['lat', 'beam']:
       return
     new_tk_var = self._mvar.get()
     for k in range(len(self._svar)):

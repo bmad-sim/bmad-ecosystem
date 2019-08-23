@@ -288,6 +288,23 @@ class tao_parameter_window(tao_list_window):
       self.tao_list[k].tk_wid.grid(row=k,column=1,sticky="EW")
       if self.tao_list[k].sub_wid != None:
         self.tao_list[k].sub_wid.grid(row=k, column=2, sticky='W')
+    # Attempt to bind data_source and data_types together
+    data_source_ix = None
+    for k in range(len(self.tao_list)):
+      if self.tao_list[k].param.name == "data_source":
+        data_source_ix = k
+        break
+    if data_source_ix != None:
+      # Define _data_source_handler
+      def _dat_source_handler(*args):
+        '''Updates _data_source for DAT_TYPE widgets in this window'''
+        for w in self.tao_list:
+          if w.param.type == 'DAT_TYPE':
+            w._data_source = self.tao_list[data_source_ix].tk_var.get()
+            w._s_refresh(dat_source_swap=True)
+      # Trace tk_var for the data_source widget
+      self.tao_list[data_source_ix].tk_var.trace('w', _dat_source_handler)
+      _dat_source_handler()
 
 #-----------------------------------------------------
 # Table window
@@ -4933,8 +4950,12 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.clone_plot.set('None')
     self.clone_chooser = ttk.Combobox(self.plot_frame,
         textvariable=self.clone_plot, values=existing_plot_templates, state='readonly')
-    tk.Label(self.plot_frame, text="Clone existing plot:").grid(row=i+2, column=0, sticky='W')
-    self.clone_chooser.grid(row=i+2, column=1, sticky='EW')
+    def clone_fill(event=None):
+      '''Callback for the clone_chooser, fills the name field if empty'''
+      if self.plot_param_list[self.ixd['name']].tk_var.get().strip() == "":
+        if self.clone_plot.get() != "None":
+          self.plot_param_list[self.ixd['name']].tk_var.set(self.clone_plot.get())
+    self.clone_chooser.bind('<<ComboboxSelected>>', clone_fill)
 
     # Widgets
     params = ["name;STR;T;",
@@ -4944,7 +4965,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
         "autoscale_gang_y;LOGIC;T;T",
         "autoscale_x;LOGIC;T;F",
         "autoscale_y;LOGIC;T;F",
-        "n_curve_points;INT;T;"]
+        "n_curve_pts;INT;T;"]
     self.plot_param_list = list(map(my_ttp, params))
 
     # Parameter index lookup (for convenience)
@@ -4973,7 +4994,10 @@ class tao_new_plot_template_window(Tao_Toplevel):
 
     # Warning labels
     self.name_warning_1 = tk.Label(self.plot_frame, text="Cannot be empty")
-    self.name_warning_2 = tk.Label(self.plot_frame, text="Name already in use")
+    self.name_warning_2 = tk.Label(self.plot_frame, text="Cannot contain whitespace")
+    # Grid clone chooser
+    tk.Label(self.plot_frame, text="Clone existing plot:").grid(row=i+2, column=0, sticky='W')
+    self.clone_chooser.grid(row=i+2, column=1, sticky='EW')
     # Next button
     self.next_b = tk.Button(self.plot_frame, text="Next", command=self.load_graph_frame)
     self.next_b.grid(row=i+3, column=1, sticky='E')
@@ -4994,9 +5018,13 @@ class tao_new_plot_template_window(Tao_Toplevel):
     clone_dict = {} # keys=plot template names, values=lists of graphs
     # Check if plot name is nonempty
     name = self.plot_param_list[self.ixd['name']].tk_var.get().strip()
+    self.name_warning_1.grid_forget()
+    self.name_warning_2.grid_forget()
     if name == "":
       self.name_warning_1.grid(row=1, column=2, sticky='W')
       return
+    if name.find(' ') != -1:
+      self.name_warning_2.grid(row=1, column=2, sticky='W')
     # Cloning
 
     # Conditions
@@ -5152,6 +5180,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
       # Check for semicolons in any fields
       semi_message = "Semicolons not allowed in any input field"
       caret_message = "Carets not allowed in any input field"
+      curve_name_m = "Curve names cannot contain whitespace"
       broken = False #Used to break out of the below for loops
       # Check for semicolons/carets
       for ttp in graph_frame.graph_wids:
@@ -5173,6 +5202,10 @@ class tao_new_plot_template_window(Tao_Toplevel):
             break
           if str(ttp.tk_var.get()).find('^') != -1:
             messages.append(caret_message)
+            broken = True
+            break
+          if (str(ttp.tk_var.get()).find(' ') != -1) and (ttp.param.name == 'name'):
+            messages.append(curve_name_m)
             broken = True
             break
         if broken:
@@ -5246,7 +5279,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
       self.graph_frame_list[-1].fill_curve_frame()
       self.graph_index = len(self.graph_frame_list)-1
       self.notebook.insert(self.graph_index, self.graph_frame_list[-1])
-      self.notebook.tab(self.graph_index, text='New graph')
+      self.notebook.tab(self.graph_index, text='New_graph')
       self.notebook.select(self.graph_index)
     else:
       # Update self.graph_index
@@ -5294,7 +5327,7 @@ class new_graph_frame(tk.Frame):
     # Defined here for convenience
     self._scroll_frames = [tao_scroll_frame(self), tao_scroll_frame(self)]
     self._width_binds = [] # used in conjunction with self.width_handler
-    self.name = "New graph"
+    self.name = "New_graph"
 
     # Delete button
     tk.Button(self, text="DELETE THIS GRAPH", fg='red', command=self.delete).grid(
@@ -5383,6 +5416,7 @@ class new_graph_frame(tk.Frame):
     # (defined here to be gridded/ungridded as necessary)
     self.name_warning_1 = tk.Label(self.graph_frame, text="Must not be empty")
     self.name_warning_2 = tk.Label(self.graph_frame, text="graph name already in use")
+    self.name_warning_3 = tk.Label(self.graph_frame, text="Cannot contain whitespace")
     self.n_curve_warning = tk.Label(self.graph_frame, text="Must be a non-negative integer")
 
     # Responses to edits
@@ -5566,21 +5600,11 @@ class new_graph_frame(tk.Frame):
 
     # Adjust DAT_TYPE widgets for the selected data_source
     def data_source_handler(*args):
-      if self.curve_dict[ix][1].tk_var.get() == 'beam':
-        for i in range(len(self.curve_dict[ix])):
-          if self.curve_dict[ix][i].param.type == 'DAT_TYPE':
-            self.curve_dict[ix][i]._data_source = 'beam'
-            self.curve_dict[ix][i]._s_refresh()
-      elif self.curve_dict[ix][1].tk_var.get() == 'lat':
-        for i in range(len(self.curve_dict[ix])):
-          if self.curve_dict[ix][i].param.type == 'DAT_TYPE':
-            self.curve_dict[ix][i]._data_source = 'lat'
-            self.curve_dict[ix][i]._s_refresh()
-      else:
-        for i in range(len(self.curve_dict[ix])):
-          if self.curve_dict[ix][i].param.type == 'DAT_TYPE':
-            self.curve_dict[ix][i]._data_source = ''
-            self.curve_dict[ix][i]._s_refresh()
+      for i in range(len(self.curve_dict[ix])):
+        if self.curve_dict[ix][i].param.type == 'DAT_TYPE':
+          self.curve_dict[ix][i]._data_source = self.curve_dict[ix][
+              self.curve_ixd['data_source']].tk_var.get()
+          self.curve_dict[ix][i]._s_refresh()
     if self.curve_dict[ix][1].tk_var.trace_vinfo() == []:
       self.curve_dict[ix][1].tk_var.trace('w', data_source_handler)
 
@@ -5604,12 +5628,18 @@ class new_graph_frame(tk.Frame):
     if self.handler_block:
       return
     name = self.graph_wids[0].tk_var.get().strip()
+    self.name_warning_1.grid_forget()
+    self.name_warning_2.grid_forget()
+    self.name_warning_3.grid_forget()
     if name != "":
+      # Make sure the name doesn't contain whitespace
+      if name.find(' ') != -1:
+        self.name_warning_3.grid(rpw=self.ixd['name'], column=2, sticky='W')
+        return 1
       # Make sure the name isn't already in use
       i = 0
       for graph in self.parent.graph_frame_list:
         if (graph.name == name) & (self != self.parent.graph_frame_list[i]):
-          self.name_warning_1.grid_forget()
           self.name_warning_2.grid(row=self.ixd['name'], column=2, sticky='W')
           self.width_handler()
           return 1
@@ -5617,14 +5647,11 @@ class new_graph_frame(tk.Frame):
 
       self.name = name
       self.parent.notebook.tab(self.parent.graph_index, text=self.name)
-      self.name_warning_1.grid_forget()
-      self.name_warning_2.grid_forget()
       self.width_handler()
     else:
-      self.name_warning_2.grid_forget()
       self.name_warning_1.grid(row=self.ixd['name'], column=2, sticky='W')
-      self.name = "New graph"
-      self.parent.notebook.tab(self.parent.graph_index, text="New graph")
+      self.name = "New_graph"
+      self.parent.notebook.tab(self.parent.graph_index, text="New_graph")
       self.width_handler()
       return 1
 
