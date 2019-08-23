@@ -1481,7 +1481,8 @@ u => tao_pointer_to_universe(this_graph%ix_universe)
 this_graph%p%default_plot = .false. ! Plot has been modified
 
 select case (comp)
-
+case ('allow_wrap_around')
+  call tao_set_logical_value (this_graph%allow_wrap_around, component, value, error)
 case ('component')
   this_graph%component = value_str
 case ('clip')
@@ -1492,6 +1493,8 @@ case ('curve_legend_origin')
   call tao_set_qp_point_struct (comp, sub_comp, this_graph%curve_legend_origin, value, error, u%ix_uni)
 case ('draw_axes')
   call tao_set_logical_value (this_graph%draw_axes, component, value, error)
+case ('draw_curve_legend')
+  call tao_set_logical_value (this_graph%draw_curve_legend, component, value, error)
 case ('draw_grid')
   call tao_set_logical_value (this_graph%draw_grid, component, value, error)
 case ('draw_only_good_user_data_or_vars')
@@ -1524,6 +1527,14 @@ case ('name')
   this_graph%name = value_str
 case ('scale_margin')
   call tao_set_qp_rect_struct (comp, sub_comp, this_graph%scale_margin, value, error, u%ix_uni)
+case ('symbol_size_scale')
+  call tao_set_real_value(this_graph%symbol_size_scale, component, value, error, dflt_uni = u%ix_uni)
+case ('text_legend_origin')
+  call tao_set_qp_point_struct (comp, sub_comp, this_graph%text_legend_origin, value, error, u%ix_uni)
+case ('title')
+  this_graph%title = value
+case ('type')
+  this_graph%type = value
 case ('x')
   call tao_set_qp_axis_struct (comp, sub_comp, this_graph%x, value, error, u%ix_uni)
 case ('y')
@@ -1532,18 +1543,10 @@ case ('x2')
   call tao_set_qp_axis_struct (comp, sub_comp, this_graph%x2, value, error, u%ix_uni)
 case ('y2')
   call tao_set_qp_axis_struct (comp, sub_comp, this_graph%y2, value, error, u%ix_uni)
+case ('y2_mirrors_y')
+  call tao_set_logical_value(this_graph%y2_mirrors_y, component, value, error)
 case ('x_axis_scale_factor')
   call tao_set_real_value(this_graph%x_axis_scale_factor, component, value, error, dflt_uni = u%ix_uni)
-case ('text_legend_origin')
-  call tao_set_qp_point_struct (comp, sub_comp, this_graph%text_legend_origin, value, error, u%ix_uni)
-case ('symbol_size_scale')
-  call tao_set_real_value(this_graph%symbol_size_scale, component, value, error, dflt_uni = u%ix_uni)
-case ('title')
-  this_graph%title = value
-case ('type')
-  this_graph%type = value
-case ('y2_mirrors_y')
-  call tao_set_logical_value (this_graph%y2_mirrors_y, component, value, error)
 
 case default
   call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
