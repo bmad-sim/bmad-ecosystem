@@ -2809,7 +2809,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     c%data_type_z
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   c%data_type
   nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        c%component
-  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name), 'ix_ele_ref'
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name), ';ix_ele_ref'
   nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      c%legend_text
   nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     c%message_text
   nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            c%units
