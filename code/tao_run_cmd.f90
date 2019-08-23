@@ -43,16 +43,16 @@ logical abort
 call tao_set_var_useit_opt()
 call tao_set_data_useit_opt()
 
-if (all (which /= ['           ', 'de         ', 'lm         ', 'lmdif      ', &
-                   'custom     ', 'svd        ', 'geodesic_lm'])) then
-  call out_io (s_error$, r_name, 'OPTIMIZER NOT RECOGNIZED: ' // which)
-  return
+if (which /= '') then
+  if (all (which /= optimizer_name)) then
+    call out_io (s_error$, r_name, 'OPTIMIZER NOT RECOGNIZED: ' // which)
+    return
+  endif
+  s%global%optimizer = which
 endif
 
-if (which /= ' ') s%global%optimizer = which
 call out_io (s_blank$, r_name, 'Optimizing with: ' // s%global%optimizer)
-call out_io (s_blank$, r_name, &
-              "Type ``.'' to stop the optimizer before it's finished.")
+call out_io (s_blank$, r_name, "Type ``.'' to stop the optimizer before it's finished.")
 
 call tao_get_opt_vars (var_vec)
 if (size(var_vec) == 0) then
