@@ -339,6 +339,11 @@ call tao_data_check (err)
 if (err) return
 
 select case (who)
+case ('optimizer')
+  if (all(global%optimizer /= optimizer_name)) then
+    call out_io (s_error$, r_name, 'BAD OPTIMIZER NAME: ' // global%optimizer)
+    return
+  endif
 case ('prompt_color')
   call upcase_string(global%prompt_color)
 case ('random_seed')

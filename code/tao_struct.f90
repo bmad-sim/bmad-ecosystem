@@ -31,6 +31,7 @@ character(12), parameter :: data_type_z_name(14) = [character(12):: 'x', 'px', '
                   'intensity', 'intensity_x', 'intensity_y', 'phase_x', 'phase_y', 'Ja', 'energy']
 character(8), parameter :: var_merit_type_name(2) = [character(8):: 'target ', 'limit']
 character(8), parameter :: data_merit_type_name(5) = [character(8):: 'target', 'min', 'max', 'abs_min', 'abs_max']
+character(12), parameter :: optimizer_name(6) = [character(12):: 'de', 'lm', 'lmdif', 'custom', 'svd', 'geodesic_lm']
 
 integer, parameter :: n_char_show = 1000
 
