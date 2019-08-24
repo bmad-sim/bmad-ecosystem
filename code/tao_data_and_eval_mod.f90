@@ -937,6 +937,8 @@ case ('bunch_max.', 'bunch_min.')
     call tao_load_this_datum (bunch_params(:)%rel_max(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
   case ('bunch_min.')
     call tao_load_this_datum (bunch_params(:)%rel_min(i), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
@@ -1668,80 +1670,80 @@ case ('srdt.')
   term_found = .true.
   select case(sub_data_type(1:6))
 
-    case('h20001')
-      temp_cplx = tao_branch%srdt%h20001
-      term_cplx = .true.
-    case('h00201')
-      temp_cplx = tao_branch%srdt%h00201
-      term_cplx = .true.
-    case('h10002')
-      temp_cplx = tao_branch%srdt%h10002
-      term_cplx = .true.
-    case('h21000')
-      temp_cplx = tao_branch%srdt%h21000
-      term_cplx = .true.
-    case('h30000')
-      temp_cplx = tao_branch%srdt%h30000
-      term_cplx = .true.
-    case('h10110')
-      temp_cplx = tao_branch%srdt%h10110
-      term_cplx = .true.
-    case('h10020')
-      temp_cplx = tao_branch%srdt%h10020
-      term_cplx = .true.
-    case('h10200')
-      temp_cplx = tao_branch%srdt%h10200
-      term_cplx = .true.
-    case('h31000')
-      temp_cplx = tao_branch%srdt%h31000
-      term_cplx = .true.
-    case('h40000')
-      temp_cplx = tao_branch%srdt%h40000
-      term_cplx = .true.
-    case('h20110')
-      temp_cplx = tao_branch%srdt%h20110
-      term_cplx = .true.
-    case('h11200')
-      temp_cplx = tao_branch%srdt%h11200
-      term_cplx = .true.
-    case('h20020')
-      temp_cplx = tao_branch%srdt%h20020
-      term_cplx = .true.
-    case('h20200')
-      temp_cplx = tao_branch%srdt%h20200
-      term_cplx = .true.
-    case('h00310')
-      temp_cplx = tao_branch%srdt%h00310
-      term_cplx = .true.
-    case('h00400')
-      temp_cplx = tao_branch%srdt%h00400
-      term_cplx = .true.
-    case('h22000')
-      temp_cplx = tao_branch%srdt%h22000
-      term_cplx = .true.
-    case('h00220')
-      temp_cplx = tao_branch%srdt%h00220
-      term_cplx = .true.
-    case('h11110')
-      temp_cplx = tao_branch%srdt%h11110
-      term_cplx = .true.
-    case default
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not found in summation_rdt_struct', .true.)
-      term_found = .false.
-      valid_value = .false.
+  case('h20001')
+    temp_cplx = tao_branch%srdt%h20001
+    term_cplx = .true.
+  case('h00201')
+    temp_cplx = tao_branch%srdt%h00201
+    term_cplx = .true.
+  case('h10002')
+    temp_cplx = tao_branch%srdt%h10002
+    term_cplx = .true.
+  case('h21000')
+    temp_cplx = tao_branch%srdt%h21000
+    term_cplx = .true.
+  case('h30000')
+    temp_cplx = tao_branch%srdt%h30000
+    term_cplx = .true.
+  case('h10110')
+    temp_cplx = tao_branch%srdt%h10110
+    term_cplx = .true.
+  case('h10020')
+    temp_cplx = tao_branch%srdt%h10020
+    term_cplx = .true.
+  case('h10200')
+    temp_cplx = tao_branch%srdt%h10200
+    term_cplx = .true.
+  case('h31000')
+    temp_cplx = tao_branch%srdt%h31000
+    term_cplx = .true.
+  case('h40000')
+    temp_cplx = tao_branch%srdt%h40000
+    term_cplx = .true.
+  case('h20110')
+    temp_cplx = tao_branch%srdt%h20110
+    term_cplx = .true.
+  case('h11200')
+    temp_cplx = tao_branch%srdt%h11200
+    term_cplx = .true.
+  case('h20020')
+    temp_cplx = tao_branch%srdt%h20020
+    term_cplx = .true.
+  case('h20200')
+    temp_cplx = tao_branch%srdt%h20200
+    term_cplx = .true.
+  case('h00310')
+    temp_cplx = tao_branch%srdt%h00310
+    term_cplx = .true.
+  case('h00400')
+    temp_cplx = tao_branch%srdt%h00400
+    term_cplx = .true.
+  case('h22000')
+    temp_cplx = tao_branch%srdt%h22000
+    term_cplx = .true.
+  case('h00220')
+    temp_cplx = tao_branch%srdt%h00220
+    term_cplx = .true.
+  case('h11110')
+    temp_cplx = tao_branch%srdt%h11110
+    term_cplx = .true.
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not found in summation_rdt_struct', .true.)
+    term_found = .false.
+    valid_value = .false.
   end select
 
   if(term_found .and. term_cplx) then
     select case (sub_data_type(8:8))
-      case('r')
-        datum_value = real(temp_cplx)
-      case('i')
-        datum_value = aimag(temp_cplx)
-      case('a')
-        datum_value = abs(temp_cplx)
-      case default
-        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not ending in .r, .i, or .a.', .true.)
-        valid_value = .false.
+    case('r')
+      datum_value = real(temp_cplx)
+    case('i')
+      datum_value = aimag(temp_cplx)
+    case('a')
+      datum_value = abs(temp_cplx)
+    case default
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not ending in .r, .i, or .a.', .true.)
+      valid_value = .false.
     end select
   endif
 
@@ -1785,16 +1787,16 @@ case ('normal.')
     enddo
     if(term_found) then
       select case (sub_data_type(10:10))
-        case('r')
-          datum_value = real(temp_cplx)
-        case('i')
-          datum_value = aimag(temp_cplx)
-        case('a')
-          datum_value = abs(temp_cplx)
-        case default
-          call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', exterminate=.true.)
-          valid_value = .false.
-          return
+      case('r')
+        datum_value = real(temp_cplx)
+      case('i')
+        datum_value = aimag(temp_cplx)
+      case('a')
+        datum_value = abs(temp_cplx)
+      case default
+        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', exterminate=.true.)
+        valid_value = .false.
+        return
       end select
     else
       call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not found in normal_form_struct', exterminate=.true.)
@@ -2175,6 +2177,8 @@ case ('photon.')
     if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (orbit(:)%phase(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
@@ -2256,6 +2260,9 @@ case ('ping_a.')
       datum_value = datum_value + sqrt(ele_ref%b%beta) * scratch%cc(ix_ref)%cbar(2,2)
     endif
     valid_value = .true.
+
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
@@ -2338,6 +2345,9 @@ case ('ping_b.')
       datum_value = datum_value - sqrt(ele_ref%a%beta) * scratch%cc(ix_ref)%cbar(1,1)
     endif
     valid_value = .true.
+
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
@@ -3058,6 +3068,8 @@ case ('velocity', 'velocity.')
                         ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
   end select
 
 !-----------
