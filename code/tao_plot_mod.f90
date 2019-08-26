@@ -1660,7 +1660,7 @@ if (dz==0) then
 else
   z = (curve%z_symb(i) - curve%z_color0)/dz
   z = 1-z ! Make red -> purple with PLPlot
-  color = qp_color_name(qp_continuous_color(z))
+  color = qp_enum_to_string(qp_continuous_color(z), 'color')
 endif
 end function z_color
 
