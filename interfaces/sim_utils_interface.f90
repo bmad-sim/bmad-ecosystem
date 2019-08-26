@@ -256,19 +256,24 @@ function inverse_prob (val) result (prob)
 end function
 
 function is_integer (string, int) result (valid)
+  implicit none
   character(*) string
   integer, optional :: int
   logical valid
 end function
 
 function is_logical (string, ignore) result (valid)
+  implicit none
   character(*) string
   logical, optional :: ignore
   logical valid
 end function
 
-function is_real (string, ignore) result (valid)
+function is_real (string, ignore, real_num) result (valid)
+  import
+  implicit none
   character(*) string
+  real(rp), optional :: real_num
   logical, optional :: ignore
   logical valid
 end function
