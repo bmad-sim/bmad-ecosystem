@@ -192,6 +192,7 @@ function qp_string_to_enum (enum_str, enum_type, ix_dflt) result (ix_enum)
 
 implicit none
 
+real(rp) cnum
 integer ix_enum, ix, ixd, lb
 integer, optional :: ix_dflt
 character(*) enum_str, enum_type
@@ -200,9 +201,18 @@ character(*) enum_str, enum_type
 
 select case (enum_type)
 case ('color')
-  call match_word (enum_str, qp_color_name, ix, .false., .false.)
-  ixd = integer_option(black$, ix_dflt)
-  lb = lbound(qp_color_name, 1)
+  if (enum_str(1:1) == 'Z') then    ! Continuous color mapping.
+    if (.not. is_real(enum_str(2:), real_num = cnum)) then
+      ix_enum = -1 + lbound(qp_color_name, 1)
+    else
+      ix_enum  = nint(17 + cnum * (huge(ix) - 17))
+    endif
+    return
+  else
+    call match_word (enum_str, qp_color_name, ix, .false., .false.)
+    ixd = integer_option(black$, ix_dflt)
+    lb = lbound(qp_color_name, 1)
+  endif
 case ('fill_pattern')
   call match_word (enum_str, qp_symbol_fill_pattern_name, ix, .false., .false.)
   ixd = integer_option(solid_fill$, ix_dflt)
@@ -256,7 +266,7 @@ function qp_enum_to_string (ix_enum, enum_type, str_dflt) result (enum_str)
 
 implicit none
 
-integer ix_enum
+integer ix_enum, ix
 character(*) enum_type
 character(*), optional :: str_dflt
 character(16) enum_str
@@ -265,7 +275,10 @@ character(16) enum_str
 
 select case (enum_type)
 case ('color')
-  if (ix_enum < lbound(qp_color_name, 1) .or. ix_enum > ubound(qp_color_name, 1)) then
+  if (ix_enum > 16) then
+    enum_str(1:1) = 'Z'
+    write (enum_str(2:), '(f15.13)') (ix_enum - 17) / (1.0_rp * (huge(ix) - 17))
+  elseif (ix_enum < lbound(qp_color_name, 1) .or. ix_enum > ubound(qp_color_name, 1)) then
     enum_str = string_option('black', str_dflt)
   else
     enum_str = downcase(qp_color_name(ix_enum))
