@@ -27,6 +27,10 @@ lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_st
 lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
 lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, 
                             coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, cavity_type = traveling_wave
+lcavity1_abs_time: lcavity1  ! Will use absolute time tracking  
+lcavity2_abs_time: lcavity2  ! Will use absolute time tracking  
+lcavity3_abs_time: lcavity3  ! Will use absolute time tracking  
+
 match1:            match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3
 monitor1:          monitor, l = 4.5, num_steps = 10
 multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi, x_offset = 0.05
@@ -95,13 +99,17 @@ l2: line = (ab_multipole1, beambeam1, drift1, ecollimator1, elseparator1, elsepa
 l2[e_tot] = 1e6
 l2[geometry] = open
 
+l3: line = (lcavity1_abs_time, lcavity2_abs_time, lcavity3_abs_time)
+l3[e_tot] = 1e6
+l3[geometry] = open
+
 !-----------
 
-l3: line = (crystal1)
+l4: line = (crystal1)
 
-l3[e_tot] = 1e4
-l3[geometry] = open
-l3[particle] = photon
+l4[e_tot] = 1e4
+l4[geometry] = open
+l4[particle] = photon
 
 r0 = 1
 
@@ -117,6 +125,6 @@ crystal2: crystal, crystal_type = 'Si(444)', b_param = 1.1, tilt = 0.1, psi_angl
 
 !---------------
 
-use, l1, l2, l3
+use, l1, l2, l3, l4
 
 

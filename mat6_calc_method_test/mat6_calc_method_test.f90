@@ -22,7 +22,7 @@ character(20)  :: fmt2 = '(a,a,es22.13)'
 character(100) line
 
 integer :: i, j, k, ib, nargs, ns
-logical custom_test, err
+logical custom_test, err, abs_time
 
 !
 
@@ -44,6 +44,7 @@ endif
 !
 
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
+abs_time = lat%absolute_time_tracking
 
 if (custom_test) then
   print '(a, 6f12.6)', 'Init orb: ', lat%particle_start%vec
@@ -71,6 +72,8 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(i)
     ns = len_trim(ele%name) + 28
 
+    if (index(ele%name, 'ABS_TIME') /= 0) lat%absolute_time_tracking = .true.
+
     do j = 1, n_methods$
       if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$ .or. j == mad$) cycle
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
@@ -85,7 +88,9 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     enddo
 
-    do k = 1, 8
+    if (index(ele%name, 'ABS_TIME') /= 0) lat%absolute_time_tracking = abs_time
+
+    do k = 1, 8  ! Output line index
       do j = 1, n_methods$
         ! if (j == mad$ .and. custom_test) cycle
         if (j == fixed_step_runge_kutta$ .or. j == fixed_step_time_runge_kutta$) cycle
