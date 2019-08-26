@@ -25,6 +25,7 @@
 !   STR         ! String that does not fall into one of the above string categories.
 !   STRUCT      ! Struct. In this case{component_value} is of the form:
 !                   {name1};{type1};{value1};{name2};{type2};{value2};...
+!   COMPONENT   ! For curve component param.
 !
 ! {variable} indicates if the component can be varied. It is one of:
 !   T         ! Can vary
@@ -2808,7 +2809,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'data_type_x;DAT_TYPE_Z;T;',               c%data_type_x
   nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     c%data_type_z
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   c%data_type
-  nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        c%component
+  nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                  c%component
   nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name), ';ix_ele_ref'
   nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      c%legend_text
   nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     c%message_text
@@ -2939,7 +2940,7 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), amt) 'graph^type;ENUM;T;',                      g%type
   nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                            g%title
   nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                     g%title_suffix
-  nl=incr(nl); write (li(nl), amt) 'component;STR;T;',                        g%component
+  nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                  g%component
   nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                      g%why_invalid
   nl=incr(nl); write (li(nl), amt) 'floor_plan_view;STR;T;',                  g%floor_plan_view
   nl=incr(nl); write (li(nl), amt) 'floor_plan_orbit_color;STR;T;',           g%floor_plan_orbit_color
