@@ -103,6 +103,10 @@ class tao_root_window(tk.Tk):
     tk.Button(self.main_frame, text="Setup").grid(row=2, column=1, sticky='EW')
     tk.Button(self.main_frame, text="Run").grid(row=2, column=2, sticky='EW')
 
+    # Debug
+    tk.Button(self.main_frame, text="Debug", command=self.debug_cmd).grid(
+        row=3, column=0, columnspan=3, sticky='EW')
+
     # Command line
     self.cmd_frame = tk.Frame(self)
     self.cmd_frame.pack(side="bottom", fill='both', expand=1)
@@ -678,6 +682,40 @@ class tao_root_window(tk.Tk):
       #self.history_window.force_focus()
     except:
       self.history_window = tao_history_window(root)
+
+  def debug_cmd(self):
+    win = tk.Toplevel(self)
+    win.title('Debug')
+
+    tk.Label(win, text='Commands to print to stdout:').grid(row=0, column=0, sticky='EW')
+    var = tk.StringVar()
+    opts = ['None', 'Omit querries (show, python var_general, etc)', 'All']
+    i=1
+    for o in opts:
+      tk.Radiobutton(win, text=o, variable=var, value=str(i)).grid(row=i, column=0, sticky='EW')
+      i += 1
+    def set_debug():
+      '''Command for the button'''
+      if var.get() == '1':
+        print('1')
+        self.pipe.debug = False
+        self.pipe.debug_patterns = []
+      elif var.get() == '2':
+        print(2)
+        self.pipe.debug = True
+        self.pipe.debug_patterns = ['set', 'place',
+            'python data_d2_create', 'python datum_create',
+            'python var_create', 'python var_v1_create',
+            'python plot_manage_plot',
+            'python plot_manage_curve',
+            'python plot_manage_graph',
+            'python lat_calc_done', 'python place_buffer'
+            'write', 'call']
+      elif var.get() == '3':
+        print(3)
+        self.pipe.debug = True
+        self.pipe.debug_patterns = 'All'
+    tk.Button(win, text='Apply', command=set_debug).grid(row=i, column=0, sticky='EW')
 
 #-----------------------------------------------------
 

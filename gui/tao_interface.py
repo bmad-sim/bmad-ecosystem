@@ -3,6 +3,7 @@ import os
 import re
 import io
 import pexpect
+import time
 if 'ACC_LOCAL_ROOT' in os.environ.keys():
   sys.path.append(os.environ['ACC_LOCAL_ROOT']+'/tao/python/')
 elif 'ACC_LOCAL_DIR' in os.environ.keys():
@@ -54,11 +55,11 @@ class tao_interface():
   Provides an interface between the GUI and
   the Tao command line
   '''
-  debug = False # set true to print debug messages
-  # Put patterns of interest here
-  debug_patterns = ['python plot_manage']
   def __init__(self, mode, init_args = "", tao_exe =  "", expect_str = "Tao>", so_lib=""):
     # DEBUG
+    self.debug = False # set true to print debug messages
+    # Put patterns of interest here
+    self.debug_patterns = ['python plot_manage']
     if self.debug:
       print(init_args)
     ###
@@ -164,10 +165,32 @@ class tao_interface():
     '''
     # DEBUG
     if self.debug:
-      for p in self.debug_patterns:
-        if cmd_str.find(p) == 0:
-          print(cmd_str)
-          break #only print once
+      match = False
+      if self.debug_patterns == 'All':
+        match = True
+      elif isinstance(self.debug_patterns, list):
+        for p in self.debug_patterns:
+          if cmd_str.find(p) == 0:
+            match = True
+      if match:
+        current_time = time.localtime()
+        y = str(current_time.tm_year)
+        mo = str(current_time.tm_mon)
+        if len(mo) == 1:
+          mo = '0' + mo
+        day = str(current_time.tm_mday)
+        if len(day) == 1:
+          day = '0' + day
+        hr = str(current_time.tm_hour)
+        if len(hr) == 1:
+          hr = '0' + hr
+        mn = str(current_time.tm_min)
+        if len(mn) == 1:
+          mn = '0' + mn
+        sec = str(current_time.tm_sec)
+        if len(sec) == 1:
+          sec = '0' + sec
+        print(y+'-'+mo+'-'+day+' '+hr+':'+mn+':'+sec, cmd_str)
     if cmd_str.find("dev ") ==0:
       cmd_str = cmd_str[4:]
       with new_stdout() as output:
