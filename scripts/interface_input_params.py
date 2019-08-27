@@ -37,8 +37,6 @@ struct_list = [
     'wake_sr_mode_struct',
     'wake_sr_struct',
     'wake_lr_mode_struct',
-    'wake_lr_position1_struct',
-    'wake_lr_spline_struct',
     'lat_ele_loc_struct',
     'wake_struct',
     'taylor_term_struct',

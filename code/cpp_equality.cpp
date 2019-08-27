@@ -352,35 +352,6 @@ template bool is_all_equal (const CPP_wake_lr_mode_MATRIX&, const CPP_wake_lr_mo
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_wake_lr_position1& x, const CPP_wake_lr_position1& y) {
-  bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.vec, y.vec);
-  is_eq = is_eq && (x.charge == y.charge);
-  is_eq = is_eq && (x.t == y.t);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_wake_lr_position1_ARRAY&, const CPP_wake_lr_position1_ARRAY&);
-template bool is_all_equal (const CPP_wake_lr_position1_MATRIX&, const CPP_wake_lr_position1_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_wake_lr_spline& x, const CPP_wake_lr_spline& y) {
-  bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.spline, y.spline);
-  is_eq = is_eq && is_all_equal(x.bunch, y.bunch);
-  is_eq = is_eq && (x.t_max == y.t_max);
-  is_eq = is_eq && (x.polarization_angle == y.polarization_angle);
-  is_eq = is_eq && (x.polarized == y.polarized);
-  is_eq = is_eq && (x.transverse_dependence == y.transverse_dependence);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_wake_lr_spline_ARRAY&, const CPP_wake_lr_spline_ARRAY&);
-template bool is_all_equal (const CPP_wake_lr_spline_MATRIX&, const CPP_wake_lr_spline_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_lat_ele_loc& x, const CPP_lat_ele_loc& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
@@ -400,10 +371,12 @@ bool operator== (const CPP_wake& x, const CPP_wake& y) {
   is_eq = is_eq && (x.sr_long == y.sr_long);
   is_eq = is_eq && (x.sr_trans == y.sr_trans);
   is_eq = is_eq && is_all_equal(x.lr_mode, y.lr_mode);
-  is_eq = is_eq && is_all_equal(x.lr_spline, y.lr_spline);
+  is_eq = is_eq && (x.wake_amp_scale == y.wake_amp_scale);
+  is_eq = is_eq && (x.wake_time_scale == y.wake_time_scale);
   is_eq = is_eq && (x.z_sr_max == y.z_sr_max);
   is_eq = is_eq && (x.lr_freq_spread == y.lr_freq_spread);
   is_eq = is_eq && (x.lr_self_wake_on == y.lr_self_wake_on);
+  is_eq = is_eq && (x.sr_wake_scale_with_length == y.sr_wake_scale_with_length);
   return is_eq;
 };
 

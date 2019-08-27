@@ -106,16 +106,6 @@ typedef valarray<CPP_wake_lr_mode>          CPP_wake_lr_mode_ARRAY;
 typedef valarray<CPP_wake_lr_mode_ARRAY>    CPP_wake_lr_mode_MATRIX;
 typedef valarray<CPP_wake_lr_mode_MATRIX>   CPP_wake_lr_mode_TENSOR;
 
-class CPP_wake_lr_position1;
-typedef valarray<CPP_wake_lr_position1>          CPP_wake_lr_position1_ARRAY;
-typedef valarray<CPP_wake_lr_position1_ARRAY>    CPP_wake_lr_position1_MATRIX;
-typedef valarray<CPP_wake_lr_position1_MATRIX>   CPP_wake_lr_position1_TENSOR;
-
-class CPP_wake_lr_spline;
-typedef valarray<CPP_wake_lr_spline>          CPP_wake_lr_spline_ARRAY;
-typedef valarray<CPP_wake_lr_spline_ARRAY>    CPP_wake_lr_spline_MATRIX;
-typedef valarray<CPP_wake_lr_spline_MATRIX>   CPP_wake_lr_spline_TENSOR;
-
 class CPP_lat_ele_loc;
 typedef valarray<CPP_lat_ele_loc>          CPP_lat_ele_loc_ARRAY;
 typedef valarray<CPP_lat_ele_loc_ARRAY>    CPP_lat_ele_loc_MATRIX;
@@ -1048,68 +1038,6 @@ bool operator== (const CPP_wake_lr_mode&, const CPP_wake_lr_mode&);
 
 
 //--------------------------------------------------------------------
-// CPP_wake_lr_position1
-
-class Opaque_wake_lr_position1_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_wake_lr_position1 {
-public:
-  Real_ARRAY vec;
-  Real charge;
-  Real t;
-
-  CPP_wake_lr_position1() :
-    vec(0.0, 6),
-    charge(0.0),
-    t(0.0)
-    {}
-
-  ~CPP_wake_lr_position1() {
-  }
-
-};   // End Class
-
-extern "C" void wake_lr_position1_to_c (const Opaque_wake_lr_position1_class*, CPP_wake_lr_position1&);
-extern "C" void wake_lr_position1_to_f (const CPP_wake_lr_position1&, Opaque_wake_lr_position1_class*);
-
-bool operator== (const CPP_wake_lr_position1&, const CPP_wake_lr_position1&);
-
-
-//--------------------------------------------------------------------
-// CPP_wake_lr_spline
-
-class Opaque_wake_lr_spline_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_wake_lr_spline {
-public:
-  CPP_spline_ARRAY spline;
-  CPP_wake_lr_position1_ARRAY bunch;
-  Real t_max;
-  Real polarization_angle;
-  Bool polarized;
-  Int transverse_dependence;
-
-  CPP_wake_lr_spline() :
-    spline(CPP_spline_ARRAY(CPP_spline(), 0)),
-    bunch(CPP_wake_lr_position1_ARRAY(CPP_wake_lr_position1(), 0)),
-    t_max(0.0),
-    polarization_angle(0.0),
-    polarized(false),
-    transverse_dependence(Bmad::NOT_SET)
-    {}
-
-  ~CPP_wake_lr_spline() {
-  }
-
-};   // End Class
-
-extern "C" void wake_lr_spline_to_c (const Opaque_wake_lr_spline_class*, CPP_wake_lr_spline&);
-extern "C" void wake_lr_spline_to_f (const CPP_wake_lr_spline&, Opaque_wake_lr_spline_class*);
-
-bool operator== (const CPP_wake_lr_spline&, const CPP_wake_lr_spline&);
-
-
-//--------------------------------------------------------------------
 // CPP_lat_ele_loc
 
 class Opaque_lat_ele_loc_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1147,10 +1075,12 @@ public:
   CPP_wake_sr sr_long;
   CPP_wake_sr sr_trans;
   CPP_wake_lr_mode_ARRAY lr_mode;
-  CPP_wake_lr_spline_ARRAY lr_spline;
+  Real wake_amp_scale;
+  Real wake_time_scale;
   Real z_sr_max;
   Real lr_freq_spread;
   Bool lr_self_wake_on;
+  Bool sr_wake_scale_with_length;
 
   CPP_wake() :
     sr_file(),
@@ -1158,10 +1088,12 @@ public:
     sr_long(),
     sr_trans(),
     lr_mode(CPP_wake_lr_mode_ARRAY(CPP_wake_lr_mode(), 0)),
-    lr_spline(CPP_wake_lr_spline_ARRAY(CPP_wake_lr_spline(), 0)),
+    wake_amp_scale(1),
+    wake_time_scale(1),
     z_sr_max(0.0),
     lr_freq_spread(0.0),
-    lr_self_wake_on(true)
+    lr_self_wake_on(true),
+    sr_wake_scale_with_length(true)
     {}
 
   ~CPP_wake() {
@@ -3013,7 +2945,6 @@ public:
   Bool aperture_limit_on;
   Bool ptc_print_info_messages;
   Bool debug;
-
 
   CPP_bmad_common() :
     max_aperture_limit(1e3),
