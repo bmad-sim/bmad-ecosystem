@@ -3367,7 +3367,7 @@ iu = bp_com%current_file%f_unit
 
 ele%wake%lr_file = lr_file_name
 
-lr%freq = -1
+lr%freq = real_garbage$
 lr%angle = ''
 lr%b_sin = 0
 lr%b_cos = 0
@@ -3386,11 +3386,12 @@ endif
 
 ! Transfer info to ele structure.
 
-n_row = count(lr%freq /= -1)
+n_row = count(lr%freq /= real_garbage$)
 allocate (ele%wake%lr_mode(n_row))
 j = 0
 do i = 1, size(lr)
-  if (lr(i)%freq == -1) cycle
+  if (lr(i)%freq == real_garbage$) cycle
+  if (lr(i)%freq == 0) lr(i)%freq = -1
 
   j = j + 1
   ele%wake%lr_mode(j)%freq_in   = lr(i)%freq

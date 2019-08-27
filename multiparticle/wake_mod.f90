@@ -45,7 +45,7 @@ if (ele%wake%lr_freq_spread == 0 .or. .not. associated(ele%wake)) return
 
 do n = 1, size(ele%wake%lr_mode)
   call ran_gauss (rr)
-  if (ele%wake%lr_mode(n)%freq_in <= 0) cycle
+  if (ele%wake%lr_mode(n)%freq_in < 0) cycle
   ele%wake%lr_mode(n)%freq = ele%wake%lr_mode(n)%freq_in * (1 + ele%wake%lr_freq_spread * rr)
   if (present(set_done)) set_done = .true.
 enddo
@@ -153,7 +153,7 @@ do i = 1, size(ele%wake%lr_mode)
   lr => ele%wake%lr_mode(i)
 
   omega = twopi * lr%freq
-  if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
+  if (lr%freq < 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
   f_exp = omega / (2 * lr%Q)
   dt = ele%wake%wake_time_scale * (t0 - lr%t_ref)
   exp_shift = exp(-dt * f_exp)
@@ -165,7 +165,7 @@ do i = 1, size(ele%wake%lr_mode)
   lr%a_cos = exp_shift * lr%a_cos
 
   ! Need to shift a_sin, etc, since particle z is with respect to the bunch center.
-  if (lr%freq /= 0) then  ! If not fundamental mode
+  if (lr%freq >= 0) then  ! If not fundamental mode
     c = cos (dt * omega)
     s = sin (dt * omega)
     b_sin = lr%b_sin
@@ -185,7 +185,7 @@ do i = 1, size(ele%wake%lr_mode)
 
   lr => ele%wake%lr_mode(i)
 
-  if (lr%freq == 0) then
+  if (lr%freq < 0) then
     omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
   else
     omega = twopi * lr%freq
@@ -210,7 +210,7 @@ do i = 1, size(ele%wake%lr_mode)
     ff0 = ele%wake%wake_amp_scale * abs(particle%charge) * lr%r_over_q
 
     dt_phase = dt
-    if (lr%freq == 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
+    if (lr%freq < 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
 
     c = cos (-dt_phase * omega)
     s = sin (-dt_phase * omega)

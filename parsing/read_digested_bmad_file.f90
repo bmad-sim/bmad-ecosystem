@@ -746,6 +746,11 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0) then
     read (d_unit, err = 9830) wake%lr_mode
     read (d_unit, err = 9860) wake%z_sr_max, wake%lr_self_wake_on, wake%lr_freq_spread, &
                         wake%wake_amp_scale, wake%wake_time_scale, wake%sr_wake_scale_with_length
+    do i = 1, ix_lr_mode
+      if (wake%lr_mode(i)%freq /= 0) cycle
+      wake%lr_mode(i)%freq = -1
+      wake%lr_mode(i)%freq_in = -1
+    enddo
   endif
 endif
 
