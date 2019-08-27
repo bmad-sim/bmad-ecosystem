@@ -76,7 +76,7 @@ endif
 call tao_find_plots (err, where, 'REGION', plot, graph)
 if (err) return
 
-if (allocated(graph)) then                ! If all the graphs of a plot...
+if (size(graph) > 0) then                ! If all the graphs of a plot...
   do j = 1, size(graph)
     call tao_scale_graph (graph(j)%g, y_min, y_max, axis)
     if (logic_option(.true., turn_autoscale_off)) graph(j)%g%p%autoscale_y = .false.

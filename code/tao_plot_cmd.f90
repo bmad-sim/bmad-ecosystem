@@ -40,7 +40,7 @@ if (where == '*' .or. where == 'all') then
 else
   call tao_find_plots (err, where, 'REGION', plot, graph)
   if (err) return
-  if (allocated(graph)) then
+  if (size(graph) > 0) then
     do i = 1, size(graph)
       graph(i)%g%component = component
     enddo

@@ -58,7 +58,7 @@ endif
 call tao_find_plots (err, where, 'REGION', plot, graph)
 if (err) return
 
-if (allocated(graph)) then       ! If all the graphs of a plot...
+if (size(graph) > 0) then       ! If all the graphs of a plot...
   do i = 1, size(graph)
     call clip_graph (graph(i)%g%p, graph(i)%g)
   enddo

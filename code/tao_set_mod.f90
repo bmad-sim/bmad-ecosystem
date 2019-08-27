@@ -1082,7 +1082,7 @@ logical err
 call tao_find_plots (err, curve_name, 'BOTH', curve = curve, blank_means_all = .true.)
 if (err) return
 
-if (.not. allocated(curve) .or. size(curve) == 0) then
+if (size(curve) == 0) then
   call out_io (s_error$, r_name, 'CURVE OR GRAPH NOT SPECIFIED')
   return
 else
@@ -1323,7 +1323,7 @@ logical err_flag, found
 call tao_find_plots (err_flag, plot_name, 'BOTH', plot = plot)
 if (err_flag) return
 
-if (.not. allocated(plot)) then
+if (size(plot) == 0) then
   call out_io (s_error$, r_name, 'PLOT OR PLOT NOT SPECIFIED')
   return
 endif
@@ -1439,11 +1439,11 @@ logical err
 call tao_find_plots (err, graph_name, 'BOTH', plot = plot, graph = graph)
 if (err) return
 
-if (allocated(graph)) then
+if (size(graph) > 0) then
   do i = 1, size(graph)
     call set_this_graph (graph(i)%g)
   enddo
-elseif (allocated(plot)) then
+elseif (size(plot) > 0) then
   do i = 1, size(plot)
     do j = 1, size(plot(i)%p%graph)
       call set_this_graph (plot(i)%p%graph(j))
