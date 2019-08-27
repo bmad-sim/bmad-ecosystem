@@ -717,7 +717,7 @@ case ('curve')
 
   ! print info on particular plot, graph, or curve
 
-  if (allocated(curve)) then
+  if (size(curve) > 0) then
     c1 => curve(1)%c
 
     if (print_header) then
@@ -1713,7 +1713,7 @@ case ('graph')
   call tao_find_plots (err, what2, 'BOTH', graph = graph, blank_means_all = .true.)
   if (err) return
 
-  if (allocated(graph)) then
+  if (size(graph) > 0) then
     do i = 1, size(graph)
       g => graph(i)%g
       if (g%p%name == '') cycle  ! Can happen if plot associated with a region is nullified and the region has the same name as the plot.
@@ -3194,7 +3194,7 @@ case ('plot')
       return
     endif
 
-    if (allocated(plot)) then
+    if (size(plot) > 0) then
       p => plot(1)%p
 
       nl=nl+1; lines(nl) = 'Plot:  ' // p%name

@@ -82,7 +82,7 @@ endif
 
 all_same = .true.
 
-if (allocated(graph)) then
+if (size(graph) > 0) then
   do i = 1, size(graph)
     call tao_x_scale_graph (graph(i)%g, x_min, x_max, have_scaled = have_scaled)
     if (.not. have_scaled) cycle
