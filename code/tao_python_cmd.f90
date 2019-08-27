@@ -1458,7 +1458,6 @@ case ('ele:spin_taylor')
 !   sr_long     sr_long_table
 !   sr_trans    sr_trans_table
 !   lr_mode_table
-!   lr_spline_table   ! TODO: Inmplement
 ! Example:
 !   python element 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -1484,7 +1483,6 @@ case ('ele:wake')
     nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',     allocated(wake%sr_long%mode)
     nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',    allocated(wake%sr_trans%mode)
     nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',     allocated(wake%lr_mode)
-    nl=incr(nl); write (li(nl), lmt) 'has#lr_spline;LOGIC;F;',   allocated(wake%lr_spline)
 
   case ('sr_long')
     nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr_long%z_ref
