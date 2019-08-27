@@ -543,21 +543,6 @@ type wake_lr_mode_struct    ! Long-Range Wake struct.
   logical :: polarized = .false.   ! Polaraized mode?
 end type
 
-type wake_lr_position1_struct
-  real(rp) :: vec(6) = 0   ! (x, px, y, py, z, pz) of bunch centroid
-  real(rp) :: charge = 0   ! Bunch charge (Coul).
-  real(rp) :: t = 0        ! Time of bunch
-end type
-
-type wake_lr_spline_struct
-  type (spline_struct), allocatable :: spline(:)
-  type (wake_lr_position1_struct), allocatable :: bunch(:) ! Array of past bunch positions
-  real(rp) :: t_max = 0         ! Maximum time beyond which the wake is taken to be zero.
-  real(rp) :: polarization_angle = 0      ! polarization angle (radians/2pi).
-  logical :: polarized = .false.   ! Polaraized mode?
-  integer :: transverse_dependence = not_set$     ! linear_leading$, linear_trailing, none$
-end type
-
 !
 
 type wake_struct
@@ -566,7 +551,6 @@ type wake_struct
   type (wake_sr_struct) :: sr_long
   type (wake_sr_struct) :: sr_trans
   type (wake_lr_mode_struct), allocatable :: lr_mode(:)
-  type (wake_lr_spline_struct), allocatable :: lr_spline(:)
   real(rp) :: wake_amp_scale = 1             ! Wake amplitude scale factor.
   real(rp) :: wake_time_scale = 1            ! time scale factor.
   real(rp) :: z_sr_max = 0                   ! Max allowable z value sr_mode. 

@@ -233,8 +233,6 @@ type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (cartesian_map_struct), pointer :: ct_map
-type (wake_lr_spline_struct), allocatable :: lr_pa_temp(:)
-type (wake_lr_spline_struct), pointer :: lr_pa
 type (ac_kicker_struct), pointer :: ac
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
@@ -1535,31 +1533,6 @@ if (delim /= '=')  then
     err_flag = .true.
   end select
 
-  return
-endif
-
-! lr_wake_spline
-
-if (attrib_word == 'LR_WAKE_SPLINE') then
-  if (associated(ele%wake)) then
-    n = size(ele%wake%lr_spline)
-    call move_alloc(ele%wake%lr_spline, lr_pa_temp)
-    allocate (ele%wake%lr_spline(n+1))
-    do i = 1, n
-      allocate (ele%wake%lr_spline(i)%spline(0))
-      allocate (ele%wake%lr_spline(i)%bunch(0))
-    enddo
-    ele%wake%lr_spline(1:n) = lr_pa_temp
-    deallocate(lr_pa_temp)
-    lr_pa => ele%wake%lr_spline(n+1)
-  else
-    call init_wake (ele%wake, 0, 0, 0, 1)
-    lr_pa => ele%wake%lr_spline(1)
-  endif
-
-  if (.not. expect_this ('{', .false., .true., 'AFTER "LR_WAKE_SPLINE"', ele, delim, delim_found)) return
-
-  call parse_wake_lr_spline(lr_pa, ele, lat, delim, delim_found, err_flag)
   return
 endif
 
@@ -3384,7 +3357,6 @@ namelist / long_range_modes / lr
 if (.not. associated(ele%wake)) allocate (ele%wake)
 if (.not. allocated(ele%wake%sr_long%mode))  allocate (ele%wake%sr_long%mode(0))
 if (.not. allocated(ele%wake%sr_trans%mode)) allocate (ele%wake%sr_trans%mode(0))
-if (.not. allocated(ele%wake%lr_spline)) allocate (ele%wake%lr_spline(0))
 if (allocated(ele%wake%lr_mode)) deallocate (ele%wake%lr_mode)
 
 ! get data
@@ -3501,7 +3473,6 @@ logical in_namelist, finished, err
 
 if (.not. associated(ele%wake))   allocate (ele%wake)
 if (.not. allocated(ele%wake%lr_mode)) allocate (ele%wake%lr_mode(0))
-if (.not. allocated(ele%wake%lr_spline)) allocate (ele%wake%lr_spline(0))
 if (allocated(ele%wake%sr_long%mode))  deallocate (ele%wake%sr_long%mode)
 if (allocated(ele%wake%sr_trans%mode)) deallocate (ele%wake%sr_trans%mode)
 
@@ -7076,68 +7047,6 @@ end select
 end function
 
 end subroutine parser_debug_print_info
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine parse_wake_lr_spline (lr_pa, ele, lat, delim, delim_found, err_flag)
-!
-! Subroutine to parse a "lr_spline = {}" construct
-!
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is private to bmad_parser_mod.
-!-
-
-subroutine parse_wake_lr_spline (lr_pa, ele, lat, delim, delim_found, err_flag)
-
-implicit none
-
-type (wake_lr_spline_struct) lr_pa
-type (ele_struct), target :: ele
-type (lat_struct), target :: lat
-
-integer ix_word
-
-character(40) attrib_name
-character(1) delim
-
-logical err_flag, delim_found
-
-!
-
-err_flag = .true.
-
-do
-
-  ! Read attriubute
-  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
-  if (.not. expect_this ('=', .true., .false., 'IN WAKE_LR_SPLINE DEFINITION', ele, delim, delim_found)) return
-
-  select case (attrib_name)
-
-  case ('T_MAX')
-    call parse_evaluate_value (ele%name, lr_pa%t_max, lat, delim, delim_found, err_flag, ',}')
-
-  case default
-    if (attrib_name == '') then
-      call parser_error ('MANGLED WAKE_LR_SPLINE DEFINITION FOR ELEMENT: ' // ele%name)
-    else
-      call parser_error ('UNKNOWN WAKE_LR_SPLINE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
-    endif
-    return
-
-  end select
-
-  ! Possible "}" is end of mode
-  if (delim == '}') exit
-
-enddo
-
-if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
-err_flag = .false.
-
-end subroutine parse_wake_lr_spline
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

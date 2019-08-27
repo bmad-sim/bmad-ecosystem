@@ -225,7 +225,7 @@ type (ac_kicker_struct), pointer :: ac
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
-integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch, ix_lr_spline
+integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch
 integer n_cus
 
 logical write_wake, mode3
@@ -234,7 +234,7 @@ logical write_wake, mode3
 
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
 ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; n_var = 0; ix_st = -1
-mode3 = .false.; ix_wall3d = 0; ix_lr_spline = 0
+mode3 = .false.; ix_wall3d = 0
 n_cart = 0; n_grid = 0; n_cyl = 0; n_tay = 0; n_cus = 0
 
 if (associated(ele%mode3))             mode3 = .true.
@@ -273,7 +273,6 @@ if (associated(wake)) then
     if (allocated(wake%sr_long%mode))      ix_sr_long    = size(wake%sr_long%mode)
     if (allocated(wake%sr_trans%mode))     ix_sr_trans   = size(wake%sr_trans%mode)
     if (allocated(wake%lr_mode))           ix_lr_mode    = size(wake%lr_mode)
-    if (allocated(wake%lr_spline)) ix_lr_spline = size(wake%lr_spline)
     n_wake = n_wake + 1
     if (n_wake > size(ix_wake)) call re_allocate(ix_wake, 2*size(ix_wake))
     ix_wake(n_wake) = ele%ix_ele
@@ -310,7 +309,7 @@ endif
 ! The last zero is for future use.
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
-          ix_lr_spline, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+          -1, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
           ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
 
 write (d_unit) &
@@ -546,10 +545,6 @@ if (associated(wake) .and. write_wake) then
   write (d_unit) wake%sr_trans%mode
   write (d_unit) wake%lr_file
   write (d_unit) wake%lr_mode
-  do i = 1, size(wake%lr_spline)
-    write (d_unit) wake%lr_spline(i)%t_max
-    write (d_unit) wake%lr_spline(i)%polarization_angle
-  enddo
   write (d_unit) wake%z_sr_max, wake%lr_self_wake_on, wake%lr_freq_spread, &
                         wake%wake_amp_scale, wake%wake_time_scale, wake%sr_wake_scale_with_length
   
