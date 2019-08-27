@@ -731,11 +731,11 @@ subroutine init_lat (lat, n)
   integer, optional :: n
 end subroutine
 
-subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline, always_allocate)
+subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr_mode, always_allocate)
   import
   implicit none
   type (wake_struct), pointer :: wake
-  integer n_sr_long, n_sr_trans, n_lr_mode, n_lr_spline
+  integer n_sr_long, n_sr_trans, n_lr_mode
   logical, optional :: always_allocate
 end subroutine
 

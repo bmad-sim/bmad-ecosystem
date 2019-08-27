@@ -475,7 +475,7 @@ type (ac_kicker_struct), pointer :: ac
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
-integer ix_r, ix_s, n_var, ix_d, ix_m, ix_lr_spline, idum, n_cus
+integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2
 
@@ -487,7 +487,7 @@ error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
-        ix_lr_spline, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+        idum, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
         ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
 
 read (d_unit, err = 9100, end = 9100) &
@@ -732,22 +732,18 @@ enddo
 ! If ix_lr_mode is negative then it is a pointer to a previously read wake. 
 ! See write_digested_bmad_file.
 
-if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0 .or. ix_lr_spline /= 0) then
+if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0) then
   if (ix_lr_mode < 0) then
     call transfer_wake (ele%branch%ele(abs(ix_lr_mode))%wake, ele%wake)
 
   else
-    call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr_mode, ix_lr_spline)
+    call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr_mode)
     wake => ele%wake
     read (d_unit, err = 9800) wake%sr_file
     read (d_unit, err = 9840) wake%sr_long%mode
     read (d_unit, err = 9850) wake%sr_trans%mode
     read (d_unit, err = 9820) wake%lr_file
     read (d_unit, err = 9830) wake%lr_mode
-    do i = 1, size(wake%lr_spline)
-      read (d_unit, err = 9830) wake%lr_spline(i)%t_max
-      read (d_unit, err = 9830) wake%lr_spline(i)%polarization_angle
-    enddo
     read (d_unit, err = 9860) wake%z_sr_max, wake%lr_self_wake_on, wake%lr_freq_spread, &
                         wake%wake_amp_scale, wake%wake_time_scale, wake%sr_wake_scale_with_length
   endif

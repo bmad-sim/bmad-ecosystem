@@ -45,6 +45,7 @@ if (ele%wake%lr_freq_spread == 0 .or. .not. associated(ele%wake)) return
 
 do n = 1, size(ele%wake%lr_mode)
   call ran_gauss (rr)
+  if (ele%wake%lr_mode(n)%freq_in <= 0) cycle
   ele%wake%lr_mode(n)%freq = ele%wake%lr_mode(n)%freq_in * (1 + ele%wake%lr_freq_spread * rr)
   if (present(set_done)) set_done = .true.
 enddo
@@ -121,8 +122,6 @@ type (bunch_struct), target :: bunch
 type (ele_struct) ele
 type (coord_struct), pointer :: particle
 type (wake_lr_mode_struct), pointer :: lr
-type (wake_lr_spline_struct), pointer :: lr_pos
-type (wake_lr_position1_struct), allocatable :: lr_bun(:)
 
 real(rp) t0, dt, dt_phase, kx0, ky0, ff0, w_norm, w_skew
 real(rp) omega, f_exp, ff, c, s, kx, ky, kick_self, vec(6)
@@ -137,37 +136,6 @@ if (.not. associated(ele%wake)) return
 if (bunch%n_live == 0) return
 
 if (.not. associated(ele%wake)) return
-
-! position array update
-
-if (size(ele%wake%lr_spline) /= 0) then
-  charge = sum(bunch%particle%charge, bunch%particle%state == alive$)
-  do i = 1, 6
-    vec(i) = sum(bunch%particle%vec(i)*bunch%particle%charge, bunch%particle%state == alive$) / charge
-  enddo
-  t0 = sum(bunch%particle%t*bunch%particle%charge, bunch%particle%state == alive$) / charge
-endif
-
-lr_spline_loop: do i = 1, size(ele%wake%lr_spline)
-  lr_pos => ele%wake%lr_spline(i)
-  t_cut = bunch%particle(1)%t - lr_pos%t_max
-
-  if (.not. allocated(lr_pos%bunch)) allocate (lr_pos%bunch(20))
-
-  n = size(lr_pos%bunch)
-  do j = 1, n
-    if (lr_pos%bunch(j)%charge /= 0 .and. lr_pos%bunch(j)%t > t_cut) cycle
-    lr_pos%bunch(j) = wake_lr_position1_struct(vec, charge, t0)
-    cycle lr_spline_loop
-  enddo
-
-  call move_alloc(lr_pos%bunch, lr_bun)
-  allocate (lr_pos%bunch(n+20))
-  lr_pos%bunch(1:n) = lr_bun
-  deallocate (lr_bun)
-
-  lr_pos%bunch(n+1) = wake_lr_position1_struct(vec, charge, t0)
-enddo lr_spline_loop
 
 !
 
