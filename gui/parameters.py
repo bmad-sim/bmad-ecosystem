@@ -33,11 +33,8 @@ class tao_parameter():
     self.is_ignored = (can_vary == 'I')
     self.sub_param = sub_param #associated sub_parameter (name)
 
-    if param_type == 'STR':
-      self.value = param_value
-    elif param_type == 'FILE':
-      self.value = param_value
-    elif param_type in ['DAT_TYPE', 'DAT_TYPE_Z']:
+    if param_type in ['STR', 'FILE', 'DAT_TYPE', 'DAT_TYPE_Z', 'REAL_ARR',
+        'ENUM', 'ENUM_Z', 'STRUCT', 'COMPONENT']:
       self.value = param_value
     elif param_type == 'INT':
       try:
@@ -49,19 +46,13 @@ class tao_parameter():
         self.value = float(param_value)
       except:
         self.value = None
-    elif param_type == "REAL_ARR": #value: list of floats
-      self.value = param_value
     elif param_type == 'LOGIC':
       self.value = (param_value == 'T')
-    elif param_type in ['ENUM', 'ENUM_Z']:
-      self.value = param_value
     elif param_type == 'INUM':
       try:
         self.value = int(param_value)
       except:
         self.value = None
-    elif param_type == 'STRUCT': #value: list of tao_parameters
-      self.value = param_value
     else:
       print ('UNKNOWN PARAMETER TYPE: ' + param_type)
 

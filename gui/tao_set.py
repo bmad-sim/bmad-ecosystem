@@ -92,6 +92,9 @@ def tao_set(tao_list,set_str,pipe, overide=False):
       unrolled_list.append(item)
   tao_list = unrolled_list
   for item in tao_list:
+    # Skip items that can't vary
+    if not item.param.can_vary:
+      continue
     #Type casting and validation
     if item.param.type == 'INT':
       try:
@@ -121,7 +124,7 @@ def tao_set(tao_list,set_str,pipe, overide=False):
       item.param.value = new_val
       update_dict[item.param.name] = True
     else:
-      update_dict[item.param.name] = overide & item.param.can_vary
+      update_dict[item.param.name] = overide
 
     #Wait till the end to set lattice_calc_on and plot_on
     if item.param.name == 'lattice_calc_on':

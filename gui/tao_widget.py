@@ -150,8 +150,20 @@ class tk_tao_parameter():
       self._s = [] # list of tk_tao_parameters
       for component in self.param.value:
         self._s.append(tk_tao_parameter(component, self.tk_wid, pipe, prefix=self.param.name))
+    elif self.param.type == 'COMPONENT':
+      self.tk_var = tk.StringVar()
+      self.tk_var.set(self.param.value)
+      if not self.param.can_vary:
+        self.tk_wid = tk.Entry(frame, textvariable=self.tk_var)
+      else:
+        self.tk_wid = tk.Frame(frame)
+        self._copts = ['model', 'base', 'design', 'meas', 'ref']
+        self._aopts = ['', '+', '-']
+        self._handle_block = False
+        self.tk_var.trace('w', self._write_comps)
+        self._c_refresh()
 
-    if self.param.type not in ['DAT_TYPE', 'REAL_ARR', 'STRUCT']:
+    if self.param.type not in ['DAT_TYPE', 'REAL_ARR', 'STRUCT', 'COMPONENT']:
       if (self.param.type != 'FILE') and (not self.param.is_ignored):
         self.tk_wid.config(disabledforeground="black")
     elif self.param.type != 'STRUCT':
@@ -636,7 +648,78 @@ class tk_tao_parameter():
 
     return data_dict['s_offset']
 
+  def _c_refresh(self):
+    '''
+    Reads the contents of self.tk_var and creates the proper number of
+    OptionMenu widgets
+    '''
+    if self.param.type != 'COMPONENT':
+      return
+    for child in self.tk_wid.winfo_children():
+      child.destroy()
+    # parse self.tk_var
+    val = self.tk_var.get()
+    def parse_comps(x):
+      '''
+      Recursive function to read off one term in the component string.
+      Returns a list in the form [comp1, +/-, comp2, +/-, ..., compN]
+      '''
+      x = x.strip()
+      pix = x.find('+')
+      if pix == -1:
+        pix = len(x)
+      mix = x.find('-')
+      if mix == -1:
+        mix = len(x)
+      if pix < mix:
+        a = '+'
+      elif mix < pix:
+        a = '-'
+      else:
+        a = None
+      if a == None:
+        return [x]
+      else:
+        return [x[:x.find(a)]] + [a] + parse_comps(x[x.find(a)+1:])
+    val = parse_comps(val) #len(val) is odd
+    # create widgets
+    self._s = [] # widgets
+    self._svar = [] # tk variables
+    for i in range(len(val)+1):
+      if i%2 == 0: #component
+        opts = self._copts
+      else: #+/-
+        opts = self._aopts
+      self._svar.append(tk.StringVar())
+      self._svar[-1].set(val[i] if i<len(val) else "")
+      self._s.append(tk.OptionMenu(self.tk_wid, self._svar[-1], *opts))
+      self._s[-1].pack(side='left')
+      self._svar[-1].trace('w', self._write_comps)
+
+  def _write_comps(self, *args):
+    '''
+    Writes the contents of self._svar into self.tk_var (for COMPONENT
+    parameters only), then calls self._c_refresh()
+    '''
+    if self._handle_block == True: # prevent this function from triggering itself
+      return
+    if self.param.type != 'COMPONENT':
+      return
+    val = ""
+    for v in self._svar:
+      if v.get() != "":
+        val += v.get()
+      else:
+        break
+    self._handle_block = True
+    self.tk_var.set(val)
+    self._handle_block = False
+    self._c_refresh()
+
   def open_file(self):
+    '''
+    Provides a dialog window for selecting a file
+    '''
     filename = filedialog.askopenfilename(title = "Select " + self.param.name)
     #Only set if the user has selected an actual file
     if isinstance(filename, str) & (filename != ""):
