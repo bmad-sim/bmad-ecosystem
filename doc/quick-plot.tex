@@ -517,9 +517,9 @@ Greek character.}
 defines a line is a \vn{qp_line_struct}
 \begin{example}
   type qp_line_struct
-    integer width   ! Line width. Default = 1
-    integer color   ! Line color. Default = black\$
-    integer style   ! Line style. Default = solid\$
+    integer width         ! Line width. Default = 1
+    character(16) color   ! Line color. Default = 'black'
+    character(16) style   ! Line style. Default = 'solid'
   end type
 \end{example}
 
@@ -527,11 +527,11 @@ defines a line is a \vn{qp_line_struct}
 The \vn{qp_symbol_struct} defines how symbols are drawn 
 \begin{example}
   type qp_symbol_struct
-    integer  type        ! Default = circle_dot\$
-    real(rp) height      ! Default = 6.0 (points)
-    integer  color       ! Default = black\$
-    integer  fill        ! Default = solid_fill\$
-    integer  line_width  ! Default = 1
+    character(16)  type        ! Default = 'circle_dot'
+    real(rp) height            ! Default = 6.0 (points)
+    character(16)  color       ! Default = 'black'
+    character(16)  fill        ! Default = 'solid_fill'
+    integer  line_width        ! Default = 1
   end type
 \end{example}
 
@@ -546,7 +546,7 @@ The \vn{qp_axis_struct} defines how axes are drawn
                               !  Default = 0.05
     real(rp) label_offset     ! Offset in inches of the label from the numbering.
                               !  Default = 0.05
-    integer label_color       ! black\$ (default), red\$, etc. 
+    character(16) label_color ! Default = 'black'
     real(rp) major_tick_len   ! Length of the major ticks in inches. Def = 0.10
     real(rp) minor_tick_len   ! Length of the minor ticks in inches. Def = 0.06
     integer major_div         ! Number of major divisions. Default = 5
