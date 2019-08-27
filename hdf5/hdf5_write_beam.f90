@@ -191,10 +191,7 @@ do ib = 1, size(bunches)
   !
 
   call pmd_write_real_to_dataset(b2_id, 'sPosition', 's', unit_m, p(:)%s, err)
-
-  call pmd_write_real_to_dataset(b2_id, 'speed', 'beta', unit_c_light, p(:)%beta, err)
   call pmd_write_real_to_dataset(b2_id, 'weight', 'macro-charge', unit_1, p(:)%charge, err)
-
   call pmd_write_int_to_dataset(b2_id, 'particleStatus', 'state', unit_1, p(:)%state, err)
   call pmd_write_int_to_dataset(b2_id, 'branchIndex', 'ix_branch', unit_1, p(:)%ix_branch, err)
   call pmd_write_int_to_dataset(b2_id, 'elementIndex', 'ix_ele', unit_1, p(:)%ix_ele, err)
