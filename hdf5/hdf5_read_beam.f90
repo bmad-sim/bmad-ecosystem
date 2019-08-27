@@ -126,7 +126,7 @@ type (coord_struct), pointer :: p
 type(c_funptr) c_func_ptr
 
 real(rp) charge_factor, f_ev
-real(rp), allocatable :: dt(:)
+real(rp), allocatable :: dt(:), pz(:)
 
 integer(hid_t), value :: root_id
 integer(hid_t) g_id, g2_id, g3_id, g4_id, a_id
@@ -167,7 +167,7 @@ call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.)
 if (error) return
 call reallocate_bunch(bunch, n)
 bunch%particle = coord_struct()
-allocate (dt(n), charge_state(n))
+allocate (dt(n), charge_state(n), pz(n))
 
 ! Get attributes.
 
@@ -221,7 +221,7 @@ do idx = 0, n_links-1
   case ('momentum')
     call pmd_read_real_dataset(g2_id, 'momentum/x', f_ev, bunch%particle%vec(2), error)
     call pmd_read_real_dataset(g2_id, 'momentum/y', f_ev, bunch%particle%vec(4), error)
-    ! totalMomentum gets put into %vec(6) in this case
+    call pmd_read_real_dataset(g2_id, 'momentum/z', f_ev, bunch%particle%vec(6), error)
   case ('velocity')
     call pmd_read_real_dataset(g2_id, 'velocity/x', c_light, bunch%particle%vec(2), error)
     call pmd_read_real_dataset(g2_id, 'velocity/y', c_light, bunch%particle%vec(4), error)
@@ -231,7 +231,7 @@ do idx = 0, n_links-1
   case ('totalMomentumOffset')
     call pmd_read_real_dataset(g2_id, name, f_ev, bunch%particle%p0c, error)
   case ('totalMomentum')
-    call pmd_read_real_dataset(g2_id, name, f_ev, bunch%particle%vec(6), error)
+    call pmd_read_real_dataset(g2_id, name, f_ev, pz, error)
   case ('photonPolarizationAmplitude')
     call pmd_read_real_dataset(g2_id, 'photonPolarizationAmplitude/x', 1.0_rp, bunch%particle%field(1), error)
     call pmd_read_real_dataset(g2_id, 'photonPolarizationAmplitude/y', 1.0_rp, bunch%particle%field(2), error)
@@ -244,8 +244,6 @@ do idx = 0, n_links-1
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, dt, error)
   case ('timeOffset')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%t, error)
-  case ('speed')
-    call pmd_read_real_dataset(g2_id, name, c_light, bunch%particle%beta, error)
   case ('weight')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%charge, error)
   case ('particleStatus')
@@ -279,11 +277,12 @@ do ip = 1, size(bunch%particle)
     p%species = species
     p%beta = 1
   else
+    p%species = set_species_charge(species, charge_state(ip))
+    call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)
     p%vec(5) = -p%beta * c_light * dt(ip)
     p%vec(2) = p%vec(2) / p%p0c
     p%vec(4) = p%vec(4) / p%p0c
-    p%vec(6) = p%vec(6) / p%p0c
-    p%species = set_species_charge(species, charge_state(ip))
+    p%vec(6) = pz(ip) / p%p0c
   endif
 enddo
 
