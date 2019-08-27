@@ -11,7 +11,7 @@ particle_start[z] = -0.001
 p1: pipe, L = 1, wake_amp_scale = 1.2, wake_time_scale = 0.9, sr_wake_scale_with_length = T
 p1[sr_wake_file] = 'short_range.wake'
 
-p2: pipe, L = 1
+p2: lcavity, L = 1, rf_frequency = 1e8, lr_freq_spread = 0.1
 p2[lr_wake_file] = 'long_range.wake'
 
 p3: p2
