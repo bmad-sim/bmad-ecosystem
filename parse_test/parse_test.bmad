@@ -35,8 +35,7 @@ sbend0: sbend, r_custom(3) = 4, lr_self_wake_on = F, superimpose = F, offset = 3
         curved_coords = T,
         r0 = (0, 0, 0),
         dr = (0.001, 0.001, 0.002),
-        pt(1,2,3) = (1, 2, 3, 4, 5, 6)},
-    lr_wake_spline = {t_max = 0.3}
+        pt(1,2,3) = (1, 2, 3, 4, 5, 6)}
 
 sbend0[grid_field(1)%field_scale] = 0.7
 
