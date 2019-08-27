@@ -34,11 +34,8 @@ contains
 !
 !      Filename                    outfile
 !      -----------------------    ---------------------------
-!      DUMMY:foo.bar'             '/home/cesr/dummy/foo.bar'
-!      DUMMY:[a.b]foo.bar'        '/home/cesr/dummy/a/b/foo.bar'
 !      $DUMMY/foo.bar'            '/home/cesr/dummy/foo.bar'
 !      /home/cesr/dummy/foo.bar'  '/home/cesr/dummy/foo.bar'
-!      [cesr.dummy]foo.bar'        NOT a valid Unix file name.
 !-
 
 subroutine FullFileName (filename, outfile, valid)
@@ -54,7 +51,7 @@ logical, optional :: valid
 character(*), parameter :: r_name = 'FullFileName'
 character(len(outfile)) ExpandName        ! Expanded Name
 
-integer InLen, iDollar, iColon, iSlash, iLeftB, iRightB
+integer InLen, iDollar, iColon, iSlash
 integer i
 integer explen
 
@@ -139,10 +136,6 @@ if (present(valid)) valid = .true.
 ! A UNIX-style environment variable will have a leading '$' 
 
 If (iDollar == 1) then
-      
-! Expand Unix-style environment variable names
-! Environment variable specifies the full name
-
   If (iSlash == 0) then
         
     Call GetEnv(Filename(2:InLen), ExpandName)
@@ -156,93 +149,12 @@ If (iDollar == 1) then
     if (ExpLen == 0) return
     ExpandName(ExpLen+1:) = FileName(iSlash:InLen)
   Endif
-
-! VMS-style logicals will have a trailing colon
-
-else
-
-  if (iColon > 1) then
-    Call GetEnv(Filename(1:iColon-1), ExpandName)
-    ExpLen = Len_Trim(ExpandName)
-    if (ExpLen == 0) return
-    ExpandName(ExpLen+1:) = '/' // FileName(iColon+1:InLen)
-  endif
-
-  
-  iLeftB  = index(ExpandName, '[')
-  iRightB = index(ExpandName, ']')    
-
-  if (iLeftB == 0) then
-    if (iRightB /= 0) return
-  else
-    if (iRightB < iLeftB) return
-    do i = iLeftB+1, iRightB
-      if (ExpandName(i:i) == '.') ExpandName(i:i) = '/'
-      if (ExpandName(i:i) == ']') ExpandName(i:i) = '/'
-    enddo
-    ExpandName = ExpandName(1:iLeftB-1) // ExpandName(iLeftB+1:)
-  endif
-
 endif
 
 outfile = ExpandName
 if (present(valid)) valid = .true.
 
 #endif
-
-!-----------------------------------------------------------------------
-contains
-
-subroutine dir_unix_to_vms (outfile)
-
-character(*) outfile
-
-integer i, ix, isl, isl2
-
-! Special case
-
-if (outfile == './') then
-outfile = '[]'
-return
-endif
-
-!
-
-do
-  if (outfile(1:2) /= './') exit
-  outfile = outfile(3:)
-enddo
-
-isl = index (outfile, '/')
-
-if (isl == 0) return
-    
-do 
-  i = index(outfile, '..')
-  if (i == 0) exit
-  outfile = outfile(:i-1) // '-' // outfile(i+2:)
-enddo
-
-if (outfile(1:1) == '/') then
-  outfile = '[' // outfile(2:)
-elseif (outfile(1:1) == '-') then
-  outfile = '[' // outfile
-else
-  outfile = '[.' // outfile
-endif
-
-i = index(outfile, '/')
-if (i /= 0) then
-  do
-    i = index(outfile, '/')
-    if (i == 0) exit
-    outfile = outfile(:i-1) // '.' // outfile(i+1:)
-    ix = i
-  enddo
-  outfile = outfile(:ix-1) // ']' // outfile(ix+1:)
-endif
-
-end subroutine
 
 end subroutine
 
@@ -287,11 +199,15 @@ InLen = Len_Trim(FileName)
 
 ! Locate special characters (last dollar-sign, last colon, last slash)
 
-ix   = 0
+ix = 0
+
+#if defined(CESR_WINCVF)
 iBracket = Scan(FileName(:InLen), ']', .True.)
 If (iBracket .gt. ix) ix = iBracket
 iColon   = Scan(FileName(:InLen), ':', .True.)
 If (iColon .gt. ix) ix = iColon
+#endif
+
 iSlash   = Scan(FileName(:InLen), '/', .True.)
 If (iSlash .gt. ix) ix = iSlash
 
@@ -345,20 +261,21 @@ if (name(1:1) == ' ') then
   is_rel = .true.
 elseif (name(1:1) == '/') then
   is_rel = .false.
-elseif (name(1:1) == '~') then
-  is_rel = .false.
-elseif (index(name, ':') /= 0) then
-  is_rel = .false.
 elseif (name(1:1) == '.') then
   is_rel = .true.
-elseif (name(1:2) == '[.') then
-  is_rel = .true.
-elseif (name(1:2) == '[-') then
-  is_rel = .true.
-elseif (name(1:1) == '[') then
+#if defined(CESR_WINCVF)
+elseif (name(1:1) == '\') then         !'
   is_rel = .false.
+elseif (index(name, ':\') /= 0) then   !'
+  is_rel = .false.
+elseif (index(name, ':/') /= 0) then   !'
+  is_rel = .false.
+#else
 elseif (name(1:1) == '$') then
   is_rel = .false.
+elseif (name(1:1) == '~') then
+  is_rel = .false.
+#endif
 ! can have file names like "#abc#" so take everything else to be relative.
 else
   is_rel = .true.
