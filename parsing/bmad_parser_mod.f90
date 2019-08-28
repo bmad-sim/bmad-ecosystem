@@ -5048,7 +5048,6 @@ subroutine compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
 
 implicit none
 
-type (lat_struct), target :: lat
 type (ele_struct), target :: ref_ele, super_ele
 type (ele_struct), pointer :: slave
 type (parser_ele_struct) pele
@@ -5146,7 +5145,7 @@ endif
 
 ! First special case: A null_ele that has been moved to the lord list
 
-if (ref_ele%key == null_ele$ .and. ref_ele%ix_branch == 0 .and. ref_ele%ix_ele > lat%n_ele_track) then
+if (ref_ele%key == null_ele$ .and. ref_ele%ix_branch == 0 .and. ref_ele%ix_ele > branch%lat%n_ele_track) then
   ix_insert = -1  ! Will be ignored 
 
 elseif (ref_ele%value(l$) == 0 .and. super_ele%value(l$) == 0 .and. pele%offset == 0) then
