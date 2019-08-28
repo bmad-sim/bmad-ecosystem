@@ -1,28 +1,22 @@
 #! /usr/bin/python
 
-##########################################################
-### Edit the following for your specific job:
-
 x0 = -0.03001
 x1 =  0.02999
 dx =  0.00016
 
-# note: y typically fixed to one value for MA
 y0 = 10.e-6
 y1 = 10.e-6
 dy = 10.e-6
 
-e0 = -0.01001 # check +/-1% aperture
-e1 =  0.00999
+e0 = -0.05001 # check +/-5% aperture
+e1 =  0.04999
 de =  0.001
 
-n_turns   = 2048
 fft_turns = 1024
+n_turns = 2048
 
-lat_file = "/home/shanksj/chess/tao_jobs/20160712_sarc_4quad_dba_rev5.4/sarc_0eta_20160724_Rev5.4b_v2.lat"
+lat_file = "/home/shanksj/chess/lat/chess-u/cu.lat"
 
-#########################################################
-############     DO NOT EDIT BELOW HERE      ############
 #########################################################
 
 sigfig = 1
@@ -34,7 +28,7 @@ while True:
 
 eSlice = int((e1-e0)/de+1)
 
-print eSlice, (e1-e0), de
+print(eSlice, (e1-e0), de)
 
 for ix in range(eSlice+1):
 	eStart = e0+ix*de
