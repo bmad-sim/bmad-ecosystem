@@ -1,0 +1,6 @@
+parameter[geometry] = open
+parameter[e_tot] = 1e9
+dd: drift, l = 10
+ll: line = (dd)
+use, ll
+
