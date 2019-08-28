@@ -162,7 +162,7 @@ Case (wiggler$, undulator$)
     return
   endif
 
-  if (size(field_ele%cartesian_map) == 0) then  ! Only if wiggler or undulator
+  if (.not. associated(field_ele%cartesian_map)) then  ! Only if wiggler or undulator
     allocate (ct_map)
     call create_wiggler_cartesian_map(field_ele, ct_map)
     allocated_map = .true.
