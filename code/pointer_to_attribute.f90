@@ -157,8 +157,7 @@ if (a_name(1:3) == 'LR(') then
     lr_mode = ele%wake%lr_mode
     deallocate (ele%wake%lr_mode)
     allocate (ele%wake%lr_mode(n))
-    ele%wake%lr_mode = wake_lr_mode_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
-                                        0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0, .false.)
+    ele%wake%lr_mode = wake_lr_mode_struct ()
     ele%wake%lr_mode(1:n_lr_mode) = lr_mode
     deallocate (lr_mode)
   endif
