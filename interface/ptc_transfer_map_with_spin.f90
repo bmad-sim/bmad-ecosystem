@@ -84,6 +84,7 @@ i2 = integer_option(branch%n_ele_track, ix2)
 
 call alloc (ptc_c_map)
 call alloc (ptc_probe8)
+call alloc (y0)
 
 t_map(:)%ref = orb0%vec
 x = orb0%vec
