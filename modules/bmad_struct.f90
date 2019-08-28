@@ -609,7 +609,7 @@ type cartesian_map_struct
   integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
-  type (cartesian_map_term_struct), pointer :: ptr
+  type (cartesian_map_term_struct), pointer :: ptr => null()
 end type
 
 ! Cylindrical map field 
@@ -626,16 +626,16 @@ type cylindrical_map_term_struct
 end type
 
 type cylindrical_map_struct
-  integer m                        ! Azimuthal Mode: varies as cos(m*phi - theta0_azimuth)
-  integer :: harmonic = 0          ! Harmonic of fundamental
-  real(rp) :: phi0_fieldmap = 0    ! Mode oscillates as: twopi * (f * t + phi0_fieldmap)
+  integer :: m = 0                  ! Azimuthal Mode: varies as cos(m*phi - theta0_azimuth)
+  integer :: harmonic = 0           ! Harmonic of fundamental
+  real(rp) :: phi0_fieldmap = 0     ! Mode oscillates as: twopi * (f * t + phi0_fieldmap)
   real(rp) :: theta0_azimuth = 0    ! Azimuthal ((x, y) plane) orientation of mode.
-  real(rp) :: field_scale = 1      ! Factor to scale the fields by
-  integer :: master_parameter = 0  ! Master parameter in ele%value(:) array to use for scaling the field.
+  real(rp) :: field_scale = 1       ! Factor to scale the fields by
+  integer :: master_parameter = 0   ! Master parameter in ele%value(:) array to use for scaling the field.
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
-  real(rp) :: dz = 0               ! Distance between sampled field points.
-  real(rp) :: r0(3) = 0            ! Field origin offset.
-  type (cylindrical_map_term_struct), pointer :: ptr
+  real(rp) :: dz = 0                ! Distance between sampled field points.
+  real(rp) :: r0(3) = 0             ! Field origin offset.
+  type (cylindrical_map_term_struct), pointer :: ptr => null()
 end type
 
 ! Grid field
@@ -663,7 +663,7 @@ type grid_field_struct
   real(rp) :: dr(3) = 0   ! Grid spacing.
   real(rp) :: r0(3) = 0   ! Field origin relative to ele_anchor_pt.
   logical :: curved_ref_frame = .false.
-  type (grid_field_pt_struct), pointer :: ptr
+  type (grid_field_pt_struct), pointer :: ptr => null()
   type (bicubic_cmplx_coef_struct) bi_coef(4, 2, 3)    ! Save computed coefs for faster tracking
   type (tricubic_cmplx_coef_struct) tri_coef(4, 2, 3)  ! Save computed coefs for faster tracking
 end type
@@ -702,7 +702,7 @@ type taylor_field_struct
   integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
   logical :: curved_ref_frame = .false.
   logical :: canonical_tracking = .false.
-  type (taylor_field_plane_struct), pointer :: ptr
+  type (taylor_field_plane_struct), pointer :: ptr => null()
 end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
