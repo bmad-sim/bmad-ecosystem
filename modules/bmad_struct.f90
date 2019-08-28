@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 238
+integer, parameter :: bmad_inc_version$ = 239
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -528,19 +528,21 @@ end type
 ! A non-zero lr_freq_spread attribute value will make freq different from freq_in.
 
 type wake_lr_mode_struct    ! Long-Range Wake struct.
-  real(rp) :: freq = 0       ! Actual Frequency in Hz.
-  real(rp) :: freq_in = 0    ! Input frequency in Hz.
-  real(rp) :: R_over_Q = 0   ! Strength in V/C/m^2.
-  real(rp) :: Q = 0          ! Quality factor.
-  real(rp) :: angle = 0      ! polarization angle (radians/2pi).
-  real(rp) :: b_sin = 0      ! non-skew sin-like component of the wake.
-  real(rp) :: b_cos = 0      ! non-skew cos-like component of the wake.
-  real(rp) :: a_sin = 0      ! skew sin-like component of the wake.
-  real(rp) :: a_cos = 0      ! skew cos-like component of the wake.
-  real(rp) :: t_ref = 0      ! time reference value for computing the wake amplitude.
-                             !  This is used to prevent value overflow with long trains.
-  integer :: m = 0           ! Order (1 = dipole, 2 = quad, etc.)
-  logical :: polarized = .false.   ! Polaraized mode?
+  real(rp) :: freq = 0            ! Actual Frequency in Hz.
+  real(rp) :: freq_in = 0         ! Input frequency in Hz.
+  real(rp) :: R_over_Q = 0        ! Strength in V/C/m^(2*m_mode).
+  real(rp) :: Q = real_garbage$   ! Used for backwards compatability.
+  real(rp) :: damp = 0            ! Damping factor = omega / 2 * Q = pi * freq / Q
+  real(rp) :: phi = 0             ! Phase in radians/2pi.
+  real(rp) :: angle = 0           ! polarization angle (radians/2pi).
+  real(rp) :: b_sin = 0           ! non-skew sin-like component of the wake.
+  real(rp) :: b_cos = 0           ! non-skew cos-like component of the wake.
+  real(rp) :: a_sin = 0           ! skew sin-like component of the wake.
+  real(rp) :: a_cos = 0           ! skew cos-like component of the wake.
+  real(rp) :: t_ref = 0           ! time reference value for computing the wake amplitude.
+                                  !  This is used to prevent value overflow with long trains.
+  integer :: m = 0                ! Mode order (1 = dipole, 2 = quad, etc.)
+  logical :: polarized = .false.  ! Polaraized mode?
 end type
 
 !

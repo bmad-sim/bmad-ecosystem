@@ -166,7 +166,8 @@ if (a_name(1:3) == 'LR(') then
   select case (a_name(ix_d+2:))
   case ('FREQ');      a_ptr%r => ele%wake%lr_mode(n)%freq
   case ('R_OVER_Q');  a_ptr%r => ele%wake%lr_mode(n)%r_over_q
-  case ('Q');         a_ptr%r => ele%wake%lr_mode(n)%q
+  case ('DAMP');      a_ptr%r => ele%wake%lr_mode(n)%damp
+  case ('PHI');       a_ptr%r => ele%wake%lr_mode(n)%phi
   case ('ANGLE');     a_ptr%r => ele%wake%lr_mode(n)%angle
   case default;       goto 9000
   end select    

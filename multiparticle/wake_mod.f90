@@ -149,12 +149,10 @@ i0 = bunch%ix_z(1)
 t0 = bunch%particle(i0)%t   ! Time of particle at head of bunch.
 
 do i = 1, size(ele%wake%lr_mode)
-
   lr => ele%wake%lr_mode(i)
 
   omega = twopi * lr%freq
-  if (lr%freq < 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
-  f_exp = omega / (2 * lr%Q)
+  f_exp = lr%damp
   dt = ele%wake%wake_time_scale * (t0 - lr%t_ref)
   exp_shift = exp(-dt * f_exp)
 
@@ -165,7 +163,7 @@ do i = 1, size(ele%wake%lr_mode)
   lr%a_cos = exp_shift * lr%a_cos
 
   ! Need to shift a_sin, etc, since particle z is with respect to the bunch center.
-  if (lr%freq >= 0) then  ! If not fundamental mode
+  if (lr%freq_in >= 0) then  ! If not fundamental mode
     c = cos (dt * omega)
     s = sin (dt * omega)
     b_sin = lr%b_sin
@@ -177,21 +175,14 @@ do i = 1, size(ele%wake%lr_mode)
   endif
 enddo
 
-! Loop over all modes
-! Note: The spatial variation of the normal and skew
-! components is the same as the spatial variation of a multipole kick.
+! Loop over all modes: kick particles and update wakes.
 
 do i = 1, size(ele%wake%lr_mode)
 
   lr => ele%wake%lr_mode(i)
 
-  if (lr%freq < 0) then
-    omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
-  else
-    omega = twopi * lr%freq
-  endif
-
-  f_exp = omega / (2 * lr%Q)
+  omega = twopi * lr%freq
+  f_exp = lr%damp
 
   if (lr%polarized) then
     c_a = cos(twopi*lr%angle)
@@ -210,10 +201,13 @@ do i = 1, size(ele%wake%lr_mode)
     ff0 = ele%wake%wake_amp_scale * abs(particle%charge) * lr%r_over_q
 
     dt_phase = dt
-    if (lr%freq < 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
+    if (lr%freq_in < 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
 
     c = cos (-dt_phase * omega)
     s = sin (-dt_phase * omega)
+
+    ! The spatial variation of the normal and skew
+    ! components is the same as the spatial variation of a multipole kick.
 
     call ab_multipole_kick (0.0_rp, 1.0_rp, lr%m, particle%species, +1, particle, kx0, ky0)
 

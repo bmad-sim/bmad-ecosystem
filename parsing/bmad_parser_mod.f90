@@ -3336,9 +3336,9 @@ implicit none
 
 type lr_wake_input_struct
   real(rp) freq         ! Actual Frequency in Hz.
-  real(rp) R_over_Q     ! Strength in V/C/m^2.
+  real(rp) R_over_Q     ! Strength in V/C/m^(2*m_mode).
   real(rp) Q            ! Quality factor.
-  integer m             ! Order (1 = dipole, 2 = quad, etc.)
+  integer m             ! Mode order (1 = dipole, 2 = quad, etc.)
   character(16) angle   ! polarization angle (radians/2pi).
   real(rp) b_sin, b_cos, a_sin, a_cos, t_ref
 end type
@@ -3397,7 +3397,8 @@ do i = 1, size(lr)
   ele%wake%lr_mode(j)%freq_in   = lr(i)%freq
   ele%wake%lr_mode(j)%freq      = lr(i)%freq
   ele%wake%lr_mode(j)%r_over_q  = lr(i)%r_over_q
-  ele%wake%lr_mode(j)%q         = lr(i)%q
+  ele%wake%lr_mode(j)%phi       = 0
+  ele%wake%lr_mode(j)%Q         = lr(i)%Q
   ele%wake%lr_mode(j)%m         = lr(i)%m
   ele%wake%lr_mode(j)%b_sin     = lr(i)%b_sin
   ele%wake%lr_mode(j)%b_cos     = lr(i)%b_cos

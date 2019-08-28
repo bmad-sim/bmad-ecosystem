@@ -38,6 +38,7 @@ type (coord_struct) start, end
 type (em_field_struct) field
 type (branch_struct), pointer :: branch
 type (photon_surface_struct), pointer :: surface
+type (wake_lr_mode_struct), pointer :: lr
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin
@@ -73,7 +74,6 @@ else
   n_particles = 0
 endif
   
-
 ! Overlay and group and hybrid elements do not have any dependent attributes
 
 select case (ele%key)
@@ -109,6 +109,16 @@ endif
 ele%bookkeeping_state%attributes = ok$
 ele%bookkeeping_state%rad_int = stale$
 ele%bookkeeping_state%ptc     = stale$
+
+! lr wake
+
+if (associated(ele%wake)) then
+  do i = 1, size(ele%wake%lr_mode)
+    lr => ele%wake%lr_mode(i)
+    if (lr%freq_in < 0) lr%freq = ele%value(rf_frequency$)
+    if (lr%q /= real_garbage$) lr%damp = pi * lr%freq / lr%q
+  enddo
+endif
 
 ! Transfer tilt to tilt_tot, etc.
 
