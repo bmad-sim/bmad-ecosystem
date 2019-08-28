@@ -25,8 +25,8 @@ character(8), parameter :: lat_type_name(3) = [character(8):: 'model ', 'base  '
 character(8), parameter :: data_source_name(5) = [character(8):: 'lat', 'beam', 'data', 'var', 'multi_turn_orbit']
 character(20), parameter :: graph_type_name(5) = [character(20):: 'data', 'lat_layout', &
                                                        'phase_space', 'histogram', 'dynamic_aperture']
-character(16), parameter :: x_axis_type_name(12) = [character(16):: 'index', 'ele_index', 'lat', 'var', &
-                                   'ele_index', 's', 'none', 'floor', 'phase_space', 'histogram', 'data', 'floor']
+character(16), parameter :: x_axis_type_name(10) = [character(16):: 'index', 'lat', 'var', &
+                                   'ele_index', 's', 'none', 'phase_space', 'histogram', 'data', 'floor']
 character(12), parameter :: data_type_z_name(14) = [character(12):: 'x', 'px', 'y', 'py', 'z', 'pz', 'time', &
                   'intensity', 'intensity_x', 'intensity_y', 'phase_x', 'phase_y', 'Ja', 'energy']
 character(8), parameter :: var_merit_type_name(2) = [character(8):: 'target ', 'limit']
