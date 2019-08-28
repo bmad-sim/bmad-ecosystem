@@ -404,10 +404,11 @@ type (branch_struct), pointer :: branch
 type (beam_init_struct) beam_init
 type (ltt_internal_struct) ltt_internal
 type (coord_struct), allocatable :: orb(:)
-type (coord_struct) orb_end
+type (coord_struct) :: orbit
 type (ele_struct), pointer :: ele
 type (ptc_map_with_rad_struct) rad_map
 type (ele_struct), pointer :: ele_start
+type (probe) prb
 
 real(rp) average(6), sigma(6,6)
 integer n_sum, ix_ele_start, iu_out, i_turn, track_state, ix_branch
@@ -427,14 +428,14 @@ branch => lat%branch(ix_branch)
 
 call ltt_setup_high_energy_space_charge(lttp, branch, beam_init, ltt_internal)
 
-call reallocate_coord (orb, lat)
-call init_coord (orb(ix_ele_start), beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = beam_init%spin)
+if (lttp%tracking_method == 'BMAD') call reallocate_coord (orb, lat)
+call init_coord (orbit, beam_init%center, ele_start, downstream_end$, lat%param%particle, spin = beam_init%spin)
 
 if (lttp%add_closed_orbit_to_init_position) then
   select case (lttp%tracking_method)
-  case ('MAP');       orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + rad_map%sub_map(1)%fix0
-  case ('BMAD');      orb(ix_ele_start)%vec = orb(ix_ele_start)%vec + ltt_internal%bmad_closed_orb(ix_ele_start)%vec
-  case ('PTC');       call err_exit  ! Not yet implemented 
+  case ('MAP');       orbit%vec = orbit%vec + rad_map%sub_map(1)%fix0
+  case ('BMAD');      orbit%vec = orbit%vec + ltt_internal%bmad_closed_orb(ix_ele_start)%vec
+  case ('PTC');       orbit%vec = orbit%vec + ltt_internal%ptc_closed_orb
   end select
 endif
 
@@ -444,28 +445,32 @@ if (lttp%particle_output_file == '') lttp%particle_output_file = 'single.dat'
 open(iu_out, file = lttp%particle_output_file, recl = 200)
 call ltt_write_this_header(lttp, iu_out, rad_map, 1)
 write (iu_out, '(a)') '# Turn |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z'
-write (iu_out, fmt) 0, orb(ix_ele_start)%vec, orb(ix_ele_start)%spin
+write (iu_out, fmt) 0, orbit%vec, orbit%spin
 
 do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
   case ('MAP')
-    orb_end = orb(ix_ele_start)
-    call ptc_track_map_with_radiation (orb_end, rad_map)
-    is_lost = orbit_too_large(orb_end)
+    call ptc_track_map_with_radiation (orbit, rad_map)
+    is_lost = orbit_too_large(orbit)
   case ('BMAD')
+    orb(ix_ele_start) = orbit
     call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, ix_branch, track_state)
     is_lost = (track_state /= moving_forward$)
-    orb_end = orb(ix_ele_start)
+    orbit = orb(ix_ele_start)
   case ('PTC')
-    print *, 'Not yet implemented...'
-    stop
+    prb = orbit%vec
+    prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
+    call track_probe (prb, ltt_internal%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
+    orbit%vec = prb%x
+    orbit%spin = rotate_vec_given_quat(prb%q%x, orbit%spin)
+    if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
   case default
     print *, 'Unknown tracking_method: ' // lttp%tracking_method
     stop
   end select
 
   if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) == 0) then
-    write (iu_out, fmt) i_turn, orb_end%vec, orb_end%spin
+    write (iu_out, fmt) i_turn, orbit%vec, orbit%spin
   endif
 
   if (is_lost) then
@@ -476,8 +481,8 @@ do i_turn = 1, lttp%n_turns
   endif
 
   if (lttp%sigma_matrix_output_file /= '') then
-    average = average + orb_end%vec
-    sigma = sigma + outer_product(orb_end%vec, orb_end%vec)
+    average = average + orbit%vec
+    sigma = sigma + outer_product(orbit%vec, orbit%vec)
     n_sum = n_sum + 1
   endif
 enddo
