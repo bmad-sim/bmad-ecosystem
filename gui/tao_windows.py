@@ -1753,41 +1753,6 @@ class tao_plot_graph_window(tao_list_window):
     #Convert from plot.graph.curve to index.graph.curve
     curve_name = str(self.index) + win.curve[win.curve.index('.'):]
     set_str = "set curve @" + self.mode + curve_name + " "
-    # Input validation for component
-    for ttp in win.tao_list:
-      if ttp.param.name == 'component':
-        allowed_components = ['model', 'design', 'base', 'meas', 'ref', 'beam_chamber_wall']
-        operators = ['+', '-']
-        val = ttp.tk_var.get().strip()
-        val = val.split(' ')
-        while "" in val:
-          val.pop(val.index(""))
-        if len(val) == 0:
-          break #setting blank is allowed
-        # val must now have length 1, 3, or 5
-        if len(val) not in [1,3,5]:
-          failed = True
-        else:
-          for i in range(len(val)):
-            # even index --> must be component
-            if (i%2 == 0) and (val[i] not in allowed_components):
-              failed = True
-              break
-            # odd index --> operator
-            elif (i%2 == 1) and (val[i] not in operators):
-              failed = True
-              break
-            else:
-              failed = False
-        if failed:
-          msg =  'The graph component is not properly formatted.  '
-          msg += 'Component must consist of '
-          for c in allowed_components:
-            msg += '"' + c + '", '
-          msg += 'separated spaces and either + or -'
-          messagebox.showwarning('Error', msg, parent=self)
-          return
-        break
     tao_set(win.tao_list, set_str, win.pipe)
     ## In matplotlib mode, apply for the appropriate region too
     #c1 = self.root.plot_mode == "matplotlib"
@@ -1807,42 +1772,6 @@ class tao_plot_graph_window(tao_list_window):
     #Convert from plot.graph to index.graph
     graph_name = str(self.index) + self.graph[self.graph.index('.'):]
     set_str = "set graph @" + self.mode + graph_name + ' '
-    # Input validation for component
-    for ttp in self.tao_list:
-      if ttp.param.name == 'component':
-        allowed_components = ['model', 'design', 'base', 'meas', 'ref', 'beam_chamber_wall']
-        operators = ['+', '-']
-        val = ttp.tk_var.get().strip()
-        val = val.split(' ')
-        while "" in val:
-          val.pop(val.index(""))
-        if len(val) == 0:
-          break # leaving blank is allowed
-        # val must now have length 1, 3, or 5
-        if len(val) not in [1,3,5]:
-          failed = True
-        else:
-          for i in range(len(val)):
-            # even index --> must be component
-            if (i%2 == 0) and (val[i] not in allowed_components):
-              failed = True
-              break
-            # odd index --> operator
-            elif (i%2 == 1) and (val[i] not in operators):
-              failed = True
-              break
-            else:
-              failed = False
-        if failed:
-          msg =  'The graph component is not properly formatted.  '
-          msg += 'Component must consist of '
-          for c in allowed_components:
-            msg += '"' + c + '", '
-          msg += 'separated spaces and either + or -'
-          messagebox.showwarning('Error', msg, parent=self)
-          return
-        break
-
     tao_set(self.tao_list, set_str, self.pipe)
     ## In matplotlib mode, apply for the appropriate region too
     #c1 = self.root.plot_mode == "matplotlib"
@@ -4910,14 +4839,14 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.root = root
     Tao_Toplevel.__init__(self, root, *args, **kwargs)
     self.pipe = pipe
-    self.rowconfigure(0, weight=1)
+    self.columnconfigure(0, weight=1)
     self.title('New Plot Template')
     self.name = ""
     self.column_widths = [0,0,0] #used for consistent gridding
 
     # Frame for inputting plot parameters
     self.plot_frame = tk.Frame(self)
-    self.plot_frame.grid(row=0, column=0, sticky='NSEW')
+    self.plot_frame.grid(row=1, column=0, sticky='NSEW')
 
     # Frame for inputting graph/curve parameters
     self.graph_frame = tk.Frame(self)
@@ -4925,37 +4854,20 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.graph_frame_list = []
 
     self.fill_plot_frame()
+    self.fill_graph_frame()
     if default != None:
       self.plot_param_list[0].tk_var.set(default)
-      self.load_graph_frame(ask=False)
-      for graph_frame in self.graph_frame_list:
-        graph_frame.fill_defaults()
+      self.clone_plot(ask=False)
 
   def fill_plot_frame(self):
-    tk.Label(self.plot_frame, text="New Plot Template",
+    tk.Label(self, text="New Plot Template",
         font=('Sans', 16, 'bold')).grid(
-            row=0, column=0, columnspan=2, sticky='EW')
+            row=0, column=0, sticky='EW')
 
     # Small bit of setup
     def my_ttp(x):
       ''' shorcut for the following commonly used construct '''
       return tk_tao_parameter(str_to_tao_param(x), self.plot_frame, self.pipe)
-
-    # Clone existing plot
-    existing_plot_templates = self.pipe.cmd_in("python plot_list t").splitlines()
-    for i in range(len(existing_plot_templates)):
-      existing_plot_templates[i] = existing_plot_templates[i].split(';')[1]
-    existing_plot_templates = ['None'] + existing_plot_templates
-    self.clone_plot = tk.StringVar()
-    self.clone_plot.set('None')
-    self.clone_chooser = ttk.Combobox(self.plot_frame,
-        textvariable=self.clone_plot, values=existing_plot_templates, state='readonly')
-    def clone_fill(event=None):
-      '''Callback for the clone_chooser, fills the name field if empty'''
-      if self.plot_param_list[self.ixd['name']].tk_var.get().strip() == "":
-        if self.clone_plot.get() != "None":
-          self.plot_param_list[self.ixd['name']].tk_var.set(self.clone_plot.get())
-    self.clone_chooser.bind('<<ComboboxSelected>>', clone_fill)
 
     # Widgets
     params = ["name;STR;T;",
@@ -4995,109 +4907,60 @@ class tao_new_plot_template_window(Tao_Toplevel):
     # Warning labels
     self.name_warning_1 = tk.Label(self.plot_frame, text="Cannot be empty")
     self.name_warning_2 = tk.Label(self.plot_frame, text="Cannot contain whitespace")
-    # Grid clone chooser
+
+    # Clone existing plot
+    existing_plot_templates = self.pipe.cmd_in("python plot_list t").splitlines()
+    for i in range(len(existing_plot_templates)):
+      existing_plot_templates[i] = existing_plot_templates[i].split(';')[1]
+    existing_plot_templates = ['None'] + existing_plot_templates
+    self.clone_plot = tk.StringVar()
+    self.clone_plot.set('None')
+    self.clone_chooser = ttk.Combobox(self.plot_frame,
+        textvariable=self.clone_plot, values=existing_plot_templates, state='readonly')
+    self.clone_b = tk.Button(self.plot_frame, text="Clone", command=self.clone_plot)
+
     tk.Label(self.plot_frame, text="Clone existing plot:").grid(row=i+2, column=0, sticky='W')
     self.clone_chooser.grid(row=i+2, column=1, sticky='EW')
-    # Next button
-    self.next_b = tk.Button(self.plot_frame, text="Next", command=self.load_graph_frame)
-    self.next_b.grid(row=i+3, column=1, sticky='E')
+    self.clone_b.grid(row=i+2, column=2, sticky='W')
 
     # Focus the name entry
     self.plot_param_list[0].tk_wid.focus_set()
+    self.plot_param_list[0].tk_wid.bind('<FocusOut>', self.plot_name_handler)
 
-  def load_plot_frame(self):
-    self.graph_frame.pack_forget()
-    self.plot_frame.grid(row=0, column=0, sticky='NSEW')
-
-  def load_graph_frame(self, ask=True):
+  def clone_plot(self, plot_name, ask=True):
     '''
-    Ungrids self.plot_frame, grids self.graph_frame, and sets up a notebook
-    for the graph_frames if necessary.
-    Set ask=False to skip message boxes
+    Clone the plot specified by plot_name
     '''
-    clone_dict = {} # keys=plot template names, values=lists of graphs
-    # Check if plot name is nonempty
-    name = self.plot_param_list[self.ixd['name']].tk_var.get().strip()
-    self.name_warning_1.grid_forget()
-    self.name_warning_2.grid_forget()
-    if name == "":
-      self.name_warning_1.grid(row=1, column=2, sticky='W')
+    clone_graphs = []
+    if plot_name == 'None':
       return
-    if name.find(' ') != -1:
-      self.name_warning_2.grid(row=1, column=2, sticky='W')
-    # Cloning
-
-    # Conditions
-    template_list = self.pipe.cmd_in('python plot_list t').splitlines()
-    for i in range(len(template_list)):
-      template_list[i] = template_list[i].split(';')[1]
-    c1 = (name in template_list) #name in use
-    c2 = (self.clone_plot.get() != 'None') #clone has been specified
-    c3 = (self.name != name) #name has changed
-    c4 = False #discard existing work
     ans_var = tk.StringVar()
     # Ask if user wants to keep existing graphs
-    if c3 and self.name:
-      self.name = name
-      if ask:
-        tao_message_box(self.root, self, ans_var, title='Warning', message='Would you like to keep or discard the graphs you defined for ' + self.name + '?', choices=['Keep', 'Discard'])
-      else:
-        ans_var.set('Discard')
-      if ans_var.get() == 'Keep':
-        c4 = False
-      elif ans_var.get() == 'Discard':
-        c4 = True
-      else:
-        return
-    # Ask if user wants to load existing graphs
-    if c1:
-      if ask:
-        ans = messagebox.askyesno('Warning', name + " already exists as a plot template.  Would you like to clone its existing graphs?", parent=self)
-      else:
-        ans = True
-      if ans:
-        # Will need to read in data for existing plot
-        clone_dict[name] = []
-        plot1 = tao_parameter_dict(self.pipe.cmd_in('python plot1 ' + name).splitlines())
-        num_graphs = plot1['num_graphs'].value
-        for i in range(1, num_graphs+1):
-          clone_dict[name].append(plot1['graph['+str(i)+']'].value)
+    if ask:
+      tao_message_box(self.root, self, ans_var, title='Warning', message='Would you like to keep or discard the graphs you defined for ' + self.name + '?', choices=['Keep', 'Discard'])
+    else:
+      ans_var.set('Discard')
+    if ans_var.get() == 'Keep':
+      c4 = False
+    elif ans_var.get() == 'Discard':
+      c4 = True
+    else:
+      return
     # Specified plot to clone
-    if c2 and (self.clone_plot.get() != name):
-      clone_name = self.clone_plot.get()
-      clone_dict[clone_name] = []
-      plot1 = tao_parameter_dict(self.pipe.cmd_in('python plot1 ' + clone_name).splitlines())
-      num_graphs = plot1['num_graphs'].value
-      for i in range(1, num_graphs+1):
-        clone_dict[clone_name].append(plot1['graph['+str(i)+']'].value)
+    plot1 = tao_parameter_dict(self.pipe.cmd_in('python plot1 ' + plot_name).splitlines())
+    num_graphs = plot1['num_graphs'].value
+    for i in range(1, num_graphs+1):
+      clone_graphs.append(plot1['graph['+str(i)+']'].value)
     # Ask what to do about plot properties
     use_plot_props = None
-    cdk = list(clone_dict.keys())
-    if len(clone_dict) == 2:
-      ans_var.set("")
-      msg = "You have chosen to import the existing plots "
-      msg += cdk[0] + " and " + cdk[1]
-      msg += ".  Would you like to copy the plot-level properties of either"
-      msg += " plot, or use the properties you have specified here?"
-      choices = []
-      for p in clone_dict.keys():
-        choices.append("Use properties of " + p)
-      choices.append("Use the properties I have specified")
-      tao_message_box(self.root, self, ans_var, title='Plot parameters', message=msg, choices=choices)
-      if ans_var.get() == choices[0]:
-        use_plot_props = cdk[0]
-      elif ans_var.get() == choices[1]:
-        use_plot_props = cdk[1]
-    elif len(clone_dict) == 1:
-      msg = "Would you like to use the plot-level properties of "
-      msg += cdk[0] + ", or use the properties you have specified?"
-      choices = []
-      for p in clone_dict.keys():
-        choices.append("Use properties of " + p)
-      choices.append("Use the properties I have specified")
-      tao_message_box(self.root, self, ans_var, title='Plot parameters', message=msg, choices=choices)
-      if ans_var.get() == choices[0]:
-        use_plot_props = cdk[0]
+    msg = "Would you like to use the plot-level properties of "
+    msg += plot_name + ", or use the properties you have specified?"
+    choices = []
+    choices.append("Use properties of " + plot_name)
+    choices.append("Use the properties I have specified")
+    tao_message_box(self.root, self, ans_var, title='Plot parameters', message=msg, choices=choices)
+    if ans_var.get() == choices[0]:
+      use_plot_props = plot_name
     # Copy in plot properties if necessary
     if use_plot_props != None:
       plot1 = tao_parameter_dict(
@@ -5105,63 +4968,45 @@ class tao_new_plot_template_window(Tao_Toplevel):
       for w in self.plot_param_list:
         if w.param.name in plot1.keys():
           w.param_copy(plot1[w.param.name])
-    # Remake d1_frames and notebook if necessary
+    # Remake graph frames and notebook if necessary
     if c4 and self.nb_exists:
-      for frame in self.d1_frame_list:
+      for frame in self.graph_frame_list:
         frame.destroy()
       self.graph_frame_list = []
       self.notebook.destroy()
       self.new_tab_frame.destroy()
       self.back_b.destroy()
       self.create_b.destroy()
-      self.nb_exists = False
-    else:
-      self.name = name
-      self.name_warning_1.grid_forget()
-
-    # Possibly create self.notebook
-    if not self.nb_exists:
-      self.notebook = ttk.Notebook(self.graph_frame)
-      self.notebook.pack(side='top', fill='both', expand=1)
-      self.nb_exists = True
-
-      self.graph_index = 0 #marks current tab index
-
-      # New tab button
-      self.new_tab_frame = tk.Frame(self.notebook)
-      self.notebook.insert('end', self.new_tab_frame)
-      self.notebook.tab(len(self.graph_frame_list), text='+')
-      self.notebook.bind('<<NotebookTabChanged>>', self.tab_handler)
-
-      # Back button
-      self.back_b = tk.Button(self.graph_frame, text="Back", command=self.load_plot_frame)
-      self.back_b.pack(side='left')
-
-      # Create button
-      self.create_b = tk.Button(self.graph_frame, text="Create!", command=self.create_template)
-      self.create_b.pack(side='right')
-
-    self.plot_frame.grid_forget()
-    self.graph_frame.pack(fill='both', expand=1)
-    self.title("New plot: " + self.name)
-
-    # Clone the requested graphs
-    if clone_dict != {}:
-      # First clone the graphs corresponding to self.name
-      if name in clone_dict.keys():
-        for graph in clone_dict[name]:
-          graph = name + '.' + graph
-          self.add_graph_frame(graph)
-      # Now try self.clone_plot
-      if (self.clone_plot.get() in clone_dict.keys()) and (name != self.clone_plot.get()):
-        for graph in clone_dict[self.clone_plot.get()]:
-          graph = self.clone_plot.get() + '.' + graph
-          self.add_graph_frame(graph)
-      self.notebook.select(0)
-    # Handle the right data_type_x widget for the curve frames
+      self.fill_graph_frame()
+    # Clone the plot
+    for graph in clone_graphs:
+      graph = self.clone_plot.get() + '.' + graph
+      self.add_graph_frame(graph)
+    self.notebook.select(0)
     for g in self.graph_frame_list:
       g.fill_curve_frame()
 
+  def fill_graph_frame(self):
+    '''
+    Creates a ttk Notebook for displaying new_graph_frames
+    '''
+    # Create self.notebook
+    self.notebook = ttk.Notebook(self.graph_frame)
+    self.notebook.pack(side='top', fill='both', expand=1)
+
+    self.graph_index = 0 #marks current tab index
+
+    # New tab button
+    self.new_tab_frame = tk.Frame(self.notebook)
+    self.notebook.insert('end', self.new_tab_frame)
+    self.notebook.tab(len(self.graph_frame_list), text='+')
+    self.notebook.bind('<<NotebookTabChanged>>', self.tab_handler)
+
+    # Create button
+    self.create_b = tk.Button(self.graph_frame, text="Create!", command=self.create_template)
+    self.create_b.pack(side='right')
+
+    self.graph_frame.grid(row=2, column=0, sticky='NSEW')
 
   def create_template(self, event=None):
     '''
@@ -5291,6 +5136,22 @@ class tao_new_plot_template_window(Tao_Toplevel):
           frame.handler_block = False
           break
 
+  def plot_name_handler(self, event=None):
+    '''
+    Reads the plot name into self.name, and warns the user if left blank
+    '''
+    name = self.plot_param_list[self.ixd['name']].tk_var.get().strip()
+    self.name_warning_1.grid_forget()
+    self.name_warning_2.grid_forget()
+    if name == "":
+      self.name_warning_1.grid(row=self.ixd['name']+1, column=2, sticky='W')
+    elif name.find(' ') != -1:
+      self.name_warning_2.grid(row=self.ixd['name']+1, column=2, sticky='W')
+    else:
+      self.title(name)
+      self.name = name
+
+
   def add_graph_frame(self, graph=None, event=None):
     '''
     Creates a new graph_frame for graph and reads existing data in from Tao if present
@@ -5337,13 +5198,19 @@ class new_graph_frame(tk.Frame):
     tk.Button(self, text="Duplicate this graph", command=self.duplicate).grid(
         row=1, column=0, columnspan=3, sticky='EW')
 
+    self.bind_all('<Control-w>', lambda *args : self.width_handler())
+
     # Graph Widgets
     self.graph_frame = self._scroll_frames[0].frame
-    self._scroll_frames[0].grid(row=2, column=0, columnspan=3, sticky='NSEW')
-    self.grid_rowconfigure(2, weight=1)
+    self._scroll_frames[0].grid(row=4, column=0, columnspan=3, sticky='NSEW')
+    self.grid_rowconfigure(4, weight=1)
     def graph_ttp(x):
       ''' Shortcut for commonly used construct '''
-      return tk_tao_parameter(str_to_tao_param(x), self.graph_frame, self.pipe)
+      p = str_to_tao_param(x)
+      if p.name in ['name', 'graph^type']:
+        return tk_tao_parameter(p, self, self.pipe)
+      else:
+        return tk_tao_parameter(p, self.graph_frame, self.pipe)
     def qp_axis_props(x):
       '''Adds the props of a qp-axis-struct to the parameter string x'''
       if self.parent.root.plot_mode == 'matplotlib':
@@ -5371,7 +5238,7 @@ class new_graph_frame(tk.Frame):
         "draw_axes;LOGIC;T;T",
         "draw_grid;LOGIC;T;T",
         "allow_wrap_around;LOGIC;T;F",
-        "component;STR;T;",
+        "component;COMPONENT;T;",
         "symbol_size_scale;REAL;T;",
         "correct_xy_distortion;LOGIC;T;F",
         "ix_universe;INT;T;",
@@ -5383,8 +5250,7 @@ class new_graph_frame(tk.Frame):
         "floor_plan_size_is_absolute;LOGIC;T;F",
         "floor_plan_draw_only_first_pass;LOGIC;T;F",
         "draw_only_good_user_data_or_vars;LOGIC;T;T",
-        "x_axis_scale_factor;REAL;T;",
-        "n_curve;INT;T;1"]
+        "x_axis_scale_factor;REAL;T;"]
     self.graph_wids = list(map(graph_ttp, self.graph_wids))
     self.ixd = {} #index dictionary, used for lookup
     for i in range(len(self.graph_wids)):
@@ -5392,7 +5258,10 @@ class new_graph_frame(tk.Frame):
     # graph labels (NAMES AS STRINGS ONLY)
     def graph_label_maker(x):
       '''Helper function'''
-      return tk.Label(self.graph_frame, text=x)
+      if (x.find('name') != -1) or (x.find('type') != -1):
+        return tk.Label(self, text=x)
+      else:
+        return tk.Label(self.graph_frame, text=x)
     self.graph_labels = ["Graph name:", "Graph type:", "Box:",
         "Graph title:", "Graph margin:", "Graph scale margin:",
         "X-axis:", "Y-axis:", "X2-axis:", "Y2-axis",
@@ -5401,58 +5270,66 @@ class new_graph_frame(tk.Frame):
         "Correct xy distortion:", "Universe:",
         "Rotation:", "View:", "Orbit scale:", "Orbit color:",
         "Flip label side:", "Absolute size:", "Draw only first pass:",
-        "Draw only good_user data/variables:", "X-axis scale factor:",
-        "Number of curves"]
+        "Draw only good_user data/variables:", "X-axis scale factor:"]
     self.graph_labels = list(map(graph_label_maker, self.graph_labels))
     # Grid widgets and labels:
-    for i in range(len(self.graph_wids)):
+    for i in range(2):
+      self.graph_labels[i].grid(row=i+2, column=0, sticky='W')
+      self.graph_wids[i].tk_wid.grid(row=i+2, column=1, sticky='EW')
+    for i in range(2, len(self.graph_wids)):
+      # First two (name and graph type) gridded separately
       self.graph_labels[i].grid(row=i, column=0, sticky='W')
       self.graph_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
       if self.graph_wids[i].param.type == 'STRUCT':
-        self.graph_wids[i].tk_wid.bind('<Configure>', self.width_handler)
+        #self.graph_wids[i].tk_wid.bind('<Configure>', self.width_handler)
+        self.graph_wids[i].tk_wid.bind('<Configure>', lambda *args : print('called for graph_wid'))
         self._width_binds.append(self.graph_wids[i].tk_wid)
 
     # Warning labels
     # (defined here to be gridded/ungridded as necessary)
-    self.name_warning_1 = tk.Label(self.graph_frame, text="Must not be empty")
-    self.name_warning_2 = tk.Label(self.graph_frame, text="graph name already in use")
-    self.name_warning_3 = tk.Label(self.graph_frame, text="Cannot contain whitespace")
-    self.n_curve_warning = tk.Label(self.graph_frame, text="Must be a non-negative integer")
+    self.name_warning_1 = tk.Label(self, text="Must not be empty")
+    self.name_warning_2 = tk.Label(self, text="graph name already in use")
+    self.name_warning_3 = tk.Label(self, text="Cannot contain whitespace")
+    self.n_curve_warning = tk.Label(self, text="Must be a non-negative integer")
 
     # Responses to edits
     self.graph_wids[self.ixd['name']].tk_wid.bind('<FocusOut>', self.name_handler)
-    self.graph_wids[self.ixd['n_curve']].tk_wid.bind('<FocusOut>', self.n_curve_handler)
+    #self.graph_wids[self.ixd['n_curve']].tk_wid.bind('<FocusOut>', self.n_curve_handler)
 
-    ttk.Separator(self, orient='horizontal').grid(row=3, column=0, columnspan=3, sticky='EW')
+    ttk.Separator(self, orient='horizontal').grid(row=5, column=0, columnspan=3, sticky='EW')
 
     # Curves
     self.curve_dict = {}
     self.curve_ixd = {}
     self.curve_frame = self._scroll_frames[1].frame
-    self._scroll_frames[1].grid(row=6, column=0, columnspan=3, sticky='NSEW')
-    self.grid_rowconfigure(6, weight=1)
-    tk.Label(self, text="Curve:").grid(row=4, column=0, sticky='W')
+    self._scroll_frames[1].grid(row=9, column=0, columnspan=3, sticky='NSEW')
+    self.grid_rowconfigure(9, weight=1)
+    tk.Label(self, text="Number of curves:").grid(row=6, column=0, sticky='W')
+    self.n_curve_ttp = tk_tao_parameter(str_to_tao_param("n_curve;INT;T;1"), self, self.pipe)
+    self.n_curve_ttp.tk_wid.grid(row=6, column=1, sticky='EW')
+    tk.Label(self, text="Curve:").grid(row=7, column=0, sticky='W')
     self.curve_ix = tk.StringVar()
     self.curve_ix.set(1)
     self.n_curve = 1
     self.curve_chooser = ttk.Combobox(self, textvariable=self.curve_ix,
         values=list(range(1, self.n_curve+1)), state='readonly')
-    self._spacer = tk.Frame(self, width=15)
-    self._spacer.grid(row=4, column=2, sticky='W')
     self.curve_chooser.bind('<<ComboboxSelected>>', self.fill_curve_frame)
-    self.curve_chooser.grid(row=4, column=1, sticky='EW')
-    ttk.Separator(self, orient='horizontal').grid(row=5, column=0, columnspan=3, sticky='EW')
+    self.curve_chooser.grid(row=7, column=1, sticky='EW')
+    ttk.Separator(self, orient='horizontal').grid(row=8, column=0, columnspan=3, sticky='EW')
 
     # Clone graph if specified
     if name != "":
       self.clone(name)
 
-    # Focus the d1 name widget
-    self.graph_wids[0].tk_wid.focus_set()
+    # Focus the graph name widget
+    #self.graph_wids[0].tk_wid.focus_set()
 
+    print('called explicitly')
     self.width_handler()
-    self._scroll_frames[0].bind('<Configure>', self.width_handler)
-    self._scroll_frames[1].bind('<Configure>', self.width_handler)
+    #self._scroll_frames[0].bind('<Configure>', self.width_handler)
+    #self._scroll_frames[1].bind('<Configure>', self.width_handler)
+    self._scroll_frames[0].bind('<Configure>', lambda *args : print('called for graph scroll frame'))
+    self._scroll_frames[1].bind('<Configure>', lambda *args : print('called for curve scroll frame'))
     self._width_binds.append(self._scroll_frames[0])
     self._width_binds.append(self._scroll_frames[1])
     self.graph_wids[self.ixd['type']].tk_var.trace('w', self.floor_plan_sh)
@@ -5567,7 +5444,7 @@ class new_graph_frame(tk.Frame):
           'data_source;ENUM;T;',
           'data_type_x;DAT_TYPE_Z;T;',
           'data_type;DAT_TYPE;T;',
-          'component;STR;T;',
+          'component;COMPONENT;T;',
           'data_index;STR;T;', #maybe remove
           'legend_text;STR;T;',
           'y_axis_scale_factor;REAL;T;',
@@ -5614,10 +5491,12 @@ class new_graph_frame(tk.Frame):
       self.curve_dict[ix][i].tk_label.grid(row=i, column=0, sticky='W')
       self.curve_dict[ix][i].tk_wid.grid(row=i, column=1, sticky='EW')
       if self.curve_dict[ix][i].param.type == 'STRUCT':
-        self.curve_dict[ix][i].tk_wid.bind('<Configure>', self.width_handler)
+        #self.curve_dict[ix][i].tk_wid.bind('<Configure>', self.width_handler)
+        self.curve_dict[ix][i].tk_wid.bind('<Configure>', lambda *args : print('called for curve wid'))
         self._width_binds.append(self.curve_dict[ix][i].tk_wid)
 
     # Column widths
+    print('called explicitly')
     self.width_handler()
 
   def name_handler(self, event=None):
@@ -5634,24 +5513,27 @@ class new_graph_frame(tk.Frame):
     if name != "":
       # Make sure the name doesn't contain whitespace
       if name.find(' ') != -1:
-        self.name_warning_3.grid(rpw=self.ixd['name'], column=2, sticky='W')
+        self.name_warning_3.grid(row=self.ixd['name'], column=2, sticky='W')
         return 1
       # Make sure the name isn't already in use
       i = 0
       for graph in self.parent.graph_frame_list:
         if (graph.name == name) & (self != self.parent.graph_frame_list[i]):
           self.name_warning_2.grid(row=self.ixd['name'], column=2, sticky='W')
+          print('called explicitly')
           self.width_handler()
           return 1
         i = i+1
 
       self.name = name
       self.parent.notebook.tab(self.parent.graph_index, text=self.name)
+      print('called explicitly')
       self.width_handler()
     else:
       self.name_warning_1.grid(row=self.ixd['name'], column=2, sticky='W')
       self.name = "New_graph"
       self.parent.notebook.tab(self.parent.graph_index, text="New_graph")
+      print('called explicitly')
       self.width_handler()
       return 1
 
@@ -5669,6 +5551,7 @@ class new_graph_frame(tk.Frame):
       self.n_curve_warning.grid_forget()
       self.n_curve = n_curve
       self.curve_chooser.configure(values = list(range(1, self.n_curve+1)))
+    print('called explicitly')
     self.width_handler()
 
   def floor_plan_sh(self, *args):
@@ -5691,34 +5574,56 @@ class new_graph_frame(tk.Frame):
     Sets the column widths of the various sub-frames to be the same
     '''
     self.parent.column_widths[0:2] = [0,0] #column 2 never shrinks
+    # Plot settings
+    print('PLOT')
+    for w in self.parent.plot_frame.grid_slaves():
+      c = w.grid_info()['column']
+      if c > 2:
+        continue
+      width = w.winfo_width()
+      print(c, width)
+      if width > self.parent.column_widths[c]:
+        self.parent.column_widths[c] = width
+
     # Graph settings
+    print('GRAPH')
     for w in self.graph_frame.grid_slaves():
       c = w.grid_info()['column']
       if c > 2:
         continue
+      print(c, width)
       width = w.winfo_width()
       if width > self.parent.column_widths[c]:
         self.parent.column_widths[c] = width
 
     # Curve picker
+    print('CURVE PICKER')
     if self.curve_chooser.winfo_width() - 15 > self.parent.column_widths[1]:
       self.parent.column_widths[1] = self.curve_chooser.winfo_width()
+      print(self.curve_chooser.winfo_width())
 
     # Curve parameters
+    print('CURVE')
     for w in self.curve_frame.grid_slaves():
       c = w.grid_info()['column']
       if c > 2:
         continue
+      print(c, width)
       width = w.winfo_width()
       if width > self.parent.column_widths[c]:
         self.parent.column_widths[c] = width
 
+    print('FINAL')
+    print(self.parent.column_widths)
+
     # Set the column widths
+    self.parent.plot_frame.grid_columnconfigure(0, minsize=self.parent.column_widths[0])
+    self.parent.plot_frame.grid_columnconfigure(1, minsize=self.parent.column_widths[1])
+    self.parent.plot_frame.grid_columnconfigure(2, minsize=self.parent.column_widths[2]+15)
     for graph_frame in self.parent.graph_frame_list:
       graph_frame.grid_columnconfigure(0, minsize=self.parent.column_widths[0])
       graph_frame.grid_columnconfigure(1, minsize=self.parent.column_widths[1])
       graph_frame.grid_columnconfigure(2, minsize=self.parent.column_widths[2]+15)
-      graph_frame._spacer.configure(width=15+self.parent.column_widths[2])
       graph_frame.graph_frame.grid_columnconfigure(0, minsize=self.parent.column_widths[0])
       graph_frame.graph_frame.grid_columnconfigure(1, minsize=self.parent.column_widths[1])
       graph_frame.graph_frame.grid_columnconfigure(2, minsize=self.parent.column_widths[2])
@@ -5728,8 +5633,82 @@ class new_graph_frame(tk.Frame):
 
 
 
+class tabbed_frame(tk.Frame):
+  '''
+  Provides a frame for showing multiple frames one at a time
+  in a tabbed view.
+  parent: The parent widget where this frame will be placed
+  new_tab_func: returns a new frame to add to a new tab
+  self will be passed as the first positional argument and should
+  be the only required positional arguments
+  new_tab_func should return a tk.Frame with an instance variable
+  self.name, a string that should be used for the initial tab name
+  new_tab_func will likely be the init method for a tk.Frame subclass
+  '''
+  def __init__(self, parent, new_tab_func):
+    tk.Frame.__init__(self, parent)
+    self.new_tab_func = new_tab_func
+    # Create self.notebook
+    self.notebook = ttk.Notebook(self)
+    self.notebook.pack(side='top', fill='both', expand=1)
 
+    self.tab_index = 0 # Marks the currently selected tab
+    self.tab_list = []
 
+    # New tab button
+    self.new_tab_frame = tk.Frame(self.notebook)
+    self.notebook.insert('end', self.new_tab_frame)
+    self.notebook.tab(len(self.tab_list), text='+')
+    self.notebook.bind('<<NotebookTabChanged>>', self._tab_handler)
+
+  def _tab_handler(self, event=None):
+    '''
+    Handles new tab creation and updates self.tab_index as necessary
+    '''
+    # Check if the new tab frame has been selected
+    if self.notebook.select() == self.new_tab_frame._w:
+      # Add new tab at the end
+      self.add_tab(len(self.tab_list), self)
+      self.notebook.select(len(self.tab_list)-1)
+    else:
+      # Update self.tab_index
+      for i in range(len(self.tab_list)):
+        frame = self.tab_list[i]
+        if self.notebook.select() == frame._w:
+          self.tab_index = i
+          # Unblock frame's handlers
+          frame.handler_block = False
+          break
+
+  def add_tab(self, ix, *args, **kwargs):
+    '''
+    Adds a new tab at the specified index
+    *args and **kwargs are passed to self.new_tab_func after self
+    '''
+    if ix < len(self.tab_list):
+      self.tab_list = self.tab_list[:ix] + [self.new_tab_func(self, *args, **kwargs)] + self.tab_list[ix:]
+    else:
+      ix = len(self.tab_list)
+      self.tab_list.append(self.new_tab_func(self, *args, **kwargs))
+    self.notebook.insert(ix, self.tab_list[ix])
+    self.notebook.tab(ix, text=self.tab_list[ix].name)
+
+  def remove_tab(self, ix):
+    '''
+    Removes the tab at the specified position
+    Does not destroy the removed frame
+    '''
+    # Make sure ix is not too large
+    if ix >= len(self.tab_list):
+      ix = len(self.tab_list) - 1
+    # Prefer the previous index tab
+    if ix > 0:
+      self.notebook.select(ix-1)
+    else:
+      self.notebook.select(0)
+    # Remove the tab
+    self.tab_list.pop(ix)
+    self.notebook.forget(ix)
 
 
 
