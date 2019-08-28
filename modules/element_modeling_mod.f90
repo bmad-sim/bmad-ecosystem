@@ -150,8 +150,8 @@ if (wiggler%key /= wiggler$ .and. wiggler%key /= undulator$) then
   if (global_com%exit_on_error) call err_exit
 endif
 
-if (ele%field_calc == helical_model$) then
-  call out_io (s_warn$, r_name, 'Element is a helical wiggler/undulator: ' // ele%name, &
+if (wiggler%field_calc == helical_model$) then
+  call out_io (s_warn$, r_name, 'Element is a helical wiggler/undulator: ' // wiggler%name, &
                          'Using a planar model for this element will not be accurate.')
 endif
 
