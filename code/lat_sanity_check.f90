@@ -24,6 +24,7 @@ type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch, branch2
 type (photon_surface_struct), pointer :: surf
 type (wake_sr_mode_struct), pointer :: sr_mode
+type (wake_lr_mode_struct), pointer :: lr
 type (floor_position_struct) floor0, floor
 type (control_struct), pointer :: ctl, ctl1, ctl2
 type (cylindrical_map_struct), pointer :: cl_map
@@ -430,11 +431,21 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     if (associated(ele%wake)) then
       if (allocated(ele%wake%lr_mode)) then
         do iw = 1, size(ele%wake%lr_mode)
-          if (ele%wake%lr_mode(iw)%Q < 0) then
+          lr => ele%wake%lr_mode(iw)
+
+          if (lr%freq_in < 0 .and. .not. has_attribute(ele, 'RF_FREQUENCY')) then
             call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'HAS LR wake (#\i0\) with negative Q!  \es10.1\ ', &
-                      i_array = [iw], r_array = [ele%wake%lr_mode(iw)%Q])
+                      'HAS LR WAKE (#\i0\) WITH NEGATIVE FREQUENCY (LOCKED TO FUNDAMENTAL) BUT ELEMENT DOES NOT HAVE A FREQUENCY!', &
+                      i_array = [iw])
+            err_flag = .true.
+          endif
+
+          if (lr%q /= real_garbage$ .and. lr%Q <= 0) then
+            call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS LR WAKE (#\i0\) WITH NON-POSITIVE Q!  \es10.1\ ', &
+                      i_array = [iw], r_array = [lr%Q])
             err_flag = .true.
           endif
         enddo

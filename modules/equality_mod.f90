@@ -553,6 +553,10 @@ is_eq = is_eq .and. (f1%r_over_q == f2%r_over_q)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%q == f2%q)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%damp == f2%damp)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%phi == f2%phi)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%angle == f2%angle)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%b_sin == f2%b_sin)

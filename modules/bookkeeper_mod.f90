@@ -1372,7 +1372,8 @@ endif
 if (associated (slave%wake)) then
   slave%wake%lr_mode%freq_in   = lord%wake%lr_mode%freq_in
   slave%wake%lr_mode%freq      = lord%wake%lr_mode%freq
-  slave%wake%lr_mode%Q         = lord%wake%lr_mode%Q
+  slave%wake%lr_mode%damp      = lord%wake%lr_mode%damp
+  slave%wake%lr_mode%phi       = lord%wake%lr_mode%phi
   slave%wake%lr_mode%angle     = lord%wake%lr_mode%angle
   slave%wake%lr_mode%m         = lord%wake%lr_mode%m
   slave%wake%lr_mode%polarized = lord%wake%lr_mode%polarized

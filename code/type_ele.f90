@@ -97,7 +97,7 @@ character(200), allocatable :: li(:)
 character(200), allocatable :: li2(:)
 character(60) str1, str2
 character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, fmt
-character(12) attrib_val_str, units
+character(12) attrib_val_str, units, q_factor
 character(8) angle, index_str
 
 character(*), parameter :: r_name = 'type_ele'
@@ -1137,13 +1137,20 @@ if (associated(ele%wake)) then
       call re_allocate (li, nl+size(ele%wake%lr_mode)+100, .false.)
       nl=nl+1; li(nl) = '  Long-range HOM modes:'
       nl=nl+1; li(nl) = &
-            '  #       Freq         R/Q           Q   m   Angle    b_sin     b_cos     a_sin     a_cos     t_ref'
+            '  #    Freq(in)        Freq         R/Q        Damp           Q        Phi  m   Angle    b_sin     b_cos     a_sin     a_cos     t_ref'
       do i = 1, size(ele%wake%lr_mode)
         lr => ele%wake%lr_mode(i)
         angle = ' unpolar'
         if (lr%polarized) write (angle, '(f8.3)') lr%angle
-        nl=nl+1; write (li(nl), '(i3, 3es12.4, i3, a, 5es10.2)') i, &
-                lr%freq, lr%R_over_Q, lr%Q, lr%m, angle, &
+        if (lr%damp == 0 .or. lr%freq <= 0) then
+          q_factor = '      ------'
+        else
+          write (q_factor, '(es12.4)') pi * lr%freq / lr%damp
+        endif
+
+
+        nl=nl+1; write (li(nl), '(i3, 4es12.4, a, es12.4, i3, a, 5es10.2)') i, &
+                lr%freq_in, lr%freq, lr%R_over_Q, lr%damp, q_factor, lr%phi, lr%m, angle, &
                 lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
       enddo
     else

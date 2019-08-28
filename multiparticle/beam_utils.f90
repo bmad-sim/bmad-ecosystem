@@ -1419,7 +1419,7 @@ real(rp), allocatable :: charge(:)
 
 complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
 complex(rp) :: sigma_s_complex(6,6) = 0.0
-complex(rp) :: n(6,6), q(6,6)
+complex(rp) :: n_cmplx(6,6), q(6,6)
 
 integer i, j, species, dim
 
@@ -1543,7 +1543,7 @@ bunch_params%b%norm_emit = bunch_params%b%emit * (avg_energy/mass_of(species))
 bunch_params%c%norm_emit = bunch_params%c%emit * (avg_energy/mass_of(species))
 
 ! Now find normal-mode sigma matrix and twiss parameters
-! N = E.Q from eq. 44
+! N = E.Q from Eq. 44
 ! Eq. 14
 ! mat_eigen finds row vectors, so switch to column vectors
 
@@ -1572,10 +1572,9 @@ q(4,4) = -i_imag / sqrt(2.0)
 q(5,6) =  i_imag / sqrt(2.0) 
 q(6,6) = -i_imag / sqrt(2.0)
 
-! compute N in eq. 44
-n = matmul(eigen_vec(1:dim,1:dim), q(1:dim,1:dim))
-! N is now a real matrix
-n_real(1:dim,1:dim) = real(n(1:dim,1:dim))
+! compute N in Eq. 44
+n_cmplx(1:dim,1:dim) = matmul(eigen_vec(1:dim,1:dim), q(1:dim,1:dim))
+n_real(1:dim,1:dim) = real(n_cmplx(1:dim,1:dim))
 
 ! Twiss parameters come from equations 59, 63 and 64
 
