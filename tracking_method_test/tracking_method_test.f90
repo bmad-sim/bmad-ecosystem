@@ -162,7 +162,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (branch%param%particle == photon$) then
-        write (1, '(3a, t49, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 5E-08', end_orb%field
+        write (1, '(3a, t49, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 1E-07', end_orb%field
       endif
     end do
 
@@ -201,6 +201,7 @@ character(*) :: instr
     case('SBEND2:Time_Runge_Kutta')                    ; tolerance = 'ABS 1e-11'
     case('SBEND4:Bmad_Standard')                       ; tolerance = 'ABS 1e-11'
     case('SBEND4:Linear')                              ; tolerance = 'ABS 1e-11'
+    case('SBEND4:Taylor')                              ; tolerance = 'ABS 1e-12'
     case('SBEND4:Time_Runge_Kutta')                    ; tolerance = 'ABS 4e-13'
     case('SBEND5:Bmad_Standard')                       ; tolerance = 'ABS 5e-13'
     case('SBEND5:Linear')                              ; tolerance = 'ABS 5e-13'
