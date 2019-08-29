@@ -33,8 +33,8 @@ subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang, turn_autoscale
 implicit none
 
 type (tao_plot_struct), pointer :: p, p2
-type (tao_plot_array_struct), allocatable, save :: plot(:)
-type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_plot_array_struct), allocatable :: plot(:)
+type (tao_graph_array_struct), allocatable :: graph(:)
 
 real(rp) x_min_in, x_max_in, x_min, x_max
 
@@ -55,9 +55,6 @@ x_max = x_max_in
 
 ! find plots to scale
 
-if (allocated(plot)) deallocate(plot)
-if (allocated(graph)) deallocate(graph)
-
 if (len_trim(where) == 0 .or. where == '*' .or. where == 'all' .or. where == 's') then
   n = 0
   do j = 1, size(s%plot_page%region)
@@ -73,6 +70,8 @@ if (len_trim(where) == 0 .or. where == '*' .or. where == 'all' .or. where == 's'
     n = n + 1
     plot(n)%p => s%plot_page%region(j)%plot
   enddo
+  allocate(graph(0))
+
 else
   call tao_find_plots (err, where, 'REGION', plot, graph)
   if (err) return
