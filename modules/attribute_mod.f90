@@ -628,15 +628,14 @@ do i = 1, n_key$
 
   if (i == diffraction_plate$) cycle
   if (i == mask$)              cycle
-  if (i == marker$)            cycle
   if (i == detector$)          cycle
   if (i == beambeam$)          cycle
   if (i == multipole$)         cycle 
   if (i == ab_multipole$)      cycle
   if (i == converter$)         cycle
+  if (i == marker$)            cycle
 
   call init_attribute_name1 (i, l$,                   'L')
-
   call init_attribute_name1 (i, symplectify$,         'SYMPLECTIFY')
   call init_attribute_name1 (i, taylor_map_includes_offsets$,    'TAYLOR_MAP_INCLUDES_OFFSETS')
 
@@ -660,6 +659,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, field_overlaps$,      'FIELD_OVERLAPS')
   call init_attribute_name1 (i, l_hard_edge$,         'L_HARD_EDGE', dependent$)
 
+  ! Markers will also have these wake attributes. See below.
   call init_attribute_name1 (i, sr_wake_scale_with_length$, 'SR_WAKE_SCALE_WITH_LENGTH')
   call init_attribute_name1 (i, wake_amp_scale$,            'WAKE_AMP_SCALE')
   call init_attribute_name1 (i, wake_time_scale$,           'WAKE_TIME_SCALE')
@@ -1093,11 +1093,16 @@ call init_attribute_name1 (marker$, p0c_start$,                     'p0c_start',
 call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_LEN')
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
 call init_attribute_name1 (marker$, p0c_ref_init$,                  'p0c_ref_init', private$)
-call init_attribute_name1 (marker$, sr_wake_file$,                  'SR_WAKE_FILE')
-call init_attribute_name1 (marker$, lr_wake_file$,                  'LR_WAKE_FILE')
-call init_attribute_name1 (marker$, lr_freq_spread$,                'LR_FREQ_SPREAD')
-call init_attribute_name1 (marker$, lr_self_wake_on$,               'LR_SELF_WAKE_ON')
-call init_attribute_name1 (marker$, lr_wake_spline$,                'LR_WAKE_SPLINE')
+
+call init_attribute_name1 (marker$, sr_wake_scale_with_length$, 'SR_WAKE_SCALE_WITH_LENGTH')
+call init_attribute_name1 (marker$, wake_amp_scale$,            'WAKE_AMP_SCALE')
+call init_attribute_name1 (marker$, wake_time_scale$,           'WAKE_TIME_SCALE')
+call init_attribute_name1 (marker$, sr_wake_file$,              'SR_WAKE_FILE')
+call init_attribute_name1 (marker$, lr_wake_file$,              'LR_WAKE_FILE')
+call init_attribute_name1 (marker$, lr_freq_spread$,            'LR_FREQ_SPREAD')
+call init_attribute_name1 (marker$, lr_self_wake_on$,           'LR_SELF_WAKE_ON')
+call init_attribute_name1 (marker$, lr_wake_spline$,            'LR_WAKE_SPLINE')
+
 
 
 call init_attribute_name1 (match$, l$,                              'L')
