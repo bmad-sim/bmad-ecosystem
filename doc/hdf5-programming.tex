@@ -1,0 +1,83 @@
+\chapter{HDF5}
+\label{c:hdf5}
+\index{hdf5}
+
+\vn{HDF5}, which stands for ``Hierarchical Data Format'' version 5\cite{b:hdf5}, is a set of file
+formats designed to store and organize large amounts of data. HDF5 has been developed by scientists
+from a number of institutions including the National Center for Supercomputing Applications, the
+University of Illinois at Urbana-Champaign, and Sandia National Laboratories. Tools for viewing and
+editing HDF5 files are available from the HDF Group\cite{b:hdf5}. Programs include \vn{h5dump} and
+\vn{HDFView} which can be used to directly view files. Interfaces so that HDF5 files can accessed
+via Java or Python also exist.
+
+\bmad uses HDF5 for storing beam particle (positions, spin, etc.) and \vn{grid_field}
+(\sref{s:grid.field} data. Storage details are given in sections \sref{s:hdf5.beam} and
+\sref{s:hdf5.grid} respectively. While \vn{HDF5} defines how data is formatted, \vn{HDF5} does not
+define the syntax for how data is to be stored. For that, \bmad uses the syntax defined by the
+\vn{Beam Physics} extension to the \vn{openPMD} standard\cite{b:openpmd}. To understand the rest of
+this chapter, the reader should familiarize themselves with the \vn{openPMD} and \vn{Beam Physics}
+standards.
+
+%-----------------------------------------------------------------
+\section{HDF5 Particle Beam Data Storage}
+\label{s:hdf5.beam}
+\index{hdf5 and particle beam data}
+
+As per the \vn{openPMD}/\vn{Beam Physics} standard, particle beam data is stored in a tree structure
+within a data file. The root ``\vn{group}'' (tree node) for each bunch of the beam has the path
+within the file:
+\begin{example}
+  /data/%T/particles/
+\end{example}
+where \vn{%T} is an integer starting from ``1''.
+
+Bunch parameters (``attributes'') stored in the root groop are:
+\begin{example}
+  speciesType     ! The name of the particle species using the \vn{SpeciesType} syntax.
+  totalCharge     ! Total bunch charge.
+  chargeLive      ! Charge of live particles.
+  numParticles    ! Number of particles.
+\end{example}
+
+What per-particle data is stored is determined by whether the bunch particles are photons or
+not. The following particle parameters are common for both types:
+\begin{tabular}{lll} \toprule
+\tt
+  {\em Beam Physics Parameter} & {\em Bmad Equivalent}           & {\em Formula}      & {\em Notes} \midrule
+\end{tabular}
+
+  time                  & time - ref_time                        & $-z / (c \, \beta) &  \\
+  timeOffset            & ref_time                               & $t_{ref}$
+  position/x, y, z      & particle laboratory coordinates        & $(x, y, 0)$
+  sPosition             & Position along $s$-axis                &
+  weight                & macro bunch charge                     &
+  particleStatus        & Particle status                        &
+  branchIndex           & Branch index                           &
+  elementIndex          & Lattice element index                  &
+  locationInElement     & Location in lattice element            &
+\end{example}
+
+For photons, additional per-particle data is:
+\begin{example}
+  photonPolarizationAmplitude/x, y
+  photonPolarizationPhase
+  velocity/x, y, z
+  pathLength
+  totalMomentumOffset
+\end{example}
+
+and for non-photons, additional per-particle data is:
+\begin{example}
+  momentum/x, y, z
+  totalMomentumOffset
+  totalMomentum
+  spin/x, y, z
+  chargeState           ! Used with non-fundamental particles only.
+\end{example}
+
+
+%-----------------------------------------------------------------
+\section{HDF5 Grid\_Field Data Storage
+\label{s:hdf5.grid}
+\index{hdf5 and grid_field data}
+
