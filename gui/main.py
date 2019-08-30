@@ -12,12 +12,14 @@ from tao_set import tao_set
 from parameters import str_to_tao_param
 from parameters import tao_parameter_dict
 from tao_console import tao_console
-from tao_windows import *
 from tao_plot_dict import *
 import string
 
-
-
+from tao_data_windows import *
+from tao_lat_windows import *
+from tao_misc_windows import *
+from tao_plot_windows import *
+from tao_var_windows import *
 
 #---------------------------------------------------------------
 # Root window
@@ -611,22 +613,7 @@ class tao_root_window(tk.Tk):
     print ('Wave called')
 
   def set_global_vars_cmd(self):
-    global_list = root.pipe.cmd_in("python global")
-    global_list = global_list.splitlines()
-    for i in range(len(global_list)):
-      global_list[i]=str_to_tao_param(global_list[i])
-    global_win = tao_parameter_window(self, "Global Variables", global_list, self.pipe)
-    def global_callback(event=None):
-      tao_set(global_win.tao_list, "set global ", self.pipe)
-      # Refresh windows
-      if self.pipe.cmd_in('python lat_calc_done') == 'T':
-        for k in self.refresh_windows.keys():
-          for win in self.refresh_windows[k]:
-            win.refresh()
-
-    b = tk.Button(global_win.button_frame, text="Set Global Variables",
-        command=global_callback)
-    b.pack()
+    win = tao_global_vars_window(self)
 
   def view_vars_cmd(self):
     win = tao_var_general_window(self, self.pipe)
