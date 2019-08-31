@@ -92,6 +92,8 @@ def str_to_tao_param(param_str):
     and returns a tao_parameter
     '''
     v = param_str.split(';')
+    if len(v) < 3:
+      print(param_str)
     sub_param = None #default
     #TEMPORARY FIX
     if (len(v[2]) == 2) & (len(v) == 3):
