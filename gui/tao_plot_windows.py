@@ -675,13 +675,24 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.columnconfigure(0, weight=1)
     self.title('New Plot Template')
     self.name = ""
-    self.column_widths = [0,0,0] #used for consistent gridding
+    self.x_axis_type = 'index'
 
     # Frame for inputting plot parameters
     self.plot_frame = tk.Frame(self)
     self.plot_frame.grid(row=1, column=0, sticky='NSEW')
 
     self.fill_plot_frame()
+    # X-axis/graph type compatibility dict
+    self.compat_dict = {}
+    self.compat_dict['index'] = self.compat_dict['ele_index'] \
+        = self.compat_dict['lat'] = self.compat_dict['var'] \
+        = self.compat_dict['data'] = ['data']
+    self.compat_dict['s'] = ['data', 'lat_layout']
+    self.compat_dict['floor'] = ['floor_plan']
+    self.compat_dict['phase_space'] = [
+        'dynamic_aperture', 'histogram', 'phase_space']
+    self.compat_dict['histogram'] = ['histogram']
+    self.compat_dict['none'] = ['floor_plan'] #FIXME
     # Graph frame
     self.graph_frame = tabbed_frame(self, lambda arg : new_graph_frame(arg, self))
     self.graph_frame.grid(row=1, column=1, sticky='NSEW')
@@ -738,6 +749,10 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.name_warning_1 = tk.Label(self.plot_frame, text="Cannot be empty")
     self.name_warning_2 = tk.Label(self.plot_frame, text="Cannot contain whitespace")
 
+    # Responses to edits
+    self.plot_param_list[0].tk_wid.bind('<FocusOut>', self.plot_name_handler)
+    self.plot_param_list[self.ixd['x_axis_type']].tk_var.trace('w', self.x_axis_type_handler)
+
     # Clone existing plot
     existing_plot_templates = self.pipe.cmd_in("python plot_list t").splitlines()
     for i in range(len(existing_plot_templates)):
@@ -755,7 +770,15 @@ class tao_new_plot_template_window(Tao_Toplevel):
 
     # Focus the name entry
     self.plot_param_list[0].tk_wid.focus_set()
-    self.plot_param_list[0].tk_wid.bind('<FocusOut>', self.plot_name_handler)
+
+  def x_axis_type_handler(self, *args):
+    '''
+    Updates self.x_axis_type to match the chosen x_axis_type, then calls
+    graph_type_handler for each graph
+    '''
+    self.x_axis_type = self.plot_param_list[2].tk_var.get()
+    for graph in self.graph_frame.tab_list:
+      graph.graph_type_handler()
 
   def clone_plot(self, plot_name, ask=True):
     '''
@@ -798,45 +821,17 @@ class tao_new_plot_template_window(Tao_Toplevel):
       for w in self.plot_param_list:
         if w.param.name in plot1.keys():
           w.param_copy(plot1[w.param.name])
-    # Remake graph frames and notebook if necessary
-    if c4 and self.nb_exists:
-      for frame in self.graph_frame_list:
-        frame.destroy()
-      self.graph_frame_list = []
-      self.notebook.destroy()
-      self.new_tab_frame.destroy()
-      self.back_b.destroy()
-      self.create_b.destroy()
-      self.fill_graph_frame()
-    # Clone the plot
-    for graph in clone_graphs:
+    # Copy the graphs
+    for i in range(len(clone_graphs)):
+      self.graph_frame.add_tab(i)
       graph = self.clone_plot.get() + '.' + graph
-      self.add_graph_frame(graph)
-    self.notebook.select(0)
-    for g in self.graph_frame_list:
-      g.fill_curve_frame()
-
-  def fill_graph_frame(self):
-    '''
-    Creates a ttk Notebook for displaying new_graph_frames
-    '''
-    # Create self.notebook
-    self.notebook = ttk.Notebook(self.graph_frame)
-    self.notebook.pack(side='top', fill='both', expand=1)
-
-    self.graph_index = 0 #marks current tab index
-
-    # New tab button
-    self.new_tab_frame = tk.Frame(self.notebook)
-    self.notebook.insert('end', self.new_tab_frame)
-    self.notebook.tab(len(self.graph_frame_list), text='+')
-    self.notebook.bind('<<NotebookTabChanged>>', self.tab_handler)
-
-    # Create button
-    self.create_b = tk.Button(self.graph_frame, text="Create!", command=self.create_template)
-    self.create_b.pack(side='right')
-
-    self.graph_frame.grid(row=2, column=0, sticky='NSEW')
+      self.graph_frame.tab_list[i].clone(graph)
+    # Delete old graphs if requested
+    if c4:
+      for j in range(i+1, len(self.graph_frame.tab_list)):
+        self.graph_frame.remove_tab(i+1, destroy=True)
+    # Switch to first tab
+    self.graph_frame.notebook.select(0)
 
   def create_template(self, event=None):
     '''
@@ -943,29 +938,6 @@ class tao_new_plot_template_window(Tao_Toplevel):
     for win in self.root.refresh_windows['plot']:
       win.refresh()
 
-  def tab_handler(self, event=None):
-    '''
-    Handles new tab creation and updates self.d1_index as necessary
-    '''
-    # Check if the new tab frame has been selected
-    if self.notebook.select() == self.new_tab_frame._w:
-      # Add new tab
-      self.graph_frame_list.append(new_graph_frame(self))
-      self.graph_frame_list[-1].fill_curve_frame()
-      self.graph_index = len(self.graph_frame_list)-1
-      self.notebook.insert(self.graph_index, self.graph_frame_list[-1])
-      self.notebook.tab(self.graph_index, text='New_graph')
-      self.notebook.select(self.graph_index)
-    else:
-      # Update self.graph_index
-      for i in range(len(self.graph_frame_list)):
-        frame = self.graph_frame_list[i]
-        if self.notebook.select() == frame._w:
-          self.graph_index = i
-          # Unblock frame's handlers
-          frame.handler_block = False
-          break
-
   def plot_name_handler(self, event=None):
     '''
     Reads the plot name into self.name, and warns the user if left blank
@@ -981,22 +953,12 @@ class tao_new_plot_template_window(Tao_Toplevel):
       self.title(name)
       self.name = name
 
+  def x_axis_type_handler(self, *args):
+    '''
+    Sets self.x_axis_type to the selected x_axis_type
+    '''
+    self.x_axis_type = self.plot_param_list[self.ixd['x_axis_type']].tk_var.get()
 
-  def add_graph_frame(self, graph=None, event=None):
-    '''
-    Creates a new graph_frame for graph and reads existing data in from Tao if present
-    '''
-    self.graph_frame_list.append(
-        new_graph_frame(self))
-    ix = len(self.graph_frame_list) - 1
-    self.graph_frame_list[-1].fill_curve_frame()
-    self.notebook.insert(ix, self.graph_frame_list[-1])
-    self.notebook.tab(ix, text=graph.split('.')[-1])
-    if graph:
-      old_ix = self.graph_index
-      self.graph_index = ix
-      self.graph_frame_list[-1].clone(graph)
-      self.graph_index = old_ix
 
   def refresh(self):
     '''
@@ -1016,7 +978,14 @@ class new_graph_frame(tk.Frame):
     self.handler_block = False
     self._scroll_frame = tao_scroll_frame(self)
     self.name = "New_graph"
-    self.current_type = "data" # the default
+    # Default to first type compatible with self.plot.x_axis_type
+    self.type = self.plot.compat_dict[self.plot.x_axis_type][0]
+
+    #TEMPORARY
+    def f(e):
+      self.handler_block = False
+    self.bind_all('<Control-b>', f)
+
 
     # Delete button
     tk.Button(self, text="DELETE THIS GRAPH", fg='red', command=self.delete).grid(
@@ -1028,8 +997,6 @@ class new_graph_frame(tk.Frame):
 
     # Setup
     self.graph_frame = self._scroll_frame.frame
-    self._scroll_frame.grid(row=5, column=0, columnspan=3, sticky='NSEW')
-    self.grid_rowconfigure(5, weight=1)
     # Helper functions
     def graph_ttp(x):
       ''' Shortcut for commonly used construct '''
@@ -1066,16 +1033,19 @@ class new_graph_frame(tk.Frame):
     self.head_labels = ["Graph name:", "Graph type:", "Graph title"]
     self.head_wids = list(map(graph_ttp, self.head_wids))
     self.head_labels = list(map(graph_label_maker, self.head_labels))
+    # Type-specific options
+    self.wids = {}
+    self.labels = {}
     # Data graphs
-    self.data_wids = ["component;COMPONENT;T;model",
+    self.wids['data'] = ["component;COMPONENT;T;model",
         "ix_universe;INT;T;",
         "draw_only_good_user_data_or_vars;LOGIC;T;T"]
-    self.data_labels = ["Component:", "Universe:",
+    self.labels['data'] = ["Component:", "Universe:",
         "Draw only good_user data/variables:"]
-    self.data_wids = list(map(graph_ttp, self.data_wids))
-    self.data_labels = list(map(graph_label_maker, self.data_labels))
+    self.wids['data'] = list(map(graph_ttp, self.wids['data']))
+    self.labels['data'] = list(map(graph_label_maker, self.labels['data']))
     # Floor plans
-    self.floor_plan_wids = [
+    self.wids['floor_plan'] = [
         qp_axis_props("x2;STRUCT;T"),
         "ix_universe;INT;T;",
         "floor_plan_rotation;REAL;T;",
@@ -1085,33 +1055,33 @@ class new_graph_frame(tk.Frame):
         "floor_plan_flip_label_side;LOGIC;T;F",
         "floor_plan_size_is_absolute;LOGIC;T;F",
         "floor_plan_draw_only_first_pass;LOGIC;T;F"]
-    self.floor_plan_labels = ["X2-axis:", "Universe:",
+    self.labels['floor_plan'] = ["X2-axis:", "Universe:",
         "Rotation:", "View:", "Orbit scale:", "Orbit color:",
         "Flip label side:", "Absolute size:", "Draw only first pass:"]
-    self.floor_plan_wids = list(map(graph_ttp, self.floor_plan_wids))
-    self.floor_plan_labels = list(map(graph_label_maker, self.floor_plan_wids))
+    self.wids['floor_plan'] = list(map(graph_ttp, self.wids['floor_plan']))
+    self.labels['floor_plan'] = list(map(graph_label_maker, self.labels['floor_plan']))
     # Lat layouts
-    self.lat_layout_wids = [
+    self.wids['lat_layout'] = [
         "ix_universe;INT;T;",
         "ix_branch;INT;T;"]
-    self.lat_layout_labels = ["Universe:", "Branch:"]
-    self.lat_layout_wids = list(map(graph_ttp, self.lat_layout_wids))
-    self.lat_layout_labels = list(map(graph_label_maker, self.lat_layout_labels))
+    self.labels['lat_layout'] = ["Universe:", "Branch:"]
+    self.wids['lat_layout'] = list(map(graph_ttp, self.wids['lat_layout']))
+    self.labels['lat_layout'] = list(map(graph_label_maker, self.labels['lat_layout']))
     # Dynamic aperture
-    self.dyn_ap_wids = ["ix_universe;INT;T;"]
-    self.dyn_ap_labels = ["Universe:"]
-    self.dyn_ap_wids = list(map(graph_ttp, self.dyn_ap_wids))
-    self.dyn_ap_labels = list(map(graph_label_maker, self.dyn_ap_labels))
+    self.wids['dynamic_aperture'] = ["ix_universe;INT;T;"]
+    self.labels['dynamic_aperture'] = ["Universe:"]
+    self.wids['dynamic_aperture'] = list(map(graph_ttp, self.wids['dynamic_aperture']))
+    self.labels['dynamic_aperture'] = list(map(graph_label_maker, self.labels['dynamic_aperture']))
     # Histograms
-    self.histogram_wids = ["ix_universe;INT;T;"]
-    self.histogram_labels = ["Universe:"]
-    self.histogram_wids = list(map(graph_ttp, self.histogram_wids))
-    self.histogram_labels = list(map(graph_label_maker, self.histogram_labels))
+    self.wids['histogram'] = ["ix_universe;INT;T;"]
+    self.labels['histogram'] = ["Universe:"]
+    self.wids['histogram'] = list(map(graph_ttp, self.wids['histogram']))
+    self.labels['histogram'] = list(map(graph_label_maker, self.labels['histogram']))
     # Phase space plots
-    self.phase_space_wids = ["ix_universe;INT;T;"]
-    self.phase_space_labels = ["Universe:"]
-    self.phase_space_wids = list(map(graph_ttp, self.phase_space_wids))
-    self.phase_space_labels = list(map(graph_label_maker, self.phase_space_labels))
+    self.wids['phase_space'] = ["ix_universe;INT;T;"]
+    self.labels['phase_space'] = ["Universe:"]
+    self.wids['phase_space'] = list(map(graph_ttp, self.wids['phase_space']))
+    self.labels['phase_space'] = list(map(graph_label_maker, self.labels['phase_space']))
     # Graph styling
     self.style_wids = [
         qp_axis_props("x;STRUCT;T"),
@@ -1138,35 +1108,62 @@ class new_graph_frame(tk.Frame):
     self.style_wids = list(map(graph_ttp, self.style_wids))
     self.style_labels = list(map(graph_label_maker, self.style_labels))
 
-    # Grid widgets and labels:
-    # Head (not scrolled)
+    # Grid head widgets
     for i in range(len(self.head_wids)):
       self.head_labels[i].grid(row=i+2, column=0, sticky='W')
       self.head_wids[i].tk_wid.grid(row=i+2, column=1, sticky='EW')
-    # Graph specific (scrolled)
-    for i in range(len(self.data_wids)):
-      self.data_labels[i].grid(row=i, column=0, sticky='W')
-      self.data_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
-    # Style (scrolled)
-    self.style_offset = len(self.floor_plan_wids) # longest widget list
-    for i in range(len(self.style_wids)):
-      ix =  i + self.style_offset
-      self.style_labels[i].grid(row=ix, column=0, sticky='W')
-      self.style_wids[i].tk_wid.grid(row=ix, column=1, sticky='EW')
 
     # Warning labels
     # (defined here to be gridded/ungridded as necessary)
     self.name_warning_1 = tk.Label(self, text="Must not be empty")
-    self.name_warning_2 = tk.Label(self, text="graph name already in use")
+    self.name_warning_2 = tk.Label(self, text="Graph name already in use")
     self.name_warning_3 = tk.Label(self, text="Cannot contain whitespace")
 
     # Responses to edits
-    #self.head_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
-    #self.head_wids[1].tk_var.trace('w', self.graph_type_handler)
+    self.head_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
+    self.head_wids[1].tk_var.trace('w', self.graph_type_handler)
 
     # Curves
     self.curve_frame = tabbed_frame(self, lambda arg : new_curve_frame(arg, self))
-    self.curve_frame.grid(row=0, column=4, rowspan=6, sticky='NSEW')
+
+    # Element shapes (for lat_layouts and floor_plans)
+    self.ele_frame = tk.Frame(self)
+    tk.Label(self.ele_frame, text="COMING SOON").grid(row=0, column=0, sticky='NSEW')
+
+    # Grid everything else
+    self._scroll_frame.grid(row=2+len(self.head_wids), column=0, columnspan=3, sticky='NSEW')
+    self.grid_rowconfigure(2+len(self.head_wids), weight=1)
+    self.refresh()
+
+  def refresh(self):
+    '''
+    Grids the appropriate widgets for the current graph type,
+    grids self.curve_frame or self.ele_frame as appropriate,
+    then calls refresh for each of the curves if appropriate
+    (i.e. if self.type not in ['lat_layout', 'floor_plan'])
+    '''
+    # Ungrid the non-style widgets
+    for child in self.graph_frame.winfo_children():
+      child.grid_forget()
+    # Grid the appropriate widgets
+    for i in range(len(self.wids[self.type])):
+      self.labels[self.type][i].grid(row=i, column=0, sticky='W')
+      self.wids[self.type][i].tk_wid.grid(row=i, column=1, sticky='EW')
+    offset = i+1
+    # Grid the style widgets
+    for i in range(len(self.style_wids)):
+      ix = i + offset
+      self.style_labels[i].grid(row=ix, column=0, sticky='W')
+      self.style_wids[i].tk_wid.grid(row=ix, column=1, sticky='EW')
+    # Swap between self.curve_frame or self.ele_frame as necessary
+    if self.type in ['lay_layout', 'floor_plan']:
+      self.curve_frame.grid_forget()
+      self.ele_frame.grid(row=0, column=4, rowspan=6, sticky='NSEW')
+    else:
+      self.ele_frame.grid_forget()
+      self.curve_frame.grid(row=0, column=4, rowspan=6, sticky='NSEW')
+      for curve in self.curve_frame.tab_list:
+        curve.refresh()
 
   def delete(self, ask=True, event=None):
     '''
@@ -1226,6 +1223,7 @@ class new_graph_frame(tk.Frame):
     make copies of graphs already defined in the new plot template window
     Does not clone plot properties
     '''
+    #TODO
     # Grab the graph info
     plot_graph = self.pipe.cmd_in("python plot_graph " + graph)
     graph_dict = tao_parameter_dict(plot_graph.splitlines())
@@ -1251,6 +1249,59 @@ class new_graph_frame(tk.Frame):
           if ckey in self.curve_ixd.keys():
             self.curve_dict[i][self.curve_ixd[ckey]].param_copy(curve_dict[key])
 
+  def graph_type_handler(self, *args):
+    '''
+    Checks that plot.x_axis_type is compatible with the selected graph type.
+    If it is, updates self.type and calls self.refresh()
+    If it is not, warns the user of the incompatibility.
+    '''
+    if self.handler_block:
+      return
+    self.handler_block = True
+    new_type = self.head_wids[1].tk_var.get()
+    cdict = self.plot.compat_dict
+    if new_type in cdict[self.plot.x_axis_type]:
+      self.type = new_type
+      self.refresh()
+    else:
+      title = "X-axis/graph type mismatch"
+      msg = "The X-axis type you have selected (" + self.plot.x_axis_type
+      msg += ") is not compatible with the graph type you have selected for "
+      msg += self.name + " (" + new_type + ").\n"
+      msg += "The " + self.plot.x_axis_type + " X-axis type is compatible with "
+      msg += "the following graph types:"
+      for t in cdict[self.plot.x_axis_type]:
+        msg += "\n" + t
+      messagebox.showwarning(title, msg, parent=self.plot)
+    self.handler_block = False
+
+  def name_handler(self, event=None):
+    '''
+    Checks that a good name has been input for the graph and
+    updates self.name as necessary.  Warns the user if the name
+    is taken or empty
+    '''
+    if self.handler_block:
+      return
+    new_name = self.head_wids[0].tk_var.get().strip()
+    self.name_warning_1.grid_forget()
+    self.name_warning_2.grid_forget()
+    self.name_warning_3.grid_forget()
+    # Check what names are taken for this plot
+    taken_names = []
+    for graph in self.parent.tab_list:
+      taken_names.append(graph.name)
+    if new_name == "":
+      self.name_warning_1.grid(row=2, column=2, sticky='W')
+      self.name = "New_graph"
+    elif new_name.find(' ') != -1:
+      self.name_warning_3.grid(row=2, column=2, sticky='W')
+    elif (taken_names.count(new_name) > 1) or (
+        (taken_names.count(new_name) == 1) and (new_name != self.name)):
+      self.name_warning_2.grid(row=2, column=2, sticky='W')
+    # Update the tab text for this graph
+    self.parent.update_name(self.parent.tab_list.index(self))
+
 class new_curve_frame(tk.Frame):
   '''
   Provides a frame to configure curve properties as necessary
@@ -1269,6 +1320,9 @@ class new_curve_frame(tk.Frame):
     # Duplicate button
     self.dup_b = tk.Button(
         self, text="Duplicate this curve", command=self.duplicate)
+
+    self.delete_b.grid(row=0, column=0, columnspan=2, sticky='EW')
+    self.dup_b.grid(row=1, column=0, columnspan=2, sticky='EW')
 
     # Curve configuration widgets
     self.curve_frame = self._scroll_frame.frame
@@ -1292,44 +1346,93 @@ class new_curve_frame(tk.Frame):
     self.head_labels = ["Name:"]
     self.head_wids = list(map(curve_ttp, self.head_wids))
     self.head_labels = list(map(curve_label, self.head_labels))
+    # X-axis/graph type specific settings
+    # Dictionary of dictionary of lists (self.wids[key1][key2][ix])
+    # key1: x_axis_type; key2: graph_type
+    self.wids = {}
+    self.labels = {}
+    for key in ['index', 'ele_index', 'lat', 'var', 's', 'floor',
+        'phase_space', 'histogram', 'data', 'none']:
+      self.wids[key] = {}
+      self.labels[key] = {}
     # Normal data plot
-    self.normal_data_wids = [
+    self.wids['index']['data'] = [
           'data_source;ENUM;T;',
           'data_type_x;DAT_TYPE_Z;T;',
           'data_type;DAT_TYPE;T;',
           'component;COMPONENT;T;model']
-    self.normal_data_labels = [ "Data source:",
+    self.labels['index']['data'] = [ "Data source:",
         "X data type:", "Y data type:",
         "Component:", "Data index:"]
-    self.normal_data_wids = list(map(curve_ttp, self.normal_data_wids))
-    self.normal_data_labels = list(map(curve_label, self.normal_data_labels))
     # Data slice
-    self.data_slice_wids = [
+    self.wids['data']['data'] = [
         'data_source;ENUM;F;data',
         #'data_type_x;DAT_TYPE_E;T;',
         #'data_type;DAT_TYPE_E;T;',
         #'data_index;DAT_TYPE_E;T;',
         'component;COMPONENT;T;model',
         'ele_ref_name;STR;T;']
-    self.data_slice_labels = [ "Data source:",
+    self.labels['data']['data'] = [ "Data source:",
         "X data type:", "Y data type:",
         "Data index:", "Component:",
         "Reference Element:"]
-    self.data_slice_wids = list(map(curve_ttp, self.data_slice_wids))
-    self.data_slice_labels = list(map(curve_label, self.data_slice_labels))
-    # Data vs var labels
-    self.data_vs_var_wids = [
+    # Data vs lat/var
+    self.wids['lat']['data'] = [
         'data_source;ENUM;F;data',
         'data_type_x;STR;T;',
         'data_type;STR;T;',
         'component;COMPONENT;T;model',
         'ele_ref_name;STR;T;']
-    self.data_vs_var_labels = [ "Data source:",
+    self.labels['lat']['data'] = [ "Data source:",
         "X data type:", "Y data type:",
         "Data index:", "Component:",
         "Reference Element:"]
-    self.data_vs_var_wids = list(map(curve_ttp, self.data_vs_var_wids))
-    self.data_vs_var_labels = list(map(curve_label, self.data_vs_var_labels))
+    # Histograms
+    self.wids['histogram']['histogram'] = [
+        'data_source;ENUM;T;',
+        'data_type;ENUM_Z;T;',
+        'ele_ref_name;STR;T;',
+        'hist;STRUCT;T;density_normalized;LOGIC;T;weight_by_charge;LOGIC;T;number;INT;100;width;INT;']
+    self.labels['histogram']['histogram'] = [
+        "Data source:", "Data type:", "Reference element:", "Bin settings:"]
+    # Phase space plots
+    self.wids['phase_space']['phase_space'] = [
+        'data_source;ENUM;T;',
+        'data_type_x;ENUM_Z;T;',
+        'data_type;ENUM_Z;T;',
+        'ele_ref_name;STR;T;',
+        'use_z_color;LOGIC;T;F',
+        'data_type_z;ENUM_Z;T;',
+        'z_color0;REAL;T;0',
+        'z_color1;REAL;T;0',
+        'autoscale_z_color;LOGIC;T;T']
+    self.labels['phase_space']['phase_space'] = [
+        "Data source:", "X data type:", "Y data type:", "Reference element:",
+        "Use z color:", "Color data type:", "Color min:", "Color max:",
+        "Autoscale color:"]
+    # Map strings in self.wids and self.labels to tk widgets
+    for key1 in self.wids.keys():
+      for key2 in self.wids[key1].keys():
+        self.wids[key1][key2] = list(map(curve_ttp, self.wids[key1][key2]))
+        self.labels[key1][key2] = list(map(curve_label, self.labels[key1][key2]))
+    # Copy lists as necessary
+    self.wids['ele_index']['data'] = self.wids['s']['data'] = self.wids['index']['data']
+    self.labels['ele_index']['data'] = self.labels['s']['data'] = self.labels['index']['data']
+    self.wids['var']['data'] = self.wids['lat']['data']
+    self.labels['var']['data'] = self.labels['lat']['data']
+    self.wids['phase_space']['histogram'] = self.wids['histogram']['histogram']
+    self.labels['phase_space']['histogram'] = self.labels['histogram']['histogram']
+    # Set up empty lists for other axis/graph type compbos to prevent key errors
+    x_types = ['index', 'ele_index', 's', 'data', 'lat', 'var', 'floor', 'phase_space', 'histogram', 'none']
+    g_types = ['data', 'lay_layout', 'floor_plan', 'dynamic_aperture', 'histogram', 'phase_space']
+    for x in x_types:
+      if x not in self.wids.keys():
+        self.wids[x] = {}
+        self.labels[x] = {}
+      for g in g_types:
+        if g not in self.wids[x].keys():
+          self.wids[x][g] = []
+          self.labels[x][g] = []
     # Style
     self.style_wids = [
         'units;STR;T;',
@@ -1355,62 +1458,93 @@ class new_curve_frame(tk.Frame):
         "Smooth line calc:"]
     self.style_wids = list(map(curve_ttp, self.style_wids))
     self.style_labels = list(map(curve_label, self.style_labels))
-    # Offset
-    self.style_offset = max(list(map(len, [self.normal_data_wids,
-        self.data_slice_wids, self.data_vs_var_wids])))
 
-    # Draw widgets to the frame as appropriate
+    # Grid head widgets
+    for i in range(len(self.head_wids)):
+      self.head_labels[i].grid(row=i+2, column=0, sticky='W')
+      self.head_wids[i].tk_wid.grid(row=i+2, column=1, sticky='EW')
+
+    # Warning labels
+    self.name_warning_1 = tk.Label(self, text="Must not be empty")
+    self.name_warning_2 = tk.Label(self, text="Curve name already in use")
+    self.name_warning_3 = tk.Label(self, text="Cannot contain whitespace")
+
+    # Responses to edits
+    self.head_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
+
+    # Grid everything else
+    self._scroll_frame.grid(row=2+len(self.head_wids), column=0, columnspan=3, sticky='NSEW')
+    self.grid_rowconfigure(2+len(self.head_wids), weight=1)
     self.refresh()
 
   def refresh(self):
     '''
-    Draws appropriate widgets to the frame depending on graph%type and
-    plot%x_axis_type.  The parent graph is expected to verify that
+    Draws appropriate widgets to the frame depending on graph.type and
+    plot.x_axis_type.  The parent graph is expected to verify that
     the graph and x_axis type are compatible before calling this method
     '''
     # Remove existing widgets
     for child in self.curve_frame.winfo_children():
       child.grid_forget()
-    for child in self.winfo_children():
-      child.grid_forget()
 
-    # May need reworking (TODO)
-    self.delete_b.grid(row=0, column=0, columnspan=2, sticky='EW')
-    self.dup_b.grid(row=1, column=0, columnspan=2, sticky='EW')
+    # Grid the x-axis/graph type specific widgets
+    graph_type = self.graph.type
+    x_axis_type = self.graph.plot.x_axis_type
+    for i in range(len(self.wids[x_axis_type][graph_type])):
+      self.labels[x_axis_type][graph_type][i].grid(row=i, column=0, sticky='W')
+      self.wids[x_axis_type][graph_type][i].tk_wid.grid(row=i, column=1, sticky='EW')
+    offset = i+1
 
-    # Determine correct widgets to use
-    graph_type = self.graph.head_wids[1].tk_var.get()
-    x_axis_type = self.graph.plot.plot_param_list[2].tk_var.get()
-    if graph_type == 'data':
-      # Data
-      for i in range(len(self.head_wids)):
-        self.head_labels[i].grid(row=i+2, column=0, sticky='W')
-        self.head_wids[i].tk_wid.grid(row=i+2, column=1, sticky='EW')
-      # Style widgets
-      self._scroll_frame.grid(row=i+3, column=0, columnspan=2, sticky='EW')
-      self.grid_rowconfigure(i+3, weight=1)
-      for i in range(len(self.style_wids)):
-        ix = i + self.style_offset
-        self.style_labels[i].grid(row=ix, column=0, sticky='W')
-        self.style_wids[i].tk_wid.grid(row=ix, column=1, sticky='EW')
-      if x_axis_type in ['index', 'ele_index', 's']:
-        # Normal data plot
-        for i in range(len(self.normal_data_wids)):
-          self.normal_data_labels[i].grid(row=i, column=0, sticky='W')
-          self.normal_data_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
-      elif x_axis_type in ['lat', 'var']:
-        # Data vs lat/var
-        for i in range(len(self.data_vs_var_wids)):
-          self.data_vs_var_labels[i].grid(row=i, column=0, sticky='W')
-          self.data_vs_var_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
-      elif x_axis_type == 'data':
-        # Data slice
-        for i in range(len(self.data_slice_wids)):
-          self.data_slice_labels[i].grid(row=i, column=0, sticky='W')
-          self.data_slice_wids[i].tk_wid.grid(row=i, column=1, sticky='EW')
+    # Grid the style widgets
+    for i in range(len(self.style_wids)):
+      ix = i + offset
+      self.style_labels[i].grid(row=ix, column=0, sticky='W')
+      self.style_wids[i].tk_wid.grid(row=ix, column=1, sticky='EW')
 
   def delete(self):
-    pass
+    '''
+    Deletes this graph frame
+    Call with ask = False to skip confirmation
+    '''
+    # Ask for confirmation
+    if ask:
+      ans = messagebox.askokcancel("Delete " + self.name, "Delete this curve?", parent=self.graph.plot)
+      if not ans:
+        return
+
+    # Remove from tabbed frame
+    self.parent.remove_tab(self.parent.tab_list.index(self))
+
+    # Destroy self
+    self.destroy()
 
   def duplicate(self):
     pass
+
+  def name_handler(self, event=None):
+    '''
+    Checks that a good name has been input for the curve and
+    updates self.name as necessary.  Warns the user if the name
+    is taken or empty
+    '''
+    if self.handler_block:
+      return
+    new_name = self.head_wids[0].tk_var.get().strip()
+    self.name_warning_1.grid_forget()
+    self.name_warning_2.grid_forget()
+    self.name_warning_3.grid_forget()
+    # Check what names are taken for this plot
+    taken_names = []
+    for curve in self.parent.tab_list:
+      taken_names.append(curve.name)
+    if new_name == "":
+      self.name_warning_1.grid(row=2, column=2, sticky='W')
+      self.name = "New_curve"
+    elif new_name.find(' ') != -1:
+      self.name_warning_3.grid(row=2, column=2, sticky='W')
+    elif (taken_names.count(new_name) > 1) or (
+        (taken_names.count(new_name) == 1) and (new_name != self.name)):
+      self.name_warning_2.grid(row=2, column=2, sticky='W')
+    # Update the tab text for this graph
+    self.parent.update_name(self.parent.tab_list.index(self))
+

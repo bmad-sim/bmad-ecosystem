@@ -1142,11 +1142,14 @@ class tabbed_frame(tk.Frame):
           frame.handler_block = False
           break
 
-  def add_tab(self, ix, *args, **kwargs):
+  def add_tab(self, ix=None, *args, **kwargs):
     '''
     Adds a new tab at the specified index
+    If ix is not specified, the tab is added at the end of the list
     *args and **kwargs are passed to self.new_tab_func after self
     '''
+    if ix == None:
+      ix = len(self.tab_list)
     if ix < len(self.tab_list):
       self.tab_list = self.tab_list[:ix] + [self.new_tab_func(self, *args, **kwargs)] + self.tab_list[ix:]
     else:
@@ -1155,10 +1158,10 @@ class tabbed_frame(tk.Frame):
     self.notebook.insert(ix, self.tab_list[ix])
     self.notebook.tab(ix, text=self.tab_list[ix].name)
 
-  def remove_tab(self, ix):
+  def remove_tab(self, ix, destroy=False):
     '''
     Removes the tab at the specified position
-    Does not destroy the removed frame
+    Does not destroy the removed frame unless destroy==True
     '''
     # Make sure ix is not too large
     if ix >= len(self.tab_list):
@@ -1169,5 +1172,19 @@ class tabbed_frame(tk.Frame):
     else:
       self.notebook.select(0)
     # Remove the tab
-    self.tab_list.pop(ix)
+    frame = self.tab_list.pop(ix)
     self.notebook.forget(ix)
+    if destroy:
+      frame.destroy()
+
+  def update_name(self, ix=None):
+    '''
+    Updates the tab title to match the frame name for the
+    tab in the specified position
+    If ix==None, runs this method for all tabs
+    '''
+    if ix not in range(len(self.tab_list)):
+      for i in range(len(self.tab_list)):
+        self.update_name(i)
+    else:
+      self.notebook.tab(ix, text=self.tab_list[ix].name)
