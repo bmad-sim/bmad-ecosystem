@@ -672,7 +672,9 @@ class tao_new_plot_template_window(Tao_Toplevel):
     self.root = root
     Tao_Toplevel.__init__(self, root, *args, **kwargs)
     self.pipe = pipe
-    self.columnconfigure(0, weight=1)
+    self.columnconfigure(0, weight=0)
+    self.columnconfigure(1, weight=2)
+    self.rowconfigure(1, weight=1)
     self.title('New Plot Template')
     self.name = ""
     self.x_axis_type = 'index'
