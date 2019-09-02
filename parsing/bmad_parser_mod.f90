@@ -6828,7 +6828,7 @@ do i = 1, n_ele_use
   if (used_line(i)%tag /= '') ele_line(i)%name = trim(used_line(i)%tag) // '.' // ele_line(i)%name
   call settable_dep_var_bookkeeping (ele_line(i))
   if (ele_line(i)%lord_status == super_lord$) then
-    call parser_error ('SUPERPOSITION ELEMENTS CANNOT BE USED IN A LINE: ' // ele_line(i)%name)
+    call parser_error ('SUPERPOSITION ELEMENTS CANNOT BE USED IN A "LINE = (...)" CONSTRUCT: ' // ele_line(i)%name)
   endif
 enddo
 

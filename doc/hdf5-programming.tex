@@ -43,19 +43,17 @@ What per-particle data is stored is determined by whether the bunch particles ar
 not. The following particle parameters are common for both types:
 \begin{tabular}{lll} \toprule
 \tt
-  {\em Beam Physics Parameter} & {\em Bmad Equivalent}           & {\em Formula}      & {\em Notes} \midrule
-\end{tabular}
-
-  time                  & time - ref_time                        & $-z / (c \, \beta) &  \\
-  timeOffset            & ref_time                               & $t_{ref}$
-  position/x, y, z      & particle laboratory coordinates        & $(x, y, 0)$
-  sPosition             & Position along $s$-axis                &
-  weight                & macro bunch charge                     &
+  {\em Beam Physics Parameter} & {\em Bmad Equivalent}           & {\em Formula}       & {\em Notes}                    \midrule
+  time                  & time - ref_time                        & $-z / (c \, \beta)$ & See \Eq{zbctt}                 \\
+  timeOffset            & reference time                         & $t_0$               &                                \\
+  position/x, y, z      & particle laboratory coordinates        & $(x, y, 0)$         & See Fig.~\ref{f:local.coords}  \\
+  sPosition             & Position along $s$-axis                &                     & See Fig.~\ref{f:local.coords}  \\
+  weight                & macro bunch charge                     & 
   particleStatus        & Particle status                        &
   branchIndex           & Branch index                           &
   elementIndex          & Lattice element index                  &
   locationInElement     & Location in lattice element            &
-\end{example}
+\end{tabular}
 
 For photons, additional per-particle data is:
 \begin{example}

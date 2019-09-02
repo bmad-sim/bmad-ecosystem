@@ -124,8 +124,9 @@ type (coord_struct), pointer :: particle
 type (wake_lr_mode_struct), pointer :: lr
 
 real(rp) t0, dt, dt_phase, kx0, ky0, ff0, w_norm, w_skew
-real(rp) omega, f_exp, ff, c, s, kx, ky, kick_self, vec(6)
+real(rp) omega, f_exp, ff, c_dt, s_dt, kx, ky, kick_self, vec(6)
 real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin, charge, t_cut
+real(rp) da_sin, da_cos, db_sin, db_cos
 
 integer n_mode, i, j, k, i0, n
 
@@ -164,14 +165,14 @@ do i = 1, size(ele%wake%lr_mode)
 
   ! Need to shift a_sin, etc, since particle z is with respect to the bunch center.
   if (lr%freq_in >= 0) then  ! If not fundamental mode
-    c = cos (dt * omega)
-    s = sin (dt * omega)
+    c_dt = cos (dt * omega)
+    s_dt = sin (dt * omega)
     b_sin = lr%b_sin
-    lr%b_sin =  c * b_sin + s * lr%b_cos
-    lr%b_cos = -s * b_sin + c * lr%b_cos
+    lr%b_sin =  c_dt * b_sin + s_dt * lr%b_cos
+    lr%b_cos = -s_dt * b_sin + c_dt * lr%b_cos
     a_sin = lr%a_sin
-    lr%a_sin =  c * a_sin + s * lr%a_cos
-    lr%a_cos = -s * a_sin + c * lr%a_cos
+    lr%a_sin =  c_dt * a_sin + s_dt * lr%a_cos
+    lr%a_cos = -s_dt * a_sin + c_dt * lr%a_cos
   endif
 enddo
 
@@ -192,6 +193,7 @@ do i = 1, size(ele%wake%lr_mode)
   !
 
   kick_self = 0
+  da_sin = 0; da_cos = 0; db_sin = 0; db_cos = 0
 
   do k = 1, size(bunch%particle)
     particle => bunch%particle(k)
@@ -203,8 +205,8 @@ do i = 1, size(ele%wake%lr_mode)
     dt_phase = dt
     if (lr%freq_in < 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
 
-    c = cos (-dt_phase * omega)
-    s = sin (-dt_phase * omega)
+    c_dt =  cos (dt_phase * omega + twopi * lr%phi)
+    s_dt = -sin (dt_phase * omega + twopi * lr%phi)
 
     ! The spatial variation of the normal and skew
     ! components is the same as the spatial variation of a multipole kick.
@@ -227,23 +229,23 @@ do i = 1, size(ele%wake%lr_mode)
         w_skew = -ky
       endif
 
-      kick_self = kick_self + w_norm * kx0 + w_skew * ky0
+      kick_self = kick_self + (w_norm * kx0 + w_skew * ky0) * cos(twopi * lr%phi)
     endif
 
     ! Longitudinal non-self-wake kick
 
     ff = exp(-dt * f_exp) / ele%value(p0c$)
 
-    w_norm = (lr%b_sin * ff * (f_exp * s + omega * c) + lr%b_cos * ff * (f_exp * c - omega * s)) / c_light
-    w_skew = (lr%a_sin * ff * (f_exp * s + omega * c) + lr%a_cos * ff * (f_exp * c - omega * s)) / c_light
+    w_norm = (lr%b_sin * ff * (f_exp * s_dt + omega * c_dt) + lr%b_cos * ff * (f_exp * c_dt - omega * s_dt)) / c_light
+    w_skew = (lr%a_sin * ff * (f_exp * s_dt + omega * c_dt) + lr%a_cos * ff * (f_exp * c_dt - omega * s_dt)) / c_light
 
     particle%vec(6) = particle%vec(6) + w_norm * kx0 + w_skew * ky0
 
-    ! Transverse wake kick (Transverse has no self-wake kick)
+    ! Transverse wake kick (Note: Transverse has no self-wake kick)
 
     if (lr%m /= 0) then
-      w_norm = lr%b_sin * ff * s + lr%b_cos * ff * c
-      w_skew = lr%a_sin * ff * s + lr%a_cos * ff * c
+      w_norm = lr%b_sin * ff * s_dt + lr%b_cos * ff * c_dt
+      w_skew = lr%a_sin * ff * s_dt + lr%a_cos * ff * c_dt
 
       call ab_multipole_kick (w_skew, w_norm, lr%m-1, particle%species, +1, particle, kx, ky)
 
@@ -263,12 +265,19 @@ do i = 1, size(ele%wake%lr_mode)
       ky = ff * ky0
     endif
 
-    lr%b_sin = lr%b_sin - kx * c
-    lr%b_cos = lr%b_cos + kx * s
-    lr%a_sin = lr%a_sin - ky * c
-    lr%a_cos = lr%a_cos + ky * s
+    db_sin = db_sin - kx * c_dt
+    db_cos = db_cos + kx * s_dt
+    da_sin = da_sin - ky * c_dt
+    da_cos = da_cos + ky * s_dt
 
-  enddo
+  enddo  ! Particles
+
+  ! Add to wake mode.
+
+  lr%b_sin = lr%b_sin + db_sin
+  lr%b_cos = lr%b_cos + db_cos
+  lr%a_sin = lr%a_sin + da_sin
+  lr%a_cos = lr%a_cos + da_cos
 
   ! Longitudinal self-wake kick. 
 
@@ -279,7 +288,7 @@ do i = 1, size(ele%wake%lr_mode)
     enddo
   endif
 
-enddo
+enddo  ! Wake modes
 
 end subroutine track1_lr_wake
 
