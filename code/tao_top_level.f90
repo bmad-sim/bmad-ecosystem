@@ -42,6 +42,7 @@ logical found, err, need_input
 ! init
 
 s_ptr => s       ! Used for debugging
+if (present(errcode)) errcode = 1   ! Assume error
 
 ! MPI: Turn off plotting for slaves
 ! if (.not. s%mpi%master)  s%global%plot_on = .false.
@@ -50,16 +51,17 @@ s_ptr => s       ! Used for debugging
 
 if (.not. s%com%initialized) then
   call tao_parse_command_args (err, command)
+  if (err) return
   call tao_init (err)
-  if (err) then
-    call out_io (s_fatal$, r_name, 'TAO INIT FILE NOT FOUND. STOPPING.')
-    stop
-  endif
+  if (err) return
   s%com%initialized = .true.
   n_lev = s%com%cmd_file_level
   need_input = (s%com%saved_cmd_line == '' .and. (n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. &
                                                                                   .not. s%com%single_mode)
-  if (present(command) .and. need_input) return
+  if (present(command) .and. need_input) then
+    if (present(errcode)) errcode = 0
+    return
+  endif
 endif
 
 u => s%u(1)  ! Used for debugging
@@ -100,7 +102,6 @@ do
   need_input = (s%com%saved_cmd_line == '' .and. (n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. &
                                                                                   .not. s%com%single_mode)
   if (present(command) .and. need_input) exit
-
 enddo
 
 if (present(errcode)) then
