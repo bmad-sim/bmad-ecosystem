@@ -919,11 +919,11 @@ case ('bpm_cbar.')
 
 !-----------
 
-case ('bunch_charge_live.')
+case ('bunch_charge.')
 
   call tao_load_this_datum (bunch_params(:)%charge_live, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
-  if (datum%data_type == 'bunch_charge_live.percent') then
+  if (datum%data_type == 'bunch_charge.live_relative') then
     charge = bunch_params(ele%ix_ele)%charge_tot
     if (charge == 0) then
       call tao_set_invalid (datum, 'BUNCH HAS NO CHARGE FOR EVALUATING A DATUM OF TYPE "bunch_charge_live.percent')
@@ -932,7 +932,7 @@ case ('bunch_charge_live.')
     endif
     datum_value = datum_value / charge
 
-  elseif (datum%data_type /= 'bunch_charge_live.total') then
+  elseif (datum%data_type /= 'bunch_charge.live') then
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     valid_value = .false.
     return
