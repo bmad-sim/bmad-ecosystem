@@ -463,7 +463,7 @@ do i_turn = 1, lttp%n_turns
     call track_probe (prb, ltt_internal%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
     orbit%vec = prb%x
     orbit%spin = rotate_vec_given_quat(prb%q%x, orbit%spin)
-    if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
+    if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) is_lost = .true.
   case default
     print *, 'Unknown tracking_method: ' // lttp%tracking_method
     stop
