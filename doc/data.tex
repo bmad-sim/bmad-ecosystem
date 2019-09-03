@@ -625,38 +625,43 @@ the initial beam emittance must be set to something non-zero.
   \item[bpm_cbar.22a, .12a, .11b, .12b] \Newline
 The normalized Cbar coupling parameters. The computed \vn{model} values include detector
 misalignments, rotations, gain errors, etc. This type of datum is useful for simulating how well
-actual coupling corrections are. See the \bmad manual on ``Instrumental Measurement Attributes''
-for more details. 
-Note: This type of datum can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
+actual coupling corrections are. See the \bmad manual on ``Instrumental Measurement Attributes'' for
+more details.  Note: This type of datum can only be used with \vn{detector}, \vn{instrument},
+\vn{monitor} or \vn{marker} elements
 
   %----------------------
   \item[bpm_eta.x, y] \Newline
 The horizontal and vertical dispersion components. The computed \vn{model} values include detector
 misalignments, rotations, gain errors, etc. This type of datum is useful for simulating how well
 actual dispersion corrections are. See the \bmad manual on ``Instrumental Measurement Attributes''
-for more details.
-Note: This type of datum can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
+for more details.  Note: This type of datum can only be used with \vn{detector}, \vn{instrument},
+\vn{monitor} or \vn{marker} elements
 
   %----------------------
   \item[bpm_orbit.x, y] \Newline
-Beam Orbit. The computed \vn{model} values include detector misalignments, rotations, gain
-errors, etc. This type of datum is useful for simulating how well actual orbit corrections
-are. See the \bmad manual on ``Instrumental Measurement Attributes'' for more details.
-Note: This type of datum can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
+Beam Orbit. The computed \vn{model} values include detector misalignments, rotations, gain errors,
+etc. This type of datum is useful for simulating how well actual orbit corrections are. See the
+\bmad manual on ``Instrumental Measurement Attributes'' for more details.  Note: This type of datum
+can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
 
   %----------------------
   \item[bpm_phase.a, b] \Newline
 Betatron phase. The computed \vn{model} values include detector misalignments, rotations, gain
-errors, etc. This type of datum is useful for simulating how well actual orbit corrections
-are. See the \bmad manual on ``Instrumental Measurement Attributes'' for more details.
-Note: This type of datum can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
+errors, etc. This type of datum is useful for simulating how well actual orbit corrections are. See
+the \bmad manual on ``Instrumental Measurement Attributes'' for more details.  Note: This type of
+datum can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
 
   %----------------------
   \item[bpm_k.22a, .12a, .11b, .12b] \Newline
-Measured beam coupling components. The computed \vn{model} values include detector misalignments, rotations, gain
-errors, etc. This type of datum is useful for simulating how well actual coupling corrections
-are. See the \bmad manual on ``Instrumental Measurement Attributes'' for more details.
-Note: This type of datum can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
+Measured beam coupling components. The computed \vn{model} values include detector misalignments,
+rotations, gain errors, etc. This type of datum is useful for simulating how well actual coupling
+corrections are. See the \bmad manual on ``Instrumental Measurement Attributes'' for more details.
+Note: This type of datum can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or
+\vn{marker} elements
+
+  %----------------------
+  \item[bunch_charge.live, .live_relative] \Newline
+The charge of the live particles in a bunch as expressed unnormalized or nomalized by the total charge.
 
   %----------------------
   \item[bunch_max, bunch_min.x, .px, .y, .py, .z, .pz] \Newline
@@ -1475,9 +1480,9 @@ squared.
   bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
   bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
   bpm_k.22a, .12a, .11b, .12b         & Measured coupling                         & lat         & Yes \\ \hline
-  bunch_max.x, .px, .y, .py, .z, .pz  & Max relative to centroid                  & beam        & No \\ \hline
-  bunch_min.x, .px, .y, .py, .z, .pz  & Min relative to centroid                  & beam        & No \\ \hline
-
+  bunch_charge.live, .live_relative   & Charge of live particles .                & beam        & No  \\ \hline
+  bunch_max.x, .px, .y, .py, .z, .pz  & Max relative to centroid                  & beam        & No  \\ \hline
+  bunch_min.x, .px, .y, .py, .z, .pz  & Min relative to centroid                  & beam        & No  \\ \hline
 
   c_mat.11, .12, .21, .22             & Coupling                                  & lat         & Yes \\ \hline 
   cbar.11, .12, .21, .22              & Coupling                                  & lat         & Yes \\ \hline 
@@ -1490,7 +1495,7 @@ squared.
   damp.j_a, .j_b, .j_z                & Damping partition number                  & lat         & No  \\ \hline
   dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
 
-  e_tot_ref                           & Lattice reference energy (eV)             & lat         & No \\ \hline
+  e_tot_ref                           & Lattice reference energy (eV)             & lat         & No  \\ \hline
   element_attrib.<attrib_name>        & lattice element attribute                 & lat         & No  \\ \hline
   emit.a, .b, .c                      & Emittance                                 & beam, lat   & No  \\ \hline
   eta.x, .y, .z                       & Lab Frame dispersion                      & beam, lat   & Yes \\ \hline 
