@@ -992,6 +992,7 @@ type bunch_params_struct
   real(rp) :: rel_min(6) = 0             ! Min orbit relative to_centroid
   real(rp) :: s = -1                     ! Longitudinal position.
   real(rp) :: charge_live = 0            ! Charge of all non-lost particle
+  real(rp) :: charge_tot = 0             ! Charge of all particles.
   integer :: n_particle_tot = 0          ! Total number of particles
   integer :: n_particle_live = 0         ! Number of non-lost particles
   integer :: n_particle_lost_in_ele = 0  ! Number lost in element (not calculated by Bmad)

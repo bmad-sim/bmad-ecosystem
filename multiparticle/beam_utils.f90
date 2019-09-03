@@ -1456,6 +1456,7 @@ species = bunch%particle(1)%species
 bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%state == alive$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%state == alive$))
+bunch_params%charge_tot = sum(bunch%particle%charge)
 
 bunch_params%centroid          = bunch%particle(1)
 bunch_params%centroid%field(1) = sum(bunch%particle%field(1), mask = (bunch%particle%state == alive$))
