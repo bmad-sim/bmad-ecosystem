@@ -137,6 +137,7 @@ if (.not. associated(ele%wake)) return
 if (bunch%n_live == 0) return
 
 if (.not. associated(ele%wake)) return
+if (ele%wake%wake_amp_scale == 0) return
 
 !
 
@@ -292,15 +293,14 @@ enddo  ! Wake modes
 
 end subroutine track1_lr_wake
 
-
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
 ! Subroutine sr_long_wake_particle (ele, orbit)
 !
-! Subroutine to apply the short-range wake kick to a particle and then add 
-! to the existing short-range wake the contribution from the particle.
+! Routine to apply the short-range wake longitudinal component kick to a particle and then add 
+! to the existing longitudinal wake the contribution from the particle.
 !
 ! Modules needed:
 !   use wake_mod
@@ -325,6 +325,7 @@ real(rp) arg, ff, c, s, dz, exp_factor, w_norm
 
 !
 
+if (ele%wake%wake_amp_scale == 0) return
 dz = ele%wake%wake_time_scale * (orbit%vec(5) - ele%wake%sr_long%z_ref) ! Should be negative
 ele%wake%sr_long%z_ref = orbit%vec(5)
 
@@ -406,8 +407,8 @@ end subroutine sr_long_wake_particle
 !+
 ! Subroutine sr_trans_wake_particle (ele, orbit)
 !
-! Subroutine to apply the short-range wake kick to a particle and then add 
-! to the existing short-range wake the contribution from the particle.
+! Subroutine to apply the short-range wake transverse component of the kick to a particle and then add 
+! to the existing transverse wale the contribution from the particle.
 !
 ! Modules needed:
 !   use wake_mod
@@ -432,6 +433,7 @@ real(rp) arg, ff, c, s, dz, exp_factor, w_norm, w_skew
 
 !
 
+if (ele%wake%wake_amp_scale == 0) return
 dz = ele%wake%wake_time_scale * (orbit%vec(5) - ele%wake%sr_trans%z_ref) ! Should be negative
 ele%wake%sr_trans%z_ref = orbit%vec(5)
 

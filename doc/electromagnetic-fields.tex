@@ -87,7 +87,7 @@ Instead of using magnitude $K_n$ and rotation angle $\theta_n$,
 Another representation is using normal $\wt K_n$ and skew $\wt
 S_n$. The conversion between the two are
 \begin{align}
-  \wt K_n  &= K_n \, \cos((n + 1) \theta_n) \CRNO
+  \wt K_n &= K_n \, \cos((n + 1) \theta_n) \CRNO
   \wt S_n &= K_n \, \sin((n + 1) \theta_n) 
 \end{align}
 
@@ -935,12 +935,15 @@ Following Chao\cite{b:chao} Eq.~2.88, the long--range wake fields are characteri
 cavity modes. The wake function $W_m$ for a mode of order $m$ is given by
 \Begineq
   W_m(t) = -A_{amp} \, c \, \left( \frac{R}{Q} \right)_m \,\,
-  e^{-\omega \, t/ 2 Q} \, \sin (\omega \, t)
+  e^{-\omega \, t/ 2 Q} \, \sin (\omega \, t + 2 \, \pi \, \phi)
   \label{wcrq}
 \Endeq
 The mode strength $(R/Q)_m$ has units of Ohms/meter$^{2m}$. The dimensionless overall amplitude
-scale $A_{amp}$ is indroduced as a convenient way to scale the overall wake. The lattice syntax for
-defining long-range wakes is discussed in \Sref{s:lr.wake.file}.
+scale $A_{amp}$ is indroduced as a convenient way to scale the overall wake. The phase factor $\phi$
+is used for simulations of such things as the long-range resistive wall wake. In this case, the
+resistive wall wake would be represented as the sum of a number of modes.
+
+The lattice syntax for defining long-range wakes is discussed in \Sref{s:lr.wake.file}.
 
 Assuming that the macroparticle generating the wake is offset a distance $r_w$ along the $x$--axis,
 a trailing macroparticle at transverse position $(r, \theta)$ will see a kick
