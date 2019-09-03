@@ -11,7 +11,7 @@ data_type_list.append({'name': 'bpm_k.<enum>', '<enum>': ['22a', '12a', '11b', '
 data_type_list.append({'name': 'bpm_cbar.<enum>', '<enum>': ['22a', '12a', '11b', '12b'], 'data_source': ['lat'], 's_offset':True})
 data_type_list.append({'name': 'bunch_min.<enum>', '<enum>': ['x', 'px', 'y', 'py', 'z', 'pz'], 'data_source': ['beam'], 's_offset':False})
 data_type_list.append({'name': 'bunch_max.<enum>', '<enum>': ['x', 'px', 'y', 'py', 'z', 'pz'], 'data_source': ['beam'], 's_offset':False})
-data_type_list.append({'name': 'bunch_charge_live.<enum>', '<enum>': ['live', 'percent'], 'data_source': ['beam'], 's_offset':False})
+data_type_list.append({'name': 'bunch_charge.<enum>', '<enum>': ['live', 'live_relative'], 'data_source': ['beam'], 's_offset':False})
 data_type_list.append({'name': 'c_mat.<enum>', '<enum>': ['11', '12', '21', '22'], 'data_source': ['lat'], 's_offset':True})
 data_type_list.append({'name': 'cbar.<enum>', '<enum>': ['11', '12', '21', '22'], 'data_source': ['lat'], 's_offset':True})
 data_type_list.append({'name': 'chrom.<enum>', '<enum>': ['dtune.a', 'a', 'dtune.b', 'b', 'dbeta.a', 'dbeta.b', 'dphi.a', 'dphi.b', 'deta.x', 'deta.y', 'detap.x', 'detap.y'], 'data_source': ['lat'], 's_offset':False})
