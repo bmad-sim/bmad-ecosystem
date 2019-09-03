@@ -399,7 +399,7 @@ type (tao_spin_map_struct), pointer :: spin_map
 type (rad_int_branch_struct), pointer :: rad_int_branch
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
-real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
+real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
 real(rp) zz_center, xx_center, xx_wall, s_eval, s_eval_ref, phase, amp
@@ -918,6 +918,28 @@ case ('bpm_cbar.')
   end select
 
 !-----------
+
+case ('bunch_charge_live.')
+
+  call tao_load_this_datum (bunch_params(:)%charge_live, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+  if (datum%data_type == 'bunch_charge_live.percent') then
+    charge = bunch_params(ele%ix_ele)%charge_tot
+    if (charge == 0) then
+      call tao_set_invalid (datum, 'BUNCH HAS NO CHARGE FOR EVALUATING A DATUM OF TYPE "bunch_charge_live.percent')
+      valid_value = .false.
+      return
+    endif
+    datum_value = datum_value / charge
+
+  elseif (datum%data_type /= 'bunch_charge_live.total') then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    valid_value = .false.
+    return
+  endif
+
+!-----------
+
 case ('bunch_max.', 'bunch_min.')
   if (data_source /= 'beam') goto 9000  ! Set error message and return
   select case (datum%data_type(11:))
