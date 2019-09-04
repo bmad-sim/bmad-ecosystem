@@ -408,7 +408,7 @@ type (branch_struct), pointer :: branch
 type (beam_init_struct) beam_init
 type (ltt_internal_struct) ltt_internal
 type (coord_struct), allocatable :: orb(:)
-type (coord_struct) :: orbit
+type (coord_struct) :: orbit, orbit_old
 type (ele_struct), pointer :: ele
 type (ptc_map_with_rad_struct) rad_map
 type (ele_struct), pointer :: ele_start
@@ -429,6 +429,7 @@ ix_ele_start = lttp%start%ix_ele
 ix_branch = lttp%start%ix_branch
 ele_start => pointer_to_ele(lat, lttp%start)
 branch => lat%branch(ix_branch)
+orbit_old%vec = real_garbage$
 
 call ltt_setup_high_energy_space_charge(lttp, branch, beam_init, ltt_internal)
 
@@ -468,6 +469,8 @@ do i_turn = 1, lttp%n_turns
     orbit%vec = prb%x
     orbit%spin = rotate_vec_given_quat(prb%q%x, orbit%spin)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) is_lost = .true.
+    if (all(orbit%vec == orbit_old%vec)) is_lost = .true.
+    orbit_old%vec = orbit%vec
   case default
     print *, 'Unknown tracking_method: ' // lttp%tracking_method
     stop
