@@ -43,23 +43,28 @@ What per-particle data is stored is determined by whether the bunch particles ar
 not. The following particle parameters are common for both types:
 \begin{tabular}{lll} \toprule
 \tt
-  {\em Beam Physics Parameter} & {\em Bmad Equivalent}           & {\em Formula}       & {\em Notes}                    \midrule
-  time                  & time - ref_time                        & $-z / (c \, \beta)$ & See \Eq{zbctt}                 \\
-  timeOffset            & reference time                         & $t_0$               &                                \\
-  position/x, y, z      & particle laboratory coordinates        & $(x, y, 0)$         & See Fig.~\ref{f:local.coords}  \\
-  sPosition             & Position along $s$-axis                &                     & See Fig.~\ref{f:local.coords}  \\
-  weight                & macro bunch charge                     & 
-  particleStatus        & Particle status                        &
-  branchIndex           & Branch index                           &
-  elementIndex          & Lattice element index                  &
-  locationInElement     & Location in lattice element            &
+  {\em Beam Physics Parameter} & {\em Bmad Equivalent}           & {\em Formula}         & {\em Notes}                    \midrule
+  time                  & time - ref_time                        & -\%z / (c \%beta)     & See \Eq{zbctt}                 \\
+  timeOffset            & reference time                         & \%t - time            &                                \\
+  sPosition             & Position along $s$-axis                & \%s                   & See Fig.~\ref{f:local.coords}  \\
+  weight                & macro bunch charge                     & \%charge
+  particleStatus        & Particle status                        & See below
+  branchIndex           & Lattice branch index                   & \%ix_branch
+  elementIndex          & Lattice element index                  & \%ix_ele
+  locationInElement     & Location in lattice element            & See below
 \end{tabular}
+The \vn{formula} column gives the conversion between the Beam Physics Parameters and the
+\vn{coord_struct} (\sref{coord_struct}) structure that contains the particle position information.
+parameters with a ``\%'' suffix are \vn{coord_struct} components. For clarity's sake, the
+\vn{%vec(1)} through \vn{%vec(6)} phase space coordinate components has been replaced in this table
+and the tables below by \vn{%x}, \vn{%px}, $\ldots$, \vn{%z}, \vn{%pz}.
 
 For photons, additional per-particle data is:
 \begin{example}
-  photonPolarizationAmplitude/x, y
+  photonPolarizationAmplitude/x, y & Polarization                & 
   photonPolarizationPhase
   velocity/x, y, z
+  position/x, y, z      & particle laboratory coordinates        & (\%x, \%y, \%z)      & See Fig.~\ref{f:local.coords}  \\
   pathLength
   totalMomentumOffset
 \end{example}
@@ -69,6 +74,7 @@ and for non-photons, additional per-particle data is:
   momentum/x, y, z
   totalMomentumOffset
   totalMomentum
+  position/x, y, z      & particle laboratory coordinates        & (\%x, \%y, 0)            & See Fig.~\ref{f:local.coords}  \\
   spin/x, y, z
   chargeState           ! Used with non-fundamental particles only.
 \end{example}

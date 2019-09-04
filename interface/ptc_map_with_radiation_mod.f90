@@ -4,7 +4,7 @@ module ptc_map_with_radiation_mod
 
 use ptc_layout_mod
 use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_complex_zhe, &
-                        zhe_ini, zhe_iseed
+                        zhe_ini
 
 type ptc_map_with_rad_struct
   type (tree_element_zhe) sub_map(3)    ! Type tree_element in PTC
@@ -33,6 +33,7 @@ contains
 ! To cleanup memory after using, call ptc_kill_map_with_radiation.
 ! To save a map call ptc_write_map_with_radiation.
 ! To read a saved map call ptc_read_map_with_radiation.
+! To set the random number seed call: ptc_ran_seed_put.
 !
 ! Input:
 !   ele1            -- ele_struct: The map starts at the exit end of ele1.
@@ -202,6 +203,7 @@ end subroutine ptc_setup_map_with_radiation
 ! To cleanup memory after using, call ptc_kill_map_with_radiation.
 ! To save a map call ptc_write_map_with_radiation.
 ! To read a saved map call ptc_read_map_with_radiation.
+! To set the random number seed call: ptc_ran_seed_put.
 !
 ! Input:
 !   orbit            -- coord_struct: Starting orbit.
@@ -489,32 +491,5 @@ do k = 1, 3
 enddo
 
 end subroutine ptc_kill_map_with_radiation
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!+
-! Subroutine ptc_set_map_with_radiation_ran_seed (iseed)
-!
-! Routine to set the random number seed used for the radiation excitation part of the map.
-!
-! Input:
-!   iseed -- Integer: 0 -> Use system clock.
-!-
-
-subroutine ptc_set_map_with_radiation_ran_seed (iseed)
-
-integer iseed, v(10)
-
-!
-
-if (iseed == 0) then
-  call date_and_time (values = v)
-  zhe_iseed = v(1) + v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
-else
-  zhe_iseed = iseed
-endif
-
-end subroutine ptc_set_map_with_radiation_ran_seed
 
 end module
