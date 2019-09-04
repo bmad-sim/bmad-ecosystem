@@ -155,6 +155,10 @@ open (1, file = init_file, status = 'old', action = 'read')
 read (1, nml = params)  
 close (1)
 
+! PTC has an internal aperture of 1.0 meter. To be safe use an aperture of 0.9 meter
+
+ltt%ptc_aperture = min([0.9_rp, 0.9_rp], ltt%ptc_aperture)
+
 !
 
 if (ltt%tracking_method == 'STANDARD') then
@@ -476,7 +480,7 @@ do i_turn = 1, lttp%n_turns
   if (is_lost) then
     ele => branch%ele(track_state)
     print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
-    if (lttp%tracking_method /= 'MAP') print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_location(ele), '), State: ', coord_state_name(orb(track_state)%state)
+    if (lttp%tracking_method == 'BMAD') print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_location(ele), '), State: ', coord_state_name(orb(track_state)%state)
     exit
   endif
 
