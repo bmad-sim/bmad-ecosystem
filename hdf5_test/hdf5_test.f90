@@ -40,7 +40,8 @@ do i = 1, n_part
   bunch2%particle(i)%s = j
 enddo
 
-call hdf5_write_beam ('bunch.h5', [bunch1, bunch2], .false., error)
+call hdf5_write_beam ('bunch.h5', [bunch1], .false., error)
+call hdf5_write_beam ('bunch.h5', [bunch2], .true., error)
 call hdf5_read_beam('bunch.h5', beam, error)
 
 do i = 1, n_part
