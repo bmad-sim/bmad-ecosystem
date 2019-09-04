@@ -1280,6 +1280,11 @@ subroutine ptc_bookkeeper (lat)
   type (lat_struct) lat
 end subroutine
 
+subroutine ptc_ran_seed_put (iseed)
+  implicit none
+  integer iseed
+end subroutine
+
 subroutine ptc_read_flat_file (flat_file, err_flag, lat, create_end_marker, from_mad)
   import
   implicit none

@@ -161,6 +161,8 @@ do ib = 1, size(bunches)
     endif
   endif
 
+  !-------------------
+  ! All particles
   ! Time
 
   if (p(1)%species == photon$) then
