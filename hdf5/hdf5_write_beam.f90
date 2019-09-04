@@ -32,7 +32,7 @@ type (lat_struct), optional :: lat
 real(rp), allocatable :: rvec(:), p0c(:)
 
 integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id, b2_id
-integer i, n, ib, ix, h5_err, h_err
+integer i, n, ib, ix, h5_err, h_err, ib2
 integer, allocatable :: ivec(:)
 
 character(*) file_name
@@ -45,7 +45,11 @@ logical append, error, err
 ! Open a new file using default properties.
 
 error = .true.
-call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
+if (append) then
+  call hdf5_open_file (file_name, 'APPEND', f_id, err);  if (err) return
+else
+  call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
+endif
 
 ! Write some header stuff
 
@@ -54,28 +58,34 @@ root_path = '/data/'
 bunch_path = '%T/'
 particle_path = 'particles/'
 
-call hdf5_write_attribute_string(f_id, 'dataType', 'openPMD', err)
-call hdf5_write_attribute_string(f_id, 'openPMD', '2.0.0', err)
-call hdf5_write_attribute_string(f_id, 'openPMDextension', 'BeamPhysics;SpeciesType', err)
-call hdf5_write_attribute_string(f_id, 'basePath', trim(root_path) // trim(bunch_path), err)
-call hdf5_write_attribute_string(f_id, 'particlesPath', trim(particle_path), err)
-call hdf5_write_attribute_string(f_id, 'software', 'Bmad', err)
-call hdf5_write_attribute_string(f_id, 'softwareVersion', '1.0', err)
-call hdf5_write_attribute_string(f_id, 'date', date_time, err)
-if (present(lat)) then
-  call hdf5_write_attribute_string(f_id, 'latticeFile', lat%input_file_name, err)
-  if (lat%lattice /= '') then
-    call hdf5_write_attribute_string(f_id, 'latticeName', lat%lattice, err)
+if (append) then
+  call hdf5_write_attribute_string(f_id, 'lastUpdated', date_time, err)
+  r_id = hdf5_open_group(f_id, root_path, err, .true.)
+
+else
+  call hdf5_write_attribute_string(f_id, 'dataType', 'openPMD', err)
+  call hdf5_write_attribute_string(f_id, 'openPMD', '2.0.0', err)
+  call hdf5_write_attribute_string(f_id, 'openPMDextension', 'BeamPhysics;SpeciesType', err)
+  call hdf5_write_attribute_string(f_id, 'basePath', trim(root_path) // trim(bunch_path), err)
+  call hdf5_write_attribute_string(f_id, 'particlesPath', trim(particle_path), err)
+  call hdf5_write_attribute_string(f_id, 'software', 'Bmad', err)
+  call hdf5_write_attribute_string(f_id, 'softwareVersion', '1.0', err)
+  call hdf5_write_attribute_string(f_id, 'date', date_time, err)
+  if (present(lat)) then
+    call hdf5_write_attribute_string(f_id, 'latticeFile', lat%input_file_name, err)
+    if (lat%lattice /= '') then
+      call hdf5_write_attribute_string(f_id, 'latticeName', lat%lattice, err)
+    endif
   endif
+
+  call h5gcreate_f(f_id, trim(root_path), r_id, h5_err) ! Not actually needed if root_path = '/'
 endif
 
 ! Loop over bunches
 
-call h5gcreate_f(f_id, trim(root_path), r_id, h5_err) ! Not actually needed if root_path = '/'
-
 n = log10(1.000001 * size(bunches)) + 1
-write (fmt, '(3(a, i0))') '(a, i', n, '.', n, ', 2a)'    ! EG get 'i2.2' if size(bunches) = 16
 
+ib2 = 0
 do ib = 1, size(bunches)
   bunch => bunches(ib)
   p => bunch%particle
@@ -86,9 +96,14 @@ do ib = 1, size(bunches)
 
   p0c = p%p0c
 
-  ! Write bunch particle info.
-  ix = index(bunch_path, '%T')
-  write (this_path, fmt) bunch_path(1:ix-1), ib, trim(bunch_path(ix+2:))
+  ! Find a sub-directory that does not already exist.
+  do
+    ix = index(bunch_path, '%T')
+    ib2 = ib2 + 1
+    write (this_path, '(a, i5.5, 2a)') bunch_path(1:ix-1), ib2, trim(bunch_path(ix+2:))
+    if (.not. hdf5_exists(r_id, this_path, err, .true.)) exit
+  enddo
+
   call h5gcreate_f(r_id, trim(this_path), b_id, h5_err)
   call h5gcreate_f(b_id, particle_path, b2_id, h5_err)
 
