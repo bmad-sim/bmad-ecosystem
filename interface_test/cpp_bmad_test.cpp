@@ -1183,28 +1183,34 @@ void set_CPP_wake_lr_mode_test_pattern (CPP_wake_lr_mode& C, int ix_patt) {
   rhs = 4 + offset; C.q = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.angle = rhs;
+  rhs = 5 + offset; C.damp = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.b_sin = rhs;
+  rhs = 6 + offset; C.phi = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.b_cos = rhs;
+  rhs = 7 + offset; C.angle = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.a_sin = rhs;
+  rhs = 8 + offset; C.b_sin = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.a_cos = rhs;
+  rhs = 9 + offset; C.b_cos = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.t_ref = rhs;
+  rhs = 10 + offset; C.a_sin = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 11 + offset; C.a_cos = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 12 + offset; C.t_ref = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.m = rhs;
+  rhs = 13 + offset; C.m = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.polarized = (rhs % 2 == 0);
+  rhs = 14 + offset; C.polarized = (rhs % 2 == 0);
 
 
 }

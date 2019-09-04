@@ -726,20 +726,22 @@ extern "C" void wake_lr_mode_to_c (const Opaque_wake_lr_mode_class*, CPP_wake_lr
 
 // c_side.to_f2_arg
 extern "C" void wake_lr_mode_to_f2 (Opaque_wake_lr_mode_class*, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Bool&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
+    c_Bool&);
 
 extern "C" void wake_lr_mode_to_f (const CPP_wake_lr_mode& C, Opaque_wake_lr_mode_class* F) {
 
   // c_side.to_f2_call
-  wake_lr_mode_to_f2 (F, C.freq, C.freq_in, C.r_over_q, C.q, C.angle, C.b_sin, C.b_cos,
-      C.a_sin, C.a_cos, C.t_ref, C.m, C.polarized);
+  wake_lr_mode_to_f2 (F, C.freq, C.freq_in, C.r_over_q, C.q, C.damp, C.phi, C.angle, C.b_sin,
+      C.b_cos, C.a_sin, C.a_cos, C.t_ref, C.m, C.polarized);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void wake_lr_mode_to_c2 (CPP_wake_lr_mode& C, c_Real& z_freq, c_Real& z_freq_in,
-    c_Real& z_r_over_q, c_Real& z_q, c_Real& z_angle, c_Real& z_b_sin, c_Real& z_b_cos, c_Real&
-    z_a_sin, c_Real& z_a_cos, c_Real& z_t_ref, c_Int& z_m, c_Bool& z_polarized) {
+    c_Real& z_r_over_q, c_Real& z_q, c_Real& z_damp, c_Real& z_phi, c_Real& z_angle, c_Real&
+    z_b_sin, c_Real& z_b_cos, c_Real& z_a_sin, c_Real& z_a_cos, c_Real& z_t_ref, c_Int& z_m,
+    c_Bool& z_polarized) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.freq = z_freq;
@@ -749,6 +751,10 @@ extern "C" void wake_lr_mode_to_c2 (CPP_wake_lr_mode& C, c_Real& z_freq, c_Real&
   C.r_over_q = z_r_over_q;
   // c_side.to_c2_set[real, 0, NOT]
   C.q = z_q;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.damp = z_damp;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.phi = z_phi;
   // c_side.to_c2_set[real, 0, NOT]
   C.angle = z_angle;
   // c_side.to_c2_set[real, 0, NOT]

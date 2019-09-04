@@ -1829,21 +1829,25 @@ rhs = 3 + offset; F%r_over_q = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 4 + offset; F%q = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%angle = rhs
+rhs = 5 + offset; F%damp = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%b_sin = rhs
+rhs = 6 + offset; F%phi = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%b_cos = rhs
+rhs = 7 + offset; F%angle = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%a_sin = rhs
+rhs = 8 + offset; F%b_sin = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%a_cos = rhs
+rhs = 9 + offset; F%b_cos = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%t_ref = rhs
+rhs = 10 + offset; F%a_sin = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 11 + offset; F%a_cos = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 12 + offset; F%t_ref = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%m = rhs
+rhs = 13 + offset; F%m = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%polarized = (modulo(rhs, 2) == 0)
+rhs = 14 + offset; F%polarized = (modulo(rhs, 2) == 0)
 
 end subroutine set_wake_lr_mode_test_pattern
 

@@ -1002,6 +1002,8 @@ public:
   Real freq_in;
   Real r_over_q;
   Real q;
+  Real damp;
+  Real phi;
   Real angle;
   Real b_sin;
   Real b_cos;
@@ -1015,7 +1017,9 @@ public:
     freq(0.0),
     freq_in(0.0),
     r_over_q(0.0),
-    q(0.0),
+    q(Bmad::REAL_GARBAGE),
+    damp(0.0),
+    phi(0.0),
     angle(0.0),
     b_sin(0.0),
     b_cos(0.0),

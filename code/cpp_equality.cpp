@@ -336,6 +336,8 @@ bool operator== (const CPP_wake_lr_mode& x, const CPP_wake_lr_mode& y) {
   is_eq = is_eq && (x.freq_in == y.freq_in);
   is_eq = is_eq && (x.r_over_q == y.r_over_q);
   is_eq = is_eq && (x.q == y.q);
+  is_eq = is_eq && (x.damp == y.damp);
+  is_eq = is_eq && (x.phi == y.phi);
   is_eq = is_eq && (x.angle == y.angle);
   is_eq = is_eq && (x.b_sin == y.b_sin);
   is_eq = is_eq && (x.b_cos == y.b_cos);
