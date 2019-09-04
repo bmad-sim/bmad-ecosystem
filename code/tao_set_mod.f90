@@ -1617,7 +1617,7 @@ case ('base')
         'USE THE "SET LATTICE BASE = ..." COMMAND INSTEAD.')
   return
 
-case ('ele_name', 'attrib_name', 'model', 'design', 'old', 'model_value', 'base_value', &
+case ('ele_name', 'attrib_name', 'design', 'old', 'base_value', &
       'design_value', 'old_value', 'merit', 'delta_merit', 'exists', 'good_var', 'useit_opt', &
       'useit_plot')
   call out_io (s_error$, r_name, 'VARIABLE ATTRIBUTE NOT SETTABLE: ' // component)
