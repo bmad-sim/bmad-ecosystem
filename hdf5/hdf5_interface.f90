@@ -300,10 +300,17 @@ case default
 end select
 
 call H5Eset_auto_f(1, h_err)    ! Reset
-CALL h5eclear_f(h_err)
+call h5eclear_f(h_err)
 
 if (h5_err < 0) then
-  call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR READING: ' // file_name)
+  select case (action)
+  case ('READ')
+    call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR READING: ' // file_name)
+  case ('WRITE')
+    call out_io (s_error$, r_name, 'CANNOT CREATE FILE FOR WRITING: ' // file_name)
+  case ('APPEND')
+    call out_io (s_error$, r_name, 'CANNOT OPTN FILE FOR APPENDING: ' // file_name)
+  end select
   return
 endif
 
@@ -419,7 +426,7 @@ character(*), parameter :: r_name = 'hdf5_exists'
 
 !
 
-call H5Lexists_f(root_id, object_name, exists, h5_err, H5P_DEFAULT_F)
+call H5Lexists_f(root_id, trim(object_name), exists, h5_err, H5P_DEFAULT_F)
 error = (h5_err /= 0)
 if (error .and. print_error) then
   call out_io (s_error$, r_name, 'CANNOT QUERY EXISTANCE: ' // quote(object_name))

@@ -47,17 +47,29 @@ not. The following particle parameters are common for both types:
   time                  & time - ref_time                        & -\%z / (c \%beta)     & See \Eq{zbctt}                 \\
   timeOffset            & reference time                         & \%t - time            &                                \\
   sPosition             & Position along $s$-axis                & \%s                   & See Fig.~\ref{f:local.coords}  \\
-  weight                & macro bunch charge                     & \%charge
-  particleStatus        & Particle status                        & See below
-  branchIndex           & Lattice branch index                   & \%ix_branch
-  elementIndex          & Lattice element index                  & \%ix_ele
-  locationInElement     & Location in lattice element            & See below
+  weight                & macro bunch charge                     & \%charge              &                                \\
+  branchIndex           & Lattice branch index                   & \%ix_branch           &                                \\
+  elementIndex          & Lattice element index                  & \%ix_ele              &                                \\
+  locationInElement     & Location in lattice element            & See below             &                                \\
+  particleStatus        & Particle status                        & \%state               & See state table in \sref{s:coord.struct} \bottomrule
 \end{tabular}
 The \vn{formula} column gives the conversion between the Beam Physics Parameters and the
-\vn{coord_struct} (\sref{coord_struct}) structure that contains the particle position information.
+\vn{coord_struct} (\sref{s:coord.struct}) structure that contains the particle position information.
 parameters with a ``\%'' suffix are \vn{coord_struct} components. For clarity's sake, the
 \vn{%vec(1)} through \vn{%vec(6)} phase space coordinate components has been replaced in this table
 and the tables below by \vn{%x}, \vn{%px}, $\ldots$, \vn{%z}, \vn{%pz}.
+
+The \vn{locaionInElement} Beam Physics parameter is related to the \vn{%location} parameter of the \vn{coord_struct} using the following
+transformation:
+\begin{tabular}{rll} \toprule
+\tt
+  {\em locationInElement} & {\em \%location}    \midrule
+  -1                      & upstream_end\\\$    \\
+   0                      & inside\\\$          \\
+   1                      & downstream_end\\\$  \bottomrule
+\end{tabular}
+
+The \vn{particleStatus} Beam Physics parameter is related to the \vn{
 
 For photons, additional per-particle data is:
 \begin{example}
