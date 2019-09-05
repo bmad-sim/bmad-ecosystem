@@ -3005,19 +3005,14 @@ character(40) attrib_name, ele_name
 character(80) var_name
 logical err_flag, err
 
-!
+! Word may be something like "0>>3[k1]".
 
 err_flag = .true.
 
-! see if this is numeric
+! See if this is numeric
 
-if (index('-+.0123456789', word(1:1)) /= 0) then
-  read (word, *, iostat = ios) value
-  if (ios == 0) then
-    err_flag = .false.
-  else
-    call parser_error ('BAD VARIABLE: ' // word)
-  endif
+if (is_real(word, real_num = value)) then
+  err_flag = .false.
   return
 endif
 
@@ -3025,7 +3020,6 @@ endif
 
 ix_word = len_trim(word)
 var_name = upcase(word)
-if (.not. verify_valid_name (var_name, ix_word)) return
 
 ! If word does not have a "[...]" then it must be a variable
 
