@@ -2606,7 +2606,7 @@ case ('lat_list')
   endif
 
   n = 0
-  do ie = 1, branch%n_ele_max
+  do ie = 0, branch%n_ele_max
     if (track_only .and. ie > branch%n_ele_track) cycle
     ele => branch%ele(ie)
     orbit => tao_lat%tao_branch(ix_branch)%orbit(ele%ix_ele)
