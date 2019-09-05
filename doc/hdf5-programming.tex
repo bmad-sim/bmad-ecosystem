@@ -41,59 +41,79 @@ Bunch parameters (``attributes'') stored in the root groop are:
 
 What per-particle data is stored is determined by whether the bunch particles are photons or
 not. The following particle parameters are common for both types:
+\begin{table}[h]
+\centering
+{\tt
 \begin{tabular}{lll} \toprule
-\tt
-  {\em Beam Physics Parameter} & {\em Bmad Equivalent}           & {\em Formula}         & {\em Notes}                    \midrule
-  time                  & time - ref_time                        & -\%z / (c \%beta)     & See \Eq{zbctt}                 \\
-  timeOffset            & reference time                         & \%t - time            &                                \\
-  sPosition             & Position along $s$-axis                & \%s                   & See Fig.~\ref{f:local.coords}  \\
-  weight                & macro bunch charge                     & \%charge              &                                \\
-  branchIndex           & Lattice branch index                   & \%ix_branch           &                                \\
-  elementIndex          & Lattice element index                  & \%ix_ele              &                                \\
-  locationInElement     & Location in lattice element            & See below             &                                \\
-  particleStatus        & Particle status                        & \%state               & See state table in \sref{s:coord.struct} \bottomrule
+  {\em Beam Physics Parameter} & {\em Bmad Equivalent} & {\em Notes}                      \\ \midrule
+  time                         & -\%z / (c \%beta)     & time - ref_time. See \Eq{zbctt}  \\
+  timeOffset                   & \%t - time            & reference time                   \\
+  totalMomentumOffset          & \%p0c                 &                                  \\
+  sPosition                    & \%s                   & See Fig.~\ref{f:local.coords}    \\
+  weight                       & \%charge              & Macro bunch charge               \\
+  branchIndex                  & \%ix_branch           &                                  \\
+  elementIndex                 & \%ix_ele              &                                  \\
+  locationInElement            & See below             &                                  \\
+  particleStatus               & \%state               & See the \%state table in \sref{s:coord.struct} \\ \bottomrule
 \end{tabular}
+}
+\end{table}
 The \vn{formula} column gives the conversion between the Beam Physics Parameters and the
-\vn{coord_struct} (\sref{s:coord.struct}) structure that contains the particle position information.
-parameters with a ``\%'' suffix are \vn{coord_struct} components. For clarity's sake, the
-\vn{%vec(1)} through \vn{%vec(6)} phase space coordinate components has been replaced in this table
-and the tables below by \vn{%x}, \vn{%px}, $\ldots$, \vn{%z}, \vn{%pz}.
+\vn{coord_struct} (\sref{s:coord.struct}) structure components that contains the particle position
+information.  parameters with a ``\%'' suffix are \vn{coord_struct} components. For clarity's sake,
+the \vn{%vec(1)} through \vn{%vec(6)} phase space coordinate components has been replaced by
+\vn{%x}, \vn{%px}, $\ldots$, \vn{%z}, \vn{%pz}.
 
-The \vn{locaionInElement} Beam Physics parameter is related to the \vn{%location} parameter of the \vn{coord_struct} using the following
-transformation:
-\begin{tabular}{rll} \toprule
-\tt
-  {\em locationInElement} & {\em \%location}    \midrule
-  -1                      & upstream_end\\\$    \\
-   0                      & inside\\\$          \\
-   1                      & downstream_end\\\$  \bottomrule
+The \vn{locaionInElement} Beam Physics parameter is related to the \vn{%location} parameter of the
+\vn{coord_struct} using the following transformation:
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{ll} \toprule
+  {\em locationInElement Value} & {\em \%location Value}  \\ \midrule
+  -1                            & upstream_end\$          \\
+   0                            & inside\$                \\
+   1                            & downstream_end\$        \\ \bottomrule
 \end{tabular}
-
-The \vn{particleStatus} Beam Physics parameter is related to the \vn{
+}
+\end{table}
 
 For photons, additional per-particle data is:
-\begin{example}
-  photonPolarizationAmplitude/x, y & Polarization                & 
-  photonPolarizationPhase
-  velocity/x, y, z
-  position/x, y, z      & particle laboratory coordinates        & (\%x, \%y, \%z)      & See Fig.~\ref{f:local.coords}  \\
-  pathLength
-  totalMomentumOffset
-\end{example}
+\\
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{ll} \toprule
+  {\em Beam Physics Parameter}     & {\em Bmad Equivalent}  \\ \midrule
+  velocity/x, y, z                 & (\%vx, \%vy, \%vz)     \\
+  position/x, y, z                 & (\%x, \%y, \%z)        \\
+  pathLength                       & \%path_len             \\
+  photonPolarizationAmplitude/x, y & \%field                \\
+  photonPolarizationPhase/x, y     & \%phase                \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+Here \vn{%vx}, \vn{%vy}, and \vn{%vz} represent \vn{%vec(2)}, \vn{%vec(4)}, \vn{%vec(6)}
 
-and for non-photons, additional per-particle data is:
-\begin{example}
-  momentum/x, y, z
-  totalMomentumOffset
-  totalMomentum
-  position/x, y, z      & particle laboratory coordinates        & (\%x, \%y, 0)            & See Fig.~\ref{f:local.coords}  \\
-  spin/x, y, z
-  chargeState           ! Used with non-fundamental particles only.
-\end{example}
-
+For non-photons, additional per-particle data is:
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{ll} \toprule
+  {\em Beam Physics Parameter}    & {\em Bmad Equivalent}     \\ \midrule
+  momentum/x, y, z                & \%p0c (\%px, \%py, sqrt((1 + \%pz)$^2$ - \%px$^2$ - \%py$^2$)) \\
+  totalMomentum                   & \%p0c \%pz                \\
+  position/x, y, z                & (\%x, \%y, 0)             \\
+  spin/x, y, z                    & \%spin                    \\
+  chargeState                     & Derived from \%species    \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+Notice that the Beam Physics \vn{z} position (not to be confused with phase space \vn{z}) is always zero
+by construction as shown in Fig.~\ref{f:local.coords}.
 
 %-----------------------------------------------------------------
-\section{HDF5 Grid\_Field Data Storage
+\section{HDF5 Grid\_Field Data Storage}
 \label{s:hdf5.grid}
 \index{hdf5 and grid_field data}
 
