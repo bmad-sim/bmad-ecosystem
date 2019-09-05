@@ -186,7 +186,8 @@ class TaoModel(Tao):
         self.ploton = ploton
         self.use_tempdir = use_tempdir
         self.workdir = workdir
-        assert os.path.exists(workdir), 'workdir does not exist: '+workdir
+        if workdir:
+            assert os.path.exists(workdir), 'workdir does not exist: '+workdir
         
         self.verbose=verbose
         self.so_lib=so_lib
