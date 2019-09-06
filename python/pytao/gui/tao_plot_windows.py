@@ -984,8 +984,8 @@ class new_graph_frame(tk.Frame):
         self._uf = tk.Frame(self) # Used to make graph frame and curve notebook uniform width
         self._uf.grid(row=0, column=0, sticky='NSEW')
         self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1, uniform="uf")
-        self.grid_columnconfigure(1, weight=1, uniform="uf")
+        self.grid_columnconfigure(0, weight=1)#, uniform="uf")
+        self.grid_columnconfigure(1, weight=1)#, uniform="uf")
         self._scroll_frame = tao_scroll_frame(self._uf)
         self.name = "New_graph"
         # Default to first type compatible with self.plot.x_axis_type
@@ -1147,6 +1147,8 @@ class new_graph_frame(tk.Frame):
         self._scroll_frame.grid(row=2+len(self.head_wids), column=0, columnspan=3, sticky='NSEW')
         self._uf.grid_rowconfigure(2+len(self.head_wids), weight=1)
         self.refresh()
+        self.update_idletasks()
+        self.refresh() #called again to get the head widgets sized correctly
 
     def refresh(self):
         '''
@@ -1168,6 +1170,13 @@ class new_graph_frame(tk.Frame):
             ix = i + offset
             self.style_labels[i].grid(row=ix, column=0, sticky='W')
             self.style_wids[i].tk_wid.grid(row=ix, column=1, sticky='EW')
+        #self.update_idletasks() #let widgets obtain their sizes
+        # Set label widths properly for head widgets
+        label_width=0
+        for child in self.graph_frame.grid_slaves():
+            if isinstance(child, tk.Label):
+                label_width = max(label_width, child.winfo_width())
+        self._uf.grid_columnconfigure(0, minsize=label_width)
         # Swap between self.curve_frame or self.ele_frame as necessary
         if self.type in ['lat_layout', 'floor_plan']:
             self.curve_frame.grid_forget()
@@ -1312,6 +1321,8 @@ class new_graph_frame(tk.Frame):
         elif (taken_names.count(new_name) > 1) or (
                 (taken_names.count(new_name) == 1) and (new_name != self.name)):
             self.name_warning_2.grid(row=2, column=2, sticky='W')
+        else:
+            self.name = new_name
         # Update the tab text for this graph
         self.parent.update_name(self.parent.tab_list.index(self))
 
@@ -1321,10 +1332,12 @@ class new_curve_frame(tk.Frame):
     '''
     def __init__(self, parent, graph):
         tk.Frame.__init__(self, parent)
+        self.parent = parent
         self.graph = graph
         self.pipe = graph.pipe
         self._scroll_frame = tao_scroll_frame(self)
         self.name = "New_curve"
+        self.grid_columnconfigure(1, weight=1)
 
         # Delete button
         self.delete_b = tk.Button(
@@ -1340,6 +1353,7 @@ class new_curve_frame(tk.Frame):
 
         # Curve configuration widgets
         self.curve_frame = self._scroll_frame.frame
+        self.curve_frame.grid_columnconfigure(1, weight=1)
         # Helper functions
         def curve_ttp(x):
             '''Returns a tk_tao_parameter for the string x'''
@@ -1490,6 +1504,8 @@ class new_curve_frame(tk.Frame):
         self._scroll_frame.grid(row=2+len(self.head_wids), column=0, columnspan=3, sticky='NSEW')
         self.grid_rowconfigure(2+len(self.head_wids), weight=1)
         self.refresh()
+        self.update_idletasks()
+        self.refresh() #called again to set label widths properly
 
     def refresh(self):
         '''
@@ -1515,6 +1531,13 @@ class new_curve_frame(tk.Frame):
             ix = i + offset
             self.style_labels[i].grid(row=ix, column=0, sticky='W')
             self.style_wids[i].tk_wid.grid(row=ix, column=1, sticky='EW')
+
+        # Set head label widths properly
+        label_width=0
+        for child in self.curve_frame.grid_slaves():
+            if child.grid_info()['column'] == 0:
+                label_width = max(label_width, child.winfo_width())
+        self.grid_columnconfigure(0, minsize=label_width)
 
     def delete(self):
         '''
@@ -1560,6 +1583,8 @@ class new_curve_frame(tk.Frame):
         elif (taken_names.count(new_name) > 1) or (
                 (taken_names.count(new_name) == 1) and (new_name != self.name)):
             self.name_warning_2.grid(row=2, column=2, sticky='W')
+        else:
+            self.name = new_name
         # Update the tab text for this graph
         self.parent.update_name(self.parent.tab_list.index(self))
 
