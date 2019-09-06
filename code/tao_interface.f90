@@ -477,6 +477,12 @@ subroutine tao_init_single_mode (single_mode_file)
   character(*) single_mode_file
 end subroutine
 
+subroutine tao_json_cmd (input_str)
+  import
+  implicit none
+  character(*) input_str
+end subroutine
+
 subroutine tao_key_info_to_str (ix_key, ix_min_key, ix_max_key, key_str, header_str)
   import
   implicit none

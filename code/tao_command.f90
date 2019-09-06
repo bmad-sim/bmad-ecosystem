@@ -47,7 +47,7 @@ character(300) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(37) = [ &
+character(16) :: cmd_names(38) = [ &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
@@ -55,7 +55,7 @@ character(16) :: cmd_names(37) = [ &
     're_execute   ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
     'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
-    'python       ', 'quiet        ']
+    'python       ', 'quiet        ', 'json         ']
 
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
@@ -272,6 +272,14 @@ case ('help')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
   call tao_help (cmd_word(1), cmd_word(2))
+  return
+
+!--------------------------------
+! JSON
+
+case ('json')
+
+  call tao_json_cmd (cmd_line)
   return
 
 !--------------------------------
