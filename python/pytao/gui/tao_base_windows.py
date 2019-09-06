@@ -175,12 +175,14 @@ class tao_scroll_frame(tk.Frame):
 
     def frame_handler(self, event):
         self._canvas.configure(scrollregion=self._canvas.bbox("all"))
-        frame_width = event.width
+        frame_width = self.frame.winfo_reqwidth()
+        #frame_width = event.width
         # try using winfo_reqwidth() TODO
         self.grid_columnconfigure(0, minsize=frame_width)
         self.update_idletasks()
 
     def canvas_handler(self, event):
+        #canvas_width = self._canvas.winfo_reqwidth()#event.width
         canvas_width = event.width
         self._canvas.itemconfig(self._canvas_window, width=canvas_width)
         self.update_idletasks()
