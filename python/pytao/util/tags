@@ -1,0 +1,19 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/3fdf28bc/
+InvalidParamError	parameters.py	/^class InvalidParamError(Exception):$/;"	c
+__init__	elements.py	/^    def __init__(self, u_ix, ix_branch, ix_ele, which, pipe):$/;"	m	class:lat_element
+__init__	parameters.py	/^    def __init__(self, param_name, param_type, can_vary, param_value, sub_param=None):$/;"	m	class:tao_parameter
+__repr__	parameters.py	/^    def __repr__(self):$/;"	m	class:tao_parameter
+__str__	parameters.py	/^    def __str__(self):$/;"	m	class:tao_parameter
+get_component	parameters.py	/^    def get_component(self, comp_name):$/;"	m	class:tao_parameter
+lat_element	elements.py	/^class lat_element():$/;"	c
+param_dict	parameters.py	/^param_dict = tao_parameter_dict(startup_list)$/;"	v
+startup_list	parameters.py	/^startup_list = [$/;"	v
+str_to_tao_param	parameters.py	/^def str_to_tao_param(param_str):$/;"	f
+tao_parameter	parameters.py	/^class tao_parameter():$/;"	c
+tao_parameter_dict	parameters.py	/^def tao_parameter_dict(param_list):$/;"	f
