@@ -5,11 +5,12 @@ import tkinter as tk
 import ttk
 from tkinter import messagebox
 from tkinter import filedialog
-from tao_widget import *
-from parameters import str_to_tao_param, tao_parameter_dict
-from tao_set import *
-from tao_base_windows import *
-from tao_lat_windows import tao_ele_browser
+
+from .tao_widget import *
+from pytao.util.parameters import str_to_tao_param, tao_parameter_dict
+from .tao_set import *
+from .tao_base_windows import *
+from .tao_lat_windows import tao_ele_browser
 #-----------------------------------------------------
 # d2_data window
 
@@ -71,6 +72,70 @@ class tao_d2_data_window(tao_list_window):
 
 
 #-----------------------------------------------------
+
+class d2_data_frame():
+    '''
+    Sets up an object with the following attributes:
+    self.frame = a tk frame that will hold all relevant widgets and labels
+    self.name = holds the name of the d2_data this frame represents
+    self.d1_data_list = list of all d1_data items contained by this d2_datum
+    NOTE: master should be the frame that this frame is gridded into
+    (usually a list_frame), while root should be the application root window
+    '''
+    def __init__(self, master, root, pipe, d2_data_name, u_ix):
+        self.frame = tk.Frame(master)
+        self.root = root
+        self.name = d2_data_name
+        self.d1_data_list = []
+        self.d1_using_list = [] #holds using information
+        self.d1_ix_lb_list = [] #holds index lower bounds
+        self.d1_ix_ub_list = [] #holds index upper bounds
+        d2_info = pipe.cmd_in("python data_d1_array " + u_ix + "@" + self.name)
+        d2_info = d2_info.splitlines()
+        for item in d2_info:
+            item = item.split(';')
+            self.d1_data_list.append(item[3])
+            self.d1_using_list.append(item[4])
+            self.d1_ix_lb_list.append(int(item[5]))
+            self.d1_ix_ub_list.append(int(item[6]))
+        tk.Label(self.frame, text=self.name).grid(row=0, column=0, columnspan=4, sticky='W')
+        tk.Label(self.frame, text="Indices").grid(row=0, column=4)
+        tk.Label(self.frame, text="Using").grid(row=0, column=5)
+        for i in [0,4,5]:
+            self.frame.grid_columnconfigure(i, pad=10)
+        for i in range(len(self.d1_data_list)):
+            tk.Label(self.frame, text=self.d1_data_list[i]).grid(row=i+1,column=0, sticky='W')
+            tk.Button(self.frame, text="View...",
+                    command=self.open_d1_callback(self.name, self.d1_data_list[i], pipe,
+                        self.d1_ix_lb_list[i], self.d1_ix_ub_list[i], u_ix)).grid(
+                                row=i+1,column=1)
+            tk.Button(self.frame, text="Edit...",
+                    command=self.edit_d2_callback(self.name, pipe)).grid(
+                            row=i+1, column=2)
+            mytext = str(self.d1_ix_lb_list[i]) + ":" + str(self.d1_ix_ub_list[i])
+            tk.Label(self.frame, text=mytext).grid(row=i+1, column=4)
+            tk.Label(self.frame, text=self.d1_using_list[i]).grid(row=i+1, column=5)
+
+    def open_d1_callback(self, d2_data_name, d1_data_name,
+            pipe, ix_lb, ix_ub, u_ix):
+        return lambda : self.open_d1(
+                d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix)
+
+    def edit_d2_callback(self, d2_data_name, pipe):
+        return lambda : self.edit_d2(d2_data_name, pipe)
+
+    def edit_d2(self, d2_data_name, pipe):
+        ''' Opens the new data window and clones this d2_array in for editing'''
+        win = tao_new_data_window(self.root, pipe, default=d2_data_name)
+
+    def open_d1(self, d2_data_name, d1_data_name, pipe, ix_lb, ix_ub, u_ix):
+        '''
+        Opens a window with detailed information for d2_data_name.d1_data_name
+        '''
+        win = tao_d1_data_window(
+                self.root, pipe, d2_data_name + '.' + d1_data_name, u_ix, ix_lb, ix_ub)
+
+#-----------------------------------------------------------------
 # d1_data window
 
 class tao_d1_data_window(lw_table_window):
@@ -105,7 +170,6 @@ class tao_d1_data_window(lw_table_window):
 
         bulk_set_format = "set data " + str(self.u_ix) + '@{}|'
         set_format = "set data " + str(self.u_ix) + '@{}[{}]|'
-        self.set_exists = "set data " + str(self.u_ix) + '@' + d1_data_name + "|exists = T"
         if self.lw:
             lw_table_window.__init__(self, root, pipe, d1_data_name, title_list,
                     bulk_template, bulk_set_format, set_format, *args, **kwargs)

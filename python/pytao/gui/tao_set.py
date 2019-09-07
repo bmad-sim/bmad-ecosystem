@@ -1,5 +1,12 @@
-from parameters import tao_parameter_dict
+'''
+This module defines some functions for efficiently running many set commands
+in tao.  The main function, tao_set(), compares the current value in a
+tk_tao_parameter's tk_var variable to its param.value variable to determine
+whether or not a set command needs to be run, and only runs set commands for
+the parameters that have been modified.
+'''
 from tkinter import messagebox
+from pytao.util.parameters import tao_parameter_dict
 
 def check_for_changes(tao_list):
     '''

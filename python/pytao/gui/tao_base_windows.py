@@ -6,8 +6,8 @@ import tkinter as tk
 import ttk
 from tkinter import messagebox
 import copy
-from tao_widget import *
-from tao_set import *
+from .tao_widget import *
+from .tao_set import *
 
 #-----------------------------------------------------
 # Tao_Toplevel window
@@ -802,8 +802,6 @@ class lw_table_window(Tao_Toplevel):
 
     def detail_set_callback(self, tao_list, set_str):
         tao_set(tao_list, set_str, self.pipe)
-        # SUBCLASSES MUST DEFINE self.set_exists
-        self.pipe.cmd_in(self.set_exists)
         self.refresh()
 
 #-----------------------------------------------------

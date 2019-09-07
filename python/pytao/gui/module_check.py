@@ -15,13 +15,14 @@ def module_check():
     for mod in required:
         if pkgutil.find_loader(mod) == None:
             missing.append(mod)
-        elif mod == 'matplotlib':
-            import matplotlib
-            v = matplotlib.__version__
-            if v[0] != '3':
-                print("Warning: matplotlib version 3 or higher is required"
-                        + " (your version:" + v + ")")
-                upgrade = True
+    # Check matplotlib version
+    if "matplotlib" not in missing:
+        import matplotlib
+        v = matplotlib.__version__
+        if v[0] != '3':
+            print("Warning: matplotlib version 3 or higher is required"
+                    + " (your version:" + v + ")")
+            upgrade = True
 
     if missing != []:
         print("Warning: some required python modules were not found.")

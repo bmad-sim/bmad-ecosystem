@@ -1,3 +1,8 @@
+'''
+This module defines the tao_plot_dict class, which keeps track of what
+plots have been placed in tao along with what region they have been placed in.
+Comes with methods for adding and removing plots to/from the dictionary.
+'''
 class tao_plot_dict(dict):
     '''
     Specialized dictionary for keeping track of plots and regions in tao

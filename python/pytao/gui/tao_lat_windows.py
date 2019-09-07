@@ -4,11 +4,12 @@ Provides windows for viewing the lattice and editting element attributes
 import tkinter as tk
 import ttk
 from tkinter import messagebox
-from tao_widget import *
-from parameters import str_to_tao_param, tao_parameter_dict
-from elements import *
-from tao_set import *
-from tao_base_windows import *
+
+from pytao.util.parameters import str_to_tao_param, tao_parameter_dict
+from pytao.util.elements import *
+from .tao_widget import *
+from .tao_set import *
+from .tao_base_windows import *
 #-----------------------------------------------------
 # Element window
 
