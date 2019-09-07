@@ -1,13 +1,13 @@
+import numpy as np
 import matplotlib as mp
 import matplotlib.pyplot as plt
-from tao_interface import *
-from parameters import *
 import matplotlib.patches as patches
-import numpy as np
 from matplotlib.path import Path
 from matplotlib.backend_tools import ToolBase, ToolToggleBase
 from matplotlib.widgets import Slider, Button, RadioButtons
 
+from .tao_interface import *
+from pytao.util.parameters import *
 
 
 

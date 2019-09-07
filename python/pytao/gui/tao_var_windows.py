@@ -5,11 +5,12 @@ import tkinter as tk
 import ttk
 from tkinter import messagebox
 from tkinter import filedialog
-from tao_widget import *
-from parameters import str_to_tao_param, tao_parameter_dict
-from tao_set import *
-from tao_base_windows import *
-from tao_lat_windows import tao_ele_browser
+
+from pytao.util.parameters import str_to_tao_param, tao_parameter_dict
+from .tao_widget import *
+from .tao_set import *
+from .tao_base_windows import *
+from .tao_lat_windows import tao_ele_browser
 #-----------------------------------------------------
 # Variable Window
 
@@ -97,7 +98,6 @@ class tao_v1_var_window(lw_table_window):
         bulk_template.append([str_to_tao_param("meas_value;REAL;T;"), 2])
         bulk_template.append([str_to_tao_param("good_user;LOGIC;T;"), 6])
         bulk_template.append([str_to_tao_param("weight;REAL;T;"), 7])
-        self.set_exists = "set var " + v1_var_name + "|exists = T"
 
         bulk_set_format = "set var {}|"
         set_format = "set var {}[{}]|"

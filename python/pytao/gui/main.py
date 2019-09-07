@@ -1,25 +1,27 @@
 # Check for required modules:
 import sys
 import os
-from module_check import module_check
+from .module_check import module_check
 module_check()
 
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
-from tao_widget import *
-from tao_set import tao_set
-from parameters import str_to_tao_param
-from parameters import tao_parameter_dict
-from tao_console import tao_console
-from tao_plot_dict import *
-import string
+from tkinter import font
 
-from tao_data_windows import *
-from tao_lat_windows import *
-from tao_misc_windows import *
-from tao_plot_windows import *
-from tao_var_windows import *
+from .tao_widget import *
+from .tao_set import tao_set
+from pytao.util.parameters import str_to_tao_param, param_dict
+from pytao.util.parameters import tao_parameter_dict
+from .tao_console import tao_console
+from .tao_plot_dict import *
+from .tao_interface import tao_interface
+
+from .tao_data_windows import *
+from .tao_lat_windows import *
+from .tao_misc_windows import *
+from .tao_plot_windows import *
+from .tao_var_windows import *
 
 #---------------------------------------------------------------
 # Root window
@@ -29,7 +31,6 @@ class tao_root_window(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, className='Tao')
 
-        from tkinter import font
         self.title("Tao")
         self.protocol("WM_DELETE_WINDOW", self.quit_cmd)
         self.tk.call('tk', 'scaling', 1.0)
@@ -39,7 +40,7 @@ class tao_root_window(tk.Tk):
 
         self.GUI_DIR = (os.environ['ACC_LOCAL_ROOT'] if
                 'ACC_LOCAL_ROOT' in os.environ.keys() else os.environ['ACC_ROOT_DIR'])
-        self.GUI_DIR += '/tao/gui'
+        self.GUI_DIR += '/tao/python/pytao/gui'
 
         # Window lists (accessible for refreshing)
         self.refresh_windows = {}
@@ -252,7 +253,6 @@ class tao_root_window(tk.Tk):
         Handles the startup of tao, including parsing gui.init and commandline
         arguments.
         '''
-        from parameters import param_dict
         tk_list = [] #Items: tk_tao_parameter() (see tao_widget.py)
         init_frame.grid_columnconfigure(0, weight=1, pad=10)
         init_frame.grid_columnconfigure(1, weight=1)
@@ -480,7 +480,6 @@ class tao_root_window(tk.Tk):
             if plot_mode.get() != "pgplot":
                 init_args = init_args + "-noplot -external_plotting"
             # Run Tao, clear the init_frame, and draw the main frame
-            from tao_interface import tao_interface
             if chosen_interface.get() == "pexpect":
                 mode = "pexpect"
                 if tao_exe.tk_var.get() == "Browse...":

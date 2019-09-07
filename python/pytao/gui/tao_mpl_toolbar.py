@@ -1,9 +1,9 @@
-import numpy as np
 import tkinter as tk
+import os
+
+import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import os
-from parameters import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_tools import *
 from matplotlib import rcParams
@@ -11,6 +11,8 @@ from matplotlib.widgets import Slider
 from matplotlib.backend_bases import ToolContainerBase
 from matplotlib.backends._backend_tk import FigureManagerTk, ToolbarTk
 from matplotlib.backend_managers import ToolManager
+
+from pytao.util.parameters import *
 
 
 

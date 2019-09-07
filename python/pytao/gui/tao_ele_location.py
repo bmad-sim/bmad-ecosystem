@@ -1,4 +1,4 @@
-from taoplot import taoplot
+from .taoplot import taoplot
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
