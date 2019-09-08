@@ -23,7 +23,7 @@ integer, parameter :: apparent_emit$ = 1, projected_emit$ = 2
 character(2), parameter :: floor_plan_view_name(6) = [character(2):: 'xy', 'xz', 'yx', 'yz', 'zx', 'zy']
 character(8), parameter :: lat_type_name(3) = [character(8):: 'model ', 'base  ', 'design']
 character(8), parameter :: data_source_name(5) = [character(8):: 'lat', 'beam', 'data', 'var', 'multi_turn_orbit']
-character(20), parameter :: graph_type_name(5) = [character(20):: 'data', 'lat_layout', &
+character(20), parameter :: graph_type_name(6) = [character(20):: 'data', 'floor_plan', 'lat_layout', &
                                                        'phase_space', 'histogram', 'dynamic_aperture']
 character(16), parameter :: x_axis_type_name(10) = [character(16):: 'index', 'lat', 'var', &
                                    'ele_index', 's', 'none', 'phase_space', 'histogram', 'data', 'floor']
