@@ -1605,13 +1605,6 @@ subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
   logical ok
 end subroutine
 
-subroutine shift_eles (branch, ix0, ix1, n_shift)
-  import
-  implicit none
-  type (branch_struct) :: branch
-  integer ix0, ix1, n_shift
-end subroutine
-
 function significant_difference (value1, value2, abs_tol, rel_tol) result (is_different)
   import
   implicit none
