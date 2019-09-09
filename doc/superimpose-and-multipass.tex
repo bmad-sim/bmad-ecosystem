@@ -371,57 +371,47 @@ element attribute as discussed in \sref{s:overlap}.
 \subsection{Changing Element Lengths when there is Superposition}
 \label{s:super.length}
 
-When a program is running, if \vn{group} (\sref{s:group}) or
-\vn{overlay} (\sref{s:overlay}) elements are used to vary the length
-of elements that are involved in superimposition, the results are
-different from what would have resulted if instead the lengths of the
-elements where changed in the lattice file. There are two reasons for
-this. First, once the lattice file has been parsed, lattices can be
-``mangled'' by adding or removing elements in a myriad of ways. This
-means that it is not possible to devise a general algorithm for
-adjusting superimposed element lengths that mirrors what the effect of
-changing the lengths in the lattice file.
+When a program is running, if \vn{group} (\sref{s:group}) or \vn{overlay} (\sref{s:overlay})
+elements are used to vary the length of elements that are involved in superimposition, the results
+are different from what would have resulted if instead the lengths of the elements where changed in
+the lattice file. There are two reasons for this. First, once the lattice file has been parsed,
+lattices can be ``mangled'' by adding or removing elements in a myriad of ways. This means that it
+is not possible to devise a general algorithm for adjusting superimposed element lengths that
+mirrors what the effect of changing the lengths in the lattice file.
 
-Second, even if a lattice has not been mangled, an algorithm for
-varying lengths that is based on the superimpose information in the
-lattice file could lead to unexpected results. To see this consider
-the first example in Section~\sref{s:super}. If the length of \vn{S}
-is varied in the lattice file, the upstream edge of \vn{S} will remain
-fixed at the center of \vn{Q} which means that the length of the
-\vn{super_slave} element \vn{Q{\#}1} will be invariant. On the other
-hand, if element \vn{S} is defined by 
+Second, even if a lattice has not been mangled, an algorithm for varying lengths that is based on
+the superimpose information in the lattice file could lead to unexpected results. To see this
+consider the first example in Section~\sref{s:super}. If the length of \vn{S} is varied in the
+lattice file, the upstream edge of \vn{S} will remain fixed at the center of \vn{Q} which means that
+the length of the \vn{super_slave} element \vn{Q{\#}1} will be invariant. On the other hand, if
+element \vn{S} is defined by
 \begin{example}
   S: solenoid, l = 8, superimpose, offset = 6
 \end{example}
-This new definition of \vn{S} produces produce exactly the same
-lattice as before. However, now varying the length of \vn{S} will
-result in the center of \vn{S} remaining fixed and the length of
-\vn{Q{\#}1} will not be invariant with changes of the length of
-\vn{S}. This variation in behavior could be very confusing since,
-while running a program, one could not tell by inspection of the
-element positions what should happen if a length were changed.
+This new definition of \vn{S} produces exactly the same lattice as before. However, now varying the
+length of \vn{S} will result in the center of \vn{S} remaining fixed and the length of \vn{Q{\#}1}
+will not be invariant with changes of the length of \vn{S}. This variation in behavior could be very
+confusing since, while running a program, one could not tell by inspection of the element positions
+what should happen if a length were changed.
 
-To avoid confusion, \bmad uses a simple algorithm for varying the
-lengths of elements involved in superposition: The rule is that the
-length of the most downstream \vn{super_slave} is varied.
-With the first example in Section~\sref{s:super}, the \vn{group} \vn{G}
-varying the length of \vn{Q} defined by:
+To avoid confusion, \bmad uses a simple algorithm for varying the lengths of elements involved in
+superposition: The rule is that the length of the most downstream \vn{super_slave} is varied.  With
+the first example in Section~\sref{s:super}, the \vn{group} \vn{G} varying the length of \vn{Q}
+defined by:
 \begin{example}
   G: group = \{Q\}, var = \{l\}
 \end{example}
-would vary the length of \vn{Q{\B}S} which would result in an equal
-variation of the length of \vn{S}. To keep the length of \vn{S}
-invariant while varying \vn{Q} the individual \vn{super_slave} lengths
-can be varied. Example:
+would vary the length of \vn{Q{\B}S} which would result in an equal variation of the length of
+\vn{S}. To keep the length of \vn{S} invariant while varying \vn{Q} the individual \vn{super_slave}
+lengths can be varied. Example:
 \begin{example}
   G2: group = \{Q{\#}1, S{\#}1:-1\}, var = \{l\}
 \end{example}
-The definition of \vn{G2} must be placed in the lattice file after the
-superpositions so that the super slaves referred to by \vn{G2} have
-been created. 
+The definition of \vn{G2} must be placed in the lattice file after the superpositions so that the
+super slaves referred to by \vn{G2} have been created.
 
-In the above example there is another, cleaner, way of achieving
-the same result by varying the downstream edge of \vn{Q}:
+In the above example there is another, cleaner, way of achieving the same result by varying the
+downstream edge of \vn{Q}:
 \begin{example}
   G3: group = \{Q\}, var = \{end_edge\}
 \end{example}
@@ -432,12 +422,10 @@ the same result by varying the downstream edge of \vn{Q}:
 \index{multipass|hyperbf}
 
 \index{multipass_slave}\index{multipass_lord}
-Some lattices have the beam recirculating through the same element
-multiple times. For example, an Energy Recovery Linac (ERL) will
-circulate the beam back through the LINAC part to retrieve the energy
-in the beam. In \bmad, this situation can simulated by designating the LINAC section
-as \vn{multipass}. A simple example shows how this
-works.
+Some lattices have the beam recirculating through the same element multiple times. For example, an
+Energy Recovery Linac (ERL) will circulate the beam back through the LINAC part to retrieve the
+energy in the beam. In \bmad, this situation can simulated by designating the LINAC section as
+\vn{multipass}. A simple example shows how this works.
 \index{expand_lattice}
 \begin{example}
   RF1: lcavity
@@ -447,10 +435,9 @@ works.
   expand_lattice
   RF1\B2[phi0_multipass] = 0.5
 \end{example}
-The line called \vn{linac} is designated as \vn{multipass}. This
-\vn{linac} line appears twice in the line \vn{erl} and \vn{erl} is the
-root line for lattice expansion. The lattice constructed from \vn{erl}
-will have two \vn{RF1} elements in the tracking part of the lattice:
+The line called \vn{linac} is designated as \vn{multipass}. This \vn{linac} line appears twice in
+the line \vn{erl} and \vn{erl} is the root line for lattice expansion. The lattice constructed from
+\vn{erl} will have two \vn{RF1} elements in the tracking part of the lattice:
 \begin{example}
   RF1\B1, ..., RF1\B2, ...
 \end{example}
@@ -482,14 +469,12 @@ In this example the tracking part of the lattice is
 \begin{example}
   A\B1, A\B1, B\B1, A\B2, A\B2, B\B2
 \end{example}
-In the control section of the lattice there will be two multipass
-lords called \vn{A} and one called \vn{B}. [That is, \bmad considers
-the lattice to have three physically distinct elements.] The first
-\vn{A} lord controls the 1\St and 4\Th elements in the tracking part
-of the lattice and the second \vn{A} lord controls the 2\Nd and 5\Th
-elements. If \vn{m_line} was {\em not} marked \vn{multipass}, the
-tracking part of the lattice would have four \vn{A} and two \vn{B}
-elements and there would be no lord elements.
+In the control section of the lattice there will be two multipass lords called \vn{A} and one called
+\vn{B}. [That is, \bmad considers the lattice to have three physically distinct elements.] The first
+\vn{A} lord controls the 1\St and 4\Th elements in the tracking part of the lattice and the second
+\vn{A} lord controls the 2\Nd and 5\Th elements. If \vn{m_line} was {\em not} marked \vn{multipass},
+the tracking part of the lattice would have four \vn{A} and two \vn{B} elements and there would be
+no lord elements.
 
 Sublines contained in a multipass line that are themselves not marked multipass act the same as if
 the elements of the subline where substituted directly in place of the subline in the containing

@@ -1017,13 +1017,13 @@ subroutine multipass_all_info (lat, info)
   type (multipass_all_info_struct), target :: info
 end subroutine
 
-subroutine multipass_chain (ele, ix_pass, n_links, chain_ele)
+subroutine multipass_chain (ele, ix_pass, n_links, chain_ele, use_super_lord)
   import
   implicit none
   type (ele_struct) :: ele
   type (ele_pointer_struct), allocatable, optional :: chain_ele(:)
-  integer :: n_links
-  integer ix_pass
+  integer :: n_links, ix_pass
+  logical, optional :: use_super_lord
 end subroutine
 
 subroutine multipole_init (ele, who, zero)

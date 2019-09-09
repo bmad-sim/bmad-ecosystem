@@ -3997,6 +3997,8 @@ end subroutine get_overlay_group_names
 !+
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! Note: Lattice element names like "0>>1" are not not considered valid by this routine.
 !-
 
 
@@ -4304,6 +4306,36 @@ integer, allocatable :: indx(:)
 character(40) base_name
 character(40), allocatable :: names(:)
 character(100) slave2_name
+
+! Make sure that all slaves are of the same lord/slave status
+
+slave => pointer_to_ele (lat, m_slaves(1))
+do i = 2, size(m_slaves)
+  slave2 => pointer_to_ele (lat, m_slaves(i))
+
+  if (slave2%lord_status /= slave%lord_status) then
+    ele => slave
+    if (slave2%lord_status == super_lord$) ele => slave2
+    if (ele%lord_status == super_lord$) then
+      call parser_error ('A SUPERPOSITION IN A MULTIPASS REGION HAS CAUSED A CONFLICT NEAR ELEMENT: ' // ele%name)
+    else
+      call parser_error ('MULTIPASS SETUP ERROR. PLEASE REPORT.')
+    endif
+    return
+  endif
+
+  if (slave2%slave_status /= slave%slave_status) then
+    ele => slave
+    if (slave2%slave_status == super_slave$) ele => slave2
+    if (ele%slave_status == super_slave$) then
+      ele => pointer_to_lord(ele, 1)
+      call parser_error ('A SUPERPOSITION IN A MULTIPASS REGION HAS CAUSED A CONFLICT NEAR ELEMENT: ' // ele%name)
+    else
+      call parser_error ('MULTIPASS SETUP ERROR. PLEASE REPORT.')
+    endif
+    return
+  endif
+enddo
 
 ! Count slaves.
 ! If n_multi > lat%n_ele_track we are looking at cloning a super_lord which should not happen.
