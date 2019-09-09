@@ -45,7 +45,7 @@ character(16), parameter :: r_name = 'insert_element'
 
 logical err_flag
 
-! transfer_ele is fast since it reuses storage.
+!
 
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
@@ -54,10 +54,7 @@ insert_ele_copy = insert_ele   ! In case insert_ele is an element in the lattice
 branch%n_ele_max = branch%n_ele_max + 1
 if (branch%n_ele_max > ubound(branch%ele, 1)) call allocate_lat_ele_array(lat, ix_branch = ix_br)
 
-do ix = branch%n_ele_max-1, insert_index, -1
-  call transfer_ele (branch%ele(ix), branch%ele(ix+1))
-  branch%ele(ix+1)%ix_ele = ix+1
-enddo
+call shift_eles(branch, insert_index, branch%n_ele_max-1, 1)
 
 ! Enlarge orbit array
 
