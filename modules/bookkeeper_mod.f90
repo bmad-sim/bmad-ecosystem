@@ -1599,6 +1599,10 @@ do iv = 1, n_attrib
       enddo
       my_slave => pointer_to_slave(slave, slave%n_slave)
       my_slave%value(l$) = a_ptr%r + slave%value(lord_pad1$) + slave%value(lord_pad2$) - length
+      if (my_slave%value(l$) < 0 .and. all(my_slave%key /= [drift$, pipe$, patch$])) then
+        call out_io (s_error$, r_name, 'APPLICATION OF OVERLAY LORD: ' // lord%name, &
+                'IS MAKING THE LENGTH ELEMENT: ' // my_slave%name, 'LESS THAN ZERO')
+      endif
       call set_flags_for_changed_attribute (my_slave, my_slave%value(l$))
     else
       my_slave => slave

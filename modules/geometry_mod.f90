@@ -1,4 +1,3 @@
-
 module geometry_mod
 
 use bmad_interface
@@ -265,7 +264,7 @@ real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3), eps
 real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer i, k, key, n_loc, ix_pass, n_links, ix_pole_max, ib_to, ix
+integer i, k, ie, key, n_loc, ix_pass, n_links, ix_pole_max, ib_to, ix
 
 logical err, doit, finished, has_multipole_rot_tilt, ele_floor_geometry_calc
 logical, optional :: ignore_patch_err
@@ -562,15 +561,20 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       if (doit) then
         ! In the case that the next element has zero length (and so does not affect the floor position),
         ! and does not yet have a well defined position, look at the element after.
-        ele2 => pointer_to_next_ele(ele, 1)
+        ele2 => ele
         do
-          call multipass_chain (ele2, ix_pass, n_links, chain_ele)
-          if (ix_pass > 0) then
+          ! If ele2 is a super_slave of a super_lord that is also a multipass_slave there is a potential problem 
+          ! in that, currently, multipass_chain will bomb if not all of the associated multipass_slave elements are
+          ! also super_lords (this can happen if, say, only one of the multipass_slave elements is superimposed upon).
+          ! Using use_super_lord = T here avoids this problem.
+          ele2 => pointer_to_next_ele(ele2, 1)
+          call multipass_chain (ele2, ix_pass, n_links, chain_ele, use_super_lord = .true.)
+          if (ix_pass > 1) then
             ele2 => chain_ele(1)%ele
+            if (ele2%lord_status == super_lord$) ele2 => pointer_to_slave(ele2, 1)
           endif
           if (ele2%bookkeeping_state%floor_position /= stale$) exit
           if (ele2%value(l$) /= 0 .or. ele2%key == patch$) exit
-          ele2 => pointer_to_next_ele(ele2, 1)        
         enddo
 
         if (ele2%bookkeeping_state%floor_position == stale$ .and. .not. logic_option(.true., ignore_patch_err)) then
@@ -704,12 +708,18 @@ if (ele_floor_geometry_calc .and. (any(abs(floor%r - old_floor%r) > eps) .or. &
       endif
     endif
 
-    call multipass_chain(ele, ix_pass, n_links, chain_ele)
+    call multipass_chain(ele, ix_pass, n_links, chain_ele, use_super_lord = .true.)
     if (ix_pass > 0) then
       do k = ix_pass+1, n_links
         this_ele => chain_ele(k)%ele
         this_ele%bookkeeping_state%floor_position = stale$
         lat%branch(this_ele%ix_branch)%param%bookkeeping_state%floor_position = stale$
+        if (this_ele%lord_status == super_lord$) then
+          do ie = 1, this_ele%n_slave
+            ele2 => pointer_to_slave(this_ele, ie)
+            ele2%bookkeeping_state%floor_position = stale$
+          enddo
+        endif
       enddo
     endif
 

@@ -143,7 +143,6 @@ do ib = 1, size(bunches)
     !
 
     call pmd_write_real_to_dataset(b2_id, 'pathLength', 'Path Length', unit_m, p(:)%path_len, err)
-    call pmd_write_real_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p0c, err)
 
   ! Non-photons...
 
@@ -156,8 +155,6 @@ do ib = 1, size(bunches)
     rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p0c)
     call pmd_write_real_to_dataset(z_id, 'z', 'ps * p0c', unit_ev_per_c, rvec, err)
     call h5gclose_f(z_id, h5_err)
-
-    call pmd_write_real_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p0c, err)
     call pmd_write_real_to_dataset (b2_id, 'totalMomentum', 'pz * p0c', unit_eV_per_c, p(:)%vec(6)*p0c, err)
 
     ! Spin
@@ -178,6 +175,9 @@ do ib = 1, size(bunches)
 
   !-------------------
   ! All particles
+
+  call pmd_write_real_to_dataset (b2_id, 'totalMomentumOffset', 'p0c', unit_eV_per_c, p0c, err)
+
   ! Time
 
   if (p(1)%species == photon$) then

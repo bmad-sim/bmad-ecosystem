@@ -27,7 +27,7 @@ type (coord_struct) :: start_orb, end_orb
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp) quat(4)
+real(rp) quat(4), norm
 character(*), parameter :: r_name = 'track1_spin_taylor'
 
 !
@@ -39,7 +39,13 @@ if (.not. associated(ele%spin_taylor(0)%term)) then
 endif
 
 quat = track_taylor (start_orb%vec, ele%spin_taylor, ele%taylor%ref)
-end_orb%spin = rotate_vec_given_quat(quat/norm2(quat), start_orb%spin)
+norm = norm2(quat)
+if (abs(norm - 1) > 0.5) then
+  call out_io (s_warn$, r_name, 'Norm of quaternion computed from the spin taylor map of element: ' // ele%name, &
+                                'is far from 1.0')
+endif
+
+end_orb%spin = rotate_vec_given_quat(quat/norm, start_orb%spin)
 
 end subroutine track1_spin_taylor
 
