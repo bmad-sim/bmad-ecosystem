@@ -11,7 +11,7 @@ import re
 import io
 
 from .tao_pexpect import tao_io
-from .tao_ctypes import Tao
+from .tao_ctypes import Tao, TaoModel
 
 class new_stdout(object):
     '''
