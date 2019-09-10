@@ -2,7 +2,7 @@ module tao_init_data_mod
 
 use tao_interface
 
-integer, parameter, private :: n_data_maxx     = 2000   ! max index of datum per d1_data
+integer, parameter, private :: n_data_maxx     = 4000   ! max index of datum per d1_data
 integer, parameter, private :: n_data_minn     = -100   ! min index of datum per d1_data
 
 contains
