@@ -32,6 +32,8 @@ type (tao_universe_struct), pointer :: u
 type (tao_v1_var_input) v1_var
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_var_input) var(n_var_minn:n_var_maxx)
+type (tao_var_struct), pointer :: v
+type (ele_struct), pointer :: ele
 
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
@@ -289,6 +291,16 @@ endif
 ! Call the hook routine.
 
 call tao_hook_init_var ()
+
+! Record the longitudinal position
+
+do i = 1, s%n_var_used
+  v => s%var(i)
+  if (.not. v%exists) cycle
+  if (v%slave(1)%ix_ele < 0) cycle
+  ele => s%u(v%slave(1)%ix_uni)%model%lat%branch(v%slave(1)%ix_branch)%ele(v%slave(1)%ix_ele)
+  v%s = ele%s
+enddo
 
 end subroutine tao_init_variables
 
