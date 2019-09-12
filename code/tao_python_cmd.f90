@@ -867,6 +867,8 @@ case ('data_d2_array')
 !   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^{ele_name}^^{merit_type}^^
 !                                  {meas}^^{ref}^^{weight}^^{good_user}^^{data_source}^^{eval_point}^^{s_offset}^^
 !                                  {ix_bunch}^^{invalid_value}^^{spin_n0_x}^^{spin_n0_y}^^{spin_n0_z}
+!
+! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
 
 case ('datum_create')
 
@@ -4585,6 +4587,7 @@ logical err
 
 str = line
 err = .true.
+array = ''
 
 do i = 1, 1000
   if (i > size(array)) then
