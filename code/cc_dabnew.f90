@@ -16,7 +16,7 @@ module c_dabnew
   public c_dacsu,c_dasuc,c_dacmu,c_dadal1,c_dapri,c_dapri77,c_darea,c_darea77,c_daeps
   public c_dacdi,c_dadic,c_count_da,c_mtree,c_dafun,c_DAABS,c_dadiv,c_take,c_datrunc,c_dader,c_datra
   public c_daran,c_dacfu,c_matinv,c_dapek0,c_dapok0,c_dacct,c_dainv,c_etcom,c_danot
-  public c_print_eps
+  public c_print_eps,c_lda_used
   integer,private,parameter:: lsw=1
   integer :: c_lda_max_used=0
   ! integer,private,parameter::nmax=400,lsw=1

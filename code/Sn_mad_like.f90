@@ -81,6 +81,7 @@ module Mad_like
      INTEGER N_BESSEL
      INTEGER n_ac  ! number of oscillating multipoles 
      REAL(DP) d_bn(NMAX), d_an(NMAX) ! oscillation amplitudes of multipoles
+     real(dp) d_volt
      REAL(DP) D_ac        ! factor for oscillation amplitude set by d_bn and d_an
      REAL(DP) DC_ac, A_ac ! factors for base field oscillation (D0_BN) : BN(N) = (DC_AC+A_AC*clock)*D0_BN(N) + D_AC*clock*D_BN(N)
      INTEGER  clockno_ac ! number (index) of the clock that this element is driven by
@@ -740,6 +741,7 @@ CONTAINS
        s2%n_ac = 0
        s2%d_bn(:) = 0.0_dp
        s2%d_an(:) = 0.0_dp
+              s2%d_volt = 0.0_dp
        s2%D_ac  = 0.0_dp 
        s2%DC_ac = 0.0_dp
        s2%A_ac  = 0.0_dp
@@ -3058,6 +3060,8 @@ CONTAINS
 
     ! SLOW AC MODULATION this must be after copy
     !print*,S2%NAME, " N_AC ", s1%n_ac
+    
+    if(.false.) then
     if(s1%n_ac > 0) then
       !print*, "EL_Q ", s1%n_ac       
       allocate(S2%DC_ac)
@@ -3095,6 +3099,8 @@ CONTAINS
       endif
 
       allocate(S2%d_an(S2%p%nmul))
+            allocate(S2%d_volt )
+
       allocate(S2%d_bn(S2%p%nmul))
       allocate(S2%d0_an(S2%p%nmul))
       allocate(S2%d0_bn(S2%p%nmul))
@@ -3102,16 +3108,21 @@ CONTAINS
       allocate(s2p%d_an(S2%p%nmul))
       allocate(s2p%d_bn(S2%p%nmul))
       allocate(s2p%d0_an(S2%p%nmul))
+                  allocate(S2%d0_volt )
+
       allocate(s2p%d0_bn(S2%p%nmul))
 
       S2%d_an=0.0_dp
       S2%d_bn=0.0_dp
+      S2%d_volt=0.0_dp
 
       call alloc(s2p%d_an,S2%p%nmul)
       call alloc(s2p%d_bn,S2%p%nmul)
       call alloc(s2p%d0_an,S2%p%nmul)
       call alloc(s2p%d0_bn,S2%p%nmul)
-
+      call alloc(s2p%d_volt)
+      call alloc(s2p%d0_volt)
+      
       ! copy of original values from the base setting (unmodulated)
       do i=1,S2%p%nmul
          S2%d0_bn(i)=S2%bn(i)
@@ -3120,6 +3131,8 @@ CONTAINS
          s2p%d0_bn(i)=S2%bn(i)
          s2p%d0_an(i)=S2%an(i)
       enddo
+         S2%d0_volt=S2%volt
+         S2p%d0_volt=S2%volt
 
       do i=1,s1%n_ac
       
@@ -3131,13 +3144,20 @@ CONTAINS
          S2p%d_bn(i) =s1%d_bn(i)
          
       enddo
+          S2%d0_volt=S1%volt
+         S2p%d0_volt=S1%volt
+
       !
     else
      S2%slow_ac  = 0
      S2p%slow_ac = 0
     endif
-
-
+endif
+     S2%slow_ac  = 0
+     S2p%slow_ac = 0
+     
+!!!!! end of if false
+     
     ! end of machida stuff here
     ! Default survey stuff here
     !         s22%CHART%A_XY=s2%P%tilTd      ! THAT SHIT SHOULD NOT BE CHANGED NORMALLY
@@ -3538,6 +3558,7 @@ CONTAINS
 !    CON=3.0_dp*CU*CGAM*HBC/2.0_dp*TWOPII/XMC2**3
     CON=3.0_dp*CU*CGAM*HBC/2.0_dp*TWOPII/pmae**3
     CRAD=CGAM*TWOPII   !*ERG**3
+    cfluc0=3.0_dp*CU*CGAM0*HBC/2.0_dp 
     CFLUC=CON  !*ERG**5
     GAMMA2=erg**2/XMC2**2
     BRHO=SQRT(ERG**2-XMC2**2)*10.0_dp/cl

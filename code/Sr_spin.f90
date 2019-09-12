@@ -5979,6 +5979,78 @@ call kill(xs);call kill(m);call kill(mr)
 
 end subroutine fill_tree_element_line_zhe
 
+subroutine fill_tree_element_line_zhe_outside_map(minput ,filef)   ! fix0 is the initial condition for the maps
+implicit none
+ 
+ 
+real(dp)  fix0(6),mat(6,6) 
+ 
+ 
+ 
+type(c_damap) m,minput
+integer  i,inf
+ 
+type(tree_element), pointer :: forward(:) =>null()
+character(*),optional :: filef
+ 
+ 
+ 
+  allocate(forward(3))
+ 
+
+mat=0
+do i=1,size(mat,1)
+mat(i,i)=1
+enddo
+
+
+!call init_all(state,no,0)
+ call alloc(m); 
+
+
+
+fix0=minput 
+  
+
+
+ 
+m=minput  
+
+do i=1,6
+ m%v(i)=m%v(i)-(m%v(i).sub.0)
+enddo
+
+ 
+
+
+call SET_TREE_G_complex_zhe(forward,m)
+
+ 
+
+forward(1)%rad=mat
+forward(1)%fix0(1:6)=fix0
+forward(1)%fixr(1:6)=fix0
+forward(1)%fix(1:6)=fix0    ! always same fixed point
+
+ forward(1)%ds=0.0_dp
+ 
+ 
+  forward(1)%ds=0.0d0
+ 
+forward(1)%beta0=1.d0
+
+ if(present(filef)) then
+  call kanalnummer(inf,filef)
+    call print_tree_elements(forward,inf)
+   close(inf)
+  call KILL(forward)
+  deallocate(forward)
+endif
+
+ call kill(m) 
+
+end subroutine fill_tree_element_line_zhe_outside_map
+
 !!!!!!!!!!!!!!!!!!!!   tree tracking  for Zhe  : independent program
 
   SUBROUTINE SET_TREE_G_complex_zhe(T,Ma)
