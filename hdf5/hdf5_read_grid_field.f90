@@ -166,11 +166,12 @@ if (gf%harmonic /= 0) then
 endif
 
 call hdf5_read_attribute_int (root_id, 'interpolationOrder', gf%interpolation_order, error, .false., 1)
-call hdf5_read_attribute_int (root_id, 'gridLowerBound', lb, error, .true.);         if (error) return
-call hdf5_read_attribute_int (root_id, 'gridSize', g_size, error, .true.);          if (error) return
-call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0, error, .true.);   if (error) return
-call hdf5_read_attribute_real (root_id, 'gridSpacing', gf%dr, error, .true.);        if (error) return
-call hdf5_read_attribute_real (root_id, 'curvedRefFrame', rho, error, .false.);        if (error) return
+call hdf5_read_attribute_int (root_id, 'gridLowerBound', lb, error, .true.);          if (error) return
+call hdf5_read_attribute_int (root_id, 'gridSize', g_size, error, .true.);            if (error) return
+call hdf5_read_attribute_real (root_id, 'gridOriginOffset', gf%r0, error, .true.);    if (error) return
+call hdf5_read_attribute_real (root_id, 'gridSpacing', gf%dr, error, .true.);         if (error) return
+call hdf5_read_attribute_real (root_id, 'gridCurvatureRadius', rho, error, .false.)
+if (error) call hdf5_read_attribute_real (root_id, 'curvedRefFrame', rho, error, .false.)  ! Old style
 
 ub = lb + g_size - 1
 gf%curved_ref_frame = (rho /= 0)

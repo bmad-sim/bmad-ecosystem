@@ -39,12 +39,78 @@ type hdf5_info_struct
   integer :: num_attributes = -1       ! Number of associated attributes. Used for groups and datasets only.
 end type
 
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_dataset_int (group_id, dset_name, int_buf, error)
+!
+! Routine to read a dataset of integers.
+! This overloads hdf5_read_dataset_int_rank_N where N is 0, 1, 2, or 3.
+! Note: The int_buf array size and shape must be correct for the dataset read.
+!
+! Input:
+!   loc_id      -- integer(hid_t): Id of group containing the dataset.
+!   dset_name   -- character(*): Name of the dataset.
+!
+! Output:
+!   int_buf         -- integer: For datasets storing a single value.
+!   int_buf(:)      -- integer: For datasets storing a 1D array.
+!   int_buf(:,:)    -- integer: For datasets storing a 2D array.
+!   int_buf(:,:,:)  -- integer: For datasets storing a 3D array.
+!   error           -- logical: Set True if there is an error.
+!-
+
 interface hdf5_read_dataset_int
   module procedure hdf5_read_dataset_int_rank_0
   module procedure hdf5_read_dataset_int_rank_1
   module procedure hdf5_read_dataset_int_rank_2
   module procedure hdf5_read_dataset_int_rank_3
 end interface
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_dataset_int (group_id, dset_name, int_buf, error)
+!
+! Routine to read a dataset of integers.
+! This overloads hdf5_read_dataset_int_rank_N where N is 0, 1, 2, or 3.
+! Note: The int_buf array size and shape must be correct for the dataset read.
+!
+! Input:
+!   loc_id      -- integer(hid_t): Id of group containing the dataset.
+!   dset_name   -- character(*): Name of the dataset.
+!
+! Output:
+!   int_buf         -- integer: For datasets storing a single value.
+!   int_buf(:)      -- integer: For datasets storing a 1D array.
+!   int_buf(:,:)    -- integer: For datasets storing a 2D array.
+!   int_buf(:,:,:)  -- integer: For datasets storing a 3D array.
+!   error           -- logical: Set True if there is an error.
+!-
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_read_dataset_real (group_id, dset_name, real_buf, error)
+!
+! Routine to read a dataset of reals.
+! This overloads hdf5_read_dataset_real_rank_N where N is 0, 1, 2, or 3.
+! Note: The real_buf array size and shape must be correct for the dataset read.
+!
+! Input:
+!   loc_id      -- integer(hid_t): Id of group containing the dataset.
+!   dset_name   -- character(*): Name of the dataset.
+!
+! Output:
+!   real_buf         -- real(rp): For datasets storing a single value.
+!   real_buf(:)      -- real(rp): For datasets storing a 1D array.
+!   real_buf(:,:)    -- real(rp): For datasets storing a 2D array.
+!   real_buf(:,:,:)  -- real(rp): For datasets storing a 3D array.
+!   error            -- logical: Set True if there is an error.
+!-
 
 interface hdf5_read_dataset_real
   module procedure hdf5_read_dataset_real_rank_0
@@ -488,21 +554,20 @@ end function hdf5_open_group
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Function hdf5_open_dataset(root_id, dataset_name, info, error, print_error) result (obj_id)
+! Function hdf5_open_dataset(root_id, dataset_name, error, print_error) result (ds_id)
 !
 ! Routine to open an existing group or dataset.
 !
 ! Note: Use H5Dclose_f close the dataset.
 !
 ! Input:
-!   root_id     -- integer(hid_t): ID of the group containing the dataset to be opened.
-!   dataset_name -- character(*): Name of the dataset to be opened
-!   info        -- hdf5_info_struct: Information on the dataset.
-!   print_error -- logical: Print an error message if there is an error?
+!   root_id       -- integer(hid_t): ID of the group containing the dataset to be opened.
+!   dataset_name  -- character(*): Name of the dataset to be opened.
+!   print_error   -- logical: Print an error message if there is an error?
 !
 ! Output:
-!   error       -- logical: Set True if there is an error. False otherwise.
-!   obj_id      -- integer(hid_t): Dataset ID.
+!   error         -- logical: Set True if there is an error. False otherwise.
+!   ds_id         -- integer(hid_t): Dataset ID.
 !-
 
 function hdf5_open_dataset (root_id, dataset_name, error, print_error) result (ds_id)
