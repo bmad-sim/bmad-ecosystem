@@ -60,7 +60,7 @@ use tao_show_mod, only: tao_show_this
 use tao_plot_mod, only: tao_set_floor_plan_axis_label
 use tao_data_and_eval_mod, only: tao_evaluate_expression
 use wall3d_mod, only: calc_wall_radius
-
+use tao_lattice_calc_mod, only: tao_lattice_calc
 implicit none
 
 type (tao_universe_struct), pointer :: u
@@ -153,7 +153,7 @@ integer, allocatable, save :: index_arr(:)
 
 logical, allocatable :: picked(:)
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time, found_one
+logical first_time, found_one, calc_ok
 
 character(*) input_str
 character(len(input_str)) line
@@ -162,11 +162,11 @@ character(n_char_show) li2
 character(200) file_name, all_who
 character(300), allocatable :: name_arr(:)
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
-character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name
+character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(20), allocatable :: name_list(:)
-character(20) cmd, command, who, which, v_str, head
+character(20) cmd, who, which, v_str, head
 character(20) switch, color, shape_shape
-character(20) :: r_name = 'tao_python_cmd'
+character(*), parameter :: r_name = 'tao_python_cmd'
 
 !
 
@@ -210,11 +210,11 @@ call string_trim(line(ix+1:), line, ix_line)
 !   HOM
 !   x_axis_type (variable parameter)
 
-call match_word (cmd, [character(20) :: &
+call match_word (cmd, [character(32) :: &
           'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
           'da_params', 'da_aperture', &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
-          'data_d2', 'data_d2_array', 'datum_create', 'datum_has_ele', &
+          'data_d2', 'data_d2_array', 'data_set_design_value', 'datum_create', 'datum_has_ele', &
           'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
@@ -672,19 +672,11 @@ case ('data_d2_create')
   ! Now create the d2 structure
 
   name = name1(1)
-  a_name = name1(1)
-  ix = index(name, '@')
-  if (ix == 0) then
-    u => s%u(s%com%default_universe)
-  else
-    read (name(1:ix-1), *) iu
-    u => s%u(iu)
-    name = name(ix+1:)
-  endif
+  u => point_to_uni(name, .true., err); if (err) return
 
-  call tao_find_data(err, name, d2_array, print_err = .false.)
+  call tao_find_data(err, name1(1), d2_array, print_err = .false.)
   if (size(d2_array) /= 0) then
-    call destroy_this_data_d2 (a_name)
+    call destroy_this_data_d2 (name1(1))
     call out_io (s_warn$, r_name, '"python ' // trim(input_str) // '": Data with this name already exists.', &
                                    'This old data has been destroyed to make room for the new data.')
   endif
@@ -862,6 +854,48 @@ case ('data_d2_array')
   enddo
 
 !----------------------------------------------------------------------
+! Set the design (and base & model) values for all datums.
+! Command syntax:
+!   python data_set_design_value
+!
+! Note: Use the "data_d2_create" and "datum_create" first to create datums.
+
+case ('data_set_design_value')
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(i)
+    u%scratch_lat = u%model%lat
+    u%model%lat = u%design%lat
+  enddo
+
+  s%u%calc%lattice = .true.
+  call tao_lattice_calc (calc_ok)
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(i)
+    u%design%tao_branch = u%model%tao_branch
+    u%data%design_value = u%data%model_value
+    u%data%good_design  = u%data%good_model
+
+    u%model%lat = u%base%lat
+  enddo
+
+  s%u%calc%lattice = .true.
+  call tao_lattice_calc (calc_ok)
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(i)
+    u%base%tao_branch = u%model%tao_branch
+    u%data%base_value = u%data%model_value
+    u%data%good_base  = u%data%good_model
+
+    u%model%lat = u%scratch_lat
+  enddo
+
+  s%u%calc%lattice = .true.
+  call tao_lattice_calc (calc_ok)
+
+!----------------------------------------------------------------------
 ! Create a datum.
 ! Command syntax:
 !   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^{ele_name}^^{merit_type}^^
@@ -869,6 +903,7 @@ case ('data_d2_array')
 !                                  {ix_bunch}^^{invalid_value}^^{spin_n0_x}^^{spin_n0_y}^^{spin_n0_z}
 !
 ! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
+! Note: After creating all your datums, use the "data_set_design_value" routine to set the design (and model) values.
 
 case ('datum_create')
 

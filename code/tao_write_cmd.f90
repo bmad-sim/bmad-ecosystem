@@ -68,9 +68,9 @@ if (err) return
 
 call match_word (action, [character(20):: &
               'hard', 'gif', 'ps', 'variable', 'bmad_lattice', 'derivative_matrix', 'digested', &
-              'curve', 'mad_lattice', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', 'orbit', &
+              'curve', 'mad_lattice', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', &
               'mad8_lattice', 'madx_lattice', 'pdf', 'pdf-l', 'opal_lattice', '3d_model', 'gif-l', &
-              'plot', 'ptc', 'sad_lattice', 'blender', 'namelist'], ix, .true., matched_name = action)
+              'ptc', 'sad_lattice', 'blender', 'namelist'], ix, .true., matched_name = action)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
@@ -177,7 +177,7 @@ case ('beam')
 ! 3D model script for Blender
 ! Note: Old cubit interface code was in tao_write_3d_floor_plan.f90 which was deleted 9/2015.
 
-case ('3d_model', 'blender')
+case ('blender', '3d_model')
 
   file_name0 = 'blender_lat_#.py'
   if (word(1) /= '') file_name0 = word(1) 
@@ -236,7 +236,7 @@ case ('covariance_matrix')
     return
   endif
 
-  file_name = 'lat_#.bmad'
+  file_name = 'covar.matrix'
   if (word(1) /= '') file_name = word(1) 
 
   if (word(2) /= '') then
@@ -287,7 +287,7 @@ case ('curve')
     return
   endif
 
-  file_name = 'curve'
+  file_name = 'curve.dat'
   if (word(2) /= ' ') file_name = word(2)
   call fullfilename (file_name, file_name)
 
@@ -504,6 +504,7 @@ case ('namelist')
   endif
 
   !--------------------------------------------
+  ! namelist -data
 
   select case (which)
   case ('-data')
@@ -629,6 +630,7 @@ case ('namelist')
     enddo
 
   !--------------------------------------------
+  ! namelist -plot
 
   case ('-plot')
 
@@ -645,6 +647,7 @@ case ('namelist')
 
 
   !--------------------------------------------
+  ! namelist -variable
 
   case ('-variable')
 
@@ -691,97 +694,6 @@ case ('namelist')
   end select
 
   close (iu)
-
-!---------------------------------------------------
-! orbit
-
-case ('orbit')
-
-  file_name0 = 'orbit.dat'
-  i = 0
-  do while (i <= size(word))
-    i = i + 1
-    if (word(i) == '') exit
-    call match_word (word(i), &
-        ['-beam_index', '-design    ', '-base      '], n, .true., .true., name)
-    if (n < 0 .or. (n == 0 .and. word(i)(1:1) == '-')) then
-      call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // word(i))
-      return
-    endif
-    select case (name)
-    case ('-beam_index') 
-      i=i+1; read (word(i), *, iostat = ios) ix_beam
-      if (ios /= 0) then
-        call out_io (s_error$, r_name, 'CANNOT READ BEAM INDEX.')
-        return
-      endif
-      action = name
-    case ('-design')
-      action = name
-    case ('-base')
-      action = name
-    case default
-      i=i+1; file_name0 = word(i)
-      if (word(i+1) /= '') then
-        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
-        return
-      endif
-    end select
-  enddo
-
-  if (i < size(word)) then
-    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
-    return
-  endif
-
-  !
-
-  u => tao_pointer_to_universe (-1) 
-
-  iu = lunget()
-  open (iu, file = file_name0)
-
-  write (iu, '(a)') '&particle_orbit'
-
-  do i = 0, u%model%lat%n_ele_track
-    select case (action)
-    case ('-beam_index')       
-    case ('-design')
-    case ('-base')
-    end select
-  enddo
-
-  write (iu, '(a)') '/'
-  close (iu)
-  call out_io (s_info$, r_name, 'Written: ' // file_name)
-
-!---------------------------------------------------
-! plot
-
-case ('plot')
-
-  file_name0 = 'tao_plot.init'
-  if (word(1) /= '') file_name0 = word(1) 
-
-  if (word(2) /= '') then
-    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
-    return
-  endif
-
-  !
-
-  iu = lunget()
-  open (iu, file = file_name0)
-
-  do i = 1, size(s%plot_page%template)
-    tp => s%plot_page%template(i)
-    if (tp%name == '') cycle
-
-
-  enddo
-
-  close (iu)
-  call out_io (s_info$, r_name, 'Written: ' // file_name0)
 
 !---------------------------------------------------
 ! ps

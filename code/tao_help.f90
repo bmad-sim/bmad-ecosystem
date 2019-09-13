@@ -75,9 +75,9 @@ do
   ! If a match for what1 then check for a match for what2.
   if (line(1:n) == start_tag(1:n)) then
     if (what2 == '') exit
-    if (line(n+1:n+1) == ' ') then
+    if (line(n+1:n+1) == ' ') then  ! If what1 exact match
       call string_trim(line(n+1:), line, ix)
-    else
+    else  ! Else not an exact match
       call string_trim(line(n+1:), line, ix)
       call string_trim(line(ix+1:), line, ix)
     endif
