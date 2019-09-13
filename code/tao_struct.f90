@@ -396,8 +396,7 @@ type tao_data_struct
   logical :: good_plot = .true.            ! See above
   logical :: useit_plot = .false.          ! See above
   logical :: useit_opt = .false.           ! See above
-  type (tao_d1_data_struct), pointer :: d1 => null() 
-                             ! Pointer to the parent d1_data_struct 
+  type (tao_d1_data_struct), pointer :: d1 => null() ! Pointer to the parent d1_data_struct 
   type (tao_eval_stack1_struct), allocatable :: stack(:)
 end type tao_data_struct
 
