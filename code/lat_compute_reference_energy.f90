@@ -579,7 +579,7 @@ if (energy_stale.or. ele%bookkeeping_state%control /= ok$ .or. ele%bookkeeping_s
 
   call control_bookkeeper (ele%branch%lat, ele)
   old_floor = ele%floor
-  call ele_geometry (ele0%floor, ele)
+  call ele_geometry (ele0%floor, ele, ignore_patch_err = .true.)
   ele%bookkeeping_state%floor_position = ele0%bookkeeping_state%floor_position
 
   if (ele%ix_ele > 0) then ! If element is associated with a lattice
