@@ -577,10 +577,10 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
           if (ele2%value(l$) /= 0 .or. ele2%key == patch$) exit
         enddo
 
-        if (ele2%bookkeeping_state%floor_position == stale$ .and. .not. logic_option(.true., ignore_patch_err)) then
-          call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // '  ' // &
-                                                                           trim(ele_location(ele, parens = "()")), &
-                                         'DOES NOT HAVE A WELL DEFINED POSITION')
+        if (ele2%bookkeeping_state%floor_position == stale$ .and. .not. logic_option(.false., ignore_patch_err)) then
+          call out_io (s_fatal$, r_name, 'AFTER FLEXIBLE PATCH: ' // trim(ele%name) // '  ' // trim(ele_location(ele, parens = "()")), &
+                                         'DOWNSTREAM ELEMENT: ' // trim(ele2%name) // '  ' // trim(ele_location(ele, parens = "()")), &
+                                         ' DOES NOT HAVE A WELL DEFINED POSITION')
           if (global_com%exit_on_error) call err_exit
         endif
 
@@ -602,7 +602,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
           call set_ele_status_stale (ele, s_position_group$)
         endif
 
-        ! Transfer offsets and pitches if patch is part of a multipass retion
+        ! Transfer offsets and pitches if patch is a multipass_slave.
         if (ele%slave_status == multipass_slave$) then
           call multipass_chain (ele, ix_pass, n_links, chain_ele)
           do i = 1, n_links

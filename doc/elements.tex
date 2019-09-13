@@ -1507,49 +1507,39 @@ The transformation between origin and fiducial positions is given in
 \sref{s:patch.coords}.
 
 \index{flexible patch}\index{patch}
-Once the position of the \vn{fiducial} element is calculated, all
-elements of the lattice branch the \vn{fiducial} element is contained
-in, {\em both} the upstream and downstream elements, are shifted so
-that everything is consistent. That is, the \vn{fiducial} element
-orients the entire lattice branch. The exception here is that if there
-are \vn{flexible} \vn{patch} elements (\sref{s:patch}) in the lattice
-branch, the \vn{fiducial} element will only determine the positions up
-to the \vn{flexible} \vn{patch} element. 
+Once the position of the \vn{fiducial} element is calculated, all elements of the lattice branch the
+\vn{fiducial} element is contained in, {\em both} the upstream and downstream elements, are shifted
+so that everything is consistent. That is, the \vn{fiducial} element orients the entire lattice
+branch. The exception here is that if there are \vn{flexible} \vn{patch} elements (\sref{s:patch})
+in the lattice branch, the \vn{fiducial} element will only determine the positions up to the
+\vn{flexible} \vn{patch} element.
 
-Example: A lattice branch with elements 0 through 103 has a
-\vn{fiducial} element at position 34 and a \vn{flexible} \vn{patch} at
-position 67. In this case the \vn{fiducial} element will determine the
+Example: A lattice branch with elements 0 through 103 has a \vn{fiducial} element at position 34 and
+a \vn{flexible} \vn{patch} at position 67. In this case the \vn{fiducial} element will determine the
 reference orbit for elements 0 through 66.
 
 Rules: 
   \begin{itemize}
   \item
-If an \vn{origin_ele} is specified, the position of this element must
-to calculated before the position of the \vn{fiducial} element is
-calculated (\sref{s:ref}). This means, the \vn{origin_ele} must be in
-a prior lattice branch from the branch the \vn{fiducial} element is in
-or the \vn{origin_ele} in the same branch as the \vn{fiducial} element
-but is positioned upstream from the \vn{fiducial} element and there is
-a \vn{flexible} \vn{patch} in between the two elements.
+If an \vn{origin_ele} is specified, the position of this element must to calculated before the
+position of the \vn{fiducial} element is calculated (\sref{s:ref}). This means, the \vn{origin_ele}
+must be in a prior lattice branch from the branch the \vn{fiducial} element is in or the
+\vn{origin_ele} in the same branch as the \vn{fiducial} element but is positioned upstream from the
+\vn{fiducial} element and there is a \vn{flexible} \vn{patch} in between the two elements.
   \item
-If a \vn{fiducial} element affects the position of element 0 in the
-lattice branch (that is, there are no flexible \vn{patch} elements
-in between), any positioning of element 0 via \vn{beginning} or
+If a \vn{fiducial} element affects the position of element 0 in the lattice branch (that is, there
+are no flexible \vn{patch} elements in between), any positioning of element 0 via \vn{beginning} or
 \vn{line parameter} statements (\sref{s:beginning}) are ignored.
   \item
-\vn{Fiducial} elements must not over constrain the lattice geometry.
-For example, two \vn{fiducial} elements may not appear in the same
-lattice branch unless separated by a \vn{flexible} \vn{patch}. 
+\vn{Fiducial} elements must not over constrain the lattice geometry.  For example, two \vn{fiducial}
+elements may not appear in the same lattice branch unless separated by a \vn{flexible} \vn{patch}.
 
-Another example is that if there are no flexible \vn{patch} elements
-in the lattice, and if branch \vn{A} has a \vn{branch} element
-connecting to branch \vn{B}, the geometry of branch \vn{A} will be
-calculated first and the geometry of branch \vn{B} can then be
-calculated from the known coordinates of the \vn{fork} element. If
-branch \vn{B} contains a \vn{fiducial} element then this is an error
-since the coordinate calculation never backtracks to recalculate the
-coordinates of the elements of a branch once the calculation has
-finished with that branch.
+Another example is that if there are no flexible \vn{patch} elements in the lattice, and if branch
+\vn{A} has a \vn{branch} element connecting to branch \vn{B}, the geometry of branch \vn{A} will be
+calculated first and the geometry of branch \vn{B} can then be calculated from the known coordinates
+of the \vn{fork} element. If branch \vn{B} contains a \vn{fiducial} element then this is an error
+since the coordinate calculation never backtracks to recalculate the coordinates of the elements of
+a branch once the calculation has finished with that branch.
   \end{itemize}
 
 Example:
@@ -3127,13 +3117,11 @@ care must be taken if that element attribute is changed. This is discussed in
   \centering
   \includegraphics[width=5in]{patch.pdf}
   \caption[Patch Element.]
-{A) A \vn{patch} element can align its exit face arbitrarily with respect to its entrance
-face. B) The reference length of a \vn{patch} element is the longitudinal distance from
-the entrance origin to the exit origin using the reference coordinates at the exit
-end. Notice that while the length of the patch is defined with respect to the exit
-coordinates, the offsets that define the position of the exit end coordinates are defined
-with respect to the entrance coordinates.
-}
+{A) A \vn{patch} element can align its exit face arbitrarily with respect to its entrance face. B)
+The reference length of a \vn{patch} element is the longitudinal distance from the entrance origin
+to the exit origin using the reference coordinates at the exit end. Notice that while the length of
+the patch is defined with respect to the exit coordinates, the offsets that define the position of
+the exit end coordinates are defined with respect to the entrance coordinates.  }
   \label{f:patch}
 \end{figure}
 
@@ -3180,27 +3168,24 @@ Attributes specific to a \vn{patch} elements are:
 \end{example}
 \index{x_offset}
 
-A straight line element like a \vn{drift} or a \vn{quadrupole} has the exit face
-parallel to the entrance face. With a \vn{patch} element, the entrance and exit faces can
-be arbitrarily oriented with respect to one another as shown in \fig{f:patch}A. The length
-\vn{l} of a \vn{patch} is a dependent (\sref{s:depend}) parameter and is the longitudinal
-($z$ component) distance from the entrance origin to the exit origin using the exit end
-reference coordinates as shown in \fig{f:patch}B. See \sref{s:patch.prob} for a further
-discussion on the coordinate system of a \vn{patch}. Notice that while the length of the
-patch is defined with respect to the exit coordinates, the offsets that define the
-position of the exit end coordinates are defined with respect to the entrance coordinates.
+A straight line element like a \vn{drift} or a \vn{quadrupole} has the exit face parallel to the
+entrance face. With a \vn{patch} element, the entrance and exit faces can be arbitrarily oriented
+with respect to one another as shown in \fig{f:patch}A. The length \vn{l} of a \vn{patch} is a
+dependent (\sref{s:depend}) parameter and is the longitudinal ($z$ component) distance from the
+entrance origin to the exit origin using the exit end reference coordinates as shown in
+\fig{f:patch}B. See \sref{s:patch.prob} for a further discussion on the coordinate system of a
+\vn{patch}. Notice that while the length of the patch is defined with respect to the exit
+coordinates, the offsets that define the position of the exit end coordinates are defined with
+respect to the entrance coordinates.
 
 \index{rigid patch}\index{infleible patch}
 \index{flexible patch}
-There are two different ways the orientation of the exit face is
-determined. Which way is used is determined by the setting of the
-\vn{flexible} attribute.  With the \vn{flexible} attribute set to
-\vn{False}, the default, The exit face of the \vn{patch} will be
-determined from the offset, tilt and pitch attributes as described in
-\sref{s:patch.coords}. This type of \vn{patch} is called ``rigid'' or
-``inflexible'' since the geometry of the \vn{patch} is solely
-determined by the \vn{patch}'s attributes and is independent of
-everything else.  Example:
+There are two different ways the orientation of the exit face is determined. Which way is used is
+determined by the setting of the \vn{flexible} attribute.  With the \vn{flexible} attribute set to
+\vn{False}, the default, The exit face of the \vn{patch} will be determined from the offset, tilt
+and pitch attributes as described in \sref{s:patch.coords}. This type of \vn{patch} is called
+``rigid'' or ``inflexible'' since the geometry of the \vn{patch} is solely determined by the
+\vn{patch}'s attributes and is independent of everything else.  Example:
 \begin{example}
   pt: patch, z_offset = 3.2   ! Equivalent to a drift
 \end{example}
@@ -3210,56 +3195,55 @@ entrance face of the next element in the lattice. In this case, it must be possi
 reference coordinates of the next element (or any element downstream of the \vn{patch} as long as
 the elements in between have zero length) before the reference coordinates of the \vn{patch} are
 computed. A \vn{flexible} \vn{patch} will have the its offsets, pitches, and tilt as dependent
-parameters (\sref{s:depend}) and these parameters will be computed. Here the \vn{patch} is called
-``flexible'' since the geometry of the patch will depend upon the geometry of the rest of the
-lattice and, therefore, if the geometry of the rest of the lattice is modified (is ``flexed''), the
-geometry of the \vn{patch} will vary as well. See Section~\sref{s:ex.erl} for an example.
+parameters (\sref{s:depend}) and these parameters will be computed appropriately. Here the
+\vn{patch} is called ``flexible'' since the geometry of the patch will depend upon the geometry of
+the rest of the lattice and, therefore, if the geometry of the rest of the lattice is modified (is
+``flexed''), the geometry of the \vn{patch} will vary as well. See Section~\sref{s:ex.erl} for an
+example.
 
-If a \vn{flexible} patch is within a \vn{multipass} (\sref{s:multipass})
-region (as opposed to being just outside a multipass region as in
-the example in Section~\sref{s:ex.erl}), the offsets, pitches, and tilt
-will be computed using the geometry of the first pass.
+The coordinates of the lattice element downstream of a \vn{flexible} \vn{patch} is can be computed
+if there is a \vn{fiducial} element (\sref{s:fiducial}) somewhere downstream or if there is a
+\vn{multipass_slave} (\sref{s:multipass}) element which is just downstream of the \vn{patch} or at
+most separated by zero length elements from the \vn{patch}. In this latter case, the
+\vn{multipass_slave} must represent an $N$\Th pass slave with $N$ greater than 1. This works since
+the first pass slave will be upstream of the \vn{patch} and so the first pass slave will have its
+coordinates already computed and the position of the downstream slave will be taken to be the same
+as the first pass slave. Notice that, without the \vn{patch}, the position of multipass slave
+elements are independent of each other.
 
-With \vn{bmad_standard} tracking (\sref{s:tkm}) A particle, starting
-at the upstream face of the \vn{patch}, is propagated in a straight
-line to the downstream face and the suitable coordinate transformation
-is made to translate the particle's coordinates from the upstream
-coordinate frame to the downstream coordinate frame
-(\sref{s:patch.std}). In this case the \vn{patch} element can be
+With \vn{bmad_standard} tracking (\sref{s:tkm}) A particle, starting at the upstream face of the
+\vn{patch}, is propagated in a straight line to the downstream face and the suitable coordinate
+transformation is made to translate the particle's coordinates from the upstream coordinate frame to
+the downstream coordinate frame (\sref{s:patch.std}). In this case the \vn{patch} element can be
 thought of as a generalized \vn{drift} element.
 
-If there are magnetic or electric fields within the \vn{patch}, the
-tracking method through the \vn{patch} must be set to either
-\vn{runge_kutta} or \vn{custom}. Example:
+If there are magnetic or electric fields within the \vn{patch}, the tracking method through the
+\vn{patch} must be set to either \vn{runge_kutta} or \vn{custom}. Example:
 \begin{example}
   pa2: patch, tracking_method = runge_kutta, field_calc = custom, 
               mat6_calc_method = tracking, ...
 \end{example}
-In order to supply a custom field when \vn{runge_kutta} tracking is
-used, \vn{field_calc} (\sref{s:integ}) needs to be set to
-\vn{custom}. In this case, custom code must be supplied for
-calculating the fields as a function of position
-(\sref{s:custom.ele}).
+In order to supply a custom field when \vn{runge_kutta} tracking is used, \vn{field_calc}
+(\sref{s:integ}) needs to be set to \vn{custom}. In this case, custom code must be supplied for
+calculating the fields as a function of position (\sref{s:custom.ele}).
 
 The \vn{E_tot_offset} attribute offsets the
 reference energy:
 \begin{example}
   E_tot_ref(exit) = E_tot_ref(entrance) + E_tot_offset (eV)
 \end{example}
-Setting the \vn{E_tot_offset} attribute will affect a particle's
-$p_x$, $p_y$ and $p_z$ coordinates via \Eqs{ppp} and \eq{ppppp}.
-Notice that \vn{E_tot_offset} does not affect a particle's actual
-energy, it just affects the difference between the particle energy and
-the reference energy. 
+Setting the \vn{E_tot_offset} attribute will affect a particle's $p_x$, $p_y$ and $p_z$ coordinates
+via \Eqs{ppp} and \eq{ppppp}.  Notice that \vn{E_tot_offset} does not affect a particle's actual
+energy, it just affects the difference between the particle energy and the reference energy.
 
-Alternatively, to set the reference energy, the \vn{E_tot_set} or \vn{p0c_set} attributes
-can be used to set the reference energy/momentum at the exit end. It is is an error
-if more than one of \vn{E_tot_offset}, \vn{E_tot_set} and \vn{p0c_set} is nonzero.
+Alternatively, to set the reference energy, the \vn{E_tot_set} or \vn{p0c_set} attributes can be
+used to set the reference energy/momentum at the exit end. It is is an error if more than one of
+\vn{E_tot_offset}, \vn{E_tot_set} and \vn{p0c_set} is nonzero.
 
-\vn{Important}: \bmad may apply the energy transformation either before or after the
-coordinate transformation. This matters when the speed of the reference particle is less
-than $c$. For this reason, and due to complications involving PTC, it is recommended to
-use two patches in a row when both the orbit and energy are to be patched.
+\vn{Important}: \bmad may apply the energy transformation either before or after the coordinate
+transformation. This matters when the speed of the reference particle is less than $c$. For this
+reason, and due to complications involving PTC, it is recommended to use two patches in a row when
+both the orbit and energy are to be patched.
 
 The \vn{t_offset} attribute offsets the reference time so that the reference time at the exit end of
 the patch \vn{t_ref(exit)} is related to the reference time at the beginning of the patch
