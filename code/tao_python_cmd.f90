@@ -899,16 +899,16 @@ case ('data_set_design_value')
 ! Create a datum.
 ! Command syntax:
 !   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^{ele_name}^^{merit_type}^^
-!                                  {meas}^^{ref}^^{weight}^^{good_user}^^{data_source}^^{eval_point}^^{s_offset}^^
-!                                  {ix_bunch}^^{invalid_value}^^{spin_n0_x}^^{spin_n0_y}^^{spin_n0_z}
+!                         {meas}^^{good_meas}^^{ref}^^{good_ref}^^{weight}^^{good_user}^^{data_source}^^{eval_point}^^
+!                         {s_offset}^^{ix_bunch}^^{invalid_value}^^{spin_n0_x}^^{spin_n0_y}^^{spin_n0_z}
 !
 ! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
 ! Note: After creating all your datums, use the "data_set_design_value" routine to set the design (and model) values.
 
 case ('datum_create')
 
-  allocate (name_arr(18))
-  call split_this_line (line, name_arr, 18, err);         if (err) return
+  allocate (name_arr(20))
+  call split_this_line (line, name_arr, 20, err);         if (err) return
 
   call tao_find_data (err, name_arr(1), d_array = d_array);
   if (err .or. size(d_array) /= 1) then
@@ -957,21 +957,23 @@ case ('datum_create')
 
   d_ptr%merit_type  = name_arr(6)
   d_ptr%meas_value  = set_real(name_arr(7), 0.0_rp, err);      if (err) return
-  d_ptr%ref_value   = set_real(name_arr(8), 0.0_rp, err);      if (err) return
-  d_ptr%weight      = set_real(name_arr(9), 0.0_rp, err);      if (err) return
-  d_ptr%good_user   = set_logic(name_arr(10), .true., err);    if (err) return
-  d_ptr%data_source = set_str(name_arr(11), 'lat')
+  d_ptr%good_meas   = set_logic(name_arr(8), .false., err);    if (err) return
+  d_ptr%ref_value   = set_real(name_arr(9), 0.0_rp, err);      if (err) return
+  d_ptr%good_ref    = set_logic(name_arr(10), .false., err);    if (err) return
+  d_ptr%weight      = set_real(name_arr(11), 0.0_rp, err);      if (err) return
+  d_ptr%good_user   = set_logic(name_arr(12), .true., err);    if (err) return
+  d_ptr%data_source = set_str(name_arr(13), 'lat')
   if (name_arr(12) == '') then
     d_ptr%eval_point  = anchor_end$
   else
-    call match_word (name_arr(12), anchor_pt_name(1:), d_ptr%eval_point)
+    call match_word (name_arr(14), anchor_pt_name(1:), d_ptr%eval_point)
   endif
-  d_ptr%s_offset = set_real(name_arr(13), 0.0_rp, err);          if (err) return
-  d_ptr%ix_bunch = set_int(name_arr(14), 1, err);                if (err) return
-  d_ptr%invalid_value = set_real(name_arr(15), 0.0_rp, err);     if (err) return
-  d_ptr%spin_axis%n0(1) = set_real(name_arr(16), 0.0_rp, err);   if (err) return
-  d_ptr%spin_axis%n0(2) = set_real(name_arr(17), 0.0_rp, err);   if (err) return
-  d_ptr%spin_axis%n0(3) = set_real(name_arr(18), 0.0_rp, err);   if (err) return
+  d_ptr%s_offset = set_real(name_arr(15), 0.0_rp, err);          if (err) return
+  d_ptr%ix_bunch = set_int(name_arr(16), 1, err);                if (err) return
+  d_ptr%invalid_value = set_real(name_arr(17), 0.0_rp, err);     if (err) return
+  d_ptr%spin_axis%n0(1) = set_real(name_arr(18), 0.0_rp, err);   if (err) return
+  d_ptr%spin_axis%n0(2) = set_real(name_arr(19), 0.0_rp, err);   if (err) return
+  d_ptr%spin_axis%n0(3) = set_real(name_arr(20), 0.0_rp, err);   if (err) return
 
   d_ptr%exists = tao_data_sanity_check (d_ptr, d_ptr%exists)
   if (tao_chrom_calc_needed(d_ptr%data_type, d_ptr%data_source)) u%calc%chrom_for_data = .true.
