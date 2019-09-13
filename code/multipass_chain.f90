@@ -54,7 +54,7 @@ if (ele2%slave_status == multipass_slave$) then
   do j = 1, m_lord%n_slave
     slave => pointer_to_slave(m_lord, j)
     if (present(chain_ele)) chain_ele(j)%ele => slave
-    if (slave%ix_ele == ele%ix_ele .and. slave%ix_branch == ele2%ix_branch) ix_pass = j
+    if (slave%ix_ele == ele2%ix_ele .and. slave%ix_branch == ele2%ix_branch) ix_pass = j
   enddo
 endif
 

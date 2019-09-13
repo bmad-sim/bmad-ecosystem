@@ -117,10 +117,9 @@ where \vn{branch_name} is the name of the branch and \vn{element_name} is the
   root>>q10w
   xline>>cryst3
 \end{example}
-When parsing a lattice file, branches are not formed until the lattice
-is expanded (\sref{s:expand}). Therefore, an \vn{expand_lattice}
-statement is required before branch qualified names can be used in
-statements. See \sref{s:ele.match} for more details.
+When parsing a lattice file, branches are not formed until the lattice is expanded
+(\sref{s:expand}). Therefore, an \vn{expand_lattice} statement is required before branch qualified
+names can be used in statements. See \sref{s:ele.match} for more details.
 
 %---------------------------------------------------------------------------
 \section{Lord and Slave Elements}
@@ -130,11 +129,10 @@ statements. See \sref{s:ele.match} for more details.
  \begin{center}
  \includegraphics[width=6.0in]{superimpose-ip.pdf}
  \caption[Superposition example.]{
-Superposition Example. A) Interaction region layout
-with quadrupoles overlapping a solenoid. B) The Bmad lattice
-representation has a list of split elements to track through and the
-undivided ``lord'' elements. Pointers (double headed arrows), keep
-track of the correspondence between the lords and their slaves.
+Superposition Example. A) Interaction region layout with quadrupoles overlapping a solenoid. B) The
+Bmad lattice representation has a list of split elements to track through and the undivided ``lord''
+elements. Pointers (double headed arrows), keep track of the correspondence between the lords and
+their slaves.
  }
  \label{f:super.ip}
  \end{center}
@@ -142,78 +140,64 @@ track of the correspondence between the lords and their slaves.
 
 %---------------------------------------------------------------------------
 
-A real machine is more than a collection of independent lattice
-elements. For example, the field strength in a string of elements may
-be tied together via a common power supply, or the fields of different
-elements may overlap.
+A real machine is more than a collection of independent lattice elements. For example, the field
+strength in a string of elements may be tied together via a common power supply, or the fields of
+different elements may overlap.
 
-\bmad tries to capture these interdependencies using what are referred
-to as \vn{lord} and \vn{slave} elements. The \vn{lord} elements may be
-divided into two classes. In one class are the \vn{controller}
-elements.  These are \vn{overlay} (\sref{s:overlay}), \vn{group}
-(\sref{s:group}), and \vn{girder} (\sref{s:girder}) elements that
-control the attributes of other elements which are their slaves.
+\bmad tries to capture these interdependencies using what are referred to as \vn{lord} and
+\vn{slave} elements. The \vn{lord} elements may be divided into two classes. In one class are the
+\vn{controller} elements.  These are \vn{overlay} (\sref{s:overlay}), \vn{group} (\sref{s:group}),
+and \vn{girder} (\sref{s:girder}) elements that control the attributes of other elements which are
+their slaves.
 
-The other class of \vn{lord} elements embody the separation of the
-physical element from the track that a particle takes when it passes
-through the element. There are two types
+The other class of \vn{lord} elements embody the separation of the physical element from the track
+that a particle takes when it passes through the element. There are two types
 
-An example will make this clear.
-\vn{Superposition} (\sref{s:super}) is the ability to overlap lattice
-elements spatially. \fig{f:super.ip} shows an example which is a
-greatly simplified version of the IR region of Cornell's CESR storage
-ring when CESR was an e+/e-- collider. As shown in \fig{f:super.ip}A,
-two quadrupoles named \vn{q1w} and \vn{q1e} are partially inside and
-partially outside the interaction region solenoid named \vn{cleo}. In
-the lattice file, the IR region layout is defined to be
+An example will make this clear.  \vn{Superposition} (\sref{s:super}) is the ability to overlap
+lattice elements spatially. \fig{f:super.ip} shows an example which is a greatly simplified version
+of the IR region of Cornell's CESR storage ring when CESR was an e+/e-- collider. As shown in
+\fig{f:super.ip}A, two quadrupoles named \vn{q1w} and \vn{q1e} are partially inside and partially
+outside the interaction region solenoid named \vn{cleo}. In the lattice file, the IR region layout
+is defined to be
  {\small
 \begin{example}
   cesr: line = (... q1e, dft1, ip, dft1, q1w ...)
   cleo: solenoid, l = 3.51, superimpose, ref = ip
 \end{example}
  }
-The line named \vn{cesr} ignores the solenoid and just contains the
-interaction point marker element named \vn{ip} which is surrounded by
-two drifts named \vn{dft1} which are, in turn, surrounded by the
-\vn{q1w} and \vn{q1e} quadrupoles. The solenoid is added to the layout
-on the second line by using superposition. The ``ref = ip'' indicates
-that the solenoid is placed relative to \vn{ip}. The default, which is
-used here, is to place the center of the superimposed \vn{cleo}
-element at the center of the \vn{ip} reference element.  The
-representation of the lattice in \bmad will contain two branch
-\vn{sections} (``sections'' is explained more fully later): One
-section, called the \vn{tracking section}, contains the elements that
-are needed for tracking particles. In the current example, as shown in
-\fig{f:super.ip}B, the first IR element in the tracking section is a
-quadrupole that represents the part of \vn{q1e} outside of the
-solenoid. The next element is a combination solenoid/quadrupole,
-called a \vn{sol_quad}, that represents the part of \vn{q1e} inside
-\vn{cleo}, etc.  The other branch section that Bmad creates is called
-the \vn{lord section} This section contain the undivided ``physical''
-\vn{super_lord} elements (\sref{s:super}) which, in this case are
-\vn{q1e}, \vn{q1w}, and \vn{cleo}. Pointers are created between the
-lords and their \vn{super_slave} elements in the tracking section so
-that changes in parameters of the lord elements can be transferred to
-their corresponding slaves.
+The line named \vn{cesr} ignores the solenoid and just contains the interaction point marker element
+named \vn{ip} which is surrounded by two drifts named \vn{dft1} which are, in turn, surrounded by
+the \vn{q1w} and \vn{q1e} quadrupoles. The solenoid is added to the layout on the second line by
+using superposition. The ``ref = ip'' indicates that the solenoid is placed relative to \vn{ip}. The
+default, which is used here, is to place the center of the superimposed \vn{cleo} element at the
+center of the \vn{ip} reference element.  The representation of the lattice in \bmad will contain
+two branch \vn{sections} (``sections'' is explained more fully later): One section, called the
+\vn{tracking section}, contains the elements that are needed for tracking particles. In the current
+example, as shown in \fig{f:super.ip}B, the first IR element in the tracking section is a quadrupole
+that represents the part of \vn{q1e} outside of the solenoid. The next element is a combination
+solenoid/quadrupole, called a \vn{sol_quad}, that represents the part of \vn{q1e} inside \vn{cleo},
+etc.  The other branch section that Bmad creates is called the \vn{lord section} This section
+contain the undivided ``physical'' \vn{super_lord} elements (\sref{s:super}) which, in this case are
+\vn{q1e}, \vn{q1w}, and \vn{cleo}. Pointers are created between the lords and their \vn{super_slave}
+elements in the tracking section so that changes in parameters of the lord elements can be
+transferred to their corresponding slaves.
 
-\vn{super_lord}s are used when there are overlapping fields between
-elements, the other case where there is a separation between the
-physical element and the particle track comes when a particle passes
-through the same physical element multiple times such as in an Energy
-Recovery Linac or where different beams pass through the same element
-such as in an interaction region. In this case, \vn{multipass_lords}
-representing the physical element and \vn{multipass_slaves}
-representing the track can be constructed (\sref{s:multipass}).
-Superposition and multipass can be combined in situations where there
-are overlapping fields in elements where the particle passes through
+\vn{super_lord}s are used when there are overlapping fields between elements, the other case where
+there is a separation between the physical (lord) element and the (slave) element(s) used to track
+particles through comes when a particle passes through the same physical element multiple times such
+as in an Energy Recovery Linac or where different beams pass through the same element such as in an
+interaction region. In this case, \vn{multipass_lords} representing the physical elements and
+\vn{multipass_slaves} elements which are used for tracking can be defined (\sref{s:multipass}).
+Superposition and multipass can be combined in situations where there are overlapping fields in
+elements where the particle passes through
 
 \index{no_major_lord}\index{multipass_slave}\index{slice_slave}\index{super_slave}
 \index{not_a_lord}\index{group_lord}\index{girder_lord}\index{overlay_lord}
 \index{multipass_lord}\index{super_lord}\index{slave_status}\index{lord_status}
-Each lattice element is assigned a \vn{slave_status} indicating what kind of slave it is
-and a \vn{lord_status} indicating what kind of lord it is. Normally a user does not
-have to worry about this since these status attributes are handled automatically by \bmad.
-The possible \vn{lord_status} settings are:
+Each lattice element is assigned a \vn{slave_status} indicating what kind of slave it is and a
+\vn{lord_status} indicating what kind of lord it is. Normally a user does not have to worry about
+this since these status attributes are handled automatically by \bmad.  The possible
+\vn{lord_status} settings are:
   \begin{description}
   \item[girder_lord]\Newline 
 A \vn{girder_lord} element is a \vn{girder} element  (\sref{s:girder}). 
