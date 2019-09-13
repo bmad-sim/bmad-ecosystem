@@ -268,7 +268,7 @@ parsing_loop: do
   ! EXPAND_LATTICE command: This does nothing since the lattice has already been expanded.
 
   if (word_1(:ix_word) == 'EXPAND_LATTICE') then
-    exit parsing_loop
+    cycle parsing_loop
   endif
 
   !-------------------------------------------
