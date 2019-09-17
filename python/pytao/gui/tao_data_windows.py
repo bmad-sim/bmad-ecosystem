@@ -500,11 +500,10 @@ class tao_new_data_window(Tao_Toplevel):
             return
         # Book-keeping
         datum_params = ['data_type', 'ele_ref_name', 'ele_start_name', 'ele_name',
-                'data^merit_type', 'meas_value', 'ref_value', 'weight', 'good_user',
-                'data_source', 'eval_point', 's_offset', '1^ix_bunch',
-                'invalid_value', 'spin_n0_x', 'spin_n0_y', 'spin_n0_z']
-        d1_params = ['name', 'data_source', 'data_type', 'data^merit_type',
-                'weight', 'good_user']
+                'data^merit_type', 'meas_value', 'good_meas', 'ref_value', 'good_ref',
+                'weight', 'good_user', 'data_source', 'eval_point', 's_offset',
+                '1^ix_bunch', 'invalid_value', 'spin_n0_x', 'spin_n0_y', 'spin_n0_z']
+        d1_params = ['name', 'data_source', 'data_type', 'data^merit_type', 'weight', 'good_user']
         d2_params = ['name', 'uni', 'data_source', 'data^merit_type', 'weight', 'good_user']
         # Create the data array
         if self.uni.get() == 'All':
@@ -548,7 +547,7 @@ class tao_new_data_window(Tao_Toplevel):
                             value = self.d2_param_list[d2_params.index(p)].tk_var.get()
                         else:
                             value = ""
-                        if p == "good_user": # replace with T or F
+                        if p in ["good_user", "good_meas", "good_ref"]: # replace with T or F
                             value = "T" if value else "F"
                         cmd_str += '^^' + value
                     self.pipe.cmd_in(cmd_str)
@@ -844,8 +843,9 @@ class new_d1_frame(tk.Frame):
         # Parameters
         param_list = ['data_source;ENUM;T;', 'data_type;DAT_TYPE;T;',
                 'ele_name;STR;T;', 'ele_start_name;STR;T;', 'ele_ref_name;STR;T;',
-                'data^merit_type;ENUM;T;', 'meas_value;REAL;T;', 'ref_value;REAL;T;',
-                'weight;REAL;T;', 'good_user;LOGIC;T;T', '1^ix_bunch;INUM;T;',
+                'data^merit_type;ENUM;T;', 'meas_value;REAL;T;', 'good_meas;LOGIC;T;T',
+                'ref_value;REAL;T;', 'good_ref;LOGIC;T;T', 'weight;REAL;T;',
+                'good_user;LOGIC;T;T', '1^ix_bunch;INUM;T;',
                 'eval_point;ENUM;T;', 's_offset;REAL;T;']
         param_list = list(map(str_to_tao_param, param_list))
         # Fill in defaults set at d1 level
