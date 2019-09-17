@@ -398,7 +398,7 @@ class tao_root_window(tk.Tk):
                 tao_lib.tk_wid.grid(row=k+1, column=1, sticky="W")
 
         chosen_interface = tk.StringVar()
-        chosen_interface.set("pexpect")
+        chosen_interface.set("ctypes")
         if "chosen_interface" in init_dict:
             if init_dict["chosen_interface"] in ["pexpect", "ctypes"]:
                 chosen_interface.set(init_dict["chosen_interface"])
@@ -574,7 +574,7 @@ class tao_root_window(tk.Tk):
         if result != 'yes':
             return
 
-        for child in root.winfo_children():
+        for child in self.winfo_children():
             child.destroy()
 
         if self.pipe.mode == 'pexpect':
@@ -667,7 +667,7 @@ class tao_root_window(tk.Tk):
             self.history_window.lift()
             #self.history_window.force_focus()
         except:
-            self.history_window = tao_history_window(root)
+            self.history_window = tao_history_window(self)
 
     def debug_cmd(self):
         win = tk.Toplevel(self)
