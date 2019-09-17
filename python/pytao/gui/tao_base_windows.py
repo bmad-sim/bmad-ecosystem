@@ -1170,7 +1170,7 @@ class tabbed_frame(tk.Frame):
         if ix == None:
             ix = len(self.tab_list)
         if ix < len(self.tab_list):
-            self.tab_list = self.tab_list[:ix] + [self.new_tab_func(self, *args, **kwargs)] + self.tab_list[ix:]
+            self.tab_list = self.tab_list[:ix] + [self.new_tab_func(*args, **kwargs)] + self.tab_list[ix:]
         else:
             ix = len(self.tab_list)
             self.tab_list.append(self.new_tab_func(*args, **kwargs))
@@ -1207,3 +1207,18 @@ class tabbed_frame(tk.Frame):
                 self.update_name(i)
         else:
             self.notebook.tab(ix, text=self.tab_list[ix].name)
+
+class ele_shape_frame(tk.Frame):
+    '''
+    Provides a frame for viewing and editing the shapes that are used to
+    display lat_layout and floor_plan graphs in tao
+
+    parent: the parent frame/Toplevel where this frame will be placed
+    pipe: the tao_interface used to querry/set ele shapes
+    '''
+    def __init__(self, parent, pipe):
+        self.parent = parent
+        self.pipe = pipe
+        tk.Frame.__init__(self, parent)
+
+        tk.Label(self, text="COMING SOON: a frame for viewing/editing lattice element shapes").pack(fill='both', expand=1)
