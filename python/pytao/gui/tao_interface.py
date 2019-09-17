@@ -6,6 +6,7 @@ import tkinter as tk
 import time
 
 import pytao
+from pytao.tao_interface import new_stdout, filter_output
 
 class tao_interface(pytao.tao_interface):
     '''
@@ -65,7 +66,7 @@ class tao_interface(pytao.tao_interface):
                 print(y+'-'+mo+'-'+day+' '+hr+':'+mn+':'+sec, cmd_str)
         if cmd_str.find("dev ") ==0:
             cmd_str = cmd_str[4:]
-            with pytao.new_stdout() as output:
+            with new_stdout() as output:
                 exec(cmd_str)
             output = output.getvalue()
             output = filter_output(output)
