@@ -5064,14 +5064,20 @@ implicit none
 
 real(rp) value
 
-integer id, ip, ix, wid, pl, wid_want, pl_want
+integer id, ip, ix, wid, pl, wid_want, pl_want, ios
 
 character(16) fmt2, num_str
 character(*) line, fmt
 
 !
 
-write (line, fmt) value
+write (line, fmt, iostat = ios) value
+if (ios /= 0) then
+  do ix = 1, len(line)
+    line(ix:ix) = '*'
+  enddo
+  return
+endif
 
 if (value == 0) return
 if (line(1:1) == ' ') return
