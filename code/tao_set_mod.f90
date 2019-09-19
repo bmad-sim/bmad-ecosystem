@@ -370,6 +370,8 @@ case ('track_type')
     return
   endif
   s%u%calc%lattice = .true.
+case ('srdt_gen_n_slices', 'srdt_sxt_n_slices', 'srdt_use_cache')
+  s%u%calc%lattice = .true.
 end select
 
 s%global = global
