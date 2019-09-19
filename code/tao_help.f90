@@ -32,7 +32,7 @@ character(40) start_tag, left_over_eliminate, left_over_sub
 character(200) line, file_name, full_file_name
 character(*), optional, allocatable :: lines(:)
 
-logical blank_line_before, in_example
+logical blank_line_before, in_example, has_subbed
 
 ! Help depends upon if we are in single mode or not.
 ! Determine what file to open and starting tag.
@@ -131,7 +131,8 @@ do
   call substitute (line, "``", '"')
   call substitute (line, "}''", '"')
   call substitute (line, "''", '"')
-  call substitute (line, "$")
+  call substitute (line, "\$", '$', has_subbed)
+  if (.not. has_subbed .and. .not. in_example) call substitute (line, "$")  ! Do not remove "$" if "\$" -> "$" has been done
   call substitute (line, "\protect")
   call substitute (line, "\_", "_")
   call substitute (line, "\#", "#")
@@ -202,19 +203,22 @@ contains
 !
 ! Removes a string and optionally replaces it with another.
 
-subroutine substitute (line, str1, sub)
+subroutine substitute (line, str1, sub, has_subbed)
 
 character(*) line, str1
 character(*), optional :: sub
 integer n1
+logical, optional :: has_subbed
 
 !
 
 n1 = len(str1)
+if (present(has_subbed)) has_subbed = .false.
 
 do
   ix = index(line, str1)
   if (ix == 0) exit
+  if (present(has_subbed))has_subbed = .true.
   if (present(sub)) then
     line = line(1:ix-1) // trim(sub) // line(ix+n1:)
   else
