@@ -543,7 +543,7 @@ Each Taylor series has an array of \vn{taylor_term_struct} terms defined as
 \begin{example}
   type taylor_term_struct
     real(rp) :: coef
-    integer :: exp(6)
+    integer :: expn(6)
   end type
 \end{example}
 The coefficient for a Taylor term is stored in \vn{%coef} and the

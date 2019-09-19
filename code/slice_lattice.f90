@@ -86,8 +86,10 @@ do ib = 0, ubound(lat%branch, 1)
     ele1 => branch%ele(ie-1)
     if (ele1%value(e_tot$) <= 0) exit  ! Energy has not been computed
     call transfer_twiss (ele1, ele0)
-        ele0%value(e_tot$) = ele1%value(e_tot$)
-    ele0%value(p0c$) = ele1%value(p0c$)
+    ele0%value(e_tot$)       = ele1%value(e_tot$)
+    ele0%value(e_tot_start$) = ele0%value(e_tot$)
+    ele0%value(p0c$)         = ele1%value(p0c$)
+    ele0%value(p0c_start$)   = ele0%value(p0c$)
     ele0%a%phi = 0
     ele0%b%phi = 0
     ele0%z%phi = 0
