@@ -63,7 +63,7 @@ On Linux, you may also be able to find versions of the required modules in your 
 which are tailored to your Linux distribution and will not break your system python.
 
 %-----------------------------------------------------------------
-\section{Installation Troubleshooting}
+\subsection{Installation Troubleshooting}
 \label{s:gui.trouble}
 
 Got error:
@@ -78,7 +78,47 @@ Solution: Uninstall and then reinstall matplotlib. For example, if using pip:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{GUI Initialization File}
+\subsection{Developer Setup}
+\label{s:gui.develop}
+
+For GUI development, it may be desireable to specify a local build tree as the place for the python
+scripts to find the \tao executable and other modules. To accomplish this, set the environmental
+variable ACC_LOCAL_ROOT to the base directory of your local build tree.
+
+
+%-----------------------------------------------------------------
+\section{Starting the GUI}
+\label{s:gui.startup}
+From your system shell, you can execute the gui with the command
+\begin{example}
+  python -m pytao.gui
+\end{example}
+either from the \texttt{tao/python} directory, or from anywhere on your system if the pytao package is installed somewhere in your python path.  You can also specify any of the command line options that tao supports.  For example,
+\begin{example}
+  python -m pytao.gui -init_file ~/bmad_dist/tao/examples/cesr/tao.init -rf_on
+\end{example}
+This will prefill the settings for \texttt{init_file} and \texttt{rf_on}.
+The GUI starts with the window shown in Figure \ref{fig:startup}.
+From here, all of the command-line settings that Tao supports can be set (settings that are left blank are omitted when Tao is started).
+
+Towards the bottom of the window are some settings that are specific to the GUI.  The "Interface to Tao" setting controls whether the ctypes or pexpect backend for communicating with Tao will be used.
+Below it, the "Shared Library" or "Tao executable" setting points the GUI to the correct executable or shared object library to use.
+In most cases, the GUI will prefill this box by referencing the ACC_LOCAL_ROOT and ACC_ROOT_DIR environmental variables.
+
+Finally, the font size can be set as desired.
+Hitting Enter/Return while the font size box is in focus will adjust the font size of the startup window to give the user a sense of what the chosen font size will look like.
+
+Once all of the startup settings have been set, clicking "Start Tao" will initialize Tao and bring the user to the main GUI window.
+\begin{figure}
+\includegraphics[width=8cm]{figures/startup.png}
+\centering
+\caption{The GUI startup window.  In this example, the init file that tao should use has been specified.}
+\label{fig:startup}
+\end{figure}
+
+%--------------------------------------------------------------
+
+\subsection{GUI Initialization File}
 \label{s:gui.init.file}
 
 To speed up the initialization process, you can make an init file for the GUI.  This file should be called "gui.init", and it should be in the same directory from which you initialize the GUI.
@@ -97,28 +137,86 @@ gui.init should have each option on a separate line, and each option should be l
 
 The order in which you list options in gui.init is not important.
 
-File paths should be specified in full to be safe, but you can specify paths relative to the directory from which you launch main.py.  For example, "/home/username/file", "subfolder/my_file", and "../../path/to/another/file" would all be acceptable file paths.  You can also use your environmental variables and "~", as in "~/Documents/my_file" and "\$DIST_BASE_DIR/tao/file".
+File paths should be specified in full to be safe, but you can specify paths relative to the directory from which you launch main.py.  For example, "/home/username/file", "subfolder/my_file", and "../../path/to/another/file" would all be acceptable file paths.  You can also use your environmental variables and "\textasciitilde{}", as in "\textasciitilde{}/Documents/my_file" and "\$DIST_BASE_DIR/tao/file".
 
 Logic (true/false) options may be specified by T/F or True/False.
 
 You can also include comments with \#.  Any line with \# as its first non-whitespace character will be considered a comment and ignored.
 
 %-----------------------------------------------------------------
-\section{Developer Setup}
-\label{s:gui.develop}
 
-For GUI development, it may be desireable to specify a local build tree as the place for the python
-scripts to find the \tao executable and other modules. To accomplish this, set the environmental
-variable ACC_LOCAL_ROOT to the base directory of your local build tree.
+\section{The Main GUI Window}
+\label{s:gui.root.window}
+
+The main window for the GUI is shown in Figure \ref{fig:root.window}.
+\begin{figure}
+\centering
+\includegraphics[width=8cm]{figures/root_window.png}
+\caption{The main GUI window, showing the results of \texttt{show data} on the console.}
+\label{fig:root.window}
+\end{figure}
+From here, the user has access to all of the GUI's features.
+Command files can be called by browsing for them and then clicking "Run", with arguments specified in the "Arguments" below.
+In the future, the user will also be able to set up and run optimization routines from this window, although this feature is not currently available.
+
+The main window also has a console, where commands can be run in Tao exactly like in regular Tao.
+The console will also display warning messages if a command produces an error.
 
 %-----------------------------------------------------------------
-\section{Plotting Initialization}
-\label{s:gui.plot.init}
 
-When operating the GUI in matplotlib mode, you can specify a list of template plots to plot in matplotlib as soon as tao starts.  These templates should be listed in a file called plot.gui.init, which should be in the same directory from which you launch the gui.
+\section{Global Variables}
+\label{s:gui.global.variables}
 
-plot.gui.init should have one template listed per line and absolutely nothing else on the line.  The templates listed in plot.gui.init are checked against the list of templates that tao can plot, and if a template is not recognized it is simply ignored.
+Global variables in Tao can be viewed and modified from the global variables window as shown in Figure \ref{fig:gui.global.variables}.
+Once you have editted the global variables, clicking the "Set Global Variables" button will set the variables in Tao as appropriate.
 
+\begin{figure}
+\centering
+\includegraphics[width=10cm]{figures/globals.png}
+\caption{View and edit global variables with the Global Variables window.}
+\label{fig:gui.global.variables}
+\end{figure}
+
+%-----------------------------------------------------------------
+\section{Data}
+\label{s:gui.data}
+
+The GUI provides several windows for viewing and editing data arrays.
+
+\subsection{Viewing Data}
+\label{s:gui.data.view}
+
+Figure \ref{fig:gui.data.view} shows the various windows that the GUI provides for viewing data and making minor changes to data arrays.
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{figures/view_data.png}
+\caption{The GUI's data viewing windows.
+Top left: the Tao root window and the menu shortcut for viewing data.
+Top middle: The d2_data_array window, which list the currently defined d2_data_arrays for each universe.
+This window also includes links to view and edit (see section \ref{s:gui.data.edit}) existing d1_data_arrays.
+Bottom left: The d1_data_array window (in this case for orbit.x), showing all of the datums in the array orbit.x.
+Bottom right: The individual datum window (in this case for orbit.x[34]) displaying detailed datum properties and allowing the user to edit some of these properties.
+Top right: The bulk edit window (in this case for orbit.x) providing controls to quickly edit a few key properties for multiple datums in a d1_data_array.}
+\label{fig:gui.data.view}
+\end{figure}
+
+The d2_data_array window (top middle in Figure \ref{fig:gui.data.view}) displays all data arrays for a given universe.
+To view any existing d1_data_array, click on its "View" button.
+This window also provides the ability to edit any existing data array in detail (see Section \ref{s:gui.data.edit}), as well as functionality for writing existing data to a namelist (see Section \ref{s:gui.namelist}).
+
+The d1_data_array window (bottom left in Figure \ref{fig:gui.data.view}) allows the user to view an existing d1_data_array.
+This window displays important properties of each datum in the array, such as element name, meas, model, and design values, and weight, in a scrollable table.
+To view a datum in detail, double click on its row in the d1_data_array window.
+This will open the individual datum window for that datum, displaying all of its properties and allowing some of them to be editted.
+
+The d1_data_array window also allows the user to edit a few key properties of the datums in the array all at once using the bulk settings window (top right in Figure \ref{fig:gui.data.view}).
+This window is accessed by clicking on the "Bulk fill" button in the d1_data_array window.
+From here, the meas_value, good_user, and weight settings for the datums in the array can be edited in bulk.
+Changes may be applied to every datum in the array, or to only a specific range of datums using the range specifier.
+Once the desired settings have been specified, clicking the "Fill and apply" button will edit the d1_data_array as necessary, and changes will be reflected in the d1_data_array window.
+
+\subsection{Creating and Editing Data}
+\label{s:gui.data.edit}
 
 %-----------------------------------------------------------------
 \section{Plotting}
@@ -137,6 +235,15 @@ The save button allows the graph window to be saved as an image file. Using 'ctr
 If any floor plan or lat layout is present, double clicking on an element will open a window to view or edit element parameters.
 
 Floor plans contain a slider to scale the size of elements away from the element centerline. Clicking on the slider will adjust the width of the displayed elements.
+
+%-----------------------------------------------------------------
+\subsection{Plotting Initialization}
+\label{s:gui.plot.init}
+
+When operating the GUI in matplotlib mode, you can specify a list of template plots to plot in matplotlib as soon as tao starts.  These templates should be listed in a file called plot.gui.init, which should be in the same directory from which you launch the gui.
+
+plot.gui.init should have one template listed per line and absolutely nothing else on the line.  The templates listed in plot.gui.init are checked against the list of templates that tao can plot, and if a template is not recognized it is simply ignored.
+
 
 %-----------------------------------------------------------------
 \section{Lattice Templates}
@@ -163,3 +270,6 @@ name: another template
 
 This template file defines four templates: "template 1", "template 2", "another template", and an unnamed template (which has the switches -radiation_integrals -all).  Named templates are displayed by name in the gui, while unnamed templates are simply displayed by what switches they specify.
 
+%-----------------------------------------------------------------
+\section{Writing Namelists}
+\label{s:gui.namelist}
