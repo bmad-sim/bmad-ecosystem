@@ -4,7 +4,7 @@ tk_tao_parameter class, which handles displaying and editing a single
 parameter in tao
 '''
 import tkinter as tk
-import ttk
+from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 import sys

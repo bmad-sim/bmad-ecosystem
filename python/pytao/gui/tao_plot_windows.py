@@ -2,7 +2,7 @@
 Provides windows for viewing and editing plots in tao
 '''
 import tkinter as tk
-import ttk
+from tkinter import ttk
 from tkinter import messagebox
 
 import matplotlib
