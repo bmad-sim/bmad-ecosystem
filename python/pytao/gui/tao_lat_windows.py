@@ -2,7 +2,7 @@
 Provides windows for viewing the lattice and editting element attributes
 '''
 import tkinter as tk
-import ttk
+from tkinter import ttk
 from tkinter import messagebox
 
 from pytao.util.parameters import str_to_tao_param, tao_parameter_dict

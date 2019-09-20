@@ -2,7 +2,7 @@
 Provides miscellaneous windows needed in the GUI for tao
 '''
 import tkinter as tk
-import ttk
+from tkinter import ttk
 from tkinter import messagebox
 
 from .tao_widget import *

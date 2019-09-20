@@ -9,7 +9,6 @@ def module_check():
     missing = [] # Missing modules
     upgrade = False
     required = ["tkinter",
-            "ttk",
             "pexpect",
             "matplotlib"]
     for mod in required:

@@ -3,7 +3,7 @@ Contains the base classes used by many (if not all) of the windows
 in the GUI for tao.
 '''
 import tkinter as tk
-import ttk
+from tkinter import ttk
 from tkinter import messagebox
 import copy
 from .tao_widget import *
