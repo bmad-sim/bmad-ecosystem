@@ -12,8 +12,8 @@
 !   str_out -- Character(*): Output string
 !
 ! Example:
-!   call remove_quotes ('"This"', str_out)
-!   str_out -> 'This'
+!   remove_quotes ('"This"') -> 'This'
+!   remove_quotes ('Interior"not"removed') -> 'Interior"not"removed'
 !-                               
 
 function remove_quotes (str_in) result (str_out)
@@ -42,7 +42,10 @@ do i = 1, len(str_in)
   end select
 enddo
 
-if (i == len(str_in) + 1) return
+if (i == len(str_in) + 1) then
+  str_out = str_in
+  return
+endif
 
 do i = len(str_in), 1, -1
   select case (str_in(i:i))
@@ -60,5 +63,7 @@ do i = len(str_in), 1, -1
     return
   end select
 enddo
+
+str_out = str_in
 
 end function
