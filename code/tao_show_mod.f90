@@ -283,7 +283,7 @@ nl = 0
 rmt  = '(a, 9es16.8)'
 f3mt = '(a, 9(f0.3, 2x))'
 irmt = '(a, i0, a, es16.8)'
-imt  = '(a, i0, 9i8)'
+imt  = '(a, 9(i0, 2x))'
 iimt = '(a, i0, a, i8)'
 lmt  = '(a, 9(l1, 2x))'
 amt  = '(9a)'
@@ -1656,6 +1656,7 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %taylor_order                    = ', bmad_com%taylor_order
     nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
     nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order            = ', bmad_com%ptc_max_fringe_order
+    nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size          = ', bmad_com%space_charge_mesh_size
 
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
     nl=nl+1; write(lines(nl), lmt) '  %use_hard_edge_drifts            = ', bmad_com%use_hard_edge_drifts

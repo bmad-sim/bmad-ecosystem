@@ -583,7 +583,7 @@ character(*), parameter :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f, time, old_time
 
-logical calc_ok, too_many_lost, print_err, err, lost
+logical calc_ok, print_err, err, lost
 
 ! Initialize 
 
@@ -601,7 +601,6 @@ tao_branch%track_state = moving_forward$  ! Needed by tao_evaluate_a_datum
 ix_track = moving_forward$
 lost = .false.
 calc_ok = .true.
-too_many_lost = .false.
 
 tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
@@ -656,7 +655,11 @@ do
 
   else
     if (j /= ie1) then 
-      call track_beam (lat, beam, branch%ele(j-1), ele, too_many_lost, centroid = tao_branch%orbit)
+      call track_beam (lat, beam, branch%ele(j-1), ele, err, centroid = tao_branch%orbit)
+      if (err) then
+        calc_ok = .false.
+        return
+      endif
     endif
 
     if (uni_ele(j)%save_beam .or. j == ie1 .or. j == ie2 .or. &
