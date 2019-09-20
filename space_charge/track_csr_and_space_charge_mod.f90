@@ -320,20 +320,22 @@ do i_step = 0, n_step
 
   ! ns = 0 is the unshielded kick.
 
-  do ns = 0, csr_param%n_shield_images
-    ! The factor of -1^ns accounts for the sign of the image currents
-    ! Take into account that at the endpoints we are only putting in a half kick.
-    ! The factor of two is due to there being image currents both above and below.
+  if (ele%space_charge_method == slice$ .or. ele%csr_method == one_dim$) then
+    do ns = 0, csr_param%n_shield_images
+      ! The factor of -1^ns accounts for the sign of the image currents
+      ! Take into account that at the endpoints we are only putting in a half kick.
+      ! The factor of two is due to there being image currents both above and below.
 
-    csr%kick_factor = (-1)**ns
-    if (i_step == 0 .or. i_step == n_step) csr%kick_factor = csr%kick_factor / 2
-    if (ns /= 0) csr%kick_factor = 2* csr%kick_factor
+      csr%kick_factor = (-1)**ns
+      if (i_step == 0 .or. i_step == n_step) csr%kick_factor = csr%kick_factor / 2
+      if (ns /= 0) csr%kick_factor = 2* csr%kick_factor
 
-    csr%y_source = ns * csr_param%beam_chamber_height
+      csr%y_source = ns * csr_param%beam_chamber_height
 
-    call csr_bin_kicks (ele, s0_step, csr, err_flag)
-    if (err_flag) return
-  enddo
+      call csr_bin_kicks (ele, s0_step, csr, err_flag)
+      if (err_flag) return
+    enddo
+  endif
 
   ! Give particles a kick
 
