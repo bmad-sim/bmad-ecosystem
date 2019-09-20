@@ -231,7 +231,6 @@ if (present(plot)) allocate(plot(np))
 if (present(plot)) plot = p(1:np)
 
 if (.not. present(graph) .and. .not. present(curve)) then
-  call end_stuff(2)
   return
 endif
 
@@ -349,9 +348,21 @@ end subroutine point_to_plot
 subroutine end_stuff(status)
 integer status
 !
-if (status >=1 .and. present(curve)) allocate(curve(0))
-if (status >=2 .and. present(graph)) allocate(graph(0))
-if (status >=3 .and. present(plot))  allocate(plot(0))
+if (status >= 1 .and. present(curve)) then
+  if (allocated(curve)) deallocate(curve)
+  allocate(curve(0))
+endif
+
+if (status >= 2 .and. present(graph)) then
+  if (allocated(graph)) deallocate(graph)
+  allocate(graph(0))
+endif
+
+if (status >= 3 .and. present(plot)) then
+  if (allocated(plot)) deallocate(plot)
+  allocate(plot(0))
+endif
+
 if (status == 4) err = .true.
 
 end subroutine end_stuff
