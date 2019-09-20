@@ -53,6 +53,7 @@ logical err
 
 do i = 1, size(beam%bunch)
   call track_bunch(lat, beam%bunch(i), ele1, ele2, err, centroid, direction)
+  if (err) return
 enddo
 
 end subroutine track_beam
@@ -229,6 +230,7 @@ csr_sc_on = bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. 
 if (csr_sc_on .and. ele%key /= match$) then
   if (csr_param%use_csr_old) then
     call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
+    if (err) return
   else
     if (.not. present(centroid)) then
       call out_io (s_fatal$, r_name, 'BUNCH CENTROID MUST BE SUPPLIED FOR CSR CALCULATION!')
@@ -236,6 +238,7 @@ if (csr_sc_on .and. ele%key /= match$) then
       return
     endif
     call track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err)
+    if (err) return
   endif
   bunch_end%ix_ele = ele%ix_ele
 

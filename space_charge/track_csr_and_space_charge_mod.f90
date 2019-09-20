@@ -180,10 +180,17 @@ if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
 endif
 
 if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
-  call out_io (s_fatal$, r_name, &
-            'CSR_PARAM%N_BIN (\i0\) MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1 (\i0\+1)!', &
-              i_array = [csr_param%n_bin, csr_param%particle_bin_span])
-  if (global_com%exit_on_error) call err_exit
+  if (csr_param%n_bin == 0) then
+    call out_io (s_error$, r_name, &
+            'CSR_PARAM%N_BIN IS ZERO WHICH INDICATES THAT THE CSR_PARAM STRUCTURE HAS NOT BEEN SET BY THE USER.', &
+            'ALL PARTICLES IN THE BUNCH WILL BE MARKED AS LOST.')
+  else
+    call out_io (s_error$, r_name, &
+            'CSR_PARAM%N_BIN (= \i0\) MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1 (= \i0\+1)!', &
+            'ALL PARTICLES IN THE BUNCH WILL BE MARKED AS LOST.', &
+             i_array = [csr_param%n_bin, csr_param%particle_bin_span])
+  endif
+  bunch_end%particle%state = lost$
   return
 endif
 
