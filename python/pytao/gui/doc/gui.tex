@@ -218,10 +218,121 @@ Once the desired settings have been specified, clicking the "Fill and apply" but
 \subsection{Creating and Editing Data}
 \label{s:gui.data.edit}
 
+The GUI also supports the creation of data arrays on the fly through the create data window.
+This window can be accessed as shown in figure \ref{fig:gui.create.data.d2}.
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{figures/create_d2.png}
+\caption{Left: the data creation window can be accessed from the root window's menubar. \\
+Right: The first pane of the data creation window.}
+\label{fig:gui.create.data.d2}
+\end{figure}
+In the first pane of the data creation window, the user can input the desired settings for the new d2_data_array.
+The user can also select and existing d2_data_array to clone.
+This will copy the d2 properties of that array, as well as the d1 properties and all of the datums for each d1 array.
+Once this information has been input, the user can hit the "Next" button to go to the d1_data_array pane.
+
+The d1_array pane of the data creation window is where most of the data array's properties are set.
+This pane is shown in Figure \ref{fig:gui.create.data.d1}.
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{figures/create_d1.png}
+\caption{The d1_array pane of the data creation window.  Top left: Here, only one d1_array has been created (called my_d1), its default data type has been set to alpha.a, and the start and end indices have been set to 1 and 12 respectively.  \\
+Bottom left: the lattice browser for the ele_names that will be used with my_d1.
+Right: Here, the user has defined three d1_arrays: x, y, and z.
+The data type for new_data_array.x has been set to velocity.x, and the start and end indices have been set to 1 and 12.
+Here, the user is currently editing new_data_array.x[3], where the meas value has been set to 0.2 and the ref value has been set to 0.4.}
+\label{fig:gui.create.data.d1}
+\end{figure}
+The d1_array pane of the data creation window displays each d1_array in its own tab.
+To add a tab, click on the "+" tab at the top of the window.
+Tabs can also be removed by navigating to them and then clicking on their delete button.
+An existing tab can also be duplicated by clicking on the duplicate button right under the delete button.
+This may be useful if you want to define several d1_arrays with many of the same properties, but want them each to have a different data type, for example.
+
+The next section of the window holds the d1-level settings for the array.
+Here, the d1 name, start index, and end index can be set, as well as the default data_source, data_type, merit type, weight, and good user value for the d1_array.
+
+The next section allows the users to set the ele_name, ele_start_name, and ele_ref_name for the d1_array en-masse.
+Clicking on these buttons will bring up the lattice browser window (bottom left in Figure \ref{fig:gui.create.data.d1}).
+This window is essentially identical to the main lattice window for the GUI (see Section \ref{s:gui.lat}), with a few additions.
+Towards the top right of the window, the user can specify which indices to read the element names into.
+Clicking "Apply Element Names" will then write the ele names that are currently in the table sequentially into the d1_array's datums.
+In the example shown in Figure \ref{fig:gui.create.data.d1}, new_data_array.my_d1[1]|ele_name will be set to "Q00W\#1", new_data_array.my_d1[2]|ele_name will be set to "Q01W", and so on.
+If there are more elements in the table than there are datums to write to, the table will be truncated and only the first elements in the table will be used.
+If there are less elements in the table than there are datums to write to, the elements in the table will be looped through so that each datum gets an element name.
+
+The bottom portion of the d1_array pane of the data creation window allows the user to set the properties of the individual datums in the array.
+Once a start and end index have been specified, the "Datum" drop down menu will be populated with all of the datum indices.
+Selecting an index will bring up the datum settings for that datum, as shown in the right of Figure \ref{fig:gui.create.data.d1}.
+Note that any settings that have a d1-level default value are automatically filled in.
+Once the user edits a property of a datum, that property will no longer be auto-filled from the d1-level default settings, even if those default values are subsequently edited.
+If the user wants to explicitly fill a d1 setting to that d1_array's datums, they may do so with the corresponding "Fill to datums" button.
+
+Once all of the data settings have been adjusted as necessary, the user must click the "Create" button to create the d2_array in Tao.  Doing so will close the data creation window.
+
+The data creation window can also be accessed from the d2_data window discussed in Section \ref{s:gui.data.view}.
+Clicking on the "Edit" button for any d2 array will load that array into the data creation window, just as if the user had cloned that array from the d2 pane of the data creation window.
+This is shown in Figure \ref{fig:gui.edit.data}
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{figures/edit_data.png}
+\caption{Editting an existing d2_data_array.}
+\label{fig:gui.edit.data}
+\end{figure}
+Note that any changes made in the data creation window will not take effect in Tao until the user clicks the "Create" button.
+For example, clicking the delete button for the orbit.x array would not actually delete the array in Tao until the user clicks "Create".
+
+%-----------------------------------------------------------------
+\section{Variables}
+\label{s:gui.variables}
+
+Variables are viewed and edited in the GUI almost exactly the same as data, as shown in Figure \ref{fig:gui.variables}.
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{figures/variables.png}
+\caption{The variable viewing and editing windows in the GUI.
+Top middle: accessing the v1 variable window from the root window (console hidden).
+Top left: the v1 variable window, showing the currently defined v1 variable arrays.
+Bottom left: the variable window for quad_k1, displaying each of its variables and their key attributes.
+Middle: the bulk fill window for quad_k1.
+Bottom middle: the individual variable window for quad_k1[5], showing all of its settings and allowing the user to edit some of them.
+Right: The variable array creation window.}
+\label{fig:gui.variables}
+\end{figure}
+An important exception is that, since there are only v1 variables arrays and no v2 arrays of v1 arrays, the variable creation window only has one pane, and separate v1 arrays created in different tabs of the window are completely independent.
+Also, the user can clone an existing v1 array with the drop down menu below the "Duplicate" button.
+
 %-----------------------------------------------------------------
 \section{Plotting}
 \label{s:gui.plot}
 
+One of the GUI's strong suits is the ability to view an manipulate plots using matplotlib.
+Existing plots can be viewed and edited, and new templates can be defined on the fly.
+
+Note: the GUI does support classic PG/PLplots, but it is recommended to use matplotlib as the plotting engine due to the extra fatures it offers.
+
+\subsection{Viewing Plots}
+\label{s:gui.plot.view}
+Figure \ref{fig:gui.plot.view} shows how to plot existing templates in the GUI.
+\begin{figure}
+\centering
+\includegraphics[width=12cm]{figures/view_plot.png}
+\caption{Viewing plots with the GUI.
+Top left: accessing the plot template list from the root window.
+Top right: the plot template window.
+Bottom left: a plot of the alpha function with the lat_layout shown below.
+Bottom right: the floor_plan plot.}
+\label{fig:gui.plot.view}
+\end{figure}
+The plot template window lists all of the currently defined plot templates as well as their descriptions.
+A template can be plotted either by double clicking on it, or by selecting it and then clicking the "Plot" button.
+This will open a window displaying the selected plot (see Section \ref{s:gui.plot.interaction} for more information).
+The user can also edit an existing template by selecting it in the tempalte window and clicking "Edit Template".
+
+
+\subsection{Interacting with Plots}
+\label{s:gui.plot.interaction}
 Interacting with plots in the GUI is primarily done using the toolbar along the bottom of the plotting window.
 
 Starting from the left, the home button returns the graph to the starting view. The back button returns to the previous view of the graph, working as an undo button. The forward button undoes the effects of the back button. All of these buttons also have keyboard shortcuts, 'h' or 'r' for home, 'c' or 'left arrow' for back, and 'v' or 'right arrow' for forward.
@@ -246,8 +357,10 @@ plot.gui.init should have one template listed per line and absolutely nothing el
 
 
 %-----------------------------------------------------------------
-\section{Lattice Templates}
+\section{Lattice Elements}
 \label{s:gui.lat}
+\subsection{Lattice Templates}
+\label{s:gui.lat.templates}
 
 You can save your settings from the lattice table window in a template file, which can then be loaded and added to from within the gui.
 The file can be named anything, and the formatting is as follows:
