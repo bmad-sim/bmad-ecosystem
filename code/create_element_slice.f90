@@ -22,7 +22,9 @@
 !   include_upstream_end   -- Logical: Sliced_ele contains the ele's entrance end?
 !   include_downstream_end -- Logical: Sliced_ele contains the ele's exit end?
 !   old_slice         -- Logical, optional: Previous slice. If present this saves computation
-!                          time of the refernece energy and time at the start of the present slice.
+!                          time of the reference energy and time at the start of the present slice.
+!                          Also makes the ref energy continuous (there can be some small differences when
+!                          using, say, runge_kutta tracking due to tracking tolerances).
 !
 ! Output:
 !   sliced_ele -- Ele_struct: Sliced_ele element with appropriate values set.
@@ -105,7 +107,7 @@ if (in_len == 0) then
   return
 endif
 
-! Save values from old_slice if present
+! Save values from old_slice if present in case the old_slice actual arg is same as sliced_ele.
 
 if (present(old_slice)) then
   ele0%value(p0c$)   = old_slice%value(p0c$)

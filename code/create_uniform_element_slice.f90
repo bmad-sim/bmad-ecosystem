@@ -52,7 +52,7 @@ type (lat_param_struct) param
 real(rp), optional :: s_start, s_end
 real(rp) l_slice, s0, s1
 integer i_slice, n_slice_tot
-logical at_upstream_end, at_downstream_end, err_exit
+logical at_upstream_end, at_downstream_end, err_flag
 
 !
 
@@ -68,6 +68,6 @@ at_downstream_end = (i_slice == n_slice_tot .and. s1 == ele%value(l$))
 
 l_slice = (s1 - s0) / n_slice_tot
 call create_element_slice (sliced_ele, ele, l_slice, s0 + l_slice * (i_slice - 1), &
-                                      param, at_upstream_end, at_downstream_end, err_exit)
+                                      param, at_upstream_end, at_downstream_end, err_flag, sliced_ele)
 
 end subroutine
