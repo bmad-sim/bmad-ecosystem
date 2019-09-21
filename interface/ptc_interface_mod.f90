@@ -1361,8 +1361,14 @@ type (taylor_struct), intent(in) :: bmad_taylor
 type (universal_taylor) :: u_t
 
 integer j, n
+character(*), parameter :: r_name = 'ptc_taylor_equal_bmad_taylor'
 
 !
+
+if (.not. associated(bmad_taylor%term)) then
+  call out_io (s_error$, r_name, 'TAYLOR SERIES NOT DEFINED!')
+  return
+endif
 
 n = size(bmad_taylor%term)
 allocate (u_t%n, u_t%nv, u_t%c(n), u_t%j(n, 6))
@@ -3992,10 +3998,12 @@ if (ele%key == taylor$ .or. ele%key == match$) then
   call taylor_to_real_8 (ele%taylor, beta0, beta1, ptc_re8, ref0, ref1)
   ptc_c_damap = ptc_re8
 
-  do j = 0, 3
-    ptc_taylor = ele%spin_taylor(j)
-    ptc_c_damap%q%x(j) = ptc_taylor
-  enddo
+  if (associated(ele%spin_taylor(1)%term)) then
+    do j = 0, 3
+      ptc_taylor = ele%spin_taylor(j)
+      ptc_c_damap%q%x(j) = ptc_taylor
+    enddo
+  endif
 
   call kill (ptc_taylor)
   call kill (ptc_re8);
