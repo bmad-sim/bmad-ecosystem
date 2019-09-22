@@ -10,8 +10,7 @@ from tkinter import filedialog
 import sys
 import os
 
-from pytao.util.parameters import tao_parameter_dict
-from pytao.util.parameters import tao_parameter
+from pytao.util.parameters import tao_parameter, str_to_tao_param, tao_parameter_dict
 from .data_type_list import data_type_list
 #from .tao_data_windows import tao_new_data_window, tao_d1_data_window
 
@@ -143,6 +142,47 @@ class tk_tao_parameter():
             self._s_refresh()
             self._trace_cb = self.tk_var.trace('w', self._fill_widgets)
             self._traced = True
+        elif self.param.type == 'DAT_TYPE_E':
+            self.tk_var = tk.StringVar()
+            self.tk_var.set(self.param.value)
+            self.tk_wid = tk.Frame(frame)
+            # Sub-widget for the DAT_TYPE portion
+            # Parse out the extra info around the DAT_TYPE
+            # dat_type_str == part of self.param.value relevant to the dat_type
+            dat_type_str = self.param.value
+            if self.param.value.find('[') == 0:
+                if self.param.value.find('@') != -1:
+                    dat_type_str = self.param.value[self.param.value.find('@')+1:]
+            if dat_type_str.find('[') != -1:
+                dat_type_str = dat_type_str[:dat_type_str.find('[')]
+            dat_type_str = self.param.name + ';DAT_TYPE;' + ('T;' if self.param.can_vary else 'F;') + dat_type_str
+            self._dat_type = tk_tao_parameter(
+                    str_to_tao_param(dat_type_str),
+                    self.tk_wid, self.pipe, data_source=data_source)
+            # DAT_TYPE_E gets a few extra input fields
+            self._uvar = tk.StringVar() # Universe range
+            self._u = tk.Entry(self.tk_wid, textvariable=self._uvar)
+            self._u.configure(width=10)
+            self._evar = tk.StringVar() # Element index
+            self._e = tk.Entry(self.tk_wid, textvariable=self._evar)
+            self._e.configure(width=10)
+            self._cvar = tk.StringVar() # Component
+            self._c = tk.Entry(self.tk_wid, textvariable=self._cvar)
+            self._c.configure(width=10)
+            # Extra labels to put around uni, ele, component
+            self._labels = [ tk.Label(self.tk_wid, text='['),
+                    tk.Label(self.tk_wid, text=']@'),
+                    tk.Label(self.tk_wid, text='['),
+                    tk.Label(self.tk_wid, text=']|')]
+            # Pack everything
+            self._labels[0].pack(side='left')
+            self._u.pack(side='left')
+            self._labels[1].pack(side='left')
+            self._dat_type.tk_wid.pack(side='left', fill='both', expand=1)
+            self._labels[2].pack(side='left')
+            self._e.pack(side='left')
+            self._labels[3].pack(side='left')
+            self._c.pack(side='left')
         elif self.param.type == 'STRUCT':
             self.tk_var = tk.StringVar()
             self.tk_var.set('STRUCT')
@@ -169,19 +209,27 @@ class tk_tao_parameter():
                 self.tk_var.trace('w', self._write_comps)
                 self._c_refresh()
 
-        if self.param.type not in ['DAT_TYPE', 'REAL_ARR', 'STRUCT', 'COMPONENT']:
+        if self.param.type not in ['DAT_TYPE', 'DAT_TYPE_E', 'REAL_ARR', 'STRUCT', 'COMPONENT']:
             if (self.param.type != 'FILE') and (not self.param.is_ignored):
                 self.tk_wid.config(disabledforeground="black")
-        elif self.param.type != 'STRUCT':
+        elif self.param.type not in ['DAT_TYPE_E', 'STRUCT']:
             for widget in self._s:
                 widget.config(disabledforeground="black")
+        elif self.param.type == 'DAT_TYPE_E':
+            self._u.config(disabledforeground="black")
+            self._e.config(disabledforeground="black")
+            self._c.config(disabledforeground="black")
         self.tk_label = tk.Label(frame, text=self.param.name)
         if not self.param.can_vary and not self.param.is_ignored:
-            if self.param.type not in ['DAT_TYPE', 'REAL_ARR', 'STRUCT']:
+            if self.param.type not in ['DAT_TYPE', 'DAT_TYPE_E', 'REAL_ARR', 'STRUCT']:
                 self.tk_wid.config(state="disabled")
-            elif self.param.type != 'STRUCT':
+            elif self.param.type not in ['STRUCT', 'DAT_TYPE_E']:
                 for widget in self._s:
                     widget.config(state="disabled")
+            elif self.param.type == 'DAT_TYPE_E':
+                self._u.config(state='disabled')
+                self._e.config(state='disabled')
+                self._c.config(state='disabled')
 
     def value(self):
         '''
@@ -380,8 +428,10 @@ class tk_tao_parameter():
         if necessary
         '''
         # Safeguard in case this method gets called for a normal tk_tao_param
-        if self.param.type != 'DAT_TYPE':
+        if self.param.type not in ['DAT_TYPE', 'DAT_TYPE_E']:
             return
+        if self.param.type == 'DAT_TYPE_E':
+            return self._dat_type._s_refresh()
         # Clear the existing slaves
         for item in self._s:
             item.destroy()
@@ -472,11 +522,21 @@ class tk_tao_parameter():
         Updates self.tk_var with the current contents of
         self._mvar and self._svar
         '''
+        print("_update_tk_var called for " + self.param.name)
+        print("param.type = " + self.param.type)
+        print("self._data_soure = " + self._data_source)
+        if self.param.type == 'DAT_TYPE_E':
+            self._dat_type._update_tk_var()
+            self.tk_var.set('['+self._uvar.get()+']@'
+                    +self._dat_type.tk_var.get()
+                    +'['+self._evar.get()+']|'
+                    +self._cvar.get())
         if self.param.type != 'DAT_TYPE':
             return
-        if self._data_source not in ['lat', 'beam']:
-            return
+        #if self._data_source not in ['lat', 'beam']:
+        #    return
         new_tk_var = self._mvar.get()
+        print("new_tk_var = " + new_tk_var)
         for k in range(len(self._svar)):
             # Input validation (TODO)
             p = self._stype[k]
@@ -516,11 +576,13 @@ class tk_tao_parameter():
                     new_tk_var = new_tk_var + '.' + '0'
             else:
                 new_tk_var = new_tk_var + '.' + self._svar[k].get()
+            print("new_tk_var = " + new_tk_var)
         # Special case: velocity. -> velocity
         if new_tk_var == "velocity.":
             new_tk_var = "velocity"
         # Un-trace tk_var to prevent repeatedly running this method
         self._no_s_refresh = True
+        print("new_tk_var = " + new_tk_var)
         self.tk_var.set(new_tk_var)
         # Re-trace tk_var
         self._no_s_refresh = False
@@ -621,6 +683,8 @@ class tk_tao_parameter():
         If pipe == 0, returns True by default
         If self.param.type != DAT_TYPE, returns false
         '''
+        if self.param.type == 'DAT_TYPE_E':
+            return self._dat_type._has_ele()
         if self.param.type != 'DAT_TYPE':
             return False
         if self.pipe == 0:
@@ -638,6 +702,8 @@ class tk_tao_parameter():
         Returns True if self.tk_var.get() can take an s_offset
         Returns False if self.param.type != DAT_TYPE
         '''
+        if self.param.type == 'DAT_TYPE_E':
+            return self._dat_type._has_s_offset()
         if self.param.type != 'DAT_TYPE':
             return False
 
@@ -719,6 +785,7 @@ class tk_tao_parameter():
                 break
         self._handle_block = True
         self.tk_var.set(val)
+        print(self.param.name + 'set to ' + val)
         self._handle_block = False
         self._c_refresh()
 
