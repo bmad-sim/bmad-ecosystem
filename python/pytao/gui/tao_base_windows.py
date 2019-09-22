@@ -1220,5 +1220,66 @@ class ele_shape_frame(tk.Frame):
         self.parent = parent
         self.pipe = pipe
         tk.Frame.__init__(self, parent)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
-        tk.Label(self, text="COMING SOON: a frame for viewing/editing lattice element shapes").pack(fill='both', expand=1)
+        self.title_text = tk.StringVar()
+        self.title = tk.Label(self, textvariable=self.title_text, font=('Sans', 16, 'bold'))
+        self.title.grid(row=0, column=0, sticky='EW')
+
+        # Shape table
+        self.table_frame = tk.Frame(self)
+        self.table_frame.grid(row=1, column=0, sticky='NSEW')
+        self.title_list = ["Index", "Ele ID", "Shape", "Color", "Size", "Label", "Draw", "Multi"]
+        self.shape_table = ttk.Treeview(self.table_frame, columns=self.title_list, show='headings')
+        # Column titles
+        for title in self.title_list:
+            self.shape_table.heading(title, text=title)
+            self.shape_table.column(title, stretch=True, anchor='center')
+        # Scrollbars
+        hbar = ttk.Scrollbar(
+                self.table_frame, orient="horizontal", command=self.shape_table.xview)
+        vbar = ttk.Scrollbar(
+                self.table_frame, orient="vertical", command=self.shape_table.yview)
+        self.shape_table.configure(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
+
+        vbar.pack(side="right", fill="y", expand=0)
+        hbar.pack(side="bottom", fill='x', expand=0)
+        self.shape_table.pack(side="left", fill="both", expand=1)
+
+        self.refresh()
+
+
+    def refresh(self, who="lat_layout"):
+        '''
+        Sets the table contents equal to the output of
+        python plot_shapes lat_layout/floor_plan as requested
+        '''
+        if who not in ["lat_layout", "floor_plan"]:
+            return
+
+        # Clear existing rows
+        for item in self.shape_table.get_children():
+            self.shape_table.delete(item)
+
+        widths = [0]*len(self.title_list) # tracks column widths
+        # Fill rows
+        ele_shapes = self.pipe.cmd_in('python plot_shapes ' + who)
+        ele_shapes = ele_shapes.splitlines()
+        for row in ele_shapes:
+            row = row.split(';')
+            self.shape_table.insert("", "end", values=row)
+            for i in range(len(row)):
+                widths[i] = max([len(row[i])*12, widths[i]])
+
+        # Set column widths appropriately
+        for j in range(len(self.title_list)):
+            widths[j] = max([len(self.title_list[j])*12, widths[j]])
+            self.shape_table.column(self.title_list[j], width=widths[j], minwidth=widths[j])
+
+        # Double click to edit shape
+        #self.tree.bind('<Double-Button-1>', self.lw_detail_callback)
+        self.widths = widths
+
+        # Set title
+        self.title_text.set("Lat Layout Shapes" if who=="lat_layout" else "Floor Plan Shapes")
