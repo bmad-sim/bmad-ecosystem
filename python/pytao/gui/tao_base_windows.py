@@ -1215,13 +1215,15 @@ class ele_shape_frame(tk.Frame):
 
     parent: the parent frame/Toplevel where this frame will be placed
     pipe: the tao_interface used to querry/set ele shapes
+    which: either "lat_layout" or "floor_plan"
     '''
-    def __init__(self, parent, pipe):
+    def __init__(self, parent, pipe, which):
         self.parent = parent
         self.pipe = pipe
         tk.Frame.__init__(self, parent)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
+        self.type = which
 
         self.title_text = tk.StringVar()
         self.title = tk.Label(self, textvariable=self.title_text, font=('Sans', 16, 'bold'))
@@ -1249,22 +1251,20 @@ class ele_shape_frame(tk.Frame):
 
         self.refresh()
 
-
-    def refresh(self, who="lat_layout"):
+    def refresh(self):
         '''
         Sets the table contents equal to the output of
         python plot_shapes lat_layout/floor_plan as requested
         '''
-        if who not in ["lat_layout", "floor_plan"]:
+        if self.type not in ["lat_layout", "floor_plan"]:
             return
-
         # Clear existing rows
         for item in self.shape_table.get_children():
             self.shape_table.delete(item)
 
         widths = [0]*len(self.title_list) # tracks column widths
         # Fill rows
-        ele_shapes = self.pipe.cmd_in('python plot_shapes ' + who)
+        ele_shapes = self.pipe.cmd_in('python plot_shapes ' + self.type)
         ele_shapes = ele_shapes.splitlines()
         for row in ele_shapes:
             row = row.split(';')
@@ -1282,4 +1282,23 @@ class ele_shape_frame(tk.Frame):
         self.widths = widths
 
         # Set title
-        self.title_text.set("Lat Layout Shapes" if who=="lat_layout" else "Floor Plan Shapes")
+        self.title_text.set("Lat Layout Shapes" if self.type=="lat_layout" else "Floor Plan Shapes")
+
+    def edit_shape(self):
+        '''
+        Opens a window for editing the selected ele_shape
+        '''
+        pass
+
+    def add_shape(self):
+        '''
+        Adds a row to the ele_shape table
+        '''
+        pass
+
+    def move_shape(self, new_pos):
+        '''
+        Moves the selected shape to the new position and
+        shifts all of the lower shapes down one index
+        '''
+        pass
