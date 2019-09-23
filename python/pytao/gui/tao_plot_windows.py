@@ -1194,7 +1194,8 @@ class new_graph_frame(tk.Frame):
         self.curve_frame = tabbed_frame(self, lambda arg : new_curve_frame(arg, self))
 
         # Element shapes (for lat_layouts and floor_plans)
-        self.ele_frame = ele_shape_frame(self, self.pipe)
+        self.lat_layout_frame = ele_shape_frame(self, self.pipe, "lat_layout")
+        self.floor_plan_frame = ele_shape_frame(self, self.pipe, "floor_plan")
 
         # Grid everything else
         self._scroll_frame.grid(row=2+len(self.head_wids), column=0, columnspan=3, sticky='NSEW')
@@ -1231,12 +1232,14 @@ class new_graph_frame(tk.Frame):
                 label_width = max(label_width, child.winfo_width())
         self._uf.grid_columnconfigure(0, minsize=label_width)
         # Swap between self.curve_frame or self.ele_frame as necessary
-        if self.type in ['lat_layout', 'floor_plan']:
-            self.curve_frame.grid_forget()
-            self.ele_frame.grid(row=0, column=1, sticky='NSEW')
-            self.ele_frame.refresh(self.type)
+        self.curve_frame.grid_forget()
+        self.lat_layout_frame.grid_forget()
+        self.floor_plan_frame.grid_forget()
+        if self.type == 'lat_layout':
+            self.lat_layout_frame.grid(row=0, column=1, sticky='NSEW')
+        elif self.type == 'floor_plan':
+            self.floor_plan_frame.grid(row=0, column=1, sticky='NSEW')
         else:
-            self.ele_frame.grid_forget()
             self.curve_frame.grid(row=0, column=1, sticky='NSEW')
             for curve in self.curve_frame.tab_list:
                 curve.refresh()
