@@ -81,21 +81,21 @@ if (bbu_param%hom_order_cutoff > 0) then
     ele => lat_in%ele(i)
     ! Find cavity element with lr_wake
     if (.not. associated(ele%wake)) cycle
-    if (.not. allocated(ele%wake%lr_mode)) cycle
-    n = count(ele%wake%lr_mode(:)%m > bbu_param%hom_order_cutoff)
+    if (.not. allocated(ele%wake%lr%mode)) cycle
+    n = count(ele%wake%lr%mode(:)%m > bbu_param%hom_order_cutoff)
     if (n == 0) cycle  !All HOMs order <= cutoff m, nothing to remove
-    if (n == size(ele%wake%lr_mode)) then  ! All HOMs order > m, remove this lcavity  
-      deallocate (ele%wake%lr_mode)
+    if (n == size(ele%wake%lr%mode)) then  ! All HOMs order > m, remove this lcavity  
+      deallocate (ele%wake%lr%mode)
       cycle
     endif
     !! If some (not all) HOMs order > m, extract the HOMs with order <= m 
-    lr => ele%wake%lr_mode
-    nn = size(ele%wake%lr_mode) - n    ! nn = number of HOMs to be kept
-    allocate(ele%wake%lr_mode(nn))
+    lr => ele%wake%lr%mode
+    nn = size(ele%wake%lr%mode) - n    ! nn = number of HOMs to be kept
+    allocate(ele%wake%lr%mode(nn))
     n = 0
     do j = 1, size(lr)
       if (lr(j)%m > bbu_param%hom_order_cutoff) cycle
-      n = n + 1; ele%wake%lr_mode(n) = lr(j)
+      n = n + 1; ele%wake%lr%mode(n) = lr(j)
     enddo
     deallocate(lr)
   enddo
@@ -122,7 +122,7 @@ if (bbu_param%hybridize) then
     if (ele%key /= lcavity$) cycle
     if (.not. bbu_param%keep_all_lcavities) then
       if (.not. associated (ele%wake)) cycle
-      if (size(ele%wake%lr_mode) == 0) cycle
+      if (size(ele%wake%lr%mode) == 0) cycle
     endif
     ele%select = .true.
   enddo

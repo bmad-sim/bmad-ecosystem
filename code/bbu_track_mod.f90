@@ -116,7 +116,7 @@ do i = 1, lat%n_ele_track
     if (ixs /= wake_ele%n_slave) cycle  ! Only use the last slave of a super_lord
   endif
   if (.not. associated(wake_ele%wake)) cycle
-  if (size(wake_ele%wake%lr_mode) == 0) cycle
+  if (size(wake_ele%wake%lr%mode) == 0) cycle
   n_stage = n_stage + 1
 enddo
 
@@ -155,7 +155,7 @@ do i = 1, lat%n_ele_track
     if (ixs /= wake_ele%n_slave) cycle  ! Only consider the last slave of a super_lord
   endif
   if (.not. associated(wake_ele%wake)) cycle
-  if (size(wake_ele%wake%lr_mode) == 0) cycle
+  if (size(wake_ele%wake%lr%mode) == 0) cycle
   j = j + 1
   
   !stage j holds the index of the "wake element", i
@@ -706,8 +706,8 @@ i = ix_stage_last_tracked
 i1 = bbu_beam%stage(i)%ix_stage_pass1    ! Find the corresponding stage of 1st pass 
 wake_ele => lat%ele(bbu_beam%stage(i1)%ix_ele_lr_wake)   ! Find the wake element (cavity) of that corresponding stage
 !! Find which wake of the stage has the max voltage
-do j = 1, size(wake_ele%wake%lr_mode)  ! Number of lr wakes assigned to the cavity
-  lr => wake_ele%wake%lr_mode(j)
+do j = 1, size(wake_ele%wake%lr%mode)  ! Number of lr wakes assigned to the cavity
+  lr => wake_ele%wake%lr%mode(j)
   hom_voltage2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2) 
   if (hom_voltage_max < hom_voltage2) then
     hom_voltage_max = hom_voltage2                 ! store the max voltage
@@ -742,7 +742,7 @@ bbu_beam%hom_voltage_max = bbu_beam%stage(ixm)%hom_voltage_max
 !! This will slow down the program a lot.
 !! Make sure the only the 1st cavity is assigned with HOMs
 ix_test = bbu_beam%stage(1)%ix_ele_lr_wake   ! Find the wake element (cavity) of that corresponding stage
-lr_test => lat%ele(ix_test)%wake%lr_mode(1)
+lr_test => lat%ele(ix_test)%wake%lr%mode(1)
 hom_voltage_test = sqrt( max(lr_test%b_sin**2 + lr_test%b_cos**2, lr_test%a_sin**2 + lr_test%a_cos**2)) 
 !o = lunget()
 !write (filename,"('Volt',I3.3,'.dat')") n_period  
@@ -818,7 +818,7 @@ type (bbu_beam_struct), target :: bbu_beam !(input)
 type (bunch_struct), pointer :: bunch
 type (bbu_param_struct) bbu_param          !(input)
 type (bbu_stage_struct), pointer :: this_stage    !(input)
-type (wake_lr_mode_struct), pointer :: lr
+type (wake_lr_struct), pointer :: lr
 
 integer :: i, ios
 integer, save :: iu = 0
@@ -833,9 +833,9 @@ endif
 bunch => bbu_beam%bunch(this_stage%ix_head_bunch)
 
 ! All HOMs:
-do i=1, size(lat%ele(this_stage%ix_ele_lr_wake)%wake%lr_mode(:) )
-  lr => lat%ele(this_stage%ix_ele_lr_wake)%wake%lr_mode(i)
-  write(iu, '(4es15.7)') lr%t_ref, hom_voltage(lr), bunch%charge_live, bunch%particle(1)%vec(1)
+do i=1, size(lat%ele(this_stage%ix_ele_lr_wake)%wake%lr%mode(:) )
+  lr => lat%ele(this_stage%ix_ele_lr_wake)%wake%lr
+  write(iu, '(4es15.7)') lr%t_ref, hom_voltage(lr%mode(i)), bunch%charge_live, bunch%particle(1)%vec(1)
 enddo
 !
 
