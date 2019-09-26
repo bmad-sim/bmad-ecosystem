@@ -1223,6 +1223,7 @@ class ele_shape_frame(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
         self.type = which
 
         self.title_text = tk.StringVar()
@@ -1233,7 +1234,10 @@ class ele_shape_frame(tk.Frame):
         self.table_frame = tk.Frame(self)
         self.table_frame.grid(row=1, column=0, sticky='NSEW')
         self.title_list = ["Index", "Ele ID", "Shape", "Color", "Size", "Label", "Draw", "Multi"]
+        self.keys = ["", "ele_id", "shape", "color", "size", "label", "draw", "multi"]
         self.shape_table = ttk.Treeview(self.table_frame, columns=self.title_list, show='headings')
+        self.shape_list = []
+        self.widths = []
         # Column titles
         for title in self.title_list:
             self.shape_table.heading(title, text=title)
@@ -1249,6 +1253,10 @@ class ele_shape_frame(tk.Frame):
         hbar.pack(side="bottom", fill='x', expand=0)
         self.shape_table.pack(side="left", fill="both", expand=1)
 
+        # Button Frame
+        self.button_frame = tk.Frame(self)
+        self.table_frame.grid(row=2, column=0, sticky='NSEW')
+
         self.refresh()
 
     def refresh(self):
@@ -1261,44 +1269,130 @@ class ele_shape_frame(tk.Frame):
         # Clear existing rows
         for item in self.shape_table.get_children():
             self.shape_table.delete(item)
+        self.shape_list = []
 
-        widths = [0]*len(self.title_list) # tracks column widths
         # Fill rows
         ele_shapes = self.pipe.cmd_in('python plot_shapes ' + self.type)
         ele_shapes = ele_shapes.splitlines()
         for row in ele_shapes:
             row = row.split(';')
+            self.shape_list.append(row)
             self.shape_table.insert("", "end", values=row)
-            for i in range(len(row)):
-                widths[i] = max([len(row[i])*12, widths[i]])
 
         # Set column widths appropriately
-        for j in range(len(self.title_list)):
-            widths[j] = max([len(self.title_list[j])*12, widths[j]])
-            self.shape_table.column(self.title_list[j], width=widths[j], minwidth=widths[j])
+        self.width_adjust()
 
         # Double click to edit shape
-        #self.tree.bind('<Double-Button-1>', self.lw_detail_callback)
-        self.widths = widths
+        self.shape_table.bind('<Double-Button-1>', self.edit_shape)
 
         # Set title
         self.title_text.set("Lat Layout Shapes" if self.type=="lat_layout" else "Floor Plan Shapes")
 
-    def edit_shape(self):
+    def width_adjust(self, event=None):
+        '''
+        Adjusts column widths and total table width to show all contents
+        '''
+        # Determine column widths
+        widths = [0]*len(self.title_list)
+        for i in range(len(self.shape_list)):
+            for j in range(len(self.shape_list[i])):
+                widths[j] = max([widths[j], 15*len(str(self.shape_list[i][j]))])
+        # Update column widths and table width
+        for j in range(len(widths)):
+            widths[j] = max([len(self.title_list[j])*12, widths[j]])
+            self.shape_table.column(self.title_list[j], width=widths[j], minwidth=widths[j])
+        self.grid_columnconfigure(0, minsize=sum(widths))
+        self.widths = widths
+
+    def edit_shape(self, event=None):
         '''
         Opens a window for editing the selected ele_shape
         '''
-        pass
+        # Get currently selected row
+        x = self.shape_table.focus()
+        current_row = self.shape_table.item(x)
+        current_row = current_row['values']
+        current_ix = int(current_row[0]) - 1
+
+        # Create widgets
+        title = "ele_shape(" + str(current_row[0]) + ")"
+        wids = []
+        def wid_maker(i):
+            '''Helper function'''
+            return tao_parameter(self.keys[i], types[i-1], "T", current_row[i])
+        types = ["STR", "ENUM", "ENUM", "REAL", "ENUM", "LOGIC", "LOGIC"]
+        for i in range(1, len(current_row)):
+            wids.append(wid_maker(i))
+
+        # Open window
+        win = tk.Toplevel(self)
+        win.title(title)
+        wids = list(map(lambda arg : tk_tao_parameter(arg, win, self.pipe), wids))
+        i=0
+        for wid in wids:
+            wid.tk_label.grid(row=i, column=0, sticky='W')
+            wid.tk_wid.grid(row=i, column=1, sticky='EW')
+            i += 1
+
+        # Apply button
+        def write_to_table():
+            '''
+            Writes the contents of this window into the table
+            and closes this window
+            '''
+            for i in range(0, len(current_row)-1):
+                if types[i] == "REAL":
+                    try:
+                        val = float(wids[i].tk_var.get())
+                    except ValueError:
+                        val = wids[i].param.value
+                elif types[i] == "LOGIC":
+                    val = "T" if wids[i].tk_var.get() else "F"
+                else:
+                    val = wids[i].tk_var.get()
+                self.shape_table.set(self.shape_table.get_children()[current_ix],
+                        column=self.title_list[i+1], value=val)
+                self.shape_list[current_ix][i+1] = val
+            self.width_adjust()
+            win.destroy()
+
+        b = tk.Button(win, text="Apply", command=write_to_table)
+        b.grid(row=len(current_row), column=0, columnspan=2, sticky='EW')
 
     def add_shape(self):
         '''
         Adds a row to the ele_shape table
         '''
-        pass
+        new_row = [str(len(self.shape_list)), "*", "Black", "1", "none", "F", "F"]
+        self.shape_list.append(new_row)
+        self.shape_table.insert("", "end", values=self.shape_list[-1])
+        self.width_adjust()
 
     def move_shape(self, new_pos):
         '''
         Moves the selected shape to the new position and
         shifts all of the lower shapes down one index
+        Note: the ele_shapes are indexed starting at 1 in Tao
+        self.shape_table and self.shape_list are indexed starting at 0
+        new_pos should be index appropriate for the Tao list
         '''
-        pass
+        if not isinstance(new_pos, int):
+            return
+        if new_pos < 1:
+            return
+        # Get currently selected row
+        x = self.shape_table.focus()
+        current_row = self.shape_table.item(x)
+        current_ix = int(current_row['values'][0])
+        if current_ix != new_pos-1:
+            # Move current row to new_pos
+            self.shape_table.move(x, "", new_pos-1)
+            current_row = self.shape_list.pop(current_ix)
+            self.shape_list = (self.shape_list[:new_pos-1]
+                    + current_row + self.shape_list[new_pos-1:])
+            # Remark indices
+            for i in range(len(self.shape_list)):
+                self.shape_table.set(self.shape_table.get_children()[i],
+                        column=self.title_list[0], value=str(i+1))
+                self.shape_list[i][0] = str(i+1)
+        self.width_adjust()
