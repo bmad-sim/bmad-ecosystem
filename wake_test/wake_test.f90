@@ -42,18 +42,18 @@ open (1, file = 'output.now')
 
 ele => lat%ele(1)
 write (1, '(a, 2i4, f10.2)') '"SR-Size" ABS 0' , &
-                size(ele%wake%sr_long%mode), size(ele%wake%sr_trans%mode), ele%wake%z_sr_max
+                size(ele%wake%sr%long), size(ele%wake%sr%trans), ele%wake%sr%z_max
 
-do i = 1, size(ele%wake%sr_trans%mode)
-  w => ele%wake%sr_trans%mode(i)
+do i = 1, size(ele%wake%sr%trans)
+  w => ele%wake%sr%trans(i)
   write (1, '(a, i0, a, 4es14.6, 2i4)') '"SR-T', i, '" ABS 0', &
-                                w%amp, w%damp, w%k, w%phi, w%polarization, w%transverse_dependence
+                                w%amp, w%damp, w%k, twopi*w%phi, w%polarization, w%position_dependence
 enddo
 
-do i = 1, size(ele%wake%sr_long%mode)
-  w => ele%wake%sr_long%mode(i)
-  write (1, '(a, i0, a, 4es14.6, 2i4)') '"SR-L', i, '" ABS 0', &
-                               w%amp, w%damp, w%k, w%phi, w%polarization, w%transverse_dependence
+do i = 1, size(ele%wake%sr%long)
+  w => ele%wake%sr%long(i)
+  write (1, '(a, i0, a, 4es14.6, i4)') '"SR-L', i, '" ABS 0', &
+                               w%amp, w%damp, w%k, twopi*w%phi, w%position_dependence
 enddo
 
 !
@@ -75,26 +75,26 @@ ele => lat%ele(1)
 
 ! Make wake from first particle
 
-ele%wake%sr_long%mode%b_sin = 0
-ele%wake%sr_long%mode%b_cos = 0
-ele%wake%sr_long%mode%a_sin = 0
-ele%wake%sr_long%mode%a_cos = 0
-ele%wake%sr_long%z_ref = p1%vec(5)
+ele%wake%sr%long%b_sin = 0
+ele%wake%sr%long%b_cos = 0
+ele%wake%sr%long%a_sin = 0
+ele%wake%sr%long%a_cos = 0
+ele%wake%sr%z_ref_long = p1%vec(5)
 
-ele%wake%sr_trans%mode%b_sin = 0
-ele%wake%sr_trans%mode%b_cos = 0
-ele%wake%sr_trans%mode%a_sin = 0
-ele%wake%sr_trans%mode%a_cos = 0
-ele%wake%sr_trans%z_ref = p1%vec(5)
+ele%wake%sr%trans%b_sin = 0
+ele%wake%sr%trans%b_cos = 0
+ele%wake%sr%trans%a_sin = 0
+ele%wake%sr%trans%a_cos = 0
+ele%wake%sr%z_ref_trans = p1%vec(5)
 
-call sr_long_wake_particle (ele, p1)
-call sr_trans_wake_particle (ele, p1)
+call sr_longitudinal_wake_particle (ele, p1)
+call sr_transverse_wake_particle (ele, p1)
 
 ! Add in a second wake
 
 p1%vec(5) = z0 + lat%particle_start%vec(5)
-call sr_long_wake_particle (ele, p1)
-call sr_trans_wake_particle (ele, p1)
+call sr_longitudinal_wake_particle (ele, p1)
+call sr_transverse_wake_particle (ele, p1)
 
 !
 
@@ -103,8 +103,8 @@ dz = -2e-3
 do i = 1, 2
   p2%vec = 0
   p2%vec(5) = i*dz + z0
-  call sr_long_wake_particle (ele, p2)
-  call sr_trans_wake_particle (ele, p2)
+  call sr_longitudinal_wake_particle (ele, p2)
+  call sr_transverse_wake_particle (ele, p2)
   write (1, '(a, i0, a, 3es20.9)') '"SR', i, '" REL 1E-8' , p2%vec(2:6:2)
 enddo
 
