@@ -574,7 +574,7 @@ type (bunch_params_struct), pointer :: bunch_params
 real(rp) sig(6,6)
 
 integer ix_ele0, what_lat, n_lost_old
-integer i, j, n, i_uni, ip, ig, ic, ie1, ie2
+integer i, n, i_uni, ip, ig, ic, ie1, ie2, ie
 integer n_bunch, n_part, i_uni_to, ix_track
 integer n_lost, ix_branch
 integer, allocatable, save :: ix_ele(:)
@@ -610,7 +610,7 @@ tao_branch%bunch_params(:)%twiss_valid = .false.
 ! Transfer wakes from  design
 
 do i = 1, branch%n_ele_max
-  if (associated(branch%ele(i)%wake)) branch%ele(i)%wake%lr_mode = u%design%lat%branch(ix_branch)%ele(i)%wake%lr_mode
+  if (associated(branch%ele(i)%wake)) branch%ele(i)%wake%lr%mode = u%design%lat%branch(ix_branch)%ele(i)%wake%lr%mode
 enddo
 
 call zero_lr_wakes_in_lat (lat)
@@ -638,32 +638,32 @@ if (ie2 < ie1 .and. branch%param%geometry == open$) then
 endif
 
 n_lost_old = 0
-j = ie1 - 1
+ie = ie1 - 1
 
 do 
-  j = j + 1
-  if (j == ie2 + 1) exit
-  if (j > branch%n_ele_track) j = 1
+  ie = ie + 1
+  if (ie == ie2 + 1) exit
+  if (ie > branch%n_ele_track) ie = 1
 
-  bunch_params => tao_branch%bunch_params(j)
-  ele => branch%ele(j)
+  bunch_params => tao_branch%bunch_params(ie)
+  ele => branch%ele(ie)
 
   ! track to the element and save for phase space plot
 
   if (s%com%use_saved_beam_in_tracking) then
-    beam = uni_ele(j)%beam
+    beam = uni_ele(ie)%beam
 
   else
-    if (j /= ie1) then 
-      call track_beam (lat, beam, branch%ele(j-1), ele, err, centroid = tao_branch%orbit)
+    if (ie /= ie1) then 
+      call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit)
       if (err) then
         calc_ok = .false.
         return
       endif
     endif
 
-    if (uni_ele(j)%save_beam .or. j == ie1 .or. j == ie2 .or. &
-                      ele%key == fork$ .or. ele%key == photon_fork$) uni_ele(j)%beam = beam
+    if (uni_ele(ie)%save_beam .or. ie == ie1 .or. ie == ie2 .or. &
+                      ele%key == fork$ .or. ele%key == photon_fork$) uni_ele(ie)%beam = beam
   endif
  
   ! Lost particles
@@ -688,7 +688,7 @@ do
   endif
 
   if (tao_no_beam_left(beam, branch%param%particle) .and. .not. lost) then
-    ix_track = j
+    ix_track = ie
     lost = .true.
     call out_io (s_warn$, r_name, &
             'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_location(ele)) // &
@@ -708,10 +708,10 @@ do
     print_err = .false.  
   endif
 
-  if (j == ie1) then
+  if (ie == ie1) then
     bunch_params%n_particle_lost_in_ele = 0
   else
-    bunch_params%n_particle_lost_in_ele = tao_branch%bunch_params(j-1)%n_particle_live - &
+    bunch_params%n_particle_lost_in_ele = tao_branch%bunch_params(ie-1)%n_particle_live - &
                                                      bunch_params%n_particle_live
   endif
 
@@ -721,7 +721,7 @@ do
     call run_timer ('READ', time)
     if (time - old_time > 60) then
       call out_io (s_blank$, r_name, 'Beam at Element: \i0\. Time: \i0\ min', &
-                          i_array = [j, nint(time/60)])
+                          i_array = [ie, nint(time/60)])
       old_time = time
     endif
   endif

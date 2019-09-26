@@ -1874,8 +1874,8 @@ case ('hom')
     if (ele%key /= lcavity$) cycle
     if (ele%slave_status == multipass_slave$) cycle
     nl=nl+1; write(lines(nl), '(a, i6)') ele%name, i
-    do j = 1, size(ele%wake%lr_mode)
-      lr_mode => ele%wake%lr_mode(j)
+    do j = 1, size(ele%wake%lr%mode)
+      lr_mode => ele%wake%lr%mode(j)
       angle_str = '-'
       if (lr_mode%polarized) write (angle_str, '(f9.4)') lr_mode%angle
       nl=nl+1; write(lines(nl), '(i8, 3es12.4, i4, a)') j, &
@@ -4568,7 +4568,7 @@ case ('wake_elements')
 
       nl=nl+1; write(lines(nl), '(a5, 2x, a20, 2x, a15, 3x, l1, 13x, l1, 13x, l1)') &
         ele_location(ele, .true.), ele%name, key_name(ele%key), &
-        allocated(wake%sr_long%mode), allocated(wake%sr_trans%mode), allocated(wake%lr_mode)
+        allocated(wake%sr%long), allocated(wake%sr%trans), allocated(wake%lr%mode)
     enddo
   enddo
 
