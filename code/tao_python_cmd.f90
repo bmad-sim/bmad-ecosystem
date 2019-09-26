@@ -1524,37 +1524,37 @@ case ('ele:wake')
 
   select case (line)
   case ('base')
-    nl=incr(nl); write (li(nl), rmt) 'z_sr_max;REAL;T;',         wake%z_sr_max
-    nl=incr(nl); write (li(nl), rmt) 'lr_freq_spread;REAL;T;',   wake%lr_freq_spread
-    nl=incr(nl); write (li(nl), lmt) 'lr_self_wake_on;REAL;T;',  wake%lr_self_wake_on
-    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',     allocated(wake%sr_long%mode)
-    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',    allocated(wake%sr_trans%mode)
-    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',     allocated(wake%lr_mode)
+    nl=incr(nl); write (li(nl), rmt) 'sr%z_max;REAL;T;',         wake%sr%z_max
+    nl=incr(nl); write (li(nl), rmt) 'lr%freq_spread;REAL;T;',   wake%lr%freq_spread
+    nl=incr(nl); write (li(nl), lmt) 'lr%self_wake_on;REAL;T;',  wake%lr%self_wake_on
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',     allocated(wake%sr%long)
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',    allocated(wake%sr%trans)
+    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',     allocated(wake%lr%mode)
 
   case ('sr_long')
-    nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr_long%z_ref
+    nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr%z_ref_long
 
   case ('sr_long_table')
-    do i = 1, size(wake%sr_long%mode)
-      wsr => wake%sr_long%mode(i)
+    do i = 1, size(wake%sr%long)
+      wsr => wake%sr%long(i)
       nl=incr(nl); write (li(nl), '(4(es16.8), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
-          sr_polarization_name(wsr%polarization), ';', sr_transverse_dependence_name(wsr%transverse_dependence)
+          sr_longitudinal_position_dep_name(wsr%position_dependence)
     enddo
 
   case ('sr_trans')
-    nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr_trans%z_ref
+    nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr%z_ref_trans
 
   case ('sr_trans_table')
-    do i = 1, size(wake%sr_trans%mode)
-      wsr => wake%sr_trans%mode(i)
+    do i = 1, size(wake%sr%trans)
+      wsr => wake%sr%trans(i)
       nl=incr(nl); write (li(nl), '(4(es16.8), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
-          sr_polarization_name(wsr%polarization), ';', sr_transverse_dependence_name(wsr%transverse_dependence)
+          sr_transverse_polarization_name(wsr%polarization), ';', sr_transverse_position_dep_name(wsr%position_dependence)
     enddo
 
   case ('lr_mode_table')
-    do i = 1, size(wake%lr_mode)
-      lr_mode => wake%lr_mode(i)
-      v_str = ' unpolar'
+    do i = 1, size(wake%lr%mode)
+      lr_mode => wake%lr%mode(i)
+      v_str = 'none'
       if (lr_mode%polarized) write (v_str, '(f8.3)') lr_mode%angle
       nl=incr(nl); write (li(nl), '(4(es21.13, a), 2a)') &
                 lr_mode%freq, ';', lr_mode%R_over_Q, ';', lr_mode%Q, ';', lr_mode%m, ';', v_str
