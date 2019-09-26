@@ -37,6 +37,7 @@ struct_list = [
     'wake_sr_mode_struct',
     'wake_sr_struct',
     'wake_lr_mode_struct',
+    'wake_lr_struct',
     'lat_ele_loc_struct',
     'wake_struct',
     'taylor_term_struct',
@@ -145,8 +146,8 @@ structs_defined_externally = set([])
 # Translations on C++ side to avoid clash with reserved words
 
 c_side_name_translation = {
-    'wake_sr_table_struct%long' : 'long_wake',
-    'wake_sr_table_struct%trans' : 'trans_wake',
+    'wake_sr_struct%long' : 'long_wake',
+    'wake_sr_struct%trans' : 'trans_wake',
 }
 
 # Include header files for main header file
@@ -197,6 +198,7 @@ c_custom_constructors = {
     'ele%orientation' : 'orientation(1)',
     'floor_position%w' : 'w(Real_ARRAY(0.0, 3), 3)',
     'aperture_param%max_angle' : 'max_angle(Bmad::PI)',
+    'bmad_common%space_charge_mesh_size' : 'space_charge_mesh_size(32, 3)',
 }
 
 #-----------------------------------------------

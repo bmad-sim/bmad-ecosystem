@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 235;
+  const int BMAD_INC_VERSION = 240;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -58,7 +58,6 @@ namespace Bmad {
   const int INCLUDE_KICKS = 1, INCLUDE_KICKS_EXCEPT_K1 = 2;
   const int ASCII = 1, BINARY = 2, HDF5 = 3, ONE_FILE = 4;
   const int NUM_ELE_ATTRIB = 80;
-  const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
   const int SAVE_STATE = 3, RESTORE_STATE = 4, OFF_AND_SAVE = 5;
@@ -83,7 +82,9 @@ namespace Bmad {
   const int LOST_NEG_X_APERTURE = 3, LOST_POS_X_APERTURE = 4;
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
   const int LOST_PZ_APERTURE = 7;
-  const int LINEAR_LEADING = 2, LINEAR_TRAILING = 3;
+  const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
+  const int LEADING = 2, TRAILING = 3;
+  const int X_LEADING = 2, Y_LEADING = 3, X_TRAILING = 4, Y_TRAILING = 5;
   const int FAMILY_Y = 1, FAMILY_X = 2, FAMILY_QU = 3, FAMILY_SQ = 4;
   const int HYPER_Y = 1, HYPER_XY = 2, HYPER_X = 3;
   const int SUPER_OK = 0, STALE = 2;
@@ -155,7 +156,7 @@ namespace Bmad {
   const int FQ1 = 16, SIG_Z = 16, GRAZE_ANGLE_OUT = 16;
   const int FQ2 = 17, SIG_VX = 17;
   const int SIG_VY = 18, AUTOSCALE_AMPLITUDE = 18;
-  const int SIG_E = 19, AUTOSCALE_PHASE = 19;
+  const int SIG_E = 19, AUTOSCALE_PHASE = 19, SIG_PZ = 19;
   const int D1_THICKNESS = 20, DEFAULT_TRACKING_SPECIES = 20, DIRECTION_PARTICLE_START = 20;
   const int N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20, CONSTANT_REF_ENERGY = 20;
   const int LONGITUDINAL_MODE = 20, SIG_E2 = 20;
@@ -240,7 +241,7 @@ namespace Bmad {
   const int FATAL_DS_ADAPTIVE_TRACKING = 90;
   const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
   const int SPHERICAL_CURVATURE = 81;
-  const int ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81, LR_WAKE_SPLINE = 81, X_KNOT = 81;
+  const int ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81, TT = 81, X_KNOT = 81;
   const int ALIAS  = 82, ETA_X = 82, PTC_MAX_FRINGE_ORDER = 82;
   const int ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83, X_REF = 83;
   const int ETAP_X = 84, LR_WAKE_FILE = 84, PX_REF = 84, ELLIPTICAL_CURVATURE_X = 84;
@@ -274,7 +275,8 @@ namespace Bmad {
   const int FIELD_MASTER = 111, TO_ELEMENT = 111;
   const int DESCRIP = 112;
   const int SCALE_MULTIPOLES = 113;
-  const int REF_ORBIT = 115;
+  const int SR_WAKE = 114;
+  const int REF_ORBIT = 115, LR_WAKE = 115;
   const int PHI_B = 116, CRYSTAL_TYPE = 116, MATERIAL_TYPE = 116;
   const int TYPE = 117;
   const int REF_ORIGIN = 118;

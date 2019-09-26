@@ -309,7 +309,7 @@ bool operator== (const CPP_wake_sr_mode& x, const CPP_wake_sr_mode& y) {
   is_eq = is_eq && (x.a_sin == y.a_sin);
   is_eq = is_eq && (x.a_cos == y.a_cos);
   is_eq = is_eq && (x.polarization == y.polarization);
-  is_eq = is_eq && (x.transverse_dependence == y.transverse_dependence);
+  is_eq = is_eq && (x.position_dependence == y.position_dependence);
   return is_eq;
 };
 
@@ -320,8 +320,15 @@ template bool is_all_equal (const CPP_wake_sr_mode_MATRIX&, const CPP_wake_sr_mo
 
 bool operator== (const CPP_wake_sr& x, const CPP_wake_sr& y) {
   bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.mode, y.mode);
-  is_eq = is_eq && (x.z_ref == y.z_ref);
+  is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && is_all_equal(x.long_wake, y.long_wake);
+  is_eq = is_eq && is_all_equal(x.trans_wake, y.trans_wake);
+  is_eq = is_eq && (x.z_ref_long == y.z_ref_long);
+  is_eq = is_eq && (x.z_ref_trans == y.z_ref_trans);
+  is_eq = is_eq && (x.z_max == y.z_max);
+  is_eq = is_eq && (x.amp_scale == y.amp_scale);
+  is_eq = is_eq && (x.z_scale == y.z_scale);
+  is_eq = is_eq && (x.scale_with_length == y.scale_with_length);
   return is_eq;
 };
 
@@ -343,7 +350,6 @@ bool operator== (const CPP_wake_lr_mode& x, const CPP_wake_lr_mode& y) {
   is_eq = is_eq && (x.b_cos == y.b_cos);
   is_eq = is_eq && (x.a_sin == y.a_sin);
   is_eq = is_eq && (x.a_cos == y.a_cos);
-  is_eq = is_eq && (x.t_ref == y.t_ref);
   is_eq = is_eq && (x.m == y.m);
   is_eq = is_eq && (x.polarized == y.polarized);
   return is_eq;
@@ -351,6 +357,23 @@ bool operator== (const CPP_wake_lr_mode& x, const CPP_wake_lr_mode& y) {
 
 template bool is_all_equal (const CPP_wake_lr_mode_ARRAY&, const CPP_wake_lr_mode_ARRAY&);
 template bool is_all_equal (const CPP_wake_lr_mode_MATRIX&, const CPP_wake_lr_mode_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_wake_lr& x, const CPP_wake_lr& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.file == y.file);
+  is_eq = is_eq && is_all_equal(x.mode, y.mode);
+  is_eq = is_eq && (x.t_ref == y.t_ref);
+  is_eq = is_eq && (x.freq_spread == y.freq_spread);
+  is_eq = is_eq && (x.amp_scale == y.amp_scale);
+  is_eq = is_eq && (x.time_scale == y.time_scale);
+  is_eq = is_eq && (x.self_wake_on == y.self_wake_on);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_wake_lr_ARRAY&, const CPP_wake_lr_ARRAY&);
+template bool is_all_equal (const CPP_wake_lr_MATRIX&, const CPP_wake_lr_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -368,17 +391,8 @@ template bool is_all_equal (const CPP_lat_ele_loc_MATRIX&, const CPP_lat_ele_loc
 
 bool operator== (const CPP_wake& x, const CPP_wake& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.sr_file == y.sr_file);
-  is_eq = is_eq && (x.lr_file == y.lr_file);
-  is_eq = is_eq && (x.sr_long == y.sr_long);
-  is_eq = is_eq && (x.sr_trans == y.sr_trans);
-  is_eq = is_eq && is_all_equal(x.lr_mode, y.lr_mode);
-  is_eq = is_eq && (x.wake_amp_scale == y.wake_amp_scale);
-  is_eq = is_eq && (x.wake_time_scale == y.wake_time_scale);
-  is_eq = is_eq && (x.z_sr_max == y.z_sr_max);
-  is_eq = is_eq && (x.lr_freq_spread == y.lr_freq_spread);
-  is_eq = is_eq && (x.lr_self_wake_on == y.lr_self_wake_on);
-  is_eq = is_eq && (x.sr_wake_scale_with_length == y.sr_wake_scale_with_length);
+  is_eq = is_eq && (x.sr == y.sr);
+  is_eq = is_eq && (x.lr == y.lr);
   return is_eq;
 };
 
@@ -1580,6 +1594,7 @@ bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
   is_eq = is_eq && is_all_equal(x.rel_min, y.rel_min);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.charge_live == y.charge_live);
+  is_eq = is_eq && (x.charge_tot == y.charge_tot);
   is_eq = is_eq && (x.n_particle_tot == y.n_particle_tot);
   is_eq = is_eq && (x.n_particle_live == y.n_particle_live);
   is_eq = is_eq && (x.n_particle_lost_in_ele == y.n_particle_lost_in_ele);

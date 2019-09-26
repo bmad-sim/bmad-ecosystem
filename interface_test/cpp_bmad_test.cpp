@@ -1061,7 +1061,7 @@ void set_CPP_wake_sr_mode_test_pattern (CPP_wake_sr_mode& C, int ix_patt) {
   rhs = 9 + offset; C.polarization = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.transverse_dependence = rhs;
+  rhs = 10 + offset; C.position_dependence = rhs;
 
 
 }
@@ -1111,16 +1111,43 @@ void set_CPP_wake_sr_test_pattern (CPP_wake_sr& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[character, 0, NOT]
+  C.file.resize(200);
+  for (unsigned int i = 0; i < C.file.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.mode.resize(0);
+    C.long_wake.resize(0);
   else {
-    C.mode.resize(3);
-    for (unsigned int i = 0; i < C.mode.size(); i++)  {set_CPP_wake_sr_mode_test_pattern(C.mode[i], ix_patt+i+1);}
+    C.long_wake.resize(3);
+    for (unsigned int i = 0; i < C.long_wake.size(); i++)  {set_CPP_wake_sr_mode_test_pattern(C.long_wake[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.trans_wake.resize(0);
+  else {
+    C.trans_wake.resize(3);
+    for (unsigned int i = 0; i < C.trans_wake.size(); i++)  {set_CPP_wake_sr_mode_test_pattern(C.trans_wake[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.z_ref = rhs;
+  rhs = 6 + offset; C.z_ref_long = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.z_ref_trans = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.z_max = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.amp_scale = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.z_scale = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 11 + offset; C.scale_with_length = (rhs % 2 == 0);
 
 
 }
@@ -1203,14 +1230,11 @@ void set_CPP_wake_lr_mode_test_pattern (CPP_wake_lr_mode& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 11 + offset; C.a_cos = rhs;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.t_ref = rhs;
-
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.m = rhs;
+  rhs = 12 + offset; C.m = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 14 + offset; C.polarized = (rhs % 2 == 0);
+  rhs = 13 + offset; C.polarized = (rhs % 2 == 0);
 
 
 }
@@ -1248,6 +1272,81 @@ extern "C" void test_c_wake_lr_mode (Opaque_wake_lr_mode_class* F, bool& c_ok) {
 
   set_CPP_wake_lr_mode_test_pattern (C2, 4);
   wake_lr_mode_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_wake_lr (CPP_wake_lr&, bool&);
+
+void set_CPP_wake_lr_test_pattern (CPP_wake_lr& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.file.resize(200);
+  for (unsigned int i = 0; i < C.file.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.file[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.mode.resize(0);
+  else {
+    C.mode.resize(3);
+    for (unsigned int i = 0; i < C.mode.size(); i++)  {set_CPP_wake_lr_mode_test_pattern(C.mode[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.t_ref = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.freq_spread = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.amp_scale = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.time_scale = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 8 + offset; C.self_wake_on = (rhs % 2 == 0);
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_wake_lr (Opaque_wake_lr_class* F, bool& c_ok) {
+
+  CPP_wake_lr C, C2;
+
+  c_ok = true;
+
+  wake_lr_to_c (F, C);
+  set_CPP_wake_lr_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " wake_lr: C side convert F->C: Good" << endl;
+  } else {
+    cout << " wake_lr: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wake_lr_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_wake_lr (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_wake_lr_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " wake_lr: F side convert F->C: Good" << endl;
+  } else {
+    cout << " wake_lr: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_wake_lr_test_pattern (C2, 4);
+  wake_lr_to_f (C2, F);
 
 }
 
@@ -1314,45 +1413,11 @@ void set_CPP_wake_test_pattern (CPP_wake& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[character, 0, NOT]
-  C.sr_file.resize(200);
-  for (unsigned int i = 0; i < C.sr_file.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.sr_file[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[character, 0, NOT]
-  C.lr_file.resize(200);
-  for (unsigned int i = 0; i < C.lr_file.size(); i++)
-    {int rhs = 101 + i + 2 + offset; C.lr_file[i] = 'a' + rhs % 26;}
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_wake_sr_test_pattern(C.sr_long, ix_patt);
+  set_CPP_wake_sr_test_pattern(C.sr, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_wake_sr_test_pattern(C.sr_trans, ix_patt);
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.lr_mode.resize(0);
-  else {
-    C.lr_mode.resize(3);
-    for (unsigned int i = 0; i < C.lr_mode.size(); i++)  {set_CPP_wake_lr_mode_test_pattern(C.lr_mode[i], ix_patt+i+1);}
-  }
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.wake_amp_scale = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.wake_time_scale = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.z_sr_max = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.lr_freq_spread = rhs;
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.lr_self_wake_on = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.sr_wake_scale_with_length = (rhs % 2 == 0);
+  set_CPP_wake_lr_test_pattern(C.lr, ix_patt);
 
 
 }
@@ -6277,17 +6342,20 @@ void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 13 + offset; C.charge_live = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 14 + offset; C.n_particle_tot = rhs;
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 14 + offset; C.charge_tot = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 15 + offset; C.n_particle_live = rhs;
+  rhs = 15 + offset; C.n_particle_tot = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 16 + offset; C.n_particle_lost_in_ele = rhs;
+  rhs = 16 + offset; C.n_particle_live = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 17 + offset; C.n_particle_lost_in_ele = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 17 + offset; C.twiss_valid = (rhs % 2 == 0);
+  rhs = 18 + offset; C.twiss_valid = (rhs % 2 == 0);
 
 
 }

@@ -106,6 +106,11 @@ typedef valarray<CPP_wake_lr_mode>          CPP_wake_lr_mode_ARRAY;
 typedef valarray<CPP_wake_lr_mode_ARRAY>    CPP_wake_lr_mode_MATRIX;
 typedef valarray<CPP_wake_lr_mode_MATRIX>   CPP_wake_lr_mode_TENSOR;
 
+class CPP_wake_lr;
+typedef valarray<CPP_wake_lr>          CPP_wake_lr_ARRAY;
+typedef valarray<CPP_wake_lr_ARRAY>    CPP_wake_lr_MATRIX;
+typedef valarray<CPP_wake_lr_MATRIX>   CPP_wake_lr_TENSOR;
+
 class CPP_lat_ele_loc;
 typedef valarray<CPP_lat_ele_loc>          CPP_lat_ele_loc_ARRAY;
 typedef valarray<CPP_lat_ele_loc_ARRAY>    CPP_lat_ele_loc_MATRIX;
@@ -939,7 +944,7 @@ public:
   Real a_sin;
   Real a_cos;
   Int polarization;
-  Int transverse_dependence;
+  Int position_dependence;
 
   CPP_wake_sr_mode() :
     amp(0.0),
@@ -951,7 +956,7 @@ public:
     a_sin(0.0),
     a_cos(0.0),
     polarization(Bmad::NONE),
-    transverse_dependence(Bmad::NOT_SET)
+    position_dependence(Bmad::NOT_SET)
     {}
 
   ~CPP_wake_sr_mode() {
@@ -972,12 +977,26 @@ class Opaque_wake_sr_class {};  // Opaque class for pointers to corresponding fo
 
 class CPP_wake_sr {
 public:
-  CPP_wake_sr_mode_ARRAY mode;
-  Real z_ref;
+  string file;
+  CPP_wake_sr_mode_ARRAY long_wake;
+  CPP_wake_sr_mode_ARRAY trans_wake;
+  Real z_ref_long;
+  Real z_ref_trans;
+  Real z_max;
+  Real amp_scale;
+  Real z_scale;
+  Bool scale_with_length;
 
   CPP_wake_sr() :
-    mode(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
-    z_ref(0.0)
+    file(),
+    long_wake(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
+    trans_wake(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
+    z_ref_long(0.0),
+    z_ref_trans(0.0),
+    z_max(0.0),
+    amp_scale(1),
+    z_scale(1),
+    scale_with_length(true)
     {}
 
   ~CPP_wake_sr() {
@@ -1009,7 +1028,6 @@ public:
   Real b_cos;
   Real a_sin;
   Real a_cos;
-  Real t_ref;
   Int m;
   Bool polarized;
 
@@ -1025,7 +1043,6 @@ public:
     b_cos(0.0),
     a_sin(0.0),
     a_cos(0.0),
-    t_ref(0.0),
     m(0),
     polarized(false)
     {}
@@ -1039,6 +1056,42 @@ extern "C" void wake_lr_mode_to_c (const Opaque_wake_lr_mode_class*, CPP_wake_lr
 extern "C" void wake_lr_mode_to_f (const CPP_wake_lr_mode&, Opaque_wake_lr_mode_class*);
 
 bool operator== (const CPP_wake_lr_mode&, const CPP_wake_lr_mode&);
+
+
+//--------------------------------------------------------------------
+// CPP_wake_lr
+
+class Opaque_wake_lr_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_wake_lr {
+public:
+  string file;
+  CPP_wake_lr_mode_ARRAY mode;
+  Real t_ref;
+  Real freq_spread;
+  Real amp_scale;
+  Real time_scale;
+  Bool self_wake_on;
+
+  CPP_wake_lr() :
+    file(),
+    mode(CPP_wake_lr_mode_ARRAY(CPP_wake_lr_mode(), 0)),
+    t_ref(0.0),
+    freq_spread(0.0),
+    amp_scale(1),
+    time_scale(1),
+    self_wake_on(true)
+    {}
+
+  ~CPP_wake_lr() {
+  }
+
+};   // End Class
+
+extern "C" void wake_lr_to_c (const Opaque_wake_lr_class*, CPP_wake_lr&);
+extern "C" void wake_lr_to_f (const CPP_wake_lr&, Opaque_wake_lr_class*);
+
+bool operator== (const CPP_wake_lr&, const CPP_wake_lr&);
 
 
 //--------------------------------------------------------------------
@@ -1074,30 +1127,12 @@ class Opaque_wake_class {};  // Opaque class for pointers to corresponding fortr
 
 class CPP_wake {
 public:
-  string sr_file;
-  string lr_file;
-  CPP_wake_sr sr_long;
-  CPP_wake_sr sr_trans;
-  CPP_wake_lr_mode_ARRAY lr_mode;
-  Real wake_amp_scale;
-  Real wake_time_scale;
-  Real z_sr_max;
-  Real lr_freq_spread;
-  Bool lr_self_wake_on;
-  Bool sr_wake_scale_with_length;
+  CPP_wake_sr sr;
+  CPP_wake_lr lr;
 
   CPP_wake() :
-    sr_file(),
-    lr_file(),
-    sr_long(),
-    sr_trans(),
-    lr_mode(CPP_wake_lr_mode_ARRAY(CPP_wake_lr_mode(), 0)),
-    wake_amp_scale(1),
-    wake_time_scale(1),
-    z_sr_max(0.0),
-    lr_freq_spread(0.0),
-    lr_self_wake_on(true),
-    sr_wake_scale_with_length(true)
+    sr(),
+    lr()
     {}
 
   ~CPP_wake() {
@@ -3575,6 +3610,7 @@ public:
   Real_ARRAY rel_min;
   Real s;
   Real charge_live;
+  Real charge_tot;
   Int n_particle_tot;
   Int n_particle_live;
   Int n_particle_lost_in_ele;
@@ -3594,6 +3630,7 @@ public:
     rel_min(0.0, 6),
     s(-1),
     charge_live(0.0),
+    charge_tot(0.0),
     n_particle_tot(0),
     n_particle_live(0),
     n_particle_lost_in_ele(0),

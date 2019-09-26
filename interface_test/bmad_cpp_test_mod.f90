@@ -1639,7 +1639,7 @@ rhs = 8 + offset; F%a_cos = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 9 + offset; F%polarization = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%transverse_dependence = rhs
+rhs = 10 + offset; F%position_dependence = rhs
 
 end subroutine set_wake_sr_mode_test_pattern
 
@@ -1724,18 +1724,42 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%file)
+  F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%mode)) deallocate (F%mode)
+  if (allocated(F%long)) deallocate (F%long)
 else
-  if (.not. allocated(F%mode)) allocate (F%mode(-1:1))
-  do jd1 = 1, size(F%mode,1); lb1 = lbound(F%mode,1) - 1
-    call set_wake_sr_mode_test_pattern (F%mode(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%long)) allocate (F%long(-1:1))
+  do jd1 = 1, size(F%long,1); lb1 = lbound(F%long,1) - 1
+    call set_wake_sr_mode_test_pattern (F%long(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%trans)) deallocate (F%trans)
+else
+  if (.not. allocated(F%trans)) allocate (F%trans(-1:1))
+  do jd1 = 1, size(F%trans,1); lb1 = lbound(F%trans,1) - 1
+    call set_wake_sr_mode_test_pattern (F%trans(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%z_ref = rhs
+rhs = 6 + offset; F%z_ref_long = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%z_ref_trans = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%z_max = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 9 + offset; F%amp_scale = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 10 + offset; F%z_scale = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 11 + offset; F%scale_with_length = (modulo(rhs, 2) == 0)
 
 end subroutine set_wake_sr_test_pattern
 
@@ -1842,14 +1866,120 @@ rhs = 9 + offset; F%b_cos = rhs
 rhs = 10 + offset; F%a_sin = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 11 + offset; F%a_cos = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%t_ref = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%m = rhs
+rhs = 12 + offset; F%m = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 14 + offset; F%polarized = (modulo(rhs, 2) == 0)
+rhs = 13 + offset; F%polarized = (modulo(rhs, 2) == 0)
 
 end subroutine set_wake_lr_mode_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_wake_lr (ok)
+
+implicit none
+
+type(wake_lr_struct), target :: f_wake_lr, f2_wake_lr
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_wake_lr (c_wake_lr, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_wake_lr
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_wake_lr_test_pattern (f2_wake_lr, 1)
+
+call test_c_wake_lr(c_loc(f2_wake_lr), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_wake_lr_test_pattern (f_wake_lr, 4)
+if (f_wake_lr == f2_wake_lr) then
+  print *, 'wake_lr: C side convert C->F: Good'
+else
+  print *, 'wake_lr: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_wake_lr
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_wake_lr (c_wake_lr, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_wake_lr
+type(wake_lr_struct), target :: f_wake_lr, f2_wake_lr
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call wake_lr_to_f (c_wake_lr, c_loc(f_wake_lr))
+
+call set_wake_lr_test_pattern (f2_wake_lr, 2)
+if (f_wake_lr == f2_wake_lr) then
+  print *, 'wake_lr: F side convert C->F: Good'
+else
+  print *, 'wake_lr: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_wake_lr_test_pattern (f2_wake_lr, 3)
+call wake_lr_to_c (c_loc(f2_wake_lr), c_wake_lr)
+
+end subroutine test2_f_wake_lr
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_wake_lr_test_pattern (F, ix_patt)
+
+implicit none
+
+type(wake_lr_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%file)
+  F%file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%mode)) deallocate (F%mode)
+else
+  if (.not. allocated(F%mode)) allocate (F%mode(-1:1))
+  do jd1 = 1, size(F%mode,1); lb1 = lbound(F%mode,1) - 1
+    call set_wake_lr_mode_test_pattern (F%mode(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%t_ref = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%freq_spread = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%amp_scale = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%time_scale = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 8 + offset; F%self_wake_on = (modulo(rhs, 2) == 0)
+
+end subroutine set_wake_lr_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -2020,40 +2150,10 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%sr_file)
-  F%sr_file(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
-enddo
-!! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%lr_file)
-  F%lr_file(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
-enddo
 !! f_side.test_pat[type, 0, NOT]
-call set_wake_sr_test_pattern (F%sr_long, ix_patt)
+call set_wake_sr_test_pattern (F%sr, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
-call set_wake_sr_test_pattern (F%sr_trans, ix_patt)
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%lr_mode)) deallocate (F%lr_mode)
-else
-  if (.not. allocated(F%lr_mode)) allocate (F%lr_mode(-1:1))
-  do jd1 = 1, size(F%lr_mode,1); lb1 = lbound(F%lr_mode,1) - 1
-    call set_wake_lr_mode_test_pattern (F%lr_mode(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-!! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%wake_amp_scale = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%wake_time_scale = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%z_sr_max = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%lr_freq_spread = rhs
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%lr_self_wake_on = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%sr_wake_scale_with_length = (modulo(rhs, 2) == 0)
+call set_wake_lr_test_pattern (F%lr, ix_patt)
 
 end subroutine set_wake_test_pattern
 
@@ -8978,14 +9078,16 @@ enddo
 rhs = 12 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 13 + offset; F%charge_live = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 14 + offset; F%charge_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%n_particle_tot = rhs
+rhs = 15 + offset; F%n_particle_tot = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%n_particle_live = rhs
+rhs = 16 + offset; F%n_particle_live = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 16 + offset; F%n_particle_lost_in_ele = rhs
+rhs = 17 + offset; F%n_particle_lost_in_ele = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 17 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
+rhs = 18 + offset; F%twiss_valid = (modulo(rhs, 2) == 0)
 
 end subroutine set_bunch_params_test_pattern
 
