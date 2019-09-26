@@ -567,8 +567,8 @@ end type
 !
 
 type wake_struct
-  type (wake_sr_struct) :: sr = wake_sr_struct() ! Short-range wake
-  type (wake_lr_struct) :: lr = wake_lr_struct() ! Long-range wake
+  type (wake_sr_struct) :: sr = wake_sr_struct('', null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
+  type (wake_lr_struct) :: lr = wake_lr_struct('', null(), 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Long-range wake
 end type
 
 ! ac_kicker structure
