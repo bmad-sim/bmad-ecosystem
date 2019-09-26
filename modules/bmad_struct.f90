@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 239
+integer, parameter :: bmad_inc_version$ = 240
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -229,9 +229,6 @@ integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3, one_file$ = 4
 ! num_ele_attrib$ is size of ele%value(:) array.
 
 integer, parameter :: num_ele_attrib$ = 80
-
-integer, parameter :: x_polarization$ = 2, y_polarization$ = 3
-character(8), parameter :: sr_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axis']
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: none$ = 1
@@ -502,26 +499,39 @@ end type
 
 ! Wakefield structs...
 
-integer, parameter :: linear_leading$ = 2, linear_trailing$ = 3
-character(16), parameter :: sr_transverse_dependence_name(3) = ['none           ', 'linear_leading ', 'linear_trailing']
+integer, parameter :: x_polarization$ = 2, y_polarization$ = 3
+character(8), parameter :: sr_transverse_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axis']
+
+integer, parameter :: leading$ = 2, trailing$ = 3
+integer, parameter :: x_leading$ = 2, y_leading$ = 3, x_trailing$ = 4, y_trailing$ = 5
+character(8), parameter :: sr_transverse_position_dep_name(3) = [character(8):: 'none', 'leading', 'trailing']
+character(12), parameter :: sr_longitudinal_position_dep_name(5) = &
+                [character(12):: 'none', 'x_leading', 'y_leading', 'x_trailing', 'y_trailing']
 
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
   real(rp) :: damp = 0      ! Dampling factor.
   real(rp) :: k = 0         ! k factor
-  real(rp) :: phi = 0       ! Phase in radians
+  real(rp) :: phi = 0       ! Phase in radians/2pi
   real(rp) :: b_sin = 0     ! non-skew (x) sin-like component of the wake
   real(rp) :: b_cos = 0     ! non-skew (x) cos-like component of the wake
   real(rp) :: a_sin = 0     ! skew (y) sin-like component of the wake
   real(rp) :: a_cos = 0     ! skew (y) cos-like component of the wake
-  integer :: polarization = none$                 ! none$, x_axis$ or y_axis$
-  integer :: transverse_dependence = not_set$     ! linear_leading$, linear_trailing, none$
+  integer :: polarization = none$            ! Transverse: none$, x_axis$, y_axis$. Not used for longitudinal.
+  integer :: position_dependence = not_set$  ! Transverse: leading$, trailing, none$
+                                             ! Longitudinal: x_leading$, ..., y_trailing$, none$
 end type
 
-type wake_sr_struct  ! Psudo-mode short-Range Wake struct 
-  type (wake_sr_mode_struct), allocatable :: mode(:)
-  real(rp) :: z_ref = 0    ! z reference value for computing the wake amplitude.
-                           !  This is used to prevent value overflow with long bunches.
+type wake_sr_struct  ! Psudo-mode short-Range Wake struct
+  character(200) :: file = ''
+  type (wake_sr_mode_struct), allocatable :: long(:)
+  type (wake_sr_mode_struct), allocatable :: trans(:)
+  real(rp) :: z_ref_long = 0      ! z reference value for computing the wake amplitude.
+  real(rp) :: z_ref_trans = 0     !  This is used to prevent value overflow with long bunches.
+  real(rp) :: z_max = 0           ! Max allowable z value. 0-> ignore
+  real(rp) :: amp_scale = 1       ! Wake amplitude scale factor.
+  real(rp) :: z_scale = 1         ! z-distance scale factor.
+  logical :: scale_with_length = .true. ! Scale wake with element length?
 end type
 
 ! Each wake_lr_struct represents a different mode.
@@ -539,26 +549,26 @@ type wake_lr_mode_struct    ! Long-Range Wake struct.
   real(rp) :: b_cos = 0           ! non-skew cos-like component of the wake.
   real(rp) :: a_sin = 0           ! skew sin-like component of the wake.
   real(rp) :: a_cos = 0           ! skew cos-like component of the wake.
-  real(rp) :: t_ref = 0           ! time reference value for computing the wake amplitude.
-                                  !  This is used to prevent value overflow with long trains.
   integer :: m = 0                ! Mode order (1 = dipole, 2 = quad, etc.)
   logical :: polarized = .false.  ! Polaraized mode?
+end type
+
+type wake_lr_struct
+  character(200) :: file = ''
+  type (wake_lr_mode_struct), allocatable :: mode(:)
+  real(rp) :: t_ref = 0             ! time reference value for computing the wake amplitude.
+                                    !  This is used to prevent value overflow with long trains.
+  real(rp) :: freq_spread = 0       ! Random frequency spread of long range modes.
+  real(rp) :: amp_scale = 1         ! Wake amplitude scale factor.
+  real(rp) :: time_scale = 1        ! time scale factor.
+  logical :: self_wake_on = .true.  ! Long range self-wake used in tracking?
 end type
 
 !
 
 type wake_struct
-  character(200) :: sr_file = ''
-  character(200) :: lr_file = ''
-  type (wake_sr_struct) :: sr_long
-  type (wake_sr_struct) :: sr_trans
-  type (wake_lr_mode_struct), allocatable :: lr_mode(:)
-  real(rp) :: wake_amp_scale = 1             ! Wake amplitude scale factor.
-  real(rp) :: wake_time_scale = 1            ! time scale factor.
-  real(rp) :: z_sr_max = 0                   ! Max allowable z value sr_mode. 
-  real(rp) :: lr_freq_spread = 0             ! Random frequency spread of long range modes.
-  logical :: lr_self_wake_on = .true.        ! Long range self-wake used in tracking?
-  logical :: sr_wake_scale_with_length = .true. ! Scale SR wake with element length?
+  type (wake_sr_struct) :: sr = wake_sr_struct() ! Short-range wake
+  type (wake_lr_struct) :: lr = wake_lr_struct() ! Long-range wake
 end type
 
 ! ac_kicker structure
@@ -1296,11 +1306,11 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
     'Overlay           ', 'Custom            ', 'Taylor            ', 'RFcavity          ', 'ELseparator       ', &
     'BeamBeam          ', 'Wiggler           ', 'Sol_Quad          ', 'Marker            ', 'Kicker            ', &
-    'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', 'GARBAGE!          ', &
-    'Def_Mad_Beam      ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
-    'Def_Parameter     ', 'Null_Ele          ', 'Beginning_Ele     ', 'Line_Ele          ', 'Match             ', &
+    'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', 'Def_Bmad_Com!     ', &
+    'Def_Mad_Beam!     ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
+    'Def_Parameter!    ', 'Null_Ele          ', 'Beginning_Ele     ', 'Line_Ele          ', 'Match             ', &
     'Monitor           ', 'Instrument        ', 'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', &
-    'Ecollimator       ', 'Girder            ', 'Converter         ', 'Def_Particle_start', 'Photon_Fork       ', &
+    'Ecollimator       ', 'Girder            ', 'Converter         ', 'Def_Particle_Start', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
@@ -1462,7 +1472,7 @@ integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: spherical_curvature$ = 81
-integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, lr_wake_spline$ = 81, x_knot$ = 81
+integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83
 integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84
@@ -1480,19 +1490,19 @@ integer, parameter :: aperture$ = 95, etap_a$ = 95
 integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
 integer, parameter :: y_limit$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
-integer, parameter :: aperture_limit_on$ = 99, wake_amp_scale$ = 99
+integer, parameter :: aperture_limit_on$ = 99
 
 integer, parameter :: ptc_exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_a_begin$ = 100
 integer, parameter :: term$ = 101, frequencies$ = 101
-integer, parameter :: x_position$ = 102, ptc_exact_model$ = 102, wake_time_scale$ = 102
+integer, parameter :: x_position$ = 102, ptc_exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
 integer, parameter :: is_on$ = 105, theta_position$ = 105
 integer, parameter :: field_calc$ = 106, phi_position$ = 106
 integer, parameter :: psi_position$ = 107, wall$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a_begin$ = 108
-integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109, sr_wake_scale_with_length$ = 109
+integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
 
 ! 
 
@@ -1500,7 +1510,8 @@ integer, parameter :: to_line$ = 110, field_overlaps$ = 110
 integer, parameter :: field_master$ = 111, to_element$ = 111
 integer, parameter :: descrip$ = 112
 integer, parameter :: scale_multipoles$ = 113
-integer, parameter :: ref_orbit$ = 115
+integer, parameter :: sr_wake$ = 114
+integer, parameter :: ref_orbit$ = 115, lr_wake$ = 115
 integer, parameter :: phi_b$ = 116, crystal_type$ = 116, material_type$ = 116
 integer, parameter :: type$ = 117
 integer, parameter :: ref_origin$ = 118

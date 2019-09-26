@@ -1190,7 +1190,7 @@ $z_\text{fig}$ is discussed in section~\sref{s:surf.grid} and is only present wh
 \vn{type} is set to \vn{Figure_Error}. In \Eq{xs2ij4} the $c_{ij}$ coefficients parameterize the
 fourth order polynomial, $g_{sp}$ parameterize the spherical curvature, and $g_x, g_y$, and $g_z$
 parameterize ellipsoid curvature. [In principle, the spherical curvature is not needed since the
-elliptical curvature is more general. In practice, it is sometimes convieneint to be able to specify spherical
+elliptical curvature is more general. In practice, it is sometimes convenient to be able to specify spherical
 curvature.]  If $g_z$ is zero, the elliptical curvature is ignored. If $g_z$ or $g_{sp}$ is
 positive, the curvature is concave towards the incoming photon. If negative the curvature is convex.
 The spherical and ellipsoid parameters are set for an element by setting the element parameters
@@ -1249,7 +1249,7 @@ Example:
   t_bragg = 1.3950647
   rt = 1  ! Crystal transverse radius
   rs = rt*(sin(t_bragg))^2
-  c: crystal, crystal_type =  'Si(553)', b_param = -1,
+  c: crystal, crystal_type =  "Si(553)", b_param = -1,
         curvature_x0_y2 =  1 / (2 * rs), curvature_x0_y4 = 1 / (8 * rs^3),
         curvature_x2_y0 = 1 / (2 * rt), curvature_x4_y0 = 1 / (8 * rt^3),
 \end{example}
@@ -2062,7 +2062,7 @@ magnetic case, the infinite fringe fields give rise to infinite energy shifts.
 The magnetic and electric multipole kick can be toggled on or off using the
 \vn{multipoles_on} attribute. Example:
 \begin{example}
-  call, file = 'lattice.bmad'             ! Read in a lattice file
+  call, file = "lattice.bmad"             ! Read in a lattice file
   quadrupole::*[multipoles_on] = False    ! But I want the multipoles off.
   q1[k1] = 0.3                            ! k1 attribute not affected.
 \end{example}
@@ -2229,7 +2229,7 @@ Notice that \vn{rf_frequency} is set outside of any field map and is common to a
   \item[master_parameter] \Newline
 The \vn{master_parameter} defines a ``master'' element attribute for scaling the field. Example:
 \begin{example}
-  qq: quadrupole, taylor_field = \{master_parameter = 'K1', ...\}, k1 = ...
+  qq: quadrupole, taylor_field = \{master_parameter = "K1", ...\}, k1 = ...
 \end{example}
 This example defines the \vn{master_parameter} for the \vn{taylor_field} to be the
 quadrupole strength \vn{k1}. By using the same master parameter for a set of field map
@@ -2366,7 +2366,7 @@ the \vn{harmonic} attribute. See the discussion of the \vn{harmonic} attribute i
 Sec.~\sref{s:fieldmap.com}.
 
 The basic equations used for the \vn{cylindrical_map} decomposition of the fields are given in
-Section~\sref{s:cylind.map.phys}. A lattice element may have multiple \vn{cylindriacl_map}
+Section~\sref{s:cylind.map.phys}. A lattice element may have multiple \vn{cylindrical_map}
 components with each \vn{cylindrical_map} being associated with a particular azimuthal mode $m$.
 
 \vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and \vn{b_re} and \vn{b_im} give the
@@ -2571,14 +2571,14 @@ with the file \vn{apex_gun_grid.bmad} being:
 \end{example}
 
 It is considered an error if the field of the grid is evaluated for a point that is transversely
-outside of the grid. That is, a grid must extend transversely to the aperture or at least beyound
+outside of the grid. That is, a grid must extend transversely to the aperture or at least beyond
 the trajectory of any particle. [Actually, to prevent problems when the aperture is set at the grid
 boundary, if the distance between the particle and the grid boundary is within 1/2 of the spacing
-between grid points, no error is generated and the field will calcuated using extrapolation.] On the
+between grid points, no error is generated and the field will be calculated using extrapolation.] On the
 other hand, it is acceptable to evaluate the grid field at a point that is longitudinally outside of
 the grid. In this case, the field is assumed to go to zero. This is done by effectively adding to
 the grid two planes of zero field longitudinally to either side of the grid. So a particle traveling
-ouside of the grid longitudinally will see the field drop to zero within one longitudinal grid
+outside of the grid longitudinally will see the field drop to zero within one longitudinal grid
 spacing length.
 
 Grid fields may stored in \vn{HDF5} binary format which may then be called using an \vn{inline call}
@@ -2850,65 +2850,126 @@ If autoscaling is off, the field is independent of the element's \vn{voltage} se
 \section{Wakefields}
 \label{s:wakes}
 
-Wake fields can be specified for many elements.  The attributes that characterize the
-wakes are:
-\index{sr_wake_file}\index{lr_wake_file}\index{lr_freq_spread}
-\begin{example}
-  sr_wake_file     = <String>   ! Short range wake field definition file. (\sref{s:sr.wake.file})
-  lr_wake_file     = <String>   ! Long range wake field definition file. (\sref{s:lr.wake.file})
-  lr_freq_spread   = <Real>     ! RMS fractional frequency spread of the LR wake fields.
-  lr_self_wake_on  = <Logical>  ! Apply longitudinal long range self-wake? Default = True.
-  wake_amp_scale   = <Real>     ! Factor to scale the wake amplitude. Default = 1.0
-  wake_time_scale  = <Real>     ! Factor to scale the time. Default = 1.0
-  sr_wake_scale_with_length = <logical>  ! Scale SR wakes with element length. Default = T.
-\end{example}
+Wakefield modeling is discussed in Chapter~\sref{c:wakefields.eq}. The syntax for specifying
+short-range wakefields for an element is given in \Sref{s:sr.wake.syntax}. The syntax for specifying
+long-range wakefields is given in \Sref{s:lr.wake.syntax}.
 
-The \vn{lr_freq_spread} attribute is used to randomly spread out the long range mode frequencies
-among different cavities. The spread is Gaussian in shape with an RMS of \vn{lr_freq_spread} * $F$
-where $F$ is the frequency of a mode. Note: Wake modes that are locked to the fundamental
-accelerating mode (\sref{s:lr.wake.file}), are not shifted.
-
-The \vn{lr_self_wake_on} attribute can be used to turn off the longitudinal long-range self-wake
-which is the longitudinal kick on the particles of a bunch due to the wake generated by these same
-particles. [The transverse self wake is always zero.] The default setting of \vn{lr_self_wake_on} is
-\vn{True}. Turning off the self-wake, for example, can be done to avoid double counting if both
-long-range and short-range wakes are defined. Also The standard formulas for the long--range
-resistive wall wake are not valid over short time scales. Thus in this case the self wake should be
-turned off.
-
-The \vn{wake_amp_scale} is used to scale both the long-range and short-range wakes. This is $A_{amp}$
-in \Eqs{wadzk} and \eq{wcrq}. The default is 1.0.
-
-The \vn{wake_time_scale} is used to scale the $z$ factors in the short-range wake equations
-(\sref{s:wake.short}) and to scale $t$ in the long-range wake equations (\sref{s:wake.long}):
-\begin{example}
-  z(used in equations) = wake_time_scale * z(actual)
-  t(used in equations) = wake_time_scale * t(actual)
-\end{example}
-The default is 1.0.
-
-If \vn{sr_wake_scale_with_length} is set to False (the default is True), the length factors in 
-\Eqs{delvp} and \eq{pelqxw} are dropped. This is convenient for using zero length elements
-with wake simulations.
-
-Example:
-\begin{example}
-  abc: lcavity, lr_wake_file = 'lr.wake', lr_freq_spread = 0.0023, lr_self_wake_on = F
-\end{example}
-
-The formulas used to compute the wake field are given in \sref{s:wake.fields}. \bmad has two modes
-for tracking particles. One mode tracks individual particles one at a time. The other mode tracks
-bunches of particles. Which mode is used for a given program is decided by the program. The wake
-field is ignored when tracking individual particles and only used when tracking bunches.
+\bmad has two modes for tracking particles. One mode tracks individual particles one at a time. The
+other mode tracks bunches of particles. Which mode is used for a given program is decided by the
+program. wakefields are ignored when tracking individual particles and only used when tracking
+bunches.
 
 %-----------------------------------------------------------------
 \subsection{Short-Range Wakes}
-\label{s:sr.wake.file}
-
+\label{s:sr.wake.syntax}
 \index{wakes!short-range}
-The input file name for the short--range wake fields is specified using the \vn{sr_wake_file}
-attribute. The file gives both monopole longitudinal and dipole transverse wakes. An example input
-file is:
+
+The short-range wakes for a lattice element are specified via a set of ``pseudo'' modes.  Equations
+for short-range wakefields are given in \Sref{s:sr.wake.eq}.  The \vn{sr_wake} attribute is used to set
+wakefied parameters. The general form of this attribute is:
+\begin{example}
+  sr_wake = \{z_max = <real>, z_scale = <real>, amp_scale = <real>, 
+      scale_with_length = <logical>,
+      longitudinal = \{<amp>, <damp>, <k>, <phi>, <position_dependence>\},
+      ...
+      longitudinal = \{...\}, 
+      transverse = \{<amp>, <damp>, <k>, <phi>, <polarization>, <particle_dependence>\},
+      ...
+      transverse = \{...\} \}
+\end{example}
+The \vn{sr_wake} structure has optional components \vn{z_max}, \vn{z_scale}, \vn{amp_scale}, and
+\vn{scale_with_length} along with zero or more \vn{longitudinal} sub-structures each one specifying
+a single longitudinal mode, and zero or more \vn{transverse} sub-structures each one specifying a
+single transverse mode. Example:
+\begin{example}
+  cav9: lcavity, ..., sr_wake = \{z_max = 1.3e-3, scale_with_length = F, 
+       longitudinal = \{3.23e14, 1.23e3, 3.62e3, 0.123, none\}, 
+       longitudinal = \{6.95e13, 5.02e2, 1.90e3, -1.503, x_leading\}, 
+       transverse = \{4.23e14, 2.23e3, 5.62e3, 0.789, none,  trailing\},
+       transverse = \{8.40e13, 5.94e2, 1.92e3, 1.455, x_axis, none\} \}
+\end{example}
+Note: After an element has been defined, to refer to a given component use the notation:
+\begin{example}
+  <element-name>[sr_wake%<component-name>]
+\end{example}
+where \vn{<element-name>} is the name of the element and \vn{<component-name>} is the name of the component.
+For example, after the \vn{cav9} element has been defined, the \vn{z_scale} component can be changed via:
+\begin{example}
+  cav9[sr_wake%z_scale] = 0.4 * cav9[sr_wake%z_max]
+\end{example}
+
+The first four components of both the \vn{longitudinal} and \vn{transverse} sub-structures give
+$A_i$, $d_i$, $k_i$, and $\phi_i/2\pi$ of \Eq{wadzk}. The units for these components are:
+\begin{center} \tt
+\begin{tabular}{lll} \toprule
+                & {\em Monopole}  & {\em Dipole}     \\ \midrule
+  $A$           & V/Coul/m        & V/Coul/m$^2$     \\
+  $d$           & 1/m             & 1/m              \\
+  $k$           & 1/m             & 1/m              \\
+  $\phi/2\pi$   & Radians/2$\pi$  & Radians/2$\pi$   \\ \bottomrule
+\end{tabular}
+\end{center}
+Monopole modes are modes that are independent of transverse position and dipole modes are modes that
+are linear in the transverse position. 
+
+For the \vn{longitudinal} sub-structures, there is a 5\Th
+component which gives the transverse position dependence. Possible values are:
+\begin{example}
+  none          ! No position dependence
+  x_leading     ! Linear in the leading particle x-position
+  y_leading     ! Linear in the leading particle y-position
+  x_trailing    ! Linear in the trailing particle x-position
+  y_trailing    ! Linear in the trailing particle y-position
+\end{example}
+
+For the \vn{transverse} sub-structures, there is a 5\Th component giving the polarization and a 6\Th
+component specifying if the kick is dependent upon the leading or trailing particle transverse position.
+Possible values for the polarization are
+\begin{example}
+  none          ! Kick in both x and y-planes
+  x_axis        ! Kick in only the x-plane
+  y_axis        ! Kick in only the y-plane
+\end{example}
+and possible values for the particle dependence are:
+\begin{example}
+  none          ! No transverse dependence
+  leading       ! Depends linearly on the leading particle position.
+  trailing      ! Depends linearly on the trailing particle position.
+\end{example}
+
+The \vn{z_max} component of \vn{sr_wake} specifies the the maximum $z$ value at which the pseudo
+mode fit is valid. The \vn{z_max} component is optional and if present and \vn{positive}, \bmad will
+check that the distance between particles does not exceed \vn{z_max}. If it does, \bmad will report
+an error. If \vn{z_max} is not positive it is ignored.
+
+If \vn{scale_with_length} is False (the default is True), the length factors in Equations like
+\Eqs{delvp1} and \eq{pelqxw1} are dropped. This is convenient for using zero length elements with
+wake simulations.
+
+The \vn{amp_scale} component is used to scale the amplitude of the modes. This corresponds to $A_{amp}$
+in \Eq{wadzk}. The default value is 1.0.
+
+The \vn{z_scale} is used to scale the $z$ distance in the wake equations:
+\begin{example}
+  z(used in equations) = z_scale * z(actual)
+\end{example}
+The default value is 1.0.
+
+Note: In a beam chamber with circular symmetry, the linear terms in the \vn{longitudinal} wake are
+zero and the transverse wake has no terms independent of the transverse offsets nor terms that
+depend upon the trailing particle offset.
+
+%-----------------------------------------------------------------
+\subsection{Short-Range Wakes --- Old Format}
+\label{s:sr.wake.old}
+
+There is an old, deprecated, format for specifying short-range wakes where the wake data is
+contained in a separate file whose name is given by the \vn{lr_wake_file} attribute.
+Example:
+\begin{example}
+  abc: lcavity, sr_wake_file = "sr.wake", lr_freq_spread = 0.0023, lr_self_wake_on = F
+\end{example}
+Example file:
 \begin{example}
   ! Pseudo Wake modes:
   !                      Amp       Damp          K      Phase  Polar-    Transverse_
@@ -2919,26 +2980,23 @@ file is:
     longitudinal(1) = 3.23e14     1.23e3     3.62e3     0.123
     longitudinal(2) = 6.95e13     5.02e2     1.90e3    -1.503
     .. etc ..
-    transverse(1) =   4.23e14     2.23e3     5.62e3     0.789    X  linear_trailing
+    transverse(1) =   4.23e14     2.23e3     5.62e3     0.789   none   linear_trailing
     transverse(2) =   8.40e13     5.94e2     1.92e3     1.455
      .. etc ..
     z_max = 1.3e-3
   /
 \end{example}
-Wakes are specified via a set of ``pseudo'' modes (\sref{s:wake.short}). The magnitude of \vn{z_max}
-should be set to the maximum $z$ value at which the pseudo mode fit is valid. \bmad will check the
-distance between particles does not exceed \vn{z_max}.  If it does, \bmad will report an error.
+{\bf Notice that the old format uses radians and not radians/2$\pi$ for the phase.}
 
 \index{none}\index{x_axis}\index{y_axis}
-The \vn{polarization} parameter is used to specify the wake polarization. Possible settings for this
+Possible settings for the polarization parameter are:
 parameter are:
 \begin{example}
   none    ! Default
   x_axis  
   y_axis 
 \end{example}
-The \vn{polarization} name may be abbreviated.  For example, if the \vn{polarization} is set to
-\vn{x_axis}, there is no vertical kick from the pseudo mode.
+The \vn{polarization} name may be abbreviated.
 
 \index{none}\index{linear_leading}\index{linear_trailing}
 The \vn{transverse_dependence} parameter sets whether the wake kick is linear in the offset of the
@@ -2958,22 +3016,108 @@ For \vn{longitudinal} modes: If the \vn{transverse_dependence} is \vn{none} (the
 \vn{transverse_dependence} is \emph{not} \vn{none} for a \vn{longitudinal} mode, then the
 \vn{polarization} must be set to \vn{x_axis} or \vn{y_axis}.
 
-Note: In a beam chamber with circular symmetry, the linear terms in the \vn{longitudinal} wake are
-zero and the transverse wake has no terms independent of the transverse offsets nor terms that
-depend upon the trailing particle offset.
-
 %-----------------------------------------------------------------
 \subsection{Long-Range Wakes}
-\label{s:lr.wake.file}
+\label{s:lr.wake.syntax}
 
-Equations for long-range wakes is given in \Sref{s:wake.long}.
+The \vn{lr_wake} attribute is used to set the long-range wakefield parameters for a lattice element.
+Equations for long-range wakes is given in \Sref{s:lr.wake.eq}.
+The general form of this attribute is:
+\begin{example}
+  lr_wake = \{time_scale = <real>, amp_scale = <real>, freq_spread = <real>,
+      self_wake_on = <logical>, t_ref = <real>,
+      mode = \{<freq_in>, <R_over_Q>, <damp>, <phi>, <m_order>, <polar_angle>, 
+                                                <b_sin>, <b_cos>, <a_sin>, a_cos>\},
+      ...
+      mode = \{...\} \}
+\end{example}
+The \vn{lr_wake} structure has optional components \vn{time_scale}, \vn{amp_scale},
+\vn{freq_spread}, \vn{self_wake_on}, and \vn{t_ref} along with one or more \vn{mode} sub-structures each
+specifying a single long-range mode. Example:
+\begin{example}
+  f1 = 1.65e9;  q1 = 7e4
+  cav9: lcavity, ..., lr_wake = \{time_scale = 1.7, freq_spread = 0.001,  
+       mode = \{f1, 0.76, f1/(2*q1), 0, 1, unpolarized\}, 
+       mode = \{-1, 0.57, 3e4, 0, 2, 0.15\} \}
+\end{example}
 
-The input file name for the long--range wake fields is specified using the \vn{lr_wake_file}
-attribute. The file gives the wake modes by specifying the frequency (in Hz), R/Q (in
-$\Omega$/meter$^{2m}$), Q, and m (order number), and optionally the polarization angle (in
-radians/2pi) for each cavity mode. The input uses Fortran90 namelist syntax: The data begins with
-the string \vn{\&long_range_modes} and ends with a slash \vn{/}. Everything outside this is
-ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode index. An example input file is:
+The first six components of the \vn{mode} sub-structure correspond to $\omega/2\pi$, $R/Q$, $d$,
+$\phi/2\pi$, $m$, and $\theta_p/2\pi$ in \sref{s:lr.wake.eq}. The units of $R/Q$ are
+$\Omega$/meter$^{2m}$. The last four componants, which are optional, correspond to $b_{\sin}$,
+$b_{\cos}$, $a_{\sin}$, and $a_{\cos}$. These four components can be used as a convenient way to
+save the state of the long-range wakes. These components will typically not be present in a lattice
+file except for lattice files generated by a program that does wake simulations.
+
+A negative frequency is used to designate wakes that are part of the fundamental accelerating
+mode. That is, the frequency of such a mode is set to the value of \vn{rf_frequency} for the lattice
+element the wake is associated with. It is an error to have a negative frequency for a mode for
+elements that do not have a \vn{rf_frequency} attribute. \bmad needs to know if a wake is part of
+the fundamental mode due to timing issues as discussed in \sref{s:rf.time}.
+
+The \vn{freq_spread} component of the \vn{lr_wake} structure is used to randomly vary the long-range
+mode frequencies. This can be used to spread out the long-range mode frequencies among different
+cavities. The default value is zero which means there is no varying the mode frequencies. The
+fractional difference between of the mode frequencies used in a simulation and the input mode
+frequencies will have a Gaussian distrubition with an RMS given by \vn{freq_spread}. For example, a
+value of 0.01 for \vn{freq_spread} gives a 1\% variation in frequency. Note: Wake modes that are
+locked to the fundamental accelerating mode (\sref{s:lr.wake.old}), are not shifted.
+
+The \vn{self_wake_on} component can be used to turn off the long-range self-wake
+which is the longitudinal kick given a particle due to the wake generated by that same
+particle. [The transverse self wake is always zero.] The default setting of \vn{self_wake_on} is
+\vn{True}. Turning off the self-wake, for example, can be done to avoid double counting if both
+long-range and short-range wakes are defined. Also, The standard formulas for the long--range
+resistive wall wake are not valid over short time scales. In this case, the self-wake should be
+turned off.
+
+The \vn{amp_scale} component is used to scale the amplitude of the modes. This corresponds to $A_{amp}$
+in \Eq{wadzk}. The default value is 1.0.
+
+The \vn{time_scale} component  is used to scale the time distance in the wake equations:
+\begin{example}
+  t (used in equations) = time_scale * t(actual)
+\end{example}
+The default value is 1.0.
+
+The \vn{t_ref} component is the reference time used in computing the wake (\Eq{ttt}). Like the mode
+components \vn{b_sin}, etc., This component is typically not set when a lattice file is
+constructed.
+
+After the long--range wake has been defined, components can be referenced or redefined using the notation
+\begin{example}
+  lr_wake%mode(n)%freq_in      ! Input Frequency
+  lr_wake%mode(n)%freq         ! Actual Frequency (set by Bmad)
+  lr_wake%mode(n)%r_over_q     ! R/Q
+  lr_wake%mode(n)%damp         ! d
+  lr_wake%mode(n)%phi          ! Actually phi/2pi
+  lr_wake%mode(n)%polar_angle  ! Polarization Angle
+  lr_wake%mode(n)%polarized    ! Logical
+  lr_wake%freq_spread          ! Frequency spread
+  lr_wake%amp_scale            ! Amplitude scale
+  lr_wake%time_scale           ! Time scale
+\end{example}
+\vn{freq_in} is the input frequency set in the \vn{lr_wake} structure and \vn{freq} is the actual
+frequency set by \bmad. \vn{Freq} will only be different from \vn{freq_in} if \vn{freq_spread} is
+nonzero. Example:
+\begin{example}
+  cav9[lr_wake%mode(2)%freq_in] = 1.1 * cav9[lr_wake%mode(2)%freq_in] ! Raise frequency by 10\%
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Long-Range Wakes -- Old Format}
+\label{s:lr.wake.old}
+
+There is an old, deprecated, format for specifying long-range wakes where the wake data is
+contained in a separate file whose name is given by the \vn{lr_wake_file} element attribute.
+Example:
+\begin{example}
+  abc: lcavity, lr_wake_file = "lr.wake", lr_freq_spread = 0.0023, lr_self_wake_on = F
+\end{example}
+The file gives the wake modes by specifying the frequency ($\omega/2\pi$), R/Q, Q, and m (order
+number), and, optionally, the polarization angle $\theta_p/2\pi$ for each cavity mode. The input uses
+Fortran90 namelist syntax: The data begins with the string \vn{\&long_range_modes} and ends with a
+slash \vn{/}. Everything outside this is ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is
+the mode index. An example input file is:
 \begin{example}
               Freq      R/Q      Q    m   Polar   b_sin  b_cos a_sin  a_cos  t_ref 
                       [Ohm/               Angle 
@@ -2984,36 +3128,14 @@ ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode index. An exam
     lr(3) =    -1      0.57    1.1e6  0    "unpol"
   /
 \end{example}
-[Note: The quotation marks are needed with some compilers and not with others.]  A negative frequency
-is used to designate wakes that are part of the fundamental accelerating mode. That is, the
-frequency of such a mode is set to the value of \vn{rf_frequency} for the lattice element the wake
-is associated with. It is an error to define such a mode for elements that do not have a
-\vn{rf_frequency} attribute. \bmad needs to know if a wake is part of the fundamental mode due to
-timing issues as discussed in \sref{s:rf.time}.
+[Note: The quotation marks are needed with some compilers and not with others.]
+If the polarization angle is set to ``\vn{unpolarized}'' the mode is taken to be unpolarized. 
 
-If the polarization angle is set to ``\vn{unpolarized}'' the mode is taken to be unpolarized. [Note:
-Technically the unpolarized mode is actually two polarized normal modes. The axes of these two
-normal modes can be chosen arbitrary as long as they are at right angles to each other.]
+Two deprecated element attributes that affect the long-range wake are \vn{lr_freq_spread} and
+\vn{lr_self_wake_on} which correspond to \vn{lr_wake%freq_spread} and \vn{lr_wake%self_wake_on}
+(\ref{s:lr.wake.syntax}
 
-Two element attributes that affect the long-range wake are \vn{lr_freq_spread} and
-\vn{lr_self_wake_on} as explained in \sref{s:wakes}.
-
-After the long--range modes have been defined they can be referenced or redefined using the notation
-\begin{example}
-  lr(n)%freq      ! Frequency
-  lr(n)%r_over_q  ! R/Q
-  lr(n)%q         ! Q
-  lr(n)%angle     ! Polarization Angle
-\end{example}
-Example:
-\begin{example}
-  lcav[lr(2)%freq] = 1.1 * lcav[lr(2)%freq] ! Raise frequency by 10\%
-\end{example}
-
-Example:
-\begin{example}
-  rf1: lcav, l = 4.5, gradient = 1.2e6, sr_wake_file = "sr1.dat"
-\end{example}
+Notice that with the old format it is not possible to specify the phase offset $\phi$.
 
 %-----------------------------------------------------------------
 \section{Fringe Fields}

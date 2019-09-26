@@ -1140,7 +1140,18 @@ if (attrib_word == 'SURFACE') then
   if (.not. expect_one_of(', ', .false., ele, delim, delim_found)) return
   err_flag = .false.
   return
+endif
 
+if (attrib_word == 'SR_WAKE') then
+  if (.not. expect_this ('={', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
+  call parser_read_sr_wake (ele, delim, delim_found, err_flag)
+  return
+endif
+
+if (attrib_word == 'LR_WAKE') then
+  if (.not. expect_this ('={', .true., .true., 'AFTER "LR_WAKE"', ele, delim, delim_found)) return
+  call parser_read_lr_wake (ele, delim, delim_found, err_flag)
+  return
 endif
 
 !-------------------------------
@@ -3286,7 +3297,7 @@ case ('LATTICE')
 case ('MACHINE')
   ele%branch%lat%machine = type_name
 case ('LR_WAKE_FILE') 
-  call read_lr_wake (ele, type_name)
+  call parser_read_old_format_lr_wake (ele, type_name)
 case ('MATERIAL', 'CLEAR_MATERIAL', 'OPAQUE_MATERIAL')
   str_out = type_name
 case ('TO', 'TO_LINE', 'ORIGIN_ELE')
@@ -3296,7 +3307,7 @@ case ('TO_ELEMENT')
   pele%ele_name = type_name
   call upcase_string (pele%ele_name)
 case ('SR_WAKE_FILE') 
-  call read_sr_wake (ele, type_name)
+  call parser_read_old_format_sr_wake (ele, type_name)
 case ('TYPE')
   ele%type = type_name
 case default
@@ -3310,7 +3321,264 @@ end subroutine bmad_parser_string_attribute_set
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine read_lr_wake (ele, lr_file_name)
+! Subroutine parser_read_sr_wake (ele, delim, delim_found, err_flag)
+!
+! Subroutine to read in a short-range wake field from an external file.
+! This subroutine is used by bmad_parser and bmad_parser2.
+!
+! Input:
+!   ele          -- Ele_struct: Element containing wake structure.
+!
+! Output:
+!   ele -- Ele_struct: Element with wake information.
+!     %wake%sr      -- Short-range wake potential.
+!-
+      
+subroutine parser_read_sr_wake (ele, delim, delim_found, err_flag)
+
+implicit none
+
+type (ele_struct) ele
+type (lat_struct), pointer :: lat
+type (wake_sr_mode_struct), target :: trans(100), long(100)
+type (wake_sr_mode_struct), pointer :: srm
+type (wake_sr_struct), pointer :: wake_sr
+
+integer itrans, ilong, ix_word, which
+
+logical delim_found, err_flag
+
+character(40) err_str, word, attrib_name
+character(1) delim
+
+! Init
+
+if (.not. associated(ele%wake)) allocate (ele%wake)
+if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
+if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
+if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
+
+lat => ele%branch%lat
+wake_sr => ele%wake%sr
+trans = wake_sr_mode_struct()
+long = wake_sr_mode_struct()
+err_flag = .true.
+
+! get data
+
+itrans = 0
+ilong = 0
+
+do
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+  if (.not. expect_this ('=', .true., .false., 'IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
+
+  select case (attrib_name)
+  case ('Z_MAX')
+    call parse_evaluate_value (err_str, wake_sr%z_max, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    if (delim == '}') exit
+    cycle
+  case ('Z_SCALE')
+    call parse_evaluate_value (err_str, wake_sr%z_scale, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    if (delim == '}') exit
+    cycle
+  case ('AMP_SCALE')
+    call parse_evaluate_value (err_str, wake_sr%amp_scale, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    if (delim == '}') exit
+    cycle
+  case ('SCALE_WITH_LENGTH')
+    call parser_get_logical (ele, attrib_name, wake_sr%scale_with_length, word, ix_word, delim, delim_found, err_flag);  if (err_flag) return
+    if (.not. expect_one_of (',}', .true., ele, delim, delim_found)) return
+    if (delim == '}') exit
+    cycle
+  case ('LONGITUDINAL')
+    ilong = ilong + 1
+    srm => long(ilong)
+    which = longitudinal_mode$
+  case ('TRANSVERSE')
+    itrans = itrans + 1
+    srm => trans(itrans)
+    which = -1  ! Not longitudinal. That is, transverse.
+  case default
+    call parser_error ('UNKNOWN SR_WAKE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+    return
+  end select
+
+  if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
+
+  err_str = trim(ele%name) // ' SR_WAKE ' // attrib_name
+  call parse_evaluate_value (err_str, srm%amp, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%damp, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%k, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%phi, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  if (which == longitudinal_mode$) then
+    call get_switch ('POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
+  else
+    call get_switch ('POLARIZATION', sr_transverse_polarization_name, srm%polarization, err_flag, ele, delim, delim_found)
+    if (.not. expect_one_of (',', .true., ele, delim, delim_found)) return
+    call get_switch ('POSITION_DEPENDENCE', sr_transverse_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
+  endif
+
+  if (.not. expect_one_of ('}', .true., ele, delim, delim_found)) return
+  if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+  if (delim == '}') exit
+enddo
+
+!
+
+if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+
+allocate (ele%wake%sr%long(ilong))
+ele%wake%sr%long = long(1:ilong)
+
+allocate (ele%wake%sr%trans(itrans))
+ele%wake%sr%trans = trans(1:itrans)
+
+err_flag = .false.
+
+end subroutine parser_read_sr_wake
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_read_lr_wake (ele, delim, delim_found, err_flag)
+!
+! Subroutine to read in a long-range wake field from an external file.
+! This subroutine is used by bmad_parser and bmad_parser2.
+!
+! Input:
+!   ele          -- Ele_struct: Element containing wake structure.
+!
+! Output:
+!   ele          -- Ele_struct: Element with wake information.
+!     %wake%lr     -- Long-range wake.
+!-
+      
+subroutine parser_read_lr_wake (ele, delim, delim_found, err_flag)
+
+implicit none
+
+type (ele_struct) ele
+type (lat_struct), pointer :: lat
+type (wake_lr_mode_struct), target :: lr_mode(100)
+type (wake_lr_mode_struct), pointer :: lrm
+type (wake_lr_struct), pointer :: wake_lr
+
+integer iterm, ix_word
+
+logical delim_found, err_flag, set_done
+
+character(40) err_str, word, attrib_name
+character(1) delim
+
+! Init
+
+if (.not. associated(ele%wake)) allocate (ele%wake)
+if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
+if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
+if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
+
+lat => ele%branch%lat
+wake_lr => ele%wake%lr
+lr_mode = wake_lr_mode_struct()
+err_flag = .true.
+
+! get data
+
+iterm = 0
+
+do
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+  if (.not. expect_this ('=', .true., .false., 'IN LR_WAKE DEFINITION', ele, delim, delim_found)) return
+
+  select case (attrib_name)
+  case ('AMP_SCALE')
+    call parse_evaluate_value (err_str, wake_lr%amp_scale, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    if (delim == '}') exit
+    cycle
+  case ('TIME_SCALE')
+    call parse_evaluate_value (err_str, wake_lr%time_scale, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    if (delim == '}') exit
+    cycle
+  case ('FREQ_SPREAD')
+    call parse_evaluate_value (err_str, wake_lr%freq_spread, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    if (delim == '}') exit
+    cycle
+  case ('T_REF')
+    call parse_evaluate_value (err_str, wake_lr%t_ref, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    if (delim == '}') exit
+    cycle
+  case ('SELF_WAKE_ON')
+    call parser_get_logical (ele, attrib_name, wake_lr%self_wake_on, word, ix_word, delim, delim_found, err_flag);  if (err_flag) return
+    if (.not. expect_one_of (',}', .true., ele, delim, delim_found)) return
+    if (delim == '}') exit
+    cycle
+  case ('MODE')
+  case default
+    call parser_error ('UNKNOWN LR_WAKE COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+    return
+  end select
+
+  if (.not. expect_this ('{', .false., .false., 'AFTER "MODE =" IN LR_WAKE DEFINITION', ele, delim, delim_found)) return
+  iterm = iterm + 1
+  lrm => lr_mode(iterm)
+
+  err_str = trim(ele%name) // ' LR_WAKE MODE'
+  call parse_evaluate_value (err_str, lrm%freq_in, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  lrm%freq = lrm%freq_in
+  call parse_evaluate_value (err_str, lrm%r_over_q, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%damp, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%phi, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+
+  call parser_get_integer (lrm%m, word, ix_word, delim, delim_found, err_flag, 'BAD LR_WAKE M MODE VALUE')
+
+  if (.not. expect_this (',', .true., .false., 'AFTER M MODE VALUE', ele, delim, delim_found)) return
+  call get_next_word (attrib_name, ix_word, ',{}=', delim, delim_found)
+  if (index('UNPOLARIZED', trim(upcase(attrib_name))) == 1 .and. attrib_name /= '') then
+    lrm%polarized = .false.
+  else
+    lrm%polarized = .true.
+    bp_com%parse_line = trim(attrib_name) // delim // bp_com%parse_line
+    call parse_evaluate_value (err_str, lrm%angle, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+  endif
+
+  if (delim == '}') then
+    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+    if (delim == '}') exit
+    cycle
+  endif
+
+  call parse_evaluate_value (err_str, lrm%b_sin, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%b_cos, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%a_sin, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%a_cos, lat, delim, delim_found, err_flag, '}');  if (err_flag) return
+
+  if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+  if (delim == '}') exit
+enddo
+
+!
+
+if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+
+allocate (wake_lr%mode(iterm))
+wake_lr%mode = lr_mode(1:iterm)
+
+if (wake_lr%freq_spread /= 0) then
+  call randomize_lr_wake_frequencies (ele, set_done)
+  if (set_done) call bp_set_ran_status
+endif
+
+err_flag = .false.
+
+end subroutine parser_read_lr_wake
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_read_old_format_lr_wake (ele, lr_file_name)
 !
 ! Subroutine to read in a long-range wake field from an external file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
@@ -3321,20 +3589,20 @@ end subroutine bmad_parser_string_attribute_set
 !
 ! Output:
 !   ele -- Ele_struct: Element with wake information.
-!     %wake%lr_mode(:)       -- Long-range wake potential.
+!     %wake%lr%mode(:)       -- Long-range wake potential.
 !-
       
-subroutine read_lr_wake (ele, lr_file_name)
+subroutine parser_read_old_format_lr_wake (ele, lr_file_name)
 
 implicit none
 
 type lr_wake_input_struct
-  real(rp) freq         ! Actual Frequency in Hz.
-  real(rp) R_over_Q     ! Strength in V/C/m^(2*m_mode).
-  real(rp) Q            ! Quality factor.
-  integer m             ! Mode order (1 = dipole, 2 = quad, etc.)
-  character(16) angle   ! polarization angle (radians/2pi).
-  real(rp) b_sin, b_cos, a_sin, a_cos, t_ref
+  real(rp) :: freq  = real_garbage$ ! Actual Frequency in Hz.
+  real(rp) :: R_over_Q = 0          ! Strength in V/C/m^(2*m_mode).
+  real(rp) :: Q = 0                 ! Quality factor.
+  integer :: m = 0                  ! Mode order (1 = dipole, 2 = quad, etc.)
+  character(16) :: angle = ''       ! polarization angle (radians/2pi).
+  real(rp) :: b_sin = 0, b_cos = 0, a_sin = 0, a_cos = 0, t_ref = 0
 end type
 
 type (ele_struct) ele
@@ -3349,9 +3617,9 @@ namelist / long_range_modes / lr
 ! Init
 
 if (.not. associated(ele%wake)) allocate (ele%wake)
-if (.not. allocated(ele%wake%sr_long%mode))  allocate (ele%wake%sr_long%mode(0))
-if (.not. allocated(ele%wake%sr_trans%mode)) allocate (ele%wake%sr_trans%mode(0))
-if (allocated(ele%wake%lr_mode)) deallocate (ele%wake%lr_mode)
+if (.not. allocated(ele%wake%sr%long))  allocate (ele%wake%sr%long(0))
+if (.not. allocated(ele%wake%sr%trans)) allocate (ele%wake%sr%trans(0))
+if (allocated(ele%wake%lr%mode)) deallocate (ele%wake%lr%mode)
 
 ! get data
 
@@ -3359,16 +3627,9 @@ call parser_file_stack ('push', lr_file_name, finished, err)
 if (err) return
 iu = bp_com%current_file%f_unit
 
-ele%wake%lr_file = lr_file_name
+ele%wake%lr%file = lr_file_name
 
-lr%freq = real_garbage$
-lr%angle = ''
-lr%b_sin = 0
-lr%b_cos = 0
-lr%a_sin = 0
-lr%a_cos = 0
-lr%t_ref = 0
-
+lr = lr_wake_input_struct()
 read (iu, nml = long_range_modes, iostat = ios)
 call parser_file_stack ('pop')
 
@@ -3381,24 +3642,23 @@ endif
 ! Transfer info to ele structure.
 
 n_row = count(lr%freq /= real_garbage$)
-allocate (ele%wake%lr_mode(n_row))
+allocate (ele%wake%lr%mode(n_row))
 j = 0
 do i = 1, size(lr)
   if (lr(i)%freq == real_garbage$) cycle
   if (lr(i)%freq == 0) lr(i)%freq = -1
 
   j = j + 1
-  ele%wake%lr_mode(j)%freq_in   = lr(i)%freq
-  ele%wake%lr_mode(j)%freq      = lr(i)%freq
-  ele%wake%lr_mode(j)%r_over_q  = lr(i)%r_over_q
-  ele%wake%lr_mode(j)%phi       = 0
-  ele%wake%lr_mode(j)%Q         = lr(i)%Q
-  ele%wake%lr_mode(j)%m         = lr(i)%m
-  ele%wake%lr_mode(j)%b_sin     = lr(i)%b_sin
-  ele%wake%lr_mode(j)%b_cos     = lr(i)%b_cos
-  ele%wake%lr_mode(j)%a_sin     = lr(i)%a_sin
-  ele%wake%lr_mode(j)%a_cos     = lr(i)%a_cos
-  ele%wake%lr_mode(j)%t_ref     = lr(i)%t_ref
+  ele%wake%lr%mode(j)%freq_in   = lr(i)%freq
+  ele%wake%lr%mode(j)%freq      = lr(i)%freq
+  ele%wake%lr%mode(j)%r_over_q  = lr(i)%r_over_q
+  ele%wake%lr%mode(j)%phi       = 0
+  ele%wake%lr%mode(j)%Q         = lr(i)%Q
+  ele%wake%lr%mode(j)%m         = lr(i)%m
+  ele%wake%lr%mode(j)%b_sin     = lr(i)%b_sin
+  ele%wake%lr%mode(j)%b_cos     = lr(i)%b_cos
+  ele%wake%lr%mode(j)%a_sin     = lr(i)%a_sin
+  ele%wake%lr%mode(j)%a_cos     = lr(i)%a_cos
 
   call downcase_string(lr(i)%angle)
   if (lr(i)%angle == '') then
@@ -3409,11 +3669,11 @@ do i = 1, size(lr)
   endif
 
   if (index('unpolarized', trim(lr(j)%angle)) == 1) then
-    ele%wake%lr_mode(j)%polarized = .false.
-    ele%wake%lr_mode(j)%angle     = 0
+    ele%wake%lr%mode(j)%polarized = .false.
+    ele%wake%lr%mode(j)%angle     = 0
   else
-    ele%wake%lr_mode(j)%polarized = .true.
-    read (lr(j)%angle, *, iostat = ios) ele%wake%lr_mode(j)%angle
+    ele%wake%lr%mode(j)%polarized = .true.
+    read (lr(j)%angle, *, iostat = ios) ele%wake%lr%mode(j)%angle
     if (ios /= 0) then
       call parser_error ('BAD LONG_RANGE_MODE ANGLE.', &
                     'FOR ELEMENT: ' // ele%name, &
@@ -3426,13 +3686,13 @@ enddo
 call randomize_lr_wake_frequencies (ele, set_done)
 if (set_done) call bp_set_ran_status
 
-end subroutine read_lr_wake
+end subroutine parser_read_old_format_lr_wake
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine read_sr_wake (ele, sr_file_name)
+! Subroutine parser_read_old_format_sr_wake (ele, sr_file_name)
 !
 ! Subroutine to read in a short-range wake field from an external file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
@@ -3443,12 +3703,12 @@ end subroutine read_lr_wake
 !
 ! Output:
 !   ele -- Ele_struct: Element with wake information.
-!     %wake%sr_table(:)       -- Short-range wake potential.
-!     %wake%sr_long(:)  -- Short-range wake potential.
-!     %wake%sr_trans(:) -- Short-range wake potential.
+!     %wake%sr%table(:)       -- Short-range wake potential.
+!     %wake%sr%long(:)  -- Short-range wake potential.
+!     %wake%sr%trans(:) -- Short-range wake potential.
 !-
 
-subroutine read_sr_wake (ele, sr_file_name)
+subroutine parser_read_old_format_sr_wake (ele, sr_file_name)
 
 implicit none
 
@@ -3465,16 +3725,18 @@ character(200) full_file_name
 
 logical in_namelist, finished, err
 
+character(16), parameter :: old_sr_position_dependence_name(3) = [character(16):: 'none', 'linear_leading', 'linear_trailing']
+
 ! init
 
 if (.not. associated(ele%wake))   allocate (ele%wake)
-if (.not. allocated(ele%wake%lr_mode)) allocate (ele%wake%lr_mode(0))
-if (allocated(ele%wake%sr_long%mode))  deallocate (ele%wake%sr_long%mode)
-if (allocated(ele%wake%sr_trans%mode)) deallocate (ele%wake%sr_trans%mode)
+if (.not. allocated(ele%wake%lr%mode)) allocate (ele%wake%lr%mode(0))
+if (allocated(ele%wake%sr%long))  deallocate (ele%wake%sr%long)
+if (allocated(ele%wake%sr%trans)) deallocate (ele%wake%sr%trans)
 
 ! Open file
 
-ele%wake%sr_file = sr_file_name
+ele%wake%sr%file = sr_file_name
 call parser_file_stack ('push', sr_file_name, finished, err)
 if (err) return
 iu = bp_com%current_file%f_unit
@@ -3518,7 +3780,7 @@ do
     call string_trim(line(13:), line, ixx)
     sr => longitudinal
     if (.not. get_this_sr1 (sr, sr1)) return
-    sr1%transverse_dependence = none$    ! Default
+    sr1%position_dependence = none$    ! Default
     sr1%polarization = none$             ! Default
 
     if (.not. expect_equal_sign()) return
@@ -3526,23 +3788,23 @@ do
     if (.not. get_this_param (sr1%damp)) return
     if (.not. get_this_param (sr1%k)) return
     if (.not. get_this_param (sr1%phi)) return
-    if (.not. get_this_switch (sr1%polarization, sr_polarization_name)) return
-    if (.not. get_this_switch (sr1%transverse_dependence, sr_transverse_dependence_name)) return
+    if (.not. get_this_switch (sr1%polarization, sr_transverse_polarization_name)) return
+    if (.not. get_this_switch (sr1%position_dependence, old_sr_position_dependence_name)) return
     if (.not. expect_nothing ()) return
 
   elseif (line(1:10) == 'transverse') then
     call string_trim(line(11:), line, ixx)
     sr => transverse
     if (.not. get_this_sr1 (sr, sr1)) return
-    sr1%transverse_dependence = linear_leading$     ! Default
+    sr1%position_dependence = leading$     ! Default
 
     if (.not. expect_equal_sign()) return
     if (.not. get_this_param (sr1%amp)) return
     if (.not. get_this_param (sr1%damp)) return
     if (.not. get_this_param (sr1%k)) return
     if (.not. get_this_param (sr1%phi)) return
-    if (.not. get_this_switch (sr1%polarization, sr_polarization_name)) return
-    if (.not. get_this_switch (sr1%transverse_dependence, sr_transverse_dependence_name)) return
+    if (.not. get_this_switch (sr1%polarization, sr_transverse_polarization_name)) return
+    if (.not. get_this_switch (sr1%position_dependence, old_sr_position_dependence_name)) return
     if (.not. expect_nothing ()) return
 
   elseif (line(1:ixx) == 'z_max') then
@@ -3557,7 +3819,6 @@ do
                        'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
     return
   endif
-
 enddo
 
 call parser_file_stack ('pop')
@@ -3565,21 +3826,42 @@ call parser_file_stack ('pop')
 ! Put data in element
 
 n = count(longitudinal%phi /= real_garbage$)
-allocate (ele%wake%sr_long%mode(n))
-ele%wake%sr_long%mode = longitudinal(1:n)
+allocate (ele%wake%sr%long(n))
+ele%wake%sr%long = longitudinal(1:n)
 if (any(longitudinal(1:n)%phi == real_garbage$)) call parser_error ( &
     'JUMBLED INDEX FOR LONGITUDINAL SHORT_RANGE_MODES FROM FILE: ' // full_file_name, &
     'FOR ELEMENT: ' // ele%name)
 
+do i = 1, n
+  sr1 => ele%wake%sr%long(i)
+  if (sr1%polarization == none$ .and. sr1%position_dependence == none$) then
+    sr1%position_dependence = none$
+  elseif (sr1%polarization == x_polarization$ .and. sr1%position_dependence == leading$) then
+    sr1%position_dependence = x_leading$
+  elseif (sr1%polarization == x_polarization$ .and. sr1%position_dependence == trailing$) then
+    sr1%position_dependence = x_trailing$
+  elseif (sr1%polarization == y_polarization$ .and. sr1%position_dependence == leading$) then
+    sr1%position_dependence = y_leading$
+  elseif (sr1%polarization == y_polarization$ .and. sr1%position_dependence == trailing$) then
+    sr1%position_dependence = y_trailing$
+  else
+    call parser_error ('MISMATCHED POLARIZATION AND POSITION_DEPENDENCE FOR SHORT-RANG WAKE LONGITUDINAL MODE.', &
+                       'FOR MODE WITH INDEX \i0\ OF ELEMENT: ' // ele%name, &
+                       'FROM FILE: ' // full_file_name, i_array = [i])
+  endif
+enddo
+
 n = count(transverse%phi /= real_garbage$)
-allocate (ele%wake%sr_trans%mode(n))
-ele%wake%sr_trans%mode = transverse(1:n)
+allocate (ele%wake%sr%trans(n))
+ele%wake%sr%trans = transverse(1:n)
 if (any(transverse(1:n)%phi == real_garbage$)) call parser_error ( &
     'JUMBLED INDEX FOR TRANSVERSE SHORT_RANGE_MODES FROM FILE: ' // full_file_name, &
     'FOR ELEMENT: ' // ele%name)
 
+ele%wake%sr%long%phi  = ele%wake%sr%long%phi / twopi
+ele%wake%sr%trans%phi = ele%wake%sr%trans%phi / twopi
 
-ele%wake%z_sr_max = z_max
+ele%wake%sr%z_max = z_max
 if (z_max == real_garbage$) call parser_error ( &
     'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' // full_file_name, &
     'FOR ELEMENT: ' // ele%name)
@@ -3727,7 +4009,7 @@ is_ok = .true.
 
 end function expect_nothing
 
-end subroutine read_sr_wake
+end subroutine parser_read_old_format_sr_wake
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

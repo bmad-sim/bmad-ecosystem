@@ -113,8 +113,8 @@ ele%bookkeeping_state%ptc     = stale$
 ! lr wake
 
 if (associated(ele%wake)) then
-  do i = 1, size(ele%wake%lr_mode)
-    lr => ele%wake%lr_mode(i)
+  do i = 1, size(ele%wake%lr%mode)
+    lr => ele%wake%lr%mode(i)
     if (lr%freq_in < 0) lr%freq = ele%value(rf_frequency$)
     if (lr%q /= real_garbage$) lr%damp = pi * lr%freq / lr%q
   enddo

@@ -141,34 +141,39 @@ endif
 !--------------------
 ! Check to see if the attribute is a long-range wake
 
-if (a_name(1:3) == 'LR(') then
+if (a_name(1:3) == 'LR(' .or. a_name(1:13) == 'LR_WAKE%MODE(') then
   if (.not. associated (ele%wake)) then
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, n)
   endif
 
-  n = get_cross_index(a_name, 3, err, 1, 1000)
-  if (err) goto 9140
+  if (a_name(1:3) == 'LR(') then
+    n = get_cross_index(a_name, 3, err, 1, 1000);  if (err) goto 9140
+  else
+    n = get_cross_index(a_name, 13, err, 1, 1000);  if (err) goto 9140
+  endif
 
-  n_lr_mode = size(ele%wake%lr_mode)
+  n_lr_mode = size(ele%wake%lr%mode)
   if (n_lr_mode < n) then
     if (.not. do_allocation) goto 9100
     allocate (lr_mode(n_lr_mode))
-    lr_mode = ele%wake%lr_mode
-    deallocate (ele%wake%lr_mode)
-    allocate (ele%wake%lr_mode(n))
-    ele%wake%lr_mode = wake_lr_mode_struct ()
-    ele%wake%lr_mode(1:n_lr_mode) = lr_mode
+    lr_mode = ele%wake%lr%mode
+    deallocate (ele%wake%lr%mode)
+    allocate (ele%wake%lr%mode(n))
+    ele%wake%lr%mode = wake_lr_mode_struct ()
+    ele%wake%lr%mode(1:n_lr_mode) = lr_mode
     deallocate (lr_mode)
   endif
 
   select case (a_name(ix_d+2:))
-  case ('FREQ');      a_ptr%r => ele%wake%lr_mode(n)%freq
-  case ('R_OVER_Q');  a_ptr%r => ele%wake%lr_mode(n)%r_over_q
-  case ('DAMP');      a_ptr%r => ele%wake%lr_mode(n)%damp
-  case ('PHI');       a_ptr%r => ele%wake%lr_mode(n)%phi
-  case ('ANGLE');     a_ptr%r => ele%wake%lr_mode(n)%angle
-  case default;       goto 9000
+  case ('FREQ_IN');         a_ptr%r => ele%wake%lr%mode(n)%freq_in
+  case ('FREQ');            a_ptr%r => ele%wake%lr%mode(n)%freq
+  case ('R_OVER_Q');        a_ptr%r => ele%wake%lr%mode(n)%r_over_q
+  case ('DAMP');            a_ptr%r => ele%wake%lr%mode(n)%damp
+  case ('PHI');             a_ptr%r => ele%wake%lr%mode(n)%phi
+  case ('POLAR_ANGLE');     a_ptr%r => ele%wake%lr%mode(n)%angle
+  case ('POLARIZED');       a_ptr%l => ele%wake%lr%mode(n)%polarized
+  case default; goto 9000
   end select    
 
   err_flag = .false.
@@ -350,22 +355,28 @@ case ('REF_TIME');        a_ptr%r => ele%ref_time
 case ('KEY');             a_ptr%i => ele%key
 case ('N_SLAVE');         a_ptr%i => ele%n_slave
 case ('N_LORD');          a_ptr%i => ele%n_lord
-case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'SR_WAKE_SCALE_WITH_LENGTH', 'WAKE_AMP_SCALE', 'WAKE_TIME_SCALE')
+case ('LR_FREQ_SPREAD', 'LR_SELF_WAKE_ON', 'LR_WAKE%AMP_SCALE', 'LR_WAKE%TIME_SCALE', &
+      'LR_WAKE%FREQ_SPREAD', 'LR_WAKE%SELF_WAKE_ON', &
+      'SR_WAKE%SCALE_WITH_LENGTH', 'SR_WAKE%AMP_SCALE', 'SR_WAKE%Z_SCALE')
   if (.not. associated(ele%wake)) then
     if (.not. do_allocation) goto 9100
     call init_wake (ele%wake, 0, 0, 0, .true.)
   endif
   select case (a_name)
-  case ('WAKE_AMP_SCALE')
-    a_ptr%r => ele%wake%wake_amp_scale
-  case ('WAKE_TIME_SCALE')
-    a_ptr%r => ele%wake%wake_time_scale
-  case ('LR_FREQ_SPREAD')
-    a_ptr%r => ele%wake%lr_freq_spread
-  case ('SR_WAKE_SCALE_WITH_LENGTH')
-    a_ptr%l => ele%wake%sr_wake_scale_with_length
-  case ('LR_SELF_WAKE_ON')
-    a_ptr%l => ele%wake%lr_self_wake_on
+  case ('LR_SELF_WAKE_ON', 'LR_WAKE%SELF_WAKE_ON')
+    a_ptr%l => ele%wake%lr%self_wake_on
+  case ('LR_WAKE%AMP_SCALE')
+    a_ptr%r => ele%wake%lr%amp_scale
+  case ('LR_WAKE%TIME_SCALE')
+    a_ptr%r => ele%wake%lr%time_scale
+  case ('LR_FREQ_SPREAD', 'LR_WAKE%FREQ_SPREAD')
+    a_ptr%r => ele%wake%lr%freq_spread
+  case ('SR_WAKE%AMP_SCALE')
+    a_ptr%r => ele%wake%sr%amp_scale
+  case ('SR_WAKE%Z_SCALE')
+    a_ptr%r => ele%wake%sr%z_scale
+  case ('SR_WAKE%SCALE_WITH_LENGTH')
+    a_ptr%l => ele%wake%sr%scale_with_length
   end select
 
 case ('SPHERICAL_CURVATURE')

@@ -82,7 +82,7 @@ type (str_indexx_struct) str_index
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
-integer i, i1, j, n, is, ix, iw, ix_tot, iv, ic, nl2, l_status, a_type, default_val
+integer i, i1, j, n, is, ix, iw, ix2, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max
 
 real(rp) coef, val, L_mis(3), S_mis(3,3) 
@@ -183,13 +183,13 @@ do i = 1, num_ele_attrib$
   a_name = attrib%name
   if (a_name == null_name$) cycle
   if (attrib%type == private$) cycle
-  ix_tot = corresponding_tot_attribute_index (ele, i)
+  ix2 = second_column_attribute_index (ele, i)
 
-  if (ix_tot > 0) then
-    if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle
+  if (ix2 > 0) then
+    if (ele%value(i) == 0 .and. ele%value(ix2) == 0 .and. .not. type_zero) cycle
     nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, i3, 3x, a16, a, es15.7, 1x, a8)') &
                       i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
-                      ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot), attrib%units
+                      ix2, attribute_name(ele, ix2), '=', ele%value(ix2), attrib%units
 
   elseif (a_name == 'RF_FREQUENCY' .and. ele%value(i) /= 0) then
     nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, f13.9, 1x, a)') &
@@ -241,7 +241,7 @@ do i = 1, num_ele_attrib$
 
   else
     attrib_type = attribute_type(a_name)
-    if (is_a_tot_attribute(ele, i)) cycle
+    if (is_second_column_attribute(ele, i)) cycle
     select case (attrib_type)
     case (is_logical$)
       if (ele%value(i) /= 0) ele%value(i) = 1
@@ -1075,71 +1075,75 @@ endif
 
 if (associated(ele%wake)) then
 
-  if (logic_option (.true., type_wake) .and. (size(ele%wake%sr_long%mode) /= 0 .or. &
-                                                       size(ele%wake%sr_trans%mode) /= 0)) then
-    nl=nl+1; li(nl) = ''
-    nl=nl+1; li(nl) = 'Wake:'
-    nl=nl+1; write (li(nl), '(2x, 2a)')    'wake_amp_scale           = ', to_str(ele%wake%wake_amp_scale)
-    nl=nl+1; write (li(nl), '(2x, 2a)')    'wake_time_scale          = ', to_str(ele%wake%wake_time_scale)
-
+  if (logic_option (.true., type_wake) .and. (size(ele%wake%sr%long) /= 0 .or. &
+                                                       size(ele%wake%sr%trans) /= 0)) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Short-Range Wake:'
-    nl=nl+1; li(nl) = '  SR_File: ' // trim(ele%wake%sr_file)
-    nl=nl+1; write (li(nl), '(2x, a, l2)') 'sr_wake_scale_with_length =', ele%wake%sr_wake_scale_with_length
-    nl=nl+1; write (li(nl), '(2x, 2a)')    'z_sr_max = ', to_str(ele%wake%z_sr_max)
+    if (ele%wake%sr%file /= '') then
+      nl=nl+1; li(nl) = '  SR_File: ' // trim(ele%wake%sr%file)
+    endif
+    nl=nl+1; write (li(nl), '(2x, a, l2)') 'scale_with_length =', ele%wake%sr%scale_with_length
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'amp_scale         = ', to_str(ele%wake%sr%amp_scale)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'z_scale           = ', to_str(ele%wake%sr%z_scale)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'z_max             = ', to_str(ele%wake%sr%z_max)
   endif
 
-  if (size(ele%wake%sr_long%mode) /= 0) then
+  if (size(ele%wake%sr%long) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_allocate (li, nl+size(ele%wake%sr_long%mode)+100, .false.)
+      call re_allocate (li, nl+size(ele%wake%sr%long)+100, .false.)
       nl=nl+1; li(nl) = '  Short-Range Longitudinal Pseudo Modes:'
       nl=nl+1; li(nl) = &
-            '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
-      do i = 1, size(ele%wake%sr_long%mode)
-        mode => ele%wake%sr_long%mode(i)
+            '   #        Amp        Damp           K         Phi   Transverse_Dependence'
+      do i = 1, size(ele%wake%sr%long)
+        mode => ele%wake%sr%long(i)
         nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') i, mode%amp, mode%damp, mode%k, mode%phi, &
-                  sr_polarization_name(mode%polarization), sr_transverse_dependence_name(mode%transverse_dependence)
+                  sr_longitudinal_position_dep_name(mode%position_dependence)
       enddo
     else
       nl=nl+1; li(nl) = '  No short-range longitudinal pseudo modes.'
     endif
   endif
 
-  if (size(ele%wake%sr_trans%mode) /= 0) then
+  if (size(ele%wake%sr%trans) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_allocate (li, nl+size(ele%wake%sr_trans%mode)+100, .false.)
+      call re_allocate (li, nl+size(ele%wake%sr%trans)+100, .false.)
       nl=nl+1; li(nl) = '  Short-Range Transverse Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
-      do i = 1, size(ele%wake%sr_trans%mode)
-        mode => ele%wake%sr_trans%mode(i)
+      do i = 1, size(ele%wake%sr%trans)
+        mode => ele%wake%sr%trans(i)
         nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') i, mode%amp, mode%damp, mode%k, mode%phi, &
-                  sr_polarization_name(mode%polarization), sr_transverse_dependence_name(mode%transverse_dependence)
+                  sr_transverse_polarization_name(mode%polarization), sr_transverse_position_dep_name(mode%position_dependence)
       enddo
     else
      nl=nl+1; li(nl) = '  No short-range transverse pseudo modes.'
     endif
   endif
 
-  if (logic_option (.true., type_wake) .and. size(ele%wake%lr_mode) /= 0) then
+  if (logic_option (.true., type_wake) .and. size(ele%wake%lr%mode) /= 0) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Long-Range Wake:'
-    nl=nl+1; li(nl) = '  LR_File: ' // trim(ele%wake%lr_file)
-    nl=nl+1; write (li(nl), '(2x, 2a)')    'lr_freq_spread           =', to_str(ele%wake%lr_freq_spread)
-    nl=nl+1; write (li(nl), '(2x, a, l2)') 'lr_self_wake_on          =', ele%wake%lr_self_wake_on
+    if (ele%wake%lr%file /= '') then
+      nl=nl+1; li(nl) = '  LR_File: ' // trim(ele%wake%lr%file)
+    endif
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'amp_scale    = ', to_str(ele%wake%lr%amp_scale)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'time_scale   = ', to_str(ele%wake%lr%time_scale)
+    nl=nl+1; write (li(nl), '(2x, 2a)')    'freq_spread  = ', to_str(ele%wake%lr%freq_spread)
+    nl=nl+1; write (li(nl), '(2x, a, l1)') 'self_wake_on = ', ele%wake%lr%self_wake_on
+    nl=nl+1; write (li(nl), '(2x, 2a)')    't_ref        = ', to_str(ele%wake%lr%t_ref)
   endif
 
-  if (size(ele%wake%lr_mode) /= 0) then
+  if (size(ele%wake%lr%mode) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_allocate (li, nl+size(ele%wake%lr_mode)+100, .false.)
-      nl=nl+1; li(nl) = '  Long-range HOM modes:'
+      call re_allocate (li, nl+size(ele%wake%lr%mode)+100, .false.)
+      nl=nl+1; li(nl) = '  Long-Range Wake Modes [Note: Freq will not be equal to Freq_in if there is a frequency spread]:'
       nl=nl+1; li(nl) = &
-            '  #    Freq(in)        Freq         R/Q        Damp           Q        Phi  m   Angle    b_sin     b_cos     a_sin     a_cos     t_ref'
-      do i = 1, size(ele%wake%lr_mode)
-        lr => ele%wake%lr_mode(i)
+            '  #     Freq_in        Freq         R/Q        Damp           Q        Phi   m   Angle    b_sin     b_cos     a_sin     a_cos'
+      do i = 1, size(ele%wake%lr%mode)
+        lr => ele%wake%lr%mode(i)
         angle = ' unpolar'
         if (lr%polarized) write (angle, '(f8.3)') lr%angle
         if (lr%damp == 0 .or. lr%freq <= 0) then
@@ -1151,7 +1155,7 @@ if (associated(ele%wake)) then
 
         nl=nl+1; write (li(nl), '(i3, 4es12.4, a, es12.4, i3, a, 5es10.2)') i, &
                 lr%freq_in, lr%freq, lr%R_over_Q, lr%damp, q_factor, lr%phi, lr%m, angle, &
-                lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
+                lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos
       enddo
     else
       nl=nl+1; li(nl) = '  No long-range HOM modes.'
@@ -1248,5 +1252,84 @@ n = 8 + n_attrib_string_max_len() + 17 + 14
 write (line(n:), '(a26, a, 2x, a)') name, '=', value
 
 end subroutine encode_second_column_parameter 
+
+!--------------------------------------------------------------------------
+! contains
+!+
+! Function second_column_attribute_index (ele, ix_attrib) result (ix2_attrib)
+!
+! Input:
+!   ele       -- Ele_struct: Element
+!   ix_attrib -- Integer: Index of attribute
+!
+! Output:
+!   ix2_attrib -- Integer: Index of corresponding second column.
+!                      Set to -1 if no corresponding attribute.
+!-
+
+function second_column_attribute_index (ele, ix_attrib) result (ix2_attrib)
+
+type (ele_struct) ele
+integer ix_attrib, ix2_attrib
+character(40) a_name
+
+!
+
+select case (attribute_name(ele, ix_attrib))
+case ('X_PITCH');     ix2_attrib = x_pitch_tot$
+case ('Y_PITCH');     ix2_attrib = y_pitch_tot$
+case ('X_OFFSET');    ix2_attrib = x_offset_tot$
+case ('Y_OFFSET');    ix2_attrib = y_offset_tot$
+case ('Z_OFFSET');    ix2_attrib = z_offset_tot$
+case ('REF_TILT');    ix2_attrib = ref_tilt_tot$
+case ('TILT');        ix2_attrib = tilt_tot$
+case ('ROLL');        ix2_attrib = roll_tot$
+case ('X1_LIMIT');    ix2_attrib = x2_limit$
+case ('Y1_LIMIT');    ix2_attrib = y2_limit$
+case ('FQ1');         ix2_attrib = fq2$
+case ('LORD_PAD1');   ix2_attrib = lord_pad2$
+case ('HKICK');       ix2_attrib = vkick$
+case ('BL_HKICK');    ix2_attrib = bl_vkick$
+case default;         ix2_attrib = -1; return
+end select
+
+a_name = attribute_name(ele, ix2_attrib)
+if (a_name(1:1) == '!') ix2_attrib = -1
+
+end function second_column_attribute_index 
+
+!--------------------------------------------------------------------------
+! contains
+!+
+! Function is_second_column_attribute (ele, ix_attrib) result (is_2nd_col_attrib)
+!
+! Function returns True if ix_attrib corresponds to a second column  attribute.
+! Input:
+!   ele       -- Ele_struct: Element
+!   ix_attrib -- Integer: Index of attribute
+!
+! Output:
+!   is_2nd_col_attrib -- Logical: True if a second column attribute. False otherwise.
+!   
+!-
+
+function is_second_column_attribute (ele, ix_attrib) result (is_2nd_col_attrib)
+
+type (ele_struct) ele
+integer ix_attrib
+logical is_2nd_col_attrib
+
+!
+
+select case (attribute_name(ele, ix_attrib))
+case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'FQ2', 'LORD_PAD2', &
+      'REF_TILT_TOT', 'ROLL_TOT', 'Z_OFFSET_TOT', 'TILT_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
+      'VKICK', 'BL_VKICK')
+  is_2nd_col_attrib = .true.
+case default
+  is_2nd_col_attrib = .false.
+end select
+
+end function is_second_column_attribute
 
 end subroutine type_ele
