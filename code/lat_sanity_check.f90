@@ -429,14 +429,14 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! Check wakes
 
     if (associated(ele%wake)) then
-      if (allocated(ele%wake%lr_mode)) then
-        do iw = 1, size(ele%wake%lr_mode)
-          lr => ele%wake%lr_mode(iw)
+      if (allocated(ele%wake%lr%mode)) then
+        do iw = 1, size(ele%wake%lr%mode)
+          lr => ele%wake%lr%mode(iw)
 
           if (lr%freq_in < 0 .and. .not. has_attribute(ele, 'RF_FREQUENCY')) then
             call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'HAS LR WAKE (#\i0\) WITH NEGATIVE FREQUENCY (LOCKED TO FUNDAMENTAL) BUT ELEMENT DOES NOT HAVE A FREQUENCY!', &
+                      'HAS LR WAKE (#\i0\) WITH NEGATIVE FREQUENCY (LOCKED TO FUNDAMENTAL) BUT TYPE OF ELEMENT DOES NOT HAVE AN RF_FREQUENCY ATTRIBUTE (DOES NOT HAVE AN RF FIELD)!', &
                       i_array = [iw])
             err_flag = .true.
           endif
@@ -450,31 +450,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
           endif
         enddo
       endif
-
-      if (allocated(ele%wake%sr_long%mode)) then
-        do iw = 1, size(ele%wake%sr_long%mode)
-          sr_mode => ele%wake%sr_long%mode(iw)
-          if (sr_mode%transverse_dependence == none$) then
-            if (sr_mode%polarization /= none$) then
-              call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'HAS SR Longitudinal wake (#\i0\) with transverse_dependence = None but polarization != None', &
-                      i_array = [iw])
-              err_flag = .true.
-            endif
-
-          else  ! transverse_dep /= none
-            if (sr_mode%polarization == none$) then
-              call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'HAS SR Longitudinal wake (#\i0\) with transverse_dependence != None but polarization = None', &
-                      i_array = [iw])
-              err_flag = .true.
-            endif
-          endif
-        enddo
-      endif
-
     endif
 
     ! Check that %ix_ele and %ix_branch are correct. 

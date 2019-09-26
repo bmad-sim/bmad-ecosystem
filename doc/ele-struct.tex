@@ -640,65 +640,59 @@ Each mode has components
 %--------------------------------------------------------------------------
 \section{Wakes}
 \label{s:ele.wake}
-\index{wake fields!in ele_struct}
+\index{wakefields!in ele_struct}
 
 \index{ele_struct!\%wake}
 \index{lcavity}\index{rfcavity}
-The \vn{ele%wake} component holds information on the wakes associated
-with an element.  Since \vn{ele%wake} is a pointer, its association
-status must be tested before any of its sub--components are accessed.
+The \vn{ele%wake} component holds information on the wakes associated with an element.  Since
+\vn{ele%wake} is a pointer, its association status must be tested before any of its sub--components
+are accessed.
 \begin{example}
   type (ele_struct) ele
   ...
   if (associated(ele%wake)) then
     ...
 \end{example}
-\bmad observes the following rule: If \vn{%wake} is associated, it
-is assumed that all the sub--components (\vn{%wake%sr_table}, etc.) are
-associated. This simplifies programming in that you do not have to
-test directly the association status of the sub--components.
+\bmad observes the following rule: If \vn{%wake} is associated, it is assumed that all the
+sub--components (\vn{%wake%sr_table}, etc.) are associated. This simplifies programming in that you
+do not have to test directly the association status of the sub--components.
 
 \index{ele_struct!\%wake}
-See \sref{s:wake.fields} for the equations used in wake field
-calculations.  Wake fields are stored in the \vn{%wake} struct:
+See \sref{c:wakefields.eq} for the equations used in wakefield calculations.  wakefields are stored
+in the \vn{%wake} struct:
 \begin{example}
   type wake_struct
-    character(200) :: sr_file = ' '
-    character(200) :: lr_file = ' '
-    type (wake_sr_mode_struct) :: sr_long
-    type (wake_sr_mode_struct) :: sr_trans
-    type (wake_lr_struct), allocatable :: lr(:)
-    real(rp) :: z_sr_max = 0   
+    type (wake_sr_struct) :: sr     ! Short-range wake.
+    type (wake_lr_struct) :: lr     ! Long-range wake.
+    real(rp) :: amp_scale = 1       ! Wake amplitude scale factor.
+    real(rp) :: time_scale = 1      ! Wake time scale factor.
   end type
 \end{example}
 
 \index{wake_sr_mode_struct}
-The short--range wake parameterization uses pseudo--modes (\Eq{wadzk}).
-This parameterization utilizes the \vn{%wake%sr_mode_long}, and \vn{%wake%sr_mode_trans}
-arrays for the longitudinal and transverse modes respectively.
-The structure used for the elements of these arrays are:
+The short--range wake parameterization uses pseudo--modes (\sref{s:sr.wake.eq}). This parameterization
+utilizes the \vn{%wake%sr%long(:)}, and \vn{%wake%sr%trans(:)} arrays for the longitudinal and
+transverse modes respectively.  The structure used for the elements of these arrays are:
 \begin{example}
   type wake_sr_mode_struct  ! Pseudo-mode short-range wake struct 
     real(rp) amp        ! Amplitude
     real(rp) damp       ! Damping factor.
     real(rp) freq       ! Frequency in Hz
     real(rp) phi        ! Phase in radians/2pi
-    real(rp) norm_sin   ! non-skew sin-like component of the wake
-    real(rp) norm_cos   ! non-skew cos-like component of the wake
-    real(rp) skew_sin   ! skew sin-like component of the wake
-    real(rp) skew_cos   ! skew cos-like component of the wake
+    real(rp) b_sin      ! non-skew sin-like component of the wake
+    real(rp) b_cos      ! non-skew cos-like component of the wake
+    real(rp) a_sin      ! skew sin-like component of the wake
+    real(rp) a_cos      ! skew cos-like component of the wake
   end type
 \end{example}
-The wake field kick is calculated from \Eq{wadzk}. \vn{%amp},
-\vn{%damp}, \vn{%freq}, and \vn{%phi} are the input parameters from
-the lattice file. the last four components (\vn{%norm_sin}, etc.)
-store the accumulated wake: Before the bunch passes through these are
-set to zero and as each particle passes through the cavity the
-contribution to the wake due to the particle is calculated and added
-the components.
+The wakefield kick is calculated from \Eq{wadzk}. \vn{%amp}, \vn{%damp}, \vn{%freq}, and \vn{%phi}
+are the input parameters from the lattice file. the last four components (\vn{%norm_sin}, etc.)
+store the accumulated wake: Before the bunch passes through these are set to zero and as each
+particle passes through the cavity the contribution to the wake due to the particle is calculated
+and added the components.
 
-\vn{%wake%z_sr_mode_max} is the maximum $z$ value beyond which the pseudo
-mode representation is not valid. This is set in the input lattice file.
+\vn{%wake%z_sr_mode_max} is the maximum $z$ value beyond which the pseudo mode representation is not
+valid. This is set in the input lattice file.
 
 \index{wake_lr_struct}
 The \vn{%wake%lr} array stores the long--range wake modes. The
@@ -711,21 +705,19 @@ structure definition is:
     real(rp) Q          ! Quality factor
     real(rp) angle      ! polarization angle (radians/2pi).
     integer m           ! Order (1 = dipole, 2 = quad, etc.)
-    real(rp) norm_sin   ! non-skew sin-like component of the wake
-    real(rp) norm_cos   ! non-skew cos-like component of the wake
-    real(rp) skew_sin   ! skew sin-like component of the wake
-    real(rp) skew_cos   ! skew cos-like component of the wake
+    real(rp) b_sin      ! non-skew sin-like component of the wake
+    real(rp) b_cos      ! non-skew cos-like component of the wake
+    real(rp) a_sin      ! skew sin-like component of the wake
+    real(rp) a_cos      ! skew cos-like component of the wake
     logical polarized   ! Polarized mode?
   end type
 \end{example}
 \index{lr_freq_spread}
-This is similar to the \vn{sr_mode_wake_struct}. \vn{%freq_in} is the
-actual frequency in the input file. \Hyperref{r:bmad.parser}{bmad_parser} will set
-\vn{%freq} to \vn{%freq_in} except when the \vn{lr_freq_spread} attribute
-is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
-explained in \sref{s:lcav}. \vn{%polarized} is a logical that
-indicates whether the mode has a polarization angle. If so, then
-\vn{%angle} is the polarization angle.
+This is similar to the \vn{sr_mode_wake_struct}. \vn{%freq_in} is the actual frequency in the input
+file. \Hyperref{r:bmad.parser}{bmad_parser} will set \vn{%freq} to \vn{%freq_in} except when the
+\vn{lr_freq_spread} attribute is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
+explained in \sref{s:lcav}. \vn{%polarized} is a logical that indicates whether the mode has a
+polarization angle. If so, then \vn{%angle} is the polarization angle.
 
 %--------------------------------------------------------------------------
 \section {Wiggler Types}

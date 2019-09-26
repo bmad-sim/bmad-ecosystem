@@ -2381,7 +2381,7 @@ The attributes specific to an \vn{lcavity} are
                               !   respect to the RF. phi0 = 0 is on crest.
   phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
   phi0_err        = <Real>    ! Phase error (rad/2\(\pi\))
-  e_loss          = <Real>    ! Loss parameter for short range wake fields (V/Coul).
+  e_loss          = <Real>    ! Loss parameter for short range wakefields (V/Coul).
   rf_frequency    = <Real>    ! Rf frequency (Hz).
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
   l_hard_edge     = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
@@ -2433,7 +2433,7 @@ sign. Essentially the MAD8 documentation gives
 \end{example}
 This is incorrect. 
 
-When short-range wake fields are being simulated, with \vn{bmad_com%sr_wakes_on = True}
+When short-range wakefields are being simulated, with \vn{bmad_com%sr_wakes_on = True}
 (\sref{s:bmad.com}), the \vn{e_loss} attribute can be used to modify the gradient in order to
 maintain a constant average energy gain. That is, \vn{e_loss} can be used to simulate the effect of
 a feedback circuit that attempts to maintain the average energy of the bunch after the element

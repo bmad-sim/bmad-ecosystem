@@ -41,7 +41,7 @@ real(rp) value(num_ele_attrib$)
 integer, intent(in), optional :: n_files
 integer d_unit, i, j, k, n, nk, n_file, ix_value(num_ele_attrib$), ierr
 integer stat_b(24), stat, n_wake, n_wall_section, n_custom
-integer, allocatable :: ix_wake(:)
+integer, allocatable :: ix_ele_wake(:)
 integer, allocatable :: index_list(:)
 
 character(*) digested_name
@@ -128,7 +128,7 @@ endif
 
 ! Branches
 
-allocate (ix_wake(100))
+allocate (ix_ele_wake(100))
 
 n_wake = 0  ! number of wakes written to the digested file for this branch.
 do i = 0, lat%n_ele_max
@@ -264,18 +264,18 @@ write_wake = .true.
 wake => ele%wake
 if (associated(wake)) then
   do j = 1, n_wake
-    if (.not. ele%branch%ele(ix_wake(j))%wake == wake) cycle
+    if (.not. ele%branch%ele(ix_ele_wake(j))%wake == wake) cycle
     write_wake = .false.
-    ix_lr_mode = -ix_wake(j)        
+    ix_lr_mode = -ix_ele_wake(j)        
   enddo
 
   if (write_wake) then
-    if (allocated(wake%sr_long%mode))      ix_sr_long    = size(wake%sr_long%mode)
-    if (allocated(wake%sr_trans%mode))     ix_sr_trans   = size(wake%sr_trans%mode)
-    if (allocated(wake%lr_mode))           ix_lr_mode    = size(wake%lr_mode)
+    if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
+    if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
+    if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
-    if (n_wake > size(ix_wake)) call re_allocate(ix_wake, 2*size(ix_wake))
-    ix_wake(n_wake) = ele%ix_ele
+    if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))
+    ix_ele_wake(n_wake) = ele%ix_ele
   endif
 endif
 
@@ -540,14 +540,17 @@ do i = 0, 3
 enddo
 
 if (associated(wake) .and. write_wake) then
-  write (d_unit) wake%sr_file
-  write (d_unit) wake%sr_long%mode
-  write (d_unit) wake%sr_trans%mode
-  write (d_unit) wake%lr_file
-  write (d_unit) wake%lr_mode
-  write (d_unit) wake%z_sr_max, wake%lr_self_wake_on, wake%lr_freq_spread, &
-                        wake%wake_amp_scale, wake%wake_time_scale, wake%sr_wake_scale_with_length
-  
+  write (d_unit) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
+  do i = 1, size(wake%sr%long)
+    write (d_unit) wake%sr%long(i)
+  enddo
+  do i = 1, size(wake%sr%trans)
+    write (d_unit) wake%sr%trans(i)
+  enddo
+  write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
+  do i = 1, size(wake%lr%mode)
+    write (d_unit) wake%lr%mode(i)
+  enddo
 endif
 
 call write_this_wall3d (ele%wall3d, (ix_wall3d > 0))

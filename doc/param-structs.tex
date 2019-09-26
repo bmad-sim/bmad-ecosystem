@@ -98,8 +98,8 @@ one global instance (\sref{c:param.structs}) of this structure and this instance
     integer space_charge_mesh_size = (32,32,64) ! Mesh size with fft_3d space charge calc.
     logical rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
     logical use_hard_edge_drifts = T            ! Insert drifts when tracking through cavity?
-    logical sr_wakes_on = T                     ! Short range wake fields?
-    logical lr_wakes_on = T                     ! Long range wake fields
+    logical sr_wakes_on = T                     ! Short range wakefields?
+    logical lr_wakes_on = T                     ! Long range wakefields
     logical mat6_track_symmetric = T            ! symmetric offsets
     logical auto_bookkeeper = T                 ! Automatic bookkeeping?
     logical csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
@@ -209,7 +209,7 @@ of extremely small steps. The most common cause of small step size is
 an ``unphysical'' magnetic or electric field.
 %
 \item[\vn{\%lr_wakes_on}] \Newline
-Toggle for turning on or off long-range higher order mode wake field effects.
+Toggle for turning on or off long-range higher order mode wakefield effects.
 %
 \item[\vn{\%mat6_track_symmetric}] \Newline
 Toggle to turn off whether the transfer matrix from tracking routine
@@ -270,7 +270,7 @@ The \vn{%space_charge_mesh_size} sets the size of the grid used when an element'
 respectively. Default values are $(32, 32, 64)$.
 %
 \item[\vn{\%sr_wakes_on}] \Newline
-Toggle for turning on or off short-range higher order mode wake field effects.
+Toggle for turning on or off short-range higher order mode wakefield effects.
 %
 \item[\vn{\%spin_sokolov_ternov_flipping_on}] \Newline
 This determines if the Sokolov-Ternov effect is included in a simulation.  The Sokolov-Ternov

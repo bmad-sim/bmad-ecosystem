@@ -72,9 +72,10 @@ type (control_struct), pointer :: ctl, ctl2
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (multipass_ele_info_struct), pointer :: e_info
-type (wake_lr_mode_struct), pointer :: lr
-type (wake_sr_mode_struct), parameter :: sr0 = wake_sr_mode_struct()
-type (wake_sr_mode_struct), pointer :: sr
+type (wake_lr_struct), pointer :: lr
+type (wake_sr_struct), pointer :: sr
+type (wake_lr_mode_struct), pointer :: lrm
+type (wake_sr_mode_struct), pointer :: srm
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
@@ -94,8 +95,7 @@ real(rp) s0, x_lim, y_lim, val
 character(*) bmad_file
 character(4000) line
 character(2000) line2
-character(200) wake_name, file_name, path, basename
-character(200), allocatable :: sr_wake_name(:), lr_wake_name(:)
+character(200) file_name, path, basename
 character(100), allocatable :: name_list(:)
 character(100) string
 character(60) alias
@@ -108,7 +108,7 @@ character(2), parameter :: spin_quat_name(0:3) = ['S1', 'Sx', 'Sy', 'Sz']
 character(*), parameter :: r_name = 'write_bmad_lattice_file'
 
 integer, optional :: output_form
-integer i, j, k, n, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, n_sr, n_lr, ie1, ie, ib, ib1, ic
+integer i, j, k, n, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, ie1, ie, ib, ib1, ic
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_lord, ix_super, default_val, imax, ibr
@@ -126,23 +126,7 @@ do i = 1, size(ele_default)
   call deallocate_ele_pointers(ele_default(i))   ! don't need.
 enddo
 
-! Count the number of foreign wake files
-
 if (present(err)) err = .true.
-
-n_sr = 0
-n_lr = 0
-do ie = 1, lat%n_ele_max
-  ele => lat%ele(ie)
-  if (.not. associated(ele%wake)) cycle
-  if (ele%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
-  if (ele%wake%lr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
-enddo
-call re_allocate(sr_wake_name, n_sr)
-call re_allocate(lr_wake_name, n_lr)
-
-n_sr = 0
-n_lr = 0
 
 ! Open the file
 
@@ -171,7 +155,7 @@ if (allocated(lat%custom)) then
   do i = 1, size(lat%custom)
     name = attribute_name(def_parameter$, i+custom_attribute0$)
     if (name(1:1) == '!') cycle
-    write (iu, '(4a)') 'parameter[', trim(name), '] = ', trim(re_str(lat%custom(i)))
+    write (iu, '(4a)') 'parameter[', trim(name), '] = ', re_str(lat%custom(i))
   enddo
 endif
 
@@ -185,11 +169,11 @@ if (.not. lat%param%live_branch) write (iu, '(a)') 'parameter[live_branch] = F'
 if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] = ', lat%input_taylor_order
 
 write (iu, '(a)')
-write (iu, '(4a)')    'parameter[p0c]                    = ', trim(re_str(lat%ele(0)%value(p0c_start$)))
+write (iu, '(4a)')    'parameter[p0c]                    = ', re_str(lat%ele(0)%value(p0c_start$))
 write (iu, '(4a)')    'parameter[particle]               = ', trim(species_name(lat%param%particle))
 call write_if_logic_param_changed (lat%param%high_energy_space_charge_on, .false., 'parameter[high_energy_space_charge_on]')
 
-if (lat%param%n_part /= 0)             write (iu, '(2a)') 'parameter[n_part]                 = ', trim(re_str(lat%param%n_part))
+if (lat%param%n_part /= 0)             write (iu, '(2a)') 'parameter[n_part]                 = ', re_str(lat%param%n_part)
 
 write (iu, '(a, l1)') 'parameter[absolute_time_tracking]    = ', lat%absolute_time_tracking
 ele => lat%ele(lat%n_ele_track)
@@ -247,46 +231,46 @@ call write_if_logic_param_changed (bmad_com%ptc_print_info_messages, bmad_com_de
 
 ele => lat%ele(0) 
 
-if (ele%floor%r(1) /= 0)   write (iu, '(2a)') 'beginning[x_position]     = ', trim(re_str(ele%floor%r(1)))
-if (ele%floor%r(2) /= 0)   write (iu, '(2a)') 'beginning[y_position]     = ', trim(re_str(ele%floor%r(2)))
-if (ele%floor%r(3) /= 0)   write (iu, '(2a)') 'beginning[z_position]     = ', trim(re_str(ele%floor%r(3)))
-if (ele%floor%theta /= 0)  write (iu, '(2a)') 'beginning[theta_position] = ', trim(re_str(ele%floor%theta))
-if (ele%floor%phi /= 0)    write (iu, '(2a)') 'beginning[phi_position]   = ', trim(re_str(ele%floor%phi))
-if (ele%floor%psi /= 0)    write (iu, '(2a)') 'beginning[psi_position]   = ', trim(re_str(ele%floor%psi))
+if (ele%floor%r(1) /= 0)   write (iu, '(2a)') 'beginning[x_position]     = ', re_str(ele%floor%r(1))
+if (ele%floor%r(2) /= 0)   write (iu, '(2a)') 'beginning[y_position]     = ', re_str(ele%floor%r(2))
+if (ele%floor%r(3) /= 0)   write (iu, '(2a)') 'beginning[z_position]     = ', re_str(ele%floor%r(3))
+if (ele%floor%theta /= 0)  write (iu, '(2a)') 'beginning[theta_position] = ', re_str(ele%floor%theta)
+if (ele%floor%phi /= 0)    write (iu, '(2a)') 'beginning[phi_position]   = ', re_str(ele%floor%phi)
+if (ele%floor%psi /= 0)    write (iu, '(2a)') 'beginning[psi_position]   = ', re_str(ele%floor%psi)
 
-if (ele%s /= 0)            write (iu, '(2a)') 'beginning[s]        = ', trim(re_str(ele%s))
-if (ele%ref_time /= 0)     write (iu, '(2a)') 'beginning[ref_time] = ', trim(re_str(ele%ref_time))
+if (ele%s /= 0)            write (iu, '(2a)') 'beginning[s]        = ', re_str(ele%s)
+if (ele%ref_time /= 0)     write (iu, '(2a)') 'beginning[ref_time] = ', re_str(ele%ref_time)
 
 ! Write beginning Twiss even for closed lattices as that is useful info.
 
 write (iu, '(2a)')
-if (ele%a%beta /= 0)     write (iu, '(2a)') 'beginning[beta_a]   = ', trim(re_str(ele%a%beta))
-if (ele%a%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_a]  = ', trim(re_str(ele%a%alpha))
-if (ele%a%phi /= 0)      write (iu, '(2a)') 'beginning[phi_a]    = ', trim(re_str(ele%a%phi))
-if (ele%x%eta /= 0)      write (iu, '(2a)') 'beginning[eta_x]    = ', trim(re_str(ele%x%eta))
-if (ele%x%etap /= 0)     write (iu, '(2a)') 'beginning[etap_x]   = ', trim(re_str(ele%x%etap))
-if (ele%b%beta /= 0)     write (iu, '(2a)') 'beginning[beta_b]   = ', trim(re_str(ele%b%beta))
-if (ele%b%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_b]  = ', trim(re_str(ele%b%alpha))
-if (ele%b%phi /= 0)      write (iu, '(2a)') 'beginning[phi_b]    = ', trim(re_str(ele%b%phi))
-if (ele%y%eta /= 0)      write (iu, '(2a)') 'beginning[eta_y]    = ', trim(re_str(ele%y%eta))
-if (ele%y%etap /= 0)     write (iu, '(2a)') 'beginning[etap_y]   = ', trim(re_str(ele%y%etap))
-if (ele%c_mat(1,1) /= 0) write (iu, '(2a)') 'beginning[cmat_11]  = ', trim(re_str(ele%c_mat(1,1)))
-if (ele%c_mat(1,2) /= 0) write (iu, '(2a)') 'beginning[cmat_12]  = ', trim(re_str(ele%c_mat(1,2)))
-if (ele%c_mat(2,1) /= 0) write (iu, '(2a)') 'beginning[cmat_21]  = ', trim(re_str(ele%c_mat(2,1)))
-if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]  = ', trim(re_str(ele%c_mat(2,2)))
+if (ele%a%beta /= 0)     write (iu, '(2a)') 'beginning[beta_a]   = ', re_str(ele%a%beta)
+if (ele%a%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_a]  = ', re_str(ele%a%alpha)
+if (ele%a%phi /= 0)      write (iu, '(2a)') 'beginning[phi_a]    = ', re_str(ele%a%phi)
+if (ele%x%eta /= 0)      write (iu, '(2a)') 'beginning[eta_x]    = ', re_str(ele%x%eta)
+if (ele%x%etap /= 0)     write (iu, '(2a)') 'beginning[etap_x]   = ', re_str(ele%x%etap)
+if (ele%b%beta /= 0)     write (iu, '(2a)') 'beginning[beta_b]   = ', re_str(ele%b%beta)
+if (ele%b%alpha /= 0)    write (iu, '(2a)') 'beginning[alpha_b]  = ', re_str(ele%b%alpha)
+if (ele%b%phi /= 0)      write (iu, '(2a)') 'beginning[phi_b]    = ', re_str(ele%b%phi)
+if (ele%y%eta /= 0)      write (iu, '(2a)') 'beginning[eta_y]    = ', re_str(ele%y%eta)
+if (ele%y%etap /= 0)     write (iu, '(2a)') 'beginning[etap_y]   = ', re_str(ele%y%etap)
+if (ele%c_mat(1,1) /= 0) write (iu, '(2a)') 'beginning[cmat_11]  = ', re_str(ele%c_mat(1,1))
+if (ele%c_mat(1,2) /= 0) write (iu, '(2a)') 'beginning[cmat_12]  = ', re_str(ele%c_mat(1,2))
+if (ele%c_mat(2,1) /= 0) write (iu, '(2a)') 'beginning[cmat_21]  = ', re_str(ele%c_mat(2,1))
+if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]  = ', re_str(ele%c_mat(2,2))
 
 ! particle_start
 
-if (lat%particle_start%vec(1) /= 0) write (iu, '(2a)') 'particle_start[x]  = ', trim(re_str(lat%particle_start%vec(1)))
-if (lat%particle_start%vec(2) /= 0) write (iu, '(2a)') 'particle_start[px] = ', trim(re_str(lat%particle_start%vec(2)))
-if (lat%particle_start%vec(3) /= 0) write (iu, '(2a)') 'particle_start[y]  = ', trim(re_str(lat%particle_start%vec(3)))
-if (lat%particle_start%vec(4) /= 0) write (iu, '(2a)') 'particle_start[py] = ', trim(re_str(lat%particle_start%vec(4)))
-if (lat%particle_start%vec(5) /= 0) write (iu, '(2a)') 'particle_start[z]  = ', trim(re_str(lat%particle_start%vec(5)))
-if (lat%particle_start%vec(6) /= 0) write (iu, '(2a)') 'particle_start[pz] = ', trim(re_str(lat%particle_start%vec(6)))
+if (lat%particle_start%vec(1) /= 0) write (iu, '(2a)') 'particle_start[x]  = ', re_str(lat%particle_start%vec(1))
+if (lat%particle_start%vec(2) /= 0) write (iu, '(2a)') 'particle_start[px] = ', re_str(lat%particle_start%vec(2))
+if (lat%particle_start%vec(3) /= 0) write (iu, '(2a)') 'particle_start[y]  = ', re_str(lat%particle_start%vec(3))
+if (lat%particle_start%vec(4) /= 0) write (iu, '(2a)') 'particle_start[py] = ', re_str(lat%particle_start%vec(4))
+if (lat%particle_start%vec(5) /= 0) write (iu, '(2a)') 'particle_start[z]  = ', re_str(lat%particle_start%vec(5))
+if (lat%particle_start%vec(6) /= 0) write (iu, '(2a)') 'particle_start[pz] = ', re_str(lat%particle_start%vec(6))
 
-if (lat%particle_start%spin(1) /= 0) write (iu, '(2a)') 'particle_start[spin_x] = ', trim(re_str(lat%particle_start%spin(1)))
-if (lat%particle_start%spin(2) /= 0) write (iu, '(2a)') 'particle_start[spin_y] = ', trim(re_str(lat%particle_start%spin(2)))
-if (lat%particle_start%spin(3) /= 1) write (iu, '(2a)') 'particle_start[spin_z] = ', trim(re_str(lat%particle_start%spin(3)))
+if (lat%particle_start%spin(1) /= 0) write (iu, '(2a)') 'particle_start[spin_x] = ', re_str(lat%particle_start%spin(1))
+if (lat%particle_start%spin(2) /= 0) write (iu, '(2a)') 'particle_start[spin_y] = ', re_str(lat%particle_start%spin(2))
+if (lat%particle_start%spin(3) /= 1) write (iu, '(2a)') 'particle_start[spin_z] = ', re_str(lat%particle_start%spin(3))
 
 ! Named constants
 
@@ -302,7 +286,7 @@ do i = 1, lat%n_control_max
     if (any(stack(j)%name == physical_const_list%name)) cycle
     call find_indexx(stack(j)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
     if (.not. (has_been_added)) cycle  ! Avoid duuplicates
-    write (iu, '(3a)') trim(stack(j)%name), ' = ', trim(re_str(stack(j)%value))
+    write (iu, '(3a)') trim(stack(j)%name), ' = ', re_str(stack(j)%value)
   enddo
 enddo
 
@@ -354,7 +338,7 @@ do ib = 0, ubound(lat%branch, 1)
       lord => pointer_to_lord(ele, 1)
       slave => pointer_to_slave(lord, 1)
       slave2 => pointer_to_slave(lord, lord%n_slave)
-      write (iu, '(2(a, i0), 2a)') 'slave_drift_', ib, '_', ele%ix_ele, ': drift, l = ', trim(re_str(ele%value(l$)))
+      write (iu, '(2(a, i0), 2a)') 'slave_drift_', ib, '_', ele%ix_ele, ': drift, l = ', re_str(ele%value(l$))
       cycle
     endif
 
@@ -422,10 +406,10 @@ do ib = 0, ubound(lat%branch, 1)
 
       do j = 1, size(ele%control%var)
         if (ele%control%var(j)%value /= 0) then
-          line = trim(line) // ', ' // trim(ele%control%var(j)%name) // ' = ' // trim(re_str(ele%control%var(j)%value))
+          line = trim(line) // ', ' // trim(ele%control%var(j)%name) // ' = ' // re_str(ele%control%var(j)%value)
         endif
         if (ele%control%var(j)%old_value /= 0) then
-          line = trim(line) // ', old_' // trim(ele%control%var(j)%name) // ' = ' // trim(re_str(ele%control%var(j)%value))
+          line = trim(line) // ', old_' // trim(ele%control%var(j)%name) // ' = ' // re_str(ele%control%var(j)%value)
         endif
       enddo
 
@@ -497,20 +481,20 @@ do ib = 0, ubound(lat%branch, 1)
     if (associated(ele%ac_kick)) then
       ac => ele%ac_kick
       if (allocated(ac%amp_vs_time)) then
-        line = trim(line) // ', amp_vs_time = {(' // trim(re_str(ac%amp_vs_time(1)%time)) // &
-                             ', ' // trim(re_str(ac%amp_vs_time(1)%amp)) // ')'
+        line = trim(line) // ', amp_vs_time = {(' // re_str(ac%amp_vs_time(1)%time) // &
+                             ', ' // re_str(ac%amp_vs_time(1)%amp) // ')'
         do i = 2, size(ac%amp_vs_time)
-          line = trim(line) // ', (' // trim(re_str(ac%amp_vs_time(i)%time)) // &
-                             ', ' // trim(re_str(ac%amp_vs_time(i)%amp)) // ')'
+          line = trim(line) // ', (' // re_str(ac%amp_vs_time(i)%time) // &
+                             ', ' // re_str(ac%amp_vs_time(i)%amp) // ')'
         enddo
         line = trim(line) // '}'
 
       else
-        line = trim(line) // ', frequencies = {(' // trim(re_str(ac%frequencies(1)%f)) // &
-                  ', ' // trim(re_str(ac%frequencies(1)%amp)) // ', ' // trim(re_str(ac%frequencies(1)%phi))  // ')'
+        line = trim(line) // ', frequencies = {(' // re_str(ac%frequencies(1)%f) // &
+                  ', ' // re_str(ac%frequencies(1)%amp) // ', ' // re_str(ac%frequencies(1)%phi)  // ')'
         do i = 2, size(ac%frequencies)
-          line = trim(line) // ', (' // trim(re_str(ac%frequencies(i)%f)) // &
-                  ', ' // trim(re_str(ac%frequencies(i)%amp)) // ', ' // trim(re_str(ac%frequencies(i)%phi)) // ')'
+          line = trim(line) // ', (' // re_str(ac%frequencies(i)%f) // &
+                  ', ' // re_str(ac%frequencies(i)%amp) // ', ' // re_str(ac%frequencies(i)%phi) // ')'
         enddo
         line = trim(line) // '}'
       endif
@@ -555,8 +539,8 @@ do ib = 0, ubound(lat%branch, 1)
           if (ele%key == diffraction_plate$ .or. ele%key == mask$) then
             write (iu2, '(4x, 3a)') 'type = ', trim(wall3d_section_type_name(section%type)), ','
           else
-            write (iu2, '(4x, 3a)')  's     = ', trim(re_str(section%s)), ','
-            if (section%dr_ds /= real_garbage$) write (iu2, '(4x, 3a)')  'dr_ds = ', trim(re_str(section%s)), ','
+            write (iu2, '(4x, 3a)')  's     = ', re_str(section%s), ','
+            if (section%dr_ds /= real_garbage$) write (iu2, '(4x, 3a)')  'dr_ds = ', re_str(section%s), ','
           endif
 
           end_str = ','
@@ -737,121 +721,61 @@ do ib = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
-    ! If first three characters of the file name are '...' then it is a foreign file.
+    ! Wake
 
     if (associated(ele%wake)) then
-
-      ! Short-range
-
-      if (ele%wake%sr_file /= ' ') then
-
-        wake_name = ele%wake%sr_file
-
-        if (wake_name(1:3) == '...') then
-          found = .false.
-          do n = 1, n_sr
-            if (wake_name == sr_wake_name(n)) then
-              found = .true.
-              exit
-            endif
-          enddo
-          if (.not. found) then
-            n = n_sr + 1
-            n_sr = n
-            sr_wake_name(n_sr) = wake_name
+      lr => ele%wake%lr
+      if (size(lr%mode) /= 0) then
+        line = trim(line) // ', lr_wake = {'
+        if (lr%freq_spread /= 0) line = trim(line) // ', freq_spread = ' // re_str(lr%freq_spread)
+        if (lr%self_wake_on /= 0) line = trim(line) // ', self_wake_on = ' // logic_str(lr%self_wake_on)
+        if (lr%amp_scale /= 1) line = trim(line) // ', amp_scale = ' // re_str(lr%amp_scale)
+        if (lr%time_scale /= 1) line = trim(line) // ', time_scale = ' // re_str(lr%time_scale)
+        if (lr%t_ref /= 0) line = trim(line) // ', t_ref = ' // re_str(lr%t_ref)
+        do i = 1, size(lr%mode)
+          lrm => lr%mode(i)
+          line = trim(line) // ', mode = {' // re_str(lrm%freq_in) // ', ' // re_str(lrm%R_over_Q) // &
+                          ', ' // re_str(lrm%damp) // ', ' // re_str(lrm%phi) // ', ' // int_str(lrm%m)
+          if (lrm%polarized) then
+            line = trim(line) // ', unpolarized'
+          else
+            line = trim(line) // re_str(lrm%angle)
           endif
-          write (wake_name, '(a, i0, a)') 'sr_wake_file_', n, '.bmad'
-          if (.not. found) then
-            call out_io (s_info$, r_name, 'Creating SR Wake file: ' // trim(wake_name))
-            iuw = lunget()
-            open (iuw, file = wake_name)
-            write (iuw, '(a)') '! Pseudo Wake modes:'
-            write (iuw, '(a)') '!                 Amp	  Damp    K   Phase    Polarization  Transverse_dependence'
-            write (iuw, '(a)') '! Longitudinal: [V/C/m] [1/m] [1/m] [rad]'
-            write (iuw, '(a)') '! Transverse: [V/C/m^2] [1/m] [1/m] [rad]'
-            write (iuw, '(a)') ''
-            write (iuw, '(a)') '&short_range_modes'
-            do n = 1, size(ele%wake%sr_long%mode)
-              sr => ele%wake%sr_long%mode(n)
-              dependence = '' ! Use for default
-              if (sr%transverse_dependence /= none$) dependence = sr_transverse_dependence_name(sr%transverse_dependence)
-              polar = ''      ! Use for default
-              if (sr%polarization /= sr0%polarization .or. dependence /= '') polar = sr_polarization_name(sr%polarization)
-              write (iuw, '(a, i0, a, 4es16.8, 2x, 2a)') 'logitudinal(', n, ') =', sr%amp, sr%damp, sr%k, sr%phi, polar, dependence
-            enddo
-
-            write (iuw, '(a)') ''
-            do n = 1, size(ele%wake%sr_trans%mode)
-              sr => ele%wake%sr_trans%mode(n)
-              dependence = '' ! Use for default
-              if (sr%transverse_dependence /= linear_leading$) dependence = sr_transverse_dependence_name(sr%transverse_dependence)
-              polar = ''      ! Use for default
-              if (sr%polarization /= sr0%polarization .or. dependence /= '') polar = sr_polarization_name(sr%polarization)
-              write (iuw, '(a, i0, a, 4es16.8, 2x, 2a)') 'transverse(', n, ') =', sr%amp, sr%damp, sr%k, sr%phi, polar, dependence
-            enddo
-            write (iuw, '(a)') '/'
-            close(iuw)
+          if (lrm%b_sin == 0 .and. lrm%b_cos == 0 .and. lrm%a_sin == 0 .and. lrm%a_cos == 0) then
+            line = trim(line) // '}'
+          else
+            line = trim(line) // ', ' // re_str(lrm%b_sin) // ', ' // re_str(lrm%b_cos) // ', ' // &
+                                         re_str(lrm%a_sin) // ', ' // re_str(lrm%a_cos) // '}'
           endif
-        endif
-
-        line = trim(line) // ',  sr_wake_file = "' // trim(wake_name) // '"'
-        if (ele%wake%wake_amp_scale /= 1) line = trim(line) // ', wake_amp_scale = ' // re_str(ele%wake%wake_amp_scale)
-        if (ele%wake%wake_time_scale /= 1) line = trim(line) // ', wake_time_scale = ' // re_str(ele%wake%wake_time_scale)
-        if (.not. ele%wake%sr_wake_scale_with_length) line = trim(line) // ', sr_wake_scale_with_length = F'
+        enddo
+        line = trim(line) // '}'
+        ix = index(line, '{,')
+        line = line(1:ix) // line(ix+2:)
       endif
 
-      ! Long-range
-
-      if (ele%wake%lr_file /= ' ') then
-
-        wake_name = ele%wake%lr_file
-
-        if (wake_name(1:3) == '...') then
-          found = .false.
-          do n = 1, n_lr
-            if (wake_name == lr_wake_name(n)) then
-              found = .true.
-              exit
-            endif
-          enddo
-          if (.not. found) then
-            n = n_lr + 1
-            n_lr = n
-            lr_wake_name(n_lr) = wake_name
-          endif
-          write (wake_name, '(a, i0, a)') 'lr_wake_file_', n, '.bmad'
-          if (.not. found) then
-            call out_io (s_info$, r_name, 'Creating LR Wake file: ' // trim(wake_name))
-            iuw = lunget()
-            open (iuw, file = wake_name)
-            write (iuw, '(14x, a)') &
-   'Freq         R/Q        Q       m    Polarization     b_sin         b_cos         a_sin         a_cos         t_ref'
-            write (iuw, '(14x, a)') &
-              '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
-            do n = lbound(ele%wake%lr_mode, 1), ubound(ele%wake%lr_mode, 1)
-              lr => ele%wake%lr_mode(n)
-              if (lr%polarized) then
-                angle = re_str(lr%angle)
-              else
-                angle = '     unpol'
-              endif
-              if (any ( [lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref ]/= 0)) then
-                write (iuw, '(a, i0, a, 3es16.7, i6, a, 5es14.6)') 'lr(', n, ') =', lr%freq_in, &
-                      lr%R_over_Q, lr%Q, lr%m, angle, lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
-              else
-                write (iuw, '(a, i0, a, 3es16.8, i6, 2x, a)') 'lr(', n, ') =', &
-                      lr%freq_in, lr%R_over_Q, lr%Q, lr%m, trim(angle)
-              endif
-            enddo
-            close(iuw)
-          endif
-        endif
-
-        line = trim(line) // ',  lr_wake_file = "' // trim(wake_name) // '"'
-
+      sr => ele%wake%sr
+      if (size(sr%long) /= 0 .or. size(sr%trans) /= 0) then
+        line = trim(line) // ', sr_wake = {'
+        if (sr%z_max /= 0) line = trim(line) // ', z_max = ' // re_str(sr%z_max)
+        if (sr%amp_scale /= 1) line = trim(line) // ', amp_scale = ' // re_str(sr%amp_scale)
+        if (sr%z_scale /= 1) line = trim(line) // ', z_scale = ' // re_str(sr%z_scale)
+        do i = 1, size(sr%long)
+          srm => sr%long(i)
+          line = trim(line) // ', longitudinal = {' // re_str(srm%amp) // ', ' // re_str(srm%damp) // ', ' // re_str(srm%k) // &
+                               ', ' // re_str(srm%phi) // ', ' // trim(sr_longitudinal_position_dep_name(srm%position_dependence)) // '}'
+        enddo 
+        do i = 1, size(sr%trans)
+          srm => sr%trans(i)
+          line = trim(line) // ', transverse = {' // re_str(srm%amp) // ', ' // re_str(srm%damp) // ', ' // re_str(srm%k) // &
+                               ', ' // re_str(srm%phi) // ', ' // trim(sr_transverse_polarization_name(srm%polarization)) // &
+                               ', ' // trim(sr_transverse_position_dep_name(srm%position_dependence)) // '}'
+        enddo
+        line = trim(line) // '}'
+        ix = index(line, '{,')
+        line = line(1:ix) // line(ix+2:)
       endif
 
+      call write_lat_line (line, iu, .false.)
     endif
 
     ! Decide if x1_limit, etc. are to be output directly or combined. 
@@ -1016,9 +940,9 @@ do ib = 0, ubound(lat%branch, 1)
                   write (name, '(a, i1)') trim(name), ix
                 enddo
               enddo
-              write (line, '(2a, i0, 5a)') trim(line), ', {', j, ': ', trim(re_str(tm%coef)), ' | ', trim(name), '}'
+              write (line, '(2a, i0, 5a)') trim(line), ', {', j, ': ', re_str(tm%coef), ' | ', trim(name), '}'
             else
-              write (line, '(2a, i0, 3a, 6(1x, i0), a)') trim(line), ', {', j, ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
+              write (line, '(2a, i0, 3a, 6(1x, i0), a)') trim(line), ', {', j, ': ', re_str(tm%coef), ',', tm%expn, '}'
             endif
           endif
 
@@ -1032,15 +956,15 @@ do ib = 0, ubound(lat%branch, 1)
         if (.not. associated(ele%spin_taylor(j1)%term)) cycle
         do k = 1, size(ele%spin_taylor(j1)%term)
           tm = ele%spin_taylor(j1)%term(k)
-          write (line, '(6a, 6i2, a)') trim(line), ', {', spin_quat_name(j1), ': ', trim(re_str(tm%coef)), ',', tm%expn, '}'
+          write (line, '(6a, 6i2, a)') trim(line), ', {', spin_quat_name(j1), ': ', re_str(tm%coef), ',', tm%expn, '}'
         enddo
       enddo
 
       if (any(ele%taylor%ref /= 0)) then
         write (line, '(16a)') trim(line), ', ref_orbit = (', &
-                trim(re_str(ele%taylor(1)%ref)), ', ', trim(re_str(ele%taylor(2)%ref)), ', ', &
-                trim(re_str(ele%taylor(3)%ref)), ', ', trim(re_str(ele%taylor(4)%ref)), ', ', &
-                trim(re_str(ele%taylor(5)%ref)), ', ', trim(re_str(ele%taylor(6)%ref)), ')'
+                re_str(ele%taylor(1)%ref), ', ', re_str(ele%taylor(2)%ref), ', ', &
+                re_str(ele%taylor(3)%ref), ', ', re_str(ele%taylor(4)%ref), ', ', &
+                re_str(ele%taylor(5)%ref), ', ', re_str(ele%taylor(6)%ref), ')'
       endif
     endif
 
@@ -1275,38 +1199,38 @@ do ib = 0, ubound(lat%branch, 1)
   ele0 => branch%ele(0)
 
   write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(species_name(branch%param%particle))
-  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', trim(re_str(ele0%value(p0c$)))
+  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c$))
   call write_if_logic_param_changed (branch%param%high_energy_space_charge_on, .false., trim(branch%name) // '[high_energy_space_charge_on]')
 
   if (is_false (ele0%value(floor_set$))) then
-    if (ele0%floor%r(1) /= 0)   write (iu, '(3a)') trim(branch%name), '[x_position]     = ', trim(re_str(ele0%floor%r(1)))
-    if (ele0%floor%r(2) /= 0)   write (iu, '(3a)') trim(branch%name), '[y_position]     = ', trim(re_str(ele0%floor%r(2)))
-    if (ele0%floor%r(3) /= 0)   write (iu, '(3a)') trim(branch%name), '[z_position]     = ', trim(re_str(ele0%floor%r(3)))
-    if (ele0%floor%theta /= 0)  write (iu, '(3a)') trim(branch%name), '[theta_position] = ', trim(re_str(ele0%floor%theta))
-    if (ele0%floor%phi /= 0)    write (iu, '(3a)') trim(branch%name), '[phi_position]   = ', trim(re_str(ele0%floor%phi))
-    if (ele0%floor%psi /= 0)    write (iu, '(3a)') trim(branch%name), '[psi_position]   = ', trim(re_str(ele0%floor%psi))
+    if (ele0%floor%r(1) /= 0)   write (iu, '(3a)') trim(branch%name), '[x_position]     = ', re_str(ele0%floor%r(1))
+    if (ele0%floor%r(2) /= 0)   write (iu, '(3a)') trim(branch%name), '[y_position]     = ', re_str(ele0%floor%r(2))
+    if (ele0%floor%r(3) /= 0)   write (iu, '(3a)') trim(branch%name), '[z_position]     = ', re_str(ele0%floor%r(3))
+    if (ele0%floor%theta /= 0)  write (iu, '(3a)') trim(branch%name), '[theta_position] = ', re_str(ele0%floor%theta)
+    if (ele0%floor%phi /= 0)    write (iu, '(3a)') trim(branch%name), '[phi_position]   = ', re_str(ele0%floor%phi)
+    if (ele0%floor%psi /= 0)    write (iu, '(3a)') trim(branch%name), '[psi_position]   = ', re_str(ele0%floor%psi)
   endif
 
-  if (ele0%s /= 0)              write (iu, '(3a)') trim(branch%name), '[s]              = ', trim(re_str(ele0%s))
-  if (ele0%ref_time /= 0)       write (iu, '(3a)') trim(branch%name), '[ref_time]       = ', trim(re_str(ele0%ref_time))
-  if (branch%param%n_part /= 0) write (iu, '(3a)') trim(branch%name), '[n_part]         = ', trim(re_str(lat%param%n_part))
+  if (ele0%s /= 0)              write (iu, '(3a)') trim(branch%name), '[s]              = ', re_str(ele0%s)
+  if (ele0%ref_time /= 0)       write (iu, '(3a)') trim(branch%name), '[ref_time]       = ', re_str(ele0%ref_time)
+  if (branch%param%n_part /= 0) write (iu, '(3a)') trim(branch%name), '[n_part]         = ', re_str(lat%param%n_part)
 
   if (branch%param%geometry == open$) then
     write (iu, '(3a)')
-    if (ele0%a%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_a]   = ', trim(re_str(ele0%a%beta))
-    if (ele0%a%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_a]  = ', trim(re_str(ele0%a%alpha))
-    if (ele0%a%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_a]    = ', trim(re_str(ele0%a%phi))
-    if (ele0%x%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_x]    = ', trim(re_str(ele0%x%eta))
-    if (ele0%x%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_x]   = ', trim(re_str(ele0%x%etap))
-    if (ele0%b%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_b]   = ', trim(re_str(ele0%b%beta))
-    if (ele0%b%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_b]  = ', trim(re_str(ele0%b%alpha))
-    if (ele0%b%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_b]    = ', trim(re_str(ele0%b%phi))
-    if (ele0%y%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_y]    = ', trim(re_str(ele0%y%eta))
-    if (ele0%y%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_y]   = ', trim(re_str(ele0%y%etap))
-    if (ele0%c_mat(1,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_11]  = ', trim(re_str(ele0%c_mat(1,1)))
-    if (ele0%c_mat(1,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_12]  = ', trim(re_str(ele0%c_mat(1,2)))
-    if (ele0%c_mat(2,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_21]  = ', trim(re_str(ele0%c_mat(2,1)))
-    if (ele0%c_mat(2,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_22]  = ', trim(re_str(ele0%c_mat(2,2)))
+    if (ele0%a%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_a]   = ', re_str(ele0%a%beta)
+    if (ele0%a%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_a]  = ', re_str(ele0%a%alpha)
+    if (ele0%a%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_a]    = ', re_str(ele0%a%phi)
+    if (ele0%x%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_x]    = ', re_str(ele0%x%eta)
+    if (ele0%x%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_x]   = ', re_str(ele0%x%etap)
+    if (ele0%b%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_b]   = ', re_str(ele0%b%beta)
+    if (ele0%b%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_b]  = ', re_str(ele0%b%alpha)
+    if (ele0%b%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_b]    = ', re_str(ele0%b%phi)
+    if (ele0%y%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_y]    = ', re_str(ele0%y%eta)
+    if (ele0%y%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_y]   = ', re_str(ele0%y%etap)
+    if (ele0%c_mat(1,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_11]  = ', re_str(ele0%c_mat(1,1))
+    if (ele0%c_mat(1,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_12]  = ', re_str(ele0%c_mat(1,2))
+    if (ele0%c_mat(2,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_21]  = ', re_str(ele0%c_mat(2,1))
+    if (ele0%c_mat(2,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_22]  = ', re_str(ele0%c_mat(2,2))
   endif
 
 enddo
@@ -1336,7 +1260,7 @@ do ie = 1, lat%n_ele_max
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
     if (ele%value(phi0_multipass$) == 0) cycle
     if (.not. expand_branch_out) call write_expand_lat_header
-    write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', trim(re_str(ele%value(phi0_multipass$)))
+    write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
   endif
 
 enddo
@@ -1360,7 +1284,7 @@ character(*) param_name
 !
 
 if (abs(param_now - param_default) < 1e-12 * (abs(param_now) + abs(param_default))) return
-write (iu, '(3a)') param_name, ' = ', trim(re_str(param_now))
+write (iu, '(3a)') param_name, ' = ', re_str(param_now)
 
 end subroutine write_if_real_param_changed
 
@@ -1473,7 +1397,7 @@ character(*), optional :: line
 write (iu9, '(a)') '{'
 if (ct_map%master_parameter > 0) write (iu9, '(2x, 3a)') &
                         'master_parameter  = ', trim(attribute_name(ele, ct_map%master_parameter)), ','
-write (iu9, '(2x, 3a)') 'field_scale       = ', trim(re_str(ct_map%field_scale)), ','
+write (iu9, '(2x, 3a)') 'field_scale       = ', re_str(ct_map%field_scale), ','
 write (iu9, '(2x, 4a)') 'r0                = ', trim(array_re_str(ct_map%r0)), ','
 write (iu9, '(2x, 3a)') 'ele_anchor_pt     = ', trim(anchor_pt_name(ct_map%ele_anchor_pt)), ','
 write (iu9, '(2x, 3a)') 'field_type        = ', trim(em_field_type_name(ct_map%field_type)), ','
@@ -1492,9 +1416,9 @@ do j = 1, size(ct_map%ptr%term)
   case (family_sq$)
     name = 'SQ'
   end select
-  write (iu9, '(17a)') '  term = {', trim(re_str(ct_term%coef)), ', ', &
-    trim(re_str(ct_term%kx)), ', ', trim(re_str(ct_term%ky)), ', ', trim(re_str(ct_term%kz)), &
-    ', ', trim(re_str(ct_term%x0)), ', ', trim(re_str(ct_term%y0)), ', ', trim(re_str(ct_term%phi_z)), ', ', trim(name), trim(last)
+  write (iu9, '(17a)') '  term = {', re_str(ct_term%coef), ', ', &
+    re_str(ct_term%kx), ', ', re_str(ct_term%ky), ', ', re_str(ct_term%kz), &
+    ', ', re_str(ct_term%x0), ', ', re_str(ct_term%y0), ', ', re_str(ct_term%phi_z), ', ', trim(name), trim(last)
 enddo
 
 ! present(line) = T when single file is being constructed
@@ -1520,14 +1444,14 @@ character(*), optional :: line
 write (iu9, '(a)') '{'
 if (cl_map%master_parameter > 0) write (iu9, '(2x, 3a)') &
                                           'master_parameter  = ', trim(attribute_name(ele, cl_map%master_parameter)), ','
-write (iu9, '(2x, 3a)')       'field_scale       = ', trim(re_str(cl_map%field_scale)), ','
+write (iu9, '(2x, 3a)')       'field_scale       = ', re_str(cl_map%field_scale), ','
 write (iu9, '(2x, 3a)')       'ele_anchor_pt     = ', trim(anchor_pt_name(cl_map%ele_anchor_pt)), ','
 write (iu9, '(2x, a, i0, a)') 'm                 = ', cl_map%m, ','
 write (iu9, '(2x, a, i0, a)') 'harmonic          = ', cl_map%harmonic, ','
-write (iu9, '(2x, 3a)')       'dz                = ', trim(re_str(cl_map%dz)), ','
+write (iu9, '(2x, 3a)')       'dz                = ', re_str(cl_map%dz), ','
 write (iu9, '(2x, 4a)')       'r0                = ', trim(array_re_str(cl_map%r0)), ','
-write (iu9, '(2x, 3a)')       'phi0_fieldmap     = ', trim(re_str(cl_map%phi0_fieldmap)), ','
-write (iu9, '(2x, 3a)', advance = 'NO') 'theta0_azimuth      = ', trim(re_str(cl_map%theta0_azimuth))
+write (iu9, '(2x, 3a)')       'phi0_fieldmap     = ', re_str(cl_map%phi0_fieldmap), ','
+write (iu9, '(2x, 3a)', advance = 'NO') 'theta0_azimuth      = ', re_str(cl_map%theta0_azimuth)
 
 if (any(real(cl_map%ptr%term%e_coef) /= 0)) call write_map_coef ('E_coef_re', real(cl_map%ptr%term%e_coef))
 if (any(aimag(cl_map%ptr%term%e_coef) /= 0)) call write_map_coef ('E_coef_im', aimag(cl_map%ptr%term%e_coef))
@@ -1559,12 +1483,12 @@ n = grid_field_dimension(g_field%geometry)
 write (iu9, '(2x, 3a)')       'geometry            = ', trim(grid_field_geometry_name(g_field%geometry)), ','
 if (g_field%master_parameter > 0) write (iu9, '(2x, 3a)') &
                               'master_parameter    = ', trim(attribute_name(ele, g_field%master_parameter)), ','
-write (iu9, '(2x, 3a)')       'field_scale         = ', trim(re_str(g_field%field_scale)), ','
+write (iu9, '(2x, 3a)')       'field_scale         = ', re_str(g_field%field_scale), ','
 write (iu9, '(2x, 3a)')       'ele_anchor_pt       = ', trim(anchor_pt_name(g_field%ele_anchor_pt)), ','
 write (iu9, '(2x, 3a)')       'field_type          = ', trim(em_field_type_name(g_field%field_type)), ','
 write (iu9, '(2x, a, i0, a)') 'interpolation_order = ', g_field%interpolation_order, ','
 write (iu9, '(2x, a, i0, a)') 'harmonic            = ', g_field%harmonic, ','
-write (iu9, '(2x, 3a)')       'phi0_fieldmap       = ', trim(re_str(g_field%phi0_fieldmap)), ','
+write (iu9, '(2x, 3a)')       'phi0_fieldmap       = ', re_str(g_field%phi0_fieldmap), ','
 write (iu9, '(2x, 4a)')       'dr                  = ', trim(array_re_str(g_field%dr(1:n))), ','
 write (iu9, '(2x, 4a)')       'r0                  = ', trim(array_re_str(g_field%r0)), ','
 write (iu9, '(2x, a, l1, a)') 'curved_ref_frame    = ', g_field%curved_ref_frame, ','
@@ -1634,10 +1558,10 @@ character(*), optional :: line
 write (iu9, '(a)') '{'
 if (t_field%master_parameter > 0) write (iu9, '(2x, 3a)') &
                               'master_parameter   = ', trim(attribute_name(ele, t_field%master_parameter)), ','
-write (iu9, '(2x, 3a)')       'field_scale        = ', trim(re_str(t_field%field_scale)), ','
+write (iu9, '(2x, 3a)')       'field_scale        = ', re_str(t_field%field_scale), ','
 write (iu9, '(2x, 3a)')       'ele_anchor_pt      = ', trim(anchor_pt_name(t_field%ele_anchor_pt)), ','
 write (iu9, '(2x, 3a)')       'field_type         = ', trim(em_field_type_name(t_field%field_type)), ','
-write (iu9, '(2x, 3a)')       'dz                 = ', trim(re_str(t_field%dz)), ','
+write (iu9, '(2x, 3a)')       'dz                 = ', re_str(t_field%dz), ','
 write (iu9, '(2x, 4a)')       'r0                 = ', trim(array_re_str(t_field%r0)), ','
 write (iu9, '(2x, a, l1, a)') 'curved_ref_frame   = ', t_field%curved_ref_frame, ','
 write (iu9, '(2x, a, l1, a)') 'canonical_tracking = ', t_field%canonical_tracking, ','
@@ -1649,9 +1573,9 @@ do ip = lbound(t_field%ptr%plane, 1), ubound(t_field%ptr%plane, 1)
     do it = 1, size(t_field%ptr%plane(ip)%field(k)%term)
       t_term => t_field%ptr%plane(ip)%field(k)%term(it)
       if (line2 == '') then
-        write (line2, '(4x, 5a, 2i2, a)') '{', field_plane_name(k), ': ', trim(re_str(t_term%coef)), ',', t_term%expn, '}'
+        write (line2, '(4x, 5a, 2i2, a)') '{', field_plane_name(k), ': ', re_str(t_term%coef), ',', t_term%expn, '}'
       else
-        write (line2, '(6a, 2i2, a)') trim(line2), ', {', field_plane_name(k), ': ', trim(re_str(t_term%coef)), ',', t_term%expn, '}'
+        write (line2, '(6a, 2i2, a)') trim(line2), ', {', field_plane_name(k), ': ', re_str(t_term%coef), ',', t_term%expn, '}'
       endif
     enddo
   enddo
@@ -1723,18 +1647,59 @@ end subroutine write_line_element
 !-------------------------------------------------------
 !-------------------------------------------------------
 
+function logic_str(logic) result (str_out)
+
+implicit none
+
+logical logic
+character(1) str_out
+
+if (logic) then
+  str_out = 'T'
+else
+  str_out = 'F'
+endif
+
+end function logic_str
+
+!-------------------------------------------------------
+!-------------------------------------------------------
+!-------------------------------------------------------
+
+function int_str(int) result (str_out)
+
+implicit none
+
+integer int, n
+character(:), allocatable :: str_out
+character(24) str
+
+write (str, *) int
+str = adjustl(str)
+n = len_trim(str)
+allocate(character(n):: str_out)
+str_out = str(1:n)
+
+end function int_str
+
+!-------------------------------------------------------
+!-------------------------------------------------------
+!-------------------------------------------------------
+
 function re_str(rel) result (str_out)
 
 implicit none
 
 real(rp) rel
-integer pl
-character(24) str_out
+integer pl, n
+character(:), allocatable :: str_out
+character(24) str
 character(16) fmt
 
 !
 
 if (rel == 0) then
+  allocate(character(1):: str_out)
   str_out = '0'
   return
 endif
@@ -1743,16 +1708,20 @@ pl = floor(log10(abs(rel)))
 
 if (pl > 5) then
   fmt = '(2a, i0)'
-  write (str_out, fmt) trim(rchomp(rel/10.0_rp**pl, 0)), 'E', pl
+  write (str, fmt) trim(rchomp(rel/10.0_rp**pl, 0)), 'E', pl
 
 elseif (pl > -3) then
-  str_out = rchomp(rel, pl)
+  str = rchomp(rel, pl)
 
 else
   fmt = '(2a, i0)'
-  write (str_out, fmt) trim(rchomp(rel*10.0_rp**(-pl), 0)), 'E', pl
-
+  write (str, fmt) trim(rchomp(rel*10.0_rp**(-pl), 0)), 'E', pl
 endif
+
+n = len_trim(str)
+allocate(character(n):: str_out)
+str_out = str(1:n)
+
 
 end function re_str
 
@@ -1793,9 +1762,9 @@ character(40) str_out
 !
 
 if (imag(cmp) == 0) then
-  str_out = trim(re_str(real(cmp)))
+  str_out = re_str(real(cmp))
 else
-  str_out = '(' // trim(re_str(real(cmp))) // ', ' // trim(re_str(imag(cmp))) // ')'
+  str_out = '(' // re_str(real(cmp)) // ', ' // re_str(imag(cmp)) // ')'
 endif
 
 end function cmplx_re_str
@@ -1852,7 +1821,7 @@ end function rchomp
 !   end_is_neigh  -- Logical: If true then write out everything.
 !                      Otherwise wait for a full line of max_char characters or so.
 !   continue_char -- character(1), optional. Default is not to use any continue character 
-!                      and put line breaks after commas.
+!                      and put line breaks after commas. Default is Bmad syntax compatible.
 !
 ! Output:
 !   line          -- Character(*): part of the string not written. 
@@ -2524,7 +2493,7 @@ case ('MAD-8', 'MAD-X', 'XSIF')
   ele => branch_out%ele(ie1-1)
 
   write (line_out, '(7a)') 'beam_def: Beam, Particle = ', trim(species_name(branch_out%param%particle)),  &
-        ', Energy = ', trim(re_str(1d-9*ele%value(E_TOT$))), ', Npart = ', trim(re_str(branch_out%param%n_part)), trim(eol_char)
+        ', Energy = ', re_str(1d-9*ele%value(E_TOT$)), ', Npart = ', re_str(branch_out%param%n_part), trim(eol_char)
   call write_line (line_out)
   write (iu, '(a)')
 
@@ -2907,7 +2876,7 @@ do ix_ele = ie1, ie2
       else
         line_out = trim(line_out) // ', apertype = ellipse'
       endif
-      write (line_out, '(6a)') trim(line_out), ', aperture = (', trim(re_str(limit(1))), ', ', trim(re_str(limit(2))), ')'
+      write (line_out, '(6a)') trim(line_out), ', aperture = (', re_str(limit(1)), ', ', re_str(limit(2)), ')'
     endif
   endif
 
@@ -2971,10 +2940,10 @@ if (branch_out%param%geometry == open$ .and. &
   write (iu, '(a)')
   write (iu, '(3a)') comment_char, '---------------------------------', trim(eol_char)
   write (iu, '(a)')
-  write (iu, '(6a)') 'TWISS, betx = ', trim(re_str(ele%a%beta)), ', bety = ', trim(re_str(ele%b%beta)), ', ', trim(continue_char)
-  write (iu, '(5x, 6a)') 'alfx = ', trim(re_str(ele%a%alpha)), ', alfy = ', trim(re_str(ele%b%alpha)), ', ', trim(continue_char)
-  write (iu, '(5x, 6a)') 'dx = ', trim(re_str(ele%a%eta)), ', dpx = ', trim(re_str(ele%a%etap)), ', ', trim(continue_char)
-  write (iu, '(5x, 6a)') 'dy = ', trim(re_str(ele%b%eta)), ', dpy = ', trim(re_str(ele%b%etap)), trim(eol_char)
+  write (iu, '(6a)') 'TWISS, betx = ', re_str(ele%a%beta), ', bety = ', re_str(ele%b%beta), ', ', trim(continue_char)
+  write (iu, '(5x, 6a)') 'alfx = ', re_str(ele%a%alpha), ', alfy = ', re_str(ele%b%alpha), ', ', trim(continue_char)
+  write (iu, '(5x, 6a)') 'dx = ', re_str(ele%a%eta), ', dpx = ', re_str(ele%a%etap), ', ', trim(continue_char)
+  write (iu, '(5x, 6a)') 'dy = ', re_str(ele%b%eta), ', dpy = ', re_str(ele%b%etap), trim(eol_char)
 endif
 
 !------------------------------------------
@@ -3602,8 +3571,8 @@ write (iu, '(4a)') '! Bmad Lattice File: ', trim(lat%input_file_name), ';'
 if (lat%lattice /= '') write (iu, '(4a)') '! Bmad Lattice: ', trim(lat%lattice), ';'
 write (iu, '(a)')
 
-write (iu, '(3a)') 'MOMENTUM = ',  trim(re_str(ele%value(p0c$))), ';'
-if (sad_fshift /= 0) write (iu, '(3a)') 'FSHIFT = ', trim(re_str(sad_fshift)), ';'
+write (iu, '(3a)') 'MOMENTUM = ',  re_str(ele%value(p0c$)), ';'
+if (sad_fshift /= 0) write (iu, '(3a)') 'FSHIFT = ', re_str(sad_fshift), ';'
 
 ! write element parameters
 

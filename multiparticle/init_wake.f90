@@ -31,9 +31,9 @@ logical, optional :: always_allocate
 if (n_sr_long == 0 .and. n_sr_trans == 0 .and. n_lr_mode == 0) then
   if (logic_option(.false., always_allocate)) then
     if (.not. associated(wake)) allocate (wake)
-    allocate (wake%sr_long%mode(n_sr_long))
-    allocate (wake%sr_trans%mode(n_sr_trans))
-    allocate (wake%lr_mode(n_lr_mode))
+    allocate (wake%sr%long(n_sr_long))
+    allocate (wake%sr%trans(n_sr_trans))
+    allocate (wake%lr%mode(n_lr_mode))
   else
     if (associated(wake)) deallocate (wake)
   endif
@@ -43,26 +43,26 @@ endif
 !
 
 if (associated (wake)) then
-  if (size(wake%sr_long%mode) /= n_sr_long) then
-    deallocate (wake%sr_long%mode)
-    allocate (wake%sr_long%mode(n_sr_long))
+  if (size(wake%sr%long) /= n_sr_long) then
+    deallocate (wake%sr%long)
+    allocate (wake%sr%long(n_sr_long))
   endif
 
-  if (size(wake%sr_trans%mode) /= n_sr_trans) then
-    deallocate (wake%sr_trans%mode)
-    allocate (wake%sr_trans%mode(n_sr_trans))
+  if (size(wake%sr%trans) /= n_sr_trans) then
+    deallocate (wake%sr%trans)
+    allocate (wake%sr%trans(n_sr_trans))
   endif
 
-  if (size(wake%lr_mode) /= n_lr_mode) then
-    deallocate (wake%lr_mode)
-    allocate (wake%lr_mode(n_lr_mode))
+  if (size(wake%lr%mode) /= n_lr_mode) then
+    deallocate (wake%lr%mode)
+    allocate (wake%lr%mode(n_lr_mode))
   endif
 
 else
   allocate (wake)
-  allocate (wake%sr_long%mode(n_sr_long))
-  allocate (wake%sr_trans%mode(n_sr_trans))
-  allocate (wake%lr_mode(n_lr_mode))
+  allocate (wake%sr%long(n_sr_long))
+  allocate (wake%sr%trans(n_sr_trans))
+  allocate (wake%lr%mode(n_lr_mode))
 endif
 
 end subroutine init_wake

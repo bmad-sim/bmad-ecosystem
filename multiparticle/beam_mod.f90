@@ -263,16 +263,12 @@ if (associated(wake_ele)) then
   call multipass_chain (wake_ele, ix_pass, n_links, chain_ele)
   do i = 1, n_links
     if (i == ix_pass) cycle
-    do j = 1, size(wake_ele%wake%lr_mode)
-      chain_ele(i)%ele%wake%lr_mode(j) = wake_ele%wake%lr_mode(j)
-    enddo
+    chain_ele(i)%ele%wake%lr = wake_ele%wake%lr
   enddo
 
   lord => pointer_to_multipass_lord (wake_ele)
-  if (associated(lord)) then 
-    do j = 1, size(wake_ele%wake%lr_mode)
-      lord%wake%lr_mode(j) = wake_ele%wake%lr_mode(j)
-    enddo
+  if (associated(lord)) then
+    lord%wake%lr = wake_ele%wake%lr
   endif
 
 endif

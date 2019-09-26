@@ -43,7 +43,6 @@ type (extra_parsing_info_struct) :: extra
 type (ptc_parameter_struct) ptc_param
 type (control_struct), pointer :: c
 type (bmad_common_struct) bmad_com_read
-type (wake_struct), pointer :: wake
 real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
@@ -472,6 +471,7 @@ type (cartesian_map_struct), pointer :: ct_map
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
+type (wake_struct), pointer :: wake
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
@@ -739,17 +739,16 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr_mode /= 0) then
   else
     call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr_mode)
     wake => ele%wake
-    read (d_unit, err = 9800) wake%sr_file
-    read (d_unit, err = 9840) wake%sr_long%mode
-    read (d_unit, err = 9850) wake%sr_trans%mode
-    read (d_unit, err = 9820) wake%lr_file
-    read (d_unit, err = 9830) wake%lr_mode
-    read (d_unit, err = 9860) wake%z_sr_max, wake%lr_self_wake_on, wake%lr_freq_spread, &
-                        wake%wake_amp_scale, wake%wake_time_scale, wake%sr_wake_scale_with_length
-    do i = 1, ix_lr_mode
-      if (wake%lr_mode(i)%freq /= 0) cycle
-      wake%lr_mode(i)%freq = -1
-      wake%lr_mode(i)%freq_in = -1
+    read (d_unit, err = 9800) wake%sr%z_ref_long, wake%sr%z_ref_trans, wake%sr%z_max, wake%sr%scale_with_length, wake%sr%amp_scale, wake%sr%z_scale
+    do i = 1, size(wake%sr%long)
+      read (d_unit, err = 9800) wake%sr%long(i)
+    enddo
+    do i = 1, size(wake%sr%trans)
+      read (d_unit, err = 9800) wake%sr%trans(i)
+    enddo
+    read (d_unit, err = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
+    do i = 1, size(wake%lr%mode)
+      read (d_unit, err = 9800) wake%lr%mode(i)
     enddo
   endif
 endif
@@ -882,37 +881,7 @@ return
 
 9800  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%SR_FILE FOR ELEMENT: ' // ele%name)
-close (d_unit)
-return
-
-9820  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%LR_FILE FOR ELEMENT: ' // ele%name)
-close (d_unit)
-return
-
-9830  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%LR FOR ELEMENT: ' // ele%name)
-close (d_unit)
-return
-
-9840  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%sr_long%mode FOR ELEMENT: ' // ele%name)
-close (d_unit)
-return
-
-9850  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%sr_trans%mode FOR ELEMENT: ' // ele%name)
-close (d_unit)
-return
-
-9860  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%Z_SR_MAX FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE FOR ELEMENT: ' // ele%name)
 close (d_unit)
 return
 

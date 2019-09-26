@@ -25,9 +25,9 @@ integer n_sr_long, n_sr_trans, n_lr_mode, i
 !
 
 if (associated (wake_in)) then
-  n_sr_long   = size(wake_in%sr_long%mode)
-  n_sr_trans  = size(wake_in%sr_trans%mode)
-  n_lr_mode   = size(wake_in%lr_mode)
+  n_sr_long   = size(wake_in%sr%long)
+  n_sr_trans  = size(wake_in%sr%trans)
+  n_lr_mode   = size(wake_in%lr%mode)
 
   call init_wake (wake_out, n_sr_long, n_sr_trans, n_lr_mode, .true.)
   wake_out = wake_in

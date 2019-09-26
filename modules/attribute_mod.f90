@@ -535,12 +535,11 @@ do i = 1, n_key$
   call init_attribute_name1 (i, scratch4$,        'Scratch4', private$)
   call init_attribute_name1 (i, scratch5$,        'Scratch5', private$)
 
-
-  if (i == def_bmad_com$)   cycle
-  if (i == def_mad_beam$)   cycle
+  if (i == def_bmad_com$)       cycle
+  if (i == def_mad_beam$)       cycle
   if (i == def_particle_start$) cycle
-  if (i == line_ele$)       cycle
-  if (i == def_parameter$)  cycle
+  if (i == line_ele$)           cycle
+  if (i == def_parameter$)      cycle
 
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
 
@@ -660,14 +659,12 @@ do i = 1, n_key$
   call init_attribute_name1 (i, l_hard_edge$,         'L_HARD_EDGE', dependent$)
 
   ! Markers will also have these wake attributes. See below.
-  call init_attribute_name1 (i, sr_wake_scale_with_length$, 'SR_WAKE_SCALE_WITH_LENGTH')
-  call init_attribute_name1 (i, wake_amp_scale$,            'WAKE_AMP_SCALE')
-  call init_attribute_name1 (i, wake_time_scale$,           'WAKE_TIME_SCALE')
+  call init_attribute_name1 (i, sr_wake$,                   'SR_WAKE')
+  call init_attribute_name1 (i, lr_wake$,                   'LR_WAKE')
   call init_attribute_name1 (i, sr_wake_file$,              'SR_WAKE_FILE')
   call init_attribute_name1 (i, lr_wake_file$,              'LR_WAKE_FILE')
   call init_attribute_name1 (i, lr_freq_spread$,            'LR_FREQ_SPREAD')
   call init_attribute_name1 (i, lr_self_wake_on$,           'LR_SELF_WAKE_ON')
-  call init_attribute_name1 (i, lr_wake_spline$,            'LR_WAKE_SPLINE')
 
   if (i == pipe$)         cycle
   if (i == custom$)       cycle
@@ -1094,16 +1091,12 @@ call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
 call init_attribute_name1 (marker$, p0c_ref_init$,                  'p0c_ref_init', private$)
 
-call init_attribute_name1 (marker$, sr_wake_scale_with_length$, 'SR_WAKE_SCALE_WITH_LENGTH')
-call init_attribute_name1 (marker$, wake_amp_scale$,            'WAKE_AMP_SCALE')
-call init_attribute_name1 (marker$, wake_time_scale$,           'WAKE_TIME_SCALE')
+call init_attribute_name1 (marker$, sr_wake$,                   'SR_WAKE')
+call init_attribute_name1 (marker$, lr_wake$,                   'LR_WAKE')
 call init_attribute_name1 (marker$, sr_wake_file$,              'SR_WAKE_FILE')
 call init_attribute_name1 (marker$, lr_wake_file$,              'LR_WAKE_FILE')
 call init_attribute_name1 (marker$, lr_freq_spread$,            'LR_FREQ_SPREAD')
 call init_attribute_name1 (marker$, lr_self_wake_on$,           'LR_SELF_WAKE_ON')
-call init_attribute_name1 (marker$, lr_wake_spline$,            'LR_WAKE_SPLINE')
-
-
 
 call init_attribute_name1 (match$, l$,                              'L')
 call init_attribute_name1 (match$, delta_time$,                     'DELTA_TIME')
@@ -1736,7 +1729,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
-      'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'SR_WAKE_SCALE_WITH_LENGTH')
+      'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
@@ -1759,9 +1752,9 @@ case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PH
      'MACHINE', 'START_EDGE')
   attrib_type = is_string$
 
-case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GRID_FIELD', 'LR_WAKE_SPLINE', 'REF_ORBIT', &
+case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GRID_FIELD', 'REF_ORBIT', &
       'SUPERIMPOSE', 'SURFACE', 'TAYLOR_FIELD', 'TERM', 'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', &
-      'X_KNOT')
+      'X_KNOT', 'SR_WAKE', 'LR_WAKE')
   attrib_type = is_struct$
 
 case default
@@ -1813,7 +1806,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', &
       'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
-      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'WAKE_TIME_SCALE', 'WAKE_AMP_SCALE')
+      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY')
   attrib_units = ''
 
 case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
@@ -1962,100 +1955,6 @@ end function attribute_units
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function corresponding_tot_attribute_index (ele, ix_attrib) result (ix_tot_attrib)
-!
-! Function to return the index of the corresponding "_tot" attribute.
-! Corresponding attributes are:
-!   Attribute         "_tot" attribute
-!   ---------         -----------------
-!   x_offset          x_offset_tot
-!   x_pitch           x_pitch_tot
-!   tilt              tilt_tot
-!
-! Module needed:
-!   use bmad
-!
-! Input:
-!   ele       -- Ele_struct: Element
-!   ix_attrib -- Integer: Index of attribute
-!
-! Output:
-!   ix_tot_attrib -- Integer: Index of corresponding _tot attribute.
-!                      Set to -1 if no corresponding attribute.
-!-
-
-function corresponding_tot_attribute_index (ele, ix_attrib) result (ix_tot_attrib)
-
-type (ele_struct) ele
-integer ix_attrib, ix_tot_attrib
-character(40) a_name
-
-!
-
-select case (attribute_name(ele, ix_attrib))
-case ('X_PITCH');     ix_tot_attrib = x_pitch_tot$
-case ('Y_PITCH');     ix_tot_attrib = y_pitch_tot$
-case ('X_OFFSET');    ix_tot_attrib = x_offset_tot$
-case ('Y_OFFSET');    ix_tot_attrib = y_offset_tot$
-case ('Z_OFFSET');    ix_tot_attrib = z_offset_tot$
-case ('REF_TILT');    ix_tot_attrib = ref_tilt_tot$
-case ('TILT');        ix_tot_attrib = tilt_tot$
-case ('ROLL');        ix_tot_attrib = roll_tot$
-case default;         ix_tot_attrib = -1; return
-end select
-
-a_name = attribute_name(ele, ix_tot_attrib)
-if (a_name(1:1) == '!') ix_tot_attrib = -1
-
-end function corresponding_tot_attribute_index 
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Function is_a_tot_attribute (ele, ix_attrib) result (is_a_tot_attrib)
-!
-! Function returns True if ix_attrib corresponds to a "_tot" attribute.
-! Example _tot attributes are:
-!   -----------------
-!   x_offset_tot
-!   x_pitch_tot
-!   tilt_tot
-!
-! Module needed:
-!   use bmad
-!
-! Input:
-!   ele       -- Ele_struct: Element
-!   ix_attrib -- Integer: Index of attribute
-!
-! Output:
-!   is_a_tot_attrib -- Logical: True if a _tot attribute. False otherwise.
-!   
-!-
-
-function is_a_tot_attribute (ele, ix_attrib) result (is_a_tot_attrib)
-
-type (ele_struct) ele
-integer ix_attrib
-logical is_a_tot_attrib
-
-!
-
-select case (attribute_name(ele, ix_attrib))
-case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', &
-      'REF_TILT_TOT', 'ROLL_TOT', 'Z_OFFSET_TOT', 'TILT_TOT')
-  is_a_tot_attrib = .true.
-case default
-  is_a_tot_attrib = .false.
-end select
-
-end function is_a_tot_attribute
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine string_attrib (attrib_name, ele, attrib_value)
 !
 ! Routine to return the value of a string attribute of a lattice element.
@@ -2090,9 +1989,9 @@ case ('ALIAS')
 case ('DESCRIP')
   if (associated(ele%descrip)) attrib_value = ele%descrip
 case ('SR_WAKE_FILE')
-  if (associated(ele%wake)) attrib_value = ele%wake%sr_file
+  if (associated(ele%wake)) attrib_value = ele%wake%sr%file
 case ('LR_WAKE_FILE')
-  if (associated(ele%wake)) attrib_value = ele%wake%lr_file
+  if (associated(ele%wake)) attrib_value = ele%wake%lr%file
 case ('PHYSICAL_SOURCE')
   if (attribute_index(ele, attrib_name) /= 0) attrib_value = ele%component_name
 case ('CRYSTAL_TYPE')

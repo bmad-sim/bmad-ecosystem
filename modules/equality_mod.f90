@@ -17,20 +17,21 @@ interface operator (==)
   module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_ac_kicker_time, eq_ac_kicker_freq
   module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var1
   module procedure eq_controller, eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom
-  module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr_mode, eq_lat_ele_loc, eq_wake
-  module procedure eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1
-  module procedure eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map
-  module procedure eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane
-  module procedure eq_taylor_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss
-  module procedure eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid
-  module procedure eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material
-  module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control
-  module procedure eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init, eq_lat_param
-  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
-  module procedure eq_em_field, eq_track_point, eq_track, eq_synch_rad_common, eq_csr_parameter
-  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele, eq_ele
-  module procedure eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat, eq_bunch
-  module procedure eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param, eq_aperture_scan
+  module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc
+  module procedure eq_wake, eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor
+  module procedure eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term
+  module procedure eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1
+  module procedure eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp
+  module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt
+  module procedure eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target
+  module procedure eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
+  module procedure eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init
+  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
+  module procedure eq_normal_modes, eq_em_field, eq_track_point, eq_track, eq_synch_rad_common
+  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele
+  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat
+  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param
+  module procedure eq_aperture_scan
 end interface
 
 contains
@@ -503,7 +504,7 @@ is_eq = is_eq .and. (f1%a_cos == f2%a_cos)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%polarization == f2%polarization)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%transverse_dependence == f2%transverse_dependence)
+is_eq = is_eq .and. (f1%position_dependence == f2%position_dependence)
 
 end function eq_wake_sr_mode
 
@@ -520,14 +521,32 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%file == f2%file)
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%mode) .eqv. allocated(f2%mode))
+is_eq = is_eq .and. (allocated(f1%long) .eqv. allocated(f2%long))
 if (.not. is_eq) return
-if (allocated(f1%mode)) is_eq = all(shape(f1%mode) == shape(f2%mode))
+if (allocated(f1%long)) is_eq = all(shape(f1%long) == shape(f2%long))
 if (.not. is_eq) return
-if (allocated(f1%mode)) is_eq = all(f1%mode == f2%mode)
+if (allocated(f1%long)) is_eq = all(f1%long == f2%long)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%trans) .eqv. allocated(f2%trans))
+if (.not. is_eq) return
+if (allocated(f1%trans)) is_eq = all(shape(f1%trans) == shape(f2%trans))
+if (.not. is_eq) return
+if (allocated(f1%trans)) is_eq = all(f1%trans == f2%trans)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%z_ref == f2%z_ref)
+is_eq = is_eq .and. (f1%z_ref_long == f2%z_ref_long)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z_ref_trans == f2%z_ref_trans)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z_max == f2%z_max)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%amp_scale == f2%amp_scale)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z_scale == f2%z_scale)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%scale_with_length .eqv. f2%scale_with_length)
 
 end function eq_wake_sr
 
@@ -566,14 +585,46 @@ is_eq = is_eq .and. (f1%b_cos == f2%b_cos)
 is_eq = is_eq .and. (f1%a_sin == f2%a_sin)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%a_cos == f2%a_cos)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%t_ref == f2%t_ref)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%m == f2%m)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%polarized .eqv. f2%polarized)
 
 end function eq_wake_lr_mode
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_wake_lr (f1, f2) result (is_eq)
+
+implicit none
+
+type(wake_lr_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%file == f2%file)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%mode) .eqv. allocated(f2%mode))
+if (.not. is_eq) return
+if (allocated(f1%mode)) is_eq = all(shape(f1%mode) == shape(f2%mode))
+if (.not. is_eq) return
+if (allocated(f1%mode)) is_eq = all(f1%mode == f2%mode)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%t_ref == f2%t_ref)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%freq_spread == f2%freq_spread)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%amp_scale == f2%amp_scale)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%time_scale == f2%time_scale)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%self_wake_on .eqv. f2%self_wake_on)
+
+end function eq_wake_lr
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -608,32 +659,10 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[character, 0, NOT]
-is_eq = is_eq .and. (f1%sr_file == f2%sr_file)
-!! f_side.equality_test[character, 0, NOT]
-is_eq = is_eq .and. (f1%lr_file == f2%lr_file)
 !! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%sr_long == f2%sr_long)
+is_eq = is_eq .and. (f1%sr == f2%sr)
 !! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%sr_trans == f2%sr_trans)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%lr_mode) .eqv. allocated(f2%lr_mode))
-if (.not. is_eq) return
-if (allocated(f1%lr_mode)) is_eq = all(shape(f1%lr_mode) == shape(f2%lr_mode))
-if (.not. is_eq) return
-if (allocated(f1%lr_mode)) is_eq = all(f1%lr_mode == f2%lr_mode)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%wake_amp_scale == f2%wake_amp_scale)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%wake_time_scale == f2%wake_time_scale)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%z_sr_max == f2%z_sr_max)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%lr_freq_spread == f2%lr_freq_spread)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%lr_self_wake_on .eqv. f2%lr_self_wake_on)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%sr_wake_scale_with_length .eqv. f2%sr_wake_scale_with_length)
+is_eq = is_eq .and. (f1%lr == f2%lr)
 
 end function eq_wake
 
@@ -2921,6 +2950,8 @@ is_eq = is_eq .and. all(f1%rel_min == f2%rel_min)
 is_eq = is_eq .and. (f1%s == f2%s)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%charge_live == f2%charge_live)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%charge_tot == f2%charge_tot)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_particle_tot == f2%n_particle_tot)
 !! f_side.equality_test[integer, 0, NOT]
