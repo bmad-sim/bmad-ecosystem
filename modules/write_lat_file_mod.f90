@@ -728,7 +728,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (size(lr%mode) /= 0) then
         line = trim(line) // ', lr_wake = {'
         if (lr%freq_spread /= 0) line = trim(line) // ', freq_spread = ' // re_str(lr%freq_spread)
-        if (lr%self_wake_on /= 0) line = trim(line) // ', self_wake_on = ' // logic_str(lr%self_wake_on)
+        if (.not. lr%self_wake_on) line = trim(line) // ', self_wake_on = ' // logic_str(lr%self_wake_on)
         if (lr%amp_scale /= 1) line = trim(line) // ', amp_scale = ' // re_str(lr%amp_scale)
         if (lr%time_scale /= 1) line = trim(line) // ', time_scale = ' // re_str(lr%time_scale)
         if (lr%t_ref /= 0) line = trim(line) // ', t_ref = ' // re_str(lr%t_ref)
