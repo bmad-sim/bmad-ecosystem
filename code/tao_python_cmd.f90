@@ -136,7 +136,7 @@ type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_element_struct), pointer :: tao_ele
 type (all_pointer_struct) a_ptr
 
-real(rp) s_pos, value, y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
+real(rp) s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
 real(rp), allocatable :: re_array(:)
@@ -148,7 +148,7 @@ real(rp), allocatable :: value_arr(:)
 integer :: i, j, k, ib, ie, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
-integer line_width, n_bend, ic, num_ele
+integer line_width, n_bend, ic, num_ele, n_arr, n_add
 integer, allocatable, save :: index_arr(:)
 
 logical, allocatable :: picked(:)
@@ -2605,11 +2605,11 @@ case ('lat_general')
 !     ele.y.eta, ele.y.etap,
 !     ele.s, ele.l
 !     ele.e_tot, ele.p0c
+!     ele.mat6, ele.vec0  ! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 !   {elements} is a string to match element names to. 
 !     Use "*" to match to all elements.
 !     Use the prefix "track:" to exclude lord elements.
-! Note: To output through the real array buffer, add the prefix "real:" to {who}. In this
-! case, {who} must only contain a single item
+! Note: To output through the real array buffer, add the prefix "real:" to {who}.
 !
 ! Examples:
 !   python lat_list 3@0>>track:Q*|base ele.s,orbit.vec.2
@@ -2624,11 +2624,13 @@ case ('lat_list')
     all_who = all_who(6:)
     call re_allocate(re_array, 1000)
   endif
-  ix_branch = parse_branch(line, .true., err); if (err) return
-  branch => tao_lat%lat%branch(ix_branch)
-  ele_name = upcase(line)
-  track_only = (ele_name(1:6) == 'TRACK:') 
-  if (track_only) ele_name = ele_name(7:)
+
+  call upcase_string(line)
+  ix = index(line, 'TRACK:')
+  track_only = (ix /= 0)
+  if (track_only) line = line(1:ix-1) // line(ix+6:)
+  lat => tao_lat%lat
+  call lat_ele_locator (line, lat, eles, n_loc, err);  if (err) return
 
   n_who = 0
   do
@@ -2647,133 +2649,144 @@ case ('lat_list')
     call invalid ('Number of "who" must be 1 for real buffered output.')
   endif
 
-  n = 0
-  do ie = 0, branch%n_ele_max
-    if (track_only .and. ie > branch%n_ele_track) cycle
-    ele => branch%ele(ie)
-    orbit => tao_lat%tao_branch(ix_branch)%orbit(ele%ix_ele)
-
-    matched = match_ele_name(ele_name, ele, err); if (err) return
-    if (.not. matched) cycle
+  n_arr = 0
+  do ie = 1, n_loc
+    ele => eles(ie)%ele
+    if (track_only .and. ele%ix_branch == 0 .and. ie > lat%n_ele_track) cycle
+    orbit => tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
 
     do i = 1, n_who
+
+      n_add = 1
       select case (name1(i))
       case ('orbit.spin.1')
-        value = orbit%spin(1)
+        values(1) = orbit%spin(1)
       case ('orbit.spin.2')
-        value = orbit%spin(2)
+        values(1) = orbit%spin(2)
       case ('orbit.spin.3')
-        value = orbit%spin(3)
+        values(1) = orbit%spin(3)
       case ('orbit.vec.1')
-        value = orbit%vec(1)
+        values(1) = orbit%vec(1)
       case ('orbit.vec.2')
-        value = orbit%vec(2)
+        values(1) = orbit%vec(2)
       case ('orbit.vec.3')
-        value = orbit%vec(3)
+        values(1) = orbit%vec(3)
       case ('orbit.vec.4')
-        value = orbit%vec(4)
+        values(1) = orbit%vec(4)
       case ('orbit.vec.5')
-        value = orbit%vec(5)
+        values(1) = orbit%vec(5)
       case ('orbit.vec.6')
-        value = orbit%vec(6)
+        values(1) = orbit%vec(6)
       case ('orbit.t')
-        value = orbit%t
+        values(1) = orbit%t
       case ('orbit.beta')
-        value = orbit%beta
+        values(1) = orbit%beta
       case ('orbit.state')
-        value = orbit%state
+        values(1) = orbit%state
       case ('orbit.energy')
-        value = (1 + orbit%vec(6)) * orbit%p0c
+        values(1) = (1 + orbit%vec(6)) * orbit%p0c
       case ('orbit.pc')
-        call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = value)
+        call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = values(1))
       case ('ele.a.beta')
-        value = ele%a%beta
+        values(1) = ele%a%beta
       case ('ele.a.alpha')
-        value = ele%a%alpha
+        values(1) = ele%a%alpha
       case ('ele.a.eta')
-        value = ele%a%eta
+        values(1) = ele%a%eta
       case ('ele.a.etap')
-        value = ele%a%etap
+        values(1) = ele%a%etap
       case ('ele.a.gamma')
-        value = ele%a%gamma
+        values(1) = ele%a%gamma
       case ('ele.a.phi')
-        value = ele%a%phi
+        values(1) = ele%a%phi
       case ('ele.b.beta')
-        value = ele%b%beta
+        values(1) = ele%b%beta
       case ('ele.b.alpha')
-        value = ele%b%alpha
+        values(1) = ele%b%alpha
       case ('ele.b.eta')
-        value = ele%b%eta
+        values(1) = ele%b%eta
       case ('ele.b.etap')
-        value = ele%b%etap
+        values(1) = ele%b%etap
       case ('ele.b.gamma')
-        value = ele%b%gamma
+        values(1) = ele%b%gamma
       case ('ele.b.phi')
-        value = ele%b%phi
+        values(1) = ele%b%phi
       case ('ele.e_tot')
-        value = ele%value(e_tot$)
+        values(1) = ele%value(e_tot$)
       case ('ele.p0c')
-        value = ele%value(p0c$)
+        values(1) = ele%value(p0c$)
       case ('ele.x.eta')
-        value = ele%x%eta
+        values(1) = ele%x%eta
       case ('ele.x.etap')
-        value = ele%x%etap
+        values(1) = ele%x%etap
       case ('ele.y.eta')
-        value = ele%y%eta
+        values(1) = ele%y%eta
       case ('ele.y.etap')
-        value = ele%y%etap
+        values(1) = ele%y%etap
       case ('ele.s')
-        value = ele%s
+        values(1) = ele%s
       case ('ele.l')
-        value = ele%value(l$)
+        values(1) = ele%value(l$)
+      case ('ele.mat6')
+        n_add = 36
+        do ix = 1, 6
+          values(6*(ix-1)+1:6*ix) = ele%mat6(ix,:)
+        enddo
+      case ('ele.vec0')
+        n_add = 6
+        values(1:6) = ele%vec0
       case default
-        call invalid ('Bad {who}: ' // who)
+        call invalid ('Bad {who}: ' // who); return
       end select
 
       if (use_real_array_buffer) then
-        n = n + 1
-        if (n > size(re_array)) call re_allocate(re_array, 2*n)
-        re_array(n) = value
+        n_arr = n_arr
+        if (n_arr+n_add > size(re_array)) call re_allocate(re_array, 2*(n_arr+n_add))
+        re_array(n_arr+1:n_arr+n_add) = values(1:n_add)
+        n_arr = n_arr + n_add
 
       else
-        if (who == 'orbit.state') then
-          if (i == 1) then
-            nl=incr(nl); write (li(nl), '(i0)') nint(value)
+        do ix = 1, n_add
+          if (who == 'orbit.state') then
+            if (i == 1 .and. ix == 1) then
+              nl=incr(nl); write (li(nl), '(i0)') nint(values(ix))
+            else
+              write (li(nl), '(2a, i0)') trim(li(nl)), ';', nint(values(ix))
+            endif
           else
-            write (li(nl), '(2a, i0)') trim(li(nl)), ';', nint(value)
+            if (i == 1 .and. ix == 1) then
+              nl=incr(nl); write (li(nl), '(es21.13)') values(ix)
+            else
+              write (li(nl), '(2a, es21.13)') trim(li(nl)), ';', values(ix)
+            endif
           endif
-        else
-          if (i == 1) then
-            nl=incr(nl); write (li(nl), '(es21.13)') value
-          else
-            write (li(nl), '(2a, es21.13)') trim(li(nl)), ';', value
-          endif
-        endif
+        enddo
       endif
-    enddo
 
-  enddo
+    enddo ! i = 1, n_who
+
+  enddo ! ie = 1, n_loc
 
   if (use_real_array_buffer) then
     if (who == 'orbit.state') then
-      if (.not. allocated(tao_c_interface_com%c_integer)) allocate (tao_c_interface_com%c_integer(n))
-      if (size(tao_c_interface_com%c_integer) < n) then
+      if (.not. allocated(tao_c_interface_com%c_integer)) allocate (tao_c_interface_com%c_integer(n_arr))
+      if (size(tao_c_interface_com%c_integer) < n_arr) then
         deallocate (tao_c_interface_com%c_integer)
-        allocate (tao_c_interface_com%c_integer(n)) 
+        allocate (tao_c_interface_com%c_integer(n_arr)) 
       endif
 
-      tao_c_interface_com%n_int = n
-      tao_c_interface_com%c_integer(1:n) = nint(re_array(1:n))
+      tao_c_interface_com%n_int = n_arr
+      tao_c_interface_com%c_integer(1:n_arr) = nint(re_array(1:n_arr))
 
     else
-      if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
-      if (size(tao_c_interface_com%c_real) < n) then
+      if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n_arr))
+      if (size(tao_c_interface_com%c_real) < n_arr) then
         deallocate (tao_c_interface_com%c_real)
-        allocate (tao_c_interface_com%c_real(n)) 
+        allocate (tao_c_interface_com%c_real(n_arr)) 
       endif
 
-      tao_c_interface_com%n_real = n
-      tao_c_interface_com%c_real(1:n) = re_array(1:n)
+      tao_c_interface_com%n_real = n_arr
+      tao_c_interface_com%c_real(1:n_arr) = re_array(1:n_arr)
     endif
   endif
 
