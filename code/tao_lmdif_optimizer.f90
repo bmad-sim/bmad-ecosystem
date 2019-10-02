@@ -100,6 +100,11 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   write (line, '(i5, es14.4, es10.2)') i, merit
   call out_io (s_blank$, r_name, line)
 
+  if (merit <= s%global%lmdif_eps) then
+    call out_io (s_blank$, r_name, 'Merit value is negligible!.')
+    exit
+  endif
+
   ! look for keyboard input to end optimization
 
   abort = tao_user_is_terminating_optimization()
