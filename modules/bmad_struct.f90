@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 240
+integer, parameter :: bmad_inc_version$ = 241
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1061,6 +1061,9 @@ type ele_struct
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()     ! Quaternion Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
   type (wall3d_struct), pointer :: wall3d(:) => null()         ! Chamber or capillary wall
+  ! The difference between map_ref_orb and time_ref_orb is that the map_ref_orb is the reference orbit for the
+  ! transfer map which, in general, is non-zero while the time_ref_orb follows the reference particle which is
+  ! generally the zero orbit (non-zero, for example, in the second slice of a sliced wiggler).
   type (coord_struct) :: map_ref_orb_in = coord_struct()       ! Entrance end transfer map ref orbit
   type (coord_struct) :: map_ref_orb_out = coord_struct()      ! Exit end transfer map ref orbit
   type (coord_struct) :: time_ref_orb_in = coord_struct()      ! Reference orbit at entrance end for ref_time calc.
@@ -1244,7 +1247,7 @@ type pre_tracker_struct
 end type
 
 ! lat_struct
-! Remember: If this struct is changed you have to modify:
+! Remember: If this struct is changed you have to modify (among other things):
 !     Increase bmad_inc_version by 1.
 !     read_digested_bmad_file
 !     write_digested_bmad_file
@@ -1268,6 +1271,7 @@ type lat_struct
   type (control_struct), allocatable :: control(:) ! Control list
   type (photon_reflect_surface_struct), pointer :: surface(:) => null()
   type (coord_struct) particle_start              ! Starting particle_coords
+  type (beam_init_struct) beam_init               ! Beam initialization.
   type (pre_tracker_struct) pre_tracker           ! For OPAL/IMPACT-T
   real(rp), allocatable :: custom(:)              ! Custom attributes.
   integer :: version = -1                         ! Version number
@@ -1299,9 +1303,8 @@ integer, parameter :: def_particle_start$ = 39, photon_fork$ = 40, fork$ = 41, m
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gun$ = 47, em_field$ = 48
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
-integer, parameter :: ac_kicker$ = 58, lens$ = 59
+integer, parameter :: ac_kicker$ = 58, lens$ = 59, beam_init$ = 60, n_key$ = 60
 
-integer, parameter :: n_key$ = 59
 character(20), parameter :: key_name(n_key$) = [ &
     'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
     'Overlay           ', 'Custom            ', 'Taylor            ', 'RFcavity          ', 'ELseparator       ', &
@@ -1314,7 +1317,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
-    'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ']
+    'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', 'Beam_Init         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.

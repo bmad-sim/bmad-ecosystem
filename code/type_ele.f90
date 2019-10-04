@@ -1018,14 +1018,14 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
 
   if (n /= 0) then
     nl=nl+1; li(nl) = ' '
-    nl=nl+1; write (li(nl), '(a, es12.3, a)') 'Transfer Matrix : Kick  [Matrix symplectic error:', &
-                  mat_symp_error(ele%mat6), ']'
+    nl=nl+1; write (li(nl), '(a, es12.3, a, t82, a, t95, a, t108, a)') 'Transfer Matrix : Kick  [Mat symplectic error:', &
+                 mat_symp_error(ele%mat6), ']', 'Vec0'
   endif
 
   if (any(abs(ele%mat6(1:n,1:n)) >= 1d3)) then
-    write (fmt, '(a, i0, a)') '(', n, 'es13.5, a, es13.5)'
+    write (fmt, '(a, i0, a)') '(', n, 'es12.4, a, es13.5, 2es15.5)'
   else
-    write (fmt, '(a, i0, a)') '(', n, 'f12.7, a, es13.5)'
+    write (fmt, '(a, i0, a)') '(', n, 'f12.7, a, es13.5, 2es15.5)'
   endif
 
   do i = 1, n
