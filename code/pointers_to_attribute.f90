@@ -188,7 +188,7 @@ case ('BMAD_COM')
 
   return
 
-! like particle_start
+! particle_start
 
 case ('PARTICLE_START')
 

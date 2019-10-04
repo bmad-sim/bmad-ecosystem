@@ -272,6 +272,7 @@ do i = 1, lat%n_ic_max
 enddo
 
 read (d_unit, err = 9060) lat%particle_start
+read (d_unit, err = 9060) lat%beam_init
 
 ! Read PTC info
 
@@ -446,7 +447,7 @@ return
 !--------------------------------------------------------------
 
 9060  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED BEAM_INIT.')
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED PARTICLE_START/BEAM_INIT.')
 close (d_unit)
 return
 
