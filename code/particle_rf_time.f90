@@ -69,9 +69,9 @@ else
     ! The effective reference velocity is different from the velocity of the reference particle for wigglers where the reference particle
     ! is not traveling along the reference line and in elements where the reference velocity is not constant.
     if (ele%value(delta_ref_time$) == 0 .or. ele%key == patch$) then
-      beta0 = ele%value(p0c$) / ele%value(e_tot$) ! Singular case. 
+      beta0 = ref_ele%value(p0c$) / ref_ele%value(e_tot$) ! Singular case. 
     else
-      beta0 = ele%value(l$) / (c_light * ele%value(delta_ref_time$))
+      beta0 = ref_ele%value(l$) / (c_light * ref_ele%value(delta_ref_time$))
     endif
     time = time + (s_rel + ele%s_start - ref_ele%s_start) / (c_light * beta0)
   endif
