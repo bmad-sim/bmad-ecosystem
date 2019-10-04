@@ -393,7 +393,7 @@ type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, abs_tol(2)
-real(rp) value_saved(num_ele_attrib$)
+real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time
 
 integer i, key
 logical err_flag, err, changed, saved_is_on, energy_stale
@@ -757,7 +757,15 @@ if (orb_end%vec(6) /= -1) then
   ele%time_ref_orb_out%vec(2) = ele%time_ref_orb_out%vec(2) / (1 + orb_end%vec(6))
   ele%time_ref_orb_out%vec(4) = ele%time_ref_orb_out%vec(4) / (1 + orb_end%vec(6))
 endif
-ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele%ref_time - orb_end%t)
+
+if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+  lord => pointer_to_lord(ele, 1)
+  beta0 = lord%value(l$) / (c_light * lord%value(delta_ref_time$))
+  ele_ref_time = ele%value(ref_time_start$) + ele%value(l$) / (c_light * beta0)
+  ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele_ref_time - orb_end%t)
+else
+  ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele%ref_time - orb_end%t)
+endif
 !ele%time_ref_orb_out%vec(5) = ele%time_ref_orb_out%vec(5) + &
 !            (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
 ele%time_ref_orb_out%vec(6) = ((1 + orb_end%vec(6)) * orb_end%p0c - ele%value(p0c$)) / ele%value(p0c$)
