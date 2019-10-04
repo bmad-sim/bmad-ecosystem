@@ -1,13 +1,14 @@
 program frequency_map
 
-use bmad
-use nr
-use eigen_mod
-use nrutil, only: dpc
-use z_tune_mod
-
-implicit none
-
+  use bmad
+  use bsim_interface
+  use nr
+  use eigen_mod
+  use nrutil, only: dpc
+  use z_tune_mod
+  
+  implicit none
+  
 type (lat_struct), target :: ring
 type (coord_struct), allocatable :: orb(:), co(:), data(:)
 type (coord_struct) start_coord
@@ -27,6 +28,7 @@ integer :: fft_turns = 0
 integer arg_num, iargc, ind
 integer Nthmin, Nrad
 integer stat
+integer integer_qx, integer_qy
 
 real(rp) rad, th, Ar, Br, Rmax
 real(rp) phy_x_set, phy_y_set
@@ -42,6 +44,7 @@ real(rp), allocatable :: grid_pts(:,:)
 real(rp) hanning
 real(rp) U(4,4), V(4,4), Ubar(4,4), Vbar(4,4), G(4,4), tgamma
 real(rp) Vinv(4,4)
+real(rp) Qx, Qy, Qz, target_tunes(3)
 
 real(rp) one_turn_mat(1:6,1:6)
 real(rp) T(1:6,1:6), Tinv(1:6,1:6), P(1:6,1:6), Pinv(1:6,1:6)
@@ -50,6 +53,7 @@ real(rp) psv(1:6), psv_norm(1:6)
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
 character(40) lattice, out_file_prefix
+character(40) :: qtune_mask = ''
 character(180) lat_file, out_file
 character(80) line, last_line, file_name, prefix_name
 character(1) answer
@@ -62,8 +66,8 @@ logical ok, aperture_limits, err
 logical :: z_cut = .true.
 
 namelist / parameters /lat_file, out_file_prefix, grid_type, &
-              x0, y0, e0, x1, y1, e1, dx, dy, de, n_turn, aperture_limits,  &
-              fft_turns, z_cut, Rmax, Nrad, Br, Nthmin
+     x0, y0, e0, x1, y1, e1, dx, dy, de, qx, qy, qz, qtune_mask, &
+     n_turn, aperture_limits, fft_turns, z_cut, Rmax, Nrad, Br, Nthmin
 
 arg_num=iargc()
 if(arg_num==0) then
@@ -90,15 +94,18 @@ print *, ' lat_file = ', lat_file
 call fullfilename(lat_file, lat_file)
 call bmad_parser(lat_file, ring)
 
+
+
 if (z_cut) then
   do ix = 1, ring%n_ele_track
-    if (ring%ele(ix)%key == key_name_to_key_index('RFCAVITY',.true.)) then
-      rf_frequency = value_of_attribute(ring%ele(ix),'RF_FREQUENCY', err)
-      exit
-    endif
+     if (ring%ele(ix)%key == key_name_to_key_index('RFCAVITY',.true.)) then
+        ! note: picks up first cavity; will not work if first cavity is a 3rd-harmonic, for example!
+        rf_frequency = value_of_attribute(ring%ele(ix),'RF_FREQUENCY', err)
+        exit
+     endif
   enddo
 else
-  rf_frequency = 1.e-6 ! something small; prevents longitudinal cuts until much larger
+   rf_frequency = 1.e-6 ! something small; prevents longitudinal cuts until much larger
 endif
 
 call reallocate_coord(co, ring%n_ele_max)
@@ -110,6 +117,26 @@ CALL reallocate_coord(co,ring%n_ele_max)
 CALL set_on_off(rfcavity$, ring, on$)
 CALL twiss_and_track(ring,co)
 CALL calc_z_tune(ring)
+
+IF(qx /= 0. .and. qy /= 0.) THEN
+
+   integer_qx = floor(ring%ele(ring%n_ele_track)%a%phi / (2.*pi))
+   integer_qy = floor(ring%ele(ring%n_ele_track)%b%phi / (2.*pi))
+   target_tunes(1) = (integer_qx + qx)
+   target_tunes(2) = (integer_qy + qy)
+   
+   if(abs(qz) > 0.) then
+      target_tunes(3) = qz
+   else
+      target_tunes(3) = 0.
+   endif
+   
+   call set_tune3(ring, target_tunes, ok, .false., regex_in=qtune_mask)  !takes tunes that have not not been multiplied by 2pi.
+
+   IF(.not. ok) WRITE(*,*) "Qtune failed"
+   CALL twiss_and_track(ring,orb)
+   WRITE(*,*) "After QTune: Qx = ", ring%a%tune/twopi, "  Qy = ", ring%b%tune/twopi
+ENDIF
 
 n_z = nint(abs((e1 - e0)/de))+1
 
@@ -235,7 +262,7 @@ do i = 1, Npts
       print '(a, i8, 2a)', "Particle lost in turn ", j, ',  At element: ', trim(ring%ele(n)%name)
       print '(a, 6f12.6)', 'Orbit at entrance to element particle lost at: ', orb(n-1)%vec
       exit
-    elseif (abs(orb(0)%vec(5)) > 0.25*(c_light/rf_frequency)) then 
+    elseif ((z_cut) .and. (abs(orb(0)%vec(5)) > 0.25*(c_light/rf_frequency))) then 
       print '(a, i8)', "Particle outside of RF bucket in turn ", j
       print '(a, f12.6, a, f12.6)', 'z_position: ', orb(0)%vec(5), ',  RF wavelength: ', c_light/rf_frequency
       exit
@@ -258,60 +285,63 @@ do i = 1, Npts
     endif
   enddo
 
-  if(track_state == moving_forward$ .and. (abs(orb(0)%vec(5)) < 0.25*(c_light/rf_frequency)))then
-    !interpolated FFT with Hanning window
-    do j=1, fft_turns
-      hanning = 2*(sin(pi*j/fft_turns)**2)
-      n1(1, j)= cmplx(fft1(j),  fft2(j)) * hanning
-      n2(1, j)= cmplx(fft3(j),  fft4(j)) * hanning
-      n3(1, j)= cmplx(fft5(j), -fft6(j)) * hanning
-
-      ind = n_turn - fft_turns
-      m1(1, j)= cmplx(fft1(j+ind),  fft2(j+ind)) * hanning
-      m2(1, j)= cmplx(fft3(j+ind),  fft4(j+ind)) * hanning
-      m3(1, j)= cmplx(fft5(j+ind), -fft6(j+ind)) * hanning
-    enddo
-
-    call fourrow(n1(:,1:fft_turns), 1)    ! NR FFT
-    call fourrow(m1(:,1:fft_turns), 1)
-    call fourrow(n2(:,1:fft_turns), 1)
-    call fourrow(m2(:,1:fft_turns), 1)
-    call fourrow(n3(:,1:fft_turns), 1)
-    call fourrow(m3(:,1:fft_turns), 1)
-
-    forall(i=1:fft_turns)
-      rftxa(i) = sqrt(n1(1,i)*conjg(n1(1,i)))
-      rftxb(i) = sqrt(m1(1,i)*conjg(m1(1,i)))
-      rftya(i) = sqrt(n2(1,i)*conjg(n2(1,i)))
-      rftyb(i) = sqrt(m2(1,i)*conjg(m2(1,i)))
-      rftea(i) = sqrt(n3(1,i)*conjg(n3(1,i)))
-      rfteb(i) = sqrt(m3(1,i)*conjg(m3(1,i)))
-    end forall
-
-    tune(1, 1) = calc_tune(rftxa) !tune of x for 1st half etc.
-    tune(1, 2) = calc_tune(rftxb) !tune of x for 2nd half etc.
-    tune(2, 1) = calc_tune(rftya) !find tune for y first half etc.
-    tune(2, 2) = calc_tune(rftyb) !find tune for y second half etc.
-    tune(3, 1) = calc_tune(rftea) !find tune for z first half etc.
-    tune(3, 2) = calc_tune(rfteb) !find tune for z second half etc.
-
-    if (ring%a%tune/twopi < 0.5) then
-      tune(1, 1) = 1. - tune(1, 1)
-      tune(1, 2) = 1. - tune(1, 2)
-    endif
-
-    if (ring%b%tune/twopi < 0.5) then
-      tune(2, 1) = 1. - tune(2, 1)
-      tune(2, 2) = 1. - tune(2, 2) 
-    endif
-
-    write(13, '(12e14.5)') start_coord%vec(1), start_coord%vec(3), start_coord%vec(6), &
-                          tune(:, 1), tune(:, 2), tune(:,2)-tune(:,1)
-  else
-    write(13, '(3e14.5,9a14)') start_coord%vec(1), start_coord%vec(3), start_coord%vec(6), &
-                               "*","*","*","*","*","*","*","*","*"
+  !if(track_state == moving_forward$ .and. (abs(orb(0)%vec(5)) < 0.25*(c_light/rf_frequency)))then
+  if(track_state == moving_forward$)then
+     if ((abs(orb(0)%vec(5)) < 0.25*(c_light/rf_frequency)) .or. (.not. z_cut)) then
+        !interpolated FFT with Hanning window
+        do j=1, fft_turns
+           hanning = 2*(sin(pi*j/fft_turns)**2)
+           n1(1, j)= cmplx(fft1(j),  fft2(j)) * hanning
+           n2(1, j)= cmplx(fft3(j),  fft4(j)) * hanning
+           n3(1, j)= cmplx(fft5(j), -fft6(j)) * hanning
+           
+           ind = n_turn - fft_turns
+           m1(1, j)= cmplx(fft1(j+ind),  fft2(j+ind)) * hanning
+           m2(1, j)= cmplx(fft3(j+ind),  fft4(j+ind)) * hanning
+           m3(1, j)= cmplx(fft5(j+ind), -fft6(j+ind)) * hanning
+        enddo
+        
+        call fourrow(n1(:,1:fft_turns), 1)    ! NR FFT
+        call fourrow(m1(:,1:fft_turns), 1)
+        call fourrow(n2(:,1:fft_turns), 1)
+        call fourrow(m2(:,1:fft_turns), 1)
+        call fourrow(n3(:,1:fft_turns), 1)
+        call fourrow(m3(:,1:fft_turns), 1)
+        
+        forall(i=1:fft_turns)
+           rftxa(i) = sqrt(n1(1,i)*conjg(n1(1,i)))
+           rftxb(i) = sqrt(m1(1,i)*conjg(m1(1,i)))
+           rftya(i) = sqrt(n2(1,i)*conjg(n2(1,i)))
+           rftyb(i) = sqrt(m2(1,i)*conjg(m2(1,i)))
+           rftea(i) = sqrt(n3(1,i)*conjg(n3(1,i)))
+           rfteb(i) = sqrt(m3(1,i)*conjg(m3(1,i)))
+        end forall
+        
+        tune(1, 1) = calc_tune(rftxa) !tune of x for 1st half etc.
+        tune(1, 2) = calc_tune(rftxb) !tune of x for 2nd half etc.
+        tune(2, 1) = calc_tune(rftya) !find tune for y first half etc.
+        tune(2, 2) = calc_tune(rftyb) !find tune for y second half etc.
+        tune(3, 1) = calc_tune(rftea) !find tune for z first half etc.
+        tune(3, 2) = calc_tune(rfteb) !find tune for z second half etc.
+        
+        if (ring%a%tune/twopi < 0.5) then
+           tune(1, 1) = 1. - tune(1, 1)
+           tune(1, 2) = 1. - tune(1, 2)
+        endif
+        
+        if (ring%b%tune/twopi < 0.5) then
+           tune(2, 1) = 1. - tune(2, 1)
+           tune(2, 2) = 1. - tune(2, 2) 
+        endif
+        
+        write(13, '(12e14.5)') start_coord%vec(1), start_coord%vec(3), start_coord%vec(6), &
+             tune(:, 1), tune(:, 2), tune(:,2)-tune(:,1)
+     else
+        write(13, '(3e14.5,9a14)') start_coord%vec(1), start_coord%vec(3), start_coord%vec(6), &
+             "*","*","*","*","*","*","*","*","*"
+     endif
   endif
-
+  
   track_state = moving_forward$
 enddo
 
