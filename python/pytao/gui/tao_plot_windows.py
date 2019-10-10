@@ -667,18 +667,21 @@ class tao_new_plot_template_window(Tao_Toplevel):
     '''
     Provides a window for creating new plot templates (and their
     associated graphs and curves)
-    Pass the name of an existing plot to open that plot and start
-    editing its graphs and curves
+    default: if present, opens the plot editor with that plot selected
+    mode: 'N' for new template, 'T' for editing existing templates, and 'R'
+    for editing active plots
     '''
-    def __init__(self, root, pipe, default=None, *args, **kwargs):
+    def __init__(self, root, pipe, default=None, mode='N', *args, **kwargs):
         self.root = root
         Tao_Toplevel.__init__(self, root, *args, **kwargs)
         self.pipe = pipe
         self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(1, weight=1)
-        self.title('New Plot Template')
+        self.title('Plot Editor')
         self.name = ""
+        self.mode = mode
+        self.mode_var = tk.StringVar()
         self.x_axis_type = 'index'
         self.handler_block = False
 
@@ -698,17 +701,26 @@ class tao_new_plot_template_window(Tao_Toplevel):
                 'dynamic_aperture', 'histogram', 'phase_space']
         self.compat_dict['histogram'] = ['histogram']
         self.compat_dict['none'] = ['floor_plan'] #FIXME
-        # Graph frame
+        # Graph frame (includes curve/ele shape frame)
         self.graph_frame = tabbed_frame(self, lambda arg : new_graph_frame(arg, self))
         self.graph_frame.grid(row=1, column=1, sticky='NSEW')
-        if default != None:
-            self.plot_param_list[0].tk_var.set(default)
-            self.clone_plot(ask=False)
+        # Run additional setup for edit (T/R) modes
+        if self.mode != 'N':
+            self.tr_setup(default)
+
+        # Load the default plot
+        #if default != None:
+        #    self.plot_param_list[0].tk_var.set(default)
+        #    self.clone_plot(ask=False)
 
     def fill_plot_frame(self):
-        tk.Label(self, text="New Plot Template",
-                font=('Sans', 16, 'bold')).grid(
-                        row=0, column=0, columnspan=2, sticky='EW')
+        #tk.Label(self, text="New Plot Template",
+        #        font=('Sans', 16, 'bold')).grid(
+        #                row=0, column=0, columnspan=2, sticky='EW')
+        # Reserve space for template/active plot selectors
+        # in T/R mode
+        self.plot_frame_offset = 3 # TODO:why 3?
+        pfo = self.plot_frame_offset # alias
 
         # Small bit of setup
         def my_ttp(x):
@@ -747,8 +759,9 @@ class tao_new_plot_template_window(Tao_Toplevel):
 
         # Grid widgets and labels
         for i in range(len(self.plot_param_list)):
-            self.plot_label_list[i].grid(row=i+1, column=0, sticky='W')
-            self.plot_param_list[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
+            self.plot_label_list[i].grid(row=i+pfo, column=0, sticky='W')
+            self.plot_param_list[i].tk_wid.grid(row=i+pfo, column=1, sticky='EW')
+        i += 1
 
         # Warning labels
         self.name_warning_1 = tk.Label(self.plot_frame, text="Cannot be empty")
@@ -770,14 +783,16 @@ class tao_new_plot_template_window(Tao_Toplevel):
         self.clone_b = tk.Button(self.plot_frame, text="Clone",
                 command=self.clone_plot_method)
 
-        tk.Label(self.plot_frame, text="Clone existing plot:").grid(row=i+2, column=0, sticky='W')
-        self.clone_chooser.grid(row=i+2, column=1, sticky='EW')
-        self.clone_b.grid(row=i+2, column=2, sticky='W')
+        tk.Label(self.plot_frame, text="Clone existing plot:").grid(row=i+pfo, column=0, sticky='W')
+        self.clone_chooser.grid(row=i+pfo, column=1, sticky='EW')
+        self.clone_b.grid(row=i+pfo, column=2, sticky='W')
+        i += 1
 
         # Frame for control buttons (e.g. create plot button)
         self.control_frame = tk.Frame(self.plot_frame)
-        self.control_frame.grid(row=i+3, column=0, columnspan=3, sticky='NSEW')
-        self.plot_frame.grid_rowconfigure(i+3, weight=1)
+        self.control_frame.grid(row=i+pfo, column=0, columnspan=3, sticky='NSEW')
+        self.plot_frame.grid_rowconfigure(i+pfo, weight=1)
+        i += 1
 
         self.create_b = tk.Button(self.control_frame, text="Create template",
                 command=self.create_template)
@@ -785,6 +800,99 @@ class tao_new_plot_template_window(Tao_Toplevel):
 
         # Focus the name entry
         self.plot_param_list[0].tk_wid.focus_set()
+
+    def tr_setup(self, default):
+        '''
+        Performs additional setup needed in template/region mode,
+        i.e. creates drop down lists to select plots,
+        and loads in the default plot, or the first plot in the list
+        if default == None
+        Also adds options to the save box
+        '''
+        # Create template selectors
+        self.mode_var.set("Templates" if self.mode == 'T' else "Active Plots")
+        self.plot_select_label = tk.Label(
+                self.plot_frame, text="Select plot:")
+        self.mode_select = tk.OptionMenu(self.plot_frame,
+                self.mode_var, "Templates", "Active Plots",
+                command=self.swap_mode)
+        if default:
+            self.plot_var.set(default)
+        self.plot_var = tk.StringVar()
+        self.plot_select = tk.ttk.Combobox(
+                self.temp_frame, textvariable=self.temp, values=[])
+        self.plot_select.bind("<<ComboboxSelected>>", self.refresh)
+        self.plot_select.bind("<Return>", self.refresh)
+        self.plot_select.grid(row=1, column=1)
+
+        self.plot_select_label.grid(row=0, column=0, sticky='W')
+        self.mode_select.grid(row=0, column=1, sticky='EW')
+        self.plot_select.grid(row=0, column=2, sticky='EW')
+
+        # Load the default template
+        self.swap_mode(overide=True) # also runs self.refresh()
+
+
+    def swap_mode(self, overide=False, event=None):
+        '''
+        Swaps between showing templates and active plots
+        Will always run if overide is set to True
+        '''
+        # Make sure window is not in 'N' mode
+        if self.mode == 'N':
+            return
+        # Switch self.mode
+        mode_dict = {'Templates':'T', 'Active Plots':'R'}
+        new_mode = mode_dict[self.mode_var.get()]
+        if (self.mode == new_mode) and not overide:
+            return #no action necessary
+        self.mode = new_mode
+
+        # Template plots
+        t_plot_list = self.pipe.cmd_in("python plot_list t")
+        t_plot_list = t_plot_list.splitlines()
+        t_index_list = len(t_plot_list)*[0] #get correct length
+        for i in range(len(t_plot_list)):
+            t_index_list[i], t_plot_list[i] = t_plot_list[i].split(';')
+
+        # Active plots
+        r_plot_list = self.pipe.cmd_in("python plot_list r")
+        new_r_plot_list = []
+        r_index_list = []
+        r_region_list = [] #needed to open the correct graph/curve windows
+        r_plot_list = r_plot_list.splitlines()
+        for i in range(len(r_plot_list)):
+            if r_plot_list[i].split(';')[2] != "": #region contains a plot
+                new_r_plot_list.append(r_plot_list[i].split(';')[2])
+                r_index_list.append(r_plot_list[i].split(';')[0])
+                r_region_list.append(r_plot_list[i].split(';')[1])
+        r_plot_list = new_r_plot_list
+
+        # Populate self.plot_list and self.index_list
+        if self.mode == "T":
+            plot_list = t_plot_list
+            plot_display_list = t_plot_list
+            index_list = t_index_list
+        elif self.mode == "R":
+            plot_list = r_plot_list
+            plot_display_list = []
+            index_list = r_index_list
+            region_list = r_region_list
+            for i in range(len(self.plot_list)):
+                plot_display_list.append(
+                        plot_list[i] + " (" + region_list[i] + ")")
+
+        self.temp_select.configure(values=plot_display_list)
+        if plot_list == []:
+            self.mode = 'N'
+            self.plot_select_label.grid_forget()
+            self.mode_select.grid_forget()
+            self.plot_select.grid_forget()
+            return
+        if not overide:
+            self.plot_var.set(self.plot_display_list[0])
+        self.clone_plot_method(ask=False)
+
 
     def x_axis_type_handler(self, *args):
         '''
