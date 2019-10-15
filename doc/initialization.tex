@@ -1765,7 +1765,7 @@ namelists should be placed directly after their respective
 \index{curve!use_y2}\index{curve!line}\index{curve!ele_ref_name}
 \index{curve!draw_line}\index{curve!draw_symbols}\index{curve!ix_universe}
 \index{curve!symbol}\index{curve!symbol_every}\index{curve!convert}
-\index{curve!ix_bunch}\index{curve!ix_ele_ref}\index{curve!data_type_x}
+\index{curve!ix_bunch}\index{curve!data_type_x}
 \begin{example}
   &tao_template_graph
     graph_index             = <integer>
@@ -1818,7 +1818,6 @@ namelists should be placed directly after their respective
     curve(i)%symbol      = <qp_symbol_struct>  ! Symbol spec (color size, etc.)
     curve(i)%symbol_every     = <integer>      ! Plot symbol every # datums
     curve(i)%ele_ref_name     = "<string>"     ! Name of reference element.
-    curve(i)%ix_ele_ref       = <integer>      ! Index number of reference element.
     curve(i)%smooth_line_calc = <Logical>      ! Calc data between symbol points? 
     curve(i)%units            = "<string>"     ! Data units
   /
@@ -2699,10 +2698,10 @@ charge will be used to bin, otherwise the particle count will be used to bin.
 
 The \vn{curve%hist%center} will insure that a bin will be centered at this location.
 
-\index{curve!ele_ref_name}\index{curve!ix_ele_ref}
+\index{curve!ele_ref_name}
 To change the place in the lattice where the data for the
-\vn{histogram} is evaluated, use the \vn{set curve ele_ref_name} or
-\vn{set curve ix_ele_ref} commands.
+\vn{histogram} is evaluated, use the \vn{set curve ele_ref_name}
+command.
 
 If \vn{graph%type} is \vn{"histogram"} then \vn{curve%data_source} 
 must be either:
@@ -2860,10 +2859,10 @@ In this example above, the $x$-axis of the plot will correspond to the
 $z$ phase space coordinate and the $pz$-axis will correspond to the
 $px$ coordinate.
 
-\index{curve!ele_ref_name}\index{curve!ix_ele_ref}
+\index{curve!ele_ref_name}
 To change the place in the lattice where the data for the
 \vn{phase_space} curve is evaluated, use the \vn{set curve
-ele_ref_name} or \vn{set curve ix_ele_ref} commands.
+ele_ref_name} command.
 
 Points can be colored by another phase space coordinate by activating
 \vn{use_z_color = T}. 
