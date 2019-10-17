@@ -2913,7 +2913,7 @@ Monopole modes are modes that are independent of transverse position and dipole 
 are linear in the transverse position. 
 
 For the \vn{longitudinal} sub-structures, there is a 5\Th
-component which gives the transverse position dependence. Possible values are:
+component which gives the transverse position dependence of the wake. Possible values are:
 \begin{example}
   none          ! No position dependence
   x_leading     ! Linear in the leading particle x-position
@@ -2921,6 +2921,11 @@ component which gives the transverse position dependence. Possible values are:
   x_trailing    ! Linear in the trailing particle x-position
   y_trailing    ! Linear in the trailing particle y-position
 \end{example}
+``\vn{x_leading}'', for example, means that the wake left by a ``leading'' particle is linear
+in the $x$-position of the particle while the kick to a ``trailing'' particle is independent of the
+the trailing particle's transvrse position. ``\vn{y_trailing}'', on the other hand, means that the 
+wake left by a leading particle is independent of the leading particle's transverse position but that
+the kick felt by a trailing particle is proportional to the trailing particle's $y$-position.
 
 For the \vn{transverse} sub-structures, there is a 5\Th component giving the polarization and a 6\Th
 component specifying if the kick is dependent upon the leading or trailing particle transverse position.
