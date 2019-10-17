@@ -83,6 +83,32 @@ create_jumbo_slave             & ref_origin                     & x_offset [m]  
  \vfill
  
  %---------------------------------
+ \section{Beam_Init Element Attributes}
+ \label{s:list.beam.init}
+ 
+ \begin{tabular}{llll} \toprule
+alias                          & hkick                          & ptc_integration_type           & x1_limit [m]                   \\
+aperture [m]                   & integrator_order               & ref_origin                     & x2_limit [m]                   \\
+aperture_at                    & is_on                          & reference                      & x_limit [m]                    \\
+aperture_type                  & l [m]                          & space_charge_method            & x_offset [m]                   \\
+bl_hkick [T*m]                 & l_hard_edge [m]                & spin_fringe_on                 & x_offset_tot [m]               \\
+bl_vkick [T*m]                 & lord_pad1 [m]                  & spin_tracking_method           & x_pitch                        \\
+create_jumbo_slave             & lord_pad2 [m]                  & sr_wake                        & x_pitch_tot                    \\
+csr_method                     & lr_freq_spread [Hz]            & sr_wake_file                   & y1_limit [m]                   \\
+delta_ref_time [sec]           & lr_self_wake_on                & superimpose                    & y2_limit [m]                   \\
+descrip                        & lr_wake                        & symplectify                    & y_limit [m]                    \\
+ds_step [m]                    & lr_wake_file                   & taylor_map_includes_offsets    & y_offset [m]                   \\
+e_tot [eV]                     & mat6_calc_method               & tilt [rad]                     & y_offset_tot [m]               \\
+ele_origin                     & n_ref_pass                     & tilt_tot [rad]                 & y_pitch                        \\
+field_calc                     & num_steps                      & tracking_method                & y_pitch_tot                    \\
+field_overlaps                 & offset [m]                     & type                           & z_offset [m]                   \\
+fringe_at                      & offset_moves_aperture          & vkick                          & z_offset_tot [m]               \\
+fringe_type                    & p0c [eV]                       & wall                           &                                \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
  \section{Bends: Rbend and Sbend Element Attributes Element Attributes}
  \label{s:list.bend}
  
