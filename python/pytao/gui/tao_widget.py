@@ -522,9 +522,9 @@ class tk_tao_parameter():
         Updates self.tk_var with the current contents of
         self._mvar and self._svar
         '''
-        print("_update_tk_var called for " + self.param.name)
-        print("param.type = " + self.param.type)
-        print("self._data_soure = " + self._data_source)
+        #print("_update_tk_var called for " + self.param.name)
+        #print("param.type = " + self.param.type)
+        #print("self._data_soure = " + self._data_source)
         if self.param.type == 'DAT_TYPE_E':
             self._dat_type._update_tk_var()
             self.tk_var.set('['+self._uvar.get()+']@'
@@ -536,7 +536,7 @@ class tk_tao_parameter():
         #if self._data_source not in ['lat', 'beam']:
         #    return
         new_tk_var = self._mvar.get()
-        print("new_tk_var = " + new_tk_var)
+        #print("new_tk_var = " + new_tk_var)
         for k in range(len(self._svar)):
             # Input validation (TODO)
             p = self._stype[k]
@@ -576,13 +576,13 @@ class tk_tao_parameter():
                     new_tk_var = new_tk_var + '.' + '0'
             else:
                 new_tk_var = new_tk_var + '.' + self._svar[k].get()
-            print("new_tk_var = " + new_tk_var)
+            #print("new_tk_var = " + new_tk_var)
         # Special case: velocity. -> velocity
         if new_tk_var == "velocity.":
             new_tk_var = "velocity"
         # Un-trace tk_var to prevent repeatedly running this method
         self._no_s_refresh = True
-        print("new_tk_var = " + new_tk_var)
+        #print("new_tk_var = " + new_tk_var)
         self.tk_var.set(new_tk_var)
         # Re-trace tk_var
         self._no_s_refresh = False
@@ -785,7 +785,7 @@ class tk_tao_parameter():
                 break
         self._handle_block = True
         self.tk_var.set(val)
-        print(self.param.name + 'set to ' + val)
+        #print(self.param.name + 'set to ' + val)
         self._handle_block = False
         self._c_refresh()
 

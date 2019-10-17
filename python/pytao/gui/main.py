@@ -606,7 +606,8 @@ class tao_root_window(tk.Tk):
         win = tao_place_plot_window(self, self.pipe)
 
     def plot_region_cmd(self):
-        win = tao_plot_tr_window(self, self.pipe, "R")
+        #win = tao_plot_tr_window(self, self.pipe, "R")
+        win = tao_new_plot_template_window(self, self.pipe, None, 'T')
 
     def wave_cmd(self):
         print ('Wave called')
