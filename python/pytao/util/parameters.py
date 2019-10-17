@@ -38,8 +38,8 @@ class tao_parameter():
         self.is_ignored = (can_vary == 'I')
         self.sub_param = sub_param #associated sub_parameter (name)
 
-        if param_type in ['STR', 'FILE', 'DAT_TYPE', 'DAT_TYPE_Z', 'REAL_ARR',
-                'ENUM', 'ENUM_Z', 'STRUCT', 'COMPONENT']:
+        if param_type in ['STR', 'FILE', 'DAT_TYPE', 'DAT_TYPE_Z', 'DAT_TYPE_E',
+                'REAL_ARR', 'ENUM', 'ENUM_Z', 'STRUCT', 'COMPONENT']:
             self.value = param_value
         elif param_type == 'INT':
             try:
