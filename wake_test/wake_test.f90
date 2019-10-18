@@ -4,7 +4,7 @@ use beam_mod
 use wake_mod
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele_z1, ele_p1, ele_p2
 type (wake_sr_mode_struct), pointer :: w
 type (coord_struct) :: orb0
 type (coord_struct) :: p1, p2
@@ -37,6 +37,15 @@ endif
 call bmad_parser (lat_file, lat)
 
 open (1, file = 'output.now')
+
+!---------------------------------
+! Transfer test
+
+ele_z1 => lat%branch(1)%ele(1)   ! z1 element
+ele_p1 => lat%ele(1)             ! p1 element
+ele_p2 => lat%ele(2)             ! p2 element
+
+write (1, '(a, 2l1)') '"Wake-Transfer" STR ', ele_z1%wake%sr == ele_p1%wake%sr, ele_z1%wake%lr == ele_p2%wake%lr
 
 ! Short range wake test.
 
