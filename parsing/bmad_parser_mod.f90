@@ -754,14 +754,19 @@ ix_attrib = attribute_index(ele, word, attrib_word)
 if (attrib_free_problem(word)) return
 
 if (ix_attrib < 1) then
-  if (ele%key == drift$ .and. (word == 'HKICK' .or. word == 'VKICK' .or. &
-        word == 'BL_HKICK' .or. word == 'BL_VKICK')) then
-    call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name, &
-                      'ONE SOLUTION IS TO MAKE THIS DRIFT A "PIPE" ELEMENT.')
+  call pointer_to_attribute(ele, word, .true., a_ptr, err_flag, .false.)
+  if (associated(a_ptr%r) .or. associated(a_ptr%i) .or. associated(a_ptr%l)) then
+    attrib_word = word
   else
-    call parser_error ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
+    if (ele%key == drift$ .and. (word == 'HKICK' .or. word == 'VKICK' .or. &
+          word == 'BL_HKICK' .or. word == 'BL_VKICK')) then
+      call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name, &
+                        'ONE SOLUTION IS TO MAKE THIS DRIFT A "PIPE" ELEMENT.')
+    else
+      call parser_error ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
+    endif
+    return
   endif
-  return
 endif
 
 ! ac_kicker amp_vs_time
