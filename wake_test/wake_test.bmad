@@ -17,6 +17,8 @@ p1: pipe, L = 1, sr_wake = {amp_scale = 1.2, z_scale = 0.9, scale_with_length = 
   transverse   =  { 1764.0e11,   19.7,  -9746.59,  3.661213/twopi, y_axis,  trailing},
   transverse   =  {-4155.1e12,   16.8,  -73.1528,  3.66933/twopi,  none,    leading} }
 
+p1[sr_wake%scale_with_length] = T
+
 p2: pipe, L = 1
 p2[lr_wake_file] = 'long_range.wake'
 
