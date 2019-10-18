@@ -217,6 +217,7 @@ implicit none
 type (lat_struct), pointer :: lat
 type (parser_ele_struct), optional :: pele
 type (ele_struct), target ::  ele
+type (ele_struct), pointer ::  ele2
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), target, save ::  ele0
 type (branch_struct), pointer :: branch
@@ -816,12 +817,12 @@ if (attrib_word == 'WALL') then
   ! "ele1[wall] = ele2[wall]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('WALL', word)
-    if (.not. associated(eles(1)%ele%wall3d)) then
+    ele2 => parser_find_ele_for_attrib_transfer ('WALL', word)
+    if (.not. associated(ele2%wall3d)) then
       call parser_error ('NO WALL ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_wall3d(eles(1)%ele%wall3d, ele%wall3d)
+    call transfer_wall3d(ele2%wall3d, ele%wall3d)
     return
   endif
 
@@ -1041,12 +1042,12 @@ if (attrib_word == 'SURFACE') then
   ! "ele1[surface] = ele2[surface]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('SURFACE', word)
-    if (.not. associated(eles(1)%ele%photon)) then
+    ele2 => parser_find_ele_for_attrib_transfer ('SURFACE', word)
+    if (.not. associated(ele2%photon)) then
       call parser_error ('NO SURFACE ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    ele%photon%surface = eles(1)%ele%photon%surface
+    ele%photon%surface = ele2%photon%surface
     return
   endif
 
@@ -1142,15 +1143,49 @@ if (attrib_word == 'SURFACE') then
   return
 endif
 
+!-------------------------------
+
 if (attrib_word == 'SR_WAKE') then
-  if (.not. expect_this ('={', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
-  call parser_read_sr_wake (ele, delim, delim_found, err_flag)
+  if (how == redef$) then
+    if (.not. expect_this ('=', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
+    call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+    if (.not. expect_this ('[', .true., .true., 'AFTER ELEMENT NAME', ele, delim, delim_found)) return
+    ele2 => parser_find_ele_for_attrib_transfer ('SR_WAKE', word); if (err_flag) return
+    if (.not. associated(ele%wake)) allocate (ele%wake)
+    if (.not. associated(ele2%wake)) then
+      call parser_error ('SR_WAKE NOT DEFINED FOR: ' // ele2%name)
+      return
+    endif
+    ele%wake%sr = ele2%wake%sr
+
+  else
+    if (.not. expect_this ('={', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
+    call parser_read_sr_wake (ele, delim, delim_found, err_flag)
+  endif
+
   return
 endif
 
+!-------------------------------
+
 if (attrib_word == 'LR_WAKE') then
-  if (.not. expect_this ('={', .true., .true., 'AFTER "LR_WAKE"', ele, delim, delim_found)) return
-  call parser_read_lr_wake (ele, delim, delim_found, err_flag)
+  if (how == redef$) then
+    if (.not. expect_this ('=', .true., .true., 'AFTER "LR_WAKE"', ele, delim, delim_found)) return
+    call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+    if (.not. expect_this ('[', .true., .true., 'AFTER ELEMENT NAME', ele, delim, delim_found)) return
+    ele2 => parser_find_ele_for_attrib_transfer ('LR_WAKE', word); if (err_flag) return
+    if (.not. associated(ele%wake)) allocate (ele%wake)
+    if (.not. associated(ele2%wake)) then
+      call parser_error ('LR_WAKE NOT DEFINED FOR: ' // ele2%name)
+      return
+    endif
+    ele%wake%lr = ele2%wake%lr
+
+  else
+    if (.not. expect_this ('={', .true., .true., 'AFTER "LR_WAKE"', ele, delim, delim_found)) return
+    call parser_read_lr_wake (ele, delim, delim_found, err_flag)
+  endif
+
   return
 endif
 
@@ -1165,13 +1200,13 @@ if (attrib_word == 'CARTESIAN_MAP') then
   ! "ele1[cartesian_map] = ele2[cartesian_map]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('CARTESIAN_MAP', word)
+    ele2 => parser_find_ele_for_attrib_transfer ('CARTESIAN_MAP', word)
     if (err_flag) return
-    if (.not. associated(eles(1)%ele%cartesian_map)) then
+    if (.not. associated(ele2%cartesian_map)) then
       call parser_error ('NO CARTESIAN_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_fieldmap(eles(1)%ele, ele, cartesian_map$)
+    call transfer_fieldmap(ele2, ele, cartesian_map$)
     return
   endif
 
@@ -1220,13 +1255,13 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
   ! "ele1[cylindrical_map] = ele2[cylindrical_map]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('CYLINDRICAL_MAP', word)
+    ele2 => parser_find_ele_for_attrib_transfer ('CYLINDRICAL_MAP', word)
     if (err_flag) return
-    if (.not. associated(eles(1)%ele%cylindrical_map)) then
+    if (.not. associated(ele2%cylindrical_map)) then
       call parser_error ('NO CYLINDRICAL_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_fieldmap(eles(1)%ele, ele, cylindrical_map$)
+    call transfer_fieldmap(ele2, ele, cylindrical_map$)
     return
   endif
 
@@ -1273,13 +1308,13 @@ if (attrib_word == 'GRID_FIELD') then
   ! "ele1[grid_field] = ele2[grid_field]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('GRID_FIELD', word)
+    ele2 => parser_find_ele_for_attrib_transfer ('GRID_FIELD', word)
     if (err_flag) return
-    if (.not. associated(eles(1)%ele%grid_field)) then
+    if (.not. associated(ele2%grid_field)) then
       call parser_error ('NO GRID_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_fieldmap(eles(1)%ele, ele, grid_field$)
+    call transfer_fieldmap(ele2, ele, grid_field$)
     return
   endif
 
@@ -1328,13 +1363,13 @@ if (attrib_word == 'TAYLOR_FIELD') then
   ! "ele1[taylor_field] = ele2[taylor_field]" construct
 
   if (delim == '[') then
-    call parser_find_ele_for_attrib_transfer ('TAYLOR_FIELD', word)
+    ele2 => parser_find_ele_for_attrib_transfer ('TAYLOR_FIELD', word)
     if (err_flag) return
-    if (.not. associated(eles(1)%ele%taylor_field)) then
+    if (.not. associated(ele2%taylor_field)) then
       call parser_error ('NO TAYLOR_FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_fieldmap(eles(1)%ele, ele, taylor_field$)
+    call transfer_fieldmap(ele2, ele, taylor_field$)
     return
   endif
 
@@ -2012,26 +2047,33 @@ err_flag = .false.
 !--------------------------------------------------------
 contains
 
-subroutine parser_find_ele_for_attrib_transfer (attribute, word)
+function parser_find_ele_for_attrib_transfer (attribute, word) result (target_ele)
 
+type (ele_struct), pointer :: target_ele
 character(*) attribute, word
 character(40) word2
+
+!
+
+nullify(target_ele)
 
 call get_next_word (word2, ix_word, '[],(){}', delim2, delim_found, call_check = .true.)
 if (delim2 /= ']' .or. word2 /= attribute) then
   call parser_error ('BAD ' // attribute // ' CONSTRUCT')
   return
 endif
+
 if (.not. expect_this (' ', .false., .false., '', ele, delim, delim_found)) return
 call lat_ele_locator (word, lat, eles, n, err_flag)
+
 if (err_flag .or. n /= 1) then
   call parser_error ('LATTICE ELEMENT NOT FOUND: ' // word)
   return
 endif
 
+target_ele => eles(1)%ele
 
-
-end subroutine parser_find_ele_for_attrib_transfer
+end function parser_find_ele_for_attrib_transfer
 
 !--------------------------------------------------------
 ! contains
