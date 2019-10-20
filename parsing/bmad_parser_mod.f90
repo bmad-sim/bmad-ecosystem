@@ -1151,10 +1151,10 @@ endif
 !-------------------------------
 
 if (attrib_word == 'SR_WAKE') then
-  if (how == redef$) then
-    if (.not. expect_this ('=', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
-    call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
-    if (.not. expect_this ('[', .true., .true., 'AFTER ELEMENT NAME', ele, delim, delim_found)) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+  ! ele1[sr_wake] = ele2[sr_wake] construct.
+  if (delim == '[') then
     ele2 => parser_find_ele_for_attrib_transfer ('SR_WAKE', word); if (err_flag) return
     if (.not. associated(ele%wake)) allocate (ele%wake)
     if (.not. associated(ele2%wake)) then
@@ -1162,9 +1162,11 @@ if (attrib_word == 'SR_WAKE') then
       return
     endif
     ele%wake%sr = ele2%wake%sr
-
+  ! "ele1[sr_wake] = call::..." or "ele1: ..., sr_wake = {...}, ..." construct.
   else
-    if (.not. expect_this ('={', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
+    if (word /= 'CALL::') then
+      if (.not. expect_this ('{', .true., .true., 'AFTER "SR_WAKE"', ele, delim, delim_found)) return
+    endif
     call parser_read_sr_wake (ele, delim, delim_found, err_flag)
   endif
 
@@ -1174,10 +1176,10 @@ endif
 !-------------------------------
 
 if (attrib_word == 'LR_WAKE') then
-  if (how == redef$) then
-    if (.not. expect_this ('=', .true., .true., 'AFTER "LR_WAKE"', ele, delim, delim_found)) return
-    call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
-    if (.not. expect_this ('[', .true., .true., 'AFTER ELEMENT NAME', ele, delim, delim_found)) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "LR_WAKE"', ele, delim, delim_found)) return
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+  ! ele1[lr_wake] = ele2[lr_wake] construct.
+  if (delim == '[') then
     ele2 => parser_find_ele_for_attrib_transfer ('LR_WAKE', word); if (err_flag) return
     if (.not. associated(ele%wake)) allocate (ele%wake)
     if (.not. associated(ele2%wake)) then
@@ -1185,9 +1187,11 @@ if (attrib_word == 'LR_WAKE') then
       return
     endif
     ele%wake%lr = ele2%wake%lr
-
+  ! "ele1[lr_wake] = call::..." or "ele1: ..., lr_wake = {...}, ..." construct.
   else
-    if (.not. expect_this ('={', .true., .true., 'AFTER "LR_WAKE"', ele, delim, delim_found)) return
+    if (word /= 'CALL::') then
+      if (.not. expect_this ('{', .true., .true., 'AFTER "LR_WAKE"', ele, delim, delim_found)) return
+    endif
     call parser_read_lr_wake (ele, delim, delim_found, err_flag)
   endif
 
@@ -1229,7 +1233,7 @@ if (attrib_word == 'CARTESIAN_MAP') then
     i_ptr = 1
   endif
 
-  !
+  ! "ele1[cartesian_map] = call::..." or "ele1: ..., cartesian_map = {...}, ..." construct.
 
   if (word(1:8) == 'BINARY::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
