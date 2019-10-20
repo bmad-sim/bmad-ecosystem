@@ -145,7 +145,7 @@ directory of the first command file. To have \tao look relative to your current 
 (where you started \tao), use the prefix \vn{\$PWD/}. For example, to call a command file that is
 one level up from your current working directory use
 \begin{example}
-  call $PWD/../second.cmd
+  call \$PWD/../second.cmd
 \end{example}
 
 Command loops can be implemented in a command file. See Section~\sref{s:do} for more details.
@@ -3111,7 +3111,7 @@ Format:
   write mad8 \{<file_name>\}                                                ! \sref{s:write.mad8}
   write madx \{<file_name>\}                                                ! \sref{s:write.madx}
   write namelist \{-append\} \{-data\} \{-plot\} \{-variable\} \{file_name\}        ! \sref{s:write.namelist}
-  write opal \{file_name\}                                                  ! \sref{s:wrtie.opal}
+  write opal \{file_name\}                                                  ! \sref{s:write.opal}
   write ps \{-scale <scale>\} \{<file_name>\}                                 ! \sref{s:write.ps}  
   write ps-l \{-scale <scale>\} \{<file_name>\}                               ! \sref{s:write.ps}
   write ptc \{-all\} \{-old\} \{-branch <name_or_index\} \{<file_name>\}          ! \sref{s:write.ptc}
@@ -3135,7 +3135,7 @@ Syntax:
     write beam \{-ascii\} -at <element_list> \{<file_name>\} 
 \end{example}
 
-The default file name is \vn{beam_#.dat} if an ASCII file is to be created and \vn{beam_#.hdf5} when
+The default file name is \vn{beam_\#.dat} if an ASCII file is to be created and \vn{beam_\#.hdf5} when
 a binary file is to be created where \vn{\#} is replaced by the universe number.
 
 \vn{write beam} will create a file of the particle positions when beam tracking is being used. The
@@ -3160,7 +3160,7 @@ the \vn{blender} program\cite{b:blender}. Syntax:
     write blender \{<file_name>\}            ! Write a blender script (Same as 3d_model).
 \end{example}
 
-The default file name is \vn{blender_lat_#.py} where \vn{\#} is replaced by the universe number. 
+The default file name is \vn{blender_lat_\#.py} where \vn{\#} is replaced by the universe number. 
 
 \vn{Blender} is a free, open source, program
 for creating, among other things, 3D images. This script will create a 3D model of the
@@ -3197,7 +3197,7 @@ The \vn{write bmad} command will create a bmad lattice file. Syntax:
     write bmad \{-binary\} \{<file_name>\} 
 \end{example}
 
-The default file name is \vn{lat_#.bmad} where \vn{\#} is replaced by the universe number. 
+The default file name is \vn{lat_\#.bmad} where \vn{\#} is replaced by the universe number. 
 
 The \vn{-binary} switch will cause secondary lattice files which are created, for example, for
 fieldmaps, to be written in a binary format. This will speed up the reading of the lattice at the
@@ -3261,7 +3261,7 @@ Syntax:
     write digested \{<file_name>\}      ! Write a digested Bmad lattice file of the model.
 \end{example}
 
-The default file name is \vn{lat_#.digested} where \vn{\#} is replaced by the universe number. 
+The default file name is \vn{lat_\#.digested} where \vn{\#} is replaced by the universe number. 
 
 
 %% write gif-l --------------------------------------------------------------
@@ -3299,7 +3299,7 @@ Syntax:
     write mad8 \{<file_name>\}  ! Write a MAD-8 lattice file of the model
 \end{example}
 
-The default file name is \vn{lat_#.mad8} where \vn{\#} is replaced by the universe number. 
+The default file name is \vn{lat_\#.mad8} where \vn{\#} is replaced by the universe number. 
 
 %% write madx --------------------------------------------------------------
 
@@ -3311,7 +3311,7 @@ Syntax:
     write madx \{<file_name>\}  ! Write a MAD-X lattice file of the model
 \end{example}
 
-The default file name is \vn{lat_#.madx} where \vn{\#} is replaced by the universe number. 
+The default file name is \vn{lat_\#.madx} where \vn{\#} is replaced by the universe number. 
 
 %% write namelist --------------------------------------------------------------
 
@@ -3335,7 +3335,7 @@ Syntax:
     write opal \{<file_name>\}  ! Write a OPAL lattice file of the model
 \end{example}
 
-The default file name is \vn{lat_#.opal} where \vn{\#} is replaced by the universe number. 
+The default file name is \vn{lat_\#.opal} where \vn{\#} is replaced by the universe number. 
 
 
 %% write ps-l --------------------------------------------------------------
@@ -3344,7 +3344,7 @@ The default file name is \vn{lat_#.opal} where \vn{\#} is replaced by the univer
 \label{s:write.ps}
 
 The \vn{write ps} and \vn{write ps-l} commands produce postscript output. The difference is that
-\vn{write ps} uses portrait orientation while \vn{write{ps-l} uses landscape orientation. Syntax:
+\vn{write ps} uses portrait orientation while \vn{write ps-l} uses landscape orientation. Syntax:
 \begin{example}
   write ps \{-scale <scale>\} \{<file_name>\}      ! Portrait orientation
   write ps-l \{-scale <scale>\} \{<file_name>\}    ! Landscape orientation
@@ -3399,7 +3399,7 @@ Syntax:
     write sad \{<file_name>\}  ! Write a SAD lattice file of the model
 \end{example}
 
-The default file name is \vn{lat_#.sad} where \vn{\#} is replaced by the universe number. 
+The default file name is \vn{lat_\#.sad} where \vn{\#} is replaced by the universe number. 
 
 %% write variable --------------------------------------------------------------
 
@@ -3413,7 +3413,7 @@ Syntax:
     write variable \{-good_var_only\} \{<file_name>\} 
 \end{example}
 
-The default file name is \vn{var#.out} where \vn{\#} is replaced by the universe number. 
+The default file name is \vn{var\#.out} where \vn{\#} is replaced by the universe number. 
 
 The optional \vn{-good_var_only} switch.  If present, only the information on variables that are
 currently used in the optimization is written.

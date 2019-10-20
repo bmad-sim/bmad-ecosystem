@@ -920,7 +920,7 @@ Variables are initialized using the \vn{tao_var} namelist. The format for this i
     default_key_delta    = <real>              ! Change when key is pressed.
     ix_min_var           = <integer>           ! Minimum array index.
     ix_max_var           = <integer>           ! Maximum array index.
-    var(i)%ele_name      = "<ele_name>"        ! Element to be controlled.
+    var(i)%ele_name      = "<ele_name>"        ! Name or index of Element to be controlled.
     var(i)%attribute     = "<attrib_name>"     ! Attribute to be controlled.
     var(i)%universe      = "<uni_list>"        ! Universe containing variable to 
                                                !    be controlled. "*" => All.
@@ -1485,7 +1485,7 @@ The results can be plotted. See \sref{s:dynamicapertureplot}.
 
 Example input files are at:
 \begin{example}
-  $ACC_ROOT_DIR/tao/examples/dynamic_aperture
+  \$ACC_ROOT_DIR/tao/examples/dynamic_aperture
 \end{example}
 
 \clearpage
