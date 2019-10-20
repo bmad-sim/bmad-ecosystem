@@ -1,9 +1,12 @@
 %-----------------------------------------
 % Note: Use pdflatex to process this file.
+%
+% IMPORTANT: This file uses .aux files from the Bmad manual so pdflatex the Bmad manual beforehand.
+%            Note: It is assumed that the bmad and tao directories are on the same level.
 %-----------------------------------------
 
 \documentclass{book}
-
+\usepackage{xr}       % Defines \externaldocument
 \usepackage{graphicx}
 \usepackage{moreverb}
 \usepackage{amsmath}
@@ -23,6 +26,8 @@
 \usepackage[pdftex,colorlinks=true]{hyperref}  % This must be the last package
 
 \input{macros.tex}
+
+\externaldocument[B-]{../../bmad/doc/lattice-file}
 
 \setlength{\textwidth}{6.25in}
 \setlength{\oddsidemargin}{0.25in}

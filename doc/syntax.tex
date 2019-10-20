@@ -2,7 +2,27 @@
 \label{c:syntax}
 
 %------------------------------------------------------------------------
-\section{Element List Format}
+\section{Specifying a Lattice Element}
+\label{s:ele.name}
+
+A full description of how to specify a lattice element is given in section \extref{B-s:ele.match}
+``\vn{Matching to Lattice Element Names}'' in the \bmad manual. Generally, elements are specified
+using either their names or by their index number. Additionally, in \tao, the universe in which
+the element exists may be specified by prepending the element name by the universe number followed by
+the ``\vn{\@}'' sign.
+Examples:
+\begin{example}
+  Q3##2      ! 2nd instance of element named Q3 in branch 0 of the default universe.
+  134        ! Element with index 134 in branch 0 of the default universe.
+  1>>13      ! Element with index 13 in branch 1 of the default universe.
+  2@1>>TZ    ! Element named TZ in branch 1 of universe 2.
+  B37        ! Element named B37 of the default universe.
+  0@B37      ! Same as the previous example.
+\end{example}
+Note: element names are {\em not} case sensitive.
+
+%------------------------------------------------------------------------
+\section{Lattice Element List Format}
 \label{s:ele.list.format}
 
 The syntax for specifying a set of lattice elements is called
@@ -31,14 +51,14 @@ begins with ``q'' and whose third character is ``1''.  If there are
 multiple elements in the lattice that match a given name, all such
 elements are included. Thus ``d12'' will match to all elements of that
 name. Element names may be prefixed by the universe number followed by
-the ``\vn{\@}'' sign. If a universe is not specified, the current universe
+the ``\vn{\@}'' sign. If a universe is not specified, the default universe
 is used. Examples
 \begin{example}
-  "134"        ! Element with index 134 in branch 0 of the current universe.
-  "1>>13"      ! Element with index 13 in branch 1 of the current universe.
+  "134"        ! Element with index 134 in branch 0 of the default universe.
+  "1>>13"      ! Element with index 13 in branch 1 of the default universe.
   "5@q*"       ! All elements whose name begins with "q" of universe 5.
   "*@sex10w"   ! Element "sex10w" of all universes.
-  "b37"        ! Element "b37" of the current universe.
+  "b37"        ! Element "b37" of the default universe.
   "0@b37"      ! Same as the previous example.
 \end{example}
 Note: element names are {\em not} case sensitive.
