@@ -45,7 +45,7 @@ ele_z1 => lat%branch(1)%ele(1)   ! z1 element
 ele_p1 => lat%ele(1)             ! p1 element
 ele_p2 => lat%ele(2)             ! p2 element
 
-write (1, '(a, 2l1)') '"Wake-Transfer" STR ', ele_z1%wake%sr == ele_p1%wake%sr, ele_z1%wake%lr == ele_p2%wake%lr
+write (1, '(a, 2l1, a)') '"Wake-Transfer" STR "', ele_z1%wake%sr == ele_p1%wake%sr, ele_z1%wake%lr == ele_p2%wake%lr, '"'
 
 ! Short range wake test.
 
