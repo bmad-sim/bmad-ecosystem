@@ -55,7 +55,7 @@ do i = 1, lat%n_ele_track
   ele2 = lat%ele(i-1)
   ele2%a = lat%ele(0)%a;  ele2%b = lat%ele(0)%b  ! Just to have some non-zero beta
   call mat_make_unit(xmat2)
-  n_slice = 2
+  n_slice = nint(ele%value(num_steps$))
   do is = 1, n_slice
     s_end = (s0 * (n_slice - is) + s1 * is) / n_slice
     call twiss_and_track_from_s_to_s (lat%branch(0), end_orb2, s_end, end_orb2, ele2, ele2, err)
