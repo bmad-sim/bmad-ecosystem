@@ -610,8 +610,8 @@ recursive subroutine kick_vector_calc (ele, param, s_body, orbit, dr_ds, err, pr
 
 implicit none
 
-type (ele_struct) ele
-type (ele_struct), pointer :: lord
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
 type (lat_param_struct) param
 type (em_field_struct) field
 type (coord_struct) orbit, orbit2
@@ -633,15 +633,19 @@ character(*), parameter :: r_name = 'kick_vector_calc'
 ! The effective reference velocity is different from the velocity of the reference particle for wigglers where the 
 ! reference particle is not traveling along the reference line and in elements where the reference velocity is not constant.
 
-if (ele%value(delta_ref_time$) == 0 .or. ele%key == patch$) then
-  beta0 = ele%value(p0c$) / ele%value(e_tot$) ! Singular case. 
-elseif (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-  ! Note: There is a potential problem with RF elements when calculating beta0 when there is slicing and where
-  ! the particle is non-relativistic. To avoid z-shifts with slicing, use the lord delta_ref_time.
-  lord => pointer_to_lord(ele, 1)
-  beta0 = lord%value(l$) / (c_light * lord%value(delta_ref_time$))
+! Note: There is a potential problem with RF elements when calculating beta0 when there is slicing and where
+! the particle is non-relativistic. To avoid z-shifts with slicing, use the lord delta_ref_time.
+
+if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+  ele0 => pointer_to_lord(ele, 1)
 else
-  beta0 = ele%value(l$) / (c_light * ele%value(delta_ref_time$))
+  ele0 => ele
+endif
+
+if (ele0%value(delta_ref_time$) == 0 .or. ele0%key == patch$) then
+  beta0 = ele0%value(p0c$) / ele0%value(e_tot$) ! Singular case can happen when parsing lattice. 
+else
+  beta0 = ele0%value(l$) / (c_light * ele0%value(delta_ref_time$))
 endif
 
 err = .true.

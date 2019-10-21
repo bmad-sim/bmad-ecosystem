@@ -617,8 +617,21 @@ endif
 call restore_errors_in_ele (ele)
 
 ! Note: delta_ref_time is used in runge_kutta tracking.
+! Note: There is a potential problem with RF elements with RK tracking and slicing and where 
+! the particle is non-relativistic. To avoid z-shifts with slicing, use the lord delta_ref_time.
 
-ele%value(delta_ref_time$) = orb_end%t - orb_start%t
+if (ele%tracking_method /= bmad_standard$ .and. &
+          (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$)) then
+  lord => pointer_to_lord(ele, 1)
+  if (lord%value(l$) == 0) then
+    ele%value(delta_ref_time$) = 0
+  else
+    ele%value(delta_ref_time$) = lord%value(delta_ref_time$) * ele%value(l$) / lord%value(l$)
+  endif
+else
+  ele%value(delta_ref_time$) = orb_end%t - orb_start%t
+endif
+
 ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved
