@@ -266,7 +266,7 @@ function wall_intersection_func (ds) result (d_radius)
 
 real(rp), intent(in) :: ds
 real(rp) d_radius
-real(rp) t_new, r_err(11), dr_ds(10)
+real(rp) t_new, r_err(11), dr_ds(11)
 
 logical no_aperture_here
 
@@ -309,9 +309,9 @@ real(rp), intent(in)    :: ds_try
 real(rp), intent(out)   :: ds_did, ds_next
 real(rp), optional :: mat6(6,6)
 
-real(rp) :: dr_ds(10), r_scal(10), rel_tol, abs_tol
+real(rp) :: dr_ds(11), r_scal(10), rel_tol, abs_tol
 real(rp) :: err_max, ds, ds_temp, p2, dmat(6,6)
-real(rp) :: r_err(10), r_temp(10), pol
+real(rp) :: r_err(11), pol
 real(rp) :: sqrt_N, rel_pc, t_new, ds12
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
@@ -356,8 +356,8 @@ do
     rel_tol = bmad_com%rel_tol_adaptive_tracking / sqrt_N
     abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
     pol = 1  ! Spin scale
-    r_scal(:) = abs([orb%vec(:), orb%t, pol, pol, pol]) + abs(ds*dr_ds(:)) + TINY
-    err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
+    r_scal(:) = abs([orb%vec(:), orb%t, pol, pol, pol]) + abs(ds*dr_ds(1:10)) + TINY
+    err_max = maxval(abs(r_err(1:10)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit
     ds_temp = safety * ds * (err_max**p_shrink)
   endif
@@ -454,10 +454,10 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new, orb_temp(5)
 
-real(rp) :: dr_ds1(10)
+real(rp) :: dr_ds1(11)
 real(rp), intent(in) :: s, ds
-real(rp), intent(out) :: r_err(10)
-real(rp) :: dr_ds2(10), dr_ds3(10), dr_ds4(10), dr_ds5(10), dr_ds6(10)
+real(rp), intent(out) :: r_err(11)
+real(rp) :: dr_ds2(11), dr_ds3(11), dr_ds4(11), dr_ds5(11), dr_ds6(11)
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
     b32=9.0_rp/40.0_rp, b41=0.3_rp, b42=-0.9_rp, b43=1.2_rp, &
@@ -524,10 +524,10 @@ contains
 subroutine transfer_this_orbit (orb_in, s1, dvec, orb_out, all_transfer)
 
 type (coord_struct) orb_in, orb_out
-real(rp) dvec(10), t_temp, s1
+real(rp) dvec(11), t_temp, s1
 logical all_transfer
 
-!
+! Ignore dvec(5) and compute the change in z from the change in t to keep z and t consistent.
 
 if (all_transfer) orb_out = orb_in
 orb_out%vec = orb_in%vec + dvec(1:6)
@@ -537,6 +537,8 @@ orb_out%s = s1 + ele%s_start
 if (dvec(6) /= 0) then
   call convert_pc_to (orb_out%p0c * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
 endif
+
+orb_out%vec(5) = orb_in%vec(5) * orb_out%beta / orb_in%beta + c_light * orb_out%beta * (dvec(11) - dvec(7))
 
 end subroutine transfer_this_orbit
 
@@ -554,39 +556,40 @@ end subroutine rk_step1
 ! Remember: In order to simplify the calculation, in the body of any element, P0 is taken to be 
 ! the P0 at the exit end of the element.
 !
-!   dr(1)/ds = dx/dt * dt/ds
+!   dr(1)/ds = dx/ds = dx/dt * dt/ds
 !   where:
 !     dx/dt = v_x = p_x / (1 + p_z)
 !     dt/ds = (1 + g*x) / v_s
 !     g = 1/rho, rho = bending radius (nonzero only in a dipole)
 !
-!   dr(2)/ds = dP_x/dt * dt/ds / P0 + g_x * P_z
+!   dr(2)/ds = dp_x/ds = dP_x/dt * dt/ds / P0 + g_x * P_z
 !   where:
 !     dP_x/dt = EM_Force_x
 !     g_x = bending in x-plane.
 !
-!   dr(3)/ds = dy/dt * dt/ds
+!   dr(3)/ds = dy/ds = dy/dt * dt/ds
 !   where:
 !     dy/dt = v_x 
 ! 
-!   dr(4)/ds = dP_y/dt * ds/dt / P0 + g_y * P_z
+!   dr(4)/ds = dp_y/ds = dP_y/dt * ds/dt / P0 + g_y * P_z
 !   where:
 !     dP_y/dt = EM_Force_y
 !     g_y = bending in y-plane.
 !
-!   dr(5)/ds = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * c_light * [t(ref) - t]
-!            = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * vec(5) / beta
+!   dr(5)/ds = dz/ds = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * c_light * [t(ref) - t]
+!                    = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * vec(5) / beta
 !   where:
 !     dt/ds(ref) = 1 / beta(ref)
-!     Note: dt/ds(ref) formula is inaccurate at low energy in an lcavity.
 !
-!   dr(6)/ds = (EM_Force dot v_hat) * dt/ds / P0
+!   dr(6)/ds = dp_z/ds = d(EM_Force dot v_hat) * dt/ds / P0
 !   where:
 !      v_hat = velocity normalized to 1.
 !
 !   dr(7)/ds = dt/ds
 !
 !   dr(8:10)/ds = Spin omega vector
+!
+!   dr(11)/ds = dt_ref/ds
 !
 ! Modules needed:
 !   use bmad
@@ -601,7 +604,7 @@ end subroutine rk_step1
 !               as being with respect to the frame of referene of the element. 
 !
 ! Output:
-!   dr_ds(10)   -- real(rp): Kick vector.
+!   dr_ds(11)   -- real(rp): Kick vector.
 !   field       -- em_field_struct: Local field.
 !   err         -- Logical: Set True if there is an error.
 !-
@@ -617,7 +620,7 @@ type (em_field_struct) field
 type (coord_struct) orbit, orbit2
 
 real(rp), intent(in) :: s_body
-real(rp), intent(out) :: dr_ds(10)
+real(rp), intent(out) :: dr_ds(11)
 real(rp) g_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3), w_mat(3,3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0, mc2, delta, dh_bend, rel_pc
@@ -712,6 +715,7 @@ dr_ds(5) = rel_dir * (orbit%beta / beta0 - 1) + &
            rel_dir * (sqrt_one(-v2) - dh_bend) / sqrt(1-v2) + dbeta_ds * orbit%vec(5) / orbit%beta
 dr_ds(6) = dp_ds / p0
 dr_ds(7) = dt_ds
+dr_ds(11) = dt_ds_ref
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! dr_ds(8:10) = Omega/v_z
