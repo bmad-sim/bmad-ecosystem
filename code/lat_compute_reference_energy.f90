@@ -437,23 +437,21 @@ case (lcavity$)
     if (err) return
   endif
 
-  ! Track. With runge_kutta, a shift in the end energy can cause small changes in the tracking.
-  ! So if there has been a shift in the end energy, track again.
+  ! Track. With runge_kutta (esp fixed step with only a few steps), a shift in the end energy can cause 
+  ! small changes in the tracking. So if there has been a shift in the end energy, track again.
 
-  do i = 1, 2
+  do i = 1, 5
     call track_this_ele (orb_start, orb_end, .false., err); if (err) return
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
-
-    if (ele%tracking_method == bmad_standard$ .or. &
-            abs(ele%value(p0c$) - ele%old_value(p0c$)) < 1d-6 * (ele%value(p0c$) + ele%old_value(p0c$))) exit
+    if (ele%tracking_method == bmad_standard$ .or. abs(orb_end%vec(6)) < 1d-6) exit
   enddo
 
-  call calc_time_ref_orb_out
+  call calc_time_ref_orb_out(orb_end)
 
 case (custom$, hybrid$)
-  ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)
+  ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)   ! Delta_ref_time is an independent attrib here.
   call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
   if (err) return
 
@@ -465,7 +463,7 @@ case (taylor$)
   if (err) return
 
   if (ele%value(l$) == 0) then
-    ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+    ele%ref_time = ref_time_start + ele%value(delta_ref_time$)  ! Delta_ref_time is an independent attrib here.
   else
     ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
   endif
@@ -477,7 +475,7 @@ case (e_gun$)
   ele%value(p0c$) = p0c_start
 
   call track_this_ele (orb_start, orb_end, .true., err); if (err) return
-  call calc_time_ref_orb_out
+  call calc_time_ref_orb_out(orb_end)
 
 case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, mask$)
   ele%value(E_tot$) = E_tot_start
@@ -540,7 +538,7 @@ case default
 
   else
     call track_this_ele (orb_start, orb_end, .false., err); if (err) return
-    call calc_time_ref_orb_out
+    call calc_time_ref_orb_out(orb_end)
   endif
 
 end select
@@ -618,9 +616,10 @@ if (.not. particle_is_moving_forward(orb_end)) then
 endif
 call restore_errors_in_ele (ele)
 
-! 
+! Note: delta_ref_time is used in runge_kutta tracking.
 
-ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
+ele%value(delta_ref_time$) = orb_end%t - orb_start%t
+ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 error = .false.
@@ -745,7 +744,9 @@ end subroutine restore_errors_in_ele
 !---------------------------------------------------------------------------------
 ! contains
 
-subroutine calc_time_ref_orb_out ()
+subroutine calc_time_ref_orb_out (orb_end)
+
+type (coord_struct) orb_end
 
 ! The tracking did not have the correct delta_ref_time end exit end ref energy so need to correct for this.
 ! Notice that here the delta_ref_time value (but not ele%value(p0c$)) the value used in tracking and not the 
