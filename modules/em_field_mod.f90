@@ -180,8 +180,6 @@ if (ele%field_calc == refer_to_lords$) then
     s_lab = s_pos
   endif
 
-  z = lab_orb%vec(5)
-
   !
 
   lord_loop: do i = 1, ele%n_lord
@@ -197,9 +195,6 @@ if (ele%field_calc == refer_to_lords$) then
     else
       ds = ele%s_start - lord%s_start
       s_lab2 = s_lab + ds
-      beta_ref = lord%value(p0c$) / lord%value(e_tot$)
-      lab_orb%vec(5) = z - c_light * orbit%beta * &
-          ((ele%value(ref_time_start$) - lord%value(ref_time_start$)) - ds / (beta_ref * c_light))
     endif
 
     if (present(used_eles)) then
