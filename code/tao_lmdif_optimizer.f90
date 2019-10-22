@@ -103,8 +103,10 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   ! Should make 1d
 
   if (merit <= s%global%lmdif_negligible_merit) then
-    call out_io (s_blank$, r_name, 'Merit value is negligible! (Smaller than global%lmdif_negligible_merit)', 'Stopping here.')
-    exit
+    call out_io (s_blank$, r_name, 'Merit value is negligible! (Smaller than global%lmdif_negligible_merit)', &
+                                   'Stopping now.')
+    abort = .true.
+    exit cycle_loop
   endif
 
   ! look for keyboard input to end optimization
