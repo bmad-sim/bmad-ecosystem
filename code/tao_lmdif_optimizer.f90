@@ -100,8 +100,10 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   write (line, '(i5, es14.4, es10.2)') i, merit
   call out_io (s_blank$, r_name, line)
 
-  if (merit <= s%global%lmdif_eps) then
-    call out_io (s_blank$, r_name, 'Merit value is negligible!.')
+  ! Should make 1d
+
+  if (merit <= s%global%lmdif_negligible_merit) then
+    call out_io (s_blank$, r_name, 'Merit value is negligible! (Smaller than global%lmdif_negligible_merit)', 'Stopping here.')
     exit
   endif
 

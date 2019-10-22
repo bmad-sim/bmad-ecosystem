@@ -4856,6 +4856,7 @@ nl=nl+1; write(lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%d
 nl=nl+1; write(lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
 nl=nl+1; write(lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
 nl=nl+1; write(lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
+nl=nl+1; write(lines(nl), rmt) '  %lmdif_negligible_merit        = ', s%global%lmdif_negligible_merit
 nl=nl+1; write(lines(nl), rmt) '  %merit_stop_value              = ', s%global%merit_stop_value
 nl=nl+1; write(lines(nl), rmt) '  %dmerit_stop_value             = ', s%global%dmerit_stop_value
 nl=nl+1; write(lines(nl), rmt) '  %svd_cutoff                    = ', s%global%svd_cutoff
