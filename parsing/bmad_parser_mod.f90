@@ -1917,8 +1917,9 @@ case default   ! normal attribute
 
   ! attrib_word = "x_limit" for example will generate an error here but this is not a true error.
   call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag, .false.)
-
-  if (attribute_type(attrib_word) == is_logical$) then
+  
+  select case (attribute_type(attrib_word))
+  case (is_logical$)
     if (associated (a_ptr%l)) then
       call get_logical (trim(ele%name) // ' ' // attrib_word, a_ptr%l, err_flag)
     else
@@ -1926,7 +1927,7 @@ case default   ! normal attribute
     endif
     if (err_flag) return
 
-  else
+  case default
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag); if (err_flag) return
 
     ! multipole attribute?
@@ -1970,7 +1971,7 @@ case default   ! normal attribute
     elseif (attrib_word == 'Y_LIMIT') then
       ele%value(y1_limit$) = value
       ele%value(y2_limit$) = value
-    elseif (ix_attrib > num_ele_attrib$) then
+    elseif (ix_attrib > num_ele_attrib$ .or. ix_attrib == 0) then
       if (err_flag .or. .not. associated(a_ptr%r)) then
         call parser_error ('BAD ATTRIBUTE: ' // attrib_word, 'FOR ELEMENT: ' // ele%name)
         return
@@ -2043,11 +2044,11 @@ case default   ! normal attribute
         branch => pointer_to_branch(ele%name, lat, .true.)
         if (associated(branch)) branch%param%n_part = value
 
-      end select
+      end select       ! attrib_word
 
     endif
 
-  endif
+  end select  ! attribute_type(attrib_word)
 
 end select
 
