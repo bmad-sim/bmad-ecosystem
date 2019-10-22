@@ -568,6 +568,7 @@ type tao_global_struct
   real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
   real(rp) :: de_var_to_population_factor = 5.0_rp ! DE population = max(n_var*factor, 20)
   real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
+  real(rp) :: lmdif_negligible_merit = 1d-30
   real(rp) :: svd_cutoff = 1e-5          ! SVD singular value cutoff.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) :: merit_stop_value = -1      ! Merit value below which an optimizer will stop.
