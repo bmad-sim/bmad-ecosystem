@@ -34,7 +34,7 @@ real(rp) pc, abs_tol(2)
 real(rp), parameter :: zero6(6) = 0
 
 integer j, k, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
-integer ix_super_end, ix_e_gun
+integer ix_super_end, ix_e_gun, it
 
 logical stale, err, lord_compute
 logical :: err_flag
@@ -144,33 +144,46 @@ do ib = 0, ubound(lat%branch, 1)
     gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
     gun_ele%value(p0c_start$)   = gun_ele%value(p0c$)
 
-    call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.); if (err) return
+    do it = 1, 3
+      call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.); if (err) return
 
-    call init_coord (start_orb, zero6, gun_ele, upstream_end$)
-    call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
-    if (.not. particle_is_moving_forward(end_orb)) then
-      call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
-                                     'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-      if (global_com%exit_on_error) call err_exit
-      return
-    endif
+      call init_coord (start_orb, zero6, gun_ele, upstream_end$)
+      call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
+      if (.not. particle_is_moving_forward(end_orb)) then
+        call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
+                                       'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
 
-    ! e_gun exit energy gets put into begin_ele exit energy
-    pc = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
-    if (begin_ele%value(p0c$) /= pc) stale = .true.
-    begin_ele%value(p0c$) = pc
-    call convert_pc_to (begin_ele%value(p0c$), branch%param%particle, e_tot = begin_ele%value(e_tot$))
+      ! e_gun exit energy gets put into begin_ele exit energy
+      pc = (1.0_rp + end_orb%vec(6)) * gun_ele%value(p0c$)
+      if (begin_ele%value(p0c$) /= pc) stale = .true.
+      begin_ele%value(p0c$) = pc
+      call convert_pc_to (begin_ele%value(p0c$), branch%param%particle, e_tot = begin_ele%value(e_tot$))
 
-    ! Now propagate this energy to the e_gun, and any markers in between.
+      ! Now propagate this energy to the e_gun, and any markers in between.
+      start_orb%vec(6) = start_orb%p0c * (1.0_rp + start_orb%vec(6)) / begin_ele%value(p0c$) - 1.0_rp
+      start_orb%p0c = begin_ele%value(p0c$)
 
-    do ie = 1, ix_e_gun
-      ele => branch%ele(ie)
-      ele%value(p0c_start$)   = begin_ele%value(p0c$)
-      ele%value(e_tot_start$) = begin_ele%value(e_tot$)
-      ele%value(p0c$)         = begin_ele%value(p0c$)
-      ele%value(e_tot$)       = begin_ele%value(e_tot$)
+      gun_ele%value(p0c_start$)      = begin_ele%value(p0c$)
+      gun_ele%value(e_tot_start$)    = begin_ele%value(e_tot$)
+      gun_ele%value(p0c$)            = begin_ele%value(p0c$)
+      gun_ele%value(e_tot$)          = begin_ele%value(e_tot$)
+      gun_ele%time_ref_orb_in        = start_orb
+      gun_ele%value(delta_ref_time$) = end_orb%t - start_orb%t
+
+      do ie = 1, ix_e_gun
+        ele => branch%ele(ie)
+        ele%value(p0c_start$)     = begin_ele%value(p0c$)
+        ele%value(e_tot_start$)   = begin_ele%value(e_tot$)
+        ele%value(p0c$)           = begin_ele%value(p0c$)
+        ele%value(e_tot$)         = begin_ele%value(e_tot$)
+        ele%time_ref_orb_in       = start_orb
+      enddo
+
+      if (abs(end_orb%vec(6)) <= bmad_com%rel_tol_tracking) exit
     enddo
-
   endif
 
   ! Since Bmad is S-based it cannot handle zero reference energy. 
@@ -388,6 +401,7 @@ implicit none
 
 type (ele_struct), target :: ele, ele0
 type (ele_struct), pointer :: lord
+type (branch_struct), pointer :: branch
 type (floor_position_struct) old_floor
 type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
@@ -445,7 +459,7 @@ case (lcavity$)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
-    if (ele%tracking_method == bmad_standard$ .or. abs(orb_end%vec(6)) < 1d-6) exit
+    if (ele%tracking_method == bmad_standard$ .or. abs(orb_end%vec(6)) < bmad_com%rel_tol_tracking) exit
   enddo
 
   call calc_time_ref_orb_out(orb_end)
@@ -473,6 +487,13 @@ case (e_gun$)
   ! done in lat_compute_ref_energy_and_time.
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
+
+  branch => pointer_to_branch(ele)
+  if (associated(branch)) then
+    if (ele%s_start == branch%ele(0)%s) then
+      orb_start%vec(6) = branch%ele(0)%value(p0c_start$) / branch%ele(0)%value(p0c$) - 1
+    endif
+  endif
 
   call track_this_ele (orb_start, orb_end, .true., err); if (err) return
   call calc_time_ref_orb_out(orb_end)
@@ -595,6 +616,7 @@ contains
 subroutine track_this_ele (orb_start, orb_end, is_inside, error)
 
 type (coord_struct) orb_start, orb_end
+type (ele_struct), pointer :: lord
 logical error, is_inside, auto_bookkeeper_saved
 
 ! Set auto_bookkeeper to prevent track1 calling attribute_bookkeeper which will overwrite

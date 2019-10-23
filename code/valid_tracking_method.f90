@@ -104,7 +104,7 @@ case (drift$)
 
 case (e_gun$)
   select case (method)
-  case (time_runge_kutta$, custom$)
+  case (runge_kutta$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 

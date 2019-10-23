@@ -43,10 +43,19 @@ logical, optional :: make_matrix
 
 character(*), parameter :: r_name = 'track1_runge_kutta'
 
-! Runge Kuta is not able to handle a zero length element with a non-zero multipole.
+! Runge Kutta is not able to handle a zero length element with a non-zero multipole.
+! Nor can RK handle particles at rest (EG e_gun). 
 
 if (ele%key /= patch$ .and. ele%value(l$) == 0) then
   call track_a_zero_length_element (start_orb, ele, param, end_orb, err_flag, track)
+  return
+endif
+
+end_orb = start_orb
+
+if (start_orb%vec(6) == -1) then
+  call out_io (s_error$, r_name, 'Runge Kutta is not able to handle particles with no energy in: ' // ele%name)
+  end_orb%state = lost$
   return
 endif
 
@@ -56,7 +65,6 @@ endif
 ! is the distance before the downstream face so the s0_body starting position is 
 ! negative and the s1_body stopping position is 0.
 
-end_orb = start_orb
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 

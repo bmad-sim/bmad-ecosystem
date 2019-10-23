@@ -220,7 +220,7 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
   \vn{crystal}                 & D & X &   &   &     &     &     &     &     &    \\  
   \vn{custom}                  &   & D & X &   &  X  &     &     &     &     & X  \\  
   \vn{drift}                   & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{e_gun}                   &   & X &   &   &     &     &     &     &     & D  \\  
+  \vn{e_gun}                   &   & X &   &   &X$^a$&     &     &     &     & D  \\  
   \vn{ecollimator}             & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
   \vn{elseparator}             & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
   \vn{em_field}                &   & X &   &   &  D  &     &  X  &  X  &  X  & X  \\  
@@ -250,8 +250,9 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
   \vn{taylor}                  &   & X & X &   &     &     &  X  &     &  D  &    \\ 
   \vn{vkicker}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{wiggler} (map type)      &   & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\
-  \vn{wiggler} (periodic type) & D & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
-   \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
+  \vn{wiggler} (periodic type) & D & X & X &   &X$^b$&X$^b$&X$^b$&X$^b$&X$^b$&    \\ \bottomrule
+  \multicolumn{12}{l}{$^a$Only if the beginning energy is non-zero.}              \\
+  \multicolumn{12}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}        \\
 \end{tabular}
 }
 \caption[Table of available {\bf tracking_method}\ switches for a given element class.] { 
