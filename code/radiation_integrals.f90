@@ -174,6 +174,18 @@ if (branch%param%particle == photon$) then
   return
 endif
 
+if (any(orbit(1:branch%n_ele_track)%species == not_set$)) then
+  call out_io (s_error$, r_name, 'ORBIT IN UNINITALIZED STATE! RADIATION INTEGRALS NOT COMPUTED.')
+  return
+endif
+
+if (any(branch%ele(0:branch%n_ele_track)%a%beta == 0)) then
+  call out_io (s_error$, r_name, 'TWISS PARAMETERS HAVE NOT BEEN INITIALIZED.', &
+                                 '[DUE TO UNSTABLE RING? OR MISSING CALL TO TWISS_PROPAGATE_ALL?]', &
+                                 'NO RADIATION INTEGRALS WILL BE COMPUTED.')
+  return
+endif
+
 ! Init
 ! To make the calculation go faster turn off radiation fluctuations and damping
 
@@ -187,29 +199,20 @@ mode%rf_voltage = 0
 int_tot = rad_int1_struct()
 
 bmad_com_save = bmad_com
+bmad_com%convert_to_kinetic_momentum = .true.
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
-bmad_com%convert_to_kinetic_momentum = .true.
+bmad_com%csr_and_space_charge_on = .false.
+bmad_com%spin_tracking_on = .false.
 bmad_com%rel_tol_adaptive_tracking = 1d-6
 bmad_com%abs_tol_adaptive_tracking = 1d-8
+
 branch_param_save = branch%param
 branch%param%high_energy_space_charge_on = .false.
 
 call init_ele (ele2)
 call init_ele (ele_start)
 call init_ele (ele_end)
-
-if (any(orbit(1:branch%n_ele_track)%species == not_set$)) then
-  call out_io (s_error$, r_name, 'ORBIT IN UNINITALIZED STATE! RADIATION INTEGRALS NOT COMPUTED.')
-  return
-endif
-
-if (any(branch%ele(0:branch%n_ele_track)%a%beta == 0)) then
-  call out_io (s_error$, r_name, 'TWISS PARAMETERS HAVE NOT BEEN INITIALIZED.', &
-                                 '[DUE TO UNSTABLE RING? OR MISSING CALL TO TWISS_PROPAGATE_ALL?]', &
-                                 'NO RADIATION INTEGRALS WILL BE COMPUTED.')
-  return
-endif
 
 !---------------------------------------------------------------------
 ! Caching

@@ -366,7 +366,7 @@ type (kv_beam_init_struct), pointer :: kv
 
 real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6)
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
-real(rp) old_cutoff, pz_min, z_phase
+real(rp) old_cutoff, pz_min
 real(rp) tunes(1:3), g6mat(6,6), g6inv(6,6), v6mat(6,6), t6(6,6)
 
 integer ix_bunch
@@ -584,8 +584,7 @@ if(beam_init%use_t_coords) then
 
     ! Convert to s coordinates
     p%p0c = ele%value(p0c$)
-    z_phase = -c_light * p%beta * (p%t - ele%ref_time)
-    call convert_particle_coordinates_t_to_s (p, z_phase, ele)
+    call convert_particle_coordinates_t_to_s (p, p%t-ele%ref_time, ele)
     ! beta calc
     call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = p%beta)  
     p%state = alive$

@@ -668,6 +668,7 @@ do i = 1, n_key$
 
   if (i == pipe$)         cycle
   if (i == custom$)       cycle
+  if (i == crab_cavity$)  cycle
 
   call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
   call init_attribute_name1 (i, spin_fringe_on$,     'SPIN_FRINGE_ON')
@@ -1281,6 +1282,21 @@ call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC'
 call init_attribute_name1 (patch$, upstream_ele_dir$,               'UPSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, downstream_ele_dir$,             'DOWNSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
+
+call init_attribute_name1 (crab_cavity$, voltage$,                  'VOLTAGE')
+call init_attribute_name1 (crab_cavity$, phi0$,                     'PHI0')
+call init_attribute_name1 (crab_cavity$, phi0_multipass$,           'PHI0_MULTIPASS')
+call init_attribute_name1 (crab_cavity$, harmon$,                   'HARMON')
+call init_attribute_name1 (crab_cavity$, cartesian_map$,            'CARTESIAN_MAP')
+call init_attribute_name1 (crab_cavity$, cylindrical_map$,          'CYLINDRICAL_MAP')
+call init_attribute_name1 (crab_cavity$, grid_field$,               'GRID_FIELD')
+call init_attribute_name1 (crab_cavity$, taylor_field$,             'TAYLOR_FIELD')
+call init_attribute_name1 (crab_cavity$, E_tot_start$,              'E_tot_start', private$)
+call init_attribute_name1 (crab_cavity$, p0c_start$,                'p0c_start', private$)
+call init_attribute_name1 (crab_cavity$, phi0_err$,                 'phi0_err', private$)
+call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
+call init_attribute_name1 (crab_cavity$, gradient_err$,             'gradient_err', private$)
+call init_attribute_name1 (crab_cavity$, voltage_err$,              'voltage_err', private$)
 
 call init_attribute_name1 (rfcavity$, longitudinal_mode$,           'LONGITUDINAL_MODE')
 call init_attribute_name1 (rfcavity$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
