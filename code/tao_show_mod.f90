@@ -2474,7 +2474,7 @@ case ('lattice')
 
   else
     picked_ele = .true.
-    if (count(picked_ele) > 300 .and. print_lords /= yes$) then
+    if (count(picked_ele) > 300 .and. print_lords == maybe$) then
       picked_ele(201:) = .false.
       limited = .true.
     endif
