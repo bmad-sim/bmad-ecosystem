@@ -308,12 +308,13 @@ After lattice expansion (\sref{s:expand}), the general syntax to specify a set o
 \end{example}
 where \vn{\{...\}} marks an optional component, \vn{class} is a class name, \vn{branch_id} is a
 branch name or index (\sref{s:branch.def}), \vn{element_id} is and element name or element index
-(\sref{s:lines.wo.arg}), and \vn{\#\#N} indicates that the N\Th matching element is to be
+(\sref{s:lines.wo.arg}), and \vn{\#\#N} indicates that the N\Th matching element in a branch is to be
 used. Examples:
 \begin{example}
   x_br>>quad::q*        ! All quadrupoles of branch "x_br" whose name begins with "q".
   2>>45                 ! element \#45 of branch \#2.
-  q01##3                ! The 3rd element in each branch named q01.
+  q01##3                ! The 3rd element named q01 in each branch where there are at 
+                        ! least three elements named q01.
 \end{example}
 
 \vn{Note:} It is advised to avoid setting the parameters of differing elements that share the same

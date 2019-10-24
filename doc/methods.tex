@@ -3,8 +3,8 @@
 
 \index{element!class}\index{tracking_method}
 \index{mat6_calc_method}\index{spin_tracking_method}
-\bmad allows for a number of methods that can be use to ``track'' a particle
-through a lattice element. Here ``track'' can mean one of three things:
+\bmad allows for a number of methods that can be use to ``track'' a particle through a lattice
+element. Here ``track'' can mean one of three things:
 \begin{example}
   1) Calculate a particle's phase space coordinates at the exit 
      end of the element given the coordinates at the entrance end.
@@ -13,10 +13,9 @@ through a lattice element. Here ``track'' can mean one of three things:
   3) Calculate the a particle's spin orientation at the exit end 
      of the element given the coordinates at the beginning.
 \end{example}
-The different tracking methods that are available have different
-advantages and disadvantages in terms of speed, symplecticity, etc.
-What tracking method is used, is selected on an element--by--element
-basis using the attributes:
+The different tracking methods that are available have different advantages and disadvantages in
+terms of speed, symplecticity, etc.  What tracking method is used, is selected on an
+element--by--element basis using the attributes:
 \begin{example}
   tracking_method      = <Switch>   ! phase space tracking method.
   mat6_calc_method     = <Switch>   ! 6x6 transfer matrix calculation.
@@ -28,9 +27,9 @@ Example:
   q2[tracking_method] = symp_lie_ptc
   quadrupole::*[tracking_method] = symp_lie_ptc
 \end{example}
-The first two lines of this example have exactly the same effect in
-terms of setting the \vn{tracking_method}. The third line shows how to
-set the \vn{tracking_method} for an entire class of elements.
+The first two lines of this example have exactly the same effect in terms of setting the
+\vn{tracking_method}. The third line shows how to set the \vn{tracking_method} for an entire class
+of elements.
 
 These switches are discussed in more detail in the following sections.
 
@@ -39,32 +38,28 @@ These switches are discussed in more detail in the following sections.
 \label{s:tkm}
 \index{tracking methods|hyperbf}
 
-The \vn{tracking_method} attribute of an element sets the algorithm
-that is used for single particle tracking through that element.
-Table~\ref{t:track.methods} gives which methods are available for each
-type of element.
+The \vn{tracking_method} attribute of an element sets the algorithm that is used for single particle
+tracking through that element.  Table~\ref{t:track.methods} gives which methods are available for
+each type of element. Note: Table~\ref{t:track.methods} pertains to charged-particle tracking only.
+When tracking photons, only \vn{bmad_standard} and \vn{custom} tracking method are available.
 
-A note on terminology: Adaptive step size control used with the
-\vn{Runge_Kutta} integrator means that instead of taking fixed step
-sizes the integrator chooses the proper step size so that the error in
-the tracking is below the maximum allowable error set by \vn{rel_tol}
-and \vn{abs_tol} tolerances. The advantage of step size control is
-that the integrator uses a smaller step size when needed (the fields
-are rapidly varying), but makes larger steps when it can. The
-disadvantage is that a step is more computationally intensive since
-the error in a step is estimated by repeating a step using two mini
-steps. If the fields are rather uniform and you know what a good step
-size is you can save time by using a fixed step size.
+A note on terminology: Adaptive step size control used with the \vn{Runge_Kutta} integrator means
+that instead of taking fixed step sizes the integrator chooses the proper step size so that the
+error in the tracking is below the maximum allowable error set by \vn{rel_tol} and \vn{abs_tol}
+tolerances. The advantage of step size control is that the integrator uses a smaller step size when
+needed (the fields are rapidly varying), but makes larger steps when it can. The disadvantage is
+that a step is more computationally intensive since the error in a step is estimated by repeating a
+step using two mini steps. If the fields are rather uniform and you know what a good step size is
+you can save time by using a fixed step size.
 
 \begin{figure}[tb]
   \centering
   \includegraphics[width=4in]{dark-current.pdf}
   \caption[Dark current tracking.]{
-Dark current tracking. Example of where a time based tracker (\vn{time_runge_kutta}) is
-useful for simulating particles that can reverse their longitudinal velocity. Here the
-tracks drawn are from a simulation of ``dark current'' electrons generated at the
-walls of an RF cavity due to the large electromagnetic fields.
-}
+Dark current tracking. Example of where a time based tracker (\vn{time_runge_kutta}) is useful for
+simulating particles that can reverse their longitudinal velocity. Here the tracks drawn are from a
+simulation of ``dark current'' electrons generated at the walls of an RF cavity due to the large
+electromagnetic fields.  }
   \label{f:dark.current}
 \end{figure}
 
@@ -72,8 +67,8 @@ walls of an RF cavity due to the large electromagnetic fields.
 
 \index{bmad_standard!tracking_method}
 \item[\vn{Bmad_Standard}]
-Uses formulas for tracking. The formulas generally use the paraxial
-approximation.  The emphasis here is on speed.
+Uses formulas for tracking. The formulas generally use the paraxial approximation. The emphasis
+here is on speed.
 
 \index{custom!tracking_method}
 \item[\vn{Custom}]
@@ -125,62 +120,53 @@ Frank Schmidt for permission to use the MAD tracking code within
 
 \index{runge_kutta!tracking_method}
 \item[\vn{runge_kutta}]
-This uses a 4\Th order Runge Kutta integration algorithm with adaptive
-step size control.  This is essentially the \vn{ODEINT} subroutine
-from Numerical Recipes\cite{b:nr}. This may be slow but it should be
-accurate. This method is non-symplectic. \vn{Warning:} When using
-\vn{custom} fields, if the fields do not obey Maxwell's equation,
-there is the possibility of the \vn{runge_kutta} tracking halting mid
-way through an element. See section~\sref{s:integ} for more details.
+This uses a 4\Th order Runge Kutta integration algorithm with adaptive step size control.  This is
+essentially the \vn{ODEINT} subroutine from Numerical Recipes\cite{b:nr}. This may be slow but it
+should be accurate. This method is non-symplectic. \vn{Warning:} When using \vn{custom} fields, if
+the fields do not obey Maxwell's equation, there is the possibility of the \vn{runge_kutta} tracking
+halting mid way through an element. See section~\sref{s:integ} for more details.
 
 \index{symp_lie_Bmad!tracking_method}
 \item[\vn{Symp_Lie_Bmad}]
-Symplectic tracking using a Hamiltonian with Lie operation techniques.
-This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad routine. By bypassing some of the generality inherent in PTC
-(\sref{s:ptc.intro}), \vn{Symp_Lie_Bmad} achieves about a factor of 10
-improvement in speed over \vn{Symp_Lie_PTC}.
+Symplectic tracking using a Hamiltonian with Lie operation techniques.  This is similar to
+\vn{Symp_Lie_PTC} (see below) except this uses a \bmad routine. By bypassing some of the generality
+inherent in PTC (\sref{s:ptc.intro}), \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement
+in speed over \vn{Symp_Lie_PTC}.
 
 \index{symp_lie_ptc!tracking_method}
 \item[\vn{Symp_Lie_PTC}]
-Symplectic tracking using a Hamiltonian with Lie operator techniques.
-This uses \'Etienne Forest's PTC (\sref{s:ptc.intro}) software for the
-calculation. This method is symplectic but can be slow. Exceptions: The tracking is
-not symplectic when tracking through and element with an associated electric field
-and when tracking through a \vn{taylor} element. 
+Symplectic tracking using a Hamiltonian with Lie operator techniques.  This uses \'Etienne Forest's
+PTC (\sref{s:ptc.intro}) software for the calculation. This method is symplectic but can be
+slow. Exceptions: The tracking is not symplectic when tracking through and element with an
+associated electric field and when tracking through a \vn{taylor} element.
 
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
-This uses a partially inverted, implicit Taylor map. The calculation
-uses \'Etienne Forest's PTC software (\sref{s:ptc.intro}).  Since the
-map is implicit, a Newton search method must be used. This will slow
-things down from the Taylor method but this is guaranteed
-symplectic. Note: Due to memory limitations in PTC, the number of
-elements using symp_map is limited to be of order 50.
+This uses a partially inverted, implicit Taylor map. The calculation uses \'Etienne Forest's PTC
+software (\sref{s:ptc.intro}).  Since the map is implicit, a Newton search method must be used. This
+will slow things down from the Taylor method but this is guaranteed symplectic. Note: Due to memory
+limitations in PTC, the number of elements using symp_map is limited to be of order 50.
 
 \index{taylor!tracking_method}
 \item[\vn{Taylor}]
-This uses a Taylor map generated from the PTC (\sref{s:ptc.intro})
-package. Generating the map may take time but once you have it it
-should be very fast. One possible problem with using a Taylor map is
-that you have to worry about the accuracy if you do tracking at points
-that are far from the expansion point about which the map was
-made. This method is non-symplectic away from the expansion
-point. Whether the Taylor map is generated taking into account the
-offset an element has is governed by the \vn{taylor_map_includes_offsets}
-attribute (\sref{s:mapoff}).  
+This uses a Taylor map generated from the PTC (\sref{s:ptc.intro}) package. Generating the map may
+take time but once you have it it should be very fast. One possible problem with using a Taylor map
+is that you have to worry about the accuracy if you do tracking at points that are far from the
+expansion point about which the map was made. This method is non-symplectic away from the expansion
+point. Whether the Taylor map is generated taking into account the offset an element has is governed
+by the \vn{taylor_map_includes_offsets} attribute (\sref{s:mapoff}).
 
 The order of a Taylor map is set by the \vn{parameter[taylor_order]}
 parameter (\sref{s:param}).
 
 \index{time_runge_kutta!tracking_method}
 \item[\vn{Time_Runge_Kutta}]
-This method uses time as the independent variable instead of the longitudinal $z$
-position. The advantage of this method is that it can handle particles which reverse
-direction longitudinally.  One use for this method is ``dark current'' tracking where, as
-illustrated in \fig{f:dark.current}, low energy particles generated at the vacuum chamber
-walls can be found traveling in all directions. Notice that \vn{time_runge_kutta} is
-different from using \vn{absolute time tracking} as explained in \sref{s:rf.time}.
+This method uses time as the independent variable instead of the longitudinal $z$ position. The
+advantage of this method is that it can handle particles which reverse direction longitudinally.
+One use for this method is ``dark current'' tracking where, as illustrated in \fig{f:dark.current},
+low energy particles generated at the vacuum chamber walls can be found traveling in all
+directions. Notice that \vn{time_runge_kutta} is different from using \vn{absolute time tracking} as
+explained in \sref{s:rf.time}.
 
 \end{description}
 
@@ -216,8 +202,6 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
   \vn{ab_multipole}            & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
   \vn{ac_kicker}               & D & X & X &   &  X  &     &     &     &     & X  \\  
   \vn{beambeam}                & D & X & X &   &     &     &     &     &     &    \\  
-  \vn{capillary}               & D & X &   &   &     &     &     &     &     &    \\  
-  \vn{crystal}                 & D & X &   &   &     &     &     &     &     &    \\  
   \vn{custom}                  &   & D & X &   &  X  &     &     &     &     & X  \\  
   \vn{drift}                   & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
   \vn{e_gun}                   &   & X &   &   &X$^a$&     &     &     &     & D  \\  
@@ -232,9 +216,7 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
   \vn{marker}                  & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
   \vn{match}                   & D & X &   &   &     &     &     &     &  X  &    \\ 
   \vn{monitor}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{mirror}                  & D & X &   &   &     &     &     &     &     &    \\  
   \vn{multipole}               & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{multilayer}              & D & X &   &   &     &     &     &     &     &    \\  
   \vn{octupole}                & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{patch}                   & D & X &   &   &  X  &     &  X  &     &  X  &    \\ 
   \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
@@ -242,7 +224,6 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
   \vn{rcollimator}             & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{rfcavity}                & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{sad_mult}                & D & X & X &   &     &     &  X  &  X  &  X  &    \\
-  \vn{sample}                  & D & X &   &   &     &     &     &     &     &    \\
   \vn{sbend}                   & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{sextupole}               & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
@@ -255,8 +236,9 @@ different from using \vn{absolute time tracking} as explained in \sref{s:rf.time
   \multicolumn{12}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}        \\
 \end{tabular}
 }
-\caption[Table of available {\bf tracking_method}\ switches for a given element class.] { 
-Table of valid {\bf tracking_method}\ switches for a given element class. ``D'' denotes the
+\caption[Table of available tracking_method switches for charged particle tracking.] { 
+Table of valid tracking_method switches for use charged particle tracking. When tracking photons,
+only bmad_standard and custom tracking methods are available. ``D'' denotes the
 default method. ``X'' denotes a valid method.}
 
 \label{t:track.methods}
@@ -269,84 +251,71 @@ default method. ``X'' denotes a valid method.}
 \label{s:xfer}
 \index{mat6_calc_method|hyperbf}
 
-The \vn{mat6_calc_method} attribute sets how the 6x6 Jacobian transfer
-matrix for a given element is computed.  Table~\ref{t:mat6.methods}
-gives which methods are available for each type of element.
+The \vn{mat6_calc_method} attribute sets how the 6x6 Jacobian transfer matrix for a given element is
+computed. Table~\ref{t:mat6.methods} gives which methods are available for each type of element.
+Note: Table~\ref{t:mat6.methods} is for charged-particle tracking only. When tracking photons,
+transfer matrices (which are not very useful) are not computed.
 
 \index{sympliectify}
 \index{taylor_map_includes_offsets}
-In addition to the \vn{mat6_calc_method} switch, 
-two element attributes that can affect the way the transfer matrix is
-calculated are \vn{symplectify} and \vn{taylor_map_includes_offsets}. These are
+In addition to the \vn{mat6_calc_method} switch, two element attributes that can affect the way the
+transfer matrix is calculated are \vn{symplectify} and \vn{taylor_map_includes_offsets}. These are
 discussed in sections \sref{s:symp} and \sref{s:mapoff} respectively.
 
-For methods that do not necessarily produce a symplectic matrix the
-\vn{symplectify} attribute of an element can be set to \vn{True} to
-solve the problem. See \sref{s:symp.method}. 
+For methods that do not necessarily produce a symplectic matrix the \vn{symplectify} attribute of an
+element can be set to \vn{True} to solve the problem. See \sref{s:symp.method}.
 
-Symplectic integration is like ordinary integration of a function f(x)
-but what is integrated here is a Taylor map. Truncating the map to
-0\Th order gives the particle trajectory and truncating to 1\St\
-order gives the transfer matrix (Jacobian).  The order at which a
-Taylor series is truncated at is set by \vn{taylor_order} (see
-\sref{s:param}. Like ordinary integration there are various
-formulas that one can use to do symplectic integration. In \bmad (or
-more precisely in PTC (\sref{s:ptc.intro})) you can use one of 3 methods. This is
-set by \vn{integrator_order}.  \vn{integrator_order} = n where $n$ is
-allowed by PTC to be 2, 4, or 6. With an integration order of $n$ the
-error in an integration step scales as $dz^n$ where $dz$ is step
-size. The step size $dz$ is set by the length of the element and the
-value of \vn{ds_step}. Remember, as in ordinary integration, higher
-integration order does not necessarily imply higher accuracy.
+Symplectic integration is like ordinary integration of a function f(x) but what is integrated here
+is a Taylor map. Truncating the map to 0\Th order gives the particle trajectory and truncating to
+1\St\ order gives the transfer matrix (Jacobian).  The order at which a Taylor series is truncated
+at is set by \vn{taylor_order} (see \sref{s:param}. Like ordinary integration there are various
+formulas that one can use to do symplectic integration. In \bmad (or more precisely in PTC
+(\sref{s:ptc.intro})) you can use one of 3 methods. This is set by \vn{integrator_order}.
+\vn{integrator_order} = n where $n$ is allowed by PTC to be 2, 4, or 6. With an integration order of
+$n$ the error in an integration step scales as $dz^n$ where $dz$ is step size. The step size $dz$ is
+set by the length of the element and the value of \vn{ds_step}. Remember, as in ordinary
+integration, higher integration order does not necessarily imply higher accuracy.
 
 \begin{description}
 
 \index{bmad_standard!mat6_calc_method}
 \item[\vn{Bmad_Standard}]
-Uses formulas for the calculation. The formulas generally use the
-paraxial approximation. The emphasis here is on speed.
+Uses formulas for the calculation. The formulas generally use the paraxial approximation. The
+emphasis here is on speed.
 
 \index{custom!mat6_calc_method}
 \item[\vn{Custom}]
-This method will call a routine \vn{make_mat6_custom} which must be
-supplied by the programmer implementing the custom transfer matrix
-calculation. The default \vn{make_mat6_custom} supplied with the
-\bmad release will print an error message and stop the program if it
-is called which probably indicates a program linking problem.
-See \vn{s:custom.ele} for more details.
+This method will call a routine \vn{make_mat6_custom} which must be supplied by the programmer
+implementing the custom transfer matrix calculation. The default \vn{make_mat6_custom} supplied with
+the \bmad release will print an error message and stop the program if it is called which probably
+indicates a program linking problem.  See \vn{s:custom.ele} for more details.
 
 \index{MAD!mat6_calc_method}
 \item[\vn{MAD}]
-This uses the MAD 2nd transfer map. This method is not able to
-handle element misalignments or kicks, and becomes inaccurate as the
-particle energy deviates from the reference energy. MAD tracking is
-generally only used for testing purposes. Thanks must be given
-to CERN and Frank Schmidt for permission to use the MAD tracking code
-within \bmad.
+This uses the MAD 2nd transfer map. This method is not able to handle element misalignments or
+kicks, and becomes inaccurate as the particle energy deviates from the reference energy. MAD
+tracking is generally only used for testing purposes. Thanks must be given to CERN and Frank Schmidt
+for permission to use the MAD tracking code within \bmad.
 
 \index{static!mat6_calc_method}
 \item[\vn{Static}]
-This prevents the transfer matrix from being recomputed.
-Using \vn{Static} in the input file is generally not a good idea since
-it prevents the matrix from being computed in the first place.
+This prevents the transfer matrix from being recomputed.  Using \vn{Static} in the input file is
+generally not a good idea since it prevents the matrix from being computed in the first place.
 Typically \vn{Static} is used internally in a program to prevent recomputation.
 
 \index{symp_lie_bmad!mat6_calc_method}
 \item[\vn{Symp_Lie_Bmad}]
-A symplectic calculation using a Hamiltonian with Lie operator
-techniques.  This is similar to \vn{Symp_Lie_PTC} (see below) except
-this uses a \bmad routine. By bypassing some of the generality
-inherent in PTC, \vn{Symp_Lie_Bmad} achieves about a factor
-of 10 improvement in speed over \vn{Symp_Lie_PTC}. However,
-\vn{Symp_Lie_Bmad} cannot generate maps above first order.
+A symplectic calculation using a Hamiltonian with Lie operator techniques.  This is similar to
+\vn{Symp_Lie_PTC} (see below) except this uses a \bmad routine. By bypassing some of the generality
+inherent in PTC, \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
+\vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} cannot generate maps above first order.
 
 \index{symp_lie_ptc!mat6_calc_method}
 \item[\vn{Symp_Lie_PTC}]
-Symplectic integration using a Hamiltonian and Lie operators.
-This uses the PTC (\sref{s:ptc.intro}) software for the calculation.
-This method is symplectic but can be slow. Exceptions: The tracking is
-not symplectic when tracking through and element with an associated electric field
-and when tracking through a \vn{taylor} element.
+Symplectic integration using a Hamiltonian and Lie operators.  This uses the PTC
+(\sref{s:ptc.intro}) software for the calculation.  This method is symplectic but can be
+slow. Exceptions: The tracking is not symplectic when tracking through and element with an
+associated electric field and when tracking through a \vn{taylor} element.
 
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
@@ -411,8 +380,6 @@ sets the six deltas used for displacing the initial particle coordinates from th
   \vn{ab_multipole}            & D & X &   & X &     &  X  &  X  & X \\  
   \vn{ac_kicker}               &   & X &   & X &     &  X  &  X  & D \\  
   \vn{beambeam}                & D & X &   & X &     &     &     & X \\  
-  \vn{capillary}               & D & X &   & X &     &     &     & X \\  
-  \vn{crystal}                 & D & X &   & X &     &     &     & X \\  
   \vn{custom}                  &   & D &   & X &     &     &     & X \\  
   \vn{drift}                   & D & X & X & X &     &  X  &  X  & X \\  
   \vn{e_gun}                   &   & X &   & X &     &     &     & D \\  
@@ -426,10 +393,8 @@ sets the six deltas used for displacing the initial particle coordinates from th
   \vn{lcavity}                 & D & X &   & X &     &  X  &  X  & X \\  
   \vn{marker}                  & D & X &   & X &     &  X  &  X  & X \\  
   \vn{match}                   & D & X &   & X &     &     &     & X \\  
-  \vn{mirror}                  & D & X &   & X &     &     &     & X \\  
   \vn{monitor}                 & D & X &   & X &     &  X  &  X  & X \\  
   \vn{multipole}               & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{multilayer_mirror}       & D & X &   & X &     &     &     & X \\  
   \vn{octupole}                & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{patch}                   & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  & X \\ 
@@ -437,7 +402,6 @@ sets the six deltas used for displacing the initial particle coordinates from th
   \vn{rcollimator}             & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{rfcavity}                & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{sad_mult}                & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{sample}                  & D & X &   & X &     &     &     & X \\ 
   \vn{sbend}                   & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{sextupole}               & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  & X \\ 
@@ -447,11 +411,10 @@ sets the six deltas used for displacing the initial particle coordinates from th
   \vn{wiggler}                 & D & X &   & X &X$^a$&X$^a$&X$^a$& X \\ \bottomrule
   \multicolumn{9}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
-}
-\caption[Table of available \vn{mat6_calc_method}\ switches for a
-given element class.]{Table of available \vn{mat6_calc_method}\
-switches for a given element class. ``D'' denotes the default
-method. ``X'' denotes an available method.}
+} 
+\caption[Table of available mat6_calc_method switches for charged-particle tracking.]  {Table of
+available mat6_calc_method switches for charged-particle tracking. When tracking photons, transfer
+matrices are not computed.  ``D'' denotes the default method. ``X'' denotes an available method.}
 
 \label{t:mat6.methods}
 \end{table}
@@ -464,35 +427,35 @@ method. ``X'' denotes an available method.}
 \index{spin tracking!methods}
 \index{spin_tracking_method}
 
-The \vn{spin_tracking_method} attribute of an elements sets the algorithm that is used for
-tracking a particle's spin (\sref{s:spin.dyn}) through that element.
-Table~\ref{t:spin.methods} gives which methods are available for each type of element.
+The \vn{spin_tracking_method} attribute of an elements sets the algorithm that is used for tracking
+a particle's spin (\sref{s:spin.dyn}) through that element.  Table~\ref{t:spin.methods} gives which
+methods are available for each type of element. Note: This table is only for charged-particle tracking
+since photons do not have spin.
 
 Possible \vn{spin_tracking_method} settings are:
 \begin{description}
 
 \index{custom!spin_tracking_method}
 \item[\vn{Custom}] \Newline
-This method will call a routine \vn{track1_spin_custom} which must be supplied by the
-programmer implementing the custom spin tracking calculation. See \vn{s:custom.ele} for
-more details.
+This method will call a routine \vn{track1_spin_custom} which must be supplied by the programmer
+implementing the custom spin tracking calculation. See \vn{s:custom.ele} for more details.
 
 \index{tracking!mat6_calc_method}
 \item[\vn{Tracking}] \Newline
 How spin is tracked here will depend also on the setting of \vn{tracking_method}. If
-\vn{tracking_method} is set to \vn{runge_kutta} or \vn{time_runge_kutta} the spin will
-be tracked along with the phase space particle coordinates using the local fields. For
-\vn{tracking_method} set to \vn{symp_lie_ptc}, the spin tracking will use \vn{PTC}.  For all other
-\vn{tracking_method}s, the spin will be tracked using the ``\vn{bmad_standard}'' spin tracking
-method which involves Romberg integration of the spin rotation matrix.
+\vn{tracking_method} is set to \vn{runge_kutta} or \vn{time_runge_kutta} the spin will be tracked
+along with the phase space particle coordinates using the local fields. For \vn{tracking_method} set
+to \vn{symp_lie_ptc}, the spin tracking will use \vn{PTC}.  For all other \vn{tracking_method}s, the
+spin will be tracked using the ``\vn{bmad_standard}'' spin tracking method which involves Romberg
+integration of the spin rotation matrix.
 
-The \vn{runge_kutta} and \vn{time_runge_kutta} spin tracking uses the same fourth order integrator as is used
-for the orbital coordinates to track the spin rotation vector.
+The \vn{runge_kutta} and \vn{time_runge_kutta} spin tracking uses the same fourth order integrator
+as is used for the orbital coordinates to track the spin rotation vector.
 
 \index{symp_lie_ptc!spin_tracking_method}
 \item[\vn{Symp_Lie_PTC}] \Newline
-Symplectic integration using a Hamiltonian and Lie operators.  This uses \'Etienne's PTC
-software for the calculation.  This method is symplectic but can be slow.
+Symplectic integration using a Hamiltonian and Lie operators.  This uses \'Etienne's PTC software
+for the calculation.  This method is symplectic but can be slow.
 
 \end{description}
 
@@ -502,8 +465,8 @@ not. Note: There is also another \vn{bmad_com} parameter called \vn{spin_baier_k
 which can influence spin tracking.
 
 \index{spin_fringe_on}
-The \vn{spin_fringe_on} element attribute (\sref{s:fringe.at}) can be used to toggle
-whether the fringe fields of an element affect the spin.
+The \vn{spin_fringe_on} element attribute (\sref{s:fringe.at}) can be used to toggle whether the
+fringe fields of an element affect the spin.
 
 Example:
 \begin{example}
@@ -531,8 +494,6 @@ Example:
   \vn{ab_multipole}            & X &   & D \\  
   \vn{ac_kicker}               & X &   & D \\  
   \vn{beambeam}                & X &   &   \\  
-  \vn{capillary}               &   &   &   \\  
-  \vn{crystal}                 &   &   &   \\  
   \vn{custom}                  & D &   & X \\  
   \vn{drift}                   & X & X & D \\  
   \vn{e_gun}                   & X &   & D \\  
@@ -545,10 +506,8 @@ Example:
   \vn{lcavity}                 & X & X & D \\  
   \vn{marker}                  & X & X & D \\  
   \vn{match}                   & X &   &   \\  
-  \vn{mirror}                  &   &   &   \\  
   \vn{monitor}                 & X & X & D \\  
   \vn{multipole}               & X & X & D \\  
-  \vn{multilayer}              &   &   &   \\  
   \vn{octupole}                & X & X & D \\ 
   \vn{patch}                   & X & X &   \\ 
   \vn{quadrupole}              & X & X & D \\ 
@@ -556,7 +515,6 @@ Example:
   \vn{rcollimator}             & X & X & D \\ 
   \vn{rfcavity}                & X & X & D \\ 
   \vn{sad_mult}                & X &   &   \\  
-  \vn{sample}                  &   &   &   \\  
   \vn{sbend}                   & X & X & D \\ 
   \vn{sextupole}               & X & X & D \\ 
   \vn{solenoid}                & X & X & D \\ 
@@ -567,10 +525,9 @@ Example:
 \end{tabular}
 }
 
-\caption[Table of available \vn{spin_tracking_method}\ switches for a
-given element class.]{Table of available \vn{spin_tracking_method}\
-switches for a given element class. ``D'' denotes the default
-method. ``X'' denotes an available method.}
+\caption[Table of available spin_tracking_method switches for charged-particle tracking.]{Table of
+available \vn{spin_tracking_method}\ switches for charged-particle tracking (photons do not have
+spin). ``D'' denotes the default method. ``X'' denotes an available method.}
 
 \label{t:spin.methods}
 \end{table}
