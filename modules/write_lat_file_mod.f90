@@ -68,6 +68,7 @@ type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, super, slave, lord, lord2, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0
 type (ele_struct), target :: ele_default(n_key$), this_ele
 type (ele_pointer_struct), allocatable :: named_eles(:)
+type (ele_attribute_struct) info
 type (control_struct), pointer :: ctl, ctl2
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
@@ -112,10 +113,10 @@ integer i, j, k, n, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, ie1, ie, ib, ib1, ic
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_lord, ix_super, default_val, imax, ibr
-integer, allocatable :: an_indexx(:), index_list(:)
+integer, allocatable :: an_indexx(:), index_list(:), n_count(:)
 
 logical, optional :: err
-logical unit_found, write_term, found, in_multi_region, expand_branch_out
+logical unit_found, write_term, found, in_multi_region, have_expand_lattice_line
 logical x_lim_good, y_lim_good, is_default, need_new_region, err_flag, has_been_added
 
 ! Init...
@@ -346,26 +347,14 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Do not write anything for elements that have a duplicate name.
 
-    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
-    if (ix_match > 0) then
-      ! The created lattice file will not be correct if two elements with the same name have a parameter whose value
-      ! is differs between the two element and furthermore that parameter is an independent variable.
-      ! This is complicated to check. For example, it is not a problem to have two quadrupoles with %field_master = True 
-      ! to have differing k1. For now only check match elements. 
-      if (.not. congruent_lattice_elements(named_eles(ix_match)%ele, ele)) then
-        call out_io (s_fatal$, r_name, 'TWO ELEMENTS WITH THE SAME NAME HAVE DIFFERENT PARAMETERS! ' // ele%name, &
-                                       'WILL NOT CREATE A LATTICE FILE. SUGGESTION: WRITE A DIGESTED FILE.')
-        return
-      endif
-      cycle
-    endif
-
     if (size(names) < n_names + 1) then
       call re_allocate(names, 2*size(names))
       call re_allocate(an_indexx, 2*size(names))
       call re_allocate_eles(named_eles, 2*size(names))
     endif
-    call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
+    call find_indexx (ele%name, names, an_indexx, n_names, ix_match, &
+                              add_to_list = .true., has_been_added = has_been_added)
+    if (.not. has_been_added) cycle
     named_eles(n_names)%ele => ele
 
     ! Overlays and groups
@@ -593,7 +582,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', cartesian_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_cartesian_map (iu, line)
+          call write_this_cartesian_map (ele, iu, line)
 
         elseif (ix_ptr > 0) then  ! A file has been created so refer to that
 
@@ -610,7 +599,7 @@ do ib = 0, ubound(lat%branch, 1)
           !else
             iu2 = lunget()
             open (iu2, file = string)
-            call write_this_cartesian_map (iu2)
+            call write_this_cartesian_map (ele, iu2)
             close (iu2)
           !endif
         endif
@@ -628,7 +617,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', cylindrical_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_cylindrical_map (iu, line)
+          call write_this_cylindrical_map (ele, iu, line)
 
         elseif (ix_ptr > 0) then
           call form_this_field_map_name(string, '.cylindrical_map', ele2, ix_ptr, ascii$)
@@ -644,7 +633,7 @@ do ib = 0, ubound(lat%branch, 1)
           !else
             iu2 = lunget()
             open (iu2, file = string)
-            call write_this_cylindrical_map (iu2)
+            call write_this_cylindrical_map (ele, iu2)
             close (iu2)
           !endif
         endif
@@ -663,7 +652,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', grid_field_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_grid_field_map (iu, line)
+          call write_this_grid_field_map (ele, iu, line)
 
         elseif (ix_ptr > 0) then
           call form_this_field_map_name(string, '.grid_field', ele2, ix_ptr, output_form)
@@ -679,7 +668,7 @@ do ib = 0, ubound(lat%branch, 1)
           else
             iu2 = lunget()
             open (iu2, file = string)
-            call write_this_grid_field_map (iu2)
+            call write_this_grid_field_map (ele, iu2)
             close (iu2)
           endif
         endif
@@ -698,7 +687,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (integer_option(binary$, output_form) == one_file$) then
           line = trim(line) // ', taylor_field_map ='
           call write_lat_line (line, iu, .true.)
-          call write_this_taylor_field_map (iu, line)
+          call write_this_taylor_field_map (ele, iu, line)
 
         elseif (ix_ptr > 0) then
           call form_this_field_map_name(string, '.taylor_field', ele2, ix_ptr, ascii$)
@@ -714,7 +703,7 @@ do ib = 0, ubound(lat%branch, 1)
           !else
             iu2 = lunget()
             open (iu2, file = string)
-            call write_this_taylor_field_map (iu2)
+            call write_this_taylor_field_map (ele, iu2)
             close (iu2)
           !endif
         endif
@@ -1252,17 +1241,58 @@ write (iu, '(a)') trim(line)
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
 
-expand_branch_out = .false.
+have_expand_lattice_line = .false.
 do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
   if (ele%slave_status == super_slave$) cycle
 
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
     if (ele%value(phi0_multipass$) == 0) cycle
-    if (.not. expand_branch_out) call write_expand_lat_header
+    if (.not. have_expand_lattice_line) call write_expand_lat_header
     write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
   endif
 
+enddo
+
+! If there are lattice elements with duplicate names but differing parameters then
+! Write the differences.
+
+allocate(n_count(n_names))
+
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  n_count = 0
+
+  do ie = 1, branch%n_ele_max
+    ele => branch%ele(ie)
+    if (ele%slave_status /= free$ .and. ele%slave_status /= minor_slave$) cycle
+    if (ele%key == marker$ .and. ele%name == 'END') cycle
+    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+    ele0 => named_eles(ix_match)%ele
+    n_count(ix_match) = n_count(ix_match) + 1
+    if (n_count(ix_match) == 1) cycle    
+
+    do i = 1, num_ele_attrib$
+      if (ele%value(i) == ele0%value(i)) cycle
+      info = attribute_info(ele, i)
+      if (info%type /= is_free$ .and. info%type /= quasi_free$) cycle
+      if (info%type == quasi_free$) then
+        if (.not. attribute_free(ele, info%name, .false.)) cycle
+      endif
+
+      ! Have a differing attribute
+      if (.not. have_expand_lattice_line) call write_expand_lat_header
+      if (size(lat%branch) == 1) then
+        line = ''
+      else
+        write (line, '(i0, a)') ib, '>>'
+      endif
+      write (iu, '(3a, i0, 4a)') trim(line), trim(ele%name), '##', n_count(ix_match), '[', &
+                trim(attribute_name(ele, i)), '] = ', re_str(ele%value(i))
+    enddo
+
+
+  enddo
 enddo
 
 ! cleanup
@@ -1283,7 +1313,7 @@ character(*) param_name
 
 !
 
-if (abs(param_now - param_default) < 1e-12 * (abs(param_now) + abs(param_default))) return
+if (abs(param_now - param_default) <= 1e-12 * (abs(param_now) + abs(param_default))) return
 write (iu, '(3a)') param_name, ' = ', re_str(param_now)
 
 end subroutine write_if_real_param_changed
@@ -1328,7 +1358,7 @@ write (iu, '(a)') '!-------------------------------------------------------'
 write (iu, '(a)')
 write (iu, '(a)') 'expand_lattice'
 write (iu, '(a)')
-expand_branch_out = .true.
+have_expand_lattice_line = .true.
 
 end subroutine write_expand_lat_header
 
@@ -1387,8 +1417,9 @@ end subroutine write_map_coef
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_cartesian_map (iu9, line)
+subroutine write_this_cartesian_map (ele, iu9, line)
 
+type (ele_struct) ele
 integer iu9
 character(*), optional :: line
 
@@ -1434,8 +1465,9 @@ end subroutine write_this_cartesian_map
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_cylindrical_map (iu9, line)
+subroutine write_this_cylindrical_map (ele, iu9, line)
 
+type (ele_struct) ele
 integer iu9
 character(*), optional :: line
 
@@ -1471,8 +1503,9 @@ end subroutine write_this_cylindrical_map
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_grid_field_map (iu9, line)
+subroutine write_this_grid_field_map (ele, iu9, line)
 
+type (ele_struct) ele
 integer iu9
 character(*), optional :: line
 
@@ -1548,8 +1581,9 @@ end subroutine write_this_grid_field_map
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_taylor_field_map (iu9, line)
+subroutine write_this_taylor_field_map (ele, iu9, line)
 
+type (ele_struct) ele
 integer iu9
 character(*), optional :: line
 
@@ -2516,7 +2550,7 @@ do ix_ele = ie1, ie2
     endif
   endif
 
-  ! do not make duplicate specs
+  ! Do not make duplicate specs
 
   call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
   if (ix_match > 0) cycle
@@ -2527,7 +2561,7 @@ do ix_ele = ie1, ie2
     call re_allocate(names, 2*size(names))
     call re_allocate(an_indexx, 2*size(names))
   endif
-
+ 
   call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
 
   !----------
