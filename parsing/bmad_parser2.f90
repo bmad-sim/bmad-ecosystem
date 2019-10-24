@@ -142,7 +142,7 @@ n_max_old = n_max
 n_max = n_max + n_def_ele
 
 if (.not. bp_com%bmad_parser_calling) call load_parse_line ('init', 1, end_of_file)
-allocate (lat2%ele(1))
+call init_lat (lat2, 10)
 
 
 !-----------------------------------------------------------

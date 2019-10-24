@@ -16,22 +16,23 @@ available in \bmad.
   BeamBeam          & \ref{s:bbi}         &  Multipole         & \ref{s:mult}     \\
   Beginning_Ele     & \ref{s:begin.ele}   &  Null_Ele          & \ref{s:null.ele} \\
   Converter         & \ref{s:converter}   &  Octupole          & \ref{s:oct}      \\
-  Custom            & \ref{s:custom}      &  Patch             & \ref{s:patch}    \\
-  Drift             & \ref{s:drift}       &  Photon_Fork       & \ref{s:fork}     \\
-  E_Gun             & \ref{s:e.gun}       &  Pipe              & \ref{s:monitor}  \\
-  Ecollimator       & \ref{s:col}         &  Quadrupole        & \ref{s:quad}     \\
-  ElSeparator       & \ref{s:elsep}       &  Rbend             & \ref{s:bend}     \\
-  EM_Field          & \ref{s:em.field}    &  Rcollimator       & \ref{s:col}      \\
-  Fiducial          & \ref{s:fiducial}    &  RFcavity          & \ref{s:rfcav}    \\
-  Floor_Shift       & \ref{s:floor.ele}   &  Sad_Mult          & \ref{s:sad.mult} \\
-  Fork              & \ref{s:fork}        &  Sbend             & \ref{s:bend}     \\
-  HKicker           & \ref{s:hvkicker}    &  Sextupole         & \ref{s:sex}      \\
-  Hybrid            & \ref{s:hybrid}      &  Sol_Quad          & \ref{s:sq}       \\
-  Instrument        & \ref{s:monitor}     &  Solenoid          & \ref{s:sol}      \\
-  Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \\
-  Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \\
-  Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \\  
-  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \\ \bottomrule
+  Crab_Cavity       & \ref{s:crab}        &  Patch             & \ref{s:patch}    \\
+  Custom            & \ref{s:custom}      &  Photon_Fork       & \ref{s:fork}     \\
+  Drift             & \ref{s:drift}       &  Pipe              & \ref{s:monitor}  \\
+  E_Gun             & \ref{s:e.gun}       &  Quadrupole        & \ref{s:quad}     \\
+  Ecollimator       & \ref{s:col}         &  Rbend             & \ref{s:bend}     \\
+  ElSeparator       & \ref{s:elsep}       &  Rcollimator       & \ref{s:col}      \\
+  EM_Field          & \ref{s:em.field}    &  RFcavity          & \ref{s:rfcav}    \\
+  Fiducial          & \ref{s:fiducial}    &  Sad_Mult          & \ref{s:sad.mult} \\
+  Floor_Shift       & \ref{s:floor.ele}   &  Sbend             & \ref{s:bend}     \\
+  Fork              & \ref{s:fork}        &  Sextupole         & \ref{s:sex}      \\
+  HKicker           & \ref{s:hvkicker}    &  Sol_Quad          & \ref{s:sq}       \\
+  Hybrid            & \ref{s:hybrid}      &  Solenoid          & \ref{s:sol}      \\
+  Instrument        & \ref{s:monitor}     &  Taylor            & \ref{s:taylor}   \\
+  Kicker            & \ref{s:kicker}      &  Undulator         & \ref{s:wiggler}  \\
+  Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \\  
+  Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \\
+  Mask              & \ref{s:mask}        &                    &                  \\ \bottomrule
 \end{tabular}
 }
 \caption{Table of element types suitable for use with charged particles.}
@@ -1008,18 +1009,24 @@ General \vn{custom} attributes are:
 \end{center}
 
 %-----------------------------------------------------------------
+\section{Crab_Cavity}
+\label{s:crab}
+\index{crab_cavity|hyperbf}
+
+A \vn{crab_cavity} is an RF cavity that gives a $z$-dependent kick. This is useful in colliding beam
+machines, where there is a finite crossing angle at the interaction point, to rotate the beams near the IP.
+
+%-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
 \index{custom|hyperbf}
 
-A \vn{custom} element is an element whose properties are defined
-outside of the standard \bmad subroutine library. That is, to use a
-custom element, some programmer must write the appropriate custom
-routines which are then linked with the \bmad subroutines into a
-program. \bmad will call the custom routines at the appropriate time
-to do tracking, transfer matrix calculations, etc. See the programmer
-who wrote the custom routines for more details! See
-\sref{s:custom.ele} on how to write custom routines.
+A \vn{custom} element is an element whose properties are defined outside of the standard \bmad
+subroutine library. That is, to use a custom element, some programmer must write the appropriate
+custom routines which are then linked with the \bmad subroutines into a program. \bmad will call the
+custom routines at the appropriate time to do tracking, transfer matrix calculations, etc. See the
+programmer who wrote the custom routines for more details! See \sref{s:custom.ele} on how to write
+custom routines.
 
 General \vn{custom} attributes are:
 \begin{center}

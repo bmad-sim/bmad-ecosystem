@@ -5938,7 +5938,7 @@ type (ele_pointer_struct), allocatable :: in_eles(:)
 type (parser_controller_struct), pointer :: pc
 type (control_struct), pointer :: con
 
-integer i, n_in, ic, ig, k, ix, ib, ie_start, n_list, ns, ixs, ii, ix_end, n_ele_max
+integer ip, n_in, ic, ig, k, ix, ib, ie_start, n_list, ns, ixs, ii, ix_end, n_ele_max
 integer n_slave, nn, n_loc, n_names, n_in_loc, ix1_slave
 integer ix_lord, k_slave, ix_ele_now, ix_super_lord_end
 
@@ -5970,10 +5970,10 @@ main_loop: do n_in = 1, n_ele_max
     if (allocated(m_eles)) deallocate (m_eles)
     allocate (m_eles(size(pele%control)))
 
-    do i = 1, size(pele%control)
-      pc => pele%control(i)
-      call lat_ele_locator (pc%name, lat, m_eles(i)%eles, m_eles(i)%n_loc, err)
-      n_loc = m_eles(i)%n_loc
+    do ip = 1, size(pele%control)
+      pc => pele%control(ip)
+      call lat_ele_locator (pc%name, lat, m_eles(ip)%eles, m_eles(ip)%n_loc, err)
+      n_loc = m_eles(ip)%n_loc
       n_slave = n_slave + n_loc
 
       if (n_loc == 0) then
@@ -5995,21 +5995,21 @@ main_loop: do n_in = 1, n_ele_max
     ! Create the lord(s)
 
     if (is_true(lord%value(gang$))) then
-      call make_this_overlay_group_lord(0, err_flag)
+      call make_this_overlay_group_lord(0, err_flag, pele)
     else
-      do i = 2, size(pele%control)
-        if (m_eles(1)%n_loc /= m_eles(i)%n_loc) then
+      do ip = 2, size(pele%control)
+        if (m_eles(1)%n_loc /= m_eles(ip)%n_loc) then
           call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
                     'WITH GANG = FALSE NEED ALL SLAVES WITH A GIVEN NAME TO HAVE THE SAME NUMBER OF', &
                     'ELEMENTS IN THE LATTICE. BUT ' // trim(pele%control(1)%name) // ' HAS \i0\ ELEMENTS', &
-                    'WHILE ' // trim(pele%control(I)%name) // ' HAS \i0\ ELEMENTS', &
-                    i_array = [m_eles(1)%n_loc, m_eles(I)%n_loc])
+                    'WHILE ' // trim(pele%control(ip)%name) // ' HAS \i0\ ELEMENTS', &
+                    i_array = [m_eles(1)%n_loc, m_eles(ip)%n_loc])
           cycle main_loop
         endif
       enddo
 
       do nn = 1, m_eles(1)%n_loc
-        call make_this_overlay_group_lord(nn, err_flag)
+        call make_this_overlay_group_lord(nn, err_flag, pele)
         if (err_flag) exit
       enddo
     endif
@@ -6074,7 +6074,7 @@ main_loop: do n_in = 1, n_ele_max
 
           ele => pointer_to_ele (lat, ix_ele_now, ib)
 
-          if (girder_match_slave_element(ele, ele, n_slave, ixs, ix_ele_now)) cycle
+          if (girder_match_slave_element(ele, ele, n_slave, ixs, ix_ele_now, pele)) cycle
 
           ! Here if no match. 
           ! If not previously in a super lord then there is no overall match to the slave list.
@@ -6138,11 +6138,13 @@ enddo main_loop
 !-------------------------------------------------------------------------
 contains
 
-recursive function girder_match_slave_element (ele, slave, n_slave, ixs, ix_ele_now) result (is_matched)
+recursive function girder_match_slave_element (ele, slave, n_slave, ixs, ix_ele_now, pele) result (is_matched)
 
 type (ele_struct), target :: ele, slave
 type (ele_struct), pointer :: lord, slave1, slave2
 type (control_struct), allocatable :: cs_temp(:)
+type (parser_ele_struct) :: pele
+
 integer n_slave, ixs, ix_ele_now
 integer ii, ls, n, ie
 logical is_matched, add_slave
@@ -6215,7 +6217,7 @@ do ii = 1, ele%n_lord
   lord => pointer_to_lord (ele, ii)
   ls = lord%lord_status
   if (ls /= super_lord$ .and. ls /= multipass_lord$ .and. ls /= girder_lord$) cycle
-  is_matched = girder_match_slave_element(lord, ele, n_slave, ixs, ix_ele_now)
+  is_matched = girder_match_slave_element(lord, ele, n_slave, ixs, ix_ele_now, pele)
   if (is_matched) return
 enddo
 
@@ -6253,9 +6255,10 @@ end function ix_far_index
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine make_this_overlay_group_lord (ix_pick, err_flag)
+subroutine make_this_overlay_group_lord (ix_pick, err_flag, pele)
 
-integer ix_pick
+type (parser_ele_struct), target :: pele
+integer ip, ix_pick
 logical err_flag
 
 !
@@ -6273,17 +6276,17 @@ if (.not. allocated(cs)) allocate (cs(n_slave))
 ! Slave setup
 
 n_slave = 0 ! number of slaves found
-do i = 1, size(pele%control)
+do ip = 1, size(pele%control)
 
-  pc => pele%control(i)
+  pc => pele%control(ip)
 
   ! There might be more than 1 element with same name. 
   ! Loop over all elements whose name matches name.
   ! Put the info into the cs structure.
 
-  do k = 1, m_eles(i)%n_loc
+  do k = 1, m_eles(ip)%n_loc
     if (ix_pick /= 0 .and. k /= ix_pick) cycle
-    slave => pointer_to_ele (lat, m_eles(i)%eles(k)%loc)
+    slave => pointer_to_ele (lat, m_eles(ip)%eles(k)%loc)
     n_slave = n_slave + 1
     if (allocated(pc%y_knot)) then
       cs(n_slave)%y_knot = pc%y_knot
