@@ -94,6 +94,8 @@ do ib = 0, ubound(lat%branch, 1)
       if (p_sign == -1 .and. (j == taylor$ .or. j == linear$)) cycle
       ele%tracking_method = j
 
+      if (ele%key == e_gun$ .and. (j == runge_kutta$ .or. j == fixed_step_runge_kutta$)) cycle
+
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
 
       if (ele%tracking_method == symp_lie_ptc$) then
