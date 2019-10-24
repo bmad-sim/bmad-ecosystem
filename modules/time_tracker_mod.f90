@@ -589,7 +589,7 @@ type (coord_struct), intent(in) :: orbit
 
 real(rp), intent(out) :: dvec_dt(10)
 real(rp) rf_time, dt_ref, s_pos, s_tiny
-real(rp) vel(3), force(3)
+real(rp) vel(3), force(3), momentum
 real(rp) :: pc, e_tot, mc2, gamma, charge, beta, p0, h, beta0, dp_dt, dbeta_dt
 
 logical :: err_flag
@@ -629,8 +629,9 @@ if (err_flag) return
 mc2 = mass_of(orbit%species) ! Note: mc2 is in eV
 charge = charge_of(orbit%species) ! Note: charge is in units of |e_charge|
 
-e_tot = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 + orbit%vec(6)**2 + mc2**2) 
-vel(1:3) = c_light * [orbit%vec(2),  orbit%vec(4),  orbit%vec(6)] / e_tot 
+momentum = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 + orbit%vec(6)**2)
+e_tot = sqrt(momentum**2 + mc2**2) 
+vel(1:3) = c_light * [orbit%vec(2),  orbit%vec(4),  orbit%vec(6)] / e_tot ! meters/sec
 
 ! Computation for dr/dt where r(t) = [x, c*p_x, y, c*p_y, s, c*p_s]
 ! 
@@ -696,7 +697,7 @@ else
     beta0 = ele0%value(l$) / (c_light * ele0%value(delta_ref_time$))
   endif
 
-  dvec_dt(10) = orbit%beta * ele%orientation / (h * beta0)  ! dt_ref / dt
+  dvec_dt(10) = orbit%beta * ele%orientation * orbit%vec(6) / (h * beta0 * momentum)  ! dt_ref / dt
 endif
 
 ! Spin
