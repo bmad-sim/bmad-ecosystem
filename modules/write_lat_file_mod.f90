@@ -350,7 +350,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (size(names) < n_names + 1) then
       call re_allocate(names, 2*size(names))
       call re_allocate(an_indexx, 2*size(names))
-      call re_allocate_eles(named_eles, 2*size(names))
+      call re_allocate_eles(named_eles, 2*size(names), .true.)
     endif
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match, &
                               add_to_list = .true., has_been_added = has_been_added)

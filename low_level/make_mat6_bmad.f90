@@ -64,7 +64,7 @@ if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
 !---------------------------------------------------------
 
 select case (key)
-case (ab_multipole$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, &
+case (ab_multipole$, crab_cavity$, sad_mult$, beambeam$, sbend$, patch$, quadrupole$, drift$, &
       rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$, &
       elseparator$, rfcavity$, lcavity$, match$, multipole$, octupole$, sextupole$, &
       sol_quad$, solenoid$, taylor$, wiggler$, undulator$)

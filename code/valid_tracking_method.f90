@@ -76,6 +76,12 @@ case (beambeam$)
     is_valid = .true.
   end select
 
+case (crab_cavity$)
+  select case (method)
+  case (bmad_standard$, linear$, custom$)
+    is_valid = .true.
+  end select
+
 case (crystal$, mirror$, multilayer_mirror$, capillary$, fiducial$)
   if (species == not_set$) then
     select case (method)

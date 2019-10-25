@@ -202,6 +202,7 @@ explained in \sref{s:rf.time}.
   \vn{ab_multipole}            & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
   \vn{ac_kicker}               & D & X & X &   &  X  &     &     &     &     & X  \\  
   \vn{beambeam}                & D & X & X &   &     &     &     &     &     &    \\  
+  \vn{crad_cavity}             & D & X & X &   &     &     &     &     &     &    \\  
   \vn{custom}                  &   & D & X &   &  X  &     &     &     &     & X  \\  
   \vn{drift}                   & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
   \vn{e_gun}                   &   & X &   &   &X$^a$&     &     &     &     & D  \\  
@@ -380,6 +381,7 @@ sets the six deltas used for displacing the initial particle coordinates from th
   \vn{ab_multipole}            & D & X &   & X &     &  X  &  X  & X \\  
   \vn{ac_kicker}               &   & X &   & X &     &  X  &  X  & D \\  
   \vn{beambeam}                & D & X &   & X &     &     &     & X \\  
+  \vn{crab_cavity}             &   &   &   & X &     &     &     & D \\  
   \vn{custom}                  &   & D &   & X &     &     &     & X \\  
   \vn{drift}                   & D & X & X & X &     &  X  &  X  & X \\  
   \vn{e_gun}                   &   & X &   & X &     &     &     & D \\  
@@ -493,7 +495,8 @@ Example:
 %                                C  SLP Trk 
   \vn{ab_multipole}            & X &   & D \\  
   \vn{ac_kicker}               & X &   & D \\  
-  \vn{beambeam}                & X &   &   \\  
+  \vn{beambeam}                & X &   & D \\  
+  \vn{crab_cavity}             & X &   & D \\  
   \vn{custom}                  & D &   & X \\  
   \vn{drift}                   & X & X & D \\  
   \vn{e_gun}                   & X &   & D \\  
@@ -505,21 +508,21 @@ Example:
   \vn{kicker}                  & X & X & D \\  
   \vn{lcavity}                 & X & X & D \\  
   \vn{marker}                  & X & X & D \\  
-  \vn{match}                   & X &   &   \\  
+  \vn{match}                   & X &   & D \\  
   \vn{monitor}                 & X & X & D \\  
   \vn{multipole}               & X & X & D \\  
   \vn{octupole}                & X & X & D \\ 
-  \vn{patch}                   & X & X &   \\ 
+  \vn{patch}                   & X & X & D \\ 
   \vn{quadrupole}              & X & X & D \\ 
   \vn{rbend}                   & X & X & D \\ 
   \vn{rcollimator}             & X & X & D \\ 
   \vn{rfcavity}                & X & X & D \\ 
-  \vn{sad_mult}                & X &   &   \\  
+  \vn{sad_mult}                & X &   & D \\  
   \vn{sbend}                   & X & X & D \\ 
   \vn{sextupole}               & X & X & D \\ 
   \vn{solenoid}                & X & X & D \\ 
   \vn{sol_quad}                & X & X & D \\ 
-  \vn{taylor}                  &   &   &   \\ 
+  \vn{taylor}                  &   &   & D \\ 
   \vn{vkicker}                 & X & X & D \\ 
   \vn{wiggler}                 & X & X & D \\ \bottomrule
 \end{tabular}

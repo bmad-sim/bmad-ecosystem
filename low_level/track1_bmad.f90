@@ -74,6 +74,12 @@ case (beambeam$)
   call track_a_beambeam(end_orb, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
+! crab_cavity
+                        
+case (crab_cavity$)
+  call track_a_crab_cavity(end_orb, ele, param, mat6, make_matrix)
+
+!-----------------------------------------------
 ! Thick multipoles
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, ac_kicker$, kicker$, hkicker$, vkicker$) 

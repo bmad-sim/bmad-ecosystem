@@ -68,6 +68,12 @@ case (beambeam$)
     is_valid = .true.
   end select
 
+case (crab_cavity$)
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
 case (fork$, photon_fork$)
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)

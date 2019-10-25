@@ -46,6 +46,12 @@ case (ac_kicker$)
 case (capillary$, crystal$, mirror$, multilayer_mirror$, taylor$)
   is_valid = .false.
 
+case (crab_cavity$)
+  select case (spin_tracking_method)
+  case (tracking$, custom$)
+    is_valid = .true.
+  end select
+
 case (custom$)
   select case (spin_tracking_method)
   case (tracking$, custom$)
