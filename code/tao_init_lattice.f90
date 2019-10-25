@@ -285,6 +285,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%model%name  = 'model'
   u%base%name   = 'base'
 
+  u%design%u => u
+  u%model%u => u
+  u%base%u => U
+
   u%model%tao_branch(0)%orb0  = u%model%lat%particle_start
   u%design%tao_branch(0)%orb0 = u%design%lat%particle_start
   u%base%tao_branch(0)%orb0   = u%base%lat%particle_start

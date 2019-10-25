@@ -815,6 +815,7 @@ end type
 type tao_lattice_struct
   character(8) :: name                         ! "model", "base", or "design".
   type (lat_struct) lat                        ! lattice structures
+  type (tao_universe_struct), pointer :: u => null()  ! Parent universe
   type (rad_int_all_ele_struct) rad_int
   type (rad_int_all_ele_struct) rad_int_rf_on
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)

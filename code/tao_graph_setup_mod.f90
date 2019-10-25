@@ -2009,6 +2009,8 @@ do ii = 1, size(curve%x_line)
   endif
 
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
+  s_now =  tao_hook_curve_s_pt (s_now, ii, x1, x2, size(curve%x_line), tao_lat, branch)
+
   if (s_now > branch%ele(n_ele_track)%s) s_now = branch%ele(n_ele_track)%s
   curve%x_line(ii) = s_now
   value = 0
