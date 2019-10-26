@@ -37,7 +37,7 @@ end interface
 ! The routine indexx should be used to create an_indexx.
 ! Also see: find_indexx2
 !
-! If add_to_list = True, name is added to the names_list and
+! If add_to_list = True and if name is not in the list: Name is added to the names_list and
 ! an_indexx is updated using the prescription:
 !   First: Find ix2_match.
 !   an_indexx(ix2_match+1:n_max+1) = an_indexx(ix2_match:n_max)
