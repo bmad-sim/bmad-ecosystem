@@ -1096,13 +1096,6 @@ subroutine offset_photon (ele, coord, set, offset_position_only, rot_mat)
   real(rp), optional :: rot_mat(3,3)
 end subroutine
 
-function on_a_girder(ele) result (is_on_girder)
-  import
-  implicit none
-  type (ele_struct), target :: ele
-  logical is_on_girder
-end function
-
 subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
   import
   implicit none
@@ -1188,6 +1181,14 @@ subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_fla
   logical, optional :: err_print_flag
   integer, optional :: ix_attrib
 end subroutine
+
+function pointer_to_girder(ele, ix_slave_back) result (girder)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (ele_struct), pointer :: girder
+  integer, optional :: ix_slave_back
+end function
 
 subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, a_ptr, err_flag, err_print_flag)
   import

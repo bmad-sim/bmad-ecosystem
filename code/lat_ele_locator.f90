@@ -17,7 +17,7 @@
 !               If a name and no branch is given, all branches are searched.
 !               If an index and no branch is given, branch 0 is assumed.
 !   ##N     = N^th instance of ele_id in the branch.
-!
+! Note: 
 ! Note: An old syntax that is still supported is:
 !   {key::}{branch>>}ele_id{##N}
 !
@@ -30,7 +30,7 @@
 !   ele1     = Starting element of the range.
 !   ele2     = Ending element of the range. 
 !   step     = Optional step increment Default is 1. 
-! Note: ele1 and ele2 must be in the same branch.
+! Note: ele1 and ele2 must be in the same branch. Branch 0 is the default.
 ! If ele1 or ele2 is a super_lord, the elements in the range are determined by the position of the
 ! super_slave elements. For example, if loc_str is "Q1:Q1" and Q1 is *not* a super_lord, the eles
 ! list will simply be Q1. If Q1 is a super_lord, the eles list will be the super_slaves of Q1.
@@ -293,15 +293,15 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
 type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, lord, girder
 
 character(*) branch_str, name_in
 character(40) name
 character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
-integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc
-integer key, ix_dup, n_dup, match_name_to, ie1, ie2
+integer i, k, il, ix, ix_branch, ixp, ios, ix_ele, n_loc, ix_slave
+integer key, match_to_instance, n_match, match_name_to, ie1, ie2
 
 logical err, do_match_wild
 logical :: above_ub_is_err
@@ -311,15 +311,16 @@ logical :: above_ub_is_err
 err = .true.
 n_loc = 0
 name = name_in
+girder => null()
 
 ! Look for "##N" suffix to indicate which instance to choose from when there
 ! are multiple elements of a given name.
 
 ix = index(name, '##')
-ix_dup = 0
+match_to_instance = 0
 if (ix /= 0 .and. match_name_to == 0) then
   if (.not. is_integer(name(ix+2:))) return
-  read (name(ix+2:), *) ix_dup
+  read (name(ix+2:), *) match_to_instance
   name = name(:ix-1)
 endif
 
@@ -343,41 +344,61 @@ if (branch_str /= '') then
     endif
     ix_branch = branch%ix_branch
   else
-    ix_branch = -2
+    ix_branch = -2    ! All branches
   endif
 endif
 
 ! Read integer if present
 
-if (is_integer(name)) then
+if (is_integer(name) .and. match_name_to == 0) then
   read (name, *, iostat = ios) ix_ele
   if (ios /= 0) then
     call out_io (s_error$, r_name, 'BAD ELEMENT LOCATION INDEX: ' // name)
     return
   endif
-  if (.not. allocated(eles)) allocate (eles(1))
-  if (ix_branch == -1) ix_branch = 0
-  if (ix_branch > -1) then
-    if (.not. above_ub_is_err .and. ix_ele > lat%branch(ix_branch)%n_ele_max) then
-      ix_ele = lat%branch(ix_branch)%n_ele_max
-    elseif (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) then
+
+  if (ix_branch == -2) then  ! Match to all branches
+    do k = 0, ubound(lat%branch, 1)
+      branch => lat%branch(k)
+      if (.not. match_wild(branch%name, branch_str)) cycle
+      if (.not. above_ub_is_err .and. ix_ele > branch%n_ele_max) then
+        ix_ele = branch%n_ele_max
+      elseif (ix_ele < 0 .or. ix_ele > branch%n_ele_max) then
+        call out_io (s_error$, r_name, 'ELEMENT LOCATION INDEX OUT OF RANGE: ' // name)
+        return
+      endif
+      n_loc = n_loc + 1
+      if (.not. allocated(eles) .or. size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
+      eles(n_loc)%ele => branch%ele(ix_ele)
+    enddo
+
+  else
+    if (ix_branch == -1) ix_branch = 0
+    branch => lat%branch(ix_branch)
+    if (.not. above_ub_is_err .and. ix_ele > branch%n_ele_max) then
+      ix_ele = branch%n_ele_max
+    elseif (ix_ele < 0 .or. ix_ele > branch%n_ele_max) then
       call out_io (s_error$, r_name, 'ELEMENT LOCATION INDEX OUT OF RANGE: ' // name)
       return
     endif
+    n_loc = 1
+    call re_allocate_eles (eles, 1)
+    eles(1)%ele => branch%ele(ix_ele)
   endif
-  do_match_wild = .false.
-else
-  do_match_wild = (index(name, "*") /= 0 .or. index(name, "%") /= 0) 
-  ix_ele = -1
+
+  err = .false.
+  return
 endif
 
 ! search for matches.
 ! Lord elements are in branch 0 but may be associated with other branches.
 
+do_match_wild = (index(name, "*") /= 0 .or. index(name, "%") /= 0)
+
 do k = 0, ubound(lat%branch, 1)
 
   branch => lat%branch(k)
-  n_dup = 0
+  n_match = 0
 
   if (ix_branch == -2) then
     if (match_wild(branch%name, branch_str)) then
@@ -393,6 +414,10 @@ do k = 0, ubound(lat%branch, 1)
     ie1 = branch%n_ele_track+1; ie2 = branch%n_ele_max      
   endif
 
+  if (match_to_instance > 0 .and. ie2 == branch%n_ele_max) ie2 = branch%n_ele_track
+
+  !
+
   do i = ie1, ie2
     ele => branch%ele(i)
 
@@ -403,56 +428,98 @@ do k = 0, ubound(lat%branch, 1)
       if (ix_branch >= 0 .and. branch2%ix_branch /= ix_branch) cycle
     endif
 
-    if ((key /= 0 .and. ele%key /= key) .and. (ele%key /= sbend$ .or. ele%sub_key /= key)) cycle
-
-    if (ix_ele > -1) then
-      if (i /= ix_ele) cycle
-
-    elseif (do_match_wild) then
-      select case (match_name_to)
-      case (alias$)
-        if (ele%alias == '') cycle
-        if (.not. match_wild(upcase(ele%alias), name)) cycle
-      case (descrip$)
-        if (.not. associated(ele%descrip)) cycle
-        if (.not. match_wild(upcase(ele%descrip), name)) cycle
-      case (type$)
-        if (ele%type == '') cycle
-        if (.not. match_wild(upcase(ele%type), name)) cycle
-      case default
-        if (.not. match_wild(ele%name, name)) cycle
-      end select
-
-    else
-      select case (match_name_to)
-      case (alias$)
-        if (upcase(ele%alias) /= name) cycle
-      case (descrip$)
-        if (.not. associated(ele%descrip)) cycle
-        if (upcase(ele%descrip) /= name) cycle
-      case (type$)
-        if (upcase(ele%type) /= name) cycle
-      case default
-        if (ele%name /= name) cycle
-      end select
+    ! If counting instances, don't forget super_lords.
+    ix_slave = -1
+    if (match_to_instance > 0) then
+      girder => pointer_to_girder(ele, ix_slave_back = ix_slave)
+      if (ix_slave == 1) then  ! Only check once.
+        if (.not. matches_this_ele(name, girder, key, do_match_wild, match_name_to)) girder => null()
+      endif
     endif
 
-    if (ix_dup > 0) then
-      n_dup = n_dup + 1
-      if (n_dup > ix_dup) exit 
-      if (n_dup /= ix_dup) cycle
+    if (ix_slave == 1) then
+      n_match = n_match + 1
+      if (n_match /= match_to_instance) cycle
+      ele => girder
+    elseif (match_to_instance > 0 .and. ele%slave_status == super_slave$) then
+      do il = 1, ele%n_lord
+        lord => pointer_to_lord(ele, il, ix_slave_back = ix_slave)
+        if (lord%lord_status /= super_lord$) exit
+        if (ix_slave /= 1) cycle
+        if (.not. matches_this_ele(name, lord, key, do_match_wild, match_name_to)) cycle
+        n_match = n_match + 1
+        exit
+      enddo
+      if (n_match /= match_to_instance) cycle
+      ele => lord
+    else
+      if (.not. matches_this_ele(name, ele, key, do_match_wild, match_name_to)) cycle
+      if (match_to_instance > 0) then
+        n_match = n_match + 1
+        if (n_match /= match_to_instance) cycle
+      endif
     endif
 
     n_loc = n_loc + 1
     if (.not. allocated(eles) .or. size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
     eles(n_loc)%ele => ele
     eles(n_loc)%loc = lat_ele_loc_struct(i, k)
+    if (match_to_instance > 0) exit
   enddo
 enddo 
 
 err = .false.
 
 end subroutine lat_ele1_locator
+
+!---------------------------------------------------------------------------
+! contains
+
+function matches_this_ele (name, ele, key, do_match_wild, match_name_to) result (is_matched)
+
+type (ele_struct) ele
+integer key, match_name_to
+character(*) name
+logical do_match_wild, is_matched
+
+!
+
+is_matched = .false.
+
+if ((key /= 0 .and. ele%key /= key) .and. (ele%key /= sbend$ .or. ele%sub_key /= key)) return
+
+if (do_match_wild) then
+  select case (match_name_to)
+  case (alias$)
+    if (ele%alias == '') return
+    if (.not. match_wild(upcase(ele%alias), name)) return
+  case (descrip$)
+    if (.not. associated(ele%descrip)) return
+    if (.not. match_wild(upcase(ele%descrip), name)) return
+  case (type$)
+    if (ele%type == '') return
+    if (.not. match_wild(upcase(ele%type), name)) return
+  case default
+    if (.not. match_wild(ele%name, name)) return
+  end select
+
+else
+  select case (match_name_to)
+  case (alias$)
+    if (upcase(ele%alias) /= name) return
+  case (descrip$)
+    if (.not. associated(ele%descrip)) return
+    if (upcase(ele%descrip) /= name) return
+  case (type$)
+    if (upcase(ele%type) /= name) return
+  case default
+    if (ele%name /= name) return
+  end select
+endif
+
+is_matched = .true.
+
+end function matches_this_ele
 
 !---------------------------------------------------------------------------
 ! contains

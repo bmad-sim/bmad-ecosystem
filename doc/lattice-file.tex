@@ -316,8 +316,14 @@ used. Examples:
   q01##3                ! The 3rd element named q01 in each branch where there are at 
                         ! least three elements named q01.
 \end{example}
+Note: \vn{Group} and \vn{Overlay} elements have unique names so using \vn{\#\#} is unnecessary and
+is in fact not allowed for these elements.
 
-\vn{Note:} It is advised to avoid setting the parameters of differing elements that share the same
+Note: When using the \vn{\#\#} construct, \vn{super_lord} and \vn{girder_lord} elements are considered 
+to be situated where their slave elements are situated in the lattice. This is independent of where
+they actually exist which is in the lord part of branch 0 (\sref{s:lord.slave}).
+
+It is advised to avoid setting the parameters of differing elements that share the same
 name to differing values since this can lead problems later on. For example, consider this in a
 lattice file named, say, \vn{lat.bmad}:
 \begin{example}

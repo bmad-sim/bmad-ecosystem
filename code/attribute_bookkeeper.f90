@@ -122,7 +122,8 @@ endif
 
 ! Transfer tilt to tilt_tot, etc.
 
-if (.not. on_a_girder(ele) .and. has_orientation_attributes(ele) .and. ele%slave_status /= multipass_slave$) then
+if (.not. associated(pointer_to_girder(ele)) .and. has_orientation_attributes(ele) &
+                                                  .and. ele%slave_status /= multipass_slave$) then
   select case (ele%key)
   case (sbend$)
     val(roll_tot$)     = val(roll$)
