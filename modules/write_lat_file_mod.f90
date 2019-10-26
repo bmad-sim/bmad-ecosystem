@@ -65,7 +65,7 @@ type (multipass_region_ele_struct), pointer :: mult_ele(:), m_ele
 type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
-type (ele_struct), pointer :: ele, super, slave, lord, lord2, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0
+type (ele_struct), pointer :: ele, super, slave, lord, lord2, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0, girder
 type (ele_struct), target :: ele_default(n_key$), this_ele
 type (ele_pointer_struct), allocatable :: named_eles(:)
 type (ele_attribute_struct) info
@@ -109,7 +109,7 @@ character(2), parameter :: spin_quat_name(0:3) = ['S1', 'Sx', 'Sy', 'Sz']
 character(*), parameter :: r_name = 'write_bmad_lattice_file'
 
 integer, optional :: output_form
-integer i, j, k, n, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, ie1, ie, ib, ib1, ic
+integer i, j, k, n, ii, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, ie1, ie, ib, ib1, ic
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_lord, ix_super, default_val, imax, ibr
@@ -1263,35 +1263,23 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   n_count = 0
 
-  do ie = 1, branch%n_ele_max
+  do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
-    if (ele%slave_status /= free$ .and. ele%slave_status /= minor_slave$) cycle
     if (ele%key == marker$ .and. ele%name == 'END') cycle
-    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
-    ele0 => named_eles(ix_match)%ele
-    n_count(ix_match) = n_count(ix_match) + 1
-    if (n_count(ix_match) == 1) cycle    
 
-    do i = 1, num_ele_attrib$
-      if (ele%value(i) == ele0%value(i)) cycle
-      info = attribute_info(ele, i)
-      if (info%type /= is_free$ .and. info%type /= quasi_free$) cycle
-      if (info%type == quasi_free$) then
-        if (.not. attribute_free(ele, info%name, .false.)) cycle
-      endif
+    girder => pointer_to_girder(ele, ix_slave_back = ix_slave)
+    if (ix_slave == 1) call eles_with_same_name_handler(girder, ib, names, an_indexx, n_names, n_count)
 
-      ! Have a differing attribute
-      if (.not. have_expand_lattice_line) call write_expand_lat_header
-      if (size(lat%branch) == 1) then
-        line = ''
-      else
-        write (line, '(i0, a)') ib, '>>'
-      endif
-      write (iu, '(3a, i0, 4a)') trim(line), trim(ele%name), '##', n_count(ix_match), '[', &
-                trim(attribute_name(ele, i)), '] = ', re_str(ele%value(i))
-    enddo
+    if (ele%slave_status == super_slave$) then
+      do ii = 1, ele%n_lord
+        lord => pointer_to_lord(ele, ii, ix_slave_back = ix_slave)
+        if (lord%lord_status == super_lord$ .and. ix_slave == 1) &
+                    call eles_with_same_name_handler(lord, ib, names, an_indexx, n_names, n_count)
+      enddo
+    endif
 
-
+    if (ele%slave_status == free$ .or. ele%slave_status == minor_slave$) &
+                    call eles_with_same_name_handler(ele, ib, names, an_indexx, n_names, n_count)
   enddo
 enddo
 
@@ -1305,6 +1293,51 @@ if (present(err)) err = .false.
 
 !--------------------------------------------------------------------------------
 contains
+
+subroutine eles_with_same_name_handler(ele, ix_branch, names, an_indexx, n_names, n_count)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
+type (lat_struct), pointer :: lat
+character(40), allocatable :: names(:)
+integer, allocatable :: an_indexx(:), n_count(:)
+integer ix_branch, n_names, ix_match
+integer iv
+
+!
+
+lat => ele%branch%lat
+
+call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+if (ix_match == 0) return ! Will happen, EG, with ele = multipass slave.
+ele0 => named_eles(ix_match)%ele
+n_count(ix_match) = n_count(ix_match) + 1
+if (n_count(ix_match) == 1) return    
+
+do iv = 1, num_ele_attrib$
+  if (ele%value(iv) == ele0%value(iv)) return
+  info = attribute_info(ele, iv)
+  if (info%type /= is_free$ .and. info%type /= quasi_free$) return
+  if (info%type == quasi_free$) then
+    if (.not. attribute_free(ele, info%name, .false.)) return
+  endif
+
+  ! Have a differing attribute
+  if (.not. have_expand_lattice_line) call write_expand_lat_header
+  if (size(lat%branch) == 1) then
+    line = ''
+  else
+    write (line, '(i0, a)') ix_branch, '>>'
+  endif
+  write (iu, '(3a, i0, 4a)') trim(line), trim(ele%name), '##', n_count(ix_match), '[', &
+            trim(attribute_name(ele, iv)), '] = ', re_str(ele%value(iv))
+enddo
+
+end subroutine eles_with_same_name_handler
+
+
+!--------------------------------------------------------------------------------
+! contains
 
 subroutine write_if_real_param_changed (param_now, param_default, param_name)
 
