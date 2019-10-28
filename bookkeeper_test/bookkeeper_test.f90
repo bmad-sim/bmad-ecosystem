@@ -45,7 +45,7 @@ open (1, file = 'output.now', recl = 200)
 
 !
 
-call bmad_parser ('bookkeeper_test1.bmad', lat)
+call bmad_parser ('bookkeeper_test1.bmad', lat, err_flag = err);  if (err) stop
 
 call create_lat_ele_sorted_nametable(lat, ntab)
 
@@ -65,7 +65,7 @@ enddo
 
 !
 
-call bmad_parser ('bookkeeper_test2.bmad', lat)
+call bmad_parser ('bookkeeper_test2.bmad', lat, err_flag = err);  if (err) stop
 
 write (1, "(a, 100i4)") '"lat%ic"   ABS 0    ', lat%ic(1:lat%n_ic_max)
 do i = 1, lat%n_control_max
@@ -93,7 +93,7 @@ write (1, '(a, es12.3)') '"Hybrid" ABS 1e-12  ', maxval(abs(m2-m1))+sum(abs(vec2
 
 !-------------
 
-call bmad_parser (lat_file, lat, make_mats6 = .false.)
+call bmad_parser (lat_file, lat, make_mats6 = .false., err_flag = err);  if (err) stop
 
 !
 
