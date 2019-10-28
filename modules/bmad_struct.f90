@@ -1868,7 +1868,7 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.       ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.             ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
   logical :: absolute_time_tracking_default = .false.  ! Default for lat%absolute_time_tracking
-  logical :: twiss_normalize_off_energy = .false.
+  logical :: twiss_normalize_off_energy = .true.
   logical :: convert_to_kinetic_momentum = .false.     ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                        !   Set to True to test symp_lie_bmad against runge_kutta.
   logical :: aperture_limit_on = .true.                ! use apertures in tracking?

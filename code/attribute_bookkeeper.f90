@@ -328,7 +328,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
         val(ds_step$) = abs(val(l$)) / val(num_steps$)
       endif
 
-    case (lcavity$, rfcavity$)
+    case (lcavity$, rfcavity$, crab_cavity$)
       if (val(l$) /= 0) then
         val(num_steps$) = 10
         val(ds_step$) = abs(val(l$)) / val(num_steps$)
@@ -377,6 +377,18 @@ case (beambeam$)
                              (2 * pi * val(p0c$) * (val(sig_x$) + val(sig_y$)))
     endif
 
+  endif
+
+! Crab_Cavity
+
+case (crab_cavity$)
+
+  if (val(voltage$) == 0) then
+    val(gradient$) = 0
+  elseif (val(l$) == 0) then
+    val(gradient$) = 1d30    ! Something large
+  else
+    val(gradient$) = val(voltage$) / val(l$)
   endif
 
 ! Crystal

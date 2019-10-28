@@ -37,7 +37,7 @@ case (lcavity$)
     field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_autoscale$)
   end select
 
-case (rfcavity$, e_gun$, em_field$)
+case (rfcavity$, e_gun$, em_field$, crab_cavity$)
   select case (voltage_or_gradient)
   case (voltage$)
     field = ele%value(voltage$) * ele%value(field_autoscale$)

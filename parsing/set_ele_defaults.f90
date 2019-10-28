@@ -60,7 +60,9 @@ case (fork$, photon_fork$)
 
 case (capillary$)
   ele%offset_moves_aperture = .true.
-  
+
+case (crab_cavity$)
+
 case (crystal$)
   ele%value(ref_orbit_follows$) = bragg_diffracted$
   ele%aperture_at = surface$

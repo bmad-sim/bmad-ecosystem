@@ -1293,10 +1293,8 @@ call init_attribute_name1 (crab_cavity$, grid_field$,               'GRID_FIELD'
 call init_attribute_name1 (crab_cavity$, taylor_field$,             'TAYLOR_FIELD')
 call init_attribute_name1 (crab_cavity$, E_tot_start$,              'E_tot_start', private$)
 call init_attribute_name1 (crab_cavity$, p0c_start$,                'p0c_start', private$)
-call init_attribute_name1 (crab_cavity$, phi0_err$,                 'phi0_err', private$)
 call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
-call init_attribute_name1 (crab_cavity$, gradient_err$,             'gradient_err', private$)
-call init_attribute_name1 (crab_cavity$, voltage_err$,              'voltage_err', private$)
+call init_attribute_name1 (crab_cavity$, rf_frequency$,             'RF_FREQUENCY')
 
 call init_attribute_name1 (rfcavity$, longitudinal_mode$,           'LONGITUDINAL_MODE')
 call init_attribute_name1 (rfcavity$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)

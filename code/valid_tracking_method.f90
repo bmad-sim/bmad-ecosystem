@@ -78,7 +78,7 @@ case (beambeam$)
 
 case (crab_cavity$)
   select case (method)
-  case (bmad_standard$, linear$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, custom$)
     is_valid = .true.
   end select
 
