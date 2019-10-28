@@ -106,6 +106,7 @@ logical err2, delim_found, above_ub_is_err
 
 if (present(err)) err = .true.
 n_loc = 0
+branch_str = ''
 str = loc_str
 call str_upcase (str, str)
 ! In_range:
@@ -128,7 +129,6 @@ do
   ! confused by "name1:name2" range syntax
 
   if (in_range == 0) then
-    branch_str = ''
     key = 0
     match_name_to = 0
     step = 1
@@ -293,25 +293,24 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
 type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_struct), pointer :: ele, lord, girder
+type (ele_struct), pointer :: ele
 
 character(*) branch_str, name_in
 character(40) name
 character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
-integer i, k, il, ix, ix_branch, ixp, ios, ix_ele, n_loc, ix_slave
-integer key, match_to_instance, n_match, match_name_to, ie1, ie2
+integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc
+integer key, match_to_instance, n_match, match_name_to
 
-logical err, do_match_wild
 logical :: above_ub_is_err
+logical err, do_match_wild, matched_instance
 
 ! init
 
 err = .true.
 n_loc = 0
 name = name_in
-girder => null()
 
 ! Look for "##N" suffix to indicate which instance to choose from when there
 ! are multiple elements of a given name.
@@ -344,7 +343,7 @@ if (branch_str /= '') then
     endif
     ix_branch = branch%ix_branch
   else
-    ix_branch = -2    ! All branches
+    ix_branch = -2    ! Match to branch_str
   endif
 endif
 
@@ -357,7 +356,7 @@ if (is_integer(name) .and. match_name_to == 0) then
     return
   endif
 
-  if (ix_branch == -2) then  ! Match to all branches
+  if (ix_branch == -2) then  ! Match to branch_str
     do k = 0, ubound(lat%branch, 1)
       branch => lat%branch(k)
       if (.not. match_wild(branch%name, branch_str)) cycle
@@ -391,82 +390,33 @@ if (is_integer(name) .and. match_name_to == 0) then
 endif
 
 ! search for matches.
-! Lord elements are in branch 0 but may be associated with other branches.
 
 do_match_wild = (index(name, "*") /= 0 .or. index(name, "%") /= 0)
+matched_instance = .false.
 
 do k = 0, ubound(lat%branch, 1)
-
   branch => lat%branch(k)
+  if (ix_branch == -2 .and. .not. match_wild(branch%name, branch_str)) cycle
+  if (ix_branch > -1 .and. k /= ix_branch) cycle
+
   n_match = 0
 
-  if (ix_branch == -2) then
-    if (match_wild(branch%name, branch_str)) then
-      ie1 = 0; ie2 = branch%n_ele_max
-    else
-      ie1 = branch%n_ele_track+1; ie2 = branch%n_ele_max
-    endif
-  elseif (ix_branch == -1) then
-    ie1 = 0; ie2 = branch%n_ele_max
-  elseif (k == ix_branch) then
-    ie1 = 0; ie2 = branch%n_ele_max
-  else
-    ie1 = branch%n_ele_track+1; ie2 = branch%n_ele_max      
-  endif
-
-  if (match_to_instance > 0 .and. ie2 == branch%n_ele_max) ie2 = branch%n_ele_track
-
-  !
-
-  do i = ie1, ie2
+  do i = 0, branch%n_ele_track
     ele => branch%ele(i)
-
-    ! Lord elements are in branch 0 but may be associated with other branches.
-    if (i > branch%n_ele_track) then
-      branch2 => pointer_to_branch(ele)
-      if (ix_branch == -2 .and. .not. match_wild(branch2%name, branch_str)) cycle
-      if (ix_branch >= 0 .and. branch2%ix_branch /= ix_branch) cycle
-    endif
-
-    ! If counting instances, don't forget super_lords.
-    ix_slave = -1
-    if (match_to_instance > 0) then
-      girder => pointer_to_girder(ele, ix_slave_back = ix_slave)
-      if (ix_slave == 1) then  ! Only check once.
-        if (.not. matches_this_ele(name, girder, key, do_match_wild, match_name_to)) girder => null()
-      endif
-    endif
-
-    if (ix_slave == 1) then
-      n_match = n_match + 1
-      if (n_match /= match_to_instance) cycle
-      ele => girder
-    elseif (match_to_instance > 0 .and. ele%slave_status == super_slave$) then
-      do il = 1, ele%n_lord
-        lord => pointer_to_lord(ele, il, ix_slave_back = ix_slave)
-        if (lord%lord_status /= super_lord$) exit
-        if (ix_slave /= 1) cycle
-        if (.not. matches_this_ele(name, lord, key, do_match_wild, match_name_to)) cycle
-        n_match = n_match + 1
-        exit
-      enddo
-      if (n_match /= match_to_instance) cycle
-      ele => lord
-    else
-      if (.not. matches_this_ele(name, ele, key, do_match_wild, match_name_to)) cycle
-      if (match_to_instance > 0) then
-        n_match = n_match + 1
-        if (n_match /= match_to_instance) cycle
-      endif
-    endif
-
-    n_loc = n_loc + 1
-    if (.not. allocated(eles) .or. size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
-    eles(n_loc)%ele => ele
-    eles(n_loc)%loc = lat_ele_loc_struct(i, k)
-    if (match_to_instance > 0) exit
+    call check_this_match(name, ele, key, do_match_wild, match_name_to, n_match, n_loc, eles, match_to_instance, matched_instance); if (matched_instance) cycle
   enddo
 enddo 
+
+! During lattice parsing, elements may get added to the lord section for temporary storage. 
+! Look for matches if any of these elements are present
+
+if (match_to_instance == 0 .and. (ix_branch == -1 .or. ix_branch == 0)) then
+  do i = lat%n_ele_track+1, lat%n_ele_max
+    ele => lat%ele(i)
+    if (ele%n_slave /= 0) cycle
+    call check_this_match(name, ele, key, do_match_wild, match_name_to, n_match, n_loc, eles, match_to_instance, matched_instance)
+  enddo
+endif
 
 err = .false.
 
@@ -475,16 +425,23 @@ end subroutine lat_ele1_locator
 !---------------------------------------------------------------------------
 ! contains
 
-function matches_this_ele (name, ele, key, do_match_wild, match_name_to) result (is_matched)
+recursive subroutine check_this_match (name, ele, key, do_match_wild, match_name_to, n_match, n_loc, eles, match_to_instance, matched_instance)
 
-type (ele_struct) ele
-integer key, match_name_to
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
+type (ele_pointer_struct), allocatable :: eles(:)
+
+integer key, match_name_to, match_to_instance, ix_slave, n_match, n_loc, il
 character(*) name
-logical do_match_wild, is_matched
+logical do_match_wild, matched_instance
 
 !
 
-is_matched = .false.
+do il = 1, ele%n_lord
+  lord => pointer_to_lord(ele, il, ix_slave_back = ix_slave)
+  if (ix_slave /= 1) cycle
+  call check_this_match(name, lord, key, do_match_wild, match_name_to, n_match, n_loc, eles, match_to_instance, matched_instance); if (matched_instance) return
+enddo
 
 if ((key /= 0 .and. ele%key /= key) .and. (ele%key /= sbend$ .or. ele%sub_key /= key)) return
 
@@ -517,9 +474,20 @@ else
   end select
 endif
 
-is_matched = .true.
+! Is matched
 
-end function matches_this_ele
+if (match_to_instance > 0) then
+  n_match = n_match + 1
+  if (n_match /= match_to_instance) return
+  matched_instance = .true.
+endif
+
+n_loc = n_loc + 1
+if (.not. allocated(eles) .or. size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
+eles(n_loc)%ele => ele
+eles(n_loc)%loc = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
+
+end subroutine check_this_match
 
 !---------------------------------------------------------------------------
 ! contains

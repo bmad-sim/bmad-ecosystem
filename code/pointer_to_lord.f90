@@ -89,23 +89,7 @@ lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
 if (present(control)) control => ctl
 if (present(ix_control)) ix_control = icon
 if (present(ix_ic)) ix_ic = slave%ic1_lord + ixl - 1
-
-! There must be a corresponding ix_slave_back value such that
-!   pointer_to_slave(lord_ptr, ix_slave_back) => slave 
-
-if (present(ix_slave_back)) then
-  do i = 1, lord_ptr%n_slave + lord_ptr%n_slave_field
-    if (associated (pointer_to_slave(lord_ptr, i), slave)) then
-      ix_slave_back = i
-      return
-    endif
-  enddo
-
-  ! If ix_slave_back not found then this is an error
-
-  call out_io (s_fatal$, r_name, 'CANNOT FIND SLAVE INDEX FOR LORD!')
-  if (global_com%exit_on_error) call err_exit
-endif
+if (present(ix_slave_back)) ix_slave_back = icon - lord_ptr%ix1_slave + 1
 
 end function pointer_to_lord
 

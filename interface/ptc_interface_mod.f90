@@ -2022,7 +2022,7 @@ do
     ! re term only
     call iter1()
   else
-  	! im term only
+    ! im term only
     call iter2()
   endif
 end do
@@ -2054,7 +2054,7 @@ do
     call iter1()
   
   else
-  	! im term only
+    ! im term only
     expn = taylor2%term(t2)%expn
     re = 0.0_rp
     im = taylor2%term(t2)%coef
@@ -3332,6 +3332,23 @@ if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$) k
 
 select case (key)
 
+case (crab_cavity$)
+  if (ele%value(rf_frequency$) == 0) then
+    call out_io (s_fatal$, r_name, 'RF FREQUENCY IS ZERO FOR: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  ptc_key%magnet = 'rfcavity'
+  ptc_key%list%n_bessel = 0 ! Fake model
+  ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
+  ptc_key%list%permfringe = 0
+  ptc_key%list%cavity_totalpath = 0
+  ptc_key%list%freq0 = ele%value(rf_frequency$)
+  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$)
+  ptc_key%list%delta_e = 0     ! For radiation calc.
+  ptc_key%list%lag = twopi * phi_tot
+
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
   if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
     ptc_key%magnet = 'drift'
@@ -3460,7 +3477,7 @@ case (rfcavity$, lcavity$)
     ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
     ptc_key%list%n_bessel = 0
     ptc_key%list%permfringe = 0
-	  ptc_key%list%cavity_totalpath = 0
+    ptc_key%list%cavity_totalpath = 0
   end select
 
   ptc_key%list%freq0 = ele%value(rf_frequency$)
@@ -4293,7 +4310,7 @@ end subroutine bmad_patch_parameters_to_ptc
 ! Routine to compute the a(n) and b(n) magnetic multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
 !
-! Note: On ptc side bn(1) is error field when creating a fibre but	 
+! Note: On ptc side bn(1) is error field when creating a fibre but 
 ! is total field when fibre is being modified. This routine returns the error field.
 !
 ! Module needed:
