@@ -494,7 +494,7 @@ case (mirror$, multilayer_mirror$)
 
 case (fork$, photon_fork$)
 
-case (rfcavity$)
+case (rfcavity$, crab_cavity$)
   if (dep_set) then
     if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
   endif

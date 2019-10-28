@@ -3340,12 +3340,12 @@ case (crab_cavity$)
   endif
 
   ptc_key%magnet = 'rfcavity'
-  ptc_key%list%n_bessel = 0 ! Fake model
-  ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
+  ptc_key%list%n_bessel = 0
+  !!ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
   ptc_key%list%permfringe = 0
   ptc_key%list%cavity_totalpath = 0
   ptc_key%list%freq0 = ele%value(rf_frequency$)
-  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$)
+  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) - 0.25_rp 
   ptc_key%list%delta_e = 0     ! For radiation calc.
   ptc_key%list%lag = twopi * phi_tot
 
@@ -4370,8 +4370,14 @@ select case (key)
 case (marker$, detector$, fork$, photon_fork$, beginning_ele$, em_field$, patch$, fiducial$, floor_shift$)
   return
 
-case (drift$, rfcavity$, lcavity$, &
-      ab_multipole$, multipole$, beambeam$, wiggler$, undulator$)
+case (crab_cavity$)
+  if (leng == 0) then
+    bn(1) = 1d-9 * ele%value(voltage$)
+  else
+    bn(1) = 1d-9 * ele%value(voltage$) / leng
+  endif
+
+case (drift$, rfcavity$, lcavity$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$)
   ! Nothing to be done
 
 case (octupole$)
@@ -4416,7 +4422,7 @@ case (sol_quad$)
   bn(2) = val(k1$)
 
 case (hkicker$, vkicker$)
-  if (ele%key == hkicker$) bn(1)  = val(kick$) 
+  if (ele%key == hkicker$) bn(1) = val(kick$) 
   if (ele%key == vkicker$) an(1) = val(kick$) 
   add_kick = .false.
 
