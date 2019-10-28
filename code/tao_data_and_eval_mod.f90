@@ -1026,7 +1026,9 @@ case ('chrom.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
   if (.not. associated(tao_branch%low_E_lat%ele)) then
-    if (branch%param%unstable_factor == 0) then
+    if (branch%param%geometry == open$) then
+      why_invalid = 'Cannot calc ' // trim(datum%data_type) // ' with an open geometry.'
+    elseif (branch%param%unstable_factor == 0) then
       why_invalid = 'Chrom bookkeeping problem. Please contact DCS.'
     else
       why_invalid = 'Unstable lattice.'
