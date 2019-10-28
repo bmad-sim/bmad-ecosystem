@@ -5995,7 +5995,7 @@ main_loop: do n_in = 1, n_ele_max
     ! Create the lord(s)
 
     if (is_true(lord%value(gang$))) then
-      call make_this_overlay_group_lord(0, err_flag, pele)
+      call make_this_overlay_group_lord(0, lord, lat, n_slave, cs, err_flag, pele, m_eles)
     else
       do ip = 2, size(pele%control)
         if (m_eles(1)%n_loc /= m_eles(ip)%n_loc) then
@@ -6009,7 +6009,7 @@ main_loop: do n_in = 1, n_ele_max
       enddo
 
       do nn = 1, m_eles(1)%n_loc
-        call make_this_overlay_group_lord(nn, err_flag, pele)
+        call make_this_overlay_group_lord(nn, lord, lat, n_slave, cs, err_flag, pele, m_eles)
         if (err_flag) exit
       enddo
     endif
@@ -6074,7 +6074,7 @@ main_loop: do n_in = 1, n_ele_max
 
           ele => pointer_to_ele (lat, ix_ele_now, ib)
 
-          if (girder_match_slave_element(ele, ele, n_slave, ixs, ix_ele_now, pele)) cycle
+          if (girder_match_slave_element(ele, ele, n_slave, cs, ixs, ix_ele_now, pele)) cycle
 
           ! Here if no match. 
           ! If not previously in a super lord then there is no overall match to the slave list.
@@ -6138,10 +6138,11 @@ enddo main_loop
 !-------------------------------------------------------------------------
 contains
 
-recursive function girder_match_slave_element (ele, slave, n_slave, ixs, ix_ele_now, pele) result (is_matched)
+recursive function girder_match_slave_element (ele, slave, n_slave, cs, ixs, ix_ele_now, pele) result (is_matched)
 
 type (ele_struct), target :: ele, slave
 type (ele_struct), pointer :: lord, slave1, slave2
+type (control_struct), allocatable, target :: cs(:)
 type (control_struct), allocatable :: cs_temp(:)
 type (parser_ele_struct) :: pele
 
@@ -6217,7 +6218,7 @@ do ii = 1, ele%n_lord
   lord => pointer_to_lord (ele, ii)
   ls = lord%lord_status
   if (ls /= super_lord$ .and. ls /= multipass_lord$ .and. ls /= girder_lord$) cycle
-  is_matched = girder_match_slave_element(lord, ele, n_slave, ixs, ix_ele_now, pele)
+  is_matched = girder_match_slave_element(lord, ele, n_slave, cs, ixs, ix_ele_now, pele)
   if (is_matched) return
 enddo
 
@@ -6255,10 +6256,15 @@ end function ix_far_index
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine make_this_overlay_group_lord (ix_pick, err_flag, pele)
+subroutine make_this_overlay_group_lord (ix_pick, lord, lat, n_slave, cs, err_flag, pele, m_eles)
 
+type (ele_struct) :: lord
+type (lat_struct) lat
+type (control_struct), allocatable, target :: cs(:)
 type (parser_ele_struct), target :: pele
-integer ip, ix_pick
+type (multi_ele_pointer_struct), allocatable :: m_eles(:)
+integer n_slave
+integer k, ix, ip, ix_pick, ix_lord
 logical err_flag
 
 !
