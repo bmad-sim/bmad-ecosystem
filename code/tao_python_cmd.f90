@@ -153,7 +153,7 @@ integer, allocatable, save :: index_arr(:)
 
 logical, allocatable :: picked(:)
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time, found_one, calc_ok
+logical first_time, found_one, calc_ok, no_slaves
 
 character(*) input_str
 character(len(input_str)) line
@@ -2587,12 +2587,16 @@ case ('lat_general')
 !
 ! List of parameters at ends of lattice elements
 ! Command syntax:
-!   python lat_list {ix_uni}@{ix_branch}>>{elements}|{which} {who}
-! where 
+!   python lat_list -no_slaves -track_only {ix_uni}@{ix_branch}>>{elements}|{which} {who}
+! where:
+!   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
+!   -track_only is optional. If present, lord elements will not be matched to.
+!
 !   {which} is one of:
 !     model
 !     base
 !     design
+!
 !   {who} is a comma deliminated list of:
 !     orbit.spin.1, orbit.spin.2, orbit.spin.3,
 !     orbit.vec.1, orbit.vec.2, orbit.vec.3, orbit.vec.4, orbit.vec.5, orbit.vec.6,
@@ -2607,9 +2611,10 @@ case ('lat_general')
 !     ele.s, ele.l
 !     ele.e_tot, ele.p0c
 !     ele.mat6, ele.vec0  ! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
+!
 !   {elements} is a string to match element names to. 
 !     Use "*" to match to all elements.
-!     Use the prefix "track:" to exclude lord elements.
+!
 ! Note: To output through the real array buffer, add the prefix "real:" to {who}.
 !
 ! Examples:
@@ -2617,6 +2622,22 @@ case ('lat_general')
 !   python lat_list 3@0>>Q*|base real:ele.s    ! Only a single item permitted with real buffer out.
 
 case ('lat_list')
+
+  no_slaves = .false.
+  track_only = .false.
+  do
+    if (index('-no_slaves', line(1:ix_line)) == 1) then
+      call string_trim(line(ix_line+1:), line, ix_line)
+      no_slaves = .true.
+      cycle
+    endif
+    if (index('-track_only', line(1:ix_line)) == 1) then
+      call string_trim(line(ix_line+1:), line, ix_line)
+      track_only = .true.
+      cycle
+    endif
+    exit
+  enddo
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, who = all_who); if (err) return
@@ -2627,9 +2648,6 @@ case ('lat_list')
   endif
 
   call upcase_string(line)
-  ix = index(line, 'TRACK:')
-  track_only = (ix /= 0)
-  if (track_only) line = line(1:ix-1) // line(ix+6:)
   lat => tao_lat%lat
   call lat_ele_locator (line, lat, eles, n_loc, err);  if (err) return
 
@@ -2653,7 +2671,8 @@ case ('lat_list')
   n_arr = 0
   do ie = 1, n_loc
     ele => eles(ie)%ele
-    if (track_only .and. ele%ix_branch == 0 .and. ie > lat%n_ele_track) cycle
+    if (track_only .and. ele%ix_ele > lat%n_ele_track) cycle
+    if (no_slaves .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) cycle
     orbit => tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
 
     do i = 1, n_who
