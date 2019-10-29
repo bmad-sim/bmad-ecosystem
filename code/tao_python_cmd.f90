@@ -2599,6 +2599,7 @@ case ('lat_general')
 !     orbit.t, orbit.beta,
 !     orbit.state,     ! Note: state is an integer. alive$ = 1, anything else is lost.
 !     orbit.energy, orbit.pc,
+!     ele.name,
 !     ele.a.beta, ele.a.alpha, ele.a.eta, ele.a.etap, ele.a.gamma, ele.a.phi,
 !     ele.b.beta, ele.b.alpha, ele.b.eta, ele.b.etap, ele.b.gamma, ele.b.phi,
 !     ele.x.eta, ele.x.etap,
@@ -2687,6 +2688,9 @@ case ('lat_list')
         values(1) = (1 + orbit%vec(6)) * orbit%p0c
       case ('orbit.pc')
         call convert_pc_to ((1 + orbit%vec(6)) * orbit%p0c, orbit%species, E_tot = values(1))
+      case ('ele.name')
+        nl=incr(nl); li(nl) = ele%name
+        cycle
       case ('ele.a.beta')
         values(1) = ele%a%beta
       case ('ele.a.alpha')
