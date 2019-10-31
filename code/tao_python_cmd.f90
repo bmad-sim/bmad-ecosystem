@@ -2083,28 +2083,38 @@ case ('enum')
     nl=incr(nl); write(li(nl), '(i0, 2a)') 3, ';ZERO_SYMMETRIC'
 
   case ('data^merit_type')
-    do i = 1, size(data_merit_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_merit_type_name(i))
+    do i = 1, size(tao_data_merit_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_merit_type_name(i))
     enddo
 
   case ('data_source')
-    do i = 1, size(data_source_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_source_name(i))
+    do i = 1, size(tao_data_source_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_source_name(i))
     enddo
 
   case ('floor_plan_view_name')
-    do i = 1, size(floor_plan_view_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(floor_plan_view_name(i))
+    do i = 1, size(tao_floor_plan_view_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_floor_plan_view_name(i))
     enddo
 
   case ('graph^type')
-    do i = 1, size(graph_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(graph_type_name(i))
+    do i = 1, size(tao_graph_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_graph_type_name(i))
     enddo
 
   case ('line.pattern')
     do i = 1, size(qp_line_pattern_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
+    enddo
+
+  case ('shape.label')
+    do i = 1, size(tao_shape_label_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_label_name(i))
+    enddo
+    
+  case ('shape.shape')
+    do i = 1, size(tao_shape_shape_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_shape_name(i))
     enddo
 
   case ('symbol.fill_pattern')
@@ -2118,23 +2128,23 @@ case ('enum')
     enddo
 
   case ('var^merit_type')
-    do i = 1, size(var_merit_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(var_merit_type_name(i))
+    do i = 1, size(tao_var_merit_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_var_merit_type_name(i))
     enddo
 
   case ('wave_data_type')
-    do i = 1, size(wave_data_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(wave_data_name(i))
+    do i = 1, size(tao_wave_data_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_wave_data_name(i))
     enddo
 
   case ('x_axis_type')
-    do i = 1, size(x_axis_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(x_axis_type_name(i))
+    do i = 1, size(tao_x_axis_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_x_axis_type_name(i))
     enddo
 
   case ('data_type_z')
-    do i = 1, size(data_type_z_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(data_type_z_name(i))
+    do i = 1, size(tao_data_type_z_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_type_z_name(i))
     enddo
 
   case default

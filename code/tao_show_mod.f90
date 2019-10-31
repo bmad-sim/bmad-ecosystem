@@ -2799,7 +2799,7 @@ case ('lattice')
           name = name(:ix+2) // '_mid' // trim(name(ix+3:))
         endif
         call tao_evaluate_expression (name, 1, .false., value, info, err, .false., &
-                                                  dflt_component = lat_type_name(lat_type))
+                                                  dflt_component = tao_lat_type_name(lat_type))
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           if (column(i)%remove_line_if_zero) n_remove_found = n_remove_found + 1
           if (undef_uses_column_format .and. index(column(i)%format, 'A') == 0) then

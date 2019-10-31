@@ -48,7 +48,7 @@ logical err_flag, err
 
 err_flag = .true.
 
-if (any(curve_name == wave_data_name)) then
+if (any(curve_name == tao_wave_data_name)) then
   call tao_find_plots (err, '*', 'REGION', curve = curve_array, blank_means_all = .true.)
   if (err) return
 
@@ -68,7 +68,7 @@ else
 
   ix_curve = 0
   do i = 1, size(curve_array) 
-    if (.not. any(curve_array(i)%c%data_type == wave_data_name)) cycle
+    if (.not. any(curve_array(i)%c%data_type == tao_wave_data_name)) cycle
     if (ix_curve /= 0) then
       call out_io (s_error$, r_name, 'Name does not resolve to a unique curve: ' // curve_name, 'Nothing done.')
       return
