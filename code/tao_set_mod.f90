@@ -340,7 +340,7 @@ if (err) return
 
 select case (who)
 case ('optimizer')
-  if (all(global%optimizer /= optimizer_name)) then
+  if (all(global%optimizer /= tao_optimizer_name)) then
     call out_io (s_error$, r_name, 'BAD OPTIMIZER NAME: ' // global%optimizer)
     return
   endif
@@ -1388,8 +1388,8 @@ do i = 1, size(plot)
       endif
 
     case ('x_axis_type')
-      call tao_set_switch_value (ix, component, value_str, x_axis_type_name, lbound(x_axis_type_name,1), err_flag)
-      if (.not. err_flag) p%x_axis_type = x_axis_type_name(ix)
+      call tao_set_switch_value (ix, component, value_str, tao_x_axis_type_name, lbound(tao_x_axis_type_name,1), err_flag)
+      if (.not. err_flag) p%x_axis_type = tao_x_axis_type_name(ix)
 
     case default
       call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
@@ -1514,7 +1514,7 @@ case ('floor_plan_orbit_scale')
 case ('floor_plan_orbit_color')
   this_graph%floor_plan_orbit_color = value
 case ('floor_plan_view')
-  if (.not. any(value == floor_plan_view_name)) then
+  if (.not. any(value == tao_floor_plan_view_name)) then
     call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
     return
   endif
@@ -1652,7 +1652,7 @@ if (size(l_var) > 0) then
 elseif (size(s_var) /= 0) then
   if (index(var_str, '|merit_type') /= 0) then
     if (index(value_str, '|') == 0) then
-      if (all (value_str /= var_merit_type_name)) then
+      if (all (value_str /= tao_var_merit_type_name)) then
         call out_io (s_error$, r_name, 'BAD VARIABLE MERIT_TYPE NAME:' // value_str)
         return
       endif
@@ -1996,7 +1996,7 @@ elseif (size(s_dat) /= 0) then
     enddo
 
   else
-    if (component == 'merit_type' .and. all(value_str /= data_merit_type_name)) then
+    if (component == 'merit_type' .and. all(value_str /= tao_data_merit_type_name)) then
       call out_io (s_error$, r_name, 'BAD DATA MERIT_TYPE NAME:' // value_str)
       return
     endif

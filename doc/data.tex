@@ -1077,9 +1077,9 @@ Photon intensity components in the horizontal and vertical planes.
 Photon phases in the horizontal and vertical planes.
 
   %----------------------
-  \item[ \begin{tabular}{@{}l}
-  ping_a.amp_x, .phase_x, .amp_y, .phase_y, .amp_sin_y, .amp_cos_y, \\
-  \hspace*{1.5in} .amp_sin_rel_y, .amp_cos_rel_y
+  \item[\begin{tabular}{@{}l}
+  ping_a.amp_x, .phase_x, .amp_y, .phase_y, .amp_sin_y, \\
+  \hspace*{1.5in} .amp_cos_y, .amp_sin_rel_y, .amp_cos_rel_y
   \end{tabular} ] \Newline
 
 Phase and amplitude response at a BPM from turn-by-turn data acquired after the beam is
@@ -1094,6 +1094,7 @@ is
 \begin{align}
   x_a(s, n) &= A_{ax}(s) \, \cos(n \, \omega_a + \phi_{ax}(s) + \phi_{a0}) \CRNO
   y_a(s, n) &= A_{ay}(s) \, \cos(n \, \omega_a + \phi_{ay}(s) + \phi_{a0})
+  \label{xanop1}
 \end{align}
 where $\omega_a$ is the $a$-mode tune, $A_{ax}$ and $A_{ay}$ are the response amplitudes, $\phi_{ax}$
 and $\phi_{ay}$ are the horizontal and vertical phases, and $\phi_{a0}$ is an overall phase
@@ -1104,8 +1105,8 @@ is
     ping_a.phase_x       \(\longrightarrow \phi_{ax}\)
     ping_a.amp_y         \(\longrightarrow A_{ay}\)
     ping_a.phase_y       \(\longrightarrow \phi_{ay}\)
-    ping_a.amp_sin_y     \(\longrightarrow A_{ay}\cdot\sin(\phi_{ay}\)
-    ping_a.amp_cos_y     \(\longrightarrow A_{ay}\cdot\cos(\phi_{ay}\)
+    ping_a.amp_sin_y     \(\longrightarrow A_{ay}\cdot\sin(\phi_{ay})\)
+    ping_a.amp_cos_y     \(\longrightarrow A_{ay}\cdot\cos(\phi_{ay})\)
     ping_a.amp_sin_rel_y \(\longrightarrow A_{ay}\cdot\sin(\phi_{ay}-\phi_{ax})\)
     ping_a.amp_cos_rel_y \(\longrightarrow A_{ay}\cdot\cos(\phi_{ay}-\phi_{ax})\)
 \end{example}
@@ -1159,11 +1160,31 @@ since, with a decoupled lattice, the \vn{model} values are zero.
 There is a similar multiplier defined for the reference data. The values of these two
 multipliers are shown with the \vn{show data} command.
   %----------------------
-  \item[ \begin{tabular}{@{}l}
-  ping_b.amp_y, .phase_y, .amp_x, .phase_x, .amp_sin_x, .amp_cos_x, \\
-  \hspace*{1.5in} .amp_sin_rel_x, .amp_cos_rel_x
+  \item[\begin{tabular}{@{}l}
+  ping_b.amp_y, .phase_y, .amp_x, .phase_x, .amp_sin_x, \\
+  \hspace*{1.5in} .amp_cos_x, .amp_sin_rel_x, .amp_cos_rel_x
   \end{tabular} ] \Newline
-Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response.  Here
+Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response which.
+The response is (see \Eq{xanop1})
+\begin{align}
+  x_b(s, n) &= A_{bx}(s) \, \cos(n \, \omega_b + \phi_{bx}(s) + \phi_{b0}) \CRNO
+  y_b(s, n) &= A_{by}(s) \, \cos(n \, \omega_b + \phi_{by}(s) + \phi_{b0})
+\end{align}
+where $\omega_b$ is the $a$-mode tune, $A_{bx}$ and $A_{by}$ are the response amplitudes, $\phi_{bx}$
+and $\phi_{by}$ are the horizontal and vertical phases, and $\phi_{b0}$ is an overall phase
+dependent upon how turn $n = 0$ is defined. In terms of \tao's data parameters, the correspondence
+is
+\begin{example}
+    ping_b.amp_x         \(\longrightarrow A_{bx}\)
+    ping_b.phase_x       \(\longrightarrow \phi_{bx}\)
+    ping_b.amp_y         \(\longrightarrow A_{by}\)
+    ping_b.phase_y       \(\longrightarrow \phi_{by}\)
+    ping_b.amp_sin_x     \(\longrightarrow A_{bx}\cdot\sin(\phi_{bx})\)
+    ping_b.amp_cos_x     \(\longrightarrow A_{bx}\cdot\cos(\phi_{bx})\)
+    ping_b.amp_sin_rel_x \(\longrightarrow A_{bx}\cdot\sin(\phi_{bx}-\phi_{by})\)
+    ping_b.amp_cos_rel_x \(\longrightarrow A_{bx}\cdot\cos(\phi_{bx}-\phi_{by})\)
+\end{example}
+Here
 the \vn{design} and \vn{model} values are calculated from Eq.~(8) of reference
 \cite{b:beta.meas}:
 \begin{align}
@@ -1182,7 +1203,7 @@ fashion to the multiplicative values for the $a$-mode ping data.
 Terms of the linear transfer map.
 
   %----------------------
-  \item[ \begin{tabular}{@{}l}
+  \item[\begin{tabular}{@{}l}
   rad_int.i0, .i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6 \\
   rad_int1.i0, i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6
   \end{tabular} ] \Newline

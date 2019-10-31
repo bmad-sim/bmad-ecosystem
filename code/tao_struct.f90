@@ -20,29 +20,32 @@ integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: ix_common_uni$ = 0
 integer, parameter :: apparent_emit$ = 1, projected_emit$ = 2
 
-character(2), parameter :: floor_plan_view_name(6) = [character(2):: 'xy', 'xz', 'yx', 'yz', 'zx', 'zy']
-character(8), parameter :: lat_type_name(3) = [character(8):: 'model ', 'base  ', 'design']
-character(8), parameter :: data_source_name(5) = [character(8):: 'lat', 'beam', 'data', 'var', 'multi_turn_orbit']
-character(20), parameter :: graph_type_name(6) = [character(20):: 'data', 'floor_plan', 'lat_layout', &
+character(2), parameter :: tao_floor_plan_view_name(6) = [character(2):: 'xy', 'xz', 'yx', 'yz', 'zx', 'zy']
+character(8), parameter :: tao_lat_type_name(3) = [character(8):: 'model ', 'base  ', 'design']
+character(8), parameter :: tao_data_source_name(5) = [character(8):: 'lat', 'beam', 'data', 'var', 'multi_turn_orbit']
+character(20), parameter :: tao_graph_type_name(6) = [character(20):: 'data', 'floor_plan', 'lat_layout', &
                                                        'phase_space', 'histogram', 'dynamic_aperture']
-character(16), parameter :: x_axis_type_name(10) = [character(16):: 'index', 'lat', 'var', &
+character(16), parameter :: tao_x_axis_type_name(10) = [character(16):: 'index', 'lat', 'var', &
                                    'ele_index', 's', 'none', 'phase_space', 'histogram', 'data', 'floor']
-character(12), parameter :: data_type_z_name(14) = [character(12):: 'x', 'px', 'y', 'py', 'z', 'pz', 'time', &
+character(12), parameter :: tao_data_type_z_name(14) = [character(12):: 'x', 'px', 'y', 'py', 'z', 'pz', 'time', &
                   'intensity', 'intensity_x', 'intensity_y', 'phase_x', 'phase_y', 'Ja', 'energy']
-character(8), parameter :: var_merit_type_name(2) = [character(8):: 'target ', 'limit']
-character(8), parameter :: data_merit_type_name(5) = [character(8):: 'target', 'min', 'max', 'abs_min', 'abs_max']
-character(12), parameter :: optimizer_name(6) = [character(12):: 'de', 'lm', 'lmdif', 'custom', 'svd', 'geodesic_lm']
+character(8), parameter :: tao_var_merit_type_name(2) = [character(8):: 'target ', 'limit']
+character(8), parameter :: tao_data_merit_type_name(5) = [character(8):: 'target', 'min', 'max', 'abs_min', 'abs_max']
+character(12), parameter :: tao_optimizer_name(6) = [character(12):: 'de', 'lm', 'lmdif', 'custom', 'svd', 'geodesic_lm']
+character(24), parameter :: tao_shape_shape_name(12) = [character(24):: 'Box', 'Var_Box', 'Vvar_Box', 'Asym_Var_Box', &
+                                    'Asym_Vvar_Box', 'Xbox', 'Diamond', 'Bow_Tie', 'Circle', 'X', 'Pattern:<pattern-name>', '-']
 
-integer, parameter :: n_char_show = 1000
-
-logical, save, target :: forever_true$ = .true.
-
-character(24), parameter :: wave_data_name(27) = [character(40):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
+character(8), parameter :: tao_shape_label_name(3) = [character(8):: 'name', 's', 'none']
+character(24), parameter :: tao_wave_data_name(27) = [character(40):: 'orbit.x', 'orbit.y', 'beta.a', 'beta.b', &
     'eta.x', 'eta.y', 'phase.a', 'phase.b', 'cbar.12', 'cbar.11', 'cbar.22', &
     'ping_a.amp_x', 'ping_a.phase_x', 'ping_a.amp_y', 'ping_a.phase_y', &
     'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', &
     'ping_b.amp_y', 'ping_b.phase_y', 'ping_b.amp_x', 'ping_b.phase_x', &
     'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x']
+
+integer, parameter :: n_char_show = 1000
+
+logical, save, target :: forever_true$ = .true.  ! Used for pointer init.
 
 interface assignment (=)
   module procedure tao_lat_equal_tao_lat

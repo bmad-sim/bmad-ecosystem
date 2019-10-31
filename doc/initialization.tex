@@ -2364,7 +2364,7 @@ For Example:
     ele_shape(5) = "wiggler::*"             "xbox"     "green"   0.50  "name"
     ele_shape(6) = "var::quad_k1"           "circle"   "purple"  0.25  "name"
     ele_shape(7) = "data::orbit.x|design"   "vvar_box" "orange"  0.25  "name"
-    ele_shape(8) = "building_wall::*"       "-"        "black"    0    "-"
+    ele_shape(8) = "building_wall::*"       "-"        "black"    0    "none"
     ele_shape(3)%multi = T
     ele_shape(5:6)%line_width = 5, 6
   /
@@ -2396,8 +2396,8 @@ data, an ``x'' will de drawn where the data is being evaluated but only for datu
 
 For \vn{floor_plan} drawings, the building wall (\sref{s:building.wall}) can be drawn by specifying
 an \vn{ele_shape} whose name is \vn{"building_wall::<name>"} where \vn{<name>} is used to match to
-the building wall section name. Use ``\vn{*}'' to for \vn{<name>} to match to all names. For the
-building wall, the only \vn{ele_shape} attribute that is relevant is the \vn{color}.
+the building wall section name. Use ``\vn{*}'' for \vn{<name>} to match to all names. For the
+building wall, the only attribute that is relevant is the \vn{<color>} attribute.
 
 The width of a drawn shape is the width of the associated element. The exception is the \vn{"x"}
 shape whose width is always the same as the height determined by the \vn{<size>} setting.
@@ -2486,6 +2486,7 @@ drawn. Valid Shapes are:
                    -- Custom curve specified by <name>.
   "x"              -- "X" centered at center of element
   "xbox"           -- Rectangular box with an x through it.
+  "-"              -- Used with ele_id set to "building_wall" .
 \end{example}
 
 If an element's shape is set to \vn{var_box} or \vn{asym_var_box}, the drawn size of the
@@ -2507,6 +2508,9 @@ of being proportional to the strength of the element, is proportional to the val
 datum or variable. If no datum or variable component is specified in the \vn{ele_id}, the model
 value will be used. Thus, in the above example, where \vn{<ele_id>} was set to
 \vn{"data::orbit.x|design"}, the design value is used.
+
+The \vn{-} setting for \vn{<shape>} is used when \vn{<ele_id>} is set to \vn{building_wall} to
+indicate that the shape attribute is ignored when drawing the building wall.
 
 The \vn{pattern:<pattern_name>} shape allows for a custom pattern to be specified. Custom
 patterns are specified by a \vn{shape_pattern} namelist:

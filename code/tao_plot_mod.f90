@@ -1133,7 +1133,6 @@ logical shape_has_box, err, have_data
 character(80) str
 character(40) name
 character(*), parameter :: r_name = 'tao_draw_lat_layout'
-character(20) shape_name
 
 ! Init
 
@@ -1271,8 +1270,6 @@ do
   if (.not. associated(ele_shape)) return
   if (.not. ele_shape%draw) return
 
-  shape_name = ele_shape%shape
-
   call find_element_ends (ele, ele1, ele2)
   if (.not. associated(ele1)) return
   if (ele1%ix_branch /= graph%ix_branch) return
@@ -1330,32 +1327,30 @@ real(rp) :: s_pos, y_off, r_dum = 0, x1, x2, r0(2), r1(2)
 integer iwidth
 
 character(*) label_name
-character(20) shape_name
 character(16) color
 
 !
 
-shape_name = ele_shape%shape
-shape_has_box = (index(shape_name, 'BOX') /= 0)
+shape_has_box = (index(ele_shape%shape, 'BOX') /= 0)
 color = ele_shape%color
 iwidth = ele_shape%line_width
 
 ! Draw the shape
 
-if (shape_name == 'DIAMOND') then
+if (ele_shape%shape == 'DIAMOND') then
   call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape_name == 'CIRCLE') then
+if (ele_shape%shape == 'CIRCLE') then
   call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
   call qp_convert_point_rel (r_dum, y1, 'DATA', r_dum, y1, 'POINTS')
   call qp_draw_circle (x0, y0, abs(y1), units = 'POINTS', width = iwidth, color = color)
 endif
 
-if (shape_name == 'X') then
+if (ele_shape%shape == 'X') then
   call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
   call qp_convert_point_rel (x1, y1, 'DATA', x1, y1, 'POINTS')
   call qp_convert_point_rel (x2, y2, 'DATA', x2, y2, 'POINTS')
@@ -1363,7 +1358,7 @@ if (shape_name == 'X') then
   call qp_draw_line (x0-y1, x0+y1, y0+y1, y0-y1, units = 'POINTS', width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape_name == 'BOW_TIE') then
+if (ele_shape%shape == 'BOW_TIE') then
   call qp_draw_line (x1, x2, y1, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x2, y2, y2, width = iwidth, color = color, clip = .true.)
 endif
@@ -1374,16 +1369,16 @@ endif
 
 ! Draw X for XBOX or BOW_TIE
 
-if (shape_name == 'XBOX' .or. shape_name == 'BOW_TIE') then
+if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
   call qp_draw_line (x1, x2, y2, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 ! Custom pattern
 
-if (shape_name(1:8) == 'PATTERN:') then
+if (ele_shape%shape(1:8) == 'PATTERN:') then
   do i = 1, size(s%plot_page%pattern)
-    if (shape_name(9:) /= s%plot_page%pattern(i)%name) cycle
+    if (ele_shape%shape(9:) /= s%plot_page%pattern(i)%name) cycle
     pat => s%plot_page%pattern(i)
     r0 = [x1, y1] + [pat%pt(1)%s, pat%pt(1)%x] * [x2-x1, y2-y1]
     do j = 2, size(pat%pt)

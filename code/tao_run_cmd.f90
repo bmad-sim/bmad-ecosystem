@@ -44,7 +44,7 @@ call tao_set_var_useit_opt()
 call tao_set_data_useit_opt()
 
 if (which /= '') then
-  if (all (which /= optimizer_name)) then
+  if (all (which /= tao_optimizer_name)) then
     call out_io (s_error$, r_name, 'OPTIMIZER NOT RECOGNIZED: ' // which)
     return
   endif
