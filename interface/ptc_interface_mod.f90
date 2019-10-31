@@ -3345,7 +3345,7 @@ case (crab_cavity$)
   ptc_key%list%permfringe = 0
   ptc_key%list%cavity_totalpath = 0
   ptc_key%list%freq0 = ele%value(rf_frequency$)
-  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) - 0.25_rp 
+  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + 0.25_rp 
   ptc_key%list%delta_e = 0     ! For radiation calc.
   ptc_key%list%lag = twopi * phi_tot
 
@@ -4372,9 +4372,9 @@ case (marker$, detector$, fork$, photon_fork$, beginning_ele$, em_field$, patch$
 
 case (crab_cavity$)
   if (leng == 0) then
-    bn(1) = 1d-9 * ele%value(voltage$)
+    bn(1) = 1d-9 * e_accel_field(ele, voltage$)
   else
-    bn(1) = 1d-9 * ele%value(voltage$) / leng
+    bn(1) = 1d-9 * e_accel_field(ele, voltage$) / leng
   endif
 
 case (drift$, rfcavity$, lcavity$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$)

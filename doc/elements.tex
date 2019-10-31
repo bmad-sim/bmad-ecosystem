@@ -1016,6 +1016,54 @@ General \vn{custom} attributes are:
 A \vn{crab_cavity} is an RF cavity that gives a $z$-dependent kick. This is useful in colliding beam
 machines, where there is a finite crossing angle at the interaction point, to rotate the beams near the IP.
 
+General \vn{crab_cavity} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.crab_cavity} for a full list of element attributes.
+
+The attributes specific to an \vn{crab_cavity} are 
+\index{gradient}\index{phi0}\index{n_cell}
+\index{phi0_multipass}\index{e_loss}
+\index{rf_frequency}\index{voltage}\index{cavity_type}
+\begin{example}
+  gradient        = <Real>    ! Accelerating gradient (V/m).
+  phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
+                              !   respect to the RF. phi0 = 0 is on crest.
+  phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  rf_frequency    = <Real>    ! Rf frequency (Hz).
+  voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
+\end{example}
+
+The Hamiltonian  $H_{\text{crab}}$ for a thin crab cavity is
+\Begineq
+  H_{\text{crab}} = -\frac{q_{rel} \, V\, x}{P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0)
+\Endeq
+where $x$ and $z$ are particle coordinates, $q_{rel}$ is the charge relative to the reference
+particle, $V$ is the cavity voltage, $P_0$ is the reference energy, $\phi_0$ is a user settable
+phase, and $k$ is the wave number
+\Begineq
+  k = \frac{2 \, \pi \, f_{rf}}{c}
+\Endeq
+Which give kicks \begin{align} \Delta p_x &= -\frac{\partial H_{\text{crab}}}{\partial x} =
+\frac{q_{rel} \, V \, x}{P_0} \, \sin(k \, z + \phi_0) \CRNO \Delta p_z &= -\frac{\partial
+H_{\text{crab}}}{\partial z} = \frac{q_{rel} \, V \, \, k \, x}{P_0} \, \cos(k \, z +
+\phi_0) \end{align} Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not
+standardized. \Bmad uses the convention such that a particle with the charge of the reference 
+particle and with $z$ and $V$ positive will have a positive $\Delta p_x$.
+
 %-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
@@ -2404,8 +2452,9 @@ The dependent variable \vn{voltage} attribute can be used in place of \vn{gradie
 
 The energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = gradient_tot * L * cos(\(2\,\pi\) * (\(\phi_t\) + \(\phi_\text{ref}\)))
+  dE = q_{rel} * gradient_tot * L * cos(\(2\,\pi\) * (\(\phi_t\) + \(\phi_\text{ref}\)))
 \end{example}
+where $q_{rel}$ is the charge of the particle relative to the charge of the reference particle.
 \index{multipass}
 where the total gradient is
 \begin{example}

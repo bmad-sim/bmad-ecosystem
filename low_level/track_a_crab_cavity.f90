@@ -25,7 +25,8 @@ type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
-real(rp) voltage, phase0, phase, t0, z, length, charge_dir, dt_ref, beta_ref
+real(rp) voltage, phase0, phase, t0, length, charge_dir, dt_ref, beta_ref
+real(rp) k_rf, dl
 
 integer i, n_slice, orientation
 
@@ -37,10 +38,13 @@ call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_m
 
 length = ele%value(l$)
 n_slice = max(1, nint(length / ele%value(ds_step$))) 
+dl = length / n_slice
 charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation
-voltage = e_accel_field(ele, voltage$) * charge_dir
+voltage = e_accel_field(ele, voltage$) * charge_dir / (ele%value(p0c$) * n_slice)
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 dt_ref = length / (c_light * beta_ref)
+k_rf = twopi * ele%value(rf_frequency$) / c_light
+
 
 phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
         (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
@@ -51,27 +55,46 @@ phase = phase0
 
 ! Track through slices.
 
-t0 = orbit%t
+call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 
-do i = 0, n_slice
+do i = 1, n_slice
 
   if (logic_option(.false., make_matrix)) then
   endif
 
-  orbit%vec(2) = orbit%vec(2)
+  orbit%vec(2) = orbit%vec(2) + voltage * sin(phase)
+  orbit%vec(6) = orbit%vec(6) + voltage * cos(phase) * k_rf * orbit%vec(1)
 
-  if (i /= n_slice) then
-    z = orbit%vec(5)
-    call track_a_drift (orbit, length/n_slice, mat6, make_matrix)
-    phase = phase + twopi * ele%value(rf_frequency$) * (orbit%vec(5) - z) / (c_light * orbit%beta)
-  endif
+  if (i == n_slice) exit
+  call track_this_drift(orbit, dl, ele, phase, mat6, make_matrix)
 
 enddo
+
+call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 
 ! coupler kick, multipoles, back to lab coords.
 
 !call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
 
 call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+
+!-------------------------
+contains
+
+subroutine track_this_drift (orbit, dl, ele, phase, mat6, make_matrix)
+
+type (coord_struct) orbit
+type (ele_struct) ele
+real(rp) mat6(6,6)
+real(rp) z, dl, phase
+logical make_matrix
+
+!
+
+z = orbit%vec(5)
+call track_a_drift (orbit, dl, mat6, make_matrix)
+phase = phase + twopi * ele%value(rf_frequency$) * (orbit%vec(5) - z) / (c_light * orbit%beta)
+
+end subroutine track_this_drift
 
 end subroutine
