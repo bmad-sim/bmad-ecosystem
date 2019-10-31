@@ -62,6 +62,7 @@ case (capillary$)
   ele%offset_moves_aperture = .true.
 
 case (crab_cavity$)
+  ele%value(field_autoscale$) = 1
 
 case (crystal$)
   ele%value(ref_orbit_follows$) = bragg_diffracted$

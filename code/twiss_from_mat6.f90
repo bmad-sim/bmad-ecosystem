@@ -48,6 +48,7 @@ character(20) :: r_name = 'twiss_from_mat6'
 
 ! init
 
+stable = .false.
 rel_p = 1 + orb0(6)
 m6 = mat6
 
@@ -63,6 +64,7 @@ if (maxval(abs(mat4)) > 1d10) then
   if (type_out) call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: UNSTABLE.', &
                                                'TWISS PARAMETERS NOT COMPUTED')
   status = unstable$
+  growth_rate = maxval(abs(mat4))
   return
 endif
 
@@ -72,6 +74,8 @@ if (symp_err > 1) then
   if (type_out) call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX. NON_SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f8.1\ ', &
                                                'TWISS PARAMETERS NOT COMPUTED', r_array = [symp_err])
   status = non_symplectic$
+  growth_rate = min(1d5 * symp_err, maxval(abs(mat4)))
+
   return
 endif
 
@@ -86,24 +90,18 @@ call mat_symp_decouple (mat4, status, u, v, ubar, vbar, g, ele%a, ele%b, ele%gam
 
 if (status /= ok$) then
   if (type_out) call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: ' // &
-                      matrix_status_name(status), 'TWISS PARAMETERS NOT COMPUTED')
-  if (status == non_symplectic$) then
-    rate1 = 10.0
-    rate2 = 10.0
-    rate1 = max(rate1, maxval(abs(mat4)))
-  else
-    rate1 = sqrt(max(abs(u(1,1) + u(2,2)) - 2, 0.0_rp))
-    rate2 = sqrt(max(abs(u(3,3) + u(4,4)) - 2, 0.0_rp))
-  endif
+                                                matrix_status_name(status), 'TWISS PARAMETERS NOT COMPUTED')
+  rate1 = sqrt(max(abs(u(1,1) + u(2,2)) - 2, 0.0_rp))
+  rate2 = sqrt(max(abs(u(3,3) + u(4,4)) - 2, 0.0_rp))
   growth_rate = max(rate1, rate2)
-  stable = .false.
+  if (growth_rate > 1d4) growth_rate = 1d4 + 1d2 * log10(growth_rate - 1d4 + 1.0_rp)
   return
-else
-  growth_rate = 0          ! no growth
-  stable = .true.          ! stable lat
 endif
 
-! here if everything normal so load twiss parameters
+! Here if everything normal so load twiss parameters
+
+growth_rate = 0          ! no growth
+stable = .true.          ! stable lat
 
 if (ele%a%beta /= 0 .and. ele%b%beta /= 0) then
   ele%mode_flip = .false.

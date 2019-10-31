@@ -595,7 +595,7 @@ case (bmad_standard$)
   ! Error
 
   case default
-    call out_io (s_fatal$, r_name, 'EM FIELD NOT YET CODED FOR ELEMENT OF TYPE: ' // key_name(ele%key), &
+    call out_io (s_fatal$, r_name, 'BMAD_STANDARD FIELD NOT YET CODED FOR ELEMENT OF TYPE: ' // key_name(ele%key), &
                                    'FOR ELEMENT: ' // ele%name, 'PERHAPS "FIELD_CALC" NEEDS TO BE SET FOR THIS ELEMENT?')
     if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.

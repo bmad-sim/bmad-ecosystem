@@ -1295,9 +1295,14 @@ call init_attribute_name1 (crab_cavity$, E_tot_start$,              'E_tot_start
 call init_attribute_name1 (crab_cavity$, p0c_start$,                'p0c_start', private$)
 call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
 call init_attribute_name1 (crab_cavity$, rf_frequency$,             'RF_FREQUENCY')
+call init_attribute_name1 (crab_cavity$, field_autoscale$,          'FIELD_AUTOSCALE', private$)  ! Not yet used
+call init_attribute_name1 (crab_cavity$, phi0_autoscale$,           'PHI0_AUTOSCALE', private$)  ! Not yet used
+call init_attribute_name1 (crab_cavity$, autoscale_amplitude$,      'AUTOSCALE_AMPLITUDE', private$)  ! Not yet used
+call init_attribute_name1 (crab_cavity$, autoscale_phase$,          'AUTOSCALE_PHASE', private$)  ! Not yet used
 
 call init_attribute_name1 (rfcavity$, longitudinal_mode$,           'LONGITUDINAL_MODE')
 call init_attribute_name1 (rfcavity$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
+call init_attribute_name1 (rfcavity$, phi0_autoscale$,              'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (rfcavity$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (rfcavity$, autoscale_phase$,             'AUTOSCALE_PHASE')
 call init_attribute_name1 (rfcavity$, cavity_type$,                 'CAVITY_TYPE')
@@ -1314,7 +1319,6 @@ call init_attribute_name1 (rfcavity$, cartesian_map$,               'CARTESIAN_M
 call init_attribute_name1 (rfcavity$, cylindrical_map$,             'CYLINDRICAL_MAP')
 call init_attribute_name1 (rfcavity$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (rfcavity$, taylor_field$,                'TAYLOR_FIELD')
-call init_attribute_name1 (rfcavity$, phi0_autoscale$,              'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (rfcavity$, n_cell$,                      'N_CELL')
 call init_attribute_name1 (rfcavity$, phi0_max$,                    'phi0_max', private$)
 call init_attribute_name1 (rfcavity$, E_tot_start$,                 'E_tot_start', private$)
