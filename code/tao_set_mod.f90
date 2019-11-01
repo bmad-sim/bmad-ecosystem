@@ -677,9 +677,9 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 call tao_pick_universe (remove_quotes(who), who2, this_u, err); if (err) return
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'all_file', 'saved_at', &
-                    'beam_track_start', 'beam_track_end', 'beam_all_file', 'beam_init_file_name', 'beam_saved_at', &
-                    'beginning', 'not_saved_at', 'beam_init_position_file'], ix, matched_name=switch)
+call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'beam_track_data_file', &
+                    'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
+                    'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file'], ix, matched_name=switch)
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
@@ -704,8 +704,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('track_end', 'beam_track_end')
     call set_this_track(u%beam%track_end, u%beam%ix_track_end)
 
-  case ('all_file', 'beam_all_file')
-    u%beam%all_file = value_str
+  case ('beam_track_data_file')
+    u%beam%track_data_file = value_str
 
   case ('beam_init_file_name')
     call out_io (s_warn$, r_name, 'Note: "beam_init_file_name" has been renamed to "beam_init_position_file".')

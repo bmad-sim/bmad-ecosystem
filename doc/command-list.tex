@@ -1166,13 +1166,13 @@ Sets parameters for \vn{floor_plan} plots (\sref{s:shapes}).  Possible
   draw_beam_chamber_wall
   beam_chamber_wall_scale
 \end{example}
-Where \vn{<ele_shape_name>} is of the form ``\vn{shape<n>}'' where \vn{<n>} is the index
+Where \vn{<ele_shape_name>} is of the form ``\vn{ele_shape(<n>)}'' where \vn{<n>} is the index
 of the \vn{ele_shape} in the \vn{floor_plan_drawing} namelist.  Use ``\vn{show plot
 -floor_plan}'' to see the current state of the \vn{floor_plan} parameters
 
 Example:
 \begin{example}
-  set floor_plan shape2%draw = F  ! Veto drawing of ele_shape(2)
+  set floor_plan ele_shape(2)%draw = F  ! Veto drawing of ele_shape(2)
   set floor_plan beam_chamber_scale = 0.5
 \end{example}
 
@@ -1291,7 +1291,7 @@ Use ``\vn{show plot -lat_layout}'' to see a listing of all shapes.
 
 Example:
 \begin{example}
-  set lat_layout shape2%draw = F  ! Veto drawing of shape \#2
+  set lat_layout ele_shape(2)%draw = F  ! Veto drawing of shape \#2
 \end{example}
 
 %% set lattice --------------------------------------------------------------

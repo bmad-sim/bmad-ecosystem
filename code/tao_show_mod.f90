@@ -165,6 +165,7 @@ type (tao_curve_struct), pointer :: c1
 type (tao_plot_region_struct), pointer :: region
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
+type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), pointer :: shape
 type (tao_spin_map_struct), pointer :: spin_map
 type (all_pointer_struct) a_ptr
@@ -360,12 +361,10 @@ case ('beam')
     fmt = '(3a, i0, a)'
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'General beam components (set by "set beam ..."):'
-    nl=nl+1; write(lines(nl), amt) 'all_file               = ', quote(u%beam%all_file)
-    nl=nl+1; write(lines(nl), amt) 'saved_at               = ', quote(u%beam%saved_at)
-    nl=nl+1; write(lines(nl), fmt) 'track_start            = ', quote(u%beam%track_start), &
-                                                                                ' (', u%beam%ix_track_start, ')'
-    nl=nl+1; write(lines(nl), fmt) 'track_end              = ', quote(u%beam%track_end), &
-                                                                                ' (', u%beam%ix_track_end, ')'
+    nl=nl+1; write(lines(nl), amt) 'beam_track_data_file   = ', quote(u%beam%track_data_file)
+    nl=nl+1; write(lines(nl), amt) 'beam_saved_at          = ', quote(u%beam%saved_at)
+    nl=nl+1; write(lines(nl), fmt) 'beam_track_start       = ', quote(u%beam%track_start), ' (', u%beam%ix_track_start, ')'
+    nl=nl+1; write(lines(nl), fmt) 'beam_track_end         = ', quote(u%beam%track_end), ' (', u%beam%ix_track_end, ')'
 
     beam => uni_branch%ele(u%beam%ix_track_start)%beam
     if (allocated(beam%bunch)) then
@@ -1599,7 +1598,7 @@ case ('global')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Tao command line startup arguments:'
     call write_this_arg (nl, lines, '-beam_file', s%com%beam_file_arg)
-    call write_this_arg (nl, lines, '-beam_all_file', s%com%beam_all_file_arg)
+    call write_this_arg (nl, lines, '-beam_track_data_file', s%com%beam_track_data_file_arg)
     call write_this_arg (nl, lines, '-beam_init_position_file', s%com%beam_init_position_file_arg)
     call write_this_arg (nl, lines, '-building_wall_file', s%com%building_wall_file_arg)
     call write_this_arg (nl, lines, '-prompt_color', s%com%prompt_color_arg)
@@ -3244,13 +3243,14 @@ case ('plot')
     nl=nl+1; lines(nl) = '                  Ele_Name                            Shape           Color             Size  Label     Draw  Shape  Width'
     nl=nl+1; lines(nl) = '                  ------------------------------      ----------      -------           ----  -------  -----  -----  -----'
 
-    do i = 1, size(s%plot_page%floor_plan%ele_shape)
-      if (what == '-floor_plan') then
-        shape => s%plot_page%floor_plan%ele_shape(i)
-      else
-        shape => s%plot_page%lat_layout%ele_shape(i)
-      endif
+    if (what == '-floor_plan') then
+      shapes => s%plot_page%floor_plan%ele_shape
+    else
+      shapes => s%plot_page%lat_layout%ele_shape
+    endif
 
+    do i = 1, size(shapes)
+      shape => shapes(i)
       if (shape%ele_id == '') cycle
       nl=nl+1; write(lines(nl), '(a, i0, a, t19, a, t55, a, t71, a, t83, f10.1, 2x, a, t103, l5, l6, i7)') &
                 'ele_shape(', i, ') = ', quote(shape%ele_id), quote(shape%shape), quote(shape%color), &
@@ -4085,7 +4085,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) '%calc%track            = ', u%calc%track
   nl=nl+1; write(lines(nl), lmt) '%calc%spin_matrices    = ', u%calc%spin_matrices
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write(lines(nl), amt) '%beam_all_file         = ', quote(trim(u%beam%all_file))
+  nl=nl+1; write(lines(nl), amt) '%beam%track_data_file  = ', quote(trim(u%beam%track_data_file))
   nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', quote(trim(u%beam%saved_at))
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', quote(lat%lattice)
