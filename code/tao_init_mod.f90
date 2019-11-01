@@ -146,15 +146,16 @@ character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
 character(40) track_start, track_end, beam_track_start, beam_track_end
 character(160) beam_saved_at
-character(200) file_name, beam0_file, beam_all_file
+character(200) file_name, beam0_file, beam_track_data_file
 character(200) beam_init_file_name           ! old style syntax
 character(200) beam_position0_file           ! old style syntax
 character(60), target :: save_beam_at(100)   ! old style syntax
 
 logical err
 
-namelist / tao_beam_init / ix_universe, beam0_file, beam_all_file, beam_init, beam_init_file_name, &
-            beam_saved_at, track_start, track_end, beam_track_start, beam_track_end, beam_position0_file
+namelist / tao_beam_init / ix_universe, beam0_file, beam_init, beam_init_file_name, &
+            beam_saved_at, track_start, track_end, beam_track_start, beam_track_end, beam_position0_file, &
+            beam_track_data_file
          
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -175,7 +176,7 @@ endif
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%beam%beam_init%file_name = ''
   s%u(i)%beam%beam_init%position_file = ''
-  s%u(i)%beam%all_file = s%com%beam_all_file_arg
+  s%u(i)%beam%track_data_file = s%com%beam_track_data_file_arg
   s%u(i)%beam%track_start    = ''
   s%u(i)%beam%track_end      = ''
   s%u(i)%beam%ix_track_start = 0
@@ -196,7 +197,7 @@ do
   beam_init_file_name = ''
   beam0_file = ''
   beam_position0_file = ''
-  beam_all_file = ''
+  beam_track_data_file = ''
 
   ! Read beam parameters
 
@@ -244,7 +245,7 @@ do
     beam_init%sig_e = 0
   endif
 
-  if (s%com%beam_all_file_arg /= '') beam_all_file = s%com%beam_all_file_arg  ! From the command line
+  if (s%com%beam_track_data_file_arg /= '') beam_track_data_file = s%com%beam_track_data_file_arg  ! From the command line
   if (track_start /= '') beam_track_start = track_start   ! For backwards compatibility
   if (track_end /= '')   beam_track_end   = track_end     ! For backwards compatibility
 
@@ -338,7 +339,7 @@ if (beam_track_end /= '') then
 endif
 
 u%beam%beam_init = beam_init
-u%beam%all_file = beam_all_file
+u%beam%track_data_file = beam_track_data_file
 
 ! Find where to save the beam at.
 ! Note: Beam will automatically be saved at fork elements and at the ends of the beam tracking.
@@ -362,10 +363,10 @@ endif
 
 u%beam%saved_at = beam_saved_at
 
-! If beam_all_file is set, read in the beam distributions.
+! If beam_track_data_file is set, read in the beam tracking data.
 
-if (u%beam%all_file /= '') then
-  call out_io (s_fatal$, r_name, 'beam_all_file not yet implemented. Please contact David Sagan...')
+if (u%beam%track_data_file /= '') then
+  call out_io (s_fatal$, r_name, 'beam_track_data_file not yet implemented. Please contact David Sagan...')
   stop
 endif
 

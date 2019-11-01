@@ -740,7 +740,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
 \begin{example}
   &tao_beam_init
     ix_universe                 = <integer>    ! Universe to apply to.
-    beam_all_file               = <string>     ! File used in place of beam tracking.
+    beam_track_data_file               = <string>     ! File used in place of beam tracking.
     beam_saved_at               = "<ele_list>" ! Where to save the beam info.
     beam_track_start            = "<ele_name>" ! Beam tracking start element name or index.
     beam_track_end              = "<ele_name>" ! Beam tracking end element name or index.
@@ -802,16 +802,13 @@ normalized emittances \vn{%a_norm_emit} and \vn{%b_norm_emit} or the unnormalize
 emittances are also used as the initial emittance in a linear lattice for the emittance calculation
 using the radiation integrals.
 
-The \vn{beam_all_file} component specifies a beam data file (which can
-be created with the \vn{write beam} command) which contains the
-particle coordinates of the tracked beam at every element. This causes
-\tao to use the data from the file in lieu of actual tracking. This
-can be helpful when the time for \tao to track a bunch through the
-lattice becomes long. The file name can be overridden by using the
-\vn{-beam_all_file} argument on the command line
-(\sref{s:command.line}). Note: \tao will set the variable
-\vn{use_saved_beam_in_tracking} to \vn{True} to prevent actual
-tracking.  Note: A \vn{beam_all_file} will supersede  \vn{beam_init%position_file}
+The \vn{beam_track_data_file} component specifies a beam tracking data file (which can be created
+with the \vn{write beam} command) which contains the particle coordinates of the tracked beam at
+every element where the beam distribution is saved at. This causes \tao to use the data from the
+file in lieu of actual tracking. This can be helpful when to reanalyze old data if the time for \tao
+to track a bunch through the lattice becomes long. The file name can be overridden by using the
+\vn{-beam_track_data_file} argument on the command line (\sref{s:command.line}). Note: \tao will set
+the variable \vn{use_saved_beam_in_tracking} to \vn{True} to prevent actual tracking.
 
 When \vn{beam_init%position_file} is blank, the Twiss parameters at the beginning of the lattice are used in
 initializing the beam distribution.  For circular lattices the Twiss parameters will be found from
@@ -829,27 +826,22 @@ initialization, the \vn{set beam_init} (\sref{s:set.beam.init}) command can be u
 \vn{beam_track_start} and \vn{beam_track_end}. Note: Deprecated names for \vn{beam_track_start} and
 \vn{beam_track_end} are \vn{track_start} and \vn{track_end} respectively.
 
-If spin tracking is desired then \vn{beam_init%init_spin} must be set
-to true.  If it is desired to use the exact same distribution of
-particles for each time the beam is tracked then set
-\vn{beam_init%preserve_dist} to True. Otherwise, a new random
-distribution will be generated. The initialization routine does
-attempt to renormalize the beam to the specified parameters,
-nevertheless if tracking a small number of particles the distribution
-is subject to small random fluctuations unless
-\vn{beam_init%prserve_dist} is True.
+If spin tracking is desired then \vn{beam_init%init_spin} must be set to true.  If it is desired to
+use the exact same distribution of particles for each time the beam is tracked then set
+\vn{beam_init%preserve_dist} to True. Otherwise, a new random distribution will be generated. The
+initialization routine does attempt to renormalize the beam to the specified parameters,
+nevertheless if tracking a small number of particles the distribution is subject to small random
+fluctuations unless \vn{beam_init%prserve_dist} is True.
 
-\tao re-tracks the beam through the lattice every time a lattice
-parameter is changed. For example, during optimizations or when the
-\vn{set} command (\sref{s:set}) is used. For the re-tracking, the
-particle distribution at the beginning of the lattice is fixed. That
-is, the a new random distribution is {\emph not} generated. To force a
-new distribution, use the \vn{reinitialize beam} command
-(\sref{s:reinit}).
+\tao re-tracks the beam through the lattice every time a lattice parameter is changed. For example,
+during optimizations or when the \vn{set} command (\sref{s:set}) is used. For the re-tracking, the
+particle distribution at the beginning of the lattice is fixed. That is, the a new random
+distribution is {\emph not} generated. To force a new distribution, use the \vn{reinitialize beam}
+command (\sref{s:reinit}).
 
-The default is single particle tracking. To turn on particle tracking the
-\vn{global%track_type} parameter must be set to \vn{"beam"}. This can be placed in
-the \vn{tao_params} namelist above, for example,
+The default is single particle tracking. To turn on particle tracking the \vn{global%track_type}
+parameter must be set to \vn{"beam"}. This can be placed in the \vn{tao_params} namelist above, for
+example,
 \begin{example}
   &tao_params
     global%optimizer = "lm"  ! Set the default optimizer.
@@ -872,14 +864,12 @@ automatically saved at the beginning position and end position of beam tracking 
 The elements where the beam is saved may be modified while \tao is running by using the \vn{set beam saved_at}
 or \vn{set beam not_saved_at} commands (\sref{s:set.beam}).
 
-The three random number generator parameters (\vn{%random_engine},
-\vn{%random_gauss_converter}, and \vn{%random_sigma_cutoff}) used for
-initializing the beam are set in the \vn{tao_global_struct}
-(\sref{s:globals}). They may, however, be overridden for beam particle
-generation by setting the corresponding parameters in the
-\vn{beam_init} structure. That is, separate parameters may be setup
-for beam particle generation verses everything else.  These parameters
-are explained in Section~\sref{s:globals}.
+The three random number generator parameters (\vn{%random_engine}, \vn{%random_gauss_converter}, and
+\vn{%random_sigma_cutoff}) used for initializing the beam are set in the \vn{tao_global_struct}
+(\sref{s:globals}). They may, however, be overridden for beam particle generation by setting the
+corresponding parameters in the \vn{beam_init} structure. That is, separate parameters may be setup
+for beam particle generation verses everything else.  These parameters are explained in
+Section~\sref{s:globals}.
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}\index{initialization!variables}

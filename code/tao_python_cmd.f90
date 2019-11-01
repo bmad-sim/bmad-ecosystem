@@ -125,7 +125,9 @@ type (taylor_field_plane1_struct), pointer :: t_term
 type (em_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
+type (tao_drawing_struct), pointer :: drawing
 type (tao_ele_shape_struct), pointer :: shapes(:)
+type (tao_ele_shape_struct), allocatable :: shapes_temp(:)
 type (tao_ele_shape_struct), pointer :: shape
 type (photon_element_struct), pointer :: ph
 type (qp_axis_struct) x_ax, y_ax
@@ -210,8 +212,8 @@ call string_trim(line(ix+1:), line, ix_line)
 !   HOM
 !   x_axis_type (variable parameter)
 
-call match_word (cmd, [character(32) :: &
-          'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
+call match_word (cmd, [character(33) :: &
+          'beam', 'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
           'da_params', 'da_aperture', &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'datum_create', 'datum_has_ele', &
@@ -221,7 +223,8 @@ call match_word (cmd, [character(32) :: &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'evaluate', 'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-          'merit', 'orbit_at_s', 'place_buffer', &
+          'manage_shape', 'merit', &
+          'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_manage_plot', 'plot_manage_graph', 'plot_manage_curve', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', &
@@ -255,11 +258,29 @@ call re_allocate_lines (li, 200)
 select case (command)
 
 !----------------------------------------------------------------------
-! Beam initialization parameters.
+! Return beam parameters.
+! Command syntax:
+!   python beam {ix_universe}
+! where
+!   {ix_universe} is a universe index.
+! To set beam_init parameters use the "set beam" command
+
+case ('beam')
+
+  u => point_to_uni(line, .false., err); if (err) return
+
+  nl=incr(nl); write (li(nl), amt) 'beam_track_data_file;STR;T;',           u%beam%track_data_file
+  nl=incr(nl); write (li(nl), amt) 'beam_track_start;STR;T;',               u%beam%track_start
+  nl=incr(nl); write (li(nl), amt) 'beam_track_end;STR;T;',                 u%beam%track_end
+  nl=incr(nl); write (li(nl), amt) 'beam_saved_at;STR;T;',                  u%beam%saved_at
+
+!----------------------------------------------------------------------
+! return beam initialization parameters.
 ! Command syntax:
 !   python beam_init {ix_universe}
 ! where
 !   {ix_universe} is a universe index.
+! To set beam_init parameters use the "set beam_init" command
 
 case ('beam_init')
 
@@ -272,8 +293,8 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), imt) 'n_particle;INT;T;',                        beam_init%n_particle
   nl=incr(nl); write (li(nl), lmt) 'renorm_center;LOGIC;T;',                   beam_init%renorm_center
   nl=incr(nl); write (li(nl), lmt) 'renorm_sigma;LOGIC;T;',                    beam_init%renorm_sigma
-  nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                     beam_init%random_engine
-  nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',            beam_init%random_gauss_converter
+  nl=incr(nl); write (li(nl), amt) 'random_engine;ENUM;T;',                    beam_init%random_engine
+  nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;ENUM;T;',           beam_init%random_gauss_converter
   nl=incr(nl); write (li(nl), rmt) 'random_sigma_cutoff;REAL;T;',              beam_init%random_sigma_cutoff
   nl=incr(nl); write (li(nl), rmt) 'a_norm_emit;REAL;T;',                      beam_init%a_norm_emit
   nl=incr(nl); write (li(nl), rmt) 'b_norm_emit;REAL;T;',                      beam_init%b_norm_emit
@@ -2107,6 +2128,19 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
     enddo
 
+  case ('optimizer')
+    do i = 1, size(tao_optimizer_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_optimizer_name(i))
+    enddo
+
+  case ('random_engine')
+    nl=incr(nl); li(nl) = 'pseudo'
+    nl=incr(nl); li(nl) = 'quasi'
+
+  case ('random_gauss_converter')
+    nl=incr(nl); li(nl) = 'exact'
+    nl=incr(nl); li(nl) = 'quick'
+
   case ('shape.label')
     do i = 1, size(tao_shape_label_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_label_name(i))
@@ -2126,6 +2160,10 @@ case ('enum')
     do i = lbound(qp_symbol_type_name, 1), ubound(qp_symbol_type_name, 1)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
     enddo
+
+  case ('track_type')
+    nl=incr(nl); li(nl) = 'single'
+    nl=incr(nl); li(nl) = 'beam'
 
   case ('var^merit_type')
     do i = 1, size(tao_var_merit_type_name)
@@ -2448,8 +2486,8 @@ case ('global')
   nl=incr(nl); write (li(nl), lmt) 'srdt_use_cache;LOGIC;T;',                 s%global%srdt_use_cache
   nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
   nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
-  nl=incr(nl); write (li(nl), amt) 'track_type;STR;T;',                       s%global%track_type
-  nl=incr(nl); write (li(nl), amt) 'optimizer;STR;T;',                        s%global%optimizer
+  nl=incr(nl); write (li(nl), amt) 'track_type;ENUM;T;',                      s%global%track_type
+  nl=incr(nl); write (li(nl), amt) 'optimizer;ENUM;T;',                       s%global%optimizer
   nl=incr(nl); write (li(nl), amt) 'print_command;STR;T;',                    s%global%print_command
   nl=incr(nl); write (li(nl), amt) 'var_out_file;FILE;T;',                    s%global%var_out_file
   nl=incr(nl); write (li(nl), lmt) 'external_plotting;LOGIC;I;',              s%global%external_plotting
@@ -2833,6 +2871,54 @@ case ('lat_param_units')
   name = upcase(line)
   a_name = attribute_units(name)
   nl=incr(nl); write(li(nl), '(a)') a_name
+
+!----------------------------------------------------------------------
+! element shape creation or destruction
+! Command syntax:
+!   python manage_shape <who> <index> <add-or-delete>
+!
+! <who> is one of:
+!   lat_layout
+!   floor_plan
+! <add-or-delete> is one of:
+!   add     -- Add a shape at <index>. Shapes with higher index get moved up one to make room.
+!   delete  -- Delete shape at <index>. Shapes with higher index get moved down one to fill the gap.
+!
+! Example:
+!   python manage_shape floor_plan 2 add
+
+case ('manage_shape')
+
+call tao_next_switch (line, ['lat_layout', 'floor_plan'], .false., switch, err, ix_line)
+select case (switch)
+case ('lat_layout')
+  drawing => s%plot_page%lat_layout
+case ('floor_plan')
+  drawing => s%plot_page%floor_plan
+case default
+  call invalid ('Expected "floor_plan" or "lat_layout" after "manage_shape"')
+  return
+end select
+
+n = size(drawing%ele_shape)
+ix = parse_int(line, err, 1, n+1); if (err) return
+
+call tao_next_switch (line, ['add', 'delete'], .false., switch, err, ix_line)
+select case (switch)
+case ('add')
+  call move_alloc (drawing%ele_shape, shapes_temp)
+  allocate (drawing%ele_shape(n+1))
+  drawing%ele_shape(1:ix-1) = shapes_temp(1:ix-1)
+  drawing%ele_shape(ix+1:) = shapes_temp(ix:)
+case ('delete')
+  call move_alloc (drawing%ele_shape, shapes_temp)
+  allocate (drawing%ele_shape(n-1))
+  drawing%ele_shape(1:ix-1) = shapes_temp(1:ix-1)
+  drawing%ele_shape(ix:) = shapes_temp(ix+1:)
+case default
+  call invalid ('Expected "add" or "delete" after shape index.')
+  return
+end select
 
 !----------------------------------------------------------------------
 ! Merit value.

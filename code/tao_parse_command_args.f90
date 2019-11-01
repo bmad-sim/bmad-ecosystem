@@ -58,10 +58,10 @@ do
     negate = .false.
   endif
 
-  call match_word (arg1, [character(41):: '-?', '-init_file', '-noinit', '-beam_all_file', '-beam0', &
+  call match_word (arg1, [character(41):: '-?', '-init_file', '-noinit', '-beam0', &
         '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', '-building_wall_file', &
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
-        '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
+        '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', '-beam_track_data_file', &
         '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file', &
         '-plot_file', '-external_plotting'], ix, .true., matched_name=switch)
 
@@ -74,8 +74,8 @@ do
   case ('-beam_file')
     call get_next_arg (arg0, s%com%beam_file_arg)
 
-  case ('-beam_all_file')
-    call get_next_arg (arg0, s%com%beam_all_file_arg)
+  case ('-beam_track_data_file')
+    call get_next_arg (arg0, s%com%beam_track_data_file_arg)
 
   case ('-beam_position0', '-beam0', '-beam_init_file_name')
     call get_next_arg (arg0, s%com%beam_init_position_file_arg)
@@ -163,7 +163,7 @@ do
   ! Negate cases
 
   case ('--beam_file');                           s%com%beam_file_arg = ''
-  case ('--beam_all_file');                       s%com%beam_all_file_arg = ''
+  case ('--beam_track_data_file');                s%com%beam_track_data_file_arg = ''
   case ('--beam_position0', '--beam0', '--beam_init_file_name'); 
                                                   s%com%beam_init_position_file_arg = ''
   case ('--beam_init_position_file');             s%com%beam_init_position_file_arg = ''
