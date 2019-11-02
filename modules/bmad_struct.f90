@@ -1683,14 +1683,18 @@ type multipass_all_info_struct
   type (multipass_branch_info_struct), allocatable :: branch(:)
 end type
 
-! Dynamic aperture structures
+! Dynamic aperture structures...
+
+! Dynamic aperture data point structure
 
 type aperture_data_struct
   real(rp) x, y     ! (x,y) aperture point
   integer plane     ! plane determining loss
-  integer ix_lat    ! ele index lost at
-  integer i_turn    ! turn lost at
+  integer ix_ele    ! ele index particle lost at
+  integer i_turn    ! turn particle lost at
 end type
+
+! Input parameters for a dynamic aperture scan
 
 type aperture_param_struct
   real(rp) :: min_angle = 0
@@ -1702,11 +1706,13 @@ type aperture_param_struct
   real(rp) :: accuracy = 1e-5_rp  ! Resolution of bracketed aperture (meters.)
 end type
 
+! Structure for a single dynamic aperture scan over a set of angles.
+
 type aperture_scan_struct
-  type(aperture_data_struct), allocatable :: aperture(:) ! set of apertures at different angles
-  type(aperture_param_struct) :: param                   ! parameters used for the scan            
-  type (coord_struct) :: ref_orb                         ! Ref orbit around which the scan is made.
-  real(rp)            :: Sxy = 1.0   !used to scale angles for linear aperture
+  type(aperture_data_struct), allocatable :: aperture(:) ! Set of apertures at different angles.
+  type(aperture_param_struct) :: param       ! Init parameters used for the scan.           
+  type (coord_struct) :: ref_orb             ! Ref orbit around which the scan is made.
+  real(rp) :: S_xy = 1.0                     ! X/Y angle scale. Set by dynamic_aperture_scan.
 end type
 
 !-------------------------------------------------------------------------

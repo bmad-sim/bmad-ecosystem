@@ -1032,7 +1032,7 @@ General \vn{crab_cavity} attributes are:
 \end{tabular}
 \end{center}
 \toffset
-See \sref{s:list.crab_cavity} for a full list of element attributes.
+See \sref{s:list.crab.cavity} for a full list of element attributes.
 
 The attributes specific to an \vn{crab_cavity} are 
 \index{gradient}\index{phi0}\index{n_cell}
@@ -1043,7 +1043,7 @@ The attributes specific to an \vn{crab_cavity} are
   phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                               !   respect to the RF. phi0 = 0 is on crest.
   phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
-  rf_frequency    = <Real>    ! Rf frequency (Hz).
+  rf_frequency    = <Real>    ! RF frequency (Hz).
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
 \end{example}
 
@@ -1057,11 +1057,15 @@ phase, and $k$ is the wave number
 \Begineq
   k = \frac{2 \, \pi \, f_{rf}}{c}
 \Endeq
-Which give kicks \begin{align} \Delta p_x &= -\frac{\partial H_{\text{crab}}}{\partial x} =
-\frac{q_{rel} \, V \, x}{P_0} \, \sin(k \, z + \phi_0) \CRNO \Delta p_z &= -\frac{\partial
-H_{\text{crab}}}{\partial z} = \frac{q_{rel} \, V \, \, k \, x}{P_0} \, \cos(k \, z +
-\phi_0) \end{align} Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not
-standardized. \Bmad uses the convention such that a particle with the charge of the reference 
+Which give kicks 
+\begin{align} 
+  \Delta p_x &= -\frac{\partial H_{\text{crab}}}{\partial x} = 
+    \frac{q_{rel} \, V \, x}{P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
+  \Delta p_z &= -\frac{\partial H_{\text{crab}}}{\partial z} = 
+    \frac{q_{rel} \, V \, \, k \, x}{P_0} \, \cos(k \, z + 2 \, \pi \, \phi_0) 
+\end{align} 
+Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not
+standardized. \bmad uses the convention such that a particle with the charge of the reference 
 particle and with $z$ and $V$ positive will have a positive $\Delta p_x$.
 
 %-----------------------------------------------------------------
@@ -2437,7 +2441,7 @@ The attributes specific to an \vn{lcavity} are
   phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
   phi0_err        = <Real>    ! Phase error (rad/2\(\pi\))
   e_loss          = <Real>    ! Loss parameter for short range wakefields (V/Coul).
-  rf_frequency    = <Real>    ! Rf frequency (Hz).
+  rf_frequency    = <Real>    ! RF frequency (Hz).
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
   l_hard_edge     = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
   n_cell          = <Int>     ! Number of cavity cells. Default is 1.
@@ -3762,7 +3766,7 @@ Attributes specific to an \vn{sextupole} element are:
 
 %  angle           = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
 %  g               = <Real>    ! Bend strength 1/rho
-%  rf_frequency    = <Real>    ! Rf frequency (Hz). SAD equivalent: FREQ.
+%  rf_frequency    = <Real>    ! RF frequency (Hz). SAD equivalent: FREQ.
 %  harmon          = <Real>    ! Harmonic number. SAD equivalent: HARM.
 %  phi0            = <Real>    ! Cavity phase. SAD equivalent: PHI.
 %  rho             = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})

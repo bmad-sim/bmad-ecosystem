@@ -211,6 +211,33 @@ l [m]                          & tilt_tot [rad]                 & y1_limit [m]  
  \vfill
  
  %---------------------------------
+ \section{Crab_Cavity Element Attributes}
+ \label{s:list.crab.cavity}
+ 
+ \begin{tabular}{llll} \toprule
+alias                          & integrator_order               & ptc_integration_type           & x1_limit [m]                   \\
+aperture [m]                   & is_on                          & ref_origin                     & x2_limit [m]                   \\
+aperture_at                    & l [m]                          & reference                      & x_limit [m]                    \\
+aperture_type                  & l_hard_edge [m]                & rf_frequency [Hz]              & x_offset [m]                   \\
+cartesian_map                  & lord_pad1 [m]                  & space_charge_method            & x_offset_tot [m]               \\
+create_jumbo_slave             & lord_pad2 [m]                  & spin_tracking_method           & x_pitch                        \\
+csr_method                     & lr_freq_spread [Hz]            & sr_wake                        & x_pitch_tot                    \\
+cylindrical_map                & lr_self_wake_on                & sr_wake_file                   & y1_limit [m]                   \\
+delta_ref_time [sec]           & lr_wake                        & superimpose                    & y2_limit [m]                   \\
+descrip                        & lr_wake_file                   & symplectify                    & y_limit [m]                    \\
+ds_step [m]                    & mat6_calc_method               & taylor_field                   & y_offset [m]                   \\
+e_tot [eV]                     & n_ref_pass                     & taylor_map_includes_offsets    & y_offset_tot [m]               \\
+ele_origin                     & num_steps                      & tilt [rad]                     & y_pitch                        \\
+field_calc                     & offset [m]                     & tilt_tot [rad]                 & y_pitch_tot                    \\
+field_overlaps                 & offset_moves_aperture          & tracking_method                & z_offset [m]                   \\
+gradient [eV/m]                & p0c [eV]                       & type                           & z_offset_tot [m]               \\
+grid_field                     & phi0 [rad/2pi]                 & voltage [Volt]                 &                                \\
+harmon                         & phi0_multipass [rad/2pi]       & wall                           &                                \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
  \section{Crystal Element Attributes}
  \label{s:list.crystal}
  
