@@ -3025,7 +3025,7 @@ public:
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
-    twiss_normalize_off_energy(false),
+    twiss_normalize_off_energy(true),
     convert_to_kinetic_momentum(false),
     aperture_limit_on(true),
     ptc_print_info_messages(false),
@@ -3494,6 +3494,7 @@ public:
   CPP_control_ARRAY control;
   CPP_photon_reflect_surface_ARRAY surface;
   CPP_coord particle_start;
+  CPP_beam_init beam_init;
   CPP_pre_tracker pre_tracker;
   Real_ARRAY custom;
   Int version;
@@ -3525,6 +3526,7 @@ public:
     control(CPP_control_ARRAY(CPP_control(), 0)),
     surface(CPP_photon_reflect_surface_ARRAY(CPP_photon_reflect_surface(), 0)),
     particle_start(),
+    beam_init(),
     pre_tracker(),
     custom(0.0, 0),
     version(-1),
@@ -3682,14 +3684,14 @@ public:
   Real x;
   Real y;
   Int plane;
-  Int ix_lat;
+  Int ix_ele;
   Int i_turn;
 
   CPP_aperture_data() :
     x(0.0),
     y(0.0),
     plane(0),
-    ix_lat(0),
+    ix_ele(0),
     i_turn(0)
     {}
 
@@ -3750,13 +3752,13 @@ public:
   CPP_aperture_data_ARRAY aperture;
   CPP_aperture_param param;
   CPP_coord ref_orb;
-  Real sxy;
+  Real s_xy;
 
   CPP_aperture_scan() :
     aperture(CPP_aperture_data_ARRAY(CPP_aperture_data(), 0)),
     param(),
     ref_orb(),
-    sxy(1.0)
+    s_xy(1.0)
     {}
 
   ~CPP_aperture_scan() {

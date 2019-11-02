@@ -9913,7 +9913,7 @@ interface
   subroutine lat_to_c2 (C, z_use_name, z_lattice, z_machine, z_input_file_name, z_title, &
       z_constant, n1_constant, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_ele, n1_ele, &
       z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, z_particle_start, &
-      z_pre_tracker, z_custom, n1_custom, z_version, z_n_ele_track, z_n_ele_max, &
+      z_beam_init, z_pre_tracker, z_custom, n1_custom, z_version, z_n_ele_track, z_n_ele_max, &
       z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, &
       z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
@@ -9923,7 +9923,7 @@ interface
     type(c_ptr) :: z_constant(*), z_ele(*), z_branch(*), z_control(*), z_surface(*)
     integer(c_int), value :: n1_constant, n1_ele, n1_branch, n1_control, n1_surface, n1_custom, n1_ic
     type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_particle_start
-    type(c_ptr), value :: z_pre_tracker
+    type(c_ptr), value :: z_beam_init, z_pre_tracker
     real(c_double) :: z_custom(*)
     integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic(*)
     integer(c_int) :: z_photon_type
@@ -10014,10 +10014,11 @@ call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_ch
     trim(F%machine) // c_null_char, trim(F%input_file_name) // c_null_char, trim(F%title) // &
     c_null_char, z_constant, n1_constant, c_loc(F%a), c_loc(F%b), c_loc(F%z), c_loc(F%param), &
     c_loc(F%lord_state), c_loc(F%ele_init), z_ele, n1_ele, z_branch, n1_branch, z_control, &
-    n1_control, z_surface, n1_surface, c_loc(F%particle_start), c_loc(F%pre_tracker), &
-    fvec2vec(F%custom, n1_custom), n1_custom, F%version, F%n_ele_track, F%n_ele_max, &
-    F%n_control_max, F%n_ic_max, F%input_taylor_order, fvec2vec(F%ic, n1_ic), n1_ic, &
-    F%photon_type, c_logic(F%absolute_time_tracking), c_logic(F%ptc_uses_hard_edge_drifts))
+    n1_control, z_surface, n1_surface, c_loc(F%particle_start), c_loc(F%beam_init), &
+    c_loc(F%pre_tracker), fvec2vec(F%custom, n1_custom), n1_custom, F%version, F%n_ele_track, &
+    F%n_ele_max, F%n_control_max, F%n_ic_max, F%input_taylor_order, fvec2vec(F%ic, n1_ic), &
+    n1_ic, F%photon_type, c_logic(F%absolute_time_tracking), &
+    c_logic(F%ptc_uses_hard_edge_drifts))
 
 end subroutine lat_to_c
 
@@ -10040,9 +10041,9 @@ end subroutine lat_to_c
 subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_machine, z_input_file_name, z_title, &
     z_constant, n1_constant, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_ele, n1_ele, &
     z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, z_particle_start, &
-    z_pre_tracker, z_custom, n1_custom, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, &
-    z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
-    z_ptc_uses_hard_edge_drifts) bind(c)
+    z_beam_init, z_pre_tracker, z_custom, n1_custom, z_version, z_n_ele_track, z_n_ele_max, &
+    z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, &
+    z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts) bind(c)
 
 
 implicit none
@@ -10055,7 +10056,7 @@ character(c_char) :: z_use_name(*), z_lattice(*), z_machine(*), z_input_file_nam
 type(c_ptr) :: z_constant(*), z_ele(*), z_branch(*), z_control(*), z_surface(*)
 integer(c_int), value :: n1_constant, n1_ele, n1_branch, n1_control, n1_surface, n1_custom, n1_ic
 type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_particle_start
-type(c_ptr), value :: z_pre_tracker, z_custom, z_ic
+type(c_ptr), value :: z_beam_init, z_pre_tracker, z_custom, z_ic
 real(c_double), pointer :: f_custom(:)
 integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type
 integer(c_int), pointer :: f_ic(:)
@@ -10157,6 +10158,8 @@ endif
 
 !! f_side.to_f2_trans[type, 0, NOT]
 call coord_to_f(z_particle_start, c_loc(F%particle_start))
+!! f_side.to_f2_trans[type, 0, NOT]
+call beam_init_to_f(z_beam_init, c_loc(F%beam_init))
 !! f_side.to_f2_trans[type, 0, NOT]
 call pre_tracker_to_f(z_pre_tracker, c_loc(F%pre_tracker))
 !! f_side.to_f2_trans[real, 1, ALLOC]
@@ -10603,12 +10606,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine aperture_data_to_c2 (C, z_x, z_y, z_plane, z_ix_lat, z_i_turn) bind(c)
+  subroutine aperture_data_to_c2 (C, z_x, z_y, z_plane, z_ix_ele, z_i_turn) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_x, z_y
-    integer(c_int) :: z_plane, z_ix_lat, z_i_turn
+    integer(c_int) :: z_plane, z_ix_ele, z_i_turn
   end subroutine
 end interface
 
@@ -10624,7 +10627,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call aperture_data_to_c2 (C, F%x, F%y, F%plane, F%ix_lat, F%i_turn)
+call aperture_data_to_c2 (C, F%x, F%y, F%plane, F%ix_ele, F%i_turn)
 
 end subroutine aperture_data_to_c
 
@@ -10644,7 +10647,7 @@ end subroutine aperture_data_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine aperture_data_to_f2 (Fp, z_x, z_y, z_plane, z_ix_lat, z_i_turn) bind(c)
+subroutine aperture_data_to_f2 (Fp, z_x, z_y, z_plane, z_ix_ele, z_i_turn) bind(c)
 
 
 implicit none
@@ -10654,7 +10657,7 @@ type(aperture_data_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_x, z_y
-integer(c_int) :: z_plane, z_ix_lat, z_i_turn
+integer(c_int) :: z_plane, z_ix_ele, z_i_turn
 
 call c_f_pointer (Fp, F)
 
@@ -10665,7 +10668,7 @@ F%y = z_y
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%plane = z_plane
 !! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_lat = z_ix_lat
+F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%i_turn = z_i_turn
 
@@ -10788,7 +10791,7 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine aperture_scan_to_c2 (C, z_aperture, n1_aperture, z_param, z_ref_orb, z_sxy) &
+  subroutine aperture_scan_to_c2 (C, z_aperture, n1_aperture, z_param, z_ref_orb, z_s_xy) &
       bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
@@ -10796,7 +10799,7 @@ interface
     type(c_ptr) :: z_aperture(*)
     integer(c_int), value :: n1_aperture
     type(c_ptr), value :: z_param, z_ref_orb
-    real(c_double) :: z_sxy
+    real(c_double) :: z_s_xy
   end subroutine
 end interface
 
@@ -10823,7 +10826,7 @@ if (allocated(F%aperture)) then
 endif
 
 !! f_side.to_c2_call
-call aperture_scan_to_c2 (C, z_aperture, n1_aperture, c_loc(F%param), c_loc(F%ref_orb), F%sxy)
+call aperture_scan_to_c2 (C, z_aperture, n1_aperture, c_loc(F%param), c_loc(F%ref_orb), F%s_xy)
 
 end subroutine aperture_scan_to_c
 
@@ -10843,7 +10846,8 @@ end subroutine aperture_scan_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine aperture_scan_to_f2 (Fp, z_aperture, n1_aperture, z_param, z_ref_orb, z_sxy) bind(c)
+subroutine aperture_scan_to_f2 (Fp, z_aperture, n1_aperture, z_param, z_ref_orb, z_s_xy) &
+    bind(c)
 
 
 implicit none
@@ -10855,7 +10859,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 type(c_ptr) :: z_aperture(*)
 integer(c_int), value :: n1_aperture
 type(c_ptr), value :: z_param, z_ref_orb
-real(c_double) :: z_sxy
+real(c_double) :: z_s_xy
 
 call c_f_pointer (Fp, F)
 
@@ -10878,7 +10882,7 @@ call aperture_param_to_f(z_param, c_loc(F%param))
 !! f_side.to_f2_trans[type, 0, NOT]
 call coord_to_f(z_ref_orb, c_loc(F%ref_orb))
 !! f_side.to_f2_trans[real, 0, NOT]
-F%sxy = z_sxy
+F%s_xy = z_s_xy
 
 end subroutine aperture_scan_to_f2
 end module

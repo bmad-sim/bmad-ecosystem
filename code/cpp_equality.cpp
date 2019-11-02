@@ -1540,6 +1540,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && is_all_equal(x.control, y.control);
   is_eq = is_eq && is_all_equal(x.surface, y.surface);
   is_eq = is_eq && (x.particle_start == y.particle_start);
+  is_eq = is_eq && (x.beam_init == y.beam_init);
   is_eq = is_eq && (x.pre_tracker == y.pre_tracker);
   is_eq = is_eq && is_all_equal(x.custom, y.custom);
   is_eq = is_eq && (x.version == y.version);
@@ -1623,7 +1624,7 @@ bool operator== (const CPP_aperture_data& x, const CPP_aperture_data& y) {
   is_eq = is_eq && (x.x == y.x);
   is_eq = is_eq && (x.y == y.y);
   is_eq = is_eq && (x.plane == y.plane);
-  is_eq = is_eq && (x.ix_lat == y.ix_lat);
+  is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.i_turn == y.i_turn);
   return is_eq;
 };
@@ -1655,7 +1656,7 @@ bool operator== (const CPP_aperture_scan& x, const CPP_aperture_scan& y) {
   is_eq = is_eq && is_all_equal(x.aperture, y.aperture);
   is_eq = is_eq && (x.param == y.param);
   is_eq = is_eq && (x.ref_orb == y.ref_orb);
-  is_eq = is_eq && (x.sxy == y.sxy);
+  is_eq = is_eq && (x.s_xy == y.s_xy);
   return is_eq;
 };
 

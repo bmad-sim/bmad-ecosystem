@@ -6125,6 +6125,9 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   set_CPP_coord_test_pattern(C.particle_start, ix_patt);
 
   // c_side.test_pat[type, 0, NOT]
+  set_CPP_beam_init_test_pattern(C.beam_init, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
   set_CPP_pre_tracker_test_pattern(C.pre_tracker, ix_patt);
 
   // c_side.test_pat[real, 1, ALLOC]
@@ -6133,25 +6136,25 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.custom.resize(3);
     for (unsigned int i = 0; i < C.custom.size(); i++)
-      {int rhs = 101 + i + 24 + offset; C.custom[i] = rhs;}  }
+      {int rhs = 101 + i + 25 + offset; C.custom[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 26 + offset; C.version = rhs;
+  rhs = 27 + offset; C.version = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 27 + offset; C.n_ele_track = rhs;
+  rhs = 28 + offset; C.n_ele_track = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 28 + offset; C.n_ele_max = rhs;
+  rhs = 29 + offset; C.n_ele_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 29 + offset; C.n_control_max = rhs;
+  rhs = 30 + offset; C.n_control_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 30 + offset; C.n_ic_max = rhs;
+  rhs = 31 + offset; C.n_ic_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 31 + offset; C.input_taylor_order = rhs;
+  rhs = 32 + offset; C.input_taylor_order = rhs;
 
   // c_side.test_pat[integer, 1, ALLOC]
   if (ix_patt < 3) 
@@ -6159,16 +6162,16 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.ic.resize(3);
     for (unsigned int i = 0; i < C.ic.size(); i++)
-      {int rhs = 101 + i + 32 + offset; C.ic[i] = rhs;}  }
+      {int rhs = 101 + i + 33 + offset; C.ic[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 34 + offset; C.photon_type = rhs;
+  rhs = 35 + offset; C.photon_type = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
+  rhs = 36 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 37 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
 
 
 }
@@ -6471,7 +6474,7 @@ void set_CPP_aperture_data_test_pattern (CPP_aperture_data& C, int ix_patt) {
   rhs = 3 + offset; C.plane = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.ix_lat = rhs;
+  rhs = 4 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 5 + offset; C.i_turn = rhs;
@@ -6608,7 +6611,7 @@ void set_CPP_aperture_scan_test_pattern (CPP_aperture_scan& C, int ix_patt) {
   set_CPP_coord_test_pattern(C.ref_orb, ix_patt);
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.sxy = rhs;
+  rhs = 5 + offset; C.s_xy = rhs;
 
 
 }

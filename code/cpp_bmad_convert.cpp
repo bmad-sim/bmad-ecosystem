@@ -3967,9 +3967,9 @@ extern "C" void lat_to_f2 (Opaque_lat_class*, c_Char, c_Char, c_Char, c_Char, c_
     CPP_expression_atom**, Int, const CPP_mode_info&, const CPP_mode_info&, const
     CPP_mode_info&, const CPP_lat_param&, const CPP_bookkeeping_state&, const CPP_ele&, const
     CPP_ele**, Int, const CPP_branch**, Int, const CPP_control**, Int, const
-    CPP_photon_reflect_surface**, Int, const CPP_coord&, const CPP_pre_tracker&, c_RealArr,
-    Int, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&, c_Bool&,
-    c_Bool&);
+    CPP_photon_reflect_surface**, Int, const CPP_coord&, const CPP_beam_init&, const
+    CPP_pre_tracker&, c_RealArr, Int, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_IntArr,
+    Int, c_Int&, c_Bool&, c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -4024,9 +4024,10 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
   lat_to_f2 (F, C.use_name.c_str(), C.lattice.c_str(), C.machine.c_str(),
       C.input_file_name.c_str(), C.title.c_str(), z_constant, n1_constant, C.a, C.b, C.z,
       C.param, C.lord_state, C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control,
-      n1_control, z_surface, n1_surface, C.particle_start, C.pre_tracker, z_custom, n1_custom,
-      C.version, C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order,
-      z_ic, n1_ic, C.photon_type, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
+      n1_control, z_surface, n1_surface, C.particle_start, C.beam_init, C.pre_tracker,
+      z_custom, n1_custom, C.version, C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max,
+      C.input_taylor_order, z_ic, n1_ic, C.photon_type, C.absolute_time_tracking,
+      C.ptc_uses_hard_edge_drifts);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_constant;
@@ -4049,10 +4050,11 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
     Opaque_ele_class** z_ele, Int n1_ele, Opaque_branch_class** z_branch, Int n1_branch,
     Opaque_control_class** z_control, Int n1_control, Opaque_photon_reflect_surface_class**
     z_surface, Int n1_surface, const Opaque_coord_class* z_particle_start, const
-    Opaque_pre_tracker_class* z_pre_tracker, c_RealArr z_custom, Int n1_custom, c_Int&
-    z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
-    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type,
-    c_Bool& z_absolute_time_tracking, c_Bool& z_ptc_uses_hard_edge_drifts) {
+    Opaque_beam_init_class* z_beam_init, const Opaque_pre_tracker_class* z_pre_tracker,
+    c_RealArr z_custom, Int n1_custom, c_Int& z_version, c_Int& z_n_ele_track, c_Int&
+    z_n_ele_max, c_Int& z_n_control_max, c_Int& z_n_ic_max, c_Int& z_input_taylor_order,
+    c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type, c_Bool& z_absolute_time_tracking, c_Bool&
+    z_ptc_uses_hard_edge_drifts) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -4098,6 +4100,8 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
 
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_particle_start, C.particle_start);
+  // c_side.to_c2_set[type, 0, NOT]
+  beam_init_to_c(z_beam_init, C.beam_init);
   // c_side.to_c2_set[type, 0, NOT]
   pre_tracker_to_c(z_pre_tracker, C.pre_tracker);
   // c_side.to_c2_set[real, 1, ALLOC]
@@ -4310,13 +4314,13 @@ extern "C" void aperture_data_to_f2 (Opaque_aperture_data_class*, c_Real&, c_Rea
 extern "C" void aperture_data_to_f (const CPP_aperture_data& C, Opaque_aperture_data_class* F) {
 
   // c_side.to_f2_call
-  aperture_data_to_f2 (F, C.x, C.y, C.plane, C.ix_lat, C.i_turn);
+  aperture_data_to_f2 (F, C.x, C.y, C.plane, C.ix_ele, C.i_turn);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void aperture_data_to_c2 (CPP_aperture_data& C, c_Real& z_x, c_Real& z_y, c_Int&
-    z_plane, c_Int& z_ix_lat, c_Int& z_i_turn) {
+    z_plane, c_Int& z_ix_ele, c_Int& z_i_turn) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.x = z_x;
@@ -4325,7 +4329,7 @@ extern "C" void aperture_data_to_c2 (CPP_aperture_data& C, c_Real& z_x, c_Real& 
   // c_side.to_c2_set[integer, 0, NOT]
   C.plane = z_plane;
   // c_side.to_c2_set[integer, 0, NOT]
-  C.ix_lat = z_ix_lat;
+  C.ix_ele = z_ix_ele;
   // c_side.to_c2_set[integer, 0, NOT]
   C.i_turn = z_i_turn;
 }
@@ -4389,7 +4393,7 @@ extern "C" void aperture_scan_to_f (const CPP_aperture_scan& C, Opaque_aperture_
   }
 
   // c_side.to_f2_call
-  aperture_scan_to_f2 (F, z_aperture, n1_aperture, C.param, C.ref_orb, C.sxy);
+  aperture_scan_to_f2 (F, z_aperture, n1_aperture, C.param, C.ref_orb, C.s_xy);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_aperture;
@@ -4398,7 +4402,7 @@ extern "C" void aperture_scan_to_f (const CPP_aperture_scan& C, Opaque_aperture_
 // c_side.to_c2_arg
 extern "C" void aperture_scan_to_c2 (CPP_aperture_scan& C, Opaque_aperture_data_class**
     z_aperture, Int n1_aperture, const Opaque_aperture_param_class* z_param, const
-    Opaque_coord_class* z_ref_orb, c_Real& z_sxy) {
+    Opaque_coord_class* z_ref_orb, c_Real& z_s_xy) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.aperture.resize(n1_aperture);
@@ -4409,5 +4413,5 @@ extern "C" void aperture_scan_to_c2 (CPP_aperture_scan& C, Opaque_aperture_data_
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_ref_orb, C.ref_orb);
   // c_side.to_c2_set[real, 0, NOT]
-  C.sxy = z_sxy;
+  C.s_xy = z_s_xy;
 }

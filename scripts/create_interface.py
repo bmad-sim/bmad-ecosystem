@@ -1456,17 +1456,24 @@ for file_name in params.struct_def_files:
           # If have EG: "b(2) = [3, 4], c => null()" need to 
           # combine back "(...)" or "[...]" construct which is part of init string.
 
-          if len(split_line) > 1 and split_line[1] == '(':
-            s2 = split_line[2].partition(')')
-            s3 = re_match2.split(s2[2].lstrip(), 1)
-            s3[0] = split_line[0] + '(' + s2[0] + ')' + s3[0]
-            split_line = s3
+          if len(split_line) > 1 and (split_line[1] == '(' or split_line[1] == '['):
+            split0 = split_line[0] + split_line[1]
+            n_parens = 1
+            for ix, char in enumerate(split_line[2]):
+              split0 = split0 + char
+              if char == '(' or char == '[': n_parens = n_parens + 1
+              if char == ')' or char == ']': n_parens = n_parens - 1
+              if n_parens == 0: break
+            split1 = split_line[2][ix+1:]
+            if split1 == '':
+              split_line = [split0]
+            elif split1[0] == ',':
+              split_line = [split0, ',', split1[1:]]
+            else:
+              print ('?????')
+              sys.exit()
 
-          if len(split_line) > 1 and split_line[1] == '[':
-            s2 = split_line[2].partition(']')
-            s3 = re_match2.split(s2[2].lstrip(), 1)
-            s3[0] = split_line[0] + '[' + s2[0] + ']' + s3[0]
-            split_line = s3
+          print_debug('L3p2: ' + str(split_line))
 
           arg.init_value = split_line[0]
           if len(split_line) == 1:
@@ -1582,7 +1589,9 @@ for struct in struct_definitions:
 # Make name substitutions
 
 for struct in struct_definitions:
+  print_debug ('\nStruct: ' + str(struct))
   for arg in struct.arg:
+    print_debug ('Arg: ' + str(arg))
     n_dim = len(arg.array)
     p_type = arg.pointer_type
 
