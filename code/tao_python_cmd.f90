@@ -179,7 +179,7 @@ tao_c_interface_com%n_real = 0
 tao_c_interface_com%n_int = 0
 
 do
-  call tao_next_switch (line, ['-append ', '-write  ', '-noprint'], .false., switch, err, ix)
+  call tao_next_switch (line, [character(8):: '-append ', '-write', '-noprint'], .false., switch, err, ix)
   if (err) return
   if (switch == '') exit
 
@@ -258,7 +258,7 @@ call re_allocate_lines (li, 200)
 select case (command)
 
 !----------------------------------------------------------------------
-! Return beam parameters.
+! Output beam parameters that are not in the beam_init structure.
 ! Command syntax:
 !   python beam {ix_universe}
 ! where
@@ -275,7 +275,7 @@ case ('beam')
   nl=incr(nl); write (li(nl), amt) 'beam_saved_at;STR;T;',                  u%beam%saved_at
 
 !----------------------------------------------------------------------
-! return beam initialization parameters.
+! Output beam_init parameters.
 ! Command syntax:
 !   python beam_init {ix_universe}
 ! where
@@ -2889,7 +2889,7 @@ case ('lat_param_units')
 
 case ('manage_shape')
 
-call tao_next_switch (line, ['lat_layout', 'floor_plan'], .false., switch, err, ix_line)
+call tao_next_switch (line, [character(12):: 'lat_layout', 'floor_plan'], .false., switch, err, ix_line)
 select case (switch)
 case ('lat_layout')
   drawing => s%plot_page%lat_layout
@@ -2903,7 +2903,7 @@ end select
 n = size(drawing%ele_shape)
 ix = parse_int(line, err, 1, n+1); if (err) return
 
-call tao_next_switch (line, ['add', 'delete'], .false., switch, err, ix_line)
+call tao_next_switch (line, [character(8):: 'add', 'delete'], .false., switch, err, ix_line)
 select case (switch)
 case ('add')
   call move_alloc (drawing%ele_shape, shapes_temp)
