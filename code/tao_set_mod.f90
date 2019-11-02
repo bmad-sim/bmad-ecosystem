@@ -645,16 +645,13 @@ end subroutine tao_set_wave_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_beam_cmd (who, value_str, err)
+! Subroutine tao_set_beam_cmd (who, value_str)
 !
 ! Routine to set various beam parameters.
 ! 
 ! Input:
 !   who       -- Character(*): which parameter to set.
 !   value_str -- Character(*): Value to set to.
-!
-! Output:
-!    err      -- logical: Set True if there is an error. False otherwise.
 !-
 
 subroutine tao_set_beam_cmd (who, value_str)
@@ -2152,8 +2149,86 @@ case ('branch')
 
 end select
 
-
 end subroutine tao_set_default_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_dynamic_aperture_cmd (who, value_str)
+!
+! Sets dynamic aperture parameters.
+!
+! Input:
+!   who       -- Character(*): which parameter to set.
+!   value_str -- Character(*): Value to set to.
+!-
+
+subroutine tao_set_dynamic_aperture_cmd (who, value_str)
+
+type (tao_universe_struct), pointer :: u
+type (aperture_param_struct) ap_param
+
+real(rp) pz(20)
+integer i, iu, ios, iof, n, n2
+
+character(*) who, value_str
+character(20) who2
+character(*), parameter :: r_name = 'tao_set_dynamic_aperture_cmd'
+logical, allocatable :: this_u(:)
+logical err
+
+namelist / params / ap_param, pz
+
+!
+
+call tao_pick_universe (remove_quotes(who), who2, this_u, err); if (err) return
+
+iof = tao_open_scratch_file (err);  if (err) return
+
+write (iof, '(a)') '&params'
+if (who2(1:2) == 'pz') then
+  write (iof, '(a)') trim(who2) // ' = ' // trim(value_str)
+else
+  write (iof, '(a)') ' ap_param%' // trim(who2) // ' = ' // trim(value_str)
+endif
+write (iof, '(a)') '/'
+
+do iu = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. this_u(iu)) cycle
+  u => s%u(iu)
+
+  n = size(u%dynamic_aperture%pz)
+  pz = -2
+  pz(1:n) = u%dynamic_aperture%pz
+  ap_param = u%dynamic_aperture%param
+  rewind(iof)
+  read (iof, nml = params, iostat = ios)
+
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+    close (iof, status = 'delete') 
+    return
+  endif
+
+  u%dynamic_aperture%param = ap_param
+  n = 0
+  do i = 1, size(pz)
+    if (pz(i) <= -1) cycle
+    n = n + 1
+    pz(n) = pz(i)
+  enddo
+
+  call re_allocate(u%dynamic_aperture%pz, n)
+  u%dynamic_aperture%pz = pz(1:n)
+
+  deallocate (u%dynamic_aperture%scan)
+  allocate(u%dynamic_aperture%scan(n))
+enddo
+
+close (iof, status = 'delete') 
+
+end subroutine tao_set_dynamic_aperture_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

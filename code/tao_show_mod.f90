@@ -1224,19 +1224,19 @@ case ('dynamic_aperture')
   nl=nl+1; write(lines(nl), '(a, i10)')     'n_angle:   ', u%dynamic_aperture%param%n_angle
   nl=nl+1; write(lines(nl), '(a, f10.6)')   'min_angle: ', u%dynamic_aperture%param%min_angle
   nl=nl+1; write(lines(nl), '(a, f10.6)')   'max_angle: ', u%dynamic_aperture%param%max_angle
-  nl=nl+1; write(lines(nl), '(a, i10)')     '%n_turn:   ', u%dynamic_aperture%param%n_turn
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%x_init:   ', u%dynamic_aperture%param%x_init
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%y_init:   ', u%dynamic_aperture%param%y_init
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%accuracy: ', u%dynamic_aperture%param%accuracy
+  nl=nl+1; write(lines(nl), '(a, i10)')     'n_turn:    ', u%dynamic_aperture%param%n_turn
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'x_init:    ', u%dynamic_aperture%param%x_init
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'y_init:    ', u%dynamic_aperture%param%y_init
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'accuracy:  ', u%dynamic_aperture%param%accuracy
 
   do k = 1, size(u%dynamic_aperture%scan)
     aperture_scan => u%dynamic_aperture%scan(k) 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', u%dynamic_aperture%pz(k)
-    nl=nl+1; write(lines(nl), '(a, 6es14.5)') 'ref_orb%vec:   ', aperture_scan%ref_orb%vec
     if (.not. allocated(aperture_scan%aperture)) then
-      nl=nl+1; write(lines(nl), '(a20)') 'aperture not calculated for this universe'
+      nl=nl+1; write(lines(nl), '(a)') 'aperture not calculated for this universe'
     else
+      nl=nl+1; write(lines(nl), '(a, 6es14.5)') 'ref_orb%vec:   ', aperture_scan%ref_orb%vec
       nl=nl+1; write(lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
       do j = 1, size(aperture_scan%aperture)
         nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y

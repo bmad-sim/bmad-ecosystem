@@ -442,7 +442,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     da_init(i)%pz(1) = 0
   endif
 
-  ! Set 
+  ! Set
   u => s%u(i)
   allocate(u%dynamic_aperture%scan(n_pz))
   allocate(u%dynamic_aperture%pz(n_pz))
@@ -453,10 +453,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%dynamic_aperture%param%min_angle = da_init(i)%min_angle
   u%dynamic_aperture%param%max_angle = da_init(i)%max_angle
   u%dynamic_aperture%param%n_angle   = da_init(i)%n_angle
-  u%dynamic_aperture%pz(1:n_pz)              = da_init(i)%pz(1:n_pz)  
+  u%dynamic_aperture%pz(1:n_pz)      = da_init(i)%pz(1:n_pz)  
 enddo
 
 end subroutine tao_init_dynamic_aperture
-
 
 end module
