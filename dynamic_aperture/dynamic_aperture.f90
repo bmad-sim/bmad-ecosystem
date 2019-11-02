@@ -127,7 +127,7 @@ do i = 1, size(dpz)
   do j = 1, da_param%n_angle
     ddat => da%aperture(j)
     write (1, '(2f11.6, i7, 6x, a, 3x, a)') ddat%x, ddat%y, ddat%i_turn, &
-                              coord_state_name(ddat%plane), trim(lat%ele(ddat%ix_lat)%name)
+                              coord_state_name(ddat%plane), trim(lat%ele(ddat%ix_ele)%name)
   enddo
 
 enddo
