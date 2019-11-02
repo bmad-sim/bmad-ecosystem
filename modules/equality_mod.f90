@@ -2835,6 +2835,8 @@ if (associated(f1%surface)) is_eq = all(f1%surface == f2%surface)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%particle_start == f2%particle_start)
 !! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%beam_init == f2%beam_init)
+!! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%pre_tracker == f2%pre_tracker)
 !! f_side.equality_test[real, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%custom) .eqv. allocated(f2%custom))
@@ -3005,7 +3007,7 @@ is_eq = is_eq .and. (f1%y == f2%y)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%plane == f2%plane)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_lat == f2%ix_lat)
+is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%i_turn == f2%i_turn)
 
@@ -3065,7 +3067,7 @@ is_eq = is_eq .and. (f1%param == f2%param)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%ref_orb == f2%ref_orb)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%sxy == f2%sxy)
+is_eq = is_eq .and. (f1%s_xy == f2%s_xy)
 
 end function eq_aperture_scan
 end module
