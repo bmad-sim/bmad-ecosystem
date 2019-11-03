@@ -131,7 +131,10 @@ type (tao_ele_shape_struct), allocatable :: shapes_temp(:)
 type (tao_ele_shape_struct), pointer :: shape
 type (photon_element_struct), pointer :: ph
 type (qp_axis_struct) x_ax, y_ax
-type (tao_building_wall_point_struct), pointer :: pbw(:)
+type (tao_building_wall_section_struct), pointer :: bws
+type (tao_building_wall_section_struct), allocatable :: bws_temp(:)
+type (tao_building_wall_point_struct), pointer :: bwp(:)
+type (tao_building_wall_point_struct), allocatable :: bwp_temp(:)
 type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_wave_kick_pt_struct), pointer :: wk
@@ -147,7 +150,7 @@ real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp), allocatable :: value_arr(:)
 
-integer :: i, j, k, ib, ie, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
+integer :: i, j, k, ib, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 integer line_width, n_bend, ic, num_ele, n_arr, n_add
@@ -212,8 +215,9 @@ call string_trim(line(ix+1:), line, ix_line)
 !   HOM
 !   x_axis_type (variable parameter)
 
-call match_word (cmd, [character(33) :: &
-          'beam', 'beam_init', 'branch1', 'bunch1', 'bmad_com', 'constraints', &
+call match_word (cmd, [character(35) :: &
+          'beam', 'beam_init', 'branch1', 'bunch1', 'bmad_com', 'building_wall_list', 'building_wall_graph', &
+          'building_wall_point', 'building_wall_section', 'constraints', &
           'da_params', 'da_aperture', &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'datum_create', 'datum_has_ele', &
@@ -221,10 +225,9 @@ call match_word (cmd, [character(33) :: &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
-          'evaluate', 'enum', 'floor_building_wall', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
+          'evaluate', 'enum', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-          'manage_shape', 'merit', &
-          'orbit_at_s', 'place_buffer', &
+          'manage_shape', 'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_manage_plot', 'plot_manage_graph', 'plot_manage_curve', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', &
@@ -464,6 +467,141 @@ case ('bunch1')
   nl=incr(nl); write (li(nl), imt) 'n_particle_live;INT;F;',                   bunch_params%n_particle_live
   nl=incr(nl); write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
   nl=incr(nl); write (li(nl), lmt) 'beam_saved;LOGIC;T;',                      allocated(beam%bunch)
+
+!----------------------------------------------------------------------
+! List of building wall sections or section points
+! Command syntax:
+!   python building_wall_list {ix_section}
+! If {ix_section} is not present then a list of building wall sections is given.
+! If {ix_section} is present then a list of section points is given
+
+  case ('building_wall_list')
+
+    if (line == '') then
+      do ib = 1, size(s%building_wall%section)
+        nl=incr(nl); write (li(nl), '(i0, 4a)') ib, ';', trim(s%building_wall%section(ib)%name),';', &
+                                                                   trim(s%building_wall%section(ib)%constraint)
+      enddo
+
+    else
+      ib = parse_int (line, err, 0, size(s%building_wall%section)); if (err) return
+      bwp => s%building_wall%section(ib)%point
+      do ip = 1, size(bwp)
+        nl=incr(nl); write (li(nl), '(i0, 10a)') ip, ';', re_str(bwp(ip)%z, 6), ';',  re_str(bwp(ip)%x, 6), ';',  re_str(bwp(ip)%radius, 6), ';',  &
+                                                                                          re_str(bwp(ip)%z_center, 6), ';',  re_str(bwp(ip)%x_center, 6)
+      enddo
+    endif
+
+!----------------------------------------------------------------------
+! (x, y) points for drawing the building wall for a particular graph.
+! The graph defines the coordinate system for the (x, y) points. 
+! Command syntax:
+!   python building_wall_graph {graph}
+
+case ('building_wall_graph')
+
+  call tao_find_plots (err, line(1:ix_line), 'COMPLETE', graph = graphs)
+  call string_trim(line(ix_line+1:), line, ix_line)
+
+  if (err .or. size(graphs) /= 1) then
+    call invalid ('Bad graph name')
+    return
+  endif
+
+  g => graphs(1)%g
+  u => tao_pointer_to_universe(g%ix_universe)
+  lat => u%model%lat
+
+  if (.not. allocated(s%building_wall%section)) then
+    call invalid ('No building wall defined')
+    return
+  endif
+
+  do ib = 1, size(s%building_wall%section)
+    bwp => s%building_wall%section(ib)%point
+    do j = 1, size(bwp)
+      call tao_floor_to_screen (g, [bwp(j)%x, 0.0_rp, bwp(j)%z], end1%r(1), end1%r(2))
+      nl=incr(nl); write (li(nl), '(2(i0,a), 3(es14.6, a))') ib, ';', j, ';', end1%r(1), ';', end1%r(2), ';', bwp(j)%radius
+    enddo
+  enddo
+
+!----------------------------------------------------------------------
+! add or delete a building wall point
+! Command syntax:
+!   python building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
+! Where:
+!   {ix_section}    -- Section index.
+!   {ix_point}      -- Point index. Points of higher indexes will be moved up if adding a point and down if deleting.
+!   {z}, etc...     -- See tao_building_wall_point_struct for info.
+!                   --  If {z} is set to "delete" then delete the point
+
+  case ('building_wall_point')
+
+    call split_this_line (line, name1, 7, err); if (err) return
+
+    is = parse_int(name1(1), err, 1, size(s%building_wall%section));  if (err) return
+    bws => s%building_wall%section(is)
+    n = size(bws%point)
+
+    select case (name1(3))
+    case ('delete')
+      ip = parse_int(name1(2), err, 1, n)
+      call move_alloc(bws%point, bwp_temp)
+      allocate (bws%point(n-1))
+      bws%point(1:ip-1) = bwp_temp(1:ip-1)
+      bws%point(ip:) = bwp_temp(ip+1:)
+
+    case default
+      ip = parse_int(name1(2), err, 1, n+1)
+      call move_alloc(bws%point, bwp_temp)
+      allocate (bws%point(n+1))
+      bws%point(1:ip-1) = bwp_temp(1:ip-1)
+      bws%point(ip+1:) = bwp_temp(ip:)
+
+      bws%point(ip)%z        = parse_real(name1(3), err);  if (err) return
+      bws%point(ip)%x        = parse_real(name1(4), err);  if (err) return
+      bws%point(ip)%radius   = parse_real(name1(5), err);  if (err) return
+      bws%point(ip)%z_center = parse_real(name1(6), err);  if (err) return
+      bws%point(ip)%x_center = parse_real(name1(7), err);  if (err) return
+    end select
+
+!----------------------------------------------------------------------
+! add or delete a building wall section
+! Command syntax:
+!   python building_wall_point^^{ix_section}^^{sec_name}^^{sec_constraint}
+! Where:
+!   {ix_section}      -- Section index. Sections with higher indexes will be moved up if adding a secteion and down if deleting.
+!   {sec_name}        -- Section name.
+!   {sec_constraint}  -- Must be one of:
+!       delete     -- Delete section. Anything else will add the section.
+!       none
+!       left_side
+!       right_side
+
+  case ('building_wall_section')
+
+    n = size(s%building_wall%section)
+    call split_this_line (line, name1, 3, err); if (err) return
+
+    select case (name1(3))
+    case ('delete')
+      is = parse_int(name1(1), err, 1, n);  if (err) return
+      call move_alloc(s%building_wall%section, bws_temp)
+      allocate (s%building_wall%section(n-1))
+      s%building_wall%section(1:is-1) = bws_temp(1:is-1)
+      s%building_wall%section(is:) = bws_temp(is+1:)
+
+    case default
+      is = parse_int(name1(1), err, 1, n+1);  if (err) return
+      call move_alloc(s%building_wall%section, bws_temp)
+      allocate (s%building_wall%section(n+1))
+      s%building_wall%section(1:is-1) = bws_temp(1:is-1)
+      s%building_wall%section(is+1:) = bws_temp(is:)
+
+      bws => s%building_wall%section(is)
+      s%building_wall%section(is)%name       = name1(2)
+      s%building_wall%section(is)%constraint = name1(3)
+    end select
 
 !----------------------------------------------------------------------
 ! Optimization data and variables that contribute to the merit function.
@@ -1873,20 +2011,20 @@ case ('ele:grid_field')
       select case (g_field%field_type)
       case (electric$)
         if (g_field%harmonic == 0) then
-          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_str(g_pt%E(ix)), ix = 1, 3)
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_part_str(g_pt%E(ix)), ix = 1, 3)
         else
           nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (cmplx_str(g_pt%E(ix)), ix = 1, 3)
         endif
       case (magnetic$)
         if (g_field%harmonic == 0) then
-          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_str(g_pt%B(ix)), ix = 1, 3)
+          nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (real_part_str(g_pt%B(ix)), ix = 1, 3)
         else
           nl=incr(nl); write (li(nl), '(2(i0, a), i0, 3a)') i, ';', j, ';', k, (cmplx_str(g_pt%B(ix)), ix = 1, 3)
         endif
       case (mixed$)
         if (g_field%harmonic == 0) then
           nl=incr(nl); write (li(nl), '(2(i0, a), i0, 6a)') i, ';', j, ';', k, &
-                                                            (real_str(g_pt%B(ix)), ix = 1, 3), (real_str(g_pt%E(ix)), ix = 1, 3)
+                                                            (real_part_str(g_pt%B(ix)), ix = 1, 3), (real_part_str(g_pt%E(ix)), ix = 1, 3)
         else
           nl=incr(nl); write (li(nl), '(2(i0, a), i0, 6a)') i, ';', j, ';', k, &
                                                             (cmplx_str(g_pt%B(ix)), ix = 1, 3), (cmplx_str(g_pt%B(ix)), ix = 1, 3)
@@ -2095,13 +2233,18 @@ case ('enum')
 
   select case (line)
   case ('axis^type')
-    nl=incr(nl); write(li(nl), '(i0, 2a)') 1, ';LINEAR'
-    nl=incr(nl); write(li(nl), '(i0, 2a)') 2, ';LOG'
+    nl=incr(nl); write(li(nl), '(a)') '1;LINEAR'
+    nl=incr(nl); write(li(nl), '(a)') '2;LOG'
 
   case ('bounds')
-    nl=incr(nl); write(li(nl), '(i0, 2a)') 1, ';GENERAL'
-    nl=incr(nl); write(li(nl), '(i0, 2a)') 2, ';ZERO_AT_END'
-    nl=incr(nl); write(li(nl), '(i0, 2a)') 3, ';ZERO_SYMMETRIC'
+    nl=incr(nl); write(li(nl), '(a)') '1;GENERAL'
+    nl=incr(nl); write(li(nl), '(a)') '2;ZERO_AT_END'
+    nl=incr(nl); write(li(nl), '(a)') '3;ZERO_SYMMETRIC'
+
+  case ('building^constraint')
+    nl=incr(nl); write(li(nl), '(a)') '1;none'
+    nl=incr(nl); write(li(nl), '(a)') '2;left_side'
+    nl=incr(nl); write(li(nl), '(a)') '3;right_side'
 
   case ('data^merit_type')
     do i = 1, size(tao_data_merit_type_name)
@@ -2201,49 +2344,6 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
     enddo
   end select
-
-!----------------------------------------------------------------------
-! Floor plan building wall
-! Command syntax:
-!   python floor_building_wall {graph} {name}
-! Name is one of
-!  <blank>
-!  name
-
-case ('floor_building_wall')
-
-  
-  call tao_find_plots (err, line(1:ix_line), 'COMPLETE', graph = graphs)
-  call string_trim(line(ix_line+1:), line, ix_line)
-
-  if (err .or. size(graphs) /= 1) then
-    call invalid ('Bad graph name')
-    return
-  endif
-
-  g => graphs(1)%g
-  u => tao_pointer_to_universe(g%ix_universe)
-  lat => u%model%lat
-
-  if (.not. allocated(s%building_wall%section)) then
-    call invalid ('No building wall defined')
-    return
-  endif
-
-  if (line == 'name') then
-    do ib = 1, size(s%building_wall%section)
-      nl=incr(nl); write (li(nl), '(i0, 4a)') ib, ';', trim(s%building_wall%section(ib)%name),';', trim(s%building_wall%section(ib)%constraint)
-    enddo
-
-  else
-    do ib = 1, size(s%building_wall%section)
-      pbw => s%building_wall%section(ib)%point
-      do j = 1, size(pbw)
-        call tao_floor_to_screen (graph, [pbw(j)%x, 0.0_rp, pbw(j)%z], end1%r(1), end1%r(2))
-        nl=incr(nl); write (li(nl), '(2(i0,a), 3(es14.6, a))') ib, ';', j, ';', end1%r(1), ';', end1%r(2), ';', pbw(j)%radius
-      enddo
-    enddo
-  endif
 
 !----------------------------------------------------------------------
 ! Floor plan elements
@@ -4719,14 +4819,30 @@ end subroutine invalid
 !----------------------------------------------------------------------
 ! contains
 
-function real_str(z) result (str)
+function re_str(r, n_signif) result (str)
+
+real(rp) r
+integer n_signif
+character(:), allocatable :: str
+character(20) string
+
+string = real_to_string(r, n_signif)
+allocate (character(len_trim(string)):: str)
+str = trim(str)
+
+end function re_str
+
+!----------------------------------------------------------------------
+! contains
+
+function real_part_str(z) result (str)
 
 complex(rp) z
 character(22) str
 
 write (str, '(a, es21.13)') ';', real(z)
 
-end function real_str
+end function real_part_str
 
 !----------------------------------------------------------------------
 ! contains

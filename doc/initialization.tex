@@ -858,11 +858,11 @@ automatically saved at the beginning position and end position of beam tracking 
 \begin{example}
   &tao_beam_init
     beam_saved_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
-                                      !   and all elements that have "34w" in their name. 
+                                       !   and all elements that have "34w" in their name. 
   /
 \end{example}
-The elements where the beam is saved may be modified while \tao is running by using the \vn{set beam saved_at}
-or \vn{set beam not_saved_at} commands (\sref{s:set.beam}).
+The elements where the beam is saved may be modified while \tao is running by using the \vn{set beam saved_at},
+\vn{set beam add_saved_at}, and \vn{set beam subtract_saved_at} commands (\sref{s:set.beam}).
 
 The three random number generator parameters (\vn{%random_engine}, \vn{%random_gauss_converter}, and
 \vn{%random_sigma_cutoff}) used for initializing the beam are set in the \vn{tao_global_struct}
@@ -1464,13 +1464,17 @@ Currently the dynamic aperture assumes that tracking is to be done with the root
 Optionally parameters \vn{n_angle}, \vn{min_angle}, and \vn{max_angle} can be set to indicate
 the angle in the $x-y$ plane to scan about the closed orbit.
 
-By default, the dynamic aperture calculation is off for all universes. To turn it on,
-use the \vn{set} command (\sref{s:set}):
+By default, the dynamic aperture calculation is off for all universes. To turn it on, use the
+\vn{set} command (\sref{s:set.universe}):
 \begin{example}
   set universe 1 dynamic_aperture_calc on
 \end{example}
 
-If Tao is compiled with the appropriate OpenMP flags, then this calculation will be done in parallel. 
+The \vn{show dynamic_aperture} command (\sref{s:show.da}) shows parameter values and the
+\vn{set dynamic_aperture} command (\sref{s:set.da}) can be used to change parameter values.
+
+If Tao is compiled with the appropriate OpenMP flags, the dynamic aperture calculation will be done
+in parallel.
 
 The results can be plotted. See \sref{s:dynamicapertureplot}. 
 
@@ -2552,7 +2556,7 @@ attribute of the \vn{ele_shape}.
 \end{figure}
 
 A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture
-calculation. Example plot setup:
+calculation (\sref{s:dynamicaperture}). Example plot setup:
 \begin{example}
 &tao_template_plot
   plot%name = 'da'
@@ -2588,10 +2592,10 @@ calculation. Example plot setup:
   curve(3)%line%width = 5 
 /
 \end{example}
-This produces the plot on Fig.~\ref{f:dynamic-aperture}.  Each curve represents a single
-momentum calculation according to \sref{s:dynamicaperture}.  If there are more momenta
-than curves (as in this case), additional curves will automatically be created using the
-styles of the previous curves. Note that apertures are calculated at element 0. 
+This produces the plot on Fig.~\ref{f:dynamic-aperture}.  Each curve represents a single momentum
+calculation.  If there are more momenta than curves (as in this case), additional curves will
+automatically be created using the styles of the previous curves. Note that apertures are calculated
+at element 0.
 
 If there is a curve with \vn{%data_type} set to \vn{"physical_aperture"}, and if there is a lattice
 element at $s = 0$ that has an aperture set, this physical aperture will be drawn. Example: In the
@@ -2613,14 +2617,10 @@ Dynamic aperture curves can have the following \vn{%data_type}:
 \index{histogram drawing}
 \label{s:histogram}
 
-
-
-A \vn{histogram} drawing displays a histogram of phase space beam
-density. Histogram plotting is associated with a \vn{graph} by setting
-\vn{graph%type} equal to \vn{"histogram"}. The concepts here are
-similar to \vn{phase space} plotting (\sref{s:phase.space}). An example is shown in
-Fig.~\ref{f:histogram}, using the example
-histogram template:
+A \vn{histogram} drawing displays a histogram of phase space beam density. Histogram plotting is
+associated with a \vn{graph} by setting \vn{graph%type} equal to \vn{"histogram"}. The concepts here
+are similar to \vn{phase space} plotting (\sref{s:phase.space}). An example is shown in
+Fig.~\ref{f:histogram}, using the example histogram template:
 \begin{example}
 &tao_template_plot
   plot%name = 'zhist'
