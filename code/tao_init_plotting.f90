@@ -128,6 +128,9 @@ default_graph%margin                = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%B
 
 ! If there is no plot file then use the built-in defaults.
 
+if (allocated(s%plot_page%pattern)) deallocate(s%plot_page%pattern)
+allocate (s%plot_page%pattern(0))
+
 if (plot_file_in == '') then
   call tao_setup_default_plotting()
   call number_template_plots()
@@ -2808,7 +2811,7 @@ type (tao_shape_pattern_point_struct) :: pt(30)
 integer iu, ios, nn, j, jc, jpt, nc, npt
 
 character(40) name
-character(8) :: scale
+character(8) :: scale   ! This is no longer used.
 character(*) plot_file
 character(*), parameter :: r_name = 'tao_read_in_patterns'
 
@@ -2823,7 +2826,6 @@ allocate (s%plot_page%pattern(0))
 do  ! Loop over all patterns
   line  = qp_line_struct(1, '', 'solid')
   pt    = tao_shape_pattern_point_struct()
-  scale = 'none'
   name = ''
 
   read (iu, nml = shape_pattern, iostat = ios) 

@@ -126,6 +126,9 @@ type (em_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_drawing_struct), pointer :: drawing
+type (tao_shape_pattern_struct), pointer :: pattern
+type (tao_shape_pattern_struct), allocatable :: pat_temp(:)
+type (tao_shape_pattern_point_struct), allocatable :: pat_pt_temp(:)
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), allocatable :: shapes_temp(:)
 type (tao_ele_shape_struct), pointer :: shape
@@ -215,7 +218,7 @@ call string_trim(line(ix+1:), line, ix_line)
 !   HOM
 !   x_axis_type (variable parameter)
 
-call match_word (cmd, [character(35) :: &
+call match_word (cmd, [character(40) :: &
           'beam', 'beam_init', 'branch1', 'bunch1', 'bmad_com', 'building_wall_list', 'building_wall_graph', &
           'building_wall_point', 'building_wall_section', 'constraints', &
           'da_params', 'da_aperture', &
@@ -227,10 +230,11 @@ call match_word (cmd, [character(35) :: &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'evaluate', 'enum', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-          'manage_shape', 'merit', 'orbit_at_s', 'place_buffer', &
+          'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
-          'plot_manage_plot', 'plot_manage_graph', 'plot_manage_curve', &
+          'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
           'plot_shapes', 'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', &
+          'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', &
           'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
           'wave'], ix, matched_name = command)
@@ -475,22 +479,22 @@ case ('bunch1')
 ! If {ix_section} is not present then a list of building wall sections is given.
 ! If {ix_section} is present then a list of section points is given
 
-  case ('building_wall_list')
+case ('building_wall_list')
 
-    if (line == '') then
-      do ib = 1, size(s%building_wall%section)
-        nl=incr(nl); write (li(nl), '(i0, 4a)') ib, ';', trim(s%building_wall%section(ib)%name),';', &
-                                                                   trim(s%building_wall%section(ib)%constraint)
-      enddo
+  if (line == '') then
+    do ib = 1, size(s%building_wall%section)
+      nl=incr(nl); write (li(nl), '(i0, 4a)') ib, ';', trim(s%building_wall%section(ib)%name),';', &
+                                                                 trim(s%building_wall%section(ib)%constraint)
+    enddo
 
-    else
-      ib = parse_int (line, err, 0, size(s%building_wall%section)); if (err) return
-      bwp => s%building_wall%section(ib)%point
-      do ip = 1, size(bwp)
-        nl=incr(nl); write (li(nl), '(i0, 10a)') ip, ';', re_str(bwp(ip)%z, 6), ';',  re_str(bwp(ip)%x, 6), ';',  re_str(bwp(ip)%radius, 6), ';',  &
-                                                                                          re_str(bwp(ip)%z_center, 6), ';',  re_str(bwp(ip)%x_center, 6)
-      enddo
-    endif
+  else
+    ib = parse_int (line, err, 0, size(s%building_wall%section)); if (err) return
+    bwp => s%building_wall%section(ib)%point
+    do ip = 1, size(bwp)
+      nl=incr(nl); write (li(nl), '(i0, 10a)') ip, ';', re_str(bwp(ip)%z, 6), ';', re_str(bwp(ip)%x, 6), ';',  re_str(bwp(ip)%radius, 6), ';',  &
+                                                                         re_str(bwp(ip)%z_center, 6), ';',  re_str(bwp(ip)%x_center, 6)
+    enddo
+  endif
 
 !----------------------------------------------------------------------
 ! (x, y) points for drawing the building wall for a particular graph.
@@ -532,45 +536,45 @@ case ('building_wall_graph')
 ! Where:
 !   {ix_section}    -- Section index.
 !   {ix_point}      -- Point index. Points of higher indexes will be moved up if adding a point and down if deleting.
-!   {z}, etc...     -- See tao_building_wall_point_struct for info.
-!                   --  If {z} is set to "delete" then delete the point
+!   {z}, etc...     -- See tao_building_wall_point_struct components.
+!                   --  If {z} is set to "delete" then delete the point.
 
-  case ('building_wall_point')
+case ('building_wall_point')
 
-    call split_this_line (line, name1, 7, err); if (err) return
+  call split_this_line (line, name1, 7, err); if (err) return
 
-    is = parse_int(name1(1), err, 1, size(s%building_wall%section));  if (err) return
-    bws => s%building_wall%section(is)
-    n = size(bws%point)
+  is = parse_int(name1(1), err, 1, size(s%building_wall%section));  if (err) return
+  bws => s%building_wall%section(is)
+  n = size(bws%point)
 
-    select case (name1(3))
-    case ('delete')
-      ip = parse_int(name1(2), err, 1, n)
-      call move_alloc(bws%point, bwp_temp)
-      allocate (bws%point(n-1))
-      bws%point(1:ip-1) = bwp_temp(1:ip-1)
-      bws%point(ip:) = bwp_temp(ip+1:)
+  select case (name1(3))
+  case ('delete')
+    ip = parse_int(name1(2), err, 1, n)
+    call move_alloc(bws%point, bwp_temp)
+    allocate (bws%point(n-1))
+    bws%point(1:ip-1) = bwp_temp(1:ip-1)
+    bws%point(ip:) = bwp_temp(ip+1:)
 
-    case default
-      ip = parse_int(name1(2), err, 1, n+1)
-      call move_alloc(bws%point, bwp_temp)
-      allocate (bws%point(n+1))
-      bws%point(1:ip-1) = bwp_temp(1:ip-1)
-      bws%point(ip+1:) = bwp_temp(ip:)
+  case default
+    ip = parse_int(name1(2), err, 1, n+1)
+    call move_alloc(bws%point, bwp_temp)
+    allocate (bws%point(n+1))
+    bws%point(1:ip-1) = bwp_temp(1:ip-1)
+    bws%point(ip+1:) = bwp_temp(ip:)
 
-      bws%point(ip)%z        = parse_real(name1(3), err);  if (err) return
-      bws%point(ip)%x        = parse_real(name1(4), err);  if (err) return
-      bws%point(ip)%radius   = parse_real(name1(5), err);  if (err) return
-      bws%point(ip)%z_center = parse_real(name1(6), err);  if (err) return
-      bws%point(ip)%x_center = parse_real(name1(7), err);  if (err) return
-    end select
+    bws%point(ip)%z        = parse_real(name1(3), err);  if (err) return
+    bws%point(ip)%x        = parse_real(name1(4), err);  if (err) return
+    bws%point(ip)%radius   = parse_real(name1(5), err);  if (err) return
+    bws%point(ip)%z_center = parse_real(name1(6), err);  if (err) return
+    bws%point(ip)%x_center = parse_real(name1(7), err);  if (err) return
+  end select
 
 !----------------------------------------------------------------------
 ! add or delete a building wall section
 ! Command syntax:
 !   python building_wall_section^^{ix_section}^^{sec_name}^^{sec_constraint}
 ! Where:
-!   {ix_section}      -- Section index. Sections with higher indexes will be moved up if adding a secteion and down if deleting.
+!   {ix_section}      -- Section index. Sections with higher indexes will be moved up if adding a section and down if deleting.
 !   {sec_name}        -- Section name.
 !   {sec_constraint}  -- Must be one of:
 !       delete     -- Delete section. Anything else will add the section.
@@ -578,30 +582,30 @@ case ('building_wall_graph')
 !       left_side
 !       right_side
 
-  case ('building_wall_section')
+case ('building_wall_section')
 
-    n = size(s%building_wall%section)
-    call split_this_line (line, name1, 3, err); if (err) return
+  n = size(s%building_wall%section)
+  call split_this_line (line, name1, 3, err); if (err) return
 
-    select case (name1(3))
-    case ('delete')
-      is = parse_int(name1(1), err, 1, n);  if (err) return
-      call move_alloc(s%building_wall%section, bws_temp)
-      allocate (s%building_wall%section(n-1))
-      s%building_wall%section(1:is-1) = bws_temp(1:is-1)
-      s%building_wall%section(is:) = bws_temp(is+1:)
+  select case (name1(3))
+  case ('delete')
+    is = parse_int(name1(1), err, 1, n);  if (err) return
+    call move_alloc(s%building_wall%section, bws_temp)
+    allocate (s%building_wall%section(n-1))
+    s%building_wall%section(1:is-1) = bws_temp(1:is-1)
+    s%building_wall%section(is:) = bws_temp(is+1:)
 
-    case default
-      is = parse_int(name1(1), err, 1, n+1);  if (err) return
-      call move_alloc(s%building_wall%section, bws_temp)
-      allocate (s%building_wall%section(n+1))
-      s%building_wall%section(1:is-1) = bws_temp(1:is-1)
-      s%building_wall%section(is+1:) = bws_temp(is:)
+  case default
+    is = parse_int(name1(1), err, 1, n+1);  if (err) return
+    call move_alloc(s%building_wall%section, bws_temp)
+    allocate (s%building_wall%section(n+1))
+    s%building_wall%section(1:is-1) = bws_temp(1:is-1)
+    s%building_wall%section(is+1:) = bws_temp(is:)
 
-      bws => s%building_wall%section(is)
-      s%building_wall%section(is)%name       = name1(2)
-      s%building_wall%section(is)%constraint = name1(3)
-    end select
+    bws => s%building_wall%section(is)
+    bws%name       = name1(2)
+    bws%constraint = name1(3)
+  end select
 
 !----------------------------------------------------------------------
 ! Optimization data and variables that contribute to the merit function.
@@ -2973,54 +2977,6 @@ case ('lat_param_units')
   nl=incr(nl); write(li(nl), '(a)') a_name
 
 !----------------------------------------------------------------------
-! element shape creation or destruction
-! Command syntax:
-!   python manage_shape <who> <index> <add-or-delete>
-!
-! <who> is one of:
-!   lat_layout
-!   floor_plan
-! <add-or-delete> is one of:
-!   add     -- Add a shape at <index>. Shapes with higher index get moved up one to make room.
-!   delete  -- Delete shape at <index>. Shapes with higher index get moved down one to fill the gap.
-!
-! Example:
-!   python manage_shape floor_plan 2 add
-
-case ('manage_shape')
-
-call tao_next_switch (line, [character(12):: 'lat_layout', 'floor_plan'], .false., switch, err, ix_line)
-select case (switch)
-case ('lat_layout')
-  drawing => s%plot_page%lat_layout
-case ('floor_plan')
-  drawing => s%plot_page%floor_plan
-case default
-  call invalid ('Expected "floor_plan" or "lat_layout" after "manage_shape"')
-  return
-end select
-
-n = size(drawing%ele_shape)
-ix = parse_int(line, err, 1, n+1); if (err) return
-
-call tao_next_switch (line, [character(8):: 'add', 'delete'], .false., switch, err, ix_line)
-select case (switch)
-case ('add')
-  call move_alloc (drawing%ele_shape, shapes_temp)
-  allocate (drawing%ele_shape(n+1))
-  drawing%ele_shape(1:ix-1) = shapes_temp(1:ix-1)
-  drawing%ele_shape(ix+1:) = shapes_temp(ix:)
-case ('delete')
-  call move_alloc (drawing%ele_shape, shapes_temp)
-  allocate (drawing%ele_shape(n-1))
-  drawing%ele_shape(1:ix-1) = shapes_temp(1:ix-1)
-  drawing%ele_shape(ix:) = shapes_temp(ix+1:)
-case default
-  call invalid ('Expected "add" or "delete" after shape index.')
-  return
-end select
-
-!----------------------------------------------------------------------
 ! Merit value.
 ! Command syntax:
 !   python merit
@@ -3310,12 +3266,12 @@ case ('plot_histogram')
 !----------------------------------------------------------------------
 ! Template plot creation or destruction.
 ! Command syntax:
-!   pyton plot_manage_plot {plot_location}^^{plot_name}^^{n_graph}^^{graph1_name}^^{graph2_name}...{graphN_name}
+!   pyton plot_plot_manage {plot_location}^^{plot_name}^^{n_graph}^^{graph1_name}^^{graph2_name}...{graphN_name}
 ! Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a spot where
 ! there is already a template.
 ! If {n_graph} is set to -1 then just delete the plot.
 
-case ('plot_manage_plot')
+case ('plot_plot_manage')
 
   call split_this_line (line, name1, -1, err);         if (err) return
 
@@ -3360,13 +3316,13 @@ case ('plot_manage_plot')
 !----------------------------------------------------------------------
 ! Template plot curve creation/destruction
 ! Command syntax:
-!   pyton plot_manage_curve {graph_name}^^{curve_index}^^{curve_name}
+!   pyton plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
 ! If {curve_index} corresponds to an existing curve then this curve is deleted.
 ! In this case the {curve_name} is ignored and does not have to be present.
 ! If {curve_index} does not not correspond to an existing curve, {curve_index}
 ! must be one greater than the number of curves.
 
-case ('plot_manage_curve')
+case ('plot_curve_manage')
 
   call split_this_line (line, name1, -1, err);         if (err) return
   call tao_find_plots (err, name1(1), 'TEMPLATE', graph = graphs)
@@ -3410,13 +3366,13 @@ case ('plot_manage_curve')
 !----------------------------------------------------------------------
 ! Template plot graph creation/destruction
 ! Command syntax:
-!   pyton plot_manage_graph {plot_name}^^{graph_index}^^{graph_name}
+!   pyton plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
 ! If {graph_index} corresponds to an existing graph then this graph is deleted.
 ! In this case the {graph_name} is ignored and does not have to be present.
 ! If {graph_index} does not not correspond to an existing graph, {graph_index}
 ! must be one greater than the number of graphs.
 
-case ('plot_manage_graph')
+case ('plot_graph_manage')
 
   call split_this_line (line, name1, -1, err);         if (err) return
   call tao_find_plots (err, name1(1), 'TEMPLATE', plots)
@@ -3681,6 +3637,146 @@ case ('plot1')
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
   nl=incr(nl); write (li(nl), imt) 'n_curve_pts;INT;T;',                      p%n_curve_pts
+
+!----------------------------------------------------------------------
+! element shape creation or destruction
+! Command syntax:
+!   python shape_manage <who> <index> <add-or-delete>
+!
+! <who> is one of:
+!   lat_layout
+!   floor_plan
+! <add-or-delete> is one of:
+!   add     -- Add a shape at <index>. Shapes with higher index get moved up one to make room.
+!   delete  -- Delete shape at <index>. Shapes with higher index get moved down one to fill the gap.
+!
+! Example:
+!   python shape_manage floor_plan 2 add
+
+case ('shape_manage')
+
+  call tao_next_switch (line, [character(12):: 'lat_layout', 'floor_plan'], .false., switch, err, ix_line)
+  select case (switch)
+  case ('lat_layout')
+    drawing => s%plot_page%lat_layout
+  case ('floor_plan')
+    drawing => s%plot_page%floor_plan
+  case default
+    call invalid ('Expected "floor_plan" or "lat_layout" after "shape_manage"')
+    return
+  end select
+
+  n = size(drawing%ele_shape)
+  ix = parse_int(line, err, 1, n+1); if (err) return
+
+  call tao_next_switch (line, [character(8):: 'add', 'delete'], .false., switch, err, ix_line)
+  select case (switch)
+  case ('add')
+    call move_alloc (drawing%ele_shape, shapes_temp)
+    allocate (drawing%ele_shape(n+1))
+    drawing%ele_shape(1:ix-1) = shapes_temp(1:ix-1)
+    drawing%ele_shape(ix+1:) = shapes_temp(ix:)
+  case ('delete')
+    call move_alloc (drawing%ele_shape, shapes_temp)
+    allocate (drawing%ele_shape(n-1))
+    drawing%ele_shape(1:ix-1) = shapes_temp(1:ix-1)
+    drawing%ele_shape(ix:) = shapes_temp(ix+1:)
+  case default
+    call invalid ('Expected "add" or "delete" after shape index.')
+    return
+  end select
+
+!----------------------------------------------------------------------
+! List of shape patterns
+! Command syntax:
+!   python shape_pattern_list {ix_pattern}
+! If optional {ix_pattern} index is omitted then list all the patterns
+
+case ('shape_pattern_list')
+
+  if (line == '') then
+    do i = 1, size(s%plot_page%pattern)
+      pattern => s%plot_page%pattern(i)
+      nl=incr(nl); write (li(nl), '(2a, i0)') pattern%name, ';', pattern%line%width
+    enddo
+
+  else
+    ix = parse_int (line, err, 1, size(s%plot_page%pattern));  if (err) return
+    pattern => s%plot_page%pattern(ix)
+    do i = 1, size(pattern%pt)
+      nl=incr(nl); write (li(nl), '(3a)') re_str(pattern%pt(i)%s, 6), ';', re_str(pattern%pt(i)%x, 6)
+    enddo
+  endif
+
+!----------------------------------------------------------------------
+! Add or remove shape pattern
+! Command syntax:
+!   python shape_pattern_manage {ix_pattern}^^{pat_name}^^{pat_line_width}
+! where:
+!   {ix_pattern}      -- Pattern index. Patterns with higher indexes will be moved up if adding a pattern and down if deleting.
+!   {pat_name}        -- Pattern name.
+!   {pat_line_width}  -- Line width. Integer. If set to "delete" then section will be deleted.
+
+case ('shape_pattern_manage')
+
+  n = size(s%plot_page%pattern)
+  call split_this_line (line, name1, 3, err); if (err) return
+
+  select case (name1(3))
+  case ('delete')
+    is = parse_int(name1(1), err, 1, n);  if (err) return
+    call move_alloc(s%plot_page%pattern, pat_temp)
+    allocate (s%plot_page%pattern(n-1))
+    s%plot_page%pattern(1:is-1) = pat_temp(1:is-1)
+    s%plot_page%pattern(is:) = pat_temp(is+1:)
+
+  case default
+    is = parse_int(name1(1), err, 1, n+1);  if (err) return
+    call move_alloc(s%plot_page%pattern, pat_temp)
+    allocate (s%plot_page%pattern(n+1))
+    s%plot_page%pattern(1:is-1) = pat_temp(1:is-1)
+    s%plot_page%pattern(is+1:) = pat_temp(is:)
+
+    pattern => s%plot_page%pattern(is)
+    pattern%name       = name1(2)
+    pattern%line%width = parse_int(name1(3), err, 1)
+  end select
+
+!----------------------------------------------------------------------
+! Add or remove shape pattern point
+! Command syntax:
+!   python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
+! where:
+!   {ix_pattern}      -- Pattern index. 
+!   {ix_point}        -- Point index. Points of higher indexes will be moved up if adding a point and down if deleting.
+!   {s}, {x}          -- Point location. If {s} is "delete" then delete the point.
+
+case ('shape_pattern_point_manage')
+
+    call split_this_line (line, name1, 4, err); if (err) return
+
+    is = parse_int(name1(1), err, 1, size(s%plot_page%pattern));  if (err) return
+    pattern => s%plot_page%pattern(is)
+    n = size(pattern%pt)
+
+    select case (name1(3))
+    case ('delete')
+      ip = parse_int(name1(2), err, 1, n)
+      call move_alloc(pattern%pt, pat_pt_temp)
+      allocate (pattern%pt(n-1))
+      pattern%pt(1:ip-1) = pat_pt_temp(1:ip-1)
+      pattern%pt(ip:) = pat_pt_temp(ip+1:)
+
+    case default
+      ip = parse_int(name1(2), err, 1, n+1)
+      call move_alloc(pattern%pt, pat_pt_temp)
+      allocate (pattern%pt(n+1))
+      pattern%pt(1:ip-1) = pat_pt_temp(1:ip-1)
+      pattern%pt(ip+1:) = pat_pt_temp(ip:)
+
+      pattern%pt(ip)%s = parse_real(name1(3), err);  if (err) return
+      pattern%pt(ip)%x = parse_real(name1(4), err);  if (err) return
+    end select
 
 !----------------------------------------------------------------------
 ! Show command pass through
