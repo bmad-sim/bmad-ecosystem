@@ -167,6 +167,7 @@ type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), pointer :: shape
+type (tao_shape_pattern_struct), pointer :: pattern
 type (tao_spin_map_struct), pointer :: spin_map
 type (all_pointer_struct) a_ptr
 type (beam_struct), pointer :: beam
@@ -3206,6 +3207,17 @@ case ('plot')
       nl=nl+1; write(lines(nl), '(a, i0, a, t19, a, t55, a, t71, a, t83, f10.1, 2x, a, t103, l5, l6, i7)') &
                 'ele_shape(', i, ') = ', quote(shape%ele_id), quote(shape%shape), quote(shape%color), &
                 shape%size, quote(shape%label), shape%draw, shape%multi, shape%line_width
+    enddo
+
+    do i = 1, size(s%plot_page%pattern)
+      pattern => s%plot_page%pattern(i)
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Shape Pattern Name: ' // trim(pattern%name)
+      nl=nl+1; write (lines(nl), '(a, i0)') 'Line Width = ', pattern%line%width
+      nl=nl+1; lines(nl) = '            s         x'
+      do j = 1, size(pattern%pt)
+        nl=nl+1; write (lines(nl), '(5x, 2f10.5)') pattern%pt(j)%s, pattern%pt(j)%x
+      enddo
     enddo
 
     result_id = 'plot:floor_plan'

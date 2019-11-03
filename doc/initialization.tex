@@ -2511,11 +2511,10 @@ patterns are specified by a \vn{shape_pattern} namelist:
 \begin{example}
   &shape_pattern
     name = "<curve_name>"
+    line%width = <line_width>
     pt(1) = <s>, <x>
     pt(2) = <s>, <x>
     pt(3) = ...
-    line%width = <line_width>
-    scale = "none"
   /
 \end{example}
 Example:
@@ -2540,7 +2539,8 @@ given by \vn{"pattern:<pattern_name>"}. The pattern is specified by a number of 
 points, a line segment is drawn. In the above example, the pattern is an isosceles trapezoid.  When
 drawn, the \vn{s} coordinate is scaled so that $s = 0$ corresponds to the entrance end of the
 element and $s = 1$ corresponds to the exit end. The \vn{x} coordinate is scaled by the \vn{size}
-attribute of the \vn{ele_shape}.
+attribute of the \vn{ele_shape}. The color of the line segments is set by the definition and the width
+of the line segments is set by the pattern definition.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Dynamic Aperture}

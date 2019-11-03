@@ -123,9 +123,8 @@ end type
 
 type tao_shape_pattern_struct
   character(40) :: name = ''
-  type (qp_line_struct) :: line = qp_line_struct(1, 'Not_Set', 'solid')
+  type (qp_line_struct) :: line = qp_line_struct(1, 'Not_Set', 'solid')  ! Line color and pattern set by shape using this pattern.
   type (tao_shape_pattern_point_struct), allocatable :: pt(:)
-  character(8) :: scale = 'none'
 end type
 
 !-----------------------------------------------------------------------
