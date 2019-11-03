@@ -325,6 +325,7 @@ endif
 call string_trim (what, what2, ix_word)
 call string_trim (what2(ix_word+1:), what2, ix_word)
 word1 = what2(:ix_word)
+result_id = show_what  ! Default
 
 select case (show_what)
 
@@ -339,8 +340,6 @@ case ('alias')
   do i = 1, s%com%n_alias
     nl=nl+1; lines(nl) = trim(s%com%alias(i)%name) // ' = "' // trim(s%com%alias(i)%expanded_str) // '"'
   enddo
-  
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! beam
@@ -516,8 +515,6 @@ case ('beam')
   
   endif
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! constraints
 
@@ -595,14 +592,12 @@ case ('branch')
 
   if (nl == nl0) nl = nl - 3 ! Erase header if no info.
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! building_wall
 
 case ('building_wall')
 
-  if (.not. allocated(s%building_wall%section)) then
+  if (size(s%building_wall%section) == 0) then
     nl=nl+1; lines(nl) = 'No building wall defined.'
     result_id = 'building_wall:none'
     return
@@ -612,7 +607,7 @@ case ('building_wall')
     section => s%building_wall%section(i)
     n = nl + size(section%point)
     if (n + 10 > size(lines)) call re_allocate (lines, n, .false.)
-    nl=nl+1; write(lines(nl), '(a, i0, 4a)') 'Section(', i, ')   Constraint: ', trim(section%constraint), ',  Name: ', quote(section%name)
+    nl=nl+1; write(lines(nl), '(a, i0, 4a)') 'Section(', i, ')    Name: ', quote(section%name), '  Constraint: ', trim(section%constraint)
 
     nl=nl+1; lines(nl) = '                        Z           X      Radius    Z_center    X_center'
     do j = 1, size(section%point)
@@ -630,8 +625,6 @@ case ('building_wall')
     nl=nl+1; lines(nl) = ''
   enddo
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! constraints
 
@@ -639,7 +632,6 @@ case ('constraints')
 
   call tao_show_constraints (0, 'ALL')
   call tao_show_constraints (0, 'TOP10')
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! control
@@ -677,8 +669,6 @@ case ('control')
       nl=nl+1; lines(nl) = ''
     endif
   enddo
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! curve
@@ -900,8 +890,6 @@ case ('curve')
     nl=1; lines(1) = 'THIS IS NOT A CURVE NAME'
     return
   endif
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! data
@@ -1126,8 +1114,6 @@ case ('data')
     return
   endif
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! derivative
 
@@ -1203,8 +1189,6 @@ case ('derivative')
     nl=nl+1; lines(nl) = 'Data and variables that are used in an optimization.'
   endif
   
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! dynamic_aperture
 
@@ -1243,8 +1227,6 @@ case ('dynamic_aperture')
       enddo
     endif
   enddo
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! ele
@@ -1444,8 +1426,6 @@ case ('element')
     enddo
   endif
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! field
 
@@ -1513,8 +1493,6 @@ case ('field')
 
   nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'B:', field%B
   nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'E:', field%E
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! global
@@ -1701,8 +1679,6 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
   endif
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! graph
 
@@ -1802,8 +1778,6 @@ case ('graph')
     return
   endif
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! history
 
@@ -1859,8 +1833,6 @@ case ('history')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = 'Note: Commands from previous sessions are stored in: ' // s%com%history_file
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! hom
 
@@ -1883,8 +1855,6 @@ case ('hom')
     nl=nl+1; lines(nl) = ' '
   enddo
   nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! Internal
@@ -1959,8 +1929,6 @@ case ('internal')
 
   end select
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! keys
 
@@ -1980,10 +1948,6 @@ case ('key_bindings')
       nl=nl+1; write(lines(nl), '(a, 2x, a)') trim(s%com%key(i)%name), trim(s%com%key(i)%expanded_str)
     endif
   enddo
-
-
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! lattice
@@ -2868,8 +2832,6 @@ case ('lattice')
 
   deallocate(picked_ele)
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! merit (old style: top10)
 
@@ -2886,8 +2848,6 @@ case ('merit', 'top10')
     nl=1; lines(1) = 'UNKNOWN SWITCH: ' // what2
     return
   endif
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! normal_form
@@ -2953,8 +2913,6 @@ case ('normal_form')
       nl=nl+1; lines(nl) = 'Must be one of: M A A_inv dhdj F L'
   end select
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! optimizer
 
@@ -2984,8 +2942,6 @@ case ('optimizer')
   call out_io (s_blank$, r_name, lines(1:nl))
   nl = 0
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! particle
 
@@ -2997,8 +2953,6 @@ case ('orbit')
     nl=nl+1; write(lines(nl), rmt) '     ', &
                 u%model%tao_branch(eles(1)%ele%ix_branch)%orbit%vec(eles(1)%ele%ix_ele)
   enddo
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! particle
@@ -3151,8 +3105,6 @@ case ('particle')
   nl=nl+1; write(lines(nl), lmt) 'Coords: '
   nl=nl+1; write(lines(nl), '(a, 6es13.5)') '  ', bunch%particle(ix_p)%vec
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! plot
 
@@ -3222,7 +3174,6 @@ case ('plot')
       do i = 1, size(p%graph)
         nl=nl+1; write(lines(nl), amt) '   ', quote(p%graph(i)%name)
       enddo
-      result_id = show_what
 
     else
       nl=1; lines(1) = 'This is not a name of a plot'
@@ -3519,8 +3470,6 @@ case ('symbolic_numbers')
     endif
   end select
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! taylor_map
 
@@ -3724,8 +3673,6 @@ case ('taylor_map', 'matrix')
     endif
   endif
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! track
 
@@ -3892,16 +3839,12 @@ case ('track')
     nl=nl+1; lines(nl) = line1
   enddo
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! tune
 
 case ('tune')
 
   nl=nl+1; lines(nl) = 'Use "show universe" instead.'
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! twiss
@@ -4039,8 +3982,6 @@ case ('twiss_and_orbit')
   nl=nl+1; write(lines(nl), fmt) "X  X':", orb%vec(1), orb%vec(2)
   nl=nl+1; write(lines(nl), fmt) "Y  Y':", orb%vec(3), orb%vec(4)
   nl=nl+1; write(lines(nl), fmt) "Z  Z':", orb%vec(5), orb%vec(6)
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! universe
@@ -4240,8 +4181,6 @@ case ('universe')
     nl=nl+1; write(lines(nl), fmt) '<pz>:', pz1, pz2, '! Average closed orbit pz (momentum deviation)'
   endif
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! variable
     
@@ -4290,8 +4229,6 @@ case ('use')
     endif
   enddo
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! value
 
@@ -4308,8 +4245,6 @@ case ('value')
       nl=nl+1; write(lines(nl), '(i4, a, es25.17)') i, ':  ', value(i)
     enddo
   endif
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 ! variable
@@ -4543,8 +4478,6 @@ case ('variable')
     result_id = 'variable:?'
   endif
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! wake_elements
 
@@ -4712,8 +4645,6 @@ case ('wall')
 
   nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele          Type   Radius (mm)'
 
-  result_id = show_what
-
 !----------------------------------------------------------------------
 ! wave
 
@@ -4785,9 +4716,6 @@ case ('wave')
   if (s%wave%n_kick > 20) then
     nl=nl+1; lines(nl) = ' etc...'
   endif
-
-
-  result_id = show_what
 
 !----------------------------------------------------------------------
 

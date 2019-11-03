@@ -830,6 +830,7 @@ The \vn{set} command is used to set values for data, variables, etc. Subcommands
   set curve <curve> <component> = <value>                   ! \sref{s:set.curve}
   set data <data_name>|<component> = <value>                ! \sref{s:set.data}
   set default <parameter> = <value>                         ! \sref{s:set.default}
+  set dynamic_aperture \{n@\}<component = <value>             ! \sref{s:set.da}
   set element <element_list> <attribute> = <value>          ! \sref{s:set.element}
   set floor_plan <component> = <value>                      ! \sref{s:set.floor.plan}
   set geodesic_lm <component> = <value>                     ! \sref{s:set.geodesic.lm}
@@ -845,9 +846,7 @@ The \vn{set} command is used to set values for data, variables, etc. Subcommands
   set ran_state = <random_number_generator_state>           ! \sref{s:set.ran.state}
   set symbolic_number <name> = <value>                      ! \sref{s:set.symbolic}
   set universe <what_universe> <on/off>                     ! \sref{s:set.universe}
-  set universe <what_universe> recalculate                  ! \sref{s:set.universe}
-  set universe <what_universe> twiss_calc <on/off>          ! \sref{s:set.universe}
-  set universe <what_universe> track_calc <on/off>          ! \sref{s:set.universe}
+  set universe <what_universe> <calc_name> <on/off>         ! \sref{s:set.universe}
   set variable <var_name>|<component> = <value>             ! \sref{s:set.variable}
   set wave <component> = <value>                            ! \sref{s:set.wave}
 \end{example}
@@ -1067,7 +1066,6 @@ Format:
   set data <data_name>|<component> = <value>
 \end{example}
 
-
 For \vn{set data}, the \vn{<component>}s that can be set are:
 \begin{example}
   base        ! Base model value
@@ -1118,6 +1116,32 @@ default values.
 Example:
 \begin{example}
   set default universe = 3
+\end{example}
+
+%% set dynamic_aperture --------------------------------------------------------------
+
+\subsection{set dynamic_aperture}
+\label{s:set.da}
+
+Format:
+\begin{example}
+  set dynamic_aperture \{n@\}<component> = <value>
+\end{example}
+
+The \vn{set dynamic_aperture} command sets parameters for dynamic aperture simulations
+(\sref{s:dynamicaperture}) Also see the \vn{set universe dynamic_aperture} (\sref{s:set.universe})
+and \vn{show dynamic_aperture} (\sref{s:show.da}).
+
+To set the particle energy for the <n>\Th scan use \vn{pz(<n>)}. Use a value less than -1 to remove the scan.
+
+The optional \vn{n@} prefix allows the specification of the universe or universes the set is applied
+to. The current default universe (\sref{s:universe}) will be used if no universe is given.
+
+Examples:
+\begin{example}
+  set dy 2@n_angle = 20   ! Set number of scan points for universe 2.
+  set dy accuracy = 1e-5  ! Set scan scan accuracy
+  set dy pz(3) = -0.05    ! Set particle energy for the 3rd scan.
 \end{example}
 
 %% set element --------------------------------------------------------------
@@ -1650,7 +1674,7 @@ Format:
   curve ...             ! Show plot curve info \sref{s:show.curve}.
   data ...              ! Show optimization data info \sref{s:show.data}.
   derivative ...        ! Show d_data/d_var optimization info \sref{s:show.derivative}.
-  dynamic_aperture      ! Show DA info \sref{s:show.dynamic}.
+  dynamic_aperture      ! Show DA info \sref{s:show.da}.
   element ...           ! Show lattice element info \sref{s:show.element}.
   field ...             ! Show EM field \sref{s:show.field}.
   global ...            ! Show Tao global parameters \sref{s:show.global}.
@@ -1917,16 +1941,16 @@ Example:
 %% show dynamic_aperture --------------------------------------------------------------
 
 \subsection{show dynamic_aperture}
-\label{s:show.dynamic}
+\label{s:show.da}
+\index{dynamic_aperture}
 
 Syntax:
 \begin{example}
   show dynamic_aperture
 \end{example}
 
-
-\index{dynamic_aperture}
-Shows parameters and results of the dynamic aperture calculation.
+Shows parameters and results of the dynamic aperture calculation (\sref{s:dynamicaperture}).
+See also the commands \vn{set dynamic_aperture}, and \vn{set universe dynamic_aperture}.
 
 %% show element --------------------------------------------------------------
 

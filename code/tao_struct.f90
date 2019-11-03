@@ -548,13 +548,13 @@ end type
 
 type tao_building_wall_point_struct
   real(rp) z, x                      ! Global floor position
-  real(rp) radius                    ! Arcs radius. +r -> CW rotation, same as bends. 
+  real(rp) radius                    ! Arc radius. +r -> CW rotation, same as bends. 
   real(rp) z_center, x_center        ! Arc center.
 end type
 
 type tao_building_wall_section_struct
   character(40) :: name = ''
-  character(16) :: constraint = ''   ! For constraints
+  character(16) :: constraint = ''   ! "left_side" or "right_side" constraint.
   type (tao_building_wall_point_struct), allocatable :: point(:)
 end type
 

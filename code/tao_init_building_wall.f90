@@ -31,7 +31,10 @@ namelist / building_wall_section / constraint, name, point
 
 ! Open file
 
-if (wall_file == '') return
+if (wall_file == '') then
+  allocate (s%building_wall%section(0))
+  return
+endif
 
 call out_io (s_blank$, r_name, '*Init: Opening Building Wall File: ' // wall_file)
 call tao_open_file (wall_file, iu, complete_file_name, s_fatal$)
