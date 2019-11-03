@@ -568,7 +568,7 @@ case ('building_wall_graph')
 !----------------------------------------------------------------------
 ! add or delete a building wall section
 ! Command syntax:
-!   python building_wall_point^^{ix_section}^^{sec_name}^^{sec_constraint}
+!   python building_wall_section^^{ix_section}^^{sec_name}^^{sec_constraint}
 ! Where:
 !   {ix_section}      -- Section index. Sections with higher indexes will be moved up if adding a secteion and down if deleting.
 !   {sec_name}        -- Section name.
