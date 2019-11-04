@@ -84,9 +84,7 @@ if (key2 == marker$ .or. key2 == photon_fork$ .or. key2 == fork$) then
   return
 endif
 
-
-!---------------------------------------------------------------------
-! det_factor is a renormalization factor to handle non-symplectic errors.
+! Off-energy normalization is not applied to e_gun.
 
 orb  => ele2%map_ref_orb_in
 orb_out => ele2%map_ref_orb_out
@@ -94,12 +92,15 @@ rel_p1 = 1 + orb%vec(6)               ! reference energy
 rel_p2 = 1 + orb_out%vec(6)
 
 mat6 = ele2%mat6
-if (bmad_com%twiss_normalize_off_energy) then
+if (bmad_com%twiss_normalize_off_energy .and. ele2%key /= e_gun$) then
   mat6(:, 2:6:2) = mat6(:, 2:6:2) * rel_p1
   mat6(2:6:2, :) = mat6(2:6:2, :) / rel_p2
   rel_p2 = rel_p2 / rel_p1
   rel_p1 = 1
 endif
+
+!---------------------------------------------------------------------
+! det_factor is a renormalization factor to handle non-symplectic errors.
 
 det_factor = sqrt(determinant(mat6(1:4,1:4)))
 if (det_factor == 0) return  ! Can happen if matrix was never computed.
