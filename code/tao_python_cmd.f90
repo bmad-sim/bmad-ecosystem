@@ -61,6 +61,7 @@ use tao_plot_mod, only: tao_set_floor_plan_axis_label
 use tao_data_and_eval_mod, only: tao_evaluate_expression
 use wall3d_mod, only: calc_wall_radius
 use tao_lattice_calc_mod, only: tao_lattice_calc
+
 implicit none
 
 type (tao_universe_struct), pointer :: u
@@ -2421,9 +2422,9 @@ case ('floor_plan')
   enddo
 
 !----------------------------------------------------------------------
-! Floor plan orbit
+! (x, y) coordinates for drawing the particle orbit on a floor plan.
 ! Command syntax:
-!   python floor_orbit{graph}
+!   python floor_orbit {graph}
 
 case ('floor_orbit')
 
@@ -2750,6 +2751,7 @@ case ('lat_general')
 !     design
 !
 !   {who} is a comma deliminated list of:
+!     orbit.floor.x, orbit.floor.y, orbit.floor.z    ! Floor coords at particle orbit.
 !     orbit.spin.1, orbit.spin.2, orbit.spin.3,
 !     orbit.vec.1, orbit.vec.2, orbit.vec.3, orbit.vec.4, orbit.vec.5, orbit.vec.6,
 !     orbit.t, orbit.beta,
@@ -2831,6 +2833,17 @@ case ('lat_list')
 
       n_add = 1
       select case (name1(i))
+      case ('orbit.floor.x', 'orbit.floor.y', 'orbit.floor.z')
+        floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
+        floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+        select case (name1(i))
+        case ('orbit.floor.x')
+          values(1) = floor1%r(1)
+        case ('orbit.floor.y')
+          values(1) = floor1%r(2)
+        case ('orbit.floor.z')
+          values(1) = floor1%r(3)
+        end select
       case ('orbit.spin.1')
         values(1) = orbit%spin(1)
       case ('orbit.spin.2')
