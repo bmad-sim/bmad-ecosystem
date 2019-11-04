@@ -1,3 +1,8 @@
 The GUI for Tao is in development and is now in Beta phase.
 Please send any bug reports to the Bmad maintainers
 [Contact info for the Bmad maintainers is available on the Bmad web page.]
+
+This file along with the GUI scripts are in the directory:
+	$ACC_ROOT_DIR/tao/python/pytao/gui
+
+Documentation on running the GUI is in the doc subdirectory.
