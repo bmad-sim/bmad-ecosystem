@@ -2826,7 +2826,7 @@ case ('lat_list')
   do ie = 1, n_loc
     ele => eles(ie)%ele
     if (track_only .and. ele%ix_ele > lat%n_ele_track) cycle
-    if (no_slaves .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) cycle
+    if (no_slaves .and. (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$)) cycle
     orbit => tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele)
 
     do i = 1, n_who
