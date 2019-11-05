@@ -510,7 +510,7 @@ if (allocated(s%building_wall%section)) then
     enddo  ! ele shape
   enddo  ! wall section
 
-  if (.not. found) then
+  if (.not. found .and. size(s%building_wall%section) > 0) then
     call out_io (s_info$, r_name, 'Building wall defined but no building wall shape(s) for floor_plan present.')
   endif
 endif
