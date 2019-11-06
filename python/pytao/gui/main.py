@@ -60,7 +60,7 @@ class tao_root_window(tk.Tk):
         init_frame.pack()
         self.tao_load(init_frame)
 
-    #-------------------------
+    #-----------------------------------------------------------------------------------
     # Tao startup
 
     def start_main(self):
@@ -129,6 +129,8 @@ class tao_root_window(tk.Tk):
         self.cmd_frame.rowconfigure(1, weight=1)
         self.console_packed = True
 
+    #-----------------------------------------------------------------------------------
+
     def sh_console(self, event=None):
         '''
         Packs or unpacks self.console as appropriate
@@ -138,6 +140,8 @@ class tao_root_window(tk.Tk):
         else:
             self.console.grid(row=1, column=0, columnspan=2, sticky = 'NSEW')
         self.console_packed = not self.console_packed
+
+    #-----------------------------------------------------------------------------------
 
     def tao_call(self, event=None):
         '''
@@ -156,6 +160,8 @@ class tao_root_window(tk.Tk):
             pass
         # Check the place buffer and place plots
         self.default_plots(include_init=False)
+
+    #-----------------------------------------------------------------------------------
 
     def menubar_init(self):
         self.menubar = tk.Menu(self)
@@ -211,6 +217,8 @@ class tao_root_window(tk.Tk):
 
         self.config(menu=self.menubar)
 
+    #-----------------------------------------------------------------------------------
+
     def default_plots(self, include_init=True):
         '''
         If self.plot_mode == "matplotlib", opens all the
@@ -254,116 +262,14 @@ class tao_root_window(tk.Tk):
                     # Make a window for the plot
                     win = tao_plot_window(self, plot, self.pipe, region=plot_regions[i])
 
-    def tao_load(self,init_frame):
+    #-----------------------------------------------------------------------------------
+
+    def tao_load(self, init_frame):
         '''
         Handles the startup of tao, including parsing gui.init and commandline
         arguments.
         '''
-        tk_list = [] #Items: tk_tao_parameter() (see tao_widget.py)
-        init_frame.grid_columnconfigure(0, weight=1, pad=10)
-        init_frame.grid_columnconfigure(1, weight=1)
-        warning_messages = []
-        gui_init_file = None
 
-        # Parse command line arguments
-        clargs = {} # keys: command line switches, values: switch value
-        looking_for = 'switch'
-        for i in range(len(sys.argv)):
-            if looking_for == 'switch':
-                arg = sys.argv[i]
-                if arg.find('-') == 0: #-switch
-                    arg = arg[1:]
-                    # Determine if arg is a valid switch name
-                    matches = [] # list of startup params that arg might refer to
-                    # Special handling for gui_init
-                    if arg == 'gui_init':
-                        gui_init_file = ""
-                        looking_for = 'file'
-                        continue
-                    # Generic case
-                    for param in param_dict.keys():
-                        if param.find(arg) == 0:
-                            matches.append(param)
-                    if len(matches) == 1: #exactly one match -> good switch
-                        arg = matches[0]
-                        if (param_dict[matches[0]].type == 'FILE') & (i != len(sys.argv)-1):
-                            clargs[arg] = "" #add arg to clargs
-                            looking_for = 'file' #file switches need files
-                        elif param_dict[matches[0]].type == 'LOGIC':
-                            clargs[arg] = "T" #add arg to clargs
-            elif looking_for == 'file':
-                arg_file = sys.argv[i]
-                if arg_file.find('-') == 0: #not a file
-                    if arg == 'gui_init':
-                        pass
-                    else:
-                        # Remove previous argument from list
-                        clargs.pop(arg)
-                else:
-                    if arg == 'gui_init':
-                        gui_init_file = arg_file
-                    else:
-                        clargs[arg] = arg_file
-                looking_for = 'switch'
-
-        #Look for and read gui.init
-        #each line should have the form
-        #parameter:value
-        #E.g. init_file:tao.init
-        #E.g. rf_on:T
-        if gui_init_file == None:
-            # Try to use ~/gui.init if init file not specified
-            gui_init_file = os.path.expanduser('~/gui.init')
-            try:
-                f = open(gui_init_file)
-                f.close()
-            except: # default to basic gui.init
-                gui_init_file = os.path.expandvars('$ACC_LOCAL_ROOT/tao/gui/gui.init')
-        else:
-            gui_init_file = os.path.expanduser(gui_init_file)
-            gui_init_file = os.path.expandvars(gui_init_file)
-        try:
-            init_file = open(gui_init_file)
-            init_list = init_file.read()
-            init_list = init_list.splitlines()
-            init_file.close()
-        except:
-            init_list = []
-        init_dict = {}
-        for key, value in clargs.items(): # add clargs to init_list
-            init_list.append(key + ':' + value)
-        for entry in init_list:
-            entry = entry.strip()
-            #Check for proper formatting and not a comment
-            if entry.find(':') != -1 & entry.find('#') != 0:
-                name = entry[:entry.find(':')]
-                name = name.strip()
-                value = entry[entry.find(':')+1:]
-                value = value.strip()
-            else:
-                continue
-            c1 = (name in ["tao_exe", "tao_lib"])
-            try:
-                c2 = (param_dict[name].type == 'FILE')
-            except KeyError:
-                c2 = False
-            if c1 | c2:
-                #Check that a good filename has been given
-                try:
-                    filename = value
-                    #Expand environment variables and ~
-                    filename = os.path.expanduser(filename)
-                    filename = os.path.expandvars(filename)
-                    f = open(filename)
-                    f.close()
-                    init_dict[name] = filename
-                except FileNotFoundError:
-                    #Don't put bad files in init_dict
-                    #messagebox.showwarning(name, "File not found: " + filename)
-                    warning_messages.append([name, filename])
-            else:
-                init_dict[name] = value
-        k = 0 #row number counter
         def toggle_init(*args):
             '''
             Enables/disables the init file box if noinit is selected
@@ -372,25 +278,8 @@ class tao_root_window(tk.Tk):
                 tk_list[6].tk_wid.configure(state='disabled')
             else:
                 tk_list[6].tk_wid.configure(state='normal')
-        for param, tao_param in param_dict.items():
-            tk_list.append(tk_tao_parameter(tao_param,init_frame))
-            #Possibly set value from init file
-            if tk_list[k].param.name in init_dict:
-                if tk_list[k].param.type == 'FILE':
-                    tk_list[k].tk_var.set(init_dict[tk_list[k].param.name])
-                elif tk_list[k].param.type == 'LOGIC':
-                    state = (init_dict[tk_list[k].param.name] == 'T') | \
-                            (init_dict[tk_list[k].param.name] == 'True')
-                    tk_list[k].tk_var.set(state)
-            if param == 'noinit': #gets a special label
-                tk.Label(init_frame,text="Don't use an init file").grid(row=k,sticky="E")
-                tk_list[k].tk_var.trace('w', toggle_init)
-            else:
-                tk.Label(init_frame,text=param).grid(row=k,sticky="E")
-            tk_list[k].tk_wid.grid(row=k, column=1, sticky="W")
-            k = k+1
-        # Choosing whether to use pexpect or ctypes must be handled separately
-        tk.Label(init_frame, text="Interface to Tao:").grid(row=k, sticky="E")
+        # End: def toggle_init
+
         def swap_box(event=None):
             if chosen_interface.get() == "pexpect":
                 ctype_label.grid_forget()
@@ -402,45 +291,7 @@ class tao_root_window(tk.Tk):
                 tao_exe.tk_wid.grid_forget()
                 ctype_label.grid(row=k+1, sticky="E")
                 tao_lib.tk_wid.grid(row=k+1, column=1, sticky="W")
-
-        chosen_interface = tk.StringVar()
-        chosen_interface.set("ctypes")
-        if "chosen_interface" in init_dict:
-            if init_dict["chosen_interface"] in ["pexpect", "ctypes"]:
-                chosen_interface.set(init_dict["chosen_interface"])
-        tk.OptionMenu(init_frame, chosen_interface, "pexpect", "ctypes",
-                command=swap_box).grid(row=k, column=1, sticky="W")
-        pexp_label = tk.Label(init_frame, text="Tao executable")
-        ctype_label = tk.Label(init_frame, text="Shared Library")
-        tao_exe = tk_tao_parameter(str_to_tao_param("tao_exe;FILE;T;"), init_frame)
-        if "tao_exe" in init_dict:
-            tao_exe.tk_var.set(init_dict["tao_exe"])
-        elif 'ACC_LOCAL_ROOT' in os.environ.keys():
-            tao_exe.tk_var.set(os.environ['ACC_LOCAL_ROOT']+'/production/bin/tao')
-        elif 'ACC_EXE' in os.environ.keys():
-            tao_exe.tk_var.set(os.environ['ACC_EXE']+'/tao')
-        tao_lib = tk_tao_parameter(str_to_tao_param("tao_lib;FILE;T;"), init_frame)
-        if "tao_lib" in init_dict:
-            tao_lib.tk_var.set(init_dict["tao_lib"])
-        elif 'ACC_LOCAL_ROOT' in os.environ.keys():
-            if os.path.isfile(os.environ['ACC_LOCAL_ROOT']+'/production/lib/libtao.so'):
-                tao_lib.tk_var.set(os.environ['ACC_LOCAL_ROOT']+'/production/lib/libtao.so')
-        elif 'ACC_ROOT_DIR' in os.environ.keys():
-            if os.path.isfile(os.environ['ACC_ROOT_DIR']+'/production/lib/libtao.so'):
-                tao_lib.tk_var.set(os.environ['ACC_ROOT_DIR']+'/production/lib/libtao.so')
-        swap_box()
-
-        #Choosing plot mode must also be handled separately
-        tk.Label(init_frame, text="Plotting Mode").grid(row=k+2, sticky='E')
-        plot_mode = tk.StringVar()
-        plot_mode.set("matplotlib")
-        plot_options = ["matplotlib", "pgplot", "None"]
-        plot_chooser = tk.OptionMenu(init_frame, plot_mode, *plot_options)
-        plot_chooser.grid(row=k+2, column=1, sticky='W')
-        # Set plot_mode from init_dict if specified
-        if "plot_mode" in init_dict:
-            if init_dict["plot_mode"] in plot_options:
-                plot_mode.set(init_dict["plot_mode"])
+        # End: def swap_box
 
         def param_load(event=None):
             # set the font
@@ -511,15 +362,8 @@ class tao_root_window(tk.Tk):
                 # place the lattice layout in layout by default
                 self.placed.place_template('lat_layout', 'layout')
             self.default_plots()
+        # End: def param_load
 
-        # Font size
-        tk.Label(init_frame, text="Font size").grid(row=k+3, sticky='E')
-        font_var = tk.StringVar()
-        if 'font_size' in init_dict.keys():
-            font_var.set(str(init_dict['font_size']))
-        else:
-            font_var.set('14')
-        font_box = tk.Entry(init_frame, textvariable=font_var)
         def update_font(event=None):
             try:
                 new_size = int(font_var.get())
@@ -529,6 +373,187 @@ class tao_root_window(tk.Tk):
             except:
                 pass
             return 'break' # Do not load into Tao yet
+
+        # End of local defs
+        #-----------------------
+
+        tk_list = [] #Items: tk_tao_parameter() (see tao_widget.py)
+        init_frame.grid_columnconfigure(0, weight=1, pad=10)
+        init_frame.grid_columnconfigure(1, weight=1)
+        warning_messages = []
+        gui_init_file = None
+
+        # Parse command line arguments
+        clargs = {} # keys: command line switches, values: switch value
+        looking_for = 'switch'
+        for i in range(len(sys.argv)):
+            if looking_for == 'switch':
+                arg = sys.argv[i]
+                if arg.find('-') == 0: #-switch
+                    arg = arg[1:]
+                    # Determine if arg is a valid switch name
+                    matches = [] # list of startup params that arg might refer to
+                    # Special handling for gui_init
+                    if arg == 'gui_init':
+                        gui_init_file = ""
+                        looking_for = 'file'
+                        continue
+                    # Generic case
+                    for param in param_dict.keys():
+                        if param.find(arg) == 0:
+                            matches.append(param)
+                    if len(matches) == 1: #exactly one match -> good switch
+                        arg = matches[0]
+                        if (param_dict[matches[0]].type == 'FILE') & (i != len(sys.argv)-1):
+                            clargs[arg] = "" #add arg to clargs
+                            looking_for = 'file' #file switches need files
+                        elif param_dict[matches[0]].type == 'LOGIC':
+                            clargs[arg] = "T" #add arg to clargs
+            elif looking_for == 'file':
+                arg_file = sys.argv[i]
+                if arg_file.find('-') == 0: #not a file
+                    if arg == 'gui_init':
+                        pass
+                    else:
+                        # Remove previous argument from list
+                        clargs.pop(arg)
+                else:
+                    if arg == 'gui_init':
+                        gui_init_file = arg_file
+                    else:
+                        clargs[arg] = arg_file
+                looking_for = 'switch'
+
+        #Look for and read gui.init
+        #each line should have the form
+        #parameter:value
+        #E.g. init_file:tao.init
+        #E.g. rf_on:T
+        if gui_init_file == None:
+            # Try to use gui.init if init file not specified
+            gui_init_file = os.path.expanduser('gui.init')
+        else:
+            gui_init_file = os.path.expanduser(gui_init_file)
+            gui_init_file = os.path.expandvars(gui_init_file)
+
+        try:
+            init_file = open(gui_init_file)
+            init_list = init_file.read()
+            init_list = init_list.splitlines()
+            init_file.close()
+        except:
+            init_list = []
+
+        init_dict = {}
+        for key, value in clargs.items(): # add clargs to init_list
+            init_list.append(key + ':' + value)
+
+        for entry0 in init_list:
+            entry = entry0.strip()
+            entry = entry.split('#', 1)[0]   # Remove comment
+            if entry == '': continue
+            #Check for proper formatting and not a comment
+            if entry.find(':') != -1:
+                name = entry[:entry.find(':')]
+                name = name.strip()
+                value = entry[entry.find(':')+1:]
+                value = value.strip()
+            else:
+                messagebox.showwarning('Error!', 'Bad line in gui.init file:\n' + entry0)
+                continue
+
+            c1 = (name in ["tao_exe", "tao_lib"])
+            try:
+                c2 = (param_dict[name].type == 'FILE')
+            except KeyError:
+                c2 = False
+            if c1 | c2:
+                #Check that a good filename has been given
+                try:
+                    filename = value
+                    #Expand environment variables and ~
+                    filename = os.path.expanduser(filename)
+                    filename = os.path.expandvars(filename)
+                    f = open(filename)
+                    f.close()
+                    init_dict[name] = filename
+                except FileNotFoundError:
+                    #Don't put bad files in init_dict
+                    #messagebox.showwarning(name, "File not found: " + filename)
+                    warning_messages.append([name, filename])
+            else:
+                init_dict[name] = value
+
+        k = 0 #row number counter
+        for param, tao_param in param_dict.items():
+            tk_list.append(tk_tao_parameter(tao_param,init_frame))
+            #Possibly set value from init file
+            if tk_list[k].param.name in init_dict:
+                if tk_list[k].param.type == 'FILE':
+                    tk_list[k].tk_var.set(init_dict[tk_list[k].param.name])
+                elif tk_list[k].param.type == 'LOGIC':
+                    state = (init_dict[tk_list[k].param.name] == 'T') | \
+                            (init_dict[tk_list[k].param.name] == 'True')
+                    tk_list[k].tk_var.set(state)
+            if param == 'noinit': #gets a special label
+                tk.Label(init_frame,text="Don't use an init file").grid(row=k,sticky="E")
+                tk_list[k].tk_var.trace('w', toggle_init)
+            else:
+                tk.Label(init_frame,text=param).grid(row=k,sticky="E")
+            tk_list[k].tk_wid.grid(row=k, column=1, sticky="W")
+            k = k+1
+
+        # Choosing whether to use pexpect or ctypes must be handled separately
+        tk.Label(init_frame, text="Interface to Tao:").grid(row=k, sticky="E")
+
+        chosen_interface = tk.StringVar()
+        chosen_interface.set("ctypes")
+        if "chosen_interface" in init_dict:
+            if init_dict["chosen_interface"] in ["pexpect", "ctypes"]:
+                chosen_interface.set(init_dict["chosen_interface"])
+        tk.OptionMenu(init_frame, chosen_interface, "pexpect", "ctypes",
+                command=swap_box).grid(row=k, column=1, sticky="W")
+        pexp_label = tk.Label(init_frame, text="Tao executable")
+        ctype_label = tk.Label(init_frame, text="Shared Library")
+        tao_exe = tk_tao_parameter(str_to_tao_param("tao_exe;FILE;T;"), init_frame)
+        if "tao_exe" in init_dict:
+            tao_exe.tk_var.set(init_dict["tao_exe"])
+        elif 'ACC_LOCAL_ROOT' in os.environ.keys():
+            tao_exe.tk_var.set(os.environ['ACC_LOCAL_ROOT']+'/production/bin/tao')
+        elif 'ACC_EXE' in os.environ.keys():
+            tao_exe.tk_var.set(os.environ['ACC_EXE']+'/tao')
+        tao_lib = tk_tao_parameter(str_to_tao_param("tao_lib;FILE;T;"), init_frame)
+        if "tao_lib" in init_dict:
+            tao_lib.tk_var.set(init_dict["tao_lib"])
+        elif 'ACC_LOCAL_ROOT' in os.environ.keys():
+            if os.path.isfile(os.environ['ACC_LOCAL_ROOT']+'/production/lib/libtao.so'):
+                tao_lib.tk_var.set(os.environ['ACC_LOCAL_ROOT']+'/production/lib/libtao.so')
+        elif 'ACC_ROOT_DIR' in os.environ.keys():
+            if os.path.isfile(os.environ['ACC_ROOT_DIR']+'/production/lib/libtao.so'):
+                tao_lib.tk_var.set(os.environ['ACC_ROOT_DIR']+'/production/lib/libtao.so')
+        swap_box()
+
+        #Choosing plot mode must also be handled separately
+        tk.Label(init_frame, text="Plotting Mode").grid(row=k+2, sticky='E')
+        plot_mode = tk.StringVar()
+        plot_mode.set("matplotlib")
+        plot_options = ["matplotlib", "pgplot", "None"]
+        plot_chooser = tk.OptionMenu(init_frame, plot_mode, *plot_options)
+        plot_chooser.grid(row=k+2, column=1, sticky='W')
+        # Set plot_mode from init_dict if specified
+        if "plot_mode" in init_dict:
+            if init_dict["plot_mode"] in plot_options:
+                plot_mode.set(init_dict["plot_mode"])
+
+        # Font size
+        tk.Label(init_frame, text="Font size").grid(row=k+3, sticky='E')
+        font_var = tk.StringVar()
+        if 'font_size' in init_dict.keys():
+            font_var.set(str(init_dict['font_size']))
+        else:
+            font_var.set('14')
+        font_box = tk.Entry(init_frame, textvariable=font_var)
+
         update_font() # Set the font for the first time
         font_box.bind('<Return>', update_font)
         font_box.grid(row=k+3, column=1, sticky='W')
@@ -553,10 +578,14 @@ class tao_root_window(tk.Tk):
         c2 = len(warning_messages) == 0
         c3 = 'pipe' not in self.__dict__
         c4 = ('skip_setup' in init_dict.keys()) and (init_dict["skip_setup"] in ['T', 'True'])
-        if c1 & c2 & c3 & c4:
-            param_load()
+        if c1 & c2 & c3 & c4: param_load()
 
-    #-------------------------
+        if ('do_mainloop' in init_dict.keys()) and (init_dict["do_mainloop"] in ['F', 'False']):
+          self.do_mainloop = False
+        else:
+          self.do_mainloop = True
+
+    #-----------------------------------------------------------------------------------
     # Menu bar callbacks
 
     def new_data_cmd(self):
