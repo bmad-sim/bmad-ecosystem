@@ -1,3 +1,0 @@
-set global track_type = beam
-place r33 bunch_density_x
-place r23 bunch_x_y
