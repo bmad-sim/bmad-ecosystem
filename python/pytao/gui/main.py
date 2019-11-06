@@ -22,6 +22,7 @@ from .tao_lat_windows import *
 from .tao_misc_windows import *
 from .tao_plot_windows import *
 from .tao_var_windows import *
+from .tao_beam_windows import *
 
 #---------------------------------------------------------------
 # Root window
@@ -196,6 +197,11 @@ class tao_root_window(tk.Tk):
         plot_menu.add_command(label = 'Edit Plot...',
                 command = self.plot_region_cmd, accelerator = 'Ctrl+R')
         self.menubar.add_cascade(label = 'Plot', menu = plot_menu)
+
+        beam_menu = tk.Menu(self.menubar, tearoff=0)
+        beam_menu.add_command(label = 'Beam settings...',
+                command = self.beam_init_cmd, accelerator = 'Ctrl+B')
+        self.menubar.add_cascade(label = 'Beam', menu = beam_menu)
 
         #window_menu = tk.Menu(self.menubar)
         #window_menu.add_command(label = 'Optimizer...',
@@ -602,6 +608,9 @@ class tao_root_window(tk.Tk):
         win = tk.Toplevel(self)
         win.title('Optimizer')
 
+    def beam_init_cmd(self):
+        win = tao_beam_init_window(self, self.pipe)
+
     def plot_template_cmd(self):
         win = tao_place_plot_window(self, self.pipe)
 
@@ -658,6 +667,9 @@ class tao_root_window(tk.Tk):
 
     def view_vars_event(self, event):
         self.view_vars_cmd()
+
+    def beam_init_event(self, event):
+        self.beam_init_cmd()
 
     def reinit_event(self, event):
         self.reinit_cmd()
