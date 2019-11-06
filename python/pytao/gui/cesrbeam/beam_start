@@ -1,3 +1,0 @@
-set global track_type = beam
-place top lat_layout
-place bottom floor_plan
