@@ -54,7 +54,7 @@ class tk_tao_parameter():
             self.tk_var = tk.StringVar()
             self.tk_var.set(str(self.param.value))
             self.tk_wid = tk.Label(frame, textvariable=self.tk_var)
-        elif self.param.type in ['STR', 'INT', 'REAL']:
+        elif self.param.type in ['STR', 'INT', 'REAL', 'SPECIES']:
             self.tk_var = tk.StringVar()
             if self.param.value == None:
                 self.tk_var.set("")
@@ -236,7 +236,7 @@ class tk_tao_parameter():
         Returns the value in the input field(s) of self, appropriately typed
         If an invalid value is input, returns None
         '''
-        if self.param.type in ['STR', 'ENUM', 'FILE']:
+        if self.param.type in ['STR', 'ENUM', 'FILE', 'SPECIES']:
             return self.tk_var.get()
         elif self.param.type in ['INT', 'INUM']:
             try:
@@ -296,7 +296,7 @@ class tk_tao_parameter():
         '''
         if not isinstance(tao_param, tao_parameter):
             return
-        if self.param.type in ['STR', 'INT', 'REAL']:
+        if self.param.type in ['STR', 'INT', 'REAL', 'SPECIES']:
             if tao_param.value == None:
                 self.tk_var.set("")
             else:
@@ -328,9 +328,14 @@ class tk_tao_parameter():
             self.param.type = 'REAL_ARR'
         elif self.param.type == 'DAT_TYPE':
             self.tk_var.set(tao_param.value)
-            self._mvar.set((self.tk_var.get()).split('.')[0])
-            self._mvar_old = self._mvar.get() # Tracks changes inn self._mvar
-            self._s_refresh()
+            if self._data_source in ["data", "var"]:
+                self._mvar.set((self.tk_var.get()))
+                self._mvar_old = self._mvar.get() # Tracks changes in self._mvar
+                self._s_refresh()
+            else:
+                self._mvar.set((self.tk_var.get()).split('.')[0])
+                self._mvar_old = self._mvar.get() # Tracks changes in self._mvar
+                self._s_refresh()
         elif self.param.type == 'STRUCT':
             for i in range(len(tao_param.value)):
                 for j in range(len(self.param.value)):
