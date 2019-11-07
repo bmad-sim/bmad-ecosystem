@@ -53,6 +53,18 @@ class tao_console(tk.Frame):
         #self.cend = self._wid.index('end')
         self.cpos = 0 #index of cursor in self.command
 
+        # Unbind default keys and fix root window keyboard shortcuts
+        self._wid.bind('<Control-o>', lambda e: self._shortcut_handler('o'))
+        self._wid.bind('<Control-O>', lambda e: self._shortcut_handler('O'))
+        self._wid.bind('<Control-n>', lambda e: self._shortcut_handler('n'))
+        self._wid.bind('<Control-p>', lambda e: self._shortcut_handler('p'))
+        self._wid.bind('<Control-f>', lambda e: self._shortcut_handler('f'))
+        self._wid.bind('<Control-b>', lambda e: self._shortcut_handler('b'))
+        self._wid.bind('<Alt-q>', lambda e: self._shortcut_handler('aq'))
+        self._wid.bind('<Alt-n>', lambda e: self._shortcut_handler('an'))
+        self._wid.bind('<Alt-p>', lambda e: self._shortcut_handler('ap'))
+        self._wid.bind('<Alt-v>', lambda e: self._shortcut_handler('av'))
+
         self._wid.bind('<Key>', self._key_handler)
         self._wid.bind('<Return>', self._ret_handler)
         self._wid.bind('<BackSpace>', self._bs_handler)
@@ -230,3 +242,22 @@ class tao_console(tk.Frame):
                 self.set_command("")
             self._wid.see(self.cstart)
         return 'break'
+
+    def _shortcut_handler(self, key, event=None):
+        '''
+        Used to unbind default shortuts on the Text widget, and
+        fixes root window keyboard shortcuts
+        '''
+        if key == 'b':
+            self.root.beam_init_cmd()
+        elif key == 'n':
+            self.root.new_data_cmd()
+        elif key == 'aq':
+            self.root.reinit_cmd()
+        elif key == 'an':
+            self.root.new_var_cmd()
+        elif key == 'av':
+            self.root.view_vars_cmd()
+        elif key == 'ap':
+            self.root.new_template_cmd()
+        return "break"
