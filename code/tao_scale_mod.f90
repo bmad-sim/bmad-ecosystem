@@ -158,8 +158,7 @@ if (y_min == y_max .and. do_gang) then
       if (graph%y%major_div_nominal > 0) then
         p1 = nint(0.7 * graph%y%major_div_nominal)  
         p2 = nint(1.3 * graph%y%major_div_nominal)
-        call qp_calc_and_set_axis ('Y', y_range(1), y_range(2), p1, p2, 'GENERAL', graph%y%type)
-        call qp_get_axis_attrib ('Y', graph%y%min, graph%y%max, graph%y%major_div, graph%y%places)
+        call qp_calc_axis_params (y_range(1), y_range(2), p1, p2, graph%y)
       else
         call qp_calc_axis_scale (y_range(1), y_range(2), graph%y)
       endif
@@ -180,8 +179,7 @@ if (y_min == y_max .and. do_gang) then
         if (graph%y2%major_div_nominal > 0) then
           p1 = nint(0.7 * graph%y2%major_div_nominal)  
           p2 = nint(1.3 * graph%y2%major_div_nominal)
-          call qp_calc_and_set_axis ('Y', y2_range(1), y2_range(2), p1, p2, 'GENERAL', graph%y2%type)
-          call qp_get_axis_attrib ('Y', graph%y2%min, graph%y2%max, graph%y2%major_div, graph%y2%places)
+          call qp_calc_axis_params (y2_range(1), y2_range(2), p1, p2, graph%y2)
         else
           call qp_calc_axis_scale (y2_range(1), y2_range(2), graph%y2)
         endif
@@ -232,8 +230,7 @@ if (y_min /= y_max) then
     endif
     graph%y%min = y_min
     graph%y%max = y_max
-    call qp_calc_axis_divisions (y_min, y_max, p1, p2, graph%y%major_div)
-    call qp_calc_axis_places (graph%y)
+    call qp_calc_axis_params (y_min, y_max, p1, p2, graph%y)
   endif
 
   ! y2
@@ -257,8 +254,7 @@ if (y_min /= y_max) then
     endif
     graph%y2%min = y_min
     graph%y2%max = y_max
-    call qp_calc_axis_divisions (y_min, y_max, p1, p2, graph%y2%major_div)
-    call qp_calc_axis_places (graph%y2)
+    call qp_calc_axis_params (y_min, y_max, p1, p2, graph%y2)
   endif
 
   return
@@ -388,9 +384,8 @@ this_min = this_min - graph%scale_margin%y1 * del
 this_max = this_max + graph%scale_margin%y2 * del
 
 if (axis == '' .or. axis == 'y' .or. graph%y2_mirrors_y) then
-  call qp_calc_and_set_axis ('Y', this_min, this_max, p1, p2, 'GENERAL', graph%y%type)
+  call qp_calc_axis_params (this_min, this_max, p1, p2, graph%y)
   if (present(y_range)) y_range = [min(y_range(1), this_min), max(y_range(2), this_max)]
-  call qp_get_axis_attrib ('Y', graph%y%min, graph%y%max, graph%y%major_div, graph%y%places)
 endif
 
 ! y2
@@ -403,9 +398,8 @@ if (graph%y2_mirrors_y) then
   graph%y2%draw_numbers = axis_save%draw_numbers
 
 elseif (axis == '' .or. axis == 'y2') then
-  call qp_calc_and_set_axis ('Y2', this_min, this_max, p1, p2, 'GENERAL', graph%y2%type)
+  call qp_calc_axis_params (this_min, this_max, p1, p2, graph%y2)
   if (present(y2_range)) y2_range = [min(y2_range(1), this_min), max(y2_range(2), this_max)]
-  call qp_get_axis_attrib ('Y2', graph%y2%min, graph%y2%max, graph%y2%major_div, graph%y2%places)
 endif
 
 end subroutine

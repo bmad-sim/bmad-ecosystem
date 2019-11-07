@@ -608,7 +608,7 @@ type (coord_struct), pointer :: orbit(:)
 type (coord_struct) orb_here, orb_start, orb_end
 type (tao_shape_pattern_struct), pointer :: pat
 
-integer ix_uni, i, j, k, n_bend, n, ix, ic, n_mid, isu
+integer ix_uni, i, j, k, n_bend, n_bend_orb, n, ix, ic, n_mid, isu
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
@@ -703,10 +703,11 @@ if (is_bend) then
   v_old = floor%r
   call floor_angles_to_w_mat (floor%theta, floor%phi, 0.0_rp, w_old)
 
-  n_bend = min(abs(int(100 * ele%value(angle$))) + 1, ubound(x_bend, 1))
-  if (n_bend < 1) return   ! A crazy angle can cause int(100*angle) to be negative !!
   ang    = ele%value(angle$) * ele%orientation
   length = ele%value(l$)     * ele%orientation
+
+  n_bend = int(100*abs(ele%value(angle$))) + 1
+  n_bend = min(n_bend, ubound(x_bend, 1))
   do j = 0, n_bend
     angle = j * ang / n_bend
     cos_t = cos(ele%value(ref_tilt_tot$))
@@ -725,16 +726,6 @@ if (is_bend) then
     dv_vec = matmul (w_old, dr_vec) 
     call tao_floor_to_screen (graph, v_vec, x_bend(j), y_bend(j))
     call tao_floor_to_screen (graph, dv_vec, dx_bend(j), dy_bend(j))
-
-    if (graph%floor_plan_orbit_scale /= 0) then
-      s_here = j * ele%value(l$) / n_bend
-      call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
-                                                       .true., .true., orb_start, orb_here)
-      f_orb%r(1:2) = graph%floor_plan_orbit_scale * orb_here%vec(1:3:2)
-      f_orb%r(3) = s_here
-      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
-      call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
-    endif
 
     ! Correct for e1 and e2 face angles which are a rotation of the faces about
     ! the local y-axis.
@@ -762,13 +753,27 @@ if (is_bend) then
     endif
   enddo
 
+  if (graph%floor_plan_orbit_scale /= 0) then
+    n_bend_orb = n_bend + int(100 * graph%floor_plan_orbit_scale * &
+                  (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4))))
+    n_bend_orb = min(n_bend_orb, ubound(dx_orbit, 1))
+    do j = 0, n_bend_orb
+      s_here = j * ele%value(l$) / n_bend_orb
+      call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
+                                                       .true., .true., orb_start, orb_here)
+      f_orb%r(1:2) = graph%floor_plan_orbit_scale * orb_here%vec(1:3:2)
+      f_orb%r(3) = s_here
+      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
+      call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
+    enddo
+  endif
 endif
 
 ! Draw orbit?
 
 if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
-    call qp_draw_polyline(dx_orbit(0:n_bend), dy_orbit(0:n_bend), color = graph%floor_plan_orbit_color)
+    call qp_draw_polyline(dx_orbit(0:n_bend_orb), dy_orbit(0:n_bend_orb), color = graph%floor_plan_orbit_color)
 
   elseif (ele%key == patch$) then
     ele0 => pointer_to_next_ele (ele, -1)
@@ -789,7 +794,7 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
     call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), color = graph%floor_plan_orbit_color)
 
   else
-    n = 10
+    n = int(100 * (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4)))) + 1
     do ic = 0, n
       s_here = ic * ele%value(l$) / n
       call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &

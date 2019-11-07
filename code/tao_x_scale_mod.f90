@@ -196,8 +196,7 @@ if (do_gang .and. all(plot%graph%valid)) then
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
       if (graph%type == 'key_table') cycle
-      call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
-      call qp_get_axis_attrib ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
+      call qp_calc_axis_params (this_min, this_max, p1, p2, graph%x)
     enddo
   endif
 
@@ -236,7 +235,6 @@ if (graph%type == 'key_table') return
 if (present(have_scaled)) have_scaled = .true.
 
 if (x_max /= x_min) then
-
   if (graph%x%major_div_nominal> 0) then
     p1 = nint(0.7 * graph%x%major_div_nominal)  
     p2 = nint(1.3 * graph%x%major_div_nominal)  
@@ -246,12 +244,8 @@ if (x_max /= x_min) then
   endif
   graph%x%min = x_min
   graph%x%max = x_max
-  call qp_calc_axis_divisions (x_min, x_max, p1, p2, graph%x%major_div)
-  call qp_calc_axis_places (graph%x)
-  call qp_set_axis ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
-
+  call qp_calc_axis_params (x_min, x_max, p1, p2, graph%x)
   return
-
 endif
 
 ! Auto scale.
@@ -366,8 +360,7 @@ else
   p2 = p1
 endif
 
-call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
-call qp_get_axis_attrib ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
+call qp_calc_axis_params (this_min, this_max, p1, p2, graph%x)
 
 end subroutine tao_x_scale_graph
 
