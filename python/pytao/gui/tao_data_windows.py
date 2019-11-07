@@ -858,6 +858,8 @@ class new_d1_frame(tk.Frame):
         for i in range(len(param_list)):
             if param_list[i].name in self.data_dict[ix].keys():
                 param_list[i].value = self.data_dict[ix][param_list[i].name]
+        # Default eval_point to End
+        param_list[13].value = "End"
         # Create widgets
         self.datum_wid_list = list(map(datum_ttp, param_list))
         def data_writer(i):
