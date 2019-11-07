@@ -6,15 +6,15 @@ use sim_utils_interface
 integer, parameter :: white$ = 0, black$ = 1, red$ = 2, green$ = 3
 integer, parameter :: blue$ = 4, cyan$ = 5, magenta$ = 6, yellow$ = 7
 integer, parameter :: orange$ = 8, yellow_green$ = 9, light_green$ = 10
-integer, parameter :: navy_blue$ = 11, purple$ = 12, redish_purple$ = 13
+integer, parameter :: navy_blue$ = 11, purple$ = 12, reddish_purple$ = 13
 integer, parameter :: dark_grey$ = 14, light_grey$ = 15, transparent$ = 16
 
 character(16), parameter :: qp_color_name(-1:16) =   [ &
-  'Not_Set      ', 'White        ', &
-  'Black        ', 'Red          ', 'Green        ', 'Blue         ', &
-  'Cyan         ', 'Magenta      ', 'Yellow       ', 'Orange       ', &
-  'Yellow_Green ', 'Light_Green  ', 'Navy_Blue    ', 'Purple       ', &
-  'Redish_Purple', 'Dark_Grey    ', 'Light_Grey   ', 'Transparent  ']
+  'Not_Set       ', 'White         ', &
+  'Black         ', 'Red           ', 'Green         ', 'Blue          ', &
+  'Cyan          ', 'Magenta       ', 'Yellow        ', 'Orange        ', &
+  'Yellow_Green  ', 'Light_Green   ', 'Navy_Blue     ', 'Purple        ', &
+  'Reddish_Purple', 'Dark_Grey     ', 'Light_Grey    ', 'Transparent   ']
 
 integer, parameter :: solid$ = 1, dashed$ = 2, dash_dot$ = 3
 integer, parameter :: dotted$ = 4, dash_dot3$ = 5
@@ -56,11 +56,12 @@ character(16), parameter :: qp_arrow_head_type_name(2) = [character(16):: 'Fille
 
 type qp_axis_struct
   character(80) :: label = ' '
-  real(rp) :: min = 0, max = 10         ! min is actually left or bottom axis number.
-  real(rp) :: number_offset = 0.05      ! offset from axis line in inches.
-  real(rp) :: label_offset = 0.05       ! offset from numbers in inches.
-  real(rp) :: major_tick_len = 0.10     ! in inches.
-  real(rp) :: minor_tick_len = 0.06     ! in inches.
+  real(rp) :: min = 0, max = 10            ! Axis min/max in data units. min is actually left or bottom axis number.
+  real(rp) :: tick_min = 0, tick_max = 10  ! Tick min/max in data units. tick_min is actually left or bottom tick mark.
+  real(rp) :: number_offset = 0.05         ! offset from axis line in inches.
+  real(rp) :: label_offset = 0.05          ! offset from numbers in inches.
+  real(rp) :: major_tick_len = 0.10        ! in inches.
+  real(rp) :: minor_tick_len = 0.06        ! in inches.
   character(16) :: label_color = 'black'
   integer :: major_div = 5
   integer :: major_div_nominal = 5      ! Nominal value.

@@ -152,7 +152,7 @@
 !    10 - Light_Green$
 !    11 - Navy_Blue$
 !    12 - Purple$
-!    13 - Redish_Purple$
+!    13 - Reddish_Purple$
 !    14 - Dark_Grey$
 !    15 - Light_Grey$
 !    16 - Transparent$
@@ -579,27 +579,27 @@ end subroutine qp_use_axis
 !-----------------------------------------------------------------------
 !+
 ! Subroutine qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, 
-!               draw_numbers, minor_div, minor_div_max, mirror,
-!               number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)
+!               draw_numbers, minor_div, minor_div_max, mirror, number_offset, 
+!               label_offset, major_tick_len, minor_tick_len, ax_type, axis)
 !   
 ! Subroutine to set (but not plot) the min, max, divisions etc. for the
 ! X and Y axes. 
 !
 ! Input:
-!   axis_str  -- Character(*): 
-!                 'X' to set the Left x-axis
-!                 'Y' to set the Bottom y-axis.
-!                 'X2' to set the Right x-axis
-!                 'Y2' to set the Top y-axis.
-!   a_min     -- Real(rp), optional: Axis minimum.
-!   a_max     -- Real(rp), optional: Axis maximum.
-!   div       -- Integer, optional: Number of major divisions.
-!   places    -- Integer, optional: Number of decmal places after the decimal 
-!                   point. A Negative number surpresses that number of zeros.
-!                   E.g. For the number 30 then 
-!                        places =  2 -> Output is: "30.00"
-!                        places =  0 -> Output is: "30"
-!                        places = -1 -> Output can be scalled to: "3"
+!   axis_str      -- Character(*): 
+!                     'X' to set the Left x-axis
+!                     'Y' to set the Bottom y-axis.
+!                     'X2' to set the Right x-axis
+!                     'Y2' to set the Top y-axis.
+!   a_min         -- Real(rp), optional: Axis minimum.
+!   a_max         -- Real(rp), optional: Axis maximum.
+!   div           -- Integer, optional: Number of major divisions.
+!   places        -- Integer, optional: Number of decmal places after the decimal 
+!                       point. A Negative number surpresses that number of zeros.
+!                       E.g. For the number 30 then 
+!                            places =  2 -> Output is: "30.00"
+!                            places =  0 -> Output is: "30"
+!                            places = -1 -> Output can be scalled to: "3"
 !   label         -- Character(*), optional: Axis label.
 !   draw_label    -- Logical, optional: Draw axis label.
 !   draw_numbers  -- Logical, optional: Draw axis numbers
@@ -616,16 +616,20 @@ end subroutine qp_use_axis
 !   label_offset   -- Real(rp), optional: Offset form numbers in inches.
 !   major_tick_len -- Real(rp), optional: Major tick length in inches.
 !   minor_tick_len -- Real(rp), optional: Minor tick length in inches.
-!   ax_type           -- Character(16): Axis type. 'LINEAR', or 'LOG'.
+!   ax_type        -- Character(16), optional: Axis type. 'LINEAR', or 'LOG'.
+!   axis           -- qp_axis_struct, optional: Axis. If present with other arguments then the other arguments
+!                       will override components of this argument.
 !-
 
 subroutine qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, &
                   draw_numbers, minor_div, minor_div_max, mirror, &
-                  number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)
+                  number_offset, label_offset, major_tick_len, minor_tick_len, ax_type, axis)
 
 implicit none
 
 type (qp_axis_struct), pointer :: this_axis
+type (qp_axis_struct), optional :: axis
+
 real(rp), optional :: a_min, a_max, number_offset
 real(rp), optional :: label_offset, major_tick_len, minor_tick_len
 
@@ -639,6 +643,7 @@ character(*) axis_str
 
 call qp_pointer_to_axis (axis_str, this_axis)
 
+if (present(axis))   this_axis = axis
 if (present(a_min))  this_axis%min = a_min
 if (present(a_max))  this_axis%max = a_max
 if (present(div))    this_axis%major_div = div
@@ -783,14 +788,14 @@ end subroutine qp_get_axis_attrib
 !                        'GENERAL'        -- No restriction on min or max.
 !   axis_type   -- Character(*), optional: Type of axis. 'LINEAR' or 'LOG'.
 !                      Default is 'LINEAR'
-!   slop_factor -- Real(rp): See qp_calc_axis_scale for info.
+!   slop_factor -- Real(rp), optional: See qp_calc_axis_scale for info.
 !
 ! Example:
-!   call qp_calc_and_set_axis ('X', 352, 378, 4, 6, 'ZERO_AT_END')
+!   call qp_calc_and_set_axis ('X', 352.0_rp, 378.0_rp, 4, 6, 'ZERO_AT_END')
 !
 ! Gives for the x-axis:
-!   min       = 0
-!   max       = 400
+!   min       = 0.0_rp
+!   max       = 400.0_rp
 !   places    = 0      ! places after the decimal point needed
 !   divisions = 4
 !-
@@ -844,7 +849,7 @@ end subroutine qp_calc_and_set_axis
 !                       'ZERO_AT_END'    -- Make AXIS_MIN or AXIS_MAX zero.
 !                       'ZERO_SYMMETRIC' -- Make AXIS_MIN = -AXIS_MAX
 !                       'GENERAL'        -- No restriction on min or max.
-!   slop_factor -- Real(rp): See qp_calc_axis_scale for info.
+!   slop_factor -- Real(rp), optional: See qp_calc_axis_scale for info.
 !
 ! Output:
 !   axis       -- qp_axis_struct: Structure holding the axis parameters.
@@ -857,11 +862,11 @@ end subroutine qp_calc_and_set_axis
 !
 ! Example:
 !   axis%bounds = 'ZERO_AT_END'
-!   call qp_calc_axis_params (352, 378, 4, 6, axis)
+!   call qp_calc_axis_params (352.0_rp, 378.0_rp, 4, 6, axis)
 !
 ! Gives:
-!   axis%min       = 0
-!   axis%max       = 400
+!   axis%min       = 0.0_rp
+!   axis%max       = 400.0_rp
 !   axis%places    = 0
 !   axis%major_div = 4
 !-
@@ -1281,8 +1286,7 @@ end function qp_axis_niceness
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_calc_axis_divisions (axis_min, axis_max, 
-!                                       div_min, div_max, divisions)
+! Subroutine qp_calc_axis_divisions (axis_min, axis_max, div_min, div_max, divisions)
 !
 ! Routine to calculate the best (gives the nicest looking drawing) number 
 ! of major divisions for fixed axis minimum and maximum.
@@ -1298,8 +1302,7 @@ end function qp_axis_niceness
 !                 This will be between div_min and div_max.
 !-
 
-subroutine qp_calc_axis_divisions (axis_min, axis_max, &
-                                      div_min, div_max, divisions)
+subroutine qp_calc_axis_divisions (axis_min, axis_max, div_min, div_max, divisions)
 
 implicit none
 
