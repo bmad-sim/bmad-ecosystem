@@ -144,9 +144,7 @@ class tao_place_plot_window(Tao_Toplevel):
         if self.set_plot():
             messagebox.showwarning('Error', "Please choose a template to edit.", parent=self)
             return
-        win = tao_plot_tr_window(self.root, self.pipe, 'T')
-        win.temp.set(self.plot)
-        win.refresh()
+        win = tao_new_plot_template_window(self.root, self.pipe, self.plot, 'T')
 
 
 #-----------------------------------------------------
@@ -684,6 +682,11 @@ class tao_new_plot_template_window(Tao_Toplevel):
         self.mode_var = tk.StringVar()
         self.x_axis_type = 'index'
         self.handler_block = False
+        # Some internal variables defined here:
+        self._plot_list = []
+        self._plot_display_list = []
+        self._index_list = []
+        self._region_list = []
 
         # Frame for inputting plot parameters
         self.plot_frame = tk.Frame(self)
@@ -851,8 +854,6 @@ class tao_new_plot_template_window(Tao_Toplevel):
         self.plot_var = tk.StringVar() #tkinter stringvar for the actual plot name
         self._plot_id = "" # unique plot identifier e.g. @T1, @R12, as a string
         self.plot_var.trace("w", self._index_trace)
-        if default:
-            self.plot_var.set(default)
         self.plot_select = tk.ttk.Combobox(
                 self.plot_frame, textvariable=self.plot_var, values=[])
         self.plot_select.bind("<<ComboboxSelected>>", self.refresh)
@@ -864,6 +865,10 @@ class tao_new_plot_template_window(Tao_Toplevel):
 
         # Load the default template
         self.swap_mode(overide=True) # also runs self.refresh()
+        # This needs to come after swap_mode so that self._index_list is filled
+        if default:
+            self.plot_var.set(default)
+            self.refresh()
 
 
     def swap_mode(self, overide=False, event=None):
@@ -1014,20 +1019,8 @@ class tao_new_plot_template_window(Tao_Toplevel):
         '''
         # Input validation (more TODO)
         messages = []
-        # Helper function:
-        #def dict_unroll(list_dict):
-        #    '''
-        #    Takes a dictionary where the values are lists (or nested dictionaries
-        #    where the final level has values that are lists) and returns one list
-        #    that is the concatenation of all of the lists
-        #    '''
-        #    result = []
-        #    if isinstance(list_dict, list):
-        #        result = list_dict
-        #    elif isinstance(list_dict, dict):
-        #        for key in list_dict.keys():
-        #            result += dict_unroll(list_dict[key])
-        #    return result
+        if self.plot_name_handler():
+            messages.append("Please check plot name")
         for graph_frame in self.graph_frame.tab_list:
             # Check names
             if graph_frame.name_handler():
@@ -1078,7 +1071,10 @@ class tao_new_plot_template_window(Tao_Toplevel):
         # Get the appropriate template index
         if self.write_var.get() == "new":
             plot_list_t = self.pipe.cmd_in('python plot_list t').splitlines()
-            plot_ix = "@T" + str(len(plot_list_t)+1)
+            plot_ix = plot_list_t[-1].split(';')[0]
+            plot_ix = "@T" + str(int(plot_ix)+1)
+            print("Writing new template")
+            print("Assigning index " + plot_ix)
         elif self.write_var.get() == "overwrite":
             plot_ix = self._overwrite_ix
         else: #self.write_var == self
@@ -1163,7 +1159,6 @@ class tao_new_plot_template_window(Tao_Toplevel):
         elif name.find(' ') != -1:
             self.name_warning_2.grid(row=self.ixd['name']+self.plot_frame_offset, column=2, sticky='W')
         else:
-            #self.title(name)
             self.name = name
 
     def x_axis_type_handler(self, *args, **kwargs):
@@ -1381,8 +1376,8 @@ class new_graph_frame(tk.Frame):
         self.curve_frame = tabbed_frame(self, lambda arg : new_curve_frame(arg, self))
 
         # Element shapes (for lat_layouts and floor_plans)
-        self.lat_layout_frame = ele_shape_frame(self, self.pipe, "lat_layout")
-        self.floor_plan_frame = ele_shape_frame(self, self.pipe, "floor_plan")
+        self.lat_layout_frame = ele_shape_frame(self, self.plot.root, self.pipe, "lat_layout")
+        self.floor_plan_frame = ele_shape_frame(self, self.plot.root, self.pipe, "floor_plan")
 
         # Grid everything else
         self._scroll_frame.grid(row=2+len(self.head_wids), column=0, columnspan=3, sticky='NSEW')
@@ -1947,6 +1942,7 @@ class new_curve_frame(tk.Frame):
             for gkey in self.wids[pkey].keys():
                 for w in self.wids[pkey][gkey]:
                     if w.param.type in ['DAT_TYPE', 'DAT_TYPE_E']:
+
                         w._data_source = self.data_sources[pkey][gkey].tk_var.get()
                         w._s_refresh()
 
