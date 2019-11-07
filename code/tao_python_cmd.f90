@@ -2924,7 +2924,7 @@ case ('lat_list')
         n_add = 6
         values(1:6) = ele%vec0
       case default
-        call invalid ('Bad {who}: ' // who); return
+        call invalid ('Bad {who}: ' // name1(i)); return
       end select
 
       if (use_real_array_buffer) then

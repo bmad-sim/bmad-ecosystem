@@ -170,11 +170,10 @@ do i = 1, 3
   p1 = nint(0.7 * wg%x%major_div_nominal)
   p2 = nint(1.3 * wg%x%major_div_nominal)
   if (branch%param%geometry == closed$) then
-    call qp_calc_and_set_axis ('X', 0.0_rp, 1.5*wg0%x%max, p1, p2, 'GENERAL', wg%x%type)
+    call qp_calc_axis_params (0.0_rp, 1.5*wg0%x%max, p1, p2, wg%x)
   else
-    call qp_calc_and_set_axis ('X', 0.0_rp, wg0%x%max, p1, p2, 'GENERAL', wg%x%type)
+    call qp_calc_axis_params (0.0_rp, wg0%x%max, p1, p2, wg%x)
   endif
-  call qp_get_axis_attrib ('X', wg%x%min, wg%x%max, wg%x%major_div, wg%x%places)
 enddo
 
 ! Place the wave plot in the region

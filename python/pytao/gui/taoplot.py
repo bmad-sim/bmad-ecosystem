@@ -17,16 +17,18 @@ class taoplot:
 
     def plot(self, width):
         '''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements, width is used to modify the width of floor plan elements and the size of the lat layout'''
-        fig = plt.figure()
+
         #creates plotting figure
+        fig = plt.figure()
 
         pipe = self.pipe #tao interface instance to plot in
         GraphRegion = self.GraphRegion #graph region to plot in
 
+        #determines if shapes are drawn on graph, changed to True later if needed
         LatLayout=False #drawn below data plots if x label is not indices
         FloorPlan=False
-        #determines if shapes are drawn on graph, changed to True later if needed
 
+        #records information about element locations to be returned with the figure
         eleIndexList=[]
         eleStartDict={}
         eleEndDict={}
@@ -34,46 +36,27 @@ class taoplot:
         fpeCenterDict={}
         fpeRadiusDict={}
         pathDict = {}
-        #records information about element locations to be returned with the figure
 
         def color(x):
             '''takes string containing pgplot color and returns corresponding matplotlib color'''
-            if x == 'White' or x == 'white':
-                return 'white'
-            elif x == 'Black' or x == 'black':
-                return 'black'
-            elif x == 'Red' or x == 'red':
-                return 'red'
-            elif x == 'Green' or x == 'green':
-                return 'green'
-            elif x == 'Blue' or x == 'blue':
-                return 'blue'
-            elif x == 'Cyan' or x == 'cyan':
-                return 'cyan'
-            elif x == 'Magenta' or x == 'magenta':
-                return 'magenta'
-            elif x == 'Yellow' or x == 'yellow':
-                return 'yellow'
-            elif x == 'Orange' or x == 'orange':
-                return 'orange'
-            elif x == 'Yellow_Green' or x == 'yellow_green':
+            x = x.lower()
+            if x == 'yellow_green':
                 return 'greenyellow'
-            elif x == 'Light_Green' or x == 'light_green':
+            elif x == 'light_green':
                 return 'limegreen'
-            elif x == 'Navy_Blue' or x == 'navy_blue':
+            elif x == 'navy_blue':
                 return 'navy'
-            elif x == 'Purple' or x == 'purple':
-                return 'purple'
-            elif x == 'Reddish_Purple' or x == 'reddish_purple' or x == 'Redish_Purple' or x == 'redish_purple':
+            elif x == 'reddish_purple':
                 return 'mediumvioletred'
-            elif x == 'Dark_Grey' or x == 'dark_grey':
+            elif x == 'dark_grey':
                 return 'gray'
-            elif x == 'Light_Grey' or x == 'light_grey':
+            elif x == 'light_grey':
                 return 'lightgray'
             elif x == 'Transparent' or x == 'transparent':
                 return 'none'
             else:
                 return x
+        # End: def color
 
         def pgp_to_mpl(x):
             '''takes string with pgplot characters and returns string with characters replaced with matplotlib equivalent, raises NotImplementedError if an unknown pgplot character is used'''
@@ -158,7 +141,45 @@ class taoplot:
                 return lx
             else:
                 return x
+        # End: def pgp_to_mpl(x)
 
+
+        def circle_intersection(x1,y1,x2,y2,r):
+            '''takes centers and radius of circles, returns the 2 intersection points of overlapping circles with equal radii'''
+            dx=x2-x1
+            dy=y2-y1
+            d=np.sqrt(dx**2 + dy**2)
+            a = d/2
+            h = np.sqrt(r**2 - a**2)
+            xm = x1 + dx/2
+            ym = y1 + dy/2
+            xs1 = xm + h*dy/d
+            xs2 = xm - h*dy/d
+            ys1 = ym - h*dx/d
+            ys2 = ym + h*dx/d
+            return (xs1,ys1),(xs2,ys2)
+
+
+        def line(p1, p2):
+            '''returns lines based on given points to be used with intersect'''
+            A = (p1[1] - p2[1])
+            B = (p2[0] - p1[0])
+            C = (p1[0]*p2[1] - p2[0]*p1[1])
+            return A, B, -C
+
+
+        def intersect(L1, L2):
+            '''returns intersection point of 2 lines from the line funciton, or false if the lines don't intersect'''
+            D = L1[0]*L2[1] - L1[1]*L2[0]
+            Dx = L1[2]*L2[1] - L1[1]*L2[2]
+            Dy = L1[0]*L2[2] - L1[2]*L2[0]
+
+            if D != 0:
+                x = Dx / D
+                y = Dy / D
+                return x,y
+            else:
+                return False
 
 
         StylesDict = {
@@ -185,6 +206,7 @@ class taoplot:
             '4':'full'
             }
 
+        #Dictionary with pgplot symbol strings as keys and corresponding matplotlib symbol strings as values
         SymbolsDict = {
             'do_not_draw':'',
             'square':'s', #no fill
@@ -238,11 +260,8 @@ class taoplot:
             '-11':'(11,0,0)',
             '-12':'(12,0,0)'
         }
-        #Dictionary with pgplot symbol strings as keys and corresponding matplotlib symbol strings as values
 
-
-
-        '''''''''Graphing Data'''''''''
+        # Graphing Data
         #obtains information about the number and data of graphs from tao
 
         '''Region Data'''
@@ -263,7 +282,6 @@ class taoplot:
             heightsList.append(1) #makes graphs the same size
         #list of string names of graphs
 
-
         number_graphs = len(gList) + 1
         layout_height = .2*width
         #relative height of lat layout to graph if there is one graph
@@ -276,9 +294,6 @@ class taoplot:
         GraphDict = {} #dictionary of graph name keys with the graph's subplot as it's value
         graph_list = [] #list of graphs, eg: r1.g or r3.x
 
-
-
-
         for gNumber in range(len(gList)):
 
             if gNumber == 0:
@@ -286,8 +301,6 @@ class taoplot:
             elif gNumber > 0:
                 GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(gs[gNumber,0],sharex=GraphDict['graph1'])
             #create plots in figure, second line also makes x axes scale together
-
-
 
             '''Graph Data'''
 
@@ -305,8 +318,6 @@ class taoplot:
                 gInfoDict[gInfo[i].split(';')[0]]=str_to_tao_param(gInfo[i])
             #tao_parameter object names from python plot_graph
             #dictionary of tao_parameter name string keys to the corresponding tao_parameter object
-
-
 
 
             '''Curve Data'''
@@ -330,9 +341,6 @@ class taoplot:
                 cInfoDictList.append(cInfoDict)
                 cInfoDict = {}
             #list of dictionaries of tao_parameter name string keys to the corresponding tao_parameter object for each curve
-
-
-
 
 
             '''Line Data'''
@@ -854,28 +862,6 @@ class taoplot:
                     pass
             #dict keys and entries are strings which match a floor plan element index (eg: '1') to the corresponding information
 
-            def line(p1, p2):
-                '''returns lines based on given points to be used with intersect'''
-                A = (p1[1] - p2[1])
-                B = (p2[0] - p1[0])
-                C = (p1[0]*p2[1] - p2[0]*p1[1])
-                return A, B, -C
-
-            def intersect(L1, L2):
-                '''returns intersection point of 2 lines from the line funciton, or false if the lines don't intersect'''
-                D = L1[0]*L2[1] - L1[1]*L2[0]
-                Dx = L1[2]*L2[1] - L1[1]*L2[2]
-                Dy = L1[0]*L2[2] - L1[2]*L2[0]
-
-                if D != 0:
-                    x = Dx / D
-                    y = Dy / D
-                    return x,y
-                else:
-                    return False
-
-
-
             conv = (180)/(np.pi) #radian to degree conversion
             for i in fpeIndexList:
                 fpeCenterDict[str(i)]=([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2])
@@ -886,25 +872,19 @@ class taoplot:
                         GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],color='black')
                     #draw drift element
 
-
-
                     if fpeY1Dict[str(i)] == 0 and fpeY2Dict[str(i)] == 0 and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
                         GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                     #draw line element
 
-
-
                     elif fpeShapeDict[str(i)] == 'box' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
                         GraphDict['FloorPlan'].add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
                     #draw box element
-
 
                     elif fpeShapeDict[str(i)] == 'xbox' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
                         GraphDict['FloorPlan'].add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
                         GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                         GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                     #draw xbox element
-
 
                     elif fpeShapeDict[str(i)] == 'x' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
                         GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
@@ -955,93 +935,19 @@ class taoplot:
                             angle4 = 360 + conv*np.arctan2(fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])-intersection[1],fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])-intersection[0])
                             #angles of closer curve endpoints relative to center of circle
 
-                            if abs(angle1-angle2)<180 and abs(angle3-angle4)<180:
-                                if angle1 > angle2 and angle3 > angle4:
-                                    a1=angle2
-                                    a2=angle1
-                                    a3=angle4
-                                    a4=angle3
-                                elif angle1 < angle2 and angle3 > angle4:
-                                    a1=angle1
-                                    a2=angle2
-                                    a3=angle4
-                                    a4=angle3
-                                elif angle1 > angle2 and angle3 < angle4:
-                                    a1=angle2
-                                    a2=angle1
-                                    a3=angle3
-                                    a4=angle4
-                                else:
-                                    a1=angle1
-                                    a2=angle2
-                                    a3=angle3
-                                    a4=angle4
-
-                            elif abs(angle1-angle2)>180 and abs(angle3-angle4)<180:
-                                if angle1 > angle2 and angle3 > angle4:
-                                    a1=angle1
-                                    a2=angle2
-                                    a3=angle4
-                                    a4=angle3
-                                elif angle1 < angle2 and angle3 > angle4:
-                                    a1=angle2
-                                    a2=angle1
-                                    a3=angle4
-                                    a4=angle3
-                                elif angle1 > angle2 and angle3 < angle4:
-                                    a1=angle1
-                                    a2=angle2
-                                    a3=angle3
-                                    a4=angle4
-                                else:
-                                    a1=angle2
-                                    a2=angle1
-                                    a3=angle3
-                                    a4=angle4
-
-                            elif abs(angle1-angle2)<180 and abs(angle3-angle4)>180:
-                                if angle1 > angle2 and angle3 > angle4:
-                                    a1=angle2
-                                    a2=angle1
-                                    a3=angle3
-                                    a4=angle4
-                                elif angle1 < angle2 and angle3 > angle4:
-                                    a1=angle1
-                                    a2=angle2
-                                    a3=angle3
-                                    a4=angle4
-                                elif angle1 > angle2 and angle3 < angle4:
-                                    a1=angle2
-                                    a2=angle1
-                                    a3=angle4
-                                    a4=angle3
-                                else:
-                                    a1=angle1
-                                    a2=angle2
-                                    a3=angle4
-                                    a4=angle3
-
+                            if abs(angle1-angle2)<180:
+                                a1=min(angle1, angle2)
+                                a2=max(angle1, angle2)
                             else:
-                                if angle1 > angle2 and angle3 > angle4:
-                                    a1=angle1
-                                    a2=angle2
-                                    a3=angle3
-                                    a4=angle4
-                                elif angle1 < angle2 and angle3 > angle4:
-                                    a1=angle2
-                                    a2=angle1
-                                    a3=angle3
-                                    a4=angle4
-                                elif angle1 > angle2 and angle3 < angle4:
-                                    a1=angle1
-                                    a2=angle2
-                                    a3=angle4
-                                    a4=angle3
-                                else:
-                                    a1=angle2
-                                    a2=angle1
-                                    a3=angle4
-                                    a4=angle3
+                                a1=max(angle1, angle2)
+                                a2=min(angle1, angle2)
+
+                            if abs(angle3-angle4)<180:
+                                a3=min(angle3, angle4)
+                                a4=max(angle3, angle4)
+                            else:
+                                a3=max(angle3, angle4)
+                                a4=min(angle3, angle4)
                             #determines correct start and end angles for arcs
 
                             GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a1,theta2=a2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
@@ -1126,23 +1032,6 @@ class taoplot:
                     fbwCurveList.append(int(fbwInfo[i].split(';')[0]))
 
                 fbwCurveList = list(set(fbwCurveList)) #list of unique curve indices
-
-
-                def circle_intersection(x1,y1,x2,y2,r):
-                    '''takes centers and radius of circles, returns the 2 intersection points of overlapping circles with equal radii'''
-                    dx=x2-x1
-                    dy=y2-y1
-                    d=np.sqrt(dx**2 + dy**2)
-                    a = d/2
-                    h = np.sqrt(r**2 - a**2)
-                    xm = x1 + dx/2
-                    ym = y1 + dy/2
-                    xs1 = xm + h*dy/d
-                    xs2 = xm - h*dy/d
-                    ys1 = ym - h*dx/d
-                    ys2 = ym + h*dx/d
-                    return (xs1,ys1),(xs2,ys2)
-
 
                 bwn=pipe.cmd_in('python floor_building_wall '+gType+' name',no_warn = True).splitlines()
                 bwnTypeDict = {}

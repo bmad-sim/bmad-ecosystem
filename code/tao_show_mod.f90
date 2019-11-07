@@ -259,7 +259,7 @@ integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch,
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
-integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_remove_found
+integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format
@@ -2664,7 +2664,8 @@ case ('lattice')
     line = ''
     nc = 1
     ele => branch%ele(ie)
-    n_remove_found = 0
+    n_zeros_found = 0
+    n_remove = 0
 
     do i = 1, size(column)
 
@@ -2686,6 +2687,8 @@ case ('lattice')
 
       name = column(i)%name
       if (name == '') cycle
+
+      if (column(i)%remove_line_if_zero) n_remove = n_remove + 1
 
       if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
         sub_name = col_info(i)%attrib_name
@@ -2765,7 +2768,7 @@ case ('lattice')
         call tao_evaluate_expression (name, 1, .false., value, info, err, .false., &
                                                   dflt_component = tao_lat_type_name(lat_type))
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
-          if (column(i)%remove_line_if_zero) n_remove_found = n_remove_found + 1
+          if (column(i)%remove_line_if_zero) n_zeros_found = n_zeros_found + 1
           if (undef_uses_column_format .and. index(column(i)%format, 'A') == 0) then
             if (index(column(i)%format, 'I') /= 0) then
               write (line(nc:), column(i)%format, iostat = ios) 0
@@ -2791,11 +2794,11 @@ case ('lattice')
 
         elseif (index(column(i)%format, 'I') /= 0) then
           write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
-          if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) n_remove_found = n_remove_found + 1
+          if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) n_zeros_found = n_zeros_found + 1
 
         else
           call write_real (line(nc:), column(i)%format, value(1) * column(i)%scale_factor)
-          if (column(i)%remove_line_if_zero .and. value(1) == 0) n_remove_found = n_remove_found + 1
+          if (column(i)%remove_line_if_zero .and. value(1) == 0) n_zeros_found = n_zeros_found + 1
         endif
       endif
 
@@ -2808,7 +2811,7 @@ case ('lattice')
 
     enddo  ! column loop
 
-    if (n_remove > 0 .and. n_remove_found == n_remove) cycle
+    if (n_remove > 0 .and. n_zeros_found == n_remove) cycle
     if (called_from_python_cmd) line(nc-1:nc-1) = ' '  ! Remove final ';'
 
     nl=nl+1; lines(nl) = line
