@@ -125,6 +125,9 @@ def tao_set(tao_list,set_str,pipe, overide=False):
         #Check for any change
         if item.param.type == 'INUM':
             cond = (str(new_val) != str(item.param.value))
+        elif item.param.type == 'FILE':
+            set_val = "" if new_val == "Browse..." else new_val
+            cond = (set_val != item.param.value)
         else:
             cond = (new_val != item.param.value)
         if cond:
@@ -141,14 +144,17 @@ def tao_set(tao_list,set_str,pipe, overide=False):
         elif update_dict[item.param.name]:
             #print(set_str + item.param.name + " = " + str(item.param.value))
             if item.param.type == 'STR':
-                #if item.param.value.strip().find(' ') != -1:
-                #  if ((item.param.value[0] not in ['"',"'"])
-                #            & (item.param.value[-1] != item.param.value[0])):
-                #        set_val = '"' + item.param.value + '"'
-                #  else:
-                #        set_val = item.param.value
-                #else:
-                set_val = item.param.value
+                if item.param.name == 'ele_id':
+                    #TODO: below is a temporary fix for ele_shape ele_ids
+                    #eventually, all strings should be quoted, but as of 11-04-19
+                    #this only works properly for ele_ids
+                    if ((item.param.value[0] not in ['"',"'"])
+                            and (item.param.value[-1] != item.param.value[0])):
+                        set_val = '"' + item.param.value + '"'
+                    else:
+                        set_val = item.param.value
+                else:
+                    set_val = item.param.value
                 msg = pipe.cmd_in(set_str + item.param.name + " = " + set_val)
             else:
                 msg = pipe.cmd_in(
