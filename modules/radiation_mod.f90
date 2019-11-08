@@ -87,6 +87,9 @@ character(*), parameter :: r_name = 'calc_radiation_tracking_g_factors'
 
 !
 
+g_x = 0; g_y = 0
+g2 = 0;  g3 = 0
+
 select case (ele%key)
 case (quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$, em_field$)
 case default
@@ -110,8 +113,14 @@ else
   if (global_com%exit_on_error) call err_exit
 endif
 
+! The problem with a negative element length is that it is not possible to undo the stochastic part of the radiation kick.
+! In this case the best thing is to just set everything to zero
+
 len2 = ele%value(l$) / 2
-if (len2 < 0) len2 = 0
+if (len2 < 0) then
+  len2 = 0
+  return
+endif
 
 !---------------------------------
 ! Calculate the radius of curvature for an on-energy particle
