@@ -451,7 +451,12 @@ parsing_loop: do
 
     ! If just a name then we can look this up
 
-    if (word_1 == 'BEAM_START') word_1 = 'PARTICLE_START'   ! For backwards compatibility
+    if (word_1 == 'BEAM_START') then
+      word_1 = 'PARTICLE_START'   ! For backwards compatibility
+      call parser_error ('Beam_start has been renamed particle_start.', &
+                         'Note: If you are doing beam tracking, particle_start will now not affect', &
+                         'the beam centroid unless beam_init%use_particle_start_for_center = True.', level = s_warn$)
+    endif
 
     if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
       call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix)
