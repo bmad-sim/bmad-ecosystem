@@ -1082,7 +1082,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
         self._created_plot_ix = plot_ix
         # Create the template
         n_graph = str(len(self.graph_frame.tab_list))
-        cmd_str = 'python plot_manage_plot ' + plot_ix + '^^'
+        cmd_str = 'python plot_plot_manage ' + plot_ix + '^^'
         cmd_str += self.name + '^^' + n_graph
         for graph_frame in self.graph_frame.tab_list:
             cmd_str += '^^' + graph_frame.name
@@ -1111,7 +1111,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
                         curve_name = "c" + str(c)
                     else:
                         curve_name = curve.name
-                    self.pipe.cmd_in('python plot_manage_curve ' + graph_name
+                    self.pipe.cmd_in('python plot_curve_manage ' + graph_name
                             + '^^' + str(c) + '^^' + curve_name)
                     curve_name = graph_name + '.' + curve_name
                     # Set curve properties (but not the name)
