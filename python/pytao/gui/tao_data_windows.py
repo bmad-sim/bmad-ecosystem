@@ -552,6 +552,8 @@ class tao_new_data_window(Tao_Toplevel):
                         cmd_str += '^^' + value
                     self.pipe.cmd_in(cmd_str)
                 self.pw.ix += 1
+        # Recalculate for the current universe
+        self.pipe.cmd_in('set universe -1 recalculate')
         # Close the window
         self.destroy()
         # Refresh data-related windows
