@@ -3029,14 +3029,26 @@ use quick_plot, only: qp_string_to_enum
 
 type (qp_axis_struct) qp_axis
 character(*) component, value, qp_axis_name
+character(40) val
 character(*), parameter :: r_name = 'tao_set_qp_axis_struct '
 integer, optional :: ix_uni
 integer indx
 logical error
 
-!
+! Note: Setting %tick_min, %tick_max, and %dtick are not implemented since they are considered dependent parameters.
 
 select case (component)
+case ('bounds')
+  val = remove_quotes(upcase(value))
+  select case (val)
+  case ('LOG', 'LINEAR')
+    qp_axis%bounds = val
+    error = .false.
+  case default
+    call out_io (s_error$, r_name, 'BAD AXIS BOUNDS NAME:' // value, 'POSSIBILITIES ARE: "ZERO_AT_END", "ZERO_SYMMETRIC", OR "GENERAL".')
+    error = .true.
+  end select
+
 case ('min')
   call tao_set_real_value (qp_axis%min, qp_axis_name, value, error, dflt_uni = ix_uni)
 case ('max')
@@ -3076,16 +3088,20 @@ case ('tick_side')
   call tao_set_integer_value (qp_axis%tick_side, qp_axis_name, value, error, -1, 1)
 case ('number_side')
   call tao_set_integer_value (qp_axis%number_side, qp_axis_name, value, error, -1, 1)
-
 case ('label')
   qp_axis%label = value
   error = .false.
+
 case ('type')
-  qp_axis%type = value
-  error = .false.
-case ('bounds')
-  qp_axis%bounds = value
-  error = .false.
+  val = remove_quotes(upcase(value))
+  select case (val)
+  case ('LOG', 'LINEAR')
+    qp_axis%type = val
+    error = .false.
+  case default
+    call out_io (s_error$, r_name, 'BAD AXIS TYPE NAME:' // value, 'POSSIBILITIES ARE: "LOG", OR "LINEAR".')
+    error = .true.
+  end select
 
 case ('draw_label')
   call tao_set_logical_value (qp_axis%draw_label, qp_axis_name, value, error)

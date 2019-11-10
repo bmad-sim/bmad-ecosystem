@@ -230,7 +230,7 @@ type tao_graph_struct
   integer :: ix_universe = -1                 ! Used for lat_layout plots.
   logical :: clip = .false.                   ! Clip plot at graph boundary.
   logical :: valid = .false.                  ! valid if all curve y_dat computed OK.
-  logical :: y2_mirrors_y = .false.           ! Y2-axis same as Y-axis?
+  logical :: y2_mirrors_y = .true.            ! Y2-axis same as Y-axis?
   logical :: limited = .false.                ! True if at least one data point past graph bounds.
   logical :: draw_axes = .true.               ! Draw axes, labels, etc?
   logical :: correct_xy_distortion = .true.   ! T -> Shrink one axis in floor plan so x-scale = y-scale.

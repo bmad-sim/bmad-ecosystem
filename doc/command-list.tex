@@ -1389,15 +1389,15 @@ Format:
 \begin{example}
   set particle_start \{n@\}<coordinate> = <value>
 \end{example}
-The \vn{set particle_start} command sets the starting centroid coordinates for beam tracking as well
-as the starting coordinates for single particle tracking.
+The \vn{set particle_start} command sets the starting coordinates for single particle tracking for
+lattices with an open geometry. If the \vn{use_particle_start_for_center} of the \vn{beam_init}
+structure (\sref{s:beam.init}) is set to True, \vn{particle_start} will also vary the centroid
+coordinates for beam tracking.
 
 The optional \vn{n@} universe specification (\sref{s:universe}) may be used to specify the universe
 or universes to apply the set command to.
 
-For lattices with an open geometry, \vn{set particle_start <coordinate> <number>} can be used to vary
-the starting coordinates for single particle tracking or the centroid coordinates for beam
-tracking. Here \vn{<coordinate>} is one of:
+\vn{<coordinate>} is one of:
 \begin{example}
   x, px, y, py, z, pz, t
 \end{example}
@@ -1411,7 +1411,8 @@ For closed lattices only the \vn{pz} component is applicable. For lattices that 
 
 To see the values for \vn{particle_start} use the command \vn{show element 0}.
 
-Also see the commands: \vn{set beam} and \vn{set beam_init}.
+Also see the commands: \vn{set beam} (\sref{s:set.beam}) , \vn{set beam_init}
+(\sref{s:set.beam.init}), and \vn{change} particle_start (\sref{s:change}).
 
 Examples:
 \begin{example}

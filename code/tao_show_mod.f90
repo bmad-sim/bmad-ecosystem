@@ -262,7 +262,7 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
 integer, allocatable :: ix_c(:), ix_remove(:)
 
-logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format
+logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state, err_flag
@@ -1508,12 +1508,14 @@ case ('global')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, ['-optimization', '-bmad_com    ', &
-                                   '-csr_param   ', '-ran_state   '], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(16):: '-optimization', '-bmad_com', &
+                                 '-csr_param', '-ran_state'], .true., switch, err, ix)
     if (err) return
-    if (switch == '') exit
+
     print_global = .false.
     select case (switch)
+    case ('')
+      exit
     case ('-optimization') 
       print_optimization = .true.
     case ('-bmad_com') 
@@ -1685,98 +1687,122 @@ case ('global')
 
 case ('graph')
 
+  print_debug = .false.
+  if (allocated(graph)) deallocate(graph)
+
+  do
+    call tao_next_switch (what2, ['-debug'], .true., switch, err, ix)
+    if (err) return
+    select case (switch)
+    case ('')
+      if (allocated(graph)) exit
+      nl=1; lines(1) = 'Graph name is blank!'
+      return
+    case ('-debug')
+      print_debug = .true.
+    case default
+      call tao_find_plots (err, switch, 'BOTH', graph = graph, blank_means_all = .true.)
+      if (err) return
+      if (size(graph) == 0) then
+        nl=1; lines(1) = 'This is not a graph'
+        return
+      endif
+    end select
+  enddo    
+
   ! Find particular graph
 
-  call tao_find_plots (err, what2, 'BOTH', graph = graph, blank_means_all = .true.)
-  if (err) return
-
-  if (size(graph) > 0) then
-    do i = 1, size(graph)
-      g => graph(i)%g
-      if (g%p%name == '') cycle  ! Can happen if plot associated with a region is nullified and the region has the same name as the plot.
-      if (associated(g%p%r)) then
-        if (.not. g%p%r%visible) cycle
-      endif
-      exit
-    enddo
-
-    if (i == size(graph) + 1) then
-      nl=1; lines(1) = 'This is not a visible graph'
-      return
-    endif
-
+  do i = 1, size(graph)
+    g => graph(i)%g
+    if (g%p%name == '') cycle  ! Can happen if plot associated with a region is nullified and the region has the same name as the plot.
     if (associated(g%p%r)) then
-      nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
+      if (.not. g%p%r%visible) cycle
     endif
-    nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
-    nl=nl+1; write(lines(nl), amt)  'type                             = ', quote(g%type)
-    nl=nl+1; write(lines(nl), amt)  'title                            = ', quote(g%title)
-    nl=nl+1; write(lines(nl), amt)  'title_suffix                     = ', quote(g%title_suffix)
-    nl=nl+1; write(lines(nl), amt)  'component                        = ', quote(g%component)
-    nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
-                                    'margin                           = ', g%margin
-    nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
-                                    'scale_margin                     = ', g%scale_margin
-    nl=nl+1; write(lines(nl), imt)  'box                              = ', g%box
-    nl=nl+1; write(lines(nl), imt)  'ix_universe                      = ', g%ix_universe
-    nl=nl+1; write(lines(nl), lmt)  'valid                            = ', g%valid
+    exit
+  enddo
 
-    nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
-    nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale                = ', g%symbol_size_scale
-    nl=nl+1; write(lines(nl), amt)  'floor_plan_view                  = ', quote(g%floor_plan_view)
-    nl=nl+1; write(lines(nl), f3mt) 'floor_plan_rotation              = ', g%floor_plan_rotation
-    nl=nl+1; write(lines(nl), f3mt) 'floor_plan_orbit_scale           = ', g%floor_plan_orbit_scale
-    nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit_color           = ', quote(g%floor_plan_orbit_color)
-    nl=nl+1; write(lines(nl), lmt)  'floor_plan_flip_label_side       = ', g%floor_plan_flip_label_side
-    nl=nl+1; write(lines(nl), lmt)  'floor_plan_size_is_absolute      = ', g%floor_plan_size_is_absolute
-    nl=nl+1; write(lines(nl), lmt)  'floor_plan_draw_only_first_pass  = ', g%floor_plan_draw_only_first_pass
-    nl=nl+1; write(lines(nl), amt)  'x%label                          = ', quote(g%x%label)
-    nl=nl+1; write(lines(nl), rmt)  'x%max                            = ', g%x%max
-    nl=nl+1; write(lines(nl), rmt)  'x%min                            = ', g%x%min
-    nl=nl+1; write(lines(nl), imt)  'x%major_div                      = ', g%x%major_div
-    nl=nl+1; write(lines(nl), imt)  'x%major_div_nominal              = ', g%x%major_div_nominal
-    nl=nl+1; write(lines(nl), imt)  'x%places                         = ', g%x%places
-    nl=nl+1; write(lines(nl), lmt)  'x%draw_label                     = ', g%x%draw_label
-    nl=nl+1; write(lines(nl), lmt)  'x%draw_numbers                   = ', g%x%draw_numbers
-
-    nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
-    nl=nl+1; write(lines(nl), amt)  'y%label                          = ', quote(g%y%label)
-    nl=nl+1; write(lines(nl), rmt)  'y%label_offset                   = ', g%y%label_offset
-    nl=nl+1; write(lines(nl), rmt)  'y%max                            = ', g%y%max
-    nl=nl+1; write(lines(nl), rmt)  'y%min                            = ', g%y%min
-    nl=nl+1; write(lines(nl), imt)  'y%major_div                      = ', g%y%major_div
-    nl=nl+1; write(lines(nl), imt)  'y%major_div_nominal              = ', g%y%major_div_nominal
-    nl=nl+1; write(lines(nl), imt)  'y%places                         = ', g%y%places
-    nl=nl+1; write(lines(nl), lmt)  'y%draw_label                     = ', g%y%draw_label
-    nl=nl+1; write(lines(nl), lmt)  'y%draw_numbers                   = ', g%y%draw_numbers
-
-    nl=nl+1; write(lines(nl), amt)  'y2%label                         = ', quote(g%y2%label)
-    nl=nl+1; write(lines(nl), rmt)  'y2%label_offset                  = ', g%y2%label_offset
-    nl=nl+1; write(lines(nl), rmt)  'y2%max                           = ', g%y2%max
-    nl=nl+1; write(lines(nl), rmt)  'y2%min                           = ', g%y2%min
-    nl=nl+1; write(lines(nl), imt)  'y2%major_div                     = ', g%y2%major_div
-    nl=nl+1; write(lines(nl), imt)  'y2%major_div_nominal             = ', g%y2%major_div_nominal
-    nl=nl+1; write(lines(nl), imt)  'y2%places                        = ', g%y2%places
-    nl=nl+1; write(lines(nl), lmt)  'y2%draw_label                    = ', g%y2%draw_label
-    nl=nl+1; write(lines(nl), lmt)  'y2%draw_numbers                  = ', g%y2%draw_numbers
-    nl=nl+1; write(lines(nl), lmt)  'limited                          = ', g%limited
-    nl=nl+1; write(lines(nl), lmt)  'clip                             = ', g%clip
-    nl=nl+1; write(lines(nl), lmt)  'draw_axes                        = ', g%draw_axes
-    nl=nl+1; write(lines(nl), lmt)  'draw_grid                        = ', g%draw_grid
-    nl=nl+1; write(lines(nl), lmt)  'correct_xy_distortion            = ', g%correct_xy_distortion
-    nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
-    if (allocated(g%curve)) then
-      nl=nl+1; lines(nl) = 'Curves:'
-      do i = 1, size(g%curve)
-        nl=nl+1; write(lines(nl), amt) '   ', quote(g%curve(i)%name)
-      enddo
-    else
-      nl=nl+1; lines(nl) = 'Curves: None associated'
-    endif
-
-  else
-    nl=1; lines(1) = 'This is not a graph'
+  if (i == size(graph) + 1) then
+    nl=1; lines(1) = 'This is not a visible graph'
     return
+  endif
+
+  if (associated(g%p%r)) then
+    nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
+  endif
+  nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
+  nl=nl+1; write(lines(nl), amt)  'type                             = ', quote(g%type)
+  nl=nl+1; write(lines(nl), amt)  'title                            = ', quote(g%title)
+  nl=nl+1; write(lines(nl), amt)  'title_suffix                     = ', quote(g%title_suffix)
+  nl=nl+1; write(lines(nl), amt)  'component                        = ', quote(g%component)
+  nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
+                                  'margin                           = ', g%margin
+  nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
+                                  'scale_margin                     = ', g%scale_margin
+  nl=nl+1; write(lines(nl), imt)  'box                              = ', g%box
+  nl=nl+1; write(lines(nl), imt)  'ix_universe                      = ', g%ix_universe
+  nl=nl+1; write(lines(nl), lmt)  'valid                            = ', g%valid
+
+  nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
+  nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale                = ', g%symbol_size_scale
+  nl=nl+1; write(lines(nl), amt)  'floor_plan_view                  = ', quote(g%floor_plan_view)
+  nl=nl+1; write(lines(nl), f3mt) 'floor_plan_rotation              = ', g%floor_plan_rotation
+  nl=nl+1; write(lines(nl), f3mt) 'floor_plan_orbit_scale           = ', g%floor_plan_orbit_scale
+  nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit_color           = ', quote(g%floor_plan_orbit_color)
+  nl=nl+1; write(lines(nl), lmt)  'floor_plan_flip_label_side       = ', g%floor_plan_flip_label_side
+  nl=nl+1; write(lines(nl), lmt)  'floor_plan_size_is_absolute      = ', g%floor_plan_size_is_absolute
+  nl=nl+1; write(lines(nl), lmt)  'floor_plan_draw_only_first_pass  = ', g%floor_plan_draw_only_first_pass
+  nl=nl+1; write(lines(nl), amt)  'x%label                          = ', quote(g%x%label)
+  nl=nl+1; write(lines(nl), rmt)  'x%max                            = ', g%x%max
+  nl=nl+1; write(lines(nl), rmt)  'x%min                            = ', g%x%min
+  nl=nl+1; write(lines(nl), imt)  'x%major_div                      = ', g%x%major_div
+  nl=nl+1; write(lines(nl), imt)  'x%major_div_nominal              = ', g%x%major_div_nominal
+  nl=nl+1; write(lines(nl), imt)  'x%places                         = ', g%x%places
+  nl=nl+1; write(lines(nl), lmt)  'x%draw_label                     = ', g%x%draw_label
+  nl=nl+1; write(lines(nl), lmt)  'x%draw_numbers                   = ', g%x%draw_numbers
+  if (print_debug) then
+    nl=nl+1; write(lines(nl), rmt)  'x%tick_max                       = ', g%x%tick_max
+    nl=nl+1; write(lines(nl), rmt)  'x%tick_min                       = ', g%x%tick_min
+    nl=nl+1; write(lines(nl), rmt)  'x%dtick                          = ', g%x%dtick
+  endif
+
+  nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
+  nl=nl+1; write(lines(nl), amt)  'y%label                          = ', quote(g%y%label)
+  nl=nl+1; write(lines(nl), rmt)  'y%label_offset                   = ', g%y%label_offset
+  nl=nl+1; write(lines(nl), rmt)  'y%max                            = ', g%y%max
+  nl=nl+1; write(lines(nl), rmt)  'y%min                            = ', g%y%min
+  nl=nl+1; write(lines(nl), imt)  'y%major_div                      = ', g%y%major_div
+  nl=nl+1; write(lines(nl), imt)  'y%major_div_nominal              = ', g%y%major_div_nominal
+  nl=nl+1; write(lines(nl), imt)  'y%places                         = ', g%y%places
+  nl=nl+1; write(lines(nl), lmt)  'y%draw_label                     = ', g%y%draw_label
+  nl=nl+1; write(lines(nl), lmt)  'y%draw_numbers                   = ', g%y%draw_numbers
+  if (print_debug) then
+    nl=nl+1; write(lines(nl), rmt)  'y%tick_max                       = ', g%y%tick_max
+    nl=nl+1; write(lines(nl), rmt)  'y%tick_min                       = ', g%y%tick_min
+    nl=nl+1; write(lines(nl), rmt)  'y%dtick                          = ', g%y%dtick
+  endif
+
+  nl=nl+1; write(lines(nl), amt)  'y2%label                         = ', quote(g%y2%label)
+  nl=nl+1; write(lines(nl), rmt)  'y2%label_offset                  = ', g%y2%label_offset
+  nl=nl+1; write(lines(nl), rmt)  'y2%max                           = ', g%y2%max
+  nl=nl+1; write(lines(nl), rmt)  'y2%min                           = ', g%y2%min
+  nl=nl+1; write(lines(nl), imt)  'y2%major_div                     = ', g%y2%major_div
+  nl=nl+1; write(lines(nl), imt)  'y2%major_div_nominal             = ', g%y2%major_div_nominal
+  nl=nl+1; write(lines(nl), imt)  'y2%places                        = ', g%y2%places
+  nl=nl+1; write(lines(nl), lmt)  'y2%draw_label                    = ', g%y2%draw_label
+  nl=nl+1; write(lines(nl), lmt)  'y2%draw_numbers                  = ', g%y2%draw_numbers
+  nl=nl+1; write(lines(nl), lmt)  'limited                          = ', g%limited
+  nl=nl+1; write(lines(nl), lmt)  'clip                             = ', g%clip
+  nl=nl+1; write(lines(nl), lmt)  'draw_axes                        = ', g%draw_axes
+  nl=nl+1; write(lines(nl), lmt)  'draw_grid                        = ', g%draw_grid
+  nl=nl+1; write(lines(nl), lmt)  'correct_xy_distortion            = ', g%correct_xy_distortion
+  nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
+  if (allocated(g%curve)) then
+    nl=nl+1; lines(nl) = 'Curves:'
+    do i = 1, size(g%curve)
+      nl=nl+1; write(lines(nl), amt) '   ', quote(g%curve(i)%name)
+    enddo
+  else
+    nl=nl+1; lines(nl) = 'Curves: None associated'
   endif
 
 !----------------------------------------------------------------------
