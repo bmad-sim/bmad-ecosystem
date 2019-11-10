@@ -250,7 +250,7 @@ if (ix < 0) then
   return
 endif
 
-amt  = '(10a)'
+amt  = '(100a)'
 amt2 = '(a, l1, 10a)'
 imt  = '(a, 100(i0, a))'
 jmt  = '(i0, a, i0)'
@@ -329,7 +329,7 @@ case ('beam_init')
 case ('bmad_com')
 
   nl=incr(nl); write (li(nl), rmt) 'max_aperture_limit;REAL;T;',                 bmad_com%max_aperture_limit
-  nl=incr(nl); write (li(nl), rmt) 'd_orb;REAL;T;',                              bmad_com%d_orb
+  nl=incr(nl); write (li(nl), amt) 'd_orb;REAL;T',                               (';', re_str(bmad_com%d_orb(k), 6), k = 1, 6)
   nl=incr(nl); write (li(nl), rmt) 'default_ds_step;REAL;T;',                    bmad_com%default_ds_step
   nl=incr(nl); write (li(nl), rmt) 'significant_length;REAL;T;',                 bmad_com%significant_length
   nl=incr(nl); write (li(nl), rmt) 'rel_tol_tracking;REAL;T;',                   bmad_com%rel_tol_tracking
@@ -4937,7 +4937,7 @@ character(20) string
 
 string = real_to_string(r, n_signif)
 allocate (character(len_trim(string)):: str)
-str = trim(str)
+str = trim(string)
 
 end function re_str
 
