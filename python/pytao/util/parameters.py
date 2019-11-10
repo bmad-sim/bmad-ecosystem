@@ -39,7 +39,7 @@ class tao_parameter():
         self.sub_param = sub_param #associated sub_parameter (name)
 
         if param_type in ['STR', 'FILE', 'DAT_TYPE', 'DAT_TYPE_Z', 'DAT_TYPE_E',
-                'REAL_ARR', 'ENUM', 'ENUM_Z', 'STRUCT', 'COMPONENT']:
+                'REAL_ARR', 'ENUM', 'ENUM_Z', 'STRUCT', 'COMPONENT', 'SPECIES']:
             self.value = param_value
         elif param_type == 'INT':
             try:
