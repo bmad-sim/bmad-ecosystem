@@ -13,7 +13,7 @@
 !   REAL        ! Real number
 !   COMPLEX     ! Complex number (Re;Im)
 !   REAL_ARR    ! Real array
-!   LOGIC       ! Logical: "T" or "F". 
+!   LOGIC       ! Logical: "T" or "F".
 !   INUM        ! Integer whose allowed values can be obtained using the "python inum" command.
 !   ENUM        ! String whose allowed values can be obtained using the "python enum" command.
 !   FILE        ! Name of file.
@@ -166,7 +166,7 @@ logical first_time, found_one, calc_ok, no_slaves
 
 character(*) input_str
 character(len(input_str)) line
-character(n_char_show), allocatable :: li(:) 
+character(n_char_show), allocatable :: li(:)
 character(n_char_show) li2
 character(200) file_name, all_who
 character(300), allocatable :: name_arr(:)
@@ -329,7 +329,7 @@ case ('beam_init')
 case ('bmad_com')
 
   nl=incr(nl); write (li(nl), rmt) 'max_aperture_limit;REAL;T;',                 bmad_com%max_aperture_limit
-  nl=incr(nl); write (li(nl), amt) 'd_orb;REAL;T',                               (';', re_str(bmad_com%d_orb(k), 6), k = 1, 6)
+  nl=incr(nl); write (li(nl), amt) 'd_orb;REAL_ARR;T',                               (';', re_str(bmad_com%d_orb(k), 6), k = 1, 6)
   nl=incr(nl); write (li(nl), rmt) 'default_ds_step;REAL;T;',                    bmad_com%default_ds_step
   nl=incr(nl); write (li(nl), rmt) 'significant_length;REAL;T;',                 bmad_com%significant_length
   nl=incr(nl); write (li(nl), rmt) 'rel_tol_tracking;REAL;T;',                   bmad_com%rel_tol_tracking
@@ -409,7 +409,7 @@ case ('branch1')
 !
 ! Optional {coordinate} is one of:
 !   x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
-! and will return an array. 
+! and will return an array.
 
 case ('bunch1')
 
@@ -423,11 +423,11 @@ case ('bunch1')
     return
   endif
   ix_bunch = parse_int(who, err, 1, size(beam%bunch)); if (err) return
-  
+
   !save_beam flag: u%uni_branch(<branch-index>)%ele(<ele-index>)%save_beam
-  
+
   select case (who)
-  case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'state') 
+  case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'state')
     call coord_out(beam%bunch(ix_bunch), who)
     return
   case ('')
@@ -448,15 +448,15 @@ case ('bunch1')
   ! Sigma matrix
   do i = 1, 6
     do j = 1,6
-      nl=incr(nl); write (li(nl), '(a, i0, i0, a, es21.13)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)  
+      nl=incr(nl); write (li(nl), '(a, i0, i0, a, es21.13)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)
     enddo
   enddo
 
   ! Relative min, max, centroid
   do i = 1, 6
     nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'rel_min_', i, ';REAL;F;',      bunch_params%rel_min(i)
-    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i) 
-    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i) 
+    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i)
+    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i)
   enddo
 
   nl=incr(nl); write (li(nl), rmt) 'centroid_t;REAL;F;',                       bunch_params%centroid%t
@@ -499,7 +499,7 @@ case ('building_wall_list')
 
 !----------------------------------------------------------------------
 ! (x, y) points for drawing the building wall for a particular graph.
-! The graph defines the coordinate system for the (x, y) points. 
+! The graph defines the coordinate system for the (x, y) points.
 ! Command syntax:
 !   python building_wall_graph {graph}
 
@@ -618,7 +618,7 @@ case ('building_wall_section')
 ! Data constraints output is:
 !   data name
 !   constraint type
-!   evaluation element name 
+!   evaluation element name
 !   start element name
 !   end/reference element name
 !   measured value
@@ -630,7 +630,7 @@ case ('building_wall_section')
 !   location where merit is evaluated (if there is a range)
 ! Var constraints output is:
 !   var name
-!   Associated varible attribute 
+!   Associated varible attribute
 !   meas value
 !   ref value (only relavent if global%opt_with_ref = T)
 !   model value
@@ -911,7 +911,7 @@ case ('data_d2_create')
 ! Destroy a d2 data structure along with associated d1 and data arrays.
 ! Command syntax:
 !   python data_d2_destroy {d2_datum}
-! {d2_datum} should be of the form 
+! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
 
 case ('data_d2_destroy')
@@ -922,7 +922,7 @@ call destroy_this_data_d2(line)
 ! Information on a d2_datum.
 ! Command syntax:
 !   python data_d2 {d2_datum}
-! {d2_datum} should be of the form 
+! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
 
 case ('data_d2')
@@ -959,7 +959,7 @@ case ('data_d2')
 
 case ('data_d_array')
 
-  
+
   call tao_find_data (err, line, d_array = d_array)
 
   if (.not. allocated(d_array)) then
@@ -982,7 +982,7 @@ case ('data_d_array')
 ! List of d1 arrays for a given data_d2.
 ! Command syntax:
 !   python data_d1_array {d2_datum}
-! {d2_datum} should be of the form 
+! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
 
 case ('data_d1_array')
@@ -1179,7 +1179,7 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
   nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
-  
+
   nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     key_name(ele%key)
   nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name), ';ix_ele'
   nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
@@ -1360,7 +1360,7 @@ case ('ele:multipoles')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on 
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
     nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;', ele%scale_multipoles
   endif
@@ -2179,7 +2179,7 @@ case ('ele:elec_multipoles')
   tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on 
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
     nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
   endif
@@ -2293,7 +2293,7 @@ case ('enum')
     do i = 1, size(tao_shape_label_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_label_name(i))
     enddo
-    
+
   case ('shape.shape')
     do i = 1, size(tao_shape_shape_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_shape_name(i))
@@ -2462,8 +2462,8 @@ case ('floor_orbit')
       call tao_floor_to_screen_coords (g, floor1, end1)
       call tao_floor_to_screen_coords (g, floor2, end2)
 
-      ! Bends can be tricky if they are not in the X-Z plane. 
-      ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
+      ! Bends can be tricky if they are not in the X-Z plane.
+      ! Bends are parameterized by a set of points (x_bend, y_bend) along their
       ! centerline and a set of vectors (dx_bend, dy_bend) tangent to the centerline.
 
       if (ele%key == sbend$) then
@@ -2498,7 +2498,7 @@ case ('floor_orbit')
           ! This keeps dr_vec pointing to the inside (important for the labels).
           if (cos_t < 0) dr_vec = -dr_vec
           v_vec = matmul (w_old, r_vec) + v_old
-          dv_vec = matmul (w_old, dr_vec) 
+          dv_vec = matmul (w_old, dr_vec)
           call tao_floor_to_screen (g, v_vec, x_bend(j), y_bend(j))
           call tao_floor_to_screen (g, dv_vec, dx_bend(j), dy_bend(j))
 
@@ -2514,9 +2514,9 @@ case ('floor_orbit')
         do ix = 0, 100
           i0 = 50*ix
           i1 = min(50*(ix+1), n_bend)
-          nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';x', (';', dx_orbit(i), i = i0, i1) 
+          nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';x', (';', dx_orbit(i), i = i0, i1)
           nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';y', (';', dy_orbit(i), i = i0, i1)
-          if (i1 == n_bend) exit 
+          if (i1 == n_bend) exit
         enddo
 
       elseif (ele%key == patch$) then
@@ -2549,20 +2549,20 @@ case ('floor_orbit')
           dy_orbit(ic) = f_orb%r(2)
         enddo
 
-        nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';x', (';', dx_orbit(i), i = 0, n) 
-        nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';y', (';', dy_orbit(i), i = 0, n) 
+        nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';x', (';', dx_orbit(i), i = 0, n)
+        nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';y', (';', dy_orbit(i), i = 0, n)
       endif
     enddo
   enddo
 
 !----------------------------------------------------------------------
 ! Global parameters
-! Command syntax: 
+! Command syntax:
 !   python global
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
 !
 ! Note: The follow is intentionally left out:
-!   optimizer_allow_user_abort	
+!   optimizer_allow_user_abort
 !   silent_run
 !   single_step
 !   prompt_color
@@ -2586,8 +2586,8 @@ case ('global')
   nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
-  nl=incr(nl); write (li(nl), imt) 'srdt_gen_n_slices;INT;T;',                s%global%srdt_gen_n_slices  
-  nl=incr(nl); write (li(nl), imt) 'srdt_sxt_n_slices;INT;T;',                s%global%srdt_sxt_n_slices  
+  nl=incr(nl); write (li(nl), imt) 'srdt_gen_n_slices;INT;T;',                s%global%srdt_gen_n_slices
+  nl=incr(nl); write (li(nl), imt) 'srdt_sxt_n_slices;INT;T;',                s%global%srdt_sxt_n_slices
   nl=incr(nl); write (li(nl), lmt) 'srdt_use_cache;LOGIC;T;',                 s%global%srdt_use_cache
   nl=incr(nl); write (li(nl), amt) 'random_engine;STR;T;',                    s%global%random_engine
   nl=incr(nl); write (li(nl), amt) 'random_gauss_converter;STR;T;',           s%global%random_gauss_converter
@@ -2766,7 +2766,7 @@ case ('lat_general')
 !     ele.e_tot, ele.p0c
 !     ele.mat6, ele.vec0  ! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 !
-!   {elements} is a string to match element names to. 
+!   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
 !
 ! Note: To output through the real array buffer, add the prefix "real:" to {who}.
@@ -2960,7 +2960,7 @@ case ('lat_list')
       if (.not. allocated(tao_c_interface_com%c_integer)) allocate (tao_c_interface_com%c_integer(n_arr))
       if (size(tao_c_interface_com%c_integer) < n_arr) then
         deallocate (tao_c_interface_com%c_integer)
-        allocate (tao_c_interface_com%c_integer(n_arr)) 
+        allocate (tao_c_interface_com%c_integer(n_arr))
       endif
 
       tao_c_interface_com%n_int = n_arr
@@ -2970,7 +2970,7 @@ case ('lat_list')
       if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n_arr))
       if (size(tao_c_interface_com%c_real) < n_arr) then
         deallocate (tao_c_interface_com%c_real)
-        allocate (tao_c_interface_com%c_real(n_arr)) 
+        allocate (tao_c_interface_com%c_real(n_arr))
       endif
 
       tao_c_interface_com%n_real = n_arr
@@ -3116,11 +3116,11 @@ case ('plot_lat_layout')
 
 !----------------------------------------------------------------------
 ! List of plot templates or plot regions.
-! Command syntax:  
+! Command syntax:
 !   python plot_list {r/g}
 ! where "{r/g}" is:
 !   "r"      ! list regions
-!   "t"      ! list template plots 
+!   "t"      ! list template plots
 
 
 case ('plot_list')
@@ -3150,9 +3150,9 @@ case ('plot_list')
 !   python plot_graph {graph_name}
 ! {graph_name} is in the form:
 !   {p_name}.{g_name}
-! where 
+! where
 !   {p_name} is the plot region name if from a region or the plot name if a template plot.
-!   This name is obtained from the python plot_list command. 
+!   This name is obtained from the python plot_list command.
 !   {g_name} is the graph name obtained from the python plot1 command.
 
 case ('plot_graph')
@@ -3484,7 +3484,7 @@ case ('plot_line')
     call invalid ('No line associated with curve')
     return
   endif
-      
+
   n = size(c%x_line)
 
   select case (who)
@@ -3492,7 +3492,7 @@ case ('plot_line')
     if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
     if (size(tao_c_interface_com%c_real) < n) then
       deallocate (tao_c_interface_com%c_real)
-      allocate (tao_c_interface_com%c_real(n)) 
+      allocate (tao_c_interface_com%c_real(n))
     endif
 
     tao_c_interface_com%n_real = n
@@ -3548,7 +3548,7 @@ case ('plot_symbol')
     if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
     if (size(tao_c_interface_com%c_real) < n) then
       deallocate (tao_c_interface_com%c_real)
-      allocate (tao_c_interface_com%c_real(n)) 
+      allocate (tao_c_interface_com%c_real(n))
     endif
 
     tao_c_interface_com%n_real = n
@@ -3577,7 +3577,7 @@ case ('plot_symbol')
 ! Command syntax:
 !   python plot_transfer {from_plot} {to_plot}
 ! To avoid confusion, use "@Tnnn" and "@Rnnn" syntax for {from_plot}.
-! If {to_plot} is not present and {from_plot} is a template plot, the "to plots" are the equivalent 
+! If {to_plot} is not present and {from_plot} is a template plot, the "to plots" are the equivalent
 ! region plots with the same name. And vice versa if {from_plot} is a region plot.
 
 case ('plot_transfer')
@@ -3760,7 +3760,7 @@ case ('shape_pattern_manage')
 ! Command syntax:
 !   python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
 ! where:
-!   {ix_pattern}      -- Pattern index. 
+!   {ix_pattern}      -- Pattern index.
 !   {ix_point}        -- Point index. Points of higher indexes will be moved up if adding a point and down if deleting.
 !   {s}, {x}          -- Point location. If {s} is "delete" then delete the point.
 
@@ -3821,7 +3821,7 @@ case ('species_to_int')
   nl=incr(nl); write (li(nl), '(i0)') n
 
 !----------------------------------------------------------------------
-! Convert species integer id to corresponding 
+! Convert species integer id to corresponding
 ! Command syntax:
 !   python species_to_str {species_int}
 ! Example:
@@ -3879,7 +3879,7 @@ case ('twiss_at_s')
 case ('universe')
 
   u => point_to_uni(line, .false., err); if (err) return
-  
+
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;F;',                     u%ix_uni
   nl=incr(nl); write (li(nl), imt) 'n_d2_data_used;INT;F;',                   u%n_d2_data_used
   nl=incr(nl); write (li(nl), imt) 'n_data_used;INT;F;',                      u%n_data_used
@@ -3888,7 +3888,7 @@ case ('universe')
 
 !----------------------------------------------------------------------
 ! Info on an individual variable
-! Command syntax: 
+! Command syntax:
 !   python var {var}        or
 !   python var {var} slaves
 !
@@ -3973,7 +3973,7 @@ case ('var_create')
   endif
   v_ptr => v_array(1)%v
 
-  call tao_pick_universe ('[' // trim(name_arr(4)) // ']@', name, picked, err, dflt_uni = -1); 
+  call tao_pick_universe ('[' // trim(name_arr(4)) // ']@', name, picked, err, dflt_uni = -1);
   if (err .or. name /= '') then
     call invalid('INVALID UNIVERSE SPECIFICATION')
     return
@@ -4048,7 +4048,7 @@ case ('var_create')
 
 !----------------------------------------------------------------------
 ! List of all variable v1 arrays
-! Command syntax: 
+! Command syntax:
 !   python var_general
 ! Output syntax:
 !   {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
@@ -4089,7 +4089,7 @@ case ('var_v_array')
 
 !----------------------------------------------------------------------
 ! List of variables in a given variable v1 array
-! Command syntax: 
+! Command syntax:
 !   python var_v1_array {v1_var}
 
 case ('var_v1_array')
@@ -4199,7 +4199,7 @@ case ('var_v1_destroy')
 
 !----------------------------------------------------------------------
 ! Wave analysis info.
-! Command syntax: 
+! Command syntax:
 !   python wave {what}
 ! Where {what} is one of:
 !   params
@@ -4331,7 +4331,7 @@ contains
 subroutine end_stuff(li, nl)
 
 
-character(n_char_show), allocatable :: li(:) 
+character(n_char_show), allocatable :: li(:)
 integer nl, i
 
 !
@@ -4358,7 +4358,7 @@ logical compound_word, err
 character(*) line
 character(40) str
 
-! A compound_word is something like "2@q10w" or "q10w". A non-compound word is something like "2" which 
+! A compound_word is something like "2@q10w" or "q10w". A non-compound word is something like "2" which
 ! just represents a universe index.
 
 nullify(u)
@@ -4406,7 +4406,7 @@ end function
 
 subroutine re_allocate_lines (li, n_lines)
 
-character(n_char_show), allocatable :: li(:) 
+character(n_char_show), allocatable :: li(:)
 integer n_lines
 
 !
@@ -4626,7 +4626,7 @@ if (.not. allocated(beam%bunch)) then
     return
 endif
 
-! Allocate scratch 
+! Allocate scratch
 n = size(bunch%particle)
 call reallocate_c_real_scratch(n)
 
@@ -4643,7 +4643,7 @@ case ('py')
 case ('z')
   tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(5)
 case ('pz')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(6)      
+  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(6)
 case ('s')
   tao_c_interface_com%c_real(1:n) = bunch%particle(:)%s
 case ('t')
@@ -4673,7 +4673,7 @@ integer :: n
 if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
 if (size(tao_c_interface_com%c_real) < n) then
   deallocate (tao_c_interface_com%c_real)
-  allocate (tao_c_interface_com%c_real(n)) 
+  allocate (tao_c_interface_com%c_real(n))
 endif
 tao_c_interface_com%n_real = n
 end subroutine
@@ -4683,7 +4683,7 @@ integer :: n
 if (.not. allocated(tao_c_interface_com%c_integer)) allocate (tao_c_interface_com%c_integer(n))
 if (size(tao_c_interface_com%c_integer) < n) then
   deallocate (tao_c_interface_com%c_integer)
-  allocate (tao_c_interface_com%c_integer(n)) 
+  allocate (tao_c_interface_com%c_integer(n))
 endif
 tao_c_interface_com%n_int = n
 end subroutine
@@ -4902,7 +4902,7 @@ if (ix /= 0) then
   string = string(ix+2:)
 endif
 
-! 
+!
 
 if (index(string, "*") /= 0 .or. index(string, "%") /= 0) then
   is_a_match = match_wild(ele%name, string)
@@ -4979,7 +4979,7 @@ integer i, ix
 logical err
 
 ! For input, "^^" is used as the separator instead of ";" since the Tao code that
-! calls python_cmd will interpret ";" as a command separator and will thus mangle 
+! calls python_cmd will interpret ";" as a command separator and will thus mangle
 ! the input_str argument.
 
 str = line
