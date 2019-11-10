@@ -31,7 +31,8 @@ class tao_beam_init_window(tao_parameter_window):
                 command=self.apply)
         self.apply_b.pack()
 
-        self.beam_list = []
+        self.beam_head_list = []
+        self.beam_body_list = []
         self.refresh()
 
     def refresh(self, event=None):
@@ -41,20 +42,30 @@ class tao_beam_init_window(tao_parameter_window):
         for child in self.list_frame.winfo_children():
             child.destroy()
 
-        beam_list = self.pipe.cmd_in("python beam_init 1")
-        #TODO: command above should not be hardcoded to universe 1
-        beam_list = beam_list.splitlines()
-        for k in range(len(beam_list)):
-            beam_list[k] = tk_tao_parameter(str_to_tao_param(beam_list[k]),
+        beam_head_list = self.pipe.cmd_in("python beam 1")
+        beam_body_list = self.pipe.cmd_in("python beam_init 1")
+        #TODO: commands above should not be hardcoded to universe 1
+        beam_head_list = beam_head_list.splitlines()
+        beam_body_list = beam_body_list.splitlines()
+        for k in range(len(beam_head_list)):
+            beam_head_list[k] = tk_tao_parameter(str_to_tao_param(beam_head_list[k]),
                     self.list_frame, self.pipe)
-            beam_list[k].tk_label.grid(row=k, column=0, sticky='W')
-            beam_list[k].tk_wid.grid(row=k, column=1, sticky='EW')
-        self.beam_list = beam_list
+            beam_head_list[k].tk_label.grid(row=k, column=0, sticky='W')
+            beam_head_list[k].tk_wid.grid(row=k, column=1, sticky='EW')
+        b_offset = len(beam_head_list)
+        for k in range(len(beam_body_list)):
+            beam_body_list[k] = tk_tao_parameter(str_to_tao_param(beam_body_list[k]),
+                    self.list_frame, self.pipe)
+            beam_body_list[k].tk_label.grid(row=k+b_offset, column=0, sticky='W')
+            beam_body_list[k].tk_wid.grid(row=k+b_offset, column=1, sticky='EW')
+        self.beam_head_list = beam_head_list
+        self.beam_body_list = beam_body_list
 
     def apply(self, event=None):
         '''
         Runs set commands to apply changes from this window to tao
         '''
-        tao_set(self.beam_list, "set beam_init ", self.pipe)
+        tao_set(self.beam_head_list, "set beam ", self.pipe)
+        tao_set(self.beam_body_list, "set beam_init ", self.pipe)
         self.refresh()
 
