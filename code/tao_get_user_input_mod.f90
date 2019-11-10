@@ -163,14 +163,14 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
       if (ix /= 0) exit
     enddo
 
-    ! nothing more to do if an alias definition
+    ! Nothing more to do if an alias definition
 
     if (cmd_out(1:5) == 'alias') then
       if (.not. s%com%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
       return
     endif
 
-    ! replace argument variables
+    ! Replace argument variables
 
     do i = 1, 9
       do j = 1, 10
@@ -539,7 +539,7 @@ do i = 1, s%com%n_alias
       return
     ! If there are no dummy args present then just append the tail to the command
     else
-      alias_cmd = trim(alias_cmd) // trim(tail)
+      alias_cmd = trim(alias_cmd) // ' ' // trim(tail)
     endif
   endif
 
