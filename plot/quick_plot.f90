@@ -579,58 +579,60 @@ end subroutine qp_use_axis
 !-----------------------------------------------------------------------
 !+
 ! Subroutine qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, 
-!               draw_numbers, minor_div, minor_div_max, mirror, number_offset, 
-!               label_offset, major_tick_len, minor_tick_len, ax_type, axis)
+!               draw_numbers, minor_div, minor_div_max, mirror, number_offset, label_offset, 
+!               major_tick_len, minor_tick_len, ax_type, tick_min, tick_max, dtick, axis)
 !   
-! Subroutine to set (but not plot) the min, max, divisions etc. for the
-! X and Y axes. 
+! Routine to set (but not plot) the min, max, divisions etc. for the X and Y axes. 
 !
 ! Input:
-!   axis_str      -- Character(*): 
+!   axis_str      -- character(*): 
 !                     'X' to set the Left x-axis
 !                     'Y' to set the Bottom y-axis.
 !                     'X2' to set the Right x-axis
 !                     'Y2' to set the Top y-axis.
-!   a_min         -- Real(rp), optional: Axis minimum.
-!   a_max         -- Real(rp), optional: Axis maximum.
-!   div           -- Integer, optional: Number of major divisions.
-!   places        -- Integer, optional: Number of decmal places after the decimal 
+!   a_min         -- real(rp), optional: Axis minimum in data units.
+!   a_max         -- real(rp), optional: Axis maximum in data units.
+!   div           -- integer, optional: Number of major divisions.
+!   places        -- integer, optional: Number of decmal places after the decimal 
 !                       point. A Negative number surpresses that number of zeros.
 !                       E.g. For the number 30 then 
 !                            places =  2 -> Output is: "30.00"
 !                            places =  0 -> Output is: "30"
 !                            places = -1 -> Output can be scalled to: "3"
-!   label         -- Character(*), optional: Axis label.
-!   draw_label    -- Logical, optional: Draw axis label.
-!   draw_numbers  -- Logical, optional: Draw axis numbers
-!   minor_div     -- Integer, optional: Number of minor divisions.
-!   minor_div_max -- Integer, optional: Maximum number of minor divisions.
+!   label         -- character(*), optional: Axis label.
+!   draw_label    -- logical, optional: Draw axis label.
+!   draw_numbers  -- logical, optional: Draw axis numbers
+!   minor_div     -- integer, optional: Number of minor divisions.
+!   minor_div_max -- integer, optional: Maximum number of minor divisions.
 !                     This is used when you want Quick_Plot to pick the
 !                     actual number of minor divisions
-!   mirror        -- Logical, optional: If True and axis = "x" or axis = "x2" then
+!   mirror        -- logical, optional: If True and axis = "x" or axis = "x2" then
 !                     the x2 axis will mirror the x axis. Mirroring means that
 !                     the major and minor ticks of the x2 axis will be the 
 !                     same as the x axis. A similar situation holds if axis = "y"
 !                     or axis = "y2".
-!   number_offset  -- Real(rp), optional: Offset from axis line in inches.
-!   label_offset   -- Real(rp), optional: Offset form numbers in inches.
-!   major_tick_len -- Real(rp), optional: Major tick length in inches.
-!   minor_tick_len -- Real(rp), optional: Minor tick length in inches.
-!   ax_type        -- Character(16), optional: Axis type. 'LINEAR', or 'LOG'.
+!   number_offset  -- real(rp), optional: Offset from axis line in inches.
+!   label_offset   -- real(rp), optional: Offset form numbers in inches.
+!   major_tick_len -- real(rp), optional: Major tick length in inches.
+!   minor_tick_len -- real(rp), optional: Minor tick length in inches.
+!   ax_type        -- character(16), optional: Axis type. 'LINEAR', or 'LOG'.
+!   tick_min       -- real(rp), optional: Min tick location in data units.
+!   tick_max       -- real(rp), optional: Max tick location in data units.
+!   dtick          -- real(rp), optional: Distance between ticks in data units.
 !   axis           -- qp_axis_struct, optional: Axis. If present with other arguments then the other arguments
 !                       will override components of this argument.
 !-
 
 subroutine qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, &
-                  draw_numbers, minor_div, minor_div_max, mirror, &
-                  number_offset, label_offset, major_tick_len, minor_tick_len, ax_type, axis)
+                  draw_numbers, minor_div, minor_div_max, mirror, number_offset, label_offset, &
+                  major_tick_len, minor_tick_len, ax_type, tick_min, tick_max, dtick, axis)
 
 implicit none
 
 type (qp_axis_struct), pointer :: this_axis
 type (qp_axis_struct), optional :: axis
 
-real(rp), optional :: a_min, a_max, number_offset
+real(rp), optional :: a_min, a_max, number_offset, tick_min, tick_max, dtick
 real(rp), optional :: label_offset, major_tick_len, minor_tick_len
 
 integer, optional :: div, places, minor_div, minor_div_max
@@ -644,10 +646,14 @@ character(*) axis_str
 call qp_pointer_to_axis (axis_str, this_axis)
 
 if (present(axis))   this_axis = axis
-if (present(a_min))  this_axis%min = a_min
-if (present(a_max))  this_axis%max = a_max
-if (present(div))    this_axis%major_div = div
-if (present(places)) this_axis%places = places
+
+if (present(tick_min)) this_axis%tick_min = tick_min
+if (present(tick_max)) this_axis%tick_max = tick_max
+if (present(dtick))    this_axis%dtick = dtick
+if (present(a_min))    this_axis%min = a_min
+if (present(a_max))    this_axis%max = a_max
+if (present(div))      this_axis%major_div = div
+if (present(places))   this_axis%places = places
 
 if (present(label)) this_axis%label = label
 if (present(draw_label)) this_axis%draw_label     = draw_label
@@ -686,25 +692,25 @@ end subroutine qp_set_axis
 !+
 ! Subroutine qp_get_axis_attrib (axis_str, a_min, a_max, div, places, label, 
 !               draw_label, draw_numbers, minor_div, mirror, number_offset, 
-!               label_offset, major_tick_len, minor_tick_len, ax_type)
+!               label_offset, major_tick_len, minor_tick_len, ax_type, tick_min, tick_max, dtick)
 !   
 ! Subroutine to get the min, max, divisions etc. for the X and Y axes.  
 !
 ! Input:
-!   axis_str  -- Character(*): 
-!                 'X' to set the Left x-axis
-!                 'Y' to set the Bottom y-axis.
-!                 'X2' to set the Right x-axis
-!                 'Y2' to set the Top y-axis.
-!   a_min     -- Real(rp), optional: Axis minimum.
-!   a_max     -- Real(rp), optional: Axis maximum.
-!   div       -- Integer, optional: Number of major divisions.
-!   places    -- Integer, optional: Number of decmal places after the decimal 
-!                   point. A Negative number surpresses that number of zeros.
-!                   E.g. For the number 30 then 
-!                        places =  2 -> Output is: "30.00"
-!                        places =  0 -> Output is: "30"
-!                        places = -1 -> Output can be scalled to: "3"
+!   axis_str       -- Character(*): 
+!                      'X' to set the Left x-axis
+!                      'Y' to set the Bottom y-axis.
+!                      'X2' to set the Right x-axis
+!                      'Y2' to set the Top y-axis.
+!   a_min          -- Real(rp), optional: Axis minimum.
+!   a_max          -- Real(rp), optional: Axis maximum.
+!   div            -- Integer, optional: Number of major divisions.
+!   places         -- Integer, optional: Number of decmal places after the decimal 
+!                        point. A Negative number surpresses that number of zeros.
+!                        E.g. For the number 30 then 
+!                             places =  2 -> Output is: "30.00"
+!                             places =  0 -> Output is: "30"
+!                             places = -1 -> Output can be scalled to: "3"
 !   label          -- Character(*), optional: Axis label.
 !   draw_label     -- Logical, optional: Draw axis label.
 !   draw_numbers   -- Logical, optional: Draw axis numbers
@@ -715,16 +721,19 @@ end subroutine qp_set_axis
 !   major_tick_len -- Real(rp), optional: Major tick length in inches.
 !   minor_tick_len -- Real(rp), optional: Minor tick length in inches.
 !   ax_type        -- Character(16): Axis type. 'LINEAR', or 'LOG'.
+!   tick_min       -- real(rp), optional: Min tick location in data units.
+!   tick_max       -- real(rp), optional: Max tick location in data units.
+!   dtick          -- real(rp), optional: Distance between ticks in data units.
 !-
 
 subroutine qp_get_axis_attrib (axis_str, a_min, a_max, div, places, label, draw_label, &
-                draw_numbers, minor_div, mirror, number_offset, &
-                label_offset, major_tick_len, minor_tick_len, ax_type)
+                draw_numbers, minor_div, mirror, number_offset, label_offset, &
+                major_tick_len, minor_tick_len, ax_type, tick_min, tick_max, dtick)
 
 implicit none
 
 type (qp_axis_struct), pointer :: this_axis
-real(rp), optional :: a_min, a_max, number_offset
+real(rp), optional :: a_min, a_max, number_offset, tick_min, tick_max, dtick
 real(rp), optional :: label_offset, major_tick_len, minor_tick_len
 
 integer, optional :: div, places, minor_div
@@ -737,10 +746,13 @@ character(*) axis_str
 
 call qp_pointer_to_axis (axis_str, this_axis)
 
-if (present(a_min))  a_min  = this_axis%min  
-if (present(a_max))  a_max  = this_axis%max  
-if (present(div))    div    = this_axis%major_div  
-if (present(places)) places = this_axis%places  
+if (present(a_min))     a_min     = this_axis%min
+if (present(a_max))     a_max     = this_axis%max
+if (present(div))       div       = this_axis%major_div
+if (present(places))    places    = this_axis%places
+if (present(tick_min))  tick_min  = this_axis%tick_min
+if (present(tick_max))  tick_max  = this_axis%tick_max
+if (present(dtick))     dtick     = this_axis%dtick
 
 if (present(label))        label        = this_axis%label
 if (present(draw_label))   draw_label   = this_axis%draw_label   
@@ -765,12 +777,10 @@ end subroutine qp_get_axis_attrib
 !-----------------------------------------------------------------------
 !+
 ! Subroutine qp_calc_and_set_axis (axis_str, data_min, data_max, 
-!                         div_min, div_max, bounds, axis_type, slop_factor)
+!                                 div_min, div_max, bounds, axis_type, slop_factor)
 !
 ! Subroutine to calculate a "nice" plot scale given the minimum and maximum
 ! of the data. 
-!
-! Note: If data_min > data_max then on output axis%min > axis%max
 !
 ! Input:
 !   axis_str    -- Character(*): 
@@ -794,14 +804,17 @@ end subroutine qp_get_axis_attrib
 !   call qp_calc_and_set_axis ('X', 352.0_rp, 378.0_rp, 4, 6, 'ZERO_AT_END')
 !
 ! Gives for the x-axis:
-!   min       = 0.0_rp
-!   max       = 400.0_rp
-!   places    = 0      ! places after the decimal point needed
-!   divisions = 4
+!   %min         = 0.0_rp
+!   %max         = 400.0_rp
+!   %tick_min    = 0.0_rp
+!   %tick_max    = 400.0_rp
+!   %dtick       = 100.0_rp
+!   %major_div   = 4
+!   %places      = 0         ! places after the decimal point needed
 !-
 
 subroutine qp_calc_and_set_axis (axis_str, data_min, data_max, &
-                      div_min, div_max, bounds, axis_type, slop_factor)
+                                div_min, div_max, bounds, axis_type, slop_factor)
 
 implicit none
 
@@ -820,9 +833,8 @@ character(*), optional :: axis_type
 
 call qp_pointer_to_axis (axis_str, ax)
 ax%bounds = bounds
-ax%type = 'LINEAR'
-if (present(axis_type)) ax%type = axis_type
-call qp_calc_axis_params (data_min, data_max, div_min, div_max, ax, slop_factor)
+ax%type = string_option('LINEAR', axis_type)
+call qp_calc_axis_params (data_min, data_max, div_min, div_max, ax)
 
 end subroutine qp_calc_and_set_axis
 
@@ -830,13 +842,11 @@ end subroutine qp_calc_and_set_axis
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_calc_axis_params (data_min, data_max, div_min, div_max, axis, slop_factor)
+! Subroutine qp_calc_axis_params (data_min, data_max, div_min, div_max, axis)
 !
 ! Subroutine to calculate a "nice" plot scale given the minimum and maximum
 ! of the data. This is similar to CALC_AXIS_SCALE but here the subroutine will
 ! pick the number of divisions.
-!
-! Note: If data_min > data_max then on output axis_min > axis_max
 !
 ! Input:
 !   data_min    -- Real(rp): Minimum of the data
@@ -849,29 +859,17 @@ end subroutine qp_calc_and_set_axis
 !                       'ZERO_AT_END'    -- Make AXIS_MIN or AXIS_MAX zero.
 !                       'ZERO_SYMMETRIC' -- Make AXIS_MIN = -AXIS_MAX
 !                       'GENERAL'        -- No restriction on min or max.
-!   slop_factor -- Real(rp), optional: See qp_calc_axis_scale for info.
 !
 ! Output:
 !   axis       -- qp_axis_struct: Structure holding the axis parameters.
-!     %places     -- Integer: Number of places after the decimal point needed
-!                     to display the axis numbers.
-!     %min        -- Real(rp): Axis minimum.
-!     %max        -- Real(rp): Axis maximum.
-!     %major_div  -- Integer: How many divisions the axis is divided up into
-!
-!
-! Example:
-!   axis%bounds = 'ZERO_AT_END'
-!   call qp_calc_axis_params (352.0_rp, 378.0_rp, 4, 6, axis)
-!
-! Gives:
-!   axis%min       = 0.0_rp
-!   axis%max       = 400.0_rp
-!   axis%places    = 0
-!   axis%major_div = 4
+!     %places
+!     %min, %max
+!     %major_div
+!     %tick_min, tick_max      
+!     %dtick
 !-
 
-subroutine qp_calc_axis_params (data_min, data_max, div_min, div_max, axis, slop_factor)
+subroutine qp_calc_axis_params (data_min, data_max, div_min, div_max, axis)
 
 implicit none
 
@@ -879,26 +877,32 @@ type (qp_axis_struct) axis
 
 integer i, div_min, div_max, div_best
 real(rp) data_max, data_min, d_max, d_min, score, score_max
-real(rp), optional :: slop_factor
 
-! 
+! For log axis the ticks are always spaced a factor of 10 apart
 
-score_max = -1d20
-axis%major_div = 0
-d_min = data_min
-d_max = data_max
+d_min = min(data_min, data_max)
+d_max = max(data_min, data_max)
 
-do i = div_min, div_max
-  axis%major_div = i
-  call qp_calc_axis_scale (d_min, d_max, axis, score, slop_factor)
-  if (score_max < score) then
-    score_max = score
-    div_best = i
-  endif
-enddo
+if (axis%type == 'LOG') then
+  axis%major_div = (div_min + div_max) / 2
+  call qp_calc_axis_scale (d_min, d_max, axis, score)
 
-axis%major_div = div_best
-call qp_calc_axis_scale (d_min, d_max, axis, score, slop_factor)
+else
+  score_max = -1d20
+  axis%major_div = 0
+
+  do i = div_min, div_max
+    axis%major_div = i
+    call qp_calc_axis_scale (d_min, d_max, axis, score)
+    if (score_max < score) then
+      score_max = score
+      div_best = i
+    endif
+  enddo
+
+  axis%major_div = div_best
+  call qp_calc_axis_scale (d_min, d_max, axis, score)
+endif
 
 end subroutine qp_calc_axis_params
 
@@ -909,7 +913,7 @@ end subroutine qp_calc_axis_params
 ! Subroutine qp_calc_axis_places (axis)
 !
 ! Subroutine to calculate the number of decmal places needed to display the
-! axis numbers. Note: Reversed axes with axis%min > axis%max is OK.
+! axis numbers. Note: If axis%min > axis%max on input they will be reversed.
 !
 ! Note: axis%places is ignored for axis%type = 'LOG'.
 !
@@ -934,7 +938,7 @@ implicit none
 type (qp_axis_struct) axis
 
 integer i
-real(rp) width, num, num2, a_min, a_max, max_d, effective_zero
+real(rp) num, num2, max_d, effective_zero
 
 ! LOG scale does not use places.
 ! If min = max or major_div < 1 then cannot do a calculation so don't do anything.
@@ -942,22 +946,27 @@ real(rp) width, num, num2, a_min, a_max, max_d, effective_zero
 if (axis%type == 'LOG') return
 if (axis%min == axis%max) return
 if (axis%major_div < 1) return
+if (axis%dtick == 0) return
+
+if (axis%min > axis%max) then
+  num = axis%min
+  axis%min = axis%max
+  axis%max = num
+endif
 
 ! sort true min and max
 ! huge(0) is used here so that nint(num2) will not overflow.
 
-a_min = min (axis%min, axis%max)
-a_max = max (axis%min, axis%max)
 max_d = min(10.0_rp**qp_com%max_digits, 0.999_rp * huge(0))
-effective_zero = max(abs(a_max), abs(a_min)) / max_d
+effective_zero = max(abs(axis%tick_max), abs(axis%tick_min)) / max_d
 
 ! First calculation: Take each axis number and find how many digits it has.
 ! The number of places is the maximum number of digits needed to represent
 ! all the numbers on the axis with a limit of qp_com%max_digits digits maximum for any one number.
 
 axis%places = -1000
-do i = 0, axis%major_div
-  num = a_min + i * (a_max - a_min) / axis%major_div
+do i = 0, nint((axis%tick_max-axis%tick_min)/axis%dtick)
+  num = axis%tick_min + i * axis%dtick
   if (abs(num) < effective_zero) cycle  ! Ignore zero
   axis%places = max(axis%places, floor(-log10(abs(num))))
   do
@@ -968,12 +977,10 @@ do i = 0, axis%major_div
   enddo
 enddo
 
-! Second calculation: Places based upon the width of the plot.
-! The number of places returned by the subroutine is the maximum of the
-! two calculations
+! Second calculation: Places based upon the distance between ticks.
+! The number of places returned by the subroutine is the maximum of the two calculations
 
-width = abs(a_max - a_min) / axis%major_div
-axis%places = max(axis%places, floor(-log10(width)+0.9))
+axis%places = max(axis%places, floor(-log10(axis%dtick)+0.9))
 
 end subroutine qp_calc_axis_places
 
@@ -981,22 +988,13 @@ end subroutine qp_calc_axis_places
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_calc_axis_scale (data_min, data_max, axis, niceness_score, slop_factor)
+! Subroutine qp_calc_axis_scale (data_min, data_max, axis, niceness_score)
 !
 ! Subroutine to calculate a "nice" plot scale given the minimum and maximum
 ! of the data. If data_max - data_min < 1d-30 then axis%max - axis%min will
 ! be at least axis%major_div * 1d-30.
 !
-! The slop_factor argument is used to increase the effective data_min and
-! decrease the effective data_max. For example, if data_min = 0 and 
-! data_max = 1.0000001 then an axis with min = 0 and max = 1 may be acceptable.
-! The effective data min/max is computed via:
-!    data_min (eff) = data_min + (data_max - data_min) * slop_factor
-!    data_max (eff) = data_max - (data_max - data_min) * slop_factor
-! For a log scale substitute log(data_min) for data_min and log(data_max) 
-! for data_max in the above equations.
-!
-! Note: If you are not sure how many divisions the axis should have then
+! Note: If you are not sure how many divisions the axis should have,
 ! consider the routine qp_calc_axis_params.
 !
 ! Note: If data_min > data_max then on output axis%min > axis%max
@@ -1011,8 +1009,6 @@ end subroutine qp_calc_axis_places
 !                      'ZERO_SYMMETRIC' -- Make AXIS%MIN = -AXIS%MAX
 !                      'GENERAL'        -- No restriction on min or max.
 !     %major_div  -- Integer: How many divisions the axis is divided up into
-!   slop_factor -- Real(rp), optional: If not present then the a default is used.
-!                      This default is set by qp_set_parameters.
 !
 ! Output:
 !   axis       -- qp_axis_struct: Structure holding the axis parameters.
@@ -1038,19 +1034,18 @@ end subroutine qp_calc_axis_places
 !   axis%places = 0
 !-
 
-subroutine qp_calc_axis_scale (data_min, data_max, axis, niceness_score, slop_factor)
+subroutine qp_calc_axis_scale (data_min, data_max, axis, niceness_score)
 
 implicit none
            
 type (qp_axis_struct) axis
 
 integer div_eff, m_min, m_max, m
-integer min1, min2, max1, max2, imin, imax, j, ave
+integer min1, min2, max1, max2, imin, imax, j, ave, div_max, div
 
 real(rp), optional :: niceness_score
-real(rp) data_max, data_min, r, a_min, a_max, slop
-real(dp) data_width, data_width10, min_width, max_score, score, log_width, aa
-real(rp), optional :: slop_factor
+real(rp) data_max, data_min, r, a_min, a_max
+real(dp) data_width, data_width10, min_width, max_score, score, aa
 
 character(20) :: r_name = 'qp_calc_axis_scale'
 
@@ -1058,43 +1053,54 @@ character(20) :: r_name = 'qp_calc_axis_scale'
 
 if (axis%major_div < 1) then
   call out_io (s_abort$, r_name, '"AXIS%MAJOR_DIV" NUMBER IS LESS THAN 1! \i\ ', axis%major_div)
-  if (global_com%exit_on_error) call err_exit
+  axis%major_div = 1
 endif
+
+a_min = min(data_min, data_max)
+a_max = max(data_min, data_max)
 
 ! 'LOG' axis
 
 if (axis%type == 'LOG') then
 
-  if (data_min <= 0 .or. data_max <= 0) then
-    call out_io (s_abort$, r_name, 'DATA IS NEGATIVE FOR LOG AXIS CALC: \2es12.2\ ', min(data_min, data_max))
+  div_max = 1.4 * axis%major_div
+  if (a_min <= 0) then
+    call out_io (s_abort$, r_name, 'DATA IS NEGATIVE FOR LOG AXIS CALC: \es12.2\ ', a_min)
     if (global_com%exit_on_error) call err_exit
+    axis%tick_min = 1
+    axis%tick_max = 10
+    axis%dtick = 10
+    axis%min = 1
+    axis%max = 10
+    return
   endif
 
   a_min = log10(data_min)
   a_max = log10(data_max)
-  slop = (a_max - a_min) * real_option(qp_com%dflt_axis_slop_factor, slop_factor)
-  a_min = a_min + slop
-  a_max = a_max - slop
-  m_min = floor(a_min)
-  m_max = ceiling (a_max)
+  m_min = floor(a_min+0.3)
+  m_max = ceiling(a_max-0.3)
 
-  r = real(m_max - m_min) / axis%major_div
+  div = 1 + (m_max - m_min - 1) / div_max
 
-  if (axis%places >= m_max-m_min) then 
-    if (present(niceness_score)) niceness_score = 0.0  ! perfect
-    m = 0
+  if (div == 1) then
+    if (m_min == m_max) then
+      if (a_min+a_max < m_min+m_max) then
+        m_min = m_min - 1
+      else
+        m_max = m_max + 1
+      endif
+    endif
   else
-    if (present(niceness_score)) niceness_score = -(r - floor(r)) 
-    m = ceiling(r) * axis%major_div  - (m_max - m_min)
+    m_min = m_min - modulo(m_min, div)
+    m_max = m_max + modulo(-m_max, div)
   endif
 
-  if (a_min/m_min < m_max/a_max) then
-    axis%max = 10d0 ** (m_max + m/2)
-    axis%min = 10d0 ** (m_min - (m+1)/2)
-  else
-    axis%max = 10d0 ** (m_max + (m+1)/2)
-    axis%min = 10d0 ** (m_min - m/2)
-  endif
+  axis%tick_min = 10.0_rp**m_min
+  axis%tick_max = 10.0_rp**m_max
+  axis%dtick = 10.0_rp**div
+
+  axis%min = min(axis%tick_min, data_min, data_max)
+  axis%max = max(axis%tick_max, data_min, data_max)
 
   return
 
@@ -1120,26 +1126,23 @@ elseif (axis%bounds == 'ZERO_SYMMETRIC') then
   a_max = max(abs(data_max), abs(data_min))
   a_min = 0
 elseif (axis%bounds == 'GENERAL') then
-  a_min = min (data_min, data_max)
-  a_max = max (data_min, data_max)
+  ! Nothing to do
 else
   call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND "AXIS%BOUNDS": ' // axis%bounds)
   if (global_com%exit_on_error) call err_exit
 endif
 
-! add slop factor
+! 
 
 data_width = a_max - a_min
-slop = real_option(qp_com%dflt_axis_slop_factor, slop_factor)
-a_min = a_min + data_width * slop
-a_max = a_max - data_width * slop
+a_min = a_min + 0.3_rp * data_width / max(4, axis%major_div)
+a_max = a_max - 0.3_rp * data_width / max(4, axis%major_div)
 
 ! find possible candidates
             
 min_width = axis%major_div * max(abs(a_max)*1e-5, abs(a_min)*1e-5, 1e-29_rp)
 data_width = max(data_width, min_width)
-log_width = log10(data_width)
-data_width10 = 10d0**(floor(log_width)-1)
+data_width10 = 10d0**(floor(log10(data_width))-1)
               
 if (axis%bounds == 'ZERO_SYMMETRIC') then
   div_eff = axis%major_div / 2
@@ -1177,8 +1180,8 @@ do imin = min1, min2
     score = qp_axis_niceness (imin, imax, div_eff)
     if (score > max_score) then
       max_score = score
-      axis%min = imin * data_width10
-      axis%max = imax * data_width10
+      axis%tick_min = imin * data_width10
+      axis%tick_max = imax * data_width10
     endif
   enddo
 enddo
@@ -1188,22 +1191,23 @@ if (present(niceness_score)) niceness_score = max_score
 ! adjust the scale if necessary
 
 if (axis%bounds == 'ZERO_AT_END' .and. (data_min < 0 .or. data_max < 0)) then
-  axis%min = -axis%max
-  axis%max = 0
+  axis%tick_min = -axis%tick_max
+  axis%tick_max = 0
 elseif (axis%bounds == 'ZERO_SYMMETRIC') then
-  axis%min = -axis%max
+  axis%tick_min = -axis%tick_max
 endif
 
 ! find number of places needed
 
 call qp_calc_axis_places (axis)
 
-! reverse max/min if data max/min is reversed
+axis%min = min(axis%tick_min, data_min, data_max)
+axis%max = max(axis%tick_max, data_min, data_max)
 
-if (data_min > data_max) then
-  aa = axis%min 
-  axis%min = axis%max
-  axis%max = aa
+if (axis%tick_min == axis%tick_max) then
+  axis%dtick = 1
+else
+  axis%dtick = (axis%tick_max - axis%tick_min) / axis%major_div
 endif
 
 end subroutine qp_calc_axis_scale
@@ -1281,58 +1285,6 @@ case (6, 15, 60)
 end select
 
 end function qp_axis_niceness 
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Subroutine qp_calc_axis_divisions (axis_min, axis_max, div_min, div_max, divisions)
-!
-! Routine to calculate the best (gives the nicest looking drawing) number 
-! of major divisions for fixed axis minimum and maximum.
-! 
-! Input:
-!   axis_min  -- Real(rp): Axis minimum.
-!   axis_max  -- Real(rp): Axis maximum.
-!   div_min   -- Integer: Smallest number of divisions possible.
-!   div_max   -- Integer: Greatest number of divisions possible.
-!
-! Output:
-!   divisions -- Integer: Best number of divisions.
-!                 This will be between div_min and div_max.
-!-
-
-subroutine qp_calc_axis_divisions (axis_min, axis_max, div_min, div_max, divisions)
-
-implicit none
-
-real(rp) axis_min, axis_max
-real(rp) data_width, min_width, log_width, data_width10
-
-integer div_min, div_max, divisions
-integer i, score, this_score, imin, imax
-
-!
-
-data_width = abs(axis_max - axis_min)
-min_width = div_min * max(abs(axis_max)*1e-5, abs(axis_min)*1e-5, 1e-29_rp)
-data_width = max(data_width, min_width)
-log_width = log10(data_width)
-data_width10 = 10d0**(floor(log_width)-1)
-                
-imin = nint(axis_min / data_width10)
-imax = nint(axis_max / data_width10)
-
-score = -10000
-do i = div_min, div_max
-  this_score = qp_axis_niceness(imin, imax, i)
-  if (this_score > score) then
-    score = this_score
-    divisions = i
-  endif
-enddo
-
-end subroutine qp_calc_axis_divisions
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1631,13 +1583,22 @@ elseif (u_type == '%' .and. region == 'BOX') then
 elseif (u_type == 'DATA') then
   dx = x_inch / (qp_com%graph%x2 - qp_com%graph%x1)
   if (qp_com%plot%xx%type == 'LOG') then
-    x = (qp_com%plot%xx%max / qp_com%plot%xx%min) ** dx
+    if (qp_com%plot%xx%min == 0) then
+      x = 1
+    else
+      x = (qp_com%plot%xx%max / qp_com%plot%xx%min) ** dx
+    endif
   else
     x = dx * (qp_com%plot%xx%max - qp_com%plot%xx%min) 
   endif
+
   dy = y_inch / (qp_com%graph%y2 - qp_com%graph%y1)
   if (qp_com%plot%yy%type == 'LOG') then
-    y = (qp_com%plot%yy%max / qp_com%plot%yy%min) ** dy
+    if (qp_com%plot%yy%min == 0) then
+      y = 1
+    else
+      y = (qp_com%plot%yy%max / qp_com%plot%yy%min) ** dy
+    endif
   else
     y = dy * (qp_com%plot%yy%max - qp_com%plot%yy%min) 
   endif
@@ -1777,13 +1738,21 @@ elseif (u_type == '%' .and. region == 'BOX') then
 elseif (u_type == 'DATA') then
   dgx = qp_com%graph%x2 - qp_com%graph%x1
   if (qp_com%plot%xx%type == 'LOG') then
-    x_inch = log(x) * dgx / (log(qp_com%plot%xx%max) - log(qp_com%plot%xx%min))
+    if (x <= 0) then    ! x could be a dummy number so just return a dummy number
+      x_inch = 1  ! Dummy number
+    else
+      x_inch = log(x) * dgx / (log(qp_com%plot%xx%max) - log(qp_com%plot%xx%min))
+    endif
   else
     x_inch = x * dgx / (qp_com%plot%xx%max - qp_com%plot%xx%min)
   endif
   dgy = qp_com%graph%y2 - qp_com%graph%y1
   if (qp_com%plot%yy%type == 'LOG') then
-    y_inch = log(y) * dgy / (log(qp_com%plot%yy%max) - log(qp_com%plot%yy%min))
+    if (y <= 0) then ! y could be a dummy number so just return a dummy number
+      y_inch = 1 ! Dummy number
+    else
+      y_inch = log(y) * dgy / (log(qp_com%plot%yy%max) - log(qp_com%plot%yy%min))
+    endif
   else
     y_inch = y * dgy / (qp_com%plot%yy%max - qp_com%plot%yy%min)
   endif
@@ -1863,15 +1832,25 @@ call qp_split_units_string (u_type, region, corner, units)
 
 if (u_type == 'DATA') then
   if (qp_com%plot%xx%type == 'LOG') then
-    x0 = x / qp_com%plot%xx%min
+    if (qp_com%plot%xx%min == 0) then  ! Can happen when modifying plot parameters
+      x0 = 0
+    else
+      x0 = x / qp_com%plot%xx%min
+    endif
   else
     x0 = x - qp_com%plot%xx%min
   endif
+
   if (qp_com%plot%yy%type == 'LOG') then
-    y0 = y / qp_com%plot%yy%min
+    if (qp_com%plot%yy%min == 0) then  ! Can happen when modifying plot parameters
+      y0 = 0
+    else
+      y0 = y / qp_com%plot%yy%min
+    endif
   else
     y0 = y - qp_com%plot%yy%min
   endif
+
   call qp_to_inch_rel (x0, y0, x_inch, y_inch, units)
   x_inch = x_inch + qp_com%graph%x1
   y_inch = y_inch + qp_com%graph%y1
@@ -2132,7 +2111,7 @@ if (u(1:1) == '%') ix = 1
 
 u_type = u(:ix)
 
-if (all(u_type /= ['DATA  ', 'MM    ', 'INCH  ', 'POINTS', '%     ' ])) then
+if (all(u_type /= ['DATA  ', 'MM    ', 'INCH  ', 'POINTS', '%     '])) then
   call out_io (s_fatal$, r_name, 'BAD UNITS TYPE: "' // trim(units) // '"')
   if (global_com%exit_on_error) call err_exit
 endif
@@ -2143,7 +2122,7 @@ call string_trim (u(ix+1:), u, ix)
 if (ix == 0) return
 region = u(:ix)
 
-if (all(region /= ['PAGE ', 'BOX  ', 'GRAPH' ])) then
+if (all(region /= ['PAGE ', 'BOX  ', 'GRAPH'])) then
   call out_io (s_fatal$, r_name, 'BAD REGION: "' // trim(units) // '"')
   if (global_com%exit_on_error) call err_exit
 endif
@@ -2154,7 +2133,7 @@ call string_trim (u(ix+1:), u, ix)
 if (ix == 0) return
 corner = u(:ix)
 
-if (all(corner /= ['LB', 'LT', 'RB', 'RT' ])) then
+if (all(corner /= ['LB', 'LT', 'RB', 'RT'])) then
   call out_io (s_fatal$, r_name, 'BAD CORNER: "' // trim(units) // '"')
   if (global_com%exit_on_error) call err_exit
 endif
@@ -2299,7 +2278,7 @@ logical, optional :: clip
 
 !
 
-call qp_draw_polyline ([x1, x1, x2, x2, x1 ], [y1, y2, y2, y1, y1 ], &
+call qp_draw_polyline ([x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], &
                                             units, width, color, line_pattern, clip, style)
 
 end subroutine qp_draw_rectangle
@@ -3225,7 +3204,7 @@ if (x1 == x2 .and. y1 == y2) return
 
 call qp_save_state (.true.)
 call qp_set_line_attrib (style, width, color, line_pattern, clip)
-call qp_draw_polyline_no_set ([x1, x2 ], [y1, y2 ], units)
+call qp_draw_polyline_no_set ([x1, x2], [y1, y2], units)
 call qp_restore_state
 
 end subroutine qp_draw_line
@@ -4349,10 +4328,10 @@ implicit none
                                                                       
 type (qp_axis_struct) ax1, ax2
 
-real(rp) del, dx0, dum, x1, y1, dy, x0, y0, y_pos, dy1, dy2
-real(rp) dy11, dy22, x11, dg, xl0
+real(rp) dx0, dum, x1, y1, dy, x0, y0, y_pos, dy1, dy2
+real(rp) dy11, dy22, x11, tick_width, x0_tick, r, d, x1_inch
 
-integer i, j, m_div, who_sign, divisions, n_draw, major_div
+integer i, j, m_div, who_sign, divisions, m_min, m_max, d_div
 
 character(*) who
 character(16) justify, str
@@ -4381,17 +4360,7 @@ endif
 ! the axis line itself
 
 call qp_set_line_attrib ('AXIS')
-call qp_draw_polyline_no_set ([0.0_rp, 1.0_rp ], [y_pos, y_pos ], '%GRAPH')  
-
-major_div = ax1%major_div
-if (major_div < 1) major_div = max(1, ax1%major_div_nominal)
-del = (ax1%max - ax1%min) / major_div
-
-if (ax1%minor_div == 0) then
-  call qp_calc_minor_div (del, ax1%minor_div_max, m_div)
-else
-  m_div = ax1%minor_div
-endif
+call qp_draw_polyline_no_set ([0.0_rp, 1.0_rp], [y_pos, y_pos], '%GRAPH')  
 
 if (ax2%tick_side == 0) then
   dy1  =  ax1%major_tick_len
@@ -4405,69 +4374,97 @@ else
   dy22 = ax1%minor_tick_len * ax2%tick_side * who_sign
 endif
 
-call qp_to_inch_rel (0.0_rp, y_pos, x0, y0, '%GRAPH')
-call qp_to_inch_rel (1.0_rp, 0.0_rp, dg, dum, '%GRAPH')
-
-if (ax1%type == 'LOG') then
-  divisions = nint(log10(ax1%max)) - nint(log10(ax1%min))
-  xl0 = (nint(log10(ax1%min)) - log10(ax1%min)) * dg / divisions
-  n_draw = max(nint(real(divisions)/major_div), 1)
-else
-  divisions = major_div
-  xl0 = 0
-  n_draw = 1
-endif
-
-dx0 = dg / divisions
-
 if (ax1%number_side*who_sign == +1) then
   justify = 'CB'
 else
   justify = 'CT'
 endif
 
-! major and minor ticks
+call qp_to_inch_rel (1.0_rp, y_pos, x1_inch, y0, '%GRAPH')
 
-do i = 0, divisions - 1
+!
 
-  x1 = i*dx0 + xl0
-  y1 = y0 + ax1%number_side * who_sign * ax1%number_offset
- 
-  ! major ticks
-  call qp_draw_polyline_no_set ([x1, x1 ], [y0+dy1, y0+dy2 ], 'INCH')
-
-  ! Minor ticks
-
-  if (ax1%type == 'LOG') then
-    do j = 2, 9
-      x11 = (i + log10(real(j))) * dx0 + xl0
-      call qp_draw_polyline_no_set ([x11, x11 ], [y0+dy11, y0+dy22 ], 'INCH')
+if (ax1%type == 'LOG') then
+  if (ax1%tick_min <= 0) then
+    call out_io (s_abort$, r_name, 'NEGATIVE VALUES ENCOUNTERED WHEN DRAWING LOG X-AXIS!')
+    if (global_com%exit_on_error) call err_exit
+    call qp_restore_state
+    return
+  endif
+  call qp_to_inch_rel (ax1%tick_max/ax1%tick_min, 0.0_rp, tick_width, dum, 'DATA')
+  call qp_to_inch_rel (ax1%tick_min/ax1%min, 0.0_rp, x0_tick, dum, 'DATA')
+  d_div = nint(log10(ax1%dtick))
+  m_max = nint(log10(ax1%tick_max))
+  m_min = nint(log10(ax1%tick_min))
+  divisions = (m_max - m_min) / d_div
+  dx0 = tick_width / divisions
+  ! minor ticks
+  ! If d_div > 1 then not enough room to subdivide a decade.
+  if (d_div == 1) then
+    do i = -1, divisions
+      do j = 2, 9
+        x11 = (i + log10(real(j))) * dx0 + x0_tick
+        if (x11 < 0 .or. x11 > x1_inch) cycle
+        call qp_draw_polyline_no_set ([x11, x11], [y0+dy11, y0+dy22], 'INCH')
+      enddo
     enddo
-  else
-    do j = 1, m_div - 1
-      x11 = (i + real(j) / m_div) * dx0 + xl0
-      call qp_draw_polyline_no_set ([x11, x11 ], [y0+dy11, y0+dy22 ], 'INCH')
+  elseif (d_div <= max(ax1%minor_div, ax1%minor_div_max)) then
+    do i = m_min, m_max-1
+      do j = 0, d_div-1
+        x11 = (i + real(j) / d_div) * dx0
+        call qp_draw_polyline_no_set ([x11, x11], [y0+dy11, y0+dy22], 'INCH')
+      enddo
     enddo
   endif
-enddo
+
+else ! Linear scale
+  call qp_to_inch_rel (ax1%tick_max-ax1%tick_min, 0.0_rp, tick_width, dum, 'DATA')
+  call qp_to_inch_rel (ax1%tick_min-ax1%min, 0.0_rp, x0_tick, dum, 'DATA')
+  divisions = ax1%major_div
+  dx0 = tick_width / divisions
+
+  ! minor ticks
+  if (ax1%minor_div == 0) then
+    call qp_calc_minor_div (ax1%dtick, ax1%minor_div_max, m_div)
+  else
+    m_div = ax1%minor_div
+  endif
+  
+  do i = -1, divisions
+    do j = 1, m_div - 1
+      r = i + real(j) / m_div
+      d = ax1%tick_min + r * ax1%dtick
+      if (d < ax1%min .or. d > ax1%max) cycle
+      x11 = r * dx0 + x0_tick
+      call qp_draw_polyline_no_set ([x11, x11], [y0+dy11, y0+dy22], 'INCH')
+    enddo
+  enddo
+endif
+
 
 ! Axis numbers
 
 call qp_set_text_attrib ('AXIS_NUMBERS')
 do i = 0, divisions
 
-  x1 = i*dx0 + xl0
+  if (ax1%type == 'LOG') then
+    x1 = i*dx0 + x0_tick
+  else
+    x1 = i*dx0 + x0_tick
+  endif
   y1 = y0 + ax1%number_side * who_sign * ax1%number_offset
  
-  if (.not. ax2%draw_numbers) cycle
-  if (n_draw * (i/n_draw) /= i) cycle
+  ! major tick
+  call qp_draw_polyline_no_set ([x1, x1], [y0+dy1, y0+dy2], 'INCH')
 
   ! numbers
+  if (.not. ax2%draw_numbers) cycle
+
   call qp_to_axis_number_text (ax1, i, str)
 
   if (i == 0) then
     call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
-  elseif (i == major_div) then
+  elseif (i == ax1%major_div) then
     call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
   else
     call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
@@ -4512,13 +4509,13 @@ end subroutine qp_draw_x_axis
 subroutine qp_draw_y_axis (who, x_pos) 
 
 implicit none
-                                                                      
+
 type (qp_axis_struct) ax1, ax2
 
-real(rp) del, dum, x1, y1, dx, x0, y0, x_pos, dx1, dx2, dx11, dx22
-real(rp) number_len, dy0, y11, dg, yl0
+real(rp) x1, y1, dx, x0, y0, x_pos, dx1, dx2, dx11, dx22, y1_inch
+real(rp) number_len, dy0, y11, tick_width, ax_len, dum, y0_tick, r, d
 
-integer i, j, m_div, who_sign, number_side, divisions, n_draw, major_div
+integer i, j, m_div, who_sign, number_side, divisions, d_div, m_max, m_min
 
 character(*) who
 character(2) justify
@@ -4554,69 +4551,79 @@ call qp_draw_polyline_no_set ([x_pos, x_pos], [0.0_rp, 1.0_rp], '%GRAPH')
 
 ! major and minor divisions calc
 
-major_div = ax1%major_div
-if (major_div < 1) major_div = max(1, ax1%major_div_nominal)
-del = (ax1%max - ax1%min) / major_div
-
-if (ax1%minor_div == 0) then
-  call qp_calc_minor_div (del, ax1%minor_div_max, m_div)
-else
-  m_div = ax1%minor_div
-endif
-
 if (ax2%tick_side == 0) then
-  dx1 =  ax1%major_tick_len
-  dx2 = -ax1%major_tick_len
+  dx1  =  ax1%major_tick_len
+  dx2  = -ax1%major_tick_len
   dx11 =  ax1%minor_tick_len
   dx22 = -ax1%minor_tick_len
 else
-  dx1 = 0
-  dx2 = ax1%major_tick_len * ax2%tick_side * who_sign
+  dx1  = 0
+  dx2  = ax1%major_tick_len * ax2%tick_side * who_sign
   dx11 = 0
   dx22 = ax1%minor_tick_len * ax2%tick_side * who_sign
 endif
 
-call qp_to_inch_rel (x_pos, 0.0_rp, x0, y0, '%GRAPH')
-call qp_to_inch_rel (0.0_rp, 1.0_rp, dum, dg, '%GRAPH')
+call qp_to_inch_rel (x_pos, 1.0_rp, x0, y1_inch, '%GRAPH')
 
 if (ax1%type == 'LOG') then
-  divisions = nint(log10(ax1%max)) - nint(log10(ax1%min))
-  yl0 = (nint(log10(ax1%min)) - log10(ax1%min)) * dg / divisions
-  n_draw = max(nint(real(divisions/major_div)), 1)
-else
-  divisions = major_div
-  yl0 = 0
-  n_draw = 1
-endif
-
-dy0 = dg / divisions
-
-! Major and minor ticks
-
-do i = 0, divisions-1
-
-  x1 = x0 + number_side * ax1%number_offset
-  y1 = i*dy0 + yl0
-
-  ! major ticks
-  call qp_draw_polyline_no_set ([x0+dx1, x0+dx2 ], [y1, y1 ], 'INCH')
-
-  ! Minor ticks
-
-  if (ax1%type == 'LOG') then
-    do j = 2, 9
-      y11 = (i + log10(real(j))) * dy0 + yl0
-      call qp_draw_polyline_no_set ([x0+dx11, x0+dx22 ], [y11, y11 ], 'INCH')
+  if (ax1%tick_min <= 0 .or. ax1%min <= 0) then
+    call out_io (s_abort$, r_name, 'NEGATIVE VALUES ENCOUNTERED WHEN DRAWING LOG Y-AXIS!')
+    if (global_com%exit_on_error) call err_exit
+    call qp_restore_state
+    return
+  endif
+  call qp_to_inch_rel (0.0_rp, ax1%tick_max/ax1%tick_min, dum, tick_width, 'DATA')
+  call qp_to_inch_rel (0.0_rp, ax1%tick_min/ax1%min, dum, y0_tick, 'DATA')
+  divisions = max(nint(log10(ax1%tick_max)) - nint(log10(ax1%tick_min)), 1)
+  d_div = nint(log10(ax1%dtick))
+  m_max = nint(log10(ax1%tick_max))
+  m_min = nint(log10(ax1%tick_min))
+  divisions = (m_max - m_min) / d_div
+  dy0 = tick_width / divisions
+  ! If d_div > 1 then not enough room to subdivide a decade.
+  if (d_div == 1) then
+    do i = -1, divisions
+      do j = 2, 9
+        y11 = (i + log10(real(j))) * dy0 + y0_tick
+        if (y11 < 0 .or. y11 > y1_inch) cycle
+        call qp_draw_polyline_no_set ([x0+dx11, x0+dx22], [y11, y11], 'INCH')
+      enddo
     enddo
-  else
-    do j = 1, m_div - 1
-      y11 = (i + real(j) / m_div) * dy0 + yl0
-      call qp_draw_polyline_no_set ([x0+dx11, x0+dx22 ], [y11, y11 ], 'INCH')
+  elseif (d_div <= max(ax1%minor_div, ax1%minor_div_max)) then
+    do i = m_min, m_max-1
+      do j = 0, d_div-1
+        y11 = (i + real(j) / d_div) * dy0
+        call qp_draw_polyline_no_set ([x0+dx11, x0+dx22], [y11, y11], 'INCH')
+      enddo
     enddo
   endif
-enddo
 
-! draw axis numbers
+else ! Linear
+  call qp_to_inch_rel (0.0_rp, ax1%tick_max-ax1%tick_min, dum, tick_width, 'DATA')
+  call qp_to_inch_rel (0.0_rp, ax1%tick_min-ax1%min, dum, y0_tick, 'DATA')
+  divisions = ax1%major_div
+  dy0 = tick_width / divisions
+
+  ! Minor ticks
+  if (ax1%minor_div == 0) then
+    call qp_calc_minor_div (ax1%dtick, ax1%minor_div_max, m_div)
+  else
+    m_div = ax1%minor_div
+  endif
+
+  do i = -1, divisions
+    do j = 1, m_div - 1
+      r = i + real(j) / m_div
+      d = ax1%tick_min + r * ax1%dtick
+      if (d < ax1%min .or. d > ax1%max) cycle
+      y11 = r * dy0 + y0_tick
+      call qp_draw_polyline_no_set ([x0+dx11, x0+dx22], [y11, y11], 'INCH')
+    enddo
+  enddo
+
+endif
+
+! draw axis numbers and major tick
 
 call qp_set_text_attrib ('AXIS_NUMBERS')
 
@@ -4625,10 +4632,13 @@ number_len = 0   ! length in inches
 do i = 0, divisions
 
   x1 = x0 + number_side * ax1%number_offset
-  y1 = i*dy0 + yl0
+  y1 = i*dy0 + y0_tick
 
+  ! major tick
+  call qp_draw_polyline_no_set ([x0+dx1, x0+dx2], [y1, y1], 'INCH')
+
+  ! Number
   if (.not. ax2%draw_numbers) cycle
-  if (n_draw * (i/n_draw) /= i) cycle
 
   call qp_to_axis_number_text (ax1, i, str)
 
@@ -4638,13 +4648,7 @@ do i = 0, divisions
     justify = 'R'
   endif
 
-  if (i == 0) then
-    justify(2:2) = 'B'
-  elseif (i == major_div) then
-    justify(2:2) = 'T'
-  else
-    justify(2:2) = 'C'
-  endif
+  justify(2:2) = 'C'
 
   call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
 
@@ -4677,11 +4681,11 @@ end subroutine qp_draw_y_axis
 ! Subroutine to form the text string for an axis number.
 !
 ! Input:
-!   axis -- qp_axis_struct:
-!   ix_n -- Integer: Index of particular number.
+!   axis      -- qp_axis_struct:
+!   ix_n      -- Integer: Index of particular number.
 !
 ! Output:
-!   text -- Character(*): Character string.
+!   text      -- Character(*): Character string.
 !-
 
 subroutine qp_to_axis_number_text (axis, ix_n, text)
@@ -4691,9 +4695,9 @@ implicit none
 type (qp_axis_struct) axis
 
 integer i, ix_n, ie, n_char, n_log_min, n_log_max, n_log_delta
-integer n_zero_crit, ix, n_log, p, major_div
+integer n_zero_crit, ix, n_log, p
 
-real(rp) val, delta, v, effective_zero
+real(rp) val, v, effective_zero
 
 character(*) text
 character(20) fmt
@@ -4703,7 +4707,7 @@ logical too_small, too_large
 ! LOG scale
 
 if (axis%type == 'LOG') then
-  ie =  (nint(log10(axis%min)) + ix_n)
+  ie =  nint(log10(axis%tick_min) + ix_n * log10(axis%dtick))
   select case (ie)
   case (-2); text = '0.01'
   case (-1); text = '0.1'
@@ -4718,11 +4722,8 @@ endif
 
 ! Calculate output number
 
-major_div = axis%major_div
-if (major_div < 1) major_div = max(1, axis%major_div_nominal)
-delta = (axis%max - axis%min) / major_div
-val = axis%min + ix_n * delta
-effective_zero = max(abs(axis%max), abs(axis%min)) / 10.0_rp**qp_com%max_digits
+val = axis%tick_min + ix_n * axis%dtick
+effective_zero = max(abs(axis%tick_min), abs(axis%tick_max)) / 10.0_rp**qp_com%max_digits
 
 ! If the number is essentially zero then life is simple
 
@@ -4735,8 +4736,8 @@ endif
 
 n_log_min = 1000
 n_log_max = -1000
-do i = 0, major_div
-  v = axis%min + i * delta
+do i = 0, nint((axis%tick_max-axis%tick_min) / axis%dtick)
+  v = axis%tick_min + i * axis%dtick
   if (abs(v) < effective_zero) cycle  ! Ignore zero.
   n_log = floor(log10(abs(v)+1d-30) + 0.0001)
   n_log_min   = min (n_log_min, n_log)
@@ -4745,7 +4746,7 @@ enddo
 
 n_char = max(0, n_log_max) + 1
 n_char = n_char + max(axis%places, 0)
-if (axis%max < 0 .or. axis%min < 0) n_char = n_char + 1  ! for negative sign
+if (axis%tick_max < 0 .or. axis%tick_min < 0) n_char = n_char + 1  ! for negative sign
 if (axis%places > 0) n_char = n_char + 1  ! add 1 character for the decimal place itself
 
 ! Special case: Switch to scientific notation if the number is too big or too small.
@@ -4754,7 +4755,7 @@ too_large = .false.
 too_small = .false.
 n_zero_crit = qp_com%max_axis_zero_digits 
 
-n_log_delta = floor(log10(abs(delta)+1d-30) + 0.0001)
+n_log_delta = floor(log10(axis%dtick+1d-30) + 0.0001)
 if (axis%places <= 0) then  ! check for too big
   if (n_log_delta > n_zero_crit) then 
     too_large = .true.
@@ -4867,60 +4868,67 @@ end subroutine qp_set_graph_attrib
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_grid
+! Subroutine qp_draw_grid ()
 !
 ! Subroutine to draw a grid on the current graph.
 !-
 
-subroutine qp_draw_grid 
+subroutine qp_draw_grid ()
 
 implicit none
 
-type (qp_axis_struct), pointer :: axis
-real(rp) r0, z(2), r01(2)
-integer i, divisions, major_div
+type (qp_axis_struct), pointer :: ax, ay
+real(rp) r0, z(2), width_x, width_y
+integer i, divisions
 
 !
 
 call qp_save_state (.true.)
 call qp_set_line_attrib ('GRID')
-r01 = [0.0, 1.0 ]
+
+ax => qp_com%plot%xx
+ay => qp_com%plot%yy
+
+width_x = ax%max - ax%min
+width_y = ay%max - ay%min
 
 ! horizontal lines
 
-axis => qp_com%plot%xx
+if (ay%type == 'LOG') then
+  if (ay%tick_min > 0) then
+    divisions = nint((log10(ay%tick_max) - log10(ay%tick_min)) / log10(ay%dtick))
+    do i = 0, divisions
+      z = ay%tick_min * ay%dtick**i
+      call qp_draw_polyline_no_set ([ax%min, ax%max], z, 'DATA')
+    enddo
+  endif
 
-if (axis%type == 'LOG') then
-  divisions = nint(log10(axis%max)) - nint(log10(axis%min))
-  r0 = (nint(log10(axis%min)) - log10(axis%min)) / divisions
 else
-  divisions = axis%major_div
-  if (divisions < 1) divisions = max(1, axis%major_div_nominal)
-  r0 = 0
+  divisions = nint((ay%tick_max-ay%tick_min) / ay%dtick)
+  do i = 0, divisions
+    z = ay%tick_min + i * ay%dtick
+    call qp_draw_polyline_no_set ([ax%min, ax%max], z, 'DATA')
+  enddo
 endif
-
-do i = 1, divisions - 1
-  z = real(i) / divisions + r0
-  call qp_draw_polyline_no_set (z, r01, '%GRAPH')
-enddo
 
 ! vertical lines
 
-axis => qp_com%plot%yy
+if (ax%type == 'LOG') then
+  if (ax%tick_min > 0) then
+    divisions = nint((log10(ax%tick_max) - log10(ax%tick_min)) / log10(ax%dtick))
+    do i = 0, divisions
+      z = ax%tick_min * ax%dtick**i
+      call qp_draw_polyline_no_set (z, [ay%min, ay%max], 'DATA')
+    enddo
+  endif
 
-if (axis%type == 'LOG') then
-  divisions = nint(log10(axis%max)) - nint(log10(axis%min))
-  r0 = (nint(log10(axis%min)) - log10(axis%min)) / divisions
 else
-  divisions = axis%major_div
-  if (divisions < 1) divisions = max(1, axis%major_div_nominal)
-  r0 = 0
+  divisions = nint((ax%tick_max-ax%tick_min) / ax%dtick)
+  do i = 0, divisions
+    z = ax%tick_min + i * ax%dtick
+    call qp_draw_polyline_no_set (z, [ay%min, ay%max], 'DATA')
+  enddo
 endif
-
-do i = 1, divisions - 1
-  z = real(i) / divisions + r0
-  call qp_draw_polyline_no_set (r01, z, '%GRAPH')
-enddo
 
 !
 
@@ -4973,6 +4981,8 @@ idel = nint(abs(delta) / 10d0**(floor(log_del)-1))
 ! A division of 1 is not acceptable in this first step.
 
 do divisions = div_max, 2, -1
+  if (idel/divisions == 5) return
+  if (mod(idel/divisions + 5, 10) == 0) cycle  ! Reject 15, 25, 35, 45, etc.
   if (mod(idel, 5 * divisions) == 0) return
 enddo
 
@@ -5403,37 +5413,35 @@ subroutine axis_scale (axis_z, axis_t, tz_scale_ratio, tz_graph_ratio)
 
 type (qp_axis_struct) axis_z, axis_t
 
-real(rp) tz_scale_ratio, tz_graph_ratio, div_t, dz_max
+real(rp) tz_scale_ratio, tz_graph_ratio, dz_max
 
 ! Change z-axis min/max to match t-axis
 
-div_t = (axis_t%max - axis_t%min) /axis_t%major_div
+if (abs(axis_z%tick_max / axis_t%dtick) < huge(1)) axis_z%tick_max = axis_t%dtick * ceiling(axis_z%max / axis_t%dtick - 0.3)
+if (abs(axis_z%tick_min / axis_t%dtick) < huge(1)) axis_z%tick_min = axis_t%dtick * floor(axis_z%min / axis_t%dtick + 0.3)
 
-if (abs(axis_z%max / div_t) < huge(1)) &
-    axis_z%max = div_t * ceiling (0.99999 * axis_z%max / div_t)
-if (abs(axis_z%min / div_t) < huge(1)) &
-    axis_z%min = div_t * floor (0.99999 * axis_z%min / div_t)
-
-! Need to reduce the z-axis min/max range if there is not enought z-margin
+! Need to reduce the z-axis tick_min/max range if there is not enought z-margin
 ! Only need to do this with axis_to_scale = "X" or "y".
 ! With axis_to_scale = "", the t-margin is allowed to be adjusted.
 
 if (ax_to_scale /= 'XY') then
-  dz_max = (axis_t%max - axis_t%min) / tz_graph_ratio
-  if (axis_z%max - axis_z%min > dz_max) then
-    axis_z%min = div_t * nint((axis_z%max + axis_z%min - dz_max) / (2 * div_t)) 
-    dz_max = div_t * int(1.0001 * dz_max / div_t)
-    if (dz_max == 0) dz_max = div_t 
-    axis_z%max = axis_z%min + dz_max
+  dz_max = (axis_t%tick_max - axis_t%tick_min) / tz_graph_ratio
+  if (axis_z%tick_max - axis_z%tick_min > dz_max) then
+    axis_z%tick_min = axis_t%dtick * nint((axis_z%tick_max + axis_z%tick_min - dz_max) / (2 * axis_t%dtick)) 
+    dz_max = axis_t%dtick * int(1.0001 * dz_max / axis_t%dtick)
+    if (dz_max == 0) dz_max = axis_t%dtick 
+    axis_z%tick_max = axis_z%tick_min + dz_max
   endif
 endif
 
 ! adjust z-axis major_div, etc. to match t-axis.
 
-axis_z%major_div = nint((axis_z%max - axis_z%min) / div_t)
-
+axis_z%dtick = axis_t%dtick
+axis_z%major_div = nint((axis_z%tick_max - axis_z%tick_min) / axis_z%dtick)
 axis_z%places = axis_t%places
 axis_z%minor_div = axis_t%minor_div
+axis_z%max = max(axis_z%max, axis_z%tick_max)
+axis_z%min = min(axis_z%min, axis_z%tick_min)
 
 end subroutine axis_scale
 
