@@ -32,6 +32,28 @@ class tao_global_vars_window(tao_parameter_window):
                 for win in self.root.refresh_windows[k]:
                     win.refresh()
 
+#----------------------------------------------------
+# bmad_com window
+
+class tao_bmad_com_window(tao_parameter_window):
+    def __init__(self, root):
+        bmad_list = root.pipe.cmd_in("python bmad_com")
+        bmad_list = bmad_list.splitlines()
+        for i in range(len(bmad_list)):
+            bmad_list[i]=str_to_tao_param(bmad_list[i])
+        tao_parameter_window.__init__(self, root, "Bmad Parameters", bmad_list, root.pipe)
+        b = tk.Button(self.button_frame, text="Set Bmad Parameters",
+                command=self.set_callback)
+        b.pack()
+
+    def set_callback(self):
+        tao_set(self.tao_list, "set bmad_com ", self.root.pipe)
+        # Refresh windows
+        if self.root.pipe.cmd_in('python lat_calc_done') == 'T':
+            for k in self.root.refresh_windows.keys():
+                for win in self.root.refresh_windows[k]:
+                    win.refresh()
+
 #-----------------------------------------------------
 # History Window
 

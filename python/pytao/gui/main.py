@@ -77,6 +77,7 @@ class tao_root_window(tk.Tk):
         self.bind_all('<Alt-n>', self.new_var_event)
         self.bind_all('<Alt-p>', self.new_template_event)
         self.bind_all('<Control-g>', self.global_vars_event)
+        self.bind_all('<Alt-g>', self.bmad_com_event)
         self.bind_all('<Control-d>', self.view_data_event)
         self.bind_all('<Control-e>', self.view_ele_event)
         self.bind_all('<Control-l>', self.view_lattice_event)
@@ -84,6 +85,7 @@ class tao_root_window(tk.Tk):
         self.bind_all('<Control-r>', self.plot_region_event)
         self.bind_all('<Alt-v>', self.view_vars_event)
         self.bind_all('<Alt-q>', self.reinit_event)
+        self.bind_all('<Control-b>', self.beam_init_event)
         # Clear out python lat_calc_done
         self.pipe.cmd_in('python lat_calc_done')
 
@@ -189,12 +191,14 @@ class tao_root_window(tk.Tk):
                 command = self.view_data_cmd, accelerator = 'Ctrl+D')
         view_menu.add_command(label = 'Variables...',
                 command = self.view_vars_cmd, accelerator = 'Alt+V')
-        view_menu.add_command(label = 'Global Variables...',
-                command = self.set_global_vars_cmd, accelerator = 'Ctrl+G')
         view_menu.add_command(label = 'Lattice Elements...',
                 command = self.view_ele_cmd, accelerator = 'Ctrl+E')
         view_menu.add_command(label = 'Lattice...',
                 command = self.view_lattice_cmd, accelerator = 'Ctrl+L')
+        view_menu.add_command(label = 'Global Variables...',
+                command = self.set_global_vars_cmd, accelerator = 'Ctrl+G')
+        view_menu.add_command(label = 'Bmad Parameters...',
+                command = self.set_bmad_com_cmd, accelerator = 'Alt+G')
         self.menubar.add_cascade(label = 'View', menu = view_menu)
 
         plot_menu = tk.Menu(self.menubar, tearoff=0)
@@ -653,6 +657,9 @@ class tao_root_window(tk.Tk):
     def set_global_vars_cmd(self):
         win = tao_global_vars_window(self)
 
+    def set_bmad_com_cmd(self):
+        win = tao_bmad_com_window(self)
+
     def view_vars_cmd(self):
         win = tao_var_general_window(self, self.pipe)
 
@@ -678,6 +685,9 @@ class tao_root_window(tk.Tk):
 
     def global_vars_event(self, event):
         self.set_global_vars_cmd()
+
+    def bmad_com_event(self, event):
+        self.set_bmad_com_cmd()
 
     def view_data_event(self, event):
         self.view_data_cmd()
