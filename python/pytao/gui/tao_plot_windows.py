@@ -698,6 +698,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
         self.compat_dict['index'] = self.compat_dict['ele_index'] \
                 = self.compat_dict['lat'] = self.compat_dict['var'] \
                 = self.compat_dict['data'] = ['data']
+        self.compat_dict['index'].append('floor_plan')
         self.compat_dict['s'] = ['data', 'lat_layout']
         self.compat_dict['floor'] = ['floor_plan']
         self.compat_dict['phase_space'] = [

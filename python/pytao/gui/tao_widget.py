@@ -910,6 +910,19 @@ def enum_fetch(enum,pipe):
         for i in range(len(option_list)):
             sc = option_list[i].find(';')
             option_list[i] = option_list[i][sc+1:]
+        # Special case: ele shapes
+        # Have to add in custom shapes
+        if enum == "shape.shape":
+            custom_shapes = pipe.cmd_in("python shape_pattern_list")
+            custom_shapes = custom_shapes.splitlines()
+            for i in range(len(custom_shapes)):
+                custom_shapes[i] = custom_shapes[i].split(';')[0].strip()
+            # Insert in custom pattern slot if possible
+            if "Pattern:<pattern-name>" in option_list:
+                ix = option_list.index("Pattern:<pattern-name>")
+                option_list = option_list[:ix] + custom_shapes + option_list[ix+1:]
+            else:
+                option_list = option_list + custom_shapes
     else:
         option_list = ["TAO NOT STARTED"]
     if option_list == []:
