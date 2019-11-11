@@ -85,13 +85,14 @@ logical err_flag
 
 character(*), parameter :: r_name = 'calc_radiation_tracking_g_factors'
 
-!
+! Init
 
 g_x = 0; g_y = 0
 g2 = 0;  g3 = 0
 
 select case (ele%key)
 case (quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$, em_field$)
+! All other types ignored.
 case default
   len2 = 0
   return
@@ -199,13 +200,13 @@ kx_tot = 0
 ky_tot = 0
 
 do i = 0, ix_mag_max
-  call ab_multipole_kick (a_pole_mag(i), b_pole_mag(i), i, orbit%species, ele%orientation, orbit, kx, ky, pole_type = magnetic$)
+  call ab_multipole_kick (a_pole_mag(i), b_pole_mag(i), i, orbit2%species, ele%orientation, orbit2, kx, ky, pole_type = magnetic$)
   kx_tot = kx_tot + kx
   ky_tot = ky_tot + ky
 enddo
 
-do i = 0, ix_mag_max
-  call ab_multipole_kick (a_pole_elec(i), b_pole_elec(i), i, orbit%species, ele%orientation, orbit, kx, ky, pole_type = electric$)
+do i = 0, ix_elec_max
+  call ab_multipole_kick (a_pole_elec(i), b_pole_elec(i), i, orbit2%species, ele%orientation, orbit2, kx, ky, pole_type = electric$)
   kx_tot = kx_tot + kx
   ky_tot = ky_tot + ky
 enddo
@@ -214,15 +215,15 @@ enddo
 
 select case (ele%key)
 case (sbend$)
-  g_x = -kx_tot + ele%value(g$) + ele%value(g_err$) 
-  g_y = -ky_tot
+  g_x = kx_tot + ele%value(g$) + ele%value(g_err$) 
+  g_y = ky_tot
   g2 = g_x**2 + g_y**2
   g3 = sqrt(g2)**3
   len2 = len2 * (1.0_rp + ele%value(g$) * orbit2%vec(1))
 
 case default
-  g_x = -kx_tot
-  g_y = -ky_tot
+  g_x = kx_tot
+  g_y = ky_tot
   g2 = g_x**2 + g_y**2
   g3 = sqrt(g2)**3
 end select
