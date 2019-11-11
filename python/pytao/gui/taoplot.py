@@ -261,18 +261,15 @@ class taoplot:
             '-12':'(12,0,0)'
         }
 
-        # Graphing Data
-        #obtains information about the number and data of graphs from tao
-
-        # Region Data
+        # Plot Data...
 
         # List of plotting parameter strings from tao command python plot1
-        rInfo=pipe.cmd_in('python plot1 '+PlotRegion,no_warn = True).splitlines()
+        pInfo=pipe.cmd_in('python plot1 '+PlotRegion,no_warn = True).splitlines()
 
         # Dictionary of Tao plot parameter name to the corresponding value.
         pInfoDict = {}
-        for i in range(len(rInfo)):
-            pInfoDict[rInfo[i].split(';')[0]]=str_to_tao_param(rInfo[i])
+        for i in range(len(pInfo)):
+            pInfoDict[pInfo[i].split(';')[0]]=str_to_tao_param(pInfo[i])
 
         # List of graph names and heights
         gNameList = []  
@@ -290,21 +287,22 @@ class taoplot:
 
         gs = fig.add_gridspec(nrows=number_graphs,ncols=1, height_ratios=gHeightsList)
 
-        GraphDict = {}  # Dictionary of graph name keys with the graph's subplot as it's value
-        gFullNameList = [] # List of graphs, eg: r1.g or r3.x
+        gSubPlotList = [None]  # List of graphs with the graph's matplotlib subplot as it's value.
+        ix_latlayout = 0       # gSubPlotList[0] is the lat_layout graph that is drawn with data plots.
+        gFullNameList = [] # List of graph names, eg: r1.g or r3.x
 
-        for gNumber in range(len(gNameList)):
+        for gNum in range(1, len(gNameList)+1):
 
             # Create plots in figure, second line also makes x axes scale together
-            if gNumber == 0:
-                GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(gs[gNumber,0])
-            elif gNumber > 0:
-                GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(gs[gNumber,0],sharex=GraphDict['graph1'])
+            if gNum == 1:
+                gSubPlotList.append(fig.add_subplot(gs[gNum-1,0]))
+            elif gNum > 1:
+                gSubPlotList.append(fig.add_subplot(gs[gNum-1,0],sharex=gSubPlotList[1]))
 
             # Graph Data...
 
             # Graph "region.graph" full name, EG: "r13.g" or "top.x"
-            gFullName = PlotRegion + '.' + gNameList[gNumber]
+            gFullName = PlotRegion + '.' + gNameList[gNum-1]
             gFullNameList.append(gFullName)
 
             # List of graph parameters from tao command python plot_graph
@@ -484,8 +482,8 @@ class taoplot:
                 #boundaries for wave analysis rectangles
 
                 if gInfoDict['graph^type'].value == 'data' or gInfoDict['graph^type'].value == 'wave.0' or gInfoDict['graph^type'].value == 'wave.a' or gInfoDict['graph^type'].value == 'wave.b':
-                    LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
-                    GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
+                    LineList.append(gSubPlotList[gNum].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
+                    gSubPlotList[gNum].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
 
                     # Add lat_layout if x-axis is "s" (longitudinal postion).
                     if pInfoDict['x_axis_type'].value == 's':
@@ -506,26 +504,26 @@ class taoplot:
                     #wave analysis rectangle color
 
                     if gInfoDict['graph^type'].value == 'wave.0' or gInfoDict['graph^type'].value == 'wave.a':
-                        GraphDict['graph'+str(gNumber+1)].add_patch(patches.Rectangle((a1,yMin),a2-a1,yMax-yMin,fill=False,color=waveColor))
+                        gSubPlotList[gNum].add_patch(patches.Rectangle((a1,yMin),a2-a1,yMax-yMin,fill=False,color=waveColor))
                     if gInfoDict['graph^type'].value == 'wave.0' or gInfoDict['graph^type'].value == 'wave.b':
-                        GraphDict['graph'+str(gNumber+1)].add_patch(patches.Rectangle((b1,yMin),b2-b1,yMax-yMin,fill=False,color=waveColor))
+                        gSubPlotList[gNum].add_patch(patches.Rectangle((b1,yMin),b2-b1,yMax-yMin,fill=False,color=waveColor))
                 #line and symbol graphs
 
                 elif gInfoDict['graph^type'].value == 'dynamic_aperture':
-                    LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
-                    GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
+                    LineList.append(gSubPlotList[gNum].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
+                    gSubPlotList[gNum].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
                 #dynamic aperture graphs
 
                 elif gInfoDict['graph^type'].value == 'phase_space':
                     if lInfo != []:
-                        LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
-                        GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
+                        LineList.append(gSubPlotList[gNum].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
+                        gSubPlotList[gNum].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
                     else:
-                        LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2))
+                        LineList.append(gSubPlotList[gNum].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2))
                 #phase space graphs
 
                 elif gInfoDict['graph^type'].value == 'histogram':
-                    LineList.append(GraphDict['graph'+str(gNumber+1)].hist(xpList,bins=int(hInfoDictList[CurvesList.index(i)]['number'].value),weights=ypList,histtype='step',color=i[5]))
+                    LineList.append(gSubPlotList[gNum].hist(xpList,bins=int(hInfoDictList[CurvesList.index(i)]['number'].value),weights=ypList,histtype='step',color=i[5]))
                 #histogram
 
             if gInfoDict['graph^type'].value == 'key_table':
@@ -576,21 +574,21 @@ class taoplot:
 
 
             if (gInfoDict['draw_curve_legend'].value == True and LabelList != ['']) and gInfoDict['graph^type'].value != 'lat_layout' and gInfoDict['graph^type'].value != 'floor_plan':
-                GraphDict['graph'+str(gNumber+1)].legend(LegendList,LabelList)
+                gSubPlotList[gNum].legend(LegendList,LabelList)
             #plot legend
 
             plt.xlabel(pgp_to_mpl(gInfoDict['x'].get_component('label')))
             plt.ylabel(pgp_to_mpl(gInfoDict['y'].get_component('label')))
             #plot axis labels
 
-            GraphDict['graph'+str(gNumber+1)].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
+            gSubPlotList[gNum].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
             #plot grid
 
             plt.xlim(gInfoDict['x'].get_component('min'),gInfoDict['x'].get_component('max'))
             plt.ylim(gInfoDict['y'].get_component('min'),gInfoDict['y'].get_component('max'))
             #set axis limits
 
-            GraphDict['graph'+str(gNumber+1)].set_axisbelow(True)
+            gSubPlotList[gNum].set_axisbelow(True)
             #place graphs over grid lines
 
         # Lattice Layout...
@@ -598,10 +596,10 @@ class taoplot:
 
         if LatLayout == True:
             if gInfoDict['graph^type'].value != 'lat_layout': #add space for lat layout below graph
-                GraphDict['LatLayout']=fig.add_subplot(gs[len(gNameList),0],sharex=GraphDict['graph1'])
+                gSubPlotList[ix_latlayout]=fig.add_subplot(gs[len(gNameList),0],sharex=gSubPlotList[1])
 
             else: #standalone lat layout graph
-                GraphDict['LatLayout']=fig.add_subplot(len(gNameList)+1,1,len(gNameList)+1,sharex=GraphDict['graph1'])
+                gSubPlotList[ix_latlayout]=fig.add_subplot(len(gNameList)+1,1,len(gNameList)+1,sharex=gSubPlotList[1])
 
             layInfo=pipe.cmd_in('python plot_graph layout.g',no_warn = True).splitlines()
             #list of plotting parameter strings from tao command python plot_graph
@@ -614,16 +612,16 @@ class taoplot:
 
 
 
-            twinAxes=GraphDict['LatLayout'].axes.twinx()
+            twinAxes=gSubPlotList[ix_latlayout].axes.twinx()
             plt.xlim(gInfoDict['x'].get_component('min'),gInfoDict['x'].get_component('max'))
             plt.ylim(layInfoDict['y'].get_component('min'),layInfoDict['y'].get_component('max'))
             twinAxes.set_navigate(True)
-            GraphDict['LatLayout'].axis('off')
+            gSubPlotList[ix_latlayout].axis('off')
             twinAxes.axis('off')
             #makes lat layout only have horizontal axis for panning and zooming
 
-            GraphDict['LatLayout'].axes.set_navigate(False)
-            GraphDict['LatLayout'].axhline(y=0,xmin=1.1*layInfoDict['x'].get_component('min'),xmax=1.1*layInfoDict['x'].get_component('max'),color='Black')
+            gSubPlotList[ix_latlayout].axes.set_navigate(False)
+            gSubPlotList[ix_latlayout].axhline(y=0,xmin=1.1*layInfoDict['x'].get_component('min'),xmax=1.1*layInfoDict['x'].get_component('max'),color='Black')
             #sets axis limits and creates second axis to allow x panning and zooming
 
 
@@ -662,112 +660,112 @@ class taoplot:
 
             for i in eleIndexList:
 
-                GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1.7*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
-                GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1.7*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
+                gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1.7*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
+                gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1.7*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],alpha=0)
                 #invisible elements to give enough space for actual lat layout elements
 
                 try:
                     if eleShapeDict[str(i)] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-                        GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*eleY2Dict[str(i)]),eleEndDict[str(i)]-eleStartDict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
+                        gSubPlotList[ix_latlayout].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*eleY2Dict[str(i)]),eleEndDict[str(i)]-eleStartDict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
                     #draw box element
 
 
 
 
                     elif eleShapeDict[str(i)] == 'xbox' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-                        GraphDict['LatLayout'].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*eleY2Dict[str(i)]),eleEndDict[str(i)]-eleStartDict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].add_patch(patches.Rectangle((eleStartDict[str(i)],-1*eleY2Dict[str(i)]),eleEndDict[str(i)]-eleStartDict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw xbox element
 
 
                     elif eleShapeDict[str(i)] == 'x' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw x element
 
 
                     elif eleShapeDict[str(i)] == 'bow_tie' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw bow_tie element
 
 
                     elif eleShapeDict[str(i)] == 'diamond' and eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,eleEndDict[str(i)]],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw diamond element
 
 
                     elif eleShapeDict[str(i)] == 'circle':
-                        GraphDict['LatLayout'].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),eleY1Dict[str(i)]+eleY2Dict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
+                        gSubPlotList[ix_latlayout].add_patch(patches.Ellipse((eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,0),eleY1Dict[str(i)]+eleY2Dict[str(i)],eleY1Dict[str(i)]+eleY2Dict[str(i)],lw=eleLwDict[str(i)],color=eleColorDict[str(i)],fill=False))
                     #draw circle element
 
 
                     elif eleShapeDict[str(i)] == 'box' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleEndDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleStartDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleEndDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw wrapped box element
 
 
                     elif eleShapeDict[str(i)] == 'xbox' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],eleStartDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleEndDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],eleStartDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleEndDict[str(i)],eleEndDict[str(i)]],[eleY1Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw wrapped xbox element
 
 
                     elif eleShapeDict[str(i)] == 'x' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw wrapped x element
 
 
                     elif eleShapeDict[str(i)] == 'bow_tie' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[eleY1Dict[str(i)],eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw wrapped bow tie element
 
 
                     elif eleShapeDict[str(i)] == 'diamond' and eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[0,eleY1Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[eleY1Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([eleStartDict[str(i)],layInfoDict['x'].get_component('max')],[0,-1*eleY2Dict[str(i)]],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].plot([layInfoDict['x'].get_component('min'),eleEndDict[str(i)]],[-1*eleY2Dict[str(i)],0],lw=eleLwDict[str(i)],color=eleColorDict[str(i)])
                     #draw wrapped diamond element
 
 
                     if eleEndDict[str(i)]-eleStartDict[str(i)] > 0:
-                        GraphDict['LatLayout'].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='center',va='top',clip_on=True,color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].text(eleStartDict[str(i)]+(eleEndDict[str(i)]-eleStartDict[str(i)])/2,-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='center',va='top',clip_on=True,color=eleColorDict[str(i)])
                     #draw element name
 
 
                     elif eleEndDict[str(i)]-eleStartDict[str(i)] < 0:
-                        GraphDict['LatLayout'].text(layInfoDict['x'].get_component('max'),-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='right',va='top',clip_on=True,color=eleColorDict[str(i)])
-                        GraphDict['LatLayout'].text(layInfoDict['x'].get_component('min'),-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='left',va='top',clip_on=True,color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].text(layInfoDict['x'].get_component('max'),-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='right',va='top',clip_on=True,color=eleColorDict[str(i)])
+                        gSubPlotList[ix_latlayout].text(layInfoDict['x'].get_component('min'),-1.1*eleY2Dict[str(i)],eleNameDict[str(i)],ha='left',va='top',clip_on=True,color=eleColorDict[str(i)])
                     #draw wrapped element name
 
 
@@ -775,18 +773,15 @@ class taoplot:
                 except KeyError:
                     pass
 
-
         else:
-            GraphDict['LatLayout']=fig.add_subplot(gs[len(gNameList),0],sharex=GraphDict['graph1'])
-            GraphDict['LatLayout'].remove()
+            gSubPlotList[ix_latlayout]=fig.add_subplot(gs[len(gNameList),0],sharex=gSubPlotList[1])
+            gSubPlotList[ix_latlayout].remove()
 
 
-
-        '''''''''Floor Plan'''''''''
-        #plots floor plans
+        # Plots floor plans
 
         if FloorPlan == True:
-            GraphDict['FloorPlan']=fig.add_subplot(len(gNameList)+1,1,len(gNameList)+1,sharex=GraphDict['graph1'])
+            gSubPlotForFloorPlan=fig.add_subplot(len(gNameList)+1,1,len(gNameList)+1,sharex=gSubPlotList[1])
 
             floInfo=pipe.cmd_in('python plot_graph '+gFullName,no_warn = True).splitlines()
             #list of plotting parameter strings from tao command python plot_graph
@@ -861,61 +856,61 @@ class taoplot:
 
                 try:
                     if fpeTypeDict[str(i)] == 'drift' or fpeTypeDict[str(i)] == 'kicker':
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],color='black')
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],color='black')
                     #draw drift element
 
                     if fpeY1Dict[str(i)] == 0 and fpeY2Dict[str(i)] == 0 and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)],fpeExDict[str(i)]],[fpeSyDict[str(i)],fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                     #draw line element
 
                     elif fpeShapeDict[str(i)] == 'box' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
-                        GraphDict['FloorPlan'].add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
+                        gSubPlotForFloorPlan.add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
                     #draw box element
 
                     elif fpeShapeDict[str(i)] == 'xbox' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
-                        GraphDict['FloorPlan'].add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.add_patch(patches.Rectangle((fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])),np.sqrt((fpeExDict[str(i)]-fpeSxDict[str(i)])**2 + (fpeEyDict[str(i)]-fpeSyDict[str(i)])**2),fpeY1Dict[str(i)]+fpeY2Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False,angle=fpeSaDict[str(i)]*conv))
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                     #draw xbox element
 
                     elif fpeShapeDict[str(i)] == 'x' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                     #draw x element
 
 
                     elif fpeShapeDict[str(i)] == 'bow_tie' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)] + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)] - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                     #draw bow_tie element
 
 
                     elif fpeShapeDict[str(i)] == 'diamond' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)],fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)]],[fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)],fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)],fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)]],[fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)],fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)],fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)]],[fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)],fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)])],[fpeSyDict[str(i)],fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2 + fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeExDict[str(i)]],[fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 - fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeEyDict[str(i)]],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                     #draw diamond element
 
 
                     elif fpeShapeDict[str(i)] == 'circle' and fpeTypeDict[str(i)] != 'sbend' and fpeColorDict[str(i)] != '':
-                        GraphDict['FloorPlan'].add_patch(patches.Circle((fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2),fpeY1Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False))
+                        gSubPlotForFloorPlan.add_patch(patches.Circle((fpeSxDict[str(i)] + (fpeExDict[str(i)]-fpeSxDict[str(i)])/2,fpeSyDict[str(i)] + (fpeEyDict[str(i)]-fpeSyDict[str(i)])/2),fpeY1Dict[str(i)],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)],fill=False))
                     #draw circle element
 
 
                     elif fpeShapeDict[str(i)] == 'box' and fpeTypeDict[str(i)] == 'sbend' and fpeColorDict[str(i)] != '':
-                        GraphDict['FloorPlan'].plot([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])],[fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                        GraphDict['FloorPlan'].plot([fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])],[fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                        gSubPlotForFloorPlan.plot([fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                         #draws straight sbend edges
 
                         intersection = intersect(line([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)])],[fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)])]), line([fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)])],[fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])]))
                         #center of circle used to draw arc edges of sbends
 
                         if intersection == False:
-                            GraphDict['FloorPlan'].plot([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
-                            GraphDict['FloorPlan'].plot([fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                            gSubPlotForFloorPlan.plot([fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
+                            gSubPlotForFloorPlan.plot([fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeExDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],[fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)]),fpeEyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeEaDict[str(i)]+fpeEfaDict[str(i)])],lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)])
                         #draw sbend edges if bend angle is 0
 
 
@@ -942,17 +937,17 @@ class taoplot:
                                 a4=min(angle3, angle4)
                             #determines correct start and end angles for arcs
 
-                            GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a1,theta2=a2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
-                            GraphDict['FloorPlan'].add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a3,theta2=a4,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
+                            gSubPlotForFloorPlan.add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]-fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]+fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a1,theta2=a2,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
+                            gSubPlotForFloorPlan.add_patch(patches.Arc((intersection[0],intersection[1]),np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,np.sqrt((fpeSxDict[str(i)]+fpeY2Dict[str(i)]*np.sin(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[0])**2 + (fpeSyDict[str(i)]-fpeY2Dict[str(i)]*np.cos(fpeSaDict[str(i)]-fpeSfaDict[str(i)])-intersection[1])**2)*2,theta1=a3,theta2=a4,lw=fpeLwDict[str(i)],color=fpeColorDict[str(i)]))
                             #draw sbend edges if bend angle is nonzero
                     #draw sbend element
 
 
                     if fpeNameDict[str(i)] != '' and fpeColorDict[str(i)] != '' and np.sin(((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)) > 0:
-                        GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.3*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.3*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='right',va='center',color='black',rotation=-90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
+                        gSubPlotForFloorPlan.text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.3*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.3*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='right',va='center',color='black',rotation=-90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
 
                     elif fpeNameDict[str(i)] != '' and fpeColorDict[str(i)] != '' and np.sin(((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)) <= 0:
-                        GraphDict['FloorPlan'].text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.3*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.3*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
+                        gSubPlotForFloorPlan.text(fpeSxDict[str(i)]+(fpeExDict[str(i)]-fpeSxDict[str(i)])/2 - 1.3*fpeY1Dict[str(i)]*np.sin(fpeSaDict[str(i)]),fpeSyDict[str(i)]+(fpeEyDict[str(i)]-fpeSyDict[str(i)])/2 + 1.3*fpeY1Dict[str(i)]*np.cos(fpeSaDict[str(i)]),fpeNameDict[str(i)],ha='left',va='center',color='black',rotation=90+((fpeEaDict[str(i)]+fpeSaDict[str(i)])/2)*conv,clip_on=True,rotation_mode='anchor')
                     #draw element name
 
 
@@ -992,7 +987,7 @@ class taoplot:
                         pathDict[str(i)] = Path(verts,codes)
 
                         '''patch = patches.PathPatch(Path(verts,codes),facecolor='green',alpha = .5)
-                        GraphDict['FloorPlan'].add_patch(patch)'''
+                        gSubPlotForFloorPlan.add_patch(patch)'''
                         #visualize clickable regions
                     #path approximating sbend region for clickable region on graph using lines and quadratic Bezier curves
 
@@ -1062,7 +1057,7 @@ class taoplot:
                         mIndex = fbwIndexList.index(k-1) #adjacent point to connect to
 
                         if fbwRadiusList[kIndex] == 0: #draw building wall line
-                            GraphDict['FloorPlan'].plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]],color=fpsColorDict[bwnTypeDict[str(i)]])
+                            gSubPlotForFloorPlan.plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]],color=fpsColorDict[bwnTypeDict[str(i)]])
 
                         else: #draw building wall arc
                             centerList = circle_intersection(fbwXList[mIndex],fbwYList[mIndex],fbwXList[kIndex],fbwYList[kIndex],abs(fbwRadiusList[kIndex]))
@@ -1098,7 +1093,7 @@ class taoplot:
                                     t2=kAngle
                             #pick correct start and end angle for arc
 
-                            GraphDict['FloorPlan'].add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2,color=fpsColorDict[bwnTypeDict[str(i)]]))
+                            gSubPlotForFloorPlan.add_patch(patches.Arc(center,fbwRadiusList[kIndex]*2,fbwRadiusList[kIndex]*2,theta1=t1,theta2=t2,color=fpsColorDict[bwnTypeDict[str(i)]]))
                             #draw building wall arc
 
                         k = k - 1
@@ -1127,7 +1122,7 @@ class taoplot:
                         for j in range(3,len(fpoInfo[i].split(';'))):
                             fpoYList.append(float(fpoInfo[i].split(';')[j]))
 
-                GraphDict['FloorPlan'].plot(fpoXList,fpoYList,color=floInfoDict['floor_plan_orbit_color'].value.lower())
+                gSubPlotForFloorPlan.plot(fpoXList,fpoYList,color=floInfoDict['floor_plan_orbit_color'].value.lower())
             #Lists of floor plan orbit point indices, x coordinates, and y coordinates
             #plot floor plan orbit
 
@@ -1140,10 +1135,10 @@ class taoplot:
             plt.ylabel(pgp_to_mpl(gInfoDict['y'].get_component('label')))
             #plot floor plan axis labels
 
-            GraphDict['FloorPlan'].grid(gInfoDict['draw_grid'].value,which='major',axis='both')
+            gSubPlotForFloorPlan.grid(gInfoDict['draw_grid'].value,which='major',axis='both')
             plt.xlim(gInfoDict['x'].get_component('min'),gInfoDict['x'].get_component('max'))
             plt.ylim(gInfoDict['y'].get_component('min'),gInfoDict['y'].get_component('max'))
-            GraphDict['FloorPlan'].set_axisbelow(True)
+            gSubPlotForFloorPlan.set_axisbelow(True)
             #plot floor plan grid
 
 
