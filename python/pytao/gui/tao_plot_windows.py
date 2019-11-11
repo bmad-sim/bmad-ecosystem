@@ -429,6 +429,7 @@ class tao_plot_window(Tao_Toplevel):
         self.title(template + ' (' + self.region + ')')
         self.refresh()
 
+    ### @profile
     def refresh(self, event=None, width=1):
         '''
         Makes the call to matplotlib to draw the plot to the window

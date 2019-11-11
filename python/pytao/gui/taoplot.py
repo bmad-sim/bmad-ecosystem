@@ -10,25 +10,25 @@ from .tao_interface import *
 from pytao.util.parameters import *
 
 class taoplot:
-    def __init__(self,pipe,GraphRegion):
+    def __init__(self,pipe,PlotRegion):
         '''initializer, takes a tao interface and a graph region'''
         self.pipe= pipe #tao_interface object
-        self.GraphRegion= GraphRegion #string describing region in tao of the desired plot
+        self.PlotRegion= PlotRegion #string describing region in tao of the desired plot
 
     def plot(self, width):
-        '''returns a figure containing graphs using the data in the region GraphRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements, width is used to modify the width of floor plan elements and the size of the lat layout'''
+        '''returns a figure containing graphs using the data in the region PlotRegion of the tao instance in pipe, and plots a lat_layout below if applicable, also returns information about the indices and locations of elements, width is used to modify the width of floor plan elements and the size of the lat layout'''
 
-        #creates plotting figure
+        # Creates plotting figure
         fig = plt.figure()
 
-        pipe = self.pipe #tao interface instance to plot in
-        GraphRegion = self.GraphRegion #graph region to plot in
+        pipe = self.pipe # tao interface instance to plot in
+        PlotRegion = self.PlotRegion # Region plot is in.
 
-        #determines if shapes are drawn on graph, changed to True later if needed
-        LatLayout=False #drawn below data plots if x label is not indices
+        # Determines if shapes are drawn on graph, changed to True later if needed
+        LatLayout=False # draw a layout below data graphs?
         FloorPlan=False
 
-        #records information about element locations to be returned with the figure
+        # Records information about element locations to be returned with the figure
         eleIndexList=[]
         eleStartDict={}
         eleEndDict={}
@@ -264,63 +264,59 @@ class taoplot:
         # Graphing Data
         #obtains information about the number and data of graphs from tao
 
-        '''Region Data'''
+        # Region Data
 
-        rInfo=pipe.cmd_in('python plot1 '+GraphRegion,no_warn = True).splitlines()
-        #list of plotting parameter strings from tao command python plot1
+        # List of plotting parameter strings from tao command python plot1
+        rInfo=pipe.cmd_in('python plot1 '+PlotRegion,no_warn = True).splitlines()
 
-        rInfoDict = {}
+        # Dictionary of Tao plot parameter name to the corresponding value.
+        pInfoDict = {}
         for i in range(len(rInfo)):
-            rInfoDict[rInfo[i].split(';')[0]]=str_to_tao_param(rInfo[i])
-        #dictionary of tao_parameter name string keys to the corresponding
-        #tao_parameter object from python plot_1
+            pInfoDict[rInfo[i].split(';')[0]]=str_to_tao_param(rInfo[i])
 
-        gList = []
-        heightsList = []
-        for i in range(rInfoDict['num_graphs'].value):
-            gList.append(rInfoDict[('graph['+str(i+1)+']')].value)
-            heightsList.append(1) #makes graphs the same size
-        #list of string names of graphs
+        # List of graph names and heights
+        gNameList = []  
+        gHeightsList = []
+        for i in range(pInfoDict['num_graphs'].value):
+            gNameList.append(pInfoDict[('graph['+str(i+1)+']')].value)
+            gHeightsList.append(1) #makes graphs the same size
+        number_graphs = len(gNameList) + 1
 
-        number_graphs = len(gList) + 1
-        layout_height = .2*width
-        #relative height of lat layout to graph if there is one graph
+        # Relative height of lat layout to graph if there is one graph
+        layout_height = 0.2 * width
 
-        heightsList.append(layout_height*len(gList) + layout_height*(len(gList)-1))
-        #makes layout approximately a fixed size as number of graphs changes
+        # Makes layout approximately a fixed size as number of graphs changes
+        gHeightsList.append(layout_height*len(gNameList) + layout_height*(len(gNameList)-1))
 
-        gs = fig.add_gridspec(nrows=number_graphs,ncols=1, height_ratios=heightsList)
+        gs = fig.add_gridspec(nrows=number_graphs,ncols=1, height_ratios=gHeightsList)
 
-        GraphDict = {} #dictionary of graph name keys with the graph's subplot as it's value
-        graph_list = [] #list of graphs, eg: r1.g or r3.x
+        GraphDict = {}  # Dictionary of graph name keys with the graph's subplot as it's value
+        gFullNameList = [] # List of graphs, eg: r1.g or r3.x
 
-        for gNumber in range(len(gList)):
+        for gNumber in range(len(gNameList)):
 
+            # Create plots in figure, second line also makes x axes scale together
             if gNumber == 0:
                 GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(gs[gNumber,0])
             elif gNumber > 0:
                 GraphDict['graph'+str(gNumber+1)]=fig.add_subplot(gs[gNumber,0],sharex=GraphDict['graph1'])
-            #create plots in figure, second line also makes x axes scale together
 
-            '''Graph Data'''
+            # Graph Data...
 
-            gType = GraphRegion+'.'+gList[gNumber]
-            graph_list.append(gType)
-            #graph type, eg: r13.g or top.x
+            # Graph "region.graph" full name, EG: "r13.g" or "top.x"
+            gFullName = PlotRegion + '.' + gNameList[gNumber]
+            gFullNameList.append(gFullName)
 
+            # List of graph parameters from tao command python plot_graph
+            gInfo=pipe.cmd_in('python plot_graph '+gFullName,no_warn = True).splitlines()
 
-            gInfo=pipe.cmd_in('python plot_graph '+gType,no_warn = True).splitlines()
-            #list of plotting parameter strings from tao command python plot_graph
-
-
+            # Dictionary of graph parameters.
             gInfoDict = {}
             for i in range(len(gInfo)):
                 gInfoDict[gInfo[i].split(';')[0]]=str_to_tao_param(gInfo[i])
-            #tao_parameter object names from python plot_graph
-            #dictionary of tao_parameter name string keys to the corresponding tao_parameter object
 
 
-            '''Curve Data'''
+            # Curve Data...
 
             cList=[]
             for i in range(gInfoDict['num_curves'].value):
@@ -329,7 +325,7 @@ class taoplot:
 
             cInfo=[]
             for i in cList:
-                cInfo.append(pipe.cmd_in('python plot_curve '+gType+'.'+i,no_warn = True).splitlines())
+                cInfo.append(pipe.cmd_in('python plot_curve '+gFullName+'.'+i,no_warn = True).splitlines())
             #list of lists of plotting parameter strings from tao command python plot_curve for each curve
 
 
@@ -348,7 +344,7 @@ class taoplot:
             lInfo=[]
             try:
                 for i in cList:
-                    lInfo.append(pipe.cmd_in('python plot_line '+gType+'.'+i,no_warn = True).splitlines())
+                    lInfo.append(pipe.cmd_in('python plot_line '+gFullName+'.'+i,no_warn = True).splitlines())
                 #list of points from tao command python plot_line for each curve
 
                 if len(lInfo) != 0:
@@ -375,7 +371,7 @@ class taoplot:
             try:
                 sInfo=[]
                 for i in cList:
-                    sInfo.append(pipe.cmd_in('python plot_symbol '+gType+'.'+i,no_warn = True).splitlines())
+                    sInfo.append(pipe.cmd_in('python plot_symbol '+gFullName+'.'+i,no_warn = True).splitlines())
                 #list of points from tao command python plot_symbol for each curve
 
                 SymbolSuperList=[]
@@ -403,7 +399,7 @@ class taoplot:
             try:
                 hInfo=[]
                 for i in cList:
-                    hInfo.append(pipe.cmd_in('python plot_histogram '+gType+'.'+i,no_warn = True).splitlines())
+                    hInfo.append(pipe.cmd_in('python plot_histogram '+gFullName+'.'+i,no_warn = True).splitlines())
                 hInfoDictList=[]
                 for i in range(len(cList)):
                     hInfoDict = {}
@@ -491,17 +487,17 @@ class taoplot:
                     LineList.append(GraphDict['graph'+str(gNumber+1)].plot(xpList,ypList,color=i[2],linestyle=i[3],linewidth=i[4]/2))
                     GraphDict['graph'+str(gNumber+1)].plot(xsList,ysList,color=i[5],linewidth=0,markerfacecolor=i[6],markersize=i[7]/2,marker=i[8],mew=i[9]/2)
 
-                    if rInfoDict['x_axis_type'].value == 's':
+                    # Add lat_layout if x-axis is "s" (longitudinal postion).
+                    if pInfoDict['x_axis_type'].value == 's':
                         LatLayout = True
-                    #add lat layout if x axis matches layout axis
 
+                    # Wave region boundaries
                     if gInfoDict['graph^type'].value != 'data': #wave analysis rectangles
                         wInfo = pipe.cmd_in('python wave params',no_warn = True).splitlines()
                         a1 = float(wInfo[1].split(';')[3])
                         a2 = float(wInfo[2].split(';')[3])
                         b1 = float(wInfo[3].split(';')[3])
                         b2 = float(wInfo[4].split(';')[3])
-                        #wave region boundaries
 
                     if i[5] == 'blue' or i[5] == 'navy' or i[5] == 'cyan' or i[5] == 'green' or i[5] == 'purple':
                         waveColor = 'orange'
@@ -537,13 +533,13 @@ class taoplot:
 
             if gInfoDict['graph^type'].value == 'lat_layout':
                 LatLayout = True
-                gList = []
+                gNameList = []
                 plt.axis('off')
             #sets up lat layout plot
 
             if gInfoDict['graph^type'].value == 'floor_plan':
                 FloorPlan = True
-                gList = []
+                gNameList = []
                 plt.axis('off')
             #sets up floor plan plot
 
@@ -597,19 +593,15 @@ class taoplot:
             GraphDict['graph'+str(gNumber+1)].set_axisbelow(True)
             #place graphs over grid lines
 
-
-
-
-
-        '''''''''Lattice Layout'''''''''
-        #plots lat layouts
+        # Lattice Layout...
+        # Plots lat layouts
 
         if LatLayout == True:
             if gInfoDict['graph^type'].value != 'lat_layout': #add space for lat layout below graph
-                GraphDict['LatLayout']=fig.add_subplot(gs[len(gList),0],sharex=GraphDict['graph1'])
+                GraphDict['LatLayout']=fig.add_subplot(gs[len(gNameList),0],sharex=GraphDict['graph1'])
 
             else: #standalone lat layout graph
-                GraphDict['LatLayout']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
+                GraphDict['LatLayout']=fig.add_subplot(len(gNameList)+1,1,len(gNameList)+1,sharex=GraphDict['graph1'])
 
             layInfo=pipe.cmd_in('python plot_graph layout.g',no_warn = True).splitlines()
             #list of plotting parameter strings from tao command python plot_graph
@@ -785,7 +777,7 @@ class taoplot:
 
 
         else:
-            GraphDict['LatLayout']=fig.add_subplot(gs[len(gList),0],sharex=GraphDict['graph1'])
+            GraphDict['LatLayout']=fig.add_subplot(gs[len(gNameList),0],sharex=GraphDict['graph1'])
             GraphDict['LatLayout'].remove()
 
 
@@ -794,9 +786,9 @@ class taoplot:
         #plots floor plans
 
         if FloorPlan == True:
-            GraphDict['FloorPlan']=fig.add_subplot(len(gList)+1,1,len(gList)+1,sharex=GraphDict['graph1'])
+            GraphDict['FloorPlan']=fig.add_subplot(len(gNameList)+1,1,len(gNameList)+1,sharex=GraphDict['graph1'])
 
-            floInfo=pipe.cmd_in('python plot_graph '+gType,no_warn = True).splitlines()
+            floInfo=pipe.cmd_in('python plot_graph '+gFullName,no_warn = True).splitlines()
             #list of plotting parameter strings from tao command python plot_graph
 
 
@@ -812,7 +804,7 @@ class taoplot:
             else:
                 universe = 1
 
-            fpeInfo=pipe.cmd_in('python floor_plan '+gType,no_warn = True).splitlines()
+            fpeInfo=pipe.cmd_in('python floor_plan '+gFullName,no_warn = True).splitlines()
             #list of plotting parameter strings from tao command python floor_plan
 
 
@@ -1024,7 +1016,7 @@ class taoplot:
 
             try:
 
-                fbwInfo=pipe.cmd_in('python floor_building_wall '+gType,no_warn = True).splitlines()
+                fbwInfo=pipe.cmd_in('python floor_building_wall '+gFullName,no_warn = True).splitlines()
                 #list of plotting parameter strings from tao command python floor_building_wall
 
                 fbwCurveList = []
@@ -1033,7 +1025,7 @@ class taoplot:
 
                 fbwCurveList = list(set(fbwCurveList)) #list of unique curve indices
 
-                bwn=pipe.cmd_in('python floor_building_wall '+gType+' name',no_warn = True).splitlines()
+                bwn=pipe.cmd_in('python floor_building_wall '+gFullName+' name',no_warn = True).splitlines()
                 bwnTypeDict = {}
                 for i in range(len(bwn)):
                     bwnTypeDict[bwn[i].split(';')[0]] = bwn[i].split(';')[1]
@@ -1120,7 +1112,7 @@ class taoplot:
             '''Floor Plan Orbit'''
 
             if float(floInfoDict['floor_plan_orbit_scale'].value) != 0:
-                fpoInfo=pipe.cmd_in('python floor_orbit '+gType,no_warn = True).splitlines()
+                fpoInfo=pipe.cmd_in('python floor_orbit '+gFullName,no_warn = True).splitlines()
 
                 fpoIndexList = []
                 fpoXList = []
@@ -1201,7 +1193,7 @@ class taoplot:
             eleY1Dict = []
         #fills output list with blank lists if information does not apply to the selected graph type
 
-        returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict, eleShapeDict, eleY1Dict, graph_list]
+        returnList = [gInfoDict['graph^type'].value, gUniverse, gBranch, gComponent, eleIndexList, eleStartDict, eleEndDict, fpeIndexList,fpeShapeDict,fpeCenterDict, fpeRadiusDict, corner1, corner2, corner3, corner4, pathDict, eleShapeDict, eleY1Dict, gFullNameList]
         #data to be returned with the figure to make elements clickable
 
         fig.tight_layout(pad=.5) #prevents graphs from overlapping

@@ -2222,7 +2222,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   call re_allocate(u%dynamic_aperture%pz, n)
   u%dynamic_aperture%pz = pz(1:n)
 
-  deallocate (u%dynamic_aperture%scan)
+  if (allocated(u%dynamic_aperture%scan)) deallocate (u%dynamic_aperture%scan)
   allocate(u%dynamic_aperture%scan(n))
 enddo
 
