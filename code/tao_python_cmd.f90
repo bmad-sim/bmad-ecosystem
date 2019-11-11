@@ -2281,13 +2281,17 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_optimizer_name(i))
     enddo
 
+  case ('plot^type')
+    nl=incr(nl); li(nl) = '1;normal'
+    nl=incr(nl); li(nl) = '2;wave'
+
   case ('random_engine')
-    nl=incr(nl); li(nl) = 'pseudo'
-    nl=incr(nl); li(nl) = 'quasi'
+    nl=incr(nl); li(nl) = '1;pseudo'
+    nl=incr(nl); li(nl) = '2;quasi'
 
   case ('random_gauss_converter')
-    nl=incr(nl); li(nl) = 'exact'
-    nl=incr(nl); li(nl) = 'quick'
+    nl=incr(nl); li(nl) = '1;exact'
+    nl=incr(nl); li(nl) = '2;quick'
 
   case ('shape.label')
     do i = 1, size(tao_shape_label_name)
@@ -3650,6 +3654,7 @@ case ('plot1')
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_x;LOGIC;T;',               p%autoscale_gang_x
   nl=incr(nl); write (li(nl), lmt) 'autoscale_gang_y;LOGIC;T;',               p%autoscale_gang_y
   nl=incr(nl); write (li(nl), imt) 'n_curve_pts;INT;T;',                      p%n_curve_pts
+
 
 !----------------------------------------------------------------------
 ! element shape creation or destruction
