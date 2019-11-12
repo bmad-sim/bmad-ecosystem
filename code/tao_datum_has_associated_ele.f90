@@ -28,20 +28,20 @@ integer, optional :: branch_geometry
 
 !
 
-if (data_type(1:13) == 'unstable.ring' .or. data_type == 'unstable.orbit' .or. data_type(1:7) == 'normal.' .or. &
+if (data_type(1:13) == 'unstable.ring' .or. data_type(1:7) == 'normal.' .or. &
               data_type(1:18) == 'spin.polarization_' .or. data_type == 'spin.depolarization_rate' .or. &
               data_type == 'chrom.a' .or. data_type == 'chrom.b' .or. data_type(1:12) == 'chrom.dtune.' .or.&
               data_type(1:5) == 'srdt.' .or. data_type(1:5) == 'damp.' .or. data_type(1:5) == 'tune.' ) then
   has_associated_ele = no$
 
-elseif (data_type == 'emit.a' .or. data_type == 'norm_emit.a' .or. data_type == 'emit.b' .or. data_type == 'norm_emit.b') then
+elseif (data_type == 'emit.a' .or. data_type == 'norm_emit.a' .or. data_type == 'emit.b' .or. &
+        data_type == 'norm_emit.b' .or. data_type == 'unstable.orbit') then
   if (present(branch_geometry)) then
     if (branch_geometry == closed$) then
       has_associated_ele = no$
     else
       has_associated_ele = yes$
     endif
-
   else
     has_associated_ele = provisional$
   endif
