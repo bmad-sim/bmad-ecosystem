@@ -429,7 +429,7 @@ class tao_plot_window(Tao_Toplevel):
         self.title(template + ' (' + self.region + ')')
         self.refresh()
 
-    ### @profile
+    ## @profile
     def refresh(self, event=None, width=1):
         '''
         Makes the call to matplotlib to draw the plot to the window
@@ -471,8 +471,7 @@ class tao_plot_window(Tao_Toplevel):
             if event.dblclick:
                 eleList = in_element(event.xdata,event.ydata,self.fig_info)
                 for i in eleList:
-                    tao_ele_window(self.root,self.pipe,
-                            default=[self.fig_info[1],i[0],i[1],self.fig_info[3]])
+                    tao_ele_window(self.root, self.pipe, default=[self.fig_info[1], i[0], i[1], self.fig_info[3]])
 
         canvas.mpl_connect("button_press_event", on_click)
         '''

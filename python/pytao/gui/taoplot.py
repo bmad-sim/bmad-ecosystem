@@ -15,7 +15,7 @@ class taoplot:
         self.pipe = pipe #tao_interface object
         self.PlotRegion = PlotRegion #string describing region in tao of the desired plot
 
-    #@profile
+    ## @profile
     def plot(self, width):
         '''Returns a figure containing graphs using the data in the region PlotRegion of the tao instance in pipe, and plots a lat_layout below if applicable.
            Also returns information about the indices and locations of elements, width is used to modify the width of floor plan elements and the size of the lat layout.'''
@@ -39,7 +39,7 @@ class taoplot:
         fpeRadiusDict = {}
         pathDict = {}
 
-        def color(x):
+        def mpl_color(x):
             '''takes string containing pgplot color and returns corresponding matplotlib color'''
             x = x.lower()
             if x == 'yellow_green':
@@ -60,7 +60,7 @@ class taoplot:
                 return x
         # End: def color
 
-        def pgp_to_mpl(x):
+        def mpl_string(x):
             '''Takes string with pgplot characters and returns string with characters replaced with matplotlib equivalent.
                Raises NotImplementedError if an unknown pgplot character is used.'''
             x=x.replace('\\','\\\\')
@@ -140,11 +140,11 @@ class taoplot:
                 lx = lx.replace('\\\\gW','\\Omega')
 
                 if '\\\\' in lx:
-                    raise NotImplementedError('unknown character in string, character not yet added to pgp_to_mpl')
+                    raise NotImplementedError('unknown character in string, character not yet added to mpl_string')
                 return lx
             else:
                 return x
-        # End: def pgp_to_mpl(x)
+        # End: def mpl_string(x)
 
 
         def circle_intersection(x1,y1,x2,y2,r):
@@ -418,13 +418,13 @@ class taoplot:
                 CurveData = []
                 CurveData.append(PointsSuperList[i]) #points for each curve
                 CurveData.append(SymbolSuperList[i]) #symbols for each curve
-                CurveData.append(color(cInfoDictList[i]['line'].get_component('color'))) #line color
+                CurveData.append(mpl_color(cInfoDictList[i]['line'].get_component('color'))) #line color
                 CurveData.append(StylesDict[cInfoDictList[i]['line'].get_component('pattern').lower()]) #line style
                 if (cInfoDictList[i]['draw_line'].value == True): #line width if drawn
                     CurveData.append(cInfoDictList[i]['line'].get_component('width'))
                 else:
                     CurveData.append(0)
-                CurveData.append(color(cInfoDictList[i]['symbol'].get_component('color'))) #symbol color
+                CurveData.append(mpl_color(cInfoDictList[i]['symbol'].get_component('color'))) #symbol color
 
                 if cInfoDictList[i]['symbol'].get_component('type') == 'dot' or cInfoDictList[i]['symbol'].get_component('type') == '1': #determine if symbol should be filled
                     CurveData.append(cInfoDictList[i]['symbol'].get_component('color'))
@@ -549,7 +549,7 @@ class taoplot:
 
 
 
-            plt.title(pgp_to_mpl(gInfoDict['title'].value)+' '+gInfoDict['title_suffix'].value)
+            plt.title(mpl_string(gInfoDict['title'].value)+' '+gInfoDict['title_suffix'].value)
             #plot title
 
             LegendList = [] #legends for each graph
@@ -557,10 +557,10 @@ class taoplot:
             try:
                 for i in range(len(CurvesList)):
                     LegendList.append(LineList[i][0])
-                    if pgp_to_mpl(cInfoDictList[i]['legend_text'].value) != '':
-                        LabelList.append(pgp_to_mpl(cInfoDictList[i]['legend_text'].value))
-                    elif pgp_to_mpl(cInfoDictList[i]['data_type'].value) == 'physical_aperture':
-                        LabelList.append(pgp_to_mpl(cInfoDictList[i]['data_type'].value))
+                    if mpl_string(cInfoDictList[i]['legend_text'].value) != '':
+                        LabelList.append(mpl_string(cInfoDictList[i]['legend_text'].value))
+                    elif mpl_string(cInfoDictList[i]['data_type'].value) == 'physical_aperture':
+                        LabelList.append(mpl_string(cInfoDictList[i]['data_type'].value))
                     else:
                         LabelList.append('')
                 #list of curves to be added to a legend and list of labels for each curve in the legend
@@ -572,8 +572,8 @@ class taoplot:
                 gSubPlotList[gNum].legend(LegendList,LabelList)
             #plot legend
 
-            plt.xlabel(pgp_to_mpl(gInfoDict['x'].get_component('label')))
-            plt.ylabel(pgp_to_mpl(gInfoDict['y'].get_component('label')))
+            plt.xlabel(mpl_string(gInfoDict['x'].get_component('label')))
+            plt.ylabel(mpl_string(gInfoDict['y'].get_component('label')))
             #plot axis labels
 
             gSubPlotList[gNum].grid(gInfoDict['draw_grid'].value,which = 'major',axis = 'both')
@@ -649,7 +649,7 @@ class taoplot:
                 eleShapeDict[eleInfo[i].split(';')[0]] = eleInfo[i].split(';')[4].lower()
                 eleY1Dict[eleInfo[i].split(';')[0]] = float(eleInfo[i].split(';')[5])
                 eleY2Dict[eleInfo[i].split(';')[0]] = float(eleInfo[i].split(';')[6])
-                eleColorDict[eleInfo[i].split(';')[0]] = color(eleInfo[i].split(';')[7].lower())
+                eleColorDict[eleInfo[i].split(';')[0]] = mpl_color(eleInfo[i].split(';')[7].lower())
                 eleNameDict[eleInfo[i].split(';')[0]] = eleInfo[i].split(';')[8]
 
             y_max = 0
@@ -792,25 +792,25 @@ class taoplot:
             #list of plotting parameter strings from tao command python floor_plan
 
 
-            fpeIndexList = [] #contains lists of branch index then element index for each point
+            fpeIndexList = [] # Contains lists of branch index then element index for each point
             fpeTypeDict = {}
-            fpeSxDict = {} #start x coordinate
-            fpeSyDict = {} #start y coordinate
-            fpeSaDict = {} #start angle
-            fpeExDict = {} #end x coordinate
-            fpeEyDict = {} #end y coordinate
-            fpeEaDict = {} #end angle
-            fpeLwDict = {} #line width
+            fpeSxDict = {} # Start x coordinate
+            fpeSyDict = {} # Start y coordinate
+            fpeSaDict = {} # Start angle
+            fpeExDict = {} # End x coordinate
+            fpeEyDict = {} # End y coordinate
+            fpeEaDict = {} # End angle
+            fpeLwDict = {} # Line width
             fpeShapeDict = {}
-            fpeY1Dict = {} #distance above
-            fpeY2Dict = {} #distance below
+            fpeY1Dict = {} # Distance above
+            fpeY2Dict = {} # Distance below
             fpeColorDict = {}
             fpeNameDict = {}
-            fpeAlDict = {} #arc length
-            fpeBaDict = {} #bend angle
-            fpeSfaDict = {} #relative angle of starting face to incoming line
-            fpeEfaDict = {} #relative angle of ending face to incoming line
-            corner1 = {} #corner coordinates of objects
+            fpeAlDict = {}  # Arc length
+            fpeBaDict = {}  # Bend angle
+            fpeSfaDict = {} # Relative angle of starting face to incoming line
+            fpeEfaDict = {} # Relative angle of ending face to incoming line
+            corner1 = {}    # Corner coordinates of objects
             corner2 = {}
             corner3 = {}
             corner4 = {}
@@ -827,7 +827,7 @@ class taoplot:
                 fpeShapeDict[str(fpeIndexList[i])] = fpeInfo[i].split(';')[10].lower()
                 fpeY1Dict[str(fpeIndexList[i])] = width*float(fpeInfo[i].split(';')[11])
                 fpeY2Dict[str(fpeIndexList[i])] = width*float(fpeInfo[i].split(';')[12])
-                fpeColorDict[str(fpeIndexList[i])] = color(fpeInfo[i].split(';')[13].lower())
+                fpeColorDict[str(fpeIndexList[i])] = mpl_color(fpeInfo[i].split(';')[13].lower())
                 fpeNameDict[str(fpeIndexList[i])] = fpeInfo[i].split(';')[14]
                 try:
                     fpeAlDict[str(fpeIndexList[i])] = float(fpeInfo[i].split(';')[15])
@@ -1057,7 +1057,7 @@ class taoplot:
                 for i in range(len(fps)):
                     fpsTypeDict[fps[i].split(';')[1].split(':')[0].lower()] = fps[i].split(';')[2].lower()
                     if fps[i].split(';')[1].split(':')[0].lower() == 'building_wall':
-                        fpsColorDict[fps[i].split(';')[1].split(':')[2].lower()] = color(fps[i].split(';')[3].lower())
+                        fpsColorDict[fps[i].split(';')[1].split(':')[2].lower()] = mpl_color(fps[i].split(';')[3].lower())
                 #dictionaries matching of the type building wall components to their color
 
 
@@ -1156,8 +1156,8 @@ class taoplot:
 
             '''floor plan labels and axes'''
 
-            plt.xlabel(pgp_to_mpl(gInfoDict['x'].get_component('label')))
-            plt.ylabel(pgp_to_mpl(gInfoDict['y'].get_component('label')))
+            plt.xlabel(mpl_string(gInfoDict['x'].get_component('label')))
+            plt.ylabel(mpl_string(gInfoDict['y'].get_component('label')))
             #plot floor plan axis labels
 
             gSubPlotForFloorPlan.grid(gInfoDict['draw_grid'].value,which = 'major',axis = 'both')
