@@ -1,0 +1,102 @@
+\chapter{GUI Installation}
+\label{s:gui.install}
+
+There are a number of python modules needed for the GUI:
+\begin{example}
+  tkinter
+  ttk (may be called pyttk)
+  pexpect         # If using pexpect instead of ctypes.
+  matplotlib, cycler, dateutil, tkagg
+\end{example}
+Note: The GUI uses the TkAgg backend for matplotlib. There may be a problem with Python finding the
+TkAgg backend. On the mac, using macports, the solution is to install matplotlib with the
+\vn{tkinter} variant. Something like:
+\begin{example}
+  sudo port uninstall py36-matplotlib           # May not be needed.
+  sudo port install  py36-matplotlib +tkinter   # This is when using Python version 3.6
+\end{example}
+For more information see:
+\begin{example}
+  https://matplotlib.org/tutorials/introductory/usage.html#backends
+\end{example}
+
+If one of the modules is missing, python will generate an error message. For example:
+\begin{example}
+> python ../../gui/main.py
+Exception in Tkinter callback
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/tkinter/__init__.py", line 1705, in __call__
+    return self.func(*args)
+  File "../../gui/main.py", line 372, in param_load
+    from tao_interface import tao_interface
+  File "/Users/dcs16/Bmad/bmad_dist/tao/gui/tao_interface.py", line 4, in <module>
+    from tao_pipe import tao_io
+  File "/Users/dcs16/Bmad/bmad_dist/tao/python/tao_pexpect/tao_pipe.py", line 14, in <module>
+    import pexpect
+ModuleNotFoundError: No module named 'pexpect'
+\end{example}
+Notice that the last line shows that the pexpect module is needed.
+
+How to install missing modules on the mac: [Note: The exact installation commands will depend upon
+which version of python is being used. Use the "python --version" command to see what version you
+are using.
+
+Using macports and python 3.6:
+\begin{example}
+  sudo port install py36-tkinter
+  sudo port install py36-pexpect
+\end{example}
+
+Using pip (or pip3):
+\begin{example}
+  sudo pip install pytkk
+  sudo pip install pexpect
+\end{example}
+
+WARNING: it can be dangerous to use pip to install/modify modules in your system python.
+A much safer way to install the modules you need is to set up a python virtual environment.
+On Linux, you may also be able to find versions of the required modules in your system package manager,
+which are tailored to your Linux distribution and will not break your system python.
+
+%-----------------------------------------------------------------
+\section{Installation Troubleshooting}
+\label{s:gui.trouble}
+
+Got error:
+\begin{example}
+  ImportError: cannot import name ‘_tkagg'
+\end{example}
+
+Solution: Uninstall and then reinstall matplotlib. For example, if using pip:
+\begin{example}
+  sudo pip uninstall matplotlib
+  sudo pip install matplotlib
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Developer Setup}
+\label{s:gui.develop}
+
+For GUI development, it may be desireable to specify a local build tree as the place for the python
+scripts to find the \tao executable or \tao shared object library. To accomplish this, set the environmental
+variable ACC_LOCAL_ROOT to the base directory of your local build tree.
+\begin{example}
+  export ACC_LOCAL_ROOT=/home/dcs16/bmad_dist
+\end{example}
+
+The standard place for the GUI script files is at:
+\begin{example}
+  "${ACC_ROOT_DIR}/tao/python/pytao/gui
+\end{example}
+When doing GUI development work, the default location can be changed by setting \vn{ACC_PYTHONPATH}. Example:
+\begin{example}
+  export ACC_PYTHONPATH=/home/dcs16/bmad_dist/tao/python/pytao/gui
+\end{example}
+\vn{ACC_PYTHONPATH} must be set before \bmad is initalized. That is, if \bmad is initalized in the \vn{.bashrc} file,
+\vn{ACC_PYTHONPATH} must be initalized in the \vn{.bashrc} file before the \bmad initialization.
+
+To check that \vn{PYTHONPATH} has the correct value use the command:
+\begin{example}
+  printenv |grep PYTHONPATH
+\end{example}
+

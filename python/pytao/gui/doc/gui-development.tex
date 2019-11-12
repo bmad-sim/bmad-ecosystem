@@ -1,0 +1,22 @@
+\chapter{GUI Development}
+
+%-----------------------------------------------------------------
+\section{GUI Development} 
+\label{s:develop}
+
+%-----------------------------------------------------------------
+\subsection{Profiling the GUI} 
+\label{s:prfile}
+
+To profile the GUI, first create a \vn{gui.init} file with:
+\begin{example}
+  skip_setup:T
+  do_mainloop:F
+\end{example}
+
+then use the python script:
+\begin{example}
+  from pytao import gui
+  import cProfile
+  cProfile.run('gui.tao_root_window()', 'profile.dat')
+\end{example}
