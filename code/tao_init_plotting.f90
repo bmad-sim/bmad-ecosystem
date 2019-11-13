@@ -338,7 +338,7 @@ if (allocated(s%plot_page%lat_layout%ele_shape)) then
     endif
 
     select case (e_shape%shape)
-    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
+    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'RBOW_TIE', 'CIRCLE', 'X', 'NONE')
     case ('VVAR_BOX', 'ASYM_VVAR_BOX')
       if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
         call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // &
@@ -364,7 +364,7 @@ if (allocated(s%plot_page%floor_plan%ele_shape)) then
     endif
 
     select case (e_shape%shape)
-    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
+    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'RBOW_TIE', 'CIRCLE', 'X', 'NONE')
     case ('VVAR_BOX', 'ASYM_VVAR_BOX')
       if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
         call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id, &

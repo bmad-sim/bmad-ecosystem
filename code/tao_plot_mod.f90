@@ -1002,9 +1002,9 @@ if (ele_shape%shape == 'X') then
   call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = draw_units, color = color) 
 endif
 
-! Draw top and bottom of boxes and bow_tiw
+! Draw top and bottom of boxes and rbow_tie
 
-if (ele_shape%shape == 'BOW_TIE' .or. shape_has_box) then
+if (ele_shape%shape == 'RBOW_TIE' .or. shape_has_box) then
   if (is_bend) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
                           y_bend(:n_bend) + dy_bend(:n_bend), units = draw_units, color = color)
@@ -1012,16 +1012,14 @@ if (ele_shape%shape == 'BOW_TIE' .or. shape_has_box) then
                           y_bend(:n_bend) - dy_bend(:n_bend), units = draw_units, color = color)
 
   else
-    call qp_draw_line (end1%r(1)+dx1, end2%r(1)+dx1, end1%r(2)+dy1, end2%r(2)+dy1, &
-                                                    units = draw_units, color = color)
-    call qp_draw_line (end1%r(1)-dx2, end2%r(1)-dx2, end1%r(2)-dy2, end2%r(2)-dy2, &
-                                                    units = draw_units, color = color)
+    call qp_draw_line (end1%r(1)+dx1, end2%r(1)+dx1, end1%r(2)+dy1, end2%r(2)+dy1, units = draw_units, color = color)
+    call qp_draw_line (end1%r(1)-dx2, end2%r(1)-dx2, end1%r(2)-dy2, end2%r(2)-dy2, units = draw_units, color = color)
   endif
 endif
 
 ! Draw sides of boxes
 
-if (shape_has_box) then
+if (ele_shape%shape == 'BOW_TIE' .or. shape_has_box) then
   if (is_bend) then
     call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
                        y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = draw_units, color = color)
@@ -1029,20 +1027,16 @@ if (shape_has_box) then
     call qp_draw_line (x_bend(n)-dx_bend(n), x_bend(n)+dx_bend(n), &
                        y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = draw_units, color = color)
   else
-    call qp_draw_line (end1%r(1)+dx1, end1%r(1)-dx2, end1%r(2)+dy1, end1%r(2)-dy2, &
-                                                  units = draw_units, color = color)
-    call qp_draw_line (end2%r(1)+dx1, end2%r(1)-dx2, end2%r(2)+dy1, end2%r(2)-dy2, &
-                                                  units = draw_units, color = color)
+    call qp_draw_line (end1%r(1)+dx1, end1%r(1)-dx2, end1%r(2)+dy1, end1%r(2)-dy2, units = draw_units, color = color)
+    call qp_draw_line (end2%r(1)+dx1, end2%r(1)-dx2, end2%r(2)+dy1, end2%r(2)-dy2, units = draw_units, color = color)
   endif
 endif
 
 ! Draw X for xbox or bow_tie
 
-if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
-  call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, &
-                                                  units = draw_units, color = color)
-  call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, &
-                                                  units = draw_units, color = color)
+if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE' .or. ele_shape%shape == 'RBOW_TIE') then
+  call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, units = draw_units, color = color)
+  call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, units = draw_units, color = color)
 endif
 
 ! Custom pattern
@@ -1364,6 +1358,11 @@ if (ele_shape%shape == 'X') then
 endif
 
 if (ele_shape%shape == 'BOW_TIE') then
+  call qp_draw_line (x1, x1, y1, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
+endif
+
+if (ele_shape%shape == 'RBOW_TIE') then
   call qp_draw_line (x1, x2, y1, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x2, y2, y2, width = iwidth, color = color, clip = .true.)
 endif
@@ -1374,7 +1373,7 @@ endif
 
 ! Draw X for XBOX or BOW_TIE
 
-if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
+if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE' .or. ele_shape%shape == 'RBOW_TIE') then
   call qp_draw_line (x1, x2, y2, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
