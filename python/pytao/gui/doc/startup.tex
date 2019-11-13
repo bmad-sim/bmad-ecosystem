@@ -1,5 +1,11 @@
-\chapter{Starting the GUI}
+\chapter{GUI Starting}
 \label{s:gui.startup}
+
+%--------------------------------------------------------------
+\section{Envionmental Variable Setup}
+
+%--------------------------------------------------------------
+\section{Starting the GUI}
 
 From your system shell, you can execute the gui with the command
 \begin{example}
@@ -9,18 +15,22 @@ You can also specify any of the command line options that tao supports.  For exa
 \begin{example}
   python -m pytao.gui -init_file ~/bmad_dist/tao/examples/cesr/tao.init -rf_on
 \end{example}
-This will prefill the settings for \texttt{init_file} and \texttt{rf_on}.
-The GUI starts with the window shown in Figure \ref{fig:startup}.
-From here, all of the command-line settings that Tao supports can be set (settings that are left blank are omitted when Tao is started).
+This will prefill the settings for \texttt{init_file} and \texttt{rf_on}.  The GUI starts with the
+window shown in Figure \ref{fig:startup}. From here, all of the command-line settings that Tao
+supports can be set (settings that are left blank are omitted when Tao is started).
 
-Towards the bottom of the window are some settings that are specific to the GUI.  The "Interface to Tao" setting controls whether the ctypes or pexpect backend for communicating with Tao will be used.
-Below it, the "Shared Library" or "Tao executable" setting points the GUI to the correct executable or shared object library to use.
-In most cases, the GUI will prefill this box by referencing the ACC_LOCAL_ROOT and ACC_ROOT_DIR environmental variables.
+Towards the bottom of the window are some settings that are specific to the GUI.  The "Interface to
+Tao" setting controls whether the ctypes or pexpect backend for communicating with Tao will be used.
+Below it, the "Shared Library" or "Tao executable" setting points the GUI to the correct executable
+or shared object library to use.  In most cases, the GUI will prefill this box by referencing the
+ACC_LOCAL_ROOT and ACC_ROOT_DIR environmental variables.
 
-Finally, the font size can be set as desired.
-Hitting Enter/Return while the font size box is in focus will adjust the font size of the startup window to give the user a sense of what the chosen font size will look like.
+Finally, the font size can be set as desired. Hitting Enter/Return while the font size box is in
+focus will adjust the font size of the startup window to give the user a sense of what the chosen
+font size will look like.
 
-Once all of the startup settings have been set, clicking "Start Tao" will initialize Tao and bring the user to the main GUI window.
+Once all of the startup settings have been set, clicking "Start Tao" will initialize Tao and bring
+the user to the main GUI window.
 \begin{figure}
 \includegraphics[width=8cm]{figures/startup.png}
 \centering
@@ -29,7 +39,6 @@ Once all of the startup settings have been set, clicking "Start Tao" will initia
 \end{figure}
 
 %--------------------------------------------------------------
-
 \section{GUI Initialization File}
 \label{s:gui.init.file}
 

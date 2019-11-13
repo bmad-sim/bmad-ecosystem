@@ -4,17 +4,41 @@
 %-----------------------------------------------------------------
 \section{Obtaining the Source Code}
 
-Source code for both \tao and the GUI 
+Source code and documentation for \bmad, \tao and the GUI for \tao can be obtained, if needed, on
+the \bmad web site at:
+  \hfill\break \hspace*{0.3in} \url{https://www.classe.cornell.edu/bmad}
 
 %-----------------------------------------------------------------
-\section{Requirements}
+\section{Building Tao}
 
-There are a number of python modules needed for the GUI:
+As a prerequisite, if not already available, \tao must be built before using the GUI. Build
+instructions are available on the \bmad web site. There are two ways for the GUI scripts (written in
+Python) to interact with Tao. One way is to use the \vn{pexpect} module which is a communications
+layer that interfaces to \tao's command line interface. The other way is to use \vn{ctypes} (an
+interface between Python and C) to communicate directly with the \tao subroutine library (the \tao
+program is built by linking to the \tao library). 
+
+The advantage of using \vn{ctypes} is that it is faster. The drawback is that \vn{ctypes} requires a
+version of the \tao library that is \vn{shared object}. If you are using a \bmad
+``\vn{Distribution}'' (a package that is downloaded from the Web containing \bmad, \tao, associated
+libraries, etc.), the default is {\em not} to build shared object libraries. This default can, of
+course, be changed but if you do not have control of how things are built, you may have to use
+\vn{pexpect}. To check if there is a shared object library built, issue the following command:
+\begin{example}
+  ls $ACC_ROOT_DIR/production/lib/libtao.*
+\end{example}
+[This assumes that you are not setting \vn{ACC_LOCAL_ROOT} as discussed in \Sref{s:e.vars}.]
+In all cases you will see a file \vn{libtao.a}. This is a static library which is always built but
+not of use. A file like \vn{libtao.so} or \vn{libtao.dylib} is a shared object library. Note: To
+build shared object libraries, modify the modules needed for the GUI:
 \begin{example}
   tkinter
   ttk (may be called pyttk)
   pexpect         # If using pexpect instead of ctypes.
-  matplotlib, cycler, dateutil, tkagg
+  matplotlib
+  cycler
+  ateutil
+  tkagg
 \end{example}
 Note: The GUI uses the TkAgg backend for matplotlib. There may be a problem with Python finding the
 TkAgg backend. On the mac, using macports, the solution is to install matplotlib with the
@@ -33,7 +57,8 @@ If one of the modules is missing, python will generate an error message. For exa
 > python ../../gui/main.py
 Exception in Tkinter callback
 Traceback (most recent call last):
-  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/tkinter/__init__.py", line 1705, in __call__
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/3.7/lib/
+                            python3.7/tkinter/__init__.py", line 1705, in __call__
     return self.func(*args)
   File "../../gui/main.py", line 372, in param_load
     from tao_interface import tao_interface
@@ -61,10 +86,42 @@ Using pip (or pip3):
   sudo pip install pexpect
 \end{example}
 
-WARNING: it can be dangerous to use pip to install/modify modules in your system python.
-A much safer way to install the modules you need is to set up a python virtual environment.
-On Linux, you may also be able to find versions of the required modules in your system package manager,
-which are tailored to your Linux distribution and will not break your system python.
+WARNING: it can be dangerous to use pip to install/modify modules in your system Python. A much
+safer way to install the modules you need is to set up a python virtual environment.  On Linux, you
+may also be able to find versions of the required modules in your system package manager, which are
+tailored to your Linux distribution and will not break your system python.
+
+%-----------------------------------------------------------------
+\section{Environmental Variables}
+\label{s:e.vars}
+To run the GUI (or even to run \tao without the GUI), certain environmental varibles must be
+set. This is the same initialization that is done when compiling \bmad and \tao. See your local Guru or the
+\bmad web site for more details. To see if the environmental variables have been set, run the
+\vn{accinfo} command.
+
+It may be desireable to specify a local build tree as the place for the python scripts to find the
+\tao executable or \tao shared object library. To accomplish this, set the environmental variable
+\vn{ACC_LOCAL_ROOT} to the base directory of your local build tree.
+\begin{example}
+  export ACC_LOCAL_ROOT=/home/dcs16/bmad_dist
+\end{example}
+
+The standard place for the GUI script files is at:
+\begin{example}
+  "${ACC_ROOT_DIR}/tao/python/pytao/gui
+\end{example}
+When doing GUI development work, the default location can be changed by setting \vn{ACC_PYTHONPATH}. Example:
+\begin{example}
+  export ACC_PYTHONPATH="$ACC_LOCAL_ROOT/tao/python/pytao/gui"
+\end{example}
+[This assumes that \vn{ACC_LOCAL_ROOT} has been set.]  \vn{ACC_PYTHONPATH} must be set before \bmad
+is initialized. That is, if \bmad is initialized in the \vn{.bashrc} file, \vn{ACC_PYTHONPATH} must
+be initialized in the \vn{.bashrc} file before the \bmad initialization.
+
+To check that \vn{PYTHONPATH} has the correct value use the command:
+\begin{example}
+  printenv |grep PYTHONPATH
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Installation Troubleshooting}
@@ -80,31 +137,3 @@ Solution: Uninstall and then reinstall matplotlib. For example, if using pip:
   sudo pip uninstall matplotlib
   sudo pip install matplotlib
 \end{example}
-
-%-----------------------------------------------------------------
-\section{Developer Setup}
-\label{s:gui.develop}
-
-For GUI development, it may be desireable to specify a local build tree as the place for the python
-scripts to find the \tao executable or \tao shared object library. To accomplish this, set the environmental
-variable ACC_LOCAL_ROOT to the base directory of your local build tree.
-\begin{example}
-  export ACC_LOCAL_ROOT=/home/dcs16/bmad_dist
-\end{example}
-
-The standard place for the GUI script files is at:
-\begin{example}
-  "${ACC_ROOT_DIR}/tao/python/pytao/gui
-\end{example}
-When doing GUI development work, the default location can be changed by setting \vn{ACC_PYTHONPATH}. Example:
-\begin{example}
-  export ACC_PYTHONPATH=/home/dcs16/bmad_dist/tao/python/pytao/gui
-\end{example}
-\vn{ACC_PYTHONPATH} must be set before \bmad is initalized. That is, if \bmad is initalized in the \vn{.bashrc} file,
-\vn{ACC_PYTHONPATH} must be initalized in the \vn{.bashrc} file before the \bmad initialization.
-
-To check that \vn{PYTHONPATH} has the correct value use the command:
-\begin{example}
-  printenv |grep PYTHONPATH
-\end{example}
-
