@@ -965,7 +965,7 @@ effective_zero = max(abs(axis%tick_max), abs(axis%tick_min)) / max_d
 ! all the numbers on the axis with a limit of qp_com%max_digits digits maximum for any one number.
 
 axis%places = -1000
-do i = 0, nint((axis%tick_max-axis%tick_min)/axis%dtick)
+do i = 0, axis%major_div
   num = axis%tick_min + i * axis%dtick
   if (abs(num) < effective_zero) cycle  ! Ignore zero
   axis%places = max(axis%places, floor(-log10(abs(num))))
@@ -4421,7 +4421,11 @@ else ! Linear scale
   call qp_to_inch_rel (ax1%tick_max-ax1%tick_min, 0.0_rp, tick_width, dum, 'DATA')
   call qp_to_inch_rel (ax1%tick_min-ax1%min, 0.0_rp, x0_tick, dum, 'DATA')
   divisions = ax1%major_div
-  dx0 = tick_width / divisions
+  if (divisions == 0) then
+    dx0 = 0
+  else
+    dx0 = tick_width / divisions
+  endif
 
   ! minor ticks
   if (ax1%minor_div == 0) then
@@ -4602,7 +4606,11 @@ else ! Linear
   call qp_to_inch_rel (0.0_rp, ax1%tick_max-ax1%tick_min, dum, tick_width, 'DATA')
   call qp_to_inch_rel (0.0_rp, ax1%tick_min-ax1%min, dum, y0_tick, 'DATA')
   divisions = ax1%major_div
-  dy0 = tick_width / divisions
+  if (divisions == 0) then
+    dy0 = 0
+  else
+    dy0 = tick_width / divisions
+  endif
 
   ! Minor ticks
   if (ax1%minor_div == 0) then
@@ -4736,7 +4744,7 @@ endif
 
 n_log_min = 1000
 n_log_max = -1000
-do i = 0, nint((axis%tick_max-axis%tick_min) / axis%dtick)
+do i = 0, axis%major_div
   v = axis%tick_min + i * axis%dtick
   if (abs(v) < effective_zero) cycle  ! Ignore zero.
   n_log = floor(log10(abs(v)+1d-30) + 0.0001)
@@ -4904,8 +4912,7 @@ if (ay%type == 'LOG') then
   endif
 
 else
-  divisions = nint((ay%tick_max-ay%tick_min) / ay%dtick)
-  do i = 0, divisions
+  do i = 0, ay%major_div
     z = ay%tick_min + i * ay%dtick
     call qp_draw_polyline_no_set ([ax%min, ax%max], z, 'DATA')
   enddo
@@ -4923,8 +4930,7 @@ if (ax%type == 'LOG') then
   endif
 
 else
-  divisions = nint((ax%tick_max-ax%tick_min) / ax%dtick)
-  do i = 0, divisions
+  do i = 0, ax%major_div
     z = ax%tick_min + i * ax%dtick
     call qp_draw_polyline_no_set (z, [ay%min, ay%max], 'DATA')
   enddo
@@ -5436,8 +5442,13 @@ endif
 
 ! adjust z-axis major_div, etc. to match t-axis.
 
-axis_z%dtick = axis_t%dtick
-axis_z%major_div = nint((axis_z%tick_max - axis_z%tick_min) / axis_z%dtick)
+if (axis_z%tick_max == axis_z%tick_min) then
+  axis_z%dtick = 0
+  axis_z%major_div = 0
+else
+  axis_z%dtick = axis_t%dtick
+  axis_z%major_div = nint((axis_z%tick_max - axis_z%tick_min) / axis_z%dtick)
+endif
 axis_z%places = axis_t%places
 axis_z%minor_div = axis_t%minor_div
 axis_z%max = max(axis_z%max, axis_z%tick_max)

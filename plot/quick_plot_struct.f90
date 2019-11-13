@@ -57,9 +57,9 @@ character(16), parameter :: qp_arrow_head_type_name(2) = [character(16):: 'Fille
 type qp_axis_struct
   character(80) :: label = ' '
   real(rp) :: min = 0, max = 10          ! Axis min/max in data units.
-  real(rp) :: tick_min = 0               ! Min tick location along axis in data units.
+  real(rp) :: tick_min = 10              ! Min tick location along axis in data units.
   real(rp) :: tick_max = 0               ! Max tick location along axis in data units.
-  real(rp) :: dtick = 1                  ! Distance between ticks. In data units. Ticks will be drawn between %min and %max.
+  real(rp) :: dtick = 2                  ! Distance between ticks. In data units. Ticks will be drawn between %min and %max.
   real(rp) :: number_offset = 0.05       ! offset from axis line in inches.
   real(rp) :: label_offset = 0.05        ! offset from numbers in inches.
   real(rp) :: major_tick_len = 0.10      ! in inches.

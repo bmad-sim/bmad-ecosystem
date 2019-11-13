@@ -194,6 +194,7 @@ character(*), parameter :: r_name = 'super_zbrent'
 !
 
 status = 0
+x_zero = real_garbage$
 
 a = x1
 b = x2
