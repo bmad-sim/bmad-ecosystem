@@ -873,14 +873,17 @@ type (beam_init_struct) beam_init
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
+type (tao_expression_info_struct), allocatable :: info(:)
 
 character(*) who, value_str
 character(40) who2
 character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
 
+real(rp), allocatable :: set_val(:)
 integer i, iu, ios, ib, n_loc
 logical err
 logical, allocatable :: picked_uni(:)
+
 character(40) name
 
 namelist / params / beam_init
@@ -922,11 +925,13 @@ end select
 
 ! open a scratch file for a namelist read
 
+call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+
 if (who2 == 'sig_e') who2 = 'sig_pz'
 iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
-write (iu, '(a)') ' beam_init%' // trim(who2) // ' = ' // trim(value_str)
+write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
 write (iu, '(a)') '/'
 
 !
