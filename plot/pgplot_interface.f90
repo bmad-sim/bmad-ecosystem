@@ -65,9 +65,17 @@ contains
 subroutine qp_set_graph_position_basic (x1, x2, y1, y2)
 implicit none
 real(rp) x1, x2, y1, y2, f
+real xx1, xx2, yy1, yy2
+! Single precision roundoff can make things equal which PGPLOT does not like
 f = pg_com%page_scale
-call pgvsiz (real(f*x1), real(f*x2), real(f*y1), real(f*y2))
-call pgswin (real(f*x1), real(f*x2), real(f*y1), real(f*y2))
+xx1 = f * x1
+xx2 = f * x2
+if (xx2 == xx1) xx2 = xx2 + (1 + 10.0**-7)
+yy1 = f * y1
+yy2 = f * y2
+if (yy2 == yy1) yy2 = yy2 * (1 + 10.0**-7)
+call pgvsiz (xx1, xx2, yy1, yy2)
+call pgswin (xx1, xx2, yy1, yy2)
 end subroutine qp_set_graph_position_basic
 
 !-----------------------------------------------------------------------
