@@ -652,111 +652,134 @@ class taoplot:
                 eleColorDict[eleInfo[i].split(';')[0]] = mpl_color(eleInfo[i].split(';')[7].lower())
                 eleNameDict[eleInfo[i].split(';')[0]] = eleInfo[i].split(';')[8]
 
-            y_max = 0
+            # Plotting line segments one-by-one can be slow if there are thousands of lattice elements.
+            # So keep a list of line segments and plot all at once at the end.
+
+            y_max = max(max(eleY1Dict.values()), max(eleY2Dict.values()))
+            y2_floor = -max(eleY2Dict.values())  # Note negative sign
+            lines = []
+            widths = []
+            colors = []            
 
             for i in eleIndexList:
                 s1 = eleStartDict[str(i)]
                 s2 = eleEndDict[str(i)]
                 y1 = eleY1Dict[str(i)]
-                y2 = eleY2Dict[str(i)]
+                y2 = -eleY2Dict[str(i)]  # Note negative sign.
                 wid = eleLwDict[str(i)]
                 color = eleColorDict[str(i)]
                 shape = eleShapeDict[str(i)]
                 name = eleNameDict[str(i)]
-                y_max = max(y_max, y1, y2)
 
                 try:
-                    # Draw box element
-                    if shape == 'box' and s2-s1 > 0:
-                        latLayoutSubPlot.add_patch(patches.Rectangle((s1,-y2),s2-s1,y1+y2,lw = wid,color = color,fill = False))
-
-                    # Draw xbox element
-                    elif shape == 'xbox' and s2-s1 > 0:
-                        latLayoutSubPlot.add_patch(patches.Rectangle((s1,-y2),s2-s1,y1+y2,lw = wid,color = color,fill = False))
-                        latLayoutSubPlot.plot([s1,s2],[y1,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,s2],[-y2,y1],lw = wid,color = color)
-
-                    # Draw x element
-                    elif shape == 'x' and s2-s1 > 0:
-                        latLayoutSubPlot.plot([s1,s2],[y1,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,s2],[-y2,y1],lw = wid,color = color)
-
-                    # Draw bow_tie element
-                    elif shape == 'bow_tie' and s2-s1 > 0:
-                        latLayoutSubPlot.plot([s1,s2],[y1,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,s2],[-y2,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,s2],[y1,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,s2],[-y2,-y2],lw = wid,color = color)
-
-                    # Draw diamond element
-                    elif shape == 'diamond' and s2-s1 > 0:
-                        latLayoutSubPlot.plot([s1,s1+(s2-s1)/2],[0,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,s1+(s2-s1)/2],[0,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1+(s2-s1)/2,s2],[-y2,0],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1+(s2-s1)/2,s2],[y1,0],lw = wid,color = color)
-
-                    # Draw circle element
-                    elif shape == 'circle':
-                        latLayoutSubPlot.add_patch(patches.Ellipse((s1+(s2-s1)/2,0),y1+y2,y1+y2,lw = wid,color = color,fill = False))
-
-                    # Draw wrapped box element
-                    elif shape == 'box' and s2-s1 < 0:
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[y1,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[y1,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[-y2,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[-y2,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,s1],[y1,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s2,s2],[y1,-y2],lw = wid,color = color)
-
-                    # Draw wrapped xbox element
-                    elif shape == 'xbox' and s2-s1 < 0:
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[y1,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[y1,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[-y2,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[-y2,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,s1],[y1,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s2,s2],[y1,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[y1,0],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[0,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[-y2,0],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[0,-y2],lw = wid,color = color)
-
-                    # Draw wrapped x element
-                    elif shape == 'x' and s2-s1 < 0:
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[y1,0],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[0,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[-y2,0],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[0,-y2],lw = wid,color = color)
-
-                    # Draw wrapped bow tie element
-                    elif shape == 'bow_tie' and s2-s1 < 0:
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[y1,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[y1,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[-y2,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[-y2,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[y1,0],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[0,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[-y2,0],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[0,-y2],lw = wid,color = color)
-
-                    # Draw wrapped diamond element
-                    elif shape == 'diamond' and s2-s1 < 0:
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[0,y1],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[y1,0],lw = wid,color = color)
-                        latLayoutSubPlot.plot([s1,layInfoDict['x'].get_component('max')],[0,-y2],lw = wid,color = color)
-                        latLayoutSubPlot.plot([layInfoDict['x'].get_component('min'),s2],[-y2,0],lw = wid,color = color)
-
-                    # Draw element name
+                    # Normal case where element is not wrapped around ends of lattice.
                     if s2-s1 > 0:
-                        latLayoutSubPlot.text(s1+(s2-s1)/2,-1.1*y2,name,ha = 'center',va = 'top',clip_on = True,color = color)
 
-                    # Draw wrapped element name
-                    elif s2-s1 < 0:
-                        latLayoutSubPlot.text(layInfoDict['x'].get_component('max'),-1.1*y2,name,ha = 'right',va = 'top',clip_on = True,color = color)
-                        latLayoutSubPlot.text(layInfoDict['x'].get_component('min'),-1.1*y2,name,ha = 'left',va = 'top',clip_on = True,color = color)
+                        # Draw box element
+                        if shape == 'box':
+                            latLayoutSubPlot.add_patch(patches.Rectangle((s1,y1), s2-s1, y2-y1, lw = wid,color = color,fill = False))
+
+                        # Draw xbox element
+                        elif shape == 'xbox':
+                            latLayoutSubPlot.add_patch(patches.Rectangle((s1,y1), s2-s1, y2-y1, lw = wid,color = color,fill = False))
+                            lines.extend([ [(s1,y1), (s2,y2)], [(s1,y2), (s2,y1)] ])
+                            colors.extend([color, color])
+                            widths.extend([wid, wid])
+
+                        # Draw x element
+                        elif shape == 'x':
+                            lines.extend([ [(s1,y1), (s2,y2)], [(s1,y2), (s2,y1)] ])
+                            colors.extend([color, color])
+                            widths.extend([wid, wid])
+
+                        # Draw bow_tie element
+                        elif shape == 'bow_tie':
+                            lines.extend([ [(s1,y1), (s2,y2)], [(s1,y2), (s2,y1)], [(s1,y1), (s1,y2)], [(s2,y1), (s2,y2)] ])
+                            colors.extend([color, color, color, color])
+                            widths.extend([wid, wid, wid, wid])
+
+                        # Draw rbow_tie element
+                        elif shape == 'rbow_tie':
+                            lines.extend([ [(s1,y1), (s2,y2)], [(s1,y2), (s2,y1)], [(s1,y1), (s2,y1)], [(s1,y2), (s2,y2)] ])
+                            colors.extend([color, color, color, color])
+                            widths.extend([wid, wid, wid, wid])
+
+                        # Draw diamond element
+                        elif shape == 'diamond':
+                            s_mid = (s1 + s2) / 2
+                            lines.extend([ [(s1,0), (s_mid, y1)], [(s1,0), (s_mid, y2)], [(s2,0), (s_mid, y1)], [(s2,0), (s_mid, y2)] ])
+                            colors.extend([color, color, color, color])
+                            widths.extend([wid, wid, wid, wid])
+
+                        # Draw circle element
+                        elif shape == 'circle':
+                            s_mid = (s1 + s2) / 2
+                            latLayoutSubPlot.add_patch(patches.Ellipse((s_mid,0), y1-y2, y1-y2, lw = wid,color = color,fill = False))
+
+                        # Draw element name
+                        latLayoutSubPlot.text((s1+s2)/2, 1.1*y2_floor, name,ha = 'center',va = 'top',clip_on = True,color = color)
+
+                    # Case where element is wrapped round the lattice ends.
+                    else:
+                        s_min = layInfoDict['x'].get_component('min')
+                        s_max = layInfoDict['x'].get_component('max')
+
+                        # Draw wrapped box element
+                        if shape == 'box':
+                            latLayoutSubPlot.plot([s1,s_max],[y1,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[y2,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[y1,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[y2,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s1],[y1,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s2,s2],[y1,y2],lw = wid,color = color)
+
+                        # Draw wrapped xbox element
+                        elif shape == 'xbox':
+                            latLayoutSubPlot.plot([s1,s_max],[y1,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[y2,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[y1,0],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[y2,0],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[y1,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[y2,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[0,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[0,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s1],[y1,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s2,s2],[y1,y2],lw = wid,color = color)
+
+                        # Draw wrapped x element
+                        elif shape == 'x':
+                            latLayoutSubPlot.plot([s1,s_max],[y1,0],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[y2,0],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[0,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[0,y2],lw = wid,color = color)
+
+                        # Draw wrapped bow tie element
+                        elif shape == 'bow_tie':
+                            latLayoutSubPlot.plot([s1,s_max],[y1,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[y2,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[y1,0],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[y2,0],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[y1,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[y2,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[0,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[0,y2],lw = wid,color = color)
+
+                        # Draw wrapped diamond element
+                        elif shape == 'diamond':
+                            latLayoutSubPlot.plot([s1,s_max],[0,y1],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s1,s_max],[0,y2],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[y1,0],lw = wid,color = color)
+                            latLayoutSubPlot.plot([s_min,s2],[y2,0],lw = wid,color = color)
+
+                        # Draw wrapped element name
+                        latLayoutSubPlot.text(s_max, 1.1*y2_floor, name,ha = 'right',va = 'top',clip_on = True,color = color)
+                        latLayoutSubPlot.text(s_min, 1.1*y2_floor, name,ha = 'left',va = 'top',clip_on = True,color = color)
  
                 except KeyError:
                     pass
+
+            # Draw all line segments
+            latLayoutSubPlot.add_collection(mp.collections.LineCollection(lines, colors = colors, linewidths = widths))
 
             # Invisible line to give the lat layout enough vertical space.
             # Without this, the tops and bottoms of shapes could be cut off
