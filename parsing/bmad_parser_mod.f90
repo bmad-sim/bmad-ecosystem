@@ -6957,11 +6957,12 @@ n_ele_use = 0
 sequence(:)%ix = 1  ! Init. Used for replacement list index
 
 ! Note: If present(expanded_line) => Expansion is for getting a girder slave list.
+! For non-girder computations, having stack(1)%multipass = T means that the "used" line is marked multipass.
+! This does not make sense but is allowed since it is sometimes convenient to analyze a line even if
+! it is marked multipass.
 
-if (stack(1)%multipass) then
-  if (present(expanded_line)) then
-    ix_multipass = 1
-  endif
+if (stack(1)%multipass .and. present(expanded_line)) then
+  ix_multipass = 1
 endif
 
 !-------------------------------------------------------------------------
@@ -7074,7 +7075,9 @@ line_expansion: do
       used_line(n_ele_use)%tag =  stack(i_lev)%tag
     endif
 
-    if (stack(i_lev)%multipass) then
+    ! i_lev = 1 means that this is the "used" line. This does not make sense but is allowed 
+    ! since it is sometimes convenient to analyze a line even if it is marked multipass.
+    if (stack(i_lev)%multipass .and. i_lev /= 1) then
       ix_multipass = ix_multipass + 1
       used_line(n_ele_use)%ix_multi = ix_multipass + 1000000 * stack(i_lev)%ix_seq
     else
