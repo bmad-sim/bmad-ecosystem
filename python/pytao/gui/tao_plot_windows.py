@@ -385,14 +385,11 @@ class tao_place_plot_window(Tao_Toplevel):
 
 class tao_plot_window(Tao_Toplevel):
     '''
-    Displays one (perhaps multiple) matplotlib plots
-    that the user has specified from the plotting
-    template window that they want to plot. Creating a
-    window in tkinter is necessary rather than using
-    matplotlib's built in system for creating windows
-    because using that system will halt the tkinter
+    Displays one (perhaps multiple) matplotlib plots that the user has specified from the plotting
+    template window that they want to plot. Creating a window in tkinter is necessary rather than using
+    matplotlib's built in system for creating windows because using that system will halt the tkinter
     mainloop until the plots are closed.
-    If the region to place the graph is not specified, one will be selected automatically
+    If the region to place the graph is not specified, one will be selected automatically.
     '''
     def __init__(self, root, template, pipe, region=None, *args, **kwargs):
         if region == 'layout': # do not place plots in the layout region
@@ -454,8 +451,7 @@ class tao_plot_window(Tao_Toplevel):
         toolbar = taotoolbar(canvas, self, width, self.root.GUI_DIR)
         toolbar.update()
         # DO NOT TOUCH
-        canvas.manager = FigureManagerTk(
-                canvas, self.fig.number, tk.Toplevel(self.root))
+        canvas.manager = FigureManagerTk(canvas, self.fig.number, tk.Toplevel(self.root))
 
         #toolbar = taotoolbar(canvas, self)
         #toolbar.update()
@@ -474,6 +470,7 @@ class tao_plot_window(Tao_Toplevel):
                     tao_ele_window(self.root, self.pipe, default=[self.fig_info[1], i[0], i[1], self.fig_info[3]])
 
         canvas.mpl_connect("button_press_event", on_click)
+
         '''
         if self.fig_info[0] == 'floor_plan':
             self.fig.subplots_adjust(bottom=0.2) #adds room below graph for slider
@@ -484,6 +481,7 @@ class tao_plot_window(Tao_Toplevel):
 
             width_slider.on_changed(update_slider) #call update when slider moves
         '''
+
         self.update_idletasks()
         self.pack_propagate(False)
 
