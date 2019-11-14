@@ -1510,7 +1510,9 @@ Format:
 \end{example}
 
 Sets the state of the random number generator to a specific state. Use \vn{show global
--ran_state} to show the random number generator state.
+-ran_state} to show the random number generator state. Manipulating the state for generating
+random numbers is generally only used for debugging purposes and is not of interest to the
+typical user.
 
 %% set symbolic_number --------------------------------------------------------------
 
@@ -2058,7 +2060,11 @@ Syntax:
   show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
 \end{example}
 
-The \vn{show global} command prints lists of global parameters. 
+The \vn{show global} command prints lists of global parameters.  
+
+Note: The state of the random number generator is only used for debugging purposes and is not of
+interest to the typical user.
+
 Specifically:
 \begin{example}
   show global               ! Displays \tao's global parameters.
