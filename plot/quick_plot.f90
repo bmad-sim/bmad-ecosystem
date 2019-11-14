@@ -580,7 +580,7 @@ end subroutine qp_use_axis
 !+
 ! Subroutine qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, 
 !               draw_numbers, minor_div, minor_div_max, mirror, number_offset, label_offset, 
-!               major_tick_len, minor_tick_len, ax_type, tick_min, tick_max, dtick, axis)
+!               major_tick_len, minor_tick_len, ax_type, tick_min, tick_max, dtick, set_ticks, axis)
 !   
 ! Routine to set (but not plot) the min, max, divisions etc. for the X and Y axes. 
 !
@@ -619,13 +619,15 @@ end subroutine qp_use_axis
 !   tick_min       -- real(rp), optional: Min tick location in data units.
 !   tick_max       -- real(rp), optional: Max tick location in data units.
 !   dtick          -- real(rp), optional: Distance between ticks in data units.
+!   set_ticks      -- logical, optional: Default is False. If True, set %tick_min, %tick_max, and %dtick
+!                       using values of %max, %min, and %major_div.
 !   axis           -- qp_axis_struct, optional: Axis. If present with other arguments then the other arguments
 !                       will override components of this argument.
 !-
 
 subroutine qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, &
                   draw_numbers, minor_div, minor_div_max, mirror, number_offset, label_offset, &
-                  major_tick_len, minor_tick_len, ax_type, tick_min, tick_max, dtick, axis)
+                  major_tick_len, minor_tick_len, ax_type, tick_min, tick_max, dtick, set_ticks, axis)
 
 implicit none
 
@@ -636,7 +638,7 @@ real(rp), optional :: a_min, a_max, number_offset, tick_min, tick_max, dtick
 real(rp), optional :: label_offset, major_tick_len, minor_tick_len
 
 integer, optional :: div, places, minor_div, minor_div_max
-logical, optional :: draw_label, draw_numbers, mirror
+logical, optional :: draw_label, draw_numbers, mirror, set_ticks
 
 character(*), optional :: label, ax_type
 character(*) axis_str
@@ -683,6 +685,16 @@ if (present(label_offset))   this_axis%label_offset   = label_offset
 if (present(major_tick_len)) this_axis%major_tick_len = major_tick_len
 if (present(minor_tick_len)) this_axis%minor_tick_len = minor_tick_len
 if (present(ax_type))        this_axis%type = ax_type
+
+if (logic_option(.false., set_ticks)) then
+  this_axis%tick_max = this_axis%max
+  this_axis%tick_min = this_axis%min
+  if (this_axis%type == 'LOG') then
+    this_axis%dtick = 10
+  else
+    this_axis%dtick = (this_axis%max - this_axis%min) / max(1, this_axis%major_div)
+  endif
+endif
 
 end subroutine qp_set_axis
 
