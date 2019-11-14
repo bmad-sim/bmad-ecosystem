@@ -265,8 +265,8 @@ integer, allocatable :: ix_c(:), ix_remove(:)
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state, err_flag
-logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc, print_position, called_from_python_cmd
+logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag
+logical print_ptc, print_position, called_from_python_cmd
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -1500,38 +1500,32 @@ case ('field')
 
 case ('global')
 
-  print_global = .true.
-  print_optimization = .false.
-  print_bmad_com = .false.
-  print_csr_param = .false.
-  print_ran_state = .false.
-  attrib0 = ''
+  what_to_print = 'global'
 
   do
     call tao_next_switch (what2, [character(16):: '-optimization', '-bmad_com', &
                                  '-csr_param', '-ran_state'], .true., switch, err, ix)
     if (err) return
 
-    print_global = .false.
     select case (switch)
     case ('')
       exit
-    case ('-optimization') 
-      print_optimization = .true.
+    case ('-optimization')
+      what_to_print = 'opti'
     case ('-bmad_com') 
-      print_bmad_com = .true.
+      what_to_print = 'bmad_com'
     case ('-csr_param') 
-      print_csr_param = .true.
+      what_to_print = 'csr'
     case ('-ran_state')
-      print_ran_state = .true.
-      print_global = .false.
+      what_to_print = 'ran'
     case default
-      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // switch)
       return
     end select
   enddo
 
-  if (print_global) then
+  select case (what_to_print)
+  case ('global')
     nl=nl+1; lines(nl) = 'Tao Global parameters [Note: To print optimizer globals use: "show optimizer"]'
     nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
@@ -1567,51 +1561,57 @@ case ('global')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Tao Parameters:'
-    nl=nl+1; write(lines(nl), imt) 'Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
-    nl=nl+1; write(lines(nl), imt) 'default_universe:            = ', s%com%default_universe
-    nl=nl+1; write(lines(nl), imt) 'default_branch:              = ', s%com%default_branch
-    nl=nl+1; write(lines(nl), lmt) 'common_lattice               = ', s%com%common_lattice
-    nl=nl+1; write(lines(nl), imt) 'Number paused command files  = ', count(s%com%cmd_file%paused)
-    nl=nl+1; write(lines(nl), amt) 'unique_name_suffix           = ', quote(s%com%unique_name_suffix)
-    nl=nl+1; write(lines(nl), lmt) 'Combine_consecutive_elements_of_like_name = ', &
+    nl=nl+1; write(lines(nl), imt) '  Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
+    nl=nl+1; write(lines(nl), imt) '  default_universe:            = ', s%com%default_universe
+    nl=nl+1; write(lines(nl), imt) '  default_branch:              = ', s%com%default_branch
+    nl=nl+1; write(lines(nl), lmt) '  common_lattice               = ', s%com%common_lattice
+    nl=nl+1; write(lines(nl), imt) '  Number paused command files  = ', count(s%com%cmd_file%paused)
+    nl=nl+1; write(lines(nl), amt) '  unique_name_suffix           = ', quote(s%com%unique_name_suffix)
+    nl=nl+1; write(lines(nl), lmt) '  Combine_consecutive_elements_of_like_name = ', &
                                                 s%com%combine_consecutive_elements_of_like_name
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Tao command line startup arguments:'
-    call write_this_arg (nl, lines, '-beam_file', s%com%beam_file_arg)
-    call write_this_arg (nl, lines, '-beam_track_data_file', s%com%beam_track_data_file_arg)
-    call write_this_arg (nl, lines, '-beam_init_position_file', s%com%beam_init_position_file_arg)
-    call write_this_arg (nl, lines, '-building_wall_file', s%com%building_wall_file_arg)
-    call write_this_arg (nl, lines, '-prompt_color', s%com%prompt_color_arg)
-    call write_this_arg (nl, lines, '-data_file', s%com%data_file_arg)
-    call write_this_arg (nl, lines, '-disable_smooth_line_calc', s%com%disable_smooth_line_calc_arg)
-    call write_this_arg (nl, lines, '-debug', s%com%debug_arg)
-    call write_this_arg (nl, lines, '-geometry', s%com%geometry_arg)
-    call write_this_arg (nl, lines, '-hook_init_file', s%com%hook_init_file_arg)
-    call write_this_arg (nl, lines, '-init_file', s%com%init_file_arg)
-    call write_this_arg (nl, lines, '-lattice_file', s%com%lattice_file_arg)
-    call write_this_arg (nl, lines, '-log_startup', s%com%log_startup_arg)
-    call write_this_arg (nl, lines, '-no_stopping', s%com%no_stopping_arg)
-    call write_this_arg (nl, lines, '-noinit', s%com%noinit_arg)
-    call write_this_arg (nl, lines, '-noplot', s%com%noplot_arg)
-    call write_this_arg (nl, lines, '-plot_file', s%com%plot_file_arg)
-    call write_this_arg (nl, lines, '-rf_on', s%com%rf_on_arg)
-    call write_this_arg (nl, lines, '-silent_run', s%com%silent_run_arg)
-    call write_this_arg (nl, lines, '-slice_lattice', s%com%slice_lattice_arg)
-    call write_this_arg (nl, lines, '-startup_file', s%com%startup_file_arg)
-    call write_this_arg (nl, lines, '-var_file', s%com%var_file_arg)
-  endif
+    call write_this_arg (nl, lines, '  -beam_file', s%com%beam_file_arg)
+    call write_this_arg (nl, lines, '  -beam_track_data_file', s%com%beam_track_data_file_arg)
+    call write_this_arg (nl, lines, '  -beam_init_position_file', s%com%beam_init_position_file_arg)
+    call write_this_arg (nl, lines, '  -building_wall_file', s%com%building_wall_file_arg)
+    call write_this_arg (nl, lines, '  -prompt_color', s%com%prompt_color_arg)
+    call write_this_arg (nl, lines, '  -data_file', s%com%data_file_arg)
+    call write_this_arg (nl, lines, '  -disable_smooth_line_calc', s%com%disable_smooth_line_calc_arg)
+    call write_this_arg (nl, lines, '  -debug', s%com%debug_arg)
+    call write_this_arg (nl, lines, '  -geometry', s%com%geometry_arg)
+    call write_this_arg (nl, lines, '  -hook_init_file', s%com%hook_init_file_arg)
+    call write_this_arg (nl, lines, '  -init_file', s%com%init_file_arg)
+    call write_this_arg (nl, lines, '  -lattice_file', s%com%lattice_file_arg)
+    call write_this_arg (nl, lines, '  -log_startup', s%com%log_startup_arg)
+    call write_this_arg (nl, lines, '  -no_stopping', s%com%no_stopping_arg)
+    call write_this_arg (nl, lines, '  -noinit', s%com%noinit_arg)
+    call write_this_arg (nl, lines, '  -noplot', s%com%noplot_arg)
+    call write_this_arg (nl, lines, '  -plot_file', s%com%plot_file_arg)
+    call write_this_arg (nl, lines, '  -rf_on', s%com%rf_on_arg)
+    call write_this_arg (nl, lines, '  -silent_run', s%com%silent_run_arg)
+    call write_this_arg (nl, lines, '  -slice_lattice', s%com%slice_lattice_arg)
+    call write_this_arg (nl, lines, '  -startup_file', s%com%startup_file_arg)
+    call write_this_arg (nl, lines, '  -var_file', s%com%var_file_arg)
 
-  if (print_ran_state) then
+  case ('ran')
     call ran_default_state (get_state = ran_state)
-    nl=nl+1; write(lines(nl), '(a, i0, 2x, i0, l3, es26.16)') 'ran_state = ', ran_state
-  endif
+    nl=nl+1; write(lines(nl), imt) '  %ix              = ', ran_state%ix
+    nl=nl+1; write(lines(nl), imt) '  %iy              = ', ran_state%iy
+    nl=nl+1; write(lines(nl), lmt) '  %number_stored   = ', ran_state%number_stored
+    nl=nl+1; write(lines(nl), lmt) '  %h_saved         = ', ran_state%h_saved
+    nl=nl+1; write(lines(nl), imt) '  %engine          = ', ran_state%engine
+    nl=nl+1; write(lines(nl), imt) '  %seed            = ', ran_state%seed
+    nl=nl+1; write(lines(nl), rmt) '  %am              = ', ran_state%am
+    nl=nl+1; write(lines(nl), imt) '  %gauss_converter = ', ran_state%gauss_converter
+    nl=nl+1; write(lines(nl), rmt) '  %gauss_sigma_cut = ', ran_state%gauss_sigma_cut
+    nl=nl+1; write(lines(nl), imt) '  %in_sobseq       = ', ran_state%in_sobseq
 
-  if (print_optimization) then
+  case ('opti')
     call show_opt()
-  endif
 
-  if (print_bmad_com) then
+  case ('bmad_com')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
     nl=nl+1; write(lines(nl), rmt) '  %max_aperture_limit              = ', bmad_com%max_aperture_limit
@@ -1666,9 +1666,8 @@ case ('global')
         nl= nl+1; write (lines(nl), rmt) '  parameter[' // trim(aname) // ']: ', lat%custom(i)
       enddo
     endif
-  endif
 
-  if (print_csr_param) then
+  case ('csr')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'CSR_param Parameters:'
     nl=nl+1; write(lines(nl), rmt) '  %ds_track_step        = ', csr_param%ds_track_step
@@ -1680,7 +1679,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning = ', csr_param%print_taylor_warning
     nl=nl+1; write(lines(nl), lmt) '  %use_csr_old          = ', csr_param%use_csr_old    
     nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
-  endif
+  end select
 
 !----------------------------------------------------------------------
 ! graph
