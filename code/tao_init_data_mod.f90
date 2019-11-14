@@ -332,7 +332,13 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%weight           = datum(ix1:ix2)%weight
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
   u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
-  u%data(n1:n2)%meas_value       = 0  
+  u%data(n1:n2)%meas_value       = datum(ix1:ix2)%meas
+
+  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was not set
+    u%data(n1:n2)%meas_value = 0  
+  elsewhere
+    u%data(n1:n2)%good_meas = .true.
+  end where
 
   ! use default_data_type if given, if not, auto-generate the data_type
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
@@ -395,7 +401,7 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%eval_point      = d1_array(1)%d1%d%eval_point
 
   u%data(n1:n2)%invalid_value = datum(ix1)%invalid_value
-  u%data(n1:n2)%meas_value    = 0  
+  u%data(n1:n2)%meas_value    = 0
 
   if (default_data_type /= '')    u%data(n1:n2)%data_type = default_data_type
   if (datum(ix1)%data_type /= '') u%data(n1:n2)%data_type = datum(ix1)%data_type
@@ -477,7 +483,7 @@ else
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
 
   u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
-  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
+  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was not set
     u%data(n1:n2)%meas_value = 0  
   elsewhere
     u%data(n1:n2)%good_meas = .true.
