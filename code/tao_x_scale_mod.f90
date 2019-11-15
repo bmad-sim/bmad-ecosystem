@@ -136,7 +136,7 @@ integer i, j, p1, p2, n
 character(*), optional :: gang
 character(16) :: r_name = 'tao_x_scale_plot'
 logical, optional :: have_scaled
-logical do_gang, scaled
+logical do_gang, scaled, valid
 
 ! Check if the thing exists
 
@@ -151,9 +151,15 @@ x_max = x_max_in
 
 !
 
+valid = .true.
 do j = 1, size(plot%graph)
-  call tao_x_scale_graph (plot%graph(j), x_min, x_max, scaled)
+  graph => plot%graph(j)
+  call tao_x_scale_graph (graph, x_min, x_max, scaled)
   if (present(have_scaled)) have_scaled = (have_scaled .or. scaled)
+  if (.not. graph%is_valid) valid = .false.
+  if (allocated(graph%curve)) then
+    if (.not. any(graph%curve%valid)) valid = .false.
+  endif
 enddo
 
 ! if ganging is needed...
@@ -170,7 +176,7 @@ if (present(gang)) then
   end select
 endif
 
-if (do_gang .and. all(plot%graph%valid)) then
+if (do_gang .and. valid) then
 
   if (x_min == x_max) then
     this_min = 1e30; this_max = -1e30

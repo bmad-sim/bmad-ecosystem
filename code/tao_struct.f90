@@ -168,7 +168,8 @@ type tao_curve_struct
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
   character(40) :: message_text = ''     ! Informational message to draw with graph.
   character(40) :: units = ''            ! Data units.
-  character(60) :: component = ''             ! Who to plot. Eg: 'meas - design'
+  character(60) :: component = ''        ! Who to plot. Eg: 'meas - design'
+  character(80) :: why_invalid = ''      ! Informative string to print.
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph
   type (tao_histogram_struct) hist
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
@@ -198,6 +199,7 @@ type tao_curve_struct
   logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
   logical :: use_z_color = .false.       ! For phase space plots.
   logical :: autoscale_z_color = .true.  ! Set %z_color0, %z_color1 automatically to the limits of %data_type_z
+  logical :: valid = .false.             ! valid data? 
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.
@@ -211,9 +213,9 @@ type tao_graph_struct
   character(100) :: title_suffix = ''
   character(100) :: text_legend(10) = ''      ! Array for holding descriptive info.
   character(60) :: component = ''             ! Who to plot. Eg: 'meas - design'
-  character(80) :: why_invalid = ''           ! Informative string to print.
   character(2) :: floor_plan_view = 'zx'
   character(16) :: floor_plan_orbit_color = 'RED'
+  character(80) :: why_invalid = ''           ! Informative string to print.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   type (qp_point_struct) text_legend_origin
@@ -232,7 +234,6 @@ type tao_graph_struct
   integer :: ix_branch = 0                    ! Branch in lattice.
   integer :: ix_universe = -1                 ! Used for lat_layout plots.
   logical :: clip = .false.                   ! Clip plot at graph boundary.
-  logical :: valid = .false.                  ! valid if all curve y_dat computed OK.
   logical :: y2_mirrors_y = .true.            ! Y2-axis same as Y-axis?
   logical :: limited = .false.                ! True if at least one data point past graph bounds.
   logical :: draw_axes = .true.               ! Draw axes, labels, etc?
@@ -244,6 +245,7 @@ type tao_graph_struct
   logical :: draw_grid = .true.               ! Draw a grid?
   logical :: allow_wrap_around = .true.       ! "Wrap" curves to extend past lattice boundaries?
   logical :: draw_only_good_user_data_or_vars = .true.
+  logical :: is_valid = .false.               ! EG: Bad x_axis_type.
 end type
 
 ! A plot is collection of graphs.

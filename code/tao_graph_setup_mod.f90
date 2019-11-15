@@ -25,12 +25,11 @@ logical found
 
 !
 
-graph%valid = .true.   ! assume everything OK
-graph%why_invalid = ''
 graph%text_legend = ''
 
 if (allocated (graph%curve)) then
   do i = 1, size(graph%curve)
+    graph%curve(i)%valid = .true.  ! Assume no problem
     graph%curve(i)%message_text = ''
   enddo
 endif
@@ -40,20 +39,10 @@ if (found) return
 
 !
 
-if (allocated (graph%curve)) then
-  do i = 1, size(graph%curve)
-    curve => graph%curve(i)
-    u => tao_pointer_to_universe(tao_curve_ix_uni(curve))
-    if (.not. u%is_on) then
-      graph%valid = .false.
-      write (graph%why_invalid, '(a, i0, a)') 'UNIVERSE ', u%ix_uni, ' IS OFF!'
-      return
-    endif
-  enddo
-else
+if (.not. allocated (graph%curve)) then  ! lat_layout
   u => tao_pointer_to_universe(graph%ix_universe)
   if (.not. u%is_on) then
-    graph%valid = .false.
+    graph%is_valid = .false.
     write (graph%why_invalid, '(a, i0, a)') 'UNIVERSE ', u%ix_uni, ' IS OFF!'
     return
   endif
@@ -85,6 +74,7 @@ end select
 if (allocated (graph%curve)) then
   do i = 1, size(graph%curve)
     curve => graph%curve(i)
+    if (.not. curve%valid) cycle
 
     if (allocated(curve%x_symb)) then
         curve%x_symb = curve%x_symb * graph%x_axis_scale_factor
@@ -119,6 +109,7 @@ implicit none
 type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
+type (tao_universe_struct), pointer :: u
 
 real(rp), pointer :: symb(:)
 real(rp) value
@@ -131,18 +122,26 @@ character(40) :: r_name = 'tao_graph_data_slice_setup'
 
 logical err
 
-! setup the graph suffix
+!
 
-graph%valid = .false.
-if (size(graph%curve) == 0) return
+if (size(graph%curve) == 0) then
+  graph%is_valid = .false.
+  graph%why_invalid = 'No curves asscoiated with graph.'
+  return
+endif
+
+!
 
 graph%title_suffix = ''
 
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
+
   if (index(curve%data_type, '#ref') /= 0) graph%title_suffix = &
                   trim(graph%title_suffix) // '[At: ' // trim(curve%ele_ref_name) // ']'
 enddo
+
+!
 
 if (all(graph%curve%component == '')) then
   if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
@@ -167,8 +166,8 @@ curve_loop: do k = 1, size(graph%curve)
     if (i == 1) call tao_evaluate_expression (name, 0, graph%draw_only_good_user_data_or_vars, scratch%x, scratch%info_x, err, dflt_component = component)
     if (i == 2) call tao_evaluate_expression (name, 0, graph%draw_only_good_user_data_or_vars, scratch%y, scratch%info_y, err, dflt_component = component)
     if (err) then
-      call out_io (s_error$, r_name, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // tao_curve_name(curve))   
-      return
+      call tao_set_curve_invalid (curve, 'CANNOT FIND DATA.')
+      cycle curve_loop
     endif
   enddo
 
@@ -178,7 +177,8 @@ curve_loop: do k = 1, size(graph%curve)
     call out_io (s_error$, r_name, &
                   'ARRAY SIZES ARE NOT THE SAME FOR BOTH AXES.', &
                   'FOR: ' // tao_curve_name(curve))
-    return
+    call tao_set_curve_invalid (curve, 'ARRAY SIZES ARE NOT THE SAME FOR BOTH AXES.')
+    cycle
   endif
 
   n_symb = count(scratch%info_x%good .and. scratch%info_y%good)
@@ -216,8 +216,6 @@ curve_loop: do k = 1, size(graph%curve)
   curve%y_line = curve%y_symb
 
 enddo curve_loop
-
-graph%valid = .true.
 
 end subroutine tao_graph_data_slice_setup
 
@@ -310,8 +308,11 @@ character(40) :: r_name = 'tao_graph_phase_space_setup'
 
 ! Set up the graph suffix
 
-graph%valid = .false.
-if (size(graph%curve) == 0) return
+if (size(graph%curve) == 0) then
+  graph%is_valid = .false.
+  graph%why_invalid = 'NO CURVES ASSCOIATED WITH GRAPH.'
+  return
+endif
 
 n_curve_pts = s%plot_page%n_curve_pts
 if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
@@ -327,13 +328,13 @@ graph%title_suffix = ''
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
-  if (.not. associated(u)) return
+  if (.not. tao_curve_check_universe(curve, u)) cycle
+
   if (curve%ix_ele_ref_track < 0) then
-    call out_io (s_error$, r_name, &
-                'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name, &
-                'CANNOT PLOT PHASE SPACE FOR: ' // tao_curve_name(curve))
-    return
+    call tao_set_curve_invalid (curve, 'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name)
+    cycle
   endif
+
   ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
   if (name == '') name = ele%name
@@ -424,10 +425,8 @@ do k = 1, size(graph%curve)
     
     call tao_find_data (err, curve%data_source, d2_array, ix_uni = tao_curve_ix_uni(curve))
     if (err .or. size(d2_array) /= 1) then
-      call out_io (s_error$, r_name, &
-                'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
-      graph%valid = .false.
-      return
+      call tao_set_curve_invalid (curve, 'CANNOT FIND DATA ARRAY TO PLOT.')
+      cycle
     endif
 
     nullify (d1_x, d1_y)
@@ -531,8 +530,6 @@ do k = 1, size(graph%curve)
 
 enddo
 
-graph%valid = .true.
-
 end subroutine tao_graph_phase_space_setup
 
 !----------------------------------------------------------------------------
@@ -558,10 +555,6 @@ logical err
 character(40) name
 character(40) :: r_name = 'tao_graph_dynamic_aperture_setup'
 
-! Valid?
-
-graph%valid = .false.
-
 ! Only the graph's universe for now
 u => tao_pointer_to_universe (graph%ix_universe)
 
@@ -583,13 +576,8 @@ do i = 1, nc
   endif
 enddo 
 
-if (n_da_curve == 0) then
-  write (graph%why_invalid, '(a, i0)') 'NO DYNAMIC APERTURES DEFINED FOR UNIVERSE ', u%ix_uni
-  return
-endif
-
-! Case where only physical aperture curves are defined
-if (nc == n_pa_curve) then
+graph%is_valid = (n_da_curve /= 0 .and. nc /= n_pa_curve)
+if (.not. graph%is_valid) then
   write (graph%why_invalid, '(a, i0)') 'NO DYNAMIC APERTURES CURVES DEFINED FOR UNIVERSE ', u%ix_uni
   return
 endif
@@ -602,13 +590,15 @@ else
 endif
 
 if (err) then
+  graph%is_valid = .false.
   write (graph%why_invalid, '(a, i0)') 'DYNAMIC APERTURE NOT CALCULATED FOR UNIVERSE ', u%ix_uni
   return
 endif
 
-! If there aren't enough da curves defined for all of the da scan,, 
+! If there aren't enough da curves defined for all of the da scan,
 ! automatically create more da curves based on defined curves,
 ! looping over defined styles
+
 if ( n_da > n_da_curve) then
   allocate(temp_curve(nc))
   call move_alloc(graph%curve, temp_curve)
@@ -629,14 +619,14 @@ if ( n_da > n_da_curve) then
     k = k+1
   enddo
 endif
+
 ! new number of curves
 nc = n_da_curve + n_pa_curve
 
 ! loop over curves
 k=0
 do i = 1, nc
-  
-  curve => graph%curve(i) 
+  curve => graph%curve(i)
   if (is_physical_aperture(curve)) then
     call tao_curve_physical_aperture_setup(curve)
     cycle
@@ -659,10 +649,9 @@ do i = 1, nc
       call out_io (s_error$, r_name, 'IX_ELE_REF out of range for curve: ' // tao_curve_name(curve))  
       return
     endif 
-  
+
     call reallocate_coord(orbit, curve%ix_ele_ref)
-    
-    
+
     do j = 1, n
       orbit(0) = scan%ref_orb
       orbit(0)%vec(1) = orbit(0)%vec(1) + scan%aperture(j)%x
@@ -693,8 +682,6 @@ do i = 1, nc
   curve%x_symb = curve%x_line
   curve%y_symb = curve%y_line
 enddo
-
-graph%valid = .true.
 
 !------------------------------------------------------------
 contains
@@ -835,8 +822,10 @@ character(40) :: r_name = 'tao_graph_histogram_setup'
 
 ! Valid?
 
-graph%valid = .false.
-if (size(graph%curve) == 0) return
+if (size(graph%curve) == 0) then
+  graph%is_valid = .false.
+  return
+endif
 
 ! Set up the graph suffix
 
@@ -851,13 +840,21 @@ graph%title_suffix = ''
 do k = 1, size(graph%curve)
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
-  if (.not. associated(u)) return
-  if (curve%ix_ele_ref_track < 0) then
-    call out_io (s_error$, r_name, &
-                'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name, &
-                'CANNOT PLOT HISTOGRAM FOR: ' // tao_curve_name(curve))
-    return
+  if (.not. associated(u)) then
+    call tao_set_curve_invalid (curve, 'NO ASSOCIATED UNIVERSE')
+    cycle
   endif
+
+  if (.not. u%is_on) then
+    call tao_set_curve_invalid (curve, 'NO UNIVERSE IS TURNED OFF')
+    cycle
+  endif
+
+  if (curve%ix_ele_ref_track < 0) then
+    call tao_set_curve_invalid (curve, 'BAD REFERENCE ELEMENT: ' // curve%ele_ref_name)
+    cycle
+  endif
+
   ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
   if (name == '') name = ele%name
@@ -873,7 +870,6 @@ enddo
 ! loop over all curves
 
 do k = 1, size(graph%curve)
-
   curve => graph%curve(k)
   u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
 
@@ -923,9 +919,8 @@ do k = 1, size(graph%curve)
     
     call tao_find_data (err, curve%data_source, d2_array, ix_uni = tao_curve_ix_uni(curve))
     if (err .or. size(d2_array) /= 1) then
-      call out_io (s_error$, r_name, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
-      graph%valid = .false.
-      return
+      call tao_set_curve_invalid (curve, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
+      cycle
     endif
 
     nullify (d1)
@@ -934,10 +929,8 @@ do k = 1, size(graph%curve)
       if (curve%data_type == d2_ptr%d1(i)%name) d1 => d2_ptr%d1(i)
     enddo
     if (.not. associated(d1)) then
-      call out_io (s_error$, r_name, &
-              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type, &
-              'FOR CURVE: ' // tao_curve_name(curve))
-      return
+      call tao_set_curve_invalid (curve, 'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // curve%data_type)
+      cycle
     endif
 
     allocate(data(size(d1%d)))
@@ -946,10 +939,8 @@ do k = 1, size(graph%curve)
   ! Unrecognized
 
   else
-    call out_io (s_abort$, r_name, &
-        'INVALID CURVE%DATA_SOURCE: ' // curve%data_source, &
-        'FOR CURVE: '// tao_curve_name(curve))
-    return
+    call tao_set_curve_invalid (curve, 'INVALID CURVE%DATA_SOURCE: ' // curve%data_source)
+    cycle
   endif
 
   ! Bin the data
@@ -1001,8 +992,6 @@ do k = 1, size(graph%curve)
   if (curve%hist%density_normalized) curve%y_line = curve%y_line/bins%delta
   
 enddo
-
-graph%valid = .true.
 
 end subroutine tao_graph_histogram_setup
 
@@ -1121,39 +1110,34 @@ endif
 
 ! Loop over all curves in the graph
 
-graph%valid = .false.
-
 if (allocated(graph%curve)) then
   do ic = 1, size(graph%curve)
     curve => graph%curve(ic)
 
+    u => tao_pointer_to_universe (tao_curve_ix_uni(graph%curve(ic)))
+    if (.not. tao_curve_check_universe (curve, u)) cycle
+
     ! Floor plan curves use all branches.
     if (graph%type == 'floor_plan') then
-      u => tao_pointer_to_universe (tao_curve_ix_uni(graph%curve(ic)))
-      if (.not. associated(u)) return
       n0_line = 0
       n0_symb = 0
       !! call deallocate_curve_arrays(curve)
       branch_curve = graph%curve(ic)
 
       do ib = 0, size(u%model%lat%branch)
-        curve%ix_branch = ib
-        call tao_curve_data_setup (plot, graph, branch_curve, err)
-        if (err) return
+        branch_curve%ix_branch = ib
+        call tao_curve_data_setup (plot, graph, branch_curve)
         n = n0_line + size(branch_curve%x_line)
         !! call re_allocate (curve%x_line, n);  curve%x_line(n0_line+1:) = branch_curve%x_line
         !! call re_allocate (curve%y_line, n);  curve%y_line(n0_line+1:) = branch_curve%y_line        
       enddo
 
     else
-      call tao_curve_data_setup (plot, graph, graph%curve(ic), err)
-      if (err) return
+      call tao_curve_data_setup (plot, graph, curve)
     endif
 
   enddo
 endif
-
-graph%valid = .true.
 
 end subroutine tao_graph_data_setup
 
@@ -1161,7 +1145,7 @@ end subroutine tao_graph_data_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_curve_data_setup (plot, graph, curve, err_flag)
+subroutine tao_curve_data_setup (plot, graph, curve)
 
 use nrutil, only: swap
 
@@ -1202,7 +1186,6 @@ n_curve_pts = s%plot_page%n_curve_pts
 if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
 
 call re_allocate_eles (scratch%eles, 1, exact = .true.)
-err_flag = .true.
 
 if (allocated(curve%x_line)) deallocate (curve%x_line, curve%y_line)
 if (allocated(curve%y2_line)) deallocate (curve%y2_line)
@@ -1213,10 +1196,7 @@ if (allocated(curve%ix_symb)) deallocate (curve%ix_symb)
 if (allocated(curve%symb_size)) deallocate (curve%symb_size)
 
 u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
-if (.not. associated(u)) then
-  graph%why_invalid = 'NO ASSOCIATED UNIVERSE!'
-  return
-endif
+if (.not. tao_curve_check_universe(curve, u)) return
 
 if (s%com%common_lattice) then
   u%calc%lattice = .true.
@@ -1233,7 +1213,7 @@ else
   zero_average_phase = .false.
   call tao_locate_elements (curve%ele_ref_name, tao_curve_ix_uni(curve), scratch%eles, err, ignore_blank = .true.)
   if (err) then
-    graph%why_invalid = 'CANNOT LOCATE ELEMENT: ' // trim(curve%ele_ref_name)
+    call tao_set_curve_invalid (curve, 'CANNOT LOCATE ELEMENT: ' // trim(curve%ele_ref_name))
     return
   endif
   curve%ix_branch  = scratch%eles(1)%ele%ix_branch
@@ -1338,7 +1318,7 @@ case ('plot_x_axis_var')
 
     call tao_pick_universe (curve%data_type_x, name, scratch%this_u, err, ix_uni)
     if (err .or. count(scratch%this_u) /= 1) then
-      graph%why_invalid = 'BAD UNIVERSE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
+      call tao_set_curve_invalid (curve, 'BAD UNIVERSE CONSTRUCT IN CURVE%DATA_TYPE_X: ' //curve%data_type_x)
       return
     endif
 
@@ -1346,7 +1326,7 @@ case ('plot_x_axis_var')
     ix1 = index(name, '[')
     ix2 = index(name, ']')
     if (ix1 == 0 .or. ix2 == 0 .or. ix2 /= len_trim(name)) then
-      graph%why_invalid = 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
+      call tao_set_curve_invalid (curve, 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // curve%data_type_x)
       return
     endif
 
@@ -1354,7 +1334,7 @@ case ('plot_x_axis_var')
     call pointers_to_attribute (u%model%lat, name(1:ix1-1), name(ix1+1:ix2-1), .true., scratch%attribs, &
                                                                                  err, eles = scratch%eles)
     if (err .or. size(scratch%attribs) /= 1) then
-      graph%why_invalid = 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
+      call tao_set_curve_invalid (curve, 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // curve%data_type_x)
       return
     endif
     var_ptr => scratch%attribs(1)%r
@@ -1362,7 +1342,7 @@ case ('plot_x_axis_var')
   else  ! x_axis_type == 'var'
     call tao_find_var (err, curve%data_type_x, v_array = scratch%var_array)
     if (err .or. size(scratch%var_array) /= 1) then
-      graph%why_invalid = 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
+      call tao_set_curve_invalid (curve, 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // curve%data_type_x)
       return
     endif
     var_ptr => scratch%var_array(1)%v%model_value
@@ -1386,7 +1366,7 @@ case ('plot_x_axis_var')
     call tao_evaluate_expression (curve%data_type, 0, .false., value_arr, scratch%info, err, &
                           dflt_component = component, dflt_source = curve%data_source)
     if (.not. valid .or. err .or. size(value_arr) /= 1) then
-      graph%why_invalid = 'BAD CONSTRUCT IN CURVE%DATA_TYPE: ' // trim(curve%data_type)
+      call tao_set_curve_invalid (curve, 'BAD CONSTRUCT IN CURVE%DATA_TYPE: ' // curve%data_type)
       return
     endif
 
@@ -1419,7 +1399,7 @@ case ('data')
   call tao_evaluate_expression  (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, scratch%info, err, &
                           stack = scratch%stack, dflt_component = component, dflt_source = 'data', dflt_uni = curve%ix_universe)
   if (err) then
-    graph%why_invalid = 'CANNOT FIND DATA CORRESPONDING: ' // data_type
+    call tao_set_curve_invalid (curve, 'CANNOT FIND DATA CORRESPONDING: ' // data_type)
     return
   end if
 
@@ -1428,14 +1408,14 @@ case ('data')
   do i = 1, size(scratch%stack)
     if (scratch%stack(i)%type == data_num$) exit
     if (i == size(scratch%stack)) then
-      graph%why_invalid = 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type
+      call tao_set_curve_invalid (curve, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
       return
     endif
   enddo
 
   call tao_find_data (err, scratch%stack(i)%name, d2_array, scratch%d1_array, ix_uni = tao_curve_ix_uni(curve))
   if (err .or. size(scratch%d1_array) /= 1) then
-    graph%why_invalid = 'CANNOT FIND VALID DATA ARRAY TO PLOT CURVE: ' // curve%data_type
+    call tao_set_curve_invalid (curve, 'CANNOT FIND VALID DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
     return
   endif
 
@@ -1520,7 +1500,7 @@ case ('data')
     enddo
 
   else
-    graph%why_invalid = 'UNKNOWN AXIS TYPE!'
+    call tao_set_curve_invalid (curve, 'UNKNOWN AXIS TYPE!')
     return
   endif
 
@@ -1699,8 +1679,8 @@ case ('lat', 'beam')
   end select
 
 if (curve%draw_symbols) then
-  call tao_curve_datum_calc (scratch%eles, plot, curve, 'SYMBOL', valid)
-  if (.not. valid) return
+  call tao_curve_datum_calc (scratch%eles, plot, curve, 'SYMBOL')
+  if (.not. curve%valid) return
 endif
 
 !----------------------------------------------------------------------------
@@ -1732,6 +1712,10 @@ case ('s')
   ! beam data_source is not interpolated.
   smooth_curve = (curve%data_source == 'lat' .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc)
   if (index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
+  if (curve%data_type(1:7) == 'smooth.') smooth_curve = .false.
+  if (curve%data_type(1:4) == 'bpm_') smooth_curve = .false.
+  if (curve%data_type(1:6) == 'bunch_') smooth_curve = .false.
+  if (curve%data_type(1:6) == 'chrom.') smooth_curve = .false.
 
   if (index(component, 'meas') /= 0 .or. index(component, 'ref') /= 0 .or. &
       curve%data_source == 'data' .or. curve%data_source == 'var') then
@@ -1753,13 +1737,11 @@ case ('s')
 
     call tao_split_component(component, scratch%comp, err)
     if (err) then
-      graph%valid = .false.
-      graph%why_invalid = 'Bad Graph or Curve Component Expression'
+      call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT EXPRESSION: ' // component)
       return
     endif
     if (component == '') then
-      graph%valid = .false.
-      graph%why_invalid = 'No Graph or Curve Component.'
+      call tao_set_curve_invalid (curve, 'BLANK CURVE COMPONENT STRING.')
       return
     endif
 
@@ -1774,8 +1756,7 @@ case ('s')
       case ('design')  
         call tao_calc_data_at_s (u%design, curve, scratch%comp(m)%sign, good)
       case default
-        call out_io (s_error$, r_name, &
-                     'BAD PLOT COMPONENT WITH "S" X-AXIS: ' // scratch%comp(m)%name)
+        call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT: ' // component)
         return
       end select
     enddo
@@ -1798,7 +1779,8 @@ case ('s')
       curve%x_line = curve%x_symb 
       curve%y_line = curve%y_symb 
     else
-      call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE', valid)
+      call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE')
+      if (.not. curve%valid) return
     endif
 
   ! Evaluate at element ends
@@ -1842,8 +1824,8 @@ case ('s')
     endif
 
     if (curve%draw_line) then
-      call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE', graph%valid)
-      if (.not. graph%valid) return
+      call tao_curve_datum_calc (scratch%eles, plot, curve, 'LINE')
+      if (.not. curve%valid) return
     endif
 
     do i = 1, size(curve%x_line)
@@ -2272,12 +2254,12 @@ do ii = 1, size(curve%x_line)
       expnt(k) = expnt(k) + 1
     enddo
     call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
-                                                       unit_start = .false., concat_if_possible = s%global%concatenate_maps)
+                                            unit_start = .false., concat_if_possible = s%global%concatenate_maps)
     value = taylor_coef (t_map(i), expnt)
 
   case default
     value = tao_bmad_parameter_value (data_type, ele, orbit, err)
-    if (err) goto 9000  ! Error message & Return
+    if (err)  goto 9000  ! Error message & Return
   end select
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
@@ -2292,12 +2274,12 @@ return
 ! Error message
 
 9000 continue
-call out_io (s_warn$, r_name, &
-                    'For the smooth curve calculation: I do not know about this data_type: ' // data_type)
+call tao_set_curve_invalid(curve, 'CANNOT EVALUATE FOR SMOOTH LINE CALC: ' // data_type)
+call out_io (s_warn$, r_name, 'For the smooth curve calculation: I do not know about this data_type: ' // data_type)
 call out_io (s_blank$, r_name, "Will not perform any smoothing.")
 good = .false.
 bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-
+if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
 
 end subroutine tao_calc_data_at_s
 
@@ -2349,7 +2331,7 @@ end subroutine tao_data_useit_plot_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_curve_datum_calc (eles, plot, curve, who, valid)
+! Subroutine tao_curve_datum_calc (eles, plot, curve, who)
 !
 ! Routine to calculate datum values. 
 ! The values are calculated at the end of each eles(:)%ele element.
@@ -2363,10 +2345,9 @@ end subroutine tao_data_useit_plot_calc
 !
 ! Output:
 !   curve -- Tao_curve_struct: Structure holding the datum values
-!   valid -- Logical: Set True is OK. False otherwise.
 !-
 
-subroutine tao_curve_datum_calc (eles, plot, curve, who, valid)
+subroutine tao_curve_datum_calc (eles, plot, curve, who)
 
 implicit none
 
@@ -2379,14 +2360,14 @@ type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) y_val
 
-logical valid, err
+integer i, j, m, ie, n_dat
+
+logical err, valid
 logical, allocatable :: good(:)
 
 character(*) who
 character(20) :: r_name = 'tao_curve_datum_calc'
 character(80) why_invalid
-
-integer i, j, m, ie, n_dat
 
 ! calculate the y-axis data point values.
 
@@ -2411,13 +2392,11 @@ datum%ix_branch      = curve%ix_branch
 
 call tao_split_component (tao_curve_component(curve, curve%g), scratch%comp, err)
 if (err) then
-  valid = .false.
-  curve%g%why_invalid = 'Bad Graph / Curve Component Expression.'
+  call tao_set_curve_invalid (curve, 'BAD CURVE COMPONENT EXPRESSION: ' // tao_curve_component(curve, curve%g))
   return
 endif
 if (tao_curve_component(curve, curve%g) == '') then
-  valid = .false.
-  curve%g%why_invalid = 'No Graph / Curve Components.'
+  call tao_set_curve_invalid (curve, 'BLANK CURVE COMPONENT STRING.')
   return
 endif
 
@@ -2439,15 +2418,11 @@ do m = 1, size(scratch%comp)
     case ('design')  
       call tao_evaluate_a_datum (datum, u, u%design, y_val, valid, why_invalid)
     case ('ref', 'meas')
-      call out_io (s_error$, r_name, &
-              'PLOT COMPONENT WHICH IS: ' // scratch%comp(m)%name, &
-              '    FOR DATA_TYPE: ' // curve%data_type, &
-              '    NOT ALLOWED SINCE DATA_SOURCE IS SET TO: ' // curve%data_source)
+      call tao_set_curve_invalid(curve, 'CURVE COMPONENT: ' // trim(scratch%comp(m)%name) // &
+                                                       ' NOT ALLOWED WITH DATA_SOURCE IS: ' // curve%data_source)
       return
     case default
-      call out_io (s_error$, r_name, &
-              'BAD PLOT COMPONENT: ' // scratch%comp(m)%name, &
-              '    FOR DATA_TYPE: ' // curve%data_type)
+      call tao_set_curve_invalid(curve, 'BAD PLOT COMPONENT: ' // scratch%comp(m)%name)
       return
     end select
     scratch%y_value(ie) = scratch%y_value(ie) + scratch%comp(m)%sign * y_val
@@ -2460,8 +2435,7 @@ do m = 1, size(scratch%comp)
 enddo
 
 if (n_dat > 0 .and. all(.not. good)) then
-  valid = .false.
-  curve%g%why_invalid = why_invalid
+  call tao_set_curve_invalid(curve, why_invalid)
   return
 endif
 
@@ -2500,6 +2474,73 @@ endif
 
 valid = .true.
 
-end subroutine
+end subroutine tao_curve_datum_calc 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_set_curve_invalid (curve, why_invalid)
+!
+! Routine to set curve%valid to False.
+!
+! Input:
+!   curve       -- tao_curve_struct: Curve to set.
+!   why_invalid -- character(*): Invalid information.
+!
+! Output:
+!   curve       -- tao_curve_struct: Curve properly set.
+!-
+
+subroutine tao_set_curve_invalid (curve, why_invalid)
+
+type (tao_curve_struct) curve
+character(*) why_invalid
+
+!
+
+curve%valid = .false.
+curve%why_invalid = trim(curve%name) // ': ' // why_invalid
+
+end subroutine tao_set_curve_invalid
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function tao_curve_check_universe (curve, uni) result (is_ok)
+!
+! Routine to check if the universe associated with a curve exists and is on.
+!
+! Input:
+!   curve       -- tao_curve_struct: Curve to check.
+!   uni         -- tao_universe_struct, pointer: Associated universe
+!
+! Output:
+!   curve       -- tao_curve_struct: Curve%valid set to False if needed.
+!   is_ok       -- logical: Set True if associated universe exists and is on.
+!-
+
+function tao_curve_check_universe (curve, uni) result (is_ok)
+
+type (tao_curve_struct) curve
+type (tao_universe_struct), pointer :: uni
+logical is_ok
+
+!
+
+if (.not. associated(uni)) then
+  call tao_set_curve_invalid (curve, 'NO ASSOCIATED UNIVERSE.')
+
+else
+  curve%valid = uni%is_on
+  if (.not. curve%valid) then
+    write (curve%why_invalid, '(a, i0, a)') trim(curve%name) // ': UNIVERSE ', uni%ix_uni, ' IS OFF!'
+  endif
+endif
+
+is_ok = curve%valid
+
+end function tao_curve_check_universe
 
 end module

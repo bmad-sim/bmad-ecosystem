@@ -3064,6 +3064,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      c%legend_text
   nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     c%message_text
   nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            c%units
+  nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;I;',                      c%why_invalid
   nl=incr(nl); write (li(nl), rmt) 'y_axis_scale_factor;REAL;T;',             c%y_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               c%s
   nl=incr(nl); write (li(nl), rmt) 'z_color0;REAL;T;',                        c%z_color0
@@ -3081,6 +3082,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               c%smooth_line_calc
   nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    c%use_z_color
   nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              c%autoscale_z_color
+  nl=incr(nl); write (li(nl), lmt) 'valid;LOGIC;I;',                          c%valid
   nl=incr(nl); write (li(nl), '(a, i0, 4a)') 'line;STRUCT;T;width;INT;', c%line%width, &
                       ';color;ENUM;', trim(c%line%color), ';pattern;ENUM;', c%line%pattern
 
@@ -3202,7 +3204,7 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), jmt) g%ix_universe, '^ix_branch;INUM;T;',       g%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     g%ix_universe
   nl=incr(nl); write (li(nl), lmt) 'clip;LOGIC;T;',                           g%clip
-  nl=incr(nl); write (li(nl), lmt) 'valid;LOGIC;F;',                          g%valid
+  nl=incr(nl); write (li(nl), lmt) 'is_valid;LOGIC;F;',                       g%is_valid
   nl=incr(nl); write (li(nl), lmt) 'y2_mirrors_y;LOGIC;T;',                   g%y2_mirrors_y
   nl=incr(nl); write (li(nl), lmt) 'limited;LOGIC;F;',                        g%limited
   nl=incr(nl); write (li(nl), lmt) 'draw_axes;LOGIC;T;',                      g%draw_axes
@@ -3488,6 +3490,11 @@ case ('plot_line')
     call invalid ('No line associated with curve')
     return
   endif
+
+if (.not. c%valid) then
+  call invalid ('Invalid since: ' // c%why_invalid)
+  return
+endif
 
   n = size(c%x_line)
 
