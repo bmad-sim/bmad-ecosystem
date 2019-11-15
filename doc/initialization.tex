@@ -2,10 +2,9 @@
 \index{Initialization}
 \label{c:init}
 
-\tao is customized for specific machines and specific calculations
-using input files and custom software routines. Writing custom
-software is covered in the programmer's guide section. This chapter
-covers the input files.
+\tao is customized for specific machines and specific calculations using input files and custom
+software routines. Writing custom software is covered in the programmer's guide section. This
+chapter covers the input files.
 
 In general, the input files tell \tao:
 \begin{example}
@@ -26,12 +25,10 @@ directory:
 \section{Namelist Syntax}
 \label{s:format}
 
-Parameters are read in from an initialization file using Fortran
-namelist input. Fortran namelist breaks up the input file into
-blocks. The first line of a namelist block starts with an ampersand
-``\&'' followed by the block identifying name. Variables are assigned
-using an equal sign ``='' and the end of the block is denoted by a
-slash ``/'' For example:
+Parameters are read in from an initialization file using Fortran namelist input. Fortran namelist
+breaks up the input file into blocks. The first line of a namelist block starts with an ampersand
+``\&'' followed by the block identifying name. Variables are assigned using an equal sign ``='' and
+the end of the block is denoted by a slash ``/'' For example:
 \begin{example}
   &namelist_block_name
     var1 = 0.123   ! exclamation marks are used for comments
@@ -62,17 +59,17 @@ shows:
     string_arr = 'A B' "2/" "&"      ! Quotes needed here.
   /
 \end{example}
-The first line to set the \vn{var_array} may look like it is setting 
-the four values \vn{var_array(8:11)} but the general rule is that with \vn{n}
-values on the RHS, only \vn{n} values in the array are set. Notice the notation
-\vn{n*number} does not denote multiplication but instead can be used to denote
-multiple values. Also note that the compiler may be picky about blanks so 
-that ``2*34'' will be accepted but ``2 * 34'' may not.
+The first line to set the \vn{var_array} may look like it is setting the four values
+\vn{var_array(8:11)} but the general rule is that with \vn{n} values on the RHS, only \vn{n} values
+in the array are set.
 
-For string input it is always best to use quotes. Some compilers will
-accept strings without quotes. Even those that do will generally not
-accept strings with special characters.  Thus the following characters
-should not be used in unquoted strings:
+IMPORTANT: The notation \vn{n*number} does not denote multiplication but instead can be used to
+denote multiple values. There should be no blank spaces here. Some compilers may accept something
+like ``2 * 34'' but you cannot count on it. Using ``2*34'' is safe.
+
+For string input it is always best to use quotes. Some compilers will accept strings without
+quotes. Even those that do will generally not accept strings with special characters.  Thus the
+following characters should not be used in unquoted strings:
 \begin{example}
   Blank or Tab character.
   Period if it is the first character in the string.

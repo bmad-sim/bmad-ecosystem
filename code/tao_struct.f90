@@ -49,7 +49,9 @@ integer, parameter :: n_char_show = 1000
 logical, save, target :: forever_true$ = .true.  ! Used for pointer init.
 
 interface assignment (=)
-  module procedure tao_lat_equal_tao_lat
+  module procedure tao_lattice_equal_tao_lattice
+  module procedure tao_lattice_branch_equal_tao_lattice_branch
+  module procedure tao_lattice_branches_equal_tao_lattice_branches
 end interface
 
 !---------
@@ -786,12 +788,14 @@ end type
 
 ! For caching lattice calculations associated with plotting.
 
-type tao_lattice_branch_plot_struct
+type tao_plot_cache_struct
   type (ele_struct) ele
   type (coord_struct) orbit
 end type
 
 ! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
+! NOTE: If tao_lattice_branch_struct is modified then the routine
+! tao_lattice_branch_equal_tao_lattice_branch must be modified as well.
 
 type tao_lattice_branch_struct
   type (summation_rdt_struct) srdt
@@ -800,7 +804,7 @@ type tao_lattice_branch_struct
   type (coord_struct), allocatable :: orbit(:)
   type (coord_struct) orb0                     ! For saving beginning orbit
   type (lat_struct) :: high_E_lat, low_E_lat  ! For chrom calc.
-  type (tao_lattice_branch_plot_struct), allocatable :: plot_cache(:)  ! Plotting data cache
+  type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
   integer track_state
   logical has_open_match_element
   logical :: plot_cache_valid = .false.        ! Valid plotting data cache?
@@ -984,19 +988,113 @@ type (tao_super_universe_struct), save, target :: s
 !-----------------------------------------------------------------------
 contains
 
-subroutine tao_lat_equal_tao_lat (lat1, lat2)
+subroutine tao_deallocate_plot_cache(plot_cache)
+
+implicit none
+
+type (tao_plot_cache_struct), allocatable :: plot_cache(:)
+integer i
+
+!
+
+if (.not. allocated(plot_cache)) return
+
+do i = 1, size(plot_cache)
+  call deallocate_ele_pointers(plot_cache(i)%ele)
+enddo
+
+deallocate(plot_cache)
+
+end subroutine tao_deallocate_plot_cache
+
+!-----------------------------------------------------------------------
+! contains
+
+subroutine tao_lattice_branches_equal_tao_lattice_branches (tlb1, tlb2)
+
+implicit none
+
+type (tao_lattice_branch_struct), intent(inout) :: tlb1(:)
+type (tao_lattice_branch_struct), intent(in) :: tlb2(:)
+integer i
+
+!
+
+do i = 1, size(tlb1)
+  tlb1(i) = tlb2(i)
+enddo
+
+end subroutine tao_lattice_branches_equal_tao_lattice_branches
+
+!-----------------------------------------------------------------------
+! contains
+
+subroutine tao_lattice_branch_equal_tao_lattice_branch (tlb1, tlb2)
+
+implicit none
+
+type (tao_lattice_branch_struct), intent(inout) :: tlb1
+type (tao_lattice_branch_struct), intent(in) :: tlb2
+integer n1, n2, i
+
+!
+
+tlb1%srdt                   = tlb2%srdt
+tlb1%bunch_params           = tlb2%bunch_params
+tlb1%linear                 = tlb2%linear
+tlb1%orbit                  = tlb2%orbit
+tlb1%orb0                   = tlb2%orb0
+tlb1%high_E_lat             = tlb2%high_E_lat
+tlb1%low_E_lat              = tlb2%low_E_lat
+tlb1%track_state            = tlb2%track_state
+tlb1%has_open_match_element = tlb2%has_open_match_element
+tlb1%plot_cache_valid       = tlb2%plot_cache_valid
+tlb1%cache_x_min            = tlb2%cache_x_min
+tlb1%cache_x_max            = tlb2%cache_x_max
+tlb1%cache_n_pts            = tlb2%cache_n_pts
+tlb1%modes                  = tlb2%modes
+tlb1%a                      = tlb2%a
+tlb1%b                      = tlb2%b
+tlb1%ix_rad_int_cache       = tlb2%ix_rad_int_cache
+tlb1%modes_rf_on            = tlb2%modes_rf_on
+
+
+n1 = -1
+if (allocated(tlb1%plot_cache)) n1 = size(tlb1%plot_cache)
+
+n2 = -1
+if (allocated(tlb2%plot_cache)) n2 = size(tlb1%plot_cache)
+
+if (n1 > -1 .and. n1 /= n2) call tao_deallocate_plot_cache(tlb1%plot_cache)
+
+if (n2 > -1) then
+  if (.not. allocated(tlb1%plot_cache)) allocate (tlb1%plot_cache(n2))
+  do i = 1, n2
+    tlb1%plot_cache(i)%ele   = tlb2%plot_cache(i)%ele
+    tlb1%plot_cache(i)%orbit = tlb2%plot_cache(i)%orbit
+  enddo
+endif
+
+end subroutine tao_lattice_branch_equal_tao_lattice_branch 
+
+!-----------------------------------------------------------------------
+! contains
+
+subroutine tao_lattice_equal_tao_lattice (lat1, lat2)
 
 implicit none
 
 type (tao_lattice_struct), intent(inout) :: lat1
 type (tao_lattice_struct), intent(in) :: lat2
-integer ix2
+integer i
 
 !
 
-lat1%lat          = lat2%lat
-lat1%tao_branch   = lat2%tao_branch
+lat1%lat            = lat2%lat
+lat1%rad_int        = lat2%rad_int
+lat1%rad_int_rf_on  = lat2%rad_int_rf_on
+lat1%tao_branch     = lat2%tao_branch
 
-end subroutine
+end subroutine tao_lattice_equal_tao_lattice
 
 end module

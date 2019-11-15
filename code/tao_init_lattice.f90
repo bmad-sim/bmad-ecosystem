@@ -350,48 +350,4 @@ if (s%com%common_lattice) then
 
 endif
 
-!------------------------------------------------------------------
-contains
-
-subroutine pointer_to_this_ele (ix_range, ele_name, err, ele)
-
-type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_struct), pointer :: ele
-character(*) ele_name
-integer n_loc, ix_range
-logical err
-
-!
-
-call lat_ele_locator (ele_name, u%design%lat, eles, n_loc, err)
-
-if (err .or. n_loc == 0) then
-  call out_io (s_fatal$, r_name, 'SLICE_LATTICE ERROR. CANNOT FIND ELEMENT IN LATTICE: ' // ele_name)
-  if (s%global%stop_on_error) stop
-  err = .true.
-  return
-endif
-
-if (n_loc > 1) then
-  call out_io (s_fatal$, r_name, 'SLICE_LATTICE ERROR. MULTIPLE ELEMENTS IN LATTICE: ' // ele_name)
-  if (s%global%stop_on_error) stop
-  err = .true.
-  return
-endif
-
-ele => eles(1)%ele
-if (ele%lord_status == super_lord$) then
-  if (ix_range == 1) ele => pointer_to_slave(ele, 1)
-  if (ix_range == 2) ele => pointer_to_slave(ele, ele%n_slave)
-endif
-
-if (ele%lord_status /= not_a_lord$) then
-  call out_io (s_fatal$, r_name, 'SLICE_LATTICE ERROR. ELEMENT IN: ' // ele_name)
-  if (s%global%stop_on_error) stop
-  err = .true.
-  return
-endif
-
-end subroutine pointer_to_this_ele
-
 end subroutine tao_init_lattice
