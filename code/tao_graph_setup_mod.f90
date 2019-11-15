@@ -1986,7 +1986,7 @@ if (curve%data_source == 'lat') then
   else
     cache_status = loading_cache$
     if (allocated(tao_branch%plot_cache)) then
-      if (size(tao_branch%plot_cache) /= s%plot_page%n_curve_pts) deallocate(tao_branch%plot_cache)
+      if (size(tao_branch%plot_cache) /= s%plot_page%n_curve_pts) call tao_deallocate_plot_cache(tao_branch%plot_cache)
     endif
     if (.not. allocated(tao_branch%plot_cache)) allocate (tao_branch%plot_cache(s%plot_page%n_curve_pts))
     tao_branch%cache_x_min = x1
