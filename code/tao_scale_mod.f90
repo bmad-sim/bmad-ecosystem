@@ -311,7 +311,7 @@ elseif (graph%type == 'lat_layout') then
 
 else
   if (.not. allocated (graph%curve)) return
-  if (.not. graph%valid) return  ! Do not scale until there is valid data
+  if (.not. any(graph%curve%valid) .or. .not. graph%is_valid) return  ! Do not scale until there is valid data
 
   this_min =  1e30
   this_max = -1e30

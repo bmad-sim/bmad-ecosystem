@@ -727,6 +727,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), amt)  'legend_text          = ', quote(c1%legend_text)
       nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', quote(c1%ele_ref_name)
       nl=nl+1; write(lines(nl), amt)  'component            = ', quote(c1%component)
+      nl=nl+1; write(lines(nl), amt)  'why_invalid          = ', quote(c1%why_invalid)
       nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
       nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
@@ -743,6 +744,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
       nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
       nl=nl+1; write(lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
+      nl=nl+1; write(lines(nl), lmt)  'valid                = ', c1%valid
       nl=nl+1; write(lines(nl), iamt) 'line%width           = ', c1%line%width
       nl=nl+1; write(lines(nl), amt)  'line%color           = ', c1%line%color
       nl=nl+1; write(lines(nl), amt)  'line%pattern         = ', c1%line%pattern
@@ -1739,7 +1741,7 @@ case ('graph')
                                   'scale_margin                     = ', g%scale_margin
   nl=nl+1; write(lines(nl), imt)  'box                              = ', g%box
   nl=nl+1; write(lines(nl), imt)  'ix_universe                      = ', g%ix_universe
-  nl=nl+1; write(lines(nl), lmt)  'valid                            = ', g%valid
+  nl=nl+1; write(lines(nl), lmt)  'is_valid                         = ', g%is_valid
 
   nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
   nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale                = ', g%symbol_size_scale

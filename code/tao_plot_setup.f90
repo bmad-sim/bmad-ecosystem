@@ -47,13 +47,16 @@ plot_loop: do ir = 1, size(s%plot_page%region)
   ! Don't worry about invisible graphs
   if (.not. s%plot_page%region(ir)%visible) cycle  
 
+  plot%graph%is_valid = .true.
+  plot%graph%why_invalid = ''
+
   select case (plot%x_axis_type)
   case ('index', 's', 'ele_index', 'phase_space', 'data', 'none', 'floor', 'lat',  'var', 'histogram')
   case default
-    call out_io (s_abort$, r_name, &
+    call out_io (s_error$, r_name, &
                     'BAD X_AXIS_TYPE: ' // plot%x_axis_type, &
                     'FOR PLOT: ' // plot%name)
-    plot%graph%valid = .false.
+    plot%graph%is_valid = .false.
     plot%graph%why_invalid = 'BAD X_AXIS_TYPE: ' // plot%x_axis_type
     cycle
   endselect

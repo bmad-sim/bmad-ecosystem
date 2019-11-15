@@ -101,11 +101,10 @@ do i = 1, size(s%plot_page%region)
 
     ! For a non-valid graph just print a message
 
-    if (.not. graph%valid) then
+    if (.not. graph%is_valid) then
       call qp_set_layout (box = graph%box)
-      text = 'Error In The Plot Calculation'
-      if (graph%why_invalid /= '') text = graph%why_invalid
-      call qp_draw_text (text, 0.5_rp, 0.5_rp, '%BOX', color = 'red', justify = 'CC')
+      call qp_draw_text (graph%why_invalid, 0.5_rp, 0.5_rp, '%BOX', color = 'red', justify = 'CC')
+      return
     endif
 
     ! Now we can draw the graph
@@ -167,13 +166,13 @@ logical have_data
 ! Draw the graph outline.
 
 call tao_draw_data_graph (plot, graph)
-if (.not. graph%valid) return
 
 ! loop over all the curves of the graph and draw them
 
 have_data = .false.
 
 do k = 1, size(graph%curve)
+  if (.not. graph%curve(k)%valid) cycle
   call tao_draw_histogram_data (plot, graph, graph%curve(k), have_data)
 enddo
 
@@ -430,8 +429,6 @@ integer ix_pass, n_links, iwidth
 !
 
 lat => s%u(isu)%model%lat
-
-if (.not. graph%valid) return
 
 ! loop over all elements in the lattice. 
 
@@ -1135,24 +1132,22 @@ character(*), parameter :: r_name = 'tao_draw_lat_layout'
 
 ! Init
 
-if (.not. graph%valid) return
-
 select case (plot%x_axis_type)
 case ('index')
-  call out_io (s_error$, r_name, '"index" x-axis type not valid with lat_layout')
-  graph%valid = .false.
+  call out_io (s_error$, r_name, '"index" x-axis type not valid with lat_layout. Must be "s"')
+  call qp_draw_text ('"index" x-axis type not valid with lat_layout', 0.1_rp, 0.5_rp, '%BOX', color = 'red', justify = 'LC')
   return
 
 case ('ele_index')
-  call out_io (s_error$, r_name, '"ele_index" x-axis type not valid with lat_layout')
-  graph%valid = .false.
+  call qp_draw_text ('"ele_index" x-axis type not valid with lat_layout', 0.1_rp, 0.5_rp, '%BOX', color = 'red', justify = 'LC')
+  call out_io (s_error$, r_name, '"ele_index" x-axis type not valid with lat_layout. Must be "s"')
   return
 
 case ('s')
 
 case default
-  call out_io (s_warn$, r_name, "Unknown x_axis_type")
-  graph%valid = .false.
+  call qp_draw_text ('Unknown x-axis type not valid with lat_layout', 0.1_rp, 0.5_rp, '%BOX', color = 'red', justify = 'LC')
+  call out_io (s_warn$, r_name, 'Unknown x_axis_type. Must be "s".')
   return
 end select
 
@@ -1543,28 +1538,20 @@ logical have_data
 ! Draw the graph outline.
 
 call tao_draw_data_graph (plot, graph)
-if (.not. graph%valid) then
-  if (graph%why_invalid /= '') then
-    call qp_draw_text (graph%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
-  endif
-  return
-endif
 
 ! loop over all the curves of the graph and draw them
 
 have_data = .false.
 
 do k = 1, size(graph%curve)
+  if (.not. graph%curve(k)%valid) then
+    if (graph%curve(k)%why_invalid /= '') then
+      call qp_draw_text (graph%curve(k)%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
+    endif
+    cycle
+  endif
   call tao_draw_curve_data (plot, graph, graph%curve(k), have_data)
 enddo
-
-if (.not. have_data) then
-  if (graph%why_invalid /= '') then
-    call qp_draw_text (graph%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
-  else
-    call qp_draw_text ('**No Plottable Data**', 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
-  endif
-endif
 
 end subroutine tao_plot_data
 
@@ -1758,11 +1745,8 @@ endif
 
 !
 
-if (.not. graph%valid) return
-
 if (graph%limited .and. graph%clip .and. s%global%draw_curve_off_scale_warn) &
   call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = 'red') 
-
 
 ! Draw the text legend if there is one
 
