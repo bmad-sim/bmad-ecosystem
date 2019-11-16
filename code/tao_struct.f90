@@ -1041,10 +1041,25 @@ integer n1, n2, i
 
 !
 
+if (allocated(tlb2%bunch_params)) then
+  tlb1%bunch_params           = tlb2%bunch_params
+else
+  if (allocated(tlb1%bunch_params)) deallocate(tlb1%bunch_params)
+endif
+
+if (allocated(tlb2%linear)) then
+  tlb1%linear                 = tlb2%linear
+else
+  if (allocated(tlb1%linear)) deallocate(tlb1%linear)
+endif
+
+if (allocated(tlb2%orbit)) then
+  tlb1%orbit                  = tlb2%orbit
+else
+  if (allocated(tlb1%orbit)) deallocate(tlb1%orbit)
+endif
+
 tlb1%srdt                   = tlb2%srdt
-tlb1%bunch_params           = tlb2%bunch_params
-tlb1%linear                 = tlb2%linear
-tlb1%orbit                  = tlb2%orbit
 tlb1%orb0                   = tlb2%orb0
 tlb1%high_E_lat             = tlb2%high_E_lat
 tlb1%low_E_lat              = tlb2%low_E_lat
