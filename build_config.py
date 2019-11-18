@@ -98,7 +98,7 @@ local_mail_list = '$USER@cornell.edu'
 release_build_list = [
                 '/trunk/util',
                 '/trunk/build_system',
-                '/trunk/src/include',
+                '/trunk/include',
                 '/trunk/src/c_utils',
                 '/packages/forest',
                 '/trunk/src/sim_utils',
