@@ -99,7 +99,7 @@ release_build_list = [
                 '/trunk/util',
                 '/trunk/build_system',
                 '/trunk/include',
-                '/trunk/src/c_utils',
+                '/trunk/c_utils',
                 '/packages/forest',
                 '/trunk/src/sim_utils',
                 '/trunk/src/bmad',
