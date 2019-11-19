@@ -1,17 +1,14 @@
-\chapter{GUI Starting}
+\chapter{GUI Startup}
 \label{s:gui.startup}
-
-%--------------------------------------------------------------
-\section{Envionmental Variable Setup}
 
 %--------------------------------------------------------------
 \section{Starting the GUI}
 
-From your system shell, you can execute the gui with the command
+The GUI can be started from the system shell by executing the command
 \begin{example}
   python -m pytao.gui
 \end{example}
-You can also specify any of the command line options that tao supports.  For example,
+You can also specify any of the command line options that \tao supports.  For example,
 \begin{example}
   python -m pytao.gui -init_file ~/bmad_dist/tao/examples/cesr/tao.init -rf_on
 \end{example}
@@ -31,10 +28,12 @@ font size will look like.
 
 Once all of the startup settings have been set, clicking "Start Tao" will initialize Tao and bring
 the user to the main GUI window.
+
+
 \begin{figure}
-\includegraphics[width=8cm]{figures/startup.png}
+\includegraphics[width=8cm]{figures/startup.pdf}
 \centering
-\caption{The GUI startup window.  In this example, the init file that tao should use has been specified.}
+\caption[The GUI startup window.]{The GUI startup window. In this example, the init file that tao should use has been specified.}
 \label{fig:startup}
 \end{figure}
 
