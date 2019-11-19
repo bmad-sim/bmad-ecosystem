@@ -4,7 +4,7 @@
 %-----------------------------------------------------------------
 \section{Obtaining the Source Code}
 
-Source code and documentation for \bmad, \tao and the GUI for \tao can be obtained, if needed, on
+Source code and documentation for \bmad, \tao and the GUI for \tao can be obtained, if needed, at
 the \bmad web site at:
   \hfill\break \hspace*{0.3in} \url{https://www.classe.cornell.edu/bmad}
 
@@ -29,8 +29,14 @@ course, be changed but if you do not have control of how things are built, you m
 \end{example}
 [This assumes that you are not setting \vn{ACC_LOCAL_ROOT} as discussed in \Sref{s:e.vars}.]
 In all cases you will see a file \vn{libtao.a}. This is a static library which is always built but
-not of use. A file like \vn{libtao.so} or \vn{libtao.dylib} is a shared object library. Note: To
-build shared object libraries, modify the modules needed for the GUI:
+not of use. A file with an extension \vn{.so} (UNIX) or \vn{.dylib} (Mac) is a shared object library. 
+
+%-----------------------------------------------------------------
+\section{Python Requirements}
+
+Minimum Python version for The GUI is Python 3.6.
+
+The GUI depends upon a number of modules that may have to be downloaded:
 \begin{example}
   tkinter
   ttk (may be called pyttk)
