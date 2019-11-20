@@ -489,10 +489,12 @@ end subroutine qp_restore_state
 !
 ! Input:
 !   axis_str -- Character(*): 
-!                 'X' to set the Left x-axis
-!                 'Y' to set the Bottom y-axis.
-!                 'X2' to set the Right x-axis
-!                 'Y2' to set the Top y-axis.
+!                 'X' Left x-axis
+!                 'X2' Right x-axis
+!                 'XX' Active x-axis.
+!                 'Y' Bottom y-axis.
+!                 'Y2' Top y-axis.
+!                 'YY' Active y-axis.
 !
 ! Output:
 !   axis_ptr -- Qp_axis_struct, pointer: Pointer to the common block axis.
@@ -511,12 +513,16 @@ character(20) :: r_name = 'qp_pointer_to_axis'
 
 if (axis_str == 'X') then
   axis_ptr => qp_com%plot%x
-elseif (axis_str == 'Y') then
-  axis_ptr => qp_com%plot%y
 elseif (axis_str == 'X2') then
   axis_ptr => qp_com%plot%x2
+elseif (axis_str == 'XX') then
+  axis_ptr => qp_com%plot%xx
+elseif (axis_str == 'Y') then
+  axis_ptr => qp_com%plot%y
 elseif (axis_str == 'Y2') then
   axis_ptr => qp_com%plot%y2
+elseif (axis_str == 'YY') then
+  axis_ptr => qp_com%plot%yy
 else
   call out_io (s_fatal$, r_name, 'INVALID AXIS: ' // axis_str)
   if (global_com%exit_on_error) call err_exit
@@ -530,7 +536,7 @@ end subroutine qp_pointer_to_axis
 !+
 ! Subroutine qp_use_axis (x, y)
 !
-! Subroutine to set what axis to use: X or X2, Y or Y2.
+! Subroutine to set what axes are active (being used) : X or X2, Y or Y2.
 !
 ! Input:
 !   x -- Character(*), optional: 'X', or 'X2'
@@ -5342,84 +5348,67 @@ end subroutine qp_read_data
 !+
 ! Subroutine qp_eliminate_xy_distortion (axis_to_scale)
 !
-! This subroutine will increase the x or y margins so that the conversion
-! between data units and page units is the same for the x and y axes.
-! In other words, This routine will make sure that a square in data units
-! looks like a square when drawn.
-! This routine is useful in drawing maps.
+! This subroutine will vary the x or y axes scale so that the distance between ticks and the
+! conversion between data units and inches on the page is the same for the x and y axes.
+! In other words, this routine will make sure that a square in data units looks like a square when drawn.
+! This routine is useful in drawing such things as maps.
 !
-! This routine will, if needed, make sure that the distance between
-! ticks is the same for both axes. This may involve the changing
-! of the [min, max] interval for one of the axes.
+! In varying an axis scale, the [min, max] range is never decreased.
+!
+! Note: Whether X or X2 axis is varied or whether the Y or Y2 axis is varied depends upon which axes are
+! active as set by the qp_use_axis routine.
 !
 ! Input:
-!   axis_to_scale -- Logical, optional: 
-!                         'XY'   -> Vary x or y margin (default).
-!                         'X'    -> Vary x margin.
-!                         'Y'    -> Vary y margin.
-!                         'X2Y2' -> Vary x2 or y2 margin 
-!                         'X2'   -> Vary x2 margin 
-!                         'Y2'   -> Vary y2 margin 
+!   axis_to_scale -- Logical, optional:
+!                         'XY'   -> Vary the active x or active y axis (default).
+!                         'X'    -> Vary the active x axis.
+!                         'Y'    -> Vary the active y axis.
 !-
 
 subroutine qp_eliminate_xy_distortion (axis_to_scale)
 
 implicit none
 
-real(rp) x_scale, y_scale, dx_graph, dy_graph
+type (qp_axis_struct), pointer :: x_axis, y_axis
+real(rp) x_unit_len, y_unit_len, x_graph_len, y_graph_len, x_data_len, y_data_len
 
 character(*), optional :: axis_to_scale
 character(8) ax_to_scale
 
-logical scale_xy
-
 ! 
+
+x_axis => qp_com%plot%xx
+y_axis => qp_com%plot%yy
 
 ax_to_scale = 'XY'
 if (present(axis_to_scale)) ax_to_scale = axis_to_scale
 
-if (ax_to_scale == 'XY' .or. ax_to_scale == 'X' .or. ax_to_scale == 'Y') then
-  scale_xy = .true.
-elseif (ax_to_scale == 'X2Y2' .or. ax_to_scale == 'X2' .or. ax_to_scale == 'Y2') then
-  scale_xy = .false.
-else
-  if (global_com%exit_on_error) call err_exit
-  return
-endif
-
-call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
+call qp_to_inch_rel (1.0_rp, 1.0_rp, x_unit_len, y_unit_len)  ! Length in inches for a data delta of 1.
+x_data_len = x_axis%max - x_axis%min
+y_data_len = y_axis%max - y_axis%min
 
 ! Adjust one axis scale
 
-dx_graph = qp_com%graph%x2 - qp_com%graph%x1
-dy_graph = qp_com%graph%y2 - qp_com%graph%y1
+x_graph_len = qp_com%graph%x2 - qp_com%graph%x1
+y_graph_len = qp_com%graph%y2 - qp_com%graph%y1
 
-if (scale_xy) then
-  if (ax_to_scale == 'X' .or. (x_scale > y_scale .and. ax_to_scale == 'XY')) then  ! shrink in x
-    call axis_scale (qp_com%plot%x, qp_com%plot%y, y_scale/x_scale, dy_graph/dx_graph)
-  else  ! shrink in y
-    call axis_scale (qp_com%plot%y, qp_com%plot%x, x_scale/y_scale, dx_graph/dy_graph)
-  endif
-else
-  if (ax_to_scale == 'X2' .or. (x_scale > y_scale .and. ax_to_scale == 'X2Y2')) then  ! shrink in x
-    call axis_scale (qp_com%plot%x2, qp_com%plot%y2, y_scale/x_scale, dy_graph/dx_graph)
-  else  ! shrink in y
-    call axis_scale (qp_com%plot%y2, qp_com%plot%x2, x_scale/y_scale, dx_graph/dy_graph)
-  endif
+if (ax_to_scale == 'X' .or. (ax_to_scale == 'XY' .and. x_data_len/x_graph_len < y_data_len/y_graph_len)) then  
+  call axis_scale (x_axis, y_axis, y_unit_len/x_unit_len, y_graph_len/x_graph_len) ! Vary x-axis scale
+else                                                                
+  call axis_scale (y_axis, x_axis, x_unit_len/y_unit_len, x_graph_len/y_graph_len) ! Vary y-axis scale
 endif
 
 ! Now adjust the margins
 
 call qp_set_graph_limits
-call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
+call qp_to_inch_rel (1.0_rp, 1.0_rp, x_unit_len, y_unit_len)
 
-if (ax_to_scale == 'X' .or. (x_scale > y_scale .and. ax_to_scale == 'XY')) then  ! shrink in x
-  call margin_scale (y_scale / x_scale, qp_com%graph%x1, qp_com%graph%x2, &
-                                           qp_com%margin%x1, qp_com%margin%x2) 
-
-else  ! shrink in y
-  call margin_scale (x_scale / y_scale, qp_com%graph%y1, qp_com%graph%y2, &
-                                           qp_com%margin%y1, qp_com%margin%y2) 
+if (ax_to_scale == 'X' .or. (ax_to_scale == 'XY' .and. x_unit_len > y_unit_len)) then  
+  ! Shrink x-axis margins
+  call margin_scale (y_unit_len / x_unit_len, qp_com%graph%x2 - qp_com%graph%x1, qp_com%margin%x1, qp_com%margin%x2) 
+else                                                                             
+  ! Shrink y-axis margins
+  call margin_scale (x_unit_len / y_unit_len, qp_com%graph%y2 - qp_com%graph%y1, qp_com%margin%y1, qp_com%margin%y2) 
 endif
 
 call qp_set_graph_limits
@@ -5431,38 +5420,28 @@ subroutine axis_scale (axis_z, axis_t, tz_scale_ratio, tz_graph_ratio)
 
 type (qp_axis_struct) axis_z, axis_t
 
-real(rp) tz_scale_ratio, tz_graph_ratio, dz_max
+real(rp) tz_scale_ratio, tz_graph_ratio, dz
 
-! Change z-axis min/max to match t-axis
+! axis_z is the axis to vary.
+! axis_t is not changed.
 
-if (abs(axis_z%tick_max / axis_t%dtick) < huge(1)) axis_z%tick_max = axis_t%dtick * ceiling(axis_z%max / axis_t%dtick - 0.3)
-if (abs(axis_z%tick_min / axis_t%dtick) < huge(1)) axis_z%tick_min = axis_t%dtick * floor(axis_z%min / axis_t%dtick + 0.3)
-
-! Need to reduce the z-axis tick_min/max range if there is not enought z-margin
-! Only need to do this with axis_to_scale = "X" or "y".
-! With axis_to_scale = "", the t-margin is allowed to be adjusted.
-
-if (ax_to_scale /= 'XY') then
-  dz_max = (axis_t%tick_max - axis_t%tick_min) / tz_graph_ratio
-  if (axis_z%tick_max - axis_z%tick_min > dz_max) then
-    axis_z%tick_min = axis_t%dtick * nint((axis_z%tick_max + axis_z%tick_min - dz_max) / (2 * axis_t%dtick)) 
-    dz_max = axis_t%dtick * int(1.0001 * dz_max / axis_t%dtick)
-    if (dz_max == 0) dz_max = axis_t%dtick 
-    axis_z%tick_max = axis_z%tick_min + dz_max
-  endif
-endif
-
-! adjust z-axis major_div, etc. to match t-axis.
-
-if (axis_z%tick_max == axis_z%tick_min) then
-  axis_z%dtick = 0
-  axis_z%major_div = 0
-else
-  axis_z%dtick = axis_t%dtick
-  axis_z%major_div = nint((axis_z%tick_max - axis_z%tick_min) / axis_z%dtick)
-endif
-axis_z%places = axis_t%places
+axis_z%dtick = axis_t%dtick
 axis_z%minor_div = axis_t%minor_div
+axis_z%places = axis_t%places
+
+if (axis_z%max - axis_z%min < axis_z%dtick) then
+  axis_z%tick_max = axis_t%dtick * ceiling(axis_z%max / axis_t%dtick)
+  axis_z%tick_min = axis_t%dtick * floor(axis_z%min / axis_t%dtick)
+  if (axis_z%tick_max == axis_z%tick_min) then
+    axis_z%tick_max = axis_z%tick_max + axis_t%dtick
+    axis_z%tick_min = axis_z%tick_min - axis_t%dtick
+  endif
+else
+  axis_z%tick_max = axis_t%dtick * ceiling(axis_z%max / axis_t%dtick - 0.3)
+  axis_z%tick_min = axis_t%dtick * floor(axis_z%min / axis_t%dtick + 0.3)
+endif
+
+axis_z%major_div = nint((axis_z%tick_max - axis_z%tick_min) / axis_z%dtick)
 axis_z%max = max(axis_z%max, axis_z%tick_max)
 axis_z%min = min(axis_z%min, axis_z%tick_min)
 
@@ -5471,13 +5450,13 @@ end subroutine axis_scale
 !----------------------------------------------------
 ! contains
 
-subroutine margin_scale (tz_scale_ratio, graph_z1, graph_z2, margin_z1, margin_z2)
+subroutine margin_scale (tz_scale_ratio, graph_width, margin_z1, margin_z2)
 
-real(rp) rd, tz_scale_ratio, graph_z1, graph_z2, margin_z1, margin_z2
+real(rp) rd, tz_scale_ratio, graph_width, margin_z1, margin_z2
 
 ! Scale margins
 
-rd = (1 - tz_scale_ratio) * (graph_z2 - graph_z1) / 2
+rd = (1 - tz_scale_ratio) * graph_width / 2
 margin_z1 = margin_z1 + rd
 margin_z2 = margin_z2 + rd
 
