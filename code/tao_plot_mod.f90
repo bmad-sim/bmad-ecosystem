@@ -99,18 +99,28 @@ do i = 1, size(s%plot_page%region)
 
     graph => plot%graph(j)
 
-    ! For a non-valid graph just print a message
+    call tao_hook_draw_graph (plot, graph, found)
+    if (found) cycle
+
+    ! For a non-valid graph or curves print a message
+
+    call qp_set_layout (box = graph%box)
 
     if (.not. graph%is_valid) then
-      call qp_set_layout (box = graph%box)
-      call qp_draw_text (graph%why_invalid, 0.5_rp, 0.5_rp, '%BOX', color = 'red', justify = 'CC')
+      call qp_draw_text (graph%why_invalid, 0.2_rp, -0.2_rp, '%BOX', color = 'red', justify = 'LC')
       return
     endif
 
-    ! Now we can draw the graph
+    if (allocated(graph%curve)) then
+      dy = -0.2
+      do ic = 1, size(graph%curve)
+        if (graph%curve(ic)%valid) cycle
+        call qp_draw_text (graph%curve(ic)%why_invalid, 0.2_rp, dy, '%BOX/LT', color = 'red', justify = 'LC') 
+        dy = dy - 0.15
+      enddo
+    endif
 
-    call tao_hook_draw_graph (plot, graph, found)
-    if (found) cycle
+    ! Now we can draw the graph
 
     select case (graph%type)
     case ('data', 'phase_space', 'dynamic_aperture')
@@ -1541,15 +1551,8 @@ call tao_draw_data_graph (plot, graph)
 
 ! loop over all the curves of the graph and draw them
 
-have_data = .false.
-
 do k = 1, size(graph%curve)
-  if (.not. graph%curve(k)%valid) then
-    if (graph%curve(k)%why_invalid /= '') then
-      call qp_draw_text (graph%curve(k)%why_invalid, 0.18_rp, -0.15_rp, '%/GRAPH/LT', color = 'red') 
-    endif
-    cycle
-  endif
+  if (.not. graph%curve(k)%valid) cycle
   call tao_draw_curve_data (plot, graph, graph%curve(k), have_data)
 enddo
 

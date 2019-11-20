@@ -3046,7 +3046,7 @@ select case (component)
 case ('bounds')
   val = remove_quotes(upcase(value))
   select case (val)
-  case ('LOG', 'LINEAR')
+  case ('ZERO_AT_END', 'ZERO_SYMMETRIC', 'GENERAL')
     qp_axis%bounds = val
     error = .false.
   case default
