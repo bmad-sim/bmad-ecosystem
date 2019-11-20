@@ -3237,7 +3237,7 @@ case ('plot_graph')
                     ';major_tick_len;REAL;', to_str(x_ax%major_tick_len,6), ';minor_tick_len;REAL;', to_str(x_ax%minor_tick_len,6)
 
     nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'y;STRUCT;T;label;STR;', trim(y_ax%label), &
-                    ';label_color;ENUM;', trim(y_ax%label_color), 'label_offset;REAL;', to_str(y_ax%label_offset,6), &
+                    ';label_color;ENUM;', trim(y_ax%label_color), ';label_offset;REAL;', to_str(y_ax%label_offset,6), &
                     ';max;REAL;', to_str(y_ax%max,6), ';min;REAL;', to_str(y_ax%min,6), &
                     ';axis^type;ENUM;', trim(y_ax%type), ';bounds;ENUM;', trim(y_ax%bounds), &
                     ';number_offset;REAL;', to_str(y_ax%number_offset,6), ';major_div_nominal;INT;', y_ax%major_div_nominal, &
@@ -3247,7 +3247,7 @@ case ('plot_graph')
                     ';major_tick_len;REAL;', to_str(y_ax%major_tick_len,6), ';minor_tick_len;REAL;', to_str(y_ax%minor_tick_len,6)
 
     nl=incr(nl); write (li(nl), '(16a, 3(a, i0), 2(a, l1), 2(a, i0), 4a)') 'y2;STRUCT;T;label;STR;', trim(g%y2%label), &
-                    ';label_color;ENUM;', trim(g%y2%label_color), 'label_offset;REAL;', to_str(g%y2%label_offset,6), &
+                    ';label_color;ENUM;', trim(g%y2%label_color), ';label_offset;REAL;', to_str(g%y2%label_offset,6), &
                     ';max;REAL;', to_str(g%y2%max,6), ';min;REAL;', to_str(g%y2%min,6), &
                     ';axis^type;ENUM;', trim(g%y2%type), ';bounds;ENUM;', trim(g%y2%bounds), &
                     ';number_offset;REAL;', to_str(g%y2%number_offset,6), ';major_div_nominal;INT;', g%y2%major_div_nominal, &
