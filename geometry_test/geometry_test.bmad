@@ -10,7 +10,7 @@ particle_start[x] = 1
 d: drift, l = 1
 p1: patch, z_offset = 1, x_pitch = pi
 
-b: sbend, l = 1, angle = 2, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2
+b: sbend, l = 1, angle = 1, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2
 b2: sbend, l = 1, g = 0.1
 
 p_line: line = (d, b, p1, --d, --b)
