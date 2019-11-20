@@ -1,4 +1,4 @@
- 2019-06-26 22:46:50 
+ 2019-09-21 21:08:44 
  
    1   Drift                 22   AB_multipole
    2   Sbend                 58   AC_Kicker
@@ -182,14 +182,17 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
        101  FREQUENCIES                             
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        104  AMP_VS_TIME                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -578,12 +581,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -939,12 +945,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -1033,12 +1042,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
        117  TYPE                                    
@@ -1129,12 +1141,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
        117  TYPE                                    
@@ -1213,12 +1228,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
        117  TYPE                                    
@@ -1500,12 +1518,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -1646,12 +1667,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
        117  TYPE                                    
@@ -1734,12 +1758,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -1843,12 +1870,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -2033,10 +2063,13 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        105  IS_ON                                   
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        112  DESCRIP                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
@@ -2324,12 +2357,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
        117  TYPE                                    
@@ -2552,12 +2588,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -2839,12 +2878,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
        117  TYPE                                    
@@ -2929,12 +2971,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -3039,12 +3084,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
        117  TYPE                                    
@@ -3155,12 +3203,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -3242,12 +3293,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
        117  TYPE                                    
@@ -3288,7 +3342,6 @@
         40  Y_OFFSET_MULT                           
         41  X_PITCH_MULT                            
         42  Y_PITCH_MULT                            
-        43  B_FIELD                                 
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         53  P0C                                     
@@ -3495,12 +3548,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -3590,12 +3646,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -3687,12 +3746,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -3782,12 +3844,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -3886,6 +3951,7 @@
          4  K1_PSEUDO                               
          5  B_MAX                                   
          6  G_MAX                                   
+         7  OSC_AMPLITUDE                           
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -3952,13 +4018,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
        101  TERM                                    
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -4042,12 +4111,15 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -4076,6 +4148,7 @@
          4  K1_PSEUDO                               
          5  B_MAX                                   
          6  G_MAX                                   
+         7  OSC_AMPLITUDE                           
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -4142,13 +4215,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
        101  TERM                                    
+       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
+       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
@@ -4179,7 +4255,7 @@
      4    18
      5    22
      6    23
-     7    17
+     7    19
      8    24
      9     7
     10    27
@@ -4215,7 +4291,7 @@
     40    24
     41    23
     42    21
-    43     8
+    43     7
     44     6
     45     8
     46     7
@@ -4271,17 +4347,17 @@
     96    49
     97    48
     98    48
-    99     1
+    99    26
    100    29
    101     3
-   102     3
+   102    28
    103    31
    104     3
    105    40
    106    29
    107    46
    108    50
-   109     6
+   109    31
    110    26
    111    20
    112    53
@@ -4659,6 +4735,7 @@ Index: 7
     Sbend               
     RFcavity            
     BeamBeam            
+    Wiggler             
     Marker              
     Rbend               
     Lcavity             
@@ -4671,6 +4748,7 @@ Index: 7
     Crystal             
     Pipe                
     E_Gun               
+    Undulator           
     Detector            
     Sad_Mult            
  
@@ -5478,7 +5556,6 @@ Index: 43
     Hkicker             
     Vkicker             
     Crystal             
-    Sad_Mult            
  
  !---------------------------------
 Index: 44
@@ -7726,7 +7803,32 @@ Index: 98
  
  !---------------------------------
 Index: 99
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    Custom              
+    RFcavity            
+    ELseparator         
+    Wiggler             
+    Sol_Quad            
+    Marker              
+    Kicker              
+    Octupole            
+    Rbend               
     GARBAGE!            
+    Solenoid            
+    Lcavity             
+    Monitor             
+    Instrument          
+    Hkicker             
+    Vkicker             
+    Rcollimator         
+    Ecollimator         
+    Pipe                
+    E_Gun               
+    EM_Field            
+    Undulator           
+    AC_Kicker           
  
  !---------------------------------
 Index: 100
@@ -7768,9 +7870,34 @@ Index: 101
  
  !---------------------------------
 Index: 102
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    Custom              
+    RFcavity            
+    ELseparator         
+    Wiggler             
+    Sol_Quad            
+    Marker              
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
+    Lcavity             
     Def_Parameter       
     Beginning_Ele       
     Line_Ele            
+    Monitor             
+    Instrument          
+    Hkicker             
+    Vkicker             
+    Rcollimator         
+    Ecollimator         
+    Pipe                
+    E_Gun               
+    EM_Field            
+    Undulator           
+    AC_Kicker           
  
  !---------------------------------
 Index: 103
@@ -7991,12 +8118,37 @@ Index: 108
  
  !---------------------------------
 Index: 109
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    Custom              
+    RFcavity            
+    ELseparator         
+    Wiggler             
+    Sol_Quad            
+    Marker              
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
+    Lcavity             
     Def_Parameter       
     Beginning_Ele       
     Line_Ele            
+    Monitor             
+    Instrument          
+    Hkicker             
+    Vkicker             
+    Rcollimator         
+    Ecollimator         
     Girder              
+    Pipe                
+    E_Gun               
+    EM_Field            
     Floor_Shift         
     Fiducial            
+    Undulator           
+    AC_Kicker           
  
  !---------------------------------
 Index: 110
