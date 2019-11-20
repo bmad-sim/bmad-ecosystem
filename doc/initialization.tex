@@ -35,16 +35,14 @@ the end of the block is denoted by a slash ``/'' For example:
     var2 = 0.456
   /
 \end{example}
-Variables that have default values can be omitted from the block.  The
-order of the variables inside a block is irrelevant except if the
-same variable appears twice in which case the last occurrence is determinative.
-In between namelist blocks all text is ignored. Inside a block comments may be
+Variables that have default values can be omitted from the block.  The order of the variables inside
+a block is irrelevant except if the same variable appears twice in which case the last occurrence is
+determinative.  In between namelist blocks all text is ignored. Inside a block comments may be
 included by using an exclamation mark ``!''.
 
-Care must be taken when setting arrays in a namelist as the following example
-shows:
+Care must be taken when setting arrays in a namelist as the following example shows:
 \begin{example}
-  &namelist_name
+  &some_namelist_name
     var_array(8:11) = 34             ! Only sets var_array(8)
     var_array(8:11) = 34 34 81 81    ! OK. Sets all 4 values
     var_array(8:11) = 34, 34, 81, 81 ! OK. Same as above
@@ -63,7 +61,7 @@ The first line to set the \vn{var_array} may look like it is setting the four va
 \vn{var_array(8:11)} but the general rule is that with \vn{n} values on the RHS, only \vn{n} values
 in the array are set.
 
-IMPORTANT: The notation \vn{n*number} does not denote multiplication but instead can be used to
+{\em IMPORTANT:} The notation \vn{n*number} does not denote multiplication but instead can be used to
 denote multiple values. There should be no blank spaces here. Some compilers may accept something
 like ``2 * 34'' but you cannot count on it. Using ``2*34'' is safe.
 
@@ -77,6 +75,17 @@ following characters should not be used in unquoted strings:
 \end{example}
 Note: While there are exceptions, in general \tao string variables are
 case sensitive.
+
+{\em WARNING:} Namelists cannot do expression evaluation. Thus the following will not work
+\begin{example}
+  &some_namelist_name
+    a = 3.7/148
+    b = 5
+  /
+\end{example}
+The slash in the intended expression ``3.7/148'' will be taken as the namelist terminator. This
+will result in variable \vn{a} having the value 3.7 and the value of variable \vn{b} will not
+be set!
 
 Logical variables should be set to \vn{T} or \vn{TRUE} when true and \vn{F} or \vn{FALSE} when
 false. This is case insensitive. It is possible to use the words \vn{.true.} and \vn{.false.} for

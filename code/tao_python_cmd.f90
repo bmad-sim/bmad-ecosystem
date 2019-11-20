@@ -4348,7 +4348,9 @@ integer nl, i
 
 !
 
-if (doprint) call out_io (s_blank$, r_name, li(1:nl))
+if (doprint) then
+  call out_io (s_blank$, r_name, li(1:nl))
+endif
 
 if (opened) then
   do i = 1, nl
