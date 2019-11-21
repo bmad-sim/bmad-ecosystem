@@ -30,17 +30,17 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
-real(rp) angle, e1, e2, freq, lag, volt
+real(rp) angle, e1, e2, freq, lag, volt, ksl
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 integer i, j, ix
 
-character(200) lat_file, out_file
+character(200) lat_file, out_file, path, base
 character(300) line1, line2
 character(20) date, name, ele_type
-character(8) :: col_name(14) = [character(8):: 'NAME', 'KEYWORD', 'S', 'L', 'ANGLE', 'E1', 'E2', &
-                                                       'K1L', 'K2L', 'K3L', 'TILT', 'FREQ', 'LAG', 'VOLT']
-character(4) :: col_type(14) = [character(4):: '%s', '%s', '%le', '%le', '%le', '%le', '%le', '%le', &
-                                                       '%le', '%le', '%le', '%le', '%le', '%le']
+character(8) :: col_name(16) = [character(8):: 'NAME', 'KEYWORD', 'S', 'L', 'ANGLE', 'E1', 'E2', &
+                                                  'KSL', 'K0L', 'K1L', 'K2L', 'K3L', 'TILT', 'FREQ', 'LAG', 'VOLT']
+character(4) :: col_type(16) = [character(4):: '%s', '%s', '%le', '%le', '%le', '%le', '%le', '%le', &
+                                                       '%le', '%le', '%le', '%le', '%le', '%le', '%le', '%le']
 
 !
 
@@ -64,12 +64,14 @@ end select
 
 call bmad_parser (lat_file, lat)
 
-out_file = trim(lat_file) // '.tfs'
-open (1, file = out_file)
+ix = SplitFileName(lat_file, path, base)
+out_file = trim(base) // '.tfs'
+open (1, file = out_file, recl = 300)
 
 call date_and_time_stamp (date, .true.)
 
 write (1, '(2a)') '@ TYPE         %08s "OPTICS"'
+write (1, '(2a)') '@ ORIGIN       %14s "Bmad_to_Merlin"'
 write (1, '(2a)') '@ DATE         %10s ', quote(date(1:10))
 write (1, '(2a)') '@ TIME         %08s ', quote(date(12:19))
 
@@ -97,14 +99,19 @@ do i = 1, lat%n_ele_track
   freq = 0
   lag = 0
   volt = 0
+  ksl = 0
+  tilt = ele%value(tilt$)
+
+  call multipole_ele_to_kt (ele, .true., ix, knl, tilt, magnetic$, include_kicks$)
 
   select case (ele%key)
   case (drift$, instrument$, pipe$);      ele_type = 'DRIFT'
   case (multipole$, ab_multipole$);    ele_type = 'MULTIPOLE'
   case (sbend$);          ele_type = 'SBEND'
     angle = ele%value(angle$)
-    e1 = ele%value(e1$)
-    e2 = ele%value(e2$)
+    e1    = ele%value(e1$)
+    e2    = ele%value(e2$)
+    tilt  = ele%value(ref_tilt$)
   case (lcavity$);        ele_type = 'LCAV'
     freq = 1d-6 * ele%value(rf_frequency$)
     volt = 1d-6 * ele%value(voltage$)
@@ -116,10 +123,12 @@ do i = 1, lat%n_ele_track
   case (rcollimator$);    ele_type = 'RCOLLIMATOR'
   case (ecollimator$);    ele_type = 'ECOLLIMATOR'
   case (vkicker$);        ele_type = 'VKICKER'
+    tilt(0) = tilt(0) - pi/2.0_rp
   case (hkicker$);        ele_type = 'HKICKER'
   case (kicker$);         ele_type = 'KICKER'
   case (quadrupole$);     ele_type = 'QUADRUPOLE'
   case (solenoid$);       ele_type = 'SOLENOID'
+    ksl = ele%value(ks$) * ele%value(l$)
   case (sextupole$);      ele_type = 'SEXTUPOLE'
   case (octupole$);       ele_type = 'OCTUPOLE'
   case (monitor$);        ele_type = 'MONITOR'
@@ -130,10 +139,8 @@ do i = 1, lat%n_ele_track
     ele_type = 'DRIFT'
   end select
 
-  call multipole_ele_to_kt (ele, .true., ix, knl, tilt, magnetic$, include_kicks$)
-
-  write (1, '(2x, a17, a, t36, 12es17.6)') name, quote(ele_type), &
-            ele%s, ele%value(l$), angle, e1, e2, knl(1), knl(2), knl(3), ele%value(tilt$), freq, lag, volt
+  write (1, '(2x, a17, a, t36, 14es17.6)') name, quote(ele_type), &
+            ele%s, ele%value(l$), angle, e1, e2, ksl, knl(0), knl(1), knl(2), knl(3), ele%value(tilt$), freq, lag, volt
 enddo
 
 print '(a)', 'Written: ' // trim(out_file)
