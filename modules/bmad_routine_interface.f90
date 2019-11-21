@@ -784,14 +784,14 @@ subroutine lat_compute_ref_energy_and_time (lat, err_flag)
   logical err_flag
 end subroutine
 
-subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
+subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, order_by_index)
   import
   implicit none
   character(*) loc_str
   type (lat_struct) lat
   type (ele_pointer_struct), allocatable :: eles(:)
   integer n_loc
-  logical, optional :: above_ubound_is_err, err
+  logical, optional :: above_ubound_is_err, err, order_by_index
   integer, optional :: ix_dflt_branch
 end subroutine
 

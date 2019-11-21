@@ -1,5 +1,5 @@
 !+
-! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
+! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, order_by_index)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
 !
@@ -31,9 +31,9 @@
 !   ele2     = Ending element of the range. 
 !   step     = Optional step increment Default is 1. 
 ! Note: ele1 and ele2 must be in the same branch. Branch 0 is the default.
-! If ele1 or ele2 is a super_lord, the elements in the range are determined by the position of the
-! super_slave elements. For example, if loc_str is "Q1:Q1" and Q1 is *not* a super_lord, the eles
-! list will simply be Q1. If Q1 is a super_lord, the eles list will be the super_slaves of Q1.
+! If ele1 or ele2 is a super_lord, the elements in the range are determined by the position of the super_slave elements.
+! For example, if loc_str is "Q1:Q1" and Q1 is *not* a super_lord, the eles list will simply be Q1.
+! If Q1 is a super_lord, the eles list will be the super_slaves of Q1.
 ! It is an error if ele1 or ele2 is a multipass_lord. Also it is is an error for ele1 or ele2
 ! to be an overlay, group, or girder if the number of slaves is not one. 
 !
@@ -55,28 +55,29 @@
 ! case q5 will appear in eles(:) before q1 independent of the order in the lattice.
 ! 
 ! Input:
-!   loc_str  -- Character(*): Element names or indexes. May be lower case.
-!   lat      -- lat_struct: Lattice to search through.
+!   loc_str        -- character(*): Element names or indexes. May be lower case.
+!   lat            -- lat_struct: Lattice to search through.
 !   above_ubound_is_err
-!            -- Logical, optional: If the upper bound "e2" on an "e1:e2" range construct 
-!                 is above the maximum element index then treat this as an error? 
-!                 Default is True. If False, treat e2 as the maximum element index. 
-!   ix_dflt_branch
-!            -- Integer, optional: If present and not -1 then restrict search to specified branch.
-!                 If not present or -1: Search all branches. Exception: For elements specified using 
-!                 an integer index (EG: "43"), if ix_dflt_branch is not present or -1 use branch 0.
+!                  -- logical, optional: If the upper bound "e2" on an "e1:e2" range construct 
+!                       is above the maximum element index then treat this as an error? 
+!                       Default is True. If False, treat e2 as the maximum element index. 
+!   ix_dflt_branch -- integer, optional: If present and not -1 then restrict search to specified branch.
+!                       If not present or -1: Search all branches. Exception: For elements specified using 
+!                       an integer index (EG: "43"), if ix_dflt_branch is not present or -1 use branch 0.
+!   order_by_index -- logical, optional: False is default. If True, order by element index instead of 
+!                       longitudinal s-position.
 !
 ! Output:
-!   eles(:) -- Ele_pointer_struct, allocatable: Array of matching elements.
-!              Note: This routine does not try to deallocate eles.
-!               It is up to you to deallocate eles if needed.
-!   n_loc   -- Integer: Number of locations found.
-!                Set to zero if no elements are found.
-!   err     -- Logical, optional: Set True if there is a decode error.
-!                Note: not finding any element is not an error.
+!   eles(:)       -- ele_pointer_struct, allocatable: Array of matching elements.
+!                    Note: This routine does not try to deallocate eles.
+!                     It is up to you to deallocate eles if needed.
+!   n_loc         -- integer: Number of locations found.
+!                      Set to zero if no elements are found.
+!   err           -- logical, optional: Set True if there is a decode error.
+!                      Note: not finding any element is not an error.
 !-
 
-subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
+subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, order_by_index)
 
 use equal_mod, dummy => lat_ele_locator
 use pointer_to_branch_mod, only: pointer_to_branch
@@ -99,8 +100,8 @@ integer, optional :: ix_dflt_branch
 integer i, j, ib, ios, ix, n_loc, n_loc2, match_name_to
 integer in_range, step, ix_word, key
 
-logical, optional :: above_ubound_is_err, err
-logical err2, delim_found, above_ub_is_err
+logical, optional :: above_ubound_is_err, err, order_by_index
+logical err2, delim_found, above_ub_is_err, s_ordered
 
 ! init
 
@@ -190,10 +191,13 @@ do
     ! In a range the key is applied to the list of elements in the range and not
     ! applied to picking the end elements.
     above_ub_is_err = (logic_option(.true., above_ubound_is_err) .or. in_range /= 2)
+    s_ordered = (.not. logic_option(.false., order_by_index))
     if (in_range == 0) then
-      call lat_ele1_locator (branch_str, key, name, match_name_to, lat, eles2, n_loc2, err2, above_ub_is_err, ix_dflt_branch)
+      call lat_ele1_locator (branch_str, key, name, match_name_to, lat, eles2, n_loc2, err2, &
+                                                       above_ub_is_err, ix_dflt_branch, s_ordered)
     else
-      call lat_ele1_locator (branch_str, 0, name, match_name_to, lat, eles2, n_loc2, err2, above_ub_is_err, ix_dflt_branch)
+      call lat_ele1_locator (branch_str, 0, name, match_name_to, lat, eles2, n_loc2, err2, &
+                                                       above_ub_is_err, ix_dflt_branch, s_ordered)
     endif
     if (err2) return
   endif
@@ -280,13 +284,15 @@ if (present(err)) err = .false.
 contains
 
 !+
-! Subroutine lat_ele1_locator (branch_str, key, name_in, match_name_to, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
+! Subroutine lat_ele1_locator (branch_str, key, name_in, match_name_to, lat, eles, n_loc, err, &
+!                                                                      above_ub_is_err, ix_dflt_branch, s_ordered)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
 ! Note: This routine is private and meant to be used only by lat_ele_locator
 !-
 
-subroutine lat_ele1_locator (branch_str, key, name_in, match_name_to, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
+subroutine lat_ele1_locator (branch_str, key, name_in, match_name_to, lat, eles, n_loc, err, &
+                                                                      above_ub_is_err, ix_dflt_branch, s_ordered)
 
 implicit none
 
@@ -300,11 +306,11 @@ character(40) name
 character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
-integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc
-integer key, match_to_instance, n_match, match_name_to
+integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc, n_max
+integer key, target_instance, n_instance_found, match_name_to
 
-logical :: above_ub_is_err
-logical err, do_match_wild, matched_instance
+logical above_ub_is_err, s_ordered
+logical err, do_match_wild, Nth_instance_found
 
 ! init
 
@@ -316,10 +322,10 @@ name = name_in
 ! are multiple elements of a given name.
 
 ix = index(name, '##')
-match_to_instance = 0
+target_instance = 0
 if (ix /= 0 .and. match_name_to == 0) then
   if (.not. is_integer(name(ix+2:))) return
-  read (name(ix+2:), *) match_to_instance
+  read (name(ix+2:), *) target_instance
   name = name(:ix-1)
 endif
 
@@ -392,29 +398,37 @@ endif
 ! search for matches.
 
 do_match_wild = (index(name, "*") /= 0 .or. index(name, "%") /= 0)
-matched_instance = .false.
+Nth_instance_found = .false.
 
 do k = 0, ubound(lat%branch, 1)
   branch => lat%branch(k)
   if (ix_branch == -2 .and. .not. match_wild(branch%name, branch_str)) cycle
   if (ix_branch > -1 .and. k /= ix_branch) cycle
 
-  n_match = 0
+  n_instance_found = 0
+  Nth_instance_found = .false.
 
-  do i = 0, branch%n_ele_track
+  n_max = branch%n_ele_max
+  if (s_ordered) n_max = branch%n_ele_track
+
+  do i = 0, n_max
     ele => branch%ele(i)
-    call check_this_match(name, ele, key, do_match_wild, match_name_to, n_match, n_loc, eles, match_to_instance, matched_instance); if (matched_instance) cycle
+    call check_this_match (name, ele, key, do_match_wild, match_name_to, n_instance_found, n_loc, eles, &
+                                                            target_instance, Nth_instance_found, s_ordered)
+    if (Nth_instance_found) exit
   enddo
 enddo 
 
-! During lattice parsing, elements may get added to the lord section for temporary storage. 
-! Look for matches if any of these elements are present
+! During lattice parsing, elements may get added to the lord section for temporary storage and
+! these elements will not have any slaves.
+! If S-ordered, these elements have been so far overlooked and this has to be rectified.
 
-if (match_to_instance == 0 .and. (ix_branch == -1 .or. ix_branch == 0)) then
+if (s_ordered .and. .not. Nth_instance_found .and. (ix_branch == -1 .or. ix_branch == 0)) then
   do i = lat%n_ele_track+1, lat%n_ele_max
     ele => lat%ele(i)
     if (ele%n_slave /= 0) cycle
-    call check_this_match(name, ele, key, do_match_wild, match_name_to, n_match, n_loc, eles, match_to_instance, matched_instance)
+    call check_this_match(name, ele, key, do_match_wild, match_name_to, n_instance_found, n_loc, eles, &
+                                                            target_instance, Nth_instance_found, s_ordered)
   enddo
 endif
 
@@ -425,23 +439,30 @@ end subroutine lat_ele1_locator
 !---------------------------------------------------------------------------
 ! contains
 
-recursive subroutine check_this_match (name, ele, key, do_match_wild, match_name_to, n_match, n_loc, eles, match_to_instance, matched_instance)
+recursive subroutine check_this_match (name, ele, key, do_match_wild, match_name_to, n_instance_found, n_loc, eles, &
+                                                            target_instance, Nth_instance_found, s_ordered)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (ele_pointer_struct), allocatable :: eles(:)
 
-integer key, match_name_to, match_to_instance, ix_slave, n_match, n_loc, il
+integer key, match_name_to, target_instance, ix_slave, n_instance_found, n_loc, il
 character(*) name
-logical do_match_wild, matched_instance
+logical do_match_wild, Nth_instance_found, s_ordered
+
+! S-ordered means check lords before slaves
+
+if (s_ordered) then
+  do il = 1, ele%n_lord
+    lord => pointer_to_lord(ele, il, ix_slave_back = ix_slave)
+    if (ix_slave /= 1) cycle
+    call check_this_match(name, lord, key, do_match_wild, match_name_to, n_instance_found, n_loc, eles, &
+                                                             target_instance, Nth_instance_found, s_ordered)
+    if (Nth_instance_found) return
+  enddo
+endif
 
 !
-
-do il = 1, ele%n_lord
-  lord => pointer_to_lord(ele, il, ix_slave_back = ix_slave)
-  if (ix_slave /= 1) cycle
-  call check_this_match(name, lord, key, do_match_wild, match_name_to, n_match, n_loc, eles, match_to_instance, matched_instance); if (matched_instance) return
-enddo
 
 if ((key /= 0 .and. ele%key /= key) .and. (ele%key /= sbend$ .or. ele%sub_key /= key)) return
 
@@ -476,10 +497,10 @@ endif
 
 ! Is matched
 
-if (match_to_instance > 0) then
-  n_match = n_match + 1
-  if (n_match /= match_to_instance) return
-  matched_instance = .true.
+if (target_instance > 0) then
+  n_instance_found = n_instance_found + 1
+  if (n_instance_found /= target_instance) return
+  Nth_instance_found = .true.
 endif
 
 n_loc = n_loc + 1
