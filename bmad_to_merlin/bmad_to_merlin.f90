@@ -67,13 +67,19 @@ call bmad_parser (lat_file, lat)
 ix = SplitFileName(lat_file, path, base)
 out_file = trim(base) // '.tfs'
 open (1, file = out_file, recl = 300)
+name = upcase(species_name(lat%param%particle))
 
 call date_and_time_stamp (date, .true.)
 
-write (1, '(2a)') '@ TYPE         %08s "OPTICS"'
-write (1, '(2a)') '@ ORIGIN       %14s "Bmad_to_Merlin"'
-write (1, '(2a)') '@ DATE         %10s ', quote(date(1:10))
-write (1, '(2a)') '@ TIME         %08s ', quote(date(12:19))
+write (1, '(2a)')        '@ TYPE         %08s "OPTICS"'
+write (1, '(2a)')        '@ ORIGIN       %14s "Bmad_to_Merlin"'
+write (1, '(a, i0, 2a)') '@ PARTICLE     %', len_trim(name), 's  ', quote(name)
+write (1, '(a, f16.11)') '@ MASS         %le ', mass_of(lat%param%particle) / atomic_mass_unit
+write (1, '(a, i0)')     '@ CHARGE       %le  ', charge_of(lat%param%particle)
+write (1, '(a, f18.10)') '@ ENERGY       %le', lat%ele(0)%value(e_tot$) / 1d9
+write (1, '(a, f18.10)') '@ PC           %le', lat%ele(0)%value(p0c$) / 1d9
+write (1, '(2a)')        '@ DATE         %10s ', quote(date(1:10))
+write (1, '(2a)')        '@ TIME         %08s ', quote(date(12:19))
 
 line1 = '*'
 line2 = '$'
