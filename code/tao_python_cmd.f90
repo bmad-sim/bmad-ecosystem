@@ -162,7 +162,7 @@ integer, allocatable, save :: index_arr(:)
 
 logical, allocatable :: picked(:)
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time, found_one, calc_ok, no_slaves
+logical first_time, found_one, calc_ok, no_slaves, index_order
 
 character(*) input_str
 character(len(input_str)) line
@@ -2744,10 +2744,11 @@ case ('lat_general')
 !
 ! List of parameters at ends of lattice elements
 ! Command syntax:
-!   python lat_list -no_slaves -track_only {ix_uni}@{ix_branch}>>{elements}|{which} {who}
+!   python lat_list -no_slaves -track_only -index_order {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 ! where:
 !   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
 !   -track_only is optional. If present, lord elements will not be matched to.
+!   -index_order is optional. If present, order elements by element index instead of the standard s-position.
 !
 !   {which} is one of:
 !     model
@@ -2783,6 +2784,7 @@ case ('lat_list')
 
   no_slaves = .false.
   track_only = .false.
+  index_order = .false.
   do
     if (index('-no_slaves', line(1:ix_line)) == 1) then
       call string_trim(line(ix_line+1:), line, ix_line)
@@ -2792,6 +2794,11 @@ case ('lat_list')
     if (index('-track_only', line(1:ix_line)) == 1) then
       call string_trim(line(ix_line+1:), line, ix_line)
       track_only = .true.
+      cycle
+    endif
+    if (index('-index_order', line(1:ix_line)) == 1) then
+      call string_trim(line(ix_line+1:), line, ix_line)
+      index_order = .true.
       cycle
     endif
     exit
@@ -2807,7 +2814,7 @@ case ('lat_list')
 
   call upcase_string(line)
   lat => tao_lat%lat
-  call lat_ele_locator (line, lat, eles, n_loc, err);  if (err) return
+  call lat_ele_locator (line, lat, eles, n_loc, err, order_by_index = index_order);  if (err) return
 
   n_who = 0
   do
