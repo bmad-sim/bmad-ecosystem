@@ -418,7 +418,7 @@ if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
   call encode_second_column_parameter (li, nl2, nl, 'FIELD_MASTER', logic_val = ele%field_master)
 endif
 
-if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$ .and. type_zero) then
+if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
   call encode_second_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
 endif
 

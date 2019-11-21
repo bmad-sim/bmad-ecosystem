@@ -1059,7 +1059,7 @@ local_position%w =  matmul(w0_mat_T, global_position%w)
 
 ! If angles are not needed, just return zeros; 
 if (logic_option(.true., calculate_angles)) then
-  call update_floor_angles(local_position)
+  call update_floor_angles(local_position, floor0)
 else
   local_position%theta = 0
   local_position%phi = 0
