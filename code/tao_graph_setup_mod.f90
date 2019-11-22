@@ -2072,11 +2072,11 @@ do ii = 1, size(curve%x_line)
 
     else
       if (first_time) then
-        call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err)
+        call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
         orbit_end = orbit
         first_time = .false.
       else
-        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err)
+        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err, compute_floor_coords = .true.)
         orbit = orbit_end
       endif
 
