@@ -57,8 +57,8 @@ character(16), parameter :: qp_arrow_head_type_name(2) = [character(16):: 'Fille
 type qp_axis_struct
   character(80) :: label = ' '
   real(rp) :: min = 0, max = 10          ! Axis min/max in data units.
-  real(rp) :: tick_min = 0              ! Min tick location along axis in data units.
-  real(rp) :: tick_max = 10               ! Max tick location along axis in data units.
+  real(rp) :: tick_min = 0               ! Min tick location along axis in data units.
+  real(rp) :: tick_max = 10              ! Max tick location along axis in data units.
   real(rp) :: dtick = 2                  ! Distance between ticks. In data units. Ticks will be drawn between %min and %max.
   real(rp) :: number_offset = 0.05       ! offset from axis line in inches.
   real(rp) :: label_offset = 0.05        ! offset from numbers in inches.
@@ -84,14 +84,15 @@ end type
 type qp_plot_struct
   character(80) :: title = ' '
   type (qp_axis_struct) x, y, x2, y2
-  type (qp_axis_struct), pointer :: xx, yy  ! Pointer to axes used for plotting.
+  type (qp_axis_struct), pointer :: xx  ! Pointer to x or x2 active axes currently used for plotting.
+  type (qp_axis_struct), pointer :: yy  ! Pointer to y or y2 active axes currently used for plotting.
   logical :: draw_box    = .true.
   logical :: draw_title  = .true.
   logical :: draw_grid   = .true.
-  logical :: x2_mirrors_x = .true.
-  logical :: y2_mirrors_y = .true.
-  logical :: xx_points_to_x
-  logical :: yy_points_to_y
+  logical :: x2_mirrors_x = .true.   ! x2 axis same as x?
+  logical :: y2_mirrors_y = .true.   ! y2 axis same as y?
+  logical :: x_is_active_axis        ! True => x is the active axis. False => x2 is active.
+  logical :: y_is_active_axis        ! True => y is the active axis. False => y2 is active.
 end type          
 
 type qp_point_struct     ! A point on the page.
