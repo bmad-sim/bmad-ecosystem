@@ -405,7 +405,7 @@ class tao_plot_window(Tao_Toplevel):
         for i in range(str_to_tao_param(plot1[0]).value):
             plot_graph = pipe.cmd_in("python plot_graph " + tmp_reg + '.'
                     + str_to_tao_param(plot1[i+1]).value).splitlines()
-            if not tao_parameter_dict(plot_graph)['valid'].value:
+            if not tao_parameter_dict(plot_graph)['is_valid'].value:
                 valid = False
                 break
         root.placed.unplace_region(tmp_reg)

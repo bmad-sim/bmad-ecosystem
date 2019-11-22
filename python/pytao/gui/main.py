@@ -517,7 +517,7 @@ class tao_root_window(tk.Tk):
                 chosen_interface.set(init_dict["chosen_interface"])
         tk.OptionMenu(init_frame, chosen_interface, "pexpect", "ctypes",
                 command=swap_box).grid(row=k, column=1, sticky="W")
-        pexp_label = tk.Label(init_frame, text="Tao executable")
+        pexp_label = tk.Label(init_frame, text="Tao Executable")
         ctype_label = tk.Label(init_frame, text="Shared Library")
         tao_exe = tk_tao_parameter(str_to_tao_param("tao_exe;FILE;T;"), init_frame)
         if "tao_exe" in init_dict:
