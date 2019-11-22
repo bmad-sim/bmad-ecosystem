@@ -15,10 +15,15 @@
 !   element length
 !   tilt
 !   angle, e1, e2         ! Bend attributes
-!   k1l, k2l, k3l         ! Integrated multipoles
+!   ks                    ! Solenoid strength (Merlin does not accept ksl)
+!   k0l, k1l, k2l, k3l    ! Integrated multipoles
 !   Frequency, lag, volt  ! RF attributes
 !
 ! Note: The TFS format is a MAD standard. See the MAD manual for details on this format.
+! Note: The following element type names are substituted for the MAD types:
+!   HKICKER     -> XCOR
+!   VKICKER     -> YCOR
+!   RCOLLIMATOR -> COLLIMATOR 
 !-
 
 program bmad_to_merlin
@@ -30,7 +35,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
-real(rp) angle, e1, e2, freq, lag, volt, ksl
+real(rp) angle, e1, e2, freq, lag, volt, ks
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 integer i, j, ix
 
@@ -38,7 +43,7 @@ character(200) lat_file, out_file, path, base
 character(300) line1, line2
 character(20) date, name, ele_type
 character(8) :: col_name(16) = [character(8):: 'NAME', 'KEYWORD', 'S', 'L', 'ANGLE', 'E1', 'E2', &
-                                                  'KSL', 'K0L', 'K1L', 'K2L', 'K3L', 'TILT', 'FREQ', 'LAG', 'VOLT']
+                                                  'KS', 'K0L', 'K1L', 'K2L', 'K3L', 'TILT', 'FREQ', 'LAG', 'VOLT']
 character(4) :: col_type(16) = [character(4):: '%s', '%s', '%le', '%le', '%le', '%le', '%le', '%le', &
                                                        '%le', '%le', '%le', '%le', '%le', '%le', '%le', '%le']
 
@@ -105,7 +110,7 @@ do i = 1, lat%n_ele_track
   freq = 0
   lag = 0
   volt = 0
-  ksl = 0
+  ks = 0
   tilt = ele%value(tilt$)
 
   call multipole_ele_to_kt (ele, .true., ix, knl, tilt, magnetic$, include_kicks$)
@@ -126,15 +131,15 @@ do i = 1, lat%n_ele_track
     freq = 1d-6 * ele%value(rf_frequency$)
     volt = 1d-6 * ele%value(voltage$)
     lag = ele%value(phi0$)
-  case (rcollimator$);    ele_type = 'RCOLLIMATOR'
+  case (rcollimator$);    ele_type = 'COLLIMATOR'
   case (ecollimator$);    ele_type = 'ECOLLIMATOR'
-  case (vkicker$);        ele_type = 'VKICKER'
+  case (vkicker$);        ele_type = 'YCOR'
     tilt(0) = tilt(0) - pi/2.0_rp
-  case (hkicker$);        ele_type = 'HKICKER'
+  case (hkicker$);        ele_type = 'XCOR'
   case (kicker$);         ele_type = 'KICKER'
   case (quadrupole$);     ele_type = 'QUADRUPOLE'
   case (solenoid$);       ele_type = 'SOLENOID'
-    ksl = ele%value(ks$) * ele%value(l$)
+    ks = ele%value(ks$)
   case (sextupole$);      ele_type = 'SEXTUPOLE'
   case (octupole$);       ele_type = 'OCTUPOLE'
   case (monitor$);        ele_type = 'MONITOR'
@@ -146,7 +151,7 @@ do i = 1, lat%n_ele_track
   end select
 
   write (1, '(2x, a17, a, t36, 14es17.6)') name, quote(ele_type), &
-            ele%s, ele%value(l$), angle, e1, e2, ksl, knl(0), knl(1), knl(2), knl(3), ele%value(tilt$), freq, lag, volt
+            ele%s, ele%value(l$), angle, e1, e2, ks, knl(0), knl(1), knl(2), knl(3), ele%value(tilt$), freq, lag, volt
 enddo
 
 print '(a)', 'Written: ' // trim(out_file)
