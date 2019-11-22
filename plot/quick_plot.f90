@@ -380,8 +380,8 @@ qp_com => qp_save_com(0)
 
 qp_com%plot%x2%draw_numbers = .false.
 qp_com%plot%y2 = qp_com%plot%x2
-qp_com%plot%xx_points_to_x = .true.
-qp_com%plot%yy_points_to_y = .true.
+qp_com%plot%x_is_active_axis = .true.
+qp_com%plot%y_is_active_axis = .true.
 
 end subroutine qp_init_com_struct
 
@@ -435,13 +435,13 @@ qp_save_com(ix_qp_com) = qp_com
 qp_com => qp_save_com(ix_qp_com)
 qp_com%buffer = buffer_basic
 
-if (qp_com%plot%xx_points_to_x) then
+if (qp_com%plot%x_is_active_axis) then
   qp_com%plot%xx => qp_com%plot%x
 else
   qp_com%plot%xx => qp_com%plot%x2
 endif
 
-if (qp_com%plot%yy_points_to_y) then
+if (qp_com%plot%y_is_active_axis) then
   qp_com%plot%yy => qp_com%plot%y
 else
   qp_com%plot%yy => qp_com%plot%y2
@@ -556,10 +556,10 @@ if (present(x)) then
   select case (x)
   case ('X')
     qp_com%plot%xx => qp_com%plot%x
-    qp_com%plot%xx_points_to_x = .true.
+    qp_com%plot%x_is_active_axis = .true.
   case ('X2')
     qp_com%plot%xx => qp_com%plot%x2
-    qp_com%plot%xx_points_to_x = .false.
+    qp_com%plot%x_is_active_axis = .false.
   case default
     call out_io (s_error$, r_name, 'BAD "X": ' // x)
   end select
@@ -569,10 +569,10 @@ if (present(y)) then
   select case (y)
   case ('Y')
     qp_com%plot%yy => qp_com%plot%y
-    qp_com%plot%yy_points_to_y = .true.
+    qp_com%plot%y_is_active_axis = .true.
   case ('Y2')
     qp_com%plot%yy => qp_com%plot%y2
-    qp_com%plot%yy_points_to_y = .false.
+    qp_com%plot%y_is_active_axis = .false.
   case default
     call out_io (s_error$, r_name, 'BAD "Y": ' // y)
   end select
@@ -5348,7 +5348,7 @@ end subroutine qp_read_data
 !+
 ! Subroutine qp_eliminate_xy_distortion (axis_to_scale)
 !
-! This subroutine will vary the x or y axes scale so that the distance between ticks and the
+! This subroutine will vary the X or Y active axes scale so that the distance between ticks and the
 ! conversion between data units and inches on the page is the same for the x and y axes.
 ! In other words, this routine will make sure that a square in data units looks like a square when drawn.
 ! This routine is useful in drawing such things as maps.

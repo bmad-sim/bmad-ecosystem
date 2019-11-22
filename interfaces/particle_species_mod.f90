@@ -890,6 +890,7 @@ end function charge_of
 ! Function mass_of (species) result (mass)
 !
 ! Routine to return the mass, in units of eV/c^2, of a particle.
+! To convert to AMU divide mass_of value by the constant atomic_mass_unit.
 !
 ! Input:
 !   species -- integer: Species ID.
