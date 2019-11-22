@@ -505,7 +505,7 @@ case ('building_wall_list')
 
 case ('building_wall_graph')
 
-  call tao_find_plots (err, line(1:ix_line), 'COMPLETE', graph = graphs)
+  call tao_find_plots (err, line(1:ix_line), 'REGION', graph = graphs, only_visible = .false.)
   call string_trim(line(ix_line+1:), line, ix_line)
 
   if (err .or. size(graphs) /= 1) then
@@ -2361,7 +2361,7 @@ case ('enum')
 
 case ('floor_plan')
 
-  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+  call tao_find_plots (err, line, 'BOTH', graph = graphs, only_visible = .false.)
 
   if (err .or. size(graphs) /= 1) then
     call invalid ('Bad graph name')
@@ -2432,7 +2432,7 @@ case ('floor_plan')
 
 case ('floor_orbit')
 
-  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+  call tao_find_plots (err, line, 'REGION', graph = graphs, only_visible = .false.)
 
   if (err .or. size(graphs) /= 1) then
     call invalid ('Bad graph name')
@@ -3051,7 +3051,7 @@ case ('place_buffer')
 
 case ('plot_curve')
 
-  call tao_find_plots (err, line, 'COMPLETE', curve = curves)
+  call tao_find_plots (err, line, 'BOTH', curve = curves, only_visible = .false.)
 
   if (err .or. size(curves) /= 1) then
     call invalid ('Not a valid curve')
@@ -3170,7 +3170,7 @@ case ('plot_list')
 
 case ('plot_graph')
 
-  call tao_find_plots (err, line, 'COMPLETE', graph = graphs)
+  call tao_find_plots (err, line, 'BOTH', graph = graphs, only_visible = .false.)
 
   if (err .or. size(graphs) /= 1) then
     call invalid ('Bad graph name')
@@ -3272,7 +3272,7 @@ case ('plot_graph')
 
 case ('plot_histogram')
 
-  call tao_find_plots (err, line, 'COMPLETE', curve = curves)
+  call tao_find_plots (err, line, 'BOTH', curve = curves, only_visible = .false.)
 
   if (err .or. size(curves) /= 1) then
     call invalid ('Bad curve name')
@@ -3301,7 +3301,7 @@ case ('plot_plot_manage')
 
   call split_this_line (line, name1, -1, err);         if (err) return
 
-  call tao_find_plots (err, name1(1), 'TEMPLATE', plots)
+  call tao_find_plots (err, name1(1), 'TEMPLATE', plots, only_visible = .false.)
   if (size(plots) == 0) then
     call invalid('No plot template location found for: ' // name1(1))
     return
@@ -3351,7 +3351,7 @@ case ('plot_plot_manage')
 case ('plot_curve_manage')
 
   call split_this_line (line, name1, -1, err);         if (err) return
-  call tao_find_plots (err, name1(1), 'TEMPLATE', graph = graphs)
+  call tao_find_plots (err, name1(1), 'TEMPLATE', graph = graphs, only_visible = .false.)
   if (size(graphs) /= 1) then
     if (size(graphs) == 0) call invalid('No graph found for: ' // name1(1))
     if (size(graphs) > 1)  call invalid('Multiple graphs found for: ' // name1(1))
@@ -3401,7 +3401,7 @@ case ('plot_curve_manage')
 case ('plot_graph_manage')
 
   call split_this_line (line, name1, -1, err);         if (err) return
-  call tao_find_plots (err, name1(1), 'TEMPLATE', plots)
+  call tao_find_plots (err, name1(1), 'TEMPLATE', plots, only_visible = .false.)
   if (size(plots) /= 1) then
     if (size(plots) == 0) call invalid('No plot found for: ' // name1(1))
     if (size(plots) > 1)  call invalid('Multiple plots found for: ' // name1(1))
@@ -3485,10 +3485,10 @@ case ('plot_line')
 
   call string_trim(line(ix_line+1:), who, ix2)
   line = line(1:ix_line)
-  call tao_find_plots (err, line, 'COMPLETE', curve = curves)
+  call tao_find_plots (err, line, 'REGION', curve = curves, only_visible = .false.)
 
-  if (.not. allocated(curves) .or. size(curves) /= 1) then
-    call invalid ('Not a valid curve')
+  if (size(curves) /= 1) then
+    call invalid ('Not a valid curve name')
     return
   endif
 
@@ -3546,16 +3546,16 @@ case ('plot_symbol')
 
   call string_trim(line(ix_line+1:), who, ix2)
   line = line(1:ix_line)
-  call tao_find_plots (err, line, 'COMPLETE', curve = curves)
+  call tao_find_plots (err, line, 'REGION', curve = curves, only_visible = .false.)
 
-  if (.not. allocated(curves) .or. size(curves) /= 1) then
-    call invalid ('Not a valid curve')
+  if (size(curves) /= 1) then
+    call invalid ('Not a valid curve name.')
     return
   endif
 
   c => curves(1)%c
   if (.not. allocated(c%x_symb)) then
-    call invalid ('No line associated with curve')
+    call invalid ('No line associated with curve.')
     return
   endif
 
@@ -3600,7 +3600,7 @@ case ('plot_symbol')
 
 case ('plot_transfer')
 
-  call tao_find_plots (err, line(1:ix_line), 'COMPLETE', plots)
+  call tao_find_plots (err, line(1:ix_line), 'BOTH', plots, only_visible = .false.)
   if (size(plots) /= 1) then
     call invalid ('Number of "from plots" found is not exactly one.')
     return
@@ -3624,7 +3624,7 @@ case ('plot_transfer')
     endif
 
   else
-    call tao_find_plots (err, line(1:ix_line), 'COMPLETE', plots)
+    call tao_find_plots (err, line(1:ix_line), 'BOTH', plots, only_visible = .false.)
     if (size(plots) == 0) then
       call invalid ('Number of "to plots" is zero.')
       return
@@ -3644,7 +3644,7 @@ case ('plot_transfer')
 
 case ('plot1')
 
-  call tao_find_plots (err, line, 'COMPLETE', plots, print_flag = .false.)
+  call tao_find_plots (err, line, 'BOTH', plots, print_flag = .false., only_visible = .false.)
   if (err) then
     call invalid ('Expect "r" or "t" at end.')
     return

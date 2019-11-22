@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, blank_means_all)
+! Subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, blank_means_all, only_visible)
 !
 ! Routine to find a plot using the region or plot name.
 ! A region or plot name is something like: name = "top"
@@ -14,17 +14,15 @@
 ! If name = "orbit.g.x" then the setting of blank_means_all will be irrelavent.
 !
 ! Input:
-!   name       -- Character(*): Name of plot or region.
-!   where      -- Character(*): Where to look: 'TEMPLATE', 'REGION', 'BOTH', 'COMPLETE'
-!                   For where = 'BOTH', if something is found in a plot region,
-!                   then the templates will not be searched
-!                   where = 'COMPLETE' is used by the python command and does not allow abbreviations.
-!                   'COMPLETE' should not otherwise be used.
-!   print_flag -- Logical, optional: If present and False then surpress error
-!                   messages. Default is True.
-!   blank_means_all 
-!              -- Logical, optional: If present and True then blank graph or curve fields get  interpreted as "*".
-!
+!   name            -- Character(*): Name of plot or region.
+!   where           -- Character(*): Where to look: 'TEMPLATE', 'REGION', 'BOTH' 
+!                        For where = 'BOTH', if something is found in a plot region,
+!                        then the templates will not be searched
+!   print_flag      -- Logical, optional: If present and False then surpress error
+!                        messages. Default is True.
+!   blank_means_all -- Logical, optional: If present and True then blank graph or curve fields get  interpreted as "*".
+!   only_visible    -- logical, optional: Default is True. If True and s%global%plot_on = True then only include
+!                        visible plots. If False then plot visible setting is ignored.
 !
 ! Output:
 !   err      -- logical: Set True on error. False otherwise.
@@ -33,7 +31,7 @@
 !   curve(:) -- Tao_curve_array_struct, allocatable, optional: Array of curves. If error => size set to 0.
 !-
 
-subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, blank_means_all)
+subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, blank_means_all, only_visible)
 
 use tao_set_mod, dummy => tao_find_plots
 
@@ -55,8 +53,8 @@ character(40) plot_name, graph_name, curve_name
 character(20) where_str
 character(*), parameter :: r_name = 'tao_find_plots'
 
-logical, optional :: print_flag, blank_means_all
-logical err, have_exact_match
+logical, optional :: print_flag, blank_means_all, only_visible
+logical err, have_exact_match, only_vis
 
 ! Init
 
@@ -76,6 +74,7 @@ endif
 
 where_str = where
 err = .false.
+only_vis = logic_option(.true., only_visible) .and. s%global%plot_on
 
 if (name == "") then
   if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, 'BLANK "WHERE" LOCATION')
@@ -128,14 +127,14 @@ if (plot_name(1:1) == '@') then
 else
   select case (where_str)
   case ('REGION')
-    if (s%global%plot_on) then
+    if (only_vis) then
       n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
                 count(s%plot_page%region%plot%name == plot_name .and. s%plot_page%region%visible)
     else
       n_exact = count(s%plot_page%region%name == plot_name) + count(s%plot_page%region%plot%name == plot_name)
     endif
   case ('BOTH')
-    if (s%global%plot_on) then
+    if (only_vis) then
       n_exact = count(s%plot_page%region%name == plot_name .and. s%plot_page%region%visible) + &
                 count(s%plot_page%region%plot%name == plot_name .and. s%plot_page%region%visible) + &
                 count(s%plot_page%template%name == plot_name)
@@ -145,9 +144,6 @@ else
     endif
   case ('TEMPLATE')
     n_exact = count(s%plot_page%template%name == plot_name)
-  case ('COMPLETE')
-    n_exact = count(s%plot_page%region%name == plot_name) + &
-              count(s%plot_page%template%name == plot_name)
   case default
     if (logic_option(.true., print_flag)) call out_io (s_fatal$, r_name, 'BAD "WHERE" LOCATION: ' // where)
     call end_stuff(4)
@@ -160,7 +156,7 @@ else
 
   if (where_str == 'REGION' .or. where_str == 'BOTH') then
     do i = 1, size(s%plot_page%region)
-      if (s%global%plot_on .and. .not. s%plot_page%region(i)%visible) cycle
+      if (only_vis .and. .not. s%plot_page%region(i)%visible) cycle
       if (s%plot_page%region(i)%plot%name == '') cycle
       if (plot_name /= '*') then 
         if (have_exact_match) then
@@ -190,34 +186,30 @@ else
     enddo
   endif
 
-  ! Complete
-
-  if (where_str == 'COMPLETE') then
-    do i = 1, size(s%plot_page%region)
-      if (s%plot_page%region(i)%name /= plot_name) cycle
-      call point_to_plot(s%plot_page%region(i)%plot, p, np)
-    enddo
-
-    do i = 1, size(s%plot_page%template)
-      if (s%plot_page%template(i)%name /= plot_name) cycle
-      call point_to_plot(s%plot_page%template(i), p, np)
-    enddo
-  endif
-
   ! Allocate space
 
   if (np == 0) then
     select case (where_str)
     case ('REGION')
-      if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-          'PLOT REGION NOT FOUND: ' // plot_name, 'USE THE COMMAND "show plot" TO SEE A LIST OF REGIONS.')
+      if (n_exact == 0) then
+        if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+            'PLOT REGION NOT FOUND: ' // plot_name, 'USE THE COMMAND "show plot" TO SEE A LIST OF REGIONS.')
+      else
+        if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+            'PLOT REGION DOES NOT HAVE AN ASSOCIATED PLOT: ' // plot_name, 'USE THE COMMAND "show plot" TO SEE A LIST OF REGIONS AND ASSOCIATED PLOTS.')
+      endif
     case ('TEMPLATE')
       if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
           'PLOT TEMPLATE NOT FOUND: ' // plot_name, 'USE THE COMMAND "show plot -templates" TO SEE A LIST OF PLOTS.')
-    case ('BOTH', 'COMPLETE')
-      if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-          '"' // trim(plot_name) // '" IS NOT THE NAME OF A PLOT REGION NOR A PLOT TEMPLATE', &
-          'USE THE COMMAND "show plot" AND "show plot -templates" TO SEE A LIST OF REGIONS AND TEMPLATES.')
+    case ('BOTH')
+      if (n_exact == 0) then
+        if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+            '"' // trim(plot_name) // '" IS NOT THE NAME OF A PLOT REGION WITH NOR A PLOT TEMPLATE', &
+            'USE THE COMMAND "show plot" AND "show plot -templates" TO SEE A LIST OF REGIONS AND TEMPLATES.')
+      else
+        if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+            'PLOT REGION DOES NOT HAVE AN ASSOCIATED PLOT: ' // plot_name, 'USE THE COMMAND "show plot" TO SEE A LIST OF REGIONS AND ASSOCIATED PLOTS.')
+      endif
     end select
     call end_stuff(4)
     return
