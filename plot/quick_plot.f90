@@ -625,8 +625,8 @@ end subroutine qp_use_axis
 !   tick_min       -- real(rp), optional: Min tick location in data units.
 !   tick_max       -- real(rp), optional: Max tick location in data units.
 !   dtick          -- real(rp), optional: Distance between ticks in data units.
-!   set_ticks      -- logical, optional: Default is False. If True, set %tick_min, %tick_max, and %dtick
-!                       using values of %max, %min, and %major_div.
+!   set_ticks      -- logical, optional: If True, set %tick_min, %tick_max, and %dtick using values of %max, %min, and %major_div.
+!                       Default is True if a_min or a_max arguments are present. Otherwise the default is False.
 !   axis           -- qp_axis_struct, optional: Axis. If present with other arguments then the other arguments
 !                       will override components of this argument.
 !-
@@ -645,6 +645,7 @@ real(rp), optional :: label_offset, major_tick_len, minor_tick_len
 
 integer, optional :: div, places, minor_div, minor_div_max
 logical, optional :: draw_label, draw_numbers, mirror, set_ticks
+logical tick_set
 
 character(*), optional :: label, ax_type
 character(*) axis_str
@@ -692,7 +693,13 @@ if (present(major_tick_len)) this_axis%major_tick_len = major_tick_len
 if (present(minor_tick_len)) this_axis%minor_tick_len = minor_tick_len
 if (present(ax_type))        this_axis%type = ax_type
 
-if (logic_option(.false., set_ticks)) then
+if (present(a_min) .or. present(a_max)) then
+  tick_set = logic_option(.true., set_ticks)
+else
+  tick_set = logic_option(.false., set_ticks)
+endif
+
+if (tick_set) THEN
   this_axis%tick_max = this_axis%max
   this_axis%tick_min = this_axis%min
   if (this_axis%type == 'LOG') then
