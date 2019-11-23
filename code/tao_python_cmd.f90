@@ -1189,7 +1189,7 @@ case ('ele:head')
   else
     nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ''
   endif
-  nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                ele%is_on
+  nl=incr(nl); write (li(nl), '(2(a,l1))') 'is_on;LOGIC;', attribute_free(ele, 'is_on', .false.), ';', ele%is_on
 
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                     ele%s
   nl=incr(nl); write (li(nl), rmt) 's_start;REAL;F;',               ele%s_start
