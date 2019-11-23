@@ -30,9 +30,9 @@ class tao_plot_dict(dict):
         that a valid region name is provided, otherwise the plot will not be placed
         '''
         if self.mode == "matplotlib":
-            self._mpl_place_template(template, region)
+            return self._mpl_place_template(template, region)
         elif self.mode == "pgplot":
-            self._pgplot_place_template(template, region)
+            return self._pgplot_place_template(template, region)
 
     def _pgplot_place_template(self, template, region):
         '''
@@ -78,7 +78,7 @@ class tao_plot_dict(dict):
             return region_name
         # Try to place in any region if region was specified
         if region:
-            self.place_template(template, None)
+            return self.place_template(template, None)
 
 
     def unplace_template(self, template):
