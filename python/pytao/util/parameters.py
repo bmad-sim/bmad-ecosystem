@@ -1,5 +1,5 @@
 '''
-This module defines the tao_parameter class, which stores the value of a single parameter in tao.  
+This module defines the tao_parameter class, which stores the value of a single parameter in tao.
 Also defined are a few functions for parsing data into a single tao_parameter or a dictionary of tao_parameters
 '''
 from collections import OrderedDict
@@ -31,7 +31,6 @@ class tao_parameter():
 
     def __init__(self, param_name, param_type, can_vary, param_value, sub_param=None):
         self.name = param_name
-        self._name = param_name
         self.type = param_type
         self.can_vary = (can_vary == 'T')
         self.is_ignored = (can_vary == 'I')
