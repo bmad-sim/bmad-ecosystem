@@ -195,7 +195,12 @@ class tk_tao_parameter():
             self._m.grid(row=0, column=0, columnspan=2, sticky='EW')
             self._s = [] # list of tk_tao_parameters
             for component in self.param.value:
-                self._s.append(tk_tao_parameter(component, self.tk_wid, pipe, prefix=self.param.name))
+                # SPECIAL CASE: x, x2, y, y2 structs
+                # do not transfer their name as the prefix
+                if self.param.name not in ['x', 'x2', 'y', 'y2']:
+                    self._s.append(tk_tao_parameter(component, self.tk_wid, pipe, prefix=self.param.name))
+                else:
+                    self._s.append(tk_tao_parameter(component, self.tk_wid, pipe))
         elif self.param.type == 'COMPONENT':
             self.tk_var = tk.StringVar()
             self.tk_var.set(self.param.value)

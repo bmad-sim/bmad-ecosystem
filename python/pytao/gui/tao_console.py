@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import font
+from .tao_plot_windows import tao_pgplot_config_window #needed for pgplot update
 class tao_console(tk.Frame):
     '''
     Console for running tao commands and displaying
@@ -144,6 +145,12 @@ class tao_console(tk.Frame):
             pass
         # Check the place buffer and place plots
         self.root.default_plots(include_init=False)
+        # Update pgplot settings
+        if self.root.plot_mode == "pgplot":
+            self.root.placed.pgplot_update()
+            for win in self.root.refresh_windows['plot']:
+                if isinstance(win, tao_pgplot_config_window):
+                    win.refresh()
 
     def _get_curs_l(self):
         '''

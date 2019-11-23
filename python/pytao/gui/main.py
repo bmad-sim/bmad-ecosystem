@@ -162,6 +162,12 @@ class tao_root_window(tk.Tk):
             pass
         # Check the place buffer and place plots
         self.default_plots(include_init=False)
+        # Update pgplot settings
+        if self.plot_mode == "pgplot":
+            self.placed.pgplot_update()
+            for win in self.root.refresh_windows['plot']:
+                if isinstance(win, tao_pgplot_config_window):
+                    win.refresh()
 
     #-----------------------------------------------------------------------------------
 
@@ -206,6 +212,9 @@ class tao_root_window(tk.Tk):
                 command = self.plot_template_cmd, accelerator = 'Ctrl+T')
         plot_menu.add_command(label = 'Edit Plot...',
                 command = self.plot_region_cmd, accelerator = 'Ctrl+R')
+        if self.plot_mode == "pgplot":
+            plot_menu.add_command(label = "PGPlot Settings...",
+                    command = self.pgplot_config_cmd)
         self.menubar.add_cascade(label = 'Plot', menu = plot_menu)
 
         beam_menu = tk.Menu(self.menubar, tearoff=0)
@@ -231,40 +240,50 @@ class tao_root_window(tk.Tk):
         Also opens matplotlib windows for any plots placed by the tao init file
         Will only place plots from the place buffer if include_init is False
         '''
-        if self.plot_mode == "matplotlib":
-            if include_init:
-                # Open plot.gui.init
-                try:
-                    plot_file = open('plot.gui.init')
-                    plot_list = plot_file.read()
-                    plot_list = plot_list.splitlines()
-                    plot_file.close()
-                except:
-                    plot_list = []
-            else:
+        if include_init:
+            # Open plot.gui.init
+            try:
+                plot_file = open('plot.gui.init')
+                plot_list = plot_file.read()
+                plot_list = plot_list.splitlines()
+                plot_file.close()
+            except:
                 plot_list = []
-            # Read the place buffer
-            init_plots = self.pipe.cmd_in('python place_buffer')
-            init_plots = init_plots.splitlines()
-            init_regions = [None]*len(init_plots)
-            for i in range(len(init_plots)):
-                init_regions[i] = init_plots[i].split(';')[0]
-                init_plots[i] = init_plots[i].split(';')[1]
-            plot_list = init_plots + plot_list
-            plot_regions = init_regions + [None]*len(init_plots)
+        else:
+            plot_list = []
+        # Read the place buffer
+        init_plots = self.pipe.cmd_in('python place_buffer')
+        init_plots = init_plots.splitlines()
+        init_regions = [None]*len(init_plots)
+        for i in range(len(init_plots)):
+            init_regions[i] = init_plots[i].split(';')[0]
+            init_plots[i] = init_plots[i].split(';')[1]
+        plot_list = init_plots + plot_list
+        plot_regions = init_regions + [None]*len(init_plots)
 
-            # Get list of plot templates to check input against
-            plot_templates = self.pipe.cmd_in("python plot_list t")
-            plot_templates = plot_templates.splitlines()
-            for i in range(len(plot_templates)):
-                plot_templates[i] = plot_templates[i].split(';')[1]
+        # Get list of plot templates to check input against
+        plot_templates = self.pipe.cmd_in("python plot_list t")
+        plot_templates = plot_templates.splitlines()
+        for i in range(len(plot_templates)):
+            plot_templates[i] = plot_templates[i].split(';')[1]
 
-            # Validate entries in plot.gui.init
-            for i in range(len(plot_list)):
-                plot = plot_list[i]
-                if plot in plot_templates:
+        # Place the plots
+        # Validate entries in plot.gui.init
+        for i in range(len(plot_list)):
+            plot = plot_list[i]
+            if plot in plot_templates:
+                if self.plot_mode == "matplotlib":
                     # Make a window for the plot
                     win = tao_plot_window(self, plot, self.pipe, region=plot_regions[i])
+                elif self.plot_mode == "pgplot":
+                    # self.placed (tao_plot_dict) will keep track of how many
+                    # rows/columns of the pgplot window are available
+                    self.placed.place_template(plot, plot_regions[i])
+
+        # Determine pgplot layout from currently placed plots
+        if self.plot_mode == "pgplot":
+            self.placed.pgplot_update()
+
 
     #-----------------------------------------------------------------------------------
 
@@ -366,7 +385,7 @@ class tao_root_window(tk.Tk):
             init_frame.destroy()
             self.start_main()
             # Clear the plotting lists
-            self.placed = tao_plot_dict(self.pipe)
+            self.placed = tao_plot_dict(self.plot_mode, self.pipe)
             if plot_mode.get() == "matplotlib":
                 # place the lattice layout in layout by default
                 self.placed.place_template('lat_layout', 'layout')
@@ -657,6 +676,10 @@ class tao_root_window(tk.Tk):
     def plot_region_cmd(self):
         #win = tao_plot_tr_window(self, self.pipe, "R")
         win = tao_new_plot_template_window(self, self.pipe, None, 'T')
+
+    def pgplot_config_cmd(self):
+        if self.plot_mode == "pgplot":
+            win = tao_pgplot_config_window(self, self.pipe)
 
     def wave_cmd(self):
         print ('Wave called')
