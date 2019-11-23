@@ -48,7 +48,7 @@ class tao_place_plot_window(Tao_Toplevel):
         #self.button_frame.pack(side='bottom', fill='x', expand=1)
         self.refresh()
         tk.Button(self.button_frame, text="Edit Template", command=self.edit_template).grid(row=0, column=0, sticky='EW')
-        tk.Button(self.button_frame, text="Plot!", command=self.mpl_plot).grid(row=0, column=1, sticky='EW')
+        tk.Button(self.button_frame, text="Plot!", command=self.plot_cmd).grid(row=0, column=1, sticky='EW')
 
     def refresh(self):
         '''
@@ -106,7 +106,7 @@ class tao_place_plot_window(Tao_Toplevel):
         self.widths = widths
 
         # Double click to open plot
-        self.tree.bind('<Double-Button-1>', self.mpl_plot)
+        self.tree.bind('<Double-Button-1>', self.plot_cmd)
         # Single click to set self.plot
         self.tree.bind('<Button-1>', self.set_plot)
 
@@ -115,6 +115,12 @@ class tao_place_plot_window(Tao_Toplevel):
             tot = tot+w
         self.maxsize(1800, 1000)
         self.minsize(tot, 100)
+
+    def plot_cmd(self, event=None):
+        if self.root.plot_mode == "matplotlib":
+            self.mpl_plot(event)
+        elif self.root.plot_mode == "pgplot":
+            self.pg_plot(event)
 
     def mpl_plot(self, event=None):
         '''
@@ -125,6 +131,18 @@ class tao_place_plot_window(Tao_Toplevel):
             return
         self.set_plot()
         win = tao_plot_window(self.root, self.plot, self.pipe)
+
+    def pg_plot(self, event=None):
+        '''
+        Opens a window that asks the user where the plot should be placed,
+        and places it on the pgplot page
+        '''
+        if self.set_plot():
+            messagebox.showwarning('Error', "Please choose a template to plot.", parent=self)
+            return
+        self.set_plot()
+        win = tao_pgplot_place_window(self.root, self.plot, self.pipe)
+
 
     def set_plot(self, event=None):
         '''
@@ -147,238 +165,6 @@ class tao_place_plot_window(Tao_Toplevel):
         win = tao_new_plot_template_window(self.root, self.pipe, self.plot, 'T')
 
 
-#-----------------------------------------------------
-# Plot editting window
-#TODO: source input validation (base model design etc)
-
-#class tao_plot_tr_window(tao_list_window):
-#    '''
-#    Displays information about existing plot templates and regions
-#    Use a drop-down list to select template to view.
-#    '''
-#    def __init__(self, root, pipe, mode, *args, **kwargs):
-#        self.tao_id = 'plot'
-#        tao_list_window.__init__(self, root, "Edit Plots", *args, **kwargs)
-#        self.minsize(325, 100)
-#        self.pipe = pipe
-#        self.mode = mode
-#
-#        # Widgets for swapping between templates and plots
-#        self.temp_frame = tk.Frame(self)
-#        self.temp_frame.pack(fill="both", expand=0)
-#        self.temp_frame.columnconfigure(0, pad=10)
-#
-#        # Template/Active Plots
-#        tk.Label(self.temp_frame, text="Show:").grid(row=0, column=0, sticky='W')
-#        self.mode_var = tk.StringVar()
-#        if self.mode == "T":
-#            self.mode_var.set('Templates')
-#        elif self.mode == 'R':
-#            self.mode_var.set('Active Plots')
-#        tk.OptionMenu(self.temp_frame, self.mode_var, 'Templates', 'Active Plots',
-#                command = self.swap_mode).grid(row=0, column=1, sticky='EW')
-#
-#        # Plot chooser
-#        tk.Label(self.temp_frame, text="Choose plot:").grid(row=1, column=0, sticky='W')
-#        self.temp = tk.StringVar()
-#        self.temp_select = ttk.Combobox(
-#                self.temp_frame, textvariable=self.temp, values=[])
-#        self.temp_select.bind("<<ComboboxSelected>>", self.refresh)
-#        self.temp_select.bind("<Return>", self.refresh)
-#        self.temp_select.grid(row=1, column=1)
-#
-#        # Apply/transfer buttons
-#        self.button_frame = tk.Frame(self)
-#        self.button_frame.grid_columnconfigure(0, weight=1)
-#        self.button_frame.grid_columnconfigure(1, weight=1)
-#        self.button_frame.pack(fill="both", expand=0)
-#        apply_button = tk.Button(
-#                self.button_frame, text="Apply changes", command=self.plot_apply)
-#        apply_button.grid(row=0, column=0, sticky='EW')
-#
-#        self.transfer_text = tk.StringVar()
-#        self.transfer_button = tk.Button(self.button_frame,
-#                textvariable=self.transfer_text, command=self.plot_transfer)
-#        self.transfer_button.grid(row=0, column=1, sticky='EW')
-#
-#        self.swap_mode(overide=True) # also runs self.refresh()
-#
-#    def swap_mode(self, overide=False, event=None):
-#        '''
-#        Swaps between showing templates and active plots
-#        Will always run if overide is set to True
-#        '''
-#        # Switch self.mode
-#        mode_dict = {'Templates':'T', 'Active Plots':'R'}
-#        new_mode = mode_dict[self.mode_var.get()]
-#        if (self.mode == new_mode) and not overide:
-#            return #no action necessary
-#        self.mode = new_mode
-#
-#        # Template plots
-#        t_plot_list = self.pipe.cmd_in("python plot_list t")
-#        t_plot_list = t_plot_list.splitlines()
-#        t_index_list = len(t_plot_list)*[0] #get correct length
-#        for i in range(len(t_plot_list)):
-#            t_index_list[i], t_plot_list[i] = t_plot_list[i].split(';')
-#
-#        # Active plots
-#        r_plot_list = self.pipe.cmd_in("python plot_list r")
-#        new_r_plot_list = []
-#        r_index_list = []
-#        r_region_list = [] #needed to open the correct graph/curve windows
-#        r_plot_list = r_plot_list.splitlines()
-#        for i in range(len(r_plot_list)):
-#            if r_plot_list[i].split(';')[2] != "": #region contains a plot
-#                new_r_plot_list.append(r_plot_list[i].split(';')[2])
-#                r_index_list.append(r_plot_list[i].split(';')[0])
-#                r_region_list.append(r_plot_list[i].split(';')[1])
-#        r_plot_list = new_r_plot_list
-#
-#        # Populate self.plot_list and self.index_list
-#        if self.mode == "T":
-#            self.plot_list = t_plot_list
-#            self.plot_display_list = t_plot_list
-#            self.index_list = t_index_list
-#            self.transfer_text.set('Transfer properties to active plots')
-#        elif self.mode == "R":
-#            self.plot_list = r_plot_list
-#            self.plot_display_list = []
-#            self.index_list = r_index_list
-#            self.region_list = r_region_list
-#            for i in range(len(self.plot_list)):
-#                self.plot_display_list.append(
-#                        self.plot_list[i] + " (" + self.region_list[i] + ")")
-#            self.transfer_text.set('Transfer properties to template')
-#        # Save t_plot_list and r_plot_list for use in self.refresh
-#        self.t_plot_list = t_plot_list
-#        self.r_plot_list = r_plot_list
-#
-#        self.temp_select.configure(values=self.plot_display_list)
-#        if self.plot_list == []:
-#            for child in self.list_frame.winfo_children():
-#                child.destroy()
-#            tk.Label(self.list_frame, text="NO PLOTS FOUND").pack()
-#            return
-#        self.temp.set(self.plot_display_list[0])
-#        self.refresh()
-#
-#    def refresh(self, event=None):
-#        '''
-#        Clears self.list_frame and populates it with information relevant to
-#        self.temp
-#        '''
-#        # Don't run if self.temp is not a valid template
-#        if self.temp.get() not in self.plot_display_list:
-#            return
-#
-#        # Clear list_frame
-#        for child in self.list_frame.winfo_children():
-#            child.destroy()
-#
-#        # Get info on self.temp
-#        self.plot = self.temp.get()
-#        self.plot = self.plot_list[self.plot_display_list.index(self.plot)]
-#        if self.mode == "T":
-#            data_list = self.pipe.cmd_in("python plot1 " + self.plot)
-#        elif self.mode == "R":
-#            data_list = self.pipe.cmd_in("python plot1 "
-#                    + self.region_list[self.plot_list.index(self.plot)])
-#        data_list = data_list.splitlines()
-#        num_graphs = data_list.pop(0)
-#        num_graphs = int(num_graphs.split(';')[3])
-#        self.graph_list = []
-#        for i in range(num_graphs):
-#            self.graph_list.append(data_list.pop(0))
-#            self.graph_list[i] = self.graph_list[i].split(';')[3]
-#
-#        # Grid the name and the graphs
-#        name = tk_tao_parameter(
-#                str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
-#        name.tk_label.grid(row=0, column=0, sticky='W')
-#        name.tk_wid.grid(row=0, column=1, sticky='EW')
-#        if num_graphs > 0:
-#            tk.Label(self.list_frame, text="Graphs").grid(
-#                    row=1, column=0, rowspan=num_graphs, sticky='W')
-#        i=1
-#        for graph in self.graph_list:
-#            tk.Button(self.list_frame, text=graph,
-#                    command=self.open_graph_callback(name.param.value, graph)).grid(
-#                            row=i, column=1, sticky='EW')
-#            i = i+1
-#
-#        # Grid the rest of the information
-#        self.list_frame.columnconfigure(1, weight=1)
-#        for i in range(len(data_list)):
-#            data_list[i] = tk_tao_parameter(
-#                    str_to_tao_param(data_list[i]), self.list_frame, self.pipe)
-#            # Make sure the Entry boxes are big enough to
-#            # display their contents
-#            if data_list[i].param.type in ['STR', 'INT', 'REAL']:
-#                data_list[i].tk_wid.configure(
-#                        width=len(str(data_list[i].param.value))+1)
-#            # Grid to row i+1+num_graphs because row 0
-#            # is for the name and there are num_graphs rows
-#            # of graph buttons
-#            data_list[i].tk_label.grid(row=i+1+num_graphs, column=0, sticky='W')
-#            data_list[i].tk_wid.grid(row=i+1+num_graphs, column=1, sticky='EW')
-#        self.tao_list = data_list
-#
-#        # Activate/deactivate transfer button
-#        if ((self.plot in self.t_plot_list) and (self.mode == 'R')
-#                or (self.plot in self.r_plot_list) and (self.mode == 'T')):
-#            self.transfer_button.configure(state='normal')
-#        else:
-#            self.transfer_button.configure(state='disabled')
-#
-#
-#    def open_graph_callback(self, plot, graph):
-#        return lambda : self.open_graph(plot, graph)
-#
-#    def open_graph(self, plot, graph):
-#        '''
-#        Opens a window to display information about plot.graph
-#        '''
-#        if self.mode == "T":
-#            graph = plot+'.'+graph
-#        elif self.mode == "R":
-#            region = self.region_list[self.plot_list.index(self.plot)]
-#            graph = region+'.'+graph
-#        index = self.index_list[self.plot_list.index(self.plot)]
-#        win = tao_plot_graph_window(self.root, graph, self, self.pipe, self.mode, index)
-#
-#    def plot_apply(self):
-#        index = self.index_list[self.plot_list.index(self.plot)]
-#        set_str = "set plot @" + self.mode + str(index) + ' '
-#        tao_set(self.tao_list, set_str, self.pipe)
-#        ## In matplotlib mode, apply for the appropriate region too
-#        #c1 = self.root.plot_mode == "matplotlib"
-#        #c2 = self.mode == "T"
-#        #c3 = self.plot in self.root.placed.keys()
-#        #if c1 & c2 & c3:
-#        #  set_str = "set plot " + self.root.placed[self.plot] + ' '
-#        #  tao_set(self.tao_list, set_str, self.pipe)
-#        # Refresh any existing plot windows
-#        for win in self.root.refresh_windows['plot']:
-#            #if isinstance(win, tao_plot_window):
-#            #  # only refresh relevant plot windows
-#            #  if self.plot == win.region:
-#            #        win.refresh()
-#            #else:
-#            #  win.refresh()
-#            win.refresh()
-#
-#    def plot_transfer(self):
-#        '''
-#        Transfer properties between templates and active plots
-#        '''
-#        ix = self.plot_list.index(self.plot)
-#        ix = self.index_list[ix]
-#        if self.mode == 'T':
-#            self.pipe.cmd_in('python plot_transfer @T' + str(ix))
-#        elif self.mode == 'R':
-#            self.pipe.cmd_in('python plot_transfer @R' + str(ix))
-#        self.refresh()
 
 #----------------------------------------------------
 # Matplotlib plotting window
@@ -397,6 +183,8 @@ class tao_plot_window(Tao_Toplevel):
         if template == "key_table":
             messagebox.showwarning("Warning", "Key table not available in the GUI")
             return
+        if root.plot_mode != "matplotlib":
+            return # Should never be called in pgplot mode
         # verify that the graphs for this template are valid
         # must place the template first to get accurate info
         tmp_reg = root.placed.place_template(template)
@@ -490,173 +278,6 @@ class tao_plot_window(Tao_Toplevel):
         self.root.placed.unplace_region(self.region)
         Tao_Toplevel.destroy(self)
 
-#-----------------------------------------------------
-# plot_graph window
-#class tao_plot_graph_window(tao_list_window):
-#    '''
-#    Displays information about a given graph
-#    mode: passed from the plot template/region window,
-#    should be "T" or "R"
-#    index: passed from the plot template/region window,
-#    should be the index of this graph's plot template/region
-#    '''
-#    def __init__(self, root, graph, parent, pipe, mode, index, *args, **kwargs):
-#        tao_list_window.__init__(self, root, graph, parent=parent, *args, **kwargs)
-#        # Set the title properly
-#        if graph.split('.')[0] in self.root.placed.keys():
-#            title = self.root.placed[graph.split('.')[0]]
-#            title += '.' + graph.split('.')[1]
-#            title += " (" + graph.split('.')[0] + ")"
-#            self.title(title)
-#        self.transient(parent)
-#        #self.grab_set()
-#        self.pipe = pipe
-#        self.graph = graph
-#        self.mode = mode
-#        self.index = index
-#
-#        self.refresh()
-#
-#        self.button_frame = tk.Frame(self)
-#        self.button_frame.pack(fill="both", expand=0)
-#        b = tk.Button(
-#                self.button_frame, text="Apply changes", command=self.graph_apply)
-#        b.pack()
-#
-#        self.wait_window()
-#
-#    def refresh(self):
-#        # Clear self.list_frame
-#        for child in self.list_frame.winfo_children():
-#            child.destroy
-#
-#        # Fetch data to display
-#        data_list = self.pipe.cmd_in("python plot_graph " + self.graph)
-#        data_list = data_list.splitlines()
-#        num_curves = data_list.pop(0)
-#        num_curves = int(num_curves.split(';')[3])
-#        curve_list = []
-#        for i in range(num_curves):
-#            curve_list.append(data_list.pop(0))
-#            curve_list[i] = curve_list[i].split(';')[3]
-#
-#        # Display the name
-#        name = tk_tao_parameter(
-#                str_to_tao_param(data_list.pop(0)), self.list_frame, self.pipe)
-#        name.tk_label.grid(row=0, column=0, sticky='W')
-#        name.tk_wid.grid(row=0, column=1, sticky='EW')
-#
-#        # Curve buttons
-#        if num_curves > 0:
-#            tk.Label(self.list_frame, text="Curves").grid(
-#                    row=1, column=0, rowspan=num_curves, sticky='W')
-#            i=1
-#            for curve in curve_list:
-#                tk.Button(self.list_frame, text=curve,
-#                        command=self.open_curve_callback(self.graph, curve)).grid(
-#                                row=i, column=1, sticky='EW')
-#                i = i+1
-#
-#        # Grid everything else
-#        self.list_frame.columnconfigure(1, weight=1)
-#        for i in range(len(data_list)):
-#            data_list[i] = tk_tao_parameter(
-#                    str_to_tao_param(data_list[i]), self.list_frame, self.pipe)
-#        self.tao_list = data_list
-#        for i in range(len(data_list)):
-#            # Make sure the Entry boxes are big enough to
-#            # display their contents
-#            if data_list[i].param.type in ['STR', 'INT', 'REAL']:
-#                data_list[i].tk_wid.configure(
-#                        width=len(str(data_list[i].param.value))+1)
-#            data_list[i].tk_label.grid(row=i+1+num_curves, column=0, sticky='W')
-#            data_list[i].tk_wid.grid(row=i+1+num_curves, column=1, sticky='EW')
-#
-#    def open_curve_callback(self, graph, curve):
-#        return lambda : self.open_curve(graph, curve)
-#
-#    def open_curve(self, graph, curve):
-#        '''
-#        Opens a window to display info for a given curve
-#        '''
-#        full_curve = graph + '.' + curve
-#        win = tao_plot_curve_window(self.root, full_curve, self, self.pipe)
-#        # Set the title properly
-#        if graph.split('.')[0] in self.root.placed.keys():
-#            title = self.root.placed[graph.split('.')[0]]
-#            title += '.' + graph.split('.')[1] + '.' + curve
-#            title += " (" + graph.split('.')[0] + ")"
-#            win.title(title)
-#
-#    def curve_apply(self, win):
-#        #Convert from plot.graph.curve to index.graph.curve
-#        curve_name = str(self.index) + win.curve[win.curve.index('.'):]
-#        set_str = "set curve @" + self.mode + curve_name + " "
-#        tao_set(win.tao_list, set_str, win.pipe)
-#        ## In matplotlib mode, apply for the appropriate region too
-#        #c1 = self.root.plot_mode == "matplotlib"
-#        #c2 = self.mode == "T"
-#        #plot = win.curve[:win.curve.index('.')]
-#        #c3 = plot in self.root.placed.keys()
-#        #if c1 & c2 & c3:
-#        #  curve_name = self.root.placed[win.curve[:win.curve.index('.')]] \
-#        #            + win.curve[win.curve.index('.'):]
-#        #  set_str = "set curve " + curve_name + ' '
-#        #  tao_set(win.tao_list, set_str, win.pipe)
-#        # Refresh any existing plot windows
-#        for win in self.root.refresh_windows['plot']:
-#            win.refresh()
-#
-#    def graph_apply(self):
-#        #Convert from plot.graph to index.graph
-#        graph_name = str(self.index) + self.graph[self.graph.index('.'):]
-#        set_str = "set graph @" + self.mode + graph_name + ' '
-#        tao_set(self.tao_list, set_str, self.pipe)
-#        ## In matplotlib mode, apply for the appropriate region too
-#        #c1 = self.root.plot_mode == "matplotlib"
-#        #c2 = self.mode == "T"
-#        #plot = self.graph[:self.graph.index('.')]
-#        #c3 = plot in self.root.placed.keys()
-#        #if c1 & c2 & c3:
-#        #  graph_name = self.root.placed[self.graph[:self.graph.index('.')]] \
-#        #            + self.graph[self.graph.index('.'):]
-#        #  set_str = "set graph " + graph_name + ' '
-#        #  tao_set(self.tao_list, set_str, self.pipe)
-#        # Refresh any existing plot windows
-#        for win in self.root.refresh_windows['plot']:
-#            #if isinstance(win, tao_plot_window):
-#            #  # only refresh plot windows for this graph
-#            #  if self.graph[self.graph.index('.'):] == win.region:
-#            #        win.refresh()
-#            #else:
-#            #  win.refresh()
-#            win.refresh()
-
-#-----------------------------------------------------
-# plot_curve window
-
-#class tao_plot_curve_window(tao_parameter_window):
-#    '''
-#    Displays info for a given curve
-#    '''
-#    def __init__(self, root, curve, parent, pipe, *args, **kwargs):
-#        # Get the parameters
-#        self.curve = curve
-#        self.pipe = pipe
-#        data_list = self.pipe.cmd_in("python plot_curve " + curve)
-#        data_list = data_list.splitlines()
-#        for i in range(len(data_list)):
-#            data_list[i] = str_to_tao_param(data_list[i])
-#
-#        tao_parameter_window.__init__(
-#                self, root, curve, data_list, self.pipe, plot=curve.split('.')[0], parent=parent, *args, **kwargs)
-#
-#        b = tk.Button(self.button_frame, text="Apply changes",
-#                command=lambda : parent.curve_apply(self))
-#        b.pack()
-#        self.transient(parent)
-#        #self.grab_set()
-#        #self.wait_window(self)
 
 
 class tao_new_plot_template_window(Tao_Toplevel):
@@ -1125,7 +746,7 @@ class tao_new_plot_template_window(Tao_Toplevel):
         for win in self.root.refresh_windows['plot']:
             win.refresh()
 
-    def create_and_plot(self, evnet=None):
+    def create_and_plot(self, event=None):
         self.create_template()
         if self.mode == 'R':
             # Plot is already placed, just move it to top
@@ -1260,8 +881,8 @@ class new_graph_frame(tk.Frame):
                 x += ';label;STR;;min;REAL;;max;REAL;;number_offset;REAL;'
                 x += ';label_offset;REAL;;label_color;ENUM;;major_tick_len;REAL;'
                 x += ';minor_tick_len;REAL;;major_div;INT;;major_div_nominal;INT;'
-                x += ';minor_div;INT;;minor_div_max;INT;;places;INT;;type;ENUM;'
-                x += ';bounds;ENUM;;tick_side;ENUM;;number_side;ENUM;'
+                x += ';minor_div;INT;;minor_div_max;INT;;places;INT;;axis^type;ENUM;'
+                x += ';bounds;ENUM;;tick_side;INUM;;number_side;INUM;'
                 x += ';draw_label;LOGIC;T;draw_numbers;LOGIC;T'
             return x
         def graph_label_maker(x):
@@ -1944,4 +1565,292 @@ class new_curve_frame(tk.Frame):
 
                         w._data_source = self.data_sources[pkey][gkey].tk_var.get()
                         w._s_refresh()
+
+#------------------------------------------------------------------------------------
+class tao_pgplot_config_window(Tao_Toplevel):
+    '''
+    Provides a window for setting the pgplot window layout
+    (number of rows/columns, number of lat_layouts, etc)
+    '''
+    def __init__(self, root, pipe, *args, **kwargs):
+        self.root = root
+        self.tao_id = "plot"
+        Tao_Toplevel.__init__(self, self.root, *args, **kwargs)
+        self.title("PGPlot Settings")
+        self.pipe = pipe
+
+        # Set up frames
+        self.control_frame = tk.Frame(self)
+        self.preview_frame = tk.Frame(self)
+        self.bottom_frame = tk.Frame(self)
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
+        self.control_frame.grid(row=0, column=0, sticky="NSEW")
+        self.preview_frame.grid(row=0, column=1, sticky="NSEW")
+        self.bottom_frame.grid(row=1, column=0, columnspan=2, sticky="NSEW")
+
+        # Fill control frame
+        glabel = tk.Label(self.control_frame, text="Plot area")
+        glabel.grid(row=0, column=0, columnspan=2, sticky="EW")
+
+        # rows
+        rowlabel = tk.Label(self.control_frame, text="Rows:")
+        rowlabel.grid(row=1, column=0, sticky="W")
+        self.rowvar = tk.StringVar()
+        rowlist = tk.OptionMenu(self.control_frame, self.rowvar,
+                "1", "2", "3", "4", command=self.update_preview)
+        rowlist.grid(row=1, column=1, sticky="EW")
+
+        # columns
+        collabel = tk.Label(self.control_frame, text="Columns:")
+        collabel.grid(row=2, column=0, sticky="W")
+        self.colvar = tk.StringVar()
+        collist = tk.OptionMenu(self.control_frame, self.colvar,
+                "1", "2", command=self.update_preview)
+        collist.grid(row=2, column=1, sticky="EW")
+
+        # lat_layouts
+        ttk.Separator(self.control_frame).grid(row=3,
+                column=0, columnspan=2, sticky="EW")
+        latlabel = tk.Label(self.control_frame,
+                text="Lat_layout area")
+        latlabel.grid(row=4, column=0, columnspan=2, sticky='W')
+        latlabel1 = tk.Label(self.control_frame, text="Columns:")
+        latlabel1.grid(row=5, column=0, sticky='W')
+        self.latvar = tk.StringVar()
+        latlist = tk.OptionMenu(self.control_frame, self.latvar,
+                "0", "1", "2", command=self.update_preview)
+        latlist.grid(row=5, column=1, sticky="EW")
+
+        # Preview frame
+        self.preview_frame.grid_rowconfigure(1, weight=1)
+        self.preview_frame.grid_columnconfigure(0, weight=1)
+        plabel = tk.Label(self.preview_frame, text="Preview")
+        plabel.grid(row=0, column=0, sticky="EW")
+        self.canvas = tk.Canvas(self.preview_frame, width=310, height=610)
+        self.canvas.grid(row=1, column=0, sticky="NSEW")
+        self.canvas_shapes = []
+
+        self.refresh()
+
+    def refresh(self, event=None):
+        '''
+        Fetch the current settings for row, column, and lat_layout number
+        and update rowvar, colvar, and latvar accordingly
+        '''
+        self.rowvar.set(self.root.placed.pgplot_settings['rows'])
+        self.colvar.set(self.root.placed.pgplot_settings['columns'])
+        self.latvar.set(self.root.placed.pgplot_settings['lat_layouts'])
+        self.update_preview()
+
+    def update_preview(self, *args):
+        '''
+        Draws rectangles to self.canvas to represent the pgplot
+        window layout according to the values in self.rowvar,
+        self.colvar, and self.latvar
+        '''
+        for shape in self.canvas_shapes:
+            self.canvas.delete(shape)
+
+        rownum = int(self.rowvar.get())
+        colnum = int(self.colvar.get())
+        latnum = int(self.latvar.get())
+
+        def add_line(x1, y1, x2, y2):
+            '''Shortcut for adding a line'''
+            self.canvas_shapes.append(self.canvas.create_line(x1+5, y1+5, x2+5, y2+5))
+
+        # Draw bounding lines
+        add_line(0,0,300,0)
+        add_line(300,0,300,600)
+        add_line(0,0,0,600)
+        add_line(0,600,300,600)
+        # Draw horizontal lines
+        if latnum == 0:
+            if rownum in [2,4]:
+                add_line(0,300,300,300)
+            if rownum == 4:
+                add_line(0,150,300,150)
+                add_line(0,450,300,450)
+            if rownum == 3:
+                add_line(0,200,300,200)
+                add_line(0,400,300,400)
+        else: # add extra region at bottom
+            add_line(0,540,300,540)
+            if rownum in [2,4]:
+                add_line(0,270,300,270)
+            if rownum == 4:
+                add_line(0,135,300,135)
+                add_line(0,405,300,405)
+            if rownum == 3:
+                add_line(0,180,300,180)
+                add_line(0,360,300,360)
+        # Draw vertical lines
+        if colnum == 2:
+            add_line(150,0,150,540)
+        if latnum == 2:
+            add_line(150,540,150,600)
+
+        def add_label(ltext, row, col, lat):
+            '''Places a text label in the appropriate row/column of the preview'''
+            # Determine appropriate coordinates
+            maxy = 600 if (latnum == 0) else 540
+            if lat==0:
+                x = ((col-0.5)/colnum)*300
+                y = ((row-0.5)/rownum)*maxy
+                self.canvas_shapes.append(
+                        self.canvas.create_text(x, y, text=ltext))
+            elif (row==0) and (col==0):
+                x = ((lat-0.5)/latnum)*300
+                y = 570
+                self.canvas_shapes.append(
+                        self.canvas.create_text(x, y, text=ltext))
+
+
+        # Add region names
+        # Special case: top/bottom
+        if (colnum ==1) and (rownum==2) and (latnum==0):
+            add_label('top', 1, 1, 0)
+            add_label('bottom', 2, 1, 0)
+        else:
+            if colnum == 1:
+                for i in range(1, rownum+1):
+                    add_label('r' + str(i) + str(rownum), i, 1, 0)
+            else:
+                for i in range(1, rownum+1):
+                    add_label('r22' + str(i) + str(rownum), i, 1, 0)
+                    add_label('r12' + str(i) + str(rownum), i, 2, 0)
+            if latnum == 1:
+                add_label('layout', 0,0,1)
+            elif latnum ==2:
+                add_label('layout1', 0,0,1)
+                add_label('layout2', 0,0,2)
+
+
+class tao_pgplot_place_window(Tao_Toplevel):
+    '''
+    Provides a window that prompts the user for which
+    pgplot region a new plot should be placed in,
+    and then places the plot in the requested region.
+    '''
+    def __init__(self, root, plot, pipe, *args, **kwargs):
+        self.root = root
+        Tao_Toplevel.__init__(self, root, *args, **kwargs)
+        self.plot = plot
+        self.pipe = pipe
+
+        # Title
+        self.title("Place " + self.plot)
+        title = tk.Label(self, text="Select region(s) for " + self.plot)
+        title.grid(row=0, column=0, sticky='EW')
+
+        # Region selector
+        self.canvas = tk.Canvas(self, width=310, height=610)
+        self.canvas.grid(row=1, column=0, sticky="NSEW")
+        self.canvas_shapes = []
+        self.draw_canvas()
+
+        # Handle clicks
+        self.region = ""
+        self.canvas.bind("<Button-1>", self.update_region)
+
+    def update_region(self, event):
+        '''
+        Highlights/un-highlights the selected pgplot region,
+        and updates self.region to reflect the change
+        '''
+        rownum = int(self.root.placed.pgplot_settings['rows'])
+        colnum = int(self.root.placed.pgplot_settings['columns'])
+        latnum = int(self.root.placed.pgplot_settings['lat_layouts'])
+
+
+    def draw_canvas(self):
+        '''
+        Draws the pgplot layout on self.canvas
+        '''
+        rownum = int(self.root.placed.pgplot_settings['rows'])
+        colnum = int(self.root.placed.pgplot_settings['columns'])
+        latnum = int(self.root.placed.pgplot_settings['lat_layouts'])
+
+        def add_line(x1, y1, x2, y2):
+            '''Shortcut for adding a line'''
+            self.canvas_shapes.append(self.canvas.create_line(x1+5, y1+5, x2+5, y2+5))
+
+        # Draw bounding lines
+        add_line(0,0,300,0)
+        add_line(300,0,300,600)
+        add_line(0,0,0,600)
+        add_line(0,600,300,600)
+        # Draw horizontal lines
+        if latnum == 0:
+            if rownum in [2,4]:
+                add_line(0,300,300,300)
+            if rownum == 4:
+                add_line(0,150,300,150)
+                add_line(0,450,300,450)
+            if rownum == 3:
+                add_line(0,200,300,200)
+                add_line(0,400,300,400)
+        else: # add extra region at bottom
+            add_line(0,540,300,540)
+            if rownum in [2,4]:
+                add_line(0,270,300,270)
+            if rownum == 4:
+                add_line(0,135,300,135)
+                add_line(0,405,300,405)
+            if rownum == 3:
+                add_line(0,180,300,180)
+                add_line(0,360,300,360)
+        # Draw vertical lines
+        if colnum == 2:
+            add_line(150,0,150,540)
+        if latnum == 2:
+            add_line(150,540,150,600)
+
+        def add_label(ltext, row, col, lat):
+            '''Places a text label in the appropriate row/column of the preview'''
+            # Determine appropriate coordinates
+            maxy = 600 if (latnum == 0) else 540
+            if lat==0:
+                x = ((col-0.5)/colnum)*300
+                y = ((row-0.5)/rownum)*maxy
+                self.canvas_shapes.append(
+                        self.canvas.create_text(x, y, text=ltext))
+            elif (row==0) and (col==0):
+                x = ((lat-0.5)/latnum)*300
+                y = 570
+                self.canvas_shapes.append(
+                        self.canvas.create_text(x, y, text=ltext))
+
+        # Add region names
+        # Special case: top/bottom
+        if (colnum ==1) and (rownum==2) and (latnum==0):
+            add_label('top', 1, 1, 0)
+            add_label('bottom', 2, 1, 0)
+        else:
+            if colnum == 1:
+                for i in range(1, rownum+1):
+                    add_label('r' + str(i) + str(rownum), i, 1, 0)
+            else:
+                for i in range(1, rownum+1):
+                    add_label('r22' + str(i) + str(rownum), i, 1, 0)
+                    add_label('r12' + str(i) + str(rownum), i, 2, 0)
+            if latnum == 1:
+                add_label('layout', 0,0,1)
+            elif latnum ==2:
+                add_label('layout1', 0,0,1)
+                add_label('layout2', 0,0,2)
+
+
+
+
+
+
+
+
+
+
+
 
