@@ -805,6 +805,10 @@ class tk_tao_parameter():
         else:
             self.tk_var.set("Browse...")
 
+    # This makes it easier to search lists of tk_tao_parameters
+    def __eq__(self, name):
+        return self.param.name == name
+
 #-----------------------------------------------------------------
 class d1_data_list_entry():
     '''Creates various tk widgets to display attributes of a single datum.

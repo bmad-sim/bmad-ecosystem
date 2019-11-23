@@ -1,15 +1,14 @@
 '''
-This module defines the tao_parameter class, which stores the value of a
-single parameter in tao.  Also defined are a few functions for parsing
-data into a single tao_parameter or a dictionary of tao_parameters
+This module defines the tao_parameter class, which stores the value of a single parameter in tao.  
+Also defined are a few functions for parsing data into a single tao_parameter or a dictionary of tao_parameters
 '''
 from collections import OrderedDict
 import string
 
 startup_list = [
     'beam_file;FILE;T;',
-    'beam_all_file;FILE;T;',
     'beam_init_position_file;FILE;T;',
+    'beam_track_data_file;FILE;T;',
     'building_wall_file;FILE;T;',
     'data_file;FILE;T;',
     'hook_init_file;FILE;T;',
@@ -92,58 +91,58 @@ class InvalidParamError(Exception):
 #                'lattice_file;STR;T;bmad.lat'
 
 def tao_parameter_dict(param_list):
-        this_dict = OrderedDict()
-        for param in param_list:
-            v = param.split(';')
-            this_dict[v[0]] = str_to_tao_param(param)
-        return this_dict
+    this_dict = OrderedDict()
+    for param in param_list:
+        v = param.split(';')
+        this_dict[v[0]] = str_to_tao_param(param)
+    return this_dict
 
 def str_to_tao_param(param_str):
-        '''
-        Takes a parameter string ('lattice_file;STR;T;bmad.lat')
-        and returns a tao_parameter
-        param_str MUST have at least 3 semicolons
-        '''
-        v = param_str.split(';')
-        if len(v) < 3:
-            msg = str(param_str) + " is not a valid param_string (not enough semicolons)"
-            raise InvalidParamError(msg)
-        sub_param = None #default
-        #TEMPORARY FIX
-        if (len(v[2]) == 2) & (len(v) == 3):
-            v.append(v[2][1])
-            v[2] = v[2][0]
-        ###
-        # Special case: REAL_ARR (unknown length)
-        if v[1] == "REAL_ARR":
-            arr = []
-            for i in range(len(v[3:])):
-                x = v[3:][i]
-                try:
-                    arr.append(float(x))
-                except:
-                    if i==len(v[3:])-1: #last item, could be a related parameter name
-                        if len(x) > 0:
-                            sub_param = x
-                    else:
-                        arr.append(float(0))
-            v[3] = arr
-        elif v[1] == 'STRUCT':
-            n_comp = int(len(v[3:])/3)
-            components = v[3:][:3*n_comp]
-            c_list = [0]*n_comp
-            for n in range(n_comp):
-                c_name = components[3*n]
-                c_type = components[3*n+1]
-                c_val = components[3*n+2]
-                c_list[n] = tao_parameter(c_name, c_type, v[2], c_val)
-            v[3] = c_list
-            if len(v[3:]) % 3 == 1: # one more item than expected --> it is a sub_param
-                sub_param = v[-1]
-        # Generic case sub_param: name;type;can_vary;value;sub_param
-        if len(v) == 5:
-            sub_param=v[4]
-        return tao_parameter(v[0],v[1],v[2],v[3], sub_param)
+    '''
+    Takes a parameter string ('lattice_file;STR;T;bmad.lat')
+    and returns a tao_parameter
+    param_str MUST have at least 3 semicolons
+    '''
+    v = param_str.split(';')
+    if len(v) < 3:
+        msg = str(param_str) + " is not a valid param_string (not enough semicolons)"
+        raise InvalidParamError(msg)
+    sub_param = None #default
+    #TEMPORARY FIX
+    if (len(v[2]) == 2) & (len(v) == 3):
+        v.append(v[2][1])
+        v[2] = v[2][0]
+    ###
+    # Special case: REAL_ARR (unknown length)
+    if v[1] == "REAL_ARR":
+        arr = []
+        for i in range(len(v[3:])):
+            x = v[3:][i]
+            try:
+                arr.append(float(x))
+            except:
+                if i==len(v[3:])-1: #last item, could be a related parameter name
+                    if len(x) > 0:
+                        sub_param = x
+                else:
+                    arr.append(float(0))
+        v[3] = arr
+    elif v[1] == 'STRUCT':
+        n_comp = int(len(v[3:])/3)
+        components = v[3:][:3*n_comp]
+        c_list = [0]*n_comp
+        for n in range(n_comp):
+            c_name = components[3*n]
+            c_type = components[3*n+1]
+            c_val = components[3*n+2]
+            c_list[n] = tao_parameter(c_name, c_type, v[2], c_val)
+        v[3] = c_list
+        if len(v[3:]) % 3 == 1: # one more item than expected --> it is a sub_param
+            sub_param = v[-1]
+    # Generic case sub_param: name;type;can_vary;value;sub_param
+    if len(v) == 5:
+        sub_param=v[4]
+    return tao_parameter(v[0],v[1],v[2],v[3], sub_param)
 
 #-------------------------------------------------
-param_dict = tao_parameter_dict(startup_list)
+tao_startup_param_dict = tao_parameter_dict(startup_list)
