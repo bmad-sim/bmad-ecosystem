@@ -24,6 +24,9 @@ class tao_ele_window(tao_list_window):
         self.tao_id = 'ele'
         tao_list_window.__init__(self, root, "Lattice Elements", use_upper=True,
                 min_width=600, *args, **kwargs)
+        # Make sure the user can't close the window without being asked
+        # to save changes to the current element
+        self.protocol("WM_DELETE_WINDOW", self.close_cmd)
         self.pipe = pipe
         self.default = default
         self.open_frames = [] #keeps track of which p_frames are open
@@ -63,25 +66,13 @@ class tao_ele_window(tao_list_window):
         This is where most of the element information is actually created
         '''
         # Ask to save changes
-        something_changed = False
-        try:
-            something_changed = check_for_changes(self.head_tk_tao_params)
-        except:
-            pass
-        try:
-            for i in range(len(self.p_frames)):
-                if self.p_names[i] not in ['lord_slave', 'mat6', 'floor']:
-                    something_changed = something_changed | \
-                            self.p_frames[i].check_for_changes()
-        except:
-            pass
-        if something_changed:
+        if self.check_for_changes():
             x = messagebox.askyesnocancel(title="Unsaved Changes",
                     message="Apply changes before switching elements?", parent=self)
             if x:
                 self.ele_set()
             if x == None:
-                return #don't refresh if "Cancel is picked"
+                return #don't refresh if "Cancel" is picked
         # Update the ele_wids and check for successful update
         if not self.ele_wids.update():
             messagebox.showwarning("Error", "Element not found", parent=self)
@@ -303,6 +294,19 @@ class tao_ele_window(tao_list_window):
             if self.p_names[i] in self.open_frames:
                 self.show(i)
 
+    def close_cmd(self, event=None):
+        '''Ask the user to save any unsaved changes before closing'''
+        if self.check_for_changes():
+            name = self.element.params["name"].param.value
+            x = messagebox.askyesnocancel(title="Unsaved Changes",
+                    message="Save changes to " + name + " before closing?", parent=self)
+            if x:
+                self.ele_set(refresh_self=False)
+            if x == None:
+                return #don't close if "Cancel" is picked
+        # Actually close the window
+        self.destroy()
+
     def s_callback(self, index):
         return lambda : self.show(index)
 
@@ -334,9 +338,10 @@ class tao_ele_window(tao_list_window):
         # Button should now show instead of hide
         self.sh_b_list[index].configure(command=self.s_callback(index))
 
-    def ele_set(self, event=None):
+    def ele_set(self, event=None, refresh_self=True):
         '''
         Runs set commands for all the parameter frames and refreshes the window
+        This window will only be refreshed if refresh_self=True
         '''
         # Don't need |base/model/design when setting
         set_str = "set element " + self.element.id[:self.element.id.find('|')] + ' '
@@ -367,7 +372,8 @@ class tao_ele_window(tao_list_window):
                         tao_set(floor_list, set_str, self.pipe, overide=True)
         # Refresh ele-dependent windows (including self)
         for win in self.root.refresh_windows['ele']:
-            win.refresh()
+            if (self!=win) or refresh_self:
+                win.refresh()
         for win in self.root.refresh_windows['data']:
             win.refresh()
         for win in self.root.refresh_windows['var']:
@@ -377,6 +383,23 @@ class tao_ele_window(tao_list_window):
         if self.pipe.cmd_in('python lat_calc_done').find('T') != -1:
             for win in self.root.refresh_windows['plot']:
                 win.refresh()
+
+    def check_for_changes(self):
+        '''Returns True if the current element has unsaved changes'''
+        something_changed = False
+        try:
+            something_changed = check_for_changes(self.head_tk_tao_params)
+        except:
+            pass
+        try:
+            for i in range(len(self.p_frames)):
+                if self.p_names[i] not in ['lord_slave', 'mat6', 'floor']:
+                    something_changed = something_changed | \
+                            self.p_frames[i].check_for_changes()
+        except:
+            pass
+        return something_changed
+
 
 
 
