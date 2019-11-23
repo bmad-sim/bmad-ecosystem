@@ -30,7 +30,9 @@ def check_for_changes(tao_list):
         else:
             new_val = item.tk_var.get()
         #Check for any change
-        if new_val != item.param.value:
+        if str(new_val) != str(item.param.value):
+            #print('new_val : ' + str(new_val) + ' of type ' + type(new_val) )
+            #print('item.param.value : ' + str(item.param.value) + ' of type ' + type(item.param.value))
             return True
     return False
 
@@ -94,7 +96,8 @@ def tao_set(tao_list,set_str,pipe, overide=False):
             for ttp in item._s:
                 unrolled_list.append(ttp)
                 # the name to use for setting is struct_name.component_name
-                unrolled_list[-1].param.name = item.param.name + '.' + ttp.param._name
+                # EXCEPT FOR STRUCTS x, x2, y, y2
+                unrolled_list[-1].param.name = item.param.name + '.' + ttp.param.name
         else:
             unrolled_list.append(item)
     tao_list = unrolled_list
