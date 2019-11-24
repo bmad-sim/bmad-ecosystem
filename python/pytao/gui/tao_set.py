@@ -116,13 +116,18 @@ def tao_set(tao_list,set_str,pipe, overide=False):
                 new_val = item.param.value
         elif item.param.type == 'REAL':
             try:
-                if item.tk_var.get() == "":
-                    continue
-                new_val = eval(item.tk_var.get())
+                new_val = float(item.tk_var.get())
             except ValueError:
-                messagebox.showwarning(
-                        "Error",item.param.name + " must be a real number")
-                new_val = item.param.value
+                # This covers the case where item.tk_var holds an expression
+                new_val = item.tk_var.get()
+            #try:
+            #    if item.tk_var.get() == "":
+            #        continue
+            #    new_val = eval(item.tk_var.get())
+            #except ValueError:
+            #    messagebox.showwarning(
+            #            "Error",item.param.name + " must be a real number")
+            #    new_val = item.param.value
         else:
             new_val = str(item.tk_var.get()).split(';')[0]
         #Check for any change
