@@ -61,12 +61,12 @@ class tao_ele_window(tao_list_window):
 
         self.refresh()
 
-    def refresh(self, event=None, *args):
+    def refresh(self, event=None, ask=True, *args):
         '''
         This is where most of the element information is actually created
         '''
         # Ask to save changes
-        if self.check_for_changes():
+        if ask and self.check_for_changes():
             x = messagebox.askyesnocancel(title="Unsaved Changes",
                     message="Apply changes before switching elements?", parent=self)
             if x:
@@ -372,8 +372,10 @@ class tao_ele_window(tao_list_window):
                         tao_set(floor_list, set_str, self.pipe, overide=True)
         # Refresh ele-dependent windows (including self)
         for win in self.root.refresh_windows['ele']:
-            if (self!=win) or refresh_self:
+            if (self!=win):
                 win.refresh()
+            elif refresh_self:
+                win.refresh(ask=False)
         for win in self.root.refresh_windows['data']:
             win.refresh()
         for win in self.root.refresh_windows['var']:
