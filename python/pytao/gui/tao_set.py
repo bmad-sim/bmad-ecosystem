@@ -118,7 +118,7 @@ def tao_set(tao_list,set_str,pipe, overide=False):
             try:
                 if item.tk_var.get() == "":
                     continue
-                new_val = float(item.tk_var.get())
+                new_val = eval(item.tk_var.get())
             except ValueError:
                 messagebox.showwarning(
                         "Error",item.param.name + " must be a real number")
