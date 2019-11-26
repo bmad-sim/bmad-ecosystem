@@ -523,7 +523,7 @@ class tao_root_window(tk.Tk):
                     state = (init_dict[tk_list[k].param.name] == 'T') | (init_dict[tk_list[k].param.name] == 'True')
                     tk_list[k].tk_var.set(state)
             if param == 'noinit': #gets a special label
-                tk.Label(init_frame,text="Don't use an init file").grid(row=k,sticky="E")
+                tk.Label(init_frame,text="Don't use an init file (noinit)").grid(row=k,sticky="E")
                 tk_list[k].tk_var.trace('w', toggle_init)
             else:
                 tk.Label(init_frame, text=param).grid(row=k,sticky="E")
@@ -567,13 +567,15 @@ class tao_root_window(tk.Tk):
         tk.Label(init_frame, text="Plot Mode").grid(row=k+2, sticky='E')
         plot_mode = tk.StringVar()
         plot_mode.set("matplotlib")
-        plot_options = ["matplotlib", "pgplot", "None"]
+        plot_options = ["matplotlib", "pgplot", "none"]
         plot_chooser = tk.OptionMenu(init_frame, plot_mode, *plot_options)
         plot_chooser.grid(row=k+2, column=1, sticky='W')
         # Set plot_mode from init_dict if specified
         if "plot_mode" in init_dict:
             if init_dict["plot_mode"] in plot_options:
                 plot_mode.set(init_dict["plot_mode"])
+            else:
+                messagebox.showwarning('Error', 'Bad setting of "plot_mode" in gui.init: ' + init_dict["plot_mode"])
 
         # Font size
         tk.Label(init_frame, text="Font size").grid(row=k+3, sticky='E')

@@ -54,8 +54,6 @@ class tao_d2_data_window(tao_list_window):
         d2_data_list = d2_data_list.splitlines()
         if len(d2_data_list) == 0:
             tk.Label(self.list_frame, text="NO DATA FOR THIS UNIVERSE").pack()
-            messagebox.showwarning('Warning',
-                    'No data are defined for universe ' + str(u_ix), parent=self)
             return
         for d2_data_item in d2_data_list:
             new_frame = d2_data_frame(
@@ -242,8 +240,7 @@ class tao_d1_data_window(lw_table_window):
 
 class tao_new_data_window(Tao_Toplevel):
     '''
-    Provides a window for creating new d2 data arrays (and their associated
-    d1 arrays)
+    Provides a window for creating new d2 data arrays (and their associated d1 arrays)
     Pass the name of an existing d2_array to open that array and start editing its d1_arrays
     '''
     def __init__(self, root, pipe, default=None, *args, **kwargs):
@@ -685,18 +682,15 @@ class new_d1_frame(tk.Frame):
 
         # Element browsers
         tk.Label(self, text="Choose elements:").grid(row=i+1, column=0, sticky='W')
-        self.ele_name_button = tk.Button(self, text="Browse...",
-                command=lambda : self.lat_browser('name'))
+        self.ele_name_button = tk.Button(self, text="Browse...", command=lambda : self.lat_browser('name'))
         self.ele_name_button.grid(row=i+1, column=1, sticky='EW')
 
         tk.Label(self, text="Start elements:").grid(row=i+2, column=0, sticky='W')
-        self.ele_start_name_button = tk.Button(self, text="Browse...",
-                command=lambda : self.lat_browser('start_name'))
+        self.ele_start_name_button = tk.Button(self, text="Browse...", command=lambda : self.lat_browser('start_name'))
         self.ele_start_name_button.grid(row=i+2, column=1, sticky='EW')
 
         tk.Label(self, text="Ref elements:").grid(row=i+3, column=0, sticky='W')
-        self.ele_ref_name_button = tk.Button(self, text="Browse...",
-                command=lambda : self.lat_browser('ref_name'))
+        self.ele_ref_name_button = tk.Button(self, text="Browse...", command=lambda : self.lat_browser('ref_name'))
         self.ele_ref_name_button.grid(row=i+3, column=1, sticky='EW')
 
         ttk.Separator(self, orient='horizontal').grid(row=i+4, column=0, columnspan=3, sticky='EW')
