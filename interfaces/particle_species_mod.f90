@@ -14,17 +14,17 @@
 ! Else if |species| > 1000 mapping is:
 ! Write in hex: species = CCPPMMMM (Hex)
 ! Where:
-! CC   = Charge (2 Hex digits with range [-127, 127]). Set to 0 for fundamental particles.
-! PP   = Particle ID (2 Hex digits with range [0, 255]).
-!         if PP = 0                --> Used for fundamental particles.
-!         if 0 < PP < 200 (C8 Hex) --> Atom with PP = # Protons 
-!         if PP = 200 (C8 Hex)     --> Molecule of unknown type.
-!         if PP > 200 (C8 Hex)     --> "Named" molecule. See molecular_name array below for a list. 
-!                                      In this case PP = Species ID. EG: nh2$ = 201, etc.
-! MMMM (4 Hex digits):
-!        For fundamental particles (where CC = PP = 0): Particle integer ID. 
-!        For atoms: Number of nucleons .
-!        For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 = Use default (only valid for "Named" molecules).
+!   CC   = Charge (2 Hex digits with range [-127, 127]). Set to 0 for fundamental particles.
+!   PP   = Particle ID (2 Hex digits with range [0, 255]).
+!           if PP = 0                --> Used for fundamental particles.
+!           if 0 < PP < 200 (C8 Hex) --> Atom with PP = # Protons 
+!           if PP = 200 (C8 Hex)     --> Molecule of unknown type.
+!           if PP > 200 (C8 Hex)     --> "Named" molecule. See molecular_name array below for a list. 
+!                                        In this case PP = Species ID. EG: nh2$ = 201, etc.
+!   MMMM (4 Hex digits):
+!          For fundamental particles (where CC = PP = 0): Particle integer ID. 
+!          For atoms: Number of nucleons .
+!          For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 = Use default (only valid for "Named" molecules).
 !
 ! Example external input names:
 !   NH3+            Molecule                           01 201 00000
@@ -124,7 +124,7 @@ end type
 ! The first number in a row is the average mass for natually occuring isotope mixtures.
 
 type(atom_struct), parameter, private :: atom(1:118) = [ &
-! 1: H, D, T
+! 1: <H>, H, D, T
 atom_struct(0, [1.00784_rp, 1.00782503223_rp, 2.01410177812_rp, 3.0160492779_rp, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso]), &
 ! 2: He
 atom_struct(2, [4.002602_rp, 3.0160293201_rp, 4.00260325413_rp, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso, no_iso]), &
@@ -892,6 +892,10 @@ end function charge_of
 ! Routine to return the mass, in units of eV/c^2, of a particle.
 ! To convert to AMU divide mass_of value by the constant atomic_mass_unit.
 !
+! Note: For atoms where the isotopic number is given, the mass is calculated using the neutral atomic mass
+! adjusted by the weight of any added or missing electrons. The calculated mass is off very slightly due to 
+! binding energy effects. Exception: For #1H+ (proton) and #2H+ (deuteron) the exact mass is used since it is known.
+!
 ! Input:
 !   species -- integer: Species ID.
 !
@@ -929,17 +933,28 @@ pp = mod(abs(species), z'1000000') / z'10000'
 if (pp<200) then
   n_nuc = mod(abs(species), z'10000')
   if (n_nuc == 0) then
-    ! Default mass
+    ! Average naturally occuring mass
     mass = atom(pp)%mass(0) * atomic_mass_unit
   else
-    ! Isotope
+    ! Isotope. In general the mass is calculated using the neutral atom plus/minus the weight of any added/missing electrons.
+    ! This will be off very slightly due to binding energy effects. 
+    charge = species / z'1000000'  ! Charge encoded in first two hex digits of species.
+
+    ! For #1H+ (proton) and #2H+ (deuteron) use the exact mass.
+    if (pp == 1 .and. n_nuc == 1 .and. charge == 1) then 
+      mass = m_proton
+      return
+    elseif (pp == 1 .and. n_nuc == 2 .and. charge == 1) then 
+      mass = m_deuteron
+      return
+    endif
+
     mass = atom(pp)%mass(n_nuc - atom(pp)%i_offset)  
     if (mass == no_iso) then
       call out_io (s_abort$, r_name, 'ISOTOPE MASS NOT KNOWN FOR SPECIES: \i0\ ', species)
       if (global_com%exit_on_error) call err_exit
       return
     endif
-    charge = species / z'1000000'  ! Charge encoded in first two hex digits of species.
     mass = mass * atomic_mass_unit - charge * m_electron
   endif
   return
