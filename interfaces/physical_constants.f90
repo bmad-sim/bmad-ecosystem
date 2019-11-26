@@ -59,7 +59,7 @@ real(rp), parameter :: fine_structure_constant =  7.2973525693d-3
 real(rp), parameter :: anomalous_mag_moment_electron = 1.15965218128d-3
 real(rp), parameter :: anomalous_mag_moment_proton   = 1.79284734463d0
 real(rp), parameter :: anomalous_mag_moment_muon     = 1.16592089d-3  ! ~fine_structure_constant / twopi
-real(rp), parameter :: anomalous_mag_moment_deuteron = -0.1425617662d0
+real(rp), parameter :: anomalous_mag_moment_deuteron = -0.14298726925d0
 real(rp), parameter :: anomalous_mag_moment_neutron  = -1.91304273d0
 real(rp), parameter :: anomalous_mag_moment_He3      = -4.184153686d0
 
