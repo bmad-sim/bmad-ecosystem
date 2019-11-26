@@ -6374,7 +6374,7 @@ implicit none
 type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
 
-real(rp) angle, rr, v_inv_mat(4,4), eta_vec(4)
+real(rp) angle, a, rr, v_inv_mat(4,4), eta_vec(4)
 
 integer n
 logical kick_set, length_set, set_done, err_flag
@@ -6470,7 +6470,12 @@ case (sbend$, rbend$)
       elseif (angle /= 0) then
         ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
       elseif (ele%value(g$) /= 0) then
-        angle = 2 * asin(ele%value(l_chord$) * ele%value(g$) / 2)
+        a = ele%value(l_chord$) * ele%value(g$) / 2
+        if (abs(a) >= 1) then
+          call parser_error ('G * L FOR RBEND IS TOO LARGE TO BE PHYSICAL! ' // ele%name)
+          return
+        endif
+        angle = 2 * asin(a)
         ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
       else  ! g and angle are zero.
         ele%value(l$) = ele%value(l_chord$)
