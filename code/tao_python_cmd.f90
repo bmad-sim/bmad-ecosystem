@@ -3150,7 +3150,8 @@ case ('plot_list')
     do i = 1, size(s%plot_page%region)
       pr => s%plot_page%region(i)
       if (pr%name == '') cycle
-      nl=incr(nl); write (li(nl), '(i0, 5a, l1)') i, ';', trim(pr%name), ';', trim(pr%plot%name), ';', pr%visible
+      nl=incr(nl); write (li(nl), '(i0, 5a, l1, 8a)') i, ';', trim(pr%name), ';', trim(pr%plot%name), ';', pr%visible, ';', &
+                      re_str(pr%location(1), 4), ';', re_str(pr%location(2), 4), ';', re_str(pr%location(3), 4), ';', re_str(pr%location(4), 4)
     enddo
 
   else
@@ -4730,16 +4731,16 @@ fmt = '(3a, es21.13)'
 
 nl=incr(nl); write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
 nl=incr(nl); write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
-nl=incr(nl); write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                         twiss%gamma
+nl=incr(nl); write (li(nl), fmt) 'gamma_', suffix, ';REAL;F;',                    twiss%gamma
 nl=incr(nl); write (li(nl), fmt) 'phi_', suffix, v_str,                           twiss%phi
 nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           twiss%eta
 nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          twiss%etap
 
 if (logic_option(.false., emit_out)) then
-  nl=incr(nl); write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                         twiss%sigma
-  nl=incr(nl); write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                       twiss%sigma_p
-  nl=incr(nl); write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                          twiss%emit
-  nl=incr(nl); write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',                     twiss%norm_emit
+  nl=incr(nl); write (li(nl), fmt) 'sigma_', suffix, ';REAL;F;',                  twiss%sigma
+  nl=incr(nl); write (li(nl), fmt) 'sigma_p_', suffix, ';REAL;F;',                twiss%sigma_p
+  nl=incr(nl); write (li(nl), fmt) 'emit_', suffix, ';REAL;F;',                   twiss%emit
+  nl=incr(nl); write (li(nl), fmt) 'norm_emit_', suffix, ';REAL;F;',              twiss%norm_emit
 endif
 
 end subroutine twiss_out
