@@ -2,7 +2,11 @@
 ! Subroutine slice_lattice (lat, orbit, ele_list, error)
 !
 ! Routine to discard from the lattice all elements not in ele_list.
-! Note controllers that control elements that remain will not be cut.
+!
+! Note: Controllers that control elements that remain will not be cut.
+! Note: Flexible patches will be marked as rigid if it is not possible to calculate the floor 
+!   coords of the downstream element after slicing.
+! Note: ele%n_ref_pass will be set to 0 (user_set) if first pass element is discarded.
 !
 ! For each branch where there are elements to be deleted and where the reference energy has been computed:
 !   1) The Twiss and reference energy parameters from the first non-deleted element are 
@@ -35,10 +39,10 @@ implicit none
 type (lat_struct), target :: lat
 type (coord_struct) :: orbit(0:)
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele0, ele1
+type (ele_struct), pointer :: ele, ele0, ele1, ele2
 type (ele_pointer_struct), allocatable :: eles(:)
 
-integer ie, ib, n_loc
+integer i, j, ie, ib, n_loc, n_links, ix_pass
 logical error, err
 
 character(*) ele_list
@@ -66,13 +70,26 @@ do ie = 1, n_loc
   eles(ie)%ele%ixx = 0  ! Do not delete
 enddo
 
-! Now go through and save all controllers that can be saved
+! Now go through and save all controllers that can be saved.
+! Also save multipass pass number in ele%iyy.
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do ie = 1, branch%n_ele_max
-    if (branch%ele(ie)%ixx == -1) cycle
-    call add_back_controllers(branch%ele(ie))
+    ele => branch%ele(ie)
+    if (ele%ixx == -1) cycle
+    call add_back_controllers(ele)
+    ele%iyy = 0
+    if (ele%lord_status /= multipass_lord$) cycle
+    do i = 1, ele%n_slave
+      ele1 => pointer_to_slave(ele, i)
+      ele1%iyy = i    ! Pass number
+      if (ele1%lord_status /= multipass_slave$) cycle
+      do j = 1, ele1%n_slave
+        ele2 => pointer_to_slave(ele1, j)
+        ele2%iyy = i
+      enddo
+    enddo
   enddo
 enddo
 
@@ -110,6 +127,42 @@ do ib = 0, ubound(lat%branch, 1)
 enddo
 
 call remove_eles_from_lat (lat)
+
+! Make flexible patches rigid if downstream element does not have a well defined position.
+
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  ele_loop: do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%key /= patch$) cycle
+    if (is_false(ele%value(flexible$))) cycle
+    ! In the case that the next element has zero length (and so does not affect the floor position),
+    ! look at the element after.
+    ele2 => ele
+    do
+      ele2 => pointer_to_next_ele(ele2, 1)
+      call multipass_chain (ele2, ix_pass, n_links)
+      if (ix_pass > 1) cycle ele_loop
+      if (ele2%value(l$) /= 0 .or. ele2%key == patch$) exit
+    enddo
+    if (ele%slave_status == multipass_slave$) ele => pointer_to_lord(ele, 1)
+    ele%value(flexible$) = false$
+  enddo ele_loop
+enddo
+
+! Set n_ref_pass
+
+do ie = lat%n_ele_track+1, lat%n_ele_max
+  ele => lat%ele(ie)
+  if (ele%slave_status /= multipass_lord$) cycle
+  if (ele%value(n_ref_pass$) == 0) cycle     ! Ref energy is user set so nothing to be done
+  ele1 => pointer_to_slave(ele, 1)
+  if (ele%iyy == 1) cycle                    ! First pass preserved => Everything OK.
+  ele%value(n_ref_pass$) = 0
+enddo
+
+! Finish
+
 call lattice_bookkeeper (lat)
 
 error = .false.
