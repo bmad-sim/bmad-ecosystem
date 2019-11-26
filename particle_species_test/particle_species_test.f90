@@ -69,9 +69,28 @@ call check_fundamental('muon', muon$, m_muon, -1, anomalous_mag_moment_muon, ant
 call check_fundamental('pion-', pion_minus$, m_pion_charged, -1, 0.0_rp, pion_plus$)
 call check_fundamental('anti_deuteron', anti_deuteron$, m_deuteron, -1, anomalous_mag_moment_deuteron, deuteron$)
 
+call magnetic_moment(deuteron$, 1.0_rp)
+call magnetic_moment(proton$, 0.5_rp)
+call magnetic_moment(positron$, 0.5_rp)
+call magnetic_moment(electron$, 0.5_rp)
+call magnetic_moment(muon$, 0.5_rp)
 
 !---------------------------------------------------------------------------
 contains
+
+subroutine magnetic_moment (species, spin)
+
+real(rp) spin
+integer species
+
+!
+
+
+
+end subroutine magnetic_moment
+
+!---------------------------------------------------------------------------
+! contains
 
 subroutine check_fundamental (name, id, m_part, charge, anom_mag_moment, anti_part)
 character(*) name
