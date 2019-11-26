@@ -28,10 +28,6 @@ contains
 ! Input:
 !   bmad_file     -- Character(*): Name of the output lattice file.
 !   lat           -- lat_struct: Holds the lattice information.
-!   ix_start      -- Integer, optional: Starting index of lat%ele(i)
-!                       used for output.
-!   ix_end        -- Integer, optional: Ending index of lat%ele(i)
-!                       used for output.
 !   output_form   -- integer, optional: 
 !                       binary$   -> Write field info in binary form to separate files. Default.
 !                       ascii$    -> All ASCII. Fields will be put in separate files

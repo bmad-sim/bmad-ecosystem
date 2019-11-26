@@ -449,9 +449,9 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   \end{subfigure}
   \hfill
   \caption[Coordinate systems for (a) \vn{rbend}\ and (b) \vn{sbend}\ elements.]
-{Coordinate systems for (a) \vn{rbend} and (b) \vn{sbend} elements.
-For the bends drawn as viewed from ``above'' (viewed from positive $y$),
-\vn{g}, \vn{angle}, \vn{rho}, \vn{e1} and \vn{e2} are all positive.}
+{Coordinate systems for (a) \vn{rbend} and (b) \vn{sbend} elements.  For the bends drawn as viewed
+from ``above'' (viewed from positive $y$), \vn{g}, \vn{angle}, \vn{rho}, \vn{e1} and \vn{e2} are all
+positive.}
   \label{f:bend}
 \end{figure}
 
@@ -462,15 +462,14 @@ The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see \fig{f:local.coords}).
   \index{e1}\index{e2}
   \item[e1, e2] \Newline
-The rotation angle of the entrance pole face is \vn{e1} and at the exit face it is
-\vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet
-(\fig{f:bend.rbend}). Zero \vn{e1} and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet
-(\fig{f:bend.sbend}).  An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to
-an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).  This formula holds for both
-positive and negative angles.
+The rotation angle of the entrance pole face is \vn{e1} and at the exit face it is \vn{e2}. Zero
+\vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet (\fig{f:bend.rbend}). Zero \vn{e1}
+and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet (\fig{f:bend.sbend}).  An \vn{sbend} with
+an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see
+above).  This formula holds for both positive and negative angles.
 
-Note: The correspondence between \vn{e1} and \vn{e2} and the
-corresponding parameters used in the SAD program \cite{b:sad} is:
+Note: The correspondence between \vn{e1} and \vn{e2} and the corresponding parameters used in the
+SAD program \cite{b:sad} is:
 \begin{example}
   e1(Bmad) =  e1(SAD) * angle + ae1(SAD)
   e2(Bmad) =  e2(SAD) * angle + ae2(SAD)
@@ -530,16 +529,16 @@ exit faces. For compatibility with \mad, if \vn{fint} is given but \vn{fintx} is
 \vn{fintx} is set equal to \vn{fint}. Similarly, \vn{hgapx} will be set to \vn{hgap} if
 \vn{hgapx} is not given.
 
-Note: The SAD program uses \vn{fb1+f1} for the entrance fringe and
-\vn{fb2+f1} for the exit fringe. The correspondence between the two is
+Note: The SAD program uses \vn{fb1+f1} for the entrance fringe and \vn{fb2+f1} for the exit
+fringe. The correspondence between the two is
 \begin{example}
   fint  * hgap  = (fb1 + f1) / 12
   fintx * hgapx = (fb2 + f1) / 12
 \end{example}
 
 \index{Enge function}
-\vn{fint} and \vn{hgap} can be related to the Enge function which is sometimes
-used to model the fringe field. The Enge function is of the form
+\vn{fint} and \vn{hgap} can be related to the Enge function which is sometimes used to model the
+fringe field. The Enge function is of the form
 \Begineq
   B_y(s) = \frac{B_{y0}}{1 + \exp[P(s)]}
 \Endeq
@@ -547,24 +546,23 @@ where
 \Begineq
   P(s) = C_0 + C_1 \, s + C_2 \, s^2 + C_3 \, s^3 + \, \ldots
 \Endeq
-The $C_0$ term simply shifts where the edge of the bend is. If all the $C_n$
-are zero except for $C_0$ and $C_1$ then 
+The $C_0$ term simply shifts where the edge of the bend is. If all the $C_n$ are zero except for
+$C_0$ and $C_1$ then
 \Begineq
   C_1 = \frac{1}{2 \,H_{gap} \, F_{int}}
 \Endeq
   \index{g}\index{rho}\index{g_err}
   \item[g, g_err, rho] \Newline
-The design bending radius which determines the reference coordinate
-system is \vn{rho} (see \sref{s:ref}). \vn{g} = 1/\vn{rho} is
-the curvature function and is proportional to the design dipole
-magnetic field. The true field strength is given by
-\vn{g}~+~\vn{g_err} so changing \vn{g_err} leaves the design orbit
-unchanged but varies a particle's orbit.
+The design bending radius which determines the reference coordinate system is \vn{rho} (see
+\sref{s:ref}). \vn{g} = 1/\vn{rho} is the curvature function and is proportional to the design
+dipole magnetic field. The true field strength is given by \vn{g}~+~\vn{g_err} so changing
+\vn{g_err} leaves the design orbit unchanged but varies a particle's orbit. See \Sref{s:ex.chicane}
+for an example.
   \index{h1}\index{h2}
   \item[h1, h2] \Newline
-The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
-and exit pole faces. They are present for compatibility with MAD but
-are not yet implemented in terms of tracking and other calculations.
+The attributes \vn{h1} and \vn{h2} are the curvature of the entrance and exit pole faces. They are
+present for compatibility with MAD but are not yet implemented in terms of tracking and other
+calculations.
   \index{k1}\index{b1_gradient}
   \item[k1, b1_gradient] \Newline
 The normalized and unnormalized quadrupole strength.
@@ -573,34 +571,28 @@ The normalized and unnormalized quadrupole strength.
 The normalized and unnormalized sextupole strength. 
   \index{l}\index{l_chord}\index{l_arc}
   \item[l, l_arc, l_chord]  \Newline
-For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord
-length and not the arc length as it is for an \vn{sbend}.  However,
-after reading in a lattice, \bmad will internally convert all
-\vn{rbend}s into \vn{sbend}s, additionally, the \vn{l_chord} attribute
-will be set to the input \vn{l}, and \vn{l} will be set to the true
-path length (see above). Alternatively for an \vn{rbend}, instead of
-setting \vn{l}, the \vn{l_arc} attribute can be set to the true arc
-length.
+For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord length and not the arc length as
+it is for an \vn{sbend}.  However, after reading in a lattice, \bmad will internally convert all
+\vn{rbend}s into \vn{sbend}s, additionally, the \vn{l_chord} attribute will be set to the input
+\vn{l}, and \vn{l} will be set to the true path length (see above). Alternatively for an \vn{rbend},
+instead of setting \vn{l}, the \vn{l_arc} attribute can be set to the true arc length.
   \index{ref_tilt}
   \item[ref_tilt] \Newline
-The \vn{ref_tilt} attribute rotates a bend about the longitudinal axis
-at the entrance face of the bend. \vn{ref_tilt} = 0 bends the bends
-the element in the $-y$ direction. See \fig{f:tilt.bend}. It is
-important to understand that \vn{ref_tilt}, unlike the \vn{tilt}
-attribute of other elements, bends both the reference orbit along with
-the physical element. Note that the MAD \vn{tilt} attribute for bends
-is equivalent to the \bmad \vn{ref_tilt}. Bends in \bmad do not have
-a \vn{tilt} attribute.
+The \vn{ref_tilt} attribute rotates a bend about the longitudinal axis at the entrance face of the
+bend. \vn{ref_tilt} = 0 bends the bends the element in the $-y$ direction. See \fig{f:tilt.bend}. It
+is important to understand that \vn{ref_tilt}, unlike the \vn{tilt} attribute of other elements,
+bends both the reference orbit along with the physical element. Note that the MAD \vn{tilt}
+attribute for bends is equivalent to the \bmad \vn{ref_tilt}. Bends in \bmad do not have a \vn{tilt}
+attribute.
   \end{description}
 
 %---------------
 
 \index{l}
-The difference between \vn{rbend} and \vn{sbend} elements
-is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
-To ease the bookkeeping burden, after reading in a lattice, \bmad will
-internally convert all \vn{rbend}s into \vn{sbend}s. 
-This is done using the following transformation on \vn{rbend}s:
+The difference between \vn{rbend} and \vn{sbend} elements is the way the \vn{l}, \vn{e1}, and
+\vn{e2} attributes are interpreted.  To ease the bookkeeping burden, after reading in a lattice,
+\bmad will internally convert all \vn{rbend}s into \vn{sbend}s.  This is done using the following
+transformation on \vn{rbend}s:
 \begin{example}
   l_chord(internal) = l(input)
   l(internal) = 2 * asin(l_chord * g / 2) / g
@@ -608,15 +600,13 @@ This is done using the following transformation on \vn{rbend}s:
   e2(internal) = e2(input) + theta / 2
 \end{example}
 
-The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
-specified for an element \bmad will calculate the appropriate value
-for the third.  After reading in a lattice, \vn{angle} is considered a
-dependent variable (\sref{s:depend}).
+The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are specified for
+an element \bmad will calculate the appropriate value for the third.  After reading in a lattice,
+\vn{angle} is considered a dependent variable (\sref{s:depend}).
 
-Since internally all \vn{rbend}s are converted to \vn{sbend}s, if one wants to
-vary the \vn{g} attribute of a bend and still keep the bend rectangular, an
-overlay (\sref{s:overlay}) can be constructed to maintain the proper face angles.
-For example:
+Since internally all \vn{rbend}s are converted to \vn{sbend}s, if one wants to vary the \vn{g}
+attribute of a bend and still keep the bend rectangular, an overlay (\sref{s:overlay}) can be
+constructed to maintain the proper face angles.  For example:
 \begin{example}
   l_ch = 0.54
   g_in = 1.52
