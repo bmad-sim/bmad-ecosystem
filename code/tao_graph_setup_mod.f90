@@ -1885,9 +1885,9 @@ real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign, vec3(3), r_bunch, ds, dt, time
 
-integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
+integer i, ii, ix, j, k, np, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
 integer cache_status
-integer, parameter :: cache_off$ = 0, loading_cache$ = 1, using_cache$ = 2
+integer, parameter :: loading_cache$ = 1, using_cache$ = 2
 
 character(40) data_type, name, sub_data_type
 character(40) data_type_select, data_source
@@ -1959,18 +1959,17 @@ endif
 ! Only cache plot data if the number of points is equal to s%plot_page%n_curve_pts
 
 if (curve%data_source == 'lat') then
-  if (size(curve%x_line) /= s%plot_page%n_curve_pts) then
-    cache_status = cache_off$
-  elseif (tao_branch%plot_cache_valid .and. tao_branch%cache_x_min == x1 .and. &
-            tao_branch%cache_x_max == x2 .and. tao_branch%cache_n_pts == size(curve%x_line)) then
+  np = size(curve%x_line)
+  if (tao_branch%plot_cache_valid .and. tao_branch%cache_x_min == x1 .and. &
+            tao_branch%cache_x_max == x2 .and. tao_branch%cache_n_pts == np) then
     cache_status = using_cache$
 
   else
     cache_status = loading_cache$
     if (allocated(tao_branch%plot_cache)) then
-      if (size(tao_branch%plot_cache) /= s%plot_page%n_curve_pts) call tao_deallocate_plot_cache(tao_branch%plot_cache)
+      if (size(tao_branch%plot_cache) /= np) call tao_deallocate_plot_cache(tao_branch%plot_cache)
     endif
-    if (.not. allocated(tao_branch%plot_cache)) allocate (tao_branch%plot_cache(s%plot_page%n_curve_pts))
+    if (.not. allocated(tao_branch%plot_cache)) allocate (tao_branch%plot_cache(np))
     tao_branch%cache_x_min = x1
     tao_branch%cache_x_max = x2 
     tao_branch%cache_n_pts = size(curve%x_line)
