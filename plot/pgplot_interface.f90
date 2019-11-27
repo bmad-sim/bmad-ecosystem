@@ -70,10 +70,10 @@ real xx1, xx2, yy1, yy2
 f = pg_com%page_scale
 xx1 = f * x1
 xx2 = f * x2
-if (xx2 == xx1) xx2 = xx2 + (1 + 10.0**-7)
+if (xx2 == xx1) xx2 = xx2 + (1 + 10.0**(-7))
 yy1 = f * y1
 yy2 = f * y2
-if (yy2 == yy1) yy2 = yy2 * (1 + 10.0**-7)
+if (yy2 == yy1) yy2 = yy2 * (1 + 10.0**(-7))
 call pgvsiz (xx1, xx2, yy1, yy2)
 call pgswin (xx1, xx2, yy1, yy2)
 end subroutine qp_set_graph_position_basic
