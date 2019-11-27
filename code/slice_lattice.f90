@@ -154,10 +154,10 @@ enddo
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
   ele => lat%ele(ie)
-  if (ele%slave_status /= multipass_lord$) cycle
+  if (ele%lord_status /= multipass_lord$) cycle
   if (ele%value(n_ref_pass$) == 0) cycle     ! Ref energy is user set so nothing to be done
   ele1 => pointer_to_slave(ele, 1)
-  if (ele%iyy == 1) cycle                    ! First pass preserved => Everything OK.
+  if (ele1%iyy == 1) cycle                   ! First pass preserved => Everything OK.
   ele%value(n_ref_pass$) = 0
 enddo
 
