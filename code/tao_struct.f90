@@ -1080,7 +1080,7 @@ n1 = -1
 if (allocated(tlb1%plot_cache)) n1 = size(tlb1%plot_cache)
 
 n2 = -1
-if (allocated(tlb2%plot_cache)) n2 = size(tlb1%plot_cache)
+if (allocated(tlb2%plot_cache)) n2 = size(tlb2%plot_cache)
 
 if (n1 > -1 .and. n1 /= n2) call tao_deallocate_plot_cache(tlb1%plot_cache)
 

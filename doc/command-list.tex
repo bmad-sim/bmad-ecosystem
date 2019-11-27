@@ -120,18 +120,19 @@ command xyzzy is used ``top'' is substituted for ``[[1]]'' in the string.
 \label{s:call}
 
 The \vn{call} command opens a command file (\sref{s:command.files}) and executes the
-commands in it.  Format:
+commands in it. Format:
+\vskip 1pt 
 \begin{example}
-  call <filename> \{<arg_list>\}  \Strut
+  call <filename> \{<arg_list>\}
   call -ptc <filename>
 \end{example}
 
-\vskip 10pt 
+\vskip 1pt 
 The \vn{call} command without \vn{-ptc} is for running a set of \tao commands.  Up to 9
 arguments may be passed to the command file. The i\Th argument is substituted in place of
 the string ``[[i]]'' in the file. Nesting of command files (command files calling other
-command files) is allowed. There is no limit to the number of nested files.  See
-Section~\sref{s:command.files} for more details.
+command files) is allowed. There is no limit to the number of nested files.  See the
+\vn{Command Files and Aliases} section (\sref{s:command.files}) for more details.
 
 The \vn{call -ptc} command passes the command file to PTC for processing. Previous to such
 a call, the command \vn{ptc init} must be issued.
@@ -148,7 +149,8 @@ one level up from your current working directory use
   call \$PWD/../second.cmd
 \end{example}
 
-Command loops can be implemented in a command file. See Section~\sref{s:do} for more details.
+Command loops can be implemented in a command file. See the documentation on \vn{do/enddo}
+(sref{s:do}) for more details.
 
 Other useful commands to put in a command file to speed up execution are:
 \begin{example}
@@ -186,7 +188,7 @@ The \vn{change} command changes element attribute values or variable values in t
 \vskip 10pt 
 
 The \vn{change} is used for changing real (as opposed to integer or logical)
-parameters. Also see the \vn{set} command (\sref{s:set}) which is more general.
+parameters. Also consider using the \vn{set} command (\sref{s:set}) which is more general.
 
 If \vn{<prefix>} is not present, \vn{<number>} is added to the existing value
 of the attribute or variable. That is:
@@ -300,7 +302,7 @@ The \vn{continue} command is used to continue reading of a suspended command fil
 \end{example}
 
 %% do --------------------------------------------------------------
-\section{do, enddo}\index{commands!do}
+\section{do/enddo}\index{commands!do}
 \label{s:do}
 
 Command loops can be implemented in a command file files. Format:
@@ -585,10 +587,10 @@ file. Example:
   python -write d2.dat data_d2    ! Write to file "d2.dat"
 \end{example}
 
-The \vn{-noprint} option suppresses printing and is useful when writing large amounts of
-data to a file.  The \vn{python} command can be used to pass information to a parent
-process when \tao is run as a subprocess.  The parent process may be any scripting program
-like Python, Perl, Tcl, etc.  In particular, see \sref{c:python} for details on how to run
+The \vn{-noprint} option suppresses printing and is useful when writing large amounts of data to a
+file.  The \vn{python} command can be used to pass information to a parent process when \tao is run
+as a subprocess.  The parent process may be any scripting program like Python, Perl, Tcl, etc.  In
+particular, see the \vn{Python/GUI Interface} chapter (\sref{c:python}) for details on how to run
 \tao as a Python subprocess.
 
 For long term maintainability of python scripts, the advantage of using the \vn{python}
@@ -726,12 +728,11 @@ the model data.
 recalculation is done automatically when any lattice parameter is changed so this command
 is generally only useful for debugging purposes.
 
-\vn{reinitializes tao} reinitializes \tao. This can be useful to reset everything to
-initial conditions or to perform analysis with more than one initialization file. See
-section \sref{s:command.line} for a list of the optional arguments.  If an argument is not
-set, the \vn{reinitialize} command uses the same argument value that were used in the last
-\vn{reinitialize} command, or, if this is the first reinitialization, what was used to
-start \tao.
+\vn{reinitializes tao} reinitializes \tao. This can be useful to reset everything to initial
+conditions or to perform analysis with more than one initialization file. See the Command Line
+Initialization section (\sref{s:command.line}) for a list of the optional arguments. If an argument
+is not set, the \vn{reinitialize} command uses the same argument value that were used in the last
+\vn{reinitialize} command, or, if this is the first reinitialization, what was used to start \tao.
 
 Examples:
 \begin{example}
@@ -753,11 +754,10 @@ The \vn{run_optimizer} command runs an optimizer. Format:
 \vskip 10pt 
 
 \index{de!optimizer}\index{lm!optimizer}
-If \vn{<optimizer>} is not given then the default optimizer is used. 
-Use the \vn{show optimizer} (\sref{s:show.optimizer}) command to see optimizer parameters.
-To stop the optimizer
-before it is finished press the period ``.''  key. If you want the optimizer to run
-forever run the optimizer in \vn{single mode}. Valid optimizers are:
+If \vn{<optimizer>} is not given then the default optimizer is used.  Use the \vn{show optimizer}
+(\sref{s:show.optimizer}) command to see optimizer parameters.  To stop the optimizer before it is
+finished press the period ``.''  key. If you want the optimizer to run forever run the optimizer in
+\vn{single mode}. Valid optimizers are:
 \begin{example}
   custom        ! Used when a custom optimizer has been implemented (\sref{c:custom.tao}).
   de            ! Differential Evolution (good for global optimizations).
@@ -767,8 +767,8 @@ forever run the optimizer in \vn{single mode}. Valid optimizers are:
   svd           ! svd optimizer (good for local optimizations).
 \end{example}
 
-See Chapter~\sref{c:opti} for details on how \tao structures optimization and 
-for more details on the different optimizers.
+See the optimization chapter (\sref{c:opti}) for details on how \tao structures optimization and for
+more details on the different optimizers.
 
 Examples:
 \begin{example}
@@ -1043,8 +1043,8 @@ For \vn{set curve}, the \vn{<component>}s that can be set are:
   draw_symbols        = <logical> 
   draw_symbol_index   = <logical> 
 \end{example}
-See Section~\sref{s:template} for a description of these attributes.  Use the \vn{show
-curve} (\sref{s:show}) to see the settings of the attributes.
+See the \vn{Plot Templates} section (\sref{s:template}) for a description of these attributes.  Use
+the \vn{show curve} (\sref{s:show}) to see the settings of the attributes.
 
 If there are visible plots with the same name as the plot component of \vn{<curve>}, a template plot
 of the same name is ignored. If it is desired to set the curve(s) in the template plot, add a
@@ -1106,8 +1106,8 @@ Format:
 
 The parameters that can be set are:
 \begin{example}
-  branch            ! See: \sref{s:lattice}
-  universe          ! See: \sref{s:universe}
+  branch            ! See: Lattices section (\sref{s:lattice})
+  universe          ! See: Universe section (\sref{s:universe})
 \end{example}
 
 Use the \vn{show global} (\sref{s:show}) command to see the current
@@ -1307,9 +1307,8 @@ Format:
   set lat_layout <component> = <value>
 \end{example}
 
-Sets parameters for \vn{lat_layout} plots (\sref{s:shapes}).  Syntax for
-``\vn{set lat_layout}'' is identical to syntax of ``\vn{set floor_plan}''.  See ``\vn{set
-floor_plan}'' for more details.
+Sets parameters for \vn{lat_layout} plots (\sref{s:shapes}).  Syntax for ``\vn{set lat_layout}'' is
+identical to syntax of ``\vn{set floor_plan}''.  See ``\vn{set floor_plan}'' for more details.
 
 Use ``\vn{show plot -lat_layout}'' to see a listing of all shapes. 
 
@@ -1569,10 +1568,10 @@ universe. The variables will still vary in the turned off universe.
 The \vn{set universe <what_universe> recalculate} command will recalculate the lattice
 parameters for that universe.
 
-The \vn{set universe <what_universe> dynamic_aperture_calc} command will enable the
-dynamic aperture calculation for a ring. See \sref{s:dynamicaperture}. To enable the
-dynamic aperture calculation at startup, set the \vn{design_lattice(i)%dynamic_aperture}
-component (\sref{s:init.lat}).
+The \vn{set universe <what_universe> dynamic_aperture_calc} command will enable the dynamic aperture
+calculation for a ring. See the \vn{Initializing Dynamic Aperture} section
+(\sref{s:dynamicaperture}) for more details. To enable the dynamic aperture calculation at startup,
+set the \vn{design_lattice(i)%dynamic_aperture} component (\sref{s:init.lat}).
 
 The \vn{set universe <what_universe> one_turn_map_calc} command will enable a one-turn-map
 calculation for a ring using PTC, and populate the normal form taylor maps. See
