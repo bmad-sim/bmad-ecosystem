@@ -49,7 +49,7 @@ i_arg = 0
 do 
 
   if (i_arg == n_arg) exit
-  call get_next_arg ('', arg0)
+  call get_next_arg ('', arg0, i_arg, n_arg)
   if (arg0(1:2) == '--') then
     arg1 = arg0(2:)
     negate = .true.
@@ -72,24 +72,24 @@ do
   select case (switch)
 
   case ('-beam_file')
-    call get_next_arg (arg0, s%com%beam_file_arg)
+    call get_next_arg (arg0, s%com%beam_file_arg, i_arg, n_arg)
 
   case ('-beam_track_data_file')
-    call get_next_arg (arg0, s%com%beam_track_data_file_arg)
+    call get_next_arg (arg0, s%com%beam_track_data_file_arg, i_arg, n_arg)
 
   case ('-beam_position0', '-beam0', '-beam_init_file_name')
-    call get_next_arg (arg0, s%com%beam_init_position_file_arg)
+    call get_next_arg (arg0, s%com%beam_init_position_file_arg, i_arg, n_arg)
     call out_io (s_warn$, r_name, 'Note: Switch: ' // quote(switch) // &
                                 ' has been replaced with "-beam_init_position_file"')
 
   case ('-beam_init_position_file')
-    call get_next_arg (arg0, s%com%beam_init_position_file_arg)
+    call get_next_arg (arg0, s%com%beam_init_position_file_arg, i_arg, n_arg)
 
   case ('-building_wall_file')
-    call get_next_arg (arg0, s%com%building_wall_file_arg)
+    call get_next_arg (arg0, s%com%building_wall_file_arg, i_arg, n_arg)
 
   case ('-data_file')
-    call get_next_arg (arg0, s%com%data_file_arg)
+    call get_next_arg (arg0, s%com%data_file_arg, i_arg, n_arg)
 
   case ('-disable_smooth_line_calc')
     s%com%disable_smooth_line_calc_arg = '<present>'
@@ -103,21 +103,21 @@ do
     s%global%external_plotting = .true.
 
   case ('-geometry')
-    call get_next_arg (arg0, s%com%geometry_arg, .true.)
+    call get_next_arg (arg0, s%com%geometry_arg, i_arg, n_arg, .true.)
 
   case ('help', '-help', '?', '-?')
     call tao_print_command_line_info
     stop
 
   case ('-hook_init_file')
-    call get_next_arg (arg0, s%com%hook_init_file_arg)
+    call get_next_arg (arg0, s%com%hook_init_file_arg, i_arg, n_arg)
 
   case ('-init_file')
-    call get_next_arg (arg0, s%com%init_file_arg)
+    call get_next_arg (arg0, s%com%init_file_arg, i_arg, n_arg)
     ix = SplitFileName(s%com%init_file_arg, s%com%init_file_arg_path, base)
 
   case ('-lattice_file')
-    call get_next_arg (arg0, s%com%lattice_file_arg)
+    call get_next_arg (arg0, s%com%lattice_file_arg, i_arg, n_arg)
     s%com%noinit_arg = ''
 
   case ('-log_startup')
@@ -134,7 +134,7 @@ do
     s%com%noplot_arg = '<present>'
 
   case ('-plot_file')
-    call get_next_arg (arg0, s%com%plot_file_arg)
+    call get_next_arg (arg0, s%com%plot_file_arg, i_arg, n_arg)
 
   case ('-prompt_color', '-color_prompt')
     s%com%prompt_color_arg = ''
@@ -146,13 +146,13 @@ do
     s%com%silent_run_arg = '<present>'
 
   case ('-slice_lattice')
-    call get_next_arg (arg0, s%com%slice_lattice_arg, .true.)
+    call get_next_arg (arg0, s%com%slice_lattice_arg, i_arg, n_arg, .true.)
 
   case ('-startup_file')
-    call get_next_arg (arg0, s%com%startup_file_arg)
+    call get_next_arg (arg0, s%com%startup_file_arg, i_arg, n_arg)
 
   case ('-var_file')
-    call get_next_arg (arg0, s%com%var_file_arg)
+    call get_next_arg (arg0, s%com%var_file_arg, i_arg, n_arg)
 
   case default
     call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
@@ -194,8 +194,9 @@ enddo
 !-----------------------------
 contains
 
-subroutine get_next_arg(arg0, arg_next, may_have_blanks)
+subroutine get_next_arg(arg0, arg_next, i_arg, n_arg, may_have_blanks)
 
+integer i_arg, n_arg
 character(*) arg0, arg_next
 character(40) sub
 logical, optional :: may_have_blanks
