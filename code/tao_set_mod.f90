@@ -925,13 +925,16 @@ end select
 
 ! open a scratch file for a namelist read
 
-call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
-
 if (who2 == 'sig_e') who2 = 'sig_pz'
 iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
-write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
+if (is_real(value_str) .or. is_logical(value_str)) then
+  write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', trim(value_str)
+else
+  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
+endif
 write (iu, '(a)') '/'
 
 !
