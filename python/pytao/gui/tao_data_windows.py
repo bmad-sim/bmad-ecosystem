@@ -315,7 +315,7 @@ class tao_new_data_window(Tao_Toplevel):
                 self.d2_param_list[i].tk_wid.grid(row=i+1, column=1, sticky='EW')
 
         # Warning labels
-        self.name_warning_1 = tk.Label(self.d2_frame, text="Cannot be empty")
+        self.name_warning_empty = tk.Label(self.d2_frame, text="Cannot be empty")
         # Next button
         self.next_b = tk.Button(self.d2_frame, text="Next", command=self.load_d1_frame)
         self.next_b.grid(row=i+2, column=1, sticky='W')
@@ -337,7 +337,7 @@ class tao_new_data_window(Tao_Toplevel):
         # Check if d2_name is nonempty
         name = self.d2_param_list[0].tk_var.get().strip()
         if name == "":
-            self.name_warning_1.grid(row=1, column=2, sticky='W')
+            self.name_warning_empty.grid(row=1, column=2, sticky='W')
             return
 
         # Conditions
@@ -383,7 +383,7 @@ class tao_new_data_window(Tao_Toplevel):
             self.nb_exists = False
         else:
             self.name = name
-            self.name_warning_1.grid_forget()
+            self.name_warning_empty.grid_forget()
 
         # Possibly create self.notebook
         if not self.nb_exists:
@@ -453,14 +453,14 @@ class tao_new_data_window(Tao_Toplevel):
         messages = []
         for d1_frame in self.d1_frame_list:
             # Check names
-            if d1_frame.name_handler():
+            if not d1_frame.name_handler():
                 name_m = "Please check d1_array names."
                 if name_m not in messages:
                     messages.append(name_m)
-            if d1_frame.ix_min_handler():
-                messages.append("Please check the start index for " + d1_frame.name)
-            if d1_frame.ix_max_handler():
-                messages.append("Please check the end index for " + d1_frame.name)
+            if not d1_frame.ix_min_handler(strict=True):
+                messages.append("Please check the base index for " + d1_frame.name)
+            if not d1_frame.length_handler(strict=True):
+                messages.append("Please check the array length for " + d1_frame.name)
             if d1_frame.d1_array_wids[2].tk_var.get() == "":
                 messages.append("Please choose a data type for " + d1_frame.name)
             # Check for semicolons in any fields
@@ -634,7 +634,7 @@ class new_d1_frame(tk.Frame):
         # d1 labels (NAMES AS STRINGS ONLY)
         self.d1_array_labels = ["d1_array Name:", "Default data source:",
                 "Default data type:", "Default merit type:", "Default weight",
-                "Default good_user:", "Start index", "End index"]
+                "Default good_user:", "Base index:", "Array length:"]
         # Read in defaults from d2 level
         val = self.d2_array.d2_param_list[2].tk_var.get()
         self.d1_array_wids[1].tk_var.set(val)
@@ -655,17 +655,21 @@ class new_d1_frame(tk.Frame):
 
         # Warning labels
         # (defined here to be gridded/ungridded as necessary)
-        self.name_warning_1 = tk.Label(self, text="Must not be empty")
-        self.name_warning_2 = tk.Label(self, text="d1 name already in use")
-        self.ix_min_warning_1 = tk.Label(self, text="Must be a non-negative integer")
-        self.ix_min_warning_2 = tk.Label(self, text="Cannot be larger than the maximum index")
-        self.ix_max_warning_1 = tk.Label(self, text="Must be a non-negative integer")
-        self.ix_max_warning_2 = tk.Label(self, text="Cannot be smaller than the minimum index")
+        self.name_warning_empty = tk.Label(self, text="Must not be empty")
+        self.name_warning_invalid = tk.Label(self, text="d1 name already in use")
+        self.ix_min_warning = tk.Label(self, text="Must be a non-negative integer")
+        self.length_warning = tk.Label(self, text="Must be a positive integer")
+
+        # Grid settings for the above warning labels (use warning_label.grid(**settings) to
+        # unroll the appropriate dictionary into the keyword settings)
+        self.name_warning_gs = {"row" : 2, "column" : 2, "sticky" : 'W'}
+        self.ix_min_warning_gs = {"row" : 8, "column" : 2, "sticky" : 'W'}
+        self.length_warning_gs = {"row" : 9, "column" : 2, "sticky" : 'W'}
 
         # Responses to edits
         self.d1_array_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
         self.d1_array_wids[6].tk_wid.bind('<FocusOut>', self.ix_min_handler)
-        self.d1_array_wids[7].tk_wid.bind('<FocusOut>', self.ix_max_handler)
+        self.d1_array_wids[7].tk_wid.bind('<FocusOut>', self.length_handler)
         self.d1_array_wids[1].tk_var.trace('w', self.data_source_handler)
         self.d1_array_wids[2].tk_var.trace('w', self.data_type_handler)
 
@@ -681,7 +685,7 @@ class new_d1_frame(tk.Frame):
         i = i+1
 
         # Element browsers
-        tk.Label(self, text="Choose elements:").grid(row=i+1, column=0, sticky='W')
+        tk.Label(self, text="Evaluation elements:").grid(row=i+1, column=0, sticky='W')
         self.ele_name_button = tk.Button(self, text="Browse...", command=lambda : self.lat_browser('name'))
         self.ele_name_button.grid(row=i+1, column=1, sticky='EW')
 
@@ -703,6 +707,7 @@ class new_d1_frame(tk.Frame):
         self.data_ix = tk.StringVar()
         self.ix_min = -1
         self.ix_max = -1
+        self.length = -1
         self.data_chooser = ttk.Combobox(self, textvariable=self.data_ix,
                 values=['PLEASE SPECIFY MIN/MAX INDICES'], state='readonly')
         self.data_chooser.bind('<<ComboboxSelected>>', self.make_datum_frame)
@@ -718,7 +723,7 @@ class new_d1_frame(tk.Frame):
             self.d1_array_wids[-2].tk_var.set(line.split(';')[5])
             self.d1_array_wids[-1].tk_var.set(line.split(';')[6])
             self.ix_min_handler()
-            self.ix_max_handler()
+            self.length_handler()
         # Fill self.data_dict for existing d1 arrays
         data_dict_params = ['data_source', 'data_type', 'ele_name', 'ele_start_name', 'ele_ref_name',
                 'data^merit_type', 'meas_value', 'ref_value', 'weight', 'good_user', '1^ix_bunch',
@@ -816,7 +821,7 @@ class new_d1_frame(tk.Frame):
         self.update_idletasks()
         self.d2_array.d1_frame_list[-1].name_handler()
         self.d2_array.d1_frame_list[-1].ix_min_handler()
-        self.d2_array.d1_frame_list[-1].ix_max_handler()
+        self.d2_array.d1_frame_list[-1].length_handler()
         self.d2_array.d1_frame_list[-1].data_source_handler()
         self.d2_array.d1_frame_list[-1].data_type_handler()
 
@@ -917,95 +922,145 @@ class new_d1_frame(tk.Frame):
         When the elements are chosen, ele_which will be set for each of this
         d1_array's data sequentially
         '''
-        # Make sure the name, ix_min, and ix_max are set
-        if (bool(self.name_handler()) | bool(self.ix_min_handler())
-                | bool(self.ix_max_handler())):
+        # Make sure ix_min and length are not invalidly set
+        if (self.ix_min_handler() == False) or (self.length_handler() == False):
             return
-        #
+        # Autosize the array if self.length == -1
+        if self.length == -1:
+            autosize = True
+        else:
+            autosize = False
         name = self.d2_array.name + '.' + self.name
         win = tao_ele_browser(self.d2_array.root, self.pipe, name, self,
-                'data', which, self.d2_array.uni.get())
+                'data', which, self.d2_array.uni.get(), autosize=autosize)
 
-    def name_handler(self, event=None):
+    def name_handler(self, event=None, strict=False):
         '''
-        Changes the tab name to match the d1_name
-        Returns 1 if unsuccessful
+        Checks whether the input name is valid, and
+        sets the tab name to it if it is
+        Returns True if the name is valid,
+        False if the name is already in use by another d1,
+        and None if the name is empty
+        If strict is set True, a warning will be displayed
+        for an empty name
         '''
         if self.handler_block:
             return
         name = self.d1_array_wids[0].tk_var.get().strip()
-        if name != "":
-            # Make sure the name isn't already in use
-            i = 0
-            for d1 in self.d2_array.d1_frame_list:
-                if (d1.name == name) & (self != self.d2_array.d1_frame_list[i]):
-                    self.name_warning_1.grid_forget()
-                    self.name_warning_2.grid(row=2, column=2, sticky='W')
-                    return 1
-                i = i+1
-
-            self.d2_array.notebook.tab(self.d2_array.d1_index, text=self.name)
-            self.name_warning_1.grid_forget()
-            self.name_warning_2.grid_forget()
-            if self.name != name:
-                if self.d1_array_wids[2]._is_valid_dat_type(self.d2_array.name + '.' + name):
-                    # set data type
-                    self.d1_array_wids[2].tk_var.set(self.d2_array.name + '.' + name)
-            self.name = name
-        else:
-            self.name_warning_2.grid_forget()
-            self.name_warning_1.grid(row=2, column=2, sticky='W')
+        if name == "":
+            self.name_warning_invalid.grid_forget()
+            # Warning in strict mode
+            if strict:
+                self.name_warning_empty.grid(**self.name_warning_gs)
             self.name = "New d1_array"
             self.d2_array.notebook.tab(self.d2_array.d1_index, text="New d1_array")
-            return 1
+            return None
 
-    def ix_min_handler(self, event=None):
+        # Name is nonempty
+        # -> check if it is invalid or already in use
+        i = 0
+        for d1 in self.d2_array.d1_frame_list:
+            if (d1.name == name) & (self != self.d2_array.d1_frame_list[i]):
+                self.name_warning_empty.grid_forget()
+                self.name_warning_invalid.grid(**self.name_warning_gs)
+                return False
+            i = i+1
+
+        # Name is nonempty and valid
+        self.name = name
+        self.d2_array.notebook.tab(self.d2_array.d1_index, text=self.name)
+        self.name_warning_empty.grid_forget()
+        self.name_warning_invalid.grid_forget()
+        if self.name != name:
+            if self.d1_array_wids[2]._is_valid_dat_type(self.d2_array.name + '.' + name):
+                # set data type
+                self.d1_array_wids[2].tk_var.set(self.d2_array.name + '.' + name)
+        return True
+
+    def ix_min_handler(self, event=None, strict=False):
+        '''
+        Checks if the starting index is valid,
+        and updates self.ix_min if it is.
+        Returns True if a good index is set,
+        False if a bad index is set
+        (non-integer or greater than ix_max),
+        and None if the ix_min field is empty
+        If strict is set true, prints a warning message
+        for an empty ix_min
+        '''
         if self.handler_block:
             return
+        # Check if min index is empty
+        ix_min = self.d1_array_wids[6].tk_var.get().strip()
+        if ix_min == "":
+            self.ix_min = -1
+            self.ix_min_warning.grid_forget()
+            if strict:
+                self.ix_min_warning.grid(**self.ix_min_warning_gs)
+            #print("ix_min empty")
+            return None
+        # Check if min index is a non-negative integer
         try:
-            ix_min = int(self.d1_array_wids[6].tk_var.get())
+            ix_min = int(ix_min)
         except ValueError:
             ix_min = -1
-        if ix_min > -1:
-            self.ix_min = ix_min
-            if (ix_min <= self.ix_max) | (self.ix_max == -1):
-                self.ix_min_warning_1.grid_forget()
-                self.ix_min_warning_2.grid_forget()
-            else:
-                self.ix_min_warning_1.grid_forget()
-                self.ix_min_warning_2.grid(row=8, column=2, sticky='W')
-                return 1
-        else:
-            self.ix_min_warning_2.grid_forget()
-            self.ix_min_warning_1.grid(row=8, column=2, sticky='W')
-            return 1
-        # Update the data index range if possible
-        if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
+        if ix_min < 0:
+            self.ix_min_warning.grid(**self.ix_min_warning_gs)
+            self.ix_min = -1
+            #print("ix_min invalid")
+            return False
+        # ix_min is a good value -> update self.ix_min
+        #print("valid ix_min")
+        self.ix_min = ix_min
+        self.ix_min_warning.grid_forget()
+        # Update the data index range if self.length is set
+        if self.length != -1:
+            #print("updating ix_max and data_chooser")
+            self.ix_max = self.ix_min + self.length - 1
             self.data_chooser.configure(values=list(range(self.ix_min, self.ix_max+1)))
+        return True
 
-    def ix_max_handler(self, event=None):
+    def length_handler(self, event=None, strict=False):
+        '''
+        Checks that the d1 array length has been set
+        to a valid value, and updates self.length if it has.
+        Returns True if the length has been set to a valid
+        (positive integer) value, False if set to an invalid
+        value, and None if left blank.
+        '''
         if self.handler_block:
+            #print("handler blocked")
             return
+        # Check if length is empty
+        length = self.d1_array_wids[7].tk_var.get().strip()
+        if length == "":
+            self.length = -1
+            self.length_warning.grid_forget()
+            if strict:
+                self.length_warning.grid(**self.length_warning_gs)
+            #print("length empty")
+            return None
+        # Check if length is a positive integer
         try:
-            ix_max = int(self.d1_array_wids[7].tk_var.get())
+            length = int(length)
         except ValueError:
-            ix_max = -1
-        if ix_max > -1:
-            self.ix_max = ix_max
-            if ix_max >= self.ix_min:
-                self.ix_max_warning_1.grid_forget()
-                self.ix_max_warning_2.grid_forget()
-            else:
-                self.ix_max_warning_1.grid_forget()
-                self.ix_max_warning_2.grid(row=9, column=2, sticky='W')
-                return 1
-        else:
-            self.ix_max_warning_2.grid_forget()
-            self.ix_max_warning_1.grid(row=9, column=2, sticky='W')
-            return 1
-        # Update the data index range if possible
-        if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
+            length = -1
+        if length < 1:
+            self.length_warning.grid(**self.length_warning_gs)
+            self.length = -1
+            #print("length invalid")
+            return False
+        # length is a good value -> update self.length
+        self.length = length
+        self.length_warning.grid_forget()
+        #print("length valid")
+        #print("self.ix_min:" + str(self.ix_min))
+        # Update the data index range if self.ix_min is set
+        if self.ix_min != -1:
+            #print("updating self.ix_max and data_chooser")
+            self.ix_max = self.ix_min + self.length - 1
             self.data_chooser.configure(values=list(range(self.ix_min, self.ix_max+1)))
+        return True
 
     def data_source_handler(self, *args):
         '''
