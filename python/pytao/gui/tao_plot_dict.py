@@ -99,30 +99,40 @@ class tao_plot_dict(dict):
         Unplace whatever template is in the specified region, and remove the
         corresponding entry(ies) from self
         '''
-        plot_list_r = self.pipe.cmd_in('python plot_list r').splitlines()
-        for line in plot_list_r:
-            if region in line.split(';'):
-                ix_region = '@R' + line.split(';')[0] #e.g. @R3
-                name_region = line.split(';')[1] #e.g. r11, top, etc
-                # remove from self
-                if ix_region in self:
-                    self.pop(ix_region)
-                if name_region in self:
-                    self.pop(name_region)
-                # unplace in tao
-                self.pipe.cmd_in('place -no_buffer ' + ix_region + ' none')
+        # Make sure region is a valid region name
+        if region in self._known_region_names:
+            name = region
+            ix = self._known_region_names.index(region)
+            num = self._known_region_nums[ix]
+        elif region in self._known_region_nums:
+            num = region
+            ix = self._known_region_nums.index(region)
+            name = self._known_region_names[ix]
+        else:
+            return # do nothing if region is not valid
+        # Remove the plot at the specified region
+        self.pipe.cmd_in('place -no_buffer ' + num + ' none')
+        if name in self:
+            self.pop(name)
+        if num in self:
+            self.pop(num)
 
     def pgplot_update(self):
         '''
         Reads the current state of plot regions in Tao, and
         sets self.pgplot_settings appropriately
         '''
+        # Set the contents of this dictionary to match
+        # the occupied pgplot regions
+        self.clear()
         # Find the occupied regions
         plot_list_r = self.pipe.cmd_in("python plot_list r").splitlines()
         regions = []
         for line in plot_list_r:
             line = line.split(';')
             if line[3] == 'T':
+                self['@R' + line[0]] = line[2]
+                self[line[1]] = line[2]
                 regions.append(line[1])
         # Determine the number of rows, columns, and lat_layouts
         r = 1
