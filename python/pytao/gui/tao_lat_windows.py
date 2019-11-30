@@ -750,7 +750,9 @@ class tao_lattice_window(Tao_Toplevel):
         '''
         Opens a menu to set the various row filters
         '''
-        win = tk.Toplevel(self)
+        win = Tao_Toplevel.__new__(Tao_Toplevel)
+        win.root = self.root
+        Tao_Toplevel.__init__(win, self)
         win.title("Lattice Row Filters")
         filters = ["Lords only", "No Slaves", "No Super Slaves",
                 "Remove Line if zero", "s"]
@@ -762,6 +764,9 @@ class tao_lattice_window(Tao_Toplevel):
         tk.Entry(win, textvariable=self.remove_if_zero).grid(
                 row=3, column=1, sticky='EW')
         tk.Entry(win, textvariable=self.s_range).grid(row=4, column=1, sticky='EW')
+        # Apply button
+        tk.Button(win, text="Apply Filters", command=self.refresh).grid(
+                row=5, column=0, columnspan=2)
 
     def toggle_advanced(self, event=None):
         '''
@@ -922,6 +927,7 @@ class tao_lattice_window(Tao_Toplevel):
             #elif self.branch_wids.bme.get() == "Beginning":
             #  switches += '-beginning '
             # Parse column switches
+            NO_COLS=False # Hack to allow no attribute columns
             if self.col_filter.get() == "Floor Coordinates":
                 switches += '-floor_coords '
             elif self.col_filter.get() == "Orbit":
@@ -935,6 +941,8 @@ class tao_lattice_window(Tao_Toplevel):
             elif self.col_filter.get() == "Cumulative Radiation Integrals":
                 switches += '-sum_radiation_integrals '
             elif self.col_filter.get() == "List Attributes":
+                if self.col_atts.get().strip() == "":
+                    NO_COLS=True
                 for att in (self.col_atts.get()).split(' '):
                     if att != '': #handles more than one space between attributes
                         switches += '-att ' + att + ' '
@@ -961,7 +969,10 @@ class tao_lattice_window(Tao_Toplevel):
             elif self.ele_list_opt.get() == "Custom":
                 switches += self.ele_list.get()
 
-            self.switches = switches
+            if NO_COLS:
+                self.switches = switches + " -att"
+            else:
+                self.switches = switches
             self.advanced_var.set(switches)
 
     def refresh(self, event=None):
@@ -989,11 +1000,18 @@ class tao_lattice_window(Tao_Toplevel):
         if len(lattice) == 0:
             tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
             return
+        if lattice[0].find("ELEMENT(S) NOT FOUND") != -1:
+            tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
+            return
         for i in range(len(lattice)):
             lattice[i] = lattice[i].split(';')
         #lattice[i][j] --> row i, column j
         dat_types = lattice[1] # marks columns as STR, INT, etc
         lattice = lattice[:1] + lattice[2:]
+        # Trim off last column if empty
+        if lattice[0][-1] == "":
+            for i in range(len(lattice)):
+                lattice[i] = lattice[i][:-1]
         widths = [0]*len(lattice[0]) # tracks column widths
 
         # Create table
@@ -1071,11 +1089,15 @@ class tao_ele_browser(tao_lattice_window):
     parent_type: must be either "data" or "var"
     which: must be "name", "start_name", or "ref_name"
     uni: a universe index as a string, or "All"
+    autosize: if set True, the parent d1/v1 array's length
+    will be set to match the number of elements found,
+    and the base index for the array will be set to 1 if
+    it is not already set
     '''
     def __init__(self, root, pipe, name, parent, parent_type,
-            which='name', uni="All", *args, **kwargs):
+            which='name', uni="All", autosize=False, *args, **kwargs):
         if uni == "All":
-            uni = "1"
+            uni = "-1"
         self._full_init = False # used to delay self.refresh until init finishes
         tao_lattice_window.__init__(
                 self, root, pipe, switches="-universe " + uni + " -all", *args, **kwargs)
@@ -1084,36 +1106,57 @@ class tao_ele_browser(tao_lattice_window):
         self.parent = parent
         self.parent_type = parent_type
         self.which = which
+        self.autosize = autosize
 
-        # Remove template widgets
-        self.temp_label_1.grid_forget()
-        self.template_file.tk_wid.grid_forget()
-        self.temp_label_2.grid_forget()
-        self.temp_chooser.grid_forget()
-        self.save_button.grid_forget()
-        self.temp_save.tk_wid.grid_forget()
+        # Ungrid all widgets and re-grid the window
+        # with only the widgets needed for the ele_browser
+        for child in self.top_frame.grid_slaves():
+            child.grid_forget()
 
-        # Default to custom ele list
+        # First row: branch, row filters
+        tk.Label(self.top_frame, text="Branch:").grid(row=0, column=0, sticky='W')
+        self.branch_wids.branch_chooser.grid(row=0, column=1, sticky='EW')
+        self.f_button.grid(row=0, column=2, sticky='W')
+        self.f_button.configure(text="Row Filters...")
+
+        # Only show name, key, s, l columns
+        self.col_filter.set("List Attributes")
+        self.col_atts.set("")
+
+        # Second row: ele search
+        tk.Label(self.top_frame, text="Search:").grid(row=1, column=0, sticky='W')
+        self.ele_list_box.grid(row=1, column=1, columnspan=2, sticky='EW')
         self.ele_list_opt.set('Custom')
         self.ele_list_box.focus_set()
+
+
+        # Remove template widgets
+        #self.temp_label_1.grid_forget()
+        #self.template_file.tk_wid.grid_forget()
+        #self.temp_label_2.grid_forget()
+        #self.temp_chooser.grid_forget()
+        #self.save_button.grid_forget()
+        #self.temp_save.tk_wid.grid_forget()
+
 
         # Data index widgets
         self.data_frame = tk.Frame(self.top_frame)
         self.data_frame.grid(row=0, column=6)
-        tk.Label(self.data_frame, text="Apply ele names to " + self.name + "[").pack(side="left")
-        self.ix_min_var = tk.StringVar()
-        tk.Entry(self.data_frame, width=5, textvariable=self.ix_min_var).pack(side="left")
-        tk.Label(self.data_frame, text="] through " + self.name + "[").pack(side="left")
-        self.ix_max_var = tk.StringVar()
-        tk.Entry(self.data_frame, width=5, textvariable=self.ix_max_var).pack(side="left")
-        tk.Label(self.data_frame, text="]").pack(side="left")
+        if not autosize:
+            tk.Label(self.data_frame, text="Apply ele names to " + self.name + "[").pack(side="left")
+            self.ix_min_var = tk.StringVar()
+            tk.Entry(self.data_frame, width=5, textvariable=self.ix_min_var).pack(side="left")
+            tk.Label(self.data_frame, text="] through " + self.name + "[").pack(side="left")
+            self.ix_max_var = tk.StringVar()
+            tk.Entry(self.data_frame, width=5, textvariable=self.ix_max_var).pack(side="left")
+            tk.Label(self.data_frame, text="]").pack(side="left")
+            self.ix_min_var.set(self.parent.ix_min)
+            self.ix_max_var.set(self.parent.ix_max)
         # placeholder:
         self.ele_count = tk.Label(self.data_frame, text="")
-        self.ix_min_var.set(self.parent.ix_min)
-        self.ix_max_var.set(self.parent.ix_max)
 
         self.apply_button = tk.Button(self.top_frame, text="Apply Element Names", command=self.apply_callback)
-        self.apply_button.grid(row=1, column=6)
+        self.apply_button.grid(row=0, column=7, rowspan=2)
         # Refresh now
         self._full_init = True
         self.refresh()
@@ -1123,6 +1166,59 @@ class tao_ele_browser(tao_lattice_window):
         Checks that good indices have been input in self.ix_min_var
         and self.ix_max_var, and then copies ele names into ele_which
         for the selected data/var indices
+        '''
+        if self.autosize:
+            self._autosize_apply_callback()
+        else:
+            self._fixed_size_apply_callback()
+        # Close this window
+        self.destroy()
+        print(self.parent.data_dict)
+
+    def _autosize_apply_callback(self):
+        '''
+        Apply callback implementation when operating with autosize == True
+        '''
+        names = list(self.tree.get_children())
+        for i in range(len(names)):
+            if len(self.tree.item(names[i])['values']) < 2:
+                # Remove "Lord Elements:" row
+                names.pop(i)
+                break
+        for i in range(len(names)):
+            names[i] = self.tree.item(names[i])['values'][1]
+        # Stop if no eles found
+        if len(names) == 0:
+            return
+        # Set ix_min and ix_max
+        if self.parent.ix_min == -1: # default to 1
+            ix_min = 1
+            if self.parent_type == 'data':
+                #print("setting ix_min to default 1")
+                self.parent.d1_array_wids[6].tk_var.set(str(ix_min))
+                self.parent.ix_min_handler()
+        else:
+            ix_min = self.parent.ix_min
+        # Set parent array length and ix_max
+        if self.parent_type == 'data':
+            self.parent.d1_array_wids[7].tk_var.set(str(len(names)))
+            self.parent.length_handler()
+        ix_max = self.parent.ix_max
+        # Write the ele names into ele_which
+        for i in range(ix_min, ix_max+1):
+            if self.parent_type == 'data':
+                if i not in self.parent.data_dict.keys():
+                    self.parent.data_dict[i] = {}
+                self.parent.data_dict[i]['ele_'+self.which] = names[(i-ix_min)%len(names)]
+            elif self.parent_type == 'var':
+                if i not in self.parent.var_dict.keys():
+                    self.parent.var_dict[i] = {}
+                self.parent.var_dict[i]['ele_'+self.which] = names[(i-ix_min)%len(names)]
+
+
+    def _fixed_size_apply_callback(self):
+        '''
+        Apply callback implementation when operating with autosize == False
         '''
         # Checks
         messages = []
@@ -1204,8 +1300,6 @@ class tao_ele_browser(tao_lattice_window):
                     self.parent.var_dict[i] = {}
                 self.parent.var_dict[i]['ele_'+self.which] = names[(i-ix_min)%len(names)]
 
-        # Close this window
-        self.destroy()
 
     def refresh(self, event=None):
         '''
@@ -1216,6 +1310,9 @@ class tao_ele_browser(tao_lattice_window):
             return
         # Call original version
         tao_lattice_window.refresh(self, event)
+        # Disable clicking on table
+        self.tree.configure(selectmode="none")
+        self.tree.unbind('<Double-Button-1>')
         # Count elements found
         try:
             names = list(self.tree.get_children())
@@ -1228,6 +1325,8 @@ class tao_ele_browser(tao_lattice_window):
             names = [] # no lattice found
         # Display ele count
         self.ele_count.destroy()
-        self.ele_count = tk.Label(self.data_frame,
-                text=" (" + str(len(names)) + " elements found)")
+        count_text = str(len(names)) + " elements found"
+        if not self.autosize:
+            count_text = "(" + count_text + ")"
+        self.ele_count = tk.Label(self.data_frame, text=count_text)
         self.ele_count.pack(side='left')
