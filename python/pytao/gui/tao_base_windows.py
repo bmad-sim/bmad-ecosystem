@@ -534,13 +534,17 @@ class lw_table_window(Tao_Toplevel):
             tk.Button(self.button_frame, text="Bulk fill...",
                     command=self.open_bulk_window).pack(side='left')
 
-        tk.Button(self.button_frame, text="Show all",
-                command=self.show_all).pack(side='right')
+        self.sh_button = tk.Button(self.button_frame, text="Show all",
+                command=self.toggle_show_all)
+        self.sh_button.pack(side='left')
         self.hide_nonexist = True
         self.refresh()
 
-    def show_all(self, event=None):
-        self.hide_nonexist = False
+    def toggle_show_all(self, event=None):
+        self.hide_nonexist = not self.hide_nonexist
+        newtext = ("Show all" if self.hide_nonexist
+                else "Hide nonexistent rows")
+        self.sh_button.configure(text=newtext)
         self.refresh()
 
     def refresh(self):
