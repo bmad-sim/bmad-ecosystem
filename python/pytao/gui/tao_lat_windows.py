@@ -1173,7 +1173,6 @@ class tao_ele_browser(tao_lattice_window):
             self._fixed_size_apply_callback()
         # Close this window
         self.destroy()
-        print(self.parent.data_dict)
 
     def _autosize_apply_callback(self):
         '''
@@ -1196,13 +1195,17 @@ class tao_ele_browser(tao_lattice_window):
             if self.parent_type == 'data':
                 #print("setting ix_min to default 1")
                 self.parent.d1_array_wids[6].tk_var.set(str(ix_min))
-                self.parent.ix_min_handler()
+            elif self.parent_type == 'var':
+                self.parent.v1_array_wids[11].tk_var.set(str(ix_min))
+            self.parent.ix_min_handler()
         else:
             ix_min = self.parent.ix_min
         # Set parent array length and ix_max
         if self.parent_type == 'data':
             self.parent.d1_array_wids[7].tk_var.set(str(len(names)))
-            self.parent.length_handler()
+        elif self.parent_type == 'var':
+            self.parent.v1_array_wids[12].tk_var.set(str(len(names)))
+        self.parent.length_handler()
         ix_max = self.parent.ix_max
         # Write the ele names into ele_which
         for i in range(ix_min, ix_max+1):
