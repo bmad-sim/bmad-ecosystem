@@ -633,7 +633,7 @@ class new_d1_frame(tk.Frame):
                 d1_ttp('ix_max;INT;T;')]
         # d1 labels (NAMES AS STRINGS ONLY)
         self.d1_array_labels = ["d1_array Name:", "Default data source:",
-                "Default data type:", "Default merit type:", "Default weight",
+                "Default data type:", "Default merit type:", "Default weight:",
                 "Default good_user:", "Base index:", "Array length:"]
         # Read in defaults from d2 level
         val = self.d2_array.d2_param_list[2].tk_var.get()
@@ -720,8 +720,11 @@ class new_d1_frame(tk.Frame):
                 if line.split(';')[3] == self.name:
                     break
             #line is now set to the relevant line
-            self.d1_array_wids[-2].tk_var.set(line.split(';')[5])
-            self.d1_array_wids[-1].tk_var.set(line.split(';')[6])
+            ix_min = int(line.split(';')[5])
+            ix_max = int(line.split(';')[6])
+            length = ix_max - ix_min + 1
+            self.d1_array_wids[-2].tk_var.set(str(ix_min))
+            self.d1_array_wids[-1].tk_var.set(str(length))
             self.ix_min_handler()
             self.length_handler()
         # Fill self.data_dict for existing d1 arrays
@@ -949,6 +952,7 @@ class new_d1_frame(tk.Frame):
         name = self.d1_array_wids[0].tk_var.get().strip()
         if name == "":
             self.name_warning_invalid.grid_forget()
+            self.name_warning_empty.grid_forget()
             # Warning in strict mode
             if strict:
                 self.name_warning_empty.grid(**self.name_warning_gs)
