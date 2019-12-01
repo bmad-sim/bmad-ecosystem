@@ -4957,9 +4957,9 @@ integer n_signif
 character(:), allocatable :: str
 character(20) string
 
-string = real_to_string(r, n_signif)
-allocate (character(len_trim(string)):: str)
-str = trim(string)
+string = real_to_string(r, 20, n_signif = n_signif)
+allocate (character(len_trim(adjustl(string))):: str)
+str = trim(adjustl(string))
 
 end function re_str
 
