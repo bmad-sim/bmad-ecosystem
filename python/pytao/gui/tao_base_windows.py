@@ -625,7 +625,9 @@ class lw_table_window(Tao_Toplevel):
         Opens a window with bulk settings for meas_value,
         ref_value, weight, and good_user.
         '''
-        win = tk.Toplevel(self)
+        win = Tao_Toplevel.__new__(Tao_Toplevel)
+        win.root = self.root
+        Tao_Toplevel.__init__(win, self)
         win.title("Bulk settings for " + self.array_name)
 
         j = 0 #column counter

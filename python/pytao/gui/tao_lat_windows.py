@@ -967,7 +967,10 @@ class tao_lattice_window(Tao_Toplevel):
             elif self.ele_list_opt.get() == "Tracking Elements":
                 switches += '-tracking_elements '
             elif self.ele_list_opt.get() == "Custom":
-                switches += self.ele_list.get()
+                if self.ele_list.get().strip() != "":
+                    switches += self.ele_list.get().strip()
+                else:
+                    switches += '-all '
 
             if NO_COLS:
                 self.switches = switches + " -att"
@@ -979,6 +982,7 @@ class tao_lattice_window(Tao_Toplevel):
         '''
         Fetches the lattice table with the new table
         parameters and updates the window
+        Returns the number of elements found
         '''
         # Clear the existing table
         for child in self.table_frame.winfo_children():
@@ -999,10 +1003,10 @@ class tao_lattice_window(Tao_Toplevel):
                 break
         if len(lattice) == 0:
             tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
-            return
+            return 0
         if lattice[0].find("ELEMENT(S) NOT FOUND") != -1:
             tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
-            return
+            return 0
         for i in range(len(lattice)):
             lattice[i] = lattice[i].split(';')
         #lattice[i][j] --> row i, column j
@@ -1061,6 +1065,12 @@ class tao_lattice_window(Tao_Toplevel):
             tot = tot+w
         self.maxsize(1800, 1000)
         self.minsize(1300, 100)
+        # Determine number of elements
+        for row in self.tree.get_children():
+            if len(self.tree.item(row)['values']) < 2:
+                # Don't count the "Lord Elements:" row
+                return len(lattice[1:]) - 1
+        return len(lattice[1:])
 
     def open_ele_window(self, event=None):
         '''
@@ -1128,6 +1138,8 @@ class tao_ele_browser(tao_lattice_window):
         self.ele_list_box.grid(row=1, column=1, columnspan=2, sticky='EW')
         self.ele_list_opt.set('Custom')
         self.ele_list_box.focus_set()
+        self.search_button = tk.Button(self.top_frame, text="Search!", command=self.refresh)
+        self.search_button.grid(row=0, column=3, rowspan=2, sticky='NSW')
 
 
         # Remove template widgets
@@ -1141,7 +1153,7 @@ class tao_ele_browser(tao_lattice_window):
 
         # Data index widgets
         self.data_frame = tk.Frame(self.top_frame)
-        self.data_frame.grid(row=0, column=6)
+        self.data_frame.grid(row=0, column=6, rowspan=2, sticky='NS')
         if not autosize:
             tk.Label(self.data_frame, text="Apply ele names to " + self.name + "[").pack(side="left")
             self.ix_min_var = tk.StringVar()
@@ -1156,7 +1168,7 @@ class tao_ele_browser(tao_lattice_window):
         self.ele_count = tk.Label(self.data_frame, text="")
 
         self.apply_button = tk.Button(self.top_frame, text="Apply Element Names", command=self.apply_callback)
-        self.apply_button.grid(row=0, column=7, rowspan=2)
+        self.apply_button.grid(row=0, column=7, rowspan=2, sticky='NS')
         # Refresh now
         self._full_init = True
         self.refresh()
@@ -1312,23 +1324,24 @@ class tao_ele_browser(tao_lattice_window):
         if not self._full_init:
             return
         # Call original version
-        tao_lattice_window.refresh(self, event)
-        # Disable clicking on table
-        self.tree.configure(selectmode="none")
-        self.tree.unbind('<Double-Button-1>')
+        num_eles = tao_lattice_window.refresh(self, event)
+        if num_eles != 0:
+            # Disable clicking on table
+            self.tree.configure(selectmode="none")
+            self.tree.unbind('<Double-Button-1>')
         # Count elements found
-        try:
-            names = list(self.tree.get_children())
-            for i in range(len(names)):
-                if len(self.tree.item(names[i])['values']) < 2:
-                    # Remove "Lord Elements:" row
-                    names.pop(i)
-                    break
-        except tk._tkinter.TclError:
-            names = [] # no lattice found
+        #try:
+        #    names = list(self.tree.get_children())
+        #    for i in range(len(names)):
+        #        if len(self.tree.item(names[i])['values']) < 2:
+        #            # Remove "Lord Elements:" row
+        #            names.pop(i)
+        #            break
+        #except tk._tkinter.TclError:
+        #    names = [] # no lattice found
         # Display ele count
         self.ele_count.destroy()
-        count_text = str(len(names)) + " elements found"
+        count_text = str(num_eles) + " elements found"
         if not self.autosize:
             count_text = "(" + count_text + ")"
         self.ele_count = tk.Label(self.data_frame, text=count_text)
