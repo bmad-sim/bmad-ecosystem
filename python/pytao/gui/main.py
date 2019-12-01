@@ -163,7 +163,7 @@ class tao_root_window(tk.Tk):
         # Check the place buffer and place plots
         self.default_plots(include_init=False)
         # Update pgplot settings
-        if self.plot_mode == "pgplot":
+        if self.plot_mode == "pgplot/plplot":
             self.placed.pgplot_update()
             for win in self.root.refresh_windows['plot']:
                 if isinstance(win, tao_pgplot_config_window):
@@ -212,9 +212,8 @@ class tao_root_window(tk.Tk):
                 command = self.plot_template_cmd, accelerator = 'Ctrl+T')
         plot_menu.add_command(label = 'Edit Plot...',
                 command = self.plot_region_cmd, accelerator = 'Ctrl+R')
-        if self.plot_mode == "pgplot":
-            plot_menu.add_command(label = "PGPlot Settings...",
-                    command = self.pgplot_config_cmd)
+        if self.plot_mode == "pgplot/plplot":
+            plot_menu.add_command(label = "PG/PLPlot Settings...", command = self.pgplot_config_cmd)
         self.menubar.add_cascade(label = 'Plot', menu = plot_menu)
 
         beam_menu = tk.Menu(self.menubar, tearoff=0)
@@ -275,13 +274,13 @@ class tao_root_window(tk.Tk):
                 if self.plot_mode == "matplotlib":
                     # Make a window for the plot
                     win = tao_plot_window(self, plot, self.pipe, region=plot_regions[i])
-                elif self.plot_mode == "pgplot":
+                elif self.plot_mode == "pgplot/plplot":
                     # self.placed (tao_plot_dict) will keep track of how many
                     # rows/columns of the pgplot window are available
                     self.placed.place_template(plot, plot_regions[i])
 
         # Determine pgplot layout from currently placed plots
-        if self.plot_mode == "pgplot":
+        if self.plot_mode == "pgplot/plplot":
             self.placed.pgplot_update()
 
 
@@ -362,7 +361,7 @@ class tao_root_window(tk.Tk):
                     elif tk_param.param.name in self.old_init_args:
                         init_args += '--' + tk_param.param.name + ' '
             #
-            if plot_mode.get() != "pgplot":
+            if plot_mode.get() != "pgplot/plplot":
                 init_args = init_args + "-noplot -external_plotting"
             # Run Tao, clear the init_frame, and draw the main frame
             if interface_to_tao.get() == "pexpect":
@@ -567,12 +566,14 @@ class tao_root_window(tk.Tk):
         tk.Label(init_frame, text="Plot Mode").grid(row=k+2, sticky='E')
         plot_mode = tk.StringVar()
         plot_mode.set("matplotlib")
-        plot_options = ["matplotlib", "pgplot", "none"]
+        plot_options = ["matplotlib", "pgplot/plplot", "none"]
         plot_chooser = tk.OptionMenu(init_frame, plot_mode, *plot_options)
         plot_chooser.grid(row=k+2, column=1, sticky='W')
         # Set plot_mode from init_dict if specified
         if "plot_mode" in init_dict:
-            if init_dict["plot_mode"] in plot_options:
+            if init_dict["plot_mode"] == "pgplot":
+                plot_mode.set("pgplot/plplot")
+            elif init_dict["plot_mode"] in plot_options:
                 plot_mode.set(init_dict["plot_mode"])
             else:
                 messagebox.showwarning('Error', 'Bad setting of "plot_mode" in gui.init: ' + init_dict["plot_mode"])
@@ -680,7 +681,7 @@ class tao_root_window(tk.Tk):
         win = tao_new_plot_template_window(self, self.pipe, None, 'T')
 
     def pgplot_config_cmd(self):
-        if self.plot_mode == "pgplot":
+        if self.plot_mode == "pgplot/plplot":
             win = tao_pgplot_config_window(self, self.pipe)
 
     def wave_cmd(self):
