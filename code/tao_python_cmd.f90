@@ -4159,10 +4159,10 @@ case ('var_v1_create')
 
   call tao_cmd_split (line, 3, name1, .true., err)
 
-  call tao_find_var(err, name1(1), v1_array = v1_array)
+  call tao_find_var(err, name1(1), v1_array = v1_array, print_err = .false.)
   if (size(v1_array) == 1) call destroy_this_var_v1(name1(1))
 
-  if (err .or. .not. is_integer(name1(2)) .or. .not. is_integer(name1(3))) then
+  if (.not. is_integer(name1(2)) .or. .not. is_integer(name1(3))) then
     call invalid ('Is Malformed')
     return
   endif
