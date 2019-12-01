@@ -34,7 +34,7 @@ type(c_funptr) c_func_ptr
 real(rp), allocatable :: rvec(:)
 real(rp) factor
 
-integer(hid_t) f_id, g_id, z_id, z2_id, r_id, b_id
+integer(hid_t) f_id, z_id, z2_id, r_id, b_id
 integer(hsize_t) idx
 integer(size_t) g_size
 integer i, ik, ib, ix, is, it, state, h5_err, n_bunch, storage_type, n_links, max_corder, h5_stat
@@ -265,10 +265,19 @@ do idx = 0, n_links-1
       end select
     enddo
   end select
+
+  if (error) exit
 enddo
 
+! g_id = g2_id when pmd_head%particlesPath = "./". In this case both refer to the same group.
+
 call H5Gclose_f(g2_id, h5_err)
-call H5Gclose_f(g_id, h5_err)
+if (g_id /= g2_id) call H5Gclose_f(g_id, h5_err)
+
+if (error) then
+  call out_io (s_error$, r_name, 'ERROR READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
+  return
+endif
 
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
