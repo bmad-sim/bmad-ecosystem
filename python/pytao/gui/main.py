@@ -165,9 +165,6 @@ class tao_root_window(tk.Tk):
         # Update pgplot settings
         if self.plot_mode == "pgplot/plplot":
             self.placed.pgplot_update()
-            for win in self.root.refresh_windows['plot']:
-                if isinstance(win, tao_pgplot_config_window):
-                    win.refresh()
 
     #-----------------------------------------------------------------------------------
 
@@ -212,8 +209,6 @@ class tao_root_window(tk.Tk):
                 command = self.plot_template_cmd, accelerator = 'Ctrl+T')
         plot_menu.add_command(label = 'Edit Plot...',
                 command = self.plot_region_cmd, accelerator = 'Ctrl+R')
-        if self.plot_mode == "pgplot/plplot":
-            plot_menu.add_command(label = "PG/PLPlot Settings...", command = self.pgplot_config_cmd)
         self.menubar.add_cascade(label = 'Plot', menu = plot_menu)
 
         beam_menu = tk.Menu(self.menubar, tearoff=0)
@@ -679,10 +674,6 @@ class tao_root_window(tk.Tk):
     def plot_region_cmd(self):
         #win = tao_plot_tr_window(self, self.pipe, "R")
         win = tao_new_plot_template_window(self, self.pipe, None, 'T')
-
-    def pgplot_config_cmd(self):
-        if self.plot_mode == "pgplot/plplot":
-            win = tao_pgplot_config_window(self, self.pipe)
 
     def wave_cmd(self):
         print ('Wave called')
