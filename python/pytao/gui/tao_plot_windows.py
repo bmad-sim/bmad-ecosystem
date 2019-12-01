@@ -119,7 +119,7 @@ class tao_place_plot_window(Tao_Toplevel):
     def plot_cmd(self, event=None):
         if self.root.plot_mode == "matplotlib":
             self.mpl_plot(event)
-        elif self.root.plot_mode == "pgplot":
+        elif self.root.plot_mode == "pgplot/plplot":
             self.pg_plot(event)
 
     def mpl_plot(self, event=None):
@@ -693,8 +693,8 @@ class tao_new_plot_template_window(Tao_Toplevel):
             plot_list_t = self.pipe.cmd_in('python plot_list t').splitlines()
             plot_ix = plot_list_t[-1].split(';')[0]
             plot_ix = "@T" + str(int(plot_ix)+1)
-            print("Writing new template")
-            print("Assigning index " + plot_ix)
+            #print("Writing new template")
+            #print("Assigning index " + plot_ix)
         elif self.write_var.get() == "overwrite":
             plot_ix = self._overwrite_ix
         else: #self.write_var == self
@@ -748,21 +748,26 @@ class tao_new_plot_template_window(Tao_Toplevel):
 
     def create_and_plot(self, event=None):
         self.create_template()
-        if self.mode == 'R':
-            # Plot is already placed, just move it to top
-            # Get region name
-            plot_list_r = self.pipe.cmd_in("python plot_list r").splitlines()
-            for i in range(len(plot_list_r)):
-                plot_list_r[i] = plot_list_r[i].split(';')
-            ix = self._created_plot_ix[2:] #without '@R'
-            reg = plot_list_r[int(ix) - 1][1]
-            for win in self.root.refresh_windows['plot']:
-                if isinstance(win, tao_plot_window):
-                    if win.region == reg:
-                        win.lift()
-                        break
-        else:
-            win = tao_plot_window(self.root, self._created_plot_ix, self.pipe)
+        # Take the appropriate actions depending on the plotting mode
+        if self.root.plot_mode == "matplotlib":
+            if self.mode == 'R':
+                # Plot is already placed, just move it to top
+                # Get region name
+                plot_list_r = self.pipe.cmd_in("python plot_list r").splitlines()
+                for i in range(len(plot_list_r)):
+                    plot_list_r[i] = plot_list_r[i].split(';')
+                ix = self._created_plot_ix[2:] #without '@R'
+                reg = plot_list_r[int(ix) - 1][1]
+                for win in self.root.refresh_windows['plot']:
+                    if isinstance(win, tao_plot_window):
+                        if win.region == reg:
+                            win.lift()
+                            break
+            else:
+                win = tao_plot_window(self.root, self._created_plot_ix, self.pipe)
+        elif self.root.plot_mode == "pgplot/plplot":
+            # Open a pgplot_place_window
+            win = tao_pgplot_place_window(self.root, self.name, self.pipe)
 
 
     def plot_name_handler(self, event=None):
@@ -1567,6 +1572,235 @@ class new_curve_frame(tk.Frame):
                         w._s_refresh()
 
 #------------------------------------------------------------------------------------
+class tao_pgplot_canvas(tk.Frame):
+    '''
+    Provides a widget that represents the pgplot window
+    This widget has three modes of operation:
+    "config", "place", and "view"
+    In "config" mode, the window is shown in its maximally
+    divided state given the current number of rows and columns.
+    I.e., if r12 and r1234 have plots in them, four rows and
+    two columns will be shown, since r1234 is a four row, 2 column
+    region, and r12 just happens to take up the space of the top four
+    regions in this configuration. This mode does not display
+    which plot is placed in which region.
+    In "view" mode, the canvas is shown as it actually is.
+    In the above example, r12 would be displayed as one contiguous region,
+    and r1234, r1244, r2234, r2244 would be displayed below it.
+    The regions also show which plots are currently placed in them.
+    In "place" mode, the canvas is displayed in much the same way as in
+    "view" mode, except that clicking on regions selects/deselcts them
+    for plot placing.  Necessarily, functionality is also provided to
+    subdivide combined regions into their smaller parts
+    '''
+    def __init__(self, parent, mode, root, pipe, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.root = root
+        self.pipe = pipe
+        self.mode = mode
+
+        self.width = 300
+        self.height = 600
+
+        self.page = tk.Canvas(self, width=self.width+10, height=self.height+10)
+        # +10 for 5px of padding on each side
+        self.page.pack(fill="both", expand=1)
+
+        self.place_region = ""
+        self.place_plot = ""
+
+        self.refresh()
+
+    def refresh(self, *args):
+        '''Redraws the pgplot page with the correct regions'''
+        # Clear page
+        for child in self.page.find_all():
+            self.page.delete(child)
+
+        # Get the regions to draw
+        regions = self.pipe.cmd_in("python plot_list r").splitlines()
+        for i in range(len(regions)):
+            regions[i] = regions[i].split(';')
+        # Create rectangles for non-empty regions:
+        for r in regions:
+            if r[3] == "T":
+                xlo = 5 + float(r[4]) * self.width
+                xhi = 5 + float(r[5]) * self.width
+                # y values are measured from the bottom up
+                ylo = 5 + (1 - float(r[7])) * self.height
+                yhi = 5 + (1 - float(r[6])) * self.height
+                self.page.create_rectangle(xlo, ylo, xhi, yhi, fill="white", tags=tuple(r[1:3]))
+                self.page.create_text((xlo + xhi)/2, (ylo+yhi)/2,
+                        text=r[1]+"\n"+r[2], tags=tuple(["text"] + r[1:3]))
+        # Create a rectangle for self.place_region, and check which regions it overlaps
+        overlapping = []
+        for r in regions:
+            if r[1] == self.place_region:
+                xlo = 5 + float(r[4]) * self.width
+                xhi = 5 + float(r[5]) * self.width
+                # y values are measured from the bottom up
+                ylo = 5 + (1 - float(r[7])) * self.height
+                yhi = 5 + (1 - float(r[6])) * self.height
+                for item in self.page.find_overlapping(xlo+1, ylo+1, xhi-1, yhi-1):
+                    #print("Overlapping item tags:")
+                    tags = self.page.gettags(item)
+                    #print(tags)
+                    if "text" not in tags:
+                        self.page.itemconfig(item, fill="#e8645a")
+                        overlapping.append(tags)
+
+                #print("-------------------------")
+                self.page.create_rectangle(xlo, ylo, xhi, yhi, fill="yellow")
+                self.page.create_text((xlo + xhi)/2, (ylo+yhi)/2,
+                        text=self.place_region+"\n"+self.place_plot)
+                break
+        return overlapping
+
+
+
+        #-------------------------------
+
+        # Get the correct regions to draw
+        regions = []
+        if self.mode in ["view", "place"]:
+            # First place maximal number of regions
+            # in case some are empty
+            oldmode = self.mode
+            self.mode = "config"
+            self.refresh()
+            # Now place the regions that are occupied
+            self.mode = oldmode
+            for r in self.root.placed.keys():
+                if r.find('@R') != 0:
+                    regions.append(r)
+        elif self.mode == "config":
+            # Take values from self.root.placed if
+            # self.rownum etc are negative (unset),
+            # otherwise use these values
+            if self.rownum < 0:
+                rnum = int(self.root.placed.pgplot_settings["rows"])
+            else:
+                rnum = self.rownum
+            if self.colnum < 0:
+                cnum = int(self.root.placed.pgplot_settings["columns"])
+            else:
+                cnum = self.colnum
+            if self.latnum < 0:
+                lnum = int(self.root.placed.pgplot_settings["lat_layouts"])
+            else:
+                lnum = self.latnum
+            if (rnum == 2) and (cnum == 1) and (lnum == 0):
+                # Special case for top and bottom
+                regions = ["top", "bottom"]
+            elif cnum == 1:
+                for i in range(1, rnum+1):
+                    # rAB
+                    regions.append('r' + str(i) + str(rnum))
+            else:
+                for i in range(1, rnum+1):
+                    for j in range(1, cnum+1):
+                        # rABCD
+                        regions.append('r' + str(j) + str(cnum) + str(i) + str(rnum))
+            # Add layout slots
+            if lnum == 1:
+                regions.append('layout')
+            elif lnum ==2:
+                regions.append("layout1")
+                regions.append("layout2")
+
+
+        # Testing
+        #print(regions)
+        for region in regions:
+            if self.mode == "config":
+                self.add_region(region, False)
+            else:
+                self.add_region(region, True)
+        # Special case: the 3 row regions will cancel out some of the 4 row regions
+        if 'r13' in regions:
+            for reg in ['r14', 'r24', 'r1214', 'r2214', 'r1224', 'r2224']:
+                if reg in self.shown_regions.keys():
+                    self.shown_regions[reg].grid_forget()
+                    self.shown_regions.pop(reg)
+        if 'r23' in regions:
+            for reg in ['r34', 'r24', 'r1234', 'r2234', 'r1224', 'r2224']:
+                if reg in self.shown_regions.keys():
+                    self.shown_regions[reg].grid_forget()
+                    self.shown_regions.pop(reg)
+        if 'r33' in regions:
+            for reg in ['r34', 'r44', 'r1234', 'r2234', 'r1244', 'r2244']:
+                if reg in self.shown_regions.keys():
+                    self.shown_regions[reg].grid_forget()
+                    self.shown_regions.pop(reg)
+
+    def add_region(self, region, include_plot):
+        '''
+        Adds the region specified by name to the pgplot page.
+        The name of the plot currently in the region will also
+        be displayed if include_plot is True
+        '''
+        b = 0
+        if include_plot:
+            if region in self.root.placed.keys():
+                plotname = "\n" + self.root.placed[region]
+            else:
+                plotname = ""
+        else:
+            plotname = ""
+        if region=="top":
+            b = tk.Button(self.page, text=region + plotname)
+            b.grid(row=0, column=0, rowspan=7, columnspan=2, sticky="NSEW")
+        elif region=="bottom":
+            b = tk.Button(self.page, text=region + plotname)
+            b.grid(row=7, column=0, rowspan=7, columnspan=2, sticky="NSEW")
+        elif (len(region) == 3) and (region[0] == 'r'):
+            # Make sure region is valid
+            # rAB: A and B must be ints
+            try:
+                r = int(region[1])
+                rmax = int(region[2])
+            except ValueError:
+                return
+            # A <= B, A and B between 1 and 4
+            if (r not in range(1, 5)) or (r not in range(1,5)) or (r>rmax):
+                return
+            # Convert to 0 index
+            r = r-1
+            b = tk.Button(self.page, text=region+plotname)
+            b.grid(row=int(r*12/rmax), column=0, rowspan=int(12/rmax), columnspan=2, sticky='NSEW')
+        elif (len(region) == 5) and (region[0] == 'r'):
+            # Make sure region is valid
+            # rABCD: A, B, C, D must be ints
+            try:
+                c = 3 - int(region[1])
+                r = int(region[3])
+                rmax = int(region[4])
+            except ValueError:
+                return
+            # C<=D, A=1 or 2,  C and D between 1 and 4
+            if (c not in [1,2]) or (r not in range(1, 5)) or (r not in range(1,5)) or (r>rmax):
+                return
+            # Convert to 0 index
+            r = r-1
+            c = c-1
+            b = tk.Button(self.page, text=region+plotname)
+            b.grid(row=int(r*12/rmax), column=c, rowspan=int(12/rmax), columnspan=1, sticky='NSEW')
+        elif (len(region) >= 6) and (region[:6] == 'layout'):
+            if region[6:] == "":
+                b = tk.Button(self.page, text=region+plotname)
+                b.grid(row=12, column=0, rowspan=2, columnspan=2, sticky='NSEW')
+            elif region[6:] == "1":
+                b = tk.Button(self.page, text=region+plotname)
+                b.grid(row=12, column=0, rowspan=2, columnspan=1, sticky='NSEW')
+            elif region[6:] == "2":
+                b = tk.Button(self.page, text=region+plotname)
+                b.grid(row=12, column=1, rowspan=2, columnspan=1, sticky='NSEW')
+        if b != 0:
+            self.shown_regions[region] = b
+
+
+
+#------------------------------------------------------------------------------------
 class tao_pgplot_config_window(Tao_Toplevel):
     '''
     Provides a window for setting the pgplot window layout
@@ -1578,6 +1812,7 @@ class tao_pgplot_config_window(Tao_Toplevel):
         Tao_Toplevel.__init__(self, self.root, *args, **kwargs)
         self.title("PGPlot Settings")
         self.pipe = pipe
+        self._refreshing = False # prevent updating halfway through a refresh
 
         # Set up frames
         self.control_frame = tk.Frame(self)
@@ -1625,13 +1860,18 @@ class tao_pgplot_config_window(Tao_Toplevel):
         latlist.grid(row=5, column=1, sticky="EW")
 
         # Preview frame
+        self.preview_frame.grid_rowconfigure(0, weight=0)
         self.preview_frame.grid_rowconfigure(1, weight=1)
         self.preview_frame.grid_columnconfigure(0, weight=1)
         plabel = tk.Label(self.preview_frame, text="Preview")
-        plabel.grid(row=0, column=0, sticky="EW")
-        self.canvas = tk.Canvas(self.preview_frame, width=310, height=610)
-        self.canvas.grid(row=1, column=0, sticky="NSEW")
-        self.canvas_shapes = []
+        plabel.grid(row=0, column=0, sticky='EW')
+        self.pgpage = tao_pgplot_canvas(self.preview_frame,"config",self.root,self.pipe)
+        self.pgpage.grid(row=1, column=0, sticky='NSEW')
+
+        # Variable traces
+        self.rowvar.trace('w', self.update_preview)
+        self.colvar.trace('w', self.update_preview)
+        self.latvar.trace('w', self.update_preview)
 
         self.refresh()
 
@@ -1640,9 +1880,11 @@ class tao_pgplot_config_window(Tao_Toplevel):
         Fetch the current settings for row, column, and lat_layout number
         and update rowvar, colvar, and latvar accordingly
         '''
+        self._refreshing = True
         self.rowvar.set(self.root.placed.pgplot_settings['rows'])
         self.colvar.set(self.root.placed.pgplot_settings['columns'])
         self.latvar.set(self.root.placed.pgplot_settings['lat_layouts'])
+        self._refreshing = False
         self.update_preview()
 
     def update_preview(self, *args):
@@ -1651,82 +1893,12 @@ class tao_pgplot_config_window(Tao_Toplevel):
         window layout according to the values in self.rowvar,
         self.colvar, and self.latvar
         '''
-        for shape in self.canvas_shapes:
-            self.canvas.delete(shape)
-
-        rownum = int(self.rowvar.get())
-        colnum = int(self.colvar.get())
-        latnum = int(self.latvar.get())
-
-        def add_line(x1, y1, x2, y2):
-            '''Shortcut for adding a line'''
-            self.canvas_shapes.append(self.canvas.create_line(x1+5, y1+5, x2+5, y2+5))
-
-        # Draw bounding lines
-        add_line(0,0,300,0)
-        add_line(300,0,300,600)
-        add_line(0,0,0,600)
-        add_line(0,600,300,600)
-        # Draw horizontal lines
-        if latnum == 0:
-            if rownum in [2,4]:
-                add_line(0,300,300,300)
-            if rownum == 4:
-                add_line(0,150,300,150)
-                add_line(0,450,300,450)
-            if rownum == 3:
-                add_line(0,200,300,200)
-                add_line(0,400,300,400)
-        else: # add extra region at bottom
-            add_line(0,540,300,540)
-            if rownum in [2,4]:
-                add_line(0,270,300,270)
-            if rownum == 4:
-                add_line(0,135,300,135)
-                add_line(0,405,300,405)
-            if rownum == 3:
-                add_line(0,180,300,180)
-                add_line(0,360,300,360)
-        # Draw vertical lines
-        if colnum == 2:
-            add_line(150,0,150,540)
-        if latnum == 2:
-            add_line(150,540,150,600)
-
-        def add_label(ltext, row, col, lat):
-            '''Places a text label in the appropriate row/column of the preview'''
-            # Determine appropriate coordinates
-            maxy = 600 if (latnum == 0) else 540
-            if lat==0:
-                x = ((col-0.5)/colnum)*300
-                y = ((row-0.5)/rownum)*maxy
-                self.canvas_shapes.append(
-                        self.canvas.create_text(x, y, text=ltext))
-            elif (row==0) and (col==0):
-                x = ((lat-0.5)/latnum)*300
-                y = 570
-                self.canvas_shapes.append(
-                        self.canvas.create_text(x, y, text=ltext))
-
-
-        # Add region names
-        # Special case: top/bottom
-        if (colnum ==1) and (rownum==2) and (latnum==0):
-            add_label('top', 1, 1, 0)
-            add_label('bottom', 2, 1, 0)
-        else:
-            if colnum == 1:
-                for i in range(1, rownum+1):
-                    add_label('r' + str(i) + str(rownum), i, 1, 0)
-            else:
-                for i in range(1, rownum+1):
-                    add_label('r22' + str(i) + str(rownum), i, 1, 0)
-                    add_label('r12' + str(i) + str(rownum), i, 2, 0)
-            if latnum == 1:
-                add_label('layout', 0,0,1)
-            elif latnum ==2:
-                add_label('layout1', 0,0,1)
-                add_label('layout2', 0,0,2)
+        if self._refreshing:
+            return
+        self.pgpage.rownum = int(self.rowvar.get())
+        self.pgpage.colnum = int(self.colvar.get())
+        self.pgpage.latnum = int(self.latvar.get())
+        self.pgpage.refresh()
 
 
 class tao_pgplot_place_window(Tao_Toplevel):
@@ -1739,118 +1911,80 @@ class tao_pgplot_place_window(Tao_Toplevel):
         self.root = root
         Tao_Toplevel.__init__(self, root, *args, **kwargs)
         self.plot = plot
+        self.region = ""
         self.pipe = pipe
 
-        # Title
-        self.title("Place " + self.plot)
-        title = tk.Label(self, text="Select region(s) for " + self.plot)
-        title.grid(row=0, column=0, sticky='EW')
+        # Configure grid settings
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
         # Region selector
-        self.canvas = tk.Canvas(self, width=310, height=610)
-        self.canvas.grid(row=1, column=0, sticky="NSEW")
-        self.canvas_shapes = []
-        self.draw_canvas()
+        self.title("Place " + self.plot)
+        title = tk.Label(self, text="Select region for " + self.plot + ":")
+        title.grid(row=0, column=0, sticky='W')
 
-        # Handle clicks
-        self.region = ""
-        self.canvas.bind("<Button-1>", self.update_region)
+        self.region_var = tk.StringVar()
+        self.region_var.set("Select...")
+        self.regions = self.pipe.cmd_in("python plot_list r").splitlines()
+        for i in range(len(self.regions)):
+            self.regions[i] = self.regions[i].split(';')[1]
+        selector = tk.OptionMenu(self, self.region_var, *self.regions,
+                command = self.update_region)
+        selector.grid(row=0, column=1, sticky='EW')
 
-    def update_region(self, event):
+        # Page display
+        self.pgpage = tao_pgplot_canvas(self, "place", self.root, self.pipe)
+        self.pgpage.grid(row=1, column=0, columnspan=2, sticky="NSEW")
+
+        # Overlap warning
+        self.overlap_warn = tk.Label(self, text="")
+        self.warning_labels = []
+
+        # Place button
+        self.place_button = tk.Button(self, text="Place!", command=self.place_cmd)
+        self.place_button.grid(row=2, column=0, columnspan=2, sticky='EW')
+
+    def update_region(self, event=None):
         '''
-        Highlights/un-highlights the selected pgplot region,
-        and updates self.region to reflect the change
+        Updates the pgpage widget to display the plot
+        as it would be placed in the selected region,
+        and warns the user if placing the plot in that region
+        would cause other plots to be unplaced
         '''
-        rownum = int(self.root.placed.pgplot_settings['rows'])
-        colnum = int(self.root.placed.pgplot_settings['columns'])
-        latnum = int(self.root.placed.pgplot_settings['lat_layouts'])
+        # Clear warning labels that might already be present
+        self.overlap_warn.grid_forget()
+        for label in self.warning_labels:
+            label.grid_forget()
+        self.warning_labels = []
+        # Update pgpage and get overlapping regions
+        self.region = "" if (self.region_var.get() == "Select...") else self.region_var.get()
+        self.pgpage.place_region = self.region
+        self.pgpage.place_plot = self.plot
+        overlapping = self.pgpage.refresh()
+        # Warn the user if there are overlaps
+        i = 2
+        if overlapping != []:
+            self.overlap_warn.configure(text="Warning: placing "
+                    + self.plot + " in the region " + self.region
+                    + "\nwill unplace the following plots:")
+            self.overlap_warn.grid(row=i, column=0, columnspan=2, sticky='W')
+            i += 1
+            for plot in overlapping:
+                label = tk.Label(self, text="* " + plot[1] + " in region " + plot[0])
+                label.grid(row=i, column=0, columnspan=2, sticky='W')
+                self.warning_labels.append(label)
+                i = i+1
+        # Reposition the place button
+        self.place_button.grid(row=i, column=0, columnspan=2, sticky='EW')
 
-
-    def draw_canvas(self):
+    def place_cmd(self, event=None):
         '''
-        Draws the pgplot layout on self.canvas
+        Places self.plot in the selected region and closes this window
         '''
-        rownum = int(self.root.placed.pgplot_settings['rows'])
-        colnum = int(self.root.placed.pgplot_settings['columns'])
-        latnum = int(self.root.placed.pgplot_settings['lat_layouts'])
-
-        def add_line(x1, y1, x2, y2):
-            '''Shortcut for adding a line'''
-            self.canvas_shapes.append(self.canvas.create_line(x1+5, y1+5, x2+5, y2+5))
-
-        # Draw bounding lines
-        add_line(0,0,300,0)
-        add_line(300,0,300,600)
-        add_line(0,0,0,600)
-        add_line(0,600,300,600)
-        # Draw horizontal lines
-        if latnum == 0:
-            if rownum in [2,4]:
-                add_line(0,300,300,300)
-            if rownum == 4:
-                add_line(0,150,300,150)
-                add_line(0,450,300,450)
-            if rownum == 3:
-                add_line(0,200,300,200)
-                add_line(0,400,300,400)
-        else: # add extra region at bottom
-            add_line(0,540,300,540)
-            if rownum in [2,4]:
-                add_line(0,270,300,270)
-            if rownum == 4:
-                add_line(0,135,300,135)
-                add_line(0,405,300,405)
-            if rownum == 3:
-                add_line(0,180,300,180)
-                add_line(0,360,300,360)
-        # Draw vertical lines
-        if colnum == 2:
-            add_line(150,0,150,540)
-        if latnum == 2:
-            add_line(150,540,150,600)
-
-        def add_label(ltext, row, col, lat):
-            '''Places a text label in the appropriate row/column of the preview'''
-            # Determine appropriate coordinates
-            maxy = 600 if (latnum == 0) else 540
-            if lat==0:
-                x = ((col-0.5)/colnum)*300
-                y = ((row-0.5)/rownum)*maxy
-                self.canvas_shapes.append(
-                        self.canvas.create_text(x, y, text=ltext))
-            elif (row==0) and (col==0):
-                x = ((lat-0.5)/latnum)*300
-                y = 570
-                self.canvas_shapes.append(
-                        self.canvas.create_text(x, y, text=ltext))
-
-        # Add region names
-        # Special case: top/bottom
-        if (colnum ==1) and (rownum==2) and (latnum==0):
-            add_label('top', 1, 1, 0)
-            add_label('bottom', 2, 1, 0)
-        else:
-            if colnum == 1:
-                for i in range(1, rownum+1):
-                    add_label('r' + str(i) + str(rownum), i, 1, 0)
-            else:
-                for i in range(1, rownum+1):
-                    add_label('r22' + str(i) + str(rownum), i, 1, 0)
-                    add_label('r12' + str(i) + str(rownum), i, 2, 0)
-            if latnum == 1:
-                add_label('layout', 0,0,1)
-            elif latnum ==2:
-                add_label('layout1', 0,0,1)
-                add_label('layout2', 0,0,2)
-
-
-
-
-
-
-
-
-
-
-
-
+        # Make sure a region has been selected
+        if self.region == "":
+            return
+        # Place the plot and close this window
+        self.pipe.cmd_in("place -no_buffer " + self.region + " " + self.plot)
+        self.destroy()
