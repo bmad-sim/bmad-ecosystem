@@ -533,20 +533,30 @@ logical exists
 character(*) group_name
 character(*), parameter :: r_name = 'hdf5_open_group'
 
+! H5Lexists_f is not smart enough to recognize that group_name = "." or "./" is 
+! equivalent to the root group.
+
+error = .false.
+
+if (group_name == '.' .or. group_name == './') then
+  g_id = root_id
+  return
+endif
+
 !
 
-error = .true.
 call H5Lexists_f(root_id, group_name, exists, h5_err, H5P_DEFAULT_F)
 if (.not. exists) then
   if (print_error) then
     call out_io (s_error$, r_name, 'GROUP DOES NOT EXIST: ' // quote(group_name))
   endif
+  error = .true.
+  g_id = 0
   return
 endif
  
 call H5Gopen_f (root_id, group_name, g_id, h5_err, H5P_DEFAULT_F)
 if (h5_err == -1) return
-error = .false.
 
 end function hdf5_open_group
 
@@ -589,6 +599,7 @@ if (.not. exists) then
   if (print_error) then
     call out_io (s_error$, r_name, 'DATASET DOES NOT EXIST: ' // quote(dataset_name))
   endif
+  ds_id = 0
   return
 endif
  
@@ -695,6 +706,7 @@ character(*), parameter :: r_name = 'hdf5_attribute_info'
 !
 
 error = .true.
+info = hdf5_info_struct()
 
 call H5Aexists_f (root_id, attrib_name, exists, h5_err)
 if (.not. exists .or. h5_err == -1) then
@@ -932,6 +944,7 @@ attrib_value = real_option(0.0_rp, dflt_value)
 error = .true.
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
+if (error) return
 
 if (info%data_type == H5T_INTEGER_F .or. info%data_type == H5T_FLOAT_F) then
   call H5LTget_attribute_double_f(root_id, '.', attrib_name, attrib_value, h5_err)

@@ -90,6 +90,17 @@ contains
 !+
 ! Subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 1.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:)            -- integer: Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -129,6 +140,17 @@ end subroutine pmd_write_int_to_dataset_rank1
 !+
 ! Subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 2.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:,:)          -- integer: Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -168,6 +190,17 @@ end subroutine pmd_write_int_to_dataset_rank2
 !+
 ! Subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 3.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:,:,:)        -- integer: Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -207,6 +240,18 @@ end subroutine pmd_write_int_to_dataset_rank3
 !+
 ! Subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_shape, error)
 !
+! Routine to write an openpmd formatted dataset of an array were all the data values are the same.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   value               -- integer: Data value.
+!   v_shape(:)          -- integer: Shape of the data array.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_shape, error)
@@ -239,6 +284,17 @@ end subroutine pmd_write_int_to_pseudo_dataset
 !+
 ! Subroutine pmd_write_real_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 1.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:)            -- real(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_real_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -278,6 +334,17 @@ end subroutine pmd_write_real_to_dataset_rank1
 !+
 ! Subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 2.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:,:)          -- real(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -317,6 +384,17 @@ end subroutine pmd_write_real_to_dataset_rank2
 !+
 ! Subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 3.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:,:,:)        -- real(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -356,6 +434,18 @@ end subroutine pmd_write_real_to_dataset_rank3
 !+
 ! Subroutine pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, value, v_shape, error)
 !
+! Routine to write an openpmd formatted dataset of an array were all the data values are the same.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   value               -- real(rp): Data value.
+!   v_shape(:)          -- integer: Shape of the data array.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, value, v_shape, error)
@@ -388,6 +478,17 @@ end subroutine pmd_write_real_to_pseudo_dataset
 !+
 ! Subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 1.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:)            -- complex(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -414,6 +515,17 @@ end subroutine pmd_write_complex_to_dataset_rank1
 !+
 ! Subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 2.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:,:)          -- complex(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -440,6 +552,17 @@ end subroutine pmd_write_complex_to_dataset_rank2
 !+
 ! Subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
 !
+! Routine to write an openpmd formatted dataset of rank 3.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!   array(:,:,:)        -- complex(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
@@ -466,6 +589,16 @@ end subroutine pmd_write_complex_to_dataset_rank3
 !+
 ! Subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 !
+! Routine to write the data units and conversion factors to a dataset.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   dataset_name        -- character(*): Name of the dataset.
+!   bmad_name           -- character(*): Equivalent Bmad name.
+!   unit                -- pmd_unit_struct: Data units.
+!
+! Output:
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
@@ -489,6 +622,17 @@ end subroutine pmd_write_units_to_dataset
 !+
 ! Subroutine pmd_read_int_dataset_rank1 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 1.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:)            -- integer: Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:)            -- integer: Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_int_dataset_rank1 (root_id, name, conversion_factor, array, error)
@@ -511,19 +655,22 @@ character(*), parameter :: r_name = 'pmd_read_int_dataset_rank1'
 info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
-call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.)
+if (error) then
+  call hdf5_close_object(obj_id, info)
+  return
+endif
 
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
   if (info%data_dim(2) /= 0) then
     call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+    call hdf5_close_object(obj_id, info)
     return
   endif
 
   call hdf5_read_dataset_int(root_id, name, array, err)
-
-!
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
@@ -544,6 +691,17 @@ end subroutine pmd_read_int_dataset_rank1
 !+
 ! Subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 2.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:,:)          -- integer: Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:,:)          -- integer: Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_int_dataset_rank2 (root_id, name, conversion_factor, array, error)
@@ -566,19 +724,22 @@ character(*), parameter :: r_name = 'pmd_read_int_dataset_rank2'
 info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
-call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.)
+if (error) then
+  call hdf5_close_object(obj_id, info)
+  return
+endif
 
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
   if (info%data_dim(2) == 0 .or. info%data_dim(3) /= 0) then
     call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT TWO-DIMENSIONAL! FOR DATA: ' // name)
+    call hdf5_close_object(obj_id, info)
     return
   endif
 
   call hdf5_read_dataset_int(root_id, name, array, err)
-
-!
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
@@ -599,6 +760,17 @@ end subroutine pmd_read_int_dataset_rank2
 !+
 ! Subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 3.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:,:,:)        -- integer: Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:,:,:)        -- integer: Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_int_dataset_rank3 (root_id, name, conversion_factor, array, error)
@@ -621,19 +793,22 @@ character(*), parameter :: r_name = 'pmd_read_int_dataset_rank3'
 info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
-call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.)
+if (error) then
+  call hdf5_close_object(obj_id, info)
+  return
+endif
 
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
   if (info%data_dim(3) == 0) then
     call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT THREE-DIMENSIONAL! FOR DATA: ' // name)
+    call hdf5_close_object(obj_id, info)
     return
   endif
 
   call hdf5_read_dataset_int(root_id, name, array, err)
-
-!
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true.)
@@ -654,6 +829,17 @@ end subroutine pmd_read_int_dataset_rank3
 !+
 ! Subroutine pmd_read_real_dataset_rank1 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 1.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:)            -- real(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:)            -- real(rp): Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_real_dataset_rank1 (root_id, name, conversion_factor, array, error)
@@ -676,19 +862,23 @@ character(*), parameter :: r_name = 'pmd_read_real_dataset_rank1'
 info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
-call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.)
+if (error) then
+  call out_io (s_error$, r_name, 'THIS ERROR GENERATED WHILE PARSING: ' // name)
+  call hdf5_close_object(obj_id, info)
+  return
+endif
 
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
   if (info%data_dim(2) /= 0) then
     call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+    call hdf5_close_object(obj_id, info)
     return
   endif
 
   call hdf5_read_dataset_real(root_id, name, array, err)
-
-!
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
@@ -709,6 +899,17 @@ end subroutine pmd_read_real_dataset_rank1
 !+
 ! Subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 2.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:,:)          -- real(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:,:)          -- real(rp): Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_real_dataset_rank2 (root_id, name, conversion_factor, array, error)
@@ -731,19 +932,22 @@ character(*), parameter :: r_name = 'pmd_read_real_dataset_rank2'
 info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
-call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.)
+if (error) then
+  call hdf5_close_object(obj_id, info)
+  return
+endif
 
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
   if (info%data_dim(2) == 0 .or. info%data_dim(3) /= 0) then
     call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT TWO-DIMENSIONAL! FOR DATA: ' // name)
+    call hdf5_close_object(obj_id, info)
     return
   endif
 
   call hdf5_read_dataset_real(root_id, name, array, err)
-
-!
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
@@ -764,6 +968,17 @@ end subroutine pmd_read_real_dataset_rank2
 !+
 ! Subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 3.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:,:,:)        -- real(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:,:,:)        -- real(rp): Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_real_dataset_rank3 (root_id, name, conversion_factor, array, error)
@@ -786,19 +1001,22 @@ character(*), parameter :: r_name = 'pmd_read_real_dataset_rank3'
 info = hdf5_object_info(root_id, name, error, .true.)
 obj_id = hdf5_open_object(root_id, name, info, error, .true.)
 
-call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.);  if (error) return
+call hdf5_read_attribute_real(obj_id, 'unitSI', unit_si, error, .true.)
+if (error) then
+  call hdf5_close_object(obj_id, info)
+  return
+endif
 
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
   if (info%data_dim(3) == 0) then
     call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT THREE-DIMENSIONAL! FOR DATA: ' // name)
+    call hdf5_close_object(obj_id, info)
     return
   endif
 
   call hdf5_read_dataset_real(root_id, name, array, err)
-
-!
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true.)
@@ -819,6 +1037,17 @@ end subroutine pmd_read_real_dataset_rank3
 !+
 ! Subroutine pmd_read_complex_dataset_rank1 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 1.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:)            -- complex(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:)            -- complex(rp): Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_complex_dataset_rank1 (root_id, name, conversion_factor, array, error)
@@ -858,6 +1087,17 @@ end subroutine pmd_read_complex_dataset_rank1
 !+
 ! Subroutine pmd_read_complex_dataset_rank2 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 2.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:,:)          -- complex(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:,:)          -- complex(rp): Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_complex_dataset_rank2 (root_id, name, conversion_factor, array, error)
@@ -897,6 +1137,17 @@ end subroutine pmd_read_complex_dataset_rank2
 !+
 ! Subroutine pmd_read_complex_dataset_rank3 (root_id, name, conversion_factor, array, error)
 !
+! Routine to read an openpmd formatted dataset of rank 3.
+!
+! Input:
+!   root_id             -- integer(hid_t): Root group containing the dataset.
+!   name                -- character(*): Name of the dataset.
+!   conversion_factor   -- real(rp): Conversion factor from SI units to Bmad units.
+!   array(:,:,:)        -- complex(rp): Array to hold the data. Must be of the correct size.
+!
+! Output:
+!   array(:,:,:)        -- complex(rp): Array with data.
+!   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
 subroutine pmd_read_complex_dataset_rank3 (root_id, name, conversion_factor, array, error)

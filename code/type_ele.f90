@@ -1233,7 +1233,11 @@ character(40) value, name
 nl2 = nl2 + 1
 line => li(nl2)
 
-if (nl < nl2) nl = nl2  ! In case number of second column parameters exceeds number of first column parameters.
+! If the number of second column parameters exceeds number of first column parameters.
+if (nl < nl2) then
+  nl = nl2
+  line = ''  ! In case there is garbage
+endif
 
 if (present(re_val)) then
   write (value, '(es15.7)') re_val
