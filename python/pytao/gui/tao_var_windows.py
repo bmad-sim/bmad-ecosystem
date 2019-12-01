@@ -216,18 +216,18 @@ class tao_new_var_window(Tao_Toplevel):
         missing_atts = [] #variables with element must have an attribute
         for v1_frame in self.v1_frame_list:
             # Check names
-            if v1_frame.name_handler():
+            if not v1_frame.name_handler(strict=True):
                 name_m = "Please check v1_array names."
                 if name_m not in messages:
                     messages.append(name_m)
             # Check min indices
-            if v1_frame.ix_min_handler():
+            if not v1_frame.ix_min_handler(strict=True):
                 messages.append("Please check the start index for " + v1_frame.name)
-            # Check max indices
-            if v1_frame.ix_max_handler():
+            # Check lengths
+            if not v1_frame.length_handler(strict=True):
                 messages.append("Please check the end index for " + v1_frame.name)
             # Check low/high limits
-            if v1_frame.low_high_handler():
+            if not v1_frame.low_high_handler(strict=True):
                 messages.append("Please check the low and high limits for " + v1_frame.name)
             # Check for semicolons in any fields
             semi_message = "Semicolons not allowed in any input field"
@@ -348,7 +348,7 @@ class tao_new_var_window(Tao_Toplevel):
 
     def tab_handler(self, event=None):
         '''
-        Handles new tab creation and updates self.d1_index as necessary
+        Handles new tab creation and updates self.v1_index as necessary
         '''
         # Check if the new tab frame has been selected
         if self.notebook.select() == self.new_tab_frame._w:
@@ -356,7 +356,7 @@ class tao_new_var_window(Tao_Toplevel):
             self.v1_frame_list.append(new_v1_frame(self))
             self.v1_index = len(self.v1_frame_list)-1
             self.notebook.insert(self.v1_index, self.v1_frame_list[-1])
-            self.notebook.tab(self.d1_index, text='New v1_array')
+            self.notebook.tab(self.v1_index, text='New v1_array')
             self.notebook.select(self.v1_index)
         else:
             # Update self.v1_index
@@ -407,9 +407,9 @@ class new_v1_frame(tk.Frame):
                 v1_ttp('ix_max;INT;T;')]
         # v1 labels (NAMES AS STRINGS ONLY)
         self.v1_array_labels = ["v1_array Name:", "Default universe:", "Default attribute:",
-                "Default weight:", "Default step:", "Default merit type",
-                "Default low_lim:", "Default high_lim", "Default good_user",
-                "Default key_bound", "Default key_delta", "Start index", "End index"]
+                "Default weight:", "Default step:", "Default merit type:",
+                "Default low_lim:", "Default high_lim:", "Default good_user:",
+                "Default key_bound:", "Default key_delta:", "Base index:", "Array length:"]
         # Grid widgets and labels:
         for i in range(len(self.v1_array_wids)):
             tk.Label(self, text=self.v1_array_labels[i]).grid(row=i+3, column=0, sticky='W')
@@ -418,20 +418,26 @@ class new_v1_frame(tk.Frame):
 
         # Warning labels
         # (defined here to be gridded/ungridded as necessary)
-        self.name_warning_1 = tk.Label(self, text="Must not be empty")
-        self.name_warning_2 = tk.Label(self, text="v1 name already in use")
-        self.ix_min_warning_1 = tk.Label(self, text="Must be a non-negative integer")
-        self.ix_min_warning_2 = tk.Label(self, text="Cannot be larger than the maximum index")
-        self.ix_max_warning_1 = tk.Label(self, text="Must be a non-negative integer")
-        self.ix_max_warning_2 = tk.Label(self, text="Cannot be smaller than the minimum index")
-        self.low_high_warning_1 = tk.Label(self, text="Must be a real number")
-        self.low_high_warning_2 = tk.Label(self, text="Must be a real number")
-        self.low_high_warning_3 = tk.Label(self, text="Min value must be smaller than max value")
+        self.name_warning_empty = tk.Label(self, text="Must not be empty")
+        self.name_warning_invalid = tk.Label(self, text="v1 name already in use")
+        self.ix_min_warning = tk.Label(self, text="Must be a non-negative integer")
+        self.length_warning = tk.Label(self, text="Must be a positive integer")
+        self.low_warning = tk.Label(self, text="Must be a real number")
+        self.high_warning = tk.Label(self, text="Must be a real number")
+        self.low_high_warning = tk.Label(self, text="Min value must be smaller than max value")
+
+        # Grid settings for the above warnings
+        self.name_warning_gs = {"row":3, "column":2, "sticky":'EW'}
+        self.ix_min_warning_gs = {"row":14, "column":2, "sticky":'EW'}
+        self.length_warning_gs = {"row":15, "column":2, "sticky":'EW'}
+        self.low_warning_gs = {"row":9, "column":3, "sticky":'EW'}
+        self.high_warning_gs = {"row":10, "column":3, "sticky":'EW'}
+        self.low_high_warning_gs = {"row":9, "column":3, "rowspan":2, "sticky":'EW'}
 
         # Responses to edits
         self.v1_array_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
         self.v1_array_wids[11].tk_wid.bind('<FocusOut>', self.ix_min_handler)
-        self.v1_array_wids[12].tk_wid.bind('<FocusOut>', self.ix_max_handler)
+        self.v1_array_wids[12].tk_wid.bind('<FocusOut>', self.length_handler)
         self.v1_array_wids[6].tk_wid.bind('<FocusOut>', self.low_high_handler)
         self.v1_array_wids[7].tk_wid.bind('<FocusOut>', self.low_high_handler)
 
@@ -533,7 +539,7 @@ class new_v1_frame(tk.Frame):
         self.update_idletasks()
         self.parent.v1_frame_list[-1].name_handler()
         self.parent.v1_frame_list[-1].ix_min_handler()
-        self.parent.v1_frame_list[-1].ix_max_handler()
+        self.parent.v1_frame_list[-1].length_handler()
 
     def make_var_frame(self, event=None):
         '''
@@ -665,151 +671,215 @@ class new_v1_frame(tk.Frame):
         When the elements are chosen, ele_which will be set for each of this
         v1_array's variables sequentially
         '''
-        # Make sure the name, ix_min, and ix_max are set
-        if (bool(self.name_handler()) | bool(self.ix_min_handler())
-                | bool(self.ix_max_handler()) | bool(self.low_high_handler())):
+        # Make sure ix_min and length are not invalidly set
+        if (self.ix_min_handler() == False) or (self.length_handler() == False):
             return
-        #
-        win = tao_ele_browser(self.parent.root, self.pipe, self.name, self, 'var')
+        # Autosize the array if self.length == -1
+        if self.length == -1:
+            autosize = True
+        else:
+            autosize = False
+        win = tao_ele_browser(self.parent.root, self.pipe, self.name, self, 'var', autosize=autosize)
 
-    def name_handler(self, event=None):
+    def name_handler(self, event=None, strict=False):
         '''
-        Changes the tab name to match the v1_name
-        Returns 1 if unsuccessful
+        Checks whether the input name is valid, and
+        sets the tab name to it if it is
+        Returns True if the name is valid,
+        False if the name is already in use by another v1,
+        and None if the name is empty
+        If strict is set True, a warning will be displayed
+        for an empty name
         '''
         if self.handler_block:
             return
         name = self.v1_array_wids[0].tk_var.get().strip()
-        if name != "":
-            # Make sure the name isn't already in use
-            i = 0
-            for v1 in self.parent.v1_frame_list:
-                if (v1.name == name) & (self != self.parent.v1_frame_list[i]):
-                    self.name_warning_1.grid_forget()
-                    self.name_warning_2.grid(row=3, column=2, sticky='W')
-                    return 1
-                i = i+1
-
-            self.parent.notebook.tab(self.parent.v1_index, text=name)
-            self.name_warning_1.grid_forget()
-            self.name_warning_2.grid_forget()
-            self.name = name
-            if self.name == self.clone_of:
-                return # prevent repeatedly calling this method
-            # Check if v1_array already exists in tao
-            v1_list = self.pipe.cmd_in('python var_general').splitlines()
-            for line in v1_list:
-                if line.split(';')[0] == name:
-                    ans_var = tk.StringVar()
-                    tao_message_box(self.parent.root, self.parent, ans_var,
-                            title=name+ " already exists",
-                            message=name + " is already defined.    Would you like to edit its existing properties or overwrite them?",
-                            choices=['Edit', 'Overwrite'])
-                    if ans_var.get() == 'Edit':
-                        self.clone(self.name)
-        else:
-            self.name_warning_2.grid_forget()
-            self.name_warning_1.grid(row=3, column=2, sticky='W')
+        if name == "":
+            self.name_warning_invalid.grid_forget()
+            self.name_warning_empty.grid_forget()
+            # Warning in strict mode
+            if strict:
+                self.name_warning_empty.grid(**self.name_warning_gs)
             self.name = "New v1_array"
             self.parent.notebook.tab(self.parent.v1_index, text="New v1_array")
-            return 1
+            return None
+        # Name is nonempty
+        # -> check if it's already in use
+        i = 0
+        for v1 in self.parent.v1_frame_list:
+            if (v1.name == name) & (self != self.parent.v1_frame_list[i]):
+                self.name_warning_empty.grid_forget()
+                self.name_warning_invalid.grid(**self.name_warning_gs)
+                return False
+            i = i+1
 
-    def ix_min_handler(self, event=None):
+        # Name is nonempty and valid
+        self.parent.notebook.tab(self.parent.v1_index, text=name)
+        self.name_warning_empty.grid_forget()
+        self.name_warning_invalid.grid_forget()
+        self.name = name
+        if self.name == self.clone_of:
+            return True # prevent repeatedly calling this method
+        # Check if v1_array already exists in tao
+        v1_list = self.pipe.cmd_in('python var_general').splitlines()
+        for line in v1_list:
+            if line.split(';')[0] == name:
+                ans_var = tk.StringVar()
+                tao_message_box(self.parent.root, self.parent, ans_var,
+                        title=name+ " already exists",
+                        message=name + " is already defined.    Would you like to edit its existing properties or overwrite them?",
+                        choices=['Edit', 'Overwrite'])
+                if ans_var.get() == 'Edit':
+                    self.clone(self.name)
+        return True
+
+    def ix_min_handler(self, event=None, strict=False):
+        '''
+        Checks if the starting index is valid,
+        and updates self.ix_min if it is.
+        Returns True if a good index is set,
+        False if a bad index is set
+        (non-integer or greater than ix_max),
+        and None if the ix_min field is empty
+        If strict is set true, prints a warning message
+        for an empty ix_min
+        '''
         if self.handler_block:
             return
+        # Check if min index is empty
+        ix_min = self.v1_array_wids[11].tk_var.get().strip()
+        if ix_min == "":
+            self.ix_min = -1
+            self.ix_min_warning.grid_forget()
+            if strict:
+                self.ix_min_warning.grid(**self.ix_min_warning_gs)
+            #print("ix_min empty")
+            return None
+        # Check if min index is a non-negative integer
         try:
-            ix_min = int(self.v1_array_wids[11].tk_var.get())
+            ix_min = int(ix_min)
         except ValueError:
             ix_min = -1
-        if ix_min > -1:
-            self.ix_min = ix_min
-            if (ix_min <= self.ix_max) | (self.ix_max == -1):
-                self.ix_min_warning_1.grid_forget()
-                self.ix_min_warning_2.grid_forget()
-            else:
-                self.ix_min_warning_1.grid_forget()
-                self.ix_min_warning_2.grid(row=14, column=2, sticky='W')
-                return 1
-        else:
-            self.ix_min_warning_2.grid_forget()
-            self.ix_min_warning_1.grid(row=14, column=2, sticky='W')
-            return 1
-        # Update the data index range if possible
-        if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
+        if ix_min < 0:
+            self.ix_min_warning.grid(**self.ix_min_warning_gs)
+            self.ix_min = -1
+            #print("ix_min invalid")
+            return False
+        # ix_min is a good value -> update self.ix_min
+        #print("valid ix_min")
+        self.ix_min = ix_min
+        self.ix_min_warning.grid_forget()
+        # Update the data index range if self.length is set
+        if self.length != -1:
+            #print("updating ix_max and data_chooser")
+            self.ix_max = self.ix_min + self.length - 1
             self.var_chooser.configure(values=list(range(self.ix_min, self.ix_max+1)))
+        return True
 
-    def ix_max_handler(self, event=None):
+    def length_handler(self, event=None, strict=False):
+        '''
+        Checks that the v1 array length has been set
+        to a valid value, and updates self.length if it has.
+        Returns True if the length has been set to a valid
+        (positive integer) value, False if set to an invalid
+        value, and None if left blank.
+        '''
         if self.handler_block:
+            #print("handler blocked")
             return
+        # Check if length is empty
+        length = self.v1_array_wids[12].tk_var.get().strip()
+        if length == "":
+            self.length = -1
+            self.length_warning.grid_forget()
+            if strict:
+                self.length_warning.grid(**self.length_warning_gs)
+            #print("length empty")
+            return None
+        # Check if length is a positive integer
         try:
-            ix_max = int(self.v1_array_wids[12].tk_var.get())
+            length = int(length)
         except ValueError:
-            ix_max = -1
-        if ix_max > -1:
-            self.ix_max = ix_max
-            if ix_max >= self.ix_min:
-                self.ix_max_warning_1.grid_forget()
-                self.ix_max_warning_2.grid_forget()
-            else:
-                self.ix_max_warning_1.grid_forget()
-                self.ix_max_warning_2.grid(row=15, column=2, sticky='W')
-                return 1
-        else:
-            self.ix_max_warning_2.grid_forget()
-            self.ix_max_warning_1.grid(row=15, column=2, sticky='W')
-            return 1
-        # Update the variable index range if possible
-        if (self.ix_min > -1) & (self.ix_max >= self.ix_min):
+            length = -1
+        if length < 1:
+            self.length_warning.grid(**self.length_warning_gs)
+            self.length = -1
+            #print("length invalid")
+            return False
+        # length is a good value -> update self.length
+        self.length = length
+        self.length_warning.grid_forget()
+        #print("length valid")
+        #print("self.ix_min:" + str(self.ix_min))
+        # Update the data index range if self.ix_min is set
+        if self.ix_min != -1:
+            #print("updating self.ix_max and data_chooser")
+            self.ix_max = self.ix_min + self.length - 1
             self.var_chooser.configure(values=list(range(self.ix_min, self.ix_max+1)))
+        return True
 
-    def low_high_handler(self, event=None):
+    def low_high_handler(self, event=None, strict=False):
         '''
         Verifies that the min and max values are set to good values
-        returns 1 if they are not
+        Returns True if they are,
+        False if at least one is set invalidly,
+        or None otherwise (at least one is blank)
+        Prints an error for an empty low or high limit
+        if strict is set True
         '''
         if self.handler_block:
             return
-        # Low limit
-        fail = False
-        if self.v1_array_wids[6].tk_var.get() != "":
+        self.low_warning.grid_forget()
+        self.high_warning.grid_forget()
+        self.low_high_warning.grid_forget()
+        # Check if both limits are empty
+        low_lim = self.v1_array_wids[6].tk_var.get()
+        high_lim = self.v1_array_wids[7].tk_var.get()
+        if (low_lim == "") and (high_lim == ""): #both are empty
+            if strict:
+                self.low_warning.grid(**self.low_warning_gs)
+                self.high_warning.grid(**self.high_warning_gs)
+            return None
+        elif (low_lim == ""): #low is empty
             try:
-                low_lim = float(self.v1_array_wids[6].tk_var.get())
-            except ValueError:
-                low_lim = None
-            if low_lim == None:
-                self.low_high_warning_1.grid(row=9, column=2, sticky='W')
-                fail = True
-            else:
-                self.low_high_warning_1.grid_forget()
-        else:
-            low_lim = None
-
-        # High limit
-        if self.v1_array_wids[7].tk_var.get() != "":
-            try:
-                high_lim = float(self.v1_array_wids[7].tk_var.get())
+                high_lim = float(high_lim)
             except ValueError:
                 high_lim = None
+            if strict:
+                self.low_warning.grid(**self.low_warning_gs)
             if high_lim == None:
-                self.low_high_warning_2.grid(row=10, column=2, sticky='W')
-                fail = True
-            else:
-                self.low_high_warning_2.grid_forget()
-        else:
-            high_lim = None
-
-        # Make sure low < high
-        if (low_lim != None) & (high_lim != None):
-            if low_lim > high_lim:
-                self.low_high_warning_3.grid(row=9, column=2, sticky='W')
-                fail = True
-            else:
-                self.low_high_warning_3.grid_forget()
-        else:
-            self.low_high_warning_3.grid_forget()
-
-        if fail:
-            return 1
+                self.high_warning.grid(**self.high_warning_gs)
+                return False
+            return None
+        elif (high_lim == ""): #high is empty
+            try:
+                low_lim = float(low_lim)
+            except ValueError:
+                low_lim = None
+            if strict:
+                self.high_warning.grid(**self.high_warning_gs)
+            if low_lim == None:
+                self.low_warning.grid(**self.low_warning_gs)
+                return False
+            return None
+        else: #neither are empty
+            try:
+                low_lim = float(low_lim)
+            except ValueError:
+                low_lim = None
+                self.low_warning.grid(**self.low_warning_gs)
+            try:
+                high_lim = float(high_lim)
+            except ValueError:
+                high_lim = None
+                self.high_warning.grid(**self.high_warning_gs)
+            if None in [low_lim, high_lim]:
+                return False
+            # Check that low_lim < high_lim
+            if not (low_lim < high_lim):
+                self.low_high_warning.grid(**self.low_high_warning_gs)
+                return False
+            return True
 
     def clone(self, v1_array):
         '''
@@ -829,7 +899,7 @@ class new_v1_frame(tk.Frame):
         self.v1_array_wids[11].tk_var.set(line[2])
         self.v1_array_wids[12].tk_var.set(line[3])
         self.ix_min_handler()
-        self.ix_max_handler()
+        self.length_handler()
         # copy inidividual variable info
         var_params = ['ele_name', 'attribute', 'weight', 'step', 'var^merit_type', 'low_lim', 'high_lim', 'good_user', 'key_bound', 'key_delta']
         self.var_dict = {}
