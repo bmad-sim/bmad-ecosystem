@@ -51,6 +51,8 @@ class tao_var_general_window(tao_list_window):
                     command=self.open_v1_callback(item[0])).grid(row=i, column=1)
             tk.Button(self.list_frame, text="Edit...",
                     command=self.edit_v1_callback(item[0])).grid(row=i, column=2)
+            tk.Button(self.list_frame, text="Delete...",
+                    command=self.delete_v1_callback(item[0])).grid(row=i, column=3)
             #tk.Button(self.list_frame, text="Write...",
             #        command=self.write_v1).grid(row=i, column=3)
             tk.Label(self.list_frame,text=item[2] +':'+ item[3]).grid(row=i,column=4)
@@ -68,6 +70,21 @@ class tao_var_general_window(tao_list_window):
 
     def edit_v1(self, v1_var_name):
         win = tao_new_var_window(self.root, self.pipe, default=v1_var_name)
+
+    def delete_v1_callback(self, v1_var_name):
+        return lambda : self.delete_v1(v1_var_name)
+
+    def delete_v1(self, v1_var_name):
+        ans = messagebox.askokcancel(title="Delete " + v1_var_name + "?",
+                message="Are you sure you want to delete " + v1_var_name
+                + "?")
+        if ans:
+            self.pipe.cmd_in("python var_v1_destroy " + v1_var_name)
+            for win in self.root.refresh_windows['var']:
+                win.refresh()
+            for win in self.root.refresh_windows['plot']:
+                win.refresh()
+
 
 #  def write_v1_callback(self, v1_var_name):
 #        return lambda : self.write_v1(v1_var_name)
