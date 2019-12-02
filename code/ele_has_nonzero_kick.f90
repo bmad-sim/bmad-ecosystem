@@ -5,9 +5,6 @@
 ! Kicks are something hkick$, bl_vkick$, etc.
 ! See also: zero_ele_kicks, ele_has_offset, zero_ele_offsets.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input
 !   ele -- Ele_struct: Element with possible nonzero kicks.
 !

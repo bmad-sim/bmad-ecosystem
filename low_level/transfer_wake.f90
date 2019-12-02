@@ -3,9 +3,6 @@
 !
 ! Subroutine to transfer the wake info from one struct to another.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   wake_in -- Wake_struct, pointer: Input wake.
 !

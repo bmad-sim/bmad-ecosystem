@@ -6,9 +6,6 @@
 ! Note: This routine may reallocate the lat%branch arrays so
 ! any pointers to elements will need to be repointed.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !     lat -- lat_struct: Lat used
 !

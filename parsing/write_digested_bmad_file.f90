@@ -5,9 +5,6 @@
 ! to create the LAT structure are also put in the digested file and are used
 ! by other routines to check if the digested file is out of date.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   digested_name -- Character(*): Name for the digested file.
 !   lat           -- lat_struct: Input lat structure.

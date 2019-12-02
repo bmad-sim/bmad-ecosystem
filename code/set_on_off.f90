@@ -11,9 +11,6 @@
 ! For real and integer attributes, switch = on$ and switch = restore_state$ have the same meaning 
 ! and the value that is set is optained from the saved_values argument (which must be present.)
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   key             -- integer: Class name of elements to be turned on or off. [quadrupole$, etc.]
 !   lat             -- lat_struct: lattice structure holding the elements.

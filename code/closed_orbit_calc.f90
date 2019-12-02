@@ -38,9 +38,6 @@
 ! Note: See also closed_orbit_from_tracking as an alternative method
 ! of finding the closed orbit.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat            -- lat_struct: Lat to track through.
 !   closed_orb(0:) -- Coord_struct, allocatable: closed_orb(nt) 

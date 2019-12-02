@@ -100,9 +100,6 @@ end subroutine
 ! Note: The resulting model does not have the vertical cubic nonlinearity that
 ! the actual wiggler has.
 !
-! Modules needed:
-!   use element_modeling_mod
-!
 ! Input:
 !   wiggler       -- Ele_struct: Planar model wiggler to match to.
 !   wig_model_com -- Wiggler_modeling_common_struct: Global variable that can be used

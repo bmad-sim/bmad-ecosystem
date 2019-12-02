@@ -31,9 +31,6 @@
 !   This can be done in the calling routine with:
 !       orbit(ix_start)%species = antiparticle(default_tracking_species(lat%branch(ix_branch)%param))
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat             -- lat_struct: Lat to track through.
 !   orbit(ix_start)  -- Coord_struct: Coordinates at start of tracking.

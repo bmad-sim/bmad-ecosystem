@@ -295,9 +295,6 @@ end subroutine transfer_this_map
 ! elements (ele%mat6) are consistant with the reference orbit given by the "orbit" argument.
 ! If this is not true, lat_make_mat6 must be called before hand.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat        -- Lat_struct: Lattice used in the calculation.
 !   mat6(6,6)  -- Real(rp): Initial matrix (used when unit_start = False)

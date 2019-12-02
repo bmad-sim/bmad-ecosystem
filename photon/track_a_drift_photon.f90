@@ -3,9 +3,6 @@
 !
 ! Subroutine to track a particle as through a drift.
 !
-! Modules needed:
-!   use fringe_mod
-!
 ! Input:
 !   orb      -- coord_struct: Orbit at start of the drift.
 !   length   -- real(rp): Longitudinal length to drift through.

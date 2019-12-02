@@ -1,11 +1,13 @@
 !+
-! Subroutine hdf5_read_beam (file_name, beam, error, pmd_header)
+! Subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
 !
 ! Routine to read a beam data file. 
 ! See also hdf5_write_beam
 !
 ! Input:
 !   file_name         -- character(*): Name of the beam data file.
+!   ele               -- ele_struct: Element where beam is to be started from.
+!                           The element reference momentum will be used for the particle reference momentum.
 !
 ! Output:
 !   beam              -- beam_struct: Particle positions.
@@ -13,7 +15,7 @@
 !   pmd_header        -- pmd_header_struct, optional: Extra info like file creation date.
 !-
 
-subroutine hdf5_read_beam (file_name, beam, error, pmd_header)
+subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
 
 use bmad_interface, dummy => hdf5_read_beam
 use hdf5_openpmd_mod
@@ -24,6 +26,7 @@ use iso_c_binding
 implicit none
 
 type (beam_struct), target :: beam
+type (ele_struct), optional :: ele
 type (pmd_header_struct), optional :: pmd_header
 type (pmd_header_struct) :: pmd_head
 type (pmd_unit_struct) unit
@@ -106,9 +109,7 @@ n_bunch = 0
 call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, cv_ptr, state, h5_err)
 call H5Gclose_f(z_id, h5_err)
 
-! And end
-
-error = .false.
+! Note: hdf5_read_bunch (called by H5Literate_f above) will set the error flag as appropriate.
 
 9000 continue
 call h5fclose_f(f_id, h5_err)
@@ -133,8 +134,6 @@ integer(hid_t) g_id, g2_id, g3_id, g4_id, a_id
 integer(hsize_t) idx
 integer n, stat, h5_stat, ia, ip, species
 integer, allocatable :: charge_state(:)
-
-logical error
 
 character(1) :: g_name_c(*)
 character(:), allocatable :: string
@@ -165,15 +164,26 @@ g2_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error
 
 call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.)
 if (error) return
-call reallocate_bunch(bunch, n)
-bunch%particle = coord_struct()
-allocate (dt(n), charge_state(n), pz(n))
 
-! Get attributes.
+! Init particles
 
 charge_factor = 0
 species = int_garbage$  ! Garbage number
 charge_state = 0
+
+call reallocate_bunch(bunch, n)
+bunch%particle = coord_struct()
+bunch%particle%state = alive$
+bunch%particle%charge = 1
+if (present(ele)) then
+  bunch%particle%ix_ele = ele%ix_ele
+  bunch%particle%ix_branch = ele%ix_branch
+  if (associated(ele%branch)) species = ele%branch%param%particle
+endif
+
+allocate (dt(n), charge_state(n), pz(n))
+
+! Get attributes.
 
 do ia = 1, hdf5_num_attributes (g2_id)
   call hdf5_get_attribute_by_index(g2_id, ia, a_id, a_name)
@@ -279,6 +289,12 @@ if (error) then
   return
 endif
 
+if (species == int_garbage$) then
+  call out_io (s_error$, r_name, 'SPECIES OF PARTICLE NOT PRESENT WHILE READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
+  error = .true.
+  return
+endif
+
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
   p%t = p%t + dt(ip)
@@ -288,6 +304,12 @@ do ip = 1, size(bunch%particle)
   else
     p%species = set_species_charge(species, charge_state(ip))
     call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)
+    if (present(ele)) p%p0c = ele%value(p0c$)
+    if (p%p0c == 0) then
+      call out_io (s_error$, r_name, 'REFERENCE MOMENTUM NOT PRESENT WHILE READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
+      error = .true.
+      return
+    endif
     p%vec(5) = -p%beta * c_light * dt(ip)
     p%vec(2) = p%vec(2) / p%p0c
     p%vec(4) = p%vec(4) / p%p0c

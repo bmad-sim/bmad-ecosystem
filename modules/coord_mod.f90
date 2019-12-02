@@ -22,9 +22,6 @@ use pointer_to_branch_mod
 ! If, at input, coord(:) is not allocated, coord(0)%vec is set to zero.
 ! In any case, coord(n)%vec for n > 0 is set to zero.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   coord(:)  -- Coord_struct, allocatable: Allocatable array.
 !   n_coord   -- Integer: Minimum array upper bound wanted.
@@ -64,9 +61,6 @@ private reallocate_coord_n, reallocate_coord_lat
 !   orb%vec(5) is set depending upon where the photon is relative to the element.
 !   If orb is a photon, and orb_in is not a photon, photon is launched in same direciton as particle 
 !       except if direction is set.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   orb_in       -- coord_struct: Input orbit.
@@ -197,9 +191,6 @@ end subroutine reallocate_coord_lat
 ! Note: Any old coordinates are not saved except for coord_array(:)%orbit(0).
 ! If, at input, coord_array is not allocated, coord_array(:)%orbit(0)%vec is set to zero.
 ! In any case, all other %vec components are set to zero.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   coord(:) -- Coord_struct, allocatable: Allocatable array.

@@ -4,9 +4,6 @@
 ! Routine to transfer parameters from a PTC fibre to one, or more if needed, bmad lattice elements.
 ! For example, a fibre with a patch needs multiple elements.
 !
-! Module Needed:
-!   use ptc_layout_mod
-!
 ! Input:
 !   ptc_fibre     -- fibre: PTC fibre.
 !   ix_ele        -- integer: Index in ele(:) array of element last used.

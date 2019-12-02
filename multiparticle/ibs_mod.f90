@@ -39,28 +39,25 @@ contains
 !-------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------
 !+
-!  Subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up,granularity)
-!  Iterates to equilibrium beam conditions using relaxation method
+! Subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up,granularity)
+! Iterates to equilibrium beam conditions using relaxation method
 !
-!  This method requires that the initial beam size be larger than the equilibrium beam size.
-!  An initial_blow_up of 3 to 5 is a good place to start.
+! This method requires that the initial beam size be larger than the equilibrium beam size.
+! An initial_blow_up of 3 to 5 is a good place to start.
 !
-!  See ibs_rates subroutine for available IBS rate formulas.
+! See ibs_rates subroutine for available IBS rate formulas.
 !
-!  Modules needed:
-!    use ibs_mod
+! Input:
+!   lat             -- lat_struct: lattice for tracking
+!     %param%n_part  -- Real: number of particles in bunch
+!   ibs_sim_params   -- ibs_sim_param_struct: parameters for IBS calculation
+!   inmode           -- normal_modes_struct: natural beam parameters 
+!   ratio            -- Real: Ratio of vert_emit_coupling / vert_emit_total
+!   initial_blow_up  -- Real: Factor multiplied to all thre bunch dimensions prior to starting iteration.
+!   granularity      -- Real: Step size for slicing lattice.  i.e. set to 1 to calculate IBS rates every 1 meter.
 !
-!  Input:
-!    lat             -- lat_struct: lattice for tracking
-!      %param%n_part  -- Real: number of particles in bunch
-!    ibs_sim_params   -- ibs_sim_param_struct: parameters for IBS calculation
-!    inmode           -- normal_modes_struct: natural beam parameters 
-!    ratio            -- Real: Ratio of vert_emit_coupling / vert_emit_total
-!    initial_blow_up  -- Real: Factor multiplied to all thre bunch dimensions prior to starting iteration.
-!    granularity      -- Real: Step size for slicing lattice.  i.e. set to 1 to calculate IBS rates every 1 meter.
-!
-!  Output:
-!    ibsmode          -- normal_modes_struct: beam parameters after IBS effects
+! Output:
+!   ibsmode          -- normal_modes_struct: beam parameters after IBS effects
 !-
 
 subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up,granularity)
@@ -225,9 +222,6 @@ end subroutine ibs_equib_rlx
 !
 !  Computes equilibrium beam sizes by calculating emittance growth rates from IBS growth rates.
 !  Steps beam size through time till equilibrium is reached.
-!
-!  Modules needed:
-!    use ibs_mod
 !
 !  Input:
 !    lat             -- lat_struct: lattice for tracking

@@ -15,9 +15,6 @@ module integration_timer_mod
 !    integration_timer_ele (ele, param, start, orb_max, tol)
 !    integration_timer_fibre (a_fibre, orbit, orbit_max, tol_dp)
 ! 
-! Modules Needed:
-!   use integration_timer_mod
-!
 ! Input:
 !   ele      -- Ele_struct: Element to track through.
 !   param    -- lat_param_struct:

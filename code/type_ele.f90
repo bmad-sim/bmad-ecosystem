@@ -5,9 +5,6 @@
 ! Subroutine to print or put in a string array information on a lattice element.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele               -- Ele_struct: Element
 !   type_zero_attrib  -- Logical, optional: If False then surpress printing of

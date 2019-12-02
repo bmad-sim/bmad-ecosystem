@@ -40,9 +40,6 @@ contains
 ! If the map exists then it is simply used to calculate ele%mat6. 
 ! If ele%taylor doesn't exist then calculate it.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele    -- Ele_struct: Element with transfer matrix.
 !   param  -- lat_param_struct: Lattice parameters.
@@ -88,9 +85,6 @@ end subroutine make_mat6_mad
 ! Subroutine make_mad_map (ele, param, energy, map)
 !
 ! Subroutine to make a 2nd order transport map a la MAD.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele      -- Ele_struct: Element
@@ -179,9 +173,6 @@ end subroutine make_mad_map
 !
 ! Subroutine to add in the effect of element offsets and/or multipoles
 ! on the 2nd order transport map for the element.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele    -- Ele_struct: Drift element.
@@ -334,9 +325,6 @@ end subroutine mad_add_offsets_and_multipoles
 ! Subroutine to make a transport map for a drift space.
 ! The equivalent MAD-8 routine is: TMDRF
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele    -- Ele_struct: Drift element.
 !   energy -- Mad_energy_struct: particle energy structure.
@@ -394,9 +382,6 @@ end subroutine mad_drift
 !
 ! Subroutine to make a transport map for an electric separator. 
 ! The equivalent MAD-8 routine is: TMSEP
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele    -- Ele_struct: Electric seperator element.
@@ -527,9 +512,6 @@ end subroutine mad_elsep
 ! Subroutine to make a transport map for an sextupole.
 ! The equivalent MAD-8 routine is: TMSEXT
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele    -- Ele_struct: Sextupole element.
 !   energy -- Mad_energy_struct: particle energy structure.
@@ -621,9 +603,6 @@ end subroutine mad_sextupole
 ! Subroutine to make a transport map for a sector bend element.
 ! The equivalent MAD-8 routine is: TMBEND
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele    -- Ele_struct: Sbend element.
 !   energy -- Mad_energy_struct: particle energy structure.
@@ -683,9 +662,6 @@ end subroutine mad_sbend
 !
 ! Subroutine to make a transport map for the fringe field of a dipole.
 ! The equivalent MAD-8 routine is: TMFRNG
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele    -- Ele_struct: Solenoid element.
@@ -773,9 +749,6 @@ end subroutine mad_sbend_fringe
 !
 ! Subroutine to make a transport map for the body of a sector dipole.
 ! The equivalent MAD-8 routine is: TMSECT
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele    -- Ele_struct: Solenoid element.
@@ -1065,9 +1038,6 @@ end subroutine mad_tmfoc
 ! Subroutine to make a transport map for an quadrupole element.
 ! The equivalent MAD-8 routine is: TMSEXT
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele    -- Ele_struct: Quadrupole element.
 !   energy -- Mad_energy_struct: particle energy structure.
@@ -1184,9 +1154,6 @@ end subroutine mad_quadrupole
 ! Subroutine to make a transport map for an rfcavity element.
 ! The equivalent MAD-8 routine is: TMRF
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele    -- Ele_struct: Rfcavity element.
 !   energy -- Mad_energy_struct: particle energy structure.
@@ -1236,9 +1203,6 @@ end subroutine mad_rfcavity
 !
 ! Subroutine to make a transport map for an solenoid.
 ! The equivalent MAD-8 routine is: TMSEXT
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   ele    -- Ele_struct: Solenoid element.
@@ -1352,9 +1316,6 @@ end subroutine mad_solenoid
 !
 ! subroutine to symmertrize the 2nd order map t.
 ! The equivalent MAD-8 routine is: tmsymm
-!
-! Modules needed:
-!   use bmad
 !
 ! input:
 !   te(6,6,6) -- real(rp): array to be symmertrized.
@@ -1501,9 +1462,6 @@ end subroutine mad_tmtilt
 !     map3 = map2(map1)
 ! The equivalent MAD-8 routine is: TMCAT1
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   map1 -- Mad_map_struct: First map in the beam line.
 !   map2 -- Mad_map_struct: Second map in the beam line.
@@ -1585,9 +1543,6 @@ end subroutine mad_concat_map2
 ! Subroutine to track through a 2nd order transfer map.
 ! The equivalent MAD-8 routine is: TMTRAK
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   c0   -- Coord_struct: Starting coords.
 !   map -- Mad_map_struct:  2nd order map.
@@ -1629,9 +1584,6 @@ end subroutine mad_track1
 !
 ! Subroutine to track through an element using a 2nd order transfer map.
 ! Note: If map does not exist then one will be created. 
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   start_orb  -- Coord_struct: Starting coords.
@@ -1689,9 +1641,6 @@ end subroutine track1_mad
 !
 ! Subroutine to convert a MAD order 2 map to a Bmad taylor map.
 ! The conversion will also convert between MAD's (dE, t) and Bmad's (dP, beta*t) coords.
-!
-! modules needed:
-!   use mad_mod
 !
 ! Input:
 !   map       -- Mad_map_struct: Order 2 map.
@@ -1826,9 +1775,6 @@ end subroutine mad_map_to_taylor
 ! Subroutine to convert a Taylor map to a mad order 2 map.
 ! If any of the Taylor terms have order greater than 2 they are ignored.
 !
-! modules needed:
-!   use mad_mod
-!
 ! Input:
 !   taylor(6) -- Taylor_struct: Taylor map.
 !   energy    -- mad_energy_struct: Energy numbers.
@@ -1932,9 +1878,6 @@ end subroutine taylor_to_mad_map
 ! Subroutine make_unit_mad_map (map)
 !
 ! Subroutine to initialize a 2nd order transport map to unity.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   map -- Mad_map_struct: 2nd order transport map.

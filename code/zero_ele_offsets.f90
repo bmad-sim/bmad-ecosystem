@@ -4,9 +4,6 @@
 ! Subroutine to zero the offsets, pitches, tilt and ref_tilt of an element.
 ! Also see: ele_has_offset, zero_ele_kicks, ele_has_nonzero_kick
 !
-! Modules needed:
-!   use bmad
-!
 ! Input
 !   ele -- Ele_struct: Element with possible nonzero offsets, etc.
 !

@@ -9,9 +9,6 @@
 ! part of the map. It is assumed that on input the transfer map
 ! does not include the affect of any pitches.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   x_pitch_tot -- Real(rp): Horizontal pitch
 !   y_pitch_tot -- Real(rp): Vertical pitch

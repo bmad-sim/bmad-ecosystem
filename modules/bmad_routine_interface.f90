@@ -670,10 +670,11 @@ function hard_edge_model_length (ele) result (l_hard)
   real(rp) l_hard
 end function
 
-subroutine hdf5_read_beam (file_name, beam, error, pmd_header)
+subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
   import
   implicit none
   type (beam_struct), target :: beam
+  type (ele_struct), optional :: ele
   type (pmd_header_struct), optional :: pmd_header
   logical error
   character(*) file_name

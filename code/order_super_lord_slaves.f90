@@ -3,9 +3,6 @@
 !
 ! Subroutine to make the slave elements of a super_lord in order.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat    -- lat_struct: Lat.
 !   ix_lord -- Integer: Index of lord element.

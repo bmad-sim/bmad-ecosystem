@@ -8,9 +8,6 @@
 !
 ! Note: This subroutine also reads in the common structures for bmad_parser2
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   digested_file -- Character(*): Name of the digested file.
 !

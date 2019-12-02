@@ -8,9 +8,6 @@
 !
 ! If the use_hard_edge model argument is set to False, this function will always return False.
 !
-! Module needed:
-!   use bmad
-!
 ! Input:
 !   ele                   -- ele_struct: Element.
 !   use_hard_edge_drifts  -- logical, optional: Use bmad hard edge model for cavities, etc?

@@ -5,9 +5,6 @@
 ! This routine is called by the Runge-Kutta integrator odeint_bmad when a particle hits a wall.
 ! This routine can be replaced by a custom routine to do custom calculations.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   orb   -- coord_struct: coordinates of particle.
 !   ele   -- ele_struct: Element holding the aperture

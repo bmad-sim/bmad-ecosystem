@@ -21,9 +21,6 @@
 ! Note: If integrate = False and if a taylor map does not exist for an
 ! element this routine will make one and store it in the element.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   branch     -- branch_struct: Lattice branch used in the calculation.
 !   t_map(6)   -- taylor_struct: Initial orbital map (used when unit_start = False)

@@ -11,9 +11,6 @@
 ! The track_upstream_end and track_downstream_end arguments determine whether edge effects are 
 ! included. These effects include bend edge focusing and aperture checks. 
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele                  -- ele_struct: Element to track through.
 !   param                -- lat_param_struct:

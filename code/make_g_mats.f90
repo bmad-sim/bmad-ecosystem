@@ -4,9 +4,6 @@
 ! Subroutine make the matrices needed to go from normal mode coords 
 ! to coordinates with the beta function removed.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele        -- Ele_struct: Element
 !

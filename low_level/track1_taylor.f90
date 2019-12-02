@@ -5,9 +5,6 @@
 ! If the taylor map does not exist, one will be created using the old
 ! reference (ele%taylor%ref) trajectory.
 !
-! Moudules needed:
-!   use bmad
-!
 ! Input:
 !   start_orb     -- Coord_struct: Starting coords.
 !   ele           -- Ele_struct: Element to track through.

@@ -1102,9 +1102,6 @@ end subroutine makeup_super_slave
 ! Routine to construct a super_slave from a super_lord when the slave has only one lord.
 ! Note: Reference energy and times are not computed in this routine.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   slave  -- Ele_struct: Slave element.
 !   lord   -- Ele_struct: Lord element.

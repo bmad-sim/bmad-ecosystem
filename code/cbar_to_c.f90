@@ -4,9 +4,6 @@
 ! Subroutine to compute the C coupling matrix from the Cbar matrix and 
 ! the Twiss parameters.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   a             -- Twiss_struct: a-mode Twiss parameters
 !   b             -- Twiss_struct: b-mode Twiss parameters

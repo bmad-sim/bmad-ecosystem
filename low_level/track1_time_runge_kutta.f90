@@ -5,9 +5,6 @@
 ! Runge-Kutta time-based tracking. Converts to and from element
 ! coordinates before and after tracking.
 !
-! Modules Needed:
-!   use time_tracker_mod
-!
 ! Input:
 !   start_orb   -- coord_struct: starting position, t-based global
 !   ele         -- ele_struct: element

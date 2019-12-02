@@ -4,9 +4,6 @@
 ! Function to tell if an element has a non-zero offset, pitch or tilt.
 ! Also see: zero_ele_offsets, zero_ele_kicks, ele_has_nonzero_kick
 !
-! Modules needed:
-!   use bmad
-!
 ! Input
 !   ele -- Ele_struct: Element with possible nonzero offsets.
 !

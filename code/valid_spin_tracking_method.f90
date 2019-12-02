@@ -6,9 +6,6 @@
 !
 ! Routine to return whether a given spin_tracking method is valid for a given element.
 !
-! Module needed:
-!   use fringe_mod
-!
 ! Input:
 !   ele              -- ele_struct: Lattice element.
 !   spin_tracking_method -- integer: bmad_standard$, etc.

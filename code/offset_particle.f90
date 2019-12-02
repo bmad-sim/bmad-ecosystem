@@ -28,9 +28,6 @@
 !   Using the HV kicks.
 !   Using the multipoles.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele            -- Ele_struct: Element
 !     %value(x_offset$) -- Horizontal offset of element.

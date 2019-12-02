@@ -10,9 +10,6 @@
 ! Note: To do a complete bookkeeping job on a lattice use:
 !   lattice_bookkeeper
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat      -- lat_struct: lattice to be used
 !   ele      -- ele_struct, optional: Element whose attribute values 

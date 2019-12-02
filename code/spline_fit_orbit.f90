@@ -1,6 +1,16 @@
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
+!+
+! Subroutine spline_fit_orbit (ele, start_orb, end_orb, spline_x, spline_y)
+!
+! Routine to fit the orbit through an element to a cubic spline.
+!
+! Input:
+!   ele             -- ele_struct: Element tracked through.
+!   start_orb       -- coord_struct: Starting coords.
+!   end_orb         -- coord_struct: Ending coords.
+!
+!   spline_x(0:3)   -- real(rp): Spline coefs for the horizontal trajectory.
+!   spline_y(0:3)   -- real(rp): Spline coefs for vertical trajectory.
+!-
 
 subroutine spline_fit_orbit (ele, start_orb, end_orb, spline_x, spline_y)
 

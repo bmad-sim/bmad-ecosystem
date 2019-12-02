@@ -4,9 +4,6 @@
 ! Particle tracking through a single element using a partially inverted taylor
 ! map (In PTC/FPP this is called a genfield). 
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   start_orb  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element

@@ -10,9 +10,6 @@
 !
 ! Note: See the Bmad manual for directions as to how to use this routine.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lord           -- ele_struct: Group element.
 !     %control%type

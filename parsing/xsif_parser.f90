@@ -11,9 +11,6 @@
 ! that expect the default to be zero (no aperture present). 
 ! To rectify this, all 1 meter apertures are converted to zero.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   xsif_file  -- Character(*): Name of the xsif file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the

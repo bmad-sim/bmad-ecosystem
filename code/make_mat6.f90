@@ -6,9 +6,6 @@
 !
 ! Note: Radiation fluctuations (but not damping) is turned off for the calculation.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele       -- Ele_struct: Element holding the transfer matrix.
 !   param     -- lat_param_struct: Lattice global parameters.

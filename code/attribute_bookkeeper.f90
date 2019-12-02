@@ -7,9 +7,6 @@
 ! Note: This routine does not do any other bookkeeping. Consider using
 ! control_bookkeeper or lattice_bookkeeper instead.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele            -- Ele_struct: Element with attributes 
 !   force_bookkeeping 

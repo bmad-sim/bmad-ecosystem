@@ -5,9 +5,6 @@
 ! That is, the normal mode associated with ele%a is transfered to ele%b
 ! and the normal mode associated with ele%b is trnsfered to ele%a.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele          -- Ele_struct: Starting Element
 !

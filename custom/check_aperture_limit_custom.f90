@@ -8,9 +8,6 @@
 !
 ! General rule: Your code may NOT modify any argument that is not listed as an output agument below."
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   orb   -- Coord_struct: coordinates of a particle.
 !   ele   -- Ele_struct: Element holding the aperture

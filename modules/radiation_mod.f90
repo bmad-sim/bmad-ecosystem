@@ -14,9 +14,6 @@ contains
 ! Subroutine to release the memory associated with caching wiggler values.
 ! See the radiation_integrals routine for further details.
 !
-! Modules needed:
-!   use radiation_mod
-!
 ! Input:
 !   ix_cache -- Integer: Cache number.
 !

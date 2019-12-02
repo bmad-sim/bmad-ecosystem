@@ -5,9 +5,6 @@
 ! the start to the end of a lattice branch.
 !
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat                -- lat_struct: lattice.
 !     %branch(ix_branch)%ele(0) -- Branch beginning element with the starting parameters.

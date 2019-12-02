@@ -12,9 +12,6 @@
 ! If called, this routine will do nothing.
 ! This routine needs to be replaced for custom initialization.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele    -- Ele_struct: Element to init.
 !

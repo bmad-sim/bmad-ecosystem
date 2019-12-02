@@ -4,9 +4,6 @@
 ! Subroutine to Q_tune a lat. Program will set the tunes to within 0.001 radian (0.06 deg).
 ! Note: The tune is computed with reference to the closed orbit.
 !                                    
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   phi_a_set -- real(rp): Horizontal set tune (radians)
 !   phi_b_set -- real(rp): Vertical set tune (radians)

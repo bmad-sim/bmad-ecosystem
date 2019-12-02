@@ -4,9 +4,6 @@
 ! Function to convert a character string  (eg: "drift") to an index (eg: drift$).
 ! Wildcard "*" is translated to key_index = 0 (match all)
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   key_str        -- Character(*): Name of the key. Result is case insensitive.
 !   abbrev_allowed -- Logical, optional: Abbreviations (eg: "quad") allowed?

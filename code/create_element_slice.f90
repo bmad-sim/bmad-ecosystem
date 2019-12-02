@@ -11,9 +11,6 @@
 ! for tracking_method or mat6_calc_method, then this will be changed to symp_lie_bmad 
 ! for wigglers and bmad_standard for everything else.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele_in            -- Ele_struct: Original element to slice
 !   l_slice           -- Real(rp): Length of the slice

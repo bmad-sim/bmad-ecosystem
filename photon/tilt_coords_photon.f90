@@ -4,9 +4,6 @@
 ! Subroutine to effectively tilt (rotate in the x-y plane) an element
 ! by instead rotating the particle position with negative the angle.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   tilt_val       -- Real(rp): Tilt value (could be the roll value for a bend)
 !   coord(:)       -- Real(rp): Coordinates of particle before rotation.

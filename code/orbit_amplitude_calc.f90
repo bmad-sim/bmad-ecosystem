@@ -16,9 +16,6 @@
 !     amp_nb = amp_b * gamma_E
 ! where gamma_E is the usual energy gamma factor = Energy / mc^2.  
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele      -- Ele_struct: Element holding the Twiss parameters, 
 !                  dispersion and coupling info.

@@ -23,9 +23,6 @@ contains
 ! Routine to reallocate an array of vertex structures.
 ! Overloaded by re_allocate.
 !
-! Modules needed:
-!   use wall3d_mod
-!
 ! Input:
 !   v(:)  -- wall3d_vertex_struct, allocatable: Array of vertices
 !   n     -- Integer: Minimum size needed for array.
@@ -73,9 +70,6 @@ end subroutine re_allocate_wall3d_vertex_array
 !
 ! Routine to reallocate an array of wall3d%section(:).
 ! Overloaded by re_allocate.
-!
-! Modules needed:
-!   use wall3d_mod
 !
 ! Input:
 !   section(:) -- wall3d_section_struct, pointer: Array of vertices
@@ -130,9 +124,6 @@ end subroutine re_allocate_wall3d_section_array
 !   1) Add vertex points if there is symmetry.
 !   2) Compute circular and elliptical centers.
 !   3) Compute spline coefficients, etc.
-!
-! Modules needed:
-!   use wall3d_mod
 !
 ! Input:
 !   wall3d -- wall3d_struct: Wall.
@@ -205,9 +196,6 @@ end subroutine wall3d_initializer
 ! Routine to initialize a wall3d_section_struct:
 !   1) Add vertex points if there is symmetry.
 !   2) Compute circular and elliptical centers.
-!
-! Modules needed:
-!   use wall3d_mod
 !
 ! Input:
 !   section  -- Wall3d_section_struct: Wall3d section.

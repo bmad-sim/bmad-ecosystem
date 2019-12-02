@@ -561,9 +561,6 @@ end subroutine rk_time_step1
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele             -- coord_struct: input particle
 !   param           -- real(rp): Reference momentum. The sign indicates direction of p_s. 
@@ -788,9 +785,6 @@ end function particle_in_global_frame
 !   or a time delta_t
 !   If the particle has zero longitudinal velocity, then the particle is not drifted
 !   and a warning is printed.  
-!
-! Modules Needed:
-!   use bmad_struct
 !
 ! Input:
 !   orbit      -- coord_struct: particle orbit in time-based coordinates.
@@ -1052,9 +1046,6 @@ end subroutine  write_time_particle_distribution
 !   until it is lost or exits the lattice.
 !
 !   The starting element is located using start_orb%s.
-!
-! Module needed:
-!   use fringe_mod
 !
 ! Input:
 !   start_orb   -- coord_struct: Starting coords.

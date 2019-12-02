@@ -5,9 +5,6 @@
 ! This file contains a dummy routine that does nothing. That is, to be useful,
 ! a program must be linked with a custom save_bunch_track routine.
 ! 
-! Modules needed:
-!   use bmad_struct
-!
 ! Input:
 !   bunch    -- bunch_struct: A bunch of particles.
 !   ele      -- ele_struct: The lattice element the bunch is going through.

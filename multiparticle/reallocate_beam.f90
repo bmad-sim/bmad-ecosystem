@@ -8,9 +8,6 @@
 ! Rule: Bmad routines (except for reallocate_bunch) are allowed to assume that if 
 ! beam%bunch(:) is allocated, beam%bunch(i)%particle(:) is also allocated.
 !
-! Modules needed:
-!   use beam_mod
-!
 ! Input:
 !   n_bunch    -- Integer: Number of bunches.
 !   n_particle -- Integer, optional: Number of particles. Must be non-negative.

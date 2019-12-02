@@ -2067,9 +2067,6 @@ end subroutine grid_field_interpolate
 ! it is assumed that the field is constant, Equal to the field at the
 ! boundary.
 !
-! Module needed:
-!   use em_field_mod
-!
 ! Input:
 !   position(3)       -- Real(rp): (x, y, z) position.
 !   field_mesh(:,:,:) -- Real(rp): Grid of field points.

@@ -27,9 +27,6 @@ implicit none
 ! Also dependent variables such as the angle of a bend cannot be 
 !   freely variable.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ix_ele                  -- integer: Index of element in element array.
 !   ix_branch               -- integer: Branch index of element. 
@@ -111,9 +108,6 @@ private init_short_attrib_array
 !
 ! Note:
 !   If ele%key or key = 0 -> Entire name table will be searched.
-!
-! Modules Needed:
-!   use bmad
 !
 ! Input:
 !   ele     -- ele_struct: attribute_index will restrict the name search to 
@@ -431,9 +425,6 @@ end function attribute_name2
 !
 ! Function to return the info structure associated with an attribute for 
 ! a particular type of BMAD element. 
-!
-! Modules Needed:
-!   use bmad
 !
 ! Input:
 !   ele    -- Ele_struct: 
@@ -1655,9 +1646,6 @@ end subroutine init_attribute_name1
 ! Routine to determine whether an element has orientation attributes like x_offset, etc.
 ! Also see: has_attribute function.
 !
-! Module needed:
-!   use bmad
-!
 ! Input:
 !   ele  -- ele_struct: Lattice element.
 !
@@ -1700,9 +1688,6 @@ end function has_orientation_attributes
 ! Note: The "storage type" of an attribute is different from the "logical type" returned by
 ! this routine. For example, the logical type of attribute "n_slice" is integer. However, the 
 ! value of "n_slice" is stored as a real number in the ele_struct [in ele%value(n_slice$)]. 
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   attrib_name -- Character(*): Name of the attribute. Must be upper case.
@@ -2055,9 +2040,6 @@ end subroutine string_attrib
 !
 ! Use the routine attribute_type to first test if the type of the attribute
 ! corresponds to is_switch$. 
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   attrib_name  -- Character(*): Name of the attribute. Must be upper case.

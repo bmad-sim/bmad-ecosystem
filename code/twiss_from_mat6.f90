@@ -4,9 +4,6 @@
 ! Subroutine to calculate the Twiss parameters from a 1-turn matrix.
 ! Note: The 1-turn matrix needs to be formed with the RF turned off.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   mat6(6,6)   -- Real(rp): 6x6 matrix (linear part) of the 1-turn map.
 !   orb0(6)     -- Real(rp): Initial orbit around which the map is made.

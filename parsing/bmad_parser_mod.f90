@@ -6636,9 +6636,6 @@ end subroutine settable_dep_var_bookkeeping
 !     suffix = '.' + use_line + '.digested' + bmad_inc_version$ 
 !   
 !
-! Modules needed:
-!   use bmad_parser_mod
-!
 ! Input:
 !   lat_file -- Character(*): Input lattice file name.
 !   use_line -- Character(*), optional: Line used for lattice expansion. If not present

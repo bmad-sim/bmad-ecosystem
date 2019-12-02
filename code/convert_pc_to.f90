@@ -3,9 +3,6 @@
 !
 ! Routine to calculate the energy, etc. from a particle's momentum.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   pc       -- Real(rp): Particle momentum
 !   particle -- Integer: Type of particle. positron$, etc.

@@ -9,9 +9,6 @@
 ! all radiation and space-charge effects independent of the settings of the bmad_com%xxx
 ! switches. This is used by routines that are tracking the reference particle.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   start_orb   -- Coord_struct: Starting position.
 !   ele         -- Ele_struct: Element to track through.

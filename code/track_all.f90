@@ -6,9 +6,6 @@
 ! Note: If x_limit (or y_limit) for an element is zero then track_all will take
 !       x_limit (or y_limit) as infinite.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat         -- lat_struct: Lat to track through.
 !   orbit(0)    -- Coord_struct: Coordinates at beginning of lat.

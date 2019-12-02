@@ -5,9 +5,6 @@
 ! Subroutine to calculate the chromaticities by computing the tune change
 ! when then energy is changed.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat          -- lat_struct: Lat
 !   delta_e      -- Real(rp): +/- Delta energy used for the calculation. Notice that the energy difference

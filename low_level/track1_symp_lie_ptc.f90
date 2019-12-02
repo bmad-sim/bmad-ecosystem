@@ -5,9 +5,6 @@
 ! and a symplectic integrator. This uses Etienne's PTC code. For a 
 ! "native" BMAD version see track1_symp_lie_bmad.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   start_orb  -- Coord_struct: Starting position
 !   ele        -- Ele_struct: Element

@@ -933,9 +933,6 @@ end function s_source_calc
 ! Routine to cache intermediate values needed for the lsc calculation.
 ! This routine is not for image currents.
 !
-! Modules needed:
-!   use lsc_mod
-!
 ! Input:
 !   ele       -- Element_struct: Element to set up cache for.
 !   csr       -- csr_struct: 

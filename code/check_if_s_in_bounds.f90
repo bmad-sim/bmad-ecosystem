@@ -14,9 +14,6 @@
 ! Optionally: translated_s is a translated longitudinal position which is normally
 ! in the range [0, branch_length].
 !
-! Moduels needed:
-!   use bmad
-!
 ! Input:
 !   branch        -- branch_struct: Branch
 !   s             -- Real(rp): longitudinal position in the given branch.

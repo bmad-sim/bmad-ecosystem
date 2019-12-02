@@ -118,9 +118,6 @@ contains
 !
 ! This function opens one log file "tt_log_<id>.out", which needs to be closed by calling the destructor.
 !
-! Modules needed:
-!   use tune_tracker_mod
-!
 ! Input:
 !   incoming_tt_param    -- type(tt_param_struct): Tune tracker parameters.  See structure definition for details.
 !
@@ -213,9 +210,6 @@ end function init_dTT
 !
 ! Reset a tune tracker and optionally change its parameters.
 !
-! Modules Needed:
-!   use tune_tracker_mod
-!
 ! Input:
 !   id        -- integer, intent(in): Tune tracker instance ID obtained from constructor.
 !   tt_param  -- 
@@ -264,9 +258,6 @@ end subroutine reset_dTT
 !
 ! Destructor for tune tracker.  Should be called end of program to ensure all files are properly closed.
 !
-! Modules Needed:
-!   use tune_tracker_mod
-!
 ! Input:
 !   id     -- integer, intent(in): Tune tracker instance ID obtained from constructor.
 ! Output:
@@ -307,9 +298,6 @@ end subroutine dest_dTT
 !
 ! This function returns the phi of the VCO plus an offset set during initialization.  The offset is the phase
 ! advance from the bpm to the kicker
-!
-! Modules needed:
-!   use tune_tracker_mod
 !
 ! Input:
 !   bpm_msmt     -- real(rp): new bpm measurement. passed by value.
@@ -418,9 +406,6 @@ end function TT_update
 !
 ! A get function to obtain the tune tracker VCO frequency.
 !
-! Modules needed:
-!   use tune_tracker_mod
-!
 ! Input:
 !   name     -- character(2), intent(in):  'dw' to get VCO trim, 'wf' to get VCO frequency
 !   id       -- integer, intent(in): Instance id
@@ -452,9 +437,6 @@ end function get_dTT
 ! Subroutine modulator(psi,sinout,sqrout)
 !
 ! Tune tracker modulator.  Returns sin(psi) and corresponding square wave.
-!
-! Modules needed:
-!   use tune_tracker_mod
 !
 ! Input:
 !   psi     -- real(rp), intent(in):  modulator angle

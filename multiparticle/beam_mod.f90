@@ -15,9 +15,6 @@ contains
 !
 ! Note: To zero wakes between runs, zero_lr_wakes_in_lat needs to be called.
 !
-! Modules needed:
-!   use beam_mod
-!
 ! Input:
 !   lat          -- lat_struct: Lattice to track through.
 !   beam         -- Beam_struct: Beam at end of element ix1.
@@ -163,9 +160,6 @@ end subroutine track_bunch
 ! Subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid, direction)
 !
 ! Subroutine to track a bunch of particles through an element.
-!
-! Modules needed:
-!   use beam_mod
 !
 ! Input:
 !   bunch_start  -- bunch_struct: Starting bunch position.

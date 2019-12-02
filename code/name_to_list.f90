@@ -4,9 +4,6 @@
 ! Routine to mark the elements in lat whose name matches the names in ELE_NAMES.
 ! This routine is typiclly used with make_hybrid_lat.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat         -- lat_struct: Input lat.
 !   ele_names(:) -- Character(*): list of element names. Wild card

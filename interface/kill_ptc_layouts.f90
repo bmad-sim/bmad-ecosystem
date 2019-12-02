@@ -3,9 +3,6 @@
 !
 ! Routine to kill the layouts associated with a Bmad lattice.
 !
-! Module Needed:
-!   use ptc_layout_mod
-!
 ! Input: 
 !   lat  -- lat_struct: Bmad lattice with associated layouts.
 !-

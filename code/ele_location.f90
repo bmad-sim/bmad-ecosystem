@@ -8,9 +8,6 @@
 !   "1>>56"  ! Input: lat%branch(1)%ele(56).
 !   "(34)"   ! If parens = "()".
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele           -- Ele_struct: Element in a lattice
 !   show_branch0  -- Logical, optional: Explicitly show branch for main 

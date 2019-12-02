@@ -8,9 +8,6 @@
 ! Note: track1_bmad_photon *never* relies on ele%mat6 for tracking excect for 
 ! hybrid elements.
 ! 
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   start_orb  -- Coord_struct: Starting position
 !   ele        -- Ele_struct: Element

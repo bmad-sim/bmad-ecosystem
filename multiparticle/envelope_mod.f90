@@ -68,9 +68,6 @@ end subroutine
 ! using these matrices.
 !
 !
-! Modules needed:
-!   use envelope_mod
-!
 ! Input:
 !   ele                    -- ele_struct: 
 !     %value(l$)           -- real(rp): element or slice length

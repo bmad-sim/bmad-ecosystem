@@ -1,14 +1,8 @@
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
 !+
 ! Subroutine transfer_mat2_from_twiss (twiss1, twiss2, mat)
 !
 ! Subroutine to make a 2 x 2 transfer matrix from the twiss parameters
 ! at the end points.
-!
-! Modules Needed:
-!   use bmad
 !
 ! Input:
 !   twiss1  -- Twiss_struct: Twiss parameters at the initial point.

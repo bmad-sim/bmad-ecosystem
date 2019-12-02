@@ -4,9 +4,6 @@
 ! Particle tracking through a single element assuming linearity.
 ! That is, just using ele%mat6.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   start_orb  -- Coord_struct: Starting position
 !   ele        -- Ele_struct: Element

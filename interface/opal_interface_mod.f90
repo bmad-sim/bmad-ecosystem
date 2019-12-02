@@ -3,7 +3,6 @@ module opal_interface_mod
 use em_field_mod
 use write_lat_file_mod
 
-
 contains
 
 !------------------------------------------------------------------------
@@ -14,9 +13,6 @@ contains
 !
 ! Subroutine to write an OPAL lattice file using the information in
 ! a lat_struct. Optionally only part of the lattice can be generated.
-!
-! Modules needed:
-!   ?? use write_lat_file_mod
 !
 ! Input:
 !   opal_file_unit -- Integer: unit number to write to

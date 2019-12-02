@@ -4,9 +4,6 @@
 ! Subroutine to print or put in a string array Twiss information from an element.
 ! If the lines argument is not present, the element information is printed to the terminal.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele             -- Ele_struct: Element containing the Twiss parameters.
 !   frequency_units -- Integer, optional: Units for phi:

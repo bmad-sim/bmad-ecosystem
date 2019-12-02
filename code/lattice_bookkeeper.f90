@@ -13,9 +13,6 @@
 ! Note: This this routine does a complete job of bookking
 ! and could be unacceptably slow if lat%auto_bookkeeper = True.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat   -- lat_struct: Lattice needing bookkeeping.
 !

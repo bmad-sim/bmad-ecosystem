@@ -68,9 +68,6 @@ CONTAINS
 ! In addition to setting mode, also set lat%param%n_part to the number of particles
 ! per bunch.
 !
-! Modules needed:
-!   use touschek_mod
-!
 ! Input:
 !   mode             -- TYPE(normal_modes_struct), INTENT(INOUT): beam properties
 !       %pz_aperture -- Real(rp): momentum aperture
@@ -135,9 +132,6 @@ END SUBROUTINE touschek_lifetime
 !
 ! This function assumes that the twiss parameters 
 ! been calculated, and that mode has been populated with emittance and bunch length.
-!
-! Modules needed:
-!   use touschek_mod
 !
 ! Input:
 !   mode                     -- TYPE(normal_modes_struct), INTENT(INOUT): beam properties
@@ -216,9 +210,6 @@ end subroutine touschek_lifetime_ele_by_ele
 ! been calculated, and that mode has been populated with emittance and bunch length.
 !
 ! This function assumes that momentum_aperture(0)%s==0 and momentum_aperture(last)%s==lat%param%total_length.
-!
-! Modules needed:
-!   use touschek_mod
 !
 ! Input:
 !   mode                     -- TYPE(normal_modes_struct), INTENT(INOUT): beam properties
@@ -422,9 +413,6 @@ END FUNCTION integrand_zap
 !                 this subroutine should be called twice, once with the positive
 !                 aperture, and once with the negative aperture, and rate from 
 !                 each call should be halved and summed.
-!
-! Modules needed:
-!   use touschek_mod
 !
 ! Input:
 !   mode            -- TYPE(normal_modes_struct), INTENT(IN): beam properties

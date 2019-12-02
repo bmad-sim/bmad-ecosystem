@@ -5,9 +5,6 @@
 ! If the particle is lost in tracking, end_orb will hold the coordinates at the point of loss.
 ! To get the twiss parameters at the ending s-position use twiss_and_track_at_s.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat         -- lat_struct: Lattice to track through
 !   s_start     -- Real(rp): Starting s-position.

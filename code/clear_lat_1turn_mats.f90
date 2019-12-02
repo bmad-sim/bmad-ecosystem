@@ -6,9 +6,6 @@
 !   lat%param%t1_with_RF
 ! This will force any routine dependent upon these to do a remake.
 !
-! Modules needed:
-!   use bmad
-!
 ! Output:
 !   lat -- lat_struct: Lat with 1-turn matrices cleared.
 !-
