@@ -1,14 +1,8 @@
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
 !+
 ! Subroutine make_g2_mats (twiss, g_mat, g_inv_mat)
 !
 ! Subroutine make the matrices needed to go from normal mode coords
 ! to coordinates with the beta function removed.
-!
-! Modules Needed:
-!   use bmad
 !
 ! Input:
 !   twiss        -- Twiss_struct: Twiss parameters.

@@ -17,9 +17,6 @@
 !
 ! Note: Use element_at_s to properly initialize orbit_start.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   branch         -- branch_struct: Lattice branch to track through.
 !   orbit_start    -- Coord_struct: Starting phase space coordinates at s_start.

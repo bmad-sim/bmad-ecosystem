@@ -4,9 +4,6 @@
 ! Subroutine to form the 4x4 1-turn coupled matrix with the reference point
 ! at the end of an element.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele   -- ele_struct: Reference element.
 !     %a       -- "a" mode Twiss parameter structure.

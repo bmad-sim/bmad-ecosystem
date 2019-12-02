@@ -10,9 +10,6 @@
 ! digested file. bmad_parser will always check to see that the digested file
 ! is up-to-date and if not the digested file will not be used.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat_file   -- Character(*): Name of the input file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the Elements?

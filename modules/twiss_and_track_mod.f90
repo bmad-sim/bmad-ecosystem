@@ -28,9 +28,6 @@ use geometry_mod
 ! For an open lattice, the orbit will be computed using orb(0) as 
 ! starting conditions.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat                 -- lat_struct: lattice.
 !     %param%geometry      -- Used to determine if lattice is open or closed.
@@ -251,9 +248,6 @@ end subroutine twiss_and_track1
 ! See also:
 !   twiss_and_track_from_s_to_s
 !   twiss_and_track_intra_ele
-!
-! Modules Needed:
-!   use bmad
 !
 ! Input:
 !   lat             -- lat_struct: Lattice.

@@ -22,9 +22,6 @@
 !     sliced_ele = ele
 ! will only be done when i_slice = 1.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele         -- Ele_struct: Element to slice and dice.
 !   param       -- lat_param_struct: Lattice parameters

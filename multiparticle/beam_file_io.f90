@@ -106,16 +106,13 @@ end subroutine write_beam_file
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine read_beam_file (file_name, beam, beam_init, err_flag)
+! Subroutine read_beam_file (file_name, beam, beam_init, err_flag, ele)
 !
 ! Subroutine to read in a beam definition file.
 ! If non_zero, the following components of beam_init are used to rescale the beam:
 !     %n_bunch
 !     %n_particle
 !     %bunch_charge
-! 
-! Modules needed:
-!   use beam_file_io
 !
 ! Input:
 !   file_name           -- character(*): Name of beam file.
@@ -126,10 +123,11 @@ end subroutine write_beam_file
 !   err_flag    -- Logical: Set True if there is an error. False otherwise.
 !+ 
 
-subroutine read_beam_file (file_name, beam, beam_init, err_flag)
+subroutine read_beam_file (file_name, beam, beam_init, err_flag, ele)
 
 type (beam_struct), target :: beam
 type (beam_init_struct) beam_init
+type (ele_struct), optional :: ele
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
 type (coord_struct) orb_init
@@ -162,7 +160,7 @@ endif
 
 n = len_trim(full_name)
 if (full_name(n-4:n) == '.hdf5' .or. full_name(n-2:n) == '.h5') then
-  call hdf5_read_beam (full_name, beam, err_flag)
+  call hdf5_read_beam (full_name, beam, err_flag, ele)
   return
 endif
 

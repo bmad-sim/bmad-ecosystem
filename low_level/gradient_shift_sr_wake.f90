@@ -7,9 +7,6 @@
 !
 ! Note: This routine will only return a non-zero value when bmad_com%sr_wakes_on = True
 !
-! Module needed:
-!   use bmad
-!
 ! Input:
 !   ele           -- ele_struct: Lcavity element.
 !   param         -- lat_param_struct: Lattice parameters

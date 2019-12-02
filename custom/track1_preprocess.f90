@@ -13,9 +13,6 @@
 ! 
 ! General rule: Your code may NOT modify any argument that is not listed as an output agument below.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   start_orb  -- coord_struct: Starting position at the beginning of ele.
 !   ele        -- ele_struct: Element.

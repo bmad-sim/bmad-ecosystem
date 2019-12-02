@@ -5,9 +5,6 @@
 ! For cyrstal, mirror, and multilayer_mirror elements, the element coordinates correspond to 
 ! the element surface coordinates.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele          -- Ele_struct: Element
 !   orbit        -- Coord_struct: Coordinates of the particle.

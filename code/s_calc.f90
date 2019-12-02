@@ -4,9 +4,6 @@
 ! Subroutine to calculate the longitudinal distance S for the elements
 ! in a lattice.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat -- lat_struct:
 !

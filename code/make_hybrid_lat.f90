@@ -32,9 +32,6 @@
 !
 ! Note: Lat_out must not be the same actual argument as lat_in.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat_in         -- lat_struct: Input lattice.
 !     %branch(:)%ele(:)%select  -- Set this element component to enable hybridization. See above

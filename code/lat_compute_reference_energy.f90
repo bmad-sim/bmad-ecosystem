@@ -4,9 +4,6 @@
 ! Subroutine to compute the energy, momentum and time of the reference particle for 
 ! each element in a lat structure.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat     -- lat_struct: Input lattice.
 !     %ele(0)%value(E_tot$) -- Energy at the start of the lattice.

@@ -3,9 +3,6 @@
 ! 
 ! Routine to add a RF cavity coupler kicks
 !
-! Moudle needed:
-!   use fringe_mod
-!
 ! Input:
 !   ele         -- ele_struct: Element being tracked through
 !   param       -- lat_param_struct: branch parameters.

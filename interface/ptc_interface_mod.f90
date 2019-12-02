@@ -159,9 +159,6 @@ end function taylor_minus_taylor
 !
 ! Notice that map_coef(y, i, j) just gives the linear (matrix) part of the map.
 !
-! Modules Needed:                    
-!   use ptc_interface_mod
-!
 ! Input:
 !   y(:)  -- Real_8: Taylor Map.
 !   i     -- Integer: output index.
@@ -254,9 +251,6 @@ end function map_coef
 !
 ! Subroutine to type the transfer map up to first order.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   y(:)  -- Real_8: 
 !   type0 -- Logical: Type zeroth order map
@@ -304,9 +298,6 @@ end subroutine type_map1
 ! Subroutine type_ptc_internal_state (intern_state, line, n_lines)
 !
 ! Routine to print information on a PTC internal state.
-!
-! Module Needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   intern_state -- Internal_state, optional: PTC state. If not present then the PTC 
@@ -367,9 +358,6 @@ end subroutine type_ptc_internal_state
 !
 ! Routine to put information on a PTC fibre element into a string array.
 ! If "lines" is not present, the information will be printed to the screen.
-!
-! Module Needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   ptc_fibre    -- fibre, pointer: Fibre to type info of.
@@ -1014,9 +1002,6 @@ end function kind_name
 ! Note: Call this routine to transfer the value of the electric dipole moment from 
 !   bmad_com%electric_dipole_moment to PTC.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   e_tot  -- Real(rp), optional: Energy in eV.
 !   particle     -- Integer, optional: Type of particle:
@@ -1236,9 +1221,6 @@ end subroutine get_ptc_params
 ! This does not do any conversion between Bmad units (z, dp/p0) and PTC units (dE/p0, c*t).
 ! To convert coordinates, use the taylor_to_real_8 routine.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   y8(:) -- real_8: PTC Taylor map.
 !
@@ -1283,9 +1265,6 @@ end subroutine bmad_taylor_equal_real_8
 !
 ! Subroutine overloads "=" in expressions
 !       y8 = bmad_taylor
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   bmad_taylor(:) -- Taylor_struct: Input taylor map.
@@ -1394,9 +1373,6 @@ end subroutine ptc_taylor_equal_bmad_taylor
 ! Routine to convert a PTC real_8 map to a Bmad Taylor map.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   y8(6)           -- real_8: PTC Taylor map. NOTE: y8 is used as scratch space and therefore trashed.
 !   beta0           -- real(rp): Reference particle velocity at beginning of map
@@ -1467,9 +1443,6 @@ end subroutine real_8_to_taylor
 !
 ! Routine to convert a Bmad taylor map to PTC taylor.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   taylor_bmad(6) -- type(taylor_struct): Bmad Taylor.
 !   beta0          -- real(rp): Reference particle velocity
@@ -1508,9 +1481,6 @@ end subroutine taylor_bmad_to_ptc
 !
 ! Routine to convert a PTC real_8 taylor to a Bmad Taylor.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   taylor_ptc(6)  -- real_8: PTC taylor.
 !   beta0          -- real(rp): Reference particle velocity
@@ -1545,9 +1515,6 @@ end subroutine taylor_ptc_to_bmad
 ! Subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, conversion_mat)
 !
 ! Routine to convert a Bmad vector map to PTC vector,
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   vec_bmad(6) -- real(rp): Bmad coordinates.
@@ -1596,9 +1563,6 @@ end subroutine vec_bmad_to_ptc
 ! Subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat, state)
 !
 ! Routine to convert a PTC orbit vector to a Bmad orbit vector.
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   vec_ptc(6)  -- real(rp): PTC coordinates.
@@ -1662,9 +1626,6 @@ end subroutine vec_ptc_to_bmad
 ! simplifies the calculation and assumes that the particle beta is constant
 ! over the range of particle energies.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   sigma_mat_ptc(6,6)  -- real(rp): PTC sigma matrix.
 !   beta0               -- real(rp): Reference particle velocity
@@ -1705,9 +1666,6 @@ end subroutine sigma_mat_ptc_to_bmad
 ! Subroutine to transfer the values in one universal taylor variable to
 ! another. Note: ut1 needs to have been initialized.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   ut2 -- Universal_taylor:
 !
@@ -1744,9 +1702,6 @@ end subroutine
 !
 ! Subroutine to convert from a universal_taylor map in Etienne's PTC 
 ! to a taylor map in Bmad.
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   u_taylor(:) -- Universal_taylor: Universal_taylor map.
@@ -1797,9 +1752,6 @@ end subroutine universal_to_bmad_taylor
 !       bmad_complex_taylor = ptc_c_taylor
 ! 
 !
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   ptc_c_taylor -- c_taylor: PTC complex Taylor series
@@ -1882,9 +1834,6 @@ end subroutine complex_taylors_equal_c_taylors
 ! Subroutine overloads "=" in expressions
 !       bmad_taylor = ptc_taylor
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   ptc_taylor -- taylor: PTC complex Taylor series
 !
@@ -1943,9 +1892,6 @@ end subroutine bmad_taylors_equal_ptc_taylors
 !
 ! Subroutine to form a complex taylor from two taylor series representing 
 !   the real and imaginary parts
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   re_taylor       -- taylor_struct: Real part
@@ -2443,9 +2389,6 @@ end subroutine taylor_inverse
 ! Note: In general, if taylor2 is a component of an ele_struct, use
 ! concat_ele_taylor instead.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   taylor1(:) -- Taylor_struct: Taylor map.
 !   taylor2(:) -- Taylor_struct: Taylor map.
@@ -2504,9 +2447,6 @@ end subroutine concat_taylor
 ! If ele%taylor_map_includes_offsets = False: ele_taylor == ele%taylor + offset corrections. 
 !
 ! Also see: concat_taylor
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   taylor1(6) -- Taylor_struct: Taylor map.
@@ -2749,9 +2689,6 @@ end subroutine taylor_to_real_8
 ! This routine will fail if there is no corresponding ptc fibre for this
 ! element. In general, the transfer_map_calc routine should be used instead.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   bmad_taylor(6)   -- Taylor_struct: Map to be tracked
 !   ele              -- Ele_struct: Element to track through
@@ -2840,9 +2777,6 @@ end subroutine taylor_propagate1
 !
 ! Subroutine to make orbital and spin (if spin tracking is on) taylor maps for an element. 
 ! The order of the map is set by set_ptc
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   ele     -- Element_struct: 
@@ -3014,9 +2948,6 @@ end subroutine ele_to_taylor
 !
 ! Subroutine to type out the taylor map from a real_8 array.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input
 !   y(6)     -- Real_8: 6 taylor map: 
 !-
@@ -3054,9 +2985,6 @@ end subroutine type_real_8_taylors
 ! Note: ut_sorted needs to have been initialized.
 ! Note: ut_sorted cannot be ut_in. That is it is not legal to write:
 !           call sort_universal_terms (this_ut, this_ut)
-!
-! Modules needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   ut_in     -- Universal_taylor: Unsorted taylor series.
@@ -3119,9 +3047,6 @@ end subroutine sort_universal_terms
 !
 ! Subroutine to type the transfer maps of a real_8 array.
 !
-! Modules needed:
-!   use ptc_interface_mod
-!
 ! Input:
 !   y(:)  -- Real_8: 
 !-
@@ -3165,9 +3090,6 @@ end subroutine type_map
 ! Note: You need to call set_ptc before using this routine.
 ! Note: If ele contains a taylor_field, this routine may not be called in between calls to 
 !   FPP alloc and kill since the setting up of the PTC pancake uses FPP.
-!
-! Modules Needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   ele                  -- Ele_struct: Bmad element.
@@ -4313,9 +4235,6 @@ end subroutine bmad_patch_parameters_to_ptc
 ! Note: On ptc side bn(1) is error field when creating a fibre but 
 ! is total field when fibre is being modified. This routine returns the error field.
 !
-! Module needed:
-!   ptc_interface_mod
-!
 ! Input:
 !   ele                 -- ele_struct: Bmad Element.
 !   param               -- lat_param_struct:
@@ -4494,9 +4413,6 @@ end subroutine ele_to_ptc_magnetic_an_bn
 !
 ! Routine to take the patch parameters from a Bmad patch element and
 ! transfer them to the associated PTC fibre.
-!
-! Module needed:
-!   use ptc_interface_mod
 !
 ! Input:
 !   ele           -- ele_struct: Patch element.

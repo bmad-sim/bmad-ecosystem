@@ -22,9 +22,6 @@ contains
 ! Note: bmad_com parameters that are changed from their default value are
 ! saved in the lattice file.
 !
-! Modules needed:
-!   use write_lat_file_mod
-!
 ! Input:
 !   bmad_file     -- Character(*): Name of the output lattice file.
 !   lat           -- lat_struct: Holds the lattice information.
@@ -1875,9 +1872,6 @@ end function rchomp
 ! If the "line" arg does not represent a full "sentence" (end_is_neigh = False), 
 ! then only part of the line may be written and the part not written will be returned.
 !
-! Module needed:
-!   use write_lat_file_mod
-!
 ! Input:
 !   line          -- character(*): String of text.
 !   iu            -- Integer: Unit number to write to.
@@ -1993,9 +1987,6 @@ end subroutine write_lat_line
 !
 ! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
-!
-! Modules needed:
-!   use write_lat_file_mod
 !
 ! Input:
 !   out_type          -- character(*): Either 'XSIF', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T'.

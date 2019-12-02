@@ -9,9 +9,6 @@
 ! If the element lat%ele(ix_ele) is a lord element then the martices of 
 ! all the slave elements will be recomputed.
 !
-! Moudules Needed:
-!   use bmad
-!
 ! Input:
 !   lat         -- lat_struct: Lat containing the elements.
 !   ix_ele      -- Integer, optional: Index of the element. if not present

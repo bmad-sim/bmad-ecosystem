@@ -6,9 +6,6 @@
 !
 ! Note: the matrix propagation assumes a thin lens energy kick which is independent of px, py and pz.
 !
-! Module needed:
-!   use bmad
-!
 ! Input:
 !   dE          -- real(rp): Energy change
 !   orbit       -- coord_struct: Beginning coordinates

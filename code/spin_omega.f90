@@ -1,6 +1,3 @@
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
 !+
 ! Function spin_omega (field, orbit, sign_z_vel, phase_space_coords), result (omega)
 !
@@ -13,9 +10,6 @@
 !
 ! In a bend, the omega returned should be modified:
 !   true_omega = (1 + g*x) * omega + [0, g, 0]
-!
-! Modules needed:
-!   use em_field_mod
 !
 ! Input:
 !   field              -- em_field_struct: E and B fields.

@@ -4,9 +4,6 @@
 ! Subroutine to propagate the twiss, coupling, and dispersion parameters from 
 ! the exit end of ele1 to the exit end of ele2.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele1        -- Ele_struct: Structure holding the starting parameters.
 !   ele2        -- Ele_struct: Structure holding the transfer matrix.
@@ -262,9 +259,6 @@ end subroutine
 ! Note: The soft edge multipole fringe may give a slightly negative phase shift.
 ! So to avoid unwanted 2pi phase shifts if del_phi is small, the above ranges are 
 ! only enforced if If |del_phi| > 0.1.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   twiss1    -- Twiss_struct: Input Twiss parameters.

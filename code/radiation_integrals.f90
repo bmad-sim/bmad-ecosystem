@@ -27,9 +27,6 @@
 !
 ! Recommendation: Do not use caching of non-wiggler elements unless you need it.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat        -- lat_struct: Lattice to use. The calculation assumes that 
 !                    the Twiss parameters have been calculated.

@@ -8,9 +8,6 @@
 ! General rule: Your code may NOT modify any argument that is not listed as
 ! an output agument below.
 !
-! Modules needed:
-!   use rad_int_common
-!
 ! Input:
 !   lat         -- lat_struct: Lattice with the custom element.
 !   ir          -- integer: lat%ele(ir) is the custom element.

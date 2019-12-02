@@ -24,9 +24,6 @@ contains
 ! Note: Bookkeeping like recalculating reference energies and recalculating transfer matrices 
 !   is *not* done by this routine.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat                 -- lat_struct: Lat to modify.
 !   super_ele_in        -- ele_struct: Element to superimpose.

@@ -7,9 +7,6 @@
 ! If you just want the 1-turn matrix see the routine:
 !        multi_turn_tracking_to_mat.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   track(:) -- Cooord_struct: multi-turn tracking data to analyze.
 !                track(i) is the particle position at a given point

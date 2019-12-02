@@ -3,9 +3,6 @@
 !
 ! Subroutine to type out a coordinate.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   coord -- Coord_struct: Coordinate
 !-

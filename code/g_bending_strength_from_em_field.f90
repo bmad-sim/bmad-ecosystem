@@ -5,9 +5,6 @@
 ! 
 ! Example: A simple bend has g = (1/rho, 0, 0) where rho is the design bending radius.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele              -- Ele_struct: Element being tracked thorugh.
 !   param            -- lat_param_struct: Lattice parameters.

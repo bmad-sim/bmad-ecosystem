@@ -18,9 +18,6 @@ contains
 ! If aperture_scan%param%x_init or %y_init == 0, 
 ! then a separate scan will be done to set them starting with 0.001 m 
 !
-! Modules Needed:
-!   use dynamic_aperture_mod
-!
 ! Input:
 !   lat                 -- lat_struct: Lat containing the lattice.
 !   aperture_scan       -- aperture_scan_struct: 
@@ -129,9 +126,6 @@ end subroutine dynamic_aperture_scan
 ! Subroutine to determine one dynamic aperture point by tracking.
 ! This routine works by determining where on a radial line y = const * x
 ! the aperture is. Here x and y are deviations from the reference orbit.
-!
-! Modules Needed:
-!   use dynamic_aperture_mod
 !
 ! Input:
 !   lat            -- lat_struct: Lat containing the lattice.

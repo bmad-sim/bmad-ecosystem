@@ -15,9 +15,6 @@
 ! Note: If you use the superimpose feature to insert an element into the latttice
 !       then the index of a given element already in the lattice may change.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat_file    -- Character(*): Input file name.
 !   lat         -- lat_struct: lattice with existing layout.

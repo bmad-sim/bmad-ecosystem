@@ -3,9 +3,6 @@
 ! 
 ! Subroutine to reallocate particles within a bunch_struct.
 !
-! Modules needed:
-!   use bunch_mod
-!
 ! Input:
 !   n_particle -- Integer: Number of particles. Must be non-negative.
 !

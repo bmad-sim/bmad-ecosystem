@@ -250,9 +250,6 @@ end subroutine track1_bunch_csr_old
 !   csr_param%particle_bin_span * bin%dz_bin. 
 ! That is, particles will, in general, overlap multiple bins. 
 !
-! Modules needed:
-!   use csr_mod
-!
 ! Input:
 !   ele                  -- ele_struct: Element being tracked through.
 !   particle(:)          -- Coord_struct: Array of particles
@@ -442,9 +439,6 @@ end subroutine csr_bin_particles
 ! Subroutine csr_bin_kicks (lat, ele, s_travel, bin, small_anlge_approx)
 !
 ! Routine to cache intermediate values needed for the csr calculations.
-!
-! Modules needed:
-!   use csr_mod
 !
 ! Input:
 !   lat       -- lat_struct: Lattice.
@@ -652,9 +646,6 @@ end subroutine csr_bin_kicks
 ! Routine to cache intermediate values needed for the lsc calculation.
 ! This routine is not for image currents.
 !
-! Modules needed:
-!   use lsc_mod
-!
 ! Input:
 !   ele       -- ele_struct: Element being tracked through.
 !   bin       -- csr_bin_struct: Binned particle averages.
@@ -732,9 +723,6 @@ end subroutine lsc_y0_kick_calc
 !
 ! Routine to calculate the CSR kick integral.
 !
-! Modules needed:
-!   use csr_mod
-!
 ! Input:
 !   kick1    -- Csr_kick1_struct: 
 !     %dz_particles -- Real(rp): Distance between source and kicked particles.
@@ -797,9 +785,6 @@ end subroutine I_csr
 ! Subroutine kick_image_charge (kick1, k_factor, bin) 
 !
 ! Routine to calculate the image charge kick.
-!
-! Modules needed:
-!   use csr_mod
 !
 ! Input:
 !   kick1    -- Csr_kick1_struct: 
@@ -876,9 +861,6 @@ end subroutine kick_image_charge
 ! Function d_calc_csr (dz_particles, k_factor, bin, small_angle_approx) result (d_this)
 !
 ! Routine to calculate the distance between source and kick points.
-!
-! Modules needed:
-!   use csr_mod
 !
 ! Input:
 !   dz_particles -- Real(rp): Distance between source and kicked particles
@@ -1021,9 +1003,6 @@ end function d_calc_csr
 ! Routine to calculate the distance between the source particle and the
 ! kicked particle.
 !
-! Modules needed:
-!   use csr_mod
-!
 ! Input:
 !   d        -- Real(rp): Distance between the source point and the kick point.
 !   k_factor -- csr_kick_factor_struct: Other parameters needed in the calculation.
@@ -1121,9 +1100,6 @@ end function z_calc_csr
 ! Subroutine csr_kick_calc (ele, bin, particle)
 !
 ! Routine to calculate the longitudinal coherent synchrotron radiation kick.
-!
-! Modules needed:
-!   use csr_mod
 !
 !   ele      -- ele_struct: Element being tracked through.
 !   bin      -- Csr_bin1_struct: Binned beam

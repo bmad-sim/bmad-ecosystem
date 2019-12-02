@@ -135,9 +135,6 @@ end subroutine photon_absorption_and_phase_shift
 !   "AAA:BBB"
 ! Where "AAA" is the atomic formula for the top layer crystal and "BBB" is the second layer atomic formula.
 !
-! Modules needed:
-!   use xraylib_interface
-!
 ! Input:
 !   ele      -- ele_struct: Multilayer element.
 !     %component_name -- Character: Multilayer type name. Assumed upper case.
@@ -302,9 +299,6 @@ end subroutine multilayer_type_to_multilayer_params
 !   "ZZZ(ijk)"
 ! Where "ZZZ" is the atomic formula of the crystal material and "ijk" is the reciprical lattice 
 ! vetor specifying the diffraction plans.
-!
-! Modules needed:
-!   use xraylib_interface
 !
 ! Input:
 !   ele      -- ele_struct: Crystal element.

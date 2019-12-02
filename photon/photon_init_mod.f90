@@ -350,9 +350,6 @@ end function bend_vert_angle_integ_prob
 ! The photon's polarization will be either in the plane of the bend or out of the plane and
 ! the magnitude will be 1.
 !
-! Module needed:
-!   use photon_init_mod
-!
 ! Input:
 !   g_bend_x  -- Real(rp): Bending 1/rho component in horizontal plane.
 !   g_bend_y  -- Real(rp): Bending 1/rho component in vertical plane.
@@ -406,9 +403,6 @@ end subroutine bend_photon_polarization_init
 ! Routine to convert an integrated probability to a vertical angle for emitting a photon from a bend. 
 ! The integrated probability is in the range [0,1] with 0 corresponding to a phi = -pi/2 and 
 ! integrated probability of 1 corresponding to phi = pi/2.
-!
-! Module needed:
-!   use photon_init_mod
 !
 ! Input:
 !   E_rel   -- real(rp): Relative photon energy E/E_crit. 
@@ -884,9 +878,6 @@ end function bend_photon_vert_angle_init
 !   r_in = 0 => E_rel = 0 
 !   r_in = 1 => E_rel = 31.4
 !
-! Module needed:
-!   use photon_init_mod
-!
 ! Input:
 !   r_in  -- Real(rp), optional: Integrated probability in the range [0,1].
 !             If not present, a random number will be used.
@@ -1253,9 +1244,6 @@ end subroutine photon_init_spline_coef_calc
 !
 ! Function to evaluate a spline fit at rr.
 ! 
-! Module needed:
-!   use photon_init_mod
-!
 ! Input:
 !   spline      -- photon_init_spline_struct: spline section. spline%pt(:) must start at 0.
 !   rr          -- real(rp): Value to evaluate the fit at.

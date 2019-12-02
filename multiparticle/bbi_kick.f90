@@ -8,9 +8,6 @@
 !
 ! Note: This routine can be used to compute the beam-ion kick as well.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
 !   x_norm -- Real(rp): Normalized coordinate: x / sigma_x.
 !   y_norm -- Real(rp): Normalized coordinate: y / sigma_y.

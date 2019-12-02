@@ -6,9 +6,6 @@
 ! Note: The tune will be negative above transition which corresponds to
 ! counter-clockwise rotation in z-pz space.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat       -- lat_struct: Lat
 !   ix_branch -- integer, optional: Branch of lattice to analyze. Default is 0.

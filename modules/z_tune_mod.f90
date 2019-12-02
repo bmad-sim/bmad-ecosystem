@@ -19,9 +19,6 @@ contains
 ! in the RF cavities. Note: RF cavity elements that are set OFF will not
 ! have their voltages varied.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat    -- lat_struct:
 !   z_tune -- Real(rp), optional: Longitudinal tune in radians (must be negative). 

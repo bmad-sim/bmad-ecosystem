@@ -6,9 +6,6 @@
 ! This function is used with the same element of different lattices
 ! to help identify which mode is which.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !     ele1, ele2 -- Ele_struct: Elements to compare.
 !

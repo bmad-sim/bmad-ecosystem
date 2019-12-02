@@ -39,9 +39,6 @@ use equal_mod
 !   coef = complex_taylor_coef (complex_taylor(3), 6, 6)  ! 1st possibility or ...
 !   coef = complex_taylor_coef (complex_taylor(3), [0, 0, 0, 0, 0, 2 ])  
 !
-! Modules needed:
-!   use bmad
-!
 ! Input (complex_taylor_coef1):
 !   complex_taylor -- complex_taylor_struct: complex_taylor series.
 !   exp(6)      -- Integer: Array of exponent indices.
@@ -96,9 +93,6 @@ private complex_taylor_coef1, complex_taylor_coef2
 !   ...
 !   coef = add_complex_taylor_term (complex_taylor(3), 1.34_rp, 6, 6)  ! 1st possibility or ...
 !   coef = add_complex_taylor_term (complex_taylor(3), 1.34_rp, [0, 0, 0, 0, 0, 2 ])  
-!
-! Modules needed:
-!   use bmad
 !
 ! Input (add_complex_taylor_term1):
 !   complex_taylor -- complex_taylor_struct: complex_taylor series.
@@ -416,9 +410,6 @@ end subroutine type_complex_taylors
 ! Subroutine to make the unit complex_taylor map:
 !       r(out) = Map * r(in) = r(in)
 !
-! Modules needed:
-!   use bmad
-!
 ! Output:
 !   complex_taylor(6) -- complex_taylor_struct: Unit complex_taylor map .
 !-
@@ -540,9 +531,6 @@ end subroutine add_complex_taylor_term2
 !
 ! Subroutine to deallocate a Bmad complex_taylor map.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   complex_taylor(:) -- complex_taylor_struct: complex_taylor to be deallocated. It is OK
 !                       if complex_taylor has already been deallocated.
@@ -582,9 +570,6 @@ end subroutine kill_complex_taylor
 ! Note: complex_taylor_sorted needs to have been initialized.
 ! Note: complex_taylor_sorted cannot be complex_taylor_in. That is it is not legal to write:
 !           call sort_complex_taylor_terms (this_complex_taylor, this_complex_taylor)
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   complex_taylor_in     -- complex_taylor_struct: Unsorted complex_taylor series.
@@ -668,9 +653,6 @@ end function complex_taylor_exponent_index
 !
 ! Subroutine to calculate, from a complex_taylor map and about some trajectory:
 !   The 1st order (Jacobian) transfer matrix.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   a_complex_taylor(6) -- complex_taylor_struct: complex_taylor map.
@@ -757,9 +739,6 @@ end subroutine complex_taylor_to_mat6
 ! Subroutine to form a first order complex_taylor map from the 6x6 transfer
 ! matrix and the 0th order transfer vector.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   vec0(6)   -- 0th order transfer vector.
 !   mat6(6,6) -- 6x6 transfer matrix.
@@ -815,9 +794,6 @@ end subroutine mat6_to_complex_taylor
 ! Subroutine track_complex_taylor (start_orb, complex_taylor, end_orb)
 !
 ! Subroutine to track using a complex_taylor map.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   complex_taylor(6) -- complex_taylor_struct: complex_taylor map.
@@ -890,9 +866,6 @@ end subroutine track_complex_taylor
 ! Subroutine truncate_complex_taylor_to_order (complex_taylor_in, order, complex_taylor_out)
 !
 ! Subroutine to throw out all terms in a complex_taylor map that are above a certain order.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   complex_taylor_in(:)   -- complex_taylor_struct: Input complex_taylor map.

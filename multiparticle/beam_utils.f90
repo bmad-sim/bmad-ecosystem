@@ -20,9 +20,6 @@ contains
 !
 ! Subroutine to track a bunch of particles through an element including wakefields.
 !
-! Modules needed:
-!   use beam_mod
-!
 ! Input:
 !   bunch_start -- bunch_struct: Starting bunch position.
 !   ele         -- Ele_struct: The element to track through.
@@ -142,9 +139,6 @@ end subroutine track1_bunch_hom
 !
 ! Subroutine to apply the short range wake fields to a bunch. 
 !
-! Modules needed:
-!   use beam_mod
-!
 ! Input:
 !   bunch -- Bunch_struct: Bunch of particles.
 !   ele   -- Ele_struct: Element with wakefields.
@@ -228,9 +222,6 @@ end subroutine track1_sr_wake
 ! For more information on individual bunch initialization, see the 
 ! init_bunch_distribution routine.
 ! 
-! Modules needed:
-!   use beam_mod
-!
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at (downstream end).
 !   param       -- Lat_param_struct: Lattice parameters
@@ -274,7 +265,7 @@ if (beam_init%file_name /= '') then   ! Old name
 endif
 
 if (beam_init%position_file /= '') then
-  call read_beam_file (beam_init%position_file, beam, beam_init, err_here)
+  call read_beam_file (beam_init%position_file, beam, beam_init, err_here, ele)
   if (err_here) then
     call out_io (s_abort$, r_name, "PROBLEM READING BEAM POSITION FILE: "// quote(beam_init%position_file))
     return
@@ -332,9 +323,6 @@ end subroutine init_beam_distribution
 ! circular rings that beam_init%center is the correct closed orbit. 
 ! The closed orbit will shift if, for example, radiation damping is
 ! turned on.
-!
-! Modules needed:
-!   use beam_mod
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at (downstream end).
@@ -1313,9 +1301,6 @@ end subroutine init_spin_distribution
 !
 ! Finds all bunch parameters for a slice through the beam distribution.
 !
-! Modules needed:
-!  use beam_mod
-!
 ! Input:
 !   bunch        -- Bunch_struct
 !   plane        -- Integer: plane to slice through (x$, px$, & etc...)
@@ -1390,9 +1375,6 @@ end subroutine calc_bunch_params_slice
 ! Note: If less than two particle remain then the various parameters will be
 ! set to zero.
 ! 
-! Modules needed:
-!  use beam_mod
-!
 ! Input:
 !   bunch     -- Bunch_struct
 !   print_err -- Logical, optional: If present and False then suppress 
@@ -1735,9 +1717,6 @@ end subroutine calc_bunch_params
 !
 ! Rotine to calculate spin averages
 !
-! Module needed:
-!   use beam_utils
-!
 ! Input:
 !   bunch -- bunch_struct: Bunch of spins
 !
@@ -1781,9 +1760,6 @@ end subroutine calc_spin_params
 !
 ! Routine to find the sigma matrix elements of a particle distribution.
 ! 
-! Modules needed:
-!   use beam_mod
-!
 ! Input:
 !   particle(:) -- Coord_struct: Array of particles.
 !   charge(:)   -- real(rp): Particle charge or photon intensity.

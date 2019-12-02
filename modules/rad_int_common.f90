@@ -1,8 +1,5 @@
 !+
 ! Module rad_int_common
-!
-! Module needed:
-!   use rad_int_common
 !-
 
 module rad_int_common               

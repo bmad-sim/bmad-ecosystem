@@ -591,9 +591,6 @@ end subroutine rk_step1
 !
 !   dr(11)/ds = dt_ref/ds
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele   -- Ele_struct: Element being tracked thorugh.
 !   param -- lat_param_struct: Lattice parameters.

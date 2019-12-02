@@ -20,9 +20,6 @@
 !
 ! To get the one-turn matrix for a closed lattice, omit ix2 from the argument list.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   lat   -- lat_struct: Lattice used in the calculation.
 !     %ele(:)%mat6  -- Transfer matrices used in the calculation.

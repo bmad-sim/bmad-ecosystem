@@ -9,9 +9,6 @@
 !     set_ele_attribute
 !     value_of_attribute
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
 !                        will point to a variable within this element.

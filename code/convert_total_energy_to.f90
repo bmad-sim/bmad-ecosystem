@@ -3,9 +3,6 @@
 !
 ! Routine to calculate the momentum, etc. from a particle's total energy.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   E_tot    -- Real(rp): Total energy of the particle.
 !   particle -- Integer: Type of particle. positron$, etc.

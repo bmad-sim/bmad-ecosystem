@@ -15,9 +15,6 @@ contains
 !   freq = freq_in * (1 + lr_freq_spread) * rr)
 ! where rr is a Gaussian distributed random number with unit variance.
 !
-! Modules needed:
-!   use wake_mod
-!
 ! Input:
 !   ele -- ele_struct: Element with wake. If no wake then nothing is done.
 !      %value(freq_in$)        -- Frequency.
@@ -63,9 +60,6 @@ end subroutine randomize_lr_wake_frequencies
 ! Routine to zero the long range wake amplitudes for the elements that have
 ! long range wakes in a lattice.
 !
-! Modules needed:
-!   use wake_mod
-!
 ! Input:
 !   lat -- Lat_struct: Lattice
 !
@@ -103,9 +97,6 @@ end subroutine zero_lr_wakes_in_lat
 ! Subroutine track1_lr_wake (bunch, ele)
 !
 ! Subroutine to put in the long-range wakes for particle tracking.
-!
-! Modules needed:
-!   use wake_mod
 !
 ! Input:
 !   ele         -- ele_struct: Element with wakes.
@@ -304,9 +295,6 @@ end subroutine track1_lr_wake
 ! Routine to apply the short-range wake longitudinal component kick to a particle and then add 
 ! to the existing longitudinal wake the contribution from the particle.
 !
-! Modules needed:
-!   use wake_mod
-!
 ! Input:
 !   ele     -- Ele_struct: Element with wakes.
 !   orbit   -- Coord_struct: Particle coords.
@@ -405,9 +393,6 @@ end subroutine sr_longitudinal_wake_particle
 !
 ! Subroutine to apply the short-range wake transverse component of the kick to a particle and then add 
 ! to the existing transverse wale the contribution from the particle.
-!
-! Modules needed:
-!   use wake_mod
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes.
@@ -518,9 +503,6 @@ end subroutine sr_transverse_wake_particle
 ! Routine to order the particles longitudinally in terms of decreasing %vec(5).
 ! That is from large z (head of bunch) to small z.
 ! Only live particles are ordered.
-!
-! Modules needed:
-!   use beam_mod
 !
 ! Input:
 !   bunch     -- Bunch_struct: collection of particles.

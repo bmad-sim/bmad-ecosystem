@@ -4,9 +4,6 @@
 ! Subroutine to zero any kick attributes like hkick$, bl_vkick$, etc.
 ! See also: ele_has_nonzero_kick, ele_has_offset, zero_ele_offsets.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input
 !   ele -- Ele_struct: Element with possible nonzero kicks.
 !

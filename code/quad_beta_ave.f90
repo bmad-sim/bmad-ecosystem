@@ -3,9 +3,6 @@
 !
 ! Subroutine to compute the average betas in a quad
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele   -- ele_struct: Element.
 !

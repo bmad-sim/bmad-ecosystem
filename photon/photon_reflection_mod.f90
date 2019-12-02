@@ -50,9 +50,6 @@ contains
 ! The surface roughness for diffuse scattering is 200 nm and the
 ! the surface roughness correlation length is 5.5 um.
 !
-! Module needed:
-!   use photon_reflection_mod
-!
 ! Output:
 !   surface -- photon_reflect_surface_struct
 !-
@@ -396,9 +393,6 @@ end subroutine finalize_reflectivity_tables
 !
 ! Routine to read the reflection probability data for a given type of surface from a file. 
 ! 
-! Module needed:
-!   photon_reflection_mod
-!
 ! Input:
 !   file_name -- Character(*): Name of the file.
 !
@@ -616,9 +610,6 @@ end subroutine read_surface_reflection_file
 !   probability of diffuse reflection  = p_reflect * (1 - rel_p_specular)
 !
 ! Use photon_reflection_std_surface_init or read_surface_reflection_file to get surface info.
-!
-! Modules needed:
-!  use photon_reflection_mod
 !
 ! Input:
 !   angle    -- Real(rp): Incident grazing angle in radians.

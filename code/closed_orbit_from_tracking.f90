@@ -12,9 +12,6 @@
 ! are strong nonlinearities. Possible convergence porblems with this 
 ! routine occurs when the initial guess is far from the true closed orbit.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat     -- lat_struct: Lat to track through.
 !   i_dim    -- Integer: 

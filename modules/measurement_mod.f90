@@ -135,9 +135,6 @@ end subroutine compute_bpm_transformation_numbers
 ! This routine will only give a nonzero reading for Bmad markers, 
 ! monitors, and instruments.
 !
-! Modules needed:
-!   use measurement_mod
-!
 ! Input: 
 !  orb        -- Coord_struct: Orbit position at BPM.
 !  ele        -- Ele_struct: Element where the orbit is measured.
@@ -218,9 +215,6 @@ end subroutine to_orbit_reading
 !
 ! This routine will only give a nonzero reading for Bmad markers, 
 ! monitors, and instruments.
-!
-! Modules needed:
-!   use measurement_mod
 !
 ! Input: 
 !  eta_actual(2) -- Real(rp): Actual (eta_x, eta_y) dispersion.
@@ -305,9 +299,6 @@ end subroutine to_eta_reading
 !
 ! This routine will only give a nonzero reading for Bmad markers, 
 ! monitors, and instruments.
-!
-! Modules needed:
-!   use measurement_mod
 !
 ! Input: 
 !  actual_phase -- Real(rp): Actual phase reading.

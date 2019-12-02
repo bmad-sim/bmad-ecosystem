@@ -1,13 +1,7 @@
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
 ! Subroutine quad_mat2_calc (k1, length, rel_p, mat2, z_coef, dz_dpz_coef)
 !
 ! Subroutine to calculate the 2x2 transfer matrix for a quad for one plane. 
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   k1       -- Real(rp): Quad strength: k1 > 0 ==> defocus.

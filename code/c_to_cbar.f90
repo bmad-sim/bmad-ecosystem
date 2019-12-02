@@ -3,9 +3,6 @@
 !
 ! Subroutine to compute Cbar from the C matrix and the Twiss parameters.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   ele -- Ele_struct: Element with C matrix and Twiss parameters.
 !     %c_mat(2,2) -- C matrix.

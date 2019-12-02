@@ -5,9 +5,6 @@
 ! Subroutine to convert between lab frame, normal mode, normalized normal
 ! mode, and action-angle coordinates.
 !
-! Modules Needed:
-!   use bmad
-!
 ! Input:
 !   in_type_str  -- Character(*): type of the input coords.
 !   coord_in     -- Coord_struct: Input coordinates.

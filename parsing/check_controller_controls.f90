@@ -3,9 +3,6 @@
 !
 ! Routine to check for problems when setting up group or overlay controllers.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   contrl(:)   -- Control_struct: control info. 1 element for each slave.
 !   name        -- Character(*): Lord name. Used for error reporting.

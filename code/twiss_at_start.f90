@@ -4,9 +4,6 @@
 ! Subroutine to calculate, for a circular machine, the closed 1-turn 
 ! solution for the Twiss parameters at the start of the lat.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat         -- lat_struct: Lat
 !   ix_branch   -- Integer, option: Branch to use. Default is 0 (main branch).

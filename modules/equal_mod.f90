@@ -941,9 +941,6 @@ end subroutine complex_taylor_equal_complex_taylor
 ! Subroutine to transfer the values from one complex_taylor map to another:
 !     complex_taylor1 <= complex_taylor2
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   complex_taylor2(:) -- complex_taylor_struct: complex_taylor map.
 !
@@ -977,9 +974,6 @@ end subroutine complex_taylors_equal_complex_taylors
 ! Subroutine to initialize a Bmad complex_taylor series (6 of these series make
 ! a complex_taylor map). Note: This routine does not zero the structure. The calling
 ! routine is responsible for setting all values.
-!
-! Modules needed:
-!   use bmad
 !
 ! Input:
 !   complex_taylor -- complex_taylor_struct: Old structure.

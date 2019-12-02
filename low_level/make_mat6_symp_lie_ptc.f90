@@ -3,9 +3,6 @@
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele        -- Ele_struct: Element with transfer matrix
 !   param      -- lat_param_struct: Parameters are needed for some elements.

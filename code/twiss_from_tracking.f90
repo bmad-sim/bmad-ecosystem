@@ -13,9 +13,6 @@
 !     
 ! See twiss_at_start and twiss_propagate_all for alternative routines.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   lat            -- lat_struct: Lat to track through.
 !   ref_orb0        -- Coord_struct: Reference orbit at lat%ele(0).

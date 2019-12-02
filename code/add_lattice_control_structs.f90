@@ -4,9 +4,6 @@
 ! Subroutine to adjust the control structure of a lat so that extra control elements can be added.
 ! Note: Control struct arrays cannot be reduced by this routine.
 !
-! Modules to use:
-!   use bmad
-!
 ! Input:
 !   ele               -- ele_struct: Element that needs extra control elements.
 !   n_add_slave       -- integer, optional: Number of field slaves to add. Default is zero.

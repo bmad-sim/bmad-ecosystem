@@ -8,9 +8,6 @@
 ! used for another and thus save some computation time. elements of type taylor
 ! are considered *never* to be equivalent since their maps are never computed.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input: 
 !   ele_taylor -- Ele_struct: Element with a Taylor map
 !   ele2       -- Ele_struct: Element that might receive the Taylor map from ele_taylor.

@@ -4,9 +4,6 @@
 ! Subroutine make the matrices needed to go from normal mode coords
 ! to X-Y coords and vice versa.
 !
-! Modules needed:
-!   use bmad
-!
 ! Input:
 !   ele        -- Ele_struct: Element
 !
