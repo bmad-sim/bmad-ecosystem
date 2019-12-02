@@ -91,15 +91,12 @@ class tao_root_window(tk.Tk):
 
         # Call
         tk.Label(self.main_frame, text="Call command file:").grid(row=0, column=0)
-        self.call_file = tk_tao_parameter(
-                str_to_tao_param("call_file;FILE;T;"), self.main_frame, self.pipe)
+        self.call_file = tk_tao_parameter(str_to_tao_param("call_file;FILE;T;"), self.main_frame, self.pipe)
         self.call_file.tk_wid.grid(row=0, column=1, sticky='EW')
-        tk.Button(self.main_frame, text="Run", command=self.tao_call).grid(
-                row=0, column=2, sticky='EW')
+        tk.Button(self.main_frame, text="Run", command=self.tao_call).grid(row=0, column=2, sticky='EW')
         # Arguments
         tk.Label(self.main_frame, text="Arguments:").grid(row=1, column=0)
-        self.cf_args = tk_tao_parameter(
-                str_to_tao_param("cf_args;STR;T;"), self.main_frame, self.pipe)
+        self.cf_args = tk_tao_parameter(str_to_tao_param("cf_args;STR;T;"), self.main_frame, self.pipe)
         self.cf_args.tk_wid.configure(width=30)
         self.cf_args.tk_wid.bind("<Return>", self.tao_call)
         self.cf_args.tk_wid.grid(row=1, column=1, columnspan=2, sticky='EW')
@@ -411,8 +408,14 @@ class tao_root_window(tk.Tk):
         for i in range(len(sys.argv)):
             if looking_for == 'switch':
                 arg = sys.argv[i]
-                if arg.find('-') == 0: #-switch
+                if arg[0] == '-': # -switch
                     arg = arg[1:]
+
+                    normal = True
+                    if arg[0] == '-':   # "--switch" negates the effect of "-switch"
+                      normal = False
+                      arg = arg[1:]
+                  
                     # Determine if arg is a valid switch name
                     matches = [] # list of startup params that arg might refer to
                     # Special handling for gui_init
@@ -428,9 +431,12 @@ class tao_root_window(tk.Tk):
                         arg = matches[0]
                         if (tao_startup_param_dict[matches[0]].type == 'FILE') & (i != len(sys.argv)-1):
                             clargs[arg] = "" #add arg to clargs
-                            looking_for = 'file' #file switches need files
+                            if normal: looking_for = 'file' # file switches need files
                         elif tao_startup_param_dict[matches[0]].type == 'LOGIC':
-                            clargs[arg] = "T" #add arg to clargs
+                            if normal:
+                              clargs[arg] = "T" #add arg to clargs
+                            else:
+                              clargs[arg] = "F" #add arg to clargs
             elif looking_for == 'file':
                 arg_file = sys.argv[i]
                 if arg_file.find('-') == 0: #not a file
@@ -466,10 +472,10 @@ class tao_root_window(tk.Tk):
         except:
             init_list = []
 
-        init_dict = {}
         for key, value in clargs.items(): # add clargs to init_list
             init_list.append(key + ':' + value)
 
+        init_dict = {}
         for entry0 in init_list:
             entry = entry0.strip()
             entry = entry.split('#', 1)[0]   # Remove comment
@@ -508,6 +514,7 @@ class tao_root_window(tk.Tk):
 
         k = 0 #row number counter
         for param, tao_param in tao_startup_param_dict.items():
+            if param == 'noplot': continue   # The setting of noplot affects the "Plot Mode"
             tk_list.append(tk_tao_parameter(tao_param,init_frame))
             #Possibly set value from init file
             if tk_list[k].param.name in init_dict:
@@ -516,11 +523,13 @@ class tao_root_window(tk.Tk):
                 elif tk_list[k].param.type == 'LOGIC':
                     state = (init_dict[tk_list[k].param.name] == 'T') | (init_dict[tk_list[k].param.name] == 'True')
                     tk_list[k].tk_var.set(state)
+
             if param == 'noinit': #gets a special label
-                tk.Label(init_frame,text="Don't use an init file (noinit)").grid(row=k,sticky="E")
+                tk.Label(init_frame, text="Don't use an init file (noinit)").grid(row=k,sticky="E")
                 tk_list[k].tk_var.trace('w', toggle_init)
             else:
                 tk.Label(init_frame, text=param).grid(row=k,sticky="E")
+
             tk_list[k].tk_wid.grid(row=k, column=1, sticky="W")
             k = k+1
 
@@ -572,6 +581,8 @@ class tao_root_window(tk.Tk):
                 plot_mode.set(init_dict["plot_mode"])
             else:
                 messagebox.showwarning('Error', 'Bad setting of "plot_mode" in gui.init: ' + init_dict["plot_mode"])
+
+        if 'noplot' in init_dict and init_dict['noplot'] == 'T': plot_mode.set('none')
 
         # Font size
         tk.Label(init_frame, text="Font size").grid(row=k+3, sticky='E')

@@ -5,7 +5,7 @@ Also defined are a few functions for parsing data into a single tao_parameter or
 from collections import OrderedDict
 import string
 
-startup_list = [
+tao_startup_param_list = [
     'beam_file;FILE;T;',
     'beam_init_position_file;FILE;T;',
     'beam_track_data_file;FILE;T;',
@@ -17,6 +17,7 @@ startup_list = [
     'lattice_file;FILE;T;',
     'plot_file;FILE;T;',
     'startup_file;FILE;T;',
+    'noplot;LOGIC;T;F',
     'var_file;FILE;T;',
     'slice_lattice;FILE;T;',
     'disable_smooth_line_calc;LOGIC;T;F',
@@ -144,4 +145,4 @@ def str_to_tao_param(param_str):
     return tao_parameter(v[0],v[1],v[2],v[3], sub_param)
 
 #-------------------------------------------------
-tao_startup_param_dict = tao_parameter_dict(startup_list)
+tao_startup_param_dict = tao_parameter_dict(tao_startup_param_list)

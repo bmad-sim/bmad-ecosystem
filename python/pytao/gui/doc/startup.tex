@@ -33,7 +33,9 @@ The setting of \vn{Plot Mode} controls what plotting environment is used. Possib
   none
 \end{example}
 \vn{MatPlotLib} is a python based package which is the most versatile. The \vn{pgplot/pgplot} option
-is the standard tao plotting used with the command line version of \tao. Note: Which plotting package is
+is the standard tao plotting used with the command line version of \tao. Note: If the \tao \vn{-noplot} option
+is present on the command line when the GUI is started, \vn{Plot Mode} will be set to \vn{none}.
+Note: Which plotting package is
 used with \vn{pgplot/plplot}, either \vn{pgplot} or \vn{plplot}, is determined by how \tao was compiled.
 
 Finally, the font size can be set as desired. Hitting Enter/Return while the font size box is in
