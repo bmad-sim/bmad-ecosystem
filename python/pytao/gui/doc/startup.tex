@@ -76,7 +76,7 @@ to \vn{True}.
 
 The order in which you list options in gui.init is not important.
 
-File paths should be specified in full to be safe, but you can specify paths relative to the directory from which you launch main.py.  For example, "/home/username/file", "subfolder/my_file", and "../../path/to/another/file" would all be acceptable file paths.  You can also use your environmental variables and "\textasciitilde{}", as in "\textasciitilde{}/Documents/my_file" and "\$DIST_BASE_DIR/tao/file".
+File paths should be specified in full to be safe, but you can specify paths relative to the directory from which you launch main.py.  For example, "/home/username/file", "subfolder/my_file", and "../../path/to/another/file" would all be acceptable file paths.  You can also use your environmental variables and "\ttilde", as in "\ttilde/Documents/my_file" and "\$DIST_BASE_DIR/tao/file".
 
 For logical parameters, for example, "rf_on", Use T/F or True/False as the parameter's value.
 
@@ -87,5 +87,8 @@ To get a list of parameters that can be set in a \vn{gui.init} file, start Tao w
   tao -help
 \end{example}
 The corresponding gui.init parameter is the Tao parameter with the leading dash "-" removed and a
-colon ":" between the parameter and the parameter's value. 
+colon ":" between the parameter and the parameter's value.
+
+In order of precedence, parameters on the command line when the GUI is started take precedence over paramters
+defined in the GUI initialization file and these take precedence over parameters defined in \tao startup files.
 
