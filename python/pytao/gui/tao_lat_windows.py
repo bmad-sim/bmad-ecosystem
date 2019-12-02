@@ -993,14 +993,17 @@ class tao_lattice_window(Tao_Toplevel):
         lattice = self.pipe.cmd_in("python show lattice -python " + self.switches)
         lattice = lattice.splitlines()
         #Remove error messages
-        while lattice[0][:6] in ['[ERROR', '[FATAL']:
-            lattice = lattice[1:] #remove line with [ERROR or [FATAL
-            while lattice[0].find('      ') == 0:
-                lattice = lattice[1:] #remove error description lines
-                if len(lattice) == 0:
-                    break
-            if len(lattice) == 0:
-                break
+        #while lattice[0][:6] in ['[ERROR', '[FATAL']:
+        #    lattice = lattice[1:] #remove line with [ERROR or [FATAL
+        #    while lattice[0].find('    ') == 0:
+        #        lattice = lattice[1:] #remove error description lines
+        #        if len(lattice) == 0:
+        #            break
+        #    if len(lattice) == 0:
+        #        break
+        if lattice[0][:6] in ['[ERROR', '[FATAL']:
+            tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
+            return 0
         if len(lattice) == 0:
             tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
             return 0
