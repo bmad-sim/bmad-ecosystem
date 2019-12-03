@@ -41,6 +41,12 @@ if (found) return
 
 if (.not. allocated (graph%curve)) then  ! lat_layout
   u => tao_pointer_to_universe(graph%ix_universe)
+  if (.not. associated(u)) then
+    graph%is_valid = .false.
+    write (graph%why_invalid, '(a, i0, a)') 'BAD UNIVERSE INDEX', graph%ix_universe
+    return
+  endif
+
   if (.not. u%is_on) then
     graph%is_valid = .false.
     write (graph%why_invalid, '(a, i0, a)') 'UNIVERSE ', u%ix_uni, ' IS OFF!'
@@ -367,6 +373,13 @@ do k = 1, size(graph%curve)
   !----------------------------
 
   if (curve%data_source == 'beam') then
+    if (curve%ix_ele_ref_track < 0) then
+      call out_io (s_abort$, r_name, 'REFERENCE ELEMENT DOES NOT EXIST: ' // trim(curve%ele_ref_name), &
+                    'CANNOT DO PHASE_SPACE PLOTTING FOR CURVE: ' // tao_curve_name(curve))
+      curve%g%why_invalid = 'NO BEAM AT ELEMENT'
+      return
+    endif
+
     beam => u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
     ele => u%model%lat%branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)
     if (.not. allocated(beam%bunch)) then

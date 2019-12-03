@@ -120,6 +120,18 @@ do i = 1, size(s%plot_page%region)
       enddo
     endif
 
+    ! Draw a rectangle so the box and graph boundries can be seen.
+
+    if (s%global%box_plots) then
+      call qp_draw_rectangle (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp, '%GRAPH/LB')
+      call qp_draw_rectangle (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp, '%BOX/LB')
+    endif
+
+    ! If y%min = y%max then was not able to scale the graph due to some problem.
+    ! In this case it is not possible to draw the data.
+
+    if (graph%y%min == graph%y%max) cycle g_loop
+
     ! Now we can draw the graph
 
     select case (graph%type)
@@ -138,13 +150,6 @@ do i = 1, size(s%plot_page%region)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
-
-    ! Draw a rectangle so the box and graph boundries can be seen.
-
-    if (s%global%box_plots) then
-      call qp_draw_rectangle (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp, '%GRAPH/LB')
-      call qp_draw_rectangle (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp, '%BOX/LB')
-    endif
 
   enddo g_loop
 
