@@ -4369,13 +4369,13 @@ call qp_set_clip (.false.)     ! no clipping of axis
 
 ! ax1 and ax2 are the same except when x2_mirrors_x is True.
 
+call qp_use_axis (x = who)
+ax1 = qp_com%plot%xx  ! Active axis
+ax2 = ax1
+
 if (who == 'X') then
-  ax2 = qp_com%plot%x
-  ax1 = ax2
   who_sign = +1
 elseif (who == 'X2') then
-  ax2 = qp_com%plot%x2
-  ax1 = ax2
   if (qp_com%plot%x2_mirrors_x) ax1 = qp_com%plot%x 
   who_sign = -1
 else
@@ -4558,13 +4558,13 @@ call qp_save_state (.true.)
 
 ! ax1 and ax2 are the same except when x2_mirrors_x is True.
 
+call qp_use_axis (y = who)
+ax1 = qp_com%plot%yy  ! Active axis
+ax2 = ax1
+
 if (who == 'Y') then
-  ax2 = qp_com%plot%y
-  ax1 = ax2
   who_sign = +1
 elseif (who == 'Y2') then
-  ax2 = qp_com%plot%y2
-  ax1 = ax2
   if (qp_com%plot%y2_mirrors_y) ax1 = qp_com%plot%y 
   who_sign = -1
 else
