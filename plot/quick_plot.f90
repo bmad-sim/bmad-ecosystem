@@ -4351,7 +4351,7 @@ subroutine qp_draw_x_axis (who, y_pos)
 
 implicit none
                                                                       
-type (qp_axis_struct) ax1, ax2
+type (qp_axis_struct), pointer :: ax1, ax2
 
 real(rp) dx0, dum, x1, y1, dy, x0, y0, y_pos, dy1, dy2
 real(rp) dy11, dy22, x11, tick_width, x0_tick, r, d, x1_inch
@@ -4370,17 +4370,18 @@ call qp_set_clip (.false.)     ! no clipping of axis
 ! ax1 and ax2 are the same except when x2_mirrors_x is True.
 
 call qp_use_axis (x = who)
-ax1 = qp_com%plot%xx  ! Active axis
-ax2 = ax1
+ax2 => qp_com%plot%xx
 
 if (who == 'X') then
   who_sign = +1
 elseif (who == 'X2') then
-  if (qp_com%plot%x2_mirrors_x) ax1 = qp_com%plot%x 
+  if (qp_com%plot%x2_mirrors_x) call qp_use_axis (x = 'X')
   who_sign = -1
 else
   call out_io (s_error$, r_name, 'BAD AXIS NAME: ' // who)
 endif
+
+ax1 => qp_com%plot%xx
 
 ! the axis line itself
 
@@ -4539,7 +4540,7 @@ subroutine qp_draw_y_axis (who, x_pos)
 
 implicit none
 
-type (qp_axis_struct) ax1, ax2
+type (qp_axis_struct), pointer :: ax1, ax2
 
 real(rp) x1, y1, dx, x0, y0, x_pos, dx1, dx2, dx11, dx22, y1_inch
 real(rp) number_len, dy0, y11, tick_width, ax_len, dum, y0_tick, r, d
@@ -4559,18 +4560,18 @@ call qp_save_state (.true.)
 ! ax1 and ax2 are the same except when x2_mirrors_x is True.
 
 call qp_use_axis (y = who)
-ax1 = qp_com%plot%yy  ! Active axis
-ax2 = ax1
+ax2 => qp_com%plot%yy
 
 if (who == 'Y') then
   who_sign = +1
 elseif (who == 'Y2') then
-  if (qp_com%plot%y2_mirrors_y) ax1 = qp_com%plot%y 
+  if (qp_com%plot%y2_mirrors_y) call qp_use_axis (y = 'Y')
   who_sign = -1
 else
   call out_io (s_error$, r_name, 'BAD AXIS NAME: ' // who)
 endif
 
+ax1 => qp_com%plot%yy   ! Not necessarily the same as ax2
 number_side = ax1%number_side * who_sign
 
 ! draw axis line itself
