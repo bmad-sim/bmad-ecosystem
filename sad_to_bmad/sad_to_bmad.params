@@ -1,4 +1,15 @@
-# Please see the DOC file for known limitations of this translation script.
+# This is an example input file for the Python based SAD to Bmad conversion script:
+#     util_programs/sad_to_bmad/sad_to_bmad.py
+# This file is at:
+#			util_programs/sad_to_bmad/sad_to_bmad.params
+# To use, copy this file to your working directory and modify appropriately.
+# Please see the util_programs/sad_to_bmad/DOC file for known limitations of the translation.
+#
+# To run the script, use the command:
+#			path-to-sad_to_bmad-directory/sad_to_bmad.py
+# The <param-file-name> argument defaults to 
+#				sad_to_bmad.params
+# The <sad-file-name> defaults to the setting of sad_lattice_file which is set below.
 
 sad_lattice_file = "xxxxx"          # SAD lattice file. [Or specify argument on the command line.]
 bmad_lattice_file = ""              # If blank then add .bmad suffix to the sad lattice file name.

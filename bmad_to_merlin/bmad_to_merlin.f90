@@ -35,17 +35,17 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
-real(rp) angle, e1, e2, freq, lag, volt, ks
+real(rp) angle, e1, e2, freq, lag, volt, ks, hkick, vkick
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 integer i, j, ix
 
 character(200) lat_file, out_file, path, base
 character(300) line1, line2
 character(20) date, name, ele_type
-character(8) :: col_name(16) = [character(8):: 'NAME', 'KEYWORD', 'S', 'L', 'ANGLE', 'E1', 'E2', &
-                                                  'KS', 'K0L', 'K1L', 'K2L', 'K3L', 'TILT', 'FREQ', 'LAG', 'VOLT']
-character(4) :: col_type(16) = [character(4):: '%s', '%s', '%le', '%le', '%le', '%le', '%le', '%le', &
-                                                       '%le', '%le', '%le', '%le', '%le', '%le', '%le', '%le']
+character(8) :: col_name(18) = [character(8):: 'NAME', 'KEYWORD', 'S', 'L', 'ANGLE', 'E1', 'E2', &
+                                                  'KS', 'HKICK', 'VKICK', 'K0L', 'K1L', 'K2L', 'K3L', 'TILT', 'FREQ', 'LAG', 'VOLT']
+character(4) :: col_type(18) = [character(4):: '%s', '%s', '%le', '%le', '%le', '%le', '%le', '%le', &
+                                                       '%le', '%le', '%le', '%le', '%le', '%le', '%le', '%le', '%le', '%le']
 
 !
 
@@ -71,7 +71,7 @@ call bmad_parser (lat_file, lat)
 
 ix = SplitFileName(lat_file, path, base)
 out_file = trim(base) // '.tfs'
-open (1, file = out_file, recl = 300)
+open (1, file = out_file, recl = 400)
 name = upcase(species_name(lat%param%particle))
 
 call date_and_time_stamp (date, .true.)
@@ -104,54 +104,57 @@ do i = 1, lat%n_ele_track
   ix = min(14, len_trim(ele%name))
   name = quote(ele%name(1:ix))
 
-  angle = 0
-  e1 = 0
-  e2 = 0
-  freq = 0
-  lag = 0
-  volt = 0
+  hkick = 0;  vkick = 0
+  e1 = 0;  e2 = 0; angle = 0
+  freq = 0; lag = 0; volt = 0
   ks = 0
   tilt = ele%value(tilt$)
 
   call multipole_ele_to_kt (ele, .true., ix, knl, tilt, magnetic$, include_kicks$)
 
   select case (ele%key)
-  case (drift$, instrument$, pipe$);      ele_type = 'DRIFT'
+  case (drift$, instrument$, pipe$);   ele_type = 'DRIFT'
   case (multipole$, ab_multipole$);    ele_type = 'MULTIPOLE'
-  case (sbend$);          ele_type = 'SBEND'
+  case (sbend$);                       ele_type = 'SBEND'
     angle = ele%value(angle$)
     e1    = ele%value(e1$)
     e2    = ele%value(e2$)
     tilt  = ele%value(ref_tilt$)
-  case (lcavity$);        ele_type = 'LCAV'
+  case (lcavity$);                     ele_type = 'LCAV'
     freq = 1d-6 * ele%value(rf_frequency$)
     volt = 1d-6 * ele%value(voltage$)
     lag = ele%value(phi0$)
-  case (rfcavity$);       ele_type = 'RFCAVITY'
+  case (rfcavity$);                    ele_type = 'RFCAVITY'
     freq = 1d-6 * ele%value(rf_frequency$)
     volt = 1d-6 * ele%value(voltage$)
     lag = ele%value(phi0$)
-  case (rcollimator$);    ele_type = 'COLLIMATOR'
-  case (ecollimator$);    ele_type = 'ECOLLIMATOR'
-  case (vkicker$);        ele_type = 'YCOR'
-    tilt(0) = tilt(0) - pi/2.0_rp
-  case (hkicker$);        ele_type = 'XCOR'
-  case (kicker$);         ele_type = 'KICKER'
-  case (quadrupole$);     ele_type = 'QUADRUPOLE'
-  case (solenoid$);       ele_type = 'SOLENOID'
+  case (rcollimator$);                 ele_type = 'COLLIMATOR'
+  case (ecollimator$);                 ele_type = 'ECOLLIMATOR'
+  case (vkicker$);                     ele_type = 'VKICKER'
+    knl = 0
+    vkick = ele%value(kick$)
+  case (hkicker$, elseparator$);       ele_type = 'HKICKER'
+    knl = 0
+    hkick = ele%value(kick$)
+  case (kicker$);                      ele_type = 'KICKER'
+    knl = 0
+    hkick = ele%value(hkick$)
+    vkick = ele%value(kick$)
+  case (quadrupole$);                  ele_type = 'QUADRUPOLE'
+  case (solenoid$, sol_quad$);         ele_type = 'SOLENOID'
     ks = ele%value(ks$)
-  case (sextupole$);      ele_type = 'SEXTUPOLE'
-  case (octupole$);       ele_type = 'OCTUPOLE'
-  case (monitor$);        ele_type = 'MONITOR'
-  case (marker$);         ele_type = 'MARKER'
+  case (sextupole$);                   ele_type = 'SEXTUPOLE'
+  case (octupole$);                    ele_type = 'OCTUPOLE'
+  case (monitor$);                     ele_type = 'MONITOR'
+  case (marker$);                      ele_type = 'MARKER'
   case default
     print *, 'I do not know how to translate this element type: ' // key_name(ele%key)
     print *, 'Translating as a drift...'
     ele_type = 'DRIFT'
   end select
 
-  write (1, '(2x, a17, a, t36, 14es17.6)') name, quote(ele_type), &
-            ele%s, ele%value(l$), angle, e1, e2, ks, knl(0), knl(1), knl(2), knl(3), ele%value(tilt$), freq, lag, volt
+  write (1, '(2x, a17, a, t36, 16es17.6)') name, quote(ele_type), &
+            ele%s, ele%value(l$), angle, e1, e2, ks, hkick, vkick, knl(0), knl(1), knl(2), knl(3), ele%value(tilt$), freq, lag, volt
 enddo
 
 print '(a)', 'Written: ' // trim(out_file)
