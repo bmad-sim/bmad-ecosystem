@@ -88,11 +88,36 @@ else                          ! else just the one graph...
   enddo
 endif
 
-end subroutine
+end subroutine tao_scale_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+!+
+! Subroutine tao_scale_plot (plot, y_min_in, y_max_in, axis, gang, skip_lat_layout)
+!
+! Routine to scale the y-axis and/or y2-axis of the graphs of the plot.
+! If y_min_in = y_max_in then autoscaling will be done and the particular value
+! of y_min_in and y_max_in is ignored.
+!
+! Input:
+!   plot            -- tao_plot_struct: Plot with graphs to be scaled.
+!   y_min_in        -- real(rp): Axis [min, max] must cover [y_min_in, y_max_in] if not autoscaling.
+!   y_max_in        -- real(rp): Axis [min, max] must cover [y_min_in, y_max_in] if not autoscaling.
+!   axis            -- character(*), optional: Axis to scale.
+!                         ''   -> scale y and y2 (default).
+!                         'y'  -> scale y-axis.
+!                         'y2' -> scale y2-axis
+!   gang            -- character(*), optional: If autoscale then make all graph y-axes the same and/or
+!                         make all y2-axes the same? 
+!                         ''        -> (default) Use setting of plot%autoscale_gang_y
+!                         'gang'    -> Gang graphs.
+!                         'nogang'  -> Do not gang graphs.
+!   skip_lat_layout -- logical, optional: If True, skip scaling any lat_layout graphs. Default is false.
+!
+! Output:
+!   plot            -- tao_plot_struct: Plot with scaled graphs.
+!-
 
 subroutine tao_scale_plot (plot, y_min_in, y_max_in, axis, gang, skip_lat_layout)
 
@@ -134,7 +159,7 @@ enddo
 
 if (.not. found_one) return
 
-! if auto scale was done...
+! If auto scale was done...
 
 this_axis = string_option ('', axis)
 
@@ -189,11 +214,32 @@ if (y_min == y_max .and. do_gang) then
 
 endif
 
-end subroutine
+end subroutine tao_scale_plot
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+!+
+! Subroutine tao_scale_graph (graph, y_min, y_max, axis, y_range, y2_range)
+!
+! Routine to scale the y-axis and/or y2-axis of a graph
+! If y_min = y_max then autoscaling will be done and the particular value of y_min and y_max is ignored.
+! Note: y_min/y_max is ignored if scaling y2-axis and graph%y2_mirrors_y = T.
+!
+! Input:
+!   graph          -- tao_graph_struct: Graph with axis/axes to be scaled.
+!   y_min          -- real(rp): Axis [min, max] must cover [y_min, y_max] if not autoscaling.
+!   y_max          -- real(rp): Axis [min, max] must cover [y_min, y_max] if not autoscaling.
+!   axis           -- character(*), optional: Axis to scale.
+!                        ''   -> scale y and y2 (default).
+!                        'y'  -> scale y-axis.
+!                        'y2' -> scale y2-axis
+!
+! Output:
+!   graph          -- tao_graph_struct: Graph with scaled axis/axes.
+!   y_range(2)     -- real(rp), optional: Only used by tao_scale_plot when ganging graphs.
+!   y2_range(2)    -- real(rp), optional: Only used by tao_scale_plot when ganging graphs.
+!-
 
 subroutine tao_scale_graph (graph, y_min, y_max, axis, y_range, y2_range)
 
@@ -218,9 +264,7 @@ this_axis = string_option ('', axis)
 
 if (y_min /= y_max) then
 
-  if (this_axis == '' .or. this_axis == 'y' .or. graph%y2_mirrors_y) then
-    graph%y%min = y_min
-    graph%y%max = y_max
+  if (this_axis == '' .or. this_axis == 'y') then
     if (graph%y%major_div_nominal> 0) then
       p1 = nint(0.7 * graph%y%major_div_nominal)  
       p2 = nint(1.3 * graph%y%major_div_nominal)  
@@ -228,8 +272,6 @@ if (y_min /= y_max) then
       p1 = graph%y%major_div
       p2 = p1
     endif
-    graph%y%min = y_min
-    graph%y%max = y_max
     call qp_calc_axis_params (y_min, y_max, p1, p2, graph%y)
   endif
 
@@ -243,8 +285,6 @@ if (y_min /= y_max) then
     graph%y2%draw_numbers = axis_save%draw_numbers
 
   elseif (this_axis == '' .or. this_axis == 'y2') then
-    graph%y2%min = y_min
-    graph%y2%max = y_max
     if (graph%y2%major_div_nominal> 0) then
       p1 = nint(0.7 * graph%y2%major_div_nominal)  
       p2 = nint(1.3 * graph%y2%major_div_nominal)  
@@ -252,17 +292,14 @@ if (y_min /= y_max) then
       p1 = graph%y2%major_div
       p2 = p1
     endif
-    graph%y2%min = y_min
-    graph%y2%max = y_max
     call qp_calc_axis_params (y_min, y_max, p1, p2, graph%y2)
   endif
 
   return
-
 endif
 
-! Since y_min = y_max then autoscale: That is we need to find the 
-! min/max so all the data points are within bounds.
+! Here if y_min = y_max. Need to autoscale.
+!That is we need to find the min/max so all the data points are within bounds.
 
 ! For a floor plan 
 
@@ -301,13 +338,13 @@ if (graph%type == 'floor_plan') then
     enddo
   endif
 
-! For a lat_layout: Default is [-100, 100]
+! For a lat_layout: Default is [-1, 1]
 
 elseif (graph%type == 'lat_layout') then
     this_min = -1
     this_max = 1
 
-! Not a floor plan
+! Else not a floor_plan nor lat_layout.
 
 else
   if (.not. allocated (graph%curve)) return
@@ -350,7 +387,6 @@ else
         endif
       endif
     endif
-
   enddo
 
   if (.not. found_data) then
@@ -383,7 +419,7 @@ del = this_max - this_min
 this_min = this_min - graph%scale_margin%y1 * del
 this_max = this_max + graph%scale_margin%y2 * del
 
-if (axis == '' .or. axis == 'y' .or. graph%y2_mirrors_y) then
+if (axis == '' .or. axis == 'y') then
   call qp_calc_axis_params (this_min, this_max, p1, p2, graph%y)
   if (present(y_range)) y_range = [min(y_range(1), this_min), max(y_range(2), this_max)]
 endif
@@ -402,6 +438,6 @@ elseif (axis == '' .or. axis == 'y2') then
   if (present(y2_range)) y2_range = [min(y2_range(1), this_min), max(y2_range(2), this_max)]
 endif
 
-end subroutine
+end subroutine tao_scale_graph
 
 end module

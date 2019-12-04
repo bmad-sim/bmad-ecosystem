@@ -76,18 +76,17 @@ plot_loop: do ir = 1, size(s%plot_page%region)
   do jg = 1, size(plot%graph)
 
     graph => plot%graph(jg)
-    if (plot%x%major_div < 0 .or. graph%x%min == graph%x%max) &
-                                    call tao_x_scale_graph (graph, graph%x%min, graph%x%max)
-    call tao_graph_setup (plot, graph)
 
     ! May need to x_scale after calling tao_graph_setup if scaling uses data.
-    if (plot%x%major_div < 0 .or. graph%x%min == graph%x%max) &
-                                    call tao_x_scale_graph (graph, graph%x%min, graph%x%max)
 
-    ! Scale the y axis if needed and determine if any points are out-of-bounds.
+    call tao_x_scale_graph (graph, graph%x%min, graph%x%max)
+    call tao_graph_setup (plot, graph)
+    call tao_x_scale_graph (graph, graph%x%min, graph%x%max)
 
-    if (graph%y%major_div < 0 .or. graph%y%min == graph%y%max) &
-                    call tao_scale_graph (graph, graph%y%min, graph%y%max)
+    ! Scale the y-axis and determine if any points are out-of-bounds.
+
+    call tao_scale_graph (graph, graph%y%min, graph%y%max, 'y')
+    call tao_scale_graph (graph, graph%y2%min, graph%y2%max, 'y2')
     graph%limited = .false.
     if (allocated(graph%curve)) then
       do ic = 1, size(graph%curve)
