@@ -2777,7 +2777,7 @@ case ('lat_general')
 ! Note: To output through the real array buffer, add the prefix "real:" to {who}.
 !
 ! Examples:
-!   python lat_list 3@0>>track:Q*|base ele.s,orbit.vec.2
+!   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
 !   python lat_list 3@0>>Q*|base real:ele.s    ! Only a single item permitted with real buffer out.
 
 case ('lat_list')
