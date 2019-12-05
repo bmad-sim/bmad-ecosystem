@@ -23,7 +23,6 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
 type (branch_struct), pointer :: branch
-type (coord_array_struct), allocatable :: orb_array(:)
 
 character(*) namelist_file
 character(200) full_input_name
@@ -234,8 +233,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (s%com%slice_lattice_arg /= '') design_lat%slice_lattice = s%com%slice_lattice_arg
 
   if (design_lat%slice_lattice /= '') then
-    call twiss_and_track (u%design%lat, orb_array, status)
-    call slice_lattice (u%design%lat, orb_array(0)%orbit, design_lat%slice_lattice, err)
+    call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
   endif
 
   ! Call bmad_parser2 if wanted

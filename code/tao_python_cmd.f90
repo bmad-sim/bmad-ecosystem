@@ -2786,21 +2786,29 @@ case ('lat_list')
   track_only = .false.
   index_order = .false.
   do
+    if (ix_line == 0) then
+      call invalid ('List of elements not present.')
+      return
+    endif
+
     if (index('-no_slaves', line(1:ix_line)) == 1) then
       call string_trim(line(ix_line+1:), line, ix_line)
       no_slaves = .true.
       cycle
     endif
+
     if (index('-track_only', line(1:ix_line)) == 1) then
       call string_trim(line(ix_line+1:), line, ix_line)
       track_only = .true.
       cycle
     endif
+
     if (index('-index_order', line(1:ix_line)) == 1) then
       call string_trim(line(ix_line+1:), line, ix_line)
       index_order = .true.
       cycle
     endif
+
     exit
   enddo
 
