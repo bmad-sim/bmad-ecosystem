@@ -456,7 +456,7 @@ case (lcavity$)
     ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
     call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
     if (err) return
-    if (ele%tracking_method == bmad_standard$ .or. abs(orb_end%vec(6)) < bmad_com%rel_tol_tracking) exit
+    if (abs(orb_end%vec(6)) < bmad_com%rel_tol_tracking) exit
   enddo
 
   call calc_time_ref_orb_out(orb_end)
@@ -780,11 +780,19 @@ subroutine calc_time_ref_orb_out (orb_end)
 
 type (coord_struct) orb_end
 
+!
+
+ele%time_ref_orb_out = orb_end
+ele%time_ref_orb_out%location = downstream_end$
+
 ! The tracking did not have the correct delta_ref_time end exit end ref energy so need to correct for this.
 ! Notice that here the delta_ref_time value (but not ele%value(p0c$)) the value used in tracking and not the 
 ! corrected value computed later.
 
-ele%time_ref_orb_out = orb_end
+! Exception: bmad_standard lcavity tracking does not need a correction
+
+if (ele%tracking_method == bmad_standard$ .and. ele%key == lcavity$) return
+
 ! Note: zero length slice of e_gun can have orb_end%vec(6) = -1
 if (orb_end%vec(6) /= -1) then
   ele%time_ref_orb_out%vec(2) = ele%time_ref_orb_out%vec(2) / (1 + orb_end%vec(6))
@@ -799,10 +807,10 @@ if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
 else
   ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele%ref_time - orb_end%t)
 endif
+
 !ele%time_ref_orb_out%vec(5) = ele%time_ref_orb_out%vec(5) + &
 !            (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
 ele%time_ref_orb_out%vec(6) = ((1 + orb_end%vec(6)) * orb_end%p0c - ele%value(p0c$)) / ele%value(p0c$)
-ele%time_ref_orb_out%location = downstream_end$
 
 end subroutine
 
