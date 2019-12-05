@@ -38,9 +38,9 @@ type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
 real(rp) length, pc_start, pc_end, gradient_ref, gradient_max, dz_factor, rel_p, coef, k2
-real(rp) E_start_ref, E_end_ref, pc_end_ref, alpha, sin_a, cos_a, r_mat(2,2), volt_ref
+real(rp) E_start_ref, E_end_ref, pc_end_ref, alpha, sin_a, cos_a, r_mat(2,2)
 real(rp) phase, cos_phi, sin_phi, gradient_net, e_start, e_end, e_ratio, voltage_max, dp_dg, sqrt_8, f, k1
-real(rp) dE_start, dE_end, dE, beta_start, beta_end, l_drift, f_ave, pc_start_ref
+real(rp) dE_start, dE_end, dE, beta_start, beta_end, f_ave, pc_start_ref
 real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, dcos_phi, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
@@ -50,24 +50,16 @@ integer ix_pole_max, ix_elec_max
 
 logical, optional :: make_matrix
 
-! Note: To enable this routine to handle L_hard_edge /= L, the code must be able handle slice and super slaves.
-! That is, tracking using [drift, cavity, drift] does not take into account slicing.
-
-!! length = ele%value(l_hard_edge$)
-!! l_drift = (ele%value(l$) - length) / 2
-
-length = ele%value(l$)
-l_drift = 0
-
-if (length == 0) return
 
 ! 
+
+length = ele%value(l$)
+if (length == 0) return
 
 call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
-!! call track_a_drift(orbit, l_drift, mat6, make_matrix)
 
 if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, length/2, mat6, make_matrix)
@@ -119,7 +111,7 @@ mc2 = mass_of(orbit%species)
 
 if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, first_track_edge$)) then
   ds = bmad_com%significant_length / 10  ! Make sure inside field region
-  call em_field_calc (ele, param, l_drift + ds, orbit, .true., field, logic_option(.false., make_matrix))
+  call em_field_calc (ele, param, ds, orbit, .true., field, logic_option(.false., make_matrix))
   f = charge_of(orbit%species) / (2 * pc_start_ref)
 
   if (logic_option(.false., make_matrix)) then
@@ -381,7 +373,8 @@ endif
 
 !
 
-orbit%vec(5) = orbit%vec(5) - (dp_dg + l_drift * (E_start_ref/pc_start_ref + E_end_ref/pc_end_ref) - c_light * ele%value(delta_ref_time$))
+orbit%vec(5) = orbit%vec(5) - (dp_dg - length * (E_start_ref + E_end_ref) / (pc_end_ref + pc_start_ref))
+
 orbit%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
 orbit%p0c = pc_end_ref
 
@@ -406,7 +399,7 @@ orbit%beta = beta_end
 
 if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbit, second_track_edge$)) then
   ds = bmad_com%significant_length / 10  ! Make sure inside field region
-  call em_field_calc (ele, param, l_drift + length - ds, orbit, .true., field, logic_option(.false., make_matrix))
+  call em_field_calc (ele, param, length - ds, orbit, .true., field, logic_option(.false., make_matrix))
   f = -charge_of(orbit%species) / (2 * pc_end_ref)
 
   if (logic_option(.false., make_matrix)) then
@@ -434,7 +427,6 @@ call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_m
 if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, length/2, mat6, make_matrix)
 
-!! call track_a_drift(orbit, l_drift, mat6, make_matrix)
 call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 end subroutine
