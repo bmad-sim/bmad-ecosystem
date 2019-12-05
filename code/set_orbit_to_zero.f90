@@ -2,6 +2,7 @@
 ! Subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)
 !
 ! Routine to set the orbit of a subset orbit(n1:n2) of a coord_struct array to zero.
+! This routine actually initalizes each orbit(n) so that, in particular, orbit(n)%state = not_set$
 !
 ! Input:
 !   n1        -- integer: Lower bound of orbit(:) array subset.

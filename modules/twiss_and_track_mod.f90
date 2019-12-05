@@ -27,6 +27,16 @@ use geometry_mod
 !
 ! For an open lattice, the orbit will be computed using orb(0) as 
 ! starting conditions.
+! 
+! If there is a problem in a closed geometry branch, status argument settings are: in_stop_band$, 
+! unstable$, non_symplectic$,-in_stop_band$, -unstable$, -non_symplectic$,xfer_mat_clac_failure$, 
+! twiss_propagate_failure$, or no_closed_orbit$. Note: in_stop_band$, unstable$, and non_symplectic$ 
+! refer to the 1-turn matrix which is computed with closed lattices. A negative sign is used to 
+! differentiate an error occuring in the first call to twiss_at_start from the second call to twiss_at_start.
+!
+! If there is a problem in an open geometry branch, status argument setting is -N where N is the element 
+! where the particle was lost in tracking (negative numbers are used here to avoid confusion with ok$
+! which is mapped to 1.
 !
 ! Input:
 !   lat                 -- lat_struct: lattice.
@@ -46,13 +56,8 @@ use geometry_mod
 !     %param%unstable_factor -- unstable growth rate (= 0 if stable)
 !   orb(0:)            -- Coord_struct: Computed orbit.
 !   orb_array(0:)      -- Coord_array_struct: Array of orbit arrays.
-!   status             -- integer, optional: ok$, in_stop_band$, unstable$, non_symplectic$,
-!                           -in_stop_band$, -unstable$, -non_symplectic$,   [note negative signs]
-!                           xfer_mat_clac_failure$, twiss_propagate_failure$, or no_closed_orbit$.
-!                           Note: in_stop_band$, unstable$, and non_symplectic$ refer to the 1-turn 
-!                           matrix which is computed with closed lattices. A negative sign is used 
-!                           to differentiate an error occuring in the first call to twiss_at_start
-!                           from the second call to twiss_at_start
+!   status             -- integer, optional: Set ok$ if everything is OK and set to something else otherwise.
+!                           See above for more details.
 !-
 
 interface twiss_and_track
@@ -161,7 +166,7 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (coord_struct), allocatable :: orb(:)
 
-integer i, ix_branch, status
+integer i, ix_branch, status, stat
 
 logical err_flag, err
 
@@ -199,8 +204,14 @@ else
     call twiss_propagate_all (lat, ix_branch)
     exit
   enddo
-  call track_all (lat, orb, ix_branch)
-  status = ok$
+
+  call track_all (lat, orb, ix_branch, stat)
+
+  if (stat == moving_forward$) then
+    status = ok$
+  else
+    status = -stat
+  endif
 endif
 
 ! Now we can compute the Twiss parameters.

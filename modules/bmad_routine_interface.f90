@@ -1615,11 +1615,10 @@ function significant_difference (value1, value2, abs_tol, rel_tol) result (is_di
   logical is_different
 end function
 
-subroutine slice_lattice (lat, orbit, ele_list, error)
+subroutine slice_lattice (lat, ele_list, error)
   import
   implicit none
   type (lat_struct) lat
-  type (coord_struct) :: orbit(0:)
   character(*) ele_list
   logical error
 end subroutine

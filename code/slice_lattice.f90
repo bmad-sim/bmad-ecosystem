@@ -1,5 +1,5 @@
 !+
-! Subroutine slice_lattice (lat, orbit, ele_list, error)
+! Subroutine slice_lattice (lat, ele_list, error)
 !
 ! Routine to discard from the lattice all elements not in ele_list.
 !
@@ -21,7 +21,6 @@
 !
 ! Input:
 !   lat           -- lat_struct: Lattice to slice.
-!   orbit(:)      -- coord_struct: Orbit to transfer to lat%particle_start.
 !   ele_list      -- character(*): List of elements to retain. See the documentation for
 !                     the lat_ele_locator routine for the syntax of the list.
 !
@@ -30,19 +29,19 @@
 !   error         -- logical: Set True if there is an error Set False if not.
 !-
 
-subroutine slice_lattice (lat, orbit, ele_list, error)
+subroutine slice_lattice (lat, ele_list, error)
 
 use bmad, dummy => slice_lattice
 
 implicit none
 
 type (lat_struct), target :: lat
-type (coord_struct) :: orbit(0:)
+type (coord_struct), allocatable :: orbit(:)
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele0, ele1, ele2
 type (ele_pointer_struct), allocatable :: eles(:)
 
-integer i, j, ie, ib, n_loc, n_links, ix_pass
+integer i, j, ie, ib, n_loc, n_links, ix_pass, status
 logical error, err
 
 character(*) ele_list
@@ -93,6 +92,17 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
+! Transfer particle_start orbit
+
+do ie = 1, lat%n_ele_track
+  if (lat%ele(ie)%ixx == -1) cycle
+  call twiss_and_track(lat, orbit, status, 0, .true.)
+  if (lat%param%geometry == closed$ .and. status /= ok$) exit
+  if (orbit(ie-1)%state /= alive$) exit
+  lat%particle_start = orbit(ie-1)
+  exit
+enddo
+
 ! Transfer Twiss from first non-deleted element back to beginning element.
 
 do ib = 0, ubound(lat%branch, 1)
@@ -112,7 +122,6 @@ do ib = 0, ubound(lat%branch, 1)
     ele0%z%phi = 0
     call set_flags_for_changed_attribute(ele0, ele1%value(p0c$))
     branch%param%geometry = open$
-    if (ib == 0) lat%particle_start = orbit(ie-1)
     exit
   enddo
 enddo
