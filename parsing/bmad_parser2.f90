@@ -43,7 +43,6 @@ type (ele_struct), pointer :: ele, mad_beam_ele, param_ele, lord, slave, slave2
 type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
-type (coord_array_struct), allocatable :: orb_array(:)
 type (parser_lat_struct), target :: plat
 type (branch_struct), pointer :: branch
 
@@ -211,8 +210,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'SLICE_LATTICE') then
     string = trim(bp_com%parse_line) // ', ' // trim(extra_ele_names)
-    call twiss_and_track (lat, orb_array, status)
-    call slice_lattice (lat, orb_array(0)%orbit, string, err)
+    call slice_lattice (lat, string, err)
     if (err) call parser_error ('ERROR SLICING LATTICE USING: ' // bp_com%parse_line)
     bp_com%parse_line = ''
     cycle parsing_loop    
