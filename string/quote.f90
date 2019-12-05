@@ -20,10 +20,12 @@ integer n
 !
 
 n = len_trim(str)
-if ((str(1:1) == "'" .and. str(n:n) == "'") .or. (str(1:1) == '"' .and. str(n:n) == '"')) then
-  allocate(character(n) :: q_str)
-  q_str = trim(str)
-  return
+if (n > 0) then
+  if ((str(1:1) == "'" .and. str(n:n) == "'") .or. (str(1:1) == '"' .and. str(n:n) == '"')) then
+    allocate(character(n) :: q_str)
+    q_str = trim(str)
+    return
+  endif
 endif
 
 allocate(character(n+2) :: q_str)
