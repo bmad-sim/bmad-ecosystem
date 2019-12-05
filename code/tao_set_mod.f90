@@ -931,9 +931,16 @@ iu = tao_open_scratch_file (err);  if (err) return
 write (iu, '(a)') '&params'
 if (is_real(value_str) .or. is_logical(value_str)) then
   write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', trim(value_str)
+elseif (who(1:17) == 'distribution_type') then  ! Value is a vector so quote() function is not good here.
+  write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', value_str
 else
-  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
-  write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
+  select case (who2)
+  case ('position_file', 'random_engine', 'random_gauss_converter', 'species')
+    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+  case default
+    call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+    write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
+  end select
 endif
 write (iu, '(a)') '/'
 
