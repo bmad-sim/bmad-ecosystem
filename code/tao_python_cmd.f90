@@ -1165,7 +1165,7 @@ case ('datum_has_ele')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:head 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:head')
@@ -1229,7 +1229,7 @@ case ('ele:head')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:methods 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:methods')
@@ -1295,7 +1295,7 @@ case ('ele:methods')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:gen_attribs 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:gen_attribs')
@@ -1351,7 +1351,7 @@ case ('ele:gen_attribs')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:multipoles 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:multipoles')
@@ -1414,7 +1414,7 @@ case ('ele:multipoles')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:ac_kicker 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:ac_kicker')
@@ -1453,7 +1453,7 @@ case ('ele:ac_kicker')
 !   base
 !   terms
 ! Example:
-!   python element 3@1>>7|model 2 base
+!   python ele:cartesian_map 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:cartesian_map')
@@ -1549,7 +1549,7 @@ case ('ele:chamber_wall')
 !   base
 !   terms
 ! Example:
-!   python element 3@1>>7|model 2 base
+!   python ele:cylindrical_map 3@1>>7|model 2 base
 ! This gives map #2 of element number 7 in branch 1 of universe 3.
 
 case ('ele:cylindrical_map')
@@ -1600,7 +1600,7 @@ case ('ele:cylindrical_map')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:taylor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:taylor')
@@ -1635,7 +1635,7 @@ case ('ele:taylor')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:spin_taylor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:spin_taylor')
@@ -1670,7 +1670,7 @@ case ('ele:spin_taylor')
 !   sr_trans    sr_trans_table
 !   lr_mode_table
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:wake 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:wake')
@@ -1742,7 +1742,7 @@ case ('ele:wake')
 !   base
 !   table
 ! Example:
-!   python element 3@1>>7|model 2 base
+!   python ele:wall3d 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:wall3d')
@@ -1802,7 +1802,7 @@ case ('ele:wall3d')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:twiss 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:twiss')
@@ -1830,7 +1830,7 @@ case ('ele:twiss')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:control 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:control')
@@ -1856,7 +1856,7 @@ case ('ele:control')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:orbit 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:orbit')
@@ -1880,7 +1880,7 @@ case ('ele:orbit')
 !   vec0
 !   err
 ! Example:
-!   python element 3@1>>7|model mat6
+!   python ele:mat6 3@1>>7|model mat6
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:mat6')
@@ -1919,7 +1919,7 @@ case ('ele:mat6')
 !   base
 !   terms
 ! Example:
-!   python element 3@1>>7|model 2 base
+!   python ele:taylor_field 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:taylor_field')
@@ -1975,7 +1975,7 @@ case ('ele:taylor_field')
 !   base
 !   points
 ! Example:
-!   python element 3@1>>7|model 2 base
+!   python ele:grid_field 3@1>>7|model 2 base
 ! This gives grid #2 of element number 7 in branch 1 of universe 3.
 
 case ('ele:grid_field')
@@ -2047,7 +2047,7 @@ case ('ele:grid_field')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:floor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:floor')
@@ -2085,7 +2085,7 @@ case ('ele:floor')
 !   material
 !   surface
 ! Example:
-!   python element 3@1>>7|model base
+!   python ele:photon 3@1>>7|model base
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:photon')
@@ -2131,7 +2131,7 @@ case ('ele:photon')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:lord_slave 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:lord_slave')
@@ -2170,7 +2170,7 @@ case ('ele:lord_slave')
 !   base
 !   design
 ! Example:
-!   python element 3@1>>7|model
+!   python ele:elec_multipoles 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
 
 case ('ele:elec_multipoles')
