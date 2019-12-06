@@ -542,6 +542,14 @@ function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
   character(9) fmt_str
 end function
 
+function real_str(r_num, n_signif) result (str)
+  import
+  implicit none
+  real(rp) r_num
+  integer n_signif
+  character(:), allocatable :: str
+end function
+
 subroutine run_timer(command, time)
   import
   implicit none
