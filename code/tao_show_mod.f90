@@ -3493,15 +3493,16 @@ case ('string')
     str = what2(1:ix-1)
     what2 = what2(ix+1:)
 
-    n = index(str, '@@')
     n_order = 14
+
+    n = index(str, '@@')
     if (n /= 0) then
       if (.not. is_integer(str(n+2:), n_order)) then
          nl=nl+1; lines(nl) = 'Not an integer after "@@": ' // str(n+2:)
         return
       endif
+      str = str(:n-1)
     endif
-    str = str(:n-1)
 
     call tao_evaluate_expression (str, 0, .false., value, info, err)
     if (err) return
