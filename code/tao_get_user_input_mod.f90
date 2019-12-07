@@ -58,7 +58,7 @@ end type
 type (do_loop_struct), allocatable, save :: loop(:)
 
 integer i, j, ix, ix1, ix2
-integer, save :: in_loop = 0 ! in loop nest level
+integer, save :: lev_loop = 0 ! in loop nest level
 integer ios, n_level
 
 character(*) :: cmd_out
@@ -209,7 +209,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     if (.not. s%com%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
     
     ! Check if in a do loop
-    call do_loop(cmd_out)
+    call do_loop(lev_loop, loop, cmd_out)
     
   endif
 
@@ -320,11 +320,12 @@ end subroutine
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine do_loop (cmd_out)
+subroutine do_loop (lev_loop, loop, cmd_out)
 
 use tao_command_mod
 
-integer ix
+type (do_loop_struct), allocatable :: loop(:)
+integer lev_loop, ix
 
 character(*) cmd_out
 character(8) :: r_name = "do_loop"
@@ -355,42 +356,42 @@ if (cmd_word(1) == 'do') then
     return
   endif
 
-  call set_loop_level (in_loop + 1)
-  loop(in_loop)%name = cmd_word(2)
-  read (cmd_word(4), *) loop(in_loop)%start
-  read (cmd_word(6), *) loop(in_loop)%end
-  loop(in_loop)%step = 1
-  if (cmd_word(7) /= '') read (cmd_word(8), *) loop(in_loop)%step
+  call set_loop_level (lev_loop, lev_loop + 1, loop)
+  loop(lev_loop)%name = cmd_word(2)
+  read (cmd_word(4), *) loop(lev_loop)%start
+  read (cmd_word(6), *) loop(lev_loop)%end
+  loop(lev_loop)%step = 1
+  if (cmd_word(7) /= '') read (cmd_word(8), *) loop(lev_loop)%step
 
-  loop(in_loop)%n_line_start = s%com%cmd_file(n_level)%n_line
-  loop(in_loop)%value = loop(in_loop)%start
-  call out_io (s_blank$, r_name, 'Loop: ' // trim(loop(in_loop)%name) // ' = \i0\ ', &
-                                                  i_array = (/ loop(in_loop)%value /) )
+  loop(lev_loop)%n_line_start = s%com%cmd_file(n_level)%n_line
+  loop(lev_loop)%value = loop(lev_loop)%start
+  call out_io (s_blank$, r_name, 'Loop: ' // trim(loop(lev_loop)%name) // ' = \i0\ ', &
+                                                  i_array = (/ loop(lev_loop)%value /) )
   cmd_out = '' ! So tao_command will not try to parse this line.
 
 ! Check if hit 'enddo'.
 
 elseif (cmd_word(1) == 'enddo') then
   cmd_out = ''  ! so tao_command will not try to process this.
-  if (in_loop == 0) then
+  if (lev_loop == 0) then
     call out_io (s_error$, r_name, 'ENDDO FOUND WITHOUT CORRESPODING DO STATEMENT')
     call tao_abort_command_file()
     return
   endif
 
-  loop(in_loop)%value = loop(in_loop)%value + loop(in_loop)%step
-  if ((loop(in_loop)%value <= loop(in_loop)%end .and. loop(in_loop)%step > 0) .or. &
-      (loop(in_loop)%value >= loop(in_loop)%end .and. loop(in_loop)%step < 0)) then
+  loop(lev_loop)%value = loop(lev_loop)%value + loop(lev_loop)%step
+  if ((loop(lev_loop)%value <= loop(lev_loop)%end .and. loop(lev_loop)%step > 0) .or. &
+      (loop(lev_loop)%value >= loop(lev_loop)%end .and. loop(lev_loop)%step < 0)) then
     ! rewind
-    do i = s%com%cmd_file(n_level)%n_line, loop(in_loop)%n_line_start+1, -1
+    do i = s%com%cmd_file(n_level)%n_line, loop(lev_loop)%n_line_start+1, -1
       backspace (s%com%cmd_file(s%com%cmd_file_level)%ix_unit)
       s%com%cmd_file(n_level)%n_line = s%com%cmd_file(n_level)%n_line - 1
     enddo
-    call out_io (s_blank$, r_name, 'Loop: ' // trim(loop(in_loop)%name) // ' = \i0\ ', &
-                                                  i_array = (/ loop(in_loop)%value /) )
+    call out_io (s_blank$, r_name, 'Loop: ' // trim(loop(lev_loop)%name) // ' = \i0\ ', &
+                                                  i_array = (/ loop(lev_loop)%value /) )
   else
     ! looped correct number of times, now exit loop
-    call set_loop_level (in_loop-1)
+    call set_loop_level (lev_loop, lev_loop-1, loop)
   endif
   ! read next line
 endif
@@ -401,31 +402,30 @@ end subroutine do_loop
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine set_loop_level (level)
+subroutine set_loop_level (lev_loop, lev_new, loop)
 
 implicit none
 
-type (do_loop_struct), allocatable, save :: temp(:)
-integer level
+type (do_loop_struct), allocatable :: loop(:)
+type (do_loop_struct), allocatable :: temp(:)
+integer lev_loop, lev_new
 
-! If going down then only need to set in_loop
+! If going down then only need to set lev_loop
 
-if (level < in_loop) then
-  in_loop = level
+if (lev_new < lev_loop) then
+  lev_loop = lev_new
   return
 endif
 
 !
 
-in_loop = level
+lev_loop = lev_new
 
 if (allocated(loop)) then
-  allocate (temp(level-1))
-  temp = loop(1:level-1)
-  deallocate (loop)
+  call move_alloc(loop, temp)
 endif
 
-allocate (loop(level))
+allocate (loop(lev_new))
 if (allocated(temp)) then
   loop(1:size(temp)) = temp
   deallocate(temp)
