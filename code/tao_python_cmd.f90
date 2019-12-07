@@ -2762,7 +2762,7 @@ case ('lat_general')
 !     orbit.t, orbit.beta,
 !     orbit.state,     ! Note: state is an integer. alive$ = 1, anything else is lost.
 !     orbit.energy, orbit.pc,
-!     ele.name,
+!     ele.name, ele.ix_ele, ele.ix_branch
 !     ele.a.beta, ele.a.alpha, ele.a.eta, ele.a.etap, ele.a.gamma, ele.a.phi,
 !     ele.b.beta, ele.b.alpha, ele.b.eta, ele.b.etap, ele.b.gamma, ele.b.phi,
 !     ele.x.eta, ele.x.etap,
@@ -2894,6 +2894,10 @@ case ('lat_list')
       case ('ele.name')
         nl=incr(nl); li(nl) = ele%name
         cycle
+      case ('ele.ix_ele')
+        value = ele%ix_ele
+      case ('ele.ix_branch')
+        value = ele%ix_branch
       case ('ele.a.beta')
         values(1) = ele%a%beta
       case ('ele.a.alpha')

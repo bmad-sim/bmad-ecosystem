@@ -245,7 +245,7 @@ character(100) :: word1, word2, fmt, fmt2, fmt3, switch, why_invalid
 character(200) header, str, attrib0, file_name, name
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(40) = [ &
+character(16) :: show_what, show_names(41) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
@@ -253,7 +253,8 @@ character(16) :: show_what, show_names(40) = [ &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
    'matrix          ', 'field           ', 'wake_elements   ', 'history         ', 'symbolic_numbers', &
-   'merit           ', 'track           ', 'spin            ', 'internal        ', 'control         ']
+   'merit           ', 'track           ', 'spin            ', 'internal        ', 'control         ', &
+   'string          ']
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
@@ -3464,6 +3465,70 @@ case ('spin')
 
   result_id = 'spin:' // what_to_print
   return
+
+!----------------------------------------------------------------------
+! string
+
+case ('string')
+
+  
+  nc = 0
+
+  do
+    ix = index(what2, '`')
+    if (ix == 0) then
+      line = line(1:nc) // what2
+      exit
+    endif
+
+    line = line(1:nc) // what2(:ix-1)
+    nc = nc + ix - 1
+    what2 = what2(ix+1:)
+    ix = index(what2, '`')
+    if (ix == 0) then
+      nl=nl+1; lines(nl) = 'UNMATCHED BACKTICK.'
+      return
+    endif
+
+    str = what2(1:ix-1)
+    what2 = what2(ix+1:)
+
+    n = index(str, '@@')
+    n_order = 14
+    if (n /= 0) then
+      if (.not. is_integer(str(n+2:), n_order)) then
+         nl=nl+1; lines(nl) = 'Not an integer after "@@": ' // str(n+2:)
+        return
+      endif
+    endif
+    str = str(:n-1)
+
+    call tao_evaluate_expression (str, 0, .false., value, info, err)
+    if (err) return
+
+    if (size(value) == 1) then
+      line = line(1:nc) // real_str(value(1), n_order)
+    else
+      line = line(1:nc) // '[' // real_str(value(1), n_order)
+      nc = len_trim(line)
+      do i = 2, size(value)
+        line = line(1:nc) // ', ' // real_str(value(i), n_order)
+        nc = len_trim(line)
+      enddo
+      line = line(1:nc) // ']'
+    endif
+
+    nc = len_trim(line)
+  enddo
+
+  do
+    ix = index(line, '\n')
+    if (ix == 0) exit
+    nl=nl+1; lines(nl) = line(:ix-1)
+    line = line(ix+2:)
+  enddo
+
+  nl=nl+1; lines(nl) = line
 
 !----------------------------------------------------------------------
 ! symbolic_numbers
