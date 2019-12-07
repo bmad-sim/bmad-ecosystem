@@ -599,9 +599,6 @@ syntax of the \vn{show} command can (and does) change.
 
 For further documentation on the python command, please look at the file tao/code/tao_python.f90.
 
-Note: At this point in time, the \vn{python} command is still in development.  Please
-contact David Sagan if needed.
-
 %% quiet --------------------------------------------------------------
 \section{quiet}\index{commands!quiet}
 \label{s:quiet}
@@ -1692,7 +1689,8 @@ Format:
   optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
   particle ...          ! Show tracked particle info \sref{s:show.particle}.
   plot ...              ! Show plot info \sref{s:show.plot}.
-  spin                  ! Show information on spin simulations.
+  spin                  ! Show information on spin simulations \sref{s:show.spin}.
+  string ...            ! Print a string \vn{s:show.string}.
   symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
   taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
   track ...             ! Show phase space coords, Twiss, EM field, 
@@ -2611,6 +2609,28 @@ Example:
   show spin -ele Q10W -n 0,1,0 -l 1,0,0  ! G-matrix for Q10W
 \end{example}
 
+%% show string --------------------------------------------------------------
+
+\subsection{show string}
+\label{s:show.string}
+
+Syntax:
+\begin{example}
+  show string \{string-to-print\}
+\end{example}
+
+Print a string. This can be useful when creating a data file. Use ``\vn{\B{}n}'' to output multiple
+lines. Anything within backticks, \`{}...\`{}, will be evaluated. If an evaluated quantity is an array, the array
+is enclosed in brackets ``[...]''. Also if the evaluated quanty ends in \vn{``@@N''} where \vn{N} is
+an integer, this is used to determine the accuracy of the printed value(s). The default is 14. Also
+see \vn{show value}.
+
+Examples:
+\begin{example}
+  show -append a.dat str 2 + 2 = \`{}2+2\`{} ! Writes the line "2 + 2 = 4" to a.dat
+  show `1e3*lat::orbit.x[3:5]@@2`      ! Prints something like "[3.4, 3.2, 2.7]"
+\end{example}
+
 %% show symbolic_numbers --------------------------------------------------------------
 
 \subsection{show symbolic_numbers}
@@ -2855,9 +2875,9 @@ Syntax:
 \end{example}
 
 
-Shows the value of an expression. Examples:
+Shows the value of an expression. Also see \vn{show string}. Examples:
 \begin{example}
-  show value sqrt(3@lat:orbit.x[34]|model) + sin(0.35)
+  show value sqrt(3@lat::orbit.x[34]|model) + sin(0.35)
 \end{example}
 
 
