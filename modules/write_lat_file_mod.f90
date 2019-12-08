@@ -786,7 +786,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
       if (.not. attribute_free (ele, attrib%name, .false., .true.)) cycle
       if ((attrib%name == 'P0C' .or. attrib%name == 'P0C_START') .and. &
-                          (ele%lord_status /= multipass_lord$ .or. ele%value(n_ref_pass$) /= 0)) cycle
+                          (ele%lord_status /= multipass_lord$ .or. nint(ele%value(multipass_ref_energy$)) == first_pass$)) cycle
 
       ! Default for ds_step and integrator_order is determined by attribute_bookkeeper based upon the
       ! settings of other parameters like the element's strength.
@@ -1310,8 +1310,8 @@ if (n_count(ix_match) == 1) return
 do iv = 1, num_ele_attrib$
   if (ele%value(iv) == ele0%value(iv)) return
   info = attribute_info(ele, iv)
-  if (info%type /= is_free$ .and. info%type /= quasi_free$) return
-  if (info%type == quasi_free$) then
+  if (info%state /= is_free$ .and. info%state /= quasi_free$) return
+  if (info%state == quasi_free$) then
     if (.not. attribute_free(ele, info%name, .false.)) return
   endif
 

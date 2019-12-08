@@ -35,7 +35,7 @@ is_congruent = .true.
 do i = 1, num_ele_attrib$
   if (ele1%value(i) == ele2%value(i)) cycle
   info = attribute_info(ele1, i)
-  select case (info%type)
+  select case (info%state)
   case (is_free$)
     is_congruent = .false.
     return

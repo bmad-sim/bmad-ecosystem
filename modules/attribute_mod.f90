@@ -4,6 +4,36 @@ use equal_mod
 
 implicit none
 
+! Define parameters for attrib_array()%state and why_not_free argument in attribute_free(...) 
+! Note: Slot 2 is reserved for super_slave$ and slot 9 is reserved for multipass_slave$
+
+integer, parameter :: does_not_exist$ = -1, is_free$ = 0, quasi_free$ = 1, dependent$ = 3, private$ = 4 
+integer, parameter :: overlay_slave$ = 5, field_master_dependent$ = 6
+
+! attrib_array(key, ix_param)%state gives the state of the attribute.
+! This may be one of:
+!   does_not_exist$ -- Does not exist.
+!   is_free$        -- Free to vary as long as attribute has not controlled by another element (overlay, super_lord, etc.)
+!   quasi_free$     -- May be free or not. For example, k1 is only free if field_master = F.
+!   dependent$      -- Value calculated by Bmad. Cannot be user varied as an independent parameter.
+!   private$        -- Internal parameter used in calculations. Will not be displayed by type_ele.
+
+type ele_attribute_struct
+  character(40) :: name = null_name$
+  integer :: state = does_not_exist$
+  integer :: kind = unknown$    ! Is_switch$, is_real$, etc. See attribute_type routine
+  character(16) :: units = ''
+end type
+
+type (ele_attribute_struct), private, save :: attrib_array(n_key$, num_ele_attrib_extended$)
+
+character(40), private, save :: short_attrib_array(n_key$, num_ele_attrib_extended$)
+integer, private, save :: attrib_num(n_key$)
+integer, private, save :: attrib_ix(n_key$, num_ele_attrib_extended$)
+logical, private, save :: attribute_array_init_needed = .true.
+logical, private, save :: has_orientation_attributes_key(n_key$)
+private init_short_attrib_array
+
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -64,35 +94,6 @@ interface attribute_free
 end interface
 
 private check_this_attribute_free
-
-! attrib_array(key, ix_param)%type gives the type of the attribute.
-! This may be one of:
-!   does_not_exist$ -- Does not exist.
-!   is_free$        -- Free to vary as long as attribute has not controlled by another element (overlay, super_lord, etc.)
-!   quasi_free$     -- May be free or not. For example, k1 is only free if field_master = F.
-!   dependent$      -- Value calculated by Bmad. Cannot be user varied as an independent parameter.
-!   private$        -- Internal parameter used in calculations. Will not be displayed by type_ele.
-
-! Define parameters for attrib_array()%type and why_not_free argument in attribute_free(...) 
-! Note: Slot 2 is reserved for super_slave$ and slot 9 is reserved for multipass_slave$
-
-integer, parameter :: does_not_exist$ = -1, is_free$ = 0, quasi_free$ = 1, dependent$ = 3, private$ = 4 
-integer, parameter :: overlay_slave$ = 5, field_master_dependent$ = 6
-
-type ele_attribute_struct
-  character(40) :: name = null_name$
-  integer :: type = does_not_exist$
-  character(16) :: units = ''
-end type
-
-type (ele_attribute_struct), private, save :: attrib_array(n_key$, num_ele_attrib_extended$)
-
-character(40), private, save :: short_attrib_array(n_key$, num_ele_attrib_extended$)
-integer, private, save :: attrib_num(n_key$)
-integer, private, save :: attrib_ix(n_key$, num_ele_attrib_extended$)
-logical, private, save :: attribute_array_init_needed = .true.
-logical, private, save :: has_orientation_attributes_key(n_key$)
-private init_short_attrib_array
 
 !+             
 ! Function attribute_index (...) result (attrib_index)
@@ -160,7 +161,7 @@ end interface
 !   ix_att -- Integer: Index of attribute (e.g. k1$)
 !
 ! Output:
-!   attrib_name -- Character(40): Name of attribute. 
+!   attrib_name -- Character(40): Name of attribute. First character is a "!" if there is a problem.
 !      = "!BAD ELE KEY"                 %key is invalid
 !      = "!BAD INDEX"                   ix_att is invalid (out of range).
 !      = "!NULL" (null_name$)           ix_att does not correspond to an attribute or is private.
@@ -408,7 +409,7 @@ elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
 
 else
-  if (attrib_array(key, ix_att)%type == private$) then
+  if (attrib_array(key, ix_att)%state == private$) then
     attrib_name = null_name$
   else
     attrib_name = attrib_array(key, ix_att)%name
@@ -456,14 +457,14 @@ integer i, ix, key, ix_att
 
 if (attribute_array_init_needed) call init_attribute_name_array()
 
-attrib_info%type = does_not_exist$
+attrib_info%state = does_not_exist$
 attrib_info%name = '!BAD INDEX'
 
 ! Taylor term
 
 if (ele%key == taylor$ .and. ix_att > taylor_offset$) then
   attrib_info%name = attribute_name2(ele, ix_att)
-  if (attrib_info%name /= '!BAD INDEX') attrib_info%type = is_free$
+  if (attrib_info%name /= '!BAD INDEX') attrib_info%state = is_free$
   return
 endif
 
@@ -473,7 +474,7 @@ if ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, cont
   ix = ix_att - var_offset$
   if (ix > size(ele%control%var)) return
   attrib_info%name = ele%control%var(ix)%name
-  attrib_info%type = is_free$
+  attrib_info%state = is_free$
   return
 endif
 
@@ -481,7 +482,7 @@ if (ele%key == group$ .and. ix_att > old_control_var_offset$) then
   ix = ix_att - old_control_var_offset$
   if (ix > size(ele%control%var)) return
   attrib_info%name = 'OLD_' // ele%control%var(ix)%name
-  attrib_info%type = is_free$
+  attrib_info%state = is_free$
   return
 endif
 
@@ -493,7 +494,6 @@ elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_info%name = '!BAD INDEX'
 else
   attrib_info = attrib_array(ele%key, ix_att)
-  attrib_info%units = attribute_units(attrib_info%name)
 endif
 
 end function attribute_info
@@ -511,12 +511,14 @@ end function attribute_info
 subroutine init_attribute_name_array ()
 
 type (photon_surface_struct) surface
+type (ele_struct) ele
 integer i, j, num, ix, iy
 character(40) word
 
 ! 
 
 if (.not. attribute_array_init_needed) return
+attribute_array_init_needed = .false.
 
 do i = 1, n_key$
 
@@ -622,32 +624,34 @@ do i = 1, n_key$
   if (i == beambeam$)          cycle
   if (i == multipole$)         cycle 
   if (i == ab_multipole$)      cycle
-  if (i == converter$)         cycle
   if (i == marker$)            cycle
 
-  call init_attribute_name1 (i, l$,                   'L')
-  call init_attribute_name1 (i, symplectify$,         'SYMPLECTIFY')
+  call init_attribute_name1 (i, l$,                    'L')
+
+  if (i == converter$)         cycle
+
+  call init_attribute_name1 (i, symplectify$,          'SYMPLECTIFY')
   call init_attribute_name1 (i, taylor_map_includes_offsets$,    'TAYLOR_MAP_INCLUDES_OFFSETS')
 
   if (i == sad_mult$)      cycle
 
-  call init_attribute_name1 (i, lord_pad1$,           'LORD_PAD1', quasi_free$)
-  call init_attribute_name1 (i, lord_pad2$,           'LORD_PAD2', quasi_free$)
+  call init_attribute_name1 (i, lord_pad1$,            'LORD_PAD1', quasi_free$)
+  call init_attribute_name1 (i, lord_pad2$,            'LORD_PAD2', quasi_free$)
 
   if (i == taylor$)       cycle
 
-  call init_attribute_name1 (i, integrator_order$,    'INTEGRATOR_ORDER')
-  call init_attribute_name1 (i, num_steps$,           'NUM_STEPS', quasi_free$)
-  call init_attribute_name1 (i, ds_step$,             'DS_STEP')
-  call init_attribute_name1 (i, field_calc$,          'FIELD_CALC')
-  call init_attribute_name1 (i, csr_method$,          'CSR_METHOD')
-  call init_attribute_name1 (i, space_charge_method$, 'SPACE_CHARGE_METHOD')
-  call init_attribute_name1 (i, n_ref_pass$,          'N_REF_PASS')
+  call init_attribute_name1 (i, integrator_order$,     'INTEGRATOR_ORDER')
+  call init_attribute_name1 (i, num_steps$,            'NUM_STEPS', quasi_free$)
+  call init_attribute_name1 (i, ds_step$,              'DS_STEP')
+  call init_attribute_name1 (i, field_calc$,           'FIELD_CALC')
+  call init_attribute_name1 (i, csr_method$,           'CSR_METHOD')
+  call init_attribute_name1 (i, space_charge_method$,  'SPACE_CHARGE_METHOD')
+  call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', quasi_free$)
 
   if (i == drift$)        cycle
 
-  call init_attribute_name1 (i, field_overlaps$,      'FIELD_OVERLAPS')
-  call init_attribute_name1 (i, l_hard_edge$,         'L_HARD_EDGE', dependent$)
+  call init_attribute_name1 (i, field_overlaps$,       'FIELD_OVERLAPS')
+  call init_attribute_name1 (i, l_hard_edge$,          'L_HARD_EDGE', dependent$)
 
   ! Markers will also have these wake attributes. See below.
   call init_attribute_name1 (i, sr_wake$,                   'SR_WAKE')
@@ -740,7 +744,7 @@ do i = 1, n_key$
                                    'B6 ', 'B7 ', 'B8 ', 'B9 ', 'B10', &
                                    'B11', 'B12', 'B13', 'B14', 'B15', &
                                    'B16', 'B17', 'B18', 'B19', 'B20', 'B21']
-    attrib_array(i, a0$:b21$)%type = is_free$
+    attrib_array(i, a0$:b21$)%state = is_free$
     if (i == sad_mult$) cycle
     call init_attribute_name1 (i, multipoles_on$,     'MULTIPOLES_ON')
 
@@ -839,7 +843,11 @@ call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_AN
 call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
 call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
 
-call init_attribute_name1 (converter$, l$,                          'L')
+call init_attribute_name1 (converter$, material_type$,              'MATERIAL_TYPE')
+call init_attribute_name1 (converter$, radiation_length$,           'RADIATION_LENGTH', dependent$)
+call init_attribute_name1 (converter$, E_min$,                      'E_MIN')
+call init_attribute_name1 (converter$, E_max$,                      'E_MAX')
+
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
@@ -1400,7 +1408,7 @@ attrib_array(multipole$, t0$:t21$)%name = ['T0 ', &
                                'T6 ', 'T7 ', 'T8 ', 'T9 ', 'T10', &
                                'T11', 'T12', 'T13', 'T14', 'T15', &
                                'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
-attrib_array(multipole$, k0l$:t21$)%type = is_free$
+attrib_array(multipole$, k0l$:t21$)%state = is_free$
 call init_attribute_name1 (multipole$, l$,                          'L')
 call init_attribute_name1 (multipole$, field_master$,               'FIELD_MASTER')
 call init_attribute_name1 (multipole$, x_pitch$,          null_name$, does_not_exist$, .true.)
@@ -1535,7 +1543,7 @@ call init_attribute_name1 (photon_init$, ref_wavelength$,            'REF_WAVELE
 
 do i = 1, n_key$
   if (attrib_array(i, l$)%name /= 'L') cycle
-  if (attrib_array(i, l$)%type /= is_free$) cycle
+  if (attrib_array(i, l$)%state /= is_free$) cycle
   call init_attribute_name1 (i, accordion_edge$, 'Accordion_Edge', private$)
   call init_attribute_name1 (i, start_edge$,     'Start_Edge', private$)
   call init_attribute_name1 (i, end_edge$,       'End_Edge', private$)
@@ -1543,6 +1551,16 @@ do i = 1, n_key$
 enddo
 
 !-----------------------------------------------------------------------
+! Fill in the %units and %kind parameters.
+
+do i = 1, n_key$
+  ele%key = i
+  do j = 1, ubound(attrib_array, 2)
+    attrib_array(i,j)%units = attribute_units(attrib_array(i,j)%name)
+    attrib_array(i,j)%kind = attribute_type(attrib_array(i,j)%name, ele)
+  enddo
+enddo
+
 ! We make a short list to compare against to make things go faster.
 
 has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
@@ -1556,8 +1574,6 @@ do i = 1, n_key$
 
   call init_short_attrib_array(i)
 enddo
-
-attribute_array_init_needed = .false.
 
 end subroutine init_attribute_name_array
 
@@ -1579,7 +1595,7 @@ integer ix_key, num, j
 num = 0
 do j = 1, num_ele_attrib_extended$
   if (attrib_array(ix_key, j)%name == null_name$) cycle
-  if (attrib_array(ix_key, j)%type == private$) cycle
+  if (attrib_array(ix_key, j)%state == private$) cycle
   num = num + 1
   short_attrib_array(ix_key, num) = attrib_array(ix_key, j)%name
   attrib_ix(ix_key, num) = j
@@ -1628,7 +1644,7 @@ if (.not. logic_option(.false., override) .and. attrib_array(ix_key, ix_attrib)%
 endif
 
 attrib_array(ix_key, ix_attrib)%name    = name
-attrib_array(ix_key, ix_attrib)%type = integer_option(is_free$, attrib_state)
+attrib_array(ix_key, ix_attrib)%state = integer_option(is_free$, attrib_state)
 
 ! If things are done after the attribute array has been inited then the short table has
 ! to be reinited.
@@ -1696,19 +1712,21 @@ end function has_orientation_attributes
 !
 ! Output:
 !   attrib_type  -- Integer: Attribute type: 
-!                     is_string$, is_logical$, is_integer$, is_real$, is_switch$, is_struct$ or unknown$
-!                     Note: An overlay or group variable will be marked unknown$ if ele is missing.
+!                     is_string$, is_logical$, is_integer$, is_real$, is_switch$, is_struct$ or invalid_name$
+!                     Note: An overlay or group variable will be marked invalid_name$ if ele is missing.
 !-
 
 function attribute_type (attrib_name, ele) result (attrib_type)
 
 type (ele_struct), optional :: ele
 character(*) attrib_name
-integer attrib_type, i
+integer attrib_type, i, key
 
 ! Check if an overlay or group variable
 
+key = int_garbage$
 if (present(ele)) then
+  key = ele%key
   if (associated(ele%control)) then
     do i = 1, size(ele%control%var)
       if (attrib_name(1:4) == 'OLD_') then
@@ -1736,7 +1754,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'SR_WAKE%SCALE_WITH_LENGTH')
   attrib_type = is_logical$
 
-case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_SLAVE', 'N_LORD', &
       'PTC_MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
       'LONGITUDINAL_MODE')
@@ -1748,7 +1766,8 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
-      'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD')
+      'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
+      'MULTIPASS_REF_ENERGY')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -1762,10 +1781,14 @@ case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GRID_FIELD', 'REF_O
   attrib_type = is_struct$
 
 case default
-  if (attribute_index(0, attrib_name, can_abbreviate = .false.) == 0) then
-    attrib_type = unknown$
+  attrib_type = is_real$
+
+  if (attrib_name(1:1) == '!') then
+    attrib_type = invalid_name$
+  elseif (key == int_garbage$ .or. key == overlay$ .or. key == group$) then
+    if (attribute_index(0, attrib_name, can_abbreviate = .false.) == 0) attrib_type = invalid_name$
   else
-    attrib_type = is_real$
+    if (attribute_index(key, attrib_name, can_abbreviate = .false.) == 0) attrib_type = invalid_name$
   endif
 end select
 
@@ -2048,7 +2071,7 @@ end subroutine string_attrib
 !                     Generally only needed to determine the default value.
 !
 ! Output:
-!   attrib_val_name -- Character(40): Name corresponding to the value.
+!   attrib_val_name -- Character(40): Name corresponding to the value. Set to null_name if there is a problem.
 !   is_default      -- Logical, optional: If True then the value of the attiribute
 !                        corresponds to the default value. If this argument is
 !                        present, the ele argument must also be present.
@@ -2134,6 +2157,10 @@ case ('FIELD_CALC')
 case ('FIELD_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, em_field_type_name, lbound(em_field_type_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == bmad_standard$)
+
+case ('MULTIPASS_REF_ENERGY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, multipass_ref_energy_name, lbound(multipass_ref_energy_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == first_pass$)
 
 case ('NONGRID^FIELD_TYPE')      ! This is for the Tao "python" command
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, em_field_type_name(1:2), lbound(em_field_type_name, 1))
@@ -2799,12 +2826,12 @@ attrib_info = attribute_info(ele, ix_attrib)
 
 a_name = attribute_name (ele, ix_attrib)
 
-if (attrib_info%type == private$) then
+if (attrib_info%state == private$) then
   call it_is_not_free (ele, ix_attrib, dependent$, 'THIS ATTRIBUTE IS PRIVATE.')
   return
 endif
 
-if (attrib_info%type == does_not_exist$) then
+if (attrib_info%state == does_not_exist$) then
   ! Calculated quantities like the Twiss function do not have an entry in the attribute table but
   ! pointer_to_attribute will return a pointer.
   ! Note: Something like beginning element beta_a do have an entry in the attribute table. 
@@ -2832,7 +2859,7 @@ endif
 
 ! Here if checking something that is not an overlay or group lord... 
 
-if (attrib_info%type == dependent$) then
+if (attrib_info%state == dependent$) then
   call it_is_not_free (ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 endif
@@ -2901,7 +2928,7 @@ case ('E_TOT', 'P0C')
   if (ele%key == beginning_ele$) return
 
   if (.not. dep_attribs_free .and. ele%lord_status == multipass_lord$ .and. &
-                                                     .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
+                      .not. ele%field_master .and. nint(ele%value(multipass_ref_energy$)) == user_set$) then
     select case (ele%key)
     case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
           hkicker$, vkicker$, kicker$, ac_kicker$, elseparator$, lcavity$, rfcavity$)
@@ -2915,7 +2942,7 @@ end select
 
 ! check if it is a dependent variable.
 
-if (attrib_info%type == is_free$) return
+if (attrib_info%state == is_free$) return
 
 select case (ele%key)
 case (sbend$)
@@ -2936,7 +2963,7 @@ case (elseparator$)
 end select
 
 if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
-    ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.
+    nint(ele%value(multipass_ref_energy$)) == user_set$ .and. ix_attrib == p0c$) free = .true.
 
 if (.not. free) then
   call it_is_not_free (ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')

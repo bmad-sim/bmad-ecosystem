@@ -327,7 +327,7 @@ if (associated(a_ptr, ele%value(l$))) then
   return
 endif
 
-! E_tot and p0c can be varied in an init_ele or a multipass lord with n_ref_pass = 0.
+! E_tot and p0c can be varied in an init_ele or a multipass lord with multipass_ref_energy = user_set$.
 ! In addition, for an init_ele, must also set e_tot_start and p0c_start. This is important
 ! for lattices with an e_gun element
 
