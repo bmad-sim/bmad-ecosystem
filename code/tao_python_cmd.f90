@@ -1308,7 +1308,7 @@ case ('ele:gen_attribs')
     attrib = attribute_info(ele, i)
     a_name = attrib%name
     if (a_name == null_name$) cycle
-    if (attrib%type == private$) cycle
+    if (attrib%state == private$) cycle
 
     free = attribute_free (ele, a_name, .false., why_not_free = why_not_free)
     if (.not. free .and. why_not_free == field_master_dependent$) free = .true.
