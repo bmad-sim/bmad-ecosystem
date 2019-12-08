@@ -30,6 +30,7 @@ type (control_struct), pointer :: ctl, ctl1, ctl2
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
+type (ele_attribute_struct) info
 
 real(rp) s1, s2, ds, ds_small, l_lord, g(3)
 
@@ -37,7 +38,7 @@ integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2
 integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is, tm
 
 character(16) str_ix_slave, str_ix_lord, str_ix_ele
-character(24) :: r_name = 'lat_sanity_check'
+character(*), parameter :: r_name = 'lat_sanity_check'
 
 logical, intent(out) :: err_flag
 logical good_control(12,12), girder_here, finished, foundit
@@ -128,6 +129,20 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_location(ele)) // ')'
+
+    ! Check switches
+
+    if (ele%key /= overlay$ .and. ele%key /= group$) then
+      do i = 1, num_ele_attrib$
+        info = attribute_info(ele, i)
+        if (info%kind /= is_switch$) cycle
+        if (switch_attrib_value_name(info%name, ele%value(i), ele) /= null_name$) cycle
+        call out_io (s_fatal$, r_name, &
+                    'ELEMENT:' // ele%name, &
+                    'HAS ATTRIBUTE: ' // trim(info%name) // ' WHOSE VALUE IS INVALID: \i0\ ', i_array = [nint(ele%value(multipass_ref_energy$))])
+        err_flag = .true.
+      enddo
+    endif
 
     ! Check some ranges
 
@@ -779,28 +794,19 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! sbend multipass lord must have non-zero ref_energy or n_ref_pass must be non-zero.
+    ! sbend multipass lord must have non-zero ref_energy or multipass_ref_energy must be set to first_pass$.
     ! This restriction is necessary to compute the reference orbit.
     ! Check both p0c and e_tot since if this routine is called by bmad_parser we
     ! can have one zero and the other non-zero.
 
     if (ele%key == sbend$ .and. l_stat == multipass_lord$) then
-      if (ele%value(p0c$) == 0 .and. ele%value(e_tot$) == 0 .and. ele%value(n_ref_pass$) == 0) then
+      if (ele%value(p0c$) == 0 .and. ele%value(e_tot$) == 0 .and. nint(ele%value(multipass_ref_energy$)) == user_set$) then
         call out_io (s_fatal$, r_name, &
                   'BEND: ' // ele%name, &
                   'WHICH IS A: MULTIPASS_LORD', &
-                  'DOES NOT HAVE A REFERENCE ENERGY OR N_REF_PASS DEFINED')
+                  'DOES NOT HAVE A REFERENCE ENERGY OR MULTIPASS_REF_ENERGY DEFINED')
         err_flag = .true.
       endif
-    endif
-
-    ! n_ref_pass for a multipass_lord must be 0 or 1
-
-    if (l_stat == multipass_lord$ .and. (ele%value(n_ref_pass$) /= 0 .and. ele%value(n_ref_pass$) /= 1)) then
-      call out_io (s_fatal$, r_name, &
-                  'MULTIPASS_LORD: ' // ele%name, &
-                  'HAS N_REF_PASS THAT IS NOT 0 NOR 1: \f10.6\ ', r_array = [ele%value(n_ref_pass$)])
-      err_flag = .true.
     endif
 
     ! A multipass lord that is a magnetic or electric element must either:
@@ -808,13 +814,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     !   2) Have a defined reference energy.
 
     if (l_stat == multipass_lord$ .and. .not. ele%field_master .and. ele%value(p0c$) == 0 .and. &
-        ele%value(e_tot$) == 0 .and. ele%value(n_ref_pass$) == 0) then
+        ele%value(e_tot$) == 0 .and. ele%value(multipass_ref_energy$) == 0) then
       select case (ele%key)
       case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
             hkicker$, vkicker$, kicker$, elseparator$)
         call out_io (s_fatal$, r_name, &
               'FOR MULTIPASS LORD: ' // ele%name, &
-              'N_REF_PASS, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
+              'MULTIPASS_REF_ENERGY, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
         err_flag = .true.
       end select
     endif

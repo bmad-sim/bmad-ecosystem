@@ -11,13 +11,12 @@ For a listing of element attributes for each type of element, see Chapter~\sref{
 
 \index{parameter statement}
 \index{dependent attribute}
-For convenience, \bmad computes the values of some attributes based upon the values of
-other attributes. Some of these dependent variables are listed in
-Table~\ref{t:dependent}. Also shown in Table~\ref{t:dependent} are the independent
-variables they are calculated from.  In the table \vn{n_part} and \vn{l_lattice} (lattice
-length) are lattice attributes, not element attributes. The first two are set by the
-\vn{parameter} statement (See \sref{s:param}). \vn{l_lattice} is calculated when the
-lattice is read in.
+For convenience, \bmad computes the values of some attributes based upon the values of other
+attributes. Some of these dependent variables are listed in Table~\ref{t:dependent}. Also shown in
+Table~\ref{t:dependent} are the independent variables they are calculated from.  In the table
+\vn{n_part} and \vn{l_lattice} (lattice length) are lattice attributes, not element attributes. The
+first two are set by the \vn{parameter} statement (See \sref{s:param}). \vn{l_lattice} is calculated
+when the lattice is read in.
 
 \index{bbi_constant}\index{charge}\index{sig_x}\index{sig_y}
 \index{e_tot}\index{n_part}\index{e_field}\index{voltage}
@@ -55,15 +54,14 @@ values are dependent or independent.
 
 \index{lattice!expansion}\index{harmon}\index{delta_e}\index{gradient}
 \index{rho}\index{g}\index{angle}\index{rf_frequency}
-No attempt should be made to set or vary within a program dependent attributes. It should
-be remarked that this is not an iron clad rule.  If a program properly bypasses \bmad's
-attribute bookkeeping routine then anything is possible. In a lattice file, before lattice
-expansion (\sref{s:expand}), \bmad allows the setting of a select group of dependent
-attributes if the appropriate independent attributes are not set. The list of settable
-dependent variables is given in Table~\ref{t:dep.except}.  After reading in the lattice
-\bmad will set the appropriate independent variable based upon the value of the dependent
-variable. \vn{harmon} is the exception in that it will never be set by the bookkeeping
-routine.
+No attempt should be made to set or vary within a program dependent attributes. It should be
+remarked that this is not an iron clad rule.  If a program properly bypasses \bmad's attribute
+bookkeeping routine then anything is possible. In a lattice file, before lattice expansion
+(\sref{s:expand}), \bmad allows the setting of a select group of dependent attributes if the
+appropriate independent attributes are not set. The list of settable dependent variables is given in
+Table~\ref{t:dep.except}.  After reading in the lattice \bmad will set the appropriate independent
+variable based upon the value of the dependent variable. \vn{harmon} is the exception in that it
+will never be set by the bookkeeping routine.
 \index{lcavity}\index{rbend}
 \index{sbend}\index{rfcavity}
 \begin{table}[ht]
@@ -86,17 +84,16 @@ routine.
 \label{s:field.master}
 \index{field_master}
 
-The \vn{field_master} attribute of an element sets whether the element's normalized
-(normalized by the reference energy) field strengths or the unnormalized strengths are the
-independent variables (\sref{s:depend}).  The setting of \vn{field_master} also sets
-whether an element's magnetic multipoles (\sref{s:multip}) are interpreted as normalized or
-unnormalized (electric multipoles are always treated as unnormalized).
+The \vn{field_master} attribute of an element sets whether the element's normalized (normalized by
+the reference energy) field strengths or the unnormalized strengths are the independent variables
+(\sref{s:depend}).  The setting of \vn{field_master} also sets whether an element's magnetic
+multipoles (\sref{s:multip}) are interpreted as normalized or unnormalized (electric multipoles are
+always treated as unnormalized).
 
-Table~\ref{t:dep.field} shows some normalized and unnormalized field strength attributes.
-The default value of \vn{field_master} for an element is False if there are no field
-values set in the lattice file for that element. If normalized field values are present
-then the default is also False and if there are unnormalized field values present then
-the default is True.
+Table~\ref{t:dep.field} shows some normalized and unnormalized field strength attributes.  The
+default value of \vn{field_master} for an element is False if there are no field values set in the
+lattice file for that element. If normalized field values are present then the default is also False
+and if there are unnormalized field values present then the default is True.
 
 For example:
 \begin{example}
@@ -154,13 +151,11 @@ There are three string labels associated with any element:
   alias   = <String>
   descrip = <String>
 \end{example}
-\bmad routines do not use these labels except when printing element
-information. \vn{type} and \vn{alias} can be up to 40 characters in
-length and \vn{descrip} can be up to 200 characters. The attribute
-strings can be enclosed in double quotation marks ("). The attribute
-strings may contain blanks. If the attribute string does not contain a
-blank then the quotation marks may be omitted. In this case the first
-comma (,) or the end of the line marks the end of the string. Example:
+\bmad routines do not use these labels except when printing element information. \vn{type} and
+\vn{alias} can be up to 40 characters in length and \vn{descrip} can be up to 200 characters. The
+attribute strings can be enclosed in double quotation marks ("). The attribute strings may contain
+blanks. If the attribute string does not contain a blank then the quotation marks may be omitted. In
+this case the first comma (,) or the end of the line marks the end of the string. Example:
 \begin{example}
   Q00W: Quad, type = "My Type", alias = Who_knows, &
                                   descrip = "Only the shadow knows"
@@ -182,10 +177,10 @@ of attributes of other elements (called ``\vn{slave}'' attributes).
 There are two types of controllers. \vn{Expression} based controllers and \vn{Spline} based
 controllers. \vn{Expression} based controllers use mathematical expressions to define how slave
 attribute values are calculated based upon the values of the controller variables. \vn{Spline} based
-controllers use a spline fit (in particular, the cubic non-smoothing Akima
-spline\cite{b:akima}) to a function defined by a set of points (called ``\vn{knots}'') to
-determine the relationship between variables and slave attributes. With a spline based controller,
-the number of variables is restricted to be one. 
+controllers use a spline fit (in particular, the cubic non-smoothing Akima spline\cite{b:akima}) to
+a function defined by a set of points (called ``\vn{knots}'') to determine the relationship between
+variables and slave attributes. With a spline based controller, the number of variables is
+restricted to be one.
 
 The general syntax for an expression based \vn{group} element is
 \begin{example}
@@ -210,14 +205,12 @@ slave attributes. Example:
   gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}
 \end{example}
 
-To define an expression based \vn{controller} element, two lists are needed: One list
-defines the slave attributes along with the arithmetic expressions
-used for computing the value of the slave attributes. The other list
-defines the variables within the \vn{controller} element that can be
-varied. In the above example, the variables are \vn{a} and \vn{b}, and
-the slave attributes are the \vn{k1} attribute of element \vn{q1} and
-the \vn{tilt} attribute of element \vn{q2}. The arithmetic expressions
-used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
+To define an expression based \vn{controller} element, two lists are needed: One list defines the
+slave attributes along with the arithmetic expressions used for computing the value of the slave
+attributes. The other list defines the variables within the \vn{controller} element that can be
+varied. In the above example, the variables are \vn{a} and \vn{b}, and the slave attributes are the
+\vn{k1} attribute of element \vn{q1} and the \vn{tilt} attribute of element \vn{q2}. The arithmetic
+expressions used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
 
 The general syntax for For a \vn{spline} based \vn{group} element is
 \begin{example}
@@ -240,39 +233,34 @@ for a particular slave attribute, the knot array of the previous slave attribute
 the above example, the y_knot array used for \vn{q2[k1]} and \vn{q3[k1]} are the same as the y_knot
 array for \vn{q1[k1]}.
 
-If the \vn{gang} attribute is \vn{True} (which is the default) a \vn{controller} will
-control all elements of a given name. Thus, in the above example, if there are multiple
-elements named \vn{q1} then \vn{gr1} will control the \vn{k1} attribute of all of them.
-If \vn{gang} is set to \vn{False}, then a separate controller is created for each element
-in the lattice of a given name. For example:
+If the \vn{gang} attribute is \vn{True} (which is the default) a \vn{controller} will control all
+elements of a given name. Thus, in the above example, if there are multiple elements named \vn{q1}
+then \vn{gr1} will control the \vn{k1} attribute of all of them.  If \vn{gang} is set to \vn{False},
+then a separate controller is created for each element in the lattice of a given name. For example:
 \begin{example}
   gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}, gang = False
 \end{example}
-In this example, suppose there are five \vn{q1} and five \vn{q2} elements in the lattice.
-In this case, there will be five \vn{gr1} group elements created. The first \vn{gr1} will
-control the first \vn{q1} and \vn{q2} to appear in the lattice, etc. With \vn{gang} set to
-\vn{False}, it is an error if the number of instances in the lattice for a given slave
-name is different from any other slave name. In this example, it would be an error if the
-number of \vn{q1} elements in the lattice is different from the number of \vn{q2} elements
-in the lattice.
+In this example, suppose there are five \vn{q1} and five \vn{q2} elements in the lattice.  In this
+case, there will be five \vn{gr1} group elements created. The first \vn{gr1} will control the first
+\vn{q1} and \vn{q2} to appear in the lattice, etc. With \vn{gang} set to \vn{False}, it is an error
+if the number of instances in the lattice for a given slave name is different from any other slave
+name. In this example, it would be an error if the number of \vn{q1} elements in the lattice is
+different from the number of \vn{q2} elements in the lattice.
 
-The syntax for specifying an attribute \vn{attrib} of element \vn{ele}
-to be controlled is \vn{ele[attrib]}. The attribute part \vn{[attrib]}
-may be omitted and in this case the name of the attribute will be
-taken to be the name of the first variable. Example:
+The syntax for specifying an attribute \vn{attrib} of element \vn{ele} to be controlled is
+\vn{ele[attrib]}. The attribute part \vn{[attrib]} may be omitted and in this case the name of the
+attribute will be taken to be the name of the first variable. Example:
 \begin{example}
   ov1: overlay = \{sex1:-tan(k2)^b\}, var = \{k2, b\}
 \end{example}
-In this example, the controlled attribute of element \vn{sex1} is
-\vn{k2}.  Except in cases where this default attribute syntax is used,
-the names of the variables are arbitrary and do not have to correspond
-to the name of any actual attribute.
+In this example, the controlled attribute of element \vn{sex1} is \vn{k2}.  Except in cases where
+this default attribute syntax is used, the names of the variables are arbitrary and do not have to
+correspond to the name of any actual attribute.
 
-The arithmetic expressions used to evaluate controlled attribute value
-changes may be a constant. In this case, the actual expression used is
-this constant times the first variable. If the expression is omitted
-entirely, along with the separating ``:'', the constant will be taken
-to be unity. Example:
+The arithmetic expressions used to evaluate controlled attribute value changes may be a constant. In
+this case, the actual expression used is this constant times the first variable. If the expression
+is omitted entirely, along with the separating ``:'', the constant will be taken to be
+unity. Example:
 \begin{example}
   gr1: group = \{b1, b3:-pi\}, var = \{angle\}
 \end{example}
@@ -286,14 +274,13 @@ Example:
 \begin{example}
   sk_q20W: overlay = \{sex_20W[a1]:-sex_20W[L]\}, k1
 \end{example}
-Here the \vn{sk_q20w} overlay controls the \vn{a1} multipole attribute of element
-\vn{sex_20w} and the length of \vn{sex_20w} is used as a scale factor between the
-overlay's variable \vn{k1} and the controlled attribute \vn{a1}. The potential problem
-here is that, to keep the internal bookkeeping simple, the value of \vn{sex_20w[L]} is
-evaluated once during parsing of the lattice file and never reevaluated (\sref{s:arith}).
-If it is desired to use a variable element attribute in an expression, this may be
-effectively done by defining a control variable to take its place. Thus the above overlay
-may be recast as:
+Here the \vn{sk_q20w} overlay controls the \vn{a1} multipole attribute of element \vn{sex_20w} and
+the length of \vn{sex_20w} is used as a scale factor between the overlay's variable \vn{k1} and the
+controlled attribute \vn{a1}. The potential problem here is that, to keep the internal bookkeeping
+simple, the value of \vn{sex_20w[L]} is evaluated once during parsing of the lattice file and never
+reevaluated (\sref{s:arith}).  If it is desired to use a variable element attribute in an
+expression, this may be effectively done by defining a control variable to take its place. Thus the
+above overlay may be recast as:
 \begin{example}
   sk_q20W: overlay = \{sex_20W[L]:ll, sex_20W[a1]:ll*k1\}, var = \{k1, ll\}
 \end{example}
@@ -303,9 +290,8 @@ definition of the controller element. Example:
 \begin{example}
   ov1: overlay = \{...\}, var = \{a, b\}, a = 7, b = 2
 \end{example}
-Here the initial values 7 and 2 are assigned to \vn{a} and \vn{b} respectively.
-Alternatively, variables can be set after a controller element has been defined. 
-Example:
+Here the initial values 7 and 2 are assigned to \vn{a} and \vn{b} respectively.  Alternatively,
+variables can be set after a controller element has been defined.  Example:
 \begin{example}
   ov1: overlay = \{...\}, var = \{a, b\}
   ov1[a] = 7
@@ -324,10 +310,9 @@ that \vn{GROUP} was replaced by \vn{OVERLAY}:
                        attrib = init_value  ! DO NOT USE THIS SYNTAX!
 \end{example}
 
-With this old syntax, there is only one variable. Additionally, there
-are no arithmetic expressions. Rather, attribute changes are linear in
-the \vn{command} variable with the constant of proportionality given
-by a specified coefficient. For example with the old syntax
+With this old syntax, there is only one variable. Additionally, there are no arithmetic
+expressions. Rather, attribute changes are linear in the \vn{command} variable with the constant of
+proportionality given by a specified coefficient. For example with the old syntax
 \begin{example}
   ov1: overlay = \{sq1:3.7, sq2[tilt]\}, k0 = 2  ! DO NOT USE THIS SYNTAX!
 \end{example}
@@ -335,11 +320,10 @@ is equivalent, in the present syntax, to:
 \begin{example}
   ov1: overlay = \{sq[k0]:3.7, sq2[tilt]\}, var = \{k0\}, k0 = 2  
 \end{example}
-Note: In this old syntax the colon ``:'' separating the controlled
-attribute from the linear coefficient may be replaced by a slash
-``/''.  For \vn{group} elements, there was an added wrinkle that, with
-the old syntax, the variable's name is fixed to be \vn{command}. For
-example, with the old syntax
+Note: In this old syntax the colon ``:'' separating the controlled attribute from the linear
+coefficient may be replaced by a slash ``/''.  For \vn{group} elements, there was an added wrinkle
+that, with the old syntax, the variable's name is fixed to be \vn{command}. For example, with the
+old syntax
 \begin{example}
   gr1: group = \{sq1:3.7, sq2[tilt]\}, k0 = 2  ! DO NOT USE THIS SYNTAX!
 \end{example}
@@ -351,28 +335,25 @@ is equivalent, in the present syntax, to:
 %-----------------------------------------------------------------
 \section[Energy and Wavelength Attributes]{Energy and Wavelength Attributes: E_tot, P0C, and \\ Ref_Wavelength}
 \label{s:energy}
+
 \index{parameter statement}\index{e_tot}
 \index{e_tot_start}\index{p0c_start}
 \index{patch}\index{lcavity}\index{p0c}\index{e_gun}
-\index{n_ref_pass}\index{ref_wave_length}
+\index{ref_wave_length}
 The attributes that define the reference energy and momentum at an element are:
 \begin{example}
   e_tot  = <Real>  ! Total energy in eV.
   p0c    = <Real>  ! Momentum in eV.
 \end{example}
-The energy and momentum are defined at the exit end of the element.
-For ultra--relativistic particles, and for photons, these two values
-are the same (\sref{s:phase.space}). Except for multipass elements
-(\sref{s:multipass}), \vn{e_tot} and \vn{p0c} are dependent attributes
-and, except for multipass elements, any setting of \vn{e_tot} and
-\vn{p0c} in the lattice input file is an error. The value of
-\vn{e_tot} and \vn{p0c} for an element is calculated by \bmad to be
-the same as the previous element except for \vn{e_gun}, \vn{lcavity} and
-\vn{patch} elements. To set the \vn{e_tot} or \vn{p0c} at the start of
-the lattice use the \vn{beginning} or \vn{parameter} statements.
-See~\sref{s:param}. Since the energy changes from the start to the end
-of an \vn{lcavity} or. \vn{em_field}, an \vn{lcavity} or \vn{em_field} has
-the dependent attributes
+The energy and momentum are defined at the exit end of the element.  For ultra--relativistic
+particles, and for photons, these two values are the same (\sref{s:phase.space}). Except for
+multipass elements (\sref{s:multipass}), \vn{e_tot} and \vn{p0c} are dependent attributes and,
+except for multipass elements, any setting of \vn{e_tot} and \vn{p0c} in the lattice input file is
+an error. The value of \vn{e_tot} and \vn{p0c} for an element is calculated by \bmad to be the same
+as the previous element except for \vn{e_gun}, \vn{lcavity} and \vn{patch} elements. To set the
+\vn{e_tot} or \vn{p0c} at the start of the lattice use the \vn{beginning} or \vn{parameter}
+statements.  See~\sref{s:param}. Since the energy changes from the start to the end of an
+\vn{lcavity} or. \vn{em_field}, an \vn{lcavity} or \vn{em_field} has the dependent attributes
 \index{em_field}\index{lcavity}
 \begin{example}
   e_tot_start   and
@@ -381,22 +362,19 @@ the dependent attributes
 which are just the reference energy and momentum at the start of the element.
 
 \index{beginning_ele}
-The \vn{beginning_ele} element (\sref{s:begin.ele}) also has associated
-\vn{e_tot_start} and \vn{p0c_start} attributes as well as \vn{e_tot}
-and \vn{p0c}. Generally, for an \vn{beginning_ele}, \vn{p0c_start} and
-\vn{p0c} are the same and \vn{e_tot_start} and \vn{e_tot} are the same
-and the values for these attributes are set in the lattice file with
-the appropriate \vn{parameter} (\sref{s:param}) or \vn{beginning}
-(\sref{s:beginning}) statement. The exception occurs when there is an
-\vn{e_gun} element in the lattice (\sref{s:e.gun}). In this case, the
-\vn{p0c_start} and \vn{e_tot_start} attributes of the \vn{beginning_ele}
-are set to the values as set in the lattice file and \vn{e_tot} is set
-to
+The \vn{beginning_ele} element (\sref{s:begin.ele}) also has associated \vn{e_tot_start} and
+\vn{p0c_start} attributes as well as \vn{e_tot} and \vn{p0c}. Generally, for an \vn{beginning_ele},
+\vn{p0c_start} and \vn{p0c} are the same and \vn{e_tot_start} and \vn{e_tot} are the same and the
+values for these attributes are set in the lattice file with the appropriate \vn{parameter}
+(\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statement. The exception occurs when there
+is an \vn{e_gun} element in the lattice (\sref{s:e.gun}). In this case, the \vn{p0c_start} and
+\vn{e_tot_start} attributes of the \vn{beginning_ele} are set to the values as set in the lattice
+file and \vn{e_tot} is set to
 \begin{example}
   e_tot = e_tot_start + voltage
 \end{example}
-and \vn{p0c} is calculated from \vn{e_tot} and the mass of the
-particle being tracked. For example, if the lattice file contained:
+and \vn{p0c} is calculated from \vn{e_tot} and the mass of the particle being tracked. For example,
+if the lattice file contained:
 \begin{example}
   beginning[p0c] = 0
   gun: e_gun, voltage = 0.5e6
@@ -409,17 +387,14 @@ Then the following energy values will be set for the beginning \vn{beginning_ele
   e_tot       = mc2 + 0.5e6
   p0c         = Sqrt(e_tot - mc2^2)
 \end{example}
-where \vn{mc2} is the particle rest mass.  The reason for using this
-convoluted convention is to allow the setting, in the lattice file, of
-a zero reference momentum at the start of the lattice, while
-avoiding the calculational problems that would occur if the \vn{e_gun}
-element truly had a starting reference momentum of zero.
-Specifically, the problem with zero reference momentum is that the
-phase space momentum would be infinity as can be seen from \Eqs{ppp}.
+where \vn{mc2} is the particle rest mass.  The reason for using this convoluted convention is to
+allow the setting, in the lattice file, of a zero reference momentum at the start of the lattice,
+while avoiding the calculational problems that would occur if the \vn{e_gun} element truly had a
+starting reference momentum of zero.  Specifically, the problem with zero reference momentum is that
+the phase space momentum would be infinity as can be seen from \Eqs{ppp}.
 
-For \vn{multipass} elements, the reference energy is set by specifying
-one of \vn{e_tot}, \vn{p0c}, or \vn{n_ref_pass} as described in
-\sref{s:multipass}.
+For \vn{multipass} elements, the reference energy may be set by specifying one of \vn{e_tot},
+\vn{p0c}, as described in \sref{s:multipass}.
 
 For photons, the reference wavelength, \vn{ref_wavelength} is also a
 dependent attribute calculated from the reference energy.
@@ -434,15 +409,12 @@ dependent attribute calculated from the reference energy.
 \index{x_pitch|hyperbf}\index{y_pitch|hyperbf}
 \index{roll|hyperbf}\index{tilt|hyperbf}
 
-By default, an element, like a quadrupole, is aligned in space
-coincident with the reference orbit running through it
-(\sref{s:ref.construct}). A quadrupole can be displaced in space using
-the quadrupole's ``\vn{orientational}'' attributes. For a quadrupole,
-the orientational attributes only affect the physical element and not
-the reference orbit. However, the orientational attributes of some
-other elements, like the \vn{fiducial} element, do affect the
-reference orbit. To sort all this out, lattice elements can be divided
-into seven classes:
+By default, an element, like a quadrupole, is aligned in space coincident with the reference orbit
+running through it (\sref{s:ref.construct}). A quadrupole can be displaced in space using the
+quadrupole's ``\vn{orientational}'' attributes. For a quadrupole, the orientational attributes only
+affect the physical element and not the reference orbit. However, the orientational attributes of
+some other elements, like the \vn{fiducial} element, do affect the reference orbit. To sort all this
+out, lattice elements can be divided into seven classes:
   \begin{enumerate}
   \item\vn{Straight line elements} (\sref{s:straight.orient}) \Newline
 Straight line elements are elements where the reference orbit is a

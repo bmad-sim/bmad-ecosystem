@@ -6,7 +6,7 @@
 ! Note: Controllers that control elements that remain will not be cut.
 ! Note: Flexible patches will be marked as rigid if it is not possible to calculate the floor 
 !   coords of the downstream element after slicing.
-! Note: ele%n_ref_pass will be set to 0 (user_set) if first pass element is discarded.
+! Note: ele%multipass_ref_energy will be set to user_set$ if first pass element is discarded.
 !
 ! For each branch where there are elements to be deleted and where the reference energy has been computed:
 !   1) The Twiss and reference energy parameters from the first non-deleted element are 
@@ -159,15 +159,15 @@ do ib = 0, ubound(lat%branch, 1)
   enddo ele_loop
 enddo
 
-! Set n_ref_pass
+! Set multipass_ref_energy
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
   ele => lat%ele(ie)
   if (ele%lord_status /= multipass_lord$) cycle
-  if (ele%value(n_ref_pass$) == 0) cycle     ! Ref energy is user set so nothing to be done
+  if (nint(ele%value(multipass_ref_energy$)) == user_set$) cycle     ! Ref energy is user set so nothing to be done
   ele1 => pointer_to_slave(ele, 1)
   if (ele1%iyy == 1) cycle                   ! First pass preserved => Everything OK.
-  ele%value(n_ref_pass$) = 0
+  ele%value(multipass_ref_energy$) = user_set$
 enddo
 
 ! Finish

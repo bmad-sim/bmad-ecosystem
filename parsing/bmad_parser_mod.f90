@@ -447,6 +447,8 @@ if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR
   return
 endif
 
+if (word == 'N_REF_PASS') word = 'MULTIPASS_REF_ENERGY'  ! This will be ignored...
+
 if (word == 'SPACE_CHARGE_ON') then
   call parser_error ('Note: "bmad_com[SPACE_CHARGE_ON]" has been renamed "bmad_com[HIGH_ENERGY_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
@@ -1348,6 +1350,14 @@ if (attrib_word == 'GRID_FIELD') then
       call parser_error ('ERROR READING BINARY GRID_FIELD FILE.')
       return
     endif
+  elseif (word(1:6) == 'HDF5::') then
+    call parser_file_stack('push', word(7:), err = err_flag, open_file = .false.); if (err_flag) return
+!!!!!!!!    call hdf5_read_grid_field(word(7:), ele, ele%grid_field, err_flag)  xxx
+    call parser_file_stack('pop')
+    if (err_flag) then
+      call parser_error ('ERROR READING BINARY GRID_FIELD FILE.')
+      return
+    endif
   else
     if (.not. expect_this ('{', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
     allocate (ele%grid_field(i_ptr)%ptr)
@@ -2110,7 +2120,7 @@ if (logic_option(.false., check_free)) then
   endif
 else
   attrib_info = attribute_info(ele, attribute_index(ele, attrib_name))
-  if (attrib_info%type == dependent$) then
+  if (attrib_info%state == dependent$) then
     if (.not. hetero_list) then
       call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
     endif
@@ -3199,7 +3209,7 @@ case default
 
   if (ix_attrib > 0 .and. associated(eles(1)%ele) .and. bp_com%parser_name == 'bmad_parser') then
     attrib_info = attribute_info (eles(1)%ele, ix_attrib)
-    if (attrib_info%type == dependent$) then
+    if (attrib_info%state == dependent$) then
       call parser_error ('DEPENDENT ATTRIBUTE IS NOT CALCULATED BEFORE LATTICE EXPANSION AND', &
                          'THEREFORE CANNOT BE USED BEFORE ANY EXPAND_LATTICE COMMAND: ' // word)
       return
@@ -4701,10 +4711,12 @@ lord%bookkeeping_state%ref_energy = ok$
 lord%bookkeeping_state%s_position = ok$   
 lord%bookkeeping_state%mat6       = ok$   
 
-! A multipass lord defaults to n_ref_pass = 1 if neither n_ref_pass, p0c and e_tot are not set.
+! A multipass lord defaults to multipass_ref_energy = first_pass if neither multipass_ref_energy, p0c and e_tot are not set.
 
-if (nint(lord%value(n_ref_pass$)) == 0 .and. lord%value(p0c$) == 0 .and. lord%value(e_tot$) == 0) then
-  lord%value(n_ref_pass$) = 1
+if (lord%value(p0c$) == 0 .and. lord%value(e_tot$) == 0) then
+  lord%value(multipass_ref_energy$) = first_pass$
+else
+  lord%value(multipass_ref_energy$) = user_set$ 
 endif
 
 ! Setup bookkeeping between lord and slaves

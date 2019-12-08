@@ -265,9 +265,9 @@ do ib = 0, ubound(lat%branch, 1)
         endif
 
         ! This adjusts the RF phase and amplitude.
-        ! Note: Any multipass lord element where the reference energy is not constant must have n_ref_pass = 1.
+        ! Note: Any multipass lord element where the reference energy is not constant must have multipass_ref_energy = first_pass.
         if (lord_compute) then
-          if (lord%lord_status == multipass_lord$ .and. lord%value(n_ref_pass$) == 0) then
+          if (lord%lord_status == multipass_lord$ .and. nint(lord%value(multipass_ref_energy$)) == user_set$) then
             select case (ele%key)
             case (lcavity$, em_field$, custom$)
               ! These elements store energy values in e_tot_start and p0c_start rather than e_tot and p0c.

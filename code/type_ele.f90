@@ -179,7 +179,8 @@ do i = 1, num_ele_attrib$
   attrib = attribute_info(ele, i)
   a_name = attrib%name
   if (a_name == null_name$) cycle
-  if (attrib%type == private$) cycle
+  if (attrib%state == private$) cycle
+  if (a_name == 'MULTIPASS_REF_ENERGY' .and. (ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$)) cycle
   ix2 = second_column_attribute_index (ele, i)
 
   if (ix2 > 0) then

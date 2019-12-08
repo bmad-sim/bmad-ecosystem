@@ -387,7 +387,6 @@ slave%value(e_tot$)          = slave_val(e_tot$)
 slave%value(p0c$)            = slave_val(p0c$)
 slave%value(delta_ref_time$) = slave_val(delta_ref_time$)
 slave%value(ref_time_start$) = slave_val(ref_time_start$)
-slave%value(n_ref_pass$)     = 0
 if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
 
 ! A match element with match_end$: Restore initial Twiss parameters (which
@@ -533,25 +532,25 @@ slave%field_calc = refer_to_lords$
 if (slave%key == em_field$) then
   value = slave%value
   slave%value = 0
-  slave%value(l$)                   = value(l$)
-  slave%value(constant_ref_energy$) = value(constant_ref_energy$)
-  slave%value(delta_ref_time$)      = value(delta_ref_time$)
-  slave%value(p0c_start$)           = value(p0c_start$)
-  slave%value(e_tot_start$)         = value(e_tot_start$)
-  slave%value(p0c$)                 = value(p0c$)
-  slave%value(e_tot$)               = value(e_tot$)
-  slave%value(ref_time_start$)      = value(ref_time_start$)
-  slave%value(check_sum$)           = value(check_sum$)
-  slave%value(n_ref_pass$)          = 1
-  slave%value(fringe_type$)         = none$
-  slave%value(fringe_at$)           = no_end$
-  slave%value(spin_fringe_on$)      = false$
-  slave%value(autoscale_phase$)     = false$
-  slave%value(autoscale_amplitude$) = false$
-  slave%value(scratch1$:scratch5$)  = value(scratch1$:scratch5$)
-  slave%mat6_calc_method            = tracking$
-  slave%spin_tracking_method        = tracking$
-  slave%tracking_method             = runge_kutta$
+  slave%value(l$)                     = value(l$)
+  slave%value(constant_ref_energy$)   = value(constant_ref_energy$)
+  slave%value(delta_ref_time$)        = value(delta_ref_time$)
+  slave%value(p0c_start$)             = value(p0c_start$)
+  slave%value(e_tot_start$)           = value(e_tot_start$)
+  slave%value(p0c$)                   = value(p0c$)
+  slave%value(e_tot$)                 = value(e_tot$)
+  slave%value(ref_time_start$)        = value(ref_time_start$)
+  slave%value(check_sum$)             = value(check_sum$)
+  slave%value(multipass_ref_energy$)  = first_pass$
+  slave%value(fringe_type$)           = none$
+  slave%value(fringe_at$)             = no_end$
+  slave%value(spin_fringe_on$)        = false$
+  slave%value(autoscale_phase$)       = false$
+  slave%value(autoscale_amplitude$)   = false$
+  slave%value(scratch1$:scratch5$)    = value(scratch1$:scratch5$)
+  slave%mat6_calc_method              = tracking$
+  slave%spin_tracking_method          = tracking$
+  slave%tracking_method               = runge_kutta$
   ! Use time_runge_kutta over runge_kutta since runge_kutta is not able to handle a particle starting from rest in an e_gun.
   ! Used fixed_step over non-fixed step since fixed_step is basically only used for testing.
   fixed_step = .false.

@@ -190,6 +190,8 @@ end type
 
 integer, parameter :: include_kicks$ = 1, include_kicks_except_k1$ = 2
 
+integer, parameter :: user_set$ = 0, first_pass$ = 1
+character(12), parameter :: multipass_ref_energy_name(0:1) = [character(12):: 'User_Set', 'First_Pass']
 
 !-------------------------------------------------------------------------
 ! Structure for holding the photon reflection probability tables.
@@ -1367,11 +1369,11 @@ integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2 ! Important: tilt$ = rol
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3, ref_time_offset$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, k1_pseudo$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
-integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
+integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4, radiation_length$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5
-integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
+integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, E_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
-integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
+integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6, E_max$ = 6
 integer, parameter :: g_err$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
@@ -1441,7 +1443,7 @@ integer, parameter :: y_offset_tot$ = 58
 integer, parameter :: z_offset_tot$ = 59
 integer, parameter :: tilt_tot$ = 60, roll_tot$ = 60  ! Important: tilt_tot$ = roll_tot$
 integer, parameter :: ref_tilt_tot$ = 61
-integer, parameter :: n_ref_pass$ = 62
+integer, parameter :: multipass_ref_energy$ = 62
 integer, parameter :: r0_mag$ = 63
 integer, parameter :: ref_time_start$ = 64
 integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, or 6.
@@ -1752,8 +1754,8 @@ end type
 
 type (synch_rad_common_struct), save :: synch_rad_com
 
-integer, parameter :: unknown$ = 0, is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
-integer, parameter :: is_struct$ = 6 
+integer, parameter :: invalid_name$ = 0, is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
+integer, parameter :: is_struct$ = 6, unknown$ = 7
 
 ! For coords_floor_to_curvilinear status argument
 
