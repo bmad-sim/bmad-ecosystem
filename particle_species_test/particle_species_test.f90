@@ -69,23 +69,28 @@ call check_fundamental('muon', muon$, m_muon, -1, anomalous_mag_moment_muon, ant
 call check_fundamental('pion-', pion_minus$, m_pion_charged, -1, 0.0_rp, pion_plus$)
 call check_fundamental('anti_deuteron', anti_deuteron$, m_deuteron, -1, anomalous_mag_moment_deuteron, deuteron$)
 
-call magnetic_moment(deuteron$, 1.0_rp)
-call magnetic_moment(proton$, 0.5_rp)
-call magnetic_moment(positron$, 0.5_rp)
-call magnetic_moment(electron$, 0.5_rp)
-call magnetic_moment(muon$, 0.5_rp)
+call magnetic_moment(deuteron$, 1.0_rp, 4.330735094d-27)
+call magnetic_moment(proton$, 0.5_rp, 1.41060679736d-26)
+call magnetic_moment(electron$, 0.5_rp, -9.2847647043d-24)
+call magnetic_moment(muon$, 0.5_rp, -4.49044830d-26)
 
 !---------------------------------------------------------------------------
 contains
 
-subroutine magnetic_moment (species, spin)
+subroutine magnetic_moment (species, spin, mu_meas)
 
-real(rp) spin
+real(rp) spin, g, mu_meas, mu_calc, factor, a_meas
 integer species
 
 !
 
+g = 2 * anomalous_moment_of(species) + 2
+factor = charge_of(species) * spin * h_bar_planck * e_charge * c_light**2 / (2 * mass_of(species))
+mu_calc = g * factor
+a_meas = (mu_meas / factor - 2.0_rp) / 2.0_rp
+!print '(a12, 5es20.12)', species_name(species), g, mu_calc, mu_meas, mu_calc - mu_meas, a_meas
 
+write (1, '(3a, i0, 3x, es14.6)') '"dMag-', trim(species_name(species)), '"   ABS 1E', nint(log10(abs(mu_meas)))-10, mu_calc - mu_meas
 
 end subroutine magnetic_moment
 
