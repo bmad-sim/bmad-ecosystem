@@ -76,7 +76,7 @@ if (arg /= 'tex') then
     do j = 1, a0$
       attrib = attribute_info(ele, j)
       if (attrib%name == null_name$) cycle
-      if (attrib%type == private$) then
+      if (attrib%state == private$) then
         write (1, '(i10, 2x, 2a)') j, attrib%name, '  [private]'
       else
         write (1, '(i10, 2x, a)') j, attrib%name
@@ -158,7 +158,7 @@ do n = 1, n_key$
 
   do j = 1, a0$
     attrib = attribute_info(ele, j)
-    if (attrib%type == private$) cycle
+    if (attrib%state == private$) cycle
 
     select case (attrib%name)
     case (null_name$, 'ELE_BEGINNING', 'ELE_CENTER', 'ELE_END', &
