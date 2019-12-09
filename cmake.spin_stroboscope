@@ -17,4 +17,8 @@ set (LINK_LIBS
   gsl
   blas
   gslcblas
+  hdf5hl_fortran
+  hdf5_hl
+  hdf5_fortran
+  hdf5
 )
