@@ -1693,6 +1693,12 @@ logical have_data
 character(16) num_str
 
 ! Draw
+
+if (.not. allocated(curve%x_line)) then
+  have_data = .false.
+  return
+endif
+
 l = curve%line
 call qp_draw_histogram (curve%x_line, curve%y_line, line_color = l%color, fill_color = l%color, fill_pattern = l%pattern) 
 have_data = .true.
