@@ -16,4 +16,8 @@ set (LINK_LIBS
   lapack95
   lapack
   blas
+  hdf5hl_fortran
+  hdf5_hl
+  hdf5_fortran
+  hdf5
 )
