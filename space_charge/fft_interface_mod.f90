@@ -227,8 +227,7 @@ enddo
 !     ezero=0.d0
 !     eunit=1.d0
 do i=1,nn
-  cdata(i)=data(2*i-1)+(0.d0,1.d0)*data(2*i)
-!       cdata(i)=data(2*i-1)+cmplx(ezero,eunit)*data(2*i)
+  cdata(i)=data(2*i-1)+cmplx(0.d0, data(2*i), dp)
 enddo
 
 end subroutine

@@ -12,7 +12,7 @@ real(rp), parameter :: Qr(6,6) = reshape( [m, m, o, o, o, o, o, o, o, o, o, o, o
                                            o, o, o, o, o, o, o, o, o, o, m, m, o, o, o, o, o, o], [6,6] )
 real(rp), parameter :: Qi(6,6) = reshape( [o, o, o, o, o, o, m, -m, o, o, o, o, o, o, o, o, o, o, &
                                            o, o, m, -m, o, o, o, o, o, o, o, o, o, o, o, o, m, -m], [6,6] )
-complex(rp), parameter :: Q(6,6) = cmplx(Qr,Qi)                                           
+complex(rp), parameter :: Q(6,6) = cmplx(Qr,Qi,rp)                                           
 real(rp), parameter :: S(6,6) = reshape( [o, -l, o, o, o, o, l, o, o, o, o, o, &
                                           o, o, o, -l, o, o, o, o, l, o, o, o, &
                                           o, o, o, o, o, -l, o, o, o, o, l, o], [6,6] )
@@ -96,9 +96,9 @@ if (err_flag) then
   return
 endif
 
-B1 = matmul(real(evec), matmul(T1, transpose(real(evec)))) - matmul(cmplx(evec), matmul(T1, transpose(cmplx(evec)))) 
-B2 = matmul(real(evec), matmul(T2, transpose(real(evec)))) - matmul(cmplx(evec), matmul(T2, transpose(cmplx(evec)))) 
-B3 = matmul(real(evec), matmul(T3, transpose(real(evec)))) - matmul(cmplx(evec), matmul(T3, transpose(cmplx(evec)))) 
+B1 = matmul(real(evec), matmul(T1, transpose(real(evec)))) - matmul(evec, matmul(T1, transpose(evec))) 
+B2 = matmul(real(evec), matmul(T2, transpose(real(evec)))) - matmul(evec, matmul(T2, transpose(evec))) 
+B3 = matmul(real(evec), matmul(T3, transpose(real(evec)))) - matmul(evec, matmul(T3, transpose(evec))) 
 
 end subroutine t6_to_B123
 
@@ -485,7 +485,7 @@ err_flag = .true.
 
 A = mat  !LA_GEEV destroys the contents of its first argument.
 CALL la_geev(A, eval_r, eval_i, VR=VR, INFO=i_error)
-eval = cmplx(eval_r,eval_i)
+eval = cmplx(eval_r, eval_i, rp)
 if ( i_error /= 0 ) THEN
   call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
   if (global_com%exit_on_error) call err_exit

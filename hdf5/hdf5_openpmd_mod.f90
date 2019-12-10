@@ -1075,7 +1075,7 @@ call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err
 call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
 call h5gclose_f(z_id, h5_err)
 
-array = cmplx(re, im)
+array = cmplx(re, im, rp)
 
 error = .false.
 
@@ -1125,7 +1125,7 @@ call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err
 call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
 call h5gclose_f(z_id, h5_err)
 
-array = cmplx(re, im)
+array = cmplx(re, im, rp)
 
 error = .false.
 
@@ -1175,7 +1175,7 @@ call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err
 call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
 call h5gclose_f(z_id, h5_err)
 
-array = cmplx(re, im)
+array = cmplx(re, im, rp)
 
 error = .false.
 

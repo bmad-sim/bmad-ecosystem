@@ -885,8 +885,8 @@ case (lcavity$, rfcavity$, e_gun$)
     else 
       call em_field_calc (ele, param, z, orb, loc_ref_frame, field_im, rf_time = 0.25/freq)
     endif
-    pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-    pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+    pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+    pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
     ! Update ref_field if larger Ez is found
     if(abs(pt(iz)%E(3)) > maxfield) then
       ref_field = pt(iz)
@@ -906,7 +906,7 @@ case (lcavity$, rfcavity$, e_gun$)
     if (maxfield > 0) Ez_factor = 1/maxfield
 
     ! Calculate complex rotation number to rotate Ez onto the real axis    
-    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref) )
+    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref), rp)
     
     write (gpt_file_unit, '(2a13)') 'z', 'Ez'
     do iz = 0, nz   
@@ -933,8 +933,8 @@ case (lcavity$, rfcavity$, e_gun$)
     call em_field_calc (ele, param, z, orb, loc_ref_frame, field_re, rf_time = 0.0_rp)
     field_im%E = 0
     field_im%B = 0
-    pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-    pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+    pt(iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+    pt(iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
 
     ! Update ref_field if larger Bz is found
     if (abs(pt(iz)%B(3)) > maxfield) then
@@ -1105,8 +1105,8 @@ case (lcavity$, rfcavity$, e_gun$)
         call em_field_calc (ele, param, z, orb, loc_ref_frame, field_im, rf_time = 0.25/freq)
       endif
 
-      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
       
       ! Update ref_field if larger Ez is found
       if(ix == 0 .and. abs(pt(ix, iz, 1)%E(3)) > maxfield) then
@@ -1131,7 +1131,7 @@ case (lcavity$, rfcavity$, e_gun$)
     By_factor = -(1/maxfield)
   
     ! Calculate complex rotation number to rotate Ez onto the real axis
-    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref))
+    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref), rp)
   
     do ix = 0, nx
       do iz = 0, nz
@@ -1173,8 +1173,8 @@ case (solenoid$)
       field_im%E = 0
       field_im%B = 0
 
-      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+      pt(ix, iz, 1)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+      pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
     
       ! Update ref_field if larger Bz is found
       if (ix==0 .and. abs(pt(ix, iz, 1)%B(3)) > maxfield) then
@@ -1388,8 +1388,8 @@ do ix=1, nx
   else 
     call em_field_calc (ele, param, z, orb, loc_ref_frame, field_im, rf_time = 0.25/freq)
   endif
-  pt(ix, iy, iz)%E(:) = cmplx(field_re%E(:), field_im%E(:))
-  pt(ix, iy, iz)%B(:) = cmplx(field_re%B(:), field_im%B(:))
+  pt(ix, iy, iz)%E(:) = cmplx(field_re%E(:), field_im%E(:), rp)
+  pt(ix, iy, iz)%B(:) = cmplx(field_re%B(:), field_im%B(:), rp)
 
 enddo
 enddo
@@ -1409,11 +1409,11 @@ if (freq == 0) then
   ! Fields should be purely real
   ! restore the sign
   maxfield = sign(maxfield, real(gpt_max_field_reference(ref_field, ele), rp))
-  phasor_rotation = cmplx(1.0_rp, 0.0_rp )
+  phasor_rotation = cmplx(1.0_rp, 0.0_rp, rp)
 else
   ! Calculate complex rotation number to rotate Ez onto the real axis
   phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
-  phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref) )
+  phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref), rp)
   ref_time = -phase_ref /(twopi*freq)
 endif
 
