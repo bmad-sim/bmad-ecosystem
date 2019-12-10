@@ -26,9 +26,9 @@ contains
 !   bmad_file     -- Character(*): Name of the output lattice file.
 !   lat           -- lat_struct: Holds the lattice information.
 !   output_form   -- integer, optional: 
-!                       binary$   -> Write grid_field info in binary form to separate files. Default.
-!                                      All other fields are writen as ASCII
-!                       ascii$    -> Fields will be put in separate ASCII files
+!                       binary$   -> Write grid_field info in binary hdf5 form in separate files. Default.
+!                                      All other fields are writen in separate files in ASCII
+!                       ascii$    -> Fields will be put in separate ASCII files.
 !                       one_file$ -> Everything in one file. 
 !
 ! Output:
@@ -587,15 +587,10 @@ do ib = 0, ubound(lat%branch, 1)
           call form_this_field_map_name(string, '.cartesian_map', ele, im, ascii$)
           line = trim(line) // ', cartesian_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
-
-          !if (integer_option(binary$, output_form) == binary$) then
-          !  call write_binary_cartesian_map(string, ele, ct_map, err_flag)
-          !else
-            iu2 = lunget()
-            open (iu2, file = string)
-            call write_this_cartesian_map (ele, iu2)
-            close (iu2)
-          !endif
+          iu2 = lunget()
+          open (iu2, file = string)
+          call write_this_cartesian_map (ele, iu2)
+          close (iu2)
         endif
       enddo
     endif
@@ -621,15 +616,10 @@ do ib = 0, ubound(lat%branch, 1)
           call form_this_field_map_name(string, '.cylindrical_map', ele, im, ascii$)
           line = trim(line) // ', cylindrical_map = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
-
-          !if (integer_option(binary$, output_form) == binary$) then
-          !  call write_binary_cylindrical_map(string, ele, cl_map, err_flag)
-          !else
-            iu2 = lunget()
-            open (iu2, file = string)
-            call write_this_cylindrical_map (ele, iu2)
-            close (iu2)
-          !endif
+          iu2 = lunget()
+          open (iu2, file = string)
+          call write_this_cylindrical_map (ele, iu2)
+          close (iu2)
         endif
       enddo
     endif
@@ -691,15 +681,10 @@ do ib = 0, ubound(lat%branch, 1)
           call form_this_field_map_name(string, '.taylor_field', ele, im, ascii$)
           line = trim(line) // ', taylor_field = call::' // trim(string)
           string = trim(path) // '/' // trim(string)
-
-          !if (integer_option(binary$, output_form) == binary$) then
-          !  call write_binary_taylor_field (string, ele, t_field, err_flag)
-          !else
-            iu2 = lunget()
-            open (iu2, file = string)
-            call write_this_taylor_field_map (ele, iu2)
-            close (iu2)
-          !endif
+          iu2 = lunget()
+          open (iu2, file = string)
+          call write_this_taylor_field_map (ele, iu2)
+          close (iu2)
         endif
       enddo
     endif

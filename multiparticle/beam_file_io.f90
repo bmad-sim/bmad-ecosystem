@@ -19,6 +19,7 @@ contains
 !   beam          -- beam_struct: Beam to write
 !   new_file      -- logical, optional: New file or append? Default = True.
 !   file_format   -- logical, optional: binary$, ascii$, or hdf5$ (default).
+!                      Note: binary$ format is deprecated so do not use unless necessary.
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
 !-
 
