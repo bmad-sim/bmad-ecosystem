@@ -87,7 +87,7 @@ select case (action)
 
 case ('beam')
 
-  file_format = hdf5$
+  file_format = binary$
   is_open = .false.
   at_switch = .false.
   ix_word = 0
@@ -97,14 +97,13 @@ case ('beam')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(8):: '-ascii', '-at', '-binary', '-hdf5'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(8):: '-ascii', '-at', '-binary'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('');       exit
     case ('-ascii');  file_format = ascii$
     case ('-binary'); file_format = binary$
-    case ('-hdf5');   file_format = hdf5$
     case ('-at')
       ix_word = ix_word + 1
       call tao_locate_elements (word(ix_word), s%com%default_universe, eles, err)
@@ -119,7 +118,7 @@ case ('beam')
     end select
   enddo
 
-  if (file_format == hdf5$) then
+  if (file_format == binary$) then
     if (file_name0 == '') then
       file_name0 = 'beam_#.hdf5'
     else
@@ -198,7 +197,7 @@ case ('blender', '3d_model')
 
 case ('bmad_lattice')
 
-  file_format = ascii$
+  file_format = binary$
   file_name0 = 'lat_#.bmad'
   ix_word = 0
 
@@ -206,12 +205,25 @@ case ('bmad_lattice')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(16):: '-binary', '-at'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(16):: '-one_file', '-format'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('');       exit
-    case ('-binary'); file_format = binary$
+    case ('-one_file'); file_format = one_file$
+    case ('-format')
+      ix_word = ix_word + 1
+      call tao_next_switch(word(ix_word), [character(16):: 'one_file', 'binary', 'ascii'], .true., switch, err, ix)
+      if (err) return
+      select case (switch)
+      case ('one_file');   file_format = one_file$
+      case ('binary');     file_format = binary$
+      case ('ascii');      file_format = ascii$
+      case default
+        call out_io (s_error$, r_name, 'UNKNOWN -format SWITCH: ' // word(ix_word))
+        return
+      end select
+
     case default
       if (file_name0 /= 'lat_#.bmad') then
         call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
@@ -534,8 +546,7 @@ case ('namelist')
           write (iu, '(a, i0)')  '  ix_max_data    = ', i_max
 
           ! Data output parameter-by-parameter
-          if ((all(d1%d%data_type == d1%d(i_min)%data_type) .and. (size(d1%d) > 10)) .or. &
-                                                                  maxval(len_trim(d1%d%data_type)) > 30) then
+          if ((all(d1%d%data_type == d1%d(i_min)%data_type) .and. (size(d1%d) > 10)) .or. maxval(len_trim(d1%d%data_type)) > 30) then
             write_data_source = .true.
             if (all(d1%d%data_source == d1%d(i_min)%data_source)) then
               if (d1%d(i_min)%data_source /= tao_d2_d1_name(d1, .false.)) write (iu, '(2a)') '  default_data_source = ', quote(d1%d(i_min)%data_source)
@@ -566,7 +577,16 @@ case ('namelist')
             call namelist_param_out ('d', 'ele_ref_name', i_min, i_max, d1%d%ele_ref_name, '')
             if (write_merit_type)  call namelist_param_out ('d', 'merit_type', i_min, i_max, d1%d%merit_type, '')
 
-            call namelist_param_out ('d', 'meas', i_min, i_max, re_arr = d1%d%meas_value)
+            if (any(d1%d%good_meas)) then
+              call namelist_param_out ('d', 'good_meas', i_min, i_max, logic_arr = d1%d%good_meas, logic_dflt = .false.)
+              call namelist_param_out ('d', 'meas', i_min, i_max, re_arr = d1%d%meas_value)
+            endif
+
+            if (any(d1%d%good_ref)) then
+              call namelist_param_out ('d', 'good_ref', i_min, i_max, logic_arr = d1%d%good_ref, logic_dflt = .false.)
+              call namelist_param_out ('d', 'ref', i_min, i_max, re_arr = d1%d%ref_value)
+            endif
+
             if (write_weight)      call namelist_param_out ('d', 'weight', i_min, i_max, re_arr = d1%d%weight)
             call namelist_param_out ('d', 'good_user', i_min, i_max, logic_arr = d1%d%good_user, logic_dflt = .true.)
             call namelist_param_out ('d', 'eval_point', i_min, i_max, anchor_pt_name(d1%d%eval_point), anchor_pt_name(anchor_end$))
