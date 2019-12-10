@@ -1048,14 +1048,13 @@ Example:
 \end{example}  
 
 For \vn{grid_fields}, which can take some time to parse, a \vn{HDF5} binary file can to created and then
-the HDF5 file can be read in with an inline call using an \vn{hdf5::} prefix. Example:
+the HDF5 file, which must have a \vn{.h5} or \vn{.hdf5} suffix, can be read in with an inline call Example:
 \begin{example}
   qq: quadrupole, grid_field = call::my_grid.h5, ...
 \end{example}
-The HDF5 file must have a \vn{.h5} or \vn{.hdf5} suffix. To create a binary file or files, first
-create a lattice with the attributes defined with plain text. Next read the lattice into any program
-that can create \bmad lattice files (for example, the \tao program (\sref{s:tao.intro}) can do this)
-and have the program generate a lattice file.
+To create hdf5 files, first create a lattice with the grid_field defined with plain text. Next read
+the lattice into any program that can create \bmad lattice files (for example, the \tao program
+(\sref{s:tao.intro}) can do this) and have the program then generate a lattice file.
 
 Note: There is an older binary syntax that used files with a \vn{.bin} suffix. Convert these files
 to \vn{HDF5} by reading into an appropriate program a lattice that uses them and then generate a
