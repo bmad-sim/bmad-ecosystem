@@ -1664,46 +1664,46 @@ Format:
 
 \vn{<subcommand>} subcommands may be one of:
 \begin{example}
-  alias                 ! Show aliases \sref{s:show.alias}.
-  beam ...              ! Show beam info \sref{s:show.beam}.
-  branch ...            ! Show lattice branch info \sref{s:show.branch}.
-  building_wall         ! Show building wall info \sref{s:show.building}.
-  constraints           ! Show optimization constraints \sref{s:show.constraints}.
-  control ...           ! Show lords and slaves of a given lattice element \sref{s:show.control}.
-  curve ...             ! Show plot curve info \sref{s:show.curve}.
-  data ...              ! Show optimization data info \sref{s:show.data}.
-  derivative ...        ! Show d_data/d_var optimization info \sref{s:show.derivative}.
-  dynamic_aperture      ! Show DA info \sref{s:show.da}.
-  element ...           ! Show lattice element info \sref{s:show.element}.
-  field ...             ! Show EM field \sref{s:show.field}.
-  global ...            ! Show Tao global parameters \sref{s:show.global}.
-  graph ...             ! Show plot graph info \sref{s:show.graph}.
-  history ...           ! Show command history \sref{s:show.history}.
-  hom                   ! Show Higher Order Mode info \sref{s:show.hom}.
-  internal ...          ! Used for code debugging {s:show.internal}.
-  key_bindings          ! Show single mode key bindings \sref{s:show.key}.
-  lattice ...           ! Lattice element-by-element table \sref{s:show.lattice}.
-  matrix ...            ! Show transport matrix \sref{s:show.matrix}.
-  merit ...             ! Show optimization merit function \sref{s:show.merit}.
-  normal_form ...       ! Show transport map normal form \sref{s:show.normal}.
-  optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
-  particle ...          ! Show tracked particle info \sref{s:show.particle}.
-  plot ...              ! Show plot info \sref{s:show.plot}.
-  spin                  ! Show information on spin simulations \sref{s:show.spin}.
-  string ...            ! Print a string \vn{s:show.string}.
-  symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
-  taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
-  track ...             ! Show phase space coords, Twiss, EM field, 
-                        !   and other info along the tracked orbit \sref{s:show.track}.
-  twiss_and_orbit ...   ! Show Twiss and orbit info at given position including
-                        !   synchrotron radiation related parameters \sref{s:show.twiss}.
-  universe ...          ! Show universe info \sref{s:show.universe}.
-  use                   ! Show data and vars used in optimization \sref{s:show.use}.
-  value ...             ! Show value of an expression \sref{s:show.value}.
-  variable ...          ! Show optimization variable info \sref{s:show.variable}.
-  wakes                 ! Show wake info \sref{s:show.wakes}.
-  wall ...              ! Show vacuum chamber wall info \sref{s:show.wall}.
-  wave                  ! Show wave analysis info \sref{s:show.wave}.
+  show alias                 ! Show aliases \sref{s:show.alias}.
+  show beam ...              ! Show beam info \sref{s:show.beam}.
+  show branch ...            ! Show lattice branch info \sref{s:show.branch}.
+  show building_wall         ! Show building wall info \sref{s:show.building}.
+  show constraints           ! Show optimization constraints \sref{s:show.constraints}.
+  show control ...           ! Show lords and slaves of a given element \sref{s:show.control}.
+  show curve ...             ! Show plot curve info \sref{s:show.curve}.
+  show data ...              ! Show optimization data info \sref{s:show.data}.
+  show derivative ...        ! Show d_data/d_var optimization info \sref{s:show.derivative}.
+  show dynamic_aperture      ! Show DA info \sref{s:show.da}.
+  show element ...           ! Show lattice element info \sref{s:show.element}.
+  show field ...             ! Show EM field \sref{s:show.field}.
+  show global ...            ! Show Tao global parameters \sref{s:show.global}.
+  show graph ...             ! Show plot graph info \sref{s:show.graph}.
+  show history ...           ! Show command history \sref{s:show.history}.
+  show hom                   ! Show Higher Order Mode info \sref{s:show.hom}.
+  show internal ...          ! Used for code debugging {s:show.internal}.
+  show key_bindings          ! Show single mode key bindings \sref{s:show.key}.
+  show lattice ...           ! Lattice element-by-element table \sref{s:show.lattice}.
+  show matrix ...            ! Show transport matrix \sref{s:show.matrix}.
+  show merit ...             ! Show optimization merit function \sref{s:show.merit}.
+  show normal_form ...       ! Show transport map normal form \sref{s:show.normal}.
+  show optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
+  show particle ...          ! Show tracked particle info \sref{s:show.particle}.
+  show plot ...              ! Show plot info \sref{s:show.plot}.
+  show spin                  ! Show information on spin simulations \sref{s:show.spin}.
+  show string ...            ! Print a string \vn{s:show.string}.
+  show symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
+  show taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
+  show track ...             ! Show phase space coords, Twiss, EM field, 
+                             !   and other info along the tracked orbit \sref{s:show.track}.
+  show twiss_and_orbit ...   ! Show Twiss and orbit info at given position including
+                             !   synchrotron radiation related parameters \sref{s:show.twiss}.
+  show universe ...          ! Show universe info \sref{s:show.universe}.
+  show use                   ! Show data and vars used in optimization \sref{s:show.use}.
+  show value ...             ! Show value of an expression \sref{s:show.value}.
+  show variable ...          ! Show optimization variable info \sref{s:show.variable}.
+  show wakes                 ! Show wake info \sref{s:show.wakes}.
+  show wall ...              ! Show vacuum chamber wall info \sref{s:show.wall}.
+  show wave                  ! Show wave analysis info \sref{s:show.wave}.
 \end{example}
 
 \vskip 10pt 
@@ -3186,7 +3186,7 @@ Syntax:
 \end{example}
 
 The default file name is \vn{beam_\#.dat} if an ASCII file is to be created and \vn{beam_\#.hdf5} when
-a binary file is to be created where \vn{\#} is replaced by the universe number.
+an HDF5 binary file is to be created where \vn{\#} is replaced by the universe number.
 
 \vn{write beam} will create a file of the particle positions when beam tracking is being used. The
 \vn{-at} switch specifies at what elements the particle positions are written. Element list format
@@ -3244,16 +3244,36 @@ defined.
 
 The \vn{write bmad} command will create a bmad lattice file. Syntax:
 \begin{example}
-    write bmad \{-binary\} \{<file_name>\} 
+    write bmad \{-format <type>\} \{<file_name>\} 
 \end{example}
 
 The default file name is \vn{lat_\#.bmad} where \vn{\#} is replaced by the universe number. 
 
-The \vn{-binary} switch will cause secondary lattice files which are created, for example, for
-fieldmaps, to be written in a binary format. This will speed up the reading of the lattice at the
-expense of portability.
+The \vn{-format} switch is used set how field description parameters of a lattice element
+are stored. The \vn{-format} switch can be set to one of:
+\begin{example}
+  one_file      ! One lattice file.
+  ascii         ! Separate ASCII field files.
+  binary        ! [Default] Separate ASCII field files with the exception that
+                !   grid_field files use the HDF5 binary format.
+\end{example}
+Lattice elements may have associated field descriptions. There are four types as explained in the
+\bmad manual:
+\begin{example}
+  cartesian_map
+  cylindrical_map
+  grid_field
+  taylor_field
+\end{example}
+Since the data associated with these may be largish, there is the option of storing the data is
+separate secondary lattice files. This is done by setting \vn{format} to either \vn{ascii} or
+\vn{binary}. The difference between \vn{ascii} and \vn{binary} is that for \vn{grid_field}s, which may
+have a huge amount of associated data, the \vn{binary} format stores \vn{grid_field}s using HDF5. The other
+three field description types are always stored using ASCII files.
 
-
+\begin{example}
+  write bmad -format one lat.bmad  ! Single lattice file lat.bmad created.
+\end{example}
 
 %% write covariance_matrix --------------------------------------------------------------
 
@@ -3539,7 +3559,7 @@ Example:
 
 The \vn{xy_scale} command sets horizontal and vertical axis bounds. Format:
 \begin{example}
-  xy_scale \{<where>\} \{<value1> \}<value2>\}\}\}
+  xy_scale \{<where>\} \{\{<value1>\} <value2>\}
 \end{example}
 
 \vn{xy_scale} is equivalent to an \vn{x_scale} followed by a \vn{y-scale}.
