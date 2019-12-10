@@ -1237,7 +1237,7 @@ if (attrib_word == 'CARTESIAN_MAP') then
 
   ! "ele1[cartesian_map] = call::..." or "ele1: ..., cartesian_map = {...}, ..." construct.
 
-  if (word(1:8) == 'BINARY::') then
+  if (word(1:8) == 'binary::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
     call read_binary_cartesian_map(word(9:), ele, ele%cartesian_map(i_ptr), err_flag)
     call parser_file_stack('pop')
@@ -1288,7 +1288,7 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
     i_ptr = 1
   endif
 
-  if (word(1:8) == 'BINARY::') then
+  if (word(1:8) == 'binary::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
     call read_binary_cylindrical_map(word(9:), ele, ele%cylindrical_map(i_ptr), err_flag)
     call parser_file_stack('pop')
@@ -1329,20 +1329,22 @@ if (attrib_word == 'GRID_FIELD') then
     return
   endif
 
-  if (associated(ele%grid_field)) then
-    i_ptr = size(ele%grid_field) + 1
-    ele0%grid_field => ele%grid_field
-    allocate(ele%grid_field(i_ptr))
-    do i = 1, i_ptr-1
-     ele%grid_field(i) = ele0%grid_field(i)
-    enddo
-    deallocate (ele0%grid_field)
-  else
-    allocate(ele%grid_field(1))
-    i_ptr = 1
+  if (word(1:6) /= 'hdf5::') then
+    if (associated(ele%grid_field)) then
+      i_ptr = size(ele%grid_field) + 1
+      ele0%grid_field => ele%grid_field
+      allocate(ele%grid_field(i_ptr))
+      do i = 1, i_ptr-1
+       ele%grid_field(i) = ele0%grid_field(i)
+      enddo
+      deallocate (ele0%grid_field)
+    else
+      allocate(ele%grid_field(1))
+      i_ptr = 1
+    endif
   endif
 
-  if (word(1:8) == 'BINARY::') then
+  if (word(1:8) == 'binary::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
     call read_binary_grid_field(word(9:), ele, ele%grid_field(i_ptr), err_flag)
     call parser_file_stack('pop')
@@ -1350,9 +1352,9 @@ if (attrib_word == 'GRID_FIELD') then
       call parser_error ('ERROR READING BINARY GRID_FIELD FILE.')
       return
     endif
-  elseif (word(1:6) == 'HDF5::') then
+  elseif (word(1:6) == 'hdf5::') then
     call parser_file_stack('push', word(7:), err = err_flag, open_file = .false.); if (err_flag) return
-!!!!!!!!    call hdf5_read_grid_field(word(7:), ele, ele%grid_field, err_flag)  xxx
+    call hdf5_read_grid_field(word(7:), ele, ele%grid_field, err_flag, combine = .true.)
     call parser_file_stack('pop')
     if (err_flag) then
       call parser_error ('ERROR READING BINARY GRID_FIELD FILE.')
@@ -1404,7 +1406,7 @@ if (attrib_word == 'TAYLOR_FIELD') then
     i_ptr = 1
   endif
 
-  if (word(1:8) == 'BINARY::') then
+  if (word(1:8) == 'binary::') then
     call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
     call read_binary_taylor_field(word(9:), ele, ele%taylor_field(i_ptr), err_flag)
     call parser_file_stack('pop')
@@ -2380,7 +2382,10 @@ if (logic_option(.false., call_check)) then
     bp_com%parse_line = bp_com%parse_line(7:)
     call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)
     if (index(line, '.bin') == len_trim(line) - 3) then
-      word = 'BINARY::' // trim(line)
+      if (word(1:8) /= 'binary::') word = 'binary::' // trim(line)
+      return
+    elseif (index(line, '.h5') == len_trim(line)-2 .or. index(line, '.hdf5') == len_trim(line)-4) then
+      if (word(1:6) /= 'hdf5::') word = 'hdf5::' // trim(line)
       return
     else
       bp_com%parse_line = delim // bp_com%parse_line  ! put delim back on parse line.

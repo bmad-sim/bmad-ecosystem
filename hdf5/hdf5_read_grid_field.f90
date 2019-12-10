@@ -1,11 +1,14 @@
 !+
-! Subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header)
+! Subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header, combine)
 !
 ! Routine to read an hdf5 file that encodes an array of grid_field structures.
 !
 ! Input:
 !   file_name     -- character(*): File to create.
 !   ele           -- ele_struct: Element associated with the map.
+!   g_field(:)    -- grid_field_struct, pointer: Array with possible existing data.
+!   combine       -- logical, optional: If False (the default), discard existing data in input g_field.
+!                     If True, output g_field(:) array combines old and new data.
 !
 ! Ouput:
 !   g_field(:)    -- grid_field_struct, pointer: Grid field array.
@@ -13,7 +16,7 @@
 !   pmd_header    -- pmd_header_struct, optional: Extra info like file creation date.
 !-
 
-subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header)
+subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header, combine)
 
 use bmad_interface, dummy => hdf5_read_grid_field
 use hdf5_openpmd_mod
@@ -21,7 +24,7 @@ use fortran_cpp_utils, only: to_f_str
 
 implicit none
 
-type (grid_field_struct), pointer :: g_field(:), g_temp(:)
+type (grid_field_struct), pointer :: g_field(:)
 type (grid_field_struct), pointer :: gf
 type (ele_struct) ele
 type (pmd_header_struct), optional :: pmd_header
@@ -34,6 +37,7 @@ integer n_links, h5_stat
 integer(hsize_t) idx
 integer(hsize_t) this_size
 
+logical, optional :: combine
 logical err_flag, err
 
 character(*) file_name
@@ -58,7 +62,7 @@ if (present(pmd_header)) pmd_header = pmd_head
 
 ! Deallocate if needed
 
-if (associated(g_field)) then
+if (associated(g_field) .and. .not. logic_option(.false., combine)) then
   call unlink_fieldmap(grid_field = g_field)
   deallocate (g_field)
 endif
@@ -67,16 +71,15 @@ endif
 
 it = index(pmd_head%basePath, '/%T/')
 if (it == 0) then
-  allocate (g_field(1))
+  call allocate_this_field (g_field, n_grid)
   z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.); if (err) return
-  call read_this_field (z_id, ele, g_field(1), err)
+  call read_this_field (z_id, ele, g_field(n_grid), err)
   return
 endif
 
 ! Count grids
 
 f2_id = hdf5_open_group(f_id, pmd_head%basePath(1:it), err, .true.)
-n_grid = 0
 call H5Gget_info_f (f2_id, storage_type, n_links, max_corder, h5_err)
 do idx = 0, n_links-1
   call H5Lget_name_by_idx_f (f2_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_name, h5_err, this_size)
@@ -87,16 +90,9 @@ do idx = 0, n_links-1
     call out_io (s_warn$, r_name, 'NAME OF DIRECTORY IN PATH IS NOT AN INTEGER: ' // quote(name))
     cycle
   endif
-  n_grid = n_grid + 1
-  if (n_grid == 1) then
-    allocate (g_field(1))
-  else
-    g_temp => g_field
-    allocate (g_field(n_grid))
-    g_field(1:n_grid-1) = g_temp
-  endif
+  call allocate_this_field (g_field, n_grid)
   z_id = hdf5_open_group(f2_id, name, err, .true.);         if (err) return
-  call read_this_field(z_id, ele, g_field(n_grid), err);    if (err) return
+  call read_this_field(z_id, ele, g_field(n_grid), err);     if (err) return
   call h5gclose_f(z_id, h5_err)
 enddo
 
@@ -107,6 +103,29 @@ err_flag = .false.
 
 !--------------------------------------------------------------------------------
 contains
+
+subroutine allocate_this_field (g_field, n_grid)
+
+type (grid_field_struct), pointer :: g_field(:), g_temp(:)
+integer n_grid
+
+!
+
+if (.not. associated(g_field)) then
+  allocate (g_field(1))
+  n_grid = 1
+  return
+endif
+
+n_grid = size(g_field) + 1
+g_temp => g_field
+allocate (g_field(n_grid))
+g_field(1:n_grid-1) = g_temp
+
+end subroutine allocate_this_field
+
+!--------------------------------------------------------------------------------
+! contains
 
 subroutine read_this_field(root_id, ele, gf, err_flag)
 
@@ -122,7 +141,7 @@ integer(hid_t) root_id
 
 character(40) name
 character(8) B_name(3), E_name(3)
-logical err_flag, error
+logical err_flag, error, b_field_here, e_field_here
 
 !
 
@@ -181,6 +200,7 @@ gf%dr = gf%dr(indx)
 !
 
 allocate (gf%ptr)
+gf%ptr%file = file_name
 
 select case (gf%geometry)
 case (xyz$)
@@ -196,17 +216,32 @@ case (rotationally_symmetric_rz$)
   gptr => gpt
 end select
 
+b_field_here = .false.
+e_field_here = .false.
+
 do i = 1, 3
   if (hdf5_exists(root_id, B_name(i), error, .false.)) then
     call pmd_read_complex_dataset(root_id, trim(B_name(i)), 1.0_rp, gptr%B(i), error)
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%B(i) = gptr(:,1,:)%B(i)
+    b_field_here = .true.
   endif
 
   if (hdf5_exists(root_id, E_name(i), error, .false.)) then
     call pmd_read_complex_dataset(root_id, trim(E_name(i)), 1.0_rp, gptr%E(i), error)
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%E(i) = gptr(:,1,:)%E(i)
+    e_field_here = .true.
   endif
 enddo
+
+if (e_field_here .and. b_field_here) then
+  gf%field_type = mixed$
+elseif (e_field_here) then
+  gf%field_type = electric$
+elseif (b_field_here) then
+  gf%field_type = magnetic$
+else
+  gf%field_type = mixed$
+endif
 
 err_flag = .false.
 

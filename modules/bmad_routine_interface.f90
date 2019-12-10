@@ -680,12 +680,13 @@ subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
   character(*) file_name
 end subroutine
 
-subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header)
+subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header, combine)
   import
   implicit none
   type (grid_field_struct), pointer :: g_field(:)
   type (ele_struct) ele
   type (pmd_header_struct), optional :: pmd_header
+  logical, optional :: combine
   logical err_flag
   character(*) file_name
 end subroutine

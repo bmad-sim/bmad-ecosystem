@@ -288,7 +288,7 @@ subroutine make_V(M,V,abz_tunes)
   temp_mat = M  !LA_GEEV destroys the contents of its first argument.
 
   call la_geev(temp_mat, eval_r, eval_i, VR=VR, INFO=i_error)
-  eval = cmplx(eval_r, eval_i)
+  eval = cmplx(eval_r, eval_i, rp)
   if ( i_error /= 0 ) THEN
     call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
     if (global_com%exit_on_error) call err_exit
@@ -296,11 +296,11 @@ subroutine make_V(M,V,abz_tunes)
     return
   endif
 
-  Vinv(:,1) = cmplx(VR(:, 1),VR(:, 2))
+  Vinv(:,1) = cmplx(VR(:, 1),VR(:, 2), rp)
   Vinv(:,2) = (0.0d0,1.0d0)*conjg(Vinv(:,1))
-  Vinv(:,3) = cmplx(VR(:, 3),VR(:, 4))
+  Vinv(:,3) = cmplx(VR(:, 3),VR(:, 4), rp)
   Vinv(:,4) = (0.0d0,1.0d0)*conjg(Vinv(:,3))
-  Vinv(:,5) = cmplx(VR(:, 5),VR(:, 6))
+  Vinv(:,5) = cmplx(VR(:, 5),VR(:, 6), rp)
   Vinv(:,6) = (0.0d0,1.0d0)*conjg(Vinv(:,5))
   check_mat = matmul(transpose(Vinv),matmul(S6,conjg(Vinv))) !eqn. 79
   if ( aimag(check_mat(1,1)) > 0.0 ) then

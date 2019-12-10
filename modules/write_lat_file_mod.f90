@@ -15,8 +15,8 @@ contains
 !+ 
 ! Subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form)
 !
-! Subroutine to write a Bmad lattice file using the information in
-! a lat_struct. Optionally only part of the lattice can be generated.
+! Subroutine to write a Bmad lattice file using the information in a lat_struct.
+! Optionally only part of the lattice can be generated.
 ! Also see: write_lattice_in_foreign_format
 !
 ! Note: bmad_com parameters that are changed from their default value are
@@ -26,8 +26,9 @@ contains
 !   bmad_file     -- Character(*): Name of the output lattice file.
 !   lat           -- lat_struct: Holds the lattice information.
 !   output_form   -- integer, optional: 
-!                       binary$   -> Write field info in binary form to separate files. Default.
-!                       ascii$    -> All ASCII. Fields will be put in separate files
+!                       binary$   -> Write grid_field info in binary form to separate files. Default.
+!                                      All other fields are writen as ASCII
+!                       ascii$    -> Fields will be put in separate ASCII files
 !                       one_file$ -> Everything in one file. 
 !
 ! Output:
@@ -264,7 +265,7 @@ if (lat%particle_start%vec(6) /= 0) write (iu, '(2a)') 'particle_start[pz] = ', 
 
 if (lat%particle_start%spin(1) /= 0) write (iu, '(2a)') 'particle_start[spin_x] = ', re_str(lat%particle_start%spin(1))
 if (lat%particle_start%spin(2) /= 0) write (iu, '(2a)') 'particle_start[spin_y] = ', re_str(lat%particle_start%spin(2))
-if (lat%particle_start%spin(3) /= 1) write (iu, '(2a)') 'particle_start[spin_z] = ', re_str(lat%particle_start%spin(3))
+if (lat%particle_start%spin(3) /= 0) write (iu, '(2a)') 'particle_start[spin_z] = ', re_str(lat%particle_start%spin(3))
 
 ! Named constants
 
@@ -657,7 +658,7 @@ do ib = 0, ubound(lat%branch, 1)
           string = trim(path) // '/' // trim(string)
 
           if (integer_option(binary$, output_form) == binary$) then
-            call write_binary_grid_field (string, ele, g_field, err_flag)
+            call hdf5_write_grid_field (string, ele, ele%grid_field(im:im), err_flag)
           else
             iu2 = lunget()
             open (iu2, file = string)
@@ -1408,7 +1409,7 @@ else
   write (string, '(2a, i0, a)') trim(name), '_', ix_map, field_type
 endif
 
-if (integer_option(binary$, output_form) == binary$) string = trim(string) // '.bin'
+if (integer_option(binary$, output_form) == binary$) string = trim(string) // '.h5'
 
 end subroutine form_this_field_map_name
 
