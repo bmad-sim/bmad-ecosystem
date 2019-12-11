@@ -250,6 +250,8 @@ Possible choices for the <parser> are:
 \end{example}
 The \vn{@<use_line>} optional suffix is used to specify what \vn{line} in the lattice file to use as
 a basis for constructing the lattice. This overrides the \vn{use} statement in the lattice file.
+Note: If the \vn{lattice_file} parameter is not set for the N\Th universe, the parameters for the 
+previous universe are used.
 
 If the \vn{%reverse_tracking} logical is present, tracking will be in the reverse direction from the end
 of the lattice to the beginning. The sign of the charge of the tracked particle will also be
