@@ -209,7 +209,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     if (.not. s%com%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
     
     ! Check if in a do loop
-    call do_loop(lev_loop, loop, cmd_out)
+    call do_loop(lev_loop, loop, n_level, cmd_out)
     
   endif
 
@@ -320,12 +320,12 @@ end subroutine
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine do_loop (lev_loop, loop, cmd_out)
+subroutine do_loop (lev_loop, loop, n_level, cmd_out)
 
 use tao_command_mod
 
 type (do_loop_struct), allocatable :: loop(:)
-integer lev_loop, ix
+integer lev_loop, n_level, ix
 
 character(*) cmd_out
 character(8) :: r_name = "do_loop"
@@ -422,6 +422,7 @@ endif
 lev_loop = lev_new
 
 if (allocated(loop)) then
+  if (size(loop) >= lev_loop) return
   call move_alloc(loop, temp)
 endif
 

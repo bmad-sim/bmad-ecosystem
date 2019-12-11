@@ -18,7 +18,8 @@ use ptc_interface_mod
 
 implicit none
 
-type (tao_design_lat_input) design_lattice(0:200), design_lat
+type (tao_design_lat_input), target :: design_lattice(0:200)
+type (tao_design_lat_input), pointer :: design_lat
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
@@ -42,7 +43,6 @@ namelist / tao_design_lattice / design_lattice, &
 ! Defaults
 
 design_lattice = tao_design_lat_input()
-design_lat = tao_design_lat_input()
 
 alternative_lat_file_exists = (s%com%hook_lat_file /= '' .or. s%com%lattice_file_arg /= '')
 
@@ -123,7 +123,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   !   From the tao_design_lattice namelist.
   !   Specified by hook code.
 
-  design_lat = design_lattice(i)
+  design_lat => design_lattice(i)
+
   if (s%com%lattice_file_arg /= '') then
     design_lat%file = s%com%lattice_file_arg
     design_lat%language = ''
@@ -134,16 +135,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     design_lat%file2 = ''
   endif
 
+  if (design_lat%file == '' .and. i > 1) design_lat = design_lattice(i-1)
+
   ix = index (design_lat%file, '|') ! Indicates multiple lattices
   if (ix /= 0) then
     design_lat%file2 = design_lat%file(ix+1:)
     design_lat%file  = design_lat%file(1:ix-1)
-  endif
-
-  ! Can happen when design_lattice(1) is set and not design_lattice(0)
-
-  if (s%com%common_lattice .and. design_lat%file == '') then
-    design_lat = design_lattice(i+1)
   endif
 
   ! Split off language name and/or use_line if needed
@@ -191,55 +188,64 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! A blank means use the lattice form universe 1.
 
   allocate (u%design, u%base, u%model)
-  select case (design_lat%language)
-  case ('bmad')
-    call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
-  case ('xsif')
-    call xsif_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
-  case ('aml')
-    call aml_parser (design_lat%file, u%design%lat, err_flag = err)
-  case ('digested')
-    call out_io (s_blank$, r_name, "Reading digested BMAD file " // trim(design_lat%file))
-    call read_digested_bmad_file (design_lat%file, u%design%lat, version, err)
-  case default
-    call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat%language)
-    call err_exit
-  end select
 
-  if (err .and. .not. s%global%debug_on) then
-    call out_io (s_fatal$, r_name, &
-            'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
-            'EXITING...', i_array = (/ i /))
-    if (s%global%stop_on_error) stop
-  endif
+  if (design_lat%file == design_lattice(i-1)%file .and. design_lat%file2 == design_lattice(i-1)%file2) then
+    u%design_same_as_previous = .true.
+    u%design%lat = s%u(i-1)%design%lat
+  else
+    u%design_same_as_previous = .false.
+    select case (design_lat%language)
+    case ('bmad')
+      call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
+    case ('xsif')
+      call xsif_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
+    case ('aml')
+      call aml_parser (design_lat%file, u%design%lat, err_flag = err)
+    case ('digested')
+      call out_io (s_blank$, r_name, "Reading digested BMAD file " // trim(design_lat%file))
+      call read_digested_bmad_file (design_lat%file, u%design%lat, version, err)
+    case default
+      call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat%language)
+      call err_exit
+    end select
 
-  if (s%com%combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
+    if (err .and. .not. s%global%debug_on) then
+      call out_io (s_fatal$, r_name, &
+              'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
+              'EXITING...', i_array = (/ i /))
+      if (s%global%stop_on_error) stop
+    endif
 
-  if (s%com%unique_name_suffix /= '') then
-    call tao_string_to_element_id (s%com%unique_name_suffix, key, suffix, err, .true.)
-    if (err) call err_exit
-    call create_unique_ele_names (u%design%lat, key, suffix)
-  endif
+    ! Call bmad_parser2 if wanted
 
-  ! Element range?
+    if (design_lat%file2 /= '') then
+      call bmad_parser2 (design_lat%file2, u%design%lat)
+    endif
 
-  if (design_lat%use_element_range(1) /= '') then
-    design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
-    call out_io (s_warn$, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
-                '"design_lattice(i)%use_element_range" is now "design_lattice(i)%slice_lattice".', &
-                'Please modify your file.')
-  endif
+    !
 
-  if (s%com%slice_lattice_arg /= '') design_lat%slice_lattice = s%com%slice_lattice_arg
+    if (s%com%combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
 
-  if (design_lat%slice_lattice /= '') then
-    call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
-  endif
+    if (s%com%unique_name_suffix /= '') then
+      call tao_string_to_element_id (s%com%unique_name_suffix, key, suffix, err, .true.)
+      if (err) call err_exit
+      call create_unique_ele_names (u%design%lat, key, suffix)
+    endif
 
-  ! Call bmad_parser2 if wanted
+    ! Element range?
 
-  if (design_lat%file2 /= '') then
-    call bmad_parser2 (design_lat%file2, u%design%lat)
+    if (design_lat%use_element_range(1) /= '') then
+      design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
+      call out_io (s_warn$, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
+                  '"design_lattice(i)%use_element_range" is now "design_lattice(i)%slice_lattice".', &
+                  'Please modify your file.')
+    endif
+
+    if (s%com%slice_lattice_arg /= '') design_lat%slice_lattice = s%com%slice_lattice_arg
+
+    if (design_lat%slice_lattice /= '') then
+      call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
+    endif
   endif
 
   !

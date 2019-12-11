@@ -957,12 +957,13 @@ type tao_universe_struct
   type (lat_struct) scratch_lat                          ! Scratch area.
   type (tao_universe_calc_struct) calc                   ! What needs to be calculated?
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
-  integer ix_uni                         ! Universe index.
-  integer n_d2_data_used                 ! Number of used %d2_data(:) components.
-  integer n_data_used                    ! Number of used %data(:) components.
-  logical :: reverse_tracking = .false.  ! Reverse tracking direction?
-  logical is_on                          ! universe turned on
-  logical picked_uni                     ! Scratch logical.
+  integer :: ix_uni = -1                    ! Universe index.
+  integer :: n_d2_data_used = -1            ! Number of used %d2_data(:) components.
+  integer :: n_data_used = -1               ! Number of used %data(:) components.
+  logical :: reverse_tracking = .false.     ! Reverse tracking direction?
+  logical :: is_on = .true.                 ! universe turned on
+  logical :: design_same_as_previous = .false.  ! Design lat same as the previous uni?
+  logical :: picked_uni = .false.           ! Scratch logical.
 end type
 
 !-----------------------------------------------------------------------
