@@ -3,6 +3,7 @@ module tao_set_mod
 use tao_interface
 use tao_data_and_eval_mod
 use tao_lattice_calc_mod
+use set_ele_attribute_mod
 
 implicit none
 
@@ -2483,7 +2484,8 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
       call out_io (s_error$, r_name, 'STRANGE ERROR: PLEASE CONTACT HELP.')
       return
     endif
-    a_ptr%r = set_val(i)
+    call set_ele_real_attribute (eles(i)%ele, attribute, set_val(i), err)
+
     call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), eles(i)%ele%name, eles(i)%ele, a_ptr%r)
   enddo
 
