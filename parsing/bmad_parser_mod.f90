@@ -4552,30 +4552,34 @@ if (bp_com%print_err) then
     nl=nl+1; lines(nl) = '     ' // trim(what4)
   endif
 
-  if (present(seq)) then
-    nl=nl+1; lines(nl) = '      IN FILE: ' // trim(seq%file_name)
-    nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', seq%ix_line
-  elseif (bp_com%current_file%full_name /= ' ') then
+  ! If bp_com%num_lat_files = 0 then no parser init has been done
+
+  if (bp_com%num_lat_files /= 0) then
+    if (present(seq)) then
+      nl=nl+1; lines(nl) = '      IN FILE: ' // trim(seq%file_name)
+      nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', seq%ix_line
+    elseif (bp_com%current_file%full_name /= ' ') then
+      if (bp_com%input_line_meaningful) then
+        nl=nl+1; lines(nl) = '      IN FILE: ' // trim(bp_com%current_file%full_name)
+        nl=nl+1; write (lines(nl), '(a, i0)') '      AT OR BEFORE LINE: ', bp_com%current_file%i_line
+      else
+        nl=nl+1; lines(nl) = '      ROOT FILE: ' // trim(bp_com%current_file%full_name)
+      endif
+    endif
+
     if (bp_com%input_line_meaningful) then
-      nl=nl+1; lines(nl) = '      IN FILE: ' // trim(bp_com%current_file%full_name)
-      nl=nl+1; write (lines(nl), '(a, i0)') '      AT OR BEFORE LINE: ', bp_com%current_file%i_line
-    else
-      nl=nl+1; lines(nl) = '      ROOT FILE: ' // trim(bp_com%current_file%full_name)
+      if (len_trim(bp_com%input_line1) /= 0) then
+        nl=nl+1; lines(nl) = '     ' // trim(bp_com%input_line1)
+      endif
+      if (len_trim(bp_com%input_line2) /= 0) then
+        nl=nl+1; lines(nl) = '     ' // trim(bp_com%input_line2)
+      endif
     endif
-  endif
 
-  if (bp_com%input_line_meaningful) then
-    if (len_trim(bp_com%input_line1) /= 0) then
-      nl=nl+1; lines(nl) = '     ' // trim(bp_com%input_line1)
+    if (present(pele)) then
+      nl=nl+1; lines(nl) = '      ELEMENT DEFINED IN FILE: ' // trim(pele%lat_file)
+      nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', pele%ix_line_in_file
     endif
-    if (len_trim(bp_com%input_line2) /= 0) then
-      nl=nl+1; lines(nl) = '     ' // trim(bp_com%input_line2)
-    endif
-  endif
-
-  if (present(pele)) then
-    nl=nl+1; lines(nl) = '      ELEMENT DEFINED IN FILE: ' // trim(pele%lat_file)
-    nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', pele%ix_line_in_file
   endif
 
   nl=nl+1; lines(nl) = ''
