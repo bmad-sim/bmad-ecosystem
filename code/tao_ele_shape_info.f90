@@ -32,7 +32,7 @@ integer, optional :: ix_shape_min
 integer ix_uni, ix_shape, ix
 
 character(*) label_name
-character(40) dat_var_name
+character(40) dat_var_name, shape, prefix
 character(*), parameter :: r_name = 'tao_ele_shape_info'
 
 !
@@ -43,14 +43,21 @@ if (present(ix_shape_min)) ix_shape_min = ix_shape
 
 if (.not. associated(e_shape)) return
 
+ix = index(e_shape%shape, ':')
+if (ix == 0) then
+  prefix = ''
+  shape = e_shape%shape
+else
+  prefix = e_shape%shape(1:ix-1)
+  shape = e_shape%shape(ix+1:)
+endif
+
 ! offsets
 
 y = e_shape%size
-y1 = y
-y2 = y
 
-select case (e_shape%shape)
-case ('VAR_BOX', 'ASYM_VAR_BOX')
+select case (prefix)
+case ('VAR', 'ASYM_VAR')
   select case (ele%key)
   case (sbend$)
     y2 = y * ele%value(g$)
@@ -64,13 +71,20 @@ case ('VAR_BOX', 'ASYM_VAR_BOX')
     y2 = y * ele%value(ks$)
   end select
   y1 = y2
-  if (e_shape%shape == 'ASYM_VAR_BOX') y1 = 0
-case ('VVAR_BOX')
+  if (prefix == 'ASYM_VAR') y1 = 0
+case ('VVAR')
   y1 = dat_var_value
   y2 = dat_var_value
-case ('ASYM_VVAR_BOX')
+case ('ASYM_VVAR')
   y1 = 0
   y2 = dat_var_value
+case ('')
+  y1 = y
+  y2 = y
+case default
+  call out_io (s_error$, r_name, 'Unknown shape prefix: ' // e_shape%shape)
+  y1 = y
+  y2 = y
 endselect
 
 ! label_name

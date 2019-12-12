@@ -114,8 +114,6 @@ plot_page%size = 800, 400
  	graph%y%major_div = 4
 /
 
-!shape(i) = "<key>", "<name>", "<shape>", "<color>", "<v_size>", "<print_Label>" 
-!&element_shapes_lat_layout
 &lat_layout_drawing 
   ele_shape(1) = "Quadrupole::*"   	"asym_var_box"	"Blue"	 .1 		'none'
   ele_shape(2) = "SBend::*"		"Box"		"Red"		1		'none'
@@ -137,7 +135,6 @@ plot_page%size = 800, 400
   !ele_shape(16) = "wall::beam_chamber"	    	"XBox"		"Black"		500		'none'
 /       
    
-!&element_shapes_floor_plan
 &floor_plan_drawing
   ele_shape(1) = "Quadrupole::F*"   	"Box"		"Blue"	13		'none'  ! 13 cm radius FFAG Quads
   ele_shape(2) = "SBend::IN.MERGE*"		"Box"		"Red"		15.5		'none'

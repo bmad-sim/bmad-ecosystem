@@ -77,8 +77,6 @@ the plot page) is broken up.
   graph%y%major_div = 4
 /
 
-!shape(i) = "<key>", "<name>", "<shape>", "<color>", "<v_size>", "<print_Label>" 
-!&element_shapes_lat_layout
 &lat_layout_drawing 
   ele_shape(1) = "Quadrupole::*"        "asym_var_box" "Blue"        0.1    'none'
   ele_shape(2) = "SBend::*"             "Box"          "Red"         1      'none'
@@ -99,7 +97,6 @@ the plot page) is broken up.
   !ele_shape(16) = "wall::beam_chamber" "XBox"         "Black"       500    'none'
 /       
    
-!&element_shapes_floor_plan
 &floor_plan_drawing
   ele_shape(1) = "Quadrupole::F*"     "Box"     "Blue"      30    'none'  ! 30 cm radius FFAG Quads
   ele_shape(2) = "SBend::*"           "Box"     "Red"       12    'none'

@@ -198,9 +198,15 @@ do i = 1, n
   s%plot_page%region(i)%location = region(i)%location
 enddo
 
+!------------------------------------------------------------------------------------
+! Read in shape patterns
+! Reason this is in a separate routine is due to conflict with "curve" variable in namelist.
+
+call tao_read_in_patterns(iu, plot_file)
+
 !-----------------------------------------------------------------------------------
-! Read in element shapes
-! Look for old style namelist 
+! Read in element shapes...
+! First look for old style namelist 
 
 rewind (iu)
 ele_shape(:) = tao_ele_shape_struct()
@@ -234,7 +240,7 @@ if (ios == 0) then
     call tao_string_to_element_id (ele_shape(i)%ele_id, ele_shape(i)%ix_ele_key, ele_shape(i)%name_ele, err, .true.)
   enddo
 
-  call tao_uppercase_shapes (ele_shape, n, 'f')
+  call tao_upgrade_shape_names (ele_shape, n, 'ELEMENT_SHAPES')
   allocate (s%plot_page%floor_plan%ele_shape(n), s%plot_page%lat_layout%ele_shape(n))
   s%plot_page%floor_plan%ele_shape = ele_shape(1:n)
   s%plot_page%lat_layout%ele_shape = ele_shape(1:n)
@@ -272,7 +278,7 @@ if (ios < 0) then
     read (iu, nml = floor_plan_drawing)
   endif
 
-  call tao_uppercase_shapes (ele_shape, n, 'f')
+  call tao_upgrade_shape_names (ele_shape, n, 'FLOOR_PLAN_DRAWING')
   allocate (s%plot_page%floor_plan%ele_shape(n))
   s%plot_page%floor_plan%ele_shape = ele_shape(1:n)
 
@@ -310,77 +316,10 @@ if (ios < 0) then
     read (iu, nml = lat_layout_drawing)
   endif
 
-  call tao_uppercase_shapes (ele_shape, n, 'l')
+  call tao_upgrade_shape_names (ele_shape, n, 'LAT_LAYOUT_DRAWING')
   allocate (s%plot_page%lat_layout%ele_shape(n))
   s%plot_page%lat_layout%ele_shape  = ele_shape(1:n)
-
 endif
-
-!------------------------------------------------------------------------------------
-! Read in patterns
-! Reason this is in a separate routine is due to conflict with "curve" variable in namelist.
-
-call tao_read_in_patterns(iu, plot_file)
-
-! Error check
-
-if (allocated(s%plot_page%lat_layout%ele_shape)) then
-  do i = 1, size(s%plot_page%lat_layout%ele_shape)
-    e_shape => s%plot_page%lat_layout%ele_shape(i)
-    if (e_shape%ele_id(1:15) == 'building_wall::') cycle
-
-    if (e_shape%shape(1:8) == 'PATTERN:') then
-      if (all(e_shape%shape(9:) /= s%plot_page%pattern(:)%name)) then
-        call out_io (s_error$, r_name, 'ELE_SHAPE: ', trim(e_shape%shape) // ' DOES NOT HAVE AN ASSOCIATED PATTERN.', &
-                                       'IN FILE: ' // plot_file)
-      endif
-      cycle
-    endif
-
-    select case (e_shape%shape)
-    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'RBOW_TIE', 'CIRCLE', 'X', 'NONE')
-    case ('VVAR_BOX', 'ASYM_VVAR_BOX')
-      if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
-        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // &
-                                             ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id, &
-                                       'IN FILE: ' // plot_file)
-      endif
-    case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape, 'IN FILE: ' // plot_file)
-    end select
-  enddo
-endif
-
-if (allocated(s%plot_page%floor_plan%ele_shape)) then
-  do i = 1, size(s%plot_page%floor_plan%ele_shape)
-    e_shape => s%plot_page%floor_plan%ele_shape(i)
-
-    if (e_shape%shape(1:8) == 'PATTERN:') then
-      if (all(e_shape%shape(9:) /= s%plot_page%pattern(:)%name)) then
-        call out_io (s_error$, r_name, 'ELE_SHAPE: ', trim(e_shape%shape) // ' DOES NOT HAVE AN ASSOCIATED PATTERN.', &
-                                       'IN FILE: ' // plot_file)
-      endif
-      cycle
-    endif
-
-    select case (e_shape%shape)
-    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'RBOW_TIE', 'CIRCLE', 'X', 'NONE')
-    case ('VVAR_BOX', 'ASYM_VVAR_BOX')
-      if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
-        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id, &
-                                       'IN FILE: ' // plot_file)
-      endif
-    case ('-')
-      if (e_shape%ele_id(1:15) /= 'building_wall::') then
-        call out_io (s_error$, r_name, 'ELE_SHAPE SET TO "-" CAN ONLY BE USED WITH BUILDING_WALL. NOT: ' // e_shape%ele_id, 'IN FILE: ' // plot_file)
-      endif
-    case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape, 'IN FILE: ' // plot_file)
-    end select
-  enddo
-endif
-
-!
 
 close (iu)
 
@@ -842,38 +781,84 @@ enddo
 !----------------------------------------------------------------------------------------
 contains
 
-subroutine tao_uppercase_shapes (ele_shape, n_shape, prefix)
+subroutine tao_upgrade_shape_names (ele_shape, n_shape, who)
 
 type (tao_ele_shape_struct), target :: ele_shape(:)
-type (tao_ele_shape_struct), pointer :: s
+type (tao_ele_shape_struct), pointer :: es
 integer n, n_shape
-character(1) prefix
-character(40) name
+character(*) who
+character(40) shape, prefix
 
 !
 
 n_shape = 0
 do n = 1, size(ele_shape)
-  s => ele_shape(n)
-  if (s%ele_id == 'wall::building') s%ele_id = 'building_wall::*'
+  es => ele_shape(n)
+  if (es%ele_id == 'wall::building') es%ele_id = 'building_wall::*'
   ! Bmad wants ele names upper case but Tao data is case sensitive.
-  if (s%ele_id(1:6) /= 'data::' .and. s%ele_id(1:5) /= 'var::' .and. &
-      s%ele_id(1:5) /= 'lat::' .and. s%ele_id(1:15) /= 'building_wall::') call str_upcase (s%ele_id, s%ele_id)
-  call str_upcase (s%shape,    s%shape)
-  call str_upcase (s%color,    s%color)
-  call downcase_string (s%label)
-  if (s%label == '') s%label = 'name'
-  if (index('false', trim(s%label)) == 1) s%label = 'none'
-  if (index('true', trim(s%label)) == 1) s%label = 'name'
+  if (es%ele_id(1:6) /= 'data::' .and. es%ele_id(1:5) /= 'var::' .and. &
+      es%ele_id(1:5) /= 'lat::' .and. es%ele_id(1:15) /= 'building_wall::') call str_upcase (es%ele_id, es%ele_id)
+  call str_upcase (es%shape,    es%shape)
+  call str_upcase (es%color,    es%color)
+  call downcase_string (es%label)
+  if (es%label == '') es%label = 'name'
+  if (index('false', trim(es%label)) == 1) es%label = 'none'
+  if (index('true', trim(es%label)) == 1) es%label = 'name'
   ! Convert old class:name format to new class::name format
-  ix = index(s%ele_id, ":")
-  if (ix /= 0 .and. s%ele_id(ix+1:ix+1) /= ':') &
-     s%ele_id = s%ele_id(1:ix) // ':' // s%ele_id(ix+1:)
-  call tao_string_to_element_id (s%ele_id, s%ix_ele_key, s%name_ele, err, .true.)
-  if (s%ele_id /= '') n_shape = n
+  ix = index(es%ele_id, ":")
+  if (ix /= 0 .and. es%ele_id(ix+1:ix+1) /= ':') &
+     es%ele_id = es%ele_id(1:ix) // ':' // es%ele_id(ix+1:)
+  call tao_string_to_element_id (es%ele_id, es%ix_ele_key, es%name_ele, err, .true.)
+  if (es%ele_id /= '') n_shape = n
+
+  ! Convert from old shape names to new names with prefix.
+  if (es%shape(1:4) == 'VAR_')            then;   es%shape = es%shape(1:3) // ':' // es%shape(5:)
+  elseif (es%shape(1:5) == 'VVAR_')       then;   es%shape = es%shape(1:4) // ':' // es%shape(6:)
+  elseif (es%shape(1:9) == 'ASYM_VAR_')   then;   es%shape = es%shape(1:8) // ':' // es%shape(10:)
+  elseif (es%shape(1:10) == 'ASYM_VVAR_') then;   es%shape = es%shape(1:9) // ':' // es%shape(11:)
+  endif
+
+  ! Error checks
+
+  ix = index(es%shape, ':')
+  if (ix == 0) then
+    prefix = ''
+    shape = es%shape
+  else
+    prefix = es%shape(1:ix-1)
+    shape = es%shape(ix+1:)
+  endif
+
+  if (prefix == 'PATTERN') then
+    if (all(shape /= s%plot_page%pattern(:)%name)) then
+      call out_io (s_error$, r_name, 'ELE_SHAPE: ', trim(es%shape) // ' DOES NOT HAVE AN ASSOCIATED PATTERN.', &
+                                     'IN FILE: ' // plot_file)
+    endif
+    cycle
+  endif
+
+  select case (prefix)
+  case ('VVAR', 'ASYM_VVAR')
+    if (es%ele_id(1:6) /= 'data::' .and. es%ele_id(1:5) /= 'var::') then
+      call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(es%shape) // &
+                                           ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // es%ele_id, &
+                                     'IN FILE: ' // plot_file)
+    endif
+  case ('', 'VAR', 'ASYM_VAR')
+  case default
+    call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE PREFIX: ' // es%shape, 'IN FILE: ' // plot_file)
+  end select
+
+  select case (shape)
+  case ('BOX', 'XBOX', 'BOW_TIE', 'CIRCLE', 'DIAMOND', 'X', 'R_TRIANGLE', 'L_TRIANGLE', 'U_TRIANGLE', 'D_TRIANGLE')
+  case default
+    call out_io (s_fatal$, r_name, 'UNKNOWN SHAPE: ' // es%shape, 'IN FILE: ' // plot_file)
+  end select
+
+
 enddo
 
-end subroutine tao_uppercase_shapes
+end subroutine tao_upgrade_shape_names
 
 !----------------------------------------------------------------------------------------
 ! contains
