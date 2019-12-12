@@ -25,7 +25,7 @@ logical found
 
 !
 
-graph%text_legend = ''
+graph%text_legend_out = graph%text_legend
 
 if (allocated (graph%curve)) then
   do i = 1, size(graph%curve)
@@ -511,17 +511,22 @@ do k = 1, size(graph%curve)
 
     rx = sqrt(sigma_mat(ix1_ax, ix1_ax))
     ry = sqrt(sigma_mat(ix2_ax, ix2_ax))
-    write (graph%text_legend(1), '(a, es9.2)') 'emit_a:', emit_a
-    write (graph%text_legend(2), '(a, es9.2)') 'emit_b:', emit_b
+
+    do n = size(graph%text_legend_out), 1, -1
+      if (graph%text_legend_out(n) /= '') exit
+    enddo
+
+    write (graph%text_legend_out(n+1), '(a, es9.2)') 'emit_a:', emit_a
+    write (graph%text_legend_out(n+2), '(a, es9.2)') 'emit_b:', emit_b
 
     if(rx == 0 .or. ry == 0) then
       theta_xy = 0
-      write (graph%text_legend(3), '(a, f10.4)') 'Theta_tilt (rad):', 0
+      write (graph%text_legend_out(n+3), '(a, f10.4)') 'Theta_tilt (rad):', 0
     else
       theta_xy =  asin(sigma_mat(ix1_ax, ix2_ax) / (rx * ry))
       phi = 0.5 *atan2((rx**2+ry**2) * sin(2*theta_xy), &
                               (rx**2-ry**2) * cos(2*theta_xy)) - theta_xy
-      write (graph%text_legend(3), '(a, f10.4)') 'Theta_tilt (rad):', phi
+      write (graph%text_legend_out(n+3), '(a, f10.4)') 'Theta_tilt (rad):', phi
   endif
 
     n = 2 * n_curve_pts

@@ -404,7 +404,7 @@ if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
 !
 
 if (graph%draw_axes) then
-  if (graph%title == '') then
+  if (graph%title == '' .or. .not. graph%draw_title) then
     call qp_set_graph (title = '')
   else
     call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
@@ -628,7 +628,9 @@ real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400)
 real(rp) dx_orbit(0:400), dy_orbit(0:400), offset1, offset2
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
-real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
+real(rp) x_inch, y_inch, x0, y0, e1_factor, e2_factor
+real(rp) x_00, x_01, x_02, x_10, x_12, x_20, x_21, x_22
+real(rp) y_00, y_01, y_02, y_10, y_12, y_20, y_21, y_22
 real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
 real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2)
 
@@ -976,25 +978,55 @@ else
   shape = ele_shape%shape(ix+1:)
 endif
 
-! Draw diamond
+! Draw diamond, etc
 
-if (shape == 'DIAMOND') then
+if (shape == 'DIAMOND' .or. shape(3:) == 'TRIANGLE') then
   if (is_bend) then
+    x_00 = x_bend(1) - dx_bend(1);          y_00 = y_bend(1) - dy_bend(1)
+    x_01 = x_bend(1);                       y_01 = y_bend(1)
+    x_02 = x_bend(1) + dx_bend(1);          y_02 = y_bend(1) + dy_bend(1)
     n = n_bend / 2
-    x1 = (x_bend(n) + dx_bend(n)) / 2
-    x2 = (x_bend(n) - dx_bend(n)) / 2
-    y1 = (y_bend(n) + dy_bend(n)) / 2
-    y2 = (y_bend(n) - dy_bend(n)) / 2
+    x_10 = (x_bend(n) - dx_bend(n)) / 2;    y_10 = (y_bend(n) - dy_bend(n)) / 2
+    x_12 = (x_bend(n) + dx_bend(n)) / 2;    y_12 = (y_bend(n) + dy_bend(n)) / 2
+    n = n_bend
+    x_20 = x_bend(n) - dx_bend(n);          y_20 = y_bend(n) - dy_bend(n)
+    x_21 = x_bend(n);                       y_21 = y_bend(n)
+    x_22 = x_bend(n) + dx_bend(n);          y_22 = y_bend(n) + dy_bend(n)
+
   else
-    x1 = ((end1%r(1) + end2%r(1)) + (dx1 + dx2)) / 2
-    x2 = ((end1%r(1) + end2%r(1)) - (dx1 + dx2)) / 2
-    y1 = ((end1%r(2) + end2%r(2)) + (dy1 + dy2)) / 2
-    y2 = ((end1%r(2) + end2%r(2)) - (dy1 + dy2)) / 2
+    x_00 = end1%r(1) - dx1;                                y_00 = end1%r(2) - dy1
+    x_01 = end1%r(1);                                      y_01 = end1%r(2)
+    x_02 = end1%r(1) + dx1;                                y_02 = end1%r(2) + dy1
+    x_10 = ((end1%r(1) + end2%r(1)) - (dx1 + dx2)) / 2;    y_10 = ((end1%r(2) + end2%r(2)) - (dy1 + dy2)) / 2
+    x_12 = ((end1%r(1) + end2%r(1)) + (dx1 + dx2)) / 2;    y_12 = ((end1%r(2) + end2%r(2)) + (dy1 + dy2)) / 2
+    x_20 = end2%r(1) - dx1;                                y_20 = end2%r(2) - dy1
+    x_21 = end2%r(1);                                      y_21 = end2%r(2)
+    x_22 = end2%r(1) + dx1;                                y_22 = end2%r(2) + dy1
   endif
-  call qp_draw_line (end1%r(1), x1, end1%r(2), y1, units = draw_units, color = color)
-  call qp_draw_line (end1%r(1), x2, end1%r(2), y2, units = draw_units, color = color)
-  call qp_draw_line (end2%r(1), x1, end2%r(2), y1, units = draw_units, color = color)
-  call qp_draw_line (end2%r(1), x2, end2%r(2), y2, units = draw_units, color = color)
+
+  select case (shape)
+  case ('DIAMOND')
+    call qp_draw_line (x_01, x_12, y_01, y_12, units = draw_units, color = color)
+    call qp_draw_line (x_01, x_10, y_01, y_10, units = draw_units, color = color)
+    call qp_draw_line (x_21, x_12, y_21, y_12, units = draw_units, color = color)
+    call qp_draw_line (x_21, x_10, y_21, y_10, units = draw_units, color = color)
+  case ('R_TRIANGLE')
+    call qp_draw_line (x_00, x_21, y_00, y_21, units = draw_units, color = color)
+    call qp_draw_line (x_02, x_21, y_02, y_21, units = draw_units, color = color)
+    call qp_draw_line (x_00, x_02, y_00, y_02, units = draw_units, color = color)
+  case ('L_TRIANGLE')
+    call qp_draw_line (x_20, x_01, y_20, y_01, units = draw_units, color = color)
+    call qp_draw_line (x_22, x_01, y_22, y_01, units = draw_units, color = color)
+    call qp_draw_line (x_20, x_22, y_20, y_22, units = draw_units, color = color)
+  case ('U_TRIANGLE')
+    call qp_draw_line (x_00, x_12, y_00, y_12, units = draw_units, color = color)
+    call qp_draw_line (x_20, x_12, y_20, y_12, units = draw_units, color = color)
+    call qp_draw_line (x_00, x_20, y_00, y_20, units = draw_units, color = color)
+  case ('D_TRIANGLE')
+    call qp_draw_line (x_02, x_10, y_02, y_10, units = draw_units, color = color)
+    call qp_draw_line (x_22, x_10, y_22, y_10, units = draw_units, color = color)
+    call qp_draw_line (x_02, x_22, y_02, y_22, units = draw_units, color = color)
+  end select
 endif
 
 ! Draw a circle.
@@ -1053,7 +1085,7 @@ endif
 
 ! Draw X for xbox or bow_tie
 
-if (shape == 'XBOX' .or. shape == 'BOW_TIE' .or. shape == 'RBOW_TIE') then
+if (shape == 'XBOX' .or. shape == 'BOW_TIE' .or. shape == 'RBOW_TIE' .or. shape == 'X') then
   call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, units = draw_units, color = color)
   call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, units = draw_units, color = color)
 endif
@@ -1395,6 +1427,30 @@ endif
 
 if (shape == 'BOX' .or. shape == 'XBOX') then
   call qp_draw_rectangle (x1, x2, y1, y2, width = iwidth, color = color, clip = .true.)
+endif
+
+if (shape == 'R_TRIANGLE') then
+  call qp_draw_rectangle (x1, x2, y1, 0.0_rp, width = iwidth, color = color, clip = .true.)
+  call qp_draw_rectangle (x1, x2, y2, 0.0_rp, width = iwidth, color = color, clip = .true.)
+  call qp_draw_rectangle (x1, x1, y1, y2, width = iwidth, color = color, clip = .true.)
+endif
+
+if (shape == 'L_TRIANGLE') then
+  call qp_draw_rectangle (x1, x2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_rectangle (x1, x2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_rectangle (x2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
+endif
+
+if (shape == 'U_TRIANGLE') then
+  call qp_draw_rectangle (x1, x2, y1, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_rectangle (x1, (x1+x2)/2, y1, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_rectangle ((x1+x2)/2, x2, y2, y1, width = iwidth, color = color, clip = .true.)
+endif
+
+if (shape == 'D_TRIANGLE') then
+  call qp_draw_rectangle (x1, x2, y2, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_rectangle (x1, (x1+x2)/2, y2, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_rectangle ((x1+x2)/2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 ! Draw X for XBOX or BOW_TIE
@@ -1754,7 +1810,7 @@ character(100), allocatable :: text(:)
 call qp_set_layout (box = graph%box, margin = graph%margin)
 call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
 call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, y2_mirrors_y = graph%y2_mirrors_y)
-if (graph%title == '') then
+if (graph%title == '' .or. .not. graph%draw_title) then
   call qp_set_graph (title = '')
 else
   call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
@@ -1780,7 +1836,7 @@ if (graph%limited .and. graph%clip .and. s%global%draw_curve_off_scale_warn) &
 
 ! Draw the text legend if there is one
 
-if (any(graph%text_legend /= ' ')) call qp_draw_text_legend (graph%text_legend, &
+if (any(graph%text_legend_out /= ' ')) call qp_draw_text_legend (graph%text_legend_out, &
        graph%text_legend_origin%x, graph%text_legend_origin%y, graph%text_legend_origin%units)
 
 ! Draw the curve legend if needed

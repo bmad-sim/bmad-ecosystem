@@ -109,6 +109,7 @@ type tao_graph_input
   character(40) :: type = 'data' 
   character(80) :: title = ''
   character(60) :: component = ''
+  character(100) :: text_legend(10) = ''
   character(2) :: floor_plan_view = 'zx'
   character(16) :: floor_plan_orbit_color = 'RED'
   integer :: box(4) = [1, 1, 1, 1]
@@ -124,6 +125,7 @@ type tao_graph_input
   logical :: floor_plan_size_is_absolute = .false.
   logical :: floor_plan_draw_only_first_pass = .false.
   logical :: correct_xy_distortion = .false.
+  logical :: draw_title = .true.
   logical :: draw_axes = .true.
   logical :: draw_grid = .true.
   logical :: draw_curve_legend = .true.

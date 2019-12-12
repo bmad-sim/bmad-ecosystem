@@ -1486,7 +1486,7 @@ logical logic, error
 value = remove_quotes(value_str)
 
 comp = component
-ix = max(index(comp, '%'), index(comp, '.'))
+ix = max(index(comp, '%'), index(comp, '.'), index(comp, '('))
 if (ix /= 0) then
   sub_comp = comp(ix+1:)
   comp = comp(:ix-1)
@@ -1496,6 +1496,11 @@ u => tao_pointer_to_universe(this_graph%ix_universe)
 this_graph%p%default_plot = .false. ! Plot has been modified
 
 select case (comp)
+case ('text_legend')
+  ix = len_trim(sub_comp)
+  call tao_set_integer_value (iw, component, sub_comp(:ix-1), error, 1, size(this_graph%text_legend));  if (error) return
+  this_graph%text_legend(iw) = value
+
 case ('allow_wrap_around')
   call tao_set_logical_value (this_graph%allow_wrap_around, component, value, error)
 case ('component')
@@ -1508,6 +1513,8 @@ case ('curve_legend_origin')
   call tao_set_qp_point_struct (comp, sub_comp, this_graph%curve_legend_origin, value, error, u%ix_uni)
 case ('draw_axes')
   call tao_set_logical_value (this_graph%draw_axes, component, value, error)
+case ('draw_title')
+  call tao_set_logical_value (this_graph%draw_title, component, value, error)
 case ('draw_curve_legend')
   call tao_set_logical_value (this_graph%draw_curve_legend, component, value, error)
 case ('draw_grid')
