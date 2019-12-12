@@ -211,7 +211,8 @@ type tao_graph_struct
   character(40) :: type = ''          ! 'data', 'lat_layout', 'phase_space', 'histogram', 'dynamic_aperture'
   character(100) :: title = ''
   character(100) :: title_suffix = ''
-  character(100) :: text_legend(10) = ''      ! Array for holding descriptive info.
+  character(100) :: text_legend(10) = ''          ! Array for holding descriptive info.
+  character(100) :: text_legend_out(10) = ''      ! Array for holding descriptive info.
   character(60) :: component = ''             ! Who to plot. Eg: 'meas - design'
   character(2) :: floor_plan_view = 'zx'
   character(16) :: floor_plan_orbit_color = 'RED'
@@ -243,6 +244,7 @@ type tao_graph_struct
   logical :: floor_plan_draw_only_first_pass = .false. ! Draw only first pass with multipass elements?
   logical :: draw_curve_legend = .true.       ! Legend for displaying curve info.
   logical :: draw_grid = .true.               ! Draw a grid?
+  logical :: draw_title = .true.
   logical :: allow_wrap_around = .true.       ! "Wrap" curves to extend past lattice boundaries?
   logical :: draw_only_good_user_data_or_vars = .true.
   logical :: is_valid = .false.               ! EG: Bad x_axis_type.

@@ -2347,6 +2347,7 @@ The file that \tao looks in to find these two namelists is set by the first file
 The namelist syntax is the same for both:
 \begin{example}
   &lat_layout_drawing
+    include_default_shapes = <logical>
     ele_shape(i) = "<ele_id>" "<shape>" "<color>" "<size>" "<label>" <draw> 
                                                                 <multi> <line_width>
   /
@@ -2358,6 +2359,7 @@ The namelist syntax is the same for both:
 For Example:
 \begin{example}
   &floor_plan_drawing
+    include_default_shapes = T
     !               ele_id                  Shape      Color     Size  Label  ..etc..
     ele_shape(1) = "quadrupole::q*"         "box"      "red"     0.75  "name"  
     ele_shape(2) = "quadrupole::*"          "xbox"     "red"     0.75  "none" 
@@ -2382,9 +2384,11 @@ drawn and the setting of \vn{<multi>} for that shape will be used to determine w
 shapes are searched for. Thus \vn{<multi>} can be use to draw, for example, a \vn{circle} shape
 superimposed upon a \vn{bow_tie} shape.
 
-For a floor plan, for \vn{wiggler}s or \vn{undulators} that have an \vn{x_ray_line_len} attribute
-(see the \bmad manual), The X-ray line will be drawn if an \vn{ele_shape} for a \vn{photon_branch}
-is present.
+\tao defines a set of default shapes in case no shapes are defined in the plot file. If the
+optional \vn{include_default_shapes} logical, which can be set for either \vn{floor_plan} and/or
+\vn{lat_layout} shape namelists, is set to False (the default), the default shapes are not used.
+If \vn{include_default_shapes} is set to True, the default shapes are appended to the list of 
+shapes.
 
 Use the \vn{show plot -shape} command to see the defined shapes.  use the \vn{set shape} command
 (\sref{s:set})) to set shape parameters on the command line.
@@ -2486,6 +2490,10 @@ Valid \vn{shape-name}s are:
   "diamond"      -- Diamond shape.
   <pattern_name> -- Custom shape specified by <name>. Used with "pattern" prefix.
   "rbow_tie"     -- Bow-tie shape rotated 90 degrees.
+  "d_triangle"   -- Triangle pointing ``down''.
+  "l_triangle"   -- Triangle pointing ``left'' (upstream).
+  "r_triangle"   -- Triangle pointing ``right'' (downstream).
+  "u_triangle"   -- Triangle pointing ``up''. 
   "x"            -- "X" centered at center of element
   "xbox"         -- Rectangular box with an x through it.
   "-"            -- Used with ele_id set to "building_wall" .

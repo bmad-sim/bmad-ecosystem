@@ -1753,6 +1753,15 @@ case ('graph')
   nl=nl+1; write(lines(nl), lmt)  'floor_plan_flip_label_side       = ', g%floor_plan_flip_label_side
   nl=nl+1; write(lines(nl), lmt)  'floor_plan_size_is_absolute      = ', g%floor_plan_size_is_absolute
   nl=nl+1; write(lines(nl), lmt)  'floor_plan_draw_only_first_pass  = ', g%floor_plan_draw_only_first_pass
+  nl=nl+1; write(lines(nl), amt)  'text_legend_origin%x,y,units     = ', real_str(g%text_legend_origin%x, 3), ', ', &
+                                                       real_str(g%text_legend_origin%x, 3), ', ', quote(g%text_legend_origin%units)
+  nl=nl+1; write(lines(nl), amt)  'curve_legend_origin%x,y,units     = ', real_str(g%curve_legend_origin%x, 3), ', ', &
+                                                       real_str(g%curve_legend_origin%x, 3), ', ', quote(g%curve_legend_origin%units)
+  do i = 1, size(g%text_legend)
+    if (g%text_legend(i) == '') cycle
+    nl=nl+1; write(lines(nl), '(a, i0, 2a)') 'text_legend(', i, ')                = ', quote(g%text_legend(i))
+  enddo
+
   nl=nl+1; write(lines(nl), amt)  'x%label                          = ', quote(g%x%label)
   nl=nl+1; write(lines(nl), rmt)  'x%max                            = ', g%x%max
   nl=nl+1; write(lines(nl), rmt)  'x%min                            = ', g%x%min
@@ -1794,6 +1803,7 @@ case ('graph')
   nl=nl+1; write(lines(nl), lmt)  'y2%draw_numbers                  = ', g%y2%draw_numbers
   nl=nl+1; write(lines(nl), lmt)  'limited                          = ', g%limited
   nl=nl+1; write(lines(nl), lmt)  'clip                             = ', g%clip
+  nl=nl+1; write(lines(nl), lmt)  'draw_title                       = ', g%draw_title
   nl=nl+1; write(lines(nl), lmt)  'draw_axes                        = ', g%draw_axes
   nl=nl+1; write(lines(nl), lmt)  'draw_grid                        = ', g%draw_grid
   nl=nl+1; write(lines(nl), lmt)  'correct_xy_distortion            = ', g%correct_xy_distortion

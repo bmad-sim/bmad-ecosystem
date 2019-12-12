@@ -59,15 +59,14 @@ character(40) str
 character(16) color
 character(*), parameter :: r_name = 'tao_init_plotting'
 
-logical err, include_default_plots, all_set, prepend_floor_plan_shapes, prepend_lat_layout_shapes
+logical err, include_default_plots, all_set, include_default_shapes, include_dflt_lat_layout, include_dflt_floor_plan
 
-namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, &
-                include_default_plots
+namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, include_default_plots
 namelist / tao_template_plot / plot, default_graph
 namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 
-namelist / floor_plan_drawing / ele_shape, prepend_floor_plan_shapes
-namelist / lat_layout_drawing / ele_shape, prepend_lat_layout_shapes
+namelist / floor_plan_drawing / ele_shape, include_default_shapes
+namelist / lat_layout_drawing / ele_shape, include_default_shapes
 
 ! These are old style
 
@@ -132,7 +131,7 @@ if (allocated(s%plot_page%pattern)) deallocate(s%plot_page%pattern)
 allocate (s%plot_page%pattern(0))
 
 if (plot_file_in == '') then
-  call tao_setup_default_plotting()
+  call tao_setup_default_plotting(.false., .false.)
   call number_template_plots()
   return
 endif
@@ -148,7 +147,7 @@ call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // plot_file)
 call tao_open_file (plot_file, iu, full_file_name, s_error$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE: ' // plot_file)
-  call tao_setup_default_plotting()
+  call tao_setup_default_plotting(.false., .false.)
   call number_template_plots()
   return
 endif
@@ -241,9 +240,9 @@ if (ios == 0) then
   enddo
 
   call tao_upgrade_shape_names (ele_shape, n, 'ELEMENT_SHAPES')
-  allocate (s%plot_page%floor_plan%ele_shape(n), s%plot_page%lat_layout%ele_shape(n))
-  s%plot_page%floor_plan%ele_shape = ele_shape(1:n)
-  s%plot_page%lat_layout%ele_shape = ele_shape(1:n)
+  allocate (s%plot_page%floor_plan%ele_shape(n+10), s%plot_page%lat_layout%ele_shape(n+10))
+  s%plot_page%floor_plan%ele_shape(1:n) = ele_shape(1:n)
+  s%plot_page%lat_layout%ele_shape(1:n) = ele_shape(1:n)
 endif
 
 ! Look for new style shape namelist if could not find old style
@@ -252,11 +251,12 @@ if (ios < 0) then
 
   ! Read floor_plan_drawing namelist
 
-  prepend_floor_plan_shapes = .false.
+  include_default_shapes = .false.
   rewind (iu)
   read (iu, nml = element_shapes_floor_plan, iostat = ios1)  ! Deprecated name
   rewind (iu)
   read (iu, nml = floor_plan_drawing, iostat = ios2)
+  include_dflt_floor_plan = include_default_shapes
 
   if (ios1 >= 0) then
     call out_io (s_error$, r_name, &
@@ -279,18 +279,19 @@ if (ios < 0) then
   endif
 
   call tao_upgrade_shape_names (ele_shape, n, 'FLOOR_PLAN_DRAWING')
-  allocate (s%plot_page%floor_plan%ele_shape(n))
-  s%plot_page%floor_plan%ele_shape = ele_shape(1:n)
+  allocate (s%plot_page%floor_plan%ele_shape(n+10))
+  s%plot_page%floor_plan%ele_shape(1:n) = ele_shape(1:n)
 
   ! Read element_shapes_lat_layout namelist
 
   ele_shape(:) = tao_ele_shape_struct()
 
-  prepend_lat_layout_shapes = .false.
+  include_default_shapes = .false.
   rewind (iu)
   read (iu, nml = element_shapes_lat_layout, iostat = ios1)
   rewind (iu)
   read (iu, nml = lat_layout_drawing, iostat = ios2)
+  include_dflt_lat_layout = include_default_shapes
 
   if (ios1 == 0) then
     call out_io (s_error$, r_name, &
@@ -317,8 +318,8 @@ if (ios < 0) then
   endif
 
   call tao_upgrade_shape_names (ele_shape, n, 'LAT_LAYOUT_DRAWING')
-  allocate (s%plot_page%lat_layout%ele_shape(n))
-  s%plot_page%lat_layout%ele_shape  = ele_shape(1:n)
+  allocate (s%plot_page%lat_layout%ele_shape(n+10))
+  s%plot_page%lat_layout%ele_shape(1:n)  = ele_shape(1:n)
 endif
 
 close (iu)
@@ -477,6 +478,7 @@ do  ! Loop over plot files
       grph%ix_universe                      = graph%ix_universe
       grph%ix_branch                        = graph%ix_branch
       grph%clip                             = graph%clip
+      grph%draw_title                       = graph%draw_title
       grph%draw_axes                        = graph%draw_axes
       grph%draw_grid                        = graph%draw_grid
       grph%correct_xy_distortion            = graph%correct_xy_distortion
@@ -735,7 +737,7 @@ if (ip == 0 .or. include_default_plots) then
   if (size(s%plot_page%lat_layout%ele_shape) == 0) deallocate(s%plot_page%lat_layout%ele_shape)
   if (size(s%plot_page%floor_plan%ele_shape) == 0) deallocate(s%plot_page%floor_plan%ele_shape)
   if (size(s%plot_page%region) == 0) deallocate (s%plot_page%region)
-  call tao_setup_default_plotting()
+  call tao_setup_default_plotting(include_dflt_lat_layout, include_dflt_floor_plan)
 endif
 
 ! Initial placement of plots
@@ -794,6 +796,8 @@ character(40) shape, prefix
 n_shape = 0
 do n = 1, size(ele_shape)
   es => ele_shape(n)
+  if (es%ele_id == '') cycle
+
   if (es%ele_id == 'wall::building') es%ele_id = 'building_wall::*'
   ! Bmad wants ele names upper case but Tao data is case sensitive.
   if (es%ele_id(1:6) /= 'data::' .and. es%ele_id(1:5) /= 'var::' .and. &
@@ -809,7 +813,7 @@ do n = 1, size(ele_shape)
   if (ix /= 0 .and. es%ele_id(ix+1:ix+1) /= ':') &
      es%ele_id = es%ele_id(1:ix) // ':' // es%ele_id(ix+1:)
   call tao_string_to_element_id (es%ele_id, es%ix_ele_key, es%name_ele, err, .true.)
-  if (es%ele_id /= '') n_shape = n
+  n_shape = n
 
   ! Convert from old shape names to new names with prefix.
   if (es%shape(1:4) == 'VAR_')            then;   es%shape = es%shape(1:3) // ':' // es%shape(5:)
@@ -854,8 +858,6 @@ do n = 1, size(ele_shape)
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN SHAPE: ' // es%shape, 'IN FILE: ' // plot_file)
   end select
-
-
 enddo
 
 end subroutine tao_upgrade_shape_names
@@ -873,7 +875,7 @@ end subroutine number_template_plots
 !----------------------------------------------------------------------------------------
 ! contains
 
-subroutine tao_setup_default_plotting()
+subroutine tao_setup_default_plotting(include_dflt_lat_layout, include_dflt_floor_plan)
 
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
@@ -883,7 +885,8 @@ type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_plot_struct), pointer :: plot
-type (tao_ele_shape_struct) :: dflt_lat_layout(27) = [&
+type (tao_ele_shape_struct), allocatable :: temp_shape(:)
+type (tao_ele_shape_struct) :: dflt_shapes(27) = [&
       tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, fork$, '*'), &
       tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, crystal$, '*'), &
       tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, detector$, '*'), &
@@ -914,7 +917,8 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(27) = [&
 
 real(rp) y_layout, dx, dy, dz, x1, x2, y1, y2
 integer np, n, nr, n_plots
-integer i, j, k, ie, ic
+integer i, j, k, ie, ic, n_old
+logical include_dflt_lat_layout, include_dflt_floor_plan
 character(40) name
 character(2), parameter :: coord_name_lc(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz']
 
@@ -922,19 +926,32 @@ character(2), parameter :: coord_name_lc(6) = ['x ', 'px', 'y ', 'py', 'z ', 'pz
 
 call tao_set_plotting (plot_page, s%plot_page, .true.)
 
-n = size(dflt_lat_layout)
+n = size(dflt_shapes)
 
-if (.not. allocated(s%plot_page%lat_layout%ele_shape)) then
-  allocate (s%plot_page%lat_layout%ele_shape(40))
+if (include_dflt_lat_layout .or. .not. allocated(s%plot_page%lat_layout%ele_shape)) then
+  n_old = 0
+  if (allocated(s%plot_page%lat_layout%ele_shape)) then
+    n_old = size(s%plot_page%lat_layout%ele_shape)
+    call move_alloc (s%plot_page%lat_layout%ele_shape, temp_shape)
+  endif
+  allocate (s%plot_page%lat_layout%ele_shape(40+n_old))
   s%plot_page%lat_layout%ele_shape(:)%ele_id = ''
-  s%plot_page%lat_layout%ele_shape(1:n) = dflt_lat_layout
+  if (n_old /= 0) s%plot_page%lat_layout%ele_shape(1:n_old) = temp_shape
+  s%plot_page%lat_layout%ele_shape(n_old+1:n_old+n) = dflt_shapes
+  if (n_old /= 0) deallocate(temp_shape)
 endif
 
-if (.not. allocated(s%plot_page%floor_plan%ele_shape)) then
-  allocate (s%plot_page%floor_plan%ele_shape(40))
+if (include_dflt_floor_plan .or. .not. allocated(s%plot_page%floor_plan%ele_shape)) then
+  dflt_shapes%size = 20 * dflt_shapes%size
+  if (allocated(s%plot_page%floor_plan%ele_shape)) then
+    n_old = size(s%plot_page%floor_plan%ele_shape)
+    call move_alloc (s%plot_page%floor_plan%ele_shape, temp_shape)
+  endif
+  allocate (s%plot_page%floor_plan%ele_shape(40+n_old))
   s%plot_page%floor_plan%ele_shape(:)%ele_id = ''
-  s%plot_page%floor_plan%ele_shape(1:n) = dflt_lat_layout
-  s%plot_page%floor_plan%ele_shape%size = 20 * s%plot_page%floor_plan%ele_shape%size
+  if (n_old /= 0) s%plot_page%floor_plan%ele_shape(1:n_old) = temp_shape
+  s%plot_page%floor_plan%ele_shape(n_old+1:n_old+n) = dflt_shapes
+  if (n_old /= 0) deallocate(temp_shape)
 endif
 
 !---------------------------------
@@ -2705,34 +2722,36 @@ do i = 1, 4
   enddo
 enddo
 
-if (all(s%plot_page%region(:)%name /= 'layout1')) then
-  nr = nr + 1
-  s%plot_page%region(nr)%name = 'layout1'
-  s%plot_page%region(nr)%location = [0.0_rp, 0.5_rp, 0.0_rp, y_layout]
-endif
+!
 
-if (all(s%plot_page%region(:)%name /= 'layout2')) then
-  nr = nr + 1
-  s%plot_page%region(nr)%name = 'layout2'
-  s%plot_page%region(nr)%location = [0.5_rp, 1.0_rp, 0.0_rp, y_layout]
-endif
+do k1 = 2, 3
 
-k1 = 2
+do i = 1, k1
+  write (name, '(a, 2i0)') 'layout', i, k1
+  if (all(s%plot_page%region(:)%name /= name)) then
+    nr = nr + 1
+    if (k1 == 3) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+    s%plot_page%region(nr)%name = name
+    s%plot_page%region(nr)%location = [real(i-1, rp)/k1, real(i, rp)/k1, 0.0_rp, y_layout]
+  endif
+enddo
+
 do k2 = 1, 4
   do i = 1, k1
   do j = 1, k2
-    write (name, '(a, 4i0)') 'r', i, k1, j, k2
+    write (name, '(a, 4i0)') 'r', i, j, k1, k2
     if (any(s%plot_page%region(:)%name == name)) cycle
     nr = nr + 1
     s%plot_page%region(nr)%name = name
-    !! if (100*k+10*i+j > 411) s%plot_page%region(nr)%list_with_show_plot_command = .false.
-    x1 = real(k1-i)/ k1
-    x2 = real(k1-i+1) / k1
+    if (k1 == 3) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+    x1 = real(i-1)/ k1
+    x2 = real(i) / k1
     y1 = y_layout + (1 - y_layout) * real(k2-j)/ k2
     y2 = y_layout + (1 - y_layout) * real(k2-j+1) / k2
     s%plot_page%region(nr)%location = [x1, x2, y1, y2]
   enddo
   enddo
+enddo
 enddo
 
 !
