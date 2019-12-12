@@ -2842,7 +2842,7 @@ implicit none
 
 type (tao_drawing_struct) drawing
 type (tao_ele_shape_struct), target :: ele_shape(50)
-type (tao_ele_shape_struct), pointer :: s
+type (tao_ele_shape_struct), pointer :: es
 
 character(*) component, value_str
 character(20) :: r_name = 'tao_set_drawing_cmd'
@@ -2895,14 +2895,19 @@ endif
 ! Cleanup
 
 do i = 1, n
-  s => ele_shape(i)
-  if (s%ele_id(1:6) /= 'data::' .and. s%ele_id(1:5) /= 'var::' .and. &
-      s%ele_id(1:5) /= 'lat::' .and. s%ele_id(1:15) /= 'building_wall::') call str_upcase (s%ele_id, s%ele_id)
-  call str_upcase (s%shape,    s%shape)
-  call str_upcase (s%color,    s%color)
-  call downcase_string (s%label)
-  call tao_string_to_element_id (s%ele_id, s%ix_ele_key, s%name_ele, err, .true.)
-  if (err) return
+  es => ele_shape(i)
+  if (es%ele_id(1:6) /= 'data::' .and. es%ele_id(1:5) /= 'var::' .and. &
+      es%ele_id(1:5) /= 'lat::' .and. es%ele_id(1:15) /= 'building_wall::') call str_upcase (es%ele_id, es%ele_id)
+  call str_upcase (es%shape,    es%shape)
+  call str_upcase (es%color,    es%color)
+  call downcase_string (es%label)
+  call tao_string_to_element_id (es%ele_id, es%ix_ele_key, es%name_ele, err, .true.);  if (err) return
+  ! Convert from old shape names to new names with prefix.
+  if (es%shape(1:4) == 'VAR_')            then;   es%shape = es%shape(1:3) // ':' // es%shape(5:)
+  elseif (es%shape(1:5) == 'VVAR_')       then;   es%shape = es%shape(1:4) // ':' // es%shape(6:)
+  elseif (es%shape(1:9) == 'ASYM_VAR_')   then;   es%shape = es%shape(1:8) // ':' // es%shape(10:)
+  elseif (es%shape(1:10) == 'ASYM_VVAR_') then;   es%shape = es%shape(1:9) // ':' // es%shape(11:)
+  endif
 enddo
 
 n = size(drawing%ele_shape)

@@ -2365,7 +2365,7 @@ For Example:
     ele_shape(4) = "sbend::*"               "box"      "blue"    0.37  "none"  
     ele_shape(5) = "wiggler::*"             "xbox"     "green"   0.50  "name"
     ele_shape(6) = "var::quad_k1"           "circle"   "purple"  0.25  "name"
-    ele_shape(7) = "data::orbit.x|design"   "vvar_box" "orange"  0.25  "name"
+    ele_shape(7) = "data::orbit.x|design"   "vvar:box" "orange"  0.25  "name"
     ele_shape(8) = "building_wall::*"       "-"        "black"    0    "none"
     ele_shape(3)%multi = T
     ele_shape(5:6)%line_width = 5, 6
@@ -2471,40 +2471,48 @@ Note: There is an old, deprecated syntax where both the lattice layout
 and floor plan drawings are specified via one \vn{element_shapes}
 namelist.
 
-The \vn{<shape>} parameter is the shape of the figure
-drawn. Valid Shapes are:
+The \vn{<shape>} parameter is the shape of the figure drawn. The \vn{<shape>} string will have the
+form:
+\begin{example}
+  <shape-name>  or
+  <prefix>:<shape-name>  
+\end{example}
+Valid \vn{shape-name}s are: 
 \index{box}\index{xbox}
 \begin{example}
-  "asym_var_box"   -- Like var_box but is not symmetric about the center line.
-  "asym_vvar_box"  -- Like asym_var_box except scaled to associated variable or datum.
-  "box"            -- Rectangular box
-  "var_box"        -- Rectangular box with variable height. 
-                       The box is symmetric about the center line.
-  "vvar_box"       -- Like var_box except scaled to associated variable or datum.
-  "bow_tie"        -- Bow-tie shape.
-  "rbow_tie"       -- Bow-tie shape rotated 90 degrees.
-  "circle"         -- Circle centered at center of element.
-  "diamond"        -- Diamond shape.
-  "pattern:<pattern_name>" 
-                   -- Custom curve specified by <name>.
-  "x"              -- "X" centered at center of element
-  "xbox"           -- Rectangular box with an x through it.
-  "-"              -- Used with ele_id set to "building_wall" .
+  "box"          -- Rectangular box
+  "bow_tie"      -- Bow-tie shape.
+  "circle"       -- Circle centered at center of element.
+  "diamond"      -- Diamond shape.
+  <pattern_name> -- Custom shape specified by <name>. Used with "pattern" prefix.
+  "rbow_tie"     -- Bow-tie shape rotated 90 degrees.
+  "x"            -- "X" centered at center of element
+  "xbox"         -- Rectangular box with an x through it.
+  "-"            -- Used with ele_id set to "building_wall" .
+\end{example}
+Valid prefixes are:
+\begin{example}
+  "asym_var"   -- Like "var" prefix but is not symmetric about the center line.
+  "asym_vvar"  -- Like asym_var except scaled to associated variable or datum.
+  "pattern"    -- Custom shape. <shape-name> here is a pattern name.
+  "var"        -- Shape with variable height. 
+                       The shape size is symmetric about the center line.
+  "vvar"       -- Like "var" prefix except scaled to associated variable or datum.
 \end{example}
 
-If an element's shape is set to \vn{var_box} or \vn{asym_var_box}, the drawn size of the
+For example, if an element's shape is set to \vn{var:box} or \vn{asym_var:box}, the drawn size of the
 element is proportional to the element's magnetic or electric strength. The associated
 \vn{<size>} setting is the multiplier used to scale from element strength to height. For
 example, for a quadrupole the height is proportional to the \vn{K1} focusing strength. The
-difference between \vn{var_box} or \vn{asym_var_box} is that with \vn{var_box} the drawn
+difference between \vn{var:box} or \vn{asym_var:box} is that with \vn{var:box} the drawn
 box is symmetric with respect to the centerline with a size independent of the sign of the
-element strength. On the other hand, with \vn{asym_var_box}, the drawn box will terminate
+element strength. On the other hand, with \vn{asym_var:box}, the drawn box will terminate
 with one side on the centerline and the side on which it is drawn will depend upon the the
 sign of the element strength. Note: Not all lattice elements can be used with a
-\vn{var_box} or \vn{asym_var_box}.
+\vn{var:box} or \vn{asym_var:box}.
 
-A \vn{vvar_box} shape is like a \vn{var_box} and a \vn{asym_vvar_box} is like a
-\vn{asym_var_box}. The difference is that \vn{vvar_box} and \vn{asym_vvar_box} shapes may only be
+A \vn{vvar:box} shape is like a \vn{var:box} and a \vn{asym_vvar:box} is like a
+\vn{asym_var:box}. The difference is that \vn{vvar:box} and \vn{asym_vvar:box} shapes may only be
 used when the \vn{<ele_id>} is associated with data or variables. That is, when the \vn{<ele_id>}
 string starts with ``\vn{data::}'' or ``\vn{var::}''. In this case, the height of the box, instead
 of being proportional to the strength of the element, is proportional to the value of the associated
