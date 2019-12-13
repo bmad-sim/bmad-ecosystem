@@ -1540,7 +1540,13 @@ case ('floor_plan_view')
   endif
   this_graph%floor_plan_view = value
 case ('ix_universe')
-  call tao_set_integer_value (this_graph%ix_universe, component, value, error, -2, ubound(s%u, 1))
+  if (this_graph%type == 'floor_plan' .or. this_graph%type == 'lat_layout') then
+    call tao_set_integer_value (this_graph%ix_universe, component, value, error, -2, ubound(s%u, 1))
+    u => tao_pointer_to_universe(this_graph%ix_universe, .true.)
+  else
+    call tao_set_integer_value (this_graph%ix_universe, component, value, error, -1, ubound(s%u, 1))
+    u => tao_pointer_to_universe(this_graph%ix_universe)
+  endif
 case ('ix_branch')
   call tao_set_integer_value (this_graph%ix_branch, component, value, error, 0, ubound(u%model%lat%branch, 1))
 case ('margin')
@@ -1575,7 +1581,7 @@ case default
   return
 end select
 
-u%calc%lattice = .true.
+if (associated(u)) u%calc%lattice = .true.
 
 end subroutine set_this_graph
 

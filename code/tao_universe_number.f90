@@ -1,27 +1,45 @@
 !+
-! Function tao_universe_number (i_uni) result (i_this_uni)
+! Function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
 !
 ! Fnction to return the universe number.
-! i_this_uni = i_uni except when i_uni is -1 or -2. 
-! In this case i_this_uni = s%com%default_universe.
+! Generally i_this_uni = i_uni except:
+!   i_this_uni = -1  -> i_this_uni = s%com%default_universe.
+!   i_this_uni = -2  -> i_this_uni = -2                      (neg2_to_default = F)
+!                    -> i_this_uni = s%com%default_universe  (neg2_to_default = T)
 !
 ! Input:
-!   i_uni -- Integer: Nominal universe number.
-!
+!   i_uni           -- integer: Nominal universe number.
+!   neg2_to_default -- logical, optional: i_uni = -2 (all universes) maps to the default uni?
+!                         Default if False.
 ! Output:
-!   i_this_uni -- Integer: Universe number. 
+!   i_this_uni      -- integer: Universe number. 
 !-
 
-function tao_universe_number (i_uni) result (i_this_uni)
+function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
 
 use tao_struct
 
 implicit none
 
 integer i_uni, i_this_uni
+logical, optional :: neg2_to_default
 
-i_this_uni = i_uni
-if (i_uni == -1 .or. i_uni == -2) i_this_uni = s%com%default_universe
+!
+
+select case (i_uni)
+case (-2)
+  if (logic_option(.false., neg2_to_default)) then
+    i_this_uni = s%com%default_universe
+  else
+    i_this_uni = i_uni
+  endif
+
+case (-1)
+  i_this_uni = s%com%default_universe
+
+case default
+  i_this_uni = i_uni
+end select
 
 end function tao_universe_number
 

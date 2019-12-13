@@ -40,7 +40,7 @@ if (found) return
 !
 
 if (.not. allocated (graph%curve)) then  ! lat_layout
-  u => tao_pointer_to_universe(graph%ix_universe)
+  u => tao_pointer_to_universe(graph%ix_universe, .true.)
   if (.not. associated(u)) then
     graph%is_valid = .false.
     write (graph%why_invalid, '(a, i0, a)') 'BAD UNIVERSE INDEX', graph%ix_universe
