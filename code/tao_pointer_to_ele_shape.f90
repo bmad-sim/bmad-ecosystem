@@ -29,7 +29,7 @@ use tao_interface, dummy => tao_pointer_to_ele_shape
 implicit none
 
 type (ele_struct) ele
-
+type (ele_struct), pointer :: v_ele, slave
 type (tao_ele_shape_struct), target :: ele_shape(:)
 type (tao_ele_shape_struct), pointer :: e_shape, es
 type (tao_data_array_struct), allocatable, target :: d_array(:)
@@ -42,8 +42,8 @@ type (tao_real_pointer_struct), allocatable :: re_array(:)
 real(rp), optional :: dat_var_value
 
 integer, optional :: ix_shape_min
-integer ix_uni
-integer j, j2, k, n_ele_track
+integer ix_uni, ixu
+integer j, j2, k, is, n_ele_track
 
 character(*), optional :: dat_var_name
 character(*), parameter :: r_name = 'tao_pointer_to_ele_shape'
@@ -59,6 +59,8 @@ if (present(dat_var_value)) dat_var_value = 0
 if (ele%lord_status == group_lord$) return
 if (ele%lord_status == overlay_lord$) return
 if (ele%slave_status == super_slave$) return
+
+ixu = tao_universe_number(ix_uni, .true.)
 
 do k = integer_option(1, ix_shape_min), size(ele_shape)
   es => ele_shape(k)
@@ -77,7 +79,7 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
     if (err) cycle
     do j = 1, size(d_array)
       datum => d_array(j)%d
-      if (datum%d1%d2%ix_universe /= ix_uni) cycle
+      if (datum%d1%d2%ix_universe /= ixu .and. ix_uni /= -2) cycle
       if (size(logic_array) /= 0) then
         if (.not. logic_array(j)%l) cycle
       endif
@@ -108,11 +110,20 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
         if (.not. logic_array(j)%l) cycle
       endif
       do j2 = 1, size(var%slave)
-        if (var%slave(j2)%ix_uni /= ix_uni) cycle
+        if (var%slave(j2)%ix_uni /= ixu .and. ix_uni /= -2) cycle
         if (var%ele_name == 'PARTICLE_START') then
           if (ele%ix_branch /= 0 .or. ele%ix_ele /= 0) cycle
         else
-          if (ele%ix_branch /= var%slave(j2)%ix_branch .or. ele%ix_ele /=  var%slave(j2)%ix_ele) cycle
+          v_ele => pointer_to_ele(ele%branch%lat, var%slave(j2)%ix_ele, var%slave(j2)%ix_branch)
+          if (v_ele%lord_status == multipass_lord$) then
+            do is = 1, v_ele%n_slave
+              slave => pointer_to_slave(v_ele, is)
+              if (ele%ix_branch == slave%ix_branch .and. ele%ix_ele ==  slave%ix_ele) exit
+            enddo
+            if (ele%ix_branch /= slave%ix_branch .or. ele%ix_ele /=  slave%ix_ele) cycle
+          else
+            if (ele%ix_branch /= var%slave(j2)%ix_branch .or. ele%ix_ele /=  var%slave(j2)%ix_ele) cycle
+          endif
         endif
         e_shape => es
         if (present(dat_var_name)) dat_var_name = tao_var1_name(var)

@@ -2150,19 +2150,16 @@ to the universe \#1 \vn{design} lattice.
   \centering
   \includegraphics[width=5in]{layout-graph-table.pdf}
   \caption[Example lattice layout and data plots]
-{A lattice layout plot (top) above a data plot (middle) 
-which in turn is above a key table plot (bottom). The points on the
-curves in the data plot mark the edges of the elements displayed in
-the lattice layout. Elements that have attributes that are varied as
-shown in the key table have the corresponding key table number printed
-above the element's glyph in the lattice layout.}
+{A lattice layout plot (top) above a data plot (middle) which in turn is above a key table plot
+(bottom). The points on the curves in the data plot mark the edges of the elements displayed in the
+lattice layout. Elements that have attributes that are varied as shown in the key table have the
+corresponding key table number printed above the element's glyph in the lattice layout.}
   \label{f:layout.table}
 \end{figure}
 
-A lattice layout plot draws the lattice
-along a straight line with colored rectangles representing the various elements.
-An example is shown in Figure~\ref{f:layout.table}.
-The \vn{tao_template_plot} needed to define a lattice layout looks like:
+A lattice layout plot draws the lattice along a straight line with colored rectangles representing
+the various elements.  An example is shown in Figure~\ref{f:layout.table}.  The
+\vn{tao_template_plot} needed to define a lattice layout looks like:
 \index{tao_template_plot}\index{plot!name}
 \index{plot!x!min}\index{plot!x!max}\index{plot!n_graph}
 \index{tao_template_graph}\index{graph_index}\index{graph!name}
@@ -2204,17 +2201,23 @@ Example:
     graph%name        = "u1"
     graph%type        = "lat_layout"
     graph%box         = 1, 1, 1, 1
-    graph%ix_universe = 1
+    graph%ix_universe = -1  ! Use default universe
     graph%margin      = 0.12, 0.12, 0.30, 0.06, "%BOX"
   /
 \end{example}
 
-Which elements are drawn is under user control and is defined 
-using an \vn{lat_layout_drawing} namelist. See Section~\sref{s:shapes}
-for more details.
+Which elements are drawn is under user control and is defined using an \vn{lat_layout_drawing}
+namelist. See Section~\sref{s:shapes} for more details.
 
-The longitudinal distance markers at either end of the lattice layout can be 
-suppressed by setting
+Setting \vn{graph%ix_universe} to -1 means the current default universe will be drawn. Normally, if
+there are element shapes that are associated with data or variable shapes (\sref{s:shapes}), these
+shapes will be drawn if there are lattice elements associated with the data or variables that live
+in the universe with index \vn{graph%ix_universe} and if the associated elements fall within the
+range of elements plotted. The exception is that if \vn{graph%ix_universe} is set to -2, the universe
+of the associated lattice elements is ignored. Using a value of -2 here only makes sense if the design
+lattices of all the universes is the same.
+
+The longitudinal distance markers at either end of the lattice layout can be suppressed by setting
 \begin{example}
   graph%x%draw_numbers = F
 \end{example}

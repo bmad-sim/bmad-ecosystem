@@ -2369,7 +2369,7 @@ case ('floor_plan')
   endif
 
   g => graphs(1)%g
-  u => tao_pointer_to_universe(g%ix_universe)
+  u => tao_pointer_to_universe(g%ix_universe, .true.)
   lat => u%model%lat
 
   do ib = 0, ubound(lat%branch, 1)
@@ -2385,7 +2385,7 @@ case ('floor_plan')
       ix_shape_min = 1
       first_time = .true.
       do
-        call tao_ele_shape_info (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
+        call tao_ele_shape_info (g%ix_universe, ele, s%plot_page%lat_layout%ele_shape, shape, label_name, y1, y2, ix_shape_min)
         if (associated(shape)) then
           color = shape%color
           shape_shape = shape%shape
@@ -4414,7 +4414,7 @@ endif
 read (str, *,  iostat = ios)  ix_universe
 if (ios /= 0) ix_universe = -999
 
-u => tao_pointer_to_universe(ix_universe)
+u => tao_pointer_to_universe(ix_universe, .true.)
 
 if (.not. associated(u)) then
   call invalid ('bad universe index')

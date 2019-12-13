@@ -1205,7 +1205,7 @@ case default
   return
 end select
 
-isu = tao_universe_number(graph%ix_universe)
+isu = tao_universe_number(graph%ix_universe, .true.)
 lat => s%u(isu)%model%lat
 branch => lat%branch(graph%ix_branch)
 tao_branch => s%u(isu)%model%tao_branch(graph%ix_branch)
@@ -1262,7 +1262,7 @@ if (s%global%label_keys) then
     write (str, '(i1)') mod(kk, 10)
     var => s%var(ix_var)
     do ixv = 1, size(var%slave)
-      if (var%slave(ixv)%ix_uni /= isu) cycle
+      if (var%slave(ixv)%ix_uni /= isu .and. graph%ix_universe /= -2) cycle
       ixe = var%slave(ixv)%ix_ele
       if (var%ele_name == 'PARTICLE_START') ixe = 0
       ele => pointer_to_ele(lat, ixe, var%slave(ixv)%ix_branch)
@@ -1313,7 +1313,7 @@ character(40) label_name
 
 ix_shape_min = 1
 do
-  call tao_ele_shape_info (isu, ele, s%plot_page%lat_layout%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
+  call tao_ele_shape_info (graph%ix_universe, ele, s%plot_page%lat_layout%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
 
   if (.not. associated(ele_shape)) return
   if (.not. ele_shape%draw) return
@@ -1430,27 +1430,27 @@ if (shape == 'BOX' .or. shape == 'XBOX') then
 endif
 
 if (shape == 'R_TRIANGLE') then
-  call qp_draw_rectangle (x1, x2, y1, 0.0_rp, width = iwidth, color = color, clip = .true.)
-  call qp_draw_rectangle (x1, x2, y2, 0.0_rp, width = iwidth, color = color, clip = .true.)
-  call qp_draw_rectangle (x1, x1, y1, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x2, y1, 0.0_rp, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x2, y2, 0.0_rp, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x1, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 if (shape == 'L_TRIANGLE') then
-  call qp_draw_rectangle (x1, x2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
-  call qp_draw_rectangle (x1, x2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
-  call qp_draw_rectangle (x2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 if (shape == 'U_TRIANGLE') then
-  call qp_draw_rectangle (x1, x2, y1, y1, width = iwidth, color = color, clip = .true.)
-  call qp_draw_rectangle (x1, (x1+x2)/2, y1, y2, width = iwidth, color = color, clip = .true.)
-  call qp_draw_rectangle ((x1+x2)/2, x2, y2, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x2, y2, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, (x1+x2)/2, y2, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line ((x1+x2)/2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 if (shape == 'D_TRIANGLE') then
-  call qp_draw_rectangle (x1, x2, y2, y2, width = iwidth, color = color, clip = .true.)
-  call qp_draw_rectangle (x1, (x1+x2)/2, y2, y1, width = iwidth, color = color, clip = .true.)
-  call qp_draw_rectangle ((x1+x2)/2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, x2, y1, y1, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line (x1, (x1+x2)/2, y1, y2, width = iwidth, color = color, clip = .true.)
+  call qp_draw_line ((x1+x2)/2, x2, y2, y1, width = iwidth, color = color, clip = .true.)
 endif
 
 ! Draw X for XBOX or BOW_TIE

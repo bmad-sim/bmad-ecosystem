@@ -20,23 +20,25 @@ use tao_struct
 ! Routine to set a pointer to a universe.
 !
 ! This is an overloaded routine for the:
-!  tao_pointer_to_universe_int (ix_uni) result (u)
-!  tao_pointer_to_universe_str (string) result (u)
+!  tao_pointer_to_universe_int (ix_uni, neg2_to_default) result (u)
+!  tao_pointer_to_universe_str (string, neg2_to_default) result (u)
 !
 ! Note: With a string argument, this routine can only handle single universe picks. 
 ! That is, it cannot handlle something like "[1,3,4]@...". To handle multiple universe picks, use:
 !   tao_pick_universe
 !
 ! Input:
-!   ix_uni      -- Integer: Index to the s%u(:) array
-!                    If ix_uni is -1 or -2 then u(s%com%default_universe) will be used.
-!   string      -- character(*): String in the form "<ix_uni>@..." or, if 
-!                    no "@" is present, u will point to the default universe.
+!   ix_uni          -- Integer: Index to the s%u(:) array
+!                        If ix_uni is -1 -> u(s%com%default_universe) will be used.
+!   string          -- character(*): String in the form "<ix_uni>@..." or, if 
+!                        no "@" is present, u will point to the default universe.
+!   neg2_to_default -- logical, optional: i_uni = -2 (all universes) maps to the default uni?
+!                             Default if False.
 !
 ! Output:
-!   string -- character(*): String with universe prefix stripped off.
-!   u      -- Tao_universe_struct, pointer: Universe pointer.
-!               u will be nullified if there is an error and an error message will be printed.
+!   string      -- character(*): String with universe prefix stripped off.
+!   u           -- Tao_universe_struct, pointer: Universe pointer.
+!                     u will be nullified if there is an error and an error message will be printed.
 !-
 
 interface tao_pointer_to_universe
@@ -832,10 +834,11 @@ function tao_unique_ele_name (ele, nametable) result (unique_name)
   character(40) unique_name
 end function
 
-function tao_universe_number (i_uni) result (i_this_uni)
+function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
   import
   implicit none
   integer i_uni, i_this_uni
+  logical, optional :: neg2_to_default
 end function
 
 subroutine tao_use_data (action, data_name)
@@ -906,22 +909,23 @@ contains
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function tao_pointer_to_universe_int (ix_uni) result (u)
+! Function tao_pointer_to_universe_int (ix_uni, neg2_to_default) result (u)
 !
 ! Overloaded by tao_pointer_to_universe. See this routine for more details.
 !-
 
-function tao_pointer_to_universe_int (ix_uni) result(u)
+function tao_pointer_to_universe_int (ix_uni, neg2_to_default) result(u)
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
 integer ix_uni, ix_u
+logical, optional :: neg2_to_default
 character(*), parameter :: r_name = 'tao_pointer_to_universe_int'
 
 !
 
-ix_u = tao_universe_number(ix_uni)
+ix_u = tao_universe_number(ix_uni, neg2_to_default)
 
 if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
   call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)
@@ -937,17 +941,18 @@ end function tao_pointer_to_universe_int
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function tao_pointer_to_universe_str (string) result (u)
+! Function tao_pointer_to_universe_str (string, neg2_to_default) result (u)
 !
 ! Overloaded by tao_pointer_to_universe. See this routine for more details.
 !-
 
-function tao_pointer_to_universe_str (string) result(u)
+function tao_pointer_to_universe_str (string, neg2_to_default) result(u)
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
 integer ix, ix_u
+logical, optional :: neg2_to_default
 character(*) string
 character(*), parameter :: r_name = 'tao_pointer_to_universe_str'
 
@@ -970,7 +975,7 @@ endif
 read (string(1:ix-1), *) ix_u
 string = string(ix+1:)
 
-ix_u = tao_universe_number(ix_u)
+ix_u = tao_universe_number(ix_u, neg2_to_default)
 
 if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
   call out_io (s_fatal$, r_name, 'UNIVERSE INDEX OUT OF RANGE: \I0\ ', ix_u)
