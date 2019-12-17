@@ -129,7 +129,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_direct (file_unit, print_and_capture, min_level, max_level)
+! Subroutine output_direct (file_unit, print_and_capture, min_level, max_level, set, get)
 !
 ! Subroutine to set where the output goes when out_io is called.
 ! Output may be sent to the terminal screen, written to a file, and/or captured for program use.
@@ -152,17 +152,30 @@ contains
 !                          Default is s_blank$
 !   max_level         -- integer, optional: Maximum message status level to apply to.
 !                          Default is s_important$
+!   set               -- out_io_output_direct_struct, optional: If present, use this structure to set where output goes.
+!                          This structure can be used in place of specifying file_unit, etc. One way to use "set" is to first
+!                          call this routine with the "get" argument to get the output direction state.
+!                          
+!
+! Output:
+!   get               -- out_io_output_direct_struct, optional: If present, capture the output direction state before any setting
+!                          is done.
 !-
 
-subroutine output_direct (file_unit, print_and_capture, min_level, max_level)
+subroutine output_direct (file_unit, print_and_capture, min_level, max_level, set, get)
 
 implicit none
 
+type (out_io_output_direct_struct), optional :: set, get
 logical, optional :: print_and_capture
 integer, optional :: file_unit, min_level, max_level
 integer i
 
 !
+
+if (present(get)) get = out_io_direct
+
+if (present(set)) out_io_direct = set
 
 do i = integer_option(s_blank$, min_level), integer_option(s_important$, max_level)
   if (present(print_and_capture)) out_io_direct%print_and_capture(i) = print_and_capture
