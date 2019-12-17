@@ -185,6 +185,13 @@ subroutine file_suffixer (in_file_name, out_file_name, suffix, add_switch)
   character(*) suffix
 end subroutine
 
+function gen_complete_elliptic(kc, p, c, s, err_tol) result (value)
+  import
+  implicit none
+  real(rp) kc, p, c, s, value
+  real(rp), optional :: err_tol
+end function
+
 subroutine get_file_number (file_name, cnum_in, num_out, err_flag)
   implicit none
   character(*) file_name
