@@ -400,7 +400,7 @@ type (tao_plot_struct), pointer :: plot
 type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
 
-integer i, j, k, istat
+integer i, j, k, ib, istat
 
 ! building walls
 

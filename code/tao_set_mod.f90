@@ -291,11 +291,40 @@ namelist / params / global
 
 if (who == 'phase_units') then
   call match_word (value_str, angle_units_name, ix)
-  if (ix  == 0) then
-    call out_io (s_error$, r_name, 'BAD COMPONENT')
+  if (ix == 0) then
+    call out_io (s_error$, r_name, 'BAD "phase_units" VALUE: ' // value_str)
+  else
+    s%global%phase_units = ix
+  endif
+  return
+endif
+
+if (who == 'silent_run') then  ! Old style syntax
+  call out_io (s_error$, r_name, 'The "set global silent_run" command has been replaced by "set global quiet =  <logic>"')
+
+  if (s%com%cmd_file_level == 0) then
+    call out_io (s_error$, r_name, 'The "set global silent_run" command can only be used in command files.')
     return
   endif
-  s%global%phase_units = ix
+
+  call match_word (value_str, [character(8):: 'true', 'false'], ix)
+  if (ix == 1) then
+    call tao_quiet_set('all')
+  elseif (ix == 2) then
+    call tao_quiet_set('off')
+  else
+    call out_io (s_error$, r_name, 'BAD "silent_run" VALUE: ' // value_str)
+  endif
+  return
+endif
+
+if (who == 'quiet') then
+  if (s%com%cmd_file_level == 0) then
+    call out_io (s_error$, r_name, 'The "set global quiet" command can only be used in command files.')
+    return
+  endif
+
+  call tao_quiet_set (value_str)
   return
 endif
 
@@ -363,8 +392,6 @@ case ('rf_on')
     endif
   enddo
   s%u%calc%lattice = .true.
-case ('silent_run')
-  call tao_silent_run_set(s%global%silent_run)
 case ('track_type')
   if (value_str /= 'single' .and. value_str /= 'beam') then
     call out_io (s_error$, r_name, 'BAD VALUE. MUST BE "single" OR "beam".')

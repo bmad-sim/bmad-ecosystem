@@ -109,7 +109,7 @@ call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
 if (s%com%rf_on_arg /= '')                    s%global%rf_on = .true.
-if (s%com%silent_run_arg /= '')               s%global%silent_run = .true.
+if (s%com%quiet_arg /= '')                    s%global%quiet = 'all'
 if (s%com%no_stopping_arg /= '')              s%global%stop_on_error = .false.
 if (s%com%noplot_arg /= '')                   s%global%plot_on = .false.
 if (s%com%prompt_color_arg /= '')             s%global%prompt_color = s%com%prompt_color_arg

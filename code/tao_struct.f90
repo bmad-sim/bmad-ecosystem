@@ -593,6 +593,7 @@ type tao_global_struct
   integer :: srdt_gen_n_slices = 10      ! number times to slice elements for summation RDT calculation
   integer :: srdt_sxt_n_slices = 20      ! number times to slice sextupoles for summation RDT calculation
   logical :: srdt_use_cache = .true.     ! create cache for SRDT calculations.  Can use lots of memory if srdt_*_n_slices large.
+  character(12) :: quiet = 'off'                    ! "all", or "output". Print I/O when running a command file?
   character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
   character(16) :: random_gauss_converter = 'exact' ! Non-beam
   character(16) :: track_type    = 'single'         ! or 'beam'  
@@ -603,7 +604,7 @@ type tao_global_struct
   character(80) :: var_out_file  = 'var#.out'
   logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.
   logical :: box_plots = .false.                  ! For debugging plot layout issues.
-  logical :: command_file_print_on = .true.       ! Print to terminal when using a cmd file?
+  logical :: command_file_print_on = .true.       ! Depracated. No longer used. 
   logical :: concatenate_maps = .false.           ! False => tracking using DA. 
   logical :: debug_on = .false.                   ! For debugging.
   logical :: derivative_recalc = .true.           ! Recalc before each optimizer run?
@@ -622,7 +623,6 @@ type tao_global_struct
   logical :: orm_analysis = .false.               ! ORM using MDSA? 
   logical :: plot_on = .true.                     ! Do plotting?
   logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
-  logical :: silent_run = .false.                 ! Suppress terminal output when running a command file?
   logical :: single_step = .false.                ! For debugging and demonstrations: Single step through a command file?
   logical :: stop_on_error = .true.               ! For debugging: False prevents tao from exiting on an error.
   logical :: svd_retreat_on_merit_increase = .true.
@@ -667,10 +667,10 @@ type tao_common_struct
   integer :: default_branch = 0          ! Default lattice branch to work with.
   integer :: ix_history = 0 ! present index to command history array
   integer :: n_history      ! present history index
-  logical :: initialized = .false.                  ! Does tao_init() need to be called?
+  logical :: initialized = .false.              ! Does tao_init() need to be called?
   logical :: cmd_file_paused
-  logical :: use_cmd_here  = .false.                ! Used for the cmd history stack
-  logical :: cmd_from_cmd_file = .false.            ! was command from a command file?
+  logical :: use_cmd_here  = .false.            ! Used for the cmd history stack
+  logical :: cmd_from_cmd_file = .false.        ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
   logical :: combine_consecutive_elements_of_like_name
@@ -684,7 +684,6 @@ type tao_common_struct
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
   logical :: print_to_terminal = .true.        ! Print command prompt to the terminal? For use with GUIs.
-  logical :: quiet = .false.                   ! Print commands on terminal when running a command file?
   logical :: lattice_calc_done = .false.       ! Used by GUI for deciding when to refresh.
   character(100) :: cmd                        ! Used for the cmd history
   character(16) :: init_name = 'Tao'           ! label for initialization          
@@ -718,7 +717,7 @@ type tao_common_struct
   character(12) :: disable_smooth_line_calc_arg = '' ! -disable_smooth_line_calc
   character(12) :: rf_on_arg = ''                  ! -rf_on               command line argument
   character(12) :: prompt_color_arg = ''           ! -prompt_color        command line argument
-  character(12) :: silent_run_arg = ''             ! -silent_run          command line argument
+  character(12) :: quiet_arg = ''                  ! -quiet               command line argument
   character(12) :: noinit_arg = ''                 ! -noinit              command line argument
   character(80) :: single_mode_buffer = ''
   character(40) :: unique_name_suffix
