@@ -144,15 +144,16 @@ endif
 ! If a command file is open then read a line from the file.
 
 n_level = s%com%cmd_file_level
-if (n_level == 0) s%com%quiet = .false.  ! Disable if not running from a command file
+if (n_level == 0) call tao_quiet_set ('off')  ! verbose if not running from a command file
 
 if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
-  call output_direct (print_and_capture = s%global%command_file_print_on)
+  call output_direct (print_and_capture = (s%global%quiet /= 'all'))
 
   if (cmd_out == '') then
     do
       read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_out
       if (ios /= 0) then
+        call tao_quiet_set('off')
         call out_io (s_error$, r_name, 'CANNOT READ LINE FROM FILE: ' // s%com%cmd_file(n_level)%full_name)
         goto 8000
       endif
@@ -166,7 +167,8 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     ! Nothing more to do if an alias definition
 
     if (cmd_out(1:5) == 'alias') then
-      if (.not. s%com%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+      call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+      call tao_quiet_set(s%global%quiet)
       return
     endif
 
@@ -206,7 +208,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
     enddo loop1
 
-    if (.not. s%com%quiet) call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+    if (s%global%quiet /= 'all') call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
     
     ! Check if in a do loop
     call do_loop(lev_loop, loop, n_level, cmd_out)
@@ -222,6 +224,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
   endif
 
+  call tao_quiet_set(s%global%quiet)
   return
 endif
 
@@ -273,7 +276,7 @@ if (s%com%cmd_file_level /= 0) then
   endif
 endif
 
-call output_direct (print_and_capture = s%com%print_to_terminal)
+call tao_quiet_set('off')
 return
 
 !-------------------------------------------------------------------------

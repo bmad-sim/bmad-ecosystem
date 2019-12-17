@@ -38,7 +38,7 @@ call out_io (s_blank$, r_name, [ &
         '  -noplot                              # Do not open a plotting window                          ', &
         '  -plot_file <file_name>               # Plotting initialization file                           ', &
         '  -rf_on                               # Keep RF on (Default is to turn off)                    ', &
-        '  -silent_run                          # Suppress terminal output when running a command file?  ', &
+        '  -quiet                               # Suppress terminal output when running a command file?  ', &
         '  -slice_lattice <ele_list>            # Discards elements from lattice that are not in the list', &
         '  -startup_file <file_name>            # Commands to run after parsing Tao init file            ', &
         '  -var_file <file_name>                # Define variables for plotting and optimization         '])

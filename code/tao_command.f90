@@ -55,7 +55,7 @@ character(16) :: cmd_names(38) = [ &
     're_execute   ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
     'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
-    'python       ', 'quiet        ', 'json         ']
+    'python       ', 'json         ', 'quiet        ']
 
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
@@ -276,6 +276,7 @@ case ('help')
 
 !--------------------------------
 ! JSON
+! This is experimental. Removal is a possibility if not developed.
 
 case ('json')
 
@@ -353,14 +354,13 @@ case ('python')
   return
 
 !--------------------------------
-! QUIET PYTHON
+! QUIET
 
 case ('quiet')
 
 if (s%com%cmd_file_level == 0) then 
-  call out_io (s_error$, r_name, 'The "quiet" command may only be used in command files.')
-else
-  s%com%quiet = .true.
+  call out_io (s_error$, r_name, 'The "quiet" command has been replaced by the "set global quiet = <action>" command.')
+  return
 endif
 
 !--------------------------------

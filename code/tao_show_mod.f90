@@ -38,6 +38,8 @@ use tao_command_mod, only: tao_next_switch
 
 implicit none
 
+type (out_io_output_direct_struct) out_dir_state
+
 integer iu, ix, n, nl, ios
 integer :: n_write_file = 0            ! used for indexing 'show write' files
 
@@ -100,6 +102,7 @@ end do
 ! Result_id is for tao_show_this to show exactly what it did.
 ! This info can be helpful in tao_hook_show_cmd.
 
+call output_direct (get = out_dir_state)
 if (opened .and. err_out) call output_direct (iu)  ! tell out_io to write to a file
 
 call tao_show_this (what2, result_id, lines, nl)  
@@ -118,7 +121,7 @@ endif
 
 ! Finish
 
-call output_direct (-1, print_and_capture=s%com%print_to_terminal)  ! reset to not write to a file
+call output_direct (set = out_dir_state)
 
 if (opened) then
   close (iu)
@@ -1532,7 +1535,6 @@ case ('global')
     nl=nl+1; lines(nl) = 'Tao Global parameters [Note: To print optimizer globals use: "show optimizer"]'
     nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
-    nl=nl+1; write(lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
     nl=nl+1; write(lines(nl), lmt) '  %concatenate_maps              = ', s%global%concatenate_maps
     nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
@@ -1550,6 +1552,7 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', quote(s%global%prompt_color)
     nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', quote(s%global%random_engine)
     nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', quote(s%global%random_gauss_converter)
+    nl=nl+1; write(lines(nl), amt) '  %quiet                         = ', quote(s%global%quiet)
     nl=nl+1; write(lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
     if (s%global%random_seed == 0) then
       call ran_seed_get(ix)
@@ -1593,7 +1596,7 @@ case ('global')
     call write_this_arg (nl, lines, '  -noplot', s%com%noplot_arg)
     call write_this_arg (nl, lines, '  -plot_file', s%com%plot_file_arg)
     call write_this_arg (nl, lines, '  -rf_on', s%com%rf_on_arg)
-    call write_this_arg (nl, lines, '  -silent_run', s%com%silent_run_arg)
+    call write_this_arg (nl, lines, '  -quiet', s%com%quiet_arg)
     call write_this_arg (nl, lines, '  -slice_lattice', s%com%slice_lattice_arg)
     call write_this_arg (nl, lines, '  -startup_file', s%com%startup_file_arg)
     call write_this_arg (nl, lines, '  -var_file', s%com%var_file_arg)

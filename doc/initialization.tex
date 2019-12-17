@@ -384,8 +384,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{plot_on}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
-\index{lattice_calc_on}\index{command_file_print_on}
-\index{print_command}\index{default_init_file}\index{derivative_uses_design}
+\index{lattice_calc_on}\index{print_command}\index{default_init_file}\index{derivative_uses_design}
 \index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}
 \begin{example}
 type tao_global_struct
@@ -415,31 +414,28 @@ type tao_global_struct
   character(16)  optimizer     = "de"             ! optimizer to use.
   character(40)  print_command = "lpr"
   character(80)  var_out_file  = "var#.out"
-  logical beam_timer_on = F             ! For timing the beam tracking calculation.
-  logical concatenate_maps = F          ! False => tracking using DA.
-  logical command_file_print_on = T     ! Toggle printing when using a command file.
-  logical derivative_recalc = T         ! Recalc derivatives before each optimizer loop?
-  logical derivative_uses_design = F    ! Derivative matrix uses the design lattice?
-  logical disable_smooth_line_calc = F  ! Disable the plotting smooth line calc?
-  logical draw_curve_off_scale_warn = T ! Display warning on graphs when any part of the 
-                                        !   curve is out-of-bounds
-  logical label_lattice_elements = T    ! For lat_layout plots
-  logical label_keys = T                ! For lat_layout plots
-  logical lattice_calc_on = T           ! Turn on/off beam and single particle calculations.
-  logical opt_with_ref = F              ! use reference data in optimization?
-  logical opt_with_base = F             ! use base data in optimization?
-  logical optimizer_var_limit_warn = T  ! Warn when vars reach a limit when optimizing?
-  logical plot_on = T                   ! Do plotting?
-  logical rf_on = F                     ! RF cavities on?
-  logical svd_retreat_on_merit_increase = T    
-  logical var_limits_on = T             ! Respect the variable limits?
-  logical only_limit_opt_vars = F       ! Apply limits only if variable is used in optimization?
-  logical silent_run = F                ! Suppress terminal output when running a command file?
-  logical single_step = F               ! Single step through a command file?
-  logical stop_on_error = T             ! For debugging: True -> Tao will not exiting on an error.
+  logical beam_timer_on = F               ! For timing the beam tracking calculation.
+  logical concatenate_maps = F           ! False => tracking using DA.
+  logical derivative_recalc = T          ! Recalc derivatives before each optimizer loop?
+  logical derivative_uses_design = F     ! Derivative matrix uses the design lattice?
+  logical disable_smooth_line_calc = F   ! Disable the plotting smooth line calc?
+  logical draw_curve_off_scale_warn = T  ! Display warning on graphs when any part of the 
+                                         !   curve is out-of-bounds
+  logical label_lattice_elements = T     ! For lat_layout plots
+  logical label_keys = T                 ! For lat_layout plots
+  logical lattice_calc_on = T            ! Turn on/off beam and single particle calculations.
+  logical only_limit_opt_vars = F        ! Apply limits only if variable is used in optimization?
+  logical opt_with_ref = F               ! use reference data in optimization?
+  logical opt_with_base = F              ! use base data in optimization?
   logical optimizer_allow_user_abort = T ! See below.
-  logical optimizer_var_limit_warn = T   ! Warn when vars reach a limit with optimization.
-  logical quiet = F                      ! Print commands on terminal when running a command file?
+  logical optimizer_var_limit_warn = T   ! Warn when vars reach a limit when optimizing?
+  logical plot_on = T                    ! Do plotting?
+  logical quiet = 'off'                  ! Print to the terminal when using a command file?
+  logical rf_on = F                      ! RF cavities on?
+  logical svd_retreat_on_merit_increase = T    
+  logical single_step = F                ! Single step through a command file?
+  logical stop_on_error = T              ! For debugging: True -> Tao will not exiting on an error.
+  logical var_limits_on = T              ! Respect the variable limits?
 end type
 \end{example}
 
@@ -447,9 +443,6 @@ All global parameters can be changed from their initial value using
 the \vn{set} command (\sref{s:set}).
 
   \begin{description}
-  \item{\vn{global%command_file_print_on}} \Newline
-This switch controls whether printing to the terminal is suppressed when a command file is called.
-
   \item{\vn{global%concatenate_maps}} \Newline
 When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps} =
 False, is to use Differential Algebra (DA) to integrate the map from the starting point to the
@@ -508,6 +501,18 @@ distinguish between input meant as a \tao command and input meant for aborting t
 optimization. In this case, \vn{optimizer_allow_user_abort} will default to False so that
 the optimizer will not do any checking.
 
+  \item{\vn{global%quiet}} \Newline
+For use with command files. May be set to one of:
+\begin{example}
+  off     ! Normal verbose output
+  all     ! Suppress command echo and other output.
+  output  ! Suppress output except for command echo.
+\end{example}
+If set to \vn{all}, output to the terminal during command file running will be suppressed (except
+for warning and error messages) until the command file (or files) returns to the command line level
+at wich point \vn{global%quiet} is automatically reset to \vn{off}. That is, \vn{global%silent_run}
+must be set each time it is desired to run a command file(s) silently.
+
   \item{\vn{global%random_engine}} \Newline
 \vn{global%random_engine} selects the algorithm used for generating the random
 numbers. \vn{"pseudo"} causes \tao to use a pseudo-random number generator. \vn{"quasi"}
@@ -535,13 +540,6 @@ the closed orbit which is not the case when the RF is on.  Note: If you want to 
 with RF frequency changes then you will need to set \vn{parameter[absolute_time_tracking]} to
 True. See the ``Relative Versus Absolute Time Tracking'' section in the\bmad manual for more
 details.
-
-  \item{\vn{global%silent_run}} \Newline
-For use with command files. If set True, output to the terminal during command file running will be
-suppressed (except for warning and error messages) until the command file (or files) returns to the
-command line level at wich point \vn{global%silent_run} is automatically reset to False. That is,
-\vn{global%silent_run} must be set to True each time it is desired to run a command file(s)
-silently.
 
   \item{\vn{global%single_step}} \Newline
 For use with command files. If set True, this is equivalent to putting a "pause -1" after

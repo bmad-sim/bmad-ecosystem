@@ -63,7 +63,7 @@ do
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', '-beam_track_data_file', &
         '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file', &
-        '-plot_file', '-external_plotting'], ix, .true., matched_name=switch)
+        '-plot_file', '-external_plotting', '-quiet'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
@@ -142,8 +142,8 @@ do
   case ('-rf_on')
     s%com%rf_on_arg = '<present>'
 
-  case ('-silent_run')
-    s%com%silent_run_arg = '<present>'
+  case ('-quiet', '-silent_run')       ! "-silent_run" is old syntax
+    s%com%quiet_arg = '<present>'
 
   case ('-slice_lattice')
     call get_next_arg (arg0, s%com%slice_lattice_arg, i_arg, n_arg, .true.)
@@ -183,7 +183,7 @@ do
   case ('--plot_file');                           s%com%plot_file_arg = ''
   case ('--prompt_color', '--color_prompt');      s%com%prompt_color_arg = ''
   case ('--rf_on');                               s%com%rf_on_arg = ''
-  case ('--silent_run');                          s%com%silent_run_arg = ''
+  case ('--quiet', '--silent_run');               s%com%quiet_arg = ''
   case ('--slice_lattice');                       s%com%slice_lattice_arg = ''
   case ('--startup_file');                        s%com%startup_file_arg = ''
   case ('--var_file');                            s%com%var_file_arg = ''
