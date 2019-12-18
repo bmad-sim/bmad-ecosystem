@@ -223,10 +223,11 @@ implicit none
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_ele_shape_struct), pointer :: shape
+type (tao_universe_struct), pointer :: u
 type (floor_position_struct) floor, end
 type (lat_struct), pointer :: lat
 
-integer i, j, k, n, p1, p2, iu, ix, ib
+integer i, j, k, n, p1, p2, ix, ib
 real(rp) x_min, x_max
 real(rp) this_min, this_max, del
 logical, optional :: have_scaled
@@ -261,8 +262,8 @@ this_max = -1e30
 curve_here = .false.
 
 if (graph%type == 'floor_plan') then
-  ix = tao_universe_number(graph%ix_universe)
-  lat => s%u(ix)%model%lat
+  u => tao_pointer_to_universe(graph%ix_universe, .true.)
+  lat => u%model%lat
 
   do ib = 0, ubound(lat%branch, 1)
     do i = 0, lat%branch(ib)%n_ele_track
@@ -307,18 +308,18 @@ elseif (graph%type == 'histogram') then
 else if (graph%p%x_axis_type == 's') then
   if (allocated(graph%curve)) then
     do i = 1, size(graph%curve)
-      iu = tao_universe_number(tao_curve_ix_uni(graph%curve(i)))
+      u => tao_pointer_to_universe(tao_curve_ix_uni(graph%curve(i)), .true.)
       ib = graph%curve(i)%ix_branch
-      this_min = min (this_min, s%u(iu)%model%lat%branch(ib)%ele(0)%s)
-      ix = s%u(iu)%model%lat%branch(ib)%n_ele_track
-      this_max = max (this_max, s%u(iu)%model%lat%branch(ib)%ele(ix)%s)
+      this_min = min (this_min, u%model%lat%branch(ib)%ele(0)%s)
+      ix = u%model%lat%branch(ib)%n_ele_track
+      this_max = max (this_max, u%model%lat%branch(ib)%ele(ix)%s)
     enddo
   else
     ib = graph%ix_branch
-    iu = tao_universe_number(graph%ix_universe)
-    this_min = min (this_min, s%u(iu)%model%lat%branch(ib)%ele(0)%s)
-    ix = s%u(iu)%model%lat%branch(ib)%n_ele_track
-    this_max = max (this_max, s%u(iu)%model%lat%branch(ib)%ele(ix)%s)
+    u => tao_pointer_to_universe(graph%ix_universe, .true.)
+    this_min = min (this_min, u%model%lat%branch(ib)%ele(0)%s)
+    ix = u%model%lat%branch(ib)%n_ele_track
+    this_max = max (this_max, u%model%lat%branch(ib)%ele(ix)%s)
   endif
 
   curve_here = .true.
