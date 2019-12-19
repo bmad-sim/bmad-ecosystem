@@ -85,20 +85,17 @@ decide if this parameter is ignored or not. In particular, the \tao program (\sr
 %
   \index{default_tracking_species}
   \item[{parameter[default_tracking_species]}] \Newline
-The \vn{parameter[default_tracking_species]} switch establishes the
-default type of particles to be tracked. Possible setting include
-all the settings of \vn{parameter[particle]}. In addition, 
-this switch can be set to:
+The \vn{parameter[default_tracking_species]} switch establishes the default type of particles to be
+tracked. Possible setting include all the settings of \vn{parameter[particle]}. In addition, this
+switch can be set to:
 \begin{example}
   ref_particle     ! default
   anti_ref_particle
 \end{example}
-By default, \vn{default_tracking_species} is set to \vn{ref_particle}
-so that the particle being tracked is the same as the reference
-particle set by \vn{param[particle]}. In the case, for example,
+By default, \vn{default_tracking_species} is set to \vn{ref_particle} so that the particle being
+tracked is the same as the reference particle set by \vn{param[particle]}. In the case, for example,
 where there are particles going one way and antiparticles going the another,
-\vn{default_tracking_species} can be used to switch between
-tracking the particles or antiparticles.
+\vn{default_tracking_species} can be used to switch between tracking the particles or antiparticles.
 %
   \index{e_tot}\index{p0c}\index{lcavity}\index{patch}
   \item[{parameter[e_tot], parameter[p0c]}] \Newline
@@ -132,12 +129,12 @@ Notice that by specifying a \vn{closed} geometry it {\em does} not mean that the
 the last element of the lattice has the same global coordinates (\sref{s:global}) as the global
 coordinates at the beginning. Setting the geometry to \vn{closed} simply signals to a program to
 compute closed orbits and periodic Twiss parameters as opposed to calculating orbits and Twiss
-parameters based upon initial orbit and Twiss parameters at the beginning of the lattice. And
-indeed, it is sometimes convenient to treat lattices as closed even though there is no closure in
-the global coordinate sense. For example, when a machine has a number of repeating
-``super-periods'', it may be convenient to only use one period in a simulation. Since \bmad ignores
-closure in the global coorindate sense, it is up to the user to ensure that a lattice is closed in
-the global sense if that is desired.
+parameters based upon initial orbit and Twiss parameters at the beginning of the lattice.  Indeed,
+it is sometimes convenient to treat lattices as closed even though there is no closure in the global
+coordinate sense. For example, when a machine has a number of repeating ``super-periods'', it may be
+convenient to only use one period in a simulation. Since \bmad ignores closure in the global
+coordinate sense, it is up to the user to ensure that a lattice is truly geometrically closed if
+that is desired.
 
 Note: \vn{geometry} used to be called \vn{lattice_type}, \vn{closed} used to be called
 \vn{circular_lattice} and \vn{open} used to be called \vn{linear_lattice}.
@@ -320,7 +317,7 @@ to +1 (travel in the +s direction) or -1 for the reverse.  +1 is the default. Ge
 constructed to handle this situation. To track a particle in the reverse direction see
 \sref{s:reverse}. 
 
-For particles with spin, the spin can be specified using Cartiesian coordinates with \vn{spin_x},
+For particles with spin, the spin can be specified using Cartesian coordinates with \vn{spin_x},
 \vn{spin_y}, and \vn{spin_z}.
 
 For photons, \vn{px}, \vn{py}, and \vn{pz} are the normalized velocity components
@@ -330,7 +327,7 @@ is obeyed.
 Note: \vn{particle_start} used to be called \vn{beam_start}. Since this was confusing (beam
 initialization parameters are stored in a separate \vn{beam_init_struct} structure
 (\sref{s:beam.init.struct})), the name was changed. Currently the use of the \vn{beam_start} name
-is deprecated but still supported for backwards compatability.
+is deprecated but still supported for backwards compatibility.
 
 Example
 \begin{example}
