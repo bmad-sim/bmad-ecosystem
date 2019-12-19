@@ -82,7 +82,9 @@ the \vn{g_err} attribute of the bends (alternatively the \vn{hkick} or \vn{b0} a
 been used).
 
 It is important to note that using \vn{g} instead of \vn{g_err} to control the chicane strength
-would be a mistake. This is illustrated in \fig{f:chicane}B where the chicane overlay was replaced by:
+would be a mistake. [Or, alternatively, \vn{b_field} instead of \vn{b_field_err} if controlling the
+unnormalized field.] This is illustrated in \fig{f:chicane}B where the chicane overlay was replaced
+by:
 \begin{example}
   chicane: overlay = {bnd1[g]:-ge, bnd2[g]:ge}, var = {ge}, ge = 1e-1
 \end{example}

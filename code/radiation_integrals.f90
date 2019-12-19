@@ -177,9 +177,10 @@ if (any(orbit(1:branch%n_ele_track)%species == not_set$)) then
 endif
 
 if (any(branch%ele(0:branch%n_ele_track)%a%beta == 0)) then
-  call out_io (s_error$, r_name, 'TWISS PARAMETERS HAVE NOT BEEN INITIALIZED.', &
+  n = minloc(branch%ele(0:branch%n_ele_track)%a%beta, 1) - 1
+  call out_io (s_error$, r_name, 'TWISS PARAMETERS HAVE NOT BEEN INITIALIZED AT ELEMENT \i0\ OF BRANCH \i0\.', &
                                  '[DUE TO UNSTABLE RING? OR MISSING CALL TO TWISS_PROPAGATE_ALL?]', &
-                                 'NO RADIATION INTEGRALS WILL BE COMPUTED.')
+                                 'NO RADIATION INTEGRALS WILL BE COMPUTED.', i_array = [n, ib])
   return
 endif
 
@@ -327,7 +328,7 @@ if (use_cache .or. init_cache) then
       call allocate_cache(cache_ele, track%n_pt)
       do i = 0, track%n_pt
         cache_ele%pt(i)%ref_orb_in  = orb_start
-        call cache_fill(cache_ele%pt(i), track, i, max(0, i-1), min(track%n_pt, i+1))
+        call cache_fill(branch, cache_ele%pt(i), track, i, max(0, i-1), min(track%n_pt, i+1))
       enddo
 
     ! All else...
@@ -349,7 +350,7 @@ if (use_cache .or. init_cache) then
         z_here = k * del_z
         z1 = z_here + dz_small
         if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz_small)
-        call cache_this_point (z_start, z1, z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
+        call cache_this_point (branch, z_start, z1, z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
         z_start = z_here
         orb_start = orb_end
         ele_start = ele_end
@@ -403,7 +404,7 @@ if (use_cache .or. init_cache) then
           ele_start%map_ref_orb_out  = cp0%ref_orb_out
           ele_start%time_ref_orb_in  = orb_start
           ele_start%time_ref_orb_out = cp0%ref_orb_out        
-          call cache_this_point (z_start, z1, z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
+          call cache_this_point (branch, z_start, z1, z_here, orb_start, ele2, mat6, vec0, cache_ele%pt(k), orb_end, ele_end)
         enddo
       enddo outer_loop
     endif
@@ -702,8 +703,9 @@ if (bmad_com%debug) print '(a, f12.2)', 'radiation_integrals execution time:', t
 !------------------------------------------------------------------------
 contains
 
-subroutine cache_this_point (z_start, z1, z_here, orb_start, ele2, mat6, vec0, c_pt, orb_end, ele_end)
+subroutine cache_this_point (branch, z_start, z1, z_here, orb_start, ele2, mat6, vec0, c_pt, orb_end, ele_end)
 
+type (branch_struct) branch
 type (ele_struct) ele2
 type (rad_int_track_point_struct) :: c_pt
 type (coord_struct) orb_start, orb_end
@@ -765,8 +767,9 @@ end subroutine cache_this_point
 !------------------------------------------------------------------------
 ! contains
 
-subroutine cache_fill (c_pt, track, ix, ix0, ix1)
+subroutine cache_fill (branch, c_pt, track, ix, ix0, ix1)
 
+type (branch_struct) branch
 type (rad_int_track_point_struct) :: c_pt
 type (track_struct) track
 
