@@ -36,7 +36,7 @@ integer i, j, k, ic, id
 
 character(80) text
 character(*), parameter :: r_name = 'tao_draw_plots'
-character(3) view_str
+character(3) default_uni
 
 logical, optional :: do_clear
 logical found, err, beam_source
@@ -68,8 +68,8 @@ enddo
 ! Draw view universe
 
 if (size(s%u) > 1) then
-  write (view_str, '(i3)') s%com%default_universe
-  call qp_draw_text ('View Universe:' // view_str, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
+  write (default_uni, '(i3)') s%com%default_universe
+  call qp_draw_text ('Default Universe:' // default_uni, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
 endif
 
 ! loop over all plots
@@ -1847,7 +1847,10 @@ allocate (text(n), symbol(n), line(n))
 do i = 1, n
   curve => graph%curve(i)
   text(i) = curve%legend_text
-  if (text(i) == '') text(i) = curve%data_type
+  if (text(i) == '') then
+    text(i) = curve%data_type
+    if (size(s%u) > 1) write (text(i), '(i0, 2a)') curve%ix_universe, '@', trim(curve%data_type)
+  endif
   text(i) = trim(text(i)) // ' ' // trim(curve%component)
   symbol(i) = curve%symbol
   if (size(curve%x_symb) == 0) symbol(i)%type = 'do_not_draw'
