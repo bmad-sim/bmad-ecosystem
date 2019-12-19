@@ -194,8 +194,8 @@ type tao_plot_page_input
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   real(rp) :: floor_plan_shape_scale = 1.0
   real(rp) :: lat_layout_shape_scale = 1.0
-  real(rp) :: curve_legend_line_len  = 50   ! Points
-  real(rp) :: curve_legend_text_offset = 10 ! Points
+  real(rp) :: curve_legend_line_len  = 30   ! Points
+  real(rp) :: curve_legend_text_offset = 6 ! Points
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   type (tao_title_struct) :: title(2)       ! Titles at top of page.
   type (qp_rect_struct) :: border           ! Border around plots edge of page.

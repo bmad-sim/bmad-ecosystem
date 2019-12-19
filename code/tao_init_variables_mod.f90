@@ -283,10 +283,6 @@ call tao_setup_key_table ()
 ! Check that all lattice values are within limits.
 
 call tao_limit_calc(limited)
-if (limited) then
-  call out_io (s_fatal$, r_name, 'VARIABLES OUT OF RANGE ON STARTUP NOT PERMITTED!')
-  stop
-endif
 
 ! Call the hook routine.
 
