@@ -915,11 +915,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
     case (multipass_lord$, super_lord$, girder_lord$)
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type'
+      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a)') &
-                    trim(ele_location(slave)), slave%name(1:n_char), key_name(slave%key)
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, f14.6)') &
+                    trim(ele_location(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
       enddo
 
     case default

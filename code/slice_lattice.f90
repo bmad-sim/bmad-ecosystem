@@ -9,8 +9,8 @@
 ! Note: ele%multipass_ref_energy will be set to user_set$ if first pass element is discarded.
 !
 ! For each branch where there are elements to be deleted and where the reference energy has been computed:
-!   1) The Twiss and reference energy parameters from the first non-deleted element are 
-!       transferred to the beginning element.
+!   1) The Twiss, reference energy, floor position, and s-position parameters from the first 
+!       non-deleted element are transferred to the beginning element.
 !   2) The beginning betatron phase is set to zero.
 !   3) The branch geometry is set to open.
 !   
@@ -113,6 +113,9 @@ do ib = 0, ubound(lat%branch, 1)
     ele1 => branch%ele(ie-1)
     if (ele1%value(e_tot$) <= 0) exit  ! Energy has not been computed
     call transfer_twiss (ele1, ele0)
+    ele0%s_start             = ele1%s_start
+    ele0%s                   = ele1%s
+    ele0%floor               = ele1%floor
     ele0%value(e_tot$)       = ele1%value(e_tot$)
     ele0%value(e_tot_start$) = ele0%value(e_tot$)
     ele0%value(p0c$)         = ele1%value(p0c$)
