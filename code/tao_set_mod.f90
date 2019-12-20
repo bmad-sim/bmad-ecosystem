@@ -1513,13 +1513,14 @@ logical logic, error
 value = remove_quotes(value_str)
 
 comp = component
+sub_comp = ''
 ix = max(index(comp, '%'), index(comp, '.'), index(comp, '('))
 if (ix /= 0) then
   sub_comp = comp(ix+1:)
   comp = comp(:ix-1)
 endif
 
-u => tao_pointer_to_universe(this_graph%ix_universe)
+u => tao_pointer_to_universe(this_graph%ix_universe, .true.)
 this_graph%p%default_plot = .false. ! Plot has been modified
 
 select case (comp)
@@ -3040,7 +3041,10 @@ end subroutine tao_set_symbolic_number_cmd
 subroutine tao_set_qp_rect_struct (qp_rect_name, component, qp_rect, value, error, ix_uni)
 
 type (qp_rect_struct) qp_rect
+
+real(rp) :: values(4)
 integer, optional :: ix_uni
+integer ios
 character(*) qp_rect_name, component, value
 character(*), parameter :: r_name = 'tao_set_qp_rect_struct '
 logical error
@@ -3048,14 +3052,24 @@ logical error
 !
 
 select case (component)
-case ('x1')
-  call tao_set_real_value(qp_rect%x1, component, value, error, dflt_uni = ix_uni)
-case ('x2')
-  call tao_set_real_value(qp_rect%x2, component, value, error, dflt_uni = ix_uni)
-case ('y1')
-  call tao_set_real_value(qp_rect%y1, component, value, error, dflt_uni = ix_uni)
-case ('y2')
-  call tao_set_real_value(qp_rect%y2, component, value, error, dflt_uni = ix_uni)
+case ('x1');  call tao_set_real_value(qp_rect%x1, component, value, error, dflt_uni = ix_uni)
+case ('x2');  call tao_set_real_value(qp_rect%x2, component, value, error, dflt_uni = ix_uni)
+case ('y1');  call tao_set_real_value(qp_rect%y1, component, value, error, dflt_uni = ix_uni)
+case ('y2');  call tao_set_real_value(qp_rect%y2, component, value, error, dflt_uni = ix_uni)
+
+case ('')
+  read (value, *, iostat = ios) values
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, "Need four values: " // value)
+    error = .true.
+    return
+  endif
+  qp_rect%x1 = values(1)
+  qp_rect%x2 = values(2)
+  qp_rect%y1 = values(3)
+  qp_rect%y2 = values(4)
+  error = .false.
+
 case default
   call out_io (s_error$, r_name, "BAD QP_RECT COMPONENT: " // component)
   error = .true.
