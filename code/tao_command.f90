@@ -63,13 +63,6 @@ character(16) :: cmd_names_old(6) = [&
 
 logical quit_tao, err, silent, gang, abort, err_flag, ok
 
-! pause if single stepping
-
-if (s%global%single_step) then
-  n_level = s%com%cmd_file_level
-  s%com%cmd_file(n_level)%paused = .true.
-endif
-
 ! blank line => nothing to do
 
 call string_trim (command_line, cmd_line, ix_line)
