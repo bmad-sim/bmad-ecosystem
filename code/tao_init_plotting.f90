@@ -2724,34 +2724,35 @@ enddo
 
 !
 
-do k1 = 2, 3
+do k1 = 2, 4
 
-do i = 1, k1
-  write (name, '(a, 2i0)') 'layout', i, k1
-  if (all(s%plot_page%region(:)%name /= name)) then
-    nr = nr + 1
-    if (k1 == 3) s%plot_page%region(nr)%list_with_show_plot_command = .false.
-    s%plot_page%region(nr)%name = name
-    s%plot_page%region(nr)%location = [real(i-1, rp)/k1, real(i, rp)/k1, 0.0_rp, y_layout]
-  endif
-enddo
-
-do k2 = 1, 4
   do i = 1, k1
-  do j = 1, k2
-    write (name, '(a, 4i0)') 'r', i, j, k1, k2
-    if (any(s%plot_page%region(:)%name == name)) cycle
-    nr = nr + 1
-    s%plot_page%region(nr)%name = name
-    if (k1 == 3) s%plot_page%region(nr)%list_with_show_plot_command = .false.
-    x1 = real(i-1)/ k1
-    x2 = real(i) / k1
-    y1 = y_layout + (1 - y_layout) * real(k2-j)/ k2
-    y2 = y_layout + (1 - y_layout) * real(k2-j+1) / k2
-    s%plot_page%region(nr)%location = [x1, x2, y1, y2]
+    write (name, '(a, 2i0)') 'layout', i, k1
+    if (all(s%plot_page%region(:)%name /= name)) then
+      nr = nr + 1
+      if (k1 == 3) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+      s%plot_page%region(nr)%name = name
+      s%plot_page%region(nr)%location = [real(i-1, rp)/k1, real(i, rp)/k1, 0.0_rp, y_layout]
+    endif
   enddo
+
+  do k2 = 1, 4
+    do i = 1, k1
+    do j = 1, k2
+      write (name, '(a, 4i0)') 'r', i, j, k1, k2
+      if (any(s%plot_page%region(:)%name == name)) cycle
+      nr = nr + 1
+      s%plot_page%region(nr)%name = name
+      if (k1 == 3) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+      x1 = real(i-1)/ k1
+      x2 = real(i) / k1
+      y1 = y_layout + (1 - y_layout) * real(k2-j)/ k2
+      y2 = y_layout + (1 - y_layout) * real(k2-j+1) / k2
+      s%plot_page%region(nr)%location = [x1, x2, y1, y2]
+    enddo
+    enddo
   enddo
-enddo
+
 enddo
 
 !

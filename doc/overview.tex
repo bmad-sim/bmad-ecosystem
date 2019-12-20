@@ -216,16 +216,18 @@ be called within do loops.
 \end{example}
 
 To reduce unnecessary calculations, the logicals \vn{global%lattice_calc_on}
-and \vn{global%plot_on} can be toggled from within the command file. Example
+and \vn{global%plot_on} can be toggled from within the command file. Also 
+setting \vn{global%quiet} can turn off verbose output to the terminal. Example
 \begin{example}
+  set global quiet = all          ! Turn off verbose output to the terminal.
   set global lattice_calc_on = F  ! Turn off lattice calculations
   set global plot_on = F          ! Turn off plot calculations
   ... do some stuff ...
   set global plot_on = T          ! Turn back on 
   set global lattice_calc_on = T  ! Turn back on
+  set global quiet = off         
 \end{example}
-Additionally, the \vn{global%quiet} switch controls whether printing is suppressed when a command
-file is called. See \sref{s:globals} for more details.
+See \sref{s:globals} for more details.
 
 A \vn{end_file} command (\sref{s:end.file}) can be used to signal the
 end of the command file.
