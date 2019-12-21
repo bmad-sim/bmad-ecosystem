@@ -2419,7 +2419,7 @@ end subroutine qp_draw_symbol
 !   symbol_every -- Integer, optional: 
 !                               0  --> Do not draw symbols.
 !                               1  --> Draw symbols (Default).
-!                               2  --> Draw every 2nd symbol.
+!                               2  --> Draw every 2nd symbol starting by drawing the first symbol.
 !                               etc.
 !-
 

@@ -182,17 +182,18 @@ contains
 ! Routine to convert a string to the corresponding integer for enumerated parameter.
 !
 ! Input:
-!   enum_str      -- character(*): String representation for the enumerated parameter.
-!   enum_type     -- character(*): Type of enum. Possibilities are:
+!   enum_str      -- character(*): String representation (case insensitive) for the enumerated parameter. 
+!   enum_type     -- character(*): Type of enum. Possibilities are: (case sensitive)
 !                       "color", "line_pattern", "fill_pattern", "symbol_type", "arrow_head_type"
 !   ix_dflt       -- integer, optional: Default number to set ix_enum to if enum_str is not valid.
-!                     If not present then the structure default is used.
+!                     If not present, the default appropriate to enum_type is used.
+!   error         -- logical, optional: Set True if there is a problem. False otherwise.
 !
 ! Output:
 !   ix_enum       -- integer: Index corresponding to enum_str.
 !-
 
-function qp_string_to_enum (enum_str, enum_type, ix_dflt) result (ix_enum)
+function qp_string_to_enum (enum_str, enum_type, ix_dflt, error) result (ix_enum)
 
 implicit none
 
@@ -200,16 +201,20 @@ real(rp) cnum
 integer ix_enum, ix, ixd, lb
 integer, optional :: ix_dflt
 character(*) enum_str, enum_type
+logical, optional :: error
 
 !
+
+if (present(error)) error = .true.
 
 select case (enum_type)
 case ('color')
   if (enum_str(1:1) == 'Z') then    ! Continuous color mapping.
     if (.not. is_real(enum_str(2:), real_num = cnum)) then
-      ix_enum = -1 + lbound(qp_color_name, 1)
+      ix_enum = integer_option(-1 + lbound(qp_color_name, 1), ix_dflt)
     else
       ix_enum  = nint(17 + cnum * (huge(ix) - 17))
+      if (present(error)) error = .false.
     endif
     return
   else
@@ -234,15 +239,15 @@ case ('arrow_head_type')
   ixd = integer_option(filled_arrow_head$, ix_dflt)
   lb = lbound(qp_arrow_head_type_name, 1)
 case default
-  ix_enum = -1
+  ix_enum = integer_option(-1, ix_dflt)
   return
 end select
-
 
 if (ix == 0) then
   ix_enum = ixd
 else
   ix_enum = ix + (lb - 1)
+  if (present(error)) error = .false.
 endif
 
 end function qp_string_to_enum
@@ -251,7 +256,7 @@ end function qp_string_to_enum
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function qp_enum_to_string (ix_enum, enum_type, str_dflt) result (enum_str)
+! Function qp_enum_to_string (ix_enum, enum_type, str_dflt, error) result (enum_str)
 ! 
 ! Routine to convert a string to the corresponding integer for enumerated parameter.
 !
@@ -260,13 +265,14 @@ end function qp_string_to_enum
 !   enum_type     -- character(*): Type of enum. Possibilities are:
 !                       "color", "line_pattern", "fill_pattern", "symbol_type", "arrow_head_type"
 !   str_dflt      -- character(*), optional: Default string to set enum_str to if ix_enum is not valid.
-!                     If not present then the structure default is used.
+!                     If not present then the default appropriate to enum_type is used.
 !
 ! Output:
 !   enum_str      -- character(16): String representation for the enumerated parameter.
+!   error         -- logical, optional: Set True if there is a problem. False otherwise.
 !-
 
-function qp_enum_to_string (ix_enum, enum_type, str_dflt) result (enum_str)
+function qp_enum_to_string (ix_enum, enum_type, str_dflt, error) result (enum_str)
 
 implicit none
 
@@ -274,18 +280,23 @@ integer ix_enum, ix
 character(*) enum_type
 character(*), optional :: str_dflt
 character(16) enum_str
+logical, optional :: error
 
 !
+
+if (present(error)) error = .true.
 
 select case (enum_type)
 case ('color')
   if (ix_enum > 16) then
     enum_str(1:1) = 'Z'
     write (enum_str(2:), '(f15.13)') (ix_enum - 17) / (1.0_rp * (huge(ix) - 17))
+    if (present(error)) error = .false.
   elseif (ix_enum < lbound(qp_color_name, 1) .or. ix_enum > ubound(qp_color_name, 1)) then
     enum_str = string_option('black', str_dflt)
   else
     enum_str = downcase(qp_color_name(ix_enum))
+    if (present(error)) error = .false.
   endif
 
 case ('fill_pattern')
@@ -293,6 +304,7 @@ case ('fill_pattern')
     enum_str = string_option('solid', str_dflt)
   else
     enum_str = downcase(qp_symbol_fill_pattern_name(ix_enum))
+    if (present(error)) error = .false.
   endif
 
 case ('line_pattern')
@@ -300,6 +312,7 @@ case ('line_pattern')
     enum_str = string_option('solid', str_dflt)
   else
     enum_str = downcase(qp_line_pattern_name(ix_enum))
+    if (present(error)) error = .false.
   endif
 
 case ('symbol_type')
@@ -307,6 +320,7 @@ case ('symbol_type')
     enum_str = string_option('circle_dot', str_dflt)
   else
     enum_str = downcase(qp_symbol_type_name(ix_enum))
+    if (present(error)) error = .false.
   endif
 
 case ('arrow_head_type')
@@ -314,10 +328,11 @@ case ('arrow_head_type')
     enum_str = string_option('filled', str_dflt)
   else
     enum_str = downcase(qp_arrow_head_type_name(ix_enum))
+    if (present(error)) error = .false.
   endif
 
 case default
-  enum_str = '????'  
+  enum_str = string_option ('????', str_dflt)
 end select
 
 end function qp_enum_to_string
