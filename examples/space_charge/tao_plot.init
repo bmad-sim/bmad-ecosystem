@@ -81,7 +81,7 @@ plot_page%size = 800, 400
 
   place(1) = 'floor', 'floor'     !'abs_dispersion'
   place(2) = 'top', 'beta'
-  place(3) = 'middle', 'eta'
+  place(3) = 'middle', 'dispersion'
   place(4) = 'bottom', 'layout'
 
 /

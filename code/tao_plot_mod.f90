@@ -107,7 +107,9 @@ do i = 1, size(s%plot_page%region)
     call qp_set_layout (box = graph%box)
 
     if (.not. graph%is_valid) then
-      call qp_draw_text (graph%why_invalid, 0.2_rp, -0.2_rp, '%BOX', color = 'red', justify = 'LC')
+      call qp_draw_text ('Graph: ' // trim(plot%name) // '.' // trim(graph%name) // '  ' // graph%title, &
+                                                       0.5_rp, 0.6_rp, '%BOX', color = 'red', justify = 'CC')
+      call qp_draw_text (graph%why_invalid, 0.5_rp, 0.4_rp, '%BOX', color = 'red', justify = 'CC')
       return
     endif
 
@@ -438,8 +440,9 @@ type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (floor_position_struct) end1, end2, floor
 
-integer i, j, k, n, is, n_bend, isu, ic, ib, ix_shape_min
+integer i, j, k, n, is, ix, n_bend, isu, ic, ib, ix_shape_min
 integer ix_pass, n_links, iwidth
+logical err
 
 !
 
@@ -501,7 +504,9 @@ if (allocated(s%building_wall%section)) then
         if (pt(j)%radius == 0) then   ! line
           call tao_floor_to_screen (graph, [pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
           call tao_floor_to_screen (graph, [pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
-          call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), width = iwidth, color = ele_shape%color)
+          ix = max(1, index(ele_shape%shape, '_LINE'))
+          call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), &
+                      line_pattern = ele_shape%shape(1:ix-1), width = iwidth, color = ele_shape%color)
 
         else                    ! arc
           theta1 = atan2(pt(j-1)%x - pt(j)%x_center, pt(j-1)%z - pt(j)%z_center)
@@ -980,7 +985,7 @@ endif
 
 ! Draw diamond, etc
 
-if (shape == 'DIAMOND' .or. shape(3:) == 'TRIANGLE') then
+if (shape == 'diamond' .or. shape(3:) == 'triangle') then
   if (is_bend) then
     x_00 = x_bend(1) - dx_bend(1);          y_00 = y_bend(1) - dy_bend(1)
     x_01 = x_bend(1);                       y_01 = y_bend(1)
@@ -1005,24 +1010,24 @@ if (shape == 'DIAMOND' .or. shape(3:) == 'TRIANGLE') then
   endif
 
   select case (shape)
-  case ('DIAMOND')
+  case ('diamond')
     call qp_draw_line (x_01, x_12, y_01, y_12, units = draw_units, color = color)
     call qp_draw_line (x_01, x_10, y_01, y_10, units = draw_units, color = color)
     call qp_draw_line (x_21, x_12, y_21, y_12, units = draw_units, color = color)
     call qp_draw_line (x_21, x_10, y_21, y_10, units = draw_units, color = color)
-  case ('R_TRIANGLE')
+  case ('r_triangle')
     call qp_draw_line (x_00, x_21, y_00, y_21, units = draw_units, color = color)
     call qp_draw_line (x_02, x_21, y_02, y_21, units = draw_units, color = color)
     call qp_draw_line (x_00, x_02, y_00, y_02, units = draw_units, color = color)
-  case ('L_TRIANGLE')
+  case ('l_triangle')
     call qp_draw_line (x_20, x_01, y_20, y_01, units = draw_units, color = color)
     call qp_draw_line (x_22, x_01, y_22, y_01, units = draw_units, color = color)
     call qp_draw_line (x_20, x_22, y_20, y_22, units = draw_units, color = color)
-  case ('U_TRIANGLE')
+  case ('u_triangle')
     call qp_draw_line (x_00, x_12, y_00, y_12, units = draw_units, color = color)
     call qp_draw_line (x_20, x_12, y_20, y_12, units = draw_units, color = color)
     call qp_draw_line (x_00, x_20, y_00, y_20, units = draw_units, color = color)
-  case ('D_TRIANGLE')
+  case ('d_triangle')
     call qp_draw_line (x_02, x_10, y_02, y_10, units = draw_units, color = color)
     call qp_draw_line (x_22, x_10, y_22, y_10, units = draw_units, color = color)
     call qp_draw_line (x_02, x_22, y_02, y_22, units = draw_units, color = color)
@@ -1031,14 +1036,14 @@ endif
 
 ! Draw a circle.
 
-if (shape == 'CIRCLE') then
+if (shape == 'circle') then
   call qp_draw_circle ((end1%r(1)+end2%r(1))/2, (end1%r(2)+end2%r(2))/2, off, &
                                                   units = draw_units, color = color)
 endif
 
 ! Draw an X.
 
-if (shape == 'X') then
+if (shape == 'x') then
   if (is_bend) then
     n = n_bend / 2
     x0  = x_bend(n)
@@ -1055,7 +1060,7 @@ endif
 
 ! Draw top and bottom of boxes and rbow_tie
 
-if (shape == 'RBOW_TIE' .or. shape == 'BOX' .or. shape == 'XBOX') then
+if (shape == 'rbow_tie' .or. shape == 'box' .or. shape == 'xbox') then
   if (is_bend) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
                           y_bend(:n_bend) + dy_bend(:n_bend), units = draw_units, color = color)
@@ -1070,7 +1075,7 @@ endif
 
 ! Draw sides of boxes
 
-if (shape == 'BOW_TIE' .or. shape == 'BOX' .or. shape == 'XBOX') then
+if (shape == 'bow_tie' .or. shape == 'box' .or. shape == 'xbox') then
   if (is_bend) then
     call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
                        y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = draw_units, color = color)
@@ -1085,14 +1090,14 @@ endif
 
 ! Draw X for xbox or bow_tie
 
-if (shape == 'XBOX' .or. shape == 'BOW_TIE' .or. shape == 'RBOW_TIE' .or. shape == 'X') then
+if (shape == 'xbox' .or. shape == 'bow_tie' .or. shape == 'rbow_tie' .or. shape == 'x') then
   call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, units = draw_units, color = color)
   call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, units = draw_units, color = color)
 endif
 
 ! Custom pattern
 
-if (prefix == 'PATTERN') then
+if (prefix == 'pattern') then
   do i = 1, size(s%plot_page%pattern)
     if (shape /= s%plot_page%pattern(i)%name) cycle
     pat => s%plot_page%pattern(i)
@@ -1394,20 +1399,20 @@ iwidth = ele_shape%line_width
 
 ! Draw the shape
 
-if (shape == 'DIAMOND') then
+if (shape == 'diamond') then
   call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape == 'CIRCLE') then
+if (shape == 'circle') then
   call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
   call qp_convert_point_rel (r_dum, y1, 'DATA', r_dum, y1, 'POINTS')
   call qp_draw_circle (x0, y0, abs(y1), units = 'POINTS', width = iwidth, color = color)
 endif
 
-if (shape == 'X') then
+if (shape == 'x') then
   call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
   call qp_convert_point_rel (x1, y1, 'DATA', x1, y1, 'POINTS')
   call qp_convert_point_rel (x2, y2, 'DATA', x2, y2, 'POINTS')
@@ -1415,39 +1420,39 @@ if (shape == 'X') then
   call qp_draw_line (x0-y1, x0+y1, y0+y1, y0-y1, units = 'POINTS', width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape == 'BOW_TIE') then
+if (shape == 'bow_tie') then
   call qp_draw_line (x1, x1, y1, y2, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape == 'RBOW_TIE') then
+if (shape == 'rbow_tie') then
   call qp_draw_line (x1, x2, y1, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x2, y2, y2, width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape == 'BOX' .or. shape == 'XBOX') then
+if (shape == 'box' .or. shape == 'xbox') then
   call qp_draw_rectangle (x1, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape == 'R_TRIANGLE') then
+if (shape == 'r_triangle') then
   call qp_draw_line (x1, x2, y1, 0.0_rp, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x2, y2, 0.0_rp, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x1, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape == 'L_TRIANGLE') then
+if (shape == 'l_triangle') then
   call qp_draw_line (x1, x2, 0.0_rp, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x2, 0.0_rp, y2, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape == 'U_TRIANGLE') then
+if (shape == 'u_triangle') then
   call qp_draw_line (x1, x2, y2, y2, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, (x1+x2)/2, y2, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line ((x1+x2)/2, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
-if (shape == 'D_TRIANGLE') then
+if (shape == 'd_triangle') then
   call qp_draw_line (x1, x2, y1, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, (x1+x2)/2, y1, y2, width = iwidth, color = color, clip = .true.)
   call qp_draw_line ((x1+x2)/2, x2, y2, y1, width = iwidth, color = color, clip = .true.)
@@ -1455,14 +1460,14 @@ endif
 
 ! Draw X for XBOX or BOW_TIE
 
-if (shape == 'XBOX' .or. shape == 'BOW_TIE' .or. shape == 'RBOW_TIE') then
+if (shape == 'xbox' .or. shape == 'bow_tie' .or. shape == 'rbow_tie') then
   call qp_draw_line (x1, x2, y2, y1, width = iwidth, color = color, clip = .true.)
   call qp_draw_line (x1, x2, y1, y2, width = iwidth, color = color, clip = .true.)
 endif
 
 ! Custom pattern
 
-if (prefix == 'PATTERN') then
+if (prefix == 'pattern') then
   do i = 1, size(s%plot_page%pattern)
     if (shape /= s%plot_page%pattern(i)%name) cycle
     pat => s%plot_page%pattern(i)
@@ -1661,7 +1666,7 @@ type (tao_plot_struct) plot
 type (tao_graph_struct), target :: graph
 type (tao_curve_struct) :: curve
 
-real(rp) :: dz
+real(rp) :: dz, dx, dummy
 integer i, color
 logical have_data
 character(16) num_str
@@ -1697,13 +1702,32 @@ endif
 
 if (curve%draw_symbol_index .and. allocated(curve%ix_symb)) then
   if (size(curve%ix_symb) > 0) have_data = .true.
-  do i = 1, size(curve%ix_symb)
+  do i = 1, size(curve%x_symb)
+    if (mod(i-1, curve%symbol_every) /= 0) cycle
     if (graph%clip) then
       if (curve%x_symb(i) < graph%x%min .or. curve%x_symb(i) > graph%x%max)  cycle
       if (curve%y_symb(i) < graph%y%min .or. curve%y_symb(i) > graph%y%max) cycle
     endif
     write (num_str, '(i0)') curve%ix_symb(i)
     call qp_draw_text (num_str, curve%x_symb(i), curve%y_symb(i))
+  enddo
+endif
+
+if (curve%draw_error_bars .and. allocated(curve%err_symb)) then
+  if (size(curve%err_symb) > 0) have_data = .true.
+  call qp_from_inch_rel(0.02_rp, 0.0_rp, dx, dummy)  ! Bar width at top & bottom is 0.02"
+  do i = 1, size(curve%x_symb)
+    if (mod(i-1, curve%symbol_every) /= 0) cycle
+    if (graph%clip) then
+      if (curve%x_symb(i) < graph%x%min .or. curve%x_symb(i) > graph%x%max)  cycle
+      if (curve%y_symb(i) < graph%y%min .or. curve%y_symb(i) > graph%y%max) cycle
+    endif
+    call qp_draw_line (curve%x_symb(i), curve%x_symb(i), curve%y_symb(i) - curve%err_symb(i), &
+                                                                   curve%y_symb(i) + curve%err_symb(i)) 
+    call qp_draw_line (curve%x_symb(i)-dx, curve%x_symb(i)+dx, curve%y_symb(i) - curve%err_symb(i), &
+                                                                   curve%y_symb(i) - curve%err_symb(i)) 
+    call qp_draw_line (curve%x_symb(i)-dx, curve%x_symb(i)+dx, curve%y_symb(i) + curve%err_symb(i), &
+                                                                   curve%y_symb(i) + curve%err_symb(i))
   enddo
 endif
 

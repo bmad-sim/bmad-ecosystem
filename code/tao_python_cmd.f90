@@ -767,9 +767,10 @@ case ('data')
   nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    d_ptr%design_value
   nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       d_ptr%old_value
   nl=incr(nl); write (li(nl), rmt) 'base_value;REAL;F;',                      d_ptr%base_value
+  nl=incr(nl); write (li(nl), rmt) 'error_rms;REAL;T;',                       d_ptr%error_rms
   nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     d_ptr%delta_merit
   nl=incr(nl); write (li(nl), rmt) 'weight;REAL;T;',                          d_ptr%weight
-  nl=incr(nl); write (li(nl), rmt) 'invalid_value;REAL;F;',                   d_ptr%invalid_value
+  nl=incr(nl); write (li(nl), rmt) 'invalid_value;REAL;T;',                   d_ptr%invalid_value
   nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s
   nl=incr(nl); write (li(nl), rmt) 's_offset;REAL;F;',                        d_ptr%s_offset
@@ -3097,6 +3098,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      c%draw_line
   nl=incr(nl); write (li(nl), lmt) 'draw_symbols;LOGIC;T;',                   c%draw_symbols
   nl=incr(nl); write (li(nl), lmt) 'draw_symbol_index;LOGIC;T;',              c%draw_symbol_index
+  nl=incr(nl); write (li(nl), lmt) 'draw_error_bars;LOGIC;T;',                c%draw_error_bars
   nl=incr(nl); write (li(nl), lmt) 'smooth_line_calc;LOGIC;T;',               c%smooth_line_calc
   nl=incr(nl); write (li(nl), lmt) 'use_z_color;LOGIC;I;',                    c%use_z_color
   nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              c%autoscale_z_color

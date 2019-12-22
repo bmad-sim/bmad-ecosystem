@@ -31,7 +31,7 @@ ele_shape(23) =   "SOL_QUAD::*"                       "BOX"           "BLACK"   
 ele_shape(24) =   "SOLENOID::*"                       "BOX"           "BLUE"             6.0  "name"      T     F      1
 ele_shape(25) =   "WIGGLER::*"                        "XBOX"          "CYAN"            10.0  "name"      T     F      1
 ele_shape(26) =   "PHOTON_INIT::*"                    "BOX"           "BLACK"            6.0  "name"      T     F      1
-ele_shape(27) =   "building_wall::inside"             "-"             "GREEN"            6.0  "name"      T     F      3
-ele_shape(28) =   "building_wall::outside"            "-"             "RED"              6.0  "name"      T     F      3
-ele_shape(29) =   "building_wall::*"                  "-"             "BLACK"            6.0  "name"      T     F      3
+ele_shape(27) =   "building_wall::inside"             "solid_line"    "GREEN"            6.0  "name"      T     F      3
+ele_shape(28) =   "building_wall::outside"            "solid_line"    "RED"              6.0  "name"      T     F      3
+ele_shape(29) =   "building_wall::*"                  "solid_line"    "BLACK"            6.0  "name"      T     F      3
 /

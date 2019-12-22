@@ -333,6 +333,7 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
   u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
   u%data(n1:n2)%meas_value       = datum(ix1:ix2)%meas
+  u%data(n1:n2)%error_rms        = datum(ix1:ix2)%error_rms
 
   where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was not set
     u%data(n1:n2)%meas_value = 0  
@@ -399,21 +400,23 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%exists          = d1_array(1)%d1%d%exists
   u%data(n1:n2)%s_offset        = d1_array(1)%d1%d%s_offset
   u%data(n1:n2)%eval_point      = d1_array(1)%d1%d%eval_point
+  u%data(n1:n2)%meas_value      = 0
 
-  u%data(n1:n2)%invalid_value = datum(ix1)%invalid_value
-  u%data(n1:n2)%meas_value    = 0
+  u%data(n1:n2)%error_rms     = datum(ix1:ix2)%error_rms
+  u%data(n1:n2)%invalid_value = datum(ix1:ix2)%invalid_value
 
   if (default_data_type /= '')    u%data(n1:n2)%data_type = default_data_type
-  if (datum(ix1)%data_type /= '') u%data(n1:n2)%data_type = datum(ix1)%data_type
-
   if (default_data_source /= '')    u%data(n1:n2)%data_source = default_data_source
-  if (datum(ix1)%data_source /= '') u%data(n1:n2)%data_source = datum(ix1)%data_source
-
   if (default_merit_type /= '')    u%data(n1:n2)%merit_type = default_merit_type
-  if (datum(ix1)%merit_type /= '') u%data(n1:n2)%merit_type = datum(ix1)%merit_type
-
   if (default_weight /= 0)    u%data(n1:n2)%weight = default_weight
-  if (datum(ix1)%weight /= 0) u%data(n1:n2)%weight = datum(ix1)%weight
+
+  do n = n1, n2
+    ix = ix_min_data + n - n1
+    if (datum(ix)%weight /= 0)       u%data(n)%weight      = datum(ix)%weight
+    if (datum(ix)%data_type /= '')   u%data(n)%data_type   = datum(ix1)%data_type
+    if (datum(ix)%data_source /= '') u%data(n)%data_source = datum(ix1)%data_source
+    if (datum(ix)%merit_type /= '')  u%data(n)%merit_type  = datum(ix1)%merit_type
+  enddo
 
   if (any(default_spin_n0 /= 0)) then
     u%data(n1:n2)%spin_axis%n0(1) = default_spin_n0(1)
@@ -471,6 +474,7 @@ else
   u%data(n1:n2)%weight           = datum(ix1:ix2)%weight
   u%data(n1:n2)%ele_name         = datum(ix1:ix2)%ele_name
   u%data(n1:n2)%invalid_value    = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%error_rms        = datum(ix1:ix2)%error_rms
   u%data(n1:n2)%ele_ref_name     = datum(ix1:ix2)%ele_ref_name
   u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
   u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
