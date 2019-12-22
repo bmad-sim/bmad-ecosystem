@@ -569,6 +569,7 @@ do  ! Loop over plot files
         crv%draw_line            = curve(j)%draw_line
         crv%draw_symbols         = curve(j)%draw_symbols
         crv%draw_symbol_index    = curve(j)%draw_symbol_index
+        crv%draw_error_bars      = curve(j)%draw_error_bars
         crv%use_y2               = curve(j)%use_y2
         crv%use_z_color          = curve(j)%use_z_color
         crv%autoscale_z_color    = curve(j)%autoscale_z_color
@@ -798,12 +799,15 @@ do n = 1, size(ele_shape)
   es => ele_shape(n)
   if (es%ele_id == '') cycle
 
-  if (es%ele_id == 'wall::building') es%ele_id = 'building_wall::*'
-  ! Bmad wants ele names upper case but Tao data is case sensitive.
+  if (es%ele_id == 'wall::building') es%ele_id = 'building_wall::*'                  ! Convert old style to new
+  if (es%ele_id(1:15) == 'building_wall::') call downcase_string(es%ele_id(1:15))
+  if (es%ele_id(1:15) == 'building_wall::' .and. es%shape == '-') es%shape = 'solid_line'   ! Convert old style to new
+
+  ! In the past Tao has not worried about case
   if (es%ele_id(1:6) /= 'data::' .and. es%ele_id(1:5) /= 'var::' .and. &
-      es%ele_id(1:5) /= 'lat::' .and. es%ele_id(1:15) /= 'building_wall::') call str_upcase (es%ele_id, es%ele_id)
-  call str_upcase (es%shape,    es%shape)
-  call str_upcase (es%color,    es%color)
+      es%ele_id(1:5) /= 'lat::' .and. es%ele_id(1:15) /= 'building_wall::') call str_downcase (es%ele_id, es%ele_id)
+  call downcase_string (es%shape)
+  call downcase_string (es%color)
   call downcase_string (es%label)
   if (es%label == '') es%label = 'name'
   if (index('false', trim(es%label)) == 1) es%label = 'none'
@@ -816,10 +820,10 @@ do n = 1, size(ele_shape)
   n_shape = n
 
   ! Convert from old shape names to new names with prefix.
-  if (es%shape(1:4) == 'VAR_')            then;   es%shape = es%shape(1:3) // ':' // es%shape(5:)
-  elseif (es%shape(1:5) == 'VVAR_')       then;   es%shape = es%shape(1:4) // ':' // es%shape(6:)
-  elseif (es%shape(1:9) == 'ASYM_VAR_')   then;   es%shape = es%shape(1:8) // ':' // es%shape(10:)
-  elseif (es%shape(1:10) == 'ASYM_VVAR_') then;   es%shape = es%shape(1:9) // ':' // es%shape(11:)
+  if (es%shape(1:4) == 'var_')            then;   es%shape = es%shape(1:3) // ':' // es%shape(5:)
+  elseif (es%shape(1:5) == 'vvar_')       then;   es%shape = es%shape(1:4) // ':' // es%shape(6:)
+  elseif (es%shape(1:9) == 'asym_var_')   then;   es%shape = es%shape(1:8) // ':' // es%shape(10:)
+  elseif (es%shape(1:10) == 'asym_vvar_') then;   es%shape = es%shape(1:9) // ':' // es%shape(11:)
   endif
 
   ! Error checks
@@ -833,7 +837,7 @@ do n = 1, size(ele_shape)
     shape = es%shape(ix+1:)
   endif
 
-  if (prefix == 'PATTERN') then
+  if (prefix == 'pattern') then
     if (all(shape /= s%plot_page%pattern(:)%name)) then
       call out_io (s_error$, r_name, 'ELE_SHAPE: ', trim(es%shape) // ' DOES NOT HAVE AN ASSOCIATED PATTERN.', &
                                      'IN FILE: ' // plot_file)
@@ -842,19 +846,23 @@ do n = 1, size(ele_shape)
   endif
 
   select case (prefix)
-  case ('VVAR', 'ASYM_VVAR')
+  case ('vvar', 'asym_vvar')
     if (es%ele_id(1:6) /= 'data::' .and. es%ele_id(1:5) /= 'var::') then
       call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(es%shape) // &
                                            ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // es%ele_id, &
                                      'IN FILE: ' // plot_file)
     endif
-  case ('', 'VAR', 'ASYM_VAR')
+  case ('', 'var', 'asym_var')
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE PREFIX: ' // es%shape, 'IN FILE: ' // plot_file)
   end select
 
   select case (shape)
-  case ('BOX', 'XBOX', 'BOW_TIE', 'CIRCLE', 'DIAMOND', 'X', 'R_TRIANGLE', 'L_TRIANGLE', 'U_TRIANGLE', 'D_TRIANGLE')
+  case ('box', 'xbox', 'bow_tie', 'circle', 'diamond', 'x', 'r_triangle', 'l_triangle', 'u_triangle', 'd_triangle')
+  case ('solid_line', 'dashed_line', 'dash_dot_line', 'dotted_line')
+    if (es%ele_id(1:15) /= 'building_wall::') then
+      call out_io (s_fatal$, r_name, 'SHAPE "' // trim(shape) // '" MAY ONLY BE USED FOR building_wall ELEMENTS. IN FILE: ' // plot_file)
+    endif
   case default
     call out_io (s_fatal$, r_name, 'UNKNOWN SHAPE: ' // es%shape, 'IN FILE: ' // plot_file)
   end select
@@ -887,33 +895,33 @@ type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_plot_struct), pointer :: plot
 type (tao_ele_shape_struct), allocatable :: temp_shape(:)
 type (tao_ele_shape_struct) :: dflt_shapes(27) = [&
-      tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, fork$, '*'), &
-      tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, crystal$, '*'), &
-      tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, detector$, '*'), &
-      tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.,   .false., 1, diffraction_plate$, '*'), &
-      tao_ele_shape_struct('E_GUN::*',             'XBOX',   'RED',     0.40_rp, 'name', .true.,   .false., 1, e_gun$, '*'), &
-      tao_ele_shape_struct('EM_FIELD::*',          'XBOX',   'BLUE',    0.40_rp, 'name', .true.,   .false., 1, em_field$, '*'), &
-      tao_ele_shape_struct('ECOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., 1, ecollimator$, '*'), &
-      tao_ele_shape_struct('INSTRUMENT::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.,  .false., 1, instrument$, '*'), &
-      tao_ele_shape_struct('LCAVITY::*',           'XBOX',   'RED',     0.50_rp, 'none', .true.,   .false., 1, lcavity$, '*'), &
-      tao_ele_shape_struct('MARKER::*',            'BOX',    'BLUE',    0.30_rp, 'name', .false.,  .false., 1, marker$, '*'), &
-      tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, mirror$, '*'), &
-      tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., 1, monitor$, '*'), &
-      tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, multilayer_mirror$, '*'), &
-      tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., 1, octupole$, '*'), &
-      tao_ele_shape_struct('PATCH::*',             'BOX',    'YELLOW',  0.25_rp, 'none', .false.,  .false., 1, patch$, '*'), &
-      tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., 1, photon_fork$, '*'), &
-      tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.,   .false., 1, quadrupole$, '*'), &
-      tao_ele_shape_struct('RCOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., 1, rcollimator$, '*'), &
-      tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.,   .false., 1, rfcavity$, '*'), &
-      tao_ele_shape_struct('SAMPLE::*',            'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, sample$, '*'), &
-      tao_ele_shape_struct('SBEND::*',             'BOX',    'BLACK',   0.20_rp, 'none', .true.,   .false., 1, sbend$, '*'), &
-      tao_ele_shape_struct('SEXTUPOLE::*',         'XBOX',   'GREEN',   0.37_rp, 'none', .true.,   .false., 1, sextupole$, '*'), &
-      tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  .false., 1, sol_quad$, '*'), &
-      tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   .false., 1, solenoid$, '*'), &
-      tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   .false., 1, wiggler$, '*'), &
-      tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., 1, photon_init$, '*'), &
-      tao_ele_shape_struct('building_wall::*',     '-',      'BLACK',   0.30_rp, 'name', .true.,   .false., 3, 999, '*')]
+      tao_ele_shape_struct('fork::*',              'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, fork$, '*'), &
+      tao_ele_shape_struct('crystal::*',           'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, crystal$, '*'), &
+      tao_ele_shape_struct('detector::*',          'box',         'black',   0.30_rp, 'name', .true.,   .false., 1, detector$, '*'), &
+      tao_ele_shape_struct('diffraction_plate::*', 'box',         'cyan',    0.30_rp, 'name', .true.,   .false., 1, diffraction_plate$, '*'), &
+      tao_ele_shape_struct('e_gun::*',             'xbox',        'red',     0.40_rp, 'name', .true.,   .false., 1, e_gun$, '*'), &
+      tao_ele_shape_struct('em_field::*',          'xbox',        'blue',    0.40_rp, 'name', .true.,   .false., 1, em_field$, '*'), &
+      tao_ele_shape_struct('ecollimator::*',       'xbox',        'blue',    0.20_rp, 'name', .false.,  .false., 1, ecollimator$, '*'), &
+      tao_ele_shape_struct('instrument::*',        'box',         'blue',    0.30_rp, 'name', .false.,  .false., 1, instrument$, '*'), &
+      tao_ele_shape_struct('lcavity::*',           'xbox',        'red',     0.50_rp, 'none', .true.,   .false., 1, lcavity$, '*'), &
+      tao_ele_shape_struct('marker::*',            'box',         'blue',    0.30_rp, 'name', .false.,  .false., 1, marker$, '*'), &
+      tao_ele_shape_struct('mirror::*',            'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, mirror$, '*'), &
+      tao_ele_shape_struct('monitor::*',           'box',         'black',   0.30_rp, 'name', .false.,  .false., 1, monitor$, '*'), &
+      tao_ele_shape_struct('multilayer_mirror::*', 'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, multilayer_mirror$, '*'), &
+      tao_ele_shape_struct('octupole::*',          'box',         'black',   0.30_rp, 'name', .false.,  .false., 1, octupole$, '*'), &
+      tao_ele_shape_struct('patch::*',             'box',         'yellow',  0.25_rp, 'none', .false.,  .false., 1, patch$, '*'), &
+      tao_ele_shape_struct('photon_fork::*',       'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, photon_fork$, '*'), &
+      tao_ele_shape_struct('quadrupole::*',        'xbox',        'magenta', 0.37_rp, 'name', .true.,   .false., 1, quadrupole$, '*'), &
+      tao_ele_shape_struct('rcollimator::*',       'xbox',        'blue',    0.20_rp, 'name', .false.,  .false., 1, rcollimator$, '*'), &
+      tao_ele_shape_struct('rfcavity::*',          'xbox',        'red',     0.50_rp, 'name', .true.,   .false., 1, rfcavity$, '*'), &
+      tao_ele_shape_struct('SAMPLE::*',            'BOX',         'BLACK',   0.30_rp, 'name', .true.,   .false., 1, sample$, '*'), &
+      tao_ele_shape_struct('sbend::*',             'box',         'black',   0.20_rp, 'none', .true.,   .false., 1, sbend$, '*'), &
+      tao_ele_shape_struct('sextupole::*',         'xbox',        'green',   0.37_rp, 'none', .true.,   .false., 1, sextupole$, '*'), &
+      tao_ele_shape_struct('sol_quad::*',          'box',         'black',   0.40_rp, 'name', .false.,  .false., 1, sol_quad$, '*'), &
+      tao_ele_shape_struct('solenoid::*',          'box',         'blue',    0.30_rp, 'name', .true.,   .false., 1, solenoid$, '*'), &
+      tao_ele_shape_struct('wiggler::*',           'xbox',        'cyan',    0.50_rp, 'name', .true.,   .false., 1, wiggler$, '*'), &
+      tao_ele_shape_struct('photon_init::*',       'box',         'black',   0.30_rp, 'name', .true.,   .false., 1, photon_init$, '*'), &
+      tao_ele_shape_struct('building_wall::*',     'solid_line',  'black',   0.30_rp, 'name', .true.,   .false., 3, 999, '*')]
 
 real(rp) y_layout, dx, dy, dz, x1, x2, y1, y2
 integer np, n, nr, n_plots
@@ -2730,7 +2738,7 @@ do k1 = 2, 4
     write (name, '(a, 2i0)') 'layout', i, k1
     if (all(s%plot_page%region(:)%name /= name)) then
       nr = nr + 1
-      if (k1 == 3) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+      if (k1 > 2) s%plot_page%region(nr)%list_with_show_plot_command = .false.
       s%plot_page%region(nr)%name = name
       s%plot_page%region(nr)%location = [real(i-1, rp)/k1, real(i, rp)/k1, 0.0_rp, y_layout]
     endif
@@ -2743,7 +2751,7 @@ do k1 = 2, 4
       if (any(s%plot_page%region(:)%name == name)) cycle
       nr = nr + 1
       s%plot_page%region(nr)%name = name
-      if (k1 == 3) s%plot_page%region(nr)%list_with_show_plot_command = .false.
+      if (k1 > 2) s%plot_page%region(nr)%list_with_show_plot_command = .false.
       x1 = real(i-1)/ k1
       x2 = real(i) / k1
       y1 = y_layout + (1 - y_layout) * real(k2-j)/ k2

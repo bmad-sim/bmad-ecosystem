@@ -747,6 +747,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), lmt)  'draw_line            = ', c1%draw_line
       nl=nl+1; write(lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
       nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
+      nl=nl+1; write(lines(nl), lmt)  'draw_error_bars      = ', c1%draw_error_bars
       nl=nl+1; write(lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
       nl=nl+1; write(lines(nl), lmt)  'valid                = ', c1%valid
       nl=nl+1; write(lines(nl), iamt) 'line%width           = ', c1%line%width
@@ -945,6 +946,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)    '%meas              = ', d_ptr%meas_value
     nl=nl+1; write(lines(nl), rmt)    '%ref               = ', d_ptr%ref_value
     nl=nl+1; write(lines(nl), rmt)    '%base              = ', d_ptr%base_value
+    nl=nl+1; write(lines(nl), rmt)    '%error_rms         = ', d_ptr%error_rms
     nl=nl+1; write(lines(nl), rmt)    '%old               = ', d_ptr%old_value   
     nl=nl+1; write(lines(nl), rmt)    '%invalid           = ', d_ptr%invalid_value
     nl=nl+1; write(lines(nl), amt)    '%eval_point        = ', anchor_pt_name(d_ptr%eval_point)

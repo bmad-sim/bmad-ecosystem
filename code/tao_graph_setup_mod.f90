@@ -87,6 +87,8 @@ if (allocated (graph%curve)) then
         curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
     endif
 
+    if (allocated(curve%err_symb)) curve%err_symb = curve%err_symb * curve%y_axis_scale_factor
+
     if (allocated(curve%x_line)) then
       curve%x_line = curve%x_line * graph%x_axis_scale_factor
       curve%y_line = curve%y_line * curve%y_axis_scale_factor
@@ -1211,6 +1213,7 @@ if (allocated(curve%ix_line)) deallocate (curve%ix_line)
 if (allocated(curve%x_symb)) deallocate (curve%x_symb, curve%y_symb)
 if (allocated(curve%z_symb)) deallocate (curve%z_symb)
 if (allocated(curve%ix_symb)) deallocate (curve%ix_symb)
+if (allocated(curve%err_symb)) deallocate (curve%err_symb)
 if (allocated(curve%symb_size)) deallocate (curve%symb_size)
 
 u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
@@ -1490,6 +1493,11 @@ case ('data')
 
   curve%ix_symb = pack(d1_ptr%d%ix_d1, mask = d1_ptr%d%useit_plot)
   curve%y_symb  = pack(value_arr, mask = d1_ptr%d%useit_plot)
+
+  if (curve%draw_error_bars) then
+    call re_allocate (curve%err_symb, n_dat)
+    curve%err_symb = pack(d1_ptr%d%error_rms, mask = d1_ptr%d%useit_plot)
+  endif
 
   if (plot%x_axis_type == 'index') then
     curve%x_symb = curve%ix_symb

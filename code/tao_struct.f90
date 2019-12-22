@@ -178,7 +178,8 @@ type tao_curve_struct
   integer, allocatable :: ix_line(:)     ! Used by wave and aperture curves.
   real(rp), allocatable :: x_symb(:)     ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
-  real(rp), allocatable :: z_symb(:) 
+  real(rp), allocatable :: z_symb(:)     ! Symbol color
+  real(rp), allocatable :: err_symb(:)   ! Error bars
   real(rp), allocatable :: symb_size(:)  ! Symbol size. Used with symbol_size_scale. 
   integer, allocatable :: ix_symb(:)     ! Corresponding index in d1_data%d(:) array.
   real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
@@ -196,6 +197,7 @@ type tao_curve_struct
   logical :: draw_line = .true.          ! Draw a line through the data points?
   logical :: draw_symbols = .true.       ! Draw a symbol at the data points?
   logical :: draw_symbol_index = .false. ! Draw the symbol index number curve%ix_symb?
+  logical :: draw_error_bars = .false.   ! Draw error bars based upon data%error_rms if drawing data?
   logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
   logical :: use_z_color = .false.       ! For phase space plots.
   logical :: autoscale_z_color = .true.  ! Set %z_color0, %z_color1 automatically to the limits of %data_type_z
@@ -386,6 +388,7 @@ type tao_data_struct
   real(rp) :: design_value = 0             ! What the datum value is in the design lattice.
   real(rp) :: old_value = 0                ! The model_value at some previous time.
   real(rp) :: base_value = 0               ! The value as calculated from the base model.
+  real(rp) :: error_rms = 0                ! RMS of data errors.
   real(rp) :: delta_merit = 0              ! Diff used to calculate the merit function term 
   real(rp) :: weight = 0                   ! Weight for the merit function term.
   real(rp) :: invalid_value = 0            ! Value used in merit calc if good_model = F (or possibly good_design & good_base).
@@ -771,7 +774,7 @@ type tao_scratch_space_struct
   logical, allocatable :: picked(:)
   logical, allocatable :: this_u(:)
   real(rp), allocatable :: axis1(:), axis2(:), axis3(:)
-  real(rp), allocatable :: x(:), y(:)
+  real(rp), allocatable :: x(:), y(:), err(:)
   real(rp), allocatable :: y_value(:)
   complex(rp), allocatable :: srdt_cache(:,:,:)
 end type

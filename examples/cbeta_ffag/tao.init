@@ -86,7 +86,7 @@ global%beam_timer_on = T
 &tao_d2_data
 	d2_data%name = 'orbit'
     universe = '*'
-	n_d1_data = 3
+	n_d1_data = 2
 	default_merit_type = "target"
 /
 &tao_d1_data
@@ -103,13 +103,6 @@ global%beam_timer_on = T
 	default_weight = 1e10
 	search_for_lat_eles = "-no_lords *.BPM*"
 /
-&tao_d1_data
-	ix_d1_data = 3
-	d1_data%name = 'unstable'
-	ix_min_data=1
-	datum( 1) = "unstable.orbit", "", "",  "", "target", 0, 1e6,  F
-/
-
 
 !-------- Orbit x, y------------
 &tao_d2_data

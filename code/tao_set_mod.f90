@@ -1236,6 +1236,9 @@ case ('line_pattern', 'line%pattern')
 case ('component')
   this_curve%component = remove_quotes(value_str)
 
+case ('draw_error_bars')
+  call tao_set_logical_value (this_curve%draw_error_bars, component, value_str, err)
+
 case ('draw_line')
   call tao_set_logical_value (this_curve%draw_line, component, value_str, err)
 
@@ -2943,11 +2946,12 @@ do i = 1, n
   call str_upcase (es%color,    es%color)
   call downcase_string (es%label)
   call tao_string_to_element_id (es%ele_id, es%ix_ele_key, es%name_ele, err, .true.);  if (err) return
-  ! Convert from old shape names to new names with prefix.
+  ! Convert from old shape names to new names 
   if (es%shape(1:4) == 'VAR_')            then;   es%shape = es%shape(1:3) // ':' // es%shape(5:)
   elseif (es%shape(1:5) == 'VVAR_')       then;   es%shape = es%shape(1:4) // ':' // es%shape(6:)
   elseif (es%shape(1:9) == 'ASYM_VAR_')   then;   es%shape = es%shape(1:8) // ':' // es%shape(10:)
   elseif (es%shape(1:10) == 'ASYM_VVAR_') then;   es%shape = es%shape(1:9) // ':' // es%shape(11:)
+  elseif (es%shape == '-')                then;   es%shape = 'SOLID_LINE'
   endif
 enddo
 

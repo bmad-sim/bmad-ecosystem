@@ -37,6 +37,7 @@ type tao_datum_input
   integer :: ix_bunch = 0
   real(rp) :: spin_n0(3) = 0
   real(rp) :: invalid_value = 0
+  real(rp) :: error_rms = 0
 end type
 
 !-------------------------------------------------------------
@@ -90,6 +91,7 @@ type tao_curve_input
   logical :: draw_line = .true.
   logical :: draw_symbols = .true.
   logical :: draw_symbol_index = .false.
+  logical :: draw_error_bars = .false.
   logical :: use_y2 = .false.
   logical :: use_z_color = .false.
   logical :: autoscale_z_color = .true.

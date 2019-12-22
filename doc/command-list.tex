@@ -612,6 +612,7 @@ Possible <action> settings are:
 \begin{example}
   all       -- 
   output    -- Suppress output but not command echoing.
+\end{example}
 
 Other useful commands to put in a command file are to speed up execution are:
 \begin{example}
@@ -641,7 +642,9 @@ The \vn{re_execute} command reruns prior commands.  Format:
   re_execute <string>  ! Re-execute last command that begins with <string>.
 \end{example}
 
-\vskip 10pt Every \tao command entered is recorded in a ``history stack''. These commands can be
+\vskip 10pt 
+
+Every \tao command entered is recorded in a ``history stack''. These commands can be
 viewed using the \vn{show history} command. The \vn{show history} command will also display the
 index number associated with each command.
 

@@ -57,7 +57,7 @@ endif
 y = e_shape%size
 
 select case (prefix)
-case ('VAR', 'ASYM_VAR')
+case ('var', 'asym_var')
   select case (ele%key)
   case (sbend$)
     y2 = y * ele%value(g$)
@@ -71,11 +71,11 @@ case ('VAR', 'ASYM_VAR')
     y2 = y * ele%value(ks$)
   end select
   y1 = y2
-  if (prefix == 'ASYM_VAR') y1 = 0
-case ('VVAR')
+  if (prefix == 'asym_var') y1 = 0
+case ('vvar')
   y1 = dat_var_value
   y2 = dat_var_value
-case ('ASYM_VVAR')
+case ('asym_vvar')
   y1 = 0
   y2 = dat_var_value
 case ('')

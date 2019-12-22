@@ -429,9 +429,10 @@ logical, allocatable, save :: good(:)
 
 ! If does not exist
 
+valid_value = .false.
+
 if (.not. datum%exists) then
   datum_value = real_garbage$
-  valid_value = .false.
   if (present(why_invalid)) why_invalid = 'Datum does not exist.'
   return
 endif
@@ -442,7 +443,6 @@ endif
 
 if (s%com%optimizer_running .and. .not. datum%useit_opt .and. .not. s%com%have_datums_using_expressions) then
   datum_value = 0
-  valid_value = .false.
   return
 endif
 
