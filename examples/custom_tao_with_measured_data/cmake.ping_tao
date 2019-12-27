@@ -7,7 +7,6 @@ SET (LINK_FLAGS ${READLINE_LINK_FLAGS})
 set (LINK_LIBS
   tao 
   bmad 
-  xsif
   xrlf03
   xrl
   sim_utils

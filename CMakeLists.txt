@@ -25,7 +25,6 @@ SET (SHARED_DEPS
   sim_utils
   recipes_f-90_LEPP 
   ${PLOT_LINK_LIBS}
-  xsif
   xrlf03
   xrl
   forest
