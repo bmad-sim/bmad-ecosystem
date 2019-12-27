@@ -34,6 +34,7 @@ type (lat_struct), target :: lat
 
 character(*) :: lat_file
 character(*), optional :: use_line
+character(*), parameter :: r_name = 'bmad_and_xsif_parser'
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical read_ok
@@ -67,7 +68,10 @@ endif
 
 ix = index(lat_file, '.xsif')
 if (ix /= 0 .and. len_trim(lat_file) == ix+4) then
-  call xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
+  call out_io (s_fatal$, r_name, 'DIRECT XSIF PARSING IS NO LONGER SUPPORTED.', & 
+                                 'PLEASE USE UAP TO TRANSLATE TO BMAD FORMAT.')
+  stop
+  !! call xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 else 
   call bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 endif

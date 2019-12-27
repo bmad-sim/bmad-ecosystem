@@ -3,7 +3,7 @@
 !
 ! Subroutine parse (read in) a BMAD input file.
 ! This subrotine assumes that lat already holds an existing lattice.
-! To read in a lattice from scratch use bmad_parser or xsif_parser.
+! To read in a lattice from scratch use bmad_parser.
 !
 ! With bmad_parser2 you may:
 !     a) Modify the attributes of elements.
@@ -63,7 +63,7 @@ character(80) debug_line
 character(280) parse_line_save, string, extra_ele_names
 
 logical, optional :: make_mats6, err_flag
-logical parsing, found, delim_found, xsif_called, err, key_here
+logical parsing, found, delim_found, err, key_here
 logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
 logical multiple_eles_here, heterogeneous_ele_list
 
@@ -230,7 +230,7 @@ parsing_loop: do
   ! CALL command
 
   if (word_1(:ix_word) == 'CALL') then
-    call get_called_file(delim, string, xsif_called, err)
+    call get_called_file(delim, string, err)
     if (err) return
     cycle parsing_loop
   endif

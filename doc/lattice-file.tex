@@ -21,18 +21,12 @@ program is not required to use the \bmad parser routines but, if it does, the fo
 describe how to construct a valid lattice file.
 
 %---------------------------------------------------------------------------
-\section{MAD, SAD, and XSIF Lattice Files}
-\label{s:mad.xsif}
+\section{MAD and SAD Lattice Files}
+\label{s:mad.sad}
 \index{MAD} 
-\index{XSIF}
 
-Besides being able to parse \bmad lattice files, \bmad has software to
-parse XSIF\cite{b:xsif} lattice files. See \sref{s:xsif.convert} for
-more details.
-
-While \bmad cannot directly read in \mad\cite{b:maduser} or
-\vn{SAD}\cite{b:sad} files, translation between \mad and \bmad lattice
-files is possible using the \vn{Universal Accelerator Parser} as
+While \bmad cannot directly read in \mad\cite{b:maduser} or \vn{SAD}\cite{b:sad} files, translation
+between \mad and \bmad lattice files is possible using the \vn{Universal Accelerator Parser} as
 discussed in Chapter~\sref{c:lat.convert}.
 
 \newpage
@@ -61,23 +55,18 @@ The following (rather silly) example shows some of the features of a
 
 \index{"! comment symbol}
 \index{comment symbol ("!)}
-A \bmad lattice file consists of a sequence of statements. An
-exclamation mark (!) denotes a comment and the exclamation mark and
-everything after the exclamation mark on a line are ignored.  \bmad is
-generally case insensitive. Most names are converted to
-uppercase. Exceptions where a name is not converted include file names
-and atomic formulas for materials used in crystal diffraction.
+A \bmad lattice file consists of a sequence of statements. An exclamation mark (!) denotes a comment
+and the exclamation mark and everything after the exclamation mark on a line are ignored.  \bmad is
+generally case insensitive. Most names are converted to uppercase. Exceptions where a name is not
+converted include file names and atomic formulas for materials used in crystal diffraction.
 
 \index{\& continuation symbol}
 \index{continuation symbol (\&)}
-Normally a statement occupies a single line in the file. Several
-statements may be placed on the same line by inserting a semicolon
-(``;'') between them. A long statement can occupy multiple lines by
-putting an ampersand (``\&'') at the end of each line of the statement
-except for the last line. Additionally, lines that end with an
-``implicit continuation character''
-are automatically continued to the next line. The implicit continuation 
-characters are
+Normally a statement occupies a single line in the file. Several statements may be placed on the
+same line by inserting a semicolon (``;'') between them. A long statement can occupy multiple lines
+by putting an ampersand (``\&'') at the end of each line of the statement except for the last
+line. Additionally, lines that end with an ``implicit continuation character'' are automatically
+continued to the next line. The implicit continuation characters are
 \begin{example}
   ,   (   \{   [   =
 \end{example}
@@ -1003,20 +992,6 @@ environment variable \vn{PWD}. Example:
 Where a called file is searched for may be modified by using a
 \vn{use_local_lat_file} statement. See Section~\sref{s:use.loc} for
 more details.
-
-An XSIF (\sref{s:lattice.file.formats}) lattice file may be called
-from within a \bmad lattice file by prepending \vn{"xsif::"} to the
-file name. Example:
-\begin{example}
-  call, filename = "xsif::my_lattice.xsif"
-\end{example}
-This statement must be the first statement in the \bmad lattice file
-except for any comments or debugging statements (\sref{s:debug}). 
-The XSIF lattice file must define a
-complete lattice and cannot contain any \bmad specific statements. The
-call to the XSIF file automatically expands the lattice
-(\sref{s:expand}) and any additional statements in the \bmad lattice
-file operate on the expanded lattice.
 
 %--------------------------------------------------------------------------
 \section{Inline Call}
