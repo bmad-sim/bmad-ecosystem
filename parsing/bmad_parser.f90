@@ -78,7 +78,7 @@ logical end_of_file, ele_found, match_found, err, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, heterogeneous_ele_list, do_energy_bookkeeping
 logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 
-! see if digested file is open and current. If so read in and return.
+! See if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
 call cpu_time(bp_com%time0)
