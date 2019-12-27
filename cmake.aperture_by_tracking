@@ -17,7 +17,6 @@ set (LINK_DIRS
 set (LINK_LIBS
 	bsim
   bmad
-  xsif
   xrlf03
   xrl
   sim_utils

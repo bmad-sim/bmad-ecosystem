@@ -96,7 +96,7 @@ close (1)
 
 ! Read lattice
 
-call bmad_and_xsif_parser (sr_param%lat_file, lat)
+call bmad_parser (sr_param%lat_file, lat)
 branch => lat%branch(0)
 
 if (use_ele_ix > 0) then
