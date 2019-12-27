@@ -1953,13 +1953,13 @@ end subroutine write_lat_line
 ! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
 !        use_matrix_model, include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
 !
-! Subroutine to write a MAD-8, MAD-X, OPAL, SAD, or XSIF lattice file using the 
+! Subroutine to write a MAD-8, MAD-X, OPAL, or SAD lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
 !
 ! Also see: write_bmad_lattice_file
 !
-! NOTE: When translating to XSIF or MAD: sad_mult and patch element are translated
-!  to a XSIF/MAD matrix element (which is a 2nd order map). In this case, the ref_orbit orbit is
+! NOTE: When translating to MAD: sad_mult and patch element are translated
+!  to a MAD matrix element (which is a 2nd order map). In this case, the ref_orbit orbit is
 !  used as the reference orbit for construction of the 2nd order map.
 !
 ! If a sad_mult or patch element is translated to a matrix element, and the referece orbit
@@ -1975,7 +1975,7 @@ end subroutine write_lat_line
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
 !
 ! Input:
-!   out_type          -- character(*): Either 'XSIF', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T'.
+!   out_type          -- character(*): Either 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T'.
 !   out_file_name     -- character(*): Name of the mad output lattice file.
 !   lat               -- lat_struct: Holds the lattice information.
 !   ref_orbit(0:)     -- coord_struct, allocatable, optional: Referece orbit for sad_mult and patch elements.
@@ -1996,7 +1996,7 @@ end subroutine write_lat_line
 ! Output:
 !   converted_lat     -- lat_struct, optional: Equivalent Bmad lattice with wiggler and 
 !                           sol_quad elements replaced by their respective models.
-!                           This is only valid for MAD-8, MAD-X, and XSIF conversions.
+!                           This is only valid for MAD-8, and MAD-X, conversions.
 !   err               -- logical, optional: Set True if, say a file could not be opened.
 !-
 
@@ -2074,7 +2074,7 @@ if (out_type == 'MAD-X' .or. out_type == 'OPAL-T') then
   separator_char = ','
   ix_line_max = 100
 
-elseif (out_type == 'MAD-8' .or. out_type == 'XSIF') then
+elseif (out_type == 'MAD-8') then
   comment_char = '!'
   continue_char = ' &'
   eol_char = ''
@@ -2465,7 +2465,7 @@ do
           call create_planar_wiggler_model (lord, lat_model)
           ! Remove all the slave elements and markers in between.
           call out_io (s_warn$, r_name, &
-              'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
+              'Note: Not translating to MAD the markers within wiggler: ' // lord%name)
           lord%key = -1 ! mark for deletion
           call find_element_ends (lord, ele1, ele2)
           ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
@@ -2529,7 +2529,7 @@ write (iu, '(a)')
 ! beam definition
 
 select case (out_type)
-case ('MAD-8', 'MAD-X', 'XSIF')
+case ('MAD-8', 'MAD-X')
   ele => branch_out%ele(ie1-1)
 
   write (line_out, '(7a)') 'beam_def: Beam, Particle = ', trim(species_name(branch_out%param%particle)),  &
@@ -2547,14 +2547,6 @@ do ix_ele = ie1, ie2
 
   ele => branch_out%ele(ix_ele)
   val => ele%value
-
-  if (out_type == 'XSIF') then
-    if (ele%key == elseparator$) then 
-      n_elsep_warn = n_elsep_warn + 1
-      ele%key = drift$  ! XSIF does not have elsep elements.
-      call out_io (s_info$, r_name, 'Elseparator being converted into a drift for XSIF conversion: ' // ele%name)  
-    endif
-  endif
 
   ! Do not make duplicate specs
 
@@ -2791,9 +2783,6 @@ do ix_ele = ie1, ie2
             write (str, '(a, i0, a)') 'kick(', i, ')'
           case ('MAD-X') 
             write (str, '(a, i0)') 'kick', i
-          case ('XSIF') 
-            call out_io (s_error$, r_name, 'XSIF DOES NOT HAVE A CONSTRUCT FOR ZEROTH ORDER TAYLOR TERMS NEEDED FOR: ' // ele%name)
-            cycle
           end select
           call value_to_line (line_out, term%coef, str, 'R')
 
@@ -2804,8 +2793,6 @@ do ix_ele = ie1, ie2
             write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
           case ('MAD-X')
             write (str, '(a, 2i0)') 'rm', i, j
-          case ('XSIF')
-            write (str, '(a, 2i0)') 'r', i, j
           end select
 
           if (j == i) then
@@ -2823,8 +2810,6 @@ do ix_ele = ie1, ie2
             write (str, '(a, 3(i0, a))') 'tm(', i, ',', j, ',', j2, ')'
           case ('MAD-X')
             write (str, '(a, 3i0)') 'tm', i, j, j2
-          case ('XSIF')
-            write (str, '(a, 3i0)') 't', i, j, j2
           end select
           call value_to_line (line_out, term%coef, str, 'R')
 
@@ -2975,8 +2960,7 @@ enddo
 ! Write twiss parameters for a non-closed lattice.
 
 ele => branch_out%ele(ie1-1)
-if (branch_out%param%geometry == open$ .and. &
-                  (out_type == 'MAD-8' .or. out_type == 'MAD-X' .or. out_type == 'XSIF')) then
+if (branch_out%param%geometry == open$ .and. (out_type == 'MAD-8' .or. out_type == 'MAD-X')) then
   write (iu, '(a)')
   write (iu, '(3a)') comment_char, '---------------------------------', trim(eol_char)
   write (iu, '(a)')

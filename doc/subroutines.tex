@@ -1653,18 +1653,6 @@ Routine to mark an element as modified for use with "intelligent" bookkeeping.
 
 \begin{description}
 
-\index[routine]{aml_parser}
-\label{r:aml.parser}
-\item[aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline 
-Routine to parse an AML input file and put the information in a lat_struct.
-
-\index[routine]{bmad_and_xsif_parser}
-\label{r:bmad.and.xsif.parser}
-\item[\protect\parbox{6in}{
-    bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, \\
-    \hspace*{1in} use_line, err_flag)} ] \Newline 
-Subroutine to parse either a Bmad or XSIF (extended standard input format) lattice files.
-
 \index[routine]{bmad_parser}
 \label{r:bmad.parser}
 \item[bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline
@@ -1680,8 +1668,7 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 \item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, \\
   \hspace*{1in} use_matrix_model, include_apertures, dr12_drift_max, \\
   \hspace*{1in} ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
-Routine to write a mad or xsif lattice file using the information in
-a lat_struct. 
+Routine to write a mad or sad lattice file.
 
 \index[routine]{combine_consecutive_elements}
 \label{r:combine.consecutive.elements}
@@ -1716,12 +1703,6 @@ a lat_struct.
 \label{r:write.digested.bmad.file}
 \item[write_digested_bmad_file (digested_name, lat, n_files, file_names, extra, err_flag)] \Newline
 Routine to write a digested file. 
-
-\index[routine]{xsif_parser}
-\label{r:xsif.parser}
-\item[xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)] \Newline 
-     Routine to parse an XSIF (extended standard input format) lattice file.
-
 \end{description}
 
 %------------------------------------------------------------------------

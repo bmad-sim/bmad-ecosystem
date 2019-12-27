@@ -2224,7 +2224,7 @@ end function parser_translate_attribute_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine get_called_file (delim, call_file, xsif_called, err)
+subroutine get_called_file (delim, call_file, err)
 
 implicit none
 
@@ -2232,7 +2232,7 @@ character(1) delim
 character(*) call_file
 
 integer ix_word, ix, n
-logical delim_found, finished, xsif_called, err
+logical delim_found, finished, err
 
 !
 
@@ -2278,19 +2278,6 @@ if (call_file(1:1) == "'") then
   call_file(ix:ix) = ' '
 endif
 
-if (call_file(1:6) == 'xsif::') then
-  call_file = call_file(7:)
-  n = size(bp_com%lat_file_names)
-  if (n < bp_com%num_lat_files + 1) &
-              call re_allocate (bp_com%lat_file_names, n + 100)
-  bp_com%num_lat_files = bp_com%num_lat_files + 1 
-  inquire (file = call_file, name = bp_com%lat_file_names(bp_com%num_lat_files))
-  xsif_called = .true.
-  err = .false.
-  return
-endif
-
-xsif_called = .false.
 call parser_file_stack ('push', call_file, finished, err) ! err gets set here
 
 end subroutine get_called_file

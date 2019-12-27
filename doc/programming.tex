@@ -106,8 +106,8 @@ interface to the GSL library.
 %
   \index{hdf5!library}
   \item[hdf5] \Newline
-\vn{hdf5} is a library for for storing and managing data. In particular, \bmad uses
-this library for storing particle position data.
+\vn{hdf5} is a library for for storing and managing data\cite{b:hdf5}. In particular, \bmad uses
+this library for storing particle position data and field grid data.
 %
   \index{lapack!library}
   \index{lapack95!library}
@@ -115,61 +115,57 @@ this library for storing particle position data.
 \vn{lapack} is a widely used package of linear algebra routines written in Fortran77. The
 \vn{lapack95} library provides a Fortran95 interface to \vn{lapack}.
 %
+  \index{mad_tpsa!library}
+  \item[mad_tpsa] \Newline
+\vn{mad_tpsa} is a subset of the MAD-NG (Next Generation MAD) code\cite{b:mad.ng}. Specifically, the
+\vn{mad_tpsa} library implements TPSA (Truncated Power Series Algebra). This is similar to the
+\vn{FPP} code (see above). There are several advantages to using \vn{mad_tpsa} over \vn{FPP}. For one, using
+\vn{mad_tpsa} is independent of \vn{PTC} so \vn{mad_tpsa} can be used along side \vn{PTC}. Another
+reason is that \vn{mad_tpsa} is more flexible and better structured.
+%
+  \index{numerical recipes!library}
+  \item[recipes] \Newline
+Numerical Recipes is a set of subroutines for doing scientific computing including Runge--Kutta
+integration, FFTs, interpolation and extrapolation, etc., etc. The documentation for this library is
+the books ``Numerical Recipes, in Fortran, The Art of Scientific Computing'' and ``Numerical Recipes
+in Fortran90, the Art of Parallel Scientific Computing''\cite{b:nr}.  The first book explains how
+the subroutines work and the second book explains what the argument lists for the Fortran90 version
+of the subroutines are. You do need both books if you want to use Numerical Recipes. For \bmad, this
+library has been modified to handle double precision reals which is the standard for the other
+libraries (See \sref{s:precision}). Additionally, some routines have been modified so that Numerical
+Recipes can be built as a shared object library. If you get a compiler complaint about a call to a
+Numerical Recipes routine missing a required argument, look in the code for that routine for
+documentation.
+%
   \index{open_spacecharge!library}
   \item[open_spacecharge] \Newline
 The \vn{open_spacecharge} library provides low energy tracking with space charge effects.
 %
   \index{pgplot!library}
   \item[PGPLOT] \Newline
-The \vn{pgplot} Graphics Subroutine Library is a Fortran or
-C-callable, device-independent graphics package for making simple
-scientific graphs. Documentation including a user's manual may be
-obtained from the \vn{pgplot} web site at
+The \vn{pgplot} Graphics Subroutine Library is a Fortran or C-callable, device-independent graphics
+package for making simple scientific graphs. Documentation including a user's manual may be obtained
+from the \vn{pgplot} web site at
 \begin{verbatim}
     www.astro.caltech.edu/~tjp/pgplot.
 \end{verbatim} 
-One disadvantage of \vn{pgplot} for the programmer is that it is not the
-most user friendly. To remedy this, there is a set of Fortran90
-wrapper subroutines called \vn{quick_plot}.  The \vn{quick_plot}
-suite is part of the \vn{sim_utils} library and is documented in
+One disadvantage of \vn{pgplot} for the programmer is that it is not the most user friendly. To
+remedy this, there is a set of Fortran90 wrapper subroutines called \vn{quick_plot}.  The
+\vn{quick_plot} suite is part of the \vn{sim_utils} library and is documented in
 Chapter~\ref{c:quick.plot}.
 %
   \index{plplot!library}
   \item[plplot] \Newline
-The \vn{plplot} library is an updated version of \vn{pgplot}. The \vn{plplot}
-library can be used as a replacement for \vn{pgplot}. The \vn{quick_plot}
-suite, which is part of the \vn{sim_utils} library and is documented in
-Chapter~\ref{c:quick.plot}, provides wrapper routines for \vn{plplot} to
-make things more programmer friendly.
-%
-  \index{numerical recipes!library}
-  \item[recipes] \Newline
-Numerical Recipes is a set of subroutines for doing scientific
-computing including Runge--Kutta integration, FFTs, interpolation and
-extrapolation, etc., etc. The documentation for this library is the
-books ``Numerical Recipes, in Fortran, The Art of Scientific
-Computing'' and ``Numerical Recipes in Fortran90, the Art of Parallel
-Scientific Computing''\cite{b:nr}.  The first book explains how the
-subroutines work and the second book explains what the argument lists
-for the Fortran90 version of the subroutines are. You do need both
-books if you want to use Numerical Recipes. For \bmad, this library
-has been modified to handle double precision reals which is the
-standard for the other libraries (See \sref{s:precision}). Additionally,
-some routines have been modified so that Numerical Recipes can be built
-as a shared object library. If you get a compiler complaint about a call
-to a Numerical Recipes routine missing a required argument, look in the code
-for that routine for documentation.
+The \vn{plplot} library is an updated version of \vn{pgplot}. The \vn{plplot} library can be used as
+a replacement for \vn{pgplot}. The \vn{quick_plot} suite, which is part of the \vn{sim_utils}
+library and is documented in Chapter~\ref{c:quick.plot}, provides wrapper routines for \vn{plplot}
+to make things more programmer friendly.
 %
   \index{xraylib!library}
   \item[xraylib] \Newline
-The XRAYLIB library provides routines for obtaining parameters
-pertinent to the X-ray interaction with matter.
-%
-  \index{xsif!library}
-  \item[xsif] \Newline
-\vn{xsif} is a library from \vn{SLAC} to read in \vn{xsif} format files. See 
-\sref{s:lattice.file.formats} for more details. The only
-\bmad routine to use this library is \vn{xsif_parser}.
+The xraylib library provides routines for obtaining parameters pertinent to the X-ray interaction
+with matter. xraylib is developed by Tom Schoonj and is hosted on github\cite{b:xraylib}
+
 \end{description}
 
 %-----------------------------------------------------------------------------

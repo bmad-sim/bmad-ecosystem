@@ -73,7 +73,7 @@ character(200) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save, line, use_line_str
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
-logical delim_found, arg_list_found, xsif_called, wild_here
+logical delim_found, arg_list_found, wild_here
 logical end_of_file, ele_found, match_found, err, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, heterogeneous_ele_list, do_energy_bookkeeping
 logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
@@ -353,19 +353,10 @@ parsing_loop: do
   ! CALL command
 
   if (word_1(:ix_word) == 'CALL') then
-    call get_called_file(delim, call_file, xsif_called, err)
+    call get_called_file(delim, call_file, err)
     if (err) then
       call parser_end_stuff (in_lat)
       return
-    endif
-
-    if (xsif_called) then
-      ! To reinstate: Add xsif lib to CMake lib link list
-      call parser_error ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
-      if (global_com%exit_on_error) call err_exit
-      ! call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line)
-      detected_expand_lattice_cmd = .true.
-      goto 8000  ! Skip the lattice expansion since xsif_parser does this
     endif
 
     cycle parsing_loop
@@ -1127,10 +1118,6 @@ call parser_add_lord (in_lat, n_max, plat, lat)
 ! fork element to element bookkeeping
 
 call parser_identify_fork_to_element(lat)
-
-! Skiped to here if XSIF was called
-
-8000 continue  
 
 ! If harmon is set for rfcavity then need to calc rf_frequency
 

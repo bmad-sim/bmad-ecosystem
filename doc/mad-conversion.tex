@@ -1,4 +1,4 @@
-\chapter{MAD/XSIF/SAD/PTC Lattice Conversion}
+\chapter{MAD/SAD/PTC Lattice Conversion}
 \label{c:lat.convert}
 \index{conversion to other lattice formats}
 
@@ -56,8 +56,8 @@ nearly match the wiggler's
 Note that the resulting model will not have the vertical cubic
 nonlinearity that the actual wiggler has.
 
-The \vn{bmad_to_mad_or_xsif} routine is embeded in the program
-\vn{util_programs/bmad_to_mad_or_xsif}.
+The \vn{bmad_to_mad_or_sad} routine is embeded in the program
+\vn{util_programs/bmad_to_mad_or_sad}.
 
 %-----------------------------------------------------------------------------
 %\subsection{Convert MAD-X to Bmad Via PTC}
@@ -107,41 +107,6 @@ The \vn{bmad_to_mad_or_xsif} routine is embeded in the program
 %converted to \bmad as documented in \sref{s:ptc.convert}
 
 %---------------------------------------------------------------------------
-\section{XSIF Conversion}
-\label{s:xsif.convert}
-\index{XSIF!conversion}
-
-XSIF\cite{b:xsif}, developed at SLAC, stands for ``Extended Standard
-Input Format.''  XSIF is essentially a subset of the
-\mad\cite{b:maduser} input format.
-
-\bmad has software to directly parse XSIF files so XSIF files may be
-used in place of \bmad lattice files.  With some restrictions, an XSIF
-lattice file may be called from within a \bmad lattice file. See
-Section~\sref{s:call} for details.
-
-\index{parameter statement!geometry}
-Since XSIF does not have a \vn{parameter[geometry]} statement
-(\sref{s:param}), the type of the lattice (whether circular or linear)
-is determined by the presence or absence of any \vn{lcavity} elements
-in the XSIF file. This is independent of whether \vn{lcavity} elements
-are actually used in the lattice.
-
-Note: One point that is not covered in the XSIF documentation is that
-for a \vn{MATRIX} element, unlike \mad, the \vn{R$ii$} terms (the
-diagonal terms of the linear matrix) are not unity by default. Thus
-\index{MAD}
-\begin{example}
-  m: matrix
-\end{example}
-in an XSIF file will give a matrix with all elements being zero.
-
-To convert between XSIF and \bmad the \vn{Universal Accelerator
-Parser} can be used (\sref{s:aml}). Additionally, the
-\vn{bmad_to_mad_or_xsif} routine in \bmad can convert from \bmad to
-XSIF (cf.~\sref{s:mad.convert}).
-
-%---------------------------------------------------------------------------
 %\section{PTC Conversion}
 %\label{s:ptc.convert}
 %\index{ptc!conversion}
@@ -175,18 +140,15 @@ Misalignments in a \vn{sol} element with \vn{geo} = 1 cannot be handled.
 \index{Universal Accelerator Parser (UAP)}
 
 \index{MAD}
-The \vn{Accelerator Markup Language} (\vn{AML}) / \vn{Universal
-Accelerator Parser} (\vn{UAP}) project\cite{b:aml} is a collaborative
-effort with the aim of 1) creating a lattice format (the \vn{AML}
-part) that can be used to fully describe accelerators and storage
-rings, and 2) producing software (the \vn{UAP} part) that can parse
-\vn{AML} lattice files. A side benefit of this project is that the
-\vn{UAP} code has been extended to be able to translate between
-\vn{AML}, \bmad, \mad-8, \mad-X, and \vn{XSIF}. 
+The \vn{Accelerator Markup Language} (\vn{AML}) / \vn{Universal Accelerator Parser} (\vn{UAP})
+project\cite{b:aml} is a collaborative effort with the aim of 1) creating a lattice format (the
+\vn{AML} part) that can be used to fully describe accelerators and storage rings, and 2) producing
+software (the \vn{UAP} part) that can parse \vn{AML} lattice files. A side benefit of this project
+is that the \vn{UAP} code has been extended to be able to translate between \vn{AML}, \bmad, \mad-8,
+and \mad-X
 
-The program
-\vn{translate_driver} which comes with the \vn{UAP} code can be used
-for conversions. To get help with how to run this program use the command
+The program \vn{translate_driver} which comes with the \vn{UAP} code can be used for conversions. To
+get help with how to run this program use the command
 \begin{example}
   path-to-uap-dir/bin/translate_driver -help
 \end{example}
