@@ -10,7 +10,6 @@ set (SRC_FILES
 set (LINK_LIBS
 	bsim
   bmad
-  xsif
   xrlf03
   xrl
   sim_utils

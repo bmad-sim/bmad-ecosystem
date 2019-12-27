@@ -220,7 +220,7 @@ s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > 
 
 ! Get lattice
 
-call bmad_and_xsif_parser(lattice_file, lat)
+call bmad_parser(lattice_file, lat)
 branch => lat%branch(ix_branch)
 bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
 

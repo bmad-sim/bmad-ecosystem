@@ -19,7 +19,6 @@ set (LINK_LIBS
   gsl
   gslcblas
   ${PLOT_LINK_LIBS}
-  xsif
   lapack95
   lapack
   blas

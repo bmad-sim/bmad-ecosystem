@@ -8,13 +8,11 @@ set (INC_DIRS
 set (LINK_LIBS
 	bsim
   bmad
-  xsif
   xrlf03
   xrl
   sim_utils
   recipes_f-90_LEPP
   forest
-  xsif
   lapack95
   lapack
   blas

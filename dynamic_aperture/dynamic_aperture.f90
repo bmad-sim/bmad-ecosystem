@@ -65,7 +65,7 @@ da%param%max_angle = da%param%max_angle * pi / 180
 
 ! Read in lattice
 
-call bmad_and_xsif_parser (lat_file, lat)
+call bmad_parser (lat_file, lat)
 branch => lat%branch(0)
 
 n_dpz = count(dpz /= real_garbage$)

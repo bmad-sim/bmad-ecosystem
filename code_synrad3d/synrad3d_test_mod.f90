@@ -314,11 +314,7 @@ if (output_file == '') output_file = 'test_specular_reflection.dat'
 
 ! Get lattice
 
-if (lattice_file(1:6) == 'xsif::') then
-  call xsif_parser(lattice_file(7:), lat)
-else
-  call bmad_parser (lattice_file, lat)
-endif
+call bmad_parser (lattice_file, lat)
 
 ! Init wall
 
