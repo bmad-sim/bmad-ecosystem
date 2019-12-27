@@ -9,7 +9,7 @@ set (EXE_SPECS
   cmake.bmad_to_blender
   cmake.bmad_to_csrtrack
   cmake.bmad_to_gpt
-  cmake.bmad_to_mad_sad_and_xsif
+  cmake.bmad_to_mad_and_sad
   cmake.bmad_to_merlin
   cmake.compare_tracking_methods_plot
   cmake.compare_tracking_methods_text

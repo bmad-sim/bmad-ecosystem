@@ -4,7 +4,6 @@ FILE (GLOB SRC_FILES "bmad_to_merlin/*.f90")
 
 set (LINK_LIBS
   bmad 
-  xsif
   xrlf03
   xrl
   sim_utils

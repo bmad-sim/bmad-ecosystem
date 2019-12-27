@@ -1,17 +1,16 @@
 !+
-! Program to convert a Bmad file to an XSIF file and a MAD file
+! Program to convert a Bmad lattice file to a SAD file and/or a MAD file
 !
 ! Usage:
-!   bmad_to_mad_sad_and_xsif {-nobpm} {-noaperture} {-force} {-xsif} {-mad8} {-madx} {-sad} <bmad_file_name>
+!   bmad_to_mad_and_sad {-nobpm} {-noaperture} {-force} {-mad8} {-madx} {-sad} <bmad_file_name>
 !
-! The MAD and XSIF files will be created in the current directory.
+! The MAD and SAD files will be created in the current directory.
 !
 ! The bmad_file_name will have a '.bmad' appended to the name if there
 ! is no '.' in the original name.
 !
 ! The output file name will be the bmad_file_name with the '.bmad' suffix
 ! (or whatever suffix is there) replaced by:
-!       '.xsif'       for XSIF files
 !       '.mad8'       for MAD8 files
 !       '.madx'       for MAD-X files
 !       '.sad'        for SAD files.
@@ -23,7 +22,7 @@
 ! can be computed.
 !-
 
-program bmad_to_mad_sad_and_xsif
+program bmad_to_mad_and_sad
 
 use bmad
 use write_lat_file_mod
@@ -38,7 +37,7 @@ logical is_rel, nobpm, aperture, force
 character(120) file_name, out_name, dir, arg
 character(16) bpm_ans, out_type
 
-character(*), parameter :: r_name = 'bmad_to_mad_sad_and_xsif'
+character(*), parameter :: r_name = 'bmad_to_mad_and_sad'
 
 !
 
@@ -58,7 +57,7 @@ do i = 1, n_arg
     nobpm = .true.
   case ('-noaperture')
     aperture = .false.
-  case ('-xsif', '-mad8', '-madx', '-sad')
+  case ('-mad8', '-madx', '-sad')
     out_type = arg
   case default
     if (arg(1:1) == '-') then
@@ -72,7 +71,7 @@ do i = 1, n_arg
 enddo
 
 if (file_name == '') then
-  print '(a)', 'Usage: bmad_to_mad_sad_and_xsif {-nobpm} {-noaperture} {-xsif} {-mad8} {-madx} {-sad} <bmad_file_name>'
+  print '(a)', 'Usage: bmad_to_mad_and_sad {-nobpm} {-noaperture} {-mad8} {-madx} {-sad} <bmad_file_name>'
   stop
 endif
 
@@ -97,11 +96,6 @@ out_name = file_name
 if (nobpm) then
   ix = index(out_name, '.')
   out_name = out_name(1:ix-1) // '_with_bpm'
-endif
-
-if (out_type == 'all' .or. out_type == '-xsif') then
-  call file_suffixer (out_name, out_name, 'xsif', .true.)
-  call write_lattice_in_foreign_format ('XSIF', out_name, lat, orbit, include_apertures = aperture)
 endif
 
 if (out_type == 'all' .or. out_type == '-mad8') then
@@ -137,11 +131,6 @@ enddo
 call remove_eles_from_lat(lat)
 
 out_name = file_name
-
-if (out_type == 'all' .or. out_type == '-xsif') then
-  call file_suffixer (out_name, out_name, 'xsif', .true.)
-  call write_lattice_in_foreign_format ('XSIF', out_name, lat, orbit, include_apertures = aperture)
-endif
 
 if (out_type == 'all' .or. out_type == '-mad8') then
   call file_suffixer (out_name, out_name, 'mad8', .true.)

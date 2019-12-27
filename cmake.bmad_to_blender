@@ -7,7 +7,6 @@ set (SRC_FILES
 
 set (LINK_LIBS
   bmad
-  xsif
   xrlf03
   xrl
   lapack95
@@ -17,7 +16,6 @@ set (LINK_LIBS
   recipes_f-90_LEPP
   forest
   ${PLOT_LINK_LIBS}
-  xsif
   fgsl
   gsl
   gslcblas
