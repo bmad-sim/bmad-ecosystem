@@ -169,21 +169,6 @@ write (1, '(3a)') '"@M3.45---"    STR "', trim(species_name(species_id('@M3.45--
 
 !
 
-bp_com%always_parse = .true.
-call bmad_and_xsif_parser ('DCO4.xsif', lat)
-lat%ele(156)%value(hkick$) = 0.00001
-lat%ele(156)%value(vkick$) = 0.00002
-
-call twiss_at_start (lat)
-call twiss_propagate_all (lat)
-call reallocate_coord (orbit, lat)
-call closed_orbit_calc (lat, orbit, 4)
-
-write (1, '(a, 2f12.8)')  '"XSIF:Twiss"  REL 1e-8', lat%ele(0)%a%beta, lat%ele(0)%b%beta
-write (1, '(a, 2es15.8)') '"XSIF:Orbit"  REL 1e-8', orbit(0)%vec(1), orbit(0)%vec(3)
-
-!
-
 call bmad_parser ('parse_test.bmad', lat, use_line = 'PHOT')
 
 write (1, '(4a)')         '"PHOT-1"    STR ', '"', trim(lat%ele(1)%name), '"'
