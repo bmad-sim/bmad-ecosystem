@@ -31,7 +31,6 @@ call out_io (s_blank$, r_name, [ &
         '  -hook_init_file <file_name>          # Init file for hook routines (Default = tao_hook.init)  ', &
         '  -init_file <file_name>               # Tao init file                                          ', &
         '  -lattice_file <file_name>            # Bmad lattice file                                      ', &
-        '  -lattice_file xsif::<file_name>      # XSIF lattice file                                      ', &
         '  -log_startup                         # Write startup debugging info                           ', &
         '  -no_stopping                         # For debugging: Prevents Tao from exiting on errors     ', &
         '  -noinit                              # Do not use Tao init file                               ', &

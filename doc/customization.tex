@@ -173,63 +173,51 @@ is called the \vn{model} lattice has not yet been initialized.
 \subsection{tao_hook_init_design_lattice}
 \index{customizing!tao_hook_init_design_lattice}
 
-This will do a custom lattice initialization. The standard lattice
-initialization just calls \vn{bmad_parser} or \vn{xsif_parser}. If
-anything more complex needs to be done then do it here. This is also
-where any custom overlays or other elements would be inserted after
-the parsing is complete. But in general, anything placed here should,
-in principle, be something that can be placed in a lattice file.
+This will do a custom lattice initialization. The standard lattice initialization just calls
+\vn{bmad_parser}. If anything more complex needs to be done then do it here. This is also where any
+custom overlays or other elements would be inserted after the parsing is complete. But in general,
+anything placed here should, in principle, be something that can be placed in a lattice file.
 
-\textbf{This is the only routine that should insert elements in the
-ring}. This is because the \tao data structures use the element index
-for each element associated with the datum. If all the element indexes
-shift then the data structures will break. If new elements need to be
-inserted then modify this routine and recompile. You can alternatively
-create a custom initialization file used by this routine that reads in
-any elements to be inserted.
+\textbf{This is the only routine that should insert elements in the ring}. This is because the \tao
+data structures use the element index for each element associated with the datum. If all the element
+indexes shift then the data structures will break. If new elements need to be inserted then modify
+this routine and recompile. You can alternatively create a custom initialization file used by this
+routine that reads in any elements to be inserted.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_lattice_calc}
 \index{customizing!tao_hook_lattice_calc}
 
-The standard lattice calculation can be performed for single particle,
-particle beam tracking and will recalculate the
-orbit, transfer matrices, twiss parameters and load the data
-arrays. If something else needs to be performed whenever the lattice
-is recalculated then it is placed here. A custom lattice calculation
-can be performed on any lattice separately, this allows for the
-possibility of, for example, tracking a single particle for one
-lattice and beams in another.
+The standard lattice calculation can be performed for single particle, particle beam tracking and
+will recalculate the orbit, transfer matrices, twiss parameters and load the data arrays. If
+something else needs to be performed whenever the lattice is recalculated then it is placed here. A
+custom lattice calculation can be performed on any lattice separately, this allows for the
+possibility of, for example, tracking a single particle for one lattice and beams in another.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_merit_data}
 \index{customizing!tao_hook_merit_data}
 
-A custom data merit type can be defined here. Table~\ref{t:con.type}
-lists the standard merit types. If a custom merit type is used then
-\vn{load_it} in \vn{tao_hook_load_data_array} may also need to be
-modified to handle this merit type, additionally, all standard data
-types may need to be overridden in \vn{tao_hook_load_data_array} in
-order for the custom \vn{load_it} to be used.  See
-\vn{tao_merit.f90} for how the standard merit types are
-calculated.
+A custom data merit type can be defined here. Table~\ref{t:con.type} lists the standard merit
+types. If a custom merit type is used then \vn{load_it} in \vn{tao_hook_load_data_array} may also
+need to be modified to handle this merit type, additionally, all standard data types may need to be
+overridden in \vn{tao_hook_load_data_array} in order for the custom \vn{load_it} to be used.  See
+\vn{tao_merit.f90} for how the standard merit types are calculated.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_merit_var}
 \index{customizing!tao_hook_merit_var}
 
-This hook will allow for a custom variable merit type. However, since
-there is no corresponding data transfer, no \vn{load_it} routine needs
-to be modified.  See \vn{tao_merit.f90} for how the standard
+This hook will allow for a custom variable merit type. However, since there is no corresponding data
+transfer, no \vn{load_it} routine needs to be modified.  See \vn{tao_merit.f90} for how the standard
 merit types are calculated.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_optimizer}
 \index{customizing!tao_hook_optimizer}
 
-If a non standard optimizer is needed, then it can be implemented
-here. See the \vn{tao_*_optimizer.f90} files for how the
-standard optimizers are implemented.
+If a non standard optimizer is needed, then it can be implemented here. See the
+\vn{tao_*_optimizer.f90} files for how the standard optimizers are implemented.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_parse_command_args}
@@ -248,28 +236,25 @@ initialization file, that name will supersede the hook name.
 \subsection{tao_hook_plot_graph}
 \index{customizing!tao_hook_plot_graph}
 
-This will customize the plotting of a graph. See the \tao module
-\vn{tao_plot_mod} for details on what it normally done. You will also
-need to know how \vn{quick_plot} works (See the \bmad manual).
+This will customize the plotting of a graph. See the \tao module \vn{tao_plot_mod} for details on
+what it normally done. You will also need to know how \vn{quick_plot} works (See the \bmad manual).
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_plot_data_setup}
 \index{customizing!tao_hook_plot_data_setup}
 
-Use this routine to override the \vn{tao_plot_data_setup} routine which
-essentially transfers the information from the \vn{s%u(:)%data} arrays
-to the \vn{s%plot_page%region(:)%plot%graph(:)%curve(:)} arrays. This
-may be useful if you want to make a plot that isn't simply the
-information in a data or variable array.
+Use this routine to override the \vn{tao_plot_data_setup} routine which essentially transfers the
+information from the \vn{s%u(:)%data} arrays to the
+\vn{s%plot_page%region(:)%plot%graph(:)%curve(:)} arrays. This may be useful if you want to make a
+plot that isn't simply the information in a data or variable array.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_post_process_data}
 \index{customizing!tao_hook_post_process_data}
 
-Here can be placed anything that needs to be done after the data
-arrays are loaded. This routine is called immediately after the data
-arrays are called and before the optimizer or plotting is done, so any
-final modifications to the lattice or data can be performed here.
+Here can be placed anything that needs to be done after the data arrays are loaded. This routine is
+called immediately after the data arrays are called and before the optimizer or plotting is done, so
+any final modifications to the lattice or data can be performed here.
 
 %-----------------------------------------------------------------
 %\chapter{Plotting}
@@ -281,25 +266,22 @@ final modifications to the lattice or data can be performed here.
 \section{Adding a New Data Type Example}
 \label{s:cust.example}
 
-As an example of a customization, let's include a new data type called
-\vn{particle_emittance}. This will be the non-normalized x and y
-emittance as found from the Courant-Snyder invariant. This data type
-will behave just like any other data type (i.e.  \vn{orbit},
-\vn{phase} etc...). 
+As an example of a customization, let's include a new data type called \vn{particle_emittance}. This
+will be the non-normalized x and y emittance as found from the Courant-Snyder invariant. This data
+type will behave just like any other data type (i.e.  \vn{orbit}, \vn{phase} etc...).
 
 This example will only require the modification of one file:
-\vn{tao_hook_evaluate_a_datum.f90}. This file should be copied
-from the \vn{tao/hook} directory and put in your \vn{ROOT/code}
-directory (\sref{s:cust.init}).
+\vn{tao_hook_evaluate_a_datum.f90}. This file should be copied from the \vn{tao/hook} directory and
+put in your \vn{ROOT/code} directory (\sref{s:cust.init}).
 
 The formula for single particle emittance is
 \Begineq
   \epsilon = \gamma x^{2} + 2 \alpha x x' + \beta x'^{2}
   \label{e:emittance}
 \Endeq
-Place the following code in \vn{tao_hook_evaluate_a_datum.f90} in the
-\cmd{case select} construct. Also add the necessary type declarations. See the 
-routine \vn{tao_evaluate_a_datum} as an example.
+Place the following code in \vn{tao_hook_evaluate_a_datum.f90} in the \cmd{case select}
+construct. Also add the necessary type declarations. See the routine \vn{tao_evaluate_a_datum} as an
+example.
 \begin{example}
   type (coord_struct), pointer :: orbit(:)
   type (ele_struct), pointer :: ele
@@ -323,21 +305,18 @@ routine \vn{tao_evaluate_a_datum} as an example.
 		     ele%b%beta * orbit(ix_ele)%vec(4)**2)
   end select
 \end{example}
-This defines what is to be calculated for each \vn{particle_emittance}
-datum.  There are two transverse coordinates, so two definitions need
-to be made, one for each dimension.
+This defines what is to be calculated for each \vn{particle_emittance} datum.  There are two
+transverse coordinates, so two definitions need to be made, one for each dimension.
 
-Now you just need to declare the data types in the \cmd{tao.init} and
-\cmd{tao_plot.init} files. For the sake of this example, modify the
-example files found in the \vn{tao/example} directory
+Now you just need to declare the data types in the \cmd{tao.init} and \cmd{tao_plot.init} files. For
+the sake of this example, modify the example files found in the \vn{tao/example} directory
 \begin{example}
 	mkdir ROOT/my_example
   cp tao/example/*.init ROOT/my_example
   cp tao/example/*.lat ROOT/my_example
 \end{example}
 
-In \cmd{ROOT/my_example/tao.init} add the following lines to the data
-declarations section
+In \cmd{ROOT/my_example/tao.init} add the following lines to the data declarations section
 \begin{example}
   &tao_d2_data
     d2_data%name = "particle_emittance" 
@@ -407,8 +386,8 @@ of the file
 \end{example}
 These namelists are described in detail in Chapter~\ref{c:init}.
 
-We are now ready to compile and then run the program. The \tao library
-should have already been created so all you need to do is
+We are now ready to compile and then run the program. The \tao library should have already been
+created so all you need to do is
 \begin{example}
 	cd ROOT/code
 	mk
@@ -423,10 +402,9 @@ After your custom \tao initializes type
 \end{example}
 Your plot should look like Figure~\ref{f:plot.emittance}.
 
-The emittance (as calculated) is not constant. This is due to
-dispersion and coupling throughout the ring. \bmad provides a routine
-to find the particle emittance from the twiss parameters that includes
-dispersion and coupling called \vn{orbit_amplitude_calc}.
+The emittance (as calculated) is not constant. This is due to dispersion and coupling throughout the
+ring. \bmad provides a routine to find the particle emittance from the twiss parameters that
+includes dispersion and coupling called \vn{orbit_amplitude_calc}.
 
 \begin{figure}
   \centering
@@ -439,10 +417,10 @@ dispersion and coupling called \vn{orbit_amplitude_calc}.
 \section{Reading in Measured Data Example}
 \label{s:cust.read.example}
 
-This section shows how to construct a customized version of \tao, called \vn{ping_tao}, to
-read in measured data for analysis. This example uses data from the Fermilab proton
-recirculation. The data is obtained by measuring the orbit turn-by-turn of a beam that has been
-initially pinged to give it a finite oscillation amplitude.
+This section shows how to construct a customized version of \tao, called \vn{ping_tao}, to read in
+measured data for analysis. This example uses data from the Fermilab proton recirculation. The data
+is obtained by measuring the orbit turn-by-turn of a beam that has been initially pinged to give it
+a finite oscillation amplitude.
 
 The files for constructing \vn{ping_tao} can be found
 in the directory
@@ -473,8 +451,8 @@ File for defining plot parameters (\sref{s:init.plot}).
 copy of the \vn{tao/program/tao_program.f90} file (\sref{s:cust.init}).
 \end{description}
 
-After creating the \vn{ping_tao} program (see the \vn{README} file), the program can
-be run by going to the custom_tao_with_measured_data directory and using the command:
+After creating the \vn{ping_tao} program (see the \vn{README} file), the program can be run by going
+to the custom_tao_with_measured_data directory and using the command:
 \begin{example}
 	../production/bin/ping_tao
 \end{example}
@@ -485,26 +463,26 @@ of the beam oscillations at a BPM for either the \vn{a-mode} or \vn{b-mode} osci
 See the write up on ping data types in Sec.~\sref{s:data.types} under \vn{ping_a.amp_x},
 and \vn{ping_b.amp_x} for more details.
 
-The data files in the \vn{data} directory contain data for either the \vn{a-mode} or \vn{b-mode} ping at either
-the horizontal or vertical BPMs.
+The data files in the \vn{data} directory contain data for either the \vn{a-mode} or \vn{b-mode}
+ping at either the horizontal or vertical BPMs.
 
 The syntax of the \vn{pingread} command is:
 \begin{example}
   pingread <mode> <filename> <data_or_ref>
 \end{example}
-The first argument, \vn{<mode>}, should be either ``\vn{a_mode}'' ``\vn{b_mode}''
-indicating wether the data is for the \vn{a-mode} \vn{b-mode} analysis (a better setup
-would encode this information in the data file itself). The second argument, \vn{filename}
-is the name of the data file, and the third argument, \vn{data_or_ref} should be
-``\vn{data}'' or ``\vn{reference}'' indicating that the data is to be read into the
-\vn{meas_value} or \vn{ref_value} of the appropriate \vn{tao_data_struct}.
+The first argument, \vn{<mode>}, should be either ``\vn{a_mode}'' ``\vn{b_mode}'' indicating wether
+the data is for the \vn{a-mode} \vn{b-mode} analysis (a better setup would encode this information
+in the data file itself). The second argument, \vn{filename} is the name of the data file, and the
+third argument, \vn{data_or_ref} should be ``\vn{data}'' or ``\vn{reference}'' indicating that the
+data is to be read into the \vn{meas_value} or \vn{ref_value} of the appropriate
+\vn{tao_data_struct}.
 
 %----------------------------------------------------------------
 \subsection{Analysis of the tao_hook_command.f90 File}
 \label{s:hook.cmd.anal}
 
-The first part of the \vn{tao_hook_command} routine parses the command line to see
-if the \vn{pingread} command is present. The relevant code, somewhat condensed, is:
+The first part of the \vn{tao_hook_command} routine parses the command line to see if the
+\vn{pingread} command is present. The relevant code, somewhat condensed, is:
 \begin{example}
   subroutine tao_hook_command (command_line, found)
 
@@ -541,17 +519,17 @@ if the \vn{pingread} command is present. The relevant code, somewhat condensed, 
 \end{example}
 
 Note: To quickly find information on routines and structures, use the \vn{getf} and \vn{listf}
-scripts as explained in the \bmad manual. For example, typing ``\vn{getf string_trim}'' 
-on the system command line will give information on the string_trim subroutine.
+scripts as explained in the \bmad manual. For example, typing ``\vn{getf string_trim}'' on the
+system command line will give information on the string_trim subroutine.
 
-The above code tests to see if the command is \vn{pingread} and, if not, returns without
-doing anything.
+The above code tests to see if the command is \vn{pingread} and, if not, returns without doing
+anything.
 
-If the \vn{pingread} command is found, the rest of the command line is parsed to get the 
+If the \vn{pingread} command is found, the rest of the command line is parsed to get the
 \vn{<mode>}, \vn{<filename>}, and \vn{<data_or_ref>} arguments.
 
-In the \vn{tao.init} file, a \vn{tune} d2 datum is setup to have two \vn{d1} datum arrays
-One for the \vn{a}-mode tune and one for the \vn{b}-mode tune:
+In the \vn{tao.init} file, a \vn{tune} d2 datum is setup to have two \vn{d1} datum arrays One for
+the \vn{a}-mode tune and one for the \vn{b}-mode tune:
 \begin{example}
   \&tao_d2_data
     d2_data%name = "tune"
@@ -575,9 +553,9 @@ One for the \vn{a}-mode tune and one for the \vn{b}-mode tune:
     ix_max_data = 1
   /
 \end{example}
-And each \vn{d1} array has only one datum since the \vn{a}-mode and \vn{b}-mode tunes have
-only one value associated with them (as opposed to, say an orbit which will have multiple
-values from different BPMs).
+And each \vn{d1} array has only one datum since the \vn{a}-mode and \vn{b}-mode tunes have only one
+value associated with them (as opposed to, say an orbit which will have multiple values from
+different BPMs).
 
 In a data file there is a header section which, among other things, records the tune.
 In a line beginning with the word ``\vn{Tune}''. Example:
@@ -598,19 +576,18 @@ data file is read to extract the tune datums:
       return
     endif
 \end{example}
-The call to \vn{tao_find_data} looks for a \vn{d2} data structure named \vn{tune}. This
-structure is setup in the \vn{tao.init} file. Alternatively, the \vn{ping_tao} program
-could be configured to automatically setup the appropriate data and/or variable structures
-via the \vn{tao_hook_init1} routine (\sref{s:hook.init}). 
+The call to \vn{tao_find_data} looks for a \vn{d2} data structure named \vn{tune}. This structure is
+setup in the \vn{tao.init} file. Alternatively, the \vn{ping_tao} program could be configured to
+automatically setup the appropriate data and/or variable structures via the \vn{tao_hook_init1}
+routine (\sref{s:hook.init}).
 
 The returned value from the call to \vn{tao_find_data} is an array called \vn{d2} of type
-\vn{tao_d2_data_array_struct}. \vn{d2} holds an array of pointers to all
-\vn{d2_data_struct} structures it can find. In general, there could be multiple such
-structures if multiple universes are being used or if the match string, in this case
-\vn{'tune'}, contained wild card characters. In this case, the expectation is that there
-will only one universe used and thus there should be one and only one structure that
-matches the name \vn{tune}. This structure will be pointed to by \vn{d2(1)%d2}. The
-appropriate datums, will be:
+\vn{tao_d2_data_array_struct}. \vn{d2} holds an array of pointers to all \vn{d2_data_struct}
+structures it can find. In general, there could be multiple such structures if multiple universes
+are being used or if the match string, in this case \vn{'tune'}, contained wild card characters. In
+this case, the expectation is that there will only one universe used and thus there should be one
+and only one structure that matches the name \vn{tune}. This structure will be pointed to by
+\vn{d2(1)%d2}. The appropriate datums, will be:
 \begin{example}
   d2(1)%d2%d1(1)%d(1)   ! a-mode tune
   d2(1)%d2%d1(1)%d(2)   ! b-mode tune
@@ -639,9 +616,9 @@ In the data file the ping data looks like:
   R:HP226     0.23140  0.31712    0.075    0.882 -0.14363                         
   ... etc ...
 \end{example}
-The ``\vn{H}'' in \vn{R:HP222}, etc. indicates that the data is from BPMs that only
-measure the horizontal displacement of the beam. Alternatively, a ``\vn{V}'' would
-indicate data from vertical measurement BPMs.
+The ``\vn{H}'' in \vn{R:HP222}, etc. indicates that the data is from BPMs that only measure the
+horizontal displacement of the beam. Alternatively, a ``\vn{V}'' would indicate data from vertical
+measurement BPMs.
 
 In the \vn{tao_hook_command} file the data pointers are setup by the code:
 \begin{example}
@@ -664,11 +641,11 @@ In the \vn{tao_hook_command} file the data pointers are setup by the code:
       call tao_find_data (err, 'ping_b.phase_y', d1_array = d1_phase_arr)
     endif
 \end{example}
-\vn{line(3:3)} is either \vn{H} or \vn{V} indicating horizontal or vertical orbit
-measuring BPMs. In this case, the call to the \vn{tao_find_data} routine returns \vn{d1}
-data arrays to the amplitude data (\vn{d1_amp_arr}) and phase data (\vn{d1_phase_arr}).
-Just like the tune data, since it is assumed only one universe is being used, there should
-be one and only \vn{d1} structure for the phase and only one \vn{d1} structure for the amplitude:
+\vn{line(3:3)} is either \vn{H} or \vn{V} indicating horizontal or vertical orbit measuring BPMs. In
+this case, the call to the \vn{tao_find_data} routine returns \vn{d1} data arrays to the amplitude
+data (\vn{d1_amp_arr}) and phase data (\vn{d1_phase_arr}).  Just like the tune data, since it is
+assumed only one universe is being used, there should be one and only \vn{d1} structure for the
+phase and only one \vn{d1} structure for the amplitude:
 \begin{example}
   d1_amp_arr(1)%d1      ! d1 struucture for the amplitude data
   d1_phase_arr(1)%d1    ! d1 struucture for the phase data
@@ -683,13 +660,13 @@ To save on typing, and make the code clearer, pointers are used to point to thes
 The array of datums for the amplitude and phase data will be \vn{d1_amp%d(:)} and
 \vn{d1_phase%d(:)} respectively.
 
-After the \vn{d1_amp} and \vn{d1_phase} pointers have been set, there is a loop over all
-the lines in the file to extract the ping data. One problem faced is that the order of the
-data in the file is not the same as the order of the data in \vn{d1} structures.  [The
-data in the file is sorded in increasing numberical order in the BPM name while the order
-in the \vn{d1} structures is sorted by increasing logitudinal s-position.]  To get around
-this problem, the BPM name in the file is used to locate the appropriate datum (the
-associated BPM element name is stored in the \vn{%ele_name} component of the datums):
+After the \vn{d1_amp} and \vn{d1_phase} pointers have been set, there is a loop over all the lines
+in the file to extract the ping data. One problem faced is that the order of the data in the file is
+not the same as the order of the data in \vn{d1} structures.  [The data in the file is sorded in
+increasing numberical order in the BPM name while the order in the \vn{d1} structures is sorted by
+increasing logitudinal s-position.]  To get around this problem, the BPM name in the file is used to
+locate the appropriate datum (the associated BPM element name is stored in the \vn{%ele_name}
+component of the datums):
 \begin{example}
   character(140) :: cmd_word(12), ele_name
   ... 
@@ -700,11 +677,11 @@ associated BPM element name is stored in the \vn{%ele_name} component of the dat
   datum_amp => tao_pointer_to_datum(d1_amp, ele_name(3:))
   datum_phase => tao_pointer_to_datum(d1_phase, ele_name(3:))
 \end{example}
-The \vn{line} string holds a line from the data file, the call to \vn{tao_cmd_split}
-splits the line into word chunks and puts them into the array \vn{cmd_word(:)}.
-\vn{cmd_word(1)} holds the first word which is the BPM name with ``\vn{R:}'' prepended to
-the name. The calls to \vn{tao_pointer_to_datum} return pointers, \vn{datum_amp} and
-\vn{datum_phase}, to the approbriate datums given the BPM name. 
+The \vn{line} string holds a line from the data file, the call to \vn{tao_cmd_split} splits the line
+into word chunks and puts them into the array \vn{cmd_word(:)}.  \vn{cmd_word(1)} holds the first
+word which is the BPM name with ``\vn{R:}'' prepended to the name. The calls to
+\vn{tao_pointer_to_datum} return pointers, \vn{datum_amp} and \vn{datum_phase}, to the approbriate
+datums given the BPM name.
 
 After the appropriate datums have been identified, the ping data values read from the data
 file, \vn{r1} and \vn{r2}, are used to set the appropriate components:
@@ -720,16 +697,15 @@ file, \vn{r1} and \vn{r2}, are used to set the appropriate components:
   endif
 \end{example}
 
-One problem is that individual data phase data points can be off by factors of $2\pi$. To
-correct this, the measured phase values are shifted by factors of $2\pi$ so that they are
-within $\pm\pi$ of the design values. There is an added ``branch cut'' problem here in
-that, even without the factors of $2\pi$ problem, the measured phases will be off from the
-design values by some arbitrary amount (determined by how the zero phase is defined in the
-program that created the data file). If this difference between the zero phase of the data
-and the zero phase of design lattice (in the design lattice, the phase is taken to be zero
-at the beginning of the lattice) is close enough to $\pi$, the shifting of the phases by
-factors of $2\pi$ will not be correct. For this reason, a best guess as to what the offset
-is is used in the calculation to avoid the branch cut problem:
+One problem is that individual data phase data points can be off by factors of $2\pi$. To correct
+this, the measured phase values are shifted by factors of $2\pi$ so that they are within $\pm\pi$ of
+the design values. There is an added ``branch cut'' problem here in that, even without the factors
+of $2\pi$ problem, the measured phases will be off from the design values by some arbitrary amount
+(determined by how the zero phase is defined in the program that created the data file). If this
+difference between the zero phase of the data and the zero phase of design lattice (in the design
+lattice, the phase is taken to be zero at the beginning of the lattice) is close enough to $\pi$,
+the shifting of the phases by factors of $2\pi$ will not be correct. For this reason, a best guess
+as to what the offset is is used in the calculation to avoid the branch cut problem:
 \begin{example}
   rms_best = 1e30
 

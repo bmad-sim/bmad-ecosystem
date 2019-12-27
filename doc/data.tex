@@ -129,41 +129,44 @@ Each datum has a number of components associated with it:
   ele_ref_name     ! Character: Name of reference lattice element.
   merit_type       ! Character: Type of constraint: "target", "max", etc.
   data_source      ! Character: How the datum is calculated. "lat", "beam", etc.
-  ix_ele           ! Integer: Index of "ele" in the lattice element list.
-  ix_branch        ! Integer: Lattice branch index.
-  ix_ele_start     ! Integer: Index of "ele_start" in the lattice element list.
-  ix_ele_ref       ! Integer: Index of "ele_ref" in the lattice element list.
-  ix_ele_merit     ! Integer: Lattice index where merit is evaluated.
-  ix_d1            ! Integer: Index number in d1_data structure
-  ix_data          ! Integer: Index in the global data array
-  ix_dModel        ! Integer: Row number in the dModel_dVar derivative matrix.
+  ix_ele\Ss          ! Integer: Index of "ele" in the lattice element list.
+  ix_branch\Ss        ! Integer: Lattice branch index.
+  ix_ele_start\Ss     ! Integer: Index of "ele_start" in the lattice element list.
+  ix_ele_ref\Ss       ! Integer: Index of "ele_ref" in the lattice element list.
+  ix_ele_merit\Ss     ! Integer: Lattice index where merit is evaluated.
+  ix_d1\Ss            ! Integer: Index number in d1_data structure
+  ix_data\Ss          ! Integer: Index in the global data array
+  ix_dModel\Ss        ! Integer: Row number in the dModel_dVar derivative matrix.
   ix_bunch         ! Integer: Bunch number to get the data from.
   eval_point       ! Character/integer: Evaluation point relative to the lattice element.
   meas             ! Real: Measured datum value. 
   ref              ! Real: Measured datum value from the reference data set.
-  model            ! Real: Datum value as calculated from the model.
-  design           ! Real: What the datum value is in the design lattice.
-  old              ! Real: Used by \tao to save the model at some previous time.
-  base             ! Real: The value as calculated from the base model.
-  fit              ! Real: This value is not used by \tao.
+  model\Ss            ! Real: Datum value as calculated from the model.
+  design\Ss           ! Real: What the datum value is in the design lattice.
+  old\Ss              ! Real: Used by \tao to save the model at some previous time.
+  base\Ss             ! Real: The value as calculated from the base model.
+  fit\Dd              ! Real: This value is not used by \tao.
   invalid          ! Real: The value used for delta_merit if good_model = False.
-  delta_merit      ! Real: Diff used to calculate the merit function term 
+  error_rms        ! Real: Measurement error. Used for plotting.
+  delta_merit\Ss      ! Real: Diff used to calculate the merit function term 
   weight           ! Real: Weight for the merit function term
-  merit            ! Real: Merit function term value: weight * delta^2
-  s                ! Real: longitudinal position of ele.
+  merit\Ss            ! Real: Merit function term value: weight * delta^2
+  s\Ss                ! Real: longitudinal position of ele.
   s_offset         ! Real: Offset of the evaluation point.
-  exists           ! Logical: Does the datum exist?
-  good_model       ! Logical: Does the model  component contain a valid value?
-  good_design      ! Logical: Does the design component contain a valid value?
-  good_base        ! Logical: Does the base   component contain a valid value?
+  exists\Ss           ! Logical: Does the datum exist?
+  good_model\Ss       ! Logical: Does the model  component contain a valid value?
+  good_design\Ss      ! Logical: Does the design component contain a valid value?
+  good_base\Ss        ! Logical: Does the base   component contain a valid value?
   good_meas        ! Logical: Does the meas   component contain a valid value?
   good_ref         ! Logical: Does the ref    component contain a valid value?
   good_user        ! Logical: Does the user want this datum used in optimization?
-  good_opt         ! Logical: Can be used in Tao extensions.
-  good_plot        ! Logical: Can be used in Tao extensions.
-  useit_plot       ! Logical: Is this datum to be used in plotting?
-  useit_opt        ! Logical: Is this datum to be used for optimization?
+  good_opt\Dd         ! Logical: Can be used in Tao extensions.
+  good_plot\Dd        ! Logical: Can be used in Tao extensions.
+  useit_plot\Ss       ! Logical: Is this datum to be used in plotting?
+  useit_opt\Ss        ! Logical: Is this datum to be used for optimization?
 \end{example}
+\Ss Set by \tao. \Dd Used by \tao extensions. Not user settable.
+
 When running \tao, the \vn{show data} (\sref{s:show}) command can be used to view the components of a datum. 
 The \vn{set} command (\sref{s:set}) can be used to set some of these components.
 Note: Some of these components are set by the user and some of these components will be calculated by
@@ -192,6 +195,10 @@ components.
 Starting element of a range of lattice elements (\sref{s:data.lat.ele}).
   \item[ele_ref_name] \Newline
 Reference lattice element (\sref{s:data.lat.ele}).
+  \item[error_rms] \Newline
+The error associated with the measured or reference data values. Used for drawing error bars. See the 
+documentation on \vn{curve(i)%draw_error_bars} in \sref{s:plot.data}.
+for more details.
   \item[eval_point] \Newline
 Used with \vn{s_offset} to determine where the datum is evaluated at (\sref{s:dat.eval}).
   \item[exists] \Newline

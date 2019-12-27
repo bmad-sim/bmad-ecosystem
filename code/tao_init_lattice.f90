@@ -148,11 +148,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ix = index(design_lat%file(1:10), '::')
 
   if (ix == 0) then
-    if (index(design_lat%file, '.xsif ') /= 0) then
-      design_lat%language = 'xsif'
-    else
-      design_lat%language = 'bmad'
-    endif
+    design_lat%language = 'bmad'
   else
     design_lat%language = design_lat%file(1:ix-1)
     design_lat%file = design_lat%file(ix+2:)
@@ -197,10 +193,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     select case (design_lat%language)
     case ('bmad')
       call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
-    case ('xsif')
-      call xsif_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
-    case ('aml')
-      call aml_parser (design_lat%file, u%design%lat, err_flag = err)
     case ('digested')
       call out_io (s_blank$, r_name, "Reading digested BMAD file " // trim(design_lat%file))
       call read_digested_bmad_file (design_lat%file, u%design%lat, version, err)
