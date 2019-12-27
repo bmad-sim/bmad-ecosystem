@@ -6,13 +6,11 @@ set (SRC_FILES
 
 set (LINK_LIBS
   bmad 
-  xsif
   xrlf03
   xrl
   sim_utils
   recipes_f-90_LEPP 
   forest
-  xsif
   ${PLOT_LINK_LIBS} 
   fgsl
   gsl
