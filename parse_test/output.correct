@@ -199,8 +199,6 @@
 "#12C-5"       STR "#12C-5"
 "CH3@M34.5+2"  STR "CH3@M34.5++"
 "@M3.45---"    STR "@M3.45-3"
-"XSIF:Twiss"  REL 1e-8 20.56499970 12.05361620
-"XSIF:Orbit"  REL 1e-8 1.54985296E-04 1.81420409E-04
 "PHOT-1"    STR "DDD#1"
 "PHOT-N"    STR "8"
 "Hard-Edge" STR "F"
