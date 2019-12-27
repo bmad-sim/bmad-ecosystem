@@ -33,7 +33,6 @@ SET (SRC_DIRS
 
 SET (SHARED_DEPS
   bmad 
-  xsif
   xrlf03
   xrl
   sim_utils
