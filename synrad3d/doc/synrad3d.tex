@@ -666,9 +666,7 @@ elements within the emission region. For each element the following are given.
   \end{enumerate}
 
   \item[\vn{lattice_file}] \Newline
-This file defines the machine optics. The lattice file format may be
-the Bmad format or, if the \vn{lattice_file} string is prefixed by
-\vn{``xsif::''}, may be in xsif format. See the Bmad manual for more details.
+This file defines the machine optics. See the Bmad manual for more details.
 
   \item[\vn{num_ignore_generated_outside_wall}] \Newline
 Photons may be generated outside of the beam chamber for various
@@ -2202,9 +2200,7 @@ random number generator state in the initial photon position file do not affect 
 not have to be set. Also: The if the magnitude of the velocity $\sqrt{v_x^2+v_y^2+v_z^2}/c$ is not
 too far off from 1 then \srthree will renormalize so that $\sqrt{v_x^2+v_y^2+v_z^2}/c$ will be 1.
 
-\vn{lattice_file} give the name of the lattice.  The lattice file format may be the Bmad format or,
-if the \vn{lattice_file} string is prefixed by \vn{``xsif::''}, may be in xsif format. See the Bmad
-manual for more details.
+\vn{lattice_file} give the name of the lattice. See the Bmad manual for more details.
 
 The \vn{wall_file} gives the name of the vacuum chamber wall definition file. See \sref{s:wall.file}
 for more details.
