@@ -365,7 +365,10 @@ def search_c (file_name, search_com):
 
   c_file = open(file_name)
   while True:
-    line = c_file.readline()
+    try:
+      line = c_file.readline()
+    except:
+      continue    # If line contains a non-ascii character.
     if line == '': return
     line2 = line.lstrip()
     if line2.rstrip() == '':
