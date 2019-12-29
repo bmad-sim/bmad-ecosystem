@@ -1152,9 +1152,9 @@ structure there must be a \vn{tao_d1_data} namelist which has the form:
     ix_max_data            = <integer>           ! Maximum array index.
     datum(j)%data_source    = "<source>"         ! "lat" (dflt), "data", "var", or "beam". 
     datum(j)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
-    datum(j)%ele_name       = "<ele_name>"       ! Lattice element name.
-    datum(j)%ele_start_name = "<ele_start_name>" ! Start element name.
-    datum(j)%ele_ref_name   = "<ele_ref_name>"   ! Reference element names.
+    datum(j)%ele_name       = "<ele_name>"       ! Evaluation lattice element name.
+    datum(j)%ele_start_name = "<ele_start_name>" ! Start lattice element name.
+    datum(j)%ele_ref_name   = "<ele_ref_name>"   ! Reference lattice element name.
     datum(j)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
     datum(j)%meas           = <real>             ! Datum "measured" value
     datum(j)%weight         = <weight>           ! Merit function weight.
@@ -1162,6 +1162,7 @@ structure there must be a \vn{tao_d1_data} namelist which has the form:
     datum(j)%ix_bunch       = <integer>          ! Bunch index. Dflt: 0 = all bunches.
     datum(j)%eval_point     = "<where>"          ! "beginning", "center", or "end" (dflt).
     datum(j)%s_offset       = <real>             ! Default: 0.
+    datum(j)%spin_axis      = <struct>           ! For spin G-matix calculations.
   /
 \end{example}
 For example:
@@ -1239,17 +1240,15 @@ coming from. Possible values are:
   "lat"         ! Value is from the lattice.
   "var"         ! Used with expressions.
 \end{example}
-With \vn{%data_source} set to \vn{"beam"}, the particular bunch that the data is extracted
-from can be specified via \vn{datum(:)%ix_bunch}.  The default is \vn{0} which combines
-all the bunches for the datum calculation.  If the \vn{%data_source} is not set, the value
-of the \vn{default_data_source} is used. If both \vn{%data_source} and
-\vn{default_data_source} are not specified, \vn{"lat"} is the default. A \vn{%data_source}
-of \vn{"data"} or \vn{"var"} establishes the default data source for evaluating
-expressions (see \vn{"expression:"} in \sref{s:data.types}).
+With \vn{%data_source} set to \vn{"beam"}, the particular bunch that the data is extracted from can
+be specified via \vn{datum(:)%ix_bunch}.  The default is \vn{0} which combines all the bunches for
+the datum calculation. If the \vn{%data_source} is not set, the value of the
+\vn{default_data_source} is used. If both \vn{%data_source} and \vn{default_data_source} are not
+specified, \vn{"lat"} is the default. A \vn{%data_source} of \vn{"data"} or \vn{"var"} establishes
+the default data source for evaluating expressions (see \vn{"expression:"} in \sref{s:data.types}).
 
-If elements in the \vn{data} array do not exist the corresponding
-\vn{data%ele_name} should be left blank. Lists of names can be reused
-using the syntax:
+If elements in the \vn{data} array do not exist the corresponding \vn{data%ele_name} should be left
+blank. Lists of names can be reused using the syntax:
 \index{use_same_lat_eles_as}
 \begin{example}
   use_same_lat_eles_as = "<d1_name>"     ! Reuse previous element list.
@@ -1265,8 +1264,8 @@ For example:
 \end{example}
 
 \index{search_for_lat_eles}
-\tao can search for the elements in the lattice to be associated with 
-each data type by using the syntax:
+\tao can search for the elements in the lattice to be associated with each data type by using the
+syntax:
 \begin{example}
    search_for_lat_eles = "\{-no_lords\} \{-no_slaves\} <element_list>"
 \end{example}
@@ -1279,34 +1278,45 @@ superposition or multipass slave elements. For example:
 \begin{example}
   search_for_lat_eles = "-no_lords sbend::b*
 \end{example}
-This will search for all non-lord bend lattice elements whose names
-begins with \vn{"B"} followed by any set of characters.
-\vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be used
+This will search for all non-lord bend lattice elements whose names begins with \vn{"B"} followed by
+any set of characters.  \vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be used
 together.
 
 \index{data!data_type}
-If \vn{datum(j)%data_type} is not given, and \vni{default_data_type} is not specified,
-then the \vni{d2_data} name and the \vni{d1_data} name are combined for each datum to form
-the datum's \vn{type}. For example, if the \vn{d2_data} name is \vn{orbit}, and the
-\vn{d1_data} name is \vn{x}, then the \vn{data_type} is \vn{orbit.x}. The \vn{data_type}s
-recognized by \tao. are given by Table~\ref{t:con.type}. Custom data types not
-specified in this table must have a corresponding definition in
-\vn{tao_hook_load_data_array.f90}. See Chapter~\ref{c:custom.tao} for details.
+If \vn{datum(j)%data_type} is not given, and \vni{default_data_type} is not specified, then the
+\vni{d2_data} name and the \vni{d1_data} name are combined for each datum to form the datum's
+\vn{type}. For example, if the \vn{d2_data} name is \vn{orbit}, and the \vn{d1_data} name is \vn{x},
+then the \vn{data_type} is \vn{orbit.x}. The \vn{data_type}s recognized by \tao. are given by
+Table~\ref{t:con.type}. Custom data types not specified in this table must have a corresponding
+definition in \vn{tao_hook_load_data_array.f90}. See Chapter~\ref{c:custom.tao} for details.
 
 \index{datum%weight}
-\vn{datum(:)%weight} gives the weight coefficient for a datum in the
-merit function. If not present then the default weight of
-\vni{default_weight} is used. 
+\vn{datum(:)%weight} gives the weight coefficient for a datum in the merit function. If not present
+then the default weight of \vni{default_weight} is used.
+
+\index{datum%spin_axis}
+The \vn{datum(j)%spin_axis} structure defines the coordinate axes at the reference element about
+which the spin $G$-matrix is computed (when the \vn{datum(j)%data_type} is set to
+\vn{spin_g_matrix.$ij$} (\sref{s:data.types})). The \vn{%spin_axis} structure has three components
+\begin{example}
+  spin_axis%l(3)
+  spin_axis%n0(3)
+  spin_axis%m(3) 
+\end{example}
+The chapter on spin in the \bmad manual has information on how these axes are defined. With one
+exception (\sref{s:data.types}) The \vn{n0} axis must be specified. If \vn{l} is also specified,
+\vn{m} will be appropriately calculated such that the axes form a right handed coordinate system. If
+\vn{m} is also specified, \vn{l} will be appropriately calculated. If neither \vn{l} nor \vn{m} is
+specified, \vn{l} and \vn{m} will be calculated somewhat arbitrarily to form a right handed
+coordinate system.
 
 %-----------------------------------------------------------------
 \subsection{Old Data Format}
 
-In the present data format there are three elements that are
-associated with a given datum: \vn{ele_ref}, \vn{ele_start}, and
-\vn{ele}. There exists an old, deprecated, data format where only two
-elements are given for a given datum. These elements are called
-\vn{ele0} and \vn{ele}. In this old format, \vn{data} is used in place
-of \vn{datum}. For example:
+In the present data format there are three elements that are associated with a given datum:
+\vn{ele_ref}, \vn{ele_start}, and \vn{ele}. There exists an old, deprecated, data format where only
+two elements are given for a given datum. These elements are called \vn{ele0} and \vn{ele}. In this
+old format, \vn{data} is used in place of \vn{datum}. For example:
 \begin{example}
   &tao_d1_data
     ! OLD SYNTAX. DO NOT USE!

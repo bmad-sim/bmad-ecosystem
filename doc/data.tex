@@ -9,7 +9,6 @@ Section~\sref{s:init.data} explains how, in an initialization file, to define th
 hold the data.  When running \tao, the \vn{show data} (\sref{s:show}) command can be used to view
 information about the data.
 
-
 %------------------------------------------------------------------------
 \section{Data Organization}
 \label{s:data.org}
@@ -153,6 +152,7 @@ Each datum has a number of components associated with it:
   merit\Ss            ! Real: Merit function term value: weight * delta^2
   s\Ss                ! Real: longitudinal position of ele.
   s_offset         ! Real: Offset of the evaluation point.
+  spin_axis        ! Structure: Used for Spin G-matrix calculations.
   exists\Ss           ! Logical: Does the datum exist?
   good_model\Ss       ! Logical: Does the model  component contain a valid value?
   good_design\Ss      ! Logical: Does the design component contain a valid value?
@@ -270,6 +270,9 @@ The reference datum value as obtained from some reference measurement (\sref{s:d
 Longitudinal $s$-position of the lattice element.
   \item[s_offset] \Newline
 Offset of the evaluation point when there is an associated lattice element (\sref{s:dat.eval}).
+  \item[spin_axis]
+Used for Spin G-matrix calculations (\vn{spin_g_matrix.$ij$} data type). This gives the coordinate axes at
+the reference element.
   \item[useit_opt] \Newline
 Datum is used for optimization. \vn{useit_opt} is set by \tao using the other
 \vn{logicals} components using the prescription:
@@ -562,32 +565,27 @@ if a datum has:
   ele_ref_name   = "q1"
   merit_type     = "max"
 \end{example}
-then the \vn{model} value of the datum will be the same as the
-previous example minus the value of the a-mode beta function at the
-exit end of element \vn{q1}. There are a number of exceptions to the
-above rule and datum types treat the \vn{reference} element in a different
-manner. For example, the \vn{r.} data type uses the \vn{reference} element
-as the starting point in constructing a transfer matrix.
+then the \vn{model} value of the datum will be the same as the previous example minus the value of
+the a-mode beta function at the exit end of element \vn{q1}. There are a number of exceptions to the
+above rule and datum types treat the \vn{reference} element in a different manner. For example, the
+\vn{r.} data type uses the \vn{reference} element as the starting point in constructing a transfer
+matrix.
 
 %------------------------------------------------------------------------
 \section{Tao Data Types}\index{data!data Types}
 \label{s:data.types}
 
-The \vn{data_type} component of datum specifies what type of data the
-datum represents. For example, a datum with a \vn{data_type} of
-\vn{orbit.x} represents the horizontal orbit. Table~\ref{t:data.types} lists
-what data types \tao knows about.
+The \vn{data_type} component of datum specifies what type of data the datum represents. For example,
+a datum with a \vn{data_type} of \vn{orbit.x} represents the horizontal
+orbit. Table~\ref{t:data.types} lists what data types \tao knows about.
 
-It is important to note the difference between the \vn{d2.d1} name
-that is used to refer to a datum and the actual type of data, given by
-\vn{data_type}, of the datum. The \vn{d2.d1} name is arbitrary and is
-specified in the \tao initialization file (\sref{s:init.data}). Often,
-these names do reflect the actual type of data. However, there is no
-mandated relationship between the two. For example, it is perfectly
-possible to set create a data set with a \vn{d2.d1} name of
-\vn{orbit.x} to hold, say, global floor position data. In fact, the
-datums in a given \vn{d1} array do not all have to be of the same
-type. Thus the user is free to group data as s/he sees fit.
+It is important to note the difference between the \vn{d2.d1} name that is used to refer to a datum
+and the actual type of data, given by \vn{data_type}, of the datum. The \vn{d2.d1} name is arbitrary
+and is specified in the \tao initialization file (\sref{s:init.data}). Often, these names do reflect
+the actual type of data. However, there is no mandated relationship between the two. For example, it
+is perfectly possible to set create a data set with a \vn{d2.d1} name of \vn{orbit.x} to hold, say,
+global floor position data. In fact, the datums in a given \vn{d1} array do not all have to be of
+the same type. Thus the user is free to group data as wanted.
 
 Description of the data types:
 
@@ -1286,10 +1284,17 @@ any emittances or longitudinal sigma values specified in the lattice file.
 
   %----------------------
   \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline
-The longitudinal dependent $G$ matrix is a $2\times6$ matrix that describes the coupling between
-orbital motion and spin precession as discussed in the chapter on spin in the \bmad manual.  Lattice
-design generally involves minimizing components of this matrix.
+The $G$-matrix is the $2\times6$ sub-matrix of the $8\times8$ spin-orbital transfer matrix that
+describes the coupling between orbital motion and spin precession as discussed in the chapter on
+spin in the \bmad manual. Lattice design generally involves minimizing components of this matrix.
+The transfer matrix of which the $G$-matrix is a component of is computed from the datum's
+\vn{ref_ele} reference element to the \vn{ele} evaluation element. If the associated lattice branch
+has a closed geometry, and if the reference element is not specified, the reference element will be
+taken to be evaluation element and the 1-turn spin/orbital transfer matrix will be computed. 
 
+When using this data type, the \vn{spin_axis} component needs to be set. The exception is if the
+one-turn transfer matrix is computed. See \sref{s:init.data} for more details. In this case, if
+\vn{n0} is not specified, the closed orbit \vn{n0} axis is used.
 
   %----------------------
   \item[spin.polarization_limit, .polarization_rate, .depolarization_rate] \Newline

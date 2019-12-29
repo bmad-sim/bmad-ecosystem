@@ -35,7 +35,7 @@ type tao_datum_input
   character(20) :: eval_point = 'end'
   real(rp) :: s_offset = 0
   integer :: ix_bunch = 0
-  real(rp) :: spin_n0(3) = 0
+  type (spin_axis_struct) :: spin_axis = spin_axis_struct()
   real(rp) :: invalid_value = 0
   real(rp) :: error_rms = 0
 end type

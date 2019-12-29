@@ -638,8 +638,8 @@ case ('namelist')
           ! spin out
 
           do m = i_min, i_max
-            if (all(d1%d(m)%spin_axis%n0 == 0)) cycle
-            write (iu, '(a, i0, a, 3f12.6)') 'datum(', m, ')%spin_n0 = ', (d1%d%spin_axis%n0(1), n = 1, 3)
+            if (any(d1%d(m)%spin_axis%n0 /= 0)) &
+                    write (iu, '(a, i0, a, 3f12.6)') 'datum(', m, ')%spin_axis%n0 = ', (d1%d%spin_axis%n0(1), n = 1, 3)
           enddo
 
           write (iu, '(a)') '/'

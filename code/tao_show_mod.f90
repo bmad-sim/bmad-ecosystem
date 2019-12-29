@@ -957,7 +957,18 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)    '%delta_merit       = ', d_ptr%delta_merit
     nl=nl+1; write(lines(nl), rmt)    '%weight            = ', d_ptr%weight
     if (d_ptr%data_type(1:4) == 'spin') then
-      nl=nl+1; write(lines(nl), rmt)  '%spin_n0           = ', d_ptr%spin_axis%n0
+      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%l       = ', d_ptr%spin_axis%l
+      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%n0      = ', d_ptr%spin_axis%n0
+      nl=nl+1; write(lines(nl), rmt)  '%spin_axis%m       = ', d_ptr%spin_axis%m
+      call tao_spin_g_matrix_calc (d_ptr, u, d_ptr%ix_ele_ref, d_ptr%ix_ele, spin_map, valid_value, why_invalid)
+      if (valid_value) then
+        nl=nl+1; write (lines(nl), '(2x, a, 16x, a, 34x, a)') 'Axes:', 'Initial', 'Final'
+        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  L-axis:', spin_map%axis0%l, spin_map%axis1%l
+        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  N-axis:', spin_map%axis0%n0, spin_map%axis1%n0
+        nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') '  M-axis:', spin_map%axis0%m, spin_map%axis1%m
+      else
+        nl=nl+1; lines(nl) = 'Spin calculation not valid since: ' // why_invalid
+      endif
     endif
     nl=nl+1; write(lines(nl), lmt)    '%exists            = ', d_ptr%exists
     nl=nl+1; write(lines(nl), lmt)    '%good_model        = ', d_ptr%good_model
@@ -969,8 +980,7 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)    '%good_opt          = ', d_ptr%good_opt
     nl=nl+1; write(lines(nl), lmt)    '%good_plot         = ', d_ptr%good_plot
     nl=nl+1; write(lines(nl), lmt)    '%useit_plot        = ', d_ptr%useit_plot
-    nl=nl+1; write(lines(nl), '(a, l1, 3x, a)')    '%useit_opt         = ', &
-                                      d_ptr%useit_opt, tao_optimization_status(d_ptr)
+    nl=nl+1; write(lines(nl), '(a, l1, 3x, a)')    '%useit_opt         = ', d_ptr%useit_opt, tao_optimization_status(d_ptr)
 
     if (d_ptr%exists) then
       u => s%u(d_ptr%d1%d2%ix_universe)
