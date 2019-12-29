@@ -51,8 +51,8 @@ character(*) why_invalid
 valid_value = .false.
 branch => u%model%lat%branch(datum%ix_branch)
 
-if (ix_ref > -1 .and. all(datum%spin_axis%n0 == 0)) then
-  call tao_set_invalid (datum, 'SPIN_N0 NOT SET.', why_invalid, .true.)
+if (branch%param%geometry == open$ .and. ix_ref > -1 .and. all(datum%spin_axis%n0 == 0)) then
+  call tao_set_invalid (datum, 'DATUM SPIN_AXIS%N0 NOT SET.', why_invalid, .true.)
   return
 endif
 
@@ -62,7 +62,8 @@ if (allocated(scratch%spin_map)) then
   do i = 1, size(scratch%spin_map)
     sm => scratch%spin_map(i)
     if (sm%ix_ele /= ix_ele .or. sm%ix_ref /= ix_ref .or. sm%ix_uni /= u%ix_uni) cycle
-    if (any(sm%axis0%n0 /= datum%spin_axis%n0) .or. any(sm%axis0%l /= datum%spin_axis%l)) cycle
+    if (any(sm%axis_dat%n0 /= datum%spin_axis%n0) .or. any(sm%axis_dat%l /= datum%spin_axis%l) .or. &
+                                                       any(sm%axis_dat%m /= datum%spin_axis%m)) cycle
     spin_map => sm
     valid_value = .true.
     return
@@ -104,7 +105,7 @@ quat0 = q_map%q(:, 0)
 
 ! If 1-turn then calculate n0. Otherwise take the value in the datum.
 
-if (ix_r == ix_ele) then  ! 1-turn
+if (ix_r == ix_ele .or. all(datum%spin_axis%n0 == 0)) then 
   n0 = q_map%q(1:3,0)   ! n0 is the rotation axis of the 0th order part of the map.
   n1 = n0
 else
@@ -114,20 +115,24 @@ endif
 
 ! Construct coordinate systems (l0, n0, m0) and (l1, n1, m1)
 
-if (all(datum%spin_axis%l == 0)) then
+if (any(datum%spin_axis%l /= 0)) then
+  l0 = datum%spin_axis%l - n0 * dot_product(datum%spin_axis%l, n0)  ! Make sure l0 is perpendicular to n0.
+  l0 = l0 / norm2(l0)
+  m0 = cross_product(l0, n0)
+elseif (any(datum%spin_axis%m /= 0)) then
+  m0 = datum%spin_axis%m - n0 * dot_product(datum%spin_axis%m, n0)  ! Make sure m0 is perpendicular to n0.
+  m0 = m0 / norm2(m0)
+  l0 = cross_product(n0, m0)
+else
   j = maxloc(abs(n0), 1)
   select case (j)
   case (1); l0 = [-n0(3), 0.0_rp, n0(1)]
   case (2); l0 = [n0(2), -n0(1), 0.0_rp]
   case (3); l0 = [0.0_rp, n0(3), -n0(2)]
   end select
-
-else
-  l0 = datum%spin_axis%l - n0 * dot_product(datum%spin_axis%l, n0)  ! Make sure l0 is perpendicular to n0.
+  l0 = l0 / norm2(l0)
+  m0 = cross_product(l0, n0)
 endif
-
-l0 = l0 / norm2(l0)
-m0 = cross_product(l0, n0)
 
 if (ix_r == ix_ele) then
   l1 = l0
@@ -164,13 +169,11 @@ enddo
 
 !
 
-datum%spin_axis%l = l0
-datum%spin_axis%m = m0
-
 spin_map%ix_ref   = ix_ref
 spin_map%ix_ele   = ix_ele
 spin_map%ix_uni   = u%ix_uni
-spin_map%axis0    = datum%spin_axis
+spin_map%axis_dat = datum%spin_axis
+spin_map%axis0    = spin_axis_struct(l0, n0, m0)
 spin_map%axis1    = spin_axis_struct(l1, n1, m1)
 
 valid_value = .true.

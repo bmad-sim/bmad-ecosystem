@@ -395,7 +395,7 @@ type tao_data_struct
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta^2
   real(rp) :: s = real_garbage$            ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
-  type (spin_axis_struct) :: spin_axis = spin_axis_struct()  ! For spin g-matrix calculations.
+  type (spin_axis_struct) :: spin_axis = spin_axis_struct()  ! Input axes for spin g-matrix calculations.
   logical :: err_message_printed = .false. ! Used to prevent zillions of error messages being generated
   logical :: exists = .false.              ! See above
   logical :: good_model = .false.          ! See above
@@ -743,6 +743,7 @@ end type
 type tao_spin_map_struct
   type (taylor_struct) :: orbit_taylor(6) = taylor_struct()  ! Not yet used.
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct() ! Not yet used.
+  type (spin_axis_struct) :: axis_dat = spin_axis_struct()   ! Axes from data_struct
   type (spin_axis_struct) :: axis0 = spin_axis_struct()      ! Initial axes.
   type (spin_axis_struct) :: axis1 = spin_axis_struct()      ! Final axes.
   integer :: ix_ele = 0, ix_ref = 0, ix_uni = 0

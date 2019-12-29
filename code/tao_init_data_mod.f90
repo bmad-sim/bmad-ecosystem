@@ -36,7 +36,6 @@ type (tao_d1_data_input) d1_data
 type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
 
 real(rp) default_weight, def_weight        ! default merit function weight
-real(rp) default_spin_n0(3), def_spin_n0(3)
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
 integer n, iostat, n_loc, n_hterms
@@ -57,10 +56,10 @@ logical err, free, gang
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
-namelist / tao_d2_data / d2_data, n_d1_data, universe, default_spin_n0, &
+namelist / tao_d2_data / d2_data, n_d1_data, universe, &
                 default_merit_type, default_weight, default_data_type, default_data_source
 
-namelist / tao_d1_data / d1_data, datum, ix_d1_data, default_spin_n0, &
+namelist / tao_d1_data / d1_data, datum, ix_d1_data, &
                default_merit_type, default_weight, default_data_type, default_data_source, &
                use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
@@ -139,7 +138,6 @@ do
   universe               = '*'
   default_merit_type     = ''
   default_weight         = 0      
-  default_spin_n0        = 0
   default_data_type      = ''
   default_data_source    = ''
 
@@ -170,7 +168,6 @@ do
   def_weight      = default_weight
   def_data_type   = default_data_type
   def_data_source = default_data_source
-  def_spin_n0     = default_spin_n0
 
   do k = 1, n_d1_data
     use_same_lat_eles_as   = ''
@@ -178,7 +175,6 @@ do
     d1_data%name           = ''
     default_merit_type     = def_merit_type
     default_weight         = def_weight
-    default_spin_n0        = def_spin_n0
     default_data_type      = def_data_type
     default_data_source    = def_data_source
     ix_min_data            = int_garbage$
@@ -317,13 +313,11 @@ if (search_for_lat_eles /= '') then
   enddo
   call indexx (s, ind)
 
-  ! get element names
+  ! Get element names
 
   u%data(n1:n2)%good_user        = datum(ix1:ix2)%good_user
   u%data(n1:n2)%invalid_value    = datum(ix1:ix2)%invalid_value
-  u%data(n1:n2)%spin_axis%n0(1)  = datum(ix1:ix2)%spin_n0(1)
-  u%data(n1:n2)%spin_axis%n0(2)  = datum(ix1:ix2)%spin_n0(2)
-  u%data(n1:n2)%spin_axis%n0(3)  = datum(ix1:ix2)%spin_n0(3)
+  u%data(n1:n2)%spin_axis        = datum(ix1:ix2)%spin_axis
   u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
   u%data(n1:n2)%ele_ref_name     = datum(ix1:ix2)%ele_ref_name
   u%data(n1:n2)%ix_bunch         = datum(ix1:ix2)%ix_bunch
@@ -341,7 +335,7 @@ if (search_for_lat_eles /= '') then
     u%data(n1:n2)%good_meas = .true.
   end where
 
-  ! use default_data_type if given, if not, auto-generate the data_type
+  ! If given, use the default_data_type. If not, auto-generate the data_type.
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
 
@@ -358,7 +352,6 @@ if (search_for_lat_eles /= '') then
 
     call find_this_element (u%data(jj)%ele_ref_name,   'ELE_REF ELEMENT',   u, u%data(jj), u%data(jj)%ix_ele_ref)
     call find_this_element (u%data(jj)%ele_start_name, 'ELE_START ELEMENT', u, u%data(jj), u%data(jj)%ix_ele_start)
-
 
     ! eval_point
     call match_word (datum(ix1+jj-n1)%eval_point, anchor_pt_name(1:), ix, can_abbreviate = .false.)
@@ -404,31 +397,20 @@ elseif (use_same_lat_eles_as /= '') then
 
   u%data(n1:n2)%error_rms     = datum(ix1:ix2)%error_rms
   u%data(n1:n2)%invalid_value = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%spin_axis     = datum(ix1:ix2)%spin_axis
 
   if (default_data_type /= '')    u%data(n1:n2)%data_type = default_data_type
-  if (default_data_source /= '')    u%data(n1:n2)%data_source = default_data_source
-  if (default_merit_type /= '')    u%data(n1:n2)%merit_type = default_merit_type
-  if (default_weight /= 0)    u%data(n1:n2)%weight = default_weight
+  if (default_data_source /= '')  u%data(n1:n2)%data_source = default_data_source
+  if (default_merit_type /= '')   u%data(n1:n2)%merit_type = default_merit_type
+  if (default_weight /= 0)        u%data(n1:n2)%weight = default_weight
 
   do n = n1, n2
     ix = ix_min_data + n - n1
     if (datum(ix)%weight /= 0)       u%data(n)%weight      = datum(ix)%weight
-    if (datum(ix)%data_type /= '')   u%data(n)%data_type   = datum(ix1)%data_type
-    if (datum(ix)%data_source /= '') u%data(n)%data_source = datum(ix1)%data_source
-    if (datum(ix)%merit_type /= '')  u%data(n)%merit_type  = datum(ix1)%merit_type
+    if (datum(ix)%data_type /= '')   u%data(n)%data_type   = datum(ix)%data_type
+    if (datum(ix)%data_source /= '') u%data(n)%data_source = datum(ix)%data_source
+    if (datum(ix)%merit_type /= '')  u%data(n)%merit_type  = datum(ix)%merit_type
   enddo
-
-  if (any(default_spin_n0 /= 0)) then
-    u%data(n1:n2)%spin_axis%n0(1) = default_spin_n0(1)
-    u%data(n1:n2)%spin_axis%n0(2) = default_spin_n0(2)
-    u%data(n1:n2)%spin_axis%n0(3) = default_spin_n0(3)
-  endif
-
-  if (any(datum(ix1)%spin_n0 /= 0)) then
-    u%data(n1:n2)%spin_axis%n0(1) = datum(ix1)%spin_n0(1)
-    u%data(n1:n2)%spin_axis%n0(2) = datum(ix1)%spin_n0(2)
-    u%data(n1:n2)%spin_axis%n0(3) = datum(ix1)%spin_n0(3)
-  endif
 
   ! use default_data_type if given, if not, auto-generate the data_type
   if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
@@ -481,9 +463,7 @@ else
   u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
   u%data(n1:n2)%data_type        = datum(ix1:ix2)%data_type
   u%data(n1:n2)%merit_type       = datum(ix1:ix2)%merit_type
-  u%data(n1:n2)%spin_axis%n0(1)  = datum(ix1:ix2)%spin_n0(1)
-  u%data(n1:n2)%spin_axis%n0(2)  = datum(ix1:ix2)%spin_n0(2)
-  u%data(n1:n2)%spin_axis%n0(3)  = datum(ix1:ix2)%spin_n0(3)
+  u%data(n1:n2)%spin_axis        = datum(ix1:ix2)%spin_axis
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
 
   u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas

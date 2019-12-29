@@ -1065,15 +1065,19 @@ case ('data_set_design_value')
 ! Command syntax:
 !   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^{ele_name}^^{merit_type}^^
 !                         {meas}^^{good_meas}^^{ref}^^{good_ref}^^{weight}^^{good_user}^^{data_source}^^{eval_point}^^
-!                         {s_offset}^^{ix_bunch}^^{invalid_value}^^{spin_n0_x}^^{spin_n0_y}^^{spin_n0_z}
+!                         {s_offset}^^{ix_bunch}^^{invalid_value}^^{spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
+!                         {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
 !
 ! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
 ! Note: After creating all your datums, use the "data_set_design_value" routine to set the design (and model) values.
 
 case ('datum_create')
 
-  allocate (name_arr(20))
-  call split_this_line (line, name_arr, 20, err);         if (err) return
+  allocate (name_arr(23))
+  call split_this_line (line, name_arr, -1, err, n_arr);  if (err) return
+  if (n_arr /= 17 .and. n_arr /= 20 .and. n_arr /= 23) then
+    call invalid('NUMBER OF COMPONENTS ON LINE NOT CORRECT.')
+  endif
 
   call tao_find_data (err, name_arr(1), d_array = d_array);
   if (err .or. size(d_array) /= 1) then
@@ -1136,9 +1140,16 @@ case ('datum_create')
   d_ptr%s_offset = set_real(name_arr(15), 0.0_rp, err);          if (err) return
   d_ptr%ix_bunch = set_int(name_arr(16), 1, err);                if (err) return
   d_ptr%invalid_value = set_real(name_arr(17), 0.0_rp, err);     if (err) return
-  d_ptr%spin_axis%n0(1) = set_real(name_arr(18), 0.0_rp, err);   if (err) return
-  d_ptr%spin_axis%n0(2) = set_real(name_arr(19), 0.0_rp, err);   if (err) return
-  d_ptr%spin_axis%n0(3) = set_real(name_arr(20), 0.0_rp, err);   if (err) return
+  if (n_arr > 17) then
+    d_ptr%spin_axis%n0(1) = set_real(name_arr(18), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%n0(2) = set_real(name_arr(19), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%n0(3) = set_real(name_arr(20), 0.0_rp, err);   if (err) return
+  endif
+  if (n_arr == 23) then
+    d_ptr%spin_axis%l(1) = set_real(name_arr(21), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%l(2) = set_real(name_arr(22), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%l(3) = set_real(name_arr(23), 0.0_rp, err);   if (err) return
+  endif
 
   d_ptr%exists = tao_data_sanity_check (d_ptr, d_ptr%exists)
   if (tao_chrom_calc_needed(d_ptr%data_type, d_ptr%data_source)) u%calc%chrom_for_data = .true.
@@ -5003,13 +5014,14 @@ end function cmplx_str
 !----------------------------------------------------------------------
 ! contains
 
-subroutine split_this_line (line, array, num, err)
+subroutine split_this_line (line, array, target_num, err, actual_num)
 
 character(*) line
 character(len(line)) str
 character(*) :: array(:)
 
-integer num
+integer target_num
+integer, optional :: actual_num
 integer i, ix
 logical err
 
@@ -5035,7 +5047,9 @@ do i = 1, 1000
   str = str(ix+2:)
 enddo
 
-err = (num > 0 .and. i /= num)
+if (present(actual_num)) actual_num = i
+
+err = (target_num > 0 .and. i /= target_num)
 if (err) then
   call invalid('NUMBER OF COMPONENTS ON LINE NOT CORRECT.')
 endif
