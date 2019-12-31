@@ -798,11 +798,10 @@ function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)
   logical do_calc
 end function
 
-subroutine tao_string_to_element_id (str, ix_class, ele_name, err, print_err)
+subroutine tao_shape_init (shape, err, print_err)
   import
   implicit none
-  character(*) str, ele_name
-  integer ix_class
+  type (tao_ele_shape_struct) shape
   logical err
   logical, optional :: print_err
 end subroutine

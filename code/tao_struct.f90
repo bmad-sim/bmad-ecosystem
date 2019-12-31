@@ -103,6 +103,12 @@ end type
 
 !----------------------------------------------------------------------
 
+type tao_ele_pointer_struct
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer :: n_loc
+end type
+
+
 type tao_ele_shape_struct    ! for the element layout plot
   character(60) :: ele_id = ''       ! element "key::name" to match to.
   character(40) :: shape = ''        ! Shape to draw
@@ -112,8 +118,9 @@ type tao_ele_shape_struct    ! for the element layout plot
   logical :: draw = .true.           ! Draw the shape?
   logical :: multi = .false.         ! Can be part of a multi-shape.
   integer :: line_width = 1          ! Width of lines used to draw the shape.
-  integer :: ix_ele_key = 0          ! Extracted from ele_id. 0 => all classes (quadrupole, etc.) 
-  character(40) :: name_ele = ''     ! Name of element
+  integer :: ix_key = 0              ! Extracted from ele_id. 0 => all classes (quadrupole, etc.)
+  character(40) :: name_ele = ''     ! Name of element.
+  type (tao_ele_pointer_struct), allocatable :: uni(:)
 end type
 
 type tao_drawing_struct

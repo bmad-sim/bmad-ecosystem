@@ -30,7 +30,7 @@ character(200) full_input_name
 character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 
-integer i, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie, status
+integer i_uni, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie, status
 
 logical custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice, alternative_lat_file_exists
@@ -106,16 +106,16 @@ endif
 
 ! Read in the lattices
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
-  u => s%u(i)
+  u => s%u(i_uni)
   u%is_on = .true.          ! turn universe on
-  u%ix_uni = i
+  u%ix_uni = i_uni
   u%calc = tao_universe_calc_struct()
 
   ! If unified then only read in a lattice for the common universe.
 
-  if (s%com%common_lattice .and. i /= ix_common_uni$) cycle
+  if (s%com%common_lattice .and. i_uni /= ix_common_uni$) cycle
 
   ! Get the name of the lattice file
   ! The presedence is: 
@@ -123,7 +123,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   !   From the tao_design_lattice namelist.
   !   Specified by hook code.
 
-  design_lat => design_lattice(i)
+  design_lat => design_lattice(i_uni)
 
   if (s%com%lattice_file_arg /= '') then
     design_lat%file = s%com%lattice_file_arg
@@ -135,7 +135,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     design_lat%file2 = ''
   endif
 
-  if (design_lat%file == '' .and. i > 1) design_lat = design_lattice(i-1)
+  if (design_lat%file == '' .and. i_uni > 1) design_lat = design_lattice(i_uni-1)
 
   ix = index (design_lat%file, '|') ! Indicates multiple lattices
   if (ix /= 0) then
@@ -185,9 +185,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   allocate (u%design, u%base, u%model)
 
-  if (design_lat%file == design_lattice(i-1)%file .and. design_lat%file2 == design_lattice(i-1)%file2) then
+  if (design_lat%file == design_lattice(i_uni-1)%file .and. design_lat%file2 == design_lattice(i_uni-1)%file2) then
     u%design_same_as_previous = .true.
-    u%design%lat = s%u(i-1)%design%lat
+    u%design%lat = s%u(i_uni-1)%design%lat
   else
     u%design_same_as_previous = .false.
     select case (design_lat%language)
@@ -204,7 +204,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (err .and. .not. s%global%debug_on) then
       call out_io (s_fatal$, r_name, &
               'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
-              'EXITING...', i_array = (/ i /))
+              'EXITING...', i_array = (/ i_uni /))
       if (s%global%stop_on_error) stop
     endif
 
@@ -219,9 +219,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (s%com%combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
 
     if (s%com%unique_name_suffix /= '') then
-      call tao_string_to_element_id (s%com%unique_name_suffix, key, suffix, err, .true.)
-      if (err) call err_exit
-      call create_unique_ele_names (u%design%lat, key, suffix)
+      ix = index(s%com%unique_name_suffix, '::')
+      if (ix == 0) then
+        call create_unique_ele_names (u%design%lat, 0, s%com%unique_name_suffix)
+      else
+        j = key_name_to_key_index(s%com%unique_name_suffix(1:ix-1), .true.)
+        call create_unique_ele_names (u%design%lat, j, s%com%unique_name_suffix(ix+2:))
+      endif
     endif
 
     ! Element range?
@@ -229,7 +233,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (design_lat%use_element_range(1) /= '') then
       design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
       call out_io (s_warn$, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
-                  '"design_lattice(i)%use_element_range" is now "design_lattice(i)%slice_lattice".', &
+                  '"design_lattice(i_uni)%use_element_range" is now "design_lattice(i_uni)%slice_lattice".', &
                   'Please modify your file.')
     endif
 
@@ -334,9 +338,9 @@ if (s%com%common_lattice) then
 
   ! If unified then point back to the common universe (#1) and the working universe (#2)
 
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (i == ix_common_uni$) cycle
-    u => s%u(i)
+  do i_uni = lbound(s%u, 1), ubound(s%u, 1)
+    if (i_uni == ix_common_uni$) cycle
+    u => s%u(i_uni)
     u%common     => s%u(ix_common_uni$)
     u%uni_branch => s%u(ix_common_uni$)%uni_branch
     u%design => s%u(ix_common_uni$)%design

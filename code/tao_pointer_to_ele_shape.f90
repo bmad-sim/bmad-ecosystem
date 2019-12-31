@@ -1,6 +1,3 @@
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
 !+
 ! Function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape_min) result (e_shape)
 !
@@ -28,7 +25,7 @@ use tao_interface, dummy => tao_pointer_to_ele_shape
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
 type (ele_struct), pointer :: v_ele, slave
 type (tao_ele_shape_struct), target :: ele_shape(:)
 type (tao_ele_shape_struct), pointer :: e_shape, es
@@ -43,7 +40,7 @@ real(rp), optional :: dat_var_value
 
 integer, optional :: ix_shape_min
 integer ix_uni, ixu
-integer j, j2, k, is, n_ele_track
+integer j, j2, k, ie, is, n_ele_track
 
 character(*), optional :: dat_var_name
 character(*), parameter :: r_name = 'tao_pointer_to_ele_shape'
@@ -68,11 +65,6 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
   if (.not. es%draw) cycle
 
   ! Data
-
-  if (index(es%ele_id, 'dat::') /= 0) then
-    call out_io (s_error$, r_name, 'SHAPE USES OLD "dat::" SYNTAX. PLEASE CHANGE TO "data::": ' // es%ele_id)
-    call err_exit
-  endif
 
   if (es%ele_id(1:6) == 'data::') then
     call tao_find_data (err, es%ele_id, d_array = d_array, log_array = logic_array, re_array = re_array)
@@ -143,9 +135,21 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
   ! All else
 
   if (es%ele_id == '') cycle
-  if (es%ix_ele_key == -1) cycle
-  if (es%ix_ele_key /= 0 .and. es%ix_ele_key /= ele%key) cycle
-  if (.not. match_wild(ele%name, es%name_ele)) cycle
+  if (es%ix_key == -1) cycle
+  if (es%ix_key /= 0 .and. es%ix_key /= ele%key) cycle
+
+  if (allocated(es%uni)) then
+    do ie = 1, es%uni(ixu)%n_loc
+      v_ele => es%uni(ixu)%eles(ie)%ele
+      if (associated(v_ele, ele)) then
+        e_shape => es
+        return
+      endif
+    enddo
+    cycle
+  else
+    if (.not. match_wild(ele%name, es%name_ele)) cycle
+  endif
 
   e_shape => es
   return

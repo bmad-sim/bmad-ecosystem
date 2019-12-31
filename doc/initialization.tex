@@ -1189,9 +1189,9 @@ individual datums in a single line. For example
     !           data_      ele_ref  ele_start ele     merit    meas   weight good
     !           type       name     name      name    type     value         user ..
     datum( 1) = "beta.a"   "S:2.3"  ""       "Q16_1"  "max"     30    0.1     T  ...
-    datum( 2) = "phase.b"  "Q09_1"  "B22"    "Q16_1"  "max"     30    0.1     T  ...
+    datum( 2) = "phase.b"  "Q09_1"  "B22"    "Q16##2" "max"     30    0.1     T  ...
     datum( 3) = "floor.x"  ""        ""      "end"    "target"   3    0.01    T  ...     
-    datum( 4) = "floor.x"  "B1"      ""      "B2"     "target"   3    0.01    T  ...     
+    datum( 4) = "floor.x"  "B1"      ""      "1>>32"  "target"   3    0.01    T  ...     
     ... etc. ...
   /
 \end{example}
@@ -1217,8 +1217,17 @@ particular, component-by-component format must be used for components that canno
 datum-by-datum format.
 
 \vn{ix_min_data} and \vn{ix_max_data} give the bounds for the \vn{datum(i)} structure array that is
-associated with the \vn{d1_data} structure. \vn{datum(:)%ele_name} gives the lattice element names
-associated with the data points.
+associated with the \vn{d1_data} structure. 
+
+The \vn{datum(j)%ele_name} name may be set to the appropriate element name or may be specified using element
+branch/element index notation (EG: "456", "1>>22", etc.). On input, the datum's \vn{ele_name}
+component (\sref{s:data.anatomy}) will be set to the element name irregardless of the setting in the
+\vn{tao_d1_data} namelist and the \vn{ix_ele} datum component will be set to the element index.
+
+Like \vn{datum(j)%ele_name}, the \vn{%ele_start_name}, and \vn{%ele_ref_name} names may be specifed
+using branch/element index notation and on input the datum's \vn{ele_start_name} and
+\vn{ele_ref_name} will be set to the actual element names with the datum's \vn{ix_ele_start} and
+\vn{ix_ele_ref} set to the appropriate element indexes.
 
 \vn{datum(i)%good_user} is a logical that the user can toggle when running \tao
 (\sref{s:data.anatomy}). The initial default value of \vn{%good_user} is True.
@@ -1269,12 +1278,11 @@ syntax:
 \begin{example}
    search_for_lat_eles = "\{-no_lords\} \{-no_slaves\} <element_list>"
 \end{example}
-\vn{<element_list>} specifies elements using the standard element list
-format (\sref{s:ele.list.format}). The \vn{-no_lords} and
-\vn{-no_slaves} switches, if present, are used to restrict the counting
-of lord or slave elements. The \vn{-no_lords} switch excludes all group,
-overlay, and girder elements. The \vn{-no_slaves} switch vetoes
-superposition or multipass slave elements. For example:
+\vn{<element_list>} specifies elements using the standard element list format
+(\sref{s:ele.list.format}). The \vn{-no_lords} and \vn{-no_slaves} switches, if present, are used to
+restrict the counting of lord or slave elements. The \vn{-no_lords} switch excludes all group,
+overlay, and girder elements. The \vn{-no_slaves} switch vetoes superposition or multipass slave
+elements. For example:
 \begin{example}
   search_for_lat_eles = "-no_lords sbend::b*
 \end{example}

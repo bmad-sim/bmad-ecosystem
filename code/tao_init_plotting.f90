@@ -40,7 +40,7 @@ type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx), curve1, curve2, curve3, curve4
 type (tao_place_input) place(30)
 type (old_tao_ele_shape_struct) shape(30)
-type (tao_ele_shape_struct) ele_shape(30)
+type (tao_ele_shape_input) ele_shape(30)
 type (tao_ele_shape_struct), pointer :: e_shape
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (qp_axis_struct) init_axis
@@ -208,7 +208,7 @@ call tao_read_in_patterns(iu, plot_file)
 ! First look for old style namelist 
 
 rewind (iu)
-ele_shape(:) = tao_ele_shape_struct()
+ele_shape(:) = tao_ele_shape_input()
 
 shape(:)%key_name = ''
 shape(:)%ele_name = ''
@@ -236,13 +236,10 @@ if (ios == 0) then
     else
       ele_shape(i)%label = 'none'
     endif
-    call tao_string_to_element_id (ele_shape(i)%ele_id, ele_shape(i)%ix_ele_key, ele_shape(i)%name_ele, err, .true.)
   enddo
 
-  call tao_upgrade_shape_names (ele_shape, n, 'ELEMENT_SHAPES')
-  allocate (s%plot_page%floor_plan%ele_shape(n+10), s%plot_page%lat_layout%ele_shape(n+10))
-  s%plot_page%floor_plan%ele_shape(1:n) = ele_shape(1:n)
-  s%plot_page%lat_layout%ele_shape(1:n) = ele_shape(1:n)
+  call tao_transfer_shape (ele_shape, s%plot_page%lat_layout%ele_shape, 'ELEMENT_SHAPES')
+  call tao_transfer_shape (ele_shape, s%plot_page%floor_plan%ele_shape, 'ELEMENT_SHAPES')
 endif
 
 ! Look for new style shape namelist if could not find old style
@@ -278,13 +275,11 @@ if (ios < 0) then
     read (iu, nml = floor_plan_drawing)
   endif
 
-  call tao_upgrade_shape_names (ele_shape, n, 'FLOOR_PLAN_DRAWING')
-  allocate (s%plot_page%floor_plan%ele_shape(n+10))
-  s%plot_page%floor_plan%ele_shape(1:n) = ele_shape(1:n)
+  call tao_transfer_shape (ele_shape, s%plot_page%floor_plan%ele_shape, 'FLOOR_PLAN_DRAWING')
 
   ! Read element_shapes_lat_layout namelist
 
-  ele_shape(:) = tao_ele_shape_struct()
+  ele_shape(:) = tao_ele_shape_input()
 
   include_default_shapes = .false.
   rewind (iu)
@@ -317,9 +312,7 @@ if (ios < 0) then
     read (iu, nml = lat_layout_drawing)
   endif
 
-  call tao_upgrade_shape_names (ele_shape, n, 'LAT_LAYOUT_DRAWING')
-  allocate (s%plot_page%lat_layout%ele_shape(n+10))
-  s%plot_page%lat_layout%ele_shape(1:n)  = ele_shape(1:n)
+  call tao_transfer_shape (ele_shape, s%plot_page%lat_layout%ele_shape, 'LAT_LAYOUT_DRAWING')
 endif
 
 close (iu)
@@ -784,91 +777,30 @@ enddo
 !----------------------------------------------------------------------------------------
 contains
 
-subroutine tao_upgrade_shape_names (ele_shape, n_shape, who)
+subroutine tao_transfer_shape (shape_input, shape_array, namelist_name)
 
-type (tao_ele_shape_struct), target :: ele_shape(:)
+type (tao_ele_shape_input), target :: shape_input(:)
+type (tao_ele_shape_struct), allocatable :: shape_array(:)
 type (tao_ele_shape_struct), pointer :: es
-integer n, n_shape
-character(*) who
+integer n, n_max
+character(*) namelist_name
 character(40) shape, prefix
+logical err
 
 !
 
-n_shape = 0
-do n = 1, size(ele_shape)
-  es => ele_shape(n)
-  if (es%ele_id == '') cycle
-
-  if (es%ele_id == 'wall::building') es%ele_id = 'building_wall::*'                  ! Convert old style to new
-  if (es%ele_id(1:15) == 'building_wall::') call downcase_string(es%ele_id(1:15))
-  if (es%ele_id(1:15) == 'building_wall::' .and. es%shape == '-') es%shape = 'solid_line'   ! Convert old style to new
-
-  ! In the past Tao has not worried about case
-  if (es%ele_id(1:6) /= 'data::' .and. es%ele_id(1:5) /= 'var::' .and. &
-      es%ele_id(1:5) /= 'lat::' .and. es%ele_id(1:15) /= 'building_wall::') call str_downcase (es%ele_id, es%ele_id)
-  call downcase_string (es%shape)
-  call downcase_string (es%color)
-  call downcase_string (es%label)
-  if (es%label == '') es%label = 'name'
-  if (index('false', trim(es%label)) == 1) es%label = 'none'
-  if (index('true', trim(es%label)) == 1) es%label = 'name'
-  ! Convert old class:name format to new class::name format
-  ix = index(es%ele_id, ":")
-  if (ix /= 0 .and. es%ele_id(ix+1:ix+1) /= ':') &
-     es%ele_id = es%ele_id(1:ix) // ':' // es%ele_id(ix+1:)
-  call tao_string_to_element_id (es%ele_id, es%ix_ele_key, es%name_ele, err, .true.)
-  n_shape = n
-
-  ! Convert from old shape names to new names with prefix.
-  if (es%shape(1:4) == 'var_')            then;   es%shape = es%shape(1:3) // ':' // es%shape(5:)
-  elseif (es%shape(1:5) == 'vvar_')       then;   es%shape = es%shape(1:4) // ':' // es%shape(6:)
-  elseif (es%shape(1:9) == 'asym_var_')   then;   es%shape = es%shape(1:8) // ':' // es%shape(10:)
-  elseif (es%shape(1:10) == 'asym_vvar_') then;   es%shape = es%shape(1:9) // ':' // es%shape(11:)
-  endif
-
-  ! Error checks
-
-  ix = index(es%shape, ':')
-  if (ix == 0) then
-    prefix = ''
-    shape = es%shape
-  else
-    prefix = es%shape(1:ix-1)
-    shape = es%shape(ix+1:)
-  endif
-
-  if (prefix == 'pattern') then
-    if (all(shape /= s%plot_page%pattern(:)%name)) then
-      call out_io (s_error$, r_name, 'ELE_SHAPE: ', trim(es%shape) // ' DOES NOT HAVE AN ASSOCIATED PATTERN.', &
-                                     'IN FILE: ' // plot_file)
-    endif
-    cycle
-  endif
-
-  select case (prefix)
-  case ('vvar', 'asym_vvar')
-    if (es%ele_id(1:6) /= 'data::' .and. es%ele_id(1:5) /= 'var::') then
-      call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(es%shape) // &
-                                           ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // es%ele_id, &
-                                     'IN FILE: ' // plot_file)
-    endif
-  case ('', 'var', 'asym_var')
-  case default
-    call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE PREFIX: ' // es%shape, 'IN FILE: ' // plot_file)
-  end select
-
-  select case (shape)
-  case ('box', 'xbox', 'bow_tie', 'circle', 'diamond', 'x', 'r_triangle', 'l_triangle', 'u_triangle', 'd_triangle')
-  case ('solid_line', 'dashed_line', 'dash_dot_line', 'dotted_line')
-    if (es%ele_id(1:15) /= 'building_wall::') then
-      call out_io (s_fatal$, r_name, 'SHAPE "' // trim(shape) // '" MAY ONLY BE USED FOR building_wall ELEMENTS. IN FILE: ' // plot_file)
-    endif
-  case default
-    call out_io (s_fatal$, r_name, 'UNKNOWN SHAPE: ' // es%shape, 'IN FILE: ' // plot_file)
-  end select
+do n_max = size(shape_input), 1, -1
+  if (shape_input(n_max)%ele_id /= '') exit
 enddo
 
-end subroutine tao_upgrade_shape_names
+allocate (shape_array(n_max+10))
+
+do n = 1, n_max
+  shape_array(n) = tao_ele_shape_input_to_struct(shape_input(n), namelist_name)
+  call tao_shape_init (shape_array(n), err, .true.)
+enddo
+
+end subroutine tao_transfer_shape
 
 !----------------------------------------------------------------------------------------
 ! contains

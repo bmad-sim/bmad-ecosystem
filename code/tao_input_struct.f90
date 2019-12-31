@@ -204,6 +204,17 @@ type tao_plot_page_input
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
 end type
 
+type tao_ele_shape_input
+  character(60) :: ele_id = ''       ! element "key::name" to match to.
+  character(40) :: shape = ''        ! Shape to draw
+  character(16) :: color = 'black'   ! Color of shape
+  real(rp) :: size = 0               ! plot vertical height 
+  character(16) :: label = 'name'    ! Can be: 'name', 's', 'none' 
+  logical :: draw = .true.           ! Draw the shape?
+  logical :: multi = .false.         ! Can be part of a multi-shape.
+  integer :: line_width = 1          ! Width of lines used to draw the shape.
+end type
+
 type tao_dynamic_aperture_input
   real(rp) :: min_angle = 0
   real(rp) :: max_angle = pi
@@ -217,6 +228,8 @@ end type
 
 contains
 
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
 subroutine tao_set_plotting (plot_page, plot_input, use_cmd_line_geom, reverse)
@@ -296,5 +309,125 @@ if (use_cmd_line_geom .and. s%com%geometry_arg /= '') then
 end subroutine tao_set_plotting
 
 !------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function tao_ele_shape_struct_to_input (shape_struct) result (shape_input)
+
+type (tao_ele_shape_struct), intent(in) :: shape_struct
+type (tao_ele_shape_input) shape_input
+
+!
+
+shape_input%ele_id     = shape_struct%ele_id
+shape_input%shape      = shape_struct%shape
+shape_input%color      = shape_struct%color
+shape_input%size       = shape_struct%size
+shape_input%label      = shape_struct%label
+shape_input%draw       = shape_struct%draw
+shape_input%multi      = shape_struct%multi
+shape_input%line_width = shape_struct%line_width
+
+end function tao_ele_shape_struct_to_input
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+function tao_ele_shape_input_to_struct (shape_input, namelist_name) result (shape_struct)
+
+type (tao_ele_shape_input), target :: shape_input
+type (tao_ele_shape_struct), target :: shape_struct
+type (tao_ele_shape_input), pointer :: s_in
+type (tao_ele_shape_struct), pointer :: s_st
+
+integer ix
+
+character(*), optional :: namelist_name
+character(40) shape, prefix
+character(100) err_line
+character(*), parameter :: r_name = 'tao_ele_shape_input_to_struct'
+
+!
+
+if (present(namelist_name)) then
+  err_line = '  IN NAMELIST: ' // namelist_name
+else
+  err_line = ''
+endif
+
+!
+
+s_in => shape_input
+s_st => shape_struct
+
+if (s_in%ele_id(1:6) /= 'data::' .and. s_in%ele_id(1:5) /= 'var::' .and. &
+    s_in%ele_id(1:5) /= 'lat::' .and. s_in%ele_id(1:15) /= 'building_wall::') s_st%ele_id = downcase (s_in%ele_id)
+s_st%shape      = downcase(s_in%shape)
+s_st%color      = downcase(s_in%color)
+s_st%label      = downcase(s_in%label)
+s_st%size       = s_in%size
+s_st%draw       = s_in%draw
+s_st%multi      = s_in%multi
+s_st%line_width = s_in%line_width
+
+! Convert from old shape names to new names
+
+if (s_st%ele_id == 'wall::building') s_st%ele_id = 'building_wall::*'                  ! Convert old style to new
+if (s_st%ele_id(1:15) == 'building_wall::') call downcase_string(s_st%ele_id(1:15))
+if (s_st%ele_id(1:15) == 'building_wall::' .and. s_st%shape == '-') s_st%shape = 'solid_line'   ! Convert old style to new
+
+if (s_st%label == '') s_st%label = 'name'
+if (index('false', trim(s_st%label)) == 1) s_st%label = 'none'
+if (index('true', trim(s_st%label)) == 1) s_st%label = 'name'
+
+if (s_st%shape(1:4) == 'var_')            then;   s_st%shape = s_st%shape(1:3) // ':' // s_st%shape(5:)
+elseif (s_st%shape(1:5) == 'vvar_')       then;   s_st%shape = s_st%shape(1:4) // ':' // s_st%shape(6:)
+elseif (s_st%shape(1:9) == 'asym_var_')   then;   s_st%shape = s_st%shape(1:8) // ':' // s_st%shape(10:)
+elseif (s_st%shape(1:10) == 'asym_vvar_') then;   s_st%shape = s_st%shape(1:9) // ':' // s_st%shape(11:)
+elseif (s_st%shape == '-')                then;   s_st%shape = 'SOLID_LINE'
+endif
+
+! Error checks
+
+ix = index(s_st%shape, ':')
+if (ix == 0) then
+  prefix = ''
+  shape = s_st%shape
+else
+  prefix = s_st%shape(1:ix-1)
+  shape = s_st%shape(ix+1:)
+endif
+
+if (prefix == 'pattern') then
+  if (all(shape /= s%plot_page%pattern(:)%name)) then
+    call out_io (s_error$, r_name, 'ELE_SHAPE: ', trim(s_st%shape) // ' DOES NOT HAVE AN ASSOCIATED PATTERN.', err_line)
+                                   
+  endif
+  return
+endif
+
+select case (prefix)
+case ('vvar', 'asym_vvar')
+  if (s_st%ele_id(1:6) /= 'data::' .and. s_st%ele_id(1:5) /= 'var::') then
+    call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(s_st%shape) // &
+                                   '  MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // s_st%ele_id, err_line)
+  endif
+case ('', 'var', 'asym_var')
+case default
+  call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE PREFIX: ' // s_st%shape, err_line)
+end select
+
+select case (shape)
+case ('box', 'xbox', 'bow_tie', 'circle', 'diamond', 'x', 'r_triangle', 'l_triangle', 'u_triangle', 'd_triangle')
+case ('solid_line', 'dashed_line', 'dash_dot_line', 'dotted_line')
+  if (s_st%ele_id(1:15) /= 'building_wall::') then
+    call out_io (s_fatal$, r_name, 'SHAPE "' // trim(shape) // '" MAY ONLY BE USED FOR building_wall ELEMENTS.', err_line)
+  endif
+case default
+  call out_io (s_fatal$, r_name, 'UNKNOWN SHAPE: ' // s_st%shape, err_line)
+end select
+
+end function tao_ele_shape_input_to_struct 
 
 end module
