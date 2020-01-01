@@ -35,7 +35,8 @@
 !                   If present then the orbit_start argument must also be present.
 !   ele_end    -- ele_struct, optional: Holds the ending Twiss parameters at l_end (except for photons).
 !                  The map (ele_end%mat6, ele_end%vec0) is map from l_start to l_end.
-!                  If present then the ele_start argument must also be present.
+!                  If present, the ele_start argument must also be present.
+!                  Note: In the calling routine, deallocate_ele_pointers does not have to be called on ele_end. 
 !   err        -- logical, optional: Set True if there is a problem like 
 !                  the particle gets lost in tracking
 !-   
@@ -72,7 +73,7 @@ if (present(err)) err = .true.
 
 if (ele%lord_status == super_lord$) then
   if (present(orbit_end)) orbit_end = orbit_start
-  if (present(ele_end)) ele_end = ele_start
+  if (present(ele_end)) call transfer_ele (ele_start, ele_end, .true.)
   s_start = ele%s_start + l_start
   s_end   = ele%s_start + l_end
   do ie = 1, ele%n_slave
