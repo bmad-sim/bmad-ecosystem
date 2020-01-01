@@ -105,7 +105,7 @@ end type
 
 type tao_ele_pointer_struct
   type (ele_pointer_struct), allocatable :: eles(:)
-  integer :: n_loc
+  integer :: n_loc = 0
 end type
 
 
