@@ -1209,7 +1209,7 @@ class tao_ele_browser(tao_lattice_window):
             ix_min = 1
             if self.parent_type == 'data':
                 #print("setting ix_min to default 1")
-                self.parent.d1_array_wids[6].tk_var.set(str(ix_min))
+                self.parent.d1_array_wids[7].tk_var.set(str(ix_min))
             elif self.parent_type == 'var':
                 self.parent.v1_array_wids[11].tk_var.set(str(ix_min))
             self.parent.ix_min_handler()
@@ -1217,7 +1217,7 @@ class tao_ele_browser(tao_lattice_window):
             ix_min = self.parent.ix_min
         # Set parent array length and ix_max
         if self.parent_type == 'data':
-            self.parent.d1_array_wids[7].tk_var.set(str(len(names)))
+            self.parent.d1_array_wids[8].tk_var.set(str(len(names)))
         elif self.parent_type == 'var':
             self.parent.v1_array_wids[12].tk_var.set(str(len(names)))
         self.parent.length_handler()
