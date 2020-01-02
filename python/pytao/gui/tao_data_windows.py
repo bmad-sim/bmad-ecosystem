@@ -500,7 +500,7 @@ class tao_new_data_window(Tao_Toplevel):
                 'data^merit_type', 'meas_value', 'good_meas', 'ref_value', 'good_ref',
                 'weight', 'good_user', 'data_source', 'eval_point', 's_offset',
                 '1^ix_bunch', 'invalid_value', 'spin_n0_x', 'spin_n0_y', 'spin_n0_z']
-        d1_params = ['name', 'data_source', 'data_type', 'data^merit_type', 'weight', 'good_user']
+        d1_params = ['name', 'data_source', 'data_type', 'data^merit_type', 'weight', 'eval_point', 'good_user']
         d2_params = ['name', 'uni', 'data_source', 'data^merit_type', 'weight', 'good_user']
         # Create the data array
         if self.uni.get() == 'All':
@@ -628,13 +628,14 @@ class new_d1_frame(tk.Frame):
                 d1_ttp('data_type;DAT_TYPE;T;'),
                 d1_ttp('data^merit_type;ENUM;T;'),
                 d1_ttp('weight;REAL;T;'),
+                d1_ttp('eval_point;ENUM;T;T'),
                 d1_ttp('good_user;LOGIC;T;T'),
                 d1_ttp('ix_min;INT;T;'),
                 d1_ttp('ix_max;INT;T;')]
         # d1 labels (NAMES AS STRINGS ONLY)
         self.d1_array_labels = ["d1_array Name:", "Default data source:",
                 "Default data type:", "Default merit type:", "Default weight:",
-                "Default good_user:", "Base index:", "Array length:"]
+                "Default eval point:", "Default good_user:", "Base index:", "Array length:"]
         # Read in defaults from d2 level
         val = self.d2_array.d2_param_list[2].tk_var.get()
         self.d1_array_wids[1].tk_var.set(val)
@@ -643,7 +644,9 @@ class new_d1_frame(tk.Frame):
         val = self.d2_array.d2_param_list[4].tk_var.get()
         self.d1_array_wids[4].tk_var.set(val)
         val = self.d2_array.d2_param_list[5].tk_var.get()
-        self.d1_array_wids[5].tk_var.set(val)
+        self.d1_array_wids[6].tk_var.set(val)
+        # Set eval point to End by default
+        self.d1_array_wids[5].tk_var.set("End")
         # Grid widgets and labels:
         for i in range(len(self.d1_array_wids)):
             tk.Label(self, text=self.d1_array_labels[i]).grid(row=i+2, column=0, sticky='W')
@@ -668,8 +671,8 @@ class new_d1_frame(tk.Frame):
 
         # Responses to edits
         self.d1_array_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
-        self.d1_array_wids[6].tk_wid.bind('<FocusOut>', self.ix_min_handler)
-        self.d1_array_wids[7].tk_wid.bind('<FocusOut>', self.length_handler)
+        self.d1_array_wids[7].tk_wid.bind('<FocusOut>', self.ix_min_handler)
+        self.d1_array_wids[8].tk_wid.bind('<FocusOut>', self.length_handler)
         self.d1_array_wids[1].tk_var.trace('w', self.data_source_handler)
         self.d1_array_wids[2].tk_var.trace('w', self.data_type_handler)
 
@@ -774,7 +777,8 @@ class new_d1_frame(tk.Frame):
         self.d1_array_wids[2].tk_var.set(self.data_dict[self.ix_min]['data_type'])
         self.d1_array_wids[3].tk_var.set(self.data_dict[self.ix_min]['data^merit_type'])
         self.d1_array_wids[4].tk_var.set(self.data_dict[self.ix_min]['weight'])
-        self.d1_array_wids[5].tk_var.set(True if self.data_dict[self.ix_min]['good_user'] == 'T' else False)
+        self.d1_array_wids[5].tk_var.set(self.data_dict[self.ix_min]['eval_point'])
+        self.d1_array_wids[6].tk_var.set(True if self.data_dict[self.ix_min]['good_user'] == 'T' else False)
 
     def delete(self, ask=True, event=None):
         '''
@@ -857,7 +861,8 @@ class new_d1_frame(tk.Frame):
         param_list[1].value = self.d1_array_wids[2].tk_var.get()
         param_list[5].value = self.d1_array_wids[3].tk_var.get()
         param_list[8].value = self.d1_array_wids[4].tk_var.get()
-        param_list[9].value = bool(self.d1_array_wids[5].tk_var.get())
+        param_list[9].value = bool(self.d1_array_wids[6].tk_var.get())
+        param_list[13].value = self.d1_array_wids[5].tk_var.get()
         # Set parameter values if specified
         for i in range(len(param_list)):
             if param_list[i].name in self.data_dict[ix].keys():
@@ -995,7 +1000,7 @@ class new_d1_frame(tk.Frame):
         if self.handler_block:
             return
         # Check if min index is empty
-        ix_min = self.d1_array_wids[6].tk_var.get().strip()
+        ix_min = self.d1_array_wids[7].tk_var.get().strip()
         if ix_min == "":
             self.ix_min = -1
             self.ix_min_warning.grid_forget()
@@ -1036,7 +1041,7 @@ class new_d1_frame(tk.Frame):
             #print("handler blocked")
             return
         # Check if length is empty
-        length = self.d1_array_wids[7].tk_var.get().strip()
+        length = self.d1_array_wids[8].tk_var.get().strip()
         if length == "":
             self.length = -1
             self.length_warning.grid_forget()
