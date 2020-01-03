@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
+project(ACC)
 
 set (LIBNAME cpp_bmad_interface)
 
