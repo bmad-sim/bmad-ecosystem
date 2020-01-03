@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
+project(ACC)
 
 if ($ENV{ACC_ENABLE_MPI})
   message ('Building MPI version...')
