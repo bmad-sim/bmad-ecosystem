@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
+project(ACC)
 
 if (CMAKE_MAJOR_VERSION GREATER 2)
    project("ACC")
