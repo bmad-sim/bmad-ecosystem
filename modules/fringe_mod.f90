@@ -260,128 +260,6 @@ end subroutine second_order_bend_edge_kick
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine bmad_standard_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
-!
-! Routine to track through the hard edge bend fringe field for a bend.
-! Only the bend field is taken into account here. Higher order multipolse must be handled elsewhere.
-!
-! Input:
-!   ele         -- ele_struct: Element with fringe.
-!   param       -- lat_param_struct: Tracking parameters.
-!   particle_at -- integer: Either first_track_edge$ or second_track_edge$.
-!   orbit       -- coord_struct: Starting coordinates.
-!   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the fringe.
-!   make_matrix -- real(rp), optional: Propagate the transfer matrix? Default is False.
-!
-! Output:
-!   orbit       -- coord_struct: Ending coordinates.
-!   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
-!-
-
-subroutine bmad_standard_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
-
-implicit none
-
-type (ele_struct) ele
-type (coord_struct) orbit
-type (lat_param_struct) param
-
-real(rp), optional :: mat6(6,6)
-real(rp) p_vec(3), r_vec(3), sin_e, cos_e, vec_in(6), e_angle
-real(rp) rel_pc
-
-integer fringe_type, particle_at
-integer i, i_max, element_end
-
-logical, optional :: make_matrix
-
-! Fringe here?
-
-fringe_type = nint(ele%value(fringe_type$))
-if (fringe_type /= full$ .and. fringe_type /= hard_edge_only$) return
-if (.not. fringe_here(ele, orbit, particle_at)) return
-
-!
-
-element_end = physical_ele_end(particle_at, orbit%direction, ele%orientation)
-if (element_end == entrance_end$) then
-  e_angle = ele%value(e1$)
-else
-  e_angle = ele%value(e2$)
-endif
-
-sin_e = sin(e_angle)
-cos_e = cos(e_angle)
-
-!
-
-rel_pc = 1 + orbit%vec(6)
-vec_in = orbit%vec
-
-p_vec = [orbit%vec(2), orbit%vec(4), orbit%direction * sqrt(rel_pc**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
-r_vec = [orbit%vec(1), orbit%vec(3), 0.0_rp]
-
-if (particle_at == first_track_edge$) then
-  call track_between_physical_and_nominal_edges (.false.)
-  call no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
-  call track_between_physical_and_nominal_edges (.true.)
-  
-else
-  call track_between_physical_and_nominal_edges (.true.)
-  call no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
-  call track_between_physical_and_nominal_edges (.false.)
-endif
-
-
-!----------------------------------------------------------------------------------------------
-contains
-
-! Transport between the nominal edge and the physical bend edge.
-! The nominal edge is the same as the physical edge when e1/e2 are zero.
-
-subroutine track_between_physical_and_nominal_edges (in_field_region)
-
-real(rp) g, ll
-logical in_field_region
-
-! If in the bend field region then we are transporting "back" from the physical edge to the nominal edge.
-
-if (in_field_region) sin_e = -sin_e
-
-! Field free transport
-
-p_vec = [p_vec(1) * cos_e + p_vec(3) * sin_e, p_vec(2), -p_vec(1) * sin_e + p_vec(3) * cos_e]
-r_vec = [r_vec(1) * cos_e, r_vec(2), -r_vec(1) * sin_e]
-ll = -r_vec(3) * rel_pc / p_vec(3)
-
-orbit%vec(1) = orbit%vec(1) - r_vec(3)  * p_vec(1) / p_vec(3)
-orbit%vec(2) = p_vec(1)
-orbit%vec(3) = orbit%vec(3) - r_vec(3)  * p_vec(2) / p_vec(3)
-orbit%vec(4) = p_vec(2)
-orbit%vec(5) = orbit%vec(5) - ll
-
-! Treat the bend field as a perturbation to the field free transport.
-! That is, the path length is small compared to the bending radius.
-
-if (in_field_region) then
-  g = (ele%value(g$) + ele%value(g_err$) + vec_in(1) + ele%value(k1$) * ll * vec_in(2) / (2 * rel_pc)) / rel_pc
-  orbit%vec(1) = orbit%vec(1) - ll**2 * g / 2
-  orbit%vec(2) = orbit%vec(2) - ll * g
-endif
-
-!
-
-if (make_matrix) then
-
-endif
-
-end subroutine track_between_physical_and_nominal_edges
-
-end subroutine bmad_standard_hard_bend_edge_kick
-
-!----------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------
-!+
 ! Subroutine no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
 !
 ! Routine to track through the hard edge bend fringe field for a bend or sad_mult element.
@@ -895,9 +773,6 @@ case (soft_edge_only$)
 
 case (linear_edge$)
   call linear_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
-
-case (test_edge$)
-  call bmad_standard_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (none$)
 
