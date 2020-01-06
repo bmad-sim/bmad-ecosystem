@@ -746,6 +746,7 @@ type xy_disp_struct
 end type
 
 ! Structure to hold the information of where an individual element is in the lattice.
+! Also see: ele_pointer_struct
 
 type lat_ele_loc_struct
   integer :: ix_ele = -1
@@ -1413,6 +1414,7 @@ integer, parameter :: field_autoscale$ = 29, cmat_21$ = 29, l_sagitta$ = 29, e_f
 integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, scale_field_to_one$ = 30
 integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, transverse_sigma_cut$ = 31
+integer, parameter :: l_soft_edge$ = 31
 integer, parameter :: dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33
 integer, parameter :: x_pitch$ = 34

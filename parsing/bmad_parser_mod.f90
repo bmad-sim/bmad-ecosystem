@@ -2557,8 +2557,9 @@ case ('push', 'push_inline')
     open (file(i_level)%f_unit, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
     if (ios /= 0 .or. .not. found_it) then
       bp_com%current_file => file(i_level-1)  ! For warning
-      if (file_name2 == file_name)  then
-        call parser_error ('UNABLE TO OPEN FILE: ' // file_name, stop_here = .true.)
+      if (i_level == 1)  then !
+        call parser_error ('UNABLE TO OPEN FILE: ' // file_name_in, &
+                           '(FULL NAME: ' // trim(file_name) // ')', stop_here = .true.)
       else
         call parser_error ('UNABLE TO OPEN FILE: ' // file_name, &
                            'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in, stop_here = .true.)

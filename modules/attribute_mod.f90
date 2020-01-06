@@ -20,9 +20,11 @@ integer, parameter :: overlay_slave$ = 5, field_master_dependent$ = 6
 
 type ele_attribute_struct
   character(40) :: name = null_name$
-  integer :: state = does_not_exist$
-  integer :: kind = unknown$    ! Is_switch$, is_real$, etc. See attribute_type routine
-  character(16) :: units = ''
+  integer :: state = does_not_exist$  ! See above.
+  integer :: kind = unknown$          ! Is_switch$, is_real$, etc. See attribute_type routine.
+  character(16) :: units = ''         ! EG: 'T*m'.
+  integer :: ix_attrib = -1           ! Attribute index. Frequently will be where in the ele%value(:) array the attribute is.
+  real(rp) :: value = real_garbage$   ! Attribute value.
 end type
 
 type (ele_attribute_struct), private, save :: attrib_array(n_key$, num_ele_attrib_extended$)
@@ -434,6 +436,8 @@ end function attribute_name2
 !
 ! Output:
 !   attrib_info -- ele_attribute_struct: Info on this attribute.
+!     Note: %value is not set since this info is contained in the ele argument.
+!           Use pointer_to_attribute to access the attribute.
 !     %name -- Character(40): Name of attribute. 
 !        = "!BAD ELE KEY"                 %key is invalid
 !        = "!BAD INDEX"                   ix_att is invalid (out of range).
@@ -457,6 +461,7 @@ integer i, ix, key, ix_att
 
 if (attribute_array_init_needed) call init_attribute_name_array()
 
+attrib_info%ix_attrib = ix_att
 attrib_info%state = does_not_exist$
 attrib_info%name = '!BAD INDEX'
 
@@ -651,7 +656,6 @@ do i = 1, n_key$
   if (i == drift$)        cycle
 
   call init_attribute_name1 (i, field_overlaps$,       'FIELD_OVERLAPS')
-  call init_attribute_name1 (i, l_hard_edge$,          'L_HARD_EDGE', dependent$)
 
   ! Markers will also have these wake attributes. See below.
   call init_attribute_name1 (i, sr_wake$,                   'SR_WAKE')
@@ -1083,6 +1087,7 @@ call init_attribute_name1 (lcavity$, grid_field$,                   'GRID_FIELD'
 call init_attribute_name1 (lcavity$, taylor_field$,                 'TAYLOR_FIELD')
 call init_attribute_name1 (lcavity$, phi0_autoscale$,               'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
+call init_attribute_name1 (lcavity$, l_hard_edge$,                  'L_HARD_EDGE', dependent$)
 
 call init_attribute_name1 (marker$, l$,                             'L', dependent$)
 call init_attribute_name1 (marker$, E_tot_start$,                   'E_tot_start', private$)
@@ -1216,17 +1221,17 @@ call init_attribute_name1 (floor_shift$, origin_ele_ref_pt$,        'ORIGIN_ELE_
 call init_attribute_name1 (floor_shift$, upstream_ele_dir$,         'UPSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (floor_shift$, downstream_ele_dir$,       'DOWNSTREAM_ELE_DIR', dependent$)
 
-call init_attribute_name1 (fiducial$, l$,                          'L', dependent$)
-call init_attribute_name1 (fiducial$, origin_ele$,                 'ORIGIN_ELE')
-call init_attribute_name1 (fiducial$, origin_ele_ref_pt$,          'ORIGIN_ELE_REF_PT')
-call init_attribute_name1 (fiducial$, dx_origin$,                  'DX_ORIGIN')
-call init_attribute_name1 (fiducial$, dy_origin$,                  'DY_ORIGIN')
-call init_attribute_name1 (fiducial$, dz_origin$,                  'DZ_ORIGIN')
-call init_attribute_name1 (fiducial$, dtheta_origin$,              'DTHETA_ORIGIN')
-call init_attribute_name1 (fiducial$, dphi_origin$,                'DPHI_ORIGIN')
-call init_attribute_name1 (fiducial$, dpsi_origin$,                'DPSI_ORIGIN')
+call init_attribute_name1 (fiducial$, l$,                           'L', dependent$)
+call init_attribute_name1 (fiducial$, origin_ele$,                  'ORIGIN_ELE')
+call init_attribute_name1 (fiducial$, origin_ele_ref_pt$,           'ORIGIN_ELE_REF_PT')
+call init_attribute_name1 (fiducial$, dx_origin$,                   'DX_ORIGIN')
+call init_attribute_name1 (fiducial$, dy_origin$,                   'DY_ORIGIN')
+call init_attribute_name1 (fiducial$, dz_origin$,                   'DZ_ORIGIN')
+call init_attribute_name1 (fiducial$, dtheta_origin$,               'DTHETA_ORIGIN')
+call init_attribute_name1 (fiducial$, dphi_origin$,                 'DPHI_ORIGIN')
+call init_attribute_name1 (fiducial$, dpsi_origin$,                 'DPSI_ORIGIN')
 
-call init_attribute_name1 (null_ele$, ix_branch$,                  'ix_branch', private$)
+call init_attribute_name1 (null_ele$, ix_branch$,                   'ix_branch', private$)
 
 call init_attribute_name1 (quadrupole$, k1$,                        'K1', quasi_free$)
 call init_attribute_name1 (quadrupole$, B1_gradient$,               'B1_GRADIENT', quasi_free$)
@@ -1242,6 +1247,7 @@ call init_attribute_name1 (quadrupole$, E_tot_start$,               'E_tot_start
 call init_attribute_name1 (quadrupole$, p0c_start$,                 'p0c_start', private$)
 call init_attribute_name1 (quadrupole$, fq1$,                       'FQ1')
 call init_attribute_name1 (quadrupole$, fq2$,                       'FQ2')
+call init_attribute_name1 (quadrupole$, l_soft_edge$,               'L_SOFT_EDGE')
 
 call init_attribute_name1 (sextupole$, k2$,                         'K2', quasi_free$)
 call init_attribute_name1 (sextupole$, B2_gradient$,                'B2_GRADIENT', quasi_free$)
@@ -1326,6 +1332,7 @@ call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', 
 call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', dependent$)
 call init_attribute_name1 (rfcavity$, gradient_err$,                'gradient_err', private$)
 call init_attribute_name1 (rfcavity$, voltage_err$,                 'voltage_err', private$)
+call init_attribute_name1 (rfcavity$, l_hard_edge$,                 'L_HARD_EDGE', dependent$)
 
 call init_attribute_name1 (sbend$, angle$,                          'ANGLE', quasi_free$)
 call init_attribute_name1 (sbend$, ref_tilt$,                       'REF_TILT')
@@ -1643,8 +1650,9 @@ if (.not. logic_option(.false., override) .and. attrib_array(ix_key, ix_attrib)%
   if (global_com%exit_on_error) call err_exit
 endif
 
-attrib_array(ix_key, ix_attrib)%name    = name
-attrib_array(ix_key, ix_attrib)%state = integer_option(is_free$, attrib_state)
+attrib_array(ix_key, ix_attrib)%name      = name
+attrib_array(ix_key, ix_attrib)%state     = integer_option(is_free$, attrib_state)
+attrib_array(ix_key, ix_attrib)%ix_attrib = ix_attrib
 
 ! If things are done after the attribute array has been inited then the short table has
 ! to be reinited.
@@ -1841,7 +1849,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
       'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
-      'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_HARD_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
+      'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_HARD_EDGE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
       'MIN_DS_ADAPTIVE_TRACKING', 'OFFSET', 'PENDELLOSUNG_PERIOD_PI', 'PENDELLOSUNG_PERIOD_SIGMA', 'R0_ELEC', 'R0_MAG', &
       'REF_WAVELENGTH', 'RHO', 'S', 'SIGNIFICANT_LENGTH', 'SIG_X', 'SIG_Y', 'SIG_Z', 'S_POSITION', 'THICKNESS', &
       'X', 'X0', 'X1', 'Y', 'Y0', 'Y1', 'X1_LIMIT', 'X2_LIMIT', 'Y1_LIMIT', 'Y2_LIMIT', 'X_LIMIT', 'Y_LIMIT', &

@@ -348,8 +348,6 @@ endif
 !----------------------------------
 ! General bookkeeping...
 
-if (attribute_index(ele, 'L_HARD_EDGE') /= 0) val(l_hard_edge$) = val(l$)
-
 select case (ele%key)
 
 ! BeamBeam
@@ -453,6 +451,8 @@ case (lcavity$)
 
   if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+  else
+    val(l_hard_edge$) = val(l$)
   endif
 
 ! Patch
@@ -483,6 +483,8 @@ case (rfcavity$)
 
   if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
     val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+  else
+    val(l_hard_edge$) = val(l$)
   endif
 
   if (val(voltage$) == 0) then

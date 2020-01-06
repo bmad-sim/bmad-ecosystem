@@ -70,7 +70,7 @@ type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (photon_element_struct), pointer :: p
 type (photon_surface_struct), pointer :: s
-type (ele_attribute_struct) attrib
+type (ele_attribute_struct) attrib, attrib2
 type (lat_param_struct) param
 type (control_struct), pointer :: ctl
 type (all_pointer_struct) a_ptr
@@ -92,6 +92,7 @@ character(*), optional, allocatable :: lines(:)
 character(:), allocatable :: expression_str
 character(200), allocatable :: li(:)
 character(200), allocatable :: li2(:)
+character(200) :: line
 character(60) str1, str2
 character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, fmt
 character(12) attrib_val_str, units, q_factor
@@ -102,7 +103,7 @@ character(*), parameter :: r_name = 'type_ele'
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
 logical, optional :: type_floor_coords, type_field, type_wall
-logical type_zero, err_flag, print_it, is_default, has_it, has_been_added
+logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, z1, z2
 
 ! init
 
@@ -165,7 +166,7 @@ nl=nl+1; li(nl) = ''
 if (type_zero) then
   nl=nl+1; write (li(nl), *) 'Attribute values:'
 else
-  nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero/non-default values shown]:'
+  nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero real/int values shown]:'
 endif
 
 n_att = n_attrib_string_max_len() + 1
@@ -177,88 +178,50 @@ write (fmt_r, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, 2x, es15.7)'
 
 do i = 1, num_ele_attrib$
   attrib = attribute_info(ele, i)
+  attrib%value = ele%value(i)
   a_name = attrib%name
   if (a_name == null_name$) cycle
   if (attrib%state == private$) cycle
+  if (is_second_column_attribute(ele, i)) cycle
   if (a_name == 'MULTIPASS_REF_ENERGY' .and. (ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$)) cycle
-  ix2 = second_column_attribute_index (ele, i)
+  attrib2 = ele_attribute_struct()
 
-  if (ix2 > 0) then
-    if (ele%value(i) == 0 .and. ele%value(ix2) == 0 .and. .not. type_zero) cycle
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, i3, 3x, a16, a, es15.7, 1x, a8)') &
-                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
-                      ix2, attribute_name(ele, ix2), '=', ele%value(ix2), attrib%units
-
-  elseif (a_name == 'RF_FREQUENCY' .and. ele%value(i) /= 0) then
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, f13.9, 1x, a)') &
-                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
-                      'RF_WAVELENGTH   =', c_light * ele%value(p0c$) / (ele%value(i) * ele%value(e_tot$)), 'm'
-
-  elseif (a_name == 'P0C_START') then
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, f13.9)') &
-                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
-                      'BETA_START      =', ele%value(p0c_start$) / ele%value(e_tot_start$)
-
-  elseif (a_name == 'E_TOT_START') then
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es15.7, 1x, a8)') &
-                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
-                      'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$), attrib%units
-
-  elseif (a_name == 'P0C') then
+  select case (a_name)
+  case ('RF_FREQUENCY');    if (ele%value(i) /= 0) attrib2 = ele_attribute_struct('RF_WAVELENGTH', dependent$, is_real$, 'm', -1, &
+                                                                                   c_light * ele%value(p0c$) / (ele%value(i) * ele%value(e_tot$)))
+  case ('P0C')
     if (particle == photon$) then
-      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es14.6, 1x, a)') &
-                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
-                      'REF_WAVELENGTH  =', c_light * h_planck / ele%value(p0c$), 'm'
+      attrib2 = ele_attribute_struct('REF_WAVELENGTH', dependent$, is_real$, 'm', -1, c_light * h_planck / ele%value(p0c$))
     else
-      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, f13.9)') &
-                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
-                      'BETA            =', ele%value(p0c$) / ele%value(e_tot$)
+      attrib2 = ele_attribute_struct('BETA', dependent$, is_real$, '', -1, ele%value(p0c$) / ele%value(e_tot$))
     endif
-
-  elseif (a_name == 'E_TOT') then
-    if (particle == photon$) then
-      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es15.7)') &
-                      i, a_name(1:n_att), '=', ele%value(i), attrib%units
+  case ('E_TOT');           if (particle /= photon$) attrib2 = ele_attribute_struct('GAMMA', dependent$, is_real$, '', -1, ele%value(e_tot$) / mass_of(particle))
+  case ('P0C_START');       attrib2 = ele_attribute_struct('BETA_START', dependent$, is_real$, '', -1, ele%value(p0c_start$) / ele%value(e_tot_start$))
+  case ('E_TOT_START');     attrib2 = ele_attribute_struct('DELTA_E', dependent$, is_real$, 'eV', -1, ele%value(e_tot$) - ele%value(e_tot_start$))
+  case ('DARWIN_WIDTH_SIGMA', 'DARWIN_WIDTH_PI')
+    attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'eV', -1, ele%value(i) / ele%value(dbragg_angle_de$))
+  case ('DBRAGG_ANGLE_DE'); attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'deg/eV', -1, ele%value(i) * 180 / pi)
+  case default
+    if (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
+      attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'deg', -1, ele%value(i) * 180 / pi)
     else
-      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, 6x, a, es15.7)') &
-                      i, a_name(1:n_att), '=', ele%value(i), attrib%units, &
-                      'GAMMA           =', ele%value(e_tot$) / mass_of(particle)
+      ix2 = second_column_attribute_index (ele, i)
+      if (ix2 > 0) then
+        attrib2 = attribute_info(ele, ix2)
+        attrib2%value = ele%value(ix2)
+      endif
     endif
+  end select
 
-  elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
-    units = 'deg'
-    if (a_name == 'DBRAGG_ANGLE_DE') units = 'deg/eV'
-    if (.not. type_zero .and. ele%value(i) == 0) cycle
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, f12.4, 1x, a)') &
-                 i, a_name(1:n_att), '=', ele%value(i), attrib%units, ele%value(i) * 180 / pi, trim(units)
+  z1 = ((attrib%kind == is_real$ .or. attrib%kind == is_integer$) .and. attrib%value == 0)
+  z2 = ((attrib2%kind == is_real$ .or. attrib2%kind == is_integer$) .and. attrib2%value == 0)
+  if (z1 .and. z2 .and. .not. type_zero) cycle
 
-  elseif (a_name(1:12) == 'DARWIN_WIDTH') then
-    nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8, f12.4, 1x, a)') &
-                i, a_name(1:n_att), '=', ele%value(i), attrib%units, ele%value(i) / ele%value(dbragg_angle_de$), 'eV'
+  line = ''
+  call write_this_attribute (attrib, n_att, line(3:))
+  call write_this_attribute (attrib2, 16, line(n_att+34:))
+  nl=nl+1; li(nl) = line
 
-
-  else
-    attrib_type = attribute_type(a_name)
-    if (is_second_column_attribute(ele, i)) cycle
-    select case (attrib_type)
-    case (is_logical$)
-      if (ele%value(i) /= 0) ele%value(i) = 1
-      nl=nl+1; write (li(nl), '(i5, 3x, 2a, l1, a, i0, a)')  i, a_name(1:n_att), '=  ', &
-                                  is_true(ele%value(i)), ' (', nint(ele%value(i)), ')'
-    case (is_integer$)
-      if (ele%value(i) == 0 .and. .not. type_zero) cycle
-      nl=nl+1; write (li(nl), '(i5, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', nint(ele%value(i))
-    case (is_real$)
-      if (ele%value(i) == 0 .and. .not. type_zero) cycle
-      nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 1x, a8)')  i, a_name(1:n_att), '=', ele%value(i), attrib%units
-    case (is_switch$)
-      name = switch_attrib_value_name (a_name, ele%value(i), ele, is_default)
-      !! if (.not. is_default .or. type_zero) then
-        nl=nl+1; write (li(nl), '(i5, 3x, 4a, i0, a)')  i, a_name(1:n_att), '=  ', &
-                                                      trim(name), ' (', nint(ele%value(i)), ')'
-      !! endif
-    end select
-  endif
 enddo
 
 ! Custom attributes
@@ -275,7 +238,7 @@ endif
 ! Multipoles
 
 if (associated(ele%a_pole) .or. associated(ele%a_pole_elec)) then
-  nl=nl+1; write (li(nl), '(a, l1)')          'MULTIPOLES_ON    = ', ele%multipoles_on 
+  nl=nl+1; write (li(nl), '(a, l1)') 'MULTIPOLES_ON    = ', ele%multipoles_on 
 endif
 
 if (associated(ele%a_pole)) then
@@ -1250,7 +1213,7 @@ else
 endif
 
 name = attrib_name
-n = 8 + n_attrib_string_max_len() + 17 + 14
+n = 8 + n_attrib_string_max_len() + 17 + 14 + 2
 write (line(n:), '(a26, a, 2x, a)') name, '=', value
 
 end subroutine encode_second_column_parameter 
@@ -1277,6 +1240,8 @@ character(40) a_name
 
 !
 
+ix2_attrib = -1
+
 select case (attribute_name(ele, ix_attrib))
 case ('X_PITCH');     ix2_attrib = x_pitch_tot$
 case ('Y_PITCH');     ix2_attrib = y_pitch_tot$
@@ -1292,8 +1257,29 @@ case ('FQ1');         ix2_attrib = fq2$
 case ('LORD_PAD1');   ix2_attrib = lord_pad2$
 case ('HKICK');       ix2_attrib = vkick$
 case ('BL_HKICK');    ix2_attrib = bl_vkick$
-case default;         ix2_attrib = -1; return
+case ('FRINGE_TYPE'); ix2_attrib = fringe_at$
+case ('DS_STEP');     ix2_attrib = num_steps$
+case ('R0_MAG');      ix2_attrib = r0_elec$
+case ('KS');          ix2_attrib = bs_field$
+case ('K1');          ix2_attrib = b1_gradient$
+case ('K2');          ix2_attrib = b2_gradient$
+case ('G');           ix2_attrib = b_field$
+case ('G_ERR');       ix2_attrib = b_field_err$
+case ('H1');          ix2_attrib = h2$
+case ('E1');          ix2_attrib = e2$
+case ('FINT');        ix2_attrib = fintx$
+case ('HGAP');        ix2_attrib = hgapx$
+case ('L_CHORD');     ix2_attrib = l_sagitta$
+case ('PTC_FIELD_GEOMETRY'); ix2_attrib = ptc_fringe_geometry$
+case ('L')
+  if (has_attribute(ele, 'L_HARD_EDGE')) then
+    ix2_attrib = l_hard_edge$
+  elseif (has_attribute(ele, 'L_SOFT_EDGE')) then
+    ix2_attrib = l_soft_edge$
+  endif
 end select
+
+if (ix2_attrib == -1) return
 
 a_name = attribute_name(ele, ix2_attrib)
 if (a_name(1:1) == '!') ix2_attrib = -1
@@ -1302,6 +1288,7 @@ end function second_column_attribute_index
 
 !--------------------------------------------------------------------------
 ! contains
+
 !+
 ! Function is_second_column_attribute (ele, ix_attrib) result (is_2nd_col_attrib)
 !
@@ -1312,7 +1299,6 @@ end function second_column_attribute_index
 !
 ! Output:
 !   is_2nd_col_attrib -- Logical: True if a second column attribute. False otherwise.
-!   
 !-
 
 function is_second_column_attribute (ele, ix_attrib) result (is_2nd_col_attrib)
@@ -1326,12 +1312,50 @@ logical is_2nd_col_attrib
 select case (attribute_name(ele, ix_attrib))
 case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'FQ2', 'LORD_PAD2', &
       'REF_TILT_TOT', 'ROLL_TOT', 'Z_OFFSET_TOT', 'TILT_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
-      'VKICK', 'BL_VKICK')
+      'VKICK', 'BL_VKICK', 'L_SOFT_EDGE', 'L_HARD_EDGE', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
+      'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'B_FIELD_ERR', 'PTC_FRINGE_GEOMETRY', &
+      'H2', 'E2', 'FINTX', 'HGAPX', 'L_SAGITTA')
   is_2nd_col_attrib = .true.
 case default
   is_2nd_col_attrib = .false.
 end select
 
 end function is_second_column_attribute
+
+!--------------------------------------------------------------------------
+! contains
+
+subroutine write_this_attribute (attrib, n_name_width, line)
+
+type (ele_attribute_struct) attrib
+integer n_name_width
+character(*) line
+character(40) name
+character(3) str_ix
+
+!
+
+if (attrib%kind == does_not_exist$) return
+
+if (attrib%ix_attrib > 0) then
+  write (str_ix, '(i3)') attrib%ix_attrib
+else
+  str_ix = ''
+endif
+
+select case (attrib%kind)
+case (is_logical$)
+  if (ele%value(i) /= 0) ele%value(i) = 1
+  write (line, '(a, 3x, 2a, l1, a, i0, a)')  str_ix, attrib%name(1:n_name_width), '=  ', is_true(attrib%value), ' (', nint(attrib%value), ')'
+case (is_integer$)
+  write (line, '(a, 3x, 2a, i0)')  str_ix, attrib%name(1:n_name_width), '= ', nint(attrib%value)
+case (is_real$)
+  write (line, '(a, 3x, 2a, es15.7, 1x, a8)')  str_ix, attrib%name(1:n_name_width), '=', attrib%value, attrib%units
+case (is_switch$)
+  name = switch_attrib_value_name (attrib%name, attrib%value, ele, is_default)
+  write (line, '(a, 3x, 4a, i0, a)')  str_ix, attrib%name(1:n_name_width), '=  ', trim(name), ' (', nint(attrib%value), ')'
+end select
+
+end subroutine write_this_attribute
 
 end subroutine type_ele
