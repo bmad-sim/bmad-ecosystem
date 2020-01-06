@@ -285,14 +285,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
           err_flag = .true.
         endif
       enddo
-
     endif
 
     ! check fringe type
 
     if (ele%key == sbend$ .or. ele%key == rbend$) then
       select case (nint(ele%value(fringe_type$)))
-      case (none$, soft_edge_only$, hard_edge_only$, full$, basic_bend$, sad_full$, linear_edge$, test_edge$)
+      case (none$, soft_edge_only$, hard_edge_only$, full$, basic_bend$, sad_full$, linear_edge$)
       case default
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
@@ -311,7 +310,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                           higher_order_fringe_type_name(nint(ele%value(higher_order_fringe_type$))))
         err_flag = .true.
       end select
-  
     endif
 
     if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. attribute_index(ele, 'FRINGE_TYPE') > 0) then

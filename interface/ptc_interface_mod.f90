@@ -3460,7 +3460,7 @@ if (ele%key == sbend$ .and. ele%value(l$) /= 0) then
     ptc_key%list%permfringe = 0
   case (basic_bend$, linear_edge$)
     ptc_key%list%permfringe = 0
-  case (full$, test_edge$)
+  case (full$)
     ptc_key%list%permfringe = 1
   case (hard_edge_only$)
     ptc_key%list%permfringe = 1
@@ -3482,7 +3482,7 @@ elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a val
     ptc_key%list%permfringe = 1
   case (soft_edge_only$)
     ptc_key%list%permfringe = 2
-  case (full$, test_edge$)
+  case (full$)
     ptc_key%list%permfringe = 3
   end select
 
