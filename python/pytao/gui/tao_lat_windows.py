@@ -984,6 +984,7 @@ class tao_lattice_window(Tao_Toplevel):
         parameters and updates the window
         Returns the number of elements found
         '''
+        LENGTH_SCALE = 10 #pixels per character that should be allotted for each column
         # Clear the existing table
         for child in self.table_frame.winfo_children():
             child.destroy()
@@ -1010,6 +1011,9 @@ class tao_lattice_window(Tao_Toplevel):
         if lattice[0].find("ELEMENT(S) NOT FOUND") != -1:
             tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
             return 0
+        if lattice[0].find("ERROR READING RANGE SELECTION") != -1:
+            tk.Label(self.table_frame, text="NO LATTICE FOUND").pack()
+            return 0
         for i in range(len(lattice)):
             lattice[i] = lattice[i].split(';')
         #lattice[i][j] --> row i, column j
@@ -1033,14 +1037,14 @@ class tao_lattice_window(Tao_Toplevel):
         for row in lattice[1:]:
             self.tree.insert("", "end", values=row)
             for j in range(len(row)):
-                if len(row[j])*15 > widths[j]:
-                    widths[j] = len(row[j])*15
+                if len(row[j])*LENGTH_SCALE > widths[j]:
+                    widths[j] = len(row[j])*LENGTH_SCALE
 
         # Set column widths appropriately
         for j in range(len(lattice[0])):
-            if len(lattice[0][j])*15 > widths[j]:
-                widths[j] = len(lattice[0][j])*15
-            widths[0] = 120 #prevent giant index column
+            if len(lattice[0][j])*LENGTH_SCALE > widths[j]:
+                widths[j] = len(lattice[0][j])*LENGTH_SCALE
+            widths[0] = 100 #prevent giant index column
             self.tree.column(lattice[0][j], width=widths[j], minwidth=widths[j])
             # Text alignment
             if dat_types[j] == 'STR':
@@ -1067,7 +1071,7 @@ class tao_lattice_window(Tao_Toplevel):
         for w in widths:
             tot = tot+w
         self.maxsize(1800, 1000)
-        self.minsize(1300, 100)
+        self.minsize(100, 100)
         # Determine number of elements
         for row in self.tree.get_children():
             if len(self.tree.item(row)['values']) < 2:
@@ -1332,6 +1336,10 @@ class tao_ele_browser(tao_lattice_window):
             # Disable clicking on table
             self.tree.configure(selectmode="none")
             self.tree.unbind('<Double-Button-1>')
+        # Resize columns
+        #self.tree.column("Index", width=50, minwidth=50)
+        #self.minsize(300,100)
+        #self.maxsize(1000,1000)
         # Count elements found
         #try:
         #    names = list(self.tree.get_children())
