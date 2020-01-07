@@ -248,7 +248,7 @@ class tao_new_data_window(Tao_Toplevel):
         Tao_Toplevel.__init__(self, root, *args, **kwargs)
         self.pipe = pipe
         self.rowconfigure(0, weight=1)
-        self.title('New Data')
+        self.title('New D2 Data')
         self.name = ""
 
         #Frame for inputting d2 parameters
@@ -268,7 +268,7 @@ class tao_new_data_window(Tao_Toplevel):
                 d1_frame.fill_defaults()
 
     def fill_d2_frame(self):
-        tk.Label(self.d2_frame, text="New d2 Data",
+        tk.Label(self.d2_frame, text="New D2 Data Structure",
                 font=('Sans', 16, 'bold')).grid(
                         row=0, column=0, columnspan=2, sticky='EW')
 
@@ -409,7 +409,7 @@ class tao_new_data_window(Tao_Toplevel):
 
         self.d2_frame.grid_forget()
         self.d1_frame.pack(fill='both', expand=1)
-        self.title("New data: " + self.d2_param_list[0].tk_var.get())
+        self.title("New D1 Data Structures of: " + self.d2_param_list[0].tk_var.get())
 
         # Clone the requested d2 array(s)
         if clone_dict != {}:
