@@ -242,6 +242,12 @@ function index_nocase(string1, string2) result (indx)
   character(*) string2
 end function
 
+function int_str(int) result (str)
+  implicit none
+  integer int
+  character(:), allocatable :: str
+end function
+
 function inverse (funct, y, x1, x2, tol) result (x)
   import
   implicit none
