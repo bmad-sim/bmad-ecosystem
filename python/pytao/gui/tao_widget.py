@@ -235,6 +235,21 @@ class tk_tao_parameter():
                 self._u.config(state='disabled')
                 self._e.config(state='disabled')
                 self._c.config(state='disabled')
+        #Bind info printing
+        if pipe.debug == True:
+            self.tk_wid.bind("<Button-3>", self.print_info)
+
+    def print_info(self, *args):
+        '''
+        Prints diagnostic info about this widget for testing purposes
+        '''
+        print("Param name: " + self.param.name)
+        print("Param type: " + self.param.type)
+        print("Param can_vary: " + str(self.param.can_vary))
+        print("Param value: " + str(self.param.value))
+        print("Widget contents: " + str(self.tk_var.get()))
+        print("---------------------")
+
 
     def value(self):
         '''
