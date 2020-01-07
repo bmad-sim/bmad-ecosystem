@@ -33,8 +33,6 @@ class tao_d2_data_window(tao_list_window):
                 self.univ_frame, self.u_ix, *u_ix_list, command=self.refresh)
         u_ix_box.grid(row=0,column=1,sticky="W")
         self.univ_frame.pack(fill="both", expand=0)
-        tk.Button(self, text='Write data to namelist file...',
-                command=self.write_data).pack(side='left')
 
         # Populate self.list_frame
         self.refresh()
@@ -59,14 +57,6 @@ class tao_d2_data_window(tao_list_window):
             new_frame = d2_data_frame(
                     self.list_frame, self.root, self.pipe, d2_data_item, u_ix)
             new_frame.frame.pack()
-
-    def write_data(self):
-        '''
-        Asks for a filename and writes the data to that file as a namelist
-        '''
-        out_file = filedialog.asksaveasfilename(title="Save namelist as...")
-        if out_file != ():
-            self.pipe.cmd_in('write namelist -data ' + out_file)
 
 
 #-----------------------------------------------------
@@ -569,7 +559,7 @@ class tao_new_data_window(Tao_Toplevel):
             self.d1_frame_list.append(new_d1_frame(self))
             self.d1_index = len(self.d1_frame_list)-1
             self.notebook.insert(self.d1_index, self.d1_frame_list[-1])
-            self.notebook.tab(self.d1_index, text='New d1_array')
+            self.notebook.tab(self.d1_index, text=self.d1_frame_list[-1].BLANK_TITLE)
             self.notebook.select(self.d1_index)
         else:
             # Update self.d1_index
@@ -613,8 +603,9 @@ class new_d1_frame(tk.Frame):
         self.d2_array = d2_array
         self.pipe = self.d2_array.pipe
         self.handler_block = False
+        self.BLANK_TITLE = "[UNTITLED]"
         if name == "":
-            self.name = "New d1_array" #Default
+            self.name = self.BLANK_TITLE #Default
         else:
             self.name = name
 
@@ -653,7 +644,7 @@ class new_d1_frame(tk.Frame):
             self.d1_array_wids[i].tk_wid.grid(row=i+2, column=1, sticky='EW')
         i = i+2
         # Set name
-        if self.name != "New d1_array":
+        if self.name != self.BLANK_TITLE:
             self.d1_array_wids[0].tk_var.set(self.name)
 
         # Warning labels
@@ -716,7 +707,7 @@ class new_d1_frame(tk.Frame):
         self.data_chooser.bind('<<ComboboxSelected>>', self.make_datum_frame)
         self.data_chooser.grid(row=i+4, column=1, sticky='EW')
         # Set ix_min and ix_max for existing d1_arrays
-        if self.name != "New d1_array":
+        if self.name != self.BLANK_TITLE:
             ix_data = self.pipe.cmd_in('python data_d1_array ' + full_name)
             ix_data = ix_data.splitlines()
             for line in ix_data:
@@ -734,7 +725,7 @@ class new_d1_frame(tk.Frame):
         data_dict_params = ['data_source', 'data_type', 'ele_name', 'ele_start_name', 'ele_ref_name',
                 'data^merit_type', 'meas_value', 'ref_value', 'weight', 'good_user', '1^ix_bunch',
                 'eval_point', 's_offset']
-        if self.name != "New d1_array":
+        if self.name != self.BLANK_TITLE:
             self.d2_array.pw.label_vars[self.d2_array.pw.ix].set(
                     'Loading ' + self.d2_array.name + '.' + self.name + '...')
             self.d2_array.pw.set_max(self.d2_array.pw.ix, self.ix_max-self.ix_min+1)
@@ -961,8 +952,8 @@ class new_d1_frame(tk.Frame):
             # Warning in strict mode
             if strict:
                 self.name_warning_empty.grid(**self.name_warning_gs)
-            self.name = "New d1_array"
-            self.d2_array.notebook.tab(self.d2_array.d1_index, text="New d1_array")
+            self.name = self.BLANK_TITLE
+            self.d2_array.notebook.tab(self.d2_array.d1_index, text=self.BLANK_TITLE)
             return None
 
         # Name is nonempty
