@@ -169,10 +169,11 @@ class tao_root_window(tk.Tk):
         self.menubar = tk.Menu(self)
 
         file_menu = tk.Menu(self.menubar, tearoff=0)
-        #file_menu.add_command(label = 'Write...', command = self.write_cmd)
+        file_menu.add_command(label = 'Write Data Namelist...', command = self.write_data_cmd)
+        file_menu.add_command(label = 'Write Var Namelist...', command = self.write_var_cmd)
+        file_menu.add_separator()
         file_menu.add_command(label = 'Reinit...',
                 command = self.reinit_cmd,accelerator = 'Alt+Q')
-        file_menu.add_separator()
         file_menu.add_command(label = 'Quit', command = self.quit_cmd,
                 accelerator = 'Ctrl+Q')
         self.menubar.add_cascade(label = 'File', menu = file_menu)
@@ -415,7 +416,7 @@ class tao_root_window(tk.Tk):
                     if arg[0] == '-':   # "--switch" negates the effect of "-switch"
                       normal = False
                       arg = arg[1:]
-                  
+
                     # Determine if arg is a valid switch name
                     matches = [] # list of startup params that arg might refer to
                     # Special handling for gui_init
@@ -636,8 +637,21 @@ class tao_root_window(tk.Tk):
     def new_template_cmd(self):
         win = tao_new_plot_template_window(self, self.pipe)
 
-    def write_cmd(self):
-        print ('Write called')
+    def write_data_cmd(self):
+        '''
+        Writes a fortran namelist file for all d2_arrays
+        '''
+        out_file = filedialog.asksaveasfilename(title="Save data namelist as...")
+        if out_file not in [(), ""]:
+            self.pipe.cmd_in('write namelist -data ' + out_file)
+
+    def write_var_cmd(self):
+        '''
+        Writes a fortran namelist file for all v1_arrays
+        '''
+        out_file = filedialog.asksaveasfilename(title="Save var namelist as...")
+        if out_file not in [(), ""]:
+            self.pipe.cmd_in('write namelist -variable ' + out_file)
 
     def reinit_cmd(self):
         '''
