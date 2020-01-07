@@ -236,8 +236,9 @@ class tk_tao_parameter():
                 self._e.config(state='disabled')
                 self._c.config(state='disabled')
         #Bind info printing
-        if pipe.debug == True:
-            self.tk_wid.bind("<Button-3>", self.print_info)
+        if pipe != 0:
+            if pipe.debug == True:
+                self.tk_wid.bind("<Button-3>", self.print_info)
 
     def print_info(self, *args):
         '''
