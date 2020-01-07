@@ -595,32 +595,6 @@ syntax of the \vn{show} command can (and does) change.
 
 For further documentation on the python command, please look at the file tao/code/tao_python.f90.
 
-%% quiet --------------------------------------------------------------
-\section{quiet}\index{commands!quiet}
-\label{s:quiet}
-
-Format:
-\begin{example}
-  quiet \{<action>\}
-\end{example}
-
-The \vn{quiet} command can only be used in command files (\sref{s:call}).  When placed in a command
-file, output to the terminal is suppressed but only from the \vn{quiet} command until all nested command files
-have run and input is passed back to the terminal level.
-
-Possible <action> settings are:
-\begin{example}
-  all       -- 
-  output    -- Suppress output but not command echoing.
-\end{example}
-
-Other useful commands to put in a command file are to speed up execution are:
-\begin{example}
-  set global lattice_calc_on = F   ! Stop lattice calculations
-  set global plot_on = F           ! Halt replotting
-\end{example}
-If set, at the end of the command file these logicals should be toggled back to True.
-
 %% quit --------------------------------------------------------------
 \section{quit}\index{commands!quit}
 \label{s:quit}

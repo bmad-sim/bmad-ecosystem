@@ -65,7 +65,7 @@ character(*) :: cmd_out
 character(*), optional :: prompt_str, cmd_in
 character(80) prompt_string, color_prompt_string
 character(40) name
-character(40) :: r_name = 'tao_get_user_input'
+character(*), parameter :: r_name = 'tao_get_user_input'
 
 logical, optional :: wait_flag
 logical err, wait, flush, boldit, using_saved_cmd
@@ -203,7 +203,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
       do i = 1, size(loop)
         if (name == loop(i)%name) then
-          write (cmd_out, '(a, i0, a)') cmd_out(1:ix1-1), loop(i)%value, cmd_out(ix2+2:) 
+          cmd_out = cmd_out(1:ix1-1) // int_str(loop(i)%value) // cmd_out(ix2+2:) 
           cycle loop1
         endif
       enddo
