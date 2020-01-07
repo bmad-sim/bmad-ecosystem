@@ -1712,26 +1712,6 @@ end function logic_str
 !-------------------------------------------------------
 !-------------------------------------------------------
 
-function int_str(int) result (str_out)
-
-implicit none
-
-integer int, n
-character(:), allocatable :: str_out
-character(24) str
-
-write (str, *) int
-str = adjustl(str)
-n = len_trim(str)
-allocate(character(n):: str_out)
-str_out = str(1:n)
-
-end function int_str
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-
 function re_str(rel) result (str_out)
 
 implicit none
