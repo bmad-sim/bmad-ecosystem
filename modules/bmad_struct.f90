@@ -117,8 +117,8 @@ character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!     ', 'GARBAGE!    
 integer, parameter :: fieldmap$ = 2, planar_model$ = 3, Refer_to_lords$ = 4, no_field$ = 5
 integer, parameter :: helical_model$ = 6
 character(16), parameter :: field_calc_name(0:7) = &
-    ['GARBAGE!       ', 'Bmad_Standard  ', 'FieldMap       ', 'Planar_Model   ', &
-     'Refer_to_Lords.', 'No_Field       ', 'Helical_Model  ', 'Custom         ']
+    [character(16):: 'GARBAGE!', 'Bmad_Standard', 'FieldMap', 'Planar_Model', &
+     'Refer_to_Lords.', 'No_Field', 'Helical_Model', 'Custom']
 
 ! Distribution
 
