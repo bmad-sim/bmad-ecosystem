@@ -464,7 +464,7 @@ class tao_multipole_frame(tk.Frame):
             j = 1 #column counter
             for item in line[1:]:
                 name = self.titles[j]
-                name = name[:name.find('n')] + str(j) + name[name.find('n')+1:]
+                name = name[:name.find('n')] + str(line[0]) + name[name.find('n')+1:]
                 can_vary = 'T' if j<3 else 'F'
                 self.tk_tao_list.append(tk_tao_parameter(str_to_tao_param(
                     name + ';REAL;' + can_vary + ';' + item),
