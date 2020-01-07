@@ -22,8 +22,6 @@ class tao_var_general_window(tao_list_window):
         self.pipe = pipe
         for i in [0,4,5]:
             self.list_frame.grid_columnconfigure(i, pad=10)
-        tk.Button(self, text='Write variables to namelist file...',
-                command=self.write_var).pack(side='left')
         self.refresh()
 
     def refresh(self):
@@ -85,15 +83,6 @@ class tao_var_general_window(tao_list_window):
             for win in self.root.refresh_windows['plot']:
                 win.refresh()
 
-
-#  def write_v1_callback(self, v1_var_name):
-#        return lambda : self.write_v1(v1_var_name)
-#
-    def write_var(self):
-        '''Writes a fortran namelist file for the selected v1_array'''
-        out_file = filedialog.asksaveasfilename(title="Save namelist as...")
-        if out_file != ():
-            self.pipe.cmd_in('write namelist -variable ' + out_file)
 
 #-----------------------------------------------------
 # v1_var window
@@ -205,7 +194,7 @@ class tao_new_var_window(Tao_Toplevel):
         # Set up a v1 tab
         self.v1_frame_list.append(new_v1_frame(self))
         self.notebook.insert('end', self.v1_frame_list[0])
-        self.notebook.tab(0, text='New v1_array')
+        self.notebook.tab(0, text=self.v1_frame_list[0].BLANK_TITLE)
         self.v1_index = 0 #marks current tab index
 
         # New tab button
@@ -373,7 +362,7 @@ class tao_new_var_window(Tao_Toplevel):
             self.v1_frame_list.append(new_v1_frame(self))
             self.v1_index = len(self.v1_frame_list)-1
             self.notebook.insert(self.v1_index, self.v1_frame_list[-1])
-            self.notebook.tab(self.v1_index, text='New v1_array')
+            self.notebook.tab(self.v1_index, text=self.v1_frame_list[-1].BLANK_TITLE)
             self.notebook.select(self.v1_index)
         else:
             # Update self.v1_index
@@ -400,7 +389,8 @@ class new_v1_frame(tk.Frame):
         tk.Frame.__init__(self, parent.notebook)
         self.parent = parent
         self.pipe = self.parent.pipe
-        self.name = "New v1_array" #Default
+        self.BLANK_TITLE = "[UNTITLED]"
+        self.name = self.BLANK_TITLE #Default
         self.clone_of = "" # Used to track clones of existing v1_arrays
         self.handler_block = False
 
@@ -717,8 +707,8 @@ class new_v1_frame(tk.Frame):
             # Warning in strict mode
             if strict:
                 self.name_warning_empty.grid(**self.name_warning_gs)
-            self.name = "New v1_array"
-            self.parent.notebook.tab(self.parent.v1_index, text="New v1_array")
+            self.name = self.BLANK_TITLE
+            self.parent.notebook.tab(self.parent.v1_index, text=self.BLANK_TITLE)
             return None
         # Name is nonempty
         # -> check if it's already in use
