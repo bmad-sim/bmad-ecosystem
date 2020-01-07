@@ -258,17 +258,18 @@ end subroutine
          ORT(M) = 0.0
          SCALE = 0.0
 !     SCALE COLUMN (ALGOL TOL THEN NOT NEEDED)
-         DO 90 I = M, IGH
-   90    SCALE = SCALE + abs(A(I,M-1))
+         DO I = M, IGH
+           SCALE = SCALE + abs(A(I,M-1))
+         enddo
 !
          IF (SCALE .EQ. 0.0) GOTO 180
          MP = M + IGH
 !     FOR I=IGH STEP -1 UNTIL M DO --
-         DO 100 II = M, IGH
+         DO II = M, IGH
             I = MP - II
             ORT(I) = A(I,M-1) / SCALE
             H = H + ORT(I) * ORT(I)
-  100    CONTINUE
+         enddo
 !
          G = -DSIGN(SQRT(H),ORT(M))
          H = H - ORT(M) * G
@@ -276,16 +277,16 @@ end subroutine
 !     FORM (I-(U*UT)/H) * A
          DO 130 J = M, N
             F = 0.0
-            DO 110 II = M, IGH
+            DO II = M, IGH
                I = MP - II
                F = F + ORT(I) * A(I,J)
-  110       CONTINUE
+            enddo
 !
             F = F / H
 !
-            DO 120 I = M, IGH
-  120       A(I,J) = A(I,J) - F * ORT(I)
-!
+            DO I = M, IGH
+              A(I,J) = A(I,J) - F * ORT(I)
+            enddo
   130    CONTINUE
 !     FORM (I-(U*UT)/H)*A*(I-(U*UT)/H)
          DO 160 I = 1, IGH
@@ -297,8 +298,9 @@ end subroutine
 !
             F = F / H
 !
-            DO 150 J = M, IGH
-  150       A(I,J) = A(I,J) - F * ORT(J)
+            DO J = M, IGH
+              A(I,J) = A(I,J) - F * ORT(J)
+            enddo
 !
   160    CONTINUE
 !
@@ -362,8 +364,9 @@ end subroutine
 !     INITIALIZE Z TO IDENTITY MATRIX
       DO 80 I = 1, N
 !
-         DO 60 J = 1, N
-   60    Z(I,J) = 0.0
+         DO J = 1, N
+            Z(I,J) = 0.0
+         enddo
 !
          Z(I,I) = 1.0
    80 CONTINUE
@@ -375,20 +378,23 @@ end subroutine
          IF (A(MP,MP-1) .EQ. 0.0) GOTO 140
          MP1 = MP + 1
 !
-         DO 100 I = MP1, IGH
-  100    ORT(I) = A(I,MP-1)
+         DO I = MP1, IGH
+           ORT(I) = A(I,MP-1)
+         enddo
 !
          DO 130 J = MP, IGH
             G = 0.0
 !
-            DO 110 I = MP, IGH
-  110       G = G + ORT(I) * Z(I,J)
+            DO I = MP, IGH
+              G = G + ORT(I) * Z(I,J)
+            enddo
 !     DIVISOR BELOW IS NEGATIVE OF H FORMED IN ORTHES.
 !     DOUBLE DIVISION AVOIDS POSSIBLE UNDERFLOW
             G = (G / ORT(MP)) / A(MP,MP-1)
 !
-            DO 120 I = MP, IGH
-  120       Z(I,J) = Z(I,J) + G * ORT(I)
+            DO I = MP, IGH
+              Z(I,J) = Z(I,J) + G * ORT(I)
+            enddo
 !
   130    CONTINUE
 !
@@ -486,8 +492,9 @@ end subroutine
 !     STORE ROOTS ISOLATED BY BALANC AND COMPUTE MATRIX NORM
       DO 50 I = 1, N
 !
-         DO 40 J = K, N
-   40    NORM = NORM + abs(H(I,J))
+         DO J = K, N
+           NORM = NORM + abs(H(I,J))
+         enddo
 !
          K = I
          IF (I .GE. LOW .AND. I .LE. IGH) GOTO 50
@@ -521,8 +528,9 @@ end subroutine
 !     FORM EXCEPTIONAL SHIFT
       T = T + X
 !
-      DO 120 I = LOW, EN
-  120 H(I,I) = H(I,I) - X
+      DO I = LOW, EN
+        H(I,I) = H(I,I) - X
+      enddo
 !
       S = abs(H(EN,NA)) + abs(H(NA,ENM2))
       X = 0.75 * S
@@ -673,7 +681,13 @@ end subroutine
          P = WR(EN)
          Q = WI(EN)
          NA = EN - 1
-         IF (Q) 710, 600, 800
+
+!!!!         IF (Q) 710, 600, 800
+         if (q < 0) then;      goto 710
+         elseif (q == 0) then; goto 600
+         else;                 goto 800
+         endif
+
 !     REAL VECTOR
   600    M = EN
          H(EN,EN) = 1.0
@@ -684,8 +698,9 @@ end subroutine
             R = H(I,EN)
             IF (M .GT. NA) GOTO 620
 !
-            DO 610 J = M, NA
-  610       R = R + H(I,J) * H(J,EN)
+            DO J = M, NA
+              R = R + H(I,J) * H(J,EN)
+            enddo
 !
   620       IF (WI(I) .GE. 0.0) GOTO 630
             ZZ = W
@@ -710,6 +725,8 @@ end subroutine
   700    CONTINUE
 !     END REAL VECTOR
          GOTO 800
+
+
 !     COMPLEX VECTOR
   710    M = NA
 !     LAST VECTOR COMPONENT CHOSEN IMAGINARY SO THAT EIGENVECTOR MATRIX IS
@@ -778,27 +795,31 @@ end subroutine
             H(I+1,EN) = Z3I
   790    CONTINUE
 !     END COMPLEX VECTOR
+
+
   800 CONTINUE
 !     END BACK SUBSTITUTION
 !     VECTORS OF ISOLATED ROOTS
       DO 840 I = 1, N
          IF (I .GE. LOW .AND. I .LE. IGH) GOTO 840
 !
-         DO 820 J = I, N
-  820    Z(I,J) = H(I,J)
+         DO J = I, N
+           Z(I,J) = H(I,J)
+         enddo
 !
   840 CONTINUE
 !     MULTIPLY BY TRANSFORMATION MATRIX TO GIVE VECTORS OF ORIGINAL FULL MATRIX
 
-      DO 880 JJ = LOW, N
+      DO JJ = LOW, N
          J = N + LOW - JJ
          M = MIN0(J,IGH)
-         DO 880 I = LOW, IGH
+         DO I = LOW, IGH
             ZZ = 0.0
             DO 860 K = LOW, M
   860       ZZ = ZZ + Z(I,K) * H(K,J)
             Z(I,J) = ZZ
-  880 CONTINUE
+         enddo
+      enddo
 !
       GOTO 1001
 !     SET ERROR -- NO CONVERGENCE TO AN EIGENVALUE AFTER n_max_iter ITERATIONS
