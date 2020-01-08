@@ -1988,3 +1988,28 @@ class tao_pgplot_place_window(Tao_Toplevel):
         # Place the plot and close this window
         self.pipe.cmd_in("place -no_buffer " + self.region + " " + self.plot)
         self.destroy()
+
+
+class tao_ele_shape_window(Tao_Toplevel):
+    '''
+    Provides a window for holding an ele_shape_frame,
+    which allows the user to view and edit the ele shapes
+    for floor plan and lat_layout plots
+
+    pipe: the tao_interface used to querry/set ele shapes
+    which: either "lat_layout" or "floor_plan"
+    '''
+    def __init__(self, root, pipe, which, *args, **kwargs):
+        if which not in ["lat_layout", "floor_plan"]:
+            raise ValueError("which must be \"lat_layout\" or \"floor_plan\"")
+        self.root = root
+        self.tao_id = "Plot"
+        Tao_Toplevel.__init__(self, root, *args, **kwargs)
+        self.title(which + " Shape Settings")
+        self.pipe = pipe
+        self.ele_frame = ele_shape_frame(self, root, pipe, which)
+        self.ele_frame.pack(fill="both", expand=1)
+
+    def refresh(self, event=None):
+        self.ele_frame.refresh()
+
