@@ -356,13 +356,12 @@ else
   err_line = ''
 endif
 
-!
+! Transfer from shape_input to shape_struct
 
 s_in => shape_input
 s_st => shape_struct
 
-if (s_in%ele_id(1:6) /= 'data::' .and. s_in%ele_id(1:5) /= 'var::' .and. &
-    s_in%ele_id(1:5) /= 'lat::' .and. s_in%ele_id(1:15) /= 'building_wall::') s_st%ele_id = downcase (s_in%ele_id)
+s_st%ele_id     = downcase(s_in%ele_id)
 s_st%shape      = downcase(s_in%shape)
 s_st%color      = downcase(s_in%color)
 s_st%label      = downcase(s_in%label)
@@ -371,11 +370,19 @@ s_st%draw       = s_in%draw
 s_st%multi      = s_in%multi
 s_st%line_width = s_in%line_width
 
+if (s_st%ele_id == 'wall::building') s_st%ele_id = 'building_wall::*'    ! Convert old style to new
+
+! Instances where we must preserve ele_id case.
+
+if (s_st%ele_id(1:6) == 'data::' .or. s_st%ele_id(1:5) == 'var::' .or. &
+    s_st%ele_id(1:5) == 'lat::' .or. s_st%ele_id(1:15) == 'building_wall::') then
+  ix = index(s_st%ele_id, '::')
+  s_st%ele_id = s_st%ele_id(1:ix+1) // s_in%ele_id(ix+2:)
+endif
+
 ! Convert from old shape names to new names
 
-if (s_st%ele_id == 'wall::building') s_st%ele_id = 'building_wall::*'                  ! Convert old style to new
-if (s_st%ele_id(1:15) == 'building_wall::') call downcase_string(s_st%ele_id(1:15))
-if (s_st%ele_id(1:15) == 'building_wall::' .and. s_st%shape == '-') s_st%shape = 'solid_line'   ! Convert old style to new
+if (s_st%ele_id(1:15) == 'building_wall::' .and. s_st%shape == '-') s_st%shape = 'solid_line' ! Convert old style to new
 
 if (s_st%label == '') s_st%label = 'name'
 if (index('false', trim(s_st%label)) == 1) s_st%label = 'none'

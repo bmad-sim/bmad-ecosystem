@@ -44,6 +44,7 @@ real(rp) scale
 
 character(*) what
 character(20) action, name, lat_type, which, last_col
+character(40), allocatable :: z(:)
 character(200) line, switch, header1, header2
 character(200) file_name0, file_name, what2
 character(200) :: word(12)
@@ -56,6 +57,7 @@ integer i_min, i_max, n_len
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
+logical write_high_lim, write_low_lim
 
 !
 
@@ -643,7 +645,6 @@ case ('namelist')
           enddo
 
           write (iu, '(a)') '/'
-
         enddo
 
       enddo
@@ -676,40 +677,85 @@ case ('namelist')
       write (iu, *)
       write (iu, '(a)') '!---------------------------------------'
       write (iu, *)
-      write (iu, '(a)')    '&tao_v1_var'
+      write (iu, '(a)')    '&tao_var'
       write (iu, '(2a)')   '  v1_var%name   = ', quote(v1%name)
       i_min = lbound(v1%v, 1);   i_max = ubound(v1%v, 1)
       write (iu, '(a, i0)')  '  ix_min_var    = ', i_min
       write (iu, '(a, i0)')  '  ix_max_var    = ', i_max
       
-      write_attribute = .true.
-      if (all(v1%v%attrib_name == v1%v(i_min)%attrib_name)) then
-        write (iu, '(2a)') '  default_attribute = ', quote(v1%v(i_min)%attrib_name)
-        write_attribute = .false.
-      endif
+      if (size(s%u) > 1) then
+        call re_allocate2(z, i_min, i_max)
+        do j = i_min, i_max
+          z(j) = ''
+          if (.not. v1%v(j)%exists) cycle 
+          s%u%picked_uni = .false.
+          do k = 1, size(v1%v(j)%slave)
+            s%u(v1%v(j)%slave(k)%ix_uni)%picked_uni = .true.
+          enddo
+          if (all(s%u%picked_uni)) then
+            z(j) = '*'
+          else
+            z(j) = ''
+            do k = lbound(s%u, 1), ubound(s%u, 1)
+              if (.not. s%u(k)%picked_uni) cycle
+              if (z(j) == '') then
+                z(j) = int_str(k)
+              else 
+                z(j) = trim(z(j)) // ', ' // int_str(k)
+              endif
+            enddo
+          endif
+        enddo
 
-      write_step = .true.
-      if (all(v1%v%step == v1%v(i_min)%step)) then
-        write (iu, '(2a)') '  default_step = ', real_to_string(v1%v(i_min)%step, 12, 5)
-        write_step = .false.
-      endif
-
-      write_weight = .true.
-      if (all(v1%v%weight == v1%v(i_min)%weight)) then
-        write (iu, '(2a)') '  default_weight = ', real_to_string(v1%v(i_min)%weight, 12, 5)
-        write_weight = .false.
+        if (all(z == z(i_min))) then
+          write (iu, '(2a)') '  default_universe = ', quote(z(i_min))
+        else
+          call namelist_param_out ('v', 'universe', i_min, i_max, z)
+        endif
       endif
 
       call namelist_param_out ('v', 'ele_name', i_min, i_max, v1%v%ele_name)
-      if (write_attribute) call namelist_param_out ('v', 'attribute', i_min, i_max, v1%v%attrib_name)
-      if (write_weight)    call namelist_param_out ('v', 'weight', i_min, i_max, re_arr = v1%v%weight)
-      if (write_step)      call namelist_param_out ('v', 'step', i_min, i_max, re_arr = v1%v%step)
-      call namelist_param_out ('v', 'low_lim', i_min, i_max, re_arr = v1%v%low_lim, re_dflt = 0.0_rp)
-      call namelist_param_out ('v', 'high_lim', i_min, i_max, re_arr = v1%v%high_lim, re_dflt = 0.0_rp)
-      call namelist_param_out ('v', 'merit_type', i_min, i_max, v1%v%merit_type)
+
+      if (all(v1%v%attrib_name == v1%v(i_min)%attrib_name)) then
+        write (iu, '(2a)') '  default_attribute = ', quote(v1%v(i_min)%attrib_name)
+      else
+        call namelist_param_out ('v', 'attribute', i_min, i_max, v1%v%attrib_name)
+      endif
+
+      if (all(v1%v%step == v1%v(i_min)%step)) then
+        write (iu, '(2a)') '  default_step = ', real_to_string(v1%v(i_min)%step, 12, 5)
+      else
+        call namelist_param_out ('v', 'step', i_min, i_max, re_arr = v1%v%step)
+      endif
+
+      if (all(v1%v%weight == v1%v(i_min)%weight)) then
+        write (iu, '(2a)') '  default_weight = ', real_to_string(v1%v(i_min)%weight, 12, 5)
+      else
+        call namelist_param_out ('v', 'weight', i_min, i_max, re_arr = v1%v%weight)
+      endif
+
+      if (all(v1%v%merit_type == v1%v(i_min)%merit_type)) then
+        write (iu, '(2a)') '  default_merit_type = ', v1%v(i_min)%merit_type
+      else
+        call namelist_param_out ('v', 'merit_type', i_min, i_max, v1%v%merit_type)
+      endif
+
+      if (all(v1%v%low_lim == v1%v(i_min)%low_lim)) then
+        write (iu, '(2a)') '  default_low_lim = ', real_to_string(v1%v(i_min)%low_lim, 12, 5)
+      else
+        call namelist_param_out ('v', 'low_lim', i_min, i_max, re_arr = v1%v%low_lim, re_dflt = 0.0_rp)
+      endif
+
+      if (all(v1%v%high_lim == v1%v(i_min)%high_lim)) then
+        write (iu, '(2a)') '  default_high_lim = ', real_to_string(v1%v(i_min)%high_lim, 12, 5)
+      else
+        call namelist_param_out ('v', 'high_lim', i_min, i_max, re_arr = v1%v%high_lim, re_dflt = 0.0_rp)
+      endif
+
       call namelist_param_out ('v', 'good_user', i_min, i_max, logic_arr = v1%v%good_user, logic_dflt = .true.)
       call namelist_param_out ('v', 'key_bound', i_min, i_max, logic_arr = v1%v%key_bound, logic_dflt = .false.)
       call namelist_param_out ('v', 'key_delta', i_min, i_max, re_arr = v1%v%key_delta, re_dflt = 0.0_rp)
+      write (iu, '(a)') '/'
     enddo
   end select
 
@@ -985,8 +1031,12 @@ else
   write (line, '(2x, 2(a, i0), 4a)') 'var(', i_min, ':', i_max, ')%', trim(name), ' = '
 endif
 
-if (all(out_str == out_str(i_min)) .and. .not. present(str_arr)) then
-  write (iu, '(a, i0, 2a)') trim(line), i_max-i_min+1, '*', trim(out_str(i_min))
+if (all(out_str == out_str(i_min))) then
+  if (present(str_arr)) then
+    write (iu, '(a, i0, 2a)') trim(line), i_max-i_min+1, '*', quote(out_str(i_min))
+  else
+    write (iu, '(a, i0, 2a)') trim(line), i_max-i_min+1, '*', trim(out_str(i_min))
+  endif
   return
 endif
 
