@@ -146,11 +146,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ! Check some ranges
 
-    if (ele%field_calc < 1 .or. ele%field_calc > ubound(field_calc_name, 1)) then
-      call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'HAS FIELD_CALC SETTING OUT OF RANGE: \i0\ ', i_array = [ele%field_calc])
-      err_flag = .true.
+    if (has_attribute(ele, 'FIELD_CALC')) then
+      if (.not. valid_field_calc (ele, ele%field_calc)) then
+        call out_io (s_fatal$, r_name, &
+                        'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                        'HAS NON-VALID FIELD_CALC SETTING: \i0\ ', i_array = [ele%field_calc])
+        err_flag = .true.
+      endif
     endif
 
     if (ele%tracking_method < 1 .or. ele%tracking_method > ubound(tracking_method_name, 1)) then
@@ -290,16 +292,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! check fringe type
 
     if (ele%key == sbend$ .or. ele%key == rbend$) then
-      select case (nint(ele%value(fringe_type$)))
-      case (none$, soft_edge_only$, hard_edge_only$, full$, basic_bend$, sad_full$, linear_edge$)
-      case default
-        call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS AN SBEND OR RBEND', &
-                      'HAS INVALID FRINGE_TYPE ATTRIBUTE: ' // fringe_type_name(nint(ele%value(fringe_type$))))
-        err_flag = .true.
-      end select
-
       select case (nint(ele%value(higher_order_fringe_type$)))
       case (none$, soft_edge_only$, hard_edge_only$, full$)
       case default
@@ -312,19 +304,15 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       end select
     endif
 
-    if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. attribute_index(ele, 'FRINGE_TYPE') > 0) then
-      select case (nint(ele%value(fringe_type$)))
-      case (none$, soft_edge_only$, hard_edge_only$, full$)
-      case default
+    if (has_attribute(ele, 'FRINGE_TYPE')) then
+      if (.not. valid_fringe_type(ele, nint(ele%value(fringe_type$)))) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS A: ' // key_name(ele%key), &
                       'HAS INVALID FRINGE_TYPE ATTRIBUTE: ' // fringe_type_name(nint(ele%value(fringe_type$))))
         err_flag = .true.
-      end select
+      endif
     endif
-
-
 
     ! Diffraction_plate and mask elements must have an associated wall3d and all sections must be clear or opaque.
     ! Additionally the first section must be clear.

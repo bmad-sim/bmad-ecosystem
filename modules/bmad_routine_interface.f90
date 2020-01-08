@@ -2320,6 +2320,22 @@ subroutine unlink_wall3d (wall3d)
   type (wall3d_struct), pointer :: wall3d(:)
 end subroutine
 
+function valid_field_calc (ele, field_calc) result (is_valid)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer field_calc
+  logical is_valid
+end function
+
+function valid_fringe_type (ele, fringe_type) result (is_valid)
+  import
+  implicit none
+  type (ele_struct) ele
+  integer fringe_type
+  logical is_valid
+end function
+
 function valid_mat6_calc_method (ele, species, mat6_calc_method) result (is_valid)
   import
   implicit none

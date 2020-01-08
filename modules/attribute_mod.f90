@@ -2160,7 +2160,12 @@ case ('EXACT_MULTIPOLES')
 
 case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, field_calc_name, lbound(field_calc_name, 1))
-  if (present(is_default)) is_default = (ix_attrib_val == bmad_standard$)
+  if (present(is_default)) then
+    select case (ele%key)
+    case (group$, overlay$, girder$); is_default = (ix_attrib_val == no_field$)
+    case default;                     is_default = (ix_attrib_val == bmad_standard$)
+    end select
+  endif
 
 case ('FIELD_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, em_field_type_name, lbound(em_field_type_name, 1))

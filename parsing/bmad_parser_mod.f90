@@ -1770,10 +1770,11 @@ case ('PTC_FRINGE_GEOMETRY')
   ele%value(ptc_fringe_geometry$) = ix
 
 case ('FRINGE_TYPE')
-  if (ele%key == rbend$ .or. ele%key == sbend$) then
-    call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  else
-    call get_switch (attrib_word, fringe_type_name(1:n_non_bend_fringe_type$), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  if (.not. valid_fringe_type(ele, ix)) then
+    call parser_error ('NOT A VALID FRINGE_TYPE: ' // word, &
+                       'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
+    return
   endif
   ele%value(fringe_type$) = ix
 
