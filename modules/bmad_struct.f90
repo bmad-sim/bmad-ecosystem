@@ -115,10 +115,10 @@ character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!     ', 'GARBAGE!    
 !   The period in "Refer_to_Lords." is used to prevent sets in the lattice file.
 
 integer, parameter :: fieldmap$ = 2, planar_model$ = 3, Refer_to_lords$ = 4, no_field$ = 5
-integer, parameter :: helical_model$ = 6
-character(16), parameter :: field_calc_name(0:7) = &
+integer, parameter :: helical_model$ = 6, soft_edge$ = 8
+character(16), parameter :: field_calc_name(0:8) = &
     [character(16):: 'GARBAGE!', 'Bmad_Standard', 'FieldMap', 'Planar_Model', &
-     'Refer_to_Lords.', 'No_Field', 'Helical_Model', 'Custom']
+     'Refer_to_Lords.', 'No_Field', 'Helical_Model', 'Custom', 'Soft_edge']
 
 ! Distribution
 
@@ -153,7 +153,6 @@ character(16), parameter :: aperture_type_name(0:7) = &
 
 integer, parameter :: soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
 integer, parameter :: sad_full$ = 5, linear_edge$ = 6, basic_bend$ = 7
-integer, parameter :: n_non_bend_fringe_type$ = 4
 
 character(16), parameter :: fringe_type_name(0:7) = [character(16):: 'Garbage!', &
                                    'None', 'Soft_Edge_Only', 'Hard_edge_only', 'Full', &

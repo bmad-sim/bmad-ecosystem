@@ -1,6 +1,3 @@
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
 !+
 ! Function valid_spin_tracking_method (ele, spin_tracking_method) result (is_valid)
 !
@@ -26,6 +23,8 @@ logical is_valid
 
 ! 
 
+is_valid = .false.
+
 select case (ele%key)
 
 case (ab_multipole$)
@@ -41,7 +40,7 @@ case (ac_kicker$)
   end select
 
 case (capillary$, crystal$, mirror$, multilayer_mirror$, taylor$)
-  is_valid = .false.
+  ! Always False
 
 case (crab_cavity$)
   select case (spin_tracking_method)
@@ -56,7 +55,7 @@ case (custom$)
   end select
 
 case (hybrid$)
-  is_valid = .false.
+  ! Always False
 
 case (sad_mult$, patch$)
   select case (spin_tracking_method)
