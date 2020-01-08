@@ -523,7 +523,11 @@ end subroutine
       Y = H(NA,NA)
       W = H(EN,NA) * H(NA,EN)
       IF (L .EQ. NA) GOTO 280
-      IF (ITS .EQ. n_max_iter) GOTO 1000
+      IF (ITS .EQ. n_max_iter) then
+        IERR = EN
+        return
+      endif
+
       IF (ITS .NE. 10 .AND. ITS .NE. 20) GOTO 130
 !     FORM EXCEPTIONAL SHIFT
       T = T + X
@@ -675,7 +679,7 @@ end subroutine
   330 EN = ENM2
       GOTO 60
 !     ALL ROOTS FOUND.  BACKSUBSTITUTE TO FIND VECTORS OF UPPER TRIANGULAR FORM
-  340 IF (NORM .EQ. 0.0) GOTO 1001
+  340 IF (NORM .EQ. 0.0) return
       DO 800 NN = 1, N
          EN = N + 1 - NN
          P = WR(EN)
@@ -815,17 +819,13 @@ end subroutine
          M = MIN0(J,IGH)
          DO I = LOW, IGH
             ZZ = 0.0
-            DO 860 K = LOW, M
-  860       ZZ = ZZ + Z(I,K) * H(K,J)
+            DO K = LOW, M
+              ZZ = ZZ + Z(I,K) * H(K,J)
+            enddo
             Z(I,J) = ZZ
          enddo
       enddo
-!
-      GOTO 1001
-!     SET ERROR -- NO CONVERGENCE TO AN EIGENVALUE AFTER n_max_iter ITERATIONS
- 1000 IERR = EN
 
- 1001 RETURN
       end subroutine
 
 !------------------------------------------------------------------------
