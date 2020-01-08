@@ -144,7 +144,7 @@ namelist contains the variables:
                                         ! Default = Tao root init file.
     single_mode_file   = "<file_name>"  ! Default = Tao root init file.
     startup_file       = "<file_name>"  ! Default = "tao.startup"
-    hook_init_file     = '<file_name>'  ! Default = 'tao_hook.init'
+    hook_init_file     = "<file_name>"  ! Default = "tao_hook.init"
     init_name          = "<init_name>"  ! Default = "Tao"
   /
 \end{example}
@@ -403,7 +403,7 @@ type tao_global_struct
   character(16)  random_gauss_converter = "exact" ! Uniform to gauss conversion method
   character(16)  track_type = "single"            ! "single" or "beam" 
   character(16)  prompt_string = "Tao"
-  character(16)  prompt_color = 'DEFAULT'         ! See read_a_line routine for possible settings.
+  character(16)  prompt_color = "DEFAULT"         ! See read_a_line routine for possible settings.
   character(16)  optimizer     = "de"             ! optimizer to use.
   character(40)  print_command = "lpr"
   character(80)  var_out_file  = "var#.out"
@@ -423,7 +423,7 @@ type tao_global_struct
   logical optimizer_allow_user_abort = T ! See below.
   logical optimizer_var_limit_warn = T   ! Warn when vars reach a limit when optimizing?
   logical plot_on = T                    ! Do plotting?
-  logical quiet = 'off'                  ! Print to the terminal when using a command file?
+  logical quiet = "off"                  ! Print to the terminal when using a command file?
   logical rf_on = F                      ! RF cavities on?
   logical svd_retreat_on_merit_increase = T    
   logical single_step = F                ! Single step through a command file?
@@ -890,37 +890,33 @@ Variables are initialized using the \vn{tao_var} namelist. The format for this i
 \index{use_same_lat_eles_as}\index{search_for_lat_eles}
 \begin{example}
   &tao_var
-    v1_var%name          = "<var_array_name>"  ! Variable array name.
-    use_same_lat_eles_as = "<d1_name>"         ! Reuse a previous element list.
-    search_for_lat_eles  = "<element_list>"    ! Find elements by name.
-    default_universe     = "<integer>"         ! Universe variables belong in.
-    default_attribute    = "<attribute_name>"  ! Attribute to control.
-    default_weight       = <real>              ! Merit_function weight.
-                                               ! default = 0.0
-    default_step         = <real>              ! Small step value.
-                                               ! default = 0.0
-    default_merit_type   = "<merit_type>"      ! Sets how the merit is calculated.
-                                               ! default = "limit"
-    default_low_lim      = <real>              ! Lower variable value limit. 
-                                               ! default = -1e30
-    default_high_lim     = <real>              ! Upper variable value limit. 
-                                               ! default =  1e30
-    default_key_bound    = <logical>           ! Variables to be bound?
-    default_key_delta    = <real>              ! Change when key is pressed.
-    ix_min_var           = <integer>           ! Minimum array index.
-    ix_max_var           = <integer>           ! Maximum array index.
-    var(i)%ele_name      = "<ele_name>"        ! Name or index of element to be controlled.
-    var(i)%attribute     = "<attrib_name>"     ! Attribute to be controlled.
-    var(i)%universe      = "<uni_list>"        ! Universe containing variable to 
-                                               !    be controlled. "*" => All.
-    var(i)%weight        = <real>              ! Merit function weight.
-    var(i)%step          = <real>              ! Small step size.
-    var(i)%low_lim       = <real>              ! Lower variable value limit
-    var(i)%high_lim      = <real>              ! Upper variable value limit
-    var(i)%merit_type    = "<merit_type_name>" ! Sets how the merit is calculated.
-    var(i)%good_user     = <logical>           ! Good optimization variable?
-    var(i)%key_bound     = <logical>           ! Variable bound to a key
-    var(i)%key_delta     = <real>              ! Change when key is pressed.
+    v1_var%name          = "<array_name>"  ! Variable array name.
+    use_same_lat_eles_as = "<d1_name>"     ! Reuse a previous element list.
+    search_for_lat_eles  = "<ele_list>"    ! Find elements by name.
+    default_universe     = "<integer>"     ! Universe variables belong in.
+    default_attribute    = "<attrib_name>" ! Attribute to control.
+    default_weight       = <real>          ! Merit_function weight. Default: 0.
+    default_step         = <real>          ! Small step value. Default: 0.
+    default_merit_type   = "<merit_type>"  ! Sets how the merit is calculated.
+                                           !   Default = "limit"
+    default_low_lim      = <real>          ! Lower var value limit. Default: -1e30
+    default_high_lim     = <real>          ! Upper var value limit. Default 1e30
+    default_key_bound    = <logical>       ! Variables to be bound?
+    default_key_delta    = <real>          ! Change when key is pressed.
+    ix_min_var           = <integer>       ! Minimum array index.
+    ix_max_var           = <integer>       ! Maximum array index.
+    var(i)%ele_name      = "<ele_name>"    ! Name or index of element to be controlled.
+    var(i)%attribute     = "<attrib_name>" ! Attribute to be controlled.
+    var(i)%universe      = "<uni_list>"    ! Universe containing parameter to 
+                                           !    be controlled. "*" => All.
+    var(i)%weight        = <real>          ! Merit function weight.
+    var(i)%step          = <real>          ! Small step size.
+    var(i)%low_lim       = <real>          ! Lower variable value limit
+    var(i)%high_lim      = <real>          ! Upper variable value limit
+    var(i)%merit_type    = "<merit_type>"  ! Sets how the merit is calculated.
+    var(i)%good_user     = <logical>       ! Good optimization variable?
+    var(i)%key_bound     = <logical>       ! Variable bound to a key
+    var(i)%key_delta     = <real>          ! Change when key is pressed.
   /
 \end{example}
 Example:
