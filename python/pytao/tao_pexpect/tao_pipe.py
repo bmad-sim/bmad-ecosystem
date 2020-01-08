@@ -31,7 +31,7 @@ class tao_io:
       if expect_str == 'Tao>': expect_str = u'Tao>'  # Python 2 unicode compatability.
       self.pipe = pexpect.spawn (init_string, timeout = timeout)
     else:
-      self.pipe = pexpect.spawn (init_string, timeout = timeout, encoding = 'utf-8')
+      self.pipe = pexpect.spawn (init_string, timeout = timeout, encoding = 'utf-8', codec_errors='replace')
 
     self.expect_str = expect_str
     self.is_open = True
@@ -51,7 +51,7 @@ class tao_io:
 
     self.cmd_str = cmd_str
 
-    if not self.is_open: 
+    if not self.is_open:
       print ('Not connected to Tao...')
       return ''
 
@@ -68,7 +68,7 @@ class tao_io:
     return self.pipe.before.partition('\n')[2].strip()
 
   #-----------------------------------------------------------------
-  # tao_io.cmd method calls tao_io.cmd and prints the output, including 
+  # tao_io.cmd method calls tao_io.cmd and prints the output, including
   # the command and Tao prompt, to the terminal.
   # Note: self.pipe.after will always be the expect string which is generally 'Tao>'
 
