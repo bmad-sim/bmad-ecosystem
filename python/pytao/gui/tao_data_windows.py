@@ -286,6 +286,11 @@ class tao_new_data_window(Tao_Toplevel):
                 my_ttp("weight;REAL;T;"),
                 my_ttp("good_user;LOGIC;T;T"),
                 tk.OptionMenu(self.d2_frame, self.clone_d2, *existing_d2_arrays)]
+        # Index loop-up table
+        self.d2_array_indices = {}
+        for d2_param, index in zip(self.d2_param_list, range(len(self.d2_param_list))):
+            if isinstance(d2_param, tk_tao_parameter):
+                self.d2_array_indices[d2_param.param.name.split('^')[-1]] = index
 
         # Labels
         self.d2_label_list = [tk.Label(self.d2_frame, text="d2_data Name:"),
@@ -600,6 +605,8 @@ class new_d1_frame(tk.Frame):
     '''
     def __init__(self, d2_array, name="", full_name=""):
         tk.Frame.__init__(self, d2_array.notebook)
+        for i in list(range(3)) + list(range(4, 6)):
+            self.grid_columnconfigure(i, weight=1)
         self.d2_array = d2_array
         self.pipe = self.d2_array.pipe
         self.handler_block = False
@@ -623,26 +630,39 @@ class new_d1_frame(tk.Frame):
                 d1_ttp('good_user;LOGIC;T;T'),
                 d1_ttp('ix_min;INT;T;'),
                 d1_ttp('ix_max;INT;T;')]
+        # Look-up table of array indices
+        self.d1_array_indices = {}
+        for d1_wid, index in zip(self.d1_array_wids, range(len(self.d1_array_wids))):
+            self.d1_array_indices[d1_wid.param.name.split('^')[-1]] = index
         # d1 labels (NAMES AS STRINGS ONLY)
         self.d1_array_labels = ["d1_array Name:", "Default data source:",
                 "Default data type:", "Default merit type:", "Default weight:",
                 "Default eval point:", "Default good_user:", "Base index:", "Array length:"]
         # Read in defaults from d2 level
-        val = self.d2_array.d2_param_list[2].tk_var.get()
-        self.d1_array_wids[1].tk_var.set(val)
-        val = self.d2_array.d2_param_list[3].tk_var.get()
-        self.d1_array_wids[3].tk_var.set(val)
-        val = self.d2_array.d2_param_list[4].tk_var.get()
-        self.d1_array_wids[4].tk_var.set(val)
-        val = self.d2_array.d2_param_list[5].tk_var.get()
-        self.d1_array_wids[6].tk_var.set(val)
+        for d1_name, d1_ix in self.d1_array_indices.items():
+            if d1_name != "name":
+                if d1_name in self.d2_array.d2_array_indices.keys():
+                    d2_ix = self.d2_array.d2_array_indices[d1_name]
+                    val = self.d2_array.d2_param_list[d2_ix].tk_var.get()
+                    self.d1_array_wids[d1_ix].tk_var.set(val)
+        #val = self.d2_array.d2_param_list[2].tk_var.get()
+        #self.d1_array_wids[1].tk_var.set(val)
+        #val = self.d2_array.d2_param_list[3].tk_var.get()
+        #self.d1_array_wids[3].tk_var.set(val)
+        #val = self.d2_array.d2_param_list[4].tk_var.get()
+        #self.d1_array_wids[4].tk_var.set(val)
+        #val = self.d2_array.d2_param_list[5].tk_var.get()
+        #self.d1_array_wids[6].tk_var.set(val)
+
         # Set eval point to End by default
-        self.d1_array_wids[5].tk_var.set("End")
+        self.d1_array_wids[self.d1_array_indices["eval_point"]].tk_var.set("End")
         # Grid widgets and labels:
-        for i in range(len(self.d1_array_wids)):
-            tk.Label(self, text=self.d1_array_labels[i]).grid(row=i+2, column=0, sticky='W')
-            self.d1_array_wids[i].tk_wid.grid(row=i+2, column=1, sticky='EW')
-        i = i+2
+        tk.Label(self, text=self.d1_array_labels[0]).grid(row=3, column=0, sticky='W')
+        self.d1_array_wids[0].tk_wid.grid(row=3, column=1, sticky='EW')
+        for i in range(1, len(self.d1_array_wids)):
+            tk.Label(self, text=self.d1_array_labels[i]).grid(row=i+4, column=0, sticky='W')
+            self.d1_array_wids[i].tk_wid.grid(row=i+4, column=1, sticky='EW')
+        i = i+4
         # Set name
         if self.name != self.BLANK_TITLE:
             self.d1_array_wids[0].tk_var.set(self.name)
@@ -661,11 +681,11 @@ class new_d1_frame(tk.Frame):
         self.length_warning_gs = {"row" : 9, "column" : 2, "sticky" : 'W'}
 
         # Responses to edits
-        self.d1_array_wids[0].tk_wid.bind('<FocusOut>', self.name_handler)
-        self.d1_array_wids[7].tk_wid.bind('<FocusOut>', self.ix_min_handler)
-        self.d1_array_wids[8].tk_wid.bind('<FocusOut>', self.length_handler)
-        self.d1_array_wids[1].tk_var.trace('w', self.data_source_handler)
-        self.d1_array_wids[2].tk_var.trace('w', self.data_type_handler)
+        self.d1_array_wids[self.d1_array_indices["name"]].tk_wid.bind('<FocusOut>', self.name_handler)
+        self.d1_array_wids[self.d1_array_indices["ix_min"]].tk_wid.bind('<FocusOut>', self.ix_min_handler)
+        self.d1_array_wids[self.d1_array_indices["ix_max"]].tk_wid.bind('<FocusOut>', self.length_handler)
+        self.d1_array_wids[self.d1_array_indices["data_source"]].tk_var.trace('w', self.data_source_handler)
+        self.d1_array_wids[self.d1_array_indices["data_type"]].tk_var.trace('w', self.data_type_handler)
 
 
         # "Fill" to datums
@@ -673,15 +693,15 @@ class new_d1_frame(tk.Frame):
             '''Helper function for buttons below'''
             return lambda : self.datum_fill(ix)
         for ix in range(1, 6):
-            tk.Button(self, text="Fill to datums", command=datum_fill_callback(ix)).grid(row=ix+2, column=2)
+            tk.Button(self, text="Fill to datums", command=datum_fill_callback(ix)).grid(row=ix+4, column=2, sticky='EW')
 
         ttk.Separator(self, orient='horizontal').grid(row=i+1, column=0, columnspan=3, sticky='EW')
         i = i+1
 
         # Element browsers
-        tk.Label(self, text="Evaluation elements:").grid(row=i+1, column=0, sticky='W')
+        tk.Label(self, text="Evaluation elements:").grid(row=4, column=0, sticky='W')
         self.ele_name_button = tk.Button(self, text="Browse...", command=lambda : self.lat_browser('name'))
-        self.ele_name_button.grid(row=i+1, column=1, sticky='EW')
+        self.ele_name_button.grid(row=4, column=1, sticky='EW')
 
         tk.Label(self, text="Start elements:").grid(row=i+2, column=0, sticky='W')
         self.ele_start_name_button = tk.Button(self, text="Browse...", command=lambda : self.lat_browser('start_name'))
@@ -691,13 +711,13 @@ class new_d1_frame(tk.Frame):
         self.ele_ref_name_button = tk.Button(self, text="Browse...", command=lambda : self.lat_browser('ref_name'))
         self.ele_ref_name_button.grid(row=i+3, column=1, sticky='EW')
 
-        ttk.Separator(self, orient='horizontal').grid(row=i+4, column=0, columnspan=3, sticky='EW')
-        i = i+1
+        #ttk.Separator(self, orient='horizontal').grid(row=i+4, column=0, columnspan=3, sticky='EW')
+        #i = i+1
 
         # Individual data
         self.data_dict = {}
         self.datum_frame = tk.Frame(self)
-        tk.Label(self, text="Datum:").grid(row=i+4, column=0, sticky='W')
+        tk.Label(self, text="Datum:").grid(row=1, column=4, sticky='W')
         self.data_ix = tk.StringVar()
         self.ix_min = -1
         self.ix_max = -1
@@ -705,7 +725,7 @@ class new_d1_frame(tk.Frame):
         self.data_chooser = ttk.Combobox(self, textvariable=self.data_ix,
                 values=['PLEASE SPECIFY MIN/MAX INDICES'], state='readonly')
         self.data_chooser.bind('<<ComboboxSelected>>', self.make_datum_frame)
-        self.data_chooser.grid(row=i+4, column=1, sticky='EW')
+        self.data_chooser.grid(row=1, column=5, sticky='EW')
         # Set ix_min and ix_max for existing d1_arrays
         if self.name != self.BLANK_TITLE:
             ix_data = self.pipe.cmd_in('python data_d1_array ' + full_name)
@@ -748,14 +768,24 @@ class new_d1_frame(tk.Frame):
             # Load first datum
             self.data_ix.set(self.ix_min)
             self.make_datum_frame()
+        else:
+            self.ix_min = 1
+            self.d1_array_wids[self.d1_array_indices["ix_min"]].tk_var.set(1)
+            self.data_ix.set(self.ix_min)
+            self.make_datum_frame()
 
         # Delete button
         tk.Button(self, text="DELETE THIS D1_ARRAY", fg='red', command=self.delete).grid(
-                row=0, column=0, columnspan=3, sticky='EW')
+                row=1, column=0, columnspan=3, sticky='EW')
 
         # Duplicate button
         tk.Button(self, text="Duplicate this d1_array", command=self.duplicate).grid(
-                row=1, column=0, columnspan=3, sticky='EW')
+                row=2, column=0, columnspan=3, sticky='EW')
+
+        # Vertical separator and titles
+        ttk.Separator(self, orient="vertical").grid(row=0, column=3, rowspan=30, sticky='NS')
+        tk.Label(self, text="D1_array Settings:", font="Sans 16").grid(row=0, column=0, sticky='W')
+        tk.Label(self, text="Datum Settings:", font="Sans 16").grid(row=0, column=4, sticky='W')
 
         # Focus the d1 name widget
         self.d1_array_wids[0].tk_wid.focus_set()
@@ -853,13 +883,13 @@ class new_d1_frame(tk.Frame):
         param_list[5].value = self.d1_array_wids[3].tk_var.get()
         param_list[8].value = self.d1_array_wids[4].tk_var.get()
         param_list[9].value = bool(self.d1_array_wids[6].tk_var.get())
+        # Default eval_point to End
+        param_list[13].value = "End"
         param_list[13].value = self.d1_array_wids[5].tk_var.get()
         # Set parameter values if specified
         for i in range(len(param_list)):
             if param_list[i].name in self.data_dict[ix].keys():
                 param_list[i].value = self.data_dict[ix][param_list[i].name]
-        # Default eval_point to End
-        param_list[13].value = "End"
         # Create widgets
         self.datum_wid_list = list(map(datum_ttp, param_list))
         def data_writer(i):
@@ -889,12 +919,14 @@ class new_d1_frame(tk.Frame):
                 self.datum_wid_list[11].tk_wid.configure(state='disabled')
         # Grid widgets
         for i in range(len(self.datum_wid_list)):
-            self.datum_wid_list[i].tk_label.grid(row=i, column=0, sticky='E')
+            self.datum_wid_list[i].tk_label.grid(row=i, column=0, sticky='W')
             self.datum_wid_list[i].tk_wid.grid(row=i, column=1, sticky='EW')
             # Write changes into self.data_dict
             self.datum_wid_list[i].tk_var.trace('w', data_writer_callback(i))
         self.datum_wid_list[1].tk_var.trace('w', data_type_callback)
-        self.datum_frame.grid(row=20, column=0, columnspan=3, sticky='EW')
+        self.datum_frame.grid_columnconfigure(0, weight=1)
+        self.datum_frame.grid_columnconfigure(1, weight=1)
+        self.datum_frame.grid(row=2, column=4, rowspan=20, columnspan=2, sticky='NSEW')
 
     def datum_fill(self, ix):
         '''
@@ -967,14 +999,14 @@ class new_d1_frame(tk.Frame):
             i = i+1
 
         # Name is nonempty and valid
-        self.name = name
-        self.d2_array.notebook.tab(self.d2_array.d1_index, text=self.name)
+        self.d2_array.notebook.tab(self.d2_array.d1_index, text=name)
         self.name_warning_empty.grid_forget()
         self.name_warning_invalid.grid_forget()
         if self.name != name:
             if self.d1_array_wids[2]._is_valid_dat_type(self.d2_array.name + '.' + name):
                 # set data type
                 self.d1_array_wids[2].tk_var.set(self.d2_array.name + '.' + name)
+        self.name = name
         return True
 
     def ix_min_handler(self, event=None, strict=False):
@@ -1079,7 +1111,7 @@ class new_d1_frame(tk.Frame):
                     self, self.pipe, data_source=source)
             self.d1_array_wids[2].tk_var.set(old_val)
             self.d1_array_wids[2].tk_var.trace('w', self.data_type_handler)
-            self.d1_array_wids[2].tk_wid.grid(row=4, column=1, sticky='EW')
+            self.d1_array_wids[2].tk_wid.grid(row=6, column=1, sticky='EW')
 
     def data_type_handler(self, *args):
         '''
