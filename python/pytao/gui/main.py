@@ -196,6 +196,10 @@ class tao_root_window(tk.Tk):
                 command = self.view_ele_cmd, accelerator = 'Ctrl+E')
         view_menu.add_command(label = 'Lattice...',
                 command = self.view_lattice_cmd, accelerator = 'Ctrl+L')
+        view_menu.add_command(label = 'Lat_layout Shapes...',
+                command = self.lat_layout_shape_cmd)
+        view_menu.add_command(label = 'Floor_plan Shapes...',
+                command = self.floor_plan_shape_cmd)
         view_menu.add_command(label = 'Global Variables...',
                 command = self.set_global_vars_cmd, accelerator = 'Ctrl+G')
         view_menu.add_command(label = 'Bmad Parameters...',
@@ -720,6 +724,12 @@ class tao_root_window(tk.Tk):
 
     def view_lattice_cmd(self):
         win = tao_lattice_window(self, self.pipe)
+
+    def lat_layout_shape_cmd(self):
+        win = tao_ele_shape_window(self, self.pipe, "lat_layout")
+
+    def floor_plan_shape_cmd(self):
+        win = tao_ele_shape_window(self, self.pipe, "floor_plan")
 
     # Other callbacks
 
