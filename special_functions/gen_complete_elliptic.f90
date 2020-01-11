@@ -88,6 +88,6 @@ do while (abs(g - k) > g*errtol)
  em = k + em
 enddo
 
-value = (pi/2.)*(ss + cc*em)/( em*(em + pp) )
+value = (pi/2.0_rp)*(ss + cc*em)/( em*(em + pp) )
 
 end function
