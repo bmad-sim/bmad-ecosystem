@@ -208,26 +208,26 @@ endif
 if (present(per_ele_out)) then
   allocate(per_ele_out(lat%n_ele_track))
   do i=1, lat%n_ele_track
-    per_ele_out(i)%h20001 = sum(eles(:)%srdt%h20001, mask=eles(:)%ix==i)
-    per_ele_out(i)%h00201 = sum(eles(:)%srdt%h00201, mask=eles(:)%ix==i)
-    per_ele_out(i)%h10002 = sum(eles(:)%srdt%h10002, mask=eles(:)%ix==i)
-    per_ele_out(i)%h21000 = sum(eles(:)%srdt%h21000, mask=eles(:)%ix==i)
-    per_ele_out(i)%h30000 = sum(eles(:)%srdt%h30000, mask=eles(:)%ix==i)
-    per_ele_out(i)%h10110 = sum(eles(:)%srdt%h10110, mask=eles(:)%ix==i)
-    per_ele_out(i)%h10020 = sum(eles(:)%srdt%h10020, mask=eles(:)%ix==i)
-    per_ele_out(i)%h10200 = sum(eles(:)%srdt%h10200, mask=eles(:)%ix==i)
+    per_ele_out(i)%h20001 = sum(eles(:)%srdt%h20001, mask=eles(:)%ix==i) / 8.0
+    per_ele_out(i)%h00201 = sum(eles(:)%srdt%h00201, mask=eles(:)%ix==i) / 8.0
+    per_ele_out(i)%h10002 = sum(eles(:)%srdt%h10002, mask=eles(:)%ix==i) / 8.0
+    per_ele_out(i)%h21000 = sum(eles(:)%srdt%h21000, mask=eles(:)%ix==i) / 8.0
+    per_ele_out(i)%h30000 = sum(eles(:)%srdt%h30000, mask=eles(:)%ix==i) / 24.0
+    per_ele_out(i)%h10110 = sum(eles(:)%srdt%h10110, mask=eles(:)%ix==i) / 4.0
+    per_ele_out(i)%h10020 = sum(eles(:)%srdt%h10020, mask=eles(:)%ix==i) / 8.0
+    per_ele_out(i)%h10200 = sum(eles(:)%srdt%h10200, mask=eles(:)%ix==i) / 8.0
 
-    per_ele_out(i)%h31000 = sum(eles(:)%srdt%h31000, mask=eles(:)%ix==i)
-    per_ele_out(i)%h40000 = sum(eles(:)%srdt%h40000, mask=eles(:)%ix==i)
-    per_ele_out(i)%h20110 = sum(eles(:)%srdt%h20110, mask=eles(:)%ix==i)
-    per_ele_out(i)%h11200 = sum(eles(:)%srdt%h11200, mask=eles(:)%ix==i)
-    per_ele_out(i)%h20020 = sum(eles(:)%srdt%h20020, mask=eles(:)%ix==i)
-    per_ele_out(i)%h20200 = sum(eles(:)%srdt%h20200, mask=eles(:)%ix==i)
-    per_ele_out(i)%h00310 = sum(eles(:)%srdt%h00310, mask=eles(:)%ix==i)
-    per_ele_out(i)%h00400 = sum(eles(:)%srdt%h00400, mask=eles(:)%ix==i)
-    per_ele_out(i)%h22000 = sum(eles(:)%srdt%h22000, mask=eles(:)%ix==i)
-    per_ele_out(i)%h00220 = sum(eles(:)%srdt%h00220, mask=eles(:)%ix==i)
-    per_ele_out(i)%h11110 = sum(eles(:)%srdt%h11110, mask=eles(:)%ix==i)
+    per_ele_out(i)%h31000 = sum(eles(:)%srdt%h31000, mask=eles(:)%ix==i) / 32.0
+    per_ele_out(i)%h40000 = sum(eles(:)%srdt%h40000, mask=eles(:)%ix==i) / 64.0
+    per_ele_out(i)%h20110 = sum(eles(:)%srdt%h20110, mask=eles(:)%ix==i) / 32.0
+    per_ele_out(i)%h11200 = sum(eles(:)%srdt%h11200, mask=eles(:)%ix==i) / 32.0
+    per_ele_out(i)%h20020 = sum(eles(:)%srdt%h20020, mask=eles(:)%ix==i) / 64.0
+    per_ele_out(i)%h20200 = sum(eles(:)%srdt%h20200, mask=eles(:)%ix==i) / 64.0
+    per_ele_out(i)%h00310 = sum(eles(:)%srdt%h00310, mask=eles(:)%ix==i) / 32.0
+    per_ele_out(i)%h00400 = sum(eles(:)%srdt%h00400, mask=eles(:)%ix==i) / 64.0
+    per_ele_out(i)%h22000 = sum(eles(:)%srdt%h22000, mask=eles(:)%ix==i) / 64.0
+    per_ele_out(i)%h00220 = sum(eles(:)%srdt%h00220, mask=eles(:)%ix==i) / 64.0
+    per_ele_out(i)%h11110 = sum(eles(:)%srdt%h11110, mask=eles(:)%ix==i) / 16.0
   enddo
 endif
 
