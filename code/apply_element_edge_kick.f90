@@ -170,8 +170,8 @@ case (quadrupole$)
 case (sbend$)
   call bend_edge_kick (hard_ele, param, particle_at, orb, mat6, make_matrix, track_spn)
 
-! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
-! So use hard_ele%value(bs_field$).
+! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity with changing
+! ref energy. So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$)
   if (logic_option(.true., apply_sol_fringe)) then

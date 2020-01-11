@@ -1367,7 +1367,7 @@ integer, parameter :: radius$ = 3, focal_strength$ = 5
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3, ref_time_offset$ = 3
-integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3
+integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, k1_pseudo$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4, radiation_length$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5

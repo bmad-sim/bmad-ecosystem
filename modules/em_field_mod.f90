@@ -131,6 +131,8 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
 real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bz
 real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
 real(rp) phi0_autoscale, field_autoscale, ds, beta_ref, ds_small
+real(rp) rho, a, b, B0, gamma, Brho
+real(rp) rad_p, z_p, alpha_p, beta_p, k_p, rad_m, z_m, alpha_m, beta_m, k_m
 
 complex(rp) exp_kz, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
@@ -305,13 +307,66 @@ else
   f_p0c = ele%value(p0c$) / (c_light * ref_charge)
 endif
 
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
 ! field_calc methods
 
 select case (ele%field_calc)
-  
-!----------------------------------------------------------------------------
+
+!----------------------------------------------------------------------------------------------
+! Soft_edge
+
+case (soft_edge$)
+
+  select case (ele%key)
+
+  ! See:
+  !   "Cylindrical Magnets and Ideal Solenoids"
+  !   Norman Derby & Stanislaw Olbert
+  !   https://arxiv.org/pdf/0909.3880.pdf
+
+  case (solenoid$)
+    rho = norm2([x, y])
+    b = ele%value(l_soft_edge$) / 2
+    a = ele%value(r_solenoid$)
+    B0 = ele%value(bs_field$) / pi
+
+    if (a == 0) then
+      call out_io (s_fatal$, r_name, 'R_SOLENOID NOT SET WHEN USING "SOFT_EDGE" SOLENOID FIELD.', &
+                                     'FOR ELEMENT: ' // ele%name)
+      orbit%state = lost$
+      if (present(err_flag)) err_flag = .true.
+      return
+    endif
+
+    z = s_body - ele%value(l$) / 2
+    z_p = z + b;                                  z_m = z - b
+    rad_p = sqrt(z_p**2 + (rho + a)**2);          rad_m = sqrt(z_m**2 + (rho + a)**2)
+    alpha_p = a / rad_p;                          alpha_m = a / rad_m
+    beta_p = z_p / rad_p;                         beta_m = z_m / rad_m
+    k_p = sqrt(z_p**2 + (a - rho)**2) / rad_p;    k_m = sqrt(z_m**2 + (a - rho)**2) / rad_m
+    gamma = (a - rho) / (a + rho)
+
+    if (rho /= 0) then
+      Brho = B0 * (alpha_p * gen_complete_elliptic(k_p, 1.0_rp, 1.0_rp, -1.0_rp) - &
+                   alpha_m * gen_complete_elliptic(k_m, 1.0_rp, 1.0_rp, -1.0_rp))
+      field%B(1) = x * Brho / rho
+      field%B(2) = y * Brho / rho
+    endif
+
+    field%B(3) = B0 * a * (beta_p * gen_complete_elliptic(k_p, gamma**2, 1.0_rp, gamma) - &
+                           beta_m * gen_complete_elliptic(k_m, gamma**2, 1.0_rp, gamma)) / (a + rho)
+
+  case default
+    call out_io (s_fatal$, r_name, '"SOFT_EDGE" FIELD NOT YET CODED FOR ELEMENT OF TYPE: ' // key_name(ele%key), &
+                                   'FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    orbit%state = lost$
+    if (present(err_flag)) err_flag = .true.
+    return
+  end select
+
+!----------------------------------------------------------------------------------------------
 ! Bmad_standard field calc 
 
 case (bmad_standard$)
@@ -323,12 +378,12 @@ case (bmad_standard$)
 
   select case (ele%key)
 
-  !------------------------------------------
+  !------------------
   ! Drift, et. al. Note that kicks get added at the end for all elements
 
   case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$, detector$)
 
-  !------------------------------------------
+  !------------------
   ! E_Gun
 
   case (e_gun$)
@@ -344,27 +399,27 @@ case (bmad_standard$)
       field%e(3) = e_accel_field (ele, gradient$) * cos(twopi * (time * ele%value(rf_frequency$) + phase)) / ref_charge
     endif
 
-  !------------------------------------------
+  !------------------
   ! Elseparator
 
   case (elseparator$)
     field%e(1) = ele%value(hkick$) * ele%value(p0c$) / ele%value(l$)
     field%e(2) = ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
 
-  !------------------------------------------
+  !------------------
   ! HKicker
 
   case (hkicker$)
     field%b(2) = -ele%value(kick$) * f_p0c / ele%value(l$)
 
-  !------------------------------------------
+  !------------------
   ! Kicker  
 
   case (kicker$, ac_kicker$)
     field%b(1) =  ele%value(vkick$) * f_p0c / ele%value(l$)
     field%b(2) = -ele%value(hkick$) * f_p0c / ele%value(l$)
 
-  !------------------------------------------
+  !------------------
   ! RFcavity and Lcavity  bmad_standard
   !
   ! For standing wave cavity:
@@ -475,7 +530,7 @@ case (bmad_standard$)
       endif
     endif
 
-  !------------------------------------------
+  !------------------
   ! Octupole 
 
   case (octupole$)
@@ -491,12 +546,12 @@ case (bmad_standard$)
       field%dB(2,2) = -x*y * ele%value(k3$) * f_p0c
     endif
 
-  !------------------------------------------
+  !------------------
   ! Patch: There are no fields
 
   case (patch$)
 
-  !------------------------------------------
+  !------------------
   ! Quadrupole
 
   case (quadrupole$) 
@@ -514,7 +569,7 @@ case (bmad_standard$)
       field%A(3) = 0.5_rp * (y * field%b(1) - x * field%b(2)) 
     endif
 
-  !------------------------------------------
+  !------------------
   ! Sextupole 
 
   case (sextupole$)
@@ -530,13 +585,13 @@ case (bmad_standard$)
       field%dB(2,2) = -y * ele%value(k2$) * f_p0c
     endif
 
-  !------------------------------------------
+  !------------------
   ! VKicker
 
   case (vkicker$)
     field%b(1) =  ele%value(kick$) * f_p0c / ele%value(l$)
 
-  !------------------------------------------
+  !------------------
   ! SBend
 
   case (sbend$)
@@ -545,7 +600,7 @@ case (bmad_standard$)
     field%b(2) = (ele%value(g$) + ele%value(g_err$)) * f_p0c 
 
 
-  !------------------------------------------
+  !------------------
   ! Sol_quad
 
   case (sol_quad$)
@@ -565,7 +620,7 @@ case (bmad_standard$)
       field%A(3) = 0.5_rp * (y * field%b(1) - x * field%b(2)) 
     endif
 
-  !------------------------------------------
+  !------------------
   ! Solenoid
 
   case (solenoid$, sad_mult$)
@@ -580,7 +635,7 @@ case (bmad_standard$)
       field%A = (0.5_rp * field%b(3)) * [-y, x, 0.0_rp]      
     endif
 
-  !------------------------------------------
+  !------------------
   ! Wiggler
 
   case(wiggler$, undulator$)
@@ -591,7 +646,7 @@ case (bmad_standard$)
     if (present(err_flag)) err_flag = .true.
     return
 
-  !------------------------------------------
+  !------------------
   ! Error
 
   case default
@@ -602,7 +657,7 @@ case (bmad_standard$)
     return
   end select
 
-  !---------------------------------------------------------------------
+  !---------------------------------------------
   ! Add multipoles
 
   if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
@@ -688,7 +743,7 @@ case (bmad_standard$)
     end select
   endif
 
-!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
 ! planar_model
 
 case(planar_model$)
@@ -711,7 +766,7 @@ case(planar_model$)
     field%db(3,3) = -kk * ele%value(b_max$) * sh_y * c_z
   endif
 
-!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
 ! helical_model
 
 case(helical_model$)
@@ -739,7 +794,7 @@ case(helical_model$)
     field%db(3,3) =  kk * ele%value(b_max$) * (sh_x * s_z - sh_y * c_z)
   endif
 
-!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
 ! FieldMap
 
 case(fieldmap$)
@@ -767,7 +822,7 @@ case(fieldmap$)
     field_autoscale = 1
   end select
 
-  !----------------------------------------------------------------------------
+  !------------------------------------
   ! Cartesian map field
 
   if (associated(ele%cartesian_map)) then
@@ -1057,7 +1112,7 @@ case(fieldmap$)
     enddo
   endif
 
-  !----------------------------------------------------------------------------
+  !------------------------------------
   ! Cylindrical map field
 
   if (associated(ele%cylindrical_map)) then
@@ -1236,7 +1291,7 @@ case(fieldmap$)
 
   endif
 
-  !----------------------------------------------------------------------------
+  !------------------------------------
   ! Grid field calc 
 
   if (associated(ele%grid_field)) then
@@ -1350,7 +1405,7 @@ case(fieldmap$)
     enddo
   endif
 
-  !----------------------------------------------------------------------------
+  !------------------------------------
   ! Taylor field calc 
 
   if (associated(ele%taylor_field)) then
@@ -1451,7 +1506,7 @@ if (ele%key == ac_kicker$) then
   field%dB = a_amp * field%dB
 endif
 
-!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
 ! overlapping of fields from other elements
 
 8000 continue

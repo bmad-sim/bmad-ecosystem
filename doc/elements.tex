@@ -3947,18 +3947,33 @@ See \sref{s:list.solenoid} for a full list of element attributes.
 \index{bs_gradient}
 Attributes specific to an \vn{solenoid} element are:
 \begin{example}
-  ks         = <Real>   ! Solenoid strength.
-  bs_field   = <Real>   ! Field strength. (\sref{s:depend}).
+  ks          = <Real>   ! Solenoid strength.
+  bs_field    = <Real>   ! Field strength. (\sref{s:depend}).
+  l_soft_edge = <Real>   ! For modeling a ``soft" fringe.
+  r_solenoid  = <Real>   ! Solenoid radius.
 \end{example}
 
-The \vn{bmad_standard} tracking model (\sref{s:tkm}) uses a ``hard
-edge'' model where an impulse kick is applied at the entrance and exit
-ends of the element due to the fringe fields there.
-
+The \vn{bmad_standard} tracking model (\sref{s:tkm}) uses a ``hard edge'' model where the field
+goes from zero to full strength. 
 Example:
 \begin{example}
   cleo_sol: solenoid, l = 2.6, ks = 1.5e-9 * parameter[p0c]
 \end{example}
+
+``Soft edge'' end fields may be simulated by using Runge-Kutta tracking and setting the \vn{field_calc}
+parameter of the elemnt to \vn{soft_edge}. Example:
+\begin{example}
+  soft_sol: solenoid, l = 1.0, field_calc = soft_edge, l_soft_edge = 0.5, 
+              r_solenoid = 0.1, tracking_method = runge_kutta, mat6_calc_method = tracking
+\end{example}
+Here the solenoid is modeled as a perfect current carrying cylinder with a length of 0.5~meters and
+a cylinder radius of 0.1~meters. The length of the element, 1.0~meters, must be greater than
+\vn{l_soft_edge} since particles need to be tracked through the non-zero fringe field that extends
+outside of the cylinder. In fact, since the field is always finite everywhere, to the extent that
+the field is nonzero at the edges of the element places a bound on the accuracy of the simulation.
+Note that \vn{bmad_standard} tracking will always ignore the setting of \vn{field_calc}. That is,
+with \vn{bmad_standard} tracking the field always extends to the edges of the element and the value
+of \vn{l_soft_edge} is ignored.
 
 %-----------------------------------------------------------------
 \section{Sol_Quad}

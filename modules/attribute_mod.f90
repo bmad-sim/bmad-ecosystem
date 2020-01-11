@@ -1247,7 +1247,6 @@ call init_attribute_name1 (quadrupole$, E_tot_start$,               'E_tot_start
 call init_attribute_name1 (quadrupole$, p0c_start$,                 'p0c_start', private$)
 call init_attribute_name1 (quadrupole$, fq1$,                       'FQ1')
 call init_attribute_name1 (quadrupole$, fq2$,                       'FQ2')
-call init_attribute_name1 (quadrupole$, l_soft_edge$,               'L_SOFT_EDGE')
 
 call init_attribute_name1 (sextupole$, k2$,                         'K2', quasi_free$)
 call init_attribute_name1 (sextupole$, B2_gradient$,                'B2_GRADIENT', quasi_free$)
@@ -1370,7 +1369,7 @@ call init_attribute_name1 (sbend$, cartesian_map$,                  'CARTESIAN_M
 call init_attribute_name1 (sbend$, cylindrical_map$,                'CYLINDRICAL_MAP')
 call init_attribute_name1 (sbend$, grid_field$,                     'GRID_FIELD')
 call init_attribute_name1 (sbend$, taylor_field$,                   'TAYLOR_FIELD')
-call init_attribute_name1 (sbend$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
+call init_attribute_name1 (sbend$, ptc_canonical_coords$,           'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (sbend$, exact_multipoles$,               'EXACT_MULTIPOLES')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
@@ -1387,6 +1386,8 @@ call init_attribute_name1 (solenoid$, taylor_field$,                'TAYLOR_FIEL
 call init_attribute_name1 (solenoid$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (solenoid$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (solenoid$, p0c_start$,                   'p0c_start', private$)
+call init_attribute_name1 (solenoid$, l_soft_edge$,                 'L_SOFT_EDGE')
+call init_attribute_name1 (solenoid$, r_solenoid$,                  'R_SOLENOID')
 
 call init_attribute_name1 (sample$, l$,                             'L')
 call init_attribute_name1 (sample$, mode$,                          'MODE')
@@ -1845,7 +1846,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
   attrib_units = ''
 
 case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
-      'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', 'OSC_AMPLITUDE', &
+      'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', 'OSC_AMPLITUDE', 'R_SOLENOID', &
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
       'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
