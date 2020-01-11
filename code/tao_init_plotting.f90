@@ -40,7 +40,7 @@ type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx), curve1, curve2, curve3, curve4
 type (tao_place_input) place(30)
 type (old_tao_ele_shape_struct) shape(30)
-type (tao_ele_shape_input) ele_shape(30)
+type (tao_ele_shape_input) ele_shape(50)
 type (tao_ele_shape_struct), pointer :: e_shape
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (qp_axis_struct) init_axis
@@ -727,9 +727,10 @@ close (iu)
 
 ! If no plots have been defined or default plots wanted then use default
 
+  if (.not. allocated(s%plot_page%lat_layout%ele_shape)) allocate(s%plot_page%lat_layout%ele_shape(0))
+  if (.not. allocated(s%plot_page%floor_plan%ele_shape)) allocate(s%plot_page%floor_plan%ele_shape(0))
+
 if (ip == 0 .or. include_default_plots) then
-  if (size(s%plot_page%lat_layout%ele_shape) == 0) deallocate(s%plot_page%lat_layout%ele_shape)
-  if (size(s%plot_page%floor_plan%ele_shape) == 0) deallocate(s%plot_page%floor_plan%ele_shape)
   if (size(s%plot_page%region) == 0) deallocate (s%plot_page%region)
   call tao_setup_default_plotting(include_dflt_lat_layout, include_dflt_floor_plan)
 endif
@@ -793,7 +794,7 @@ do n_max = size(shape_input), 1, -1
   if (shape_input(n_max)%ele_id /= '') exit
 enddo
 
-allocate (shape_array(n_max+10))
+allocate (shape_array(n_max))
 
 do n = 1, n_max
   shape_array(n) = tao_ele_shape_input_to_struct(shape_input(n), namelist_name)
@@ -826,7 +827,7 @@ type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_plot_struct), pointer :: plot
 type (tao_ele_shape_struct), allocatable :: temp_shape(:)
-type (tao_ele_shape_struct) :: dflt_shapes(27) = [&
+type (tao_ele_shape_struct) :: dflt_shapes(30) = [&
       tao_ele_shape_struct('fork::*',              'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, fork$, '*', null()), &
       tao_ele_shape_struct('crystal::*',           'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, crystal$, '*', null()), &
       tao_ele_shape_struct('detector::*',          'box',         'black',   0.30_rp, 'name', .true.,   .false., 1, detector$, '*', null()), &
@@ -835,6 +836,9 @@ type (tao_ele_shape_struct) :: dflt_shapes(27) = [&
       tao_ele_shape_struct('em_field::*',          'xbox',        'blue',    0.40_rp, 'name', .true.,   .false., 1, em_field$, '*', null()), &
       tao_ele_shape_struct('ecollimator::*',       'xbox',        'blue',    0.20_rp, 'name', .false.,  .false., 1, ecollimator$, '*', null()), &
       tao_ele_shape_struct('instrument::*',        'box',         'blue',    0.30_rp, 'name', .false.,  .false., 1, instrument$, '*', null()), &
+      tao_ele_shape_struct('kicker::*',            'u_triangle',  'red',     0.50_rp, 'name', .true.,   .false., 1, kicker$, '*', null()), &
+      tao_ele_shape_struct('hkicker::*',           'd_triangle',  'red',     0.50_rp, 'name', .true.,   .false., 1, hkicker$, '*', null()), &
+      tao_ele_shape_struct('vkicker::*',           'u_triangle',  'yellow',  0.50_rp, 'name', .true.,   .false., 1, vkicker$, '*', null()), &
       tao_ele_shape_struct('lcavity::*',           'xbox',        'red',     0.50_rp, 'none', .true.,   .false., 1, lcavity$, '*', null()), &
       tao_ele_shape_struct('marker::*',            'box',         'blue',    0.30_rp, 'name', .false.,  .false., 1, marker$, '*', null()), &
       tao_ele_shape_struct('mirror::*',            'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, mirror$, '*', null()), &
@@ -846,7 +850,7 @@ type (tao_ele_shape_struct) :: dflt_shapes(27) = [&
       tao_ele_shape_struct('quadrupole::*',        'xbox',        'magenta', 0.37_rp, 'name', .true.,   .false., 1, quadrupole$, '*', null()), &
       tao_ele_shape_struct('rcollimator::*',       'xbox',        'blue',    0.20_rp, 'name', .false.,  .false., 1, rcollimator$, '*', null()), &
       tao_ele_shape_struct('rfcavity::*',          'xbox',        'red',     0.50_rp, 'name', .true.,   .false., 1, rfcavity$, '*', null()), &
-      tao_ele_shape_struct('SAMPLE::*',            'BOX',         'BLACK',   0.30_rp, 'name', .true.,   .false., 1, sample$, '*', null()), &
+      tao_ele_shape_struct('sample::*',            'box',         'black',   0.30_rp, 'name', .true.,   .false., 1, sample$, '*', null()), &
       tao_ele_shape_struct('sbend::*',             'box',         'black',   0.20_rp, 'none', .true.,   .false., 1, sbend$, '*', null()), &
       tao_ele_shape_struct('sextupole::*',         'xbox',        'green',   0.37_rp, 'none', .true.,   .false., 1, sextupole$, '*', null()), &
       tao_ele_shape_struct('sol_quad::*',          'box',         'black',   0.40_rp, 'name', .false.,  .false., 1, sol_quad$, '*', null()), &
@@ -868,7 +872,7 @@ call tao_set_plotting (plot_page, s%plot_page, .true.)
 
 n = size(dflt_shapes)
 
-if (include_dflt_lat_layout .or. .not. allocated(s%plot_page%lat_layout%ele_shape)) then
+if (include_dflt_lat_layout .or. size(s%plot_page%lat_layout%ele_shape) == 0) then
   n_old = 0
   if (allocated(s%plot_page%lat_layout%ele_shape)) then
     n_old = size(s%plot_page%lat_layout%ele_shape)
@@ -881,7 +885,7 @@ if (include_dflt_lat_layout .or. .not. allocated(s%plot_page%lat_layout%ele_shap
   if (n_old /= 0) deallocate(temp_shape)
 endif
 
-if (include_dflt_floor_plan .or. .not. allocated(s%plot_page%floor_plan%ele_shape)) then
+if (include_dflt_floor_plan .or. size(s%plot_page%floor_plan%ele_shape) == 0) then
   dflt_shapes%size = 20 * dflt_shapes%size
   if (allocated(s%plot_page%floor_plan%ele_shape)) then
     n_old = size(s%plot_page%floor_plan%ele_shape)

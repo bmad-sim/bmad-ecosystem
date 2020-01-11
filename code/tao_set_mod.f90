@@ -2873,7 +2873,8 @@ end subroutine tao_set_real_value
 ! Routine to set floor_plan and lat_layout parameters.
 ! 
 ! Input:
-!   component -- Character(*): Which drawing component to set.
+!   drawing   -- tao_drawing_struct: s%plot_page%floor_plan or s%plot_page%lat_layout.
+!   component -- Character(*): Which shape component to set.
 !   value_str -- Character(*): Value to set to.
 !
 ! Output:
@@ -2903,6 +2904,7 @@ namelist / params / ele_shape
 ! Init
 
 n = size(drawing%ele_shape)
+ele_shape = tao_ele_shape_input()
 ele_shape(1:n) = tao_ele_shape_struct_to_input(drawing%ele_shape)
 
 ! Setup
@@ -2940,6 +2942,15 @@ if (ios /= 0) then
 endif
 
 ! Transfer to drawing
+
+do n = size(ele_shape), 1, -1
+  if (ele_shape(i)%ele_id /= '') exit
+enddo
+
+if (n > size(drawing%ele_shape)) then
+  deallocate(drawing%ele_shape)
+  allocate (drawing%ele_shape(n))
+endif
 
 do i = 1, n
   drawing%ele_shape(i) = tao_ele_shape_input_to_struct(ele_shape(i))

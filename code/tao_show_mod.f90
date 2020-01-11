@@ -3421,9 +3421,9 @@ case ('spin')
     else
       call tao_spin_polarization_calc (branch, tao_branch%orbit, spin_pol)
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Limit:          ', spin_pol%pol_limit
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarizaiton Rate (1/sec):   ', spin_pol%pol_rate
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarizaiton Rate (1/sec): ', spin_pol%depol_rate
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Limit:          ', spin_pol%pol_limit
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Rate (1/sec):   ', spin_pol%pol_rate
+      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarization Rate (1/sec): ', spin_pol%depol_rate
     endif
 
     if (allocated(scratch%spin_map)) then

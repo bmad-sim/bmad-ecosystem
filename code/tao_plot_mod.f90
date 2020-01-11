@@ -1309,7 +1309,7 @@ type (tao_graph_struct) graph
 type (ele_struct), pointer :: ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shape
 
-real(rp) x_lab
+real(rp) y1, y2, x_lab
 integer section_id, ix_shape_min, ix_shape
 
 character(40) label_name
@@ -1351,15 +1351,15 @@ do
 
   if (branch%param%geometry == closed$ .and. x2 < x1 .and. ele%value(l$) > 0) then
     if (x1 > graph%x%min .and. x1 < graph%x%max) then
-      call draw_shape_for_lat_layout (label_name, x1, x1 + ele%value(l$), min(graph%x%max, x1+ele%value(l$)/2), ele_shape)
+      call draw_shape_for_lat_layout (label_name, x1, x1 + ele%value(l$), min(graph%x%max, x1+ele%value(l$)/2), y1, y2, ele_shape)
     endif
     if (x2 > graph%x%min .and. x2 < graph%x%max) then
-      call draw_shape_for_lat_layout (label_name, x2-ele%value(l$), x2, max(graph%x%min, x2-ele%value(l$)/2), ele_shape)
+      call draw_shape_for_lat_layout (label_name, x2-ele%value(l$), x2, max(graph%x%min, x2-ele%value(l$)/2), y1, y2, ele_shape)
     endif
 
   else
     x_lab = min(max((x1+x2)/2, graph%x%min), graph%x%max)
-    call draw_shape_for_lat_layout (label_name, x1, x2, x_lab, ele_shape)
+    call draw_shape_for_lat_layout (label_name, x1, x2, y1, y2, x_lab, ele_shape)
   endif
 
   if (.not. ele_shape%multi) return
@@ -1371,12 +1371,12 @@ end subroutine draw_ele_for_lat_layout
 !--------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine draw_shape_for_lat_layout (label_name, x1, x2, s_pos, ele_shape)
+subroutine draw_shape_for_lat_layout (label_name, x1, x2, y1, y2, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
 type (tao_shape_pattern_struct), pointer :: pat
 
-real(rp) :: s_pos, y_off, r_dum = 0, x1, x2, r0(2), r1(2)
+real(rp) :: s_pos, y_off, r_dum = 0, x1, x2, y1, y2, r0(2), r1(2)
 integer ix, iwidth
 
 character(*) label_name

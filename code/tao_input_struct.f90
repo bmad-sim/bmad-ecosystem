@@ -426,7 +426,7 @@ case default
 end select
 
 select case (shape)
-case ('box', 'xbox', 'bow_tie', 'circle', 'diamond', 'x', 'r_triangle', 'l_triangle', 'u_triangle', 'd_triangle')
+case ('box', 'xbox', 'bow_tie', 'rbow_tie', 'circle', 'diamond', 'x', 'r_triangle', 'l_triangle', 'u_triangle', 'd_triangle')
 case ('solid_line', 'dashed_line', 'dash_dot_line', 'dotted_line')
   if (s_st%ele_id(1:15) /= 'building_wall::') then
     call out_io (s_fatal$, r_name, 'SHAPE "' // trim(shape) // '" MAY ONLY BE USED FOR building_wall ELEMENTS.', err_line)
