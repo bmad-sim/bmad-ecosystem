@@ -132,7 +132,7 @@ do n = 1, n_step
     z  = orbit%vec(5)
    
     pxy2 = px**2 + py**2
-    if (rel_p2 - pxy2 < 0.01) then  ! somewhat arbitrary cutoff
+    if (rel_p2 - pxy2 < 1e-12_rp * rel_p2) then
       orbit%state = lost$
       orbit%vec(1) = 2 * bmad_com%max_aperture_limit
       orbit%vec(3) = 2 * bmad_com%max_aperture_limit
