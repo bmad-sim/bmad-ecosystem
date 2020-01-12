@@ -2181,6 +2181,9 @@ case ('lattice')
   tao_lat => tao_pointer_to_tao_lat(u, lat_type)
   lat => tao_lat%lat
   branch => lat%branch(ix_branch)
+  uni_branch => u%uni_branch(ix_branch)
+  tao_branch => u%model%tao_branch(ix_branch)
+  design_tao_branch => u%design%tao_branch(ix_branch)
 
   ! Construct columns if needed.
 
@@ -2819,7 +2822,7 @@ case ('lattice')
           name = name(:ix+2) // '_mid' // trim(name(ix+3:))
         endif
         call tao_evaluate_expression (name, 1, .false., value, info, err, .false., &
-                                                  dflt_component = tao_lat_type_name(lat_type))
+                                                  dflt_component = tao_lat_type_name(lat_type), dflt_uni = u%ix_uni)
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           if (column(i)%remove_line_if_zero) n_zeros_found = n_zeros_found + 1
           if (undef_uses_column_format .and. index(column(i)%format, 'A') == 0) then
@@ -4954,6 +4957,7 @@ end subroutine show_opt
 
 subroutine show_ping(ix_uni)
 
+type (tao_universe_struct), pointer :: u
 integer ix_uni
 
 u => tao_pointer_to_universe(ix_uni)

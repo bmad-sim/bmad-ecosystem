@@ -1403,7 +1403,7 @@ case ('data')
 
   call tao_data_type_substitute (curve%data_type, data_type, curve, graph)
   call tao_evaluate_expression  (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, scratch%info, err, &
-                          stack = scratch%stack, dflt_component = component, dflt_source = 'data', dflt_uni = curve%ix_universe)
+                          stack = scratch%stack, dflt_component = component, dflt_source = 'data', dflt_uni = u%ix_uni)
   if (err) then
     call tao_set_curve_invalid (curve, 'CANNOT FIND DATA CORRESPONDING: ' // data_type)
     return
