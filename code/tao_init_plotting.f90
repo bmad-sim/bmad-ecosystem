@@ -579,6 +579,8 @@ do  ! Loop over plot files
         crv%hist                 = curve(j)%hist
         crv%units                = curve(j)%units
 
+        if (crv%data_source == '') crv%data_source = 'lat'
+
         if (is_integer(crv%symbol%type, ix))         crv%symbol%type          = qp_enum_to_string(ix, 'symbol_type')
         if (is_integer(crv%symbol%color, ix))        crv%symbol%color         = qp_enum_to_string(ix, 'color')
         if (is_integer(crv%symbol%fill_pattern, ix)) crv%symbol%fill_pattern  = qp_enum_to_string(ix, 'fill_pattern')
@@ -836,9 +838,9 @@ type (tao_ele_shape_struct) :: dflt_shapes(30) = [&
       tao_ele_shape_struct('em_field::*',          'xbox',        'blue',    0.40_rp, 'name', .true.,   .false., 1, em_field$, '*', null()), &
       tao_ele_shape_struct('ecollimator::*',       'xbox',        'blue',    0.20_rp, 'name', .false.,  .false., 1, ecollimator$, '*', null()), &
       tao_ele_shape_struct('instrument::*',        'box',         'blue',    0.30_rp, 'name', .false.,  .false., 1, instrument$, '*', null()), &
-      tao_ele_shape_struct('kicker::*',            'u_triangle',  'red',     0.50_rp, 'name', .true.,   .false., 1, kicker$, '*', null()), &
-      tao_ele_shape_struct('hkicker::*',           'd_triangle',  'red',     0.50_rp, 'name', .true.,   .false., 1, hkicker$, '*', null()), &
-      tao_ele_shape_struct('vkicker::*',           'u_triangle',  'yellow',  0.50_rp, 'name', .true.,   .false., 1, vkicker$, '*', null()), &
+      tao_ele_shape_struct('kicker::*',            'u_triangle',  'red',     0.40_rp, 'name', .true.,   .false., 1, kicker$, '*', null()), &
+      tao_ele_shape_struct('hkicker::*',           'd_triangle',  'red',     0.40_rp, 'name', .true.,   .false., 1, hkicker$, '*', null()), &
+      tao_ele_shape_struct('vkicker::*',           'u_triangle',  'yellow',  0.40_rp, 'name', .true.,   .false., 1, vkicker$, '*', null()), &
       tao_ele_shape_struct('lcavity::*',           'xbox',        'red',     0.50_rp, 'none', .true.,   .false., 1, lcavity$, '*', null()), &
       tao_ele_shape_struct('marker::*',            'box',         'blue',    0.30_rp, 'name', .false.,  .false., 1, marker$, '*', null()), &
       tao_ele_shape_struct('mirror::*',            'circle',      'red',     0.15_rp, 'name', .true.,   .false., 1, mirror$, '*', null()), &

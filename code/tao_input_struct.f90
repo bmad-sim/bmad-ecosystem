@@ -76,7 +76,7 @@ end type
 
 type tao_curve_input
   character(40) :: name = ''
-  character(40) :: data_source = 'lat'
+  character(40) :: data_source = ''
   character(100) :: data_type_x = ''
   character(100) :: data_type_z = ''
   character(200) :: data_type = ''

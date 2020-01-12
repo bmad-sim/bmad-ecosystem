@@ -132,7 +132,10 @@ do i = 1, size(s%plot_page%region)
     ! If y%min = y%max then was not able to scale the graph due to some problem.
     ! In this case it is not possible to draw the data.
 
-    if (graph%y%min == graph%y%max) cycle g_loop
+    if (graph%y%min == graph%y%max) then
+      call out_io (s_error$, r_name, 'SOMETHING IS WRONG. GRAPH MIN = MAX FOR: ' // tao_graph_name(graph))
+      cycle g_loop
+    endif
 
     ! Now we can draw the graph
 
@@ -150,7 +153,7 @@ do i = 1, size(s%plot_page%region)
     case ('histogram')
       call tao_plot_histogram (plot, graph)
     case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
+      call out_io (s_error$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
 
   enddo g_loop
@@ -1825,7 +1828,7 @@ type (tao_curve_struct), pointer :: curve
 type (qp_line_struct), allocatable :: line(:)
 type (qp_symbol_struct), allocatable :: symbol(:)
 
-integer i, j, k, n
+integer i, j, k, n, iu
 real(rp) x, y, x1
 character(100), allocatable :: text(:)
 
@@ -1873,11 +1876,19 @@ do i = 1, n
   text(i) = curve%legend_text
   if (text(i) == '') then
     text(i) = curve%data_type
-    if (size(s%u) > 1) write (text(i), '(i0, 2a)') curve%ix_universe, '@', trim(curve%data_type)
+    if (size(s%u) > 1) then
+      iu = curve%ix_universe
+      if (iu == -1) iu = graph%ix_universe
+      if (iu == -1) iu = s%com%default_universe
+      write (text(i), '(i0, 2a)') iu, '@', trim(curve%data_type)
+    endif
   endif
-  text(i) = trim(text(i)) // ' ' // trim(curve%component)
+  if (curve%component == '') then
+    text(i) = trim(text(i)) // ' ' // trim(graph%component)
+  else
+    text(i) = trim(text(i)) // ' ' // trim(curve%component)
+  endif
   symbol(i) = curve%symbol
-  if (size(curve%x_symb) == 0) symbol(i)%type = 'do_not_draw'
   if (.not. curve%draw_symbols) symbol(i)%type = 'do_not_draw'
   line(i) = curve%line
   if (size(curve%x_line) == 0) line(i)%width = -1 ! Do not draw

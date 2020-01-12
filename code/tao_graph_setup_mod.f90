@@ -23,36 +23,42 @@ type (tao_curve_struct), pointer :: curve
 integer i, iu
 logical found
 
+character(*), parameter :: r_name = 'tao_graph_setup'
+
 !
 
 graph%text_legend_out = graph%text_legend
 
-if (allocated (graph%curve)) then
-  do i = 1, size(graph%curve)
-    graph%curve(i)%valid = .true.  ! Assume no problem
-    graph%curve(i)%message_text = ''
-  enddo
-endif
+if (graph%type == 'floor_plan') return  ! Nothing to do.
 
-call tao_hook_graph_setup (plot, graph, found)
-if (found) return
-
-!
-
-if (.not. allocated (graph%curve)) then  ! lat_layout
+if (graph%type == 'lat_layout') then
   u => tao_pointer_to_universe(graph%ix_universe, .true.)
   if (.not. associated(u)) then
     graph%is_valid = .false.
     write (graph%why_invalid, '(a, i0, a)') 'BAD UNIVERSE INDEX', graph%ix_universe
-    return
-  endif
-
-  if (.not. u%is_on) then
+  elseif (.not. u%is_on) then
     graph%is_valid = .false.
     write (graph%why_invalid, '(a, i0, a)') 'UNIVERSE ', u%ix_uni, ' IS OFF!'
-    return
   endif
+  return
 endif
+
+if (.not. allocated (graph%curve)) then
+  call out_io (s_error$, r_name, 'NO CURVES ASSOCIATED WITH: ' // tao_graph_name(graph))
+  graph%is_valid = .false.
+  graph%why_invalid = 'NO ASSOCIATED CURVES'
+  return
+endif
+
+!
+
+do i = 1, size(graph%curve)
+  graph%curve(i)%valid = .true.  ! Assume no problem
+  graph%curve(i)%message_text = ''
+enddo
+
+call tao_hook_graph_setup (plot, graph, found)
+if (found) return
 
 !
 
@@ -72,7 +78,6 @@ case ('histogram')
 
 case ('dynamic_aperture')
   call tao_graph_dynamic_aperture_setup (plot, graph)
-
 end select
 
 ! Renormalize
@@ -1133,29 +1138,9 @@ endif
 if (allocated(graph%curve)) then
   do ic = 1, size(graph%curve)
     curve => graph%curve(ic)
-
     u => tao_pointer_to_universe (tao_curve_ix_uni(graph%curve(ic)))
     if (.not. tao_curve_check_universe (curve, u)) cycle
-
-    ! Floor plan curves use all branches.
-    if (graph%type == 'floor_plan') then
-      n0_line = 0
-      n0_symb = 0
-      !! call deallocate_curve_arrays(curve)
-      branch_curve = graph%curve(ic)
-
-      do ib = 0, size(u%model%lat%branch)
-        branch_curve%ix_branch = ib
-        call tao_curve_data_setup (plot, graph, branch_curve)
-        n = n0_line + size(branch_curve%x_line)
-        !! call re_allocate (curve%x_line, n);  curve%x_line(n0_line+1:) = branch_curve%x_line
-        !! call re_allocate (curve%y_line, n);  curve%y_line(n0_line+1:) = branch_curve%y_line        
-      enddo
-
-    else
-      call tao_curve_data_setup (plot, graph, curve)
-    endif
-
+    call tao_curve_data_setup (plot, graph, curve)
   enddo
 endif
 
@@ -1553,8 +1538,7 @@ case ('var')
     enddo
   enddo v_loop
   if (ix_this .eq. -1) then
-    call out_io (s_error$, r_name, &
-                   "This variable doesn't point to the currently displayed  universe.")
+    call out_io (s_error$, r_name, "This variable doesn't point to the currently displayed  universe.")
     return
   endif
 
