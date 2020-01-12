@@ -888,7 +888,6 @@ if (include_dflt_lat_layout .or. size(s%plot_page%lat_layout%ele_shape) == 0) th
 endif
 
 if (include_dflt_floor_plan .or. size(s%plot_page%floor_plan%ele_shape) == 0) then
-  dflt_shapes%size = 20 * dflt_shapes%size
   if (allocated(s%plot_page%floor_plan%ele_shape)) then
     n_old = size(s%plot_page%floor_plan%ele_shape)
     call move_alloc (s%plot_page%floor_plan%ele_shape, temp_shape)
@@ -897,6 +896,7 @@ if (include_dflt_floor_plan .or. size(s%plot_page%floor_plan%ele_shape) == 0) th
   s%plot_page%floor_plan%ele_shape(:)%ele_id = ''
   if (n_old /= 0) s%plot_page%floor_plan%ele_shape(1:n_old) = temp_shape
   s%plot_page%floor_plan%ele_shape(n_old+1:n_old+n) = dflt_shapes
+  s%plot_page%floor_plan%ele_shape(n_old+1:n_old+n)%size = 20 * s%plot_page%floor_plan%ele_shape(n_old+1:n_old+n)%size
   if (n_old /= 0) deallocate(temp_shape)
 endif
 
