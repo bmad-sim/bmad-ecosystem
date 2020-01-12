@@ -203,9 +203,17 @@ else
           'PLOT TEMPLATE NOT FOUND: ' // plot_name, 'USE THE COMMAND "show plot -templates" TO SEE A LIST OF PLOTS.')
     case ('BOTH')
       if (n_exact == 0) then
-        if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
-            '"' // trim(plot_name) // '" IS NOT THE NAME OF A PLOT REGION WITH NOR A PLOT TEMPLATE', &
-            'USE THE COMMAND "show plot" AND "show plot -templates" TO SEE A LIST OF REGIONS AND TEMPLATES.')
+        if (logic_option(.true., print_flag)) then
+          if (only_vis) then
+            call out_io (s_error$, r_name, &
+                '"' // trim(plot_name) // '" IS NOT THE NAME OF A PLOT REGION THAT CONTAINS A PLOT WITH NOR A PLOT TEMPLATE', &
+                'USE THE COMMAND "show plot" AND "show plot -templates" TO SEE A LIST OF REGIONS AND TEMPLATES.')
+          else
+            if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+                '"' // trim(plot_name) // '" IS NOT THE NAME OF A PLOT REGION WITH NOR A PLOT TEMPLATE', &
+                'USE THE COMMAND "show plot" AND "show plot -templates" TO SEE A LIST OF REGIONS AND TEMPLATES.')
+          endif
+        endif
       else
         if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
             'PLOT REGION DOES NOT HAVE AN ASSOCIATED PLOT: ' // plot_name, 'USE THE COMMAND "show plot" TO SEE A LIST OF REGIONS AND ASSOCIATED PLOTS.')

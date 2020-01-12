@@ -295,6 +295,14 @@ subroutine tao_floor_to_screen_coords (graph, floor, screen)
   type (floor_position_struct) floor, screen
 end subroutine
 
+function tao_graph_name(graph, use_region) result (graph_name)
+  import
+  implicit none
+  type (tao_graph_struct) graph
+  character(60) graph_name
+  logical, optional :: use_region
+end function
+
 subroutine tao_has_been_created ()
 end subroutine
  
