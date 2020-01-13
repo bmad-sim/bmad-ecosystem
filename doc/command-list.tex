@@ -1668,7 +1668,7 @@ Format:
   show particle ...          ! Show tracked particle info \sref{s:show.particle}.
   show plot ...              ! Show plot info \sref{s:show.plot}.
   show spin                  ! Show information on spin simulations \sref{s:show.spin}.
-  show string ...            ! Print a string \vn{s:show.string}.
+  show string ...            ! Print a string \sref{s:show.string}.
   show symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
   show taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
   show track ...             ! Show phase space coords, Twiss, EM field, 
@@ -2849,13 +2849,21 @@ in with a \vn{call} command.
 
 Syntax:
 \begin{example}
-  show value <expression>
+  show value \{-format <format-string>\} <expression>
 \end{example}
 
+Shows the value of an expression. The \vn{--format} switch can be used to set the number format.
+The default format is \vn{es25.17} which results in number printed in scientific notation format
+with a field width of 25 and 17 digits displayed after the decimal place. Use ``\vn{f}'' for fixed
+point numbers. For example, ``\vn{f10.3}'' will give display numbers in fixed point format with a
+field width of 10 and 3 digits displayed after the decimal place.
 
-Shows the value of an expression. Also see \vn{show string}. Examples:
+Also see \vn{show string}. 
+
+Examples:
 \begin{example}
   show value sqrt(3@lat::orbit.x[34]|model) + sin(0.35)
+  show value -form f10.4 ran_gauss()
 \end{example}
 
 

@@ -76,6 +76,9 @@ namelist / element_shapes_lat_layout / ele_shape
 
 ! See if this routine has been called before
 
+if (.not. allocated(s%plot_page%lat_layout%ele_shape)) allocate(s%plot_page%lat_layout%ele_shape(0))
+if (.not. allocated(s%plot_page%floor_plan%ele_shape)) allocate(s%plot_page%floor_plan%ele_shape(0))
+
 call qp_init_com_struct()  ! Init quick_plot
 if (.not. s%com%init_plot_needed) return
 s%com%init_plot_needed = .false.
@@ -520,12 +523,7 @@ do  ! Loop over plot files
         cycle
       endif
 
-      if (grph%type == 'floor_plan' .and. .not. allocated (s%plot_page%floor_plan%ele_shape)) &
-                call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.', 'IN FILE: ' // plot_file)
-   
       if (grph%type == 'lat_layout') then
-        if (.not. allocated (s%plot_page%lat_layout%ele_shape)) call out_io (s_error$, r_name, &
-                              'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.', 'IN FILE: ' // plot_file)
         if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
                               'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!', 'IN FILE: ' // plot_file)
         plt%autoscale_gang_y = .false.  ! True does not make sense.
@@ -729,9 +727,6 @@ close (iu)
 
 ! If no plots have been defined or default plots wanted then use default
 
-  if (.not. allocated(s%plot_page%lat_layout%ele_shape)) allocate(s%plot_page%lat_layout%ele_shape(0))
-  if (.not. allocated(s%plot_page%floor_plan%ele_shape)) allocate(s%plot_page%floor_plan%ele_shape(0))
-
 if (ip == 0 .or. include_default_plots) then
   if (size(s%plot_page%region) == 0) deallocate (s%plot_page%region)
   call tao_setup_default_plotting(include_dflt_lat_layout, include_dflt_floor_plan)
@@ -796,6 +791,7 @@ do n_max = size(shape_input), 1, -1
   if (shape_input(n_max)%ele_id /= '') exit
 enddo
 
+if (allocated(shape_array)) deallocate (shape_array)
 allocate (shape_array(n_max))
 
 do n = 1, n_max

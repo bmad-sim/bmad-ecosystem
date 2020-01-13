@@ -4370,15 +4370,30 @@ case ('use')
 
 case ('value')
 
+  s_fmt = 'es25.17'
+  ix = index(what2, '-f')
+  if (ix /= 0) then
+    ix2 = index(what2(ix:), ' ')
+    if (index('-format', what2(ix:ix+ix2-2)) == 1) then
+      str = what2(1:ix-1)
+      call string_trim(what2(ix+ix2-1:), what2, ix)
+      s_fmt = what2(1:ix)
+      what2 = trim(str) // what2(ix+1:)
+    endif
+  endif
+
+
   call tao_evaluate_expression (what2, 0, .false., value, info, err)
   if (err) return
 
   if (size(value) == 1) then
-    nl=nl+1; write(lines(nl), '(3x, es25.17)') value(1)
+    s_fmt = '(3x, ' // trim(s_fmt) // ')'
+    nl=nl+1; write(lines(nl), s_fmt) value(1)
   else
+    s_fmt = '(i4, a, ' // trim(s_fmt) // ')'
     call re_allocate (lines, size(value)+100, .false.)
     do i = 1, size(value)
-      nl=nl+1; write(lines(nl), '(i4, a, es25.17)') i, ':  ', value(i)
+      nl=nl+1; write(lines(nl), s_fmt) i, ':  ', value(i)
     enddo
   endif
 
