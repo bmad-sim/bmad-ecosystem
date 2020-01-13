@@ -2013,3 +2013,120 @@ class tao_ele_shape_window(Tao_Toplevel):
     def refresh(self, event=None):
         self.ele_frame.refresh()
 
+class tao_building_wall_window(Tao_Toplevel):
+    '''
+    Provides a window for viewing and editing building_wall
+    settings.
+
+    pipe: the tao_interface used to querry/set ele shapes
+    '''
+    def __init__(self, root, pipe, *args, **kwargs):
+        self.root = root
+        self.tao_id = "Plot"
+        Tao_Toplevel.__init__(self, root, *args, **kwargs)
+        self.title("Building Wall Settings")
+        self.pipe = pipe
+        self.table_frame = tk.Frame(self)
+        self.table_frame.pack(fill="both", expand=1)
+        self.button_frame = tk.Frame(self)
+        self.button_frame.pack(fill="x", expand=0)
+
+        self.refresh()
+
+        # Fill the button frame
+        for i in range(3):
+            self.button_frame.grid_columnconfigure(i, weight=1)
+        for i in range(2):
+            self.button_frame.grid_rowconfigure(i, weight=1)
+
+        tk.Button(self.button_frame, text="Add section",
+                command=self.add_section).grid(row=0, column=0, sticky='EW')
+        tk.Button(self.button_frame, text="Add point to selected section",
+                command=self.add_point).grid(row=1, column=0, sticky='EW')
+        tk.Button(self.button_frame, text="Delete selected section",
+                command=self.delete_section).grid(row=0, column=1, sticky='EW')
+        tk.Button(self.button_frame, text="Delete selected point",
+                command=self.delete_point).grid(row=1, column=1, sticky='EW')
+        tk.Button(self.button_frame, text="Default floor_plan settings",
+                command=self.floor_plan_default).grid(row=0, column=2, sticky='EW')
+        tk.Button(self.button_frame, text="Floor_plan settings for selected section",
+                command=self.floor_plan_selected).grid(row=1, column=2, sticky='EW')
+
+
+    def refresh(self, event=None):
+        '''
+        Redraws the table of wall sections with updated settings from tao
+        '''
+        for child in self.table_frame.winfo_children():
+            child.destroy()
+        # Create the building wall table
+        cols = ["Name", "Constraint", "Custom floor_plan settings?"]
+        self.table = ttk.Treeview(self.table_frame, columns=cols)
+        self.table.heading("#0", text="Section/Point")
+        self.table.column("#0", stretch=True, anchor="center")
+        for c in cols:
+            self.table.heading(c, text=c)
+            self.table.column(c, stretch=True, anchor="center")
+        # Get building wall data from tao
+        section_list = self.pipe.cmd_in("python building_wall_list").splitlines()
+        floor_plan_list = self.pipe.cmd_in("python plot_shapes floor_plan").splitlines()
+        for i in range(len(floor_plan_list)):
+            floor_plan_list[i] = floor_plan_list[i].split(';')
+        # Fill with sections and points
+        for sec in section_list:
+            sec = sec.split(';')
+            # Determine whether or not this section
+            # has specialized floor_plan settings
+            sec.append("F")
+            for shape in floor_plan_list:
+                if shape[1] == "building_wall::" + sec[0]:
+                    sec[3] = "T"
+                    break
+            current_level = self.table.insert("", "end", text="Section " + str(sec[0]), values = sec[1:])
+            # Add points for this section
+            points = self.pipe.cmd_in("python building_wall_list " + sec[0]).splitlines()
+            for pt in points:
+                self.table.insert(current_level, "end",
+                        text="Point " + pt.split(';')[0],
+                        values=["", "", ""])
+        self.table.pack(fill="both", expand=1)
+
+    def add_section(self, event=None):
+        '''
+        Adds an empty building wall section
+        '''
+        pass
+
+    def add_point(self, event=None):
+        '''
+        Adds a point to the selected building wall section
+        '''
+        pass
+
+    def delete_section(self, event=None):
+        '''
+        Deletes the selected building wall section
+        '''
+        pass
+
+    def delete_point(self, event=None):
+        '''
+        Deletes the selected building wall point
+        '''
+        pass
+
+    def floor_plan_default(self, event=None):
+        '''
+        Opens a window for editing the floor_plan shape
+        building_wall::*
+        '''
+        pass
+
+    def floor_plan_selected(self, event=None):
+        '''
+        Opens a window for editing the floor_plan shape
+        building_wall::name, where name is the name of the
+        selected building wall section
+        '''
+        pass
+
