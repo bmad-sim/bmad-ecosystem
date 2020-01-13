@@ -42,6 +42,9 @@ class tao_root_window(tk.Tk):
         self.GUI_DIR = (os.environ['ACC_LOCAL_ROOT'] if
                 'ACC_LOCAL_ROOT' in os.environ.keys() else os.environ['ACC_ROOT_DIR'])
         self.GUI_DIR += '/tao/python/pytao/gui'
+        if sys.platform == "linux" # setting icon only works on linux for now
+            self.icon = '@' + self.GUI_DIR + "/assets/tao-logo.xbm"
+        self.iconbitmap(self.icon)
 
         # Window lists (accessible for refreshing)
         self.refresh_windows = {}
@@ -211,6 +214,8 @@ class tao_root_window(tk.Tk):
                 command = self.plot_template_cmd, accelerator = 'Ctrl+T')
         plot_menu.add_command(label = 'Edit Plot...',
                 command = self.plot_region_cmd, accelerator = 'Ctrl+R')
+        plot_menu.add_command(label = 'Building Wall Settings...',
+                command = self.building_wall_cmd)
         self.menubar.add_cascade(label = 'Plot', menu = plot_menu)
 
         beam_menu = tk.Menu(self.menubar, tearoff=0)
@@ -703,6 +708,9 @@ class tao_root_window(tk.Tk):
     def plot_region_cmd(self):
         #win = tao_plot_tr_window(self, self.pipe, "R")
         win = tao_new_plot_template_window(self, self.pipe, None, 'T')
+
+    def building_wall_cmd(self):
+        win = tao_building_wall_window(self, self.pipe)
 
     def wave_cmd(self):
         print ('Wave called')

@@ -2,6 +2,7 @@
 Contains the base classes used by many (if not all) of the windows
 in the GUI for tao.
 '''
+import sys
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -22,6 +23,8 @@ class Tao_Toplevel(tk.Toplevel):
     '''
     def __init__(self, parent, *args, **kwargs):
         tk.Toplevel.__init__(self, parent, class_='Tao', *args, **kwargs)
+        if sys.platform == "linux"
+            self.iconbitmap(self.root.icon)
         # Handle root window list placement
         if 'tao_id' not in self.__dict__:
             self.tao_id = None
