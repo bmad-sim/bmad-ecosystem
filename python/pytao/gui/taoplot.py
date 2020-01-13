@@ -275,7 +275,7 @@ class taoplot:
             pInfoDict[pInfo[i].split(';')[0]] = str_to_tao_param(pInfo[i])
 
         # List of graph names and heights
-        gNameList = []  
+        gNameList = []
         gHeightsList = []
         for i in range(pInfoDict['num_graphs'].value):
             gNameList.append(pInfoDict[('graph['+str(i+1)+']')].value)
@@ -659,7 +659,7 @@ class taoplot:
             y2_floor = -max(eleY2Dict.values())  # Note negative sign
             lines = []
             widths = []
-            colors = []            
+            colors = []
 
             for i in eleIndexList:
                 s1 = eleStartDict[str(i)]
@@ -774,7 +774,7 @@ class taoplot:
                         # Draw wrapped element name
                         latLayoutSubPlot.text(s_max, 1.1*y2_floor, name,ha = 'right',va = 'top',clip_on = True,color = color)
                         latLayoutSubPlot.text(s_min, 1.1*y2_floor, name,ha = 'left',va = 'top',clip_on = True,color = color)
- 
+
                 except KeyError:
                     pass
 
@@ -862,7 +862,7 @@ class taoplot:
                     fpeBaDict[str(fpeIndexList[i])] = 0
                     fpeSfaDict[str(fpeIndexList[i])] = 0
                     fpeEfaDict[str(fpeIndexList[i])] = 0
-                    
+
             #dict keys and entries are strings which match a floor plan element index (eg: '1') to the corresponding information
 
             conv = (180)/(np.pi) #radian to degree conversion
@@ -882,7 +882,7 @@ class taoplot:
                 angEnd = fpeEaDict[str(i)]
                 shape = fpeShapeDict[str(i)]
                 ele_name = fpeNameDict[str(i)]
-                relAngStart = fpeSfaDict[str(i)] 
+                relAngStart = fpeSfaDict[str(i)]
                 relAngEnd = fpeEfaDict[str(i)]
 
                 try:
@@ -936,20 +936,20 @@ class taoplot:
 
 
                     elif shape == 'box' and ele_key == 'sbend' and color != '':
-                        gSubPlotForFloorPlan.plot([x1-off1*np.sin(angStart-relAngStart), x1+off2*np.sin(angStart-relAngStart)], 
+                        gSubPlotForFloorPlan.plot([x1-off1*np.sin(angStart-relAngStart), x1+off2*np.sin(angStart-relAngStart)],
                                                   [y1+off1*np.cos(angStart-relAngStart), y1-off2*np.cos(angStart-relAngStart)], lw = width, color = color)
-                        gSubPlotForFloorPlan.plot([x2-off1*np.sin(angEnd+relAngEnd), x2+off2*np.sin(angEnd+relAngEnd)], 
+                        gSubPlotForFloorPlan.plot([x2-off1*np.sin(angEnd+relAngEnd), x2+off2*np.sin(angEnd+relAngEnd)],
                                                   [y2+off1*np.cos(angEnd+relAngEnd), y2-off2*np.cos(angEnd+relAngEnd)], lw = width, color = color)
                         #draws straight sbend edges
 
-                        intersection = intersect(line([x1-off1*np.sin(angStart), y1+off1*np.cos(angStart)], [x1+off2*np.sin(angStart), y1-off2*np.cos(angStart)]),  
+                        intersection = intersect(line([x1-off1*np.sin(angStart), y1+off1*np.cos(angStart)], [x1+off2*np.sin(angStart), y1-off2*np.cos(angStart)]),
                                                  line([x2-off1*np.sin(angEnd), y2+off1*np.cos(angEnd)], [x2+off2*np.sin(angEnd), y2-off2*np.cos(angEnd+relAngEnd)]))
                         #center of circle used to draw arc edges of sbends
 
                         if intersection == False:
-                            gSubPlotForFloorPlan.plot([x1-off1*np.sin(angStart-relAngStart), x2-off1*np.sin(angEnd+relAngEnd)], 
+                            gSubPlotForFloorPlan.plot([x1-off1*np.sin(angStart-relAngStart), x2-off1*np.sin(angEnd+relAngEnd)],
                                                       [y1+off1*np.cos(angStart-relAngStart), y2+off1*np.cos(angEnd+relAngEnd)], lw = width, color = color)
-                            gSubPlotForFloorPlan.plot([x1+off2*np.sin(angStart-relAngStart), x2+off2*np.sin(angEnd+relAngEnd)], 
+                            gSubPlotForFloorPlan.plot([x1+off2*np.sin(angStart-relAngStart), x2+off2*np.sin(angEnd+relAngEnd)],
                                                       [y1-off2*np.cos(angStart-relAngStart), y2-off2*np.cos(angEnd+relAngEnd)], lw = width, color = color)
                         #draw sbend edges if bend angle is 0
 
@@ -977,7 +977,7 @@ class taoplot:
                                 a4 = min(angle3, angle4)
                             #determines correct start and end angles for arcs
 
-                            gSubPlotForFloorPlan.add_patch(patches.Arc((intersection[0],intersection[1]), 
+                            gSubPlotForFloorPlan.add_patch(patches.Arc((intersection[0],intersection[1]),
                                                             np.sqrt((x1-off1*np.sin(angStart-relAngStart)-intersection[0])**2 + (y1+off1*np.cos(angStart-relAngStart)-intersection[1])**2)*2,
                                                             np.sqrt((x1-off1*np.sin(angStart-relAngStart)-intersection[0])**2 + (y1+off1*np.cos(angStart-relAngStart)-intersection[1])**2)*2,
                                                             theta1 = a1,theta2 = a2,lw = width,color = color))
@@ -990,7 +990,7 @@ class taoplot:
 
 
                     if ele_name != '' and color != '' and np.sin(((angEnd+angStart)/2)) > 0:
-                        gSubPlotForFloorPlan.text(x1+(x2-x1)/2 - 1.3*off1*np.sin(angStart), y1+(y2-y1)/2 + 1.3*off1*np.cos(angStart), 
+                        gSubPlotForFloorPlan.text(x1+(x2-x1)/2 - 1.3*off1*np.sin(angStart), y1+(y2-y1)/2 + 1.3*off1*np.cos(angStart),
                                              ele_name, ha = 'right',va = 'center',color = 'black', rotation = -90+((angEnd+angStart)/2)*conv,clip_on = True,rotation_mode = 'anchor')
 
                     elif ele_name != '' and color != '' and np.sin(((angEnd+angStart)/2)) <= 0:
@@ -1059,7 +1059,7 @@ class taoplot:
 
             try:
 
-                fbwInfo = pipe.cmd_in('python floor_building_wall '+gFullName,no_warn = True).splitlines()
+                fbwInfo = pipe.cmd_in('python building_wall_graph '+gFullName,no_warn = True).splitlines()
                 #list of plotting parameter strings from tao command python floor_building_wall
 
                 fbwCurveList = []
@@ -1068,7 +1068,7 @@ class taoplot:
 
                 fbwCurveList = list(set(fbwCurveList)) #list of unique curve indices
 
-                bwn = pipe.cmd_in('python floor_building_wall '+gFullName+' name',no_warn = True).splitlines()
+                bwn = pipe.cmd_in('python building_wall_list',no_warn = True).splitlines()
                 bwnTypeDict = {}
                 for i in range(len(bwn)):
                     bwnTypeDict[bwn[i].split(';')[0]] = bwn[i].split(';')[1]
@@ -1103,6 +1103,19 @@ class taoplot:
                     while k > 1:
                         kIndex = fbwIndexList.index(k)
                         mIndex = fbwIndexList.index(k-1) #adjacent point to connect to
+                        if bwnTypeDict[str(i)] not in fpsColorDict.keys():
+                            # TODO: This is a temporary fix to deal with building wall segments
+                            # that don't have an associated floor_plan shape
+                            # Currently this will fail to match to wild cards
+                            # in the shape name (e.g. building_wall::* should match
+                            # to every building wall segment, but currently it
+                            # matches to none).  A more sophisticated way of getting the
+                            # floor_plan shape settings for building walls will be required
+                            # in the future, either through a python command in tao or
+                            # with a method on the python to match wild cards to wall segment names
+                            print("No floor_plan shape defined for building_wall segment " + bwnTypeDict[str(i)])
+                            k -= 1
+                            continue
 
                         if fbwRadiusList[kIndex] == 0: #draw building wall line
                             gSubPlotForFloorPlan.plot([fbwXList[kIndex],fbwXList[mIndex]],[fbwYList[kIndex],fbwYList[mIndex]],color = fpsColorDict[bwnTypeDict[str(i)]])
