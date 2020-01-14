@@ -23,7 +23,7 @@ class Tao_Toplevel(tk.Toplevel):
     '''
     def __init__(self, parent, *args, **kwargs):
         tk.Toplevel.__init__(self, parent, class_='Tao', *args, **kwargs)
-        if sys.platform == "linux"
+        if sys.platform == "linux":
             self.iconbitmap(self.root.icon)
         # Handle root window list placement
         if 'tao_id' not in self.__dict__:
