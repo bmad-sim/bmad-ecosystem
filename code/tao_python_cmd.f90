@@ -490,11 +490,13 @@ case ('building_wall_list')
 
   else
     ib = parse_int (line, err, 0, size(s%building_wall%section)); if (err) return
-    bwp => s%building_wall%section(ib)%point
-    do ip = 1, size(bwp)
-      nl=incr(nl); write (li(nl), '(i0, 10a)') ip, ';', re_str(bwp(ip)%z, 6), ';', re_str(bwp(ip)%x, 6), ';',  re_str(bwp(ip)%radius, 6), ';',  &
-                                                                         re_str(bwp(ip)%z_center, 6), ';',  re_str(bwp(ip)%x_center, 6)
-    enddo
+    if (allocated(s%building_wall%section(ib)%point)) then
+      bwp => s%building_wall%section(ib)%point
+      do ip = 1, size(bwp)
+        nl=incr(nl); write (li(nl), '(i0, 10a)') ip, ';', re_str(bwp(ip)%z, 6), ';', re_str(bwp(ip)%x, 6), ';',  re_str(bwp(ip)%radius, 6), ';',  &
+                                                                           re_str(bwp(ip)%z_center, 6), ';',  re_str(bwp(ip)%x_center, 6)
+      enddo
+    endif
   endif
 
 !----------------------------------------------------------------------
