@@ -563,9 +563,9 @@ end type
 ! Building wall structure
 
 type tao_building_wall_point_struct
-  real(rp) z, x                      ! Global floor position
-  real(rp) radius                    ! Arc radius. +r -> CW rotation, same as bends. 
-  real(rp) z_center, x_center        ! Arc center.
+  real(rp) :: z = 0, x = 0                  ! Global floor position
+  real(rp) :: radius = 0                    ! Arc radius. +r -> CW rotation, same as bends. 
+  real(rp) :: z_center = 0, x_center = 0    ! Arc center.
 end type
 
 type tao_building_wall_section_struct
