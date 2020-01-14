@@ -548,7 +548,11 @@ case ('building_wall_point')
 
   is = parse_int(name1(1), err, 1, size(s%building_wall%section));  if (err) return
   bws => s%building_wall%section(is)
-  n = size(bws%point)
+  if (allocated(bws%point)) then
+    n = size(bws%point)
+  else
+    n = 0
+  endif
 
   select case (name1(3))
   case ('delete')
@@ -560,10 +564,14 @@ case ('building_wall_point')
 
   case default
     ip = parse_int(name1(2), err, 1, n+1)
-    call move_alloc(bws%point, bwp_temp)
-    allocate (bws%point(n+1))
-    bws%point(1:ip-1) = bwp_temp(1:ip-1)
-    bws%point(ip+1:) = bwp_temp(ip:)
+    if (allocated(bws%point)) then
+      call move_alloc(bws%point, bwp_temp)
+      allocate (bws%point(n+1))
+      bws%point(1:ip-1) = bwp_temp(1:ip-1)
+      bws%point(ip+1:) = bwp_temp(ip:)
+    else
+      allocate (bws%point(n+1))  ! n = 0 here and ip = 1
+    endif
 
     bws%point(ip)%z        = parse_real(name1(3), err);  if (err) return
     bws%point(ip)%x        = parse_real(name1(4), err);  if (err) return
