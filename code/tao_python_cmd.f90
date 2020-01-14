@@ -3873,7 +3873,6 @@ case ('shape_set')
     return
   end select
 
-  n = size(drawing%ele_shape)
   ix = parse_int(name_arr(2), err, 1, size(drawing%ele_shape)); if (err) return
 
   shape_input%ele_id     = name_arr(3)
@@ -3885,8 +3884,8 @@ case ('shape_set')
   shape_input%multi      = logic_val(name_arr(9), .false., err);  if (err) return
   shape_input%line_width = int_val(name_arr(10), 1, err);         if (err) return
 
-  drawing%ele_shape(n) = tao_ele_shape_input_to_struct (shape_input)
-  call tao_shape_init(drawing%ele_shape(n), err, .true.)
+  drawing%ele_shape(ix) = tao_ele_shape_input_to_struct (shape_input)
+  call tao_shape_init(drawing%ele_shape(ix), err, .true.)
 
 !----------------------------------------------------------------------
 ! Show command pass through
