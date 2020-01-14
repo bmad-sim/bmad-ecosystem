@@ -42,7 +42,7 @@ class tao_root_window(tk.Tk):
         self.GUI_DIR = (os.environ['ACC_LOCAL_ROOT'] if
                 'ACC_LOCAL_ROOT' in os.environ.keys() else os.environ['ACC_ROOT_DIR'])
         self.GUI_DIR += '/tao/python/pytao/gui'
-        if sys.platform == "linux" # setting icon only works on linux for now
+        if sys.platform == "linux": # setting icon only works on linux for now
             self.icon = '@' + self.GUI_DIR + "/assets/tao-logo.xbm"
         self.iconbitmap(self.icon)
 
