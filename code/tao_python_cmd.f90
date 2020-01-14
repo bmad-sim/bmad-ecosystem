@@ -61,6 +61,7 @@ use tao_plot_mod, only: tao_set_floor_plan_axis_label
 use tao_data_and_eval_mod, only: tao_evaluate_expression
 use wall3d_mod, only: calc_wall_radius
 use tao_lattice_calc_mod, only: tao_lattice_calc
+use tao_input_struct
 
 implicit none
 
@@ -133,6 +134,7 @@ type (tao_shape_pattern_point_struct), allocatable :: pat_pt_temp(:)
 type (tao_ele_shape_struct), pointer :: shapes(:)
 type (tao_ele_shape_struct), allocatable :: shapes_temp(:)
 type (tao_ele_shape_struct), pointer :: shape
+type (tao_ele_shape_input) shape_input
 type (photon_element_struct), pointer :: ph
 type (qp_axis_struct) x_ax, y_ax
 type (tao_building_wall_section_struct), pointer :: bws
@@ -234,8 +236,8 @@ call match_word (cmd, [character(40) :: &
           'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
-          'plot_shapes', 'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', &
-          'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', &
+          'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'shape_list', &
+          'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
           'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
           'wave'], ix, matched_name = command)
@@ -583,7 +585,7 @@ case ('building_wall_point')
 !----------------------------------------------------------------------
 ! add or delete a building wall section
 ! Command syntax:
-!   python building_wall_section^^{ix_section}^^{sec_name}^^{sec_constraint}
+!   python building_wall_section {ix_section}^^{sec_name}^^{sec_constraint}
 ! Where:
 !   {ix_section}      -- Section index. Sections with higher indexes will be moved up if adding a section and down if deleting.
 !   {sec_name}        -- Section name.
@@ -1135,30 +1137,30 @@ case ('datum_create')
   endif
 
   d_ptr%merit_type  = name_arr(6)
-  d_ptr%meas_value  = set_real(name_arr(7), 0.0_rp, err);      if (err) return
-  d_ptr%good_meas   = set_logic(name_arr(8), .false., err);    if (err) return
-  d_ptr%ref_value   = set_real(name_arr(9), 0.0_rp, err);      if (err) return
-  d_ptr%good_ref    = set_logic(name_arr(10), .false., err);    if (err) return
-  d_ptr%weight      = set_real(name_arr(11), 0.0_rp, err);      if (err) return
-  d_ptr%good_user   = set_logic(name_arr(12), .true., err);    if (err) return
-  d_ptr%data_source = set_str(name_arr(13), 'lat')
+  d_ptr%meas_value  = real_val(name_arr(7), 0.0_rp, err);      if (err) return
+  d_ptr%good_meas   = logic_val(name_arr(8), .false., err);    if (err) return
+  d_ptr%ref_value   = real_val(name_arr(9), 0.0_rp, err);      if (err) return
+  d_ptr%good_ref    = logic_val(name_arr(10), .false., err);    if (err) return
+  d_ptr%weight      = real_val(name_arr(11), 0.0_rp, err);      if (err) return
+  d_ptr%good_user   = logic_val(name_arr(12), .true., err);    if (err) return
+  d_ptr%data_source = str_val(name_arr(13), 'lat')
   if (name_arr(12) == '') then
     d_ptr%eval_point  = anchor_end$
   else
     call match_word (name_arr(14), anchor_pt_name(1:), d_ptr%eval_point)
   endif
-  d_ptr%s_offset = set_real(name_arr(15), 0.0_rp, err);          if (err) return
-  d_ptr%ix_bunch = set_int(name_arr(16), 1, err);                if (err) return
-  d_ptr%invalid_value = set_real(name_arr(17), 0.0_rp, err);     if (err) return
+  d_ptr%s_offset = real_val(name_arr(15), 0.0_rp, err);          if (err) return
+  d_ptr%ix_bunch = int_val(name_arr(16), 1, err);                if (err) return
+  d_ptr%invalid_value = real_val(name_arr(17), 0.0_rp, err);     if (err) return
   if (n_arr > 17) then
-    d_ptr%spin_axis%n0(1) = set_real(name_arr(18), 0.0_rp, err);   if (err) return
-    d_ptr%spin_axis%n0(2) = set_real(name_arr(19), 0.0_rp, err);   if (err) return
-    d_ptr%spin_axis%n0(3) = set_real(name_arr(20), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%n0(1) = real_val(name_arr(18), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%n0(2) = real_val(name_arr(19), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%n0(3) = real_val(name_arr(20), 0.0_rp, err);   if (err) return
   endif
   if (n_arr == 23) then
-    d_ptr%spin_axis%l(1) = set_real(name_arr(21), 0.0_rp, err);   if (err) return
-    d_ptr%spin_axis%l(2) = set_real(name_arr(22), 0.0_rp, err);   if (err) return
-    d_ptr%spin_axis%l(3) = set_real(name_arr(23), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%l(1) = real_val(name_arr(21), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%l(2) = real_val(name_arr(22), 0.0_rp, err);   if (err) return
+    d_ptr%spin_axis%l(3) = real_val(name_arr(23), 0.0_rp, err);   if (err) return
   endif
 
   d_ptr%exists = tao_data_sanity_check (d_ptr, d_ptr%exists)
@@ -3475,35 +3477,6 @@ case ('plot_graph_manage')
   endif
 
 !----------------------------------------------------------------------
-! Plot shapes
-! Syntax:
-!   python plot_shapes {who}
-! {who} is one of:
-!   lat_layout
-!   floor_plan
-
-case ('plot_shapes')
-
-  select case (line)
-  case ('lat_layout')
-    shapes => s%plot_page%lat_layout%ele_shape
-  case ('floor_plan')
-    shapes => s%plot_page%floor_plan%ele_shape
-  case default
-    call invalid ('Bad {who}')
-    return
-  end select
-
-  do i = 1, size(shapes)
-    shape => shapes(i)
-    if (shape%ele_id == '') cycle
-    nl=incr(nl); write (li(nl), '(i0, 7a, es12.4, 3a, 2(l1, a))') i, ';', &
-          trim(shape%ele_id), ';', trim(shape%shape), ';', trim(shape%color), ';', shape%size, ';', &
-          trim(shape%label), ';', shape%draw, ';', shape%multi
-  enddo
-
-
-!----------------------------------------------------------------------
 ! ********* NOTE: COLWIN IS USING THIS!! *************
 !
 ! Points used to construct a smooth line for a plot curve.
@@ -3706,6 +3679,35 @@ case ('plot1')
 
 
 !----------------------------------------------------------------------
+! lat_layout and floor_plan shapes list
+! Syntax:
+!   python shape_list {who}
+! {who} is one of:
+!   lat_layout
+!   floor_plan
+
+case ('shape_list')
+
+  select case (line)
+  case ('lat_layout')
+    shapes => s%plot_page%lat_layout%ele_shape
+  case ('floor_plan')
+    shapes => s%plot_page%floor_plan%ele_shape
+  case default
+    call invalid ('Bad {who}')
+    return
+  end select
+
+  do i = 1, size(shapes)
+    shape => shapes(i)
+    if (shape%ele_id == '') cycle
+    nl=incr(nl); write (li(nl), '(i0, 7a, es12.4, 3a, 2(l1, a))') i, ';', &
+          trim(shape%ele_id), ';', trim(shape%shape), ';', trim(shape%color), ';', shape%size, ';', &
+          trim(shape%label), ';', shape%draw, ';', shape%multi
+  enddo
+
+
+!----------------------------------------------------------------------
 ! element shape creation or destruction
 ! Command syntax:
 !   python shape_manage <who> <index> <add-or-delete>
@@ -3719,6 +3721,8 @@ case ('plot1')
 !
 ! Example:
 !   python shape_manage floor_plan 2 add
+! Note: After adding a shape use "python shape_set" to set shape parameters. This is important since
+! an added shape is in a ill-defined state.
 
 case ('shape_manage')
 
@@ -3844,6 +3848,45 @@ case ('shape_pattern_point_manage')
       pattern%pt(ip)%s = parse_real(name1(3), err);  if (err) return
       pattern%pt(ip)%x = parse_real(name1(4), err);  if (err) return
     end select
+
+!----------------------------------------------------------------------
+! lat_layout or floor_plan shape set
+! Command syntax:
+!   python shape_set <who>^^<shape_index>^^<ele_name>^^<shape>^^<color>^^
+!                                           <shape_size>^^<type_label>^^<shape_draw?>^^<multi_shape?>^^<line_width>
+! <who> is one of:
+!   lat_layout
+!   floor_plan
+
+case ('shape_set')
+
+  allocate (name_arr(10))
+  call split_this_line (line, name_arr, -1, err, n_arr);  if (err) return
+
+  select case (name_arr(1))
+  case ('lat_layout')
+    drawing => s%plot_page%lat_layout
+  case ('floor_plan')
+    drawing => s%plot_page%floor_plan
+  case default
+    call invalid ('Expected "floor_plan" or "lat_layout" after "shape_manage"')
+    return
+  end select
+
+  n = size(drawing%ele_shape)
+  ix = parse_int(name_arr(2), err, 1, size(drawing%ele_shape)); if (err) return
+
+  shape_input%ele_id     = name_arr(3)
+  shape_input%shape      = name_arr(4)
+  shape_input%color      = name_arr(5)
+  shape_input%size       = real_val(name_arr(6), 0.0_rp, err);   if (err) return
+  shape_input%label      = name_arr(7)
+  shape_input%draw       = logic_val(name_arr(8), .false., err);  if (err) return
+  shape_input%multi      = logic_val(name_arr(9), .false., err);  if (err) return
+  shape_input%line_width = int_val(name_arr(10), 1, err);         if (err) return
+
+  drawing%ele_shape(n) = tao_ele_shape_input_to_struct (shape_input)
+  call tao_shape_init(drawing%ele_shape(n), err, .true.)
 
 !----------------------------------------------------------------------
 ! Show command pass through
@@ -4058,18 +4101,18 @@ case ('var_create')
   enddo
 
   v_ptr%exists      = .true.
-  v_ptr%merit_type  = set_str(name_arr(9), 'limit')
+  v_ptr%merit_type  = str_val(name_arr(9), 'limit')
   v_ptr%good_var    = .true.
   v_ptr%good_opt    = .true.
-  v_ptr%good_user   = set_logic(name_arr(10), .true., err);    if (err) return
+  v_ptr%good_user   = logic_val(name_arr(10), .true., err);    if (err) return
   v_ptr%ele_name    = ele_name
   v_ptr%attrib_name = attrib_name
-  v_ptr%low_lim     = set_real(name_arr(7), -1d30, err);       if (err) return
-  v_ptr%high_lim    = set_real(name_arr(8), 1d30, err);        if (err) return
-  v_ptr%weight      = set_real(name_arr(5), 0.0_rp, err);      if (err) return
-  v_ptr%step        = set_real(name_arr(6), 0.0_rp, err);      if (err) return
-  v_ptr%key_bound   = set_logic(name_arr(11), .false., err);   if (err) return
-  v_ptr%key_delta   = set_real(name_arr(12), 0.0_rp, err);     if (err) return
+  v_ptr%low_lim     = real_val(name_arr(7), -1d30, err);       if (err) return
+  v_ptr%high_lim    = real_val(name_arr(8), 1d30, err);        if (err) return
+  v_ptr%weight      = real_val(name_arr(5), 0.0_rp, err);      if (err) return
+  v_ptr%step        = real_val(name_arr(6), 0.0_rp, err);      if (err) return
+  v_ptr%key_bound   = logic_val(name_arr(11), .false., err);   if (err) return
+  v_ptr%key_delta   = real_val(name_arr(12), 0.0_rp, err);     if (err) return
 
   if (num_ele == 0) then
     v_ptr%model_value => v_ptr%old_value  ! Just to point to somewhere
@@ -5069,7 +5112,7 @@ end subroutine split_this_line
 !----------------------------------------------------------------------
 ! contains
 
-function set_str (str_in, str_dflt) result (str_out)
+function str_val (str_in, str_dflt) result (str_out)
 
 character(*) str_in, str_dflt
 character(max(len(str_in), len(str_dflt))) str_out
@@ -5080,12 +5123,12 @@ else
   str_out = str_in
 endif
 
-end function set_str
+end function str_val
 
 !----------------------------------------------------------------------
 ! contains
 
-function set_logic (str_in, logic_dflt, err) result (logic_out)
+function logic_val (str_in, logic_dflt, err) result (logic_out)
 
 character(*) str_in
 logical logic_dflt, err, logic_out
@@ -5104,12 +5147,12 @@ if (err) then
   call invalid ('Not a logical: ' // str_in)
 endif
 
-end function set_logic
+end function logic_val
 
 !----------------------------------------------------------------------
 ! contains
 
-function set_real (str_in, real_dflt, err) result (real_out)
+function real_val (str_in, real_dflt, err) result (real_out)
 
 character(*) str_in
 real(rp) real_dflt, real_out
@@ -5129,12 +5172,12 @@ if (err) then
   call invalid ('Not a real: ' // str_in)
 endif
 
-end function set_real
+end function real_val
 
 !----------------------------------------------------------------------
 ! contains
 
-function set_int (str_in, int_dflt, err) result (int_out)
+function int_val (str_in, int_dflt, err) result (int_out)
 
 character(*) str_in
 integer int_dflt, int_out
@@ -5154,6 +5197,6 @@ if (err) then
   call invalid ('Not an integer: ' // str_in)
 endif
 
-end function set_int
+end function int_val
 
 end subroutine tao_python_cmd
