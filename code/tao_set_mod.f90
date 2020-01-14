@@ -2944,7 +2944,7 @@ endif
 ! Transfer to drawing
 
 do n = size(ele_shape), 1, -1
-  if (ele_shape(i)%ele_id /= '') exit
+  if (ele_shape(n)%ele_id /= '') exit
 enddo
 
 if (n > size(drawing%ele_shape)) then
