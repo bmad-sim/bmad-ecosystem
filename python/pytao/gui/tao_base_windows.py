@@ -48,6 +48,22 @@ class Tao_Toplevel(tk.Toplevel):
         tk.Toplevel.destroy(self)
 
 
+class Tao_Popup(Tao_Toplevel):
+    '''
+    Provides a more convenient way to initialize a toplevel
+    window that doesn't need to be its own subclass, used for
+    things like ele_shape windows, dialog boxes, etc
+
+    parent: the parent window
+    root: the tao root window
+    tao_id: which set of refresh windows this window should belong to (optional)
+    '''
+    def __init__(self, parent, root, tao_id=None, *args, **kwargs):
+        self.root = root
+        self.tao_id = tao_id
+        Tao_Toplevel.__init__(self, parent, *args, **kwargs)
+
+
 #-----------------------------------------------------
 # List window
 
@@ -191,7 +207,6 @@ class tao_scroll_frame(tk.Frame):
         self.update_idletasks()
 
     def scrollhelper(self, event):
-        print(event.__dict__)
         self._canvas.configure(scrollregion=self._canvas.bbox("all"))
         new_width = self.frame.winfo_geometry()
         new_width = int(new_width[:new_width.find('x')])
@@ -205,7 +220,6 @@ class tao_scroll_frame(tk.Frame):
         #self._canvas.configure(width=new_width)
         # Set the width of the frame to match the canvas
         new_frame_width = self._canvas.winfo_width()
-        print(new_frame_width)
         if new_frame_width > 1:
             self._canvas.itemconfigure("self.frame", width=new_frame_width)
         self._old_width = new_width
@@ -1238,6 +1252,11 @@ class ele_shape_frame(tk.Frame):
         self.grid_rowconfigure(2, weight=1)
         self.type = which
 
+        # Format string for the shape_set command
+        self.shape_set_format = "python shape_set " + self.type + "^^" \
+                + "{shape_ix}^^{ele_id}^^{shape}^^{color}^^{size}" \
+                + "^^{label}^^{draw}^^{multi}^^{line_width}"
+
         self.title_text = tk.StringVar()
         self.title = tk.Label(self, textvariable=self.title_text, font=('Sans', 16, 'bold'))
         self.title.grid(row=0, column=0, sticky='EW')
@@ -1245,8 +1264,9 @@ class ele_shape_frame(tk.Frame):
         # Shape table
         self.table_frame = tk.Frame(self)
         self.table_frame.grid(row=1, column=0, sticky='NSEW')
-        self.title_list = ["Index", "Ele ID", "Shape", "Color", "Size", "Label", "Draw", "Multi"]
-        self.keys = ["", "ele_id", "shape", "color", "size", "label", "draw", "multi"]
+        self.title_list = ["Index", "Ele ID", "Shape", "Color",
+                "Size", "Label", "Draw", "Multi", "Line Width"]
+        self.keys = ["shape_ix", "ele_id", "shape", "color", "size", "label", "draw", "multi", "line_width"]
         self.shape_table = ttk.Treeview(self.table_frame, columns=self.title_list, show='headings')
         self.shape_list = []
         self.widths = []
@@ -1294,7 +1314,7 @@ class ele_shape_frame(tk.Frame):
     def refresh(self):
         '''
         Sets the table contents equal to the output of
-        python plot_shapes lat_layout/floor_plan as requested
+        python shape_list lat_layout/floor_plan as requested
         '''
         if self.type not in ["lat_layout", "floor_plan"]:
             return
@@ -1304,7 +1324,7 @@ class ele_shape_frame(tk.Frame):
         self.shape_list = []
 
         # Fill rows
-        ele_shapes = self.pipe.cmd_in('python plot_shapes ' + self.type)
+        ele_shapes = self.pipe.cmd_in('python shape_list ' + self.type)
         ele_shapes = ele_shapes.splitlines()
         for row in ele_shapes:
             row = row.split(';')
@@ -1343,8 +1363,9 @@ class ele_shape_frame(tk.Frame):
         x = self.shape_table.focus()
         current_row = self.shape_table.item(x)
         current_row = current_row['values']
-        current_ix = int(current_row[0]) - 1
-        return current_ix
+        if current_row == "":
+            return None
+        return int(current_row[0]) - 1
 
     def edit_shape(self, event=None):
         '''
@@ -1368,7 +1389,7 @@ class ele_shape_frame(tk.Frame):
         def wid_maker(i):
             '''Helper function'''
             return tao_parameter(self.keys[i], types[i-1], "T", current_row[i])
-        types = ["STR", "ENUM", "ENUM", "REAL", "ENUM", "LOGIC", "LOGIC"]
+        types = ["STR", "ENUM", "ENUM", "REAL", "ENUM", "LOGIC", "LOGIC", "REAL"]
         for i in range(1, len(current_row)):
             params.append(tk_tao_parameter(wid_maker(i), widget_frame, self.pipe,
                     prefix="shape" if types[i-1]=="ENUM" else ""))
@@ -1388,34 +1409,26 @@ class ele_shape_frame(tk.Frame):
         b = tk.Button(button_frame, text="Apply", command=write_to_table)
         b.pack()
 
-    def move_shape(self, new_pos):
+    def swap_shapes(self, ix1, ix2):
         '''
-        Moves the selected shape to the new position and
-        shifts all of the lower shapes down one index
-        Note: the ele_shapes are indexed starting at 1 in Tao
-        self.shape_table and self.shape_list are indexed starting at 0
-        new_pos should be index appropriate for the Tao list
+        Swaps the shapes with indices ix1 and ix2
+        (0 based) and refreshes the window
         '''
-        if not isinstance(new_pos, int):
+        # Input validation
+        if not (isinstance(ix1, int) and isinstance(ix2, int)):
             return
-        if new_pos < 1:
+        if ix1 == ix2:
             return
-        # Get currently selected row
-        current_ix = self.get_focus_ix()
-        current_row = self.shape_list[current_ix]
-        if current_ix != new_pos-1:
-            # Move current row to new_pos
-            x = self.shape_table.focus()
-            self.shape_table.move(x, "", new_pos-1)
-            current_row = self.shape_list.pop(current_ix)
-            self.shape_list = (self.shape_list[:new_pos-1]
-                    + [current_row] + self.shape_list[new_pos-1:])
-            # Remark indices
-            for i in range(len(self.shape_list)):
-                self.shape_table.set(self.shape_table.get_children()[i],
-                        column=self.title_list[0], value=str(i+1))
-                #print(self.shape_list)
-                self.shape_list[i][0] = str(i+1)
+        if ix1 >= len(self.shape_list) or ix2 >= len(self.shape_list):
+            return
+        # Swap the shapes
+        self.shape_list[ix1][0] = str(ix2+1)
+        self.shape_list[ix2][0] = str(ix1+1)
+        cmd_str = self.shape_set_format.format(**dict(zip(self.keys, self.shape_list[ix1])))
+        self.pipe.cmd_in(cmd_str)
+        cmd_str = self.shape_set_format.format(**dict(zip(self.keys, self.shape_list[ix2])))
+        self.pipe.cmd_in(cmd_str)
+        self.refresh()
 
     def move_up(self, event=None):
         '''
@@ -1424,35 +1437,9 @@ class ele_shape_frame(tk.Frame):
         '''
         # Get currently selected row
         current_ix = self.get_focus_ix()
-        current_row = self.shape_list[current_ix]
-        if current_ix == 0:
-            return # can't move further up
-        self.move_shape(current_ix)
-
-        # Run set commands
-        # Current row:
-        params = []
-        def p_maker(i, plist):
-            '''Helper function'''
-            return tao_parameter(self.keys[i], types[i-1], "T", plist[i])
-        types = ["STR", "ENUM", "ENUM", "REAL", "ENUM", "LOGIC", "LOGIC"]
-        for i in range(1, len(current_row)):
-            params.append(tk_tao_parameter(p_maker(i, self.shape_list[current_ix-1]), self, self.pipe,
-                    prefix="shape" if types[i-1]=="ENUM" else ""))
-        tao_set(params, "set " + self.type + " ele_shape(" + str(current_ix) + ")%", self.pipe, overide=True)
-        for w in params:
-            w.tk_wid.destroy()
-            w.tk_label.destroy()
-        # Row that was previously above current row
-        params = []
-        for i in range(1, len(self.shape_list[current_ix])):
-            params.append(tk_tao_parameter(p_maker(i, self.shape_list[current_ix]), self, self.pipe,
-                    prefix="shape" if types[i-1]=="ENUM" else ""))
-        tao_set(params, "set " + self.type + " ele_shape(" + str(current_ix+1) + ")%", self.pipe, overide=True)
-        for w in params:
-            w.tk_wid.destroy()
-            w.tk_label.destroy()
-        self.refresh()
+        if current_ix == None:
+            return
+        self.swap_shapes(current_ix, current_ix-1)
 
     def move_down(self, event=None):
         '''
@@ -1461,35 +1448,9 @@ class ele_shape_frame(tk.Frame):
         '''
         # Get currently selected row
         current_ix = self.get_focus_ix()
-        current_row = self.shape_list[current_ix]
-        if current_ix == len(self.shape_list)-1:
-            return # can't move further down
-        self.move_shape(current_ix+2)
-
-        # Run set commands
-        # Current row:
-        params = []
-        def p_maker(i, plist):
-            '''Helper function'''
-            return tao_parameter(self.keys[i], types[i-1], "T", plist[i])
-        types = ["STR", "ENUM", "ENUM", "REAL", "ENUM", "LOGIC", "LOGIC"]
-        for i in range(1, len(current_row)):
-            params.append(tk_tao_parameter(p_maker(i, self.shape_list[current_ix+1]), self, self.pipe,
-                    prefix="shape" if types[i-1]=="ENUM" else ""))
-        tao_set(params, "set " + self.type + " ele_shape(" + str(current_ix+2) + ")%", self.pipe, overide=True)
-        for w in params:
-            w.tk_wid.destroy()
-            w.tk_label.destroy()
-        # Row that was previously below current row
-        params = []
-        for i in range(1, len(self.shape_list[current_ix])):
-            params.append(tk_tao_parameter(p_maker(i, self.shape_list[current_ix]), self, self.pipe,
-                    prefix="shape" if types[i-1]=="ENUM" else ""))
-        tao_set(params, "set " + self.type + " ele_shape(" + str(current_ix+1) + ")%", self.pipe, overide=True)
-        for w in params:
-            w.tk_wid.destroy()
-            w.tk_label.destroy()
-        self.refresh()
+        if current_ix == None:
+            return
+        self.swap_shapes(current_ix, current_ix+1)
 
     def duplicate_item(self, event=None):
         '''
@@ -1497,19 +1458,14 @@ class ele_shape_frame(tk.Frame):
         the shape table at the next index
         '''
         ix = self.get_focus_ix()
+        if ix == None:
+            return
         # Add a new row in tao
         self.pipe.cmd_in("python shape_manage " + self.type + " "
                 + str(ix+2) + " add")
         # Set the new row to be a copy of the selected row
-        params = []
-        def p_maker(i, plist):
-            '''Helper function'''
-            return tao_parameter(self.keys[i], types[i-1], "T", plist[i])
-        types = ["STR", "ENUM", "ENUM", "REAL", "ENUM", "LOGIC", "LOGIC"]
-        for i in range(1, len(self.shape_list[ix])):
-            params.append(tk_tao_parameter(p_maker(i, self.shape_list[ix]), self, self.pipe,
-                    prefix="shape" if types[i-1]=="ENUM" else ""))
-        tao_set(params, "set " + self.type + " ele_shape(" + str(ix+2) + ")%", self.pipe, overide=True)
+        self.shape_list[ix][0] = str(ix+2)
+        self.pipe.cmd_in(self.shape_set_format.format(**dict(zip(self.keys, self.shape_list[ix]))))
         self.refresh()
 
     def delete_item(self, event=None):
@@ -1518,8 +1474,7 @@ class ele_shape_frame(tk.Frame):
         and shifts other ele_shapes accordingly
         '''
         ix = self.get_focus_ix() + 1
-        self.pipe.cmd_in("python shape_manage " + self.type + " "
-                + str(ix) + " delete")
+        self.pipe.cmd_in("python shape_manage " + self.type + " " + str(ix) + " delete")
         self.refresh()
 
 
@@ -1531,7 +1486,9 @@ class ele_shape_frame(tk.Frame):
         # Add the shape
         self.pipe.cmd_in("python shape_manage " + self.type + " 1 add")
         # Set the ele_id non-empty to make it show up in the table
-        self.pipe.cmd_in("set " + self.type + " ele_shape(1)%ele_id = \"None\"")
+        cmd_str = self.shape_set_format.format(shape_ix=1, ele_name="None", shape="box",
+                color="black", shape_size=0, label="none", draw="F", multi="F", line_width=0)
+        self.pipe.cmd_in(cmd_str)
         # Refresh table
         self.refresh()
 
@@ -1545,7 +1502,8 @@ class ele_shape_frame(tk.Frame):
         self.pipe.cmd_in("python shape_manage " + self.type
                 + " " + str(ix) + " add")
         # Set the ele_id non-empty to make it show up in the table
-        self.pipe.cmd_in("set " + self.type + " ele_shape("
-                + str(ix) + ")%ele_id = \"None\"")
+        cmd_str = self.shape_set_format.format(shape_ix=ix, ele_id="None", shape="box",
+                color="black", size=0, label="none", draw="F", multi="F", line_width=0)
+        self.pipe.cmd_in(cmd_str)
         # Refresh table
         self.refresh()
