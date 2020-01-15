@@ -3701,9 +3701,9 @@ case ('shape_list')
   do i = 1, size(shapes)
     shape => shapes(i)
     if (shape%ele_id == '') cycle
-    nl=incr(nl); write (li(nl), '(i0, 7a, es12.4, 3a, 2(l1, a))') i, ';', &
+    nl=incr(nl); write (li(nl), '(i0, 7a, es12.4, 3a, 2(l1, a), 2a)') i, ';', &
           trim(shape%ele_id), ';', trim(shape%shape), ';', trim(shape%color), ';', shape%size, ';', &
-          trim(shape%label), ';', shape%draw, ';', shape%multi
+          trim(shape%label), ';', shape%draw, ';', shape%multi, ';', int_str(shape%line_width)
   enddo
 
 
