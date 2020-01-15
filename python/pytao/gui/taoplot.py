@@ -1074,7 +1074,7 @@ class taoplot:
                     bwnTypeDict[bwn[i].split(';')[0]] = bwn[i].split(';')[1]
                 #dictionary where keys are wall indices and values are the corresponding building wall types
 
-                fps = pipe.cmd_in('python plot_shapes floor_plan',no_warn = True).splitlines()
+                fps = pipe.cmd_in('python shape_list floor_plan',no_warn = True).splitlines()
                 fpsTypeDict = {} #building wall element types
                 fpsColorDict = {} #building wall segment colors
                 for i in range(len(fps)):
