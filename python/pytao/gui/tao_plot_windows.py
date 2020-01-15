@@ -2041,7 +2041,7 @@ class tao_building_wall_window(Tao_Toplevel):
 
         tk.Button(self.button_frame, text="Add section",
                 command=self.add_section).grid(row=0, column=0, sticky='EW')
-        tk.Button(self.button_frame, text="Add point to selected section",
+        tk.Button(self.button_frame, text="Add point",
                 command=self.add_point).grid(row=1, column=0, sticky='EW')
         tk.Button(self.button_frame, text="Delete selected section",
                 command=self.delete_section).grid(row=0, column=1, sticky='EW')
@@ -2069,7 +2069,7 @@ class tao_building_wall_window(Tao_Toplevel):
             self.table.column(c, stretch=True, anchor="center")
         # Get building wall data from tao
         section_list = self.pipe.cmd_in("python building_wall_list").splitlines()
-        floor_plan_list = self.pipe.cmd_in("python plot_shapes floor_plan").splitlines()
+        floor_plan_list = self.pipe.cmd_in("python shape_list floor_plan").splitlines()
         for i in range(len(floor_plan_list)):
             floor_plan_list[i] = floor_plan_list[i].split(';')
         # Fill with sections and points
@@ -2091,17 +2091,100 @@ class tao_building_wall_window(Tao_Toplevel):
                         values=["", "", ""])
         self.table.pack(fill="both", expand=1)
 
+    def get_selected(self, event=None):
+        '''
+        Returns the selected row in the table, for
+        use with other methods like add_point, etc.
+        '''
+        x = self.table.focus()
+        #row = self.table.item(x)
+        #p = self.table.parent(x)
+        #print(row)
+        return x
+
     def add_section(self, event=None):
         '''
         Adds an empty building wall section
         '''
-        pass
+        row = self.get_selected()
+        # Add section below the selected section
+        if row != "": #if a row is selected
+            if self.table.parent(row) == "":
+                # if a section is selected
+                section = row
+            else: # if a point is selected
+                section = self.table.parent(row)
+            section_name = self.table.item(section, option="text")
+            new_ix = int(section_name.split(' ')[1]) + 1
+        else: #if nothing is selected -> add section at end
+            new_ix = len(self.table.get_children()) + 1
+
+        # Open a window to specify name and constraint type
+        win = Tao_Popup(self, self.root)
+        win.title("New Building Wall Section")
+        tk.Label(win, text="Name (optional):").grid(row=0, column=0, sticky='W')
+        name_var = tk.StringVar()
+        tk.Entry(win, textvariable=name_var).grid(row=0, column=1, sticky='EW')
+        tk.Label(win, text="Constraint type").grid(row=1, column=0, sticky='W')
+        constraint_var = tk.StringVar()
+        tk.OptionMenu(win, constraint_var, "None", "Left side", "Right side").grid(
+                row=1, column=1, sticky='EW')
+        constraint_var.set("None")
+
+        def create(event=None):
+            '''Create the new section'''
+            name = name_var.get()
+            constraint = constraint_var.get().lower()
+            constraint = constraint.replace(' ', '_')
+            self.pipe.cmd_in("python building_wall_section "
+                    + str(new_ix) + "^^" + name + "^^" + constraint)
+            win.destroy()
+            self.refresh()
+        tk.Button(win, text="Create", command=create).grid(
+                row=2, column=0, columnspan=2, sticky='EW')
+
+
 
     def add_point(self, event=None):
         '''
         Adds a point to the selected building wall section
         '''
-        pass
+        row = self.get_selected()
+        # Add point to the current section
+        if row != "": #if a row is selected
+            if self.table.parent(row) == "":
+                # if a section is selected -> put at end
+                section = row
+                point_ix = len(self.table.get_children(row)) + 1
+            else: # if a point is selected -> put new point after
+                section = self.table.parent(row)
+                point_name = self.table.item(row, option="text")
+                point_ix = int(point_name.split(' ')[1]) + 1
+            section_name = self.table.item(section, option="text")
+            section_ix = int(section_name.split(' ')[1]) + 1
+        else: #if nothing is selected -> do nothing
+            return
+
+        # Open a window to specify name and constraint type
+        win = Tao_Popup(self, self.root)
+        win.title("New Building Wall Point")
+        tk.Label(win, text="Name (optional):").grid(row=0, column=0, sticky='W')
+        name_var = tk.StringVar()
+        tk.Entry(win, textvariable=name_var).grid(row=0, column=1, sticky='EW')
+        tk.Label(win, text="Constraint type").grid(row=1, column=0, sticky='W')
+        constraint_var = tk.StringVar()
+        tk.OptionMenu(win, constraint_var, "None", "Left side", "Right side").grid(
+                row=1, column=1, sticky='EW')
+        constraint_var.set("None")
+
+        def create(event=None):
+            '''Create the new section'''
+            self.pipe.cmd_in("python building_wall_point "
+                    + str(section_ix) + "^^" + str(point_ix) + "^^" + name + "^^" + constraint)
+            win.destroy()
+            self.refresh()
+        tk.Button(win, text="Create", command=create).grid(
+                row=2, column=0, columnspan=2, sticky='EW')
 
     def delete_section(self, event=None):
         '''
