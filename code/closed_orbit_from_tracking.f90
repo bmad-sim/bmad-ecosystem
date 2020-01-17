@@ -1,6 +1,5 @@
 !+
-! Subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, 
-!                                         eps_rel, eps_abs, init_guess, err_flag)
+! Subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, eps_rel, eps_abs, init_guess, err_flag)
 !
 ! Subroutine to find the closed orbit via tracking. 
 !
@@ -15,15 +14,15 @@
 ! Input:
 !   lat     -- lat_struct: Lat to track through.
 !   i_dim    -- Integer: 
-!       = 2,4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
+!       = 2,4  Transverse closed orbit at constant energy.
 !       = 6    Full closed orbit using the entire transfer 6x6 matrix.
 !   eps_rel(6) -- Real(rp), optional: Relative allowed error.
 !                   Default is bmad_com%rel_tol_tracking
 !   eps_abs(6) -- Real(rp), optional: Absolute allowed error.
 !                   Default is bmad_com%abs_tol_tracking
-!   init_guess -- Coord_struct, optional: Starting guess for the closed 
-!                orbit at the start of the lat. If not present then
-!                the origin will be used. 
+!   init_guess -- Coord_struct, optional: Starting guess for the closed orbit at the start of the lattice.
+!                   Set init_guess%vec(6) to the appropriate value of pz when calculating off-energy orbits.
+!                   If not present then the origin will be used. 
 !
 ! Output:
 !   closed_orb(0:) -- Coord_struct, allocatable: closed orbit. 
@@ -31,8 +30,7 @@
 !   err_flag       -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
-                                                 eps_rel, eps_abs, init_guess, err_flag)
+subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, eps_rel, eps_abs, init_guess, err_flag)
 
 use bmad_interface, except_dummy => closed_orbit_from_tracking
 
@@ -97,8 +95,7 @@ elseif (nd == 6) then
                       lat%ele(i)%value(voltage$) /= 0) rf_on = .true.
   enddo
   if (.not. rf_on) then
-    print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ', &
-                                    'RF IS NOT ON FOR 6-DIM TRACKING!'
+    print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ', 'RF IS NOT ON FOR 6-DIM TRACKING!'
     return
   endif
 else
@@ -135,8 +132,7 @@ do j = 1, jmax
   orb_diff = closed_orb(n_ele)%vec - closed_orb(0)%vec
   amp = max(abs(closed_orb(0)%vec), abs(closed_orb(n_ele)%vec))
 
-  if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + &
-                                       rel_err(1:nd) * amp(1:nd) ) ) then
+  if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + rel_err(1:nd) * amp(1:nd) ) ) then
     if (nd == 2 .or. nd == 4) then
       call set_on_off (rfcavity$, lat, restore_state$, saved_values = on_off_save)
     endif
@@ -159,8 +155,7 @@ do j = 1, jmax
     do i = 2, nd, 2
       i1 = i-1
       i2 = i
-      if (.not. all( abs(orb_diff(i1:i2)) < abs_err(i1:i2) + &
-                                     rel_err(i1:i2) * amp(i1:i2) )) then
+      if (.not. all( abs(orb_diff(i1:i2)) < abs_err(i1:i2) + rel_err(i1:i2) * amp(i1:i2) )) then
         msk(nnd+1:nnd+2) = [i1, i2 ]
         nnd = nnd + 2
       endif
@@ -192,8 +187,7 @@ do j = 1, jmax
   ! if we are here then we did not make a guess using the matrix.
   ! The new guess is the average of the start and end orbits.
 
-  closed_orb(0)%vec(1:nd) = &
-            (closed_orb(0)%vec(1:nd) + closed_orb(n_ele)%vec(1:nd)) / 2
+  closed_orb(0)%vec(1:nd) = (closed_orb(0)%vec(1:nd) + closed_orb(n_ele)%vec(1:nd)) / 2
 
 enddo
 
