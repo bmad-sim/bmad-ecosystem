@@ -3133,6 +3133,12 @@ end subroutine qp_draw_circle
 !   color         -- Character(*), optional: Line color.
 !   line_pattern  -- Character(*), optional: Line type. 
 !   clip          -- Logical, optional: Clip at graph boundary?
+!   style         -- Character(*), optional: Part of drawing this is for.
+!                   'PLOT'     -- Plot data lines.
+!                   'GRID'     -- Graph grid.
+!                   'AXIS'     -- Graph axis.
+!                   'LEGEND    -- Line legend.
+!                   'STD'      -- Everything else. Default.
 !-
 
 subroutine qp_draw_polyline (x, y, units, width, color, line_pattern, clip, style)
@@ -3911,7 +3917,7 @@ end subroutine qp_get_symbol_attrib
 !                 'PLOT'     -- Plot data lines.
 !                 'STD'      -- Everything else.
 !   line    -- qp_line_struct: Attributes of a line
-!     %type -- Character(*): Line type.
+!     %pattern   -- Character(*): 'solid', etc.
 !     %width     -- Integer: Size of the line.
 !     %color     -- Character(*): Line color.
 !-
