@@ -132,6 +132,7 @@ type tao_graph_input
   logical :: draw_grid = .true.
   logical :: draw_curve_legend = .true.
   logical :: draw_only_good_user_data_or_vars = .true.
+  type (tao_floor_plan_orbit_struct) :: floor_plan_orbit = tao_floor_plan_orbit_struct()
   type (qp_point_struct) :: text_legend_origin = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
   type (qp_point_struct) :: curve_legend_origin = qp_point_struct(5.0_rp, -2.0_rp, 'POINTS/GRAPH/LT')
   type (qp_rect_struct) :: margin = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')

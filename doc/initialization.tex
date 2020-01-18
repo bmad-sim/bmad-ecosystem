@@ -1804,8 +1804,8 @@ namelists should be placed directly after their respective
     graph%ix_universe            = <integer>   ! Default = -1 => Use default universe
     graph%floor_plan_rotation    = <real>      ! Rotation of floor plan plot: 1.0 -> 360 deg. 
     graph%floor_plan_view        = <string>    ! View plane for floor plan plot. default = 'zx'
-    graph%floor_plan_orbit_scale = <real>      ! Scale for drawing orbits. Default: 0 -> Do not draw.
-    graph%floor_plan_orbit_color = <string>    ! Color of orbit. Default = 'RED'
+    graph%floor_plan_orbit       = <floor_plan_orbit_struct>    
+                                                      ! Structure for drawing oribts on a floor_plan.
     graph%floor_plan_flip_label_side      = <logical> ! Draw element label on other side of element?
     graph%floor_plan_size_is_absolute     = <logical> ! Shape sizes scaled to absolute dimensions?
     graph%floor_plan_draw_only_first_pass = <logical> ! Draw only first pass with multipass elements?
@@ -2290,9 +2290,22 @@ rotations. Example: (\sref{s:init.plot})
 If element labels are to be drawn, on which side the labels are drawn can be flipped by setting 
 \vn{graph%floor_plan_flip_label_side} to True.
 
+The beam orbit can be drawn upon the floor plan.
+The beam orbit 
+The \vn{graph%floor_plan_orbit} structure controls how the orbit is drawn.
+This structure has components:
+\begin{example}
+  type tao_floor_plan_orbit_struct
+    scale   = <real>              ! Scale for the orbit. Default = 0 => No orbit plot.
+    color   = "<color-name>"      ! Line color. Default = "red".
+    pattern = "<pattern-name>"    ! Line pattern. Default = "solid_line".
+    width   = <integer>           ! Line width. Default = 1.
+  end type
+\end{example}
+The \vn{scale} component scales from the orbit
 
-The beam orbit can be drawn upon the floor plan. This is done by setting
-\vn{graph%floor_plan_orbit_scale} to something nonzero. A value of zero suppresses the drawing of
+This is done by setting
+\vn{graph%floor_plan_orbit%scale} to something nonzero. A value of zero suppresses the drawing of
 the orbit. This scale is used to scale the distance between the centerline of the elements and the
 orbit. So a with a value of 100.0, a 1~cm orbit is drawn 1~meter from the centerline.  Note: If
 \vn{graph%floor_plan_orbit_scale} is not unity, the plotted orbit when going through a \vn{patch}
@@ -3017,7 +3030,7 @@ properties. The structures that \tao uses are as follows.
 The \vn{qp_axis_struct} structure defines the properties of a graph axis
 \begin{example}
   type qp_axis_struct
-    label             = <string>   ! Axis label string.
+    label             = "<string>" ! Axis label string.
     min               = <real>     ! Min is the left or bottom axis number.
     max               = <real>     ! Max is the right or top axis number.
     number_offset     = <real>     ! Offset from axis line in inches.

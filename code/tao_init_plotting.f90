@@ -480,11 +480,10 @@ do  ! Loop over plot files
       grph%correct_xy_distortion            = graph%correct_xy_distortion
       grph%draw_only_good_user_data_or_vars = graph%draw_only_good_user_data_or_vars
       grph%draw_curve_legend                = graph%draw_curve_legend
+      grph%floor_plan_orbit                 = graph%floor_plan_orbit
       grph%floor_plan_view                  = graph%floor_plan_view
-      grph%floor_plan_orbit_color           = graph%floor_plan_orbit_color
       grph%floor_plan_flip_label_side       = graph%floor_plan_flip_label_side
       grph%floor_plan_rotation              = graph%floor_plan_rotation
-      grph%floor_plan_orbit_scale           = graph%floor_plan_orbit_scale
       grph%floor_plan_size_is_absolute      = graph%floor_plan_size_is_absolute
       grph%floor_plan_draw_only_first_pass  = graph%floor_plan_draw_only_first_pass
       grph%title_suffix                     = ''
@@ -493,6 +492,8 @@ do  ! Loop over plot files
       if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 6
       if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
       if (grph%y2%major_div < 0 .and. grph%y2%major_div_nominal < 0) grph%y2%major_div_nominal = 4
+      if (graph%floor_plan_orbit_color /= '') grph%floor_plan_orbit%color = graph%floor_plan_orbit_color ! Old style
+      if (graph%floor_plan_orbit_scale /= -1) grph%floor_plan_orbit%scale = graph%floor_plan_orbit_scale ! Old style
 
       call qp_calc_axis_places (grph%x)
 
@@ -527,6 +528,10 @@ do  ! Loop over plot files
         if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
                               'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!', 'IN FILE: ' // plot_file)
         plt%autoscale_gang_y = .false.  ! True does not make sense.
+      endif
+
+      if (grph%type == 'floor_plan') then
+        graph%n_curve = 0
       endif
 
       if (graph%n_curve == 0) then

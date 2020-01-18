@@ -1560,10 +1560,20 @@ case ('floor_plan_flip_label_side')
   call tao_set_logical_value(this_graph%floor_plan_flip_label_side, component, value, error)
 case ('floor_plan_rotation')
   call tao_set_real_value(this_graph%floor_plan_rotation, component, value, error, dflt_uni = u%ix_uni)
-case ('floor_plan_orbit_scale')
-  call tao_set_real_value(this_graph%floor_plan_orbit_scale, component, value, error, dflt_uni = u%ix_uni)
-case ('floor_plan_orbit_color')
-  this_graph%floor_plan_orbit_color = value
+case ('floor_plan_orbit')
+  select case (sub_comp)
+  case ('scale')
+    call tao_set_real_value(this_graph%floor_plan_orbit%scale, component, value, error, dflt_uni = u%ix_uni)
+  case ('color')
+    this_graph%floor_plan_orbit%color = value
+  case ('pattern')
+    this_graph%floor_plan_orbit%pattern = value
+  case ('width')
+    call tao_set_integer_value(this_graph%floor_plan_orbit%width, component, value, error, 1, 999)
+  case default
+    call out_io (s_error$, r_name, "BAD GRAPH floor_plan_orbit SUB-COMPONENT: " // sub_comp)
+    return
+  end select
 case ('floor_plan_view')
   if (.not. any(value == tao_floor_plan_view_name)) then
     call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")

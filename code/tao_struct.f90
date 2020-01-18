@@ -176,7 +176,7 @@ type tao_curve_struct
   character(40) :: message_text = ''     ! Informational message to draw with graph.
   character(40) :: units = ''            ! Data units.
   character(60) :: component = ''        ! Who to plot. Eg: 'meas - design'
-  character(80) :: why_invalid = ''      ! Informative string to print.
+  character(80) :: why_invalid = '???'   ! Informative string to print.
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph
   type (tao_histogram_struct) hist
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
@@ -211,6 +211,13 @@ type tao_curve_struct
   logical :: valid = .false.             ! valid data? 
 end type
 
+type tao_floor_plan_orbit_struct
+  real(rp) :: scale = 0      ! Scale factor for drawing orbits. 0 -> Do not draw.
+  character(16) :: color = 'red'
+  character(16) :: pattern = 'solid'
+  integer :: width = 1
+end type
+
 ! A graph is a collection of overlayed curves with associated graph title, etc.
 ! For example a graph could contain just the horizontal orbit or could
 ! contain both overlayed horizontal and vertical orbits.
@@ -220,43 +227,42 @@ type tao_graph_struct
   character(40) :: type = ''          ! 'data', 'lat_layout', 'phase_space', 'histogram', 'dynamic_aperture'
   character(100) :: title = ''
   character(100) :: title_suffix = ''
-  character(100) :: text_legend(10) = ''          ! Array for holding descriptive info.
-  character(100) :: text_legend_out(10) = ''      ! Array for holding descriptive info.
-  character(60) :: component = ''             ! Who to plot. Eg: 'meas - design'
+  character(100) :: text_legend(10) = ''            ! Array for holding descriptive info.
+  character(100) :: text_legend_out(10) = ''        ! Array for holding descriptive info.
+  character(60) :: component = ''                   ! Who to plot. Eg: 'meas - design'
   character(2) :: floor_plan_view = 'zx'
-  character(16) :: floor_plan_orbit_color = 'RED'
-  character(80) :: why_invalid = ''           ! Informative string to print.
+  character(80) :: why_invalid = '???'              ! Informative string to print.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
+  type (tao_floor_plan_orbit_struct) :: floor_plan_orbit = tao_floor_plan_orbit_struct()
   type (qp_point_struct) text_legend_origin
   type (qp_point_struct) curve_legend_origin
-  type (qp_axis_struct) x                     ! X-axis parameters.
-  type (qp_axis_struct) y                     ! Y-axis attributes.
-  type (qp_axis_struct) x2                    ! X2-axis attributes (Only used for floor_plan).
-  type (qp_axis_struct) y2                    ! Y2-axis attributes.
-  type (qp_rect_struct) margin                ! Margin around the graph.
-  type (qp_rect_struct) scale_margin          ! Margin for scaling
-  real(rp) :: x_axis_scale_factor = 1         ! x-axis conversion from internal to plotting units.
-  real(rp) :: symbol_size_scale = 0           ! Symbol size scale factor for phase_space plots.
-  real(rp) :: floor_plan_rotation = 0         ! Rotation of floor plan plot: 1.0 -> 360^deg
-  real(rp) :: floor_plan_orbit_scale = 0      ! Scale factor for drawing orbits. 0 -> Do not draw.
-  integer box(4)                              ! Defines which box the plot is put in.
-  integer :: ix_branch = 0                    ! Branch in lattice.
-  integer :: ix_universe = -1                 ! Used for lat_layout plots.
-  logical :: clip = .false.                   ! Clip plot at graph boundary.
-  logical :: y2_mirrors_y = .true.            ! Y2-axis same as Y-axis?
-  logical :: limited = .false.                ! True if at least one data point past graph bounds.
-  logical :: draw_axes = .true.               ! Draw axes, labels, etc?
-  logical :: correct_xy_distortion = .true.   ! T -> Shrink one axis in floor plan so x-scale = y-scale.
-  logical :: floor_plan_flip_label_side = .false.      ! Draw element label on other side of element?
-  logical :: floor_plan_size_is_absolute = .false.     ! Are shape sizes in meters or window pixels?
+  type (qp_axis_struct) x                           ! X-axis parameters.
+  type (qp_axis_struct) y                           ! Y-axis attributes.
+  type (qp_axis_struct) x2                          ! X2-axis attributes (Only used for floor_plan).
+  type (qp_axis_struct) y2                          ! Y2-axis attributes.
+  type (qp_rect_struct) margin                      ! Margin around the graph.
+  type (qp_rect_struct) scale_margin                ! Margin for scaling
+  real(rp) :: x_axis_scale_factor = 1               ! x-axis conversion from internal to plotting units.
+  real(rp) :: symbol_size_scale = 0                 ! Symbol size scale factor for phase_space plots.
+  real(rp) :: floor_plan_rotation = 0               ! Rotation of floor plan plot: 1.0 -> 360^deg
+  integer box(4)                                    ! Defines which box the plot is put in.
+  integer :: ix_branch = 0                          ! Branch in lattice.
+  integer :: ix_universe = -1                       ! Used for lat_layout plots.
+  logical :: clip = .false.                         ! Clip plot at graph boundary.
+  logical :: y2_mirrors_y = .true.                  ! Y2-axis same as Y-axis?
+  logical :: limited = .false.                      ! True if at least one data point past graph bounds.
+  logical :: draw_axes = .true.                     ! Draw axes, labels, etc?
+  logical :: correct_xy_distortion = .true.         ! T -> Shrink one axis in floor plan so x-scale = y-scale.
+  logical :: floor_plan_flip_label_side = .false.   ! Draw element label on other side of element?
+  logical :: floor_plan_size_is_absolute = .false.  ! Are shape sizes in meters or window pixels?
   logical :: floor_plan_draw_only_first_pass = .false. ! Draw only first pass with multipass elements?
-  logical :: draw_curve_legend = .true.       ! Legend for displaying curve info.
-  logical :: draw_grid = .true.               ! Draw a grid?
+  logical :: draw_curve_legend = .true.             ! Legend for displaying curve info.
+  logical :: draw_grid = .true.                     ! Draw a grid?
   logical :: draw_title = .true.
-  logical :: allow_wrap_around = .true.       ! "Wrap" curves to extend past lattice boundaries?
+  logical :: allow_wrap_around = .true.             ! "Wrap" curves to extend past lattice boundaries?
   logical :: draw_only_good_user_data_or_vars = .true.
-  logical :: is_valid = .false.               ! EG: Bad x_axis_type.
+  logical :: is_valid = .false.                     ! EG: Bad x_axis_type.
 end type
 
 ! A plot is collection of graphs.
