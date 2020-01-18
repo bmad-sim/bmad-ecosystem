@@ -1377,7 +1377,9 @@ endif
 
 comp = component
 ix = index(component, '%')
-if (ix /= 0) then
+if (component(1:17) == 'floor_plan_orbit_') ix = 17   ! Old style.
+
+if (ix /= 0) then  ! Split on '%'
   comp = component(:ix-1)
   sub_comp = component(ix+1:)
 endif
