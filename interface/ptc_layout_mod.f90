@@ -556,7 +556,7 @@ ptc_state = DEFAULT - NOCAVITY0 + RADIATION0
 
 ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
-call find_orbit_x (closed_orb%vec, ptc_state, 1.e-8_rp, fibre1 = ptc_fibre) 
+call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
 
 ptc_state = ptc_state + ENVELOPE0
 call init_all(ptc_state, 1, 0)
@@ -571,7 +571,7 @@ xs=xs0+id
 call track_probe(xs, ptc_state, fibre1 = ptc_fibre)
 id=xs
 call GET_loss(ptc_layout, energy_loss, dp_loss)
-norm_mode%e_loss = energy_loss * 1e9
+norm_mode%e_loss = energy_loss * 1e9_rp
 
 call c_normal(id, cc_norm)
 
