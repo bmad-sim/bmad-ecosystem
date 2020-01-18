@@ -1743,6 +1743,8 @@ case ('graph')
     return
   endif
 
+  fmt = '(a, f6.3)'
+
   if (associated(g%p%r)) then
     nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%r%name) // '.' // trim(g%name)
   endif
@@ -1762,12 +1764,15 @@ case ('graph')
   nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
   nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale                = ', g%symbol_size_scale
   nl=nl+1; write(lines(nl), amt)  'floor_plan_view                  = ', quote(g%floor_plan_view)
-  nl=nl+1; write(lines(nl), f3mt) 'floor_plan_rotation              = ', g%floor_plan_rotation
-  nl=nl+1; write(lines(nl), f3mt) 'floor_plan_orbit_scale           = ', g%floor_plan_orbit_scale
-  nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit_color           = ', quote(g%floor_plan_orbit_color)
+  nl=nl+1; write(lines(nl), fmt)  'floor_plan_rotation              = ', g%floor_plan_rotation
   nl=nl+1; write(lines(nl), lmt)  'floor_plan_flip_label_side       = ', g%floor_plan_flip_label_side
   nl=nl+1; write(lines(nl), lmt)  'floor_plan_size_is_absolute      = ', g%floor_plan_size_is_absolute
   nl=nl+1; write(lines(nl), lmt)  'floor_plan_draw_only_first_pass  = ', g%floor_plan_draw_only_first_pass
+  nl=nl+1; write(lines(nl), fmt)  'floor_plan_orbit%scale           = ', g%floor_plan_orbit%scale
+  nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit%color           = ', quote(g%floor_plan_orbit%color)
+  nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit%pattern         = ', quote(g%floor_plan_orbit%pattern)
+  nl=nl+1; write(lines(nl), imt)  'floor_plan_orbit%width           = ', g%floor_plan_orbit%width
+
   nl=nl+1; write(lines(nl), amt)  'text_legend_origin%x,y,units     = ', real_str(g%text_legend_origin%x, 3), ', ', &
                                                        real_str(g%text_legend_origin%x, 3), ', ', quote(g%text_legend_origin%units)
   nl=nl+1; write(lines(nl), amt)  'curve_legend_origin%x,y,units     = ', real_str(g%curve_legend_origin%x, 3), ', ', &

@@ -652,6 +652,13 @@ subroutine tao_plot_struct_transfer (plot_in, plot_out)
   type (tao_plot_struct) plot_out
 end subroutine
 
+function tao_pointer_to_building_wall_shape (wall_name) result (e_shape)
+  import
+  implicit none
+  type (tao_ele_shape_struct), pointer :: e_shape
+  character(*) wall_name
+end function
+
 function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape_min) result (e_shape)
   import
   implicit none

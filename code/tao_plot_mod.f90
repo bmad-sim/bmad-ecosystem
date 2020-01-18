@@ -443,6 +443,8 @@ type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (floor_position_struct) end1, end2, floor
 
+real(rp) x_min, x_max, y_min, y_max
+
 integer i, j, k, n, is, ix, n_bend, isu, ic, ib, ix_shape_min
 integer ix_pass, n_links, iwidth
 logical err
@@ -493,41 +495,37 @@ if (allocated(s%building_wall%section)) then
   found = .false.
 
   do ib = 1, size(s%building_wall%section)
-    do is = 1, size(s%plot_page%floor_plan%ele_shape)
-      ele_shape => s%plot_page%floor_plan%ele_shape(is)
-      if (ele_shape%ele_id(1:15) /= 'building_wall::') cycle
-      found = .true.
-      if (.not. match_wild(s%building_wall%section(ib)%name, ele_shape%ele_id(16:))) cycle
-      if (.not. ele_shape%draw) cycle
-      iwidth = ele_shape%line_width
+    ele_shape => tao_pointer_to_building_wall_shape(s%building_wall%section(ib)%name)
+    if (.not. associated(ele_shape)) cycle
 
-      pt => s%building_wall%section(ib)%point
+    found = .true.
+    iwidth = ele_shape%line_width
+    pt => s%building_wall%section(ib)%point
 
-      do j = 2, size(pt)
-        if (pt(j)%radius == 0) then   ! line
-          call tao_floor_to_screen (graph, [pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
-          call tao_floor_to_screen (graph, [pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
-          ix = max(1, index(ele_shape%shape, '_LINE'))
-          call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), &
-                      line_pattern = ele_shape%shape(1:ix-1), width = iwidth, color = ele_shape%color)
+    do j = 2, size(pt)
+      if (pt(j)%radius == 0) then   ! line
+        call tao_floor_to_screen (graph, [pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
+        call tao_floor_to_screen (graph, [pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
 
-        else                    ! arc
-          theta1 = atan2(pt(j-1)%x - pt(j)%x_center, pt(j-1)%z - pt(j)%z_center)
-          dtheta = atan2(pt(j)%x - pt(j)%x_center, pt(j)%z - pt(j)%z_center) - theta1
-          if (abs(dtheta) > pi) dtheta = modulo2(dtheta, pi)
-          n_bend = abs(50 * dtheta) + 1
-          do k = 0, n_bend
-            theta = theta1 + k * dtheta / n_bend
-            v_vec(1) = pt(j)%x_center + abs(pt(j)%radius) * sin(theta)
-            v_vec(2) = 0
-            v_vec(3) = pt(j)%z_center + abs(pt(j)%radius) * cos(theta)
-            call tao_floor_to_screen (graph, v_vec, x_bend(k), y_bend(k))
-          enddo
-          call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), width = iwidth, color = ele_shape%color)
-        endif
-      enddo
-      exit
-    enddo  ! ele shape
+        ix = max(1, index(ele_shape%shape, '_LINE'))
+        call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), &
+                    line_pattern = ele_shape%shape(1:ix-1), width = iwidth, color = ele_shape%color, clip = .true.)
+
+      else                    ! arc
+        theta1 = atan2(pt(j-1)%x - pt(j)%x_center, pt(j-1)%z - pt(j)%z_center)
+        dtheta = atan2(pt(j)%x - pt(j)%x_center, pt(j)%z - pt(j)%z_center) - theta1
+        if (abs(dtheta) > pi) dtheta = modulo2(dtheta, pi)
+        n_bend = abs(50 * dtheta) + 1
+        do k = 0, n_bend
+          theta = theta1 + k * dtheta / n_bend
+          v_vec(1) = pt(j)%x_center + abs(pt(j)%radius) * sin(theta)
+          v_vec(2) = 0
+          v_vec(3) = pt(j)%z_center + abs(pt(j)%radius) * cos(theta)
+          call tao_floor_to_screen (graph, v_vec, x_bend(k), y_bend(k))
+        enddo
+        call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), width = iwidth, color = ele_shape%color, clip = .true.)
+      endif
+    enddo
   enddo  ! wall section
 
   if (.not. found .and. size(s%building_wall%section) > 0) then
@@ -645,7 +643,7 @@ real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2)
 character(*) label_name
 character(80) str, shape
 character(*), parameter :: r_name = 'tao_draw_ele_for_floor_plan'
-character(16) color, prefix
+character(16) prefix
 character(8) :: draw_units
 character(2) justify
 
@@ -775,15 +773,15 @@ if (is_bend) then
     endif
   enddo
 
-  if (graph%floor_plan_orbit_scale /= 0) then
-    n_bend_orb = n_bend + int(100 * graph%floor_plan_orbit_scale * &
+  if (graph%floor_plan_orbit%scale /= 0) then
+    n_bend_orb = n_bend + int(100 * graph%floor_plan_orbit%scale * &
                   (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4))))
     n_bend_orb = min(n_bend_orb, ubound(dx_orbit, 1))
     do j = 0, n_bend_orb
       s_here = j * ele%value(l$) / n_bend_orb
       call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
                                                        .true., .true., orb_start, orb_here)
-      f_orb%r(1:2) = graph%floor_plan_orbit_scale * orb_here%vec(1:3:2)
+      f_orb%r(1:2) = graph%floor_plan_orbit%scale * orb_here%vec(1:3:2)
       f_orb%r(3) = s_here
       f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
       call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
@@ -793,27 +791,30 @@ endif
 
 ! Draw orbit?
 
-if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
+call qp_save_state(.false.)
+call qp_set_line_attrib ('STD', graph%floor_plan_orbit%width, graph%floor_plan_orbit%color, graph%floor_plan_orbit%pattern)
+
+if (graph%floor_plan_orbit%scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
-    call qp_draw_polyline(dx_orbit(0:n_bend_orb), dy_orbit(0:n_bend_orb), color = graph%floor_plan_orbit_color)
+    call qp_draw_polyline(dx_orbit(0:n_bend_orb), dy_orbit(0:n_bend_orb))
 
   elseif (ele%key == patch$) then
     ele0 => pointer_to_next_ele (ele, -1)
-    floor%r(1:2) = graph%floor_plan_orbit_scale * orb_start%vec(1:3:2)
+    floor%r(1:2) = graph%floor_plan_orbit%scale * orb_start%vec(1:3:2)
     floor%r(3) = ele0%value(l$)
     floor1 = coords_local_curvilinear_to_floor (floor, ele0, .false.)
     call tao_floor_to_screen_coords (graph, floor1, f_orb)
     dx_orbit(0) = f_orb%r(1)
     dy_orbit(0) = f_orb%r(2)
 
-    floor%r(1:2) = graph%floor_plan_orbit_scale * orb_end%vec(1:3:2)
+    floor%r(1:2) = graph%floor_plan_orbit%scale * orb_end%vec(1:3:2)
     floor%r(3) = ele%value(l$)
     floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
     call tao_floor_to_screen_coords (graph, floor1, f_orb)
     dx_orbit(1) = f_orb%r(1)
     dy_orbit(1) = f_orb%r(2)
 
-    call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1), color = graph%floor_plan_orbit_color)
+    call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1))
 
   else
     n = int(100 * (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4)))) + 1
@@ -821,7 +822,7 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
       s_here = ic * ele%value(l$) / n
       call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
                                                  .true., .true., orb_start, orb_here)
-      floor%r(1:2) = graph%floor_plan_orbit_scale * orb_here%vec(1:3:2)
+      floor%r(1:2) = graph%floor_plan_orbit%scale * orb_here%vec(1:3:2)
       floor%r(3) = s_here
       floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
       call tao_floor_to_screen_coords (graph, floor1, f_orb)
@@ -829,17 +830,23 @@ if (graph%floor_plan_orbit_scale /= 0 .and. ele%value(l$) /= 0) then
       dy_orbit(ic) = f_orb%r(2)
     enddo
 
-    call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n), color = graph%floor_plan_orbit_color)
+    call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n))
   endif
 endif
 
 ! coords_local_curvilinear_to_floor does not handle patch elements 
 ! correctly (this will be fixed) so just ignore patch elements.
 
-if (ele%key == patch$) return
+if (ele%key == patch$) then
+  call qp_restore_state
+  return
+endif
 
 ! Only those elements with an associated ele_shape are to be drawn in full.
 ! All others are drawn with a simple line or arc.
+
+call qp_set_line_attrib ('STD', 1, 'black', 'solid')
+
 
 is_there = .false.
 if (associated(ele_shape)) is_there = ele_shape%draw
@@ -849,12 +856,11 @@ if (.not. is_there) then
   else
     call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2))
   endif
+  call qp_restore_state
   return
 endif
 
 ! Here if element is to be drawn...
-
-color = ele_shape%color
 
 off = ele_shape%size * s%plot_page%floor_plan_shape_scale 
 off1 = offset1 * s%plot_page%floor_plan_shape_scale
@@ -963,6 +969,8 @@ endif
 
 ! Draw the element...
 
+call qp_set_line_attrib ('STD', ele_shape%line_width, ele_shape%color)
+
 ! Draw x-ray line
 
 if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
@@ -971,8 +979,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   branch_shape => tao_pointer_to_ele_shape (ix_uni, drift, s%plot_page%floor_plan%ele_shape)
   if (associated(branch_shape)) then
     if (branch_shape%draw) then
-      call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = draw_units, &
-                                                                              color = branch_shape%color)
+      call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = draw_units)
     endif
   endif
 endif
@@ -1014,34 +1021,33 @@ if (shape == 'diamond' .or. shape(3:) == 'triangle') then
 
   select case (shape)
   case ('diamond')
-    call qp_draw_line (x_01, x_12, y_01, y_12, units = draw_units, color = color)
-    call qp_draw_line (x_01, x_10, y_01, y_10, units = draw_units, color = color)
-    call qp_draw_line (x_21, x_12, y_21, y_12, units = draw_units, color = color)
-    call qp_draw_line (x_21, x_10, y_21, y_10, units = draw_units, color = color)
+    call qp_draw_line (x_01, x_12, y_01, y_12, units = draw_units)
+    call qp_draw_line (x_01, x_10, y_01, y_10, units = draw_units)
+    call qp_draw_line (x_21, x_12, y_21, y_12, units = draw_units)
+    call qp_draw_line (x_21, x_10, y_21, y_10, units = draw_units)
   case ('r_triangle')
-    call qp_draw_line (x_00, x_21, y_00, y_21, units = draw_units, color = color)
-    call qp_draw_line (x_02, x_21, y_02, y_21, units = draw_units, color = color)
-    call qp_draw_line (x_00, x_02, y_00, y_02, units = draw_units, color = color)
+    call qp_draw_line (x_00, x_21, y_00, y_21, units = draw_units)
+    call qp_draw_line (x_02, x_21, y_02, y_21, units = draw_units)
+    call qp_draw_line (x_00, x_02, y_00, y_02, units = draw_units)
   case ('l_triangle')
-    call qp_draw_line (x_20, x_01, y_20, y_01, units = draw_units, color = color)
-    call qp_draw_line (x_22, x_01, y_22, y_01, units = draw_units, color = color)
-    call qp_draw_line (x_20, x_22, y_20, y_22, units = draw_units, color = color)
+    call qp_draw_line (x_20, x_01, y_20, y_01, units = draw_units)
+    call qp_draw_line (x_22, x_01, y_22, y_01, units = draw_units)
+    call qp_draw_line (x_20, x_22, y_20, y_22, units = draw_units)
   case ('u_triangle')
-    call qp_draw_line (x_00, x_12, y_00, y_12, units = draw_units, color = color)
-    call qp_draw_line (x_20, x_12, y_20, y_12, units = draw_units, color = color)
-    call qp_draw_line (x_00, x_20, y_00, y_20, units = draw_units, color = color)
+    call qp_draw_line (x_00, x_12, y_00, y_12, units = draw_units)
+    call qp_draw_line (x_20, x_12, y_20, y_12, units = draw_units)
+    call qp_draw_line (x_00, x_20, y_00, y_20, units = draw_units)
   case ('d_triangle')
-    call qp_draw_line (x_02, x_10, y_02, y_10, units = draw_units, color = color)
-    call qp_draw_line (x_22, x_10, y_22, y_10, units = draw_units, color = color)
-    call qp_draw_line (x_02, x_22, y_02, y_22, units = draw_units, color = color)
+    call qp_draw_line (x_02, x_10, y_02, y_10, units = draw_units)
+    call qp_draw_line (x_22, x_10, y_22, y_10, units = draw_units)
+    call qp_draw_line (x_02, x_22, y_02, y_22, units = draw_units)
   end select
 endif
 
 ! Draw a circle.
 
 if (shape == 'circle') then
-  call qp_draw_circle ((end1%r(1)+end2%r(1))/2, (end1%r(2)+end2%r(2))/2, off, &
-                                                  units = draw_units, color = color)
+  call qp_draw_circle ((end1%r(1)+end2%r(1))/2, (end1%r(2)+end2%r(2))/2, off, units = draw_units)
 endif
 
 ! Draw an X.
@@ -1057,8 +1063,8 @@ if (shape == 'x') then
     x0 = (end1%r(1) + end2%r(1)) / 2
     y0 = (end1%r(2) + end2%r(2)) / 2
   endif
-  call qp_draw_line (x0 - dx1, x0 + dx1, y0 - dy1, y0 + dy1, units = draw_units, color = color) 
-  call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = draw_units, color = color) 
+  call qp_draw_line (x0 - dx1, x0 + dx1, y0 - dy1, y0 + dy1, units = draw_units)
+  call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = draw_units)
 endif
 
 ! Draw top and bottom of boxes and rbow_tie
@@ -1066,13 +1072,13 @@ endif
 if (shape == 'rbow_tie' .or. shape == 'box' .or. shape == 'xbox') then
   if (is_bend) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
-                          y_bend(:n_bend) + dy_bend(:n_bend), units = draw_units, color = color)
+                          y_bend(:n_bend) + dy_bend(:n_bend), units = draw_units)
     call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
-                          y_bend(:n_bend) - dy_bend(:n_bend), units = draw_units, color = color)
+                          y_bend(:n_bend) - dy_bend(:n_bend), units = draw_units)
 
   else
-    call qp_draw_line (end1%r(1)+dx1, end2%r(1)+dx1, end1%r(2)+dy1, end2%r(2)+dy1, units = draw_units, color = color)
-    call qp_draw_line (end1%r(1)-dx2, end2%r(1)-dx2, end1%r(2)-dy2, end2%r(2)-dy2, units = draw_units, color = color)
+    call qp_draw_line (end1%r(1)+dx1, end2%r(1)+dx1, end1%r(2)+dy1, end2%r(2)+dy1, units = draw_units)
+    call qp_draw_line (end1%r(1)-dx2, end2%r(1)-dx2, end1%r(2)-dy2, end2%r(2)-dy2, units = draw_units)
   endif
 endif
 
@@ -1081,21 +1087,21 @@ endif
 if (shape == 'bow_tie' .or. shape == 'box' .or. shape == 'xbox') then
   if (is_bend) then
     call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
-                       y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = draw_units, color = color)
+                       y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = draw_units)
     n = n_bend
     call qp_draw_line (x_bend(n)-dx_bend(n), x_bend(n)+dx_bend(n), &
-                       y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = draw_units, color = color)
+                       y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = draw_units)
   else
-    call qp_draw_line (end1%r(1)+dx1, end1%r(1)-dx2, end1%r(2)+dy1, end1%r(2)-dy2, units = draw_units, color = color)
-    call qp_draw_line (end2%r(1)+dx1, end2%r(1)-dx2, end2%r(2)+dy1, end2%r(2)-dy2, units = draw_units, color = color)
+    call qp_draw_line (end1%r(1)+dx1, end1%r(1)-dx2, end1%r(2)+dy1, end1%r(2)-dy2, units = draw_units)
+    call qp_draw_line (end2%r(1)+dx1, end2%r(1)-dx2, end2%r(2)+dy1, end2%r(2)-dy2, units = draw_units)
   endif
 endif
 
 ! Draw X for xbox or bow_tie
 
 if (shape == 'xbox' .or. shape == 'bow_tie' .or. shape == 'rbow_tie' .or. shape == 'x') then
-  call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, units = draw_units, color = color)
-  call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, units = draw_units, color = color)
+  call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, units = draw_units)
+  call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, units = draw_units)
 endif
 
 ! Custom pattern
@@ -1107,7 +1113,7 @@ if (prefix == 'pattern') then
     r0 = end1%r(1:2) + [pat%pt(1)%s, pat%pt(1)%x] * (end2%r(1:2) - end1%r(1:2))
     do j = 2, size(pat%pt)
       r1 = end1%r(1:2) + [pat%pt(j)%s, pat%pt(j)%x] * (end2%r(1:2) - end1%r(1:2))
-      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), units = draw_units, color = color)
+      call qp_draw_line (r0(1), r1(1), r0(2), r1(2), units = draw_units)
       r0 = r1
     enddo
   enddo
@@ -1147,6 +1153,8 @@ if (label_name /= '') then
   call qp_draw_text (label_name, x_center+dx*abs(off2), y_center+dy*abs(off2), units = draw_units, &
                                height = height, justify = justify, ANGLE = theta)    
 endif
+
+call qp_restore_state
 
 end subroutine tao_draw_ele_for_floor_plan
 

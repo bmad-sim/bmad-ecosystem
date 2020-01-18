@@ -10,25 +10,25 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang, turn_autoscale_off)
+! Subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, include_wall, gang, turn_autoscale_off)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
 ! 
 ! Input:
-!   where    -- Character(*): Region to scale. Eg: "top"
-!   x_min_in -- Real(rp): Plot x-axis min value.
-!   x_max_in -- Real(rp): Plot x-axis max value.
-!   gang     -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
-!   turn_autoscale_off
-!            -- Logical, optional: If True (default) then turn off plot%autoscale_x logical
-!               for all plots that are scaled.
+!   where              -- Character(*): Region to scale. Eg: "top"
+!   x_min_in           -- Real(rp): Plot x-axis min value.
+!   x_max_in           -- Real(rp): Plot x-axis max value.
+!   include_wall       -- logical, optional: Used for floor_plan plots where a building wall is drawn and y_min_in = y_max_in.
+!                           If present and True include the building wall position will be included in determining the the scale.
+!   gang               -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
+!   turn_autoscale_off -- Logical, optional: If True (default) then turn off plot%autoscale_x logical for all plots that are scaled.
 !
 !  Output:
-!   err -- Logical: Set to True if the plot cannot be found. False otherwise.
+!   err                -- Logical: Set to True if the plot cannot be found. False otherwise.
 !-
 
-subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang, turn_autoscale_off)
+subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, include_wall, gang, turn_autoscale_off)
 
 implicit none
 
@@ -38,13 +38,13 @@ type (tao_graph_array_struct), allocatable :: graph(:)
 
 real(rp) x_min_in, x_max_in, x_min, x_max
 
-integer i, j, n, ix, places, im
+integer i, j, n, ix, places, im, i0
 
 character(*) where
 character(*), optional :: gang
 character(20) :: r_name = 'tao_x_scale_cmd'
 
-logical, optional :: turn_autoscale_off
+logical, optional :: include_wall, turn_autoscale_off
 logical err, all_same, have_scaled
 
 ! Use local vars for x_min and x_max in case the actual args are something 
@@ -82,19 +82,25 @@ endif
 all_same = .true.
 
 if (size(graph) > 0) then
+  i0 = -1
   do i = 1, size(graph)
-    call tao_x_scale_graph (graph(i)%g, x_min, x_max, have_scaled = have_scaled)
+    call tao_x_scale_graph (graph(i)%g, x_min, x_max, include_wall, have_scaled)
     if (.not. have_scaled) cycle
-    if (graph(i)%g%x%max /= graph(1)%g%x%max) all_same = .false.
-    if (graph(i)%g%x%min /= graph(1)%g%x%min) all_same = .false.
+    if (graph(i)%g%p%type == 'floor_plan') cycle
+    if (i0 == -1) i0 = i
+    if (graph(i)%g%x%max /= graph(i0)%g%x%max) all_same = .false.
+    if (graph(i)%g%x%min /= graph(i0)%g%x%min) all_same = .false.
     if (logic_option(.true., turn_autoscale_off)) graph(i)%g%p%autoscale_x = .false.
   enddo
 else
+  i0 = -1
   do i = 1, size(plot)
-    call tao_x_scale_plot (plot(i)%p, x_min, x_max, gang, have_scaled)
+    call tao_x_scale_plot (plot(i)%p, x_min, x_max, include_wall, gang, have_scaled)
     if (.not. have_scaled) cycle
-    if (plot(i)%p%x%max /= plot(1)%p%x%max) all_same = .false.
-    if (plot(i)%p%x%min /= plot(1)%p%x%min) all_same = .false.
+    if (plot(i)%p%type == 'floor_plan') cycle
+    if (i0 == -1) i0 = i
+    if (plot(i)%p%x%max /= plot(i0)%p%x%max) all_same = .false.
+    if (plot(i)%p%x%min /= plot(i0)%p%x%min) all_same = .false.
     if (logic_option(.true., turn_autoscale_off)) plot(i)%p%autoscale_x = .false.
   enddo
 endif
@@ -111,22 +117,24 @@ end subroutine tao_x_scale_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, gang, have_scaled)
+! Subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, include_wall, gang, have_scaled)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
 ! 
 ! Input:
-!   plot     -- Tao_plot_struct: Plot to scale. Eg: "top"
-!   x_min_in -- Real(rp): Plot x-axis min value.
-!   x_max_in -- Real(rp): Plot x-axis max value.
-!   gang     -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
+!   plot          -- Tao_plot_struct: Plot to scale. Eg: "top"
+!   x_min_in      -- Real(rp): Plot x-axis min value.
+!   x_max_in      -- Real(rp): Plot x-axis max value.
+!   include_wall  -- logical, optional: Used for floor_plan plots where a building wall is drawn and y_min_in = y_max_in.
+!                      If present and True include the building wall position will be included in determining the the scale.
+!   gang          -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
 !
 ! Output:
-!   have_scaled -- Logical, optional: Has a graph been scaled?
+!   have_scaled   -- Logical, optional: Has a graph been scaled?
 !-
 
-subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, gang, have_scaled)
+subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, include_wall, gang, have_scaled)
 
 type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
@@ -135,7 +143,7 @@ real(rp) x_min_in, x_max_in, x_min, x_max, this_min, this_max, major_div_nominal
 integer i, j, p1, p2, n
 character(*), optional :: gang
 character(16) :: r_name = 'tao_x_scale_plot'
-logical, optional :: have_scaled
+logical, optional :: include_wall, have_scaled
 logical do_gang, scaled, valid
 
 ! Check if the thing exists
@@ -154,7 +162,7 @@ x_max = x_max_in
 valid = .true.
 do j = 1, size(plot%graph)
   graph => plot%graph(j)
-  call tao_x_scale_graph (graph, x_min, x_max, scaled)
+  call tao_x_scale_graph (graph, x_min, x_max, include_wall, scaled)
   if (present(have_scaled)) have_scaled = (have_scaled .or. scaled)
   if (.not. graph%is_valid) valid = .false.
   if (allocated(graph%curve)) then
@@ -216,7 +224,7 @@ end subroutine tao_x_scale_plot
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_x_scale_graph (graph, x_min, x_max, have_scaled)
+subroutine tao_x_scale_graph (graph, x_min, x_max, include_wall, have_scaled)
 
 implicit none
 
@@ -230,7 +238,7 @@ type (lat_struct), pointer :: lat
 integer i, j, k, n, p1, p2, ix, ib
 real(rp) x_min, x_max
 real(rp) this_min, this_max, del
-logical, optional :: have_scaled
+logical, optional :: include_wall, have_scaled
 logical curve_here
 
 character(24) :: r_name = 'tao_x_scale_graph'
@@ -244,7 +252,7 @@ if (present(have_scaled)) have_scaled = .true.
 if (x_max /= x_min) then
   if (graph%x%major_div_nominal> 0) then
     p1 = nint(0.7 * graph%x%major_div_nominal)  
-    p2 = nint(1.3 * graph%x%major_div_nominal)  
+    p2 = nint(1.3 * graph%x%major_div_nominal)
   else
     p1 = graph%x%major_div
     p2 = p1
@@ -273,7 +281,7 @@ if (graph%type == 'floor_plan') then
     enddo
   enddo
 
-  if (allocated(s%building_wall%section)) then
+  if (logic_option(.false., include_wall) .and. allocated(s%building_wall%section)) then
     do i = 1, size(s%plot_page%floor_plan%ele_shape)
       shape => s%plot_page%floor_plan%ele_shape(i)
       if (shape%ele_id(1:15) /= 'building_wall::') cycle

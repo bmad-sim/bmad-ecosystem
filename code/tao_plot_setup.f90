@@ -64,7 +64,7 @@ plot_loop: do ir = 1, size(s%plot_page%region)
   ! Scale the x-axis if needed
 
   if (plot%autoscale_gang_x .and. (plot%x%major_div < 0 .or. plot%x%min == plot%x%max)) &
-                                           call tao_x_scale_plot (plot, plot%x%min, plot%x%max)
+                                           call tao_x_scale_plot (plot, plot%x%min, plot%x%max, include_wall = .true.)
 
   if (plot%type == 'wave') then
     call tao_wave_analysis(plot)

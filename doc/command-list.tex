@@ -757,14 +757,12 @@ Examples:
 
 The \vn{scale} command scales the vertical axis of a graph or set of graphs.  Format:
 \begin{example}
-  scale \{-y\} \{-y2\} \{-gang\} \{-nogang\} \{<where>\} \{<value1> \}<value2>\}\}\}
+  scale \{-gang\} \{-include_wall\} \{-nogang\} \{-y\} \{-y2\} \{<where> \{<value1> \{<value2>\}\}\}
 \end{example}
 
 Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>} is not
 present or \vn{<where>} is \vn{all} then all graphs are scaled. \vn{<where>} can be a plot
 name or the name of an individual graph withing a plot.
-
-\vskip 10pt 
 
 \vn{scale} adjusts the vertical scale of graphs. If neither \vn{<value1>} nor
 \vn{<value2>} is present then an \vn{autoscale} is performed and the scale is adjusted so
@@ -782,12 +780,17 @@ A graph can have a \vn{y2} (left) axis scale that is separate from the \vn{y} (r
 axis. Normally, the \vn{scale} command will scale both axes.  Scaling of just one of these
 axes can be achieved by using the \vn{-y} or \vn{-y2} switches.
 
+For scaling \vn{floor_plan} plots where there is a building wall to be drawn, if \vn{-include_wall}
+is present and autoscaling is being done, then the plot bounds are extended to include the extent of
+the building wall.
+
 Examples:
 \begin{example}
   scale top.x -3  7  ! Scale the x graph in the top region
   scale -y2 top.x    ! Scale only the y2 axis of the top.x graph.
   scale bottom       ! Autoscale the graphs of the plot in the bottom region
-  scale              ! Scale everything
+  scale -include     ! Scale everything and include the extent of any 
+                     !   building walls in the calculation of the plot bounds.
 \end{example}
 
 
@@ -3507,7 +3510,7 @@ Examples:
 
 The \vn{x_scale} command scales the horizontal axis of a graph or set of graphs. Format:
 \begin{example}
-  x_scale \{-gang\} \{-nogang\} \{<where>\} \{<value1> <value2>\}
+  x_scale \{-gang\} \{-nogang\} \{-include_wall\} \{<where> \{<value1> <value2>\}\}
 \end{example}
 
 Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>} is not present or
@@ -3531,11 +3534,16 @@ plot%x%major_divisions (\sref{s:template})) to try to give a nice looking axis. 
 that if two plots have the same range of data but differing major division settings, the
 \vn{x_scale} command can produce differing results.
 
+For scaling \vn{floor_plan} plots where there is a building wall to be drawn, if \vn{-include_wall}
+is present and autoscaling is being done, then the plot bounds are extended to include the extent of
+the building wall.
+
 Example:
 \begin{example}
-  x_scale                 ! Autoscale all x-axes.
-  x_scale * 0 100         ! Scale all x-axes to go from 0 to 100.
-  x_scale orbit -10 10    ! This "wraps around" the beginning of the lattice.
+  x_scale -include      ! Autoscale all x-axes and include the extent of any 
+                        !   building walls in the calculation of the plot bounds.
+  x_scale * 0 100       ! Scale all x-axes to go from 0 to 100.
+  x_scale orbit -10 10  ! This "wraps around" the beginning of the lattice.
 \end{example}
 
 %% xy_scale --------------------------------------------------------------
@@ -3545,7 +3553,7 @@ Example:
 
 The \vn{xy_scale} command sets horizontal and vertical axis bounds. Format:
 \begin{example}
-  xy_scale \{<where>\} \{\{<value1>\} <value2>\}
+  xy_scale \{-include_wall\} \{<where> \{<bound1> <bound2>\}\}\}
 \end{example}
 
 \vn{xy_scale} is equivalent to an \vn{x_scale} followed by a \vn{y-scale}.
@@ -3553,8 +3561,6 @@ The \vn{xy_scale} command sets horizontal and vertical axis bounds. Format:
 Which graphs are scaled is determined by the \vn{<where>} switch. If \vn{<where>} is not
 present or \vn{<where>} is \vn{*} then all graphs are scaled. \vn{<where>} can be a plot
 name or the name of an individual graph withing a plot.
-
-\vskip 7pt 
 
 \vn{xy_scale} sets the lower and upper bounds for both the horizontal and vertical axes.
 This is just a shortcut for doing an \vn{x_scale} followed by a \vn{scale}.  If both
@@ -3565,9 +3571,14 @@ present then the bounds will be from -\vn{<bound1>} to \vn{<bound1>}.
 If neither \{<bound1>\} nor \{<bound2>\} is present then an \vn{autoscale} will be invoked
 to give the largest bounds commensurate with the data.
 
+For scaling \vn{floor_plan} plots where there is a building wall to be drawn, if \vn{-include_wall}
+is present and autoscaling is being done, then the plot bounds are extended to include the extent of
+the building wall.
+
 Example:
 \begin{example}
-  xy_scale          ! Autoscale all axes.
+  xy_scale -include ! Autoscale all axes and include the extent of any 
+                    !   building walls in the calculation of the plot bounds.
   xy_scale * -1 1   ! Scale all axes to go from -1 to 1.
 \end{example}
 
