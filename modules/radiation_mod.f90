@@ -114,7 +114,7 @@ endif
 ! In this case the best thing is to just set everything to zero
 
 len_half = ele%value(l$) / 2
-if (len_half < 0) return
+if (len_half <= 0) return
 
 !---------------------------------
 ! Calculate the radius of curvature for an on-energy particle
