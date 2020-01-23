@@ -328,18 +328,24 @@ subroutine location_decode(string, array, ix_min, num, names, exact_case, print_
   logical, optional :: exact_case, print_err
 end subroutine
 
- function lunget ()
-   implicit none
-   integer lunget
- end function lunget
+function logic_str(logic) result (str)
+  implicit none
+  logical logic
+  character(1), allocatable :: str
+end function
 
- function match_reg(str, pat) result (is_match)
-   implicit none
-   logical is_match
-   character(*) str, pat
- end function match_reg
+function lunget ()
+  implicit none
+  integer lunget
+end function lunget
 
- subroutine milli_sleep (milli_sec)
+function match_reg(str, pat) result (is_match)
+  implicit none
+  logical is_match
+  character(*) str, pat
+end function match_reg
+
+subroutine milli_sleep (milli_sec)
   implicit none
   integer milli_sec
 end subroutine

@@ -9,6 +9,11 @@
 ! In general, use species_id(name) to get the species ID number or you can use positron$, 
 ! proton$, etc, for particles that have named paramters (see below for a list).
 !
+! Particles are divided into several categories:
+!   1) Fundamental particles.
+!   2) Atoms
+!   3) "Known" molecules which are listed in the molecular_name() array.
+!   4) "Unknown" molecules where the mass and charge are specified.
 ! Decoding of species integer:
 ! If |species| < 1000: Use elementary particle mapping (electron$ = -1, etc.)
 ! Else if |species| > 1000 mapping is:
@@ -23,7 +28,7 @@
 !                                        In this case PP = Species ID. EG: nh2$ = 201, etc.
 !   MMMM (4 Hex digits):
 !          For fundamental particles (where CC = PP = 0): Particle integer ID. 
-!          For atoms: Number of nucleons .
+!          For atoms: Number of nucleons. If zero then number of nucleons is unknown (EG: "C+")
 !          For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 = Use default (only valid for "Named" molecules).
 !
 ! Example external input names:
@@ -713,7 +718,7 @@ type(atom_struct), parameter, private :: atom(1:118) = [atm1, atm2, atm3, atm4, 
       atm101, atm102, atm103, atm104, atm105, atm106, atm107, atm108, atm109, atm110, atm111, atm112, atm113, atm114, atm115, atm116, atm117, atm118]
 
 !----------------------
-! Molecules
+! Known Molecules
 
 character(8), parameter :: molecular_name(18) = [character(8) :: &
                         'CH2', 'CH3', 'CH4', 'CO', 'CO2', 'D2', 'D2O', 'H2', 'H2O', 'N2', 'HF',  &
