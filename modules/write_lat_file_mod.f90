@@ -1693,25 +1693,6 @@ end subroutine write_line_element
 !-------------------------------------------------------
 !-------------------------------------------------------
 
-function logic_str(logic) result (str_out)
-
-implicit none
-
-logical logic
-character(1) str_out
-
-if (logic) then
-  str_out = 'T'
-else
-  str_out = 'F'
-endif
-
-end function logic_str
-
-!-------------------------------------------------------
-!-------------------------------------------------------
-!-------------------------------------------------------
-
 function re_str(rel) result (str_out)
 
 implicit none

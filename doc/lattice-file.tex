@@ -534,13 +534,13 @@ attributes from the different \vn{super_lord} elements have to be combined. Prop
 situation is left to any custom code that a program implements to handle custom attributes.
 
 %---------------------------------------------------------------------------
-\section{Variable Types}
-\label{s:var.types}
-\index{arithmetic expressions!variables}
+\section{Parameter Types}
+\label{s:param.types}
+\index{parameter types}
 
 \index{logicals|hyperbf}
-There are five types of variables in \bmad: reals, integers, switches,
-logicals (booleans), and strings. Acceptable logical values are
+There are five types of parameters in \bmad: reals, integers, switches, logicals (booleans), and
+strings. Acceptable logical values are
 \begin{example}
    true    false
    t       f
@@ -551,9 +551,8 @@ For example
 \end{example}
 
 \index{strings|hyperbf}
-String literals can be quoted using double quotes (") or single quotes ('). 
-If there are no
-blanks or commas within a string, the quotes can be omitted. For example:
+String literals can be quoted using double quotes (") or single quotes (').  If there are no blanks
+or commas within a string, the quotes can be omitted. For example:
 \begin{example}
   Q00W: Quad, type = "My Type", alias = Who_knows, &
                                   descrip = "Only the shadow knows"
@@ -561,14 +560,85 @@ blanks or commas within a string, the quotes can be omitted. For example:
 Unlike most everything else, strings are not converted to uppercase.
 
 \index{switches|hyperbf}
-Switches are variables that take discrete values. For example:
+Switches are parameters that take discrete values. For example:
 \begin{example}
   parameter[particle] = positron          
   q01w: quad, tracking_method = bmad_standard 
 \end{example}
-The name ``switch'' can refer to the variable (for example,
-\vn{tracking_method}) or to a value that it can take (for example,
-\vn{bmad_standard}). The name ``method'' is used interchangeably with switch.
+The name ``switch'' can refer to the parameter (for example, \vn{tracking_method}) or to a value
+that it can take (for example, \vn{bmad_standard}). The name ``method'' is used interchangeably with
+switch.
+
+%---------------------------------------------------------------------------
+\section{Particle Species Names}
+\label{s:species.name}
+\index{particle species name}
+\index{positron}\index{electron}\index{proton}\index{antiproton}\index{photon}
+\index{muon}\index{antimuon}\index{pion0}\index{pion-}\index{pion+}
+
+For the purpose of assigning names to simulated particles, particles are divided into four
+groups. One group are are fundamental particles. These are:
+\begin{example}
+  electron,  positron
+  muon,      antimuon
+  proton,    antiproton
+  neutron    anti_neutron
+  deuteron   anti_deuteron
+  pion+,     pion0,      pion-
+  photon
+\end{example}
+For historical reasons, names for the fundamental particles are {\em not} case sensitive.
+
+Another group are atoms. The general syntax for atoms is:
+\begin{example}
+  \{\#nnn\}AA\{ccc\}
+\end{example}
+The curly brackets \{...\} denote optional prefixes and suffixes. \vn{AA} here is the
+atomic symbol, \vn{\#nnn} is the number of nucleons, and \vn{ccc} is the charge. Examples:
+\begin{example}
+  parameter[particle] = \#12C+3       ! Triply charged carbon-12
+  parameter[particle] = He--          ! Doubly charged He.
+\end{example}
+If the number of nucleons is given, the appropriate weight for that isotope is used. If the number
+of nucleons is not present, the mass is an average weighted by the isotopic abundances of the
+element. The charge may be given by using the appropriate number of plus (+) or minus (-) signs or
+by using a plus or minus sign followed by a number. Thus ``\vn{-{-}-}'' is equivalent to
+``-3''. Names here are case sensitive. ``@M'' must be used and not ``@m'' for specifying the mass.
+
+Another group of particles are the ``known'' molecules. The syntax for these are:
+\begin{example}
+  BBB\{@Mxxxx\}\{ccc\}
+\end{example}
+\vn{@Mxxxx} is the mass in AMU, \vn{ccc} is the charge, and \vn{BBB} is the molecular formula. The
+mass may to specified to hundredths of an AMU. The known molecules are:
+\begin{example}
+  CO       CO2      
+  D2       D2O      
+  OH       O2      
+  H2       H2O      HF
+  N2       NH2      NH3      
+  CH2      CH3      CH4      
+  C2H3     C2H4     C2H5
+\end{example}
+Like with atoms, if the mass is not specified, the average isotopic mass is used. Examples:
+\begin{example}
+  C2H3@M28.4+     ! Singly charged C2H3 with mass of 28.4
+  CH2             ! Neutral CH2
+\end{example}
+Like the atomic formulas, molecular formulas are case sensitive.
+
+The last group of particle are particles where only the mass and charge are specified.  The syntax
+for these are:
+\begin{example}
+  @Mxxxx\{ccc\}
+\end{example}
+Example:
+\begin{example}
+  @M37.54++    ! Doubly charged molecule of mass 37.54 AMU.
+\end{example}
+
+Note: When setting the value of a variable to be a particle species ID, use the \vn{species} function as discussed
+in \sref{s:functions}.
 
 \newpage
 
@@ -855,6 +925,13 @@ On the other hand if the attribute is set after lattice expansion:
 \end{example}
 Here the two \vn{a} elements in the lattice get different values for
 \vn{x_offset}.
+
+The following functions take a species ID as the argument:
+\begin{example}
+  mass_of(A),              charge_of(A)
+  anomalous_moment_of(A),  species(A)
+\end{example}
+See \sref{s:species.name} for the syntax of naming particles.
 
 The \vn{mass_of}, \vn{charge_of}, and \vn{anomalous_moment_of} functions give the mass of,
 charge of (in units of the elementary charge), and anomalous moment of, a particle.

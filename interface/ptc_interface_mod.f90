@@ -3435,7 +3435,7 @@ case (ab_multipole$, multipole$)
 
 case (beambeam$)
   ptc_key%magnet = 'beambeam'
-  call out_io (s_fatal$, r_name, 'BEAMBEAM ELEMENT NOT YET IMPLEMENTED!')
+  call out_io (s_fatal$, r_name, 'BEAMBEAM ELEMENT NOT YET IMPLEMENTED IN PTC!')
   if (global_com%exit_on_error) call err_exit
 
 case (wiggler$, undulator$)
