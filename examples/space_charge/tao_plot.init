@@ -5,17 +5,10 @@ the plot page) is broken up.
 
 &tao_plot_page
   plot_page%plot_display_type = 'X'       ! 'X' or 'TK'
-! plot_page%size = 1600 , 800 
-!plot_page%size = 1200, 800
-plot_page%size = 800, 400
+  plot_page%size = 800, 400
   plot_page%text_height = 12.0 
   plot_page%border = 0, 0, 0, 0, '%PAGE'  
-  !plot_page%n_curve_pts = 20
- !plot_page%n_curve_pts = 20
   plot_page%n_curve_pts = 600
-!plot_page%n_curve_pts = 1600
-  !plot_page%floor_plan_rotation = 0.5
-  !plot_page%title(1)%string = 'ERL'
 
 !  plot_page%axis_number_text_scale = 2 ! 0.9 
 ! plot_page%axis_label_text_scale  = 2 ! 1.0 

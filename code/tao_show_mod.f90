@@ -608,10 +608,16 @@ case ('building_wall')
     return
   endif
 
+  nl=nl+1; lines(nl) = 'Orientation:'
+  nl=nl+1; write (lines(nl), '(a, f10.4)') '  theta    =', s%building_wall%orientation%theta
+  nl=nl+1; write (lines(nl), '(a, f10.4)') '  x_offset =', s%building_wall%orientation%x_offset
+  nl=nl+1; write (lines(nl), '(a, f10.4)') '  z_offset =', s%building_wall%orientation%z_offset
+
   do i = 1, size(s%building_wall%section)
     section => s%building_wall%section(i)
     n = nl + size(section%point)
     if (n + 10 > size(lines)) call re_allocate (lines, n, .false.)
+    nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(a, i0, 4a)') 'Section(', i, ')    Name: ', quote(section%name), '  Constraint: ', trim(section%constraint)
 
     nl=nl+1; lines(nl) = '                        Z           X      Radius    Z_center    X_center'
@@ -625,9 +631,6 @@ case ('building_wall')
               '  point(', j, '):', pt%z, pt%x, pt%radius, pt%z_center, pt%x_center
       endif
     enddo
-
-    if (i == size(section%point)) exit
-    nl=nl+1; lines(nl) = ''
   enddo
 
 !----------------------------------------------------------------------
@@ -1763,20 +1766,25 @@ case ('graph')
 
   nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor              = ', g%x_axis_scale_factor
   nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale                = ', g%symbol_size_scale
-  nl=nl+1; write(lines(nl), amt)  'floor_plan_view                  = ', quote(g%floor_plan_view)
-  nl=nl+1; write(lines(nl), fmt)  'floor_plan_rotation              = ', g%floor_plan_rotation
-  nl=nl+1; write(lines(nl), lmt)  'floor_plan_flip_label_side       = ', g%floor_plan_flip_label_side
-  nl=nl+1; write(lines(nl), lmt)  'floor_plan_size_is_absolute      = ', g%floor_plan_size_is_absolute
-  nl=nl+1; write(lines(nl), lmt)  'floor_plan_draw_only_first_pass  = ', g%floor_plan_draw_only_first_pass
-  nl=nl+1; write(lines(nl), fmt)  'floor_plan_orbit%scale           = ', g%floor_plan_orbit%scale
-  nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit%color           = ', quote(g%floor_plan_orbit%color)
-  nl=nl+1; write(lines(nl), amt)  'floor_plan_orbit%pattern         = ', quote(g%floor_plan_orbit%pattern)
-  nl=nl+1; write(lines(nl), imt)  'floor_plan_orbit%width           = ', g%floor_plan_orbit%width
-
   nl=nl+1; write(lines(nl), amt)  'text_legend_origin%x,y,units     = ', real_str(g%text_legend_origin%x, 3), ', ', &
                                                        real_str(g%text_legend_origin%x, 3), ', ', quote(g%text_legend_origin%units)
   nl=nl+1; write(lines(nl), amt)  'curve_legend_origin%x,y,units     = ', real_str(g%curve_legend_origin%x, 3), ', ', &
                                                        real_str(g%curve_legend_origin%x, 3), ', ', quote(g%curve_legend_origin%units)
+
+  if (g%type == 'floor_plan') then
+    nl=nl+1; write(lines(nl), amt)  'floor_plan%view                  = ', quote(g%floor_plan%view)
+    nl=nl+1; write(lines(nl), fmt)  'floor_plan%rotation              = ', g%floor_plan%rotation
+    nl=nl+1; write(lines(nl), lmt)  'floor_plan%correct_distortion    = ', g%floor_plan%correct_distortion
+    nl=nl+1; write(lines(nl), lmt)  'floor_plan%flip_label_side       = ', g%floor_plan%flip_label_side
+    nl=nl+1; write(lines(nl), lmt)  'floor_plan%size_is_absolute      = ', g%floor_plan%size_is_absolute
+    nl=nl+1; write(lines(nl), lmt)  'floor_plan%draw_building_wall    = ', g%floor_plan%draw_building_wall
+    nl=nl+1; write(lines(nl), lmt)  'floor_plan%draw_only_first_pass  = ', g%floor_plan%draw_only_first_pass
+    nl=nl+1; write(lines(nl), fmt)  'floor_plan%orbit_scale           = ', g%floor_plan%orbit_scale
+    nl=nl+1; write(lines(nl), amt)  'floor_plan%orbit_color           = ', quote(g%floor_plan%orbit_color)
+    nl=nl+1; write(lines(nl), amt)  'floor_plan%orbit_pattern         = ', quote(g%floor_plan%orbit_pattern)
+    nl=nl+1; write(lines(nl), imt)  'floor_plan%orbit_width           = ', g%floor_plan%orbit_width
+  endif
+
   do i = 1, size(g%text_legend)
     if (g%text_legend(i) == '') cycle
     nl=nl+1; write(lines(nl), '(a, i0, 2a)') 'text_legend(', i, ')                = ', quote(g%text_legend(i))
@@ -1823,11 +1831,12 @@ case ('graph')
   nl=nl+1; write(lines(nl), lmt)  'y2%draw_numbers                  = ', g%y2%draw_numbers
   nl=nl+1; write(lines(nl), lmt)  'limited                          = ', g%limited
   nl=nl+1; write(lines(nl), lmt)  'clip                             = ', g%clip
-  nl=nl+1; write(lines(nl), lmt)  'draw_title                       = ', g%draw_title
   nl=nl+1; write(lines(nl), lmt)  'draw_axes                        = ', g%draw_axes
+  nl=nl+1; write(lines(nl), lmt)  'draw_curve_legend                = ', g%draw_curve_legend
   nl=nl+1; write(lines(nl), lmt)  'draw_grid                        = ', g%draw_grid
-  nl=nl+1; write(lines(nl), lmt)  'correct_xy_distortion            = ', g%correct_xy_distortion
+  nl=nl+1; write(lines(nl), lmt)  'draw_title                       = ', g%draw_title
   nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
+  nl=nl+1; write(lines(nl), lmt)  'allow_wrap_around                = ', g%allow_wrap_around
   if (allocated(g%curve)) then
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)

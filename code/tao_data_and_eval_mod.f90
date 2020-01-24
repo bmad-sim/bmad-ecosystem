@@ -375,7 +375,7 @@ type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (tao_building_wall_section_struct), pointer :: section
-type (tao_building_wall_point_struct), pointer :: pt
+type (tao_building_wall_point_struct) :: pt
 type (tao_data_struct), pointer :: dp
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_lattice_struct), target :: tao_lat
@@ -3121,7 +3121,7 @@ case ('wall.')
       ! (zz, xx) is the local reference coordinate system at the element
 
       do is = 1, size(section%point)
-        pt => section%point(is)
+        pt = tao_oreint_building_wall_pt(section%point(is))
         dz = pt%z - ele%floor%r(3); dx = pt%x - ele%floor%r(1)
         cos_theta = cos(ele%floor%theta); sin_theta = sin(ele%floor%theta)
         zz_pt =  dz * cos_theta + dx * sin_theta

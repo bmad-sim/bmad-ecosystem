@@ -117,6 +117,7 @@ type (cylindrical_map_struct), pointer :: cy_map
 type (cylindrical_map_term1_struct), pointer :: cyt
 type (taylor_term_struct), pointer :: tt
 type (floor_position_struct) floor, floor1, floor2, end1, end2, f_orb
+type (tao_floor_plan_struct), pointer :: fp
 type (wake_struct), pointer :: wake
 type (wake_sr_mode_struct), pointer :: wsr
 type (wake_lr_mode_struct), pointer :: lr_mode
@@ -2352,6 +2353,14 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_var_merit_type_name(i))
     enddo
 
+  case ('view')
+    nl=incr(nl); li(nl) = 'zx'
+    nl=incr(nl); li(nl) = 'xz'
+    nl=incr(nl); li(nl) = 'xy'
+    nl=incr(nl); li(nl) = 'yx'
+    nl=incr(nl); li(nl) = 'zy'
+    nl=incr(nl); li(nl) = 'yz'
+
   case ('wave_data_type')
     do i = 1, size(tao_wave_data_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_wave_data_name(i))
@@ -2473,8 +2482,8 @@ case ('floor_orbit')
   u => tao_pointer_to_universe(g%ix_universe)
   lat => u%model%lat
 
-  if (g%floor_plan_orbit%scale == 0) then
-    call invalid ('graph%floor_plan_orbit%scale is zero!')
+  if (g%floor_plan%orbit_scale == 0) then
+    call invalid ('graph%floor_plan%orbit_scale is zero!')
     return
   endif
 
@@ -2539,7 +2548,7 @@ case ('floor_orbit')
           s_here = j * ele%value(l$) / n_bend
           call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
                                                            .true., .true., orb_start, orb_here)
-          f_orb%r(1:2) = g%floor_plan_orbit%scale * orb_here%vec(1:3:2)
+          f_orb%r(1:2) = g%floor_plan%orbit_scale * orb_here%vec(1:3:2)
           f_orb%r(3) = s_here
           f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
           call tao_floor_to_screen (g, f_orb%r, dx_orbit(j), dy_orbit(j))
@@ -2555,14 +2564,14 @@ case ('floor_orbit')
 
       elseif (ele%key == patch$) then
         ele0 => pointer_to_next_ele (ele, -1)
-        floor%r(1:2) = g%floor_plan_orbit%scale * orb_start%vec(1:3:2)
+        floor%r(1:2) = g%floor_plan%orbit_scale * orb_start%vec(1:3:2)
         floor%r(3) = ele0%value(l$)
         floor1 = coords_local_curvilinear_to_floor (floor, ele0, .false.)
         call tao_floor_to_screen_coords (g, floor1, f_orb)
         dx_orbit(0) = f_orb%r(1)
         dy_orbit(0) = f_orb%r(2)
 
-        floor%r(1:2) = g%floor_plan_orbit%scale * orb_end%vec(1:3:2)
+        floor%r(1:2) = g%floor_plan%orbit_scale * orb_end%vec(1:3:2)
         floor%r(3) = ele%value(l$)
         floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
         call tao_floor_to_screen_coords (g, floor1, f_orb)
@@ -2575,7 +2584,7 @@ case ('floor_orbit')
           s_here = ic * ele%value(l$) / n
           call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
                                                      .true., .true., orb_start, orb_here)
-          floor%r(1:2) = g%floor_plan_orbit%scale * orb_here%vec(1:3:2)
+          floor%r(1:2) = g%floor_plan%orbit_scale * orb_here%vec(1:3:2)
           floor%r(3) = s_here
           floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
           call tao_floor_to_screen_coords (g, floor1, f_orb)
@@ -3244,11 +3253,8 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), amt) 'title_suffix;STR;F;',                       g%title_suffix
   nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                    g%component
   nl=incr(nl); write (li(nl), amt) 'why_invalid;STR;F;',                        g%why_invalid
-  nl=incr(nl); write (li(nl), amt) 'floor_plan_view;STR;T;',                    g%floor_plan_view
   nl=incr(nl); write (li(nl), rmt) 'x_axis_scale_factor;REAL;T;',               g%x_axis_scale_factor
   nl=incr(nl); write (li(nl), rmt) 'symbol_size_scale;REAL;T;',                 g%symbol_size_scale
-  nl=incr(nl); write (li(nl), rmt) 'floor_plan_rotation;REAL;T;',               g%floor_plan_rotation
-  nl=incr(nl); write (li(nl), lmt) 'floor_plan_flip_label_side;LOGIC;T;',       g%floor_plan_flip_label_side
   nl=incr(nl); write (li(nl), jmt) g%ix_universe, '^ix_branch;INUM;T;',         g%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                       g%ix_universe
   nl=incr(nl); write (li(nl), lmt) 'clip;LOGIC;T;',                             g%clip
@@ -3256,16 +3262,17 @@ case ('plot_graph')
   nl=incr(nl); write (li(nl), lmt) 'y2_mirrors_y;LOGIC;T;',                     g%y2_mirrors_y
   nl=incr(nl); write (li(nl), lmt) 'limited;LOGIC;F;',                          g%limited
   nl=incr(nl); write (li(nl), lmt) 'draw_axes;LOGIC;T;',                        g%draw_axes
-  nl=incr(nl); write (li(nl), lmt) 'correct_xy_distortion;LOGIC;T;',            g%correct_xy_distortion
-  nl=incr(nl); write (li(nl), lmt) 'floor_plan_size_is_absolute;LOGIC;T;',      g%floor_plan_size_is_absolute
-  nl=incr(nl); write (li(nl), lmt) 'floor_plan_draw_only_first_pass;LOGIC;T;',  g%floor_plan_draw_only_first_pass
   nl=incr(nl); write (li(nl), lmt) 'draw_curve_legend;LOGIC;T;',                g%draw_curve_legend
   nl=incr(nl); write (li(nl), lmt) 'draw_grid;LOGIC;T;',                        g%draw_grid
   nl=incr(nl); write (li(nl), lmt) 'draw_only_good_user_data_or_vars;LOGIC;T;', g%draw_only_good_user_data_or_vars
 
-  nl=incr(nl); write (li(nl), '(6a, 2(a, l1))') 'floor_plan_orbit;STRUCT;T;scale;REAL;', &
-      to_str(g%floor_plan_orbit%scale, 4), ';color;ENUM;', trim(g%floor_plan_orbit%color), &
-      ';width;INT;', g%floor_plan_orbit%width, ';pattern;ENUM;', trim(g%floor_plan_orbit%pattern)
+  fp => g%floor_plan
+  nl=incr(nl); write (li(nl), '(50a)') 'floor_plan;STRUCT;T', ';view;ENUM;', fp%view, &
+      ';rotation;REAL;', to_str(fp%rotation, 6), ';flip_label_side;LOGIC;', logic_str(fp%flip_label_side), &
+      ';size_is_absolute;LOGIC;', logic_str(fp%size_is_absolute), ';draw_building_wall;LOGIC;', logic_str(fp%draw_building_wall), &
+      ';draw_only_first_pass;LOGIC;', logic_str(fp%draw_only_first_pass), ';correct_distortion;LOGIC;', logic_str(fp%correct_distortion), &
+      ';orbit_scale;REAL;', to_str(fp%orbit_scale, 4), ';orbit_color;ENUM;', trim(fp%orbit_color), &
+      ';orbit_width;INT;', int_str(fp%orbit_width), ';orbit_pattern;ENUM;', trim(fp%orbit_pattern)
   
 
   if (s%global%external_plotting) then

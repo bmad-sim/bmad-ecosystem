@@ -600,6 +600,12 @@ subroutine tao_orbit_value (component, orbit, value, err)
   real(rp) value
   logical err
 end subroutine
+
+function tao_oreint_building_wall_pt(pt_in) result (pt_out)
+  import
+  implicit none
+  type (tao_building_wall_point_struct) pt_in, pt_out
+end function
  
 function tao_pointer_to_datum (d1, ele_name) result (datum_ptr)
   import

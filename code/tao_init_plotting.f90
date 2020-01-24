@@ -477,23 +477,24 @@ do  ! Loop over plot files
       grph%draw_title                       = graph%draw_title
       grph%draw_axes                        = graph%draw_axes
       grph%draw_grid                        = graph%draw_grid
-      grph%correct_xy_distortion            = graph%correct_xy_distortion
       grph%draw_only_good_user_data_or_vars = graph%draw_only_good_user_data_or_vars
       grph%draw_curve_legend                = graph%draw_curve_legend
-      grph%floor_plan_orbit                 = graph%floor_plan_orbit
-      grph%floor_plan_view                  = graph%floor_plan_view
-      grph%floor_plan_flip_label_side       = graph%floor_plan_flip_label_side
-      grph%floor_plan_rotation              = graph%floor_plan_rotation
-      grph%floor_plan_size_is_absolute      = graph%floor_plan_size_is_absolute
-      grph%floor_plan_draw_only_first_pass  = graph%floor_plan_draw_only_first_pass
+      grph%floor_plan                       = graph%floor_plan      
       grph%title_suffix                     = ''
       grph%text_legend                      = ''
       grph%y2_mirrors_y                     = .true.
       if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 6
       if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
       if (grph%y2%major_div < 0 .and. grph%y2%major_div_nominal < 0) grph%y2%major_div_nominal = 4
-      if (graph%floor_plan_orbit_color /= '') grph%floor_plan_orbit%color = graph%floor_plan_orbit_color ! Old style
-      if (graph%floor_plan_orbit_scale /= -1) grph%floor_plan_orbit%scale = graph%floor_plan_orbit_scale ! Old style
+      if (graph%floor_plan_orbit_color /= '')           grph%floor_plan%orbit_color = graph%floor_plan_orbit_color ! Old style
+      if (graph%floor_plan_orbit_scale /= -1)           grph%floor_plan%orbit_scale = graph%floor_plan_orbit_scale ! Old style
+      if (graph%floor_plan_view /=  '')                 grph%floor_plan%view = graph%floor_plan_view
+      if (graph%floor_plan_flip_label_side /=  '')      grph%floor_plan%flip_label_side = eval_logical(graph%floor_plan_flip_label_side, err)
+      if (graph%floor_plan_rotation /=  real_garbage$)  grph%floor_plan%rotation = graph%floor_plan_rotation
+      if (graph%floor_plan_size_is_absolute /=  '')     grph%floor_plan%size_is_absolute = eval_logical(graph%floor_plan_size_is_absolute, err)
+      if (graph%floor_plan_draw_only_first_pass /=  '') grph%floor_plan%draw_only_first_pass = eval_logical(graph%floor_plan_draw_only_first_pass, err)
+      if (graph%correct_xy_distortion /= '')            grph%floor_plan%correct_distortion = eval_logical(graph%correct_xy_distortion, err)
+
 
       call qp_calc_axis_places (grph%x)
 
@@ -1923,7 +1924,6 @@ if (all(s%plot_page%template%name /= 'floor_plan')) then
   grph%type                  = 'floor_plan'
   grph%margin                = qp_rect_struct(0.15, 0.06, 0.05, 0.05, '%BOX')
   grph%scale_margin          = qp_rect_struct(0.02_rp, 0.02_rp, 0.02_rp, 0.02_rp, '%GRAPH')
-  grph%correct_xy_distortion = .true.
   grph%draw_only_good_user_data_or_vars = .true.
   grph%x                     = init_axis
   grph%y                     = init_axis
@@ -1946,11 +1946,11 @@ if (all(s%plot_page%template%name /= 'floor_plan')) then
     dy = maxval(branch%ele(1:n)%floor%r(2)) - minval(branch%ele(1:n)%floor%r(2))
     dz = maxval(branch%ele(1:n)%floor%r(3)) - minval(branch%ele(1:n)%floor%r(3))
     if (dx < min(dy, dz)) then
-      grph%floor_plan_view = 'yz'
+      grph%floor_plan%view = 'yz'
     elseif (dy < min(dx, dz)) then
-      grph%floor_plan_view = 'zx'
+      grph%floor_plan%view = 'zx'
     else
-      grph%floor_plan_view = 'yx'
+      grph%floor_plan%view = 'yx'
     endif
   endif
 

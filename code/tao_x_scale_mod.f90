@@ -234,6 +234,7 @@ type (tao_ele_shape_struct), pointer :: shape
 type (tao_universe_struct), pointer :: u
 type (floor_position_struct) floor, end
 type (lat_struct), pointer :: lat
+type (tao_building_wall_point_struct) pt
 
 integer i, j, k, n, p1, p2, ix, ib
 real(rp) x_min, x_max
@@ -288,9 +289,10 @@ if (graph%type == 'floor_plan') then
       if (.not. shape%draw) cycle
       do j = 1, size(s%building_wall%section)
         do k = 1, size(s%building_wall%section(j)%point)
-          floor%r(1) = s%building_wall%section(j)%point(k)%x
+          pt = tao_oreint_building_wall_pt(s%building_wall%section(j)%point(k))
+          floor%r(1) = pt%x
           floor%r(2) = 0
-          floor%r(3) = s%building_wall%section(j)%point(k)%z
+          floor%r(3) = pt%z
           floor%theta = 0
           call tao_floor_to_screen_coords (graph, floor, end)
           this_min = min(this_min, end%r(1))

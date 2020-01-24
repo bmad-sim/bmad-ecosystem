@@ -18,7 +18,7 @@ implicit none
 type (tao_building_wall_point_struct) point(100)
 type (tao_building_wall_point_struct), pointer :: pt(:)
 
-real(rp) x_mid, z_mid, dx, dz, a, a2
+real(rp) x_mid, z_mid, dx, dz, a, a2, theta, x_offset, z_offset
 integer i, j, iu, ios, n_wall
 
 character(*) wall_file
@@ -28,6 +28,7 @@ character(16) constraint
 character(*), parameter :: r_name = 'tao_init_building_wall'
 
 namelist / building_wall_section / constraint, name, point
+namelist / building_wall_orientation / theta, x_offset, z_offset
 
 ! Open file
 
@@ -43,6 +44,27 @@ if (iu == 0) then
   call err_exit
 endif
 
+! Wall orientation
+
+theta = 0
+x_offset = 0
+z_offset = 0
+
+read (iu, nml = building_wall_orientation, iostat = ios)
+if (ios > 0) then
+  call out_io (s_fatal$, r_name, 'ERROR READING BUILDING_WALL_ORINETATION NAMELIST')
+  rewind(iu)
+  do   ! Generate informational message
+    read (iu, nml = building_wall_orientation)
+  enddo
+elseif (ios == 0) then
+  s%building_wall%orientation%theta = theta
+  s%building_wall%orientation%x_offset = x_offset
+  s%building_wall%orientation%z_offset = z_offset
+endif
+
+rewind(iu)
+
 ! Count the number of walls
 
 n_wall = 0
@@ -50,6 +72,7 @@ do
   read (iu, nml = building_wall_section, iostat = ios)
   if (ios > 0) then
     call out_io (s_fatal$, r_name, 'ERROR READING BUILDING_WALL_SECTION NAMELIST')
+    rewind(iu)
     do   ! Generate informational message
       read (iu, nml = building_wall_section)
     enddo

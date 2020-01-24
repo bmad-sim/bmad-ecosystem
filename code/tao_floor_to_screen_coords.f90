@@ -37,7 +37,7 @@ theta = floor%theta
 phi = floor%phi
 orient = [sin(theta) * cos(phi), sin(phi), cos(theta) * cos(phi)]  ! orientation vector
 
-select case (graph%floor_plan_view(1:1))
+select case (graph%floor_plan%view(1:1))
 case ('x')
   x = orient(1)
 case ('y')
@@ -46,7 +46,7 @@ case ('z')
   x = orient(3)
 end select
 
-select case (graph%floor_plan_view(2:2))
+select case (graph%floor_plan%view(2:2))
 case ('x')
   y = orient(1)
 case ('y')
@@ -55,6 +55,6 @@ case ('z')
   y = orient(3)
 end select
 
-screen%theta = atan2(y, x) + twopi * graph%floor_plan_rotation
+screen%theta = atan2(y, x) + twopi * graph%floor_plan%rotation
 
 end subroutine tao_floor_to_screen_coords
