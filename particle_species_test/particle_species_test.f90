@@ -20,7 +20,8 @@ namelist / particle_species_test_params / &
 
 !------------------------------------------
 ! Defaults for namelist
-example_names(1:7) =  [character(20) :: 'Ag+76', 'NH3--', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+3']
+example_names(1:11) =  [character(20) :: 'Ag+76', 'NH3--', 'CH3++', 'CH3+2', 'NH3@M37.5-', 'C+', '#12C+3', &
+                        '#293Lv-2', '#291Og', '#295Ts', '#400Mc']
 verbose = .false.
 
 ! Read namelist
