@@ -547,19 +547,16 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     bmad_name = sad_param_name
 
     if sad_param_name == 'k1' and sad_ele.type == 'quad' and zero_length:
-      if not zero_value:
-        bmad_ele.type = 'multipole'
-        bmad_name = 'k1l'
+      bmad_ele.type = 'multipole'
+      bmad_name = 'k1l'
 
     elif sad_param_name == 'k2' and sad_ele.type == 'sext' and zero_length:
-      if not zero_value:
-        bmad_ele.type = 'multipole'
-        bmad_name = 'k2l'
+      bmad_ele.type = 'multipole'
+      bmad_name = 'k2l'
 
     elif sad_param_name == 'k3' and sad_ele.type == 'oct' and zero_length:
-      if not zero_value:
-        bmad_ele.type = 'multipole'
-        bmad_name = 'k3l'
+      bmad_ele.type = 'multipole'
+      bmad_name = 'k3l'
 
     elif sad_param_name == 'rotate' and sad_ele.type == 'quad' and zero_length:
       bmad_ele.type = 'multipole'
