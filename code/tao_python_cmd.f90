@@ -2302,7 +2302,7 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_graph_type_name(i))
     enddo
 
-  case ('line.pattern')
+  case ('line^pattern')
     do i = 1, size(qp_line_pattern_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
     enddo
@@ -2324,22 +2324,22 @@ case ('enum')
     nl=incr(nl); li(nl) = '1;exact'
     nl=incr(nl); li(nl) = '2;quick'
 
-  case ('shape.label')
+  case ('shape^label')
     do i = 1, size(tao_shape_label_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_label_name(i))
     enddo
 
-  case ('shape.shape')
+  case ('shape^shape')
     do i = 1, size(tao_shape_shape_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_shape_name(i))
     enddo
 
-  case ('symbol.fill_pattern')
+  case ('fill_pattern')
     do i = 1, size(qp_symbol_fill_pattern_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_fill_pattern_name(i))
     enddo
 
-  case ('symbol.type')
+  case ('symbol^type')
     do i = lbound(qp_symbol_type_name, 1), ubound(qp_symbol_type_name, 1)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
     enddo
@@ -3142,9 +3142,9 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), lmt) 'autoscale_z_color;LOGIC;I;',              c%autoscale_z_color
   nl=incr(nl); write (li(nl), lmt) 'valid;LOGIC;I;',                          c%valid
   nl=incr(nl); write (li(nl), '(a, i0, 4a)') 'line;STRUCT;T;width;INT;', c%line%width, &
-                      ';color;ENUM;', trim(c%line%color), ';pattern;ENUM;', c%line%pattern
+                      ';color;ENUM;', trim(c%line%color), ';line^pattern;ENUM;', c%line%pattern
 
-  nl=incr(nl); write (li(nl), '(9a, i0)')  'symbol;STRUCT;T;type;ENUM;', trim(c%symbol%type), &
+  nl=incr(nl); write (li(nl), '(9a, i0)')  'symbol;STRUCT;T;symbol^type;ENUM;', trim(c%symbol%type), &
                       ';color;ENUM;', trim(c%symbol%color), ';height;REAL;', to_str(c%symbol%height, 4), &
                       ';fill_pattern;ENUM;', trim(c%symbol%fill_pattern), ';line_width;INT;', c%symbol%line_width
 
