@@ -937,7 +937,7 @@ def enum_fetch(enum,pipe):
             option_list[i] = option_list[i][sc+1:]
         # Special case: ele shapes
         # Have to add in custom shapes
-        if enum == "shape.shape":
+        if enum == "shape^shape":
             custom_shapes = pipe.cmd_in("python shape_pattern_list")
             custom_shapes = custom_shapes.splitlines()
             for i in range(len(custom_shapes)):
