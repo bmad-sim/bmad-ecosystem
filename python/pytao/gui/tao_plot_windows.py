@@ -890,6 +890,13 @@ class new_graph_frame(tk.Frame):
                 x += ';bounds;ENUM;;tick_side;INUM;;number_side;INUM;'
                 x += ';draw_label;LOGIC;T;draw_numbers;LOGIC;T'
             return x
+        def floor_plan_props(x):
+            '''Adds the properties of a floor_plan struct to x'''
+            x += ";view;ENUM;zx;rotation;REAL;0;flip_label_side;LOGIC;F"
+            x += ";size_is_absolute;LOGIC;F;draw_building_wall;LOGIC;T"
+            x += ";draw_only_first_pass;LOGIC;F;correct_distortion;LOGIC;T"
+            x += ";orbit_scale;REAL;0;orbit_color;ENUM;red;orbit_width;INT;1;orbit_pattern;ENUM;solid"
+            return x
         def graph_label_maker(x):
             '''Helper function'''
             if x in self.head_labels:
@@ -922,16 +929,17 @@ class new_graph_frame(tk.Frame):
         self.wids['floor_plan'] = [
                 qp_axis_props("x2;STRUCT;T"),
                 "ix_universe;INT;T;",
-                "floor_plan_rotation;REAL;T;",
-                "floor_plan_view;STR;T;zx",
-                "floor_plan_orbit_scale;REAL;T;",
-                "floor_plan_orbit_color;STR;T;",
-                "floor_plan_flip_label_side;LOGIC;T;F",
-                "floor_plan_size_is_absolute;LOGIC;T;F",
-                "floor_plan_draw_only_first_pass;LOGIC;T;F"]
-        self.labels['floor_plan'] = ["X2-axis:", "Universe:",
-                "Rotation:", "View:", "Orbit scale:", "Orbit color:",
-                "Flip label side:", "Absolute size:", "Draw only first pass:"]
+                floor_plan_props("floor_plan;STRUCT;T")]
+                #"floor_plan_rotation;REAL;T;",
+                #"floor_plan_view;STR;T;zx",
+                #"floor_plan_orbit_scale;REAL;T;",
+                #"floor_plan_orbit_color;STR;T;",
+                #"floor_plan_flip_label_side;LOGIC;T;F",
+                #"floor_plan_size_is_absolute;LOGIC;T;F",
+                #"floor_plan_draw_only_first_pass;LOGIC;T;F"]
+        self.labels['floor_plan'] = ["X2-axis:", "Universe:", "Floor plan settings:"]
+                #"Rotation:", "View:", "Orbit scale:", "Orbit color:",
+                #"Flip label side:", "Absolute size:", "Draw only first pass:"]
         self.wids['floor_plan'] = list(map(graph_ttp, self.wids['floor_plan']))
         self.labels['floor_plan'] = list(map(graph_label_maker, self.labels['floor_plan']))
         # Lat layouts
@@ -2168,14 +2176,15 @@ class tao_building_wall_window(Tao_Toplevel):
         # Open a window to specify name and constraint type
         win = Tao_Popup(self, self.root)
         win.title("New Building Wall Point")
-        tk.Label(win, text="Name (optional):").grid(row=0, column=0, sticky='W')
-        name_var = tk.StringVar()
-        tk.Entry(win, textvariable=name_var).grid(row=0, column=1, sticky='EW')
-        tk.Label(win, text="Constraint type").grid(row=1, column=0, sticky='W')
-        constraint_var = tk.StringVar()
-        tk.OptionMenu(win, constraint_var, "None", "Left side", "Right side").grid(
-                row=1, column=1, sticky='EW')
-        constraint_var.set("None")
+        #tk.Label(win, text="Name (optional):").grid(row=0, column=0, sticky='W')
+        #name_var = tk.StringVar()
+        #tk.Entry(win, textvariable=name_var).grid(row=0, column=1, sticky='EW')
+        #tk.Label(win, text="Constraint type").grid(row=1, column=0, sticky='W')
+        #constraint_var = tk.StringVar()
+        #tk.OptionMenu(win, constraint_var, "None", "Left side", "Right side").grid(
+        #        row=1, column=1, sticky='EW')
+        #constraint_var.set("None")
+
 
         def create(event=None):
             '''Create the new section'''
@@ -2213,3 +2222,23 @@ class tao_building_wall_window(Tao_Toplevel):
         '''
         pass
 
+class building_wall_point_window(Tao_Popup):
+    '''
+    Window for specifying building wall point properties.
+    Handles both creating new points and editing existing points.
+
+    parent: the parent window for this window
+    root:       the tao root window
+    pipe:       tao_interface object
+    section_ix: the 1-based building wall section index that
+                this point belongs to
+    point_ix:   the 1-based index of the point to be edited
+    is_new:     specifies whether or not this should be a
+                new point or an existing point should be edited
+    '''
+    def __init__(self, parent, root, pipe, section_ix, point_ix, is_new):
+        Tao_Popup.__init__(self, parent, root)
+        self.pipe = pipe
+        self.section_ix = section_ix
+        self.point_ix = point_ix
+        self.is_new = is_new

@@ -1389,7 +1389,7 @@ class ele_shape_frame(tk.Frame):
         def wid_maker(i):
             '''Helper function'''
             return tao_parameter(self.keys[i], types[i-1], "T", current_row[i])
-        types = ["STR", "ENUM", "ENUM", "REAL", "ENUM", "LOGIC", "LOGIC", "REAL"]
+        types = ["STR", "ENUM", "ENUM", "REAL", "ENUM", "LOGIC", "LOGIC", "INT"]
         for i in range(1, len(current_row)):
             params.append(tk_tao_parameter(wid_maker(i), widget_frame, self.pipe,
                     prefix="shape" if types[i-1]=="ENUM" else ""))
@@ -1473,8 +1473,10 @@ class ele_shape_frame(tk.Frame):
         Removes the selected item from the ele_shape table
         and shifts other ele_shapes accordingly
         '''
-        ix = self.get_focus_ix() + 1
-        self.pipe.cmd_in("python shape_manage " + self.type + " " + str(ix) + " delete")
+        ix = self.get_focus_ix()
+        if ix==None:
+            return
+        self.pipe.cmd_in("python shape_manage " + self.type + " " + str(ix+1) + " delete")
         self.refresh()
 
 
@@ -1486,7 +1488,7 @@ class ele_shape_frame(tk.Frame):
         # Add the shape
         self.pipe.cmd_in("python shape_manage " + self.type + " 1 add")
         # Set the ele_id non-empty to make it show up in the table
-        cmd_str = self.shape_set_format.format(shape_ix=1, ele_name="None", shape="box",
+        cmd_str = self.shape_set_format.format(shape_ix=1, ele_id="None", shape="box",
                 color="black", shape_size=0, label="none", draw="F", multi="F", line_width=0)
         self.pipe.cmd_in(cmd_str)
         # Refresh table
