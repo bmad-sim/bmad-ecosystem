@@ -1519,6 +1519,20 @@ value = remove_quotes(value_str)
 
 comp = component
 sub_comp = ''
+
+select case (comp)
+case ('floor_plan_size_is_absolute');      comp = 'floor_plan%size_is_absolute'
+case ('floor_plan_draw_only_first_pass');  comp = 'floor_plan%draw_only_first_pass'
+case ('floor_plan_flip_label_side');       comp = 'floor_plan%flip_label_side'
+case ('floor_plan_rotation');              comp = 'floor_plan%rotation'
+case ('floor_plan_scale');                 comp = 'floor_plan%scale'
+case ('floor_plan_color');                 comp = 'floor_plan%color'
+case ('floor_plan_pattern');               comp = 'floor_plan%pattern'
+case ('floor_plan_view');                  comp = 'floor_plan%view'
+case ('floor_plan_width');                 comp = 'floor_plan%width'
+case ('correct_xy_distortion');            comp = 'floor_plan%correct_distortion'
+end select
+
 ix = max(index(comp, '%'), index(comp, '.'), index(comp, '('))
 if (ix /= 0) then
   sub_comp = comp(ix+1:)
@@ -1540,8 +1554,6 @@ case ('component')
   this_graph%component = value_str
 case ('clip')
   call tao_set_logical_value (this_graph%clip, component, value, error)
-case ('correct_xy_distortion')
-  call tao_set_logical_value(this_graph%correct_xy_distortion, component, value, error)
 case ('curve_legend_origin')
   call tao_set_qp_point_struct (comp, sub_comp, this_graph%curve_legend_origin, value, error, u%ix_uni)
 case ('draw_axes')
@@ -1554,34 +1566,36 @@ case ('draw_grid')
   call tao_set_logical_value (this_graph%draw_grid, component, value, error)
 case ('draw_only_good_user_data_or_vars')
   call tao_set_logical_value (this_graph%draw_only_good_user_data_or_vars, component, value, error)
-case ('floor_plan_size_is_absolute')
-  call tao_set_logical_value(this_graph%floor_plan_size_is_absolute, component, value, error)
-case ('floor_plan_draw_only_first_pass')
-  call tao_set_logical_value(this_graph%floor_plan_draw_only_first_pass, component, value, error)
-case ('floor_plan_flip_label_side')
-  call tao_set_logical_value(this_graph%floor_plan_flip_label_side, component, value, error)
-case ('floor_plan_rotation')
-  call tao_set_real_value(this_graph%floor_plan_rotation, component, value, error, dflt_uni = u%ix_uni)
-case ('floor_plan_orbit')
+case ('floor_plan')
   select case (sub_comp)
+  case ('correct_distortion')
+    call tao_set_logical_value(this_graph%floor_plan%correct_distortion, component, value, error)
+  case ('size_is_absolute')
+    call tao_set_logical_value(this_graph%floor_plan%size_is_absolute, component, value, error)
+  case ('draw_only_first_pass')
+    call tao_set_logical_value(this_graph%floor_plan%draw_only_first_pass, component, value, error)
+  case ('flip_label_side')
+    call tao_set_logical_value(this_graph%floor_plan%flip_label_side, component, value, error)
+  case ('rotation')
+    call tao_set_real_value(this_graph%floor_plan%rotation, component, value, error, dflt_uni = u%ix_uni)
   case ('scale')
-    call tao_set_real_value(this_graph%floor_plan_orbit%scale, component, value, error, dflt_uni = u%ix_uni)
+    call tao_set_real_value(this_graph%floor_plan%orbit_scale, component, value, error, dflt_uni = u%ix_uni)
   case ('color')
-    this_graph%floor_plan_orbit%color = value
+    this_graph%floor_plan%orbit_color = value
   case ('pattern')
-    this_graph%floor_plan_orbit%pattern = value
+    this_graph%floor_plan%orbit_pattern = value
+  case ('view')
+    if (.not. any(value == tao_floor_plan_view_name)) then
+      call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
+      return
+    endif
+    this_graph%floor_plan%view = value
   case ('width')
-    call tao_set_integer_value(this_graph%floor_plan_orbit%width, component, value, error, 1, 999)
+    call tao_set_integer_value(this_graph%floor_plan%orbit_width, component, value, error, 1, 999)
   case default
     call out_io (s_error$, r_name, "BAD GRAPH floor_plan_orbit SUB-COMPONENT: " // sub_comp)
     return
   end select
-case ('floor_plan_view')
-  if (.not. any(value == tao_floor_plan_view_name)) then
-    call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
-    return
-  endif
-  this_graph%floor_plan_view = value
 case ('ix_universe')
   if (this_graph%type == 'floor_plan' .or. this_graph%type == 'lat_layout') then
     call tao_set_integer_value (this_graph%ix_universe, component, value, error, -2, ubound(s%u, 1))

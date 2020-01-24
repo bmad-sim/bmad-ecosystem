@@ -404,7 +404,7 @@ call tao_set_floor_plan_axis_label(graph, graph%y, y_ax, 'Y')
 call qp_set_layout (x_axis = x_ax, y_axis = y_ax, x2_axis = graph%x2, y2_axis = graph%y2, &
                     x2_mirrors_x = .true., y2_mirrors_y = .true., box = graph%box, margin = graph%margin)
 
-if (graph%correct_xy_distortion) call qp_eliminate_xy_distortion
+if (graph%floor_plan%correct_distortion) call qp_eliminate_xy_distortion
 
 !
 
@@ -440,7 +440,7 @@ contains
 subroutine draw_this_floor_plan(isu)
 
 type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
-type (tao_building_wall_point_struct), pointer :: pt(:)
+type (tao_building_wall_point_struct) pt0, pt1
 type (floor_position_struct) end1, end2, floor
 
 real(rp) x_min, x_max, y_min, y_max
@@ -466,14 +466,14 @@ do n = 0, ubound(lat%branch, 1)
       call tao_ele_shape_info (isu, ele, s%plot_page%floor_plan%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
       if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) exit   ! Nothing to draw
 
-      if (graph%floor_plan_draw_only_first_pass .and. ele%slave_status == multipass_slave$) then
+      if (graph%floor_plan%draw_only_first_pass .and. ele%slave_status == multipass_slave$) then
         call multipass_chain (ele, ix_pass, n_links)
         if (ix_pass > 1) exit
       endif
 
       if (ele%lord_status == multipass_lord$) then
         do j = 1, ele%n_slave
-          if (graph%floor_plan_draw_only_first_pass .and. j > 1) exit
+          if (graph%floor_plan%draw_only_first_pass .and. j > 1) exit
           slave => pointer_to_slave(ele, j)
           ele_shape2 => tao_pointer_to_ele_shape (isu, slave, s%plot_page%floor_plan%ele_shape)
           if (associated(ele_shape2)) cycle ! Already drawn. Do not draw twice
@@ -491,7 +491,7 @@ enddo
 
 ! Draw the building wall
 
-if (allocated(s%building_wall%section)) then
+if (allocated(s%building_wall%section) .and. graph%floor_plan%draw_building_wall) then
   found = .false.
 
   do ib = 1, size(s%building_wall%section)
@@ -500,27 +500,29 @@ if (allocated(s%building_wall%section)) then
 
     found = .true.
     iwidth = ele_shape%line_width
-    pt => s%building_wall%section(ib)%point
 
-    do j = 2, size(pt)
-      if (pt(j)%radius == 0) then   ! line
-        call tao_floor_to_screen (graph, [pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
-        call tao_floor_to_screen (graph, [pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
+    do j = 2, size(s%building_wall%section(ib)%point)
+      pt0 = tao_oreint_building_wall_pt(s%building_wall%section(ib)%point(j-1))
+      pt1 = tao_oreint_building_wall_pt(s%building_wall%section(ib)%point(j))
+
+      if (pt1%radius == 0) then   ! line
+        call tao_floor_to_screen (graph, [pt0%x, 0.0_rp, pt0%z], end1%r(1), end1%r(2))
+        call tao_floor_to_screen (graph, [pt1%x, 0.0_rp, pt1%z], end2%r(1), end2%r(2))
 
         ix = max(1, index(ele_shape%shape, '_LINE'))
         call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), &
                     line_pattern = ele_shape%shape(1:ix-1), width = iwidth, color = ele_shape%color, clip = .true.)
 
       else                    ! arc
-        theta1 = atan2(pt(j-1)%x - pt(j)%x_center, pt(j-1)%z - pt(j)%z_center)
-        dtheta = atan2(pt(j)%x - pt(j)%x_center, pt(j)%z - pt(j)%z_center) - theta1
+        theta1 = atan2(pt0%x - pt1%x_center, pt0%z - pt1%z_center)
+        dtheta = atan2(pt1%x - pt1%x_center, pt1%z - pt1%z_center) - theta1
         if (abs(dtheta) > pi) dtheta = modulo2(dtheta, pi)
         n_bend = abs(50 * dtheta) + 1
         do k = 0, n_bend
           theta = theta1 + k * dtheta / n_bend
-          v_vec(1) = pt(j)%x_center + abs(pt(j)%radius) * sin(theta)
+          v_vec(1) = pt1%x_center + abs(pt1%radius) * sin(theta)
           v_vec(2) = 0
-          v_vec(3) = pt(j)%z_center + abs(pt(j)%radius) * cos(theta)
+          v_vec(3) = pt1%z_center + abs(pt1%radius) * cos(theta)
           call tao_floor_to_screen (graph, v_vec, x_bend(k), y_bend(k))
         enddo
         call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), width = iwidth, color = ele_shape%color, clip = .true.)
@@ -564,7 +566,7 @@ character(2) label(0:3)
 axis_out = axis_in
 if (axis_out%label /= 'SMART LABEL') return
 
-f = modulo(4*graph%floor_plan_rotation, 1.0_rp)
+f = modulo(4*graph%floor_plan%rotation, 1.0_rp)
 f = f - fraction(f)
 
 ! If rotation is not multiple of 90 degrees then must use blank label.
@@ -576,11 +578,11 @@ endif
 
 ! Normal case
 
-x_str = upcase(graph%floor_plan_view(1:1))
-y_str = upcase(graph%floor_plan_view(2:2))
+x_str = upcase(graph%floor_plan%view(1:1))
+y_str = upcase(graph%floor_plan%view(2:2))
 label = [x_str // ' ', '-' // y_str, '-' // x_str, y_str // ' ']
 
-irot = modulo(nint(4*graph%floor_plan_rotation), 4)
+irot = modulo(nint(4*graph%floor_plan%rotation), 4)
 if (which == 'Y') irot = modulo(irot-1, 4)
 axis_out%label = label(irot)
 
@@ -701,7 +703,7 @@ if ((end1%r(1) < x_min .or. x_max < end1%r(1) .or. end1%r(2) < y_min .or. y_max 
 
 !
 
-if (graph%floor_plan_size_is_absolute) then
+if (graph%floor_plan%size_is_absolute) then
   draw_units = 'DATA'
 else
   draw_units = 'POINTS'
@@ -773,15 +775,15 @@ if (is_bend) then
     endif
   enddo
 
-  if (graph%floor_plan_orbit%scale /= 0) then
-    n_bend_orb = n_bend + int(100 * graph%floor_plan_orbit%scale * &
+  if (graph%floor_plan%orbit_scale /= 0) then
+    n_bend_orb = n_bend + int(100 * graph%floor_plan%orbit_scale * &
                   (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4))))
     n_bend_orb = min(n_bend_orb, ubound(dx_orbit, 1))
     do j = 0, n_bend_orb
       s_here = j * ele%value(l$) / n_bend_orb
       call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
                                                        .true., .true., orb_start, orb_here)
-      f_orb%r(1:2) = graph%floor_plan_orbit%scale * orb_here%vec(1:3:2)
+      f_orb%r(1:2) = graph%floor_plan%orbit_scale * orb_here%vec(1:3:2)
       f_orb%r(3) = s_here
       f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
       call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
@@ -792,22 +794,22 @@ endif
 ! Draw orbit?
 
 call qp_save_state(.false.)
-call qp_set_line_attrib ('STD', graph%floor_plan_orbit%width, graph%floor_plan_orbit%color, graph%floor_plan_orbit%pattern)
+call qp_set_line_attrib ('STD', graph%floor_plan%orbit_width, graph%floor_plan%orbit_color, graph%floor_plan%orbit_pattern)
 
-if (graph%floor_plan_orbit%scale /= 0 .and. ele%value(l$) /= 0) then
+if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
     call qp_draw_polyline(dx_orbit(0:n_bend_orb), dy_orbit(0:n_bend_orb))
 
   elseif (ele%key == patch$) then
     ele0 => pointer_to_next_ele (ele, -1)
-    floor%r(1:2) = graph%floor_plan_orbit%scale * orb_start%vec(1:3:2)
+    floor%r(1:2) = graph%floor_plan%orbit_scale * orb_start%vec(1:3:2)
     floor%r(3) = ele0%value(l$)
     floor1 = coords_local_curvilinear_to_floor (floor, ele0, .false.)
     call tao_floor_to_screen_coords (graph, floor1, f_orb)
     dx_orbit(0) = f_orb%r(1)
     dy_orbit(0) = f_orb%r(2)
 
-    floor%r(1:2) = graph%floor_plan_orbit%scale * orb_end%vec(1:3:2)
+    floor%r(1:2) = graph%floor_plan%orbit_scale * orb_end%vec(1:3:2)
     floor%r(3) = ele%value(l$)
     floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
     call tao_floor_to_screen_coords (graph, floor1, f_orb)
@@ -822,7 +824,7 @@ if (graph%floor_plan_orbit%scale /= 0 .and. ele%value(l$) /= 0) then
       s_here = ic * ele%value(l$) / n
       call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
                                                  .true., .true., orb_start, orb_here)
-      floor%r(1:2) = graph%floor_plan_orbit%scale * orb_here%vec(1:3:2)
+      floor%r(1:2) = graph%floor_plan%orbit_scale * orb_here%vec(1:3:2)
       floor%r(3) = s_here
       floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
       call tao_floor_to_screen_coords (graph, floor1, f_orb)
@@ -1136,7 +1138,7 @@ if (label_name /= '') then
     dy = -1.5 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
   endif
 
-  if (graph%floor_plan_flip_label_side) then
+  if (graph%floor_plan%flip_label_side) then
     dx = -dx
     dy = -dy
   endif

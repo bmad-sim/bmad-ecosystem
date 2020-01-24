@@ -211,11 +211,20 @@ type tao_curve_struct
   logical :: valid = .false.             ! valid data? 
 end type
 
-type tao_floor_plan_orbit_struct
-  real(rp) :: scale = 0      ! Scale factor for drawing orbits. 0 -> Do not draw.
-  character(16) :: color = 'red'
-  character(16) :: pattern = 'solid'
-  integer :: width = 1
+! This is used with floor_plan drawings.
+
+type tao_floor_plan_struct
+  character(2) :: view = 'zx'                ! or 'xz'.
+  real(rp) :: rotation = 0                   ! Rotation of floor plan plot: 1.0 -> 360^deg
+  logical :: correct_distortion = .true.     ! T -> Shrink one axis so x-scale = y-scale.
+  logical :: flip_label_side = .false.       ! Draw element label on other side of element?
+  logical :: size_is_absolute = .false.      ! Are shape sizes in meters or window pixels?
+  logical :: draw_only_first_pass = .false.  ! Draw only first pass with multipass elements?
+  logical :: draw_building_wall = .true.     ! Draw the building wall?
+  real(rp) :: orbit_scale = 0                ! Scale factor for drawing orbits. 0 -> Do not draw.
+  character(16) :: orbit_color = 'red'
+  character(16) :: orbit_pattern = 'solid'
+  integer :: orbit_width = 1
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.
@@ -230,11 +239,10 @@ type tao_graph_struct
   character(100) :: text_legend(10) = ''            ! Array for holding descriptive info.
   character(100) :: text_legend_out(10) = ''        ! Array for holding descriptive info.
   character(60) :: component = ''                   ! Who to plot. Eg: 'meas - design'
-  character(2) :: floor_plan_view = 'zx'
   character(80) :: why_invalid = '???'              ! Informative string to print.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
-  type (tao_floor_plan_orbit_struct) :: floor_plan_orbit = tao_floor_plan_orbit_struct()
+  type (tao_floor_plan_struct) :: floor_plan = tao_floor_plan_struct()
   type (qp_point_struct) text_legend_origin
   type (qp_point_struct) curve_legend_origin
   type (qp_axis_struct) x                           ! X-axis parameters.
@@ -245,7 +253,6 @@ type tao_graph_struct
   type (qp_rect_struct) scale_margin                ! Margin for scaling
   real(rp) :: x_axis_scale_factor = 1               ! x-axis conversion from internal to plotting units.
   real(rp) :: symbol_size_scale = 0                 ! Symbol size scale factor for phase_space plots.
-  real(rp) :: floor_plan_rotation = 0               ! Rotation of floor plan plot: 1.0 -> 360^deg
   integer box(4)                                    ! Defines which box the plot is put in.
   integer :: ix_branch = 0                          ! Branch in lattice.
   integer :: ix_universe = -1                       ! Used for lat_layout plots.
@@ -253,15 +260,11 @@ type tao_graph_struct
   logical :: y2_mirrors_y = .true.                  ! Y2-axis same as Y-axis?
   logical :: limited = .false.                      ! True if at least one data point past graph bounds.
   logical :: draw_axes = .true.                     ! Draw axes, labels, etc?
-  logical :: correct_xy_distortion = .true.         ! T -> Shrink one axis in floor plan so x-scale = y-scale.
-  logical :: floor_plan_flip_label_side = .false.   ! Draw element label on other side of element?
-  logical :: floor_plan_size_is_absolute = .false.  ! Are shape sizes in meters or window pixels?
-  logical :: floor_plan_draw_only_first_pass = .false. ! Draw only first pass with multipass elements?
   logical :: draw_curve_legend = .true.             ! Legend for displaying curve info.
   logical :: draw_grid = .true.                     ! Draw a grid?
   logical :: draw_title = .true.
-  logical :: allow_wrap_around = .true.             ! "Wrap" curves to extend past lattice boundaries?
   logical :: draw_only_good_user_data_or_vars = .true.
+  logical :: allow_wrap_around = .true.             ! "Wrap" curves to extend past lattice boundaries?
   logical :: is_valid = .false.                     ! EG: Bad x_axis_type.
 end type
 
@@ -568,6 +571,12 @@ end type
 !------------------------------------------------------------------------
 ! Building wall structure
 
+type tao_building_wall_orientation_struct
+  real(rp) :: theta = 0
+  real(rp) :: x_offset = 0
+  real(rp) :: z_offset = 0
+end type
+
 type tao_building_wall_point_struct
   real(rp) :: z = 0, x = 0                  ! Global floor position
   real(rp) :: radius = 0                    ! Arc radius. +r -> CW rotation, same as bends. 
@@ -581,6 +590,7 @@ type tao_building_wall_section_struct
 end type
 
 type tao_building_wall_struct
+  type (tao_building_wall_orientation_struct) :: orientation = tao_building_wall_orientation_struct()
   type (tao_building_wall_section_struct), allocatable :: section(:)
 end type
 

@@ -27,7 +27,7 @@ real(rp), save :: cc, ss
 
 ! 
 
-select case (graph%floor_plan_view(1:1))
+select case (graph%floor_plan%view(1:1))
 case ('x')
   x = r_floor(1)
 case ('y')
@@ -36,7 +36,7 @@ case ('z')
   x = r_floor(3)
 end select
 
-select case (graph%floor_plan_view(2:2))
+select case (graph%floor_plan%view(2:2))
 case ('x')
   y = r_floor(1)
 case ('y')
@@ -45,7 +45,7 @@ case ('z')
   y = r_floor(3)
 end select
 
-t = graph%floor_plan_rotation
+t = graph%floor_plan%rotation
 if (t == 0) then
   x_screen = x
   y_screen = y
