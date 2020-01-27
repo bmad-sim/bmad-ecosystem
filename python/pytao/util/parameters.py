@@ -29,9 +29,33 @@ tao_startup_param_list = [
 #-------------------------------------------------
 
 class tao_parameter():
+    '''
+    Basic class for holding the properties of a parameter in Tao.
+
+    param_name:     the name of the parameter
+    param_type:     "STR", "INT", "REAL", "LOGIC", "ENUM", etc...
+    can_vary:       either 'T', 'F', or 'I', indicating whether or not the
+                    user may change the value of the paramter. 'I' indicates
+                    that the parameter is to be ignored by the gui, except
+                    to possibly be displayed as a sub-parameter to another
+                    tao_parameter.
+                    a
+    param_value:    the value held in the parameter, should be of the
+                    appropriate type for the specified param_type
+                    (or 'T'/'F' for LOGIC)
+    sub_param:      the name of the sub_parameter associated with this parameter,
+                    e.g. ele_name has the sub parameter ix_ele
+    '''
 
     def __init__(self, param_name, param_type, can_vary, param_value, sub_param=None):
-        self.name = param_name
+        # Enums and inums may have a prefix attached to their name, as in
+        # axis^type.  In this case, the prefix is removed from the parameter name
+        # and stored in the self.prefix variable
+        if (param_type in ['ENUM', 'INUM']) and (param_name.count('^') == 1):
+            self.prefix, self.name = param_name.split('^')
+        else:
+            self.prefix = None
+            self.name = param_name
         self.type = param_type
         self.can_vary = (can_vary == 'T')
         self.is_ignored = (can_vary == 'I')
@@ -64,7 +88,7 @@ class tao_parameter():
         return str(self.value)
 
     def __repr__(self):
-        return self.type + ';' + str(self.can_vary) + ';' + str(self.value)
+        return self.name + ';' + self.type + ';' + str(self.can_vary) + ';' + str(self.value)
 
     def get_component(self, comp_name):
         '''

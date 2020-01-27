@@ -22,15 +22,15 @@ class tk_tao_parameter():
     pipe: the tao_interface object
     data_source: for DAT_TYPE and DAT_TYPE_Z, filters allowed data types
     plot: for DAT_TYPE_Z, the plot where x_axis_type should be checked
-    prefix: for the components of a STRUCT, pass the struct name here
+    struct_name: for the components of a STRUCT, pass the struct name here
     '''
 
-    def __init__(self, tao_parameter, frame, pipe=0, data_source='', plot='', prefix=''):
+    def __init__(self, tao_parameter, frame, pipe=0, data_source='', plot='', struct_name=''):
         self.param = tao_parameter
         self.pipe = pipe
         self.sub_wid = None # to be set externally, e.g. by tk_tao_linker
-        if prefix != '':
-            prefix = prefix + '.'
+        if struct_name != '':
+            struct_name = struct_name + '.'
 
         if self.param.type == 'DAT_TYPE_Z':
             # Check if operating as ENUM or as DAT_TYPE
@@ -65,7 +65,10 @@ class tk_tao_parameter():
             self.tk_var = tk.StringVar()
             self.tk_var.set(self.param.value)
             if self.param.type == 'ENUM':
-                options = enum_fetch(prefix + self.param.name,pipe)
+                if self.param.prefix == None:
+                    options = enum_fetch(self.param.name,pipe)
+                else:
+                    options = enum_fetch(self.param.prefix + '^' + self.param.name,pipe)
             elif self.param.type == 'ENUM_Z': #added to handle DAT_TYPE_Z
                 options = enum_fetch('data_type_z', pipe)
                 self.param.type = 'ENUM'
@@ -84,7 +87,10 @@ class tk_tao_parameter():
         elif self.param.type == 'INUM':
             self.tk_var = tk.StringVar()
             self.tk_var.set(self.param.value)
-            options = inum_fetch(self.param.name,pipe)
+            if self.param.prefix == None:
+                options = inum_fetch(self.param.name,pipe)
+            else:
+                options = inum_fetch(self.param.prefix + '^' + self.param.name,pipe)
             if options == [""]:
                 options = [self.param.value]
             if self.param.value == None:
@@ -198,7 +204,7 @@ class tk_tao_parameter():
                 # SPECIAL CASE: x, x2, y, y2 structs
                 # do not transfer their name as the prefix
                 if self.param.name not in ['x', 'x2', 'y', 'y2']:
-                    self._s.append(tk_tao_parameter(component, self.tk_wid, pipe, prefix=self.param.name))
+                    self._s.append(tk_tao_parameter(component, self.tk_wid, pipe, struct_name=self.param.name))
                 else:
                     self._s.append(tk_tao_parameter(component, self.tk_wid, pipe))
         elif self.param.type == 'COMPONENT':
