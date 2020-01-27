@@ -1379,8 +1379,8 @@ class new_curve_frame(tk.Frame):
                 'draw_line;LOGIC;T;T',
                 'draw_symbols;LOGIC;T;T;',
                 'draw_symbol_index;LOGIC;T;F',
-                'line;STRUCT;T;width;INT;1;color;ENUM;;pattern;ENUM;',
-                'symbol;STRUCT;T;type;ENUM;;height;REAL;6.0;color;ENUM;;fill_pattern;ENUM;;line_width;INT;1',
+                'line;STRUCT;T;width;INT;1;color;ENUM;;line^pattern;ENUM;',
+                'symbol;STRUCT;T;symbol^type;ENUM;;height;REAL;6.0;color;ENUM;;fill_pattern;ENUM;;line_width;INT;1',
                 'symbol_every;INT;T;',
                 'smooth_line_calc;LOGIC;T;']
         self.style_labels = [ "Units:", "Legend text:",
