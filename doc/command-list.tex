@@ -1225,20 +1225,12 @@ Format:
   set graph <graph> <component> = <value>
 \end{example}
 
-For \vn{set graph}, the \vn{component}s that can be set are:
-\begin{example}
-  component   = <string>     ! \sref{s:plot.data}
-  clip        = <logical>
-  ix_universe = <number>
-  margin      = <qp_rect_struct>
-  x           = <qp_axis_struct>
-  y           = <qp_axis_struct>
-  y2          = <qp_axis_struct>
-\end{example}
+The \vn{set graph} command is used to set components of a graph structure (\sref{s:template}).
 
-If there are visible plots with the same name as the plot component of \vn{<graph>}, a template plot
-of the same name is ignored. If it is desired to set the graph(s) in the template plot, add a
-``\vn{T::}'' to the plot name.
+If the \vn{<graph>} name corresponds to a plot, the set is applied to all the graphs associated with
+the plot. If there are visible plots with the same name as the plot component of \vn{<graph>}, a
+template plot of the same name is ignored. If it is desired to set the graph(s) in the template
+plot, add a ``\vn{T::}'' prefix to the plot name.
 
 For setting the \vn{component} attribute see also the commands:
 \begin{example}
@@ -1250,8 +1242,10 @@ For setting the \vn{component} attribute see also the commands:
 Example:
 \begin{example}
   set graph orbit.x component = model - design  
-                          ! Plot model orbit - design orbit in the graph
+                                      ! Plot model orbit - design orbit in the graph
+  set graph orbit component = model - design  ! Applies to all graphs of orbit plot.
   set graph T::orbit.x component = model - design  ! Set template plot
+  set graph r11 floor_plan%orbit_scale = 100  ! To display an orbit.
 \end{example}
 
 %% set key --------------------------------------------------------------

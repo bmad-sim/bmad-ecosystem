@@ -1448,8 +1448,35 @@ line. Also this wall section is to be used when evaluating any \vn{wall.x+} cons
 If the machine varies vertically ($y$-direction), vertical constraints may be imposed using the
 \vn{floor.y} data type (\sref{s:data.types}).
 
+To see a list of the building wall points when running \tao, use the \vn{show building_wall}
+(\sref{s:show.building}) command .
+
 Note: To position a machine in the global coordinate system, the starting point and starting
 orientation can be adjusted using \vn{beginning[...]} statements as explained in the \bmad manual.
+
+%-----------------------------------------------------------------
+\subsection{Building Orientation}
+\label{s:building.orient}
+
+It may be convenient to use a different two-dimensional coordinate system for the horozontal plane
+than the global coordinate system used by \bmad and \tao. For example, if the building wall coordinants are
+obtained from a blueprint. To help with this, an overall position and angle
+shift may be specified by a \vn{building_wall_orientation} namelist in the same file with the
+\vn{building_wall_section} namelists. The syntax of the \vn{building_wall_orientation} namelist is:
+\begin{example}
+  theta = <Real>      ! Angle rotation in radians. Default is 0.
+  z_offset = <Real>   ! Z-offset. Default is 0.
+  x_offset = <Real>   ! X-offset. Default is 0.
+\end{example}
+The transformation from the input coordinates of a wall point specified in a \vn{build_wall_section} namelist
+to the global coordinate system is
+\Begineq
+  \begin{pmatrix} z \\ x \end{pmatrix}_{global} = 
+  \begin{pmatrix} \text{z_offset} \\ \text{x_offset} \end{pmatrix} +
+  \begin{pmatrix} \cos(\text{theta}) & -\sin(\text{theta}) \\
+                   \sin(\text{theta}) & \cos(\text{theta}) \end{pmatrix} \,
+  \begin{pmatrix} z \\ x \end{pmatrix}_{input} 
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Initializing Dynamic Aperture}
