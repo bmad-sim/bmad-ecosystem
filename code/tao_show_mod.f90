@@ -1583,9 +1583,9 @@ case ('global')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Tao Parameters:'
     nl=nl+1; write(lines(nl), imt) '  Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
-    nl=nl+1; write(lines(nl), imt) '  default_universe:            = ', s%com%default_universe
-    nl=nl+1; write(lines(nl), imt) '  default_branch:              = ', s%com%default_branch
-    nl=nl+1; write(lines(nl), lmt) '  common_lattice               = ', s%com%common_lattice
+    nl=nl+1; write(lines(nl), amt) '  default_universe:            = ', int_str(s%com%default_universe), '  ! Set using: "set default universe = ..."'
+    nl=nl+1; write(lines(nl), amt) '  default_branch:              = ', int_str(s%com%default_branch),   '  ! Set using: "set default branch = ..."'
+!!!!    nl=nl+1; write(lines(nl), lmt) '  common_lattice               = ', s%com%common_lattice
     nl=nl+1; write(lines(nl), imt) '  Number paused command files  = ', count(s%com%cmd_file%paused)
     nl=nl+1; write(lines(nl), amt) '  unique_name_suffix           = ', quote(s%com%unique_name_suffix)
     nl=nl+1; write(lines(nl), lmt) '  Combine_consecutive_elements_of_like_name = ', &

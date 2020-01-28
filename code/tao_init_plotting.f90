@@ -489,11 +489,11 @@ do  ! Loop over plot files
       if (graph%floor_plan_orbit_color /= '')           grph%floor_plan%orbit_color = graph%floor_plan_orbit_color ! Old style
       if (graph%floor_plan_orbit_scale /= -1)           grph%floor_plan%orbit_scale = graph%floor_plan_orbit_scale ! Old style
       if (graph%floor_plan_view /=  '')                 grph%floor_plan%view = graph%floor_plan_view
-      if (graph%floor_plan_flip_label_side /=  '')      grph%floor_plan%flip_label_side = eval_logical(graph%floor_plan_flip_label_side, err)
       if (graph%floor_plan_rotation /=  real_garbage$)  grph%floor_plan%rotation = graph%floor_plan_rotation
-      if (graph%floor_plan_size_is_absolute /=  '')     grph%floor_plan%size_is_absolute = eval_logical(graph%floor_plan_size_is_absolute, err)
-      if (graph%floor_plan_draw_only_first_pass /=  '') grph%floor_plan%draw_only_first_pass = eval_logical(graph%floor_plan_draw_only_first_pass, err)
-      if (graph%correct_xy_distortion /= '')            grph%floor_plan%correct_distortion = eval_logical(graph%correct_xy_distortion, err)
+      if (.not. graph%floor_plan_flip_label_side)       grph%floor_plan%flip_label_side      = graph%floor_plan_flip_label_side
+      if (.not. graph%floor_plan_size_is_absolute)      grph%floor_plan%size_is_absolute     = graph%floor_plan_size_is_absolute
+      if (.not. graph%floor_plan_draw_only_first_pass)  grph%floor_plan%draw_only_first_pass = graph%floor_plan_draw_only_first_pass
+      if (graph%correct_xy_distortion)                  grph%floor_plan%correct_distortion   = graph%correct_xy_distortion
 
 
       call qp_calc_axis_places (grph%x)

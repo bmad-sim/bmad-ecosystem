@@ -122,10 +122,10 @@ type tao_graph_input
   real(rp) :: symbol_size_scale = 0
   real(rp) :: floor_plan_rotation = real_garbage$    ! Rotation of floor plan plot: 1.0 -> 360^deg 
   real(rp) :: floor_plan_orbit_scale = -1 ! Scale factor for drawing orbits. 0 -> Do not draw.
-  character(8) :: floor_plan_flip_label_side = ''
-  character(8) :: floor_plan_size_is_absolute = ''
-  character(8) :: floor_plan_draw_only_first_pass = ''
-  character(8) :: correct_xy_distortion = ''
+  logical :: floor_plan_flip_label_side = .false.
+  logical :: floor_plan_size_is_absolute = .false.
+  logical :: floor_plan_draw_only_first_pass = .false.
+  logical :: correct_xy_distortion = .true.
   logical :: clip = .true.
   logical :: draw_title = .true.
   logical :: draw_axes = .true.
