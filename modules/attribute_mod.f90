@@ -886,6 +886,10 @@ call init_attribute_name1 (crystal$, pendellosung_period_sigma$,    'PENDELLOSUN
 call init_attribute_name1 (crystal$, pendellosung_period_pi$,       'PENDELLOSUNG_PERIOD_PI', dependent$)
 call init_attribute_name1 (crystal$, dbragg_angle_de$,              'DBRAGG_ANGLE_DE', dependent$)
 call init_attribute_name1 (crystal$, diffraction_limited$,          'DIFFRACTION_LIMITED')
+call init_attribute_name1 (crystal$, is_mosaic$,                    'IS_MOSAIC')
+call init_attribute_name1 (crystal$, mosaic_thickness$,             'MOSAIC_THICKNESS')
+call init_attribute_name1 (crystal$, mosaic_angle_rms_in_plane$,    'MOSAIC_ANGLE_RMS_IN_PLANE')
+call init_attribute_name1 (crystal$, mosaic_angle_rms_out_plane$,   'MOSAIC_ANGLE_RMS_OUT_PLANE')
 
 call init_attribute_name1 (def_bmad_com$, max_aperture_limit$,          'MAX_APERTURE_LIMIT')
 call init_attribute_name1 (def_bmad_com$, default_ds_step$,             'DEFAULT_DS_STEP')
@@ -1760,7 +1764,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
-      'SR_WAKE%SCALE_WITH_LENGTH')
+      'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
@@ -1856,7 +1860,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X', 'X0', 'X1', 'Y', 'Y0', 'Y1', 'X1_LIMIT', 'X2_LIMIT', 'Y1_LIMIT', 'Y2_LIMIT', 'X_LIMIT', 'Y_LIMIT', &
       'X_OFFSET', 'Y_OFFSET', 'X_OFFSET_CALIB', 'Y_OFFSET_CALIB', 'X_OFFSET_MULT', 'Y_OFFSET_MULT', &
       'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', 'X_RAY_LINE_LEN', &
-      'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', &
+      'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS')
   attrib_units = 'm'
 
@@ -1871,7 +1875,8 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
       'REF_TILT', 'REF_TILT_TOT', 'ROLL', 'ROLL_TOT', 'THETA_POSITION', &
       'TILT', 'TILT_CALIB', 'TILT_CORR', 'TILT_TOT', 'GRAZE_ANGLE_IN', 'GRAZE_ANGLE_OUT', &
       'T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', &
-      'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21')
+      'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', &
+      'MOSAIC_ANGLE_RMS_IN_PLANE', 'MOSAIC_ANGLE_RMS_OUT_PLANE')
   attrib_units = 'rad'
 
 case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', 'AUTOSCALE_PHASE_TOL')

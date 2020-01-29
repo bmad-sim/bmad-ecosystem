@@ -473,7 +473,7 @@ type (wake_struct), pointer :: wake
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
-integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus
+integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2
 
@@ -485,7 +485,7 @@ error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
-        idum, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+        ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
         ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
 
 read (d_unit, err = 9100, end = 9100) &

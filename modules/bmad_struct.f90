@@ -1013,6 +1013,12 @@ type bunch_params_struct
                                          !   this case the z-twiss will not be valid.
 end type
 
+! For things like a positron converter in a linac.
+! In development...
+
+type converter_struct
+end type
+
 !-------------------------------------------------------------------------
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
@@ -1028,7 +1034,7 @@ end type
 !       write_bmad_lattice_file
 !       pointer_to_attribute
 !       pointers_to_attribute
-
+!       Bmad manual
 
 type ele_struct
   character(40) :: name = '<Initialized>'                ! name of element.
@@ -1045,24 +1051,25 @@ type ele_struct
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct() ! Attribute bookkeeping
   type (branch_struct), pointer :: branch => null()                      ! Pointer to branch containing element.
   type (controller_struct), pointer :: control => null()                 ! group & overlay variables.
-  type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
-  type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
+  type (converter_struct), pointer :: converter => null()                ! EG: Positron converter in linac.
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
-  type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define E/M fields.
-  type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC tracking.
   type (floor_position_struct) :: floor = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
-                                                                     ! Reference position in global coords.
-  type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct() ! For symp_map$
-  type (mode3_struct), pointer :: mode3 => null()                    ! 6D normal mode structure.
-  type (photon_element_struct), pointer :: photon => null()
-  type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
-                                                               ! Radiation integral calc cached values 
+                                                                      ! Global coords reference position
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
+  type (mode3_struct), pointer :: mode3 => null()                     ! 6D normal mode structure.
+  type (photon_element_struct), pointer :: photon => null()
+  type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct()  ! For symp_map$
+  type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() ! Radiation integral calc cached values 
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
-  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()     ! Quaternion Spin Taylor map.
+  type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()   ! Quaternion Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
   type (wall3d_struct), pointer :: wall3d(:) => null()         ! Chamber or capillary wall
+  ! E/M field structs.
+  type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
+  type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
+  type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
+  type (taylor_field_struct), pointer :: taylor_field(:) => null()       ! Used to define E/M fields.
   ! The difference between map_ref_orb and time_ref_orb is that the map_ref_orb is the reference orbit for the
   ! transfer map which, in general, is non-zero while the time_ref_orb follows the reference particle which is
   ! generally the zero orbit (non-zero, for example, in the second slice of a sliced wiggler).
@@ -1400,12 +1407,13 @@ integer, parameter :: spin_y$ = 22, E2_center$ = 22, n_period$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
 integer, parameter :: cavity_type$ = 23, beta_a$ = 23, E2_probability$ = 23, high_energy_space_charge_on$ = 23
 integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, live_branch$ = 24, E_center_relative_to_ref$ = 24
-integer, parameter :: phi0_err$ = 25, current$ = 25, particle$ = 25
+integer, parameter :: is_mosaic$ = 24
+integer, parameter :: phi0_err$ = 25, current$ = 25, particle$ = 25, mosaic_thickness$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, spatial_distribution$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, velocity_distribution$ = 26
-integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
+integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26
 integer, parameter :: phi0_autoscale$ = 27, dx_origin$ =  27, cmat_11$ = 27, energy_distribution$ = 27
-integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
+integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: cmat_12$ = 28, e_field_x$ = 28
 integer, parameter :: floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29

@@ -75,7 +75,11 @@ case (capillary$)
 case (crystal$) 
 
   call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track1_crystal (ele, param, end_orb)
+  if (is_true(ele%value(is_mosaic$))) then
+    call track1_mosaic_crystal (ele, param, end_orb)
+  else
+    call track1_crystal (ele, param, end_orb)
+  endif
   call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------
