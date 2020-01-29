@@ -88,14 +88,15 @@ by:
 \begin{example}
   chicane: overlay = {bnd1[g]:-ge, bnd2[g]:ge}, var = {ge}, ge = 1e-1
 \end{example}
-The problem here is that \vn{g} not only sets the field in a bend it also sets the reference orbit
-so varying \vn{g} will vary the physical layout of the machine which is not what is wanted. Notice
-that in this case the bends are no longer rectangular. This is true since \vn{rbend} elements, when
-read in from the lattice file, are converted to \vn{sbend} elements. In this case the converted
-bends have \vn{e1} and \vn{e2} face angles of zero. When the \vn{chicane} overlay varies \vn{g}, the
-face angle remain zero. That is, the bends will always be pure sector bends. [In a situation where,
-indeed, \vn{g} is to be varied and it is desired to keep bends rectangular, the appropriate
-variation of the \vn{e1} and \vn{e2} can be put in the controlling overlay.]
+The problem here is that \vn{g} sets the reference orbit so varying \vn{g} will vary the physical
+layout of the machine which is not what is wanted. Since the actual normalized field is \vn{g +
+g_err}, it is \vn{g_err} that should be varied. Notice that in the case where \vn{g} is varied, the
+bends are no longer rectangular. This is true since \vn{rbend} elements, when read in from the
+lattice file, are converted to \vn{sbend} elements. In this case the converted bends have \vn{e1}
+and \vn{e2} face angles of zero. When the \vn{chicane} overlay varies \vn{g}, the face angle remain
+zero. That is, the bends will always be pure sector bends. [In a situation where, indeed, \vn{g} is
+to be varied and it is desired to keep bends rectangular, the appropriate variation of the \vn{e1}
+and \vn{e2} can be put in the controlling overlay.]
 
 %-----------------------------------------------------------------------------
 \section{Example: Energy Recovery Linac}

@@ -224,7 +224,7 @@ type (ac_kicker_struct), pointer :: ac
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch
-integer n_cus
+integer n_cus, ix_convert
 
 logical write_wake, mode3
 
@@ -232,7 +232,7 @@ logical write_wake, mode3
 
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
 ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; n_var = 0; ix_st = -1
-mode3 = .false.; ix_wall3d = 0
+mode3 = .false.; ix_wall3d = 0; ix_convert = 0
 n_cart = 0; n_grid = 0; n_cyl = 0; n_tay = 0; n_cus = 0
 
 if (associated(ele%mode3))             mode3 = .true.
@@ -241,6 +241,7 @@ if (associated(ele%cylindrical_map))   n_cyl = size(ele%cylindrical_map)
 if (associated(ele%grid_field))        n_grid = size(ele%grid_field)
 if (associated(ele%taylor_field))      n_tay = size(ele%taylor_field)
 if (associated(ele%custom))            n_cus = size(ele%custom)
+if (associated(ele%converter))         ix_convert = 1
 if (associated(ele%r))                 ix_r = 1
 if (associated(ele%photon))            ix_s = 1
 if (associated(ele%descrip))           ix_d = 1
@@ -307,7 +308,7 @@ endif
 ! The last zero is for future use.
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
-          -1, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
+          ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
           ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
 
 write (d_unit) &

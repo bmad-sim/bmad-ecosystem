@@ -65,6 +65,8 @@ case (crab_cavity$)
   ele%value(field_autoscale$) = 1
 
 case (crystal$)
+  ele%value(is_mosaic$) = false$
+  ele%value(mosaic_angle_rms_out_plane$) = -1
   ele%value(ref_orbit_follows$) = bragg_diffracted$
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.

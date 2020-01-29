@@ -768,15 +768,13 @@ Example:
   \centering
   \includegraphics[width=5in]{crystal-ele.pdf}
   \caption[Crystal element geometry.]
-{Crystal element geometry.  A) Geometry for Bragg diffraction. The
-geometry shown is for \vn{ref_tilt} = 0 (reference trajectory in the
-$x$-$z$ plane). The angle $\alpha_H$ (\vn{alpha_angle}) is the angle
-of the $\bfH$ vector with respect to the surface normal $\bfhat
-n$. For $\psi$ (\vn{psi_angle}) zero, the incoming reference orbit,
-the outgoing reference orbit, $\bfhat n$, and $\bfH$ are all
-coplanar. B) Geometry for Laue diffraction. In this case there are
-three outgoing beams: The Bragg diffracted beam, the forward
-diffracted beam, and the undiffracted beam.}
+{Crystal element geometry.  A) Geometry for Bragg diffraction. The geometry shown is for
+\vn{ref_tilt} = 0 (reference trajectory in the $x$-$z$ plane). The angle $\alpha_H$
+(\vn{alpha_angle}) is the angle of the $\bfH$ vector with respect to the surface normal $\bfhat
+n$. For $\psi$ (\vn{psi_angle}) zero, the incoming reference orbit, the outgoing reference orbit,
+$\bfhat n$, and $\bfH$ are all coplanar. B) Geometry for Laue diffraction. In this case there are
+three outgoing beams: The Bragg diffracted beam, the forward diffracted beam, and the undiffracted
+beam.}
   \label{f:crystal}
 \end{figure}
 
@@ -809,6 +807,10 @@ Attributes specific to a \vn{crystal} element are:
   ref_orbit_follows  = <which_beam> ! Reference orbit aligned with what outgoing beam?
   graze_angle_in     = <Real>       ! Angle between incoming ref orbit and surface.
   graze_angle_out    = <Real>       ! Angle between outgoing ref orbit and surface.
+  is_mosaic          = <Logical>
+  mosaic_thickness   = <Real>
+  mosaic_angle_rms_in_plane  = <angle>
+
 \end{example}
 
 \index{bragg_angle_in}\index{bragg_angle_out}\index{alpha_angle}
@@ -834,19 +836,16 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
   v_unitcell                 ! Unit cell volume. 
 \end{example}
 
-The \vn{crystal_type} attribute defines the crystal material and
-diffraction lattice plane. The syntax is \vn{"ZZZ(ijk)"} where \vn{ZZZ}
-is the material name and \vn{ijk} are the Miller
-indices for the diffraction plane. For example,
+The \vn{crystal_type} attribute defines the crystal material and diffraction lattice plane. The
+syntax is \vn{"ZZZ(ijk)"} where \vn{ZZZ} is the material name and \vn{ijk} are the Miller indices
+for the diffraction plane. For example,
 \begin{example}
   b_cryst1: crystal, crystal_type = "Si(111)", b_param = -1, ...
 \end{example}
-The atomic formula is case sensitive so, for example, \vn{"SI(111)"}
-is not acceptable. The list of known crystal materials is given in
-\sref{s:cryst.list}. Given the \vn{crystal_type}, the spacing between
-lattice planes (\vn{d_spacing}), the unit cell volume
-(\vn{v_unitcell}), and the structure factor\cite{b:batterman} values
-can be computed.
+The atomic formula is case sensitive so, for example, \vn{"SI(111)"} is not acceptable. The list of
+known crystal materials is given in \sref{s:cryst.list}. Given the \vn{crystal_type}, the spacing
+between lattice planes (\vn{d_spacing}), the unit cell volume (\vn{v_unitcell}), and the structure
+factor\cite{b:batterman} values can be computed.
 
 The \vn{b_param} is the standard $b$ asymmetry factor
 \Begineq
@@ -858,53 +857,44 @@ where $\theta_B$ is the Bragg angle (\vn{bragg_angle})
   \theta_B = \sin^{-1} \left( \frac{\lambda}{2 \, d} \right)
   \label{tsl2d}
 \Endeq
-and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprocal
-lattice $\bfH$ vector with respect to the surface normal as shown in
-\fig{f:crystal}A.  If \vn{b_param} is set to -1 then there is
-Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1
-then there is Laue diffraction again with \vn{alpha_H} zero. With the
-orientation shown in \fig{f:crystal}A, \vn{alpha_H} is positive.
+and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprocal lattice $\bfH$ vector with respect
+to the surface normal as shown in \fig{f:crystal}A.  If \vn{b_param} is set to -1 then there is
+Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1 then there is Laue
+diffraction again with \vn{alpha_H} zero. With the orientation shown in \fig{f:crystal}A,
+\vn{alpha_H} is positive.
 
 The \vn{thickness} parameter is used with Laue diffraction only.
 
-The \vn{ref_orbit_follows} parameter sets how the outgoing reference
-orbit is constructed. This is only relevant with Laue diffraction.
-The possible settings of this parameter are:
+The \vn{ref_orbit_follows} parameter sets how the outgoing reference orbit is constructed. This is
+only relevant with Laue diffraction.  The possible settings of this parameter are:
 \begin{example}
-  bragg_diffracted
+  bragg_diffracted      ! Default
   forward_diffracted
   undiffracted
 \end{example}
-The geometry of this situation is shown in \fig{f:crystal}B. The
-reference orbit for the \vn{undiffracted} beam is just a straight line
-extension of the incoming reference trajectory. This trajectory is
-that trajectory that photons whose energy is far from the Bragg
-condition (that is, far from the reference energy) will follow. The
-\vn{forward_diffracted} reference orbit is parallel to the
-\vn{undiffracted} trajectory and is the trajectory of the forward
-diffracted photons whose energy is the reference energy and whose
-incoming orbit is on the incoming reference trajectory. Finally, the
-\vn{bragg_diffracted} reference orbit is the backward diffracted orbit.
+The geometry of this situation is shown in \fig{f:crystal}B. The reference orbit for the
+\vn{undiffracted} beam is just a straight line extension of the incoming reference trajectory. This
+trajectory is that trajectory that photons whose energy is far from the Bragg condition (that is,
+far from the reference energy) will follow. The \vn{forward_diffracted} reference orbit is parallel
+to the \vn{undiffracted} trajectory and is the trajectory of the forward diffracted photons whose
+energy is the reference energy and whose incoming orbit is on the incoming reference trajectory.
+Finally, the \vn{bragg_diffracted} reference orbit (the default) is the backward diffracted orbit.
 
-Note: Changing the setting of \vn{ref_orbit_follows} will change the
-reference orbit downstream of the crystal which, in turn, will change
-the placement all downstream elements.
+Note: Changing the setting of \vn{ref_orbit_follows} will change the reference orbit downstream of
+the crystal which, in turn, will change the placement all downstream elements.
 
-The value of the element reference orbit length \vn{l} is calculated
-by \bmad. \vn{L} will be zero for Bragg diffraction. For Laue
-diffraction, \vn{l} will depend upon the crystal \vn{thickness} and
+The value of the element reference orbit length \vn{l} is calculated by \bmad. \vn{L} will be zero
+for Bragg diffraction. For Laue diffraction, \vn{l} will depend upon the crystal \vn{thickness} and
 the setting of \vn{ref_orbit_follows}.
 
-If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
-reference orbit, $\bfhat n$ and $\bfH$ are all coplanar. A non-zero
-\vn{psi_angle} Rotates the $\bfH$ vector around the $+\bfhat x$ axis
-of the \vn{Element Reference Frame} (See \fig{f:crystal}A).
+If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing reference orbit, $\bfhat n$
+and $\bfH$ are all coplanar. A non-zero \vn{psi_angle} Rotates the $\bfH$ vector around the $+\bfhat
+x$ axis of the \vn{Element Reference Frame} (See \fig{f:crystal}A).
 
-To keep the outgoing reference trajectory independent of the value of
-\vn{psi_angle}, the crystal will be automatically tilted by the
-appropriate ``tilt correction'' \vn{tilt_corr}. The calculation of
-\vn{tilt_corr} is outlined in \sref{s:crystal.trans}. \vn{tilt_corr}
-will be zero if \vn{psi_angle} is zero.
+To keep the outgoing reference trajectory independent of the value of \vn{psi_angle}, the crystal
+will be automatically tilted by the appropriate ``tilt correction'' \vn{tilt_corr}. The calculation
+of \vn{tilt_corr} is outlined in \sref{s:crystal.trans}. \vn{tilt_corr} will be zero if
+\vn{psi_angle} is zero.
 
 The reference trajectory for a Bragg \vn{crystal} is that of a zero length bend
 (\sref{s:mirror.coords}) and hence the length (\vn{l}) parameter of a crystal is fixed at zero. If
@@ -918,37 +908,30 @@ is sometimes convenient to be able to specify the angles that the reference traj
 respect to the crystal independent of the Bragg angles. To do this, set \vn{graze_angle_in} and
 \vn{graze_angle_out} to the desired angles.
 
-Notice that due to refraction at the surface, the computed
-\vn{bragg_angle} from \Eq{tsl2d} will deviate slightly from the
-average of \vn{bragg_angle_in} and \vn{bragg_angle_out}.
+Notice that due to refraction at the surface, the computed \vn{bragg_angle} from \Eq{tsl2d} will
+deviate slightly from the average of \vn{bragg_angle_in} and \vn{bragg_angle_out}.
 
-The reference trajectory in the global coordinate system
-(\sref{s:global}) is determined by the value of the \vn{ref_tilt}
-parameter along with the value of \vn{bragg_angle_in} +
-\vn{bragg_angle_out}. These bragg angles take into account refraction
-so that the reference trajectory downstream of the crystal will be
-properly centered with respect to the reference photon. A positive
-\vn{bragg_angle_in} + \vn{bragg_angle_out} bends the reference
-trajectory in the same direction as a positive \vn{g} for a bend
-element. The
+The reference trajectory in the global coordinate system (\sref{s:global}) is determined by the
+value of the \vn{ref_tilt} parameter along with the value of \vn{bragg_angle_in} +
+\vn{bragg_angle_out}. These bragg angles take into account refraction so that the reference
+trajectory downstream of the crystal will be properly centered with respect to the reference
+photon. A positive \vn{bragg_angle_in} + \vn{bragg_angle_out} bends the reference trajectory in the
+same direction as a positive \vn{g} for a bend element. The
 
-A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming
-local reference coordinates are used for these misalignments. 
+A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming local reference coordinates
+are used for these misalignments.
 
-When a crystal is bent (\sref{s:s.curve}), the $\bfH$ vector is
-assumed follow the surface curvature. That is, it is assumed that the
-lattice planes are curved by the bending.
+When a crystal is bent (\sref{s:s.curve}), the $\bfH$ vector is assumed follow the surface
+curvature. That is, it is assumed that the lattice planes are curved by the bending.
 
 Example:
 \begin{example}
   crystal_ele: crystal, crystal_type = 'Si(111)', b_param = -1
 \end{example}
 
-The \vn{darwin_width_sigma} and \vn{darwin_width_pi} parameters are
-the computed Darwin width, in radians, for sigma and pi polarized
-light respectively. Here the Darwin width $d\theta_D$ is defined as
-the width at the $\eta = \pm 1$ points
-(cf.~Batterman\cite{b:batterman} Eq (32))
+The \vn{darwin_width_sigma} and \vn{darwin_width_pi} parameters are the computed Darwin width, in
+radians, for sigma and pi polarized light respectively. Here the Darwin width $d\theta_D$ is defined
+as the width at the $\eta = \pm 1$ points (cf.~Batterman\cite{b:batterman} Eq (32))
 \Begineq
   d\theta_D = \frac{2 \, \Gamma \, |P| \, \text{Re} \! \left( [F_H \, F_{\Hbar}]^{1/2} \right)}
                  {|b|^{1/2} \, \sin\theta_{tot}}
@@ -958,18 +941,18 @@ where
   \(\theta_{tot}\) = bragg_angle_in + bragg_angle_out 
 \end{example}
 
-The \vn{pendellosung_period_sigma} and \vn{pendellosung_period_pi} are
-the pendellosung periods for Laue diffraction. If the crystal is set up for
-Bragg diffraction then the values for these parameters will be set to zero.
+The \vn{pendellosung_period_sigma} and \vn{pendellosung_period_pi} are the pendellosung periods for
+Laue diffraction. If the crystal is set up for Bragg diffraction then the values for these
+parameters will be set to zero.
 
-The \vn{dbragg_angle_de} parameter is the variation in Bragg angle
-with respect to the photon energy and is given by the formula
+The \vn{dbragg_angle_de} parameter is the variation in Bragg angle with respect to the photon energy
+and is given by the formula
 \Begineq
   \frac{d\theta_B}{dE} = -\frac{\lambda}{2 \, d \, E \, \cos( \theta_B )}
 \Endeq
 
-See Section~\sref{s:rowland} for an example lattice that can be used to simulate
-a Rowland circle spectrometer.
+See Section~\sref{s:rowland} for an example lattice that can be used to simulate a Rowland circle
+spectrometer.
 
 %-----------------------------------------------------------------
 \section{Converter}

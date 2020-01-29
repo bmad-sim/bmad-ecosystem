@@ -676,9 +676,211 @@ end subroutine track1_multilayer_mirror
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
+! Subroutine track1_mosaic_crystal (ele, param, orbit)
+!
+! Routine to track diffraction from a crystal.
+!
+! Input:
+!   ele      -- ele_struct: Element tracking through.
+!   param    -- lat_param_struct: lattice parameters.
+!   orbit    -- Coord_struct: phase-space coords to be transformed
+!
+! Output:
+!   orbit    -- Coord_struct: final phase-space coords
+!-
+
+subroutine track1_mosaic_crystal (ele, param, orbit)
+
+type (ele_struct), target:: ele
+type (coord_struct), target:: orbit
+type (lat_param_struct) :: param
+
+type (crystal_param_struct) cp
+
+real(rp) h_bar0(3), h_bar_now(3), e_tot, pc, p_factor, w_surface(3,3)
+real(rp) gamma_0, gamma_h, dr1(3), dr2(3), dr3(3), dr4(3), denom, f, field_init
+real(rp) field1, field2, field3, field4, phase1, phase2, phase3, phase4, rr, rm(2)
+real(rp) theta_in, theta_out, thick
+
+integer z_vel_dir, h_dir, n_layers, at_layer
+
+character(*), parameter :: r_name = 'track1_mosaic_crystal'
+
+! A graze angle of zero means the wavelength of the reference photon was too large
+! for the bragg condition. 
+
+if (orbit_too_large(orbit, param)) return
+
+if (ele%value(bragg_angle_in$) == 0) then
+  call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION!')
+  orbit%state = lost_pz_aperture$
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+if (ele%value(b_param$) > 0 .and. ele%value(thickness$) == 0) then 
+  call out_io (s_error$, r_name, 'LAUE CRYSTAL WITH ZERO THICKNESS WILL HAVE NO DIFFRACTION: ' // ele%name)
+  return
+endif
+
+if (ele%value(mosaic_thickness$) == 0) then 
+  call out_io (s_error$, r_name, 'MOSAIC CRYSTAL WITH ZERO MOSAIC_THICKNESS WILL HAVE NO DIFFRACTION: ' // ele%name)
+  return
+endif
+
+if (ele%value(b_param$) > 0 .or. nint(ele%value(thickness$)) > 0) then  ! Laue
+  n_layers = max(1, nint(ele%value(thickness$) / ele%value(mosaic_thickness$)))
+  thick = ele%value(thickness$) / n_layers
+else
+  n_layers = 1000000   ! Something large
+  thick = ele%value(mosaic_thickness$)
+endif
+
+!
+
+field_init = sum(orbit%field)
+cp%wavelength = c_light * h_planck / orbit%p0c
+cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$)) 
+
+! (px, py, pz) coords are with respect to laboratory reference trajectory.
+! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
+! k0_outside_norm is normalized to 1.
+
+call track_to_surface (ele, orbit)
+if (orbit%state /= alive$) return
+
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
+
+! Check aperture
+
+if (ele%aperture_at == surface$) then
+  call check_aperture_limit (orbit, ele, surface$, param)
+  if (orbit%state /= alive$) return
+endif
+
+! Construct h_bar = H * wavelength.
+
+h_bar0 = ele%photon%material%h_norm
+if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar0) 
+h_bar0 = h_bar0 * cp%wavelength / ele%value(d_spacing$)
+
+! And track through the mosaic layers
+
+z_vel_dir = 1  ! direction of travel along the z-axis
+h_dir = 1      ! Direction of h_bar
+at_layer = 1   ! Mosaic layer number. 1 -> top layer, n_layers -> bottom layer.
+
+do
+
+  h_bar_now = h_dir * h_bar0  ! H_bar for this mosaic element.
+  p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
+
+  ! Rotate to mosaic coords
+
+  call ran_gauss(rm)
+  theta_in  = rm(1) * ele%value(mosaic_angle_rms_in_plane$)
+  if (ele%value(mosaic_angle_rms_out_plane$) < 0) then
+    theta_out = rm(2) * ele%value(mosaic_angle_rms_in_plane$)
+  else
+    theta_out = rm(2) * ele%value(mosaic_angle_rms_out_plane$)
+  endif
+
+  call rotate_vec(orbit%vec(2:6:2), x_axis$, theta_in)
+  call rotate_vec(orbit%vec(2:6:2), z_axis$, theta_out)
+
+  ! cp%new_vvec is the normalized outgoing wavevector outside the crystal for diffracted phtons.
+
+  cp%old_vvec = orbit%vec(2:6:2)
+  cp%new_vvec = orbit%vec(2:6:2) + h_bar_now
+
+  if (ele%value(b_param$) < 0) then ! Bragg
+    cp%new_vvec(3) = -z_vel_dir * sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
+  else
+    cp%new_vvec(3) = z_vel_dir * sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
+  endif
+
+  ! Calculate some parameters
+
+  gamma_0 = cp%old_vvec(3)
+  gamma_h = cp%new_vvec(3)
+
+  cp%b_eff = gamma_0 / gamma_h
+  cp%dtheta_sin_2theta = -dot_product(h_bar_now + 2 * cp%old_vvec, h_bar_now) / 2
+
+  ! Diffraction calc...
+
+  call crystal_diffraction_field_calc (cp, ele, thick, param, p_factor, .true.,  field1, phase1, orbit%state, dr1)
+  call crystal_diffraction_field_calc (cp, ele, thick, param, 1.0_rp,   .false., field2, phase2, orbit%state, dr2)   ! Sigma polarity
+
+  ! Undiffrated calc...
+
+  call crystal_diffraction_field_calc (cp, ele, thick, param, p_factor, .true.,  field3, phase3, orbit%state, dr3, follow_undiffracted = .true.)
+  call crystal_diffraction_field_calc (cp, ele, thick, param, 1.0_rp,   .false., field4, phase4, orbit%state, dr4, follow_undiffracted = .true.)
+
+  ! Which to follow?
+  ! For Laue: Average trajectories for the two polarizations weighted by the intensity.
+  ! This approximation is valid as long as the two trajectories are "close" enough.
+
+  call ran_uniform(rr)
+  denom = field1**2 + field2**2 + field3**2 + field4**2
+  f = (field1**2 + field2**2) / denom
+
+  if (f > rr) then  ! diffracted
+    orbit%field(1) = orbit%field(1) * field1 / sqrt(f)
+    orbit%field(2) = orbit%field(2) * field2 / sqrt(f)
+    orbit%phase    = [phase1, phase2]
+    orbit%vec(2:6:2) = cp%new_vvec
+    h_dir = -h_dir
+    if (ele%value(b_param$) < 0) z_vel_dir = -z_vel_dir
+    if (ele%value(b_param$) > 0) orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr1 * field1**2 + dr2 * field2**2) / (field1**2 + field2**2)
+    
+  else
+    orbit%field(1) = orbit%field(1) * field3 / sqrt(1 - f)
+    orbit%field(2) = orbit%field(2) * field4 / sqrt(1 - f)
+    orbit%phase    = [phase3, phase4]
+    if (ele%value(b_param$) > 0) orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr3 * field3**2 + dr4 * field4**2) / (field3**2 + field4**2)
+  endif
+
+  ! Rotate back out from mosaic coords
+
+  call rotate_vec(orbit%vec(2:6:2), z_axis$, -theta_out)
+  call rotate_vec(orbit%vec(2:6:2), x_axis$, -theta_in)
+
+  !
+
+  at_layer = at_layer + z_vel_dir
+  if (at_layer < 1) exit
+  if (at_layer > n_layers) exit
+  if (sum(orbit%field) < 1d-20 * field_init) then
+    orbit%state = lost$
+    exit
+  endif
+
+enddo
+
+! Rotate back from curved body coords to element coords
+
+if (ele%value(b_param$) < 0) then ! Bragg
+  if (at_layer > n_layers) orbit%state = lost$
+else
+  if (at_layer < 1) orbit%state = lost$
+  ! forward_diffracted and undiffracted beams do not have an orientation change.
+  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) orbit%vec(2:6:2) = cp%new_vvec
+endif
+
+!
+
+if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
+
+end subroutine track1_mosaic_crystal
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
 ! Subroutine track1_crystal (ele, param, orbit)
 !
-! Routine to track reflection from a crystal.
+! Routine to track diffraction from a crystal.
 !
 ! Input:
 !   ele      -- ele_struct: Element tracking through.
@@ -696,8 +898,8 @@ type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (crystal_param_struct) cp
 
-real(rp) h_bar(3), e_tot, pc, p_factor, field1, field2, w_surface(3,3)
-real(rp) gamma_0, gamma_h, dr1(3), dr2(3)
+real(rp) h_bar(3), e_tot, pc, p_factor, field(2), w_surface(3,3)
+real(rp) gamma_0, gamma_h, dr1(3), dr2(3), dphase(2)
 
 character(*), parameter :: r_name = 'track1_cyrstal'
 
@@ -731,8 +933,6 @@ if (orbit%state /= alive$) return
 
 if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
 
-cp%old_vvec = orbit%vec(2:6:2)
-
 ! Check aperture
 
 if (ele%aperture_at == surface$) then
@@ -748,6 +948,7 @@ h_bar = h_bar * cp%wavelength / ele%value(d_spacing$)
 
 ! cp%new_vvec is the normalized outgoing wavevector outside the crystal
 
+cp%old_vvec = orbit%vec(2:6:2)
 cp%new_vvec = orbit%vec(2:6:2) + h_bar
 
 if (ele%value(b_param$) < 0) then ! Bragg
@@ -767,17 +968,17 @@ cp%dtheta_sin_2theta = -dot_product(h_bar + 2 * cp%old_vvec, h_bar) / 2
 ! E field calc
 
 p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
-call crystal_diffraction_field_calc (cp, orbit, ele, param, p_factor, .true.,  field1, orbit%phase(1), dr1)
-call crystal_diffraction_field_calc (cp, orbit, ele, param, 1.0_rp,   .false., field2, orbit%phase(2), dr2)   ! Sigma pol
+call crystal_diffraction_field_calc (cp, ele, ele%value(thickness$), param, p_factor, .true.,  field(1), dphase(1), orbit%state, dr1)
+call crystal_diffraction_field_calc (cp, ele, ele%value(thickness$), param, 1.0_rp,   .false., field(2), dphase(2), orbit%state, dr2)   ! Sigma pol
 
-orbit%field(1) = orbit%field(1) * field1
-orbit%field(2) = orbit%field(2) * field2
+orbit%field = orbit%field * field
+orbit%phase = orbit%phase + dphase
 
 ! For Laue: Average trajectories for the two polarizations weighted by the fields.
 ! This approximation is valid as long as the two trajectories are "close" enough.
 
-if (ele%value(b_param$) > 0 .and. (field1 /= 0 .or. field2 /= 0)) then ! Laue
-  orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr1 * field1 + dr2 * field2) / (field1 + field2)
+if (ele%value(b_param$) > 0 .and. (field(1) /= 0 .or. field(2) /= 0)) then ! Laue
+  orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr1 * field(1) + dr2 * field(2)) / (field(1) + field(2))
 endif
 
 ! Rotate back from curved body coords to element coords
