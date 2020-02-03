@@ -15,14 +15,12 @@ In both cases, the photon has a transverse electric field
 \Begineq
   (E_x, E_y)
 \Endeq
-$E_x$ and $E_y$ are complex and therefore have both amplitude and phase
-information. When photons are tracked incoherently, the phase
-information is not used for calculating X-ray intensities.
+$E_x$ and $E_y$ are complex and therefore have both amplitude and phase information. When photons
+are tracked incoherently, the phase information is not used for calculating X-ray intensities.
 
-In addition to coherent and incoherent tracking, partially coherent
-simulations can be done by using sets of photons with the photons in
-any one set treated as coherent and the photons between sets being
-treated as incoherent.
+In addition to coherent and incoherent tracking, partially coherent simulations can be done by using
+sets of photons with the photons in any one set treated as coherent and the photons between sets
+being treated as incoherent.
 
 %-------------------------------------------------------------------------
 \subsection{Incoherent Photon Tracking}
@@ -959,11 +957,9 @@ phase shift can only be calculated up to a constant offset.
 \subsection{Bragg Crystal Tracking}
 \label{s:bragg.track}
 
-The starting photon coordinates are specified in the laboratory
-entrance coordinates. The transformation from laboratory entrance
-coordinates to element entrance coordinates $\bftilde k_0$ is given in
-\sref{s:photon.lab.ele}. The transformation to element surface
-coordinates $\bfk_0$ is
+The starting photon coordinates are specified in the laboratory entrance coordinates. The
+transformation from laboratory entrance coordinates to element entrance coordinates $\bftilde k_0$
+is given in \sref{s:photon.lab.ele}. The transformation to element surface coordinates $\bfk_0$ is
 \begin{equation}
   \bfk_0 =  \Bf\Sigma_2 \, \bftilde k_0
 \end{equation}
@@ -979,14 +975,14 @@ where $q_t$ is determined by using \Eqs{k1lst} and \eq{h1daa} in \Eq{kk1l1}
   k_{H,z} &= \sqrt{\lambda^2 - k_{H,x}^2 - k_{H,y}^2} \nonumber
 \end{align}
 
-To compute the field amplitude of the outgoing photon, the equation to
-be solved is (\cite{b:batterman} Eq.~(21))
+To compute the field amplitude of the outgoing photon, the equation to be solved is
+(\cite{b:batterman} Eq.~(21))
 \Begineq
   \xi_0 \, \xi_H = \frac{1}{4} \, k^2 \, P^2 \, \Gamma^2 \, F_H \, F_{\bar H}
   \label{xx14}
 \Endeq
-where $\xi_0$ and $\xi_H$ are given by \cite{b:batterman} Eq.~(18)
-and $P$ is the polarization factor
+where $\xi_0$ and $\xi_H$ are given by \cite{b:batterman} Eq.~(18) and $P$ is the polarization
+factor
 \Begineq
   P = 
   \begin{cases}
@@ -1004,9 +1000,8 @@ The solution to \Eq{xx14} is (\cite{b:batterman} Eq.~(31))
   \xi_H &= \frac{1}{2} \, k \, |P| \, \Gamma \, [F_H \, F_{\bar H}]^{1/2} \, 
     \frac{1}{|b|^{1/2} \, [\eta \pm (\eta^2 + \sign(b))^{1/2}]}
 \end{align}
-where the $+$ part of $\pm$ is for the $\alpha$ branch and the $-$
-part of $\pm$ is for the $\beta$ branch and $\sign$ is the sign
-function
+where the $+$ part of $\pm$ is for the $\alpha$ branch and the $-$ part of $\pm$ is for the $\beta$
+branch and $\sign$ is the sign function
 \Begineq
   \sign(b) \equiv \begin{cases} 1 & b > 0 \\ -1 & b < 0 \end{cases}
 \Endeq
@@ -1014,8 +1009,7 @@ and $\eta$ is given by \cite{b:blasdell} Eq.~(5)
 \Begineq
   \eta = \frac{-b \, a + \Gamma \, F_0 \, (1 - b)}{2 \, \Gamma \, |P| \, \sqrt{|b| \, F_H \, F_{\bar H}}}
 \Endeq
-with the asymmetry factor $b$ for the photon being tracked being given
-by \cite{b:blasdell} Eq.~(3)
+with the asymmetry factor $b$ for the photon being tracked being given by \cite{b:blasdell} Eq.~(3)
 \Begineq
   b \equiv \frac{\bfhat n \dotproduct \bfhat k_0}{\bfhat n \dotproduct (\widehat{{\bfk_0 + \bfH}})}
 \Endeq
@@ -1024,16 +1018,15 @@ and the angular deviation variable $a$ is given by \cite{b:blasdell} Eq.~(4)
   a \equiv \frac{H^2 + 2 \, \bfk_0 \dotproduct \bfH}{k_0^2} 
   = -2 \, \Delta \theta \, \sin(2\theta_B)
 \Endeq
-Once $\xi_0$ and $\xi_H$ are determined, the ratio of the incoming and outgoing fields
-for the $\alpha$ or $\beta$ branches can be computed via (\cite{b:batterman} Eq.~(24))
+Once $\xi_0$ and $\xi_H$ are determined, the ratio of the incoming and outgoing fields for the
+$\alpha$ or $\beta$ branches can be computed via (\cite{b:batterman} Eq.~(24))
 \Begineq
   r_E \equiv \frac{\bfE_H}{\bfE_0} 
   = \frac{- \, 2 \, \xi_0}{k \, P \, \Gamma \, F_{\bar H}} \,
   = \, \frac{- \, k \, P \, \Gamma \, F_H}{2 \, \xi_H} 
 \Endeq
-where the $\alpha$ or $\beta$ subscript has been supressed.  The total
-field which is the sum of the fields on the branches is computed using
-the boundary conditions
+where the $\alpha$ or $\beta$ subscript has been supressed.  The total field which is the sum of the
+fields on the branches is computed using the boundary conditions
 \Begineq
   \bfE_0 = \bfE_{0\alpha} + \bfE_{0\beta}, \qquad\qquad 
   0 = \bfE_{H\alpha} + \bfE_{H\beta}
@@ -1046,11 +1039,9 @@ Using the above two equations gives
   \bfE_{H\beta}  = -\bfE_0 \, \frac{r_{E\alpha} \, r_{E\beta}}{r_{E\beta} - r_{E\alpha}} 
 \end{align}
 
-As can be seen from Battermann and Cole Figs.~(8) and (29), the
-$\alpha$ tie point is excited and the $\beta$ tie point is not if
-$\xi_{0\alpha} < \xi_{0\beta}$ and vice versa. Since only one tie
-point is excited, The external field ratio is equal to
-the internal field ratio 
+As can be seen from Battermann and Cole Figs.~(8) and (29), the $\alpha$ tie point is excited and
+the $\beta$ tie point is not if $\xi_{0\alpha} < \xi_{0\beta}$ and vice versa. Since only one tie
+point is excited, The external field ratio is equal to the internal field ratio
 \Begineq
   \frac{E_H^e}{E_0^i} = \frac{E_{Hj}}{E_{0j}}
 \Endeq
@@ -1060,19 +1051,16 @@ where $j$ is $\alpha$ or $\beta$ as appropriate.
 \subsection{Coherent Laue Crystal Tracking}
 \label{s:coherent.laue}
 
-Laue diffraction has two interior wave fields (branches), labeled
-$\alpha$ and $\beta$, corresponding to the two tie points that are
-excited on the two dispersion surfaces. For coherent tracking, a
-photon has some probability to be channeled to follow the $\alpha$ or
-$\beta$ branch. The electric field ratios $\what E_\alpha$ and $\what
-E_\beta$ (cf.~\Eq{rpss2}) are taken to be equal to each other. With
-this choice, the probabilities $P_\alpha$ and $P_\beta$ for being
-channeled to the $\alpha$ or $\beta$ branches are such that a branch
-with a greater intensity will have a greater number of photons
-chanelled down it.
+Laue diffraction has two interior wave fields (branches), labeled $\alpha$ and $\beta$,
+corresponding to the two tie points that are excited on the two dispersion surfaces. For coherent
+tracking, a photon has some probability to be channeled to follow the $\alpha$ or $\beta$
+branch. The electric field ratios $\what E_\alpha$ and $\what E_\beta$ (cf.~\Eq{rpss2}) are taken to
+be equal to each other. With this choice, the probabilities $P_\alpha$ and $P_\beta$ for being
+channeled to the $\alpha$ or $\beta$ branches are such that a branch with a greater intensity will
+have a greater number of photons chanelled down it.
 
-When a crystal's \vn{ref_orbit_follows} parameter is set to
-\vn{bragg_diffracted}, The branching probabilities are
+When a crystal's \vn{ref_orbit_follows} parameter is set to \vn{bragg_diffracted}, The branching
+probabilities are
 \Begineq
   P_\alpha = \frac{|E_{H\alpha}|}{|E_{H\alpha}| + |E_{H\beta}|} , \qquad
   P_\beta = \frac{|E_{H\beta}|}{|E_{H\alpha}| + |E_{H\beta}|} , \qquad
@@ -1091,9 +1079,8 @@ where (see Batermann and Cole\cite{b:batterman} Eqs~(42)),
     \exp({-2 \, \pi \, i \, \bfK'_{H\beta} \dotproduct \bfr_\beta}) \,
     \exp({-2 \, \pi \, \bfK''_{H\beta} \dotproduct \bfr_\beta})
 \end{align}
-where $\bfr_\alpha$ and $\bfr_\beta$ are the vectors from the
-entrance surface to the exit surface for the $\alpha$ and $\beta$ wave
-fields
+where $\bfr_\alpha$ and $\bfr_\beta$ are the vectors from the entrance surface to the exit surface
+for the $\alpha$ and $\beta$ wave fields
 \Begineq
   \bfr_\alpha = \frac{t^2}{\bfS_\alpha \dotproduct \Bf t} \, \bfS_\alpha , \qquad
   \bfr_\beta = \frac{t^2}{\bfS_\beta \dotproduct \Bf t} \, \bfS_\beta
@@ -1103,15 +1090,13 @@ with
   \bfS_\alpha &= e^{-2 \, v} \, \Bf s_0 + \left| b \, \frac{F_H \, F_\Hbar}{F_H^2} \right| \, \Bf s_H \CRNO
   \bfS_\beta &= e^{2 \, v} \, \Bf s_0 + \left| b \, \frac{F_H \, F_\Hbar}{F_H^2} \right| \, \Bf s_H 
 \end{align}
-The phase shift of the electric field is obtained from the phase of
-$E_{H\alpha}$ if the photon is channeled into the $\alpha$ branch and
-$E_{H\beta}$ if the photon is channeled into the $\beta$ branch.
+The phase shift of the electric field is obtained from the phase of $E_{H\alpha}$ if the photon is
+channeled into the $\alpha$ branch and $E_{H\beta}$ if the photon is channeled into the $\beta$
+branch.
 
-When a crystal's \vn{ref_orbit_follows} parameter is set to
-\vn{forward_diffracted} or \vn{undefracted}, the algorithm is similar
-to the \vn{bragg_diffracted} case except $E_{0\alpha}$ and
-$E_{0\beta}$ are used in place of $E_{H\alpha}$ and
-$E_{H\beta}$ with
+When a crystal's \vn{ref_orbit_follows} parameter is set to \vn{forward_diffracted} or
+\vn{undefracted}, the algorithm is similar to the \vn{bragg_diffracted} case except $E_{0\alpha}$
+and $E_{0\beta}$ are used in place of $E_{H\alpha}$ and $E_{H\beta}$ with
 \begin{align}
   E_{0\alpha} &= E_0^i \, \dsfrac{e^{-v}}{2 \, \cosh v} \, 
     \exp({-2 \, \pi \, i \, \bfK'_{0\alpha} \dotproduct \bfr_\alpha}) \,
@@ -1121,135 +1106,149 @@ $E_{H\beta}$ with
     \exp({-2 \, \pi \, \bfK''_{0\beta} \dotproduct \bfr_\beta})
 \end{align}
 
-Since a simulation photon has two polarization components, the above
-equations are used for one polarization component and for the second
-polarization component the same branch is used as for the first with
-an appropriately scaled $\what E$.
+Since a simulation photon has two polarization components, the above equations are used for one
+polarization component and for the second polarization component the same branch is used as for the
+first with an appropriately scaled $\what E$.
 
 %-------------------------------------------------------------------------
 \subsection{Incoherent Laue Crystal Tracking}
 \label{s:incoherent.laue}
 
-Laue diffraction has two interior wave fields (branches), labeled
-$\alpha$ and $\beta$, corresponding to the two tie points that are
-excited on the two dispersion surfaces. For incoherent tracking it is
-assumed that these wave fields overlap at the exit surface
-(\cite{b:batterman} Eq.~(87)) and so add coherently. This is a good
-approximation if the crystal is very thin where the wave fields do not
-travel an appreciable spatial distance and is also a good
-approximation when the crystal is thick since the $\beta$ branch will
-be heavily attenuated. At intermediate thicknesses this approximation
-is good when a photon is near the Bragg angle since, in this case, the
-fields will be traveling in similar directions.
+Laue diffraction has two interior wave fields (branches), labeled $\alpha$ and $\beta$,
+corresponding to the two tie points that are excited on the two dispersion surfaces. For incoherent
+tracking it is assumed that these wave fields overlap at the exit surface (\cite{b:batterman}
+Eq.~(87)) and so add coherently. This is a good approximation if the crystal is very thin where the
+wave fields do not travel an appreciable spatial distance and is also a good approximation when the
+crystal is thick since the $\beta$ branch will be heavily attenuated. At intermediate thicknesses
+this approximation is good when a photon is near the Bragg angle since, in this case, the fields
+will be traveling in similar directions.
 
 Another approximation is that the path
 
-\begin{align}
-  E_{H\alpha} &= -E_0^i \, \dsfrac{|b|^{1/2}}{2 \, \cosh v} \, 
-    \frac{|P|}{P} \, 
-    \frac{[F_H \, F_\Hbar]^{1/2}}{F_H} \, 
-    \exp({-2 \, \pi \, i \, \bfK'_{H\alpha} \dotproduct \bfr_\alpha}) \,
-    \exp({-2 \, \pi \, \bfK''_{H\alpha} \dotproduct \bfr_\alpha}) \CRNO
-  E_{H\beta} &= E_0^i \, \dsfrac{|b|^{1/2}}{2 \, \cosh v} \, 
-    \frac{|P|}{P} \, 
-    \frac{[F_H \, F_\Hbar]^{1/2}}{F_H} \, 
-    \exp({-2 \, \pi \, i \, \bfK'_{H\beta} \dotproduct \bfr_\beta}) \,
-    \exp({-2 \, \pi \, \bfK''_{H\beta} \dotproduct \bfr_\beta})
-\end{align}
+%---------------------
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{mosaic-crystal.pdf}
+  \caption[Mosaic crystal Monte Carlo tracking.]{Mosaic crystal representation used for Monte Carlo tracking.}
+  \label{f:mosaic.crystal}
+\end{figure}
+
+%-------------------------------------------------------------------------
+\subsection{Mosaic Crystal Tracking}
+\label{s:mosaic.track}
+
+Tracking through a mosaic crystal tracking is illustrated in Figure~\ref{f:mosaic.crystal}. The
+\bmad algorithm is similar to the method presented by Alianelli et al. \cite{b:mosaic}. The mosaic
+crystal is idealized as a number of small perfect crystals, called crystallites, all of which have
+the same specified thickness $T_m$ (the \vn{mosaic_thickness} parameter of the crystal). The
+crystallites are all misoriented with angular probability distribution $W$ given by
+\Begineq
+  W(\theta, \phi) = \frac{1}{2 \, \pi \, \sigma_{in} \, \sigma_{out}} \exp \left(-
+  \frac{\theta^2}{2 \, \sigma_{in}^2} - \frac{\phi^2}{2 \, \sigma_{out}^2} \right)
+  \label{w12p}
+\Endeq
+where $\theta$ is the misorientation angle in the diffraction plane and $\phi$ is the misorientation
+angle out of the diffraction plane. The sigmas, $\sigma_{in}$ and $\sigma_{out}$, correspond to the
+parameters of a crystal element (\sref{s:crystal}) \vn{mosaic_angle_rms_in_plane} and
+\vn{mosaic_angle_rms_out_plane} respectively.
+
+The crystalites are modeled to lie in layers of thickness $T_m$. For \vn{Laue} diffraction
+(\vn{b_param} > 0), the actual thickness $T_m$ used is adjusted so that there is an integer number
+of mosaic layers. That is
+\Begineq
+  T_m(\text{in simulation} = \frac{T}{\text{nint} (T/T_m)}
+\Endeq
+where $T$ is the crystal thickness and \vn{nint} is the nearest integer function. 
+
+Tracking is done step-by-step with a photon either traversing or being reflected by a crystalite.
+Interference effects between crystallites are not taken into account so the tracking is incoherent
+(\sref{s:coher.incoher}).
+
+At the beginning of a step the photon is in between two layers and will be traveling towards one of
+these layers. A random number generator along with \Eq{w12p} is used to determine the misorientation
+of the crystallite that the photon is going through. Factoring this misorientation into account, the
+amplitude scattering $R$ and transmission $T$ probabilities are calculated using dynamical diffraction theory.
+
+A random number generator is used to determine if the photon is scattered or transmitted. If $P_T$ is the
+probability assigned for the probability of transmission, then
+\be
+  r_T = 
 
 %-------------------------------------------------------------------------
 \section{X-ray Targeting}
 \label{s:targeting}
 
-X-rays can have a wide spread of trajectories resulting in many
-``doomed'' photons that hit apertures or miss the detector with only a
-small fraction of ``successful'' photons actually contributing to the
-simulation results. The tracking of doomed photons can therefore
-result in an appreciable lengthening of the simulation time. To get
-around this, \bmad can be setup to use what is called ``targeting'' to
-greatly reduce the number of doomed photons generated.
+X-rays can have a wide spread of trajectories resulting in many ``doomed'' photons that hit
+apertures or miss the detector with only a small fraction of ``successful'' photons actually
+contributing to the simulation results. The tracking of doomed photons can therefore result in an
+appreciable lengthening of the simulation time. To get around this, \bmad can be setup to use what
+is called ``targeting'' to greatly reduce the number of doomed photons generated.
 
-Photons can be generated either at a source like a \vn{wiggler}
-element or at a place where diffraction is simulated like at a
-\vn{diffraction_plate} element. To be able to do targeting, an element
-with apertures defined must be present downstream from the generating
-element. The idea is to only generate photons that are going in the
-general direction of the ``target'' which is the space within the
-aperture.
+Photons can be generated either at a source like a \vn{wiggler} element or at a place where
+diffraction is simulated like at a \vn{diffraction_plate} element. To be able to do targeting, an
+element with apertures defined must be present downstream from the generating element. The idea is
+to only generate photons that are going in the general direction of the ``target'' which is the
+space within the aperture.
 
-A necessary restriction for
-targeting to work is that the photon must travel in a straight line
-through all elements between the generating element and the element
-with the apertures. So, for example, a \vn{crystal} element would not
-be allowed between the two two elements. A \vn{crystal} element could
-be the aperture element as long as the aperture was defined before
-photons were diffracted. That is, if the aperture was at the upstream
-end of the crystal or was defined with respect to the \vn{crystal}
-surface.
+A necessary restriction for targeting to work is that the photon must travel in a straight line
+through all elements between the generating element and the element with the apertures. So, for
+example, a \vn{crystal} element would not be allowed between the two two elements. A \vn{crystal}
+element could be the aperture element as long as the aperture was defined before photons were
+diffracted. That is, if the aperture was at the upstream end of the crystal or was defined with
+respect to the \vn{crystal} surface.
 
-The target is defined by the four corners of the aperture. In \vn{element}
-coordinates, the $(x, y, z)$ values of the corners are:
+The target is defined by the four corners of the aperture. In \vn{element} coordinates, the $(x, y,
+z)$ values of the corners are:
 \begin{example}
   (-x1_limit, -y1_limit, z_lim)
   (-x1_limit,  y2_limit, z_lim)
   ( x2_limit, -y1_limit, z_lim)
   ( x2_limit,  y2_limit, z_lim)
 \end{example}
-where \vn{x1_limit}, etc. are the aperture limits (\sref{s:limit})
-and \vn{z_lim} will be zero except if the element's \vn{aperture_at}
-parameter is set to \vn{entrance_end} in which case \vn{z_lim} will be set
-to \vn{-L} where \vn{L} is the length of the element. 
+where \vn{x1_limit}, etc. are the aperture limits (\sref{s:limit}) and \vn{z_lim} will be zero
+except if the element's \vn{aperture_at} parameter is set to \vn{entrance_end} in which case
+\vn{z_lim} will be set to \vn{-L} where \vn{L} is the length of the element.
 
-If the aperture is associated with a curved surface (for example with
-a \vn{crystal} element), four extra corner points are also used to
-take into account that the aperture is not planar. These extra points
-have $(x, y, z)$ values in \vn{element} coordinates of
+If the aperture is associated with a curved surface (for example with a \vn{crystal} element), four
+extra corner points are also used to take into account that the aperture is not planar. These extra
+points have $(x, y, z)$ values in \vn{element} coordinates of
 \begin{example}
   (-x1_limit, -y1_limit, z_surface(-x1_limit, -y1_limit))
   (-x1_limit,  y2_limit, z_surface(-x1_limit,  y2_limit))
   ( x2_limit, -y1_limit, z_surface( x2_limit, -y1_limit))
   ( x2_limit,  y2_limit, z_surface( x2_limit,  y2_limit))
 \end{example}
-where \vn{z_surface(x,y)} is the $z$ value of the surface at the
-particular $(x, y)$ point being used. Notice that in this case
-\vn{z_lim} is zero.
+where \vn{z_surface(x,y)} is the $z$ value of the surface at the particular $(x, y)$ point being
+used. Notice that in this case \vn{z_lim} is zero.
 
-The coordinates of the four or eight corner points are converted from
-\vn{element} coordinates of the aperture element to \vn{element}
-coordinates of the photon generating element. Additionally,
-the approximate center of the aperture, which in \vn{element}
-coordinates of the aperture element is $(0, 0, z_lim)$, is converted
-to \vn{element} coordinates of the photon generating element.
+The coordinates of the four or eight corner points are converted from \vn{element} coordinates of
+the aperture element to \vn{element} coordinates of the photon generating element. Additionally, the
+approximate center of the aperture, which in \vn{element} coordinates of the aperture element is
+$(0, 0, z_lim)$, is converted to \vn{element} coordinates of the photon generating element.
 
-The above calculation only has to be done once at the beginning of a
-simulation.
+The above calculation only has to be done once at the beginning of a simulation.
 
-When a photon is to be emitted from a given point $(x_{emit},
-y_{emit}, z_{emit})$, the problem is how to restrict the velocity
-vector $(\beta_x, \beta_y, \beta_z)$ (which is normalized to 1) to
-minimize the number of doomed photons generated. The problem is solved
-by constructing a vector $\Bf r$ for each corner point:
+When a photon is to be emitted from a given point $(x_{emit}, y_{emit}, z_{emit})$, the problem is
+how to restrict the velocity vector $(\beta_x, \beta_y, \beta_z)$ (which is normalized to 1) to
+minimize the number of doomed photons generated. The problem is solved by constructing a vector $\Bf
+r$ for each corner point:
 \Begineq
   \Bf r = (x_{lim}, y_{lim}, z_{lim}) - (x_{emit}, y_{emit}, z_{emit})
 \Endeq 
-The direction of each $\Bf r$ is characterized in polar coordinates
-$(\phi, y)$ defined by
+The direction of each $\Bf r$ is characterized in polar coordinates $(\phi, y)$ defined by
 \begin{align}
   y &= \frac{r_y}{|r|} \CRNO
   \tan\phi &= \frac{r_x}{r_z} 
 \end{align}
-For now make the assumption that $r_z$ is positive and larger than
-$r_x$ and $r_y$ for all $\Bf r$.  Let $\phi_{max}$ and $\phi_{min}$ be
-the maximum and minimum $\phi$ values over all the $\Bf r$. Similarly,
-let $y_{min}$ and $y_{max}$ be the minimum and maximum $y$ values over
-all the $\Bf r$. The rectangle in $(\phi, y)$ space defined by these
-four min and max values almost covers the projection of the aperture
-onto the unit sphere. There is a correction that must be made due to
-the fact that a straight line of constant $y$ in $(x, y, z)$ space
-projects to a curved line when projected onto $(\phi, y)$
-space. Therefore a correction must be made to $y_{min}$ when $y_{min}
-< 0$:
+For now make the assumption that $r_z$ is positive and larger than $r_x$ and $r_y$ for all $\Bf r$.
+Let $\phi_{max}$ and $\phi_{min}$ be the maximum and minimum $\phi$ values over all the $\Bf
+r$. Similarly, let $y_{min}$ and $y_{max}$ be the minimum and maximum $y$ values over all the $\Bf
+r$. The rectangle in $(\phi, y)$ space defined by these four min and max values almost covers the
+projection of the aperture onto the unit sphere. There is a correction that must be made due to the
+fact that a straight line of constant $y$ in $(x, y, z)$ space projects to a curved line when
+projected onto $(\phi, y)$ space. Therefore a correction must be made to $y_{min}$ when $y_{min} <
+0$:
 \Begineq
   y_{min} \rightarrow 
   \frac{y_min}{\sqrt{(1 - y_{min}^2) \, \cos^2 (phi_{max} - \phi_{min})/2 + y_{min}^2}}
@@ -1257,16 +1256,13 @@ space. Therefore a correction must be made to $y_{min}$ when $y_{min}
 with a similar correction for $y_{max}$ that must be made when $y_{max} > 0$.
 
 
-The above prescription works as long as the projection of the aperture
-onto $(\phi, y)$ space does not touch the branch cut at $\phi = \pi$
-or cover the singular points $y = \pm 1$. Generally these restrictions
-are fullfilled since $\Bf z$ is the direction of the reference
-orbit. If this is not the case, a transformation can be made where
-rotation matrices are constructed to transform between the
-\vn{element} coordinates of the emitting element and what are called
-\vn{target} coordinates defined so that $\Bf r$ for the \vn{center} point
-has the form $(0, 0, |r|)$. The procedure for calculating the photon
-velocity vector is now
+The above prescription works as long as the projection of the aperture onto $(\phi, y)$ space does
+not touch the branch cut at $\phi = \pi$ or cover the singular points $y = \pm 1$. Generally these
+restrictions are fullfilled since $\Bf z$ is the direction of the reference orbit. If this is not
+the case, a transformation can be made where rotation matrices are constructed to transform between
+the \vn{element} coordinates of the emitting element and what are called \vn{target} coordinates
+defined so that $\Bf r$ for the \vn{center} point has the form $(0, 0, |r|)$. The procedure for
+calculating the photon velocity vector is now
   \begin{enumerate}
   \item
 Rotate all the corner $\Bf r$ from \vn{element} to \vn{target} coordinates.
