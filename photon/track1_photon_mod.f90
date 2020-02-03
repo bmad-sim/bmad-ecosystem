@@ -691,18 +691,29 @@ end subroutine track1_multilayer_mirror
 
 subroutine track1_mosaic_crystal (ele, param, orbit)
 
+use nr, only: indexx
+
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
-
 type (crystal_param_struct) cp
 
-real(rp) h_bar0(3), h_bar_now(3), e_tot, pc, p_factor, w_surface(3,3)
-real(rp) gamma_0, gamma_h, dr1(3), dr2(3), dr3(3), dr4(3), denom, f, field_init
-real(rp) field1, field2, field3, field4, phase1, phase2, phase3, phase4, rr, rm(2)
-real(rp) theta_in, theta_out, thick
+type mosaic_layer_struct
+  real(rp) :: theta_in = 0, theta_out = 0
+  real(rp) :: branch_ratio = 0
+  logical :: follow_diffracted = .false.
+end type
+type (mosaic_layer_struct), allocatable, target :: m_layer(:)
+type (mosaic_layer_struct), pointer :: ml
 
-integer z_vel_dir, h_dir, n_layers, at_layer
+real(rp) h_bar0(3), h_bar_here(3), e_tot, pc, p_factor, w_surface(3,3), vec_init(6)
+real(rp) gamma_0, gamma_h, dr1(3), dr2(3), dr3(3), dr4(3), denom, f, field_init
+real(rp) field1, field2, field3, field4, phase1, phase2, phase3, phase4, rr, rr2(2)
+real(rp) thick, p_sum, prob
+real(rp), allocatable :: follow_prob(:)
+
+integer im, h_dir, n_layer, n_choose
+integer, allocatable :: indx(:)
 
 character(*), parameter :: r_name = 'track1_mosaic_crystal'
 
@@ -711,6 +722,14 @@ character(*), parameter :: r_name = 'track1_mosaic_crystal'
 
 if (orbit_too_large(orbit, param)) return
 
+if (ele%value(b_param$) < 0) then
+  call out_io (s_fatal$, r_name, 'MOSAIC CRYSTAL TRACKING IN BRAGG ORIENTATION NOT YET IMPLEMENTED!')
+  orbit%state = lost$
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+
 if (ele%value(bragg_angle_in$) == 0) then
   call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION!')
   orbit%state = lost_pz_aperture$
@@ -718,7 +737,7 @@ if (ele%value(bragg_angle_in$) == 0) then
   return
 endif
 
-if (ele%value(b_param$) > 0 .and. ele%value(thickness$) == 0) then 
+if (ele%value(thickness$) == 0) then 
   call out_io (s_error$, r_name, 'LAUE CRYSTAL WITH ZERO THICKNESS WILL HAVE NO DIFFRACTION: ' // ele%name)
   return
 endif
@@ -728,19 +747,8 @@ if (ele%value(mosaic_thickness$) == 0) then
   return
 endif
 
-if (ele%value(b_param$) > 0 .or. nint(ele%value(thickness$)) > 0) then  ! Laue
-  n_layers = max(1, nint(ele%value(thickness$) / ele%value(mosaic_thickness$)))
-  thick = ele%value(thickness$) / n_layers
-else
-  n_layers = 1000000   ! Something large
-  thick = ele%value(mosaic_thickness$)
-endif
-
-!
-
-field_init = sum(orbit%field)
-cp%wavelength = c_light * h_planck / orbit%p0c
-cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$)) 
+n_layer = max(1, nint(ele%value(thickness$) / ele%value(mosaic_thickness$)))
+thick = ele%value(thickness$) / n_layer
 
 ! (px, py, pz) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
@@ -758,46 +766,38 @@ if (ele%aperture_at == surface$) then
   if (orbit%state /= alive$) return
 endif
 
-! Construct h_bar = H * wavelength.
+! Some init
 
-h_bar0 = ele%photon%material%h_norm
-if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar0) 
-h_bar0 = h_bar0 * cp%wavelength / ele%value(d_spacing$)
+field_init = sum(orbit%field)
+cp%wavelength = c_light * h_planck / orbit%p0c
+cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$)) 
+vec_init = orbit%vec
+h_bar0 = ele%photon%material%h_norm * cp%wavelength / ele%value(d_spacing$)
+p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
 
-! And track through the mosaic layers
+! Decide how many diffractions there are
 
-z_vel_dir = 1  ! direction of travel along the z-axis
-h_dir = 1      ! Direction of h_bar
-at_layer = 1   ! Mosaic layer number. 1 -> top layer, n_layers -> bottom layer.
+n_choose = (n_layer+1)/2
+allocate (m_layer(n_layer), indx(n_layer), follow_prob(n_choose))
 
-do
-
-  h_bar_now = h_dir * h_bar0  ! H_bar for this mosaic element.
-  p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
-
-  ! Rotate to mosaic coords
-
-  call ran_gauss(rm)
-  theta_in  = rm(1) * ele%value(mosaic_angle_rms_in_plane$)
+do im = 1, n_layer
+  ml => m_layer(im)
+  call ran_gauss(rr2)
+  ml%theta_in  = rr2(1) * ele%value(mosaic_angle_rms_in_plane$)
   if (ele%value(mosaic_angle_rms_out_plane$) < 0) then
-    theta_out = rm(2) * ele%value(mosaic_angle_rms_in_plane$)
+    ml%theta_out = rr2(2) * ele%value(mosaic_angle_rms_in_plane$)
   else
-    theta_out = rm(2) * ele%value(mosaic_angle_rms_out_plane$)
+    ml%theta_out = rr2(2) * ele%value(mosaic_angle_rms_out_plane$)
   endif
 
-  call rotate_vec(orbit%vec(2:6:2), x_axis$, theta_in)
-  call rotate_vec(orbit%vec(2:6:2), z_axis$, theta_out)
-
-  ! cp%new_vvec is the normalized outgoing wavevector outside the crystal for diffracted phtons.
+  orbit%vec = vec_init
+  call rotate_vec(orbit%vec(2:6:2), x_axis$, ml%theta_in)
+  call rotate_vec(orbit%vec(2:6:2), z_axis$, ml%theta_out)
+  if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar0) 
 
   cp%old_vvec = orbit%vec(2:6:2)
-  cp%new_vvec = orbit%vec(2:6:2) + h_bar_now
-
-  if (ele%value(b_param$) < 0) then ! Bragg
-    cp%new_vvec(3) = -z_vel_dir * sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
-  else
-    cp%new_vvec(3) = z_vel_dir * sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
-  endif
+  cp%new_vvec = orbit%vec(2:6:2) + h_bar0
+  cp%new_vvec(3) = sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
 
   ! Calculate some parameters
 
@@ -805,7 +805,7 @@ do
   gamma_h = cp%new_vvec(3)
 
   cp%b_eff = gamma_0 / gamma_h
-  cp%dtheta_sin_2theta = -dot_product(h_bar_now + 2 * cp%old_vvec, h_bar_now) / 2
+  cp%dtheta_sin_2theta = -dot_product(h_bar0 + 2 * cp%old_vvec, h_bar0) / 2
 
   ! Diffraction calc...
 
@@ -817,59 +817,85 @@ do
   call crystal_diffraction_field_calc (cp, ele, thick, param, p_factor, .true.,  field3, phase3, orbit%state, dr3, follow_undiffracted = .true.)
   call crystal_diffraction_field_calc (cp, ele, thick, param, 1.0_rp,   .false., field4, phase4, orbit%state, dr4, follow_undiffracted = .true.)
 
-  ! Which to follow?
-  ! For Laue: Average trajectories for the two polarizations weighted by the intensity.
-  ! This approximation is valid as long as the two trajectories are "close" enough.
+  ml%branch_ratio = (field1**2 + field2**2) / (field1**2 + field2**2 + field3**2 + field4**2)
+enddo
 
-  call ran_uniform(rr)
-  denom = field1**2 + field2**2 + field3**2 + field4**2
-  f = (field1**2 + field2**2) / denom
+call indexx(m_layer%branch_ratio, indx)
+indx = indx(n_layer:1:-1)
+follow_prob(1) = 1
+p_sum = 1
+prob = 1
 
-  if (f > rr) then  ! diffracted
-    orbit%field(1) = orbit%field(1) * field1 / sqrt(f)
-    orbit%field(2) = orbit%field(2) * field2 / sqrt(f)
-    orbit%phase    = [phase1, phase2]
-    orbit%vec(2:6:2) = cp%new_vvec
+do im = 2, n_choose
+  prob = prob * m_layer(indx(2*im-2))%branch_ratio * m_layer(indx(2*im-1))%branch_ratio
+  p_sum = p_sum + prob
+  follow_prob(im) = prob
+enddo
+follow_prob = follow_prob / p_sum
+
+
+call ran_uniform(rr)
+m_layer(indx(1))%follow_diffracted = .true.
+p_sum = follow_prob(1)
+do im = 2, n_choose
+  if (p_sum > rr) exit
+  m_layer(indx(2*im-2))%follow_diffracted = .true.
+  m_layer(indx(2*im-1))%follow_diffracted = .true.
+  p_sum = p_sum + follow_prob(im)  
+enddo
+
+! And track through the mosaic layers
+
+h_dir = 1
+
+do im = 1, n_layer
+  ml => m_layer(im)
+  h_bar_here = h_dir * h_bar0
+
+  ! Rotate to mosaic coords
+
+  call rotate_vec(orbit%vec(2:6:2), x_axis$, ml%theta_in)
+  call rotate_vec(orbit%vec(2:6:2), z_axis$, ml%theta_out)
+
+  ! cp%new_vvec is the normalized outgoing wavevector outside the crystal for diffracted phtons.
+
+  cp%old_vvec = orbit%vec(2:6:2)
+  cp%new_vvec = orbit%vec(2:6:2) + h_bar_here
+  cp%new_vvec(3) = sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
+
+  ! Calculate some parameters
+
+  gamma_0 = cp%old_vvec(3)
+  gamma_h = cp%new_vvec(3)
+
+  cp%b_eff = gamma_0 / gamma_h
+  cp%dtheta_sin_2theta = -dot_product(h_bar_here + 2 * cp%old_vvec, h_bar_here) / 2
+
+
+  if (ml%follow_diffracted) then  ! diffracted
+    call crystal_diffraction_field_calc (cp, ele, thick, param, p_factor, .true.,  field1, phase1, orbit%state, dr1)
+    call crystal_diffraction_field_calc (cp, ele, thick, param, 1.0_rp,   .false., field2, phase2, orbit%state, dr2)   ! Sigma polarity
     h_dir = -h_dir
-    if (ele%value(b_param$) < 0) z_vel_dir = -z_vel_dir
-    if (ele%value(b_param$) > 0) orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr1 * field1**2 + dr2 * field2**2) / (field1**2 + field2**2)
+    orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr1 * field1**2 + dr2 * field2**2) / (field1**2 + field2**2)
+    orbit%vec(2:6:2) = cp%new_vvec
     
   else
-    orbit%field(1) = orbit%field(1) * field3 / sqrt(1 - f)
-    orbit%field(2) = orbit%field(2) * field4 / sqrt(1 - f)
-    orbit%phase    = [phase3, phase4]
-    if (ele%value(b_param$) > 0) orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr3 * field3**2 + dr4 * field4**2) / (field3**2 + field4**2)
+    call crystal_diffraction_field_calc (cp, ele, thick, param, p_factor, .true.,  field1, phase1, orbit%state, dr1, follow_undiffracted = .true.)
+    call crystal_diffraction_field_calc (cp, ele, thick, param, 1.0_rp,   .false., field2, phase2, orbit%state, dr2, follow_undiffracted = .true.)
   endif
+
+  orbit%field(1) = orbit%field(1) * field1
+  orbit%field(2) = orbit%field(2) * field2
+  orbit%phase    = orbit%phase + [phase1, phase2]
 
   ! Rotate back out from mosaic coords
 
-  call rotate_vec(orbit%vec(2:6:2), z_axis$, -theta_out)
-  call rotate_vec(orbit%vec(2:6:2), x_axis$, -theta_in)
-
-  !
-
-  at_layer = at_layer + z_vel_dir
-  if (at_layer < 1) exit
-  if (at_layer > n_layers) exit
-  if (sum(orbit%field) < 1d-20 * field_init) then
-    orbit%state = lost$
-    exit
-  endif
+  call rotate_vec(orbit%vec(2:6:2), z_axis$, -ml%theta_out)
+  call rotate_vec(orbit%vec(2:6:2), x_axis$, -ml%theta_in)
 
 enddo
 
-! Rotate back from curved body coords to element coords
-
-if (ele%value(b_param$) < 0) then ! Bragg
-  if (at_layer > n_layers) orbit%state = lost$
-else
-  if (at_layer < 1) orbit%state = lost$
-  ! forward_diffracted and undiffracted beams do not have an orientation change.
-  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) orbit%vec(2:6:2) = cp%new_vvec
-endif
-
-!
-
+orbit%vec(2:6:2) = cp%new_vvec
 if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_mosaic_crystal
