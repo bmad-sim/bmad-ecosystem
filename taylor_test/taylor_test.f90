@@ -9,15 +9,26 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele1, ele2
 type (taylor_struct) t_map(6), t
 
-integer i, j
-logical err
+integer i, j, nargs
+logical err, debug_mode
+
+character(100) lat_file
 
 !
 
-call bmad_parser ('taylor_test.bmad', lat)
+debug_mode = .false.
+nargs = cesr_iargc()
+lat_file = 'taylor_test.bmad'
+
+if (nargs > 0) then
+  debug_mode = .true.
+  call cesr_getarg(1, lat_file)
+endif
+
+!
+
+call bmad_parser (lat_file, lat)
 open (1, file = 'output.now', recl = 200)
-
-!
 
 !call concat_taylor (lat%ele(3)%taylor, lat%ele(4)%taylor, t_map)
 !call type_taylors(t_map)
@@ -30,8 +41,6 @@ open (1, file = 'output.now', recl = 200)
 !
 !call concat_ele_taylor(ele1%taylor, ele2, ele2%taylor)
 
-!
-
 call transfer_map_calc (lat, t_map, err, 0, lat%n_ele_track, lat%particle_start, 0, .true.)
 
 do i = 1, 6
@@ -41,6 +50,8 @@ do i = 1, 6
   enddo
   write (1, *)
 enddo
+
+if (debug_mode) stop
 
 call transfer_map_from_s_to_s (lat, t_map, 0.1_rp, lat%param%total_length-2.0_rp, lat%particle_start)
 
