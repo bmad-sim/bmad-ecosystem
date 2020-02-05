@@ -61,7 +61,7 @@ h = s%plot_page%text_height * s%plot_page%main_title_text_scale
 do i = 1, size(s%plot_page%title)
   if (.not. s%plot_page%title(i)%draw_it .or. s%plot_page%title(i)%string == '') cycle
   call qp_draw_text (s%plot_page%title(i)%string, s%plot_page%title(i)%x, &
-                     s%plot_page%title(i)%y, s%plot_page%title(i)%units,    &
+                     s%plot_page%title(i)%y, s%plot_page%title(i)%units, &
                      s%plot_page%title(i)%justify, height = h)
 enddo
 
@@ -1190,7 +1190,7 @@ type (tao_logical_array_struct), allocatable :: logic_array(:)
 type (tao_data_struct), pointer :: datum
 type (tao_var_struct), pointer :: var
 
-real(rp) x1, x2, y1, y2, y, s_pos, x0, y0
+real(rp) x1, x2, y1, y2, y, s_pos, x0, y0, s_lat_min, s_lat_max
 real(rp) lat_len, height, dx, dy, key_number_height, dummy, l2
 
 integer i, j, k, n, kk, ix, ix1, isu, ixe
@@ -1235,7 +1235,17 @@ lat_len = branch%param%total_length
 call qp_set_layout (x_axis = graph%x, y_axis = graph%y, x2_mirrors_x = .false., &
                     box = graph%box, margin = graph%margin)
 
-call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
+s_lat_min = branch%ele(0)%s
+s_lat_max = branch%ele(branch%n_ele_track)%s
+
+if (branch%param%geometry == open$) then
+  x1 = max(s_lat_min, graph%x%min)
+  x2 = min(s_lat_max, graph%x%max)
+else
+  x1 = graph%x%min
+  x2 = min(graph%x%max, graph%x%min + lat_len)
+endif
+call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
 
 ! loop over all elements in the branch. Only draw those element that
 ! are within bounds.
@@ -1364,10 +1374,10 @@ do
 
   if (branch%param%geometry == closed$ .and. x2 < x1 .and. ele%value(l$) > 0) then
     if (x1 > graph%x%min .and. x1 < graph%x%max) then
-      call draw_shape_for_lat_layout (label_name, x1, x1 + ele%value(l$), min(graph%x%max, x1+ele%value(l$)/2), y1, y2, ele_shape)
+      call draw_shape_for_lat_layout (label_name, x1, x1 + ele%value(l$), y1, y2, min(graph%x%max, x1+ele%value(l$)/2), ele_shape)
     endif
     if (x2 > graph%x%min .and. x2 < graph%x%max) then
-      call draw_shape_for_lat_layout (label_name, x2-ele%value(l$), x2, max(graph%x%min, x2-ele%value(l$)/2), y1, y2, ele_shape)
+      call draw_shape_for_lat_layout (label_name, x2-ele%value(l$), x2, y1, y2, max(graph%x%min, x2-ele%value(l$)/2), ele_shape)
     endif
 
   else
@@ -1882,22 +1892,24 @@ n = size(graph%curve)
 allocate (text(n), symbol(n), line(n))
 
 do i = 1, n
+  ! Text
   curve => graph%curve(i)
   text(i) = curve%legend_text
   if (text(i) == '') then
     text(i) = curve%data_type
-    if (size(s%u) > 1) then
-      iu = curve%ix_universe
-      if (iu == -1) iu = graph%ix_universe
-      if (iu == -1) iu = s%com%default_universe
-      write (text(i), '(i0, 2a)') iu, '@', trim(curve%data_type)
-    endif
+  endif
+  if (size(s%u) > 1) then
+    iu = curve%ix_universe
+    if (iu == -1) iu = graph%ix_universe
+    if (iu == -1) iu = s%com%default_universe
+    text(i) = int_str(iu) // '@' // text(i)
   endif
   if (curve%component == '') then
     text(i) = trim(text(i)) // ' ' // trim(graph%component)
   else
     text(i) = trim(text(i)) // ' ' // trim(curve%component)
   endif
+  ! Symbol to display
   symbol(i) = curve%symbol
   if (.not. curve%draw_symbols) symbol(i)%type = 'do_not_draw'
   line(i) = curve%line
