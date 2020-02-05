@@ -791,8 +791,8 @@ do im = 1, n_layer
   endif
 
   orbit%vec = vec_init
-  call rotate_vec(orbit%vec(2:6:2), x_axis$, ml%theta_in)
-  call rotate_vec(orbit%vec(2:6:2), z_axis$, ml%theta_out)
+  call rotate_vec(orbit%vec(2:6:2), y_axis$, ml%theta_in)
+  call rotate_vec(orbit%vec(2:6:2), x_axis$, ml%theta_out)
   if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar0) 
 
   cp%old_vvec = orbit%vec(2:6:2)
@@ -854,8 +854,8 @@ do im = 1, n_layer
 
   ! Rotate to mosaic coords
 
-  call rotate_vec(orbit%vec(2:6:2), x_axis$, ml%theta_in)
-  call rotate_vec(orbit%vec(2:6:2), z_axis$, ml%theta_out)
+  call rotate_vec(orbit%vec(2:6:2), y_axis$, ml%theta_in)
+  call rotate_vec(orbit%vec(2:6:2), x_axis$, ml%theta_out)
 
   ! cp%new_vvec is the normalized outgoing wavevector outside the crystal for diffracted phtons.
 
@@ -890,12 +890,11 @@ do im = 1, n_layer
 
   ! Rotate back out from mosaic coords
 
-  call rotate_vec(orbit%vec(2:6:2), z_axis$, -ml%theta_out)
-  call rotate_vec(orbit%vec(2:6:2), x_axis$, -ml%theta_in)
+  call rotate_vec(orbit%vec(2:6:2), x_axis$, -ml%theta_out)
+  call rotate_vec(orbit%vec(2:6:2), y_axis$, -ml%theta_in)
 
 enddo
 
-orbit%vec(2:6:2) = cp%new_vvec
 if (ele%photon%surface%has_curvature) call rotate_for_curved_surface (ele, orbit, unset$, w_surface)
 
 end subroutine track1_mosaic_crystal
