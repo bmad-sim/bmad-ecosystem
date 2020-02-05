@@ -170,10 +170,10 @@ else
 endif
 
 n_att = n_attrib_string_max_len() + 1
-write (fmt_a, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, 2x, 3a)'
-write (fmt_i, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, i6)'
-write (fmt_l, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, 2x, l1)'
-write (fmt_r, '(a, i0, a)') '(8x, a, t', n_att+9, ', a, 2x, es15.7)'
+write (fmt_a, '(a, i0, a)') '(7x, a, t', n_att+9, ', a, 2x, 3a)'
+write (fmt_i, '(a, i0, a)') '(7x, a, t', n_att+9, ', a, i6)'
+write (fmt_l, '(a, i0, a)') '(7x, a, t', n_att+9, ', a, 2x, l1)'
+write (fmt_r, '(a, i0, a)') '(7x, a, t', n_att+9, ', a, 2x, es15.7)'
 
 
 do i = 1, num_ele_attrib$
@@ -219,9 +219,8 @@ do i = 1, num_ele_attrib$
 
   line = ''
   call write_this_attribute (attrib, n_att, line(3:))
-  call write_this_attribute (attrib2, 16, line(n_att+34:))
+  call write_this_attribute (attrib2, 28, line(n_att+33:))
   nl=nl+1; li(nl) = line
-
 enddo
 
 ! Custom attributes
@@ -673,7 +672,6 @@ endif
 ! Encode branch info
 
 if (ele%key == fork$ .or. ele%key == photon_fork$) then
-  
   if (li(nl) /= '') then
     nl=nl+1; li(nl) = ' '
   endif
@@ -686,7 +684,6 @@ if (ele%key == fork$ .or. ele%key == photon_fork$) then
   else
     nl=nl+1; write (li(nl), '(a, i0, a, i0)') 'Branch to: ', n, '>>', i
   endif
-
 endif
 
 ! Encode lord/slave info.
@@ -695,7 +692,6 @@ endif
 !   looking at the overlay_lord's 1st slave (slave of slave of the input ele).
 
 if (associated(lat) .and. logic_option(.true., type_control)) then
-
   ! Print info on element's lords
 
   if (li(nl) /= '') then
@@ -948,7 +944,6 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   endif
 
   if (.not. has_it) nl = nl - 3
-
 endif
 
 ! Encode Twiss info
@@ -1213,8 +1208,8 @@ else
 endif
 
 name = attrib_name
-n = 8 + n_attrib_string_max_len() + 17 + 14 + 2
-write (line(n:), '(a26, a, 2x, a)') name, '=', value
+n = 8 + n_attrib_string_max_len() + 31
+write (line(n:), '(a27, a, 2x, a)') name, '=', value
 
 end subroutine encode_second_column_parameter 
 
@@ -1346,14 +1341,14 @@ endif
 select case (attrib%kind)
 case (is_logical$)
   if (ele%value(i) /= 0) ele%value(i) = 1
-  write (line, '(a, 3x, 2a, l1, a, i0, a)')  str_ix, attrib%name(1:n_name_width), '=  ', is_true(attrib%value), ' (', nint(attrib%value), ')'
+  write (line, '(a, 2x, 2a, l1, a, i0, a)')  str_ix, attrib%name(1:n_name_width), '=  ', is_true(attrib%value), ' (', nint(attrib%value), ')'
 case (is_integer$)
-  write (line, '(a, 3x, 2a, i0)')  str_ix, attrib%name(1:n_name_width), '= ', nint(attrib%value)
+  write (line, '(a, 2x, 2a, i0)')  str_ix, attrib%name(1:n_name_width), '= ', nint(attrib%value)
 case (is_real$)
-  write (line, '(a, 3x, 2a, es15.7, 1x, a8)')  str_ix, attrib%name(1:n_name_width), '=', attrib%value, attrib%units
+  write (line, '(a, 2x, 2a, es15.7, 1x, a8)')  str_ix, attrib%name(1:n_name_width), '=', attrib%value, attrib%units
 case (is_switch$)
   name = switch_attrib_value_name (attrib%name, attrib%value, ele, is_default)
-  write (line, '(a, 3x, 4a, i0, a)')  str_ix, attrib%name(1:n_name_width), '=  ', trim(name), ' (', nint(attrib%value), ')'
+  write (line, '(a, 2x, 4a, i0, a)')  str_ix, attrib%name(1:n_name_width), '=  ', trim(name), ' (', nint(attrib%value), ')'
 end select
 
 end subroutine write_this_attribute

@@ -885,7 +885,6 @@ call init_attribute_name1 (crystal$, darwin_width_pi$,              'DARWIN_WIDT
 call init_attribute_name1 (crystal$, pendellosung_period_sigma$,    'PENDELLOSUNG_PERIOD_SIGMA', dependent$)
 call init_attribute_name1 (crystal$, pendellosung_period_pi$,       'PENDELLOSUNG_PERIOD_PI', dependent$)
 call init_attribute_name1 (crystal$, dbragg_angle_de$,              'DBRAGG_ANGLE_DE', dependent$)
-call init_attribute_name1 (crystal$, diffraction_limited$,          'DIFFRACTION_LIMITED')
 call init_attribute_name1 (crystal$, is_mosaic$,                    'IS_MOSAIC')
 call init_attribute_name1 (crystal$, mosaic_thickness$,             'MOSAIC_THICKNESS')
 call init_attribute_name1 (crystal$, mosaic_angle_rms_in_plane$,    'MOSAIC_ANGLE_RMS_IN_PLANE')
@@ -1478,7 +1477,6 @@ call init_attribute_name1 (mirror$, critical_angle$,                'CRITICAL_AN
 call init_attribute_name1 (mirror$, ref_tilt$,                      'REF_TILT')
 call init_attribute_name1 (mirror$, ref_tilt_tot$,                  'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH', dependent$)
-call init_attribute_name1 (mirror$, diffraction_limited$,           'DIFFRACTION_LIMITED')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'L', dependent$)
 call init_attribute_name1 (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
@@ -1493,7 +1491,6 @@ call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVEL
 call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
 call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_start', private$)
 call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
-call init_attribute_name1 (multilayer_mirror$, diffraction_limited$,  'DIFFRACTION_LIMITED')
 
 call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start', private$)
@@ -1761,7 +1758,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'AUTOSCALE_AMPLITUDE', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', 'HIGH_ENERGY_SPACE_CHARGE_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', &
-      'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
+      'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC')

@@ -1380,25 +1380,24 @@ integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinate
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, E_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
-integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6, E_max$ = 6
-integer, parameter :: g_err$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
-integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7
-integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
-integer, parameter :: rho$ = 8, delta_e_ref$ = 8, diffraction_limited$ = 8, interpolation$ = 8
+integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, E_max$ = 6
+integer, parameter :: g_err$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7
+integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7, bragg_angle_in$ = 7
+integer, parameter :: rho$ = 8, delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8 
-integer, parameter :: eps_step_scale$ = 9, voltage_err$ = 9
-integer, parameter :: fringe_type$ = 10
-integer, parameter :: fringe_at$ = 11, gang$ = 11
-integer, parameter :: higher_order_fringe_type$ = 12
-integer, parameter :: spin_fringe_on$ = 13
-integer, parameter :: fb1$ = 14, sig_x$ = 14, exact_multipoles$ = 14
+integer, parameter :: eps_step_scale$ = 9, voltage_err$ = 9, bragg_angle$ = 9
+integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
+integer, parameter :: fringe_at$ = 11, gang$ = 11, darwin_width_sigma$ = 11
+integer, parameter :: higher_order_fringe_type$ = 12, darwin_width_pi$ = 12
+integer, parameter :: spin_fringe_on$ = 13, pendellosung_period_sigma$ = 13
+integer, parameter :: fb1$ = 14, sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
 integer, parameter :: fb2$ = 15, sig_y$ = 15, graze_angle_in$ = 15
 integer, parameter :: fq1$ = 16, sig_z$ = 16, graze_angle_out$ = 16 
 integer, parameter :: fq2$ = 17, sig_vx$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19, sig_pz$ = 19
 integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_particle_start$ = 20
-integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, constant_ref_energy$ = 20
+integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, constant_ref_energy$ = 20
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
@@ -1432,11 +1431,11 @@ integer, parameter :: z_offset$ = 38
 integer, parameter :: hkick$ = 39, d_spacing$ = 39, x_offset_mult$ = 39, emittance_a$ = 39
 integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40
 integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41
-integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42, darwin_width_sigma$ = 42
-integer, parameter :: pendellosung_period_sigma$ = 43, BL_kick$ = 43, B_field$ = 43, E_field$ = 43
-integer, parameter :: coupler_phase$ = 44, darwin_width_pi$ = 44, B_field_err$ = 44
-integer, parameter :: B1_gradient$ = 45, E1_gradient$ = 45, coupler_angle$ = 45, pendellosung_period_pi$ = 45
-integer, parameter :: B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46, dbragg_angle_de$ = 46
+integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42
+integer, parameter :: BL_kick$ = 43, B_field$ = 43, E_field$ = 43
+integer, parameter :: coupler_phase$ = 44, B_field_err$ = 44
+integer, parameter :: B1_gradient$ = 45, E1_gradient$ = 45, coupler_angle$ = 45
+integer, parameter :: B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: coupler_at$ = 47, E_tot_set$ = 47, ptc_canonical_coords$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, p0c_set$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
