@@ -193,7 +193,7 @@ type tao_plot_page_input
   real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
   real(rp) :: axis_number_text_scale = 0.9  ! Relative to text_height
   real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
-  real(rp) :: legend_text_scale      = 0.7  ! Relative to text_height
+  real(rp) :: legend_text_scale      = 0.9  ! Relative to text_height
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   real(rp) :: floor_plan_shape_scale = 1.0
   real(rp) :: lat_layout_shape_scale = 1.0
