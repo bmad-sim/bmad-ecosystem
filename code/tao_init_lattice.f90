@@ -192,9 +192,11 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     u%design_same_as_previous = .false.
     select case (design_lat%language)
     case ('bmad')
+      call out_io (s_blank$, r_name, 'Reading Bmad file: ' // design_lat%file)
+      if (design_lat%use_line /= '') call out_io (s_blank$, r_name, '  Line used is: ' // design_lat%use_line)
       call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line, err_flag = err)
     case ('digested')
-      call out_io (s_blank$, r_name, "Reading digested BMAD file " // trim(design_lat%file))
+      call out_io (s_blank$, r_name, "Reading digested Bmad file: " // trim(design_lat%file))
       call read_digested_bmad_file (design_lat%file, u%design%lat, version, err)
     case default
       call out_io (s_abort$, r_name, 'LANGUAGE NOT RECOGNIZED: ' // design_lat%language)
