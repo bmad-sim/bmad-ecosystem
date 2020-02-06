@@ -3,7 +3,7 @@
 
 MODULE S_DEF_KIND
   USE S_def_all_kinds   ! not needed because of things below
-  use s_extend_poly, only : PRTP ! LD: 22.03.2019
+  use s_extend_poly, only : PRTP, PRTP1 ! LD: 22.03.2019
   public
   PRIVATE DRIFTP  !,DRIFT   ! ,DRIFTR
   PRIVATE SPARR,SPARP !,SPAR
@@ -40,7 +40,7 @@ MODULE S_DEF_KIND
   PRIVATE SYMPINTKTKR,SYMPINTKTKD
 
   PRIVATE KICKPATH6R,KICKPATH6P
-  PRIVATE EXP6R,EXP6D,EXPCOSY6   ! special for integrated exponential path length
+  PRIVATE EXPCOSY6R,EXPCOSY6D,EXPCOSY6   ! special for integrated exponential path length
   PRIVATE EXPR,EXPD,EXPCOSY
 
   PRIVATE ZEROR_TKT7,ZEROP_TKT7
@@ -248,7 +248,7 @@ integer :: tot_t=1
   INTERFACE get_z_cav
      MODULE PROCEDURE get_z_cavr
      MODULE PROCEDURE get_z_cavp
-  END INTERFACE  
+  END INTERFACE
 
   INTERFACE B_E_FIELD
      MODULE PROCEDURE B_E_FIELDR
@@ -671,8 +671,8 @@ integer :: tot_t=1
   END INTERFACE
 
   INTERFACE EXPCOSY6
-     MODULE PROCEDURE EXP6R
-     MODULE PROCEDURE EXP6D
+     MODULE PROCEDURE EXPCOSY6R
+     MODULE PROCEDURE EXPCOSY6D
   END INTERFACE
 
   INTERFACE GETMAT
@@ -3555,8 +3555,6 @@ CALL FRINGECAV(EL,X,k,2)
     ! it is a mystery perhaps due to the use of canonical variables.
     ! as of 2012 David Sagan said that this is needed after all
 
-    call PRTP("FRNG_CAV4:0", X)
-
     CALL ALLOC(C1,S1,V,O,z)
 
      it=tot_t*k%totalpath+(1-tot_t)
@@ -3578,11 +3576,13 @@ CALL FRINGECAV(EL,X,k,2)
      KBMAD=0
     ENDIF
 
-       if(freq_redefine) then
-        O=EL%freq
-         else
-        O=twopi*EL%freq/CLIGHT
-       endif
+    call PRTP("FRNG_CAV4:0", X)
+
+    if(freq_redefine) then
+      O=EL%freq
+    else
+      O=twopi*EL%freq/CLIGHT
+    endif
     if(.not.k%TIME.and.piotr_freq) then
        O=O/EL%p%beta0
     endif
@@ -3594,6 +3594,14 @@ CALL FRINGECAV(EL,X,k,2)
     s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
     c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
 
+!    print *, "nf=", el%nf, "jc=", jc, "ko=", ko, "it=", it, "T=", el%t, "kbmad=", kbmad, "ph0=", EL%phase0
+!    call PRTP1("PHS=", EL%phas)
+!    call PRTP1("PHK=", EL%PH(KO))
+!    call PRTP1("V=", V)
+!    call PRTP1("O=", O)
+!    call PRTP1("Z=", Z)
+!    call PRTP1("C1=", C1)
+!    call PRTP1("S1=", S1)
 
     X(2)=X(2)+V*S1*X(1)*0.5_dp
     X(4)=X(4)+V*S1*X(3)*0.5_dp
@@ -3605,10 +3613,6 @@ CALL FRINGECAV(EL,X,k,2)
     call PRTP("FRNG_CAV4:1", X)
 
   END SUBROUTINE FRINGECAVP
-
-
-
-
 
 
   SUBROUTINE KICKCAVR(EL,YL,X,k)
@@ -3638,7 +3642,9 @@ CALL FRINGECAV(EL,X,k,2)
     endif
 
     VL=dir*YL*EL%volt*volt_c/EL%P%P0C
-
+     
+    !print*,"skowron: ph:",EL%PHAS," ph0=",EL%phase0, EL%t," volt omega",VL,O
+    
     do ko=1,el%nf    ! over modes
 
        DF=0.0_dp
@@ -3719,7 +3725,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     IMPLICIT NONE
     TYPE(REAL_8),INTENT(INOUT):: X(6),YL
     TYPE(CAV4P),INTENT(INOUT):: EL
-    TYPE(REAL_8) DF,R2,F,DR2,O,VL
+    TYPE(REAL_8) DF,R2,F,DR2,O,VL,C1
     INTEGER I,it
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     TYPE(REAL_8) BBYTWT,BBXTW,BBYTW,x1,x3
@@ -3730,7 +3736,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
     call PRTP("KICKCAV:0", X)
 
-    CALL ALLOC(DF,R2,F,DR2,O,VL)
+    CALL ALLOC(DF,R2,F,DR2,O,VL,C1)
     call alloc(BBYTWT,BBXTW,BBYTW,x1,x3)
     it=tot_t*k%totalpath+(1-tot_t)
     DIR=EL%P%DIR*EL%P%CHARGE
@@ -3746,6 +3752,9 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     endif
 
     VL=dir*YL*EL%volt*volt_c/EL%P%P0C
+
+    ! Ph0 = Pi
+!    write (*,'(6(a,E25.16))') '@ VL= ', VL%r, ' O= ', O%r, ' Ph= ', EL%PHAS%r, 'P0C=', EL%P%P0C, ' YL= ', YL%r, ' PH0= ', EL%phase0
 
     do ko=1,el%nf    ! over modes
 
@@ -3764,13 +3773,16 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
        !    EL%DELTA_E=x(5)
 
        IF(EL%N_BESSEL>0) THEN
-          X(2)=X(2)-X(1)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
-          X(4)=X(4)-X(3)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
+          C1 = el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
+          X(2)=X(2)-X(1)*C1
+          X(4)=X(4)-X(3)*C1
+!          call PRTP1("C1", C1)
        ENDIF
 
+!      write (*,'(7(a,E25.16))') '@ KO= ', ko*1.0_dp, ' F= ', F%r, ' F(KO)= ', el%f(ko)%r, ' P(KO)= ', EL%PH(KO)%r, ' T= ', EL%t,&
+!                                ' IT= ', 1.0_dp*it
 
        x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
-
 
        ! doing crabola
 
@@ -3819,7 +3831,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
        X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
 
     enddo    ! over modes
-    CALL kill(DF,R2,F,DR2,O,VL)
+    CALL kill(DF,R2,F,DR2,O,VL,C1)
     call kill(BBYTWT,BBXTW,BBYTW,x1,x3)
 
     call PRTP("KICKCAV:1", X)
@@ -3909,7 +3921,9 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
        else
           X(1)=X(1)+L*X(2)/(1.0_dp+X(5))
           X(3)=X(3)+L*X(4)/(1.0_dp+X(5))
-          X(6)=X(6)+(L/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+T*L
+
+         X(6)=X(6)+(L/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+T*L
+ 
        endif
     ENDIF
 
@@ -4046,7 +4060,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     TYPE(REAL_8) myCOS,mySIN,ANG,XT(6)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-    call PRTP("KICK:0", X)
+    call PRTP("KICKT:0", X)
 
     CALL ALLOC(X1)
     CALL ALLOC(X3)
@@ -4079,7 +4093,6 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
        BBYTW=0.0_dp
        BBXTW=0.0_dp
     ENDIF
-
 
     if(el%patch) then
        alfh=-EL%thin_h_angle/2.0_dp
@@ -4131,9 +4144,6 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     ENDDO
 
 
-    !  end of solenoid
-
-
     myCOS=(EL%B_SOL*EL%P%CHARGE)**2*el%ls
 
     if(k%TIME) then
@@ -4147,8 +4157,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
        X(6)=X(6)+(myCOS)*(X(1)**2+X(3)**2)/8.0_dp/(1.0_dp+X(5))**2
     endif
 
-
-
+    !  end of solenoid
 
     if(el%patch) then
        alfh=-EL%thin_h_angle/2.0_dp
@@ -4168,7 +4177,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     CALL KILL(BBXTW)
     CALL KILL(BBYTWT)
 
-    call PRTP("KICK:1", X)
+    call PRTP("KICKT:1", X)
 
   END SUBROUTINE KICKTP
 
@@ -4362,7 +4371,6 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
        FY_X=FY_X+ (DUX*X(3)-NF*V-NF*X(1)*DVX)
        FY_Y=FY_Y+ (DUY*X(3)+U-NF*X(1)*DVY)
-
     ENDDO
 
     if(k%TIME) then
@@ -4370,9 +4378,6 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
     else
        DEL=1.0_dp/(1.0_dp+X(5))
     endif
-
-
-
 
     A=1.0_dp-FX_X*DEL
     B=-FY_X*DEL
@@ -6469,7 +6474,7 @@ integer :: kkk=0
   END SUBROUTINE EXPD
 
 
-  SUBROUTINE EXP6R(H,V,MATOUT)
+  SUBROUTINE EXPCOSY6R(H,V,MATOUT)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: H(6,6),V(6),MATOUT(6)
     real(dp) AD(6),TEMP(6)
@@ -6525,10 +6530,10 @@ integer :: kkk=0
 
 100 CONTINUE
 
-  END SUBROUTINE EXP6R
+  END SUBROUTINE EXPCOSY6R
 
 
-  SUBROUTINE EXP6D(H,V,MATOUT)
+  SUBROUTINE EXPCOSY6D(H,V,MATOUT)
     IMPLICIT NONE
     TYPE(REAL_8),INTENT(INOUT):: H(6,6),V(6),MATOUT(6)
     TYPE(REAL_8) AD(6),TEMP(6)
@@ -6591,7 +6596,7 @@ integer :: kkk=0
     CALL KILL(AD,6)
     CALL KILL(TEMP,6)
 
-  END SUBROUTINE EXP6D
+  END SUBROUTINE EXPCOSY6D
   !  ZEROING AND COPY ROUTINES
 
   SUBROUTINE INTER_KTK(EL,X,k)
@@ -7039,7 +7044,7 @@ integer :: kkk=0
     IF(MOD(EL%P%METHOD,2)==1) THEN
        DH=(EL%L/EL%P%NST)  ! method=1,3,5
     ELSEIF(EL%P%METHOD/=6) THEN
-       DH=(EL%L/EL%P%NST)/EL%P%METHOD   ! method=1,2
+       DH=(EL%L/EL%P%NST)/EL%P%METHOD   ! method=2,4
        IF(EL%P%METHOD==4) DH=DH*2.0_dp
     ELSE
        DH=EL%L/EL%P%NST/4.0_dp
@@ -7077,7 +7082,7 @@ integer :: kkk=0
           EL%MATX(2,3)= EL%P%B0*EL%MATX(1,2);
           EL%LX(1)=EL%P%B0*EL%MATX(1,2);   EL%LX(2)=EL%MATX(1,3);
           EL%LX(3)=-EL%P%B0**2*S_OMEGA*(DH-EL%MATX(1,2))/OMEGA2;
-       ELSE
+       ELSE ! DRIFT like matrix
           EL%MATX(1,1)=1.0_dp;EL%MATX(1,2)=DH;
           EL%MATX(2,1)=0.0_dp
           EL%MATX(2,2)=1.0_dp
@@ -7570,6 +7575,17 @@ integer :: kkk=0
     !    T(2)=EL%MATX(2,1)*X(1)+EL%MATX(2,2)*X(2)+EL%MATX(2,3)*X(5)
     IF(EL%P%DIR*EL%P%CHARGE>0) THEN
        IF(k%TIME) THEN
+!        call PRTP1 ("MX11", EL%MATX(1,1))
+!        call PRTP1 ("MX12", EL%MATX(1,2))
+!        call PRTP1 ("MX13", EL%MATX(1,3))
+!        call PRTP1 ("MX21", EL%MATX(2,1))
+!        call PRTP1 ("MX22", EL%MATX(2,2))
+!        call PRTP1 ("MX23", EL%MATX(2,3))
+!        call PRTP1 ("MY11", EL%MATY(1,1))
+!        call PRTP1 ("MY12", EL%MATY(1,2))
+!        call PRTP1 ("MY21", EL%MATY(2,1))
+!        call PRTP1 ("MY22", EL%MATY(2,2))
+
           T(1)=EL%MATX(1,1)*X(1)+EL%MATX(1,2)*X(2)+EL%MATX(1,3)*X(5)/el%P%beta0
           T(2)=EL%MATX(2,1)*X(1)+EL%MATX(2,2)*X(2)+EL%MATX(2,3)*X(5)/el%P%beta0
           T(3)=EL%MATY(1,1)*X(3)+EL%MATY(1,2)*X(4)
@@ -7720,6 +7736,10 @@ integer :: kkk=0
     !outvalishev       X(4)=X(4)+YL* DIR*BBXTW !valishev
     !outvalishev    endif !valishev
 
+!    print *, "B0=", EL%P%B0, "B1=", EL%BN(1)%R, "B2=", EL%BN(2)%R, "B3=", EL%BN(3)%R, "B4=", EL%BN(4)%R,&
+!             "NM=", EL%P%NMUL, "YL=", YL%R, "beta=", EL%P%beta0
+!    call PRTP1("BX=", BBXTW)
+!    call PRTP1("BY=", BBYTW)
 
     CALL KILL(X1)
     CALL KILL(X3)
@@ -10171,7 +10191,7 @@ integer :: kkk=0
      logical(lp) kic
      INTEGER J,M,A,K
 
-    call PRTP("GETMAGNETIC:0", X)
+!    call PRTP("GETMAGNETIC:0", X)
 
      CALL ALLOC(X1,X3,BX,BY,BTX,BTY)
 
@@ -10236,7 +10256,7 @@ integer :: kkk=0
 
      CALL KILL(X1,X3,BX,BY,BTX,BTY)
 
-    call PRTP("GETMAGNETIC:1", X)
+!    call PRTP("GETMAGNETIC:1", X)
 
  END SUBROUTINE GETMAGNETICP
 
@@ -10376,7 +10396,7 @@ integer :: kkk=0
     kic=my_false
     if(present(kick)) kic=kick
 
-    call PRTP("GETELECTRIC:0", X)
+!    call PRTP("GETELECTRIC:0", X)
 
     CALL ALLOC(X1,X3,BX,BY,BTX,BTY,BtYT)
     CALL ALLOC(phit,EX,ETX,EY,ETY,VMT)
@@ -10488,7 +10508,7 @@ integer :: kkk=0
     CALL KILL(X1,X3,BX,BY,BTX,BTY,BtYT)
     CALL KILL(phit,EX,ETX,EY,ETY,VMT)
 
-    call PRTP("GETELECTRIC:1", X)
+!    call PRTP("GETELECTRIC:1", X)
   END SUBROUTINE GETELECTRICP
 
 
@@ -11214,8 +11234,6 @@ integer :: kkk=0
 
     DIR=EL%P%DIR*EL%P%CHARGE
 
-
-
     CALL ALLOC( XN,6)
     CALL ALLOC( PZ,PT,A,PZS,DPX)
     A=YL*EL%P%B0
@@ -11227,6 +11245,13 @@ integer :: kkk=0
        DPX=(-X(2)*SIN(A)+(PZ-DIR*EL%BN(1)*(R+X(1)))*COS(A))/DIR/EL%BN(1)  !DPX*R/B1
        PT=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(4)**2)
        PZS=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-XN(2)**2-X(4)**2)
+
+!       write (*,('(4(A,E25.16))')) "@@ . beta0= ", B, " Rho= ", R
+!       call PRTP1("PZS", PZS)
+!       call PRTP1("DPX", DPX)
+!       call PRTP1("B1" , EL%BN(1))
+!       call PRTP1("A"  , A)
+
        XN(1)=PZS/DIR/EL%BN(1)-DPX-R
 
        XN(3)=(A+ASIN(X(2)/PT)-ASIN(XN(2)/PT))/DIR/EL%BN(1)
@@ -11308,7 +11333,8 @@ integer :: kkk=0
     call GETELECTRIC(EL,E,phi,B,VM,X,kick=my_true)
    !call GETMAGNETIC(EL,B, X, kick=my_true)
 
-
+   !call PRTP1("B1=", B(1)*YL)
+   !call PRTP1("B2=", B(2)*YL)
 
     X(2)=X(2)+YL*DIR*B(1)
     X(4)=X(4)+YL*DIR*B(2)
@@ -11954,7 +11980,6 @@ integer :: kkk=0
                 IF(el%p%permfringe==2.or.el%p%permfringe==3) CALL FRINGE2QUAD(EL%P,EL%bn(2),EL%an(2),EL%VA,EL%VS,1,X,k)
                 x(2)=x(2)+EL%P%EDGE(1)*el%bn(2)*(wedge_coeff(1)*x(1)**2-wedge_coeff(2)*x(3)**2*0.5_dp)
                 x(4)=x(4)-EL%P%EDGE(1)*el%bn(2)*(wedge_coeff(2)*x(1)*x(3))
-
              ELSEIF(MAD8_WEDGE) THEN
                 x(2)=x(2)+EL%P%EDGE(1)*el%bn(2)*(x(1)**2-x(3)**2)
                 x(4)=x(4)-EL%P%EDGE(1)*el%bn(2)*(2.0_dp*x(1)*x(3))
@@ -12511,6 +12536,8 @@ integer :: kkk=0
        X(5)=XO(5)
        X(6)=XO(6)
 
+       ! LD: the length is divided by 2 and the code is duplicated twice!?!?
+
        K1=EL%P%CHARGE*EL%VOLT*volt_c/EL%P%P0C
 
 
@@ -12616,7 +12643,7 @@ integer :: kkk=0
     integer, intent(IN) ::i
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-    call PRTP("SEP:0", XO)
+    call PRTP("SEPTUM:0", XO)
 
        CALL ALLOC(K1,SH_X,SH,CH,CHM)
        CALL ALLOC(PZ,E1,ARG,DH,C1,S1)
@@ -12632,8 +12659,7 @@ integer :: kkk=0
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,MY_TRUE, k%TIME,X)
        ENDIF
 
-
-
+!       print *, "GAMMA=", EL%P%GAMMA0I, "BETA=", EL%P%BETA0, "P0C=", EL%P%P0C
 
        C1=COS(EL%PHAS); S1=SIN(-EL%PHAS)
        X(3)=C1*XO(3)-S1*XO(1)
@@ -12643,9 +12669,11 @@ integer :: kkk=0
        X(5)=XO(5)
        X(6)=XO(6)
 
-
        K1=EL%P%CHARGE*EL%VOLT*volt_c/EL%P%P0C
 
+!       call PRTP1("VOLT=", EL%VOLT)
+!       call PRTP1("PHAS=", EL%PHAS)
+!       call PRTP1("K1="  , K1)
 
        if(k%TIME) then
           PZ=SQRT((1.0_dp/EL%P%BETA0+X(5)+K1*X(3))**2-(EL%P%GAMMA0I/EL%P%BETA0)**2-X(2)**2-X(4)**2)
@@ -12729,7 +12757,7 @@ integer :: kkk=0
        CALL KILL( X,6)
        CALL KILL( XT,2)
 
-    call PRTP("SEP:1", XO)
+    call PRTP("SEPTUM:1", XO)
 
   END SUBROUTINE SEPP
 
@@ -13326,6 +13354,8 @@ integer :: kkk=0
 
        IF(J==1) THEN
 
+        ! print *, "fringe=", k%fringe, "bend_fringe=", el%p%bend_fringe, "permfringe=", el%p%permfringe, "likemad=", el%likemad
+
           IF(EL%LIKEMAD) THEN
 
              ANGH=EL%P%B0*EL%P%LD*0.5_dp-EL%P%EDGE(1)
@@ -13698,6 +13728,8 @@ integer :: kkk=0
        call ROT_XZ(A,X,B,EXACT,time)
 
     ELSE
+
+       !write (*,'(2(a,E25.16))') '@ B1= ', B1%r, ' E= ', A
 
        if(TIME) then
           PZ=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(2)**2-X(4)**2)
@@ -18148,7 +18180,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     CALL ALLOC(PZ)
 
 
- 
+
     CALL A_TRANS(D,Z0,X,k,A,AD)
 
     X(2)=X(2)-A(1)
@@ -18213,9 +18245,9 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
 
- 
+
     IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
- 
+
 
        if(freq_redefine) then
         O=EL%freq

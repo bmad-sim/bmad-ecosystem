@@ -1110,7 +1110,10 @@ endif
        if(associated(t%bb).and.dobb.and.do_beam_beam) then
 
           if(t%bb%patch) call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_true)
+ 
           call BBKICK(t%bb,X)
+ 
+
           if(t%bb%patch)call PATCH_BB(t%bb,X,k,EL%p%BETA0,ALWAYS_EXACT_PATCHING.or.EL%P%EXACT,my_false)
 
        endif

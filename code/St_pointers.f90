@@ -1,5 +1,11 @@
 module pointer_lattice
   use madx_ptc_module !etienne, my_state_mad=>my_state, my_ring_mad=>my_ring
+use duan_zhe_map, probe_zhe=>probe,tree_element_zhe=>tree_element,dp_zhe=>dp, &
+DEFAULT0_zhe=>DEFAULT0,TOTALPATH0_zhe=>TOTALPATH0,TIME0_zhe=>TIME0,ONLY_4d0_zhe=>ONLY_4d0,RADIATION0_zhe=>RADIATION0, &
+NOCAVITY0_zhe=>NOCAVITY0,FRINGE0_zhe=>FRINGE0,STOCHASTIC0_zhe=>STOCHASTIC0,ENVELOPE0_zhe=>ENVELOPE0, &
+DELTA0_zhe=>DELTA0,SPIN0_zhe=>SPIN0,MODULATION0_zhe=>MODULATION0,only_2d0_zhe=>only_2d0 , &
+INTERNAL_STATE_zhe=>INTERNAL_STATE
+
   !  use madx_keywords
   USE gauss_dis
   implicit none
@@ -22,7 +28,7 @@ module pointer_lattice
   character(nlp) name_ap,namet(2)
   character(255) :: filename_ap = "Tracking.txt"
   character(255), private :: file_zher,filezhe, name_zhe
-  integer, private :: k_zhe,number_zhe_maps
+  integer, private :: k_zhe, number_zhe_maps_local
   integer last_npara 
   integer :: i_layout=0,i_layout_t=1,pos_layout=1
   integer my_lost_position
@@ -52,58 +58,46 @@ module pointer_lattice
   integer sizeind1
   logical :: onefunc = .true.,skipzero=.false.,skipcomplex=.true.
  type(probe), pointer :: xs0g(:) => null()
+ logical ::  use_hermite =.false.
 
 
-   
   INTERFACE SCRIPT
      MODULE PROCEDURE read_ptc_command
   END INTERFACE
 
-!!  new stuff on non-perturbative !
 
-!type  vector_field_fourier 
-!     real(dp) fix(6)    !   closed orbit of map
-!     integer :: ns(3)=0   ! integer for Fourier transform
-!     real(dp), pointer :: mr(:,:,:,:,:) =>null()   ! spin matrices produced by code (i,j,k,1:3,1:3)
-!     real(dp), pointer ::  x_i(:,:,:,:) =>null()   ! starting position in phase  x_i(i,j,k,1:6)=r%x(1:6)
-!     real(dp), pointer :: phis(:,:,:,:) =>null()   ! %phis(i,j,k,2)=j*dphi2
-!     type(spinor), pointer :: sp(:,:,:)            ! sp(:i,j,k)   spinor for all the matrices mr  
-!     integer n1,n2,n3,nd                           ! # fourier modes -n1:n1, etc... nd=degree of freedom
-!     real(dp)  mu(3),muf(3),em(3)                  ! tune and initial emitances
-!     complex(dp),  DIMENSION(:,:,:,:), POINTER :: f  !  vector field expansion f(1:3,-n1:n1,-n2:n2,-n3:n3)
-!end  type vector_field_fourier
-!   type(vector_field_fourier) af
-
-!type  spinor_fourier 
-!     integer n1,n2,n3
-!     complex(dp),  DIMENSION(:,:,:,:), POINTER :: s
-!end  type spinor_fourier 
-
-!type  matrix_fourier 
-!      real(dp) muf(3)
-!     type(spinor_fourier) v(3)
-!end  type matrix_fourier 
-
-!  type  explogs  
-!     integer n1,n2
-!     complex(dp),  DIMENSION(:,:,:), POINTER :: h
-!  end  type explogs
+  type hermite
+    integer n
+    real(dp) :: h(2)
+    real(dp) :: a(6,6)=0
+    real(dp):: ai(6,6)=0
+    real(dp):: m(6,6)=0
+    real(dp):: mi(6,6)=0
+    real(dp) ::f(6)=0
+    real(dp) b(2,2)
+    integer :: gen =0
+    type(damap), pointer :: ms(:,:)
+    type(probe_8), pointer :: p(:,:)
+    real(dp), pointer ::  x0(:,:,:) => null()
+    type(internal_state) state
+    type(layout), pointer ::r
+    integer pos
+    integer noh
+    integer no
+    integer :: maxite =100, nint=10
+    logical :: linear =.true.
+    real(dp) :: eps=1.e-6_dp
+    real(dp), pointer ::  he(:,:,:,:,:) => null()
+  end type hermite
 
 
-!  type  logs 
-!     integer  m(3),ms  
-!     integer  ns,no
-!     type(explogs) h,a,n
-!     type(explogs), pointer ::  af(:)
-!     real(dp), pointer :: as(:,:,:)
-!     type(spinor), pointer :: sp(:,:)
-!     real(dp), pointer :: s(:,:,:,:)  !   spin matrices
-!     real(dp) em(2),mu(2),fix(6)
-!     real(dp), pointer :: x_i(:,:,:),phis(:,:,:)
-!  end  type logs
+
 
 
 contains
+
+
+
   subroutine set_lattice_pointers
     implicit none
 
@@ -937,6 +931,7 @@ endif
              endif
              TL=>TL%NEXT
           ENDDO
+          if(b_b.and.tl%cas/=case0) tl=>tl%next
           if(b_b.and.tl%cas==case0) then
              write(6,*) " Beam-Beam position at ",tl%parent_fibre%mag%name
              if(.not.associated(tl%BB)) call alloc(tl%BB)
@@ -1526,7 +1521,7 @@ endif
       !    endif
 
        case('MAPSFORZHE')
-          READ(MF,*) i11,I22,number_zhe_maps ,hgap ! position  i1=i2 one turn map,  fact is precision of stochastic kick
+          READ(MF,*) i11,I22,number_zhe_maps_local ,hgap ! position  i1=i2 one turn map,  fact is precision of stochastic kick
           READ(MF,*) MY_A_NO,do_state0   ! ORDER OF THE MAP  
           READ(MF,*) filename
           state0=my_estate-radiation0-envelope0
@@ -1535,8 +1530,8 @@ endif
           endif
           if(.not.associated(my_ering%t)) call make_node_layout(my_ering)
           if(i11==i22) i22=i11+my_ering%n
-          di12=float(i22-i11)/number_zhe_maps
-                        do k_zhe=1,number_zhe_maps
+          di12=float(i22-i11)/number_zhe_maps_local
+                        do k_zhe=1,number_zhe_maps_local
                              write(name_zhe,*) k_zhe
                            file_zher(1:len_trim(filename))=filename(1:len_trim(filename))
                            file_zher(1+len_trim(filename):len_trim(filename)+len_trim(name_zhe))=name_zhe(1:len_trim(name_zhe))
@@ -1545,7 +1540,7 @@ endif
            
           i1=i11+(k_zhe-1)*di12
           i2=i1+di12
-          if(i2>i22.or.k_zhe==number_zhe_maps) i2=i22
+          if(i2>i22.or.k_zhe==number_zhe_maps_local) i2=i22
           write(6,*)" from to ", i1,i2,i22
 !pause 873
            p=>my_ering%start
@@ -2764,7 +2759,7 @@ write(6,*) x_ref
 
   END subroutine read_ptc_command
 
- SUBROUTINE radia_new(R,loc,estate,FILE1,fix,em,sij,sijr,tune,damping)
+ SUBROUTINE radia_new(R,loc,estate,FILE1,fix,em,sij,sijr,tune,damping,e_ij,spin_damp,init_tpsa)
     implicit none
     TYPE(LAYOUT) R
 
@@ -2773,7 +2768,8 @@ write(6,*) x_ref
     type(c_damap)  Id,a0,a_cs
     type(c_normal_form) normal
     integer  i,j 
-    real(dp), optional :: fix(6), em(3),sij(6,6),tune(3),damping(3)
+    real(dp), optional :: fix(6), em(3),sij(6,6),tune(3),damping(3),e_ij(6,6),spin_damp(6,6) 
+    logical, optional ::  init_tpsa
     complex(dp), optional :: sijr(6,6)   
     TYPE(INTERNAL_STATE) state
     TYPE(INTERNAL_STATE), target :: estate
@@ -2782,6 +2778,8 @@ write(6,*) x_ref
     type(probe) xs0
     type(probe_8) xs
     character*48 fmd,fmd1
+    real(dp) mat(6,6),matf(6,6)
+ 
 
     if(present(FILE1)) then
     call kanalnummer(mf1)
@@ -2791,8 +2789,15 @@ fmd= '(a12,1X,a3,I1,a3,i1,a4,D18.11,1x,D18.11)'
 fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
 
 
-
-    state=(estate-nocavity0)+radiation0
+    if(present(init_tpsa)) then
+     if(init_tpsa)     then 
+        state=(estate-nocavity0)+radiation0
+     else
+     state =estate
+    endif
+    else 
+        state=(estate-nocavity0)+radiation0
+    endif
     x=0.d0
 
     CALL FIND_ORBIT_x(R,X,STATE,1.0e-8_dp,fibre1=loc)
@@ -2810,7 +2815,15 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
     write(mf1,"(6(1X,D18.11))") x
     write(mf1,*) "energy loss: GEV and DeltaP/p0c ",energy,deltap
     endif
-    CALL INIT(state,1,0)
+
+   if(present(init_tpsa)) then
+     if(init_tpsa)     then 
+        CALL INIT(state,1,0)
+    endif
+    else 
+        CALL INIT(state,1,0)
+    endif
+ 
     CALL ALLOC(NORMAL)
     CALL ALLOC(ID)
     call alloc(xs)
@@ -2821,9 +2834,11 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
     xs=XS0+ID
 
     state=state+envelope0
-
+ 
     CALL TRACK_PROBE(r,xs,state, fibre1=loc)
      id=xs
+ 
+    if(present(e_ij)) e_ij=xs%e_ij
    if(present(FILE1)) then
     write(mf1,*) " Full Map "    
      call print(id,mf1)
@@ -2844,7 +2859,7 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
 
     write(mf1,*)" Equilibrium Beam Sizes "
     do i=1,6
-       do j=1,6
+       do j=i,6
           write(mf1,*) i,j,normal%s_ij0(i,j)
        enddo
     enddo
@@ -2860,6 +2875,29 @@ write(mf1,'(16X,a50)') "   Equilibrium moments in Phasors Basis           "
  enddo 
     close(mf1)
 endif
+if(present(spin_damp)) then
+mat=id
+matf=mat
+
+call furman_symp(matf)
+
+
+id=0
+id=matf
+ 
+id=id**(-1)
+ 
+matf=id 
+ 
+matf=matmul(matf,mat)
+do i=1,6
+ matf(i,i)=matf(i,i)-1
+enddo
+ 
+ spin_damp=matmul(matmul(matf,normal%s_ij0),transpose(matf))
+ 
+endif
+
 if(present(em)) em=normal%emittance
 if(present(tune)) tune=normal%tune(1:3)
 if(present(damping)) damping=normal%damping(1:3)
@@ -3363,6 +3401,749 @@ close(mf)
 
 end subroutine read_ptc_rays
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   Oleksii's   Hermite   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!mp=noh
+! z(1:2)
+! h(2)
+! ord1  ord2  (0 no derivatives)
+!  U is %he
+! val is array of size (0:ord1,0:ord2)
+
+subroutine eval_new(mp, z, h, ord1, ord2,  u, val)
+    implicit none
+    integer, intent(in) :: mp, ord1, ord2
+    real(kind=dp), dimension(2), intent(in) :: z
+    real(kind=dp), dimension(2), intent(in) :: h
+    real(kind=dp), dimension(0:mp, 0:mp, 0:1, 0:1), intent(in) :: u
+    real(kind=dp), intent(out) :: val(0:ord1, 0:ord2)
+    integer :: i, j, k, idx, idy
+    real(kind=dp), dimension(0:2*mp+1,0:2*mp+1) :: scofsmp, smcofsmp
+    real(kind=dp), dimension(0:2*mp+1) :: mpdata
+    real(kind=dp) :: zx, zy, xfact, yfact
+
+    i = 0
+    j = 0
+
+
+    do idy = 0,mp
+        mpdata(0:mp)        = u(:, idy, i  ,j)
+        mpdata(mp+1:2*mp+1) = u(:, idy, i+1,j)
+        call interpolate(mp, mpdata, smcofsmp(:,idy))
+
+    end do
+    do idy = 0,mp
+        mpdata(0:mp)        = u(:,idy,i,   j+1)
+        mpdata(mp+1:2*mp+1) = u(:,idy,i+1, j+1)
+        call interpolate(mp, mpdata, smcofsmp(:,mp+1+idy))
+    end do
+
+    do idx = 0,2*mp+1
+        call interpolate(mp, smcofsmp(idx,:), scofsmp(idx,:))
+    end do
+
+
+
+   do idy = 0, ord2
+    do idx = 0, ord1
+        val(idx, idy) = 0._dp
+        zy = 1._dp
+        do j = idy, 2*mp+1
+        zx = 1._dp 
+        do i = idx, 2*mp+1 ! - j   ! for total degree etienne
+            xfact = 1._dp
+            yfact = 1._dp
+            do k = i-idx+1,i
+               xfact = xfact * dble(k) / h(1)
+            enddo
+            do k = j-idy+1,j
+               yfact = yfact * dble(k) / h(2)
+            enddo
+            val(idx, idy) = val(idx, idy) + xfact*yfact*scofsmp(i,j) * zx * zy
+            zx = zx * z(1)
+        enddo
+        zy = zy * z(2)
+        enddo
+    enddo
+    enddo
+end subroutine eval_new
+
+
+
+
+
+
+subroutine interpolate(m, u, cofs)
+    integer, intent(in) :: m
+    real(kind=dp), dimension(0:2*m+1), intent(in) :: u
+    real(kind=dp), dimension(0:2*m+1), intent(out) :: cofs
+    integer :: i,j
+    real(kind=dp), dimension(0:2*m+1, 0:2*m+1) :: dd
+
+    ! Set data
+    do j = 0, m
+        dd(0:m,j) = u(j)
+        dd(m+1:2*m+1, j) = u(j+m+1)
+    enddo
+    do j = 1, m
+        dd(m-j+1:m, j) = dd(m-j+2:m+1, j-1) - dd(m-j+1:m, j-1)
+    enddo
+    do j = m+1, 2*m+1
+        dd(0:2*m+1-j, j) = dd(1:2*m+1-j+1, j-1) - dd(0:2*m+1-j, j-1)
+    enddo
+
+    cofs = dd(0,:)
+
+
+    ! Dual Vander solve
+    do i = 2*m,0,-1
+        do j = i, 2*m
+            if (i < m+1) then
+                cofs(j) = cofs(j) + 0.5_dp * cofs(j+1)
+            else
+                cofs(j) = cofs(j) - 0.5_dp * cofs(j+1)
+            endif
+        enddo
+    enddo
+end subroutine interpolate
+
+    subroutine interpolate_2D(mp, u, scofsmp)
+       implicit none
+       integer, intent(in) :: mp
+       real(kind=dp), dimension(0:mp, 0:mp, 0:1, 0:1), intent(in) :: u
+       integer :: i, j, k, idx, idy
+       real(kind=dp), dimension(0:2*mp+1,0:2*mp+1) :: scofsmp, smcofsmp
+       real(kind=dp), dimension(0:2*mp+1) :: mpdata
+
+       i = 0; j = 0;
+
+       do idy = 0,mp
+       mpdata(0:mp)        = u(:, idy, i  ,j)
+       mpdata(mp+1:2*mp+1) = u(:, idy, i+1,j)
+       call interpolate(mp, mpdata, smcofsmp(:,idy))
+
+       end do
+       do idy = 0,mp
+       mpdata(0:mp)        = u(:,idy,i,   j+1)
+       mpdata(mp+1:2*mp+1) = u(:,idy,i+1, j+1)
+       call interpolate(mp, mpdata, smcofsmp(:,mp+1+idy))
+       end do
+
+       do idx = 0,2*mp+1
+       call interpolate(mp, smcofsmp(idx,:), scofsmp(idx,:))
+       end do
+    end subroutine
+
+    subroutine eval_g(mp, z, h, ord1, ord2, u, val, d)
+       implicit none
+       integer, intent(in) :: mp, d, ord1, ord2
+       real(kind=dp), dimension(2), intent(in) :: z
+       real(kind=dp), dimension(2), intent(in) :: h
+       real(kind=dp), dimension(0:mp, 0:mp, 0:1, 0:1, d), intent(in) :: u
+       real(kind=dp), intent(out) :: val(0:ord1, 0:ord2)
+       integer :: i, j, k, idx, idy
+       real(kind=dp), dimension(0:2*mp+1,0:2*mp+1, d) :: scofsmp
+       real(kind=dp), dimension(0:2*mp+2,0:2*mp+2) :: icofs
+       real(kind=dp) :: zx, zy, xfact, yfact
+       do i = 1,d
+         call interpolate_2D(mp, u(:,:,:,:,i), scofsmp(:,:,i))
+       end do
+
+       icofs = 0.d0
+       do idy = 0, 2*mp+1
+         do idx = 0, 2*mp+1
+           icofs(idx+1, idy) =  icofs(idx+1, idy) + scofsmp(idx, idy, 2) / (h(1)**idx * h(2)**idy) / (idx + idy + 1)
+           icofs(idx, idy+1) =  icofs(idx, idy+1) + scofsmp(idx, idy, 1) / (h(1)**idx * h(2)**idy) / (idx + idy + 1)
+         end do
+       end do
+
+       do idy = 0, ord2
+       do idx = 0, ord1
+       val(idx, idy) = 0._dp
+       zy = 1._dp
+       do j = idy, 2*mp+1
+       zx = 1._dp
+       do i = idx, 2*mp+1 ! - j   ! for total degree etienne
+       xfact = 1._dp
+       yfact = 1._dp
+       do k = i-idx+1,i
+       xfact = xfact * dble(k)
+       enddo
+       do k = j-idy+1,j
+       yfact = yfact * dble(k)
+       enddo
+       val(idx, idy) = val(idx, idy) + xfact*yfact*icofs(i,j) * zx * zy
+       zx = zx * z(1)
+       enddo
+       zy = zy * z(2)
+       enddo
+       enddo
+       enddo
+     end subroutine eval_g
+
+subroutine track_hermite(mh,xs0)
+implicit none
+type(hermite), intent(in) :: mh
+type(probe), intent(inout) :: xs0
+real(dp) x(6), z0(6), xf(1,6) ,  val(0:0,0:0)
+integer blk(6),nd2
+ 
+!write(6,*) mh%gen
+if(mh%gen==0) then
+blk=0
+nd2=2
+ 
+  blk(1:nd2) = floor((xs0%x(1:nd2)-mh%x0(1:nd2,0,0)) * mh%n / (mh%b(:,2)))
+ 
+  xs0%u= blk(1)>mh%n.or.blk(1)<-mh%n.or.blk(2)>mh%n.or.blk(2)<-mh%n
+  if(xs0%u) then
+    write(6,*) " grid 1"
+    return
+  endif
+  z0(1:nd2) = (xs0%x(1:nd2) - mh%h*( 0.5d0)-mh%x0(1:nd2,blk(1),blk(2)) ) / mh%h
+  
+  !call  eval(mh%noh, 1, z0,mh%h, 0, 6, mh%he(:,:,blk(1):blk(1)+1,blk(2):blk(2)+1,1), xf(1,1))
+  !call  eval(mh%noh, 1, z0,mh%h,0, 6, mh%he(:,:,blk(1):blk(1)+1,blk(2):blk(2)+1,2), xf(1,2))
+
+
+   call  eval_new(mh%noh,  z0,mh%h, 0, 1, mh%he(:,:,blk(1):blk(1)+1,blk(2):blk(2)+1,1), val)
+  xs0%x(1) = val(0,0)
+   call  eval_new(mh%noh,  z0,mh%h, 0, 1, mh%he(:,:,blk(1):blk(1)+1,blk(2):blk(2)+1,2), val)
+  xs0%x(2) = val(0,0)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   Oleksii's   Hermite   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!mp=noh
+! z(1:2)
+! h(2)
+! ord1  ord2  (0 no derivatives)
+!  U is %he
+! val is array of size (0:ord1,0:ord2)
+
+!subroutine eval_new(mp, z, h, ord1, ord2,  u, val)
+
+
+
+
+  
+ elseif(mh%gen==1) then
+ stop 666
+ elseif(mh%gen==2) then
+   call track_hermite_linear(mh,xs0)! no Hermite
+   call track_hermite_invert2(mh,xs0)   ! Hermite
+ endif
+end subroutine track_hermite
+
+
+
+subroutine track_hermite_invert2(mh,xs0)
+implicit none
+type(hermite), intent(in) :: mh
+type(probe), intent(inout) :: xs0
+real(dp) z(1:15), z0(6), xf(1,6),dz(3),normb,norm ,pit,xi,val(0:1,0:1) 
+integer blk(6),nd2
+integer i
+blk=0
+xi=xs0%x(1)
+pit=xs0%x(2)
+!!! guess for z(1)
+z(1)=xs0%x(1) 
+z(2)=xs0%x(2) 
+normb=1.d38
+do i=1, mh%maxite
+nd2=2
+xf=0
+  blk(1:nd2) = floor((z(1:nd2)-mh%x0(1:nd2,0,0)) * mh%n / (mh%b(:,2)))
+ 
+   xs0%u= blk(1)>mh%n.or.blk(1)<-mh%n.or.blk(2)>mh%n.or.blk(2)<-mh%n
+  if(xs0%u) then
+    write(6,*) " grid 1",z(1:2)
+
+    return
+  endif
+  z0(1:nd2) = (z(1:nd2) - mh%h*( 0.5d0)-mh%x0(1:nd2,blk(1),blk(2)) ) !/ mh%h
+  
+!!! value and derivative in the original not scaled 
+! xf(1,1)  value
+! xf(1,2)=0
+! xf(1,3)=derivative
+!subroutine eval_new(mp, z, h, ord1, ord2,  u, val)
+
+ ! call  eval_new(mh%noh, z0, mh%h, 1,1,  mh%he(:,:,blk(1):blk(1)+1,blk(2):blk(2)+1,1), val)
+   call  eval_g(mh%noh, z0, mh%h, 1, 1, mh%he(:,:,blk(1):blk(1)+1,blk(2):blk(2)+1,1:2), val, 2)
+ dz=0
+dz(1)=(xs0%x(1)-val(0,1))/val(1,1)
+z(1)=z(1)+dz(1)
+norm=abs(dz(1))  !+abs(dz(2))+abs(dz(3))
+ 
+if(norm>mh%eps) then
+  normb=norm
+else
+ if(norm>=normb) then
+  xs0%x(1)=z(1)
+z(2)= xs0%x(2)
+ ! xf(1,2) in position 2
+! xf(1,1) still preserved
+  blk(1:nd2) = floor((z(1:nd2)-mh%x0(1:nd2,0,0)) * mh%n / (mh%b(:,2)))
+
+   xs0%u= blk(1)>mh%n.or.blk(1)<-mh%n.or.blk(2)>mh%n.or.blk(2)<-mh%n
+  if(xs0%u) then
+    write(6,*) " grid 2"
+
+    return
+  endif
+  z0(1:nd2) = (z(1:nd2) - mh%h*( 0.5d0)-mh%x0(1:nd2,blk(1),blk(2)) ) !/ mh%h
+
+   call  eval_g(mh%noh, z0, mh%h, 1, 1, mh%he(:,:,blk(1):blk(1)+1,blk(2):blk(2)+1,1:2), val, 2)
+
+  xs0%x(2)=val(1,0)
+ !  z(1)=xs0%x(1)
+ ! z(2)=pit
+!  blk(1:nd2) = floor((z(1:nd2)-mh%x0(1:nd2,0,0)) * mh%n / (mh%b(:,2)))
+
+ !  xs0%u= blk(1)>mh%n.or.blk(1)<-mh%n.or.blk(2)>mh%n.or.blk(2)<-mh%n
+ ! z0(1,1:nd2) = (z(1:nd2) - mh%h*( 0.5d0)-mh%x0(1:nd2,blk(1),blk(2)) ) / mh%h
+
+!  call  eval(mh%noh, 1, z0, mh%h,0, 6,  mh%he(:,:,blk(1):blk(1)+1,blk(2):blk(2)+1,1), xf(1,1))
+ ! write(6,*) xf(1,1)
+ ! write(6,*) xi
+  return
+ endif
+  normb=norm
+endif
+ if(i>mh%maxite) then
+   xs0%u=.true.
+   write(6,*) " used too many iterations "
+ endif
+enddo
+
+end subroutine track_hermite_invert2
+
+
+  subroutine alloc_hermite(mh)
+    implicit none
+    type(hermite), intent(inout) :: mh
+    integer i,j,k
+    type(probe_8) xs
+    type(probe)xs0
+    type(c_damap) a,c_map,id
+    type(c_normal_form) c_n
+    mh%no=2*mh%noh
+    allocate(mh%p(-mh%n:mh%n,-mh%n:mh%n))
+    allocate(mh%ms(-mh%n:mh%n,-mh%n:mh%n))
+    allocate(mh%x0(1:6,-mh%n:mh%n,-mh%n:mh%n))
+    allocate(mh%he(0:mh%noh,0:mh%noh,-mh%n:mh%n,-mh%n:mh%n,2))
+    mh%x0=0
+    mh%he=0
+    mh%f=0
+
+    CALL FIND_ORBIT_x(mh%r,mh%f,mh%STATE,c_1d_5,fibre1=mh%pos)  ! (3)
+    write(6,*) check_stable
+    write(6,*) mh%f
+
+    call init_all(mh%STATE,1,0)
+    call alloc(a,c_map,id)
+    call alloc(xs); call alloc(c_n);
+    xs0=mh%f
+    id=1
+    xs=xs0+id
+    CALL propagate(mh%r,XS,mh%STATE,FIBRE1=mh%pos)  ! (4)
+
+
+    c_map=xs
+    call c_normal(c_map,c_n)  ! (6)
+    mh%a=c_n%a_t
+    mh%ai=c_n%a_t**(-1)
+    mh%m=c_map
+    mh%mi=c_map**(-1)
+    call kill(a,c_map,id)
+    call kill(xs);
+    call kill(c_n)
+
+    do i=1,2
+    mh%h(i)=(mh%b(i,2)-mh%b(i,1))/2/mh%n
+    enddo
+
+    do i=-mh%n,mh%n
+    do  j = -mh%n,mh%n
+    call alloc(mh%P(i,j))
+ 
+
+    mh%x0(1,i,j)=mh%f(1)+i*mh%h(1)
+    mh%x0(2,i,j)=mh%f(2)+j*mh%h(2)
+
+    enddo
+    enddo
+
+  end subroutine alloc_hermite
+
+  subroutine compute_hermite(mh)
+    implicit none
+    type(hermite), intent(inout) :: mh
+    type(probe)xs0
+    real(dp) x0(3),xf(6),cu
+    type(c_damap) a,c_map,id
+    type(damap) ms,idr
+    integer i,j,k,js(6)
+    type(c_normal_form) c_n
+
+    call init_all(mh%STATE,mh%no,0)
+    call alloc(a,c_map,id)
+    call alloc(c_n);
+    
+    if(mh%gen==0) then
+    id=1
+
+    do i=1,c_%nd2
+    id%v(i)=id%v(i)*mh%h(i)
+    enddo
+
+    do i=-mh%n,mh%n
+    do  j = -mh%n,mh%n
+    xs0=mh%x0(1:6,i,j)
+    mh%p(i,j)=xs0+id
+
+    CALL propagate(mh%r,mh%p(i,j),mh%STATE,FIBRE1=mh%pos)  ! (4)
+ 
+    enddo
+    enddo
+     
+    elseif(mh%gen==1) then
+      call alloc(ms,idr)
+
+    id=1
+    idr=1
+    do i=1,c_%nd2
+      idr%v(i)=idr%v(i)*mh%h(i)
+     enddo
+ 
+
+    do i=-mh%n,mh%n
+    do  j = -mh%n,mh%n
+    CALL compute_partially_inverted_location(mh,i,j,x0)
+
+    xs0=mh%x0(1:6,i,j)
+    xs0%x(1)= x0(1)
+
+    mh%p(i,j)=xs0+id
+ 
+    call track_hermite_linear_inv_8(mh,mh%p(i,j))
+    CALL propagate(mh%r,mh%p(i,j),mh%STATE,FIBRE1=mh%pos)  ! (4)
+ !    mh%xf(1:6,i,j)=mh%p(i,j)%x
+     
+    ms=mh%p(i,j)%x    ! compute a damap
+     cu=mh%p(i,j)%x(1)
+
+ 
+    do k=1,c_%nd2
+     ms%v(k)=ms%v(k)-(ms%v(k).sub.'0')
+    enddo
+ 
+      js=0
+     js(1)=1;js(3)=1;js(5)=1;  
+     
+     ms=ms**(js(1:c_%nd2))  !partial inversion
+
+    ms=ms*idr   ! scales
+
+ 
+
+     do k=1,c_%nd2
+       mh%p(i,j)%x(k)%t=ms%v(k) +mh%x0(k,i,j)
+     enddo
+ 
+
+    enddo
+    enddo
+
+      call kill(ms,idr)
+    else
+! gen = 2 
+
+  mh%he=0
+      call alloc(ms,idr)
+
+    id=1
+    idr=1
+    do i=1,c_%nd2
+      idr%v(i)=idr%v(i)*mh%h(i)
+     enddo
+ 
+
+    do i=-mh%n,mh%n
+    do  j =-mh%n,mh%n
+    call alloc(mh%ms(i,j))
+    CALL compute_partially_inverted_location(mh,i,j,x0)
+
+    xs0=mh%x0(1:6,i,j)
+    xs0%x(1)= x0(1)
+xf(1)=x0(1)
+
+    mh%p(i,j)=xs0+id
+ 
+    call track_hermite_linear_inv_8(mh,mh%p(i,j))
+    CALL propagate(mh%r,mh%p(i,j),mh%STATE,FIBRE1=mh%pos)  ! (4)
+
+xf(2)=mh%p(i,j)%x(2)
+     
+    ms=mh%p(i,j)%x    ! compute a damap
+
+ 
+    do k=1,c_%nd2
+     ms%v(k)=ms%v(k)-(ms%v(k).sub.'0')  
+    enddo
+ 
+      js=0
+     js(1)=1;js(3)=1;js(5)=1;  
+          
+ 
+     ms=ms**(js(1:c_%nd2))  !partial inversion
+ 
+      mh%ms(i,j)=ms
+
+
+    do k=1,c_%nd2
+     ms%v(k)=ms%v(k)+xf(k)
+    enddo
+     call fill_hermite_gen(mh,i,j,ms)
+
+    call kill(mh%p(i,j))
+ 
+      
+ 
+ 
+ 
+ 
+     enddo
+    enddo
+
+      call kill(ms,idr)
+
+      deallocate(mh%p)
+    endif
+    call kill(a,c_map,id)
+    call kill(c_n)
+
+  end subroutine compute_hermite
+
+  subroutine compute_partially_inverted_location(mh,i,j,xf)
+    implicit none
+    type(hermite), intent(inout) :: mh
+    integer, intent(in) :: i,j
+    type(probe)xsf,xs1
+    real(dp) mat(3,3) 
+     real(dp) :: eps, xf(1:3),xfd(1:3), xfdm(1:3), x0(1:6),eps2,norm,normb,der(3),cu
+    integer k
+     
+     eps=mh%h(1)/mh%nint/100
+    eps2=eps
+    x0=0
+    x0(1:2)=mh%x0(1:2,i,j)
+ 
+    normb=1.d8
+     do k=1,mh%maxite   
+
+
+
+    xs1=x0
+    xs1%x(1)=xs1%x(1)-eps
+ call track_hermite_linear_inv(mh,xs1)
+
+    CALL propagate(mh%r,xs1,mh%STATE,FIBRE1=mh%pos)  ! (4)
+    xfdm(1)=xs1%x(1)
+
+    xs1=x0
+    xs1%x(1)=xs1%x(1)+eps
+ call track_hermite_linear_inv(mh,xs1)
+    CALL propagate(mh%r,xs1,mh%STATE,FIBRE1=mh%pos)  ! (4)
+     xfd(1)=xs1%x(1)
+
+    xs1=x0
+ call track_hermite_linear_inv(mh,xs1)
+    CALL propagate(mh%r,xs1,mh%STATE,FIBRE1=mh%pos)  ! (4)
+    xf(1)=xs1%x(1)
+
+
+    mat(1,1)= (xfd(1)-xfdm(1))/eps/2
+cu=xf(1)
+  !!!!!!!!!!!!!!!!   invert mat
+
+    mat(1,1)=1.d0/mat(1,1)
+     der(1)=mat(1,1)*(mh%x0(1,i,j)-xf(1)) 
+
+    x0(1)=x0(1)+der(1)
+     norm=abs(der(1))
+ 
+     if(norm> eps2) then
+      normb=norm
+     else
+      if(normb<=norm) then
+       xf(1) =x0(1)
+
+        goto 111
+       endif
+         normb=norm
+     endif
+
+
+     
+     enddo 
+        write(6,'(4(1x,G21.14))') mh%x0(1,i,j),cu,der(1),eps2
+       write(6,'(2(1x,G21.14))') norm,normb
+     write(6,*) " failure ",i,j,k,x0(1)-mh%f(1)
+
+stop
+
+
+111 continue 
+       write(6,'(4(1x,G21.14))') mh%x0(1,i,j),cu,der(1),eps2
+       write(6,'(2(1x,G21.14))') norm,normb
+     write(6,*) " success ",i,j,k,x0(1)-mh%f(1)
+  
+  end subroutine compute_partially_inverted_location
+
+  subroutine track_hermite_linear_inv(mh,xs1)
+  implicit none
+type(probe) xs1
+type(hermite) mh
+     if(mh%linear) then
+        xs1%x=xs1%x-mh%f
+         xs1%x = matmul(mh%mi,xs1%x)
+        xs1%x=  xs1%x+mh%f
+       endif
+end   subroutine track_hermite_linear_inv
+
+  subroutine track_hermite_linear(mh,xs1)
+  implicit none
+type(probe) xs1
+type(hermite) mh
+     if(mh%linear) then
+        xs1%x=xs1%x-mh%f
+         xs1%x = matmul(mh%m,xs1%x)
+        xs1%x=  xs1%x+mh%f
+       endif
+end   subroutine track_hermite_linear
+
+  subroutine track_hermite_linear_inv_8(mh,xs1)
+  implicit none
+type(probe_8) xs1,xs0
+type(hermite) mh
+integer i,j,k
+
+     if(mh%linear) then
+call alloc(xs0)
+       do i=1,c_%nd2
+        xs1%x(i)=xs1%x(i)-mh%f(i)
+        xs0%x(i)=0.0_dp
+       enddo
+       do i=1,c_%nd2
+       do j=1,c_%nd2
+           xs0%x(i)= mh%mi(i,j)*xs1%x(j)+xs0%x(i)
+       enddo
+       enddo
+         
+        xs1%x=xs0%x
+
+       do i=1,c_%nd2
+        xs1%x(i)=xs1%x(i)+mh%f(i)
+       enddo
+call kill(xs0)
+       endif
+
+end   subroutine track_hermite_linear_inv_8
+
+  subroutine fill_hermite(mh)
+    implicit none
+    type(hermite) mh
+    real(dp) x
+    integer i,j,k,n,l
+    integer, allocatable :: jc(:)
+     if(mh%gen==2) return
+    allocate(jc(c_%nd2))
+
+    do i=-mh%n,mh%n
+    do  j = -mh%n,mh%n
+     do k=1,2
+     call taylor_cycle(mh%P(i,j)%x(k)%t,size=n)
+     do l=1,n
+     call taylor_cycle(mh%P(i,j)%x(k)%t,ii=l,value=x,j=jc)
+      if(jc(1)>mh%noh) cycle
+      if(jc(2)>mh%noh) cycle
+     mh%he(jc(1),jc(2),i,j,k)=x
+    enddo
+    enddo
+      call kill(mh%P(i,j))
+    enddo
+    enddo
+   
+    deallocate(mh%p)
+    deallocate(jc)
+
+  end subroutine fill_hermite
+
+  subroutine fill_hermite_gen(mh,i,j,ms)
+    implicit none
+    type(hermite) mh
+    type(damap), intent(in):: ms 
+    type(damap) c
+    real(dp) x
+    real(dp) xf(6)
+    integer i,j,k,n,l
+    integer, allocatable :: jc(:)
+
+
+    allocate(jc(c_%nd2))
+
+
+
+    do k=1,c_%nd2
+     call taylor_cycle(ms%v(k),size=n)
+    do l=1,n
+     call taylor_cycle(ms%v(k),ii=l,value=x,j=jc)
+
+     if(jc(1)<=mh%noh.and.jc(2)<=mh%noh) mh%he(jc(1),jc(2),i,j,k)=x * mh%h(1) ** jc(1) * mh%h(2) ** jc(2)
+
+    enddo
+    enddo
+ 
+
+    deallocate(jc)
+
+  end subroutine fill_hermite_gen
+
+  subroutine kill_hermite(mh)
+    implicit none
+    type(hermite) mh
+    integer i,j
+    mh%n=0
+    mh%h=0
+    mh%a=0
+    mh%f=0
+    mh%b=0
+    mh%pos=0
+    mh%no=0
+    if(associated(mh%p)) then
+       do i=-mh%n,mh%n
+       do  j = -mh%n,mh%n
+          call kill(mh%P(i,j))
+       enddo
+       enddo
+      deallocate(mh%p)
+    endif
+    if(associated(mh%ms)) then
+       do i=-mh%n,mh%n
+       do  j = -mh%n,mh%n
+          call kill(mh%ms(i,j))
+       enddo
+       enddo
+      deallocate(mh%ms)
+    endif
+    if(associated(mh%x0)) deallocate(mh%x0)
+    if(associated(mh%he)) deallocate(mh%he)
+    mh%r=> null()
+
+ 
+  end subroutine kill_hermite
+
+ 
+
 
 
 end module pointer_lattice
@@ -3562,3 +4343,4 @@ call kill(phase_one_turn_map)
 
 
 end  subroutine my_user_routine1
+
