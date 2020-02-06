@@ -131,6 +131,7 @@ module S_status
   PRIVATE B2PERPR,B2PERPP !,S_init_berz0
   type(tilting) tilt
   private minu
+  private chkAperPolygon
   real(dp) MADFAC(NMAX)
   CHARACTER(24) MYTYPE(-100:100)
   private check_S_APERTURE_r,check_S_APERTURE_out_r
@@ -141,8 +142,6 @@ module S_status
   logical(lp) :: automatic_complex = my_true
   integer :: aperture_pos_default=0
   private track_TREE_G_complexr,track_TREE_G_complexp,track_TREE_probe_complexr,track_TREE_probe_complexp_new
-  integer :: size_tree=15
-  integer :: ind_spin(3,3),k1_spin(9),k2_spin(9)
   real(dp),TARGET ::INITIAL_CHARGE=1
   logical :: mcmillan=.false.
   real(dp) :: radfac=1   ! to fudge radiation (lower it)
@@ -288,6 +287,7 @@ CONTAINS
     P%KIND=0; P%R=0.0_dp;P%X=0.0_dp;P%Y=0.0_dp;P%pos=aperture_pos_default;
     ALLOCATE(P%DX);ALLOCATE(P%DY);
     P%DX=0.0_dp;P%DY=0.0_dp;
+    
   end subroutine alloc_A
 
   SUBROUTINE  dealloc_A(p)
@@ -298,6 +298,13 @@ CONTAINS
        DEALLOCATE(P%R);DEALLOCATE(P%X);DEALLOCATE(P%Y);DEALLOCATE(P%KIND);
        DEALLOCATE(P%DX);DEALLOCATE(P%DY);DEALLOCATE(P%pos);
     endif
+    
+    if (associated(p%POLYGN)) then
+       DEALLOCATE(p%POLYGN)
+       DEALLOCATE(p%POLYGX)
+       DEALLOCATE(p%POLYGY)
+    endif
+    
   end SUBROUTINE  dealloc_A
 
 
@@ -562,6 +569,7 @@ CONTAINS
     implicit none
     type (MADX_APERTURE),INTENT(IN)::E
     REAL(DP), INTENT(IN):: X(6)
+    logical flag
     !    real(dp) xx,yy,dx,dy,ex,ey
 
     !  real(dp) :: xlost(6)=zero
@@ -628,7 +636,26 @@ CONTAINS
           ENDIF
 
        CASE(6) ! PILES OF POINTS
-          STOP 222
+          
+          IF(ABS(X(1)-E%DX)>E%X.OR.ABS(X(3)-E%DY)>E%Y) then
+            ! first check insribed square (user defined)
+            ! if it is out if this square only then check the polygon
+            
+            flag = chkAperPolygon(E,X)
+          
+            if ( flag ) then
+               !print*,"OUT polyg"
+               CHECK_STABLE=.FALSE.
+               STABLE_DA=.false.
+               xlost=0.0_dp
+               xlost=x
+               !messagelost="Lost in real kind=6 racetrack Aperture"
+               write(messagelost,*) "Se_status.f90 CHECK_APERTURE_R : Lost in real kind=6 polygon Aperture. ",&
+                                    "Orbit: X=",X(1)," Y=",X(3)   
+            endif
+           
+           endif
+           
        CASE DEFAULT
           !   STOP 223
        END SELECT
@@ -649,8 +676,65 @@ CONTAINS
 
   END SUBROUTINE  CHECK_APERTURE_P
 
-
-
+  
+  ! checks aperture of aribtrary polygon
+  ! returns true if out of aperture
+  ! algorithm: winding number https://en.wikipedia.org/wiki/Point_in_polygon
+  function chkAperPolygon(E,X)
+    implicit none
+    logical(lp) chkAperPolygon
+    type (MADX_APERTURE),INTENT(IN)::E
+    REAL(DP), INTENT(IN):: X(6)
+    real(dp) p, q
+    integer i,wn
+    REAL(DP),pointer :: pipex(:), pipey(:)
+    
+    wn = 0
+    
+    p = x(1) - E%DX
+    q = x(3) - E%DY
+    
+    if ( .NOT. associated(E%POLYGN) ) then
+       print*, "chkAperPolygon: POLYGN is NULL"
+       chkAperPolygon = .true.
+       return
+    endif
+    
+   ! print*,"chkAperPolygon POLYGN = ",E%POLYGN
+    
+    pipex => E%POLYGX
+    pipey => E%POLYGY
+    
+    do i=1,E%POLYGN !! edge from V[i] to  V[i+1]
+      !print*,"chkAperPolygon i = ",i,E%POLYGX(i),E%POLYGY(i)
+      if( pipey(i) <= q  .and.  pipey(i+1) > q) then
+      ! first vertex is below point; second vertex is above; upward crossing
+        if ( (pipex(i+1)-pipex(i)) * (q-pipey(i)) - (p-pipex(i))*(pipey(i+1)-pipey(i)) > 0 ) then
+         ! Point left of  edge
+         wn = wn + 1
+         continue;
+        endif
+      endif
+     
+      if (pipey(i) > q  .and.  pipey(i+1)  <= q) then
+      ! first vertex is above point; second vertex is below; downward crossing
+        if ( (pipex(i+1)-pipex(i))*(q - pipey(i)) - (p-pipex(i))*(pipey(i+1)-pipey(i)) < 0) then
+          ! Point right of  edge
+          wn = wn - 1
+          continue
+        endif
+      endif
+    enddo    
+    
+    if (wn == 0) then
+      !outside the aperture
+      chkAperPolygon = .true.
+    else
+      chkAperPolygon = .false.
+    endif
+    
+    
+  end function chkAperPolygon
  
 
 
@@ -1442,7 +1526,7 @@ CONTAINS
     n_rf=0
 !    call dd_p !valishev
     doing_ac_modulation_in_ptc=.false.
-    package=my_true
+    package=old_package
     if(present(pack))     package=my_true
     only2d=0
     n_acc=0
@@ -10256,74 +10340,7 @@ endif
 
   END SUBROUTINE SET_TREE_G_complex
 
-subroutine print_tree_element(t,mf)
-implicit none
-type(tree_element) t
- 
-integer i,mf
-!   write(mf,'(a204)') t%file
-write(mf,'(3(1X,i8))') t%N,t%NP,t%no 
-do i=1,t%n
- write(mf,'(1X,G20.13,1x,i8,1x,i8)')  t%cc(i),t%jl(i),t%jv(i)
-enddo
-write(mf,'(2(1X,L1))') t%symptrack,t%usenonsymp,t%factored
-write(mf,'(18(1X,G20.13))') t%fix0,t%fix,t%fixr
-do i=1,6
- write(mf,'(6(1X,G20.13))') t%e_ij(i,1:6)
-enddo
-do i=1,6
- write(mf,'(6(1X,G20.13))') t%rad(i,1:6)
-enddo
- write(mf,'(3(1X,G20.13))') t%ds,t%beta0,t%eps
 
-end subroutine print_tree_element
-
-subroutine print_tree_elements(t,mf)
-implicit none
-type(tree_element) t(:)
- 
-integer i,mf
-
- do i=1,size(t)
-  call print_tree_element(t(i),mf)
- enddo
-
-end subroutine print_tree_elements
- 
-subroutine read_tree_element(t,mf)
-implicit none
-type(tree_element) t
- 
-integer i,mf
- 
- ! read(mf,'(a204)') t%file
-!read(mf,*) t%N,t%NP,t%no
-do i=1,t%n
- read(mf,*)  t%cc(i),t%jl(i),t%jv(i)
-enddo
-read(mf,*) t%symptrack,t%usenonsymp,t%factored
-read(mf,'(18(1X,G20.13))') t%fix0,t%fix,t%fixr
-do i=1,6
- read(mf,*) t%e_ij(i,1:6)
-enddo
-do i=1,6
- read(mf,*) t%rad(i,1:6)
-enddo
- read(mf,*) t%ds,t%beta0,t%eps
-
-end subroutine read_tree_element
-
-subroutine read_tree_elements(t,mf)
-implicit none
-type(tree_element) t(:)
- 
-integer i,mf
-
- do i=1,size(t)
-  call read_tree_element(t(i),mf)
- enddo
-
-end subroutine read_tree_elements
 
   SUBROUTINE track_TREE_probe_complexr(T,xs,dofix0,dofix,sta,jump,all_map)
     use da_arrays

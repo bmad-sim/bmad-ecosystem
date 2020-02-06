@@ -3133,15 +3133,17 @@ endif
           endif
 
        case(2,-2)
+       
+           if(resplit_cutting==-2.and.C%MAG%KIND==kind1) then
+             doit=.false.
+           else
 
-          doit=.not.(resplit_cutting==-2.and.C%MAG%KIND==kind1)
-
-          doit=(C%MAG%KIND==kind1.or.C%MAG%KIND==kind2.or.C%MAG%KIND==kind4.or.C%MAG%KIND==kind5)
-          doit=DOIT.OR.(C%MAG%KIND==kind6.or.C%MAG%KIND==kind7)
-          DOIT=DOIT.OR.(C%MAG%KIND==kind10.or.C%MAG%KIND==kind16)
-          DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler.or.C%MAG%KIND==KINDhel)
-          doit=doit.and.C%MAG%recut
-
+           doit=(C%MAG%KIND==kind1.or.C%MAG%KIND==kind2.or.C%MAG%KIND==kind4.or.C%MAG%KIND==kind5)
+           doit=DOIT.OR.(C%MAG%KIND==kind6.or.C%MAG%KIND==kind7)
+           DOIT=DOIT.OR.(C%MAG%KIND==kind10.or.C%MAG%KIND==kind16)
+           DOIT=DOIT.OR.(C%MAG%KIND==kind17.or.C%MAG%KIND==kindwiggler.or.C%MAG%KIND==KINDhel)
+           doit=doit.and.C%MAG%recut
+           endif
           if(doit) then
              xl=C%MAG%L
              RHOI=0.0_dp
