@@ -49,12 +49,8 @@ stable = .false.
 rel_p = 1 + orb0(6)
 m6 = mat6
 
-if (bmad_com%twiss_normalize_off_energy) then
-  m6(1:5:2, 2:6:2) = m6(1:5:2, 2:6:2) * rel_p
-  m6(2:6:2, 1:5:2) = m6(2:6:2, 1:5:2) / rel_p
-  rel_p = 1
-endif
-
+m6(1:5:2, 2:6:2) = m6(1:5:2, 2:6:2) * rel_p
+m6(2:6:2, 1:5:2) = m6(2:6:2, 1:5:2) / rel_p
 mat4 = m6(1:4, 1:4)
 
 if (maxval(abs(mat4)) > 1d10) then
@@ -111,14 +107,14 @@ mat4 = -mat4
 forall (i = 1:4) mat4(i,i) = mat4(i,i) + 1
 call mat_inverse (mat4, mat4)
 
-vec(1) = m6(1,6) + (m6(1,2) * orb0(2) + m6(1,4) * orb0(4)) / rel_p
-vec(2) = m6(2,6) + (m6(2,2) * orb0(2) + m6(2,4) * orb0(4) - orb0(2)) / rel_p
-vec(3) = m6(3,6) + (m6(3,2) * orb0(2) + m6(3,4) * orb0(4)) / rel_p
-vec(4) = m6(4,6) + (m6(4,2) * orb0(2) + m6(4,4) * orb0(4) - orb0(4)) / rel_p
+vec(1) = m6(1,6) + (m6(1,2) * orb0(2) + m6(1,4) * orb0(4))
+vec(2) = m6(2,6) + (m6(2,2) * orb0(2) + m6(2,4) * orb0(4) - orb0(2))
+vec(3) = m6(3,6) + (m6(3,2) * orb0(2) + m6(3,4) * orb0(4))
+vec(4) = m6(4,6) + (m6(4,2) * orb0(2) + m6(4,4) * orb0(4) - orb0(4))
 eta_vec = matmul(mat4, vec)
 
-eta_vec(2) = eta_vec(2) / rel_p
-eta_vec(4) = eta_vec(4) / rel_p
+eta_vec(2) = eta_vec(2)
+eta_vec(4) = eta_vec(4)
 
 ele%x%eta  = eta_vec(1)
 ele%x%etap = eta_vec(2)

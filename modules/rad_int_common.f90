@@ -178,20 +178,14 @@ do j = 1, j_max
                   info%g_y * (info%eta_a(3) + info%eta_b(3))
     i_sum(2) = i_sum(2) + info%g2
     i_sum(3) = i_sum(3) + info%g2 * info%g
-    i_sum(4) = i_sum(4) + &
-                  info%g2 * (info%g_x * info%eta_a(1) + info%g_y * info%eta_a(3)) + &
+    i_sum(4) = i_sum(4) + info%g2 * (info%g_x * info%eta_a(1) + info%g_y * info%eta_a(3)) + &
                   info%dg2_x * info%eta_a(1) + info%dg2_y * info%eta_a(3)
-    i_sum(5) = i_sum(5) + &
-                  info%g2 * (info%g_x * info%eta_b(1) + info%g_y * info%eta_b(3)) + &
+    i_sum(5) = i_sum(5) + info%g2 * (info%g_x * info%eta_b(1) + info%g_y * info%eta_b(3)) + &
                   info%dg2_x * info%eta_b(1) + info%dg2_y * info%eta_b(3)
-    i_sum(6) = i_sum(6) + &
-                  info%g2 * info%g * (info%a%gamma * info%a%eta**2 + &
-                  2 * info%a%alpha * info%a%eta * info%a%etap + &
-                  info%a%beta * info%a%etap**2)
-    i_sum(7) = i_sum(7) + &
-                  info%g2 * info%g * (info%b%gamma * info%b%eta**2 + &
-                  2 * info%b%alpha * info%b%eta * info%b%etap + &
-                  info%b%beta * info%b%etap**2)
+    i_sum(6) = i_sum(6) + info%g2 * info%g * (info%a%gamma * info%a%eta**2 + &
+                  2 * info%a%alpha * info%a%eta * info%a%etap + info%a%beta * info%a%etap**2)
+    i_sum(7) = i_sum(7) + info%g2 * info%g * (info%b%gamma * info%b%eta**2 + &
+                  2 * info%b%alpha * info%b%eta * info%b%etap + info%b%beta * info%b%etap**2)
     i_sum(8) = i_sum(8) + gamma * info%g
     i_sum(9) = i_sum(9) + info%g2 * info%g * info%b%beta
   enddo
@@ -260,8 +254,8 @@ end do
 
 ! We should not be here
 
-call out_io (s_warn$, r_name, 'Note: Radiation Integral is not converging \es12.3\ ', &
-                              'For element: ' // ele%name, r_array = [d_max])
+call out_io (s_warn$, r_name, 'Note: Radiation Integral is not converging \es12.3\ ', 'For element: ' // &
+                              trim(ele%name) // ' ' // ele_location(ele, parens = '()'), r_array = [d_max])
 
 end subroutine qromb_rad_int
 
@@ -309,11 +303,16 @@ endif
 
 if (associated(info%cache_ele)) then
 
-  ! find cached point info near present z position
+  ! Find cached point info near present z position.
+  ! Note: There may be a jump at the element end due to fringe fields. 
+  ! We want to exclude any points outside the fringe.
 
   n_pt = info%cache_ele%n_pt
   call bracket_index(info%cache_ele%pt(0:n_pt)%s_body, 0, n_pt, z_here, i0)
   i0 = min(i0, n_pt-1)
+  ! Downstream fringe if s_body is same for n_pt-1 and n_pt.
+  ! Note: bracket_index is such that upstream fringe does not have to be checked.
+  if (i0 == n_pt-1 .and. info%cache_ele%pt(n_pt-1)%s_body == info%cache_ele%pt(n_pt)%s_body) i0 = n_pt - 2
   i1 = i0 + 1
   pt0 = info%cache_ele%pt(i0)
   pt1 = info%cache_ele%pt(i1)

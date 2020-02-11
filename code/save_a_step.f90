@@ -22,8 +22,7 @@
 !                       This is only needed if save_field = True.
 !
 ! Ouput:
-!   track     -- track_struct: Trajectory structure to save to.
-!   s_sav     -- real(rp): Set equal to s.
+!   track           -- track_struct: Trajectory structure saved to.
 !-
 
 subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)
