@@ -1674,7 +1674,6 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking_default  = ', bmad_com%absolute_time_tracking_default
     nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum     = ', bmad_com%convert_to_kinetic_momentum
     nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on               = ', bmad_com%aperture_limit_on
-    nl=nl+1; write(lines(nl), lmt) '  %twiss_normalize_off_energy      = ', bmad_com%twiss_normalize_off_energy
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'PTC_com Parameters:'
     nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc                = ', ptc_com%taylor_order_ptc
@@ -2549,10 +2548,14 @@ case ('lattice')
 
   else
     if (at_ends) then
-      write (line1, '(a)') '# Values shown are for the Exit End of each Element:'
+      line1 = '# Values shown are for the Exit End of each Element:'
     else
-      write (line1, '(a)') '# Values shown are for the Center of each Element:'
+      line1 = '# Values shown are for the Center of each Element:'
     endif
+
+    if (size(lat%branch) > 1) line1 = '# Branch ' // int_str(branch%ix_branch) // '.' // line1(2:)
+    if (size(s%u) > 1) line1 = '# Universe ' // int_str(u%ix_uni) // '.' // line1(2:)
+
 
     ix1 = 1
     line2 = "#"
