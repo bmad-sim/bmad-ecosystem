@@ -255,18 +255,22 @@ do j = 0, n1
   g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
   g3_here = sqrt(g2_here)**3
 
-  if (j == 0 .or. j == n1) then
-    g2_here = g2_here / 2
-    g3_here = g3_here / 2
+  if (j == 0) then
+    g2 = g2 + g2_here * track%pt(1)%s_body / 2.0_rp
+    g3 = g3 + g3_here * track%pt(1)%s_body / 2.0_rp
+  elseif (j == n1) then
+    g2 = g2 + g2_here * (track%pt(n1)%s_body - track%pt(n1-1)%s_body) / 2.0_rp
+    g3 = g3 + g3_here * (track%pt(n1)%s_body - track%pt(n1-1)%s_body) / 2.0_rp
+  else
+    g2 = g2 + g2_here * (track%pt(j-1)%s_body - track%pt(j+1)%s_body) / 2.0_rp
+    g3 = g3 + g3_here * (track%pt(j-1)%s_body - track%pt(j+1)%s_body) / 2.0_rp
   endif
 
-  g2 = g2 + g2_here
-  g3 = g3 + g3_here
 
 enddo
 
-g2 = g2 / (n1 + 1)
-g3 = g3 / (n1 + 1)
+g2 = g2 / track%pt(n1)%s_body
+g3 = g3 / track%pt(n1)%s_body
 
 end subroutine calc_g
 

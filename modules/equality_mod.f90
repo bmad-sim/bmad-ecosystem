@@ -18,20 +18,20 @@ interface operator (==)
   module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var1
   module procedure eq_controller, eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom
   module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc
-  module procedure eq_wake, eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor
-  module procedure eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term
-  module procedure eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1
-  module procedure eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp
-  module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt
-  module procedure eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target
-  module procedure eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
-  module procedure eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init
-  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
-  module procedure eq_normal_modes, eq_em_field, eq_track_point, eq_track, eq_synch_rad_common
-  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele
-  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat
-  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param
-  module procedure eq_aperture_scan
+  module procedure eq_wake, eq_converter, eq_taylor_term, eq_taylor, eq_em_taylor_term
+  module procedure eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1
+  module procedure eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field
+  module procedure eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_high_energy_space_charge
+  module procedure eq_xy_disp, eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache
+  module procedure eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface
+  module procedure eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section
+  module procedure eq_wall3d, eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init
+  module procedure eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
+  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_point, eq_track
+  module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch
+  module procedure eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch
+  module procedure eq_lat, eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data
+  module procedure eq_aperture_param, eq_aperture_scan
 end interface
 
 contains
@@ -665,6 +665,22 @@ is_eq = is_eq .and. (f1%sr == f2%sr)
 is_eq = is_eq .and. (f1%lr == f2%lr)
 
 end function eq_wake
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_converter (f1, f2) result (is_eq)
+
+implicit none
+
+type(converter_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+
+end function eq_converter
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -2303,8 +2319,6 @@ is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%twiss_normalize_off_energy .eqv. f2%twiss_normalize_off_energy)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%convert_to_kinetic_momentum .eqv. f2%convert_to_kinetic_momentum)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
@@ -2457,32 +2471,18 @@ is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 is_eq = is_eq .and. (associated(f1%control) .eqv. associated(f2%control))
 if (.not. is_eq) return
 if (associated(f1%control)) is_eq = (f1%control == f2%control)
-!! f_side.equality_test[type, 1, PTR]
-is_eq = is_eq .and. (associated(f1%cartesian_map) .eqv. associated(f2%cartesian_map))
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%converter) .eqv. associated(f2%converter))
 if (.not. is_eq) return
-if (associated(f1%cartesian_map)) is_eq = all(shape(f1%cartesian_map) == shape(f2%cartesian_map))
-if (.not. is_eq) return
-if (associated(f1%cartesian_map)) is_eq = all(f1%cartesian_map == f2%cartesian_map)
-!! f_side.equality_test[type, 1, PTR]
-is_eq = is_eq .and. (associated(f1%cylindrical_map) .eqv. associated(f2%cylindrical_map))
-if (.not. is_eq) return
-if (associated(f1%cylindrical_map)) is_eq = all(shape(f1%cylindrical_map) == shape(f2%cylindrical_map))
-if (.not. is_eq) return
-if (associated(f1%cylindrical_map)) is_eq = all(f1%cylindrical_map == f2%cylindrical_map)
-!! f_side.equality_test[type, 1, PTR]
-is_eq = is_eq .and. (associated(f1%taylor_field) .eqv. associated(f2%taylor_field))
-if (.not. is_eq) return
-if (associated(f1%taylor_field)) is_eq = all(shape(f1%taylor_field) == shape(f2%taylor_field))
-if (.not. is_eq) return
-if (associated(f1%taylor_field)) is_eq = all(f1%taylor_field == f2%taylor_field)
-!! f_side.equality_test[type, 1, PTR]
-is_eq = is_eq .and. (associated(f1%grid_field) .eqv. associated(f2%grid_field))
-if (.not. is_eq) return
-if (associated(f1%grid_field)) is_eq = all(shape(f1%grid_field) == shape(f2%grid_field))
-if (.not. is_eq) return
-if (associated(f1%grid_field)) is_eq = all(f1%grid_field == f2%grid_field)
+if (associated(f1%converter)) is_eq = (f1%converter == f2%converter)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%floor == f2%floor)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%high_energy_space_charge) .eqv. associated(f2%high_energy_space_charge))
+if (.not. is_eq) return
+if (associated(f1%high_energy_space_charge)) is_eq = (f1%high_energy_space_charge == f2%high_energy_space_charge)
 !! f_side.equality_test[type, 0, PTR]
 
 is_eq = is_eq .and. (associated(f1%mode3) .eqv. associated(f2%mode3))
@@ -2498,11 +2498,6 @@ if (associated(f1%photon)) is_eq = (f1%photon == f2%photon)
 is_eq = is_eq .and. (associated(f1%rad_int_cache) .eqv. associated(f2%rad_int_cache))
 if (.not. is_eq) return
 if (associated(f1%rad_int_cache)) is_eq = (f1%rad_int_cache == f2%rad_int_cache)
-!! f_side.equality_test[type, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%high_energy_space_charge) .eqv. associated(f2%high_energy_space_charge))
-if (.not. is_eq) return
-if (associated(f1%high_energy_space_charge)) is_eq = (f1%high_energy_space_charge == f2%high_energy_space_charge)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
 !! f_side.equality_test[type, 1, NOT]
@@ -2518,6 +2513,30 @@ if (.not. is_eq) return
 if (associated(f1%wall3d)) is_eq = all(shape(f1%wall3d) == shape(f2%wall3d))
 if (.not. is_eq) return
 if (associated(f1%wall3d)) is_eq = all(f1%wall3d == f2%wall3d)
+!! f_side.equality_test[type, 1, PTR]
+is_eq = is_eq .and. (associated(f1%cartesian_map) .eqv. associated(f2%cartesian_map))
+if (.not. is_eq) return
+if (associated(f1%cartesian_map)) is_eq = all(shape(f1%cartesian_map) == shape(f2%cartesian_map))
+if (.not. is_eq) return
+if (associated(f1%cartesian_map)) is_eq = all(f1%cartesian_map == f2%cartesian_map)
+!! f_side.equality_test[type, 1, PTR]
+is_eq = is_eq .and. (associated(f1%cylindrical_map) .eqv. associated(f2%cylindrical_map))
+if (.not. is_eq) return
+if (associated(f1%cylindrical_map)) is_eq = all(shape(f1%cylindrical_map) == shape(f2%cylindrical_map))
+if (.not. is_eq) return
+if (associated(f1%cylindrical_map)) is_eq = all(f1%cylindrical_map == f2%cylindrical_map)
+!! f_side.equality_test[type, 1, PTR]
+is_eq = is_eq .and. (associated(f1%grid_field) .eqv. associated(f2%grid_field))
+if (.not. is_eq) return
+if (associated(f1%grid_field)) is_eq = all(shape(f1%grid_field) == shape(f2%grid_field))
+if (.not. is_eq) return
+if (associated(f1%grid_field)) is_eq = all(f1%grid_field == f2%grid_field)
+!! f_side.equality_test[type, 1, PTR]
+is_eq = is_eq .and. (associated(f1%taylor_field) .eqv. associated(f2%taylor_field))
+if (.not. is_eq) return
+if (associated(f1%taylor_field)) is_eq = all(shape(f1%taylor_field) == shape(f2%taylor_field))
+if (.not. is_eq) return
+if (associated(f1%taylor_field)) is_eq = all(f1%taylor_field == f2%taylor_field)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%map_ref_orb_in == f2%map_ref_orb_in)
 !! f_side.equality_test[type, 0, NOT]

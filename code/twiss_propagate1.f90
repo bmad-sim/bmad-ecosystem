@@ -89,7 +89,7 @@ rel_p1 = 1 + orb%vec(6)               ! reference energy
 rel_p2 = 1 + orb_out%vec(6)
 
 mat6 = ele2%mat6
-if (bmad_com%twiss_normalize_off_energy .and. ele2%key /= e_gun$) then
+if (ele2%key /= e_gun$) then
   mat6(:, 2:6:2) = mat6(:, 2:6:2) * rel_p1
   mat6(2:6:2, :) = mat6(2:6:2, :) / rel_p2
   rel_p2 = rel_p2 / rel_p1
@@ -202,12 +202,20 @@ if (key2 == rfcavity$) eta1_vec(5) = 0
 ! Must avoid 0/0 divide at zero reference momentum. 
 ! If rel_p1 = 0 then total momentum is zero and orb%vec(2) and orb%vec(4) must be zero.
 
-dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
+! Also for elements with a static electric field, pz should include the potential energy and so the 
+! mat6(6,:) terms should be all zero. However Bmad is not using proper canonical coords so the
+! mat6(6,:) terms are forced to zero.
 
 if (rel_p1 == 0) then
+  dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
   eta_vec(1:5) = matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
 else
-  dpz2_dpz1 = dpz2_dpz1 + (mat6(6,2) * orb%vec(2) + mat6(6,4) * orb%vec(4)) / rel_p1
+  if (key2 == rfcavity$ .or. key2 == lcavity$) then
+    dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) 
+    dpz2_dpz1 = dpz2_dpz1 + (mat6(6,2) * orb%vec(2) + mat6(6,4) * orb%vec(4)) / rel_p1
+  else
+    dpz2_dpz1 = 1 / rel_p2
+  endif
   deriv_rel = dpz2_dpz1 * rel_p1
   eta_vec(1) = (mat6(1,2) * orb%vec(2) + mat6(1,4) * orb%vec(4)) / deriv_rel
   eta_vec(2) = (mat6(2,2) * orb%vec(2) + mat6(2,4) * orb%vec(4)) / deriv_rel - orb_out%vec(2) / rel_p2

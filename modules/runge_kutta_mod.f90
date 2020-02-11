@@ -63,8 +63,8 @@ type (fringe_edge_info_struct) fringe_info
 
 real(rp), intent(in) :: s1_body, s2_body
 real(rp), optional :: mat6(6,6)
-real(rp) :: ds, ds_did, ds_next, s_body, s_last, ds_saved, s_edge_body
-real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny
+real(rp) :: ds, ds_did, ds_next, s_body, s_last_save, ds_saved, s_edge_body
+real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny, mat6_old(6,6)
 
 integer :: n_step, s_dir, nr_max, n_step_max
 
@@ -106,7 +106,7 @@ if (ele%key == patch$) s_edge_body = s2_body
 
 if (present(track)) then
   call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
-  s_last = s_body
+  s_last_save = s_body
 endif
 
 ! now track
@@ -127,13 +127,13 @@ do n_step = 1, n_step_max
     if (.not. associated(fringe_info%hard_ele)) exit
     if ((s_body-s_edge_body)*s_dir < -ds_tiny) exit
 
-    old_orbit = orbit
+    if (present(track) .and. s_body /= s_last_save) call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
+
     call apply_element_edge_kick (orbit, fringe_info, ele, param, track_spin, mat6, make_matrix)
-    ! If there has been a kick then record
-    if (present(track) .and. any(old_orbit%vec /= orbit%vec)) then
-      if (s_body /= s_last) call save_a_step (track, ele, param, .true., old_orbit, s_body, .true., mat6, make_matrix)
+
+    if (present(track)) then
       call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
-      s_last = s_body
+      s_last_save = s_body
     endif
 
     call calc_next_fringe_edge (ele, s_edge_body, fringe_info, orbit)
@@ -143,11 +143,11 @@ do n_step = 1, n_step_max
   enddo
 
   ! Check if we are done.
-  ! Use s = s_body - ds_tiny for save_a_step to make sure s-position is inside the element (don't want
+  ! Use s = s_body - ds_tiny for save_a_step to make sure s-position is not outside the element (don't want
   ! to have the field = 0 due to being outside).
 
   if ((s_body-s2_body)*s_dir > -ds_tiny) then
-    if (present(track)) call save_a_step (track, ele, param, .true., orbit, s_body-ds_tiny*s_dir, .true., mat6, make_matrix)
+    if (present(track) .and. abs(s_body-s_last_save) > 2*ds_tiny) call save_a_step (track, ele, param, .true., orbit, s_body-ds_tiny*s_dir, .true., mat6, make_matrix)
     call reference_energy_correction (ele, orbit, second_track_edge$, mat6, make_matrix)
     err_flag = .false.
     return
@@ -200,9 +200,9 @@ do n_step = 1, n_step_max
   ! Save track
 
   if (present(track)) then
-    if (track%ds_save <= 0 .or. (abs(s_body-s_last) > track%ds_save)) then
+    if (track%ds_save <= 0 .or. (abs(s_body-s_last_save) > track%ds_save)) then
       call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
-      s_last = s_body
+      s_last_save = s_body
     endif
 
     if (ds_did == ds) then
