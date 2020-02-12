@@ -902,6 +902,27 @@ extern "C" void wake_to_c2 (CPP_wake& C, const Opaque_wake_sr_class* z_sr, const
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_converter
+
+extern "C" void converter_to_c (const Opaque_converter_class*, CPP_converter&);
+
+// c_side.to_f2_arg
+extern "C" void converter_to_f2 (Opaque_converter_class*);
+
+extern "C" void converter_to_f (const CPP_converter& C, Opaque_converter_class* F) {
+
+  // c_side.to_f2_call
+  converter_to_f2 (F);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void converter_to_c2 (CPP_converter& C) {
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_taylor_term
 
 extern "C" void taylor_term_to_c (const Opaque_taylor_term_class*, CPP_taylor_term&);
@@ -3052,8 +3073,7 @@ extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_IntArr, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3070,8 +3090,7 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.auto_bookkeeper, C.csr_and_space_charge_on, C.spin_tracking_on,
       C.backwards_time_tracking_on, C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on,
       C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
-      C.twiss_normalize_off_energy, C.convert_to_kinetic_momentum, C.aperture_limit_on,
-      C.ptc_print_info_messages, C.debug);
+      C.convert_to_kinetic_momentum, C.aperture_limit_on, C.ptc_print_info_messages, C.debug);
 
 }
 
@@ -3092,8 +3111,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
     z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
-    z_twiss_normalize_off_energy, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
-    z_aperture_limit_on, c_Bool& z_ptc_print_info_messages, c_Bool& z_debug) {
+    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool&
+    z_ptc_print_info_messages, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -3173,8 +3192,6 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.conserve_taylor_maps = z_conserve_taylor_maps;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking_default = z_absolute_time_tracking_default;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.twiss_normalize_off_energy = z_twiss_normalize_off_energy;
   // c_side.to_c2_set[logical, 0, NOT]
   C.convert_to_kinetic_momentum = z_convert_to_kinetic_momentum;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -3328,18 +3345,18 @@ extern "C" void ele_to_c (const Opaque_ele_class*, CPP_ele&);
 extern "C" void ele_to_f2 (Opaque_ele_class*, c_Char, c_Char, c_Char, c_Char, c_Char, Int,
     const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_xy_disp&, const
     CPP_xy_disp&, const CPP_ac_kicker&, Int, const CPP_bookkeeping_state&, const
-    CPP_controller&, Int, const CPP_cartesian_map**, Int, const CPP_cylindrical_map**, Int,
-    const CPP_taylor_field**, Int, const CPP_grid_field**, Int, const CPP_floor_position&,
-    const CPP_mode3&, Int, const CPP_photon_element&, Int, const CPP_rad_int_ele_cache&, Int,
-    const CPP_high_energy_space_charge&, Int, const CPP_taylor**, const CPP_taylor**, const
-    CPP_wake&, Int, const CPP_wall3d**, Int, const CPP_coord&, const CPP_coord&, const
-    CPP_coord&, const CPP_coord&, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr,
-    c_Real&, c_RealArr, c_Real&, c_Real&, c_Real&, c_RealArr, Int, c_RealArr, Int, c_RealArr,
-    Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, Int, Int, c_Int&, c_Int&, c_Int&,
+    CPP_controller&, Int, const CPP_converter&, Int, const CPP_floor_position&, const
+    CPP_high_energy_space_charge&, Int, const CPP_mode3&, Int, const CPP_photon_element&, Int,
+    const CPP_rad_int_ele_cache&, Int, const CPP_taylor**, const CPP_taylor**, const CPP_wake&,
+    Int, const CPP_wall3d**, Int, const CPP_cartesian_map**, Int, const CPP_cylindrical_map**,
+    Int, const CPP_grid_field**, Int, const CPP_taylor_field**, Int, const CPP_coord&, const
+    CPP_coord&, const CPP_coord&, const CPP_coord&, c_RealArr, c_RealArr, c_RealArr, c_RealArr,
+    c_RealArr, c_Real&, c_RealArr, c_Real&, c_Real&, c_Real&, c_RealArr, Int, c_RealArr, Int,
+    c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, Int, Int, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&);
+    c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&);
 
 extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   // c_side.to_f_setup[character, 0, PTR]
@@ -3353,6 +3370,31 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   unsigned int n_ac_kick = 0; if (C.ac_kick != NULL) n_ac_kick = 1;
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_control = 0; if (C.control != NULL) n_control = 1;
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_converter = 0; if (C.converter != NULL) n_converter = 1;
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_high_energy_space_charge = 0; if (C.high_energy_space_charge != NULL) n_high_energy_space_charge = 1;
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_mode3 = 0; if (C.mode3 != NULL) n_mode3 = 1;
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_photon = 0; if (C.photon != NULL) n_photon = 1;
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_rad_int_cache = 0; if (C.rad_int_cache != NULL) n_rad_int_cache = 1;
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_taylor* z_taylor[6];
+  for (int i = 0; i < 6; i++) {z_taylor[i] = &C.taylor[i];}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_taylor* z_spin_taylor[4];
+  for (int i = 0; i < 4; i++) {z_spin_taylor[i] = &C.spin_taylor[i];}
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_wake = 0; if (C.wake != NULL) n_wake = 1;
+  // c_side.to_f_setup[type, 1, PTR]
+  int n1_wall3d = C.wall3d.size();
+  const CPP_wall3d** z_wall3d = NULL;
+  if (n1_wall3d != 0) {
+    z_wall3d = new const CPP_wall3d*[n1_wall3d];
+    for (int i = 0; i < n1_wall3d; i++) z_wall3d[i] = &C.wall3d[i];
+  }
   // c_side.to_f_setup[type, 1, PTR]
   int n1_cartesian_map = C.cartesian_map.size();
   const CPP_cartesian_map** z_cartesian_map = NULL;
@@ -3368,41 +3410,18 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
     for (int i = 0; i < n1_cylindrical_map; i++) z_cylindrical_map[i] = &C.cylindrical_map[i];
   }
   // c_side.to_f_setup[type, 1, PTR]
-  int n1_taylor_field = C.taylor_field.size();
-  const CPP_taylor_field** z_taylor_field = NULL;
-  if (n1_taylor_field != 0) {
-    z_taylor_field = new const CPP_taylor_field*[n1_taylor_field];
-    for (int i = 0; i < n1_taylor_field; i++) z_taylor_field[i] = &C.taylor_field[i];
-  }
-  // c_side.to_f_setup[type, 1, PTR]
   int n1_grid_field = C.grid_field.size();
   const CPP_grid_field** z_grid_field = NULL;
   if (n1_grid_field != 0) {
     z_grid_field = new const CPP_grid_field*[n1_grid_field];
     for (int i = 0; i < n1_grid_field; i++) z_grid_field[i] = &C.grid_field[i];
   }
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_mode3 = 0; if (C.mode3 != NULL) n_mode3 = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_photon = 0; if (C.photon != NULL) n_photon = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_rad_int_cache = 0; if (C.rad_int_cache != NULL) n_rad_int_cache = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_high_energy_space_charge = 0; if (C.high_energy_space_charge != NULL) n_high_energy_space_charge = 1;
-  // c_side.to_f_setup[type, 1, NOT]
-  const CPP_taylor* z_taylor[6];
-  for (int i = 0; i < 6; i++) {z_taylor[i] = &C.taylor[i];}
-  // c_side.to_f_setup[type, 1, NOT]
-  const CPP_taylor* z_spin_taylor[4];
-  for (int i = 0; i < 4; i++) {z_spin_taylor[i] = &C.spin_taylor[i];}
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_wake = 0; if (C.wake != NULL) n_wake = 1;
   // c_side.to_f_setup[type, 1, PTR]
-  int n1_wall3d = C.wall3d.size();
-  const CPP_wall3d** z_wall3d = NULL;
-  if (n1_wall3d != 0) {
-    z_wall3d = new const CPP_wall3d*[n1_wall3d];
-    for (int i = 0; i < n1_wall3d; i++) z_wall3d[i] = &C.wall3d[i];
+  int n1_taylor_field = C.taylor_field.size();
+  const CPP_taylor_field** z_taylor_field = NULL;
+  if (n1_taylor_field != 0) {
+    z_taylor_field = new const CPP_taylor_field*[n1_taylor_field];
+    for (int i = 0; i < n1_taylor_field; i++) z_taylor_field[i] = &C.taylor_field[i];
   }
   // c_side.to_f_setup[real, 2, NOT]
   Real z_mat6[6*6]; matrix_to_vec(C.mat6, z_mat6);
@@ -3452,33 +3471,33 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   // c_side.to_f2_call
   ele_to_f2 (F, C.name.c_str(), C.type.c_str(), C.alias.c_str(), C.component_name.c_str(),
       z_descrip, n_descrip, C.a, C.b, C.z, C.x, C.y, *C.ac_kick, n_ac_kick,
-      C.bookkeeping_state, *C.control, n_control, z_cartesian_map, n1_cartesian_map,
-      z_cylindrical_map, n1_cylindrical_map, z_taylor_field, n1_taylor_field, z_grid_field,
-      n1_grid_field, C.floor, *C.mode3, n_mode3, *C.photon, n_photon, *C.rad_int_cache,
-      n_rad_int_cache, *C.high_energy_space_charge, n_high_energy_space_charge, z_taylor,
-      z_spin_taylor, *C.wake, n_wake, z_wall3d, n1_wall3d, C.map_ref_orb_in, C.map_ref_orb_out,
-      C.time_ref_orb_in, C.time_ref_orb_out, &C.value[0], &C.old_value[0], &C.vec0[0], z_mat6,
-      z_c_mat, C.gamma_c, &C.spin_quaternion[0], C.s_start, C.s, C.ref_time, z_a_pole,
-      n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec,
-      n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r, n3_r, C.key, C.sub_key, C.ix_ele,
-      C.ix_branch, C.lord_status, C.n_slave, C.n_slave_field, C.ix1_slave, C.slave_status,
-      C.n_lord, C.n_lord_field, C.ic1_lord, C.ix_pointer, C.ixx, C.iyy, C.mat6_calc_method,
-      C.tracking_method, C.spin_tracking_method, C.csr_method, C.space_charge_method,
-      C.ptc_integration_type, C.field_calc, C.aperture_at, C.aperture_type, C.orientation,
-      C.symplectify, C.mode_flip, C.multipoles_on, C.scale_multipoles,
-      C.taylor_map_includes_offsets, C.field_master, C.is_on, C.logic, C.bmad_logic, C.select,
-      C.offset_moves_aperture);
+      C.bookkeeping_state, *C.control, n_control, *C.converter, n_converter, C.floor,
+      *C.high_energy_space_charge, n_high_energy_space_charge, *C.mode3, n_mode3, *C.photon,
+      n_photon, *C.rad_int_cache, n_rad_int_cache, z_taylor, z_spin_taylor, *C.wake, n_wake,
+      z_wall3d, n1_wall3d, z_cartesian_map, n1_cartesian_map, z_cylindrical_map,
+      n1_cylindrical_map, z_grid_field, n1_grid_field, z_taylor_field, n1_taylor_field,
+      C.map_ref_orb_in, C.map_ref_orb_out, C.time_ref_orb_in, C.time_ref_orb_out, &C.value[0],
+      &C.old_value[0], &C.vec0[0], z_mat6, z_c_mat, C.gamma_c, &C.spin_quaternion[0],
+      C.s_start, C.s, C.ref_time, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec,
+      n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_custom, n1_custom, z_r, n1_r, n2_r,
+      n3_r, C.key, C.sub_key, C.ix_ele, C.ix_branch, C.lord_status, C.n_slave, C.n_slave_field,
+      C.ix1_slave, C.slave_status, C.n_lord, C.n_lord_field, C.ic1_lord, C.ix_pointer, C.ixx,
+      C.iyy, C.mat6_calc_method, C.tracking_method, C.spin_tracking_method, C.csr_method,
+      C.space_charge_method, C.ptc_integration_type, C.field_calc, C.aperture_at,
+      C.aperture_type, C.orientation, C.symplectify, C.mode_flip, C.multipoles_on,
+      C.scale_multipoles, C.taylor_map_includes_offsets, C.field_master, C.is_on, C.logic,
+      C.bmad_logic, C.select, C.offset_moves_aperture);
 
+  // c_side.to_f_cleanup[type, 1, PTR]
+ delete[] z_wall3d;
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_cartesian_map;
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_cylindrical_map;
   // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_taylor_field;
-  // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_grid_field;
   // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_wall3d;
+ delete[] z_taylor_field;
   // c_side.to_f_cleanup[real, 3, PTR]
   delete[] z_r;
 }
@@ -3489,19 +3508,20 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     Opaque_twiss_class* z_b, const Opaque_twiss_class* z_z, const Opaque_xy_disp_class* z_x,
     const Opaque_xy_disp_class* z_y, Opaque_ac_kicker_class* z_ac_kick, Int n_ac_kick, const
     Opaque_bookkeeping_state_class* z_bookkeeping_state, Opaque_controller_class* z_control,
-    Int n_control, Opaque_cartesian_map_class** z_cartesian_map, Int n1_cartesian_map,
+    Int n_control, Opaque_converter_class* z_converter, Int n_converter, const
+    Opaque_floor_position_class* z_floor, Opaque_high_energy_space_charge_class*
+    z_high_energy_space_charge, Int n_high_energy_space_charge, Opaque_mode3_class* z_mode3,
+    Int n_mode3, Opaque_photon_element_class* z_photon, Int n_photon,
+    Opaque_rad_int_ele_cache_class* z_rad_int_cache, Int n_rad_int_cache, const
+    Opaque_taylor_class** z_taylor, const Opaque_taylor_class** z_spin_taylor,
+    Opaque_wake_class* z_wake, Int n_wake, Opaque_wall3d_class** z_wall3d, Int n1_wall3d,
+    Opaque_cartesian_map_class** z_cartesian_map, Int n1_cartesian_map,
     Opaque_cylindrical_map_class** z_cylindrical_map, Int n1_cylindrical_map,
-    Opaque_taylor_field_class** z_taylor_field, Int n1_taylor_field, Opaque_grid_field_class**
-    z_grid_field, Int n1_grid_field, const Opaque_floor_position_class* z_floor,
-    Opaque_mode3_class* z_mode3, Int n_mode3, Opaque_photon_element_class* z_photon, Int
-    n_photon, Opaque_rad_int_ele_cache_class* z_rad_int_cache, Int n_rad_int_cache,
-    Opaque_high_energy_space_charge_class* z_high_energy_space_charge, Int
-    n_high_energy_space_charge, const Opaque_taylor_class** z_taylor, const
-    Opaque_taylor_class** z_spin_taylor, Opaque_wake_class* z_wake, Int n_wake,
-    Opaque_wall3d_class** z_wall3d, Int n1_wall3d, const Opaque_coord_class* z_map_ref_orb_in,
-    const Opaque_coord_class* z_map_ref_orb_out, const Opaque_coord_class* z_time_ref_orb_in,
-    const Opaque_coord_class* z_time_ref_orb_out, c_RealArr z_value, c_RealArr z_old_value,
-    c_RealArr z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat, c_Real& z_gamma_c, c_RealArr
+    Opaque_grid_field_class** z_grid_field, Int n1_grid_field, Opaque_taylor_field_class**
+    z_taylor_field, Int n1_taylor_field, const Opaque_coord_class* z_map_ref_orb_in, const
+    Opaque_coord_class* z_map_ref_orb_out, const Opaque_coord_class* z_time_ref_orb_in, const
+    Opaque_coord_class* z_time_ref_orb_out, c_RealArr z_value, c_RealArr z_old_value, c_RealArr
+    z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat, c_Real& z_gamma_c, c_RealArr
     z_spin_quaternion, c_Real& z_s_start, c_Real& z_s, c_Real& z_ref_time, c_RealArr z_a_pole,
     Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr z_a_pole_elec, Int
     n1_a_pole_elec, c_RealArr z_b_pole_elec, Int n1_b_pole_elec, c_RealArr z_custom, Int
@@ -3560,24 +3580,24 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     controller_to_c(z_control, *C.control);
   }
 
-  // c_side.to_c2_set[type, 1, PTR]
-  C.cartesian_map.resize(n1_cartesian_map);
-  for (int i = 0; i < n1_cartesian_map; i++) cartesian_map_to_c(z_cartesian_map[i], C.cartesian_map[i]);
-
-  // c_side.to_c2_set[type, 1, PTR]
-  C.cylindrical_map.resize(n1_cylindrical_map);
-  for (int i = 0; i < n1_cylindrical_map; i++) cylindrical_map_to_c(z_cylindrical_map[i], C.cylindrical_map[i]);
-
-  // c_side.to_c2_set[type, 1, PTR]
-  C.taylor_field.resize(n1_taylor_field);
-  for (int i = 0; i < n1_taylor_field; i++) taylor_field_to_c(z_taylor_field[i], C.taylor_field[i]);
-
-  // c_side.to_c2_set[type, 1, PTR]
-  C.grid_field.resize(n1_grid_field);
-  for (int i = 0; i < n1_grid_field; i++) grid_field_to_c(z_grid_field[i], C.grid_field[i]);
+  // c_side.to_c2_set[type, 0, PTR]
+  if (n_converter == 0)
+    delete C.converter;
+  else {
+    C.converter = new CPP_converter;
+    converter_to_c(z_converter, *C.converter);
+  }
 
   // c_side.to_c2_set[type, 0, NOT]
   floor_position_to_c(z_floor, C.floor);
+  // c_side.to_c2_set[type, 0, PTR]
+  if (n_high_energy_space_charge == 0)
+    delete C.high_energy_space_charge;
+  else {
+    C.high_energy_space_charge = new CPP_high_energy_space_charge;
+    high_energy_space_charge_to_c(z_high_energy_space_charge, *C.high_energy_space_charge);
+  }
+
   // c_side.to_c2_set[type, 0, PTR]
   if (n_mode3 == 0)
     delete C.mode3;
@@ -3602,14 +3622,6 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     rad_int_ele_cache_to_c(z_rad_int_cache, *C.rad_int_cache);
   }
 
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_high_energy_space_charge == 0)
-    delete C.high_energy_space_charge;
-  else {
-    C.high_energy_space_charge = new CPP_high_energy_space_charge;
-    high_energy_space_charge_to_c(z_high_energy_space_charge, *C.high_energy_space_charge);
-  }
-
   // c_side.to_c2_set[type, 1, NOT]
   for (unsigned int i = 0; i < C.taylor.size(); i++) taylor_to_c(z_taylor[i], C.taylor[i]);
   // c_side.to_c2_set[type, 1, NOT]
@@ -3625,6 +3637,22 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
   // c_side.to_c2_set[type, 1, PTR]
   C.wall3d.resize(n1_wall3d);
   for (int i = 0; i < n1_wall3d; i++) wall3d_to_c(z_wall3d[i], C.wall3d[i]);
+
+  // c_side.to_c2_set[type, 1, PTR]
+  C.cartesian_map.resize(n1_cartesian_map);
+  for (int i = 0; i < n1_cartesian_map; i++) cartesian_map_to_c(z_cartesian_map[i], C.cartesian_map[i]);
+
+  // c_side.to_c2_set[type, 1, PTR]
+  C.cylindrical_map.resize(n1_cylindrical_map);
+  for (int i = 0; i < n1_cylindrical_map; i++) cylindrical_map_to_c(z_cylindrical_map[i], C.cylindrical_map[i]);
+
+  // c_side.to_c2_set[type, 1, PTR]
+  C.grid_field.resize(n1_grid_field);
+  for (int i = 0; i < n1_grid_field; i++) grid_field_to_c(z_grid_field[i], C.grid_field[i]);
+
+  // c_side.to_c2_set[type, 1, PTR]
+  C.taylor_field.resize(n1_taylor_field);
+  for (int i = 0; i < n1_taylor_field; i++) taylor_field_to_c(z_taylor_field[i], C.taylor_field[i]);
 
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_map_ref_orb_in, C.map_ref_orb_in);

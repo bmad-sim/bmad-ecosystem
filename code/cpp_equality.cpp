@@ -401,6 +401,16 @@ template bool is_all_equal (const CPP_wake_MATRIX&, const CPP_wake_MATRIX&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_converter& x, const CPP_converter& y) {
+  bool is_eq = true;
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_converter_ARRAY&, const CPP_converter_ARRAY&);
+template bool is_all_equal (const CPP_converter_MATRIX&, const CPP_converter_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_taylor_term& x, const CPP_taylor_term& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.coef == y.coef);
@@ -1293,7 +1303,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
-  is_eq = is_eq && (x.twiss_normalize_off_energy == y.twiss_normalize_off_energy);
   is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.ptc_print_info_messages == y.ptc_print_info_messages);
@@ -1376,11 +1385,13 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.control == NULL) == (y.control == NULL));
   if (!is_eq) return false;
   if (x.control != NULL) is_eq = (*x.control == *y.control);
-  is_eq = is_eq && is_all_equal(x.cartesian_map, y.cartesian_map);
-  is_eq = is_eq && is_all_equal(x.cylindrical_map, y.cylindrical_map);
-  is_eq = is_eq && is_all_equal(x.taylor_field, y.taylor_field);
-  is_eq = is_eq && is_all_equal(x.grid_field, y.grid_field);
+  is_eq = is_eq && ((x.converter == NULL) == (y.converter == NULL));
+  if (!is_eq) return false;
+  if (x.converter != NULL) is_eq = (*x.converter == *y.converter);
   is_eq = is_eq && (x.floor == y.floor);
+  is_eq = is_eq && ((x.high_energy_space_charge == NULL) == (y.high_energy_space_charge == NULL));
+  if (!is_eq) return false;
+  if (x.high_energy_space_charge != NULL) is_eq = (*x.high_energy_space_charge == *y.high_energy_space_charge);
   is_eq = is_eq && ((x.mode3 == NULL) == (y.mode3 == NULL));
   if (!is_eq) return false;
   if (x.mode3 != NULL) is_eq = (*x.mode3 == *y.mode3);
@@ -1390,15 +1401,16 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.rad_int_cache == NULL) == (y.rad_int_cache == NULL));
   if (!is_eq) return false;
   if (x.rad_int_cache != NULL) is_eq = (*x.rad_int_cache == *y.rad_int_cache);
-  is_eq = is_eq && ((x.high_energy_space_charge == NULL) == (y.high_energy_space_charge == NULL));
-  if (!is_eq) return false;
-  if (x.high_energy_space_charge != NULL) is_eq = (*x.high_energy_space_charge == *y.high_energy_space_charge);
   is_eq = is_eq && is_all_equal(x.taylor, y.taylor);
   is_eq = is_eq && is_all_equal(x.spin_taylor, y.spin_taylor);
   is_eq = is_eq && ((x.wake == NULL) == (y.wake == NULL));
   if (!is_eq) return false;
   if (x.wake != NULL) is_eq = (*x.wake == *y.wake);
   is_eq = is_eq && is_all_equal(x.wall3d, y.wall3d);
+  is_eq = is_eq && is_all_equal(x.cartesian_map, y.cartesian_map);
+  is_eq = is_eq && is_all_equal(x.cylindrical_map, y.cylindrical_map);
+  is_eq = is_eq && is_all_equal(x.grid_field, y.grid_field);
+  is_eq = is_eq && is_all_equal(x.taylor_field, y.taylor_field);
   is_eq = is_eq && (x.map_ref_orb_in == y.map_ref_orb_in);
   is_eq = is_eq && (x.map_ref_orb_out == y.map_ref_orb_out);
   is_eq = is_eq && (x.time_ref_orb_in == y.time_ref_orb_in);

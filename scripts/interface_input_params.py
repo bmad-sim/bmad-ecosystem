@@ -40,6 +40,7 @@ struct_list = [
     'wake_lr_struct',
     'lat_ele_loc_struct',
     'wake_struct',
+    'converter_struct',
     'taylor_term_struct',
     'taylor_struct',
     'em_taylor_term_struct',

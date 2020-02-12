@@ -121,6 +121,11 @@ typedef valarray<CPP_wake>          CPP_wake_ARRAY;
 typedef valarray<CPP_wake_ARRAY>    CPP_wake_MATRIX;
 typedef valarray<CPP_wake_MATRIX>   CPP_wake_TENSOR;
 
+class CPP_converter;
+typedef valarray<CPP_converter>          CPP_converter_ARRAY;
+typedef valarray<CPP_converter_ARRAY>    CPP_converter_MATRIX;
+typedef valarray<CPP_converter_MATRIX>   CPP_converter_TENSOR;
+
 class CPP_taylor_term;
 typedef valarray<CPP_taylor_term>          CPP_taylor_term_ARRAY;
 typedef valarray<CPP_taylor_term_ARRAY>    CPP_taylor_term_MATRIX;
@@ -1144,6 +1149,28 @@ extern "C" void wake_to_c (const Opaque_wake_class*, CPP_wake&);
 extern "C" void wake_to_f (const CPP_wake&, Opaque_wake_class*);
 
 bool operator== (const CPP_wake&, const CPP_wake&);
+
+
+//--------------------------------------------------------------------
+// CPP_converter
+
+class Opaque_converter_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_converter {
+public:
+
+  CPP_converter()    
+    {}
+
+  ~CPP_converter() {
+  }
+
+};   // End Class
+
+extern "C" void converter_to_c (const Opaque_converter_class*, CPP_converter&);
+extern "C" void converter_to_f (const CPP_converter&, Opaque_converter_class*);
+
+bool operator== (const CPP_converter&, const CPP_converter&);
 
 
 //--------------------------------------------------------------------
@@ -2979,7 +3006,6 @@ public:
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
   Bool absolute_time_tracking_default;
-  Bool twiss_normalize_off_energy;
   Bool convert_to_kinetic_momentum;
   Bool aperture_limit_on;
   Bool ptc_print_info_messages;
@@ -3025,7 +3051,6 @@ public:
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
-    twiss_normalize_off_energy(true),
     convert_to_kinetic_momentum(false),
     aperture_limit_on(true),
     ptc_print_info_messages(false),
@@ -3167,19 +3192,20 @@ public:
   CPP_ac_kicker* ac_kick;
   CPP_bookkeeping_state bookkeeping_state;
   CPP_controller* control;
-  CPP_cartesian_map_ARRAY cartesian_map;
-  CPP_cylindrical_map_ARRAY cylindrical_map;
-  CPP_taylor_field_ARRAY taylor_field;
-  CPP_grid_field_ARRAY grid_field;
+  CPP_converter* converter;
   CPP_floor_position floor;
+  CPP_high_energy_space_charge* high_energy_space_charge;
   CPP_mode3* mode3;
   CPP_photon_element* photon;
   CPP_rad_int_ele_cache* rad_int_cache;
-  CPP_high_energy_space_charge* high_energy_space_charge;
   CPP_taylor_ARRAY taylor;
   CPP_taylor_ARRAY spin_taylor;
   CPP_wake* wake;
   CPP_wall3d_ARRAY wall3d;
+  CPP_cartesian_map_ARRAY cartesian_map;
+  CPP_cylindrical_map_ARRAY cylindrical_map;
+  CPP_grid_field_ARRAY grid_field;
+  CPP_taylor_field_ARRAY taylor_field;
   CPP_coord map_ref_orb_in;
   CPP_coord map_ref_orb_out;
   CPP_coord time_ref_orb_in;
@@ -3273,19 +3299,20 @@ public:
     ac_kick(NULL),
     bookkeeping_state(),
     control(NULL),
-    cartesian_map(CPP_cartesian_map_ARRAY(CPP_cartesian_map(), 0)),
-    cylindrical_map(CPP_cylindrical_map_ARRAY(CPP_cylindrical_map(), 0)),
-    taylor_field(CPP_taylor_field_ARRAY(CPP_taylor_field(), 0)),
-    grid_field(CPP_grid_field_ARRAY(CPP_grid_field(), 0)),
+    converter(NULL),
     floor(),
+    high_energy_space_charge(NULL),
     mode3(NULL),
     photon(NULL),
     rad_int_cache(NULL),
-    high_energy_space_charge(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
     spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 4)),
     wake(NULL),
     wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
+    cartesian_map(CPP_cartesian_map_ARRAY(CPP_cartesian_map(), 0)),
+    cylindrical_map(CPP_cylindrical_map_ARRAY(CPP_cylindrical_map(), 0)),
+    grid_field(CPP_grid_field_ARRAY(CPP_grid_field(), 0)),
+    taylor_field(CPP_taylor_field_ARRAY(CPP_taylor_field(), 0)),
     map_ref_orb_in(),
     map_ref_orb_out(),
     time_ref_orb_in(),
@@ -3351,10 +3378,11 @@ public:
     delete descrip;
     delete ac_kick;
     delete control;
+    delete converter;
+    delete high_energy_space_charge;
     delete mode3;
     delete photon;
     delete rad_int_cache;
-    delete high_energy_space_charge;
     delete wake;
   }
 
