@@ -847,6 +847,7 @@ enddo
 ! And track through the mosaic layers
 
 h_dir = 1
+orbit%vec = vec_init
 
 do im = 1, n_layer
   ml => m_layer(im)
