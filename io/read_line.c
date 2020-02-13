@@ -34,6 +34,11 @@ void read_line_(char* tag, char* str, char* hist_file, int tag_len, int str_len,
     add_history (str2);
 
     if (hist_len > 1) {
+      HISTORY_STATE *hist_st;
+      hist_st = history_get_history_state();
+      hist_st->size = 1000;  // Limit history file size
+      history_set_history_state (hist_st);
+
       if (hist_file[0] == '~') {
         char* home = getenv("HOME");
         const size_t home_len = strlen(home);
