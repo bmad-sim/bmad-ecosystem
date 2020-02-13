@@ -156,6 +156,8 @@ use sim_utils
 
 implicit none
 
+integer iu
+
 character(*) prompt, line_out
 character(*), optional :: prompt_color, history_file
 character(16) pre, post
@@ -163,6 +165,20 @@ character(200) h_file
 character(*), parameter :: r_name = 'read_a_line'
 
 logical, optional :: trim_prompt, prompt_bold
+logical is_there
+
+! The readline history library will not create a history file if it does not exist.
+! So do it here if needed.
+
+if (present(history_file)) then
+  call fullfilename(history_file, h_file)
+  inquire (file = h_file, exist = is_there)
+  if (.not. is_there) then
+    iu = lunget()
+    open (iu, file = h_file)
+    close (iu)
+  endif
+endif
 
 !
 
@@ -248,7 +264,7 @@ end subroutine readline_read_history
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine readline_write_history history_file, (history_file, status)
+! Subroutine readline_write_history (history_file, status)
 !
 ! Routine to write the contents of the readline history list to a file.
 ! Use this routine with the read_a_line routine.
