@@ -49,10 +49,10 @@ character(*) outfile
 logical, optional :: valid
 
 character(*), parameter :: r_name = 'FullFileName'
-character(len(outfile)) ExpandName        ! Expanded Name
+character(len(outfile)) expandname        ! Expanded Name
 
 integer InLen, iDollar, iColon, iSlash
-integer i
+integer i, ix
 integer explen
 
 logical, save :: rcsini = .true.
@@ -61,13 +61,13 @@ logical, save :: rcsini = .true.
 ! Assign input to output by default
 
 if (present(valid)) valid = .false.
-outfile = FileName
+outfile = filename
 
-if (FileName == '') return  ! Blank is invalid
+if (filename == '') return  ! Blank is invalid
 
 ! Get length of input file name
 
-InLen = Len_Trim(FileName)
+InLen = Len_Trim(filename)
 
 !     
 
@@ -78,11 +78,11 @@ endif
 
 ! Locate special characters (first dollar-sign, first colon, first slash)
 
-iDollar = Index(FileName(:InLen), '$' )
-iColon  = Index(FileName(:InLen), ':' )
-iSlash  = Index(FileName(:InLen), '/' )
+iDollar = Index(filename(:InLen), '$' )
+iColon  = Index(filename(:InLen), ':' )
+iSlash  = Index(filename(:InLen), '/' )
 
-ExpandName = FileName
+expandname = filename
 
 !-----------------------------------------------------------------------
 ! Translation on WINDOWS (from unix to windows)
@@ -91,41 +91,41 @@ ExpandName = FileName
 
 ! A UNIX-style environment variable will have a leading '$' 
 
-If (iDollar == 1) then
+if (iDollar == 1) then
       
 ! Expand Unix-style environment variable names
 ! Environment variable specifies the full name
 
-  If (iSlash == 0) then
+  if (iSlash == 0) then
         
-    Call GetEnv(Filename(2:InLen), ExpandName)
-    if (Len_Trim(ExpandName) == 0) return
+    call GetEnv(filename(2:InLen), expandname)
+    if (Len_Trim(expandname) == 0) return
 
 ! Environment variable plus short name specifies the full name
 
-  Elseif (iSlash > 2) then
-    Call GetEnv(Filename(2:iSlash-1), ExpandName)
-    ExpLen = Len_Trim(ExpandName)
+  elseif (iSlash > 2) then
+    call GetEnv(filename(2:iSlash-1), expandname)
+    ExpLen = Len_Trim(expandname)
     if (ExpLen == 0) return
-    ExpandName(ExpLen+1:) = FileName(iSlash:InLen)
-  Endif
+    expandname(ExpLen+1:) = filename(iSlash:InLen)
+  endif
 
 ! VMS-style logicals will have a trailing colon
 
-Elseif (iColon > 1) then
-  Call GetEnv(Filename(1:iColon-1), ExpandName)
-  ExpLen      = Len_Trim(ExpandName)
+elseif (iColon > 1) then
+  call GetEnv(filename(1:iColon-1), expandname)
+  ExpLen      = Len_Trim(expandname)
   if (ExpLen == 0) return
-  ExpandName(ExpLen+1:) = '/' // FileName(iColon+1:InLen)
-  outfile = ExpandName
-Endif
+  expandname(ExpLen+1:) = '/' // filename(iColon+1:InLen)
+  outfile = expandname
+endif
 
 
-do i=1, Len_Trim(ExpandName)
-   If (ExpandName(i:i)=='/') ExpandName(i:i)='\' ! '
+do i=1, Len_Trim(expandname)
+   if (expandname(i:i)=='/') expandname(i:i)='\' ! '
 end do
 
-outfile = ExpandName
+outfile = expandname
 if (present(valid)) valid = .true.
 
 !-----------------------------------------------------------------------
@@ -133,25 +133,42 @@ if (present(valid)) valid = .true.
 
 #else
 
+! Tilde
+
+if (filename(1:1) == '~') then
+  call GetEnv('HOME', expandname)
+  if (expandname == '') return
+
+  if (filename(2:2) == '/') then
+    expandname = trim(expandname) // filename(2:)
+  else
+    ix = index(expandname, '/', back = .true.)
+    if (ix == 0) then
+      expandname = trim(expandname) // '/' // filename
+    else
+      expandname = expandname(1:ix) // filename
+    endif
+  endif
+
 ! A UNIX-style environment variable will have a leading '$' 
 
-If (iDollar == 1) then
-  If (iSlash == 0) then
+elseif (iDollar == 1) then
+  if (iSlash == 0) then
         
-    Call GetEnv(Filename(2:InLen), ExpandName)
-    if (len_trim(ExpandName) == 0) return
+    call GetEnv(filename(2:InLen), expandname)
+    if (len_trim(expandname) == 0) return
 
-! Environment variable plus short name specifies the full name
+  ! Environment variable plus short name specifies the full name
 
-  Elseif (iSlash > 2) then
-    Call GetEnv(Filename(2:iSlash-1), ExpandName)
-    ExpLen = Len_Trim(ExpandName)
+  elseif (iSlash > 2) then
+    call GetEnv(filename(2:iSlash-1), expandname)
+    ExpLen = Len_Trim(expandname)
     if (ExpLen == 0) return
-    ExpandName(ExpLen+1:) = FileName(iSlash:InLen)
-  Endif
+    expandname(ExpLen+1:) = filename(iSlash:InLen)
+  endif
 endif
 
-outfile = ExpandName
+outfile = expandname
 if (present(valid)) valid = .true.
 
 #endif
@@ -162,57 +179,57 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function SplitFileName(filename, path, basename, is_relative) result (ix_char)
+! Function Splitfilename(filename, path, basename, is_relative) result (ix_char)
 !
 ! Routine to take filename and splits it into its constituent parts, 
 ! the directory path and the base file name.  The return 
-! value, ix_char, is the length of the path variable. If the 
+! value, ix_char, is the length of the path variable. if the 
 ! specified file is local, the return value is 0.
 !
-! Also see: FullFileName
+! Also see: Fullfilename
 !
 ! Input:  
-!   FileName    -- Character(*): Filename to be split.
+!   filename    -- Character(*): Filename to be split.
 !
 ! Output:
-!   Path        -- Character(*): Path to file with terminating /, ], or :
-!   BaseName    -- Character(*): Base filename, no path.
+!   path        -- Character(*): Path to file with terminating /, ], or :
+!   basename    -- Character(*): Base filename, no path.
 !   is_relative -- Logical, optional: True if pathname is relative. False otherwise.
 !   ix_char     -- Integer: Number of characters in path string.
 !-
 
-function SplitFileName(FileName, Path, BaseName, is_relative) result (ix_char)
+function Splitfilename(filename, path, basename, is_relative) result (ix_char)
 
 implicit none
 
-character(*) FileName, Path, BaseName
+character(*) filename, path, basename
 logical, optional :: is_relative
 
-character(16), parameter :: r_name = 'SplitFileName'
+character(16), parameter :: r_name = 'Splitfilename'
 
 Integer InLen, ix_char, ix
 Integer iBracket, iColon, iSlash
 
 ! Get length of input file name
 
-InLen = Len_Trim(FileName)
+InLen = Len_Trim(filename)
 
 ! Locate special characters (last dollar-sign, last colon, last slash)
 
 ix = 0
 
 #if defined(CESR_WINCVF)
-iBracket = Scan(FileName(:InLen), ']', .True.)
-If (iBracket .gt. ix) ix = iBracket
-iColon   = Scan(FileName(:InLen), ':', .True.)
-If (iColon .gt. ix) ix = iColon
+iBracket = Scan(filename(:InLen), ']', .True.)
+if (iBracket .gt. ix) ix = iBracket
+iColon   = Scan(filename(:InLen), ':', .True.)
+if (iColon .gt. ix) ix = iColon
 #endif
 
-iSlash   = Scan(FileName(:InLen), '/', .True.)
-If (iSlash .gt. ix) ix = iSlash
+iSlash   = Scan(filename(:InLen), '/', .True.)
+if (iSlash .gt. ix) ix = iSlash
 
-Path     = FileName(:ix)
-BaseName = FileName(ix+1:InLen)
+path     = filename(:ix)
+basename = filename(ix+1:InLen)
 call string_trim(path, path, ix)
 ix_char = ix
 
@@ -220,7 +237,7 @@ ix_char = ix
 
 if (present(is_relative)) is_relative = file_name_is_relative(path)
 
-End function
+end function
 
 !-----------------------------------------------------------------------------
 !--------------------------------------------------------------------
