@@ -156,7 +156,7 @@ use sim_utils
 
 implicit none
 
-integer iu
+integer iu, ios
 
 character(*) prompt, line_out
 character(*), optional :: prompt_color, history_file
@@ -175,8 +175,8 @@ if (present(history_file)) then
   inquire (file = h_file, exist = is_there)
   if (.not. is_there) then
     iu = lunget()
-    open (iu, file = h_file)
-    close (iu)
+    open (iu, file = h_file, iostat = ios)
+    if (ios /= 0) close (iu)
   endif
 endif
 
