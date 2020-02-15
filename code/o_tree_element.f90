@@ -1137,7 +1137,7 @@ CONTAINS
      s%x(i)=1.0_dp
      sf=p%q*s*p%q**(-1)
      do j=1,3
-       p%s(i)%x(j)=sf%x(j+1)
+       p%s(i)%x(j)=sf%x(j)
      enddo
     enddo
      call kill(s)
