@@ -1252,18 +1252,19 @@ elseif(.not.as_is0) then
      if(xs%use_q) then
         ! actually using quaternion if SLIM not not used
           qf=0
-          qf(1)=t(2)%e_ij(5,5)*xs%q%x(1)+t(2)%e_ij(5,6)*xs%q%x(3)
-          qf(3)=t(2)%e_ij(6,5)*xs%q%x(1)+t(2)%e_ij(6,6)*xs%q%x(3)
+          qf(1)=t(2)%e_ij(4,4)*xs%q%x(1)+t(2)%e_ij(4,6)*xs%q%x(3)
+          qf(3)=t(2)%e_ij(6,4)*xs%q%x(1)+t(2)%e_ij(6,6)*xs%q%x(3)
           do i=1,3
 
             qf(1)=qf(1)+t(2)%e_ij(1,i)*x0_begin(i)
             qf(3)=qf(3)+t(2)%e_ij(3,i)*x0_begin(i)
 
           enddo
-          qf(2)=1
-         xs%q%x(1:3)=qf
+          qf(2)=xs%q%x(2)
+          
+         xs%q%x(1:3)=qf   !/sqrt(qf(1)**2+qf(2)**2+qf(3)**2)
       else
-       write(6,*) "SLIM not permitted unless quaternion are the prime method "
+       write(6,*) "SLIM not permitted unless quaternion is the prime method "
           stop
       endif
     else

@@ -1989,7 +1989,7 @@ endif
  if(present(i)) then
    if(.not.(i>=1.and.i<=c_%nv)) then
     check_gtpsa=.false.
-    !!write(6,*)"i,c_%nv", i,c_%nv
+    write(6,*)"i,c_%nv", i,c_%nv
   endif
  else
   k=0
@@ -1998,7 +1998,7 @@ endif
  enddo
  if(k>c_%no) then
    check_gtpsa=.false.
-    write(6,*)"k>c_%no", k,c_%no
+ !   write(6,*)"k>c_%no", k,c_%no
   endif
  k=0
   do ii=c_%nv+1,size(j)
