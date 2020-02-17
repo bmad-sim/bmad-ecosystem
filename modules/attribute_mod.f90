@@ -889,6 +889,7 @@ call init_attribute_name1 (crystal$, is_mosaic$,                    'IS_MOSAIC')
 call init_attribute_name1 (crystal$, mosaic_thickness$,             'MOSAIC_THICKNESS')
 call init_attribute_name1 (crystal$, mosaic_angle_rms_in_plane$,    'MOSAIC_ANGLE_RMS_IN_PLANE')
 call init_attribute_name1 (crystal$, mosaic_angle_rms_out_plane$,   'MOSAIC_ANGLE_RMS_OUT_PLANE')
+call init_attribute_name1 (crystal$, mosaic_diffraction_num$,       'MOSAIC_DIFFRACTION_NUM')
 
 call init_attribute_name1 (def_bmad_com$, max_aperture_limit$,          'MAX_APERTURE_LIMIT')
 call init_attribute_name1 (def_bmad_com$, default_ds_step$,             'DEFAULT_DS_STEP')
@@ -1767,7 +1768,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_SLAVE', 'N_LORD', &
       'PTC_MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
-      'LONGITUDINAL_MODE')
+      'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM')
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
@@ -1840,7 +1841,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_PERIOD', 'N_SAMPLE', 'N_SLICE_SPLINE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
       'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', 'SIG_VX', 'SIG_VY', &
-      'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', &
+      'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
       'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
       'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY')

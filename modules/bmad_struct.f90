@@ -1415,7 +1415,7 @@ integer, parameter :: phi0_autoscale$ = 27, dx_origin$ =  27, cmat_11$ = 27, ene
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: cmat_12$ = 28, e_field_x$ = 28
-integer, parameter :: floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
+integer, parameter :: floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29
 integer, parameter :: field_autoscale$ = 29, cmat_21$ = 29, l_sagitta$ = 29, e_field_y$ = 29
 integer, parameter :: dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, scale_field_to_one$ = 30
 integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30
@@ -1550,6 +1550,8 @@ integer, parameter :: b0$  = 162, b21$  = 183
 
 integer, parameter :: k0l$ = 140, k21l$ = 161
 integer, parameter :: t0$  = 162, t21$  = 183
+
+integer, parameter :: k0sl$ = 190, k21sl$ = 211
 
 integer, parameter :: a0_elec$ = 190, a21_elec$ = 211
 integer, parameter :: b0_elec$ = 212, b21_elec$ = 233
