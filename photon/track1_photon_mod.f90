@@ -712,7 +712,7 @@ real(rp) field1, field2, field3, field4, phase1, phase2, phase3, phase4, rr, rr2
 real(rp) thick, p_sum, prob
 real(rp), allocatable :: follow_prob(:)
 
-integer im, h_dir, n_layer, n_choose
+integer n, im, h_dir, n_layer, n_choose
 integer, allocatable :: indx(:)
 
 character(*), parameter :: r_name = 'track1_mosaic_crystal'
@@ -731,19 +731,29 @@ endif
 
 
 if (ele%value(bragg_angle_in$) == 0) then
-  call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION!')
+  call out_io (s_fatal$, r_name, 'REFERENCE ENERGY TOO SMALL TO SATISFY BRAGG CONDITION! FOR ELEMENT: ' // ele%name)
   orbit%state = lost_pz_aperture$
   if (global_com%exit_on_error) call err_exit
   return
 endif
 
 if (ele%value(thickness$) == 0) then 
-  call out_io (s_error$, r_name, 'LAUE CRYSTAL WITH ZERO THICKNESS WILL HAVE NO DIFFRACTION: ' // ele%name)
+  call out_io (s_error$, r_name, 'LAUE CRYSTAL WITH ZERO THICKNESS WILL HAVE NO DIFFRACTION. FOR ELEMENT: ' // ele%name)
   return
 endif
 
 if (ele%value(mosaic_thickness$) == 0) then 
-  call out_io (s_error$, r_name, 'MOSAIC CRYSTAL WITH ZERO MOSAIC_THICKNESS WILL HAVE NO DIFFRACTION: ' // ele%name)
+  call out_io (s_error$, r_name, 'A MOSAIC CRYSTAL MUST HAVE A FINITE MOSAIC_THICKNESS PARAMETER. FOR ELEMENT: ' // ele%name)
+  orbit%state = lost_pz_aperture$
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+if (ele%value(mosaic_angle_rms_out_plane$) < 0) then 
+  call out_io (s_error$, r_name, 'MOSAIC CRYSTAL WITH MOSAIC_ANGLE_RMS_OUT_PLANE PARAMETER NOT', &
+                                 'SET (OR SET NEGATIVE). FOR ELEMENT:' // ele%name)
+  orbit%state = lost_pz_aperture$
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -784,15 +794,11 @@ do im = 1, n_layer
   ml => m_layer(im)
   call ran_gauss(rr2)
   ml%theta_in  = rr2(1) * ele%value(mosaic_angle_rms_in_plane$)
-  if (ele%value(mosaic_angle_rms_out_plane$) < 0) then
-    ml%theta_out = rr2(2) * ele%value(mosaic_angle_rms_in_plane$)
-  else
-    ml%theta_out = rr2(2) * ele%value(mosaic_angle_rms_out_plane$)
-  endif
+  ml%theta_out = rr2(2) * ele%value(mosaic_angle_rms_out_plane$)
 
   orbit%vec = vec_init
   call rotate_vec(orbit%vec(2:6:2), y_axis$, ml%theta_in)
-  call rotate_vec(orbit%vec(2:6:2), x_axis$, ml%theta_out)
+  call rotate_vec(orbit%vec(2:6:2), z_axis$, ml%theta_out)
   if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar0) 
 
   cp%old_vvec = orbit%vec(2:6:2)
@@ -833,12 +839,15 @@ do im = 2, n_choose
 enddo
 follow_prob = follow_prob / p_sum
 
+!
 
+n = nint(ele%value(mosaic_diffraction_num$))
 call ran_uniform(rr)
 m_layer(indx(1))%follow_diffracted = .true.
 p_sum = follow_prob(1)
 do im = 2, n_choose
-  if (p_sum > rr) exit
+  if (n == 0 .and. p_sum > rr) exit
+  if (n /= 0 .and. 2*im-2 > n) exit
   m_layer(indx(2*im-2))%follow_diffracted = .true.
   m_layer(indx(2*im-1))%follow_diffracted = .true.
   p_sum = p_sum + follow_prob(im)  
@@ -856,7 +865,7 @@ do im = 1, n_layer
   ! Rotate to mosaic coords
 
   call rotate_vec(orbit%vec(2:6:2), y_axis$, ml%theta_in)
-  call rotate_vec(orbit%vec(2:6:2), x_axis$, ml%theta_out)
+  call rotate_vec(orbit%vec(2:6:2), z_axis$, ml%theta_out)
 
   ! cp%new_vvec is the normalized outgoing wavevector outside the crystal for diffracted phtons.
 
@@ -891,7 +900,7 @@ do im = 1, n_layer
 
   ! Rotate back out from mosaic coords
 
-  call rotate_vec(orbit%vec(2:6:2), x_axis$, -ml%theta_out)
+  call rotate_vec(orbit%vec(2:6:2), z_axis$, -ml%theta_out)
   call rotate_vec(orbit%vec(2:6:2), y_axis$, -ml%theta_in)
 
 enddo

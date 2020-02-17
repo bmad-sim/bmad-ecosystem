@@ -809,8 +809,8 @@ Attributes specific to a \vn{crystal} element are:
   graze_angle_out    = <Real>       ! Angle between outgoing ref orbit and surface.
   is_mosaic          = <Logical>    ! Is a mosaic crystal? Default = False
   mosaic_thickness   = <Real>       ! Mosaic element thickness
-  mosaic_angle_rms_in_plane  = <Real> ! In-plane mosaic angular half-width. Default = 0.
-  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. Default = -1
+  mosaic_angle_rms_in_plane  = <Real> ! In-plane mosaic angular half-width.
+  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. 
 \end{example}
 
 \index{bragg_angle_in}\index{bragg_angle_out}\index{alpha_angle}
@@ -958,21 +958,20 @@ spectrometer.
 \subsection{Mosaic Crystal}
 
 A mosaic crystal is an idealized model of an imperfect crystal imagined to consist of numberous
-small perfect crystals that are to some extent randomly misoriented.  Mosaic crystals are
-parameterized by four element parameters:
+small perfect crystals called crystallites that are randomly misoriented. Currently, mosaic crystals
+can only be used with Laue orientation. Mosaic crystals are parameterized by four element
+parameters:
 \begin{example}
   is_mosaic          = <Logical>    ! Is a mosaic crystal? Default = False
   mosaic_thickness   = <Real>       ! Mosaic element thickness
-  mosaic_angle_rms_in_plane  = <Real> ! In-plane angular half-width. Default = 0
-  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. Default = -1
+  mosaic_angle_rms_in_plane  = <Real> ! In-plane angular half-width. 
+  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. 
 \end{example}
 The \vn{is_mosaic} logical is used to toggle between mosaic and non-mosaic tracking. Tracking in a
-mosaic is detailed in Section~\sref{s:mosaic.track}. The angular spread of the orientation of mosaic
-crystals in the diffraction plane is given by \vn{mosaic_angle_rms_in_plane} and the angular spread
-of the orientation of mosaic crystals in the plane perpendicular to the diffraction plane is given
-by \vn{mosaic_angle_rms_out_plane}. If the value of \vn{mosaic_angle_rms_out_plane} is negative, the
-angular distribution will be taken to the same in-plane and out-of-plane so the value used for the
-out-of-plane angular spread will be the value of \vn{mosaic_angle_rms_in_plane}.
+mosaic is detailed in Section~\sref{s:mosaic.track}. The angular spread of the orientation of the
+crystallites in the diffraction plane is given by \vn{mosaic_angle_rms_in_plane}. This
+corresponds to rotations around the $y$-axis in the element reference frame in \fig{f:crystal}B. The
+\vn{mosaic_angle_rms_out_plane} parameter gives the angular spread of the crystallites for 
 
 The thickness of the mosaic is given by the \vn{mosaic_thickness} parameter. For \vn{Laue}
 diffraction (\vn{b_param} > 0), the actual mosaic thickness $T_m$ used is adjusted so that there is
