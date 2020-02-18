@@ -300,7 +300,7 @@ case ('phase.', 'phase_frac.')
   select case (data_type)
   case ('phase.a');           value = ele%a%phi
   case ('phase_frac.a');      value = modulo2 (ele%a%phi, pi)
-  case ('phase.b');           value = ele%a%phi
+  case ('phase.b');           value = ele%b%phi
   case ('phase_frac.b');      value = modulo2 (ele%b%phi, pi)
   case default;               err_flag = .true.
   end select
