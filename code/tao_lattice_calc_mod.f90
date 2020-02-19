@@ -440,13 +440,7 @@ endif
 ! Twiss
 
 if (u%calc%twiss .and. branch%param%particle /= photon$) then
-  do i = 1, ix_lost - 1
-    if (branch%ele(i)%tracking_method == linear$) then
-      call lat_make_mat6 (lat, i, ix_branch = ix_branch)
-    else
-      call lat_make_mat6 (lat, i, orbit, ix_branch)
-    endif
-  enddo
+  call lat_make_mat6 (lat, -1, orbit, ix_branch)
 
   if (branch%param%geometry == closed$) then
     call twiss_at_start (lat, status, branch%ix_branch)
