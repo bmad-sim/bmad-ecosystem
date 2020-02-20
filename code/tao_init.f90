@@ -273,8 +273,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_inject_particle (u, tao_lat, ib)
     call tao_single_track (u, tao_lat, this_calc_ok, ib)
 
-    if (s%global%rad_int_calc_on) call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+    if (s%global%rad_int_calc_on) then
+      call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                                   tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
+    else
+      if (ib == 0) allocate(tao_lat%rad_int%branch(0:ubound(tao_lat%lat%branch, 1)))
+      allocate(tao_lat%rad_int%branch(ib)%ele(0:branch%n_ele_max))
+    endif
 
     tao_branch%modes_rf_on = tao_branch%modes
     if (branch%param%geometry == closed$) then
@@ -283,8 +288,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
 
   enddo
-
-  tao_lat%rad_int_rf_on = tao_lat%rad_int
 enddo
 
 ! Turn off RF. But first calculate the synchrotron tune.

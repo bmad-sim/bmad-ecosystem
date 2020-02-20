@@ -856,7 +856,6 @@ type tao_lattice_struct
   type (lat_struct) lat                        ! lattice structures
   type (tao_universe_struct), pointer :: u => null()  ! Parent universe
   type (rad_int_all_ele_struct) rad_int
-  type (rad_int_all_ele_struct) rad_int_rf_on
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
 end type
 
@@ -1140,7 +1139,6 @@ integer i
 
 lat1%lat            = lat2%lat
 lat1%rad_int        = lat2%rad_int
-lat1%rad_int_rf_on  = lat2%rad_int_rf_on
 lat1%tao_branch     = lat2%tao_branch
 
 end subroutine tao_lattice_equal_tao_lattice
