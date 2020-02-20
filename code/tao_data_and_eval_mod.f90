@@ -3382,7 +3382,7 @@ if (ix_ele < ix_start) then   ! wrap around
     if (present(good)) valid_value = valid_value .and. good(ix_m)
 
   case ('average')
-
+    ix_m = -1
     if (present(good)) then
       n = count(good(1:ix_ele)) + count(good(ix_start:n_track))
       l_sum = sum(branch%ele(1:ix_ele)%value(l$), mask = good(1:ix_ele)) + &
@@ -3462,6 +3462,7 @@ else
     if (present(good)) valid_value = valid_value .and. good(ix_m)
 
   case ('average')
+    ix_m = -1
     if (present(good)) then
       n = count(good(ix_start:ix_ele))
       l_sum = sum(branch%ele(ix_start:ix_ele)%value(l$), mask = good(ix_start:ix_ele))
