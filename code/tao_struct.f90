@@ -648,6 +648,7 @@ type tao_global_struct
   logical :: optimizer_var_limit_warn = .true.    ! Warn when vars reach a limit with optimization.
   logical :: orm_analysis = .false.               ! ORM using MDSA? 
   logical :: plot_on = .true.                     ! Do plotting?
+  logical :: rad_int_calc_on = .true.             ! Radiation integrals calculation on/off.
   logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
   logical :: single_step = .false.                ! For debugging and demonstrations: Single step through a command file?
   logical :: stop_on_error = .true.               ! For debugging: False prevents tao from exiting on an error.
@@ -739,6 +740,7 @@ type tao_common_struct
   character(12) :: log_startup_arg = ''            ! -log_startup         command line argument
   character(12) :: no_stopping_arg = ''            ! -no_stopping         command line argument
   character(12) :: noplot_arg = ''                 ! -noplot              command line argument
+  character(12) :: no_rad_int_arg = ''             ! -no_rad_int          command line argument
   character(12) :: debug_arg = ''                  ! -debug               command line argument
   character(12) :: disable_smooth_line_calc_arg = '' ! -disable_smooth_line_calc
   character(12) :: rf_on_arg = ''                  ! -rf_on               command line argument

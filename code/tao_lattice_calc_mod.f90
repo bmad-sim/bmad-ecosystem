@@ -157,7 +157,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call err_exit
     end select
 
-    if (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting) then
+    if (s%global%rad_int_calc_on .and. (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting)) then
       call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                             tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
     endif

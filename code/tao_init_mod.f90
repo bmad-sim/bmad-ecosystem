@@ -112,6 +112,7 @@ if (s%com%rf_on_arg /= '')                    s%global%rf_on = .true.
 if (s%com%quiet_arg /= '')                    s%global%quiet = 'all'
 if (s%com%no_stopping_arg /= '')              s%global%stop_on_error = .false.
 if (s%com%noplot_arg /= '')                   s%global%plot_on = .false.
+if (s%com%no_rad_int_arg /= '')               s%global%rad_int_calc_on = .false.
 if (s%com%prompt_color_arg /= '')             s%global%prompt_color = s%com%prompt_color_arg
 if (s%com%disable_smooth_line_calc_arg /= '') s%global%disable_smooth_line_calc = .true.
 
