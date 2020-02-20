@@ -156,27 +156,47 @@ use sim_utils
 
 implicit none
 
-integer iu, ios
+integer i, j, iu, ios, file_size
 
 character(*) prompt, line_out
 character(*), optional :: prompt_color, history_file
-character(16) pre, post
+character(16) pre, post, can_write
 character(200) h_file
+character(1000), allocatable :: line(:)
 character(*), parameter :: r_name = 'read_a_line'
 
 logical, optional :: trim_prompt, prompt_bold
-logical is_there
+logical is_there, is_full
 
 ! The readline history library will not create a history file if it does not exist.
 ! So do it here if needed.
 
 if (present(history_file)) then
   call fullfilename(history_file, h_file)
-  inquire (file = h_file, exist = is_there)
+  inquire (file = h_file, exist = is_there, size = file_size, write = can_write)
+  iu = lunget()
   if (.not. is_there) then
-    iu = lunget()
     open (iu, file = h_file, iostat = ios)
     if (ios /= 0) close (iu)
+  ! Reduce file size to 1000 lines if too big
+  elseif (file_size > 200000) then 
+    allocate(line(0:999))
+    open (iu, file = h_file, iostat = ios)
+    i = -1; is_full = .false.
+    do
+      i = modulo(i+1, 1000)
+      read (iu, '(a)', iostat = ios) line(i)
+      if (ios /= 0) exit
+      if (i == 999) is_full = .true.
+    enddo
+
+    if (is_full) then
+      rewind(iu)
+      do j = i + 1, i + 999
+        write (iu, '(a)', iostat = ios) trim(line(modulo(j, 1000)))
+      enddo
+      close (iu)
+    endif
   endif
 endif
 
