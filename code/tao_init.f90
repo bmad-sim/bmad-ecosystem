@@ -273,8 +273,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_inject_particle (u, tao_lat, ib)
     call tao_single_track (u, tao_lat, this_calc_ok, ib)
 
-    call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                          tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
+    if (s%global%rad_int_calc_on) call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+                                  tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
 
     tao_branch%modes_rf_on = tao_branch%modes
     if (branch%param%geometry == closed$) then

@@ -35,6 +35,7 @@ call out_io (s_blank$, r_name, [ &
         '  -no_stopping                         # For debugging: Prevents Tao from exiting on errors     ', &
         '  -noinit                              # Do not use Tao init file                               ', &
         '  -noplot                              # Do not open a plotting window                          ', &
+        '  -no_rad_int                          # Do not do any radiation integrals calculations.        ', &
         '  -plot_file <file_name>               # Plotting initialization file                           ', &
         '  -rf_on                               # Keep RF on (Default is to turn off)                    ', &
         '  -quiet                               # Suppress terminal output when running a command file?  ', &

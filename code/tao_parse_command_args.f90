@@ -58,12 +58,12 @@ do
     negate = .false.
   endif
 
-  call match_word (arg1, [character(41):: '-?', '-init_file', '-noinit', '-beam0', &
+  call match_word (arg1, [character(44):: '-?', '-init_file', '-noinit', '-beam0', &
         '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', '-building_wall_file', &
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', '-beam_track_data_file', &
         '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file', &
-        '-plot_file', '-external_plotting', '-quiet'], ix, .true., matched_name=switch)
+        '-plot_file', '-external_plotting', '-quiet', '-no_rad_int'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
@@ -133,6 +133,9 @@ do
   case ('-noplot')
     s%com%noplot_arg = '<present>'
 
+  case ('-no_rad_int')
+    s%com%no_rad_int_arg = '<present>'
+
   case ('-plot_file')
     call get_next_arg (arg0, s%com%plot_file_arg, i_arg, n_arg)
 
@@ -180,6 +183,7 @@ do
   case ('--no_stopping');                         s%com%no_stopping_arg = ''
   case ('--noinit');                              s%com%noinit_arg = ''
   case ('--noplot');                              s%com%noplot_arg = ''
+  case ('--no_rad_int');                          s%com%no_rad_int_arg = ''
   case ('--plot_file');                           s%com%plot_file_arg = ''
   case ('--prompt_color', '--color_prompt');      s%com%prompt_color_arg = ''
   case ('--rf_on');                               s%com%rf_on_arg = ''
