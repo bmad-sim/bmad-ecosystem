@@ -178,6 +178,7 @@ if (present(history_file)) then
   if (.not. is_there) then
     open (iu, file = h_file, iostat = ios)
     if (ios /= 0) close (iu)
+
   ! Reduce file size to 1000 lines if too big
   elseif (file_size > 200000) then 
     allocate(line(0:999))
