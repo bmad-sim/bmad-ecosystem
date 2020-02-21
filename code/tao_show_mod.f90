@@ -266,7 +266,7 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
 integer, allocatable :: ix_c(:), ix_remove(:)
 
-logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
+logical bmad_format, good_opt_only, print_wall, show_lost, show_time, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag
@@ -3042,13 +3042,15 @@ case ('particle')
   ix_branch = s%com%default_branch
   show_all = .false.
   show_lost = .false.
+  show_time = .false.
   ele_name = ''
   ix_ele = -1
   ix_p = 1
 
   do
 
-    call tao_next_switch (what2, ['-element ', '-particle', '-bunch   ', '-lost    ', '-all     '], .true., switch, err, ix_word)
+    call tao_next_switch (what2, [character(16):: '-element', '-particle', '-bunch', '-lost', '-all', '-dtime'], &
+                          .true., switch, err, ix_word)
     if (err) return
 
     select case (switch)
@@ -3057,6 +3059,9 @@ case ('particle')
 
     case ('-lost') 
       show_lost = .true.
+
+    case ('-dtime')
+      show_time = .true.
 
     case ('-all')
       show_all = .true.
@@ -3150,11 +3155,16 @@ case ('particle')
     else
       nl=nl+1; write(lines(nl), *) 'Element:', ix_ele, '  ', branch%ele(ix_ele)%name
     endif
-    nl=nl+1; write(lines(nl), '(a, 6(13x, a), 7x, a)') '  Ix', ' X', 'px', ' y', 'py', ' z', 'pz', 'State'
+    if (show_time) then
+      nl=nl+1; write(lines(nl), '(a, 5(13x, a), (9x, a), (13x, a), 7x, a)') '  Ix', ' X', 'px', ' y', 'py', ' dtime', 'pz', 'State'
+    else
+      nl=nl+1; write(lines(nl), '(a, 6(13x, a), 7x, a)') '  Ix', ' X', 'px', ' y', 'py', ' z', 'pz', 'State'
+    endif
     do i = 1, size(bunch%particle)
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
-      nl=nl+1; write(lines(nl), '(i6, 6es15.7, 2x, a)') i, (bunch%particle(i)%vec(j), j = 1, 6), &
-                                                       adjustr(coord_state_name(bunch%particle(i)%state))
+      vec_in = bunch%particle(i)%vec(j)
+      if (show_time) vec_in(5) = -vec_in(5) / (c_light * bunch%particle(i)%beta)
+      nl=nl+1; write(lines(nl), '(i6, 6es15.7, 2x, a)') i, (vec_in, j = 1, 6), adjustr(coord_state_name(bunch%particle(i)%state))
     enddo
     result_id = 'particle:lost'
     return
