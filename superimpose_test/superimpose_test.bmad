@@ -9,6 +9,8 @@ s1: sextupole, k2 = 1, l = 2, b1 = 0.01
 s2: sextupole, k2 = 2, l = 2, b1 = 0.02, superimpose, offset = 2
 
 d: drift, l = 4
+q: quad, l = 1, k1 = 1e-2
+superimpose, element = q, ref = d, offset = 2, ref_origin = beginning, ele_origin = end
 
 ll: line = (s1, d)
 use, ll
