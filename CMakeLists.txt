@@ -6,6 +6,7 @@ set (EXE_SPECS
   cmake.ptc_flat_file_to_bmad
   cmake.make_a_matching_knob
   cmake.wake_fit
+  cmake.bmad_to_astra
   cmake.bmad_to_autocad
   cmake.bmad_to_blender
   cmake.bmad_to_csrtrack
