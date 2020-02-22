@@ -369,7 +369,6 @@ recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid
 use ptc_interface_mod, only: taylor_inverse
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use measurement_mod, only: to_orbit_reading, to_eta_reading, ele_is_monitor
-use geometry_mod, only: floor_angles_to_w_mat, floor_w_mat_to_angles
 
 type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
