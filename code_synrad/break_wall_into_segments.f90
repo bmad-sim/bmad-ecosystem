@@ -18,7 +18,6 @@ subroutine break_wall_into_segments (wall, seg_len_max, branch, seg_len_phantom_
 
 use synrad_struct
 use synrad_interface, except => break_wall_into_segments
-use geometry_mod
 
 implicit none
 

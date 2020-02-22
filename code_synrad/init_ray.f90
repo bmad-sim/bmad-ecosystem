@@ -25,7 +25,6 @@ subroutine init_ray (ray, branch, ix_ele, l_offset, orb, direction)
 
 use synrad_interface, except => init_ray
 use em_field_mod
-use geometry_mod
 
 implicit none
 
