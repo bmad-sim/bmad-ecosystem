@@ -1,7 +1,6 @@
 program geometry_test
 
 use bmad
-use geometry_mod
 
 implicit none
 
