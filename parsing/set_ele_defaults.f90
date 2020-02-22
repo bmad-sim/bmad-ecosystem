@@ -197,9 +197,16 @@ case (multilayer_mirror$)
     allocate(ele%photon)
   endif
 
-case (multipole$, ab_multipole$)
+case (ab_multipole$)
   if (logic_option(.true., do_allocate)) then
     call multipole_init (ele, magnetic$, .true.)
+  endif
+  ele%scale_multipoles = .false.
+
+case (multipole$)
+  if (logic_option(.true., do_allocate)) then
+    call multipole_init (ele, magnetic$, .true.)
+    call multipole_init (ele, electric$, .true.)
   endif
   ele%scale_multipoles = .false.
 

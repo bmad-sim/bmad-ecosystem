@@ -3660,9 +3660,9 @@ do ix_ele = ie1, ie2
     case (elseparator$)
       call out_io (s_warn$, r_name, 'Elseparator will be converted into a mult: ' // ele%name)
       write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
+      call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0.0_rp, 0, a, b)
       a_pole = a_pole + a;  b_pole = b_pole + b
-      call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
+      call multipole1_kt_to_ab (-val(vkick$), pi/2, 0.0_rp, 0, a, b)
       a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
@@ -3670,7 +3670,7 @@ do ix_ele = ie1, ie2
       write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
       call value_to_line (line_out, -val(kick$), 'K0', 'R', .true., .false.)
 !      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-!      call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0, a, b)
+!      call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0.0_rp, 0, a, b)
 !      a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
@@ -3680,7 +3680,7 @@ do ix_ele = ie1, ie2
       call value_to_line (line_out, -val(kick$), 'K0', 'R', .true., .false.)
       call value_to_line (line_out, tilt, 'ROTATE', 'R', .true., .false.)
 !      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-!      call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
+!      call multipole1_kt_to_ab (-val(kick$), pi/2, 0.0_rp, 0, a, b)
 !      a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
@@ -3694,9 +3694,9 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, tilt, 'ROTATE', 'R', .true., .false.)
       endif
 !      write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-!      call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
+!      call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0.0_rp, 0, a, b)
 !      a_pole = a_pole + a;  b_pole = b_pole + b
-!      call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
+!      call multipole1_kt_to_ab (-val(vkick$), pi/2, 0.0_rp, 0, a, b)
 !      a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
@@ -3741,7 +3741,7 @@ do ix_ele = ie1, ie2
     ! SAD with nonzero multipoles or kick
     case (octupole$)
       write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      call multipole1_kt_to_ab (val(k3$), 0.0_rp, 3, a, b)
+      call multipole1_kt_to_ab (val(k3$), 0.0_rp, 0.0_rp, 3, a, b)
       a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
@@ -3754,7 +3754,7 @@ do ix_ele = ie1, ie2
       call value_to_line (line_out, -sign_of(val(fq1$)) * sqrt(24*abs(val(fq1$))), 'F1', 'R', .true., .false.)
       call value_to_line (line_out, val(fq2$), 'F2', 'R', .true., .false.)
 
-      call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
+      call multipole1_kt_to_ab (val(k1$), 0.0_rp, 0.0_rp, 1, a, b)
       a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
@@ -3824,7 +3824,7 @@ do ix_ele = ie1, ie2
     ! SAD with nonzero multipoles or kick
     case (sextupole$)
       write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      call multipole1_kt_to_ab (val(k3$), 0.0_rp, 1, a, b)
+      call multipole1_kt_to_ab (val(k3$), 0.0_rp, 0.0_rp, 1, a, b)
       a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
@@ -3834,7 +3834,7 @@ do ix_ele = ie1, ie2
     ! SAD
     case (sol_quad$)
       write (line_out, '(4a)') 'MULT ', trim(ele%name), ' = (L = ', re_str(val(l$))
-      call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
+      call multipole1_kt_to_ab (val(k1$), 0.0_rp, 0.0_rp, 1, a, b)
       a_pole = a_pole + a;  b_pole = b_pole + b
 
     ! SAD
@@ -3846,9 +3846,9 @@ do ix_ele = ie1, ie2
 
     if (line_out(1:4) == 'MULT') then
       if (has_attribute (ele, 'HKICK') .and. ele%key /= kicker$) then
-        call multipole1_kt_to_ab (-val(hkick$), -val(tilt_tot$), 0, a, b)
+        call multipole1_kt_to_ab (-val(hkick$), -val(tilt_tot$), 0.0_rp, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
-        call multipole1_kt_to_ab (-val(vkick$), pi/2-val(tilt_tot$), 0, a, b)
+        call multipole1_kt_to_ab (-val(vkick$), pi/2-val(tilt_tot$), 0.0_rp, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
       endif
 

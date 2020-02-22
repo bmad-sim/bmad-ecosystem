@@ -66,54 +66,51 @@ where $\lfloor\alpha\rfloor$ means round down to the integer equal to or less th
 $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient.
 
 \index{multipole!KnL, Tn|hyperbf}
-So far only the normal components of the field have been
-considered. If the fields associated with a particular $B_n$ multipole
-component are rotated in the $(x, y)$ plane by an angle $\theta_n$, the
-magnetic field at a point $(x,y)$ can be expressed in complex notation
-as
+The above equations are for fields with a normal component only. If a given multipole field of order $n$
+has normal $B_n$ and skew $S_n$ components and is rotated in the $(x, y)$ plane by an angle $T_n$, the
+magnetic field at a point $(x,y)$ can be expressed in complex notation as
 \Begineq
   B_y(x,y) + i B_x(x,y) = 
-    \frac{1}{n!} B_n e^{-i(n+1)\theta_n} \, e^{i n \theta} \, r^n 
+    \frac{1}{n!} (B_n + i S_n) \, e^{-i(n+1)T_n} \, e^{i n \theta} \, r^n 
   \label{bib1nb}
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
 \index{multipole}
-Note that, for compatibility with MAD, the $K0L$ component of a \vn{Multipole} element
-rotates the reference orbit essentially acting as a zero length bend. This is not true
-for multipoles of any other type of element.
+Note that, for compatibility with MAD, the $K0L$ component of a \vn{Multipole} element rotates the
+reference orbit essentially acting as a zero length bend. This is not true for multipoles of any
+other type of element.
 
-Instead of using magnitude $K_n$ and rotation angle $\theta_n$,
-Another representation is using normal $\wt K_n$ and skew $\wt
-S_n$. The conversion between the two are
+Instead of using magnitude $K_n$ and rotation angle $\theta_n$, Another representation is using
+normal $\wt K_n$ and skew $\wt S_n$. The conversion between the two are
 \begin{align}
-  \wt K_n &= K_n \, \cos((n + 1) \theta_n) \CRNO
-  \wt S_n &= K_n \, \sin((n + 1) \theta_n) 
+  \wt K_n &= K_n \, \cos((n + 1) \, T_n) \CRNO
+  \wt S_n &= K_n \, \sin((n + 1) \, T_n) 
 \end{align}
 
 \index{multipole!an, bn|hyperbf}
-Another representation of the magnetic field used by \bmad divides
-the fields into normal $b_n$ and skew $a_n$ components. In terms of
-these components the magnetic field for the $n$\Th\ order multipole is
+Another representation of the magnetic field used by \bmad divides the fields into normal $b_n$ and
+skew $a_n$ components. In terms of these components the magnetic field for the $n$\Th\ order
+multipole is
 \Begineq
   \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
   \label{qlpbb}
 \Endeq
 The $a_n$, $b_n$ representation of multipole fields can be used in elements such as
 quadrupoles, sextupoles, etc. to allow ``error'' fields to be represented.  
-The conversion between $(a_n, b_n)$ and $(K_nL, \theta_n)$ is
+The conversion between $(a_n, b_n)$ and $(K_nL, S_nL, T_n)$ is
 \Begineq
-  b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\theta_n}
+  b_n + i a_n = \frac{1}{n!} \, (K_nL + i \, S_nL) \, e^{-i(n+1)T_n}
 \Endeq
-or
+In the case where $S_nL = 0$
 \begin{align}
   K_n L &= n! \, \sqrt{a_n^2 + b_n^2} \\
-  \tan[(n+1) \theta_n] &= \frac{-a_n}{b_n}
+  \tan[(n+1) T_n] &= \frac{-a_n}{b_n}
 \end{align}
 To convert a normal magnet (a magnet with no skew component) into a skew magnet (a magnet with no
 normal component) the magnet should be rotated about its longitudinal axis with a rotation angle of
 \Begineq
-  (n+1) \theta_n = \frac{\pi}{2}
+  (n+1) T_n = \frac{\pi}{2}
 \Endeq
 For example, a normal quadrupole rotated by $45^\circ$ becomes a skew quadrupole.
 

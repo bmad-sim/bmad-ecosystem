@@ -131,7 +131,7 @@ real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
 real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bz
 real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
 real(rp) phi0_autoscale, field_autoscale, ds, beta_ref, ds_small
-real(rp) rho, a, b, B0, gamma, Brho
+real(rp) rho, a, b, B0, gamma, Brho, voltage, k_rf
 real(rp) rad_p, z_p, alpha_p, beta_p, k_p, rad_m, z_m, alpha_m, beta_m, k_m
 
 complex(rp) exp_kz, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
@@ -377,6 +377,27 @@ case (bmad_standard$)
   if (s_body < -ds_small .or. s_body > ele%value(l$) + ds_small) goto 8000   ! Goto field overlap code.
 
   select case (ele%key)
+
+  !------------------
+  ! Crab cavity
+
+  case (crab_cavity$)
+
+    ! The crab cavity is modeled as a TM110 traveling wave mode
+    if (ele%value(l$) /= 0) then
+      voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(orbit, param)
+      k_rf = twopi * ele%value(rf_frequency$) / c_light
+      if (present(rf_time)) then
+        time = rf_time
+      else
+        time = particle_rf_time(orbit, ele, .true., s_body)
+      endif
+      phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+                      (time - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)) + k_rf * s_body
+
+      field%B(2) = -voltage * sin(phase) / (c_light * ele%value(l$))
+      field%E(3) = voltage * k_rf * orbit%beta * orbit%vec(1) * cos(phase) / ele%value(l$)
+    endif
 
   !------------------
   ! Drift, et. al. Note that kicks get added at the end for all elements

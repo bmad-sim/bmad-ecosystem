@@ -263,21 +263,21 @@ if (associated(ele%a_pole)) then
 
     if (ele%key == multipole$) then
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-             'K', i, 'L =', ele%a_pole(i), 'K', i, 'L(w/Tilt) =', knl(i), 'A', i, '(equiv) =', a(i)
+              'K', i, 'L       =', ele%a_pole(i), 'KS', i, '        =', ele%a_pole_elec(i), 'T', i, '          =', ele%b_pole(i)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-             'T', i, '  =', ele%b_pole(i), 'T', i, '(w/Tilt)  =', tn(i),  'B', i, '(equiv) =', b(i)
+              'B', i, '(equiv) =', b(i),          'A', i,  '(equiv)  =', a(i),              'T', i, '(w/Tilt)  =', tn(i)
+
     elseif (ele%key == ab_multipole$) then
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-             'A', i, ' =', ele%a_pole(i), 'A', i, '(w/Tilt) =', a2(i), 'K', i, 'L(equiv) =', knl(i)
+                 'A', i, ' =', ele%a_pole(i), 'A', i, '(w/Tilt) =', a2(i), 'K', i, 'L(equiv) =', knl(i)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-             'B', i, ' =', ele%b_pole(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
+                 'B', i, ' =', ele%b_pole(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
+
     else
-      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') &
-             'A', i, ' =', ele%a_pole(i), &
-             'A', i, '(Scaled) =', a(i), 'A', i, '(w/Tilt) =', a2(i), 'K', i, 'L(equiv) =', knl(i)
-      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') &
-             'B', i, ' =', ele%b_pole(i), &
-             'B', i, '(Scaled) =', b(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
+      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', i, ' =', ele%a_pole(i), &
+                 'A', i, '(Scaled) =', a(i), 'A', i, '(w/Tilt) =', a2(i), 'K', i, 'L(equiv) =', knl(i)
+      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', i, ' =', ele%b_pole(i), &
+                 'B', i, '(Scaled) =', b(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
     endif
 
   enddo

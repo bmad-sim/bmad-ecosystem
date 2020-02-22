@@ -101,13 +101,14 @@ type parser_ele_struct
   character(40), allocatable :: field_overlaps(:)
   character(40) :: ref_name = ''
   integer :: ix_ref_multipass = 0              ! multipass index for reference element.
-  character(40) :: ele_name = ''               ! For patch.
-  character(200) :: lat_file = ''                     ! File where element was defined.
+  character(40) :: ele_name = ''               ! For fork element or superimpose statement.
+  character(200) :: lat_file = ''              ! File where element was defined.
   real(rp) :: offset = 0
   integer ix_line_in_file    ! Line in file where element was defined.
   integer ix_count
   integer ele_pt, ref_pt
   integer indexx
+  logical :: superposition_command_here = .false.
   logical :: superposition_has_been_set = .false.
   logical :: create_jumbo_slave = .false.
   logical :: is_range = .false.               ! For girders
@@ -308,11 +309,11 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word =
   do j = 1, 100 
     if (delim == '}') exit
     call parser_get_integer (n, word, ix_word, delim, delim_found, err_flag, 'BAD EXPONENT');   if (err_flag) return
-    if (.not. expect_one_of ('} ', .true., ele, delim, delim_found)) return
+    if (.not. expect_one_of ('} ', .true., ele%name, delim, delim_found)) return
     if (delim2 == ',') then
       select case (j)
-      case (6);      if( .not. expect_one_of ('}', .true., ele, delim, delim_found)) return
-      case default;  if (.not. expect_one_of (' ', .true., ele, delim, delim_found)) return
+      case (6);      if( .not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
+      case default;  if (.not. expect_one_of (' ', .true., ele%name, delim, delim_found)) return
       end select
       expn(j) = n
     else
@@ -368,7 +369,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   case (x_knot$)
     if (.not. parse_real_list2 (lat, 'ERROR PARSING X_KNOT POINTS FOR: ' // ele%name, ele%control%x_knot, n, delim, delim_found, 10, '{', ',', '}')) return
     call re_allocate(ele%control%x_knot, n)
-    if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+    if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
     err_flag = .false.
     return
 
@@ -421,7 +422,7 @@ endif   ! Overlay or Group
 
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
   if (word == 'L_POLE' .or. word == 'N_POLE') then
-    if (.not. expect_one_of ('=', .true., ele, delim, delim_found)) return
+    if (.not. expect_one_of ('=', .true., ele%name, delim, delim_found)) return
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
     if (err_flag) return
     if (word == 'L_POLE') then
@@ -538,7 +539,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%i, bmad_com%max_num_runge_kutta_step))       bp_com%extra%max_num_runge_kutta_step_set        = .true.
 
   elseif (associated(a_ptrs(1)%l)) then
-    call get_logical (trim(ele%name) // ' ' // word, a_ptrs(1)%l, err_flag)
+    call parser_get_logical (word, a_ptrs(1)%l, ele%name, delim, delim_found, err_flag)
     if (err_flag) return
     if (associated(a_ptrs(1)%l, bmad_com%rf_phase_below_transition_ref))  bp_com%extra%rf_phase_below_transition_ref_set   = .true.
     if (associated(a_ptrs(1)%l, bmad_com%use_hard_edge_drifts))           bp_com%extra%use_hard_edge_drifts_set            = .true.
@@ -775,7 +776,7 @@ endif
 if (attrib_word == 'AMP_VS_TIME') then
   ac => ele%ac_kick
   if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2, delim, delim_found)) return
-  if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+  if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%amp_vs_time(n))
   do i = 1, n
@@ -793,7 +794,7 @@ endif
 if (attrib_word == 'FREQUENCIES') then
   ac => ele%ac_kick
   if (.not. parse_real_lists (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, delim, delim_found)) return
-  if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+  if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%frequencies(n))
   do i = 1, n
@@ -897,7 +898,7 @@ if (attrib_word == 'WALL') then
       if (err_flag2) return
 
     case ('SUPERIMPOSE')
-      call get_logical ('WALL SUPERIMPOSE', wall3d%superimpose, err_flag2); if (err_flag2) return
+      call parser_get_logical ('WALL SUPERIMPOSE', wall3d%superimpose, ele%name, delim, delim_found, err_flag2); if (err_flag2) return
 
     ! Must be "section = {"
 
@@ -948,7 +949,7 @@ if (attrib_word == 'WALL') then
           if (err_flag) return
                   
         case ('ABSOLUTE_VERTICES') 
-          call get_logical (trim(ele%name) // ' ' // word, section%absolute_vertices_input, err_flag)
+          call parser_get_logical (word, section%absolute_vertices_input, ele%name, delim, delim_found, err_flag)
           if (err_flag) return
 
         case ('X0') 
@@ -961,7 +962,7 @@ if (attrib_word == 'WALL') then
 
         case ('R0')
           if (.not. parse_real_list (lat, trim(ele%name) // ' SECTION R0', section%r0, .true., delim, delim_found)) return
-          if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+          if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
         ! Parse "V() = ..." constructs.
 
@@ -1012,9 +1013,9 @@ if (attrib_word == 'WALL') then
           return
         end select   ! section components
 
-        if (.not. expect_one_of (',}', .true., ele, delim, delim_found)) return
+        if (.not. expect_one_of (',}', .true., ele%name, delim, delim_found)) return
         if (delim == '}') then
-          if (.not. expect_one_of(',}', .false., ele, delim, delim_found)) return
+          if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
           exit
         endif
       enddo wall3d_section_loop
@@ -1024,14 +1025,14 @@ if (attrib_word == 'WALL') then
       return
     end select   ! wall components
 
-    if (.not. expect_one_of (',}', .true., ele, delim, delim_found)) return
+    if (.not. expect_one_of (',}', .true., ele%name, delim, delim_found)) return
     if (delim == '}') exit
 
   enddo wall3d_loop
 
   ! Next thing on line should be either a "," or end-of-line
 
-  logic = expect_one_of(', ', .false., ele, delim, delim_found)
+  logic = expect_one_of(', ', .false., ele%name, delim, delim_found)
   return
 
 endif
@@ -1127,9 +1128,9 @@ if (attrib_word == 'SURFACE') then
           return
         end select
 
-        if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+        if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
         if (delim == '}') then
-          if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+          if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
           exit
         endif
 
@@ -1144,7 +1145,7 @@ if (attrib_word == 'SURFACE') then
 
   enddo surface_loop
 
-  if (.not. expect_one_of(', ', .false., ele, delim, delim_found)) return
+  if (.not. expect_one_of(', ', .false., ele%name, delim, delim_found)) return
   err_flag = .false.
   return
 endif
@@ -1552,8 +1553,7 @@ endif
 if (delim /= '=')  then
   err_flag = .false.
 
-  if (ele%key == multipole$ .and. ix_attrib >= t0$) then
-    if (.not. associated(ele%a_pole)) call multipole_init (ele, magnetic$)
+  if (ele%key == multipole$ .and. ix_attrib >= t0$ .and. attrib_word(1:1) == 'T') then
     ele%b_pole(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
     return
   endif
@@ -1647,7 +1647,7 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
 
 case ('REF_ORBIT')
   if (.not. parse_real_list (lat, ele%name // ' REF_ORBIT', ele%taylor%ref, .true., delim, delim_found)) return
-  if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+  if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
 case ('PTC_MAX_FRINGE_ORDER')
   call parser_error ('PLEASE CONVERT "PARAMETER[PTC_MAX_FRINGE_ORDER]" TO "BMAD_COM[PTC_MAX_FRINGE_ORDER]"', level = s_warn$)
@@ -1676,19 +1676,19 @@ case ('SYMPLECTIFY')
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
     ele%symplectify = .true.
   else
-    call get_logical (attrib_word, ele%symplectify, err_flag); if (err_flag) return
+    call parser_get_logical (attrib_word, ele%symplectify, ele%name, delim, delim_found, err_flag); if (err_flag) return
   endif
   
 case ('IS_ON')
-  call get_logical (attrib_word, ele%is_on, err_flag)
+  call parser_get_logical (attrib_word, ele%is_on, ele%name, delim, delim_found, err_flag)
 
 case ('USE_HARD_EDGE_DRIFTS')
   call parser_error ('PLEASE CONVERT "PARAMETER[USE_HARD_EDGE_DRIFTS]" TO "BMAD_COM[USE_HARD_EDGE_DRIFTS]"', level = s_warn$)
-  call get_logical (attrib_word, bmad_com%use_hard_edge_drifts, err_flag)
+  call parser_get_logical (attrib_word, bmad_com%use_hard_edge_drifts, ele%name, delim, delim_found, err_flag)
   bp_com%extra%use_hard_edge_drifts_set = .true.
 
-case ('SUPERIMPOSE')  ! ele[superimpose] = False case
-  call get_logical (attrib_word, logic, err_flag); if (err_flag) return
+case ('SUPERIMPOSE')
+  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag); if (err_flag) return
   if (logic) then
     ele%lord_status = super_lord$
   else
@@ -1703,7 +1703,7 @@ case ('APERTURE_TYPE')
   call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('ABSOLUTE_TIME_TRACKING')
-  call get_logical (attrib_word, lat%absolute_time_tracking, err_flag); if (err_flag) return
+  call parser_get_logical (attrib_word, lat%absolute_time_tracking, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('CAVITY_TYPE')
   call get_switch (attrib_word, cavity_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1715,7 +1715,7 @@ case ('COUPLER_AT')
 
 case ('CREATE_JUMBO_SLAVE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-  call get_logical (attrib_word, pele%create_jumbo_slave, err_flag); if (err_flag) return
+  call parser_get_logical (attrib_word, pele%create_jumbo_slave, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('DEFAULT_TRACKING_SPECIES')
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
@@ -1738,22 +1738,22 @@ case ('EXACT_MULTIPOLES')
   ele%value(exact_multipoles$) = ix
 
 case ('PTC_EXACT_MODEL')
-  call get_logical (attrib_word, logic, err_flag); if (err_flag) return
+  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag); if (err_flag) return
   call set_ptc (exact_modeling = logic)
 
 case ('PTC_EXACT_MISALIGN')
-  call get_logical (attrib_word, logic, err_flag)
+  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag)
   if (err_flag) return
   call set_ptc (exact_misalign = logic)
 
 case ('OFFSET_MOVES_APERTURE')
-  call get_logical (attrib_word, ele%offset_moves_aperture, err_flag); if (err_flag) return
+  call parser_get_logical (attrib_word, ele%offset_moves_aperture, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('FIELD_MASTER')
-  call get_logical (attrib_word, ele%field_master, err_flag); if (err_flag) return
+  call parser_get_logical (attrib_word, ele%field_master, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('SCALE_MULTIPOLES')
-  call get_logical (attrib_word, ele%scale_multipoles, err_flag); if (err_flag) return
+  call parser_get_logical (attrib_word, ele%scale_multipoles, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('FIELD_CALC')
   call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1895,7 +1895,7 @@ case ('SPIN_TRACKING_METHOD')
   ele%spin_tracking_method = switch
 
 case ('TAYLOR_MAP_INCLUDES_OFFSETS')
-  call get_logical (attrib_word, ele%taylor_map_includes_offsets, err_flag); if (err_flag) return
+  call parser_get_logical (attrib_word, ele%taylor_map_includes_offsets, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('TRACKING_METHOD')
   call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag, ele, delim, delim_found)
@@ -1933,7 +1933,7 @@ case default   ! normal attribute
   select case (attribute_type(attrib_word))
   case (is_logical$)
     if (associated (a_ptr%l)) then
-      call get_logical (trim(ele%name) // ' ' // attrib_word, a_ptr%l, err_flag)
+      call parser_get_logical (trim(ele%name) // ' ' // attrib_word, a_ptr%l, ele%name, delim, delim_found, err_flag)
     else
       call get_logical_real (attrib_word, ele%value(ix_attrib), err_flag)
     endif
@@ -2135,28 +2135,6 @@ end function attrib_free_problem
 !--------------------------------------------------------
 ! contains
 
-subroutine get_logical (attrib_name, this_logic, err)
-
-character(*) attrib_name
-character(40) word
-logical this_logic, err
-
-!
-
-call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
-this_logic = evaluate_logical (word, ios)
-if (ios /= 0 .or. ix_word == 0) then
-  call parser_error ('BAD "' // trim(attrib_name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
-  err = .true.
-else
-  err = .false.
-endif
-
-end subroutine get_logical
-
-!--------------------------------------------------------
-! contains
-
 subroutine get_logical_real (name, logic_real, err)
 
 character(*) name
@@ -2165,7 +2143,7 @@ logical this_logical, err
 
 !
 
-call get_logical (name, this_logical, err)
+call parser_get_logical (name, this_logical, ele%name, delim, delim_found, err)
 if (err) return
 
 if (this_logical) then
@@ -3442,8 +3420,8 @@ do
     if (delim == '}') exit
     cycle
   case ('SCALE_WITH_LENGTH')
-    call parser_get_logical (ele, attrib_name, wake_sr%scale_with_length, word, ix_word, delim, delim_found, err_flag);  if (err_flag) return
-    if (.not. expect_one_of (',}', .true., ele, delim, delim_found)) return
+    call parser_get_logical (attrib_name, wake_sr%scale_with_length, ele%name, delim, delim_found, err_flag);  if (err_flag) return
+    if (.not. expect_one_of (',}', .true., ele%name, delim, delim_found)) return
     if (delim == '}') exit
     cycle
   case ('LONGITUDINAL')
@@ -3470,18 +3448,18 @@ do
     call get_switch ('POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
   else
     call get_switch ('POLARIZATION', sr_transverse_polarization_name, srm%polarization, err_flag, ele, delim, delim_found)
-    if (.not. expect_one_of (',', .true., ele, delim, delim_found)) return
+    if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
     call get_switch ('POSITION_DEPENDENCE', sr_transverse_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
   endif
 
-  if (.not. expect_one_of ('}', .true., ele, delim, delim_found)) return
-  if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+  if (.not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
+  if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
   if (delim == '}') exit
 enddo
 
 !
 
-if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
 allocate (ele%wake%sr%long(ilong))
 ele%wake%sr%long = long(1:ilong)
@@ -3565,8 +3543,8 @@ do
     if (delim == '}') exit
     cycle
   case ('SELF_WAKE_ON')
-    call parser_get_logical (ele, attrib_name, wake_lr%self_wake_on, word, ix_word, delim, delim_found, err_flag);  if (err_flag) return
-    if (.not. expect_one_of (',}', .true., ele, delim, delim_found)) return
+    call parser_get_logical (attrib_name, wake_lr%self_wake_on, ele%name, delim, delim_found, err_flag);  if (err_flag) return
+    if (.not. expect_one_of (',}', .true., ele%name, delim, delim_found)) return
     if (delim == '}') exit
     cycle
   case ('MODE')
@@ -3599,7 +3577,7 @@ do
   endif
 
   if (delim == '}') then
-    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
     if (delim == '}') exit
     cycle
   endif
@@ -3609,13 +3587,13 @@ do
   call parse_evaluate_value (err_str, lrm%a_sin, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
   call parse_evaluate_value (err_str, lrm%a_cos, lat, delim, delim_found, err_flag, '}');  if (err_flag) return
 
-  if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+  if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
   if (delim == '}') exit
 enddo
 
 !
 
-if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
 allocate (wake_lr%mode(iterm))
 wake_lr%mode = lr_mode(1:iterm)
@@ -4262,7 +4240,7 @@ do
       if (n_slave > size(y_knot, 1)) call re_allocate2d(y_knot, 2*n_slave, n, .true., real_garbage$)
 
       y_knot(n_slave,:) = y_val(1:n)
-      if (.not. expect_one_of ('},', .false., ele, delim, delim_found)) return
+      if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
 
     ! Parse expression
     else
@@ -7208,11 +7186,9 @@ do i = 1, n_ele_use
   ele_line(i)%name        = used_line(i)%name
   ele_line(i)%iyy         = used_line(i)%ix_multi
   ele_line(i)%orientation = used_line(i)%orientation
+  ele_line(i)%lord_status = not_a_lord$  ! In case element is also being superimposed.
   if (used_line(i)%tag /= '') ele_line(i)%name = trim(used_line(i)%tag) // '.' // ele_line(i)%name
   call settable_dep_var_bookkeeping (ele_line(i))
-  if (ele_line(i)%lord_status == super_lord$) then
-    call parser_error ('SUPERPOSITION ELEMENTS CANNOT BE USED IN A "LINE = (...)" CONSTRUCT: ' // ele_line(i)%name)
-  endif
 enddo
 
 ele_line(0)%ix_branch = ix_branch
@@ -7500,7 +7476,7 @@ do
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
     if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', ct_map%r0, .true., delim, delim_found)) return
-    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
 
   case ('ELE_ANCHOR_PT', 'FIELD_TYPE', 'MASTER_PARAMETER')
@@ -7573,7 +7549,7 @@ do
     call parse_evaluate_value (err_str, tm%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
     call get_switch ('FAMILY', ['Y ', 'X ', 'QU', 'SQ'], tm%family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
-    if (.not. expect_one_of(',}', .false., ele, delim, delim_found)) return
+    if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
 
     kx = tm%kx
     ky = tm%ky
@@ -7616,7 +7592,7 @@ enddo
 
 !
 
-if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 err_flag = .false.
 
 ! Check if data has already been read in for another element.
@@ -7707,7 +7683,7 @@ do
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
     if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', cl_map%r0, .true., delim, delim_found)) return
-    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
   case ('M')
    call parser_get_integer (cl_map%m, word, ix_word, delim, delim_found, err_flag, 'BAD CYLINDRICAL_MAP M CONSTRUCT', 'IN ELEMENT: ' // ele%name)
@@ -7837,7 +7813,7 @@ enddo
 
 ! Get final separator after grid construct.
  
-if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
 deallocate(array)
 err_flag = .false.
@@ -7967,7 +7943,7 @@ do
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
     if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', g_field%r0, .false., delim, delim_found)) return
-    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
     case ('DR')
     if (.not. equal_sign_here(ele, delim)) return
@@ -8038,7 +8014,7 @@ do
     end select
 
     ! Expect , or }
-    if (.not. expect_one_of(',}', .false., ele, delim, delim_found)) return
+    if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
   
   case default
     if (word == '') then
@@ -8057,7 +8033,7 @@ enddo
 
 ! Get final separator after grid_field construct.
  
-if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 
 ! Clear pts
 
@@ -8238,7 +8214,7 @@ do
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
     if (.not. parse_real_list (lat, trim(ele%name) // ' GRID_FIELD', t_field%r0, .true., delim, delim_found)) return
-    if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+    if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
   case ('DZ')
     call parse_evaluate_value (ele%name, t_field%dz, lat, delim, delim_found, err_flag, ',}')
@@ -8356,11 +8332,11 @@ do
       do j = 1, 100 
         if (delim == '}') exit
         call parser_get_integer (n, word, ix_word, delim, delim_found, err_flag, 'BAD EXPONENT');   if (err_flag) return
-        if (.not. expect_one_of ('} ', .true., ele, delim, delim_found)) return
+        if (.not. expect_one_of ('} ', .true., ele%name, delim, delim_found)) return
         if (delim2 == ',') then
           select case (j)
-          case (2);      if( .not. expect_one_of ('}', .true., ele, delim, delim_found)) return
-          case default;  if (.not. expect_one_of (' ', .true., ele, delim, delim_found)) return
+          case (2);      if( .not. expect_one_of ('}', .true., ele%name, delim, delim_found)) return
+          case default;  if (.not. expect_one_of (' ', .true., ele%name, delim, delim_found)) return
           end select
           expn(j) = n
         else
@@ -8380,10 +8356,10 @@ do
 
       call add_em_taylor_term (t_plane%field(i_out), coef, expn)
 
-      if (.not. expect_one_of ('},', .false., ele, delim, delim_found)) return
+      if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
 
       if (delim == '}') then
-        if (.not. expect_one_of ('},', .false., ele, delim, delim_found)) return
+        if (.not. expect_one_of ('},', .false., ele%name, delim, delim_found)) return
         exit
       endif
 
@@ -8407,7 +8383,7 @@ enddo
 
 ! Get final separator after grid construct.
  
-if (.not. expect_one_of (', ', .false., ele, delim, delim_found)) return
+if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 err_flag = .false.
 
 ! Check if data has already been read in for another element.
@@ -8673,7 +8649,7 @@ logical is_ok, delim_found
 is_ok = .false.
 if (.not. allocated(table)) allocate (table(100,size2))
 
-if (.not. expect_one_of ('{', .false., ele, delim, delim_found)) return
+if (.not. expect_one_of ('{', .false., ele%name, delim, delim_found)) return
 nn = 0
 do
   if (.not. parse_real_list2 (lat, err_str, vec, num_found, delim, delim_found, size2, '(', ',', ')')) return
@@ -8684,7 +8660,7 @@ do
   nn = nn + 1
   if (nn > size(table, 1)) call re_allocate2d(table, 2*nn, size2)
   table(nn,:) = vec
-  if (.not. expect_one_of (',}', .false., ele, delim, delim_found)) return
+  if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
   if (delim == '}') exit
 enddo
 
@@ -8848,21 +8824,23 @@ endif
 end subroutine parser_get_integer
 
 !--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
 
-subroutine parser_get_logical (ele, attrib_name, this_logic, word, ix_word, delim, delim_found, err)
+subroutine parser_get_logical (attrib_name, this_logic, ele_name, delim, delim_found, err)
 
 type (ele_struct) ele
-character(*) attrib_name, word, delim
 integer ix_word, ios
-logical this_logic, err
-logical delim_found
+logical delim_found, err, this_logic
+character(*) attrib_name, ele_name, delim
+character(40) word
 
 !
 
 call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
 this_logic = evaluate_logical (word, ios)
 if (ios /= 0 .or. ix_word == 0) then
-  call parser_error ('BAD "' // trim(attrib_name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+  call parser_error ('BAD "' // trim(attrib_name) // '" SWITCH FOR: ' // ele_name, 'I DO NOT UNDERSTAND: ' // word)
   err = .true.
 else
   err = .false.
@@ -8876,9 +8854,9 @@ end subroutine parser_get_logical
 !+
 ! Function expect_this (expecting, check_delim, call_check, err_str, ele, delim, delim_found) result (is_ok)
 !
-! Checks that the next character or characters in the parse stream correspont to the characters in thn
-! expecting argument. For example, if expecting is ')={' these three characters should be the next non-blank
-! characters in the parse stream.
+! Checks that the next character or characters in the parse stream corresponds to the 
+! characters in the expecting argument. For example, if expecting is ')={' these three characters 
+! should be the next non-blank characters in the parse stream.
 !
 ! Also see: expect_one_of
 !
@@ -9014,7 +8992,7 @@ end subroutine get_switch
 !--------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------
 !+
-! Function expect_one_of (delim_list, check_input_delim, ele, delim, delim_found) result (is_ok)
+! Function expect_one_of (delim_list, check_input_delim, ele_name, delim, delim_found) result (is_ok)
 !
 ! Routine to check for an expected delimitor in the parse stream.
 ! This routine is not for general use.
@@ -9027,18 +9005,18 @@ end subroutine get_switch
 !   check_input_delim 
 !               -- logical: If True, then check if delim argument is in the delim_list. 
 !                    If False, check that the next character in the parse stream is an expected delimitor.
-!   ele         -- ele_struct: Lattice element under construction. Used for error messages.
+!   ele_name    -- character(*): Lattice element under construction. Used for error messages.
 !   delim       -- character(1): Current delimitor that will be checked if check_input_delim = .true.
 !
 ! Output:
 !   delim       -- character(1): Next delim if check_input_delim = False.
 !-
 
-function expect_one_of (delim_list, check_input_delim, ele, delim, delim_found) result (is_ok)
+function expect_one_of (delim_list, check_input_delim, ele_name, delim, delim_found) result (is_ok)
 
 type (ele_struct) ele
 integer ix_word
-character(*) delim_list
+character(*) delim_list, ele_name
 character(1) delim
 character(40) word
 logical check_input_delim, delim_found, is_ok, must_have_delim
@@ -9050,16 +9028,24 @@ must_have_delim = (index(delim_list, ' ') == 0)
 
 if (check_input_delim) then
   if ((must_have_delim .and. .not. delim_found) .or. &
-      (delim /= '' .and. index(delim_list, delim) == 0)) then
-    call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
+                        (delim /= '' .and. index(delim_list, delim) == 0)) then
+    if (ele_name(1:1) == '!') then  ! Indicates is not an element
+      call parser_error ('BAD DELIMITOR', 'FOR: ' // ele_name)
+    else
+      call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele_name)
+    endif
     return
   endif
 
 else
   call get_next_word (word, ix_word, '{}=,()[]', delim, delim_found)
   if (word /= '' .or. (must_have_delim .and. .not. delim_found) .or. &
-      (delim /= '' .and. index(delim_list, delim) == 0)) then
-    call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
+                      (delim /= '' .and. index(delim_list, delim) == 0)) then
+    if (ele_name(1:1) == '!') then  ! Indicates is not an element
+      call parser_error ('BAD DELIMITOR', 'FOR: ' // ele_name)
+    else
+      call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele_name)
+    endif
     return
   endif
 endif
@@ -9205,5 +9191,66 @@ allocate(sequence(n_seq))
 sequence(1:n) = temp_seq
 
 end subroutine reallocate_sequence
+
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!+
+! Subroutine parse_superimpose_command(lat, delim)
+!-
+
+subroutine parse_superimpose_command(lat, ele, pele, delim)
+
+type (lat_struct) lat
+type (ele_struct) ele
+type (parser_ele_struct) pele
+
+integer ix_word, n
+logical delim_found, err_flag
+
+character(*) delim
+character(40) var, value
+
+
+!
+
+err_flag = .false.
+
+ele%name = 'SUPERIMPOSE COMMAND'
+ele%lord_status = super_lord$
+pele%superposition_command_here = .true.
+
+if (delim /= ',') then
+  call parser_error ('MISSING COMMA IN "SUPERIMPOSE" STATEMENT.')
+  return
+endif
+
+do
+  call get_next_word(var, ix_word, '=,', delim, delim_found, .true.)
+  if (.not. expect_one_of('=', .true., '!SUPERIMPOSE STATEMENT', delim, delim_found)) return
+
+  select case (var)
+  case ('CREATE_JUMBO_SLAVE')
+    call parser_get_logical (value, pele%create_jumbo_slave, ele%name, delim, delim_found, err_flag)
+  case ('REF')
+    call get_next_word(pele%ref_name, ix_word,  '=,', delim, delim_found, .true.)
+  case ('ELEMENT')
+    call get_next_word(pele%ele_name, ix_word,  '=,', delim, delim_found, .true.)
+  case ('ELE_ORIGIN')
+    call get_switch (value, anchor_pt_name(1:), pele%ele_pt, err_flag, ele, delim, delim_found)
+  case ('REF_ORIGIN')
+    call get_switch (value, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found)
+  case ('OFFSET')
+    call parse_evaluate_value ('SUPERIMPOSE STATEMENT OFFSET', pele%offset, lat, delim, delim_found, err_flag)
+  case default
+    call parser_error ('UNKNOWN PARAMETER OF SUPERIMPOSE COMMAND: ' // var)
+    return
+  end select
+
+  if (err_flag) return
+  if (.not. delim_found) exit
+enddo
+
+end subroutine parse_superimpose_command
 
 end module

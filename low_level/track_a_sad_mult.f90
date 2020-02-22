@@ -28,7 +28,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) rel_pc, dz4_coef(4,4), mass, e_tot
 real(rp) ks, k1, length, z_start, t_start, charge_dir, kx, ky
 real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll, k0
-real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), knsl(0:n_pole_maxx)
 real(rp) :: vec0(6), kmat(6,6)
 
 integer n, nd, orientation, n_div, np_max, physical_end, fringe_at, ix_pole_max
@@ -55,7 +55,7 @@ rel_pc = 1 + orbit%vec(6)
 orientation = ele%orientation * orbit%direction
 charge_dir = rel_tracking_charge_to_mass(orbit, param) * orientation
 
-knl = 0; tilt = 0
+knl = 0; tilt = 0; knsl = 0
 call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
 
 ! Setup ele2 which is used in offset_particle
@@ -103,7 +103,7 @@ orbit%vec(4) = orbit%vec(4) - ele%value(x_offset_mult$) * ks / 2
 ele2%value(tilt_tot$) = tilt(1) 
 tilt = tilt - tilt(1)
 
-call multipole_kt_to_ab (knl, tilt, a_pole, b_pole)
+call multipole_kt_to_ab (knl, tilt, knsl, a_pole, b_pole)
 knl(1) = 0 ! So multipole_kicks does not conflict with sol_quad calc. 
 
 call offset_particle (ele2, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = present(mat6))

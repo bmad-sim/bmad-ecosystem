@@ -313,6 +313,16 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! Superimpose statement
+
+  if (word_1(:ix_word) == 'SUPERIMPOSE') then
+    call new_element_init('superimpose:' // int_str(n_max+1), in_lat, in_name, err)
+    ele => in_lat%ele(n_max)
+    call parse_superimpose_command(in_lat, ele, plat%ele(ele%ixx), delim)
+    cycle parsing_loop   
+  endif
+
+  !-------------------------------------------
   ! USE command...
 
   if (word_1(:ix_word) == 'USE') then
@@ -983,7 +993,17 @@ branch_loop: do i_loop = 1, n_branch_max
 
   do i = 1, n_max
     if (in_lat%ele(i)%lord_status /= super_lord$) cycle
-    call parser_add_superimpose (branch, in_lat%ele(i), plat%ele(i), in_lat, plat)
+    pele => plat%ele(i)
+    if (pele%superposition_command_here) then
+      call lat_ele_locator (pele%ele_name, in_lat, eles, n_loc, err)
+      if (n_loc == 0) then
+        call parser_error ('CANNOT FIND ELEMENT FOR SUPERPOSITION: ' // pele%ele_name)
+        cycle
+      endif
+      call parser_add_superimpose (branch, eles(1)%ele, pele, in_lat, plat)
+    else
+      call parser_add_superimpose (branch, in_lat%ele(i), pele, in_lat, plat)
+    endif
     call s_calc (lat)  ! calc longitudinal distances of new branch elements
   enddo
 
@@ -1107,7 +1127,7 @@ do i = 1, n_max
   if (in_lat%ele(i)%lord_status == super_lord$ .or. pele%superposition_has_been_set) cycle
   if (pele%ref_name /= blank_name$ .or. pele%offset /= 0 .or. &
       pele%ele_pt /= not_set$ .or. pele%ref_pt /= not_set$) then
-    call parser_error ('SUPERPOSITION ATTRIBUTE SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)
+    call parser_error ('A SUPERPOSITION PARAMETER HAS BEEN SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)
   endif
 enddo
 
@@ -1337,7 +1357,6 @@ endif
 
 err = .false.
 
-n_max = n_max
 if (n_max >= ubound(lat0%ele, 1)) then
   call allocate_lat_ele_array (lat0)
   call re_allocate2 (in_name, 0, ubound(lat0%ele, 1), init_val = '')

@@ -1412,14 +1412,15 @@ call init_attribute_name1 (sol_quad$, ptc_canonical_coords$,        'PTC_CANONIC
 call init_attribute_name1 (sol_quad$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (sol_quad$, p0c_start$,                   'p0c_start', private$)
 
-attrib_array(multipole$, k0l$:k21l$)%name    = &
-             ['K0L ', 'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', 'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
-                      'K11L', 'K12L', 'K13L', 'K14L', 'K15L', 'K16L', 'K17L', 'K18L', 'K19L', 'K20L', 'K21L']
+attrib_array(multipole$, k0l$:k21l$)%name = ['K0L ', &
+             'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', 'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
+             'K11L', 'K12L', 'K13L', 'K14L', 'K15L', 'K16L', 'K17L', 'K18L', 'K19L', 'K20L', 'K21L']
+attrib_array(multipole$, k0sl$:k21sl$)%name  = ['K0SL ', &
+             'K1SL ', 'K2SL ', 'K3SL ', 'K4SL ', 'K5SL ', 'K6SL ', 'K7SL ', 'K8SL ', 'K9SL ', 'K10SL', &
+             'K11SL', 'K12SL', 'K13SL', 'K14SL', 'K15SL', 'K16SL', 'K17SL', 'K18SL', 'K19SL', 'K20SL', 'K21SL']
 attrib_array(multipole$, t0$:t21$)%name = ['T0 ', &
-                               'T1 ', 'T2 ', 'T3 ', 'T4 ', 'T5 ', & 
-                               'T6 ', 'T7 ', 'T8 ', 'T9 ', 'T10', &
-                               'T11', 'T12', 'T13', 'T14', 'T15', &
-                               'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
+             'T1 ', 'T2 ', 'T3 ', 'T4 ', 'T5 ', 'T6 ', 'T7 ', 'T8 ', 'T9 ', 'T10', &
+             'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21']
 attrib_array(multipole$, k0l$:t21$)%state = is_free$
 call init_attribute_name1 (multipole$, l$,                          'L')
 call init_attribute_name1 (multipole$, field_master$,               'FIELD_MASTER')
@@ -1930,54 +1931,54 @@ case ('LR_FREQ_SPREAD', 'RF_FREQUENCY')
 case ('BS_FIELD', 'B_FIELD', 'B_FIELD_ERR', 'B_MAX')
   attrib_units = 'T'
 
-case ('B1_GRADIENT');                           attrib_units = 'T/m'
-case ('B2_GRADIENT');                           attrib_units = 'T/m^2'
-case ('B3_GRADIENT');                           attrib_units = 'T/m^3'
-case ('BL_HKICK', 'BL_KICK', 'BL_VKICK');       attrib_units = 'T*m'
-case ('A0', 'B0', 'K0L');                       attrib_units = ''
-case ('A1', 'B1', 'K1L', 'KS');                 attrib_units = '1/m'
-case ('A2', 'B2', 'K2L', 'K1', 'K1_PSEUDO');    attrib_units = '1/m^2'
-case ('A3', 'B3', 'K3L', 'K2');                 attrib_units = '1/m^3'
-case ('A4', 'B4', 'K4L', 'K3');                 attrib_units = '1/m^4'
-case ('A5', 'B5', 'K5L');                       attrib_units = '1/m^5'
-case ('A6', 'B6', 'K6L');                       attrib_units = '1/m^6'
-case ('A7', 'B7', 'K7L');                       attrib_units = '1/m^7'
-case ('A8', 'B8', 'K8L');                       attrib_units = '1/m^8'
-case ('A9', 'B9', 'K9L');                       attrib_units = '1/m^9'
-case ('A10', 'B10', 'K10L');                    attrib_units = '1/m^10'
-case ('A11', 'B11', 'K11L');                    attrib_units = '1/m^11'
-case ('A12', 'B12', 'K12L');                    attrib_units = '1/m^12'
-case ('A13', 'B13', 'K13L');                    attrib_units = '1/m^13'
-case ('A14', 'B14', 'K14L');                    attrib_units = '1/m^14'
-case ('A15', 'B15', 'K15L');                    attrib_units = '1/m^15'
-case ('A16', 'B16', 'K16L');                    attrib_units = '1/m^16'
-case ('A17', 'B17', 'K17L');                    attrib_units = '1/m^17'
-case ('A18', 'B18', 'K18L');                    attrib_units = '1/m^18'
-case ('A19', 'B19', 'K19L');                    attrib_units = '1/m^19'
-case ('A20', 'B20', 'K20L');                    attrib_units = '1/m^20'
-case ('A21', 'B21', 'K21L');                    attrib_units = '1/m^21'
-case ('A0_ELEC', 'B0_ELEC');                    attrib_units = 'V/m'
-case ('A1_ELEC', 'B1_ELEC');                    attrib_units = 'V/m^2'
-case ('A2_ELEC', 'B2_ELEC');                    attrib_units = 'V/m^3'
-case ('A3_ELEC', 'B3_ELEC');                    attrib_units = 'V/m^4'
-case ('A4_ELEC', 'B4_ELEC');                    attrib_units = 'V/m^5'
-case ('A5_ELEC', 'B5_ELEC');                    attrib_units = 'V/m^6'
-case ('A6_ELEC', 'B6_ELEC');                    attrib_units = 'V/m^7'
-case ('A7_ELEC', 'B7_ELEC');                    attrib_units = 'V/m^8'
-case ('A8_ELEC', 'B8_ELEC');                    attrib_units = 'V/m^9'
-case ('A9_ELEC', 'B9_ELEC');                    attrib_units = 'V/m^10'
-case ('A10_ELEC', 'B10_ELEC');                  attrib_units = 'V/m^11'
-case ('A11_ELEC', 'B11_ELEC');                  attrib_units = 'V/m^12'
-case ('A12_ELEC', 'B12_ELEC');                  attrib_units = 'V/m^13'
-case ('A13_ELEC', 'B13_ELEC');                  attrib_units = 'V/m^14'
-case ('A14_ELEC', 'B14_ELEC');                  attrib_units = 'V/m^15'
-case ('A15_ELEC', 'B15_ELEC');                  attrib_units = 'V/m^16'
-case ('A16_ELEC', 'B16_ELEC');                  attrib_units = 'V/m^17'
-case ('A17_ELEC', 'B17_ELEC');                  attrib_units = 'V/m^18'
-case ('A18_ELEC', 'B18_ELEC');                  attrib_units = 'V/m^19'
-case ('A19_ELEC', 'B19_ELEC');                  attrib_units = 'V/m^20'
-case ('A20_ELEC', 'B20_ELEC');                  attrib_units = 'V/m^21'
-case ('A21_ELEC', 'B21_ELEC');                  attrib_units = 'V/m^22'
+case ('B1_GRADIENT');                                   attrib_units = 'T/m'
+case ('B2_GRADIENT');                                   attrib_units = 'T/m^2'
+case ('B3_GRADIENT');                                   attrib_units = 'T/m^3'
+case ('BL_HKICK', 'BL_KICK', 'BL_VKICK');               attrib_units = 'T*m'
+case ('A0', 'B0', 'K0L', 'K0SL');                       attrib_units = ''
+case ('A1', 'B1', 'K1L', 'K1SL', 'KS');                 attrib_units = '1/m'
+case ('A2', 'B2', 'K2L', 'K2SL', 'K1', 'K1_PSEUDO');    attrib_units = '1/m^2'
+case ('A3', 'B3', 'K3L', 'K3SL', 'K2');                 attrib_units = '1/m^3'
+case ('A4', 'B4', 'K4L', 'K4SL', 'K3');                 attrib_units = '1/m^4'
+case ('A5', 'B5', 'K5L', 'K5SL');                       attrib_units = '1/m^5'
+case ('A6', 'B6', 'K6L', 'K6SL');                       attrib_units = '1/m^6'
+case ('A7', 'B7', 'K7L', 'K7SL');                       attrib_units = '1/m^7'
+case ('A8', 'B8', 'K8L', 'K8SL');                       attrib_units = '1/m^8'
+case ('A9', 'B9', 'K9L', 'K9SL');                       attrib_units = '1/m^9'
+case ('A10', 'B10', 'K10L', 'K10SL');                   attrib_units = '1/m^10'
+case ('A11', 'B11', 'K11L', 'K11SL');                   attrib_units = '1/m^11'
+case ('A12', 'B12', 'K12L', 'K12SL');                   attrib_units = '1/m^12'
+case ('A13', 'B13', 'K13L', 'K13SL');                   attrib_units = '1/m^13'
+case ('A14', 'B14', 'K14L', 'K14SL');                   attrib_units = '1/m^14'
+case ('A15', 'B15', 'K15L', 'K15SL');                   attrib_units = '1/m^15'
+case ('A16', 'B16', 'K16L', 'K16SL');                   attrib_units = '1/m^16'
+case ('A17', 'B17', 'K17L', 'K17SL');                   attrib_units = '1/m^17'
+case ('A18', 'B18', 'K18L', 'K18SL');                   attrib_units = '1/m^18'
+case ('A19', 'B19', 'K19L', 'K19SL');                   attrib_units = '1/m^19'
+case ('A20', 'B20', 'K20L', 'K20SL');                   attrib_units = '1/m^20'
+case ('A21', 'B21', 'K21L', 'K21SL');                   attrib_units = '1/m^21'
+case ('A0_ELEC', 'B0_ELEC');                            attrib_units = 'V/m'
+case ('A1_ELEC', 'B1_ELEC');                            attrib_units = 'V/m^2'
+case ('A2_ELEC', 'B2_ELEC');                            attrib_units = 'V/m^3'
+case ('A3_ELEC', 'B3_ELEC');                            attrib_units = 'V/m^4'
+case ('A4_ELEC', 'B4_ELEC');                            attrib_units = 'V/m^5'
+case ('A5_ELEC', 'B5_ELEC');                            attrib_units = 'V/m^6'
+case ('A6_ELEC', 'B6_ELEC');                            attrib_units = 'V/m^7'
+case ('A7_ELEC', 'B7_ELEC');                            attrib_units = 'V/m^8'
+case ('A8_ELEC', 'B8_ELEC');                            attrib_units = 'V/m^9'
+case ('A9_ELEC', 'B9_ELEC');                            attrib_units = 'V/m^10'
+case ('A10_ELEC', 'B10_ELEC');                          attrib_units = 'V/m^11'
+case ('A11_ELEC', 'B11_ELEC');                          attrib_units = 'V/m^12'
+case ('A12_ELEC', 'B12_ELEC');                          attrib_units = 'V/m^13'
+case ('A13_ELEC', 'B13_ELEC');                          attrib_units = 'V/m^14'
+case ('A14_ELEC', 'B14_ELEC');                          attrib_units = 'V/m^15'
+case ('A15_ELEC', 'B15_ELEC');                          attrib_units = 'V/m^16'
+case ('A16_ELEC', 'B16_ELEC');                          attrib_units = 'V/m^17'
+case ('A17_ELEC', 'B17_ELEC');                          attrib_units = 'V/m^18'
+case ('A18_ELEC', 'B18_ELEC');                          attrib_units = 'V/m^19'
+case ('A19_ELEC', 'B19_ELEC');                          attrib_units = 'V/m^20'
+case ('A20_ELEC', 'B20_ELEC');                          attrib_units = 'V/m^21'
+case ('A21_ELEC', 'B21_ELEC');                          attrib_units = 'V/m^22'
 
 case default
   if (present(unrecognized_units)) then
