@@ -13,6 +13,7 @@ SET (INC_DIRS
 SET (SRC_DIRS 
   code 
   custom
+  geometry
   interface
   modules
   multiparticle

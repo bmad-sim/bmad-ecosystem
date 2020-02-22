@@ -1,7 +1,7 @@
 module wall3d_mod
 
 use bmad_interface
-use geometry_mod
+use bmad_interface
 
 implicit none
 

@@ -1,6 +1,6 @@
 module blender_interface_mod
 
-use geometry_mod
+use bmad_interface
 
 implicit none
 

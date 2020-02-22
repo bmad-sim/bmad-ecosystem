@@ -392,7 +392,7 @@ end subroutine lat_compute_ref_energy_and_time
 subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
 
 use autoscale_mod, dummy => ele_compute_ref_energy_and_time
-use geometry_mod, dummy2 => ele_compute_ref_energy_and_time
+use bmad_interface, dummy2 => ele_compute_ref_energy_and_time
 
 implicit none
 

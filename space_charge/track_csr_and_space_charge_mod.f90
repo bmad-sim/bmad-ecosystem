@@ -7,7 +7,7 @@
 module track_csr_and_space_charge_mod
 
 use beam_utils
-use geometry_mod
+use bmad_interface
 use spline_mod
 use nr, only: zbrent
 use open_spacecharge_mod

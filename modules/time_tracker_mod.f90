@@ -1,7 +1,7 @@
 module time_tracker_mod
 
 use em_field_mod
-use geometry_mod
+use bmad_interface
 use runge_kutta_mod
 
 contains

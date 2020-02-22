@@ -7,7 +7,7 @@
 
 module ptc_interface_mod
 
-use geometry_mod
+use bmad_interface
 
 interface assignment (=)
   module procedure real_8_equal_bmad_taylor

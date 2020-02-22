@@ -144,6 +144,14 @@ subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field
   logical, optional :: calc_dfield, calc_potential
 end subroutine
 
+function bend_shift (position1, g, delta_s, w_mat, tilt) result(position2)
+  import
+  implicit none
+  type (floor_position_struct) :: position1, position2
+  real(rp) :: g, delta_s, S_mat(3,3), L_vec(3), tlt, angle
+  real(rp), optional :: w_mat(3,3), tilt
+end function bend_shift
+
 subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
   import
   implicit none
@@ -250,6 +258,73 @@ function congruent_lattice_elements (ele1, ele2) result (is_congruent)
   type (ele_struct) ele1, ele2
   logical is_congruent
 end function
+
+function coords_relative_to_floor (floor0, dr, theta, phi, psi) result (floor1)
+  import
+  implicit none
+  type (floor_position_struct) floor0, floor1
+  real(rp) dr(3)
+  real(rp), optional :: theta, phi, psi
+end function coords_relative_to_floor
+
+function coords_floor_to_relative (floor0, global_position, calculate_angles, is_delta_position) result (local_position)
+  import
+  implicit none
+  type (floor_position_struct) floor0, global_position, local_position
+  logical, optional :: calculate_angles, is_delta_position
+end function coords_floor_to_relative
+
+function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat, use_patch_entrance) result(local_position)
+  import
+  implicit none
+  type (floor_position_struct) :: global_position, local_position
+  type (ele_struct)   :: ele
+  real(rp), optional :: w_mat(3,3)
+  integer :: status
+  logical, optional :: use_patch_entrance
+end function coords_floor_to_local_curvilinear
+
+function coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) result (local_coords)
+  import
+  implicit none
+  type (floor_position_struct) floor_coords, local_coords
+  type (ele_struct), target :: ele0
+  type (ele_struct), pointer :: ele1
+  integer status
+  real(rp), optional :: w_mat(3,3)
+end function coords_floor_to_curvilinear
+
+function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, &
+                                        w_mat, calculate_angles, use_patch_entrance) result (global_position)
+  import
+  implicit none
+  type (floor_position_struct) :: local_position, global_position, p, floor0
+  type (ele_struct), target :: ele
+  type (ele_struct), pointer :: ele1
+  real(rp) :: w_mat_local(3,3), L_vec(3), S_mat(3,3), z
+  real(rp), optional :: w_mat(3,3)
+  logical, optional :: in_ele_frame
+  logical, optional :: calculate_angles
+  logical, optional :: use_patch_entrance
+end function coords_local_curvilinear_to_floor
+
+function coords_element_frame_to_local (body_position, ele, w_mat, calculate_angles) result(local_position)
+  import
+  implicit none
+  type (floor_position_struct) :: body_position, local_position
+  type (ele_struct) :: ele
+  real(rp), optional :: w_mat(3,3)
+  logical, optional :: calculate_angles
+end function coords_element_frame_to_local
+
+function coords_curvilinear_to_floor (xys, branch, err_flag) result (global)
+  import
+  implicit none
+  type (branch_struct), target :: branch
+  type (floor_position_struct) global, local
+  real(rp) xys(3)
+  logical err_flag
+end function coords_curvilinear_to_floor
 
 subroutine check_controller_controls (contrl, name, err)
   import
@@ -554,6 +629,24 @@ recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag
   logical err_flag
 end subroutine
 
+recursive subroutine ele_geometry (floor_start, ele, floor_end, len_scale, ignore_patch_err)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (floor_position_struct), optional, target :: floor_end
+  type (floor_position_struct) :: floor_start
+  real(rp), optional :: len_scale
+  logical, optional :: ignore_patch_err
+end subroutine ele_geometry
+
+function ele_geometry_with_misalignments (ele, len_scale) result (floor)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  type (floor_position_struct) floor
+  real(rp), optional :: len_scale
+end function ele_geometry_with_misalignments
+
 function ele_has_constant_ds_dt_ref (ele) result (is_const)
   import
   implicit none
@@ -583,6 +676,13 @@ function ele_location (ele, show_branch0, parens) result (str)
   character(2), optional :: parens
   character(10) str
 end function
+
+subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
+  import
+  implicit none
+  type(ele_struct) :: ele 
+  real(rp) :: L_mis(3), S_mis(3,3)
+end subroutine ele_misalignment_L_S_calc
 
 function ele_to_lat_loc (ele) result (ele_loc)
   import
@@ -634,6 +734,20 @@ subroutine find_matching_fieldmap (file_name, ele, t_type, match_ele, ix_field, 
   logical, optional :: ignore_slaves
   character(*) file_name
 end subroutine
+
+subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat, w_mat_inv)
+  import
+  implicit none
+  real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
+  real(rp) theta, phi, psi
+end subroutine floor_angles_to_w_mat
+
+subroutine floor_w_mat_to_angles (w_mat, theta, phi, psi, floor0)
+  import
+  implicit none
+  type (floor_position_struct), optional :: floor0
+  real(rp) theta, phi, psi, w_mat(3,3)
+end subroutine floor_w_mat_to_angles
 
 subroutine g_bending_strength_from_em_field (ele, param, s_rel, orbit, local_ref_frame, g, dg)
   import
@@ -796,6 +910,12 @@ subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err,
   logical, optional :: above_ubound_is_err, err, order_by_index
   integer, optional :: ix_dflt_branch
 end subroutine
+
+subroutine lat_geometry (lat)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+end subroutine lat_geometry
 
 recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch, err_flag)
   import
@@ -1154,6 +1274,13 @@ function particle_rf_time (orbit, ele, apply_hard_edge_offset, s_rel) result (ti
   real(rp) time
   logical apply_hard_edge_offset
 end function
+
+function patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)
+  import
+  implicit none
+  real(rp) x_pitch, y_pitch
+  logical is_flip
+end function patch_flips_propagation_direction
 
 subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
   import
@@ -2320,6 +2447,13 @@ subroutine unlink_wall3d (wall3d)
   type (wall3d_struct), pointer :: wall3d(:)
 end subroutine
 
+subroutine update_floor_angles (floor, floor0)
+  import
+  implicit none
+  type(floor_position_struct) :: floor
+  type(floor_position_struct), optional :: floor0
+end subroutine update_floor_angles
+
 function valid_field_calc (ele, field_calc) result (is_valid)
   import
   implicit none
@@ -2386,6 +2520,37 @@ function vec_to_spinor (vec, phase) result (spinor)
   real(rp), optional :: phase
   complex(rp) :: spinor(2)
 end function
+
+function w_mat_for_bend_angle (angle, ref_tilt, r_vec) result (w_mat)
+  import
+  implicit none
+  real(rp) angle, ref_tilt, w_mat(3,3), t_mat(3,3)
+  real(rp), optional :: r_vec(3)
+end function w_mat_for_bend_angle
+
+function w_mat_for_x_pitch (x_pitch, return_inverse) result (w_mat)
+  import
+  implicit none
+  real(rp) x_pitch, c_ang, s_ang
+  real(rp) :: w_mat(3,3)
+  logical, optional :: return_inverse
+end function w_mat_for_x_pitch
+
+function w_mat_for_y_pitch (y_pitch, return_inverse) result (w_mat)
+  import
+  implicit none
+  real(rp) y_pitch, c_ang, s_ang
+  real(rp) :: w_mat(3,3)
+  logical, optional :: return_inverse
+end function w_mat_for_y_pitch
+
+function w_mat_for_tilt (tilt, return_inverse) result (w_mat)
+  import
+  implicit none
+  real(rp) tilt, c_ang, s_ang
+  real(rp) :: w_mat(3,3)
+  logical, optional :: return_inverse
+end function w_mat_for_tilt
 
 subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, extra, err_flag)
   import

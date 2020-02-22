@@ -144,7 +144,7 @@ end subroutine write_astra_lattice_file
 !------------------------------------------------------------------------
 !+ 
 subroutine write_astra_ele(iu, ele, id, fieldgrid_names, dimensions)
-use geometry_mod
+use bmad_interface
 
 implicit none
 

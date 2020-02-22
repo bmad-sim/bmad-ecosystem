@@ -337,7 +337,7 @@ end subroutine write_gpt_lattice_file
 
 subroutine write_gpt_ele(iu, ele, name, fieldgrid_names, dimensions, only_phasing)
 
-use geometry_mod
+use bmad_interface
 
 type (ele_struct) :: ele
 type (floor_position_struct) :: floor1, floor2

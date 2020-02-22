@@ -68,7 +68,7 @@
 
 subroutine offset_particle (ele, param, set, orbit, set_tilt, set_hvkicks, drift_to_edge, s_pos, s_out, set_spin, mat6, make_matrix)
 
-use geometry_mod, except_dummy => offset_particle
+use bmad_interface, except_dummy => offset_particle
 
 implicit none
 

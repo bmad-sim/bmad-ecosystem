@@ -44,7 +44,7 @@
 recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, &
            track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, reuse_ele_end)
 
-use geometry_mod, dummy => twiss_and_track_intra_ele
+use bmad_interface, dummy => twiss_and_track_intra_ele
 
 implicit none
 

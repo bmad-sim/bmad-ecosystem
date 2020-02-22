@@ -429,25 +429,24 @@ case (beginning_ele$)
     return
   endif
 
-  if (dep_set) then
-    if (associated(a_ptr, ele%b%beta) .or. associated(a_ptr, ele%b%alpha)) then
+  if (associated(a_ptr, ele%b%beta) .or. associated(a_ptr, ele%b%alpha)) then
+    if (dep_set) then
       if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
     endif
     return
   endif
 
-  if (dep_set) then
-    if (associated(a_ptr, ele%c_mat(1,1)) .or. associated(a_ptr, ele%c_mat(1,2)) .or. & 
-            associated(a_ptr, ele%c_mat(2,1)) .or. associated(a_ptr, ele%c_mat(2,2))) then
+  if (associated(a_ptr, ele%c_mat(1,1)) .or. associated(a_ptr, ele%c_mat(1,2)) .or. & 
+      associated(a_ptr, ele%c_mat(2,1)) .or. associated(a_ptr, ele%c_mat(2,2))) then
+    if (dep_set) then
       ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
       coupling_change = .true.
     endif
   endif
 
-  if (dep_set) then
-    if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
-        associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. &
-        coupling_change) then 
+  if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
+      associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. coupling_change) then
+    if (dep_set) then
       call make_v_mats (ele, v_mat, v_inv_mat)
       eta_xy_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
       eta_vec = matmul (v_inv_mat, eta_xy_vec)
@@ -455,13 +454,13 @@ case (beginning_ele$)
       ele%a%etap = eta_vec(2)
       ele%b%eta  = eta_vec(3)
       ele%b%etap = eta_vec(4)
-      return
     endif
+    return
   endif
 
-  if (dep_set) then
-    if (associated(a_ptr, ele%a%eta) .or. associated(a_ptr, ele%a%etap) .or. &
-        associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
+  if (associated(a_ptr, ele%a%eta) .or. associated(a_ptr, ele%a%etap) .or. &
+      associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
+    if (dep_set) then
       call make_v_mats (ele, v_mat, v_inv_mat)
       eta_vec = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
       eta_xy_vec = matmul (v_mat, eta_vec)
@@ -469,14 +468,15 @@ case (beginning_ele$)
       ele%x%etap = eta_xy_vec(2)
       ele%y%eta  = eta_xy_vec(3)
       ele%y%etap = eta_xy_vec(4)
-      return
     endif
+    return
   endif
 
   if (associated(a_ptr, ele%floor%r(1)) .or. associated(a_ptr, ele%floor%r(2)) .or. &
       associated(a_ptr, ele%floor%r(3)) .or. associated(a_ptr, ele%floor%theta) .or. &
       associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi)) then
     call set_ele_status_stale (ele, floor_position_group$)
+    call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, ele%floor%w)
     return
   endif
 

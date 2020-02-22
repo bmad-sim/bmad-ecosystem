@@ -20,7 +20,7 @@
 
 subroutine create_field_overlap (lat, lord_name, slave_name, err_flag)
 
-use geometry_mod, except_dummy => create_field_overlap
+use bmad_interface, except_dummy => create_field_overlap
 
 implicit none
 
