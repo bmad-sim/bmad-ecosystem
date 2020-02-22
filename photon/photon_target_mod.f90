@@ -1,6 +1,6 @@
 module photon_target_mod
 
-use geometry_mod
+use bmad_interface
 use photon_utils_mod
 
 implicit none

@@ -25,7 +25,7 @@
 
 subroutine ele_geometry_hook (floor0, ele, floor, finished, len_scale)
 
-use geometry_mod, dummy => ele_geometry_hook
+use bmad_interface, dummy => ele_geometry_hook
 
 implicit none
 

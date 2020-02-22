@@ -20,7 +20,7 @@
 subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag, mat6, make_matrix)
 
 use fringe_mod, dummy2 => track1_bmad
-use geometry_mod, dummy4 => track1_bmad
+use bmad_interface, dummy4 => track1_bmad
 
 implicit none
 

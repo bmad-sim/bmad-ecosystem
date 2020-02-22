@@ -44,7 +44,7 @@
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
              type_control, type_wake, type_floor_coords, type_field, type_wall, lines, n_lines)
 
-use geometry_mod, except_dummy => type_ele
+use bmad_interface, except_dummy => type_ele
 use expression_mod
 use indexx_mod
 
