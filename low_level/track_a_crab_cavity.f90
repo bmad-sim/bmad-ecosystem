@@ -37,19 +37,14 @@ logical, optional :: make_matrix
 call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 length = ele%value(l$)
-n_slice = max(1, nint(length / ele%value(ds_step$))) 
+!n_slice = max(1, nint(length / ele%value(ds_step$))) 
+n_slice = 1
 dl = length / n_slice
 charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation
 voltage = e_accel_field(ele, voltage$) * charge_dir / (ele%value(p0c$) * n_slice)
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 dt_ref = length / (c_light * beta_ref)
 k_rf = twopi * ele%value(rf_frequency$) / c_light
-
-
-phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
-        (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
-if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
-phase = phase0
 
 !call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_matrix)
 
@@ -59,7 +54,15 @@ call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 
 do i = 1, n_slice
 
+  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+          (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+  if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
+  phase = phase0
+
   if (logic_option(.false., make_matrix)) then
+    mat6(2,:) = mat6(2,:) + voltage * k_rf * cos(phase) * mat6(5,:)
+    mat6(6,:) = mat6(6,:) + voltage * k_rf * (cos(phase) * mat6(1,:) - &
+                                                  sin(phase) * k_rf * orbit%vec(1) * mat6(5,:))
   endif
 
   orbit%vec(2) = orbit%vec(2) + voltage * sin(phase)
@@ -93,7 +96,7 @@ logical make_matrix
 
 z = orbit%vec(5)
 call track_a_drift (orbit, dl, mat6, make_matrix)
-phase = phase + twopi * ele%value(rf_frequency$) * (orbit%vec(5) - z) / (c_light * orbit%beta)
+!! phase = phase + twopi * ele%value(rf_frequency$) * (orbit%vec(5) - z) / (c_light * orbit%beta)
 
 end subroutine track_this_drift
 

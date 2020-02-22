@@ -1961,11 +1961,11 @@ are interpreted as normalized or unnormalized.
 \index{multipole!knl, tn|hyperbf} 
 \index{multipole}
 A \vn{multipole} (\sref{s:mult}) element specifies its magnetic
-multipole components using an Amplitude (\vn{KnL}) and a tilt
-(\vn{Tn})
+multipole components using normal and skew components with a tilt
 \begin{example}
-  KnL = <Real>
-  Tn  = <Real>  ! Default is $pi$/(2n + 2)
+  KnL  = <Real>  ! Normal component. n = Integer. 
+  KnSL = <Real>  ! Skew component. n = Integer. 
+  Tn   = <Real>  ! Tilt. n = Integer. Default is $pi$/(2n + 2)
 \end{example}
 Where \vn{n} is an integer in the range from 0 (dipole component)
 through 21.  If \vn{Tn} is given without a value, a default of
@@ -1989,6 +1989,8 @@ Here \vn{n} ranges from 0 (dipole component) through 21. Example:
 \begin{example}
   q1: ab_multipole, b2 = 0.12, a20 = 1e7, field_master = T
 \end{example}
+Note that there is a factor of $n$-factorial difference between \vn{An}, \vn{Bn} and \vn{KnL},
+\vn{KnSL} multipoles \sref{s:mag.field}.
 
 \index{r0_mag}\index{scale_multipoles}
 Elements like \vn{quadrupoles} and \vn{sextupoles} can have assigned to them both magnetic and

@@ -1089,7 +1089,7 @@ type ele_struct
   real(rp) :: ref_time = 0                                     ! Time ref particle passes exit end.
   real(rp), pointer :: a_pole(:) => null()                     ! knl for multipole elements.
   real(rp), pointer :: b_pole(:) => null()                     ! tilt for multipole elements.
-  real(rp), pointer :: a_pole_elec(:) => null()                ! Electrostatic multipoles.
+  real(rp), pointer :: a_pole_elec(:) => null()                ! Electrostatic multipoles. ksnl for multipole elements.
   real(rp), pointer :: b_pole_elec(:) => null()                ! Electrostatic multipoles.
   real(rp), pointer :: custom(:) => null()                     ! Custom attributes.
   real(rp), pointer :: r(:,:,:) => null()                      ! For general use. Not used by Bmad.

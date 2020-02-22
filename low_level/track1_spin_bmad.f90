@@ -23,14 +23,15 @@ use em_field_mod, dummy => track1_spin_bmad
 
 implicit none
 
-type (coord_struct) :: start_orb
-type (coord_struct) :: temp_start, temp_end, end_orb
+type (coord_struct) :: start_orb, end_orb
+type (coord_struct) :: temp_start, temp_end, ave_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (fringe_edge_info_struct) fringe_info
+type (em_field_struct) field
 
 real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_end_lab
-
+real(rp) voltage, k_rf, phase
 integer key
 logical, optional :: make_quaternion
 
@@ -39,6 +40,28 @@ character(*), parameter :: r_name = 'track1_spin_bmad'
 ! Spin tracking handled by track_a_patch for patch elements.
 
 if (ele%key == patch$) return
+
+! crab_cavity
+
+if (ele%key == crab_cavity$) then
+  ave_orb = start_orb
+  ave_orb%vec  = (start_orb%vec  + end_orb%vec) / 2
+  ave_orb%t    = (start_orb%t    + end_orb%t) / 2
+  ave_orb%beta = (start_orb%beta + end_orb%beta) / 2
+
+  voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(ave_orb, param)
+  k_rf = twopi * ele%value(rf_frequency$) / c_light
+  phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+          (particle_rf_time (ave_orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+
+  field%B(2) = -voltage * sin(phase) / c_light
+  field%E(3) = voltage * k_rf * ave_orb%beta * ave_orb%vec(1) * cos(phase)
+
+  omega = spin_omega(field, ave_orb, ave_orb%direction * ele%orientation)
+  call rotate_spin(omega, end_orb%spin)
+
+  return
+endif
 
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 

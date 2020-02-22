@@ -1049,24 +1049,34 @@ The attributes specific to an \vn{crab_cavity} are
 
 The Hamiltonian  $H_{\text{crab}}$ for a thin crab cavity is\cite{b:crab1}:
 \Begineq
-  H_{\text{crab}} = -\frac{q_{rel} \, V\, x}{P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0)
+  H_{\text{crab}} = -\frac{q_{rel} \, V\, x}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0)
 \Endeq
 where $x$ and $z$ are particle coordinates, $q_{rel}$ is the charge relative to the reference
-particle, $V$ is the cavity voltage, $P_0$ is the reference energy, $\phi_0$ is a user settable
+particle, $V$ is the ``effective'' cavity voltage, $P_0$ is the reference energy, $\phi_0$ is a user settable
 phase, and $k$ is the wave number
 \Begineq
-  k = \frac{2 \, \pi \, f_{rf}}{c}
+  k = \frac{2 \, \pi \, f_{\text{rf}}}{c}
 \Endeq
 Which give kicks 
 \begin{align} 
   \Delta p_x &= -\frac{\partial H_{\text{crab}}}{\partial x} = 
-    \frac{q_{rel} \, V \, x}{P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
+    \frac{q_{rel} \, V}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
   \Delta p_z &= -\frac{\partial H_{\text{crab}}}{\partial z} = 
-    \frac{q_{rel} \, V \, \, k \, x}{P_0} \, \cos(k \, z + 2 \, \pi \, \phi_0) 
+    \frac{q_{rel} \, V \, \, k \, x}{c \, P_0} \, \cos(k \, z + 2 \, \pi \, \phi_0) 
 \end{align} 
-Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not
-standardized. \bmad uses the convention such that a particle with the charge of the reference 
-particle and with $z$ and $V$ positive will have a positive $\Delta p_x$.
+Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not standardized. \bmad
+uses the convention such that a particle with the charge of the reference particle and with $z$ and
+$V$ positive will have a positive $\Delta p_x$.
+
+The equations of motion can also be derived from analysis of a TM110 cavity mode for particles near
+the cenerline\cite{b:kim}. With this mode, the transverse kick is due to the magnetic field and the
+longitudinal kick is due to the electric field. Using this, the integrated electric and magnetic
+fields needed for spin tracking are:
+\begin{align}
+  \int \! B_y &= \frac{-V}{c} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
+  \int \! E_s &=  \beta \, V \, \, k \, x \, \cos(k \, z + 2 \, \pi \, \phi_0) 
+\end{align}
+where $\beta = v/c$ is the normalized speed of the particle.
 
 %-----------------------------------------------------------------
 \section{Custom}
@@ -1438,7 +1448,7 @@ Attributes specific to an \vn{elseparator} element are:
 \index{hkick}
 \index{vkick}
 For an \vn{elseparator}, the kick for a positively charged particle, with the magnitude of
-the charge that is the same as the reference particle (set by \vn{parameter[particle]}
+the charge that is the same as that of the reference particle (set by \vn{parameter[particle]}
 \sref{s:param}), is determined by \vn{hkick} and \vn{vkick}. The kick for a negatively
 charged particle is opposite this. The \vn{gap} for an \vn{Elseparator} is used to compute
 the voltage for a given kick
@@ -1446,10 +1456,12 @@ the voltage for a given kick
   e_field (V/m) = sqrt(hkick^2 + vkick^2) * P0 * c_light / L
   voltage (V) = e_field * gap
 \end{example}
+Specifying a \vn{e_field} or \vn{voltage} with no tilt results in a vertical kick.
 
-Example:
+Examples:
 \begin{example}
-  h_sep: elsep, l = 4.5, hkick = 0.003, gap = 0.11
+  h_sep1: elsep, l = 4.5, hkick = 0.003, gap = 0.11
+  h_sep2: elsep, l = 4.5, e_field = 1e5, tilt = pi/2
 \end{example}
 
 %-----------------------------------------------------------------
@@ -2912,12 +2924,12 @@ General \vn{multipole} attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
-  Custom Attributes          & \ref{s:cust.att}  & Is_on                      & \ref{s:is.on}   \\ 
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
-  K$n$L, T$n$ multipoles     & \ref{s:multip}    &                            &                 \\
+  {\sl Attribute Class}          & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits                & \ref{s:limit}     & Reference energy           & \ref{s:energy}  \\
+  Custom Attributes              & \ref{s:cust.att}  & Is_on                      & \ref{s:is.on}   \\ 
+  Chamber wall                   & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings            & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\ 
+  K$n$L, K$n$SL, T$n$ multipoles & \ref{s:multip}    &                            &                 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2938,7 +2950,7 @@ Like a \mad \vn{multipole}, a \bmad \vn{multipole} will affect the
 reference orbit if there is a dipole component. 
 Example:
 \begin{example}
-  m1: multipole, k1l = 0.034e-2, t1, k3l = 4.5, t3 = 0.31*pi
+  m1: multipole, k1l = 0.034e-2, t1, k3sl = 4.5, t3 = 0.31*pi
 \end{example}
 
 %-----------------------------------------------------------------

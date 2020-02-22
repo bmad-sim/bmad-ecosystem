@@ -37,7 +37,7 @@ type (branch_struct), pointer :: branch
 type (photon_surface_struct), pointer :: surface
 type (wake_lr_mode_struct), pointer :: lr
 
-real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
+real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
@@ -415,11 +415,16 @@ case (e_gun$)
 ! Elseparator
 
 case (elseparator$)
+  if (val(E_tot$) == 0) then ! Can happen during lattice parsing.
+    e_factor = 1
+  else
+    e_factor = val(p0c$)**2 / val(E_tot$) ! = p0c * (v/c)
+  endif
 
   if (ele%field_master) then
     if (val(p0c$) /= 0) then
       val(hkick$) = 0
-      val(vkick$) = val(l$) * val(e_field$) / val(p0c$)
+      val(vkick$) = val(l$) * val(e_field$) / e_factor
       val(voltage$) = val(e_field$) * val(gap$)
     endif
 
@@ -428,7 +433,7 @@ case (elseparator$)
       val(e_field$) = 0
       val(voltage$) = 0
     else
-      val(e_field$) = sqrt(val(hkick$)**2 + val(vkick$)**2) * val(p0c$) / val(l$)
+      val(e_field$) = sqrt(val(hkick$)**2 + val(vkick$)**2) * e_factor / val(l$)
       val(voltage$) = val(e_field$) * val(gap$) 
     endif
   endif

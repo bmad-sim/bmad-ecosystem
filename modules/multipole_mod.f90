@@ -126,25 +126,44 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 
 real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx)
-real(rp), pointer :: a_pole(:), b_pole(:)
+real(rp), pointer :: knl_pole(:), tilt_pole(:), ksl_pole(:)
 
 integer ix_pole_max
 integer, optional :: pole_type, include_kicks
-integer i, ix_max
+integer n, ix_max
 
 logical use_ele_tilt
 
 ! Multipole type element case
 
 if (ele%key == multipole$) then
+  if (integer_option(magnetic$, pole_type) == electric$) then
+    knl = 0
+    tilt = 0
+    ix_pole_max = 0
+    return
+  endif
+
   if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
     lord => pointer_to_lord(ele, 1)
-    call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
+    call pointer_to_ele_multipole (lord, knl_pole, tilt_pole, ksl_pole, pole_type)
   else
-    call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+    call pointer_to_ele_multipole (ele, knl_pole, tilt_pole, ksl_pole, pole_type)
   endif
-  knl  = a_pole
-  tilt = b_pole + ele%value(tilt_tot$)
+  if (all(ksl_pole == 0)) then
+    knl  = knl_pole
+    tilt = tilt_pole + ele%value(tilt_tot$)
+  else
+    do n = 0, n_pole_maxx
+      knl(n)  = sqrt(knl_pole(n)**2 + ksl_pole(n)**2)
+      tilt(n) = tilt_pole(n) - atan2(ksl_pole(n), knl_pole(n)) / (n + 1)
+      ! In case the user looks at this, make tilt(n) to be in the range [-pi, pi]/(n+1)
+      if (2 * (n + 1) * abs(tilt(n)) > pi) then
+        knl(n) = -knl(n)
+        tilt(n) = sign_of(tilt(n)) * (abs(tilt(n)) - pi/(n+1))
+      endif
+    enddo
+  endif
   ix_pole_max = max_nonzero(0, knl)
   return
 endif
@@ -166,31 +185,32 @@ end subroutine multipole_ele_to_kt
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_kt_to_ab (knl, tn, an, bn)
+! Subroutine multipole_kt_to_ab (knl, knsl, tn, an, bn)
 !
 ! Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
 ! Also see: multipole1_kt_to_ab.
 !
 ! Input:
-!   knl(0:) -- Real(rp): Multitude magnatude.
-!   tn(0:)  -- Real(rp): Multipole angle.
+!   knl(0:)  -- Real(rp): Normal multitude component.
+!   knsl(0:) -- Real(rp): Skew multitude component.
+!   tn(0:)   -- Real(rp): Multipole angle.
 !
 ! Output:
 !   an(0:) -- Real(rp): Skew multipole component.
 !   bn(0:) -- Real(rp): Normal multipole component.
 !-
 
-subroutine multipole_kt_to_ab (knl, tn, an, bn)
+subroutine multipole_kt_to_ab (knl, knsl, tn, an, bn)
 
 real(rp) an(0:), bn(0:)
-real(rp) knl(0:), tn(0:)
+real(rp) knl(0:), knsl(0:), tn(0:)
 
 integer n
 
 !
 
 do n = lbound(an, 1), ubound(an, 1)
-  call multipole1_kt_to_ab (knl(n), tn(n), n, an(n), bn(n))
+  call multipole1_kt_to_ab (knl(n), knsl(n), tn(n), n, an(n), bn(n))
 enddo
 
 end subroutine multipole_kt_to_ab
@@ -199,39 +219,39 @@ end subroutine multipole_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole1_kt_to_ab (knl, tn, n, an, bn)
+! Subroutine multipole1_kt_to_ab (knl, knsl, tn, n, an, bn)
 !
 ! Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
 ! Also see: multipole_kt_to_ab.
 !
 ! Input:
-!   knl -- Real(rp): Multitude magnatude.
-!   tn  -- Real(rp): Multipole angle.
-!   n   -- Integer: Multipole order.
+!   knl  -- Real(rp): Normal multitude component.
+!   knsl -- Real(rp): Skew multitude component.
+!   tn   -- Real(rp): Multipole angle.
+!   n    -- Integer: Multipole order.
 !
 ! Output:
 !   an -- Real(rp): Skew multipole component.
 !   bn -- Real(rp): Normal multipole component.
 !-
 
-subroutine multipole1_kt_to_ab (knl, tn, n, an, bn)
+subroutine multipole1_kt_to_ab (knl, knsl, tn, n, an, bn)
 
 real(rp) an, bn
-real(rp) knl, tn
-real(rp) angle, kl
+real(rp) knl, knsl, tn
+real(rp) angle
 
 integer n
 
 !
 
-if (knl == 0) then
-  an = 0
+if (knl == 0 .and. knsl == 0) then
   bn = 0
+  an = 0
 else
-  kl = knl / factorial(n)
   angle = -tn * (n + 1)
-  an = kl * sin(angle)
-  bn = kl * cos(angle)
+  bn = (knl * cos(angle) - knsl * sin(angle)) / factorial(n)
+  an = (knl * sin(angle) + knsl * cos(angle)) / factorial(n)
 endif
 
 end subroutine multipole1_kt_to_ab
@@ -271,7 +291,7 @@ type (ele_struct), pointer :: lord
 real(rp) const, radius, factor, a(0:), b(0:)
 real(rp) an, bn, sin_t, cos_t
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
-real(rp), pointer :: a_pole(:), b_pole(:)
+real(rp), pointer :: a_pole(:), b_pole(:), ksl_pole(:)
 
 integer ix_pole_max
 integer, optional :: pole_type, include_kicks
@@ -287,20 +307,22 @@ a = 0
 b = 0
 ix_pole_max = -1
 
+if (ele%key == multipole$ .and. integer_option(magnetic$, pole_type) == electric$) return
+
 ! Slice slaves and super slaves have their associated multipoles stored in the lord
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
-    call pointer_to_ele_multipole (lord, a_pole, b_pole, pole_type)
-    if (.not. associated(a_pole)) cycle
+    call pointer_to_ele_multipole (lord, a_pole, b_pole, ksl_pole, pole_type)
+    if (.not. associated(a_pole) .and. .not. associated(ksl_pole)) cycle
     if (.not. (lord%multipoles_on .and. lord%is_on)) cycle
 
     if (lord%key == multipole$) then
-      ix_pole_max = max_nonzero(0, a_pole)
+      ix_pole_max = max_nonzero(0, a_pole, ksl_pole)
       if (ix_pole_max == -1) return
-      call multipole_kt_to_ab (a_pole, b_pole, a, b)
+      call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
       return
     endif
 
@@ -320,13 +342,13 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
 ! Not a slave
 
 else
-  call pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+  call pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
 
   if (ele%key == multipole$) then
-    if (integer_option(magnetic$, pole_type) == electric$) return
-    ix_pole_max = max_nonzero(0, a_pole, b_pole)
+    ix_pole_max = max_nonzero(0, a_pole, ksl_pole)
     if (ix_pole_max == -1) return
-    call multipole_kt_to_ab (a_pole, b_pole, a, b)
+    call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
+    return
   else
     call convert_this_ab (ele, a, b)
   endif
@@ -1116,7 +1138,7 @@ end subroutine elec_multipole_field
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+! Subroutine pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
 !
 ! Routine to point to the appropriate magnetic or electric poles in an element.
 !
@@ -1125,23 +1147,27 @@ end subroutine elec_multipole_field
 !   pole_type    -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
 !
 ! Output:
-!   a_pole(:)    -- real(rp), pointer: Pointer to skew electric or magnetic poles.
-!   b_pole(:)    -- real(rp), pointer: Pointer to normal electric or magnetic poles.
+!   a_pole(:)    -- real(rp), pointer: Pointer to skew electric or magnetic poles. KL for multipole elements.
+!   b_pole(:)    -- real(rp), pointer: Pointer to normal electric or magnetic poles. Tilt for multipole elements.
+!   ksl_pole(:)  -- real(rp), pointer: For multipole elements only.
 !-
 
-subroutine pointer_to_ele_multipole (ele, a_pole, b_pole, pole_type)
+subroutine pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
 
 type (ele_struct), target :: ele
 
-real(rp), pointer :: a_pole(:), b_pole(:)
+real(rp), pointer :: a_pole(:), b_pole(:), ksl_pole(:)
 integer, optional :: pole_type
 
 !
 
+ksl_pole => null()
+
 select case (integer_option(magnetic$, pole_type))
 case (magnetic$)
-  a_pole => ele%a_pole
-  b_pole => ele%b_pole
+  a_pole   => ele%a_pole
+  b_pole   => ele%b_pole
+  if (ele%key == multipole$) ksl_pole => ele%a_pole_elec
 
 case (electric$)
   if (ele%key == multipole$) then

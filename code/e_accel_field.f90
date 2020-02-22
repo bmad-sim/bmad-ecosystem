@@ -8,7 +8,7 @@
 !   voltage_or_gradient -- integer: voltage$ or gradient$
 !
 ! Output:
-!   gradient -- real(rp): cavity gradient
+!   field    -- real(rp): Cavity field or gradient.
 !-
 
 function e_accel_field (ele, voltage_or_gradient) result (field)

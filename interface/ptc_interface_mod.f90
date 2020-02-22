@@ -3491,7 +3491,7 @@ endif
 
 ! Electric fields present? Everything is an sbend!
 
-if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
+if (ele%key /= multipole$ .and. (associated(ele%a_pole_elec) .or. ele%key == elseparator$)) then
   ptc_key%magnet = 'sbend'
   ptc_key%model = 'DRIFT_KICK'   ! PTC demands this.
   ptc_key%exact = .true.  ! PTC does not implement a non-exact model when there are electric fields.
@@ -3762,7 +3762,7 @@ endif
 ! The E-field units that PTC wants on input are MV/m (MAD convention). 
 ! Note: PTC convert MV/m to GV/m internally.
 
-if (associated(ele%a_pole_elec) .or. ele%key == elseparator$) then
+if (ele%key /= multipole$ .and. (associated(ele%a_pole_elec) .or. ele%key == elseparator$)) then
   if (ele%key /= sbend$) then
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.

@@ -217,6 +217,23 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! Superimpose statement
+
+  if (word_1(:ix_word) == 'SUPERIMPOSE') then
+    n_plat_ele = n_plat_ele + 1     ! next free slot
+    if (n_plat_ele > ubound(plat%ele, 1)) call allocate_plat (plat, 2*size(plat%ele))
+    pele => plat%ele(n_plat_ele)
+    call parse_superimpose_command(lat, ele, pele, delim)
+    call lat_ele_locator (pele%ele_name, lat, eles, n_loc, err)
+    if (n_loc == 0 .or. err) then
+      call parser_error ('CANNOT FIND ELEMENT FOR SUPERPOSITION: ' // pele%ele_name)
+      cycle parsing_loop    
+    endif
+    call parser2_add_superimpose (lat, eles(1)%ele, pele, in_lat)
+    cycle parsing_loop    
+  endif
+
+  !-------------------------------------------
   ! WRITE_DIGESTED
 
   if (word_1(:ix_word) == 'WRITE_DIGESTED') then
@@ -483,7 +500,7 @@ parsing_loop: do
 
   if (.not. found) then
     call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
-                  'FOR ELEMENT: ' // ele%name)
+                       'FOR ELEMENT: ' // ele%name)
     ele%key = 1       ! dummy value
   endif
 
@@ -660,5 +677,11 @@ call deallocate_lat_pointers (lat2)
 if (present(err_flag)) err_flag = bp_com%error_flag
 
 bp_com%parser_name = old_parser_name
+
+! And cleanup
+
+if (lat_file /= 'FROM: BMAD_PARSER') then
+  if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
+endif
 
 end subroutine
