@@ -2,7 +2,6 @@ module tao_plot_mod
 
 use quick_plot
 use tao_plot_window_mod
-use geometry_mod, only: coords_local_curvilinear_to_floor
 use attribute_mod, only: attribute_index
 
 contains
@@ -609,8 +608,6 @@ end subroutine tao_set_floor_plan_axis_label
 !-
 
 recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, ele_shape, label_name, offset1, offset2)
-
-use geometry_mod, only: floor_angles_to_w_mat, ele_geometry
 
 implicit none
 
