@@ -1508,13 +1508,23 @@ case ('field')
       result_id = 'field:bad-t'
       return
     endif
+
+    if (ele%branch%lat%absolute_time_tracking) then
+      orb%t = value(1)
+    else
+      orb%vec(5) = value(1)
+    endif
   endif
 
-  call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err)
-  if (err) return
-
-  nl=nl+1; write (lines(nl), '(2a)') 'B (T):  ', reals_to_string(field%B, 15, 6, 6)
-  nl=nl+1; write (lines(nl), '(2a)') 'E (V/m):', reals_to_string(field%E, 15, 6, 6)
+  do i = 1, size(eles)
+    ele => eles(i)%ele
+    call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err);  if (err) return
+    if (size(eles) > 1) then
+      nl=nl+1; lines(nl) = trim(ele%name) // '  ' // ele_location(ele, parens = '()')
+    endif
+    nl=nl+1; write (lines(nl), '(2a)') '  B (T):  ', reals_to_string(field%B, 15, 6, 6)
+    nl=nl+1; write (lines(nl), '(2a)') '  E (V/m):', reals_to_string(field%E, 15, 6, 6)
+  enddo
 
 !----------------------------------------------------------------------
 ! global
