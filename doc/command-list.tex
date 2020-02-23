@@ -2013,14 +2013,24 @@ Example:
 
 Syntax:
 \begin{example}
-  show field <ele> <x> <y> <z> \{<t>\}
+  show field <ele> <x> <y> <z> \{<t/z>\}
 \end{example}
 
-The \vn{show field} command shows the electric and magnetic field at a point in
-space-time. The \vn{<z>} coordinate is with respect to the beginning of the element
-specified by \vn{<ele>}. The syntax for \vn{<ele>} is explained in section
-\sref{s:ele.list.format}. In this case, \vn{<ele>} must specify a single element.
-The \vn{<t>} argument is optional and will be set to zero if not specified.
+The \vn{show field} command shows the electric and magnetic field at a point in space-time. 
+\vn{<x>}, and \vn{<y>} are the transverse coordinates and 
+\vn{<z>} coordinate is the longitudinal position with respect to the beginning of the element
+specified by \vn{<ele>} (not to be confused with phase space $z$). The syntax for \vn{<ele>} is
+explained in section \sref{s:ele.list.format}. If multiple elements are matched, the fields in each
+will be printed.
+
+The \vn{<t/z>} argument is optional and specifies the time if absolute time tracking is on or the
+phase space $z$ value if absolute time tracking is off (use the \vn{show universe} command to see if
+absolute time tracking is on or off). The \vn{<t/z>} argument is only useful for elements with RF fields.
+If not set, \vn{<t/z>} will default to zero.
+
+\begin{example}
+  show field q10w 0.1  0.2, 1.2    ! Show field in q10w element.
+\end{example}
 
 %% show global --------------------------------------------------------------
 
