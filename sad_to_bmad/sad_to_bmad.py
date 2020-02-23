@@ -989,6 +989,9 @@ global_param_translate = {
   'npara':    ''
 }
 
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+
 def parse_directive(directive, sad_info):
 
   global calc_command_found
