@@ -1513,8 +1513,8 @@ case ('field')
   call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err)
   if (err) return
 
-  nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'B:', field%B
-  nl=nl+1; write (lines(nl), '(a, 3f15.6)') 'E:', field%E
+  nl=nl+1; write (lines(nl), '(2a)') 'B (T):  ', reals_to_string(field%B, 15, 6, 6)
+  nl=nl+1; write (lines(nl), '(2a)') 'E (V/m):', reals_to_string(field%E, 15, 6, 6)
 
 !----------------------------------------------------------------------
 ! global
