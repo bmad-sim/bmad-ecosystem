@@ -1,64 +1,66 @@
- 2019-09-21 21:08:44 
+ 2020-02-13 16:27:48 
  
    1   Drift                 22   AB_multipole
    2   Sbend                 58   AC_Kicker
    3   Quadrupole            11   BeamBeam
-   4   Group                 28   Beginning_Ele
-   5   Sextupole             45   Capillary
-   6   Overlay               38   Converter
-   7   Custom                43   Crystal
-   8   Taylor                 7   Custom
-   9   RFcavity              21   Def_Mad_Beam
-  10   ELseparator           26   Def_Parameter
-  11   BeamBeam              39   Def_Particle_start
-  12   Wiggler               55   Detector
-  13   Sol_Quad              52   Diffraction_Plate
-  14   Marker                 1   Drift
-  15   Kicker                10   ELseparator
-  16   Hybrid                48   EM_Field
-  17   Octupole              47   E_Gun
-  18   Rbend                 36   Ecollimator
-  19   Multipole             50   Fiducial
-  20   GARBAGE!              49   Floor_Shift
-  21   Def_Mad_Beam          41   Fork
-  22   AB_multipole          20   GARBAGE!
-  23   Solenoid              37   Girder
-  24   Patch                  4   Group
-  25   Lcavity               33   Hkicker
-  26   Def_Parameter         16   Hybrid
-  27   Null_Ele              32   Instrument
-  28   Beginning_Ele         15   Kicker
-  29   Line_Ele              25   Lcavity
-  30   Match                 59   Lens
-  31   Monitor               29   Line_Ele
-  32   Instrument            14   Marker
-  33   Hkicker               57   Mask
-  34   Vkicker               30   Match
-  35   Rcollimator           42   Mirror
-  36   Ecollimator           31   Monitor
-  37   Girder                46   Multilayer_Mirror
-  38   Converter             19   Multipole
-  39   Def_Particle_start    27   Null_Ele
-  40   Photon_Fork           17   Octupole
-  41   Fork                   6   Overlay
-  42   Mirror                24   Patch
-  43   Crystal               40   Photon_Fork
-  44   Pipe                  53   Photon_Init
-  45   Capillary             44   Pipe
-  46   Multilayer_Mirror      3   Quadrupole
-  47   E_Gun                  9   RFcavity
-  48   EM_Field              18   Rbend
-  49   Floor_Shift           35   Rcollimator
-  50   Fiducial              56   Sad_Mult
-  51   Undulator             54   Sample
-  52   Diffraction_Plate      2   Sbend
-  53   Photon_Init            5   Sextupole
-  54   Sample                13   Sol_Quad
-  55   Detector              23   Solenoid
-  56   Sad_Mult               8   Taylor
-  57   Mask                  51   Undulator
-  58   AC_Kicker             34   Vkicker
-  59   Lens                  12   Wiggler
+   4   Group                 60   Beam_Init
+   5   Sextupole             28   Beginning_Ele
+   6   Overlay               45   Capillary
+   7   Custom                38   Converter
+   8   Taylor                61   Crab_Cavity
+   9   RFcavity              43   Crystal
+  10   ELseparator            7   Custom
+  11   BeamBeam              20   Def_Bmad_Com!
+  12   Wiggler               21   Def_Mad_Beam!
+  13   Sol_Quad              26   Def_Parameter!
+  14   Marker                39   Def_Particle_Start
+  15   Kicker                55   Detector
+  16   Hybrid                52   Diffraction_Plate
+  17   Octupole               1   Drift
+  18   Rbend                 10   ELseparator
+  19   Multipole             48   EM_Field
+  20   Def_Bmad_Com!         47   E_Gun
+  21   Def_Mad_Beam!         36   Ecollimator
+  22   AB_multipole          50   Fiducial
+  23   Solenoid              49   Floor_Shift
+  24   Patch                 41   Fork
+  25   Lcavity               37   Girder
+  26   Def_Parameter!         4   Group
+  27   Null_Ele              33   Hkicker
+  28   Beginning_Ele         16   Hybrid
+  29   Line_Ele              32   Instrument
+  30   Match                 15   Kicker
+  31   Monitor               25   Lcavity
+  32   Instrument            59   Lens
+  33   Hkicker               29   Line_Ele
+  34   Vkicker               14   Marker
+  35   Rcollimator           57   Mask
+  36   Ecollimator           30   Match
+  37   Girder                42   Mirror
+  38   Converter             31   Monitor
+  39   Def_Particle_Start    46   Multilayer_Mirror
+  40   Photon_Fork           19   Multipole
+  41   Fork                  27   Null_Ele
+  42   Mirror                17   Octupole
+  43   Crystal                6   Overlay
+  44   Pipe                  24   Patch
+  45   Capillary             40   Photon_Fork
+  46   Multilayer_Mirror     53   Photon_Init
+  47   E_Gun                 44   Pipe
+  48   EM_Field               3   Quadrupole
+  49   Floor_Shift            9   RFcavity
+  50   Fiducial              18   Rbend
+  51   Undulator             35   Rcollimator
+  52   Diffraction_Plate     56   Sad_Mult
+  53   Photon_Init           54   Sample
+  54   Sample                 2   Sbend
+  55   Detector               5   Sextupole
+  56   Sad_Mult              13   Sol_Quad
+  57   Mask                  23   Solenoid
+  58   AC_Kicker              8   Taylor
+  59   Lens                  51   Undulator
+  60   Beam_Init             34   Vkicker
+  61   Crab_Cavity           12   Wiggler
  
  !---------------------------------
  22  AB_multipole        
@@ -123,7 +125,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         32  T_OFFSET                                
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -145,7 +146,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -164,7 +165,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -182,21 +182,20 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
        101  FREQUENCIES                             
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        104  AMP_VS_TIME                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -281,6 +280,86 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+ 
+ !---------------------------------
+ 60  Beam_Init           
+         1  L                                       
+         2  TILT                                    
+        10  FRINGE_TYPE                             
+        11  FRINGE_AT                               
+        13  SPIN_FRINGE_ON                          
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        39  HKICK                                   
+        40  VKICK                                   
+        41  BL_HKICK                                
+        42  BL_VKICK                                
+        50  DELTA_REF_TIME                          
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        62  MULTIPASS_REF_ENERGY                    
+        64  ref_time_start                            [private]
+        65  INTEGRATOR_ORDER                        
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        68  LORD_PAD1                               
+        69  LORD_PAD2                               
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
+        76  X1_LIMIT                                
+        77  X2_LIMIT                                
+        78  Y1_LIMIT                                
+        79  Y2_LIMIT                                
+        80  check_sum                                 [private]
+        82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
+        87  APERTURE_TYPE                           
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
+       103  SYMPLECTIFY                             
+       105  IS_ON                                   
+       106  FIELD_CALC                              
+       107  WALL                                    
+       108  APERTURE_AT                             
+       110  FIELD_OVERLAPS                          
+       112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
  
  !---------------------------------
  28  Beginning_Ele       
@@ -380,6 +459,9 @@
  38  Converter           
          1  L                                       
          2  TILT                                    
+         4  RADIATION_LENGTH                        
+         5  E_MIN                                   
+         6  E_MAX                                   
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -419,6 +501,7 @@
        107  WALL                                    
        108  APERTURE_AT                             
        112  DESCRIP                                 
+       116  MATERIAL_TYPE                           
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -432,21 +515,118 @@
        131  S_Position                                [private]
  
  !---------------------------------
+ 61  Crab_Cavity         
+         1  L                                       
+         2  TILT                                    
+         3  RF_FREQUENCY                            
+         4  HARMON                                  
+         6  GRADIENT                                
+         8  VOLTAGE                                 
+        18  AUTOSCALE_AMPLITUDE                       [private]
+        19  AUTOSCALE_PHASE                           [private]
+        24  PHI0                                    
+        26  PHI0_MULTIPASS                          
+        27  PHI0_AUTOSCALE                            [private]
+        29  FIELD_AUTOSCALE                           [private]
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  E_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        62  MULTIPASS_REF_ENERGY                    
+        64  ref_time_start                            [private]
+        65  INTEGRATOR_ORDER                        
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        68  LORD_PAD1                               
+        69  LORD_PAD2                               
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
+        76  X1_LIMIT                                
+        77  X2_LIMIT                                
+        78  Y1_LIMIT                                
+        79  Y2_LIMIT                                
+        80  check_sum                                 [private]
+        82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
+        87  APERTURE_TYPE                           
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
+       103  SYMPLECTIFY                             
+       105  IS_ON                                   
+       106  FIELD_CALC                              
+       107  WALL                                    
+       108  APERTURE_AT                             
+       110  FIELD_OVERLAPS                          
+       112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       123  CARTESIAN_MAP                           
+       124  CYLINDRICAL_MAP                         
+       125  GRID_FIELD                              
+       126  TAYLOR_FIELD                            
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+ 
+ !---------------------------------
  43  Crystal             
          1  L                                       
          2  TILT                                    
          3  REF_TILT                                
          4  TILT_CORR                               
          5  REF_ORBIT_FOLLOWS                       
-         6  BRAGG_ANGLE_IN                          
-         7  BRAGG_ANGLE_OUT                         
-         8  DIFFRACTION_LIMITED                     
+         7  BRAGG_ANGLE_IN                          
+         8  BRAGG_ANGLE_OUT                         
+         9  BRAGG_ANGLE                             
+        10  DBRAGG_ANGLE_DE                         
+        11  DARWIN_WIDTH_SIGMA                      
+        12  DARWIN_WIDTH_PI                         
+        13  PENDELLOSUNG_PERIOD_SIGMA               
+        14  PENDELLOSUNG_PERIOD_PI                  
         15  GRAZE_ANGLE_IN                          
         16  GRAZE_ANGLE_OUT                         
-        20  BRAGG_ANGLE                             
         21  ALPHA_ANGLE                             
         22  PSI_ANGLE                               
         23  V_UNITCELL                              
+        24  IS_MOSAIC                               
+        25  MOSAIC_THICKNESS                        
+        26  MOSAIC_ANGLE_RMS_IN_PLANE               
+        27  MOSAIC_ANGLE_RMS_OUT_PLANE              
         30  B_PARAM                                 
         31  REF_CAP_GAMMA                           
         34  X_PITCH                                 
@@ -455,11 +635,6 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         39  D_SPACING                               
-        42  DARWIN_WIDTH_SIGMA                      
-        43  PENDELLOSUNG_PERIOD_SIGMA               
-        44  DARWIN_WIDTH_PI                         
-        45  PENDELLOSUNG_PERIOD_PI                  
-        46  DBRAGG_ANGLE_DE                         
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -530,7 +705,6 @@
         20  VAL10                                   
         21  VAL11                                   
         22  VAL12                                   
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -547,7 +721,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -564,7 +738,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -581,18 +754,17 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -606,7 +778,27 @@
        131  S_Position                                [private]
  
  !---------------------------------
- 21  Def_Mad_Beam        
+ 20  Def_Bmad_Com!       
+        71  Scratch1                                  [private]
+        72  Scratch2                                  [private]
+        73  Scratch3                                  [private]
+        74  Scratch4                                  [private]
+        75  Scratch5                                  [private]
+        81  MAX_APERTURE_LIMIT                      
+        82  DEFAULT_DS_STEP                         
+        83  SIGNIFICANT_LENGTH                      
+        84  REL_TOL_TRACKING                        
+        85  ABS_TOL_TRACKING                        
+        86  REL_TOL_ADAPTIVE_TRACKING               
+        87  ABS_TOL_ADAPTIVE_TRACKING               
+        88  INIT_DS_ADAPTIVE_TRACKING               
+        89  MIN_DS_ADAPTIVE_TRACKING                
+        90  FATAL_DS_ADAPTIVE_TRACKING              
+        91  MAX_NUM_RUNGE_KUTTA_STEP                
+        99  APERTURE_LIMIT_ON                       
+ 
+ !---------------------------------
+ 21  Def_Mad_Beam!       
          2  N_PART                                  
         25  PARTICLE                                
         53  PC                                      
@@ -618,7 +810,7 @@
         75  Scratch5                                  [private]
  
  !---------------------------------
- 26  Def_Parameter       
+ 26  Def_Parameter!      
          2  N_PART                                  
          3  TAYLOR_ORDER                            
          6  ix_branch                                 [private]
@@ -646,7 +838,7 @@
        109  RAN_SEED                                
  
  !---------------------------------
- 39  Def_Particle_start  
+ 39  Def_Particle_Start  
          1  X                                       
          2  PX                                      
          3  Y                                       
@@ -830,7 +1022,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -887,7 +1079,6 @@
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         21  GAP                                     
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -908,7 +1099,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -927,7 +1118,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -945,19 +1135,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -990,7 +1179,6 @@
         25  PHI0_ERR                                
         27  PHI0_AUTOSCALE                          
         29  FIELD_AUTOSCALE                         
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1008,7 +1196,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1025,7 +1213,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1042,17 +1229,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -1088,7 +1274,6 @@
         26  phi0_multipass                            [private]
         27  PHI0_AUTOSCALE                          
         29  FIELD_AUTOSCALE                         
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1107,7 +1292,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1124,7 +1309,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1141,17 +1325,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -1175,7 +1358,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1194,7 +1376,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1211,7 +1393,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1228,17 +1409,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -1382,26 +1562,6 @@
        127  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
- 20  GARBAGE!            
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        81  MAX_APERTURE_LIMIT                      
-        82  DEFAULT_DS_STEP                         
-        83  SIGNIFICANT_LENGTH                      
-        84  REL_TOL_TRACKING                        
-        85  ABS_TOL_TRACKING                        
-        86  REL_TOL_ADAPTIVE_TRACKING               
-        87  ABS_TOL_ADAPTIVE_TRACKING               
-        88  INIT_DS_ADAPTIVE_TRACKING               
-        89  MIN_DS_ADAPTIVE_TRACKING                
-        90  FATAL_DS_ADAPTIVE_TRACKING              
-        91  MAX_NUM_RUNGE_KUTTA_STEP                
-        99  APERTURE_LIMIT_ON                       
- 
- !---------------------------------
  37  Girder              
          1  L                                       
          2  TILT                                    
@@ -1464,7 +1624,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1483,7 +1642,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1500,7 +1659,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1518,19 +1676,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -1612,7 +1769,6 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1633,7 +1789,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1650,7 +1806,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1667,17 +1822,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -1699,7 +1853,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1721,7 +1874,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -1740,7 +1893,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1758,19 +1910,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -1836,7 +1987,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -1853,7 +2004,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1870,18 +2020,17 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -2049,7 +2198,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2063,14 +2211,13 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        105  IS_ON                                   
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -2227,7 +2374,6 @@
          3  REF_TILT                                
          5  GRAZE_ANGLE                             
          7  CRITICAL_ANGLE                          
-         8  DIFFRACTION_LIMITED                     
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2302,7 +2448,6 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2323,7 +2468,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -2340,7 +2485,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2357,17 +2501,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -2386,7 +2529,6 @@
          2  TILT                                    
          3  REF_TILT                                
          5  GRAZE_ANGLE                             
-         8  DIFFRACTION_LIMITED                     
         20  D1_THICKNESS                            
         21  D2_THICKNESS                            
         22  V1_UNITCELL                             
@@ -2528,7 +2670,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2551,7 +2692,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -2570,7 +2711,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2588,19 +2728,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -2823,7 +2962,6 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2844,7 +2982,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -2861,7 +2999,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2878,17 +3015,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -2911,7 +3047,6 @@
         13  SPIN_FRINGE_ON                          
         16  FQ1                                     
         17  FQ2                                     
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2934,7 +3069,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -2953,7 +3088,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2971,19 +3105,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3050,7 +3183,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3067,7 +3200,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3084,17 +3216,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3136,7 +3267,6 @@
         26  H2                                      
         29  L_SAGITTA                               
         30  L_CHORD                                 
-        31  L_HARD_EDGE                             
         33  ANGLE                                   
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -3166,7 +3296,7 @@
         59  Z_OFFSET_TOT                            
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -3185,7 +3315,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3203,19 +3332,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3240,7 +3368,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3259,7 +3386,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3276,7 +3403,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3293,17 +3419,16 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3481,7 +3606,6 @@
         26  H2                                      
         29  L_SAGITTA                               
         30  L_CHORD                                 
-        31  L_HARD_EDGE                             
         33  ANGLE                                   
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -3511,7 +3635,7 @@
         59  Z_OFFSET_TOT                            
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -3530,7 +3654,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3548,19 +3671,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3586,7 +3708,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3609,7 +3730,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -3628,7 +3749,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3646,19 +3766,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3685,7 +3804,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3709,7 +3827,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -3728,7 +3846,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3746,19 +3863,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3780,11 +3896,12 @@
  23  Solenoid            
          1  L                                       
          2  TILT                                    
+         3  R_SOLENOID                              
          5  KS                                      
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
+        31  L_SOFT_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3807,7 +3924,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -3826,7 +3943,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3844,19 +3960,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3958,7 +4073,6 @@
         21  POLARITY                                
         22  N_PERIOD                                
         23  L_PERIOD                                
-        31  L_HARD_EDGE                             
         33  X_RAY_LINE_LEN                          
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -3981,7 +4095,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -4000,7 +4114,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -4018,20 +4131,19 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
        101  TERM                                    
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -4057,7 +4169,6 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        31  L_HARD_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4076,7 +4187,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -4093,7 +4204,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -4111,19 +4221,18 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -4155,7 +4264,6 @@
         21  POLARITY                                
         22  N_PERIOD                                
         23  L_PERIOD                                
-        31  L_HARD_EDGE                             
         33  X_RAY_LINE_LEN                          
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -4178,7 +4286,7 @@
         58  Y_OFFSET_TOT                            
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
-        62  N_REF_PASS                              
+        62  MULTIPASS_REF_ENERGY                    
         63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
@@ -4197,7 +4305,6 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
-        81  LR_WAKE_SPLINE                          
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -4215,20 +4322,19 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
-        99  WAKE_AMP_SCALE                          
        100  SR_WAKE_FILE                            
        101  TERM                                    
-       102  WAKE_TIME_SCALE                         
        103  SYMPLECTIFY                             
        105  IS_ON                                   
        106  FIELD_CALC                              
        107  WALL                                    
        108  APERTURE_AT                             
-       109  SR_WAKE_SCALE_WITH_LENGTH               
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -4249,137 +4355,137 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    53
-     2    49
-     3    24
-     4    18
-     5    22
-     6    23
+     1    55
+     2    51
+     3    26
+     4    20
+     5    23
+     6    24
      7    19
-     8    24
-     9     7
-    10    27
-    11    30
-    12     5
-    13    28
-    14     7
+     8    23
+     9     8
+    10    29
+    11    32
+    12     6
+    13    30
+    14     8
     15     6
     16     8
     17     5
-    18     7
-    19    11
-    20    20
+    18     8
+    19    12
+    20    19
     21    17
     22    15
     23    18
-    24    16
-    25    17
-    26    21
-    27    10
+    24    18
+    25    18
+    26    23
+    27    12
     28     7
-    29    15
+    29    16
     30    10
-    31    29
+    31     8
     32     6
     33     9
-    34    44
-    35    44
-    36    46
-    37    46
-    38    45
-    39    22
-    40    24
-    41    23
+    34    46
+    35    46
+    36    48
+    37    48
+    38    47
+    39    23
+    40    25
+    41    24
     42    21
-    43     7
-    44     6
-    45     8
-    46     7
+    43     6
+    44     5
+    45     7
+    46     6
     47    18
     48     4
     49     6
-    50    51
-    51    35
-    52    36
-    53    53
-    54    53
-    55    42
-    56    41
-    57    43
-    58    43
-    59    43
-    60    43
+    50    53
+    51    36
+    52    37
+    53    55
+    54    55
+    55    44
+    56    43
+    57    45
+    58    45
+    59    45
+    60    45
     61     6
-    62    25
+    62    27
     63    12
-    64    51
-    65    26
-    66    26
-    67    26
-    68    26
-    69    32
+    64    53
+    65    28
+    66    28
+    67    28
+    68    28
+    69    34
     70    12
-    71    59
-    72    59
-    73    59
-    74    59
-    75    59
-    76    48
-    77    48
-    78    48
-    79    48
-    80    55
-    81    37
-    82    56
-    83    30
-    84    35
-    85    35
+    71    61
+    72    61
+    73    61
+    74    61
+    75    61
+    76    50
+    77    50
+    78    50
+    79    50
+    80    57
+    81    12
+    82    58
+    83    32
+    84    37
+    85    37
     86    26
-    87    52
-    88    36
-    89    31
-    90    29
-    91    52
-    92    51
-    93    51
-    94    49
-    95    48
-    96    49
-    97    48
-    98    48
-    99    26
-   100    29
+    87    54
+    88    38
+    89    33
+    90    31
+    91    54
+    92    53
+    93    53
+    94    51
+    95    50
+    96    51
+    97    50
+    98    50
+    99     1
+   100    31
    101     3
-   102    28
-   103    31
+   102     3
+   103    33
    104     3
-   105    40
-   106    29
-   107    46
-   108    50
-   109    31
-   110    26
+   105    42
+   106    31
+   107    48
+   108    52
+   109     6
+   110    28
    111    20
-   112    53
+   112    55
    113    14
-   114     0
-   115     1
-   116     5
-   117    53
-   118    50
-   119    50
-   120    50
-   121    50
-   122    50
-   123    18
-   124    18
-   125    18
-   126    18
-   127    48
-   128    36
-   129    36
-   130    36
-   131    36
+   114    27
+   115    28
+   116     6
+   117    55
+   118    52
+   119    52
+   120    52
+   121    52
+   122    52
+   123    19
+   124    19
+   125    19
+   126    19
+   127    50
+   128    38
+   129    38
+   130    38
+   131    38
    132     0
    133     0
    134     0
@@ -4557,7 +4663,7 @@ Index: 1
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_start  
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -4578,6 +4684,8 @@ Index: 1
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 2
@@ -4597,12 +4705,12 @@ Index: 2
     Octupole            
     Rbend               
     Multipole           
-    Def_Mad_Beam        
+    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Match               
     Monitor             
     Instrument          
@@ -4612,7 +4720,7 @@ Index: 2
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_start  
+    Def_Particle_Start  
     Mirror              
     Crystal             
     Pipe                
@@ -4630,6 +4738,8 @@ Index: 2
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 3
@@ -4637,15 +4747,16 @@ Index: 3
     RFcavity            
     Marker              
     Rbend               
+    Solenoid            
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Match               
     Monitor             
     Instrument          
     Hkicker             
     Vkicker             
     Girder              
-    Def_Particle_start  
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -4657,6 +4768,7 @@ Index: 3
     Detector            
     AC_Kicker           
     Lens                
+    Crab_Cavity         
  
  !---------------------------------
 Index: 4
@@ -4672,12 +4784,14 @@ Index: 4
     Match               
     Monitor             
     Instrument          
-    Def_Particle_start  
+    Converter           
+    Def_Particle_Start  
     Crystal             
     Pipe                
     Capillary           
     Undulator           
     Detector            
+    Crab_Cavity         
  
  !---------------------------------
 Index: 5
@@ -4694,7 +4808,8 @@ Index: 5
     Match               
     Monitor             
     Instrument          
-    Def_Particle_start  
+    Converter           
+    Def_Particle_Start  
     Mirror              
     Crystal             
     Pipe                
@@ -4713,22 +4828,23 @@ Index: 6
     Octupole            
     Rbend               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Null_Ele            
     Line_Ele            
     Match               
     Monitor             
     Instrument          
-    Def_Particle_start  
+    Converter           
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
-    Crystal             
     Pipe                
     E_Gun               
     Undulator           
     Diffraction_Plate   
     Detector            
     Mask                
+    Crab_Cavity         
  
  !---------------------------------
 Index: 7
@@ -4767,17 +4883,16 @@ Index: 8
     Match               
     Monitor             
     Instrument          
-    Def_Particle_start  
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
-    Mirror              
     Crystal             
     Pipe                
-    Multilayer_Mirror   
     E_Gun               
     Detector            
     Sad_Mult            
     AC_Kicker           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 9
@@ -4785,7 +4900,8 @@ Index: 9
     ELseparator         
     Lcavity             
     Match               
-    Def_Particle_start  
+    Def_Particle_Start  
+    Crystal             
     E_Gun               
     Sad_Mult            
  
@@ -4811,13 +4927,15 @@ Index: 10
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Def_Particle_start  
+    Def_Particle_Start  
+    Crystal             
     Pipe                
     E_Gun               
     EM_Field            
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
  
  !---------------------------------
 Index: 11
@@ -4844,13 +4962,15 @@ Index: 11
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Def_Particle_start  
+    Def_Particle_Start  
+    Crystal             
     Pipe                
     E_Gun               
     EM_Field            
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
  
  !---------------------------------
 Index: 12
@@ -4858,7 +4978,8 @@ Index: 12
     Custom              
     Rbend               
     Match               
-    Def_Particle_start  
+    Def_Particle_Start  
+    Crystal             
  
  !---------------------------------
 Index: 13
@@ -4883,13 +5004,15 @@ Index: 13
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Def_Particle_start  
+    Def_Particle_Start  
+    Crystal             
     Pipe                
     E_Gun               
     EM_Field            
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
  
  !---------------------------------
 Index: 14
@@ -4898,6 +5021,7 @@ Index: 14
     BeamBeam            
     Rbend               
     Match               
+    Crystal             
     Photon_Init         
     Sad_Mult            
  
@@ -4916,7 +5040,7 @@ Index: 16
     Custom              
     BeamBeam            
     Match               
-    Def_Particle_start  
+    Def_Particle_Start  
     Crystal             
     Photon_Init         
     Sad_Mult            
@@ -4938,6 +5062,7 @@ Index: 18
     E_Gun               
     EM_Field            
     Photon_Init         
+    Crab_Cavity         
  
  !---------------------------------
 Index: 19
@@ -4947,11 +5072,12 @@ Index: 19
     Rbend               
     Lcavity             
     Match               
-    Def_Particle_start  
+    Def_Particle_Start  
     E_Gun               
     EM_Field            
     Photon_Init         
     Sad_Mult            
+    Crab_Cavity         
  
  !---------------------------------
 Index: 20
@@ -4962,13 +5088,12 @@ Index: 20
     Marker              
     Rbend               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Line_Ele            
     Match               
     Monitor             
     Instrument          
-    Def_Particle_start  
-    Crystal             
+    Def_Particle_Start  
     Pipe                
     Multilayer_Mirror   
     EM_Field            
@@ -4988,7 +5113,7 @@ Index: 21
     Match               
     Monitor             
     Instrument          
-    Def_Particle_start  
+    Def_Particle_Start  
     Crystal             
     Pipe                
     Multilayer_Mirror   
@@ -5006,7 +5131,7 @@ Index: 22
     Match               
     Monitor             
     Instrument          
-    Def_Particle_start  
+    Def_Particle_Start  
     Crystal             
     Pipe                
     Multilayer_Mirror   
@@ -5023,11 +5148,11 @@ Index: 23
     Marker              
     Rbend               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Line_Ele            
     Monitor             
     Instrument          
-    Def_Particle_start  
+    Def_Particle_Start  
     Crystal             
     Pipe                
     Multilayer_Mirror   
@@ -5043,16 +5168,18 @@ Index: 24
     Marker              
     Rbend               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Line_Ele            
     Match               
     Monitor             
     Instrument          
+    Crystal             
     Pipe                
     E_Gun               
     EM_Field            
     Photon_Init         
     Detector            
+    Crab_Cavity         
  
  !---------------------------------
 Index: 25
@@ -5061,13 +5188,14 @@ Index: 25
     BeamBeam            
     Marker              
     Rbend               
-    Def_Mad_Beam        
+    Def_Mad_Beam!       
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Line_Ele            
     Match               
     Monitor             
     Instrument          
+    Crystal             
     Pipe                
     E_Gun               
     EM_Field            
@@ -5082,12 +5210,13 @@ Index: 26
     Marker              
     Rbend               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Line_Ele            
     Match               
     Monitor             
     Instrument          
     Girder              
+    Crystal             
     Pipe                
     E_Gun               
     Floor_Shift         
@@ -5097,25 +5226,28 @@ Index: 26
     Sample              
     Detector            
     Mask                
+    Crab_Cavity         
  
  !---------------------------------
 Index: 27
     RFcavity            
     BeamBeam            
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Match               
     Girder              
+    Crystal             
     E_Gun               
     EM_Field            
     Fiducial            
     Photon_Init         
+    Crab_Cavity         
  
  !---------------------------------
 Index: 28
     RFcavity            
     BeamBeam            
-    Def_Parameter       
+    Def_Parameter!      
     Match               
     Girder              
     Fiducial            
@@ -5138,6 +5270,7 @@ Index: 29
     Floor_Shift         
     Fiducial            
     Photon_Init         
+    Crab_Cavity         
  
  !---------------------------------
 Index: 30
@@ -5154,35 +5287,14 @@ Index: 30
  
  !---------------------------------
 Index: 31
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    Custom              
     RFcavity            
-    ELseparator         
-    Wiggler             
-    Sol_Quad            
-    Kicker              
-    Octupole            
-    Rbend               
     Solenoid            
     Lcavity             
     Match               
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
     Girder              
     Crystal             
-    Pipe                
-    E_Gun               
-    EM_Field            
     Fiducial            
-    Undulator           
     Photon_Init         
-    AC_Kicker           
  
  !---------------------------------
 Index: 32
@@ -5251,6 +5363,8 @@ Index: 34
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 35
@@ -5298,6 +5412,8 @@ Index: 35
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 36
@@ -5347,6 +5463,8 @@ Index: 36
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 37
@@ -5396,6 +5514,8 @@ Index: 37
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 38
@@ -5444,6 +5564,8 @@ Index: 38
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 39
@@ -5463,12 +5585,13 @@ Index: 39
     Instrument          
     Rcollimator         
     Ecollimator         
-    Def_Particle_start  
+    Def_Particle_Start  
     Crystal             
     Pipe                
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
  
  !---------------------------------
 Index: 40
@@ -5490,12 +5613,13 @@ Index: 40
     Instrument          
     Rcollimator         
     Ecollimator         
-    Def_Particle_start  
+    Def_Particle_Start  
     Pipe                
     E_Gun               
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
  
  !---------------------------------
 Index: 41
@@ -5516,12 +5640,13 @@ Index: 41
     Instrument          
     Rcollimator         
     Ecollimator         
-    Def_Particle_start  
+    Def_Particle_Start  
     Pipe                
     E_Gun               
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
  
  !---------------------------------
 Index: 42
@@ -5541,11 +5666,11 @@ Index: 42
     Instrument          
     Rcollimator         
     Ecollimator         
-    Crystal             
     Pipe                
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
  
  !---------------------------------
 Index: 43
@@ -5555,7 +5680,6 @@ Index: 43
     Match               
     Hkicker             
     Vkicker             
-    Crystal             
  
  !---------------------------------
 Index: 44
@@ -5564,7 +5688,6 @@ Index: 44
     Rbend               
     Lcavity             
     Match               
-    Crystal             
  
  !---------------------------------
 Index: 45
@@ -5575,7 +5698,6 @@ Index: 45
     Rbend               
     Lcavity             
     Match               
-    Crystal             
  
  !---------------------------------
 Index: 46
@@ -5585,7 +5707,6 @@ Index: 46
     Rbend               
     Lcavity             
     Match               
-    Crystal             
  
  !---------------------------------
 Index: 47
@@ -5677,6 +5798,8 @@ Index: 50
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 51
@@ -5715,6 +5838,7 @@ Index: 51
     Detector            
     AC_Kicker           
     Lens                
+    Crab_Cavity         
  
  !---------------------------------
 Index: 52
@@ -5754,6 +5878,7 @@ Index: 52
     Detector            
     AC_Kicker           
     Lens                
+    Crab_Cavity         
  
  !---------------------------------
 Index: 53
@@ -5774,12 +5899,12 @@ Index: 53
     Octupole            
     Rbend               
     Multipole           
-    Def_Mad_Beam        
+    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Beginning_Ele       
     Line_Ele            
     Match               
@@ -5810,6 +5935,8 @@ Index: 53
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 54
@@ -5830,12 +5957,12 @@ Index: 54
     Octupole            
     Rbend               
     Multipole           
-    Def_Mad_Beam        
+    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Beginning_Ele       
     Line_Ele            
     Match               
@@ -5866,6 +5993,8 @@ Index: 54
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 55
@@ -5886,7 +6015,7 @@ Index: 55
     Rbend               
     Solenoid            
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Monitor             
     Instrument          
     Hkicker             
@@ -5911,6 +6040,8 @@ Index: 55
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 56
@@ -5955,6 +6086,8 @@ Index: 56
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 57
@@ -6001,6 +6134,8 @@ Index: 57
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 58
@@ -6047,6 +6182,8 @@ Index: 58
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 59
@@ -6093,6 +6230,8 @@ Index: 59
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 60
@@ -6139,6 +6278,8 @@ Index: 60
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 61
@@ -6176,6 +6317,8 @@ Index: 62
     EM_Field            
     Undulator           
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 63
@@ -6245,6 +6388,8 @@ Index: 64
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 65
@@ -6274,6 +6419,8 @@ Index: 65
     EM_Field            
     Undulator           
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 66
@@ -6303,6 +6450,8 @@ Index: 66
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 67
@@ -6332,6 +6481,8 @@ Index: 67
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 68
@@ -6361,6 +6512,8 @@ Index: 68
     EM_Field            
     Undulator           
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 69
@@ -6396,6 +6549,8 @@ Index: 69
     Photon_Init         
     Mask                
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 70
@@ -6433,13 +6588,13 @@ Index: 71
     Octupole            
     Rbend               
     Multipole           
-    GARBAGE!            
-    Def_Mad_Beam        
+    Def_Bmad_Com!       
+    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Null_Ele            
     Beginning_Ele       
     Line_Ele            
@@ -6452,7 +6607,7 @@ Index: 71
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_start  
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6473,6 +6628,8 @@ Index: 71
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 72
@@ -6495,13 +6652,13 @@ Index: 72
     Octupole            
     Rbend               
     Multipole           
-    GARBAGE!            
-    Def_Mad_Beam        
+    Def_Bmad_Com!       
+    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Null_Ele            
     Beginning_Ele       
     Line_Ele            
@@ -6514,7 +6671,7 @@ Index: 72
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_start  
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6535,6 +6692,8 @@ Index: 72
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 73
@@ -6557,13 +6716,13 @@ Index: 73
     Octupole            
     Rbend               
     Multipole           
-    GARBAGE!            
-    Def_Mad_Beam        
+    Def_Bmad_Com!       
+    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Null_Ele            
     Beginning_Ele       
     Line_Ele            
@@ -6576,7 +6735,7 @@ Index: 73
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_start  
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6597,6 +6756,8 @@ Index: 73
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 74
@@ -6619,13 +6780,13 @@ Index: 74
     Octupole            
     Rbend               
     Multipole           
-    GARBAGE!            
-    Def_Mad_Beam        
+    Def_Bmad_Com!       
+    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Null_Ele            
     Beginning_Ele       
     Line_Ele            
@@ -6638,7 +6799,7 @@ Index: 74
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_start  
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6659,6 +6820,8 @@ Index: 74
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 75
@@ -6681,13 +6844,13 @@ Index: 75
     Octupole            
     Rbend               
     Multipole           
-    GARBAGE!            
-    Def_Mad_Beam        
+    Def_Bmad_Com!       
+    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Null_Ele            
     Beginning_Ele       
     Line_Ele            
@@ -6700,7 +6863,7 @@ Index: 75
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_start  
+    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6721,6 +6884,8 @@ Index: 75
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 76
@@ -6772,6 +6937,8 @@ Index: 76
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 77
@@ -6823,6 +6990,8 @@ Index: 77
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 78
@@ -6874,6 +7043,8 @@ Index: 78
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 79
@@ -6925,6 +7096,8 @@ Index: 79
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 80
@@ -6983,46 +7156,23 @@ Index: 80
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 81
-    Sbend               
-    Quadrupole          
     Group               
-    Sextupole           
     Overlay             
-    Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Octupole            
-    Rbend               
-    GARBAGE!            
-    Solenoid            
-    Lcavity             
+    Def_Bmad_Com!       
     Beginning_Ele       
     Line_Ele            
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
     Mirror              
     Crystal             
-    Pipe                
     Multilayer_Mirror   
-    E_Gun               
-    EM_Field            
-    Undulator           
     Diffraction_Plate   
     Sample              
     Detector            
-    AC_Kicker           
  
  !---------------------------------
 Index: 82
@@ -7045,7 +7195,7 @@ Index: 82
     Octupole            
     Rbend               
     Multipole           
-    GARBAGE!            
+    Def_Bmad_Com!       
     AB_multipole        
     Solenoid            
     Patch               
@@ -7082,6 +7232,8 @@ Index: 82
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 83
@@ -7098,10 +7250,10 @@ Index: 83
     Kicker              
     Octupole            
     Rbend               
-    GARBAGE!            
+    Def_Bmad_Com!       
     Solenoid            
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Beginning_Ele       
     Line_Ele            
     Monitor             
@@ -7115,6 +7267,8 @@ Index: 83
     EM_Field            
     Undulator           
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 84
@@ -7131,7 +7285,7 @@ Index: 84
     Kicker              
     Octupole            
     Rbend               
-    GARBAGE!            
+    Def_Bmad_Com!       
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7153,6 +7307,8 @@ Index: 84
     Sample              
     Detector            
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 85
@@ -7169,7 +7325,7 @@ Index: 85
     Kicker              
     Octupole            
     Rbend               
-    GARBAGE!            
+    Def_Bmad_Com!       
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7191,6 +7347,8 @@ Index: 85
     Sample              
     Detector            
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 86
@@ -7204,10 +7362,10 @@ Index: 86
     Kicker              
     Octupole            
     Rbend               
-    GARBAGE!            
+    Def_Bmad_Com!       
     AB_multipole        
     Solenoid            
-    Def_Parameter       
+    Def_Parameter!      
     Beginning_Ele       
     Line_Ele            
     Hkicker             
@@ -7240,12 +7398,12 @@ Index: 87
     Octupole            
     Rbend               
     Multipole           
-    GARBAGE!            
+    Def_Bmad_Com!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Beginning_Ele       
     Line_Ele            
     Match               
@@ -7275,6 +7433,8 @@ Index: 87
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 88
@@ -7291,7 +7451,7 @@ Index: 88
     Kicker              
     Octupole            
     Rbend               
-    GARBAGE!            
+    Def_Bmad_Com!       
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7314,6 +7474,8 @@ Index: 88
     Detector            
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 89
@@ -7332,7 +7494,7 @@ Index: 89
     Kicker              
     Octupole            
     Rbend               
-    GARBAGE!            
+    Def_Bmad_Com!       
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7348,6 +7510,8 @@ Index: 89
     EM_Field            
     Undulator           
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 90
@@ -7364,7 +7528,7 @@ Index: 90
     Kicker              
     Octupole            
     Rbend               
-    GARBAGE!            
+    Def_Bmad_Com!       
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7380,6 +7544,8 @@ Index: 90
     EM_Field            
     Undulator           
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 91
@@ -7400,7 +7566,7 @@ Index: 91
     Octupole            
     Rbend               
     Multipole           
-    GARBAGE!            
+    Def_Bmad_Com!       
     AB_multipole        
     Solenoid            
     Patch               
@@ -7435,6 +7601,8 @@ Index: 91
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 92
@@ -7489,6 +7657,8 @@ Index: 92
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 93
@@ -7543,6 +7713,8 @@ Index: 93
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 94
@@ -7595,6 +7767,8 @@ Index: 94
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 95
@@ -7646,6 +7820,8 @@ Index: 95
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 96
@@ -7670,7 +7846,7 @@ Index: 96
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Match               
     Monitor             
     Instrument          
@@ -7698,6 +7874,8 @@ Index: 96
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 97
@@ -7749,6 +7927,8 @@ Index: 97
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 98
@@ -7800,35 +7980,12 @@ Index: 98
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 99
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    Custom              
-    RFcavity            
-    ELseparator         
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Octupole            
-    Rbend               
-    GARBAGE!            
-    Solenoid            
-    Lcavity             
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
-    Pipe                
-    E_Gun               
-    EM_Field            
-    Undulator           
-    AC_Kicker           
+    Def_Bmad_Com!       
  
  !---------------------------------
 Index: 100
@@ -7846,7 +8003,7 @@ Index: 100
     Rbend               
     Solenoid            
     Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Beginning_Ele       
     Line_Ele            
     Monitor             
@@ -7861,6 +8018,8 @@ Index: 100
     Undulator           
     Photon_Init         
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 101
@@ -7870,34 +8029,9 @@ Index: 101
  
  !---------------------------------
 Index: 102
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    Custom              
-    RFcavity            
-    ELseparator         
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Octupole            
-    Rbend               
-    Solenoid            
-    Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Beginning_Ele       
     Line_Ele            
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
-    Pipe                
-    E_Gun               
-    EM_Field            
-    Undulator           
-    AC_Kicker           
  
  !---------------------------------
 Index: 103
@@ -7932,6 +8066,8 @@ Index: 103
     Undulator           
     Sad_Mult            
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 104
@@ -7981,6 +8117,8 @@ Index: 105
     Sad_Mult            
     Mask                
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 106
@@ -8013,6 +8151,8 @@ Index: 106
     EM_Field            
     Undulator           
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 107
@@ -8062,6 +8202,8 @@ Index: 107
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 108
@@ -8115,40 +8257,17 @@ Index: 108
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 109
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    Custom              
-    RFcavity            
-    ELseparator         
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Octupole            
-    Rbend               
-    Solenoid            
-    Lcavity             
-    Def_Parameter       
+    Def_Parameter!      
     Beginning_Ele       
     Line_Ele            
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
     Girder              
-    Pipe                
-    E_Gun               
-    EM_Field            
     Floor_Shift         
     Fiducial            
-    Undulator           
-    AC_Kicker           
  
  !---------------------------------
 Index: 110
@@ -8178,6 +8297,8 @@ Index: 110
     EM_Field            
     Undulator           
     AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 111
@@ -8257,6 +8378,8 @@ Index: 112
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 113
@@ -8277,15 +8400,70 @@ Index: 113
  
  !---------------------------------
 Index: 114
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    Custom              
+    RFcavity            
+    ELseparator         
+    Wiggler             
+    Sol_Quad            
+    Marker              
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
+    Lcavity             
+    Monitor             
+    Instrument          
+    Hkicker             
+    Vkicker             
+    Rcollimator         
+    Ecollimator         
+    Pipe                
+    E_Gun               
+    EM_Field            
+    Undulator           
+    AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 115
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    Custom              
     Taylor              
+    RFcavity            
+    ELseparator         
+    Wiggler             
+    Sol_Quad            
+    Marker              
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
+    Lcavity             
+    Monitor             
+    Instrument          
+    Hkicker             
+    Vkicker             
+    Rcollimator         
+    Ecollimator         
+    Pipe                
+    E_Gun               
+    EM_Field            
+    Undulator           
+    AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 116
     Beginning_Ele       
     Line_Ele            
+    Converter           
     Crystal             
     Multilayer_Mirror   
     Sample              
@@ -8345,6 +8523,8 @@ Index: 117
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 118
@@ -8398,6 +8578,8 @@ Index: 118
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 119
@@ -8451,6 +8633,8 @@ Index: 119
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 120
@@ -8504,6 +8688,8 @@ Index: 120
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 121
@@ -8557,6 +8743,8 @@ Index: 121
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 122
@@ -8610,6 +8798,8 @@ Index: 122
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 123
@@ -8631,6 +8821,7 @@ Index: 123
     EM_Field            
     Undulator           
     AC_Kicker           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 124
@@ -8652,6 +8843,7 @@ Index: 124
     EM_Field            
     Undulator           
     AC_Kicker           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 125
@@ -8673,6 +8865,7 @@ Index: 125
     EM_Field            
     Undulator           
     AC_Kicker           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 126
@@ -8694,6 +8887,7 @@ Index: 126
     EM_Field            
     Undulator           
     AC_Kicker           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 127
@@ -8745,6 +8939,8 @@ Index: 127
     Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 128
@@ -8784,6 +8980,8 @@ Index: 128
     Sad_Mult            
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 129
@@ -8823,6 +9021,8 @@ Index: 129
     Sad_Mult            
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 130
@@ -8862,6 +9062,8 @@ Index: 130
     Sad_Mult            
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 131
@@ -8901,6 +9103,8 @@ Index: 131
     Sad_Mult            
     AC_Kicker           
     Lens                
+    Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 132
