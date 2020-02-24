@@ -1375,7 +1375,6 @@ case(fieldmap$)
         call grid_field_interpolate(ele, local_orb, g_field, g_pt, err, r, z, &
                      allow_s_out_of_bounds = grid_allow_s_out_of_bounds, err_print_out_of_bounds = err_print_out_of_bounds)
         if (err) then
-          if (global_com%exit_on_error) call err_exit
           if (present(err_flag)) err_flag = .true.
           return
         endif
