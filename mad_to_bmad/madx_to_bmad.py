@@ -32,13 +32,12 @@ class common_struct:
     self.prepend_consts = False
     self.one_file = True
     self.in_seq = False
-    self.seq = seq_struct()       # Current sequence being parsed.
+    self.last_seq = seq_struct()       # Current sequence being parsed.
     self.seq_dict = OrderedDict() # List of all sequences.
-    self.ele_name_list = []
-    self.ele_dict = OrderedDict() # List of elements defined ouside of a sequence
+    self.ele_dict = {}       # 
+    self.last_ele = None          # Last element parsed
     self.const_name = []          # Store constants since they will be put at the beginning.
     self.const_value = []
-    self.line = []
     self.f_in = []         # MADX input files
     self.f_out = []        # Bmad output files
     self.use = ''
@@ -48,28 +47,43 @@ class common_struct:
 #------------------------------------------------------------------
 
 ele_param_factor = {
-    'volt':     '1e6',
-    'freq':     '1e6',
-    'energy':   '1e9',
-    'ex':       '1e6',
-    'ey':       '1e6',
-    'pc':       '1e9',
+  'volt':     '1e-6',
+  'freq':     '1e-6',
+  'energy':   '1e-9',
+  'ex':       '1e-6',
+  'ey':       '1e-6',
+  'pc':       '1e-9',
+}
+
+ele_inv_param_factor = {
+  'volt':     '1e6',
+  'freq':     '1e6',
+  'energy':   '1e9',
+  'ex':       '1e6',
+  'ey':       '1e6',
+  'pc':       '1e9',
 }
 
 const_trans = {
-    'e':       'e_log',
-    'nmass':   'm_neutron * 1e9',
-    'mumass':  'm_muon * 1e9',
-    'clight':  'c_light',
-    'qelect':  'e_charge',
-    'hbar':    'h_bar * 1e6',
-    'erad':    'r_e',
-    'prad':    'r_p',
-    'ceil':    'ceiling',
-    'round':   'nint',
-    'ranf':    'ran',
-    'gauss':   'ran_gauss',
-  }
+  'e':       'e_log',
+  'nmass':   'm_neutron * 1e9',
+  'mumass':  'm_muon * 1e9',
+  'clight':  'c_light',
+  'qelect':  'e_charge',
+  'hbar':    'h_bar * 1e6',
+  'erad':    'r_e',
+  'prad':    'r_p',
+  'ceil':    'ceiling',
+  'round':   'nint',
+  'ranf':    'ran',
+  'gauss':   'ran_gauss',
+}
+
+sequence_refer = {
+  'entry':  'beginning',
+  'centre': 'middle',
+  'exit':   'end'
+}
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -140,21 +154,12 @@ def parameter_dictionary(word_lst):
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-# param of form: "1e9". Inverse of form: "1e-9"
-
-def ele_inv_param_factor(param):
-  global ele_param_factor
-  fac = ele_param_factor[param]
-  return fac[0:2] + '-' + fac[2:]
-
-#------------------------------------------------------------------
-#------------------------------------------------------------------
 # Convert expression from MADX format to Bmad format
 
 def bmad_expression(line, param):
   global const_trans, ele_param_factor
 
-  lst = re.split(r'(-|\+|\(|\)|\>|\*|/|\^)', line)
+  lst = re.split(r'(,|-|\+|\(|\)|\>|\*|/|\^)', line)
   out = ''
 
   while len(lst) != 0:
@@ -176,7 +181,7 @@ def bmad_expression(line, param):
 
   # End while
 
-  if param in ele_param_factor: out = add_parens(out) + ' * ' + ele_inv_param_factor(param)
+  if param in ele_inv_param_factor: out = add_parens(out) + ' * ' + ele_inv_param_factor[param]
   return out
 
 #-------------------------------------------------------------------
@@ -262,6 +267,7 @@ def negate(str):
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
+# Parse a lattice element
 
 def parse_element(dlist, common, write_to_file):
 
@@ -341,6 +347,7 @@ def parse_element(dlist, common, write_to_file):
       params['fringe_at'] = 'exit_end'
 
   elif dlist[2] == 'quadrupole':
+    ele = ele_struct(dlist[0], dlist[2])
     if 'k1' and 'k1s' in params:
       if 'tilt' in params:
         params['tilt'] = params['tilt'] + ' - atan2(' + params['k1s'] + ', ' + params['k1'] + ')/2'
@@ -356,6 +363,7 @@ def parse_element(dlist, common, write_to_file):
       params['k1s'].pop()
 
   elif dlist[2] == 'sextupole':
+    ele = ele_struct(dlist[0], dlist[2])
     if 'k2' and 'k2s' in params:
       if 'tilt' in params:
         params['tilt'] = params['tilt'] + ' - atan2(' + params['k2s'] + ', ' + params['k2'] + ')/3'
@@ -372,6 +380,7 @@ def parse_element(dlist, common, write_to_file):
 
 
   elif dlist[2] == 'octupole':
+    ele = ele_struct(dlist[0], dlist[2])
     if 'k3' and 'k3s' in params:
       if 'tilt' in params:
         params['tilt'] = params['tilt'] + ' - atan2(' + params['k3s'] + ', ' + params['k3'] + ')/4'
@@ -404,56 +413,53 @@ def parse_element(dlist, common, write_to_file):
   else:
     ele = ele_struct(dlist[0], dlist[2])
 
-  # Aperture conversion
+  # collimator conversion
 
   if 'apertype' in params:
-    if params['apertype'] == 'ellipse':
-      ele = ele_struct(dlist[0], 'ecollimator')
-      if 'aperture' in params: [params['x_limit'], params['y_limit']] = params.pop('aperture').split(',')
-
-    elif params['apertype'] == 'circle':
-      ele = ele_struct(dlist[0], 'ecollimator')
-
-    elif params['apertype'] == 'rectangle':
-      ele = ele_struct(dlist[0], 'rcollimator')
-      if 'aperture' in params: [params['x_limit'], params['y_limit']] = params.pop('aperture').split(',')
-
-    elif params['apertype'] == 'rectcircle' or params['apertype'] == 'lhcscreen':
-      ele = ele_struct(dlist[0], 'rcollimator')
-      if 'aperture' in params: [params['x_limit'], params['y_limit'], dummy] = params.pop('aperture').split(',')
-
-    elif params['apertype'] == 'racetrack' or params['apertype'] == 'rectellipse' or params['apertype'] == 'octagon':
-      ele = ele_struct(dlist[0], 'rcollimator')
-      if 'aperture' in params: [params['x_limit'], params['y_limit'], dummy1, dummy2] = params.pop('aperture').split(',')
+    if dlist[2] == 'collimator':
+      if params['apertype'] in ['ellipse', 'circle']:
+        ele = ele_struct(dlist[0], 'ecollimator')
+      else:
+        ele = ele_struct(dlist[0], 'rcollimator')
 
     else:
-      ele = ele_struct(dlist[0], 'ecollimator')
-      print (f"Note: apertype of {params['apertype']} cannot be translated for element: {dlist[0]}")
-      params.pop('aperture', 0)
-
-    if 'aper_offset' in params:
-      params['x_offset'] = params['aper_offset'].split(',')[0]
-      params['y_offset'] = params['aper_offset'].split(',')[1]
+      if params['apertype'] in ['ellipse', 'circle']:
+        params['aperture_type'] = 'elliptical'
+      else:
+        params['aperture_type'] = 'rectangular'
 
   #
 
-  if 'at' in ele.param: ele.at = ele.param.pop('at')
-  if 'from' in ele.param: ele.from_ele = ele.param.pop('from')
+  if 'aperture' in params: 
+    aperture = bmad_expression(params.pop('aperture').replace('{', '').replace('}', ''), '')
+    [params['x_limit'], params['y_limit']] = aperture.split(',')[0:2]
 
-  common.ele_dict[ele.name] = ele
+  if 'aper_offset' in params:
+    params['x_offset'] = params['aper_offset'].split(',')[0]
+    params['y_offset'] = params['aper_offset'].split(',')[1]
+
+  #
+
+  if 'at' in params: ele.at = params.pop('at')
+  if 'from' in params: ele.from_ele = params.pop('from')
+
+  ele.param = params
+  common.last_ele = ele
 
   if write_to_file:
     line = ele.name + ': ' + ele.type
-    for param in params:
+    for param in ele.param:
       if param in ignore_madx_param: continue
       line += ', ' + bmad_param(param) + ' = ' + bmad_expression(params[param], param)
     f_out = common.f_out[-1]
     wrap_write(line, f_out)
 
+
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
 def parse_directive(directive, common):
+  global sequence_refer
 
   f_out = common.f_out[-1]
 
@@ -507,7 +513,6 @@ def parse_directive(directive, common):
 
   if dlist[0] == 'endsequence':
     common.in_seq = False
-    common
     return
 
   # Everything below has at least 3 words
@@ -531,22 +536,68 @@ def parse_directive(directive, common):
 
   if dlist[1] == ':' and dlist[2] == 'sequence':
     common.in_seq = True
-    common.seq = seq_struct(dlist[0])
+    common.last_seq = seq_struct(dlist[0])
     if len(dlist) > 4:
       param_dict = parameter_dictionary(dlist[4:])
-      common.seq.l = param_dict.get('l', '0')
-      common.seq.refer = param_dict.get('refer', 'centre')
-      common.seq.ref_pos = param_dict.get('refpos', '')
+      common.last_seq.l = param_dict.get('l', '0')
+      common.last_seq.refer = param_dict.get('refer', 'centre')
+      common.last_seq.ref_pos = param_dict.get('refpos', '')
       if 'add_pass' in param_dict: print ('Cannot handle "add_pass" construct in sequence.')
       if 'next_sequ' in param_dict: print ('Cannot handle "next_sequ" construct in sequence.')
+
+    f_out.write(f'{dlist[0]}_mark: null_ele\n')
+    f_out.write(f'{dlist[0]}_drift: drift, l = {common.last_seq.l}\n')
+    f_out.write(f'{dlist[0]}: line = ({dlist[0]}_mark, {dlist[0]}_drift)\n')
     return
 
+  # In a sequence construct.
+
   if common.in_seq:
+    seq = common.last_seq
+    ele = common.last_ele
+
     if dlist[1] == ':':   # "name: type"  construct
       parse_element(dlist, common, True)
+      f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
+                  f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
 
+    elif dlist[0] in common.ele_dict:
+      parse_element([dlist[0], ':'].join(dlist), common, False)
+      if len(ele.param) == 0:
+        name = ele.name
+      # element has modified parameters. Need to create a new element with a unique name with "__N" suffix.
+      else:
+        common.ele_dict[dlist[0]] = common.ele_dict[dlist[0]] + 1
+        name = f'{dlist[0]}__{str(common.ele_dict[dlist[0]])}'
+        parse_element([name, ':'].join(dlist), common, True)
+
+      offset = ele.at
+      if ele.from_ele != '':
+        from_ele = seq.ele_dict[ele.from_ele]
+        offset = f'{offset} - {add_parens(from_ele.at)}'
+
+      f_out.write(f'superimpose, element = {name}, ref = {seq.name}_mark, ' + \
+                  f'offset = {offset}, ele_origin = {sequence_refer[seq.refer]}\n')
+
+    # Must be sequence name. So superimpose the corresponding marker.
     else:
-      parse_element(['', ':'].join(dlist), common, False)
+      seq2 = common.seq_dict[ele.name]
+      offset = ele.at
+
+      if ele.from_ele != '':
+        from_ele = seq.ele_dict[ele.from_ele]
+        offset = f'{offset} - {add_parens(from_ele.at)}'
+
+      if seq2.refpos != '':
+        refpos_ele = seq.ele_dict[seq2.refpos]
+        offset = f'{offset} - {add_parens(refpos_ele.at)}'
+      elif seq2.refer == 'centre':
+        offset = f'{offset} - {add_parens(seq2.l)} / 2'
+      elif seq2.refer == 'exit':
+        offset = f'{offset} - {add_parens(seq2.l)}'
+
+      f_out.write(f'superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, ' + \
+                  f'offset = {offset}\n')
 
     return
 
@@ -638,7 +689,7 @@ def parse_directive(directive, common):
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-# Get next madx command
+# Get next madx command.
 # Read in MADX file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
 
 def get_next_directive (common, write_to_bmad):
@@ -736,7 +787,7 @@ f_out = common.f_out[-1]
 f_out.write ('! Translated from MADX file: ' + madx_lattice_file + "\n\n")
 
 #------------------------------------------------------------------
-# First go through and make a list of all elements and sequences
+# First go through and make a list of all elements and sequences and elements of sequences
 
 common.directive = ''  #init
 while True:
@@ -764,18 +815,33 @@ while True:
     
   elif dlist[0] == 'endsequence':
     common.in_seq = False
+    seq = common.last_seq
+    common.seq_dict[seq.name] = seq
 
   elif dlist[0] == 'sequence':
     common.in_seq = True
+    common.last_seq = seq_struct(dlist[0])
+    if len(dlist) > 4:
+      param_dict = parameter_dictionary(dlist[4:])
+      common.last_seq.l = param_dict.get('l', '0')
+      common.last_seq.refer = param_dict.get('refer', 'centre')
+      common.last_seq.ref_pos = param_dict.get('refpos', '')
+      common.seq_dict.append(common.last_seq)
 
   elif common.in_seq: 
-    pass
+    if dlist[1] == ':':
+      parse_element(dlist, common, False)
+    else:
+      parse_element([dlist[0], ':'].join(dlist), common, False)
+
+    ele = common.last_ele
+    common.last_seq.ele_dict[ele.name] = ele
 
   elif dlist[1] == ':':
-    common.ele_name_list.append(dlist[0])
+    common.ele_dict[dlist[0]] = 0
 
 #------------------------------------------------------------------
-# parse directives
+# parse, convert and output madx commands
 
 common.directive = ''  # init
 common.f_in.append(open(madx_lattice_file, 'r'))  # Store file handle
