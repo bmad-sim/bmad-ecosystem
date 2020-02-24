@@ -1,5 +1,5 @@
 !+
-! Function reals_to_string (real_arr, width, n_signif, n_decimal) result (str)
+! Function reals_to_string (real_arr, width, n_blank, n_signif, n_decimal) result (str)
 ! 
 ! Routine to turn a n array of reals into a string for printing. 
 !
@@ -13,6 +13,7 @@
 ! Input:
 !   real_arr(:) -- real(rp): Real array to encode.
 !   width       -- integer: width of number field. The output string length will also be equal to width.
+!   n_blank     -- integer: Minmum number of blank spaces between numbers.
 !   n_signif    -- integer, optional: Nominal number of significant digits to display. Must be non-negative. Default is 15.
 !                    If n_decimal >= 0: n_signif is ignored is the number can be encoded with fixed format.
 !                           n_signif only affects encoding if the number is encoded with a floating point format.
@@ -26,10 +27,11 @@
 !                         The more compact fixed/floating format will be used. This is good for numbers in text.
 !
 ! Output:
-!   str         -- character(width): String representation of real_num. The length will be equal to width*size(real_arr)
+!   str         -- character(width): String representation of real_num. The length will be equal to 
+!                       width*size(real_arr) + n_blank_min*(size(real_arr)-1)
 !-
 
-function reals_to_string (real_arr, width, n_signif, n_decimal) result (str)
+function reals_to_string (real_arr, width, n_blank, n_signif, n_decimal) result (str)
 
 use sim_utils, dummy => reals_to_string
 
@@ -37,16 +39,17 @@ implicit none
 
 real(rp) real_arr(:)
 
-integer width
+integer width, n_blank
 integer, optional :: n_signif, n_decimal
 integer i, n0
 
-character(width*size(real_arr)) str
+character(width*size(real_arr) + n_blank*(size(real_arr)-1)) str
 
 !
 
+str = ''
 do i = 1, size(real_arr)
-  n0 = (i-1) * width
+  n0 = (i-1) * (width + n_blank)
   str(n0+1:n0+width) = real_to_string(real_arr(i), width, n_signif, n_decimal)
 enddo
 
