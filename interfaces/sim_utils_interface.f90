@@ -520,13 +520,13 @@ function real_to_string (real_num, width, n_signif, n_decimal) result (str)
   character(width) str
 end function
 
-function reals_to_string (real_arr, width, n_signif, n_decimal) result (str)
+function reals_to_string (real_arr, width, n_blank, n_signif, n_decimal) result (str)
   import
   implicit none
   real(rp) real_arr(:)
-  integer width
+  integer width, n_blank
   integer, optional :: n_signif, n_decimal
-  character(width*size(real_arr)) str
+  character(width*size(real_arr)+n_blank*(size(real_arr)-1)) str
 end function
 
 function reals_to_table_row (real_arr, width, n_decimal, n_blank) result (str)
