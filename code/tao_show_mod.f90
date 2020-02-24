@@ -1522,8 +1522,8 @@ case ('field')
     if (size(eles) > 1) then
       nl=nl+1; lines(nl) = trim(ele%name) // '  ' // ele_location(ele, parens = '()')
     endif
-    nl=nl+1; write (lines(nl), '(2a)') '  B (T):  ', reals_to_string(field%B, 15, 6, 6)
-    nl=nl+1; write (lines(nl), '(2a)') '  E (V/m):', reals_to_string(field%E, 15, 6, 6)
+    nl=nl+1; write (lines(nl), '(2a)') '  B (T):  ', reals_to_string(field%B, 12, 2, 6, 6)
+    nl=nl+1; write (lines(nl), '(2a)') '  E (V/m):', reals_to_string(field%E, 12, 2, 6, 2)
   enddo
 
 !----------------------------------------------------------------------
