@@ -50,7 +50,7 @@ subroutine tao_python_cmd (input_str)
 use tao_interface, dummy => tao_python_cmd
 use iso_c_binding
 use location_encode_mod
-use attribute_mod
+use em_field_mod
 use tao_command_mod, only: tao_next_switch, tao_cmd_split
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var
@@ -115,6 +115,7 @@ type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ctt
 type (cylindrical_map_struct), pointer :: cy_map
 type (cylindrical_map_term1_struct), pointer :: cyt
+type (em_field_struct) :: field
 type (taylor_term_struct), pointer :: tt
 type (floor_position_struct) floor, floor1, floor2, end1, end2, f_orb
 type (tao_floor_plan_struct), pointer :: fp
@@ -148,14 +149,12 @@ type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_element_struct), pointer :: tao_ele
 type (all_pointer_struct) a_ptr
 
-real(rp) s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
+real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
-real(rp), allocatable :: re_array(:)
-real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
-real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
+real(rp), allocatable :: re_array(:), value_arr(:)
+real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
-real(rp), allocatable :: value_arr(:)
 
 integer :: i, j, k, ib, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
@@ -176,7 +175,7 @@ character(300), allocatable :: name_arr(:)
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(20), allocatable :: name_list(:)
-character(20) cmd, who, which, v_str, head
+character(20) cmd, tail_str, which, v_str, head
 character(20) switch, color, shape_shape
 character(*), parameter :: r_name = 'tao_python_cmd'
 
@@ -232,7 +231,7 @@ call match_word (cmd, [character(40) :: &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
-          'evaluate', 'enum', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
+          'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
           'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
@@ -417,7 +416,7 @@ case ('branch1')
 case ('bunch1')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
@@ -425,13 +424,13 @@ case ('bunch1')
     call invalid ('BEAM NOT SAVED AT ELEMENT.')
     return
   endif
-  ix_bunch = parse_int(who, err, 1, size(beam%bunch)); if (err) return
+  ix_bunch = parse_int(tail_str, err, 1, size(beam%bunch)); if (err) return
 
   !save_beam flag: u%uni_branch(<branch-index>)%ele(<ele-index>)%save_beam
 
-  select case (who)
+  select case (tail_str)
   case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'state')
-    call coord_out(beam%bunch(ix_bunch), who)
+    call coord_out(beam%bunch(ix_bunch), tail_str)
     return
   case ('')
     bunch_params => tao_lat%tao_branch(ele%ix_branch)%bunch_params(ele%ix_ele)
@@ -1202,7 +1201,7 @@ case ('datum_has_ele')
 case ('ele:head')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
@@ -1266,7 +1265,7 @@ case ('ele:head')
 case ('ele:methods')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
@@ -1332,7 +1331,7 @@ case ('ele:methods')
 case ('ele:gen_attribs')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   do i = 1, num_ele_attrib$
@@ -1388,7 +1387,7 @@ case ('ele:gen_attribs')
 case ('ele:multipoles')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on
@@ -1451,7 +1450,7 @@ case ('ele:multipoles')
 case ('ele:ac_kicker')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%ac_kick)) return
@@ -1490,7 +1489,7 @@ case ('ele:ac_kicker')
 case ('ele:cartesian_map')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%cartesian_map)) then
@@ -1540,7 +1539,7 @@ case ('ele:cartesian_map')
 case ('ele:chamber_wall')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%wall3d)) then
@@ -1548,11 +1547,11 @@ case ('ele:chamber_wall')
     return
   endif
 
-  n = parse_int(who, err, 1, size(ele%wall3d));        if (err) return
+  n = parse_int(tail_str, err, 1, size(ele%wall3d));        if (err) return
   wall3d => ele%wall3d(n)
 
   do i = 1, size(wall3d%section)
-    select case (who)
+    select case (tail_str)
     case ('x')
       call calc_wall_radius (wall3d%section(i)%v,  1.0_rp, 0.0_rp, z1, rdummy)
       call calc_wall_radius (wall3d%section(i)%v, -1.0_rp, 0.0_rp, z2, rdummy)
@@ -1586,7 +1585,7 @@ case ('ele:chamber_wall')
 case ('ele:cylindrical_map')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%cylindrical_map)) then
@@ -1637,7 +1636,7 @@ case ('ele:cylindrical_map')
 case ('ele:taylor')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (attribute_name(ele, taylor_map_includes_offsets$) == 'TAYLOR_MAP_INCLUDES_OFFSETS') then
@@ -1672,7 +1671,7 @@ case ('ele:taylor')
 case ('ele:spin_taylor')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%spin_taylor(1)%term)) then
@@ -1707,7 +1706,7 @@ case ('ele:spin_taylor')
 case ('ele:wake')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%wake)) then
@@ -1779,7 +1778,7 @@ case ('ele:wake')
 case ('ele:wall3d')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%wall3d)) then
@@ -1839,7 +1838,7 @@ case ('ele:wall3d')
 case ('ele:twiss')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (ele%a%beta == 0) return
@@ -1867,7 +1866,7 @@ case ('ele:twiss')
 case ('ele:control')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%control)) then
@@ -1893,7 +1892,7 @@ case ('ele:control')
 case ('ele:orbit')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
@@ -1917,10 +1916,10 @@ case ('ele:orbit')
 case ('ele:mat6')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  select case (who)
+  select case (tail_str)
   case ('mat6')
     do i = 1, 6
       nl=incr(nl); write (li(nl), '(i0, a, 6(a, es21.13))') i, ';REAL_ARR;F', (';', ele%mat6(i,j), j = 1, 6)
@@ -1956,7 +1955,7 @@ case ('ele:mat6')
 case ('ele:taylor_field')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%taylor_field)) then
@@ -2012,7 +2011,7 @@ case ('ele:taylor_field')
 case ('ele:grid_field')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%grid_field)) then
@@ -2084,7 +2083,7 @@ case ('ele:grid_field')
 case ('ele:floor')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
 
   ele => point_to_ele(line, err); if (err) return
   ele0 => pointer_to_next_ele(ele, -1)
@@ -2122,7 +2121,7 @@ case ('ele:floor')
 case ('ele:photon')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   if (.not. associated(ele%photon)) then
@@ -2168,7 +2167,7 @@ case ('ele:photon')
 case ('ele:lord_slave')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   call tao_control_tree_list(ele, eles)
@@ -2207,7 +2206,7 @@ case ('ele:lord_slave')
 case ('ele:elec_multipoles')
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, which, who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on
@@ -2249,6 +2248,40 @@ case ('evaluate')
   do i = 1, size(value_arr)
     nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';', value_arr(i)
   enddo
+
+!----------------------------------------------------------------------
+! EM field at a given point generated by a given element.
+! Command syntax:
+!   python em_field {ele_id}|{which} {x}, {y}, {z}, {t/z}
+! where {which} is one of:
+!   model
+!   base
+!   design
+! Where:
+!   {x}, {y}  -- Transverse coords.
+!   {z}       -- Longitudainal coord with respect to entrance end of element.
+!   {t/z}     -- time or phase space z depending if lattice is setup for absolute time tracking.
+
+case ('em_field')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, err); if (err) return
+
+  call init_coord (orb, ele = ele, element_end = downstream_end$)
+
+  call split_this_line (tail_str, name1, 4, err, space_sep = .true.); if (err) return
+  orb%vec(1)  = parse_real(name1(1), err);  if (err) return
+  orb%vec(3)  = parse_real(name1(2), err);  if (err) return
+  z           = parse_real(name1(3), err);  if (err) return
+  if (ele%branch%lat%absolute_time_tracking) then
+    orb%t = parse_real(name1(4), err);  if (err) return
+  else
+    orb%vec(5) = parse_real(name1(4), err);  if (err) return
+  endif
+
+  call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err);  if (err) return
+  nl=incr(nl); write (li(nl), '(6(es21.13, a))') (field%B(i), ';',  i = 1, 3), (field%E(i), ';',  i = 1, 2), field%E(3)
 
 !----------------------------------------------------------------------
 ! List of possible values for enumerated numbers.
@@ -2689,7 +2722,7 @@ case ('help')
 !----------------------------------------------------------------------
 ! INUM
 ! Command syntax:
-!   python inum <who>
+!   python inum {who}
 
 case ('inum')
 
@@ -2813,10 +2846,11 @@ case ('lat_general')
 !     Use "*" to match to all elements.
 !
 ! Note: To output through the real array buffer, add the prefix "real:" to {who}.
+! Note: Only a single item permitted with real buffer out.
 !
 ! Examples:
 !   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
-!   python lat_list 3@0>>Q*|base real:ele.s    ! Only a single item permitted with real buffer out.
+!   python lat_list 3@0>>Q*|base real:ele.s    
 
 case ('lat_list')
 
@@ -2851,7 +2885,7 @@ case ('lat_list')
   enddo
 
   u => point_to_uni(line, .true., err); if (err) return
-  tao_lat => point_to_tao_lat(line, err, who = all_who); if (err) return
+  tao_lat => point_to_tao_lat(line, err, tail_str = all_who); if (err) return
   use_real_array_buffer = (all_who(1:5) == 'real:')
   if (use_real_array_buffer) then
     all_who = all_who(6:)
@@ -2996,7 +3030,7 @@ case ('lat_list')
 
       else
         do ix = 1, n_add
-          if (who == 'orbit.state') then
+          if (name1(1) == 'orbit.state') then
             if (i == 1 .and. ix == 1) then
               nl=incr(nl); write (li(nl), '(i0)') nint(values(ix))
             else
@@ -3017,7 +3051,7 @@ case ('lat_list')
   enddo ! ie = 1, n_loc
 
   if (use_real_array_buffer) then
-    if (who == 'orbit.state') then
+    if (name1(1) == 'orbit.state') then
       if (.not. allocated(tao_c_interface_com%c_integer)) allocate (tao_c_interface_com%c_integer(n_arr))
       if (size(tao_c_interface_com%c_integer) < n_arr) then
         deallocate (tao_c_interface_com%c_integer)
@@ -3507,7 +3541,7 @@ case ('plot_graph_manage')
 
 case ('plot_line')
 
-  call string_trim(line(ix_line+1:), who, ix2)
+  call string_trim(line(ix_line+1:), tail_str, ix2)
   line = line(1:ix_line)
   call tao_find_plots (err, line, 'REGION', curve = curves, only_visible = .false.)
 
@@ -3529,7 +3563,7 @@ endif
 
   n = size(c%x_line)
 
-  select case (who)
+  select case (tail_str)
   case ('x', 'y')
     if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
     if (size(tao_c_interface_com%c_real) < n) then
@@ -3539,7 +3573,7 @@ endif
 
     tao_c_interface_com%n_real = n
 
-    if (who == 'x') then
+    if (tail_str == 'x') then
       tao_c_interface_com%c_real(1:n) = c%x_line
     else
       tao_c_interface_com%c_real(1:n) = c%y_line
@@ -3568,7 +3602,7 @@ endif
 
 case ('plot_symbol')
 
-  call string_trim(line(ix_line+1:), who, ix2)
+  call string_trim(line(ix_line+1:), tail_str, ix2)
   line = line(1:ix_line)
   call tao_find_plots (err, line, 'REGION', curve = curves, only_visible = .false.)
 
@@ -3585,7 +3619,7 @@ case ('plot_symbol')
 
   n = size(c%x_symb)
 
-  select case (who)
+  select case (tail_str)
   case ('x', 'y')
     if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n))
     if (size(tao_c_interface_com%c_real) < n) then
@@ -3595,7 +3629,7 @@ case ('plot_symbol')
 
     tao_c_interface_com%n_real = n
 
-    if (who == 'x') then
+    if (tail_str == 'x') then
       tao_c_interface_com%c_real(1:n) = c%x_symb
     else
       tao_c_interface_com%c_real(1:n) = c%y_symb
@@ -3726,14 +3760,14 @@ case ('shape_list')
 !----------------------------------------------------------------------
 ! element shape creation or destruction
 ! Command syntax:
-!   python shape_manage <who> <index> <add-or-delete>
+!   python shape_manage {who} {index} {add-or-delete}
 !
-! <who> is one of:
+! {who} is one of:
 !   lat_layout
 !   floor_plan
-! <add-or-delete> is one of:
-!   add     -- Add a shape at <index>. Shapes with higher index get moved up one to make room.
-!   delete  -- Delete shape at <index>. Shapes with higher index get moved down one to fill the gap.
+! {add-or-delete} is one of:
+!   add     -- Add a shape at {index}. Shapes with higher index get moved up one to make room.
+!   delete  -- Delete shape at {index}. Shapes with higher index get moved down one to fill the gap.
 !
 ! Example:
 !   python shape_manage floor_plan 2 add
@@ -3868,9 +3902,9 @@ case ('shape_pattern_point_manage')
 !----------------------------------------------------------------------
 ! lat_layout or floor_plan shape set
 ! Command syntax:
-!   python shape_set <who>^^<shape_index>^^<ele_name>^^<shape>^^<color>^^
-!                                           <shape_size>^^<type_label>^^<shape_draw?>^^<multi_shape?>^^<line_width>
-! <who> is one of:
+!   python shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
+!                                           {shape_size}^^{type_label}^^{shape_draw?}^^{multi_shape?}^^{line_width}
+! {who} is one of:
 !   lat_layout
 !   floor_plan
 
@@ -4533,25 +4567,25 @@ end subroutine re_allocate_lines
 !----------------------------------------------------------------------
 ! contains
 
-function point_to_tao_lat (line, err, which, who) result (tao_lat)
+function point_to_tao_lat (line, err, which, tail_str) result (tao_lat)
 
 type (tao_lattice_struct), pointer :: tao_lat
 integer ix
 logical err
 character(*) line
-character(*), optional :: which, who
+character(*), optional :: which, tail_str
 
 
 err = .true.
 nullify(tao_lat)
 
 call string_trim(line, line, ix)
-if (present(who)) call string_trim(line(ix+1:), who, i)
+if (present(tail_str)) call string_trim(line(ix+1:), tail_str, i)
 line = line(1:ix)
 
 ix = index(line, '|')
 if (ix == 0) then
-  call invalid ('Expecting "|" character')
+  call invalid ('Expecting "|<{which}" where {which} must be one of "model", "base", or "design"')
   return
 endif
 
@@ -5082,7 +5116,7 @@ end function cmplx_str
 !----------------------------------------------------------------------
 ! contains
 
-subroutine split_this_line (line, array, target_num, err, actual_num)
+subroutine split_this_line (line, array, target_num, err, actual_num, space_sep)
 
 character(*) line
 character(len(line)) str
@@ -5091,7 +5125,8 @@ character(*) :: array(:)
 integer target_num
 integer, optional :: actual_num
 integer i, ix
-logical err
+logical err, space
+logical, optional :: space_sep
 
 ! For input, "^^" is used as the separator instead of ";" since the Tao code that
 ! calls python_cmd will interpret ";" as a command separator and will thus mangle
@@ -5100,21 +5135,31 @@ logical err
 str = line
 err = .true.
 array = ''
+space = logic_option(.false., space_sep)
 
 do i = 1, 1000
   if (i > size(array)) then
     call invalid('LINE SPLITTING ARRAY OVERFLOW.')
     return
   endif
-  ix = index(str, '^^')
-  if (ix == 0) then
-    array(i) = str
-    exit
+
+  if (space) then
+    call string_trim(str, str, ix)
+    if (ix == 0) exit
+    array(i) = str(1:ix)
+    str = str(ix+1:)
+  else
+    ix = index(str, '^^')
+    if (ix == 0) then
+      array(i) = str
+      exit
+    endif
+    array(i) = str(1:ix-1)
+    str = str(ix+2:)
   endif
-  array(i) = str(1:ix-1)
-  str = str(ix+2:)
 enddo
 
+if (space) i = i - 1
 if (present(actual_num)) actual_num = i
 
 err = (target_num > 0 .and. i /= target_num)
