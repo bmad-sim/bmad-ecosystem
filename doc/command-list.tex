@@ -2490,7 +2490,7 @@ lattice input format.
 
 Syntax:
 \begin{example}
-    show particle \{-bunch <bunch_index>\} \{dtime\} \{-particle <particle_index>
+    show particle \{-bunch <bunch_index>\} \{-particle <particle_index>
                   \{-element <element_name_or_index>\} \{-lost\} \{-all\}
 \end{example}
 
@@ -2507,9 +2507,10 @@ use with bunches with a small number of particles.
 
 The \vn{-all} option shows all particles at the given element.
 
-The \vn{-dtime} option shows the time relative to the reference time ($t - t_{ref}$) instead of
-the $z$ phase space coordinate. The conversion equation is $z = -\beta \, c \, (t - t_{ref})$ where
-$\beta = v/c$ is the normalized velocity.
+The \vn{dtime} column shows the time relative to the reference time ($t - t_{ref}$). The conversion
+between phase space $z$ and \vn{dtime} is $z = -\beta \, c \, (t - t_{ref})$ where $\beta = v/c$ is
+the normalized velocity. Since \vn{dtime} is undefined if $\beta = 0$, zero will be displayed in
+this case.
 
 Also see \vn{show beam}.
 
