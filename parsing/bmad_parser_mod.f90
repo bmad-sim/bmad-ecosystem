@@ -9216,7 +9216,6 @@ character(40) var, value
 
 err_flag = .false.
 
-ele%name = 'SUPERIMPOSE COMMAND'
 ele%lord_status = super_lord$
 pele%superposition_command_here = .true.
 
