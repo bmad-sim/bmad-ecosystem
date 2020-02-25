@@ -29,15 +29,15 @@ class seq_struct:
 
 class common_struct:
   def __init__(self):
-    self.prepend_consts = True
+    self.prepend_vars = True
     self.one_file = True
     self.in_seq = False
-    self.last_seq = seq_struct()       # Current sequence being parsed.
-    self.seq_dict = OrderedDict() # List of all sequences.
+    self.last_seq = seq_struct()     # Current sequence being parsed.
+    self.seq_dict = OrderedDict()    # List of all sequences.
     self.ele_dict = {}       # 
-    self.last_ele = None          # Last element parsed
-    self.const_name = []          # Store constants since they will be put at the beginning.
-    self.const_value = []
+    self.last_ele = None             # Last element parsed
+    self.var_dict = OrderedDict()    # Store variable info.
+    self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
     self.f_in = []         # MADX input files
     self.f_out = []        # Bmad output files
     self.use = ''
@@ -543,7 +543,7 @@ def parse_directive(directive, common):
       param_dict = parameter_dictionary(dlist[4:])
       common.last_seq.l = param_dict.get('l', '0')
       common.last_seq.refer = param_dict.get('refer', 'centre')
-      common.last_seq.ref_pos = param_dict.get('refpos', '')
+      common.last_seq.refpos = param_dict.get('refpos', '')
       if 'add_pass' in param_dict: print ('Cannot handle "add_pass" construct in sequence.')
       if 'next_sequ' in param_dict: print ('Cannot handle "next_sequ" construct in sequence.')
 
@@ -581,7 +581,7 @@ def parse_directive(directive, common):
         from_ele = seq.ele_dict[ele.from_ele]
         offset = f'{offset} - {add_parens(from_ele.at)}'
 
-      f_out.write(f'superimpose, element = {name}_mark, ref = {seq.name}_mark, ' + \
+      f_out.write(f'superimpose, element = {name}, ref = {seq.name}_mark, ' + \
                   f'offset = {offset}, ele_origin = {sequence_refer[seq.refer]}\n')
 
     # Must be sequence name. So superimpose the corresponding marker.
@@ -603,8 +603,8 @@ def parse_directive(directive, common):
       elif seq2.refer == 'exit':
         offset = f'{offset} - {add_parens(seq2.l)}'
 
-      f_out.write(f'superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, ' + \
-                  f'offset = {offset}\n')
+      common.super_list.append(f'superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, offset = {offset}\n')
+      f_out.write (f'!!** superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, offset = {offset}\n')
 
     return
 
@@ -613,19 +613,15 @@ def parse_directive(directive, common):
   if ix_colon > 0 and dlist[ix_colon+1] == 'line':
     f_out.write(directive + '\n')
 
-  # Constant set
+  # Var set
 
   if dlist[1] == '=':
-    if dlist[0] in common.const_name:
-      print ('Duplicate constant name: ' + dlist[0] + '\n' + 
-             '  You will have to edit the lattice file by hand to resolve this problem.')
-    common.const_name.append(dlist[0])
+    if dlist[0] in common.var_dict:
+      print (f'Duplicate variable name: {dlist[0]}\n' + 
+             f'  You will have to edit the lattice file by hand to resolve this problem.')
     value = bmad_expression(directive.split('=')[1].strip(), '')
-    if common.prepend_consts:
-      common.const_value.append(value)
-    else:
-      f_out.write(dlist[0] + ' = ' + value + '\n')
-
+    common.var_dict[dlist[0]] = value
+    if not common.prepend_vars: f_out.write(f'{dlist[0]} = {value}\n')
     return
 
   # Title
@@ -773,11 +769,11 @@ start_time = time.time()
 argp = argparse.ArgumentParser()
 argp.add_argument('madx_file', help = 'Name of input MADX lattice file')
 argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each MADX input file.', action = 'store_true')
-argp.add_argument('-c', '--no_prepend_constants', help = 'Reorder and prepend constants in output file.', action = 'store_true')
+argp.add_argument('-v', '--no_prepend_vars', help = 'Move variables to the beginning of the Bmad file.', action = 'store_true')
 arg = argp.parse_args()
 
 common = common_struct()
-common.prepend_consts = not arg.no_prepend_constants
+common.prepend_vars = not arg.no_prepend_vars
 common.one_file = not arg.many_files
 
 madx_lattice_file = arg.madx_file
@@ -808,20 +804,25 @@ while True:
 f_out.close()
 
 #------------------------------------------------------------------
-# Prepend constants
+# Prepend variables and superposition statements as needed
 
-if common.prepend_consts:
-  f_out = open(bmad_lattice_file, 'r')
-  lines = f_out.readlines()
-  f_out.close()
+f_out = open(bmad_lattice_file, 'r')
+lines = f_out.readlines()
+f_out.close()
 
-  f_out = open(bmad_lattice_file, 'w')
+f_out = open(bmad_lattice_file, 'w')
 
-  for n, name in enumerate(common.const_name):
-    f_out.write(name + ' = ' + common.const_value[n] + '\n')
+if common.prepend_vars :
+  for name in common.var_dict:
+    f_out.write(f'{name} = {common.var_dict[name]}\n')
   f_out.write('\n')
 
-  for line in lines:
+if len(common.super_list) > 0:
+  for line in common.super_list:
     f_out.write(line)
+  f_out.write('\n')
 
-  f_out.close()
+for line in lines:
+  f_out.write(line)
+
+f_out.close()
