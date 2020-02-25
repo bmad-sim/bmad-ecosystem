@@ -29,7 +29,7 @@ class seq_struct:
 
 class common_struct:
   def __init__(self):
-    self.prepend_consts = False
+    self.prepend_consts = True
     self.one_file = True
     self.in_seq = False
     self.last_seq = seq_struct()       # Current sequence being parsed.
@@ -513,6 +513,8 @@ def parse_directive(directive, common):
 
   if dlist[0] == 'endsequence':
     common.in_seq = False
+    seq = common.last_seq
+    common.seq_dict[seq.name] = seq
     return
 
   # Everything below has at least 3 words
@@ -558,6 +560,7 @@ def parse_directive(directive, common):
     if dlist[1] == ':':   # "name: type"  construct
       parse_element(dlist, common, True)
       ele = common.last_ele
+      common.last_seq.ele_dict[ele.name] = ele
       f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
                   f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
 
@@ -583,6 +586,8 @@ def parse_directive(directive, common):
 
     # Must be sequence name. So superimpose the corresponding marker.
     else:
+      parse_element([dlist[0], ':']+dlist, common, False)
+      ele = common.last_ele
       seq2 = common.seq_dict[ele.name]
       offset = ele.at
 
@@ -683,6 +688,7 @@ def parse_directive(directive, common):
 
   if dlist[1] == ':':
     parse_element(dlist, common, True)
+    common.ele_dict[dlist[0]] = 0
     return
 
   # Unknown
@@ -767,11 +773,11 @@ start_time = time.time()
 argp = argparse.ArgumentParser()
 argp.add_argument('madx_file', help = 'Name of input MADX lattice file')
 argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each MADX input file.', action = 'store_true')
-argp.add_argument('-c', '--prepend_constants', help = 'Reorder and prepend constants in output file.', action = 'store_true')
+argp.add_argument('-c', '--no_prepend_constants', help = 'Reorder and prepend constants in output file.', action = 'store_true')
 arg = argp.parse_args()
 
 common = common_struct()
-common.prepend_consts = arg.prepend_constants
+common.prepend_consts = not arg.no_prepend_constants
 common.one_file = not arg.many_files
 
 madx_lattice_file = arg.madx_file
@@ -789,64 +795,9 @@ f_out = common.f_out[-1]
 f_out.write ('! Translated from MADX file: ' + madx_lattice_file + "\n\n")
 
 #------------------------------------------------------------------
-# First go through and make a list of all elements and sequences and elements of sequences
-
-common.directive = ''  #init
-while True:
-  directive = get_next_directive(common, False)
-  if len(common.f_in) == 0: break
-
-  if directive[:5] == 'call':
-    file = directive.split('=')[1].strip()
-    if '"' in file or "'" in file:
-      file = file.replace('"', '').replace("'", '')
-    else:
-      file = file.lower()    
-    common.f_in.append(open(file, 'r'))  # Store file handle
-    continue
-
-  dlist = re.split(r'\s*(,|=|:)\s*', directive.strip().lower())
-  dlist = list(filter(lambda a: a != '', dlist))   # Remove all blank strings from list
-
-  if len(dlist) < 1:
-    pass
-
-  elif dlist[0] == 'exit' or dlist[0] == 'quit' or dlist[0] == 'stop':
-    common.f_in.pop()
-    if len(common.f_in) == 0: break   # Hit Quit/Exit/Stop statement.
-    
-  elif dlist[0] == 'endsequence':
-    common.in_seq = False
-    seq = common.last_seq
-    common.seq_dict[seq.name] = seq
-
-  elif dlist[0] == 'sequence':
-    common.in_seq = True
-    common.last_seq = seq_struct(dlist[0])
-    if len(dlist) > 4:
-      param_dict = parameter_dictionary(dlist[4:])
-      common.last_seq.l = param_dict.get('l', '0')
-      common.last_seq.refer = param_dict.get('refer', 'centre')
-      common.last_seq.ref_pos = param_dict.get('refpos', '')
-      common.seq_dict.append(common.last_seq)
-
-  elif common.in_seq: 
-    if dlist[1] == ':':
-      parse_element(dlist, common, False)
-    else:
-      parse_element([dlist[0], ':'].join(dlist), common, False)
-
-    ele = common.last_ele
-    common.last_seq.ele_dict[ele.name] = ele
-
-  elif dlist[1] == ':':
-    common.ele_dict[dlist[0]] = 0
-
-#------------------------------------------------------------------
 # parse, convert and output madx commands
 
 common.directive = ''  # init
-common.f_in.append(open(madx_lattice_file, 'r'))  # Store file handle
 
 while True:
   directive = get_next_directive(common, True)
@@ -854,16 +805,21 @@ while True:
   parse_directive(directive, common)
   if len(common.f_in) == 0: break   # Hit Quit/Exit/Stop statement.
 
+f_out.close()
+
 #------------------------------------------------------------------
 # Prepend constants
 
 if common.prepend_consts:
-  f_out = open(bmad_lattice_file, 'rw')
+  f_out = open(bmad_lattice_file, 'r')
   lines = f_out.readlines()
-  f_out.seek(0)   # Rewind
+  f_out.close()
+
+  f_out = open(bmad_lattice_file, 'w')
 
   for n, name in enumerate(common.const_name):
     f_out.write(name + ' = ' + common.const_value[n] + '\n')
+  f_out.write('\n')
 
   for line in lines:
     f_out.write(line)
