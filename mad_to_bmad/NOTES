@@ -1,0 +1,15 @@
+* Does madx demand that tilt parameter have a value?
+* Check: negate and add_parens functions.
+* Check: "rfa, freq = volt" converts correctly.
+* Check: call command
+* Check: Multiple commands on a line
+
+
+Documentation:
+	No action commands, etc.
+  Need to put in parameter[geometry] command.
+
+Aperture conversion:
+	circle, rectangle, ellipse: True Translation
+	rectcircle / lhcscreen / racetrack / octagon / rectellipse -> rectangle without any rounded corners.
+That is, aperture is always larger on the Bmad side
