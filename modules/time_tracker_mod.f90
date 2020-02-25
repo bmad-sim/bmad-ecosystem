@@ -49,6 +49,7 @@ implicit none
 
 type (coord_struct), intent(inout), target :: orb
 type (coord_struct), target :: old_orb
+type (coord_struct) :: save_orb
 type (ele_struct), target :: ele
 type (lat_param_struct), target ::  param
 type (em_field_struct) :: saved_field
@@ -201,7 +202,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   if ( present(track) ) then
     !Check if we are past a save time, or if exited
     if (track%ds_save <= 0 .or. (rf_time - t_save) * t_dir >= 0 .or. exit_flag) then
-      call save_a_step (track, ele, param, .true., orb, s_body, .true., rf_time = rf_time)
+      ! For consistency, convert to s-coordinates for save_a_step
+      save_orb = orb
+      call convert_particle_coordinates_t_to_s (save_orb, dt_ref, ele, s_body)
+      call save_a_step (track, ele, param, .true., save_orb, s_body, .true., rf_time = rf_time)
       ! Set next save time 
       t_save = rf_time + dt_save
     end if
