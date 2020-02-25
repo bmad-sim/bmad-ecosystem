@@ -316,7 +316,7 @@ parsing_loop: do
   ! Superimpose statement
 
   if (word_1(:ix_word) == 'SUPERIMPOSE') then
-    call new_element_init('superimpose:' // int_str(n_max+1), in_lat, in_name, err)
+    call new_element_init('superimpose-command:' // int_str(ele%ix_ele), in_lat, in_name, err)
     ele => in_lat%ele(n_max)
     call parse_superimpose_command(in_lat, ele, plat%ele(ele%ixx), delim)
     cycle parsing_loop   
@@ -729,7 +729,7 @@ bp_com%input_line_meaningful = .false.
 mad_beam_ele => in_lat%ele(ix_mad_beam_ele)
 param_ele    => in_lat%ele(ix_param_ele)
 
-! sort elements and lists and check for duplicates
+! sort elements and lists and check for duplicates.
 ! seq_name(:) and in_name(:) arrays speed up the calls to find_indexx since
 ! the compiler does not have to repack the memory.
 
@@ -1289,6 +1289,8 @@ contains
 subroutine parser_end_stuff (lat0, do_dealloc)
 
 type (lat_struct) lat0
+type (ele_struct), pointer :: ele
+
 logical, optional :: do_dealloc
 integer i, j
 
@@ -1342,7 +1344,9 @@ end subroutine parser_end_stuff
 
 subroutine new_element_init (word1, lat0, in_name, err)
 
-type (lat_struct) lat0
+type (lat_struct), target :: lat0
+
+integer, pointer :: n_max
 logical err, added
 character(*) word1
 character(*), allocatable ::  in_name(:)
@@ -1356,6 +1360,7 @@ if (word1 == 'BEGINNING' .or. word1 == 'BEAM' .or. word1 == 'PARTICLE_START' .or
 endif
 
 err = .false.
+n_max => lat0%n_ele_max
 
 if (n_max >= ubound(lat0%ele, 1)) then
   call allocate_lat_ele_array (lat0)

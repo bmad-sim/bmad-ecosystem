@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) voltage, phase0, phase, t0, length, charge_dir, dt_ref, beta_ref
-real(rp) k_rf, dl
+real(rp) k_rf, dl, beta_old
 
 integer i, n_slice, orientation
 
@@ -61,12 +61,14 @@ do i = 1, n_slice
 
   if (logic_option(.false., make_matrix)) then
     mat6(2,:) = mat6(2,:) + voltage * k_rf * cos(phase) * mat6(5,:)
-    mat6(6,:) = mat6(6,:) + voltage * k_rf * (cos(phase) * mat6(1,:) - &
-                                                  sin(phase) * k_rf * orbit%vec(1) * mat6(5,:))
+    mat6(6,:) = mat6(6,:) + voltage * k_rf * (cos(phase) * mat6(1,:) - sin(phase) * k_rf * orbit%vec(1) * mat6(5,:))
   endif
 
   orbit%vec(2) = orbit%vec(2) + voltage * sin(phase)
   orbit%vec(6) = orbit%vec(6) + voltage * cos(phase) * k_rf * orbit%vec(1)
+  beta_old = orbit%beta
+  call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), orbit%species, beta =  orbit%beta)
+  orbit%vec(5) = orbit%vec(5) * beta_old / orbit%beta
 
   if (i == n_slice) exit
   call track_this_drift(orbit, dl, ele, phase, mat6, make_matrix)
