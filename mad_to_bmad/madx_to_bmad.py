@@ -29,12 +29,14 @@ class seq_struct:
 
 class common_struct:
   def __init__(self):
+    self.debug = False
     self.prepend_vars = True
     self.one_file = True
     self.in_seq = False
+    self.macro_count = False         # Count "{}" braces. 0 -> Not in a "macro" or "if" statement
     self.last_seq = seq_struct()     # Current sequence being parsed.
     self.seq_dict = OrderedDict()    # List of all sequences.
-    self.ele_dict = {}       # 
+    self.ele_dict = {}               # Dict of elements
     self.last_ele = None             # Last element parsed
     self.var_dict = OrderedDict()    # Store variable info.
     self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
@@ -471,7 +473,15 @@ def parse_directive(directive, common):
 
   # Ignore this
 
-  if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 'emit', 'twiss', 'help', 'set']:
+  if dlist[0].startswith('exec '): return
+  if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 
+                  'emit', 'twiss', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack']:
+    return
+
+  # Macro and "if" statements are strange since they does not end with a ';' but with a matching '}'
+
+  if (len(dlist) > 2 and dlist[1] == ':' and dlist[2] == 'macro') or dlist[0].startswith('if '): 
+    common.macro_count = directive.count('{') - directive.count('}')
     return
 
   # Return
@@ -509,7 +519,7 @@ def parse_directive(directive, common):
 
   #
 
-  print (str(dlist))
+  if common.debug: print (str(dlist))
 
   if dlist[0] == 'endsequence':
     common.in_seq = False
@@ -520,7 +530,7 @@ def parse_directive(directive, common):
   # Everything below has at least 3 words
 
   if len(dlist) < 3:
-    print ('Unknown construct: ' + directive)
+    print ('Unknown construct:\n  ' + directive.strip())
     return
 
   # Is there a colon or equal sign?
@@ -679,6 +689,7 @@ def parse_directive(directive, common):
   if '->' in dlist[0] and dlist[1] == '=':
     p = dlist[0].split('->')
     f_out.write(p[0] + '[' + bmad_param(p[1]) + '] = ' + bmad_expression(''.join(dlist[2:]), p[1]))
+    return
 
   # Element def
 
@@ -747,6 +758,18 @@ def get_next_directive (common, write_to_bmad):
       line = (line0 + line[ix+2:]).strip()
       if (len(line) == 0): continue
 
+    if common.macro_count != 0:   # Skip macros
+      for ix, char in enumerate(line):
+        if char == '{': common.macro_count += 1
+        if char == '}': common.macro_count -= 1
+        if common.macro_count == 0:
+          line = line[ix+1:].strip()
+          break
+      else:
+        continue   # Not out of macro yet.
+
+    #
+
     directive = directive + line
     directive = directive.partition('!')[0]    # Remove end of line comment
     directive = directive.partition('//')[0]   # Remove end of line comment
@@ -768,11 +791,13 @@ start_time = time.time()
 
 argp = argparse.ArgumentParser()
 argp.add_argument('madx_file', help = 'Name of input MADX lattice file')
+argp.add_argument('-d', '--debug', help = 'Print debug info.', action = 'store_true')
 argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each MADX input file.', action = 'store_true')
 argp.add_argument('-v', '--no_prepend_vars', help = 'Move variables to the beginning of the Bmad file.', action = 'store_true')
 arg = argp.parse_args()
 
 common = common_struct()
+common.debug = arg.debug
 common.prepend_vars = not arg.no_prepend_vars
 common.one_file = not arg.many_files
 
