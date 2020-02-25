@@ -8,6 +8,7 @@
 Documentation:
 	No action commands, etc.
   Need to put in parameter[geometry] command.
+	Document command line params.
 
 Aperture conversion:
 	circle, rectangle, ellipse: True Translation
