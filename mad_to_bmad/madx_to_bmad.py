@@ -81,7 +81,7 @@ const_trans = {
 
 sequence_refer = {
   'entry':  'beginning',
-  'centre': 'middle',
+  'centre': 'center',
   'exit':   'end'
 }
 
@@ -554,29 +554,31 @@ def parse_directive(directive, common):
 
   if common.in_seq:
     seq = common.last_seq
-    ele = common.last_ele
 
     if dlist[1] == ':':   # "name: type"  construct
       parse_element(dlist, common, True)
+      ele = common.last_ele
       f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
                   f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
 
     elif dlist[0] in common.ele_dict:
-      parse_element([dlist[0], ':'].join(dlist), common, False)
+      parse_element([dlist[0], ':']+dlist, common, False)
+      ele = common.last_ele
       if len(ele.param) == 0:
         name = ele.name
       # element has modified parameters. Need to create a new element with a unique name with "__N" suffix.
       else:
         common.ele_dict[dlist[0]] = common.ele_dict[dlist[0]] + 1
         name = f'{dlist[0]}__{str(common.ele_dict[dlist[0]])}'
-        parse_element([name, ':'].join(dlist), common, True)
+        parse_element([name, ':']+dlist, common, True)
+        ele = common.last_ele
 
       offset = ele.at
       if ele.from_ele != '':
         from_ele = seq.ele_dict[ele.from_ele]
         offset = f'{offset} - {add_parens(from_ele.at)}'
 
-      f_out.write(f'superimpose, element = {name}, ref = {seq.name}_mark, ' + \
+      f_out.write(f'superimpose, element = {name}_mark, ref = {seq.name}_mark, ' + \
                   f'offset = {offset}, ele_origin = {sequence_refer[seq.refer]}\n')
 
     # Must be sequence name. So superimpose the corresponding marker.
