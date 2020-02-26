@@ -38,7 +38,8 @@ class common_struct:
     self.seq_dict = OrderedDict()    # List of all sequences.
     self.ele_dict = {}               # Dict of elements
     self.last_ele = None             # Last element parsed
-    self.var_dict = OrderedDict()    # Store variable info.
+    self.set_list = []               # List of "A = B" sets after translation to Bmad. Does not Include "A->P = B" parameter sets.
+    self.var_name_list = []          # List of madx variable names.
     self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
     self.f_in = []         # MADX input files
     self.f_out = []        # Bmad output files
@@ -98,8 +99,8 @@ def bmad_param(param):
     'freq':   'rf_frequency',
     'lag':    'phi0',
     'ex':     'e_field',
-    'ey':     'e_field'
-  }
+    'ey':     'e_field',
+    'lrad':   'l',  }
 
   if param in special:
     return special[param]
@@ -115,7 +116,7 @@ def parameter_dictionary(word_lst):
   madx_logical = ['kill_ent_fringe', 'kill_exi_fringe', 'thick', 'no_cavity_totalpath']
 
   # Remove :, {, and } chars for something like "kn := {a, b, c}"
-  word_lst = filter(lambda a: a not in ['{', '}', ':'], word_lst)
+  word_lst = list(filter(lambda a: a not in ['{', '}', ':'], word_lst))
 
   # replace "0." or "0.0" with "0"
   word_lst = ['0' if x == '0.0' or x == '0.' else x for x in word_lst]
@@ -157,22 +158,30 @@ def parameter_dictionary(word_lst):
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 # Convert expression from MADX format to Bmad format
+# To convert <expression> a construct that look like "<target_param> = <expression>".
 
-def bmad_expression(line, param):
+def bmad_expression(line, target_param):
   global const_trans, ele_param_factor
 
+  # Remove {, and } chars for something like "kn := {a, b, c}"
+  line = line.replace('{', '').replace('}', '')
+
+  #
+
   lst = re.split(r'(,|-|\+|\(|\)|\>|\*|/|\^)', line)
+  lst = list(filter(lambda a: a != '', lst))    # Remove blank. EG: "->" => ["-", "", ">"] => ["-", ">"]
+
   out = ''
 
   while len(lst) != 0:
-    if len(lst) > 4 and lst[1] == '-' and lst[2] =='>':
+    if len(lst) >= 4 and lst[1] == '-' and lst[2] =='>':
       if lst[3] in ele_param_factor:
-        if lst[4] == '^' or (len(out.trim()) > 0 and out.trim()[-1] == '/'):
-          out = out + '(' + lst[0] + '[' + bmad_param(lst[3].trim()) + '] * ' + ele_param_factor[lst[3]]
+        if (len(lst) >= 5 and lst[4] == '^') or (len(out.strip()) > 0 and out.strip()[-1] == '/'):
+          out = out + '(' + lst[0] + '[' + bmad_param(lst[3].strip()) + '] * ' + ele_param_factor[lst[3]]
         else:
-          out = out + lst[0] + '[' + bmad_param(lst[3].trim()) + '] * ' + ele_param_factor[lst[3]]
+          out = out + lst[0] + '[' + bmad_param(lst[3].strip()) + '] * ' + ele_param_factor[lst[3]]
       else:
-        out = out + lst[0] + '[' + bmad_param(lst[3].trim()) + ']'
+        out = out + lst[0] + '[' + bmad_param(lst[3].strip()) + ']'
       lst = lst[4:]
 
     elif lst[0] in const_trans:
@@ -183,7 +192,7 @@ def bmad_expression(line, param):
 
   # End while
 
-  if param in ele_inv_param_factor: out = add_parens(out) + ' * ' + ele_inv_param_factor[param]
+  if target_param in ele_inv_param_factor: out = add_parens(out) + ' * ' + ele_inv_param_factor[target_param]
   return out
 
 #-------------------------------------------------------------------
@@ -398,14 +407,15 @@ def parse_element(dlist, common, write_to_file):
       params['k3s'].pop()
 
   elif dlist[2] == 'multipole':
+    ele = ele_struct(dlist[0], dlist[2])
     if 'knl' in params:
-      for n, knl in enumerate(params['knl'].pop().split(',')): 
+      for n, knl in enumerate(params.pop('knl').split(',')): 
         if knl == '0': continue
-        params['k' + str(n) + 'l'] = knl
-    if 'knsl' in params:
-      for n, knsl in enumerate(params['knsl'].pop().split(',')):  
-        if knsl == '0': continue
-        params['k' + str(n) + 'sl'] = knl
+        params['k' + str(n) + 'l'] = bmad_expression(knl, '')
+    if 'ksl' in params:
+      for n, ksl in enumerate(params.pop('ksl').split(',')):  
+        if ksl == '0': continue
+        params['k' + str(n) + 'sl'] = bmad_expression(ksl, '')
 
 
   elif dlist[2] in ele_type_trans:
@@ -489,7 +499,9 @@ def parse_directive(directive, common):
   if dlist[0] == 'return':
     common.f_in[-1].close()
     common.f_in.pop()       # Remove last file handle
-    if not common.one_file:
+    if common.one_file:
+      f_out.write(f'\n! Returned to File: {common.f_in[-1].name}\n')
+    else:
       common.f_out[-1].close()
       common.f_out.pop()       # Remove last file handle
 
@@ -626,12 +638,22 @@ def parse_directive(directive, common):
   # Var set
 
   if dlist[1] == '=':
-    if dlist[0] in common.var_dict:
+    if dlist[0] in common.var_name_list:
       print (f'Duplicate variable name: {dlist[0]}\n' + 
              f'  You will have to edit the lattice file by hand to resolve this problem.')
-    value = bmad_expression(directive.split('=')[1].strip(), '')
-    common.var_dict[dlist[0]] = value
-    if not common.prepend_vars: f_out.write(f'{dlist[0]} = {value}\n')
+
+    if '->' in dlist[0]:    # If a parameter set
+      [ele_name, dummy, param] = dlist[0].partition('->')
+      value = bmad_expression(directive.split('=')[1].strip(), param)
+      name = f'{ele_name}[{bmad_param(param)}]'
+      f_out.write(f'{name} = {value}\n')
+    else:                   # Variable set
+      common.var_name_list.append(dlist[0])
+      name = dlist[0]
+      value = bmad_expression(directive.split('=')[1].strip(), dlist[0])
+      common.set_list.append([name, value])
+      if not common.prepend_vars: f_out.write(f'{name} = {value}\n')
+
     return
 
   # Title
@@ -651,7 +673,10 @@ def parse_directive(directive, common):
       file = file.lower()    
 
     common.f_in.append(open(file, 'r'))  # Store file handle
-    if not common.one_file: common.f_out.append(open(bmad_file_name(file), 'r'))
+    if common.one_file: 
+      f_out.write(f'\n! In File: {common.f_in[-1].name}\n')
+    else:
+      common.f_out.append(open(bmad_file_name(file), 'r'))
     return
 
   # Use
@@ -813,7 +838,6 @@ common.f_in.append(open(madx_lattice_file, 'r'))  # Store file handle
 common.f_out.append(open(bmad_lattice_file, 'w'))
 
 f_out = common.f_out[-1]
-f_out.write ('! Translated from MADX file: ' + madx_lattice_file + "\n\n")
 
 #------------------------------------------------------------------
 # parse, convert and output madx commands
@@ -836,10 +860,11 @@ lines = f_out.readlines()
 f_out.close()
 
 f_out = open(bmad_lattice_file, 'w')
+f_out.write ('! Translated from MADX file: ' + madx_lattice_file + "\n\n")
 
 if common.prepend_vars :
-  for name in common.var_dict:
-    f_out.write(f'{name} = {common.var_dict[name]}\n')
+  for set in common.set_list:
+    f_out.write(f'{set[0]} = {set[1]}\n')
   f_out.write('\n')
 
 if len(common.super_list) > 0:
