@@ -167,42 +167,46 @@ func_set_fpic_flags () {
 # Function to check for required MacPorts install on Mac OS X
 
 func_check_macports () {
-    
+
     if ( [ `uname` == "Darwin" ] ) ; then
 	if ( [ "$(type gcc &> /dev/null ; echo $?)" -eq 0 ] ) ; then
 	    export VER=$(uname -r | cut -d. -f1)
 	    export GCC_PATH=$(type gcc | cut -d" " -f3)
-	    if ( [ "${VER}" -gt 11 ] && [ ! -d "/opt/local/etc/macports" ] ) ; then 
-		echo -e \
-		    "\nCan't find GNU GCC, please install MacPorts, using instructions on:" \
-		    "\n\n    http://www.macports.org/install.php" \
-		    "\n\nThen follow instructions on:" \
+	    if ( [ "${GCC_PATH}" != "/usr/local/bin/gcc" ] ) ; then
+		if ( [ "${VER}" -gt 11 ] && [ ! -d "/opt/local/etc/macports" ] ) ; then 
+		    echo -e \
+			 "\nCan't find GNU GCC, please install MacPorts, using instructions on:" \
+			 "\n\n    http://www.macports.org/install.php" \
+			 "\n\nThen follow instructions on:" \
+			 "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+		    exit 69
+		elif [ ! -L /opt/local/bin/gcc ] ; then
+		    echo -e \
+			 "\nNo selected MacPorts gcc version..." \
+			 "\n\nPlease follow instructions on:" \
 		    "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
-		exit 69
-	    elif [ ! -L /opt/local/bin/gcc ] ; then
-		echo -e \
-		    "\nNo selected MacPorts gcc version..." \
-		    "\n\nPlease follow instructions on:" \
-		    "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
-		exit 70
-	    elif ( [ "${GCC_PATH}" == "/usr/bin/gcc" ] && [ -d "/opt/local/etc/macports" ] ) ; then
-		echo -e \
-		    "\nWarning: MacPorts gcc is not in your PATH..." \
-		    "\nPlease add the following line to the bottom of your ~/.bash_profile or ~/.bashrc file:" \
-		    "\n\n    export PATH=/opt/local/bin:/opt/local/sbin:\$PATH" \
-		    "\n\nThen logout and log back in, cd into the Bmad distribution folder and" \
-		    "\nreinitialize the Bmad Environment using:" \
-		    "\n\n    source util/dist_source_me\n"
-		exit 78
-            elif [ "${GCC_PATH}" == "/opt/local/bin/gcc" ] ; then
+		    exit 70
+		elif ( [ "${GCC_PATH}" == "/usr/bin/gcc" ] && [ -d "/opt/local/etc/macports" ] ) ; then
+		    echo -e \
+			 "\nWarning: MacPorts gcc is not in your PATH..." \
+			 "\nPlease add the following line to the bottom of your ~/.bash_profile or ~/.bashrc file:" \
+			 "\n\n    export PATH=/opt/local/bin:/opt/local/sbin:\$PATH" \
+			 "\n\nThen logout and log back in, cd into the Bmad distribution folder and" \
+			 "\nreinitialize the Bmad Environment using:" \
+			 "\n\n    source util/dist_source_me\n"
+		    exit 78
+		elif [ "${GCC_PATH}" == "/opt/local/bin/gcc" ] ; then
+		    export CC=gcc
+		fi
+	    elif ( [ "${GCC_PATH}" == "/usr/local/bin/gcc" ] ) ; then
 		export CC=gcc
 	    fi
-	elif ( [ `uname` == "Darwin" ] ) ; then
+	else
 	    echo -e \
-		"\nCan't find GCC, please install Xcode and MacPorts, using instructions on:" \
-		"\n\n    http://www.macports.org/install.php:" \
-		"\n\nThen follow instructions on:" \
-		"\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
+		 "\nCan't find GCC, please install Xcode and MacPorts, using instructions on:" \
+		 "\n\n    http://www.macports.org/install.php:" \
+		 "\n\nThen follow instructions on:" \
+		 "\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
 	    exit 69
 	fi
     fi
@@ -529,33 +533,29 @@ func_install_utilities () {
 
 	    if [ ${STATUS} -eq 0 ] ; then
 
-		if ( [ `uname` == "Darwin" ] && [ ! -d "/opt/local/etc/macports" ] ) ; then
-		    echo -e \
-			"\nCan't find GNU GCC, please install MacPorts:" \
-			"\n\n    http://www.macports.org/install.php" \
-			"\n\nThen follow instructions on:" \
-			"\n\n    ${ACC_LIB_TOOLS_WIKI}\n"
-		    exit 69
-		else
-		    UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $4 } ')
+		if ( [ `uname` == "Darwin" ] ) ; then
+		    func_check_macports
+		fi
+		
+		UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $4 } ')
+		UTIL_INSTALLED_MAJOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f1)
+		UTIL_INSTALLED_MINOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f2)
+		UTIL_INSTALLED_SUB_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f3)
+
+		if [ -z ${UTIL_INSTALLED_VERSION} ] ; then 
+		    UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $3 } ')
 		    UTIL_INSTALLED_MAJOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f1)
 		    UTIL_INSTALLED_MINOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f2)
 		    UTIL_INSTALLED_SUB_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f3)
-		    if [ -z ${UTIL_INSTALLED_VERSION} ] ; then 
-			UTIL_INSTALLED_VERSION=$(${UTIL_NAME} --version | head -1 | awk ' { print $3 } ')
-			UTIL_INSTALLED_MAJOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f1)
-			UTIL_INSTALLED_MINOR_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f2)
-			UTIL_INSTALLED_SUB_VERSION=$(echo ${UTIL_INSTALLED_VERSION} | head -1 | cut -d. -f3)
-		    fi
 		fi
 	    else
 		echo -e \
-		    "\nCannot check version of ${UTIL_NAME}" \
-		    "\nThe installed version of ${UTIL_NAME} maybe too old.\n"
+		     "\nCannot check version of ${UTIL_NAME}" \
+		     "\nThe installed version of ${UTIL_NAME} maybe too old.\n"
 		export UTIL_INSTALLED_MAJOR_VERSION=0
 		export UTIL_INSTALLED_MINOR_VERSION=0
 	    fi
-
+	    
 	    if ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -lt "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
 		func_get_build_utilities
 	    elif ( [ "${UTIL_INSTALLED_MAJOR_VERSION}" -eq "${UTIL_MIN_MAJOR_VERSION}" ] ) ; then
