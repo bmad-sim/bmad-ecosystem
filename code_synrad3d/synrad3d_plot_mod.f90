@@ -37,7 +37,7 @@ character(80) ans
 
 energy = 34.0
 angle = 1.45
-surface => lat%surface(1)
+surface => sr3d_com%surface(1)
 
 do i = 1, 100
   x(i) = i / 100.0_rp
@@ -130,7 +130,7 @@ reflection_type = 'total'
 head_lab = 'Reflectivity (Total)'
 
 ix_surface = 1
-surface => lat%surface(ix_surface)
+surface => sr3d_com%surface(ix_surface)
 
 n_lines = 3
 allocate (ny(n_lines))
@@ -217,13 +217,13 @@ do
   print *
 
   print '(a)', 'Surfaces Defined:'
-  n_max = maxval(len_trim(lat%surface%name))
-  d_max = maxval(len_trim(lat%surface%description))
+  n_max = maxval(len_trim(sr3d_com%surface%name))
+  d_max = maxval(len_trim(sr3d_com%surface%description))
   write (fmt, '(a, i0, a, i0, a)') '(3x, i3, 2x, a', n_max+5, ', a', d_max+7, ', 2a)'
-  do i = 1, size (lat%surface)
-    descrip = lat%surface(i)%description
+  do i = 1, size (sr3d_com%surface)
+    descrip = sr3d_com%surface(i)%description
     if (descrip /= '') descrip = '"' // trim(descrip) // '"'
-    print fmt, i, lat%surface(i)%name, descrip, 'File: ', trim(lat%surface(i)%reflectivity_file)
+    print fmt, i, sr3d_com%surface(i)%name, descrip, 'File: ', trim(sr3d_com%surface(i)%reflectivity_file)
   enddo
   print *
   print '(a)', 'Commands:'
@@ -284,13 +284,13 @@ do
       cycle
     endif
 
-    if (ix < 1 .or. ix > size(lat%surface)) then
+    if (ix < 1 .or. ix > size(sr3d_com%surface)) then
       print *, 'SURFACE INDEX OUT OF RANGE.'
       cycle
     endif
 
     ix_surface = ix
-    surface => lat%surface(ix_surface)
+    surface => sr3d_com%surface(ix_surface)
 
   case ('type')
 

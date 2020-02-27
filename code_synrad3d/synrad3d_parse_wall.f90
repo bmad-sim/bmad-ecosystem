@@ -165,23 +165,23 @@ do
   n_surface = n_surface + 1
 enddo
 
-if (associated(lat%surface)) deallocate(lat%surface)
-allocate (lat%surface(n_surface+3))
+if (allocated(sr3d_com%surface)) deallocate(sr3d_com%surface)
+allocate (sr3d_com%surface(n_surface+3))
 
-call photon_reflection_std_surface_init (lat%surface(1))
+call photon_reflection_std_surface_init (sr3d_com%surface(1))
 
-lat%surface(2)%reflectivity_file = '<none>'
-lat%surface(2)%name = 'ABSORBER'
-lat%surface(2)%description = 'Perfect Absorber'
+sr3d_com%surface(2)%reflectivity_file = '<none>'
+sr3d_com%surface(2)%name = 'ABSORBER'
+sr3d_com%surface(2)%description = 'Perfect Absorber'
 
-lat%surface(3)%reflectivity_file = '<none>'
-lat%surface(3)%name = 'PHANTOM'
-lat%surface(3)%description = 'Virtual Wall'
+sr3d_com%surface(3)%reflectivity_file = '<none>'
+sr3d_com%surface(3)%name = 'PHANTOM'
+sr3d_com%surface(3)%description = 'Virtual Wall'
 
 rewind(iu)
 do i = 4, n_surface+3
   read (iu, nml = surface_def, iostat = ios)
-  call read_surface_reflection_file (reflectivity_file, lat%surface(i))
+  call read_surface_reflection_file (reflectivity_file, sr3d_com%surface(i))
 enddo
 
 ! Read multi_section
@@ -477,12 +477,12 @@ enddo
 
 do i = 1, wall_in%n_place
   sec => wall_in%section(i)
-  call sr3d_associate_surface (sec%section%surface, sec%surface_name, lat%surface)
+  call sr3d_associate_surface (sec%section%surface, sec%surface_name, sr3d_com%surface)
 enddo
 
 allocate (surface_ptr(n_sub))
 do i = 1, n_sub
-  surface_ptr(i)%ptr => lat%surface(1)  ! Default surface
+  surface_ptr(i)%ptr => sr3d_com%surface(1)  ! Default surface
 enddo
 
 do i = wall_in%n_place, 1, -1

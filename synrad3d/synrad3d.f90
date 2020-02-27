@@ -244,9 +244,9 @@ call sr3d_read_wall_file (wall_file, lat)
 
 ! Load different surface reflection parameters if wanted
 
-if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, lat%surface(1))
-if (surface_roughness_rms > 0) lat%surface(1)%surface_roughness_rms = surface_roughness_rms
-if (roughness_correlation_len > 0) lat%surface(1)%roughness_correlation_len = roughness_correlation_len
+if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, sr3d_com%surface(1))
+if (surface_roughness_rms > 0) sr3d_com%surface(1)%surface_roughness_rms = surface_roughness_rms
+if (roughness_correlation_len > 0) sr3d_com%surface(1)%roughness_correlation_len = roughness_correlation_len
 
 ! Plot wall cross-sections or reflections. 
 ! The plotting routines never return back to the main program.
@@ -914,9 +914,9 @@ write (iu, '(a, l1)')        '# filter_phantom_photons     = ', filter_phantom_p
 write (iu, '(a, es10.3)')    '# sr3d_params%ds_track_step_max         = ', sr3d_params%ds_track_step_max
 write (iu, '(a, es10.3)')    '# sr3d_params%dr_track_step_max         = ', sr3d_params%dr_track_step_max
 write (iu, '(a, es10.3)')    '# surface_roughness_rms (input)         = ', surface_roughness_rms
-write (iu, '(a, es10.3)')    '# surface_roughness_rms (set value)     = ', lat%surface(1)%surface_roughness_rms
+write (iu, '(a, es10.3)')    '# surface_roughness_rms (set value)     = ', sr3d_com%surface(1)%surface_roughness_rms
 write (iu, '(a, es10.3)')    '# roughness_correlation_len (input)     = ', roughness_correlation_len
-write (iu, '(a, es10.3)')    '# roughness_correlation_len (set value) = ', lat%surface(1)%roughness_correlation_len
+write (iu, '(a, es10.3)')    '# roughness_correlation_len (set value) = ', sr3d_com%surface(1)%roughness_correlation_len
 write (iu, '(a, l1)')        '# sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
 write (iu, '(a, l1)')        '# sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
 write (iu, '(a)') '#                                                                                                                                                                                                                    Ix_Branch'
