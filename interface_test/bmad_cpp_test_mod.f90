@@ -8872,16 +8872,6 @@ else
     call set_control_test_pattern (F%control(jd1+lb1), ix_patt+jd1)
   enddo
 endif
-!! f_side.test_pat[type, 1, PTR]
-
-if (ix_patt < 3) then
-  if (associated(F%surface)) deallocate (F%surface)
-else
-  if (.not. associated(F%surface)) allocate (F%surface(-1:1))
-  do jd1 = 1, size(F%surface,1); lb1 = lbound(F%surface,1) - 1
-    call set_photon_reflect_surface_test_pattern (F%surface(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
 !! f_side.test_pat[type, 0, NOT]
 call set_coord_test_pattern (F%particle_start, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -8895,22 +8885,22 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%custom)) allocate (F%custom(-1:1))
   do jd1 = 1, size(F%custom,1); lb1 = lbound(F%custom,1) - 1
-    rhs = 100 + jd1 + 25 + offset
+    rhs = 100 + jd1 + 23 + offset
     F%custom(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 27 + offset; F%version = rhs
+rhs = 25 + offset; F%version = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 28 + offset; F%n_ele_track = rhs
+rhs = 26 + offset; F%n_ele_track = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 29 + offset; F%n_ele_max = rhs
+rhs = 27 + offset; F%n_ele_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 30 + offset; F%n_control_max = rhs
+rhs = 28 + offset; F%n_control_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 31 + offset; F%n_ic_max = rhs
+rhs = 29 + offset; F%n_ic_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 32 + offset; F%input_taylor_order = rhs
+rhs = 30 + offset; F%input_taylor_order = rhs
 !! f_side.test_pat[integer, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -8918,16 +8908,16 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%ic)) allocate (F%ic(-1:1))
   do jd1 = 1, size(F%ic,1); lb1 = lbound(F%ic,1) - 1
-    rhs = 100 + jd1 + 33 + offset
+    rhs = 100 + jd1 + 31 + offset
     F%ic(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 35 + offset; F%photon_type = rhs
+rhs = 33 + offset; F%photon_type = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 36 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 37 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 35 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 

@@ -3994,10 +3994,9 @@ extern "C" void lat_to_c (const Opaque_lat_class*, CPP_lat&);
 extern "C" void lat_to_f2 (Opaque_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Char, const
     CPP_expression_atom**, Int, const CPP_mode_info&, const CPP_mode_info&, const
     CPP_mode_info&, const CPP_lat_param&, const CPP_bookkeeping_state&, const CPP_ele&, const
-    CPP_ele**, Int, const CPP_branch**, Int, const CPP_control**, Int, const
-    CPP_photon_reflect_surface**, Int, const CPP_coord&, const CPP_beam_init&, const
-    CPP_pre_tracker&, c_RealArr, Int, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_IntArr,
-    Int, c_Int&, c_Bool&, c_Bool&);
+    CPP_ele**, Int, const CPP_branch**, Int, const CPP_control**, Int, const CPP_coord&, const
+    CPP_beam_init&, const CPP_pre_tracker&, c_RealArr, Int, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_Int&, c_Int&, c_IntArr, Int, c_Int&, c_Bool&, c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -4028,13 +4027,6 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
     z_control = new const CPP_control*[n1_control];
     for (int i = 0; i < n1_control; i++) z_control[i] = &C.control[i];
   }
-  // c_side.to_f_setup[type, 1, PTR]
-  int n1_surface = C.surface.size();
-  const CPP_photon_reflect_surface** z_surface = NULL;
-  if (n1_surface != 0) {
-    z_surface = new const CPP_photon_reflect_surface*[n1_surface];
-    for (int i = 0; i < n1_surface; i++) z_surface[i] = &C.surface[i];
-  }
   // c_side.to_f_setup[real, 1, ALLOC]
   int n1_custom = C.custom.size();
   c_RealArr z_custom = NULL;
@@ -4052,10 +4044,9 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
   lat_to_f2 (F, C.use_name.c_str(), C.lattice.c_str(), C.machine.c_str(),
       C.input_file_name.c_str(), C.title.c_str(), z_constant, n1_constant, C.a, C.b, C.z,
       C.param, C.lord_state, C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control,
-      n1_control, z_surface, n1_surface, C.particle_start, C.beam_init, C.pre_tracker,
-      z_custom, n1_custom, C.version, C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max,
-      C.input_taylor_order, z_ic, n1_ic, C.photon_type, C.absolute_time_tracking,
-      C.ptc_uses_hard_edge_drifts);
+      n1_control, C.particle_start, C.beam_init, C.pre_tracker, z_custom, n1_custom, C.version,
+      C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic,
+      n1_ic, C.photon_type, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_constant;
@@ -4065,8 +4056,6 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
  delete[] z_branch;
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_control;
-  // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_surface;
 }
 
 // c_side.to_c2_arg
@@ -4076,13 +4065,12 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
     Opaque_mode_info_class* z_z, const Opaque_lat_param_class* z_param, const
     Opaque_bookkeeping_state_class* z_lord_state, const Opaque_ele_class* z_ele_init,
     Opaque_ele_class** z_ele, Int n1_ele, Opaque_branch_class** z_branch, Int n1_branch,
-    Opaque_control_class** z_control, Int n1_control, Opaque_photon_reflect_surface_class**
-    z_surface, Int n1_surface, const Opaque_coord_class* z_particle_start, const
-    Opaque_beam_init_class* z_beam_init, const Opaque_pre_tracker_class* z_pre_tracker,
-    c_RealArr z_custom, Int n1_custom, c_Int& z_version, c_Int& z_n_ele_track, c_Int&
-    z_n_ele_max, c_Int& z_n_control_max, c_Int& z_n_ic_max, c_Int& z_input_taylor_order,
-    c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type, c_Bool& z_absolute_time_tracking, c_Bool&
-    z_ptc_uses_hard_edge_drifts) {
+    Opaque_control_class** z_control, Int n1_control, const Opaque_coord_class*
+    z_particle_start, const Opaque_beam_init_class* z_beam_init, const
+    Opaque_pre_tracker_class* z_pre_tracker, c_RealArr z_custom, Int n1_custom, c_Int&
+    z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
+    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type,
+    c_Bool& z_absolute_time_tracking, c_Bool& z_ptc_uses_hard_edge_drifts) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -4121,10 +4109,6 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   // c_side.to_c2_set[type, 1, ALLOC]
   C.control.resize(n1_control);
   for (int i = 0; i < n1_control; i++) control_to_c(z_control[i], C.control[i]);
-
-  // c_side.to_c2_set[type, 1, PTR]
-  C.surface.resize(n1_surface);
-  for (int i = 0; i < n1_surface; i++) photon_reflect_surface_to_c(z_surface[i], C.surface[i]);
 
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_particle_start, C.particle_start);

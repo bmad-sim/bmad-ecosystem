@@ -1159,7 +1159,8 @@ class Opaque_converter_class {};  // Opaque class for pointers to corresponding 
 class CPP_converter {
 public:
 
-  CPP_converter()    
+  CPP_converter() :
+    
     {}
 
   ~CPP_converter() {
@@ -3520,7 +3521,6 @@ public:
   CPP_ele_ARRAY ele;
   CPP_branch_ARRAY branch;
   CPP_control_ARRAY control;
-  CPP_photon_reflect_surface_ARRAY surface;
   CPP_coord particle_start;
   CPP_beam_init beam_init;
   CPP_pre_tracker pre_tracker;
@@ -3552,7 +3552,6 @@ public:
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
     branch(CPP_branch_ARRAY(CPP_branch(), 0)),
     control(CPP_control_ARRAY(CPP_control(), 0)),
-    surface(CPP_photon_reflect_surface_ARRAY(CPP_photon_reflect_surface(), 0)),
     particle_start(),
     beam_init(),
     pre_tracker(),

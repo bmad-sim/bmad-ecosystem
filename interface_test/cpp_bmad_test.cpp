@@ -6166,14 +6166,6 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
     for (unsigned int i = 0; i < C.control.size(); i++)  {set_CPP_control_test_pattern(C.control[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[type, 1, PTR]
-  if (ix_patt < 3) 
-    C.surface.resize(0);
-  else {
-    C.surface.resize(3);
-    for (unsigned int i = 0; i < C.surface.size(); i++)  {set_CPP_photon_reflect_surface_test_pattern(C.surface[i], ix_patt+i+1);}
-  }
-
   // c_side.test_pat[type, 0, NOT]
   set_CPP_coord_test_pattern(C.particle_start, ix_patt);
 
@@ -6189,25 +6181,25 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.custom.resize(3);
     for (unsigned int i = 0; i < C.custom.size(); i++)
-      {int rhs = 101 + i + 25 + offset; C.custom[i] = rhs;}  }
+      {int rhs = 101 + i + 23 + offset; C.custom[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 27 + offset; C.version = rhs;
+  rhs = 25 + offset; C.version = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 28 + offset; C.n_ele_track = rhs;
+  rhs = 26 + offset; C.n_ele_track = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 29 + offset; C.n_ele_max = rhs;
+  rhs = 27 + offset; C.n_ele_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 30 + offset; C.n_control_max = rhs;
+  rhs = 28 + offset; C.n_control_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 31 + offset; C.n_ic_max = rhs;
+  rhs = 29 + offset; C.n_ic_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 32 + offset; C.input_taylor_order = rhs;
+  rhs = 30 + offset; C.input_taylor_order = rhs;
 
   // c_side.test_pat[integer, 1, ALLOC]
   if (ix_patt < 3) 
@@ -6215,16 +6207,16 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.ic.resize(3);
     for (unsigned int i = 0; i < C.ic.size(); i++)
-      {int rhs = 101 + i + 33 + offset; C.ic[i] = rhs;}  }
+      {int rhs = 101 + i + 31 + offset; C.ic[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 35 + offset; C.photon_type = rhs;
+  rhs = 33 + offset; C.photon_type = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
+  rhs = 34 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 37 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 35 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
 
 
 }
