@@ -2238,6 +2238,8 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%dummy = rhs
 
 end subroutine set_converter_test_pattern
 

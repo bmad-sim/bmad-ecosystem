@@ -907,18 +907,20 @@ extern "C" void wake_to_c2 (CPP_wake& C, const Opaque_wake_sr_class* z_sr, const
 extern "C" void converter_to_c (const Opaque_converter_class*, CPP_converter&);
 
 // c_side.to_f2_arg
-extern "C" void converter_to_f2 (Opaque_converter_class*);
+extern "C" void converter_to_f2 (Opaque_converter_class*, c_Real&);
 
 extern "C" void converter_to_f (const CPP_converter& C, Opaque_converter_class* F) {
 
   // c_side.to_f2_call
-  converter_to_f2 (F);
+  converter_to_f2 (F, C.dummy);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void converter_to_c2 (CPP_converter& C) {
+extern "C" void converter_to_c2 (CPP_converter& C, c_Real& z_dummy) {
 
+  // c_side.to_c2_set[real, 0, NOT]
+  C.dummy = z_dummy;
 }
 
 //--------------------------------------------------------------------

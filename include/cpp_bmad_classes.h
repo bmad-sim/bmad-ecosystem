@@ -1158,9 +1158,10 @@ class Opaque_converter_class {};  // Opaque class for pointers to corresponding 
 
 class CPP_converter {
 public:
+  Real dummy;
 
   CPP_converter() :
-    
+    dummy(0.0)
     {}
 
   ~CPP_converter() {

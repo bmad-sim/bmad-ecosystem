@@ -1467,6 +1467,9 @@ void set_CPP_converter_test_pattern (CPP_converter& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.dummy = rhs;
+
 
 }
 

@@ -403,6 +403,7 @@ template bool is_all_equal (const CPP_wake_MATRIX&, const CPP_wake_MATRIX&);
 
 bool operator== (const CPP_converter& x, const CPP_converter& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.dummy == y.dummy);
   return is_eq;
 };
 
