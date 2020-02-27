@@ -1017,6 +1017,7 @@ end type
 ! In development...
 
 type converter_struct
+  real(rp) dummy
 end type
 
 !-------------------------------------------------------------------------
@@ -1278,7 +1279,6 @@ type lat_struct
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list
-  type (photon_reflect_surface_struct), pointer :: surface(:) => null()
   type (coord_struct) particle_start              ! Starting particle_coords
   type (beam_init_struct) beam_init               ! Beam initialization.
   type (pre_tracker_struct) pre_tracker           ! For OPAL/IMPACT-T

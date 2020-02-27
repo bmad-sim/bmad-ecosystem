@@ -679,6 +679,8 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dummy == f2%dummy)
 
 end function eq_converter
 
@@ -2845,12 +2847,6 @@ if (.not. is_eq) return
 if (allocated(f1%control)) is_eq = all(shape(f1%control) == shape(f2%control))
 if (.not. is_eq) return
 if (allocated(f1%control)) is_eq = all(f1%control == f2%control)
-!! f_side.equality_test[type, 1, PTR]
-is_eq = is_eq .and. (associated(f1%surface) .eqv. associated(f2%surface))
-if (.not. is_eq) return
-if (associated(f1%surface)) is_eq = all(shape(f1%surface) == shape(f2%surface))
-if (.not. is_eq) return
-if (associated(f1%surface)) is_eq = all(f1%surface == f2%surface)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%particle_start == f2%particle_start)
 !! f_side.equality_test[type, 0, NOT]
