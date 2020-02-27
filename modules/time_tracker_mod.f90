@@ -372,7 +372,6 @@ do
       ! Call rk_time_step1 to generate an error message.
       call rk_time_step1 (ele, param, rf_time,  orb, dt_ref, dt, new_orb, new_dt_ref, r_err, dr_dt, err_flag, .true.)
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE TIME STEP. ABORTING.')
-      if (global_com%exit_on_error) call err_exit
       orb%state = lost$
       return
     endif
