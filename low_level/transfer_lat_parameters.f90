@@ -36,7 +36,7 @@ lat_out%b                         = lat_in%b
 lat_out%z                         = lat_in%z
 lat_out%param                     = lat_in%param
 lat_out%lord_state                = lat_in%lord_state
-lat_out%particle_start                = lat_in%particle_start
+lat_out%particle_start            = lat_in%particle_start
 lat_out%pre_tracker               = lat_in%pre_tracker
 lat_out%version                   = lat_in%version
 lat_out%n_ele_track               = lat_in%n_ele_track
@@ -46,7 +46,6 @@ lat_out%n_ic_max                  = lat_in%n_ic_max
 lat_out%input_taylor_order        = lat_in%input_taylor_order
 lat_out%absolute_time_tracking    = lat_in%absolute_time_tracking
 lat_out%ptc_uses_hard_edge_drifts = lat_in%ptc_uses_hard_edge_drifts
-lat_out%surface                   => lat_in%surface  
 
 end subroutine transfer_lat_parameters
 

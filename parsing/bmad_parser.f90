@@ -316,7 +316,7 @@ parsing_loop: do
   ! Superimpose statement
 
   if (word_1(:ix_word) == 'SUPERIMPOSE') then
-    call new_element_init('superimpose-command:' // int_str(ele%ix_ele), in_lat, in_name, err)
+    call new_element_init('superimpose-command:' // int_str(n_max+1), in_lat, in_name, err)
     ele => in_lat%ele(n_max)
     call parse_superimpose_command(in_lat, ele, plat%ele(ele%ixx), delim)
     cycle parsing_loop   
