@@ -89,6 +89,7 @@ end type
 type sr3d_common_struct
   type (sr3d_branch_com_struct), allocatable :: branch(:) 
   type (sr3d_branch_overlap_struct), allocatable :: branch_overlap(:)
+  type (photon_reflect_surface_struct), allocatable :: surface(:)
 end type
 
 type (sr3d_common_struct), target, save :: sr3d_com
