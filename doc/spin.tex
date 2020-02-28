@@ -212,18 +212,19 @@ RHS in \Eq{t583} and the depolarization rate $\tau_{dep}^{-1}$ is given by the t
 \section{SLIM Formalism}
 \label{s:slim}
 
-The \vn{SLIM} formalism\cite{b:chao.spin,b:duan15,b:barber99}, indroduced by Alex Chao, is a way to
-represent the linearized (that is, first order) orbital and spin transport as an $8 \cross 8$ matrix
-which then can be analyzed. The idea is to expand the transport map around the closed orbit
-$(\bfr_0, \bfn_0)$ where $\bfr_0$ is the orbital closed orbit and $\bfn_0$ is ``spin closed orbit''
-namely the unit-vector, one-turn periodic solution of the Thomas-BMT equation on $\bfr_0$. $\bfn_0$
-is just the invariant spin field on the closed orbit. The formalism provides estimates of the
-equilibrium spin polarization and the rate of depolarization in electron storage rings, both under
-the restriction of the aforementioned linearization. Moreover, a procedure known as spin matching,
-for minimizing depolarization driven by the noise injected into synchro-betatron motion by
-synchrotron radiation, and which involves optimising the layout of the ring, can be executed in a
-simple and elegant way via the SLIM formalism. The formalism can also give insights into proton spin
-dynamics in regimes where the linearisation suffices.
+The \vn{SLIM} formalism\cite{b:chao.spin,b:barber99}, indroduced by Alex Chao (the name references
+an early computer program that implemented the formalism), is a way to represent the linearized
+(that is, first order) orbital and spin transport as an $8 \cross 8$ matrix which then can be
+analyzed. The idea is to expand the transport map around the closed orbit $(\bfr_0, \bfn_0)$ where
+$\bfr_0$ is the orbital closed orbit and $\bfn_0$ is ``spin closed orbit'' namely the unit-vector,
+one-turn periodic solution of the Thomas-BMT equation on $\bfr_0$. $\bfn_0$ is just the invariant
+spin field on the closed orbit. The formalism provides estimates of the equilibrium spin
+polarization and the rate of depolarization in electron storage rings, both under the restriction of
+the aforementioned linearization. Moreover, a procedure known as spin matching, for minimizing
+depolarization driven by the noise injected into synchro-betatron motion by synchrotron radiation,
+and which involves optimising the layout of the ring, can be executed in a simple and elegant way
+via the SLIM formalism. The formalism can also give insights into proton spin dynamics in regimes
+where the linearisation suffices.
 
 The \vn{SLIM} formalism expresses spin components using two right-hand coordinate systems:
 \footnote{Different authors will use different conventions for the ordering of the axes
@@ -238,31 +239,35 @@ The axes ${\bf l}_0(s)$ and ${\bf m}_0(s)$ are solutions of the Thomas-BMT equat
 orbit and, generally, are not one-turn periodic. The axes ${\bf l}(s)$ and ${\bf m}(s)$ are chosen
 to be one-turn periodic but can have an arbitrary $s$ dependence which can be chosen for convenience
 otherwise. The axes ${\bf l}_0(s)$ and ${\bf m}_0(s)$ are used for spin matching and a special
-choice of ${\bf l}(s)$ and ${\bf m}(s)$ is used for calculating polarization and
-depolarization. With respect to these axes, a unit-length spin $\bf {{\bf S}}$ can be written as 
+choice of ${\bf l}(s)$ and ${\bf m}(s)$ is used for calculating polarization and depolarization.
+With respect to these axes, a unit-length spin $\bf {{\bf S}}$ can be written as
 \begin{align}
   \bf{S} &= \sqrt{1- \alpha_0^2 - \beta_0^2} ~{\bf n}_0 + \alpha_0 \, {\bf l}_0 + \beta_0 \, {\bf m}_0 
   ~~{\rm or }~~ \CRNO
   \bf{S} &= \sqrt{1- \alpha^2 - \beta^2} ~{\bf n}_0 + \alpha \, {\bf l} + \beta \, {\bf m}
   \label{s1ab}
 \end{align}
-To linearize the tranport, it is assumed that $\alpha_0$, and $\beta_0$ (and hence $\alpha$, and
+Below the equations will be written in terms of the $(\bfl_0(s), \bfn_0(s), \bfm_0(s))$ coordinate system.
+The equivalent equations for the $(\bfl(s), \bfn_0(s), \bfm(s))$ system are obtained simply by using the
+substitution $\alpha_0 \rightarrow \alpha$ and $\beta_0 \rightarrow \beta$.
+
+To linearize the transport, it is assumed that $\alpha_0$, and $\beta_0$ (and hence $\alpha$ and
 $\beta$) are small compaired to one. To first order, the variation from unity of the spin component
 along the $\bfn_0$ axis will be second order can be ignored:
-\begin{align}
-  \bf{S} &\approx {\bf n}_0 + \alpha_0 \, {\bf l}_0 + \beta_0 \, {\bf m}_0 ~~{\rm or }~~ \CRNO
-  \bf{S} &\approx {\bf n}_0 + \alpha \, {\bf l} + \beta \, {\bf m}
-\end{align}
+\Begineq
+  \bf{S} \approx {\bf n}_0 + \alpha_0 \, {\bf l}_0 + \beta_0 \, {\bf m}_0
+\Endeq
 
-For spin matching, starting from the $(\bfl_0(s), \bfn_0(s), \bfm(s))$ coordinate system, the
-$\bfn_0$ coordinate is dropped since the spin component along $\bfn_0$ is a constant and what is
+The $\bfn_0$ coordinate is dropped since the spin component along $\bfn_0$ is a constant and what is
 used is the eight-dimensional spin-orbit phase space
 \Begineq
   (x, p_x, y, p_y, z, p_z, \alpha_0, \beta_0)
+  \label{xpxypy}
 \Endeq
-where the orbital part $x, p_x$, etc. is taken with respect to the closed orbit
-The first order map between two any points $s_1$ and $s_2$ is an $8 \cross 8$ matrix $\wt\bfM$ which is
-written in the form
+where the orbital part $x, p_x$, etc. is taken with respect to the closed orbit. 
+
+The first order map between two any points $s_1$ and $s_2$ is an $8 \cross 8$ matrix $\wt\bfM$ which
+is written in the form
 \Begineq
   \wt\bfM(s1, s2) = \begin{pmatrix}
     \bfM_{6\cross6} & \Bf 0_{6\cross2} \\
@@ -272,15 +277,23 @@ written in the form
 \Endeq
 Where $\bfM(s_1, s_2)$ is the $6\cross6$ orbital phase space transport matrix, and $\bfG(s_1, s_2)$
 contains the coupling of the spin coordinates $(\alpha_0, \beta_0)$ to the orbital motion. Because
-$\bfG$ is calculated with respect to the $( {\bf l}_0, {\bf m}_0)$ axes, large spin precessions on
+$\bfG$ is calculated with respect to the $({\bf l}_0, {\bf m}_0)$ axes, large spin precessions on
 the closed orbit due to dipole and solenoid fields are eliminated. That leaves small precessions due
 to synchro-betatron motion. The $\bfG$ matrix thus represents the dominating linear dependence of
 the small precessions on the six synchro-betatron coordinates and it then provides a good framework
-for analysis \cite{b:barber85,b:barber99}. In \Eq{mm0gd}, $\bfD$ is a $2\cross2$ rotation matrix
-for the spin transport of a particle on the closed orbit. In this case, since the $\bfl_0(s)$ and
+for analysis \cite{b:barber85,b:barber99}. In \Eq{mm0gd}, $\bfD$ is a $2\cross2$ rotation matrix for
+the spin transport of a particle on the closed orbit. In this case, since the $\bfl_0(s)$ and
 $\bfm_0(s)$ are solutions to the T-BMT equation, $\bfD$ is the unit matrix. The upper right block
-$\Bf 0_{6\cross2}$ in the $\wt\bfM$ matrix is zero since Stern-Gerlach effects are ignored. If
-$\wt\bfM$ is the 1-turn matrix ($s_2 = s_1$), the phase advance of $\bfD$ is the spin tune.
+$\Bf 0_{6\cross2}$ in the $\wt\bfM$ matrix is zero since Stern-Gerlach effects are
+ignored\footnote{Warning: The symbol $\hat n$ or $\vec n$ used in \cite{b:chao.spin,b:barber85} and
+other early literature to denote the periodic solution of the T--BMT equation on the closed orbit
+should be replaced by the symbol $\hat n_0$ to conform to the modern convention \cite{b:barber99}
+and thereby avoid confusion with the symbol $\hat n$ which denotes the invariant spin field.  In
+addition, the symbols $\vec m$ and $\vec l$ appearing, for example, in the formulae for the matrix
+$\bfG$ in \cite{b:barber85}, should be replaced by the symbols $\hat m_0$ and $\hat l_0$, namely by
+the modern symbols for the two (normally) non-periodic solutions of the T-BMT equation, which
+together with $\hat n_0$, form an orthonormal coordinate system.}. If $\wt\bfM$ is the 1-turn matrix
+($s_2 = s_1$), the phase advance of $\bfD$ is the closed orbit spin tune.
 
 To compute $\widetilde \bfM$ for a section of the ring, the first step is to find the $6 \times 6$
 orbital matrix for the section. Then $\bfn_0$ and subsequently are $\bfl_0$ and $\bfm_0$ are needed
@@ -297,7 +310,7 @@ the initial $\bfl_0$ and $\bfm_0$ axes have been specified at some initial $s$, 
 transported along the closed orbit of the section.
 
 If $\bfG$ were zero everywhere, the spin motion would be completely decoupled from the orbital
-motion (at least to first order) and the depolarization rate $\tau_{dk}^{-1}$ given by \Eq{tdep}
+motion (at least to first order) and the depolarization rate $\tau_{dep}^{-1}$ given by \Eq{tdep}
 would be zero since $\partial\bfn / \partial\delta$ would be zero. Therefore, spin matching analysis
 for a section of the ring involves adjusting the parameters (quadrupole strengths, drift lengths
 etc) of the section so as to minimize elements in appropriate columns of the $\bfG$ matrix and
@@ -363,8 +376,20 @@ The zeroth order part of this map
 \Endeq
 represents a rotation around the $\bfn_0$ axis. 
 
-To calculate the $\bfD$ matrix, $\what\bfq_0$ is converted into a rotation matrix $\bfR_0$ via
-\Eq{rqqq}) the $\Bf D$ matrix is then
+To calculate the $\bfD$ matrix, $\what\bfq_0$ is converted into a $3 \times 3$ rotation matrix
+$\bfR_0$ via \Eq{rqqq}). The second row and second column of this rotation matrix corresponds to the
+$\bfn_0$ axis. Since the component of the spin along this axis does not vary to first order,
+$\bfR_0$ has the form
+\Begineq
+  \Bf R_0 = \begin{pmatrix}
+      R_0(1,1) & 0 & R_0(1,3) \\
+      0        & 1 & 0        \\
+      R_0(3,1) & 0 & R_0(3,3)
+  \end{pmatrix}
+\Endeq
+That is, the rotation is around the $\bfn_0$ axis. Since the $\bfn_0$ spin component is ignored in
+the SLIM formalism (\Eq{xpxypy}), the $2 \times 2$ $\Bf D$ matrix is simply $\bfR_0$ with the second
+row and second column removed.
 \Begineq
   \Bf D(s_1, s_2) = \begin{pmatrix}
       R_0(1,1) & R_0(1,3) \\
@@ -376,14 +401,14 @@ In particular, with $(\bfl_0, \bfn_0, \bfm_0)$, $\widehat \bfq_0$ represents the
 
 The rows of the $\bfG$ matrix encode the first-order dependence of the changes of the angles
 $\alpha_0$ and $\beta_0$ (or of the angles $\alpha$ and $\beta$).  The $\bfG$ matrix can therefore
-be calulated from $\what\bfq_i$ which is the first order part of $\what\bfq_s$
+be calculated from $\what\bfq_i$ which is the first order part of $\what\bfq_s$
 \Begineq
   \what\bfq_i = \bfq_{lnm}(s_2) \, \bfq_i(s_1, s_2) \, \bfq_{lnm}^{-1}(s_1)
 \Endeq
 Using \Eq{qqrq} in \Eq{rqqq} and keeping only first order terms gives
 \begin{align}
-  \bfG(1,j) &= 2 (\what q_{0,x} \, \what q_{j,y} + \what q_{0,y} \, \what q_{j,x} + 
-                  \what q_{0,1} \, \what q_{j,z} + \what q_{0,z} \, \what q_{j,1}) \\
+  \bfG(1,j) &= 2 (\what q_{0,x} \, \what q_{j,y} + \what q_{0,y} \, \what q_{j,x} - 
+                  \what q_{0,1} \, \what q_{j,z} - \what q_{0,z} \, \what q_{j,1}) \\
   \bfG(2,j) &= 2 (\what q_{0,1} \, \what q_{j,x} + \what q_{0,x} \, \what q_{j,1} + 
                   \what q_{0,y} \, \what q_{j,z} + \what q_{0,z} \, \what q_{j,y}),
   \quad j = 1, \ldots, 6
@@ -393,10 +418,10 @@ Using \Eq{qqrq} in \Eq{rqqq} and keeping only first order terms gives
 as definded in \Eq{qqqqq}. $\what q$ rotates spins in the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system.
 Not the $(x, y, z)$ coordinate system.]
 
-The derivative ${\partial\bfn}/\partial\delta$ is calculated from the eigenvectors of the
-one-turn-periodic $8 \times 8$ matrix $\widetilde \bfM$ for one turn (\Eq{mm0gd}) as shown in
-\cite{b:barber99}.  The eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$ ($j = 1, \ldots 8$) of
-$\widetilde \bfM$ are computed first. These eigenvectors are of the form
+The derivative ${\partial\bfn}/\partial\delta$ is calculated from the one-turn-periodic $8 \times 8$
+matrix $\widetilde \bfM$ (\Eq{mm0gd})\cite{b:barber99}. Here the periodic $(\bfl(s), \bfn_0(s),
+\bfm(s))$ coordinate system must be used.  The eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$
+($j = 1, \ldots 8$) of $\widetilde \bfM$ are computed first. These eigenvectors are of the form
 \begin{align}
   \bfu_j &= \begin{pmatrix} \bfv_j \\ \bfw_j \end{pmatrix}, \quad j = 1, \ldots, 6 
   \label{qvw} \\
@@ -408,13 +433,13 @@ where $\bfv_j$ are eigenvectors of the orbital submatrix $\bfM$, and the $\bfw_j
   \label{wdlgv}
 \Endeq
 where $\bfI_2$ is the $2 \times 2$ unit matrix. These eigenvectors, computed at the chosen starting
-point, $s1$ are propagated to other $s$-positions $s2$ with ${\widetilde \bfM}(s1, s2)$.  Then
-${\partial \bfn}/\partial \delta$ can be computed at each $s$-position via
+point $s1$ and are then propagated to other $s$-positions $s2$ using ${\widetilde \bfM}(s1,
+s2)$. After this, ${\partial \bfn}/\partial \delta$ is computed at each $s$-position via
 \Begineq
   \frac{\partial \bfn}{\partial \delta} = \sum_{j = 1}^6 A_j \, \bfw_j
   \label{ndaw}
 \Endeq
-and the $A_j$ are computed by inverting the equation
+and the $A_j$ being computed by inverting the equation
 \Begineq
   [0, 0, 0, 0, 0, 1]^t = \sum_{j = 1}^6 A_j \, \bfv_j
   \label{000001}

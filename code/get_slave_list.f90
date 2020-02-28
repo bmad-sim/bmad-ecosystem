@@ -31,10 +31,19 @@ use equal_mod, dummy => get_slave_list
 
 implicit none
 
-type (ele_struct) :: lord
+type (ele_struct), target :: lord
 type (ele_pointer_struct), allocatable :: slaves(:)
 
 integer n_slave
+
+!
+
+if (lord%n_slave == 0) then
+  n_slave = 1
+  call re_allocate_eles (slaves, 1)
+  slaves(1)%ele => lord
+  return
+endif
 
 !
 
