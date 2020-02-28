@@ -660,9 +660,9 @@ type (tao_var_slave_struct), pointer :: var_slave
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (all_pointer_struct), allocatable :: a_ptr(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 
-integer i, j, n, n1, n2, ie, iu, ib
-
+integer i, j, n, n1, n2, ie, iu, ib, n_loc
 logical err, good_unis(lbound(s%u, 1):), found
 
 character(*) var_file
@@ -693,13 +693,12 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (err) return
     found = .true.
   else
-    do ib = 0, ubound(lat%branch, 1)
-      do ie = 0, lat%branch(ib)%n_ele_max
-        if (var%ele_name /= lat%branch(ib)%ele(ie)%name) cycle
-        call tao_pointer_to_var_in_lattice (var, iu, lat%branch(ib)%ele(ie), err)
-        if (err) return
-        found = .true.
-      enddo
+    call lat_ele_locator(var%ele_name, lat, eles, n_loc, err)
+    if (err) n_loc = 0
+    do i = 1, n_loc
+      call tao_pointer_to_var_in_lattice (var, iu, eles(i)%ele, err)
+      if (err) return
+      found = .true.
     enddo
   endif
 enddo
