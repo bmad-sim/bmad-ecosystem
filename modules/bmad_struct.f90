@@ -745,7 +745,7 @@ type xy_disp_struct
 end type
 
 ! Structure to hold the information of where an individual element is in the lattice.
-! Also see: ele_pointer_struct
+! Use pointer_to_ele(lat, ele_loc) to point to an element given a lat_ele_loc_struct instance.
 
 type lat_ele_loc_struct
   integer :: ix_ele = -1
@@ -767,12 +767,12 @@ type ele_pointer_struct
 end type
 
 ! Structure for holding a sorted index for all the elements in a lattice.
-! Create using create_lat_ele_sorted_nametable. Find element using find_indexx.
+! Create using create_lat_nametable. Find element using find_indexx.
 ! The lower bound of all arrays is 1.
 
 type lat_nametable_struct
   character(40), allocatable :: name(:)             ! Array of all the names.
-  type (ele_pointer_struct), allocatable :: ele(:)  ! All element array.
+  type (lat_ele_loc_struct), allocatable :: loc(:)  ! All element array.
   integer, allocatable :: indexx(:)                 ! Sort index.
 end type
 
@@ -1282,6 +1282,7 @@ type lat_struct
   type (coord_struct) particle_start              ! Starting particle_coords
   type (beam_init_struct) beam_init               ! Beam initialization.
   type (pre_tracker_struct) pre_tracker           ! For OPAL/IMPACT-T
+  type (lat_nametable_struct) nametable           ! For quick searching by element name.
   real(rp), allocatable :: custom(:)              ! Custom attributes.
   integer :: version = -1                         ! Version number
   integer :: n_ele_track                          ! Number of lat elements to track through.
