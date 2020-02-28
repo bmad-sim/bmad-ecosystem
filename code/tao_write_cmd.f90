@@ -34,7 +34,6 @@ type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (ele_struct), pointer :: ele
 type (coord_struct), pointer :: p
-type (lat_nametable_struct) etab
 type (tao_d2_data_struct), pointer :: d2
 type (tao_d1_data_struct), pointer :: d1
 type (tao_data_struct), pointer :: dat
@@ -524,7 +523,6 @@ case ('namelist')
   case ('-data')
     do i = 1, size(s%u)
       u => s%u(i)
-      call create_lat_ele_sorted_nametable(u%model%lat, etab)
 
       do j = 1, u%n_d2_data_used
         d2 => u%d2_data(j)

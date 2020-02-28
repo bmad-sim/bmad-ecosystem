@@ -52,9 +52,12 @@ endif
 
 !
 
+call tao_remove_blank_characters(graph%component)
+
 do i = 1, size(graph%curve)
   graph%curve(i)%valid = .true.  ! Assume no problem
   graph%curve(i)%message_text = ''
+  call tao_remove_blank_characters(graph%curve(i)%component)
 enddo
 
 call tao_hook_graph_setup (plot, graph, found)
@@ -160,7 +163,7 @@ if (all(graph%curve%component == '')) then
   if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
 else
   if (all(graph%curve%component == graph%curve(1)%component)) graph%title_suffix = trim(graph%title_suffix) // &
-                                                                              ' [' // trim(graph%curve(1)%component) // ']'
+                                                                     ' [' // trim(graph%curve(1)%component) // ']'
 endif
 
 ! loop over all curves
@@ -1108,17 +1111,30 @@ logical err
 
 !
 
-graph%title_suffix = ''
 if (allocated(graph%curve)) then
-  if (all(graph%curve%component == '')) then
-    if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
+  if (all(graph%curve%component == graph%curve(1)%component) .and. graph%curve(1)%component /= '') then
+    graph%title_suffix = graph%curve(1)%component
+  elseif (all(graph%curve%component == '')) then
+    graph%title_suffix = graph%component
   else
-    if (all(graph%curve%component == graph%curve(1)%component)) graph%title_suffix = trim(graph%title_suffix) // &
-                                                                                ' [' // trim(graph%curve(1)%component) // ']'
+    graph%title_suffix = ''
   endif
+
+  if (size(s%u) > 1) then
+    if (all(graph%curve%ix_universe == graph%curve(1)%ix_universe) .and. graph%curve(1)%ix_universe /= -1) then
+      graph%title_suffix = trim(graph%title_suffix) // ' uni:' // int_str(graph%curve(1)%ix_universe)
+    elseif (graph%ix_universe /= -1) then
+      graph%title_suffix = trim(graph%title_suffix) // ' uni:' // int_str(graph%ix_universe)
+    else
+      graph%title_suffix = trim(graph%title_suffix) // ' uni:' // int_str(s%com%default_universe)
+    endif
+  endif
+
 else
-  if (graph%component /= '') graph%title_suffix = trim(graph%title_suffix) // ' [' // trim(graph%component) // ']'
+  graph%title_suffix = graph%component
 endif
+
+if (graph%title_suffix /= '') graph%title_suffix = '[' // trim(adjustl(graph%title_suffix)) // ']'
 
 ! Attach x-axis type to title suffix if needed.
 ! Needed %label is blank and %draw_label = F.
