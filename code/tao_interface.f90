@@ -696,6 +696,13 @@ subroutine tao_python_cmd (input_str)
   character(*) input_str
 end subroutine
 
+function tao_rad_int_calc_needed (data_type, data_source) result (do_rad_int)
+  import
+  implicit none
+  character(*) data_type, data_source
+  logical do_rad_int
+end function
+
 subroutine tao_re_allocate_expression_info (info, n, exact)
   import
   implicit none
@@ -704,12 +711,10 @@ subroutine tao_re_allocate_expression_info (info, n, exact)
   logical, optional :: exact
 end subroutine
 
-function tao_rad_int_calc_needed (data_type, data_source) result (do_rad_int)
-  import
+subroutine tao_remove_blank_characters (str)
   implicit none
-  character(*) data_type, data_source
-  logical do_rad_int
-end function
+  character(*) str
+end subroutine
 
 function tao_srdt_calc_needed (data_type, data_source) result (do_srdt)
   import
@@ -845,14 +850,6 @@ subroutine tao_turn_on_special_calcs_if_needed_for_plotting ()
   import
   implicit none
 end subroutine
-
-function tao_unique_ele_name (ele, nametable) result (unique_name)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (lat_nametable_struct) nametable
-  character(40) unique_name
-end function
 
 function tao_universe_number (i_uni, neg2_to_default) result (i_this_uni)
   import

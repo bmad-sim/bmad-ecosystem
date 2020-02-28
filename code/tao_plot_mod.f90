@@ -1854,11 +1854,13 @@ character(100), allocatable :: text(:)
 call qp_set_layout (box = graph%box, margin = graph%margin)
 call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
 call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, y2_mirrors_y = graph%y2_mirrors_y)
-if (graph%title == '' .or. .not. graph%draw_title) then
-  call qp_set_graph (title = '')
-else
+
+if (graph%draw_title) then
   call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+else
+  call qp_set_graph (title = '')
 endif
+
 call qp_draw_axes (draw_grid = graph%draw_grid)
 
 ! Draw the default x-axis label if there is none. 
@@ -1895,16 +1897,18 @@ do i = 1, n
   if (text(i) == '') then
     text(i) = curve%data_type
   endif
-  if (size(s%u) > 1) then
+  if (size(s%u) > 1 .and. .not. all(graph%curve%ix_universe == graph%curve(1)%ix_universe)) then
     iu = curve%ix_universe
     if (iu == -1) iu = graph%ix_universe
     if (iu == -1) iu = s%com%default_universe
     text(i) = int_str(iu) // '@' // text(i)
   endif
-  if (curve%component == '') then
-    text(i) = trim(text(i)) // ' ' // trim(graph%component)
-  else
-    text(i) = trim(text(i)) // ' ' // trim(curve%component)
+  if (.not. all(graph%curve%component == graph%curve(1)%component)) then
+    if (curve%component == '') then
+      text(i) = trim(text(i)) // ' ' // trim(graph%component)
+    else
+      text(i) = trim(text(i)) // ' ' // trim(curve%component)
+    endif
   endif
   ! Symbol to display
   symbol(i) = curve%symbol
