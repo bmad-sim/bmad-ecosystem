@@ -2174,18 +2174,18 @@ case ('ele:lord_slave')
   do i = size(eles), 1, -1  ! Show lords first
     ele => eles(i)%ele
 
-    nl=incr(nl); write (li(nl), '(8a)') 'Element;', trim(ele_location(ele, .true.)), ';', &
+    nl=incr(nl); write (li(nl), '(8a)') 'Element;', trim(ele_loc_name(ele, .true.)), ';', &
                                   trim(ele%name), ';', trim(key_name(ele%key)), ';', control_name(ele%lord_status)
 
     do j = 1, ele%n_lord
       lord => pointer_to_lord(ele, j)
-      nl=incr(nl); write (li(nl), '(8a)') 'Lord;', trim(ele_location(lord, .true.)), ';', &
+      nl=incr(nl); write (li(nl), '(8a)') 'Lord;', trim(ele_loc_name(lord, .true.)), ';', &
                                   trim(lord%name), ';', trim(key_name(lord%key)), ';', control_name(lord%lord_status)
     enddo
 
     do j = 1, ele%n_slave+ele%n_slave_field
       slave => pointer_to_slave(ele, j)
-      nl=incr(nl); write (li(nl), '(8a)') 'Slave;', trim(ele_location(slave, .true.)), ';', &
+      nl=incr(nl); write (li(nl), '(8a)') 'Slave;', trim(ele_loc_name(slave, .true.)), ';', &
                                   trim(slave%name), ';', trim(key_name(slave%key)), ';', control_name(slave%slave_status)
     enddo
   enddo

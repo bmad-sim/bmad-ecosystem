@@ -663,14 +663,14 @@ case ('control')
 
     do j = 1, ele%n_lord
       lord => pointer_to_lord(ele, j)
-      nl=nl+1; write (lines(nl), '(5a)') 'Lord: ', ele_location(lord, .true.), lord%name, key_name(lord%key), control_name(lord%lord_status)
+      nl=nl+1; write (lines(nl), '(5a)') 'Lord: ', ele_loc_name(lord, .true.), lord%name, key_name(lord%key), control_name(lord%lord_status)
     enddo
 
-    nl=nl+1; write (lines(nl), '(5a)') 'Element: ', ele_location(ele, .true.), ele%name, key_name(ele%key), control_name(ele%lord_status)
+    nl=nl+1; write (lines(nl), '(5a)') 'Element: ', ele_loc_name(ele, .true.), ele%name, key_name(ele%key), control_name(ele%lord_status)
 
     do j = 1, ele%n_slave+ele%n_slave_field
       slave => pointer_to_slave(ele, j)
-      nl=nl+1; write (lines(nl), '(5a)') 'Slave: ', ele_location(slave, .true.), slave%name, key_name(slave%key), control_name(slave%slave_status)
+      nl=nl+1; write (lines(nl), '(5a)') 'Slave: ', ele_loc_name(slave, .true.), slave%name, key_name(slave%key), control_name(slave%slave_status)
     enddo
 
     if (i /= 1) then
@@ -1444,7 +1444,7 @@ case ('element')
     call re_allocate (lines, nl+size(eles), .false.)
     do i = 2, size(eles)
       nl=nl+1; write(lines(nl), '(2a)') &
-                'NOTE: There is another element with the same name at: ', trim(ele_location(eles(i)%ele))
+                'NOTE: There is another element with the same name at: ', trim(ele_loc_name(eles(i)%ele))
     enddo
   endif
 
@@ -1520,7 +1520,7 @@ case ('field')
     ele => eles(i)%ele
     call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err);  if (err) return
     if (size(eles) > 1) then
-      nl=nl+1; lines(nl) = trim(ele%name) // '  ' // ele_location(ele, parens = '()')
+      nl=nl+1; lines(nl) = trim(ele%name) // '  ' // ele_loc_name(ele, parens = '()')
     endif
     nl=nl+1; write (lines(nl), '(2a)') '  B (T):  ', reals_to_string(field%B, 12, 2, 6, 6)
     nl=nl+1; write (lines(nl), '(2a)') '  E (V/m):', reals_to_string(field%E, 12, 2, 6, 2)
@@ -1975,7 +1975,7 @@ case ('internal')
     endif
 
     ele => eles(1)%ele
-    nl=nl+1; lines(nl) = 'For element: (' // trim(ele_location(ele)) // ')  ' // ele%name
+    nl=nl+1; lines(nl) = 'For element: (' // trim(ele_loc_name(ele)) // ')  ' // ele%name
     fmt = '(4x, a14, i6, i8, i10, 4x, a10, a)'
 
     if (ele%n_slave + ele%n_slave_field /= 0) then 
@@ -1984,10 +1984,10 @@ case ('internal')
         slave => pointer_to_slave (ele, i, contl, .false., j, i_con, i_ic)
         if (i <= ele%n_slave) then
           nl=nl+1; write (lines(nl), fmt) &
-                      control_name(ele%lord_status), i_ic, i_con, j, ele_location(slave, .true.), trim(slave%name)
+                      control_name(ele%lord_status), i_ic, i_con, j, ele_loc_name(slave, .true.), trim(slave%name)
         else
           nl=nl+1; write (lines(nl), fmt)  &
-                                    'Field_Overlap', i_ic, i_con, j, ele_location(slave, .true.), trim(slave%name)
+                                    'Field_Overlap', i_ic, i_con, j, ele_loc_name(slave, .true.), trim(slave%name)
         endif
       enddo
     endif
@@ -1998,10 +1998,10 @@ case ('internal')
         lord => pointer_to_lord (ele, i, contl, j, .false., i_con, i_ic)
         if (i <= ele%n_lord) then
           nl=nl+1; write (lines(nl), fmt) &
-                      control_name(lord%lord_status), i_ic, i_con, j, ele_location(lord, .true.), trim(lord%name)
+                      control_name(lord%lord_status), i_ic, i_con, j, ele_loc_name(lord, .true.), trim(lord%name)
         else
           nl=nl+1; write (lines(nl), fmt)  &
-                                     'Field_Overlap', i_ic, i_con, j, ele_location(lord, .true.), trim(lord%name)
+                                     'Field_Overlap', i_ic, i_con, j, ele_loc_name(lord, .true.), trim(lord%name)
         endif
       enddo
     endif
@@ -2828,7 +2828,7 @@ case ('lattice')
 
       if (name == '#' .or. name == '#index') then
         if (ele%ix_branch /= ix_branch) then
-          aname = ele_location(ele, .true.)
+          aname = ele_loc_name(ele, .true.)
           line(nc:) = adjustr(aname(1:column(i)%width))
         else
           write (line(nc:), column(i)%format, iostat = ios) ele%ix_ele
@@ -4711,7 +4711,7 @@ case ('wake_elements')
       wake => ele%wake
 
       nl=nl+1; write(lines(nl), '(a5, 2x, a20, 2x, a15, 3x, l1, 13x, l1, 13x, l1)') &
-        ele_location(ele, .true.), ele%name, key_name(ele%key), &
+        ele_loc_name(ele, .true.), ele%name, key_name(ele%key), &
         allocated(wake%sr%long), allocated(wake%sr%trans), allocated(wake%lr%mode)
     enddo
   enddo
@@ -4787,7 +4787,7 @@ case ('wall')
 
     wall_sec => wall%section(ix_sec)
     ele => pointer_to_ele(lat, wall_sec%ix_ele, wall_sec%ix_branch)
-    nl=nl+1; write(lines(nl), '(5a)')            'ele:    ', trim(ele%name), '   (', trim(ele_location(ele)), ')'
+    nl=nl+1; write(lines(nl), '(5a)')            'ele:    ', trim(ele%name), '   (', trim(ele_loc_name(ele)), ')'
     nl=nl+1; write(lines(nl), '(2a)')            'type:   ', trim(wall3d_section_type_name(wall_sec%type))
     nl=nl+1; write(lines(nl), '(a, f14.6)')      'S:      ', wall_sec%s
     nl=nl+1; write(lines(nl), '(3(a, f10.6))')  ' r0:     (', wall_sec%r0(1), ',', wall_sec%r0(2), ')'
@@ -4851,7 +4851,7 @@ case ('wall')
     
     call calc_wall_radius (wall%section(i)%v, cos(angle), sin(angle), r, z)
     nl=nl+1; write(lines(nl), '(i6, f14.6, a10, a20, a14, f14.3)') i, wall_sec%s, &
-                trim(ele_location(ele)), trim(ele%name), trim(wall3d_section_type_name(wall_sec%type)), 1000*r
+                trim(ele_loc_name(ele)), trim(ele%name), trim(wall3d_section_type_name(wall_sec%type)), 1000*r
   enddo
 
   nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele          Type   Radius (mm)'
@@ -4880,7 +4880,7 @@ case ('wave')
     do i = 1, min(s%wave%n_kick, 20)
       wk => s%wave%kick(i)
       nl=nl+1; write(lines(nl), '(i9, f14.2, f10.2, 3x, a6, a30, f10.3)') wk%ix_dat_before_kick, 1e6*wk%amp, &
-                                                          wk%s, ele_location(wk%ele), wk%ele%name, wk%phi
+                                                          wk%s, ele_loc_name(wk%ele), wk%ele%name, wk%phi
     enddo
 
   case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
@@ -4897,7 +4897,7 @@ case ('wave')
     do i = 1, min(s%wave%n_kick, 20)
       wk => s%wave%kick(i)
       nl=nl+1; write(lines(nl), '(i9, f14.2, f10.2, 3x, a6, a30, f10.3)') wk%ix_dat_before_kick, wk%amp, &
-                                                          wk%s, ele_location(wk%ele), wk%ele%name, wk%phi
+                                                          wk%s, ele_loc_name(wk%ele), wk%ele%name, wk%phi
     enddo
 
   case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
@@ -4919,7 +4919,7 @@ case ('wave')
     do i = 1, min(s%wave%n_kick, 20)
       wk => s%wave%kick(i)
       nl=nl+1; write(lines(nl), '(i9, f10.4, f10.2, 3x, a6, a30, 4f8.3)') wk%ix_dat_before_kick, &
-            wk%amp, wk%s, ele_location(wk%ele), wk%ele%name, wk%phi_s, wk%phi_r, (wk%phi_s+wk%phi_r)/2, (wk%phi_s-wk%phi_r)/2
+            wk%amp, wk%s, ele_loc_name(wk%ele), wk%ele%name, wk%phi_s, wk%phi_r, (wk%phi_s+wk%phi_r)/2, (wk%phi_s-wk%phi_r)/2
     enddo
 
   end select
