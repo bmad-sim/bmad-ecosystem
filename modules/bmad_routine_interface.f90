@@ -668,7 +668,7 @@ function ele_has_offset (ele) result (has_offset)
   logical has_offset
 end function
 
-function ele_location (ele, show_branch0, parens) result (str)
+function ele_loc_name (ele, show_branch0, parens) result (str)
   import
   implicit none
   type (ele_struct) ele
@@ -684,11 +684,11 @@ subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
   real(rp) :: L_mis(3), S_mis(3,3)
 end subroutine ele_misalignment_L_S_calc
 
-function ele_to_lat_loc (ele) result (ele_loc)
+function ele_loc (ele) result (loc)
   import
   implicit none
   type (ele_struct) ele
-  type (lat_ele_loc_struct) ele_loc
+  type (lat_ele_loc_struct) loc
 end function
 
 function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed)

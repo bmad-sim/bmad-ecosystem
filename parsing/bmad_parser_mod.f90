@@ -5321,7 +5321,7 @@ if (ref_ele%lord_status == multipass_lord$) then
     do i = 1, branch%n_ele_max
       if (branch%ele(i)%iyy == n_super) then
         j = j + 1
-        m_slaves(j) = ele_to_lat_loc (branch%ele(i))
+        m_slaves(j) = ele_loc(branch%ele(i))
       endif
     enddo
   enddo
@@ -5335,7 +5335,7 @@ if (ref_ele%lord_status == multipass_lord$) then
         ele%key = -1 ! Mark for deletion
         ele => pointer_to_slave(ele, 1)
         ele%name = super_ele_saved%name
-        m_slaves(i) = ele_to_lat_loc (ele)
+        m_slaves(i) = ele_loc(ele)
       enddo
     endif
   endif
