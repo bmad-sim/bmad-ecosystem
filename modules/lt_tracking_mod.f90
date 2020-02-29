@@ -483,7 +483,7 @@ do i_turn = 1, lttp%n_turns
   if (is_lost) then
     ele => branch%ele(track_state)
     print '(a, i0, 8a)', 'Particle lost at turn: ', i_turn
-    if (lttp%tracking_method == 'BMAD') print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_location(ele), '), State: ', coord_state_name(orb(track_state)%state)
+    if (lttp%tracking_method == 'BMAD') print '(5a)', 'Lost at element: ', trim(ele%name), ' (', ele_loc_name(ele), '), State: ', coord_state_name(orb(track_state)%state)
     exit
   endif
 
