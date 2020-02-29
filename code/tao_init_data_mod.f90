@@ -132,6 +132,10 @@ enddo
 
 n_hterms = 0
 
+!--------------------------------------------
+! Now fill in the data.
+! Loop over d2_data namelists.
+
 do 
   mask(:) = .true.      ! set defaults
   d2_data%name           = ''
@@ -168,6 +172,8 @@ do
   def_weight      = default_weight
   def_data_type   = default_data_type
   def_data_source = default_data_source
+
+  ! Loop over d1_data namelists
 
   do k = 1, n_d1_data
     use_same_lat_eles_as   = ''
@@ -235,9 +241,9 @@ do
       call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used, datum)
     enddo
 
-  enddo
+  enddo  ! d1_data loop
 
-enddo
+enddo  ! d2_data loop
 
 close (iu)
 
@@ -279,7 +285,7 @@ character(20) fmt
 
 !
 
-d1_this => u%d2_data(n_d2)%d1(i_d1)  
+d1_this => u%d2_data(n_d2)%d1(i_d1)
 if (d1_data%name == '') then
   write (d1_this%name, '(i0)') i_d1
 else
@@ -296,6 +302,7 @@ if (search_for_lat_eles /= '') then
     call out_io (s_warn$, r_name, &
       'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
       'WHILE SETTING UP DATA ARRAY: ' // tao_d2_d1_name(d1_this))
+      allocate (u%d2_data(n_d2)%d1(i_d1)%d(0))
     return
   endif
   ! finish finding data array limits
@@ -561,7 +568,7 @@ do j = n1, n2
 
 enddo
 
-if (.not. any(u%data(n1:n2)%exists)) then
+if (.not. any(u%data(n1:n2)%exists) .and. n2 >= n1) then
   call out_io (s_warn$, r_name, &
             'Note: All datums in: ' // tao_d2_d1_name(d1_this), &
             'are marked as non-existent')
