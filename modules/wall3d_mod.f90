@@ -1551,14 +1551,18 @@ do iw = 1, size(branch%wall3d)
   wall%section%patch_in_region = .false.
   n_sec = size(wall%section)
 
+  !  Find if patch in region between sections i-1 and i
+
   do i = 1, n_sec
     if (i == 1 .and. wall%section(1)%type == wall_start$) cycle
+    if (i == 1 .and. branch%param%geometry == open$) cycle
 
     i0 = i - 1
-    if (i0 == 0) i0 = n_sec
+    if (i0 == 0) i0 = n_sec  ! Wrap case with closed geometry.
 
     ie0 = element_at_s(branch, wall%section(i0)%s, .false.)
     ie1 = element_at_s(branch, wall%section(i)%s, .true.)
+    if (ie0 > branch%n_ele_track) ie0 = branch%n_ele_track  ! Can happen if wall overhangs end of branch.
     if (ie1 > branch%n_ele_track) ie1 = branch%n_ele_track  ! Can happen if wall overhangs end of branch.
 
     ele => branch%ele(ie0)
