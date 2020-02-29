@@ -47,7 +47,7 @@ open (1, file = 'output.now', recl = 200)
 
 call bmad_parser ('bookkeeper_test1.bmad', lat, err_flag = err);  if (err) stop
 
-call create_lat_ele_sorted_nametable(lat, ntab)
+call create_lat_nametable(lat, ntab)
 
 n = size(ntab%indexx)
 write (1, '(a, 100(a, i0))') '"Sort"  STR   "', (';', ntab%indexx(ie), ie = 1, n, 3), '"'
