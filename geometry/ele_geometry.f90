@@ -369,8 +369,8 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
         enddo
 
         if (ele2%bookkeeping_state%floor_position == stale$ .and. .not. logic_option(.false., ignore_patch_err)) then
-          call out_io (s_fatal$, r_name, 'FOR FLEXIBLE PATCH: ' // trim(ele%name) // '  ' // trim(ele_location(ele, parens = "()")), &
-                                         '"DOWNSTREAM" FIDUCIAL ELEMENT: ' // trim(ele2%name) // '  ' // trim(ele_location(ele2, parens = "()")), &
+          call out_io (s_fatal$, r_name, 'FOR FLEXIBLE PATCH: ' // trim(ele%name) // '  ' // trim(ele_loc_name(ele, parens = "()")), &
+                                         '"DOWNSTREAM" FIDUCIAL ELEMENT: ' // trim(ele2%name) // '  ' // trim(ele_loc_name(ele2, parens = "()")), &
                                          ' DOES NOT HAVE A WELL DEFINED POSITION')
           if (global_com%exit_on_error) call err_exit
         endif

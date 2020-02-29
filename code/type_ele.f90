@@ -715,7 +715,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     do i = 1, lord%n_slave
       slave => pointer_to_slave(lord, i)
       if (slave%ix_ele == ele%ix_ele .and. slave%ix_branch == ele%ix_branch) cycle
-      nl=nl+1; write (li(nl), '(a, 3x, a)') adjustr(ele_location(slave)), trim(slave%name)
+      nl=nl+1; write (li(nl), '(a, 3x, a)') adjustr(ele_loc_name(slave)), trim(slave%name)
     enddo
 
   case (super_slave$)
@@ -727,7 +727,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       if (lord%slave_status == multipass_slave$) then
         lord2 => pointer_to_lord(lord, 1)
         nl=nl+1; write (li(nl), '(i8, 3x, a, t45, 3a, 2x, a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key)), &
-                      '   --> Multipass_slave of: ', trim(ele_location(lord2)), lord2%name
+                      '   --> Multipass_slave of: ', trim(ele_loc_name(lord2)), lord2%name
       else
         nl=nl+1; write (li(nl), '(i8, 3x, a, t45, a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key))
       endif
@@ -787,7 +787,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         has_it = .true.
         lord2 => pointer_to_lord(lord, lord%n_lord+i)
         nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
-                      trim(ele_location(lord2)), lord2%name, key_name(lord2%key)
+                      trim(ele_loc_name(lord2)), lord2%name, key_name(lord2%key)
       enddo
     enddo
   else
@@ -795,7 +795,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       has_it = .true.
       lord2 => pointer_to_lord(lord, lord%n_lord+i)
       nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
-                    trim(ele_location(lord2)), lord2%name, key_name(lord2%key)
+                    trim(ele_loc_name(lord2)), lord2%name, key_name(lord2%key)
 
     enddo
   endif
@@ -878,7 +878,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, f14.6)') &
-                    trim(ele_location(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
+                    trim(ele_loc_name(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
       enddo
 
     case default
@@ -911,7 +911,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         endif
 
         if (len_trim(expression_str) > 140) expression_str = expression_str(1:136) // ' ...'
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_location(slave)), slave%name(1:n_char), a_name, attrib_val_str, trim(expression_str)
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), slave%name(1:n_char), a_name, attrib_val_str, trim(expression_str)
       enddo
     end select
   endif
@@ -931,7 +931,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         has_it = .true.
         slave => pointer_to_slave(ele, ele%n_slave+i)
         nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
-                      trim(ele_location(slave)), slave%name, trim(key_name(slave%key))
+                      trim(ele_loc_name(slave)), slave%name, trim(key_name(slave%key))
       enddo
     enddo
   else
@@ -939,7 +939,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       has_it = .true.
       slave => pointer_to_slave(ele, ele%n_slave+i)
       nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
-                    trim(ele_location(slave)), slave%name, trim(key_name(slave%key))
+                    trim(ele_loc_name(slave)), slave%name, trim(key_name(slave%key))
     enddo
   endif
 

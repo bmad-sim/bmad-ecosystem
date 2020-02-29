@@ -101,7 +101,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
 
       slave => lat%branch(ix)%ele(branch%ix_from_ele)
-      str_ix_slave = ele_location(slave)
+      str_ix_slave = ele_loc_name(slave)
 
       if (slave%key /= fork$ .and. slave%key /= photon_fork$) then
         call out_io (s_fatal$, r_name, &
@@ -128,7 +128,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
   ele_loop: do i_t = 1, branch%n_ele_max
 
     ele => branch%ele(i_t)
-    str_ix_ele = '(' // trim(ele_location(ele)) // ')'
+    str_ix_ele = '(' // trim(ele_loc_name(ele)) // ')'
 
     ! Check switches
 
@@ -1038,7 +1038,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       slave => lat%branch(i_b2)%ele(i_t2)
       t2_type = slave%slave_status 
-      str_ix_slave = ele_location(slave)
+      str_ix_slave = ele_loc_name(slave)
 
       if (j <= ele%ix1_slave+ele%n_slave-1 .and. .not. good_control(l_stat, t2_type) .and. ctl%ix_attrib /= l$) then
         call out_io (s_fatal$, r_name, &
@@ -1170,7 +1170,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
       lord => lat%branch(i_b2)%ele(i_t2)
       t2_type = lord%lord_status
-      str_ix_lord = ele_location(lord)
+      str_ix_lord = ele_loc_name(lord)
 
       if (ix <= ele%ic1_lord+ele%n_lord-1 .and. .not. good_control(t2_type, s_stat)) then
         call out_io (s_fatal$, r_name, &

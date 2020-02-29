@@ -768,11 +768,10 @@ end type
 
 ! Structure for holding a sorted index for all the elements in a lattice.
 ! Create using create_lat_nametable. Find element using find_indexx.
-! The lower bound of all arrays is 1.
+! The lower bound of both arrays is 0.
 
 type lat_nametable_struct
-  character(40), allocatable :: name(:)             ! Array of all the names.
-  type (lat_ele_loc_struct), allocatable :: loc(:)  ! All element array.
+  character(40), allocatable :: name(:)             ! Array of all lat ele names.
   integer, allocatable :: indexx(:)                 ! Sort index.
 end type
 

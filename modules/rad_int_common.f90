@@ -255,7 +255,7 @@ end do
 ! We should not be here
 
 call out_io (s_warn$, r_name, 'Note: Radiation Integral is not converging \es12.3\ ', 'For element: ' // &
-                              trim(ele%name) // ' ' // ele_location(ele, parens = '()'), r_array = [d_max])
+                              trim(ele%name) // ' ' // ele_loc_name(ele, parens = '()'), r_array = [d_max])
 
 end subroutine qromb_rad_int
 

@@ -1054,7 +1054,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (ele2%iyy /= iyy) cycle
         if (ele2%name /= ele%name) cycle
         n_multi = n_multi + 1
-        m_slaves(n_multi) = ele_to_lat_loc (ele2)
+        m_slaves(n_multi) = ele_loc (ele2)
         ele2%iyy = 0  ! mark as taken care of
       enddo
     enddo
