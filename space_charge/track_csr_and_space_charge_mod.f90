@@ -1255,11 +1255,10 @@ real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f, beta0, dpx, dpy, x, y, f_tot
 real(rp) Evec(3), factor, pz0
 integer i, n, i0, i_del, ip
 
-! CSR kick
-! We use a weighted average between %kick1(j)%I_csr and %kick1(j+1)%I_csr
-! so that the integral varies smoothly as a function of particle%vec(5).
+! CSR kick and Slice space charge kick
+! We use a weighted average so that the integral varies smoothly as a function of particle%vec(5).
 
-if (ele%csr_method == one_dim$) then
+if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
   do ip = 1, size(particle)
     p => particle(ip)
     if (p%state /= alive$) cycle
@@ -1273,17 +1272,16 @@ if (ele%csr_method == one_dim$) then
       if (global_com%exit_on_error) call err_exit
     endif
 
-    p%vec(6) = p%vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
-  enddo
-endif
+    ! CSR kick
+    ! We use a weighted average so that the integral varies smoothly as a function of particle%vec(5).
 
-! Slice space charge kick
+    if (ele%csr_method == one_dim$) then
+      p%vec(6) = p%vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
+    endif
 
-if (ele%space_charge_method == slice$) then
-  do ip = 1, size(particle)
-    p => particle(ip)
-    if (p%state /= alive$) cycle
+  ! Slice space charge kick
 
+  if (ele%space_charge_method == slice$) then
     if (csr_param%lsc_kick_transverse_dependence) then
       x = p%vec(1)
       y = p%vec(3)
@@ -1342,6 +1340,9 @@ if (ele%space_charge_method == slice$) then
     p%vec(2) = p%vec(2) + dpx
     p%vec(4) = p%vec(4) + dpy
     p%vec(6) = p%vec(6) + (dpx*p%vec(2) + dpy*p%vec(4)) / (2 * (1 + p%vec(6)))
+  endif
+
+
   enddo
 endif
 
