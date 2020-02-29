@@ -21,7 +21,7 @@ use equal_mod
 !     If s = branch%ele(ix_end_of_branch): ix_ele = ix_end_of_branch
 !     Else: branch%ele(ix_ele)%s_start <= s < branch%ele(ix_ele)%s
 ! If choose_max = False:
-!     If s = branch%ele(0): ix_ele = 0
+!     If s = branch%ele(0)%s: ix_ele = 0
 !     Else: branch%ele(ix_ele)%s_start < s <= branch%ele(ix_ele)%s 
 ! That is, if s corresponds to an element boundary between elements with indexes ix1 and ix2 = ix1 + 1: 
 !     choose_max = True  => ix_ele = ix2
