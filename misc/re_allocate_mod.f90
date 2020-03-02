@@ -88,29 +88,29 @@ end interface
 !   use re_allocate_mod
 !
 ! Input:
-!   str(:)      -- character(*), allocatable: String array.
-!   var_str(:)  -- var_length_string_struct, allocatable: Variable length string structure.
-!   inte(:)     -- integer, allocatable: Integer array.
-!   re(:)       -- real(rp), Allocatable: Real array.
-!   a_ptr(:)    -- all_pointer_struct: array of all_pointer_structs.
-!   cmpl(:)     -- complex(rp), Allocatable: Complex array.
-!   logic(:)    -- logical, allocatable: Logical array.
-!   n_min       -- Integer: Desired lower bound.
-!   n_max       -- Integer: Desired upper bound.
-!   exact       -- logical, optional: If present and False then the size of 
-!                    the output array is permitted to be larger than n. 
-!                    Default is True.
-!   init_val    -- optional: If present, init created array space to this value.
-!                    If init_val is not present, no init will be done.
+!   str(:)        -- character(*), allocatable: String array.
+!   var_str(:)    -- var_length_string_struct, allocatable: Variable length string structure.
+!   inte(:)       -- integer, allocatable: Integer array.
+!   re(:)         -- real(rp), Allocatable: Real array.
+!   a_ptr(:)      -- all_pointer_struct: array of all_pointer_structs.
+!   cmpl(:)       -- complex(rp), Allocatable: Complex array.
+!   logic(:)      -- logical, allocatable: Logical array.
+!   n_min         -- Integer: Desired lower bound.
+!   n_max         -- Integer: Desired upper bound.
+!   exact         -- logical, optional: If present and False then the size of 
+!                      the output array is permitted to be larger than n. 
+!                      Default is True.
+!   init_val      -- optional: If present, init created array space to this value.
+!                      If init_val is not present, no init will be done.
 !
 ! Output:
-!   str(:)      -- character(*), allocatable: Allocated array. 
-!   var_str(:)  -- var_length_string_struct, allocatable: Allocated array.
-!   inte(:)     -- Integer, allocatable: Allocated array. 
-!   re(:)       -- real(rp), Allocatable: Allocated array. 
-!   a_ptr(:)    -- all_pointer_struct: Real pointer array.
-!   cmpl(:)     -- complex(rp), Allocatable: Allocated Array.
-!   logic(:)    -- logical, allocatable: Allocated array.
+!   str(:)        -- character(*), allocatable: Allocated array. 
+!   var_str(:)    -- var_length_string_struct, allocatable: Allocated array.
+!   inte(:)       -- Integer, allocatable: Allocated array. 
+!   re(:)         -- real(rp), Allocatable: Allocated array. 
+!   a_ptr(:)      -- all_pointer_struct: Real pointer array.
+!   cmpl(:)       -- complex(rp), Allocatable: Allocated Array.
+!   logic(:)      -- logical, allocatable: Allocated array.
 !-
 
 interface re_allocate2

@@ -28,6 +28,91 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine super_sort(arr)
+!
+! Routine to sort an integer array in place .
+! This is the NR routine sort modified to sort integers.
+!
+! Input:
+!   arr(:)      -- integer: Array of integers.
+!
+! Output:
+!   arr(:)      -- integer: Sorted array.
+!-
+
+subroutine super_sort(arr)
+
+use nrtype; use nrutil, only : swap_i,nrerror
+implicit none
+integer, dimension(:), intent(inout) :: arr
+integer(i4b), parameter :: nn=15, nstack=50
+integer :: a
+integer :: n,k,i,j,jstack,l,r
+integer, dimension(nstack) :: istack
+
+!
+
+n=size(arr)
+jstack=0
+l=1
+r=n
+do
+  if (r-l < NN) then
+    do j=l+1,r
+      a=arr(j)
+      do i=j-1,l,-1
+        if (arr(i) <= a) exit
+        arr(i+1)=arr(i)
+      end do
+      arr(i+1)=a
+    end do
+    if (jstack == 0) RETURN
+    r=istack(jstack)
+    l=istack(jstack-1)
+    jstack=jstack-2
+  else
+    k=(l+r)/2
+    call swap_i(arr(k),arr(l+1))
+    if (arr(l)>arr(r))   call swap_i(arr(l),arr(r))
+    if (arr(l+1)>arr(r)) call swap_i(arr(l+1),arr(r))
+    if (arr(l)>arr(l+1)) call swap_i(arr(l),arr(l+1))
+    i=l+1
+    j=r
+    a=arr(l+1)
+    do
+      do
+        i=i+1
+        if (arr(i) >= a) exit
+      end do
+      do
+        j=j-1
+        if (arr(j) <= a) exit
+      end do
+      if (j < i) exit
+      call swap_i(arr(i),arr(j))
+    end do
+    arr(l+1)=arr(j)
+    arr(j)=a
+    jstack=jstack+2
+    if (jstack > NSTACK) call nrerror('sort: NSTACK too small')
+    if (r-i+1 >= j-l) then
+      istack(jstack)=r
+      istack(jstack-1)=i
+      r=j-1
+    else
+      istack(jstack)=j-1
+      istack(jstack-1)=l
+      l=i
+    end if
+  end if
+end do
+
+end subroutine super_sort
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Function super_rtsafe (funcs, x1, x2, tol, status) result (x_zero)
 !
 ! Routine find the root of a function.
