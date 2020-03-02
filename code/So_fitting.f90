@@ -2799,6 +2799,7 @@ endif
      C=>R%START
     endif
     do  ii=1,nt    ! WHILE(ASSOCIATED(C))
+       if(C%MAG%KIND==kind0) cycle
        doit=(C%MAG%KIND==kind1.or.C%MAG%KIND==kind2.or.C%MAG%KIND==kind4.or.C%MAG%KIND==kind5)
        doit=DOIT.OR.(C%MAG%KIND==kind6.or.C%MAG%KIND==kind7)
        DOIT=DOIT.OR.(C%MAG%KIND==kind10.or.C%MAG%KIND==kind16)
@@ -3270,6 +3271,7 @@ endif
           endif
 
        case default
+         write(6,*) "kind not found ",C%MAG%KIND,c%mag%name
           stop 988
        end select
  

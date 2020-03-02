@@ -2759,26 +2759,42 @@ write(6,*) x_ref
 
   END subroutine read_ptc_command
 
- SUBROUTINE radia_new(R,loc,estate,FILE1,fix,em,sij,sijr,tune,damping,e_ij,spin_damp,init_tpsa)
+   real(dp) function dis_gaussian(r)
+    implicit none
+    real(dp) r1,r2,x ,r
+
+
+    R1 = -LOG(1.0_dp-r)
+    R2 = 2.0_dp*PI*RANF()
+    R1 = SQRT(2.0_dp*R1)
+    X  = R1*COS(R2)
+     dis_gaussian=x
+ 
+    RETURN
+  END function dis_gaussian
+
+ SUBROUTINE radia_new(R,loc,estate,FILE1,fix,em,sij,sijr,tune,damping,e_ij,spin_damp,init_tpsa,ngen,bunch_zhe,file_bunch)
     implicit none
     TYPE(LAYOUT) R
 
     REAL(DP) X(6),m,energy,deltap
-    CHARACTER(*), optional :: FILE1
-    type(c_damap)  Id,a0,a_cs
+    CHARACTER(*), optional :: FILE1,file_bunch
+    integer, optional :: ngen
+    type(c_damap)  Id,a0 
     type(c_normal_form) normal
-    integer  i,j 
-    real(dp), optional :: fix(6), em(3),sij(6,6),tune(3),damping(3),e_ij(6,6),spin_damp(6,6) 
+    integer  i,j ,i1,i2,i3,i4
+    real(dp), optional :: fix(6), em(3),sij(6,6),tune(3),damping(3),e_ij(6,6),spin_damp(6,6)
+    type(bunch), optional :: bunch_zhe
     logical, optional ::  init_tpsa
     complex(dp), optional :: sijr(6,6)   
     TYPE(INTERNAL_STATE) state
     TYPE(INTERNAL_STATE), target :: estate
-    integer loc,mf1
+    integer loc,mf1,mfg
     type(fibre), pointer :: p
     type(probe) xs0
     type(probe_8) xs
     character*48 fmd,fmd1
-    real(dp) mat(6,6),matf(6,6)
+    real(dp) mat(6,6),matf(6,6),ki(6),ray(6),a1(3)
  
 
     if(present(FILE1)) then
@@ -2825,7 +2841,7 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
     endif
  
     CALL ALLOC(NORMAL)
-    CALL ALLOC(ID)
+    CALL ALLOC(ID,a0)
     call alloc(xs)
 
 !    if(i1==1) normal%stochastic=my_true
@@ -2845,7 +2861,58 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
     write(mf1,*) " End of Full Map "
    endif
   call  c_normal(id,normal)             ! (8)
-
+if(present(ngen)) then
+matf=0
+   if(present(bunch_zhe)) then
+   if(ngen**3>bunch_zhe%n) then
+    Write(6,*) " problems in radia "
+    stop 388
+   endif
+   endif
+   if(present(file_bunch)) call kanalnummer(mfg,file_bunch)
+  a0=1
+  a0%e_ij=normal%s_ij0 
+  call c_stochastic_kick(a0,mat,ki,1.d-38)
+  i4=0
+  do i1=0,ngen-1
+  do i2=0,ngen-1
+  do i3=0,ngen-1
+    i4=i4+1
+    ray=0
+     a1(1)=float(i1)/float(ngen)
+     a1(2)=float(i2)/float(ngen)
+     a1(3)=float(i3)/float(ngen)
+    ray(1)= ki(1)*dis_gaussian(a1(1))
+    ray(2)= ki(2)*dis_gaussian(a1(1))
+    ray(3)= ki(3)*dis_gaussian(a1(2))
+    ray(4)= ki(4)*dis_gaussian(a1(2))
+    ray(5)= ki(5)*dis_gaussian(a1(3))
+    ray(6)= ki(6)*dis_gaussian(a1(3))
+    ray=matmul(mat,ray)
+    if(present(file1)) then
+    do i=1,6
+    do j=i,6
+    matf(i,j)=matf(i,j) + ray(i)*ray(j)
+    enddo
+    enddo
+    endif
+     ray=ray+x
+     If(present(bunch_zhe)) bunch_zhe%xs(i4)%x=ray
+     if(present(file_bunch))   write(mfg,format6) ray
+  enddo
+  enddo
+  enddo
+    if(present(file1)) then
+     write(mf1,*) ' Generated  and calculated distributions using "ngen" '
+    matf=matf/ngen**3
+    do i=1,6
+    do j=i,6
+     write(mf1,*) i,j,matf(i,j),real(normal%s_ij0(i,j))
+    enddo
+    enddo
+    endif
+   if(present(file_bunch))   close(mfg)
+endif
    if(present(FILE1)) then
     write(mf1,*)" $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ "
     write(mf1,*)" Tunes "
@@ -2916,30 +2983,11 @@ enddo
 enddo
 endif
 
-!    if(normal%stochastic) then
-!       write(mf1,*) "Stochastic kicks"
-!       write(mf1,*) normal%kick!
-
-!       write(mf1,*)" Stochastic Transformation "
-!       do i=1,6
-!          do j=1,6
-!             write(mf1,*) i,j,normal%STOCH(i,j)
-!          enddo
-!       enddo
-
-!       write(mf1,*)" Inverse Stochastic Transformation "
-!       do i=1,6
-!          do j=1,6
-!             write(mf1,*) i,j,normal%STOCH_inv(i,j)
-!          enddo
-!       enddo
-
-!    endif
 
 
 
     CALL KILL(NORMAL)
-    CALL KILL(ID)
+    CALL KILL(ID,a0)
     CALL KILL(xs)
 
   end subroutine radia_new

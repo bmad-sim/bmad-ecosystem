@@ -583,6 +583,8 @@ contains
              P%E_IJ(i,j)=p%E_IJ(i,j)+denf*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
           enddo
        enddo    
+       call kill(xpmap)
+
        if(k%spin.and.k%envelope) then
  !!  lambda
         lambda=denf*24.0_dp*sqrt(3.0_dp)/(1.0_dp+x(5))**2/55.0_dp
@@ -622,7 +624,6 @@ contains
        endif
 
        if(compute_stoch_kick) c%delta_rad_out=root(denf)
-       call kill(xpmap)
     endif
 
 
@@ -715,6 +716,7 @@ contains
              p%E_IJ(i,j)=p%E_IJ(i,j)+denf*x1*x3
           enddo
        enddo
+       call kill(xpmap)
        if(k%spin.and.k%envelope) then
  
         x1=denf*9.0_dp/((1.0_dp+x(5))**2 *11.0_dp)
@@ -751,7 +753,6 @@ contains
  
        endif
        if(compute_stoch_kick) c%delta_rad_in=root(denf)
-       call kill(xpmap)
     endif
     p%x=x
     call kill(x)
@@ -783,7 +784,7 @@ contains
 
    do i1=1,3
    do i2=1,3
-   do j3=1,3
+   do i3=1,3
    do j1=1,6
    do j2=1,6
     ds(i1,i3,0)= ds(i1,i3,0) + ds(i1,i2,j1)*ds(i2,i3,j2)*De_ij(j1,j2)
