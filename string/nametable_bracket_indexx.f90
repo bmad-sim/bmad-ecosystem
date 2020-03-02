@@ -14,7 +14,7 @@
 
 function nametable_bracket_indexx (nametable, name) result (ix_indexx)
 
-use sim_utils, dummy => nametable_add
+use sim_utils, dummy => nametable_bracket_indexx
 
 implicit none
 

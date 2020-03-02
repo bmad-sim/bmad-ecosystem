@@ -470,6 +470,14 @@ function nametable_bracket_indexx (nametable, name) result (ix_indexx)
   integer ix_indexx
 end function
 
+subroutine nametable_change1 (nametable, name, ix_name)
+  import
+  implicit none
+  type (nametable_struct), target :: nametable
+  character(*) name
+  integer ix_name
+end subroutine
+
 subroutine nametable_init (nametable, n_min, n_max)
   import
   implicit none
