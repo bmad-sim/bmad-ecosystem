@@ -454,6 +454,36 @@ function max_nonzero (lbnd, array1, array2) result (ix_max)
   real(rp), optional :: array2(lbnd:)
 end function
 
+subroutine nametable_add (nametable, name, ix_name)
+  import
+  implicit none
+  type (nametable_struct), target :: nametable
+  character(*) name
+  integer ix_name
+end subroutine
+
+function nametable_bracket_indexx (nametable, name) result (ix_indexx)
+  import
+  implicit none
+  type (nametable_struct) nametable
+  character(40) name
+  integer ix_indexx
+end function
+
+subroutine nametable_init (nametable, n_min, n_max)
+  import
+  implicit none
+  type (nametable_struct), target :: nametable
+  integer, optional :: n_min, n_max
+end subroutine
+
+subroutine nametable_remove (nametable, ix_name)
+  import
+  implicit none
+  type (nametable_struct), target :: nametable
+  integer ix_name
+end subroutine
+
 subroutine node_put (node, n1, n2, val_in, cmd_only, val_out, bad_set)
   implicit none
   integer n1

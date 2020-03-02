@@ -1,21 +1,11 @@
 module indexx_mod
 
-use utilities_mod
-use sim_utils_struct
 use re_allocate_mod
+use output_mod
 
 implicit none
 
 ! Note: To initialize use the routine init_str_index_struct
-
-type str_indexx_struct
-  type (var_length_string_struct), allocatable :: name(:)  !  Array of names.
-  integer, allocatable :: indexx(:)        !  Sorted index for names(:) array.
-                                           !    names(an_indexx(i)) is in alphabetical order.
-  integer :: n_min = 1                     ! 
-  integer :: n_max = 0                     !  Use only names(n_min:n_max) part of array.
-end type
-
 
 interface indexx
   module procedure indexx_str
@@ -29,16 +19,23 @@ end interface
 ! Subroutine find_indexx(...)
 !
 ! This routine is an overloaded name for: 
-!   Subroutine find_indexx0 (name, str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)
-!   Subroutine find_indexx1 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, had_been_added)
-!   Subroutine find_indexx2 (name, names, n_min, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+!   Subroutine find_indexx0 (name, var_str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+!   Subroutine find_indexx1 (name, nametable, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+!   Subroutine find_indexx2 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, had_been_added)
+!   Subroutine find_indexx3 (name, names, n_min, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
 !
 ! Subroutine to find a matching name in a list of names.
 ! The routine indexx should be used to create an_indexx.
 ! Also see: find_indexx2
 !
+! Note: The difference between the nametable_struct and str_indexx_struct is that the nametable_struct stores 40 char strings
+! and the str_indexx_strut stores var length strings.
+!
+! Note: names and an_indexx arguments are not allocatable so it is up to the calling routine to make sure that their size is large
+! enough if add_to_list = True.
+!
 ! If add_to_list = True and if name is not in the list: Name is added to the names_list and
-! an_indexx is updated using the prescription:
+! the indexx is updated using the prescription:
 !   First: Find ix2_match.
 !   an_indexx(ix2_match+1:n_max+1) = an_indexx(ix2_match:n_max)
 !   an_indexx(ix2_match) = n_max + 1
@@ -50,11 +47,11 @@ end interface
 !
 ! Input:
 !   name           -- Character(*): Name to match to.
-!   str_index      -- str_indexx_struct: Array of names.
+!   nametable      -- nametable_struct: Structure containing array of names and index array.
+!   var_str_index  -- str_indexx_struct: Structure containing array of names and index array.
 !   n_min          -- integer: Min index of names(:). For find_indexx0 and find_indexx1 effectively n_min = 1.
 !   names(:)       -- Character(*): Array of names.
-!   an_indexx(:)   -- Integer: Sorted index for names(:) array.
-!                       names(an_indexx(i)) is in alphabetical order.
+!   an_indexx(:)   -- Integer: Sorted index for names(:) array. names(an_indexx(i)) is in alphabetical order.
 !   n_max          -- Integer: Use only names(n_min:n_max) part of array.
 !   add_to_list    -- Logical, optional: If present and True and name does not appear in the names(:) array,
 !                         add name to the end of the names(:) array and update the str_indexx%index array.
@@ -63,19 +60,18 @@ end interface
 ! Output:
 !   n_max          -- Integer: Increased by 1 if name is added to names(:) array.
 !   ix_match       -- Integer: If a match is found then: names(ix_match) = name
-!                              If no match is found then: ix_match = n_min - 1 (= 0 for indexx0 or indexx1) 
+!                              If no match is found then: ix_match = n_min - 1.
 !                              Note: There will always be a match if add_to_list = T
 !   ix2_match      -- Integer, optional: 
 !                       If a match is found then
 !                                an_indexx(ix2_match) = ix_match
 !                                names(an_indexx(ix2_match-1)) /= name
 !                       If no match is found then 
-!                       For j = an_indexx(ix2_match):
-!                                names(j) > name
-!                       And if ix2_match > 1 then for j = an_indexx(ix2_match-1):
-!                                names(j) < name
+!                       For j = an_indexx(ix2_match): names(j) > name
+!                       And if ix2_match > 1 then for j = an_indexx(ix2_match-1): names(j) < name
 !   names(:)       -- Character(*): Updated if add_to_list = True.
-!   str_index      -- Character(*): Updated if add_to_list = True.
+!   var_str_index  -- str_indexx_struct: Updated if add_to_list = True.
+!   nametable      -- nametable_struct: Structure containing array of names and index array.
 !   an_indexx(:)   -- Integer: Updated if add_to_list = True.
 !   n_match        -- integer, optional: Number items in the updated names list that match .
 !   has_been_added -- Logical, optional: Set True if name has been added to the list. False otherwise.
@@ -85,6 +81,7 @@ interface find_indexx
   module procedure find_indexx0
   module procedure find_indexx1
   module procedure find_indexx2
+  module procedure find_indexx3
 end interface
 
 contains
@@ -93,7 +90,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine init_str_indexx_struct(str_indexx_var, n_min)
+! Subroutine init_str_indexx_struct(var_str_indexx, n_min)
 ! 
 ! Routine to initialize a str_indexx_struct instance.
 !
@@ -101,18 +98,18 @@ contains
 !   n_min   -- integer, optional: Lower bound of array to be indexed. Default is 1.
 !
 ! Output:
-!   str_indexx_var -- str_indexx_struct: Variable to be initialized.
+!   var_str_indexx -- str_indexx_struct: Variable to be initialized.
 !-
 
-subroutine init_str_indexx_struct (str_indexx_var, n_min)
+subroutine init_str_indexx_struct (var_str_indexx, n_min)
 
-type (str_indexx_struct) str_indexx_var
+type (str_indexx_struct) var_str_indexx
 integer, optional :: n_min
 
 !
 
-str_indexx_var%n_min = integer_option(1, n_min)
-str_indexx_var%n_max = str_indexx_var%n_min - 1
+var_str_indexx%n_min = integer_option(1, n_min)
+var_str_indexx%n_max = var_str_indexx%n_min - 1
 
 end subroutine init_str_indexx_struct
 
@@ -120,40 +117,40 @@ end subroutine init_str_indexx_struct
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine find_indexx0 (name, str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+! Subroutine find_indexx0 (name, var_str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)
 !
 ! Subroutine to find a matching name in a list of names.
 ! This name is overloaded by find_indexx.
 ! See the find_indexx documentation for more details.
 !-
 
-subroutine find_indexx0 (name, str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+subroutine find_indexx0 (name, var_str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)
 
 character(*) name
-type (str_indexx_struct), target :: str_index
+type (str_indexx_struct), target :: var_str_index
 integer  ix_match
 integer, optional :: ix2_match
-logical, optional :: add_to_list, has_been_added
 integer, optional :: n_match
-integer ix1, ix2, ix3
+integer ix1, ix2, ix3, n
 integer, pointer :: n_min, n_max
+logical, optional :: add_to_list, has_been_added
 
 ! simple case where there are no elements
 
 if (present(has_been_added)) has_been_added = .false.
 
-n_min => str_index%n_min
-n_max => str_index%n_max
+n_min => var_str_index%n_min
+n_max => var_str_index%n_max
 
 if (n_max < n_min) then
   if (present(ix2_match)) ix2_match = n_min
   ix_match = n_min - 1
   if (logic_option(.false., add_to_list)) then
-    call re_allocate2(str_index%name, n_min, n_min+10)
-    call re_allocate2(str_index%indexx, n_min, n_min+10)
+    call re_allocate2(var_str_index%name, n_min, n_min+10)
+    call re_allocate2(var_str_index%indexx, n_min, n_min+10)
     ix_match = n_min
-    str_index%indexx(n_min) = n_min
-    str_index%name(n_min)%str = name
+    var_str_index%indexx(n_min) = n_min
+    var_str_index%name(n_min)%str = name
     n_max = n_min
     if (present(n_match)) n_match = 1
     if (present(has_been_added)) has_been_added = .true.
@@ -169,18 +166,17 @@ ix1 = n_min
 ix3 = n_max
 
 do
-
   ix2 = (ix1 + ix3) / 2 
 
-  if (str_index%name(str_index%indexx(ix2))%str == name) then
+  if (var_str_index%name(var_str_index%indexx(ix2))%str == name) then
     do ! if there are duplicate name in the list choose the first one
       if (ix2 == n_min) exit
-      if (str_index%name(str_index%indexx(ix2-1))%str /= str_index%name(str_index%indexx(ix2))%str) exit
+      if (var_str_index%name(var_str_index%indexx(ix2-1))%str /= var_str_index%name(var_str_index%indexx(ix2))%str) exit
       ix2 = ix2 - 1
     enddo
-    ix_match = str_index%indexx(ix2)
+    ix_match = var_str_index%indexx(ix2)
     exit
-  elseif (str_index%name(str_index%indexx(ix2))%str < name) then
+  elseif (var_str_index%name(var_str_index%indexx(ix2))%str < name) then
     ix1 = ix2 + 1
   else
     ix3 = ix2 - 1
@@ -188,23 +184,23 @@ do
                      
   if (ix1 > ix3) then
     ix_match = n_min - 1
-    if (str_index%name(str_index%indexx(ix2))%str < name) ix2 = ix2 + 1
+    if (var_str_index%name(var_str_index%indexx(ix2))%str < name) ix2 = ix2 + 1
     exit
   endif
-
 enddo
 
 if (present(ix2_match)) ix2_match = ix2
 
 if (logic_option(.false., add_to_list) .and. ix_match < n_min) then
-  if (n_max + 1 > size(str_index%name)) then
-    call re_allocate2(str_index%name, n_min, 2*n_max-n_min)
-    call re_allocate2(str_index%indexx, n_min, 2*n_max-n_min)
+  if (n_max + 1 > ubound(var_str_index%name, 1)) then
+    n = n_max - n_min
+    call re_allocate2(var_str_index%name, n_min, n_max+n)
+    call re_allocate2(var_str_index%indexx, n_min, n_max+n)
   endif
   if (present(has_been_added)) has_been_added = .true.
-  str_index%indexx(ix2+1:n_max+1) = str_index%indexx(ix2:n_max)
-  str_index%indexx(ix2) = n_max + 1
-  str_index%name(n_max+1)%str = name
+  var_str_index%indexx(ix2+1:n_max+1) = var_str_index%indexx(ix2:n_max)
+  var_str_index%indexx(ix2) = n_max + 1
+  var_str_index%name(n_max+1)%str = name
   ix_match = n_max + 1
   n_max = n_max+1
 endif
@@ -213,7 +209,7 @@ if (present(n_match)) then
   n_match = 0
   if (ix_match == n_min - 1) return
   do
-    if (str_index%name(str_index%indexx(ix2))%str /= name) return
+    if (var_str_index%name(var_str_index%indexx(ix2))%str /= name) return
     n_match = n_match +1
     ix2 = ix2 + 1
     if (ix2 > n_max) return
@@ -226,14 +222,120 @@ end subroutine find_indexx0
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine find_indexx1 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+! Subroutine find_indexx1 (name, nametable, ix_match, ix2_match, add_to_list, n_match, has_been_added)
 !
 ! Subroutine to find a matching name in a list of names.
 ! This name is overloaded by find_indexx.
 ! See the find_indexx documentation for more details.
 !-
 
-subroutine find_indexx1 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+subroutine find_indexx1 (name, nametable, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+
+type (nametable_struct), target :: nametable
+
+integer n, ix1, ix2, ix3, ix_match
+integer, optional :: ix2_match
+integer, pointer :: n_min, n_max
+integer, optional :: n_match
+
+character(*) name
+logical, optional :: add_to_list, has_been_added
+
+! simple case where there are no elements
+
+n_min => nametable%n_min
+n_max => nametable%n_max
+
+if (present(has_been_added)) has_been_added = .false.
+
+if (n_max < n_min) then
+  if (present(ix2_match)) ix2_match = n_min
+  ix_match = n_min - 1
+  if (logic_option(.false., add_to_list)) then
+    call re_allocate2(nametable%name, n_min, n_min+10)
+    call re_allocate2(nametable%indexx, n_min, n_min+10)
+    ix_match = n_min
+    nametable%indexx(n_min) = n_min
+    nametable%name(n_min) = name
+    n_max = n_min
+    if (present(n_match)) n_match = 1
+    if (present(has_been_added)) has_been_added = .true.
+  else
+    if (present(n_match)) n_match = 0
+  endif
+  return
+endif
+
+!
+
+ix1 = n_min
+ix3 = n_max
+
+do
+  ix2 = (ix1 + ix3) / 2 
+
+  if (nametable%name(nametable%indexx(ix2)) == name) then
+    do ! if there are duplicate nametable%name in the list choose the first one
+      if (ix2 == n_min) exit
+      if (nametable%name(nametable%indexx(ix2-1)) /= nametable%name(nametable%indexx(ix2))) exit
+      ix2 = ix2 - 1
+    enddo
+    ix_match = nametable%indexx(ix2)
+    exit
+  elseif (nametable%name(nametable%indexx(ix2)) < name) then
+    ix1 = ix2 + 1
+  else
+    ix3 = ix2 - 1
+  endif
+                     
+  if (ix1 > ix3) then
+    ix_match = n_min - 1
+    if (nametable%name(nametable%indexx(ix2)) < name) ix2 = ix2 + 1
+    exit
+  endif
+enddo
+
+if (present(ix2_match)) ix2_match = ix2
+
+if (logic_option(.false., add_to_list) .and. ix_match < n_min) then
+  if (n_max + 1 > ubound(nametable%name, 1)) then
+    n = n_max - n_min
+    call re_allocate2(nametable%name, n_min, n_max+n)
+    call re_allocate2(nametable%indexx, n_min, n_max+n)
+  endif
+  if (present(has_been_added)) has_been_added = .true.
+  nametable%indexx(ix2+1:n_max+1) = nametable%indexx(ix2:n_max)
+  nametable%indexx(ix2) = n_max + 1
+  nametable%name(n_max+1) = name
+  ix_match = n_max + 1
+  n_max = n_max+1
+endif
+
+if (present(n_match)) then
+  n_match = 0
+  if (ix_match == n_min - 1) return
+  do
+    if (nametable%name(nametable%indexx(ix2)) /= name) return
+    n_match = n_match +1
+    ix2 = ix2 + 1
+    if (ix2 > n_max) return
+  enddo
+endif
+
+end subroutine find_indexx1
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine find_indexx2 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+!
+! Subroutine to find a matching name in a list of names.
+! This name is overloaded by find_indexx.
+! See the find_indexx documentation for more details.
+!-
+
+subroutine find_indexx2 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
 
 integer ix1, ix2, ix3, n_max, ix_match
 integer, optional :: ix2_match
@@ -246,22 +348,22 @@ logical, optional :: add_to_list, has_been_added
 
 ! 
 
-call find_indexx2 (name, names, 1, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+call find_indexx3 (name, names, 1, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
 
-end subroutine find_indexx1
+end subroutine find_indexx2
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine find_indexx2 (name, names, n_min, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+! Subroutine find_indexx3 (name, names, n_min, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
 !
 ! Subroutine to find a matching name in a list of names.
 ! This name is overloaded by find_indexx.
 ! See the find_indexx documentation for more details.
 !-
 
-subroutine find_indexx2 (name, names, n_min, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
+subroutine find_indexx3 (name, names, n_min, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)
 
 integer ix1, ix2, ix3, n_min, n_max, ix_match
 integer, optional :: ix2_match
@@ -345,7 +447,7 @@ if (present(n_match)) then
   enddo
 endif
 
-end subroutine find_indexx2
+end subroutine find_indexx3
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
