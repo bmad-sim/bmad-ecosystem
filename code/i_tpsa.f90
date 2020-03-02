@@ -3718,14 +3718,14 @@ if(check_gtpsa(j=j)) then
     ! if(old) THEN
     IF(PRESENT(J).AND.PRESENT(VALUE).and.present(ii)) THEN
    !    call dacycle(S1%i,ii,value,illa,J)
-      ii_gtpsa=ii-1
+! GTPSA REMOVED !        ii_gtpsa=ii-1
 ! GTPSA REMOVED !   VALUE=mad_tpsa_geti(S1%j,ii_gtpsa)
 ! GTPSA REMOVED !  err=mad_tpsa_mono(S1%j,c_%nv,mo_gtpsa,ii_gtpsa)
-  j(1:c_%nv)=mo_gtpsa
-if(err<0) then
-   write(6,*) " error in taylor_cycle_gtpsa "
- stop
-endif
+! GTPSA REMOVED !    j(1:c_%nv)=mo_gtpsa
+! GTPSA REMOVED !  if(err<0) then
+! GTPSA REMOVED !     write(6,*) " error in taylor_cycle_gtpsa "
+! GTPSA REMOVED !   stop
+! GTPSA REMOVED !  endif
 
     ELSEif(present(size)) then
 ! GTPSA REMOVED !       size=mad_desc_maxlen(d_berz)

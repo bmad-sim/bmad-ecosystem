@@ -1113,7 +1113,7 @@ endif ! jumpnot
 
     xr=0.0_dp
   do i=1,6
-    xr(i)=GRNF_zhe()*t(2)%fix0(i)
+    xr(i)=GRNF_zhe()*t(2)%fix0(i)  
   enddo
     xr(1:6)=matmul(t(2)%rad,xr)
 
@@ -1262,7 +1262,7 @@ elseif(.not.as_is0) then
           enddo
           qf(2)=xs%q%x(2)
           
-         xs%q%x(1:3)=qf   !/sqrt(qf(1)**2+qf(2)**2+qf(3)**2)
+         xs%q%x(1:3)=qf/sqrt(qf(1)**2+qf(2)**2+qf(3)**2)
       else
        write(6,*) "SLIM not permitted unless quaternion is the prime method "
           stop
