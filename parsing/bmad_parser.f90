@@ -52,7 +52,7 @@ type (parser_controller_struct), allocatable :: pcon(:)
 
 real(rp) beta, val
 
-integer, allocatable :: seq_indexx(:), in_indexx(:)
+integer, allocatable :: seq_indexx(:)
 
 integer :: ix_param_ele, ix_mad_beam_ele
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
@@ -67,7 +67,7 @@ character(*), optional :: use_line
 character(1) delim
 character(16), parameter :: r_name = 'bmad_parser'
 character(40) word_1, word_2, name, this_name, this_branch_name
-character(40), allocatable ::  in_name(:), seq_name(:), names(:)
+character(40), allocatable :: seq_name(:), names(:)
 character(80) debug_line
 character(200) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save, line, use_line_str
@@ -144,8 +144,7 @@ if (present(digested_read_ok)) digested_read_ok = .false.
 
 call init_lat (lat, 1)
 call init_lat (in_lat, 1000)
-allocate (in_indexx(0:1000), in_name(0:1000))
-in_name = ''
+call nametable_init (in_lat%nametable, 0)
 
 call allocate_plat (plat, ubound(in_lat%ele, 1))
 
@@ -179,30 +178,34 @@ n_max => in_lat%n_ele_max   ! Number of elements encountered
 n_max = -1
 
 call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
-call find_indexx (in_lat%ele(0)%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
+n_max = n_max + 1
+call nametable_add (in_lat%nametable, in_lat%ele(0)%name, n_max)
 
 ele => in_lat%ele(1)
+n_max = n_max + 1
 call init_ele(ele, def_mad_beam$, 0, 1, in_lat%branch(0))
 ele%name = 'BEAM'                 ! For MAD compatibility.
-call set_ele_defaults (ele)
-call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
+call nametable_add (in_lat%nametable, ele%name, n_max)
 ix_mad_beam_ele = 1
 
 ele => in_lat%ele(2)
+n_max = n_max + 1
 call init_ele(ele, def_parameter$, 0, 2, in_lat%branch(0))
 ele%name = 'PARAMETER'           ! For parameters 
-call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
+call nametable_add (in_lat%nametable, ele%name, n_max)
 ix_param_ele = 2
 
 ele => in_lat%ele(3)
+n_max = n_max + 1
+call init_ele(ele, def_particle_start$, 0, 3, in_lat%branch(0))
 ele%name = 'PARTICLE_START'           ! For beam starting parameters 
-ele%key = def_particle_start$
-call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
+call nametable_add (in_lat%nametable, ele%name, n_max) 
 
 ele => in_lat%ele(4)
+n_max = n_max + 1
+call init_ele(ele, def_bmad_com$, 0, 4, in_lat%branch(0))
 ele%name = 'BMAD_COM'           ! Global bmad parameters
-ele%key = def_bmad_com$
-call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
+call nametable_add (in_lat%nametable, ele%name, n_max)
 
 lat%n_control_max = 0
 detected_expand_lattice_cmd = .false.
@@ -316,7 +319,7 @@ parsing_loop: do
   ! Superimpose statement
 
   if (word_1(:ix_word) == 'SUPERIMPOSE') then
-    call new_element_init('superimpose-command:' // int_str(n_max+1), in_lat, in_name, err)
+    call new_element_init('superimpose-command:' // int_str(n_max+1), in_lat, err)
     ele => in_lat%ele(n_max)
     call parse_superimpose_command(in_lat, ele, plat%ele(ele%ixx), delim)
     cycle parsing_loop   
@@ -457,7 +460,7 @@ parsing_loop: do
     endif
 
     if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
-      call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix)
+      call find_indexx (word_1, in_lat%nametable, ix)
       if (ix == -1) then
         call parser_error ('ELEMENT NOT FOUND: ' // word_1)
       else
@@ -609,7 +612,7 @@ parsing_loop: do
     sequence(iseq_tot)%name = word_1
     sequence(iseq_tot)%multipass = multipass
 
-    call new_element_init (word_1, in_lat, in_name, err)
+    call new_element_init (word_1, in_lat, err)
     ele => in_lat%ele(n_max)
 
     if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
@@ -634,7 +637,7 @@ parsing_loop: do
   !-------------------------------------------------------
   ! If not line or list then must be an element
 
-  call new_element_init (word_1, in_lat, in_name, err)
+  call new_element_init (word_1, in_lat, err)
   if (err) cycle parsing_loop
 
   ! Check for valid element key name or if element is part of a element key.
@@ -642,12 +645,12 @@ parsing_loop: do
 
   match_found = .false.  ! found a match?
 
-  call find_indexx (word_2, in_name, 0, in_indexx, n_max, i)
+  call find_indexx (word_2, in_lat%nametable, i)
   if (i >= 0 .and. i < n_max) then ! i < n_max avoids "abc: abc" construct.
     plat%ele(n_max) = plat%ele(i)
     in_lat%ele(n_max) = in_lat%ele(i)
     in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
-    in_lat%ele(n_max)%name = word_1
+    call set_ele_name (in_lat%ele(n_max), word_1)
     match_found = .true.
   endif
 
@@ -729,9 +732,7 @@ bp_com%input_line_meaningful = .false.
 mad_beam_ele => in_lat%ele(ix_mad_beam_ele)
 param_ele    => in_lat%ele(ix_param_ele)
 
-! sort elements and lists and check for duplicates.
-! seq_name(:) and in_name(:) arrays speed up the calls to find_indexx since
-! the compiler does not have to repack the memory.
+! sort lists and check for duplicates.
 
 allocate (seq_indexx(iseq_tot), seq_name(iseq_tot))
 seq_name = sequence(1:iseq_tot)%name
@@ -740,15 +741,13 @@ call indexx (seq_name, seq_indexx)
 do i = 1, iseq_tot-1
   ix1 = seq_indexx(i)
   ix2 = seq_indexx(i+1)
-  if (sequence(ix1)%name == sequence(ix2)%name) call parser_error  &
-                    ('DUPLICATE LINE NAME ' // sequence(ix1)%name)
+  if (sequence(ix1)%name == sequence(ix2)%name) call parser_error  ('DUPLICATE LINE NAME ' // sequence(ix1)%name)
 enddo
 
 do i = 1, n_max-1
-  ix1 = in_indexx(i)
-  ix2 = in_indexx(i+1)
-  if (in_lat%ele(ix1)%name == in_lat%ele(ix2)%name) call parser_error &
-                  ('DUPLICATE ELEMENT NAME ' // in_lat%ele(ix1)%name)
+  ix1 = in_lat%nametable%indexx(i)
+  ix2 = in_lat%nametable%indexx(i+1)
+  if (in_lat%ele(ix1)%name == in_lat%ele(ix2)%name) call parser_error ('DUPLICATE ELEMENT NAME ' // in_lat%ele(ix1)%name)
 enddo
 
 !----------------------------------------------------------------------
@@ -796,8 +795,8 @@ branch_loop: do i_loop = 1, n_branch_max
       use_line_str = use_line_str(ix+1:)
     endif
 
-    call parser_expand_line (this_branch_name, sequence, in_name, in_indexx, seq_name, seq_indexx, &
-                                         is_true(param_ele%value(no_end_marker$)), n_ele_use, lat, in_lat)
+    call parser_expand_line (this_branch_name, sequence, in_lat%nametable, seq_name, seq_indexx, &
+                                                    is_true(param_ele%value(no_end_marker$)), n_ele_use, lat, in_lat)
     if (bp_com%fatal_error_flag) then
       call parser_end_stuff (in_lat, .false.)
       return
@@ -806,7 +805,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   else
     ele => branch_ele(1)%ele
-    call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, &
+    call parser_add_branch (ele, lat, sequence, in_lat%nametable, seq_name, seq_indexx, &
                        is_true(param_ele%value(no_end_marker$)), in_lat, plat, created_new_branch, this_branch_name)
     is_photon_fork = (ele%key == photon_fork$)
     n_branch_ele = n_branch_ele - 1
@@ -817,7 +816,7 @@ branch_loop: do i_loop = 1, n_branch_max
   n_branch = ubound(lat%branch, 1)
   branch => lat%branch(n_branch)
 
-  call find_indexx (this_branch_name, in_name, 0, in_indexx, n_max, ix)
+  call find_indexx (this_branch_name, in_lat%nametable, ix)
   ele => in_lat%ele(ix) ! line_ele element associated with this branch.
   ele0 => branch%ele(0)
 
@@ -978,6 +977,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   !
 
+  call create_lat_ele_nametable(lat, lat%nametable)
   call settable_dep_var_bookkeeping(ele0)
 
   if (bp_com%error_flag) then
@@ -1078,7 +1078,7 @@ do i = 1, n_max
     if (j > n_slave) exit
     call find_indexx(pele%control(j)%name, seq_name, seq_indexx, size(seq_name), k, k2)
     if (k == 0) cycle
-    call parser_expand_line (pele%control(j)%name, sequence, in_name, in_indexx, &
+    call parser_expand_line (pele%control(j)%name, sequence, in_lat%nametable, &
                                          seq_name, seq_indexx, .false., n_ele_use, expanded_line = names)
     ! Put elements from the line expansion into the slave list.
 
@@ -1301,9 +1301,8 @@ bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 ! deallocate pointers
 
 if (logic_option (.true., do_dealloc)) then
-  if (allocated (seq_indexx))            deallocate (seq_indexx, seq_name)
-  if (allocated (in_indexx))             deallocate (in_indexx, in_name)
-  if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
+  if (allocated (seq_indexx))              deallocate (seq_indexx, seq_name)
+  if (allocated (bp_com%lat_file_names))   deallocate (bp_com%lat_file_names)
 endif
 
 if (bp_com%error_flag) then
@@ -1342,14 +1341,13 @@ end subroutine parser_end_stuff
 !---------------------------------------------------------------------
 ! contains
 
-subroutine new_element_init (word1, lat0, in_name, err)
+subroutine new_element_init (word1, lat0, err)
 
 type (lat_struct), target :: lat0
 
 integer, pointer :: n_max
 logical err, added
 character(*) word1
-character(*), allocatable ::  in_name(:)
 
 !
 
@@ -1364,13 +1362,12 @@ n_max => lat0%n_ele_max
 
 if (n_max >= ubound(lat0%ele, 1)) then
   call allocate_lat_ele_array (lat0)
-  call re_allocate2 (in_name, 0, ubound(lat0%ele, 1), init_val = '')
-  call re_allocate2 (in_indexx, 0, ubound(lat0%ele, 1))
   call allocate_plat (plat, ubound(lat0%ele, 1))
 endif
 
-lat0%ele(n_max+1)%name = word1
-call find_indexx (word1, in_name, 0, in_indexx, n_max, ix, add_to_list = .true., has_been_added = added)
+n_max = n_max + 1
+lat0%ele(n_max)%name = word1
+call find_indexx (word1, lat0%nametable, ix, add_to_list = .true., has_been_added = added)
 if (.not. added) then
   call parser_error ('DUPLICATE ELEMENT, LINE, OR LIST NAME: ' // word1)
 endif

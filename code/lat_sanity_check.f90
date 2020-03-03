@@ -20,6 +20,7 @@ use bmad_interface, except_dummy => lat_sanity_check
 implicit none
      
 type (lat_struct), target :: lat
+type (nametable_struct), pointer :: nt
 type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch, branch2
 type (photon_surface_struct), pointer :: surf
@@ -34,14 +35,53 @@ type (ele_attribute_struct) info
 
 real(rp) s1, s2, ds, ds_small, l_lord, g(3)
 
-integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2
-integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is, tm
+integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2, ib, ie
+integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is, tm, ix_match
 
 character(16) str_ix_slave, str_ix_lord, str_ix_ele
 character(*), parameter :: r_name = 'lat_sanity_check'
 
 logical, intent(out) :: err_flag
-logical good_control(12,12), girder_here, finished, foundit
+logical good_control(12,12), girder_here, finished, foundit, problem_found
+
+! Check the nametable.
+! Instead of quiting, lat_sanity_check will repair a broken nametable.
+
+problem_found = .false.
+nt => lat%nametable
+n = -1
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  do ie = 0, branch%n_ele_max
+    n = n + 1
+    ele => branch%ele(ie)
+
+    if (ele%name /= nt%name(n)) then
+      call out_io (s_fatal$, r_name, 'LAT NAMETABLE NAME ORDER MISMATCH!', 'PLEASE REPORT THIS!')
+      problem_found = .true.
+    endif
+
+    call find_indexx(ele%name, nt, ix_match)
+    if (ix_match < 0) then
+      call out_io (s_fatal$, r_name, 'LAT NAMETABLE MAPPING MISMATCH!', 'PLEASE REPORT THIS!')
+      problem_found = .true.
+    endif
+
+    if (n > 0) then
+      if (nt%name(nt%indexx(n-1)) > nt%name(nt%indexx(n))) then
+        call out_io (s_fatal$, r_name, 'LAT NAMETABLE INDEXX ORDER MISMATCH!', 'PLEASE REPORT THIS!')
+        problem_found = .true.
+      endif
+    endif
+  enddo
+enddo
+
+if (n /= nt%n_max) then
+  call out_io (s_fatal$, r_name, 'LAT NAMETABLE SIZE MISMATCH!')
+  problem_found = .true.
+endif
+
+if (problem_found) call create_lat_ele_nametable(lat, nt)
 
 ! Some global checks
 

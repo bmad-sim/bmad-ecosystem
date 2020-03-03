@@ -50,6 +50,7 @@ lat%n_ic_max = 0
 lat%input_taylor_order = 0
 lat%version = -1
 lat%absolute_time_tracking   = bmad_com%absolute_time_tracking_default
+lat%nametable%n_max = -1
 
 call allocate_branch_array (lat, 0)
 

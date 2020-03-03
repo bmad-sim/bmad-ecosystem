@@ -4674,6 +4674,7 @@ else
   lord = pointer_to_ele(lat, m_slaves(1))  ! Set attributes equal to first slave.
 endif
 
+call set_ele_name(lord, lord%name)
 lord%logic = .false.  ! So parser_add_superimpose will not try to use as ref ele.
 lord%lord_status = multipass_lord$
 lord%n_slave = 0
@@ -4705,7 +4706,7 @@ do i = 1, n_multipass
     call parser_error ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', 'PLEASE GET EXPERT HELP!')
     if (global_com%exit_on_error) call err_exit
   endif
-  write (slave%name, '(2a, i0)') trim(slave%name), '\', i   ! '
+  call set_ele_name (slave, trim(slave%name) // '\' // int_str(i))   ! '
   call add_lattice_control_structs (slave, n_add_lord = 1)
   slave%slave_status = multipass_slave$
   ixic = slave%ic1_lord
@@ -4729,7 +4730,8 @@ do i = 1, n_multipass
       if (len_trim(slave2_name) > lmax) exit
     enddo
     if (len_trim(slave2_name) > lmax) slave2_name = slave2_name(1:lmax) // '\ '
-    write (slave2%name, '(a, i0)') trim(slave2_name), i
+    call set_ele_name (slave2, trim(slave2_name) // int_str(i))
+    
 
     names(j) = slave2_name
   enddo
@@ -4753,7 +4755,7 @@ do i = 1, n_multipass
       else
         slave2 => pointer_to_slave(slave, slave%n_slave+1-indx(j+i1))
       endif
-      write (slave2%name, '(2a, i0)') trim(slave2%name), '#', i1+1
+      call set_ele_name (slave2, trim(slave2%name) // '#' // int_str(i1+1))
     enddo
   enddo outer_loop
 
@@ -4818,14 +4820,14 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
         if (ix_pass /= 1) cycle  ! Only do renaming once
         lord2 => pointer_to_lord(ele, 1)
         ix_n = ix_n + 1
-        write (lord2%name, '(2a, i0)') base_name(1:ixb), '#', ix_n
+        call set_ele_name (lord2, base_name(1:ixb) // '#' // int_str(ix_n))
         do k = 1, lord2%n_slave
           slave => pointer_to_slave(lord2, k)
-          write (slave%name, '(2a, i0, a, i0)') base_name(1:ixb), '#', ix_n, '\', k      !'
+          call set_ele_name (slave, base_name(1:ixb) // '#' // int_str(ix_n) // '\' // int_str(k))      !'
         enddo
       else
         ix_n = ix_n + 1
-        write (ele%name, '(2a, i0)') base_name(1:ixb), '#', ix_n
+        call set_ele_name (ele, base_name(1:ixb) // '#' // int_str(ix_n))
       endif
     enddo
   enddo
@@ -5037,14 +5039,14 @@ do
   do 
     i_ele = i_ele + 1
     if (i_ele > branch%n_ele_track) exit
-    call do_this_superimpose(branch%ele(i_ele), have_inserted)
+    call do_this_superimpose(lat, branch%ele(i_ele), have_inserted)
   enddo
 
   i_ele = lat%n_ele_track
   do
     i_ele = i_ele + 1
     if (i_ele > lat%n_ele_max) exit
-    call do_this_superimpose(lat%ele(i_ele), have_inserted)
+    call do_this_superimpose(lat, lat%ele(i_ele), have_inserted)
   enddo
 
   if (.not. have_inserted) exit
@@ -5053,8 +5055,9 @@ enddo
 !-------------------------------------------------------------
 contains
 
-subroutine do_this_superimpose (start_ele, have_inserted)
+subroutine do_this_superimpose (lat, start_ele, have_inserted)
 
+type (lat_struct), target :: lat
 type (ele_struct), target :: start_ele
 type (ele_struct), pointer :: ref_ele
 logical have_inserted
@@ -5208,15 +5211,16 @@ do i = 0, ubound(lat%branch, 1)
     i_ele = i_ele + 1
     if (i_ele > branch%n_ele_max) exit
     n_super = n_super + 1
-    call do2_this_superimpose(branch%ele(i_ele), have_inserted, pele, n_super)
+    call do2_this_superimpose(lat, branch%ele(i_ele), have_inserted, pele, n_super)
   enddo
 enddo
 
 !-------------------------------------------------------------
 contains
 
-subroutine do2_this_superimpose (ref0_ele, have_inserted, pele, n_super)
+subroutine do2_this_superimpose (lat, ref0_ele, have_inserted, pele, n_super)
 
+type (lat_struct), target :: lat
 type (ele_struct), target :: ref0_ele
 type (ele_struct), pointer :: ref_ele, ele, slave, slave2, ele_at_s, super_ele_out
 type (branch_struct), pointer :: branch
@@ -6098,7 +6102,7 @@ main_loop: do n_in = 1, n_ele_max
           cycle main_loop
         endif
 
-        call new_control (lat, ix_lord)
+        call new_control (lat, ix_lord, lord%name)
         call create_girder (lat, ix_lord, cs(1:n_slave), lord, err)
         if (err) then
           call parser_error ('ERROR CONSTRUCTING GIRDER')
@@ -6258,9 +6262,6 @@ logical err_flag
 
 err_flag = .true.
 
-call new_control (lat, ix_lord)  ! get index in lat where lord goes
-lat%ele(ix_lord) = lord
-
 if (allocated(cs)) then
   if (size(cs) < n_slave) deallocate(cs)
 endif
@@ -6311,14 +6312,12 @@ do ip = 1, size(pele%control)
 
 enddo
 
-! If the lord has no slaves then discard it
-
-if (n_slave == 0) then
-  lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
-  return
-endif
-
 ! create the lord
+
+if (n_slave == 0) return   ! If the lord has no slaves then do not create a lord.
+
+call new_control (lat, ix_lord, lord%name)  ! get index in lat where lord goes
+lat%ele(ix_lord) = lord
 
 select case (lord%key)
 case (overlay$)
@@ -6681,13 +6680,14 @@ end subroutine form_digested_bmad_file_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, seq_name, &
+subroutine parser_add_branch (fork_ele, lat, sequence, ele_nametable, seq_name, &
                                     seq_indexx, no_end_marker, in_lat, plat, created_new_branch, new_branch_name)
 
 implicit none
 
 type (lat_struct), target :: lat, in_lat
 type (parser_lat_struct) plat
+type (nametable_struct) ele_nametable
 type (ele_struct) fork_ele
 type (ele_struct), pointer :: target_ele
 type (seq_struct), allocatable, target :: sequence(:)
@@ -6697,7 +6697,7 @@ integer, allocatable :: seq_indexx(:), in_indexx(:)
 integer i, j, nb, n_ele_use, n, ix, key
 
 character(*), optional :: new_branch_name
-character(*), allocatable ::  in_name(:), seq_name(:)
+character(*), allocatable ::  seq_name(:)
 
 logical created_new_branch, no_end_marker
 
@@ -6716,8 +6716,8 @@ if (fork_ele%value(new_branch$) == 0) then ! Branch back if
 endif
 
 if (created_new_branch) then
-  call parser_expand_line (fork_ele%component_name, sequence, in_name, &
-                                in_indexx, seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat)
+  call parser_expand_line (fork_ele%component_name, sequence, ele_nametable, &
+                                seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat)
 
   nb = ubound(lat%branch, 1)
   fork_ele%value(ix_to_branch$) = nb
@@ -6809,7 +6809,7 @@ end subroutine parser_identify_fork_to_element
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_expand_line (lat, use_name, sequence, in_name, in_indexx, &
+! Subroutine parser_expand_line (lat, use_name, sequence, ele_nametable, &
 !               seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat, expanded_line)
 !
 ! Subroutine to do line expansion.
@@ -6822,8 +6822,7 @@ end subroutine parser_identify_fork_to_element
 ! Input:
 !   use_name      -- character(*): Root line to expand.
 !   sequence(:)   -- seq_struct: Array of sequencies.
-!   in_name(:)    -- character(*): Array of element names.
-!   in_indexx(:)  -- integer: Index array of for the element names.
+!   ele_nametable -- nametable_struct: Element nametable.
 !   seq_name(:)   -- character(*): Array of sequence names.
 !   seq_indexx(:) -- integer: Index array for the sequence names.
 !   no_end_marker -- logical: Put a marker named "end" at the end of the branch?
@@ -6837,12 +6836,13 @@ end subroutine parser_identify_fork_to_element
 !                         This arg is used for girder lords.
 !-
 
-recursive subroutine parser_expand_line (use_name, sequence, in_name, in_indexx, &
+recursive subroutine parser_expand_line (use_name, sequence, ele_nametable, &
                seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat, expanded_line)
 
 implicit none
 
 type (lat_struct), optional, target :: lat, in_lat
+type (nametable_struct) ele_nametable
 type (ele_struct), pointer :: ele_line(:), ele, ele2
 type (seq_struct), allocatable, target :: sequence(:)
 type (seq_ele_struct), pointer :: s_ele, this_seq_ele
@@ -6853,11 +6853,11 @@ type (seq_ele_struct), target :: dummy_seq_ele
 type (branch_struct), pointer :: branch
 type (used_seq_struct), allocatable ::  used_line(:)
 
-integer, allocatable :: seq_indexx(:), in_indexx(:)
-integer iseq_tot, i_lev, i_use, n_ele_use, n_name_tot
+integer, allocatable :: seq_indexx(:)
+integer iseq_tot, i_lev, i_use, n_ele_use
 integer i, j, k, n, ix, ix_multipass, ix_branch, flip
 
-character(*), allocatable ::  in_name(:), seq_name(:)
+character(*), allocatable ::  seq_name(:)
 character(*), allocatable, optional :: expanded_line(:)
 character(*) use_name
 character(40) name
@@ -6869,10 +6869,6 @@ logical no_end_marker
 
 iseq_tot = size(seq_indexx)
 allocate (used_line(1000))
-
-do n_name_tot = 0, size(in_name)-1
-  if (in_name(n_name_tot+1) == '') exit
-enddo
 
 call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
 if (i_use == 0) then
@@ -6903,7 +6899,7 @@ do k = 1, iseq_tot
 
     call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
     if (j == 0) then  ! if not an sequence, it must be an element
-      call find_indexx (name, in_name, 0, in_indexx, n_name_tot, j)
+      call find_indexx (name, ele_nametable, j)
       if (j < 0) then  ! if not an element, I don't know what it is
         s_ele%ix_ele = -1       ! Struggle on for now...
         s_ele%type = element$
@@ -7000,7 +6996,7 @@ line_expansion: do
       s_ele%ix_ele = j
       s_ele%type = sequence(j)%type
     else  ! Must be an element
-      call find_indexx (name, in_name, 0, in_indexx, n_name_tot, j)
+      call find_indexx (name, ele_nametable, j)
       if (j == 0) then  ! if not an element then I don't know what it is
         call parser_error ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, seq = seq)

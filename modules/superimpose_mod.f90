@@ -323,7 +323,7 @@ do i = ix1_split+1, ix2_split
   lat%control(ix)%slave%ix_ele = i
   lat%control(ix)%slave%ix_branch = ix_branch
   slave%slave_status = super_slave$
-  slave%name = trim(slave%name) // '#1'
+  call set_ele_name (slave, trim(slave%name) // '#1')
   slave%ic1_lord = 0   ! So add_lattice_control_structs does the right thing
   call add_lattice_control_structs (slave, n_add_lord = 1)
   ic = slave%ic1_lord
@@ -337,6 +337,7 @@ lat%n_ele_max = ix_super
 if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
 lat%ele(ix_super) = super_saved
 lat%ele(ix_super)%lord_status = super_lord$
+call nametable_add(lat%nametable, super_saved%name, ix_super)
 call set_flags_for_changed_attribute (lat%ele(ix_super))
 if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 
@@ -481,6 +482,8 @@ if (split1_done .and. split2_done .and. &
   endif
   call delete_underscore (branch%ele(ix1_split))
   call delete_underscore (branch%ele(ix2_split+1))
+  call set_ele_name (branch%ele(ix1_split), branch%ele(ix1_split)%name)
+  call set_ele_name (branch%ele(ix1_split+1), branch%ele(ix1_split+1)%name)
 endif
 
 ! transfer control info from sup_con array
@@ -672,10 +675,10 @@ integer ix
 !
 
 ix = index(ele%name, '#\')  ! '
-if (ix /= 0) ele%name = ele%name(1:ix-1) // ele%name(ix+1:)
+if (ix /= 0) call set_ele_name (ele, ele%name(1:ix-1) // ele%name(ix+1:))
 
 ix = index(ele%name, '##')
-if (ix /= 0) ele%name = ele%name(1:ix-1) // ele%name(ix+1:)
+if (ix /= 0) call set_ele_name (ele, ele%name(1:ix-1) // ele%name(ix+1:))
 
 end subroutine delete_underscore
 
@@ -736,7 +739,7 @@ do i = ix1_lord, ix2_lord
       lord2 => pointer_to_lord(slave, k)
       name = trim(name) //  '\' // lord2%name     !'
     enddo
-    slave%name = name(2:len(slave%name)+1)
+    call set_ele_name (slave, name(2:len(slave%name)+1))
 
     do k = 1, n_unique
       if (slave%name == slave_names(k)) exit
@@ -763,7 +766,7 @@ do i = ix1_lord, ix2_lord
         if (index(slave%name, '\') /= 0 .and. n_slave_names(k) == 1) exit       !'
         ix = min(len_trim(slave%name), len(slave%name) - 2)
         ix_slave_names(k) = ix_slave_names(k) + 1
-        write (slave%name, '(2a, i0)') slave%name(1:ix), '#', ix_slave_names(k)
+        call set_ele_name (slave, slave%name(1:ix) // '#' // int_str(ix_slave_names(k)))
       endif
     enddo
     
@@ -831,15 +834,15 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%value(drift_id$) /= drift_id) cycle
 
     ixx = ixx + 1
-    write (ele%name, '(2a, i0)') trim(d_name), '#', ixx
+    call set_ele_name (ele, trim(d_name) // '#' // int_str(ixx))
 
     if (ele%lord_status == multipass_lord$) then
       do k = 1, ele%n_slave
         slave => pointer_to_slave(ele, k)
         if (slave%orientation == 1) then
-          write (slave%name, '(2a, i0)') trim(ele%name), '\', k    ! '
+          call set_ele_name (slave, trim(ele%name) // '\' // int_str(k))    ! '
         else
-          write (slave%name, '(2a, i0)') trim(ele%name), '\', ele%n_slave + 1 - k    ! '
+          call set_ele_name (slave, trim(ele%name) // '\' // int_str(ele%n_slave + 1 - k))    ! '
         endif
       enddo
     endif

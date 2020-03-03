@@ -372,6 +372,8 @@ if (.not. err_found) then
   call parser_init_custom_elements (lat)
 endif
 
+call create_lat_ele_nametable (lat, lat%nametable)
+
 return
 
 !----------------------------------------------------------------------------------------------

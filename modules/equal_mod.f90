@@ -81,9 +81,10 @@ subroutine ele_equal_ele (ele_out, ele_in)
 
 implicit none
 	
-type (ele_struct), intent(inout) :: ele_out
+type (ele_struct), intent(inout), target :: ele_out
 type (ele_struct), intent(in) :: ele_in
 type (ele_struct) ele_save
+type (nametable_struct), pointer :: nt
 
 integer i, j, n, n2, ub(2), ub1
 
@@ -100,8 +101,18 @@ call transfer_ele (ele_in, ele_out)
 
 ele_out%ix_ele    = ele_save%ix_ele    ! This should not change.
 ele_out%ix_branch = ele_save%ix_branch ! This should not change.
+
 if (ele_out%ix_ele > -1) then          ! If part of a lattice...
-  ele_out%branch => ele_save%branch     !   then ele_out%branch should not change.
+  ele_out%branch => ele_save%branch    !   then ele_out%branch should not change.
+  if (associated(ele_out%branch)) then
+    n = ele_nametable_index(ele_out)
+    nt => ele_out%branch%lat%nametable
+    ! During parsing the nametable may not have yet been updated so do not modify the
+    ! nametable if this is the case.
+    if (n <= nt%n_max .and. allocated(nt%name)) then
+      if (nt%name(n) /= ele_out%name) call nametable_change1(ele_out%branch%lat%nametable, ele_out%name, n)
+    endif
+  endif
 endif
 
 ! Transfer pointer info.

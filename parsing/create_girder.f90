@@ -19,12 +19,10 @@
 ! Output:
 !   lat    -- lat_struct: Modified lattice.
 !
-! Note: Use NEW_CONTROL to get an index for the girder element
-!
 ! Example: Create the Girder supporting elements 
 ! lat%ele(10) and lat%ele(12)
 !
-!   call new_control (lat, ix_ele)        ! get IX_ELE index of the girder.
+!   call new_control (lat, ix_ele, ele_name)        ! get IX_ELE index of the girder.
 !   control(1:2)%ix_branch = 0
 !   control(1)%ix_ele = 10; control(2)%ix_ele = 12
 !   call create_girder (lat, ix_ele, control(1:2))  ! create the girder
