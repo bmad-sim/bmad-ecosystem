@@ -766,15 +766,6 @@ type ele_pointer_struct
   integer :: id = -1                    ! For general use. Not used by Bmad.
 end type
 
-! Structure for holding a sorted index for all the elements in a lattice.
-! Create using create_lat_nametable. Find element using find_indexx.
-! The lower bound of both arrays is 0.
-
-type lat_nametable_struct
-  character(40), allocatable :: name(:)             ! Array of all lat ele names.
-  integer, allocatable :: indexx(:)                 ! Sort index.
-end type
-
 ! Structure for ptc genfield
 
 type ptc_genfield_struct
@@ -1278,21 +1269,21 @@ type lat_struct
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list
-  type (coord_struct) particle_start              ! Starting particle_coords
-  type (beam_init_struct) beam_init               ! Beam initialization.
-  type (pre_tracker_struct) pre_tracker           ! For OPAL/IMPACT-T
-  type (lat_nametable_struct) nametable           ! For quick searching by element name.
-  real(rp), allocatable :: custom(:)              ! Custom attributes.
-  integer :: version = -1                         ! Version number
-  integer :: n_ele_track                          ! Number of lat elements to track through.
-  integer :: n_ele_max                            ! Index of last valid element in %ele(:) array
-  integer :: n_control_max = 0                    ! Last index used in control_array
-  integer :: n_ic_max = 0                         ! Last index used in ic_array
-  integer :: input_taylor_order = 0               ! As set in the input file
-  integer, allocatable :: ic(:)                   ! Index to %control(:) from slaves.
-  integer :: photon_type = incoherent$            ! Or coherent$. For X-ray simulations.
-  logical :: absolute_time_tracking = .false.     ! Use abs. time for RF phase? Call autoscale if toggled.
-  logical :: ptc_uses_hard_edge_drifts = .false.  ! Does associated ptc layout have hard edge model drifts?
+  type (coord_struct) particle_start               ! Starting particle_coords
+  type (beam_init_struct) beam_init                ! Beam initialization.
+  type (pre_tracker_struct) pre_tracker            ! For OPAL/IMPACT-T
+  type (nametable_struct) nametable                ! For quick searching by element name.
+  real(rp), allocatable :: custom(:)               ! Custom attributes.
+  integer :: version = -1                          ! Version number
+  integer :: n_ele_track                           ! Number of lat elements to track through.
+  integer :: n_ele_max                             ! Index of last valid element in %ele(:) array
+  integer :: n_control_max = 0                     ! Last index used in control_array
+  integer :: n_ic_max = 0                          ! Last index used in ic_array
+  integer :: input_taylor_order = 0                ! As set in the input file
+  integer, allocatable :: ic(:)                    ! Index to %control(:) from slaves.
+  integer :: photon_type = incoherent$             ! Or coherent$. For X-ray simulations.
+  logical :: absolute_time_tracking = .false.      ! Use abs. time for RF phase? Call autoscale if toggled.
+  logical :: ptc_uses_hard_edge_drifts = .false.   ! Does associated ptc layout have hard edge model drifts?
 end type
 
 character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']

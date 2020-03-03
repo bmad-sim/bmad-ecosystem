@@ -161,7 +161,7 @@ endif
 
 if (branch%ele(ix_split)%key == drift$ .and. branch%ele(ix_split)%value(drift_id$) == 0 .and. &
                                                                  logic_option(.false., save_null_drift)) then
-  call new_control (lat, ix)
+  call new_control (lat, ix, branch%ele(ix_split)%name)
   lord => lat%ele(ix)
   lord = branch%ele(ix_split)
   lord%key = null_ele$
@@ -180,8 +180,8 @@ ele2 => branch%ele(ix_split+1)
 
 if (logic_option(.true., add_suffix)) then
   ix = len_trim(ele%name)
-  ele1%name = ele%name(:ix) // '#1'
-  ele2%name = ele%name(:ix) // '#2'
+  call set_ele_name (ele1, ele%name(:ix) // '#1')
+  call set_ele_name (ele2, ele%name(:ix) // '#2')
 endif
 
 ! drift_id is used by bmad_parser to keep track of which drifts where originally one bigger drift
@@ -273,7 +273,7 @@ endif   ! split element is a super_slave
 ! Here if split element is not a super_slave.
 ! Need to make a super lord to control the split elements.
 
-call new_control (lat, ix_super_lord)
+call new_control (lat, ix_super_lord, ele%name)
 ele1 => branch%ele(ix_split)
 ele2 => branch%ele(ix_split+1)
 super_lord => lat%ele(ix_super_lord)

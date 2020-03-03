@@ -270,6 +270,7 @@ enddo
 
 ! Sanity check
 
+call create_lat_ele_nametable(lat, lat%nametable)
 call set_flags_for_changed_attribute(lat)
 if (logic_option(.true., check_sanity)) call lat_sanity_check (lat, err_flag)
 

@@ -4,7 +4,7 @@ use bmad_routine_interface
 
 implicit none
 
-private pointer_to_ele1, pointer_to_ele2
+private pointer_to_ele1, pointer_to_ele2, pointer_to_ele3
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -15,8 +15,14 @@ private pointer_to_ele1, pointer_to_ele2
 ! Routine to return a pointer to an element.
 ! pointer_to_ele is an overloaded name for:
 !     Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
+!     Function pointer_to_ele1 (lat, ix_nametable) result (ele_ptr)
 !     Function pointer_to_ele2 (lat, ele_loc_id) result (ele_ptr)
 !     Function pointer_to_ele3 (lat, ele_name) result (ele_ptr)
+!
+! Ix_nametable is a mapping of ele locations to integers. The mapping is:
+!   ix_nametable = ele%ix_ele                             For elements in branch 0
+!   ix_nametable = ele%ix_ele + branch(0)%n_ele_max + 1   For elements in branch 1
+!   etc., etc.
 !
 ! Note that using ele_name to locate an element is potentially dangerous if there
 ! are multiple elements that have the same name. Better in this case is to use:
@@ -27,14 +33,15 @@ private pointer_to_ele1, pointer_to_ele2
 !   pointer_to_lord
 !
 ! Input:
-!   lat       -- lat_struct: Lattice.
-!   ix_ele    -- Integer: Index of element in lat%branch(ix_branch)
-!   ix_branch -- Integer: Index of the lat%branch(:) containing the element.
-!   ele_loc   -- Lat_ele_loc_struct: Location identification.
-!   ele_name  -- character(*): Name or index of element.
+!   lat           -- lat_struct: Lattice.
+!   ix_ele        -- integer: Index of element in lat%branch(ix_branch).
+!   ix_branch     -- integer: Index of the lat%branch(:) containing the element.
+!   ix_nametable  -- integer: Nametable index. See above
+!   ele_loc       -- lat_ele_loc_struct: Location identification.
+!   ele_name      -- character(*): Name or index of element.
 !
 ! Output:
-!   ele_ptr  -- Ele_struct, pointer: Pointer to the element. 
+!   ele_ptr       -- ele_struct, pointer: Pointer to the element. 
 !-
 
 interface pointer_to_ele
@@ -61,16 +68,35 @@ function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_ptr
 
-integer ix_branch, ix_ele
+integer :: ix_ele, ib, ixe
+integer, optional :: ix_branch
 
 !
 
 ele_ptr => null()
 
-if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) return
-if (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) return
+! ix_ele, ix_branch given
 
-ele_ptr => lat%branch(ix_branch)%ele(ix_ele)
+if (present(ix_branch)) then
+  if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) return
+  if (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) return
+  ele_ptr => lat%branch(ix_branch)%ele(ix_ele)
+
+! ix_ele = Nametable index
+
+else
+  if (ix_ele < 0) return
+  ixe = ix_ele
+  do ib = 0, ubound(lat%branch, 1)
+    if (ixe > lat%branch(ib)%n_ele_max) then
+      ixe = ixe - lat%branch(ib)%n_ele_max - 1
+      cycle
+    else
+      ele_ptr => lat%branch(ib)%ele(ixe)
+      return
+    endif
+  enddo
+endif
 
 end function pointer_to_ele1
 

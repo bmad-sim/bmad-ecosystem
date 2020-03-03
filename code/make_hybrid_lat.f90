@@ -350,6 +350,7 @@ enddo ! branch loop
 
 ! End
 
+call create_lat_ele_nametable (lat_out, lat_out%nametable)
 call lat_sanity_check (lat_out, err_flag)
 
 !------------------------------------------------------------------------------------

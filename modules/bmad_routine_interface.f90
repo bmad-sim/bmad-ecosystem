@@ -512,11 +512,11 @@ subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
   integer which_end
 end subroutine
 
-subroutine create_lat_nametable (lat, nametable)
+subroutine create_lat_ele_nametable (lat, nametable)
   import
   implicit none
   type (lat_struct), target :: lat
-  type (lat_nametable_struct) nametable
+  type (nametable_struct) nametable
 end subroutine
 
 subroutine create_overlay (lord, contl, err)
@@ -689,6 +689,13 @@ function ele_loc (ele) result (loc)
   implicit none
   type (ele_struct) ele
   type (lat_ele_loc_struct) loc
+end function
+
+function ele_nametable_index(ele) result(ix_nt)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  integer ix_nt
 end function
 
 function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed)
@@ -1181,11 +1188,12 @@ subroutine name_to_list (lat, ele_names)
   character(*) ele_names(:)
 end subroutine
 
-subroutine new_control (lat, ix_ele)
+subroutine new_control (lat, ix_ele, ele_name)
   import
   implicit none
   type (lat_struct) lat
   integer ix_ele
+  character(*), optional :: ele_name
 end subroutine
 
 function num_lords (slave, lord_type) result (num)
@@ -1627,6 +1635,13 @@ subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_fie
   real(rp), optional :: mat6(6,6), rf_time
   logical local_ref_frame
   logical, optional :: save_field, make_matrix
+end subroutine
+
+subroutine set_ele_name(ele, name)
+  import
+  implicit none
+  type (ele_struct) ele
+  character(*) name
 end subroutine
 
 recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)

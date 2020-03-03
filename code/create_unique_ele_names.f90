@@ -58,11 +58,13 @@ endif
 suff = suffix
 call str_upcase (suff, suff)
 
-! Sort element names
+!
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   branch%ele%ixx = 0
+
+  ! Sort element names
 
   n_max = branch%n_ele_max
   call re_allocate (name_indexx, n_max)
@@ -73,7 +75,6 @@ do ib = 0, ubound(lat%branch, 1)
   ! Find repeated names
 
   do i = 1, n_max
-
   	ele => branch%ele(i)
 
   	if (key /= 0 .and. ele%key /= key) cycle
@@ -88,5 +89,7 @@ do ib = 0, ubound(lat%branch, 1)
   	write (ele%name, '(2a, i0, a)') trim(ele%name), suff(1:ix_p-1), branch%ele(ix)%ixx, trim(suff(ix_p+1:))
   enddo
 enddo
+
+call create_lat_ele_nametable(lat, lat%nametable)
 
 end subroutine

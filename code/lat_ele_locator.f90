@@ -74,13 +74,12 @@
 !   n_loc         -- integer: Number of locations found.
 !                      Set to zero if no elements are found.
 !   err           -- logical, optional: Set True if there is a decode error.
-!                      Note: not finding any element is not an error.
+!                      Note: Not finding any element is not an error.
 !-
 
 subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, order_by_index)
 
-use equal_mod, dummy => lat_ele_locator
-use pointer_to_branch_mod, only: pointer_to_branch
+use bmad_interface, dummy => lat_ele_locator
 
 implicit none
 
@@ -99,6 +98,7 @@ character(1) delim
 integer, optional :: ix_dflt_branch
 integer i, j, ib, ios, ix, n_loc, n_loc2, match_name_to
 integer in_range, step, ix_word, key
+integer, parameter :: ele_name$ = -1
 
 logical, optional :: above_ubound_is_err, err, order_by_index
 logical err2, delim_found, above_ub_is_err, s_ordered
@@ -131,7 +131,7 @@ do
 
   if (in_range == 0) then
     key = 0
-    match_name_to = 0
+    match_name_to = ele_name$
     step = 1
   endif
 
@@ -294,20 +294,25 @@ contains
 subroutine lat_ele1_locator (branch_str, key, name_in, match_name_to, lat, eles, n_loc, err, &
                                                                       above_ub_is_err, ix_dflt_branch, s_ordered)
 
+use nr, only: sort
+use super_recipes_mod
+
 implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
 type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, slave
+type (nametable_struct), pointer :: nt
 
 character(*) branch_str, name_in
 character(40) name
 character(*), parameter :: r_name = 'lat_ele1_locator'
 
 integer, optional :: ix_dflt_branch
-integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc, n_max
-integer key, target_instance, n_instance_found, match_name_to
+integer i, n, ib, ix, ix_branch, ix_branch_old, ixp, ios, ix_ele, n_loc, n_max, ix1, ix2
+integer key, target_instance, n_instance_found, match_name_to, ix_slave
+integer, allocatable :: ix_nt(:)
 
 logical above_ub_is_err, s_ordered
 logical err, do_match_wild, Nth_instance_found
@@ -323,7 +328,7 @@ name = name_in
 
 ix = index(name, '##')
 target_instance = 0
-if (ix /= 0 .and. match_name_to == 0) then
+if (ix /= 0 .and. match_name_to == ele_name$) then
   if (.not. is_integer(name(ix+2:))) return
   read (name(ix+2:), *) target_instance
   name = name(:ix-1)
@@ -355,7 +360,7 @@ endif
 
 ! Read integer if present
 
-if (is_integer(name) .and. match_name_to == 0) then
+if (is_integer(name) .and. match_name_to == ele_name$) then
   read (name, *, iostat = ios) ix_ele
   if (ios /= 0) then
     call out_io (s_error$, r_name, 'BAD ELEMENT LOCATION INDEX: ' // name)
@@ -363,8 +368,8 @@ if (is_integer(name) .and. match_name_to == 0) then
   endif
 
   if (ix_branch == -2) then  ! Match to branch_str
-    do k = 0, ubound(lat%branch, 1)
-      branch => lat%branch(k)
+    do ib = 0, ubound(lat%branch, 1)
+      branch => lat%branch(ib)
       if (.not. match_wild(branch%name, branch_str)) cycle
       if (.not. above_ub_is_err .and. ix_ele > branch%n_ele_max) then
         ix_ele = branch%n_ele_max
@@ -400,10 +405,84 @@ endif
 do_match_wild = (index(name, "*") /= 0 .or. index(name, "%") /= 0)
 Nth_instance_found = .false.
 
-do k = 0, ubound(lat%branch, 1)
-  branch => lat%branch(k)
+! If a element name search then can use nametable to quickly find the matches.
+
+if (.not. do_match_wild .and. match_name_to == ele_name$) then
+  nt => lat%nametable
+  call find_indexx(name, nt, ix, ix2_match = ix1)
+  if (ix < 0) then
+    err = .false.
+    return
+  endif
+  ix2 = ix1
+
+  do
+    if (ix2 == nt%n_max) exit
+    if (nt%name(nt%indexx(ix2+1)) /= name) exit
+    ix2 = ix2 + 1
+  enddo
+
+  allocate (ix_nt(ix1:ix2))
+  do i = ix1, ix2
+    ix_nt(i) = nt%indexx(i)
+  enddo
+
+  ! Due to the way check_this_match works, put first slaves in the list
+  if (s_ordered) then
+    do i = ix1, 1*ix2   ! 
+      ele => pointer_to_ele(lat, ix_nt(i))
+      if (ele%n_slave == 0) cycle
+      slave => pointer_to_slave (ele, 1)
+      do while (slave%n_slave /= 0)
+        slave => pointer_to_slave(slave, 1)
+      enddo
+      j = ele_nametable_index(slave)
+      if (any(j == ix_nt)) cycle  ! No duplicates
+      ix2 = ix2 + 1
+      call re_allocate2(ix_nt, ix1, ix2)
+      ix_nt(ix2) = j
+    enddo
+  endif
+
+  call super_sort(ix_nt)
+
+  ix_branch_old = -1
+  do i = ix1, ix2
+    ele => pointer_to_ele(lat, ix_nt(i))
+    branch => lat%branch(ele%ix_branch)
+    if (ix_branch == -2 .and. .not. match_wild(branch%name, branch_str)) cycle
+    if (ix_branch > -1 .and. ele%ix_branch /= ix_branch) cycle
+    if (ele%ix_branch /= ix_branch_old) then
+      n_instance_found = 0
+      ix_branch_old = ele%ix_branch
+      Nth_instance_found = .false.
+    endif
+    if (s_ordered .and. ele%ix_branch == 0 .and. ele%ix_ele > branch%n_ele_track) cycle
+    call check_this_match (name, ele, key, do_match_wild, match_name_to, n_instance_found, n_loc, eles, &
+                                                            target_instance, Nth_instance_found, s_ordered)
+  enddo
+
+  ! Elements passed over in above loop
+
+  if (s_ordered .and. .not. Nth_instance_found .and. (ix_branch == -1 .or. ix_branch == 0)) then
+    do i = ix1, ix2
+      ele => pointer_to_ele(lat, ix_nt(i))
+      if (ele%n_slave /= 0 .or. ele%ix_branch /= 0 .or. ele%ix_ele <= lat%n_ele_track) cycle
+      call check_this_match(name, ele, key, do_match_wild, match_name_to, n_instance_found, n_loc, eles, &
+                                                              target_instance, Nth_instance_found, s_ordered)
+    enddo
+  endif
+
+  err = .false.
+  return
+endif
+
+! Not using the nametable.
+
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
   if (ix_branch == -2 .and. .not. match_wild(branch%name, branch_str)) cycle
-  if (ix_branch > -1 .and. k /= ix_branch) cycle
+  if (ix_branch > -1 .and. ib /= ix_branch) cycle
 
   n_instance_found = 0
   Nth_instance_found = .false.
@@ -477,7 +556,7 @@ if (do_match_wild) then
   case (type$)
     if (ele%type == '') return
     if (.not. match_wild(upcase(ele%type), name)) return
-  case default
+  case (ele_name$)
     if (.not. match_wild(ele%name, name)) return
   end select
 
@@ -490,7 +569,7 @@ else
     if (upcase(ele%descrip) /= name) return
   case (type$)
     if (upcase(ele%type) /= name) return
-  case default
+  case (ele_name$)
     if (ele%name /= name) return
   end select
 endif
@@ -596,7 +675,7 @@ case ('ALIAS')
   match_name_to = alias$
   key_index = 0
 case default
-  match_name_to = 0
+  match_name_to = ele_name$
   key_index = key_name_to_key_index(name, abbrev_allowed)
 end select
 

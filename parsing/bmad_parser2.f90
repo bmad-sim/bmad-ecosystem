@@ -51,14 +51,12 @@ real(rp) v1, v2
 integer ix_word, i, j, n, ix, ix1, ix2, n_plat_ele, ixx, ix_word_1
 integer key, n_max_old, n_loc, n_def_ele, is, is2, ib, ie, why_not_free, status
 integer, pointer :: n_max
-integer, allocatable :: lat_indexx(:)
 
 character(*) lat_file
 character(1) delim 
 character(16) :: r_name = 'bmad_parser2'
 character(40) word_1, slice_start, slice_end
 character(40) word_2, name, this_name, old_parser_name
-character(40), allocatable :: lat_name(:)
 character(80) debug_line
 character(280) parse_line_save, string, extra_ele_names
 
@@ -102,27 +100,30 @@ ele%value(n_part$)     = real_garbage$
 ele%value(particle$)   = real_garbage$
 ele%ixx = 1                    ! Pointer to plat%ele() array
 extra_ele_names = ele%name 
+call nametable_add(lat%nametable, ele%name, n_max+1)
 
 ele => lat%ele(n_max+2)
 call init_ele (ele, def_parameter$, 0, n_max+2, lat%branch(0))
 ele%name = 'PARAMETER'
 ele%value(n_part$)       = real_garbage$
 ele%value(particle$)     = real_garbage$
-ele%value(ix_branch$)    = -1
 ele%ixx = 2                    ! Pointer to plat%ele() array
 extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
+call nametable_add(lat%nametable, ele%name, n_max+2)
 
 ele => lat%ele(n_max+3)
 call init_ele (ele, def_particle_start$, 0, n_max+3, lat%branch(0))
 ele%name = 'PARTICLE_START'
 ele%ixx  = 3                    ! Pointer to plat%ele() array
 extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
+call nametable_add(lat%nametable, ele%name, n_max+3)
 
 ele => lat%ele(n_max+4)
 call init_ele (ele, def_bmad_com$, 0, n_max+4, lat%branch(0))
 ele%name = 'BMAD_COM'
 ele%ixx  = 4                    ! Pointer to plat%ele() array
 extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
+call nametable_add(lat%nametable, ele%name, n_max+4)
 
 do i = 0, ubound(lat%branch, 1)
   ele => lat%ele(n_max+5+i)
@@ -131,6 +132,7 @@ do i = 0, ubound(lat%branch, 1)
   ele%value(ix_branch$) = i
   ele%ixx = 5 + i
   extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
+  call nametable_add(lat%nametable, ele%name, n_max+5+i)
 enddo
 
 n_plat_ele = n_def_ele
@@ -457,7 +459,7 @@ parsing_loop: do
   ele => lat2%ele(1)
   ele = ele_struct()
   ele%branch => lat%branch(0)  ! To fool set_element_attribute
-  ele%name = word_1
+  call set_ele_name(ele, word_1)
 
   n_plat_ele = n_plat_ele + 1     ! next free slot
   ele%ixx = n_plat_ele
@@ -484,7 +486,7 @@ parsing_loop: do
       ixx = ele%ixx  ! save
       ele = lat%ele(i)
       ele%ixx = ixx   ! Restore correct value
-      ele%name = word_1
+      call set_ele_name (ele, word_1)
       found = .true.
       exit
     endif
@@ -669,8 +671,6 @@ if (bp_com%error_flag .and. global_com%exit_on_error) then
   call out_io (s_info$, r_name, 'FINISHED. EXITING ON ERRORS')
   stop
 endif
-
-if (allocated(lat_name)) deallocate (lat_name, lat_indexx)
 
 call deallocate_lat_pointers (lat2)
 
