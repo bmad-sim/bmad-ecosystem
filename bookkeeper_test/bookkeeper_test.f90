@@ -12,7 +12,7 @@ type (ele_struct) a_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct) orb
 type (control_struct), pointer :: ctl
-type (lat_nametable_struct) ntab
+type (nametable_struct) ntab
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(40) :: loc_str(12) = [character(40):: &
@@ -47,10 +47,8 @@ open (1, file = 'output.now', recl = 200)
 
 call bmad_parser ('bookkeeper_test1.bmad', lat, err_flag = err);  if (err) stop
 
-call create_lat_nametable(lat, ntab)
-
-n = size(ntab%indexx)
-write (1, '(a, 100(a, i0))') '"Sort"  STR   "', (';', ntab%indexx(ie), ie = 1, n, 3), '"'
+call create_lat_ele_nametable(lat, ntab)
+write (1, '(a, 100(a, i0))') '"Sort"  STR   "', (';', ntab%indexx(ie), ie = 0, ntab%n_max, 3), '"'
 
 !
 
