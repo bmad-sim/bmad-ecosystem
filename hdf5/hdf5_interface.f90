@@ -39,6 +39,14 @@ type hdf5_info_struct
   integer :: num_attributes = -1       ! Number of associated attributes. Used for groups and datasets only.
 end type
 
+!
+
+type hdf5_common_struct
+  logical :: debug_on = .false.
+end type
+
+type (hdf5_common_struct), save :: hdf5_com
+
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -343,7 +351,11 @@ error = .true.
 
 call h5open_f(h5_err)  ! Init Fortran interface
 
-call H5Eset_auto_f(0, h5_err)   ! Run silent
+if (hdf5_com%debug_on) then
+  call H5Eset_auto_f(1, h5_err)   ! Verbose
+else
+  call H5Eset_auto_f(0, h5_err)   ! Run silent
+endif
 
 select case (action)
 case ('READ')
