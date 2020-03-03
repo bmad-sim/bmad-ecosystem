@@ -88,7 +88,7 @@ select case (action)
 
 case ('beam')
 
-  file_format = binary$
+  file_format = hdf5$
   is_open = .false.
   at_switch = .false.
   ix_word = 0
@@ -98,13 +98,13 @@ case ('beam')
     ix_word = ix_word + 1
     if (ix_word == size(word)-1) exit
 
-    call tao_next_switch (word(ix_word), [character(8):: '-ascii', '-at', '-binary'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(8):: '-ascii', '-at', '-hdf5'], .true., switch, err, ix)
     if (err) return
 
     select case (switch)
     case ('');       exit
     case ('-ascii');  file_format = ascii$
-    case ('-binary'); file_format = binary$
+    case ('-hdf5'); file_format = hdf5$
     case ('-at')
       ix_word = ix_word + 1
       call tao_locate_elements (word(ix_word), s%com%default_universe, eles, err)
@@ -119,7 +119,7 @@ case ('beam')
     end select
   enddo
 
-  if (file_format == binary$) then
+  if (file_format == hdf5$) then
     if (file_name0 == '') then
       file_name0 = 'beam_#.hdf5'
     else
@@ -130,11 +130,7 @@ case ('beam')
     endif
 
   elseif (file_name0 == '') then
-    if (file_format == ascii$) then
-      file_name0 = 'beam_#.dat'
-    else
-      file_name0 = 'beam_#.bin'
-    endif
+    file_name0 = 'beam_#.dat'
   endif
 
   if (.not. at_switch) then
