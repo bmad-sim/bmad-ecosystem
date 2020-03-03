@@ -2240,9 +2240,7 @@ to specify  Example customization file:
   /
 \end{example}
 each \vn{column(n)} line has four components. The first component is what is to be displayed in that
-column. Algebraic expressions are permitted (\sref{s:arithmetic.exp}). Note: Use of \vn{ele::} and
-\vn{beam::}, etc sources is accepted but these constructs cannot be evaluated at the center of an
-element. That is the \vn{-middle} switch will have no effect on such constructs.
+column. Algebraic expressions are permitted (\sref{s:arithmetic.exp}).
 
 The second component is the Fortran edit descriptor. The third column is the total width of the
 field. Notice that strings (like the element name) are left justified and numbers are right
@@ -2293,6 +2291,10 @@ If present, the \vn{-lords} switch will print a list of lord elements only. Also
 %
 \item[-middle] \Newline
 Show value evaluated at the middle of the lattice elements instead of the default exit end.
+The \vn{-middle} switch is ignored when displaying ``Intrinsic'' element
+parameters such as the element's length or an element's field strength (which can be displayed using
+the \vn{-attribute} switch as discussed below). Also the \vn{-middle} switch is ignored when
+displaying beam based parameters.
 %
 \item[-no_label_lines] \Newline
 If present, the \vn{-no_label_lines} switch will prevent the printing of the header (containing the

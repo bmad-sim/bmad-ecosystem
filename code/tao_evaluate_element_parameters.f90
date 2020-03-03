@@ -92,9 +92,25 @@ if (class_ele(1:2) == '::') class_ele = class_ele(3:)
 ix1 = index(name, ']');  if (ix1 == 0) return
 parameter = name(1:ix1-1)
 
-select case (parameter)
-case ('l', 'angle'); middle = .false.
-end select
+! "Intrinsic" element parameter values are not affected by evaluation in the middle.
+! It is easier to list what is not intrinsic.
+
+if (middle) then
+  select case (parameter)
+  ! These are non-intrinsic
+  case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position', &
+        'beta_a', 'beta_b', 'alpha_a', 'alpha_b', 'gamma_a', 'gamma_b', 'phi_a', 'phi_b', &
+        'eta_a', 'eta_b', 'eta_x', 'eta_y', 'eta_z', 'etap_a', 'etap_b', 'etap_x', 'etap_y', 'etap_z', &
+        'cmat_11', 'cmat_12', 'cmat_21', 'cmat_22', &
+        'orbit_x', 'orbit.x', 'orbit_px', 'orbit.px', 'orbit_y', 'orbit.y', 'orbit_py', 'orbit.py', &
+        'orbit_z', 'orbit.z', 'orbit_pz', 'orbit.pz', 'spin.x', 'spin_x', 'spin.y', 'spin_y', &
+        'spin.z', 'spin_z', 'intensity', 'intensity_x', 'intensity.x', 'intensity_y', 'intensity.y', &
+        'phase_x', 'phase.x', 'phase_y', 'phase.y', 't', 'time', 'beta', 'energy', 'pc')
+
+  case default
+    middle = .false.
+  end select
+endif
 
 ! Evaluate
 
