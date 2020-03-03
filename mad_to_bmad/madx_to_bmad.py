@@ -33,6 +33,7 @@ class common_struct:
     self.prepend_vars = True
     self.one_file = True
     self.in_seq = False
+    self.seqedit_name = ''           # Name of sequence in seqedit construct.
     self.macro_count = False         # Count "{}" braces. 0 -> Not in a "macro" or "if" statement
     self.last_seq = seq_struct()     # Current sequence being parsed.
     self.seq_dict = OrderedDict()    # List of all sequences.
@@ -485,8 +486,39 @@ def parse_directive(directive, common):
 
   if dlist[0].startswith('exec '): return
   if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 
-                  'emit', 'twiss', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack']:
+                  'emit', 'twiss', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 
+                  'flatten']:
     return
+
+  # Flag this
+
+  if dlist[0] in ['cycle', 'reflect', 'move', 'remove', 'replace', 'extract']:
+    print (f'WARNING! CANNOT TRANSLATE THE COMMAND: {dlist[0].upper()}')
+    return
+
+  # Seqedit
+
+  if dlist[0] == 'seqedit':
+    common.seqedit_name = dlist[4]
+    return
+
+  if dlist[0] == 'endedit':
+    common.seqedit_name = ''
+    return
+
+  # Install
+
+  if dlist[0] == 'install':
+    params = parameter_dictionary(dlist[2:])
+    if 'class' in params: f_out.write(f"{params['element']}: {params['class']}\n")   # Define new element
+
+    if 'from' in params:
+      f_out.write(f"superimpose, element = {params['element']}, ref = {params['from']}, offset = {params['at']}\n")
+    else:
+      f_out.write(f"superimpose, element = {params['element']}, ref = {common.seqedit_name}_mark, offset = {params['at']}\n")
+
+    return
+
 
   # Macro and "if" statements are strange since they does not end with a ';' but with a matching '}'
 
