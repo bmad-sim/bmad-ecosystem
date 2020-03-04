@@ -1,2 +1,108 @@
-In development!
-Do not use yet!
+                                    MAD to Bmad Lattice File Conversion
+                                    -----------------------------------
+
+This README file documents how to convert MAD8 or MAD-X formatted files to Bmad lattice format.
+
+
+Orientation:
+------------
+
+This README file is contained in the directory:
+  <bmad-dist-or-release>/util_programs/mad_to_bmad/
+Where <bmad-dist-or-release> is the directory of the Distribution or Release that you are using (See
+the online Bmad documentation or your local Bmad Guru for more details on Distributions and Releases).
+
+Note: If you are setup to run Bmad based programs, the ACC_ROOT_DIR environmental variable will be
+set to the <bmad-dist-or-release> directory.
+
+There are two python scrips in this directory:
+  mad8_to_bmad    -- Convertes from MAD8 to Bmad format.
+  madx_to_bmad    -- Convertes from MADX to Bmad format.
+
+
+How to Convert:
+---------------
+
+Minimum python version needed is 3.6.
+The scripts run independently of whether the standard Bmad environmental variables have been setup.
+
+To convert MAD8 use the command:
+  python <path-to-script>/mad8_to_bmad {options} <mad8-file-name>
+
+To convert MADX use the command:
+  python <path-to-script>/madx_to_bmad {options} <madx-file-name>
+
+where <path-to-script> is the path to the directory where the script is.
+
+The optional arguments are:
+  -h, --help              Show a help message and exit
+  -d, --debug             Print debug info while running (not of general interest).
+  -f, --many_files        Create a Bmad file for each MAD8 input file.
+  -v, --no_prepend_vars   Do not move variables to the beginning of the Bmad file.
+
+If the --debug (or -d) option is present, the script will print information on the parsing process
+to the terminal. This option is only of interest for someone debugging the code.
+
+By default, only one Bmad output file is produced even when the MAD input is split among multiple
+files that call each other. If The --many_files (or -f) option is present, the script will produce
+multiple Bmad output files, one for each MAD input file.
+
+In a MAD lattice file, it is permissable to define a variable after it has been used in an expression.
+For example:
+  q: quadrupole, k1 = 4*a_var
+  a_var = 0.03
+Bmad does not allow this. To get around this, the conversion scripts move varible definitions to the
+top of the output file. If, for some reason, you do not want this (say you know that the variable
+ordering is OK and you want the layout of the output file to reflect the layout of the input file),
+the --no_prepend_vars (or -v) option will prevent variable definitions from being moved.
+
+Example conversion command:
+  python $ACC_ROOT_DIR/util_programs/mad_to_bmad/madx_to_bmad -f lhc.madx
+This example converts a file called "lhc.madx".
+
+The Bmad output file name is the input file name with the .mad8 or .madx suffix removed (if it
+exists) and with a .bmad suffix appended.
+
+Limitations:
+------------
+
+Bmad, unlike MAD, does not have any ``action'' commands. An action command is a command that makes a
+calculation. Examples include MAD's \vn{SURVEY} and \vn{TWISS} commands. Action commands are ignored by the
+conversion scripts. If an action command modifies lattice parameters, the Bmad lattice will not reflect this.
+
+In Bmad all variables must be defined before being used (\sref{s:arith}) while MAD will simply take
+a variable's value to be zero if it is not defined. Problems of this sort will be caught when a Bmad based
+program reads in a lattice file. Warnings will be issued and can be resolved by modifying the Bmad lattice
+file to include definitions for the missing variables.
+
+Bmad, unlike MAD, does not allow variable values to be redefined. The conversion scripts will catch
+this error.  both definitions of a variable will be put in the output file and it is up to the User
+to modify the output file appropraitely. If not resolved, the error will be caught when a Bmad based
+program reads in a lattice file. This will result in the program halting.
+
+
+Notes:
+------
+
+For converting from Bmad format to MAD8 or MADX format, use the program bmad_to_mad_or_sad. For details, see
+the Bmad manual in the chapter on "MAD/SAD/PTC Lattice Conversion".
+
+By default, Bmad will, by default, treat a lattice without \vn{lcavity} elements as having a closed
+geometry and a lattice with a \vn{lcavity} as having an open geometry. To override the default, put the following
+in the Bmad file:
+  parameter[geometry] = open  ! or closed
+
+For a lattice with an open geometry, the initial Twiss parameters (and optionally the initial orbit)
+needs to be specified. The syntax for this are statements like:
+  beginning[beta_a] = 12.34
+  ... etc...
+See the Bmad manual for more details.
+
+
+Help:
+-----
+
+If you find a problem with the conversion, please send a message along with the original MAD files
+to a Bmad maintainer. Contact info can be obtained on the Bmad site by clicking on the "Help &
+Mailing Lists" button.
+  
