@@ -232,7 +232,7 @@ case ('bmad_lattice')
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    call write_bmad_lattice_file (file_name, s%u(i)%model%lat, err, file_format)
+    call write_bmad_lattice_file (file_name, s%u(i)%model%lat, err, file_format, s%u(i)%model%tao_branch(0)%orbit(0))
     if (err) return
     call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
