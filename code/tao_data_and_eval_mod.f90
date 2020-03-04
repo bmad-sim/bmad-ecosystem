@@ -585,13 +585,13 @@ if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_
   case (anchor_beginning$)
     ! Here tao_pointer_to_datum_ele has pointed ele to the element before the element specified in the datum.
     s_eval = ele%s_start + datum%s_offset
-    if (associated(ele_ref)) s_eval_ref = ele%s_start
+    if (associated(ele_ref)) s_eval_ref = ele_ref%s_start
   case (anchor_center$)
     s_eval = (ele%s_start + ele%s) / 2 + datum%s_offset
-    if (associated(ele_ref)) s_eval_ref = (ele%s_start + ele%s) / 2
+    if (associated(ele_ref)) s_eval_ref = (ele_ref%s_start + ele_ref%s) / 2
   case (anchor_end$)
     s_eval = ele%s + datum%s_offset
-    if (associated(ele_ref)) s_eval_ref = ele%s
+    if (associated(ele_ref)) s_eval_ref = ele_ref%s
   end select
 
   compute_floor = (head_data_type(1:5) == 'floor')
@@ -623,6 +623,9 @@ if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_
       return
     endif
   endif
+
+  valid_value = .true.
+  return
 endif
 
 !---------------------------------------------------
