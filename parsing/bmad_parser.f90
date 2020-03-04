@@ -319,7 +319,7 @@ parsing_loop: do
   ! Superimpose statement
 
   if (word_1(:ix_word) == 'SUPERIMPOSE') then
-    call new_element_init('superimpose-command:' // int_str(n_max+1), in_lat, err)
+    call new_element_init('superimpose-command:' // int_str(n_max+1), '', in_lat, err)
     ele => in_lat%ele(n_max)
     call parse_superimpose_command(in_lat, ele, plat%ele(ele%ixx), delim)
     cycle parsing_loop   
@@ -612,7 +612,7 @@ parsing_loop: do
     sequence(iseq_tot)%name = word_1
     sequence(iseq_tot)%multipass = multipass
 
-    call new_element_init (word_1, in_lat, err)
+    call new_element_init (word_1, '', in_lat, err)
     ele => in_lat%ele(n_max)
 
     if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
@@ -637,7 +637,7 @@ parsing_loop: do
   !-------------------------------------------------------
   ! If not line or list then must be an element
 
-  call new_element_init (word_1, in_lat, err)
+  call new_element_init (word_1, word_2, in_lat, err)
   if (err) cycle parsing_loop
 
   ! Check for valid element key name or if element is part of a element key.
@@ -1341,21 +1341,28 @@ end subroutine parser_end_stuff
 !---------------------------------------------------------------------
 ! contains
 
-subroutine new_element_init (word1, lat0, err)
+subroutine new_element_init (word1, class_word, lat0, err)
 
 type (lat_struct), target :: lat0
 
 integer, pointer :: n_max
 logical err, added
-character(*) word1
+character(*) word1, class_word
 
-!
+! "end" is a reserved word except if it is being used to instantiate a marker.
 
-if (word1 == 'BEGINNING' .or. word1 == 'BEAM' .or. word1 == 'PARTICLE_START' .or. word1 == 'END') then
-  call parser_error ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word1)
+select case (word1)
+case ('BEGINNING', 'BEAM', 'PARTICLE_START')
+  call parser_error ('NAME OF ELEMENT or LINE or LIST CORRESPONDS TO A RESERVED WORD: ' // word1)
   err = .true.
   return
-endif
+case ('END')
+  if (class_word /= 'MARKER') then
+    call parser_error ('NAME OF ELEMENT or LINE or LIST CORRESPONDS TO A RESERVED WORD: ' // word1)
+    err = .true.
+    return
+  endif
+end select
 
 err = .false.
 n_max => lat0%n_ele_max

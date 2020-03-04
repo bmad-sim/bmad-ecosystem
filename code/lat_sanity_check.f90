@@ -296,13 +296,16 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! With fringe fields it is problematic to define how to handle an element with a negative length.
     ! Solution: Only allow negative length with drift or pipe.
 
-    if (ele%key /= drift$ .and. ele%key /= pipe$ .and. ele%key /= patch$ .and. ele%value(l$) < 0) then
-      call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS NOT A DRIFT, PIPE, OR PATCH, HAS A NEGATIVE LENGTH.')
+    if (ele%value(l$) < 0) then
+      select case (ele%key)
+      case (drift$, pipe$, patch$, taylor$)
+      case default
+        call out_io (s_fatal$, r_name, &
+                        'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                        'WHICH IS NOT A DRIFT, PIPE, PATCH OR TAYLOR, HAS A NEGATIVE LENGTH.')
         err_flag = .true.
-      endif
-
+      end select
+    endif
 
     ! An e_gun must be the first element in a branch except for possibly marker elements
     ! Remember that an e_gun may be overlayed by a solenoid.
