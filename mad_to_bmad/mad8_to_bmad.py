@@ -1,5 +1,5 @@
 #+
-# Script to convert from MADX lattice format to Bmad lattice format.
+# Script to convert from MAD8 lattice format to Bmad lattice format.
 # See the README file for more details
 #-
 
@@ -16,15 +16,12 @@ class ele_struct:
     self.name = name
     self.type = type
     self.at = '0'         # Used if element is in a sequence
-    self.from_ele = ''    # Used if element is in a sequence
     self.param = OrderedDict()
 
 class seq_struct:
   def __init__(self, name = ''):
     self.name = name
-    self.l = '0'
     self.refer = 'centre'
-    self.refpos = ''
     self.ele_dict = OrderedDict()
 
 class common_struct:
@@ -34,18 +31,16 @@ class common_struct:
     self.one_file = True
     self.in_seq = False
     self.seqedit_name = ''           # Name of sequence in seqedit construct.
-    self.macro_count = False         # Count "{}" braces. 0 -> Not in a "macro" or "if" statement
     self.last_seq = seq_struct()     # Current sequence being parsed.
     self.seq_dict = OrderedDict()    # List of all sequences.
+    self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
     self.ele_dict = {}               # Dict of elements
     self.last_ele = None             # Last element parsed
-    self.set_list = []               # List of "A = B" sets after translation to Bmad. Does not Include "A->P = B" parameter sets.
-    self.var_name_list = []          # List of madx variable names.
-    self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
-    self.f_in = []         # MADX input files
+    self.set_list = []               # List of "A = B" sets after translation to Bmad. Does not Include "A,P = B" parameter sets.
+    self.var_name_list = []          # List of mad8 variable names.
+    self.f_in = []         # MAD8 input files
     self.f_out = []        # Bmad output files
     self.use = ''
-    self.directive = ''    # Scratch storage for get_next_directive routine.
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -69,7 +64,6 @@ ele_inv_param_factor = {
 }
 
 const_trans = {
-  'e':       'e_log',
   'nmass':   'm_neutron * 1e9',
   'mumass':  'm_muon * 1e9',
   'clight':  'c_light',
@@ -91,7 +85,7 @@ sequence_refer = {
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-# Convert from madx parameter name to bmad parameter name.
+# Convert from mad8 parameter name to bmad parameter name.
 
 def bmad_param(param):
 
@@ -99,19 +93,14 @@ def bmad_param(param):
     'volt':   'voltage',
     'freq':   'rf_frequency',
     'lag':    'phi0',
-    'ex':     'e_field',
-    'ey':     'e_field',
+    'e ':     'e_field',
+    'xsize':  'x_limit',
+    'ysize':  'y_limit',
     'lrad':   'l',  }
 
   if param in special:
     return special[param]
-  elif len(param) == 5 and param[0:4] == 'kick' and param[4] in '123456':
-    return f'tt{param[4]}'
-  elif len(param) == 4 and param[0:2] == 'rm' and param[2] in '123456' and param[3] in '123456':
-    return f'tt{param[2:]}'
-  elif len(param) == 5 and param[0:2] == 'tm' and param[2] in '123456' and param[3] in '123456' and param[4] in '123456':
-    return f'tt{param[2:]}'
-  else
+  else:
     return param
 
 #------------------------------------------------------------------
@@ -120,37 +109,61 @@ def bmad_param(param):
 
 def parameter_dictionary(word_lst):
 
-  madx_logical = ['kill_ent_fringe', 'kill_exi_fringe', 'thick', 'no_cavity_totalpath']
-
-  # Remove :, {, and } chars for something like "kn := {a, b, c}"
-  word_lst = list(filter(lambda a: a not in ['{', '}', ':'], word_lst))
+  orig_word_lst = word_lst
 
   # replace "0." or "0.0" with "0"
   word_lst = ['0' if x == '0.0' or x == '0.' else x for x in word_lst]
 
-  # Logical can be of the form: "<logical_name>" or "-<logical_name>".
-  # Put this into dict
+  # Replace "rm" and "tm" matrix constructions with Bmad equivalents
 
-  for logical in madx_logical:
-    if logical not in word_lst: continue
-    ix = word_lst.index(logical)
-    if ix == len(word_lst) - 1: continue
-    if word_lst[ix+1] == '=': continue
-    pdict[logical] = 'true'
-    word_lst.pop(ix)
+  for ix in range(len(word_lst)):
+    if word_lst[ix].startswith('kick('):  # Something like: ['kick(3)']
+      iz = min(ix+1, len(word_lst))
+      word_lst = word_lst[:ix] + [f'tt{word_lst[ix][-2]}'] + word_lst[iz:]
 
-  for logical in madx_logical:
-    if '-' + logical not in word_lst: continue
-    pdict[logical] = 'false'
-    word_lst.pop(ix)
+    elif word_lst[ix].startswith('rm('):  # Something like: ['rm(3', ',', '4)']
+      iz = min(ix+3, len(word_lst))
+      word_lst = word_lst[:ix] + [f'tt{word_lst[ix][-1]}{word_lst[ix+2][0]}'] + word_lst[iz:]
+
+    elif word_lst[ix].startswith('tm('):  # Something like: ['tm(3', ',', '4', ',', '2)']
+      iz = min(ix+5, len(word_lst))
+      word_lst = word_lst[:ix] + [f'tt{word_lst[ix][-1]}{word_lst[ix+2][0]}{word_lst[ix+4][0]}'] + word_lst[iz:]
+
+    if ix > len(word_lst) - 2: break
+
 
   # Fill dict
+
   pdict = OrderedDict()
   while True:
     if len(word_lst) == 0: return pdict
 
+    if 'tilt' in word_lst:
+      ix = word_lst.index('tilt')
+      if len(word_lst) > ix + 1 and word_lst[ix+1] == ',':
+        pdict['tilt'] = ''
+        word_lst.pop(ix+1)
+        word_lst.pop(ix)
+      elif len(word_lst) == ix + 1 and word_lst[ix-1] == ',':
+        pdict['tilt'] = ''
+        word_lst.pop(ix)
+        word_lst.pop(ix-1)
+      elif len(word_lst) > ix + 1 and word_lst[ix+1] == '=':
+        if ',' in word_lst[ix+1:]:
+          ixe = word_lst.index(',', ix+1)
+          pdict['tilt'] = ' '.join(word_lst[ix+2:ixe])
+          word_lst = word_lst[:ix] + word_lst[ixe+1:]
+        else:
+          pdict['tilt'] = ' '.join(word_lst[ix+2:])
+          word_lst = word_lst[:ix]
+          if ix > 0 and word_lst[-1] == ',': word_lst.pop()
+      else:
+        print ('PROBLEM PARSING "TILT" IN PARAMETER LIST: ' + ''.join(orig_word_lst))
+        return dict
+      continue
+
     if word_lst[1] != '=':
-      print ('PROBLEM PARSING PARAMETER LIST: ' + ''.join(word_lst))
+      print ('PROBLEM PARSING PARAMETER LIST: ' + ''.join(orig_word_lst))
       return pdict
 
     if '=' in word_lst[2:]:
@@ -164,20 +177,13 @@ def parameter_dictionary(word_lst):
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-# Convert expression from MADX format to Bmad format
+# Convert expression from MAD8 format to Bmad format
 # To convert <expression> a construct that look like "<target_param> = <expression>".
 
 def bmad_expression(line, target_param):
   global const_trans, ele_param_factor
 
-  # Remove {, and } chars for something like "kn := {a, b, c}"
-  line = line.replace('{', '').replace('}', '')
-
-  #
-
   lst = re.split(r'(,|-|\+|\(|\)|\>|\*|/|\^)', line)
-  lst = list(filter(lambda a: a != '', lst))    # Remove blank. EG: "->" => ["-", "", ">"] => ["-", ">"]
-
   out = ''
 
   while len(lst) != 0:
@@ -206,16 +212,16 @@ def bmad_expression(line, target_param):
 #------------------------------------------------------------------
 # Construct the bmad lattice file name
 
-def bmad_file_name(madx_file):
+def bmad_file_name(mad8_file):
 
-  if madx_file.find('madx') != -1:
-    return madx_file.replace('madx', 'bmad')
-  elif madx_file.find('Madx') != -1:
-    return madx_file.replace('Madx', 'bmad')
-  elif madx_file.find('MADX') != -1:
-    return madx_file.replace('MADX', 'bmad')
+  if mad8_file.find('mad8') != -1:
+    return mad8_file.replace('mad8', 'bmad')
+  elif mad8_file.find('Mad8') != -1:
+    return mad8_file.replace('Mad8', 'bmad')
+  elif mad8_file.find('MAD8') != -1:
+    return mad8_file.replace('MAD8', 'bmad')
   else:
-    return madx_file + '.bmad'
+    return mad8_file + '.bmad'
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -290,177 +296,52 @@ def negate(str):
 def parse_element(dlist, common, write_to_file):
 
   ele_type_trans = {
-    'tkicker':      'kicker', 
-    'hacdipole':    'ac_kicker',
     'hmonitor':     'monitor',
     'vmonitor':     'monitor',
-    'placeholder':  'instrument',
     'matrix':       'taylor',
   }
 
-  ignore_madx_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'thick', 'add_angle', 'assembly_id', 'mech_sep']
+  ignore_mad8_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'assembly_id', 'mech_sep']
   ele_type_ignore = ['nllens', 'rfmultipole']
 
   params = parameter_dictionary(dlist[4:])
   ele = ele_struct(dlist[0])
 
-  if dlist[2] == 'dipedge':
-    print ('DIPEDGE ELEMENT NOT TRANSLATED. SUGGESTION: MODIFY THE LATTICE FILE AND MERGE THE DIPEDGE ELEMENT WITH THE NEIGHBORING BEND.')
-    return
-
   if dlist[2] in ele_type_ignore:
     print (dlist[2].upper() + ' TYPE ELEMENT CANNOT BE TRANSLATED TO BMAD.')
     return
 
-  elif dlist[2] == 'elseparator':
-    if 'ex' in params:
-      if 'ey' in params:
-        if 'tilt' in params:
-          params['tilt'] = params['tilt'] + ' - atan2(' + params['ex'] + ', ' + params['ey'] + ')'
-        else:
-          params['tilt'] = '-atan2(' + params['ex'] + ', ' + params['ey'] + ')'
-        params['ey'] = 'sqrt((' + params['ex'] + ')^2 + (' + params['ey'] + ')^2)'
-      else:
-        if 'tilt' in params:
-          params['tilt'] = params['tilt'] + ' - pi/2'
-        else:
-          params['tilt'] = '-pi/2'
-        params['ey'] = params['ex']
-
-  elif dlist[2] == 'xrotation':
+  elif dlist[2] == 'yrot':
     ele = ele_struct(dlist[0], 'patch')
-    if 'angle' in params: params['ypitch'] = params.pop('angle')
+    if 'angle' in params: params['xpitch'] = negate(params.pop('angle'))
 
-  elif dlist[2] == 'yrotation':
-    ele = ele_struct(dlist[0], 'patch')
-    if 'angle' in params: params['xpitch'] = negate(params.pop('angle')
-
-  elif dlist[2] == 'srotation':
+  elif dlist[2] == 'srot':
     ele = ele_struct(dlist[0], 'patch')
     if 'angle' in params: params['tilt'] = params.pop('angle')
 
-  elif dlist[2] == 'changeref':
-    ele = ele_struct(dlist[0], 'patch')
-    if 'patch_ang' in params:
-      angles = params.pop('patch_ang').split(',')
-      params['ypitch'] = angles[0]
-      params['xpitch'] = negate(angles[1])
-      params['tilt']   = angles[2]
-    if 'patch_trans' in params:
-      trans = params.pop('patch_trans').split(',')
-      params['x_offset'] = trans[0]
-      params['y_offset'] = trans[1]
-      params['z_offset'] = trans[2]
-
   elif dlist[2] == 'rbend' or dlist[2] == 'sbend':
     ele = ele_struct(dlist[0], dlist[2])
-    if 'tilt' in params: params['tilt_ref'] = params.pop('tilt')
-    kill_ent = False; kill_exi = False
-    if 'kill_ent_fringe' in params: kill_ent = (params['kill_ent_fringe'] == 'true')
-    if 'kill_exi_fringe' in params: kill_exi = (params['kill_exi_fringe'] == 'true')
-    if kill_ent and kill_exi:
-      params['fringe_at'] = 'no_end'
-    elif kill_exi:
-      params['fringe_at'] = 'entrance_end'
-    elif kill_ent:
-      params['fringe_at'] = 'exit_end'
+    if 'tilt' in params: params['ref_tilt'] = params.pop('tilt')
 
   elif dlist[2] == 'quadrupole':
     ele = ele_struct(dlist[0], dlist[2])
-    if 'k1' and 'k1s' in params:
-      if 'tilt' in params:
-        params['tilt'] = params['tilt'] + ' - atan2(' + params['k1s'] + ', ' + params['k1'] + ')/2'
-      else:
-        params['tilt'] = '-atan2(' + params['k1s'] + ', ' + params['k1'] + ')/2'
-      params['k1'] = 'sqrt((' + params['k1'] + ')^2 + (' + params['k1s'] + ')^2)'
-      params.pop('k1s')
-    elif 'k1s' in params:
-      if 'tilt' in params:
-        params['tilt'] = params['tilt'] + ' - pi/4'
-      else:
-        params['tilt'] = '-pi/4'
-      params.pop('k1s')
+    if 'tilt' in params and params['tilt'] == '': param['tilt'] = 'pi/4'
 
   elif dlist[2] == 'sextupole':
     ele = ele_struct(dlist[0], dlist[2])
-    if 'k2' and 'k2s' in params:
-      if 'tilt' in params:
-        params['tilt'] = params['tilt'] + ' - atan2(' + params['k2s'] + ', ' + params['k2'] + ')/3'
-      else:
-        params['tilt'] = '-atan2(' + params['k2s'] + ', ' + params['k2'] + ')/3'
-      params['k2'] = 'sqrt((' + params['k2'] + ')^2 + (' + params['k2s'] + ')^2)'
-      params.pop('k2s')
-    elif 'k2s' in params:
-      if 'tilt' in params:
-        params['tilt'] = params['tilt'] + ' - pi/6'
-      else:
-        params['tilt'] = '-pi/6'
-      params.pop('k2s')
-
+    if 'tilt' in params and params['tilt'] == '': param['tilt'] = 'pi/6'
 
   elif dlist[2] == 'octupole':
     ele = ele_struct(dlist[0], dlist[2])
-    if 'k3' and 'k3s' in params:
-      if 'tilt' in params:
-        params['tilt'] = params['tilt'] + ' - atan2(' + params['k3s'] + ', ' + params['k3'] + ')/4'
-      else:
-        params['tilt'] = '-atan2(' + params['k3s'] + ', ' + params['k3'] + ')/4'
-      params['k3'] = 'sqrt((' + params['k3'] + ')^2 + (' + params['k3s'] + ')^2)'
-      params.pop('k3s')
-    elif 'k3s' in params:
-      if 'tilt' in params:
-        params['tilt'] = params['tilt'] + ' - pi/8'
-      else:
-        params['tilt'] = '-pi/8'
-      params.pop('k3s')
-
-  elif dlist[2] == 'multipole':
-    ele = ele_struct(dlist[0], dlist[2])
-    if 'knl' in params:
-      for n, knl in enumerate(params.pop('knl').split(',')): 
-        if knl == '0': continue
-        params['k' + str(n) + 'l'] = bmad_expression(knl, '')
-    if 'ksl' in params:
-      for n, ksl in enumerate(params.pop('ksl').split(',')):  
-        if ksl == '0': continue
-        params['k' + str(n) + 'sl'] = bmad_expression(ksl, '')
+    if 'tilt' in params and params['tilt'] == '': param['tilt'] = 'pi/8'
 
   elif dlist[2] in ele_type_trans:
     ele = ele_struct(dlist[0], ele_type_trans[dlist[2]])
 
-
   else:
     ele = ele_struct(dlist[0], dlist[2])
 
-  # collimator conversion
-
-  if 'apertype' in params:
-    if dlist[2] == 'collimator':
-      if params['apertype'] in ['ellipse', 'circle']:
-        ele = ele_struct(dlist[0], 'ecollimator')
-      else:
-        ele = ele_struct(dlist[0], 'rcollimator')
-
-    else:
-      if params['apertype'] in ['ellipse', 'circle']:
-        params['aperture_type'] = 'elliptical'
-      else:
-        params['aperture_type'] = 'rectangular'
-
   #
-
-  if 'aperture' in params: 
-    aperture = bmad_expression(params.pop('aperture').replace('{', '').replace('}', ''), '')
-    [params['x_limit'], params['y_limit']] = aperture.split(',')[0:2]
-
-  if 'aper_offset' in params:
-    params['x_offset'] = params['aper_offset'].split(',')[0]
-    params['y_offset'] = params['aper_offset'].split(',')[1]
-
-  #
-
-  if 'at' in params: ele.at = params.pop('at')
-  if 'from' in params: ele.from_ele = params.pop('from')
 
   ele.param = params
   common.last_ele = ele
@@ -468,7 +349,7 @@ def parse_element(dlist, common, write_to_file):
   if write_to_file:
     line = ele.name + ': ' + ele.type
     for param in ele.param:
-      if param in ignore_madx_param: continue
+      if param in ignore_mad8_param: continue
       line += ', ' + bmad_param(param) + ' = ' + bmad_expression(params[param], param)
     f_out = common.f_out[-1]
     wrap_write(line, f_out)
@@ -490,41 +371,15 @@ def parse_directive(directive, common):
 
   # Ignore this
 
-  if dlist[0].startswith('exec '): return
-  if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
-                  'emit', 'twiss', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 
-                  'flatten']:
+  if dlist[0] in ['show', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
+                  'emit', 'twiss', 'help', 'set', 'eoption', 'system', 'ealign']:
     return
 
   # Flag this
 
-  if dlist[0] in ['cycle', 'reflect', 'move', 'remove', 'replace', 'extract']:
+  if dlist[0] in ['cycle', 'move', 'remove', 'replace', 'extract']:
     print (f'WARNING! CANNOT TRANSLATE THE COMMAND: {dlist[0].upper()}')
     return
-
-  # Seqedit
-
-  if dlist[0] == 'seqedit':
-    common.seqedit_name = dlist[4]
-    return
-
-  if dlist[0] == 'endedit':
-    common.seqedit_name = ''
-    return
-
-  # Install
-
-  if dlist[0] == 'install':
-    params = parameter_dictionary(dlist[2:])
-    if 'class' in params: f_out.write(f"{params['element']}: {params['class']}\n")   # Define new element
-
-    if 'from' in params:
-      f_out.write(f"superimpose, element = {params['element']}, ref = {params['from']}, offset = {params['at']}\n")
-    else:
-      f_out.write(f"superimpose, element = {params['element']}, ref = {common.seqedit_name}_mark, offset = {params['at']}\n")
-
-    return
-
 
   # Macro and "if" statements are strange since they does not end with a ';' but with a matching '}'
 
@@ -556,10 +411,6 @@ def parse_directive(directive, common):
 
   if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
   if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
-
-  # Shared prefix for a sequence is not translated
-
-  if dlist[0] == 'shared': dlist = dlist[1:]
 
   # Transform: "a := 3" -> "a = 3"
 
@@ -681,18 +532,20 @@ def parse_directive(directive, common):
       print (f'Duplicate variable name: {dlist[0]}\n' + 
              f'  You will have to edit the lattice file by hand to resolve this problem.')
 
-    if '->' in dlist[0]:    # If a parameter set
-      [ele_name, dummy, param] = dlist[0].partition('->')
-      value = bmad_expression(directive.split('=')[1].strip(), param)
-      name = f'{ele_name}[{bmad_param(param)}]'
-      f_out.write(f'{name} = {value}\n')
-    else:                   # Variable set
-      common.var_name_list.append(dlist[0])
-      name = dlist[0]
-      value = bmad_expression(directive.split('=')[1].strip(), dlist[0])
-      common.set_list.append([name, value])
-      if not common.prepend_vars: f_out.write(f'{name} = {value}\n')
+    common.var_name_list.append(dlist[0])
+    name = dlist[0]
+    value = bmad_expression(directive.split('=')[1].strip(), dlist[0])
+    common.set_list.append([name, value])
+    if not common.prepend_vars: f_out.write(f'{name} = {value}\n')
 
+    return
+
+  # Parameter set
+
+  if dlist[0] in common.ele_dict and dlist[1] == ',' and dlist[3] == '=':
+    value = bmad_expression(directive.split('=')[1].strip(), dlist[0])
+    name = f'{dlist[0]}[{bmad_param(dlist[2])}]'
+    f_out.write(f'{name} = {value}\n')
     return
 
   # Title
@@ -725,7 +578,6 @@ def parse_directive(directive, common):
       common.use = dlist[2]
     else:
       params = parameter_dictionary(dlist[2:])
-      if 'sequence' in params: common.use = params.get('sequence')
       if 'period' in params:  common.use = params.get('period')
 
     f_out.write('use, ' + common.use + '\n')
@@ -733,8 +585,11 @@ def parse_directive(directive, common):
 
   # Beam
 
-  if dlist[0] == 'beam':
-    params = parameter_dictionary(dlist[2:])
+  if dlist[0] == 'beam' or (dlist[1] == ':' and dlist[2] == 'beam'):
+    if dlist[0] == 'beam':
+      params = parameter_dictionary(dlist[2:])
+    else:
+      params = parameter_dictionary(dlist[4:])
     if 'particle' in params:  f_out.write('parameter[particle] = ' + bmad_expression(params['particle'], '') + '\n')
     if 'energy' in params:    f_out.write('parameter[E_tot] = ' + bmad_expression(params['energy'], 'energy') + '\n')
     if 'pc' in params:        f_out.write('parameter[p0c] = ' + bmad_expression(params['pc'], 'pc') + '\n')
@@ -746,13 +601,6 @@ def parse_directive(directive, common):
 
   if len(dlist) > 4 and dlist[0] in common.ele_dict and dlist[1] == ',' and dlist[3] == '=':
     f_out.write(dlist[0] + '[' + bmad_param(dlist[2]) + '] = ' + bmad_expression(''.join(dlist[4:]), dlist[2]))
-    return
-
-  # "qf->k1 = ..." parameter set
-
-  if '->' in dlist[0] and dlist[1] == '=':
-    p = dlist[0].split('->')
-    f_out.write(p[0] + '[' + bmad_param(p[1]) + '] = ' + bmad_expression(''.join(dlist[2:]), p[1]))
     return
 
   # Element def
@@ -768,15 +616,20 @@ def parse_directive(directive, common):
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-# Get next madx command.
-# Read in MADX file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
+# Get next mad8 command.
+# Read in MAD8 file line-by-line.  Assemble lines into directives.
 
-def get_next_directive (common, write_to_bmad):
+def get_next_directive (common):
 
   ix = common.directive.find(';')
   if ix > -1: 
     dire = common.directive[:ix]
     common.directive = common.directive[ix+1:]
+    return dire
+
+  if len(common.directive) > 0 and common.directive[-1] != '&':
+    dire = common.directive
+    common.directive = ''
     return dire
 
   directive = common.directive
@@ -789,7 +642,7 @@ def get_next_directive (common, write_to_bmad):
       if len(line) > 0: break    # Check for end of file
       common.f_in[-1].close()
       common.f_in.pop()          # Remove last file handle
-      if not common.one_file and write_to_bmad:
+      if not common.one_file:
         common.f_out[-1].close()
         common.f_out.pop()       # Remove last file handle
       if len(common.f_in) == 0: return ''
@@ -797,52 +650,26 @@ def get_next_directive (common, write_to_bmad):
     f_out = common.f_out[-1]
 
     if len(line.strip()) == 0:
-      if not common.in_seq and write_to_bmad: f_out.write('\n')
+      if not common.in_seq: f_out.write('\n')
       continue
 
     if line[0] == '!':
-      if write_to_bmad: f_out.write(line)
+      f_out.write(line)
       continue
-
-    if line[0:1] == '//':
-      if write_to_bmad: f_out.write('!' + line[2:])
-      continue
-
-    if '/*' in line:
-      p = line.partition('/*')
-      line0 = p[0]
-      line = p[2]
-      while True:
-        if '*/' in line:
-          ix = line.index('*/')
-          if write_to_bmad: f_out.write(f"!{line[:ix]}")
-          break
-        else:
-          if write_to_bmad: f_out.write(f"!{line}")
-      line = (line0 + line[ix+2:]).strip()
-      if (len(line) == 0): continue
-
-    if common.macro_count != 0:   # Skip macros
-      for ix, char in enumerate(line):
-        if char == '{': common.macro_count += 1
-        if char == '}': common.macro_count -= 1
-        if common.macro_count == 0:
-          line = line[ix+1:].strip()
-          break
-      else:
-        continue   # Not out of macro yet.
 
     #
 
     directive = directive + line
-    directive = directive.partition('!')[0]    # Remove end of line comment
-    directive = directive.partition('//')[0]   # Remove end of line comment
+    directive = directive.partition('!')[0].strip()    # Remove end of line comment
 
     ix = directive.find(';')
-    if ix == -1: continue
-
-    common.directive = directive[ix+1:]
-    return directive[:ix]
+    if ix != -1: 
+      common.directive = directive[ix+1:]
+      return directive[:ix]
+    elif directive[-1] == '&':
+      directive = directive[:-1]
+    else:
+      return directive
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -851,12 +678,12 @@ def get_next_directive (common, write_to_bmad):
 
 start_time = time.time()
 
-# Read the parameter file specifying the MADX lattice file, etc.
+# Read the parameter file specifying the MAD8 lattice file, etc.
 
 argp = argparse.ArgumentParser()
-argp.add_argument('madx_file', help = 'Name of input MADX lattice file')
+argp.add_argument('mad8_file', help = 'Name of input MAD8 lattice file')
 argp.add_argument('-d', '--debug', help = 'Print debug info (not of general interest).', action = 'store_true')
-argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each MADX input file.', action = 'store_true')
+argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each MAD8 input file.', action = 'store_true')
 argp.add_argument('-v', '--no_prepend_vars', help = 'Do not move variables to the beginning of the Bmad file.', action = 'store_true')
 arg = argp.parse_args()
 
@@ -865,26 +692,26 @@ common.debug = arg.debug
 common.prepend_vars = not arg.no_prepend_vars
 common.one_file = not arg.many_files
 
-madx_lattice_file = arg.madx_file
-bmad_lattice_file = bmad_file_name(madx_lattice_file)
+mad8_lattice_file = arg.mad8_file
+bmad_lattice_file = bmad_file_name(mad8_lattice_file)
 
-print ('Input lattice file is:  ' + madx_lattice_file)
+print ('Input lattice file is:  ' + mad8_lattice_file)
 print ('Output lattice file is: ' + bmad_lattice_file)
 
 # Open files for reading and writing
 
-common.f_in.append(open(madx_lattice_file, 'r'))  # Store file handle
+common.f_in.append(open(mad8_lattice_file, 'r'))  # Store file handle
 common.f_out.append(open(bmad_lattice_file, 'w'))
 
 f_out = common.f_out[-1]
 
 #------------------------------------------------------------------
-# parse, convert and output madx commands
+# parse, convert and output mad8 commands
 
 common.directive = ''  # init
 
 while True:
-  directive = get_next_directive(common, True)
+  directive = get_next_directive(common)
   if len(common.f_in) == 0: break
   parse_directive(directive, common)
   if len(common.f_in) == 0: break   # Hit Quit/Exit/Stop statement.
@@ -892,14 +719,14 @@ while True:
 f_out.close()
 
 #------------------------------------------------------------------
-# Prepend variables and superposition statements as needed
+# Prepend variables and superposition statements as needed.
 
 f_out = open(bmad_lattice_file, 'r')
 lines = f_out.readlines()
 f_out.close()
 
 f_out = open(bmad_lattice_file, 'w')
-f_out.write ('! Translated from MADX file: ' + madx_lattice_file + "\n\n")
+f_out.write ('! Translated from MAD8 file: ' + mad8_lattice_file + "\n\n")
 
 if common.prepend_vars :
   for set in common.set_list:
