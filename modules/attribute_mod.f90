@@ -263,7 +263,7 @@ name40 = name           ! make sure we have 40 characters
 
 !
 
-if (ilen > 3 .and. name40(1:2) == 'TT' .and. (key == 0 .or. key == taylor$)) then
+if (ilen > 2 .and. name40(1:2) == 'TT' .and. (key == 0 .or. key == taylor$)) then
   do i = 3, ilen
     if (index('123456', name(i:i)) == 0) return
   enddo

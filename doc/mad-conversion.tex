@@ -19,15 +19,11 @@ Due to differences in language definitions, conversions must be done with some c
 differences should be noted:
   \begin{itemize}
   \item
-\bmad, unlike \mad, does not have any ``action'' commands. An action
-command is a command that makes a calculation. Examples include \mad's
-\vn{SURVEY} and \vn{TWISS} commands.
+\bmad, unlike \mad, does not have any ``action'' commands. An action command is a command that makes
+a calculation. Examples include \mad's \vn{SURVEY} and \vn{TWISS} commands.
   \item
-In \bmad all variables must be defined. In \mad undefined variables
-will default to 0.
-  \item
-In \bmad all variables must be defined before being used
-(\sref{s:arith}) while \mad does not have this constraint.
+In \bmad all variables must be defined before being used (\sref{s:arith}) while \mad will simply take
+a variable's value to be zero if it is not defined.
   \item
 \bmad, unlike \mad, does not allow variable values to be redefined.
   \end{itemize}

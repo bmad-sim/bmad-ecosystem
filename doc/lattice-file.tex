@@ -235,7 +235,7 @@ symbols since \bmad uses them to denote ``relationships''.  Periods are used for
 \index{reserved names}
 \index{beam}\index{particle_start}\index{beginning}
 \index{end}\index{parameter}\index{root}
-There is a short list of names that cannot be used as an element name. These reserved names are:
+There is a short list of names that cannot be used as an element, line or list name. These reserved names are:
 \begin{example}
   beam
   particle_start
@@ -251,6 +251,8 @@ There is a short list of names that cannot be used as an element name. These res
   use
   write_digested
 \end{example}
+Note: The one exception is if \vn{end} is used to define a \vn{marker}. This exception is allowed
+since \bmad uses the \vn{end} name to define a marker in any case.
 
 %---------------------------------------------------------------------------
 \section{Matching to Lattice Element Names}

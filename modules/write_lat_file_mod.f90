@@ -13,7 +13,7 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form)
+! Subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
 !
 ! Subroutine to write a Bmad lattice file using the information in a lat_struct.
 ! Optionally only part of the lattice can be generated.
@@ -29,13 +29,15 @@ contains
 !                       binary$   -> Write grid_field info in binary hdf5 form in separate files. Default.
 !                                      All other fields are writen in separate files in ASCII
 !                       ascii$    -> Fields will be put in separate ASCII files.
-!                       one_file$ -> Everything in one file. 
+!                       one_file$ -> Everything in one file.
+!   orbit0        -- coord_struct, optional: Initial orbit. Used to write the inital orbit if the 
+!                       lattice geometry is closed.
 !
 ! Output:
 !   err    -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form)
+subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
 
 implicit none
 
@@ -56,8 +58,9 @@ end type
 type (multipass_region_lat_struct), target :: mult_lat
 type (multipass_region_ele_struct), pointer :: mult_ele(:), m_ele
 
-type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
+type (coord_struct), optional :: orbit0
+type (ele_attribute_struct) attrib
 type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, super, slave, lord, lord2, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0, girder
 type (ele_struct), target :: ele_default(n_key$), this_ele
@@ -253,18 +256,32 @@ if (ele%c_mat(1,2) /= 0) write (iu, '(2a)') 'beginning[cmat_12]  = ', re_str(ele
 if (ele%c_mat(2,1) /= 0) write (iu, '(2a)') 'beginning[cmat_21]  = ', re_str(ele%c_mat(2,1))
 if (ele%c_mat(2,2) /= 0) write (iu, '(2a)') 'beginning[cmat_22]  = ', re_str(ele%c_mat(2,2))
 
-! particle_start
+! particle_start. Note: For an open geometry, orbit0 should be the same as lat%particle_start
 
-if (lat%particle_start%vec(1) /= 0) write (iu, '(2a)') 'particle_start[x]  = ', re_str(lat%particle_start%vec(1))
-if (lat%particle_start%vec(2) /= 0) write (iu, '(2a)') 'particle_start[px] = ', re_str(lat%particle_start%vec(2))
-if (lat%particle_start%vec(3) /= 0) write (iu, '(2a)') 'particle_start[y]  = ', re_str(lat%particle_start%vec(3))
-if (lat%particle_start%vec(4) /= 0) write (iu, '(2a)') 'particle_start[py] = ', re_str(lat%particle_start%vec(4))
-if (lat%particle_start%vec(5) /= 0) write (iu, '(2a)') 'particle_start[z]  = ', re_str(lat%particle_start%vec(5))
-if (lat%particle_start%vec(6) /= 0) write (iu, '(2a)') 'particle_start[pz] = ', re_str(lat%particle_start%vec(6))
+if (lat%param%geometry == closed$ .and. present(orbit0)) then
+  if (orbit0%vec(1) /= 0) write (iu, '(2a)') 'particle_start[x]  = ', re_str(orbit0%vec(1))
+  if (orbit0%vec(2) /= 0) write (iu, '(2a)') 'particle_start[px] = ', re_str(orbit0%vec(2))
+  if (orbit0%vec(3) /= 0) write (iu, '(2a)') 'particle_start[y]  = ', re_str(orbit0%vec(3))
+  if (orbit0%vec(4) /= 0) write (iu, '(2a)') 'particle_start[py] = ', re_str(orbit0%vec(4))
+  if (orbit0%vec(5) /= 0) write (iu, '(2a)') 'particle_start[z]  = ', re_str(orbit0%vec(5))
+  if (orbit0%vec(6) /= 0) write (iu, '(2a)') 'particle_start[pz] = ', re_str(orbit0%vec(6))
 
-if (lat%particle_start%spin(1) /= 0) write (iu, '(2a)') 'particle_start[spin_x] = ', re_str(lat%particle_start%spin(1))
-if (lat%particle_start%spin(2) /= 0) write (iu, '(2a)') 'particle_start[spin_y] = ', re_str(lat%particle_start%spin(2))
-if (lat%particle_start%spin(3) /= 0) write (iu, '(2a)') 'particle_start[spin_z] = ', re_str(lat%particle_start%spin(3))
+  if (orbit0%spin(1) /= 0) write (iu, '(2a)') 'particle_start[spin_x] = ', re_str(orbit0%spin(1))
+  if (orbit0%spin(2) /= 0) write (iu, '(2a)') 'particle_start[spin_y] = ', re_str(orbit0%spin(2))
+  if (orbit0%spin(3) /= 0) write (iu, '(2a)') 'particle_start[spin_z] = ', re_str(orbit0%spin(3))
+
+else
+  if (lat%particle_start%vec(1) /= 0) write (iu, '(2a)') 'particle_start[x]  = ', re_str(lat%particle_start%vec(1))
+  if (lat%particle_start%vec(2) /= 0) write (iu, '(2a)') 'particle_start[px] = ', re_str(lat%particle_start%vec(2))
+  if (lat%particle_start%vec(3) /= 0) write (iu, '(2a)') 'particle_start[y]  = ', re_str(lat%particle_start%vec(3))
+  if (lat%particle_start%vec(4) /= 0) write (iu, '(2a)') 'particle_start[py] = ', re_str(lat%particle_start%vec(4))
+  if (lat%particle_start%vec(5) /= 0) write (iu, '(2a)') 'particle_start[z]  = ', re_str(lat%particle_start%vec(5))
+  if (lat%particle_start%vec(6) /= 0) write (iu, '(2a)') 'particle_start[pz] = ', re_str(lat%particle_start%vec(6))
+
+  if (lat%particle_start%spin(1) /= 0) write (iu, '(2a)') 'particle_start[spin_x] = ', re_str(lat%particle_start%spin(1))
+  if (lat%particle_start%spin(2) /= 0) write (iu, '(2a)') 'particle_start[spin_y] = ', re_str(lat%particle_start%spin(2))
+  if (lat%particle_start%spin(3) /= 0) write (iu, '(2a)') 'particle_start[spin_z] = ', re_str(lat%particle_start%spin(3))
+endif
 
 ! Named constants
 
