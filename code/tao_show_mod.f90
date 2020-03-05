@@ -3164,13 +3164,13 @@ case ('particle')
     nl=nl+1; write(lines(nl), '(a, 6(13x, a), (9x, a), (13x, a), 7x, a)') '  Ix', ' X', 'px', ' y', 'py', 'z', ' dtime', 'pz', 'State'
     do i = 1, size(bunch%particle)
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
-      vec_in = bunch%particle(i)%vec(j)
+      vec_in = bunch%particle(i)%vec
       if (bunch%particle(i)%beta == 0) then
         dt = 0
       else
         dt = -vec_in(5) / (c_light * bunch%particle(i)%beta)
       endif
-      nl=nl+1; write(lines(nl), '(i6, 7es15.7, 2x, a)') i, (vec_in, j = 1, 6), dt, adjustr(coord_state_name(bunch%particle(i)%state))
+      nl=nl+1; write(lines(nl), '(i6, 7es15.7, 2x, a)') i, (vec_in(j), j = 1, 6), dt, adjustr(coord_state_name(bunch%particle(i)%state))
     enddo
     result_id = 'particle:lost'
     return
