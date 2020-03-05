@@ -1,6 +1,7 @@
 program beam_file_translate_format
 
 use beam_file_io
+use hdf5_interface
 
 implicit none
 
@@ -10,12 +11,19 @@ logical err_flag
 character(16) out_fmt
 character(200) file_name, full_name
 
-! Usage:
-!   beam_file_translate_format <beam_file> <out_format>
-! where <out_format> is one of:
-!   ascii
-!   hdf5
-!   binary
+!
+
+if (cesr_iargc() < 2) then
+  print *, 'Usage:'
+  print *, '   beam_file_translate_format <beam_file> <out_format>'
+  print *, ' where <out_format> is one of:'
+  print *, '   ascii'
+  print *, '   hdf5'
+  print *, '   binary  (Old format. Do not use unless you know what you are doing.) '
+  stop
+endif
+
+hdf5_com%debug_on = .false.
 
 call cesr_getarg(1, file_name)
 call fullfilename(file_name, full_name)

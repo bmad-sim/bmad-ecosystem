@@ -111,7 +111,7 @@ def bmad_param(param):
     return f'tt{param[2:]}'
   elif len(param) == 5 and param[0:2] == 'tm' and param[2] in '123456' and param[3] in '123456' and param[4] in '123456':
     return f'tt{param[2:]}'
-  else
+  else:
     return param
 
 #------------------------------------------------------------------
@@ -287,7 +287,7 @@ def negate(str):
 #------------------------------------------------------------------
 # Parse a lattice element
 
-def parse_element(dlist, common, write_to_file):
+def parse_element(dlist, common, write_to_file, directive):
 
   ele_type_trans = {
     'tkicker':      'kicker', 
@@ -333,7 +333,7 @@ def parse_element(dlist, common, write_to_file):
 
   elif dlist[2] == 'yrotation':
     ele = ele_struct(dlist[0], 'patch')
-    if 'angle' in params: params['xpitch'] = negate(params.pop('angle')
+    if 'angle' in params: params['xpitch'] = negate(params.pop('angle'))
 
   elif dlist[2] == 'srotation':
     ele = ele_struct(dlist[0], 'patch')
@@ -488,6 +488,32 @@ def parse_directive(directive, common):
   dlist = list(filter(lambda a: a != '', dlist))   # Remove all blank strings from list
   if len(dlist) == 0: return
 
+  # Get rid of "real", "int", "const" "const real", etc. prefixes
+
+  if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
+  if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
+  if dlist[0].startswith('shared '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
+
+  # Transform: "a := 3" -> "a = 3"
+
+  for ix in range(len(dlist)):
+    if ix > len(dlist)-2: break
+    if dlist[ix] == ':' and dlist[ix+1] == '=': dlist.pop(ix)
+
+
+  # The MADX parser takes a somewhat cavilier attitude towards commas and sometimes they can be omitted.
+  # Examples: "call file" instead of  "call, file" and "q: quadrupole l = 7" instead of "q: quadrupole, l = 7
+  # So put the comma back in to make things uniform for easier parsing.
+
+  i = 0
+  while i < len(dlist):
+    if ' ' in dlist[i]:
+      split = dlist[i].split()
+      dlist = dlist[:i] + [split[0], ',', split[1]] + dlist[i+1:]
+    i += 1
+
+  if common.debug: print (str(dlist))
+
   # Ignore this
 
   if dlist[0].startswith('exec '): return
@@ -552,24 +578,7 @@ def parse_directive(directive, common):
     if not common.one_file: common.f_out.pop()
     return
 
-  # Get rid of "real", "int", "const" "const real", etc. prefix
-
-  if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
-  if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
-
-  # Shared prefix for a sequence is not translated
-
-  if dlist[0] == 'shared': dlist = dlist[1:]
-
-  # Transform: "a := 3" -> "a = 3"
-
-  for ix in range(len(dlist)):
-    if ix > len(dlist)-2: break
-    if dlist[ix] == ':' and dlist[ix+1] == '=': dlist.pop(ix)
-
   #
-
-  if common.debug: print (str(dlist))
 
   if dlist[0] == 'endsequence':
     common.in_seq = False
@@ -580,7 +589,7 @@ def parse_directive(directive, common):
   # Everything below has at least 3 words
 
   if len(dlist) < 3:
-    print ('Unknown construct:\n  ' + directive.strip())
+    print ('Unrecognized construct:\n  ' + directive.strip())
     return
 
   # Is there a colon or equal sign?
@@ -618,14 +627,14 @@ def parse_directive(directive, common):
     seq = common.last_seq
 
     if dlist[1] == ':':   # "name: type"  construct
-      parse_element(dlist, common, True)
+      parse_element(dlist, common, True, directive)
       ele = common.last_ele
       common.last_seq.ele_dict[ele.name] = ele
       f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
                   f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
 
     elif dlist[0] in common.ele_dict:
-      parse_element([dlist[0], ':']+dlist, common, False)
+      parse_element([dlist[0], ':']+dlist, common, False, directive)
       ele = common.last_ele
       if len(ele.param) == 0:
         name = ele.name
@@ -633,7 +642,7 @@ def parse_directive(directive, common):
       else:
         common.ele_dict[dlist[0]] = common.ele_dict[dlist[0]] + 1
         name = f'{dlist[0]}__{str(common.ele_dict[dlist[0]])}'
-        parse_element([name, ':']+dlist, common, True)
+        parse_element([name, ':']+dlist, common, True, directive)
         ele = common.last_ele
 
       offset = ele.at
@@ -646,9 +655,15 @@ def parse_directive(directive, common):
 
     # Must be sequence name. So superimpose the corresponding marker.
     else:
-      parse_element([dlist[0], ':']+dlist, common, False)
+      parse_element([dlist[0], ':']+dlist, common, False, directive)
       ele = common.last_ele
-      seq2 = common.seq_dict[ele.name]
+
+      try:
+        seq2 = common.seq_dict[ele.name]
+      except:
+        print (f'CANNOT IDENTIFY THIS AS AN ELEMENT OR SEQUENCE: {ele.name}\n  IN LINE IN SEQUENCE: {directive}')
+        return
+
       offset = ele.at
 
       if ele.from_ele != '':
@@ -656,7 +671,7 @@ def parse_directive(directive, common):
         offset = f'{offset} - {add_parens(from_ele.at)}'
 
       if seq2.refpos != '':
-        refpos_ele = seq.ele_dict[seq2.refpos]
+        refpos_ele = seq2.ele_dict[seq2.refpos]
         offset = f'{offset} - {add_parens(refpos_ele.at)}'
       elif seq2.refer == 'centre':
         offset = f'{offset} - {add_parens(seq2.l)} / 2'
@@ -758,13 +773,13 @@ def parse_directive(directive, common):
   # Element def
 
   if dlist[1] == ':':
-    parse_element(dlist, common, True)
+    parse_element(dlist, common, True, directive)
     common.ele_dict[dlist[0]] = 0
     return
 
   # Unknown
 
-  print (f"Unknown construct:\n" + directive + '\n')
+  print (f"Unknown construct:\n    " + directive.strip())
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -819,6 +834,8 @@ def get_next_directive (common, write_to_bmad):
           break
         else:
           if write_to_bmad: f_out.write(f"!{line}")
+        line = f_in.readline()
+          
       line = (line0 + line[ix+2:]).strip()
       if (len(line) == 0): continue
 
