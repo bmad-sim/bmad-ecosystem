@@ -1,4 +1,4 @@
-\chapter{Elements}
+s\chapter{Elements}
 \label{c:elements}
 \index{element|hyperbf}
 
@@ -203,9 +203,9 @@ amplitude of the first point of the range. Similarly, for times after the the ra
 
 The second way to specify $A(\delta t)$ is to specify the frequencies in the $A(t)$ spectrum using the
 \vn{frequencies} attribute:
-\Begineq
+\begin{equation}
   A(t) = \sum_i \, A_i \, \cos( 2 \, \pi (f_i \, \delta t + \phi_i))
-\Endeq
+\end{equation}
 Example:
 \begin{example}
   mk: ac_kicker, l = 0.3, field_calc = fieldmap, cartesian_map = \{...\},
@@ -216,9 +216,9 @@ phases \vn{phi} with the \vn{frequencies} attribute are \vn{radians/2pi}.
 
 Note: The calculated field will only obey Maxwell's equations in the limit that the time variation
 of the field is ``slow'':
-\Begineq
+\begin{equation}
   \omega \ll \frac{c}{r}
-\Endeq
+\end{equation}
 where $\omega$ is the characteristic frequency of the field variation, $c$ is the speed of light,
 and $r$ is the characteristic size of the \vn{ac_kicker} element. That is, the fields at opposite
 ends of the element must be able to ``communicate'' (which happens at the speed of light) in a time
@@ -329,9 +329,9 @@ crossing angle. This is the full crossing angle, not the half-angle.
 The \vn{bbi_constant} is a measure of the beam--beam interaction
 strength.  It is a dependent variable and is calculated from the
 equation
-\Begineq
+\begin{equation}
   C_{bbi} = N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))
-\Endeq
+\end{equation}
 In the linear region, near $x = y = 0$, the 
 beam--beam kick is approximately 
 \begin{align}
@@ -513,11 +513,11 @@ doing exact modeling.
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
-\Begineq
+\begin{equation}
   F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
   {2 \, H_{gap} \, B_{y0}^2}
   \label{fsbbb}
-\Endeq
+\end{equation}
 with a similar equation for \vn{fintx}. In the equation $B_{y0}$ is the field in the
 interior of the dipole and $H_{gap}$ is the pole half gap.  The parameters \vn{hgap} and
 \vn{hgapx} are the half gaps at the entrance and exit faces. If \vn{fint} or \vn{fintx} is
@@ -538,18 +538,18 @@ fringe. The correspondence between the two is
 \index{Enge function}
 \vn{fint} and \vn{hgap} can be related to the Enge function which is sometimes used to model the
 fringe field. The Enge function is of the form
-\Begineq
+\begin{equation}
   B_y(s) = \frac{B_{y0}}{1 + \exp[P(s)]}
-\Endeq
+\end{equation}
 where
-\Begineq
+\begin{equation}
   P(s) = C_0 + C_1 \, s + C_2 \, s^2 + C_3 \, s^3 + \, \ldots
-\Endeq
+\end{equation}
 The $C_0$ term simply shifts where the edge of the bend is. If all the $C_n$ are zero except for
 $C_0$ and $C_1$ then
-\Begineq
+\begin{equation}
   C_1 = \frac{1}{2 \,H_{gap} \, F_{int}}
-\Endeq
+\end{equation}
   \index{g}\index{rho}\index{g_err}
   \item[g, g_err, rho] \Newline
 The design bending radius which determines the reference coordinate system is \vn{rho} (see
@@ -844,15 +844,15 @@ between lattice planes (\vn{d_spacing}), the unit cell volume (\vn{v_unitcell}),
 factor\cite{b:batterman} values can be computed.
 
 The \vn{b_param} is the standard $b$ asymmetry factor
-\Begineq
+\begin{equation}
   b = \frac{\sin(\alpha_H + \theta_B)}{\sin(\alpha_H - \theta_B)} 
   \label{batat}
-\Endeq
+\end{equation}
 where $\theta_B$ is the Bragg angle (\vn{bragg_angle}) 
-\Begineq
+\begin{equation}
   \theta_B = \sin^{-1} \left( \frac{\lambda}{2 \, d} \right)
   \label{tsl2d}
-\Endeq
+\end{equation}
 and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprocal lattice $\bfH$ vector with respect
 to the surface normal as shown in \fig{f:crystal}A.  If \vn{b_param} is set to -1 then there is
 Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1 then there is Laue
@@ -928,10 +928,10 @@ Example:
 The \vn{darwin_width_sigma} and \vn{darwin_width_pi} parameters are the computed Darwin width, in
 radians, for sigma and pi polarized light respectively. Here the Darwin width $d\theta_D$ is defined
 as the width at the $\eta = \pm 1$ points (cf.~Batterman\cite{b:batterman} Eq (32))
-\Begineq
+\begin{equation}
   d\theta_D = \frac{2 \, \Gamma \, |P| \, \text{Re} \! \left( [F_H \, F_{\Hbar}]^{1/2} \right)}
                  {|b|^{1/2} \, \sin\theta_{tot}}
-\Endeq
+\end{equation}
 where
 \begin{example}
   \(\theta_{tot}\) = bragg_angle_in + bragg_angle_out 
@@ -943,9 +943,9 @@ parameters will be set to zero.
 
 The \vn{dbragg_angle_de} parameter is the variation in Bragg angle with respect to the photon energy
 and is given by the formula
-\Begineq
+\begin{equation}
   \frac{d\theta_B}{dE} = -\frac{\lambda}{2 \, d \, E \, \cos( \theta_B )}
-\Endeq
+\end{equation}
 
 See Section~\sref{s:rowland} for an example lattice that can be used to simulate a Rowland circle
 spectrometer.
@@ -953,7 +953,7 @@ spectrometer.
 %----------------
 \subsection{Mosaic Crystal}
 
-A mosaic crystal is an idealized model of an imperfect crystal imagined to consist of numberous
+A mosaic crystal is an idealized model of an imperfect crystal imagined to consist of numerous
 small perfect crystals called crystallites that are randomly misoriented. Currently, mosaic crystals
 can only be used with Laue orientation. Mosaic crystals are parameterized by four element
 parameters:
@@ -972,9 +972,9 @@ corresponds to rotations around the $y$-axis in the element reference frame in \
 The thickness of the mosaic is given by the \vn{mosaic_thickness} parameter. For \vn{Laue}
 diffraction (\vn{b_param} > 0), the actual mosaic thickness $T_m$ used is adjusted so that there is
 an integer number of mosaic layers. That is
-\Begineq
+\begin{equation}
   T_m(\text{in simulation} = \frac{T}{\text{nint} (T/T_m)}
-\Endeq
+\end{equation}
 where $T$ is the crystal thickness and \vn{nint} is the nearest integer function.
 
 %-----------------------------------------------------------------
@@ -1044,15 +1044,15 @@ The attributes specific to an \vn{crab_cavity} are
 \end{example}
 
 The Hamiltonian  $H_{\text{crab}}$ for a thin crab cavity is\cite{b:crab1}:
-\Begineq
+\begin{equation}
   H_{\text{crab}} = -\frac{q_{rel} \, V\, x}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0)
-\Endeq
+\end{equation}
 where $x$ and $z$ are particle coordinates, $q_{rel}$ is the charge relative to the reference
 particle, $V$ is the ``effective'' cavity voltage, $P_0$ is the reference energy, $\phi_0$ is a user settable
 phase, and $k$ is the wave number
-\Begineq
+\begin{equation}
   k = \frac{2 \, \pi \, f_{\text{rf}}}{c}
-\Endeq
+\end{equation}
 Which give kicks 
 \begin{align} 
   \Delta p_x &= -\frac{\partial H_{\text{crab}}}{\partial x} = 
@@ -1065,7 +1065,7 @@ uses the convention such that a particle with the charge of the reference partic
 $V$ positive will have a positive $\Delta p_x$.
 
 The equations of motion can also be derived from analysis of a TM110 cavity mode for particles near
-the cenerline\cite{b:kim}. With this mode, the transverse kick is due to the magnetic field and the
+the centerline\cite{b:kim}. With this mode, the transverse kick is due to the magnetic field and the
 longitudinal kick is due to the electric field. Using this, the integrated electric and magnetic
 fields needed for spin tracking are:
 \begin{align}
@@ -2745,9 +2745,9 @@ Attributes specific to a \vn{match} element are:
 
 The transfer map for a \vn{match} element is a linear transformation 
 with a ``kick'':
-\Begineq
+\begin{equation}
   r_1 = \Bf M \, r_0 + \Bf V 
-\Endeq
+\end{equation}
 where $r_1$ is the output coordinates, and $r_0$ are the input
 coordinates. The matrix $\Bf M$ is the linear part of the map and the
 vector $\Bf V$ is the zeroth order part of the map.
@@ -2777,7 +2777,7 @@ The kick term $\Bf V$ is constructed so that if a particle has
 coordinates \vn{(x0, px0, y0, py0, z0, pz0)} before the \vn{match}
 element, the coordinates just after the element will be \vn{(x1, px1,
 y1, py1, z1, pz1)}. With this, $\Bf V$ will be:
-\Begineq
+\begin{equation}
   \Bf V = 
     \begin{pmatrix} 
     \text{x1} \\ \text{px1} \\ \text{y1} \\ \text{py1} \\ \text{z1} \\ \text{pz1} 
@@ -2785,7 +2785,7 @@ y1, py1, z1, pz1)}. With this, $\Bf V$ will be:
     \Bf M \, \begin{pmatrix} 
     \text{x0} \\ \text{px0} \\ \text{y0} \\ \text{py0} \\ \text{z0} \\ \text{pz0} 
     \end{pmatrix}
-\Endeq
+\end{equation}
 
 The \vn{delta_time} parameter adds a constant to the particle's time. This will also affect the $z$
 phase space coordinate through \Eq{zbctt} and the transfer map though the element. If
@@ -3336,9 +3336,9 @@ While a finite \vn{t_offset} will affect the reference time at the end of a patc
 \vn{t_offset} will {\em not} affect the time that is calculated for a particle to reach the end of
 the patch. On the other hand, a finite \vn{t_offset} will affect a particle's $z$ coordinate via
 \Eqs{zbctt}. The change in $z$, $\delta z$ will be
-\Begineq
+\begin{equation}
   \delta z = \beta \cdot c \cdot \text{t_offset}
-\Endeq
+\end{equation}
 where $\beta$ is the normalized particle speed (which is independent of any energy patch). Another
 way of looking at this is to note that In a drift, if the particle is on-axis and on-energy, t and
 t_ref change but z does not change. In a time patch (a patch with only \vn{t_offset} finite), t_ref
@@ -4086,25 +4086,25 @@ taylor term.  Notice that the first form (above) uses a comma ``,'' to separate 
 
 The orbital $(x, p_x, y, p_y, z, p_z)$ part of the Taylor map, $\Cal M$, maps input orbital coordinates
 $\bfr(\In)$ to the output orbital coordinates $\bfr(\Out)$
-\Begineq
+\begin{equation}
   \bfr(\Out) = \calbf{M}(\bfr(\In))
   \label{rmr}
-\Endeq
+\end{equation}
 Notice that Stern-Gerlach effects are ignored so that the output coordinates are independent of the
 spin. $\calbf{M}$ has six components $\Cal M_j$ one for each output coordinate $r_j(\Out)$
-\Begineq
+\begin{equation}
   r_j(\Out) = \Cal{M}_j(\bfr(\In))
   \label{rmr2}
-\Endeq
+\end{equation}
 Each $\Cal{M}_j$ is made up of a number of terms
-\Begineq
+\begin{equation}
   \Cal{M}_j = \sum_{k = 1}^{N_j} M_{jk}
-\Endeq
+\end{equation}
 and each term $M_{jk}$ is a polynomial in the input orbital coordinates with respect to the reference orbit.
-\Begineq
+\begin{equation}
   M_{jk}(\bfr(\In)) = C_{jk} \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_{ijk}}
   \label{mcpd}
-\Endeq
+\end{equation}
 where $C_{jk}$ is the coefficient for the term, the $e_{ijk}$ are integer exponents, and $\delta
 \bfr = \bfr(\In) - \bfr_\REF$ with $\bfr_\REF$ with being the reference orbit.
 
@@ -4116,9 +4116,9 @@ A term in a Taylor map can be specified by one of three forms as shown above. Th
 = 1 for $x$, etc.). \vn{<coef>} corresponds to $C_{jk}$ in \Eq{mcpd}, and \vn{<e1>}, \vn{<e2>},
 \vn{<e3>}, \vn{<e4>}, \vn{<e5>}, and \vn{<e6>} correspond to $e_{ijk}, i = 1 \ldots 6$.
 For example, the Taylor map 
-\Begineq
+\begin{equation}
   p_y(\Out) = 0.9 \cdot \delta x + 2.73 \cdot \delta y^2(\In) \, \delta p_z(\In) + \ldots
-\Endeq
+\end{equation}
 would be written as
 \begin{example}
   \{4: 0.9, 1 0 0 0 0 0\}, \{4: 2.73, 0 0 2 0 0 1\}, ...
@@ -4148,23 +4148,23 @@ For example, the Taylor map above would be written using the third form as:
 The spin (\sref{s:spin.dyn}) part of the transport map $\calbf{Q}$ (\sref{s:spin.map}) gives the
 spin rotation quaternion $\bfq$ (\sref{s:quat}) as a function of input orbital coordinates (the form of the
 T-BMT equation assures that $\calbf{Q}$ cannot depend upon the spin coordinates):
-\Begineq
+\begin{equation}
   \bfq = \calbf{Q}(\bfr(\In))
-\Endeq
+\end{equation}
 $\bfq$ has four components and in analogy to \Eq{rmr2} one writes
-\Begineq
+\begin{equation}
   q_j = \Cal{Q}_j(\bfr(\In))
   \label{qqr}
-\Endeq
+\end{equation}
 Each $\Cal{Q}_j$ is made up of a number of terms
-\Begineq
+\begin{equation}
   \Cal{Q}_j = \sum_{k = 1}^{N_j} Q_{jk}
-\Endeq
+\end{equation}
 and each term $Q_{jk}$ is a polynomial in the input orbital coordinates with respect to the reference orbit.
-\Begineq
+\begin{equation}
   Q_{jk}(\bfr(\In)) = C_{jk} \cdot \Pi_{i = 1}^6 \, \delta r_i^{e_{ijk}}
   \label{qcpd}
-\Endeq
+\end{equation}
 
 Rather than using an integer index, the four components of a quaternion are labeled (\vn{S1},
 \vn{Sx}, \vn{Sy}, \vn{Sz}). The syntax for the spin part uses the first or second forms as
@@ -4173,9 +4173,9 @@ described above. For example
   \{Sx: 0.43 | 13 \}
 \end{example}
 is equivalent to the term
-\Begineq
+\begin{equation}
   S_x = 0.43 \cdot \delta x(\In) \, \delta y(\In)
-\Endeq
+\end{equation}
 
 By default, a \vn{taylor} element starts out with the unit phase space map but no default
 is defined for the spin part of the map.  That is, a \vn{taylor} element starts with the
@@ -4362,14 +4362,14 @@ poles and the magnetic field components are
 \end{alignat}
 where $z$ is the distance from the beginning of the wiggler, the input parameter $\vn{b_max}$ is the
 maximum field on the centerline, and $k$ is given in terms of the period length (\vn{l_period}) by
-\Begineq
+\begin{equation}
   k_z = \frac{2\pi}{l_{\text{period}}}
-\Endeq
+\end{equation}
 Here the phase $\phi_z$ is chosen so that $B_y$ is symmetric about the center of the wiggler
-\Begineq
+\begin{equation}
   \phi_z = \frac{-k_z \, L}{2}
   \label{pkl2}
-\Endeq
+\end{equation}
 Note: Originally $k_z$ was calculated using \vn{l_pole} --- the length of a pole --- with the period
 length being twice the pole length. When the helical model option was introduced this became
 problematical since the period of a helical wiggler could be either 2 or 4 times the pole length
@@ -4389,10 +4389,10 @@ With \vn{field_calc} set to \vn{planar_model}, and with \vn{bmad_standard} track
 (\sref{c:methods}), the vertical focusing is assumed small so averaged over many periods the horizontal
 motion looks like a drift and the vertical motion is modeled as a combination focusing quadrupole
 and focusing octupole giving a kick\cite{b:corbett}
-\Begineq
+\begin{equation}
   \frac{dp_y}{dz} = k1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
   \label{pyzk1}
-\Endeq
+\end{equation}
 where
 \begin{alignat}{2}
   g_\text{max} &= \frac{e \, B_{\max}}{P_0 \, (1 + p_z)} \\
@@ -4408,13 +4408,13 @@ in the vertical and horizontal planes is the same as with the transport in the v
 
 While \vn{bmad_standard} tracking uses an averaged trajectory, the actual trajectory has oscillations 
 that look like
-\Begineq
+\begin{equation}
   x = A \, \cos (k_z \, z)
-\Endeq
+\end{equation}
 with the amplitude $A$ given by
-\Begineq
+\begin{equation}
   A = \frac{g_\text{max}}{k_z^2}
-\Endeq
+\end{equation}
 The value of $A$, computed for an on-energy ($p_z = 0$) particle, is calculated and stored in the
 dependent parameter \vn{osc_amplitude}.
 
@@ -4457,9 +4457,9 @@ Note: There is no \vn{bmad_standard} tracking for a \vn{map_type} \vn{wiggler}.
 When the wiggler model was first developed, the only type of map that could be used for \vn{map
 type} wigglers was a Cartesian map (\sref{s:fieldmap}). The syntax for specifying this Cartesian
 map was different from what it is currently. The old syntax for a Cartesian map term was:
-\Begineq
+\begin{equation}
   \text{term(i)} = \{C, k_x, k_y, k_z, \phi_z \}
-\Endeq
+\end{equation}
 Example:
 \begin{example}
   wig1: wiggler, l = 1.6, 
@@ -4494,9 +4494,9 @@ The correspondence between $C$ in the above equations and $A$ in the new equatio
 given by comparing \Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{family.y}.
 
 When the {cartesian_map} construct was being developed, an intermediate hybrid syntax was used defined:
-\Begineq
+\begin{equation}
   term(i) = \{A, k_x, k_y, k_z, x_0, y_0, \phi_z, \text{family}\}
-\Endeq
+\end{equation}
 The parameters here directly correspond to the \vn{cartesian_map} forms (see \Eqs{cm1} through \eq{bsq}).
 
 For example, the old style syntax:
