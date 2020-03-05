@@ -653,7 +653,7 @@ def get_next_directive (common):
       if not common.in_seq: f_out.write('\n')
       continue
 
-    if line[0] == '!':
+    if line.lstrip()[0] == '!':
       f_out.write(line)
       continue
 
