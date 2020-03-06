@@ -12,10 +12,13 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 6:
 #------------------------------------------------------------------
 
 class ele_struct:
-  def __init__(self, name = '', type = ''):
+  def __init__(self, name):
     self.name = name
-    self.type = type
-    self.at = '0'         # Used if element is in a sequence
+    self.mad8_inherit_type = ''    # Is another element name or quadrupole, etc.
+    self.mad8_base_type    = ''    # Is quadrupole, etc.
+    self.bmad_inherit_type = ''    # Is another element name or quadrupole, etc.
+    self.bmad_base_type    = ''    # Is quadrupole, etc.
+    self.at = '0'                  # Used if element is in a sequence
     self.param = OrderedDict()
 
 class seq_struct:
@@ -85,13 +88,51 @@ sequence_refer = {
   'exit':   'end'
 }
 
-ele_type_name = {
+
+ele_type_translate = {
+    'matrix':       'taylor', 
+    'roll':         'patch',
+    'srot':         'patch',
+    'yrot':         'patch',
+    'zrot':         'patch',
+    'monitor':      'monitor',
     'hmonitor':     'monitor',
     'vmonitor':     'monitor',
-    'matrix':       'taylor', }
+    'blmonitor':    'monitor',
+    'profile':      'monitor',
+    'wire':         'monitor',
+    'slmonitor':    'monitor',
+    'imonitor':     'monitor',
+    'marker':       'marker',
+    'drift':        'drift',
+    'sbend':        'sbend',
+    'rbend':        'rbend',
+    'quadrupole':   'quadrupole',
+    'sextupole':    'sextupole',
+    'octupole':     'octupole',
+    'multipole':    'multipole',
+    'dimultipole':  'multipole',
+    'solenoid':     'solenoid',
+    'hkicker':      'hkicker',
+    'vkicker':      'vkicker',
+    'kicker':       'kicker',
+    'rfcavity':     'rfcavity',
+    'elseparator':  'elseparator',
+    'instrument':   'instrument',
+    'ecollimator':  'ecollimator',
+    'rcollimator':  'rcollimator',
+    'beambeam':     'beambeam',
+    'lcavity':      'lcavity',
+    'lump':         '???',
+    'arbitelm':     '???',
+    'mtwiss':       '???'
+}
+
+ignore_mad8_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'assembly_id', 
+                     'mech_sep', 'betrf', 'tfill', 'shunt', 'pg']
 
 bmad_param_name = {
-    'deltae':  'voltage',
+    'deltae':   'voltage',
     'volt':     'voltage',
     'freq':     'rf_frequency',
     'lag':      'phi0',
@@ -107,22 +148,37 @@ bmad_param_name = {
 def bmad_param(param, ele_name):
   global common, bmad_param_name
 
-  if param == 'tilt':
-    if ele_name in common.ele_dict:
-      ele_type = common.ele_dict[ele_name].type
-    else:
-      ele_type = xxxx
+  # For the SLAC version there are Rij and Tijk matrix elements
 
-    if 'sbend'.startswith(ele_type) or 'rbend'.startswith(ele_type):
-      return 'ref_tilt'
-    else:
-      return 'tilt'
+  if len(param) == 3 and param[0] == 'r' and param[1] in '123456' and param[2] in '123456':
+    return f'tt{param[1:]}'
+
+  if len(param) == 4 and param[0] == 't' and param[1] in '123456' and param[2] in '123456' and param[3] in '123456':
+    return f'tt{param[1:]}'
 
   elif param in bmad_param_name:
     return bmad_param_name[param]
 
+  if ele_name in common.ele_dict:
+    mad8_type = common.ele_dict[ele_name].mad8_base_type
   else:
-    return param
+    mad8_type = 'xxxx'
+
+  if mad8_type == 'dimultipole':
+    d = '0123456789'
+    if len(param) == 2 and param[0] == 'k' and param[1].isdigit(): return param_name + 'l'
+    if len(param) == 3 and param[0] == 'k' and param[1].isdigit() and param[2].isdigit(): return param_name + 'l'
+
+  if param == 'angle':
+    if mad8_type == 'srot': return 'tilt'
+    if mad8_type == 'roll': return 'tilt'
+    if mad8_type == 'yrot': return 'x_pitch'
+    if mad8_type == 'zrot': return 'x_pitch'
+
+  if param == 'tilt':
+    if mad8_type == 'sbend' or mad8_type == 'rbend': return 'ref_tilt'
+
+  return param
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -151,7 +207,6 @@ def parameter_dictionary(word_lst):
       word_lst = word_lst[:ix] + [f'tt{word_lst[ix][-1]}{word_lst[ix+2][0]}{word_lst[ix+4][0]}'] + word_lst[iz:]
 
     if ix > len(word_lst) - 2: break
-
 
   # Fill dict
 
@@ -211,11 +266,11 @@ def bmad_expression(line, target_param):
     if len(lst) > 3 and lst[1] == '[' and lst[3] == ']':
       if lst[2] in ele_param_factor:
         if (len(lst) >= 5 and lst[4] == '^') or (len(out.strip()) > 0 and out.strip()[-1] == '/'):
-          out = out + '(' + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + '] * ' + ele_param_factor[lst[2]]
+          out += '(' + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + '] * ' + ele_param_factor[lst[2]]
         else:
-          out = out + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + '] * ' + ele_param_factor[lst[2]]
+          out += lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + '] * ' + ele_param_factor[lst[2]]
       else:
-        out = out + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + ']'
+        out += lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + ']'
 
       lst = lst[4:]
 
@@ -322,47 +377,56 @@ def negate(str):
 # Parse a lattice element
 
 def parse_element(dlist, write_to_file):
-  global common, ele_type_name
+  global common, ele_type_translate, ignore_mad8_param
 
-  ignore_mad8_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'assembly_id', 'mech_sep']
-  ele_type_ignore = ['nllens', 'rfmultipole']
-
-  params = parameter_dictionary(dlist[4:])
-  ele = ele_struct(dlist[0])
-
-  for name in ele_type_ignore:
-    if name.startswith(dlist[2]): 
-      print (dlist[2].upper() + ' TYPE ELEMENT CANNOT BE TRANSLATED TO BMAD.')
-      return
-
-  if 'yrot'.startswith(dlist[2]):
-    ele = ele_struct(dlist[0], 'patch')
-    if 'angle' in params: params['xpitch'] = negate(params.pop('angle'))
-
-  elif 'srot'.startswith(dlist[2]):
-    ele = ele_struct(dlist[0], 'patch')
-    if 'angle' in params: params['tilt'] = params.pop('angle')
-
-  elif 'rbend'.startswith(dlist[2]) or 'sbend'.startswith(dlist[2]):
-    ele = ele_struct(dlist[0], dlist[2])
-    if 'tilt' in params: params['ref_tilt'] = params.pop('tilt')
-
-  elif 'quadrupole'.startswith(dlist[2]):
-    ele = ele_struct(dlist[0], dlist[2])
-    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/4'
-
-  elif 'sextupole'.startswith(dlist[2]):
-    ele = ele_struct(dlist[0], dlist[2])
-    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/6'
-
-  elif 'octupole'.startswith(dlist[2]):
-    ele = ele_struct(dlist[0], dlist[2])
-    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/8'
+  if dlist[2] in common.ele_dict:
+    ele = ele_struct(dlist[0])
+    ele.mad8_inherit_type = dlist[2]
+    ele.mad8_base_type = common.ele_dict[dlist[2]].mad8_base_type
+    ele.bmad_inherit_type = dlist[2]
+    ele.bmad_base_type = common.ele_dict[dlist[2]].bmad_base_type
 
   else:
-    for name in ele_type_name:
-      if name.startswith(dlist[2]): dlist[2] = ele_type_name[name]
-    ele = ele_struct(dlist[0], dlist[2])
+    found = False
+    for mad8_type in ele_type_translate:
+      if mad8_type.startswith(dlist[2]): 
+        ele = ele_struct(dlist[0])
+        ele.mad8_inherit_type = mad8_type
+        ele.mad8_base_type = mad8_type
+        ele.bmad_inherit_type = ele_type_translate[mad8_type]
+        ele.bmad_base_type = ele.bmad_inherit_type
+        found = True
+        break
+
+    if not found:
+      print (dlist[2].upper() + ' TYPE ELEMENT IS UNKNOWN!')
+      return
+
+  if ele.mad8_base_type == '???':
+    print (dlist[2].upper() + ' TYPE ELEMENT CANNOT BE TRANSLATED TO BMAD.')
+    return
+
+  params = parameter_dictionary(dlist[4:])
+
+  if ele.mad8_base_type == 'yrot' or ele.mad8_base_type == 'zrot':
+    if 'angle' in params: params['x_pitch'] = negate(params.pop('angle'))
+
+  elif ele.mad8_base_type == 'srot' or ele.mad8_base_type == 'roll':
+    if 'angle' in params: params['tilt'] = params.pop('angle')
+
+  elif ele.mad8_base_type == 'rbend' or ele.mad8_base_type == 'sbend':
+    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/2'
+    if 'tilt' in params: params['ref_tilt'] = params.pop('tilt')
+
+  elif ele.mad8_base_type == 'quadrupole':
+    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/4'
+
+  elif ele.mad8_base_type == 'sextupole':
+    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/6'
+
+  elif ele.mad8_base_type == 'octupole':
+    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/8'
+
 
   #
 
@@ -370,7 +434,7 @@ def parse_element(dlist, write_to_file):
   common.ele_dict[dlist[0]] = ele
 
   if write_to_file:
-    line = ele.name + ': ' + ele.type
+    line = ele.name + ': ' + ele.bmad_inherit_type
     for param in ele.param:
       if param in ignore_mad8_param: continue
       line += ', ' + bmad_param(param, ele.name) + ' = ' + bmad_expression(params[param], param)
@@ -419,6 +483,17 @@ def parse_command(command, dlist):
   if dlist[0] == 'exit' or dlist[0] == 'quit' or dlist[0] == 'stop':
     common.f_in.pop()
     if not common.one_file: common.f_out.pop()
+    return
+
+  # Title
+  # MAD8 will accept something like "title'abc'" which Bmad will not
+
+  if dlist[0] == 'title':
+    if len(dlist) > 1: 
+      if dlist[1] == ',':
+        f_out.write(command + '\n')
+      else:
+        f_out.write(f'title, {dlist[1]}')
     return
 
   # Get rid of "real", "int", "const" "const real", etc. prefix
@@ -576,12 +651,6 @@ def parse_command(command, dlist):
     f_out.write(f'{name} = {value}\n')
     return
 
-  # Title
-
-  if dlist[0] == 'title':
-    f_out.write(command + '\n')
-    return
-
   # Call
 
   if dlist[0] == 'call':
@@ -716,7 +785,14 @@ def get_next_command ():
           break
 
         elif line[ix] == '&':
-          line = line[:ix] + f_in.readline().lstrip()
+          line2 = f_in.readline().lstrip()
+          while True:
+            if line2[0] == '\n' or line2.lstrip()[0] == '!':
+              f_out.write(line2)
+              line2 = f_in.readline().lstrip()
+            else:
+              break
+          line = line[:ix] + line2
           break
 
         elif line[ix] == ';':

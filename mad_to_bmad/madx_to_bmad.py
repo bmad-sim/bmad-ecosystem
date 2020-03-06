@@ -12,9 +12,12 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 6:
 #------------------------------------------------------------------
 
 class ele_struct:
-  def __init__(self, name = '', type = ''):
+  def __init__(self, name):
     self.name = name
-    self.type = type
+    self.madx_inherit_type = ''    # Is another element name or quadrupole, etc.
+    self.madx_base_type    = ''    # Is quadrupole, etc.
+    self.bmad_inherit_type = ''    # Is another element name or quadrupole, etc.
+    self.bmad_base_type    = ''    # Is quadrupole, etc.
     self.at = '0'         # Used if element is in a sequence
     self.from_ele = ''    # Used if element is in a sequence
     self.param = OrderedDict()
@@ -88,13 +91,61 @@ sequence_refer = {
   'exit':   'end'
 }
 
-  bmad_param_name = {
+ele_type_translate = {
+    'tkicker':      'kicker', 
+    'hacdipole':    'ac_kicker',
+    'placeholder':  'instrument',
+    'matrix':       'taylor', 
+    'srotation':    'patch',
+    'xrotation':    'patch',
+    'yrotation':    'patch',
+    'translation':  'patch',
+    'changeref':    'patch',
+    'monitor':      'monitor',
+    'hmonitor':     'monitor',
+    'vmonitor':     'monitor',
+    'marker':       'marker',
+    'drift':        'drift',
+    'sbend':        'sbend',
+    'rbend':        'rbend',
+    'quadrupole':   'quadrupole',
+    'sextupole':    'sextupole',
+    'octupole':     'octupole',
+    'multipole':    'multipole',
+    'solenoid':     'solenoid',
+    'hkicker':      'hkicker',
+    'vkicker':      'vkicker',
+    'tkiker':       'kicker',
+    'kicker':       'kicker',
+    'rfcavity':     'rfcavity',
+    'twcavity':     'lcavity',
+    'elseparator':  'elseparator',
+    'instrument':   'instrument',
+    'ecollimator':  'ecollimator',
+    'rcollimator':  'rcollimator',
+    'collimator':   'collimator',  # Will get sorted out afterwards
+    'beambeam':     'beambeam',
+    'crabcavity':   'crab_cavity',
+    'hacdipole':    'ac_kicker',
+    'vacdipole':    'ac_kicker',
+    'rfmultipole':  '???',
+    'nllens':       '???',
+    'dipedge':      '???',
+}
+
+ignore_madx_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'thick', 'add_angle', 'assembly_id', 
+                     'mech_sep', 'betrf', 'tfill', 'shunt', 'pg']
+
+bmad_param_name = {
     'volt':   'voltage',
     'freq':   'rf_frequency',
     'lag':    'phi0',
     'ex':     'e_field',
     'ey':     'e_field',
-    'lrad':   'l',  }
+    'lrad':   'l',  
+    'xsize':  'x_limit',
+    'ysize':  'y_limit',
+}
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -103,19 +154,16 @@ sequence_refer = {
 def bmad_param(param, ele_name):
   global bmad_param_name
 
-  if param == 'tilt':
-    if ele_name in common.ele_dict:
-      ele_type = common.ele_dict[ele_name].type
-    else:
-      ele_type = xxxx
+  if ele_name in common.ele_dict:
+    madx_type = common.ele_dict[ele_name].madx_base_type
+  else:
+    madx_type = 'xxxx'
 
-    if 'sbend'.startswith(ele_type) or 'rbend'.startswith(ele_type):
+  if param == 'tilt':
+    if madx_type == 'sbend' or madx_type == 'rbend':
       return 'ref_tilt'
     else:
       return 'tilt'
-
-  elif param in bmad_param_name:
-    return bmad_param_name[param]
 
   elif len(param) == 5 and param[0:4] == 'kick' and param[4] in '123456':
     return f'tt{param[4]}'
@@ -125,6 +173,14 @@ def bmad_param(param, ele_name):
 
   elif len(param) == 5 and param[0:2] == 'tm' and param[2] in '123456' and param[3] in '123456' and param[4] in '123456':
     return f'tt{param[2:]}'
+
+  # Translate something like "k1s" to "k1" in the hopes that k1 on the MADX side is zero so on the 
+  # translation is k1s -> k1, tilt -> tilt + pi/2
+  elif len(param) == 3 and param[0] == 'k' and param[1].isdigit() and param[2] == 's':
+    return f'{param[:-1]}'
+
+  elif param in bmad_param_name:
+    return bmad_param_name[param]
 
   else:
     return param
@@ -199,11 +255,11 @@ def bmad_expression(line, target_param):
     if len(lst) >= 4 and lst[1] == '-' and lst[2] =='>':
       if lst[3] in ele_param_factor:
         if (len(lst) >= 5 and lst[4] == '^') or (len(out.strip()) > 0 and out.strip()[-1] == '/'):
-          out = out + '(' + lst[0] + '[' + bmad_param(lst[3].strip()) + '] * ' + ele_param_factor[lst[3]]
+          out += '(' + lst[0] + '[' + bmad_param(lst[3].strip(), lst[0]) + '] * ' + ele_param_factor[lst[3]]
         else:
-          out = out + lst[0] + '[' + bmad_param(lst[3].strip()) + '] * ' + ele_param_factor[lst[3]]
+          out += lst[0] + '[' + bmad_param(lst[3].strip(), lst[0]) + '] * ' + ele_param_factor[lst[3]]
       else:
-        out = out + lst[0] + '[' + bmad_param(lst[3].strip()) + ']'
+        out += lst[0] + '[' + bmad_param(lst[3].strip(), lst[0]) + ']'
       lst = lst[4:]
 
     elif lst[0] in const_trans:
@@ -305,34 +361,45 @@ def negate(str):
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 # Parse a lattice element
+# Assumed to be of the form dlist = ["name", ":", "type", ",", ...]
 
 def parse_element(dlist, write_to_file, command):
-  global common
-
-  ele_type_trans = {
-    'tkicker':      'kicker', 
-    'hacdipole':    'ac_kicker',
-    'hmonitor':     'monitor',
-    'vmonitor':     'monitor',
-    'placeholder':  'instrument',
-    'matrix':       'taylor',
-  }
-
-  ignore_madx_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'thick', 'add_angle', 'assembly_id', 'mech_sep']
-  ele_type_ignore = ['nllens', 'rfmultipole']
-
-  params = parameter_dictionary(dlist[4:])
-  ele = ele_struct(dlist[0])
+  global common, ele_type_translate, ignore_madx_param
 
   if dlist[2] == 'dipedge':
     print ('DIPEDGE ELEMENT NOT TRANSLATED. SUGGESTION: MODIFY THE LATTICE FILE AND MERGE THE DIPEDGE ELEMENT WITH THE NEIGHBORING BEND.')
     return
 
-  if dlist[2] in ele_type_ignore:
+  if dlist[2] in common.ele_dict:
+    ele = ele_struct(dlist[0])
+    ele.madx_inherit_type = dlist[2]
+    ele.madx_base_type = common.ele_dict[dlist[2]].madx_base_type
+    ele.bmad_inherit_type = dlist[2]
+    ele.bmad_base_type = common.ele_dict[dlist[2]].bmad_base_type
+
+  else:
+    found = False
+    for madx_type in ele_type_translate:
+      if madx_type.startswith(dlist[2]): 
+        ele = ele_struct(dlist[0])
+        ele.madx_inherit_type = madx_type
+        ele.madx_base_type = madx_type
+        ele.bmad_inherit_type = ele_type_translate[madx_type]
+        ele.bmad_base_type = ele.bmad_inherit_type
+        found = True
+        break
+
+    if not found:
+      print (dlist[2].upper() + ' TYPE ELEMENT IS UNKNOWN!')
+      return
+
+  if ele.madx_base_type == '???':
     print (dlist[2].upper() + ' TYPE ELEMENT CANNOT BE TRANSLATED TO BMAD.')
     return
 
-  elif dlist[2] == 'elseparator':
+  params = parameter_dictionary(dlist[4:])
+
+  if ele.madx_base_type == 'elseparator':
     if 'ex' in params:
       if 'ey' in params:
         if 'tilt' in params:
@@ -347,24 +414,20 @@ def parse_element(dlist, write_to_file, command):
           params['tilt'] = '-pi/2'
         params['ey'] = params['ex']
 
-  elif dlist[2] == 'xrotation':
-    ele = ele_struct(dlist[0], 'patch')
+  elif ele.madx_base_type == 'xrotation':
     if 'angle' in params: params['ypitch'] = params.pop('angle')
 
-  elif dlist[2] == 'yrotation':
-    ele = ele_struct(dlist[0], 'patch')
-    if 'angle' in params: params['xpitch'] = negate(params.pop('angle'))
+  elif ele.madx_base_type == 'yrotation':
+    if 'angle' in params: params['x_pitch'] = negate(params.pop('angle'))
 
-  elif dlist[2] == 'srotation':
-    ele = ele_struct(dlist[0], 'patch')
+  elif ele.madx_base_type == 'srotation':
     if 'angle' in params: params['tilt'] = params.pop('angle')
 
-  elif dlist[2] == 'changeref':
-    ele = ele_struct(dlist[0], 'patch')
+  elif ele.madx_base_type == 'changeref':
     if 'patch_ang' in params:
       angles = params.pop('patch_ang').split(',')
-      params['ypitch'] = angles[0]
-      params['xpitch'] = negate(angles[1])
+      params['y_pitch'] = angles[0]
+      params['x_pitch'] = negate(angles[1])
       params['tilt']   = angles[2]
     if 'patch_trans' in params:
       trans = params.pop('patch_trans').split(',')
@@ -372,8 +435,7 @@ def parse_element(dlist, write_to_file, command):
       params['y_offset'] = trans[1]
       params['z_offset'] = trans[2]
 
-  elif dlist[2] == 'rbend' or dlist[2] == 'sbend':
-    ele = ele_struct(dlist[0], dlist[2])
+  elif ele.madx_base_type == 'rbend' or ele.madx_base_type == 'sbend':
     if 'tilt' in params: params['tilt_ref'] = params.pop('tilt')
     kill_ent = False; kill_exi = False
     if 'kill_ent_fringe' in params: kill_ent = (params['kill_ent_fringe'] == 'true')
@@ -385,9 +447,8 @@ def parse_element(dlist, write_to_file, command):
     elif kill_ent:
       params['fringe_at'] = 'exit_end'
 
-  elif dlist[2] == 'quadrupole':
-    ele = ele_struct(dlist[0], dlist[2])
-    if 'k1' and 'k1s' in params:
+  elif ele.madx_base_type == 'quadrupole':
+    if 'k1' in params and 'k1s' in params:
       if 'tilt' in params:
         params['tilt'] = params['tilt'] + ' - atan2(' + params['k1s'] + ', ' + params['k1'] + ')/2'
       else:
@@ -401,9 +462,8 @@ def parse_element(dlist, write_to_file, command):
         params['tilt'] = '-pi/4'
       params.pop('k1s')
 
-  elif dlist[2] == 'sextupole':
-    ele = ele_struct(dlist[0], dlist[2])
-    if 'k2' and 'k2s' in params:
+  elif ele.madx_base_type == 'sextupole':
+    if 'k2' in params and 'k2s' in params:
       if 'tilt' in params:
         params['tilt'] = params['tilt'] + ' - atan2(' + params['k2s'] + ', ' + params['k2'] + ')/3'
       else:
@@ -418,9 +478,8 @@ def parse_element(dlist, write_to_file, command):
       params.pop('k2s')
 
 
-  elif dlist[2] == 'octupole':
-    ele = ele_struct(dlist[0], dlist[2])
-    if 'k3' and 'k3s' in params:
+  elif ele.madx_base_type == 'octupole':
+    if 'k3' in params and 'k3s' in params:
       if 'tilt' in params:
         params['tilt'] = params['tilt'] + ' - atan2(' + params['k3s'] + ', ' + params['k3'] + ')/4'
       else:
@@ -434,8 +493,7 @@ def parse_element(dlist, write_to_file, command):
         params['tilt'] = '-pi/8'
       params.pop('k3s')
 
-  elif dlist[2] == 'multipole':
-    ele = ele_struct(dlist[0], dlist[2])
+  elif ele.madx_base_type == 'multipole':
     if 'knl' in params:
       for n, knl in enumerate(params.pop('knl').split(',')): 
         if knl == '0': continue
@@ -445,48 +503,40 @@ def parse_element(dlist, write_to_file, command):
         if ksl == '0': continue
         params['k' + str(n) + 'sl'] = bmad_expression(ksl, '')
 
-  elif dlist[2] in ele_type_trans:
-    ele = ele_struct(dlist[0], ele_type_trans[dlist[2]])
 
-
-  else:
-    ele = ele_struct(dlist[0], dlist[2])
+  elif ele.madx_base_type == 'collimator':
+    if params['apertype'] in ['ellipse', 'circle']:
+      ele.bmad_inherit_type = 'ecollimator'
+    else:
+      ele.bmad_inherit_type = 'rcollimator'
 
   # collimator conversion
 
   if 'apertype' in params:
-    if dlist[2] == 'collimator':
-      if params['apertype'] in ['ellipse', 'circle']:
-        ele = ele_struct(dlist[0], 'ecollimator')
-      else:
-        ele = ele_struct(dlist[0], 'rcollimator')
-
-    else:
-      if params['apertype'] in ['ellipse', 'circle']:
-        params['aperture_type'] = 'elliptical'
-      else:
-        params['aperture_type'] = 'rectangular'
-
-  #
-
-  if 'aperture' in params: 
     aperture = bmad_expression(params.pop('aperture').replace('{', '').replace('}', ''), '')
     [params['x_limit'], params['y_limit']] = aperture.split(',')[0:2]
+
+    if params['apertype'] in ['ellipse', 'circle']:
+      params['aperture_type'] = 'elliptical'
+    else:
+      params['aperture_type'] = 'rectangular'
 
   if 'aper_offset' in params:
     params['x_offset'] = params['aper_offset'].split(',')[0]
     params['y_offset'] = params['aper_offset'].split(',')[1]
 
-  #
+  # sequence params
 
   if 'at' in params: ele.at = params.pop('at')
   if 'from' in params: ele.from_ele = params.pop('from')
 
+  # Can happen in sequences that there are "name: name, at = X" constructs where name has already be defined.
+
   ele.param = params
-  common.ele_dict[dlist[0]] = ele
+  if dlist[0] not in common.ele_dict: common.ele_dict[dlist[0]] = ele
 
   if write_to_file:
-    line = ele.name + ': ' + ele.type
+    line = ele.name + ': ' + ele.bmad_inherit_type
     for param in ele.param:
       if param in ignore_madx_param: continue
       line += ', ' + bmad_param(param, ele.name) + ' = ' + bmad_expression(params[param], param)
@@ -593,6 +643,17 @@ def parse_command(command, dlist):
     if not common.one_file: common.f_out.pop()
     return
 
+  # Title
+  # MADX will accept something like "title'abc'" which Bmad will not
+
+  if dlist[0] == 'title':
+    if len(dlist) > 1: 
+      if dlist[1] == ',':
+        f_out.write(command + '\n')
+      else:
+        f_out.write(f'title, {dlist[1]}')
+    return
+
   #
 
   if dlist[0] == 'endsequence':
@@ -641,11 +702,17 @@ def parse_command(command, dlist):
   if common.in_seq:
     seq = common.last_seq
 
-    if dlist[1] == ':':   # "name: type"  construct
-      ele = parse_element(dlist, True, command)
-      common.last_seq.ele_dict[ele.name] = ele
+    # "name: name, at = X" construct
+    if dlist[0] == dlist[2] and dlist[1] == ':':
+      ele = parse_element(dlist, False, command)
+      offset = ele.at
+      if ele.from_ele != '':
+        from_ele = seq.ele_dict[ele.from_ele]
+        offset = f'{offset} - {add_parens(from_ele.at)}'
+
       f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
-                  f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
+                  f'offset = {offset}, ele_origin = {sequence_refer[seq.refer]}\n')
+
 
     elif dlist[0] in common.ele_dict:
       ele = parse_element([dlist[0], ':']+dlist, False, command)
@@ -664,6 +731,13 @@ def parse_command(command, dlist):
 
       f_out.write(f'superimpose, element = {name}, ref = {seq.name}_mark, ' + \
                   f'offset = {offset}, ele_origin = {sequence_refer[seq.refer]}\n')
+
+    elif dlist[1] == ':':   # "name: type"  construct
+      ele = parse_element(dlist, True, command)
+      common.last_seq.ele_dict[ele.name] = ele
+      f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
+                  f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
+
 
     # Must be sequence name. So superimpose the corresponding marker.
     else:
@@ -723,12 +797,6 @@ def parse_command(command, dlist):
     value = bmad_expression(command.split('=')[1].strip(), param)
     name = f'{ele_name}[{bmad_param(param)}]'
     f_out.write(f'{name} = {value}\n')
-    return
-
-  # Title
-
-  if dlist[0] == 'title':
-    f_out.write(command + '\n')
     return
 
   # Call
@@ -843,7 +911,8 @@ def get_next_command ():
     while line != '':
       for ix in range(len(line)):
         ##print (f'Ix: {ix} {line[ix]} -{quote}- ' + line)
-        ##print (f'{dlist}')
+        ##print (f'C: {command}')
+        ##print (f'D: {dlist}')
 
         if common.macro_count != 0:   # Skip macros
           if line[ix] == '{': common.macro_count += 1
@@ -862,7 +931,7 @@ def get_next_command ():
           else:
             quote = line[ix]
             command += line[:ix]
-            if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+            if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
             line = line[ix+1:]
 
           break
@@ -880,19 +949,19 @@ def get_next_command ():
         if line[ix] == '!':
           f_out.write(line[ix:] + '\n')
           command += line[:ix]
-          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           line = ''
           break
 
         elif line[ix] == ';':
           command += line[:ix]
-          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           common.command = line[ix+1:]
           return [command, dlist]
 
         elif line[ix] in ':,=':
           command += line[:ix+1]
-          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           dlist.append(line[ix])
           line = line[ix+1:]
           break
@@ -901,7 +970,7 @@ def get_next_command ():
 
         if line[ix:ix+2] == '/*':
           command += line[:ix]
-          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           f_out.write('!' + line[ix+2:] + '\n')
           line = ''
           in_extended_comment = True
@@ -909,7 +978,7 @@ def get_next_command ():
 
         elif line[ix:ix+2] == '//':
           command += line[:ix]
-          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           f_out.write('!' + line[ix+2:] + '\n')
           line = ''
           break
