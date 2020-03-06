@@ -9,7 +9,7 @@
 
 module tao_struct
 
-use iso_c_binding
+use, intrinsic :: iso_c_binding
 use equal_mod
 use quick_plot_struct
 use dynamic_aperture_mod

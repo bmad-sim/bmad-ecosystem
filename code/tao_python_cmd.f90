@@ -48,7 +48,6 @@
 subroutine tao_python_cmd (input_str)
 
 use tao_interface, dummy => tao_python_cmd
-use iso_c_binding
 use location_encode_mod
 use em_field_mod
 use tao_command_mod, only: tao_next_switch, tao_cmd_split

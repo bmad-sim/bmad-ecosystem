@@ -4,7 +4,6 @@ use tao_interface
 use tao_data_and_eval_mod
 use tao_top10_mod
 use tao_lattice_calc_mod
-use iso_c_binding
 use tao_c_interface_mod, only: tao_c_interface_com
 use wall3d_mod
 
