@@ -12,6 +12,8 @@ module hdf5_interface
 use h5lt
 use hdf5
 use sim_utils
+use iso_fortran_env
+use iso_c_binding
 
 implicit none
 
