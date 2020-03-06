@@ -1346,10 +1346,13 @@ subroutine new_element_init (word1, class_word, lat0, err)
 type (lat_struct), target :: lat0
 
 integer, pointer :: n_max
-logical err, added
+integer ix
+logical err, added, is_marker
 character(*) word1, class_word
 
 ! "end" is a reserved word except if it is being used to instantiate a marker.
+
+n_max => lat0%n_ele_max
 
 select case (word1)
 case ('BEGINNING', 'BEAM', 'PARTICLE_START')
@@ -1357,7 +1360,14 @@ case ('BEGINNING', 'BEAM', 'PARTICLE_START')
   err = .true.
   return
 case ('END')
-  if (class_word /= 'MARKER') then
+  if (any(class_word == lat0%ele(1:n_max)%name)) then
+    call find_indexx (class_word, lat0%nametable, ix, add_to_list = .false.)
+    is_marker = (lat0%ele(ix)%key == marker$)
+  else
+    is_marker = (index('MARKER', trim(class_word)) /= 0)
+  endif
+
+  if (.not. is_marker) then
     call parser_error ('NAME OF ELEMENT or LINE or LIST CORRESPONDS TO A RESERVED WORD: ' // word1)
     err = .true.
     return
@@ -1365,7 +1375,6 @@ case ('END')
 end select
 
 err = .false.
-n_max => lat0%n_ele_max
 
 if (n_max >= ubound(lat0%ele, 1)) then
   call allocate_lat_ele_array (lat0)
