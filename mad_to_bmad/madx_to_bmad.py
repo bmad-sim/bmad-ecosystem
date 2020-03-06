@@ -38,14 +38,13 @@ class common_struct:
     self.last_seq = seq_struct()     # Current sequence being parsed.
     self.seq_dict = OrderedDict()    # List of all sequences.
     self.ele_dict = {}               # Dict of elements
-    self.last_ele = None             # Last element parsed
     self.set_list = []               # List of "A = B" sets after translation to Bmad. Does not Include "A->P = B" parameter sets.
     self.var_name_list = []          # List of madx variable names.
     self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
     self.f_in = []         # MADX input files
     self.f_out = []        # Bmad output files
     self.use = ''
-    self.directive = ''    # Scratch storage for get_next_directive routine.
+    self.command = ''    # Scratch storage for get_next_command routine.
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -89,13 +88,7 @@ sequence_refer = {
   'exit':   'end'
 }
 
-#------------------------------------------------------------------
-#------------------------------------------------------------------
-# Convert from madx parameter name to bmad parameter name.
-
-def bmad_param(param):
-
-  special = {
+  bmad_param_name = {
     'volt':   'voltage',
     'freq':   'rf_frequency',
     'lag':    'phi0',
@@ -103,14 +96,36 @@ def bmad_param(param):
     'ey':     'e_field',
     'lrad':   'l',  }
 
-  if param in special:
-    return special[param]
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+# Convert from madx parameter name to bmad parameter name.
+
+def bmad_param(param, ele_name):
+  global bmad_param_name
+
+  if param == 'tilt':
+    if ele_name in common.ele_dict:
+      ele_type = common.ele_dict[ele_name].type
+    else:
+      ele_type = xxxx
+
+    if 'sbend'.startswith(ele_type) or 'rbend'.startswith(ele_type):
+      return 'ref_tilt'
+    else:
+      return 'tilt'
+
+  elif param in bmad_param_name:
+    return bmad_param_name[param]
+
   elif len(param) == 5 and param[0:4] == 'kick' and param[4] in '123456':
     return f'tt{param[4]}'
+
   elif len(param) == 4 and param[0:2] == 'rm' and param[2] in '123456' and param[3] in '123456':
     return f'tt{param[2:]}'
+
   elif len(param) == 5 and param[0:2] == 'tm' and param[2] in '123456' and param[3] in '123456' and param[4] in '123456':
     return f'tt{param[2:]}'
+
   else:
     return param
 
@@ -223,19 +238,23 @@ def bmad_file_name(madx_file):
 def wrap_write(line, f_out):
   MAXLEN = 120
   tab = ''
+  line = line.rstrip()
 
   while True:
-    if len(line) <= MAXLEN:
+    if len(line) <= MAXLEN+1:
       f_out.write(tab + line + '\n')
       return
 
-    ix = line[:MAXLEN].rfind(',')
-
-    if ix == -1: 
-      ix = line[:MAXLEN].rfind(' ')
-      f_out.write(tab + line[:ix+1] + ' &\n')
-    else:
+    if ',' in line[:MAXLEN]:
+      ix = line[:MAXLEN].rfind(',')
       f_out.write(tab + line[:ix+1] + '\n')  # Don't need '&' after a comma
+
+    else:
+      for char in ' -+/*':
+        if char in line[:MAXLEN]:
+          ix = line[:MAXLEN].rfind(char)
+          f_out.write(tab + line[:ix+1] + ' &\n')
+          break
 
     tab = '         '
     line = line[ix+1:]
@@ -287,7 +306,8 @@ def negate(str):
 #------------------------------------------------------------------
 # Parse a lattice element
 
-def parse_element(dlist, common, write_to_file, directive):
+def parse_element(dlist, write_to_file, command):
+  global common
 
   ele_type_trans = {
     'tkicker':      'kicker', 
@@ -463,30 +483,25 @@ def parse_element(dlist, common, write_to_file, directive):
   if 'from' in params: ele.from_ele = params.pop('from')
 
   ele.param = params
-  common.last_ele = ele
+  common.ele_dict[dlist[0]] = ele
 
   if write_to_file:
     line = ele.name + ': ' + ele.type
     for param in ele.param:
       if param in ignore_madx_param: continue
-      line += ', ' + bmad_param(param) + ' = ' + bmad_expression(params[param], param)
+      line += ', ' + bmad_param(param, ele.name) + ' = ' + bmad_expression(params[param], param)
     f_out = common.f_out[-1]
     wrap_write(line, f_out)
 
+  return ele
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
-def parse_directive(directive, common):
-  global sequence_refer
+def parse_command(command, dlist):
+  global common, sequence_refer
 
   f_out = common.f_out[-1]
-
-  # split with space, ";", or "=" followed by any amount of space.
-
-  dlist = re.split(r'\s*(,|=|:)\s*', directive.strip().lower())
-  dlist = list(filter(lambda a: a != '', dlist))   # Remove all blank strings from list
-  if len(dlist) == 0: return
 
   # Get rid of "real", "int", "const" "const real", etc. prefixes
 
@@ -500,19 +515,19 @@ def parse_directive(directive, common):
     if ix > len(dlist)-2: break
     if dlist[ix] == ':' and dlist[ix+1] == '=': dlist.pop(ix)
 
-
   # The MADX parser takes a somewhat cavilier attitude towards commas and sometimes they can be omitted.
   # Examples: "call file" instead of  "call, file" and "q: quadrupole l = 7" instead of "q: quadrupole, l = 7
   # So put the comma back in to make things uniform for easier parsing.
+  # But do not do this with arithmetical expressions and quoted strings
+
+  if common.debug: print (str(dlist))
 
   i = 0
   while i < len(dlist):
-    if ' ' in dlist[i]:
+    if ' ' in dlist[i] and not any(char in dlist[i] for char in '"\'+-*/^'):
       split = dlist[i].split()
       dlist = dlist[:i] + [split[0], ',', split[1]] + dlist[i+1:]
     i += 1
-
-  if common.debug: print (str(dlist))
 
   # Ignore this
 
@@ -555,7 +570,7 @@ def parse_directive(directive, common):
   # Macro and "if" statements are strange since they does not end with a ';' but with a matching '}'
 
   if (len(dlist) > 2 and dlist[1] == ':' and dlist[2] == 'macro') or dlist[0].startswith('if '): 
-    common.macro_count = directive.count('{') - directive.count('}')
+    common.macro_count = command.count('{') - command.count('}')
     return
 
   # Return
@@ -589,7 +604,7 @@ def parse_directive(directive, common):
   # Everything below has at least 3 words
 
   if len(dlist) < 3:
-    print ('Unrecognized construct:\n  ' + directive.strip())
+    print ('Unrecognized construct:\n  ' + command.strip())
     return
 
   # Is there a colon or equal sign?
@@ -627,23 +642,20 @@ def parse_directive(directive, common):
     seq = common.last_seq
 
     if dlist[1] == ':':   # "name: type"  construct
-      parse_element(dlist, common, True, directive)
-      ele = common.last_ele
+      ele = parse_element(dlist, True, command)
       common.last_seq.ele_dict[ele.name] = ele
       f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
                   f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
 
     elif dlist[0] in common.ele_dict:
-      parse_element([dlist[0], ':']+dlist, common, False, directive)
-      ele = common.last_ele
+      ele = parse_element([dlist[0], ':']+dlist, False, command)
       if len(ele.param) == 0:
         name = ele.name
       # element has modified parameters. Need to create a new element with a unique name with "__N" suffix.
       else:
         common.ele_dict[dlist[0]] = common.ele_dict[dlist[0]] + 1
         name = f'{dlist[0]}__{str(common.ele_dict[dlist[0]])}'
-        parse_element([name, ':']+dlist, common, True, directive)
-        ele = common.last_ele
+        ele = parse_element([name, ':']+dlist, True, command)
 
       offset = ele.at
       if ele.from_ele != '':
@@ -655,13 +667,12 @@ def parse_directive(directive, common):
 
     # Must be sequence name. So superimpose the corresponding marker.
     else:
-      parse_element([dlist[0], ':']+dlist, common, False, directive)
-      ele = common.last_ele
+      ele = parse_element([dlist[0], ':']+dlist, False, command)
 
       try:
         seq2 = common.seq_dict[ele.name]
       except:
-        print (f'CANNOT IDENTIFY THIS AS AN ELEMENT OR SEQUENCE: {ele.name}\n  IN LINE IN SEQUENCE: {directive}')
+        print (f'CANNOT IDENTIFY THIS AS AN ELEMENT OR SEQUENCE: {ele.name}\n  IN LINE IN SEQUENCE: {command}')
         return
 
       offset = ele.at
@@ -686,41 +697,45 @@ def parse_directive(directive, common):
   # Line
 
   if ix_colon > 0 and dlist[ix_colon+1] == 'line':
-    wrap_write(directive, f_out)
+    wrap_write(command, f_out)
     return
 
   # Var set
+  # Do not store variables whose value is an expression tht involves an element parameter
 
-  if dlist[1] == '=':
+  if dlist[1] == '=' and not '->' in dlist[0]:
     if dlist[0] in common.var_name_list:
       print (f'Duplicate variable name: {dlist[0]}\n' + 
              f'  You will have to edit the lattice file by hand to resolve this problem.')
-
-    if '->' in dlist[0]:    # If a parameter set
-      [ele_name, dummy, param] = dlist[0].partition('->')
-      value = bmad_expression(directive.split('=')[1].strip(), param)
-      name = f'{ele_name}[{bmad_param(param)}]'
+    common.var_name_list.append(dlist[0])
+    name = dlist[0]
+    value = bmad_expression(command.split('=')[1].strip(), dlist[0])
+    if '[' in value or not common.prepend_vars:    # Involves an element parameter
       f_out.write(f'{name} = {value}\n')
-    else:                   # Variable set
-      common.var_name_list.append(dlist[0])
-      name = dlist[0]
-      value = bmad_expression(directive.split('=')[1].strip(), dlist[0])
+    else:
       common.set_list.append([name, value])
-      if not common.prepend_vars: f_out.write(f'{name} = {value}\n')
+    return
 
+  # Ele param set
+
+  if dlist[1] == '=' and '->' in dlist[0]:
+    [ele_name, dummy, param] = dlist[0].partition('->')
+    value = bmad_expression(command.split('=')[1].strip(), param)
+    name = f'{ele_name}[{bmad_param(param)}]'
+    f_out.write(f'{name} = {value}\n')
     return
 
   # Title
 
   if dlist[0] == 'title':
-    f_out.write(directive + '\n')
+    f_out.write(command + '\n')
     return
 
   # Call
 
   if dlist[0] == 'call':
 
-    file = directive.split('=')[1].strip()
+    file = command.split('=')[1].strip()
     if '"' in file or "'" in file:
       file = file.replace('"', '').replace("'", '')
     else:
@@ -773,93 +788,131 @@ def parse_directive(directive, common):
   # Element def
 
   if dlist[1] == ':':
-    parse_element(dlist, common, True, directive)
-    common.ele_dict[dlist[0]] = 0
+    parse_element(dlist, True, command)
     return
 
   # Unknown
 
-  print (f"Unknown construct:\n    " + directive.strip())
+  print (f"Unknown construct:\n    " + command.strip())
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 # Get next madx command.
-# Read in MADX file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
+# Read in MADX file line-by-line.  Assemble lines into commands, which are delimited by a ; (colon).
 
-def get_next_directive (common, write_to_bmad):
+def get_next_command ():
+  global common
 
-  ix = common.directive.find(';')
-  if ix > -1: 
-    dire = common.directive[:ix]
-    common.directive = common.directive[ix+1:]
-    return dire
+  quote = ''
+  in_extended_comment = False
+  command = ''
+  f_out = common.f_out[-1]
+  dlist = []
 
-  directive = common.directive
-  common.directive = ''
+  # Loop until a command has been found
 
   while True:
-    while True:
-      f_in = common.f_in[-1]
-      line = f_in.readline()
-      if len(line) > 0: break    # Check for end of file
-      common.f_in[-1].close()
-      common.f_in.pop()          # Remove last file handle
-      if not common.one_file and write_to_bmad:
-        common.f_out[-1].close()
-        common.f_out.pop()       # Remove last file handle
-      if len(common.f_in) == 0: return ''
 
-    f_out = common.f_out[-1]
+    # Get a line
 
-    if len(line.strip()) == 0:
-      if not common.in_seq and write_to_bmad: f_out.write('\n')
-      continue
-
-    if line[0] == '!':
-      if write_to_bmad: f_out.write(line)
-      continue
-
-    if line[0:1] == '//':
-      if write_to_bmad: f_out.write('!' + line[2:])
-      continue
-
-    if '/*' in line:
-      p = line.partition('/*')
-      line0 = p[0]
-      line = p[2]
+    if common.command == '':
       while True:
-        if '*/' in line:
-          ix = line.index('*/')
-          if write_to_bmad: f_out.write(f"!{line[:ix]}")
-          break
-        else:
-          if write_to_bmad: f_out.write(f"!{line}")
+        f_in = common.f_in[-1]
         line = f_in.readline()
-          
-      line = (line0 + line[ix+2:]).strip()
-      if (len(line) == 0): continue
+        if len(line) > 0: break    # Check for end of file
+        
+        common.f_in[-1].close()
+        common.f_in.pop()          # Remove last file handle
+        if len(common.f_in) == 0: return ['', dlist]
 
-    if common.macro_count != 0:   # Skip macros
-      for ix, char in enumerate(line):
-        if char == '{': common.macro_count += 1
-        if char == '}': common.macro_count -= 1
-        if common.macro_count == 0:
-          line = line[ix+1:].strip()
+        if not common.one_file and write_to_bmad:
+          common.f_out[-1].close()
+          common.f_out.pop()       # Remove last file handle
+          f_out = common.f_out[-1]
+    else:
+      line = common.command
+      common.command = ''
+
+    # Parse line
+
+    line = line.strip()
+    if line.strip() == '':
+      f_out.write('\n')
+      continue
+
+    while line != '':
+      for ix in range(len(line)):
+        ##print (f'Ix: {ix} {line[ix]} -{quote}- ' + line)
+        ##print (f'{dlist}')
+
+        if common.macro_count != 0:   # Skip macros
+          if line[ix] == '{': common.macro_count += 1
+          if line[ix] == '}': common.macro_count -= 1
+          if common.macro_count == 0:
+            line = line[ix+1:]
+            continue
+
+        if (line[ix] == '"' or line[ix] == "'") and not in_extended_comment:
+          if line[ix] == quote:
+            command += quote + line[:ix+1]
+            dlist.append(quote + line[:ix+1])
+            line = line[ix+1:]
+            quote = ''
+
+          else:
+            quote = line[ix]
+            command += line[:ix]
+            if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+            line = line[ix+1:]
+
           break
-      else:
-        continue   # Not out of macro yet.
 
-    #
+        if quote != '': continue
 
-    directive = directive + line
-    directive = directive.partition('!')[0]    # Remove end of line comment
-    directive = directive.partition('//')[0]   # Remove end of line comment
+        if ix < len(line) - 1 and line[ix:ix+2] == '*/':
+          f_out.write(line[:ix] + '\n')
+          line = line[ix+2:]
+          in_extended_comment = False
+          break
 
-    ix = directive.find(';')
-    if ix == -1: continue
+        if in_extended_comment: continue
 
-    common.directive = directive[ix+1:]
-    return directive[:ix]
+        if line[ix] == '!':
+          f_out.write(line[ix:] + '\n')
+          command += line[:ix]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          line = ''
+          break
+
+        elif line[ix] == ';':
+          command += line[:ix]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          common.command = line[ix+1:]
+          return [command, dlist]
+
+        elif line[ix] in ':,=':
+          command += line[:ix+1]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          dlist.append(line[ix])
+          line = line[ix+1:]
+          break
+
+        if ix > len(line) - 2: continue
+
+        if line[ix:ix+2] == '/*':
+          command += line[:ix]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          f_out.write('!' + line[ix+2:] + '\n')
+          line = ''
+          in_extended_comment = True
+          break
+
+        elif line[ix:ix+2] == '//':
+          command += line[:ix]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip())
+          f_out.write('!' + line[ix+2:] + '\n')
+          line = ''
+          break
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -898,12 +951,12 @@ f_out = common.f_out[-1]
 #------------------------------------------------------------------
 # parse, convert and output madx commands
 
-common.directive = ''  # init
+common.command = ''  # init
 
 while True:
-  directive = get_next_directive(common, True)
+  [command, dlist] = get_next_command()
   if len(common.f_in) == 0: break
-  parse_directive(directive, common)
+  parse_command(command, dlist)
   if len(common.f_in) == 0: break   # Hit Quit/Exit/Stop statement.
 
 f_out.close()
@@ -916,11 +969,11 @@ lines = f_out.readlines()
 f_out.close()
 
 f_out = open(bmad_lattice_file, 'w')
-f_out.write ('! Translated from MADX file: ' + madx_lattice_file + "\n\n")
+f_out.write (f'!+\n! Translated from MADX file: {madx_lattice_file}\n!-\n')
 
 if common.prepend_vars :
   for set in common.set_list:
-    f_out.write(f'{set[0]} = {set[1]}\n')
+    wrap_write(f'{set[0]} = {set[1]}\n', f_out)
   f_out.write('\n')
 
 if len(common.super_list) > 0:
