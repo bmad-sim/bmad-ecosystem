@@ -34,6 +34,13 @@ To convert MADX use the command:
 
 where <path-to-script> is the path to the directory where the script is.
 
+Example conversion command:
+  python $ACC_ROOT_DIR/util_programs/mad_to_bmad/madx_to_bmad -f lhc.madx
+This example converts a file called "lhc.madx".
+
+The Bmad output file name is the input file name with the .mad8 or .madx suffix removed (if it
+exists) and with a .bmad suffix appended.
+
 The optional arguments are:
   -h, --help              Show a help message and exit
   -d, --debug             Print debug info while running (not of general interest).
@@ -56,12 +63,11 @@ top of the output file. If, for some reason, you do not want this (say you know 
 ordering is OK and you want the layout of the output file to reflect the layout of the input file),
 the --no_prepend_vars (or -v) option will prevent variable definitions from being moved.
 
-Example conversion command:
-  python $ACC_ROOT_DIR/util_programs/mad_to_bmad/madx_to_bmad -f lhc.madx
-This example converts a file called "lhc.madx".
+Note: The definition of a variable whose value involves an expression that references an element
+parameter will not be moved.
 
-The Bmad output file name is the input file name with the .mad8 or .madx suffix removed (if it
-exists) and with a .bmad suffix appended.
+Note: The conversion scripts do not try to arrange the relative order of variable definitions. Thus
+it may be that the User will have to do some rearranging by hand.
 
 Limitations:
 ------------

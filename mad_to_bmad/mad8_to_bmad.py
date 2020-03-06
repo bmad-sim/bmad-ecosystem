@@ -35,17 +35,18 @@ class common_struct:
     self.seq_dict = OrderedDict()    # List of all sequences.
     self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
     self.ele_dict = {}               # Dict of elements
-    self.last_ele = None             # Last element parsed
     self.set_list = []               # List of "A = B" sets after translation to Bmad. Does not Include "A,P = B" parameter sets.
     self.var_name_list = []          # List of mad8 variable names.
     self.f_in = []         # MAD8 input files
     self.f_out = []        # Bmad output files
     self.use = ''
+    self.command = ''
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
 ele_param_factor = {
+  'deltae':   '1e-6',
   'volt':     '1e-6',
   'freq':     '1e-6',
   'energy':   '1e-9',
@@ -55,6 +56,7 @@ ele_param_factor = {
 }
 
 ele_inv_param_factor = {
+  'deltae':   '1e6',
   'volt':     '1e6',
   'freq':     '1e6',
   'energy':   '1e9',
@@ -83,23 +85,42 @@ sequence_refer = {
   'exit':   'end'
 }
 
+ele_type_name = {
+    'hmonitor':     'monitor',
+    'vmonitor':     'monitor',
+    'matrix':       'taylor', }
+
+bmad_param_name = {
+    'deltae':  'voltage',
+    'volt':     'voltage',
+    'freq':     'rf_frequency',
+    'lag':      'phi0',
+    'e ':       'e_field',
+    'xsize':    'x_limit',
+    'ysize':    'y_limit',
+    'lrad':      'l',  }
+
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 # Convert from mad8 parameter name to bmad parameter name.
 
-def bmad_param(param):
+def bmad_param(param, ele_name):
+  global common, bmad_param_name
 
-  special = {
-    'volt':   'voltage',
-    'freq':   'rf_frequency',
-    'lag':    'phi0',
-    'e ':     'e_field',
-    'xsize':  'x_limit',
-    'ysize':  'y_limit',
-    'lrad':   'l',  }
+  if param == 'tilt':
+    if ele_name in common.ele_dict:
+      ele_type = common.ele_dict[ele_name].type
+    else:
+      ele_type = xxxx
 
-  if param in special:
-    return special[param]
+    if 'sbend'.startswith(ele_type) or 'rbend'.startswith(ele_type):
+      return 'ref_tilt'
+    else:
+      return 'tilt'
+
+  elif param in bmad_param_name:
+    return bmad_param_name[param]
+
   else:
     return param
 
@@ -181,20 +202,21 @@ def parameter_dictionary(word_lst):
 # To convert <expression> a construct that look like "<target_param> = <expression>".
 
 def bmad_expression(line, target_param):
-  global const_trans, ele_param_factor
+  global common, const_trans, ele_param_factor
 
-  lst = re.split(r'(,|-|\+|\(|\)|\>|\*|/|\^)', line)
+  lst = re.split(r'(,|-|\+|\(|\)|\>|\*|/|\^|\[|\])', line)
   out = ''
 
   while len(lst) != 0:
-    if len(lst) >= 4 and lst[1] == '-' and lst[2] =='>':
-      if lst[3] in ele_param_factor:
+    if len(lst) > 3 and lst[1] == '[' and lst[3] == ']':
+      if lst[2] in ele_param_factor:
         if (len(lst) >= 5 and lst[4] == '^') or (len(out.strip()) > 0 and out.strip()[-1] == '/'):
-          out = out + '(' + lst[0] + '[' + bmad_param(lst[3].strip()) + '] * ' + ele_param_factor[lst[3]]
+          out = out + '(' + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + '] * ' + ele_param_factor[lst[2]]
         else:
-          out = out + lst[0] + '[' + bmad_param(lst[3].strip()) + '] * ' + ele_param_factor[lst[3]]
+          out = out + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + '] * ' + ele_param_factor[lst[2]]
       else:
-        out = out + lst[0] + '[' + bmad_param(lst[3].strip()) + ']'
+        out = out + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + ']'
+
       lst = lst[4:]
 
     elif lst[0] in const_trans:
@@ -220,6 +242,8 @@ def bmad_file_name(mad8_file):
     return mad8_file.replace('Mad8', 'bmad')
   elif mad8_file.find('MAD8') != -1:
     return mad8_file.replace('MAD8', 'bmad')
+  elif mad8_file.find('xsif') != -1:
+    return mad8_file.replace('xsif', 'bmad')
   else:
     return mad8_file + '.bmad'
 
@@ -229,19 +253,23 @@ def bmad_file_name(mad8_file):
 def wrap_write(line, f_out):
   MAXLEN = 120
   tab = ''
+  line = line.rstrip()
 
   while True:
-    if len(line) <= MAXLEN:
+    if len(line) <= MAXLEN+1:
       f_out.write(tab + line + '\n')
       return
 
-    ix = line[:MAXLEN].rfind(',')
-
-    if ix == -1: 
-      ix = line[:MAXLEN].rfind(' ')
-      f_out.write(tab + line[:ix+1] + ' &\n')
-    else:
+    if ',' in line[:MAXLEN]:
+      ix = line[:MAXLEN].rfind(',')
       f_out.write(tab + line[:ix+1] + '\n')  # Don't need '&' after a comma
+
+    else:
+      for char in ' -+/*':
+        if char in line[:MAXLEN]:
+          ix = line[:MAXLEN].rfind(char)
+          f_out.write(tab + line[:ix+1] + ' &\n')
+          break
 
     tab = '         '
     line = line[ix+1:]
@@ -293,13 +321,8 @@ def negate(str):
 #------------------------------------------------------------------
 # Parse a lattice element
 
-def parse_element(dlist, common, write_to_file):
-
-  ele_type_trans = {
-    'hmonitor':     'monitor',
-    'vmonitor':     'monitor',
-    'matrix':       'taylor',
-  }
+def parse_element(dlist, write_to_file):
+  global common, ele_type_name
 
   ignore_mad8_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'assembly_id', 'mech_sep']
   ele_type_ignore = ['nllens', 'rfmultipole']
@@ -307,67 +330,63 @@ def parse_element(dlist, common, write_to_file):
   params = parameter_dictionary(dlist[4:])
   ele = ele_struct(dlist[0])
 
-  if dlist[2] in ele_type_ignore:
-    print (dlist[2].upper() + ' TYPE ELEMENT CANNOT BE TRANSLATED TO BMAD.')
-    return
+  for name in ele_type_ignore:
+    if name.startswith(dlist[2]): 
+      print (dlist[2].upper() + ' TYPE ELEMENT CANNOT BE TRANSLATED TO BMAD.')
+      return
 
-  elif dlist[2] == 'yrot':
+  if 'yrot'.startswith(dlist[2]):
     ele = ele_struct(dlist[0], 'patch')
     if 'angle' in params: params['xpitch'] = negate(params.pop('angle'))
 
-  elif dlist[2] == 'srot':
+  elif 'srot'.startswith(dlist[2]):
     ele = ele_struct(dlist[0], 'patch')
     if 'angle' in params: params['tilt'] = params.pop('angle')
 
-  elif dlist[2] == 'rbend' or dlist[2] == 'sbend':
+  elif 'rbend'.startswith(dlist[2]) or 'sbend'.startswith(dlist[2]):
     ele = ele_struct(dlist[0], dlist[2])
     if 'tilt' in params: params['ref_tilt'] = params.pop('tilt')
 
-  elif dlist[2] == 'quadrupole':
+  elif 'quadrupole'.startswith(dlist[2]):
     ele = ele_struct(dlist[0], dlist[2])
-    if 'tilt' in params and params['tilt'] == '': param['tilt'] = 'pi/4'
+    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/4'
 
-  elif dlist[2] == 'sextupole':
+  elif 'sextupole'.startswith(dlist[2]):
     ele = ele_struct(dlist[0], dlist[2])
-    if 'tilt' in params and params['tilt'] == '': param['tilt'] = 'pi/6'
+    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/6'
 
-  elif dlist[2] == 'octupole':
+  elif 'octupole'.startswith(dlist[2]):
     ele = ele_struct(dlist[0], dlist[2])
-    if 'tilt' in params and params['tilt'] == '': param['tilt'] = 'pi/8'
-
-  elif dlist[2] in ele_type_trans:
-    ele = ele_struct(dlist[0], ele_type_trans[dlist[2]])
+    if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/8'
 
   else:
+    for name in ele_type_name:
+      if name.startswith(dlist[2]): dlist[2] = ele_type_name[name]
     ele = ele_struct(dlist[0], dlist[2])
 
   #
 
   ele.param = params
-  common.last_ele = ele
+  common.ele_dict[dlist[0]] = ele
 
   if write_to_file:
     line = ele.name + ': ' + ele.type
     for param in ele.param:
       if param in ignore_mad8_param: continue
-      line += ', ' + bmad_param(param) + ' = ' + bmad_expression(params[param], param)
+      line += ', ' + bmad_param(param, ele.name) + ' = ' + bmad_expression(params[param], param)
     f_out = common.f_out[-1]
     wrap_write(line, f_out)
 
+  return ele
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
-def parse_directive(directive, common):
-  global sequence_refer
+def parse_command(command, dlist):
+  global common, sequence_refer
 
   f_out = common.f_out[-1]
-
-  # split with space, ";", or "=" followed by any amount of space.
-
-  dlist = re.split(r'\s*(,|=|:)\s*', directive.strip().lower())
-  dlist = list(filter(lambda a: a != '', dlist))   # Remove all blank strings from list
-  if len(dlist) == 0: return
+  if common.debug: print (str(dlist))
 
   # Ignore this
 
@@ -381,17 +400,12 @@ def parse_directive(directive, common):
     print (f'WARNING! CANNOT TRANSLATE THE COMMAND: {dlist[0].upper()}')
     return
 
-  # Macro and "if" statements are strange since they does not end with a ';' but with a matching '}'
-
-  if (len(dlist) > 2 and dlist[1] == ':' and dlist[2] == 'macro') or dlist[0].startswith('if '): 
-    common.macro_count = directive.count('{') - directive.count('}')
-    return
-
   # Return
 
   if dlist[0] == 'return':
     common.f_in[-1].close()
-    common.f_in.pop()       # Remove last file handle
+    common.f_in.pop()                  # Remove last file handle
+    if len(common.f_in) == 0: return   # In case the return statement is in the master file.
     if common.one_file:
       f_out.write(f'\n! Returned to File: {common.f_in[-1].name}\n')
     else:
@@ -411,6 +425,7 @@ def parse_directive(directive, common):
 
   if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
   if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
+  if len(dlist) > 3 and dlist[1] == ':' and dlist[2] == 'constant': dlist.pop(2)
 
   # Transform: "a := 3" -> "a = 3"
 
@@ -418,9 +433,19 @@ def parse_directive(directive, common):
     if ix > len(dlist)-2: break
     if dlist[ix] == ':' and dlist[ix+1] == '=': dlist.pop(ix)
 
-  #
+  # The MAD8 parser takes a somewhat cavilier attitude towards commas and sometimes they can be omitted.
+  # Examples: "call file" instead of  "call, file" and "q: quadrupole l = 7" instead of "q: quadrupole, l = 7
+  # So put the comma back in to make things uniform for easier parsing.
+  # But do not do this with arithmetical expressions and quoted strings
 
-  if common.debug: print (str(dlist))
+  i = 0
+  while i < len(dlist):
+    if ' ' in dlist[i] and not any(char in dlist[i] for char in '"\'+-*/^'):
+      split = dlist[i].split()
+      dlist = dlist[:i] + [split[0], ',', split[1]] + dlist[i+1:]
+    i += 1
+
+  #
 
   if dlist[0] == 'endsequence':
     common.in_seq = False
@@ -431,7 +456,7 @@ def parse_directive(directive, common):
   # Everything below has at least 3 words
 
   if len(dlist) < 3:
-    print ('Unknown construct:\n  ' + directive.strip())
+    print ('Unknown construct:\n  ' + command.strip())
     return
 
   # Is there a colon or equal sign?
@@ -469,23 +494,20 @@ def parse_directive(directive, common):
     seq = common.last_seq
 
     if dlist[1] == ':':   # "name: type"  construct
-      parse_element(dlist, common, True)
-      ele = common.last_ele
+      ele = parse_element(dlist, True)
       common.last_seq.ele_dict[ele.name] = ele
       f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
                   f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
 
     elif dlist[0] in common.ele_dict:
-      parse_element([dlist[0], ':']+dlist, common, False)
-      ele = common.last_ele
+      ele = parse_element([dlist[0], ':']+dlist, False)
       if len(ele.param) == 0:
         name = ele.name
       # element has modified parameters. Need to create a new element with a unique name with "__N" suffix.
       else:
         common.ele_dict[dlist[0]] = common.ele_dict[dlist[0]] + 1
-        name = f'{dlist[0]}__{str(common.ele_dict[dlist[0]])}'
-        parse_element([name, ':']+dlist, common, True)
-        ele = common.last_ele
+        name = f'{dlist[0]}__{common.ele_dict[dlist[0]]}'
+        ele = parse_element([name, ':']+dlist, True)
 
       offset = ele.at
       if ele.from_ele != '':
@@ -497,8 +519,7 @@ def parse_directive(directive, common):
 
     # Must be sequence name. So superimpose the corresponding marker.
     else:
-      parse_element([dlist[0], ':']+dlist, common, False)
-      ele = common.last_ele
+      ele = parse_element([dlist[0], ':']+dlist, False)
       seq2 = common.seq_dict[ele.name]
       offset = ele.at
 
@@ -522,10 +543,11 @@ def parse_directive(directive, common):
   # Line
 
   if ix_colon > 0 and dlist[ix_colon+1] == 'line':
-    wrap_write(directive, f_out)
+    wrap_write(command, f_out)
     return
 
-  # Var set
+  # Var set.
+  # Do not store variables whose value is an expression tht involves an element parameter
 
   if dlist[1] == '=':
     if dlist[0] in common.var_name_list:
@@ -534,31 +556,37 @@ def parse_directive(directive, common):
 
     common.var_name_list.append(dlist[0])
     name = dlist[0]
-    value = bmad_expression(directive.split('=')[1].strip(), dlist[0])
-    common.set_list.append([name, value])
-    if not common.prepend_vars: f_out.write(f'{name} = {value}\n')
+    value = bmad_expression(''.join(dlist[2:]), dlist[0])
+    if '[' in value or not common.prepend_vars:    # Involves an element parameter
+      f_out.write(f'{name} = {value}\n')
+    else:
+      common.set_list.append([name, value])
 
     return
 
-  # Parameter set
+  # Ele parameter set
 
   if dlist[0] in common.ele_dict and dlist[1] == ',' and dlist[3] == '=':
-    value = bmad_expression(directive.split('=')[1].strip(), dlist[0])
-    name = f'{dlist[0]}[{bmad_param(dlist[2])}]'
+    value = bmad_expression(command.split('=')[1].strip(), dlist[0])
+    if dlist[0] in common.ele_dict:
+      ele_name = common.ele_dict[dlist[0]].name
+      name = f'{dlist[0]}[{bmad_param(dlist[2], ele_name)}]'
+    else:
+      name = f'{dlist[0]}[{bmad_param(dlist[2])}]'
     f_out.write(f'{name} = {value}\n')
     return
 
   # Title
 
   if dlist[0] == 'title':
-    f_out.write(directive + '\n')
+    f_out.write(command + '\n')
     return
 
   # Call
 
   if dlist[0] == 'call':
 
-    file = directive.split('=')[1].strip()
+    file = command.split('=')[1].strip()
     if '"' in file or "'" in file:
       file = file.replace('"', '').replace("'", '')
     else:
@@ -600,76 +628,118 @@ def parse_directive(directive, common):
   # "qf, k1 = ..." parameter set
 
   if len(dlist) > 4 and dlist[0] in common.ele_dict and dlist[1] == ',' and dlist[3] == '=':
-    f_out.write(dlist[0] + '[' + bmad_param(dlist[2]) + '] = ' + bmad_expression(''.join(dlist[4:]), dlist[2]))
+    f_out.write(dlist[0] + '[' + bmad_param(dlist[2], dlist[0]) + '] = ' + bmad_expression(''.join(dlist[4:]), dlist[2]))
     return
 
   # Element def
 
   if dlist[1] == ':':
-    parse_element(dlist, common, True)
-    common.ele_dict[dlist[0]] = 0
+    parse_element(dlist, True)
     return
 
   # Unknown
 
-  print (f"Unknown construct:\n" + directive + '\n')
+  print (f"Unknown construct:\n" + command + '\n')
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-# Get next mad8 command.
-# Read in MAD8 file line-by-line.  Assemble lines into directives.
+# Get next MAD8 command.
+# Read in MAD8 file line-by-line.  Assemble lines into commands.
 
-def get_next_directive (common):
+def get_next_command ():
+  global common
 
-  ix = common.directive.find(';')
-  if ix > -1: 
-    dire = common.directive[:ix]
-    common.directive = common.directive[ix+1:]
-    return dire
+  quote = ''
+  command = ''
+  f_out = common.f_out[-1]
+  dlist = []
 
-  if len(common.directive) > 0 and common.directive[-1] != '&':
-    dire = common.directive
-    common.directive = ''
-    return dire
-
-  directive = common.directive
-  common.directive = ''
+  # Loop until a command has been found
 
   while True:
-    while True:
-      f_in = common.f_in[-1]
-      line = f_in.readline()
-      if len(line) > 0: break    # Check for end of file
-      common.f_in[-1].close()
-      common.f_in.pop()          # Remove last file handle
-      if not common.one_file:
-        common.f_out[-1].close()
-        common.f_out.pop()       # Remove last file handle
-      if len(common.f_in) == 0: return ''
 
-    f_out = common.f_out[-1]
+    # Get a line
 
-    if len(line.strip()) == 0:
-      if not common.in_seq: f_out.write('\n')
-      continue
+    if common.command == '':
+      while True:
+        f_in = common.f_in[-1]
+        line = f_in.readline()
+        if len(line) > 0: break    # Check for end of file
+        
+        common.f_in[-1].close()
+        common.f_in.pop()          # Remove last file handle
+        if len(common.f_in) == 0: return ['', dlist]
 
-    if line.lstrip()[0] == '!':
-      f_out.write(line)
-      continue
-
-    #
-
-    directive = directive + line
-    directive = directive.partition('!')[0].strip()    # Remove end of line comment
-
-    ix = directive.find(';')
-    if ix != -1: 
-      common.directive = directive[ix+1:]
-      return directive[:ix]
-    elif directive[-1] == '&':
-      directive = directive[:-1]
+        if not common.one_file and write_to_bmad:
+          common.f_out[-1].close()
+          common.f_out.pop()       # Remove last file handle
+          f_out = common.f_out[-1]
     else:
-      return directive
+      line = common.command
+      common.command = ''
+
+    # Parse line
+
+    if line.strip() == '':
+      f_out.write('\n')
+      continue
+
+    while line != '':
+      for ix in range(len(line)):
+        ##print (f'Ix: {ix:4} {line[ix]} -{quote}--{line.rstrip()}')
+        ##print (f'C: {command}')
+        ##print (f'D: {dlist}')
+
+        if line[ix] == '"' or line[ix] == "'":
+          if line[ix] == quote:
+            command += quote + line[:ix+1]
+            dlist.append(quote + line[:ix+1])
+            line = line[ix+1:]
+            quote = ''
+
+          else:
+            quote = line[ix]
+            command += line[:ix]
+            if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
+            line = line[ix+1:]
+
+          break
+
+        if quote != '': continue
+
+        if line[ix] == '!':
+          f_out.write(line[ix:])
+          command += line[:ix]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
+          line = ''
+          if len(dlist) != 0: return [command, dlist]
+          break
+
+        elif line[ix] == '&':
+          line = line[:ix] + f_in.readline().lstrip()
+          break
+
+        elif line[ix] == ';':
+          command += line[:ix]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
+          if len(dlist) == 0:
+            line = line[ix+1:]
+            break
+          else:
+            common.command = line[ix+1:]
+            return [command, dlist]
+
+        elif line[ix] in ':,=':
+          command += line[:ix+1]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
+          dlist.append(line[ix])
+          line = line[ix+1:]
+          break
+
+        elif line[ix] == '\n':
+          command += line[:ix+1]
+          if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
+          return [command, dlist]
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -708,12 +778,12 @@ f_out = common.f_out[-1]
 #------------------------------------------------------------------
 # parse, convert and output mad8 commands
 
-common.directive = ''  # init
+common.command = ''  # init
 
 while True:
-  directive = get_next_directive(common)
+  [command, dlist] = get_next_command()
   if len(common.f_in) == 0: break
-  parse_directive(directive, common)
+  parse_command(command, dlist)
   if len(common.f_in) == 0: break   # Hit Quit/Exit/Stop statement.
 
 f_out.close()
@@ -726,11 +796,11 @@ lines = f_out.readlines()
 f_out.close()
 
 f_out = open(bmad_lattice_file, 'w')
-f_out.write ('! Translated from MAD8 file: ' + mad8_lattice_file + "\n\n")
+f_out.write (f'!+\n! Translated from MAD8 file: {mad8_lattice_file}\n!-\n\n')
 
 if common.prepend_vars :
   for set in common.set_list:
-    f_out.write(f'{set[0]} = {set[1]}\n')
+    wrap_write(f'{set[0]} = {set[1]}\n', f_out)
   f_out.write('\n')
 
 if len(common.super_list) > 0:
