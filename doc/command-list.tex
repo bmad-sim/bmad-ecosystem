@@ -3167,6 +3167,7 @@ Format:
   write ptc \{-all\} \{-old\} \{-branch <name_or_index\} \{<file_name>\}          ! \sref{s:write.ptc}
   write sad \{<file_name>\}                                                 ! \sref{s:write.sad}
   write variable \{-good_var_only\} \{<file_name>\}                           ! \sref{s:write.variable}
+  write xsif \{<file_name>\}                                                ! \sref{s:write.xsif}
 \end{example}
 
 % Use the command:
@@ -3407,7 +3408,6 @@ Syntax:
 
 The default file name is \vn{lat_\#.opal} where \vn{\#} is replaced by the universe number. 
 
-
 %% write ps-l --------------------------------------------------------------
 
 \subsection{write ps, write ps-l}
@@ -3425,8 +3425,6 @@ The default file name is \vn{tao.ps}.
 The optional \vn{-scale} switch sets the scale for the postscript file. The default is 0 which
 autoscales to fit an 8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling, 2.0 will
 double the size, etc.
-
-
 
 %% write ptc --------------------------------------------------------------
 
@@ -3487,6 +3485,19 @@ The default file name is \vn{var\#.out} where \vn{\#} is replaced by the univers
 
 The optional \vn{-good_var_only} switch.  If present, only the information on variables that are
 currently used in the optimization is written.
+
+%% write madx --------------------------------------------------------------
+
+\subsection{write xsif}
+\label{s:write.xsif}
+
+Syntax:
+\begin{example}
+    write xsif \{<file_name>\}  ! Write an XSIF lattice file of the model
+\end{example}
+
+The default file name is \vn{lat_\#.xsif} where \vn{\#} is replaced by the universe number. 
+XSIF is a version of MAD-8 customized by SLAC to handle \vn{lcavity} elements.
 
 %% x_axis --------------------------------------------------------------
 

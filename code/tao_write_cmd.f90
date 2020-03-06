@@ -447,13 +447,14 @@ case ('hard', 'hard-l')
 !---------------------------------------------------
 ! Foreign lattice format
 
-case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice')
+case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice', 'xsif_lattice')
 
   select case (action)
   case ('mad_lattice');   file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
   case ('mad8_lattice');  file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-  case ('madx_lattice');  file_name0 = 'lat_#.madX'; lat_type = 'MAD-X'
+  case ('madx_lattice');  file_name0 = 'lat_#.madx'; lat_type = 'MAD-X'
   case ('opal_latice');   file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
+  case ('xsif_latice');   file_name0 = 'lat_#.xsif'; lat_type = 'XSIF'
   case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
   end select
 
