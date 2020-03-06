@@ -2954,11 +2954,10 @@ Example:
 \label{s:multilayer}
 \index{multilayer_mirror|hyperbf}
 
-A \vn{multilayer_mirror} is a substrate upon which multiple layers
-of alternating substances have been deposited. The idea is similar to crystal
-diffraction: light reflected at each interface constructively interferes 
-with light reflected from other interfaces. The amplified reflection offsets 
-losses due to absorption. 
+A \vn{multilayer_mirror} is a substrate upon which multiple layers of alternating substances have
+been deposited. The idea is similar to crystal diffraction: light reflected at each interface
+constructively interferes with light reflected from other interfaces. The amplified reflection
+offsets losses due to absorption.
 
 General \vn{crystal} attributes are:
 \begin{center}
@@ -3014,7 +3013,11 @@ Example:
 \begin{example}
   mm: multilayer_mirror, material_type = 'W:BORON_CARBIDE', n_cell = 100, &
             d1_thickness = 1e-9, d2_thickness = 1.5e-9
+  m2: multi    ! This is a multipole element!!!
 \end{example}
+Note: Due to the fact that \vn{multilayer_mirrors} where introduced much later than \vn{multipole}
+elements, if there is an ambiguity in the name as shown in the above example, an element will be
+considered to be of type \vn{multipole}.
 
 %-----------------------------------------------------------------
 \section{Null_Ele}

@@ -4,6 +4,9 @@
 ! Function to convert a character string  (eg: "drift") to an index (eg: drift$).
 ! Wildcard "*" is translated to key_index = 0 (match all)
 !
+! Note: A name like "mult" is considered to be a multipole even though it
+! also matches to multilayer_mirror.
+!
 ! Input:
 !   key_str        -- Character(*): Name of the key. Result is case insensitive.
 !   abbrev_allowed -- Logical, optional: Abbreviations (eg: "quad") allowed?
@@ -46,6 +49,13 @@ call str_upcase (name, key_str)
 call string_trim (name, name, n_name)
 
 abbrev = logic_option(.false., abbrev_allowed)
+
+if (abbrev .and. index('MULTI', name(:n_name)) == 1) then
+  key_index = multipole$
+  return
+endif
+
+!
 
 do i = 1, n_key$
   call str_upcase(this_key, key_name(i))
