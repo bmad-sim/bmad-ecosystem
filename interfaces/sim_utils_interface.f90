@@ -294,7 +294,7 @@ end function
 ! isatty is a standard POSIX C routine.
 
 function isatty(ii) result (t_type) bind(c)
-  use iso_c_binding, only: c_int
+  use, intrinsic :: iso_c_binding, only: c_int
   integer(c_int), value :: ii
   integer(c_int) :: t_type
 end function
