@@ -3,6 +3,8 @@
 
 This README file documents how to convert MAD8 or MAD-X formatted files to Bmad lattice format.
 
+The MAD8 to Bmad conversion will also handle XSIF format to Bmad conversion.
+
 
 Orientation:
 ------------
