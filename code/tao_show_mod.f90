@@ -3160,7 +3160,7 @@ case ('particle')
     else
       nl=nl+1; write(lines(nl), *) 'Element:', ix_ele, '  ', branch%ele(ix_ele)%name
     endif
-    nl=nl+1; write(lines(nl), '(a, 6(13x, a), (9x, a), (13x, a), 7x, a)') '  Ix', ' X', 'px', ' y', 'py', 'z', ' dtime', 'pz', 'State'
+    nl=nl+1; write(lines(nl), '(a, 6(11x, a, 2x), (8x, a), (13x, a), 7x, a)') '  Ix', ' x', 'px', ' y', 'py', ' z', 'pz', 'dTime', 'State'
     do i = 1, size(bunch%particle)
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
       vec_in = bunch%particle(i)%vec
