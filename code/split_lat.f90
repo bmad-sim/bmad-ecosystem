@@ -233,7 +233,7 @@ if (ele%slave_status == super_slave$) then
     lord => pointer_to_lord(ele, j, ctl)
     ix_attrib = ctl%ix_attrib
 
-    if (.not. has_overlap(ele1, lord)) then
+    if (.not. has_overlap(ele1, lord, branch)) then
       lord%value(lord_pad1$) = lord%value(lord_pad1$) - ele1%value(l$)
       cycle
     endif
@@ -260,7 +260,7 @@ if (ele%slave_status == super_slave$) then
 
   do j = 1, ele2%n_lord
     lord => pointer_to_lord(ele2, j, ctl)
-    if (has_overlap(ele2, lord)) cycle
+    if (has_overlap(ele2, lord, branch)) cycle
     ctl%attribute = 'REMOVE'  ! Mark for deletion
     lord%value(lord_pad2$) = lord%value(lord_pad2$) - ele2%value(l$)
     controls_need_removing = .true.
@@ -390,9 +390,11 @@ if (present(err_flag)) err_flag = err
 !--------------------------------------------------------------
 contains
 
-function has_overlap (slave, lord) result (overlap)
+function has_overlap (slave, lord, branch) result (overlap)
 
 type (ele_struct) slave, lord
+type (branch_struct) branch
+
 real (rp) s0_lord, s0_slave
 logical overlap
 

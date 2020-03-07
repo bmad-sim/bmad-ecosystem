@@ -23,13 +23,17 @@ implicit none
 type (lat_struct)  lat
 integer ix_ele
 character(*), optional :: ele_name
+character(40) name
 
-!
+! If the actual argument for ele_name is something like lat%ele(j)%name, a call to
+! allocate_lat_ele_array will make the value of ele_name undefined. To get around this
+! save ele_name.
 
 lat%n_ele_max = lat%n_ele_max + 1
 ix_ele = lat%n_ele_max
-if (ix_ele > ubound(lat%ele, 1))  call allocate_lat_ele_array (lat)
-if (present(ele_name)) lat%ele(ix_ele)%name = ele_name
+if (present(ele_name)) name = ele_name
+if (ix_ele > ubound(lat%ele, 1)) call allocate_lat_ele_array (lat)
+if (present(ele_name)) lat%ele(ix_ele)%name = name
 call nametable_add(lat%nametable, lat%ele(ix_ele)%name, ix_ele)
 
 end subroutine
