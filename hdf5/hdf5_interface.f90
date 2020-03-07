@@ -13,7 +13,7 @@ use h5lt
 use hdf5
 use sim_utils
 use iso_fortran_env
-use, intrinsic :: iso_c_binding
+use fortran_cpp_utils
 
 implicit none
 
@@ -573,6 +573,93 @@ call H5Gopen_f (root_id, group_name, g_id, h5_err, H5P_DEFAULT_F)
 if (h5_err == -1) return
 
 end function hdf5_open_group
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Function hdf5_group_n_links (root_id, error, storage_type) result (n_links)
+!
+! Routine to return the number of objects in a group.
+!
+! Use this with hdf5_get_object by index to interate over all objects in a group.
+!
+! Input:
+!   root_id         -- integer(hid_t): ID of the group.
+!
+! Output:
+!   error           -- logical: Set True if there is an error. False otherwise.
+!   storage_type    -- integer, optional: Type of storage for the object links.
+!                           H5G_STORAGE_TYPE_COMPACT_F: Compact storage
+!                           H5G_STORAGE_TYPE_DENSE_F: Indexed storage
+!                           H5G_STORAGE_TYPE_SYMBOL_TABLE_F: Symbol tables
+!   n_links         -- integer: number of links.
+!-
+
+function hdf5_group_n_links (root_id, error, storage_type) result (n_links)
+
+integer (hid_t) root_id
+integer n_links, store_typ, h5_err, max_corder
+integer, optional :: storage_type
+
+logical error
+
+!
+
+call H5Gget_info_f(root_id, store_typ, n_links, max_corder, h5_err)
+error = (h5_err /= 0)
+if (present(storage_type)) storage_type = store_typ
+
+end function hdf5_group_n_links
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_get_object_by_index (root_id, idx, obj_name, obj_info, error)
+!
+! Routine get an object's id, name, and other info given the group the object is in and its index number.
+! This routine can be used to iterate over all the objects of a group.
+!
+! Use hdf5_group_n_links to get the number of objects. Objects in the group have indexes 0 through n_links-1.
+! When iterating over the objects in the group, the objects will be sorted by object name in increasing name order.
+!
+! Use hdf5_open_object to open the object.
+!
+! Input:
+!   root_id   -- integer(hid_t): ID of the group containing the object
+!   idx       -- integer: Index number for the object.
+!
+! Output:
+!   ob_name   -- character(*): Name of the object.
+!   obj_info  -- hdf5_info_struct: Object information.
+!   error     -- logical: Set true if there is an error getting the object information.
+!-
+
+subroutine hdf5_get_object_by_index (root_id, idx, obj_name, obj_info, error)
+
+type (hdf5_info_struct) obj_info
+
+integer(hid_t) root_id, obj_id
+integer(size_t) g_size
+integer(hsize_t) idxh
+integer idx, h5_err
+
+logical error
+character(*) obj_name
+character(200) c_name
+
+!
+
+idxh = idx
+call H5Lget_name_by_idx_f (root_id, '.', H5_INDEX_NAME_F, H5_ITER_INC_F, idxh, c_name, h5_err, g_size)
+error = (h5_err /= 0)
+if (error) return
+
+call to_f_str(c_name, obj_name)
+obj_info = hdf5_object_info (root_id, obj_name, error, .true.)
+
+end subroutine hdf5_get_object_by_index
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------

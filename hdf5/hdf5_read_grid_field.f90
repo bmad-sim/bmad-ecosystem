@@ -18,9 +18,8 @@
 
 subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header, combine)
 
-use bmad_interface, dummy => hdf5_read_grid_field
 use hdf5_openpmd_mod
-use fortran_cpp_utils, only: to_f_str
+use bmad_interface, dummy => hdf5_read_grid_field
 
 implicit none
 

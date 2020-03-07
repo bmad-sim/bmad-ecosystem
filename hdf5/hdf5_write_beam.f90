@@ -18,8 +18,8 @@
 
 subroutine hdf5_write_beam (file_name, bunches, append, error, lat)
 
-use bmad_interface, dummy => hdf5_write_beam
 use hdf5_openpmd_mod
+use bmad_interface, dummy => hdf5_write_beam
 
 implicit none
 
