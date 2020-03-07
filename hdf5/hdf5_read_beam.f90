@@ -6,7 +6,7 @@
 !
 ! Input:
 !   file_name         -- character(*): Name of the beam data file.
-!   ele               -- ele_struct: Element where beam is to be started from.
+!   ele               -- ele_struct, optional: Element where beam is to be started from.
 !                           The element reference momentum will be used for the particle reference momentum.
 !
 ! Output:
@@ -17,9 +17,8 @@
 
 subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
 
-use bmad_interface, dummy => hdf5_read_beam
 use hdf5_openpmd_mod
-use fortran_cpp_utils
+use bmad_interface, dummy => hdf5_read_beam
 
 implicit none
 
@@ -29,8 +28,6 @@ type (pmd_header_struct), optional :: pmd_header
 type (pmd_header_struct) :: pmd_head
 type (pmd_unit_struct) unit
 type(H5O_info_t) :: infobuf 
-type(c_ptr) cv_ptr
-type(c_funptr) c_func_ptr
 
 real(rp), allocatable :: rvec(:)
 real(rp) factor
@@ -78,7 +75,7 @@ endif
 
 z_id = hdf5_open_group(f_id, pmd_head%basePath(1:it), err, .true.)
 
-! Count bunches
+! Loop over all bunches
 
 n_bunch = 0
 call H5Gget_info_f (z_id, storage_type, n_links, max_corder, h5_err)
@@ -92,70 +89,45 @@ do idx = 0, n_links-1
     cycle
   endif
   n_bunch = n_bunch + 1
+  call reallocate_beam (beam, n_bunch, save = .true.)
+  call hdf5_read_bunch(z_id, name, beam%bunch(n_bunch), pmd_head, ele)
 enddo
 
 call reallocate_beam(beam, n_bunch)
 
-! Loop over all bunches.
-! Note: There is a GCC compiler bug where, if building shared, there is an error if 
-! "c_funloc(hdf5_read_bunch)" is used as the actual arg to H5Literate_f in place of c_fun_ptr.
-
-cv_ptr = c_loc(beam)
-c_func_ptr = c_funloc(hdf5_read_bunch)
-idx = 0
-n_bunch = 0
-call H5Literate_f (z_id, H5_INDEX_NAME_F, H5_ITER_INC_F, idx, c_func_ptr, cv_ptr, state, h5_err)
-call H5Gclose_f(z_id, h5_err)
-
-! Note: hdf5_read_bunch (called by H5Literate_f above) will set the error flag as appropriate.
-
-9000 continue
 call h5fclose_f(f_id, h5_err)
 
 !------------------------------------------------------------------------------------------
 contains
 
-function hdf5_read_bunch (root_id, g_name_c, info, dummy_c_ptr) result (stat) bind(C)
+subroutine hdf5_read_bunch (root_id, bunch_obj_name, bunch, pmd_head, ele)
 
-type(c_ptr) info
-type(c_ptr) dummy_c_ptr
+type (pmd_header_struct) pmd_head
+type (ele_struct), optional :: ele
 type(H5O_info_t) :: infobuf 
-type(bunch_struct), pointer :: bunch
+type(bunch_struct), target :: bunch
 type (coord_struct), pointer :: p
-type(c_funptr) c_func_ptr
 
 real(rp) charge_factor, f_ev
 real(rp), allocatable :: dt(:), pz(:)
 
 integer(hid_t), value :: root_id
-integer(hid_t) g_id, g2_id, g3_id, g4_id, a_id
+integer(hid_t) g_id, g2_id, a_id
 integer(hsize_t) idx
 integer n, stat, h5_stat, ia, ip, species
 integer, allocatable :: charge_state(:)
 
-character(1) :: g_name_c(*)
+character(*) bunch_obj_name
 character(:), allocatable :: string
 character(100) g_name, a_name, name, c_name
 character(*), parameter :: r_name = 'hdf5_read_bunch'
 
-! Return if not a group with the proper name
-
-stat = 0
-
-call to_f_str(g_name_c, g_name)
-call H5Oget_info_by_name_f(root_id, g_name, infobuf, h5_stat)
-
-if (infobuf%type /= H5O_TYPE_GROUP_F) return
-if (.not. is_integer(g_name)) return     ! This assumes basepath uses "/%T/" to designate different bunches.
-
 !
 
-n_bunch = n_bunch + 1
-bunch => beam%bunch(n_bunch)
 bunch%charge_tot = 0
 bunch%charge_live = 0
 
-g_id = hdf5_open_group(root_id, g_name, error, .true.);  if (error) return
+g_id = hdf5_open_group(root_id, bunch_obj_name, error, .true.);  if (error) return
 g2_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error) return
 
 ! Get number of particles.
@@ -315,7 +287,7 @@ do ip = 1, size(bunch%particle)
   endif
 enddo
 
-end function  hdf5_read_bunch
+end subroutine  hdf5_read_bunch
 
 !------------------------------------------------------------------------------------------
 ! contains
