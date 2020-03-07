@@ -124,18 +124,14 @@ character(*), parameter :: r_name = 'hdf5_read_bunch'
 
 !
 
-bunch%charge_tot = 0
-bunch%charge_live = 0
-
 g_id = hdf5_open_group(root_id, bunch_obj_name, error, .true.);  if (error) return
 g2_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error) return
 
-! Get number of particles.
+! Get number of particles and init.
 
-call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.)
-if (error) return
+call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.);  if (error) return
 
-! Init particles
+allocate (dt(n), charge_state(n), pz(n))
 
 charge_factor = 0
 species = int_garbage$  ! Garbage number
@@ -145,13 +141,15 @@ call reallocate_bunch(bunch, n)
 bunch%particle = coord_struct()
 bunch%particle%state = alive$
 bunch%particle%charge = 1
+
+bunch%charge_tot = 0
+bunch%charge_live = 0
+
 if (present(ele)) then
   bunch%particle%ix_ele = ele%ix_ele
   bunch%particle%ix_branch = ele%ix_branch
   if (associated(ele%branch)) species = ele%branch%param%particle
 endif
-
-allocate (dt(n), charge_state(n), pz(n))
 
 ! Get attributes.
 
