@@ -699,7 +699,7 @@ case (s_abort$)
   call out_io_line_out('[ABORT | ' // trim(date_time) // '] ' // trim(routine_name) // ':', level, .false.)
 
 case (s_important$)
-  call out_io_line_out('[ABORT | ' // trim(date_time) // '] ' // trim(routine_name) // ':', level, .false.)
+  call out_io_line_out('[MESSAGE | ' // trim(date_time) // '] ' // trim(routine_name) // ':', level, .false.)
 
 end select
 
