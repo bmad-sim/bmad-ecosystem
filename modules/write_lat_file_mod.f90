@@ -380,7 +380,7 @@ do ib = 0, ubound(lat%branch, 1)
         ! do not use elements w/ duplicate names & attributes
         do k = 1, j-1 
           slave2 => pointer_to_slave(ele, k, ctl2)
-          if (slave2%name == slave%name .and. ctl2%ix_attrib == ctl%ix_attrib) cycle j_loop
+          if (slave2%name == slave%name .and. ctl2%attribute == ctl%attribute) cycle j_loop
         enddo
         ! Now write the slave info
         if (j == 1) then
@@ -388,7 +388,7 @@ do ib = 0, ubound(lat%branch, 1)
         else
           write (line, '(3a)') trim(line), ', ', trim(slave%name)
         endif
-        name = attribute_name(slave, ctl%ix_attrib)  
+        name = ctl%attribute  
         if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
         string = expression_stack_to_string(ctl%stack)
         if (string /= ele%control%var(1)%name) write (line, '(3a)') trim(line), ':', trim(string)

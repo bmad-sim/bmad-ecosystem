@@ -891,13 +891,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
 
-        iv = ctl%ix_attrib
-        a_name = attribute_name(slave, iv)
-        select case (a_name)
+        select case (ctl%attribute)
         case ('ACCORDION_EDGE', 'START_EDGE', 'END_EDGE', 'S_POSITION')  ! Special group constructs
           attrib_val_str = ' ----'
         case default
-          call pointer_to_attribute (slave, a_name, .false., a_ptr, err_flag)
+          call pointer_to_attribute (slave, ctl%attribute, .false., a_ptr, err_flag)
           attrib_val_str = ' ----'
           if (associated(a_ptr%r)) write (attrib_val_str, '(es12.4)') a_ptr%r
         end select
@@ -911,7 +909,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         endif
 
         if (len_trim(expression_str) > 140) expression_str = expression_str(1:136) // ' ...'
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), slave%name(1:n_char), a_name, attrib_val_str, trim(expression_str)
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), slave%name(1:n_char), ctl%attribute, attrib_val_str, trim(expression_str)
       enddo
     end select
   endif
