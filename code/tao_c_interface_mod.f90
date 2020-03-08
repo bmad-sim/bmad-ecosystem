@@ -179,7 +179,7 @@ integer :: i
 !
 
 i = n
-tao_c_interface_com%c_line = c_string(out_io_buffer_get_line(i))
+call to_c_str (out_io_buffer_get_line(i), tao_c_interface_com%c_line)
 c_string_ptr = c_loc(tao_c_interface_com%c_line(1)) ! must point to (1) to avoid gfortran compiler error
 
 end function tao_c_out_io_buffer_get_line
