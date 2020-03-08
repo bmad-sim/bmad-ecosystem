@@ -646,8 +646,8 @@ def parse_command(command, dlist):
     if dlist[0] in common.ele_dict:
       ele_name = common.ele_dict[dlist[0]].name
       name = f'{dlist[0]}[{bmad_param(dlist[2], ele_name)}]'
-    else:
-      name = f'{dlist[0]}[{bmad_param(dlist[2])}]'
+    else:  # In a complete valid lattice, parameter seets always happen after the element has been defined
+      name = f'{dlist[0]}[{bmad_param(dlist[2], '???')}]'
     f_out.write(f'{name} = {value}\n')
     return
 
