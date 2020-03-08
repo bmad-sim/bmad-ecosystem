@@ -133,9 +133,6 @@ end interface
 ! where n2 = size(tensor,2).
 ! This is used for passing tensorrices to C++ routines.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   tensor(:,:)     -- Real(rp): Input tensorrix
 !   n               -- Integer: Number of elements. Normally this 
@@ -168,9 +165,6 @@ end interface
 !   cmplx_vec2mat
 !   bool_vec2mat
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   vec(*)   -- Real(c_double): Input array.
 !   n1       -- Integer: Size of first mat index.
@@ -196,9 +190,6 @@ end interface
 ! order and turn it into a tensor:
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
-!
-! Modules needed:
-!  use fortran_cpp_utils
 !
 ! Input:
 !   vec(*)   -- Real(c_double): Input array.
@@ -231,9 +222,6 @@ end interface
 ! This is useful for converting a C style string to Fortran.
 ! If there is no null character then str_out = str_in.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   str_char   -- Character(*): Input string with null character.
 !   str_arr(*) -- Character(1): Input array of null terminated character(1) characters.
@@ -256,9 +244,6 @@ end interface
 ! This function overloads:
 !   f_logic_int  (int_logic) result (f_log)
 !   f_logic_bool (bool_logic) result (f_log)
-!
-! Modules needed:
-!   use fortran_cpp_utils
 !
 ! Input:
 !   int_logic  -- Integer: C logical.
@@ -283,9 +268,6 @@ end interface
 !   c_logic1  (logic) result (c_logic)
 !   c_logic_vec (logic_vec) result (c_logic_vec)
 !
-! Modules needed:
-!   use fortran_cpp_utils
-!
 ! Input:
 !   logic        -- logical: Fortran logical.
 !   logic_vec(:) -- logical: Fortran logical vector.
@@ -309,9 +291,6 @@ contains
 !
 ! Function to convert from a fortran logical to a C logical.
 ! See c_logic for more details.
-!
-! Modules needed:
-!   use fortran_cpp_utils
 !
 ! Input:
 !   logic -- Logical: Fortran logical.
@@ -344,9 +323,6 @@ end function c_logic1
 !
 ! Function to convert from a fortran logical to a C logical.
 ! See c_logic for more details.
-!
-! Modules needed:
-!   use fortran_cpp_utils
 !
 ! Input:
 !   logic_vec(:) -- logical: Fortran logical vector.
@@ -436,9 +412,6 @@ end function f_logic_bool
 ! Function to return the size of a real pointer.
 ! If the pointer is not associated then 0 is returned.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   ptr(:) -- Real(rp), pointer: Pointer to an array.
 !
@@ -465,9 +438,6 @@ end function r_size
 !
 ! Function to return the size of an integer pointer.
 ! If the pointer is not associated then 0 is returned.
-!
-! Modules needed:
-!  use fortran_cpp_utils
 !
 ! Input:
 !   ptr(:) -- Integer, pointer: Pointer to an array.
@@ -497,9 +467,6 @@ end function i_size
 ! This routine overloaded by:
 !        remove_null_in_string
 ! See remove_null_in_string for more details.
-!
-! Modules needed:
-!  use fortran_cpp_utils
 !
 ! Input:
 !   str_in(*) -- Character(1): Input character array. Null terminated.
@@ -535,9 +502,6 @@ end subroutine remove_null_in_string_arr
 !        remove_null_in_string
 ! See remove_null_in_string for more details.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   str_in -- Character(*): Input string with null character.
 !
@@ -566,98 +530,100 @@ end subroutine remove_null_in_string_char
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine to_c_str (f_string, c_string)
+! Subroutine to_c_str (f_str, c_str)
 !
 ! Subroutine to append a null (0) character at the end of a string (trimmed
 ! of trailing blanks) so it will look like a C character array. 
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
-!   f_string   -- Character(*): Input character string
+!   f_str   -- Character(*): Input character string
 !
 ! Output:
-!   c_string(*) -- Character(kind=c_char): String with a null put just after the last
+!   c_str(*) -- Character(kind=c_char): String with a null put just after the last
 !                    non-blank character.
 !-
 
-pure subroutine to_c_str (f_string, c_string)
+pure subroutine to_c_str (f_str, c_str)
 
 implicit none
 
-character(*), intent(in) :: f_string
-character(kind=c_char), intent(out) ::  c_string(*)
+character(*), intent(in) :: f_str
+character(kind=c_char), intent(out) ::  c_str(*)
 integer i
 
 !
 
-do i = 1, len_trim(f_string)
-  c_string(i) = f_string(i:i)
+do i = 1, len_trim(f_str)
+  c_str(i) = f_str(i:i)
 enddo
 
-c_string(i) = c_null_char
+c_str(i) = c_null_char
 
 end subroutine to_c_str
 
 !-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 !+
-! function c_string(f_string) 
+! function c_string(f_str) result (c_str)
 !
-! Functional form of subroutine to_c_str (f_string, c_string)
+! Functional form of subroutine to_c_str (f_str, c_str)
 !
-! Modules needed:
-!  use fortran_cpp_utils
+! IMPRTANT NOTE: This routine is meant to be use "in place" like:
+!   call open_dir (c_string(my_dir), ...)
+! Do not use with the equal operator:
+!   my_c_str = c_string(my_f_str)   ! DO NOT USE THIS SYNTAX !!!
+! The problem is that the output of c_string is an array and my_c_str is an array so the above set will
+! fail if the array size of my_c_str and the array size of the output of c_string are not the same.
 !
 ! Input:
-!   f_string   -- Character(*): Input character string
+!   f_str   -- Character(*): Input character string
 !
 ! Output:
-!   c_string(*) -- Character(kind=c_char): String with a null put just after the last
-!                    non-blank character.
+!   c_str(len_trim(f_str)+1) 
+!           -- Character(kind=c_char): String with a null at the end.
 !-
-pure function c_string(f_string) 
+
+pure function c_string(f_str) result (c_str)
+
 implicit none
-character(len=*), intent(in) :: f_string
-character(len=1,kind=c_char), dimension(len_trim(f_string)+1) :: c_string
-call to_c_str (f_string, c_string)
+character(*), intent(in) :: f_str
+character(kind=c_char), dimension(len_trim(f_str)+1) :: c_str
+
+call to_c_str (f_str, c_str)
 
 end function c_string
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine to_f_str (c_string, f_string)
+! Subroutine to_f_str (c_str, f_str)
 !
 ! Subroutine to append a null (0) character at the end of a string (trimmed
 ! of trailing blanks) so it will look like a C character array. 
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
-!   c_string(*) -- Character(kind=c_char): C-style string.
+!   c_str(*) -- Character(kind=c_char): C-style string.
 !
 ! Output:
-!   f_string -- Character(*): Output character string.
+!   f_str -- Character(*): Output character string.
 !-
 
-subroutine to_f_str (c_string, f_string)
+subroutine to_f_str (c_str, f_str)
 
 implicit none
 
-character(*) f_string
-character(kind=c_char) c_string(*)
+character(*) f_str
+character(kind=c_char) c_str(*)
 integer i
 
 !
 
-do i = 1, len(f_string)
-  if (c_string(i) == c_null_char) then
-    f_string(i:) = ''
+do i = 1, len(f_str)
+  if (c_str(i) == c_null_char) then
+    f_str(i:) = ''
     return
   endif
-  f_string(i:i) = c_string(i)
+  f_str(i:i) = c_str(i)
 enddo
 
 end subroutine to_f_str
@@ -1036,9 +1002,6 @@ end function bool_tensor2vec
 ! Subroutine bool_vec2fvec (c_vec, f_vec)
 !
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   c_vec(*)   -- Logical(c_bool): Input array.
 !
@@ -1070,9 +1033,6 @@ end subroutine bool_vec2fvec
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   vec(*)   -- Real(c_double): Input array.
 !
@@ -1102,9 +1062,6 @@ end subroutine real_vec2mat
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   vec(*)   -- integer: Input array.
 !
@@ -1133,9 +1090,6 @@ end subroutine int_vec2mat
 ! Subroutine to take a an array and turn it into a matrix:
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
-!
-! Modules needed:
-!  use fortran_cpp_utils
 !
 ! Input:
 !   vec(*)   -- logical: Input array.
@@ -1170,9 +1124,6 @@ end subroutine bool_vec2mat
 !   mat(i,j) = vec(n2*(i-1) + j) 
 ! This is used for getting matrices from C++ routines.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   vec(*)   -- complex(c_double_complex): Input array.
 !
@@ -1201,9 +1152,6 @@ end subroutine cmplx_vec2mat
 ! Subroutine to take a an array and turn it into a tensor:
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
-!
-! Modules needed:
-!  use fortran_cpp_utils
 !
 ! Input:
 !   vec(*)   -- Real(rp): Input array.
@@ -1234,9 +1182,6 @@ end subroutine real_vec2tensor
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   vec(*)   -- integer: Input array.
 !
@@ -1266,9 +1211,6 @@ end subroutine int_vec2tensor
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
 !
-! Modules needed:
-!  use fortran_cpp_utils
-!
 ! Input:
 !   vec(*)   -- complex(c_double_complex): Input array.
 !
@@ -1297,9 +1239,6 @@ end subroutine cmplx_vec2tensor
 ! Subroutine to take a an array and turn it into a tensor:
 !   tensor(i,j) = vec(n3*n2*(i-1) + n3*j + k) 
 ! This is used for getting tensorrices from C++ routines.
-!
-! Modules needed:
-!  use fortran_cpp_utils
 !
 ! Input:
 !   vec(*)   -- logical(c_bool): Input array.
