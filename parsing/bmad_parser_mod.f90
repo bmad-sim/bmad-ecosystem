@@ -7269,9 +7269,9 @@ call str_upcase (debug_line, debug_line)
 if (index(debug_line, 'TIME') /= 0) then
   print *
   print *, '----------------------------------------'
-  print '(a, f12.2)', 'Parse time:               ', bp_com%time1 - bp_com%time0
-  print '(a, f12.2)', 'Lattice Bookkeeping time: ', bp_com%time2 - bp_com%time1
-  print '(a, f12.2)', 'Make_mat6 calc time:      ', bp_com%time3 - bp_com%time2
+  print '(a, f12.2)', 'Parse time (min):               ', (bp_com%time1 - bp_com%time0) / 60
+  print '(a, f12.2)', 'Lattice Bookkeeping time (min): ', (bp_com%time2 - bp_com%time1) / 60
+  print '(a, f12.2)', 'Make_mat6 calc time (min):      ', (bp_com%time3 - bp_com%time2) / 60
   found = .true.
 endif
 
