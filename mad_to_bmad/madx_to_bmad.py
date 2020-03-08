@@ -795,7 +795,7 @@ def parse_command(command, dlist):
   if dlist[1] == '=' and '->' in dlist[0]:
     [ele_name, dummy, param] = dlist[0].partition('->')
     value = bmad_expression(command.split('=')[1].strip(), param)
-    name = f'{ele_name}[{bmad_param(param)}]'
+    name = f'{ele_name}[{bmad_param(param, ele_name)}]'
     f_out.write(f'{name} = {value}\n')
     return
 
