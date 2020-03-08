@@ -803,7 +803,7 @@ type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
 real(rp) drift_id
-integer i, ib, k, ixx
+integer i, ie, ie2, k, ixx
 
 character(40) d_name
 
@@ -812,6 +812,7 @@ character(40) d_name
 if (drift_ele%key /= drift$) return
 drift_id = drift_ele%value(drift_id$)
 if (drift_id == 0) return
+branch => drift_ele%branch
 
 d_name = drift_ele%name
 i = index(d_name, '#')
@@ -819,36 +820,38 @@ if (i /= 0) d_name = d_name(:i-1)
 
 !
 
-ixx = 0
-do ib = 0, ubound(lat%branch, 1)
+if (drift_ele%orientation == 1) then
+  do ie = drift_ele%ix_ele, 1, -1
+    ele => branch%ele(ie)
+    if (ele%key /= drift$) cycle
+    if (ele%value(drift_id$) /= drift_id) exit  ! Found start of split drifts
+  enddo
 
-  branch => lat%branch(ib)
-  do i = 1, branch%n_ele_max
-    if (drift_ele%orientation == 1) then
-      ele => branch%ele(i)
-    else
-      ele => branch%ele(branch%n_ele_max+1-i)
-    endif
-
-    if ((ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) .and. ele%lord_status /= multipass_lord$) cycle
-    if (ele%value(drift_id$) /= drift_id) cycle
-
+  ixx = 0
+  do ie2 = ie+1, branch%n_ele_track
+    ele => branch%ele(ie2)
+    if (ele%key /= drift$) cycle
+    if (ele%value(drift_id$) /= drift_id) exit
     ixx = ixx + 1
     call set_ele_name (ele, trim(d_name) // '#' // int_str(ixx))
-
-    if (ele%lord_status == multipass_lord$) then
-      do k = 1, ele%n_slave
-        slave => pointer_to_slave(ele, k)
-        if (slave%orientation == 1) then
-          call set_ele_name (slave, trim(ele%name) // '\' // int_str(k))    ! '
-        else
-          call set_ele_name (slave, trim(ele%name) // '\' // int_str(ele%n_slave + 1 - k))    ! '
-        endif
-      enddo
-    endif
-
   enddo
-enddo 
+
+else
+  do ie = drift_ele%ix_ele, branch%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%key /= drift$) cycle
+    if (ele%value(drift_id$) /= drift_id) exit  ! Found start of split drifts
+  enddo
+
+  ixx = 0
+  do ie2 = ie-1, 1, -1
+    ele => branch%ele(ie2)
+    if (ele%key /= drift$) cycle
+    if (ele%value(drift_id$) /= drift_id) exit
+    ixx = ixx + 1
+    call set_ele_name (ele, trim(d_name) // '#' // int_str(ixx))
+  enddo
+endif
 
 end subroutine adjust_drift_names
 

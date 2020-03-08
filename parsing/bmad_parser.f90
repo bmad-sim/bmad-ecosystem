@@ -1283,6 +1283,9 @@ if (bp_com%extra%ran_function_was_called) then
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
 endif
 
+call out_io (s_important$, r_name, 'Lattice parse time(min):\f5.2\ ', r_array = [(bp_com%time1 - bp_com%time0)/60.0_rp])
+
+
 !---------------------------------------------------------------------
 contains
 
