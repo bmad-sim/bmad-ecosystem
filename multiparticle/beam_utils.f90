@@ -8,7 +8,7 @@ use bmad_interface
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
-private combine_bunch_distributions, calc_this_emit, read_bunch_end_calc
+private combine_bunch_distributions, calc_this_emit, bunch_init_end_calc
 
 contains
 
@@ -272,7 +272,7 @@ if (beam_init%position_file /= '') then
   endif
 
   do i_bunch = 1, size(beam%bunch)
-    call read_bunch_end_calc(beam%bunch(i_bunch), beam_init, ele)
+    call bunch_init_end_calc(beam%bunch(i_bunch), beam_init, i_bunch-1, .true., ele)
   enddo
 
   if (present(err_flag)) err_flag = .false.
@@ -354,7 +354,7 @@ type (kv_beam_init_struct), pointer :: kv
 
 real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6)
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
-real(rp) old_cutoff, pz_min
+real(rp) old_cutoff
 real(rp) tunes(1:3), g6mat(6,6), g6inv(6,6), v6mat(6,6), t6(6,6)
 
 integer ix_bunch
@@ -392,7 +392,7 @@ if (beam_init%position_file /= '') then
   endif
   bunch = beam%bunch(1)
 
-  call read_bunch_end_calc (bunch, beam_init, ele)
+  call bunch_init_end_calc (bunch, beam_init, ix_bunch, .true., ele)
 
   if (present(err_flag)) err_flag = .false.
   return
@@ -513,27 +513,6 @@ do i = 1, size(bunch%particle)
 
 enddo
 
-! recenter the bunch and include beam jitter
-
-if (beam_init%use_particle_start_for_center) then
-  if (.not. associated (ele%branch)) then
-    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
-    return
-  endif
-  if (.not. associated (ele%branch%lat)) then
-    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
-    return
-  endif
-endif
-
-call ran_gauss(ran)
-center = beam_init%center + beam_init%center_jitter * ran
-
-do i = 1, size(bunch%particle)
-  p => bunch%particle(i)
-  p%vec = p%vec + center
-enddo
-
 ! particle spin
 
 call init_spin_distribution (beam_init, bunch)
@@ -549,59 +528,9 @@ if (species == photon$) then
   bunch%particle(1:n:2)%field(1) = 1/sqrt(2.0_rp)
 endif
 
-! Fill in %t and %s
+! End stuff
 
-if(beam_init%use_t_coords) then
-  ! Time coordinates 
-  do i = 1, size(bunch%particle)
-    p => bunch%particle(i)
-    
-    if (beam_init%use_z_as_t) then
-      ! Fixed s, particles distributed in time using vec(5)
-      p%s = ele%s
-      p%t = p%vec(5)
-      p%location = downstream_end$
-      p%vec(5) = 0 !init_coord will not complain when beta == 0 and vec(5) == 0
-      
-    else
-      ! Fixed time, particles distributed in space using vec(5)
-      p%s = p%vec(5)
-      p%t = ele%ref_time + bunch%t_center
-      p%location = inside$
-    endif
-
-    ! Convert to s coordinates
-    p%p0c = ele%value(p0c$)
-    call convert_particle_coordinates_t_to_s (p, p%t-ele%ref_time, ele)
-    ! beta calc
-    call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = p%beta)  
-    p%state = alive$
-  enddo
-
-else
-  ! Usual s-coordinates
-  do i = 1, size(bunch%particle)
-    p => bunch%particle(i)
-    p%s = ele%s
-    call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
-    p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
-    call init_coord (p, p, ele, downstream_end$, species)
-    ! With an e_gun, the particles will have nearly zero momentum (pz ~ -1).
-    ! In this case, we need to take care that (1 + pz)^2 >= px^2 + py^2 otherwise, with
-    ! an unphysical pz, the particle will be considered to be dead.
-    pz_min = 1.000001_rp * sqrt(p%vec(2)**2 + p%vec(4)**2) - 1 ! 1.000001 factor to avoid roundoff problems.
-    p%vec(6) = max(p%vec(6), pz_min)
-  enddo
-endif
-
-!
-
-bunch%t_center      = ix_bunch * beam_init%dt_bunch
-bunch%z_center      = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
-bunch%ix_bunch      = ix_bunch
-bunch%particle(:)%t = bunch%particle(:)%t + bunch%t_center
-bunch%n_live        = size(bunch%particle)
-bunch%charge_live   = sum(bunch%particle%charge)
+call bunch_init_end_calc(bunch, beam_init, ix_bunch, .false., ele)
 
 ! Reset the random number generator parameters.
 
@@ -1871,33 +1800,38 @@ end subroutine find_bunch_sigma_matrix
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine read_bunch_end_calc (bunch, beam_init, ele)
+! Subroutine bunch_init_end_calc (bunch, beam_init, ix_bunch, from_file, ele)
 !
-! Private routine to do the dependent parameter bookkeeping after reading in particle positions from a file.
+! Private routine to do the dependent parameter bookkeeping after either reading in particle 
+! positions from a beam file or generating positions with init_bunch_distribution.
 !
 ! Input:
 !   bunch     -- bunch_struct: Structure with info from the beam file.
 !   beam_init -- beam_init_struct: Displace the centroid?
+!   ix_bunch  -- integer: Bunch index.
+!   from_file -- logical: If True then input positions come from a beam file.
 !   ele       -- ele_struct: Lattice element to initalize at.
 !
 ! Output:
 !   bunch     -- bunch_struct: Bunch after dependent parameter bookkeeping.
 !-
 
-subroutine read_bunch_end_calc (bunch, beam_init, ele)
+subroutine bunch_init_end_calc (bunch, beam_init, ix_bunch, from_file, ele)
+
+implicit none
 
 type (bunch_struct), target :: bunch
 type (beam_init_struct) beam_init
 type (ele_struct) ele
 type (coord_struct), pointer :: p
 
-real(rp) center(6), ran, old_charge
-integer i
-character(*), parameter :: r_name = 'read_bunch_end_calc'
+real(rp) center(6), ran_vec(6), old_charge, pz_min
+integer ix_bunch, i
+character(*), parameter :: r_name = 'bunch_init_end_calc'
+logical from_file
 
 ! Adjust center
 
-call ran_gauss(ran)
 if (beam_init%use_particle_start_for_center) then
   if (.not. associated (ele%branch)) then
     call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
@@ -1910,21 +1844,67 @@ if (beam_init%use_particle_start_for_center) then
   beam_init%center = ele%branch%lat%particle_start%vec
 endif
 
-center = beam_init%center + beam_init%center_jitter * ran
+call ran_gauss(ran_vec)
+center = beam_init%center + beam_init%center_jitter * ran_vec
+
+!
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%vec = p%vec + center
   p%s = ele%s
-  call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
-  p%t = ele%ref_time - p%vec(5) / (p%beta * c_light)
-  if (p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
-  call init_coord (p, p, ele, downstream_end$, p%species, +1)
+
+  ! Time coordinates 
+
+  if (beam_init%use_t_coords) then
+    
+    if (beam_init%use_z_as_t) then
+      ! Fixed s, particles distributed in time using vec(5)
+      p%t = p%vec(5)
+      p%location = downstream_end$
+      p%vec(5) = 0 !init_coord will not complain when beta == 0 and vec(5) == 0
+      
+    else
+      ! Fixed time, particles distributed in space using vec(5)
+      p%s = p%vec(5)
+      p%t = ele%ref_time + bunch%t_center
+      p%location = inside$
+    endif
+
+    ! Convert to s coordinates
+    p%p0c = ele%value(p0c$)
+    call convert_particle_coordinates_t_to_s (p, p%t-ele%ref_time, ele)
+    ! beta calc
+    call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)  
+    p%state = alive$
+
+  ! Usual s-coordinates
+  else
+    call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
+    p%t = ele%ref_time - p%vec(5) / (p%beta * c_light)
+    if (from_file .and. p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
+    call init_coord (p, p, ele, downstream_end$, p%species)
+    ! With an e_gun, the particles will have nearly zero momentum (pz ~ -1).
+    ! In this case, we need to take care that (1 + pz)^2 >= px^2 + py^2 otherwise, with
+    ! an unphysical pz, the particle will be considered to be dead.
+    pz_min = 1.000001_rp * sqrt(p%vec(2)**2 + p%vec(4)**2) - 1 ! 1.000001 factor to avoid roundoff problems.
+    p%vec(6) = max(p%vec(6), pz_min)
+  endif
 enddo
 
-! Adjust charge
+!
 
-if (beam_init%bunch_charge /= 0) then
+bunch%t_center      = ix_bunch * beam_init%dt_bunch
+bunch%z_center      = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
+bunch%particle(:)%t = bunch%particle(:)%t + bunch%t_center
+bunch%n_live        = size(bunch%particle)
+bunch%charge_live   = sum(bunch%particle%charge)
+bunch%ix_bunch      = ix_bunch
+
+
+! If from a file, scale the particle charge.
+
+if (from_file .and. beam_init%bunch_charge /= 0) then
   old_charge = sum(bunch%particle%charge)
   if (old_charge == 0) then
     bunch%particle%charge = beam_init%bunch_charge / size(bunch%particle)
@@ -1934,7 +1914,6 @@ if (beam_init%bunch_charge /= 0) then
   bunch%charge_tot = beam_init%bunch_charge
 endif
 
-
-end subroutine read_bunch_end_calc
+end subroutine bunch_init_end_calc
 
 end module
