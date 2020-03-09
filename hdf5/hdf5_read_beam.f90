@@ -35,13 +35,14 @@ real(rp) factor
 integer(hid_t) f_id, z_id, z2_id, r_id, b_id
 integer(hsize_t) idx
 integer(size_t) g_size
-integer i, ik, ib, ix, is, it, state, h5_err, n_bunch, storage_type, n_links, max_corder, h5_stat
+integer i, j, ik, ib, ix, is, it, nn, nt
+integer state, h5_err, n_bunch, storage_type, n_links, max_corder, h5_stat
 integer h_err
 integer, allocatable :: ivec(:)
 
 character(*) file_name
 character(*), parameter :: r_name = 'hdf5_read_beam'
-character(100) c_name, name
+character(100) c_name, name, t_match, sub_dir
 logical error, err
 
 ! Init
@@ -64,16 +65,31 @@ call hdf5_read_attribute_alloc_string (f_id, 'latticeName', pmd_head%latticeName
 
 if (present(pmd_header)) pmd_header = pmd_head
 
-! Find root group
-! Note: Right now it is assumed that the basepath uses "/%T/" to sort bunches.
+! Since bunch case with "%T" not present.
 
-it = index(pmd_head%basePath, '/%T/')
-if (it /= len_trim(pmd_head%basePath) - 3) then
-  call out_io (s_error$, r_name, 'PARSING OF BASE PATH FAILURE. PLEASE REPORT THIS. ' // pmd_head%basePath)
+it = index(pmd_head%basePath, '%T')
+if (it == 0) then  ! No "%T" means only one bunch present
+  z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.);  if (err) return
+  call reallocate_beam (beam, 1)
+  call hdf5_read_bunch(z_id, '.', beam%bunch(1), error, pmd_head, ele)
+  call h5fclose_f(f_id, h5_err)
   return
 endif
 
-z_id = hdf5_open_group(f_id, pmd_head%basePath(1:it), err, .true.)
+! Multiple bunch case with "%T" present.
+
+is = index(pmd_head%basePath(1:it), '/', back = .true.)
+z_id = hdf5_open_group(f_id, pmd_head%basePath(1:is), err, .true.);  if (err) return
+t_match = pmd_head%basePath(is+1:)
+i = len_trim(t_match)
+if (t_match(i:i) == '/') t_match(i:i) = ' ' ! Erase trailing slash.
+is = index(t_match, '/')
+if (is == 0) then
+  sub_dir = ''
+else
+  sub_dir = t_match(is:)
+  t_match = t_match(1:is-1)
+endif
 
 ! Loop over all bunches
 
@@ -84,14 +100,28 @@ do idx = 0, n_links-1
   call to_f_str(c_name, name)
   call H5Oget_info_by_name_f(z_id, name, infobuf, h5_stat)
   if (infobuf%type /= H5O_TYPE_GROUP_F) cycle    ! Ignore non-group elements.
-  if (.not. is_integer(name)) then               ! This assumes basepath uses "/%T/" to designate different bunches.
-    call out_io (s_warn$, r_name, 'NAME OF DIRECTORY IN PATH IS NOT AN INTEGER: ' // quote(name))
-    cycle
+  nn = len_trim(name)
+  nt = len_trim(t_match)
+  it = index(t_match, '%T')
+  if (nn < nt - 1) cycle
+  if (it > 1) then
+    if (name(1:it-1) /= t_match(1:it-1)) cycle
   endif
+  j = nt - (it + 1)
+  if (j > 0) then
+    if (name(nn-j+1:nn) /= t_match(nt-j+1:nt)) cycle
+  endif
+  if (.not. is_integer(name(it+1:nn-j))) cycle
+  name = trim(name) // sub_dir
   n_bunch = n_bunch + 1
   call reallocate_beam (beam, n_bunch, save = .true.)
-  call hdf5_read_bunch(z_id, name, beam%bunch(n_bunch), pmd_head, ele)
+  call hdf5_read_bunch(z_id, name, beam%bunch(n_bunch), error, pmd_head, ele)
 enddo
+
+if (n_bunch == 0) then
+  call out_io (s_error$, r_name, 'UNABLE TO LOCATE BEAM DATA IN FILE: ' // file_name)
+  return
+endif
 
 call reallocate_beam(beam, n_bunch)
 
@@ -100,7 +130,7 @@ call h5fclose_f(f_id, h5_err)
 !------------------------------------------------------------------------------------------
 contains
 
-subroutine hdf5_read_bunch (root_id, bunch_obj_name, bunch, pmd_head, ele)
+subroutine hdf5_read_bunch (root_id, bunch_obj_name, bunch, error, pmd_head, ele)
 
 type (pmd_header_struct) pmd_head
 type (ele_struct), optional :: ele
@@ -122,7 +152,9 @@ character(:), allocatable :: string
 character(100) g_name, a_name, name, c_name
 character(*), parameter :: r_name = 'hdf5_read_bunch'
 
-!
+logical error
+
+! General note: There is no way to check names for misspellings since any name may just be an extension standard.
 
 g_id = hdf5_open_group(root_id, bunch_obj_name, error, .true.);  if (error) return
 g2_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error) return
@@ -167,8 +199,6 @@ do ia = 1, hdf5_num_attributes (g2_id)
     call hdf5_read_attribute_real(g2_id, a_name, bunch%charge_live, error, .true.);  if (error) return
   case ('chargeUnitSI')
     call hdf5_read_attribute_real(g2_id, a_name, charge_factor, error, .true.);  if (error) return
-  case default
-    call out_io (s_warn$, r_name, 'Unknown bunch attribute: ', quote(a_name))
   end select
 enddo
 
