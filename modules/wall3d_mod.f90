@@ -709,12 +709,12 @@ branch => pointer_to_branch(ele)
 ! If the particle is at a wall section, use the correct interval.
 ! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
 
-! Case where the particle is outside the wall region longitudinally. 
-! In this case, wrap if it is a chamber wall with a branch with closed geometry.
-! Otherwise assume a constant cross-section.
+! Case where the particle is outside the wall region longitudinally: Wrap the wall around the branch ends
+! if the branch has closed geometry. Otherwise assume a constant cross-section.
 
 ! If at a wall start/end then add a slop factor to decide if the particle is outside to avoid round-off
 ! problems when a particle is at the end of an element and the wall is only defined for that element.
+! EG: time_runge_kutta will track beyound an element's edge.
 
 if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .and. position(6) > 0)) then
   if (wall3d%section(1)%type == wall_start$) then
@@ -725,7 +725,7 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
     endif
     return
 
-  elseif (wall3d%section(1)%type /= wall_start$) then
+  elseif (branch%param%geometry == closed$) then
     sec1 => wall3d%section(n_sec);  s1 = sec1%s - branch%param%total_length
     sec2 => wall3d%section(1);      s2 = sec2%s
     if (present(ix_section)) ix_section = n_sec
@@ -744,7 +744,7 @@ elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(
     endif
     return
 
-  elseif (wall3d%section(n_sec)%type /= wall_end$) then
+  elseif (branch%param%geometry == closed$) then
     sec1 => wall3d%section(n_sec);  s1 = sec1%s
     sec2 => wall3d%section(1);      s2 = sec2%s + branch%param%total_length
     if (present(ix_section)) ix_section = n_sec

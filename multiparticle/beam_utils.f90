@@ -1876,7 +1876,9 @@ do i = 1, size(bunch%particle)
     call convert_particle_coordinates_t_to_s (p, p%t-ele%ref_time, ele)
     ! beta calc
     call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)  
-    p%state = alive$
+    if (.not. from_file) p%state = alive$
+    p%ix_ele    = ele%ix_ele
+    p%ix_branch = ele%ix_branch
 
   ! Usual s-coordinates
   else
