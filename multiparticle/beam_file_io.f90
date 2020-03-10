@@ -116,8 +116,9 @@ end subroutine write_beam_file
 !     %bunch_charge
 !
 ! Input:
-!   file_name           -- character(*): Name of beam file.
-!   beam_init           -- beam_init_struct: See above.
+!   file_name   -- character(*): Name of beam file.
+!   beam_init   -- beam_init_struct: See above.
+!   ele         -- ele_struct, optional: Element with reference energy, etc.
 !
 ! Output:
 !   beam        -- Beam_struct: Structure holding the beam information.
@@ -160,7 +161,7 @@ endif
 ! HDF5 file
 
 n = len_trim(full_name)
-if (full_name(n-4:n) == '.hdf5' .or. full_name(n-2:n) == '.h5') then
+if (full_name(max(1,n-4):n) == '.hdf5' .or. full_name(max(1,n-2):n) == '.h5') then
   call hdf5_read_beam (full_name, beam, err_flag, ele)
   return
 endif

@@ -2,10 +2,11 @@
 ! Subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
 !
 ! Routine to read a beam data file. 
-! See also hdf5_write_beam
+! See also hdf5_write_beam.
 !
 ! Input:
 !   file_name         -- character(*): Name of the beam data file.
+!                           Default is False.
 !   ele               -- ele_struct, optional: Element where beam is to be started from.
 !                           The element reference momentum will be used for the particle reference momentum.
 !
@@ -43,6 +44,7 @@ integer, allocatable :: ivec(:)
 character(*) file_name
 character(*), parameter :: r_name = 'hdf5_read_beam'
 character(100) c_name, name, t_match, sub_dir
+
 logical error, err
 
 ! Init
@@ -138,8 +140,8 @@ type(H5O_info_t) :: infobuf
 type(bunch_struct), target :: bunch
 type (coord_struct), pointer :: p
 
-real(rp) charge_factor, f_ev
-real(rp), allocatable :: dt(:), pz(:)
+real(rp) charge_factor, f_ev, p0c_initial, p0c_final
+real(rp), allocatable :: dt(:), tot_mom(:), mom_x_off(:), mom_y_off(:), mom_z_off(:)
 
 integer(hid_t), value :: root_id
 integer(hid_t) g_id, g2_id, a_id
@@ -163,11 +165,15 @@ g2_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error
 
 call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.);  if (error) return
 
-allocate (dt(n), charge_state(n), pz(n))
+allocate (dt(n), charge_state(n), tot_mom(n), mom_x_off(n), mom_y_off(n), mom_z_off(n))
 
 charge_factor = 0
 species = int_garbage$  ! Garbage number
+tot_mom = real_garbage$
 charge_state = 0
+mom_x_off = 0
+mom_y_off = 0
+mom_z_off = 0
 
 call reallocate_bunch(bunch, n)
 bunch%particle = coord_struct()
@@ -234,12 +240,16 @@ do idx = 0, n_links-1
     call pmd_read_real_dataset(g2_id, 'velocity/x', c_light, bunch%particle%vec(2), error)
     call pmd_read_real_dataset(g2_id, 'velocity/y', c_light, bunch%particle%vec(4), error)
     call pmd_read_real_dataset(g2_id, 'velocity/z', c_light, bunch%particle%vec(6), error)
+  case ('momentumOffset')
+    call pmd_read_real_dataset(g2_id, 'momentum/x', f_ev, mom_x_off, error)
+    call pmd_read_real_dataset(g2_id, 'momentum/y', f_ev, mom_y_off, error)
+    call pmd_read_real_dataset(g2_id, 'momentum/z', f_ev, mom_z_off, error)
+  case ('velocityOffset')
+    call pmd_read_real_dataset(g2_id, 'velocity/x', c_light, mom_x_off, error)
+    call pmd_read_real_dataset(g2_id, 'velocity/y', c_light, mom_y_off, error)
+    call pmd_read_real_dataset(g2_id, 'velocity/z', c_light, mom_z_off, error)
   case ('pathLength')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%path_len, error)
-  case ('totalMomentumOffset')
-    call pmd_read_real_dataset(g2_id, name, f_ev, bunch%particle%p0c, error)
-  case ('totalMomentum')
-    call pmd_read_real_dataset(g2_id, name, f_ev, pz, error)
   case ('photonPolarizationAmplitude')
     call pmd_read_real_dataset(g2_id, 'photonPolarizationAmplitude/x', 1.0_rp, bunch%particle%field(1), error)
     call pmd_read_real_dataset(g2_id, 'photonPolarizationAmplitude/y', 1.0_rp, bunch%particle%field(2), error)
@@ -252,6 +262,10 @@ do idx = 0, n_links-1
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, dt, error)
   case ('timeOffset')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%t, error)
+  case ('totalMomentum')
+    call pmd_read_real_dataset(g2_id, name, f_ev, tot_mom, error)
+  case ('totalMomentumOffset')
+    call pmd_read_real_dataset(g2_id, name, f_ev, bunch%particle%p0c, error)
   case ('weight')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%charge, error)
   case ('particleStatus')
@@ -293,26 +307,54 @@ if (species == int_garbage$) then
   return
 endif
 
+bunch%particle%vec(2) = bunch%particle%vec(2) + mom_x_off
+bunch%particle%vec(4) = bunch%particle%vec(4) + mom_y_off
+bunch%particle%vec(6) = bunch%particle%vec(6) + mom_z_off
+
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
   p%t = p%t + dt(ip)
+
   if (species == photon$) then
     p%species = species
     p%beta = 1
-  else
-    p%species = set_species_charge(species, charge_state(ip))
-    call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)
-    if (present(ele)) p%p0c = ele%value(p0c$)
-    if (p%p0c == 0) then
-      call out_io (s_error$, r_name, 'REFERENCE MOMENTUM NOT PRESENT WHILE READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
-      error = .true.
-      return
-    endif
-    p%vec(5) = -p%beta * c_light * dt(ip)
-    p%vec(2) = p%vec(2) / p%p0c
-    p%vec(4) = p%vec(4) / p%p0c
-    p%vec(6) = pz(ip) / p%p0c
+    cycle
   endif
+
+  ! Not a photon.
+
+  p0c_initial = p%p0c
+  p0c_final   = p%p0c
+  if (present(ele) .and. p0c_initial == 0) p0c_initial   = ele%value(p0c$)
+  if (present(ele)) p0c_final   = ele%value(p0c$)
+
+  if (p0c_final == 0) then
+    call out_io (s_error$, r_name, 'REFERENCE MOMENTUM NOT PRESENT WHILE READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
+    error = .true.
+    return
+  endif
+
+  if (abs(p0c_initial - p0c_final) > 1e-12 * p0c_final) then
+    call out_io (s_warn$, r_name, 'REFERENCE MOMENTUM IN BEAM FILE:  \es20.12\ ', &
+                                  'FROM FILE: ' // file_name, &
+                                  'DIFFERENT FROM REFERNECE MOMENTUM IN LATTICE: \es20.12\ ', &
+                                  'THIS WILL CAUSE A SHIFT IN PHASE SPACE pz = (P - P0)/P', &
+                                  r_array = [p0c_initial, p0c_final])
+  endif
+
+  if (tot_mom(ip) == real_garbage$ .or. p0c_initial == 0) then 
+    p%vec(6) = (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2) - p0c_final) / p0c_final
+  else
+    p%vec(6) = (tot_mom(ip) + (p0c_initial - p0c_final)) / p0c_final
+  endif
+
+  p%species = set_species_charge(species, charge_state(ip))
+  call convert_pc_to ((1 + p%vec(6)) * p0c_final, p%species, beta = p%beta)
+  p%vec(2) = p%vec(2) / p0c_final
+  p%vec(4) = p%vec(4) / p0c_final
+  p%vec(5) = -p%beta * c_light * dt(ip)
+
+  p%p0c = p0c_final
 enddo
 
 end subroutine  hdf5_read_bunch

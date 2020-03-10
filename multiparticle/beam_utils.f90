@@ -272,7 +272,7 @@ if (beam_init%position_file /= '') then
   endif
 
   do i_bunch = 1, size(beam%bunch)
-    call bunch_init_end_calc(beam%bunch(i_bunch), beam_init, i_bunch-1, .true., ele)
+    call bunch_init_end_calc(beam%bunch(i_bunch), beam_init, i_bunch-1, ele)
   enddo
 
   if (present(err_flag)) err_flag = .false.
@@ -392,7 +392,7 @@ if (beam_init%position_file /= '') then
   endif
   bunch = beam%bunch(1)
 
-  call bunch_init_end_calc (bunch, beam_init, ix_bunch, .true., ele)
+  call bunch_init_end_calc (bunch, beam_init, ix_bunch, ele)
 
   if (present(err_flag)) err_flag = .false.
   return
@@ -530,7 +530,7 @@ endif
 
 ! End stuff
 
-call bunch_init_end_calc(bunch, beam_init, ix_bunch, .false., ele)
+call bunch_init_end_calc(bunch, beam_init, ix_bunch, ele)
 
 ! Reset the random number generator parameters.
 
@@ -1800,7 +1800,7 @@ end subroutine find_bunch_sigma_matrix
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine bunch_init_end_calc (bunch, beam_init, ix_bunch, from_file, ele)
+! Subroutine bunch_init_end_calc (bunch, beam_init, ix_bunch, ele)
 !
 ! Private routine to do the dependent parameter bookkeeping after either reading in particle 
 ! positions from a beam file or generating positions with init_bunch_distribution.
@@ -1809,14 +1809,13 @@ end subroutine find_bunch_sigma_matrix
 !   bunch     -- bunch_struct: Structure with info from the beam file.
 !   beam_init -- beam_init_struct: Displace the centroid?
 !   ix_bunch  -- integer: Bunch index.
-!   from_file -- logical: If True then input positions come from a beam file.
 !   ele       -- ele_struct: Lattice element to initalize at.
 !
 ! Output:
 !   bunch     -- bunch_struct: Bunch after dependent parameter bookkeeping.
 !-
 
-subroutine bunch_init_end_calc (bunch, beam_init, ix_bunch, from_file, ele)
+subroutine bunch_init_end_calc (bunch, beam_init, ix_bunch, ele)
 
 implicit none
 
@@ -1826,9 +1825,9 @@ type (ele_struct) ele
 type (coord_struct), pointer :: p
 
 real(rp) center(6), ran_vec(6), old_charge, pz_min
-integer ix_bunch, i
+integer ix_bunch, i, n
 character(*), parameter :: r_name = 'bunch_init_end_calc'
-logical from_file
+logical from_file, h5_file
 
 ! Adjust center
 
@@ -1849,14 +1848,18 @@ center = beam_init%center + beam_init%center_jitter * ran_vec
 
 !
 
+from_file = (beam_init%position_file /= '')
+n = len_trim(beam_init%position_file)
+h5_file = (beam_init%position_file(max(1,n-4):n) == '.hdf5' .or. beam_init%position_file(max(1,n-2):n) == '.h5')
+
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%vec = p%vec + center
   p%s = ele%s
 
-  ! Time coordinates 
+  ! Time coordinates. HDF5 files have full particle information so time conversion is ignored.
 
-  if (beam_init%use_t_coords) then
+  if (beam_init%use_t_coords .and. .not. h5_file) then
     
     if (beam_init%use_z_as_t) then
       ! Fixed s, particles distributed in time using vec(5)
@@ -1873,9 +1876,8 @@ do i = 1, size(bunch%particle)
 
     ! Convert to s coordinates
     p%p0c = ele%value(p0c$)
+    call convert_pc_to (sqrt(p%vec(2)**2 + p%vec(4)**2 + p%vec(6)**2), p%species, beta = p%beta)  
     call convert_particle_coordinates_t_to_s (p, p%t-ele%ref_time, ele)
-    ! beta calc
-    call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)  
     if (.not. from_file) p%state = alive$
     p%ix_ele    = ele%ix_ele
     p%ix_branch = ele%ix_branch
@@ -1885,7 +1887,9 @@ do i = 1, size(bunch%particle)
     call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = p%beta)
     p%t = ele%ref_time - p%vec(5) / (p%beta * c_light)
     if (from_file .and. p%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
-    call init_coord (p, p, ele, downstream_end$, p%species)
+    ! If from a file then no vec6 shift needed.
+    call init_coord (p, p, ele, downstream_end$, p%species, shift_vec6 = .not. from_file)
+
     ! With an e_gun, the particles will have nearly zero momentum (pz ~ -1).
     ! In this case, we need to take care that (1 + pz)^2 >= px^2 + py^2 otherwise, with
     ! an unphysical pz, the particle will be considered to be dead.
