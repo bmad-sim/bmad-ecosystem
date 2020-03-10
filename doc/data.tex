@@ -175,104 +175,150 @@ Note: Some of these components are set by the user and some of these components 
 \begin{description}
   \item[base] \Newline
 The value of the datum as calculated from the base lattice (\sref{s:datum.values}).
+%
   \item[data_source] \Newline
 The \vn{data_source} component specifies where the data is coming from
 (\sref{s:data.source}).
+%
   \item[data_type] \Newline
 The type of data (\sref{s:data.types}). For example, \vn{beta.a}. At startup, if the
 \vn{data_type} is not specified, it is set to \vn{<d2_name>.<d1_name>} where
 \vn{<d2_name>} is the name of the associated \vn{d2} data structure and \vn{<d1_name>} is 
 the name of the associated \vn{d1} data structure (\sref{s:init.data}).
+%
   \item[delta_merit] \Newline
 Difference used to calculate the contribution of the datum to the merit function (\sref{s:lattice.correction}).
+%
   \item[design] \Newline
 The value of the datum as calculated from the design lattice (\sref{s:datum.values}).
+%
   \item[ele_name] \Newline
 Name of the associated lattice element where the datum is evaluated at (\sref{s:data.lat.ele}). Not
 used for datums that are \vn{global}, like the emittance. Also see \vn{eval_point} and \vn{s_offset}
 components.
+%
   \item[ele_start_name] \Newline
 Starting element of a range of lattice elements (\sref{s:data.lat.ele}).
+%
   \item[ele_ref_name] \Newline
 Reference lattice element (\sref{s:data.lat.ele}).
+%
   \item[error_rms] \Newline
 The error associated with the measured or reference data values. Used for drawing error bars. See the 
 documentation on \vn{curve(i)%draw_error_bars} in \sref{s:plot.data}.
 for more details.
+%
   \item[eval_point] \Newline
 Used with \vn{s_offset} to determine where the datum is evaluated at (\sref{s:dat.eval}).
+%
   \item[exists] \Newline
 Set by \tao to True if the datum exists (\sref{s:datum.opt}). 
+%
   \item[fit] \Newline
 Not used by \tao. Can be used with custom code.
+%
   \item[good_base] \Newline
 Set by \tao. Is the \vn{base} value valid?
+%
   \item[good_design] \Newline
 Set by \tao. Is the value as calculated from the \vn{design} lattice valid? For example, if the
 datum is the particle orbit at some BPM in a ring and if it is not possible to compute the orbit at
 the BPM due to the lattice being ustable then \vn{good_design} will be False.
+%
   \item[good_meas] \Newline
 Set by \tao. Is the \vn{meas} value valid?
+%
   \item[good_model] \Newline
 Set by the user. Is the value as calculated from the \vn{model} lattice valid? For example, if the
 datum is the particle orbit at some BPM in a lattice with open geometry and if it is not possible to
 compute the orbit at the BPM due to the particle being lost upstream of the element then
 \vn{good_model} will be False.
+%
   \item[good_opt] \Newline
 Set by the user. Is the datum valid for optimization?
+%
   \item[good_plot] \Newline
 Set by the user. Is the datum to be used in plotting?
+%
   \item[good_ref] \Newline
 Set by the user. Is the \vn{ref} value valid?
+%
   \item[good_user] \Newline
 Set by the user. Is the datum valid for optimization or plotting?
+%
   \item[invalid] \Newline
 The value used in the computation of \vn{delta_merit} one of the following three conditions is
 True: 1) if \vn{good_model} = False, or 2) if \vn{good_base} is False when the global \vn{opt_with_base}
 is True, or 3) if \vn{good_design} is False when the global \vn{opt_with_ref} is True.
+%
   \item[ix_branch] \Newline
 The index of the lattice branch that contains \vn{ele}, \vn{ref_ele}, and \vn{start_ele}.
+%
   \item[ix_ele] \Newline
 Index of the lattice element where the datum is evaluated at. 
+%
   \item[ix_ele_start] \Newline
 Index of the start element.
+%
   \item[ix_ele_ref] \Newline
 Index of the reference element.
+%
   \item[ix_ele_merit] \Newline
 Set by \tao. When the \vn{merit_type} is set to \vn{max} or \vn{min} and there is a range
 of elements that over which the there is an evaluation, ix_ele_merit is set to the element
 where the value is the \vn{max} or \vn{min}.
+%
   \item[ix_d1] \Newline
 Index of the associated \vn{d1_data} array.
+%
   \item[ix_data] \Newline
 For convenience, all the datums of a given universe are put into one large array. \vn{ix_data} is the index
 of the datum in this array. This is useful for debugging purposes.
+%
   \item[ix_dModel] \Newline
 For optimization, \tao creates a derivative matrix dMerit_i/dVar_j. \vn{ix_dmodel} is set
 to the i\Th column of this matrix. This is useful for debugging purposes
+%
   \item[ix_bunch] \Newline
 For datums that have \vn{data_source} set to \vn{beam}, \vn{ix_bunch} selects which bunch
 of the beam the datum is evaluated at.
+%
   \item[meas] \Newline
 The value of the datum as obtained from some measurement (\sref{s:datum.values}).
+%
   \item[merit] \Newline
 The contribution to the merit function due to this datum (\sref{s:lattice.correction}).
+%
   \item[merit_type] \Newline
-The type of merit (\sref{s:generalized.design}). 
+The type of merit (\sref{s:generalized.design}). Possible values are:
+\begin{example}
+  "target"
+  "max",     "min"
+  "abs_max", "abs_min"
+  "max-min", "average"  ! Only used when datum specifies a range of elements.
+\end{example}
+%
+%
   \item[model] \Newline
 The value of the datum as calculated from the \vn{model} lattice (\sref{s:datum.values}).
+%
   \item[old] \Newline
 A datum value that was saved at some point in \tao's calculations. This value
 can be ignored (\sref{s:datum.values}).
+%
   \item[ref] \Newline
 The reference datum value as obtained from some reference measurement (\sref{s:datum.values}).
+%
   \item[s] \Newline
 Longitudinal $s$-position of the lattice element.
+%
   \item[s_offset] \Newline
 Offset of the evaluation point when there is an associated lattice element (\sref{s:dat.eval}).
+%
   \item[spin_axis]
 Used for Spin G-matrix calculations (\vn{spin_g_matrix.$ij$} data type). This gives the coordinate axes at
 the reference element.
+%
   \item[useit_opt] \Newline
 Datum is used for optimization. \vn{useit_opt} is set by \tao using the other
 \vn{logicals} components using the prescription:
@@ -283,6 +329,7 @@ Notice that if, for example, \vn{good_model} is False then the datum will still 
 in this case the \vn{invalid} value set by the user will be used in the computation for \vn{delta_merit} in
 place of a value computed from lattice.
 \end{example}
+%
 %
   \item[useit_plot] \Newline
 Set \vn{True} if the datum is valid for plotting for a particular graph. This component gets
@@ -296,6 +343,7 @@ is evaluated using other logical components using the preseciption:
                   good_ref (if reference data is being plotted) \&
                   good_model (if model data is being plotted)
 \end{example}
+%
   \item[weight] \Newline
 Weight used in evaluating the contribution of the datum to the merit function (\sref{s:lattice.correction}).
 \end{description}

@@ -1127,12 +1127,9 @@ individual datum points. Possibilities are:
 \index{abs_max}\index{abs_min}
 \begin{example}
   "target"
-  "max"
-  "min"
-  "abs_max"
-  "abs_min"
-  "average"   ! Only used when datum specifies a range of elements.
-  "max-min"   ! Only used when datum specifies a range of elements.
+  "max",     "min"
+  "abs_max", "abs_min"
+  "max-min", "average"  ! Only used when datum specifies a range of elements.
 \end{example}
 The \vn{average} and \vn{max-min} merit types are used when there is a range of elements associated
 the the datum. That is, \vn{ele_start} is specified (see below). For the \vn{average} data type, the
@@ -2740,7 +2737,7 @@ Fig.~\ref{f:histogram}, using the example histogram template:
   plot%name = 'zhist'
   plot%x%min = -6
   plot%x%max =  6
-  plot%x%label = 'z (mm)'	
+  plot%x%label = 'z (mm)'
   plot%n_graph = 1
 /
 
