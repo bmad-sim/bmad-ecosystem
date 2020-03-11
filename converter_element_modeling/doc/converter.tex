@@ -55,7 +55,11 @@
 
 \maketitle
 
-\section*{Background}
+\newcommand{\dxds}{\frac{dx'}{ds}}
+\newcommand{\dyds}{\frac{dy'}{ds}}
+
+\section{Background}
+\label{s:background}
 
 The positron converter provides CESR with its positrons.
 The converter is a slab of heavy metal (usually tungsten), which is bombarded with electrons whose energy is on the order of $\sim 100 \MeV$.
@@ -67,7 +71,8 @@ e^- + Z \rightarrow e^- + Z + \gamma \rightarrow e^- + Z + e^+ + e^-
 The production of positrons in the converter is a stochastic process, the details of which are computationally expensive to simulate.
 As such, it is desirable to have a model for the properties of the produced positrons (their energy, radial displacement, and direction of motion) in terms of probability distributions.
 
-\section*{Coordinate System}
+\section{Coordinate System}
+\label{s:coords}
 
 Figure 1 illustrates the coordinate system we use to describe the converter.
 \begin{figure}
@@ -88,44 +93,45 @@ We then define the "transverse momenta" $\frac{dx'}{ds}$ and $\frac{dy'}{ds}$ by
 
 \newpage
 
-\section*{The Model}
+\section{The Model}
+\label{s:model}
 
 Given a positron converter of thickness $T$ and incoming electrons of energy $E_-$, we wish to predict $E_+$, $r$, $\frac{dx'}{ds}$, and $\frac{dy'}{ds}$ for the outgoing positrons.
 We do this in two steps:
 \begin{enumerate}
 \item
-First, we pull $E_+$ and $r$ from a two-dimensional probability distribution $P(E_+, r)$, which we model as
-\begin{align*}
-P(E_+, r) & = P_3(E_+) P_3(r) e^{-\alpha E_+} e^{-\beta r} \\
-& = C(E_+^3 + A_E E_+^2 + B_E E_+ + C_E) (r^3 + A_r r^2 + B_r r + C_r) e^{-\alpha E_+} e^{-\beta r}
-\end{align*}
+First, we pull $E_+$ and $r$ from a two-dimensional probability distribution $P_1(E_+, r)$.
+$P_1$ is determined by interpolation of the simulation data (see Section \ref{s:simulation}).
 
 \item
-For outgoing positrons of any given $(E_+, r)$, $\frac{dx'}{ds}$ and $\frac{dy'}{ds}$ are normally distributed.
-However, the parameters of these distributions ($\mu$ and $\sigma$) depend on $E_+$ and $r$, with
+For outgoing positrons of any given $(E_+, r)$, $\frac{dx'}{ds}$ and $\frac{dy'}{ds}$ appear to be distributed as
 \begin{align*}
-\mu_{dx'/ds}(E_+, r) & = A_x E_+^{\alpha_x} r^{\beta_x} \\
-\sigma_{dx'/ds} (E_+, r) & = (a_x + b_x r) (1 - e^{-k_x E_+}) \\
-\mu_{dy'/ds} (E_+, r) & = 0 \\
-\sigma_{dy'/ds} (E_+, r) & = (a_y + b_y r) (1 - e^{-k_y E_+})
+P_2 \left( \dxds, \dyds ; E_+, r \right) & = A \frac{1 + \beta x}{1 + \alpha_x \left( \dxds - c_x \right)^2 + \alpha_y \left( \dyds \right)^2}.
 \end{align*}
+Note that this functional form is empirically derived, and is not heavily motivated by the underlying physical processes that occur in the converter.
+In out testing, we have found that this form does the best job of capturing the peak of the transverse momentum distribution, which is of greatest importance when the user cares about the positron capture efficiency of downstream linac elements.
+For users who care more about an accurate fit to the tails of the transverse momentum distribution, a bivariate normal distribution seems to be a better fit.
 
 \end{enumerate}
 
-Note that these functional forms are empirically derived, and are not heavily motivated by the underlying physical processes that occur in the converter.
 
 
-\section*{Obtaining the Model Coefficients}
+\section{Obtaining the Model Coefficients}
+\label{s:simulation}
 
 Using the Geant4\cite{geant} software package developed at CERN, we have developed a program for simulating the production of positrons in the converter.
-Using this program, one can generate data on the number of positrons $N_+$ produced at given $E_+$ and $r$ values, as well as data on $\mu_{dx'/ds}$, $\sigma_{dx'/ds}$, $\mu_{dy'/ds}$, $\sigma_{dy'/ds}$ vs $E_+$ and $r$.
-With this data in hand, one can fit the models in the previous section to the data, yielding the fit parameters needed to simulate the converter in \textit{Bmad}.
-We have included an \textit{R} script which performs this fitting and outputs the fit parameters.
+This program simulates the results of sending electrons of a fixed energy into a target of fixed thickness, and records the $E_+$, $r$, $\dxds$, and $\dyds$ values of the positrons that emerge at the downstream face of the converter.
+The number of electrons used is determined dynamically so that good statistics on the properties of the produced positrons can be obtained.
 
-Note that each of the fit parameters will change for different values of the thickness $T$ and incoming electron energy $E_-$.
-As such, it is advised that the simulation and fitting process be performed at several points over the range of $E_-$ and $T$ values of interest.
-For each choice of $(E_-, T)$, one set of fit parameters is produced.
-\textit{Bmad} then interpolates between the discrete set of $(E_-, T)$ values simulated to model the converter at any electron energy and target thickness in the range of interest.
+With a large sample of positron data in hand, the program first bins the $E_+$ and $r$ data into a 2D histogram.
+This binned data can then be interpolated to approximate the distribution of $E_+$ and $r$ values, $P_1(E_+, r)$.
+After the $(E_+, r)$ bins are chosen, the $\dxds$ and $\dyds$ values for positrons in each bin are then themselves binned into 2D histograms.
+We then fit the functional form described in Section \ref{s:model} to the binned $\dxds$, $\dyds$ data in each of the $(E_+, r)$ bins to obtain the fit parameters $A$, $\beta$, $\alpha_x$, $\alpha_y$ and $c_x$.
+These fits gives us an approximation of $P_2 \left( \dxds, \dyds ; E_+, r \right)$.
+
+Note that the distributions $P_1$ and $P_2$ will vary with incoming electron energy $E_-$ and target thickness $T$.
+The program can be used to sample the behavior of the converter at various values of $E_-$ and $T$, and performs the above procedure once per $(E_-, T)$ pair.
+\textit{Bmad} will then interpolate between the discrete set of $(E_-, T)$ values simulated to model the converter at any electron energy and target thickness in the range of interest.
 
 
 
