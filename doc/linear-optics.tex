@@ -21,25 +21,25 @@ $\bfx = (x, x', y, y')$. In ring, with a closed geometry, this map will be a one
 and ending at some point $s$. For a machine with open geometry, $\bfT(0)$ can be computed from the
 initial Twiss and coupling parameters and $\bfT(s)$ can then be computed by propagating with the
 transfer map $\bfM_{0s}$ from $0$ to $s$:
-\Begineq
+\begin{equation}
     \bfT(s) = \bfM_{0s} \, \bfT(0) \, \bfM_{0s}^{-1}
-\Endeq
+\end{equation}
 
 $\bfT$ can be decomposed using a similarity transformation
  can be written as
-  \Begineq
+  \begin{equation}
     \bfT = \bfV \, \bfU \, \bfV\inv 
     , \label{tvuv}
-  \Endeq 
+  \end{equation} 
 where $\bfV$ is symplectic, and $\bfU$ is of the form
-  \Begineq
+  \begin{equation}
     \bfU = 
     \begin{pmatrix}
       \bfQ & \Bf0 \cr 
       \Bf0 & \bfW \cr
     \end{pmatrix}
     . \label{ua00b}
-  \Endeq
+  \end{equation}
 \index{normal mode!a--mode}
 \index{normal mode!b--mode}
 Since $\bfU$ is uncoupled the standard Twiss analysis can be performed on the matrices
@@ -49,113 +49,113 @@ vertical mode.
 
 The $\bfQ$ and $\bfW$ matrices can be parameterized using the standard 1-dimensional Twiss
 parameterization:
-\Begineq
+\begin{equation}
   \bfQ = \begin{pmatrix}
     \cos\theta_q + \alpha_q \, \sin\theta_q & \beta_q \, \sin\theta_q \\
     -\gamma_q \, \sin\theta_q & \cos\theta_q - \alpha_q \, \sin\theta_q
     \end{pmatrix}
-\Endeq
+\end{equation}
 and $\bfV$ is written in the form
-  \Begineq
+  \begin{equation}
     \bfV = 
     \begin{pmatrix}
         \gamma \bfI & \bfC \cr 
         -\bfC^+     & \gamma \bfI \cr
     \end{pmatrix}
     , \label{vgicc1}
-  \Endeq
+  \end{equation}
 where $\bfC$ is a 2x2 matrix and $+$ superscript 
 denotes the symplectic conjugate:
 \index{symplectic!conjugate}
-  \Begineq
+  \begin{equation}
     \bfC^+ = 
     \begin{pmatrix}
        C_{22} & -C_{12} \cr 
       -C_{21} & C_{11} \cr
     \end{pmatrix}
     . \label{ccccc}
-  \Endeq
+  \end{equation}
 Since we demand that $\bfV$ be symplectic we have the condition
-  \Begineq               
+  \begin{equation}               
     \gamma^2 + \, ||\bfC|| = 1
     , \label{gc1}
-  \Endeq
+  \end{equation}
 and $\bfV\inv$ is given by
-  \Begineq
+  \begin{equation}
     \bfV\inv = 
     \begin{pmatrix}
       \gamma \bfI & -\bfC \cr 
       \bfC^+ & \gamma \bfI \cr
     \end{pmatrix}
     . \label{vgicc2}
-  \Endeq 
+  \end{equation} 
 $\bfC$ is a measure of the coupling. 
 $\bfT$ is uncoupled if and only if $\bfC = \Bf 0$. 
 
 It is useful to normalize out the $\beta(s)$ variation in the above
 analysis. Normalized quantities being denoted by a bar above them. The
 normalized normal mode matrix $\BAR\bfU$ is defined by
-  \Begineq
+  \begin{equation}
     \BAR\bfU = \bfG \, \bfU \, \bfG\inv
     , \label{ugug}
-  \Endeq
+  \end{equation}
 Where $\bfG$ is given by 
-  \Begineq
+  \begin{equation}
     \bfG \equiv 
     \begin{pmatrix}
       \bfG_q & \Bf0 \cr 
       \Bf0 & \bfG_w
     \end{pmatrix}
     , \label{gg00g}
-  \Endeq  
+  \end{equation}  
 with 
-  \Begineq
+  \begin{equation}
     \bfG_q = 
     \begin{pmatrix}
       \frac{\tstyle 1}{\tstyle \sqrt{\beta_q}} & 0 \cr
       \frac{\tstyle \alpha_q}{\tstyle \sqrt{\beta_q}} & \sqrt{\beta_q}
     \end{pmatrix}
     , \label{g1b0a} 
-  \Endeq
+  \end{equation}
 with a similar equation for $\bfG_w$. With this definition, the corresponding
 $\BAR\bfQ$ and $\BAR\bfW$ (cf.~\Eq{ua00b}) are just rotation matrices.
 The relationship between $\bfT$ and $\BAR\bfU$ is 
-  \Begineq
+  \begin{equation}
     \bfT = \bfG\inv \, \BAR\bfV \, \BAR\bfU \, \BAR\bfV\inv \, \bfG
     , \label{tgvuv}
-  \Endeq
+  \end{equation}
 where
-  \Begineq
+  \begin{equation}
     \BAR\bfV = \bfG \, \bfV \, \bfG\inv
     . \label{vgvg}
-  \Endeq
+  \end{equation}
 Using \Eq{gg00g}, $\BAR\bfV$ can be written in the form
-  \Begineq
+  \begin{equation}
     \BAR\bfV = 
     \begin{pmatrix}
       \gamma \bfI & \BAR\bfC \cr -\BAR\bfC^+ & \gamma \bfI
     \end{pmatrix}
     , \label{vgicc3}
-  \Endeq
+  \end{equation}
 with the normalized matrix $\BAR\bfC$ given by
-  \Begineq
+  \begin{equation}
     \BAR\bfC = \bfG_q \, \bfC \, \bfG_w\inv
     . \label{cgcg}
-  \Endeq
+  \end{equation}
 
 The normal mode coordinates ${\bf q} = (q, q', w, w')$ are related to
 the laboratory frame via
-  \Begineq
+  \begin{equation}
     {\bf q} = \bfV\inv \, {\bf x}
     . \label{avx}
-  \Endeq 
+  \end{equation} 
 In particular the normal mode dispersion $\bfeta_q = (\eta_q,
 \eta'_q, \eta_w, \eta'_w)$ is related to the laboratory frame
 dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
-  \Begineq
+  \begin{equation}
     {\bfeta_q} = \bfV\inv \, {\bfeta_x}
     . \label{etaavx}
-  \Endeq 
+  \end{equation} 
 When there is no coupling ($\bfC = 0$), $\bfeta_q$ and $\bfeta_x$ are
 equal to each other.
 
@@ -182,26 +182,26 @@ point is calculated as follows: Let $\Bf r = (x, p_x, y, p_y, z, p_z)$
 be the reference orbit, around which the dispersion is to be
 calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order
 components of the transfer map between two points labeled 1 and 2:
-\Begineq
+\begin{equation}
   \Bf r_2 = \bfM \, \Bf r_1 + \bfV
   \label{rmrv}
-\Endeq
+\end{equation}
 Define the dispersion vector $\bfeta$ by
-\Begineq
+\begin{equation}
   \bfeta = 
   \left( 
     \eta_x, \eta'_x \, (1 + p_z), \eta_y, \eta'_y \, (1 + p_z), \eta_z, 1
   \right)
-\Endeq
+\end{equation}
 Differentiating \Eq{rmrv} with respect to energy, 
 the dispersion at point 2 in terms of the dispersion at point 1 is
-\Begineq
+\begin{equation}
   \bfeta_2 = \left[ \frac{dp_{z2}}{dp_{z1}} \right]^{-1} \, 
     \left[ \bfM \, \bfeta_1 \right] + \bfV_\eta 
     \label{eppmev}
-\Endeq
+\end{equation}
 where
-\Begineq
+\begin{equation}
   \bfV_\eta = \left[ \frac{dp_{z2}}{dp_{z1}} \right]^{-1} \, 
   \frac{1}{1 + p_{z1}}
   \left(
@@ -225,14 +225,14 @@ where
     0 
   \end{array}
   \right)
-\Endeq
+\end{equation}
 The sixth row of the matrix equation gives $dp_{z1}/dp_{z2}$. 
 Explicitly
-\Begineq
+\begin{equation}
   \frac{dp_{z2}}{dp_{z1}} =
   \sum_{i=1}^6 M_{6i} \, \eta_{1i} + 
   \frac{M_{62} \, p_{x1} + M_{64} \, p_{y1}}{1 + p_{z1}}
-\Endeq
+\end{equation}
 For everything except \vn{RFcavity} and \vn{Lcavity} elements, 
 $dp_{z2}/dp_{z1}$ is 1.
 
@@ -246,9 +246,9 @@ is always used.  The dispersion defined in the above equations, which
 is what \bmad uses in calculations, is the local dispersion. The
 non-local dispersion $\wt\bfeta(s_1)$ at some point $s_1$ is related
 to the local dispersion $\bfeta(s_1)$ via
-\Begineq
+\begin{equation}
   \wt\bfeta(s_1) = \frac{dp_{z1}}{dp_{z0}} \, \bfeta(s_1)
-\Endeq
+\end{equation}
 where $s_0$ is the beginning of the machine.
 
 For a non-circular machine, there are advantages and disadvantages to

@@ -427,7 +427,7 @@ the conversion formulas are outlined below.
 For orbits, the
 relationship between measured position $(x, y)_{\text{meas}}$ and true position 
 $(x, y)_{true}$ is
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     x \\
     y
@@ -452,9 +452,9 @@ $(x, y)_{true}$ is
   \end{pmatrix}_{\! 0}
   \right]
   \label{xynrr}
-\Endeq
+\end{equation}
 with
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     x \\
     y
@@ -464,16 +464,16 @@ with
     x_{\text{err}} - x_{\text{cal}} \\
     y_{\text{err}} - y_{\text{cal}}
   \end{pmatrix}
-\Endeq
+\end{equation}
 and 
-\Begineq
+\begin{equation}
   \bfM_m
   =
   \begin{pmatrix}
      g_x \, \cos (d\theta + d\psi) & g_x \, \sin (d\theta + d\psi) \\
     -g_y \, \sin (d\theta - d\psi) & g_y \, \cos (d\theta - d\psi) 
   \end{pmatrix}
-\Endeq
+\end{equation}
 where
 \begin{alignat}{1}
   d\psi   &= \psi_{\text{err}}   - \psi_{\text{cal}} \CRNO
@@ -503,7 +503,7 @@ tilts, and gain errors.
 
 A dispersion measurement is considered to be the result of measuring the
 orbit at two different energies. The measured values are then
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     \eta_x \\
     \eta_y
@@ -520,7 +520,7 @@ orbit at two different energies. The measured values are then
     \eta_x \\
     \eta_y
   \end{pmatrix}_{\! true}
-\Endeq
+\end{equation}
 The factor of $\sqrt{2}$ comes from the fact that there are two measurements.
 
 %-----------------------------------------------------------------
@@ -532,7 +532,7 @@ the beam at a detector over $N_s$ turns while the beam oscillates at a
 normal mode frequency with some amplitude $A_{\text{osc}}$.  The
 measured coupling is computed as follows. First, consider excitation
 of the $a$-mode which can be written in the form:
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     x_i \\
     y_i
@@ -544,7 +544,7 @@ of the $a$-mode which can be written in the form:
     K_{22a} \, \cos \phi_i + K_{12a} \sin \phi_i
   \end{pmatrix}_{\! \text{true}}
   \label{xyapk}
-\Endeq
+\end{equation}
 $i$ is the turn number and $\phi_i$ is the oscillation phase on the $i$\Th turn.
 The coefficients $K_{22a}$ and $K_{12a}$ are related to the coupling $\bfCbar$ via
 David and Rubin\cite{b:coupling} Eq.~54:
@@ -557,7 +557,7 @@ To apply the measurement errors, consider the general case where the
 beam's oscillations are split into two components: One component being
 in-phase with some reference oscillator (which is oscillating with the
 same frequency as the beam) and a component oscillating out-of-phase:
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     x_i \\
     y_i
@@ -574,7 +574,7 @@ same frequency as the beam) and a component oscillating out-of-phase:
   \end{pmatrix}_{\! \text{true}}
   \, A_{\text{osc}} \, \sin (\phi_i + d\phi)
   \label{xykkap}
-\Endeq
+\end{equation}
 where $d\phi$ is the phase of the reference oscillator with respect to
 the beam.  Comparing \Eq{xyapk} with \Eq{xykkap} gives the relation
 \begin{alignat}{1}
@@ -587,7 +587,7 @@ measurement frame of reference.  \Eq{xynrr} can be used to transform
 $(x_i, y_i)_{\text{true}}$ in \Eq{xyapk} to the measurement frame of
 reference. Only the oscillating part is of interest.  Averaging over
 many turns gives
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     q_{a1x} \\
     q_{a1y}
@@ -610,22 +610,22 @@ many turns gives
     q_{a2y}
   \end{pmatrix}_{\! \text{true}}
   \label{kkmkk}
-\Endeq
+\end{equation}
 This neglects the measurement noise. A calculation shows that the noise gives a 
 contribution to the measured $K_{22a}$ and $K_{12a}$ of
-\Begineq
+\begin{equation}
   K_{22a} \rightarrow K_{22a} + r_1 \, \frac{n_f}{N_s \, A_{\text{osc}}} 
   \comma \qquad
   K_{12a} \rightarrow K_{12a} + r_2 \, \frac{n_f}{N_s \, A_{\text{osc}}} 
   \label{kkrnn}
-\Endeq
+\end{equation}
 Using the above equations, the transformation from the true
 coupling to measured coupling is as follows: From a knowledge of the
 true $\bfCbar$ and Twiss values, the true $K_{22a}$ and
 $K_{12a}$ can be calculated via \Eq{kabgbc}. Since the value of $d\phi$
 does not affect the final answer, $d\phi$ in \Eq{xykkap} is chosen to
 be zero.  Comparing this to \Eq{xyapk} gives
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     q_{a1x} \\
     q_{a1y}
@@ -645,7 +645,7 @@ be zero.  Comparing this to \Eq{xyapk} gives
     0 \\
     K_{12a}
   \end{pmatrix}_{\text{true}}
-\Endeq
+\end{equation}
 Now \Eq{kkmkk} is used to convert to the measured $q$'s and
 \Eq{kaqqqq} then gives the measured $K_{22a}$ and $K_{12a}$. Finally,
 Applying \Eq{kkrnn} and then \Eq{kabgbc} gives the measured
@@ -654,7 +654,7 @@ $\bfCbar_{22}$ and $\bfCbar_{12}$.
 A similar procedure can be applied to $b$-mode oscillations to
 calculate values for the measured $\bfCbar_{11}$ and $\bfCbar_{12}$.
 $K_{11b}$ and $K_{12b}$ are defined by
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     x_i \\
     y_i
@@ -666,7 +666,7 @@ $K_{11b}$ and $K_{12b}$ are defined by
     \cos \phi_i
   \end{pmatrix}_{\! \text{true}}
   \label{xyakp}
-\Endeq
+\end{equation}
 Comparing this to David and Rubin\cite{b:coupling} Eq.~55 gives
 \begin{alignat}{1}
   K_{11b} &= \frac{ \sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \bfCbar_{11} \CRNO
@@ -692,7 +692,7 @@ considered to be the result of measuring the beam at a detector over
 $N_s$ turns while the beam oscillates at a normal mode frequency with
 some amplitude $A_{\text{osc}}$.  Following the analysis of the
 previous subsection, the phase $\phi$ is
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     \phi_a \\
     \phi_b
@@ -713,4 +713,4 @@ previous subsection, the phase $\phi$ is
     \tan^{-1} \left( \frac{q_{a2x}}{q_{a1x}} \right) \\
     \tan^{-1} \left( \frac{q_{b2y}}{q_{b1y}} \right)
   \end{pmatrix}_{\! \text{meas}}
-\Endeq
+\end{equation}

@@ -10,10 +10,10 @@ Start with the assumption that the local magnetic field has no longitudinal comp
 (obviously this assumption does not work with, say, a solenoid).  Following \mad, ignoring
 skew fields for the moment, the vertical magnetic field along the $y = 0$ axis is expanded
 in a Taylor series
-\Begineq
+\begin{equation}
   B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
   \label{byx0b}
-\Endeq
+\end{equation}
 Assuming that the reference orbit is locally straight (there are correction terms if the
 Reference Orbit is curved), the field is
 \begin{alignat}{5}
@@ -25,9 +25,9 @@ Reference Orbit is curved), the field is
 For some fields, the normalized integrated multipole $K_nL$ can be used when specifying
 magnetic multipole components
 \index{multipole!KnL, Tn|hyperbf}
-\Begineq
+\begin{equation}
   K_nL \equiv \frac{q \, L \, B_n}{P_0}
-\Endeq
+\end{equation}
 where $q$ is the charge of the reference particle (in units of the elementary charge), $L$ is the
 element length, and $P_0$ is the reference momentum (in units of eV/c).  Note that $P_0/q$ is
 sometimes written as $B\rho$. This is just an old notation where $\rho$ is the bending radius of a
@@ -69,11 +69,11 @@ $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient.
 The above equations are for fields with a normal component only. If a given multipole field of order $n$
 has normal $B_n$ and skew $S_n$ components and is rotated in the $(x, y)$ plane by an angle $T_n$, the
 magnetic field at a point $(x,y)$ can be expressed in complex notation as
-\Begineq
+\begin{equation}
   B_y(x,y) + i B_x(x,y) = 
     \frac{1}{n!} (B_n + i S_n) \, e^{-i(n+1)T_n} \, e^{i n \theta} \, r^n 
   \label{bib1nb}
-\Endeq
+\end{equation}
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
 \index{multipole}
@@ -92,16 +92,16 @@ normal $\wt K_n$ and skew $\wt S_n$. The conversion between the two are
 Another representation of the magnetic field used by \bmad divides the fields into normal $b_n$ and
 skew $a_n$ components. In terms of these components the magnetic field for the $n$\Th\ order
 multipole is
-\Begineq
+\begin{equation}
   \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
   \label{qlpbb}
-\Endeq
+\end{equation}
 The $a_n$, $b_n$ representation of multipole fields can be used in elements such as
 quadrupoles, sextupoles, etc. to allow ``error'' fields to be represented.  
 The conversion between $(a_n, b_n)$ and $(K_nL, S_nL, T_n)$ is
-\Begineq
+\begin{equation}
   b_n + i a_n = \frac{1}{n!} \, (K_nL + i \, S_nL) \, e^{-i(n+1)T_n}
-\Endeq
+\end{equation}
 In the case where $S_nL = 0$
 \begin{align}
   K_n L &= n! \, \sqrt{a_n^2 + b_n^2} \\
@@ -109,9 +109,9 @@ In the case where $S_nL = 0$
 \end{align}
 To convert a normal magnet (a magnet with no skew component) into a skew magnet (a magnet with no
 normal component) the magnet should be rotated about its longitudinal axis with a rotation angle of
-\Begineq
+\begin{equation}
   (n+1) T_n = \frac{\pi}{2}
-\Endeq
+\end{equation}
 For example, a normal quadrupole rotated by $45^\circ$ becomes a skew quadrupole.
 
 The multipole fields can be ``\vn{reference energy}'' scaled and/or ``\vn{element strength}''
@@ -121,23 +121,23 @@ input values given in the lattice file.
 \vn{Reference energy} scaling is applied if the \vn{field_master} attribute (\sref{s:field.master})
 is True for an element so that the multipole values specified in the lattice file are not reference
 energy normalized
-\Begineq
+\begin{equation}
   \bigl[ a_n, b_n \bigr] \longrightarrow
   \bigl[ a_n, b_n \bigr] \cdot \frac{q}{P_0}
   \label{ababq}
-\Endeq
+\end{equation}
 
 \index{r0_mag}
 \index{F (multipole scale factor)}
 \vn{Element strength} scaling is applied when the multipoles are associated with a non
 \vn{AB_Multipole} element and if the \vn{scale_multipoles} attribute (\sref{s:multip}) is
 \vn{True}. This scaling uses a measurement radius $r_0$ and a scale factor $F$:
-\Begineq
+\begin{equation}
   \bigl[ a_n, b_n \bigr] \longrightarrow
   \bigl[ a_n, b_n \bigr]
   \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
   \label{ababf}
-\Endeq
+\end{equation}
 $r_0$ is set by the \vn{r0_mag} attribute of an element. $F$ and $n_\text{ref}$ are set
 automatically depending upon the type of element as shown in Table~\ref{t:ab}. The
 $\gamma_p$ term is
@@ -178,26 +178,26 @@ $\gamma_p$ term is
 Except for the \vn{elseparator} element, \bmad specifies DC electric fields using normal
 $b_{en}$ and skew $a_{en}$ components (\sref{s:multip}. The potential $\phi_n$ for the
 $n$\Th\ order multipole is
-\Begineq
+\begin{equation}
   \phi_n = -\re \left[ \frac{b_{en} - i a_{en}}{n + 1} \, \frac{(x + i y)^{n+1}}{r_0^n} \right]
   \label{pbian1}
-\Endeq
+\end{equation}
 where $r_0$ is a ``measurement radius'' set by the \vn{r0_elec} attribute of an element
 (\sref{s:multip}).
 
 The electric field for the $n$\Th order multipole is
-\Begineq
+\begin{equation}
   E_x - i E_y = (b_{en} - i a_{en}) \, \frac{(x + i y)^n}{r_0^n}
   \label{exiey}
-\Endeq
+\end{equation}
 Notice that the magnetic multipole components $a_n$ and $b_n$ are normalized by the
 element length, reference charge, and reference momentum (\Eq{qlpbb}) while their electric
 counterparts are not.
 
 Using the paraxial approximation, The kick given a particle due to the electric field is
-\Begineq
+\begin{equation}
   \frac{dp_x}{ds} = \frac{q \, E_x}{\beta \, P_0 \, c}, \qquad \frac{dp_y}{ds} = \frac{q \, E_y}{\beta \, P_0 \, c}
-\Endeq
+\end{equation}
 Where $\beta$ is the normalized velocity.
 
 %-----------------------------------------------------------------
@@ -218,29 +218,29 @@ convention $\rw = 1 + \xw$.
 
 An electric or magnetic multipole can be characterized by a scalar potential $\phi$ with
 the field given by $-\nabla \phi$.  The potential is a solution to Laplace's equation
-\Begineq
+\begin{equation}
   \frac{1}{\rw} \, \frac{\partial}{\partial \, \rw} 
   \left( \rw \, \frac{\partial \, \phi}{\partial \, \rw} \right) +
   \frac{\partial^2 \phi}{\partial \, \yw^2} = 0
-\Endeq
+\end{equation}
 As McMillian shows, it is also possible to calculate the magnetic field by constructing the
 appropriate vector potential. However, from a practical point of view, it is simpler to use the
 scalar potential for both the magnetic and electric fields.
 
 Solutions to Laplace's equation can be found in form
-\Begineq
+\begin{equation}
   \phi_{n}^r = \frac{-1}{1+n} \sum_{p = 0}^{\lfloor (n+1)/2 \rfloor} 
              \begin{pmatrix} n + 1 \cr 2 \, p \end{pmatrix} \,
              (-1)^{p} \, F_{n+1-2p}(\rw) \, \yw^{2p}
   \label{pspn1}
-\Endeq
+\end{equation}
 and in the form
-\Begineq
+\begin{equation}
   \phi_{n}^i = \frac{-1}{1+n} \sum_{p = 0}^{\lfloor n/2 \rfloor} 
              \begin{pmatrix} n + 1 \cr 2p +1 \end{pmatrix} \,
              (-1)^{p} \, F_{n-2p}(\rw) \, \yw^{2p+1}
   \label{pspn2}
-\Endeq
+\end{equation}
 where $\binom{a}{b}$ (``a choose b'') denotes a binomial coefficient, $n$ is the order
 number which can range from 0 to infinity, $\lfloor\alpha\rfloor$ means round down to the
 integer equal to or less than $\alpha$. [Notice that here $n$ is related to $m$ in
@@ -248,10 +248,10 @@ McMillian's paper by $m = n + 1$. Also note that the $\phi^r$ and $\phi^i$ here 
 normalization factor that is different from McMillian.]
 
 In \Eq{pspn2} the $F_p(\rw)$ are related by
-\Begineq
+\begin{equation}
   F_{p+2} = (p + 1) \, (p + 2) \, \int_1^{\rw} \frac{d\rw}{\rw} 
   \left[ \int_1^{\rw} d\rw \, \rw \, F_{p} \right]
-\Endeq
+\end{equation}
 with the ``boundary condition'':
 \begin{align}
   F_0(\rw) &= 1 \CRNO
@@ -276,22 +276,22 @@ $\rw$-dependent formulas for $\xw$ away from zero.
 
 For magnetic fields, the ``real'' $\phi_n^r$ solutions will correspond to skew fields and the
 ``imaginary'' $\phi_n^i$ solutions will correspond to normal fields
-\Begineq
+\begin{equation}
   \bfB = -\frac{P_0}{q \, L} \, 
     \sum_{n = 0}^\infty \rho^n \, \left[ a_n \, \widetilde \nabla \phi_n^r + b_n \, \widetilde \nabla \phi_n^i \right]
   \label{bpql}
-\Endeq
+\end{equation}
 where the gradient derivatives of $\widetilde \nabla$ are with respect to the normalized
 coordinates. In the limit of infinite bending radius $\rho$, the above equations converge
 to the straight line solution given in \Eq{qlpbb}.
 
 For electric fields, the ``real'' solutions will correspond to normal fields and the
 ``imaginary'' solutions are used for skew fields
-\Begineq
+\begin{equation}
   \bfE = -\sum_{n = 0}^\infty \rho^n \, \left[ a_{en} \, \widetilde \nabla \phi_n^i + 
   b_{en} \, \widetilde \nabla \phi_n^r \right]
   \label{enrn}
-\Endeq
+\end{equation}
 And this will converge to \Eq{exiey} in the straight line limit.
 
 In the vertical plane, with $\xw = 0$, the solutions $\phi_n^r$ and $\phi_n^i$ have the same
@@ -306,11 +306,11 @@ construct solutions that in the horizontal plane, with $\yw = 0$, behave the sam
 multipole fields with a straight geometry. A straight forward way to do this, for some given
 multipole of order $n$, is to construct the horizontally pure solutions, $\psi_n^r$ and $\psi_n^i$,
 as linear superpositions of the vertically pure solutions
-\Begineq
+\begin{equation}
   \psi_n^r = \sum_{k = n}^\infty C_{nk} \, \phi_k^r, \qquad
   \psi_n^i = \sum_{k = n}^\infty D_{nk} \, \phi_k^i
   \label{p1rc}
-\Endeq
+\end{equation}
 with the normalizations $C_{nn} = D_{nn} = 1$. The $C_{nk}$ and $D_{nk}$ are chosen, order
 by order, so that $\psi_n^r$ and $\psi_n^i$ are horizontally pure. For the real
 potentials, the $C_{nk}$, are obtained from a matrix $\bfM$ where $M_{ij}$ is the
@@ -399,9 +399,9 @@ The \vn{Cartesian} decomposition is modeled using an extension of the method of 
 Crittenden, and Rubin\cite{b:wiggler}. In this decomposition, the magnetic(or electric
 field is written as a sum of terms $B_i$ (For concreteness the symbol $B_i$ is used but
 the equations below pertain equally well to both electric and magnetic fields) with:
-\Begineq
+\begin{equation}
   \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; A, k_x, k_y, k_z, x_0, y_0, \phi_z, family)
-\Endeq
+\end{equation}
 Each term $B_i$ is specified using seven numbers $(A, k_x, k_y, k_z,
 x_0, y_0, \phi_z)$ and a switch called \vn{family} which can be one of:
 \begin{example}
@@ -548,32 +548,32 @@ Sec.~\sref{s:cylind.ac}.
 The DC \vn{cylindrical} parametrization used by \bmad essentially follows Venturini et
 al.\cite{b:vent.map}. See Section~\sref{s:fieldmap} for details on the syntax used to cylindrical
 maps in \bmad. The electric and magnetic fields are both described by a scalar potential
-\Begineq
+\begin{equation}
   \bfB = -\nabla \, \psi_B, \qquad \bfE = \nabla \, -\psi_E
-\Endeq
+\end{equation}
 The scalar potentials both satisfy the Laplace equation $\nabla^2 \, \psi = 0$.
 The scalar potentials are decomposed as a sum of modes indexed by an integer $m$
-\Begineq
+\begin{equation}
   \psi_B = \re \left[ \sum_{m = 0}^\infty \, \psi_{Bm} \right]
-\Endeq
+\end{equation}
 [Here and below, only equations for the magnetic field will be shown, the equations for the electric
 fields are similar.] The $\psi_{Bm}$ are decomposed in $z$ using a discrete Fourier
 sum.\footnote{Venturini uses a continuous Fourier transformation but \bmad uses a discrete
 transformation so that only a finite number of coefficients are needed.}
 Expressed in cylindrical coordinates the decomposition of $\psi_{Bm}$ is
-\Begineq
+\begin{equation}
   \psi_{Bm} = \sum_{n=-N/2}^{N/2-1} \psi_{Bmn} =
   \sum_{n=-N/2}^{N/2-1} \frac{-1}{k_n} \, e^{i \, k_n \, z} \,
   \cos (m \, \theta - \theta_{0m}) \, b_m(n) \, I_m(k_n \, \rho)
   \label{psps1k}
-\Endeq
+\end{equation}
 where $I_m$ is a modified Bessel function of the first kind, and the
 $b_m(n)$ are complex coefficients. [For electric fields, $e_m(n)$ is
 substituted for $b_m(n)$] In \Eq{psps1k} $k_n$ is
 given by
-\Begineq
+\begin{equation}
   k_n = \frac{2 \pi \, n}{N \, dz}
-\Endeq
+\end{equation}
 where $N$ is the number of ``sample points'', and $dz$ is the longitudinal ``distance between
 points''. That is, the above equations will only be accurate over a longitudinal length $(N-1)
 \, dz$. Note: Typically the sum in \Eq{psps1k} and other equations below runs from $0$ to $N-1$.
@@ -613,14 +613,14 @@ While technically $\psi_{Bm0}$ is not well defined due to the $1/k_n$ factor
 that is present, the field itself is well behaved. Mathematically,
 \Eq{psps1k} can be corrected if, for $n = 0$, the term $I_m(k_n \,
 \rho) / k_n$ is replaced by
-\Begineq
+\begin{equation}
   \frac{I_m(k_0 \, \rho)}{k_0} \rightarrow 
   \begin{cases}
     \rho   &\text{if } m = 0 \\
     \rho/2 &\text{if } m = 1 \\
     0      &\text{otherwise}
   \end{cases}
-\Endeq
+\end{equation}
 
 The magnetic vector potential for $m = 0$ is constructed such that
 only $A_\theta$ is non-zero
@@ -655,16 +655,16 @@ $\theta$ and $\rho$ are expanded in a Taylor series in $x$ and $y$.
 
 For RF fields, the \vn{cylindrical} mode parameterization used by \bmad essentially
 follows Abell\cite{b:rf.abell}. The electric field is the real part of the complex field
-\Begineq
+\begin{equation}
   \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, \exp[{-2\, \pi \, i \, (f_j \, t + \phi_{0j})}]
   \label{eseei}
-\Endeq
+\end{equation}
 where $M$ is the number of modes. Each mode satisfies the vector Helmholtz
 equation
-\Begineq
+\begin{equation}
   \nabla^2 \bfE_j + k_{tj}^2 \, \bfE_j = 0
   \label{bke}
-\Endeq
+\end{equation}
 where $k_{tj} = 2 \, \pi \, f/c$ with $f_j$ being the mode frequency.
 
 The individual modes vary azimuthally as $\cos(m \, \theta - \theta_0)$ where $m$ is a non-negative
@@ -678,28 +678,28 @@ integer.  [in this and in subsequent equations, the mode index $j$ has been drop
     e_0(n) \, \wt I_0(\kappa_n, \rho) \nonumber
 \end{align}
 where $\wt I_m$ is
-\Begineq
+\begin{equation}
   \wt I_m (\kappa_n, \rho) \equiv \frac{I_m(\kappa_n \, \rho)}{\kappa_n^m}
-\Endeq
+\end{equation}
 with $I_m$ being a modified Bessel function first kind, and $\kappa_n$ is given by
-\Begineq
+\begin{equation}
   \kappa_n = \sqrt{k_n^2 - k_t^2} = 
   \begin{cases}
     \sqrt{k_n^2 - k_t^2} & |k_n| > k_t \\
     -i \, \sqrt{k_t^2 - k_n^2} & k_t > |k_n|
   \end{cases}
-\Endeq
+\end{equation}
 with
-\Begineq
+\begin{equation}
   k_n = \frac{2 \pi \, n}{N \, dz}
-\Endeq
+\end{equation}
 $N$ is the number of points where $E_{zc}$ is evaluated, and $dz$ is
 the distance between points. The length of the field region is $(N-1) \, dz$. When
 $\kappa_n$ is imaginary, $I_m(\kappa_n \, \rho)$ can be evaluated
 through the relation
-\Begineq
+\begin{equation}
   I_m(-i \, x) = i^{-m} \, J_m(x)
-\Endeq
+\end{equation}
 where $J_m$ is a Bessel function of the first kind.
 The $e_0$ coefficients can be obtained given knowledge of the field at some radius $R$ via
 \begin{align}
@@ -714,10 +714,10 @@ The non-accelerating $m = 0$ mode has an electric field in the form
     b_0(n) \, \wt I_1(\kappa_n, \rho)
 \end{align}
 where the $b_0$ coefficients can be obtained given knowledge of the field at some radius $R$ via
-\Begineq
+\begin{equation}
   b_0(n) = \frac{1}{\wt I_1(\kappa_n, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
     e^{-2 \, \pi \, i \, n \, p / N} \, E_{\theta}(R, p \, dz)
-\Endeq
+\end{equation}
 
 For positive $m$, the electric field is in the form
 \begin{align}
@@ -760,22 +760,22 @@ where $E_{\rho c}$, $E_{\theta s}$, and $E_{z c}$ are defined by
 
 The above mode decomposition was done in the gauge where the scalar potential $\psi$ is zero. The
 electric and magnetic fields are thus related to the vector potential $\bfA$ via
-\Begineq
+\begin{equation}
   \bfE = -\partial_t \, \bfA, \qquad \bfB = \nabla \times \bfA
-\Endeq
+\end{equation}
 Using \Eq{eseei}, the vector potential can be obtained from the electric field via
-\Begineq
+\begin{equation}
   \bfA_j = \frac{-i \, \bfE_j}{2 \, \pi \, f_j}
   \label{aiew}
-\Endeq
+\end{equation}
  
 Symplectic tracking through the RF field is discussed in Section~\sref{s:symp.track}.  For the
 fundamental accelerating mode, the vector potential can be analytically integrated using the
 identity
-\Begineq
+\begin{equation}
   \int dx \,\frac{x \, I_1 (a \, \sqrt{x^2+y^2})}{\sqrt{x^2+y^2}}  = 
   \frac{1}{a} \, I_0 (a \, \sqrt{x^2+y^2})
-\Endeq
+\end{equation}
 
 %-----------------------------------------------------------------
 \section{Field Modeling Using Taylor Maps}
@@ -791,9 +791,9 @@ The Taylor field model specifies the field using a set of Taylor maps. Each map 
 the transverse $(x, y)$ plane at constant longitudinal $z$: That is, each Taylor map is comprised of
 three Taylor series, one for each field component, and each Taylor series is a polynomial in $x$ and
 $y$:
-\Begineq
+\begin{equation}
   \Bf B = (B_x(x,y;i), B_y(x,y;i), B_z(x,y;i))
-\Endeq
+\end{equation}
 where the $B_x, B_y, B_z$ on the right hand side represent the tree Taylor series, $i$
 denotes the Taylor map at $z_i = i \cdot dz$ where $dz$ is the spacing between maps. The
 maps are restricted to be equally spaced to enable higher order integration schemes in PTC
@@ -806,12 +806,12 @@ $(x, y, z)$, the field $\Bf B$ and transverse field derivatives $\partial \Bf B 
 \Bf r$, are evaluated at two positions $\Bf r_0 = (x, y, z_{i0})$ and $\Bf r_1 = (x, y,
 z_{i1})$ with $z_{i0}$ being the positions of the maps to either side of $z$.
 The longitudinal field derivatives are derived from the transverse ones using Maxwell's equations:
-\Begineq
+\begin{equation}
   \frac{\partial B_x}{\partial z} = \frac{\partial B_z}{\partial x}, \qquad
   \frac{\partial B_y}{\partial z} = \frac{\partial B_z}{\partial y}, \qquad
   \frac{\partial B_z}{\partial z} = 
     - \left( \frac{\partial B_x}{\partial x} + \frac{\partial B_y}{\partial y} \right)
-\Endeq
+\end{equation}
 
 Once the field and longitudinal derivatives are known at $\Bf r_0$ and $\Bf r_1$, a
 standard cubic spline interpolation is done.

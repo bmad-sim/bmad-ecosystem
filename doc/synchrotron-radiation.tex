@@ -13,40 +13,40 @@ while the stochastic fluctuating part of the energy spectrum produces excitation
 The treatment of radiation damping by \bmad essentially follows \mad.
 The average change in energy $\Delta E$ of a particle going through a
 section of magnet due to synchrotron radiation is
-\Begineq
+\begin{equation}
   \frac{\Delta E}{E_0} = -k_d \, (1 + p_z)
-\Endeq
+\end{equation}
 where
-\Begineq
+\begin{equation}
   k_d \equiv \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2} \, L_p \,  
   (1 + p_z)
   \label{k2r3g}
-\Endeq
+\end{equation}
 $r_e$ is the classical electron radius, $L_p$ is the actual path
 length, $\gamma_0$ is the energy factor of an on-energy particle, $1/g_0$
 is the bending radius of an on--energy particle, and $\ave{g_0^2}$ is an
 average of $g_0^2$ over the actual path.
 
 The energy lost is given by
-\Begineq
+\begin{equation}
   \frac{\Delta E}{E_0} = -k_f \, (1 + p_z)
-\Endeq
+\end{equation}
 where
-\Begineq
+\begin{equation}
   k_f \equiv \left( \frac{55 \, r_e \, \hbar \, c}{24 \, \sqrt{3} \, m_e} \, 
   L_p \, \gamma_0^5 \ave{g_0^3} \right)^{1/2} \, (1 + p_z) \, \xi
   \label{k55rh}
-\Endeq
+\end{equation}
 $\xi$ is a Gaussian distributed random number with unit sigma and zero mean.
 
 Using \Eqs{k2r3g} and \eq{k55rh} the total change in $p_z$ can be written as
-\Begineq
+\begin{equation}
   \Delta p_z = \frac{\Delta E}{E_0} = -k_E \, (1 + p_z)
-\Endeq
+\end{equation}
 where
-\Begineq
+\begin{equation}
   k_E = k_d + k_f
-\Endeq
+\end{equation}
 Since the radiation is emitted in the forward direction the angles
 $x'$ and $y'$ are invariant which leads to the following equations for
 the changes in $p_x$ and $p_y$
@@ -98,10 +98,10 @@ notation, the synchrotron integrals for coupled motion are:
     I_{6b} &= \oint ds \, g^3 \, \beta_b
   \end{align}
 where $\gamma_0$ is that usual relativistic factor and $\calH_a$ is 
-  \Begineq
+  \begin{equation}
     \calH_a = \gamma_a \, \eta_a^2 + 2 \, \alpha_a \, \eta_a \, \eta_a' + 
       \beta_a \eta_a'^2 
-  \Endeq
+  \end{equation}
 with a similar equation for $\calH_b$. Here $\bfeta\two_a =
 (\eta_{ax}, \eta_{ay})$, and $\bfeta\two_b = (\eta_{bx}, \eta_{by})$
 are the dispersion vectors for the $a$ and $b$ modes respectively in
@@ -114,21 +114,21 @@ dependence of the curvature function is:
   \end{align}
 where $k_1$ is the quadrupole moment and $s_1$ is the skew--quadrupole moment.
 Using this gives on--axis ($x = y = 0$)
-  \Begineq
+  \begin{equation}
     \nabla g^2 = 2 \left( g_x k_1 + g_y s_1, \, g_x s_1 - g_y k_1 \right)
     \label{g2gkg}
-  \Endeq
+  \end{equation}
 
 $I_0$ is not a standard radiation integral. It is useful,
 though, in calculating the average number of photons emitted. For electrons:
-  \Begineq
+  \begin{equation}
     {\cal N} = \frac{5 \: r_{\! f}}{2 \sqrt{3} \, \hbar \, c} \, I_0 
-  \Endeq
+  \end{equation}
 where $\cal N$ is the average number of photons emitted by a particle
 over one turn, and the ``classical radius factor'' $r_{\! f}$ is 
-  \Begineq
+  \begin{equation}
     r_{\! f} = \frac{e^2}{4 \, \pi \, \epsilon_0} 
-  \Endeq
+  \end{equation}
 $r_{\! f}$ has a value of $1.4399644 \cdot 10^{-9} \; \text{meters-eV}$
 for all particles of charge $\pm 1$.
 
@@ -140,11 +140,11 @@ from zero on the outside edge of the edge field to its full value on the inside
 edge of the edge field. 
 Using this in \Eq{g2gkg} and integrating over the edge field gives the contribution
 to $I_4$ from a non--zero $e_1$ as
-  \Begineq
+  \begin{equation}
     I_{4z} = -\tan(e_1) \, g^2
     \left( \cos(\theta) \, \eta_x + \sin(\theta) \, \eta_y \right)
     \label{iegct}
-  \Endeq
+  \end{equation}
 With an analogous equation for a finite $e_2$. The extension to
 $I_{4a}$ and $I_{4b}$ involves using $\bfeta\two_a$ and $\bfeta\two_b$
 in place of $\bfeta\two$.  In \Eq{iegct} $\theta$ is the \vn{tilt}
@@ -156,49 +156,49 @@ system and reduce to the standard equations when $g_y = 0$ as they should.
 There are various parameters that can be expressed in terms of these
 integrals.  The $I_1$ integral can be related to the momentum
 compaction $\alpha_p$ via
-  \Begineq
+  \begin{equation}
     I_1 = \alpha_p \, L
-  \Endeq
+  \end{equation}
 where $L$ is the storage ring circumference. The energy loss per turn is
-  \Begineq
+  \begin{equation}
     U_0 = \frac{2 \, r_e E_0^4}{3 \, (mc^2)^3} I_2
-  \Endeq
+  \end{equation}
 where $E_0$ is the nominal energy and $r_e$ is the classical electron
 radius (electrons are assumed here but the formulas are easily
 generalized).
 
 The damping partition numbers are
-  \Begineq
+  \begin{equation}
     J_a = 1 - \frac{I_{4a}}{I_2} \comma \quad
     J_b = 1 - \frac{I_{4b}}{I_2} \comma \, \text{and} \quad \label{j1ii}
     J_z = 2 + \frac{I_{4z}}{I_2} \period
-  \Endeq
+  \end{equation}
 Since 
-  \Begineq          
+  \begin{equation}          
     \bfeta\two_{a} + \bfeta\two_{b} = \bfeta\two
     \comma \label{eee}
-  \Endeq
+  \end{equation}
 Robinson's theorem, $J_a + J_b + J_z = 4$, is satisfied.
 Alternatively, the exponential damping coefficients per turn are
-  \Begineq
+  \begin{equation}
     \alpha_a = \frac{U_0 \, J_a}{2 E_0} \comma \quad
     \alpha_b = \frac{U_0 \, J_b}{2 E_0} \comma \, \text{and} \quad
     \alpha_z = \frac{U_0 \, J_z}{2 E_0} \period
-  \Endeq
+  \end{equation}
 The energy spread is given by
-  \Begineq
+  \begin{equation}
     \sigma_{pz}^2 = \left( \frac{\sigma_E}{E_0} \right)^2 = 
     C_q \gamma_0^2 \frac{I_3}{2I_2 + I_{4z}}
-  \Endeq
+  \end{equation}
 where $\gamma_0$ is the usual energy factor and 
-  \Begineq
+  \begin{equation}
     C_q = \frac{55}{32 \, \sqrt{3}} \, \frac{\hbar}{mc} = 
     3.84 \times 10^{-13} \, \text{meter for electrons}
-  \Endeq
+  \end{equation}
 If the synchrotron frequency is not too large, the bunch length is given by
-  \Begineq
+  \begin{equation}
     \sigma_z^2 = \frac{I_1}{M(6,5)} \, \sigma_{pz}^2
-  \Endeq
+  \end{equation}
 where $M(6,5)$ is the $(6,5)$ element for the 1--turn transfer matrix
 of the storage ring. Finally, the emittances are given by
   \begin{align}
@@ -224,14 +224,14 @@ integrals are not relevant. The other integrals become
     L_{5b} &= \int ds \, g^3 \, \calH_b \, \gamma_0^6
   \end{align}
 In terms of these integrals, the energy loss through the lattice is
-  \Begineq
+  \begin{equation}
     U_0 = \frac{2 \, r_e \, mc^2}{3} L_2
-  \Endeq
+  \end{equation}
 The energy spread assuming $\sigma_E$ is zero at the start and neglecting
 any damping is
-  \Begineq
+  \begin{equation}
     \sigma_E^2 = \frac{4}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
-  \Endeq
+  \end{equation}
 The above equation is appropriate for a linac. In a storage ring, where
 there are energy oscillations, the growth of $\sigma_E^2$ due to
 quantum excitation is half that. One way to explain this is that in a

@@ -20,10 +20,10 @@ field. In many cases, this is a good enough approximation.
 \bmad defines the bend soft edge map in terms of the field integral
 $F_{H1}$ for the entrance end and $F_{H2}$ for the exit end given by
 (see \Eq{fsbbb})
-\Begineq
+\begin{equation}
   F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
   {2 \, B_{y0}^2}
-\Endeq
+\end{equation}
 With a similar equation for $F_{H2}$.
 The soft edge map is then
 \begin{align}
@@ -34,15 +34,15 @@ The soft edge map is then
     \nonumber
 \end{align}
 For the entrance face:
-\Begineq
+\begin{equation}
   c_1 = \frac{g_\tot \, F_{H1}^2}{2 \, (1 + p_z)}, \qquad 
   c_2 = \frac{2 \, g_\tot^2 \, F_{H1}}{1 + p_z}, \qquad 
   c_3 = 0
-\Endeq
+\end{equation}
 with \vn{g_\tot} is the total bending strength
-\Begineq
+\begin{equation}
   g_\tot = \text{g} + \text{g_err}
-\Endeq
+\end{equation}
 \vn{g} being the reference bend strength and \vn{g_err} being
 bend the difference between the actual and reference bend strengths
 (\sref{s:bend}).
@@ -55,9 +55,9 @@ For the exit face, the subsitution is made
 
 When the SAD bend soft edge map is used (\sref{s:fringe}), the map is
 the same except that the value of $c_3$ is
-\Begineq
+\begin{equation}
   c_3 = \frac{8 \, g_\tot^2}{F_{H1} \, (1 + p_z)}
-\Endeq
+\end{equation}
 It might seem strange that $c_3$ diverges to infinity as $F_H$ goes to
 zero since naively one would expect the soft edge kick to vanish in
 the hard edge limit where the fringe has no longitudinal
@@ -71,9 +71,9 @@ For a \vn{sad_mult} element, the field integrals are characterized by
 parameters \vn{fb1} (entrance end) and \vn{fb2} (exit end) which
 correspond to the SAD \vn{fb1} and \vn{fb2} parameters. These are related
 to the bend parameters by
-\Begineq
+\begin{equation}
   \text{fb1} = 12 \, F_{H1}, \qquad \text{fb2} = 12 \, F_{H2}
-\Endeq
+\end{equation}
 
 %---------------------------------------------------------------------------------
 \section{Bend Hard Edge Fringe Map}
@@ -83,9 +83,9 @@ The bend fringe kick is a combination of the equations developed by Hwang and Le
 modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:madphysics}.
 The Lie map generator $\Omega_M$ given by Hwang and Lee Eqs.~(35) and (36) is used under
 the conditions that
-\Begineq
+\begin{equation}
   K_0 = K_2 = K_3 = K_4 = K_5 = K_6 = 0
-\Endeq
+\end{equation}
 The generator used by \bmad for the entrance fringe is:
 \begin{align}
   \Omega_{M1} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_1)}{2} 
@@ -108,9 +108,9 @@ The generator for the exit fringe is
 
 The map $\cal M$ is obtained from the equation $\Cal M = \exp[\colon\Omega_M\colon]$. To second order in the
 transverse coordinates the map can be obtained by expanding the exponantial to second order
-\Begineq
+\begin{equation}
   \Cal M \simeq 1 + \colon\Omega_M\colon + \frac{1}{2} \, \colon\Omega_M\colon \, \colon\Omega_M\colon
-\Endeq
+\end{equation}
 The transport for the entrance fringe is then
 \begin{align}
   \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ -x^2 \, \tan^2 (e_1) + y^2 \sec^2 (e_1) \right] \CRNO
@@ -127,9 +127,9 @@ The transport for the entrance fringe is then
   \Delta z &= \frac{\what \Omega_{M1}}{1 + p_z} \nonumber
 \end{align}
 where $\what \Omega_{M1} = \Omega_{M1} - (x^2 - y^2) \, g_\tot \, \tan (e_1)/2$.
-%\Begineq
+%\begin{equation}
 %  \what \Omega_{M1} = \Omega_{M1} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_1)}{2}
-%\Endeq
+%\end{equation}
 The transport for the exit fringe is
 \begin{align}
   \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ x^2 \, \tan^2 (e_2) - y^2 \sec^2 (e_2) \right] \CRNO
@@ -147,9 +147,9 @@ The transport for the exit fringe is
   \Delta z &= \frac{\what \Omega_{M2}}{1 + p_z} \nonumber
 \end{align}
 where $\what \Omega_{M2} = \Omega_{M2} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2}$
-%\Begineq
+%\begin{equation}
 %  \what \Omega_{M2} = \Omega_{M2} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2}
-%\Endeq
+%\end{equation}
 
 %---------------------------------------------------------------------------------
 \section{Quadrupole Soft Edge Fringe Map}
@@ -169,29 +169,29 @@ from SAD\cite{b:sad}. The fringe map is:
     \, e^{g_1} \, p_{y1}^2 \right] \nonumber
 \end{align}
 where
-\Begineq
+\begin{equation}
   g_1 = \frac{K_1 \, \text{fq1}}{1 + p_z} , \qquad
   g_2 = \frac{K_1 \, \text{fq2}}{1 + p_z}
-\Endeq
+\end{equation}
 $K_1$ is the quadrupole strength, and \vn{fq1} and \vn{fq2} are the fringe
 quadrupole parameters. These parameters are related to the field integral $I_n$
 via
-\Begineq
+\begin{equation}
   \text{fq1} = I_1 - \frac{1}{2} \, I_0^2 , \qquad
   \text{fq2} = I_2 - \frac{1}{3} \, I_0^3
-\Endeq
+\end{equation}
 where $I_n$ is defined by
-\Begineq
+\begin{equation}
   I_n = \frac{1}{K_1} \, \int_{-\infty}^{\infty} \; 
     (K_1(s) - H(s-s_0) \, K_1) \, (s - s_0)^n \, ds
-\Endeq
+\end{equation}
 and $H(s)$ is the step function
-\Begineq
+\begin{equation}
   H(s) = \begin{cases}
     1   & s > 0 \\
     0   & s < 0
   \end{cases}
-\Endeq
+\end{equation}
 and it is assumed that the quadrupole edge is at $s_0$ and the interior is 
 in the region $s > s_0$. 
 
@@ -235,9 +235,9 @@ The electric multipole hard edge fringe field, to lowest order, consists of just
 longitudinal field. The integrated longitudinal field at constant $(x,y)$ for the $n$\Th
 order multipole is simply obtained by requireing that the curl of the field is zero.
 This gives:
-\Begineq
+\begin{equation}
   \int E_s(x,y) \, ds = \phi_n(x,y)
-\Endeq
+\end{equation}
 where $\phi_n$ is given in \Eq{pbian1}. [For a magnetic multipole there is an analogous
 equation.]
 

@@ -24,32 +24,32 @@ time tracking}'' and ``\vn{absolute time tracking}''. The switch to set the type
 lattice is \vn{parameter[absolute_time_tracking]} (\sref{s:param}).
 
 The phase of the RF, $\phi_\text{rf}$, is determined by
-\Begineq
+\begin{equation}
   \phi_\text{rf} = \phi_\text{t} + \phi_\text{ref}
-\Endeq
+\end{equation}
 where $\phi_\text{t}$ is the part of the phase that depends upon the time $t$ and $\phi_\text{ref}$
 is a fixed phase offset (generally set in the lattice file) and independent of the particle
 coordinates. See \Eqs{lcav.phi} and \eq{rfcav.phi}
 
 The phase $\phi_\text{t}$ is 
-\Begineq
+\begin{equation}
   \phi_\text{t} = f_\text{rf} \ t_\text{eff}
-\Endeq
+\end{equation}
 where $f_\text{rf}$ is the RF frequency, and $t_\text{eff}$ is the effective time. With \vn{relative
 time tracking}, which \bmad uses by default, $t_\text{eff}$ is a function of the 
 phase space coordinate $z$ (\sref{s:phase.space}) via
-\Begineq
+\begin{equation}
   t_\text{eff}(s) = t_0(s) - t_0(s_\text{ent}) - \frac{z(s)}{(\beta \, c)}
   \label{tttz}
-\Endeq
+\end{equation}
 where $t_0$ is the reference time (see \Eq{zbctt}) and $s_\text{ent}$ is the $s$-position at the
 upstream end of the element. $t_\text{eff}$ is defined such that a particle entering an element 
 with $z = 0$ has $t_\text{eff} = 0$.
 
 With \vn{absolute time tracking}, $t_\text{eff}$ is defined by
-\Begineq
+\begin{equation}
   t_\text{eff}(s) = t(s) - t_0(s_\text{ent})
-\Endeq
+\end{equation}
 $t_0(s_\text{ent})$, by definition, equal to the time of the reference particle at the entrance end
 of the element. With multipass \sref{s:multipass}, $t_0(s_\text{ent})$ is set by the time of the
 reference particle at the entrance end of the element on the first pass. For absolute time tracking,
@@ -145,36 +145,36 @@ The transformation between \vn{laboratory} and \vn{element} reference frames is 
 \label{s:mag.hamiltonian}
 The time dependent Hamiltonian $H_t$ in the curvilinear coordinate system shown
 in \fig{f:local.coords} is (\cite{b:ruth})
-\Begineq
+\begin{equation}
   H_t = \wt\psi + \left[ \left( \frac{p_s - a_s}{1 + g\, x} \right)^2 + \wt m^2 + 
   (p_x - a_x)^2 + (p_y - a_y)^2 \right]^{1/2}
-\Endeq
+\end{equation}
 where $(p_x, p_y, p_s/(1+gx))$ are the momentum normalized by $P_0$, $\rho$ being the local radius
 of curvature of the reference particle, and $\wt m$, $\Bf a$ and $\wt\psi$ are the normalized mass,
 vector, and scalar potentials:
-\Begineq
+\begin{equation}
   \wt m = \frac{m \, c^2}{c \, P_0} \qquad
   \left( a_x, a_y, \frac{a_s}{1+g \, x} \right) = \frac{q \, \Bf A}{P_0 \, c} \qquad 
   \wt\psi(x,y,z) = \frac{q \, \psi}{P_0 \, c}
   \label{mmccp}
-\Endeq
+\end{equation}
 In terms of the normalized velocities $\beta_x$, $\beta_y$, the canonical momentum are
-\Begineq
+\begin{equation}
   p_x = \frac{m \, c^2}{P_0 \, c} \, \beta_x + a_x, \qquad 
   p_y = \frac{m \, c^2}{P_0 \, c} \, \beta_y + a_y
   \label{pmc2pc}
-\Endeq
+\end{equation}
 
 The $s$-dependent Hamiltonian is obtained from $H_t$ by solving for
 $-p_s$ and using a contact transformation to convert to \bmad
 coordinates (\sref{s:phase.space}). For particles propagating in the
 positive $s$ direction, the $s$-dependent Hamiltonian is, assuming
 $\wt\psi$ is zero
-\Begineq
+\begin{equation}
   H \equiv H_s = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - 
   a_s + \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
   \label{h1gx1}
-\Endeq
+\end{equation}
 where $\beta_0$ is the reference velocity and the equality $(1 +
 p_z)^2 = (E/c\, P_0)^2 - \wt m^2$ has been used. The last term on the
 RHS of \Eq{h1gx1} accounts for the fact that the \bmad canonical $z$
@@ -192,37 +192,37 @@ The equations of motion are
 non-curved coordinate system ($g = 0$), and using the paraxial approximation (which
 expands the square root in the Hamiltonian assuming the transverse momenta are small)
 (\sref{s:phase.space}), \Eq{h1gx1} becomes
-\Begineq
+\begin{equation}
   H = \frac{(p_x - a_x)^2}{2 (1 + p_z)} + \frac{(p_y - a_y)^2}{2 (1 + p_z)} - 
   (1 + g \, x) \, (1 + p_z) - a_s +   \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
   \label{hpapa}
-\Endeq
+\end{equation}
 
 Once the transverse trajectory has been calculated, the longitudinal position
 $z_2$ at the exit end of an element is obtained from symplectic
 integration of \Eq{hpapa}
-\Begineq
+\begin{equation}
   z_2 = z_1 - \frac{1}{2 (1 + p_{z1})^2} \int \! ds \, 
   \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \, g \, x
   \label{zz121p}
-\Endeq
+\end{equation}
 where $z_1$ is the longitudinal position at the entrance end of the element.
 Using the equations of motion \Eqs{rshp} this can also be rewritten as
-\Begineq
+\begin{equation}
   z_2 = z_1 - \frac{1}{2} \int \! ds \, 
   \left[ \left( \frac{dx}{ds} \right)^2 + \left( \frac{dy}{ds} \right)^2 \right] - 
   \int \! ds \, g \, x
   \label{zz12sx}
-\Endeq
+\end{equation}
 
 For some elements, \vn{bmad_standard} uses a truncated Taylor map for
 tracking.  For elements without electric fields where the particle
 energy is a constant, the transfer map for a given coordinate $r_i$
 may be expanded in a Taylor series
-\Begineq
+\begin{equation}
   r_{i,2} \rightarrow m_i + \sum_{j = 1}^4 m_{ij} \, r_{j,1} + 
   \sum_{j = 1}^4 \sum_{k = j}^4 m_{ijk} \, r_{j,1} \, r_{k,1} + \ldots
-\Endeq
+\end{equation}
 where the map coefficients $m_{ij\cdots}$ are functions of $p_z$.  For
 linear elements, the transfer map is linear for the transverse
 coordinates and quadratic for $r_i = z$.
@@ -230,11 +230,11 @@ coordinates and quadratic for $r_i = z$.
 Assuming mid--plane symmetry of the magnetic field, so
 that $a_x$ and $a_y$ can be set to zero\cite{b:madphysics}, The vector
 potential up to second order is (cf.~\Eq{byx0b})
-\Begineq
+\begin{equation}
   a_s = -k_0 \left( x - \frac{g \, x^2}{2 (1 + g\, x)} \right) -
   \frac{1}{2} k_1 \left( x^2 - y^2 \right)
   \label{akxgx}
-\Endeq
+\end{equation}
 
 For backwards propagation, where particle are traveling in the $-\Bf
 s$ direction and where $p_s$ is negative, solving for $p_s$ involves
@@ -242,10 +242,10 @@ using a different part of the square root branch. There is also an
 overall negative sign coming from switching from using $s$ as the
 independent variable to $\wt s \equiv -s$ as the independent
 variable. the Hamiltonian $H_{\wt s}$ is then
-\Begineq
+\begin{equation}
   H_{\wt s} = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} + 
   a_s + \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
-\Endeq
+\end{equation}
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -254,9 +254,9 @@ variable. the Hamiltonian $H_{\wt s}$ is then
 \index{symplectic integration}
 
 Using \Eq{hpapa} the Hamiltonian is written in the form
-\Begineq
+\begin{equation}
   H = H_x + H_y + H_z
-\Endeq
+\end{equation}
 where
 \begin{equation}
   H_x = \frac{(p_x - a_x)^2}{2 (1 + \delta)}, \qquad
@@ -267,13 +267,13 @@ where
 For tracking, the element is broken up into a number of slices set by
 the element's \vn{ds_step} attribute. For each slice, the tracking
 uses a quadratic symplectic integrator $I$:
-\Begineq
+\begin{equation}
   I = T_{s/2} \; I_{x/2} \; I_{y/2} \; I_s \; I_{y/2} \; I_{x/2} \; T_{s/2}
-\Endeq
+\end{equation}
 $T_{s/2}$ is just a translation of the $s$ variable:
-\Begineq
+\begin{equation}
   s \rightarrow s + \frac{ds}{2}
-\Endeq
+\end{equation}
 And the other integrator components are
 \begin{align}
   I_{x/2} &= \exp \left( : -\frac{ds}{2} H_x : \right) \CRNO
@@ -361,11 +361,11 @@ Forest\cite{b:forest} Eq.~12.18:
 where $g_\tot$ is the total bending strength (design + error).
 
 For a bend with a finite \vn{k1}, the Hamiltonian for the body of an \vn{sbend} is
-\Begineq
+\begin{equation}
   H = (k_0 - g) \,i x - g \, x \, p_z + 
   \frac{1}{2}\left( (k_1 + g \, k_0) x^2 - k_1 \, y^2 \right) +
   \frac{p_x^2 + p_y^2}{2 (1 + p_z)} 
-\Endeq
+\end{equation}
 
 This is simply solved
 \begin{align}
@@ -428,9 +428,9 @@ This gives the map
 where $\beta$ is the normalized particle velocity, $\beta_{ref}$ is 
 the reference particle's normalized velocity, and $p_l$ is the
 longitudinal momentum
-\Begineq
+\begin{equation}
   p_l = \sqrt{1 - \frac{p_x^2 + p_y^2}{(1 + p_z)^2}}
-\Endeq
+\end{equation}
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -452,19 +452,19 @@ translational invariance in $x$.
 [Thanks to \'Etienne Forest for the derivation of the elseparator equation of motion.]
 
 The Hamiltonian for an electric separator is 
-\Begineq
+\begin{equation}
   H = -p_s 
   = - \left\{ \left( \frac{1}{\beta_0} + \delta + k_E \, x \right)^2 - 
   \wt m^2 - p_x^2 - p_y^2 \right\}^{1/2}
   \label{hp1b}
-\Endeq
+\end{equation}
 Here the canonical coordinates $(-c \, t, \delta$ are being used,
 $\wt m$ is defined in \Eq{mmccp}, and $p_s = -H$ is just the
 longitudinal momentum.  In the above equation, $k_E$ is the normalized
 field
-\Begineq
+\begin{equation}
   k_E = \frac{q \, E}{P_0 \, c}
-\Endeq
+\end{equation}
 The field is taken to be pointing along the $x$-axis with positive
 $k_E$ accelerating a particle in the positive $x$ direction. To solve
 the equations of motion, a ``hard edge'' model is used where $k_E$ is
@@ -496,13 +496,13 @@ The solution of the equations of motion is:
         \nonumber
 \end{align}
 where the critical position $x_c$ is
-\Begineq 
+\begin{equation} 
   x_c = -\frac{\wt E}{k_E}
-\Endeq
+\end{equation}
 and 
-\Begineq
+\begin{equation}
   \wt E \equiv \frac{1}{\beta_0} + \delta = \frac{E}{P_0 \, c}
-\Endeq
+\end{equation}
  
 \Eqs{xxlp} predict that for $x < x_c$ and $p_{x0} = 0$ a particle
 will, unphysically, accelerate in the negative $x$ direction. In
@@ -510,9 +510,9 @@ actuality, a particle in this instance will be reflected backwards by
 the longitudinal component of the edge field. Specifically, the
 argument of the square root in \Eq{hp1b} must be non-negative and
 a particle will only make it through the speparator if
-\Begineq
+\begin{equation}
   x_0 > \frac{1}{k_E} \, \left( \sqrt{\wt m^2 + p_{x0}^2 + p_{y0}^2} - \wt E \right)
-\Endeq
+\end{equation}
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -524,9 +524,9 @@ a particle will only make it through the speparator if
 \index{elseparator}
 
 The Hamiltonian for a horizontally deflecting kicker or separator is
-\Begineq
+\begin{equation}
   H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} - k_0 \, x 
-\Endeq
+\end{equation}
 This gives the map
 \begin{align}
   x_2    &= x_1 + \frac{1}{1 + p_{z1}} \, \left( L \, p_{x1} + \frac{1}{2} k_0 \, L^2 \right) \CRNO
@@ -558,7 +558,7 @@ ulta-relativistic limit with $\beta = 1$.  To extend these equations,
 the transport through the cavity body (R\&S Eq.~(9)) has been modified
 to give the correct phase-space area at non ultra-relativistic
 energies:
-\Begineq
+\begin{equation}
   \begin{pmatrix}
     x \\ 
     x'
@@ -576,7 +576,7 @@ energies:
     x \\ 
     x'
   \end{pmatrix}_1
-\Endeq
+\end{equation}
 The added factors of $\beta$ give the matrix the correct determinate
 of $\beta_1 \, \gamma_1 / \beta_2 \, \gamma_2$. {\em While the added
 factors of $\beta$ do correct the phase space area, the above equation
@@ -596,14 +596,14 @@ where it has been assumed that the accelerating gradient $G$ is
 constant through the cavity. In this equation $\beta = v / c$, $E$ is
 the energy, and $P_{z1}$ and $P_{z2}$ are the entrance and exit
 momenta. Using \Eq{zbctt}, the change in $z$ is thus
-\Begineq
+\begin{equation}
   z_2 = \frac{\beta_2}{\beta_1} \, z_1 - 
   \beta_2 \, 
   \left(
   \frac{c \, P_{z2} - c \, P_{z1}}{G} - 
   \frac{c \, \Pbar_{z2} - c \, \Pbar_{z1}}{\BAR G}
   \right)
-\Endeq
+\end{equation}
 where $\Pbar$ and $\BAR G$ are the momentum and gradient of the
 reference particle.
 
@@ -620,9 +620,9 @@ True.
 \index{octupole}
 
 The Hamiltonian for an upright octupole is
-\Begineq
+\begin{equation}
   H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_3}{24} (x^4 - 6 \, x^2 \, y^2 + y^4)
-\Endeq
+\end{equation}
 
 An octupole is modeled using a kick-drift-kick model.
 
@@ -694,11 +694,11 @@ entrance reference momentum $P_{0\text{ent}}$ through
 \vn{e_tot_offset}.  In the above equation, $\beta$ is the particle
 velocity, $\beta_0$ is the velocity of the reference particle, and
 $L_0$ is the drift length of the reference particle
-\Begineq
+\begin{equation}
   L_0 = \frac{1}{S^{-1}_{33}} \, \left( 
   S^{-1}_{31} \, \text{x_offset} + S^{-1}_{32} \, \text{y_offset} + S^{-1}_{33} \, \text{z_offset}
   \right)
-\Endeq
+\end{equation}
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -710,9 +710,9 @@ The \vn{bmad_standard} calculates the transfer map through an upright
 quadrupole and then transforms that map to the laboratory frame.
 
 The Hamiltonian for an upright quadrupole is
-\Begineq
+\begin{equation}
   H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_1}{2} (x^2 - y^2)
-\Endeq
+\end{equation}
 This is simply solved
 \begin{align}
   x_2    &= c_x \, x_1 + s_x \, \frac{p_{x1}}{1 + p_{z1}} \CRNO
@@ -724,9 +724,9 @@ This is simply solved
   p_{z2} &= p_{z1} \nonumber
 \end{align}
 where 
-\Begineq
+\begin{equation}
   \om \equiv \sqrt{\frac{|k_1|}{1 + p_{z1}}}
-\Endeq
+\end{equation}
 and
 \begin{alignat}{6}
          &\hspace*{3ex}  && k_1 > 0          &\hspace*{3ex}& k_1 < 0 & \qqquad
@@ -773,10 +773,10 @@ should be used in place of \vn{rfcavity} elements when this is not so.
 The ``hard edge'' fringe field kick is taken from Forest\cite{b:forest} Eqs.~(13.29) and onward.
 In the notation of \bmad, and taking into account both normal and skew terms, Eq.~(13.29)
 is for the $m$\th order multipole (what Forest labels $n+1$)
-\Begineq
+\begin{equation}
   f_\pm = \mp \Re \frac{(b_m + i \, a_m) \, (x + i \, y)^{(m+1)}}{4 \, (m+2) \, (1 + p_z)}
     \left[ x \, p_x + y \, p_y + i\frac{m+3}{m+1}(x \, p_y - y \, p_x) \right]
-\Endeq
+\end{equation}
 
 The ``soft edge'' dipole fringe for \vn{sad_mult} elements is a generalization of the soft edge
 dipole fringe for a SAD bend element. For the entrance kick the equations are:
@@ -814,9 +814,9 @@ where
 \index{sextupole}
 
 The Hamiltonian for an upright sextupole is
-\Begineq
+\begin{equation}
   H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_2}{6} (x^3 - 3 \, x \, y^2)
-\Endeq
+\end{equation}
 
 Tracking through a sextupole uses a kick-drift-kick model.
 
@@ -827,10 +827,10 @@ Tracking through a sextupole uses a kick-drift-kick model.
 \index{sol_quad}
 
 The Hamiltonian is
-\Begineq
+\begin{equation}
   H = \frac{(p_x + \frac{k_s }{2}\, y)^2}{2 (1 + p_z)} + 
   \frac{(p_y - \frac{k_s}{2} \, x)^2}{2 (1 + p_z)} + \frac{k_1}{2} (x^2 - y^2)
-\Endeq
+\end{equation}
 Solving the equations of motion gives
 \begin{align}
   x_2    &= m_{11} \, x_1 + m_{12} \, p_{x1} + m_{13} \, y_1 + m_{14} \, p_{y1} \CRNO
@@ -896,13 +896,13 @@ The $m_{5jk}$ terms are obtained via \Eq{zz121p}
   \right] \nonumber
 \end{align}
 where
-\Begineq
+\begin{equation}
   \tau_{jk} = 
   \begin{cases}
     1 & j = k \\
     2 & j \ne k 
   \end{cases}
-\Endeq
+\end{equation}
 The needed integrals involve the product of two trigonometric or
 hyperbolic functions. These integrals are trivial to do but the
 explicit equations for $m_{5jk}$ are quite long and in the interests of
@@ -929,14 +929,14 @@ the ends are displaced from one another.
 \index{solenoid}
 
 The Hamiltonian for a solenoid is
-\Begineq
+\begin{equation}
   H = \frac{ \left( p_x + \frac{k_s}{2} \, y \right)^2}{2 \, (1 + p_z)} + 
   \frac{ \left( p_y - \frac{k_s}{2} \, x \right)^2}{2 \, (1 + p_z)} 
-\Endeq
+\end{equation}
 where the normalized field $k_s$ is
-\Begineq
+\begin{equation}
   k_s = \frac{B}{P_0}
-\Endeq
+\end{equation}
 The solution to the equations of motion for a constant $k_s$ are
 \begin{align}
   x_2    &= \frac{1 + c}{2} \, x_1 + \frac{s}{k_s} \, p_{x1} +

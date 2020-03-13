@@ -31,18 +31,18 @@ For more information see the FPP/PTC manual\cite{b:ptc}.
 
 PTC uses different longitudinal phase space coordinates compared to \bmad.
 \bmad's phase space coordinates are (\sref{s:phase.space})
-\Begineq
+\begin{equation}
   (x, p_x, y, p_y, z, p_z)
-\Endeq
+\end{equation}
 In PTC one can choose between several different coordinate systems. The one
 that Bmad uses is 
-\Begineq
+\begin{equation}
   (x, p_x, y, p_y, p_t, c \Delta t)
-\Endeq
+\end{equation}
 where
-\Begineq
+\begin{equation}
   p_t = \frac{\Delta E}{P_0}
-\Endeq
+\end{equation}
 This choice of phase space is set in \Hyperref{r:set.ptc}{set_ptc}.  Specifically,
 the PTC global variable \vn{DEFAULT}, which is of type
 \vn{internal_states}, has the \vn{%time} switch set to \vn{True}.
