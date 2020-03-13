@@ -55,7 +55,7 @@ $(J, \phi)$, is
   \tan\phi &= \frac{-\beta \, (x' + \alpha \, x)}{x}
 \end{align}
 The inverse is
-\Begineq
+\begin{equation}
   \begin{pmatrix} 
     x \\ x' 
   \end{pmatrix} 
@@ -68,18 +68,18 @@ The inverse is
     \cos\phi \\ 
     \sin\phi 
   \end{pmatrix}.
-\Endeq
+\end{equation}
 In action-angle coordinates, the normalized Gaussian phase space 
 distribution, $\rho(J, \phi)$, is
-\Begineq
+\begin{equation}
   \rho(J,\phi) = \frac{1}{2\pi\varepsilon} e^{-\frac{J}{\varepsilon}}.
   \label{eq:rho}
-\Endeq
+\end{equation}
 where the emittance $\varepsilon$ is just the average of $J$ over the distribution
-\Begineq
+\begin{equation}
   \varepsilon = \langle J \rangle \equiv \int dJ \, d\phi \, J\rho(J,\phi).
   \label{eq:eps}
-\Endeq
+\end{equation}
 The beam sizes $\sigma$ and $\sigma'$ are
 \begin{align}
   \sigma  & = \sqrt{\langle x^2 \rangle} = \sqrt{\varepsilon\beta}  \\
@@ -87,47 +87,47 @@ The beam sizes $\sigma$ and $\sigma'$ are
   \label{eq:rms}
 \end{align}
 and the covariance is
-\Begineq
+\begin{equation}
   \langle xx' \rangle = -\varepsilon\alpha.
   \label{eq:corr}
-\Endeq
+\end{equation}
 
 The \vn{ellipse} algorithm starts by partitioning phase space into regions bounded by ellipses of
 constant $J = B_n$, $n = 0, \ldots N_J$.  The boundary values $B_n$ are chosen so that, except for
 the last boundary, the $\sqrt{B_n}$ are equally spaced
-\Begineq
+\begin{equation}
   B_n = 
   \begin{cases}
     \frac{\varepsilon}{2} \, \left( \frac{n_\sigma \, n}{N} \right)^2 & 
                   \text{for } 0 \le n < N_J \\
     \infty & \text{for } n = N_J
   \end{cases}
-\Endeq
+\end{equation}
 where $n_\sigma$ is called the \vn{``boundary sigma cutoff''}.  Within each region, an elliptical
 shell of constant $J_n$ is constructed with $N_\phi$ particles equally spaced in $\phi$. The charge
 $q_n$ of each particle of the $n$\Th ellipse is chosen so that the total charge of all the particles
 of the ellipse is equal to the total charge within the region
-\Begineq
+\begin{equation}
   N_\phi \, q_n = 
   \int_{B_{n-1}}^{B_{n}} \!\! dJ \int_{0}^{2\pi} \!\! d\phi \, \rho(J,\phi) 
   = 
     \exp \left( -\frac{B_{n-1}}{\varepsilon} \right) - 
     \exp \left( -\frac{B_{n}}{\varepsilon} \right)
-\Endeq
+\end{equation}
 The value of $J_n$ is chosen to coincide with the average $J$ within the region
-\Begineq
+\begin{equation}
   N_\phi \, q_n \, J_n = 
   \int_{B_{n-1}}^{B_{n}} \!\! dJ \int_{0}^{2\pi} \!\! d\phi \, J \, \rho(J,\phi) 
   = \varepsilon (\xi + 1) e^{-\xi} 
     \biggr\vert_{\frac{B_{n}}{\varepsilon}}^{\frac{B_{n-1}}{\varepsilon}}
-\Endeq
+\end{equation}
 The \vn{ellipse} phase space distribution is thus
-\Begineq
+\begin{equation}
   \rho_{model}(J, \phi) = q_{tot} \, 
   \sum_{n=1}^{N_J} q_{n} \, \delta(J - J_{n}) \, 
   \sum_{m=1}^{N_\phi} \, \delta(\phi - 2\pi \frac{m}{N_{\phi}})
   \label{eq:rhomodel}
-\Endeq
+\end{equation}
 where $q_{tot}$ is the total charge. At a given point in the lattice, where
 the Twiss parameters are known, the input parameters needed to construct
 the \vn{ellipse} phase space distribution is $n_\sigma$, $N_J$, $N_\phi$, 
@@ -165,9 +165,9 @@ The reverse transformation is:
 \end{align}
 
 The \vn{KV} distribution is
-\Begineq
+\begin{equation}
   \rho(I_1,I_2,\phi_x,\phi_y) = \frac{1}{A} \delta(I_1 - \xi),
-\Endeq
+\end{equation}
 where $A = \frac{\varepsilon_x \varepsilon_y}{\varepsilon^2} \xi (2\pi)^2$ 
 is a constant which normalizes the distribution to 1.  
 By choosing a particular $\xi$, and iterating over the domain of the three remaining
@@ -195,9 +195,9 @@ To represent the distribution with particles of equal weight,
 we must partition $(I_2,\phi_x,\phi_y)$-space into regions of equal volume.
 
 The weight of each particle is
-\Begineq
+\begin{equation}
   q = \frac{1}{N M_x M_y} = \frac{1}{N_{tot}}
-\Endeq
+\end{equation}
 where $N_{tot}$ is the total number of particles
 
 %-----------------------------------------------------------------
@@ -280,14 +280,14 @@ A macroparticle\cite{b:transport.appendix} is represented by a centroid position
 
 $\bfsig$ is a real, non-negative symmetric matrix. The equation that defines the ellipsoid at a
 distance of $n$--sigma from the centroid is
-\Begineq
+\begin{equation}
   (\bfr - \bfrbar)^t \bfsig\inv (\bfr - \bfrbar) = n
-\Endeq
+\end{equation}
 where the $t$ superscript denotes the transpose. Given the sigma matrix at some point $s = s_1$, the
 sigma matrix at a different point $s_2$ is
-\Begineq
+\begin{equation}
   \bfsig_2 = \bfM_{12} \, \bfsig_1 \, \bfM_{12}^t
-\Endeq
+\end{equation}
 where $\bfM_{12}$ is the Jacobian of the transport map from point
 $s_1$ to $s_2$.
 
@@ -301,23 +301,23 @@ The Twiss parameters can be calculated from the sigma matrix. The dispersion is 
 \end{align}
 Ignoring coupling for now, the betatron part of the sigma matrix can be
 obtained from the linear equations of motion. For example, using
-\Begineq
+\begin{equation}
   x = \sqrt{2 \, \beta_x \, \epsilon_x} \cos \phi_x + \eta_x \, p_z
-\Endeq
+\end{equation}
 Solving for the first term on the RHS, squaring and averaging over all particles gives
-\Begineq
+\begin{equation}
   \beta_x \, \epsilon_x = \sigma(1,1) - \frac{\sigma^2(1,6)}{\sigma(6,6)}
-\Endeq
+\end{equation}
 It is thus convenient to define the betatron part of the sigma matrix
-\Begineq
+\begin{equation}
   \sigma_\beta(i,j) \equiv \sigma(i,j) - \frac{\sigma(i,6) \, \sigma(j,6)}{\sigma(6,6)}
-\Endeq
+\end{equation}
 and in terms of the betatron part the emittance is
-\Begineq
+\begin{equation}
   \epsilon_x^2 = \sigma_\beta(1,1) \, \sigma_\beta(2,2) - \sigma_\beta^2(1,2)
-\Endeq
+\end{equation}
 and the Twiss parameters are
-\Begineq
+\begin{equation}
   \epsilon_x 
   \begin{pmatrix}
     \beta_x   & -\alpha_x \\
@@ -327,14 +327,14 @@ and the Twiss parameters are
     \sigma_\beta(1,1) & \sigma_\beta(1,2) \\
     \sigma_\beta(1,2) & \sigma_\beta(2,2) 
   \end{pmatrix}
-\Endeq
+\end{equation}
 
 If there is coupling, the transformation between the $4\times 4$
 transverse normal mode sigma matrix $\bfsig_a$ and the $4\times 4$
 laboratory matrix $\bfsig_x$ is
-\Begineq
+\begin{equation}
   \bfsig_x = \bfV \, \bfsig_a \bfV^t
-\Endeq
+\end{equation}
 where $\bfV$ is given by \Eq{vgicc1}.
 
 The sigma matrix is the same for all macroparticles and is
@@ -351,17 +351,17 @@ determined by the local Twiss parameters:
   \sigma(i,j) &= 0 \quad \text{otherwise} \nonumber
 \end{align}
 The centroid energy of the $k$\Th macroparticle is
-\Begineq
+\begin{equation}
   E_k = E_b + \frac{(n_{mp} - 2 \, k + 1) \, \sigma_E \, N_{\sigma E}}{n_{mp}}
-\Endeq
+\end{equation}
 where $E_b$ is the central energy of the bunch, $n_{mp}$ is the number of macroparticles, $\sigma_E$
 is the energy sigma, and $N_{\sigma E}$ is the number of sigmas in energy that the range of
 macroparticle energies cover. The charge of each macroparticle is, within a constant factor, the
 charge contained within the energy region $E_k - dE_{mp}/2$ to $E_k + dE_{mp}/2$ assuming a Gaussian
 distribution where the energy width $dE_{mp}$ is
-\Begineq
+\begin{equation}
   dE_{mp} = \frac{2 \, \sigma_E \, N_{\sigma E}}{n_{mp}}
-\Endeq
+\end{equation}
 
 %-----------------------------------------------------------------   
 \section{Space Charge and Coherent Synchrotron Radiation}

@@ -286,21 +286,21 @@ $y$ axes will coincide, and $\phi$ and $\psi$ will both be zero. The \vn{beginni
 \index{MAD}
 Following \mad, the global position of an element is characterized by
 a vector $\bfV$ 
-\Begineq
+\begin{equation}
   \bfV = 
   \begin{pmatrix}
     X \\ Y \\ Z 
   \end{pmatrix}
-\Endeq
+\end{equation}
 The orientation of an element is described by a unitary rotation matrix $\bfW$. The column vectors
 of $\bfW$ are the unit vectors spanning the local coordinate axes in the order $(x, y, z)$. $\bfW$
 can be expressed in terms of the orientation angles $\theta$, $\phi$, and $\psi$ via the formula
-\Begineq
+\begin{equation}
   \bfW = \bfR_{y}(\theta) \; \bfR_{-x}(\phi) \; \bfR_{z}(\psi)
   \label{wwww}
-\Endeq
+\end{equation}
 where
-\Begineq
+\begin{equation}
   \bfR_{y}(\theta) = 
   \begin{pmatrix}
     \cos\theta  & 0 & \sin\theta \\
@@ -320,13 +320,13 @@ where
     0        &  0        & 1                
   \end{pmatrix}
   \label{wtt0t}
-\Endeq
+\end{equation}
 Notice that $\bfR_{-x}(\phi)$, for positive $\phi$, represents a rotation around the negative
 $x$-axis.
 
 An alternative representation of the $\bfW$ matrix (or any other rotation matrix) is to specify the
 axis $\Bf u$ (normalized to 1) and angle of rotation $\beta$
-\Begineq
+\begin{equation}
   \bfW = \begin{pmatrix}
     \cos \beta + u_x^2 \left(1 - \cos \beta \right) & 
     u_x \, u_y \left(1 - \cos \beta \right) - u_z \sin \beta & 
@@ -339,7 +339,7 @@ axis $\Bf u$ (normalized to 1) and angle of rotation $\beta$
     \cos \beta + u_z^2\left(1 - \cos \beta \right)
   \end{pmatrix}
   \label{wctux2}
-\Endeq
+\end{equation}
 
 %-----------------------------------------------------------------------------
 \subsection{Lattice Element Positioning}
@@ -361,7 +361,7 @@ end with respect to the entrance end. For clarity, the subscript $i$ in
 the equations below will be dripped. For all elements whose
 reference orbit through them is a straight line, the corresponding
 $\bfL$ and $\bfS$ are
-\Begineq
+\begin{equation}
   \bfL = 
   \begin{pmatrix}
       0 \\ 0 \\ L
@@ -374,7 +374,7 @@ $\bfL$ and $\bfS$ are
       0 & 0 & 1
   \end{pmatrix},
   \label{l00l}
-\Endeq
+\end{equation}
 Where $L$ is the length of the element. 
 
 %-----------------------------------------------------------------------
@@ -417,23 +417,23 @@ For a bend, $\bfS$ is given using \Eq{wctux2} with
   \label{ustt}
 \end{align}
 where $\theta_t$ is the \vn{ref_tilt} angle. The $\bfL$ vector for a \vn{bend} is given by 
-\Begineq
+\begin{equation}
   \bfL = \bfR_{z}(\theta_t) \; \bftilde L, \quad
   \bftilde L = 
   \begin{pmatrix}
     \rho (\cos\alpha_b - 1) \\ 0 \\ \rho \, \sin\alpha_b
   \end{pmatrix}
   \label{lrztt}
-\Endeq
+\end{equation}
 where $\alpha_b$ is the bend \vn{angle} (\sref{s:bend}) and $\rho$ being the bend radius
 (\vn{rho}). Notice that since $\Bf u$ is perpendicular to $z$, the curvilinear reference coordinate
 system has no ``torsion''. That is, it is a Frenet-Serret coordinate system.
 
 Note: An alternative equation for \vn{\bfS} for a bend is
- \Begineq
+ \begin{equation}
   \bfS = \bfR_{z}(\theta_t) \; \bfR_{y}(-\alpha_b) \; \bfR_{z}(-\theta_t)
   \label{srrr}
-\Endeq
+\end{equation}
 
 The bend transformation above is so constructed that the
 transformation is equivalent to rotating the local coordinate system
@@ -475,10 +475,10 @@ the undiffracted beam (shown in red) as the reference trajectory.
 
 A point $\bfQ_g = (X, Y, Z)$ defined in the global coordinate system,
 when expressed in the coordinate system defined by $(\bfV, \bfW)$ is
-\Begineq
+\begin{equation}
   \bfQ_{VW} = \bfW^{-1} \left( \bfQ_g - \bfV \right)
   \label{rwrv}
-\Endeq
+\end{equation}
 This is essentially the inverse of \Eq{vwlv}. That is, vectors
 propagate inversely to the propagation of the coordinate system.
 
@@ -496,9 +496,9 @@ $(\bfV_{i-1}, \bfW_{i-1})$ to frame $(\bfV_i, \bfW_i)$ is
 Notice that since $\bfS$ (and $\bfW$) is the product of orthogonal
 rotation matrices, $\bfS$ is itself orthogonal and its inverse is
 just the transpose
-\Begineq
+\begin{equation}
   \bfS^{-1} = \bfS^T
-\Endeq
+\end{equation}
 
 %-----------------------------------------------------------------------------
 \subsection{Crystal and Mirror Element Coordinate Transformation}
@@ -598,14 +598,14 @@ product $\Bf z_1 \cdot \Bf z_2$ is negative where $\Bf z_1$ is the $z$-axis vect
 \vn{entrance} face and $\Bf z_2$ is the $z$-axis vector at the \vn{exit} face. This
 condition is equivalent to the condition that the associated $\bfS$ matrix (see \Eq{swww})
 satisfy:
-\Begineq
+\begin{equation}
   S(3,3) < 0
   \label{s330}
-\Endeq
+\end{equation}
 Using \Eq{swww} gives, after some simple algebra, this condition is equivalent to
-\Begineq
+\begin{equation}
   \cos(\text{x_pitch}) \, \cos(\text{y_pitch}) < 0
-\Endeq
+\end{equation}
 When there are a series of patches, The transformations of all the
 patches are concatenated together to form an effective $\bfS$ which
 can then be used with \Eq{s330}.
@@ -633,11 +633,11 @@ distance $s$ from the beginning of the element, misalignments will shift the coo
 to a new reference frame denoted $E_s$. Since misalignments are defined with respect to
 the middle of the element, the transformation between $\Lambda_s$ and $E_s$ is a three
 step process:
-\Begineq
+\begin{equation}
   \Lambda_s \longrightarrow \Lambda_\text{mid} 
   \longrightarrow E_\text{mid} \longrightarrow E_s
   \label{llee}
-\Endeq
+\end{equation}
 where $\Lambda_\text{mid}$ and $E_\text{mid}$ are the laboratory and
 element reference frames at the center of the element.
 
@@ -674,11 +674,11 @@ straight elements, \vn{roll}, offsets, and pitches are calculated with respect t
 center of the bend. The different reference frame used for \vn{ref_tilt} versus everything
 else means that five transformations are needed to get from the laboratory frame to the
 element body frame (see \Eq{llee}). Symbolically:
-\Begineq
+\begin{equation}
   \Lambda_s \longrightarrow \Lambda_\text{mid} 
   \longrightarrow \Omega_\text{mid} \longrightarrow \Omega_0
   \longrightarrow E_0 \longrightarrow E_s
-\Endeq
+\end{equation}
 
 The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from laboratory coordinates
 at a distance $s$ from the beginning of the element to laboratory coordinates at the center the
@@ -697,7 +697,7 @@ $\Omega$). Explicitly, the $\Lambda_\text{mid} \longrightarrow \Omega_\text{mid}
   \label{lcmis}
 \end{align}
 where
-\Begineq
+\begin{equation}
   \bfL_c = 
     \begin{pmatrix}
       \rho (\cos(\alpha_b/2) - 1) \\ 0 \\ \rho \, \sin(\alpha_b/2)
@@ -707,7 +707,7 @@ where
     \begin{pmatrix} 
       \text{x_offset} \\ \text{y_offset} \\ \text{z_offset} 
     \end{pmatrix}
-\Endeq
+\end{equation}
 The reason why $\bfL$ has a different form from straight line elements
 is due to the fact that the axis of rotation for a \vn{roll} is
 displaced from the $z$-axis of the coordinate system at the center of
@@ -720,11 +720,11 @@ substitution $\alpha_b \rightarrow -L/2\rho$.
 
 The fourth transformation $\Omega_0$ to $E_0$ tilts the referece frame
 by an amount \vn{ref_tilt}:
-\Begineq
+\begin{equation}
   \bfL = 0, \quad
   \bfS = \bfR_{z}(\theta_t)
   \label{l0sr}
-\Endeq
+\end{equation}
 
 The fifth and final transformation, $E_0$ to $E_s$, like the first and
 third, rotates around the center of the bend but in this case, since
@@ -812,9 +812,9 @@ particle and the particle.}
 For charged particles (more correctly, for everything but photons
 (\sref{s:photon.phase.space})), \bmad uses the canonical phase space
 coordinates
-\Begineq
+\begin{equation}
   \Bf r(s) = (x, p_x, y, p_y, z, p_z)
-\Endeq
+\end{equation}
 The longitudinal position $s$ is the independent variable instead of
 the time. $x$ and $y$, are the transverse coordinates of the particle
 as shown in~\fig{f:local.coords}. Note that $x$ and $y$ are independent
@@ -848,9 +848,9 @@ fields are tied to the absolute time and not $z$.
 If the particle's velocity is constant, and is the same as the velocity of the reference particle
 (for example, at high energy where $\beta = 1$ for all particles), then $\beta \, c \, t$ is just
 the path length. In this case, the change in $z$ going through an element is
-\Begineq
+\begin{equation}
   \Delta z = L_0 - L_p
-\Endeq
+\end{equation}
 where, as shown in \fig{f:canonical.z}A, $L_0$ is the path length of the reference particle (which
 is just the length of the element) and $L_p$ is the path length of the particle in traversing the
 element.  Another way of interpreting phase space $z$ is that, at constant $\beta$, and constant
@@ -866,11 +866,11 @@ Notice that if a particle gets an instantaneous longitudinal kick so that $\beta
 then, from \Eq{zbctt}, phase space $z$ is discontinuous even though the particle itself does not
 move in space. In general, from \Eq{zbctt}, The value of $z$ for a particle at $s_2$ is related to
 the value of $z$ for the particle at $s_1$ by
-\Begineq
+\begin{equation}
   z_2 = \frac{\beta_2}{\beta_1} \, z_1 - 
   \beta_2 \, c \, (\Delta t_2 - \Delta t_1)
   \label{zbbzb}
-\Endeq
+\end{equation}
 $\Delta t_2 - \Delta t_1$ can be interpreted as the difference in
 transit time, between the particle and the reference particle, in going
 from $s_1$ to $s_2$.
@@ -917,9 +917,9 @@ bending is in the $x$--$z$ plane.
 
 With the paraxial approximation, and in the relativistic limit, the
 change in $z$ with position is
-\Begineq
+\begin{equation}
   \frac{dz}{ds} = -g \, x - \frac{1}{2} (x'^2 + y'^2)
-\Endeq
+\end{equation}
 This shows that in a linac, without any bends, the $z$ of a particle
 always decreases.
 
@@ -952,9 +952,9 @@ with low energy ``dark current'' electrons that are generated at the
 walls of the vacuum chamber.
 
 When the tracking is time based the phase space coordinates are:
-\Begineq
+\begin{equation}
   (x, c \, p_x, y, c \, p_y, z, c \, p_s)
-\Endeq
+\end{equation}
 The positions $x$, $y$, and $z$ are the same as with phase spac
 coordinates (\sref{s:phase.space}). The momenta are defined as
 \begin{align}
@@ -976,15 +976,15 @@ from the phase space coordinates. This is generally fine for tracking
 high energy beams of charged particles but for photon tracking this
 would oftentimes be problematical. For photons, therefore, a different
 phase space is used:
-\Begineq
+\begin{equation}
   (x, \beta_x, y, \beta_y, z, \beta_z)
   \label{xbybzb}
-\Endeq
+\end{equation}
 Here $(\beta_x, \beta_y, \beta_z)$ is the normalized photon velocity with
-\Begineq
+\begin{equation}
   \beta_x^2 + \beta_y^2 + \beta_z^2 = 1 
   \label{bbb1}
-\Endeq
+\end{equation}
 and $(x, y, z)$ are the reference orbit coordinates with $z$ being the
 distance from the start of the lattice element the photon is in.
 

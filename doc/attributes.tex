@@ -156,7 +156,7 @@ up to 200 characters. If the attribute string does not contain a blank, comma, o
 quotation marks may be omitted.
 
 \bmad routines do not use these labels directly. Rather these labels have a number of purposes. For
-example, for a \bmad based program that is used as an online machine model could associate a label
+example, a \bmad based program that is used as an online machine model could associate a label
 string with a machine database element to facilitate machine control.
 
 Example:
@@ -421,9 +421,8 @@ some other elements, like the \vn{fiducial} element, do affect the reference orb
 out, lattice elements can be divided into seven classes:
   \begin{enumerate}
   \item\vn{Straight line elements} (\sref{s:straight.orient}) \Newline
-Straight line elements are elements where the reference orbit is a
-straight line. Examples include \vn{quadrupoles}, and \vn{sextupoles}
-as well as zero length elements like \vn{markers}.
+Straight line elements are elements where the reference orbit is a straight line. Examples include
+\vn{quadrupoles}, and \vn{sextupoles} as well as zero length elements like \vn{markers}.
   \item\vn{Dipole bends} (\sref{s:bend.orient}) \Newline
 Dipole bends are:
 \begin{example}
@@ -480,10 +479,9 @@ physical element and do not affect the reference orbit.
   \label{f:pitch}
 \end{figure}
 
-\vn{x_offset} translates an element in the local $x$--direction
-as shown in \fig{f:pitch}. Similarly, \vn{y_offset} and 
-\vn{z_offset} translate an element along the local $y$ and 
-$z$--directions respectively.
+\vn{x_offset} translates an element in the local $x$--direction as shown in
+\fig{f:pitch}. Similarly, \vn{y_offset} and \vn{z_offset} translate an element along the local $y$
+and $z$--directions respectively.
 
 The \vn{x_pitch} attribute rotates an element about the element's center such that with a positive
 \vn{x_pitch} the exit face of the element is displaced in the $+x$--direction as shown in
@@ -512,17 +510,15 @@ sense of the rotation between \bmad and MAD is:
   \label{f:tilt}
 \end{figure}
 
-The tilt attribute rotates the element in the $(x, y)$ plane as shown
-in figure~\ref{f:tilt}. The rotation axis is the positive
-$z$-axis. For example
+The tilt attribute rotates the element in the $(x, y)$ plane as shown in figure~\ref{f:tilt}. The
+rotation axis is the positive $z$-axis. For example
 \begin{example}
   q1: quad, l = 0.6, x_offset = 0.03, y_pitch = 0.001, tilt
 \end{example}
 \index{sol_quad!tilt default}\index{quadrupole!tilt default}
 \index{sextupole!tilt default}\index{octupole!tilt default}
-Like MAD, \bmad allows the use of the \vn{tilt} attribute without a
-value to designate a skew element. The default tilt is $\pi/(2(n+1))$
-where $n$ is the order of the element:
+Like MAD, \bmad allows the use of the \vn{tilt} attribute without a value to designate a skew
+element. The default tilt is $\pi/(2(n+1))$ where $n$ is the order of the element:
 \begin{example}
   sol_quad       n = 1
   quadrupole     n = 1
@@ -530,8 +526,8 @@ where $n$ is the order of the element:
   octupole       n = 3
 \end{example}
 
-Note that \vn{hkick} and \vn{vkick} attributes are not affected by
-\vn{tilt} except for \vn{kicker} and \vn{elseparator} elements.
+Note that \vn{hkick} and \vn{vkick} attributes are not affected by \vn{tilt} except for \vn{kicker}
+and \vn{elseparator} elements.
 
 %-----------------------------------------------------------------
 \subsection{Bend Element Orientation}
@@ -541,12 +537,10 @@ Note that \vn{hkick} and \vn{vkick} attributes are not affected by
   \centering
   \includegraphics{roll.pdf}
   \caption[Geometry of a Bend]{
-Geometry of a Bend. Like straight line elements, offsets and pitches
-are calculated with respect to the coordinates at the center of the
-bend. The exception is the \vn{roll} attribute which is a rotation
-around the axis passing through the entrance and exit points.  Shown
-here is the geometry for a bend with \vn{ref_tilt} = 0. That is, the bend
-is in the $x-z$ plane.}
+Geometry of a Bend. Like straight line elements, offsets and pitches are calculated with respect to
+the coordinates at the center of the bend. The exception is the \vn{roll} attribute which is a
+rotation around the axis passing through the entrance and exit points.  Shown here is the geometry
+for a bend with \vn{ref_tilt} = 0. That is, the bend is in the $x-z$ plane.}
   \label{f:roll}
 \end{figure}
 
@@ -560,29 +554,23 @@ The orientation attributes for \vn{sbend} and \vn{rbend} elements is
   ref_tilt = <Real>    ! Shifts and reference orbit rotation axis.
   roll     = <Real>    
 \end{example}
-The geometry for orienting a bend is shown in \fig{f:roll}. Like
-straight line elements, the offset and pitch attributes are evaluated
-with respect to the center of the element. 
+The geometry for orienting a bend is shown in \fig{f:roll}. Like straight line elements, the offset
+and pitch attributes are evaluated with respect to the center of the element.
 
-Unlike the straight line elements, bends do not have a \vn{tilt}
-attribute. Rather they have a \vn{ref_tilt} and a \vn{roll} attribute.
-The \vn{roll} attribute rotates the bend along an axis that runs
-through the entrance point and exit point as shown in
-figure~\ref{f:roll}. A \vn{roll} attribute, like the offset and pitch
-attributes does not affect the reference orbit.
-The major effect of a \vn{roll} is to give a vertical
-kick to the beam. For a bend with positive bend angle, a positive
-\vn{roll} will move the outside portion ($+x$ side) of the bend upward
-and the inside portion (-$x$ side) downward. Much like car racetracks
-which are typically slanted towards the inside of a turn.
+Unlike the straight line elements, bends do not have a \vn{tilt} attribute. Rather they have a
+\vn{ref_tilt} and a \vn{roll} attribute.  The \vn{roll} attribute rotates the bend along an axis
+that runs through the entrance point and exit point as shown in figure~\ref{f:roll}. A \vn{roll}
+attribute, like the offset and pitch attributes does not affect the reference orbit.  The major
+effect of a \vn{roll} is to give a vertical kick to the beam. For a bend with positive bend angle, a
+positive \vn{roll} will move the outside portion ($+x$ side) of the bend upward and the inside
+portion (-$x$ side) downward. Much like car racetracks which are typically slanted towards the
+inside of a turn.
 
-The \vn{ref_tilt} attribute of a bend rotates the bend about the $z$
-axis at the upstream end of the bend as shown in \fig{f:roll}. Unlike
-\vn{rolls} and \vn{tilts}, \vn{ref_tilt} also shifts the rotation axis
-of the reference orbit along with the physical element. A \vn{bend}
-with a \vn{ref_tilt} of $\pi/2$ will bend a beam vertically downward
-(\sref{s:global}). Note that the \vn{ref_tilt} attribute of \bmad is
-the same as the MAD \vn{tilt} attribute.
+The \vn{ref_tilt} attribute of a bend rotates the bend about the $z$ axis at the upstream end of the
+bend as shown in \fig{f:roll}. Unlike \vn{rolls} and \vn{tilts}, \vn{ref_tilt} also shifts the
+rotation axis of the reference orbit along with the physical element. A \vn{bend} with a
+\vn{ref_tilt} of $\pi/2$ will bend a beam vertically downward (\sref{s:global}). Note that the
+\vn{ref_tilt} attribute of \bmad is the same as the MAD \vn{tilt} attribute.
 
 %-----------------------------------------------------------------
 \subsection{Photon Reflecting Element Orientation}
@@ -592,10 +580,8 @@ the same as the MAD \vn{tilt} attribute.
   \centering
   \includegraphics{reflect-orient.pdf}
   \caption[Geometry of a photon reflecting element orientation]{
-Geometry of a photon reflecting element orientation.
-The reference coordinates used for defining the orientational attribute
-is the entrance reference coordinates. 
-}
+Geometry of a photon reflecting element orientation.  The reference coordinates used for defining
+the orientational attribute is the entrance reference coordinates.  }
   \label{f:reflect.orient}
 \end{figure}
 
@@ -609,27 +595,23 @@ Photon reflecting elements have the following orientational attributes:
   ref_tilt = <Real>    ! Shifts both element and reference orbit.
   tilt     = <Real>    
 \end{example}
-Roughly, these elements can be viewed as zero length bends except,
-since there is no center position, the orientational attributes are
-defined with respect to the entrance coordinates as shown in
-\fig{f:reflect.orient}. Like bend elements, the \vn{ref_tilt} attribute
-rotates both the physical element and the reference coordinates.
-The \vn{tilt} attribute rotates just the physical element. Thus
-the total rotation of the physical element about the entrance $z$
-axis is the sum \vn{tilt} + \vn{ref_tilt}.
+Roughly, these elements can be viewed as zero length bends except, since there is no center
+position, the orientational attributes are defined with respect to the entrance coordinates as shown
+in \fig{f:reflect.orient}. Like bend elements, the \vn{ref_tilt} attribute rotates both the physical
+element and the reference coordinates.  The \vn{tilt} attribute rotates just the physical
+element. Thus the total rotation of the physical element about the entrance $z$ axis is the sum
+\vn{tilt} + \vn{ref_tilt}.
 
-Frequently, it is desired to orient reflecting elements with respect
-to the element's surface. This can be done using a \vn{girder} element
-(\sref{s:girder}) which supports the reflecting element and with the
-\vn{girder}'s \vn{origin_ele_ref_pt} attribute set to \vn{center}.
+Frequently, it is desired to orient reflecting elements with respect to the element's surface. This
+can be done using a \vn{girder} element (\sref{s:girder}) which supports the reflecting element and
+with the \vn{girder}'s \vn{origin_ele_ref_pt} attribute set to \vn{center}.
 
 %-----------------------------------------------------------------
 \subsection{Reference Orbit Manipulator Element Orientation}
 \label{s:manip.orient}
 
-The \vn{fork}, \vn{photon_fork}, \vn{floor_shift}, and \vn{patch} elements
-use the following attributes to orient their exit edge with respect to their
-entrance edge:
+The \vn{fork}, \vn{photon_fork}, \vn{floor_shift}, and \vn{patch} elements use the following
+attributes to orient their exit edge with respect to their entrance edge:
 \begin{example}
   x_offset = <Real>
   y_offset = <Real>
@@ -638,13 +620,12 @@ entrance edge:
   y_pitch  = <Real>
   tilt     = <Real>    
 \end{example}
-Here "exit" edge for \vn{fork} and \vn{photon_fork} elements is defined
-to be the start of the line being branched to. [Within the line containing
-the fork, the \vn{fork} element is considered to have zero length so the exit face
-in the line containing the fork is coincident with the entrance face.]
-The placement of the exit edge for these elements defines the reference orbit.
-Thus, unlike the corresponding attributes for other elements, 
-the orientational attributes here directly control the reference orbit.
+Here "exit" edge for \vn{fork} and \vn{photon_fork} elements is defined to be the start of the line
+being branched to. [Within the line containing the fork, the \vn{fork} element is considered to have
+zero length so the exit face in the line containing the fork is coincident with the entrance face.]
+The placement of the exit edge for these elements defines the reference orbit.  Thus, unlike the
+corresponding attributes for other elements, the orientational attributes here directly control the
+reference orbit.
 
 %-----------------------------------------------------------------
 \subsection{Fiducial Element Orientation}
@@ -668,9 +649,9 @@ See Section~\sref{s:fiducial} for more details.
 \subsection{Girder Orientation}
 \label{s:girder.orient}
 
-A \vn{girder} (\sref{s:girder}) element uses the same attributes as a \vn{fiducial}
-element (\sref{s:fiducial}) to orient the reference girder position. In addition,
-the following attributes are used to move the girder physically from the reference position: 
+A \vn{girder} (\sref{s:girder}) element uses the same attributes as a \vn{fiducial} element
+(\sref{s:fiducial}) to orient the reference girder position. In addition, the following attributes
+are used to move the girder physically from the reference position:
 \begin{example}
   x_offset = <Real>
   y_offset = <Real>
@@ -679,16 +660,15 @@ the following attributes are used to move the girder physically from the referen
   y_pitch  = <Real>
   tilt     = <Real>    
 \end{example}
-Shifting the girder from its reference position shifts all the elements that are
-supported by the girder. See Section~\sref{s:girder} for more details.
+Shifting the girder from its reference position shifts all the elements that are supported by the
+girder. See Section~\sref{s:girder} for more details.
 
 \index{x_offset_tot|hyperbf}\index{y_offset_tot|hyperbf}\index{z_offset_tot|hyperbf}
 \index{x_pitch_tot|hyperbf}\index{y_pitch_tot|hyperbf}
 \index{tilt_tot|hyperbf}\index{roll_tot|hyperbf}\index{tilt_err_tot|hyperbf}
-If an element is supported by a \vn{girder} element (\sref{s:girder}),
-the orientational attributes of the element are with respect to the
-orientation of the \vn{girder}. The computed offsets, pitches and tilt with
-respect to the local reference coordinates are stored in the dependent attributes
+If an element is supported by a \vn{girder} element (\sref{s:girder}), the orientational attributes
+of the element are with respect to the orientation of the \vn{girder}. The computed offsets, pitches
+and tilt with respect to the local reference coordinates are stored in the dependent attributes
 \begin{example}
   x_offset_tot
   y_offset_tot
@@ -699,14 +679,12 @@ respect to the local reference coordinates are stored in the dependent attribute
   roll_tot
 \end{example}
 \index{sbend}\index{rbend}
-A \vn{*_tot} attribute will only be present if the corresponding non
-\vn{*_tot} attribute is present. For example, only \vn{sbend} and
-\vn{rbend} elements have a \vn{roll_tot} attribute since only these
-elements have a \vn{roll} attribute.
+A \vn{*_tot} attribute will only be present if the corresponding non \vn{*_tot} attribute is
+present. For example, only \vn{sbend} and \vn{rbend} elements have a \vn{roll_tot} attribute since
+only these elements have a \vn{roll} attribute.
 
-If an element is not supported by a \vn{girder}, the values of the
-\vn{*_tot} attributes will be the same value as the values of the
-corresponding non \vn{*_tot} attributes.
+If an element is not supported by a \vn{girder}, the values of the \vn{*_tot} attributes will be the
+same value as the values of the corresponding non \vn{*_tot} attributes.
 
 %-----------------------------------------------------------------
 \section{Hkick, Vkick, and Kick Attributes}
@@ -726,21 +704,17 @@ The kick attributes that an element may have are:
   hkick, bl_hkick = <Real>
   vkick, bl_vkick = <Real>
 \end{example}
-\vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated
-kick of an element in radians. \vn{kick} is only used for \vn{hkicker}
-and \vn{vkicker} elements. All other elements that can kick use
-\vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate a
-kick for \vn{hkicker}, \vn{vkicker}, \vn{elseparator} and \vn{kicker}
-elements. This rule was implemented so that, for example, the
-\vn{hkick} attribute for a skew quadrupole would represent a
-horizontal steering. The \vn{bl_kick}, \vn{bl_hkick}, and
-\vn{bl_vkick} attributes are the integrated field kick in
-\vn{meters-Tesla}. Normally these are dependent attributes except if
-they appear in the lattice file (\sref{s:depend}).
+\vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated kick of an element in
+radians. \vn{kick} is only used for \vn{hkicker} and \vn{vkicker} elements. All other elements that
+can kick use \vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate a kick for
+\vn{hkicker}, \vn{vkicker}, \vn{elseparator} and \vn{kicker} elements. This rule was implemented so
+that, for example, the \vn{hkick} attribute for a skew quadrupole would represent a horizontal
+steering. The \vn{bl_kick}, \vn{bl_hkick}, and \vn{bl_vkick} attributes are the integrated field
+kick in \vn{meters-Tesla}. Normally these are dependent attributes except if they appear in the
+lattice file (\sref{s:depend}).
 
-For an \vn{elseparator} element, the \vn{hkick} and \vn{vkick} are
-appropriate for a positively charged particle. The kick for a
-negatively charged particle is opposite this.
+For an \vn{elseparator} element, the \vn{hkick} and \vn{vkick} are appropriate for a positively
+charged particle. The kick for a negatively charged particle is opposite this.
 
 %-----------------------------------------------------------------
 \section{Aperture and Limit Attributes}
@@ -784,11 +758,9 @@ The aperture attributes are:
   aperture_type = <Switch>    ! What type of aperture it is
   offset_moves_aperture = <Logical> ! Element offsets affect aperture position (\sref{s:offset.ap})
 \end{example}
-\vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit} specify
-the half--width of the aperture of an element as shown in
-figure~\ref{f:limit}. A zero \vn{x1_limit}, \vn{x2_limit},
-\vn{y1_limit}, or \vn{y2_limit} is interpreted as no aperture in the
-appropriate plane.
+\vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit} specify the half--width of the
+aperture of an element as shown in figure~\ref{f:limit}. A zero \vn{x1_limit}, \vn{x2_limit},
+\vn{y1_limit}, or \vn{y2_limit} is interpreted as no aperture in the appropriate plane.
 
 For convenience, \vn{x_limit} can be used to set \vn{x1_limit} and
 \vn{x2_limit} to a common value. Example:
@@ -809,10 +781,9 @@ an error:
   q2: quad, aperture = q1[x1_limit]   ! Correct
 \end{example}
 
-By default, apertures are assumed to be rectangular except that an
-\vn{ecollimator} has a elliptical aperture. This can be changed by
-setting the \vn{aperture_type} attribute. The possible values of this
-attribute are:
+By default, apertures are assumed to be rectangular except that an \vn{ecollimator} has a elliptical
+aperture. This can be changed by setting the \vn{aperture_type} attribute. The possible values of
+this attribute are:
 \begin{example}
   auto         ! Default for detector, mask and diffraction_plate elements
   custom
@@ -820,15 +791,12 @@ attribute are:
   rectangular  ! Default for most elements.
   wall3d       ! Vacuum chamber wall (\sref{s:wall}).
 \end{example}
-The \vn{custom} setting is used in the case where programs have been
-compiled with custom, non-Bmad, code to handle the aperture
-calculation.  The \vn{auto} setting is used for automatic calculation
-of a rectangular aperture. For \vn{diffraction_plate} and \vn{mask}
-elements, the \vn{auto} setting causes the four aperture limits to be
-set to just cover the clear area of element
-(\sref{s:masking.wall}). For all other elements, the \vn{auto}
-setting is only to be used when there is an associated surface grid
-(\sref{s:surf.grid}) for the element and, in this case, \bmad to set
+The \vn{custom} setting is used in the case where programs have been compiled with custom, non-Bmad,
+code to handle the aperture calculation.  The \vn{auto} setting is used for automatic calculation of
+a rectangular aperture. For \vn{diffraction_plate} and \vn{mask} elements, the \vn{auto} setting
+causes the four aperture limits to be set to just cover the clear area of element
+(\sref{s:masking.wall}). For all other elements, the \vn{auto} setting is only to be used when there
+is an associated surface grid (\sref{s:surf.grid}) for the element and, in this case, \bmad to set
 the four limits to just cover the surface grid.
 
 The \vn{wall3d} setting uses the vacuum chamber wall as specified by a \vn{wall} attribute
@@ -838,21 +806,18 @@ if a particle has hit the wall. That is, the wall is considered to be infinitely
 Also note that a wall must cover the entire length of the element longitudinally. This is done
 in order to be able to spot errors in specifying the wall geometry.
 
-For rectangular apertures, the limits \vn{x1_limit}, \vn{x2_limit},
-\vn{y1_limit}, or \vn{y2_limit} may be negative. For example:
+For rectangular apertures, the limits \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, or \vn{y2_limit}
+may be negative. For example:
 \begin{example}
   s: sextupole, x1_limit = -0.02, x2_limit = 0.09
 \end{example}
-In this case, particles will hit the aperture if their $x$-coordinate
-is outside the interval [0.02, 0.09]. That is, particles at the origin
-will be lost.
+In this case, particles will hit the aperture if their $x$-coordinate is outside the interval [0.02,
+0.09]. That is, particles at the origin will be lost.
 
-To avoid numerical overflow and other errors in tracking, a particle
-will be considered to have hit an aperture in an element, even if
-there are no apertures set for that element, if its orbit exceeds 1000
-meters. Additionally, there are other situations where a particle will
-be considered lost. For example, if a particle's trajectory does
-not intersect the output face in a bend.
+To avoid numerical overflow and other errors in tracking, a particle will be considered to have hit
+an aperture in an element, even if there are no apertures set for that element, if its orbit exceeds
+1000 meters. Additionally, there are other situations where a particle will be considered lost. For
+example, if a particle's trajectory does not intersect the output face in a bend.
 
 Examples:
 \begin{example}
@@ -873,16 +838,13 @@ Examples:
 \index{y_pitch}
 \index{rcollimator}\index{ecollimator}
 \index{multilayer_mirror}\index{mirror}\index{crystal}
-Normally, whether a particle hits an aperture or not is evaluated
-independent of any element offsets (\sref{s:offset}). This is
-equivalent to the situation where a beam pipe containing an aperture
-is independent of the placement of the physical element the beam pipe
-passes through. That is, the beam pipe does not ``touch'' the physical
-element. This can be changed by setting the \vn{offset_moves_aperture}
-attribute to \vn{True}. In this case any offsets or pitches will be
-considered to have shifted the aperture boundary. The exceptions here
-is that the default for the following elements is for
-\vn{offset_moves_aperture} to be \vn{True}:
+Normally, whether a particle hits an aperture or not is evaluated independent of any element offsets
+(\sref{s:offset}). This is equivalent to the situation where a beam pipe containing an aperture is
+independent of the placement of the physical element the beam pipe passes through. That is, the beam
+pipe does not ``touch'' the physical element. This can be changed by setting the
+\vn{offset_moves_aperture} attribute to \vn{True}. In this case any offsets or pitches will be
+considered to have shifted the aperture boundary. The exceptions here is that the default for the
+following elements is for \vn{offset_moves_aperture} to be \vn{True}:
 \begin{example}
   rcollimator, 
   ecollimator,
@@ -891,13 +853,11 @@ is that the default for the following elements is for
   crystal 
 \end{example}
 
-Even with \vn{offset_moves_aperture} set to \vn{True}, \vn{tilt}s will
-not affect the aperture calculation. This is done, for example, so
-that the tilt of a skew quadrupole does not affect the aperture. The
-exception here is that tilting an \vn{rcollimator} or \vn{ecollimator}
-element will tilt the aperture. Additionally, when the aperture is at
-the \vn{surface} (see below), any \vn{tilt} will be used in the
-calculation.
+Even with \vn{offset_moves_aperture} set to \vn{True}, \vn{tilt}s will not affect the aperture
+calculation. This is done, for example, so that the tilt of a skew quadrupole does not affect the
+aperture. The exception here is that tilting an \vn{rcollimator} or \vn{ecollimator} element will
+tilt the aperture. Additionally, when the aperture is at the \vn{surface} (see below), any \vn{tilt}
+will be used in the calculation.
 
 Example:
 \begin{example}
@@ -911,9 +871,8 @@ Example:
 \index{both_ends|hyperbf}\index{continuous|hyperbf}
 \index{entrance_end|hyperbf}\index{exit_end|hyperbf}\index{wall_transition|hyperbf}
 \index{surface|hyperbf}\index{aperture_at}\index{no_aperture}
-By default, for most elements, the aperture is evaluated at the exit face of the
-element. This can be changed by setting the \vn{aperture_at} attribute.
-Possible settings for \vn{aperture_at} are:
+By default, for most elements, the aperture is evaluated at the exit face of the element. This can
+be changed by setting the \vn{aperture_at} attribute.  Possible settings for \vn{aperture_at} are:
 \begin{example}
   both_ends
   continuous
@@ -942,33 +901,29 @@ In fact, for the following elements:
   multilayer_mirror
   crystal
 \end{example}
-The \vn{surface} setting for \vn{aperture_at} must be used.
-Additionally, due to the complicated geometry of these elements, to
-keep things conceptionally simple, the rule is imposed that, for an
-aperture at the surface, the \vn{offset_moves_aperture} setting must
-be left in its default state of True. Additionally, For
-\vn{entrance_end} or \vn{exit_end} apertures,
-\vn{offset_moves_aperture} must be set to False.
+The \vn{surface} setting for \vn{aperture_at} must be used.  Additionally, due to the complicated
+geometry of these elements, to keep things conceptionally simple, the rule is imposed that, for an
+aperture at the surface, the \vn{offset_moves_aperture} setting must be left in its default state of
+True. Additionally, For \vn{entrance_end} or \vn{exit_end} apertures, \vn{offset_moves_aperture}
+must be set to False.
 
-Note: The entrance and exit ends of an element are independent of which direction
-particles are tracked through an element. Thus if a particle is tracked backwards it
-enters an element at the ``exit end'' and exits at the ``entrance end''. The
-\vn{continuous} setting indicates that the aperture is continuous along the length of the
-element. This only matters when particle tracking involves stepping through an element a
-little bit at a time. For example, as in Runge-Kutta tracking (\sref{s:tkm}). For tracking
-where a formula is used to transform the particle coordinates at the entrance of an
-element to the coordinates at the exit end, the aperture is only checked at the end points
-so, in this situation, a \vn{continuous} aperture is equivalent to the \vn{both_ends}
+Note: The entrance and exit ends of an element are independent of which direction particles are
+tracked through an element. Thus if a particle is tracked backwards it enters an element at the
+``exit end'' and exits at the ``entrance end''. The \vn{continuous} setting indicates that the
+aperture is continuous along the length of the element. This only matters when particle tracking
+involves stepping through an element a little bit at a time. For example, as in Runge-Kutta tracking
+(\sref{s:tkm}). For tracking where a formula is used to transform the particle coordinates at the
+entrance of an element to the coordinates at the exit end, the aperture is only checked at the end
+points so, in this situation, a \vn{continuous} aperture is equivalent to the \vn{both_ends}
 setting.
 
-The \vn{wall_transition} setting is like the \vn{continuous} setting in that the aperture
-boundary is considered to be continuous along the element's length. However, unlike the
-\vn{continuous} setting, with the \vn{wall_transition} setting a particle outside the wall
-is considered alive and it is only when a particle moves through the wall that it is lost.
-The \vn{wall_transition} setting is used for things like septum magnets where a particle
-may be safely outside or inside the wall. Note to programmers: By supplying a custom
-\vn{wall_hit_handler_custom} routine, scattering of particles through a wall may be
-simulated.
+The \vn{wall_transition} setting is like the \vn{continuous} setting in that the aperture boundary
+is considered to be continuous along the element's length. However, unlike the \vn{continuous}
+setting, with the \vn{wall_transition} setting a particle outside the wall is considered alive and
+it is only when a particle moves through the wall that it is lost.  The \vn{wall_transition} setting
+is used for things like septum magnets where a particle may be safely outside or inside the
+wall. Note to programmers: By supplying a custom \vn{wall_hit_handler_custom} routine, scattering of
+particles through a wall may be simulated.
 
 Examples:
 \begin{example}
@@ -980,24 +935,21 @@ Examples:
 \subsection{Apertures and X-Ray Generation}
 \label{s:aper.x.ray}
 
-With X-ray simulation apertures can be used by \bmad to limit the
-directions in which photons are generated. This can greatly decrease
-simulation times. For example, a photon passing through a
-\vn{diffraction_plate} element will diffract in an arbitrary
-direction. If a {\em downstream} element has an aperture set, \bmad
-can restrict the velocity directions so that the photons will fill the
-downstream aperture and the amount of time wasted tracking photons
-that ultimately would be collimated is minimal.
+With X-ray simulation apertures can be used by \bmad to limit the directions in which photons are
+generated. This can greatly decrease simulation times. For example, a photon passing through a
+\vn{diffraction_plate} element will diffract in an arbitrary direction. If a {\em downstream}
+element has an aperture set, \bmad can restrict the velocity directions so that the photons will
+fill the downstream aperture and the amount of time wasted tracking photons that ultimately would be
+collimated is minimal.
 
 %-----------------------------------------------------------------
 \section{X-Rays Crystal \& Compound Materials}
 \label{s:cryst.list}
 
-For basic crystallographic and X-ray matter interaction cross-sections,
-\bmad uses the XRAYLIB\cite{b:xraylib} library. Crystal structure
-parameters in XRAYLIB are mainly from R.~W.~G.~Wyckoff\cite{b:wyckoff}
-with some structure parameters coming from NIST. The list of available
-structures is:
+For basic crystallographic and X-ray matter interaction cross-sections, \bmad uses the
+XRAYLIB\cite{b:xraylib} library. Crystal structure parameters in XRAYLIB are mainly from
+R.~W.~G.~Wyckoff\cite{b:wyckoff} with some structure parameters coming from NIST. The list of
+available structures is:
 \begin{center}
 \begin{tabular}{llll} \toprule
 AlphaAlumina & GaP       & KCl        & Platinum  \\
@@ -1014,13 +966,11 @@ GaAs         & KAP       &            &           \\ \bottomrule
 \end{center}
 These names are case sensitive
 
-Besides the above crystal list, \bmad can calculate structure factors
-for all the elements and the following list of materials. Material
-properties are from NIST. These names are case sensitive. That is, the
-NIST materials all use upper case. As noted in the table, several of
-the materials may be specified using the appropriate chemical
-formula. For example, liquid water may be referenced using the name
-\vn{H2O}.
+Besides the above crystal list, \bmad can calculate structure factors for all the elements and the
+following list of materials. Material properties are from NIST. These names are case sensitive. That
+is, the NIST materials all use upper case. As noted in the table, several of the materials may be
+specified using the appropriate chemical formula. For example, liquid water may be referenced using
+the name \vn{H2O}.
 \begin{center}
 \footnotesize
 \begin{longtable}{lll}
@@ -1198,24 +1148,24 @@ are not permitted), element offsets and pitches can be used
 (\sref{s:offset}).
 
 Some useful formulas: Series expansion for a sphere of radius $R$:
-\Begineq
+\begin{equation}
   {-z} = \frac{x^2}{2 \, R} + \frac{x^4}{8 \, R^3} + \frac{x^6}{16 \, R^5} +
          \frac{y^2}{2 \, R} + \frac{y^4}{8 \, R^3} + \frac{y^6}{16 \, R^5} +
          \frac{x^2 \, y^2}{4 \, R^3} + \frac{3 \, x^4 \, y^2}{16 \, R^5} +
          \frac{3 \, x^2 \, y^4}{16 \, R^5} 
-\Endeq
+\end{equation}
 
 If $p$ is the distance from the source to the crystal, and $q$ is the distance from the crystal to
 the detector, the radius of the crystal $R_s$ in the sagittal (transverse) plane is given
 by\cite{b:del.rio}
-\Begineq
+\begin{equation}
   \frac{1}{p} + \frac{1}{q} = \frac{\sin\theta_{g,in} + \sin\theta_{g,out}}{R_s}
-\Endeq
+\end{equation}
 where $\theta_{g,in}$ and $\theta_{g,out}$ are the entrance and exit graze angles. In the tangential
-(meridional) plane, the radius $R_t$ needed for foucusing is
-\Begineq
+(meridional) plane, the radius $R_t$ needed for focusing is
+\begin{equation}
   \frac{\sin^2\theta_{g,in}}{p} + \frac{\sin^2\theta_{g,out}}{q} = \frac{\sin\theta_{g,in} + \sin\theta_{g,out}}{R_t}
-\Endeq
+\end{equation}
 The above formulas assume that the crystal is constructed so that the orientation of the Bragg planes
 follows the orientation of the surface. Mirrors have similar formulas with $\theta_{g,in} =
 \theta_{g,out} = \theta$.
@@ -1235,10 +1185,9 @@ Example:
 \label{s:surf.grid}
 \index{surface grid}
 
-A surface can be broken up into a grid of rectangles. This is useful,
-for example, in breaking up a \vn{detector} element into pixel photo
-receptors or in simulating a rough serface for \vn{crystal}s and other
-elements. The general syntax is:
+A surface can be broken up into a grid of rectangles. This is useful, for example, in breaking up a
+\vn{detector} element into pixel photo receptors or in simulating a rough surface for \vn{crystal}s
+and other elements. The general syntax is:
 \begin{example}
   surface = \{
     grid = \{                
@@ -1267,15 +1216,14 @@ Example:
           \} \}
 \end{example}
 
-The grid is a two dimensional with bounds given by the \vn{ix_bounds}
-and \vn{iy_bounds} components. These two components must be present. In
-the above example the grid is 57 pixels in $x$ and 41 pixels in $y$.
+The grid is a two dimensional with bounds given by the \vn{ix_bounds} and \vn{iy_bounds}
+components. These two components must be present. In the above example the grid is 57 pixels in $x$
+and 41 pixels in $y$.
 
-The physical placement of the grid on the element is determined by the
-\vn{r0} and \vn{dr} components. \vn{r0} is optional and gives the
-$(x,y)$ coordinates of the center of the pixel with index $(0,0)$. The
-\vn{dr} component, which must be present, gives the pixal width and
-height. Thus the center of the $(i,j)$ pixel is:
+The physical placement of the grid on the element is determined by the \vn{r0} and \vn{dr}
+components. \vn{r0} is optional and gives the $(x,y)$ coordinates of the center of the pixel with
+index $(0,0)$. The \vn{dr} component, which must be present, gives the pixel width and height. Thus
+the center of the $(i,j)$ pixel is:
 \begin{example}
   (x,y) = (r0(1), r0(2)) + (i*dr(1), j*dr(2))
 \end{example}
@@ -1303,7 +1251,7 @@ A setting of the \vn{type} attribute to \vn{H_Misalign} is used with crystals on
 \vn{H_Misalign}, the grid defines misalignment of the $H$ vector which is the normal to the
 diffracting planes of the crystal (\sref{s:crystal.tracking}).  When using \vn{H_Misalign}, each
 \vn{pt(i,j)} component gives the misalignment of $H$ for the corresponding pixel. For an individual
-photon, the misalignt of $H$ will be
+photon, the misalignment of $H$ will be
 \begin{example}
   dz_dx_tot = <dz_dx> + r1 * <dz_dx_rms>
   dz_dy_tot = <dz_dy> + r2 * <dz_dy_rms>
@@ -1324,9 +1272,9 @@ each pixel. Each rectangle has an extent in the $(x,y)$ transverse dimensions eq
 the corresponding pixel. \Eq{xs2ij4} is used to calculate the $z$ coordinate of the vertices of a given
 rectangle and then these $z$ values are adjusted so that
 \begin{example}
-  1) The rectangle is flat (the verticies all lie on a plane).
+  1) The rectangle is flat (the vertices all lie on a plane).
   2) The rectangle contacts the unsegmented surface (\Eq{xs2ij4}) at two diagonally opposite vertices.
-  3) The other two diagonaly opposite vertices will be as close as possible in the
+  3) The other two diagonally opposite vertices will be as close as possible in the
      least squares sense from the unsegmented surface.
 \end{example}
 Note: The \vn{pt} component is not used here.
@@ -1382,12 +1330,10 @@ The syntax of the \vn{wall} attribute is:
       ... \},
     ... \}
 \end{example}
-A \vn{wall} begins with ``\vn{wall = \{}'' and ends with a
-``\vn{\}}''. In between are a number of individual cross-section
-structures. Each individual cross-section begins with ``\vn{section =
-\{}'' and ends with a ``\vn{\}}''. The \vn{s} parameter of a
-cross-section gives the longitudinal position of the cross-section.
-Example:
+A \vn{wall} begins with ``\vn{wall = \{}'' and ends with a ``\vn{\}}''. In between are a number of
+individual cross-section structures. Each individual cross-section begins with ``\vn{section = \{}''
+and ends with a ``\vn{\}}''. The \vn{s} parameter of a cross-section gives the longitudinal position
+of the cross-section.  Example:
 \begin{example}
   this_cap: capillary, 
     wall = \{   
@@ -1407,11 +1353,10 @@ whose wall is defined by two cross-sections.
   \centering
   \includegraphics[width=6in]{chamber-wall.pdf}
   \caption[Capillary or vacuum chamber wall.]
-{A) The inside wall of a capillary or the vacuum chamber wall of a
-non-capillary element is defined by a number of cross-sectional
-slices.  B) Each cross-section is made up of a number of vertices. The
-segments between the vertices can be either a line segment, the arc of
-a circle, or a section of an ellipse.}
+{A) The inside wall of a capillary or the vacuum chamber wall of a non-capillary element is defined
+by a number of cross-sectional slices.  B) Each cross-section is made up of a number of
+vertices. The segments between the vertices can be either a line segment, the arc of a circle, or a
+section of an ellipse.}
   \label{f:chamber.wall}
 \end{figure}
 
@@ -1419,29 +1364,22 @@ a circle, or a section of an ellipse.}
 \subsection{Wall Sections}
 \label{s:wall.section}
 
-The wall is defined by a number of cross-sectional slices. For
-\fig{f:chamber.wall}A shows the geometry for \vn{capillary} or vacuum
-chamber walls.  Each cross-section is defined by a longitudinal
-position $s$ relative to the beginning of the element and a number of
-vertices. The verticies are defined with respect to the local sector
-origin $r_0$ except if \vn{absolute_vertices} is set to \vn{True} in
-which case the vertex numbers are taken as absolute. The arc between
-each vertex may be either a straight line, an arc of a circle, or a
-section of an ellipse. For a capillary it is mandatory that a
-cross-section be convex. That is, given any two points within the
-cross-section, all points on the line segment connecting them must be
-within the cross-section.
+The wall is defined by a number of cross-sectional slices. For \fig{f:chamber.wall}A shows the
+geometry for \vn{capillary} or vacuum chamber walls.  Each cross-section is defined by a
+longitudinal position $s$ relative to the beginning of the element and a number of vertices. The
+verticies are defined with respect to the local sector origin $r_0$ except if \vn{absolute_vertices}
+is set to \vn{True} in which case the vertex numbers are taken as absolute. The arc between each
+vertex may be either a straight line, an arc of a circle, or a section of an ellipse. For a
+capillary it is mandatory that a cross-section be convex. That is, given any two points within the
+cross-section, all points on the line segment connecting them must be within the cross-section.
 
-The \vn{v(<j>)} within a cross-section define the vertices for each
-cross-section. The vertices are defined with respect to the section
-origin given by \vn{r0}. Each \vn{v(<j>)} has five
-parameters. It is mandatory to specify the first two parameters
-\vn{<x>} and \vn{<y>}. Specifying the rest, \vn{<radius_x>},
-\vn{<radius_y>}, and \vn{<tilt>}, is optional. The default values, if
-not specified, is zero. The point (\vn{<x>}, \vn{<y>}) defines the
-position of the vertex. The parameters \vn{<radius_x>},
-\vn{<radius_y>}, and \vn{<tilt>} define the shape of the segment of
-the cross-section between the given vertex and the preceding one.
+The \vn{v(<j>)} within a cross-section define the vertices for each cross-section. The vertices are
+defined with respect to the section origin given by \vn{r0}. Each \vn{v(<j>)} has five
+parameters. It is mandatory to specify the first two parameters \vn{<x>} and \vn{<y>}. Specifying
+the rest, \vn{<radius_x>}, \vn{<radius_y>}, and \vn{<tilt>}, is optional. The default values, if not
+specified, is zero. The point (\vn{<x>}, \vn{<y>}) defines the position of the vertex. The
+parameters \vn{<radius_x>}, \vn{<radius_y>}, and \vn{<tilt>} define the shape of the segment of the
+cross-section between the given vertex and the preceding one.
 \begin{example}
   <radius_x>  = 0, <radius_y>  = 0   --> Straight line segment.
   <radius_x> != 0, <radius_y>  = 0   --> Circular arc with radius = radius_x
@@ -1453,75 +1391,60 @@ the half width and half height of the semi-major axes and the
 \vn{<tilt>} parameter gives the tilt of the ellipse. \vn{<radius_x>}
 and \vn{<radius_y>} must not be negative.
 
-In the example above, for the first cross-section, \vn{v(2)}
-specifies a non-zero \vn{<radius_x>} and, by default, \vn{<radius_y>}
-is zero. Thus the segment of the cross-section between \vn{v(1)} and
-\vn{v(2)} is circular in nature with a radius of 0.02. Since \vn{v(3)}
-does not specify \vn{<radius_x>} nor \vn{<radius_y>}, the
-cross-section between \vn{v(2)} and \vn{v(3)} is a straight line
-segment.
+In the example above, for the first cross-section, \vn{v(2)} specifies a non-zero \vn{<radius_x>}
+and, by default, \vn{<radius_y>} is zero. Thus the segment of the cross-section between \vn{v(1)}
+and \vn{v(2)} is circular in nature with a radius of 0.02. Since \vn{v(3)} does not specify
+\vn{<radius_x>} nor \vn{<radius_y>}, the cross-section between \vn{v(2)} and \vn{v(3)} is a straight
+line segment.
 
 The vertex points must be arranged in a ``counter clockwise manner''. 
 For vertices \vn{<v(i)>} and \vn{<v(i+1)>} connected by a line segment
 this translates to
-\Begineq
+\begin{equation}
   0 < \theta_{i+1} - \theta_{i} \pmod{2\pi} < \pi
-\Endeq
-where $(r_n, \theta_n)$ are the polar coordinates of the $n^{th}$
-vertex. For vertices connected by an arc, ``counter clockwise manner''
-means that the line segment with one end at the center of the arc and
-the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>}
-rotates in counter clockwise as shown in
-\fig{f:chamber.wall}B. 
+\end{equation}
+where $(r_n, \theta_n)$ are the polar coordinates of the $n^{th}$ vertex. For vertices connected by
+an arc, ``counter clockwise manner'' means that the line segment with one end at the center of the
+arc and the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>} rotates in counter
+clockwise as shown in \fig{f:chamber.wall}B.
 
-The red line segment with one end at the center of the arc and the
-other end traversing the arc from, in this case, $V(2)$ to $V(3)$,
-rotates in counter clockwise manner. In general, there are two
-solutions for constructing such an arc. For positive radii, the
-solution chosen is the one whose center is closest to the section
-origin $(x_0, y_0)$. If the radii are negative, the center point will
-be the point farthest from the origin (the dashed line between $V(2)$
-and $V(3)$ in the figure).
+The red line segment with one end at the center of the arc and the other end traversing the arc
+from, in this case, $V(2)$ to $V(3)$, rotates in counter clockwise manner. In general, there are two
+solutions for constructing such an arc. For positive radii, the solution chosen is the one whose
+center is closest to the section origin $(x_0, y_0)$. If the radii are negative, the center point
+will be the point farthest from the origin (the dashed line between $V(2)$ and $V(3)$ in the
+figure).
 
-A restriction on cross-sections is that the section origin $(x_0,
-y_0)$ must be in the interior of any cross-section and that for any
-cross-section a line drawn from the origin at any given angle $\theta$
-will intersect the cross-section at exactly one point as shown in
-\fig{f:chamber.wall}B. This is an important point in the construction
-of the wall between cross-sections as explained below.
+A restriction on cross-sections is that the section origin $(x_0, y_0)$ must be in the interior of
+any cross-section and that for any cross-section a line drawn from the origin at any given angle
+$\theta$ will intersect the cross-section at exactly one point as shown in
+\fig{f:chamber.wall}B. This is an important point in the construction of the wall between
+cross-sections as explained below.
 
-The last vertex specified, call it \vn{<v(n)>}, should not have the
-same \vn{<x>}, \vn{<y>} values as the first vertex \vn{<v(1)>}. That
-is, there will be a segment of the cross-section connecting
-\vn{<v(n)>} to \vn{<v(1)>}. The geometry of this segment is determined
-by the parameters of \vn{<v(1)>}.
+The last vertex specified, call it \vn{<v(n)>}, should not have the same \vn{<x>}, \vn{<y>} values
+as the first vertex \vn{<v(1)>}. That is, there will be a segment of the cross-section connecting
+\vn{<v(n)>} to \vn{<v(1)>}. The geometry of this segment is determined by the parameters of
+\vn{<v(1)>}.
 
-If there is mirror symmetry about the $x$ or $y$ axis for a
-cross-section, the ``mirrored'' vertices, on the ``negative'' side of
-the mirror plane, do not have to be specified. Thus if all the vertex
-points of a cross-section are in the first quadrant, that is, all
-\vn{<x>} and \vn{<y>} are zero or positive, mirror symmetry about both
-the $x$ and $y$ axes is assumed. If all the \vn{<y>} values are zero
-or positive and some \vn{<x>} values are positive and some are
-negative, mirror symmetry about the $x$ axis is assumed. Finally, if
-all the \vn{<x>} values are zero or positive but some \vn{<y>} values
-are positive and some are negative, symmetry about the $y$ axis is
-assumed. For example, for the first in the above example, since all
-the \vn{<y>} values are non-negative and there are positive and
-negative \vn{<x>} values, symmetry about the $x$ axis is assumed.
+If there is mirror symmetry about the $x$ or $y$ axis for a cross-section, the ``mirrored''
+vertices, on the ``negative'' side of the mirror plane, do not have to be specified. Thus if all the
+vertex points of a cross-section are in the first quadrant, that is, all \vn{<x>} and \vn{<y>} are
+zero or positive, mirror symmetry about both the $x$ and $y$ axes is assumed. If all the \vn{<y>}
+values are zero or positive and some \vn{<x>} values are positive and some are negative, mirror
+symmetry about the $x$ axis is assumed. Finally, if all the \vn{<x>} values are zero or positive but
+some \vn{<y>} values are positive and some are negative, symmetry about the $y$ axis is assumed. For
+example, for the first in the above example, since all the \vn{<y>} values are non-negative and
+there are positive and negative \vn{<x>} values, symmetry about the $x$ axis is assumed.
 
-The one exception to the above rule that (\vn{<x>}, \vn{<y>}) is the
-vertex center is when a single vertex \vn{v(1)} is specified for a
-cross-section with a non-zero \vn{<radius_x>}. In this case,
-(\vn{<x>}, \vn{<y>}) are taken to be the center of the circle or
-ellipse. For example, if a single vertex is specified for a
-cross-section as:
+The one exception to the above rule that (\vn{<x>}, \vn{<y>}) is the vertex center is when a single
+vertex \vn{v(1)} is specified for a cross-section with a non-zero \vn{<radius_x>}. In this case,
+(\vn{<x>}, \vn{<y>}) are taken to be the center of the circle or ellipse. For example, if a single
+vertex is specified for a cross-section as:
 \begin{example}
   section = \{s = 0.3, v(1) = \{0.03, -0.01, 0.15, 0.08, 0.2\}\}
 \end{example}
-the cross-section will be an ellipse with center at $(0.03, -0.01)$
-with a tilt of $0.2$ and axes radii of $0.15$ and $0.08$. If
-a cross-section has a single vertex and \vn{<radius_x>} is not
+the cross-section will be an ellipse with center at $(0.03, -0.01)$ with a tilt of $0.2$ and axes
+radii of $0.15$ and $0.08$. If a cross-section has a single vertex and \vn{<radius_x>} is not
 specified, the cross-section is a rectangle. For example
 \begin{example}
   section = \{s = 0.3, v(1) = \{0.03, 0.01\}\}
@@ -1535,54 +1458,47 @@ specified, the cross-section is a rectangle. For example
   \centering
   \includegraphics[width=4in]{concave-capillary.pdf}
   \caption[Convex cross-sections do not guarantee a convex volume.]
-{Example where convex cross-sections do not produce a convex volume.
-Cross-sections (A) and (C) are ellipses with a 5 to 1 aspect ratio.
-Half way in between, linear interpolation produces a convex cross-section
-as shown in (B).} 
+{Example where convex cross-sections do not produce a convex volume.  Cross-sections (A) and (C) are
+ellipses with a 5 to 1 aspect ratio.  Half way in between, linear interpolation produces a convex
+cross-section as shown in (B).}
   \label{f:concave.capillary}
 \end{figure}
 
-For \vn{capillary} and vacuum chamber walls, the wall between
-cross-sections, is defined by interpolation. At a given $s$ position,
-the $r, \theta$ coordinate system in the transverse $x, y$ plane is
-defined with respect to an origin $\bfr_O(s)$ given by a linear
-interpolaion of the origins of the cross-sections to either side of the
-given $s$ position. Let $s_1$ denote the position of the cross-section
-just before $s$ and $s_2$ denote the position of the cross-section
-just after $s$. Let $\bfr_{01}$ be the $(x_0, y_0)$ origin defined
-for the cross section at $s_1$ and $\bfr_{02}$ be the $(x_0, y_0)$
-origin defined for the cross section at $s_2$. Then
-\Begineq
+For \vn{capillary} and vacuum chamber walls, the wall between cross-sections, is defined by
+interpolation. At a given $s$ position, the $r, \theta$ coordinate system in the transverse $x, y$
+plane is defined with respect to an origin $\bfr_O(s)$ given by a linear interpolation of the
+origins of the cross-sections to either side of the given $s$ position. Let $s_1$ denote the
+position of the cross-section just before $s$ and $s_2$ denote the position of the cross-section
+just after $s$. Let $\bfr_{01}$ be the $(x_0, y_0)$ origin defined for the cross section at $s_1$
+and $\bfr_{02}$ be the $(x_0, y_0)$ origin defined for the cross section at $s_2$. Then
+\begin{equation}
   \bfr_O(s) = (1 - \stilde) \, \bfr_{01} + \stilde \, \bfr_{02}
-\Endeq
+\end{equation}
 where 
-\Begineq
+\begin{equation}
   \stilde \equiv \frac{s - s_1}{s_2 - s_1}
-\Endeq
+\end{equation}
 
-Let $r_{c1}(\theta)$ and $r_{c2}(\theta)$ be the radiusus of the wall
-as a function of $\theta$ for the cross-sections at $s = s_1$ and $s =
-s_2$ respectively. The wall $r_c(\theta, s)$ at any point $s$ between
-$s_1$ and $s_2$ is then defined by the equation
-\Begineq
+Let $r_{c1}(\theta)$ and $r_{c2}(\theta)$ be the radius of the wall as a function of $\theta$ for
+the cross-sections at $s = s_1$ and $s = s_2$ respectively. The wall $r_c(\theta, s)$ at any point
+$s$ between $s_1$ and $s_2$ is then defined by the equation
+\begin{equation}
   r_c(\theta, s) = p_1(\stilde) \, r_{c1}(\theta) + p_2(\stilde) \, r_{c2}(\theta)
-\Endeq
+\end{equation}
 where $p_1$ and $p_2$ are cubic polynomials parameterized by
 \begin{align}
   p_1 &= 1 - \stilde + a_1 \, \stilde + a_2 \, \stilde^2 + a_3 \, \stilde^3 \CRNO
   p_2 &= \stilde + b_1 \, \stilde + b_2 \, \stilde^2 + b_3 \, \stilde^3 
 \end{align}
-If $a_i = b_i = 0$ for all $i = 1, 2, 3$, the interpolation is linear
-and this is the default if either of the parameters \vn{dr_ds1} and
-\vn{dr_ds2} are not given in the wall definition. These parameters are
-the slopes of the wall with respect to $s$ at the end points
+If $a_i = b_i = 0$ for all $i = 1, 2, 3$, the interpolation is linear and this is the default if
+either of the parameters \vn{dr_ds1} and \vn{dr_ds2} are not given in the wall definition. These
+parameters are the slopes of the wall with respect to $s$ at the end points
 \begin{equation}
   \text{dr_ds1} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_1} \comma \qquad
   \text{dr_ds2} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_2} 
 \end{equation}
-where $\overline{r}$ is the average $r$ averaged over all
-$\theta$. When {\em both} \vn{dr_ds1} and \vn{dr_ds2} are specified, the $a_i$
-and $b_i$ are calculated so that the slopes of the wall match 
+where $\overline{r}$ is the average $r$ averaged over all $\theta$. When {\em both} \vn{dr_ds1} and
+\vn{dr_ds2} are specified, the $a_i$ and $b_i$ are calculated so that the slopes of the wall match
 the values of \vn{dr_ds1} and \vn{dr_ds2} along with the constraints.
 \begin{align}
   p_1(0) &= 1 \comma \qquad p_1(1) = 0 \CRNO
@@ -1592,8 +1508,8 @@ the values of \vn{dr_ds1} and \vn{dr_ds2} along with the constraints.
 \end{align}
 The last constraint ensures a ``smooth'' transition between the two cross-sections.
 
-To refer to a cross-section parameters after an element has been
-defined, the following syntax is used:
+To refer to a cross-section parameters after an element has been defined, the following syntax is
+used:
 \begin{example}
   ele_name[wall%section(n)%v(j)%x]   ! x value of j^th vertex of n^th cross-section
 \end{example}
@@ -1603,33 +1519,28 @@ defined, the following syntax is used:
 \label{s:wall.capillary}
 \index{capillary!wall}
 
-For a \vn{capillary}, \vn{s} must be zero for the first cross-section and
-the length of the capillary is given by the value of \vn{s} of the
-last cross-section.
+For a \vn{capillary}, \vn{s} must be zero for the first cross-section and the length of the
+capillary is given by the value of \vn{s} of the last cross-section.
 
-For a \vn{capillary}, in order for \bmad to quickly track photons,
-\bmad assumes that the volume between the cross-sections is
-convex. The volume will be convex if each cross-section $r_c(\theta,
-s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
-for $r_c(\theta, s)$ to be convex at the specified cross-sections as
-shown in \fig{f:concave.capillary}. Also note that it is perfectly
-fine for the total capillary volume to not be convex.
+For a \vn{capillary}, in order for \bmad to quickly track photons, \bmad assumes that the volume
+between the cross-sections is convex. The volume will be convex if each cross-section $r_c(\theta,
+s)$ at any given $s$ is convex. Note that it is {\em not} sufficient for $r_c(\theta, s)$ to be
+convex at the specified cross-sections as shown in \fig{f:concave.capillary}. Also note that it is
+perfectly fine for the total capillary volume to not be convex.
 
 %-----------------------------------------------------------------
 \subsection{Vacuum Chamber Wall}
 \label{s:wall.vacuum}
 
-The vacuum chamber wall is independent of the element apertures
-(\sref{s:limit}). Unless a program is specifically constructed, the
-presence of a vacuum chamber wall will not affect particle tracking.
+The vacuum chamber wall is independent of the element apertures (\sref{s:limit}). Unless a program
+is specifically constructed, the presence of a vacuum chamber wall will not affect particle
+tracking.
 
-The vacuum chamber wall defined for an element may be shorter or
-longer than the element.  The vacuum chamber wall for a particular
-lattice branch is the sum of all the chamber walls of the individual
-elements. That is, the chamber wall at any given point is determined
-by interpolation of the nearest sections upstream and downstream to
-the point.  Thus a given lattice element need not contain a \vn{wall}
-component for the chamber wall to be well defined at the element. 
+The vacuum chamber wall defined for an element may be shorter or longer than the element.  The
+vacuum chamber wall for a particular lattice branch is the sum of all the chamber walls of the
+individual elements. That is, the chamber wall at any given point is determined by interpolation of
+the nearest sections upstream and downstream to the point.  Thus a given lattice element need not
+contain a \vn{wall} component for the chamber wall to be well defined at the element.
 
 The exception to the above rule is when a \vn{section} has its
 \vn{type} component set to either:
@@ -1637,46 +1548,37 @@ The exception to the above rule is when a \vn{section} has its
   wall_start
   wall_end
 \end{example}
-\vn{wall_start} and \vn{wall_end} sections must come in pairs. The
-next section after a \vn{wall_end} section (if this section is not
-the last section in the lattice) must be a \vn{wall_start} section.
-If a section has a \vn{type} of \vn{wall_start}, the region between
-that section and the previous section (which must be a \vn{wall_end}
-section) will be considered to have no wall. If the \vn{wall_start}
-section is the first section of the lattice branch, the region of no
-wall will start at the beginning of the branch. Similarly, if a
-section has a \vn{type} of \vn{wall_end}, the region between that
-section and the next section (or the end of the lattice branch if
-there is no next seciton) will not have a wall.
+\vn{wall_start} and \vn{wall_end} sections must come in pairs. The next section after a
+\vn{wall_end} section (if this section is not the last section in the lattice) must be a
+\vn{wall_start} section.  If a section has a \vn{type} of \vn{wall_start}, the region between that
+section and the previous section (which must be a \vn{wall_end} section) will be considered to have
+no wall. If the \vn{wall_start} section is the first section of the lattice branch, the region of no
+wall will start at the beginning of the branch. Similarly, if a section has a \vn{type} of
+\vn{wall_end}, the region between that section and the next section (or the end of the lattice
+branch if there is no next section) will not have a wall.
 
-The chamber walls of any two elements may not overlap. The exception
-is when the \vn{superimpose} attribute for a wall of an element is set
-to True. In this case, any other wall cross-sections from any other
-elements that overlap the superimposed wall are discarded.
-Superposition of a wall is useful, for example, in introducing mask
-regions into the wall.
+The chamber walls of any two elements may not overlap. The exception is when the \vn{superimpose}
+attribute for a wall of an element is set to True. In this case, any other wall cross-sections from
+any other elements that overlap the superimposed wall are discarded.  Superposition of a wall is
+useful, for example, in introducing mask regions into the wall.
 
-If a branch has a closed geometry (\sref{s:param}), wall sections that
-extend beyound the ends of the branch are ``wrapped'' around.
+If a branch has a closed geometry (\sref{s:param}), wall sections that extend beyond the ends of the
+branch are ``wrapped'' around.
 
-If a particle is past the last wall cross-section or before the first
-wall cross-section, The following rules are used: If the branch has a
-\vn{closed geometry}, the wall will be interpolated between the last
-and first cross-sections. If the branch has an \vn{open} geometry, the
-wall is taken to have a constant cross-section in these regions. 
+If a particle is past the last wall cross-section or before the first wall cross-section, The
+following rules are used: If the branch has a \vn{closed geometry}, the wall will be interpolated
+between the last and first cross-sections. If the branch has an \vn{open} geometry, the wall is
+taken to have a constant cross-section in these regions.
 
-The chamber wall is defined with respect to the local coordinate
-system (\sref{s:ref}). That is, in a bend a wall that has a constant
-cross section is a section of a torus.
+The chamber wall is defined with respect to the local coordinate system (\sref{s:ref}). That is, in
+a bend a wall that has a constant cross section is a section of a torus.
 
 \index{patch!and chamber wall}
-\vn{Patch} elements (\sref{s:patch}) complicate the wall geometry
-since the coordinate system at the end of the \vn{patch} may be
-arbitrarily located relative to the beginning of the patch. To avoid
-confusion as to what coordinate system a wall section belongs to,
-\vn{patch} elements are not allowed to define a wall. The wall through
-a patch is determined by the closest wall sections of neighboring
-elements.
+\vn{Patch} elements (\sref{s:patch}) complicate the wall geometry since the coordinate system at the
+end of the \vn{patch} may be arbitrarily located relative to the beginning of the patch. To avoid
+confusion as to what coordinate system a wall section belongs to, \vn{patch} elements are not
+allowed to define a wall. The wall through a patch is determined by the closest wall sections of
+neighboring elements.
 
 %-------------------
 
@@ -1684,25 +1586,21 @@ elements.
   \centering
   \includegraphics[width=6in]{crotch.pdf}
   \caption[vacuum chamber crotch geometry.]
-{A) Crotch geometry: Two pipes labeled ``leg1'' and ``leg2'' merge
-into a single pipe called the ``trunk'' pipe. Five wall sections are
-used to define the crotch geometry (solid lines). Dashed lines
-represent sections not involved in defining the crotch. For purposes
-of illustration, the three trunk sections are displaced longitudinally
-but in reality must have the same longitudinal coordinate.  B) Example
-layout of the trunk1, trunk2 and trunk wall sections. $O_1$, $O_2$
-and $O$ are the $x_0, y_0$ origins of the sections.}
+{A) Crotch geometry: Two pipes labeled ``leg1'' and ``leg2'' merge into a single pipe called the
+``trunk'' pipe. Five wall sections are used to define the crotch geometry (solid lines). Dashed
+lines represent sections not involved in defining the crotch. For purposes of illustration, the
+three trunk sections are displaced longitudinally but in reality must have the same longitudinal
+coordinate.  B) Example layout of the trunk1, trunk2 and trunk wall sections. $O_1$, $O_2$ and $O$
+are the $x_0, y_0$ origins of the sections.}
   \label{f:crotch}
 \end{figure}
 
 %-------------------
 
 \index{crotch chamber geometry}
-Each section has a \vn{type} attribute. This attribute is not used for 
-\vn{capillary} elements. For a vacuum chamber wall, the \vn{type} 
-attribute is used to dscribe a ``crotch'' geometry where
-two pipes merge into one pipe. The possible values for the \vn{type} 
-attribute are:
+Each section has a \vn{type} attribute. This attribute is not used for \vn{capillary} elements. For
+a vacuum chamber wall, the \vn{type} attribute is used to describe a ``crotch'' geometry where two
+pipes merge into one pipe. The possible values for the \vn{type} attribute are:
 \begin{example}
   normal     ! default
   leg1
@@ -1711,43 +1609,33 @@ attribute are:
   trunk2
   trunk
 \end{example}
-The geometry of a crotch is shown in \fig{f:crotch}A. Two pipes,
-called ``leg1'' and ``leg2'', merge into one pipe called the ``trunk''
-pipe.  The trunk pipe can be either upstream or downstream of the leg
-pipes.  To describe this situation, five sections are needed: One
-section in each leg pipe which need to have their \vn{type} attribute
-set to \vn{leg1} and \vn{leg2}, and three sections in the trunk with
-one having a a \vn{type} attribute of \vn{trunk1}, another having a
-\vn{type} attribute of \vn{trunk2} and the third haveing a \vn{type}
-attribute of \vn{trunk}. There can be no sections between the leg
-sections and the trunk sections.
+The geometry of a crotch is shown in \fig{f:crotch}A. Two pipes, called ``leg1'' and ``leg2'', merge
+into one pipe called the ``trunk'' pipe.  The trunk pipe can be either upstream or downstream of the
+leg pipes.  To describe this situation, five sections are needed: One section in each leg pipe which
+need to have their \vn{type} attribute set to \vn{leg1} and \vn{leg2}, and three sections in the
+trunk with one having a a \vn{type} attribute of \vn{trunk1}, another having a \vn{type} attribute
+of \vn{trunk2} and the third having a \vn{type} attribute of \vn{trunk}. There can be no sections
+between the leg sections and the trunk sections.
 
-All three trunk sections must be associated with the same element and
-have the same \vn{s} value. In the list of sections of the element
-containing the trunk elements, the \vn{trunk1} and \vn{trunk2}
-sections must be listed first if the leg pipes are upstream of the
-trunk pipe (the situation shown in the figure) and must be listed last
-if the leg pipes are downstream. That is, the \vn{trunk1} and
-\vn{trunk2} sections are ``between'' the leg sections and the
-\vn{trunk} section. It does not matter if \vn{trunk1} is before or
-after \vn{trunk2}.
+All three trunk sections must be associated with the same element and have the same \vn{s} value. In
+the list of sections of the element containing the trunk elements, the \vn{trunk1} and \vn{trunk2}
+sections must be listed first if the leg pipes are upstream of the trunk pipe (the situation shown
+in the figure) and must be listed last if the leg pipes are downstream. That is, the \vn{trunk1} and
+\vn{trunk2} sections are ``between'' the leg sections and the \vn{trunk} section. It does not matter
+if \vn{trunk1} is before or after \vn{trunk2}.
 
-The \vn{trunk1} and \vn{trunk2} sections must not overlap and the
-\vn{trunk} section must be constructed so that its area is the union
-of the areas of \vn{trunk1} and \vn{trunk2}. An example is illustrated
-in \fig{f:crotch}B. Here the \vn{trunk1} and \vn{trunk2} sections are
-squares with origins labeled $O_1$ and $O_2$ in the figure. By
-necessity, these origins must be different since each must lie within
-the boundaries of their respective areas. The \vn{trunk} section is a
-rectagle encomposing the two squares and has an origin labeled $O$.
+The \vn{trunk1} and \vn{trunk2} sections must not overlap and the \vn{trunk} section must be
+constructed so that its area is the union of the areas of \vn{trunk1} and \vn{trunk2}. An example is
+illustrated in \fig{f:crotch}B. Here the \vn{trunk1} and \vn{trunk2} sections are squares with
+origins labeled $O_1$ and $O_2$ in the figure. By necessity, these origins must be different since
+each must lie within the boundaries of their respective areas. The \vn{trunk} section is a rectangle
+encompassing the two squares and has an origin labeled $O$.
 
-Between \vn{leg1} and \vn{trunk1} sections the wall is interpolated
-using these two section. Similarly for the region between \vn{leg2}
-and \vn{trunk2} sections. Away from these regions interpolation is
-done as outlined in \sref{s:wall.interpolation}. However, these two
-regions need a different interpolation scheme since, \vn{leg1} and
-\vn{trunk1}, as well as \vn{leg2} and \vn{trunk2} sections do not have
-to be parallel to each other.
+Between \vn{leg1} and \vn{trunk1} sections the wall is interpolated using these two
+section. Similarly for the region between \vn{leg2} and \vn{trunk2} sections. Away from these
+regions interpolation is done as outlined in \sref{s:wall.interpolation}. However, these two regions
+need a different interpolation scheme since, \vn{leg1} and \vn{trunk1}, as well as \vn{leg2} and
+\vn{trunk2} sections do not have to be parallel to each other.
 
 %-----------------------------------------------------------------
 \subsection{Mask Wall For Diffraction Plate and Mask Elements}
@@ -1757,27 +1645,22 @@ to be parallel to each other.
   \centering
   \includegraphics[width=5in]{diffraction-plate.pdf}
   \caption[Example mask wall]{
-A) The diffraction plate or mask surface is divided into ``clear'' (white) and
-``opaque'' (black) areas. In this example there are two clear sections
-labeled \#1 and \#2. B) All wall sections must be star shaped with
-respect to the section's origin. In this example, The section is {\em
-not} star shaped since a line drawn from the origin point $o$ to the
-point $p$ on the boundary intersects the boundary twice in between. In
-this case the section can be made star shaped by moving the origin to
+A) The diffraction plate or mask surface is divided into ``clear'' (white) and ``opaque'' (black)
+areas. In this example there are two clear sections labeled \#1 and \#2. B) All wall sections must
+be star shaped with respect to the section's origin. In this example, The section is {\em not} star
+shaped since a line drawn from the origin point $o$ to the point $p$ on the boundary intersects the
+boundary twice in between. In this case the section can be made star shaped by moving the origin to
 $o'$.
   }
   \label{f:diff.plate}
 \end{figure}
 
-The \vn{wall} of a \vn{diffraction_plate} or \vn{mask} element
-specifies what areas of the
-element will transmit or reflect particle and what areas will not. The
-areas where there is transmission or reflection are called ``clear''
-areas and everything else is called ``opaque''. 
+The \vn{wall} of a \vn{diffraction_plate} or \vn{mask} element specifies what areas of the element
+will transmit or reflect particle and what areas will not. The areas where there is transmission or
+reflection are called ``clear'' areas and everything else is called ``opaque''.
 
-A \vn{wall} is comprised a a ordered list of \vn{sections} as
-discussed in \sref{s:wall.section}. Each section of the wall must have
-its \vn{type} attribute set to one of:
+A \vn{wall} is comprised a a ordered list of \vn{sections} as discussed in
+\sref{s:wall.section}. Each section of the wall must have its \vn{type} attribute set to one of:
 \begin{example}
   clear
   opaque
@@ -1786,45 +1669,35 @@ A section is called ``clear'' or ``opaque'' depending upon the setting
 of its \vn{type} attribute. Do not confuse ``clear section'' with 
 ``clear area''.
 
-A clear area is defined by one or more consecutive wall sections. The
-first section that defines a clear area must be a clear section.  All
-the other sections associated with a clear area must be opaque sections.
-That is, a clear area starts with a clear section and any preceeding
-opaque sections up to the next clear section or the end of the section
-list. As a consequence of the above rules, the fist section of the
-wall must be a clear section and the number of clear areas is equal to
-the number of clear sections.
+A clear area is defined by one or more consecutive wall sections. The first section that defines a
+clear area must be a clear section.  All the other sections associated with a clear area must be
+opaque sections.  That is, a clear area starts with a clear section and any proceeding opaque
+sections up to the next clear section or the end of the section list. As a consequence of the above
+rules, the fist section of the wall must be a clear section and the number of clear areas is equal
+to the number of clear sections.
 
-The default behavior is that a photon will be transmitted if it is
-within any clear area. A photon is considered to be within a given
-clear area if its $(x,y)$ coordinates put in within the corresponding
-clear section but not within any \vn{opaque} section of the clear area.
-\vn{Opaque} sections only affect the clear area they are associated
-with. See the example below.
+The default behavior is that a photon will be transmitted if it is within any clear area. A photon
+is considered to be within a given clear area if its $(x,y)$ coordinates put in within the
+corresponding clear section but not within any \vn{opaque} section of the clear area.  \vn{Opaque}
+sections only affect the clear area they are associated with. See the example below.
 
-Any clear section can be given a \vn{material} and
-\vn{thickness}. Available materials are listed in
-\sref{s:cryst.list}. A photon transversing a clear area with a defined
-material will be attenuated and have a phase shift. Note that
-\vn{material} and \vn{thickness} properties are not to be assigned to
-\vn{opaque} sections.
+Any clear section can be given a \vn{material} and \vn{thickness}. Available materials are listed in
+\sref{s:cryst.list}. A photon transversing a clear area with a defined material will be attenuated
+and have a phase shift. Note that \vn{material} and \vn{thickness} properties are not to be assigned
+to \vn{opaque} sections.
 
-To enable \bmad to quickly calculate whether a photon has landed on a
-clear or opaque section, All sections, both clear and opaque, must be
-``star shaped'' with respect to the $(x_0, y_0)$ origin used by the
-section. That is, a line drawn from the section origin to any point on
-the section boundary must not pass through any boundary points of the
-section in between. This is illustrated in \fig{f:diff.plate}B where
-the section is not star shaped since a line drawn from the origin $o$
-to the point $p$ on the boundary passes through two boundary points in
-between. In this case the section can trivially be made star shaped by
-moving the origin to point $o'$. If it is not possible to make a
-section star shaped by moving the origin, the section must be divided
-into multiple sections.
+To enable \bmad to quickly calculate whether a photon has landed on a clear or opaque section, All
+sections, both clear and opaque, must be ``star shaped'' with respect to the $(x_0, y_0)$ origin
+used by the section. That is, a line drawn from the section origin to any point on the section
+boundary must not pass through any boundary points of the section in between. This is illustrated in
+\fig{f:diff.plate}B where the section is not star shaped since a line drawn from the origin $o$ to
+the point $p$ on the boundary passes through two boundary points in between. In this case the
+section can trivially be made star shaped by moving the origin to point $o'$. If it is not possible
+to make a section star shaped by moving the origin, the section must be divided into multiple
+sections.
 
-An example geometry is shown in \fig{f:diff.plate}A.
-In the figure, there are two openings labeled \#1, and \#2. A
-wall that constructs this geometry is:
+An example geometry is shown in \fig{f:diff.plate}A.  In the figure, there are two openings labeled
+\#1, and \#2. A wall that constructs this geometry is:
 \begin{example}
   z_plate: diffraction_plate, wall = \{
     thickness = <real>
@@ -1848,17 +1721,15 @@ wall that constructs this geometry is:
       r0 = (0.02, 0.00),
       v(1) = \{0, 0, 0.005\} \}
 \end{example}
-Clear area \#1 has a clear section and one opaque section. These
-sections rely on the four fold symmetry of the sections so that only
-points in the first quadrant need be specified. Clear area \#2 has one
-clear section in the shape of an ellipse with two opaque circles. Notice
-that the \vn{opaque} section of clear area \#1 does not affect the clear
-area \#2 even though it (completely) overlaps clear area \#2.
+Clear area \#1 has a clear section and one opaque section. These sections rely on the four fold
+symmetry of the sections so that only points in the first quadrant need be specified. Clear area \#2
+has one clear section in the shape of an ellipse with two opaque circles. Notice that the
+\vn{opaque} section of clear area \#1 does not affect the clear area \#2 even though it (completely)
+overlaps clear area \#2.
 
-Sections may overlap and a opaque section does not have to be wholly
-within the corresponding clear section. If a photon is within multiple
-clear areas then, for the purposes of calculation, it is considered to
-be within the first possible clear area in the list.
+Sections may overlap and a opaque section does not have to be wholly within the corresponding clear
+section. If a photon is within multiple clear areas then, for the purposes of calculation, it is
+considered to be within the first possible clear area in the list.
 
 %-----------------------------------------------------------------
 \section{Length Attributes}
@@ -1874,41 +1745,34 @@ The length attributes are
   l       = <Real>  ! 
   l_chord = <Real>  ! Chord length of a bend. Dependent attribute.
 \end{example}
-The length \vn{l} is the path length of the reference particle. The
-one exception is for an \vn{rbend}, the length \vn{l} set in the
-lattice file is the chord length (\sref{s:bend}). internally, \bmad
-converts all \vn{rbend}s to \vn{sbend}s and stores the chord length
-under the \vn{l_chord} attribute.
-Example:
+The length \vn{l} is the path length of the reference particle. The one exception is for an
+\vn{rbend}, the length \vn{l} set in the lattice file is the chord length
+(\sref{s:bend}). internally, \bmad converts all \vn{rbend}s to \vn{sbend}s and stores the chord
+length under the \vn{l_chord} attribute.  Example:
 \begin{example}
   b: rbend, l = 0.6   ! For rbends, l will be converted to l_chord
 \end{example}
 
 \index{girder}
-For a \vn{girder} element the length \vn{l} is a dependent attribute
-and is set by \bmad to be the difference in longitudinal position $s$
-of the downstream end of the last element supported relative to the
-upstream end of the first element. 
+For a \vn{girder} element the length \vn{l} is a dependent attribute and is set by \bmad to be the
+difference in longitudinal position $s$ of the downstream end of the last element supported relative
+to the upstream end of the first element.
 
 \index{wiggler}
-For \vn{wiggler}s, the length \vn{l} is not the same as the
-path length for a particle with the reference energy starting on the
-reference orbit. See~\sref{s:ref}.
+For \vn{wiggler}s, the length \vn{l} is not the same as the path length for a particle with the
+reference energy starting on the reference orbit. See~\sref{s:ref}.
 
 \index{patch}
-For \vn{patch} elements the \vn{l} length is, by definition, equal to
-\vn{z_offset}. For \vn{patch} elements, \vn{l} is a dependent
-attribute and will be automatically set to \vn{z_offset} by \bmad.
+For \vn{patch} elements the \vn{l} length is, by definition, equal to \vn{z_offset}. For \vn{patch}
+elements, \vn{l} is a dependent attribute and will be automatically set to \vn{z_offset} by \bmad.
 
 \index{capillary}
-The length of a \vn{capillary} element is a dependent variable and is
-given by the value of \vn{s} of the last wall cross-section
-(\sref{s:wall.capillary}).
+The length of a \vn{capillary} element is a dependent variable and is given by the value of \vn{s}
+of the last wall cross-section (\sref{s:wall.capillary}).
 
 \index{crystal}
-The length of a crystal is zero for Bragg diffraction and is a
-dependent attribute dependent upon the crystal thickness for Laue
-diffraction. See \sref{s:crystal} for more details.
+The length of a crystal is zero for Bragg diffraction and is a dependent attribute dependent upon
+the crystal thickness for Laue diffraction. See \sref{s:crystal} for more details.
 
 %-----------------------------------------------------------------
 \section{Is_on Attribute}
@@ -1930,9 +1794,8 @@ Example
 \index{aperture}
 \index{reference orbit}
 \index{reference energy}
-\vn{is_on} does not affect any apertures that are set. Additionally,
-\vn{is_on} does not affect the reference orbit. Therefore, turning 
-off an \vn{lcavity} will not affect the reference energy.
+\vn{is_on} does not affect any apertures that are set. Additionally, \vn{is_on} does not affect the
+reference orbit. Therefore, turning off an \vn{lcavity} will not affect the reference energy.
 
 The following elements cannot be ``turned off:''
 \begin{example}
@@ -1958,28 +1821,26 @@ The following elements cannot be ``turned off:''
 \section{Multipole Attributes: Magnetic and Electric}
 \label{s:multip}
 
-Multipole formulas for are given in \sref{s:mag.field} and \sref{s:elec.field}. Note that
-the setting of \vn{field_master} (\sref{s:field.master}) will determine if multipoles
-are interpreted as normalized or unnormalized.
+Multipole formulas for are given in \sref{s:mag.field} and \sref{s:elec.field}. Note that the
+setting of \vn{field_master} (\sref{s:field.master}) will determine if multipoles are interpreted as
+normalized or unnormalized.
 
 \index{multipole!knl, tn|hyperbf} 
 \index{multipole}
-A \vn{multipole} (\sref{s:mult}) element specifies its magnetic
-multipole components using normal and skew components with a tilt
+A \vn{multipole} (\sref{s:mult}) element specifies its magnetic multipole components using normal
+and skew components with a tilt
 \begin{example}
   KnL  = <Real>  ! Normal component. n = Integer. 
   KnSL = <Real>  ! Skew component. n = Integer. 
   Tn   = <Real>  ! Tilt. n = Integer. Default is $pi$/(2n + 2)
 \end{example}
-Where \vn{n} is an integer in the range from 0 (dipole component)
-through 21.  If \vn{Tn} is given without a value, a default of
-$pi$/(2n + 2) will be used producing a skew field. Example:
+Where \vn{n} is an integer in the range from 0 (dipole component) through 21.  If \vn{Tn} is given
+without a value, a default of $pi$/(2n + 2) will be used producing a skew field. Example:
 \begin{example}
   m: multipole, k1l = 0.32, t1  ! Skew quadrupole of strength 0.32
 \end{example}
-Following \vn{MAD}, a non-zero dipole (\vn{K0L} component will affect
-the reference orbit (just like a normal dipole will). This is not true
-for any other element.
+Following \vn{MAD}, a non-zero dipole (\vn{K0L} component will affect the reference orbit (just like
+a normal dipole will). This is not true for any other element.
 
 \index{ab_multipole}
 \index{multipole!an, bn|hyperbf} 
@@ -2023,9 +1884,9 @@ Example:
   q1: quadrupole, l = 1.2, b2_elec = 1e6, r0_elec = 0.034
 \end{example}
 See \sref{s:elec.field} for how electric multipoles are defined. Notice that Electric
-multipoles are never scalled by the element's field strength as they are with magnetic
+multipoles are never scaled by the element's field strength as they are with magnetic
 multipoles. If the value of \vn{r0_elec} is zero (the default) the multipoles will not
-be scalled. 
+be scaled. 
 
 Unlike magnetic multipoles, there are no factors of the reference momentum nor the element
 length in the definition for electric multipoles. That is, electric multipole values
@@ -2047,7 +1908,7 @@ The magnetic and electric multipole kick can be toggled on or off using the
 \vn{multipoles_on} only effect multipoles specified by \vn{An}, \vn{Bn}, \vn{An_elec}, or
 \vn{Bn_elec}. Other multipoles, like the \vn{k2} multipole of a \vn{sextupole}, are not
 affected. The exception is \vn{multipole} and \vn{ab_multipole} elements do not have the
-\vn{mulipoles_on} attribute. Rather they can be toggles on/off using the \vn{is_on}
+\vn{multipoles_on} attribute. Rather they can be toggles on/off using the \vn{is_on}
 attribute.
 
 %-----------------------------------------------------------------
@@ -2073,7 +1934,7 @@ are four types of field maps:
 Essentially, \vn{cylindrical_map} and \vn{cartesian_map} define fields using a set of
 functions with user defined coefficients with the functions formulated to obey Maxwell's
 equations. The \vn{grid_field} type defines the field on a grid of points and
-interpolation is used to evaluate the field inbetween the points. Finally, the
+interpolation is used to evaluate the field in between the points. Finally, the
 \vn{taylor_field} type defines a set of Taylor maps. Each map defines the field in the
 transverse $(x, y)$ plane at constant $z$. Interpolation is used to evaluate the field
 in between the planes.
@@ -2099,15 +1960,15 @@ sum of the fields of each one. Separating fields like this can be useful, for ex
 decouple the specification of electric from magnetic fields, or to decouple the
 specification of AC and DC fields.
 
-The field of one element can overlap onto other elements. This is
-explained in Sec.~\sref{s:overlap}.
+The field of one element can overlap onto other elements. This is explained in
+Sec.~\sref{s:overlap}.
 
-Field maps are used with integration type tracking methods (\sref{s:integ}).
-It is important to note that field maps are {\em ignored} by \vn{bmad_standard}
-tracking. Additionaly, \vn{grid_field} field maps cannot be used with \vn{symp_lie_ptc}.
+Field maps are used with integration type tracking methods (\sref{s:integ}).  It is important to
+note that field maps are {\em ignored} by \vn{bmad_standard} tracking. Additionally, \vn{grid_field}
+field maps cannot be used with \vn{symp_lie_ptc}.
 
-Field maps may extend longitudinally beyound the ends of an element. See Sec~(\sref{s:overlap})
-for more details.
+Field maps may extend longitudinally beyond the ends of an element. See Sec~(\sref{s:overlap}) for
+more details.
 
 In a lattice file, once a field map is defined for an element, components of the field map
 may be redefined using the notation
@@ -2131,17 +1992,16 @@ and \vn{value} is the value to set to. Example:
   \centering
   \includegraphics{bend-grid-coords.pdf}
   \caption[\vn{Field map} coordinates when used with a bend element.]{
-When used with a bend element, by default, field map coordinates will be Cartesian and not
-curved like the reference orbit. The orientation of the field map coordinates is
-determined by the setting of \vn{ele_anchor_pt}. To use curvilinear coordinates instead,
-\vn{curved_ref_frame} must be set to \vn{True} [Available in \vn{grid_field} and
-\vn{taylor_field} only].}
+When used with a bend element, by default, field map coordinates will be Cartesian and not curved
+like the reference orbit. The orientation of the field map coordinates is determined by the setting
+of \vn{ele_anchor_pt}. To use curvilinear coordinates instead, \vn{curved_ref_frame} must be set to
+\vn{True} [Available in \vn{grid_field} and \vn{taylor_field} only].}
   \label{f:bend.grid}
 \end{figure}
 
 This section explains some of the attributes that are common to the \vn{field map}
 types. Not all attributes are used in all field map types. See the documentation on the
-individual types for a list of the attributes pertainent to that type.
+individual types for a list of the attributes pertinent to that type.
 
 \index{field_type}
 \index{field_scale}\index{master_parameter}
@@ -2189,17 +2049,17 @@ for the electric and magnetic fields.
   \item[field_scale] \Newline
 The \vn{field_scale} attribute is used to scale the overall field magnitude. The default
 value is 1. A value of -1 will reverse the field. If the \vn{master_parameter} is
-defained, it is multiplied with the \vn{field_scale} to give the overall scale.
+defined, it is multiplied with the \vn{field_scale} to give the overall scale.
 Example:
 \begin{example}
   qq, quadrupole, grid_field = \{field_scale = 0.5, ...\}, ...
   qq[grid_field(1)%field_scale] = 0.7  ! Change field_scale value after element def.
 \end{example}
   \item[harmonic] \Newline
-The \vn{harmonic} attibute, along with \vn{rf_frequency} element attribute, sets the
-oscillation frequency of the field map. The \vn{harmonic} attribute is only used with
-\vn{cylindrical_map} and \vn{grid_field} types. The default value of \vn{harmonic} is 0.
-The \vn{harmonic} number needs to be 0 for DC fields. Example:
+The \vn{harmonic} attribute, along with \vn{rf_frequency} element attribute, sets the oscillation
+frequency of the field map. The \vn{harmonic} attribute is only used with \vn{cylindrical_map} and
+\vn{grid_field} types. The default value of \vn{harmonic} is 0.  The \vn{harmonic} number needs to
+be 0 for DC fields. Example:
 \begin{example}
   lc1: lcavity, rf_frequency = 500e6, grid_field = \{harmonic = 2, ...\}, ...
 \end{example}
@@ -2211,7 +2071,7 @@ The \vn{master_parameter} defines a ``master'' element attribute for scaling the
 \end{example}
 This example defines the \vn{master_parameter} for the \vn{taylor_field} to be the
 quadrupole strength \vn{k1}. By using the same master parameter for a set of field map
-instances within a given lattice element, the sum field of the set can be controled by a
+instances within a given lattice element, the sum field of the set can be controlled by a
 single attribute. The \vn{master_parameter} must be set to a valid element attribute. If
 the name is blank (""), no master parameter is used. The \vn{master_parameter}, if
 defined, is multiplied with the \vn{field_scale} to give the value used to scale the
@@ -2228,7 +2088,7 @@ associated error parameter. The elements that have associated error parameters a
   Gradient      Gradient_err          E_gun, LCavity
   Phi0          Phi0_err              E_gun, LCavity
   G             G_err                 Sbend, Rbend
-  B_field       B_field_err           Sbemd, Rbend
+  B_field       B_field_err           Sbend, Rbend
 \end{example}
   \item[phi0_fieldmap] \Newline
 For AC fields, \vn{phi0_fieldmap} is the phase of the field map field relative to the fundamental
@@ -2236,9 +2096,9 @@ mode. The phase \vn{phi0_fieldmap} is relative to the fundamental frequency and 
 the field map mode. That is, the ``zero crossing'' point of the field map is shifted by a time
 \vn{phi0_fieldmap}/$f_0$ where $f_0$ is the fundamental mode frequency.
   \item[r0] \Newline
-The \vn{r0} attribute is the $(x0, y0, z0)$ vector specifying the offset of the origin point
-that defines the field relative to the \vn{anchor} point defined by \vn{ele_anchor_pt}.
-The origin position of the field (\vn{r_origin}) is determined by 
+The \vn{r0} attribute is the $(x0, y0, z0)$ vector specifying the offset of the origin point that
+defines the field relative to the \vn{anchor} point defined by \vn{ele_anchor_pt}.  The origin
+position of the field (\vn{r_origin}) is determined by
 \begin{example}
   r_origin = r0 + r_anchor
 \end{example}
@@ -2455,9 +2315,9 @@ Example:
 \end{example}
 
 The actual fields $\bfE$ and $\bfB$ are computed from the complex fields $\bfE_c$ and $\bfB_c$ via
-\Begineq
+\begin{equation}
   \bfE = \Re \Bigl[ \bfE_c \exp \left( -2 \, \pi \, i \, (\phi_t + \phi_\text{ref}) \right) \Bigr]
-\Endeq
+\end{equation}
 with a similar equation for $\bfB$. $\phi_t$ is the part of the phase due to when the particle
 arrives at the cavity and depends upon whether \vn{absolute time tracking} or \vn{relative time
 tracking} is being used as discussed in \sref{s:rf.time}. The phase $\phi_{\text{ref}}$ for the
@@ -2466,16 +2326,16 @@ $j$\Th grid field in an \vn{rfcavity} element is
   \(\phi_\text{ref,j}\) = harmonic(j) * [0.25 - (phi0 + phi0_multipass + phi0_err + 
                                                   phi0_autoscale + phi0_fieldmap(j))] 
 \end{example}
-where \vn{phi0_fieldmap(j)} and \vn{harmonic(j)} are specific to the j\Th grid field
-while the other factors are element parameters and so will be the same for all grid field
-maps of a given element. For non \vn{rfcavity} elements the phase is
+where \vn{phi0_fieldmap(j)} and \vn{harmonic(j)} are specific to the j\Th grid field while the other
+factors are element parameters and so will be the same for all grid field maps of a given
+element. For non \vn{rfcavity} elements the phase is
 \begin{example}
   \(\phi_\text{ref,j}\) = harmonic(j) * [phi0 + phi0_multipass + phi0_err + 
                                                   phi0_autoscale + phi0_fieldmap(j)]
 \end{example}
 
-The \vn{geometry} switch sets the type of the grid and must come before
-any \vn{pt} is given. The possible settings of \vn{geometry} are:
+The \vn{geometry} switch sets the type of the grid and must come before any \vn{pt} is given. The
+possible settings of \vn{geometry} are:
 \begin{example} 
   rotationally_symmetric_rz
   xyz
@@ -2512,10 +2372,9 @@ format for this type of \vn{grid_field} is
 \end{example}
 where \vn{<ix>}, \vn{<iy>}, and \vn{<iz>} can be negative.
 
-[For clarity sake, the following discusses the \vn{xyz} case. Extension to other cases is
-straight forward.]  There is no restriction on the bounds of the indexes \vn{(ix, iy, iz)}
-of the \vn{pt(ix, iy, iz)} array. A point $(ix, iy, iz)$ corresponds in space to the point
-$(x, y, z)$:
+[For clarity sake, the following discusses the \vn{xyz} case. Extension to other cases is straight
+forward.]  There is no restriction on the bounds of the indexes \vn{(ix, iy, iz)} of the \vn{pt(ix,
+iy, iz)} array. A point $(ix, iy, iz)$ corresponds in space to the point $(x, y, z)$:
 \begin{example}
   (x, y, z) = dr * (ix, iy, iz) + r0 + r_anchor
 \end{example}
@@ -2549,15 +2408,15 @@ with the file \vn{apex_gun_grid.bmad} being:
 \end{example}
 
 It is considered an error if the field of the grid is evaluated for a point that is transversely
-outside of the grid. That is, a grid must extend transversely to the aperture or at least beyond
-the trajectory of any particle. [Actually, to prevent problems when the aperture is set at the grid
+outside of the grid. That is, a grid must extend transversely to the aperture or at least beyond the
+trajectory of any particle. [Actually, to prevent problems when the aperture is set at the grid
 boundary, if the distance between the particle and the grid boundary is within 1/2 of the spacing
-between grid points, no error is generated and the field will be calculated using extrapolation.] On the
-other hand, it is acceptable to evaluate the grid field at a point that is longitudinally outside of
-the grid. In this case, the field is assumed to go to zero. This is done by effectively adding to
-the grid two planes of zero field longitudinally to either side of the grid. So a particle traveling
-outside of the grid longitudinally will see the field drop to zero within one longitudinal grid
-spacing length.
+between grid points, no error is generated and the field will be calculated using extrapolation.] On
+the other hand, it is acceptable to evaluate the grid field at a point that is longitudinally
+outside of the grid. In this case, the field is assumed to go to zero. This is done by effectively
+adding to the grid two planes of zero field longitudinally to either side of the grid. So a particle
+traveling outside of the grid longitudinally will see the field drop to zero within one longitudinal
+grid spacing length.
 
 Grid fields may stored in \vn{HDF5} binary format which may then be called using an \vn{inline call}
 (\sref{s:call.inline}). For example:
@@ -2618,9 +2477,8 @@ restrictions:
 There can be only one \vn{taylor_field} field map and there cannot be any other field
 maps of any kind.
   \item 
-The number of planes must be odd. If you want to be able to track with PTC to the center
-of the element, the number of planes must be of the form $4 \, n + 1$ where $n$ is an
-integer.
+The number of planes must be odd. If you want to be able to track with PTC to the center of the
+element, the number of planes must be of the form $4 \, n + 1$ where $n$ is an integer.
   \item
 Only magnetic fields may be used.
   \item
@@ -2633,29 +2491,26 @@ so there is no good way to cut an element at an arbitrary position.]
 In a bend with \vn{curved_ref_frame} = False, The setting of \vn{ele_anchor_pt} must be
 \vn{center}.
   \end{itemize}
-If the edges of the \vn{taylor_field}, which are defined by the first and last planes, is
-different than the edges of the element, \bmad and PTC will do tracking differently. With
-\bmad, the tracking will start at one edge of the element and will end at the other
-end. That is, \bmad will ignore the field outside of the element (but this can be modified
-using field overlap (\sref{s:overlap})). PTC, on the other hand, will start at an element
-end and then track from the element end backwards to the first plane like in a drift. It
-will then track to the ending plane and finally track backwards from the ending plane to
-the ending element edge line in a drift. That is, PTC does not ignore the field outside of
-the element.
+If the edges of the \vn{taylor_field}, which are defined by the first and last planes, is different
+than the edges of the element, \bmad and PTC will do tracking differently. With \bmad, the tracking
+will start at one edge of the element and will end at the other end. That is, \bmad will ignore the
+field outside of the element (but this can be modified using field overlap (\sref{s:overlap})). PTC,
+on the other hand, will start at an element end and then track from the element end backwards to the
+first plane like in a drift. It will then track to the ending plane and finally track backwards from
+the ending plane to the ending element edge line in a drift. That is, PTC does not ignore the field
+outside of the element.
 
-When using PTC based tracking (\sref{c:methods}), the \vn{canonical_tracking} parameter
-can be used to select whether the transverse phase space coordinates used in tracking is
-the canonical $(x, p_x, y, p_y)$ (\sref{s:phase.space}) coordinates or the non-canonical
-$(x, x', y, y')$ coordinates. The default is \vn{False}. The difference comes at the edges
-of element if the field is not zero. With canonical coordinates, there is a kick at the
-edge while with the non-canonical there is not. What is best depends upon the problem. For
-example, with a solenoid magnet where the field is constant right up to the edge,
-canonical tracking will be needed since the edge kick is significant. However, the edge
-kick is not well defined (that is, certain assumptions are built into the edge kick
-calculation. For example, with a solenoid, cylindrical symmetry is generally
-assumed). Thus for some arbitrary field, the assumptions used by PTC may by incorrect for
-the problem at hand. Thus in many cases, especially for single pass machines, the
-non-canonical tracking is a better choice.
+When using PTC based tracking (\sref{c:methods}), the \vn{canonical_tracking} parameter can be used
+to select whether the transverse phase space coordinates used in tracking is the canonical $(x, p_x,
+y, p_y)$ (\sref{s:phase.space}) coordinates or the non-canonical $(x, x', y, y')$ coordinates. The
+default is \vn{False}. The difference comes at the edges of element if the field is not zero. With
+canonical coordinates, there is a kick at the edge while with the non-canonical there is not. What
+is best depends upon the problem. For example, with a solenoid magnet where the field is constant
+right up to the edge, canonical tracking will be needed since the edge kick is significant. However,
+the edge kick is not well defined (that is, certain assumptions are built into the edge kick
+calculation. For example, with a solenoid, cylindrical symmetry is generally assumed). Thus for some
+arbitrary field, the assumptions used by PTC may by incorrect for the problem at hand. Thus in many
+cases, especially for single pass machines, the non-canonical tracking is a better choice.
 
 Example:
 \begin{example}
@@ -2676,8 +2531,8 @@ Example:
 \index{lcavity}\index{rfcavity}
 \index{coupler_at}\index{coupler_strength}
 \index{coupler_angle}\index{coupler_phase}
-For \vn{lcavity} and \vn{rfcavity} elements, the attributes that
-characterize the dipole transverse kick due to a coupler port are:
+For \vn{lcavity} and \vn{rfcavity} elements, the attributes that characterize the dipole transverse
+kick due to a coupler port are:
 \begin{example}
   coupler_at       = <Switch> ! What end the coupler is at
   coupler_strength = <Real>   ! Normalized strength
@@ -2728,13 +2583,13 @@ Example:
   b1: sbend, l = 2.3, field_overlaps = \{q1, s2\}, ...
   inj_line: line = (..., s2, b1, mark3, q1, ...)
 \end{example}
-In this example, the field of element \vn{b1} extends beyond the ends of \vn{b1} and
-overlaps elements \vn{q1} and \vn{s2}. There is no limit to the number of elements that
-are overlapped by any given element and overlapped elements do not have to be next to the
-overlapping element in the line. If there are multiple elements whose name matches the
-name of a overlapped element, the element closest to the overlapping element is
-chosen. Thus in the above example, if there are multiple elements named \vn{q1}, the
-closest \vn{q1} to \vn{b1} is designated as the overlapped element.
+In this example, the field of element \vn{b1} extends beyond the ends of \vn{b1} and overlaps
+elements \vn{q1} and \vn{s2}. There is no limit to the number of elements that are overlapped by any
+given element and overlapped elements do not have to be next to the overlapping element in the
+line. If there are multiple elements whose name matches the name of a overlapped element, the
+element closest to the overlapping element is chosen. Thus in the above example, if there are
+multiple elements named \vn{q1}, the closest \vn{q1} to \vn{b1} is designated as the overlapped
+element.
 
 There can be multipole \vn{field_overlaps = ...} constructs for an overlapping element.
 Thus the following is equivalent to the above example:
@@ -2745,8 +2600,8 @@ Thus the following is equivalent to the above example:
 Note: When the field overlaps elements that are superimposed (\sref{s:super}), the overlapped 
 elements must be the \vn{super_lord} elements and never the slaved elements.
 
-The field, when \vn{field_calc} (\sref{s:integ}) is set to \vn{bmad_standard}, never extends beyond the
-element boundary and so a \vn{bmad_standard} field will never overlap another element.
+The field, when \vn{field_calc} (\sref{s:integ}) is set to \vn{bmad_standard}, never extends beyond
+the element boundary and so a \vn{bmad_standard} field will never overlap another element.
 
 %-----------------------------------------------------------------
 \section{Automatic Scaling of Accelerating Fields}
@@ -2761,28 +2616,27 @@ Elements that have accelerating fields are:
   lcavity     ! \sref{s:lcav}
   rfcavity    ! \sref{s:rfcav}
 \end{example}
-[Notice that \vn{rfcavity} elements by definition, have a constant reference energy while
-with all the other elements the entrance end reference energy will, in general, be
-different from the exit end reference energy.]
+[Notice that \vn{rfcavity} elements by definition, have a constant reference energy while with all
+the other elements the entrance end reference energy will, in general, be different from the exit
+end reference energy.]
 
-The problem that arises with accelerating fields is how to set the overall amplitude (and
-phase if the fields are oscillating) of the field so that a particle, starting on the
-reference orbit and starting with the reference energy, has the desired energy gain at the
-exit end of the element where the ``desired'' is set by the \vn{voltage} or \vn{gradient}
-attribute of the element plus a \vn{phi0} phase attribute for AC fields.
+The problem that arises with accelerating fields is how to set the overall amplitude (and phase if
+the fields are oscillating) of the field so that a particle, starting on the reference orbit and
+starting with the reference energy, has the desired energy gain at the exit end of the element where
+the ``desired'' is set by the \vn{voltage} or \vn{gradient} attribute of the element plus a
+\vn{phi0} phase attribute for AC fields.
 
-The scaling problem is not present when \vn{bmad_standard} tracking (\sref{s:tkm}) is used
-since \vn{bmad_standard} tracking uses an integrated formula that is designed to give the
-proper acceleration. Rather it is a problem for Runge-Kutta and other methods integration
-methods.
+The scaling problem is not present when \vn{bmad_standard} tracking (\sref{s:tkm}) is used since
+\vn{bmad_standard} tracking uses an integrated formula that is designed to give the proper
+acceleration. Rather it is a problem for Runge-Kutta and other methods integration methods.
 
-The problem becomes even more complicated at non-ultra relativistic energies where the
-particle velocity is not a constant. In this case, the proper amplitude and/or phase
-settings will depend upon what the incoming energy of the reference particle is.
+The problem becomes even more complicated at non-ultra relativistic energies where the particle
+velocity is not a constant. In this case, the proper amplitude and/or phase settings will depend
+upon what the incoming energy of the reference particle is.
 
-To help with the scaling problem, \bmad has the capability to automatically
-scale an accelerating field's amplitude and/or phase. The two
-lattice element parameters that turn on/off auto scaling are (\sref{s:param}):
+To help with the scaling problem, \bmad has the capability to automatically scale an accelerating
+field's amplitude and/or phase. The two lattice element parameters that turn on/off auto scaling are
+(\sref{s:param}):
 \begin{example}
   autoscale_phase      = <Logical>  ! Automatic phase scaling.
   autoscale_amplitude  = <Logical>  ! Automatic amplitude scaling.
@@ -2805,8 +2659,8 @@ value of the element's \vn{voltage} parameter and then phi0_autoscale is shifted
 degrees so that with \vn{phi0} equal to zero a particle on the zero orbit will not see any energy
 gain through the cavity.
 
-If no autoscaling is done, the default setting of \vn{field_autoscale} is 1 and the
-default setting of \vn{phi0_autoscale} is 0.
+If no autoscaling is done, the default setting of \vn{field_autoscale} is 1 and the default setting
+of \vn{phi0_autoscale} is 0.
 
 For an \vn{rfcavity}, the autoscaling is normally done around a phase of \vn{phi0} = 0 which is
 appropriate for a ring above transition since \vn{phi0} = 0 is the stable fixed point. Below
@@ -2814,12 +2668,12 @@ transition, the stable fixed point is at \vn{phi0} = 0.5. In this case, the \vn{
 parameter \vn{rf_phase_below_transition_ref} (\sref{s:bmad.common}) should be set to True so that
 autoscaling is done around \vn{phi0} = 0.5. For an ultrarelativistic reference particle with speed
 very nearly $c$ there is no difference in the autoscaling between \vn{phi0} = 0 and \vn{phi0} = 0.5.
-However, when there are velocity variations of the particle within the cavity there will be differences
-between autoscaling at the two phases.
+However, when there are velocity variations of the particle within the cavity there will be
+differences between autoscaling at the two phases.
 
 Notice that if autoscaling is on, the \vn{field_autoscale} is adjusted so that a particle on the
-zero orbit will see a field appropriate for the setting of the element's \vn{voltage} setting.
-If autoscaling is off, the field is independent of the element's \vn{voltage} setting.
+zero orbit will see a field appropriate for the setting of the element's \vn{voltage} setting.  If
+autoscaling is off, the field is independent of the element's \vn{voltage} setting.
 
 \vn{field_autoscale} and \vn{phi0_autoscale} are not needed and therefore ignored when
 \vn{bmad_standard} tracking is done.
@@ -2844,7 +2698,7 @@ bunches.
 
 The short-range wakes for a lattice element are specified via a set of ``pseudo'' modes.  Equations
 for short-range wakefields are given in \Sref{s:sr.wake.eq}.  The \vn{sr_wake} attribute is used to set
-wakefied parameters. The general form of this attribute is:
+wakefield parameters. The general form of this attribute is:
 \begin{example}
   sr_wake = \{z_max = <real>, z_scale = <real>, amp_scale = <real>, 
       scale_with_length = <logical>,
@@ -3026,7 +2880,7 @@ specifying a single long-range mode. Example:
 
 The first six components of the \vn{mode} sub-structure correspond to $\omega/2\pi$, $R/Q$, $d$,
 $\phi/2\pi$, $m$, and $\theta_p/2\pi$ in \sref{s:lr.wake.eq}. The units of $R/Q$ are
-$\Omega$/meter$^{2m}$. The last four componants, which are optional, correspond to $b_{\sin}$,
+$\Omega$/meter$^{2m}$. The last four components, which are optional, correspond to $b_{\sin}$,
 $b_{\cos}$, $a_{\sin}$, and $a_{\cos}$. These four components can be used as a convenient way to
 save the state of the long-range wakes. These components will typically not be present in a lattice
 file except for lattice files generated by a program that does wake simulations.
@@ -3041,7 +2895,7 @@ The \vn{freq_spread} component of the \vn{lr_wake} structure is used to randomly
 mode frequencies. This can be used to spread out the long-range mode frequencies among different
 cavities. The default value is zero which means there is no varying the mode frequencies. The
 fractional difference between of the mode frequencies used in a simulation and the input mode
-frequencies will have a Gaussian distrubition with an RMS given by \vn{freq_spread}. For example, a
+frequencies will have a Gaussian distribution with an RMS given by \vn{freq_spread}. For example, a
 value of 0.01 for \vn{freq_spread} gives a 1\% variation in frequency. Note: Wake modes that are
 locked to the fundamental accelerating mode (\sref{s:lr.wake.old}), are not shifted.
 
@@ -3144,21 +2998,21 @@ includes any fringe fields.
 \label{s:fringe.at}
 
 \index{fringe_at}
-Whether fringe fields are ignored or not is determined by the setting of the
-\vn{fringe_at} element parameter. The possible settings are
+Whether fringe fields are ignored or not is determined by the setting of the \vn{fringe_at} element
+parameter. The possible settings are
 \begin{example}
   no_end         
   both_ends             ! Default
   entrance_end
   exit_end
 \end{example}
-This is particularly useful in vetoing the fringe effect in the interior of split
-elements. If there is no fringe at a particular boundary, the setting of attributes
-like \vn{fringe_type} (see below) are ignored.
+This is particularly useful in vetoing the fringe effect in the interior of split elements. If there
+is no fringe at a particular boundary, the setting of attributes like \vn{fringe_type} (see below)
+are ignored.
 
 \index{spin_fringe_on}
-When a particle's spin is being tracked through the fringe field at an element's edge,
-the \vn{spin_fringe_on} logical attribute of the element determines how the tracking is handled.
+When a particle's spin is being tracked through the fringe field at an element's edge, the
+\vn{spin_fringe_on} logical attribute of the element determines how the tracking is handled.
 Example:
 \begin{example}
   q: quad, spin_fringe_on = T, fringe_at = exit_end
@@ -3179,29 +3033,29 @@ model is used is set by two element attributes:
 \end{example}
 
 \index{fringe_type}
-For elements that have a multipole type fringe field (dipole, quadrupole, etc., as opposed
-to solenoid or RF fringes), the \vn{fringe_type} switch is used to select how a fringe
-field is simulated.  For everything except for \vn{rbend} and \vn{sbend} elements,
-\vn{fringe_type} may be set to one of:
+For elements that have a multipole type fringe field (dipole, quadrupole, etc., as opposed to
+solenoid or RF fringes), the \vn{fringe_type} switch is used to select how a fringe field is
+simulated.  For everything except for \vn{rbend} and \vn{sbend} elements, \vn{fringe_type} may be
+set to one of:
 \begin{example}
   none              ! Default 
   soft_edge_only
   hard_edge_only
   full
 \end{example}
-The \vn{none} setting ignores any fringe fields.  The fringe field kick is divided into
-two pieces.  The first piece is called the \vn{hard edge} fringe kick and is the kick in
-the limit that the longitudinal extent of the fringe is zero. The second piece is the
-\vn{soft edge} fringe kick which is the fringe kick with the fringe having a finite
-longitudinal extent minus the hard edge fringe kick. That is
+The \vn{none} setting ignores any fringe fields.  The fringe field kick is divided into two pieces.
+The first piece is called the \vn{hard edge} fringe kick and is the kick in the limit that the
+longitudinal extent of the fringe is zero. The second piece is the \vn{soft edge} fringe kick which
+is the fringe kick with the fringe having a finite longitudinal extent minus the hard edge fringe
+kick. That is
 \begin{example}
   fringe kick = hard fringe kick + soft fringe kick
 \end{example}
-The advantage of separating the fringe kick in this way is that the hard fringe can be
-used without having to know anything about the longitudinal extent of the fringe.  In many
-cases, this is a good enough approximation. Note that using the soft fringe without the
-hard fringe is not physical but can be useful in understanding how the soft edge component
-affects tracking. See~\sref{s:fringe.std} for details.
+The advantage of separating the fringe kick in this way is that the hard fringe can be used without
+having to know anything about the longitudinal extent of the fringe.  In many cases, this is a good
+enough approximation. Note that using the soft fringe without the hard fringe is not physical but
+can be useful in understanding how the soft edge component affects tracking. See~\sref{s:fringe.std}
+for details.
 
 For \vn{rbend} and \vn{sbend} elements, the possible \vn{fringe_type}
 settings are:
@@ -3231,33 +3085,27 @@ to define the symmetry of the fringe fields. Possible settings are:
   multipole_symmetry
 \end{example}
 \index{ptc_max_fringe_order}
-The difference between \vn{x_invariant} and \vn{multipole_symmetry} is
-that with \vn{multipole_symmetry} the fringe field for an $n$\Th order
-multipole is assumed to have the same rotational symmetry as the
-multipole. With this assumption, the fringe field has $n+1$\St order
-terms.  With \vn{x_invariant}, the fringe field is calculated assuming
-that there is translational invariance along the horizontal $x$
-axis. This differs from \vn{multipole_symmetry} by adding terms of
-increasing order consistent with the translational invariance. See
-\'Etienne Forest's book\cite{b:forest} for more details. Which setting
-of \vn{ptc_fringe_geometry} is appropriate depends upon how the dipole
-under consideration is constructed. The two settings of
-\vn{ptc_fringe_geometry} represent two points of a continuum of
-possible fringe field geometries.
+The difference between \vn{x_invariant} and \vn{multipole_symmetry} is that with
+\vn{multipole_symmetry} the fringe field for an $n$\Th order multipole is assumed to have the same
+rotational symmetry as the multipole. With this assumption, the fringe field has $n+1$\St order
+terms.  With \vn{x_invariant}, the fringe field is calculated assuming that there is translational
+invariance along the horizontal $x$ axis. This differs from \vn{multipole_symmetry} by adding terms
+of increasing order consistent with the translational invariance. See \'Etienne Forest's
+book\cite{b:forest} for more details. Which setting of \vn{ptc_fringe_geometry} is appropriate
+depends upon how the dipole under consideration is constructed. The two settings of
+\vn{ptc_fringe_geometry} represent two points of a continuum of possible fringe field geometries.
 
-Additionally, when using PTC tracking (\sref{s:ptc.intro}), the
-\vn{parameter[ptc_max_fringe_order]} (\sref{s:param}) determines the
-maximum order of the calculated fringe fields.
+Additionally, when using PTC tracking (\sref{s:ptc.intro}), the \vn{parameter[ptc_max_fringe_order]}
+(\sref{s:param}) determines the maximum order of the calculated fringe fields.
 
 Example:
 \begin{example}
   b1: rbend, angle = pi/4, g = 0.3, fringe_type = full
 \end{example}
 
-In a bend element, the \vn{fringe_type} setting only pertains to the
-dipole fringe.  For higher order multipole fields in a bend, the
-\vn{higher_order_fringe_type} selects the fringe type. Possible
-settings are the same as for the non-bend \vn{fringe_type} elements
+In a bend element, the \vn{fringe_type} setting only pertains to the dipole fringe.  For higher
+order multipole fields in a bend, the \vn{higher_order_fringe_type} selects the fringe
+type. Possible settings are the same as for the non-bend \vn{fringe_type} elements
 \begin{example}
   none              ! Default 
   soft_edge_only
@@ -3266,14 +3114,11 @@ settings are the same as for the non-bend \vn{fringe_type} elements
 \end{example}
 
 \index{sad}\index{sbend}\index{rbend}
-The \vn{soft_edge_only}, \vn{hard_edge_only} and \vn{sad_full} settings
-of \vn{fringe_type} emulate the fringe field tracking used in the SAD
-program\cite{b:sad}.  The \vn{soft_edge_only} setting only uses the linear
-part of the fringe, \vn{hard_edge_only} ignores the linear part of
-the fringe, and \vn{sad_full} uses the full fringe.  For an \vn{sbend}
-or \vn{rbend} element, these SAD fringe fields are in addition to the
-fringe fields that occurs with a finite \vn{e1} or \vn{e2} face
-angle. 
+The \vn{soft_edge_only}, \vn{hard_edge_only} and \vn{sad_full} settings of \vn{fringe_type} emulate
+the fringe field tracking used in the SAD program\cite{b:sad}.  The \vn{soft_edge_only} setting only
+uses the linear part of the fringe, \vn{hard_edge_only} ignores the linear part of the fringe, and
+\vn{sad_full} uses the full fringe.  For an \vn{sbend} or \vn{rbend} element, these SAD fringe
+fields are in addition to the fringe fields that occurs with a finite \vn{e1} or \vn{e2} face angle.
 
 For \vn{quadrupole} and \vn{sad_mult} elements, the translation between the \vn{fringe_at}
 and \vn{fringe_type} settings and the \vn{fringe} and \vn{disfrin} switches of SAD is:
@@ -3291,12 +3136,11 @@ and \vn{fringe_type} settings and the \vn{fringe} and \vn{disfrin} switches of S
 \multicolumn{2}{l}{$^*$Default value.} & \multicolumn{4}{l}{\textbf{[fringe, disfrin]}} \\
 \end{tabular}
 \end{center}
-Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}]. The
-\vn{soft_edge_only} fringe kick is a kick that is linear in the transverse $(x, p_x, y,
-p_y)$ coordinates and comes from the finite width of the quadrupolar fringe field. The
-width of the quadrupolar fringe field is characterized by the \vn{f1} and \vn{f2}
-attributes. The \vn{sad_nonlinear_only} fringe kick comes from the nonlinear part of the
-quadrupolar field plus the fringes of the other multipoles.
+Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}]. The \vn{soft_edge_only} fringe
+kick is a kick that is linear in the transverse $(x, p_x, y, p_y)$ coordinates and comes from the
+finite width of the quadrupolar fringe field. The width of the quadrupolar fringe field is
+characterized by the \vn{f1} and \vn{f2} attributes. The \vn{sad_nonlinear_only} fringe kick comes
+from the nonlinear part of the quadrupolar field plus the fringes of the other multipoles.
 
 The soft fringe quadrupole parameters \vn{fq1} and \vn{fq2} (\sref{s:q.soft}) are related
 to the corresponding SAD parameters \vn{f1} and \vn{f2} via
@@ -3307,9 +3151,8 @@ to the corresponding SAD parameters \vn{f1} and \vn{f2} via
 In the SAD documentation, the soft edge is called the ``linear'' fringe.
 
 \index{permfringe}\index{bendfringe}
-For programmers who deal with PTC directly: The translation between
-\vn{ptc_fringe_geometry} on the \bmad side and \vn{bendfringe} on the
-PTC side is:
+For programmers who deal with PTC directly: The translation between \vn{ptc_fringe_geometry} on the
+\bmad side and \vn{bendfringe} on the PTC side is:
 
 \begin{center}
 \begin{tabular}{lll} \toprule 
@@ -3330,10 +3173,9 @@ PTC side is:
 \index{x_offset_calib}\index{y_offset_calib}\index{tilt_calib}
 \index{de_eta_meas}\index{n_sample}\index{osc_amplitude}
 
-\vn{instrument}, \vn{monitor}, \vn{detector}, and \vn{marker} elements
-have special attributes to describe errors associated with orbit, betatron phase, dispersion
-and coupling measurements. These attributes are: \hfill\break
-\hspace*{0.1in}
+\vn{instrument}, \vn{monitor}, \vn{detector}, and \vn{marker} elements have special attributes to
+describe errors associated with orbit, betatron phase, dispersion and coupling measurements. These
+attributes are: \hfill\break \hspace*{0.1in}
 \begin{tabular}{lll} \toprule
   {\em Attribute}     & {\em Symbol} (See: \sref{s:meas.calc}) & \\ \midrule
   \vn{tilt}           & $\theta_t$             & See \sref{s:offset} \\ 
@@ -3353,7 +3195,6 @@ and coupling measurements. These attributes are: \hfill\break
   \vn{n_sample}       & $N_s$                  & Number of sampling points \\ 
   \vn{osc_amplitude}  & $A_{\text{osc}}$       & Oscillation amplitude \\ \bottomrule
 \end{tabular}
-\hfill\break
-A program can use these quantities to calculate ``measured'' values from the
-``laboratory'' values. Here, ``laboratory'' means as calculated from some model lattice.
-See \sref{s:meas.calc} for the conversion formulas.
+\hfill\break A program can use these quantities to calculate ``measured'' values from the
+``laboratory'' values. Here, ``laboratory'' means as calculated from some model lattice.  See
+\sref{s:meas.calc} for the conversion formulas.

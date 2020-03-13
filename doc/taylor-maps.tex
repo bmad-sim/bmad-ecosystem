@@ -14,9 +14,9 @@ coordinates $\Bf r(\Out)$
   \Bf r(\Out) = {\cal M} \, (\delta \bfr)
 \end{equation}
 where
-\Begineq
+\begin{equation}
   \delta \bfr = \bfr(\In) - \bfr_\REF
-\Endeq
+\end{equation}
 $\bfr_\REF$ is the reference orbit at the start of the map around which the map is
 made. In many cases the reference orbit is the zero orbit. For a storage ring, the closed
 orbit is commanly used for the reference orbit.
@@ -25,15 +25,15 @@ ${\cal M}$ in the above equation is made up of six functions ${\cal M}_i: {\cal 
 \rightarrow {\cal R}$. Each of these functions maps to one of the $r(\Out)$
 coordinates. Each of these functions can be expanded in a Taylor series and truncated at
 some order. Each Taylor series is in the form
-\Begineq
+\begin{equation}
   r_i(\Out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, (\delta r_k)^{e_{ijk}}
   \label{rcr}
-\Endeq
+\end{equation}
 Where the $C_{ij}$ are coefficients and the $e_{ijk}$ are integer exponents.
 The order of a given term associated with index $i,j$ is the sum over the exponents
-\Begineq
+\begin{equation}
   \text{order}_{ij} = \sum_{k = 1}^6 e_{ijk} 
-\Endeq
+\end{equation}
 The order of the entire map is the order at which the map is truncated.
 
 The standard \bmad routine for printing a Taylor map might produce something 
@@ -72,26 +72,26 @@ index in \Eq{rcr}) indicates the Taylor series: $1 = x(out)$, $2 =
 p_x(out)$, etc. The 6 exponent columns give the $e_{ijk}$ of
 \Eq{rcr}. In this example, the second Taylor series (\vn{out} = 2),
 when expressed as a formula, would read:
-\Begineq
+\begin{equation}
   p_x(out) = -0.185 + 1.3 \, \delta p_x + 3.8 \, \delta x^2 \, \delta p_z
-\Endeq
+\end{equation}
 
 \index{taylor map!reference coordinates}
 The reference column in the above example shows the input coordinates around
 which the Taylor map is calculated. In this case, the reference
 coordinates where 
-\Begineq
+\begin{equation}
   (x, p_x, y, p_y, z, p_z)_{ref} = (0.2, 0, 0.1, 0, 0, 0, 0)
-\Endeq
+\end{equation}
 The choice of the reference point will affect the values of the
 coefficients of the Taylor map. As an example, consider the 1-dimension map
-\Begineq
+\begin{equation}
   x(out) = A \, \sin(k \, \delta x)
-\Endeq
+\end{equation}
 Then a Taylor map to 1\St order is
-\Begineq
+\begin{equation}
   x(out) = c_0 + c_1 \, \delta x
-\Endeq
+\end{equation}
 where
 \begin{align}
   c_1 &= A \, k \, \cos(k \, x_{\text{ref}}) \\
@@ -150,7 +150,7 @@ From $\Bf M$ a matrix $\bfV$ is formed via
   \label{e:vsimi}
 \end{equation}
 where $\Bf S$ is the matrix
-\Begineq
+\begin{equation}
   \Bf S = 
   \begin{pmatrix} 
       0 &  1 &  0 &  0 &  0 &  0 \cr
@@ -161,7 +161,7 @@ where $\Bf S$ is the matrix
       0 &  0 &  0 &  0 & -1 &  0 \cr
   \end{pmatrix}
   \label{s0100}
-\Endeq
+\end{equation}
 $\bfV$ is symmetric if and only if $\Bf M$ is symplectic. In any case,
 a symmetric matrix $\Bf W$ near $\bfV$ can be
 formed via
@@ -169,9 +169,9 @@ formed via
   \Bf W = \frac{\bfV + \bfV^t}{2}
 \end{equation}
 A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
-\Begineq
+\begin{equation}
   \Bf F = (\Bf I + \Bf S \Bf W) (\Bf I - \Bf S \Bf W)^{-1}
-\Endeq
+\end{equation}
 
 %-----------------------------------------------------------------
 \section{Map Concatenation and Feed-Down}
@@ -183,39 +183,39 @@ Of importance in working with Taylor maps is the concept of
 example simple, the discussion is limited to one phase space
 dimension so that the Taylor maps are a single Taylor series. Take the
 map $M_1$ from point 0 to point 1 to be
-\Begineq
+\begin{equation}
   M_1: x_1 = x_0 + 2
   \label{xx2}
-\Endeq
+\end{equation}
 and the map $M_2$ from point 1 to point 2 to be
-\Begineq
+\begin{equation}
   M_2: x_2 = x_1^2 + 3 \, x_1
   \label{xx3x}
-\Endeq
+\end{equation}
 Then concatenating the maps to form the map $M_3$ from point 0 to point 2
 gives
-\Begineq
+\begin{equation}
   M_3: x_2 = (x_0 + 2)^2 + 3 (x_0 + 2) = x_0^2 + 7 \, x_0 + 10
   \label{xx23x2}
-\Endeq
+\end{equation}
 However if we are evaluating our maps to only 1\St order the map $M_2$
 becomes
-\Begineq
+\begin{equation}
   M_2: x_2 = 3 \, x_1
-\Endeq
+\end{equation}
 and concatenating the maps now gives
-\Begineq
+\begin{equation}
   M_3: x_2 = 3 (x_0 + 2) = 3 \, x_0 + 6
   \label{x3x23}
-\Endeq
+\end{equation}
 Comparing this to \Eq{xx23x2} shows that by neglecting the 2\Nd order
 term in \Eq{xx3x} leads to 0\Th and 1\St order errors in
 \Eq{x3x23}. These errors can be traced to the finite 0\Th order term in
 \Eq{xx2}. This is the principal of feed--down: Given $M_3$ which is a map
 produced from the concatenation of two other maps, $M_1$, and $M_2$
-\Begineq
+\begin{equation}
   M_3 = M_2(M_1)
-\Endeq
+\end{equation}
 Then if $M_1$ and $M_2$ are correct to n\Th order, $M_3$ will also be
 correct to n\Th order as long as $M_1$ has no constant (0\Th order)
 term. [Notice that a constant term in $M_2$ does not affect the
@@ -223,9 +223,9 @@ argument.]  What happens if we know there are constant terms in our
 maps? One possibility is to go to a coordinate system where the
 constant terms vanish. In the above example that would mean using the
 coordinate $\widetilde x_0$ at point 0 given by
-\Begineq
+\begin{equation}
   \widetilde x_0 = x_0 + 2
-\Endeq
+\end{equation}
 \index{symplectic integration}
 
 %-----------------------------------------------------------------
@@ -246,20 +246,20 @@ specified and in the integration procedure all terms of order higher
 than $n$ are ignored. If one is just interested in knowing the final
 coordinates of a particle at point 2 given the initial coordinates at
 point 1 then $M_1$ is just the constant map
-\Begineq
+\begin{equation}
   M_1: x_1 = c_i
-\Endeq
+\end{equation}
 where $c_i$ is the initial starting point. The order of the
 integration is set to 0 so that all non--constant terms are
 ignored. The final map is also just a constant map
-\Begineq
+\begin{equation}
   M_3: x_2 = c_f
-\Endeq
+\end{equation}
 If the map from point 1 to point 2 is desired then the map $M_1$ is
 just set to the identity map
-\Begineq
+\begin{equation}
   M_1: x_1 = x_0
-\Endeq
+\end{equation}
 In general it is impossible to exactly integrate any non--linear
 system. In practice, the symplectic integration is achieved by slicing
 the interval between point 1 and point 2 into a number of (generally
@@ -271,11 +271,11 @@ calculation is determined by the number of slices and the \vn{order}
 of the integrator. The concept of integrator order can best be
 understood by analogy by considering the trapezoidal rule for
 integrating a function of one variable:
-\Begineq
+\begin{equation}
   \int_{y_a}^{y_b} f(y) \, dy = 
   h \left[ \frac{1}{2} f(y_a) + \frac{1}{2} f(y_b) \right] +
   o(h^3 \, f^{(2)})
-\Endeq
+\end{equation}
 In the formula $h = y_b - y_a$ is the slice width. $0(h^3 \, f^{(2)})$
 means that the error of the trapezoidal rule scales as the second
 derivative of $f$. Since the error scales as $f^{(2)}$ this is an
