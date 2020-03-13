@@ -936,24 +936,24 @@ given.
   %----------------------
   \item[norm_apparent_emit.x, .y] \Newline
 Energy normalized apparent emittance. The normalization is the standard gamma factor:
-\Begineq
+\begin{equation}
   \text{emit}_{\text{norm}} = \gamma \, \text{emit}
-\Endeq
+\end{equation}
 See the \vn{apparent_emit.x, .y} data type for more details.
 
   %----------------------
   \item[norm_emit.a, .b, .c] \Newline
 Energy normalized normal mode emittance. The normalization is the standard gamma factor:
-\Begineq
+\begin{equation}
   \epsilon_{norm} = \gamma \, \epsilon
-\Endeq
+\end{equation}
 
   %----------------------
   \item[norm_emit.x, .y, .z] \Newline
 Energy normalized projected emittance. The normalization is the standard gamma factor:
-\Begineq
+\begin{equation}
   \epsilon_{norm} = \gamma \, \epsilon
-\Endeq
+\end{equation}
 
   %----------------------
   \item[normal.h.<monomial>.\{r,i,a\}] \Newline
@@ -1018,16 +1018,16 @@ $i$ is an integer between 1 and 6, and \vn{monomial} is a six digit number that 
 a monomial. For example: \vn{100001}. 
 
 In the symplectic case:
-\Begineq \label{normalform1}
+\begin{equation} \label{normalform1}
   M = A\circ \exp\left(:h:\right)\circ A^{-1},
-\Endeq
+\end{equation}
 where $A$ is the nonlinear normalizing map, and $h$ is a function of the amplitudes $J_i =
 (1/2)(x_i^2 + p_i^2)$ only. The amplitude dependent tune shifts are given by $\mu_i =
 -dh/dJ_i$, and can be accessed through \vn{normal.dhdj}. Terms of $A$ and $A^{-1}$ can be
 accessed through \vn{normal.A} and \vn{normal.A_inv}.  In the general case,
-\Begineq \label{normalform2}
+\begin{equation} \label{normalform2}
 M = A_1\circ C \circ L \circ \exp\left(F\cdot\nabla\right)I\circ C^{-1} \circ A_1^{-1}.
-\Endeq
+\end{equation}
 Here $C$ is the linear map to the resonance basis: $h_\pm = x \pm i p$, $L$ is a complex
 linear map, $A_1$ is the (real) first order normalizing map, and $I$ is the identity
 map. All of the nonlinearities are therefore in the complex vector field $F$. The real and
@@ -1066,13 +1066,13 @@ Orbit position and momenta.
   \item[periodic.tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline
 This is like the \vn{tt.} datum except here the terms are from the
 periodic Taylor map defined by
-\Begineq
+\begin{equation}
   T_p \equiv (T_0 - I_4)^{-1}
-\Endeq
+\end{equation}
 Here $T_p$ is the
 periodic map, $T_0$ is the one-turn map from some point back to that
 point, and $I_4$ is a linear map defined by the matrix
-\Begineq
+\begin{equation}
   I_4 \equiv 
     \begin{pmatrix}
       1 &   &   &   &   &   \\
@@ -1082,7 +1082,7 @@ point, and $I_4$ is a linear map defined by the matrix
         &   &   &   & 0 &   \\
         &   &   &   &   & 0
     \end{pmatrix}
-\Endeq
+\end{equation}
 The periodic map give information about the closed orbit, dispersion,
 etc. For example, the zeroth order terms are the closed orbit, the r16
 term gives the horizontal dispersion, etc.
@@ -1175,9 +1175,9 @@ The response can be related to the lattice Twiss parameters as given by Eq.~(54)
   \label{xabno}
 \end{align}
 where
-\Begineq
+\begin{equation}
   \theta_{ax}(s,n) = n \, \omega_a + \phi_{ax}(s) + \phi_{a0}
-\Endeq
+\end{equation}
 
 Roughly, if the coupling is not large, the ``in-plane'' \vn{x} oscillation is insensitive to any
 coupling so that \vn{ping_a.amp_x} and \vn{ping_a.phase_x} can be directly related to the
@@ -1202,9 +1202,9 @@ to be unity. To be able to compare the \vn{design} and/or \vn{model} values with
 actual data stored in \vn{meas} and/or \vn{ref}, the \vn{meas} values will be multiplied by a
 constant $C_m$ computed so that the average \vn{meas} value is equal to the average
 \vn{model} value:
-\Begineq
+\begin{equation}
   C_m \, \sum \text{ping_a.amp_x}_\text{meas} = \sum \text{ping_a.amp_x}_\text{model}
-\Endeq
+\end{equation}
 where the sums are over all \vn{ping_a.amp_x} data points where the \vn{exists},
 \vn{good_model}, \vn{good_user}, and \vn{good_meas} components (\sref{s:data.anatomy}) are
 all true. The \vn{ping_a.amp_y} data points are not used for the computation of $C_m$
@@ -1282,9 +1282,9 @@ With the \vn{rad_int.xxx} datums, the integral is from \vn{ele_ref} to \vn{ele}.
   %----------------------
   \item[r56_compaction] \Newline
 This datum is defined to be
-\Begineq
+\begin{equation}
   M_{5,6} + \sum_{i=1}^4 M_{5,i} \, \eta_i
-\Endeq
+\end{equation}
 where $\Bf M$ is the transfer matrix between the reference element and the element where the datum
 is evaluated and $\eta$ is the dispersion vector evaluated at the reference element.
 
@@ -1314,9 +1314,9 @@ the global coordinate system. See also \vn{floor.} and \vn{wall.}.
   \item[sigma.x, .y, .z, .px, .py, .pz, .Lxy, .$ij$ \hspace{0.02in} $1 \le i,j \le 6$] \Newline
 The 6$\times$6 sigma matrix \vn{sigma.$ij$} with $1 \le i,j \le 6$ describes the beam size in phase
 space. That is
-\Begineq
+\begin{equation}
   \text{sigma.}ij = \big< (r_i - \overline r_i) \, (r_j - \overline r_j) \big>
-\Endeq
+\end{equation}
 where $< \ldots >$ is an average of the particle's phase space vector $\bfr = (x, p_x, y, p_y, z, p_z)$ 
 with $\overline{\mbox\bfr\raisebox{1.9mm}{}}$ being the average position. 
 
@@ -1429,20 +1429,20 @@ optimization to avoid unstable solutions (\sref{s:generalized.design}).
 For single particle tracking, the value of an \vn{unstable.orbit}
 datum is zero if the tracked particle survives (has not been lost) up
 to the evaluation element and, if it has been lost, is set to
-\Begineq
+\begin{equation}
  1 + i_{\mbox{ele}} - i_{\mbox{lost}} + \frac{1}{2}
  \left[ \tanh\left( \frac{r_{orbit}}{r_{lim}} - 1 \right) - E \right]
-\Endeq
+\end{equation}
 where $i_{\mbox{ele}}$ is the index of the evaluation element in the
 lattice and $i_{\mbox{lost}}$ is the index of the element where the
 particle was lost. In the above equation, $E$ is the function
-\Begineq
+\begin{equation}
   E = 
   \begin{cases}
     1 & \text{if the particle is lost at the exit end of the element.} \\
     0 & \text{if the particle is lost at the entrance end of the element.}
   \end{cases}
-\Endeq
+\end{equation}
 In the abouve equation, $r_{orbit}$ is the particle amplitude at the
 point of loss and $r_{lim}$ is the aperture limit. The form of the
 above equation has been choisen so that the datum value will be

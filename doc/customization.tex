@@ -275,10 +275,10 @@ This example will only require the modification of one file:
 put in your \vn{ROOT/code} directory (\sref{s:cust.init}).
 
 The formula for single particle emittance is
-\Begineq
+\begin{equation}
   \epsilon = \gamma x^{2} + 2 \alpha x x' + \beta x'^{2}
   \label{e:emittance}
-\Endeq
+\end{equation}
 Place the following code in \vn{tao_hook_evaluate_a_datum.f90} in the \cmd{case select}
 construct. Also add the necessary type declarations. See the routine \vn{tao_evaluate_a_datum} as an
 example.
