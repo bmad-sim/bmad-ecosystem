@@ -44,12 +44,12 @@ steerings need to be changed by to flatten the orbit.
 
 The merit function \vn{M} that is a measure of how well the data as calculated from the
 \vn{model}, fits the measured data. \tao uses a merit function of the form
-\Begineq
+\begin{equation}
   {\cal M} \equiv 
     \sum_{i} w_i \, \bigl[ \delta D_i \bigr]^2 + 
     \sum_{j} w_j \, \bigl[ \delta V_j \bigr]^2
   \label{m1}
-\Endeq
+\end{equation}
 where
 \begin{align}
   \delta D &= \data\_\model - \data\_\meas \CRNO
@@ -131,18 +131,18 @@ not exceed a certain value. In this case we can proceed as was done
 for lattice corrections and use \Eq{m1}. In this case, the deltas
 are computed to limit values to some range so a typical delta
 would be of the form
-\Begineq
+\begin{equation}
   \delta D \; \text{or} \; \delta V = 
     \begin{cases}
     \mbox{model} - \mbox{limit}  & \mbox{model $>$ Limit} \\
     0                            & \mbox{otherwise}
     \end{cases}
-\Endeq
+\end{equation}
 or a constraint is used to keep the \vn{model} at a certain value so
 the form of the constraint would be
-\Begineq
+\begin{equation}
     \delta D \; \text{or} \; \delta V = \mbox{model} - \mbox{target}  
-\Endeq
+\end{equation}
 Here \vn{model} is the value as calculated from the \vn{model}
 lattice. \vn{target} and \vn{limit} are given numbers. Part of the
 optimization process is in deciding what the values should be for any
@@ -208,14 +208,14 @@ For variables, the form of the terms $V_i$ is determined by its \vn{merit_type}.
 \end{example}
 A \vn{target} \vn{merit_type} for a variable is the same as for datum. In this case \vn{model} is
 just the value of the variable.  A \vn{limit} \vn{merit_type} has the form
-\Begineq
+\begin{equation}
   \delta V = 
     \begin{cases}
     \mbox{model} - \mbox{high\_lim}  & \mbox{model} > \mbox{high\_lim} \\
     \mbox{model} - \mbox{low\_lim}   & \mbox{model} < \mbox{low\_lim} \\
     0                                & \mbox{Otherwise}
     \end{cases}
-\Endeq
+\end{equation}
 The default \vn{merit_type} for a variable is \vn{limit}.
 
 Note: when doing lattice design \vn{opt_with_ref} and \vn{opt_with_base} are both set to \vn{False}

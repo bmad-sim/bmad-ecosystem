@@ -1482,13 +1482,13 @@ shift may be specified by a \vn{building_wall_orientation} namelist in the same 
 \end{example}
 The transformation from the input coordinates of a wall point specified in a \vn{build_wall_section} namelist
 to the global coordinate system is
-\Begineq
+\begin{equation}
   \begin{pmatrix} z \\ x \end{pmatrix}_{global} = 
   \begin{pmatrix} \text{z_offset} \\ \text{x_offset} \end{pmatrix} +
   \begin{pmatrix} \cos(\text{theta}) & -\sin(\text{theta}) \\
                    \sin(\text{theta}) & \cos(\text{theta}) \end{pmatrix} \,
   \begin{pmatrix} z \\ x \end{pmatrix}_{input} 
-\Endeq
+\end{equation}
 
 %-----------------------------------------------------------------
 \section{Initializing Dynamic Aperture}
