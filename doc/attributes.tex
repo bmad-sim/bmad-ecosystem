@@ -147,15 +147,19 @@ permitted. For example:
 
 There are three string labels associated with any element:
 \begin{example}
-  type    = <String>
-  alias   = <String>
-  descrip = <String>
+  type    = "<String>"
+  alias   = "<String>"
+  descrip = "<String>"
 \end{example}
-\bmad routines do not use these labels except when printing element information. \vn{type} and
-\vn{alias} can be up to 40 characters in length and \vn{descrip} can be up to 200 characters. The
-attribute strings can be enclosed in double quotation marks ("). The attribute strings may contain
-blanks. If the attribute string does not contain a blank then the quotation marks may be omitted. In
-this case the first comma (,) or the end of the line marks the end of the string. Example:
+The \vn{type} and \vn{alias} attributes can be up to 40 characters in length and \vn{descrip} can be
+up to 200 characters. If the attribute string does not contain a blank, comma, or a semicolon, the
+quotation marks may be omitted.
+
+\bmad routines do not use these labels directly. Rather these labels have a number of purposes. For
+example, for a \bmad based program that is used as an online machine model could associate a label
+string with a machine database element to facilitate machine control.
+
+Example:
 \begin{example}
   Q00W: Quad, type = "My Type", alias = Who_knows, &
                                   descrip = "Only the shadow knows"

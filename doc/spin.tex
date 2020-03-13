@@ -219,53 +219,65 @@ an early computer program that implemented the formalism), is a way to represent
 (that is, first order) orbital and spin transport as an $8 \cross 8$ matrix which then can be
 analyzed. The idea is to expand the transport map around the closed orbit $(\bfr_0, \bfn_0)$ where
 $\bfr_0$ is the orbital closed orbit and $\bfn_0$ is ``spin closed orbit'' namely the unit-vector,
-one-turn periodic solution of the Thomas-BMT equation on $\bfr_0$. $\bfn_0$ is just the invariant
-spin field on the closed orbit. The formalism provides estimates of the equilibrium spin
-polarization and the rate of depolarization in electron storage rings, both under the restriction of
-the aforementioned linearization. Moreover, a procedure known as spin-matching, for minimizing
-depolarization driven by the noise injected into synchro-betatron motion by synchrotron radiation,
-and which involves optimizing the layout of the ring, can be executed in a simple and elegant way
-via the SLIM formalism. The formalism can also give insights into proton spin dynamics in regimes
-where the linearization suffices.
+one-turn periodic solution of the Thomas-BMT equation on 
+%
+$\bfr_0$\footnote{Warning: The symbol $\hat n$ or
+$\vec n$ used in \cite{b:chao.spin,b:barber85} and other early literature to denote the periodic
+solution of the T--BMT equation on the closed orbit should be replaced by the symbol $\hat n_0$ to
+conform to the modern convention \cite{b:barber99} and thereby avoid confusion with the symbol $\hat
+n$ which denotes the invariant spin field.  In addition, the symbols $\vec m$ and $\vec l$
+appearing, for example, in the formulae for the matrix $\bfG$ in \cite{b:barber85}, should be
+replaced by the symbols $\hat m_0$ and $\hat l_0$, namely by the modern symbols for the two
+(normally) non-periodic solutions of the T-BMT equation, which together with $\hat n_0$, form an
+orthonormal coordinate system.}.
+% 
+$\bfn_0$ is just the invariant spin field on the closed orbit. The formalism provides estimates of
+the equilibrium spin polarization and the rate of depolarization in electron storage rings, both
+under the restriction of the aforementioned linearization. Moreover, a procedure known as
+spin-matching, for minimizing depolarization driven by the noise injected into synchro-betatron
+motion by synchrotron radiation, and which involves optimizing the layout of the ring, can be
+executed in a simple and elegant way via the SLIM formalism. The formalism can also give insights
+into proton spin dynamics in regimes where the linearization suffices.
 
 The \vn{SLIM} formalism expresses spin components using two right-hand coordinate systems:
 \footnote{Different authors will use different conventions for the ordering of the axes
 The ordering used here puts $\bfn_0$ second reflecting the fact that in many rings the $\bfn_0$
 axis will point in the vertical $y$-direction in the arcs.}
 \begin{align}
-  &\big( \bfl(s), \bfn_0(s), \bfm(s) \big) 
+  &\big( \bfl(s), \bfn_0(s), \bfm(s) \big)
   \qquad \text{and} \qquad \CRNO
   &\big( \bfl_0(s), \bfn_0(s), \bfm_0(s) \big)
 \end{align}
-The axes $\bfl_0(s)$ and $\bfm_0(s)$ are solutions of the Thomas-BMT equation on the closed
-orbit and, generally, are not one-turn periodic. The axes $\bfl(s)$ and $\bfm(s)$ are chosen
-to be one-turn periodic but can have an arbitrary $s$ dependence which can be chosen for convenience
-otherwise. The axes $\bfl_0(s)$ and $\bfm_0(s)$ are used for spin-matching and a special
-choice of $\bfl(s)$ and $\bfm(s)$ is used for calculating polarization and depolarization.
-With respect to these axes, a unit-length spin $\bfS$ can be written as
+The axes $\bfl_0(s)$ and $\bfm_0(s)$ are solutions of the Thomas-BMT equation on the closed orbit
+and, generally, are not one-turn periodic. The axes $\bfl(s)$ and $\bfm(s)$ are chosen to be
+one-turn periodic but can have an arbitrary $s$ dependence which can be chosen for convenience
+otherwise. The axes $\bfl_0(s)$ and $\bfm_0(s)$ are used for spin-matching and $\bfl(s)$ and
+$\bfm(s)$ is used for calculating polarization and depolarization.  With respect to these axes, a
+unit-length spin $\bfS$ can be written as
 \begin{align}
   \bfS &= \sqrt{1- \alpha_0^2 - \beta_0^2} ~\bfn_0 + \alpha_0 \, \bfl_0 + \beta_0 \, \bfm_0 
-  ~~{\rm or }~~ \CRNO
+  \qquad \text{or} \qquad \CRNO
   \bfS &= \sqrt{1- \alpha^2 - \beta^2} ~\bfn_0 + \alpha \, \bfl + \beta \, \bfm
   \label{s1ab}
 \end{align}
-Below, the equations will be written in terms of the $(\bfl_0(s), \bfn_0(s), \bfm_0(s))$ coordinate system.
-The equivalent equations for the $(\bfl(s), \bfn_0(s), \bfm(s))$ system are obtained simply by using the
-substitution $\alpha_0 \rightarrow \alpha$ and $\beta_0 \rightarrow \beta$.
 
 To linearize the transport, it is assumed that $\alpha_0$, and $\beta_0$ (and hence $\alpha$ and
 $\beta$) are small compared to one. To first order, the variation from unity of the spin component
 along the $\bfn_0$ axis will be second order and can be ignored:
-\begin{equation}
-  \bfS \approx \bfn_0 + \alpha_0 \, \bfl_0 + \beta_0 \, \bfm_0
-\end{equation}
+\begin{align}
+  \bfS &\approx \bfn_0 + \alpha_0 \, \bfl_0 + \beta_0 \, \bfm_0
+  \qquad \text{or} \qquad \CRNO
+  \bfS &\approx \bfn_0 + \alpha \, \bfl + \beta \, \bfm
+\end{align}
 
 The $\bfn_0$ coordinate is dropped since the spin component along $\bfn_0$ is a constant. With this,
 the eight-dimensional spin-orbit phase space used in the SLIM formalism is
-\begin{equation}
-  (x, p_x, y, p_y, z, p_z, \alpha_0, \beta_0)
+\begin{align}
+  &(x, p_x, y, p_y, z, p_z, \alpha_0, \beta_0)
+  \qquad \text{or} \qquad \CRNO
+  &(x, p_x, y, p_y, z, p_z, \alpha, \beta)
   \label{xpxypy}
-\end{equation}
+\end{align}
 where the orbital part $x, p_x$, etc. is taken with respect to the closed orbit. 
 
 The first order map between two any points $s_1$ and $s_2$ is an $8 \cross 8$ matrix $\wt\bfM$ which
@@ -278,36 +290,34 @@ is written in the form
   \label{mm0gd}
 \end{equation}
 where $\bfM(s_1, s_2)$ is the $6\cross6$ orbital phase space transport matrix, and $\bfG(s_1, s_2)$
-contains the coupling of the spin coordinates $(\alpha_0, \beta_0)$ to the orbital motion. Because
-$\bfG$ is calculated with respect to the $(\bfl_0, \bfm_0)$ axes, large spin precessions on
-the closed orbit due to dipole and solenoid fields are eliminated. That leaves small precessions due
-to synchro-betatron motion. The $\bfG$ matrix thus represents the dominating linear dependence of
-the small precessions on the six synchro-betatron coordinates and it then provides a good framework
-for analysis \cite{b:barber85,b:barber99}. In \Eq{mm0gd}, $\bfD$ is a $2\cross2$ rotation matrix for
-the spin transport of a particle on the closed orbit. In this case, since the $\bfl_0(s)$ and
-$\bfm_0(s)$ are solutions to the T-BMT equation, $\bfD$ is the unit matrix. The upper right block
-$\Bf 0_{6\cross2}$ in the $\wt\bfM$ matrix is zero since Stern-Gerlach effects are
-ignored\footnote{Warning: The symbol $\hat n$ or $\vec n$ used in \cite{b:chao.spin,b:barber85} and
-other early literature to denote the periodic solution of the T--BMT equation on the closed orbit
-should be replaced by the symbol $\hat n_0$ to conform to the modern convention \cite{b:barber99}
-and thereby avoid confusion with the symbol $\hat n$ which denotes the invariant spin field.  In
-addition, the symbols $\vec m$ and $\vec l$ appearing, for example, in the formulae for the matrix
-$\bfG$ in \cite{b:barber85}, should be replaced by the symbols $\hat m_0$ and $\hat l_0$, namely by
-the modern symbols for the two (normally) non-periodic solutions of the T-BMT equation, which
-together with $\hat n_0$, form an orthonormal coordinate system.}.
+contains the coupling of the spin coordinates $(\alpha_0, \beta_0)$ or $(\alpha, \beta)$ to the
+orbital motion. The upper right block $\Bf 0_{6\cross2}$ in the $\wt\bfM$ matrix is zero since
+Stern-Gerlach effects are ignored. When $\bfG$ is calculated with respect to the $(\bfl_0, \bfm_0)$
+axes, large spin precessions on the closed orbit due to dipole and solenoid fields are
+eliminated. That leaves small precessions due to synchro-betatron motion. The $\bfG$ matrix then
+represents the dominating linear dependence of the small precessions on the six synchro-betatron
+coordinates and it then provides a good framework for analysis \cite{b:barber85,b:barber99}. In
+\Eq{mm0gd}, $\bfD$ is a $2\cross2$ rotation matrix for the spin transport of a particle on the
+closed orbit. In this case, since the $\bfl_0(s)$ and $\bfm_0(s)$ are solutions to the T-BMT
+equation, $\bfD$ is the unit matrix.
+
 
 To compute $\widetilde\bfM$ for a section of the ring, the first step is to find the $6 \times 6$
 orbital matrix for the section. To calculate $\bfn_0$, $\bfl_0$ and $\bfm_0$, first $\bfn_0$ at some
 starting point $s$ is calculated (section 18.3) and propagated around the ring. This $\bfn_0$ is
 then available for calculations involving the whole ring. If only part of the ring is being
 analyzed, the orientation of $\bfn_0$ at the start of the section can be an input parameter. That
-is, it can be given by the User and not calculated. However, for spin-matching, it usually only makes
-physical sense to use the $\bfn_0$ at the start of the section that corresponds to the $\bfn_0$
-calculated for the whole ring. After $\bfn_0$ is known at some $s$-position, $\bfl_0$ and $\bfm_0$
-at that $s$-position can be chosen somewhat arbitrarily to form the right handed coordinate
-system. However it is usual to make a special choice of the initial $\bfl_0$ and $\bfm_0$ in order
-to simplify the $\bfG$ matrices. After the initial $\bfl_0$ and $\bfm_0$ axes have been specified at
-some initial $s$, the axes can be transported along the closed orbit of the section.
+is, it can be given by the User and not calculated. However, for spin-matching, it usually only
+makes physical sense to use the $\bfn_0$ at the start of the section that corresponds to the
+$\bfn_0$ calculated for the whole ring. After $\bfn_0$ is known at some $s$-position, $\bfl_0$ and
+$\bfm_0$ at that $s$-position can be chosen somewhat arbitrarily to form the right handed coordinate
+system. Sometimes it is possible to make a special choice of the initial $\bfl_0$ and $\bfm_0$ in
+order to simplify the $\bfG$ matrices. For example, in a section where there are only drifts and
+quadrupoles so that there is no spin rotation for a particle traveling on the centerline, with
+$\bfn_0$ pointing vertical, a choice of $\bfm_0$ pointing in the longitudinal $s$-direction results
+in the first line of the $\bfG$ matrix for the section being zero. After the initial $\bfl_0$ and
+$\bfm_0$ axes have been specified at some initial $s$, the axes can be transported along the closed
+orbit of the section.
 
 If $\bfG$ were zero everywhere, the spin motion would be completely decoupled from the orbital
 motion (at least to first order) and the depolarization rate $\tau_{dep}^{-1}$ given by \Eq{tdep}
