@@ -2631,6 +2631,7 @@ integer ix_start, ix, n, ios
 character(*) action
 character(n_parse_line+20) :: line
 character(n_parse_line+20), save :: saved_line
+character(1) quote_mark
 character(1), parameter :: tab = achar(9)
 
 logical :: have_saved_line = .false., end_of_file, flush_this
@@ -2696,35 +2697,58 @@ do
     if (global_com%exit_on_error) call err_exit
   endif
 
-  ! strip off comments
+  ! Look for '!' or ';' except in quoted text.
 
-  ix = index(line, '!')
-  if (ix == 1) then
-    line = ' '
-  elseif (ix > 1) then
-    line = line(:ix-1)
-  endif
+  quote_mark = ''  
+  do ix = 1, len_trim(line)
+    select case (line(ix:ix))
+    case ('"')
+      if (ix == 1) then
+        quote_mark = '"'
+      elseif (line(ix-1:ix-1) /= '\' .and. quote_mark == '"') then !" 
+        quote_mark = ''
+      else
+        quote_mark = '"'
+      endif
 
-  ! semi-colon delimiter means that we need to split the line
-  ! and save the 2nd piece for the next time around.
+    case ("'")
+      if (ix == 1) then
+        quote_mark = "'"
+      elseif (line(ix-1:ix-1) /= '\' .and. quote_mark == "'") then !" 
+        quote_mark = ''
+      else
+        quote_mark = "'"
+      endif
 
-  ix = index(line, ';')
-  if (ix == 1) then
-    have_saved_line = .true.
-    saved_line = line(ix+1:)
-    line = ' '
-  elseif (ix > 1) then
-    have_saved_line = .true.
-    saved_line = line(ix+1:)
-    line = line(:ix-1)
-  else
-    have_saved_line = .false.
-  endif
+    ! strip off comments
+    case ('!')
+      if (quote_mark /= '') cycle
+      line = line(:ix-1)
+      exit
+
+    ! semi-colon delimiter means that we need to split the line
+    ! and save the 2nd piece for the next time around.
+    case (';')
+      if (quote_mark /= '') cycle
+      if (ix == 1) then
+        have_saved_line = .true.
+        saved_line = line(ix+1:)
+        line = ' '
+      elseif (ix > 1) then
+        have_saved_line = .true.
+        saved_line = line(ix+1:)
+        line = line(:ix-1)
+      else
+        have_saved_line = .false.
+      endif
+      exit
+    end select
+  enddo
 
   ! if the command line is blank then go back for more input
-
   call string_trim (line, line, ix)
   if (ix /= 0 .or. have_saved_line) exit
+
 enddo
 
 ! now simply append the line to %parse_line starting at ix_start

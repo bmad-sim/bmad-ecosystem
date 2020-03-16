@@ -924,12 +924,7 @@ rel_p = 1 + orb%vec(6)
 
 c1 = f1**2 * g / (24 * rel_p)  ! * px
 c2 = f1 * g**2 / (6 * rel_p)  ! * y^2
-if (ele%key == sad_mult$ .or. (ele%key == sbend$ .and. &
-                (fringe_type == soft_edge_only$ .or. fringe_type == sad_full$))) then
-  c3 = 2 * g**2 / (3 * f1 * rel_p)   ! * y^4
-else
-  c3 = 0
-endif
+c3 = 2 * g**2 / (3 * f1 * rel_p)   ! * y^4
 
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit (kmat)
