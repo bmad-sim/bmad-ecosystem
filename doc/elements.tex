@@ -3764,8 +3764,7 @@ Attributes specific to an \vn{sextupole} element are:
   bs_field        = <Real>    ! Solenoid field. SAD equivalent: BZ.
   e1, e2          = <Real>    ! Bend face angles.
   eps_step_scale  = <Real>    ! Step size scale. Default = 1. SAD equivalent: EPS.
-  fq1             = <Real>    ! Quadrupole fringe integral. SAD equivalent: F1.
-  fq2             = <Real>    ! Quadrupole fringe integral. SAD equivalent: F2.
+  fq1, fq2        = <Real>    ! Quadrupole fringe integral. SAD equivalents: F1, F2.
   ks              = <Real>    ! Solenoid strength. 
   x_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DX.
   y_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DY.
@@ -3803,8 +3802,8 @@ two representations.
 The \vn{a0} or \vn{b0} multipole moments give a dipole kick (just like a \vn{kicker} element). The
 face angles \vn{e1} and \vn{e2} are used with the dipole kick in calculating fringe effects.
 
-The \vn{fq1} and \vn{fq2} parameters are used to specify the
-quadrupolar ``soft'' edge fringe. See \sref{s:q.soft} for more details.
+The \vn{fq1} and \vn{fq2} parameters are used to specify the quadrupolar ``soft'' edge fringe. See
+\sref{s:q.soft} for more details.
 
 The \vn{fringe_at} and \vn{fringe_type} settings determine if the fringe field is used in
 tracking. See Sec~\sref{s:fringe} for the translation between these two switches and the
@@ -3838,6 +3837,11 @@ SAD \vn{mult} element attributes:
 That is, \vn{sad_mult} elements cannot be used to simulate RF cavities or bends (but a \vn{sad_mult}
 can be used to simulate a kicker type element where the reference orbit is not bent).
 \end{itemize}
+
+Example:
+\begin{example}
+  qs1: sad_mult, l = 0.1, fringe_type = full, b2 = 0.6 / factorial(2)
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Sample}
