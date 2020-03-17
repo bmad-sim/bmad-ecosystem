@@ -172,26 +172,39 @@ enddo
 a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
 
-write (fmt, '(a, i1, a)') '((a10, i5, es12.3, 3x), (a10, i5, f11.', n, '))'
+write (fmt, '(a, i1, a)') '((a15, es12.3, 3x), (a15, f11.', n, '))'
 allocate (lines(10+s%global%n_top10_merit))
 
 nl = 0
 nl=nl+1; lines(nl) = ' '
 nl=nl+1; lines(nl) = '      Top10 derivative       |       Top10 delta'
-nl=nl+1; lines(nl) = ' Name         ix  Derivative | Name         ix     delta'
+nl=nl+1; lines(nl) = ' Name            Derivative  | Name                Delta'
 
 do i = 1, s%global%n_top10_merit
   if (.not. top_dmerit(i)%valid .and. .not. top_delta(i)%valid) exit
   nl=nl+1; write (lines(nl), fmt) &
-        top_dmerit(i)%name, top_dmerit(i)%index, top_dmerit(i)%value,  &
-        top_delta(i)%name,  top_delta(i)%index,  top_delta(i)%value
+        this_name(top_dmerit(i)%name, top_dmerit(i)%index), top_dmerit(i)%value,  &
+        this_name(top_delta(i)%name,  top_delta(i)%index),  top_delta(i)%value
 enddo
 
 nl=nl+1; write (lines(nl), *) 'Merit:  ', merit
 
 call out_io (s_blank$, r_name, lines(1:nl))
 
-end subroutine
+!----------------------------------------------------------------------------
+contains
+
+function this_name (name, ix) result (full_name)
+
+character(*) name
+character(15) full_name
+integer ix
+
+full_name = trim(name) // '[' // int_str(ix) // ']'
+
+end function this_name
+
+end subroutine tao_top10_derivative_print
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

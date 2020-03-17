@@ -27,5 +27,10 @@ if (data_type(1:5)  == 'emit.') do_rad_int = .true.
 if (data_type(1:10) == 'norm_emit.') do_rad_int = .true. 
 if (data_type(1:7)  == 'rad_int') do_rad_int = .true.
 if (data_type(1:16)  == 'apparent_rad_int') do_rad_int = .true.
+if (data_type(1:11) == 'expression:') then
+  if (index(data_type, 'sigma.pz') /= 0) do_rad_int = .true.
+  if (index(data_type, 'emit.') /= 0) do_rad_int = .true.
+  if (index(data_type, 'rad_int') /= 0) do_rad_int = .true.
+endif
 
 end function tao_rad_int_calc_needed

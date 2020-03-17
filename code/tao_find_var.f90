@@ -1,6 +1,5 @@
 !+
-! Subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array,  
-!                                                    str_array, print_err, component)
+! Subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, str_array, print_err, component, dflt_var_index)
 !
 ! Find a v1 variable type, and variable component then point to it.
 !
@@ -17,9 +16,11 @@
 !   var_name = 'quad_k1[3]|slave[2]'
 !
 ! Input:
-!   var_name     -- Character(*): Name of the variable.
-!   print_err    -- Logical, optional: Print error message if data is 
-!                     not found? Default is True.
+!   var_name       -- Character(*): Name of the variable.
+!   print_err      -- Logical, optional: Print error message if data is 
+!                       not found? Default is True.
+!   dflt_var_index -- chracter(*), optional: If present and "[...]" var selection substring is not present,
+!                       then dflt_var_index will be used. [Do not include the brackets in this string.]
 !
 ! Output:
 !   err            -- Logical: err condition
@@ -37,8 +38,7 @@
 !                     set to ' ' if no component present.
 !-
 
-subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, &
-                           str_array, print_err, component, dflt_var_index)
+subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array, str_array, print_err, component, dflt_var_index)
 
 use tao_interface, except_dummy => tao_find_var
 
