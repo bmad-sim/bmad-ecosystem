@@ -801,29 +801,30 @@ end subroutine qp_get_axis_attrib
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_calc_and_set_axis (axis_str, data_min, data_max, 
-!                                 div_min, div_max, bounds, axis_type, slop_factor)
+! Subroutine qp_calc_and_set_axis (axis_str, data_min, data_max, div_min, div_max,
+!                                                      bounds, axis_type, slop_factor)
 !
-! Subroutine to calculate a "nice" plot scale given the minimum and maximum
-! of the data. 
+! Subroutine to calculate a "nice" plot scale given the minimum and maximum of the data.
 !
 ! Input:
-!   axis_str    -- Character(*): 
+!   axis_str    -- character(*): 
 !                   'X' to set the Left x-axis
 !                   'Y' to set the Bottom y-axis.
 !                   'X2' to set the Right x-axis
 !                   'Y2' to set the Top y-axis.
-!   data_min    -- Real(rp): Minimum of the data
-!   data_max    -- Real(rp): Maximum of the data
-!   div_min     -- Integer: Minimum number of divisions.
-!   div_max     -- Integer: Maximum number of divisions.
-!   bounds      -- Character(*):
-!                        'ZERO_AT_END'    -- Make AXIS_MIN or AXIS_MAX zero.
-!                        'ZERO_SYMMETRIC' -- Make AXIS_MIN = -AXIS_MAX
-!                        'GENERAL'        -- No restriction on min or max.
-!   axis_type   -- Character(*), optional: Type of axis. 'LINEAR' or 'LOG'.
+!   data_min    -- real(rp): Minimum of the data
+!   data_max    -- real(rp): Maximum of the data
+!   div_min     -- integer: Minimum number of divisions.
+!   div_max     -- integer: Maximum number of divisions.
+!   bounds      -- character(*):
+!                    'ZERO_AT_END'    -- Make AXIS_MIN or AXIS_MAX zero.
+!                    'ZERO_SYMMETRIC' -- Make AXIS_MIN = -AXIS_MAX
+!                    'GENERAL'        -- No restriction on min or max.
+!                    'EXACT'          -- Use the data_min and data_max as the plot bounds.
+!                                          Is ignored if data_min is very close to data_max.
+!   axis_type   -- character(*), optional: Type of axis. 'LINEAR' or 'LOG'.
 !                      Default is 'LINEAR'
-!   slop_factor -- Real(rp), optional: See qp_calc_axis_scale for info.
+!   slop_factor -- real(rp), optional: See qp_calc_axis_scale for info.
 !
 ! Example:
 !   call qp_calc_and_set_axis ('X', 352.0_rp, 378.0_rp, 4, 6, 'ZERO_AT_END')
@@ -838,8 +839,8 @@ end subroutine qp_get_axis_attrib
 !   %places      = 0         ! places after the decimal point needed
 !-
 
-subroutine qp_calc_and_set_axis (axis_str, data_min, data_max, &
-                                div_min, div_max, bounds, axis_type, slop_factor)
+subroutine qp_calc_and_set_axis (axis_str, data_min, data_max, div_min, div_max, &
+                                                        bounds, axis_type, slop_factor)
 
 implicit none
 
@@ -884,6 +885,8 @@ end subroutine qp_calc_and_set_axis
 !                       'ZERO_AT_END'    -- Make AXIS_MIN or AXIS_MAX zero.
 !                       'ZERO_SYMMETRIC' -- Make AXIS_MIN = -AXIS_MAX
 !                       'GENERAL'        -- No restriction on min or max.
+!                       'EXACT'          -- Use the data_min and data_max as the plot bounds.
+!                                             Is ignored if data_min is very close to data_max.
 !
 ! Output:
 !   axis       -- qp_axis_struct: Structure holding the axis parameters.
@@ -935,84 +938,6 @@ end subroutine qp_calc_axis_params
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_calc_axis_places (axis)
-!
-! Subroutine to calculate the number of decmal places needed to display the
-! axis numbers. Note: If axis%min > axis%max on input they will be reversed.
-!
-! Note: axis%places is ignored for axis%type = 'LOG'.
-!
-! Input:
-!   axis       -- qp_axis_struct: Structure holding the axis parameters.
-!     %min        -- Real(rp): Axis bound.
-!     %max        -- Real(rp): Axis bound.
-!     %major_div  -- Integer: How many divisions the axis is divided up into
-!
-! Output:
-!   axis       -- qp_axis_struct: Structure holding the axis parameters.
-!     %places    -- Integer: Number of places after the decimal point needed
-!                      to display the axis numbers. places can be negative
-!                      if axis numbers are divisible by factors of 10. For example,
-!                      axis numbers of 100, 200, 300 will have places = -2.
-!-
-
-subroutine qp_calc_axis_places (axis)
-      
-implicit none
-
-type (qp_axis_struct) axis
-
-integer i
-real(rp) num, num2, max_d, effective_zero
-
-! LOG scale does not use places.
-! If min = max or major_div < 1 then cannot do a calculation so don't do anything.
-
-if (axis%type == 'LOG') return
-if (axis%min == axis%max) return
-if (axis%major_div < 1) return
-if (axis%dtick == 0) return
-
-if (axis%min > axis%max) then
-  num = axis%min
-  axis%min = axis%max
-  axis%max = num
-endif
-
-! sort true min and max
-! huge(0) is used here so that nint(num2) will not overflow.
-
-max_d = min(10.0_rp**qp_com%max_digits, 0.999_rp * huge(0))
-effective_zero = max(abs(axis%tick_max), abs(axis%tick_min)) / max_d
-
-! First calculation: Take each axis number and find how many digits it has.
-! The number of places is the maximum number of digits needed to represent
-! all the numbers on the axis with a limit of qp_com%max_digits digits maximum for any one number.
-
-axis%places = -1000
-do i = 0, axis%major_div
-  num = axis%tick_min + i * axis%dtick
-  if (abs(num) < effective_zero) cycle  ! Ignore zero
-  axis%places = max(axis%places, floor(-log10(abs(num))))
-  do
-    num2 = abs(num * 10d0**axis%places)
-    if (num2 > max_d) exit
-    if (abs(num2 - nint(num2)) < 0.01) exit
-    axis%places = axis%places + 1
-  enddo
-enddo
-
-! Second calculation: Places based upon the distance between ticks.
-! The number of places returned by the subroutine is the maximum of the two calculations
-
-axis%places = max(axis%places, floor(-log10(axis%dtick)+0.9))
-
-end subroutine qp_calc_axis_places
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
 ! Subroutine qp_calc_axis_scale (data_min, data_max, axis, niceness_score)
 !
 ! Subroutine to calculate a "nice" plot scale given the minimum and maximum
@@ -1030,19 +955,21 @@ end subroutine qp_calc_axis_places
 !   axis        -- qp_axis_struct: Structure holding the axis parameters.
 !     %axis_type  -- Character(*): Type of axis. 'LINEAR' or 'LOG'.
 !     %bounds     -- Character(*): Only used for 'LINEAR' axis types.
-!                      'ZERO_AT_END'    -- Make AXIS%MIN or AXIS%MAX zero.
-!                      'ZERO_SYMMETRIC' -- Make AXIS%MIN = -AXIS%MAX
-!                      'GENERAL'        -- No restriction on min or max.
+!                       'ZERO_AT_END'    -- Make AXIS%MIN or AXIS%MAX zero.
+!                       'ZERO_SYMMETRIC' -- Make AXIS%MIN = -AXIS%MAX
+!                       'GENERAL'        -- No restriction on min or max.
+!                       'EXACT'          -- Use the data_min and data_max as the plot bounds.
+!                                             Is ignored if data_min is very close to data_max.
 !     %major_div  -- Integer: How many divisions the axis is divided up into
 !
 ! Output:
-!   axis       -- qp_axis_struct: Structure holding the axis parameters.
-!     %places    -- Integer: Number of axis%places after the decimal point needed
-!                     to display the axis numbers. 
-!     %min       -- Real(rp): Axis minimum.
-!     %max       -- Real(rp): Axis maximum.
+!   axis           -- qp_axis_struct: Structure holding the axis parameters.
+!     %places        -- Integer: Number of axis%places after the decimal point needed
+!                         to display the axis numbers. 
+!     %min           -- Real(rp): Axis minimum.
+!     %max           -- Real(rp): Axis maximum.
 !   niceness_score -- Real(rp), optional: Score as to how "nice" 
-!                 axis%min and axis%max are. The larger the number the nicer.
+!                      axis%min and axis%max are. The larger the number the nicer.
 !
 ! Example:
 !
@@ -1066,13 +993,13 @@ implicit none
 type (qp_axis_struct) axis
 
 integer div_eff, m_min, m_max, m
-integer min1, min2, max1, max2, imin, imax, j, ave, div_max, div
+integer i, i1_min, i2_min, i1_max, i2_max, imin, imax, j, ave, div_max, div
 
 real(rp), optional :: niceness_score
-real(rp) data_max, data_min, r, a_min, a_max
+real(rp) data_max, data_min, r, p, a_min, a_max
 real(dp) data_width, data_width10, min_width, max_score, score, aa
 
-character(20) :: r_name = 'qp_calc_axis_scale'
+character(*), parameter :: r_name = 'qp_calc_axis_scale'
 
 ! Error check
 
@@ -1132,8 +1059,28 @@ if (axis%type == 'LOG') then
 endif  ! log scale
 
 !-----------------------------------------------------------------------
-! Below is for a non-log axis
-! Error check           
+! If a non-log axis...
+
+if (axis%bounds == 'EXACT' .and. &
+          abs(data_max-data_min)>axis%major_div * max(abs(data_max)*1e-5, abs(data_min)*1e-5, 1e-29_rp)) then
+  axis%tick_min = a_min
+  axis%tick_max = a_max
+  axis%min = a_min
+  axis%max = a_max
+  axis%dtick = (axis%tick_max - axis%tick_min) / axis%major_div
+  call qp_calc_axis_places (axis)
+  if (present(niceness_score)) then
+    r = axis%dtick / 10d0**floor(1.0000001_rp*log10(axis%dtick))
+    do i = 0, 6
+      p = r * 10**i
+      if (abs(nint(p) - p) < 1d-5) exit
+    enddo
+    niceness_score = -i
+  endif
+  return
+endif
+
+! First error check.
 
 if (axis%bounds == 'ZERO_AT_END' .and. data_max*data_min < 0) then
   call out_io (s_error$, r_name, 'DATA ABOVE AND BELOW ZERO!', &
@@ -1142,20 +1089,21 @@ if (axis%bounds == 'ZERO_AT_END' .and. data_max*data_min < 0) then
   return
 endif
 
-! find width of data
+! Find width of data
 
-if (axis%bounds == 'ZERO_AT_END') then
+select case (axis%bounds)
+case ('ZERO_AT_END')
   a_max = max(abs(data_max), abs(data_min))
   a_min = 0
-elseif (axis%bounds == 'ZERO_SYMMETRIC') then
+case ('ZERO_SYMMETRIC')
   a_max = max(abs(data_max), abs(data_min))
   a_min = 0
-elseif (axis%bounds == 'GENERAL') then
+case ('GENERAL', 'EXACT')
   ! Nothing to do
-else
+case default
   call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND "AXIS%BOUNDS": ' // axis%bounds)
   if (global_com%exit_on_error) call err_exit
-endif
+end select
 
 ! 
 
@@ -1163,7 +1111,7 @@ data_width = a_max - a_min
 a_min = a_min + 0.3_rp * data_width / max(4, axis%major_div)
 a_max = a_max - 0.3_rp * data_width / max(4, axis%major_div)
 
-! find possible candidates
+! Find possible candidates
             
 min_width = axis%major_div * max(abs(a_max)*1e-5, abs(a_min)*1e-5, 1e-29_rp)
 data_width = max(data_width, min_width)
@@ -1176,32 +1124,31 @@ else
 endif
 
 if (axis%bounds == 'ZERO_AT_END') then
-  min1 = 0
-  min2 = 0
+  i1_min = 0
+  i2_min = 0
 else
-  min2 = floor(a_min / data_width10)
-  min1 = floor(a_min / (100 * data_width10)) * 100
-  min1 = min(min1, min2 - 10*div_eff)
+  i2_min = floor(a_min / data_width10)
+  i1_min = floor(a_min / (100 * data_width10)) * 100
+  i1_min = min(i1_min, i2_min - 10*div_eff)
 endif
 
 aa = a_max/data_width10 + 1
-max1 = floor(aa)
+i1_max = floor(aa)
 aa = a_max / (100 * data_width10) + 1
-max2 = max(floor(aa) * 100, max1 + 10*div_eff)
+i2_max = max(floor(aa) * 100, i1_max + 10*div_eff)
 
 ave = nint((a_max + a_min)/data_width10)
-min1 = max(min1, 2*min2 - max1)
-min1 = min(min1, (ave - axis%major_div)/2 - 1)
+i1_min = max(i1_min, 2*i2_min - i1_max)
+i1_min = min(i1_min, (ave - axis%major_div)/2 - 1)
 
-max2 = min(max2, 2*max1 - min2)
-max2 = max(max2, min1+axis%major_div+1)
+i2_max = min(i2_max, 2*i1_max - i2_min)
+i2_max = max(i2_max, i1_min+axis%major_div+1)
 
-! go through and rate all the possibilities and choose the one
-! with the highest score
+! Go through and rate all the possibilities and choose the one with the highest score.
 
 max_score = -1000
-do imin = min1, min2
-  do imax = max1, max2
+do imin = i1_min, i2_min
+  do imax = i1_max, i2_max
     score = qp_axis_niceness (imin, imax, div_eff)
     if (score > max_score) then
       max_score = score
@@ -1310,6 +1257,84 @@ case (6, 15, 60)
 end select
 
 end function qp_axis_niceness 
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_calc_axis_places (axis)
+!
+! Subroutine to calculate the number of decmal places needed to display the
+! axis numbers. Note: If axis%min > axis%max on input they will be reversed.
+!
+! Note: axis%places is ignored for axis%type = 'LOG'.
+!
+! Input:
+!   axis       -- qp_axis_struct: Structure holding the axis parameters.
+!     %min        -- Real(rp): Axis bound.
+!     %max        -- Real(rp): Axis bound.
+!     %major_div  -- Integer: How many divisions the axis is divided up into
+!
+! Output:
+!   axis       -- qp_axis_struct: Structure holding the axis parameters.
+!     %places    -- Integer: Number of places after the decimal point needed
+!                      to display the axis numbers. places can be negative
+!                      if axis numbers are divisible by factors of 10. For example,
+!                      axis numbers of 100, 200, 300 will have places = -2.
+!-
+
+subroutine qp_calc_axis_places (axis)
+      
+implicit none
+
+type (qp_axis_struct) axis
+
+integer i
+real(rp) num, num2, max_d, effective_zero
+
+! LOG scale does not use places.
+! If min = max or major_div < 1 then cannot do a calculation so don't do anything.
+
+if (axis%type == 'LOG') return
+if (axis%min == axis%max) return
+if (axis%major_div < 1) return
+if (axis%dtick == 0) return
+
+if (axis%min > axis%max) then
+  num = axis%min
+  axis%min = axis%max
+  axis%max = num
+endif
+
+! Sort true min and max.
+! Huge(0) is used here so that nint(num2) will not overflow.
+
+max_d = min(10.0_rp**qp_com%max_digits, 0.999_rp * huge(0))
+effective_zero = max(abs(axis%tick_max), abs(axis%tick_min)) / max_d
+
+! First calculation: Take each axis number and find how many digits it has.
+! The number of places is the maximum number of digits needed to represent
+! all the numbers on the axis with a limit of qp_com%max_digits digits maximum for any one number.
+
+axis%places = -1000
+do i = 0, axis%major_div
+  num = axis%tick_min + i * axis%dtick
+  if (abs(num) < effective_zero) cycle  ! Ignore zero
+  axis%places = max(axis%places, floor(-log10(abs(num))))
+  do
+    num2 = abs(num * 10d0**axis%places)
+    if (num2 > max_d) exit
+    if (abs(num2 - nint(num2)) < 0.01) exit
+    axis%places = axis%places + 1
+  enddo
+enddo
+
+! Second calculation: Places based upon the distance between ticks.
+! The number of places returned by the subroutine is the maximum of the two calculations
+
+axis%places = max(axis%places, floor(-log10(axis%dtick)+0.9))
+
+end subroutine qp_calc_axis_places
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
