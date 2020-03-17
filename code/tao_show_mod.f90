@@ -4651,9 +4651,9 @@ case ('variable')
   ! check if there is a variable number
   ! if no variable number requested, show a range
 
-  elseif (size(v1_array) == 1) then
+  elseif (n_size > 1) then
 
-    nc = 20
+    nc = 40
     do i = 1, size(v_array)
       v_ptr => v_array(i)%v
       if (.not. v_ptr%exists) cycle
@@ -4661,10 +4661,8 @@ case ('variable')
     enddo
 
     if (print_header_lines) then
-      line1 = ' Index  Controlled Attributes(s)'
+      write (line1, '(a, t30, a)') '  Variable', 'Slave Parameters'
       line1(nc+17:) = 'Meas         Model        Design  Useit_opt'
-      nl=nl+1; write(lines(nl), '(2a)') 'Variable name:  ', v1_array(1)%v1%name
-      nl=nl+1; lines(nl) = ' '
       nl=nl+1; lines(nl) = line1
     endif
 
@@ -4674,9 +4672,8 @@ case ('variable')
       if (.not. v_ptr%exists) cycle
       call re_allocate (lines, nl+200, .false.)
       nl=nl+1
-      write(lines(nl), '(i6, 2x, a)') v_ptr%ix_v1, tao_var_attrib_name(v_ptr)
-      write(lines(nl)(nc+9:), '(3es14.4, 7x, l)') v_ptr%meas_value, &
-                 v_ptr%model_value, v_ptr%design_value, v_ptr%useit_opt
+      write(lines(nl), '(2x, 2a, i0, a, t30, a)') trim(v_ptr%v1%name), '[', v_ptr%ix_v1, ']', tao_var_attrib_name(v_ptr)
+      write(lines(nl)(nc+9:), '(3es14.4, 7x, l)') v_ptr%meas_value, v_ptr%model_value, v_ptr%design_value, v_ptr%useit_opt
     enddo
 
     if (print_header_lines) then
@@ -4684,7 +4681,7 @@ case ('variable')
     endif
 
   else
-    nl=1; lines(1) = '???'
+    nl=1; lines(1) = 'Cannot find variables matching: ' // attrib0
     result_id = 'variable:?'
   endif
 
