@@ -1,2 +1,14 @@
 Documentation is in the Tao manual in:
     Section II: Programmer's Guide -> Chapter: Python/GUI Interface.
+
+Note!: If
+	1) You are using pytao and 
+  2) If pytao is using ctypes (which is the default) and
+	3) You are using a Distribution.
+Then: You need to have generated a shared object version of the Tao library.
+To do this, first edit bmad_dist/util/dist_prefs and set:
+	ACC_ENABLE_SHARED="Y"
+Next, issue the following commands in the bmad_dist directory:
+	./util/dist_clean
+	./util/dist_build_production
+
