@@ -14,13 +14,14 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 6:
 class ele_struct:
   def __init__(self, name):
     self.name = name
-    self.madx_inherit_type = ''    # Is another element name or quadrupole, etc.
-    self.madx_base_type    = ''    # Is quadrupole, etc.
-    self.bmad_inherit_type = ''    # Is another element name or quadrupole, etc.
-    self.bmad_base_type    = ''    # Is quadrupole, etc.
-    self.at = '0'         # Used if element is in a sequence
-    self.from_ele = ''    # Used if element is in a sequence
+    self.madx_inherit = ''      # Is another element name or quadrupole, etc.
+    self.madx_base_type = ''    # Is quadrupole, etc.
+    self.bmad_inherit = ''      # Is another element name or quadrupole, etc.
+    self.bmad_base_type = ''    # Is quadrupole, etc.
+    self.at = '0'               # Used if element is in a sequence
+    self.from_ref_ele = ''      # Used if element is in a sequence
     self.param = OrderedDict()
+    self.count = 0
 
 class seq_struct:
   def __init__(self, name = ''):
@@ -28,13 +29,17 @@ class seq_struct:
     self.l = '0'
     self.refer = 'centre'
     self.refpos = ''
-    self.ele_dict = OrderedDict()
+    self.seq_ele_dict = OrderedDict()
+    self.drift_count = 0
+    self.last_ele_offset = ''
+    self.line = ''                   # For when turning a sequence into a line
 
 class common_struct:
   def __init__(self):
-    self.debug = False
-    self.prepend_vars = True
-    self.one_file = True
+    self.debug = False               # Command line argument.
+    self.prepend_vars = True         # Command line argument.
+    self.superimpose_eles = False    # Command line argument.
+    self.one_file = True             # Command line argument.
     self.in_seq = False
     self.seqedit_name = ''           # Name of sequence in seqedit construct.
     self.macro_count = False         # Count "{}" braces. 0 -> Not in a "macro" or "if" statement
@@ -131,6 +136,9 @@ ele_type_translate = {
     'rfmultipole':  '???',
     'nllens':       '???',
     'dipedge':      '???',
+    'sequence':     '???',
+    'twiss':        '???',
+    'beam':         '???',
 }
 
 ignore_madx_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'thick', 'add_angle', 'assembly_id', 
@@ -270,7 +278,7 @@ def bmad_expression(line, target_param):
 
   # End while
 
-  if target_param in ele_inv_param_factor: out = add_parens(out) + ' * ' + ele_inv_param_factor[target_param]
+  if target_param in ele_inv_param_factor: out = add_parens(out, True) + ' * ' + ele_inv_param_factor[target_param]
   return out
 
 #-------------------------------------------------------------------
@@ -319,11 +327,13 @@ def wrap_write(line, f_out):
 #------------------------------------------------------------------
 # Adds parenteses around expressions with '+' or '-' operators.
 # Otherwise just returns the expression.
-# Eg: '-1.2'  -> '-1.2'
+# Eg: '-1.2'  -> '-1.2'    If ignore_leading_pm = True
+# Eg: '-1.2'  -> '(-1.2)'  If ignore_leading_pm = False
 #      '7+3'  -> '(7+3)'
 #      '7*3'  -> '7*3'
+# Note: Need to ignore +/- sybols in something like "3e-4"
 
-def add_parens (str):
+def add_parens (str, ignore_leading_pm):
   state = 'begin'
   for ch in str:
     if ch in '0123456789.':
@@ -336,7 +346,7 @@ def add_parens (str):
     elif ch in '-+':
       if state == 'r2':
         state = 'r3'
-      elif state == 'begin':
+      elif state == 'begin' and ignore_leading_pm:
         state = 'out'
       else:
         return '(' + str + ')'
@@ -350,7 +360,7 @@ def add_parens (str):
 #------------------------------------------------------------------
 
 def negate(str):
-  str = add_parens(str)
+  str = add_parens(str, True)
   if str[0] == '-':
     return str[1:]
   elif str[0] == '+':
@@ -372,9 +382,9 @@ def parse_element(dlist, write_to_file, command):
 
   if dlist[2] in common.ele_dict:
     ele = ele_struct(dlist[0])
-    ele.madx_inherit_type = dlist[2]
+    ele.madx_inherit = dlist[2]
     ele.madx_base_type = common.ele_dict[dlist[2]].madx_base_type
-    ele.bmad_inherit_type = dlist[2]
+    ele.bmad_inherit = dlist[2]
     ele.bmad_base_type = common.ele_dict[dlist[2]].bmad_base_type
 
   else:
@@ -382,10 +392,10 @@ def parse_element(dlist, write_to_file, command):
     for madx_type in ele_type_translate:
       if madx_type.startswith(dlist[2]): 
         ele = ele_struct(dlist[0])
-        ele.madx_inherit_type = madx_type
+        ele.madx_inherit = madx_type
         ele.madx_base_type = madx_type
-        ele.bmad_inherit_type = ele_type_translate[madx_type]
-        ele.bmad_base_type = ele.bmad_inherit_type
+        ele.bmad_inherit = ele_type_translate[madx_type]
+        ele.bmad_base_type = ele.bmad_inherit
         found = True
         break
 
@@ -506,9 +516,9 @@ def parse_element(dlist, write_to_file, command):
 
   elif ele.madx_base_type == 'collimator':
     if params['apertype'] in ['ellipse', 'circle']:
-      ele.bmad_inherit_type = 'ecollimator'
+      ele.bmad_inherit = 'ecollimator'
     else:
-      ele.bmad_inherit_type = 'rcollimator'
+      ele.bmad_inherit = 'rcollimator'
 
   # collimator conversion
 
@@ -528,7 +538,7 @@ def parse_element(dlist, write_to_file, command):
   # sequence params
 
   if 'at' in params: ele.at = params.pop('at')
-  if 'from' in params: ele.from_ele = params.pop('from')
+  if 'from' in params: ele.from_ref_ele = params.pop('from')
 
   # Can happen in sequences that there are "name: name, at = X" constructs where name has already be defined.
 
@@ -536,7 +546,7 @@ def parse_element(dlist, write_to_file, command):
   if dlist[0] not in common.ele_dict: common.ele_dict[dlist[0]] = ele
 
   if write_to_file:
-    line = ele.name + ': ' + ele.bmad_inherit_type
+    line = ele.name + ': ' + ele.bmad_inherit
     for param in ele.param:
       if param in ignore_madx_param: continue
       line += ', ' + bmad_param(param, ele.name) + ' = ' + bmad_expression(params[param], param)
@@ -583,7 +593,7 @@ def parse_command(command, dlist):
 
   if dlist[0].startswith('exec '): return
   if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
-                  'emit', 'twiss', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 
+                  'emit', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 
                   'flatten']:
     return
 
@@ -651,15 +661,20 @@ def parse_command(command, dlist):
       if dlist[1] == ',':
         f_out.write(command + '\n')
       else:
-        f_out.write(f'title, {dlist[1]}')
+        f_out.write(f'title, {dlist[1]}\n')
     return
 
-  #
+  # endsequence
 
   if dlist[0] == 'endsequence':
     common.in_seq = False
     seq = common.last_seq
     common.seq_dict[seq.name] = seq
+    offset = f'{seq.l} - {add_parens(seq.last_ele_offset, False)}'
+    if not common.superimpose_eles:
+      drift_name = f'drft{seq.drift_count}_{seq.name}'
+      f_out.write(f'{drift_name}: drift, l = {offset}\n')
+      wrap_write (f'{seq.name}: line = ({seq.line}{drift_name})', f_out)
     return
 
   # Everything below has at least 3 words
@@ -692,82 +707,141 @@ def parse_command(command, dlist):
       if 'add_pass' in param_dict: print ('Cannot handle "add_pass" construct in sequence.')
       if 'next_sequ' in param_dict: print ('Cannot handle "next_sequ" construct in sequence.')
 
-    f_out.write(f'{dlist[0]}_mark: null_ele\n')
-    f_out.write(f'{dlist[0]}_drift: drift, l = {common.last_seq.l}\n')
-    f_out.write(f'{dlist[0]}: line = ({dlist[0]}_mark, {dlist[0]}_drift)\n')
+    if common.superimpose_eles:
+      f_out.write(f'{dlist[0]}_mark: null_ele\n')
+      f_out.write(f'{dlist[0]}_drift: drift, l = {common.last_seq.l}\n')
+      f_out.write(f'{dlist[0]}: line = ({dlist[0]}_mark, {dlist[0]}_drift)\n')
+
     return
 
   # In a sequence construct.
 
   if common.in_seq:
     seq = common.last_seq
+    is_ele_here = True
 
-    # "name: name, at = X" construct
+    # This is an element in the sequence...
+    # If "name: name, at = X" construct
     if dlist[0] == dlist[2] and dlist[1] == ':':
       ele = parse_element(dlist, False, command)
-      offset = ele.at
-      if ele.from_ele != '':
-        from_ele = seq.ele_dict[ele.from_ele]
-        offset = f'{offset} - {add_parens(from_ele.at)}'
+      offset = bmad_expression(ele.at, '')
+      ele_name = ele.name
 
-      f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
-                  f'offset = {offset}, ele_origin = {sequence_refer[seq.refer]}\n')
-
-
+    # If "name, at = X, ..." construct
     elif dlist[0] in common.ele_dict:
       ele = parse_element([dlist[0], ':']+dlist, False, command)
-      if len(ele.param) == 0:
-        name = ele.name
-      # element has modified parameters. Need to create a new element with a unique name with "__N" suffix.
-      else:
-        common.ele_dict[dlist[0]] = common.ele_dict[dlist[0]] + 1
-        name = f'{dlist[0]}__{str(common.ele_dict[dlist[0]])}'
-        ele = parse_element([name, ':']+dlist, True, command)
+      offset = bmad_expression(ele.at, '')
+      ele_name = ele.name
+      # If element has modified parameters. Need to create a new element with a unique name with "__N" suffix.
+      if len(ele.param) > 0:
+        common.ele_dict[dlist[0]].count += 1
+        ele_name = f'{dlist[0]}__{common.ele_dict[dlist[0]].count}'
+        ele = parse_element([ele_name, ':']+dlist, True, command)
 
-      offset = ele.at
-      if ele.from_ele != '':
-        from_ele = seq.ele_dict[ele.from_ele]
-        offset = f'{offset} - {add_parens(from_ele.at)}'
-
-      f_out.write(f'superimpose, element = {name}, ref = {seq.name}_mark, ' + \
-                  f'offset = {offset}, ele_origin = {sequence_refer[seq.refer]}\n')
-
-    elif dlist[1] == ':':   # "name: type"  construct
+    # "name: type, ..." construct
+    elif dlist[1] == ':':
       ele = parse_element(dlist, True, command)
-      common.last_seq.ele_dict[ele.name] = ele
-      f_out.write(f'superimpose, element = {ele.name}, ref = {seq.name}_mark, ' + \
-                  f'offset = {ele.at}, ele_origin = {sequence_refer[seq.refer]}\n')
+      common.last_seq.seq_ele_dict[ele.name] = ele
+      ele_name = ele.name
+      offset = bmad_expression(ele.at, '')
 
-
-    # Must be sequence name. So superimpose the corresponding marker.
     else:
-      ele = parse_element([dlist[0], ':']+dlist, False, command)
+      is_ele_here = False
 
-      try:
-        seq2 = common.seq_dict[ele.name]
-      except:
-        print (f'CANNOT IDENTIFY THIS AS AN ELEMENT OR SEQUENCE: {ele.name}\n  IN LINE IN SEQUENCE: {command}')
-        return
+    # Finish ele in sequence.
 
-      offset = ele.at
+    if is_ele_here:
+      if ele.from_ref_ele != '':
+        from_ref_ele = seq.seq_ele_dict[ele.from_ref_ele]
+        offset += f' + {add_parens(bmad_expression(from_ref_ele.at, ""), False)}'
+        if 'l' in from_ref_ele.param:
+          if seq.refer == 'entry': offset += f' + {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
+          if seq.refer == 'exit': offset += f' - {add_parens(bmad_expression(from_ref_ele.param["l"], ""), False)/2}'
 
-      if ele.from_ele != '':
-        from_ele = seq.ele_dict[ele.from_ele]
-        offset = f'{offset} - {add_parens(from_ele.at)}'
+      if common.superimpose_eles:
+        f_out.write(f'superimpose, element = {ele_name}, ref = {seq.name}_mark, ' + \
+                    f'offset = {offset}, ele_origin = {sequence_refer[seq.refer]}\n')
 
-      if seq2.refpos != '':
-        refpos_ele = seq2.ele_dict[seq2.refpos]
-        offset = f'{offset} - {add_parens(refpos_ele.at)}'
-      elif seq2.refer == 'centre':
-        offset = f'{offset} - {add_parens(seq2.l)} / 2'
-      elif seq2.refer == 'exit':
-        offset = f'{offset} - {add_parens(seq2.l)}'
+      else:
+        last_offset = f'{offset}'
+        drift_name = f'drft{seq.drift_count}_{seq.name}'
+        drift_line = f'{drift_name}: drift, l = {offset}'
+        seq.drift_count += 1
+        length = ''
+        if 'l' in ele.param: 
+          length = ele.param['l']
+        elif ele.madx_inherit in common.ele_dict:
+          madx_inherit = common.ele_dict[ele.madx_inherit]
+          if 'l' in madx_inherit.param: length = madx_inherit.param['l']
+        if length != '': length = add_parens(bmad_expression(length, ''), False)
 
+        if seq.refer == 'entry':
+          if length != '': last_offset += f' + {length}'
+        elif seq.refer == 'centre':
+          if length != '': drift_line += f' - {length}/2'
+          if length != '': last_offset += f' + {length}/2'
+        else:
+          if length != '': drift_line += f' - {length}'
+
+        if seq.last_ele_offset != '': drift_line += f' - {add_parens(seq.last_ele_offset, False)}'
+        f_out.write(drift_line + '\n')
+        seq.line += f'{drift_name}, {ele_name}, '
+        seq.last_ele_offset = last_offset
+
+      return
+
+    # Must be sequence within a sequence.
+
+    ele = parse_element([dlist[0], ':', 'sequence']+dlist[1:], False, command)
+    ele_name = ele.name
+
+    try:
+      seq2 = common.seq_dict[ele.name]
+    except:
+      print (f'CANNOT IDENTIFY THIS AS AN ELEMENT OR SEQUENCE: {dlist[0]}\n  IN LINE IN SEQUENCE: {command}')
+      return
+
+    offset = bmad_expression(ele.at, '')
+
+    if ele.from_ref_ele != '':
+      from_ref_ele = seq.ele_dict[ele.from_ref_ele]
+      offset = f'{offset} - {add_parens(bmad_expression(from_ref_ele.at, ""), False)}'
+
+    last_offset = offset
+    length = add_parens(bmad_expression(seq2.l, ''), False)
+
+    drift_name = f'drft{seq.drift_count}_{seq.name}'
+    drift_line = f'{drift_name}: drift, l = {offset}'
+    seq.drift_count += 1
+
+    if seq2.refpos != '':
+      refpos_ele = seq2.ele_dict[seq2.refpos]
+      offset += f' - {add_parens(refpos_ele.at, False)}'
+      last_offset += f' + {refpos_ele.at} - {add_parens(seq2.l, False)}'
+    elif seq.refer == 'entry':
+      if length != '': last_offset += f' + {length}'
+    elif seq.refer == 'centre':
+      offset += f' - {add_parens(length, False)}/2'
+      if length != '': drift_line += f' - {length}/2'
+      if length != '': last_offset += f' + {length}/2'
+    else:
+      offset += f' - {add_parens(length, False)}'
+      if length != '': drift_line += f' - {length}'
+
+    if common.superimpose_eles:
       common.super_list.append(f'superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, offset = {offset}\n')
       f_out.write (f'!!** superimpose, element = {ele.name}_mark, ref = {seq.name}_mark, offset = {offset}\n')
 
+    else:
+      if seq.last_ele_offset != '': drift_line += f' - {add_parens(seq.last_ele_offset, False)}'
+      f_out.write(drift_line + '\n')
+      seq.line += f'{drift_name}, {ele_name}, '
+      seq.last_ele_offset = last_offset
+
     return
 
+
+  #-----------------------------------------------
   # Line
 
   if ix_colon > 0 and dlist[ix_colon+1] == 'line':
@@ -832,25 +906,45 @@ def parse_command(command, dlist):
   # Beam
 
   if dlist[0] == 'beam':
-    params = parameter_dictionary(dlist[2:])
-    if 'particle' in params:  f_out.write('parameter[particle] = ' + bmad_expression(params['particle'], '') + '\n')
-    if 'energy' in params:    f_out.write('parameter[E_tot] = ' + bmad_expression(params['energy'], 'energy') + '\n')
-    if 'pc' in params:        f_out.write('parameter[p0c] = ' + bmad_expression(params['pc'], 'pc') + '\n')
-    if 'gamma' in params:     f_out.write('parameter[E_tot] = mass_of(parameter[particle]) * ' + add_parens(bmad_expression(params['gamma'], '')) + '\n')
-    if 'npart' in params:     f_out.write('parameter[n_part] = ' + bmad_expression(params['npart'], '') + '\n')
+    param = parameter_dictionary(dlist[2:])
+    if 'particle' in param:  f_out.write('parameter[particle] = ' + bmad_expression(param['particle'], '') + '\n')
+    if 'energy'   in param:  f_out.write('parameter[E_tot] = ' + bmad_expression(param['energy'], 'energy') + '\n')
+    if 'pc'       in param:  f_out.write('parameter[p0c] = ' + bmad_expression(param['pc'], 'pc') + '\n')
+    if 'gamma'    in param:  f_out.write('parameter[E_tot] = mass_of(parameter[particle]) * ' + add_parens(bmad_expression(param['gamma'], ''), False) + '\n')
+    if 'npart'    in param:  f_out.write('parameter[n_part] = ' + bmad_expression(param['npart'], '') + '\n')
+    return
+
+  # twiss
+
+  if dlist[0] == 'twiss':
+    param = parameter_dictionary(dlist[2:])
+    if 'betx'   in param: f_out.write(f'beginning[beta_a] = {bmad_expression(param["betx"], "")}\n')
+    if 'bety'   in param: f_out.write(f'beginning[beta_b] = {bmad_expression(param["bety"], "")}\n')
+    if 'alfx'   in param: f_out.write(f'beginning[alpha_a] = {bmad_expression(param["alfx"], "")}\n')
+    if 'alfy'   in param: f_out.write(f'beginning[alpha_a] = {bmad_expression(param["alfy"], "")}\n')
+    if 'mux'    in param: f_out.write(f'beginning[phi_a] = twopi * {add_parens(bmad_expression(param["mux"], ""), False)}\n')
+    if 'muy'    in param: f_out.write(f'beginning[phi_b] = twopi * {add_parens(bmad_expression(param["muy"], ""), False)}\n')
+    if 'dx'     in param: f_out.write(f'beginning[eta_x] = {bmad_expression(param["dx"], "")}\n')
+    if 'dy'     in param: f_out.write(f'beginning[eta_y] = {bmad_expression(param["dy"], "")}\n')
+    if 'dpx'    in param: f_out.write(f'beginning[etap_x] = {bmad_expression(param["dpx"], "")}\n')
+    if 'dpy'    in param: f_out.write(f'beginning[etap_y] = {bmad_expression(param["dpy"], "")}\n')
+    if 'x'      in param: f_out.write(f'particle_start[x] = {bmad_expression(param["x"], "")}\n')
+    if 'y'      in param: f_out.write(f'particle_start[y] = {bmad_expression(param["y"], "")}\n')
+    if 'px'     in param: f_out.write(f'particle_start[px] = {bmad_expression(param["px"], "")}\n')
+    if 'py'     in param: f_out.write(f'particle_start[py] = {bmad_expression(param["py"], "")}\n')
     return
 
   # "qf, k1 = ..." parameter set
 
   if len(dlist) > 4 and dlist[0] in common.ele_dict and dlist[1] == ',' and dlist[3] == '=':
-    f_out.write(dlist[0] + '[' + bmad_param(dlist[2]) + '] = ' + bmad_expression(''.join(dlist[4:]), dlist[2]))
+    f_out.write(dlist[0] + '[' + bmad_param(dlist[2]) + '] = ' + bmad_expression(''.join(dlist[4:]), dlist[2]) + '\n')
     return
 
   # "qf->k1 = ..." parameter set
 
   if '->' in dlist[0] and dlist[1] == '=':
     p = dlist[0].split('->')
-    f_out.write(p[0] + '[' + bmad_param(p[1]) + '] = ' + bmad_expression(''.join(dlist[2:]), p[1]))
+    f_out.write(p[0] + '[' + bmad_param(p[1]) + '] = ' + bmad_expression(''.join(dlist[2:]), p[1]) + '\n')
     return
 
   # Element def
@@ -947,7 +1041,10 @@ def get_next_command ():
         if in_extended_comment: continue
 
         if line[ix] == '!':
-          f_out.write(line[ix:] + '\n')
+          if len(line) > ix+9 and line[ix:ix+9] == '!!literal':
+            f_out.write(line[ix+9:].strip() + '\n')
+          else:
+            f_out.write(line[ix:] + '\n')
           command += line[:ix]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           line = ''
@@ -964,6 +1061,12 @@ def get_next_command ():
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           dlist.append(line[ix])
           line = line[ix+1:]
+          break
+
+        elif ix == len(line) - 1:
+          command += line
+          dlist.append(line.strip())
+          line = ''
           break
 
         if ix > len(line) - 2: continue
@@ -996,11 +1099,13 @@ argp = argparse.ArgumentParser()
 argp.add_argument('madx_file', help = 'Name of input MADX lattice file')
 argp.add_argument('-d', '--debug', help = 'Print debug info (not of general interest).', action = 'store_true')
 argp.add_argument('-f', '--many_files', help = 'Create a Bmad file for each MADX input file.', action = 'store_true')
+argp.add_argument('-s', '--superimpose', help = 'Superimpose elements in a sequence.', action = 'store_true')
 argp.add_argument('-v', '--no_prepend_vars', help = 'Do not move variables to the beginning of the Bmad file.', action = 'store_true')
 arg = argp.parse_args()
 
 common = common_struct()
 common.debug = arg.debug
+common.superimpose_eles = arg.superimpose
 common.prepend_vars = not arg.no_prepend_vars
 common.one_file = not arg.many_files
 
