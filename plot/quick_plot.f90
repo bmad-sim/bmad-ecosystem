@@ -132,9 +132,9 @@
 ! The line patterns are:
 !     1 - solid$                  Solid
 !     2 - dashed$                 Dashed
-!     3 - dash_dot$               Dash dot 
+!     3 - dash_dot$               Dash-dot 
 !     4 - dotted$                 Dotted
-!     5 - dash_dot3$              Dash dot dot dot        
+!     5 - dash_dot3$              Dash-dot-dot-dot        
 !
 !--------------------------------------------------------------------
 !
