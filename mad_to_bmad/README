@@ -47,6 +47,7 @@ The optional arguments are:
   -h, --help              Show a help message and exit
   -d, --debug             Print debug info while running (not of general interest).
   -f, --many_files        Create a Bmad file for each MAD8 input file.
+	-s, --superimpose       Superimpose elements in a sequence (madx only).
   -v, --no_prepend_vars   Do not move variables to the beginning of the Bmad file.
 
 If the --debug (or -d) option is present, the script will print information on the parsing process
@@ -55,6 +56,14 @@ to the terminal. This option is only of interest for someone debugging the code.
 By default, only one Bmad output file is produced even when the MAD input is split among multiple
 files that call each other. If The --many_files (or -f) option is present, the script will produce
 multiple Bmad output files, one for each MAD input file.
+
+For the MADX conversion, the original scheme for converting sequencies was to create a drift the
+length of the sequence and then to superimpose the individual lattice elements on top of this.  The
+parsing of the generated Bmad lattice file turned out to be slow for very large lattices due to the
+amount of shuffling of lattice elements superposition entailed (essentially, the parsing scalled as
+N^2 where N is the number of lattice elements). To get around this, the current translation scheme
+converts sequencies into lines without any superposition. If the the --superimpose (or -s) option is
+present. The original superposition algorithm is used.
 
 In a MAD lattice file, it is permissable to define a variable after it has been used in an expression.
 For example:
@@ -70,6 +79,12 @@ parameter will not be moved.
 
 Note: The conversion scripts do not try to arrange the relative order of variable definitions. Thus
 it may be that the User will have to do some rearranging by hand.
+
+Note: If the string "!!literal" appears in the MAD8 or MADX file, everything after this string will
+be put in the Bmad file. This is useful for transfering extra information to the Bmad file without
+affecting the reading of the MAD file by MAD. Example:
+	!!literal parameter[geometry] = open
+
 
 Limitations:
 ------------

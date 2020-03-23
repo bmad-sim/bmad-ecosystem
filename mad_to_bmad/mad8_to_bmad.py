@@ -647,7 +647,7 @@ def parse_command(command, dlist):
       ele_name = common.ele_dict[dlist[0]].name
       name = f'{dlist[0]}[{bmad_param(dlist[2], ele_name)}]'
     else:  # In a complete valid lattice, parameter seets always happen after the element has been defined
-      name = f'{dlist[0]}[{bmad_param(dlist[2], '???')}]'
+      name = f'{dlist[0]}[{bmad_param(dlist[2], "???")}]'
     f_out.write(f'{name} = {value}\n')
     return
 
@@ -777,7 +777,11 @@ def get_next_command ():
         if quote != '': continue
 
         if line[ix] == '!':
-          f_out.write(line[ix:])
+          if len(line) > ix+9 and line[ix:ix+9] == '!!literal':
+            f_out.write(line[ix+9:].strip() + '\n')
+          else:
+            f_out.write(line[ix:])
+          endif
           command += line[:ix]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           line = ''
