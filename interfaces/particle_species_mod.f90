@@ -1356,7 +1356,7 @@ end function mass_of
 !+
 ! Function charge_to_mass_of (species) result (charge_mass_ratio)
 !
-! Routine to return the charge (in units of e+) to mass (units of eV/c^2) ration of a particle.
+! Routine to return the charge (in units of e+) to mass (units of eV/c^2) ratio of a particle.
 !
 ! Input:
 !   species -- integer: Species ID.
