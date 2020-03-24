@@ -184,7 +184,7 @@ write(*,'(a,3es14.5)') "  Damping times:              ", tau
 
 if(include_ibs) then
   write(*,*) "Calculating envelope radiation integrals with IBS ..."
-  call envelope_radints_ibs(Lambda,Theta,Iota,eles,alpha,emit,mode,tail_cut,npart)
+  call envelope_radints_ibs(Lambda,Theta,Iota,eles,alpha,emit,mode,tail_cut,npart, lat%param%particle)
   tau = lat%param%total_length / c_light / alpha
   write(*,*) "... done."
   write(*,*) "From envelope-based radiation integrals with IBS: "
@@ -212,7 +212,8 @@ if(nturns .gt. 0) then
   do i=1,nturns
     do j=1,nslices
       if(include_ibs) then
-        call transport_with_sr_and_ibs(eles(j),M(:,:,j),Bbar(:,:,j),Ybar(:,:,j),Sigma_ent,Sigma_exit,tail_cut,tau_max,npart)
+        call transport_with_sr_and_ibs(eles(j),M(:,:,j),Bbar(:,:,j),Ybar(:,:,j),Sigma_ent,Sigma_exit,&
+                                                                              tail_cut,tau_max,npart, lat%param%particle)
       else
         call transport_with_sr(eles(j),M(:,:,j),Bbar(:,:,j),Ybar(:,:,j),Sigma_ent,Sigma_exit) 
       endif
