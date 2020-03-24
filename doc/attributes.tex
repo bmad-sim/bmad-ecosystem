@@ -216,13 +216,13 @@ varied. In the above example, the variables are \vn{a} and \vn{b}, and the slave
 \vn{k1} attribute of element \vn{q1} and the \vn{tilt} attribute of element \vn{q2}. The arithmetic
 expressions used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
 
-The general syntax for For a \vn{spline} based \vn{group} element is
+The general syntax for For a \vn{spline} based \vn{group} element is:
 \begin{example}
   name: GROUP = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
               VAR = \{var1\}, X_KNOT = \{x_knot_points\},
               var1 = init_val1, old_var1 = init_val_old1, ...
 \end{example}
-and the general syntax for a \vn{spline} based  \vn{overlay} element is
+and the general syntax for a \vn{spline} based \vn{overlay} element is similar:
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
               VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ...

@@ -343,7 +343,8 @@ subroutine touschek_rate1_zap(mode, rate, lat, ix, s)
   call fgsl_integration_workspace_free(integ_wk)
   call fgsl_function_free(integrand_ready)
 
-  rate = (r_e**2)*c_light*(NB**2)/8.0_rp/pi/(gamma**3)/sigma_z/sigma_x/sigma_y/sigma_xp/tau_m/tau_m * integral
+  rate = classical_radius(lat%param%particle)**2 * c_light * NB**2 * integral / &
+                (8.0_rp * pi * (gamma**3) * sigma_z * sigma_x * sigma_y * sigma_xp * tau_m * tau_m)
 
   if(rate .lt. 0.0_rp) rate = 0.0_rp
 
@@ -547,9 +548,8 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
 
   !integral = qtrap(integrand_base_cov, LOG(tau_min), LOG(tau_max))
 
-  rate = (r_e**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ &
-         (g2*g2)/beta2/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_a/emit_b* &
-         integral
+  rate = (classical_radius(lat%param%particle)**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ &
+                           (g2*g2)/beta2/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_a/emit_b* integral
 
   !Simplified (a small bit) from thesis
   !rate = (r_e**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ &

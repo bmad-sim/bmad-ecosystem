@@ -39,6 +39,20 @@ key2 = lord2%key
 slave%key = -1  ! Default if no superimpose possible
 slave%sub_key = 0
 
+! If one element is a drift then slave%key = key of other element.
+
+if (key1 == drift$) then
+  slave%key = key2
+  slave%sub_key = lord2%sub_key
+  return
+endif
+
+if (key2 == drift$) then
+  slave%key = key1
+  slave%sub_key = lord1%sub_key
+  return
+endif
+
 ! control elements, etc. cannot be superimposed.
 
 select case (key1)
@@ -73,20 +87,6 @@ if (key1 == key2) then
   case default
     slave%key = key1
   end select
-  return
-endif
-
-! If one element is a drift then slave%key = key of other element.
-
-if (key1 == drift$) then
-  slave%key = key2
-  slave%sub_key = lord2%sub_key
-  return
-endif
-
-if (key2 == drift$) then
-  slave%key = key1
-  slave%sub_key = lord1%sub_key
   return
 endif
 

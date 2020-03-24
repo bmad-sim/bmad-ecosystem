@@ -252,6 +252,12 @@ recursive subroutine check_aperture_limit (orb, ele, particle_at, param, old_orb
   logical, optional :: check_momentum
 end subroutine
 
+function classical_radius (species) result (radius)
+  import
+  integer species
+  real(rp) radius
+end function
+
 function congruent_lattice_elements (ele1, ele2) result (is_congruent)
   import
   implicit none

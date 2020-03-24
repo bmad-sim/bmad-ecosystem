@@ -657,7 +657,8 @@ enddo
 
 !
 
-coef = csr%actual_track_step * r_e / (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
+coef = csr%actual_track_step * classical_radius(csr%species) / &
+                              (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
 n_bin = csr_param%n_bin
 
 ! CSR & Image charge kick
@@ -976,8 +977,8 @@ sig_y_ave = dot_product(csr%slice(:)%sig_y, csr%slice(:)%charge) / charge_tot
 if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particles.
 if (ele%space_charge_method /= slice$) return
 
-factor = csr%kick_factor * csr%actual_track_step * r_e / &
-          (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
+factor = csr%kick_factor * csr%actual_track_step * classical_radius(csr%species) / &
+                              (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
 
 ! Compute the kick at the center of each bin
 ! i = index of slice where kick is computed
@@ -1311,7 +1312,7 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
     ! in the same general direction. In this case, the kicks due to the electric and magnetic fields
     ! tend to cancel instead of add as in the bbi case.
 
-    f0 = csr%kick_factor * csr%actual_track_step * r_e / (twopi * &
+    f0 = csr%kick_factor * csr%actual_track_step * classical_radius(csr%species) / (twopi * &
              csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(p%species)) * csr%gamma**3)
 
     dpx = 0;  dpy = 0
