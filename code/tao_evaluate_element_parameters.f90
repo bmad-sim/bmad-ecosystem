@@ -105,7 +105,7 @@ if (middle) then
         'orbit_x', 'orbit.x', 'orbit_px', 'orbit.px', 'orbit_y', 'orbit.y', 'orbit_py', 'orbit.py', &
         'orbit_z', 'orbit.z', 'orbit_pz', 'orbit.pz', 'spin.x', 'spin_x', 'spin.y', 'spin_y', &
         'spin.z', 'spin_z', 'intensity', 'intensity_x', 'intensity.x', 'intensity_y', 'intensity.y', &
-        'phase_x', 'phase.x', 'phase_y', 'phase.y', 't', 'time', 'beta', 'energy', 'pc')
+        'phase_x', 'phase.x', 'phase_y', 'phase.y', 't', 'time', 'beta', 'energy', 'pc', 's')
 
   case default
     middle = .false.

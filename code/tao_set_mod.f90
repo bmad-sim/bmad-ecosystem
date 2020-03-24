@@ -1258,25 +1258,25 @@ case ('autoscale_z_color')
   call tao_set_logical_value (this_curve%autoscale_z_color, component, value_str, err)  
 
 case ('data_source')
-  this_curve%data_source = value_str
+  this_curve%data_source = remove_quotes(value_str)
 
 case ('data_index')
-  this_curve%data_index = value_str
+  this_curve%data_index = remove_quotes(value_str)
 
 case ('data_type')
-  this_curve%data_type = value_str
+  this_curve%data_type = remove_quotes(value_str)
 
 case ('data_type_x')
-  this_curve%data_type_x = value_str
+  this_curve%data_type_x = remove_quotes(value_str)
 
 case ('data_type_z')
-  this_curve%data_type_z = value_str
+  this_curve%data_type_z = remove_quotes(value_str)
 
 case ('legend_text')
-  this_curve%legend_text = value_str
+  this_curve%legend_text = remove_quotes(value_str)
 
 case ('units')
-  this_curve%units = value_str
+  this_curve%units = remove_quotes(value_str)
 
 case ('z_color0')
   call tao_set_real_value (this_curve%z_color0, component, value_str, err, dflt_uni = i_uni)
@@ -1578,11 +1578,11 @@ case ('floor_plan')
     call tao_set_logical_value(this_graph%floor_plan%flip_label_side, component, value, error)
   case ('rotation')
     call tao_set_real_value(this_graph%floor_plan%rotation, component, value, error, dflt_uni = u%ix_uni)
-  case ('scale')
+  case ('orbit_scale', 'scale')
     call tao_set_real_value(this_graph%floor_plan%orbit_scale, component, value, error, dflt_uni = u%ix_uni)
-  case ('color')
+  case ('orbit_color', 'color')
     this_graph%floor_plan%orbit_color = value
-  case ('pattern')
+  case ('orbit_pattern', 'pattern')
     this_graph%floor_plan%orbit_pattern = value
   case ('view')
     if (.not. any(value == tao_floor_plan_view_name)) then
@@ -1590,10 +1590,10 @@ case ('floor_plan')
       return
     endif
     this_graph%floor_plan%view = value
-  case ('width')
+  case ('orbit_width', 'width')
     call tao_set_integer_value(this_graph%floor_plan%orbit_width, component, value, error, 1, 999)
   case default
-    call out_io (s_error$, r_name, "BAD GRAPH floor_plan_orbit SUB-COMPONENT: " // sub_comp)
+    call out_io (s_error$, r_name, "BAD GRAPH floor_plan SUB-COMPONENT: " // sub_comp)
     return
   end select
 case ('ix_universe')

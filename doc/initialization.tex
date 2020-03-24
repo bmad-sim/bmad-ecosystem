@@ -3087,12 +3087,35 @@ The \vn{qp_axis_struct} structure defines the properties of a graph axis
     minor_div_max     = <integer>  ! Max minor div number if Tao chooses.
     places            = <integer>  ! Number of digits to print
     type              = <string>   ! Axis type: 'LINEAR' or 'LOG'.
-    bounds            = <string>   ! Axis bounds: 'GENERAL', 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
+    bounds            = <string>   ! Axis bounds: 'GENERAL', 'ZERO_AT_END', etc.
     tick_side         = <integer>  ! 1 = draw to the inside, 0 = both, -1 = outside.
     number_side       = <integer>  ! 1 = draw to the inside, -1 = outside.
     draw_label        = <logical>  ! Draw the label string
     draw_numbers      = <logical>  ! Draw the numbers.
   end type
+\end{example}
+
+The \vn{%bounds} parameter sets how the axes min and max values are calculated.
+Possible settings are:
+\begin{example}
+  'ZERO_AT_END'      ! Min or max value is set to zero.
+  'ZERO_SYMMETRIC'   ! Min and max choisen so that max = -min.
+  'GENERAL'          ! No restrictions.
+  'EXACT'            ! The User min/max is used.
+\end{example}
+Example \tao session:
+\begin{example}
+Tao> set graph r13 y%bounds = 'zero_at_end'
+Tao> scale r13 200 280   ! Graph bounds set to [0, 300]
+
+Tao> set graph r13 y%bounds = 'zero_symmetric'
+Tao> scale r13 200 280   ! Graph bounds set to [-300, 300]
+
+Tao> set graph r13 y%bounds = 'general'
+Tao> scale r13 20 190    ! Graph bounds set to [0, 200]
+
+Tao> set graph r13 y%bounds = 'exact'
+Tao> scale r13 20 190    ! Graph bounds set to [20, 190]
 \end{example}
 
 \begin{table}
