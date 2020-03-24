@@ -761,7 +761,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         if (allocated(ctl%stack)) then
           expression_str = expression_stack_to_string (ctl%stack)
         else
-          expression_str = ''
+          expression_str = '<Knots>'
         endif
         iv = ctl%ix_attrib
         a_name = attribute_name(ele, iv)

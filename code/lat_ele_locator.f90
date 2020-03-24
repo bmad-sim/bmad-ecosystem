@@ -216,8 +216,14 @@ do
   ! Each item in the construct must represent only one element.
 
   if (n_loc2 == 0) then
-    call out_io (s_error$, r_name, 'NO ELEMENT ASSOCIATED WITH: ' // name, &
-                                   'THIS IS NOT PERMITTED IN A RANGE CONSTRUCT: ' // loc_str)
+    if (key_name_to_key_index(name, .false.) > 0) then
+      call out_io (s_error$, r_name, 'NO ELEMENT ASSOCIATED WITH: ' // name, &
+                                     'THIS IS NOT PERMITTED IN A RANGE CONSTRUCT: ' // loc_str, &
+                                     'IF THIS IS AN ELEMENT CLASS YOU NEED TWO COLONS "::" AND NOT ONE.')
+    else
+      call out_io (s_error$, r_name, 'NO ELEMENT ASSOCIATED WITH: ' // name, &
+                                     'THIS IS NOT PERMITTED IN A RANGE CONSTRUCT: ' // loc_str)
+    endif
     return
   elseif (n_loc2 > 1) then
     call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS ASSOCIATED WITH: ' // name, &
