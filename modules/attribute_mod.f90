@@ -2845,7 +2845,7 @@ attrib_info = attribute_info(ele, ix_attrib)
 a_name = attribute_name (ele, ix_attrib)
 
 if (attrib_info%state == private$) then
-  call it_is_not_free (ele, ix_attrib, dependent$, 'THIS ATTRIBUTE IS PRIVATE.')
+  call it_is_not_free (free, ele, ix_attrib, dependent$, 'THIS ATTRIBUTE IS PRIVATE.')
   return
 endif
 
@@ -2856,12 +2856,12 @@ if (attrib_info%state == does_not_exist$) then
   select case (attrib_name)
   case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', 'DPHI_A', 'DPHI_B', &
         'ETA_A', 'ETAP_A', 'ETA_B', 'ETAP_B')
-    call it_is_not_free (ele, ix_attrib, dependent$, 'THIS ATTRIBUTE IS A COMPUTED PARAMETER.')
+    call it_is_not_free (free, ele, ix_attrib, dependent$, 'THIS ATTRIBUTE IS A COMPUTED PARAMETER.')
   case default
     ! Something like 'cartesian_map(1)%field_scale' does not have an attribute index
     call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err_flag, .false.)
     if (.not. err_flag) return
-    call it_is_not_free (ele, ix_attrib, does_not_exist$, 'DOES NOT CORRESPOND TO A VALID ATTRIBUTE.', skip = .true.)
+    call it_is_not_free (free, ele, ix_attrib, does_not_exist$, 'DOES NOT CORRESPOND TO A VALID ATTRIBUTE.', skip = .true.)
   end select
   return
 endif
@@ -2870,7 +2870,7 @@ endif
 
 if (ele%key == overlay$ .or. ele%key == group$) then
   if (all(attrib_name /= ele%control%var%name)) then
-    call it_is_not_free (ele, ix_attrib, does_not_exist$, 'IS NOT A VALID CONTROL VARIABLE', skip = .true.)
+    call it_is_not_free (free, ele, ix_attrib, does_not_exist$, 'IS NOT A VALID CONTROL VARIABLE', skip = .true.)
   endif
   return
 endif
@@ -2878,7 +2878,7 @@ endif
 ! Here if checking something that is not an overlay or group lord... 
 
 if (attrib_info%state == dependent$) then
-  call it_is_not_free (ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
+  call it_is_not_free (free, ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 endif
 
@@ -2891,7 +2891,7 @@ if (.not. do_except_overlay) then
 
     if (lord%key == overlay$) then
       if (control%ix_attrib == ix_attrib) then 
-        call it_is_not_free (ele, ix_attrib, overlay_slave$, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
+        call it_is_not_free (free, ele, ix_attrib, overlay_slave$, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
         return
       endif
     endif
@@ -2905,7 +2905,7 @@ if (ele%slave_status == super_slave$) then
   select case (a_name)
   case ('L', 'CSR_METHOD', 'SPACE_CHARGE_METHOD')
   case default
-    call it_is_not_free (ele, ix_attrib, super_slave$, 'THE ELEMENT IS A SUPER_SLAVE.', &
+    call it_is_not_free (free, ele, ix_attrib, super_slave$, 'THE ELEMENT IS A SUPER_SLAVE.', &
                                          '[ATTRIBUTES OF SUPER_SLAVE ELEMENTS ARE GENERALLY NOT FREE TO VARY.]')
   end select
   return
@@ -2926,7 +2926,7 @@ if (ele%slave_status == multipass_slave$) then
     lord => pointer_to_lord(ele, 1)
   end select
 
-  call it_is_not_free (ele, ix_attrib, multipass_slave$, 'THE ELEMENT IS A MULTIPASS_SLAVE.', &
+  call it_is_not_free (free, ele, ix_attrib, multipass_slave$, 'THE ELEMENT IS A MULTIPASS_SLAVE.', &
                                        '[ATTRIBUTES OF MULTIPASS_SLAVE ELEMENTS ARE GENERALLY NOT FREE TO VARY.]')
 
   return
@@ -2936,7 +2936,7 @@ endif
 
 select case (a_name)
 case ('NUM_STEPS')
-  if (.not. dep_attribs_free) call it_is_not_free (ele, ix_attrib, dependent$, 'THIS  IS A DEPENDENT ATTRIBUTE.')
+  if (.not. dep_attribs_free) call it_is_not_free (free, ele, ix_attrib, dependent$, 'THIS  IS A DEPENDENT ATTRIBUTE.')
   return
 
 case ('FIELD_SCALE', 'PHI0_FIELDMAP', 'CSR_METHOD', 'SPACE_CHARGE_METHOD')
@@ -2954,7 +2954,7 @@ case ('E_TOT', 'P0C')
     end select
   endif
 
-  call it_is_not_free (ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
+  call it_is_not_free (free, ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 end select
 
@@ -2972,9 +2972,7 @@ case (rfcavity$)
   endif
   if (ix_attrib == gradient$) free = .false.
 case (lcavity$)
-  if (ix_attrib == voltage$ .and. ele%value(l$) /= 0) free = .false.
   if (ix_attrib == gradient$ .and. ele%value(l$) == 0) free = .false.
-  if (ix_attrib == voltage_err$ .and. ele%value(l$) /= 0) free = .false.
   if (ix_attrib == gradient_err$ .and. ele%value(l$) == 0) free = .false.
 case (elseparator$)
   if (ix_attrib == voltage$) free = .false.
@@ -2984,7 +2982,7 @@ if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
     nint(ele%value(multipass_ref_energy$)) == user_set$ .and. ix_attrib == p0c$) free = .true.
 
 if (.not. free) then
-  call it_is_not_free (ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
+  call it_is_not_free (free, ele, ix_attrib, dependent$, 'THIS IS A DEPENDENT ATTRIBUTE.')
   return
 endif
 
@@ -2993,7 +2991,7 @@ endif
 if (.not. dep_attribs_free) then
   free = field_attribute_free (ele, a_name)
   if (.not. free) then
-    call it_is_not_free (ele, ix_attrib, field_master_dependent$, &
+    call it_is_not_free (free, ele, ix_attrib, field_master_dependent$, &
          "THIS IS A DEPENDENT ATTRIBUTE SINCE", &
          "THE ELEMENT'S FIELD_MASTER IS SET TO: " // on_off_logic (ele%field_master, 'True', 'False'))
     return
@@ -3003,7 +3001,7 @@ endif
 !-------------------------------------------------------
 contains
 
-subroutine it_is_not_free (ele, ix_attrib, why, l1, l2, skip)
+subroutine it_is_not_free (free, ele, ix_attrib, why, l1, l2, skip)
 
 type (ele_struct) ele
 
@@ -3014,6 +3012,7 @@ character(*), optional :: l2
 character(100) li(8)
 character(*), parameter :: r_name = 'attribute_free'
 
+logical free
 logical, optional :: skip
 
 !

@@ -79,7 +79,7 @@ type (str_indexx_struct) str_index
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
-integer i, i1, j, n, is, ix, iw, ix2, iv, ic, nl2, l_status, a_type, default_val
+integer i, i1, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max
 
 real(rp) coef, val, L_mis(3), S_mis(3,3) 
@@ -181,21 +181,23 @@ do i = 1, num_ele_attrib$
   attrib%value = ele%value(i)
   a_name = attrib%name
   if (a_name == null_name$) cycle
-  if (attrib%state == private$) cycle
-  if (is_second_column_attribute(ele, i)) cycle
   if (a_name == 'MULTIPASS_REF_ENERGY' .and. (ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$)) cycle
+  if (a_name == 'LORD_PAD1' .and. ele%lord_status /= super_lord$) cycle
+  if (attrib%state == private$) cycle
+  if (is_2nd_column_attribute(ele, a_name, ix2_attrib)) cycle
+
   attrib2 = ele_attribute_struct()
 
   select case (a_name)
   case ('RF_FREQUENCY');    if (ele%value(i) /= 0) attrib2 = ele_attribute_struct('RF_WAVELENGTH', dependent$, is_real$, 'm', -1, &
-                                                                                   c_light * ele%value(p0c$) / (ele%value(i) * ele%value(e_tot$)))
+                                                                            c_light * ele%value(p0c$) / (ele%value(i) * ele%value(e_tot$)))
   case ('P0C')
     if (particle == photon$) then
       attrib2 = ele_attribute_struct('REF_WAVELENGTH', dependent$, is_real$, 'm', -1, c_light * h_planck / ele%value(p0c$))
     else
       attrib2 = ele_attribute_struct('BETA', dependent$, is_real$, '', -1, ele%value(p0c$) / ele%value(e_tot$))
     endif
-  case ('E_TOT');           if (particle /= photon$) attrib2 = ele_attribute_struct('GAMMA', dependent$, is_real$, '', -1, ele%value(e_tot$) / mass_of(particle))
+  case ('E_TOT'); if (particle /= photon$) attrib2 = ele_attribute_struct('GAMMA', dependent$, is_real$, '', -1, ele%value(e_tot$) / mass_of(particle))
   case ('P0C_START');       attrib2 = ele_attribute_struct('BETA_START', dependent$, is_real$, '', -1, ele%value(p0c_start$) / ele%value(e_tot_start$))
   case ('E_TOT_START');     attrib2 = ele_attribute_struct('DELTA_E', dependent$, is_real$, 'eV', -1, ele%value(e_tot$) - ele%value(e_tot_start$))
   case ('DARWIN_WIDTH_SIGMA', 'DARWIN_WIDTH_PI')
@@ -205,10 +207,9 @@ do i = 1, num_ele_attrib$
     if (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
       attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'deg', -1, ele%value(i) * 180 / pi)
     else
-      ix2 = second_column_attribute_index (ele, i)
-      if (ix2 > 0) then
-        attrib2 = attribute_info(ele, ix2)
-        attrib2%value = ele%value(ix2)
+      if (ix2_attrib > 0) then
+        attrib2 = attribute_info(ele, ix2_attrib)
+        attrib2%value = ele%value(ix2_attrib)
       endif
     endif
   end select
@@ -304,7 +305,7 @@ endif
 ! Encode methods, etc.
 
 nl=nl+1; write (li(nl), *) ''
-nl2 = nl     ! For second column parameters
+nl2 = nl     ! For 2nd column parameters
 
 if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
   nl=nl+1; write (li(nl), fmt_a) 'CRYSTAL_TYPE', '=', ele%component_name
@@ -361,25 +362,25 @@ endif
 ! Write second column parameters
 
 if (ele%key == beambeam$ .and. associated(branch)) then
-  call encode_second_column_parameter (li, nl2, nl, 'PARAMETER[N_PART]', re_val = branch%param%n_part)
+  call encode_2nd_column_parameter (li, nl2, nl, 'PARAMETER[N_PART]', re_val = branch%param%n_part)
 endif
 
 if (attribute_name(ele, aperture_at$) == 'APERTURE_AT' .and. ele%aperture_at /= 0) then
-  call encode_second_column_parameter (li, nl2, nl, 'APERTURE_AT', str_val = aperture_at_name(ele%aperture_at))
-  call encode_second_column_parameter (li, nl2, nl, 'APERTURE_TYPE', str_val = aperture_type_name(ele%aperture_type))
-  call encode_second_column_parameter (li, nl2, nl, 'OFFSET_MOVES_APERTURE', logic_val = ele%offset_moves_aperture)
+  call encode_2nd_column_parameter (li, nl2, nl, 'APERTURE_AT', str_val = aperture_at_name(ele%aperture_at))
+  call encode_2nd_column_parameter (li, nl2, nl, 'APERTURE_TYPE', str_val = aperture_type_name(ele%aperture_type))
+  call encode_2nd_column_parameter (li, nl2, nl, 'OFFSET_MOVES_APERTURE', logic_val = ele%offset_moves_aperture)
 endif
 
 if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
-  call encode_second_column_parameter (li, nl2, nl, 'SYMPLECTIFY', logic_val = ele%symplectify)
+  call encode_2nd_column_parameter (li, nl2, nl, 'SYMPLECTIFY', logic_val = ele%symplectify)
 endif
   
 if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
-  call encode_second_column_parameter (li, nl2, nl, 'FIELD_MASTER', logic_val = ele%field_master)
+  call encode_2nd_column_parameter (li, nl2, nl, 'FIELD_MASTER', logic_val = ele%field_master)
 endif
 
 if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
-  call encode_second_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
+  call encode_2nd_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
 endif
 
 ! Cartesian map
@@ -1170,7 +1171,7 @@ endif
 !----------------------------------------------------------------------------------------------------
 contains
 
-subroutine encode_second_column_parameter (li, nl2, nl, attrib_name, re_val, str_val, logic_val, int_val)
+subroutine encode_2nd_column_parameter (li, nl2, nl, attrib_name, re_val, str_val, logic_val, int_val)
 
 integer nl2, nl, ix0
 integer, optional :: int_val
@@ -1209,111 +1210,83 @@ name = attrib_name
 n = 8 + n_attrib_string_max_len() + 31
 write (line(n:), '(a27, a, 2x, a)') name, '=', value
 
-end subroutine encode_second_column_parameter 
+end subroutine encode_2nd_column_parameter 
 
 !--------------------------------------------------------------------------
 ! contains
 !+
-! Function second_column_attribute_index (ele, ix_attrib) result (ix2_attrib)
+! Function is_2nd_column_attribute (ele, attrib_name, ix2_attrib) result (is_2nd_col_attrib)
 !
+! Function to:
+!     1) Return True if attribute is to be displayed in the 2nd column.
+!     2) If attribute is a 1st column attribute with a corresponding 2nd column attribute: Set ix2_attrib accordingly.
+! 
 ! Input:
-!   ele       -- Ele_struct: Element
-!   ix_attrib -- Integer: Index of attribute
+!   ele           -- ele_struct: Element
+!   attrib_name   -- character(*): Name of attribute     
 !
 ! Output:
-!   ix2_attrib -- Integer: Index of corresponding second column.
-!                      Set to -1 if no corresponding attribute.
+!   is_2nd_col_attrib -- logical: True if a second column attribute. False otherwise.
+!   ix2_attrib        -- integer: If  > 0 --> Index of corresponding second column attribute.
 !-
 
-function second_column_attribute_index (ele, ix_attrib) result (ix2_attrib)
+function is_2nd_column_attribute (ele, attrib_name, ix2_attrib) result (is_2nd_col_attrib)
 
 type (ele_struct) ele
-integer ix_attrib, ix2_attrib
-character(40) a_name
+integer ix, ia, ix_attrib, ix2_attrib
+character(*) attrib_name
+character(40) a_name, a2_name
+logical is_2nd_col_attrib
 
-!
+character(40), parameter :: att_name(34) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+                'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
+                'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
+                'KS', 'K1', 'K2', 'G', 'G_ERR', 'H1', 'E1', 'FINT', 'HGAP', &
+                'L_CHORD', 'PTC_FIELD_GEOMETRY', 'AUTOSCALE_AMPLITUDE', 'FIELD_AUTOSCALE', 'COUPLER_AT', &
+                'VOLTAGE', 'PHI0', 'N_CELL']
+
+character(40), parameter :: att2_name(34) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+                'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
+                'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
+                'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'B_FIELD_ERR', 'H2', 'E2', 'FINTX', 'HGAPX', &
+                'L_SAGITTA', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
+                'GRADIENT', 'PHI0_MULTIPASS', 'CAVITY_TYPE']
+
+! Exceptional cases
 
 ix2_attrib = -1
+is_2nd_col_attrib = .false.
 
-select case (attribute_name(ele, ix_attrib))
-case ('X_PITCH');     ix2_attrib = x_pitch_tot$
-case ('Y_PITCH');     ix2_attrib = y_pitch_tot$
-case ('X_OFFSET');    ix2_attrib = x_offset_tot$
-case ('Y_OFFSET');    ix2_attrib = y_offset_tot$
-case ('Z_OFFSET');    ix2_attrib = z_offset_tot$
-case ('REF_TILT');    ix2_attrib = ref_tilt_tot$
-case ('TILT');        ix2_attrib = tilt_tot$
-case ('ROLL');        ix2_attrib = roll_tot$
-case ('X1_LIMIT');    ix2_attrib = x2_limit$
-case ('Y1_LIMIT');    ix2_attrib = y2_limit$
-case ('FQ1');         ix2_attrib = fq2$
-case ('LORD_PAD1');   ix2_attrib = lord_pad2$
-case ('HKICK');       ix2_attrib = vkick$
-case ('BL_HKICK');    ix2_attrib = bl_vkick$
-case ('FRINGE_TYPE'); ix2_attrib = fringe_at$
-case ('DS_STEP');     ix2_attrib = num_steps$
-case ('R0_MAG');      ix2_attrib = r0_elec$
-case ('KS');          ix2_attrib = bs_field$
-case ('K1');          ix2_attrib = b1_gradient$
-case ('K2');          ix2_attrib = b2_gradient$
-case ('G');           ix2_attrib = b_field$
-case ('G_ERR');       ix2_attrib = b_field_err$
-case ('H1');          ix2_attrib = h2$
-case ('E1');          ix2_attrib = e2$
-case ('FINT');        ix2_attrib = fintx$
-case ('HGAP');        ix2_attrib = hgapx$
-case ('L_CHORD');     ix2_attrib = l_sagitta$
-case ('PTC_FIELD_GEOMETRY'); ix2_attrib = ptc_fringe_geometry$
+select case (attrib_name)
 case ('L')
+  is_2nd_col_attrib = .false.
   if (has_attribute(ele, 'L_HARD_EDGE')) then
     ix2_attrib = l_hard_edge$
   elseif (has_attribute(ele, 'L_SOFT_EDGE')) then
     ix2_attrib = l_soft_edge$
   endif
-end select
+  return
 
-if (ix2_attrib == -1) return
-
-a_name = attribute_name(ele, ix2_attrib)
-if (a_name(1:1) == '!') ix2_attrib = -1
-
-end function second_column_attribute_index 
-
-!--------------------------------------------------------------------------
-! contains
-
-!+
-! Function is_second_column_attribute (ele, ix_attrib) result (is_2nd_col_attrib)
-!
-! Function returns True if ix_attrib corresponds to a second column  attribute.
-! Input:
-!   ele       -- Ele_struct: Element
-!   ix_attrib -- Integer: Index of attribute
-!
-! Output:
-!   is_2nd_col_attrib -- Logical: True if a second column attribute. False otherwise.
-!-
-
-function is_second_column_attribute (ele, ix_attrib) result (is_2nd_col_attrib)
-
-type (ele_struct) ele
-integer ix_attrib
-logical is_2nd_col_attrib
-
-!
-
-select case (attribute_name(ele, ix_attrib))
-case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'FQ2', 'LORD_PAD2', &
-      'REF_TILT_TOT', 'ROLL_TOT', 'Z_OFFSET_TOT', 'TILT_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
-      'VKICK', 'BL_VKICK', 'L_SOFT_EDGE', 'L_HARD_EDGE', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
-      'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'B_FIELD_ERR', 'PTC_FRINGE_GEOMETRY', &
-      'H2', 'E2', 'FINTX', 'HGAPX', 'L_SAGITTA')
+case ('L_SOFT_EDGE', 'L_HARD_EDGE')
   is_2nd_col_attrib = .true.
-case default
-  is_2nd_col_attrib = .false.
+  return
 end select
 
-end function is_second_column_attribute
+! Is a 2nd column attribute if corresponding first column attribute exists
+
+call match_word (attrib_name, att2_name, ix, .true., .false.)
+if (ix > 0) then
+  ia = attribute_index(ele, att_name(ix))
+  is_2nd_col_attrib = (ia > 0)
+  return
+endif
+
+! If the attribute has a corresponding 2nd column attribute, set ix2_attrib accordingly.
+
+call match_word (attrib_name, att_name, ix, .true., .false.)
+if (ix > 0) ix2_attrib = attribute_index(ele, att2_name(ix))
+
+end function is_2nd_column_attribute
 
 !--------------------------------------------------------------------------
 ! contains
