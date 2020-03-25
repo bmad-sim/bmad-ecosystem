@@ -7,7 +7,7 @@ implicit none
 
 type (lat_struct), target :: lat
 
-character(200) :: line(10)
+character(200) :: line(10), line_debug(10)
 character(100) :: lat_file  = 'tracking_method_test.bmad'
 character(46) :: out_str, fmt, track_method
 integer :: i, j, ib, nargs, isn
@@ -53,6 +53,8 @@ open (1, file = 'output.now')
 if (debug_mode) then
   print '(a, t36, 7es18.10)', 'Start:', lat%particle_start%vec
   print *
+  print '(a, t46, a, t64, a, t82, a, t100, a, t118, a, t136, a, t143, a)', &
+                            'Name: Tracking_Method', 'x', 'px', 'y', 'py', 'z', 'pz', 'dz-d(v*(t_ref-t))'
 endif
 
 call track_it (lat, 1, 1)
@@ -138,14 +140,19 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (p_sign == 1) then
         out_str = trim(ele%name) // ':' // trim(tracking_method_name(j))
+        if (debug_mode) out_str = trim(ele%name) // ': ' // trim(tracking_method_name(j))
+
       else
         out_str = trim(ele%name) // '-Anti:' // trim(tracking_method_name(j))
       endif
 
       if (ele%key == e_gun$) then
         write (1,fmt) '"' // trim(out_str) // '"' , tolerance(out_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
+        if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, c_light * (end_orb%t - start_orb%t)
       else
         write (1,fmt) '"' // trim(out_str) // '"' , tolerance(out_str), end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
+                c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
+        if (debug_mode) print '(a30, 3x, 7es18.10)', out_str,  end_orb%vec, (end_orb%vec(5) - start_orb%vec(5)) - &
                 c_light * (end_orb%beta * (ele%ref_time - end_orb%t) - start_orb%beta * (ele%ref_time - ele%value(delta_ref_time$) - start_orb%t))
       endif
 
@@ -159,8 +166,9 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$ .or. j == time_runge_kutta$ .or. j == taylor$) then
         isn = isn + 1
         out_str = trim(out_str) // ' dSpin'
-        write (line(isn), '(a, t49, a,  4f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
+        write (line(isn), '(a, t49, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
               end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
+        if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       endif
 
       if (branch%param%particle == photon$) then
@@ -168,11 +176,14 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     end do
 
+    if (debug_mode) print '(t46, a, t60, a, t74, a, t91, a)', 'dSpin_x', 'dSpin_y', 'dSpin_z', 'dSpin_amp'
     do j = 1, isn
       write (1, '(a)') trim(line(j))
+      if (debug_mode) print '(a)', trim(line_debug(j))
     enddo
 
     if (debug_mode) then
+      print *
       print '(a, t36, 7es18.10)', 'Diff PTC - BS:', end_ptc%vec - end_bs%vec
       print *
     endif
