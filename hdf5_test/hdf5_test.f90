@@ -5,7 +5,8 @@ use beam_mod
 implicit none
 
 type (lat_struct) lat
-type (bunch_struct) bunch1, bunch2
+type (bunch_struct), target :: bunch1, bunch2
+type (coord_struct), pointer :: p
 type (beam_struct) beam
 type (beam_init_struct) beam_init
 type (ele_struct) ele
@@ -26,7 +27,26 @@ n_part = 10
 
 call bmad_parser('lat.bmad', lat)
 call init_bunch_distribution(lat%ele(0), lat%param, beam_init, 0, bunch1)
+beam_init%use_t_coords = .true.
+beam_init%use_z_as_t = .true.
 call init_bunch_distribution(lat%ele(0), lat%param, beam_init, 0, bunch2)
+
+! Some checks that the distribution has been correctly setup
+
+p => bunch1%particle(7)
+write (1, '(a, 6es18.10)') '"Bunch1-vec"    REL 1e-10', (p%vec(i), i = 1, 6)
+write (1, '(a, 6es18.10)') '"Bunch1-other"  REL 1e-10', p%s, p%t, p%charge, p%p0c, p%beta
+write (1, '(a, 6es18.10)') '"Bunch1-spin"   REL 1e-10', (p%spin(i), i = 1, 3)
+write (1, '(a, 6i6)')      '"Bunch1-int"    ABS ', p%state, p%direction, p%species, p%location
+
+p => bunch2%particle(4)
+write (1, '(a, 6es18.10)') '"Bunch1-vec"    REL 1e-10', (p%vec(i), i = 1, 6)
+write (1, '(a, 6es18.10)') '"Bunch1-other"  REL 1e-10', p%s, p%t, p%charge, p%p0c, p%beta
+write (1, '(a, 6es18.10)') '"Bunch1-spin"   REL 1e-10', (p%spin(i), i = 1, 3)
+write (1, '(a, 6i6)')      '"Bunch1-int"    ABS ', p%state, p%direction, p%species, p%location
+
+!
+
 do i = 1, n_part
   j = i + 2
   if (j > n_part) j = j - n_part
