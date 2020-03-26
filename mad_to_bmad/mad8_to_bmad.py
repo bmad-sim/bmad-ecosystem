@@ -777,8 +777,8 @@ def get_next_command ():
         if quote != '': continue
 
         if line[ix] == '!':
-          if len(line) > ix+9 and line[ix:ix+9] == '!!literal':
-            f_out.write(line[ix+9:].strip() + '\n')
+          if len(line) > ix+10 and line[ix:ix+10] == '!!verbatim':
+            f_out.write(line[ix+10:].strip() + '\n')
           else:
             f_out.write(line[ix:])
           endif

@@ -19,7 +19,8 @@ if (cesr_iargc() < 2) then
   print *, ' where <out_format> is one of:'
   print *, '   ascii'
   print *, '   hdf5'
-  print *, '   binary  (Old format. Do not use unless you know what you are doing.) '
+  print *, '   binary  (Old format! Do not use unless you know what you are doing!)'
+  print *, 'NOTE: Time based coordinates for ASCII files not handled by this program.'
   stop
 endif
 
