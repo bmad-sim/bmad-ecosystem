@@ -80,10 +80,10 @@ parameter will not be moved.
 Note: The conversion scripts do not try to arrange the relative order of variable definitions. Thus
 it may be that the User will have to do some rearranging by hand.
 
-Note: If the string "!!literal" appears in the MAD8 or MADX file, everything after this string will
+Note: If the string "!!verbatim" appears in the MAD8 or MADX file, everything after this string will
 be put in the Bmad file. This is useful for transfering extra information to the Bmad file without
 affecting the reading of the MAD file by MAD. Example:
-	!!literal parameter[geometry] = open
+	!!verbatim parameter[geometry] = open
 
 
 Limitations:
