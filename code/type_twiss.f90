@@ -4,30 +4,33 @@
 ! Subroutine to print or put in a string array Twiss information from an element.
 ! If the lines argument is not present, the element information is printed to the terminal.
 !
+! The compact form looks like:
+!           Beta     Alpha     Gamma       Phi        Eta       Etap
+!            (m)       (-)     (1/m)     (rad)        (m)        (-)
+!  X:    29.8929    -2.953     0.325   11.9116     1.4442     0.1347
+!  Y:     1.3982     0.015     0.715   11.6300    -0.0006     0.0033     
+!
+! The default verbose form looks like:
+!                          A              B            Cbar                        C_mat
+!  Beta (m)         0.95312906     0.01777742  |   0.00010435  -0.00377511      0.00103683  -0.00049140
+!  Alpha            0.01355730    -0.00986789  |  -0.01199208   0.00067403     -0.09219227   0.00009904
+!  Gamma (1/m)      1.04936870    56.25660601  |   Gamma_c =   1.00002260       Mode_Flip = F
+!  Phi (rad)        0.00000000     0.00000000            X              Y              Z
+!  Eta (m)         -0.00212550     0.00142557    -0.00212346     0.00144302     0.00000000
+!  Etap            -0.03500656    -0.00125557    -0.03513890    -0.00102335     1.00000000
+!  Sigma            0.00034547     0.00005437     0.00034547     0.00005437
+!
 ! Input:
 !   ele             -- Ele_struct: Element containing the Twiss parameters.
 !   frequency_units -- Integer, optional: Units for phi:
 !                       = radians$  => Type Twiss, use radians for phi (Default).
 !                       = degrees$  => Type Twiss, use degrees for phi.
 !                       = cycles$   => Type Twiss, use cycles (1 = 2pi) units.
-!   compact_format  -- Logical, optional: If present and True then output looks like:
-!
-!           Beta     Alpha     Gamma       Phi        Eta       Etap
-!            (m)       (-)     (1/m)     (rad)        (m)        (-)
-!  X:    29.8929    -2.953     0.325   11.9116     1.4442     0.1347
-!  Y:     1.3982     0.015     0.715   11.6300    -0.0006     0.0033     
-!
-! Else the default is for a format like:
-!                                A                   B
-! Beta (m)              29.89292748          1.39825638
-! Alpha                 -2.95314539          0.01539874
-! Gamma (1/m)            0.32495843          0.71532874
-! Phi (rad)             11.91163456         11.63002398  
-! Eta (m)                1.44429482         -0.00066948
-! Etap                   0.13477010          0.00337943
+!   compact_format  -- Logical, optional: If present and True then use a compact output form.
 !
 ! Output:
-!   lines(7)     -- Character(200), allocatable, optional :: Character array to hold the output. 
+!   lines(:)     -- Character(*), optional :: Character array to hold the output.
+!                     The string length should be at least 120 characters. 8 lines are needed for the verbose form.
 !                     If not present, the information is printed to the terminal.
 !   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
 !                     n_lines must be present if lines(:) is. 
@@ -48,7 +51,7 @@ integer i, nl
 real(rp) coef, cbar(2,2)
 
 character(*), optional :: lines(:)
-character(200) li(7)
+character(200) li(8)
 character(80) fmt, str, freq_str
 
 logical, optional :: compact_format
@@ -102,6 +105,9 @@ else
   write (li(6), '(2x, a12, 5a)')               'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
   write (li(7), '(2x, a12, 5a)')               'Etap        ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
   nl = 7
+  if (ele%a%sigma /= 0 .or. ele%b%sigma /= 0) then
+    nl=nl+1; write (li(nl), '(2x, a12, 5a)')   'Sigma       ', v(ele%a%sigma), v(ele%b%sigma), v(ele%x%sigma), v(ele%y%sigma)
+  endif
 endif
 
 ! finish

@@ -424,9 +424,8 @@ the conversion formulas are outlined below.
 \subsection{Orbit Measurement}
 \index{orbit!measurement}
 
-For orbits, the
-relationship between measured position $(x, y)_{\text{meas}}$ and true position 
-$(x, y)_{true}$ is
+For orbits, the relationship between measured position $(x, y)_{\text{meas}}$ and true position $(x,
+y)_{true}$ is
 \begin{equation}
   \begin{pmatrix}
     x \\
@@ -453,56 +452,45 @@ $(x, y)_{true}$ is
   \right]
   \label{xynrr}
 \end{equation}
-with
-\begin{equation}
-  \begin{pmatrix}
-    x \\
-    y
-  \end{pmatrix}_{\! 0}
-  =
-  \begin{pmatrix}
-    x_{\text{err}} - x_{\text{cal}} \\
-    y_{\text{err}} - y_{\text{cal}}
-  \end{pmatrix}
-\end{equation}
-and 
+where the Gaussian random numbers $r_1$ and $r_2$ are centered at zero and have unit width and the
+factor $n_f$ represents the inherent noise in the measurement. In the above equation, $(x, y)_0$ 
+represents a measurement offset and $\bfM_g$ is a ``gain'' matrix writen in the form
 \begin{equation}
   \bfM_m
   =
   \begin{pmatrix}
-     g_x \, \cos (d\theta + d\psi) & g_x \, \sin (d\theta + d\psi) \\
-    -g_y \, \sin (d\theta - d\psi) & g_y \, \cos (d\theta - d\psi) 
+     (1 + dg_x) \, \cos (\theta + \psi) & (1 + dg_x) \, \sin (\theta + \psi) \\
+    -(1 + dg_y) \, \sin (\theta - \psi) & (1 + dg_y) \, \cos (\theta - \psi) 
   \end{pmatrix}
 \end{equation}
-where
-\begin{alignat}{1}
-  d\psi   &= \psi_{\text{err}}   - \psi_{\text{cal}} \CRNO
-  d\theta &= \theta_{\text{err}} - \theta_{\text{cal}} \CRNO
-  g_x     &= 1 + dg_{x,\text{err}} - dg_{x,\text{cal}} \CRNO
-  g_y     &= 1 + dg_{y,\text{err}} - dg_{y,\text{cal}}
-\end{alignat}
-$r_1$ and $r_2$ are Gaussian random numbers whose distribution
-is centered at zero and has unit width. 
-$n_f$ is the noise factor inherent in the measurement, $(x, y)_{\text{err}}$
-are monitor offset errors and $(x, y)_{\text{cal}}$ are the offset calibration
-factors. $\theta_{\text{err}}$ and $\phi_{\text{err}}$ are error tilt and ``crunch''
-angles, and $\theta_{\text{cal}}$ and $\phi_{\text{cal}}$ are the corresponding
-calibration angles. Finally, $dg_{x,\text{err}}$ and $dg_{y,\text{err}}$ are the
-horizontal and vertical gain errors, and $dg_{x,\text{cal}}$ and $dg_{y,\text{cal}}$
-are the corresponding calibration gains.
+Here $dg_x$ and $dg_y$ represent gain errors and the angles $\theta$ and $\psi$ are tilt and 
+``crunch'' errors.
 
-The calibration variables are useful for simulating the process where
-a measurement or series of measurements is analyzed to find the values
-of the error parameters. In this case, the measured position $(x,
-y)_m$ represents the beam position corrected for ``known'' offsets,
-tilts, and gain errors.
+In the above equations, various quantities are writen as a difference between an ``error'' quantity
+and a ``calibration'' quantity:
+\begin{alignat}{1}
+  x_0     &= x_{\text{err}} - x_{\text{cal}} \CRNO
+  y_0     &= y_{\text{err}} - y_{\text{cal}} \CRNO
+  \psi   &= \psi_{\text{err}}   - \psi_{\text{cal}} \CRNO
+  \theta &= \theta_{\text{err}} - \theta_{\text{cal}} \\
+  dg_x     &= dg_{x,\text{err}} - dg_{x,\text{cal}} \CRNO
+  dg_y     &= dg_{y,\text{err}} - dg_{y,\text{cal}} \nonumber
+\end{alignat}
+See \sref{s:meas.attrib} for the element attribute names that correspond to these quantities.
+
+The calibration component is useful in a simulation where initally the error quantities are set to
+represent the errors in the monitors. After this, analysis of orbit data with the machine in various
+states can be used to calculate a best guess as to what the errors are. The calculated error values
+can then be put in the calibration quantities. This represents a correction in software of the
+errors in the monitors. Further simulations of orbit measurements will show how well the actual orbit
+can be deduced from the measured orbit.
 
 %-----------------------------------------------------------------
 \subsection{Dispersion Measurement}
 \label{Dispersion!measurement}
 
-A dispersion measurement is considered to be the result of measuring the
-orbit at two different energies. The measured values are then
+A dispersion measurement is considered to be the result of measuring the orbit at two different
+energies. The measured values are then
 \begin{equation}
   \begin{pmatrix}
     \eta_x \\

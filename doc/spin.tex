@@ -48,7 +48,7 @@ and
 Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and magnetic fields, $\Bf B_\perp$
 and $\Bf B_\parallel$ are the components perpendicular and parallel to the particle's momentum,
 $\gamma$ is the particle's relativistic gamma factor, $q$, and $m$ are the particle's charge and
-mass, $\bfbeta$ is the normalized velocity, $a = (g-2)/2$ is the particle's anomalous gyro-magnetic
+mass, $\bfbeta$ is the normalized velocity, $a = (g-2)/2$ is the particle's anomalous magnetic
 moment (values given in Table~\ref{t:constants}), and $\eta$ is the normalized electric dipole
 moment which is related to the dipole moment $\Bf d$ via
 \begin{equation}
@@ -164,7 +164,7 @@ Instantaneously, the beam can be fully polarized but the average over many turns
 position $s$, cannot exceed $\left< \bfS \right>_{\max}$.
 
 Another quantity that can be computed from knowledge of $\bfn$ is the equilibrium polarization of a beam
-$\bfP_{dk}$ using the Derbenev-Kondratenko-Mane formula \cite{b:barber99}:
+$\bfP_{dk}$ using the Derbenev-Kondratenko-Mane formula\cite{b:barber99}.
 \begin{align}
   \bfP_{dk}(s) &= -\bfn(s) \, P_{dk} \\
   P_{dk} &= -\frac{8}{5 \, \sqrt{3}}
@@ -174,10 +174,11 @@ $\bfP_{dk}$ using the Derbenev-Kondratenko-Mane formula \cite{b:barber99}:
     \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>}
     \nonumber
 \end{align}
-where $<>$ denotes an average over phase space, $g = 1/\rho$ is the bending
-strength ($\rho$ is the bending radius), $\delta$ is the fractional energy deviation which, for
-ultra-relativistic particles, is the same as phase space $p_z$, $\what\bfs$ is the unit vector in
-the direction of motion, and $\what\bfb$ is defined to be
+This formula neglects any non-radiative processes so it is generally only valid for positrons and
+electrons.  In the above formula $<>$ denotes an average over phase space, $g = 1/\rho$ is the
+bending strength ($\rho$ is the bending radius), $\delta$ is the fractional energy deviation which,
+for ultra-relativistic particles, is the same as phase space $p_z$, $\what\bfs$ is the unit vector
+in the direction of motion, and $\what\bfb$ is defined to be
 \begin{equation}
   \what\bfb \equiv \frac{\what\bfs \cross d\what\bfs/ds}{d\what\bfs/ds}
 \end{equation}
@@ -218,7 +219,7 @@ The \vn{SLIM} formalism\cite{b:chao.spin,b:barber99}, introduced by Alex Chao (t
 an early computer program that implemented the formalism), is a way to represent the linearized
 (that is, first order) orbital and spin transport as an $8 \cross 8$ matrix which then can be
 analyzed. The idea is to expand the transport map around the closed orbit $(\bfr_0, \bfn_0)$ where
-$\bfr_0$ is the orbital closed orbit and $\bfn_0$ is ``spin closed orbit'' namely the unit-vector,
+$\bfr_0$ is the orbital closed orbit and $\bfn_0$ is the ``spin closed orbit''. Namely the unit-vector,
 one-turn periodic solution of the Thomas-BMT equation on 
 %
 $\bfr_0$\footnote{Warning: The symbol $\hat n$ or
@@ -252,7 +253,7 @@ The axes $\bfl_0(s)$ and $\bfm_0(s)$ are solutions of the Thomas-BMT equation on
 and, generally, are not one-turn periodic. The axes $\bfl(s)$ and $\bfm(s)$ are chosen to be
 one-turn periodic but can have an arbitrary $s$ dependence which can be chosen for convenience
 otherwise. The axes $\bfl_0(s)$ and $\bfm_0(s)$ are used for spin-matching and $\bfl(s)$ and
-$\bfm(s)$ is used for calculating polarization and depolarization.  With respect to these axes, a
+$\bfm(s)$ are used for calculating polarization and depolarization.  With respect to these axes, a
 unit-length spin $\bfS$ can be written as
 \begin{align}
   \bfS &= \sqrt{1- \alpha_0^2 - \beta_0^2} ~\bfn_0 + \alpha_0 \, \bfl_0 + \beta_0 \, \bfm_0 
@@ -314,22 +315,22 @@ $\bfm_0$ at that $s$-position can be chosen somewhat arbitrarily to form the rig
 system. Sometimes it is possible to make a special choice of the initial $\bfl_0$ and $\bfm_0$ in
 order to simplify the $\bfG$ matrices. For example, in a section where there are only drifts and
 quadrupoles so that there is no spin rotation for a particle traveling on the centerline, with
-$\bfn_0$ pointing vertical, a choice of $\bfm_0$ pointing in the longitudinal $s$-direction results
+$\bfn_0$ pointing vertically, a choice of $\bfm_0$ pointing in the longitudinal $s$-direction results
 in the first line of the $\bfG$ matrix for the section being zero. After the initial $\bfl_0$ and
 $\bfm_0$ axes have been specified at some initial $s$, the axes can be transported along the closed
 orbit of the section.
 
-If $\bfG$ were zero everywhere, the spin motion would be completely decoupled from the orbital
-motion (at least to first order) and the depolarization rate $\tau_{dep}^{-1}$ given by \Eq{tdep}
-would be zero since $\partial\bfn / \partial\delta$ would be zero. Therefore, spin-matching analysis
-for a section of the ring involves adjusting the parameters (quadrupole strengths, drift lengths
-etc) of the section so as to minimize elements in appropriate columns of the $\bfG$ matrix. This 
-decreases the rate of depolarization by minimizing $\partial\bfn/\partial\delta$ at the
-dipole magnets (where $g$ in \Eq{tdep} is nonzero) \cite{b:barber99}. Such adjustments are made
-while simultaneously maintaining acceptable Courant-Snyder parameters and for this the closed orbit
-should be taken to be the design orbit.  This optimization can be carried out using standard
-facilities in \bmad. The calculation of $\partial\bfn/\partial\delta$ in the SLIM approximation is
-described below.
+If the one-turn $\bfG$ were zero everywhere, the spin motion would be completely decoupled from the
+orbital motion (at least to first order) and the depolarization rate $\tau_{dep}^{-1}$ given by
+\Eq{tdep} would be zero since $\partial\bfn / \partial\delta$ would be zero. Therefore,
+spin-matching analysis for a section of the ring involves adjusting the parameters (quadrupole
+strengths, drift lengths etc) of the section so as to minimize elements in appropriate columns of
+the $\bfG$ matrix. This decreases the rate of depolarization by minimizing
+$\partial\bfn/\partial\delta$ at the dipole magnets (where $g$ in \Eq{tdep} is nonzero)
+\cite{b:barber99}. Such adjustments are made while simultaneously maintaining acceptable
+Courant-Snyder parameters and for this the closed orbit should be taken to be the design orbit.
+This optimization can be carried out using standard facilities in \bmad. The calculation of
+$\partial\bfn/\partial\delta$ in the SLIM approximation is described below.
 
 The process for calculating electron polarization and the rate of depolarization in the \vn{SLIM}
 formalism is as follows. First, the $8 \times 8$ matrix $\widetilde\bfM$ for one-turn is calculated
