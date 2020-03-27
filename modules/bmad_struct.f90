@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 242
+integer, parameter :: bmad_inc_version$ = 243
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -741,7 +741,7 @@ type high_energy_space_charge_struct
 end type    
 
 type xy_disp_struct
-  real(rp) :: eta = 0, etap = 0
+  real(rp) :: eta = 0, etap = 0, sigma = 0
 end type
 
 ! Structure to hold the information of where an individual element is in the lattice.

@@ -101,10 +101,8 @@ endif
 if (any(m_com%value(ix_attribs) /= ele%value(ix_attribs))) then
   x_gain = 1 + ele%value(x_gain_err$) - ele%value(x_gain_calib$)
   y_gain = 1 + ele%value(y_gain_err$) - ele%value(y_gain_calib$)
-  x_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) + &
-                        (ele%value(crunch$) - ele%value(crunch_calib$))
-  y_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) - &
-                        (ele%value(crunch$) - ele%value(crunch_calib$))
+  x_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) + (ele%value(crunch$) - ele%value(crunch_calib$))
+  y_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) - (ele%value(crunch$) - ele%value(crunch_calib$))
   if (x_angle == 0 .and. y_angle == 0) then
     m_com%M_m(1,1) = x_gain
     m_com%M_m(1,2) = 0
