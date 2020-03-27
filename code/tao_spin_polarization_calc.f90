@@ -164,7 +164,7 @@ do ie = 0, branch%n_ele_track
 
   ele => branch%ele(ie)
   call calc_radiation_tracking_integrals (ele, orbit(ie), branch%param, end_edge$, int_gx, int_gy, int_g2, int_g3)
-  if (int_g2 /= 2) then
+  if (int_g2 /= 0) then
     if (int_gx /= 0 .or. int_gy /= 0) then
       b_vec = [int_gy, -int_gx, 0.0_rp]
       b_vec = b_vec / norm2(b_vec)
