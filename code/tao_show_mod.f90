@@ -220,7 +220,7 @@ type (tao_spin_polarization_struct) spin_pol
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
-real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del
+real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b
 real(rp), allocatable :: value(:)
 
@@ -1362,6 +1362,7 @@ case ('element')
 
   tao_lat => tao_pointer_to_tao_lat (u, lat_type)
   branch => tao_lat%lat%branch(ele%ix_branch)
+  tao_branch => tao_lat%tao_branch(ele%ix_branch)
 
   ! Show data associated with this element
 
@@ -1388,6 +1389,13 @@ case ('element')
     u%calc%lattice = .true.
     call tao_lattice_calc (ok)
   endif
+
+  gamma2 = (branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle))**2
+  b_emit = tao_branch%modes%b%emittance + tao_branch%modes%b%synch_int(6) / gamma2
+  ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance)
+  ele%b%sigma = sqrt(ele%b%beta * b_emit)
+  ele%x%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance + (ele%x%eta * tao_branch%modes%sigE_E)**2)
+  ele%y%sigma = sqrt(ele%b%beta * b_emit                       + (ele%y%eta * tao_branch%modes%sigE_E)**2)
 
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
@@ -3447,6 +3455,9 @@ case ('spin')
   ! what_to_print = standard
 
   if (what_to_print == 'standard') then
+    ele => branch%ele(0)
+    r = anomalous_moment_of(branch%param%particle) * ele%value(e_tot$) / mass_of(branch%param%particle)
+    nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
     nl=nl+1; lines(nl) = 'bmad_com components:'
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
@@ -4155,22 +4166,38 @@ case ('twiss_and_orbit')
 
 !----------------------------------------------------------------------
 ! universe
-    
+! Note: Currently code for -element switch not implemented.
+  
 case ('universe')
 
-  if (word1 == ' ') then
-    ix_u = s%com%default_universe
-  else
-    read (word1, *, iostat = ios) ix_u
-    if (ios /= 0) then
-      nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
-      return
-    endif
-    if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
-      nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
-      return
-    endif
-  endif
+  ix_u = s%com%default_universe
+  ele_name = ''
+
+  do
+    call tao_next_switch (what2, ['-element'], .true., switch, err, ix)
+    if (err) return
+    select case (switch)
+    case ('')
+      exit
+
+    case ('-element');       
+      ele_name = what2(:ix)
+      call string_trim(what2(ix+1:), what2, ix)
+
+    case default
+      read (switch, *, iostat = ios) ix_u
+      if (ios /= 0) then
+        nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
+        return
+      endif
+      if (ix_u < lbound(s%u, 1) .or. ix_u > ubound(s%u, 1)) then
+        nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
+        return
+      endif
+    end select
+  enddo
+
+  !
 
   u => s%u(ix_u)
   lat => u%model%lat

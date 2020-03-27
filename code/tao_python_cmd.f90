@@ -4105,6 +4105,8 @@ case ('var')
 ! Command syntax:
 !   python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^{weight}^^{step}^^{low_lim}^^{high_lim}^^
 !                                                                     {merit_type}^^{good_user}^^{key_bound}^^{key_delta}
+! {var_name} is something like "kick[5]".
+! Before using var_create, setup the appropriate v1_var array using the "python var_v1_create" command.
 
 case ('var_create')
 
