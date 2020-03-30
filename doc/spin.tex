@@ -432,20 +432,24 @@ matrix $\widetilde \bfM$\cite{b:barber99}. Here the periodic $(\bfl(s), \bfn_0(s
 \bfm(s))$ coordinate system must be used.  The eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$
 ($j = 1, \ldots 8$) of $\widetilde \bfM$ are computed first. These eigenvectors are of the form
 \begin{align}
-  \bfu_j &= \begin{pmatrix} \bfv_j \\ \bfw_j \end{pmatrix}, \quad j = 1, \ldots, 6 
+  \bfu_j &= \begin{pmatrix} \bfv_j \\ \bfw_j \end{pmatrix}, \quad j = 1, \ldots, 6
   \label{qvw} \\
   \bfu_j &= \begin{pmatrix} \Bf 0_6 \\ \bfw_j \end{pmatrix}, \quad j = 7, 8 \nonumber
 \end{align}
-where $\bfv_j$ are eigenvectors of the orbital submatrix $\bfM$, and the $\bfw_j$ are computed via
+where $\bfv_j$ are eigenvectors of the orbital submatrix $\bfM$, and for the first six eigenvectors
+the $\bfw_j$ are computed via
 \begin{equation}
-  \bfw_j = -\left[ \bfD - \lambda_j \, \bfI_2 \right]^{-1} \bfG \, \bfv_j
+  \bfw_j = -\left[ \bfD - \lambda_j \, \bfI_2 \right]^{-1} \bfG \, \bfv_j, \quad j = 1, \ldots, 6
   \label{wdlgv}
 \end{equation}
 where $\bfI_2$ is the $2 \times 2$ unit matrix. These eigenvectors, computed at the chosen starting
 point $s1$ and are then propagated to other $s$-positions $s2$ using ${\widetilde \bfM}(s1,
-s2)$. After this, ${\partial \bfn}/\partial \delta$ is computed at each $s$-position via
+s2)$. Once the eigenvectors are computed, ${\partial \bfn}/\partial \delta$, which is computed at
+constant $x$, $p_x$, $y$, $p_y$, and $z$, is obtained via
 \begin{equation}
-  \frac{\partial \bfn}{\partial \delta} = \sum_{j = 1}^6 A_j \, \bfw_j
+  \frac{\partial \bfn}{\partial \delta} = 
+  \left( \frac{\partial \alpha}{\partial \delta}, \frac{\partial \beta}{\partial \delta} \right) = 
+  \sum_{j = 1}^6 A_j \, \bfw_j
   \label{ndaw}
 \end{equation}
 with the $A_j$ being computed by inverting the equation

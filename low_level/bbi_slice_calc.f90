@@ -1,11 +1,7 @@
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
 !+
 ! Subroutine bbi_slice_calc (ele, n_slice, z_slice)
 !
-! Routine to compute the longitudinal positions of the slices of
-! a beambeam element.
+! Routine to compute the longitudinal positions of the slices of a beambeam element.
 !
 ! Input:
 !   ele        -- ele_struct: beambeam element
@@ -41,8 +37,6 @@ else
   print *, 'ERROR IN BBI_SLICE_CALC: N_SLICE IS NEGATIVE:', n_slice
   if (global_com%exit_on_error) call err_exit
 endif
-
-z_slice(n_slice+1) = 0
 
 end subroutine bbi_slice_calc
 

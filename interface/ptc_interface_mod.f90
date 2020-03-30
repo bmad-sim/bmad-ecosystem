@@ -3433,10 +3433,11 @@ case (elseparator$)
 case (ab_multipole$, multipole$)
   ptc_key%magnet = 'multipole'
 
+! beambeam element in PTC is a special drift that must be setup after the integration 
+! node array of the fibre is created.
+
 case (beambeam$)
-  ptc_key%magnet = 'beambeam'
-  call out_io (s_fatal$, r_name, 'BEAMBEAM ELEMENT NOT YET IMPLEMENTED IN PTC!')
-  if (global_com%exit_on_error) call err_exit
+  ptc_key%magnet = 'drift'
 
 case (wiggler$, undulator$)
   ptc_key%magnet = 'wiggler'
@@ -3628,7 +3629,11 @@ endif
 
 !-----------------------------
 ! Create ptc_fibre
-! The EXCEPTION argument is an error_flag. Set to 1 if error. Never reset.
+! The EXCEPTION argument is an error_flag. Set to 1 if there is an error. Never reset.
+
+! The integration node array of the fibre is not setup if for_layout = True.
+! [In this case the setup is done on the entire layout later.]
+! Therefore only do the beambeam setup (which needs this array to exist) if for_layout = False.
 
 call set_ptc_quiet(12, set$, n)
 
@@ -3671,6 +3676,8 @@ else
   ptc_fibre%magp%p%gambet  => ptc_fibre%gambet
   ptc_fibre%magp%p%mass    => ptc_fibre%mass
   ptc_fibre%magp%p%charge  => ptc_fibre%charge
+
+  if (ele%key == beambeam$) call beambeam_fibre_setup(ele, ptc_fibre, param)
 endif
 
 if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
@@ -4050,6 +4057,106 @@ endif
 call ele_to_fibre_hook (ele, ptc_fibre, param)
 
 end subroutine ele_to_fibre
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine beambeam_fibre_setup(ele, ptc_fibre, param)
+!
+! Routine to setup a fibre to handle the beambeam interaction.
+!
+! Input:
+!   ele       -- ele_struct: Bmad beambeam element.
+!   param     -- lat_param_struct: Lattice parameters.
+!
+! Output:
+!    ptc_fibre  -- Corresponding PTC fibre.
+!-
+
+subroutine beambeam_fibre_setup (ele, ptc_fibre, param)
+
+use madx_ptc_module, only: integration_node, alloc, DO_BEAM_BEAM
+
+implicit none
+
+type (ele_struct), target :: ele
+type (fibre), target :: ptc_fibre
+type (lat_param_struct) param
+type (integration_node), pointer :: node
+
+real(rp) sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, sig_x, sig_y
+real(rp) alpha, beta, s_pos, bbi_const
+real(rp), allocatable :: z_slice(:)
+
+integer i, n_slice
+
+character(*), parameter :: r_name = 'beambeam_fibre_setup'
+
+!
+
+DO_BEAM_BEAM = .true.
+n_slice = max(1, nint(ele%value(n_slice$)))
+beta_a0 = 0;  beta_b0 = 0
+sig_x0 = ele%value(sig_x$)
+sig_y0 = ele%value(sig_y$)
+
+if (ele%value(beta_a$) == 0) then
+  beta_a0 = ele%a%beta
+  alpha_a0 = ele%a%alpha
+else
+  beta_a0 = ele%value(beta_a$)
+  alpha_a0 = ele%value(alpha_a$)
+endif
+
+if (ele%value(beta_b$) == 0) then
+  beta_b0 = ele%b%beta
+  alpha_b0 = ele%b%alpha
+else
+  beta_b0 = ele%value(beta_b$)
+  alpha_b0 = ele%value(alpha_b$)
+endif
+
+if (n_slice > 1 .and. (beta_a0 == 0 .or. beta_b0 == 0)) then
+  call out_io (s_error$, r_name, 'BETA FUNCTION IS ZERO AT BEAMBEAM ELEMENT: ' // ele%name, &
+                                 'WILL IGNORE LONGITUDINAL BEAM SIZE VARIATIONS.')
+endif
+
+allocate (z_slice(n_slice))
+call bbi_slice_calc (ele, n_slice, z_slice)
+
+! The fibre has already been initalized to be a drift by ele_to_fibre.
+! The beambeam information is put in the third integration node.
+
+node => ptc_fibre%t1%next%next
+if (.not. associated(node%bb)) call alloc(node%bb, n_slice, 0.0_dp)
+
+node%bb%n = n_slice
+
+do i = 1, n_slice
+  s_pos = z_slice(i) / 2  ! Factor of 2 since strong beam is moving.
+  if (beta_a0 == 0 .or. beta_b0 == 0) then
+    sig_x = sig_x0
+    sig_y = sig_y0
+  else
+    beta = beta_a0 - 2 * alpha_a0 * s_pos + (1 + alpha_a0**2) * s_pos**2 / beta_a0
+    sig_x = sig_x0 * sqrt(beta / beta_a0)
+    beta = beta_b0 - 2 * alpha_b0 * s_pos + (1 + alpha_b0**2) * s_pos**2 / beta_b0
+    sig_y = sig_y0 * sqrt(beta / beta_b0)
+  endif
+
+  bbi_const = -2.0_rp * param%n_part * ele%value(charge$) * classical_radius_factor / ele%value(e_tot$)
+
+  node%bb%bbk(i,:) = 0  ! MAD closed orbit kick. Not used here.
+  node%bb%xm(i) = 0   ! Transverse displacement.
+  node%bb%ym(i) = 0
+  node%bb%sx(i) = sig_x
+  node%bb%sy(i) = sig_y
+  node%bb%fk(i) = -bbi_const / n_slice
+  node%bb%s(i)  = z_slice(i) / 2   ! Factor of 2 due to strong beam velocity.
+enddo
+
+end subroutine beambeam_fibre_setup
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
