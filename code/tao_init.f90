@@ -300,7 +300,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (u%model%lat%branch(ib)%param%geometry == closed$) then
       call calc_z_tune(u%model%lat, ib)
       if (.not. s%global%rf_on) then
-        call out_io (s_info$, r_name, "Note: global%rf_on = False  -->  RFCavities will be turned off in lattices")
+        call out_io (s_info$, r_name, 'Note: Default is for RFCavities to be turned off. Use the "-rf_on" switch on ', &
+                                      '      the command line or set global%rf_on = True to turn on the RF.')
         call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
         u%model%tao_branch(0)%orb0 = u%model%lat%particle_start
       endif
