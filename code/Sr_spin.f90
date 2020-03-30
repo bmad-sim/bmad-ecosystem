@@ -44,7 +44,7 @@ module ptc_spin
   REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
   integer  :: item_min=3,mfdebug
- 
+  private quaternion_8_to_matrix
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
 
 
@@ -55,6 +55,10 @@ module ptc_spin
   INTERFACE alloc
      MODULE PROCEDURE alloc_temporal_probe
      MODULE PROCEDURE alloc_temporal_beam
+  END INTERFACE
+
+  INTERFACE makeso3
+     MODULE PROCEDURE quaternion_8_to_matrix
   END INTERFACE
 
   INTERFACE TRACK_PROBE2     ! semi private routine
@@ -531,6 +535,27 @@ contains
   end subroutine radiate_2r
 
 
+  subroutine  quaternion_8_to_matrix(q,s)
+    implicit none
+    TYPE(quaternion), INTENT(INOUT) :: q
+    real(dp) s(3,3)
+    integer i,j
+    type(quaternion) sq,sf
+    
+
+
+    do i=1,3
+     s=0.0_dp
+     sq%x(i)=1.0_dp
+     sf=q*sq*q**(-1)
+     do j=1,3
+       s(j,i)=sf%x(j)
+     enddo
+    enddo
+
+
+    end subroutine  quaternion_8_to_matrix
+
   subroutine radiate_2p(c,DS,FAC,p,b2,dlds,XP,before,k,POS,E,B)
     implicit none
     TYPE(integration_node), POINTER::c
@@ -543,9 +568,10 @@ contains
     TYPE(REAL_8), intent(in):: B2,dlds
     LOGICAL(LP),intent(in) :: BEFORE
     TYPE(REAL_8) st,av(3),z,x(6)
-    real(dp) b30,x1,x3,denf,a(3),dspin(3),bs(3),ee(3),bb(3),lambda
+    type(quaternion) q
+    real(dp) b30,x1,x3,denf,a(3),dspin(3),bs(3),ee(3),bb(3),lambda,s(3,3),theta
     type(damap) xpmap
-    integer i,j
+    integer i,j,ja,ia
     type(internal_state) k
 
     IF(.NOT.CHECK_STABLE) return
@@ -553,6 +579,7 @@ contains
          ee(i)=e(i)
          bb(i)=b(i)
         enddo
+
     call alloc(x)
     x=p%x
 
@@ -584,8 +611,18 @@ contains
           enddo
        enddo    
        call kill(xpmap)
-
+! new eq 15
        if(k%spin.and.k%envelope) then
+       if(p%use_q) then
+         q=p%q   
+         call makeso3(q,s)
+       else
+        DO I=1,3
+           DO J=1,3
+              s(i,j)=p%S(J)%X(I)
+           ENDDO
+        ENDDO         
+       endif
  !!  lambda
         lambda=denf*24.0_dp*sqrt(3.0_dp)/(1.0_dp+x(5))**2/55.0_dp
 
@@ -599,6 +636,25 @@ contains
              p%damps(i,j)= x1*2.0_dp/9.0_dp*ee(i)*ee(j)   + p%damps(i,j)
          enddo
         enddo
+
+!! equation 15 of Barber in Chao's handbook
+
+        theta=(denf/2.0_dp/11.0_dp)*18.0_dp !  comparing to tau_dep
+! if(c%parent_fibre%mag%p%b0/=0)         then
+p%t_bks0=p%t_bks0+theta  
+!write(6,*) c%parent_fibre%mag%p%b0**2,b30t,denf
+!endif 
+
+        do j=1,3 
+          do i=1,3
+            do ja=1,3 
+             do ia=1,3
+
+            p%t_bks(j,ja)=p%t_bks(j,ja) - theta*2.0_dp* ee(i)*s(i,j) *ee(ia)*s(ia,ja) /9.0_dp
+             enddo
+           enddo
+         enddo
+       enddo
 
         call crossp(ee,bb,a)
         call crossp(ee,a,dspin)
@@ -718,7 +774,17 @@ contains
        enddo
        call kill(xpmap)
        if(k%spin.and.k%envelope) then
- 
+        if(p%use_q) then
+         q=p%q   
+         call makeso3(q,s)
+       else
+        DO I=1,3
+           DO J=1,3
+              s(i,j)=p%S(J)%X(I)
+           ENDDO
+        ENDDO         
+       endif
+
         x1=denf*9.0_dp/((1.0_dp+x(5))**2 *11.0_dp)
         do i=1,3
          p%damps(i,i)=p%damps(i,i)-x1
@@ -730,6 +796,25 @@ contains
         enddo
 !!  lambda
         lambda=denf*24.0_dp*sqrt(3.0_dp)/(1.0_dp+x(5))**2/55.0_dp
+!! equation 15 of Barber in Chao's handbook
+ 
+        theta=(denf/2.0_dp/11.0_dp)*18.0_dp !  comparing to tau_dep
+        
+! if(c%parent_fibre%mag%p%b0/=0)         then
+p%t_bks0=p%t_bks0+theta  
+!write(6,*) c%parent_fibre%mag%p%b0**2,b30t,denf
+!endif 
+
+        do j=1,3 
+          do i=1,3
+            do ja=1,3 
+             do ia=1,3
+
+            p%t_bks(j,ja)=p%t_bks(j,ja) - theta*2.0_dp* ee(i)*s(i,j) *ee(ia)*s(ia,ja) /9.0_dp
+             enddo
+           enddo
+         enddo
+       enddo
 
         call crossp(ee,bb,a)
         call crossp(ee,a,dspin)

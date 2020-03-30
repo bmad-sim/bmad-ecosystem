@@ -2378,6 +2378,7 @@ endif
     endif
 
 ds%damps=r%damps
+
 ds%d_spin=r%d_spin
 ds%b_kin=r%b_kin
 
@@ -5629,15 +5630,21 @@ endif
 
  end   SUBROUTINE  EQUALql_ql
 
-  SUBROUTINE  print_ql(S2,imaginary,mf)
+  SUBROUTINE  print_ql(S2,imaginary,quaternion_only,mf)
     implicit none
     type (q_linear),INTENT(inOUT)::S2
     integer, optional :: mf
-    logical, optional :: imaginary
+    logical, optional :: imaginary,quaternion_only
     integer i,mff
+    logical q_only
+
+    q_only=.false.
+    if(present(quaternion_only)) q_only=quaternion_only
 
       mff=6
      if(present(mf)) mff=mf 
+
+if(.not.q_only) then
 
 write(mff,*) " Orbital Matrix "
 if(present(imaginary) )write(mff,*) "Real part "
@@ -5657,7 +5664,7 @@ write(mff,*) "Imaginary part "
 endif
 endif
 
-
+endif
 
 write(mff,*) " Quaternion Matrix "
 if(present(imaginary) )write(mff,*) "Real part "
@@ -17455,7 +17462,7 @@ implicit none
 type(c_damap), intent(inout) ::  u,u_c
 real(dp), optional, intent(inout) :: phase(:),damping(:)
 real(dp), optional, intent(inout) :: spin_tune(2)
-type(q_linear), optional :: q_c,q_ptc,q_rot
+type(q_linear), optional :: q_c,q_ptc,q_rot   ! q_c is properly factorised
 real(dp) b(6,6),b0(6,6),ri(6,6),ang,damp(3),t,cphi,sphi,s(6,6),aq,daq
 type(q_linear) q ,qr,qc,qrot
 complex(dp) cri(6,6)

@@ -962,13 +962,22 @@ contains
     real(dp) GETchar
     TYPE (real_8), INTENT (IN) :: S1
     CHARACTER(*)  , INTENT (IN) ::  S2
+    integer i,J
     !  integer localmaster
 
     GETchar=0.0_dp
     if(s1%kind==m2) then
        ! GETchar%t=s1%t.sub.s2   !  OLD
        GETchar=s1%t.sub.s2   !  CHANGE
-
+    elseif(s1%kind==m1) then  ! found 2020/3/30 by David Sagan in Beam beam
+       GETchar=s1
+       do i=1,len_trim(s2)
+          CALL  CHARINT(s2(i:i),j)
+          if(j/=0) then
+             GETchar=0.0_dp
+             exit
+          endif
+       enddo
     endif
 
   END FUNCTION GETchar

@@ -4451,6 +4451,7 @@ we=1
        !      IF(iteM==MAX_FIND_ITER+100) THEN
        !        write(6,*) " Unstable in find_orbit without TPSA"
        write(6,*) "Maximum number of iterations in find_orbit without TPSA"
+        check_Stable=.false.
         radfac=1
        return
        
@@ -4496,13 +4497,17 @@ subroutine taper(f1,fix,nsf,state,eps,file)
 
 implicit none
 !!!!!!  PTC stuff
-real(dp) x(6),fix(6),se,eps
+real(dp) x(6),fix(6),se,eps 
 type(layout), pointer :: ring
 type(internal_state) state
 integer i,mf,k,nsf
 type(fibre), pointer ::p,f1
 type(work) w,we
 character(*), optional :: file
+type(c_damap) id
+type(probe_8) rayp
+type(probe) ray
+type(c_normal_form) nf
 
 ring=>f1%parent_layout
 
@@ -4519,13 +4524,38 @@ ring=>f1%parent_layout
     
 x=fix
 
-do k=1,nsf
+do k=0,nsf
 radfac=k
 radfac=radfac/nsf
 
 write(6,*) "iteration ",k
 
 call FIND_ORBIT_tapering(x,eps,STATE,f1) 
+
+call init(state,1,0)
+
+call alloc(id)
+call alloc(nf)
+call alloc(rayp)
+id=1
+ray=x
+rayp=id+ray
+
+call propagate(rayp,state,fibre1=f1)
+id=rayp
+call c_normal(id,nf)
+
+write(6,*) " tunes in tapering "
+write(6,format3) nf%tune(1:3)
+
+ray=rayp
+call print(id%v(5))
+call print(id%v(6))
+write(6,format6) x
+write(6,format6) ray%x
+call kill(id)
+call kill(nf)
+call kill(rayp)
 
 if(.not.check_stable) then
 radfac=1

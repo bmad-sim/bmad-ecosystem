@@ -326,7 +326,7 @@ else
 
     p%reloaded=0
      allocate(p%xs(n),p%stable(n),p%turn(n))
-
+     p%xs(:)%use_q=use_quaternion
      p%stable =.true.
      p%turn=0
  
