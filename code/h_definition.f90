@@ -344,7 +344,9 @@ type probe_8
    type(integration_node),pointer :: last_node=>null()
   real(dp) e
   real(dp) damps(3,3)
-  real(dp) b_kin(3,3),D_spin(3)
+  real(dp) b_kin(3,3)
+  real(dp) D_spin(3)
+  real(dp) t_bks(3,3),t_bks0 
 end type probe_8
   !@3 ---------------------------------------------</br>
   type TEMPORAL_PROBE

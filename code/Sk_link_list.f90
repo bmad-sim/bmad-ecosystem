@@ -2590,20 +2590,41 @@ CONTAINS
 
   !  Beam beam stuff
 
-  SUBROUTINE ALLOC_BEAM_BEAM_NODE(B)
+  SUBROUTINE ALLOC_BEAM_BEAM_NODE(B,N,S)
     IMPLICIT NONE
     TYPE(BEAM_BEAM_NODE),POINTER :: B
-
+    integer, optional ::n 
+    integer n0
+    logical np,sp
+    real(dp), optional :: S
+    real(dp) s0,ds
+    n0=1
+    s0=0
+    ds=0
+    sp=.false.
+    np=.false.
+    if(present(n)) then
+     np=.true.
+     n0=n 
+    endif
+    if(present(S)) then
+     S0=S
+    sp=.true.
+    endif
+ !   if((np.and.(.not.sp)).or.(sp.and.(.not.np))) then
+ !     write(6,*) "both S and N must be present if one is present "
+ !      stop 
+ !   endif
     allocate(B)
-    !    ALLOCATE(B%DS)
-    ALLOCATE(B%S)
-    ALLOCATE(B%FK)
-    ALLOCATE(B%SX)
-    ALLOCATE(B%SY)
-    ALLOCATE(B%XM)
-    ALLOCATE(B%YM)
+      ALLOCATE(B%S(n0))
+    ALLOCATE(B%n)
+    ALLOCATE(B%FK(N0))
+    ALLOCATE(B%SX(N0))
+    ALLOCATE(B%SY(N0))
+    ALLOCATE(B%XM(N0))
+    ALLOCATE(B%YM(N0))
     !    ALLOCATE(B%DPOS)
-    ALLOCATE(B%bbk(2))
+    ALLOCATE(B%bbk(N0,2))
     !    ALLOCATE(B%mid(3,3))
     !    ALLOCATE(B%o(3))
     ALLOCATE(B%A(3))
@@ -2629,6 +2650,8 @@ CONTAINS
     B%S=0.0_dp
     !    B%DPOS=0
     B%FK=0.0_dp
+    B%N=n0
+
   END SUBROUTINE ALLOC_BEAM_BEAM_NODE
 
   SUBROUTINE KILL_BEAM_BEAM_NODE(B)
@@ -2637,11 +2660,13 @@ CONTAINS
 
     !    DEALLOCATE(B%DS)
     DEALLOCATE(B%FK)
+    DEALLOCATE(B%S)
+    DEALLOCATE(B%N)
+    DEALLOCATE(B%n)
     DEALLOCATE(B%SX)
     DEALLOCATE(B%SY)
     DEALLOCATE(B%XM)
     DEALLOCATE(B%YM)
-    DEALLOCATE(B%s)
     !    DEALLOCATE(B%DPOS)
     DEALLOCATE(B%bbk)
     !    DEALLOCATE(B%mid)

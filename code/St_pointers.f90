@@ -26,7 +26,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE
   real(dp) r_ap(2),x_ap,y_ap   ! default aperture
   integer :: kind_ap=2,file_ap=0                      ! Single aperture position and kind of aperture + file unit
   character(nlp) name_ap,namet(2)
-  character(255) :: filename_ap = "Tracking.txt"
+  character(255) :: filename_ap = "Tracking.txt",datafile
   character(255), private :: file_zher,filezhe, name_zhe
   integer, private :: k_zhe, number_zhe_maps_local
   integer last_npara 
@@ -35,7 +35,8 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE
   private thin
   real(dp) thin
   !  BEAM STUFF
-  REAL(DP) SIG(6) 
+  REAL(DP) SIG(6) ,Lbb
+  integer nbb
   REAL(DP) ait(6,6)
  
   logical :: nophase=.false. 
@@ -59,7 +60,10 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE
   logical :: onefunc = .true.,skipzero=.false.,skipcomplex=.true.
  type(probe), pointer :: xs0g(:) => null()
  logical ::  use_hermite =.false.
-
+ private get_polarisation
+real(dp) n_ang(3),lm(2)
+character(vp)snake
+integer isnake,nlm,no_pol
 
   INTERFACE SCRIPT
      MODULE PROCEDURE read_ptc_command
@@ -168,8 +172,8 @@ endif
     LOGICAL(LP) STRAIGHT,skip,fixp,skipcav,fact
     ! end
     ! TRACK 4D NORMALIZED
-    INTEGER POS,NTURN,resmax
-    real(dp) EMIT(6),APER(2),emit0(2),sca
+    INTEGER POS,NTURN,resmax,ngen
+    real(dp) EMIT(6),APER(2),emit0(2),sca,nturns
     integer nscan,mfr,ITMAX,MRES(4)
     real(dp), allocatable :: resu(:,:)
     ! END
@@ -905,6 +909,12 @@ endif
         endif
        case('BEAMBEAM')
           READ(MF,*) SC,pos,patchbb
+          nbb=0 
+          lbb=0
+          if(sc<0) then
+           read(mf,*) Lbb,nbb
+            sc=-sc
+          endif
           read(mf,*) X_ref(1), X_ref(2), X_ref(3), X_ref(4)
           if(patchbb) then
            read(mf,*) x
@@ -915,23 +925,31 @@ endif
           ! s(1) total ld
           ! s(2) local integration distance
           !          SC=MOD(SC,MY_RING%T%END%S(1))
+if(pos<1) then
+call locate_b_b(TL,sc,x_ref,patchbb,x,Lbb,nbb)
+endif
+
+if(pos>=1) then
           b_b=.false.
           TL=>my_ering%T%START
           DO j=1,my_ering%T%N
-             if(pos<1) then
-                IF(TL%S(1)<=SC.AND.TL%NEXT%S(1)>SC) then
-                   b_b=.true.
-                   exit
-                endif
-             else
+         !    if(pos<1) then
+         !       IF(TL%S(1)<=SC.AND.TL%NEXT%S(1)>SC) then
+         !!          b_b=.true.
+         !          exit
+         !       endif
+         !    else
                 if(j==pos) then
                    b_b=.true.
                    exit
                 endif
-             endif
+          !   endif
              TL=>TL%NEXT
           ENDDO
-          if(b_b.and.tl%cas/=case0) tl=>tl%next
+        do while(.true.) 
+           if(tl%cas==case0) exit
+           if(b_b.and.tl%cas/=case0) tl=>tl%next
+        enddo
           if(b_b.and.tl%cas==case0) then
              write(6,*) " Beam-Beam position at ",tl%parent_fibre%mag%name
              if(.not.associated(tl%BB)) call alloc(tl%BB)
@@ -949,6 +967,9 @@ endif
           else
              write(6,*) " Beam-Beam position not found "
           endif
+endif
+  
+ 
 
        case('TAPERING','TAPER')
            read(mf,*) i1    ! staircase for reachuing full radiation
@@ -2205,6 +2226,12 @@ write(6,*) x_ref
        case('PAUSE')
           WRITE(6,*) " Type enter to continue execution "
           READ(5,*)
+       case('POLARIZATION')
+         read(mf,*) nturns, ngen,no_pol
+         read(mf,*) n_ang,nlm,lm
+         read(mf,*) snake,isnake
+         read(mf,*) filename_ap,datafile
+        call compute_polarisation(my_ering,no_pol,n_ang,nlm,lm,nturns,ngen,snake,isnake,filename_ap,datafile)
        case('PRINTONCE')
           print77=.true.
           read77=.true.
@@ -2759,6 +2786,495 @@ write(6,*) x_ref
 
   END subroutine read_ptc_command
 
+subroutine locate_b_b(TL,sc,x_ref,patch,x,lbb,nbb)
+implicit none
+real(dp) sc,x_ref(6),lbb
+real(dp), optional :: x(6)
+logical, optional :: patch
+logical b_b
+integer j,nbb
+type(integration_node),pointer :: tl
+          b_b=.false.
+          TL=>my_ering%T%START
+          DO j=1,my_ering%T%N
+                 IF(TL%S(1)<=SC.AND.TL%NEXT%S(1)>SC) then
+                   b_b=.true.
+                   exit
+                endif
+             TL=>TL%NEXT
+          ENDDO
+
+        if(b_b.and.tl%cas/=case0) tl=>tl%next
+          if(b_b.and.tl%cas==case0) then
+             write(6,*) " Beam-Beam position at ",tl%parent_fibre%mag%name
+             if(.not.associated(tl%BB)) then
+              if(nbb==0) then
+               call alloc(tl%BB)
+                nbb=1
+              else
+               call alloc(tl%BB,nbb,lbb)
+                if(nbb>1) then
+               
+               do j=0,nbb-1
+                   tl%bb%s(j+1)= (j*lbb)/(nbb-1)-lbb/2.0_dp+tl%s(1)
+               enddo
+              endif
+              endif
+            endif
+             tl%bb%fk=X_ref(1)* X_ref(4)**2/nbb
+             tl%bb%sx=X_ref(2)* X_ref(4)
+             tl%bb%sy=X_ref(3)* X_ref(4)
+             !           if(pos<1) tl%bb%ds=SC-TL%S(1)
+             write(6,*) tl%pos,tl%parent_fibre%mag%name,' created'
+             !              write(6,*) " ds = ",tl%bb%ds
+             if(present(patch)) then
+             if(patch) then
+              tl%bb%patch=patch
+              tl%bb%a=x(1:3)
+              tl%bb%d=x(4:6)  
+              endif            
+             else
+              tl%bb%patch=.true.
+              tl%bb%a=0
+              tl%bb%d=0             
+              tl%bb%d(3)=sc-tl%s(1)
+            endif
+          else
+             write(6,*) " Beam-Beam position not found "
+          endif
+
+end subroutine locate_b_b
+
+!!!!!!!!!!!!!!!!   polarization scan  !!!!!!!!!!!!!!!
+subroutine  compute_polarisation(r,no,ang,nlm,lm,nturns,ngen,snake,isnake,plotfile,datafile)
+ implicit none
+type(layout), pointer :: r
+character(*) plotfile,datafile
+CHARACTER(*) snake
+integer isnake,nlm
+!!!!!!  PTC stuff
+real(dp) closed_orbit(6) , x(6),cut,energy,deltap,de,rotator,n_ave(3),xij,ang(3),dlm
+real(dp)  n0i(3),spin_damp(6,6),e_ij(6,6) ,circum,lm(2) 
+
+type(internal_state), target :: state,state_trackptc ,state0 
+type(probe) ray   
+type(probe_8) rayp
+type(c_damap) M,ID,U_1,as,a0,a1,a2   
+ integer i,k,no,mf,mfd,j,l,kprint,count,rplen,mfisf,kp,jj(6),i1,i2,i3,i4 !,n
+type(fibre), pointer ::f  
+type(integration_node), pointer :: it  
+character(255) mapfile
+
+type(tree_element_zhe)     t_olek_map(1:3) 
+type(probe_zhe) xs0_zhe 
+integer nbunch,je(6),ngen
+type(bunch) bunch_zhe  
+ 
+type(c_taylor) phase(4)
+real(dp) :: nturns, xj,deb ,dpol 
+ type(c_normal_form) nf
+logical ip,doit,track_ptc,reload ,old_use_quaternion
+real(dp) tune(1:3) , spin_tune 
+
+TYPE(c_spinor) ISF  
+     type(quaternion) q,q0
+ type(q_linear)  q_c,q_ptc
+
+    call get_length(r,circum)
+    circum=circum/clight
+ 
+ call kanalnummer(mfd,datafile) 
+call kanalnummer(mf,plotfile)
+
+! enforces quaternion rather than SO(3)
+old_use_quaternion=use_quaternion
+use_quaternion=.true.
+ !!! removing some annoying prints 
+c_verbose=.false.
+lielib_print(4)=0
+track_ptc=.false.
+
+ reload=.true.
+ 
+  if(track_ptc) then
+kprint=nturns/1000
+else
+kprint=nturns/10
+endif
+nbunch=ngen**3
+
+  call zhe_ini(use_quaternion)
+
+write(mfd,*) nlm
+dlm=(lm(2)-lm(1))/nlm
+
+do i4=0,nlm-1
+call alloc_bunch(bunch_zhe,nbunch)
+
+
+ rotator=(lm(1)+i4*(dlm ))*twopi
+ 
+
+ 
+!! initializes outside tracking
+
+ 
+
+! PTC tracking state
+state0=time0+spin0 +radiation0
+ state=state0+envelope0    
+state_trackptc=state0 +stochastic0
+
+
+! the state used in my windows graphical interface. Not harmful.
+ file_zhe="olek"
+
+ 
+!!!  r is a lattice called layout in PTC. Linked list of so-called fibres: magnets for your purpose
+r=>m_u%start
+!! creates an integration node layout, necessary for spin and looking inside magnets
+if(associated(r%t)) call make_node_layout(r)
+
+ 
+!  calculation of beam size using envelope theory
+call radia_new(r,1,state0,"radia.dat",e_ij=e_ij,spin_damp=spin_damp ,ngen=ngen,bunch_zhe=bunch_zhe  )
+
+
+ 
+! "it" points to an integration node
+it=>r%start%t1
+ 
+cut=1.d0/sqrt(ang(1)**2+ang(2)**2+ang(3)**2)
+k=0
+f=>r%start
+do i=1,r%n
+if(f%mag%name(1:isnake)==snake(1:isnake)) then
+
+f%patch%patch=5
+
+f%patch%a_ang=ang*cut*rotator
+write(6,'(a,a,a)') snake(1:isnake), " found at ",f%mag%name(1:isnake)
+exit
+endif
+f=>f%next
+enddo
+
+number_zhe_maps = 1
+!!! alloc an array of pointers to my fibres 
+
+
+ it=>r%start%t1
+ 
+
+
+!!!! finds the closed orbit at position s=0
+closed_orbit=0
+call FIND_ORBIT_x(closed_orbit,state0,1.d-8,node1=it)
+ 
+    call GET_loss(r,energy,deltap)
+ 
+    write(6,*) "energy loss: GEV and DeltaP/p0c ",energy,deltap
+
+IF(.NOT.check_stable) THEN
+ WRITE(6,*) " UNSTABLE  IN ORBIT SEARCHER "
+ stop
+ENDIF
+write(6,'(6(E20.13,1X))' ) closed_orbit
+ 
+!!! First order maps for tests.
+ 
+ ray=closed_orbit
+call FIND_ORBIT_x(ray%x,state0,1.d-5,node1=it)
+
+
+ 
+ 
+ 
+
+call alloc(M,ID,U_1,as,a0,a1,a2)
+call alloc(rayp)
+call alloc(nf)
+call alloc(isf)
+ 
+ID=1
+rayp=ray + ID   ! closed orbit added to identity and thrown into a polymorphic ray. 
+!See definition of C_damap and probe_8 in h_definition.f90
+ 
+ 
+ call  propagate(rayp,state0,node1=it)
+id=rayp
+  
+ 
+ !call kill(L_ns , N_pure_ns, L_s , N_s)
+
+ call c_normal(id,nf,dospin=.true.)
+ 
+
+
+tune=nf%tune(1:3)
+spin_tune=nf%spin_tune
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
+write(6,*) "tunes "
+write(6,*) nf%tune(1:3)
+write(6,*) "spin tune "
+write(6,*) nf%spin_tune
+ 
+call c_full_canonise(nf%atot,U_1,as,a0,a1,a2)
+
+ISF=2   ! (Fa)
+call makeso3(as)
+ISF=as%s*ISF ! (Fb)
+ 
+
+ 
+ray=closed_orbit
+q0%x(0)=0
+q0%x(1)=ISF%v(1)
+q0%x(2)=ISF%v(2)
+q0%x(3)=ISF%v(3)
+n0i=q0%x(1:3)
+
+cut=0
+do i1=1,3
+do i2=1,6
+do i3=1,6
+ 
+cut =  cut + (ISF%v(i1).d.i2)*e_ij(i2,i3)*(ISF%v(i1).d.i3)
+
+enddo
+enddo
+enddo
+ 
+ cut=-cut/2
+ 
+write(6,*) " Polarization computed with dn/dz + final polarization after ",nturns," turns"
+write(6,*)  cut,exp(nturns*cut)
+deb=cut
+dpol=exp(nturns*deb)
+
+ray%q=q0
+
+ 
+
+ call propagate(ray,state0,node1=it)
+
+ 
+
+write(6,*) " Q0 and q(Q0)q^-1 "
+ q=ray%q*q0*ray%q**(-1)
+ 
+call kill(M,ID,U_1,as,a0,a1,a2)
+call kill(rayp)
+call kill(nf)
+call kill(isf)
+ 
+call init(state0,no,0)
+
+call alloc(M,ID,U_1,as,a0,a1,a2)
+call alloc(rayp)
+call alloc(nf)
+call alloc(isf)
+call alloc(phase)
+!!!!!!  generate distribution  !!!!!
+ 
+  id=1
+ 
+ray=closed_orbit
+ 
+rayp=ray+id
+   x=rayp%x
+  call propagate(rayp,state,node1=it)
+ 
+!!! create files "olek#" where #=1,2,3,....,n
+!!! maps are  put in there
+mapfile="olek"
+ !!! probe_8 thrown into a C_dmap
+  M=rayp
+ !!! closed orbit saved
+ ray=rayp
+!!! initial map local closed orbit + identity  re-created for step i+1
+ rayp=ray+ID
+ !!! tracking object created for step i
+!call print(m)
+  
+m%x0(1:6)=x
+call print(m)
+
+call fill_tree_element_line_zhe_outside_map(m ,mapfile,as_is=.false.,stochprec=1.d-8) 
+ 
+ 
+call read_tree_zhe(t_olek_map(1:3),mapfile)
+
+
+ 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+ 
+ 
+ !bunch_zhe=closed_orbit
+ !!!!!!!!!!!!!!1
+  
+ do i=1,bunch_zhe%n
+ 
+    bunch_zhe%xs(i)%q=1.d0
+  
+ enddo
+
+xs0_zhe=closed_orbit  
+write(6,*)  " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
+ xj=0
+j=0
+
+ 
+ 
+do while(.true.)
+xj=xj+1
+j=j+1
+if(xj>nturns) exit
+
+do k=1,nbunch
+ 
+ if( bunch_zhe%stable(k)) then
+  
+!!! one-turn map
+    call track_TREE_probe_complex_zhe(t_olek_map(1:3),bunch_zhe%xs(k),spin=.true.,rad=.true.,stoch=.true.)  !stoch=state%stochastic)
+  if(bunch_zhe%xs(k)%u) exit
+
+     if(bunch_zhe%xs(k)%u) then
+     bunch_zhe%stable(k)=.false.
+     bunch_zhe%turn(k)=xj
+     bunch_zhe%r=bunch_zhe%r-1
+     write(6,*) K, " lost at turn ",xj
+     if(reload) then
+       rplen=0
+       do while(.not. (rplen>=1.and.rplen<=bunch_zhe%n.and.rplen/=k))  
+         cut= RANF() *bunch_zhe%n
+         rplen=nint(cut)
+       enddo 
+       bunch_zhe%xs(k)%u=.false.
+       bunch_zhe%r=bunch_zhe%r+1
+       bunch_zhe%turn(k)=0
+        bunch_zhe%stable(k)=.true.
+      bunch_zhe%xs(k)=bunch_zhe%xs(rplen)
+      bunch_zhe%reloaded=bunch_zhe%reloaded+1
+      write(6,*) K, " reloaded by ",rplen
+
+    
+
+    endif
+
+ endif
+endif
+
+
+
+!write(mf,'(6(E20.13,1X))' ) bunch_zhe(k)%x-closed_orbit
+enddo
+ 
+ call get_polarisation(bunch_zhe,q0,n_ave,de)
+ 
+
+if(mod(j,kprint)==0) then   !.or.xj>nturns-10) then
+ write(mf,'(6(E20.13,1X))' ) xj,exp(xj*deb),de,n_ave
+ ! write(6,*) xj
+!  if(track_ptc)
+ write(6,'(6(E20.13,1X))' ) xj,exp(xj*deb),de,n_ave
+
+j=0
+
+endif
+enddo
+
+
+ 
+write(mf,*)  " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
+ write( mf,*) "   survived        ", bunch_zhe%r," out of ",    bunch_zhe%n  
+ write( mf,*) "   reloaded        ", bunch_zhe%reloaded
+ write( mf,*) "   track_ptc        ", track_ptc     
+    
+ write( mf,*) " nturns             ", nturns          
+ write( mf,*) " nbunch             ", nbunch          
+ write( mf,*) " rotator/2pi  ", rotator/twopi       
+ write( mf,*) " no                 ", no 
+ write( mf,'((a20),(a))') " plot file          ", plotfile(1:len_trim(plotfile)) 
+ write(mf,*) " q0 "
+call print(q0,mf)
+ write(mf,*)
+ write(mf,*)
+ 
+ write(mf,*) "computed depolarization = ",dpol
+ write(mf,*) "tracked  depolarization = ",de
+write(mf,*)  " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
+
+write(6,*)  " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
+write( 6,*) "   survived        ", bunch_zhe%r," out of ",    bunch_zhe%n  
+write( 6,*) "   reloaded        ", bunch_zhe%reloaded
+ write( 6,*) "   track_ptc        ", track_ptc     
+ 
+ write( 6,*) " nturns             ", nturns          
+ write( 6,*) " nbunch             ", nbunch          
+ write( 6,*) " rotator/2pi  ", rotator/twopi       
+ write( 6,*) " no                 ", no       
+ write( 6,'((a20),(a))') " plot file          ", plotfile(1:len_trim(plotfile)) 
+write(6,*) " q0 "
+call print(q0)
+ write(6,*)
+ write(6,*)
+ 
+
+ write(6,*) "computed depolarization = ",dpol
+ write(6,*) "tracked  depolarization = ",de
+write(6,*)  " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX "
+
+ write(mfd,'(11(E20.13,1X))' )tune(1:3),spin_tune,xj,circum*xj,exp(xj*deb),de,n_ave
+
+
+call kill(M,ID,U_1,as,a0,a1,a2)
+call kill(rayp)
+call kill(nf)
+call kill(isf)
+call kill(phase)
+
+call kill_bunch(bunch_zhe)
+
+enddo
+use_quaternion=old_use_quaternion
+
+close(mf)
+
+close(mfd)
+
+
+end subroutine compute_polarisation
+
+subroutine get_polarisation(b,q0,n_ave,de)
+implicit none
+ type(quaternion) q0,q
+ real(dp) n_ave(3) ,de
+ integer n,i,l
+ type(bunch)  b
+ 
+ 
+ n=b%n
+  n_ave=0
+
+ do i=1,n
+  if(b%stable(i)) then
+ do l=0,3
+  q%x(l)= b%xs(i)%q%x(l)
+ enddo
+   q=q*q0*q**(-1)
+  
+  n_ave=n_ave + q%x(1:3)
+ endif
+ enddo
+
+ n_ave=n_ave/b%r
+de=sqrt(n_ave(1)**2+n_ave(2)**2+n_ave(3)**2)
+ 
+end subroutine get_polarisation
+
    real(dp) function dis_gaussian(r)
     implicit none
     real(dp) r1,r2,x ,r
@@ -2816,7 +3332,17 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
     endif
     x=0.d0
 
+!do i=1,10
+!radfac=float(i)/10.d0
+ 
     CALL FIND_ORBIT_x(R,X,STATE,1.0e-8_dp,fibre1=loc)
+!write(6,format6) x
+    if(.not.check_stable) then
+      write(6,*) "Unstable in radia_new ",i
+      stop
+     endif
+!enddo
+
     if(present(FILE1)) then
         WRITE(mf1,*) " CLOSED ORBIT AT LOCATION ",loc
         write(mf1,*) x

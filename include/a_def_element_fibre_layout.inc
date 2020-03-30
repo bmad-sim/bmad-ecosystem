@@ -475,11 +475,11 @@ END TYPE ORBIT_LATTICE
 !  BEAM BEAM
 
 TYPE BEAM_BEAM_NODE
-   REAL(DP), POINTER :: S  => null()
-   REAL(DP), POINTER :: SX => null(),SY => null(),FK => null()
-   REAL(DP), POINTER :: XM => null(),YM => null()  ! trivial transverse displacement: not needed
-   REAL(DP), POINTER :: BBK(:)  => null() ! kick on closed orbit
-   !    REAL(DP), pointer :: MID(:,:),O(:)
+   REAL(DP), POINTER :: S(:)  => null()
+   integer, POINTER :: N  => null()
+   REAL(DP), POINTER :: SX(:) => null(),SY(:) => null(),FK(:) => null()
+   REAL(DP), POINTER :: XM(:) => null(),YM(:) => null()  ! trivial transverse displacement: not needed
+   REAL(DP), POINTER :: BBK(:,:)  => null() ! kick on closed orbit
    REAL(DP), POINTER :: A(:)  => null()   ! patch angles
    REAL(DP), POINTER :: D(:)  => null()   ! patch translation
    INTEGER, POINTER :: A_X1 => null(), A_X2 => null() ! patch inverse propagator (not needed)
