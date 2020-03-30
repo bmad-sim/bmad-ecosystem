@@ -2969,9 +2969,13 @@ case (rfcavity$)
   if (.not. dep_attribs_free) then
     if (ix_attrib == rf_frequency$ .and. ele%field_master) free = .false.
     if (ix_attrib == harmon$ .and. .not. ele%field_master) free = .false.
+    if (ix_attrib == gradient$) free = .false.
   endif
-  if (ix_attrib == gradient$) free = .false.
 case (lcavity$)
+  if (.not. dep_attribs_free) then
+    if (ix_attrib == voltage$) free = .false.
+    if (ix_attrib == voltage_err$) free = .false.
+  endif
   if (ix_attrib == gradient$ .and. ele%value(l$) == 0) free = .false.
   if (ix_attrib == gradient_err$ .and. ele%value(l$) == 0) free = .false.
 case (elseparator$)

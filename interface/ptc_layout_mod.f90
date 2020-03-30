@@ -164,11 +164,18 @@ do i = 0, ubound(lat%branch, 1)
 
   call survey (m_t%end, ptc_orientation, ele%floor%r)
 
-  !
+  ! Create the integration node arrays for the fibres.
 
   call set_ptc_quiet (12, set$, i_save)
   call make_node_layout(m_t%end)
   call set_ptc_quiet (12, unset$, i_save)
+
+  ! Now that the integration node arrays have been created, any beambeam elements may be setup.
+
+  do j = 0, branch%n_ele_track
+    ele => branch%ele(j)
+    if (ele%key == beambeam$) call beambeam_fibre_setup(ele, ele%ptc_fibre, branch%param)
+  enddo
 
 enddo
 

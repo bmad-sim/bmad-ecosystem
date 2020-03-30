@@ -20,18 +20,21 @@ use fringe_mod, except_dummy => track_a_beambeam
 
 implicit none
 
-type (coord_struct) :: orbit, start_orb
+type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, sig_x, sig_y
-real(rp) z_slice(100), beta, s_pos, s_pos_old, k0_x, k0_y, k_xx, k_xy, k_yx, k_yy, coef, del
+real(rp) beta, s_pos, s_pos_old, k0_x, k0_y, k_xx, k_xy, k_yx, k_yy, coef, del
 real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const
+real(rp), allocatable :: z_slice(:)
 
 integer i, n_slice
 
 logical, optional :: make_matrix
+
+character(*), parameter :: r_name = 'track_a_beambeam'
 
 !
 
@@ -60,10 +63,18 @@ else
   alpha_b0 = ele%value(alpha_b$)
 endif
 
+n_slice = max(1, nint(ele%value(n_slice$)))
+if (n_slice > 1 .and. (beta_a0 == 0 .or. beta_b0 == 0)) then
+  call out_io (s_error$, r_name, 'BETA FUNCTION IS ZERO AT BEAMBEAM ELEMENT: ' // ele%name, &
+                                 'PARTICLE WILL BE MARKED AS LOST.')
+  orbit%state = lost$
+  return
+endif
+
 call offset_particle (ele, param, set$, orbit)
 call canonical_to_angle_coords (orbit)
 
-n_slice = max(1, nint(ele%value(n_slice$)))
+allocate(z_slice(n_slice))
 call bbi_slice_calc (ele, n_slice, z_slice)
 s_pos = 0    ! end at the ip
 
@@ -72,13 +83,7 @@ do i = 1, n_slice
   s_pos = (orbit%vec(5) + z_slice(i)) / 2
   del_s = s_pos - s_pos_old
 
-  orbit%vec(1) = orbit%vec(1) + orbit%vec(2) * del_s
-  orbit%vec(3) = orbit%vec(3) + orbit%vec(4) * del_s
-
-  if (logic_option(.false., make_matrix)) then
-    mat6(1,:) = mat6(1,:) + del_s * mat6(2,:)
-    mat6(3,:) = mat6(3,:) + del_s * mat6(4,:)
-  endif
+  call track_a_drift (orbit, del_s, mat6, make_matrix)
 
   if (beta_a0 == 0) then
     sig_x = sig_x0
@@ -118,8 +123,7 @@ do i = 1, n_slice
   endif
 enddo
 
-orbit%vec(1) = orbit%vec(1) - orbit%vec(2) * s_pos
-orbit%vec(3) = orbit%vec(3) - orbit%vec(4) * s_pos
+call track_a_drift (orbit, -s_pos, mat6, make_matrix)
 
 call angle_to_canonical_coords (orbit)
 call offset_particle (ele, param, unset$, orbit)  

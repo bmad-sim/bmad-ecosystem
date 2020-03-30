@@ -26,7 +26,7 @@ use mad_like, only: fibre, kill
 implicit none
 
 type (coord_struct) :: start_orb, start2_orb
-type (coord_struct) :: end_orb, orbit
+type (coord_struct) :: end_orb
 type (track_struct), optional :: track
 type (ele_struct) :: ele, drift_ele
 type (lat_param_struct) :: param
@@ -66,9 +66,8 @@ endif
 !-----------------------------
 ! track element
 
-start2_orb = start_orb
+start2_orb = start_orb   ! Save initial state
 end_orb = start_orb
-orbit = end_orb
 
 call ele_to_fibre (ele, fibre_ele, param, .true., track_particle = start_orb)
 
@@ -81,16 +80,16 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
 
   if (present(track)) then
     ptc_track => fibre_ele%t1
-    call save_this_step()
+    call save_this_step(track, ptc_probe, ele)
 
     do while (.not. associated(ptc_track, fibre_ele%t2))
       call track_probe (ptc_probe, STATE, node1 = ptc_track, node2 = ptc_track%next)
-      call save_this_step()
+      call save_this_step(track, ptc_probe, ele)
       ptc_track => ptc_track%next
     enddo
 
     call track_probe (ptc_probe, STATE, node1 = ptc_track, node2 = ptc_track%next)
-    call save_this_step()
+    call save_this_step(track, ptc_probe, ele)
 
   else
     call track_probe (ptc_probe, STATE, fibre1 = fibre_ele)
@@ -136,7 +135,13 @@ CONVERSION_XPRIME_IN_ABELL = .true. ! Reset to normal.
 !---------------------------------------------------------------------
 contains
 
-subroutine save_this_step()
+subroutine save_this_step(track, ptc_probe, ele)
+
+type (track_struct) track
+type (probe) ptc_probe
+type (ele_struct) ele
+type (coord_struct) orbit
+real(dp) re(6)
 
 ! The complication is that PTC pz is the true canonical momentum which includes the electrostatic potential.
 ! But Bmad pz does not include the electrostatic potential.
@@ -145,6 +150,7 @@ subroutine save_this_step()
 
 ! print '(i4, f10.6, 4x, 6f10.6, 4x, es16.8)', ptc_track%cas, ptc_track%s(1), ptc_probe%x, ptc_probe%E
 
+orbit = start2_orb
 re = ptc_probe%x
 re(5) = 1e9 * ptc_probe%E / end_orb%p0c       ! ptc_probe%E = Delta E in Gev
 call vec_ptc_to_bmad (re, beta1, orbit%vec)

@@ -72,7 +72,7 @@ case (ac_kicker$)
 
 case (beambeam$)
   select case (method)
-  case (bmad_standard$, linear$, custom$)
+  case (bmad_standard$, linear$, custom$, symp_lie_ptc$, taylor$)
     is_valid = .true.
   end select
 
