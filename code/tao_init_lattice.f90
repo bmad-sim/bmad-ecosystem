@@ -185,7 +185,8 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   allocate (u%design, u%base, u%model)
 
-  if (design_lat%file == design_lattice(i_uni-1)%file .and. design_lat%file2 == design_lattice(i_uni-1)%file2) then
+  if (design_lat%file == design_lattice(i_uni-1)%file .and. design_lat%file2 == design_lattice(i_uni-1)%file2 .and. &
+      design_lat%use_line == design_lattice(i_uni-1)%use_line .and. design_lat%slice_lattice == design_lattice(i_uni-1)%slice_lattice) then
     u%design_same_as_previous = .true.
     u%design%lat = s%u(i_uni-1)%design%lat
   else
