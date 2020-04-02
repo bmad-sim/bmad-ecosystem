@@ -241,6 +241,7 @@ packages_build_list = [
                 '/packages/xraylib',
                 '/packages/openmpi',
                 '/packages/hdf5',
+                '/packages/jsonfortran',
 ]
 
 #-----------------------------------------------------
