@@ -3657,8 +3657,7 @@ Attributes specific to an \vn{rfcavity} are:
   gradient        = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
 \end{example}
 
-The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
-\mad. The integrated energy kick felt by a particle, assuming no phase slippage, is 
+The integrated energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
   dE = -e_charge * voltage * sin(\(2\,\pi\) * (\(\phi_\text{t}\) - \(\phi_\text{ref}\)))
 \end{example}
@@ -3671,6 +3670,12 @@ where
 and $\phi_t$ is the part of the phase due to when the particle arrives at the cavity and depends
 upon whether \vn{absolute time tracking} or \vn{relative time tracking} is being used as discussed
 in \sref{s:rf.time}.
+
+The correspondence between the \bmad \vn{phi0} attribute and the \vn{lag} attribute of
+\mad is
+\begin{example}
+  phi0 = mad + 0.5
+\end{example}
 
 \vn{phi0_multipass} is only to be used to shift the phase with respect to a \vn{multipass} lord. See
 \sref{s:multipass}. \vn{e_charge} is the charge on an electron (Table~\ref{t:constants}). Notice

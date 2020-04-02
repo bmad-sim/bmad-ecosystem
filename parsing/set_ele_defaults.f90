@@ -41,7 +41,10 @@ ele%taylor_map_includes_offsets = .true.
 select case (ele%key)
 
 case (ac_kicker$)
-  allocate (ele%ac_kick)
+  if (logic_option(.true., do_allocate)) then
+    if (associated(ele%ac_kick)) deallocate(ele%ac_kick)
+    allocate (ele%ac_kick)
+  endif
   ele%mat6_calc_method = tracking$
   ele%value(interpolation$) = spline$
   ele%value(ref_time_offset$) = true$
@@ -60,6 +63,12 @@ case (fork$, photon_fork$)
 
 case (capillary$)
   ele%offset_moves_aperture = .true.
+
+case (converter$)
+  if (logic_option(.true., do_allocate)) then
+    if (associated(ele%converter)) deallocate(ele%converter)
+    allocate (ele%converter)
+  endif
 
 case (crab_cavity$)
   ele%value(field_autoscale$) = 1

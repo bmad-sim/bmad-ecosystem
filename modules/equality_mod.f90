@@ -18,20 +18,20 @@ interface operator (==)
   module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var1
   module procedure eq_controller, eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom
   module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc
-  module procedure eq_wake, eq_converter, eq_taylor_term, eq_taylor, eq_em_taylor_term
-  module procedure eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1
-  module procedure eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field
-  module procedure eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_high_energy_space_charge
-  module procedure eq_xy_disp, eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache
-  module procedure eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface
-  module procedure eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section
-  module procedure eq_wall3d, eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init
-  module procedure eq_beam_init, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
-  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_point, eq_track
-  module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch
-  module procedure eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch
-  module procedure eq_lat, eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data
-  module procedure eq_aperture_param, eq_aperture_scan
+  module procedure eq_wake, eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor
+  module procedure eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term
+  module procedure eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1
+  module procedure eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp
+  module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt
+  module procedure eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target
+  module procedure eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
+  module procedure eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init
+  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
+  module procedure eq_normal_modes, eq_em_field, eq_track_point, eq_track, eq_synch_rad_common
+  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele
+  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_branch, eq_lat
+  module procedure eq_bunch, eq_bunch_params, eq_beam, eq_aperture_data, eq_aperture_param
+  module procedure eq_aperture_scan
 end interface
 
 contains
@@ -669,24 +669,6 @@ end function eq_wake
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_converter (f1, f2) result (is_eq)
-
-implicit none
-
-type(converter_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%dummy == f2%dummy)
-
-end function eq_converter
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
 elemental function eq_taylor_term (f1, f2) result (is_eq)
 
 implicit none
@@ -1193,6 +1175,8 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%eta == f2%eta)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%etap == f2%etap)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sigma == f2%sigma)
 
 end function eq_xy_disp
 
@@ -2473,11 +2457,6 @@ is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 is_eq = is_eq .and. (associated(f1%control) .eqv. associated(f2%control))
 if (.not. is_eq) return
 if (associated(f1%control)) is_eq = (f1%control == f2%control)
-!! f_side.equality_test[type, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%converter) .eqv. associated(f2%converter))
-if (.not. is_eq) return
-if (associated(f1%converter)) is_eq = (f1%converter == f2%converter)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%floor == f2%floor)
 !! f_side.equality_test[type, 0, PTR]

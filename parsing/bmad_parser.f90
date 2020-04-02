@@ -539,11 +539,15 @@ parsing_loop: do
   !-------------------------------------------
   ! Variable def
 
-  if (delim == '=') then
-
-    call parser_add_constant (word_1, in_lat)
+  if (word_1 == 'REDEF' .and. delim == ':') then
+    call get_next_word (word_1, ix_word, '[:](,)= ', delim, delim_found, .true.)
+    call parser_add_constant (word_1, in_lat, .false.)
     cycle parsing_loop
+  endif
 
+  if (delim == '=') then
+    call parser_add_constant (word_1, in_lat, .true.)
+    cycle parsing_loop
   endif
 
   !-------------------------------------------
