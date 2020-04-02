@@ -471,12 +471,15 @@ type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
 type (wake_struct), pointer :: wake
+type (converter_distribution_struct), pointer :: c_dist
+type (converter_prob_E_r_struct), pointer :: p_er
+type (converter_direction_out_struct), pointer :: c_dir
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
-integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2
+integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, n3, ne, nr, ns
 
 logical error, is_alloc_pt, ac_kicker_alloc
 
@@ -487,7 +490,7 @@ error = .true.
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
         ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-        ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
+        ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus, ix_convert
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -542,6 +545,38 @@ if (ac_kicker_alloc) then
       read (d_unit, err = 9130) ac%frequencies(n)
     enddo
   endif
+endif
+
+! Converter
+
+if (ix_convert == 1) then
+  allocate (ele%converter)
+  read (d_unit) ele%converter%species_out, ele%converter%material_type, ns
+  allocate (ele%converter%dist(ns))
+  do n = 1, size(ele%converter%dist)
+    c_dist => ele%converter%dist(n)
+    read (d_unit) c_dist%thickness, ns
+    allocate (c_dist%sub_dist(ns))
+    do j = 1, size(c_dist%sub_dist)
+      read (d_unit) c_dist%sub_dist(j)%E_in
+      p_er => c_dist%sub_dist(j)%prob_E_r
+      read (d_unit) p_er%integrated_prob, ne, nr
+      allocate (p_er%E(ne), p_er%r(nr), p_er%prob(ne,nr), p_er%integ_prob_E(ne), p_er%integ_prob_r(ne,nr))
+      read (d_unit) p_er%E
+      read (d_unit) p_er%r
+      read (d_unit) p_er%prob
+      read (d_unit) p_er%integ_prob_E
+      read (d_unit) p_er%integ_prob_r
+
+      c_dir => c_dist%sub_dist(j)%dir_out
+      read (d_unit) n1, n2, n3
+      allocate (c_dir%beta%fit_1D(n1), c_dir%alpha_x%fit_1D(n2), c_dir%alpha_y%fit_1D(n3))
+      read (d_unit) c_dir%beta%A, c_dir%beta%k_E, c_dir%beta%k_r, c_dir%beta%fit_1D
+      read (d_unit) c_dir%alpha_x%k_E, c_dir%alpha_x%k_r, c_dir%alpha_x%a_E, c_dir%alpha_x%a_r, c_dir%alpha_x%fit_1D
+      read (d_unit) c_dir%alpha_y%k_E, c_dir%alpha_y%k_r, c_dir%alpha_y%a_E, c_dir%alpha_y%a_r, c_dir%alpha_y%fit_1D
+      read (d_unit) c_dir%cx%A_c, c_dir%cx%k_E, c_dir%cx%k_r 
+    enddo
+  enddo
 endif
 
 ! Cartesian_map

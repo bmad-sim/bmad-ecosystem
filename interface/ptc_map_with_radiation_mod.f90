@@ -67,12 +67,15 @@ type (ele_struct) ele1
 type (ele_struct), optional :: ele2
 type (coord_struct), optional :: orbit1
 type (layout), pointer :: ptc_layout
-type (internal_state) state, state0
+type (internal_state) state
 type (branch_struct), pointer :: branch
 type (fibre), pointer :: f1, f2
 type (tree_element) tree_map(3)
+type (c_damap) c_map1, c_ident
+type (probe_8) pb8
+type (probe) pb
 
-real(rp) orb(6), orb0(6)
+real(rp) orb(6), orb0(6), e_ij(6,6)
 
 integer, optional :: map_order
 integer val_save
@@ -95,7 +98,6 @@ else
   state = default + envelope0
   map_with_rad%radiation_damping_on = .false.
 endif
-state0 = default
 
 if (bmad_com%spin_tracking_on) state = state + spin0
 if (.not. rf_is_on(ele1%branch)) state = state + nocavity0
@@ -138,57 +140,27 @@ else
     use_bmad_units = .false.
     return
   endif
-
-  orb0 = 0
-  call find_orbit_x(orb0, STATE0, 1.0d-8, fibre1 = f1)
-  if (.not. check_stable) then
-    call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING WITHOUT RADIATION IN PTC!')
-    use_bmad_units = .false.
-    return
-  endif
 endif
 
 call set_ptc_quiet(0, set$, val_save)
-!!call fill_tree_element_line_zhe(state, f1, f2, order, orb, stochprec = 1d-10, sagan_tree = tree_map)
-call fill_tree_element_line_zhe0(state0, state, f1, f2, map_with_rad%map_order, orb0, orb, stochprec = 1d-10, sagan_tree = tree_map)
-call set_ptc_quiet(0, unset$, val_save)
 
-call copy_this_tree (tree_map, map_with_rad%sub_map)
+!!call radia_full(ptc_layout, f1 = f1, estate = state0, e_ij=e_ij, ngen=10, bunch_zhe=bunch_zhe)
+
+call alloc(pb8)
+call alloc(c_map1, c_ident)
+pb = orb
+c_ident = 1
+pb8 = pb + c_ident
+
+call propagate(pb8, state, fibre1 = f1)
+c_map1 = pb8
+
+call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=map_with_rad%sub_map) 
+
+call set_ptc_quiet(0, unset$, val_save)
 
 use_bmad_units = .false. ! Since Zhe stuff is standalone this will not affect the use of map_with_rad.
 if (present(err_flag)) err_flag = .false.
-
-!----------------------------------------------------------------------------------
-contains
-
-subroutine copy_this_tree(t, u)
-
-implicit none
-type(tree_element) :: t(3)
-type(tree_element_zhe) :: u(3)
-integer i
-
-do i = 1, 3
-  u(i)%cc         => t(i)%cc
-  u(i)%jl         => t(i)%jl
-  u(i)%jv         => t(i)%jv
-  u(i)%n          => t(i)%n
-  u(i)%np         => t(i)%np
-  u(i)%no         => t(i)%no
-  u(i)%fixr       => t(i)%fixr
-  u(i)%ds         => t(i)%ds
-  u(i)%beta0      => t(i)%beta0
-  u(i)%fix        => t(i)%fix
-  u(i)%fix0       => t(i)%fix0
-  u(i)%e_ij       => t(i)%e_ij
-  u(i)%rad        => t(i)%rad
-  u(i)%eps        => t(i)%eps
-  u(i)%symptrack  => t(i)%symptrack
-  u(i)%usenonsymp => t(i)%usenonsymp
-  u(i)%factored   => t(i)%factored
-enddo
-
-end subroutine copy_this_tree
 
 end subroutine ptc_setup_map_with_radiation
 

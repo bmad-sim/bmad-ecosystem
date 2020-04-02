@@ -614,6 +614,144 @@ end subroutine ptc_emit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine ptc_spin_calc (ele, norm_mode, sigma_mat, closed_orb)
+!
+! Routine to equilibrium polarizations, etc.
+!
+! Input: 
+!   ele -- ele_struct: Element at which to evaluate the parameters.
+!
+! Output:
+!   norm_mode       -- Normal_modes_struct
+!     %a%tune, %b%tune, %z%tune
+!     %a%alpha_damp, etc.
+!     %a%emittance, etc.
+!   sigma_map(6,6)  -- real(rp): Sigma matrix (Bmad coordinates).
+!   closed_orb      -- coord_struct: Closed orbit at ele (Bmad coordinates).
+!                        Notice: This closed orbit is the closed orbit with radiation on.
+!-
+
+subroutine ptc_spin_calc (ele, norm_mode, sigma_mat, closed_orb)
+
+use pointer_lattice
+
+type (ele_struct) ele
+type (normal_modes_struct) norm_mode
+type (coord_struct) closed_orb
+type (fibre), pointer :: ptc_fibre
+type (branch_struct), pointer :: branch
+type (internal_state) ptc_state
+type (layout), pointer :: ptc_layout
+type (c_damap) id, U_1, as, a0, a1, a2
+type (probe_8) xs
+type (probe) xs0
+type (c_normal_form) cc_norm
+type (c_spinor) isf
+
+real(rp) sigma_mat(6,6), emit(3), ptc_sigma_mat(6,6), tune(3), damp(3), energy_loss, dp_loss
+real(rp) depol, n0(3), dn_ddelta(3)
+complex(rp) cmplx_sigma_mat(6,6)
+
+integer i1, i2, i3
+
+character(*), parameter :: r_name = 'ptc_spin_calc'
+
+!
+
+branch => pointer_to_branch(ele)
+if (.not. rf_is_on(branch)) then
+  call out_io (s_error$, r_name, 'RF is not on! Cannot compute emittances in PTC.')
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+!
+
+use_bmad_units = .true.
+ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
+ptc_state = DEFAULT - NOCAVITY0 + RADIATION0 + SPIN0
+
+
+ptc_fibre => pointer_to_ptc_ref_fibre(ele)
+ptc_layout => ptc_fibre%parent_layout
+call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
+
+ptc_state = ptc_state + ENVELOPE0
+call init_all(ptc_state, 1, 0)
+
+call alloc (id, U_1, as, a0, a1, a2)
+call alloc (xs)
+call alloc (cc_norm)
+call alloc (isf)
+
+id=1
+xs0=closed_orb%vec
+xs=xs0+id
+call track_probe(xs, ptc_state, fibre1 = ptc_fibre)
+id=xs
+call GET_loss(ptc_layout, energy_loss, dp_loss)
+norm_mode%e_loss = energy_loss * 1e9_rp
+
+call c_normal(id, cc_norm)
+call c_full_canonise(cc_norm%atot, U_1, as, a0, a1, a2)
+
+isf = 2   ! isf = (0,1,0)
+call makeSO3(as)
+isf = as%s * isf 
+!m_spinor=1
+!l_spinor=3
+!l_spinor=as%s*l_spinor
+!m_spinor=as%s*m_spinor 
+
+depol=0    ! tao_dep^-1. See Bmad manual Eq. 20.21
+do i1=1,3
+do i2=1,6
+do i3=1,6
+  depol =  depol + (ISF%v(i1).d.i2) *  id%e_ij(i2,i3) * (ISF%v(i1).d.i3)
+enddo
+enddo
+enddo
+ 
+depol = -depol/2
+
+do i1 = 1, 3
+  dn_ddelta(i1) = isf%v(i1).d.6
+  n0(i1) = isf%v(i1)
+enddo
+
+call init_coord(closed_orb, closed_orb, ele, downstream_end$)
+
+norm_mode%a%tune = cc_norm%tune(1)   ! Fractional tune with damping
+norm_mode%b%tune = cc_norm%tune(2)
+norm_mode%z%tune = cc_norm%tune(3)
+
+norm_mode%a%alpha_damp = cc_norm%damping(1)
+norm_mode%b%alpha_damp = cc_norm%damping(2)
+norm_mode%z%alpha_damp = cc_norm%damping(3)
+
+norm_mode%a%emittance = cc_norm%emittance(1)
+norm_mode%b%emittance = cc_norm%emittance(2)
+norm_mode%z%emittance = cc_norm%emittance(3)
+
+sigma_mat = cc_norm%s_ij0
+
+!
+
+call kill (id, U_1, as, a0, a1, a2)
+call kill (xs)
+call kill (cc_norm)
+call kill (isf)
+
+use_bmad_units = .false.
+ndpt_bmad = 0
+call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+
+end subroutine ptc_spin_calc 
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Function pointer_to_ptc_ref_fibre (ele) result (ref_fibre)
 !
 ! Routine to return the reference fibre for a bmad element.

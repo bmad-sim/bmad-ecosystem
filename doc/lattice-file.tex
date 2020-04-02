@@ -273,7 +273,7 @@ where \vn{class} is a class (EG: sextupole). For example:
   quadrupole::*w  ! Match to all quadrupoles whose name ends in "w"
 \end{example}
 Additionally, instead of matching to an element name, matches may be made to \vn{type}, \vn{alias},
-or \vn{descrip} attributes (\sref{s:alias}) using the synrax:
+or \vn{descrip} attributes (\sref{s:alias}) using the syntax:
 \begin{example}
   attribute_name::string
 \end{example}
@@ -285,7 +285,7 @@ where \vn{attribute_name} is one of:
 \end{example}
 and \vn{string} is a string to match to which can include wild card characters \vn{``*''} and
 \vn{``%''}. If \vn{string} contains blank characters, the string must be enclosed with single or
-double quotatation marks. Note: An element attribute that is blank will never match. Also note that
+double quotation marks. Note: An element attribute that is blank will never match. Also note that
 while \vn{type}, \vn{alias}, or \vn{descrip} strings may have lower case characters (unlike element
 names, these strings are not converted to upper case), matching is always case insensitive. For Example:
 \begin{example}
@@ -367,7 +367,7 @@ expanded (\sref{s:expand}). Therefore an \vn{expand_lattice} statement is requir
 can be used in statements.
 
 After lattice expansion (\sref{s:expand}), when setting element attributes (\sref{s:lat.attribs}, a
-comma deliminated list of names can be used. Each item in a list is either the name of an element or
+comma delimited list of names can be used. Each item in a list is either the name of an element or
 an element range. An element range has the syntax:
 \begin{example}
   \{branch>>\}\{class::\}ele1:ele2
@@ -441,7 +441,7 @@ syntax as discussed in Section~\sref{s:ele.match}. Example:
   expand_lattice              ! Expand the lattice.
   97[x_offset] = 0.0023       ! Set x_offset attribute of 97th element
   b2>>si_cryst##2[tilt] = 0.1 ! Tilt the 2nd instance of "si_cryst" in branch "b2" 
-  5:32[x_limit] = 0.3         ! Sets elements with indexs 5 through 32 in branch 0.
+  5:32[x_limit] = 0.3         ! Sets elements with indexes 5 through 32 in branch 0.
 \end{example}
 
 %---------------------------------------------------------------------------
@@ -791,12 +791,21 @@ following is {\em not} valid:
   my_const = sqrt(10.3) * pi^3
 \end{example}
 here the value of \vn{my_const} is not known when the line ``\vn{abc}
-= $\ldots$'' is parsed. Once
-defined, symbolic constants cannot be redefined. For example:
+= $\ldots$'' is parsed. 
+
+Once defined, symbolic constants cannot be redefined. For example:
 \begin{example}
   my_const = 1
   my_const = 2  ! No: my_const cannot be redefined.
 \end{example}
+The restriction against redefining constants was implemented to avoid hard to find problems.
+Occasionally, it is convenient to be able to redefine constants so if the redefinition
+has a \vn{redef:} prefix a constant can be redefined
+\begin{example}
+  my_const = 1
+  redef: my_const = 2  ! OK
+\end{example}
+It is advised not to use \vn{redef:} unless there a very good reason for its use.
 
 \index{group}\index{overlay}\index{lattice expansion}
 \vn{group} (\sref{s:group}) and \vn{overlay} (\sref{s:overlay}) controller elements are an
@@ -1260,7 +1269,7 @@ elements (\sref{s:lord.slave}) of any elements that remain are also not discarde
 
 For any lattice branch where elements are removed, the Twiss parameters and reference energy is
 computed, and the Twiss parameters and reference energy at the entrance end of the first element
-that is not removed is transfered to the beginning branch element. The branch \vn{geometry} is also
+that is not removed is transferred to the beginning branch element. The branch \vn{geometry} is also
 set to \vn{open}.
 
 For a lattice branch with a closed geometry, the Twiss parameters are computed with the RF on.

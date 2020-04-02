@@ -1717,6 +1717,11 @@ case ('CREATE_JUMBO_SLAVE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   call parser_get_logical (attrib_word, pele%create_jumbo_slave, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
+case ('CSR_METHOD')
+  call get_switch (attrib_word, csr_method_name(1:), switch, err_flag, ele, delim, delim_found)
+  if (err_flag) return
+  ele%csr_method = switch
+
 case ('DEFAULT_TRACKING_SPECIES')
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
   ix = species_id(word)
@@ -1729,6 +1734,9 @@ case ('DEFAULT_TRACKING_SPECIES')
   j = nint(ele%value(ix_branch$)) 
   if (j >= 0) lat%branch(j)%param%default_tracking_species = ix 
 
+case ('ELE_ORIGIN')
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag, ele, delim, delim_found); if (err_flag) return
+
 case ('ENERGY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(energy_distribution$) = ix
@@ -1737,36 +1745,15 @@ case ('EXACT_MULTIPOLES')
   call get_switch (attrib_word, exact_multipoles_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(exact_multipoles$) = ix
 
-case ('PTC_EXACT_MODEL')
-  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag); if (err_flag) return
-  call set_ptc (exact_modeling = logic)
-
-case ('PTC_EXACT_MISALIGN')
-  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag)
-  if (err_flag) return
-  call set_ptc (exact_misalign = logic)
-
-case ('OFFSET_MOVES_APERTURE')
-  call parser_get_logical (attrib_word, ele%offset_moves_aperture, ele%name, delim, delim_found, err_flag); if (err_flag) return
+case ('FIELD_CALC')
+  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('FIELD_MASTER')
   call parser_get_logical (attrib_word, ele%field_master, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
-case ('SCALE_MULTIPOLES')
-  call parser_get_logical (attrib_word, ele%scale_multipoles, ele%name, delim, delim_found, err_flag); if (err_flag) return
-
-case ('FIELD_CALC')
-  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele, delim, delim_found); if (err_flag) return
-
-case ('REF_ORIGIN')
-  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found); if (err_flag) return
-
-case ('ELE_ORIGIN')
-  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag, ele, delim, delim_found); if (err_flag) return
-
-case ('PTC_FRINGE_GEOMETRY')
-  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(ptc_fringe_geometry$) = ix
+case ('FRINGE_AT')
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(fringe_at$) = ix
 
 case ('FRINGE_TYPE')
   call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1777,6 +1764,17 @@ case ('FRINGE_TYPE')
   endif
   ele%value(fringe_type$) = ix
 
+case ('GEOMETRY')
+  call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(geometry$) = ix
+  j = nint(ele%value(ix_branch$)) 
+  if (j >= 0) lat%branch(j)%param%geometry = ix
+
+case ('HIGH_ENERGY_SPACE_CHARGE_ON')
+  call get_logical_real (attrib_word, ele%value(high_energy_space_charge_on$), err_flag); if (err_flag) return
+  j = nint(ele%value(ix_branch$)) 
+  if (j >= 0) lat%branch(j)%param%high_energy_space_charge_on = is_true(ele%value(high_energy_space_charge_on$))
+
 case ('HIGHER_ORDER_FRINGE_TYPE')
   call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(higher_order_fringe_type$) = ix
@@ -1784,6 +1782,18 @@ case ('HIGHER_ORDER_FRINGE_TYPE')
 case ('INTERPOLATION')
   call get_switch (attrib_word, interpolation_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(interpolation$) = ix
+
+case ('LATTICE_TYPE')   ! Old style
+  call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
+                     'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED', &
+                     'THIS PROGRAM WILL RUN NORMALLY...', level = s_warn$)
+  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(geometry$) = ix
+
+case ('LIVE_BRANCH')
+  call get_logical_real (attrib_word, ele%value(live_branch$), err_flag); if (err_flag) return
+  j = nint(ele%value(ix_branch$)) 
+  if (j >= 0) lat%branch(j)%param%live_branch = is_true(ele%value(live_branch$))
 
 case ('MAT6_CALC_METHOD')
   call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1799,20 +1809,16 @@ case ('MAT6_CALC_METHOD')
   endif
   ele%mat6_calc_method = switch
 
-case ('REF_COORDINATES')
-  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(ref_coordinates$) = ix
-
-case ('REF_ORBIT_FOLLOWS')
-  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(ref_orbit_follows$) = ix
-
 case ('MODE')
   call get_switch (attrib_word, mode_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(mode$) = ix
 
-case ('PTC_INTEGRATION_TYPE')
-  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele, delim, delim_found); if (err_flag) return
+case ('OFFSET_MOVES_APERTURE')
+  call parser_get_logical (attrib_word, ele%offset_moves_aperture, ele%name, delim, delim_found, err_flag); if (err_flag) return
+
+case ('ORIGIN_ELE_REF_PT')
+  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(origin_ele_ref_pt$) = ix
 
 case ('PARTICLE')
   call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
@@ -1826,6 +1832,26 @@ case ('PARTICLE')
   j = nint(ele%value(ix_branch$)) 
   if (j >= 0) lat%branch(j)%param%particle = ix 
 
+case ('PHOTON_TYPE')
+  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  lat%photon_type = ix   ! photon_type has been set.
+
+case ('PTC_EXACT_MODEL')
+  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag); if (err_flag) return
+  call set_ptc (exact_modeling = logic)
+
+case ('PTC_EXACT_MISALIGN')
+  call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag)
+  if (err_flag) return
+  call set_ptc (exact_misalign = logic)
+
+case ('PTC_FRINGE_GEOMETRY')
+  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(ptc_fringe_geometry$) = ix
+
+case ('PTC_INTEGRATION_TYPE')
+  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele, delim, delim_found); if (err_flag) return
+
 case ('PTC_FIELD_GEOMETRY')
   call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(ptc_field_geometry$) = ix
@@ -1835,44 +1861,32 @@ case ('PTC_FIELD_GEOMETRY')
     return
   endif
 
-case ('GEOMETRY')
-  call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(geometry$) = ix
-  j = nint(ele%value(ix_branch$)) 
-  if (j >= 0) lat%branch(j)%param%geometry = ix
+case ('REF_ORIGIN')
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found); if (err_flag) return
 
-case ('LIVE_BRANCH')
-  call get_logical_real (attrib_word, ele%value(live_branch$), err_flag); if (err_flag) return
-  j = nint(ele%value(ix_branch$)) 
-  if (j >= 0) lat%branch(j)%param%live_branch = is_true(ele%value(live_branch$))
+case ('REF_COORDINATES')
+  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(ref_coordinates$) = ix
 
-case ('HIGH_ENERGY_SPACE_CHARGE_ON')
-  call get_logical_real (attrib_word, ele%value(high_energy_space_charge_on$), err_flag); if (err_flag) return
-  j = nint(ele%value(ix_branch$)) 
-  if (j >= 0) lat%branch(j)%param%high_energy_space_charge_on = is_true(ele%value(high_energy_space_charge_on$))
+case ('REF_ORBIT_FOLLOWS')
+  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(ref_orbit_follows$) = ix
 
-case ('PHOTON_TYPE')
-  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  lat%photon_type = ix   ! photon_type has been set.
-
-case ('LATTICE_TYPE')   ! Old style
-  call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
-                     'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED', &
-                     'THIS PROGRAM WILL RUN NORMALLY...', level = s_warn$)
-  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(geometry$) = ix
-
-case ('FRINGE_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(fringe_at$) = ix
-
-case ('ORIGIN_ELE_REF_PT')
-  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(origin_ele_ref_pt$) = ix
+case ('SCALE_MULTIPOLES')
+  call parser_get_logical (attrib_word, ele%scale_multipoles, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
 case ('SPATIAL_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(spatial_distribution$) = ix
+
+case ('SPECIES_OUT')
+  call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
+  ix = species_id(word)
+  if (ix == invalid$ .or. ix == ref_particle$ .or. ix == anti_ref_particle$) then
+    call parser_error ('INVALID SPECIES_OUT: ' // word)
+    return
+  endif
+  ele%converter%species_out = ix
 
 case ('SPIN_TRACKING_METHOD')
   if (attrib_word == 'BMAD_STANDARD') then
@@ -1910,11 +1924,6 @@ case ('TRACKING_METHOD')
     return
   endif
   ele%tracking_method = switch
-
-case ('CSR_METHOD')
-  call get_switch (attrib_word, csr_method_name(1:), switch, err_flag, ele, delim, delim_found)
-  if (err_flag) return
-  ele%csr_method = switch
 
 case ('SPACE_CHARGE_METHOD')
   call get_switch (attrib_word, space_charge_method_name(1:), switch, err_flag, ele, delim, delim_found)
@@ -3237,7 +3246,7 @@ end subroutine word_to_value
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_constant (word, lat)
+subroutine parser_add_constant (word, lat, redef_is_error)
 
 implicit none
 
@@ -3247,7 +3256,7 @@ character(*) word
 character(1) delim
 real(rp) old_val
 integer i, i_const, ixm, ixm2, n
-logical delim_found, err_flag
+logical delim_found, err_flag, redef_is_error
 
 !
 
@@ -3256,10 +3265,15 @@ if (i /= 0) then
   old_val = bp_com%const(i)%value
   call parse_evaluate_value (word, bp_com%const(i)%value, lat, delim, delim_found, err_flag)
 
-  if (bp_com%const(i)%value == old_val) then
-    call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word, 'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', level = s_warn$)
-  else
-    call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word)
+  if (redef_is_error) then
+    if (bp_com%const(i)%value == old_val) then
+      call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word, &
+                         'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', &
+                         'USE "REDEF:" CONSTRUCT TO GET AROUND THIS (BUT ONLY IF ABSOLUTELY NECESSARY).', level = s_warn$)
+    else
+      call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word, &
+                         'USE "REDEF:" CONSTRUCT TO GET AROUND THIS (BUT ONLY IF ABSOLUTELY NECESSARY).')
+    endif
   endif
 
 else

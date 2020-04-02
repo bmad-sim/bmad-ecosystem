@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 243
+integer, parameter :: bmad_inc_version$ = 244
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1003,11 +1003,83 @@ type bunch_params_struct
                                          !   this case the z-twiss will not be valid.
 end type
 
+!------------------------------------------------------------------------
+
+! Converter structure for Probability(E_out, r_out; E_in, thickness)
+! Note: Probability at r = 0 is zero since using polar coordinates.
+
+type converter_prob_E_r_struct
+  real(rp) :: integrated_prob = 0       ! Integrated probability over (E, r).
+  real(rp), allocatable :: E(:)         ! Grid E_out values
+  real(rp), allocatable :: r(:)         ! Grid r_out values
+  real(rp), allocatable :: prob(:, :)   ! Probability grid
+  real(rp), allocatable :: integ_prob_E(:)    ! Integrated probability from min E to E
+  real(rp), allocatable :: integ_prob_r(:,:)  ! Probability 
+end type
+
+! dx/ds, dy/ds coef fits
+
+type converter_beta_fit_1D_struct
+  real(rp) :: E = 0       ! E_out value at fit
+  real(rp) :: a(0:4) = 0  ! beta(r) = Sum: a(i) * r^i
+end type
+
+type converter_beta_struct
+  type (converter_beta_fit_1D_struct), allocatable :: fit_1d(:)
+  real(rp) :: A = 0         ! Fit for high E_out region: beta(E,r) = A * E^k_E * r^k_r
+  real(rp) :: k_E = 0
+  real(rp) :: k_r = 0
+end type
+
+type converter_alpha_fit_1D_struct
+  real(rp) :: E = 0       ! E_out value at fit
+  real(rp) :: k = 0       ! alpha(r) = exp(-k) * (Sum: a(i) * r^i)
+  real(rp) :: a(0:3) = 0
+end type
+
+type converter_alpha_struct
+  type (converter_alpha_fit_1D_struct), allocatable :: fit_1d(:)
+  real(rp) :: k_E = 0, k_r = 0
+  real(rp) :: a_E(0:3) = 0
+  real(rp) :: a_r(0:3) = 0
+end type
+
+! c_x = A_c * E^k_E * r^k_r
+
+type converter_cx_struct
+  real(rp) A_c
+  real(rp) k_E
+  real(rp) k_r
+end type
+
+type converter_direction_out_struct
+  type (converter_beta_struct) :: beta
+  type (converter_alpha_struct) :: alpha_x, alpha_y
+  type (converter_cx_struct) :: cx
+end type
+
+! Converter structure for a given incoming particle energy.
+
+type converter_sub_distribution_struct
+  real(rp) :: E_in = 0
+  type (converter_prob_E_r_struct) :: prob_E_r
+  type (converter_direction_out_struct) :: dir_out
+end type
+
+! Distribution of outgoing particles for a given thickness.
+
+type converter_distribution_struct
+  real(rp) :: thickness = 0
+  type (converter_sub_distribution_struct), allocatable :: sub_dist(:) ! Distribution at various E_in values.
+end type
+
+! Converter structure
 ! For things like a positron converter in a linac.
-! In development...
 
 type converter_struct
-  real(rp) dummy
+  integer :: species_out = 0    ! Output species
+  character(40) :: material_type = ''
+  type (converter_distribution_struct), allocatable :: dist(:)  ! Distribution at various thicknesses 
 end type
 
 !-------------------------------------------------------------------------
@@ -1367,12 +1439,12 @@ integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2 ! Important: tilt$ = rol
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3, ref_time_offset$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, k1_pseudo$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
-integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4, radiation_length$ = 4
+integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5
-integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, E_min$ = 5
+integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, E_out_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
-integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, E_max$ = 6
-integer, parameter :: g_err$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7
+integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, E_out_max$ = 6
+integer, parameter :: g_err$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7, bragg_angle_in$ = 7
 integer, parameter :: rho$ = 8, delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8 
@@ -1476,10 +1548,10 @@ integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
-integer, parameter :: spherical_curvature$ = 81
+integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
 integer, parameter :: alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81, tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
-integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83
+integer, parameter :: eta_y$ = 83, electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
 integer, parameter :: etap_x$ = 84, lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84
 integer, parameter :: etap_y$ = 85, lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86

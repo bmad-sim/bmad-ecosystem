@@ -220,6 +220,9 @@ type (cartesian_map_struct), pointer :: ct_map
 type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
+type (converter_distribution_struct), pointer :: c_dist
+type (converter_prob_E_r_struct), pointer :: p_er
+type (converter_direction_out_struct), pointer :: c_dir
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
@@ -309,7 +312,7 @@ endif
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
           ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-          ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus
+          ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus, ix_convert
 
 write (d_unit) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -367,6 +370,32 @@ if (associated(ele%ac_kick)) then
       write (d_unit) ac%frequencies(n)
     enddo
   endif
+endif
+
+! Converter
+
+if (associated(ele%converter)) then
+  write (d_unit) ele%converter%species_out, ele%converter%material_type, size(ele%converter%dist)
+  do n = 1, size(ele%converter%dist)
+    c_dist => ele%converter%dist(n)
+    write (d_unit) c_dist%thickness, size(c_dist%sub_dist)
+    do j = 1, size(c_dist%sub_dist)
+      write (d_unit) c_dist%sub_dist(j)%E_in
+      p_er => c_dist%sub_dist(j)%prob_E_r
+      write (d_unit) p_er%integrated_prob, size(p_er%E), size(p_er%r)
+      write (d_unit) p_er%E
+      write (d_unit) p_er%r
+      write (d_unit) p_er%prob
+      write (d_unit) p_er%integ_prob_E
+      write (d_unit) p_er%integ_prob_r
+      c_dir => c_dist%sub_dist(j)%dir_out
+      write (d_unit) size(c_dir%beta%fit_1D), size(c_dir%alpha_x%fit_1D), size(c_dir%alpha_y%fit_1D)
+      write (d_unit) c_dir%beta%A, c_dir%beta%k_E, c_dir%beta%k_r, c_dir%beta%fit_1D
+      write (d_unit) c_dir%alpha_x%k_E, c_dir%alpha_x%k_r, c_dir%alpha_x%a_E, c_dir%alpha_x%a_r, c_dir%alpha_x%fit_1D
+      write (d_unit) c_dir%alpha_y%k_E, c_dir%alpha_y%k_r, c_dir%alpha_y%a_E, c_dir%alpha_y%a_r, c_dir%alpha_y%fit_1D
+      write (d_unit) c_dir%cx%A_c, c_dir%cx%k_E, c_dir%cx%k_r 
+    enddo
+  enddo
 endif
 
 ! Cartesian map

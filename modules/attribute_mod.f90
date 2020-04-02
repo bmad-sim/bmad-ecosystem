@@ -847,10 +847,12 @@ call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_AN
 call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
 call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
 
-call init_attribute_name1 (converter$, material_type$,              'MATERIAL_TYPE')
-call init_attribute_name1 (converter$, radiation_length$,           'RADIATION_LENGTH', dependent$)
-call init_attribute_name1 (converter$, E_min$,                      'E_MIN')
-call init_attribute_name1 (converter$, E_max$,                      'E_MAX')
+call init_attribute_name1 (converter$, distribution$,               'DISTRIBUTION')
+call init_attribute_name1 (converter$, thickness$,                  'THICKNESS')
+call init_attribute_name1 (converter$, E_out_min$,                  'E_OUT_MIN')
+call init_attribute_name1 (converter$, E_out_max$,                  'E_OUT_MAX')
+call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
+call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
 
 
 call init_attribute_name1 (lens$, l$,                               'L')
@@ -1875,7 +1877,7 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
       'TILT', 'TILT_CALIB', 'TILT_CORR', 'TILT_TOT', 'GRAZE_ANGLE_IN', 'GRAZE_ANGLE_OUT', &
       'T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', &
       'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', &
-      'MOSAIC_ANGLE_RMS_IN_PLANE', 'MOSAIC_ANGLE_RMS_OUT_PLANE')
+      'MOSAIC_ANGLE_RMS_IN_PLANE', 'MOSAIC_ANGLE_RMS_OUT_PLANE', 'ANGLE_OUT_MAX')
   attrib_units = 'rad'
 
 case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', 'AUTOSCALE_PHASE_TOL')
@@ -1906,7 +1908,8 @@ case ('DBRAGG_ANGLE_DE')
   attrib_units = 'rad/eV'
 
 case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E2_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
-      'P0C', 'P0C_START', 'PC', 'P0C_SET', 'E_TOT_SET', 'AUTOSCALE_AMP_ABS_TOL', 'DELTA_E_REF', 'SIG_E', 'SIG_E2')
+      'P0C', 'P0C_START', 'PC', 'P0C_SET', 'E_TOT_SET', 'AUTOSCALE_AMP_ABS_TOL', 'DELTA_E_REF', 'SIG_E', 'SIG_E2', &
+      'E_OUT_MIN', 'E_OUT_MAX')
   attrib_units = 'eV'
 
 case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET', 'DELTA_TIME')
