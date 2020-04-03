@@ -471,9 +471,17 @@ contains
              phix = rk * (cry - exp(-tk) * cby)
              phiy = rk * (crx - exp(-tk) * cbx)
           endif
-          x(2) = x(2) + phix
-          x(4) = x(4) + phiy
           !          if (.NOT.bborbit)  then
+          if(xs<0) then
+           x(2) = x(2) - phix
+          else
+           x(2) = x(2) + phix
+          endif
+          if(ys<0) then
+          x(4) = x(4) - phiy
+          else
+          x(4) = x(4) + phiy
+          endif
           x(2) = x(2) - BB%bbk(n,1)
           x(4) = x(4) - BB%bbk(n,2)
           !          endif

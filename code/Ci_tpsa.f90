@@ -12,6 +12,12 @@ MODULE c_TPSA
   use definition
   use file_handler
   use tree_element_MODULE
+use duan_zhe_map, probe_zhe=>probe,tree_element_zhe=>tree_element,dp_zhe=>dp, &
+DEFAULT0_zhe=>DEFAULT0,TOTALPATH0_zhe=>TOTALPATH0,TIME0_zhe=>TIME0,ONLY_4d0_zhe=>ONLY_4d0,RADIATION0_zhe=>RADIATION0, &
+NOCAVITY0_zhe=>NOCAVITY0,FRINGE0_zhe=>FRINGE0,STOCHASTIC0_zhe=>STOCHASTIC0,ENVELOPE0_zhe=>ENVELOPE0, &
+DELTA0_zhe=>DELTA0,SPIN0_zhe=>SPIN0,MODULATION0_zhe=>MODULATION0,only_2d0_zhe=>only_2d0 , &
+INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
+
   IMPLICIT NONE
   public
   integer,private::nd2par,nd2part,nd2partt
@@ -99,6 +105,7 @@ private EQUALq_r,EQUALq_8_c,EQUALq_c_8,EQUALq,POWq,c_invq,subq,mulq,addq,alloc_c
 private c_pri_quaternion,CUTORDERquaternion,c_trxquaternion,EQUALq_c_r,EQUALq_r_c,mulcq,c_exp_quaternion
 private equalc_quaternion_c_spinor,equalc_spinor_c_quaternion,unarySUB_q,c_trxquaternion_tpsa
 private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mulqdiv,powql,quaternion_to_matrix
+private copy_tree_into_tree_zhe
 !private equal_map_real8,equal_map_complex8,equal_real8_map,equal_complex8_map
 real(dp) dts
 real(dp), private :: sj(6,6)
@@ -195,7 +202,7 @@ type(q_linear) q_phasor,qi_phasor
       MODULE PROCEDURE equal_map_complex8    ! replaces c_dpokmap
       MODULE PROCEDURE equal_real8_map
       MODULE PROCEDURE equal_complex8_map   ! replaces c_dpekmap
-
+      MODULE PROCEDURE copy_tree_into_tree_zhe
   end  INTERFACE
 
 
@@ -18431,7 +18438,7 @@ endif
   END SUBROUTINE SET_TREE_G_complex_zhe_as_is
 
 
-subroutine fill_tree_element_line_zhe_outside_map(minput ,filef,fix0,as_is,stochprec)   ! fix0 is the initial condition for the maps
+subroutine fill_tree_element_line_zhe_outside_map(minput ,filef,fix0,as_is,stochprec,tree_zhe)   ! fix0 is the initial condition for the maps
 implicit none
 logical, optional :: as_is
 real(dp), optional :: fix0(6),stochprec
@@ -18441,13 +18448,16 @@ real(dp)  fix(6),mat(6,6) ,f0(6),stoch
  
 type(c_damap) m,minput
 integer  i,inf
- 
+type(tree_element_zhe), optional :: tree_zhe(:)
+
+
 type(tree_element), pointer :: forward(:) =>null()
 character(*),optional :: filef
  
   as_is0=.false.
  
 if(present(as_is)) as_is0=as_is
+  
   allocate(forward(3))
  
 
@@ -18503,7 +18513,12 @@ forward(3)%fix(1:6)=fix    ! exit
   forward(1)%ds=0.0d0
  
 forward(1)%beta0=1.d0
-
+if(present(tree_zhe))  then
+ do i=1,3
+   CALL ALLOC_TREE_zhe(tree_zhe(i),forward(i)%N,forward(i)%NP)
+   tree_zhe(i)=forward(i)
+ enddo
+endif
  if(present(filef)) then
   call kanalnummer(inf,filef)
     call print_tree_elements(forward,inf)
@@ -18515,6 +18530,31 @@ endif
  call kill(m) 
 
 end subroutine fill_tree_element_line_zhe_outside_map
+
+subroutine copy_tree_into_tree_zhe(tree_zhe,t)
+implicit none
+type(tree_element), intent(in) :: t
+type(tree_element_zhe), intent(out) :: tree_zhe
+
+ tree_zhe%cc=t%cc
+ tree_zhe%fixr=t%fixr
+ tree_zhe%fix=t%fix
+ tree_zhe%fix0=t%fix0
+ tree_zhe%jl=t%jl
+ tree_zhe%jv=t%jv
+ tree_zhe%n=t%n
+ tree_zhe%np=t%np
+ tree_zhe%no=t%no
+ tree_zhe%e_ij=t%e_ij
+ tree_zhe%rad=t%rad
+ tree_zhe%ds=t%ds
+ tree_zhe%beta0=t%beta0
+ tree_zhe%eps=t%eps
+ tree_zhe%symptrack=t%symptrack
+ tree_zhe%usenonsymp=t%usenonsymp
+ tree_zhe%factored=t%factored
+
+end subroutine copy_tree_into_tree_zhe
 
 subroutine print_tree_element(t,mf)
 implicit none
