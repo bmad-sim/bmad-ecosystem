@@ -401,17 +401,6 @@ template bool is_all_equal (const CPP_wake_MATRIX&, const CPP_wake_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_converter& x, const CPP_converter& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.dummy == y.dummy);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_converter_ARRAY&, const CPP_converter_ARRAY&);
-template bool is_all_equal (const CPP_converter_MATRIX&, const CPP_converter_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_taylor_term& x, const CPP_taylor_term& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.coef == y.coef);
@@ -688,6 +677,7 @@ bool operator== (const CPP_xy_disp& x, const CPP_xy_disp& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.eta == y.eta);
   is_eq = is_eq && (x.etap == y.etap);
+  is_eq = is_eq && (x.sigma == y.sigma);
   return is_eq;
 };
 
@@ -1386,9 +1376,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.control == NULL) == (y.control == NULL));
   if (!is_eq) return false;
   if (x.control != NULL) is_eq = (*x.control == *y.control);
-  is_eq = is_eq && ((x.converter == NULL) == (y.converter == NULL));
-  if (!is_eq) return false;
-  if (x.converter != NULL) is_eq = (*x.converter == *y.converter);
   is_eq = is_eq && (x.floor == y.floor);
   is_eq = is_eq && ((x.high_energy_space_charge == NULL) == (y.high_energy_space_charge == NULL));
   if (!is_eq) return false;

@@ -121,11 +121,6 @@ typedef valarray<CPP_wake>          CPP_wake_ARRAY;
 typedef valarray<CPP_wake_ARRAY>    CPP_wake_MATRIX;
 typedef valarray<CPP_wake_MATRIX>   CPP_wake_TENSOR;
 
-class CPP_converter;
-typedef valarray<CPP_converter>          CPP_converter_ARRAY;
-typedef valarray<CPP_converter_ARRAY>    CPP_converter_MATRIX;
-typedef valarray<CPP_converter_MATRIX>   CPP_converter_TENSOR;
-
 class CPP_taylor_term;
 typedef valarray<CPP_taylor_term>          CPP_taylor_term_ARRAY;
 typedef valarray<CPP_taylor_term_ARRAY>    CPP_taylor_term_MATRIX;
@@ -1152,30 +1147,6 @@ bool operator== (const CPP_wake&, const CPP_wake&);
 
 
 //--------------------------------------------------------------------
-// CPP_converter
-
-class Opaque_converter_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_converter {
-public:
-  Real dummy;
-
-  CPP_converter() :
-    dummy(0.0)
-    {}
-
-  ~CPP_converter() {
-  }
-
-};   // End Class
-
-extern "C" void converter_to_c (const Opaque_converter_class*, CPP_converter&);
-extern "C" void converter_to_f (const CPP_converter&, Opaque_converter_class*);
-
-bool operator== (const CPP_converter&, const CPP_converter&);
-
-
-//--------------------------------------------------------------------
 // CPP_taylor_term
 
 class Opaque_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1752,10 +1723,12 @@ class CPP_xy_disp {
 public:
   Real eta;
   Real etap;
+  Real sigma;
 
   CPP_xy_disp() :
     eta(0.0),
-    etap(0.0)
+    etap(0.0),
+    sigma(0.0)
     {}
 
   ~CPP_xy_disp() {
@@ -3194,7 +3167,6 @@ public:
   CPP_ac_kicker* ac_kick;
   CPP_bookkeeping_state bookkeeping_state;
   CPP_controller* control;
-  CPP_converter* converter;
   CPP_floor_position floor;
   CPP_high_energy_space_charge* high_energy_space_charge;
   CPP_mode3* mode3;
@@ -3301,7 +3273,6 @@ public:
     ac_kick(NULL),
     bookkeeping_state(),
     control(NULL),
-    converter(NULL),
     floor(),
     high_energy_space_charge(NULL),
     mode3(NULL),
@@ -3380,7 +3351,6 @@ public:
     delete descrip;
     delete ac_kick;
     delete control;
-    delete converter;
     delete high_energy_space_charge;
     delete mode3;
     delete photon;

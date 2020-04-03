@@ -2161,92 +2161,6 @@ end subroutine set_wake_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_converter (ok)
-
-implicit none
-
-type(converter_struct), target :: f_converter, f2_converter
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_converter (c_converter, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_converter
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_converter_test_pattern (f2_converter, 1)
-
-call test_c_converter(c_loc(f2_converter), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_converter_test_pattern (f_converter, 4)
-if (f_converter == f2_converter) then
-  print *, 'converter: C side convert C->F: Good'
-else
-  print *, 'converter: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_converter
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_converter (c_converter, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_converter
-type(converter_struct), target :: f_converter, f2_converter
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call converter_to_f (c_converter, c_loc(f_converter))
-
-call set_converter_test_pattern (f2_converter, 2)
-if (f_converter == f2_converter) then
-  print *, 'converter: F side convert C->F: Good'
-else
-  print *, 'converter: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_converter_test_pattern (f2_converter, 3)
-call converter_to_c (c_loc(f2_converter), c_converter)
-
-end subroutine test2_f_converter
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_converter_test_pattern (F, ix_patt)
-
-implicit none
-
-type(converter_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%dummy = rhs
-
-end subroutine set_converter_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
 subroutine test1_f_taylor_term (ok)
 
 implicit none
@@ -4128,6 +4042,8 @@ offset = 100 * ix_patt
 rhs = 1 + offset; F%eta = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 2 + offset; F%etap = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%sigma = rhs
 
 end subroutine set_xy_disp_test_pattern
 
@@ -8072,14 +7988,6 @@ else
   rhs = 15 + offset
   call set_controller_test_pattern (F%control, ix_patt)
 endif
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%converter)) deallocate (F%converter)
-else
-  if (.not. associated(F%converter)) allocate (F%converter)
-  rhs = 17 + offset
-  call set_converter_test_pattern (F%converter, ix_patt)
-endif
 !! f_side.test_pat[type, 0, NOT]
 call set_floor_position_test_pattern (F%floor, ix_patt)
 !! f_side.test_pat[type, 0, PTR]
@@ -8087,7 +7995,7 @@ if (ix_patt < 3) then
   if (associated(F%high_energy_space_charge)) deallocate (F%high_energy_space_charge)
 else
   if (.not. associated(F%high_energy_space_charge)) allocate (F%high_energy_space_charge)
-  rhs = 20 + offset
+  rhs = 18 + offset
   call set_high_energy_space_charge_test_pattern (F%high_energy_space_charge, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -8095,7 +8003,7 @@ if (ix_patt < 3) then
   if (associated(F%mode3)) deallocate (F%mode3)
 else
   if (.not. associated(F%mode3)) allocate (F%mode3)
-  rhs = 22 + offset
+  rhs = 20 + offset
   call set_mode3_test_pattern (F%mode3, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -8103,7 +8011,7 @@ if (ix_patt < 3) then
   if (associated(F%photon)) deallocate (F%photon)
 else
   if (.not. associated(F%photon)) allocate (F%photon)
-  rhs = 24 + offset
+  rhs = 22 + offset
   call set_photon_element_test_pattern (F%photon, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -8111,17 +8019,17 @@ if (ix_patt < 3) then
   if (associated(F%rad_int_cache)) deallocate (F%rad_int_cache)
 else
   if (.not. associated(F%rad_int_cache)) allocate (F%rad_int_cache)
-  rhs = 26 + offset
+  rhs = 24 + offset
   call set_rad_int_ele_cache_test_pattern (F%rad_int_cache, ix_patt)
 endif
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1
-  rhs = 100 + jd1 + 28 + offset
+  rhs = 100 + jd1 + 26 + offset
   call set_taylor_test_pattern (F%taylor(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%spin_taylor,1); lb1 = lbound(F%spin_taylor,1) - 1
-  rhs = 100 + jd1 + 29 + offset
+  rhs = 100 + jd1 + 27 + offset
   call set_taylor_test_pattern (F%spin_taylor(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 0, PTR]
@@ -8129,7 +8037,7 @@ if (ix_patt < 3) then
   if (associated(F%wake)) deallocate (F%wake)
 else
   if (.not. associated(F%wake)) allocate (F%wake)
-  rhs = 30 + offset
+  rhs = 28 + offset
   call set_wake_test_pattern (F%wake, ix_patt)
 endif
 !! f_side.test_pat[type, 1, PTR]
@@ -8192,44 +8100,44 @@ call set_coord_test_pattern (F%time_ref_orb_in, ix_patt)
 call set_coord_test_pattern (F%time_ref_orb_out, ix_patt)
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%value,1); lb1 = lbound(F%value,1) - 1
-  rhs = 100 + jd1 + 46 + offset
+  rhs = 100 + jd1 + 44 + offset
   F%value(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%old_value,1); lb1 = lbound(F%old_value,1) - 1
-  rhs = 100 + jd1 + 47 + offset
+  rhs = 100 + jd1 + 45 + offset
   F%old_value(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%vec0,1); lb1 = lbound(F%vec0,1) - 1
-  rhs = 100 + jd1 + 48 + offset
+  rhs = 100 + jd1 + 46 + offset
   F%vec0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%mat6,1); lb1 = lbound(F%mat6,1) - 1
 do jd2 = 1, size(F%mat6,2); lb2 = lbound(F%mat6,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 49 + offset
+  rhs = 100 + jd1 + 10*jd2 + 47 + offset
   F%mat6(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%c_mat,1); lb1 = lbound(F%c_mat,1) - 1
 do jd2 = 1, size(F%c_mat,2); lb2 = lbound(F%c_mat,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 50 + offset
+  rhs = 100 + jd1 + 10*jd2 + 48 + offset
   F%c_mat(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 51 + offset; F%gamma_c = rhs
+rhs = 49 + offset; F%gamma_c = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%spin_quaternion,1); lb1 = lbound(F%spin_quaternion,1) - 1
-  rhs = 100 + jd1 + 52 + offset
+  rhs = 100 + jd1 + 50 + offset
   F%spin_quaternion(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 53 + offset; F%s_start = rhs
+rhs = 51 + offset; F%s_start = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 54 + offset; F%s = rhs
+rhs = 52 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 55 + offset; F%ref_time = rhs
+rhs = 53 + offset; F%ref_time = rhs
 !! f_side.test_pat[real, 1, PTR]
 
 if (ix_patt < 3) then
@@ -8237,7 +8145,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%a_pole)) allocate (F%a_pole(-1:1))
   do jd1 = 1, size(F%a_pole,1); lb1 = lbound(F%a_pole,1) - 1
-    rhs = 100 + jd1 + 56 + offset
+    rhs = 100 + jd1 + 54 + offset
     F%a_pole(jd1+lb1) = rhs
   enddo
 endif
@@ -8248,7 +8156,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%b_pole)) allocate (F%b_pole(-1:1))
   do jd1 = 1, size(F%b_pole,1); lb1 = lbound(F%b_pole,1) - 1
-    rhs = 100 + jd1 + 58 + offset
+    rhs = 100 + jd1 + 56 + offset
     F%b_pole(jd1+lb1) = rhs
   enddo
 endif
@@ -8259,7 +8167,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%a_pole_elec)) allocate (F%a_pole_elec(-1:1))
   do jd1 = 1, size(F%a_pole_elec,1); lb1 = lbound(F%a_pole_elec,1) - 1
-    rhs = 100 + jd1 + 60 + offset
+    rhs = 100 + jd1 + 58 + offset
     F%a_pole_elec(jd1+lb1) = rhs
   enddo
 endif
@@ -8270,7 +8178,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%b_pole_elec)) allocate (F%b_pole_elec(-1:1))
   do jd1 = 1, size(F%b_pole_elec,1); lb1 = lbound(F%b_pole_elec,1) - 1
-    rhs = 100 + jd1 + 62 + offset
+    rhs = 100 + jd1 + 60 + offset
     F%b_pole_elec(jd1+lb1) = rhs
   enddo
 endif
@@ -8281,7 +8189,7 @@ if (ix_patt < 3) then
 else
   if (.not. associated(F%custom)) allocate (F%custom(-1:1))
   do jd1 = 1, size(F%custom,1); lb1 = lbound(F%custom,1) - 1
-    rhs = 100 + jd1 + 64 + offset
+    rhs = 100 + jd1 + 62 + offset
     F%custom(jd1+lb1) = rhs
   enddo
 endif
@@ -8293,82 +8201,82 @@ else
   do jd1 = 1, size(F%r,1); lb1 = lbound(F%r,1) - 1
   do jd2 = 1, size(F%r,2); lb2 = lbound(F%r,2) - 1
   do jd3 = 1, size(F%r,3); lb3 = lbound(F%r,3) - 1
-    rhs = 100 + jd1 + 10*jd2 + 100*jd3 + 66 + offset
+    rhs = 100 + jd1 + 10*jd2 + 100*jd3 + 64 + offset
     F%r(jd1+lb1,jd2+lb2,jd3+lb3) = rhs
   enddo; enddo; enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 70 + offset; F%key = rhs
+rhs = 68 + offset; F%key = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 71 + offset; F%sub_key = rhs
+rhs = 69 + offset; F%sub_key = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 72 + offset; F%ix_ele = rhs
+rhs = 70 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 73 + offset; F%ix_branch = rhs
+rhs = 71 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 74 + offset; F%lord_status = rhs
+rhs = 72 + offset; F%lord_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 75 + offset; F%n_slave = rhs
+rhs = 73 + offset; F%n_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 76 + offset; F%n_slave_field = rhs
+rhs = 74 + offset; F%n_slave_field = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 77 + offset; F%ix1_slave = rhs
+rhs = 75 + offset; F%ix1_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 78 + offset; F%slave_status = rhs
+rhs = 76 + offset; F%slave_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 79 + offset; F%n_lord = rhs
+rhs = 77 + offset; F%n_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 80 + offset; F%n_lord_field = rhs
+rhs = 78 + offset; F%n_lord_field = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 81 + offset; F%ic1_lord = rhs
+rhs = 79 + offset; F%ic1_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 82 + offset; F%ix_pointer = rhs
+rhs = 80 + offset; F%ix_pointer = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 83 + offset; F%ixx = rhs
+rhs = 81 + offset; F%ixx = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 84 + offset; F%iyy = rhs
+rhs = 82 + offset; F%iyy = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 85 + offset; F%mat6_calc_method = rhs
+rhs = 83 + offset; F%mat6_calc_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 86 + offset; F%tracking_method = rhs
+rhs = 84 + offset; F%tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 87 + offset; F%spin_tracking_method = rhs
+rhs = 85 + offset; F%spin_tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 88 + offset; F%csr_method = rhs
+rhs = 86 + offset; F%csr_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 89 + offset; F%space_charge_method = rhs
+rhs = 87 + offset; F%space_charge_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 90 + offset; F%ptc_integration_type = rhs
+rhs = 88 + offset; F%ptc_integration_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 91 + offset; F%field_calc = rhs
+rhs = 89 + offset; F%field_calc = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 92 + offset; F%aperture_at = rhs
+rhs = 90 + offset; F%aperture_at = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 93 + offset; F%aperture_type = rhs
+rhs = 91 + offset; F%aperture_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 94 + offset; F%orientation = rhs
+rhs = 92 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 95 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 93 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 96 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 94 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 97 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 95 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 98 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 96 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 99 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
+rhs = 97 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 100 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 98 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 101 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 99 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 102 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 100 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 103 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 101 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 104 + offset; F%select = (modulo(rhs, 2) == 0)
+rhs = 102 + offset; F%select = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 105 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 103 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 
