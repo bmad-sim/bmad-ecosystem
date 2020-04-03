@@ -6,7 +6,7 @@ implicit none
   public DEFAULT0,TOTALPATH0 ,TIME0,ONLY_4d0,DELTA0,SPIN0,MODULATION0,only_2d0   ,nrmax_zhe
   public RADIATION0, NOCAVITY0, FRINGE0 ,STOCHASTIC0,ENVELOPE0,gaussian_seed_zhe,nrmax_used_zhe,alloc_bunch,kill_bunch
   PUBLIC track_TREE_probe_complex_ji,track_TREE_probe_complex_ji_symp,TRACK_TREE_PROBE_COMPLEX_JI_VEC
- public file_zhe,number_zhe_maps,get_seed,set_seed
+ public file_zhe,number_zhe_maps,get_seed,set_seed,ALLOC_TREE
  character(255) ::    file_zhe="zhe"
   integer ::  number_zhe_maps = 1
   public use_ji
