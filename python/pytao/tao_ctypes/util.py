@@ -45,6 +45,8 @@ def pytype(type):
         f = str
     elif type == 'ENUM':
         f = str     
+    elif type == 'SPECIES':
+        f = str             
     elif type == 'INUM':
         f = int           
     elif type == 'LOGIC':
