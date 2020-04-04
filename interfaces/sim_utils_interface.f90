@@ -268,6 +268,12 @@ function inverse_prob (val) result (prob)
   real(rp) val
 end function
 
+function is_alphabetic (string) result (is_alpha)
+  implicit none
+  character(*) string
+  logical is_alpha
+end function
+
 function is_integer (string, int) result (valid)
   implicit none
   character(*) string
