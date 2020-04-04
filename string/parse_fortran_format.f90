@@ -89,7 +89,7 @@ if (i1 > nn .or. (found_parens .and. i1 >= nn)) return
 
 i0 = i1
 do i1 = i0, nn
-  if (index('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', format_str(i1:i1)) == 0) exit
+  if (.not. is_alphabetic(format_str(i1:i1)) == 0) exit
 enddo
 
 if (i1 == i0) return
