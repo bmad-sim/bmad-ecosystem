@@ -953,7 +953,11 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)    '%invalid           = ', d_ptr%invalid_value
     nl=nl+1; write(lines(nl), amt)    '%eval_point        = ', anchor_pt_name(d_ptr%eval_point)
     nl=nl+1; write(lines(nl), rmt)    '%s_offset          = ', d_ptr%s_offset
-    nl=nl+1; write(lines(nl), rmt)    '%s                 = ', d_ptr%s
+    if (d_ptr%s == real_garbage$) then  ! Happens with expressions, etc.
+      nl=nl+1; write(lines(nl), rmt)    '%s                 = UNDEFINED S-POSITION'
+    else
+      nl=nl+1; write(lines(nl), rmt)    '%s                 = ', d_ptr%s
+    endif
     nl=nl+1; write(lines(nl), amt)    '%merit_type        = ', quote(d_ptr%merit_type)
     nl=nl+1; write(lines(nl), rmt)    '%merit             = ', d_ptr%merit
     nl=nl+1; write(lines(nl), rmt)    '%delta_merit       = ', d_ptr%delta_merit
