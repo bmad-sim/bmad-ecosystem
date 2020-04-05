@@ -5,6 +5,10 @@ This README file documents how to convert MAD8 or MAD-X formatted files to Bmad 
 
 The MAD8 to Bmad conversion will also handle XSIF format to Bmad conversion.
 
+Note: For converting from Bmad format to MAD8 or MADX format, use the program
+bmad_to_mad_or_sad. For details, see the Bmad manual in the chapter on "MAD/SAD/PTC Lattice
+Conversion".
+
 
 Orientation:
 ------------
@@ -18,8 +22,8 @@ Note: If you are setup to run Bmad based programs, the ACC_ROOT_DIR environmenta
 set to the <bmad-dist-or-release> directory.
 
 There are two python scrips in this directory:
-  mad8_to_bmad    -- Convertes from MAD8 to Bmad format.
-  madx_to_bmad    -- Convertes from MADX to Bmad format.
+  mad8_to_bmad.py    -- Convertes from MAD8 to Bmad format.
+  madx_to_bmad.py    -- Convertes from MADX to Bmad format.
 
 
 How to Convert:
@@ -28,17 +32,17 @@ How to Convert:
 Minimum python version needed is 3.6.
 The scripts run independently of whether the standard Bmad environmental variables have been setup.
 
-To convert MAD8 use the command:
+To convert MAD8 files, use the command:
   python <path-to-script>/mad8_to_bmad {options} <mad8-file-name>
 
-To convert MADX use the command:
+To convert MADX files, use the command:
   python <path-to-script>/madx_to_bmad {options} <madx-file-name>
 
 where <path-to-script> is the path to the directory where the script is.
 
 Example conversion command:
   python $ACC_ROOT_DIR/util_programs/mad_to_bmad/madx_to_bmad -f lhc.madx
-This example converts a file called "lhc.madx".
+This example converts a MADX file called "lhc.madx".
 
 The Bmad output file name is the input file name with the .mad8 or .madx suffix removed (if it
 exists) and with a .bmad suffix appended.
@@ -62,7 +66,7 @@ length of the sequence and then to superimpose the individual lattice elements o
 parsing of the generated Bmad lattice file turned out to be slow for very large lattices due to the
 amount of shuffling of lattice elements superposition entailed (essentially, the parsing scalled as
 N^2 where N is the number of lattice elements). To get around this, the current translation scheme
-converts sequencies into lines without any superposition. If the the --superimpose (or -s) option is
+converts sequencies into lines without any superposition. If the --superimpose (or -s) option is
 present. The original superposition algorithm is used.
 
 In a MAD lattice file, it is permissable to define a variable after it has been used in an expression.
@@ -78,7 +82,8 @@ Note: The definition of a variable whose value involves an expression that refer
 parameter will not be moved.
 
 Note: The conversion scripts do not try to arrange the relative order of variable definitions. Thus
-it may be that the User will have to do some rearranging by hand.
+it may be that the User will have to do some rearranging by hand. The Bmad parser will give
+appropriate error messages so It will be obvious if rearranging is needed.
 
 Note: If the string "!!verbatim" appears in the MAD8 or MADX file, everything after this string will
 be put in the Bmad file. This is useful for transfering extra information to the Bmad file without
@@ -93,26 +98,23 @@ Bmad, unlike MAD, does not have any ``action'' commands. An action command is a 
 calculation. Examples include MAD's \vn{SURVEY} and \vn{TWISS} commands. Action commands are ignored by the
 conversion scripts. If an action command modifies lattice parameters, the Bmad lattice will not reflect this.
 
-In Bmad all variables must be defined before being used (\sref{s:arith}) while MAD will simply take
+In Bmad, all variables must be defined before being used (\sref{s:arith}) while MAD will simply take
 a variable's value to be zero if it is not defined. Problems of this sort will be caught when a Bmad based
 program reads in a lattice file. Warnings will be issued and can be resolved by modifying the Bmad lattice
 file to include definitions for the missing variables.
 
 Bmad, unlike MAD, does not allow variable values to be redefined. The conversion scripts will catch
-this error.  both definitions of a variable will be put in the output file and it is up to the User
+this error. Both definitions of a variable will be put in the output file and it is up to the User
 to modify the output file appropraitely. If not resolved, the error will be caught when a Bmad based
-program reads in a lattice file. This will result in the program halting.
+program reads in a lattice file.
 
 
 Notes:
 ------
 
-For converting from Bmad format to MAD8 or MADX format, use the program bmad_to_mad_or_sad. For details, see
-the Bmad manual in the chapter on "MAD/SAD/PTC Lattice Conversion".
-
-By default, Bmad will, by default, treat a lattice without \vn{lcavity} elements as having a closed
-geometry and a lattice with a \vn{lcavity} as having an open geometry. To override the default, put the following
-in the Bmad file:
+By default, Bmad will treat a lattice without \vn{lcavity} elements as having a closed geometry and
+a lattice with a \vn{lcavity} as having an open geometry. To override the default, put the following
+in the Bmad file (or use the "!!verbatim" construct discussed above):
   parameter[geometry] = open  ! or closed
 
 For a lattice with an open geometry, the initial Twiss parameters (and optionally the initial orbit)
