@@ -886,10 +886,11 @@ def parse_command(command, dlist):
       file = file.lower()    
 
     common.f_in.append(open(file, 'r'))  # Store file handle
-    if common.one_file: 
+    if common.one_file:
       f_out.write(f'\n! In File: {common.f_in[-1].name}\n')
     else:
-      common.f_out.append(open(bmad_file_name(file), 'r'))
+      f_out.write(f'call, file = {bmad_file_name(file)}\n')
+      common.f_out.append(open(bmad_file_name(file), 'w'))
     return
 
   # Use
@@ -970,7 +971,6 @@ def get_next_command ():
   quote = ''
   in_extended_comment = False
   command = ''
-  f_out = common.f_out[-1]
   dlist = []
 
   # Loop until a command has been found
@@ -982,17 +982,18 @@ def get_next_command ():
     if common.command == '':
       while True:
         f_in = common.f_in[-1]
+        f_out = common.f_out[-1]
+
         line = f_in.readline()
         if len(line) > 0: break    # Check for end of file
         
         common.f_in[-1].close()
         common.f_in.pop()          # Remove last file handle
-        if len(common.f_in) == 0: return ['', dlist]
-
-        if not common.one_file and write_to_bmad:
+        if not common.one_file:
           common.f_out[-1].close()
           common.f_out.pop()       # Remove last file handle
-          f_out = common.f_out[-1]
+        if len(common.f_in) == 0: return ['', dlist]  ! If root file was closed
+
     else:
       line = common.command
       common.command = ''
