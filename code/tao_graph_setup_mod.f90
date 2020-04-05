@@ -1199,7 +1199,7 @@ logical, allocatable :: good(:)
 character(200) data_type, name
 character(60) component
 character(16) data_source, dflt_index
-character(20), parameter :: r_name = 'tao_curve_data_setup'
+character(*), parameter :: r_name = 'tao_curve_data_setup'
 
 !
 
@@ -1483,6 +1483,12 @@ case ('data')
 
   call tao_data_useit_plot_calc (curve, graph, d1_ptr%d, plot%x_axis_type == 's') 
   n_dat = count (d1_ptr%d%useit_plot)       
+
+  if (n_dat == 0) then
+    if (all(d1_ptr%d%s == real_garbage$)) then
+      call out_io (s_error$, r_name, 'DATA DOES NOT HAVE A WELL DEFINED S-POSITION FOR PLOT CURVE: ' //  curve%data_type)
+    endif
+  endif
 
   ! resize the curve data arrays
 
