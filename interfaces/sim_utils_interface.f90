@@ -268,9 +268,10 @@ function inverse_prob (val) result (prob)
   real(rp) val
 end function
 
-function is_alphabetic (string) result (is_alpha)
+function is_alphabetic (string, valid_chars) result (is_alpha)
   implicit none
   character(*) string
+  character(*), optional :: valid_chars
   logical is_alpha
 end function
 

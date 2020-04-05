@@ -1,30 +1,51 @@
 !+
 ! Module for parsing a document with a tree format of key/value pairs.
 !
+! A key/value pair is called an "object".
 ! The document model is a tree of objects. 
-! Each object is a key/value pair.
-! An object will either have an array of one or more tokens or 
-! an array of of one or more subobjects but not both.
-! tokens are either quoted strings or non-quoted strings with no embeded blanks or tabs.
+! The "value" of an object will either be an array of one or more tokens or 
+! an array of of one or more subobjects (but not both).
 !
 ! Example:
-!   a = {b = 7*3, d = "xyz", e = [1, "true", rats], f = {g = 3^34}}
+!   {a = {b = 7*atan(3, 4), d = "xyz", e = [1, "true", rats], f = {g = 3^34}}}
+! In this example, the root object, which has a blank key name, has a single subobject
+! whose (key) name is "a". Object "a" has three subobjects whose names are "b", "d", e", and "f".
+! Object "b" has a single token "7*atan(3, 4)".
+! Object "e" has three tokens. Etc.
 !
 ! Notes:
+!   Keys or Tokens are either quoted strings or non-quoted strings.
+!   Leading and trailing whitespace in non-quoted keys and tokens is ignored.
+!   To include a quotation mark in a name or token, escape the mark with the backslash character.
+!   A key or token may use single or double quotation marks for delimitors.
+!   In a non-quoted key or token, a tab character is converted to a single space character.
+!   A non-quoted key or token may contain the "[" character as long as the first character is not a "[".
+!   In a non-quoted key or token, parentheses or square brackets (that is "(...)", and "[...]") must
+!      be present in matched left/right pairs.
+!   Characters not allowed in non-quoted keys or tokens:
+!     "{", "}", or "="
+!   In a non-quoted key or token, commas are only allowed if the comma appears within
+!      brackets. For example: 
+!         z = atan2(3, 4)
+!   For a non-quoted key, whitespace is only allowed within brackets.
+!   For a non-quoted token, whitespace is allowed (but leading and trailing whitespace will be ignored). Example:
+!         z = 2 * 3
 !   Subobject arrays are delimited using curley braces "{...}".
-!   A quoted token may use single or double quotation marks for delimitors.
-!   To include a quotation mark in a quoted token, escape the mark with the backslash character.
-!   A non-quoted token may contain the characters "{", "[", or "(" as long 
-!      as these are not the first character in the token. 
-!   In a non-quoted token, "{...}", "(...)", and "[...]" constructs must be properly matched.
-!   Token arrays may be delimited using "[...]" or "(...)".
-!   Something like "a = OK" is the same as "a = [OK]".
+!   Token arrays are delimited using square brackets "[...]".
+!   A single token (not withing square backets) is equivalent to an array of a single token.
+!      That is, the token
+!         abc
+!      is equivalent to
+!         [abc]
 !   Mixing quoted and non-quoted tokens in an array is allowed.
 !   Mixing tokens and objects in an array is forbidden. Example:
 !     a = [3, b = 8]      ! Not allowed!
 !   Having multiple keys of the same name is allowed. Example:
 !     a = r, a = 7, a = r
-!   When the document is parsed, order will be preserved.
+!   The outer "{...}" braces in a document are optional.
+!   When the document is parsed, key/value order will be preserved.
+!   When the document is parsed, the quote marks of quoted keys or tokens will be preserved.
+!     That is, quoted keys or tokens are distinct from nonquoted keys or tokens. 
 !-
 
 module object_model_mod
@@ -33,12 +54,14 @@ use sim_utils
 
 implicit none
 
-type object_model_struct
+! One and only one of %n_obj and %n_token is nonzero.
+
+type object_struct
   character(:), allocatable :: name
   type (var_length_string_struct), allocatable :: token(:) ! Array of tokens
-  type (object_model_struct), pointer :: obj(:) => null() ! Array of subobjects
-  integer :: n_obj = 0
-  integer :: n_token = 0
+  type (object_struct), pointer :: obj(:) => null() ! Array of subobjects
+  integer :: n_obj = 0        ! Number of subobjects.
+  integer :: n_token = 0      ! Number of tokens.
 end type
 
 contains
@@ -47,30 +70,46 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function object_model_parse(obj, line, why_invalid, get_more_text_func) result (valid)
+! Function object_document_parse(obj, line, why_invalid, get_more_text_func) result (valid)
 !
 ! Object model parsing routine.
-! The initial "{" is optional.
+! Note: The initial "{" is optional.
+! Note: At the end, the line argument will contain any unparsed text that was outside the tree.
+!  For example, if the text was:
+!     "{a = 5} xxx"
+!  Then the unparsed text will be " xxx".
+!
+! Input:
+!   line          -- character(:), allocatable: Initial text to parse. If no text present then
+!                       get_more_text_func will be called. 
+!   why_invalid   -- character(*): String set to error message if there is an error.
+!   get_more_text_func(line) result (valid)
+!                 -- Function: Routine called to append more text to line. See code for interface.
+!
+! output:
+!   obj           -- object_struct: Root object for parsed tree.
+!   line          -- character(:), allocatable: Unparsed text. 
+!
 !-
 
-recursive function object_model_parse(obj, line, why_invalid, get_more_text_func) result (valid)
+recursive function object_document_parse(obj, line, why_invalid, get_more_text_func) result (valid)
 
 interface 
-  subroutine get_more_text_func(line, valid)
+  function get_more_text_func(line) result (valid)
     character(:), allocatable :: line
     logical valid
-  end subroutine
+  end function
 end interface
 
-type (object_model_struct), target :: obj
-type (object_model_struct), pointer :: optr
+type (object_struct), target :: obj
+type (object_struct), pointer :: optr
 
-integer n, ia, ip, parse_state, token_state, n_len, nb1, nb2, n_item
-integer, allocatable :: ixm(:)
-integer, parameter :: before_obj_name$ = 1, in_obj_name$ = 2, after_obj_name$ = 3, after_equal_sign$ = 4
-integer, parameter :: void$ = 11, in_quote$ = 12, before_token$ = 13, in_token$ = 14, after_token$ = 15
+integer n, ia, ip, parse_state, string_state, n_len, nb1, nb2, n_item
+integer, allocatable :: ixs(:)
+integer, parameter :: at_start$ = 0, before_obj_name$ = 1, in_obj_name$ = 2, after_obj_name$ = 3, after_equal_sign$ = 4, in_token$ = 14, in_subobject$ = 15
+integer, parameter :: void$ = 11, before_string$ = 12, in_quote$ = 13, in_nonquote$ = 14, after_string$ = 15
 
-logical valid, abort
+logical valid, abort, has_opening_bracket
 
 character(*) why_invalid
 character(:), allocatable :: line
@@ -81,22 +120,30 @@ character(1) ach, quote_mark, array_mark
 !
 
 valid = .true.
-allocate(character(100):: line)
-allocate(ixm(10))
+allocate(ixs(10))
+
+if (.not. allocated(line)) then
+  allocate(character(100):: line)
+  valid = get_more_text_func(line)
+  if (.not. valid) then
+    why_invalid = 'ABORT SIGNAL RAISED'
+    return
+  endif
+endif
 
 ip = 0
-if (line(1:1) == '{') ip = 1
 n_len = len(line)
 
-parse_state = before_obj_name$
-token_state = void$
+parse_state = at_start$
+string_state = before_string$
+n_item = 0
 
 do while (.true.)
   ip = ip + 1
   if (ip > n_len) then
-    call get_more_text_func(line, valid)
+    valid = get_more_text_func(line)
     if (.not. valid) then
-      why_invalid = 'ABORT'
+      why_invalid = 'ABORT SIGNAL RAISED'
       return
     endif
     n_len = len(line)
@@ -107,14 +154,17 @@ do while (.true.)
   ! Handle quote character
 
   if (ach == '"' .or. ach == "'") then
-    select case (token_state)
-    case (before_token$)
+    select case (string_state)
+    case (before_string$)
       quote_mark = ach
-      token_state = in_quote$
+      string_state = in_quote$
+      n_item = n_item + 1
+      ixs(n_item) = ip
     case (in_quote$)
       if (line(ip-1:ip-1) == '\') cycle      ! '
       if (ach /= quote_mark) cycle
-      token_state = after_token$
+      string_state = after_string$
+      ixs(n_item+1) = ip
     case default
       valid = .false.
       why_invalid = 'QUOTE MARK OUT OF PLACE'
@@ -123,35 +173,93 @@ do while (.true.)
     cycle
   endif
 
-  ! Handle non-quote character
+  ! Handle non quote mark character
+
+  if (ach == tab) ach = ' '
 
   select case (parse_state)
+  ! At start before possible '{' character. This character is considered optional.'
+  case (at_start$)
+    if (ach == ' ') cycle
+    parse_state = before_obj_name$
+    if (ach == '{') then
+      has_opening_bracket = .true.
+    else
+      ip = ip - 1  ! Reparse character
+    endif
+
   ! Before a variable name
   case (before_obj_name$)
-    if (ach == ' ' .or. ach == tab) cycle
-    if (.not. is_alphabetic(ach)) then
+    if (ach == ' ') cycle
+    nb1 = 0;  nb2 = 0
+    if (.not. is_alphabetic(ach, '_')) then
       valid = .false.
-      why_invalid = 'DATUM NAME DOES NOT START WITH AN ALPHEBETIC CHARACTER.'
+      why_invalid = 'DATUM NAME DOES NOT START WITH A CHARACTER NOR AN UNDERSCORE.'
       return
     endif
     parse_state = in_obj_name$
+    n_item = n_item + 1
+    ixs(n_item) = ip
+    ixs(n_item+1) = ip
 
   ! Parsing a variable name
   case (in_obj_name$)
-    if (is_alphabetic(ach)) cycle
-    if (index(name_chars, ach) /= 0) cycle
-    parse_state = after_obj_name$
+    if (ach /= ' ' .and. ach /= '=') ixs(2) = ip
+
+    select case (ach)
+    case ('[');  nb1 = nb1 + 1
+    case ('(');  nb2 = nb2 + 1
+
+    case (']')
+      nb1 = nb1 - 1
+      if (nb1 < 0) then
+        valid = .false.
+        why_invalid = 'MISPLACED "]" BRACKET.'
+        return
+      endif
+
+    case (')')
+      nb2 = nb2 - 1
+      if (nb2 < 0) then
+        valid = .false.
+        why_invalid = 'MISPLACED ")" BRACKET.'
+        return
+      endif
+
+    case (',')
+      if (nb1 /= 0 .or. nb2 /= 0) then
+        valid = .false.
+        why_invalid = 'COMMA IN NAME'
+        return
+      endif
+
+    case ('=')
+      if (nb1 /= 0 .or. nb2 /= 0) then
+        valid = .false.
+        why_invalid = 'EQUAL SIGN IN NAME'
+        return
+      endif
+      parse_state = after_obj_name$
+      ip = ip - 1
+
+    case (' ')
+      if (nb1 /= 0 .or. nb2 /= 0) cycle
+      parse_state = after_obj_name$
+    end select
 
   ! After a variable name before the equal sign
   case (after_obj_name$)
-    if (ach == ' ' .or. ach == tab) cycle
+    if (ach == ' ') cycle
     if (ach /= '=') then
       valid = .false.
       why_invalid = 'EXPECTING EQUAL SIGN AFTER DATUM NAME'
       return
     endif
+    n = ixs(2) - ixs(1)
+    if (.not. allocated(obj%name)) allocate(character(n):: obj%name)
+    obj%name = line(ixs(1):ixs(2))
     parse_state = after_equal_sign$
-    token_state = before_token$
+    string_state = before_string$
 
   ! After an equal sign.
   case (after_equal_sign$)
@@ -160,13 +268,14 @@ do while (.true.)
       cycle
 
     case ('{')
+      parse_state = in_subobject$
       line = line(ip+1:)
-      valid = object_model_parse(obj, line, why_invalid, get_more_text_func)
+      valid = object_document_parse(obj, line, why_invalid, get_more_text_func)
       return
 
     case default
       parse_state = in_token$
-      token_state = before_token$
+      string_state = before_string$
       if (ach == '(' .or. ach == '[') then
         array_mark = ach
       else
@@ -174,7 +283,7 @@ do while (.true.)
       endif
       nb1 = 0;  nb2 = 0
       n_item = 0
-      ixm(1) = ip-1
+      ixs(1) = ip-1
     end select
 
   ! In an array of values.
@@ -184,13 +293,15 @@ do while (.true.)
     case ('(');  nb2 = nb2 + 1
     case (']', ')')
       if (ach == array_mark .and. ach /= ' ' .and. nb1 == 0 .and. nb2 == 0) then
-        ixm(n_item+1) = ip
+        ixs(n_item+1) = ip
         call re_allocate (obj%token, n_item)
         do ia = 1, n_item
-          n = ixm(ia+1) - ixm(ia)
+          n = ixs(ia+1) - ixs(ia)
           if (.not. allocated(obj%token(ia)%str)) allocate (character(n):: obj%token(ia)%str)
-          obj%token(ia)%str = line(ixm(ia)+1:ixm(ia+1)-1)
+          obj%token(ia)%str = line(ixs(ia)+1:ixs(ia+1)-1)
         enddo
+        obj%n_token = n_item
+        line = line(ip+1:)
         return
 
       elseif (ach == ']') then
@@ -208,24 +319,26 @@ do while (.true.)
           return
         endif
       endif
-    case (',')
-      if (nb1 /= 0 .or. nb2 /= 0) cycle
+    case (',', '}', ' ', tab)
+      if (ach == ',' .and. (nb1 /= 0 .or. nb2 /= 0)) cycle
       if (array_mark == ' ') then
         call re_allocate(obj%token, 1)
-        n = ip - ixm(1)
+        n = ip - ixs(1)
         if (.not. allocated(obj%token(1)%str)) allocate (character(n):: obj%token(1)%str)
-        obj%token(1)%str = line(ixm(1)+1:ip-1)
+        obj%token(1)%str = line(ixs(1)+1:ip-1)
+        obj%n_token = 1
+        line = line(ip+1:)
         return
       else
         n_item = n_item + 1
-        if (size(ixm) == n_item) call re_allocate(ixm, 2*n_item)
-        ixm(n_item+1) = ia
+        if (size(ixs) == n_item) call re_allocate(ixs, 2*n_item)
+        ixs(n_item+1) = ia
       endif
     end select
   end select
 enddo
 
-end function object_model_parse
+end function object_document_parse
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -236,15 +349,15 @@ end function object_model_parse
 ! Routine to print the contents of an object.
 !
 ! Input:
-!   obj       -- object_model_struct: Object to be printed.
+!   obj       -- object_struct: Object to be printed.
 !   n_indent  -- integer, optional: Indentation when printing.
 !   last      -- logical, optional: Is last datum in array? If True then no
 !-
 
 recursive subroutine object_print (obj, n_indent, last)
 
-type (object_model_struct), target :: obj
-type (object_model_struct), pointer :: optr
+type (object_struct), target :: obj
+type (object_struct), pointer :: optr
 character(100) :: blank = ''
 character(:), allocatable :: line
 integer, optional :: n_indent
@@ -273,6 +386,9 @@ if (obj%n_obj > 0) then
     print '()', blank(1:ni), '},'
   endif
 
+elseif (obj%n_token == 0) then
+  print '(4a)', blank(1:ni), obj%name, ' = ????'
+  
 elseif (obj%n_token == 1) then
   print '(4a)', blank(1:ni), obj%name, ' = ', obj%token(1)%str
 
@@ -300,13 +416,13 @@ end subroutine object_print
 ! Routine to reallocate the obj%obj(:) array.
 !
 ! Input:
-!   obj   -- object_model_struct: Object.
+!   obj   -- object_struct: Object.
 !   n     -- integer: Minimum size for obj%obj(:)
 !-
 
 subroutine subobject_reallocate(obj, n)
 
-type (object_model_struct) obj, temp
+type (object_struct) obj, temp
 integer n
 
 !
@@ -335,22 +451,22 @@ end subroutine subobject_reallocate
 ! Routine to deallocate an object
 !
 ! Input:
-!   obj   -- object_model_struct: Object.
+!   obj   -- object_struct: Object.
 !
 ! Output:
-!   obj   -- object_model_struct: Deallocated object.
+!   obj   -- object_struct: Deallocated object.
 !-
 
 recursive subroutine object_deallocate (obj)
 
-type (object_model_struct) obj
+type (object_struct) obj
 integer i
 
 !
 
 if (obj%n_obj > 0) then
   do i = 1, obj%n_obj
-    call object_decallocate (obj%obj(i))
+    call object_deallocate (obj%obj(i))
   enddo
   deallocate(obj%obj)
 endif 
@@ -366,7 +482,7 @@ end subroutine object_deallocate
 ! Routine to return how many subobjects match the name.
 !
 ! Input:
-!   obj     -- object_model_struct: Object.
+!   obj     -- object_struct: Object.
 !   name    -- character(*): Name of subobject
 !
 ! Output:
@@ -375,7 +491,7 @@ end subroutine object_deallocate
 
 function subobject_number (obj, name) result (num)
 
-type (object_model_struct) obj, temp
+type (object_struct) obj, temp
 integer num, n
 character(*) name
 
@@ -398,20 +514,20 @@ end function subobject_number
 ! The indx argument is used when searching for multiple subobjects of the same name.
 !
 ! Input:
-!   obj     -- object_model_struct: Object.
+!   obj     -- object_struct: Object.
 !   name    -- character(*): Name of subobject
 !   indx    -- integer, optional: If present, start subobject search from this index + 1.
 !                 Default is 0.
 !
 ! Output:
 !   indx    -- integer, optional: Index of subobject found.
-!   subobj  -- object_model_struct, pointer: Pointer to subobject. Null if not found.
+!   subobj  -- object_struct, pointer: Pointer to subobject. Null if not found.
 !-
 
 function subobject_ptr (obj, name, indx) result (subobj)  
 
-type (object_model_struct), target :: obj
-type (object_model_struct), pointer :: subobj
+type (object_struct), target :: obj
+type (object_struct), pointer :: subobj
 integer, optional :: indx
 integer n, n0
 character(*) name
@@ -441,7 +557,7 @@ end function subobject_ptr
 ! depending upon the expected type of the value.
 !
 ! Input:
-!   obj         -- object_model_struct: Object.
+!   obj         -- object_struct: Object.
 !   ix_token    -- integer: Index of token.
 !
 ! Output:
@@ -454,7 +570,7 @@ end function subobject_ptr
 
 function object_token_read (obj, ix_token, real_val, int_val, logic_val, str_val) result (valid)
 
-type (object_model_struct), target :: obj
+type (object_struct), target :: obj
 real(rp), optional :: real_val
 integer, optional :: int_val
 logical, optional :: logic_val
@@ -500,7 +616,7 @@ end function object_token_read
 ! depending upon the expected type of the value.
 !
 ! Input:
-!   obj         -- object_model_struct: Object.
+!   obj         -- object_struct: Object.
 !   exact_size  -- logical, optional: Can the size of the array in obj be smaller than the array argument? 
 !                    Default is False. It is always an error if the obj array size is larger.
 !
@@ -513,7 +629,7 @@ end function object_token_read
 
 function object_array_read (obj, real_arr, int_arr, logic_arr, exact_size) result (valid)
 
-type (object_model_struct), target :: obj
+type (object_struct), target :: obj
 type (var_length_string_struct), allocatable :: array(:)
 
 real(rp), optional :: real_arr(:)
@@ -562,7 +678,7 @@ end function object_array_read
 ! depending upon the expected type of the value.
 !
 ! Input:
-!   obj         -- object_model_struct: Object.
+!   obj         -- object_struct: Object.
 !   name        -- character(*): Name of subobject
 !
 ! Output:
@@ -574,8 +690,8 @@ end function object_array_read
 
 function object_alloc_array_read (obj, real_arr, int_arr, logic_arr) result (valid)
 
-type (object_model_struct), target :: obj
-type (object_model_struct), pointer :: subobj
+type (object_struct), target :: obj
+type (object_struct), pointer :: subobj
 type (var_length_string_struct), allocatable :: array(:)
 
 real(rp), allocatable, optional :: real_arr(:)
