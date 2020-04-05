@@ -49,7 +49,7 @@ do i1 = 1, nn
   if (format_str(i1:i1) /= ' ') exit
 enddo
 
-call check_for_open_parens ()
+call check_for_open_parens (i1)
 if (i1 > nn) return
 
 ! Look for multiplyer
@@ -64,7 +64,7 @@ endif
 
 ! Look for power factor
 
-call check_for_open_parens (found_parens)
+call check_for_open_parens (i1, found_parens)
 if (i1 > nn .or. (found_parens .and. i1 >= nn)) return
 
 if (found_parens .and. index('1234567890', format_str(i1:i1)) /= 0) then ! If something like '3(4pf12.4)' then 
@@ -89,7 +89,7 @@ if (i1 > nn .or. (found_parens .and. i1 >= nn)) return
 
 i0 = i1
 do i1 = i0, nn
-  if (.not. is_alphabetic(format_str(i1:i1)) == 0) exit
+  if (.not. is_alphabetic(format_str(i1:i1))) exit
 enddo
 
 if (i1 == i0) return
@@ -164,8 +164,9 @@ end function no_more
 !----------------------------------------
 ! contains
 
-subroutine check_for_open_parens(found_parens)
+subroutine check_for_open_parens(i1, found_parens)
 
+integer i1
 logical, optional :: found_parens
 
 ! 
