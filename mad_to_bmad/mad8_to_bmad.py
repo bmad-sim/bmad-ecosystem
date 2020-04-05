@@ -502,6 +502,11 @@ def parse_command(command, dlist):
   if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
   if len(dlist) > 3 and dlist[1] == ':' and dlist[2] == 'constant': dlist.pop(2)
 
+  # Get rid of constant in "name: constant = ..." expression
+
+  if len(dlist) > 4 and dlist[1] == ':' and dlist[2] == 'constant' and dlist[3] == '=':
+    dlist = [dlist[0], '='] + dlist[4:] 
+
   # Transform: "a := 3" -> "a = 3"
 
   for ix in range(len(dlist)):
@@ -665,7 +670,8 @@ def parse_command(command, dlist):
     if common.one_file: 
       f_out.write(f'\n! In File: {common.f_in[-1].name}\n')
     else:
-      common.f_out.append(open(bmad_file_name(file), 'r'))
+      f_out.write(f'call, file = {bmad_file_name(file)}\n')
+      common.f_out.append(open(bmad_file_name(file), 'w'))
     return
 
   # Use
@@ -720,7 +726,6 @@ def get_next_command ():
 
   quote = ''
   command = ''
-  f_out = common.f_out[-1]
   dlist = []
 
   # Loop until a command has been found
@@ -732,17 +737,18 @@ def get_next_command ():
     if common.command == '':
       while True:
         f_in = common.f_in[-1]
+        f_out = common.f_out[-1]
+
         line = f_in.readline()
         if len(line) > 0: break    # Check for end of file
         
         common.f_in[-1].close()
         common.f_in.pop()          # Remove last file handle
-        if len(common.f_in) == 0: return ['', dlist]
-
-        if not common.one_file and write_to_bmad:
+        if not common.one_file:
           common.f_out[-1].close()
           common.f_out.pop()       # Remove last file handle
-          f_out = common.f_out[-1]
+        if len(common.f_in) == 0: return ['', dlist]
+
     else:
       line = common.command
       common.command = ''
@@ -815,9 +821,14 @@ def get_next_command ():
           line = line[ix+1:]
           break
 
-        elif line[ix] == '\n':
+        elif line[ix] == '\n' or ix == len(line)-1:
           command += line[:ix+1]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
+          return [command, dlist]
+
+        elif ix == len(line)-1:   # Happens at end of file
+          command += line[:ix+1]
+          if line.strip() != '': dlist.append(line.strip().lower())
           return [command, dlist]
 
 #------------------------------------------------------------------
