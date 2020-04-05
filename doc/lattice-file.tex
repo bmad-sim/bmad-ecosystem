@@ -796,14 +796,14 @@ here the value of \vn{my_const} is not known when the line ``\vn{abc}
 Once defined, symbolic constants cannot be redefined. For example:
 \begin{example}
   my_const = 1
-  my_const = 2  ! No: my_const cannot be redefined.
+  my_const = 2  ! No! my_const cannot be redefined.
 \end{example}
 The restriction against redefining constants was implemented to avoid hard to find problems.
-Occasionally, it is convenient to be able to redefine constants so if the redefinition
-has a \vn{redef:} prefix a constant can be redefined
+On very rare occasions, it is convenient to be able to redefine constants so if the redefinition
+has a \vn{redef:} prefix, a constant can be redefined
 \begin{example}
   my_const = 1
-  redef: my_const = 2  ! OK
+  redef: my_const = 2  ! OK!
 \end{example}
 It is advised not to use \vn{redef:} unless there a very good reason for its use.
 
