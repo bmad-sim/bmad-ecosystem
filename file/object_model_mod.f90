@@ -56,6 +56,10 @@ implicit none
 
 ! One and only one of %n_obj and %n_token is nonzero.
 
+type temp_struct
+  character(40) :: str = ''
+end type
+
 type object_struct
   character(:), allocatable :: name
   type (var_length_string_struct), allocatable :: token(:) ! Array of tokens
@@ -70,7 +74,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function object_document_parse(obj, line, why_invalid, get_more_text_func) result (valid)
+! Function object_document_parse(obj, line, why_invalid, get_more_text_func, sub_call) result (valid)
 !
 ! Object model parsing routine.
 ! Note: The initial "{" is optional.
@@ -85,6 +89,8 @@ contains
 !   why_invalid   -- character(*): String set to error message if there is an error.
 !   get_more_text_func(line) result (valid)
 !                 -- Function: Routine called to append more text to line. See code for interface.
+!   sub_call      -- logical, optional: Used to signal if calling recursively. 
+!                     For internal use only. Do not set this argument.
 !
 ! output:
 !   obj           -- object_struct: Root object for parsed tree.
@@ -92,7 +98,7 @@ contains
 !
 !-
 
-recursive function object_document_parse(obj, line, why_invalid, get_more_text_func) result (valid)
+recursive function object_document_parse(obj, line, why_invalid, get_more_text_func, sub_call) result (valid)
 
 interface 
   function get_more_text_func(line) result (valid)
@@ -104,23 +110,22 @@ end interface
 type (object_struct), target :: obj
 type (object_struct), pointer :: optr
 
-integer n, ia, ip, parse_state, string_state, n_len, nb1, nb2, n_item
-integer, allocatable :: ixs(:)
-integer, parameter :: at_start$ = 0, before_obj_name$ = 1, in_obj_name$ = 2, after_obj_name$ = 3, after_equal_sign$ = 4, in_token$ = 14, in_subobject$ = 15
+integer n, ns, ip, ip0, parse_state, string_state, nb1, nb2, n_item
+integer, parameter :: at_start$ = 0, before_obj_name$ = 1, in_obj_name$ = 2, after_obj_name$ = 3
+integer, parameter :: after_equal_sign$ = 4, parsing_tokens$ = 5, parsing_subobjects$ = 6
 integer, parameter :: void$ = 11, before_string$ = 12, in_quote$ = 13, in_nonquote$ = 14, after_string$ = 15
 
-logical valid, abort, has_opening_bracket
+logical, optional :: sub_call
+logical valid, abort, has_opening_bracket, in_array
 
 character(*) why_invalid
 character(:), allocatable :: line
-character(*), parameter :: name_chars = '0123456789_'
 character(1), parameter :: tab = char(9)
-character(1) ach, quote_mark, array_mark
+character(1) ach, quote_mark
 
 !
 
 valid = .true.
-allocate(ixs(10))
 
 if (.not. allocated(line)) then
   allocate(character(100):: line)
@@ -132,21 +137,22 @@ if (.not. allocated(line)) then
 endif
 
 ip = 0
-n_len = len(line)
 
-parse_state = at_start$
+if (present(sub_call)) then
+  parse_state = at_start$
+else
+  parse_state = after_equal_sign$
+endif
 string_state = before_string$
-n_item = 0
 
 do while (.true.)
   ip = ip + 1
-  if (ip > n_len) then
+  if (ip > len(line)) then
     valid = get_more_text_func(line)
     if (.not. valid) then
       why_invalid = 'ABORT SIGNAL RAISED'
       return
     endif
-    n_len = len(line)
   endif
 
   ach = line(ip:ip)
@@ -158,13 +164,11 @@ do while (.true.)
     case (before_string$)
       quote_mark = ach
       string_state = in_quote$
-      n_item = n_item + 1
-      ixs(n_item) = ip
+      ip0 = ip
     case (in_quote$)
       if (line(ip-1:ip-1) == '\') cycle      ! '
       if (ach /= quote_mark) cycle
       string_state = after_string$
-      ixs(n_item+1) = ip
     case default
       valid = .false.
       why_invalid = 'QUOTE MARK OUT OF PLACE'
@@ -178,7 +182,7 @@ do while (.true.)
   if (ach == tab) ach = ' '
 
   select case (parse_state)
-  ! At start before possible '{' character. This character is considered optional.'
+  ! At start before possible '{' character. This character is considered optional.
   case (at_start$)
     if (ach == ' ') cycle
     parse_state = before_obj_name$
@@ -192,19 +196,11 @@ do while (.true.)
   case (before_obj_name$)
     if (ach == ' ') cycle
     nb1 = 0;  nb2 = 0
-    if (.not. is_alphabetic(ach, '_')) then
-      valid = .false.
-      why_invalid = 'DATUM NAME DOES NOT START WITH A CHARACTER NOR AN UNDERSCORE.'
-      return
-    endif
     parse_state = in_obj_name$
-    n_item = n_item + 1
-    ixs(n_item) = ip
-    ixs(n_item+1) = ip
+    ip0 = ip
 
   ! Parsing a variable name
   case (in_obj_name$)
-    if (ach /= ' ' .and. ach /= '=') ixs(2) = ip
 
     select case (ach)
     case ('[');  nb1 = nb1 + 1
@@ -255,86 +251,140 @@ do while (.true.)
       why_invalid = 'EXPECTING EQUAL SIGN AFTER DATUM NAME'
       return
     endif
-    n = ixs(2) - ixs(1)
+    n = ip - ip0
     if (.not. allocated(obj%name)) allocate(character(n):: obj%name)
-    obj%name = line(ixs(1):ixs(2))
+    obj%name = trim(line(ip0:ip-1))
     parse_state = after_equal_sign$
     string_state = before_string$
 
   ! After an equal sign.
   case (after_equal_sign$)
     select case (ach)
-    case (' ', tab)
+    case (' ')
       cycle
 
-    case ('{')
-      parse_state = in_subobject$
-      line = line(ip+1:)
-      valid = object_document_parse(obj, line, why_invalid, get_more_text_func)
+    case (',', ')', ']')
+      valid = .false.
+      why_invalid = 'MISPLACED "' // ach // '" CHARACTER.'
       return
 
-    case default
-      parse_state = in_token$
+    case ('{')
+      line = line(ip+1:)
+      call subobject_reallocate(obj, 5)
+      valid = object_document_parse(obj%obj(1), line, why_invalid, get_more_text_func, .true.)
+      if (.not. valid) return
+      obj%n_obj = 1
+      parse_state = parsing_subobjects$
+      ip = 0
+
+    case ('[')
+      parse_state = parsing_tokens$
       string_state = before_string$
-      if (ach == '(' .or. ach == '[') then
-        array_mark = ach
-      else
-        array_mark = ' '
-      endif
+      in_array = .true.
+      if (.not. allocated(obj%token)) allocate (obj%token(10))
       nb1 = 0;  nb2 = 0
-      n_item = 0
-      ixs(1) = ip-1
+
+    case default
+      parse_state = parsing_tokens$
+      string_state = in_nonquote$
+      in_array = .false.
+      ip0 = ip
+      nb1 = 0;  nb2 = 0
+      if (ach == '(') nb2 = 1
     end select
 
   ! In an array of values.
-  case (in_token$)
+  case (parsing_tokens$)
+    if (string_state == before_string$) then
+      if (ach == ' ') cycle
+      ip0 = ip
+      string_state = in_nonquote$
+    endif
+
     select case (ach)
     case ('[');  nb1 = nb1 + 1
     case ('(');  nb2 = nb2 + 1
-    case (']', ')')
-      if (ach == array_mark .and. ach /= ' ' .and. nb1 == 0 .and. nb2 == 0) then
-        ixs(n_item+1) = ip
-        call re_allocate (obj%token, n_item)
-        do ia = 1, n_item
-          n = ixs(ia+1) - ixs(ia)
-          if (.not. allocated(obj%token(ia)%str)) allocate (character(n):: obj%token(ia)%str)
-          obj%token(ia)%str = line(ixs(ia)+1:ixs(ia+1)-1)
-        enddo
-        obj%n_token = n_item
+    case (']')
+      if (in_array .and. nb1 == 0 .and. nb2 == 0) then
+        obj%n_token = obj%n_token + 1
+        n = obj%n_token
+        call re_allocate (obj%token, n)
+        ns = ip - ip0
+        if (.not. allocated(obj%token(n)%str)) allocate (character(ns):: obj%token(n)%str)
+        obj%token(n)%str = trim(line(ip0:ip-1))
         line = line(ip+1:)
         return
-
-      elseif (ach == ']') then
+      else
         nb1 = nb1 - 1
         if (nb1 < 0) then
           valid = .false.
           why_invalid = 'MISPLACED "]" BRACKET.'
           return
         endif
-      else
-        nb2 = nb2 - 1
-        if (nb2 < 0) then
-          valid = .false.
-          why_invalid = 'MISPLACED ")" BRACKET.'
-          return
-        endif
       endif
-    case (',', '}', ' ', tab)
-      if (ach == ',' .and. (nb1 /= 0 .or. nb2 /= 0)) cycle
-      if (array_mark == ' ') then
-        call re_allocate(obj%token, 1)
-        n = ip - ixs(1)
-        if (.not. allocated(obj%token(1)%str)) allocate (character(n):: obj%token(1)%str)
-        obj%token(1)%str = line(ixs(1)+1:ip-1)
-        obj%n_token = 1
-        line = line(ip+1:)
+
+    case (')')
+      nb2 = nb2 - 1
+      if (nb2 < 0) then
+        valid = .false.
+        why_invalid = 'MISPLACED ")" PARENTHESES.'
         return
-      else
-        n_item = n_item + 1
-        if (size(ixs) == n_item) call re_allocate(ixs, 2*n_item)
-        ixs(n_item+1) = ia
       endif
+
+    case (',')
+      if (nb1 /= 0 .or. nb2 /= 0) cycle
+      obj%n_token = obj%n_token + 1
+      n = obj%n_token
+      if (in_array) then
+        if (n > size(obj%token)) call re_allocate (obj%token, 2*n)
+      else
+        call re_allocate (obj%token, 1)
+      endif
+      ns = ip - ip0
+      if (.not. allocated(obj%token(1)%str)) allocate (character(ns):: obj%token(n)%str)
+      obj%token(n)%str = trim(line(ip0:ip-1))
+      if (.not. in_array) then
+        line = line(ip:)
+        return
+      endif
+      string_state = before_string$
+
+    case ('}')
+      if (nb1 /= 0 .or. nb2 /= 0) then
+        valid = .false.
+        why_invalid = 'MISPLACED "}" CHARACTER.'
+        return
+      endif
+      call re_allocate(obj%token, 1)
+      n = ip - ip0
+      if (.not. allocated(obj%token(1)%str)) allocate(character(n):: obj%token(1)%str)
+      obj%token(1)%str = line(ip0:ip-1)
+      obj%n_token = 1
+      line = line(ip:)
+      return
     end select
+
+  ! In subobject
+  case (parsing_subobjects$)
+    select case (ach)
+    case (' ') 
+      cycle
+    case (',')
+      obj%n_obj = obj%n_obj + 1
+      line = line(ip+1:)
+      if (obj%n_obj > size(obj%obj)) call subobject_reallocate(obj,2*obj%n_obj)
+      valid = object_document_parse(obj%obj(obj%n_obj), line, why_invalid, get_more_text_func, .true.)
+      if (.not. valid) return
+      ip = 0
+    case ('}')
+      call subobject_reallocate(obj,obj%n_obj)
+      return
+    case default
+      valid = .false.
+      why_invalid = 'BAD CHARACTER: ' // ach
+      return
+    end select
+
   end select
 enddo
 
@@ -373,35 +423,39 @@ if (obj%n_obj > 0) then
   if (obj%name == '') then
     print '(2a)', blank(1:ni), '{'
   else
-    print '(3a)', blank(1:ni), obj%name, ' = {'
+    print '(3a)', blank(1:ni), trim(obj%name), ' = {'
   endif
 
   do i = 1, obj%n_obj
     call object_print(obj%obj(i), ni+2, last = (i == obj%n_obj))
   enddo
 
-  if (logic_option(.false., last)) then
-    print '()', blank(1:ni), '}'
+  if (logic_option(.true., last)) then
+    print '(2a)', blank(1:ni), '}'
   else
-    print '()', blank(1:ni), '},'
+    print '(2a)', blank(1:ni), '},'
   endif
 
 elseif (obj%n_token == 0) then
-  print '(4a)', blank(1:ni), obj%name, ' = ????'
+  print '(4a)', blank(1:ni), trim(obj%name), ' = ????'
   
 elseif (obj%n_token == 1) then
-  print '(4a)', blank(1:ni), obj%name, ' = ', obj%token(1)%str
+  if (logic_option(.true., last)) then
+    print '(4a)', blank(1:ni), trim(obj%name), ' = ', trim(obj%token(1)%str)
+  else
+    print '(5a)', blank(1:ni), trim(obj%name), ' = ', trim(obj%token(1)%str), ','
+  endif
 
 else
   allocate (character(40):: line)
-  line = blank(1:ni) // obj%name // ' = [' // obj%token(1)%str
+  line = blank(1:ni) // trim(obj%name) // ' = [' // trim(obj%token(1)%str)
   do i = 2, obj%n_token
-    line = line // ', ' // obj%token(i)%str
+    line = line // ', ' // trim(obj%token(i)%str)
   enddo
-  if (logic_option(.false., last)) then
-    print '(a)', line // '],'
-  else
+  if (logic_option(.true., last)) then
     print '(a)', line // ']'
+  else
+    print '(a)', line // '],'
   endif
 endif
 
