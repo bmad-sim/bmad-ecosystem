@@ -781,7 +781,6 @@ def get_next_command ():
             f_out.write(line[ix+10:].strip() + '\n')
           else:
             f_out.write(line[ix:])
-          endif
           command += line[:ix]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           line = ''
