@@ -591,7 +591,7 @@ function all_pointer_to_string (a_ptr, err) result (str)
   character(24) str
 end function
 
-function remove_quotes (str_in) result (str_out)
+function unquote (str_in) result (str_out)
   implicit none
   character(*) str_in
   character(len(str_in)) str_out
