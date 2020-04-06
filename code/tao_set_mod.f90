@@ -700,7 +700,7 @@ character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 !
 
-call tao_pick_universe (remove_quotes(who), who2, this_u, err); if (err) return
+call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
 call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'beam_track_data_file', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
@@ -908,8 +908,8 @@ character(40) who2
 character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
 
 real(rp), allocatable :: set_val(:)
-integer i, iu, ios, ib, n_loc
-logical err
+integer i, ix, iu, ios, ib, n_loc
+logical err, eval_err
 logical, allocatable :: picked_uni(:)
 
 character(40) name
@@ -919,6 +919,7 @@ namelist / params / beam_init
 ! get universe
 
 call tao_pick_universe (who, who2, picked_uni, err)
+call downcase_string(who2)
 
 ! Special cases not associated with the beam_init structure
 
@@ -951,25 +952,60 @@ case ('beam_track_start', 'beam_track_end')
   return
 end select
 
-! open a scratch file for a namelist read
+! Beam_init. open a scratch file for a namelist read
 
+eval_err = .false.
 if (who2 == 'sig_e') who2 = 'sig_pz'
 iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
+
 if (is_real(value_str) .or. is_logical(value_str)) then
   write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', trim(value_str)
+
 elseif (who(1:17) == 'distribution_type') then  ! Value is a vector so quote() function is not good here.
   write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', value_str
+
 else
   select case (who2)
-  case ('position_file', 'random_engine', 'random_gauss_converter', 'species')
+  case ('random_engine')
+    call downcase_string(value_str)
+    call match_word(unquote(value_str), random_engine_name, ix, .true., .false.)
+    if (ix == 0) then
+      call out_io (s_error$, r_name, 'INVALID RANDOM_ENGINE VALUE: ' // value_str)
+      return
+    endif
     write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+
+  case ('random_gauss_converter')
+    call downcase_string(value_str)
+    call match_word(unquote(value_str), random_gauss_converter_name, ix, .true., .false.)
+    if (ix == 0) then
+      call out_io (s_error$, r_name, 'INVALID RANDOM_GAUSS_CONVERTER VALUE: ' // value_str)
+      return
+    endif
+    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+
+  case ('species')
+    if (species_id(unquote(value_str)) == invalid$) then
+      call out_io (s_error$, r_name, 'INVALID RANDOM_ENGINE VALUE: ' // value_str)
+      return
+    endif
+    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+
   case default
-    call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
-    write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
+    ! If tao_evaluate_expression fails then the root cause may be that the User is trying
+    ! something like "set beam_init beam_saved_at = END" so the basic problem is that beam_saved_at
+    ! is not a valid beam_init component. So delay error messages until we know for sure.
+    call tao_evaluate_expression (value_str, 1, .false., set_val, info, eval_err, print_err = .false.)
+    if (eval_err) then
+      write (iu, '(a)') ' beam_init%' // trim(who2) // ' = 0'  ! For a test
+    else
+      write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
+    endif
   end select
 endif
+
 write (iu, '(a)') '/'
 
 !
@@ -981,20 +1017,19 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   beam_init = u%beam%beam_init  ! set defaults
   read (iu, nml = params, iostat = ios)
-
-  call tao_data_check (err)
-  if (err) exit
-
-  if (ios == 0) then
-    u%beam%beam_init = beam_init
-    u%beam%init_starting_distribution = .true.  ! Force reinit
-    if (u%beam%beam_init%use_particle_start_for_center) u%beam%beam_init%center = u%model%lat%particle_start%vec
-    u%calc%lattice = .true.
-  else
-    call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+  if (ios /= 0 .or. eval_err) then
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'BAD BEAM_INIT COMPONENT: ' // who2)
+    else
+      call tao_evaluate_expression (value_str, 1, .false., set_val, info, eval_err, print_err = .true.) ! Print error message
+    endif
     exit
   endif
 
+  u%beam%beam_init = beam_init
+  u%beam%init_starting_distribution = .true.  ! Force reinit
+  if (u%beam%beam_init%use_particle_start_for_center) u%beam%beam_init%center = u%model%lat%particle_start%vec
+  u%calc%lattice = .true.
 enddo
 
 close (iu, status = 'delete') 
@@ -1234,7 +1269,7 @@ case ('line_pattern', 'line%pattern')
   call tao_set_switch_value (ix, component, value_str, qp_line_pattern_name, lbound(qp_line_pattern_name,1), err, this_curve%line%pattern)
 
 case ('component')
-  this_curve%component = remove_quotes(value_str)
+  this_curve%component = unquote(value_str)
 
 case ('draw_error_bars')
   call tao_set_logical_value (this_curve%draw_error_bars, component, value_str, err)
@@ -1258,25 +1293,25 @@ case ('autoscale_z_color')
   call tao_set_logical_value (this_curve%autoscale_z_color, component, value_str, err)  
 
 case ('data_source')
-  this_curve%data_source = remove_quotes(value_str)
+  this_curve%data_source = unquote(value_str)
 
 case ('data_index')
-  this_curve%data_index = remove_quotes(value_str)
+  this_curve%data_index = unquote(value_str)
 
 case ('data_type')
-  this_curve%data_type = remove_quotes(value_str)
+  this_curve%data_type = unquote(value_str)
 
 case ('data_type_x')
-  this_curve%data_type_x = remove_quotes(value_str)
+  this_curve%data_type_x = unquote(value_str)
 
 case ('data_type_z')
-  this_curve%data_type_z = remove_quotes(value_str)
+  this_curve%data_type_z = unquote(value_str)
 
 case ('legend_text')
-  this_curve%legend_text = remove_quotes(value_str)
+  this_curve%legend_text = unquote(value_str)
 
 case ('units')
-  this_curve%units = remove_quotes(value_str)
+  this_curve%units = unquote(value_str)
 
 case ('z_color0')
   call tao_set_real_value (this_curve%z_color0, component, value_str, err, dflt_uni = i_uni)
@@ -1409,7 +1444,7 @@ do i = 1, size(plot)
 
     case ('component')
       do j = 1, size(p%graph)
-        p%graph(j)%component = remove_quotes(value_str)
+        p%graph(j)%component = unquote(value_str)
       enddo
 
     case ('n_curve_pts')
@@ -1515,7 +1550,7 @@ logical logic, error
 
 !
 
-value = remove_quotes(value_str)
+value = unquote(value_str)
 
 comp = component
 sub_comp = ''
@@ -2268,7 +2303,7 @@ namelist / params / ap_param, pz
 
 !
 
-call tao_pick_universe (remove_quotes(who), who2, this_u, err); if (err) return
+call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
 iof = tao_open_scratch_file (err);  if (err) return
 
@@ -2805,7 +2840,7 @@ logical error
 
 error = .true.
 
-call match_word(remove_quotes(value_str), name_list, ix, .false., .true.)
+call match_word(unquote(value_str), name_list, ix, .false., .true.)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, trim(err_str) // ' VALUE IS UNKNOWN.')
@@ -3144,7 +3179,7 @@ logical error
 
 select case (component)
 case ('bounds')
-  val = remove_quotes(upcase(value))
+  val = unquote(upcase(value))
   select case (val)
   case ('ZERO_AT_END', 'ZERO_SYMMETRIC', 'GENERAL', 'EXACT')
     qp_axis%bounds = val
@@ -3198,7 +3233,7 @@ case ('label')
   error = .false.
 
 case ('type')
-  val = remove_quotes(upcase(value))
+  val = unquote(upcase(value))
   select case (val)
   case ('LOG', 'LINEAR')
     qp_axis%type = val
