@@ -70,3 +70,38 @@ def create_datum_cmd(
             f'^^{s_offset}^^{ix_bunch}^^{invalid_value}^^{spin_n0_x}^^{spin_n0_y}^^{spin_n0_z}'
     
     return cmd
+
+
+
+
+def create_variable_cmd(
+    var_name='',
+    ele_name='',
+    attribute='',
+    universes='1',
+    weight=0,
+    step=0,
+    low_lim=0,
+    high_lim=0,
+    merit_type='target',
+    good_user=True,
+    key_bound=False,
+    key_delta=1
+):
+    """
+    TODO: this doesn't work. 
+    
+    Create a single variable
+    Command syntax:
+    python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^{weight}^^{step}^^{low_lim}^^{high_lim}^^
+                                                                         {merit_type}^^{good_user}^^{key_bound}^^{key_delta}
+    
+    """
+    
+    
+    # Split for readablity 
+    cmd = 'python var_create '\
+        f'{var_name}^^{ele_name}^^{attribute}^^{universes}'\
+        f'^^{weight}^^{step}^^{low_lim}^^{high_lim}'\
+        f'^^{merit_type}^^{good_user}^^{key_bound}^^{key_delta}'
+    return cmd
