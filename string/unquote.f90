@@ -1,5 +1,5 @@
 !+
-! Function remove_quotes (str_in) result (str_out)
+! Function unquote (str_in) result (str_out)
 !
 ! Routine to remove quotation marks at the ends of a string.
 ! Quotation marks will only be removed if they match at both ends.
@@ -12,11 +12,11 @@
 !   str_out -- Character(*): Output string
 !
 ! Example:
-!   remove_quotes ('"This"') -> 'This'
-!   remove_quotes ('Interior"not"removed') -> 'Interior"not"removed'
+!   unquote ('"This"') -> 'This'
+!   unquote ('Interior"not"removed') -> 'Interior"not"removed'
 !-                               
 
-function remove_quotes (str_in) result (str_out)
+function unquote (str_in) result (str_out)
 
 implicit none
 
