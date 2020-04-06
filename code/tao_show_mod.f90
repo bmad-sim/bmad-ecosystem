@@ -861,20 +861,22 @@ case ('curve')
         else
           nl=nl+1; lines(nl)   = '# index'
         endif
+
         nl0 = nl
+
         if (nc == 0) then
           nl=nl+1; lines(nl) = '#     No Line Points'
         endif
+  
+        do j = 1, size(curve)
+          str = curve(j)%c%name
+          if (aligned) then
+            lines(nl0) = lines(nl0)(1:21+(j-1)*14) // adjustr(str(1:14))
+          else
+            lines(nl0) = lines(nl0)(1:7+(j-1)*28) // '        x-axis' // adjustr(str(1:14))
+          endif
+        enddo
       endif
-
-      do j = 1, size(curve)
-        str = curve(j)%c%name
-        if (aligned) then
-          lines(nl0) = lines(nl0)(1:21+(j-1)*14) // adjustr(str(1:14))
-        else
-          lines(nl0) = lines(nl0)(1:7+(j-1)*28) // '        x-axis' // adjustr(str(1:14))
-        endif
-      enddo
 
       do i = 1, nc
         if (aligned) then
