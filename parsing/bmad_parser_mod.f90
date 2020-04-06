@@ -742,7 +742,7 @@ if (word(1:16) == 'CUSTOM_ATTRIBUTE') then
   endif
 
   call get_next_word (str, ix_word, ',= ', delim, delim_found, .false.) 
-  str = remove_quotes(str)
+  str = unquote(str)
   call set_custom_attribute_name(str, err_flag, k)
   if (err_flag) call parser_error ('CANNOT SET PARAMETER[' // trim(word) // ']')
   return

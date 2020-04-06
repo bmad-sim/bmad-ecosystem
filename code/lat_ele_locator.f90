@@ -165,7 +165,7 @@ do
   !
 
   if (name(1:1) == "'" .or. name(1:1) == '"') then
-    name = remove_quotes(name)
+    name = unquote(name)
 
   else
     ix = index(name, '>>')
