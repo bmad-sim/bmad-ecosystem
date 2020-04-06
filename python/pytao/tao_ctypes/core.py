@@ -2,6 +2,7 @@ import os
 import ctypes
 import numpy as np
 from pytao import tao_ctypes
+from pytao.util.parameters import tao_parameter_dict
 from .util import full_path
 import tempfile
 import shutil
@@ -34,19 +35,20 @@ class Tao:
         if so_lib == '':
             BASE_DIR=os.environ['ACC_ROOT_DIR'] + '/production/lib/'
             if os.path.isfile(BASE_DIR + 'libtao.so'):
-                self.so_lib = ctypes.CDLL(BASE_DIR + 'libtao.so')
+                self.so_lib_file = BASE_DIR + 'libtao.so'
             elif os.path.isfile(BASE_DIR + 'libtao.dylib'):
-                self.so_lib = ctypes.CDLL(BASE_DIR + 'libtao.dylib')
+                self.so_lib_file = BASE_DIR + 'libtao.dylib'
             elif os.path.isfile(BASE_DIR + 'libtao.dll'):
-                self.so_lib = ctypes.CDLL(BASE_DIR + 'libtao.dll')
+                self.so_lib_file = BASE_DIR + 'libtao.dll'
             else:
                 raise ValueError ('Shared object libtao library not found in: ' + BASE_DIR)
         elif not tao_ctypes.initialized:
-            self.so_lib = ctypes.CDLL(so_lib)
+            self.so_lib_file = so_lib
         else:
             pass
             #print('Tao already initialized.')
-
+        
+        self.so_lib = ctypes.CDLL(self.so_lib_file)
 
         self.so_lib.tao_c_out_io_buffer_get_line.restype = ctypes.c_char_p
         self.so_lib.tao_c_out_io_buffer_reset.restype = None
@@ -162,6 +164,9 @@ class Tao:
 
 
 
+
+
+
 class TaoModel(Tao):
     """
     Base class for setting up a Tao model in a directory. Builds upon the Tao class.
@@ -247,8 +252,169 @@ class TaoModel(Tao):
         # Verbose print
         if self.verbose:
             print(*args, **kwargs)
+            
+    #---------------------------------
+    # Conveniences        
+    
+    def run_beam(self):
+        
+        self.run_info = {}
+        t1 = time()
+        self.run_info['start_time'] = t1
+        
+        # Beam on, off
+        self['global:track_type'] = 'beam'
+        self['global:track_type'] = 'single'
+        
+        self.run_info['run_time'] = time() - t1    
+    
+    
+    
+    @property
+    def globals(self):
+        """
+        Returns dict of tao parameters.
+        
+        Note that the name of this function cannot be named 'global'
+        """
+        dat = self.cmd('python global')
+        return tao_parameter_dict(dat)            
+
+    #---------------------------------
+    # [] for set command
+
+    def __setitem__(self, key, item):
+        """
+        Issue a set command separated by :
+        
+        Example:
+            TaoModel['global:track_type'] = 'beam'
+        will issue command:
+            set global track_type = beam
+            
+        
+        """
+        cmd = form_set_command(key, item,  delim=':')
+        self.vprint(cmd)
+        self.cmd(cmd)
+
+
+    def evaluate(self, expression):
+        """
+        
+        Example: 
+            .evaluate('lat::orbit.x[beginning:end]')
+        Returns an np.array of floats
+        """
+        return tao_object_evaluate(self, expression)
+
 
     def __str__(self):
         s = 'Tao Model initialized from: '+self.original_path
         s +='\n Working in path: '+self.path
         return s
+        
+        
+        
+        
+        
+#------------------------------------------------------------------------------- 
+#------------------------------------------------------------------------------- 
+# Helper functions        
+     
+     
+     
+def tao_object_evaluate(tao_object, expression):
+    """
+    Evaluates an expression and returns 
+    
+    Example expressions:
+        beam::norm_emit.x[end]        # returns a single float
+        lat::orbit.x[beginning:end]   # returns an np array of floats
+        
+        
+    """
+    
+    cmd = f'python evaluate {expression}'
+    res = tao_object.cmd(cmd)
+
+    # Cast to float
+    vals = [x.split(';')[1] for x in res]
+    
+    try:
+        fvals = np.asarray(vals, dtype=np.float)
+    except:
+        fvals = vals
+    
+    # Return single value, or array
+    if len(fvals) == 1:
+        return fvals[0]
+    return fvals        
+        
+def form_set_command(s, value,  delim=':'):    
+    """
+    Forms a set command string that is separated by delim.
+    
+    Example:
+    >>>form_set_command('ele:x:a', 1.23)
+    'set ele x a = 1.23'
+    
+    """
+    x = s.split(delim)
+    
+    cmd = 'set '+' '.join(x) + f' = {value}'
+  
+    return cmd
+    
+    
+def apply_settings(tao_object, settings):
+    """
+    Applies multiple settings to a tao object.
+    
+    Checks for lattice_calc_on and plot_on, and temporarily disables these for speed.
+    
+    """
+    
+    cmds = []
+    
+    # Save these
+    plot_on = tao_object.globals['plot_on'].value
+    lattice_calc_on = tao_object.globals['lattice_calc_on'].value
+    
+    if plot_on:
+        cmds.append('set global plot_on = F')
+    if lattice_calc_on:
+        cmds.append('set global lattice_calc_on = F')
+    
+    
+    for k, v in settings.items():
+        cmd = form_set_command(k, v)
+        cmds.append(cmd)
+        
+    # Restore
+    if lattice_calc_on:
+        cmds.append('set global lattice_calc_on = T')
+
+    if plot_on:
+        cmds.append('set global plot_on = T')    
+        
+        
+    for cmd in cmds:
+        tao_object.vprint(cmd)
+        tao_object.cmd(cmd)
+        
+    return cmds    
+    
+    
+    
+#------------------------------------------------------------------------------- 
+#------------------------------------------------------------------------------- 
+# Helper functions        
+
+
+
+
+
+
+    
+    
