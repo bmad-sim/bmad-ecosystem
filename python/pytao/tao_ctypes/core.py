@@ -256,17 +256,7 @@ class TaoModel(Tao):
     #---------------------------------
     # Conveniences        
     
-    def run_beam(self):
-        
-        self.run_info = {}
-        t1 = time()
-        self.run_info['start_time'] = t1
-        
-        # Beam on, off
-        self['global:track_type'] = 'beam'
-        self['global:track_type'] = 'single'
-        
-        self.run_info['run_time'] = time() - t1    
+
     
     
     
@@ -355,14 +345,24 @@ def form_set_command(s, value,  delim=':'):
     """
     Forms a set command string that is separated by delim.
     
+    Splits into three parts:
+    command:what:attribute
+    
+    If 'what' had delim inside, the comma should preserve that.
+    
     Example:
-    >>>form_set_command('ele:x:a', 1.23)
-    'set ele x a = 1.23'
+    >>>form_set_command('ele:BEG:END:a', 1.23)
+    'set ele BEG:END a = 1.23'
     
     """
     x = s.split(delim)
     
-    cmd = 'set '+' '.join(x) + f' = {value}'
+    cmd0 = x[0]
+    what = ':'.join(x[1:-1])
+    att = x[-1]
+    cmd = f'set {cmd0} {what} {att} = {value}'
+    
+   # cmd = 'set '+' '.join(x) + f' = {value}'
   
     return cmd
     
