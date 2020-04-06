@@ -1486,7 +1486,9 @@ case ('data')
 
   if (n_dat == 0) then
     if (all(d1_ptr%d%s == real_garbage$)) then
-      call out_io (s_error$, r_name, 'DATA DOES NOT HAVE A WELL DEFINED S-POSITION FOR PLOT CURVE: ' //  curve%data_type)
+      call out_io (s_error$, r_name, &
+          'DATA DOES NOT HAVE A WELL DEFINED S-POSITION FOR PLOT CURVE: ' //  curve%data_type, &
+          'SOLUTION: PLOT BY DATUM INDEX INSTEAD OF S-POSITION.')
     endif
   endif
 

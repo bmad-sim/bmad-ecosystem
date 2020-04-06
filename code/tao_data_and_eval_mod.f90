@@ -4557,7 +4557,7 @@ else
   endif
 
   if (err_flag) then
-    if (source == '') call out_io (s_error$, r_name, 'CANNOT EVALUATE AS DATUM OR VARIABLE VALUE: ' // name)
+    if (source == '' .and. print_err) call out_io (s_error$, r_name, 'CANNOT EVALUATE AS DATUM OR VARIABLE VALUE: ' // name)
     return
   endif
 

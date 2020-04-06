@@ -2234,7 +2234,7 @@ case ('ele:elec_multipoles')
 ! Command syntax:
 !   python evaluate {expression}
 ! Example:
-!   python evaluate 2*cbar.11[1:10]|model
+!   python evaluate 2*data::cbar.11[1:10]|model
 
 case ('evaluate')
 
