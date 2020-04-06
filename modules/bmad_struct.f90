@@ -981,6 +981,12 @@ type beam_init_struct
   real(rp) :: sig_e = 0                      ! DEPRECATED. DO NOT USE. Replaced by sig_pz.
 end type
 
+
+character(8), parameter :: random_engine_name(2) = [character(8):: 'pseudo', 'quasi'] ! Case sensitive
+character(8), parameter :: random_gauss_converter_name(2) = [character(8):: 'exact', 'quick'] ! Case sensitive
+character(12), parameter :: beam_distribution_type_name(5) = [character(12):: &
+                                    'Ellipse', 'KV', 'Grid', 'File', 'Ran_Gauss']
+
 ! The routines calc_bunch_params and calc_bunch_params_slice calculate bunch parameters.
 ! Note: If, for example, there is only one particle, %twiss_valid = False but centroid calc is OK.
 
