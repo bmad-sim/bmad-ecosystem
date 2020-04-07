@@ -30,9 +30,9 @@
 
 subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
 
-use bmad_parser_mod
+use bmad_parser_mod, dummy => parser_set_attribute
+use wall3d_mod, dummy2 => parser_set_attribute
 use random_mod
-use wall3d_mod
        
 implicit none
 
