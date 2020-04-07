@@ -24,6 +24,7 @@
 !      be present in matched left/right pairs.
 !   Characters not allowed in non-quoted keys or tokens:
 !     "{", "}", or "="
+!   In a quoted key or token: Equal sign "=" is not allowed. [This rule is needed to catch missing quote marks.]
 !   In a non-quoted key or token, commas are only allowed if the comma appears within
 !      brackets. For example: 
 !         z = atan2(3, 4)
@@ -39,7 +40,7 @@
 !         [abc]
 !   Mixing quoted and non-quoted tokens in an array is allowed.
 !   Mixing tokens and objects in an array is forbidden. Example:
-!     a = [3, b = 8]      ! Not allowed!
+!     a = [3, b = 8]      ! Not allowed. "3" is a token, "b = 8" is an object.
 !   Having multiple keys of the same name is allowed. Example:
 !     a = r, a = 7, a = r
 !   The outer "{...}" braces in a document are optional.
@@ -74,21 +75,30 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function object_document_parse(obj, line, why_invalid, get_more_text_func, sub_call) result (valid)
+! Function object_document_parse(obj, line, why_invalid, get_more_text_func, parse_one, sub_call) result (valid)
 !
 ! Object model parsing routine.
 ! Note: The initial "{" is optional.
-! Note: At the end, the line argument will contain any unparsed text that was outside the tree.
+! Note: At the end, the returned line argument will contain any unparsed text that was outside the tree.
 !  For example, if the text was:
-!     "{a = 5} xxx"
+!     "{a = 5, b = 7} xxx"
 !  Then the unparsed text will be " xxx".
+! If the document does not contain the outer "{...}" braces:
+!   if parse_one = False (the default), the entire document is parsed.
+!   If parse_one = True, only one object is parsed. Example: "a = 5, b = 7" --> only "a = 5" is parsed.
 !
 ! Input:
 !   line          -- character(:), allocatable: Initial text to parse. If no text present then
 !                       get_more_text_func will be called. 
 !   why_invalid   -- character(*): String set to error message if there is an error.
 !   get_more_text_func(line) result (valid)
-!                 -- Function: Routine called to append more text to line. See code for interface.
+!                 -- Function: Routine called to append more text to the string being parsed. 
+!                     The interface is:
+!                         function get_more_text_func(line, why_invalid) result (valid)
+!                           character(*) why_invalid
+!                           character(:), allocatable :: line
+!                           logical valid
+!   parse_one     -- logical, optional: If True, parse only one object and then return. Default = False.
 !   sub_call      -- logical, optional: Used to signal if calling recursively. 
 !                     For internal use only. Do not set this argument.
 !
@@ -98,11 +108,12 @@ contains
 !
 !-
 
-recursive function object_document_parse(obj, line, why_invalid, get_more_text_func, sub_call) result (valid)
+recursive function object_document_parse(obj, line, why_invalid, get_more_text_func, parse_one, sub_call) result (valid)
 
 interface 
-  function get_more_text_func(line) result (valid)
+  function get_more_text_func(line, why_invalid) result (valid)
     character(:), allocatable :: line
+    character(*) why_invalid
     logical valid
   end function
 end interface
@@ -115,8 +126,8 @@ integer, parameter :: at_start$ = 0, before_obj_name$ = 1, in_obj_name$ = 2, aft
 integer, parameter :: after_equal_sign$ = 4, parsing_tokens$ = 5, parsing_subobjects$ = 6
 integer, parameter :: void$ = 11, before_string$ = 12, in_quote$ = 13, in_nonquote$ = 14, after_string$ = 15
 
-logical, optional :: sub_call
-logical valid, abort, has_opening_bracket, in_array
+logical, optional :: parse_one, sub_call
+logical valid, abort, has_opening_bracket, in_array, deb
 
 character(*) why_invalid
 character(:), allocatable :: line
@@ -126,36 +137,34 @@ character(1) ach, quote_mark
 !
 
 valid = .true.
+deb = .true.
+has_opening_bracket = .false.
 
 if (.not. allocated(line)) then
-  allocate(character(100):: line)
-  valid = get_more_text_func(line)
-  if (.not. valid) then
-    why_invalid = 'ABORT SIGNAL RAISED'
-    return
-  endif
+  allocate(character(1):: line)
+  line = ''
+  valid = get_more_text_func(line, why_invalid)
+  if (.not. valid) return
 endif
 
 ip = 0
 
 if (present(sub_call)) then
-  parse_state = at_start$
+  parse_state = before_obj_name$
 else
-  parse_state = after_equal_sign$
+  parse_state = at_start$
 endif
 string_state = before_string$
 
 do while (.true.)
   ip = ip + 1
   if (ip > len(line)) then
-    valid = get_more_text_func(line)
-    if (.not. valid) then
-      why_invalid = 'ABORT SIGNAL RAISED'
-      return
-    endif
+    valid = get_more_text_func(line, why_invalid)
+    if (.not. valid) return
   endif
 
   ach = line(ip:ip)
+  if (deb) print '(i4, 2x, 3a)', ip, ach, ': ', line(ip+1:)
 
   ! Handle quote character
 
@@ -165,15 +174,48 @@ do while (.true.)
       quote_mark = ach
       string_state = in_quote$
       ip0 = ip
+      select case (parse_state)
+      case (before_obj_name$);   parse_state = in_obj_name$
+      case (after_equal_sign$);  parse_state = parsing_tokens$
+      end select
+      cycle
+        
     case (in_quote$)
       if (line(ip-1:ip-1) == '\') cycle      ! '
       if (ach /= quote_mark) cycle
+      select case (parse_state)
+      case (in_obj_name$)
+        obj%name = line(ip0:ip)
+        parse_state = after_obj_name$
+      case (parsing_tokens$)
+        obj%n_token = obj%n_token + 1
+        n = obj%n_token
+        call re_allocate (obj%token, n)
+        if (.not. allocated(obj%token(n)%str)) allocate (character(ip-ip+1):: obj%token(n)%str)
+        obj%token(n)%str = line(ip0:ip)
+        line = line(ip+1:)
+        ip = 0
+      case default
+        call err_exit
+      end select
       string_state = after_string$
+      quote_mark = ' '
+      cycle
+
     case default
       valid = .false.
       why_invalid = 'QUOTE MARK OUT OF PLACE'
       return
     end select
+    cycle
+  endif
+
+  if (quote_mark /= ' ') then
+    if (ach == '=') then
+      valid = .false.
+      why_invalid = 'EQUAL SIGN "=" NOT ALLOWED IN QUOTED STRING.'
+      return
+    endif
     cycle
   endif
 
@@ -185,23 +227,35 @@ do while (.true.)
   ! At start before possible '{' character. This character is considered optional.
   case (at_start$)
     if (ach == ' ') cycle
-    parse_state = before_obj_name$
     if (ach == '{') then
       has_opening_bracket = .true.
     else
       ip = ip - 1  ! Reparse character
     endif
+    line = line(ip+1:)
+    call subobject_reallocate(obj, 5)
+    valid = object_document_parse(obj%obj(1), line, why_invalid, get_more_text_func, sub_call = .true.)
+    if (.not. valid) return
+    obj%n_obj = 1
+    if (logic_option(.false., parse_one) .and. .not. has_opening_bracket) return
+    parse_state = parsing_subobjects$
+    ip = 0
 
   ! Before a variable name
   case (before_obj_name$)
     if (ach == ' ') cycle
+    select case (ach)
+    case (',', '{', '}', '(', ')', '[', ']')
+      valid = .false.
+      why_invalid = 'MISPLACED ' // ach // ' CHARACTER'
+      return
+    end select
     nb1 = 0;  nb2 = 0
     parse_state = in_obj_name$
     ip0 = ip
 
   ! Parsing a variable name
   case (in_obj_name$)
-
     select case (ach)
     case ('[');  nb1 = nb1 + 1
     case ('(');  nb2 = nb2 + 1
@@ -271,9 +325,10 @@ do while (.true.)
     case ('{')
       line = line(ip+1:)
       call subobject_reallocate(obj, 5)
-      valid = object_document_parse(obj%obj(1), line, why_invalid, get_more_text_func, .true.)
+      valid = object_document_parse(obj%obj(1), line, why_invalid, get_more_text_func, sub_call = .true.)
       if (.not. valid) return
       obj%n_obj = 1
+      if (logic_option(.false., parse_one) .and. .not. has_opening_bracket) return
       parse_state = parsing_subobjects$
       ip = 0
 
@@ -361,6 +416,7 @@ do while (.true.)
       obj%token(1)%str = line(ip0:ip-1)
       obj%n_token = 1
       line = line(ip:)
+      if (deb) print *, 'Out: ', line
       return
     end select
 
@@ -373,11 +429,12 @@ do while (.true.)
       obj%n_obj = obj%n_obj + 1
       line = line(ip+1:)
       if (obj%n_obj > size(obj%obj)) call subobject_reallocate(obj,2*obj%n_obj)
-      valid = object_document_parse(obj%obj(obj%n_obj), line, why_invalid, get_more_text_func, .true.)
+      valid = object_document_parse(obj%obj(obj%n_obj), line, why_invalid, get_more_text_func, sub_call = .true.)
       if (.not. valid) return
       ip = 0
     case ('}')
       call subobject_reallocate(obj,obj%n_obj)
+      line = line(ip+1:)
       return
     case default
       valid = .false.
