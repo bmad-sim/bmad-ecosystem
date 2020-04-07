@@ -1,6 +1,7 @@
 module set_ele_attribute_mod
 
-use bmad_parser_mod
+use bmad_parser_struct
+use bmad_interface
 
 implicit none
 

@@ -1,0 +1,160 @@
+module bmad_parser_struct
+
+use bmad_struct
+
+! A "sequence" is a line or a list.
+! The information about a sequence is stored in a seq_struct.
+
+! A seq_struct has an array of seq_ele_struct structures.
+! Each seq_ele_struct represents an individual element in a sequence and, 
+! since sequences can be nested, can itself be a line or a list.
+
+type seq_ele_struct
+  character(40) name                     ! name of element, subline, or sublist
+  character(40), allocatable :: actual_arg(:)
+  character(40) :: tag = ''              ! tag name.
+  integer :: type = 0                    ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
+  integer :: ix_ele = 0                  ! if an element: pointer to ELE array
+                                         ! if a list: pointer to SEQ array
+  integer :: ix_arg  = 0                 ! index in arg list (for replacement lines)
+  integer ::rep_count = 1                ! how many copies of an element
+  logical :: ele_order_reflect = .false. ! Travel through ele sequence in reverse order
+  integer :: ele_orientation = 1         ! Travel through elements in reverse.
+end type
+
+type seq_struct
+  character(40) name                ! name of sequence
+  type (seq_ele_struct), allocatable :: ele(:)
+  character(40), allocatable :: dummy_arg(:)
+  character(40), allocatable :: corresponding_actual_arg(:)
+  integer type                      ! LINE$, REPLACEMENT_LINE$ or LIST$
+  integer ix                        ! current index of element in %ele
+  integer indexx                    ! alphabetical order sorted index
+  character(200) :: file_name = ''  ! file where sequence is defined
+  integer ix_line                   ! line number in filewhere sequence is defined
+  logical multipass
+  logical ptc_layout                ! Put in separate PTC layout
+end type
+
+type used_seq_struct
+  character(40) :: name = ''            ! name of sequence or element
+  character(40) :: tag = ''             ! tag name.
+  integer :: ix_multi = 0               ! Multipass indentifier
+  integer :: orientation = 1            ! Element reversed?
+  integer :: ix_ele_in_in_lat = -1
+end type
+
+! A LIFO stack structure is used in the final evaluation of the line that is
+! used to form a lattice
+
+type seq_stack_struct
+  character(40) seq_name        ! Name of sequence.
+  integer ix_seq                ! index to seq(:) array
+  integer ix_ele                ! index to seq%ele(:) array
+  integer rep_count             ! repetition count
+  integer ele_order_direction   ! +1 => forwad, -1 => back reflection.
+  integer orientation_direction ! +1 => forwad, -1 => back reflection.
+  character(40) :: tag = ''
+  logical multipass
+end type
+
+! A LIFO stack structure is used to hold the list of input lattice files
+! that are currently open.
+
+type stack_file_struct
+  character(200) :: full_name = ''
+  character(200) :: dir = './'
+  character(200) parse_line_saved
+  integer i_line
+  integer f_unit
+  logical inline_call_active
+end type
+
+! structure for holding the control names and pointers for superimpose and overlay elements
+
+type parser_controller_struct ! For overlays and groups
+  character(40) :: name     
+  character(40) :: attrib_name
+  type (expression_atom_struct), allocatable :: stack(:) ! Arithmetic expression stack
+  real(rp), allocatable :: y_knot(:)
+  integer n_stk 
+end type
+
+type parser_ele_struct
+  type (parser_controller_struct), allocatable :: control(:)
+  character(40), allocatable :: field_overlaps(:)
+  character(40) :: ref_name = ''
+  integer :: ix_ref_multipass = 0              ! multipass index for reference element.
+  character(40) :: ele_name = ''               ! For fork element or superimpose statement.
+  character(200) :: lat_file = ''              ! File where element was defined.
+  real(rp) :: offset = 0
+  integer ix_line_in_file    ! Line in file where element was defined.
+  integer ix_count
+  integer ele_pt, ref_pt
+  integer indexx
+  logical :: superposition_command_here = .false.
+  logical :: superposition_has_been_set = .false.
+  logical :: create_jumbo_slave = .false.
+  logical :: is_range = .false.               ! For girders
+  character(40) :: default_attrib = ''        ! For group/overlay elements: slave attribute 
+end type
+
+type parser_lat_struct
+  type (parser_ele_struct), allocatable :: ele(:) 
+end type
+
+!
+
+integer, parameter :: line$ = 1001, list$ = 1002, element$ = 1003
+integer, parameter :: replacement_line$ = 1004
+integer, parameter :: def$ = 1, redef$ = 2
+
+!------------------------------------------------
+! common stuff
+
+integer, parameter :: n_parse_line = 280
+
+type bp_const_struct
+  character(40) name      ! Constant name
+  real(rp) value          ! Constant value
+  integer :: indexx = 0   ! Constant sort index
+end type
+
+type bp_common_struct
+  type (stack_file_struct), pointer :: current_file
+  type (stack_file_struct), pointer :: calling_file
+  type (lat_struct), pointer :: old_lat
+  type (bp_const_struct), allocatable :: const(:)   ! Constant name
+  type (extra_parsing_info_struct) extra
+  integer num_lat_files               ! Number of files opened
+  integer i_const_tot, i_const_init
+  character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
+  ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
+  character(200) line1_file_name           ! Name of file from which %input_line1 was read
+  character(200) line2_file_name           ! Name of file from which %input_line2 was read
+  character(n_parse_line) parse_line       ! Current part of input string not yet parsed.
+  character(n_parse_line+20) input_line1   ! Line before current line. For debug messages.
+  character(n_parse_line+20) input_line2   ! Current line. For debug messages.
+  character(40) :: parser_name = ''        ! Blank means not in bmad_parser nor bmad_parser2.
+  character(100) :: last_word              ! Last word to be parsed
+  logical :: bmad_parser_calling = .false. ! used for expand_lattice
+  logical error_flag                       ! Set True on error
+  logical fatal_error_flag                 ! Set True on fatal (must abort now) error 
+  logical input_line_meaningful
+  logical do_superimpose
+  logical write_digested      ! For bmad_parser
+  logical write_digested2     ! For bmad_parser2
+  logical :: always_parse = .false. ! For debugging to force parsing
+  logical input_from_file     ! Input is from a lattice file?
+  logical inline_call_active
+  logical :: print_err = .true.  ! Print error messages?
+  logical :: use_local_lat_file = .false.
+  logical :: used_line_set_by_calling_routine = .false.
+  real time0, time1, time2, time3            ! For timing parsing
+end type
+
+!
+
+type (bp_common_struct), save, target :: bp_com
+
+end module
