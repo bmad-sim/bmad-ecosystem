@@ -225,10 +225,8 @@ subroutine suggest_lmdif (XV, FV, EPS, ITERMX, at_end, reset_flag)
          RETURN
       ELSEIF(S.LE.SMIN) THEN
          SMIN = S
-         DO 40 I=1,NFV
-  40     FMIN(I) = FV(I)
-         DO 50 I=1,NV
-  50     XMIN(I) = XV(I)
+         FMIN(1:NFV) = FV(1:nfv)
+         XMIN(1:nv) = XV(1:nv)
       ENDIF
 
 !     LMDIF
