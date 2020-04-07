@@ -1,6 +1,6 @@
 subroutine parse_converter_distribution(ele, delim, delim_found)
 
-use bmad_parser_mod
+use bmad_parser_mod, dummy => parse_converter_distribution
 use object_model_mod
 
 implicit none
