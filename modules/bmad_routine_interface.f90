@@ -844,6 +844,11 @@ subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
   type (coord_struct) orbit
 end subroutine
 
+subroutine init_bmad_parser_common()
+  import
+  implicit none
+end subroutine
+
 subroutine init_ele (ele, key, sub_key, ix_ele, branch)
   import
   implicit none
@@ -1263,6 +1268,24 @@ subroutine order_super_lord_slaves (lat, ix_lord)
   implicit none
   type (lat_struct), target :: lat
   integer ix_lord
+end subroutine
+
+subroutine parse_converter_distribution(ele, delim, delim_found)
+  import
+  type (ele_struct) ele
+  character(*) delim
+  logical delim_found
+end subroutine
+
+subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
+  use bmad_parser_struct
+  implicit none
+  integer how
+  type (ele_struct), target ::  ele
+  character(1) delim
+  logical delim_found, err_flag
+  type (parser_ele_struct), optional :: pele
+  logical, optional :: check_free, heterogeneous_ele_list, set_field_master
 end subroutine
 
 function particle_is_moving_backwards (orbit) result (is_moving_backwards)
