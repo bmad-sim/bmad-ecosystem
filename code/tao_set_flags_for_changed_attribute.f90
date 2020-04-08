@@ -26,27 +26,9 @@ real(rp), pointer, optional :: val_ptr
 
 character(*) ele_name
 
-! particle_start.
-
-if (ele_name == 'PARTICLE_START') then
-  if (u%beam%beam_init%use_particle_start_for_center) u%beam%beam_init%center = u%model%lat%particle_start%vec
-
-  u%model%tao_branch(0)%orbit(0)%vec  = u%model%lat%particle_start%vec
-  u%model%tao_branch(0)%orb0%vec      = u%model%lat%particle_start%vec
-
-  u%model%tao_branch(0)%orbit(0)%t    = u%model%lat%particle_start%t
-  u%model%tao_branch(0)%orb0%t        = u%model%lat%particle_start%t
-
-  u%model%tao_branch(0)%orbit(0)%p0c  = u%model%lat%particle_start%p0c
-  u%model%tao_branch(0)%orb0%p0c      = u%model%lat%particle_start%p0c
-
-  u%model%tao_branch(0)%orbit(0)%spin = u%model%lat%particle_start%spin
-  u%model%tao_branch(0)%orb0%spin     = u%model%lat%particle_start%spin
-
-  u%beam%init_starting_distribution = .true.
-endif
-
 ! If the beginning element is modified, need to reinit any beam distribution.
+
+if (ele_name == 'PARTICLE_START') return
 
 if (present(ele_ptr)) then
   if (associated(ele_ptr)) then

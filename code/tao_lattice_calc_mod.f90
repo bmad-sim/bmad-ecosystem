@@ -224,7 +224,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           
         if (rf_is_on(branch)) then
           ! pz surrounds the closed orbit
-          scan%ref_orb = tao_branch%orb0
+          scan%ref_orb = tao_branch%orbit(0)
           scan%ref_orb%vec(6) = scan%ref_orb%vec(6) + u%dynamic_aperture%pz(j)
         else
           ! If the RF is off, new fixed points will be calculated for various pz
@@ -792,7 +792,7 @@ integer ix_branch, i_ele_from, i_br_from
 
 character(*), parameter :: r_name = "tao_inject_particle"
 
-! Not main branch case
+! If injecting a particle from another branch.
 
 branch => model%lat%branch(ix_branch)
 i_br_from  = branch%ix_from_branch
@@ -815,19 +815,19 @@ if (i_br_from > -1) then
   return
 endif
 
+! Not injecting from another branch.
 ! In model%tao_branch()%orb0 is saved the last computed orbit. 
-! This is important with common_lattice since tao_lat%tao_branch()%orbit(0) has been overwritten.
+! This is important when using a common_lattice since tao_lat%tao_branch()%orbit(0) has been overwritten.
 
-orb_in => model%tao_branch(ix_branch)%orb0
 orb_out => model%tao_branch(ix_branch)%orbit(0)
 
-call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
-
-if (any(orb_out%spin /= 0) .and. any(u%beam%beam_init%spin /= 0)) then
-  call out_io (s_error$, r_name, 'INITIAL SPIN IS SET BOTH IN LATTICE FILE AND IN BEAM_INIT NAMELIST!', &
-                                 'USING BEAM_INIT VALUES.')
+if (branch%param%geometry == closed$) then
+  orb_in => model%tao_branch(ix_branch)%orb0
+else
+  orb_in => branch%lat%particle_start
 endif
-if (any(u%beam%beam_init%spin /= 0)) orb_out%spin = u%beam%beam_init%spin
+
+call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
 
 end subroutine tao_inject_particle
 
@@ -906,6 +906,11 @@ endif
 ! This is a problem if, say, we are looking at changes to the beam transport due to changes in lattice parameters. 
 ! Of course if, for example, the beam_init structure is modified then we do want a distribution recalc.
 ! So only reinit the distribution if the distribution has not already been initialized or if commanded via %init_starting_distribution.
+
+if (u%beam%beam_init%use_particle_start_for_center .and. any(u%beam%beam_init%center /= u%model%lat%particle_start%vec)) then
+  u%beam%beam_init%center = u%model%lat%particle_start%vec
+  u%beam%init_starting_distribution = .true.
+endif
 
 ix_ele0 = u%beam%ix_track_start
 if (ix_ele0 == -999) then

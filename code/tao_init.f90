@@ -303,7 +303,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         call out_io (s_info$, r_name, 'Note: Default is for RFCavities to be turned off. Use the "-rf_on" switch on ', &
                                       '      the command line or set global%rf_on = True to turn on the RF.')
         call set_on_off (rfcavity$, u%model%lat, off$, ix_branch = ib)
-        u%model%tao_branch(0)%orb0 = u%model%lat%particle_start
       endif
     endif
   enddo

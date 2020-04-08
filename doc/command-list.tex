@@ -645,8 +645,8 @@ The \vn{read} command is used to modify the (\bmad) \vn{model} lattice or the as
 \vskip 10pt 
 
 With the \vn{read lattice} command, the \vn{model} lattice contained in the default
-universe (\sref{s:universe}) is modified using a ``secondary'' lattice file.  [See the
-\bmad manual for the definition of secondary.]
+universe (\sref{s:universe}) is modified using a ``secondary lattice'' file.  [See the
+\bmad manual for the definition of ``secondary lattice''.]
 
 For example, with the appropriate file, the \vn{read} command can be used to misalign the
 lattice elements. The input file must be in Bmad standard lattice format.
@@ -1662,7 +1662,7 @@ Format:
   show merit ...             ! Show optimization merit function \sref{s:show.merit}.
   show normal_form ...       ! Show transport map normal form \sref{s:show.normal}.
   show optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
-  show particle ...          ! Show tracked particle info \sref{s:show.particle}.
+  show particle ...          ! Show tracked particle beam info \sref{s:show.particle}.
   show plot ...              ! Show plot info \sref{s:show.plot}.
   show spin                  ! Show information on spin simulations \sref{s:show.spin}.
   show string ...            ! Print a string \sref{s:show.string}.
@@ -2497,7 +2497,7 @@ Syntax:
 \end{example}
 
 
-Shows individual particle information except if the the \vn{-lost} or \vn{-all} options are used. 
+Shows individual beam particle information except if the the \vn{-lost} or \vn{-all} options are used. 
 
 The default for the optional \vn{-bunch} index is set by the global variable
 \vn{global%bunch_to_plot}. The default \vn{-element} is \vn{init} which is the initial beam
