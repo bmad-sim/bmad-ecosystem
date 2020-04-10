@@ -966,4 +966,131 @@ err_flag = .true.
 
 end function super_qromb
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function super_qromb_2D (func, ax, bx, ay, by, rel_tol, abs_tol, k_order, err_flag) result (integral)
+!
+! Routine to use Romberg integration to do a double integral of a function.
+!
+! This is essentially qromb from Numerical Recipes.
+!
+! The function func should satisfy the following interface:
+!   function func(x,y) result (value)
+!     real(rp) :: x, y      ! point to evaluate at.
+!     real(rp) :: value     ! evaluation value.
+!   end function func
+!
+! Input:
+!   func    -- function: Function to integrate.
+!   a       -- real(rp): Lower bound of integration region.
+!   b       -- real(rp): Upper bound of integration region.
+!   rel_tol -- real(rp): Relative tolerance.
+!   abs_tol -- real(rp): Absolute tolerance.
+!   k_order -- integer: Integration order. For smooth functions 5 is a good value. Use 2 if not smooth.
+!
+! Output:
+!   integral  -- real(rp): Integral.
+!   err_flag  -- logical: Set True if there is an error.
+!-
+
+function super_qromb_2D (func, ax, bx, ay, by, rel_tol, abs_tol, k_order, err_flag) result (integral)
+
+use nr, only : polint
+
+implicit none
+
+integer, parameter :: jmax = 50, jmaxp = jmax+1
+
+real(rp)  :: ax, bx, ay, by, rel_tol, abs_tol, integral
+real(rp) :: d_int, h(jmaxp), s(jmaxp)
+
+integer :: k_order
+integer :: j, k, km
+
+logical err_flag
+
+interface
+  function func(x,y) result (r)
+  import
+  real(rp) :: x, y
+  real(rp) :: r
+  end function func
+end interface
+
+! This is the same a qromb except func is two dimensional.
+! It is in trapzd_2D where the code had to be changed.
+
+err_flag = .false.
+k = k_order
+km = k - 1
+h(1) = 1.0
+
+!
+
+if (ax == bx .or. ay == by) then
+  integral = 0
+  return
+endif
+
+do j = 1, jmax
+  call trapzd_2D(ax, bx, ay, by, s(j), j)
+  if (j >= k) then
+    call polint(h(j-km:j), s(j-km:j), 0.0_rp, integral, d_int)
+    if (abs(d_int) <= rel_tol*abs(integral) + abs_tol) return
+  end if
+  s(j+1) = s(j)
+  h(j+1) = 0.25_rp*h(j)
+end do
+
+err_flag = .true.
+
+!----------------------------------------------------
+contains
+! This second integral is over x
+
+subroutine trapzd_2D (ax, bx, ay, by, s, n_step)
+
+implicit none
+real(rp) :: ax, bx, ay, by, rel_tol, abs_tol
+real(rp) :: s
+real(rp) :: delx, dely, fsum
+integer :: n_step, it, n, nx, ny
+
+! Corner points get weight 1/4
+
+if (n_step == 1) then
+  s = 0.25_rp * (bx-ax) * (by-ay) * (func(ax,ay) + func(ax,by) + func(bx,ay) + func(bx,by))
+
+else
+  it=2**(n_step-1)
+  delx = (bx-ax) / it
+  dely = (by-ay) / it
+  s =  0.25_rp * s
+
+  ! Side points get weight 1/2
+  do n = 1, it, 2
+    s = s + 0.5_rp * delx * dely * &
+          (func(ax+n*delx,ay) + func(ax+n*delx,by) + func(ax,ay+n*dely) + func(bx,ay+n*dely))
+  enddo
+
+  ! Interior points get weight 1
+  do nx = 1, it-1, 2
+    do ny = 1, it-1
+      s = s + delx * dely * func(ax+nx*delx,ay+ny*dely)
+    enddo
+  enddo
+
+  do nx = 2, it-2, 2
+    do ny = 1, it-1, 2
+      s = s + delx * dely * func(ax+nx*delx,ay+ny*dely)
+    enddo
+  enddo
+end if
+
+end subroutine trapzd_2D
+
+end function super_qromb_2D
+
 end module
