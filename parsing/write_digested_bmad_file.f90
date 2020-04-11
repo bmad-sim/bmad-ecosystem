@@ -388,7 +388,9 @@ if (associated(ele%converter)) then
       write (d_unit) p_er%prob
       c_dir => c_dist%sub_dist(j)%dir_out
       write (d_unit) size(c_dir%beta%fit_1D_r), size(c_dir%alpha_x%fit_1D_r), size(c_dir%alpha_y%fit_1D_r)
-      write (d_unit) c_dir
+      write (d_unit) c_dir%beta%fit_1d_r, c_dir%beta%A, c_dir%beta%k_E, c_dir%c_x
+      write (d_unit) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_1d_E
+      write (d_unit) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_1d_E
     enddo
   enddo
 endif

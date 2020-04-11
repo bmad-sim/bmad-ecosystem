@@ -551,24 +551,26 @@ endif
 
 if (ix_convert == 1) then
   allocate (ele%converter)
-  read (d_unit) ele%converter%species_out, ele%converter%material_type, ns
+  read (d_unit, err = 9120) ele%converter%species_out, ele%converter%material_type, ns
   allocate (ele%converter%dist(ns))
   do n = 1, size(ele%converter%dist)
     c_dist => ele%converter%dist(n)
-    read (d_unit) c_dist%thickness, c_dist%dxy_ds_max, ns
+    read (d_unit, err = 9120) c_dist%thickness, c_dist%dxy_ds_max, ns
     allocate (c_dist%sub_dist(ns))
     do j = 1, size(c_dist%sub_dist)
-      read (d_unit) c_dist%sub_dist(j)%E_in
+      read (d_unit, err = 9120) c_dist%sub_dist(j)%E_in
       p_er => c_dist%sub_dist(j)%prob_E_r
-      read (d_unit) p_er%integrated_prob, ne, nr
+      read (d_unit, err = 9120) p_er%integrated_prob, ne, nr
       allocate (p_er%E_out(ne), p_er%r(nr), p_er%prob(ne,nr))
-      read (d_unit) p_er%E_out
-      read (d_unit) p_er%r
-      read (d_unit) p_er%prob
+      read (d_unit, err = 9120) p_er%E_out
+      read (d_unit, err = 9120) p_er%r
+      read (d_unit, err = 9120) p_er%prob
       c_dir => c_dist%sub_dist(j)%dir_out
-      read (d_unit) n1, n2, n3
+      read (d_unit, err = 9120) n1, n2, n3
       allocate (c_dir%beta%fit_1D_r(n1), c_dir%alpha_x%fit_1D_r(n2), c_dir%alpha_y%fit_1D_r(n3))
-      read (d_unit) c_dir
+      read (d_unit, err = 9120) c_dir%beta%fit_1d_r, c_dir%beta%A, c_dir%beta%k_E, c_dir%c_x
+      read (d_unit, err = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_1d_E
+      read (d_unit, err = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_1d_E
     enddo
   enddo
 endif
