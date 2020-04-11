@@ -555,26 +555,20 @@ if (ix_convert == 1) then
   allocate (ele%converter%dist(ns))
   do n = 1, size(ele%converter%dist)
     c_dist => ele%converter%dist(n)
-    read (d_unit) c_dist%thickness, ns
+    read (d_unit) c_dist%thickness, c_dist%dxy_ds_max, ns
     allocate (c_dist%sub_dist(ns))
     do j = 1, size(c_dist%sub_dist)
       read (d_unit) c_dist%sub_dist(j)%E_in
       p_er => c_dist%sub_dist(j)%prob_E_r
       read (d_unit) p_er%integrated_prob, ne, nr
-      allocate (p_er%E(ne), p_er%r(nr), p_er%prob(ne,nr), p_er%integ_prob_E(ne), p_er%integ_prob_r(ne,nr))
-      read (d_unit) p_er%E
+      allocate (p_er%E_out(ne), p_er%r(nr), p_er%prob(ne,nr))
+      read (d_unit) p_er%E_out
       read (d_unit) p_er%r
       read (d_unit) p_er%prob
-      read (d_unit) p_er%integ_prob_E
-      read (d_unit) p_er%integ_prob_r
-
       c_dir => c_dist%sub_dist(j)%dir_out
       read (d_unit) n1, n2, n3
-      allocate (c_dir%beta%fit_1D(n1), c_dir%alpha_x%fit_1D(n2), c_dir%alpha_y%fit_1D(n3))
-      read (d_unit) c_dir%beta%A, c_dir%beta%k_E, c_dir%beta%k_r, c_dir%beta%fit_1D
-      read (d_unit) c_dir%alpha_x%k_E, c_dir%alpha_x%k_r, c_dir%alpha_x%a_E, c_dir%alpha_x%a_r, c_dir%alpha_x%fit_1D
-      read (d_unit) c_dir%alpha_y%k_E, c_dir%alpha_y%k_r, c_dir%alpha_y%a_E, c_dir%alpha_y%a_r, c_dir%alpha_y%fit_1D
-      read (d_unit) c_dir%cx%A_c, c_dir%cx%k_E, c_dir%cx%k_r 
+      allocate (c_dir%beta%fit_1D_r(n1), c_dir%alpha_x%fit_1D_r(n2), c_dir%alpha_y%fit_1D_r(n3))
+      read (d_unit) c_dir
     enddo
   enddo
 endif

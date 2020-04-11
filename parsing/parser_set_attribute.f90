@@ -1822,7 +1822,7 @@ case default   ! normal attribute
     elseif (attrib_word == 'Y_LIMIT') then
       ele%value(y1_limit$) = value
       ele%value(y2_limit$) = value
-    elseif (ix_attrib > num_ele_attrib$ .or. ix_attrib == 0) then
+    else
       if (err_flag .or. .not. associated(a_ptr%r)) then
         call parser_error ('BAD ATTRIBUTE: ' // attrib_word, 'FOR ELEMENT: ' // ele%name)
         return
@@ -1833,9 +1833,6 @@ case default   ! normal attribute
       if (attrib_word == 'X_POSITION' .or. attrib_word == 'X_POSITION' .or. &
           attrib_word == 'X_POSITION' .or. attrib_word == 'THETA_POSITION' .or. &
           attrib_word == 'PHI_POSITION' .or. attrib_word == 'PSI_POSITION') ele%value(floor_set$) = 1
-    else
-      ele%value(ix_attrib) = value
-      call set_flags_for_changed_attribute (ele, ele%value(ix_attrib), .false.)
 
       if (logic_option(.true., set_field_master)) then
         ix = len_trim(attrib_word)
@@ -1850,7 +1847,6 @@ case default   ! normal attribute
       !
 
       select case (attrib_word)
-
       case ('E_TOT')
         if (ele%key == def_parameter$) then
           lat%ele(0)%value(e_tot$) = value
