@@ -19,28 +19,28 @@ the lattice as a whole and not simply associated with a single element.
 If multiple branches are present (\sref{s:branch.def}), these variables pertain
 to the \vn{root} branch. The variables that can be set by \vn{parameter} are
 \begin{example}
-  parameter[absolute_time_tracking]   = <Logical>  ! Absolute time used for RF clock?
-  parameter[custom_attributeN]        = <string>   ! Defining custom attributes (\sref{s:cust.att}).
-  parameter[default_tracking_species] = <Switch>   ! Default type of tracked particle. 
-                                                   !    Default is ref_particle.
-  parameter[e_tot]                    = <Real>     ! Reference total Energy. 
-                                                   !      Default: 1000 * rest_energy.
-  parameter[electric_dipole_moment]   = <Real>     ! Particle electric dipole moment.
-  parameter[live_branch]              = <Logical>  ! Is branch fit for tracking?
-  parameter[geometry]                 = <Switch>   ! Open or closed
-  parameter[lattice]                  = <String>   ! Lattice name.
-  parameter[machine]                  = <String>   ! Machine name.
-  parameter[n_part]                   = <Real>     ! Number of particles in a bunch.
-  parameter[no_end_marker]            = <Logical>  ! Default: False.
-  parameter[p0c]                      = <Real>     ! Reference momentum.
-  parameter[particle]                 = <Switch>   ! Reference species: positron, proton, etc.
-  parameter[photon_type]              = <Switch>   ! Incoherent or coherent photons?
-  parameter[ptc_exact_model]          = <Logical>  ! PTC to do "exact" tracking?
-  parameter[ptc_exact_misalignment]   = <Logical>  ! PTC to "exactly" misalign elements?
-  parameter[ptc_max_fringe_order]     = <Integer>  ! Max fringe order. 
-                                                   !    Default: 2 => Quadrupole.
-  parameter[ran_seed]                 = <Integer>  ! Random number generator init.
-  parameter[taylor_order]             = <Integer>  ! Default: 3
+  parameter[absolute_time_tracking]   = <Logical>   ! Absolute time used for RF clock?
+  parameter[custom_attributeN]        = <string>    ! Defining custom attributes (\sref{s:cust.att}).
+  parameter[default_tracking_species] = <Switch>    ! Default type of tracked particle. 
+                                                    !    Default is ref_particle.
+  parameter[e_tot]                    = <Real>      ! Reference total Energy. 
+                                                    !      Default: 1000 * rest_energy.
+  parameter[electric_dipole_moment]   = <Real>      ! Particle electric dipole moment.
+  parameter[live_branch]              = <Logical>   ! Is branch fit for tracking?
+  parameter[geometry]                 = <Switch>    ! Open or closed
+  parameter[lattice]                  = <String>    ! Lattice name.
+  parameter[machine]                  = <String>    ! Machine name.
+  parameter[n_part]                   = <Real>      ! Number of particles in a bunch.
+  parameter[no_end_marker]            = <Logical>   ! Default: False.
+  parameter[p0c]                      = <Real>      ! Reference momentum.
+  parameter[particle]                 = <speciesID> ! Reference species: positron, proton, etc.
+  parameter[photon_type]              = <Switch>    ! Incoherent or coherent photons?
+  parameter[ptc_exact_model]          = <Logical>   ! PTC to do "exact" tracking?
+  parameter[ptc_exact_misalignment]   = <Logical>   ! PTC to "exactly" misalign elements?
+  parameter[ptc_max_fringe_order]     = <Integer>   ! Max fringe order. 
+                                                    !    Default: 2 => Quadrupole.
+  parameter[ran_seed]                 = <Integer>   ! Random number generator init.
+  parameter[taylor_order]             = <Integer>   ! Default: 3
   parameter[use_hard_edge_drifts]     = <Logical>
   parameter[high_energy_space_charge_on] = <logical>
 \end{example}

@@ -36,6 +36,7 @@ type (em_field_struct) field
 type (branch_struct), pointer :: branch
 type (photon_surface_struct), pointer :: surface
 type (wake_lr_mode_struct), pointer :: lr
+type (converter_prob_E_r_struct), pointer :: per
 
 real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin
@@ -44,7 +45,7 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), n_particles
 
-integer i, ix, n, n_div, ixm, ix_pole_max, particle, geometry, i_max
+integer i, j, ix, n, n_div, ixm, ix_pole_max, particle, geometry, i_max
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -372,6 +373,19 @@ case (beambeam$)
                              (2 * pi * val(p0c$) * (val(sig_x$) + val(sig_y$)))
     endif
 
+  endif
+
+! Converter
+
+case (converter$)
+  if (allocated(ele%converter%dist) .and. (dval(angle_out_max$) /= 0 .or. &
+                   dval(thickness$) /= 0 .or. dval(E_out_min$) /= 0 .or. dval(E_out_max$) /= 0)) then
+    do i = 1, size(ele%converter%dist)
+      do j = 1, size(ele%converter%dist(i)%sub_dist)
+        per => ele%converter%dist(i)%sub_dist(j)%prob_E_r
+        if (allocated(per%p_norm)) deallocate (per%p_norm, per%p_integ_E_out, per%p_integ_r, per%p_integ_ang_x, per%p_integ_ang)
+      enddo
+    enddo
   endif
 
 ! Crab_Cavity

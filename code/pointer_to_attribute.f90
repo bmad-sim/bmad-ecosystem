@@ -316,6 +316,35 @@ endif
 
 ! Special cases
 
+if (ele%key == beginning_ele$ .or. ele%key == line_ele$) then
+  select case (a_name)
+  case ('BETA_A');          a_ptr%r => ele%a%beta
+  case ('BETA_B');          a_ptr%r => ele%b%beta
+  case ('ALPHA_A');         a_ptr%r => ele%a%alpha
+  case ('ALPHA_B');         a_ptr%r => ele%b%alpha
+  case ('GAMMA_A');         a_ptr%r => ele%a%gamma
+  case ('GAMMA_B');         a_ptr%r => ele%b%gamma
+  case ('PHI_A');           a_ptr%r => ele%a%phi
+  case ('PHI_B');           a_ptr%r => ele%b%phi
+  case ('ETA_A');           a_ptr%r => ele%a%eta
+  case ('ETA_B');           a_ptr%r => ele%b%eta
+  case ('ETA_X');           a_ptr%r => ele%x%eta
+  case ('ETA_Y');           a_ptr%r => ele%y%eta
+  case ('ETA_Z');           a_ptr%r => ele%z%eta
+  case ('ETAP_A');          a_ptr%r => ele%a%etap
+  case ('ETAP_B');          a_ptr%r => ele%b%etap
+  case ('ETAP_X');          a_ptr%r => ele%x%etap
+  case ('ETAP_Y');          a_ptr%r => ele%y%etap
+  case ('ETAP_Z');          a_ptr%r => ele%z%etap
+  case ('CMAT_11');         a_ptr%r => ele%c_mat(1,1)
+  case ('CMAT_12');         a_ptr%r => ele%c_mat(1,2)
+  case ('CMAT_21');         a_ptr%r => ele%c_mat(2,1)
+  case ('CMAT_22');         a_ptr%r => ele%c_mat(2,2)
+  end select
+  if (associated(a_ptr%r)) return
+endif
+
+
 select case (a_name)
 case ('X_POSITION');      a_ptr%r => ele%floor%r(1)
 case ('Y_POSITION');      a_ptr%r => ele%floor%r(2)
@@ -323,28 +352,6 @@ case ('Z_POSITION');      a_ptr%r => ele%floor%r(3)
 case ('THETA_POSITION');  a_ptr%r => ele%floor%theta
 case ('PHI_POSITION');    a_ptr%r => ele%floor%phi
 case ('PSI_POSITION');    a_ptr%r => ele%floor%psi
-case ('BETA_A');          a_ptr%r => ele%a%beta
-case ('BETA_B');          a_ptr%r => ele%b%beta
-case ('ALPHA_A');         a_ptr%r => ele%a%alpha
-case ('ALPHA_B');         a_ptr%r => ele%b%alpha
-case ('GAMMA_A');         a_ptr%r => ele%a%gamma
-case ('GAMMA_B');         a_ptr%r => ele%b%gamma
-case ('PHI_A');           a_ptr%r => ele%a%phi
-case ('PHI_B');           a_ptr%r => ele%b%phi
-case ('ETA_A');           a_ptr%r => ele%a%eta
-case ('ETA_B');           a_ptr%r => ele%b%eta
-case ('ETA_X');           a_ptr%r => ele%x%eta
-case ('ETA_Y');           a_ptr%r => ele%y%eta
-case ('ETA_Z');           a_ptr%r => ele%z%eta
-case ('ETAP_A');          a_ptr%r => ele%a%etap
-case ('ETAP_B');          a_ptr%r => ele%b%etap
-case ('ETAP_X');          a_ptr%r => ele%x%etap
-case ('ETAP_Y');          a_ptr%r => ele%y%etap
-case ('ETAP_Z');          a_ptr%r => ele%z%etap
-case ('CMAT_11');         a_ptr%r => ele%c_mat(1,1)
-case ('CMAT_12');         a_ptr%r => ele%c_mat(1,2)
-case ('CMAT_21');         a_ptr%r => ele%c_mat(2,1)
-case ('CMAT_22');         a_ptr%r => ele%c_mat(2,2)
 case ('S');               a_ptr%r => ele%s
 case ('LORD_STATUS');     a_ptr%i => ele%lord_status
 case ('SLAVE_STATUS');    a_ptr%i => ele%slave_status

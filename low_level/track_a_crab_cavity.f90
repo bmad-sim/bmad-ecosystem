@@ -1,5 +1,5 @@
 !+
-! Subroutine track_a_rfcavity (orbit, ele, param, mat6, make_matrix)
+! Subroutine track_a_crab_cavity (orbit, ele, param, mat6, make_matrix)
 !
 ! Bmad_standard tracking through an crab_cavity element.
 !

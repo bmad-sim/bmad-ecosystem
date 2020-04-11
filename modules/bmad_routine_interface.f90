@@ -1917,6 +1917,16 @@ subroutine track_a_bend (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine track_a_converter (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine track_a_crab_cavity (orbit, ele, param, mat6, make_matrix)
   import
   implicit none

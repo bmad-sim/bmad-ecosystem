@@ -973,10 +973,7 @@ where $T$ is the crystal thickness and \vn{nint} is the nearest integer function
 
 A \vn{converter} element represents a target onto which particles are slammed in order to generate
 particles of a different type. For example, a tungsten plate which is bombarded with electrons to
-generate positrons. 
-
-Note: At this point in time, \vn{converter} elements are experimental and act like marker elements
-with \vn{bmad_standard} tracking.
+generate positrons.
 
 General \vn{custom} attributes are:
 \begin{center}
@@ -992,6 +989,87 @@ General \vn{custom} attributes are:
   \bottomrule
 \end{tabular}
 \end{center}
+
+The attributes specific to an \vn{converter} are 
+\begin{example}
+  distribution    = <Struct>    ! Outgoing particle distribution.
+  E_out_min       = <Real>      ! Minimum outgoing particle energy.
+  E_out_max       = <Real>      ! Maximum outgoing particle energy.
+  angle_out_max   = <Real>      ! Maximum outgoing angle.
+  species_out     = <SpeciesID> ! Output species.
+  beta_a          = <Real>      ! Output a-mode beta.
+  beta_b          = <Real>      ! Output b-mode beta.
+  alpha_a         = <Real>      ! Output a-mode alpha.
+  alpha_b         = <Real>      ! Output b-mode alpha
+  phi_a           = <Real>      ! Output a-mode phase.
+  phi_b           = <Real>      ! Output b-mode phase.
+  eta_x           = <Real>      ! Output horizontal dispersion.
+  eta_y           = <Real>      ! Output vertical dispersion
+  etap_x          = <Real>      ! Output horizontal dispersion derivative.
+  etap_y          = <Real>      ! Output vertical dispersion derivative.
+\end{example}
+
+The species of the outgoing particles is specified by the \vn{species_out} parameter
+(\sref{s:species.name}.
+
+A converter element must be the first element in a lattice branch (\sref{s:branch.def}) excepting
+possible \vn{marker} elements. A \vn{fork} (\sref{s:fork}) element may be used to connect the
+elements that come before the converter to the converter. Example:
+\begin{example}
+  parameter[particle] = electron
+  parameter[geometry] = open
+  to_cvter: fork, to_line = post_linac
+  cvter, species_out = positron
+  pre_linac: line = (..., to_cvter)
+  post_linac: line = (cvter, ...)
+  post_linac[particle] = positron
+  post_linac[p0c] = 1e4
+  use, pre_linac
+\end{example}
+The line before the converter, \vn{pre_linac}, ends in a \vn{fork} element called \vn{to_cvter}
+which connects to the line named \vn{post_linac} containing the converter. The reference particle
+for the \vn{post_linac} line is set to \vn{positron} in contrast to the \vn{pre_linac} line where
+\vn{electron}s are the reference particles. Additionally, the reference momentum of the
+\vn{post_linac} line is set. It is not manditory for the reference particle of the branch containing
+the \vn{converter} to be the same as the \vn{species_out} parameter of the converter itself though
+typically this will be what is wanted.
+
+The \vn{distribution} parameter specifies the distribtion of outgoing particles for a given
+converter thickness. Multiple \vn{distribution} instances with differing thicknesses may be present
+in an element. The actual thickness of the converter will be taken to be the element's, length
+\vn{L} parameter. During tracking, the outgoing distribution will be computed by interpolating
+between the two distributions that bracket the actual thickness. The exception is when there is only
+one\vn{distribution} present. In this case, the element length is ignored that the supplied
+distribution will be used independent of the \vn{thickness} set in the distribution. If there are
+multiple \vn{distributition}s, specifying an element length that is outside the range of thicknesses
+will generate an error.
+
+There is a program called \vn{converter_element_modeling} which caculates converter output
+distributions. This program outputs text of the correct format which then can be used when
+constructing converter elements. The \vn{converter_element_modeling} program is based upon the
+\vn{Geant} simulation toolkit for the simulation of the passage of particles through matter. The
+\vn{converter_element_modeling} program is distributed with \bmad. Specifically, it is in the
+directory
+\begin{example}
+  \$ACC_ROOT_DIR/util_programs/converter_element_modeling
+\end{example}
+[See your local \bmad Geru if you don't know how to find this directory.] There is documentation for
+running the program in this directory.
+
+When tracking, for every particle impinging on a target, one outgoing particle will be generated.
+All outgoing particles will be assigned a ``\vn{weight}'' that represent how many outgoing particles
+a single incoming particle will generate. For example, if an incoming particle with a particular
+energy would generagte 0.42 particles on average, the outgoing particle will have a weight of 0.42.
+
+To make simulations more efficient, the \vn{E_out_min}, \vn{E_out_max}, and \vn{angle_out_max}
+parameters can be set to restrict the energy and angle range of outgoing particles. If the outgoing
+particles are restricted in energy or angle, the weight of the outgoing particles will be
+approriately adjusted such that the weighted distribution of outgoing particles within the energy
+and/or angle restricted range is independent of the whether or not there is are restrictions.
+
+A converter element does not have a well defined transfer matrix. 
+The Twiss and dispersion parameters
+
 
 %-----------------------------------------------------------------
 \section{Crab_Cavity}
