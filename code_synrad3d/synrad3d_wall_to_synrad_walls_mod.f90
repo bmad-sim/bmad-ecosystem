@@ -90,7 +90,7 @@ do iw = 1, size(branch%wall3d)
 
     ix_pt = 0
     if (allocated(wall%pt)) then
-      call bracket_index (wall%pt%s, 0, wall%n_pt_max, sec%s, ix_pt)
+      ix_pt = bracket_index (sec%s, wall%pt(0:wall%n_pt_max)%s, 0)
       ix_pt = ix_pt+1
     endif
 
