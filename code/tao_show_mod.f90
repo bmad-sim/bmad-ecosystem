@@ -4851,8 +4851,8 @@ case ('wall')
       return
     endif
 
-    call bracket_index (wall%section%s, 1, size(wall%section), s1 - 1d-10, ix1)
-    call bracket_index (wall%section%s, 1, size(wall%section), s2 + 1d-10, ix2)
+    ix1 = bracket_index (s1 - 1d-10, wall%section%s, 1)
+    ix2 = bracket_index (s2 + 1d-10, wall%section%s, 1) 
     ix1 = ix1 + 1
 
   elseif (attrib0 /= '') then
