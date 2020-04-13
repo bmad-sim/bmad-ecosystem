@@ -525,6 +525,12 @@ subroutine parse_fortran_format (format_str, multiplyer, power, code, width, dig
   character(*) format_str, code
 end subroutine
 
+function poly_eval(poly, x) result (y)
+  import
+  implicit none
+  real(rp) poly(0:), x, y
+end function
+
 function probability_funct(x) result (prob)
   import
   implicit none
