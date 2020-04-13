@@ -500,7 +500,7 @@ n_slice = ubound(sl, 1)
 ! Find where photon emitted
 
 call ran_uniform(rr)  ! longitudinal position
-call bracket_index (sl%integrated_emit_prob, 0, n_slice, rr, ix)
+ix = bracket_index (rr, sl%integrated_emit_prob, 0)
 ix = ix + 1
 if (ix == n_slice) ix = n_slice - 1
 f = (rr - sl(ix-1)%integrated_emit_prob) / (sl(ix)%integrated_emit_prob - sl(ix-1)%integrated_emit_prob)
