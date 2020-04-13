@@ -432,11 +432,14 @@ if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = lcav
 
 select case (key)
 
+case (converter$)
+  ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+
 case (lcavity$)
 
   ! A zero e_tot (Can happen on first pass through this routine) can mess up tracking so put 
   ! in a temp value if needed. This does not affect the phase & amp adjustment.
-  if (ele%value(e_tot$) == 0) then ! 
+  if (ele%value(e_tot$) == 0) then
     ele%value(E_tot$) = ele%value(e_tot_start$)      
     ele%value(p0c$) = ele%value(p0c_start$)
     ele%ref_time = ref_time_start

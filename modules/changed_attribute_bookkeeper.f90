@@ -480,6 +480,15 @@ case (beginning_ele$)
     return
   endif
 
+case (converter$)
+  if (associated(a_ptr, ele%value(p0c$))) then
+    call set_ele_status_stale (ele, ref_energy_group$)
+    ele%value(E_tot$) = 0
+  elseif (associated(a_ptr, ele%value(E_tot$))) then
+    call set_ele_status_stale (ele, ref_energy_group$)
+    ele%value(p0c$) = 0
+  endif
+
 case (crystal$)
   if (associated(a_ptr, ele%value(graze_angle_in$)) .or. associated(a_ptr, ele%value(graze_angle_out$))) then
     call set_ele_status_stale (ele, floor_position_group$)

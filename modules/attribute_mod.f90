@@ -567,6 +567,9 @@ do i = 1, n_key$
   if (i == lcavity$ .or. i == em_field$ .or. i == custom$) then
     call init_attribute_name1 (i, E_tot$,                  'E_TOT', dependent$)
     call init_attribute_name1 (i, p0c$,                    'P0C', dependent$)  
+  elseif (i == converter$) then
+    call init_attribute_name1 (i, E_tot$,                  'E_TOT')
+    call init_attribute_name1 (i, p0c$,                    'P0C')
   else
     call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
     call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
@@ -848,8 +851,8 @@ call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start
 call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
 
 call init_attribute_name1 (converter$, distribution$,               'DISTRIBUTION')
-call init_attribute_name1 (converter$, E_out_min$,                  'E_OUT_MIN')
-call init_attribute_name1 (converter$, E_out_max$,                  'E_OUT_MAX')
+call init_attribute_name1 (converter$, pc_out_min$,                 'PC_OUT_MIN')
+call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX')
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
 call init_attribute_name1 (converter$, beta_a$,                     'BETA_A')
@@ -860,9 +863,8 @@ call init_attribute_name1 (converter$, eta_x$,                      'ETA_X')
 call init_attribute_name1 (converter$, eta_y$,                      'ETA_Y')
 call init_attribute_name1 (converter$, etap_x$,                     'ETAP_X')
 call init_attribute_name1 (converter$, etap_y$,                     'ETAP_Y')
-call init_attribute_name1 (converter$, phi_a$,                      'PHI_A')
-call init_attribute_name1 (converter$, phi_b$,                      'PHI_B')
-
+call init_attribute_name1 (converter$, e_tot_start$,                'e_tot_start', private$)
+call init_attribute_name1 (converter$, p0c_start$,                  'p0c_start', private$)
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
@@ -1918,7 +1920,7 @@ case ('DBRAGG_ANGLE_DE')
 
 case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E2_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
       'P0C', 'P0C_START', 'PC', 'P0C_SET', 'E_TOT_SET', 'AUTOSCALE_AMP_ABS_TOL', 'DELTA_E_REF', 'SIG_E', 'SIG_E2', &
-      'E_OUT_MIN', 'E_OUT_MAX')
+      'PC_OUT_MIN', 'PC_OUT_MAX')
   attrib_units = 'eV'
 
 case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET', 'DELTA_TIME')

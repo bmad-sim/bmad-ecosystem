@@ -36,7 +36,7 @@ type (em_field_struct) field
 type (branch_struct), pointer :: branch
 type (photon_surface_struct), pointer :: surface
 type (wake_lr_mode_struct), pointer :: lr
-type (converter_prob_E_r_struct), pointer :: per
+type (converter_prob_pc_r_struct), pointer :: ppcr
 
 real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin
@@ -379,13 +379,19 @@ case (beambeam$)
 
 case (converter$)
   if (allocated(ele%converter%dist) .and. (dval(angle_out_max$) /= 0 .or. &
-                   dval(thickness$) /= 0 .or. dval(E_out_min$) /= 0 .or. dval(E_out_max$) /= 0)) then
+                   dval(thickness$) /= 0 .or. dval(pc_out_min$) /= 0 .or. dval(pc_out_max$) /= 0)) then
     do i = 1, size(ele%converter%dist)
       do j = 1, size(ele%converter%dist(i)%sub_dist)
-        per => ele%converter%dist(i)%sub_dist(j)%prob_E_r
-        if (allocated(per%p_norm)) deallocate (per%p_norm, per%p_integ_E_out, per%p_integ_r, per%p_integ_ang_x, per%p_integ_ang)
+        ppcr => ele%converter%dist(i)%sub_dist(j)%prob_pc_r
+        if (allocated(ppcr%p_norm)) deallocate (ppcr%p_norm, ppcr%integ_pc_out, ppcr%integ_r)
       enddo
     enddo
+  endif
+
+  if (ele%value(p0c$) == 0) then
+    call convert_total_energy_to (ele%value(E_tot$), ele%converter%species_out, pc = ele%value(p0c$))
+  else
+    call convert_pc_to (ele%value(p0c$), ele%converter%species_out, E_tot = ele%value(E_tot$))
   endif
 
 ! Crab_Cavity

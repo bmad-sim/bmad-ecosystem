@@ -1011,54 +1011,51 @@ end type
 
 !------------------------------------------------------------------------
 
-! Converter structure for Probability(E_out, r_out; E_in, thickness)
+! Converter structure for Probability(pc_out, r_out; pc_in, thickness)
 ! Note: Probability at r = 0 is zero since using polar coordinates.
 
-type converter_prob_E_r_struct
-  real(rp), allocatable :: E_out(:)         ! Grid E_out values.
+type converter_prob_pc_r_struct
+  real(rp), allocatable :: pc_out(:)        ! Grid pc_out values.
   real(rp), allocatable :: r(:)             ! Grid r_out values.
   real(rp), allocatable :: prob(:, :)       ! Probability grid.
-  ! Stuff below are calculated rather than read in from the lattice file.
-  real(rp) :: integrated_prob = 0           ! Integrated probability over (E_out, r).
+  ! Stuff below is calculated rather than read in from the lattice file.
+  real(rp) pc_out_min, pc_out_max, dxy_ds_max
+  real(rp) :: integrated_prob = 0           ! Integrated probability over (pc_out, r) with restrictions factered in.
   real(rp), allocatable :: p_norm(:,:)      ! Normalized probability taking into account.
-                                            !   angle_out_max, E_out_min, and E_out_max restrictions.
-  real(rp), allocatable :: p_integ_E_out(:) ! Integrated probability from E_out_min to E_out.
-  real(rp), allocatable :: p_integ_r(:,:)   ! Integrated probability from 0 to r given E_out.
-  real(rp), allocatable :: p_integ_ang_x(:) ! Integrated probability from 0 to ang_x
-  real(rp), allocatable :: p_integ_ang(:,:) ! Integrated probability from 0 to ang_y given ang_x.
-  real(rp), allocatable :: A_dir(:,:)       ! Cauchy function amplitude with angle_out_max restriction.
-
+                                            !   angle_out_max, pc_out_min, and pc_out_max restrictions.
+  real(rp), allocatable :: integ_pc_out(:)  ! Normalized probability integrated from min pc_out up.
+  real(rp), allocatable :: integ_r(:,:)
 end type
 
 ! dx/ds, dy/ds coef fits
 
 type converter_beta1_struct
-  real(rp) :: E_out = 0          ! E_out value at fit
-  real(rp) :: poly(0:4) = 0      ! beta(r) = Sum: poly(i) * r^i
+  real(rp) :: pc_out = 0          ! pc_out value at fit
+  real(rp) :: poly(0:4) = 0       ! beta(r) = Sum: poly(i) * r^i
 end type
 
 type converter_beta_struct
   type (converter_beta1_struct), allocatable :: fit_1d_r(:)
-  real(rp) :: A = 0           ! Fit for high E_out region: beta(E,r) = A * E^k_E * r^k_r
-  real(rp) :: k_E = 0
+  real(rp) :: A = 0           ! Fit for high pc_out region: beta(pc,r) = A * pc^k_pc * r^k_r
+  real(rp) :: k_pc = 0
 end type
 
-type converter_alpha1_struct  ! 1D fit
-  real(rp) :: E_out = 0       ! E_out value at fit
-  real(rp) :: k = 0           ! alpha(r) = exp(-k) * (Sum: poly(i) * r^i)
+type converter_alpha1_struct   ! 1D fit
+  real(rp) :: pc_out = 0       ! pc_out value at fit
+  real(rp) :: k = 0            ! alpha(r) = exp(-k) * (Sum: poly(i) * r^i)
   real(rp) :: poly(0:3) = 0
 end type
 
-type converter_alpha_struct   ! 2D fit
+type converter_alpha_struct       ! 2D fit
   type (converter_alpha1_struct), allocatable :: fit_1d_r(:)
-  type (converter_alpha1_struct) :: fit_1d_E
+  type (converter_alpha1_struct) :: fit_1d_pc
 end type
 
-! c_x = A_c * E_out^k_E * r^k_r
+! c_x = A_c * pc_out^k_pc * r^k_r
 
 type converter_c_x_struct
   real(rp) A_c
-  real(rp) k_E
+  real(rp) k_pc
   real(rp) k_r
 end type
 
@@ -1071,8 +1068,8 @@ end type
 ! Converter structure for a given incoming particle energy.
 
 type converter_sub_distribution_struct
-  real(rp) :: E_in = -1
-  type (converter_prob_E_r_struct) :: prob_E_r
+  real(rp) :: pc_in = -1
+  type (converter_prob_pc_r_struct) :: prob_pc_r
   type (converter_direction_out_struct) :: dir_out
 end type
 
@@ -1081,7 +1078,7 @@ end type
 type converter_distribution_struct
   real(rp) :: thickness = -1
   real(rp) :: dxy_ds_max
-  type (converter_sub_distribution_struct), allocatable :: sub_dist(:) ! Distribution at various E_in values.
+  type (converter_sub_distribution_struct), allocatable :: sub_dist(:) ! Distribution at various pc_in values.
 end type
 
 ! Converter structure
@@ -1452,9 +1449,9 @@ integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, k1_pseudo$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, drift_id$ = 5
-integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, E_out_min$ = 5
+integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
-integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, E_out_max$ = 6
+integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
 integer, parameter :: g_err$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7, bragg_angle_in$ = 7
 integer, parameter :: rho$ = 8, delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8

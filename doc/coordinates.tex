@@ -752,21 +752,22 @@ The \vn{reference energy} and \vn{reference time} are needed in
 evaluating the phase space coordinates of charged particles
 (\sref{s:phase.space}).  
 
-All lattice elements, except for controller elements, have an
-associated \vn{reference energy} energy.  The reference energy at the
-start of a lattice's \vn{root branch} (\sref{s:branch.def}) is set in
-the lattice file by setting the reference momentum (\vn{p0c}) or total
-energy (\vn{E_tot}) using a \vn{parameter} (\sref{s:param}) or
-\vn{beginning} (\sref{s:beginning}) statement. For other branches, the
-energy at the start of the branch is set using the appropriate line
-parameter (\sref{s:beginning}) statement.
+All lattice elements, except for controller elements, have an associated \vn{reference energy}
+energy.  The reference energy at the start of a lattice's \vn{root branch} (\sref{s:branch.def}) is
+set in the lattice file by setting the reference momentum (\vn{p0c}) or total energy (\vn{E_tot})
+using a \vn{parameter} (\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statement. For other
+branches, the energy at the start of the branch is set using the appropriate line parameter
+(\sref{s:beginning}) statement.
+
+Note that the reference momentum \vn{p0c} is actually the reerence momentum times the speed of light
+so that the reference momentum has the same unit (eV) as the reference energy.
+
 
 \index{custom!reference energy}\index{em_field!reference energy}
 \index{hybrid!reference energy}\index{lcavity!reference energy}
 \index{patch!reference energy}
-For most elements, the reference energy is the same as the reference
-energy of the preceeding element. The following elements are
-exceptions:
+For most elements, the reference energy is the same as the reference energy of the preceeding
+element. The following elements are exceptions:
 \begin{example}
   custom
   em_field

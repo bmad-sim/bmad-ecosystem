@@ -517,14 +517,13 @@ integer ix, ix2
 ! Bracket index if there is more than one vertex
 ! If there is only one vertex then must be an ellipse or circle
 
-angle = atan2(sin_ang, cos_ang)
-
 if (size(v) == 1) then
   v2 => v(1)
   if (present(ix_vertex)) ix_vertex = 1
 else
+  angle = atan2(sin_ang, cos_ang)
   if (angle < v(1)%angle) angle = ceiling((v(1)%angle-angle)/twopi) * twopi + angle
-  call bracket_index (v%angle, 1, size(v), angle, ix)
+  ix = bracket_index (angle, v%angle, 1)
 
   v1 => v(ix)
 
@@ -759,7 +758,7 @@ else
   ! Find the wall points (defined cross-sections) to either side of the particle.
   ! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
 
-  call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
+  ix_w = bracket_index (s_particle, wall3d%section%s, 1)
   if (s_particle == wall3d%section(ix_w)%s .and. (position(6) > 0 .or. ix_w == size(wall3d%section))) ix_w = ix_w - 1
 
   ! sec1 and sec2 are the cross-sections to either side of the particle.
@@ -1352,7 +1351,7 @@ end select
 
 s = wall%section(1)%s + s_ref
 if (size(wall%section) /= 1) s = s + bmad_com%significant_length/10
-call bracket_index (sp%s, 1, n_sec, s, ixw)
+ixw = bracket_index (s, sp(1:n_sec)%s, 1)
 
 if (ixw > 1 .and. ixw < n_sec) then
   if (sp(ixw-1)%ele%ix_ele == sp(ixw+1)%ele%ix_ele) then
@@ -1454,11 +1453,11 @@ end select
 
 s = wall%section(1)%s + s_ref
 if (size(wall%section) /= 1) s = s + bmad_com%significant_length/10
-call bracket_index (sp%s, 1, n_sec, s, ixw1)
+ixw1 = bracket_index (s, sp(1:n_sec)%s, 1)
 
 s = wall%section(nw)%s + s_ref
 if (size(wall%section) /= 1) s = s - bmad_com%significant_length/10
-call bracket_index (sp%s, 1, n_sec, s, ixw2)
+ixw2 = bracket_index (s, sp(1:n_sec)%s, 1)
 
 ! If ixw2 < ixw1 then basically s(1) = s(nw) and there is a wall section (or sections) from a previous element at this s. 
 
