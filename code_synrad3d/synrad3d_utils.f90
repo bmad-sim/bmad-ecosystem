@@ -298,7 +298,7 @@ if (ix_sec == not_set$ .or. ix_sec < 1) ix_sec = 1
 if (ix_sec >= n_max) ix_sec = n_max - 1
 
 if (p_orb%orb%s < wall3d%section(ix_sec)%s .or. p_orb%orb%s > wall3d%section(ix_sec+1)%s) then
-  call bracket_index2 (wall3d%section%s, 1, n_max, p_orb%orb%s, ix_sec, ix_sec)
+  ix_sec = bracket_index2 (p_orb%orb%s, ix_sec, wall3d%section%s, 1)
   if (ix_sec == n_max) ix_sec = n_max - 1
 endif
 
