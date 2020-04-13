@@ -472,7 +472,7 @@ type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
 type (wake_struct), pointer :: wake
 type (converter_distribution_struct), pointer :: c_dist
-type (converter_prob_E_r_struct), pointer :: p_er
+type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
@@ -558,19 +558,19 @@ if (ix_convert == 1) then
     read (d_unit, err = 9120) c_dist%thickness, c_dist%dxy_ds_max, ns
     allocate (c_dist%sub_dist(ns))
     do j = 1, size(c_dist%sub_dist)
-      read (d_unit, err = 9120) c_dist%sub_dist(j)%E_in
-      p_er => c_dist%sub_dist(j)%prob_E_r
-      read (d_unit, err = 9120) p_er%integrated_prob, ne, nr
-      allocate (p_er%E_out(ne), p_er%r(nr), p_er%prob(ne,nr))
-      read (d_unit, err = 9120) p_er%E_out
-      read (d_unit, err = 9120) p_er%r
-      read (d_unit, err = 9120) p_er%prob
+      read (d_unit, err = 9120) c_dist%sub_dist(j)%pc_in
+      ppcr => c_dist%sub_dist(j)%prob_pc_r
+      read (d_unit, err = 9120) ppcr%integrated_prob, ne, nr
+      allocate (ppcr%pc_out(ne), ppcr%r(nr), ppcr%prob(ne,nr))
+      read (d_unit, err = 9120) ppcr%pc_out
+      read (d_unit, err = 9120) ppcr%r
+      read (d_unit, err = 9120) ppcr%prob
       c_dir => c_dist%sub_dist(j)%dir_out
       read (d_unit, err = 9120) n1, n2, n3
       allocate (c_dir%beta%fit_1D_r(n1), c_dir%alpha_x%fit_1D_r(n2), c_dir%alpha_y%fit_1D_r(n3))
-      read (d_unit, err = 9120) c_dir%beta%fit_1d_r, c_dir%beta%A, c_dir%beta%k_E, c_dir%c_x
-      read (d_unit, err = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_1d_E
-      read (d_unit, err = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_1d_E
+      read (d_unit, err = 9120) c_dir%beta%fit_1d_r, c_dir%beta%A, c_dir%beta%k_pc, c_dir%c_x
+      read (d_unit, err = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_1d_pc
+      read (d_unit, err = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_1d_pc
     enddo
   enddo
 endif

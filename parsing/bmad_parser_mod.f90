@@ -4263,6 +4263,21 @@ case (beginning_ele$)
   ele%b%etap = eta_vec(4)
 
 !------------------
+! Converter 
+
+case (converter$)
+
+if (ele%value(E_tot$) == 0 .and. ele%value(p0c$) == 0) then
+  call parser_error ('NEITHER E_TOT NOR P0C ARE SET FOR CONVERTER: ' // ele%name)
+elseif (ele%value(E_tot$) /= 0 .and. ele%value(p0c$) /= 0) then
+  call parser_error ('BOTH E_TOT AND P0C ARE SET FOR CONVERTER: ' // ele%name)
+elseif (ele%value(E_tot$) /= 0) then
+  call convert_total_energy_to (ele%value(E_tot$), ele%converter%species_out, pc = ele%value(p0c$))
+else
+  call convert_pc_to (ele%value(p0c$), ele%converter%species_out, E_tot = ele%value(E_tot$))
+endif
+
+!------------------
 ! Convert rbends to sbends and evaluate G if needed.
 ! Needed is the length and either: angle, G, or rho.
 

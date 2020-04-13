@@ -308,7 +308,7 @@ if (associated(info%cache_ele)) then
   ! We want to exclude any points outside the fringe.
 
   n_pt = info%cache_ele%n_pt
-  call bracket_index(info%cache_ele%pt(0:n_pt)%s_body, 0, n_pt, z_here, i0)
+  i0 = bracket_index(z_here, info%cache_ele%pt(0:n_pt)%s_body, 0)
   i0 = min(i0, n_pt-1)
   ! Downstream fringe if s_body is same for n_pt-1 and n_pt.
   ! Note: bracket_index is such that upstream fringe does not have to be checked.

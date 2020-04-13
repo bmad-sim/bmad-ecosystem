@@ -687,7 +687,7 @@ enddo
 ! Find which angle interval angle_deg is in.
 
 n_ang = size(prt%angle)
-call bracket_index (prt%angle, 1, n_ang, angle*180/pi, ixa)
+ixa = bracket_index (angle*180/pi, prt%angle, 1)
 
 f = (e_tot - prt%energy(ie)) / (prt%energy(ie+1) - prt%energy(ie))
 

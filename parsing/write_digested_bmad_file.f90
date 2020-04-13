@@ -221,7 +221,7 @@ type (grid_field_struct), pointer :: g_field
 type (taylor_field_struct), pointer :: t_field
 type (ac_kicker_struct), pointer :: ac
 type (converter_distribution_struct), pointer :: c_dist
-type (converter_prob_E_r_struct), pointer :: p_er
+type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
@@ -380,17 +380,17 @@ if (associated(ele%converter)) then
     c_dist => ele%converter%dist(n)
     write (d_unit) c_dist%thickness, c_dist%dxy_ds_max, size(c_dist%sub_dist)
     do j = 1, size(c_dist%sub_dist)
-      write (d_unit) c_dist%sub_dist(j)%E_in
-      p_er => c_dist%sub_dist(j)%prob_E_r
-      write (d_unit) p_er%integrated_prob, size(p_er%E_out), size(p_er%r)
-      write (d_unit) p_er%E_out
-      write (d_unit) p_er%r
-      write (d_unit) p_er%prob
+      write (d_unit) c_dist%sub_dist(j)%pc_in
+      ppcr => c_dist%sub_dist(j)%prob_pc_r
+      write (d_unit) ppcr%integrated_prob, size(ppcr%pc_out), size(ppcr%r)
+      write (d_unit) ppcr%pc_out
+      write (d_unit) ppcr%r
+      write (d_unit) ppcr%prob
       c_dir => c_dist%sub_dist(j)%dir_out
       write (d_unit) size(c_dir%beta%fit_1D_r), size(c_dir%alpha_x%fit_1D_r), size(c_dir%alpha_y%fit_1D_r)
-      write (d_unit) c_dir%beta%fit_1d_r, c_dir%beta%A, c_dir%beta%k_E, c_dir%c_x
-      write (d_unit) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_1d_E
-      write (d_unit) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_1d_E
+      write (d_unit) c_dir%beta%fit_1d_r, c_dir%beta%A, c_dir%beta%k_pc, c_dir%c_x
+      write (d_unit) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_1d_pc
+      write (d_unit) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_1d_pc
     enddo
   enddo
 endif

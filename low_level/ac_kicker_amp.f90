@@ -62,7 +62,7 @@ if (allocated(ac%frequencies)) then
 
 else
   n = size(ac%amp_vs_time)
-  call bracket_index(ac%amp_vs_time%time, 1, n, t, ix)
+  ix = bracket_index(t, ac%amp_vs_time%time, 1)
   if (ix < 1) then
     ac_amp = ac%amp_vs_time(1)%amp
   elseif (ix == n) then
