@@ -1,10 +1,10 @@
 !+
-! Subroutine bracket_index2 (s_arr, i_min, i_max, s, ix0, ix)
+! Function bracket_index2 (s, ix0, s_arr, i_min, dr) result (ix)
 !
-! Subroutine to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
+! Function to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
 ! If s <  s_arr(i_min) then ix = i_min - 1
 ! If s >= s_arr(i_max) then ix = i_max
-! If i_max < i_min (array size zero) then ix = i_min - 1
+! If array size zero, ix = i_min - 1
 !
 ! This routine assumes that s_arr is in assending order.
 !
@@ -16,32 +16,34 @@
 ! However, if ix0 is not near ix, this routine can be up to a 
 ! factor of 2 slower than bracket_index.
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
-!   s_arr(i_min:) -- Real(rp): Sequence of real numbers.
-!   i_min         -- Integer: lower bound of s_arr
-!   i_max         -- Integer: upper bound of s_arr
-!   s             -- Real(rp): Number to bracket.
-!   ix0           -- Integer: Initial guess for ix. 
+!   s             -- real(rp): Number to bracket.
+!   ix0           -- integer: Initial guess for ix. 
+!   s_arr(i_min:) -- real(rp): Sequence of real numbers.
+!   i_min         -- integer: lower bound of s_arr.
 !
 ! Output:
-!   ix    -- Integer: Index so that s_arr(ix) <= s < s_arr(ix+1).
+!   ix         -- integer: Index so that s_arr(ix) <= s < s_arr(ix+1).
+!   dr        -- real(rp), optional: Fraction (s-s_arr(ix)) / (s_arr(ix+1)-s_arr(ix))
+!                   Undefined if s is outside of the region.
 !-
 
-subroutine bracket_index2 (s_arr, i_min, i_max, s, ix0, ix)
+function bracket_index2 (s, ix0, s_arr, i_min, dr) result (ix)
 
 use precision_def
 
 implicit none
 
 real(rp) s_arr(i_min:), s
+real(rp), optional :: dr
 
 integer i_min, i_max
 integer ix0, ix, n1, n2, n3, n_del
 
 ! Easy case
+
+if (present(dr)) dr = 0
+i_max = ubound(s_arr, 1)
 
 if (i_max < i_min) then
   ix = i_min - 1
@@ -86,9 +88,11 @@ endif
 ! Now find solution by successive divitions.
 
 do
-
   if (n3 == n1 + 1) then
     ix = n1
+    if (present(dr)) then
+      if (s_arr(ix) /= s_arr(ix+1)) dr = (s - s_arr(ix)) / (s_arr(ix+1) - s_arr(ix))
+    endif
     return
   endif
 
@@ -99,8 +103,7 @@ do
   else
     n1 = n2
   endif
-
 enddo
 
-end subroutine
+end function
 
