@@ -183,7 +183,7 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
     r = 0.5 - r
     ss = -1
   endif
-  call bracket_index(g, 0, max_g, r, ix) 
+  ix = bracket_index(r, g, 0)
   harvest = (ix + (r - g(ix)) / (g(ix+1) - g(ix))) * ss / n_pts_per_sigma
   if (harvest >  sigma_cut) harvest =  sigma_cut
   if (harvest < -sigma_cut) harvest = -sigma_cut

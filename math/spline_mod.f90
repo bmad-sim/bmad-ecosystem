@@ -272,7 +272,7 @@ if (x > x_knot(ix_max) + eps) then
   return
 endif
 
-call bracket_index (x_knot, 1, ix_max, x, ix0)
+ix0 = bracket_index (x, x_knot, 1)
 if (ix0 == 0) ix0 = 1
 if (ix0 == ix_max) ix0 = ix_max - 1
 

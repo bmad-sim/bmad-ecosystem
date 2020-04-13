@@ -1,28 +1,26 @@
 !+
-! Subroutine bracket_index (s_arr, i_min, i_max, s, ix)
+! Function bracket_index (s, s_arr, i_min, dr) result (ix)
 !
-! Subroutine to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
+! Function to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
 ! If s <  s_arr(i_min) then ix = i_min - 1
 ! If s >= s_arr(i_max) then ix = i_max
-! If i_max < i_min (array size zero) then ix = i_min - 1
+! If array size zero then ix = i_min - 1
 !
 ! This routine assumes that s_arr is in assending order.
 ! Also see bracket_index2
 !
-! Modules needed:
-!   use sim_utils
-!
 ! Input:
-!   s_arr(i_min:) -- Real(rp): Sequence of real numbers.
-!   i_min         -- Integer: lower bound of s_arr
-!   i_max         -- Integer: upper bound of s_arr
-!   s             -- Real(rp): Number to bracket.
+!   s             -- real(rp): Number to bracket.
+!   s_arr(i_min:) -- real(rp): Sequence of real numbers.
+!   i_min         -- integer: Lower bound of s_arr
 !
 ! Output:
-!   ix    -- Integer: Index so that s_arr(ix) <= s < s_arr(ix+1).
+!   ix        -- integer: Index so that s_arr(ix) <= s < s_arr(ix+1).
+!   dr        -- real(rp), optional: Fraction (s-s_arr(ix)) / (s_arr(ix+1)-s_arr(ix))
+!                   Undefined if s is outside of the region.
 !-
 
-subroutine bracket_index (s_arr, i_min, i_max, s, ix)
+function bracket_index (s, s_arr, i_min, dr) result (ix)
 
 use precision_def
 
@@ -30,12 +28,16 @@ implicit none
 
 integer i_min, i_max
 real(rp) s_arr(i_min:), s
+real(rp), optional :: dr
 
 integer ix, n1, n2, n3
 
 ! Easy cases
 
-if (i_max < i_min) then
+if (present(dr)) dr = 0
+i_max = ubound(s_arr, 1)
+
+if (size(s_arr) == 0) then
   ix = i_min - 1
   return
 endif
@@ -56,9 +58,11 @@ n1 = i_min
 n3 = i_max
 
 do
-
   if (n3 == n1 + 1) then
     ix = n1
+    if (present(dr)) then
+      if (s_arr(ix) /= s_arr(ix+1)) dr = (s - s_arr(ix)) / (s_arr(ix+1) - s_arr(ix))
+    endif
     return
   endif
 
@@ -69,8 +73,7 @@ do
   else
     n1 = n2
   endif
-
 enddo
 
-end subroutine
+end function
 
