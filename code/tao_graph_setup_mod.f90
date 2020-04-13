@@ -2064,7 +2064,7 @@ do ii = 1, size(curve%x_line)
       return
     endif
  
-    call bracket_index (tao_branch%bunch_params(:)%s, 0, n_ele_track, s_now, ix)
+    ix = bracket_index (s_now, tao_branch%bunch_params(0:n_ele_track)%s, 0)
     bunch_params0 => tao_branch%bunch_params(ix)
     bunch_params1 => tao_branch%bunch_params(min(ix,n_ele_track))
 
