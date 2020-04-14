@@ -992,7 +992,7 @@ def get_next_command ():
         if not common.one_file:
           common.f_out[-1].close()
           common.f_out.pop()       # Remove last file handle
-        if len(common.f_in) == 0: return ['', dlist]  ! If root file was closed
+        if len(common.f_in) == 0: return ['', dlist]  # If root file was closed
 
     else:
       line = common.command
