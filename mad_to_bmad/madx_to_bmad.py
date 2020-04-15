@@ -448,7 +448,7 @@ def parse_element(dlist, write_to_file, command):
       params['z_offset'] = trans[2]
 
   elif ele.madx_base_type == 'rbend' or ele.madx_base_type == 'sbend':
-    if 'tilt' in params: params['tilt_ref'] = params.pop('tilt')
+    if 'tilt' in params: params['ref_tilt'] = params.pop('tilt')
     kill_ent = False; kill_exi = False
     if 'kill_ent_fringe' in params: kill_ent = (params['kill_ent_fringe'] == 'true')
     if 'kill_exi_fringe' in params: kill_exi = (params['kill_exi_fringe'] == 'true')
