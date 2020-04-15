@@ -47,20 +47,20 @@ sig_x0 = ele%value(sig_x$)
 sig_y0 = ele%value(sig_y$)
 if (sig_x0 == 0 .or. sig_y0 == 0) return
 
-if (ele%value(beta_a$) == 0) then
+if (ele%value(beta_a_strong$) == 0) then
   beta_a0 = ele%a%beta
   alpha_a0 = ele%a%alpha
 else
-  beta_a0 = ele%value(beta_a$)
-  alpha_a0 = ele%value(alpha_a$)
+  beta_a0 = ele%value(beta_a_strong$)
+  alpha_a0 = ele%value(alpha_a_strong$)
 endif
 
-if (ele%value(beta_b$) == 0) then
+if (ele%value(beta_b_strong$) == 0) then
   beta_b0 = ele%b%beta
   alpha_b0 = ele%b%alpha
 else
-  beta_b0 = ele%value(beta_b$)
-  alpha_b0 = ele%value(alpha_b$)
+  beta_b0 = ele%value(beta_b_strong$)
+  alpha_b0 = ele%value(alpha_b_strong$)
 endif
 
 n_slice = max(1, nint(ele%value(n_slice$)))

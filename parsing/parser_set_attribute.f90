@@ -255,6 +255,16 @@ if (ele%key == wiggler$ .or. ele%key == undulator$) then
   endif
 endif
 
+! Other old-style conversions
+if (ele%key == beambeam$) then
+  select case (word)
+  case ('BETA_A');    word = 'BETA_A_STRONG'
+  case ('BETA_B');    word = 'BETA_B_STRONG'
+  case ('ALPHA_A');   word = 'ALPHA_A_STRONG'
+  case ('ALPHA_B');   word = 'ALPHA_B_STRONG'
+  end select
+endif
+
 ! For historical reasons, a few paramter[...] parameters are actually in bmad_com.
 
 key = ele%key

@@ -1019,12 +1019,13 @@ type converter_prob_pc_r_struct
   real(rp), allocatable :: r(:)             ! Grid r_out values.
   real(rp), allocatable :: prob(:, :)       ! Probability grid.
   ! Stuff below is calculated rather than read in from the lattice file.
-  real(rp) pc_out_min, pc_out_max, dxy_ds_max
+  real(rp) pc_out_min, pc_out_max
   real(rp) :: integrated_prob = 0           ! Integrated probability over (pc_out, r) with restrictions factered in.
   real(rp), allocatable :: p_norm(:,:)      ! Normalized probability taking into account.
                                             !   angle_out_max, pc_out_min, and pc_out_max restrictions.
   real(rp), allocatable :: integ_pc_out(:)  ! Normalized probability integrated from min pc_out up.
   real(rp), allocatable :: integ_r(:,:)
+  real(rp), allocatable :: integ_r_ave(:)
 end type
 
 ! dx/ds, dy/ds coef fits
@@ -1036,8 +1037,8 @@ end type
 
 type converter_beta_struct
   type (converter_beta1_struct), allocatable :: fit_1d_r(:)
-  real(rp) :: A = 0           ! Fit for high pc_out region: beta(pc,r) = A * pc^k_pc * r^k_r
-  real(rp) :: k_pc = 0
+  real(rp) :: poly_pc(0:3) = 0     
+  real(rp) :: poly_r(0:3) = 0     
 end type
 
 type converter_alpha1_struct   ! 1D fit
@@ -1048,15 +1049,15 @@ end type
 
 type converter_alpha_struct       ! 2D fit
   type (converter_alpha1_struct), allocatable :: fit_1d_r(:)
-  type (converter_alpha1_struct) :: fit_1d_pc
+  type (converter_alpha1_struct) :: fit_2d_pc
+  type (converter_alpha1_struct) :: fit_2d_r
 end type
 
 ! c_x = A_c * pc_out^k_pc * r^k_r
 
 type converter_c_x_struct
-  real(rp) A_c
-  real(rp) k_pc
-  real(rp) k_r
+  real(rp) :: poly_r(0:3) = 0     
+  real(rp) :: poly_pc(0:3) = 0     
 end type
 
 type converter_direction_out_struct
@@ -1077,7 +1078,8 @@ end type
 
 type converter_distribution_struct
   real(rp) :: thickness = -1
-  real(rp) :: dxy_ds_max
+  real(rp) :: dxy_ds_max    ! Direction_out parameters fit over range [-dxy_ds_max, dxy_ds_max]
+  real(rp) :: dxy_ds_limit  ! = min(dxy_ds_max, atan(angle_out_max))
   type (converter_sub_distribution_struct), allocatable :: sub_dist(:) ! Distribution at various pc_in values.
 end type
 
@@ -1471,20 +1473,20 @@ integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direct
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, constant_ref_energy$ = 20
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
-integer, parameter :: beta_a$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
+integer, parameter :: beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
-integer, parameter :: beta_b$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
+integer, parameter :: beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
-integer, parameter :: alpha_a$ = 23, cavity_type$ = 23, E2_probability$ = 23
+integer, parameter :: alpha_a_strong$ = 23, alpha_a_out$ = 23, cavity_type$ = 23, E2_probability$ = 23
 integer, parameter :: phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24
-integer, parameter :: alpha_b$ = 24, is_mosaic$ = 24
+integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24
 integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25
-integer, parameter :: eta_x$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25
-integer, parameter :: eta_y$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26
+integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25
+integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26
-integer, parameter :: etap_x$ = 27, phi0_autoscale$ = 27, dx_origin$ =  27, energy_distribution$ = 27
+integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ =  27, energy_distribution$ = 27
 integer, parameter :: x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27
-integer, parameter :: etap_y$ = 28, phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28
+integer, parameter :: etap_y_out$ = 28, phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28
 integer, parameter :: upstream_ele_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29
 integer, parameter :: cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29
 integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, scale_field_to_one$ = 30
@@ -1557,10 +1559,10 @@ integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
 integer, parameter :: use_hard_edge_drifts$ = 81, tt$ = 81, x_knot$ = 81
-integer, parameter :: alias$  = 82, ptc_max_fringe_order$ = 82
-integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
-integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84
-integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85
+integer, parameter :: alias$  = 82, ptc_max_fringe_order$ = 82, eta_x$ = 82
+integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83, eta_y$ = 83
+integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84, etap_x$ = 84
+integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, elliptical_curvature_y$ = 85, etap_y$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, elliptical_curvature_z$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, surface_attrib$ = 88
@@ -1574,10 +1576,10 @@ integer, parameter :: aperture$ = 95, etap_a$ = 95
 integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
 integer, parameter :: y_limit$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
-integer, parameter :: aperture_limit_on$ = 99
+integer, parameter :: aperture_limit_on$ = 99, alpha_a$ = 99
 
 integer, parameter :: ptc_exact_misalign$ = 100, physical_source$ = 100
-integer, parameter :: sr_wake_file$ = 100
+integer, parameter :: sr_wake_file$ = 100, alpha_b$ = 100
 integer, parameter :: term$ = 101, frequencies$ = 101
 integer, parameter :: x_position$ = 102, ptc_exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
@@ -1585,8 +1587,8 @@ integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
 integer, parameter :: is_on$ = 105, theta_position$ = 105
 integer, parameter :: field_calc$ = 106, phi_position$ = 106
 integer, parameter :: psi_position$ = 107, wall$ = 107
-integer, parameter :: aperture_at$ = 108
-integer, parameter :: ran_seed$ = 109, origin_ele$ = 109
+integer, parameter :: aperture_at$ = 108, beta_a$ = 108
+integer, parameter :: ran_seed$ = 109, origin_ele$ = 109, beta_b$ = 109
 
 ! 
 

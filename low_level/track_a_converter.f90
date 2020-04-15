@@ -19,35 +19,40 @@ subroutine track_a_converter (orbit, ele, param, mat6, make_matrix)
 use bmad_interface, except_dummy => track_a_converter
 use random_mod
 use super_recipes_mod
+use spline_mod
 
 implicit none
 
-! This common struct is needed to get around ifort bug where debug info (when a program is compiled with debug) is 
-! not generated for variables that are used in both the main and a contained routine.
-type outgoing_particle_struct
+integer, parameter :: n_pt = 100
+
+type converter_param_storage_struct
   real(rp) pc_out, r
   real(rp) dx_ds, dy_ds
   logical :: lost = .false.
-end type
-
-type this_common_struct
   type (ele_struct), pointer :: ele
-  real(rp) pc_out, r
+  real(rp), pointer :: dxy_ds_max
+  real(rp), pointer :: dxy_ds_limit
   real(rp) pc_out_min, pc_out_max
-  real(rp) dxy_ds_max
-  real(rp) A_dir
-  real(rp) beta, alpha_x, alpha_y, c_x
+  real(rp) beta, alpha_x, alpha_y, c_x, A_dir
 end type
 
-type (this_common_struct) com
-type (outgoing_particle_struct) out1, out2
+type converter_common_struct
+  type (converter_param_storage_struct) out
+  type (spline_struct) dx_ds_spline(0:n_pt)
+  type (converter_prob_pc_r_struct), pointer :: ppcr
+  real(rp) dx_ds_integ(0:n_pt)
+  integer ipc
+end type
+
+type (converter_common_struct), target :: com
+type (converter_param_storage_struct) out1, out2
 type (coord_struct) :: orbit, orb0
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 type (converter_struct), pointer :: conv
 
 real(rp), optional :: mat6(6,6)
-real(rp) r_ran(3), pc_in, thickness, drd, drd2, azimuth_angle
+real(rp) r_ran(5), pc_in, thickness, drd, drd2, azimuth_angle
 
 integer i, nd, ix
 
@@ -67,10 +72,6 @@ if (nd == 0) then
   return
 endif
 
-if (.not. allocated(ele%converter%dist(1)%sub_dist(1)%prob_pc_r%p_norm)) call probability_tables_setup(ele, err_flag)
-
-call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
-
 if (ele%value(l$) == 0) then
   if (size(conv%dist) > 1) then
     call out_io (s_error$, r_name, 'CONVERTER ELEMENT HAS MULTIPLE DISTRIBUTIONS WITH MULTIPLE THICKNESSES BUT', &
@@ -81,7 +82,11 @@ if (ele%value(l$) == 0) then
   endif
 endif
 
+call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+
 ! Find dists that straddle thickness
+
+if (.not. allocated(ele%converter%dist(1)%sub_dist(1)%prob_pc_r%p_norm)) call probability_tables_setup(ele, err_flag)
 
 pc_in = orbit%p0c * (1 + orbit%vec(6))
 call ran_uniform(r_ran)
@@ -113,10 +118,10 @@ endif
 if (thickness_interpolate) then
   out1%lost = (out1%lost .or. out2%lost)
   drd2 = 1 - drd
-  out1%pc_out = drd * out1%pc_out + drd2 * out2%pc_out
-  out1%r      = drd * out1%r      + drd2 * out2%r
-  out1%dx_ds  = drd * out1%dx_ds  + drd2 * out2%dx_ds
-  out1%dy_ds  = drd * out1%dy_ds  + drd2 * out2%dy_ds
+  out1%pc_out = drd2 * out1%pc_out + drd * out2%pc_out
+  out1%r      = drd2 * out1%r      + drd * out2%r
+  out1%dx_ds  = drd2 * out1%dx_ds  + drd * out2%dx_ds
+  out1%dy_ds  = drd2 * out1%dy_ds  + drd * out2%dy_ds
 endif
 
 if (out1%lost) then
@@ -124,7 +129,7 @@ if (out1%lost) then
   return
 endif
 
-azimuth_angle = twopi * r_ran(3)
+azimuth_angle = twopi * r_ran(5)
 
 orb0 = orbit
 orbit%species = conv%species_out
@@ -149,7 +154,7 @@ subroutine calc_out_coords(ele, dist, pc_in, r_ran, out)
 
 type (ele_struct) ele
 type (converter_distribution_struct) dist
-type (outgoing_particle_struct) out, out1, out2
+type (converter_param_storage_struct) out, out1, out2
 
 real(rp) pc_in, r_ran(:), rsd, rsd2
 integer nsd, ix_sd
@@ -169,10 +174,10 @@ call calc_out_coords2 (ele, dist%sub_dist(ix_sd), r_ran, out1)
 call calc_out_coords2 (ele, dist%sub_dist(ix_sd+1), r_ran, out2)
 
 rsd2 = 1 - rsd
-out%pc_out = rsd * out1%pc_out + rsd2 * out2%pc_out
-out%r     = rsd * out1%r     + rsd2 * out2%r
-out%dx_ds = rsd * out1%dx_ds + rsd2 * out2%dx_ds
-out%dy_ds = rsd * out1%dy_ds + rsd2 * out2%dy_ds
+out%pc_out = rsd2 * out1%pc_out + rsd * out2%pc_out
+out%r      = rsd2 * out1%r      + rsd * out2%r
+out%dx_ds  = rsd2 * out1%dx_ds  + rsd * out2%dx_ds
+out%dy_ds  = rsd2 * out1%dy_ds  + rsd * out2%dy_ds
 
 end subroutine calc_out_coords
 
@@ -185,20 +190,150 @@ subroutine calc_out_coords2(ele, sub_dist, r_ran, out)
 
 type (ele_struct) ele
 type (converter_sub_distribution_struct), target :: sub_dist
-type (outgoing_particle_struct) out
+type (converter_param_storage_struct) out
 type (converter_prob_pc_r_struct), pointer :: ppcr
 
-real(rp) r_ran(:), dr
-integer ix
+real(rp) r_ran(:), dpc, dpc2, dr, rx, delta, dx
+integer ix, ix_pc, ix_r, n, status
+
 logical err_flag
+
+! Calc pc_out
+
+ppcr => sub_dist%prob_pc_r
+ix_pc = bracket_index(r_ran(1), ppcr%integ_pc_out, 1, dpc)
+if (ppcr%pc_out(ix_pc) < ppcr%pc_out_min) then
+  delta = (ppcr%pc_out(ix_pc+1) - ppcr%pc_out_min) / (ppcr%pc_out(ix_pc+1) - ppcr%pc_out(ix_pc))
+  dpc2 = (dpc - delta) / (1 - delta)
+  out%pc_out = (1-dpc2) * ppcr%pc_out_min + dpc2 * ppcr%pc_out(ix_pc+1)
+elseif (ppcr%pc_out(ix_pc+1) > ppcr%pc_out_max) then
+  dpc = dpc2 / (1 - delta)
+  out%pc_out = (1-dpc2) * ppcr%pc_out(ix_pc) + dpc2 * ppcr%pc_out_max
+else
+  out%pc_out = (1-dpc) * ppcr%pc_out(ix_pc) + dpc * ppcr%pc_out(ix_pc+1)
+endif
+
+! Calc r
+
+ppcr%integ_r_ave = (1-dpc) * ppcr%integ_r(ix_pc,:) + dpc * ppcr%integ_r(ix_pc+1,:)
+ix_r = bracket_index(r_ran(2), ppcr%integ_r_ave(:), 1, dr)
+out%r = (1-dr) * ppcr%r(ix_r) + dr * ppcr%r(ix_r+1)
+
+! dx/ds calc
+
+rx = super_zbrent(dx_ds_func, 0.0_rp, real(n_pt, rp), 0.0_rp, 1e-4_rp, status)
+dx = 2 * out%dxy_ds_limit / n_pt
+out%dx_ds = -out%dxy_ds_limit + rx * dx
+
+! Now calc dy/ds
+
+out%dy_ds = sqrt((1 + out%alpha_x * (out%dx_ds - out%c_x)**2) / out%alpha_y) * tan(pi * (r_ran(4) - 0.5_rp))
+
+end subroutine calc_out_coords2
+
+!------------------------------------------------
+! contains
+
+subroutine calc_dir_out_params (sub_dist, out)
+
+type (converter_sub_distribution_struct), target :: sub_dist
+type (converter_param_storage_struct) out
+type (converter_beta_struct), pointer :: beta
+type (converter_alpha_struct), pointer :: alpha
+type (converter_c_x_struct), pointer :: c_x
+type (spline_struct), pointer :: spn(:)
+
+real(rp) dr, dx, x_min, x, rad, a_tan, b1
+real(rp), pointer :: integ(:)
+
+integer i, n, ix
+
+! beta calc
+
+beta => sub_dist%dir_out%beta
+n = size(beta%fit_1d_r)
+if (out%pc_out >= beta%fit_1d_r(n)%pc_out) then
+  out%beta = poly_eval(beta%poly_pc, out%pc_out) * poly_eval(beta%poly_r, out%r)
+else
+  ix = bracket_index(out%pc_out, beta%fit_1d_r%pc_out, 1, dr)
+  out%beta = (1 - dr) * poly_eval(beta%fit_1d_r(ix)%poly, out%pc_out) + &
+                   dr * poly_eval(beta%fit_1d_r(ix+1)%poly, out%pc_out) 
+endif
+
+! c_x calc
+
+c_x => sub_dist%dir_out%c_x
+out%c_x = poly_eval(c_x%poly_pc, out%pc_out) * poly_eval(c_x%poly_r, out%r)
+
+! Alpha_x calc
+
+alpha => sub_dist%dir_out%alpha_x
+n = size(alpha%fit_1d_r)
+if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
+  out%alpha_x = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
+                exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
+else
+  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
+  out%alpha_x = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
+                   dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
+endif
+
+! Alpha_y calc
+
+alpha => sub_dist%dir_out%alpha_y
+n = size(alpha%fit_1d_r)
+if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
+  out%alpha_x = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
+                exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
+else
+  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
+  out%alpha_x = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
+                   dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
+endif
+
+! For dx/ds use a spine fit.
+
+spn => com%dx_ds_spline
+integ => com%dx_ds_integ
+integ(0) = 0
+dx = 2 * out%dxy_ds_limit / n_pt
+x_min = -out%dxy_ds_limit
+
+do i = 0, n_pt
+  x = x_min + i * dx
+  rad = 1.0_rp / sqrt(out%alpha_y * (1 + out%alpha_x * (x - out%c_x)**2))
+  a_tan = atan(out%alpha_y * rad * out%dxy_ds_limit)
+  b1 = 1 + out%beta * x
+
+  spn(i)%x0 = x
+  spn(i)%y0 = b1 * rad * a_tan
+  spn(i)%coef(1) = out%beta * rad * a_tan - b1 * a_tan * out%alpha_x * out%alpha_y * (x - out%c_x)
+
+  if (i > 0) then
+    spn(i-1) = create_a_spline([spn(i-1)%x0, spn(i-1)%y0], [spn(i)%x0, spn(i)%y0], spn(i-1)%coef(1), spn(i)%coef(1))
+    integ(i) = integ(i-1) + spline1(spn(i-1), dx, -1)
+  endif
+enddo
+
+out%A_dir = 1 / integ(n_pt)
+
+end subroutine calc_dir_out_params
+
+!------------------------------------------------
+! contains
+
+function dx_ds_func (x, status) result (value)
+
+real(rp), intent(in) :: x
+real(rp) value
+integer status, ix
 
 !
 
-ppcr => sub_dist%prob_pc_r
-ix = bracket_index(r_ran(1), ppcr%integ_pc_out, 1, dr)
+ix = int(x)
+value = com%dx_ds_integ(ix) + spline1(com%dx_ds_spline(ix), x, -1)
 
-
-end subroutine calc_out_coords2
+end function dx_ds_func
 
 !------------------------------------------------
 ! contains
@@ -209,12 +344,14 @@ type (ele_struct), target :: ele
 type (converter_struct), pointer :: conv
 type (converter_distribution_struct) d_temp
 type (converter_distribution_struct), pointer :: dist
+type (converter_sub_distribution_struct), pointer :: sub_dist
 type (converter_direction_out_struct), pointer :: dir_out
 type (converter_prob_pc_r_struct), pointer :: ppcr
+type (converter_param_storage_struct) out
 
-real(rp) dxy_ds_max, angle_max, prob
-real(rp) pc_out, r, A_dir
-integer id, isd, ie, ir, ne, nr
+real(rp) prob
+real(rp) pc_out, r, A_dir, dxy_ds_limit
+integer id, isd, ipc, ir, npc, nr
 logical err_flag, ordered
 
 ! Order distributions in thickness
@@ -238,60 +375,64 @@ enddo
 
 do id = 1, size(conv%dist)
   dist =>conv%dist(id)
-  dxy_ds_max = dist%dxy_ds_max
-  if (ele%value(angle_out_max$) /= 0) angle_max = min(ele%value(angle_out_max$), angle_max)
+  dxy_ds_limit = dist%dxy_ds_max
+  if (ele%value(angle_out_max$) /= 0) dxy_ds_limit = min(atan(ele%value(angle_out_max$)), dxy_ds_limit)
   do isd = 1, size(dist%sub_dist)
-    dir_out => dist%sub_dist(isd)%dir_out
+    sub_dist => dist%sub_dist(isd)
+    dir_out => sub_dist%dir_out
 
-    ppcr => dist%sub_dist(isd)%prob_pc_r
-    ne = size(ppcr%pc_out)
+    com%ppcr => sub_dist%prob_pc_r
+    ppcr => sub_dist%prob_pc_r
+    npc = size(ppcr%pc_out)
     nr = size(ppcr%r)
 
     if (.not. allocated(ppcr%p_norm)) then
-      allocate (ppcr%p_norm(ne,nr))
+      allocate (ppcr%p_norm(npc,nr), ppcr%integ_pc_out(npc), ppcr%integ_r(npc,nr), ppcr%integ_r_ave(nr))
     endif
 
-    ppcr%pc_out_max = ppcr%pc_out(ne)
+    ppcr%pc_out_max = ppcr%pc_out(npc)
     if (ele%value(pc_out_max$) /= 0) ppcr%pc_out_max = min(ppcr%pc_out_max, ele%value(pc_out_max$))
     ppcr%pc_out_min = max(ppcr%pc_out(1), ele%value(pc_out_min$))
-    ppcr%dxy_ds_max = min(dist%dxy_ds_max, atan(ele%value(angle_out_max$)))
     if (ppcr%pc_out_max <= ppcr%pc_out_min) then
       call out_io(s_fatal$, r_name, 'PC_OUT_MAX IS LESS THAN OR EQUAL TO PC_OUT_MIN. FOR ELEMENT: ' // ele%name, &
                                     'PARTICLE WILL BE MARKED AS LOST.')
       err_flag = .true.
     endif
 
-    do ie = 1, ne
-      pc_out = ppcr%pc_out(ie)
+    do ipc = 1, npc
+      pc_out = ppcr%pc_out(ipc)
       do ir = 1, nr
         r = ppcr%r(ir)
-        !!! com = calc_angle_coefs(ele, pc_out, r, 1.0_rp)
-        !!! prob = super_qromb(p1_angle, -dxy_ds_max, dxy_ds_max, 1e-5_rp, 0.0_rp, 5, err_flag)
-        A_dir = 1 / prob   ! A_dir is not normalized by angle_max.
-        !!! com = this_common_struct(ele, pc_out, r, A_dir)
-        !!! prob = super_qromb(p1_angle_func, -com%dxy_ds_max, com%dxy_ds_max, 1e-5_rp, 0.0_rp, 5, err_flag)
-        ppcr%p_norm(ie,ir) = ppcr%prob(ie,ir) * prob  ! p_norm is now normalized by angle_max
+        out%pc_out = pc_out
+        out%r = r
+        out%dxy_ds_limit = dist%dxy_ds_max
+        call calc_dir_out_params (sub_dist, out)
+        A_dir = out%A_dir   ! A_dir is not normalized by angle_max.
+        out%dxy_ds_limit = dist%dxy_ds_limit
+        call calc_dir_out_params (sub_dist, out)
+        ppcr%p_norm(ipc,ir) = ppcr%prob(ipc,ir) * out%A_dir / A_dir  ! p_norm is normalized by angle_max
       enddo
     enddo
 
     ppcr%integ_pc_out(1) = 0
-    do ie = 2, ne
-      !!! ppcr%integ_pc_out(ie) = ppcr%integ_pc_out(ie-1) + super_qromb_2D(p2_norm_func, ppcr%pc_out(ie-1), ppcr%pc_out(ie), &
-      !!!                                                               0.0_rp, ppcr%r_out(nr), 1e-4, 0.0_rp, 2, err_flag)
+    do ipc = 2, npc
+      ppcr%integ_pc_out(ipc) = ppcr%integ_pc_out(ipc-1) + super_qromb_2D(p2_norm_func, ppcr%pc_out(ipc-1), ppcr%pc_out(ipc), &
+                                                                               0.0_rp, ppcr%r(nr), 1e-4_rp, 0.0_rp, 2, err_flag)
     enddo
-    ppcr%integ_pc_out = ppcr%integ_pc_out(ne)
+    ppcr%integ_pc_out = ppcr%integ_pc_out(npc)
     ppcr%integ_pc_out = ppcr%integ_pc_out / ppcr%integrated_prob
 
     ppcr%integ_r(:,1) = 0
     do ir = 2, nr
-      do ie = 1, ne
-        !!! ppcr%integ_r(ie,ir) = ppcr%integ_r(ie,ir-1) + super_qromb(p1_norm_func, ppcr%r(ir-1), ppcr%r(ir), &
-        !!!                                                                             1e-4, 0.0_rp, 2, err_flag)
+      do ipc = 1, npc
+        com%ipc = ipc
+        ppcr%integ_r(ipc,ir) = ppcr%integ_r(ipc,ir-1) + super_qromb(p1_norm_func, ppcr%r(ir-1), ppcr%r(ir), &
+                                                                                       1e-4_rp, 0.0_rp, 2, err_flag)
       enddo
     enddo
 
-    do ie = 1, ne
-      ppcr%integ_r(ie,:) = ppcr%integ_r(ie,:) / ppcr%integ_r(ie,nr)
+    do ipc = 1, npc
+      ppcr%integ_r(ipc,:) = ppcr%integ_r(ipc,:) / ppcr%integ_r(ipc,nr)
     enddo
 
   enddo
@@ -302,13 +443,53 @@ end subroutine probability_tables_setup
 !------------------------------------------------
 ! contains
 
-subroutine p1_angle (x, value)
+function p2_norm_func (x,y) result (value)
 
-real(rp),intent(in) :: x(:)
-real(rp) value(:)
+real(rp) x, y, value
+real(rp) dx, dy
+integer ix, iy, ix2, iy2, nx, ny
 
-value = 1
+!
 
-end subroutine p1_angle
+nx = size(com%ppcr%pc_out)
+ny = size(com%ppcr%r)
+ix = bracket_index(x, com%ppcr%pc_out, 1, dx)
+iy = bracket_index(y, com%ppcr%r, 1, dy)
+ix2 = min(ix+1, nx)
+iy2 = min(iy+1, ny)
 
-end subroutine
+if (x < com%ppcr%pc_out_min .or. x > com%ppcr%pc_out_max .or. y > com%out%dxy_ds_limit) then
+  value = 0
+  return
+endif
+
+value = (1-dx)*(1-dy)*com%ppcr%p_norm(ix,iy) + dx*(1-dy)*com%ppcr%p_norm(ix2,iy) + &
+        (1-dx)*dy*com%ppcr%p_norm(ix,iy2) + dx*dy*com%ppcr%p_norm(ix2,iy2) 
+
+end function p2_norm_func
+
+!------------------------------------------------
+! contains
+
+function p1_norm_func (r) result (value)
+
+real(rp), intent(in) :: r(:)
+real(rp) :: value(size(r)), dr
+integer i, ix, ix2
+
+!
+
+do i = 1, size(r)
+  if (r(i) > com%out%dxy_ds_limit) then
+    value(i) = 0
+    cycle
+  endif
+  ix = bracket_index(r(i), com%ppcr%r, 1, dr)
+  ix2 = min(ix+1, size(com%ppcr%r))
+  value(i) = (1-dr)*com%ppcr%p_norm(com%ipc, ix) + dr*com%ppcr%p_norm(com%ipc, ix2)
+enddo
+
+
+end function p1_norm_func
+
+end subroutine track_a_converter
