@@ -568,9 +568,9 @@ if (ix_convert == 1) then
       c_dir => c_dist%sub_dist(j)%dir_out
       read (d_unit, err = 9120) n1, n2, n3
       allocate (c_dir%beta%fit_1D_r(n1), c_dir%alpha_x%fit_1D_r(n2), c_dir%alpha_y%fit_1D_r(n3))
-      read (d_unit, err = 9120) c_dir%beta%fit_1d_r, c_dir%beta%A, c_dir%beta%k_pc, c_dir%c_x
-      read (d_unit, err = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_1d_pc
-      read (d_unit, err = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_1d_pc
+      read (d_unit, err = 9120) c_dir%beta%fit_1d_r, c_dir%beta%poly_pc, c_dir%c_x
+      read (d_unit, err = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_2d_pc, c_dir%alpha_x%fit_2d_r
+      read (d_unit, err = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_2d_pc, c_dir%alpha_y%fit_2d_r
     enddo
   enddo
 endif

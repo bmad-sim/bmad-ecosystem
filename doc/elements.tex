@@ -256,16 +256,16 @@ See \sref{s:list.beambeam} for a full list of element attributes.
 \index{beta_a}\index{beta_b}\index{alpha_a}\index{alpha_b}
 Attributes specific to a \vn{beambeam} element are:
 \begin{example}
-  sig_x   = <Real>     ! Horizontal strong beam sigma at the center 
-  sig_y   = <Real>     ! Vertical strong beam sigma at the center
-  sig_z   = <Real>     ! Strong beam length
-  charge  = <Real>     ! Strong beam charge. Default = -1
-  n_slice = <Integer>  ! Number of strong beam slices
-  beta_a  = <Real>     ! $a$-mode beta Twiss parameter
-  alpha_a = <Real>     ! $a$-mode alpha Twiss parameter 
-  beta_b  = <Real>     ! $b$-mode beta Twiss parameter
-  alpha_b = <Real>     ! $b$-mode alpha Twiss parameter 
-  bbi_constant         ! See below. Dependent attribute (\sref{s:depend}).
+  sig_x   = <Real>        ! Horizontal strong beam sigma at the center 
+  sig_y   = <Real>        ! Vertical strong beam sigma at the center
+  sig_z   = <Real>        ! Strong beam length
+  charge  = <Real>        ! Strong beam charge. Default = -1
+  n_slice = <Integer>     ! Number of strong beam slices
+  beta_a_strong  = <Real> ! Strong beam $a$-mode beta Twiss parameter
+  alpha_a_strong = <Real> ! Strong beam $a$-mode alpha Twiss parameter 
+  beta_b_strong  = <Real> ! Strong beam $b$-mode beta Twiss parameter
+  alpha_b_strong = <Real> ! Strong beam $b$-mode alpha Twiss parameter 
+  bbi_constant            ! See below. Dependent attribute (\sref{s:depend}).
 \end{example}
 
 \index{n_part!in BeamBeam element}
@@ -307,14 +307,14 @@ starting point and ending points are at the \vn{beambeam} element. For example, 
 \end{example}
 
 \index{sig_x}\index{sig_y}
-\index{beta_a}\index{beta_b}\index{alpha_a}\index{alpha_b}
+\index{beta_a_strong}\index{beta_b_strong}\index{alpha_a_strong}\index{alpha_b_strong}
 \vn{sig_x}, \vn{sig_y} are the transverse sigmas of the strong beam at $s_0$ which is the
 $s$-position where the \vn{beambeam} element is located.  For calculating the sigmas of any given
 slice, \vn{sig_x} and \vn{sig_y} are extrapolated using the Twiss parameters at $s_0$. The Twiss
-parameters at $s_0$ are set by \vn{beta_a}, \vn{beta_b}, \vn{alpha_a}, and \vn{alpha_b}.  If
-\vn{beta_a} is zero (the default), the $a$-mode Twiss parameters as calculated from the lattice is
-used. Similarly, if \vn{beta_b} is zero (the default), the $b$-mode Twiss parameters as calculated
-from the lattice is used.
+parameters at $s_0$ are set by \vn{beta_a_strong}, \vn{beta_b_strong}, \vn{alpha_a_strong}, and
+\vn{alpha_b_strong}.  If \vn{beta_a_strong} is zero (the default), the $a$-mode Twiss parameters as
+calculated from the lattice is used. Similarly, if \vn{beta_b_strong} is zero (the default), the
+$b$-mode Twiss parameters as calculated from the lattice is used.
 
 The \vn{bbi_constant} is a measure of the beam--beam interaction strength.  It is a dependent
 variable and is calculated from the equation
@@ -993,27 +993,27 @@ General \vn{custom} attributes are:
 The attributes specific to an \vn{converter} are 
 \begin{example}
   distribution    = <Struct>    ! Outgoing particle distribution.
-  E_out_min       = <Real>      ! Minimum outgoing particle energy.
-  E_out_max       = <Real>      ! Maximum outgoing particle energy.
+  pc_out_min      = <Real>      ! Minimum outgoing particle momentum (eV).
+  pc_out_max      = <Real>      ! Maximum outgoing particle momentum (eV).
   angle_out_max   = <Real>      ! Maximum outgoing angle.
   species_out     = <SpeciesID> ! Output species.
-  E_tot           = <Real>      ! Output reference energy.
-  P0c             = <Real>      ! Output reference momentum
-  beta_a          = <Real>      ! Output a-mode beta.
-  beta_b          = <Real>      ! Output b-mode beta.
-  alpha_a         = <Real>      ! Output a-mode alpha.
-  alpha_b         = <Real>      ! Output b-mode alpha
-  eta_x           = <Real>      ! Output horizontal dispersion.
-  eta_y           = <Real>      ! Output vertical dispersion
-  etap_x          = <Real>      ! Output horizontal dispersion derivative.
-  etap_y          = <Real>      ! Output vertical dispersion derivative.
+  E_tot           = <Real>      ! Output reference energy (eV).
+  P0c             = <Real>      ! Output reference momentum (eV).
+  beta_a_out      = <Real>      ! Output a-mode beta.
+  beta_b_out      = <Real>      ! Output b-mode beta.
+  alpha_a_out     = <Real>      ! Output a-mode alpha.
+  alpha_b_out     = <Real>      ! Output b-mode alpha
+  eta_x_out       = <Real>      ! Output horizontal dispersion.
+  eta_y_out       = <Real>      ! Output vertical dispersion
+  etap_x_out      = <Real>      ! Output horizontal dispersion derivative.
+  etap_y_out      = <Real>      ! Output vertical dispersion derivative.
 \end{example}
 
 The species of the outgoing particles is specified by the \vn{species_out} parameter
 (\sref{s:species.name}).
 
-The reference energy (\sref{s:ref.energy}) can be set by setting the reference total energy, \vn{E_tot}
-or the reference momentum \vn{p0c$). One of these must be set but not both.
+The reference energy \sref{s:ref.energy}) can be set by setting the reference total energy, \vn{E_tot}
+or the reference momentum \vn{p0c}. One of these must be set but not both.
 
 A converter element must be the first element in a lattice branch (\sref{s:branch.def}) excepting
 possible \vn{marker} elements. A \vn{fork} (\sref{s:fork}) element may be used to connect the
@@ -1062,14 +1062,15 @@ directory
 running the program in this directory.
 
 When tracking, for every particle impinging on a target, one outgoing particle will be generated.
-All outgoing particles will be assigned a ``\vn{weight}'' that represent how many outgoing particles
+All outgoing particles will be assigned a \vn{weight} that represent how many outgoing particles
 a single incoming particle will generate. For example, if an incoming particle with a particular
-energy would generagte 0.42 particles on average, the outgoing particle will have a weight of 0.42.
+momentum would generagte 0.42 particles on average, the outgoing particle will have a weight of 0.42.
 
-To make simulations more efficient, the \vn{E_out_min}, \vn{E_out_max}, and \vn{angle_out_max}
-parameters can be set to restrict the energy and angle range of outgoing particles. If the outgoing
-particles are restricted in energy or angle, the weight of the outgoing particles will be
-approriately adjusted such that the weighted distribution of outgoing particles within the energy
+In a tracking simulation, a single outgoing particle is generated for each incoming particle.
+To make simulations more efficient, the \vn{pc_out_min}, \vn{pc_out_max}, and \vn{angle_out_max}
+parameters can be set to restrict the momentum and angle range of outgoing particles. If the outgoing
+particles are restricted in momentum or angle, the weight of the outgoing particles will be
+approriately adjusted such that the weighted distribution of outgoing particles within the momentum
 and/or angle restricted range is independent of the whether or not there is are restrictions.
 A value of zero (the default) for any one of these parameters means that that parameter is not used.
 

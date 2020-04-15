@@ -795,10 +795,10 @@ call init_attribute_name1 (beambeam$, n_slice$,                     'N_SLICE')
 call init_attribute_name1 (beambeam$, symplectify$,                 'N_SLICE')
 call init_attribute_name1 (beambeam$, field_calc$,                  'FIELD_CALC')
 call init_attribute_name1 (beambeam$, E_tot_start$,                 'E_tot_start', private$)
-call init_attribute_name1 (beambeam$, beta_a$,                      'BETA_A')
-call init_attribute_name1 (beambeam$, beta_b$,                      'BETA_B')
-call init_attribute_name1 (beambeam$, alpha_a$,                     'ALPHA_A')
-call init_attribute_name1 (beambeam$, alpha_b$,                     'ALPHA_B')
+call init_attribute_name1 (beambeam$, beta_a_strong$,               'BETA_A_STRONG')
+call init_attribute_name1 (beambeam$, beta_b_strong$,               'BETA_B_STRONG')
+call init_attribute_name1 (beambeam$, alpha_a_strong$,              'ALPHA_A_STRONG')
+call init_attribute_name1 (beambeam$, alpha_b_strong$,              'ALPHA_B_STRONG')
 call init_attribute_name1 (beambeam$, cmat_11$,                     'CMAT_11')
 call init_attribute_name1 (beambeam$, cmat_12$,                     'CMAT_12')
 call init_attribute_name1 (beambeam$, cmat_21$,                     'CMAT_21')
@@ -855,14 +855,14 @@ call init_attribute_name1 (converter$, pc_out_min$,                 'PC_OUT_MIN'
 call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX')
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
-call init_attribute_name1 (converter$, beta_a$,                     'BETA_A')
-call init_attribute_name1 (converter$, beta_b$,                     'BETA_B')
-call init_attribute_name1 (converter$, alpha_a$,                    'ALPHA_A')
-call init_attribute_name1 (converter$, alpha_b$,                    'ALPHA_B')
-call init_attribute_name1 (converter$, eta_x$,                      'ETA_X')
-call init_attribute_name1 (converter$, eta_y$,                      'ETA_Y')
-call init_attribute_name1 (converter$, etap_x$,                     'ETAP_X')
-call init_attribute_name1 (converter$, etap_y$,                     'ETAP_Y')
+call init_attribute_name1 (converter$, beta_a_out$,                 'BETA_A_OUT')
+call init_attribute_name1 (converter$, beta_b_out$,                 'BETA_B_OUT')
+call init_attribute_name1 (converter$, alpha_a_out$,                'ALPHA_A_OUT')
+call init_attribute_name1 (converter$, alpha_b_out$,                'ALPHA_B_OUT')
+call init_attribute_name1 (converter$, eta_x_out$,                  'ETA_X_OUT')
+call init_attribute_name1 (converter$, eta_y_out$,                  'ETA_Y_OUT')
+call init_attribute_name1 (converter$, etap_x_out$,                 'ETAP_X_OUT')
+call init_attribute_name1 (converter$, etap_y_out$,                 'ETAP_Y_OUT')
 call init_attribute_name1 (converter$, e_tot_start$,                'e_tot_start', private$)
 call init_attribute_name1 (converter$, p0c_start$,                  'p0c_start', private$)
 
@@ -1848,9 +1848,10 @@ character(16) attrib_units
 select case (attrib_name)
 
 case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', 'ALPHA_B1', &
-      'BETA_A', 'BETA_A0', 'BETA_A1', 'BETA_B', 'BETA_B0', 'BETA_B1', 'BBI_CONSTANT', 'B_PARAM', &
+      'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', &
       'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
       'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
+      'ETAP_X_OUT', 'ETAP_Y_OUT', &
       'FIELD_AUTOSCALE', 'FIELD_SCALE_FACTOR', 'FIELD_X', 'FIELD_Y', 'FINT', 'FINTX', 'GAP', 'HARMON', 'HKICK', &
       'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_PERIOD', 'N_SAMPLE', 'N_SLICE_SPLINE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
@@ -1862,8 +1863,10 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
   attrib_units = ''
 
 case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
+      'BETA_A', 'BETA_A0', 'BETA_A1', 'BETA_B', 'BETA_B0', 'BETA_B1', 'BETA_A_STRONG', 'BETA_B_STRONG', &
       'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', 'OSC_AMPLITUDE', 'R_SOLENOID', &
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
+      'ETA_X_OUT', 'ETA_Y_OUT', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
       'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
       'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_HARD_EDGE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &

@@ -409,6 +409,174 @@ and
   m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
 \end{alignat}
 
+%-------------------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{converter.pdf}
+  \caption[Converter geometry.]
+  {
+An incoming particle strickes the bottom of the converter. At some point within the interior, a new
+particle is generated and this new particle exits the top surface. To calculate the position and
+orientation of the outgoing particle, a coordinate system is established where the origin point
+$\calO'$ is the point that the incoming particle would strike the top surface if it went straight
+through and the $(\xw,\yw)$ axes are randomly rotated with respect to the $(x,y)$ body coordinate axes.
+By construction, the position of the outgoing particle will be along the $\xw$-axis.
+  }
+  \label{f:converter}.
+\end{figure}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Converter Tracking}
+\label{s:converter.std}
+\index{converter} 
+
+Tracking through a \vn{converter} element involves generating five random numbers
+  \footnote{
+Since the outgoing particle starts at the exit surface of the converter only five numbers
+are needed to generate the 6-dimensional particle phase space position.
+  }
+and then using these numbers with the outgoing particle distribution to generate the position and
+orientation of the outgoing particle. The outgoing particle distribution is precomputed by a program
+\vn{converter_element_modeling} and the distribution parameters are included in the converter element
+description in the \bmad lattice file (\sref{s:converter}). 
+
+In a tracking simulation, a single outgoing particle is generated for each incoming particle. Since,
+in a real machine, the number of outgoing particles will not be equal to the number of incoming
+particles, each outgoing particle is assigned a weight such that the weighted distribution of
+outgoing particles is correct. This weight will be the same for all outgoing particles. The weight will
+depend upon whether the momentum or angular range of the outgoing particles is restricted using the
+following element parameters (\sref{s:converter}):
+\begin{example}
+  pc_out_min
+  pc_out_max
+  angle_out_max
+\end{example}
+
+The geometry of the converter is shown in \fig{f:converter}. On the top surface, where the outgoing
+particle emerges, $(x,y)$ are the axes for the element body coordinate system (\sref{s:coords.3}).
+To generate the position and orientation of the outgoing particle, another coordinate system is used
+with axes labeled by $(\xw,\yw)$. Each outgoing particle will be assigned its own $(\xw,\yw)$ axes. The
+origin $\calO'$ of this coordinate system is constructed by placing $\calO'$ at the point where the
+incoming particle under consideration would strike the top surface if the incoming particle would
+pass straight through the converter. The angular orientation of the $(\xw,\yw)$ axes with respect to
+the $(x,y)$ axes is chosen by setting the orientation angle using a random number with a uniform
+probability in the interval $[0, \pi]$. By construction, the outgoing particle, at the surface of
+the converter will be generated at a point along the $\xw$-axis.
+
+The particle distribution is calculated at a number of converter thickness $t_i$, $i = 1 \ldots
+N_t$. If the actual converter thickness is outside the range of these thicknesses, this is an
+error. The particle distribution is also calculated within a certain incoming particle momentum
+range. If an incoming particle has a momentum outside of this range, this is an error.
+
+The first step is to choose the value of the momentum $p_\txt{out}$. For each thickness $t_i$, the
+precomputed particle distribution parameters includes a two-dimensional table of $P(p_\txt{out}, r)$ ---
+the probability density of creating an outgoing particle versus $p_\txt{out}$ and $r$ where $r$ is the
+distance from the origin $\calO'$ to where the outgoing particle leaves the surface. $P(p_\txt{out},r)$
+is normalized so that the integrated problability is equal to the average number of outgoing particles
+created for each incoming particle $N_\txt{out}/N_{in}$
+\begin{equation}
+  \frac{N_\txt{out}}{N_{in}} = \int \int dp_\txt{out} \, dr \, P(p_\txt{out}, r)
+\end{equation}
+If the momentum or angular range of the outgoing particles is restricted using any of the three
+element parameters as discussed above, new ``normalized'' probability $P_{norm}(p_\txt{out},r)$ tables
+are computed. to save time, this ``setup'' computation step is only done if one of the three element
+parameters changes. Additionally, the setup computation includes creating a table of $I(p_\txt{out})$
+which is the integrated probability for generating a particle with momentum less than $p_\txt{out}$
+\begin{equation}
+  I(p_\txt{out}) = \frac{\dstyle \int_{p_\txt{min}}^{p_\txt{out}} dp'_\txt{out} \int dr \, P_{norm}(p'_\txt{out}, r)}
+  {\dstyle \int_{p_\txt{min}}^{p_\txt{max}} dp'_\txt{out} \int dr \, P_{norm}(p'_\txt{out}, r)}
+\end{equation}
+where $p_\txt{min}$ is the minimum momentum in the $P(p_\txt{out}, r)$ table or the value of
+\vn{pc_out_min} which ever is greatest and $p_\txt{max}$ is the maximum momentum in the
+$P(p_\txt{out}, r)$ table or the value of \vn{pc_out_max} which ever is smallest. $I(p_\txt{out})$ is
+normalized such that $I(p_\txt{max}) = 1$. A value for $p_\txt{out}$ is generated using the
+$I(p_\txt{out})$ tables for the two $t_i$ thicknesses that straddle the actual thickness. The value of
+$p_\txt{out}$ assigned to the outgoing particle is obtained via linear interpolation between the two
+computed values at the two thicknesses. Note that for both thicknesses the same random number used
+in the computation.
+
+The next step is to choose a value for $r$... 
+
+Once $p_\txt{out}$ and $r$ have been choisen, The next steps are to choose values for the outgoing
+angular orientation. The angular orientation is characterized by the distribution parameters using
+the derivatives $\xw' = d\xw/ds$ and $\yw' = d\yw/ds$ in the form
+\begin{equation}
+  P_d\left( \xw', \yw' \right) =
+  A_d \, \frac{1 + \beta \, \xw'}{1 + \alpha_x \, \left( \xw' - c_x \right)^2 +
+  \alpha_y \, \left( \yw' \right)^2}
+  \label{pxsxs}
+\end{equation}
+where the parameters $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ all depend upon $p_\txt{out}$ and
+$r$. Notice that by the symmetry of the problem with the outgoing particle generated on the
+$\xw$-axis, the distribution is symmetric about $\yw' = 0$. The precomputed distribution
+characterizes each of these parameters by a set of one or more fit functions. 
+
+For $\beta(p_\txt{out},r)$, there is a set of one-dimensional fit functions $\beta_i(r)$ at momentum
+$p_i$, $i = 1, \ldots, N_\beta$ with
+\begin{equation}
+  \beta_i(r) = \sum_{n=0}^4 c_{n,i} \, r^n
+\end{equation}
+To evaluate $\beta(p_\txt{out},r)$ at momenta lower than $p_{N_\beta}$, the $\beta_i$ are used with
+linear interpolation between functions of different $p_i$. At higher energies, the fit function
+$\beta_h$ is used
+\begin{equation}
+  \beta_h(p_\txt{out},r) = \left( \sum_{n=0}^4 k_{n} \, r^n \right) \, 
+  \left( \sum_{n=0}^4 w_{n} \, p_\txt{out}^n \right)
+\end{equation}
+
+For $c_x(p_\txt{out},r)$ the fit function is
+\begin{equation}
+  c_x(p_\txt{out},r) = \left( \sum_{n=0}^3 a_{n} \, r^n \right) \, 
+  \left( \sum_{n=0}^3 b_{n} \, p_\txt{out}^n \right)
+\end{equation}
+
+For $\alpha_x(p_\txt{out},r)$ and $\alpha_y(p_\txt{out},r)$, like the $\beta$ fit, there is a set of
+one-dimensional fit functions $\alpha_i(r)$ (the $x$ and $y$ subscripts are being suppressed here)
+at momentum $p_i$, $i = 1, \ldots, N_\alpha$ with
+\begin{equation}
+  \alpha_i(r) = \left( \sum_{n=0}^3 d_{n,i} \, r^n \right) \, e^{-k \, r}
+\end{equation}
+To evaluate $\alpha(p_\txt{out},r)$ at momenta lower than $p_{N_\alpha}$, the $\alpha_i$ are used with
+linear interpolation between functions of different $p_i$.  At higher energies, the fit function
+$\alpha_h$ is used
+\begin{equation}
+  \alpha_h(p_\txt{out},r) = \frac{1}{p_\txt{out}} \, e^{-(k_p \, p_\txt{out} + k_r \, r)} \,
+  \left( \sum_{n=0}^3 k_{n,i} \, r^n \right) \, \left( \sum_{n=0}^3 w_{n,i} \, p_\txt{out}^n \right)
+\end{equation}
+
+Once $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ are calculated at a given $p_\txt{out}$ and $r$,
+$A_d$ can be calculated using the restriction that the integral of $P_d$ must be properly normalized
+to one
+\begin{equation}
+  1 = \int \int d\xw' \, d\yw' \,
+  P_d \left( \xw', \yw' \right)
+\end{equation}
+
+Once $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ have been calculated for a given $p_\txt{out}$ and
+$r$, The calculation of $\xw'$ starts with integrating $P_d$ in \Eq{pxsxs} over $\yw'$
+\begin{align} 
+  I_{xd} (\xw') &\equiv \int_{-\yw'_\txt{lim}}^{\yw'_\txt{lim}} d\yw' \, P_d(\xw', \yw')
+  \label{ixdyp} \\
+  &= 2 \, A_d \, \frac{1 + \beta \, \xw'}{\sqrt{ \alpha_y \, (1 + \alpha_x \, (\xw' - c_x)^2) }} \,
+  \tan^{-1} \left( \sqrt{ \frac{\alpha_y}{1 + \alpha_x \, (\xw' - c_x)^2} } \, \yw'_\txt{lim} \right)
+  \nonumber
+\end{align}
+where $\yw'_\txt{lim}$ is either the lesser of $\tan^{-1}(\text{angle_out_max})$ or the maximum
+value of $\yw'$ that the precomputed distribution parameters $\beta$, $c_x$, $\alpha_x$, and
+$\alpha_y$ were fit out to (typically something greater than 80$^\txt{o}$ from the perpendicular).
+A spline fit is used to integrate $I_{xd}$ and this is used to choose a value for $\xw'$. Once $xw'$
+is known, The integral of $P_d(\xw', \yw') over $\yw'$ is used to choose a value for $\yw'$.
+
+Except for the placement of $\calO'$, the above algorithm for calculating the position and
+orientation of the outgoing particle will be independent of the angular orientation of the incoming
+particle. This is valid for incoming particles that are traveling perpendicular to the converter
+surface. To the extent that the incoming particles are not perpendicular to the converter, this will
+introduce inaccuraces. Typically, however, the incoming particles will be fairly close to being
+perpendicular. Considering this, and considering the approximations used to calculate the
+distribution parameters, the neglect of incoming particle orientation effects is usually justified.
+
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{Drift Tracking}
@@ -422,10 +590,10 @@ This gives the map
   p_{x2} &= p_{x1}  \CRNO
   y_2    &= y_1 + \frac{L \, p_{y1}}{(1 + p_{z1}) \, p_l} \CRNO
   p_{y2} &= p_{y1}  \\
-  z_2    &= z_1 + \left( \frac{\beta}{\beta_{ref}} - \frac{1}{p_l} \right) \, L \CRNO
+  z_2    &= z_1 + \left( \frac{\beta}{\beta_\txt{ref}} - \frac{1}{p_l} \right) \, L \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
-where $\beta$ is the normalized particle velocity, $\beta_{ref}$ is 
+where $\beta$ is the normalized particle velocity, $\beta_\txt{ref}$ is 
 the reference particle's normalized velocity, and $p_l$ is the
 longitudinal momentum
 \begin{equation}
