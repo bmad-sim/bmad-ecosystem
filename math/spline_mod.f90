@@ -312,6 +312,7 @@ type (spline_struct), target :: a_spline
 real(rp) :: x, y
 real(rp) :: c(0:3)
 real(rp) dx       
+real(rp), parameter :: a1 = 0.5_rp, a2 = 1.0_rp / 3.0_rp, a3 = 0.25_rp
 
 integer, optional :: n
 
@@ -324,7 +325,7 @@ c = a_spline%coef
 
 select case (integer_option(0, n))
 case (-1)
-  y = ((((c(3)/4 * dx) + c(2)/3) * dx + c(1)/2) * dx + c(0)) * dx
+  y = ((((a3 * c(3) * dx) + a2 * c(2)) * dx + a1 * c(1)) * dx + c(0)) * dx
 
 case (0)
   y = (((c(3) * dx) + c(2)) * dx + c(1)) * dx + c(0)
