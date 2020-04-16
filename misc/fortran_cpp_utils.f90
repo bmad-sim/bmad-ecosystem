@@ -1274,7 +1274,7 @@ end module
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine set_string (string_in, n_in, string_out)
+! Subroutine set_fortran_string (string_in, n_in, string_out)
 !
 ! This routine is called by a C/C++ routine to set:
 !   string_out = string_in
@@ -1291,7 +1291,7 @@ end module
 !   string_out -- Character(n_out): Set equal to string_in.
 !-
 
-subroutine set_string (string_in, n_in, string_out, n_out)
+subroutine set_fortran_string (string_in, n_in, string_out, n_out)
 
 implicit none
 
@@ -1303,4 +1303,4 @@ character(n_out) string_out
 
 string_out = string_in
 
-end subroutine set_string
+end subroutine set_fortran_string

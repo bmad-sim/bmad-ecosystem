@@ -614,6 +614,12 @@ function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
   character(9) fmt_str
 end function
 
+subroutine set_str(str_out, str_in)
+  implicit none
+  character(:), allocatable :: str_out
+  character(*) str_in
+end subroutine
+
 function real_str(r_num, n_signif) result (str)
   import
   implicit none

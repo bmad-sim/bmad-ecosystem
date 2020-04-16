@@ -6,7 +6,7 @@ DIR *ptr_dir;
 struct dirent* dir_ent = NULL;
 
 
-extern "C" void set_string_(const char*, const int&, char*, const int&);
+extern "C" void set_fortran_string_(const char*, const int&, char*, const int&);
 
 extern "C" void close_dir_() {
   if (ptr_dir) closedir(ptr_dir);
@@ -28,7 +28,7 @@ extern "C" void read_dir_(char* file, const int& n_len, int& valid) {
   }
 
   int str_len = strlen(dir_ent->d_name);
-  set_string_(dir_ent->d_name, str_len, file, n_len);
+  set_fortran_string_(dir_ent->d_name, str_len, file, n_len);
   valid = true;
   return;
 
