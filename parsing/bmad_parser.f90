@@ -356,8 +356,8 @@ parsing_loop: do
       lat%title = this_ele%descrip
       deallocate (this_ele%descrip)
     else
-      read (bp_com%current_file%f_unit, '(a)') lat%title
-      bp_com%current_file%i_line = bp_com%current_file%i_line + 1
+      lat%title = bp_com%next_line_from_file
+      bp_com%next_line_from_file = ''
     endif
     cycle parsing_loop
   endif
