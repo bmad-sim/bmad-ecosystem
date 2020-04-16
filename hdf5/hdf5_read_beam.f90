@@ -82,7 +82,8 @@ endif
 
 is = index(pmd_head%basePath(1:it), '/', back = .true.)
 z_id = hdf5_open_group(f_id, pmd_head%basePath(1:is), err, .true.);  if (err) return
-t_match = pmd_head%basePath(is+1:)
+t_match = pmd_head%basePath
+t_match = t_match(is+1:)
 i = len_trim(t_match)
 if (t_match(i:i) == '/') t_match(i:i) = ' ' ! Erase trailing slash.
 is = index(t_match, '/')
