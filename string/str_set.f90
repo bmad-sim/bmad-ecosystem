@@ -1,5 +1,5 @@
 !+
-! Subroutine set_str(str_out, str_in)
+! Subroutine str_set(str_out, str_in)
 !
 ! Routine to set a variable length string.
 ! Trailing blanks will be trimmed.
@@ -11,7 +11,7 @@
 !   str_out     -- character(:), allocatable: Variable length string.
 !-
 
-subroutine set_str(str_out, str_in)
+subroutine str_set(str_out, str_in)
 
 implicit none
 

@@ -487,7 +487,7 @@ valid = .false.
 if (err_string == '') then
   why_invalid = err_string
 else
-  call set_str(why_invalid, err_string // '.' // ' WHILE PARSING: ' // object_tree_name(obj))
+  call str_set(why_invalid, err_string // '.' // ' WHILE PARSING: ' // object_tree_name(obj))
 endif
 
 end function set_this_invalid
