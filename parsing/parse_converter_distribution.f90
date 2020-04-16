@@ -74,7 +74,7 @@ ix_sd = 0
 do n_sd = 1, n_subd
   obj1 => pointer_to_subobject(obj0, 'SUB_DISTRIBUTION', ix_sd)
 
-  if (.not. parser_check_subobjects (obj1, [subobj('PC_IN',1,1), subobj('PROB_PC_R',1,1)], ele)) return
+  if (.not. parser_check_subobjects (obj1, [subobj('PC_IN',1,1), subobj('PROB_PC_R',1,1), subobj('DIRECTION_OUT',1,1)], ele)) return
   id = id + 1
   sub_d => dist%sub_dist(id)
   do j = 1, obj1%n_child
@@ -206,7 +206,7 @@ call get_next_word(str, ix_word, '}], ', delim, delim_found, err_flag = err_flag
 end_of_document = (len(str) /= 0 .and. .not. delim_found)
 line = trim(line) // ' ' // trim(str) // delim
 valid = .not. err_flag
-if (err_flag) call set_str(why_invalid, 'ERROR WHILE PARSING CONVERTER DISTRIBUTION')
+if (err_flag) call str_set(why_invalid, 'ERROR WHILE PARSING CONVERTER DISTRIBUTION')
 
 end function get_more_text_func
 
