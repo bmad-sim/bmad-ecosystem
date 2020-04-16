@@ -96,8 +96,8 @@ contains
 !   get_more_text_func(line) result (valid)
 !                 -- Function: Routine called to append more text to the string being parsed. 
 !                     The interface is:
-!                         function get_more_text_func(line, end_of_document) result (valid)
-!                           character(:), allocatable :: line
+!                         function get_more_text_func(line, end_of_document, why_invalid) result (valid)
+!                           character(:), allocatable :: line, why_invalid
 !                           logical end_of_document
 !                           logical valid
 !   parse_one     -- logical, optional: If True, parse only one object and then return. Default = False.
@@ -113,8 +113,8 @@ contains
 recursive function object_document_parse(obj, root_name, line, why_invalid, get_more_text_func, parse_one, sub_call) result (valid)
 
 interface 
-  function get_more_text_func(line, end_of_document) result (valid)
-    character(:), allocatable :: line
+  function get_more_text_func(line, end_of_document, why_invalid) result (valid)
+    character(:), allocatable :: line, why_invalid
     logical end_of_document
     logical valid
   end function
@@ -133,7 +133,7 @@ logical, optional :: parse_one, sub_call
 logical valid, abort, has_opening_bracket, in_array, end_of_document, debug
 
 character(*) root_name
-character(:), allocatable :: line, why_invalid
+character(:), allocatable :: line, why_invalid, why_func_invalid
 character(1), parameter :: tab = char(9)
 character(1) ach, quote_mark
 
@@ -151,9 +151,9 @@ quote_mark = ' '
 if (.not. allocated(line)) then
   allocate(character(1):: line)
   line = ''
-  valid = get_more_text_func(line, end_of_document)
+  valid = get_more_text_func(line, end_of_document, why_func_invalid)
   if (.not. valid) then
-    valid = set_this_invalid (why_invalid, 'ABORT SIGNAL RAISED BY GET_MORE_TEXT_FUNC.', obj)
+    valid = set_this_invalid (why_invalid, why_func_invalid, obj)
     return
   endif
 endif
@@ -169,10 +169,10 @@ endif
 do while (.true.)
   ip = ip + 1
   if (ip > len(line)) then
-    valid = get_more_text_func(line, end_of_document)
+    valid = get_more_text_func(line, end_of_document, why_func_invalid)
 
     if (.not. valid) then
-      valid = set_this_invalid (why_invalid, 'ABORT SIGNAL RAISED BY GET_MORE_TEXT_FUNC.', obj)
+      valid = set_this_invalid (why_invalid, why_func_invalid, obj)
       return
     endif
 
@@ -474,18 +474,21 @@ enddo
 !--------------------------------------------------
 contains
 
-function set_this_invalid (why_invalid, string, obj) result (valid)
+function set_this_invalid (why_invalid, err_string, obj) result (valid)
 
 type (object_struct) obj
-character(*) string
+character(*) err_string
 character(:), allocatable :: why_invalid
 logical valid
 
-!
+! If err_string is blank (can happen if err_string is set by get_more_text_func), set why_invalid to blank.
 
 valid = .false.
-allocate(character(len(string)):: why_invalid)
-why_invalid = string // '.' // ' WHILE PARSING: ' // object_tree_name(obj)
+if (err_string == '') then
+  why_invalid = err_string
+else
+  call set_str(why_invalid, err_string // '.' // ' WHILE PARSING: ' // object_tree_name(obj))
+endif
 
 end function set_this_invalid
 
