@@ -163,7 +163,7 @@ end subroutine add_this_taylor_term
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word, call_check)
+! Subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word, call_check, err_flag)
 !
 ! Subroutine to get the next word from the input stream.
 ! This subroutine is used by bmad_parser and bmad_parser2.
@@ -181,9 +181,10 @@ end subroutine add_this_taylor_term
 !   delim       -- Character(1): Actual delimiter found
 !   delim_found -- Logical: Set true if a delimiter found. A delimiter
 !                    may not be found if the end of the line is reached first.
+!   err_flag    -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word, call_check)
+subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word, call_check, err_flag)
 
 implicit none
 
@@ -194,12 +195,14 @@ character(*) word, delim_list, delim
 integer n, ix
 
 logical delim_found, end_of_file
-logical, optional :: upper_case_word, call_check
+logical, optional :: upper_case_word, call_check, err_flag
 
 character(n_parse_line) line
 character(6) str
 
 ! Possible inline call...
+
+if (present(err_flag)) err_flag = .false.
 
 if (logic_option(.false., call_check)) then
   call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
@@ -229,33 +232,34 @@ if (bp_com%input_from_file) then
     n = len_trim(bp_com%parse_line)
     if (n == 0 .or. n > 90) exit
 
-    select case (bp_com%parse_line(n:n))
-    case (',', '(', '{', '[', '=')
-      call load_parse_line('continue', n+2, end_of_file)
+    if (bp_com%parse_line(n:n) == '&') then
+      call load_parse_line('continue', n, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
       if (end_of_file) exit
 
-    case ('&')
-      call load_parse_line('continue', n, end_of_file)
+    else if (index(',({[=', bp_com%parse_line(n:n)) /= 0) then
+      call load_parse_line('continue', n+2, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
       if (end_of_file) exit
 
-    case default
+    elseif (index(',)}]=', bp_com%next_line_from_file(1:1)) /= 0) then
+      call load_parse_line('continue', n+2, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
+      if (end_of_file) exit
+
+    else
+      if (.not. bp_com%inline_call_active) exit
       ! If in an inline called file then make sure the rest of the file is blank and
       ! return to the calling file
-      if (bp_com%inline_call_active) then
-        call load_parse_line('continue', n+2, end_of_file)
-        if (bp_com%parse_line(n+1:) /= '') then
-          call string_trim (bp_com%parse_line(n+1:), line, ix)
-          call str_upcase (line(1:10), line(1:10))
-          if (line /= 'END_FILE') THEN
-            call parser_error ('EXTRA STUFF IN FILE')
-          endif
+      call load_parse_line('continue', n+2, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
+      if (bp_com%parse_line(n+1:) /= '') then
+        call string_trim (bp_com%parse_line(n+1:), line, ix)
+        call str_upcase (line(1:10), line(1:10))
+        if (line /= 'END_FILE') THEN
+          call parser_error ('EXTRA STUFF IN FILE')
+          if (present(err_flag)) err_flag = .true.
         endif
-        bp_com%parse_line(n+1:) = ''
-        call parser_file_stack ('pop')
-      else
-        exit
       endif
-    end select
+      bp_com%parse_line(n+1:) = ''
+      call parser_file_stack ('pop')
+    endif
   enddo
 endif
 
@@ -265,6 +269,7 @@ call word_read (bp_com%parse_line, delim_list, word, ix_word, delim, delim_found
 
 if (len(word) < ix_word) then
   call parser_error ('BAD WORD: ' // bp_com%parse_line)
+  if (present(err_flag)) err_flag = .true.
   ix_word = len(word)
 endif
 
@@ -466,22 +471,23 @@ end subroutine parser_file_stack
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine load_parse_line (action, ix_start, end_of_file) 
+! Subroutine load_parse_line (action, ix_start, end_of_file, err_flag) 
 !
 ! Subroutine to load characters from the input file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   action -- Character(*): 'continue', 'new_command', or 'init'
-!   ix_start  -- Integer: index in bp_com%parse_line string where to append stuff.
+!   action        -- character(*): 'continue', 'new_command', or 'init'
+!   ix_start      -- integer: Index in bp_com%parse_line string where to append stuff.
 !
 ! Output:
-!   end_of_file       -- Logical: 
-!   bp_com%parse_line -- String to append to.
+!   end_of_file       -- logical: End of file reached?
+!   err_flag          -- logical, optional: Set True if there is an error. False otherwise
+!   bp_com%parse_line -- string to append to.
 !-
 
-recursive subroutine load_parse_line (action, ix_start, end_of_file)
+recursive subroutine load_parse_line (action, ix_start, end_of_file, err_flag)
 
 implicit none
 
@@ -489,17 +495,19 @@ integer ix_start, ix, n, ios
 
 character(*) action
 character(n_parse_line+20) :: line
-character(n_parse_line+20), save :: saved_line
 character(1) quote_mark
 character(1), parameter :: tab = achar(9)
 
-logical :: have_saved_line = .false., end_of_file, flush_this
+logical :: end_of_file, flush_this
+logical, optional :: err_flag
 
 ! action = 'init'
 
 if (action == 'init') then
-  have_saved_line = .false.
   bp_com%parse_line = ''
+  bp_com%have_saved_line = .false.
+  bp_com%next_line_from_file = ''
+  bp_com%ios_next_line_from_file = 0  
   return
 endif
 
@@ -507,11 +515,12 @@ endif
 
 end_of_file = .false.
 flush_this = .false.
+if (present(err_flag)) err_flag = .false.
 
 ! If 'new_command' then will need to flush lines that are part of the rest of the current command. 
 ! This will happen when there has been an error and the entire command was not parsed.
 
-if (action == 'new_command' .and. .not. have_saved_line) then
+if (action == 'new_command' .and. .not. bp_com%have_saved_line) then
   n = len_trim(bp_com%parse_line)
   if (n /= 0) then
     if (index (',+-*/({[=&', bp_com%parse_line(n:n)) /= 0) flush_this = .true.
@@ -521,18 +530,31 @@ endif
 !
 
 do
+  ! Read a line or use bp_com%saved_line if it exists
+  if (bp_com%have_saved_line) then
+    line = bp_com%saved_line
+    bp_com%have_saved_line = .false.
 
-  ! Read a line or use saved_line if it exists
-
-  if (have_saved_line) then
-    line = saved_line
-    have_saved_line = .false.
   else
-    read (bp_com%current_file%f_unit, '(a)', end = 9000, iostat = ios) line
-    if (ios /= 0) then
+    line = bp_com%next_line_from_file
+    ios = bp_com%ios_next_line_from_file
+
+    if (ios < 0) then
+      end_of_file = .true.
+      if (bp_com%parse_line /= '' .and. .not. bp_com%inline_call_active) then
+        call parser_error ('FILE ENDED BEFORE PARSING FINISHED', stop_here = .true.)
+        if (present(err_flag)) err_flag = .true.
+      endif
+      bp_com%next_line_from_file = ''
+      bp_com%ios_next_line_from_file = 0  
+      return
+    elseif (ios > 0) then
       call parser_error ('ERROR READING INPUT LINE.', '[PERHAPS THE LINE HAS TOO MANY CHARACTERS.]', line)
+      if (present(err_flag)) err_flag = .true.
       return
     endif
+    read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_line_from_file) bp_com%next_line_from_file
+    call string_trim(bp_com%next_line_from_file, bp_com%next_line_from_file, ix)
     bp_com%current_file%i_line = bp_com%current_file%i_line + 1
   endif
 
@@ -553,6 +575,7 @@ do
     write (bp_com%line2_file_name, '(2a, i0)') trim(bp_com%current_file%full_name), ':', bp_com%current_file%i_line
   else
     call parser_error ('INTERNAL ERROR #4: CALL HELP')
+    if (present(err_flag)) err_flag = .true.
     if (global_com%exit_on_error) call err_exit
   endif
 
@@ -590,15 +613,16 @@ do
     case (';')
       if (quote_mark /= '') cycle
       if (ix == 1) then
-        have_saved_line = .true.
-        saved_line = line(ix+1:)
+        call string_trim(line(ix+1:), bp_com%saved_line, n)
+        bp_com%have_saved_line = .true.
         line = ' '
       elseif (ix > 1) then
-        have_saved_line = .true.
-        saved_line = line(ix+1:)
+        call string_trim(line(ix+1:), bp_com%saved_line, n)
+        bp_com%have_saved_line = .true.
         line = line(:ix-1)
       else
-        have_saved_line = .false.
+        bp_com%saved_line = ''
+        bp_com%have_saved_line = .false.
       endif
       exit
     end select
@@ -606,8 +630,7 @@ do
 
   ! if the command line is blank then go back for more input
   call string_trim (line, line, ix)
-  if (ix /= 0 .or. have_saved_line) exit
-
+  if (ix /= 0 .or. bp_com%have_saved_line) exit
 enddo
 
 ! now simply append the line to %parse_line starting at ix_start
@@ -616,6 +639,7 @@ call str_substitute (line)
 line = adjustl(line)
 if (len_trim(line) + ix_start > n_parse_line) then
   call parser_error ('INPUT LINE HAS TOO MANY CHARACTERS:', line)
+  if (present(err_flag)) err_flag = .true.
   return
 endif
 
@@ -624,17 +648,6 @@ bp_com%parse_line(ix_start:) = line
 ! Flush this line if needed
 
 if (flush_this) call load_parse_line (action, ix_start, end_of_file)
-
-return
-
-!
-
-9000  continue
-end_of_file = .true.
-
-if (bp_com%parse_line /= '' .and. .not. bp_com%inline_call_active) then
-  call parser_error ('FILE ENDED BEFORE PARSING FINISHED', stop_here = .true.)
-endif
 
 end subroutine load_parse_line
 

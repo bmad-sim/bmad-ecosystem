@@ -2,6 +2,8 @@ module bmad_parser_struct
 
 use bmad_struct
 
+integer, parameter :: n_parse_line = 500
+
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
 
@@ -58,13 +60,14 @@ type seq_stack_struct
   logical multipass
 end type
 
-! A LIFO stack structure is used to hold the list of input lattice files
-! that are currently open.
+! A LIFO stack structure is used to hold the list of input lattice files that are currently open.
+! %parse_line_saved is used with inline calls to save the rest of the line of the current file
+! while the called file is being parsed.
 
 type stack_file_struct
   character(200) :: full_name = ''
   character(200) :: dir = './'
-  character(200) parse_line_saved
+  character(n_parse_line) parse_line_saved  
   integer i_line
   integer f_unit
   logical inline_call_active
@@ -112,8 +115,6 @@ integer, parameter :: def$ = 1, redef$ = 2
 !------------------------------------------------
 ! common stuff
 
-integer, parameter :: n_parse_line = 280
-
 type bp_const_struct
   character(40) name      ! Constant name
   real(rp) value          ! Constant value
@@ -128,16 +129,20 @@ type bp_common_struct
   type (extra_parsing_info_struct) extra
   integer num_lat_files               ! Number of files opened
   integer i_const_tot, i_const_init
+  integer ios_next_line_from_file
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
   ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
   character(200) line1_file_name           ! Name of file from which %input_line1 was read
   character(200) line2_file_name           ! Name of file from which %input_line2 was read
-  character(n_parse_line) parse_line       ! Current part of input string not yet parsed.
+  character(n_parse_line) parse_line       ! Current string to be parsed.
   character(n_parse_line+20) input_line1   ! Line before current line. For debug messages.
   character(n_parse_line+20) input_line2   ! Current line. For debug messages.
+  character(n_parse_line) saved_line       ! Line after semicolon saved until current statement is completely parsed.
+  character(n_parse_line) next_line_from_file  ! Line waiting to be appended to the parse_line.
   character(40) :: parser_name = ''        ! Blank means not in bmad_parser nor bmad_parser2.
   character(100) :: last_word              ! Last word to be parsed
   logical :: bmad_parser_calling = .false. ! used for expand_lattice
+  logical :: have_saved_line
   logical error_flag                       ! Set True on error
   logical fatal_error_flag                 ! Set True on fatal (must abort now) error 
   logical input_line_meaningful

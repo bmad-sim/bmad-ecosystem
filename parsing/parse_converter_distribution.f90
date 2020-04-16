@@ -30,18 +30,22 @@ character(*) delim
 character(200) str
 character(:), allocatable :: line, why_invalid
 
-logical delim_found, valid
+logical delim_found, valid, err_flag
 
 !
 
 valid = object_document_parse (obj0, 'DISTRIBUTION', line, why_invalid, get_more_text_func, parse_one = .true.)
 bp_com%parse_line = trim(line) // ' ' // bp_com%parse_line
-call get_next_word(str, ix_word, '}],', delim, delim_found)
+call get_next_word(str, ix_word, '}],', delim, delim_found, err_flag = err_flag)
 
 if (.not. valid) then
-  call parser_error (why_invalid, 'FOR ELEMENT: ' // ele%name)
+  ! Why_invalid may be blank if it is set by get_more_text_func. 
+  ! In this case, get_more_text_func has called parser_error so we do not have to call parser_error again.
+  if (why_invalid /= '') call parser_error (why_invalid, 'FOR ELEMENT: ' // ele%name)
   return
 endif
+
+if (err_flag) return
 
 !
 
@@ -189,20 +193,20 @@ enddo
 !------------------------
 contains
 
-function get_more_text_func (line, end_of_document) result (valid)
+function get_more_text_func (line, end_of_document, why_invalid) result (valid)
 
 integer ix_word
-character(:), allocatable :: line
+character(:), allocatable :: line, why_invalid
 character(200) str
-logical end_of_document, valid
+logical end_of_document, valid, err_flag
 
 !
 
-call get_next_word(str, ix_word, '}], ', delim, delim_found)
+call get_next_word(str, ix_word, '}], ', delim, delim_found, err_flag = err_flag)
 end_of_document = (len(str) /= 0 .and. .not. delim_found)
-valid = .true.
 line = trim(line) // ' ' // trim(str) // delim
-
+valid = .not. err_flag
+if (err_flag) call set_str(why_invalid, 'ERROR WHILE PARSING CONVERTER DISTRIBUTION')
 
 end function get_more_text_func
 
@@ -270,8 +274,7 @@ character(*) string
 !
 
 valid = .false.
-call parser_error (string, 'AT: ' // object_tree_name(obj), &
-                           'IN ELEMENT: ' // ele%name)
+call parser_error (string, 'AT: ' // object_tree_name(obj), 'IN ELEMENT: ' // ele%name)
 
 end function this_error_out
 
