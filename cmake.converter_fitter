@@ -1,0 +1,12 @@
+set (EXENAME converter_fitter)
+set (SRC_DIRS
+  converter_element_modeling/fitter
+  )
+set (INC_DIRS
+  converter_element_modeling/fitter
+  )
+set (CFLAGS "-std=c++17")
+set (LINK_LIBS
+  gsl
+  gslcblas
+  )
