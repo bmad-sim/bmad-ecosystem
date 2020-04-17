@@ -1,4 +1,20 @@
-subroutine parse_converter_distribution(ele, delim, delim_found)
+!+
+! Subroutine parse_converter_distribution(ele, delim, delim_found, err_flag)
+!
+! Routine to parse a distribution parameter of a converter element
+! This routine is not for general use.
+!
+! Input:
+!   ele         -- ele_struct: Converter element.
+!
+! Output:
+!   ele         -- ele_struct: Converter element with %converter field set.
+!   delim       -- character(1): Ending delimitor.
+!   delim_found -- logical: Has a delimitor been found?
+!   err_flag    -- logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine parse_converter_distribution(ele, delim, delim_found, err_flag)
 
 use bmad_parser_mod, dummy => parse_converter_distribution
 use object_model_mod
@@ -24,7 +40,7 @@ type (converter_c_x_struct), pointer :: c_x
 type (object_struct), target :: obj0
 type (object_struct), pointer :: obj1, obj2, obj3, obj4
 
-integer i, j, k, n, ix_word, id, n_r, n_pc, ixe, n_sd, n_subd, ix_sd
+integer i, j, k, n, ix_word, n_r, n_pc, ixe, n_sd, n_subd, ix_sd
 
 character(*) delim
 character(200) str
@@ -42,12 +58,14 @@ if (.not. valid) then
   ! Why_invalid may be blank if it is set by get_more_text_func. 
   ! In this case, get_more_text_func has called parser_error so we do not have to call parser_error again.
   if (why_invalid /= '') call parser_error (why_invalid, 'FOR ELEMENT: ' // ele%name)
-  return
+  err_flag = .true.
 endif
 
 if (err_flag) return
 
 !
+
+err_flag = .false.
 
 c => ele%converter
 if (.not. allocated(c%dist)) then
@@ -65,130 +83,119 @@ n_subd = subobject_number(obj0, 'SUB_DISTRIBUTION')
 allocate (dist%sub_dist(n_subd))
 
 if (.not. parser_check_subobjects(obj0, [subobj('THICKNESS',1,1), subobj('SUB_DISTRIBUTION',1,9999), &
-                                                                  subobj('DXY_DS_MAX',1,1)], ele)) return
+                       subobj('DXY_DS_MAX',1,1), subobj('MATERIAL',1,1), subobj('SPECIES_OUT',1,1)], ele)) return
 
 if (.not. parser_read_subobj_real(obj0, 'DXY_DS_MAX', dist%dxy_ds_max, ele)) return
 if (.not. parser_read_subobj_real(obj0, 'THICKNESS', dist%thickness, ele)) return
+
 
 ix_sd = 0
 do n_sd = 1, n_subd
   obj1 => pointer_to_subobject(obj0, 'SUB_DISTRIBUTION', ix_sd)
 
   if (.not. parser_check_subobjects (obj1, [subobj('PC_IN',1,1), subobj('PROB_PC_R',1,1), subobj('DIRECTION_OUT',1,1)], ele)) return
-  id = id + 1
-  sub_d => dist%sub_dist(id)
-  do j = 1, obj1%n_child
-    obj2 => obj1%child(j)
-    select case (obj2%name)
-    case ('PC_IN')
-      if (.not. parser_read_obj_real(obj2, sub_d%pc_in, ele)) return
-
-    case ('PROB_PC_R')
-      if (.not. parser_check_subobjects (obj2, [subobj('R_VALUES',1,1), subobj('ROW',1,9999)], ele)) return
-      prob_pc_r => sub_d%prob_pc_r
-      obj3 = pointer_to_subobject(obj2, 'R_VALUES')
-      n_r = obj3%n_token
-      n_pc = subobject_number(obj2, 'ROW')
-      allocate(prob_pc_r%r(n_r))
-      if (.not. parser_read_obj_real_array(obj3, sub_d%prob_pc_r%r, ele)) return
-      allocate (prob_pc_r%prob(n_pc, n_r), prob_pc_r%pc_out(n_pc))
-      ixe = 0
-      do k = 1, n_pc
-        obj3 => pointer_to_subobject(obj2, 'ROW', ixe)
-        if (.not. parser_check_subobjects (obj3, [subobj('PC_OUT',1,1), subobj('PROB',1,1)], ele)) return
-        if (.not. parser_read_subobj_real(obj3, 'PC_OUT', prob_pc_r%pc_out(k), ele)) return
-        if (.not. parser_read_subobj_real_array(obj3, 'PROB', prob_pc_r%prob(k,:), ele)) return
-      enddo
-      if (.not. parser_check_obj_order (prob_pc_r%pc_out(:), '<', 'ROW->PC_OUT', obj2, ele)) return
-
-    case ('DIRECTION_OUT')
-      if (.not. parser_check_subobjects (obj2, [subobj('ALPHA_X',1,1), subobj('ALPHA_Y',1,1), &
-                                                subobj('BETA',1,1), subobj('C_X',1,1)], ele)) return
-      dir_out => sub_d%dir_out
-
-      ! Alpha_x
-      obj3 => pointer_to_subobject(obj2, 'ALPHA_X')
-      alpha_x => dir_out%alpha_x
-      if (.not. parser_check_subobjects (obj3, [subobj('FIT_1D_R',1,9999), subobj('FIT_2D_PC',1,1), subobj('FIT_2D_R',1,1)], ele)) return
-      n_r = subobject_number(obj3, 'FIT_1D_R')
-      allocate(alpha_x%fit_1d_r(n_r))
-      ixe = 0
-      do k = 1, n_r
-        obj4 => pointer_to_subobject(obj3, 'FIT_1D_R', ixe)
-        if (.not. parser_check_subobjects (obj4, [subobj('PC_OUT',1,1), subobj('K',1,1), subobj('POLY',1,1)], ele)) return
-        if (.not. parser_check_subobjects (obj4, [subobj('FIT_1D_R',1,9999), subobj('FIT_1D_PC',1,1)], ele)) return
-        if (.not. parser_read_subobj_real(obj4, 'PC_OUT', alpha_x%fit_1d_r(k)%pc_out, ele)) return
-        if (.not. parser_read_subobj_real(obj4, 'K', alpha_x%fit_1d_r(k)%k, ele)) return
-        if (.not. parser_read_subobj_real_array(obj3, 'POLY', alpha_x%fit_1d_r(k)%poly, ele)) return
-      enddo
-      if (.not. parser_check_obj_order (alpha_x%fit_1d_r(:)%pc_out, '<', 'FIT_1D_R->PC_OUT', obj3, ele)) return
-      obj4 => pointer_to_subobject(obj3, 'FIT_2D_PC')
-      if (.not. parser_check_subobjects (obj4, [subobj('K',1,1), subobj('POLY',1,1)], ele)) return
-      if (.not. parser_read_subobj_real(obj4, 'K', alpha_x%fit_2d_pc%k, ele)) return
-      if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_x%fit_2d_pc%poly, ele)) return
-      obj4 => pointer_to_subobject(obj3, 'FIT_2D_R')
-      if (.not. parser_check_subobjects (obj4, [subobj('K',1,1), subobj('POLY',1,1)], ele)) return
-      if (.not. parser_read_subobj_real(obj4, 'K', alpha_x%fit_2d_r%k, ele)) return
-      if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_x%fit_2d_r%poly, ele)) return
-
-      ! Alpha_y
-      obj3 => pointer_to_subobject(obj2, 'ALPHA_Y')
-      alpha_y => dir_out%alpha_y
-      if (.not. parser_check_subobjects (obj3, [subobj('FIT_1D_R',1,9999), subobj('FIT_2D_PC',1,1), subobj('FIT_2D_R',1,1)], ele)) return
-      n_r = subobject_number(obj3, 'FIT_1D_R')
-      allocate(alpha_y%fit_1d_r(n_r))
-      ixe = 0
-      do k = 1, n_r
-        obj4 => pointer_to_subobject(obj3, 'FIT_1D_R', ixe)
-        if (.not. parser_check_subobjects (obj4, [subobj('PC_OUT',1,1), subobj('K',1,1), subobj('POLY',1,1)], ele)) return
-        if (.not. parser_read_subobj_real(obj4, 'PC_OUT', alpha_y%fit_1d_r(k)%pc_out, ele)) return
-        if (.not. parser_read_subobj_real(obj4, 'K', alpha_y%fit_1d_r(k)%k, ele)) return
-        if (.not. parser_read_subobj_real_array(obj3, 'POLY', alpha_y%fit_1d_r(k)%poly, ele)) return
-      enddo
-      if (.not. parser_check_obj_order (alpha_y%fit_1d_r(:)%pc_out, '<', 'FIT_1D_R->PC_OUT', obj3, ele)) return
-      obj4 => pointer_to_subobject(obj3, 'FIT_2D_PC')
-      if (.not. parser_check_subobjects (obj4, [subobj('K',1,1), subobj('POLY',1,1)], ele)) return
-      if (.not. parser_read_subobj_real(obj4, 'K', alpha_y%fit_2d_pc%k, ele)) return
-      if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_y%fit_2d_pc%poly, ele)) return
-      obj4 => pointer_to_subobject(obj3, 'FIT_2D_R')
-      if (.not. parser_check_subobjects (obj4, [subobj('K',1,1), subobj('POLY',1,1)], ele)) return
-      if (.not. parser_read_subobj_real(obj4, 'K', alpha_y%fit_2d_r%k, ele)) return
-      if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_y%fit_2d_r%poly, ele)) return
-
-      ! Beta
-      obj3 => pointer_to_subobject(obj2, 'BETA')
-      beta => dir_out%beta
-      if (.not. parser_check_subobjects (obj3, [subobj('FIT_1D_R',1,9999), subobj('POLY_PC',1,1), subobj('POLY_R',1,1)], ele)) return
-      n_r = subobject_number(obj3, 'FIT_1D_R')
-      allocate(beta%fit_1d_r(n_r))
-      ixe = 0
-      do k = 1, n_r
-        obj4 => pointer_to_subobject(obj3, 'FIT_1D_R', ixe)
-        if (.not. parser_check_subobjects (obj4, [subobj('PC_OUT',1,1), subobj('POLY',1,1)], ele)) return
-        if (.not. parser_read_subobj_real(obj4, 'PC_OUT', beta%fit_1d_r(k)%pc_out, ele)) return
-        if (.not. parser_read_subobj_real_array(obj3, 'POLY', beta%fit_1d_r(k)%poly, ele)) return
-      enddo
-      if (.not. parser_check_obj_order (beta%fit_1d_r(:)%pc_out, '<', 'FIT_1D_R->PC_OUT', obj3, ele)) return
-      if (.not. parser_read_subobj_real_array(obj3, 'POLY_PC', beta%poly_pc, ele)) return
-      if (.not. parser_read_subobj_real_array(obj3, 'POLY_R', beta%poly_r, ele)) return
-
-      ! C_x
-      obj3 => pointer_to_subobject(obj2, 'C_X')
-      c_x => dir_out%c_x
-      if (.not. parser_check_subobjects (obj3, [subobj('POLY_R',1,1), subobj('POLY_PC',1,1)], ele)) return
-      if (.not. parser_read_subobj_real_array(obj3, 'POLY_R', c_x%poly_r, ele)) return
-      if (.not. parser_read_subobj_real_array(obj3, 'POLY_PC', c_x%poly_pc, ele)) return
-    end select
+  sub_d => dist%sub_dist(n_sd)
+  ! PC_IN
+  obj2 => pointer_to_subobject(obj1, 'PC_IN')
+  if (.not. parser_read_obj_real(obj2, sub_d%pc_in, ele)) return
+  ! PROB_PC_R
+  obj2 => pointer_to_subobject(obj1, 'PROB_PC_R')
+  if (.not. parser_check_subobjects (obj2, [subobj('R_VALUES',1,1), subobj('ROW',1,9999)], ele)) return
+  prob_pc_r => sub_d%prob_pc_r
+  obj3 => pointer_to_subobject(obj2, 'R_VALUES')
+  n_r = obj3%n_token
+  n_pc = subobject_number(obj2, 'ROW')
+  allocate(prob_pc_r%r(n_r))
+  if (.not. parser_read_obj_real_array(obj3, sub_d%prob_pc_r%r, ele)) return
+  allocate (prob_pc_r%prob(n_pc, n_r), prob_pc_r%pc_out(n_pc))
+  ixe = 0
+  do k = 1, n_pc
+    obj3 => pointer_to_subobject(obj2, 'ROW', ixe)
+    if (.not. parser_check_subobjects (obj3, [subobj('PC_OUT',1,1), subobj('PROB',1,1)], ele)) return
+    if (.not. parser_read_subobj_real(obj3, 'PC_OUT', prob_pc_r%pc_out(k), ele)) return
+    if (.not. parser_read_subobj_real_array(obj3, 'PROB', prob_pc_r%prob(k,:), ele)) return
   enddo
+  if (.not. parser_check_obj_order (prob_pc_r%pc_out(:), '<', 'ROW->PC_OUT', obj2, ele)) return
+  ! DIRECTION_OUT
+  obj2 => pointer_to_subobject(obj1, 'DIRECTION_OUT')
+  if (.not. parser_check_subobjects (obj2, [subobj('ALPHA_X',1,1), subobj('ALPHA_Y',1,1), &
+                                            subobj('BETA',1,1), subobj('C_X',1,1)], ele)) return
+  dir_out => sub_d%dir_out
+
+  ! Alpha_x
+  obj3 => pointer_to_subobject(obj2, 'ALPHA_X')
+  alpha_x => dir_out%alpha_x
+  if (.not. parser_check_subobjects (obj3, [subobj('FIT_1D_R',1,9999), subobj('FIT_2D_PC',1,1), subobj('FIT_2D_R',1,1)], ele)) return
+  n_r = subobject_number(obj3, 'FIT_1D_R')
+  allocate(alpha_x%fit_1d_r(n_r))
+  ixe = 0
+  do k = 1, n_r
+    obj4 => pointer_to_subobject(obj3, 'FIT_1D_R', ixe)
+    if (.not. parser_check_subobjects (obj4, [subobj('PC_OUT',1,1), subobj('K',1,1), subobj('POLY',1,1)], ele)) return
+    if (.not. parser_read_subobj_real(obj4, 'PC_OUT', alpha_x%fit_1d_r(k)%pc_out, ele)) return
+    if (.not. parser_read_subobj_real(obj4, 'K', alpha_x%fit_1d_r(k)%k, ele)) return
+    if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_x%fit_1d_r(k)%poly, ele)) return
+  enddo
+  if (.not. parser_check_obj_order (alpha_x%fit_1d_r(:)%pc_out, '<', 'FIT_1D_R->PC_OUT', obj3, ele)) return
+  obj4 => pointer_to_subobject(obj3, 'FIT_2D_PC')
+  if (.not. parser_check_subobjects (obj4, [subobj('K',1,1), subobj('POLY',1,1)], ele)) return
+  if (.not. parser_read_subobj_real(obj4, 'K', alpha_x%fit_2d_pc%k, ele)) return
+  if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_x%fit_2d_pc%poly, ele)) return
+  obj4 => pointer_to_subobject(obj3, 'FIT_2D_R')
+  if (.not. parser_check_subobjects (obj4, [subobj('K',1,1), subobj('POLY',1,1)], ele)) return
+  if (.not. parser_read_subobj_real(obj4, 'K', alpha_x%fit_2d_r%k, ele)) return
+  if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_x%fit_2d_r%poly, ele)) return
+
+  ! Alpha_y
+  obj3 => pointer_to_subobject(obj2, 'ALPHA_Y')
+  alpha_y => dir_out%alpha_y
+  if (.not. parser_check_subobjects (obj3, [subobj('FIT_1D_R',1,9999), subobj('FIT_2D_PC',1,1), subobj('FIT_2D_R',1,1)], ele)) return
+  n_r = subobject_number(obj3, 'FIT_1D_R')
+  allocate(alpha_y%fit_1d_r(n_r))
+  ixe = 0
+  do k = 1, n_r
+    obj4 => pointer_to_subobject(obj3, 'FIT_1D_R', ixe)
+    if (.not. parser_check_subobjects (obj4, [subobj('PC_OUT',1,1), subobj('K',1,1), subobj('POLY',1,1)], ele)) return
+    if (.not. parser_read_subobj_real(obj4, 'PC_OUT', alpha_y%fit_1d_r(k)%pc_out, ele)) return
+    if (.not. parser_read_subobj_real(obj4, 'K', alpha_y%fit_1d_r(k)%k, ele)) return
+    if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_y%fit_1d_r(k)%poly, ele)) return
+  enddo
+  if (.not. parser_check_obj_order (alpha_y%fit_1d_r(:)%pc_out, '<', 'FIT_1D_R->PC_OUT', obj3, ele)) return
+  obj4 => pointer_to_subobject(obj3, 'FIT_2D_PC')
+  if (.not. parser_check_subobjects (obj4, [subobj('K',1,1), subobj('POLY',1,1)], ele)) return
+  if (.not. parser_read_subobj_real(obj4, 'K', alpha_y%fit_2d_pc%k, ele)) return
+  if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_y%fit_2d_pc%poly, ele)) return
+  obj4 => pointer_to_subobject(obj3, 'FIT_2D_R')
+  if (.not. parser_check_subobjects (obj4, [subobj('K',1,1), subobj('POLY',1,1)], ele)) return
+  if (.not. parser_read_subobj_real(obj4, 'K', alpha_y%fit_2d_r%k, ele)) return
+  if (.not. parser_read_subobj_real_array(obj4, 'POLY', alpha_y%fit_2d_r%poly, ele)) return
+
+  ! Beta
+  obj3 => pointer_to_subobject(obj2, 'BETA')
+  beta => dir_out%beta
+  if (.not. parser_check_subobjects (obj3, [subobj('FIT_1D_R',1,9999), subobj('POLY_PC',1,1), subobj('POLY_R',1,1)], ele)) return
+  n_r = subobject_number(obj3, 'FIT_1D_R')
+  allocate(beta%fit_1d_r(n_r))
+  ixe = 0
+  do k = 1, n_r
+    obj4 => pointer_to_subobject(obj3, 'FIT_1D_R', ixe)
+    if (.not. parser_check_subobjects (obj4, [subobj('PC_OUT',1,1), subobj('POLY',1,1)], ele)) return
+    if (.not. parser_read_subobj_real(obj4, 'PC_OUT', beta%fit_1d_r(k)%pc_out, ele)) return
+    if (.not. parser_read_subobj_real_array(obj4, 'POLY', beta%fit_1d_r(k)%poly, ele)) return
+  enddo
+  if (.not. parser_check_obj_order (beta%fit_1d_r(:)%pc_out, '<', 'FIT_1D_R->PC_OUT', obj3, ele)) return
+  if (.not. parser_read_subobj_real_array(obj3, 'POLY_PC', beta%poly_pc, ele)) return
+  if (.not. parser_read_subobj_real_array(obj3, 'POLY_R', beta%poly_r, ele)) return
+
+  ! C_x
+  obj3 => pointer_to_subobject(obj2, 'C_X')
+  c_x => dir_out%c_x
+  if (.not. parser_check_subobjects (obj3, [subobj('POLY_R',1,1), subobj('POLY_PC',1,1)], ele)) return
+  if (.not. parser_read_subobj_real_array(obj3, 'POLY_R', c_x%poly_r, ele)) return
+  if (.not. parser_read_subobj_real_array(obj3, 'POLY_PC', c_x%poly_pc, ele)) return
 enddo
 
-!print *
-!print *, '----------------'
-!print *, delim, ': ', trim(bp_com%parse_line)
-!print *
-!
-!call object_print(obj)
-!stop
+err_flag = .false.
 
 !------------------------
 contains
