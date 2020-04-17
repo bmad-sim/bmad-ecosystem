@@ -8,39 +8,9 @@
 #include <gsl/gsl_multifit_nlinear.h>
 
 #include "cauchy.hpp"
-#include "gnuplot.hpp"
 
 #define ABS_PARAMS
 
-// Gnuplot setup
-//namespace gnuplotio {
-//	template<> struct BinfmtSender<BinPoint> {
-//		static void send(std::ostream &stream) {
-//			BinfmtSender<double>::send(stream);
-//			BinfmtSender<double>::send(stream);
-//			BinfmtSender<double>::send(stream);
-//		}
-//	};
-//
-//	template<> struct BinarySender<BinPoint> {
-//		static void send(std::ostream &stream, const BinPoint &p) {
-//			BinarySender<double>::send(stream, p.x);
-//			BinarySender<double>::send(stream, p.y);
-//			BinarySender<double>::send(stream, p.count);
-//		}
-//	};
-//
-//	// We don't use text mode in this demo.  This is just here to show how it would go.
-//	template<> struct TextSender<BinPoint> {
-//		static void send(std::ostream &stream, const BinPoint &p) {
-//			TextSender<double>::send(stream, p.x);
-//			stream << " ";
-//			TextSender<double>::send(stream, p.y);
-//			stream << " ";
-//			TextSender<double>::send(stream, p.count);
-//		}
-//	};
-//}
 
 const double PI = 4.0 * atan(1.0);
 

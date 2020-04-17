@@ -34,44 +34,18 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hpp)
 
 #----------------------------------------------------------------------------
 # Compiler flags
-SET(GCC_COMPILE_FLAGS "-Wall -Wextra -Wpedantic -Weffc++ -Wshadow")# -fsanitize=address")
+SET(GCC_COMPILE_FLAGS "-Wall -Wextra -Wpedantic -Weffc++ -Wshadow")
 #add_definitions(${GCC_COMPILE_FLAGS})
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COMPILE_FLAGS}")
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgsl -lgslcblas -lm")
 
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
 set(CMAKE_BUILD_TYPE Debug)
 add_executable(converter_simulation main.cpp ${sources} ${headers})
-target_link_libraries(converter_simulation ${Geant4_LIBRARIES} m util boost_iostreams boost_system boost_filesystem)
+target_link_libraries(converter_simulation ${Geant4_LIBRARIES})
 set_property(TARGET converter_simulation PROPERTY CXX_STANDARD 17)
 
-#----------------------------------------------------------------------------
-# Copy all scripts to the build directory, i.e. the directory in which we
-# build B4a. This is so that we can run the executable directly because it
-# relies on these scripts being in the current working directory.
-#
-#set(EXAMPLEB4A_SCRIPTS
-#  exampleB4a.out
-#  exampleB4.in
-#  icons.mac
-#  gui.mac
-#  run.png
-#  init_vis.mac
-#  run1.mac
-#  run2.mac
-#  config.txt
-#  vis.mac
-#  )
-#
-#foreach(_script ${EXAMPLEB4A_SCRIPTS})
-#  configure_file(
-#    ${PROJECT_SOURCE_DIR}/${_script}
-#    ${PROJECT_BINARY_DIR}/${_script}
-#    COPYONLY
-#    )
-#endforeach()
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
