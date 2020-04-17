@@ -46,6 +46,7 @@ SET(CFLAGS "${CMAKE_CXX_FLAGS}")
 #
 #target_link_libraries(converter_simulation ${Geant4_LIBRARIES})
 SET (LINK_LIBS
+  stdc++fs
   ${Geant4_LIBRARIES}
   )
 #set_property(SOURCE SRC_FILES PROPERTY CXX_STANDARD 17)
