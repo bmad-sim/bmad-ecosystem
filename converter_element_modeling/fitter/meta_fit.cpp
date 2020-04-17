@@ -12,7 +12,6 @@
 #include <gsl/gsl_poly.h>
 
 #include "meta_fit.hpp"
-#include "gnuplot.hpp"
 
 #define ABS_PARAMS
 

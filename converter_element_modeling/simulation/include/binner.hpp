@@ -4,6 +4,12 @@
 //#include "GeantMain.hpp"
 #include "G4RunManager.hh"
 
+struct BinPoint {
+  double x;
+  double y;
+  double count;
+};
+
 struct DataPoint {
   double E;
   double r;

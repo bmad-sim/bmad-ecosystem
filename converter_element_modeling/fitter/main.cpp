@@ -7,7 +7,7 @@
 #include <cmath>
 #include <filesystem>
 
-#include "parser.cpp"
+#include "parser.hpp"
 #include "cauchy.hpp"
 #include "read_data.hpp"
 #include "meta_fit.hpp"

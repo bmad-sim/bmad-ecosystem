@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <numeric>
 #include "cal_binner.hpp"
-#include "gnuplot.hpp"
 #include "GeantMain.hpp"
 #include "binner.hpp"
 
