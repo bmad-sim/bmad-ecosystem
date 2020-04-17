@@ -1270,11 +1270,11 @@ subroutine order_super_lord_slaves (lat, ix_lord)
   integer ix_lord
 end subroutine
 
-subroutine parse_converter_distribution(ele, delim, delim_found)
+subroutine parse_converter_distribution(ele, delim, delim_found, err_flag)
   import
   type (ele_struct) ele
   character(*) delim
-  logical delim_found
+  logical delim_found, err_flag
 end subroutine
 
 subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)

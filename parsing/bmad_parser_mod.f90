@@ -4277,14 +4277,13 @@ case (beginning_ele$)
 
 !------------------
 ! Converter 
+! Remember setting E_tot sets p0c to -1 and vice versa.
 
 case (converter$)
 
 if (ele%value(E_tot$) == 0 .and. ele%value(p0c$) == 0) then
   call parser_error ('NEITHER E_TOT NOR P0C ARE SET FOR CONVERTER: ' // ele%name)
-elseif (ele%value(E_tot$) /= 0 .and. ele%value(p0c$) /= 0) then
-  call parser_error ('BOTH E_TOT AND P0C ARE SET FOR CONVERTER: ' // ele%name)
-elseif (ele%value(E_tot$) /= 0) then
+elseif (ele%value(E_tot$) > 0) then
   call convert_total_energy_to (ele%value(E_tot$), ele%converter%species_out, pc = ele%value(p0c$))
 else
   call convert_pc_to (ele%value(p0c$), ele%converter%species_out, E_tot = ele%value(E_tot$))

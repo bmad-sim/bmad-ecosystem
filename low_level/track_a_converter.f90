@@ -30,8 +30,7 @@ type converter_param_storage_struct
   real(rp) dx_ds, dy_ds
   logical :: lost = .false.
   type (ele_struct), pointer :: ele
-  real(rp), pointer :: dxy_ds_max
-  real(rp), pointer :: dxy_ds_limit
+  real(rp) dxy_ds_limit            ! Smaller of dxy_ds_max and atan(angle_out_max)
   real(rp) pc_out_min, pc_out_max
   real(rp) beta, alpha_x, alpha_y, c_x, A_dir
 end type
@@ -283,11 +282,11 @@ endif
 alpha => sub_dist%dir_out%alpha_y
 n = size(alpha%fit_1d_r)
 if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
-  out%alpha_x = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
+  out%alpha_y = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
                 exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
 else
   ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
-  out%alpha_x = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
+  out%alpha_y = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
                    dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
 endif
 
@@ -350,7 +349,7 @@ type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_param_storage_struct) out
 
 real(rp) prob
-real(rp) pc_out, r, A_dir, dxy_ds_limit
+real(rp) pc_out, r, A_dir
 integer id, isd, ipc, ir, npc, nr
 logical err_flag, ordered
 
@@ -375,8 +374,8 @@ enddo
 
 do id = 1, size(conv%dist)
   dist =>conv%dist(id)
-  dxy_ds_limit = dist%dxy_ds_max
-  if (ele%value(angle_out_max$) /= 0) dxy_ds_limit = min(atan(ele%value(angle_out_max$)), dxy_ds_limit)
+  out%dxy_ds_limit = dist%dxy_ds_max
+  if (ele%value(angle_out_max$) > 0) out%dxy_ds_limit = min(atan(ele%value(angle_out_max$)), out%dxy_ds_limit)
   do isd = 1, size(dist%sub_dist)
     sub_dist => dist%sub_dist(isd)
     dir_out => sub_dist%dir_out
@@ -409,6 +408,7 @@ do id = 1, size(conv%dist)
         call calc_dir_out_params (sub_dist, out)
         A_dir = out%A_dir   ! A_dir is not normalized by angle_max.
         out%dxy_ds_limit = dist%dxy_ds_limit
+        if (ele%value(angle_out_max$) > 0) out%dxy_ds_limit = min(atan(ele%value(angle_out_max$)), out%dxy_ds_limit)
         call calc_dir_out_params (sub_dist, out)
         ppcr%p_norm(ipc,ir) = ppcr%prob(ipc,ir) * out%A_dir / A_dir  ! p_norm is normalized by angle_max
       enddo

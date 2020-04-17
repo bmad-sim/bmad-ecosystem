@@ -71,7 +71,13 @@ select case (key)
 ! beambeam
                         
 case (beambeam$)
-  call track_a_beambeam(end_orb, ele, param, mat6, make_matrix)
+  call track_a_beambeam (end_orb, ele, param, mat6, make_matrix)
+
+!-----------------------------------------------
+! crab_cavity
+                        
+case (converter$)
+  call track_a_converter (end_orb, ele, param, mat6, make_matrix)
 
 !-----------------------------------------------
 ! crab_cavity
@@ -108,7 +114,7 @@ case (lcavity$)
 ! Note: floor_shift elements can have finite length in the case where it is a slice_slave of a taylor 
 ! element (the first slice is a taylor element and all other slices are floor_shifts).
 
-case (marker$, fork$, photon_fork$, floor_shift$, fiducial$, detector$, converter$)
+case (marker$, fork$, photon_fork$, floor_shift$, fiducial$, detector$)
 
   end_orb%t = end_orb%t + ele%value(delta_ref_time$)
 

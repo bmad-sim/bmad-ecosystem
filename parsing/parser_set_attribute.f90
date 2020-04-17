@@ -1036,7 +1036,7 @@ endif
 
 if (attrib_word == 'DISTRIBUTION') then
   if (.not. expect_this ('=', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
-  call parse_converter_distribution(ele, delim, delim_found)
+  call parse_converter_distribution(ele, delim, delim_found, err_flag)
   return
 endif
 
