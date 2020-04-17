@@ -45,7 +45,7 @@ SET(CFLAGS "${CMAKE_CXX_FLAGS}")
 # Add the executable, and link it to the Geant4 libraries
 #
 #target_link_libraries(converter_simulation ${Geant4_LIBRARIES})
-SET (LINK_LIBS
+SET (SHARED_LINK_LIBS
   stdc++fs
   ${Geant4_LIBRARIES}
   )
