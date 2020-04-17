@@ -25,7 +25,7 @@ integer i, n
 
 n = ubound(poly, 1)
 y = poly(n)
-do i = n-1, 0
+do i = n-1, 0, -1
   y = y * x + poly(i)
 enddo
 
