@@ -68,6 +68,8 @@ type stack_file_struct
   character(200) :: full_name = ''
   character(200) :: dir = './'
   character(n_parse_line) parse_line_saved  
+  character(n_parse_line) next_line_from_file
+  integer ios_next_line_from_file
   integer i_line
   integer f_unit
   logical inline_call_active

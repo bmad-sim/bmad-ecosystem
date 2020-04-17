@@ -347,8 +347,12 @@ case ('push', 'push_inline')
 
   if (how == 'push_inline') then
     file(i_level)%parse_line_saved = bp_com%parse_line
+    file(i_level)%next_line_from_file = bp_com%next_line_from_file
+    file(i_level)%ios_next_line_from_file = bp_com%ios_next_line_from_file
     file(i_level)%inline_call_active = .true.    
     bp_com%parse_line = '&'
+    bp_com%next_line_from_file = ''
+    bp_com%ios_next_line_from_file = 0
     bp_com%inline_call_active = .true.
   endif
 
@@ -451,6 +455,8 @@ case ('pop')
 
   if (bp_com%inline_call_active) then
     bp_com%parse_line = trim(bp_com%parse_line) // ' ' // file(i_level+1)%parse_line_saved
+    bp_com%next_line_from_file = file(i_level+1)%next_line_from_file
+    bp_com%ios_next_line_from_file = file(i_level+1)%ios_next_line_from_file
     bp_com%inline_call_active = file(i_level+1)%inline_call_active
   endif
 
