@@ -39,7 +39,7 @@ where $f_\text{rf}$ is the RF frequency, and $t_\text{eff}$ is the effective tim
 time tracking}, which \bmad uses by default, $t_\text{eff}$ is a function of the 
 phase space coordinate $z$ (\sref{s:phase.space}) via
 \begin{equation}
-  t_\text{eff}(s) = t_0(s) - t_0(s_\text{ent}) - \frac{z(s)}{(\beta \, c)}
+  t_\text{eff}(s) = t_0(s) - t_0(s_\text{ent}) - \frac{z(s)}{\beta \, c}
   \label{tttz}
 \end{equation}
 where $t_0$ is the reference time (see \Eq{zbctt}) and $s_\text{ent}$ is the $s$-position at the
@@ -419,7 +419,7 @@ and
 An incoming particle strickes the bottom of the converter. At some point within the interior, a new
 particle is generated and this new particle exits the top surface. To calculate the position and
 orientation of the outgoing particle, a coordinate system is established where the origin point
-$\calO'$ is the point that the incoming particle would strike the top surface if it went straight
+$\wt\calO$ is the point that the incoming particle would strike the top surface if it went straight
 through and the $(\xw,\yw)$ axes are randomly rotated with respect to the $(x,y)$ body coordinate axes.
 By construction, the position of the outgoing particle will be along the $\xw$-axis.
   }
@@ -458,7 +458,7 @@ The geometry of the converter is shown in \fig{f:converter}. On the top surface,
 particle emerges, $(x,y)$ are the axes for the element body coordinate system (\sref{s:coords.3}).
 To generate the position and orientation of the outgoing particle, another coordinate system is used
 with axes labeled by $(\xw,\yw)$. Each outgoing particle will be assigned its own $(\xw,\yw)$ axes. The
-origin $\calO'$ of this coordinate system is constructed by placing $\calO'$ at the point where the
+origin $\wt\calO$ of this coordinate system is constructed by placing $\wt\calO$ at the point where the
 incoming particle under consideration would strike the top surface if the incoming particle would
 pass straight through the converter. The angular orientation of the $(\xw,\yw)$ axes with respect to
 the $(x,y)$ axes is chosen by setting the orientation angle using a random number with a uniform
@@ -466,38 +466,45 @@ probability in the interval $[0, \pi]$. By construction, the outgoing particle, 
 the converter will be generated at a point along the $\xw$-axis.
 
 The particle distribution is calculated at a number of converter thickness $t_i$, $i = 1 \ldots
-N_t$. If the actual converter thickness is outside the range of these thicknesses, this is an
-error. The particle distribution is also calculated within a certain incoming particle momentum
-range. If an incoming particle has a momentum outside of this range, this is an error.
+N_t$. It is an error if the actual converter thickness is outside the range of these
+thicknesses. The particle distribution is also calculated within a certain incoming particle
+momentum range. It is also an error if an incoming particle has a momentum outside of this range.
 
-The first step is to choose the value of the momentum $p_\txt{out}$. For each thickness $t_i$, the
-precomputed particle distribution parameters includes a two-dimensional table of $P(p_\txt{out}, r)$ ---
-the probability density of creating an outgoing particle versus $p_\txt{out}$ and $r$ where $r$ is the
-distance from the origin $\calO'$ to where the outgoing particle leaves the surface. $P(p_\txt{out},r)$
-is normalized so that the integrated problability is equal to the average number of outgoing particles
-created for each incoming particle $N_\txt{out}/N_{in}$
+The first step is to choose the value of the outgoint particle's momentum $p_\txt{out}$. For each
+thickness $t_i$, the precomputed particle distribution parameters includes a two-dimensional table
+of $P(p_\txt{out}, r)$ --- the probability density of creating an outgoing particle versus
+$p_\txt{out}$ and $r$ where $r$ is the distance from the origin $\wt\calO$ to where the outgoing
+particle leaves the surface. $P(p_\txt{out},r)$ is normalized so that the integrated problability is
+equal to the average number of outgoing particles created for each incoming particle
+$N_\txt{out}/N_{in}$
 \begin{equation}
   \frac{N_\txt{out}}{N_{in}} = \int \int dp_\txt{out} \, dr \, P(p_\txt{out}, r)
 \end{equation}
-If the momentum or angular range of the outgoing particles is restricted using any of the three
-element parameters as discussed above, new ``normalized'' probability $P_{norm}(p_\txt{out},r)$ tables
-are computed. to save time, this ``setup'' computation step is only done if one of the three element
-parameters changes. Additionally, the setup computation includes creating a table of $I(p_\txt{out})$
-which is the integrated probability for generating a particle with momentum less than $p_\txt{out}$
+The integrals are done using linear interpolation between grid points.
+From a $P(p_\txt{out},r)$ probability table, a ``normalized'' probability
+$P_\txt{norm}(p_\txt{out},r)$ table is computed where $P_\txt{norm}$ is the
+probability of generating a particle at given $p_\txt{out}$ and $r$ with an angular range restricted
+by \vn{angle_out_max}. If \vn{angle_out_max} is not set, $P_\txt{norm}$ will be equal to $P$.  This
+calculation is part of a ``setup'' computation which, to save time, is only done if an one of the
+three element parameters, \vn{pc_out_min}, \vn{pc_out_max}, or \vn{angle_out_max},
+changes. Additionally, the setup includes creating a table of $I(p_\txt{out})$ which is
+the integrated probability for generating a particle with momentum less than $p_\txt{out}$
 \begin{equation}
-  I(p_\txt{out}) = \frac{\dstyle \int_{p_\txt{min}}^{p_\txt{out}} dp'_\txt{out} \int dr \, P_{norm}(p'_\txt{out}, r)}
+  I(p_\txt{out}) = \frac{\dstyle \int_{p_\txt{min}}^{p_\txt{out}} dp'_\txt{out} 
+  \int dr \, P_\txt{norm}(p'_\txt{out}, r)}
   {\dstyle \int_{p_\txt{min}}^{p_\txt{max}} dp'_\txt{out} \int dr \, P_{norm}(p'_\txt{out}, r)}
 \end{equation}
 where $p_\txt{min}$ is the minimum momentum in the $P(p_\txt{out}, r)$ table or the value of
 \vn{pc_out_min} which ever is greatest and $p_\txt{max}$ is the maximum momentum in the
-$P(p_\txt{out}, r)$ table or the value of \vn{pc_out_max} which ever is smallest. $I(p_\txt{out})$ is
-normalized such that $I(p_\txt{max}) = 1$. A value for $p_\txt{out}$ is generated using the
-$I(p_\txt{out})$ tables for the two $t_i$ thicknesses that straddle the actual thickness. The value of
-$p_\txt{out}$ assigned to the outgoing particle is obtained via linear interpolation between the two
-computed values at the two thicknesses. Note that for both thicknesses the same random number used
-in the computation.
+$P(p_\txt{out}, r)$ table or the value of \vn{pc_out_max} which ever is smallest. $I(p_\txt{out})$
+is normalized such that $I(p_\txt{max}) = 1$. A value for $p_\txt{out}$ is generated using the
+$I(p_\txt{out})$ tables for the two $t_i$ thicknesses that straddle the actual thickness. The value
+of $p_\txt{out}$ assigned to the outgoing particle is obtained via linear interpolation between the
+two computed values at the two thicknesses. Note that for both thicknesses the same random number
+needs to be used in the computation.
 
-The next step is to choose a value for $r$... 
+The next step is to choose a value for $r$. This is simply done by using a weighted average of the 
+$P(p_\txt{out}, r)$ columns at the 
 
 Once $p_\txt{out}$ and $r$ have been choisen, The next steps are to choose values for the outgoing
 angular orientation. The angular orientation is characterized by the distribution parameters using
@@ -567,9 +574,9 @@ where $\yw'_\txt{lim}$ is either the lesser of $\tan^{-1}(\text{angle_out_max})$
 value of $\yw'$ that the precomputed distribution parameters $\beta$, $c_x$, $\alpha_x$, and
 $\alpha_y$ were fit out to (typically something greater than 80$^\txt{o}$ from the perpendicular).
 A spline fit is used to integrate $I_{xd}$ and this is used to choose a value for $\xw'$. Once $xw'$
-is known, The integral of $P_d(\xw', \yw') over $\yw'$ is used to choose a value for $\yw'$.
+is known, The integral of $P_d(\xw', \yw')$ over $\yw'$ is used to choose a value for $\yw'$.
 
-Except for the placement of $\calO'$, the above algorithm for calculating the position and
+Except for the placement of $\wt\calO$, the above algorithm for calculating the position and
 orientation of the outgoing particle will be independent of the angular orientation of the incoming
 particle. This is valid for incoming particles that are traveling perpendicular to the converter
 surface. To the extent that the incoming particles are not perpendicular to the converter, this will

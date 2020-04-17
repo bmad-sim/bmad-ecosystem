@@ -29,17 +29,15 @@ type converter_param_storage_struct
   real(rp) pc_out, r
   real(rp) dx_ds, dy_ds
   logical :: lost = .false.
-  type (ele_struct), pointer :: ele
-  real(rp) dxy_ds_limit            ! Smaller of dxy_ds_max and atan(angle_out_max)
-  real(rp) pc_out_min, pc_out_max
   real(rp) beta, alpha_x, alpha_y, c_x, A_dir
 end type
 
 type converter_common_struct
-  type (converter_param_storage_struct) out
-  type (spline_struct) dx_ds_spline(0:n_pt)
   type (converter_prob_pc_r_struct), pointer :: ppcr
+  type (converter_distribution_struct), pointer :: dist
+  type (spline_struct) dx_ds_spline(0:n_pt)
   real(rp) dx_ds_integ(0:n_pt)
+  real(rp) r_ran, A_dir
   integer ipc
 end type
 
@@ -169,8 +167,8 @@ if (pc_in < dist%sub_dist(1)%pc_in .or. pc_in >= dist%sub_dist(nsd)%pc_in) then
 endif
 
 ix_sd = bracket_index(pc_in, dist%sub_dist%pc_in, 1, rsd)
-call calc_out_coords2 (ele, dist%sub_dist(ix_sd), r_ran, out1)
-call calc_out_coords2 (ele, dist%sub_dist(ix_sd+1), r_ran, out2)
+call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd), r_ran, out1)
+call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd+1), r_ran, out2)
 
 rsd2 = 1 - rsd
 out%pc_out = rsd2 * out1%pc_out + rsd * out2%pc_out
@@ -185,9 +183,10 @@ end subroutine calc_out_coords
 
 ! Calculate output coords for a given thickness and a given incoming particle energy.
 
-subroutine calc_out_coords2(ele, sub_dist, r_ran, out)
+subroutine calc_out_coords2(ele, dist, sub_dist, r_ran, out)
 
 type (ele_struct) ele
+type (converter_distribution_struct), target :: dist
 type (converter_sub_distribution_struct), target :: sub_dist
 type (converter_param_storage_struct) out
 type (converter_prob_pc_r_struct), pointer :: ppcr
@@ -197,7 +196,7 @@ integer ix, ix_pc, ix_r, n, status
 
 logical err_flag
 
-! Calc pc_out
+! pc_out calc
 
 ppcr => sub_dist%prob_pc_r
 ix_pc = bracket_index(r_ran(1), ppcr%integ_pc_out, 1, dpc)
@@ -212,7 +211,7 @@ else
   out%pc_out = (1-dpc) * ppcr%pc_out(ix_pc) + dpc * ppcr%pc_out(ix_pc+1)
 endif
 
-! Calc r
+! r calc
 
 ppcr%integ_r_ave = (1-dpc) * ppcr%integ_r(ix_pc,:) + dpc * ppcr%integ_r(ix_pc+1,:)
 ix_r = bracket_index(r_ran(2), ppcr%integ_r_ave(:), 1, dr)
@@ -220,103 +219,19 @@ out%r = (1-dr) * ppcr%r(ix_r) + dr * ppcr%r(ix_r+1)
 
 ! dx/ds calc
 
-rx = super_zbrent(dx_ds_func, 0.0_rp, real(n_pt, rp), 0.0_rp, 1e-4_rp, status)
-dx = 2 * out%dxy_ds_limit / n_pt
-out%dx_ds = -out%dxy_ds_limit + rx * dx
+call calc_dir_out_params(dist, sub_dist, out)
 
-! Now calc dy/ds
+com%r_ran = r_ran(3)
+com%A_dir = out%A_dir
+rx = super_zbrent(dx_ds_func, -dist%dxy_ds_limit, dist%dxy_ds_limit, 0.0_rp, 1e-4_rp, status)
+dx = 2 * dist%dxy_ds_limit / n_pt
+out%dx_ds = -dist%dxy_ds_limit + rx * dx
+
+! dy/ds calc
 
 out%dy_ds = sqrt((1 + out%alpha_x * (out%dx_ds - out%c_x)**2) / out%alpha_y) * tan(pi * (r_ran(4) - 0.5_rp))
 
 end subroutine calc_out_coords2
-
-!------------------------------------------------
-! contains
-
-subroutine calc_dir_out_params (sub_dist, out)
-
-type (converter_sub_distribution_struct), target :: sub_dist
-type (converter_param_storage_struct) out
-type (converter_beta_struct), pointer :: beta
-type (converter_alpha_struct), pointer :: alpha
-type (converter_c_x_struct), pointer :: c_x
-type (spline_struct), pointer :: spn(:)
-
-real(rp) dr, dx, x_min, x, rad, a_tan, b1
-real(rp), pointer :: integ(:)
-
-integer i, n, ix
-
-! beta calc
-
-beta => sub_dist%dir_out%beta
-n = size(beta%fit_1d_r)
-if (out%pc_out >= beta%fit_1d_r(n)%pc_out) then
-  out%beta = poly_eval(beta%poly_pc, out%pc_out) * poly_eval(beta%poly_r, out%r)
-else
-  ix = bracket_index(out%pc_out, beta%fit_1d_r%pc_out, 1, dr)
-  out%beta = (1 - dr) * poly_eval(beta%fit_1d_r(ix)%poly, out%pc_out) + &
-                   dr * poly_eval(beta%fit_1d_r(ix+1)%poly, out%pc_out) 
-endif
-
-! c_x calc
-
-c_x => sub_dist%dir_out%c_x
-out%c_x = poly_eval(c_x%poly_pc, out%pc_out) * poly_eval(c_x%poly_r, out%r)
-
-! Alpha_x calc
-
-alpha => sub_dist%dir_out%alpha_x
-n = size(alpha%fit_1d_r)
-if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
-  out%alpha_x = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
-                exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
-else
-  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
-  out%alpha_x = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
-                   dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
-endif
-
-! Alpha_y calc
-
-alpha => sub_dist%dir_out%alpha_y
-n = size(alpha%fit_1d_r)
-if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
-  out%alpha_y = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
-                exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
-else
-  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
-  out%alpha_y = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
-                   dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%pc_out) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
-endif
-
-! For dx/ds use a spine fit.
-
-spn => com%dx_ds_spline
-integ => com%dx_ds_integ
-integ(0) = 0
-dx = 2 * out%dxy_ds_limit / n_pt
-x_min = -out%dxy_ds_limit
-
-do i = 0, n_pt
-  x = x_min + i * dx
-  rad = 1.0_rp / sqrt(out%alpha_y * (1 + out%alpha_x * (x - out%c_x)**2))
-  a_tan = atan(out%alpha_y * rad * out%dxy_ds_limit)
-  b1 = 1 + out%beta * x
-
-  spn(i)%x0 = x
-  spn(i)%y0 = b1 * rad * a_tan
-  spn(i)%coef(1) = out%beta * rad * a_tan - b1 * a_tan * out%alpha_x * out%alpha_y * (x - out%c_x)
-
-  if (i > 0) then
-    spn(i-1) = create_a_spline([spn(i-1)%x0, spn(i-1)%y0], [spn(i)%x0, spn(i)%y0], spn(i-1)%coef(1), spn(i)%coef(1))
-    integ(i) = integ(i-1) + spline1(spn(i-1), dx, -1)
-  endif
-enddo
-
-out%A_dir = 1 / integ(n_pt)
-
-end subroutine calc_dir_out_params
 
 !------------------------------------------------
 ! contains
@@ -329,8 +244,8 @@ integer status, ix
 
 !
 
-ix = int(x)
-value = com%dx_ds_integ(ix) + spline1(com%dx_ds_spline(ix), x, -1)
+ix = bracket_index(x, com%dx_ds_spline%x0, 0)
+value = com%A_dir * (com%dx_ds_integ(ix) + spline1(com%dx_ds_spline(ix), x, -1)) - com%r_ran
 
 end function dx_ds_func
 
@@ -349,7 +264,7 @@ type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_param_storage_struct) out
 
 real(rp) prob
-real(rp) pc_out, r, A_dir
+real(rp) pc_out, A_dir
 integer id, isd, ipc, ir, npc, nr
 logical err_flag, ordered
 
@@ -374,12 +289,13 @@ enddo
 
 do id = 1, size(conv%dist)
   dist =>conv%dist(id)
-  out%dxy_ds_limit = dist%dxy_ds_max
-  if (ele%value(angle_out_max$) > 0) out%dxy_ds_limit = min(atan(ele%value(angle_out_max$)), out%dxy_ds_limit)
+  dist%dxy_ds_limit = dist%dxy_ds_max
+  if (ele%value(angle_out_max$) > 0) dist%dxy_ds_limit = min(atan(ele%value(angle_out_max$)), dist%dxy_ds_limit)
   do isd = 1, size(dist%sub_dist)
     sub_dist => dist%sub_dist(isd)
     dir_out => sub_dist%dir_out
 
+    com%dist => dist
     com%ppcr => sub_dist%prob_pc_r
     ppcr => sub_dist%prob_pc_r
     npc = size(ppcr%pc_out)
@@ -401,15 +317,14 @@ do id = 1, size(conv%dist)
     do ipc = 1, npc
       pc_out = ppcr%pc_out(ipc)
       do ir = 1, nr
-        r = ppcr%r(ir)
         out%pc_out = pc_out
-        out%r = r
-        out%dxy_ds_limit = dist%dxy_ds_max
-        call calc_dir_out_params (sub_dist, out)
+        out%r = ppcr%r(ir)
+        dist%dxy_ds_limit = dist%dxy_ds_max
+        call calc_dir_out_params (dist, sub_dist, out)
         A_dir = out%A_dir   ! A_dir is not normalized by angle_max.
-        out%dxy_ds_limit = dist%dxy_ds_limit
-        if (ele%value(angle_out_max$) > 0) out%dxy_ds_limit = min(atan(ele%value(angle_out_max$)), out%dxy_ds_limit)
-        call calc_dir_out_params (sub_dist, out)
+        dist%dxy_ds_limit = dist%dxy_ds_limit
+        if (ele%value(angle_out_max$) > 0) dist%dxy_ds_limit = min(atan(ele%value(angle_out_max$)), dist%dxy_ds_limit)
+        call calc_dir_out_params (dist, sub_dist, out)
         ppcr%p_norm(ipc,ir) = ppcr%prob(ipc,ir) * out%A_dir / A_dir  ! p_norm is normalized by angle_max
       enddo
     enddo
@@ -419,7 +334,7 @@ do id = 1, size(conv%dist)
       ppcr%integ_pc_out(ipc) = ppcr%integ_pc_out(ipc-1) + super_qromb_2D(p2_norm_func, ppcr%pc_out(ipc-1), ppcr%pc_out(ipc), &
                                                                                0.0_rp, ppcr%r(nr), 1e-4_rp, 0.0_rp, 2, err_flag)
     enddo
-    ppcr%integ_pc_out = ppcr%integ_pc_out(npc)
+    ppcr%integrated_prob = ppcr%integ_pc_out(npc)
     ppcr%integ_pc_out = ppcr%integ_pc_out / ppcr%integrated_prob
 
     ppcr%integ_r(:,1) = 0
@@ -458,7 +373,7 @@ iy = bracket_index(y, com%ppcr%r, 1, dy)
 ix2 = min(ix+1, nx)
 iy2 = min(iy+1, ny)
 
-if (x < com%ppcr%pc_out_min .or. x > com%ppcr%pc_out_max .or. y > com%out%dxy_ds_limit) then
+if (x < com%ppcr%pc_out_min .or. x > com%ppcr%pc_out_max .or. y > com%dist%dxy_ds_limit) then
   value = 0
   return
 endif
@@ -480,7 +395,7 @@ integer i, ix, ix2
 !
 
 do i = 1, size(r)
-  if (r(i) > com%out%dxy_ds_limit) then
+  if (r(i) > com%dist%dxy_ds_limit) then
     value(i) = 0
     cycle
   endif
@@ -491,5 +406,97 @@ enddo
 
 
 end function p1_norm_func
+
+!------------------------------------------------
+! contains
+
+subroutine calc_dir_out_params (dist, sub_dist, out)
+
+type (converter_distribution_struct), target :: dist
+type (converter_sub_distribution_struct), target :: sub_dist
+type (converter_param_storage_struct) out
+type (converter_beta_struct), pointer :: beta
+type (converter_alpha_struct), pointer :: alpha
+type (converter_c_x_struct), pointer :: c_x
+type (spline_struct), pointer :: spn(:)
+
+real(rp) dr, dx, x_min, x, rad, a_tan, b1
+real(rp), pointer :: integ(:)
+
+integer i, n, ix, ix2
+
+! beta calc
+
+beta => sub_dist%dir_out%beta
+n = size(beta%fit_1d_r)
+if (out%pc_out >= beta%fit_1d_r(n)%pc_out) then
+  out%beta = poly_eval(beta%poly_pc, out%pc_out) * poly_eval(beta%poly_r, out%r)
+else
+  ix = bracket_index(out%pc_out, beta%fit_1d_r%pc_out, 1, dr)
+  ix2 = min(ix+1, n)
+  out%beta = (1 - dr) * poly_eval(beta%fit_1d_r(ix)%poly, out%r) + &
+                   dr * poly_eval(beta%fit_1d_r(ix2)%poly, out%r) 
+endif
+
+! c_x calc
+
+c_x => sub_dist%dir_out%c_x
+out%c_x = poly_eval(c_x%poly_pc, out%pc_out) * poly_eval(c_x%poly_r, out%r)
+
+! Alpha_x calc
+
+alpha => sub_dist%dir_out%alpha_x
+n = size(alpha%fit_1d_r)
+if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
+  out%alpha_x = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
+                exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
+else
+  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
+  ix2 = min(ix+1, n)
+  out%alpha_x = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%r) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
+                   dr * poly_eval(alpha%fit_1d_r(ix2)%poly, out%r) * exp(-alpha%fit_1d_r(ix2)%k * out%r)
+endif
+
+! Alpha_y calc
+
+alpha => sub_dist%dir_out%alpha_y
+n = size(alpha%fit_1d_r)
+if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
+  out%alpha_y = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
+                exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
+else
+  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
+  ix2 = min(ix+1, n)
+  out%alpha_y = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%r) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
+                   dr * poly_eval(alpha%fit_1d_r(ix2)%poly, out%r) * exp(-alpha%fit_1d_r(ix2)%k * out%r)
+endif
+
+! For dx/ds use a spine fit.
+
+spn => com%dx_ds_spline
+integ => com%dx_ds_integ
+integ(0) = 0
+dx = 2 * dist%dxy_ds_limit / n_pt
+x_min = -dist%dxy_ds_limit
+
+do i = 0, n_pt
+  x = x_min + i * dx
+  rad = 1.0_rp / sqrt(out%alpha_y * (1 + out%alpha_x * (x - out%c_x)**2))
+  a_tan = atan(out%alpha_y * rad * dist%dxy_ds_limit)
+  b1 = 1 + out%beta * x
+
+  spn(i)%x0 = x
+  spn(i)%y0 = b1 * rad * a_tan
+  spn(i)%coef(1) = out%beta * rad * a_tan - b1 * a_tan * out%alpha_x * out%alpha_y * (x - out%c_x)
+
+  if (i > 0) then
+    spn(i-1) = create_a_spline([spn(i-1)%x0, spn(i-1)%y0], [spn(i)%x0, spn(i)%y0], spn(i-1)%coef(1), spn(i)%coef(1))
+    integ(i) = integ(i-1) + spline1(spn(i-1), dx, -1)
+  endif
+enddo
+
+out%A_dir = 1 / integ(n_pt)
+
+end subroutine calc_dir_out_params
 
 end subroutine track_a_converter
