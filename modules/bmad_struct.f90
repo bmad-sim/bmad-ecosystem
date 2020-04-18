@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 245
+integer, parameter :: bmad_inc_version$ = 246
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1343,6 +1343,7 @@ type lat_struct
   character(40) :: machine = ''                    ! Name of the machine the lattice is for ("LHC", etc).
   character(200) :: input_file_name = ''           ! Name of the lattice input file
   character(80) :: title = ''                      ! General title
+  character(100), allocatable :: print_str(:)      ! Saved print statements.
   type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
   type (mode_info_struct) a, b, z                  ! Tunes, etc. Note: Tunes are the fractional part.
   type (lat_param_struct) param                    ! Parameters

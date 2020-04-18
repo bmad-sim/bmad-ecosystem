@@ -306,12 +306,8 @@ subroutine parser_file_stack (how, file_name_in, finished, err, open_file)
 
 implicit none
 
-integer, parameter :: f_maxx = 20
-type (stack_file_struct), save, target :: file(0:f_maxx)
-
-integer, save :: i_level
 integer i, ix, ios, n, n_file
-
+integer, pointer :: i_level
 character(*) how
 character(*), optional :: file_name_in
 character(200) file_name, basename, file_name2
@@ -321,13 +317,15 @@ logical found_it, is_relative, valid, err_flag
 
 ! "Init" means init
 
+i_level => bp_com%i_file_level
 if (present(err)) err = .true.
 
 if (how == 'init') then
   i_level = 0
-  call fullfilename ('./', file(0)%dir)
+  call fullfilename ('./', bp_com%file(0)%dir)
   if (present(err)) err = .false.
   if (.not. allocated(bp_com%lat_file_names)) allocate(bp_com%lat_file_names(100))
+  bp_com%next_line_from_file = str_garbage$
   bp_com%inline_call_active = .false.
   return
 endif
@@ -345,19 +343,18 @@ case ('push', 'push_inline')
     if (global_com%exit_on_error) call err_exit
   endif
 
+  bp_com%file(i_level)%next_line_from_file = bp_com%next_line_from_file
+  bp_com%file(i_level)%ios_next_line_from_file = bp_com%ios_next_line_from_file
+  bp_com%next_line_from_file = str_garbage$
+
   if (how == 'push_inline') then
-    file(i_level)%parse_line_saved = bp_com%parse_line
-    file(i_level)%next_line_from_file = bp_com%next_line_from_file
-    file(i_level)%ios_next_line_from_file = bp_com%ios_next_line_from_file
-    file(i_level)%inline_call_active = .true.    
+    bp_com%file(i_level)%parse_line_saved = bp_com%parse_line
+    bp_com%file(i_level)%inline_call_active = .true.    
     bp_com%parse_line = '&'
-    bp_com%next_line_from_file = ''
-    bp_com%ios_next_line_from_file = 0
     bp_com%inline_call_active = .true.
   endif
 
-  bp_com%current_file => file(i_level)
-  bp_com%calling_file => file(i_level-1)
+  bp_com%current_file => bp_com%file(i_level)
 
   if (i_level == 1) then   ! if we are just starting out then init some vars.
     bp_com%num_lat_files = 0           ! total number of files opened
@@ -372,37 +369,37 @@ case ('push', 'push_inline')
     call parser_error ('MALFORMED FILE NAME: ' // file_name_in, stop_here = .true.)
     if (global_com%exit_on_error) call err_exit
     do i = 1, i_level-1
-      close (file(i_level)%f_unit)
+      close (bp_com%file(i_level)%f_unit)
     enddo
     return
   endif
 
-  ix = splitfilename (file_name2, file(i_level)%dir, basename, is_relative)
+  ix = splitfilename (file_name2, bp_com%file(i_level)%dir, basename, is_relative)
 
   if (bp_com%use_local_lat_file) then
     inquire (file = basename, exist = found_it, name = file_name2)
-    if (found_it) file(i_level)%dir = file(0)%dir
+    if (found_it) bp_com%file(i_level)%dir = bp_com%file(0)%dir
   else
     found_it = .false.
   endif
 
   if (is_relative .and. .not. found_it) then
-    call append_subdirectory (trim(file(i_level-1)%dir), file(i_level)%dir, file(i_level)%dir, err_flag)
+    call append_subdirectory (trim(bp_com%file(i_level-1)%dir), bp_com%file(i_level)%dir, bp_com%file(i_level)%dir, err_flag)
     if (err_flag) call parser_error ('BAD DIRECTORY SYNTAX FOR: ' // file_name, stop_here = .true.)
-    call append_subdirectory (file(i_level-1)%dir, file_name2, file_name2, err_flag)
+    call append_subdirectory (bp_com%file(i_level-1)%dir, file_name2, file_name2, err_flag)
   endif
 
   inquire (file = file_name2, exist = found_it, name = file_name)
 
-  file(i_level)%full_name = file_name
-  file(i_level)%f_unit = lunget()
+  bp_com%file(i_level)%full_name = file_name
+  bp_com%file(i_level)%f_unit = lunget()
 
   ! Note: open_file will be False when the file is a binary file.
 
   if (logic_option(.true., open_file)) then
-    open (file(i_level)%f_unit, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
+    open (bp_com%file(i_level)%f_unit, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
     if (ios /= 0 .or. .not. found_it) then
-      bp_com%current_file => file(i_level-1)  ! For warning
+      bp_com%current_file => bp_com%file(i_level-1)  ! For warning
       if (i_level == 1)  then !
         call parser_error ('UNABLE TO OPEN FILE: ' // file_name_in, &
                            '(FULL NAME: ' // trim(file_name) // ')', stop_here = .true.)
@@ -411,7 +408,7 @@ case ('push', 'push_inline')
                            'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in, stop_here = .true.)
       endif
       do i = 1, i_level-1
-        close (file(i_level)%f_unit)
+        close (bp_com%file(i_level)%f_unit)
       enddo
       return
     endif
@@ -447,17 +444,17 @@ case ('pop')
     call parser_error ('BAD "RETURN"')
     return
   elseif (i_level > 0) then
-    bp_com%current_file => file(i_level)
-    bp_com%calling_file => file(i_level-1)
+    bp_com%current_file => bp_com%file(i_level)
   else    ! i_level == 0
     if (present(finished)) finished = .true.
   endif
 
+  bp_com%next_line_from_file = bp_com%file(i_level+1)%next_line_from_file
+  bp_com%ios_next_line_from_file = bp_com%file(i_level+1)%ios_next_line_from_file
+
   if (bp_com%inline_call_active) then
-    bp_com%parse_line = trim(bp_com%parse_line) // ' ' // file(i_level+1)%parse_line_saved
-    bp_com%next_line_from_file = file(i_level+1)%next_line_from_file
-    bp_com%ios_next_line_from_file = file(i_level+1)%ios_next_line_from_file
-    bp_com%inline_call_active = file(i_level+1)%inline_call_active
+    bp_com%parse_line = trim(bp_com%parse_line) // ' ' // bp_com%file(i_level+1)%parse_line_saved
+    bp_com%inline_call_active = bp_com%file(i_level+1)%inline_call_active
   endif
 
   bp_com%inline_call_active = .false.
@@ -512,7 +509,7 @@ logical, optional :: err_flag
 if (action == 'init') then
   bp_com%parse_line = ''
   bp_com%have_saved_line = .false.
-  bp_com%next_line_from_file = ''
+  bp_com%next_line_from_file = str_garbage$
   bp_com%ios_next_line_from_file = 0  
   return
 endif
@@ -542,6 +539,11 @@ do
     bp_com%have_saved_line = .false.
 
   else
+    if (bp_com%next_line_from_file == str_garbage$) then
+      read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_line_from_file) bp_com%next_line_from_file
+      call string_trim(bp_com%next_line_from_file, bp_com%next_line_from_file, ix)
+    endif
+
     line = bp_com%next_line_from_file
     ios = bp_com%ios_next_line_from_file
 
@@ -551,7 +553,7 @@ do
         call parser_error ('FILE ENDED BEFORE PARSING FINISHED', stop_here = .true.)
         if (present(err_flag)) err_flag = .true.
       endif
-      bp_com%next_line_from_file = ''
+      bp_com%next_line_from_file = str_garbage$
       bp_com%ios_next_line_from_file = 0  
       return
     elseif (ios > 0) then
@@ -6978,8 +6980,7 @@ subroutine parser_print_line(lat, end_of_file)
 implicit none
 
 type (lat_struct) lat
-integer ix, ix2
-integer, pointer :: n_ptr
+integer ix, ix2, n
 real(rp) value
 logical end_of_file, err_flag, delim_found
 character(1) delim
@@ -7005,17 +7006,14 @@ do
   endif
 enddo
 
-! Save the print line to be stored in the digested file. 
-! It would be cleaner to use a different array than %lat_file_names for this but it works.
-n_ptr => bp_com%num_lat_files
-if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
-n_ptr = n_ptr + 1
-bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(print_line) ! To save in digested
+if (.not. allocated(lat%print_str)) then
+  allocate (lat%print_str(1))
+else
+  call re_allocate(lat%print_str, size(lat%print_str)+1)
+endif
+n = size(lat%print_str)
+lat%print_str(n) = trim(print_line) ! To save in digested file
 call out_io (s_important$, r_name, 'Message in Lattice File: ' // print_line, insert_tag_line = .false.)
-
-! This prevents bmad_parser from thinking print string is a command.
-call load_parse_line ('init', 1, end_of_file)
-
 
 end subroutine parser_print_line
 
