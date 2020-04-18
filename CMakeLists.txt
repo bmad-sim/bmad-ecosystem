@@ -20,6 +20,7 @@ set (EXE_SPECS
   cmake.mode_flip_test
   cmake.mode3_test
   cmake.multipass_test
+  cmake.object_test
   cmake.parse_test
   cmake.particle_species_test
   cmake.patch_test
