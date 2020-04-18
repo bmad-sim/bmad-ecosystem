@@ -1059,7 +1059,7 @@ def get_next_command ():
           common.command = line[ix+1:]
           return [command, dlist]
 
-        elif line[ix] in ':,=':
+        elif line[ix] in '{}:,=':
           command += line[:ix+1]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           dlist.append(line[ix])
