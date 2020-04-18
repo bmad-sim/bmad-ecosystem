@@ -64,6 +64,8 @@ end type
 ! %parse_line_saved is used with inline calls to save the rest of the line of the current file
 ! while the called file is being parsed.
 
+integer, parameter :: f_maxx = 20
+
 type stack_file_struct
   character(200) :: full_name = ''
   character(200) :: dir = './'
@@ -124,11 +126,12 @@ type bp_const_struct
 end type
 
 type bp_common_struct
+  type (stack_file_struct) :: file(0:f_maxx)
   type (stack_file_struct), pointer :: current_file
-  type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
   type (bp_const_struct), allocatable :: const(:)   ! Constant name
   type (extra_parsing_info_struct) extra
+  integer :: i_file_level
   integer num_lat_files               ! Number of files opened
   integer i_const_tot, i_const_init
   integer ios_next_line_from_file

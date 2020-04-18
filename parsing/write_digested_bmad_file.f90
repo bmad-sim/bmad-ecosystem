@@ -37,7 +37,7 @@ real(rp) value(num_ele_attrib$)
 
 integer, intent(in), optional :: n_files
 integer d_unit, i, j, k, n, nk, n_file, ix_value(num_ele_attrib$), ierr
-integer stat_b(24), stat, n_wake, n_wall_section, n_custom
+integer stat_b(24), stat, n_wake, n_wall_section, n_custom, n_print
 integer, allocatable :: ix_ele_wake(:)
 integer, allocatable :: index_list(:)
 
@@ -96,15 +96,18 @@ enddo
 
 n_custom = -1
 if (allocated(lat%custom)) n_custom = size(lat%custom)
+n_print = -1
+if (allocated(lat%print_str)) n_print = size(lat%print_str)
 write (d_unit) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
 write (d_unit) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 write (d_unit) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
 write (d_unit) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
-write (d_unit) ubound(lat%branch, 1), lat%pre_tracker, n_custom
+write (d_unit) ubound(lat%branch, 1), lat%pre_tracker, n_custom, n_print
 
 ! Global custom
 
 if (n_custom /= -1) write(d_unit) lat%custom
+if (n_print /= -1) write (d_unit) lat%print_str
 
 ! Defined constants and custom attributes
 

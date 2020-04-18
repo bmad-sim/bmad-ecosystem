@@ -44,7 +44,7 @@ real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, nk, control_type, coupler_at
-integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2, io_err_level, n_custom
+integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2, io_err_level, n_custom, n_print
 integer, allocatable :: index_list(:)
 
 character(*) digested_file
@@ -140,8 +140,6 @@ do i = 1, n_files
     cycle
   endif
 
-  if (fname_read(1:7) == '!PRINT:') cycle  ! Only print at end if no errors.
-
   call simplify_path (fname_read, fname_read)
 
   is_ok = .true.
@@ -175,7 +173,7 @@ read (d_unit, err = 9030) lat%use_name, lat%machine, lat%lattice, lat%input_file
 read (d_unit, err = 9030) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
 read (d_unit, err = 9030) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
 read (d_unit, err = 9030) lat%input_taylor_order, lat%absolute_time_tracking, lat%photon_type
-read (d_unit, err = 9070) n_branch, lat%pre_tracker, n_custom
+read (d_unit, err = 9070) n_branch, lat%pre_tracker, n_custom, n_print
 
 ! Different compilers (EG ifort and gfortran) will produce different binary formats. 
 ! As a double check, check the version number again.
@@ -187,11 +185,16 @@ if (lat%version /= bmad_inc_version$) then
   return
 endif
 
-! Global custom
+! Global custom & print statements
 
 if (n_custom > -1) then
   call re_allocate(lat%custom, n_custom)
   read (d_unit, err = 9070) lat%custom
+endif
+
+if (n_print > -1) then
+  call re_allocate(lat%print_str, n_print)
+  read (d_unit, err = 9070) lat%print_str
 endif
 
 ! Defined constants and custom attributes
@@ -358,11 +361,9 @@ inc_version = file_version
 
 if (present(err_flag)) err_flag = err_found
 
-if (.not. err_found) then
-  do i = 1, size(file_names)
-    fname_read = file_names(i)
-    if (fname_read(1:7) /= '!PRINT:') cycle
-    call out_io (s_dwarn$, r_name, 'Print Message in Lattice File: ' // fname_read(8:))
+if (.not. err_found .and. allocated(lat%print_str)) then
+  do i = 1, size(lat%print_str)
+    call out_io (s_dwarn$, r_name, 'Print Message in Lattice File: ' // lat%print_str(i))
   enddo
 endif
 
