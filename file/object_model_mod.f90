@@ -580,25 +580,23 @@ end subroutine object_print
 subroutine subobject_reallocate(obj, n)
 
 type (object_struct), target :: obj, temp
-integer n
+integer n, ix
 
 !
 
 if (.not. associated(obj%child)) then
   allocate (obj%child(n))
   obj%n_child = 0
-  return
+else
+  if (size(obj%child) >= n) return
+  temp%child => obj%child
+  allocate(obj%child(n))
+  obj%child(1:size(temp%child)) = temp%child
+  deallocate(temp%child)
 endif
 
-if (size(obj%child) >= n) return
-
-temp%child => obj%child
-allocate(obj%child(n))
-obj%child(1:size(temp%child)) = temp%child
-deallocate(temp%child)
-
-do n = 1, size(obj%child)
-  obj%child(n)%parent => obj
+do ix = 1, size(obj%child)
+  obj%child(ix)%parent => obj
 enddo
 
 end subroutine subobject_reallocate
