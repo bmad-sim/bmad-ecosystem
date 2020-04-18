@@ -50,13 +50,12 @@ end type
 complex(rp), parameter :: i_imaginary = (0.0d0, 1.0d0)
 complex(rp), parameter :: i_imag = (0.0d0, 1.0d0)
   
-! real_garbage$ and int_garbage$ can be used, for example, to identify
-! variable that have not been set.
-! For string garbage use null_name$.
+! real_garbage$ and int_garbage$ can be used, for example, to identify variables that have not been set.
+! For string garbage use str_garbage$ or null_name$.
 
 integer, parameter :: int_garbage$ = -987654
 real(rp), parameter :: real_garbage$ = -987654.3
-character(*), parameter :: null_name$ = '!NULL' 
+character(*), parameter :: null_name$ = '!NULL', str_garbage$ = 'Garbage 5%+K?s@`'
 
 ! lf$ (the line feed or LF character) can be used to encode a multiline string.
 ! EG: string = 'First Line' // lf$ // 'Second Line'
