@@ -1,6 +1,6 @@
 set (EXENAME converter_fitter)
-set (SRC_DIRS
-  converter_element_modeling/fitter
+file (GLOB SRC_FILES
+  converter_element_modeling/fitter/*.cpp
   )
 set (INC_DIRS
   converter_element_modeling/fitter

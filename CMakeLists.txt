@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 project(ACC)
 
-set (EXE_SPECS 
+set (EXE_SPECS
+  cmake.converter_simulation
+  cmake.converter_fitter
   cmake.beam_file_translate_format
   cmake.ptc_flat_file_to_bmad
   cmake.make_a_matching_knob
