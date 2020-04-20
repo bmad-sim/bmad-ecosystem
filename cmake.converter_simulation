@@ -16,10 +16,9 @@ endif()
 # Setup include directory for this project
 #
 include(${Geant4_USE_FILE})
-#include_directories(${CONVERTER_SIM_DIR}/include)
-get_property(geant_inc_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+get_property(INC_DIRS DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 set(INC_DIRS
-  geant_inc_dirs
+  ${INC_DIRS}
   ${CONVERTER_SIM_DIR}/include
   )
 
@@ -27,8 +26,6 @@ set(INC_DIRS
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
 #
-file(GLOB sources ${CONVERTER_SIM_DIR}/src/*.cpp)
-file(GLOB headers ${CONVERTER_SIM_DIR}/include/*.hpp)
 file(GLOB SRC_FILES
   ${CONVERTER_SIM_DIR}/src/*.cpp
   ${CONVERTER_SIM_DIR}/main.cpp
@@ -44,9 +41,7 @@ SET(CFLAGS "${CMAKE_CXX_FLAGS}")
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-#target_link_libraries(converter_simulation ${Geant4_LIBRARIES})
 SET (SHARED_LINK_LIBS
   stdc++fs
   ${Geant4_LIBRARIES}
   )
-#set_property(SOURCE SRC_FILES PROPERTY CXX_STANDARD 17)
