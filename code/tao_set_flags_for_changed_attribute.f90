@@ -28,6 +28,8 @@ character(*) ele_name
 
 ! If the beginning element is modified, need to reinit any beam distribution.
 
+u%calc%lattice = .true.
+
 if (ele_name == 'PARTICLE_START') return
 
 if (present(ele_ptr)) then
@@ -36,7 +38,5 @@ if (present(ele_ptr)) then
     if (present(val_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
   endif
 endif
-
-u%calc%lattice = .true.
 
 end subroutine tao_set_flags_for_changed_attribute
