@@ -31,7 +31,7 @@
 !   type_floor_coords -- Logical, optional: If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !                          Default is False.
-!   type_field        -- Logical, optional: If True then print field maps. Default is False.
+!   type_field        -- Logical, optional: If True then print field maps, converter info, etc. Default is False.
 !   type_wall         -- Logical, optional: If True then print wall info. Default is False.
 !
 ! Output       
@@ -381,6 +381,13 @@ endif
 
 if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
   call encode_2nd_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
+endif
+
+! Converter
+
+if (associated(ele%converter)) then
+  do i = 1, size(ele%converter%dist)
+  enddo
 endif
 
 ! Cartesian map

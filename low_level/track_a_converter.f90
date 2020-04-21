@@ -420,7 +420,7 @@ type (converter_alpha_struct), pointer :: alpha
 type (converter_c_x_struct), pointer :: c_x
 type (spline_struct), pointer :: spn(:)
 
-real(rp) dr, dx, x_min, x, rad, a_tan, b1
+real(rp) dr, dx, x_min, x, rad, a_tan, b1, drad, arg
 real(rp), pointer :: integ(:)
 
 integer i, n, ix, ix2
@@ -482,12 +482,14 @@ x_min = -dist%dxy_ds_limit
 do i = 0, n_pt
   x = x_min + i * dx
   rad = 1.0_rp / sqrt(out%alpha_y * (1 + out%alpha_x * (x - out%c_x)**2))
-  a_tan = atan(out%alpha_y * rad * dist%dxy_ds_limit)
+  drad = -out%alpha_x * out%alpha_y * (x - out%c_x)
+  arg = out%alpha_y * rad * dist%dxy_ds_limit
+  a_tan = atan(arg)
   b1 = 1 + out%beta * x
 
   spn(i)%x0 = x
   spn(i)%y0 = b1 * rad * a_tan
-  spn(i)%coef(1) = out%beta * rad * a_tan - b1 * a_tan * out%alpha_x * out%alpha_y * (x - out%c_x)
+  spn(i)%coef(1) = out%beta * rad * a_tan + b1 * drad * (rad /(1 + arg**2) + a_tan)
 
   if (i > 0) then
     spn(i-1) = create_a_spline([spn(i-1)%x0, spn(i-1)%y0], [spn(i)%x0, spn(i)%y0], spn(i-1)%coef(1), spn(i)%coef(1))
