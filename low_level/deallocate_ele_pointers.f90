@@ -43,6 +43,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%descrip)
   nullify (ele%ac_kick)
   nullify (ele%control)
+  nullify (ele%converter)
   nullify (ele%cartesian_map)
   nullify (ele%cylindrical_map)
   nullify (ele%taylor_field)
@@ -75,6 +76,7 @@ endif
 
 if (associated (ele%descrip))                   deallocate (ele%descrip)
 if (associated (ele%control))                   deallocate (ele%control)
+if (associated (ele%converter))                 deallocate (ele%converter)
 if (associated (ele%rad_int_cache))             deallocate (ele%rad_int_cache)
 if (associated (ele%r))                         deallocate (ele%r)
 if (associated (ele%custom))                    deallocate (ele%custom)

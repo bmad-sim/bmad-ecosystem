@@ -745,6 +745,189 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Converter}
+\label{s:converter}
+\index{converter|hyperbf}
+
+A \vn{converter} element represents a target (plate) onto which particles are slammed in order to generate
+particles of a different type. For example, a tungsten plate which is bombarded with electrons to
+generate positrons.
+
+General \vn{custom} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
+  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
+  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
+  Integration settings       & \ref{s:integ}     & Superposition              & \ref{s:super}   \\
+                             &                   & Tracking \& transfer map   & \ref{c:methods} \\ 
+  \bottomrule
+\end{tabular}
+\end{center}
+
+The attributes specific to an \vn{converter} are 
+\begin{example}
+  distribution    = <Struct>    ! Outgoing particle distribution.
+  pc_out_min      = <Real>      ! Minimum outgoing particle momentum (eV).
+  pc_out_max      = <Real>      ! Maximum outgoing particle momentum (eV).
+  angle_out_max   = <Real>      ! Maximum outgoing angle.
+  species_out     = <SpeciesID> ! Output species.
+  beta_a_out      = <Real>      ! Output a-mode beta.
+  beta_b_out      = <Real>      ! Output b-mode beta.
+  alpha_a_out     = <Real>      ! Output a-mode alpha.
+  alpha_b_out     = <Real>      ! Output b-mode alpha
+  eta_x_out       = <Real>      ! Output horizontal dispersion.
+  eta_y_out       = <Real>      ! Output vertical dispersion
+  etap_x_out      = <Real>      ! Output horizontal dispersion derivative.
+  etap_y_out      = <Real>      ! Output vertical dispersion derivative.
+\end{example}
+
+The species of the outgoing particles is specified by the \vn{species_out} parameter
+(\sref{s:species.name}).
+
+To have the reference energy and reference particle for the elements downstream of a converter match
+the output from a converter, the converter should be first element in a lattice branch
+(\sref{s:branch.def}). A \vn{fork} (\sref{s:fork}) element can be used to connect the line
+containing the elements that come before the converter to the line containing the
+converter. Example:
+\begin{example}
+  parameter[particle] = electron
+  parameter[geometry] = open
+  to_cvter: fork, to_line = post_linac
+  cvter, species_out = positron
+  pre_linac: line = (..., to_cvter) ! to_cvter fork last element in the line.
+  post_linac: line = (cvter, ...)   ! cvter element first element in the line.
+  post_linac[particle] = positron
+  post_linac[p0c] = 3e6
+  use, pre_linac
+\end{example}
+The line before the converter, \vn{pre_linac}, ends in a \vn{fork} element called \vn{to_cvter}
+which connects to the line named \vn{post_linac} containing the converter. The reference particle
+for the \vn{post_linac} line is set to \vn{positron} in contrast to the \vn{pre_linac} line where
+\vn{electron}s are the reference particles. It is not manditory for the reference particle of the
+branch containing the \vn{converter} to be the same as the \vn{species_out} parameter of the
+converter itself though typically this will be what is wanted.
+
+The \vn{distribution} parameter of a \vn{converter} element specifies the distribtion of outgoing
+particles for a given converter thickness. Multiple \vn{distribution} instances with differing
+thicknesses may be present in an element. The actual thickness of the converter will be taken to be
+the element's, length \vn{L} parameter. During tracking, the outgoing distribution will be computed
+by interpolating between the two distributions that bracket the actual thickness. The exception is
+when there is only one\vn{distribution} present. In this case, the calculation will just used the
+distribution for the calculation independent of the element length and the \vn{thickness} as set in
+the distribution.
+
+If there are multiple \vn{distributition}s, specifying an element length that is outside the range
+of thicknesses will generate an error.
+
+There is a program called \vn{converter_element_modeling} which caculates converter output
+distributions. This program outputs text of the correct format which then can be used when
+constructing converter elements. The \vn{converter_element_modeling} program is based upon the
+\vn{Geant} simulation toolkit for the simulation of the passage of particles through matter. The
+\vn{converter_element_modeling} program is distributed with \bmad. Specifically, it is in the
+directory
+\begin{example}
+  \$ACC_ROOT_DIR/util_programs/converter_element_modeling
+\end{example}
+[See your local \bmad Geru if you don't know how to find this directory.] There is documentation for
+running the program in this directory.
+
+The mechanics of how \bmad generates outgoing particles is discussed in \Sref{s:converter.track}.
+In a tracking simulation, a single outgoing particle is generated for each incoming particle.  All
+outgoing particles will be assigned a \vn{weight} that represent how many actual outgoing particles
+a single actual incoming particle will generate. For example, if an actual incoming particle with a
+particular momentum would generagte, on average, 0.42 particles, the outgoing particle in the
+simulation will have a weight of 0.42.  To make simulations more efficient, the \vn{pc_out_min},
+\vn{pc_out_max}, and \vn{angle_out_max} parameters can be set to restrict the momentum and angle
+range of outgoing particles. If the outgoing particles are restricted in momentum or angle, the
+weight of the outgoing particles will be approriately adjusted such that the weighted distribution
+of outgoing particles within the momentum and/or angle restricted range is independent of the
+whether or not there is are restrictions.  A value of zero (the default) for any one of these
+parameters means that that parameter is ignored.
+
+A converter element does not have a well defined transfer matrix. Rather, the Twiss and dispersion
+parameters are specified at the exit surface of the converter
+\begin{example}
+  beta_a_out     beta_b_out 
+  alpha_a_out    alpha_b_out
+  eta_x_out      eta_y_out  
+  etap_x_out     etap_y_out 
+\end{example} 
+
+%-----------------------------------------------------------------
+\section{Crab_Cavity}
+\label{s:crab}
+\index{crab_cavity|hyperbf}
+
+A \vn{crab_cavity} is an RF cavity that gives a $z$-dependent kick. This is useful in colliding beam
+machines, where there is a finite crossing angle at the interaction point, to rotate the beams near the IP.
+
+General \vn{crab_cavity} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
+  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.crab.cavity} for a full list of element attributes.
+
+The attributes specific to an \vn{crab_cavity} are 
+\index{gradient}\index{phi0}\index{n_cell}
+\index{phi0_multipass}\index{e_loss}
+\index{rf_frequency}\index{voltage}\index{cavity_type}
+\begin{example}
+  gradient        = <Real>    ! Accelerating gradient (V/m).
+  phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
+                              !   respect to the RF. phi0 = 0 is on crest.
+  phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  rf_frequency    = <Real>    ! RF frequency (Hz).
+  voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
+\end{example}
+
+The Hamiltonian  $H_{\text{crab}}$ for a thin crab cavity is\cite{b:crab1}:
+\begin{equation}
+  H_{\text{crab}} = -\frac{q_{rel} \, V\, x}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0)
+\end{equation}
+where $x$ and $z$ are particle coordinates, $q_{rel}$ is the charge relative to the reference
+particle, $V$ is the ``effective'' cavity voltage, $P_0$ is the reference energy, $\phi_0$ is a user settable
+phase, and $k$ is the wave number
+\begin{equation}
+  k = \frac{2 \, \pi \, f_{\text{rf}}}{c}
+\end{equation}
+Which give kicks 
+\begin{align} 
+  \Delta p_x &= -\frac{\partial H_{\text{crab}}}{\partial x} = 
+    \frac{q_{rel} \, V}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
+  \Delta p_z &= -\frac{\partial H_{\text{crab}}}{\partial z} = 
+    \frac{q_{rel} \, V \, \, k \, x}{c \, P_0} \, \cos(k \, z + 2 \, \pi \, \phi_0) 
+\end{align} 
+Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not standardized. \bmad
+uses the convention such that a particle with the charge of the reference particle and with $z$ and
+$V$ positive will have a positive $\Delta p_x$.
+
+The equations of motion can also be derived from analysis of a TM110 cavity mode for particles near
+the centerline\cite{b:kim}. With this mode, the transverse kick is due to the magnetic field and the
+longitudinal kick is due to the electric field. Using this, the integrated electric and magnetic
+fields needed for spin tracking are:
+\begin{align}
+  \int \! B_y &= \frac{-V}{c} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
+  \int \! E_s &=  \beta \, V \, \, k \, x \, \cos(k \, z + 2 \, \pi \, \phi_0) 
+\end{align}
+where $\beta = v/c$ is the normalized speed of the particle.
+
+%-----------------------------------------------------------------
 \section{Crystal}
 \label{s:crystal}
 \index{crystal|hyperbf}
@@ -965,188 +1148,6 @@ an integer number of mosaic layers. That is
   T_m(\text{in simulation} = \frac{T}{\text{nint} (T/T_m)}
 \end{equation}
 where $T$ is the crystal thickness and \vn{nint} is the nearest integer function.
-
-%-----------------------------------------------------------------
-\section{Converter}
-\label{s:converter}
-\index{converter|hyperbf}
-
-A \vn{converter} element represents a target onto which particles are slammed in order to generate
-particles of a different type. For example, a tungsten plate which is bombarded with electrons to
-generate positrons.
-
-General \vn{custom} attributes are:
-\begin{center}
-\tt
-\begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \\
-  Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \\
-  Custom Attributes          & \ref{s:cust.att}  & Offsets, pitches \& tilt   & \ref{s:offset}  \\
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \\ 
-  Integration settings       & \ref{s:integ}     & Superposition              & \ref{s:super}   \\
-                             &                   & Tracking \& transfer map   & \ref{c:methods} \\ 
-  \bottomrule
-\end{tabular}
-\end{center}
-
-The attributes specific to an \vn{converter} are 
-\begin{example}
-  distribution    = <Struct>    ! Outgoing particle distribution.
-  pc_out_min      = <Real>      ! Minimum outgoing particle momentum (eV).
-  pc_out_max      = <Real>      ! Maximum outgoing particle momentum (eV).
-  angle_out_max   = <Real>      ! Maximum outgoing angle.
-  species_out     = <SpeciesID> ! Output species.
-  E_tot           = <Real>      ! Output reference energy (eV).
-  P0c             = <Real>      ! Output reference momentum (eV).
-  beta_a_out      = <Real>      ! Output a-mode beta.
-  beta_b_out      = <Real>      ! Output b-mode beta.
-  alpha_a_out     = <Real>      ! Output a-mode alpha.
-  alpha_b_out     = <Real>      ! Output b-mode alpha
-  eta_x_out       = <Real>      ! Output horizontal dispersion.
-  eta_y_out       = <Real>      ! Output vertical dispersion
-  etap_x_out      = <Real>      ! Output horizontal dispersion derivative.
-  etap_y_out      = <Real>      ! Output vertical dispersion derivative.
-\end{example}
-
-The species of the outgoing particles is specified by the \vn{species_out} parameter
-(\sref{s:species.name}).
-
-The reference energy \sref{s:ref.energy}) can be set by setting the reference total energy, \vn{E_tot}
-or the reference momentum \vn{p0c}. One of these must be set but not both.
-
-A converter element must be the first element in a lattice branch (\sref{s:branch.def}) excepting
-possible \vn{marker} elements. A \vn{fork} (\sref{s:fork}) element may be used to connect the
-elements that come before the converter to the converter. Example:
-\begin{example}
-  parameter[particle] = electron
-  parameter[geometry] = open
-  to_cvter: fork, to_line = post_linac
-  cvter, species_out = positron, p0c = 3e6
-  pre_linac: line = (..., to_cvter)
-  post_linac: line = (cvter, ...)
-  post_linac[particle] = positron
-  use, pre_linac
-\end{example}
-The line before the converter, \vn{pre_linac}, ends in a \vn{fork} element called \vn{to_cvter}
-which connects to the line named \vn{post_linac} containing the converter. The reference particle
-for the \vn{post_linac} line is set to \vn{positron} in contrast to the \vn{pre_linac} line where
-\vn{electron}s are the reference particles. It is not manditory for the reference particle of the
-branch containing the \vn{converter} to be the same as the \vn{species_out} parameter of the
-converter itself though typically this will be what is wanted.  In the above example, the reference
-momentum of the \vn{converter} is set to 3~MeV and this reference momentum will used in the rest of
-the \vn{post_linac} line up to any possible \vn{lcavity} elements. The reference energy for any
-possible marker elements before the \vn{converter} in the \vn{post_linac} line will be automatically
-set to the reference energy in the \vn{pre_linac} line at the \vn{fork} element.
-
-The \vn{distribution} parameter specifies the distribtion of outgoing particles for a given
-converter thickness. Multiple \vn{distribution} instances with differing thicknesses may be present
-in an element. The actual thickness of the converter will be taken to be the element's, length
-\vn{L} parameter. During tracking, the outgoing distribution will be computed by interpolating
-between the two distributions that bracket the actual thickness. The exception is when there is only
-one\vn{distribution} present. In this case, the element length is ignored that the supplied
-distribution will be used independent of the \vn{thickness} set in the distribution. If there are
-multiple \vn{distributition}s, specifying an element length that is outside the range of thicknesses
-will generate an error.
-
-There is a program called \vn{converter_element_modeling} which caculates converter output
-distributions. This program outputs text of the correct format which then can be used when
-constructing converter elements. The \vn{converter_element_modeling} program is based upon the
-\vn{Geant} simulation toolkit for the simulation of the passage of particles through matter. The
-\vn{converter_element_modeling} program is distributed with \bmad. Specifically, it is in the
-directory
-\begin{example}
-  \$ACC_ROOT_DIR/util_programs/converter_element_modeling
-\end{example}
-[See your local \bmad Geru if you don't know how to find this directory.] There is documentation for
-running the program in this directory.
-
-When tracking, for every particle impinging on a target, one outgoing particle will be generated.
-All outgoing particles will be assigned a \vn{weight} that represent how many outgoing particles
-a single incoming particle will generate. For example, if an incoming particle with a particular
-momentum would generagte 0.42 particles on average, the outgoing particle will have a weight of 0.42.
-
-In a tracking simulation, a single outgoing particle is generated for each incoming particle.
-To make simulations more efficient, the \vn{pc_out_min}, \vn{pc_out_max}, and \vn{angle_out_max}
-parameters can be set to restrict the momentum and angle range of outgoing particles. If the outgoing
-particles are restricted in momentum or angle, the weight of the outgoing particles will be
-approriately adjusted such that the weighted distribution of outgoing particles within the momentum
-and/or angle restricted range is independent of the whether or not there is are restrictions.
-A value of zero (the default) for any one of these parameters means that that parameter is not used.
-
-A converter element does not have a well defined transfer matrix. 
-The Twiss and dispersion parameters
-
-
-%-----------------------------------------------------------------
-\section{Crab_Cavity}
-\label{s:crab}
-\index{crab_cavity|hyperbf}
-
-A \vn{crab_cavity} is an RF cavity that gives a $z$-dependent kick. This is useful in colliding beam
-machines, where there is a finite crossing angle at the interaction point, to rotate the beams near the IP.
-
-General \vn{crab_cavity} attributes are:
-\begin{center}
-\tt
-\begin{tabular}{llll} \toprule
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}      \\
-  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
-  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
-  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\
-  \bottomrule
-\end{tabular}
-\end{center}
-\toffset
-See \sref{s:list.crab.cavity} for a full list of element attributes.
-
-The attributes specific to an \vn{crab_cavity} are 
-\index{gradient}\index{phi0}\index{n_cell}
-\index{phi0_multipass}\index{e_loss}
-\index{rf_frequency}\index{voltage}\index{cavity_type}
-\begin{example}
-  gradient        = <Real>    ! Accelerating gradient (V/m).
-  phi0            = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
-                              !   respect to the RF. phi0 = 0 is on crest.
-  phi0_multipass  = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
-  rf_frequency    = <Real>    ! RF frequency (Hz).
-  voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
-\end{example}
-
-The Hamiltonian  $H_{\text{crab}}$ for a thin crab cavity is\cite{b:crab1}:
-\begin{equation}
-  H_{\text{crab}} = -\frac{q_{rel} \, V\, x}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0)
-\end{equation}
-where $x$ and $z$ are particle coordinates, $q_{rel}$ is the charge relative to the reference
-particle, $V$ is the ``effective'' cavity voltage, $P_0$ is the reference energy, $\phi_0$ is a user settable
-phase, and $k$ is the wave number
-\begin{equation}
-  k = \frac{2 \, \pi \, f_{\text{rf}}}{c}
-\end{equation}
-Which give kicks 
-\begin{align} 
-  \Delta p_x &= -\frac{\partial H_{\text{crab}}}{\partial x} = 
-    \frac{q_{rel} \, V}{c \, P_0} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
-  \Delta p_z &= -\frac{\partial H_{\text{crab}}}{\partial z} = 
-    \frac{q_{rel} \, V \, \, k \, x}{c \, P_0} \, \cos(k \, z + 2 \, \pi \, \phi_0) 
-\end{align} 
-Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not standardized. \bmad
-uses the convention such that a particle with the charge of the reference particle and with $z$ and
-$V$ positive will have a positive $\Delta p_x$.
-
-The equations of motion can also be derived from analysis of a TM110 cavity mode for particles near
-the centerline\cite{b:kim}. With this mode, the transverse kick is due to the magnetic field and the
-longitudinal kick is due to the electric field. Using this, the integrated electric and magnetic
-fields needed for spin tracking are:
-\begin{align}
-  \int \! B_y &= \frac{-V}{c} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
-  \int \! E_s &=  \beta \, V \, \, k \, x \, \cos(k \, z + 2 \, \pi \, \phi_0) 
-\end{align}
-where $\beta = v/c$ is the normalized speed of the particle.
 
 %-----------------------------------------------------------------
 \section{Custom}

@@ -567,12 +567,18 @@ do i = 1, n_key$
   if (i == lcavity$ .or. i == em_field$ .or. i == custom$) then
     call init_attribute_name1 (i, E_tot$,                  'E_TOT', dependent$)
     call init_attribute_name1 (i, p0c$,                    'P0C', dependent$)  
-  elseif (i == converter$) then
-    call init_attribute_name1 (i, E_tot$,                  'E_TOT')
-    call init_attribute_name1 (i, p0c$,                    'P0C')
+    call init_attribute_name1 (i, p0c_start$,              'P0C_START', quasi_free$)
+    call init_attribute_name1 (i, e_tot_start$,            'E_TOT_START', quasi_free$)
+  elseif (i == patch$) then
+    call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
+    call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
+    call init_attribute_name1 (i, p0c_start$,              'P0C_START', dependent$)
+    call init_attribute_name1 (i, e_tot_start$,            'E_TOT_START', dependent$)
   else
     call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
     call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
+    call init_attribute_name1 (i, e_tot_start$,            'e_tot_start', private$)
+    call init_attribute_name1 (i, p0c_start$,              'p0c_start', private$)
   endif
 
   call init_attribute_name1 (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
@@ -794,7 +800,6 @@ call init_attribute_name1 (beambeam$, charge$,                      'CHARGE')
 call init_attribute_name1 (beambeam$, n_slice$,                     'N_SLICE')
 call init_attribute_name1 (beambeam$, symplectify$,                 'N_SLICE')
 call init_attribute_name1 (beambeam$, field_calc$,                  'FIELD_CALC')
-call init_attribute_name1 (beambeam$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (beambeam$, beta_a_strong$,               'BETA_A_STRONG')
 call init_attribute_name1 (beambeam$, beta_b_strong$,               'BETA_B_STRONG')
 call init_attribute_name1 (beambeam$, alpha_a_strong$,              'ALPHA_A_STRONG')
@@ -847,8 +852,6 @@ call init_attribute_name1 (line_ele$, high_energy_space_charge_on$, 'HIGH_ENERGY
 call init_attribute_name1 (capillary$, l$,                          'L', dependent$)
 call init_attribute_name1 (capillary$, n_slice_spline$,             'N_SLICE_SPLINE')
 call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_ANGLE_FACTOR')
-call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
-call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
 
 call init_attribute_name1 (converter$, distribution$,               'DISTRIBUTION')
 call init_attribute_name1 (converter$, pc_out_min$,                 'PC_OUT_MIN')
@@ -863,14 +866,10 @@ call init_attribute_name1 (converter$, eta_x_out$,                  'ETA_X_OUT')
 call init_attribute_name1 (converter$, eta_y_out$,                  'ETA_Y_OUT')
 call init_attribute_name1 (converter$, etap_x_out$,                 'ETAP_X_OUT')
 call init_attribute_name1 (converter$, etap_y_out$,                 'ETAP_Y_OUT')
-call init_attribute_name1 (converter$, e_tot_start$,                'e_tot_start', private$)
-call init_attribute_name1 (converter$, p0c_start$,                  'p0c_start', private$)
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
 call init_attribute_name1 (lens$, focal_strength$,                  'FOCAL_STRENGTH')
-call init_attribute_name1 (lens$, e_tot_start$,                     'e_tot_start', private$)
-call init_attribute_name1 (lens$, p0c_start$,                       'p0c_start', private$)
 
 call init_attribute_name1 (crystal$, l$,                            'L', dependent$)
 call init_attribute_name1 (crystal$, bragg_angle_in$,               'BRAGG_ANGLE_IN', dependent$)
@@ -890,8 +889,6 @@ call init_attribute_name1 (crystal$, ref_wavelength$,               'REF_WAVELEN
 call init_attribute_name1 (crystal$, crystal_type$,                 'CRYSTAL_TYPE')
 call init_attribute_name1 (crystal$, thickness$,                    'THICKNESS')
 call init_attribute_name1 (crystal$, ref_orbit_follows$,            'REF_ORBIT_FOLLOWS')
-call init_attribute_name1 (crystal$, e_tot_start$,                  'e_tot_start', private$)
-call init_attribute_name1 (crystal$, p0c_start$,                    'p0c_start', private$)
 call init_attribute_name1 (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA', dependent$)
 call init_attribute_name1 (crystal$, darwin_width_sigma$,           'DARWIN_WIDTH_SIGMA', dependent$)
 call init_attribute_name1 (crystal$, darwin_width_pi$,              'DARWIN_WIDTH_PI', dependent$)
@@ -966,8 +963,6 @@ call init_attribute_name1 (def_parameter$, electric_dipole_moment$,       'ELECT
 call init_attribute_name1 (def_parameter$, high_energy_space_charge_on$,  'HIGH_ENERGY_SPACE_CHARGE_ON')
 
 call init_attribute_name1 (detector$, l$,                             'L', dependent$)
-call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (detector$, p0c_start$,                     'p0c_start', private$)
 
 call init_attribute_name1 (diffraction_plate$, l$,                    'l', private$)
 call init_attribute_name1 (diffraction_plate$, mode$,                 'MODE')
@@ -979,8 +974,6 @@ call init_attribute_name1 (mask$, mode$,                              'MODE')
 call init_attribute_name1 (mask$, field_scale_factor$,                'FIELD_SCALE_FACTOR')
 call init_attribute_name1 (mask$, ref_wavelength$,                    'REF_WAVELENGTH', dependent$)
 
-call init_attribute_name1 (drift$, E_tot_start$,                    'E_tot_start', private$)
-call init_attribute_name1 (drift$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (drift$, spin_fringe_on$,                 'spin_fringe_on', private$)
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
 call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
@@ -989,8 +982,6 @@ call init_attribute_name1 (drift$, drift_id$,                       'drift_id', 
 
 call init_attribute_name1 (e_gun$, e_tot_ref_init$,                 'e_tot_ref_init', private$)
 call init_attribute_name1 (e_gun$, p0c_ref_init$,                   'p0c_ref_init', private$)
-call init_attribute_name1 (e_gun$, e_tot_start$,                    'e_tot_start', private$)
-call init_attribute_name1 (e_gun$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (e_gun$, field_autoscale$,                'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (e_gun$, autoscale_amplitude$,            'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (e_gun$, autoscale_phase$,                'AUTOSCALE_PHASE')
@@ -1021,11 +1012,7 @@ call init_attribute_name1 (elseparator$, cylindrical_map$,          'CYLINDRICAL
 call init_attribute_name1 (elseparator$, grid_field$,               'GRID_FIELD')
 call init_attribute_name1 (elseparator$, taylor_field$,             'TAYLOR_FIELD')
 call init_attribute_name1 (elseparator$, ptc_canonical_coords$,     'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (elseparator$, E_tot_start$,              'E_tot_start', private$)
-call init_attribute_name1 (elseparator$, p0c_start$,                'p0c_start', private$)
 
-call init_attribute_name1 (em_field$, e_tot_start$,                 'E_TOT_START', quasi_free$) ! varied in multipass
-call init_attribute_name1 (em_field$, p0c_start$,                   'P0C_START', quasi_free$)
 call init_attribute_name1 (em_field$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (em_field$, cylindrical_map$,             'CYLINDRICAL_MAP')
 call init_attribute_name1 (em_field$, grid_field$,                  'GRID_FIELD')
@@ -1082,8 +1069,6 @@ call init_attribute_name1 (lcavity$, field_autoscale$,              'FIELD_AUTOS
 call init_attribute_name1 (lcavity$, autoscale_amplitude$,          'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (lcavity$, autoscale_phase$,              'AUTOSCALE_PHASE')
 call init_attribute_name1 (lcavity$, cavity_type$,                  'CAVITY_TYPE')
-call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', quasi_free$)
-call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', quasi_free$)
 call init_attribute_name1 (lcavity$, phi0_multipass$,               'PHI0_MULTIPASS')
 call init_attribute_name1 (lcavity$, phi0$,                         'PHI0')
 call init_attribute_name1 (lcavity$, gradient$,                     'GRADIENT')
@@ -1107,8 +1092,6 @@ call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
 call init_attribute_name1 (lcavity$, l_hard_edge$,                  'L_HARD_EDGE', dependent$)
 
 call init_attribute_name1 (marker$, l$,                             'L', dependent$)
-call init_attribute_name1 (marker$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (marker$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_LEN')
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
 call init_attribute_name1 (marker$, p0c_ref_init$,                  'p0c_ref_init', private$)
@@ -1157,8 +1140,6 @@ call init_attribute_name1 (match$, pz1$,                            'PZ1')
 call init_attribute_name1 (match$, match_end_orbit_input$,          'MATCH_END_ORBIT_INPUT', dependent$)
 call init_attribute_name1 (match$, match_end_orbit$,                'MATCH_END_ORBIT')
 call init_attribute_name1 (match$, is_on$,                          'IS_ON')
-call init_attribute_name1 (match$, E_tot_start$,                    'E_tot_start', private$)
-call init_attribute_name1 (match$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (match$, c11_mat0$,                       'C11_MAT0')
 call init_attribute_name1 (match$, c12_mat0$,                       'C12_MAT0')
 call init_attribute_name1 (match$, c21_mat0$,                       'C21_MAT0')
@@ -1168,17 +1149,12 @@ call init_attribute_name1 (match$, c12_mat1$,                       'C12_MAT1')
 call init_attribute_name1 (match$, c21_mat1$,                       'C21_MAT1')
 call init_attribute_name1 (match$, c22_mat1$,                       'C22_MAT1')
 
-call init_attribute_name1 (monitor$, E_tot_start$,                  'E_tot_start', private$)
-call init_attribute_name1 (monitor$, p0c_start$,                    'p0c_start', private$)
-
 attrib_array(instrument$, :)                         = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                               = attrib_array(monitor$, :)
 
 call init_attribute_name1 (hkicker$, kick$,                         'KICK', quasi_free$)
 call init_attribute_name1 (hkicker$, field_master$,                 'FIELD_MASTER')
 call init_attribute_name1 (hkicker$, bl_kick$,                      'BL_KICK', quasi_free$)
-call init_attribute_name1 (hkicker$, E_tot_start$,                  'E_tot_start', private$)
-call init_attribute_name1 (hkicker$, p0c_start$,                    'p0c_start', private$)
 call init_attribute_name1 (hkicker$, cartesian_map$,                'CARTESIAN_MAP')
 call init_attribute_name1 (hkicker$, cylindrical_map$,              'CYLINDRICAL_MAP')
 call init_attribute_name1 (hkicker$, grid_field$,                   'GRID_FIELD')
@@ -1192,8 +1168,6 @@ call init_attribute_name1 (kicker$, v_displace$,                    'V_DISPLACE'
 call init_attribute_name1 (kicker$, r0_mag$,                        'R0_MAG')
 call init_attribute_name1 (kicker$, r0_elec$,                       'R0_ELEC')
 call init_attribute_name1 (kicker$, field_master$,                  'FIELD_MASTER')
-call init_attribute_name1 (kicker$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (kicker$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (kicker$, cartesian_map$,                 'CARTESIAN_MAP')
 call init_attribute_name1 (kicker$, cylindrical_map$,               'CYLINDRICAL_MAP')
 call init_attribute_name1 (kicker$, grid_field$,                    'GRID_FIELD')
@@ -1205,8 +1179,6 @@ call init_attribute_name1 (ac_kicker$, ref_time_offset$,               'REF_TIME
 call init_attribute_name1 (ac_kicker$, r0_mag$,                        'R0_MAG')
 call init_attribute_name1 (ac_kicker$, r0_elec$,                       'R0_ELEC')
 call init_attribute_name1 (ac_kicker$, field_master$,                  'FIELD_MASTER')
-call init_attribute_name1 (ac_kicker$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (ac_kicker$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (ac_kicker$, cartesian_map$,                 'CARTESIAN_MAP')
 call init_attribute_name1 (ac_kicker$, cylindrical_map$,               'CYLINDRICAL_MAP')
 call init_attribute_name1 (ac_kicker$, grid_field$,                    'GRID_FIELD')
@@ -1229,8 +1201,6 @@ call init_attribute_name1 (custom$, val11$,                         'VAL11')
 call init_attribute_name1 (custom$, val12$,                         'VAL12')
 call init_attribute_name1 (custom$, field_master$,                  'FIELD_MASTER')
 call init_attribute_name1 (custom$, delta_e_ref$,                   'DELTA_E_REF')
-call init_attribute_name1 (custom$, e_tot_start$,                   'E_TOT_START', quasi_free$)
-call init_attribute_name1 (custom$, p0c_start$,                     'P0C_START', quasi_free$)
 
 call init_attribute_name1 (floor_shift$, l$,                        'L')
 call init_attribute_name1 (floor_shift$, origin_ele$,               'ORIGIN_ELE')
@@ -1260,8 +1230,6 @@ call init_attribute_name1 (quadrupole$, cylindrical_map$,           'CYLINDRICAL
 call init_attribute_name1 (quadrupole$, grid_field$,                'GRID_FIELD')
 call init_attribute_name1 (quadrupole$, taylor_field$,              'TAYLOR_FIELD')
 call init_attribute_name1 (quadrupole$, ptc_canonical_coords$,      'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (quadrupole$, E_tot_start$,               'E_tot_start', private$)
-call init_attribute_name1 (quadrupole$, p0c_start$,                 'p0c_start', private$)
 call init_attribute_name1 (quadrupole$, fq1$,                       'FQ1')
 call init_attribute_name1 (quadrupole$, fq2$,                       'FQ2')
 
@@ -1275,8 +1243,6 @@ call init_attribute_name1 (sextupole$, cylindrical_map$,            'CYLINDRICAL
 call init_attribute_name1 (sextupole$, grid_field$,                 'GRID_FIELD')
 call init_attribute_name1 (sextupole$, taylor_field$,               'TAYLOR_FIELD')
 call init_attribute_name1 (sextupole$, ptc_canonical_coords$,       'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (sextupole$, E_tot_start$,                'E_tot_start', private$)
-call init_attribute_name1 (sextupole$, p0c_start$,                  'p0c_start', private$)
 
 call init_attribute_name1 (octupole$, k3$,                          'K3', quasi_free$)
 call init_attribute_name1 (octupole$, B3_gradient$,                 'B3_GRADIENT', quasi_free$)
@@ -1288,13 +1254,9 @@ call init_attribute_name1 (octupole$, cylindrical_map$,             'CYLINDRICAL
 call init_attribute_name1 (octupole$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (octupole$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (octupole$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (octupole$, E_tot_start$,                 'E_tot_start', private$)
-call init_attribute_name1 (octupole$, p0c_start$,                   'p0c_start', private$)
 
 call init_attribute_name1 (patch$, l$,                              'L', dependent$)
 call init_attribute_name1 (patch$, t_offset$,                       'T_OFFSET')
-call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START', dependent$)
-call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START', dependent$)
 call init_attribute_name1 (patch$, e_tot_set$,                      'E_TOT_SET')
 call init_attribute_name1 (patch$, p0c_set$,                        'P0C_SET')
 call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSET')
@@ -1312,8 +1274,6 @@ call init_attribute_name1 (crab_cavity$, cartesian_map$,            'CARTESIAN_M
 call init_attribute_name1 (crab_cavity$, cylindrical_map$,          'CYLINDRICAL_MAP')
 call init_attribute_name1 (crab_cavity$, grid_field$,               'GRID_FIELD')
 call init_attribute_name1 (crab_cavity$, taylor_field$,             'TAYLOR_FIELD')
-call init_attribute_name1 (crab_cavity$, E_tot_start$,              'E_tot_start', private$)
-call init_attribute_name1 (crab_cavity$, p0c_start$,                'p0c_start', private$)
 call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
 call init_attribute_name1 (crab_cavity$, rf_frequency$,             'RF_FREQUENCY')
 call init_attribute_name1 (crab_cavity$, field_autoscale$,          'FIELD_AUTOSCALE', private$)  ! Not yet used
@@ -1342,8 +1302,6 @@ call init_attribute_name1 (rfcavity$, grid_field$,                  'GRID_FIELD'
 call init_attribute_name1 (rfcavity$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (rfcavity$, n_cell$,                      'N_CELL')
 call init_attribute_name1 (rfcavity$, phi0_max$,                    'phi0_max', private$)
-call init_attribute_name1 (rfcavity$, E_tot_start$,                 'E_tot_start', private$)
-call init_attribute_name1 (rfcavity$, p0c_start$,                   'p0c_start', private$)
 call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', private$)
 call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', dependent$)
 call init_attribute_name1 (rfcavity$, gradient_err$,                'gradient_err', private$)
@@ -1379,8 +1337,6 @@ call init_attribute_name1 (sbend$, b2_gradient$,                    'B2_GRADIENT
 call init_attribute_name1 (sbend$, r0_mag$,                         'R0_MAG')
 call init_attribute_name1 (sbend$, r0_elec$,                        'R0_ELEC')
 call init_attribute_name1 (sbend$, field_master$,                   'FIELD_MASTER')
-call init_attribute_name1 (sbend$, E_tot_start$,                    'E_tot_start', private$)
-call init_attribute_name1 (sbend$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
 call init_attribute_name1 (sbend$, cartesian_map$,                  'CARTESIAN_MAP')
 call init_attribute_name1 (sbend$, cylindrical_map$,                'CYLINDRICAL_MAP')
@@ -1401,8 +1357,6 @@ call init_attribute_name1 (solenoid$, cylindrical_map$,             'CYLINDRICAL
 call init_attribute_name1 (solenoid$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (solenoid$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (solenoid$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (solenoid$, E_tot_start$,                 'E_tot_start', private$)
-call init_attribute_name1 (solenoid$, p0c_start$,                   'p0c_start', private$)
 call init_attribute_name1 (solenoid$, l_soft_edge$,                 'L_SOFT_EDGE')
 call init_attribute_name1 (solenoid$, r_solenoid$,                  'R_SOLENOID')
 
@@ -1422,8 +1376,6 @@ call init_attribute_name1 (sol_quad$, cylindrical_map$,             'CYLINDRICAL
 call init_attribute_name1 (sol_quad$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (sol_quad$, taylor_field$,                'TAYLOR_FIELD')
 call init_attribute_name1 (sol_quad$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (sol_quad$, E_tot_start$,                 'E_tot_start', private$)
-call init_attribute_name1 (sol_quad$, p0c_start$,                   'p0c_start', private$)
 
 attrib_array(multipole$, k0l$:k21l$)%name = ['K0L ', &
              'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', 'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
@@ -1482,8 +1434,6 @@ call init_attribute_name1 (sad_mult$, sad_flag$,               'Sad_Flag', priva
 
 call init_attribute_name1 (hybrid$, l$,                             'L')
 call init_attribute_name1 (hybrid$, delta_e_ref$,                   'DELTA_E_REF')
-call init_attribute_name1 (hybrid$, e_tot_start$,                   'E_TOT_START', dependent$)
-call init_attribute_name1 (hybrid$, p0c_start$,                     'P0C_START', dependent$)
 call init_attribute_name1 (hybrid$, delta_ref_time$,                'DELTA_REF_TIME', override = .true.) ! Here not dependent
 
 call init_attribute_name1 (mirror$, l$,                             'L', dependent$)
@@ -1504,11 +1454,7 @@ call init_attribute_name1 (multilayer_mirror$, v1_unitcell$,          'V1_UNITCE
 call init_attribute_name1 (multilayer_mirror$, v2_unitcell$,          'V2_UNITCELL')
 call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
 call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
-call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_start', private$)
-call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
 
-call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start', private$)
-call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (taylor$, ref_orbit$,                     'REF_ORBIT')
 call init_attribute_name1 (taylor$, tt$,                            'TT<out><n1><n2>...')
 call init_attribute_name1 (taylor$, x_ref$,                         'X_REF')
@@ -1536,8 +1482,6 @@ call init_attribute_name1 (wiggler$, cylindrical_map$,              'CYLINDRICAL
 call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (wiggler$, taylor_field$,                 'TAYLOR_FIELD')
 call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (wiggler$, E_tot_start$,                  'E_tot_start', private$)
-call init_attribute_name1 (wiggler$, p0c_start$,                    'p0c_start', private$)
 call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE')
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)

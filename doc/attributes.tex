@@ -1863,8 +1863,8 @@ electric multipole fields. In this case, the magnetic fields are specified using
 as the \vn{ab_multipole}.  For such non-multipole elements, the magnetic multipole strength is
 scaled by a factor $F \, r_0^{n_\text{ref}} / r_0^n$ (cf.~\Eq{ababf}) where $F$ is the strength of
 the element (for example $F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the ``measurement
-radius'' and is set by the \vn{r0_mag} attribute. The default value of $r_0$.  This behavior may be
-turned off by setting the \vn{scale_multipoles} attribute.  Example:
+radius'' and is set by the \vn{r0_mag} attribute. The default value of $r_0$ is 0.01~meters.  This
+behavior may be turned off by setting the \vn{scale_multipoles} attribute.  Example:
 \begin{example}
   q1: quadrupole, b2 = 0.12, a20 = 1e7, scale_multipoles = F
 \end{example}
@@ -1876,26 +1876,24 @@ Electric multipoles are specified using normal (\vn{Bn_elec}) and skew
   An_elec = <Real>
   Bn_elec = <Real>
 \end{example}
-Here \vn{n} ranges from 0 (dipole component) through 21. Like the magnetic multipoles, 
-a measurement radius \vn{r0_elec} can be used to scale the multipoles as explained in 
-\sref{s:elec.field}.
+Here \vn{n} ranges from 0 (dipole component) through 21. Like the magnetic multipoles, a measurement
+radius \vn{r0_elec} can be used to scale the multipoles as explained in \sref{s:elec.field}.
 Example:
 \begin{example}
   q1: quadrupole, l = 1.2, b2_elec = 1e6, r0_elec = 0.034
 \end{example}
-See \sref{s:elec.field} for how electric multipoles are defined. Notice that Electric
-multipoles are never scaled by the element's field strength as they are with magnetic
-multipoles. If the value of \vn{r0_elec} is zero (the default) the multipoles will not
-be scaled. 
+See \sref{s:elec.field} for how electric multipoles are defined. Notice that Electric multipoles are
+never scaled by the element's field strength as they are with magnetic multipoles. If the value of
+\vn{r0_elec} is zero (the default) the multipoles will not be scaled.
 
-Unlike magnetic multipoles, there are no factors of the reference momentum nor the element
-length in the definition for electric multipoles. That is, electric multipole values
-represent the field and not the normalized integrated field. Thus an electric multipole
-associated with a zero length element will have no effect on tracking. This being the
-case, \bmad does not allow electric multipole values to be specified for \vn{multipole}
-and \vn{ab_multipole} elements. Indeed, in the limit of zero element length at constant
-integrated electric field strength, the equations of motion are singular since, unlike the
-magnetic case, the infinite fringe fields give rise to infinite energy shifts.
+Unlike magnetic multipoles, there are no factors of the reference momentum nor the element length in
+the definition for electric multipoles. That is, electric multipole values represent the field and
+not the normalized integrated field. Thus an electric multipole associated with a zero length
+element will have no effect on tracking. This being the case, \bmad does not allow electric
+multipole values to be specified for \vn{multipole} and \vn{ab_multipole} elements. Indeed, in the
+limit of zero element length at constant integrated electric field strength, the equations of motion
+are singular since, unlike the magnetic case, the infinite fringe fields give rise to infinite
+energy shifts.
 
 \index{multipoles_on}
 The magnetic and electric multipole kick can be toggled on or off using the

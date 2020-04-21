@@ -82,11 +82,13 @@ subroutine ele_equal_ele (ele_out, ele_in)
 implicit none
 	
 type (ele_struct), intent(inout), target :: ele_out
-type (ele_struct), intent(in) :: ele_in
+type (ele_struct), intent(in), target :: ele_in
 type (ele_struct) ele_save
 type (nametable_struct), pointer :: nt
+type (converter_sub_distribution_struct), pointer :: sd_in, sd_out
 
 integer i, j, n, n2, ub(2), ub1
+logical comensurate
 
 ! 1) Save ele_out pointers in ele_save
 ! 2) Set ele_out = ele_in.
@@ -215,6 +217,42 @@ if (associated(ele_in%control)) then
 else
   if (associated (ele_save%control)) deallocate(ele_save%control)
 endif
+
+! %converter
+
+if (associated(ele_in%converter)) then
+  n = size(ele_in%converter%dist)
+  ele_out%converter => ele_save%converter   ! reinstate
+  if (associated(ele_out%converter)) then
+    comensurate = .false.
+    if (size(ele_out%converter%dist) /= n) goto 100
+    do i = 1, n
+      if (size(ele_in%converter%dist(i)%sub_dist) /= size(ele_out%converter%dist(i)%sub_dist)) goto 100
+      do j = 1, size(ele_in%converter%dist(i)%sub_dist)
+        sd_in => ele_in%converter%dist(i)%sub_dist(j)
+        sd_out => ele_out%converter%dist(i)%sub_dist(j)
+        if (.not. all(sd_in%prob_pc_r%prob == sd_out%prob_pc_r%prob)) goto 100
+        if (size(sd_in%dir_out%beta%fit_1d_r) /= size(sd_out%dir_out%beta%fit_1d_r)) goto 100
+        if (size(sd_in%dir_out%alpha_x%fit_1d_r) /= size(sd_out%dir_out%alpha_x%fit_1d_r)) goto 100
+        if (size(sd_in%dir_out%alpha_y%fit_1d_r) /= size(sd_out%dir_out%alpha_y%fit_1d_r)) goto 100
+      enddo
+    enddo
+    comensurate = .true.
+    100 continue
+    if (.not. comensurate) deallocate(ele_out%converter)
+  endif
+
+  if (.not. associated(ele_out%converter)) then
+    allocate(ele_out%converter)
+    allocate(ele_out%converter%dist(n))
+  endif
+  ele_out%converter = ele_in%converter
+
+else
+  if (associated (ele_save%converter)) deallocate(ele_save%converter)
+endif
+
+
 
 ! %taylor
 
