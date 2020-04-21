@@ -295,6 +295,20 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
       double fit_b = gsl_vector_get(w->x, 2);
       double fit_c = gsl_vector_get(w->x, 3);
       double fit_d = gsl_vector_get(w->x, 4);
+      // rescale for correct units
+      if constexpr (T==fitType::BETA) {
+        fit_k *= 1e0; // used as a0
+        fit_a *= 1e2; // used as a1
+        fit_b *= 1e4; // used as a2
+        fit_c *= 1e6; // used as a3
+        fit_d *= 1e8; // used as a4
+      } else {
+        fit_k *= 1e2;
+        fit_a *= 1e0;
+        fit_b *= 1e2;
+        fit_c *= 1e4;
+        fit_d *= 1e6;
+      }
       fit_results_1d.push_back({low_E_vals[ix_1d], fit_k, fit_a, fit_b, fit_c, fit_d, chisq});
       gsl_multifit_nlinear_free(w);
       ix_1d++;
@@ -337,13 +351,13 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
   // add results to fit_results_1d
   constexpr size_t ix = type_ix<T>();
   if constexpr(T==fitType::CX || T==fitType::BETA) {
-    double a0 = gsl_vector_get(w->x, 0);
-    double a1 = gsl_vector_get(w->x, 1);
-    double a2 = gsl_vector_get(w->x, 2);
-    double b0 = gsl_vector_get(w->x, 3);
-    double b1 = gsl_vector_get(w->x, 4);
-    double b2 = gsl_vector_get(w->x, 5);
-    double b3 = gsl_vector_get(w->x, 6);
+    double a0 = 1e+18*gsl_vector_get(w->x, 0);
+    double a1 = 1e+12*gsl_vector_get(w->x, 1);
+    double a2 = 1e+06*gsl_vector_get(w->x, 2);
+    double b0 = 1e-18*gsl_vector_get(w->x, 3);
+    double b1 = 1e-16*gsl_vector_get(w->x, 4);
+    double b2 = 1e-14*gsl_vector_get(w->x, 5);
+    double b3 = 1e-12*gsl_vector_get(w->x, 6);
     if constexpr (T==fitType::CX) {
       auto& fit_result = std::get<ix>(result);
       fit_result = {a0, a1, a2, b0, b1, b2, b3, chisq};
@@ -352,16 +366,16 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
       fit_result = {a0, a1, a2, b0, b1, b2, b3, chisq};
     }
   } else {
-    double ke = std::abs(gsl_vector_get(w->x, 0));
-    double kr = std::abs(gsl_vector_get(w->x, 1));
-    double ae = gsl_vector_get(w->x, 2);
-    double be = gsl_vector_get(w->x, 3);
-    double ce = gsl_vector_get(w->x, 4);
+    double ke = 1e-06 * std::abs(gsl_vector_get(w->x, 0));
+    double kr = 1e+02 * std::abs(gsl_vector_get(w->x, 1));
+    double ae = 1e+18 * gsl_vector_get(w->x, 2);
+    double be = 1e+12 * gsl_vector_get(w->x, 3);
+    double ce = 1e+06 * gsl_vector_get(w->x, 4);
     //double de = gsl_vector_get(w->x, 5);
-    double ar = gsl_vector_get(w->x, 5);
-    double br = gsl_vector_get(w->x, 6);
-    double cr = gsl_vector_get(w->x, 7);
-    double dr = gsl_vector_get(w->x, 8);
+    double ar = 1e-18 * gsl_vector_get(w->x, 5);
+    double br = 1e-16 * gsl_vector_get(w->x, 6);
+    double cr = 1e-14 * gsl_vector_get(w->x, 7);
+    double dr = 1e-12 * gsl_vector_get(w->x, 8);
     auto& fit_result = std::get<ix>(result).high_e_fit;
     fit_result = {ke, kr, ae, be, ce, ar, br, cr, dr, chisq};
   }
