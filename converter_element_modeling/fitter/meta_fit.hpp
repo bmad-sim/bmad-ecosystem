@@ -30,7 +30,7 @@ struct aFitResults2D {
   double ae;
   double be;
   double ce;
-  double de;
+  //double de;
   double ar;
   double br;
   double cr;
