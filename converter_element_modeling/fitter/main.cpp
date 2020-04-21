@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     bmad_file << TAB<4>() << "poly_pc = ["
       << fit2b.a0 << ", "
       << fit2b.a1 << ", "
-      << fit2b.a2 << "],\n";
+      << fit2b.a2 << ", 1.0],\n";
     bmad_file << "        poly_r = ["
       << fit2b.b0 << ", "
       << fit2b.b1 << ", "
@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
     bmad_file << TAB<4>() << "poly_pc = ["
       << mf.cx.a0 << ", "
       << mf.cx.a1 << ", "
-      << mf.cx.a2 << "],\n";
+      << mf.cx.a2 << ", 1.0],\n";
     bmad_file << TAB<4>() << "poly_r = ["
       << mf.cx.b0 << ", "
       << mf.cx.b1 << ", "
@@ -225,8 +225,7 @@ int main(int argc, char* argv[]) {
     bmad_file << TAB<4>() << "fit_2d_pc = {k = " << fit2ax.ke << ", poly = ["
       << fit2ax.ae << ", "
       << fit2ax.be << ", "
-      << fit2ax.ce << ", "
-      << fit2ax.de << "]},\n";
+      << fit2ax.ce << ", 1.0]},\n";
     bmad_file << TAB<4>() << "fit_2d_r = {k = " << fit2ax.kr << ", poly = ["
       << fit2ax.ar << ", "
       << fit2ax.br << ", "
@@ -247,8 +246,7 @@ int main(int argc, char* argv[]) {
     bmad_file << TAB<4>() << "fit_2d_pc = {k = " << fit2ay.ke << ", poly = ["
       << fit2ay.ae << ", "
       << fit2ay.be << ", "
-      << fit2ay.ce << ", "
-      << fit2ay.de << "]},\n";
+      << fit2ay.ce << ", 1.0]},\n";
     bmad_file << TAB<4>() << "fit_2d_r = {k = " << fit2ax.kr << ", poly = ["
       << fit2ay.ar << ", "
       << fit2ay.br << ", "
