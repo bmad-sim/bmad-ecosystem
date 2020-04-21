@@ -84,6 +84,8 @@ if(ios.ne.0)then
 endif
 
 grid_type = 'xy'
+qx = 0
+qy = 0
 Nrad = 17
 Nthmin = 11
 Br = 8.0
