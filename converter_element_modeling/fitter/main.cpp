@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     bmad_file << ",\n" << TAB<1>() << "sub_distribution = {\n";
     bmad_file << TAB<2>() << "pc_in = " << mf.Ein << ",\n";
     bmad_file << TAB<2>() << "prob_pc_r = {\n";
-    bmad_file << TAB<3>() << "r_values = [";
+    bmad_file << TAB<3>() << "r_values = [0.0, "; // fix r=0
     // Open the ER file to write the E/r probability table
     std::ifstream er_file;
     char er_file_name[100];
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
       Eout *= 1e6; // convert to eV
       for (auto& p : probs) er_file >> p;
       bmad_file << ",\n" << TAB<3>() << "row = {pc_out = " << Eout;
-      bmad_file << ", prob = [";
+      bmad_file << ", prob = [0.0, "; // r=0 -> prob = 0
       for (size_t i=0; i<num_cols-1; i++) bmad_file << probs[i] << ", ";
       bmad_file << probs[num_cols-1] << "]}";
     }
