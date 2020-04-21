@@ -24,4 +24,9 @@ set (EXE_SPECS
   cmake.cartesian_map_fit
 )
 
+set (TEST_EXE_SPECS
+  cmake.converter_simulation
+  cmake.converter_fitter
+)
+
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
