@@ -46,7 +46,8 @@ module ptc_spin
   integer  :: item_min=3,mfdebug
   private quaternion_8_to_matrix
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
-
+   ! oleksii 
+  real(dp) n_olek(3),t_bks_olek
 
   INTERFACE assignment (=)
      MODULE PROCEDURE equal_temporal
@@ -644,6 +645,8 @@ contains
 p%t_bks0=p%t_bks0+theta  
 !write(6,*) c%parent_fibre%mag%p%b0**2,b30t,denf
 !endif 
+dspin=matmul(s,n_olek)
+    t_bks_olek=t_bks_olek+theta*(1.d0- 2.0_dp*  (ee(1)*dspin(1)+ee(2)*dspin(2)+ee(3)*dspin(3))**2/9.d0)
 
         do j=1,3 
           do i=1,3
@@ -804,6 +807,8 @@ p%t_bks0=p%t_bks0+theta
 p%t_bks0=p%t_bks0+theta  
 !write(6,*) c%parent_fibre%mag%p%b0**2,b30t,denf
 !endif 
+dspin=matmul(s,n_olek)
+    t_bks_olek=t_bks_olek+theta*(1.d0- 2.0_dp*  (ee(1)*dspin(1)+ee(2)*dspin(2)+ee(3)*dspin(3))**2/9.d0)
 
         do j=1,3 
           do i=1,3

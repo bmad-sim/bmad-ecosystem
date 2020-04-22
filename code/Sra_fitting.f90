@@ -4790,7 +4790,7 @@ type(c_taylor) phase(3),phase_spin,betaxx,betaxy,x,c_spin_tune,d_CS,h,hb,pb_fiel
 type(fibre),pointer :: f,sf,ff
 integer, allocatable :: j1(:)
 real(dp) phaser(3),spin_tune(2),damping(3),betx(2),dnu_dko,phx,a(6,6),mux,betasfx
-type(q_linear)  q_c,q_ptc,q_rot
+type(c_linear_map)  q_cs,q_as,q_rot
 logical general
 type(c_spinor) e_y,isf
 type(c_vector_field) field
@@ -4922,7 +4922,7 @@ if(general) then
  call c_full_canonise(a_cs,a_cs,a_spin, &
   disp,A_L,A_NL,phase=phase,nu_spin=phase_spin)
 else
- call c_fast_canonise(a_cs,a_cs,phaser,damping,q_c=q_c,q_ptc=q_ptc, &
+ call c_fast_canonise(a_cs,a_cs,phaser,damping,q_cs=q_cs,q_as=q_as, &
  q_rot=q_rot,spin_tune=spin_tune ,dospin=state%spin)
 endif
 
@@ -4966,8 +4966,8 @@ write(mf,*) " ISF "
   call print(phase_spin,mf)
  endif
 else
- betx(1)=q_ptc%mat(1,1)**2+q_ptc%mat(1,2)**2
- betx(2)=q_ptc%mat(1,3)**2+q_ptc%mat(1,3)**2
+ betx(1)=q_cs%mat(1,1)**2+q_cs%mat(1,2)**2
+ betx(2)=q_cs%mat(1,3)**2+q_cs%mat(1,3)**2
  write(mf,*) " Betax_1 , Betax_2"
  write(mf,*) betx
  write(mf,*) " Phases "
@@ -4977,7 +4977,7 @@ else
   write(mf,*) " spin tune "
   write(mf,*) spin_tune
   write(mf,*) " ISF "
-  call MAKESO3(q_c,s)
+  call MAKESO3(q_as,s)
 
   write(mf,'(10x,a4,15x,a7,16x,a9,12x,a7,15x,a9,11x,a11)') 'n0_x','dn_x/dx','dn_x/dp_x','dn_x/dy','dn_x/dp_y','dn_x/ddelta' 
   write(mf,'(6(1x,G21.14))') s(1,2,0:5)

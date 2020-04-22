@@ -55,7 +55,7 @@ module pointer_lattice
   logical :: onefunc = .true.,skipzero=.false.,skipcomplex=.true.
  type(probe), pointer :: xs0g(:) => null()
  logical ::  use_hermite =.false.
- private get_polarisation 
+ private get_polarisation
 real(dp) n_ang(3),lm(2)
 character(vp)snake
 integer isnake,nlm,no_pol
@@ -90,10 +90,6 @@ integer isnake,nlm,no_pol
   end type hermite
 
 
-
- INTERFACE radia_new
-     MODULE PROCEDURE radia_full
-  END INTERFACE
 
 
 
@@ -2752,7 +2748,7 @@ write(6,*) x_ref
                 stop
              endif
           endif
-          call radia_new(my_ering,pos=POS,estate=my_estate,file1=FILENAME)
+          call radia_new(my_ering,POS,my_estate,FILENAME)
        case('SPECIALALEX')
           READ(MF,*) I1
           READ(MF,*) targ_tune(1:2),sc
@@ -2877,8 +2873,7 @@ real(dp) tune(1:3) , spin_tune
 
 TYPE(c_spinor) ISF  
      type(quaternion) q,q0
- type(q_linear)  q_c,q_ptc
-
+ 
     call get_length(r,circum)
     circum=circum/clight
  
@@ -2936,8 +2931,7 @@ if(associated(r%t)) call make_node_layout(r)
 
  
 !  calculation of beam size using envelope theory
-!call radia_new(r,1,state0,"radia.dat",e_ij=e_ij,spin_damp=spin_damp ,ngen=ngen,bunch_zhe=bunch_zhe  )
-call radia_new(r,1,estate=state0,file1="radia.dat",e_ij=e_ij,spin_damp=spin_damp ,ngen=ngen,bunch_zhe=bunch_zhe  )
+call radia_new(r,1,state0,"radia.dat",e_ij=e_ij,spin_damp=spin_damp ,ngen=ngen,bunch_zhe=bunch_zhe  )
 
 
  
@@ -3289,8 +3283,7 @@ end subroutine get_polarisation
     RETURN
   END function dis_gaussian
 
- SUBROUTINE radia_full(R,pos,f1,t1,estate,FILE1,fix,em,sij,sijr,tune,damping,e_ij,spin_damp, &
-init_tpsa,ngen,bunch_zhe,file_bunch)
+ SUBROUTINE radia_new(R,loc,estate,FILE1,fix,em,sij,sijr,tune,damping,e_ij,spin_damp,init_tpsa,ngen,bunch_zhe,file_bunch)
     implicit none
     TYPE(LAYOUT) R
 
@@ -3305,16 +3298,14 @@ init_tpsa,ngen,bunch_zhe,file_bunch)
     logical, optional ::  init_tpsa
     complex(dp), optional :: sijr(6,6)   
     TYPE(INTERNAL_STATE) state
-    TYPE(INTERNAL_STATE), target,optional :: estate
-    integer mf1,mfg,loc
+    TYPE(INTERNAL_STATE), target :: estate
+    integer loc,mf1,mfg
     type(fibre), pointer :: p
     type(probe) xs0
     type(probe_8) xs
     character*48 fmd,fmd1
     real(dp) mat(6,6),matf(6,6),ki(6),ray(6),a1(3)
-    integer, optional :: pos
-    type(integration_node), pointer, optional :: t1
-    type(fibre), pointer, optional :: f1
+ 
 
     if(present(FILE1)) then
     call kanalnummer(mf1)
@@ -3338,13 +3329,7 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
 !do i=1,10
 !radfac=float(i)/10.d0
  
-   if(present(f1)) then
-    CALL FIND_ORBIT_x(X,STATE,1.0e-8_dp,fibre1=f1)
-   elseif(present(t1))  then
-    CALL FIND_ORBIT_x(X,STATE,1.0e-8_dp,node1=t1)
-   else
-    CALL FIND_ORBIT_x(R,X,STATE,1.0e-8_dp,fibre1=pos)
-   endif
+    CALL FIND_ORBIT_x(R,X,STATE,1.0e-8_dp,fibre1=loc)
 !write(6,format6) x
     if(.not.check_stable) then
       write(6,*) "Unstable in radia_new ",i
@@ -3353,15 +3338,6 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
 !enddo
 
     if(present(FILE1)) then
-        if(present(f1)) then
-         loc=f1%pos
-        elseif(present(t1)) then
-         pos=t1%parent_fibre%pos
-
-        else
-         loc=pos
-        endif
-
         WRITE(mf1,*) " CLOSED ORBIT AT LOCATION ",loc
         write(mf1,*) x
     endif
@@ -3395,14 +3371,7 @@ fmd1='(1X,a3,I1,a3,i1,a4,2(D18.11,1x),(f10.3,1x),a2)'
 
     state=state+envelope0
  
-        if(present(f1)) then
-          CALL TRACK_PROBE(xs,state, fibre1=f1)
-
-        elseif(present(t1)) then
-          CALL TRACK_PROBE(xs,state, node1=t1)
-        else
-          CALL TRACK_PROBE(r,xs,state, fibre1=pos)
-        endif
+    CALL TRACK_PROBE(r,xs,state, fibre1=loc)
      id=xs
  
     if(present(e_ij)) e_ij=xs%e_ij
@@ -3541,7 +3510,7 @@ endif
     CALL KILL(ID,a0)
     CALL KILL(xs)
 
-  end subroutine radia_full
+  end subroutine radia_new
 
   subroutine totalpath_cavity(r,j)
     implicit none
