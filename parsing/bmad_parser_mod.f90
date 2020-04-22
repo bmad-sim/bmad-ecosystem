@@ -234,15 +234,12 @@ if (bp_com%input_from_file) then
 
     if (bp_com%parse_line(n:n) == '&') then
       call load_parse_line('continue', n, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
-      if (end_of_file) exit
 
     else if (index(',({[=', bp_com%parse_line(n:n)) /= 0) then
       call load_parse_line('continue', n+2, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
-      if (end_of_file) exit
 
     elseif (index(',)}]=', bp_com%next_line_from_file(1:1)) /= 0) then
       call load_parse_line('continue', n+2, end_of_file, err_flag = err_flag); if (logic_option(.false., err_flag)) return
-      if (end_of_file) exit
 
     else
       if (.not. bp_com%inline_call_active) exit
@@ -258,8 +255,9 @@ if (bp_com%input_from_file) then
         endif
       endif
       bp_com%parse_line(n+1:) = ''
-      call parser_file_stack ('pop')
     endif
+
+    if (end_of_file) call parser_file_stack ('pop')
   enddo
 endif
 
