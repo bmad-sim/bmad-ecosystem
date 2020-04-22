@@ -32,7 +32,7 @@ type (probe_8) p8_1turn, p8_ele
 type (probe) probe_orb
 type (c_normal_form) cc_norm
 type (real_8) r8
-type (q_linear) q0, q2, n_axis, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin, q_1turn
+type (c_linear_map) q0, q2, n_axis, q_invar, q_nonlin, q_x, q_y, q_z, l_axis, m_axis, q_rot, q_lin, q_1turn
 type (taylor_struct) spin_taylor, bmad_taylor(6)
 
 type quat1_struct
@@ -105,7 +105,7 @@ if (branch%param%geometry == closed$) then
   p8_1turn = probe_orb + cc_norm%atot
 
   u = cc_norm%atot
-  call c_fast_canonise(u, u_c, q_c = q_lin, dospin = .true.)
+  call c_fast_canonise(u, u_c, dospin = .true.)
 
   p8_1turn = probe_orb + u_c
   p8_ele   = probe_orb + cdamap_1
@@ -157,7 +157,7 @@ do ie = 0, branch%n_ele_track
   bmad_taylor = p8_ele%x
   call taylor_to_mat6 (bmad_taylor, [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp], vec0, minfo%m_ele(1:6,1:6))
 
-  call c_fast_canonise (u, u_c, q_c = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
+  call c_fast_canonise (u, u_c, q_cs = q_lin, phase = phase, q_rot = q_rot, spin_tune = spin_tune, dospin = .true.)
 
   q0 = q_lin
   q0%q(0:3,1:6) = 0
