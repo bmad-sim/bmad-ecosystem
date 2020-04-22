@@ -42,6 +42,7 @@ type converter_common_struct
 end type
 
 type (converter_common_struct), target :: com
+type (converter_common_struct), pointer :: com_ptr  ! Used to get around ifort problem with debugging code.
 type (converter_param_storage_struct) out1, out2
 type (coord_struct) :: orbit, orb0
 type (ele_struct), target :: ele
@@ -60,6 +61,7 @@ character(*), parameter :: r_name = 'track_a_converter'
 
 !
 
+com_ptr => com
 conv => ele%converter
 nd = size(conv%dist)
 if (nd == 0) then
@@ -191,7 +193,7 @@ type (converter_sub_distribution_struct), target :: sub_dist
 type (converter_param_storage_struct) out
 type (converter_prob_pc_r_struct), pointer :: ppcr
 
-real(rp) r_ran(:), dpc, dpc2, dr, rx, delta, dx
+real(rp) r_ran(:), dpc, dpc2, dr, rx, delta, dx, k_const, b
 integer ix, ix_pc, ix_r, n, status
 
 logical err_flag
@@ -223,13 +225,13 @@ call calc_dir_out_params(dist, sub_dist, out)
 
 com%r_ran = r_ran(3)
 com%A_dir = out%A_dir
-rx = super_zbrent(dx_ds_func, -dist%dxy_ds_limit, dist%dxy_ds_limit, 0.0_rp, 1e-4_rp, status)
-dx = 2 * dist%dxy_ds_limit / n_pt
-out%dx_ds = -dist%dxy_ds_limit + rx * dx
+out%dx_ds = super_zbrent(dx_ds_func, -dist%dxy_ds_limit, dist%dxy_ds_limit, 0.0_rp, 1e-4_rp, status)
 
 ! dy/ds calc
 
-out%dy_ds = sqrt((1 + out%alpha_x * (out%dx_ds - out%c_x)**2) / out%alpha_y) * tan(pi * (r_ran(4) - 0.5_rp))
+b = 1 + out%alpha_x * (out%dx_ds - out%c_x)**2
+k_const = sqrt(out%alpha_y * b) / (2 * atan(sqrt(out%alpha_y/b) * dist%dxy_ds_limit))
+out%dy_ds = sqrt(b/out%alpha_y) * tan(sqrt(out%alpha_y * b) * (r_ran(4) - 0.5_rp) / k_const)
 
 end subroutine calc_out_coords2
 
@@ -245,6 +247,7 @@ integer status, ix
 !
 
 ix = bracket_index(x, com%dx_ds_spline%x0, 0)
+if (ix == ubound(com%dx_ds_spline, 1)) ix = ix - 1
 value = com%A_dir * (com%dx_ds_integ(ix) + spline1(com%dx_ds_spline(ix), x, -1)) - com%r_ran
 
 end function dx_ds_func
@@ -263,8 +266,7 @@ type (converter_direction_out_struct), pointer :: dir_out
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_param_storage_struct) out
 
-real(rp) prob
-real(rp) pc_out, A_dir
+real(rp) prob, A_dir
 integer id, isd, ipc, ir, npc, nr
 logical err_flag, ordered
 
@@ -315,9 +317,8 @@ do id = 1, size(conv%dist)
     endif
 
     do ipc = 1, npc
-      pc_out = ppcr%pc_out(ipc)
       do ir = 1, nr
-        out%pc_out = pc_out
+        out%pc_out = ppcr%pc_out(ipc)
         out%r = ppcr%r(ir)
         dist%dxy_ds_limit = dist%dxy_ds_max
         call calc_dir_out_params (dist, sub_dist, out)
@@ -489,11 +490,12 @@ do i = 0, n_pt
 
   spn(i)%x0 = x
   spn(i)%y0 = b1 * rad * a_tan
-  spn(i)%coef(1) = out%beta * rad * a_tan + b1 * drad * (rad /(1 + arg**2) + a_tan)
+  spn(i)%coef(1) = out%beta * rad * a_tan + b1 * drad * &
+                        (rad * out%alpha_y * dist%dxy_ds_limit /(1 + arg**2) + a_tan)
 
   if (i > 0) then
     spn(i-1) = create_a_spline([spn(i-1)%x0, spn(i-1)%y0], [spn(i)%x0, spn(i)%y0], spn(i-1)%coef(1), spn(i)%coef(1))
-    integ(i) = integ(i-1) + spline1(spn(i-1), dx, -1)
+    integ(i) = integ(i-1) + spline1(spn(i-1), x, -1)
   endif
 enddo
 
