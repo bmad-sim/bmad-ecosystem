@@ -414,6 +414,7 @@ do while (.true.)
     case (',', ']', '}')
       obj%n_token = obj%n_token + 1
       n = obj%n_token
+      if (n == 1) call re_allocate(obj%token, 2)
       if (n > size(obj%token)) call re_allocate (obj%token, max(n, 2*(n-1)))
       ns = ip - ip0
       if (.not. allocated(obj%token(1)%str)) allocate (character(ns):: obj%token(n)%str)
@@ -455,6 +456,7 @@ do while (.true.)
     case (',')
       obj%n_child = obj%n_child + 1
       line = line(ip+1:)
+      if (obj%n_child == 1) call subobject_reallocate(obj,2)
       if (obj%n_child > size(obj%child)) call subobject_reallocate(obj,2*obj%n_child)
       valid = object_document_parse(obj%child(obj%n_child), '', line, why_invalid, get_more_text_func, sub_call = .true.)
       if (.not. valid) return
