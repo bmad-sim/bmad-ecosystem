@@ -28,9 +28,9 @@ implicit none
 type (branch_struct), target :: branch
 type (coord_struct) :: orbit(0:)
 type (tao_spin_polarization_struct) spin_pol
-type (q_linear) :: q_1turn
-type (q_linear), pointer :: q1
-type (q_linear), target :: q_ele(branch%n_ele_track)
+type (c_linear_map) :: q_1turn
+type (c_linear_map), pointer :: q1
+type (c_linear_map), target :: q_ele(branch%n_ele_track)
 type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 

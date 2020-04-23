@@ -30,7 +30,7 @@ type (tao_spin_map_struct), allocatable ::sm_temp(:)
 type (tao_spin_map_struct), pointer :: spin_map
 type (branch_struct), pointer :: branch
 type (taylor_struct) orbit_taylor(6), spin_taylor(0:3)
-type (q_linear) q_map
+type (c_linear_map) q_map
 
 integer ix_ref, ix_ele
 integer ix_r
@@ -183,7 +183,7 @@ contains
 
 subroutine concat_this (q_map, ix1, ix2)
 
-type (q_linear) q_map, q_ele
+type (c_linear_map) q_map, q_ele
 type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 real(rp) vec0(6), mat6(6,6)
