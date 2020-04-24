@@ -28,8 +28,9 @@ integer, parameter :: n_pt = 100
 type converter_param_storage_struct
   real(rp) pc_out, r
   real(rp) dx_ds, dy_ds
+  real(rp) weight
   logical :: lost = .false.
-  real(rp) beta, alpha_x, alpha_y, c_x, A_dir
+  real(rp) beta, alpha_x, alpha_y, c_x, integ_prob_tot
 end type
 
 type converter_common_struct
@@ -37,7 +38,7 @@ type converter_common_struct
   type (converter_distribution_struct), pointer :: dist
   type (spline_struct) dx_ds_spline(0:n_pt)
   real(rp) dx_ds_integ(0:n_pt)
-  real(rp) r_ran, A_dir
+  real(rp) r_ran, integ_prob_tot
   integer ipc
 end type
 
@@ -121,6 +122,7 @@ if (thickness_interpolate) then
   out1%r      = drd2 * out1%r      + drd * out2%r
   out1%dx_ds  = drd2 * out1%dx_ds  + drd * out2%dx_ds
   out1%dy_ds  = drd2 * out1%dy_ds  + drd * out2%dy_ds
+  out1%weight = drd2 * out1%weight + drd * out2%weight
 endif
 
 if (out1%lost) then
@@ -136,6 +138,7 @@ orbit%p0c = ele%value(p0c$)
 orbit%vec(6) = out1%pc_out / ele%value(p0c$) - 1
 call convert_pc_to (out1%pc_out, orbit%species, beta = orbit%beta)
 
+orbit%charge = out1%weight
 orbit%vec(1) = orbit%vec(1) + out1%r * cos(azimuth_angle)
 orbit%vec(2) = orbit%vec(2) + (out1%dx_ds * cos(azimuth_angle) - out1%dy_ds * sin(azimuth_angle)) * (1 + orbit%vec(6))
 orbit%vec(3) = orbit%vec(3) + out1%r * sin(azimuth_angle)
@@ -177,6 +180,7 @@ out%pc_out = rsd2 * out1%pc_out + rsd * out2%pc_out
 out%r      = rsd2 * out1%r      + rsd * out2%r
 out%dx_ds  = rsd2 * out1%dx_ds  + rsd * out2%dx_ds
 out%dy_ds  = rsd2 * out1%dy_ds  + rsd * out2%dy_ds
+out%weight = rsd2 * dist%sub_dist(ix_sd)%prob_pc_r%integrated_prob + rsd * dist%sub_dist(ix_sd+1)%prob_pc_r%integrated_prob 
 
 end subroutine calc_out_coords
 
@@ -224,7 +228,7 @@ out%r = (1-dr) * ppcr%r(ix_r) + dr * ppcr%r(ix_r+1)
 call calc_dir_out_params(dist, sub_dist, out)
 
 com%r_ran = r_ran(3)
-com%A_dir = out%A_dir
+com%integ_prob_tot = out%integ_prob_tot
 out%dx_ds = super_zbrent(dx_ds_func, -dist%dxy_ds_limit, dist%dxy_ds_limit, 0.0_rp, 1e-4_rp, status)
 
 ! dy/ds calc
@@ -248,7 +252,7 @@ integer status, ix
 
 ix = bracket_index(x, com%dx_ds_spline%x0, 0)
 if (ix == ubound(com%dx_ds_spline, 1)) ix = ix - 1
-value = com%A_dir * (com%dx_ds_integ(ix) + spline1(com%dx_ds_spline(ix), x, -1)) - com%r_ran
+value = (com%dx_ds_integ(ix) + spline1(com%dx_ds_spline(ix), x, -1)) - com%integ_prob_tot * com%r_ran
 
 end function dx_ds_func
 
@@ -266,7 +270,7 @@ type (converter_direction_out_struct), pointer :: dir_out
 type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_param_storage_struct) out
 
-real(rp) prob, A_dir
+real(rp) prob, unnorm_integ_prob_tot
 integer id, isd, ipc, ir, npc, nr
 logical err_flag, ordered
 
@@ -322,11 +326,10 @@ do id = 1, size(conv%dist)
         out%r = ppcr%r(ir)
         dist%dxy_ds_limit = dist%dxy_ds_max
         call calc_dir_out_params (dist, sub_dist, out)
-        A_dir = out%A_dir   ! A_dir is not normalized by angle_max.
-        dist%dxy_ds_limit = dist%dxy_ds_limit
+        unnorm_integ_prob_tot = out%integ_prob_tot   ! integ_prob_tot is not normalized by angle_max.
         if (ele%value(angle_out_max$) > 0) dist%dxy_ds_limit = min(atan(ele%value(angle_out_max$)), dist%dxy_ds_limit)
         call calc_dir_out_params (dist, sub_dist, out)
-        ppcr%p_norm(ipc,ir) = ppcr%prob(ipc,ir) * out%A_dir / A_dir  ! p_norm is normalized by angle_max
+        ppcr%p_norm(ipc,ir) = ppcr%prob(ipc,ir) *  unnorm_integ_prob_tot / out%integ_prob_tot  ! p_norm is normalized by angle_max
       enddo
     enddo
 
@@ -499,7 +502,7 @@ do i = 0, n_pt
   endif
 enddo
 
-out%A_dir = 1 / integ(n_pt)
+out%integ_prob_tot = 1 / integ(n_pt)
 
 end subroutine calc_dir_out_params
 
