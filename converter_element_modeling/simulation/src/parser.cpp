@@ -41,9 +41,9 @@ bool SimSettings::valid() const {
   // Checks whether or not this is in a valid state
 
   bool bins_set = (num_bins > 0) || (num_pc_bins > 0 && num_r_bins > 0);
-  bool out_pc_set = (out_pc_min > 0) && (out_pc_min < out_pc_max);
+  bool out_pc_set = (out_pc_min >= 0) && (out_pc_min < out_pc_max);
   bool dxy_ds_set = dxy_ds_max > 0;
-  bool fit_crossover_set = (fit_crossover > 0);
+  bool fit_crossover_set = (fit_crossover >= 0);
   bool material_set = (target_material != ""s);
   bool output_dir_set = (output_directory != ""s);
   auto is_pos = [](const double x) { return x>0; };
@@ -51,6 +51,15 @@ bool SimSettings::valid() const {
     std::all_of(pc_in.cbegin(), pc_in.cend(), is_pos);
   bool thickness_set = (target_thickness.size() != 0) &&
     std::all_of(target_thickness.cbegin(), target_thickness.cend(), is_pos);
+
+  std::cout << "bins_set : " << bins_set << '\n';
+  std::cout << "out_pc_set : " << out_pc_set << '\n';
+  std::cout << "dxy_ds_set : " << dxy_ds_set << '\n';
+  std::cout << "fit_crossover_set : " << fit_crossover_set << '\n';
+  std::cout << "material_set : " << material_set << '\n';
+  std::cout << "output_dir_set : " << output_dir_set << '\n';
+  std::cout << "pc_in_set : " << pc_in_set << '\n';
+  std::cout << "thickness_set : " << thickness_set << '\n';
   return bins_set && out_pc_set && dxy_ds_set && fit_crossover_set
     && material_set && output_dir_set && pc_in_set && thickness_set;
 }
