@@ -74,17 +74,12 @@
 \newpage
 
 \section{Introduction}
-\begin{itemize}
-\item
-Brief overview
 
-\item
-Who this manual is for
-
-\item
-Summarize the problem, the goal, and the solution.
-
-\end{itemize}
+Every electron-positron colider needs a source of positrons.
+At CESR, these positrons are generated in a linear accelerator using a positron converter.
+Until now, we have had limited ability to optimize the design of the linac, as there was no way to model the positron converter in \bmad.
+This project rectifies this problem by providing the information needed for a converter element in \bmad.
+A converter element has been developed in conjunction with this project, which should enable optimizations of the linac design.
 
 
 \section{Background/physics}
@@ -97,18 +92,6 @@ e^- + Z \rightarrow e^- + Z + \gamma \rightarrow e^- + Z + e^+ + e^-
 
 
 \section{The converter model}
-\begin{itemize}
-\item
-Coordinates
-
-\item
-Describe probability distributions of interest
-
-\item
-What fits/tables are used to approximate the distributions
-
-\end{itemize}
-
 The production of positrons in the converter is a stochastic process, the details of which are computationally expensive to simulate.
 It is therefore desirable to have a model for the properties of the produced positrons in terms of probability distributions.
 
@@ -219,17 +202,6 @@ With these fits in hand, we have an approximation of $P_2 \left( \dxds, \dyds; p
 
 
 \section{Setup Instructions}
-\begin{itemize}
-\item
-Dependencies
-
-\item
-Compilations
-
-\item
-Additional setup?
-
-\end{itemize}
 The converter modelling has two main stages.
 In the first stage, the positron creation events are simulated with Geant, and the resulting positrons are binned into a histogram.
 In the second stage, fits are performed for $\dxds$ and $\dyds$.
@@ -242,6 +214,13 @@ You will also need \texttt{cmake} installed, although this is already a requirem
 
 To build and run the fitting program, \exef, you will need the GNU Scientific Library (GSL) installed on your system.
 This is distributed with \bmad, so you should already have it on your system.
+
+Both executables require a C++ compiler with support for C++17.
+GCC 8.3 or higher should be fine; on the lab machines, you can get access to this GCC by adding
+\begin{verbatim}
+source /opt/rh/devtoolset-8/enable
+\end{verbatim}
+to your \texttt{.bashrc}.
 
 \subsubsection{Geant4 Installation Guide}
 
@@ -301,21 +280,21 @@ Again, if you chose a different location for installing Geant, modify this as ne
 
 
 \subsection{Compiling the Executables}
-Note: This section will be completed once I get the ACC build system working with this project.
+The converter simulation and fitting programs are distributed as part of the \texttt{util\_programs} project, which is included in a standard \bmad \, distribution.
+If you are working with a release instead of a distribution, you can pull down the latest version of the \texttt{util\_programs} project with
+\begin{verbatim}
+$ svn co https://accserv.lepp.cornell.edu/svn/trunk/src/util_programs
+\end{verbatim}
+Once you have \texttt{util\_programs} on your system, you will need to add
+\begin{verbatim}
+export ACC_BUILD_TEST_EXES="Y"
+\end{verbatim}
+to your \texttt{.bashrc}, and then start a new shell.
+\texttt{cd} to the \texttt{util\_programs} folder, and then simply run \texttt{mk} to build \exes \, and \exef \, (or \texttt{mkd} for debug builds).
+
 
 
 \section{How to run the programs}
-\begin{itemize}
-\item
-Config file
-
-\item
-The simulation program
-
-\item
-The fitting program
-
-\end{itemize}
 
 \subsection{Configuration}
 Both \exes \, and \exef \, are configured by editting the file \configfile, which should be in the working directory where you run both executables.
