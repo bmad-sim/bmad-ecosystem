@@ -278,6 +278,11 @@ Again, if you chose a different location for installing Geant, modify this as ne
 
 \end{enumerate}
 
+A build of Geant is already available on the lab machines at \texttt{/nfs/acc/temp/jmm699/geant}, so if you are working on the lab machines, you can simply add the following to your \texttt{.bashrc}:
+\begin{verbatim}
+cd /nfs/acc/temp/jmm699/geant/geant4.10.06.p01-build && source geant4make.sh && cd -
+\end{verbatim}
+
 
 \subsection{Compiling the Executables}
 The converter simulation and fitting programs are distributed as part of the \texttt{util\_programs} project, which is included in a standard \bmad \, distribution.
