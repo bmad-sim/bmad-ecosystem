@@ -3850,7 +3850,8 @@ main_loop: do n_in = 1, n_ele_max
 
       if ((n_loc == 0 .and. n_slave > 0) .or. (n_loc > 0 .and. slave_not_in_lat) .or. &
           (n_loc == 0 .and. n_in_loc == 0)) then
-        call parser_error ('CANNOT FIND SLAVE FOR: ' // lord%name, &
+        call parser_error ('CANNOT FIND SLAVE ELEMENT FOR ' // trim(upcase(control_name(ele%key))) // &
+                                                                              ' ELEMENT: ' // lord%name, &
                            'CANNOT FIND: '// missing_slave_name, pele = pele)
         cycle main_loop
       endif

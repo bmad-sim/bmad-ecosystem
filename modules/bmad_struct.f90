@@ -722,7 +722,7 @@ real(rp), parameter :: r0_vec(3) = 0
 real(rp), parameter :: w_unit(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
 
 type floor_position_struct
-  real(rp) :: r(3) = 0                      ! (x, y, z) offset from origin
+  real(rp) :: r(3) = [0, 0, 0]              ! (x, y, z) offset from origin
   real(rp) :: w(3,3) =  w_unit              ! W matrix. Columns are unit vectors of the frame axes.
   real(rp) :: theta = 0, phi = 0, psi = 0   ! angular orientation consistent with W matrix
 end type

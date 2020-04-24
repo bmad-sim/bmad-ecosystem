@@ -60,7 +60,8 @@ if (ele%key == sbend$) then
   local_position%W = matmul(s_mis, local_position%W)
 
   ! Transform from center frame to element end frame
-  local_position = bend_shift(local_position, ele%value(g$), ele%value(L$)/2, w_mat = Sb, tilt=ele%value(ref_tilt_tot$))
+  local_position = bend_shift(local_position, ele%value(g$), ele%value(L$)/2, &
+                                                                 w_mat = Sb, ref_tilt = ele%value(ref_tilt_tot$))
  
   if (present(w_mat)) then
     ! Initial rotation to ele's center frame and the tilt

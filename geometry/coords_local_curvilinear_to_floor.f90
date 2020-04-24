@@ -64,7 +64,7 @@ elseif (logic_option(.false., in_ele_frame)) then  ! General geometry with possi
 elseif (ele1%key == sbend$) then  ! Curved geometry, no misalignments. Get relative to ele's exit end.
   z = p%r(3)
   p%r(3) = 0
-  p = bend_shift(p, ele1%value(g$), ele1%value(L$) - z, w_mat = S_mat, tilt = ele1%value(ref_tilt_tot$) )
+  p = bend_shift(p, ele1%value(g$), ele1%value(L$) - z, w_mat = S_mat, ref_tilt = ele1%value(ref_tilt_tot$) )
 
 else   ! Element has Cartesian geometry, and misalignments are to be ignored. 
   p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit: 
