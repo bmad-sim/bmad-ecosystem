@@ -1119,7 +1119,7 @@ subroutine makeup_super_slave1 (slave, lord, offset, param, include_upstream_end
 type (ele_struct), target :: slave, lord
 type (ele_struct), pointer :: slave2, lord2
 type (lat_param_struct) param
-type (floor_position_struct) from_pos, to_pos, init_pos
+type (floor_position_struct) from_pos, to_pos
 
 real(rp) offset, s_del, coef, lord_ang, slave_ang, angle
 real(rp) value(num_ele_attrib$), cos_a, sin_a, dr(3), w_mat(3,3)
@@ -1241,10 +1241,10 @@ if (has_orientation_attributes(slave)) then
     value(ref_tilt$) = tilt
 
     if (any(off /= 0) .or. xp /= 0 .or. yp /= 0 .or. roll /= 0) then
-      from_pos = init_pos
+      from_pos = floor_position_struct([0,0,0], w_unit, 0, 0, 0)
       from_pos%r(3) = offset + len_slave/2
-      to_pos = coords_element_frame_to_local(from_pos, lord, w_mat)
-      to_pos = bend_shift (to_pos, lord%value(g$), offset + len_slave/2 - len_lord, tilt = tilt)
+      to_pos = coords_element_frame_to_local(from_pos, lord)
+      to_pos = bend_shift (to_pos, lord%value(g$), offset + len_slave/2 - len_lord, ref_tilt = tilt)
       
       w_mat = to_pos%w
       if (tilt /= 0) call rotate_mat (w_mat, z_axis$, -tilt, right_multiply = .true.)
@@ -1253,7 +1253,7 @@ if (has_orientation_attributes(slave)) then
       off = to_pos%r
 
       if (roll /= 0) then
-        call rotate_vec(rot, y_axis$, len_slave/2)
+        rot = [-value(rho$) * cos_one(value(g$)*len_slave/2), 0.0_rp, 0.0_rp]
         call rotate_vec(rot, z_axis$, tilt)
         off = off + rot
         call rotate_vec(rot, z_axis$, roll)

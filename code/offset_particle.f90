@@ -181,7 +181,7 @@ if (set) then
       call mat_make_unit (position%w)
 
       if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0)) then
-        position = bend_shift(position, ele%value(g$), ds_center, tilt = ref_tilt)
+        position = bend_shift(position, ele%value(g$), ds_center, ref_tilt = ref_tilt)
 
         call ele_misalignment_L_S_calc(ele, L_mis, ws)
         ws = transpose(ws)
@@ -191,7 +191,7 @@ if (set) then
         if (ref_tilt == 0) then
           position = bend_shift(position, ele%value(g$), -ds_center)
         else
-          position = bend_shift(position, ele%value(g$), -ele%value(L$)/2, tilt = ref_tilt)
+          position = bend_shift(position, ele%value(g$), -ele%value(L$)/2, ref_tilt = ref_tilt)
           ws = w_mat_for_tilt(-ref_tilt)
           position%r = matmul(ws, position%r)
           position%w = matmul(ws, position%w)
@@ -346,14 +346,14 @@ else
           ws = w_mat_for_tilt(ref_tilt)
           position%r = matmul(ws, position%r)
           position%w = matmul(ws, position%w)
-          position = bend_shift(position, ele%value(g$), ele%value(L$)/2, tilt = ref_tilt)
+          position = bend_shift(position, ele%value(g$), ele%value(L$)/2, ref_tilt = ref_tilt)
         endif
 
         call ele_misalignment_L_S_calc(ele, L_mis, ws)
         position%r = matmul(ws, position%r) + L_mis
         position%w = matmul(ws, position%w)
 
-        position = bend_shift(position, ele%value(g$), -ds_center, tilt = ref_tilt)
+        position = bend_shift(position, ele%value(g$), -ds_center, ref_tilt = ref_tilt)
 
       ! Else not a bend or a bend with zero bending angle
 

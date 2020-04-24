@@ -144,12 +144,12 @@ subroutine bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field
   logical, optional :: calc_dfield, calc_potential
 end subroutine
 
-function bend_shift (position1, g, delta_s, w_mat, tilt) result(position2)
+function bend_shift (position1, g, delta_s, w_mat, ref_tilt) result(position2)
   import
   implicit none
   type (floor_position_struct) :: position1, position2
   real(rp) :: g, delta_s, S_mat(3,3), L_vec(3), tlt, angle
-  real(rp), optional :: w_mat(3,3), tilt
+  real(rp), optional :: w_mat(3,3), ref_tilt
 end function bend_shift
 
 subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)

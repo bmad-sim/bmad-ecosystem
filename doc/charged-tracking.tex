@@ -420,8 +420,8 @@ An incoming particle strikes the bottom of the converter. At some point within t
 particle is generated and this new particle exits the top surface. To calculate the position and
 orientation of the outgoing particle, a coordinate system is established where the origin point
 $\wt\calO$ is the point that the incoming particle would strike the top surface if it went straight
-through and the $(\xw,\yw)$ axes are randomly rotated with respect to the $(x,y)$ body coordinate axes.
-By construction, the position of the outgoing particle will be along the $\xw$-axis.
+through and the $(x,y)$ axes are randomly rotated with respect to the $(x_b,y_b)$ body coordinate axes.
+By construction, the position of the outgoing particle will be along the $x$-axis.
   }
   \label{f:converter}.
 \end{figure}
@@ -458,15 +458,15 @@ the element parameters (\sref{s:converter}):
 \end{example}
 
 The geometry of the converter is shown in \fig{f:converter}. On the top surface, where the outgoing
-particle emerges, $(x,y)$ are the axes for the element body coordinate system (\sref{s:coords.3}).
+particle emerges, $(x_b,y_b)$ are the axes for the element body coordinate system (\sref{s:coords.3}).
 To generate the position and orientation of the outgoing particle, another coordinate system is used
-with axes labeled by $(\xw,\yw)$. Each outgoing particle will be assigned its own $(\xw,\yw)$
+with axes labeled by $(x,y)$. Each outgoing particle will be assigned its own $(x,y)$
 axes. The origin $\wt\calO$ of this coordinate system is constructed by placing $\wt\calO$ at the
 point where the incoming particle under consideration would strike the top surface if the incoming
-particle would pass straight through the converter. The angular orientation of the $(\xw,\yw)$ axes
+particle would pass straight through the converter. The angular orientation of the $(x,y)$ axes
 with respect to the $(x,y)$ axes is chosen using a random number with a uniform probability
 distribution in the interval $[0, \pi]$. By construction, the outgoing particle, at the surface of
-the converter will be generated at a point a distance $r$ along the $\xw$-axis.
+the converter will be generated at a point a distance $r$ along the $x$-axis.
 
 The particle distribution is calculated at a number of converter thickness $t_i$, $i = 1 \ldots
 N_t$. It is an error if the actual converter thickness is outside the range of these
@@ -492,9 +492,9 @@ save time, is only done if one of the three element parameters, \vn{pc_out_min},
 \vn{angle_out_max}, changes. Additionally, the setup includes creating a table of $I(p_\txt{out})$
 which is the integrated probability for generating a particle with momentum less than $p_\txt{out}$
 \begin{equation}
-  I_p(p_\txt{out}) = \frac{\dstyle \int_{p_\txt{min}}^{p_\txt{out}} dp'_\txt{out} 
-  \int dr \, P_\txt{n}(p'_\txt{out}, r)}
-  {\dstyle \int_{p_\txt{min}}^{p_\txt{max}} dp'_\txt{out} \int dr \, P_{n}(p'_\txt{out}, r)}
+  I_p(p_\txt{out}) = \frac{\dstyle \int_{p_\txt{min}}^{p_\txt{out}} d\pw_\txt{out} 
+  \int dr \, P_\txt{n}(\pw_\txt{out}, r)}
+  {\dstyle \int_{p_\txt{min}}^{p_\txt{max}} d\pw_\txt{out} \int dr \, P_{n}(\pw_\txt{out}, r)}
 \end{equation}
 where $p_\txt{min}$ is the minimum momentum in the $P(p_\txt{out}, r)$ table or the value of
 \vn{pc_out_min} which ever is greatest and $p_\txt{max}$ is the maximum momentum in the
@@ -515,8 +515,8 @@ The next step is to choose a value for $r$. This is done by solving the equation
 \end{equation}
 where $R_2$ is another random number with uniform distribution in the interval $[0,1]$ and $I_r$ is 
 \begin{equation}
-  I_r(r) = \frac{\dstyle \int_0^r dr' \, P_\txt{n}(p_\txt{out}, r')}
-  {\dstyle \int_0^{r_\txt{max}} dr' \, P_{n}(p_\txt{out}, r')}
+  I_r(r) = \frac{\dstyle \int_0^r d\rw \, P_\txt{n}(p_\txt{out}, \rw)}
+  {\dstyle \int_0^{r_\txt{max}} d\rw \, P_{n}(p_\txt{out}, \rw)}
 \end{equation}
 with $p_\txt{out}$ being the momentum chosen for the particle and $r_\txt{max}$ being the maximum
 radius the probability table goes out to\footnote
@@ -533,38 +533,39 @@ thicknesses the same random number needs to be used.
 
 Once $p_\txt{out}$ and $r$ have been chosen, the next steps are to choose values for the angular
 orientation of the outgoing particle. The angular orientation is characterized by the distribution
-parameters using the derivatives $\xw' = d\xw/ds$ and $\yw' = d\yw/ds$ in the form of a skewed Lorenzian
+parameters using the derivatives $x' = dx/ds$ and $y' = dy/ds$ in the form of a skewed Lorenzian
 probability distribution $P_d$
 \begin{equation}
-  P_d\left( \xw', \yw' ; p_\txt{out}, r \right) =
-  A_d \, \frac{1 + \beta \, \xw'}{1 + \alpha_x \, \left( \xw' - c_x \right)^2 +
-  \alpha_y \, \left( \yw' \right)^2}
+  P_d\left( x', y' ; p_\txt{out}, r \right) =
+  A_d \, \frac{1 + \beta \, x'}{1 + \alpha_x \, \left( x' - c_x \right)^2 +
+  \alpha_y \, \left( y' \right)^2}
   \label{pxsxs}
 \end{equation}
 where the parameters $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ all depend upon $p_\txt{out}$
 and $r$. Notice that by construction, with the outgoing particle generated on the
-$\xw$-axis, the distribution is symmetric about $\yw'$-axis. The pre-computed distribution
+$x$-axis, the distribution is symmetric about $y'$-axis. The pre-computed distribution
 characterizes each of these parameters by a set of one or more fit functions.
 
 The $\beta(p_\txt{out},r)$ parameter fit is divided into two regions. For $p_\txt{out}$ lower than
 some cutoff, $\beta(p_\txt{out},r)$ is fit using a set of one-dimensional functions $\beta_i(r)$
 at momentum $p_i$, $i = 1, \ldots, N_\beta$ with
 \begin{equation}
-  \beta_i(r) = \sum_{n=0}^4 c_{n,i} \, r^n
+  \beta_i(r) = \sum_{n=1}^4 c_{n,i} \, r^n
 \end{equation}
-To evaluate $\beta(p_\txt{out},r)$ at momenta lower than $p_{N_\beta}$, the $\beta_i$ are used with
-linear interpolation between functions of different $p_i$. At higher energies, the fit function
-$\beta_h$ is used
+The $c_{0,i}$ coeficients is zero by symmetry. To evaluate $\beta(p_\txt{out},r)$ at momenta lower than
+$p_{N_\beta}$, the $\beta_i$ are used with linear interpolation between functions of different
+$p_i$. At higher energies, the fit function $\beta_h$ is used
 \begin{equation}
   \beta_h(p_\txt{out},r) = \left( \sum_{n=0}^4 k_{n} \, r^n \right) \, 
-  \left( \sum_{n=0}^4 w_{n} \, p_\txt{out}^n \right)
+  \left( \sum_{n=1}^4 w_{n} \, p_\txt{out}^n \right)
 \end{equation}
 
 For $c_x(p_\txt{out},r)$ the fit function is
 \begin{equation}
-  c_x(p_\txt{out},r) = \left( \sum_{n=0}^3 a_{n} \, r^n \right) \, 
+  c_x(p_\txt{out},r) = \left( \sum_{n=1}^3 a_{n} \, r^n \right) \, 
   \left( \sum_{n=0}^3 b_{n} \, p_\txt{out}^n \right)
 \end{equation}
+The $a_0$ coeficient is zero by symmetry.
 
 For $\alpha_x(p_\txt{out},r)$ and $\alpha_y(p_\txt{out},r)$, like the $\beta$ fit, there is a set of
 one-dimensional fit functions $\alpha_i(r)$ (the $x$ and $y$ subscripts are being suppressed here)
@@ -584,24 +585,24 @@ Once $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ are calculated at a given $p_\tx
 $A_d$ can be calculated using the restriction that the integral of $P_d$ must be properly normalized
 to one
 \begin{equation}
-  1 = \int \int d\xw' \, d\yw' \,
-  P_d \left( \xw', \yw' \right)
+  1 = \int \int dx' \, dy' \,
+  P_d \left( x', y' \right)
 \end{equation}
 
 Once $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ have been calculated for a given $p_\txt{out}$ and
-$r$, The calculation of $\xw'$ starts with integrating $P_d$ in \Eq{pxsxs} over $\yw'$
+$r$, The calculation of $x'$ starts with integrating $P_d$ in \Eq{pxsxs} over $y'$
 \begin{align} 
-  I_{xd} (\xw') &\equiv \int_{-\yw'_\txt{lim}}^{\yw'_\txt{lim}} d\yw' \, P_d(\xw', \yw')
+  I_{xd} (x') &\equiv \int_{-y'_\txt{lim}}^{y'_\txt{lim}} dy' \, P_d(x', y')
   \label{ixdyp} \\
-  &= 2 \, A_d \, \frac{1 + \beta \, \xw'}{\sqrt{ \alpha_y \, (1 + \alpha_x \, (\xw' - c_x)^2) }} \,
-  \tan^{-1} \left( \sqrt{ \frac{\alpha_y}{1 + \alpha_x \, (\xw' - c_x)^2} } \, \yw'_\txt{lim} \right)
+  &= 2 \, A_d \, \frac{1 + \beta \, x'}{\sqrt{ \alpha_y \, (1 + \alpha_x \, (x' - c_x)^2) }} \,
+  \tan^{-1} \left( \sqrt{ \frac{\alpha_y}{1 + \alpha_x \, (x' - c_x)^2} } \, y'_\txt{lim} \right)
   \nonumber
 \end{align}
-where $\yw'_\txt{lim}$ is either the lesser of $\tan^{-1}(\text{angle_out_max})$ or the maximum
-value of $\yw'$ that the pre-computed distribution parameters $\beta$, $c_x$, $\alpha_x$, and
+where $y'_\txt{lim}$ is either the lesser of $\tan^{-1}(\text{angle_out_max})$ or the maximum
+value of $y'$ that the pre-computed distribution parameters $\beta$, $c_x$, $\alpha_x$, and
 $\alpha_y$ were fit out to (typically something greater than 80$^\txt{o}$ from the perpendicular).
-A spline fit is used to integrate $I_{xd}$ and this is used to choose a value for $\xw'$. Once $\xw'$
-is known, The integral of $P_d(\xw', \yw')$ over $\yw'$ is used to choose a value for $\yw'$.
+A spline fit is used to integrate $I_{xd}$ and this is used to choose a value for $x'$. Once $x'$
+is known, The integral of $P_d(x', y')$ over $y'$ is used to choose a value for $y'$.
 
 Except for the placement of $\wt\calO$, the above algorithm for calculating the position and
 orientation of the outgoing particle will be independent of the angular orientation of the incoming
