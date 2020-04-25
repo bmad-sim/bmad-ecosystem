@@ -1961,7 +1961,10 @@ end subroutine write_lat_line
 !                           [A MAD "matrix" is a 2nd order Taylor map.] This switch is ignored for SAD conversion.
 !                           Default is False -> Use a bend-drift-bend model. 
 !                           Note: sol_quad elements always use a drift-matrix-drift model.
-!   include_apertures -- logical, optional: Include aperture info? Ignored for SAD convertion. Default is True.
+!   include_apertures -- logical, optional: If True (the default), add to the output lattice a zero length
+!                           collimator element next to any non-collimator element that has an aperture.
+!                           Note: MADX translations can handle non-collimator elements with an aperture so
+!                           for MADX translations this argument is ignored.
 !   dr12_drift_max    -- real(rp), optional: Max deviation for drifts allowed before a correction matrix element
 !                           is added. Default value is 1d-5.
 !   ix_start          -- integer, optional: Starting index of lat%ele(i)
@@ -2164,7 +2167,7 @@ do
   endif
 
   ! If there is an aperture with an element that is not an ecoll or rcoll then need to make a separate
-  ! element with the aperture info. Exception: MAD-X can handle apertures on non collimator elements.
+  ! element with the aperture info. Exception: MAD-X can handle apertures on non-collimator elements.
 
   if ((val(x1_limit$) /= 0 .or. val(x2_limit$) /= 0 .or. val(y1_limit$) /= 0 .or. val(y2_limit$) /= 0) .and. &
       ele%key /= ecollimator$ .and. ele%key /= rcollimator$ .and. logic_option(.true., include_apertures) .and. &
