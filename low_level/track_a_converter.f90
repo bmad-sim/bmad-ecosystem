@@ -171,7 +171,7 @@ if (pc_in < dist%sub_dist(1)%pc_in .or. pc_in >= dist%sub_dist(nsd)%pc_in) then
   return
 endif
 
-ix_sd = bracket_index(pc_in, dist%sub_dist%pc_in, 1, rsd)
+ix_sd = bracket_index(pc_in, dist%sub_dist%pc_in, 1, rsd, restrict = .true.)
 call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd), r_ran, out1)
 call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd+1), r_ran, out2)
 
@@ -205,22 +205,13 @@ logical err_flag
 ! pc_out calc
 
 ppcr => sub_dist%prob_pc_r
-ix_pc = bracket_index(r_ran(1), ppcr%integ_pc_out, 1, dpc)
-if (ppcr%pc_out(ix_pc) < ppcr%pc_out_min) then
-  delta = (ppcr%pc_out(ix_pc+1) - ppcr%pc_out_min) / (ppcr%pc_out(ix_pc+1) - ppcr%pc_out(ix_pc))
-  dpc2 = (dpc - delta) / (1 - delta)
-  out%pc_out = (1-dpc2) * ppcr%pc_out_min + dpc2 * ppcr%pc_out(ix_pc+1)
-elseif (ppcr%pc_out(ix_pc+1) > ppcr%pc_out_max) then
-  dpc = dpc2 / (1 - delta)
-  out%pc_out = (1-dpc2) * ppcr%pc_out(ix_pc) + dpc2 * ppcr%pc_out_max
-else
-  out%pc_out = (1-dpc) * ppcr%pc_out(ix_pc) + dpc * ppcr%pc_out(ix_pc+1)
-endif
+ix_pc = bracket_index(r_ran(1), ppcr%integ_pc_out, 1, dpc, restrict = .true.)
+out%pc_out = (1-dpc) * ppcr%pc_out(ix_pc) + dpc * ppcr%pc_out(ix_pc+1)
 
 ! r calc
 
 ppcr%integ_r_ave = (1-dpc) * ppcr%integ_r(ix_pc,:) + dpc * ppcr%integ_r(ix_pc+1,:)
-ix_r = bracket_index(r_ran(2), ppcr%integ_r_ave(:), 1, dr)
+ix_r = bracket_index(r_ran(2), ppcr%integ_r_ave(:), 1, dr, restrict = .true.)
 out%r = (1-dr) * ppcr%r(ix_r) + dr * ppcr%r(ix_r+1)
 
 ! dx/ds calc
@@ -250,8 +241,7 @@ integer status, ix
 
 !
 
-ix = bracket_index(x, com%dx_ds_spline%x0, 0)
-if (ix == ubound(com%dx_ds_spline, 1)) ix = ix - 1
+ix = bracket_index(x, com%dx_ds_spline%x0, 0, restrict = .true.)
 value = (com%dx_ds_integ(ix) + spline1(com%dx_ds_spline(ix), x, -1)) - com%integ_prob_tot * com%r_ran
 
 end function dx_ds_func
@@ -366,24 +356,22 @@ function p2_norm_func (x,y) result (value)
 
 real(rp) x, y, value
 real(rp) dx, dy
-integer ix, iy, ix2, iy2, nx, ny
+integer ix, iy, nx, ny
 
 !
 
 nx = size(com%ppcr%pc_out)
 ny = size(com%ppcr%r)
-ix = bracket_index(x, com%ppcr%pc_out, 1, dx)
-iy = bracket_index(y, com%ppcr%r, 1, dy)
-ix2 = min(ix+1, nx)
-iy2 = min(iy+1, ny)
+ix = bracket_index(x, com%ppcr%pc_out, 1, dx, restrict = .true.)
+iy = bracket_index(y, com%ppcr%r, 1, dy, restrict = .true.)
 
 if (x < com%ppcr%pc_out_min .or. x > com%ppcr%pc_out_max .or. y > com%dist%dxy_ds_limit) then
   value = 0
   return
 endif
 
-value = (1-dx)*(1-dy)*com%ppcr%p_norm(ix,iy) + dx*(1-dy)*com%ppcr%p_norm(ix2,iy) + &
-        (1-dx)*dy*com%ppcr%p_norm(ix,iy2) + dx*dy*com%ppcr%p_norm(ix2,iy2) 
+value = (1-dx)*(1-dy)*com%ppcr%p_norm(ix,iy) + dx*(1-dy)*com%ppcr%p_norm(ix+1,iy) + &
+        (1-dx)*dy*com%ppcr%p_norm(ix,iy+1) + dx*dy*com%ppcr%p_norm(ix+1,iy+1) 
 
 end function p2_norm_func
 
@@ -394,7 +382,7 @@ function p1_norm_func (r) result (value)
 
 real(rp), intent(in) :: r(:)
 real(rp) :: value(size(r)), dr
-integer i, ix, ix2
+integer i, ix
 
 !
 
@@ -403,9 +391,8 @@ do i = 1, size(r)
     value(i) = 0
     cycle
   endif
-  ix = bracket_index(r(i), com%ppcr%r, 1, dr)
-  ix2 = min(ix+1, size(com%ppcr%r))
-  value(i) = (1-dr)*com%ppcr%p_norm(com%ipc, ix) + dr*com%ppcr%p_norm(com%ipc, ix2)
+  ix = bracket_index(r(i), com%ppcr%r, 1, dr, restrict = .true.)
+  value(i) = (1-dr)*com%ppcr%p_norm(com%ipc, ix) + dr*com%ppcr%p_norm(com%ipc, ix+1)
 enddo
 
 
@@ -427,7 +414,7 @@ type (spline_struct), pointer :: spn(:)
 real(rp) dr, dx, x_min, x, rad, a_tan, b1, drad, arg
 real(rp), pointer :: integ(:)
 
-integer i, n, ix, ix2
+integer i, n, ix
 
 ! beta calc
 
@@ -436,10 +423,9 @@ n = size(beta%fit_1d_r)
 if (out%pc_out >= beta%fit_1d_r(n)%pc_out) then
   out%beta = poly_eval(beta%poly_pc, out%pc_out) * poly_eval(beta%poly_r, out%r)
 else
-  ix = bracket_index(out%pc_out, beta%fit_1d_r%pc_out, 1, dr)
-  ix2 = min(ix+1, n)
+  ix = bracket_index(out%pc_out, beta%fit_1d_r%pc_out, 1, dr, restrict = .true.)
   out%beta = (1 - dr) * poly_eval(beta%fit_1d_r(ix)%poly, out%r) + &
-                   dr * poly_eval(beta%fit_1d_r(ix2)%poly, out%r) 
+                   dr * poly_eval(beta%fit_1d_r(ix+1)%poly, out%r) 
 endif
 
 ! c_x calc
@@ -455,10 +441,9 @@ if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
   out%alpha_x = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
                 exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
 else
-  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
-  ix2 = min(ix+1, n)
+  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr, restrict = .true.)
   out%alpha_x = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%r) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
-                   dr * poly_eval(alpha%fit_1d_r(ix2)%poly, out%r) * exp(-alpha%fit_1d_r(ix2)%k * out%r)
+                   dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%r) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
 endif
 
 ! Alpha_y calc
@@ -469,10 +454,9 @@ if (out%pc_out >= alpha%fit_1d_r(n)%pc_out) then
   out%alpha_y = poly_eval(alpha%fit_2d_pc%poly, out%pc_out) * poly_eval(alpha%fit_2d_r%poly, out%r) * &
                 exp(-(alpha%fit_2d_pc%k * out%pc_out + alpha%fit_2d_r%k * out%r))
 else
-  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr)
-  ix2 = min(ix+1, n)
+  ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr, restrict = .true.)
   out%alpha_y = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%r) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
-                   dr * poly_eval(alpha%fit_1d_r(ix2)%poly, out%r) * exp(-alpha%fit_1d_r(ix2)%k * out%r)
+                   dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%r) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
 endif
 
 ! For dx/ds use a spine fit.
