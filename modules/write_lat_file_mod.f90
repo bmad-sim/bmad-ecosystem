@@ -1932,10 +1932,11 @@ end subroutine write_lat_line
 !
 ! Subroutine to write a MAD-8, MAD-X, OPAL, SAD, or XSIF lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
+! [XSIF is a variant of MAD8 used by SLAC.]
 !
-! Also see: write_bmad_lattice_file
+! To write a Bmad lattice file, use: write_bmad_lattice_file
 !
-! NOTE: When translating to XSIF or MAD: sad_mult and patch element are translated
+! Note: When translating to XSIF or MAD: sad_mult and patch element are translated
 !  to a XSIF/MAD matrix element (which is a 2nd order map). In this case, the ref_orbit orbit is
 !  used as the reference orbit for construction of the 2nd order map.
 !
@@ -1963,8 +1964,8 @@ end subroutine write_lat_line
 !                           Note: sol_quad elements always use a drift-matrix-drift model.
 !   include_apertures -- logical, optional: If True (the default), add to the output lattice a zero length
 !                           collimator element next to any non-collimator element that has an aperture.
-!                           Note: MADX translations can handle non-collimator elements with an aperture so
-!                           for MADX translations this argument is ignored.
+!                           Note: MADX translations for non-drift elements can handle non-collimator elements 
+!                           with an aperture so in this case this argument is ignored.
 !   dr12_drift_max    -- real(rp), optional: Max deviation for drifts allowed before a correction matrix element
 !                           is added. Default value is 1d-5.
 !   ix_start          -- integer, optional: Starting index of lat%ele(i)
