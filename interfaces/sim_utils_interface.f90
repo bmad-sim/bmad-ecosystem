@@ -4,22 +4,24 @@ use sim_utils_struct
 
 interface
 
-function bracket_index (s, s_arr, i_min, dr) result (ix)
+function bracket_index (s, s_arr, i_min, dr, restrict) result (ix)
   import
   implicit none
   integer i_min, i_max
   real(rp) s_arr(i_min:), s
   real(rp), optional :: dr
+  logical, optional :: restrict
   integer ix
 end function
 
-function bracket_index2 (s, ix0, s_arr, i_min, dr) result (ix)
+function bracket_index2 (s, ix0, s_arr, i_min, dr, restrict) result (ix)
   import
   implicit none
   integer i_min, i_max
   real(rp) s_arr(i_min:), s
   real(rp), optional :: dr
   integer ix0, ix
+  logical, optional :: restrict
 end function
 
 subroutine calc_file_number (file_name, num_in, num_out, err_flag)
