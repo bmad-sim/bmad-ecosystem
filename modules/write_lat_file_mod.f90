@@ -308,7 +308,7 @@ write (iu, '(a)') '!-------------------------------------------------------'
 write (iu, '(a)')
 
 n_names = 0
-n = lat%n_ele_max
+n = branch%n_ele_max
 allocate (names(n), an_indexx(n), named_eles(n))
 
 do ib = 0, ubound(lat%branch, 1)
@@ -1936,8 +1936,8 @@ end subroutine write_lat_line
 !
 ! To write a Bmad lattice file, use: write_bmad_lattice_file
 !
-! Note: When translating to XSIF or MAD: sad_mult and patch element are translated
-!  to a XSIF/MAD matrix element (which is a 2nd order map). In this case, the ref_orbit orbit is
+! Note: When translating to XSIF or MAD8: sad_mult and patch element are translated
+!  to a XSIF/MAD8 matrix element (which is a 2nd order map). In this case, the ref_orbit orbit is
 !  used as the reference orbit for construction of the 2nd order map.
 !
 ! If a sad_mult or patch element is translated to a matrix element, and the referece orbit
@@ -1957,7 +1957,8 @@ end subroutine write_lat_line
 !   out_file_name     -- character(*): Name of the mad output lattice file.
 !   lat               -- lat_struct: Holds the lattice information.
 !   ref_orbit(0:)     -- coord_struct, allocatable, optional: Referece orbit for sad_mult and patch elements.
-!                          This argument must be present if the lattice has sad_mult or patch elements.
+!                          This argument must be present if the lattice has sad_mult or patch elements and is
+!                          being translated to MAD-8 or SAD.
 !   use_matrix_model  -- logical, optional: Use a drift-matrix_drift model for wigglers/undulators?
 !                           [A MAD "matrix" is a 2nd order Taylor map.] This switch is ignored for SAD conversion.
 !                           Default is False -> Use a bend-drift-bend model. 
@@ -2003,7 +2004,7 @@ type (ptc_parameter_struct) ptc_param
 type (taylor_struct) taylor_a(6), taylor_b(6)
 
 real(rp), optional :: dr12_drift_max
-real(rp) field, hk, vk, tilt, limit(2), length, a, b, f, e2
+real(rp) field, hk, vk, tilt, limit(2), length, a, b, f, e2, beta
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
@@ -2085,7 +2086,7 @@ null_ele%key = null_ele$
 ie1 = integer_option(1, ix_start)
 ie2 = integer_option(branch%n_ele_track, ix_end)
 
-allocate (names(branch%n_ele_max), an_indexx(branch%n_ele_max)) ! list of element names
+allocate (names(branch%n_ele_max+10), an_indexx(branch%n_ele_max+10)) ! list of element names
 
 call out_io (s_info$, r_name, &
       'Note: Bmad lattice elements have attributes that cannot be translated. ', &
@@ -2523,8 +2524,11 @@ end select
 ! write element parameters
 
 n_names = 0                          ! number of names stored in the list
+ix_ele = ie1 - 1
 
-do ix_ele = ie1, ie2
+do   ! ix_ele = 1e1, ie2
+  ix_ele = ix_ele + 1
+  if (ix_ele > ie2) exit
 
   ele => branch_out%ele(ix_ele)
   val => ele%value
@@ -2544,7 +2548,7 @@ do ix_ele = ie1, ie2
 
   ! Add to the list of elements
 
-  if (size(names) < n_names + 1) then
+  if (size(names) < n_names + 10) then
     call re_allocate(names, 2*size(names))
     call re_allocate(an_indexx, 2*size(names))
   endif
@@ -2746,6 +2750,44 @@ do ix_ele = ie1, ie2
 
   case (taylor$, sad_mult$, patch$)
 
+    if (out_type == 'MAD-X') then
+      ele%key = null_ele$
+      orig_name = ele%name
+      if (val(x_offset$) /= 0 .or. val(y_offset$) /= 0 .or. val(z_offset$) /= 0) then
+        drift_ele%name = trim(orig_name) // '__t'
+        call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        line_out = trim(drift_ele%name) // ': translation'
+        call value_to_line (line_out, val(x_offset$), 'dx', 'R')
+        call value_to_line (line_out, val(y_offset$), 'dy', 'R')
+        call value_to_line (line_out, val(z_offset$), 'ds', 'R')
+        call write_line(line_out)
+      endif
+
+      if (val(x_pitch$) /= 0) then
+        drift_ele%name = trim(orig_name) // '__y'
+        call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        call write_line(trim(drift_ele%name) // ': yrotation, angle = ' // re_str(-val(x_pitch$)))
+      endif
+
+      if (val(y_pitch$) /= 0) then
+        drift_ele%name = trim(orig_name) // '__x'
+        call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        call write_line(trim(drift_ele%name) // ': xrotation, angle = ' // re_str(-val(y_pitch$)))
+      endif
+
+      if (val(tilt$) /= 0) then
+        drift_ele%name = trim(orig_name) // '__s'
+        call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+        ie2 = ie2 + 1;  ix_ele = ix_ele + 1
+        call write_line(trim(drift_ele%name) // ': srotation, angle = ' // re_str(val(tilt$)))
+      endif
+
+      cycle
+    endif
+
     if (.not. associated (ele%taylor(1)%term)) then
       if (.not. present(ref_orbit)) then
         call out_io (s_error$, r_name, &
@@ -2759,7 +2801,7 @@ do ix_ele = ie1, ie2
 
     line_out = trim(ele%name) // ': matrix'
     warn_printed = .false.
-    call value_to_line (line_out, ele%value(l$), 'l', 'R')
+    call value_to_line (line_out, val(l$), 'l', 'R')
 
     do i = 1, 6
       do k = 1, size(ele%taylor(i)%term)
@@ -2770,8 +2812,6 @@ do ix_ele = ie1, ie2
           select case (out_type)
           case ('MAD-8') 
             write (str, '(a, i0, a)') 'kick(', i, ')'
-          case ('MAD-X') 
-            write (str, '(a, i0)') 'kick', i
           case ('XSIF') 
             call out_io (s_error$, r_name, 'XSIF DOES NOT HAVE A CONSTRUCT FOR ZEROTH ORDER TAYLOR TERMS NEEDED FOR: ' // ele%name)
             cycle
@@ -2783,8 +2823,6 @@ do ix_ele = ie1, ie2
           select case (out_type)
           case ('MAD-8')
             write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
-          case ('MAD-X')
-            write (str, '(a, 2i0)') 'rm', i, j
           case ('XSIF')
             write (str, '(a, 2i0)') 'r', i, j
           end select
@@ -2802,8 +2840,6 @@ do ix_ele = ie1, ie2
           select case (out_type)
           case ('MAD-8')
             write (str, '(a, 3(i0, a))') 'tm(', i, ',', j, ',', j2, ')'
-          case ('MAD-X')
-            write (str, '(a, 3i0)') 'tm', i, j, j2
           case ('XSIF')
             write (str, '(a, 3i0)') 't', i, j, j2
           end select
@@ -2919,6 +2955,7 @@ line = ' '
 do n = ie1, ie2
 
   ele => branch_out%ele(n)
+  if (ele%key == null_ele$) cycle  ! Will happen with patch elements translated to MAD-X
 
   if (init_needed) then
     write (iu, '(a)')
@@ -2952,20 +2989,6 @@ do n = ie1, ie2
   endif
 
 enddo
-
-! Write twiss parameters for a non-closed lattice.
-
-ele => branch_out%ele(ie1-1)
-if (branch_out%param%geometry == open$ .and. &
-                  (out_type == 'MAD-8' .or. out_type == 'MAD-X' .or. out_type == 'XSIF')) then
-  write (iu, '(a)')
-  write (iu, '(3a)') comment_char, '---------------------------------', trim(eol_char)
-  write (iu, '(a)')
-  write (iu, '(6a)') 'TWISS, betx = ', re_str(ele%a%beta), ', bety = ', re_str(ele%b%beta), ', ', trim(continue_char)
-  write (iu, '(5x, 6a)') 'alfx = ', re_str(ele%a%alpha), ', alfy = ', re_str(ele%b%alpha), ', ', trim(continue_char)
-  write (iu, '(5x, 6a)') 'dx = ', re_str(ele%a%eta), ', dpx = ', re_str(ele%a%etap), ', ', trim(continue_char)
-  write (iu, '(5x, 6a)') 'dy = ', re_str(ele%b%eta), ', dpy = ', re_str(ele%b%etap), trim(eol_char)
-endif
 
 !------------------------------------------
 ! Use statement
@@ -3016,6 +3039,7 @@ if (out_type(1:3) == 'MAD') then
     !
 
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+    if (ix_match == 0) cycle ! Happens for translated to MADX patch elements.
     n_repeat(ix_match) = n_repeat(ix_match) + 1
     
     if (val(x_pitch$) == 0 .and. val(y_pitch$) == 0 .and. &
@@ -3037,6 +3061,30 @@ if (out_type(1:3) == 'MAD') then
 
   deallocate (n_repeat)
 
+endif
+
+! Write twiss parameters for a non-closed lattice.
+
+if (branch_out%param%geometry == open$ .and. (out_type == 'MAD-8' .or. out_type == 'MAD-X' .or. out_type == 'XSIF')) then
+  ele => branch_out%ele(ie1-1)
+  orb_start = lat%particle_start
+  beta = ele%value(p0c$) / ele%value(E_tot$)
+  write (iu, '(a)')
+  write (iu, '(3a)') comment_char, '---------------------------------', trim(eol_char)
+  write (iu, '(a)')
+  write (iu, '(12a)') 'initial: beta0, betx = ', re_str(ele%a%beta), ', bety = ', re_str(ele%b%beta), &
+                      ', alfx = ', re_str(ele%a%alpha), ', alfy = ', re_str(ele%b%alpha), ', ', trim(continue_char)
+  write (iu, '(5x, 12a)') 'dx = ', re_str(ele%a%eta), ', dpx = ', re_str(ele%a%etap), & 
+                        ', dy = ', re_str(ele%b%eta), ', dpy = ', re_str(ele%b%etap), ', ', trim(continue_char)
+  write (iu, '(5x, 12a)') 'x = ', re_str(orb_start%vec(1)), ', px = ', re_str(orb_start%vec(2)), &
+                        ', y = ', re_str(orb_start%vec(3)), ', py = ', re_str(orb_start%vec(4)), &
+                        ', t = ', re_str(orb_start%vec(5)*beta), ', pt = ', re_str(orb_start%vec(6)/beta), trim(eol_char)
+
+
+
+  if (ele%a%beta /= 0 .and. ele%b%beta /= 0) then
+    write (iu, '(a)') 'twiss, beta0 = initial;'
+  endif
 endif
 
 ! End stuff
