@@ -3,7 +3,7 @@ import ctypes
 import numpy as np
 from pytao import tao_ctypes
 from pytao.util.parameters import tao_parameter_dict
-from .util import full_path
+from .tools import full_path
 import tempfile
 import shutil
 
@@ -312,8 +312,6 @@ class TaoModel(Tao):
 #------------------------------------------------------------------------------- 
 # Helper functions        
      
-     
-     
 def tao_object_evaluate(tao_object, expression):
     """
     Evaluates an expression and returns 
@@ -411,6 +409,37 @@ def apply_settings(tao_object, settings):
 #------------------------------------------------------------------------------- 
 # Helper functions        
 
+
+def run_tao(settings=None,
+                run_commands=['set global track_type=single'],
+                input_file='tao.init',
+                ploton=False,
+                workdir=None,
+                so_lib='',
+                verbose=False):
+    """
+    Creates an LCLSTaoModel object, applies settings, and runs the beam.
+    
+    """
+    
+    assert os.path.exists(input_file), f'Tao input file does not exist: {input_file}'
+    
+    M = TaoModel(input_file=input_file,
+                 ploton = ploton,
+                 use_tempdir=True,
+                 workdir=workdir,
+                 verbose=verbose,
+                 so_lib=so_lib,  # Passed onto Tao superclass
+                 auto_configure = True) # Should be disables if inheriting.
+                
+    
+    if settings:
+        apply_settings(M, settings)
+    
+    for command in run_commands:
+        M.cmd(command)
+    
+    return M
 
 
 
