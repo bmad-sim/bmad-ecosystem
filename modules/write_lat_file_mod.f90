@@ -2002,6 +2002,7 @@ type (mad_energy_struct) energy
 type (mad_map_struct) mad_map
 type (ptc_parameter_struct) ptc_param
 type (taylor_struct) taylor_a(6), taylor_b(6)
+type (taylor_struct), pointer :: taylor_ptr(:)
 
 real(rp), optional :: dr12_drift_max
 real(rp) field, hk, vk, tilt, limit(2), length, a, b, f, e2, beta
@@ -2089,7 +2090,7 @@ ie2 = integer_option(branch%n_ele_track, ix_end)
 allocate (names(branch%n_ele_max+10), an_indexx(branch%n_ele_max+10)) ! list of element names
 
 call out_io (s_info$, r_name, &
-      'Note: Bmad lattice elements have attributes that cannot be translated. ', &
+      'Note: In general, Bmad lattice elements can have attributes that cannot be translated. ', &
       '      For example, higher order terms in a Taylor element.', &
       '      Please use caution when using a translated lattice.')
 
@@ -2748,9 +2749,9 @@ do   ! ix_ele = 1e1, ie2
 
   ! taylor MAD
 
-  case (taylor$, sad_mult$, patch$)
+  case (taylor$, sad_mult$, patch$, match$)
 
-    if (out_type == 'MAD-X') then
+    if (ele%key == patch$ .and. out_type == 'MAD-X') then
       ele%key = null_ele$
       orig_name = ele%name
       if (val(x_offset$) /= 0 .or. val(y_offset$) /= 0 .or. val(z_offset$) /= 0) then
@@ -2788,7 +2789,13 @@ do   ! ix_ele = 1e1, ie2
       cycle
     endif
 
-    if (.not. associated (ele%taylor(1)%term)) then
+    if (associated (ele%taylor(1)%term)) then
+      taylor_ptr => ele%taylor
+    elseif (ele%key == match$) then
+      allocate(taylor_ptr(6))
+      call ele_to_taylor (ele, branch%param, orbital_taylor = taylor_ptr)
+    else
+      allocate(taylor_ptr(6))
       if (.not. present(ref_orbit)) then
         call out_io (s_error$, r_name, &
                       'ORBIT ARGUMENT NEEDS TO BE PRESENT WHEN TRANSLATING', &
@@ -2796,7 +2803,7 @@ do   ! ix_ele = 1e1, ie2
         cycle
       endif
       if (ptc_com%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
-      call ele_to_taylor (ele, branch%param, orbit_out(ix_ele-1), .true.)
+      call ele_to_taylor (ele, branch%param, orbit_out(ix_ele-1), .true., orbital_taylor = taylor_ptr)
     endif
 
     line_out = trim(ele%name) // ': matrix'
@@ -2804,14 +2811,16 @@ do   ! ix_ele = 1e1, ie2
     call value_to_line (line_out, val(l$), 'l', 'R')
 
     do i = 1, 6
-      do k = 1, size(ele%taylor(i)%term)
-        term = ele%taylor(i)%term(k)
+      do k = 1, size(taylor_ptr(i)%term)
+        term = taylor_ptr(i)%term(k)
 
         select case (sum(term%expn))
         case (0)
           select case (out_type)
           case ('MAD-8') 
             write (str, '(a, i0, a)') 'kick(', i, ')'
+          case ('MAD-X') 
+            write (str, '(a, i0)') 'kick', i
           case ('XSIF') 
             call out_io (s_error$, r_name, 'XSIF DOES NOT HAVE A CONSTRUCT FOR ZEROTH ORDER TAYLOR TERMS NEEDED FOR: ' // ele%name)
             cycle
@@ -2823,6 +2832,8 @@ do   ! ix_ele = 1e1, ie2
           select case (out_type)
           case ('MAD-8')
             write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
+          case ('MAD-X')
+            write (str, '(a, 2i0)') 'rm', i, j
           case ('XSIF')
             write (str, '(a, 2i0)') 'r', i, j
           end select
@@ -2840,6 +2851,8 @@ do   ! ix_ele = 1e1, ie2
           select case (out_type)
           case ('MAD-8')
             write (str, '(a, 3(i0, a))') 'tm(', i, ',', j, ',', j2, ')'
+          case ('MAD-X')
+            write (str, '(a, 3i0)') 'tm', i, j, j2
           case ('XSIF')
             write (str, '(a, 3i0)') 't', i, j, j2
           end select
@@ -2856,6 +2869,8 @@ do   ! ix_ele = 1e1, ie2
       enddo
 
     enddo
+
+    if (.not. associated(ele%taylor(1)%term)) deallocate(taylor_ptr)
 
   ! rfcavity MAD
 
