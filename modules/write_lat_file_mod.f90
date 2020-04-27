@@ -308,7 +308,7 @@ write (iu, '(a)') '!-------------------------------------------------------'
 write (iu, '(a)')
 
 n_names = 0
-n = branch%n_ele_max
+n = lat%n_ele_max
 allocate (names(n), an_indexx(n), named_eles(n))
 
 do ib = 0, ubound(lat%branch, 1)
