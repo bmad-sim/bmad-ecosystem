@@ -1,11 +1,10 @@
-import os
+"""
+pytao specific utilities
+
+"""
 
 
-def full_path(path):
-    """
-    Helper function to expand enviromental variables and return the absolute path
-    """
-    return os.path.abspath(os.path.expandvars(path))
+
 
 def parse_bool(s):
     x = s.upper()[0]

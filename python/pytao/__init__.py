@@ -6,6 +6,6 @@ pytao also has some pre-defined constructs for dealing with data from tao
 in the util package.
 '''
 from .tao_pexpect import tao_io
-from .tao_ctypes import Tao, TaoModel
+from .tao_ctypes import Tao, TaoModel, run_tao
 from .tao_interface import tao_interface
 
