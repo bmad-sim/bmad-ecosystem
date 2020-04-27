@@ -2590,7 +2590,7 @@ do   ! ix_ele = 1e1, ie2
 
     ! OPAL-T
     case default
-      call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
+      call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO TRANSLATE AN ELEMENT OF TYPE: ' // key_name(ele%key), &
              'CONVERTING TO DRIFT')
       write (line_out, '(2a)') trim(ele%name) // ': drift, l = ', re_str(val(l$))
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'R', .false.)
@@ -2916,7 +2916,7 @@ do   ! ix_ele = 1e1, ie2
 
   case default
 
-    call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
+    call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO TRANSLATE AN ELEMENT OF TYPE: ' // key_name(ele%key), &
                                   'CONVERTING TO MARKER')
     line_out = trim(ele%name) // ': marker'
 
@@ -3924,7 +3924,7 @@ do ix_ele = ie1, ie2
 
     ! SAD
     case default
-      call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
+      call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO CONVERT AN ELEMENT OF TYPE: ' // key_name(ele%key), &
              'CONVERTING TO DRIFT')
       write (line_out, '(4a)') 'DRIFT ', trim(ele%name), ' = (L = ', re_str(val(l$))
     end select
