@@ -15,7 +15,7 @@ function logic_str(logic) result (str)
 implicit none
 
 logical logic
-character(1), allocatable :: str
+character(1) :: str
 
 select case (logic)
 case (.true.);  str = 'T'
