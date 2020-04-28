@@ -261,7 +261,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
-real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4)
+real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor
 real(rp), target :: unknown_attrib
 
 integer i
@@ -273,7 +273,8 @@ logical, optional :: set_dependent
 ! For a particular elemement...
 
 branch => pointer_to_branch(ele)
-dep_set = logic_option(.true., set_dependent)
+dep_set = (logic_option(.true., set_dependent) .and. ele%value(p0c$) /= 0)
+if (dep_set) p0c_factor = ele%value(p0c$) / (c_light * charge_of(branch%param%particle))
 
 ! If a lord then set the control flag stale
 
@@ -416,9 +417,29 @@ if (associated(a_ptr, ele%value(num_steps$))) then
   return
 endif
 
-!
+if (dep_set .and. has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
+  if (associated(a_ptr, ele%value(bl_hkick$))) then
+    ele%value(hkick$) = ele%value(bl_hkick$) / p0c_factor
+    return
+  elseif (associated(a_ptr, ele%value(bl_vkick$))) then
+    ele%value(vkick$) = ele%value(bl_vkick$) / p0c_factor
+    return
+  elseif (associated(a_ptr, ele%value(hkick$))) then
+    ele%value(bl_hkick$) = ele%value(hkick$) * p0c_factor
+    return
+  elseif (associated(a_ptr, ele%value(vkick$))) then
+    ele%value(bl_vkick$) = ele%value(vkick$) * p0c_factor
+    return
+  endif
+endif
+
+!------------------------------------------------
+! By element type
 
 select case (ele%key)
+
+! Beginning_ele
+
 case (beginning_ele$) 
   coupling_change = .false.
 
@@ -480,14 +501,11 @@ case (beginning_ele$)
     return
   endif
 
+! Converter
+
 case (converter$)
-  if (associated(a_ptr, ele%value(p0c$))) then
-    call set_ele_status_stale (ele, ref_energy_group$)
-    ele%value(E_tot$) = 0
-  elseif (associated(a_ptr, ele%value(E_tot$))) then
-    call set_ele_status_stale (ele, ref_energy_group$)
-    ele%value(p0c$) = 0
-  endif
+
+! Crystal
 
 case (crystal$)
   if (associated(a_ptr, ele%value(graze_angle_in$)) .or. associated(a_ptr, ele%value(graze_angle_out$))) then
@@ -495,30 +513,59 @@ case (crystal$)
     return
   endif
 
+! Mirror, multilayer_mirror
+
 case (mirror$, multilayer_mirror$)
   if (associated(a_ptr, ele%value(graze_angle$))) then
     call set_ele_status_stale (ele, floor_position_group$)
     return
   endif
 
+! fork, photon_fork
+
 case (fork$, photon_fork$)
 
-case (rfcavity$, crab_cavity$)
+! hkicker, vkicker
+
+case (hkicker$, vkicker$)
   if (dep_set) then
-    if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+    if (associated(a_ptr, ele%value(kick$))) then
+      ele%value(bl_kick$) = ele%value(kick$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(bl_kick$))) then
+      ele%value(kick$) = ele%value(bl_kick$) / p0c_factor
+    endif
   endif
 
-case (lcavity$, e_gun$)
+! rfcavity, crab_cavity
 
+case (rfcavity$, crab_cavity$)
+  if (dep_set .and. ele%value(l$) /= 0) then
+    if (associated(a_ptr, ele%value(voltage$))) then
+      ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+    elseif (associated(a_ptr, ele%value(gradient$))) then
+      ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+    endif
+  endif
+
+! lcavity, e_gun
+
+case (lcavity$, e_gun$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
       associated(a_ptr, ele%value(voltage$)) .or. associated(a_ptr, ele%value(rf_frequency$)) .or. &
       associated(a_ptr, ele%value(phi0_autoscale$)) .or. associated(a_ptr, ele%value(field_autoscale$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
 
-  if (dep_set) then
-    if (associated(a_ptr, ele%value(voltage$)) .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
-    if (associated(a_ptr, ele%value(voltage_err$)) .and. ele%value(l$) /= 0) ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
+  if (dep_set .and. ele%value(l$) /= 0) then
+    if (associated(a_ptr, ele%value(voltage$))) then
+      ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+    elseif (associated(a_ptr, ele%value(voltage_err$))) then
+      ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
+    elseif (associated(a_ptr, ele%value(gradient$))) then
+      ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+    elseif (associated(a_ptr, ele%value(gradient_err$))) then
+      ele%value(voltage_err$) = ele%value(gradient_err$) * ele%value(l$)
+    endif
   endif
 
   if (ele%key == lcavity$) then 
@@ -551,25 +598,117 @@ case (lcavity$, e_gun$)
 
   if (found) call set_ele_status_stale (ele, ref_energy_group$)
 
+! Patch
+
 case (patch$)
   ! Any attribute change will shift the reference time.
   call set_ele_status_stale (ele, ref_energy_group$)
   call set_ele_status_stale (ele, floor_position_group$)
 
+! Quadrupole
+
+case (quadrupole$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(k1$))) then
+      ele%value(b1_gradient$) = ele%value(k1$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(b1_gradient$))) then
+      ele%value(k1$) = ele%value(b1_gradient$) / p0c_factor
+    endif
+  endif
+
+! Floor_shift, fiducial
+
 case (floor_shift$, fiducial$)
   call set_ele_status_stale (ele, floor_position_group$)
 
+! Octupole
+
+case (octupole$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(k3$))) then
+      ele%value(b3_gradient$) = ele%value(k3$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(b3_gradient$))) then
+      ele%value(k3$) = ele%value(b3_gradient$) / p0c_factor
+    endif
+  endif
+
+! Sad_mult
+
+case (sad_mult$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(ks$))) then
+      ele%value(bs_field$) = ele%value(ks$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(bs_field$))) then
+      ele%value(ks$) = ele%value(bs_field$) / p0c_factor
+    endif
+  endif
+
+! Sbend
+
 case (sbend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
-      associated(a_ptr, ele%value(rho$))) then
+      associated(a_ptr, ele%value(rho$)) .or. associated(a_ptr, ele%value(b_field$))) then
     call set_ele_status_stale (ele, floor_position_group$)
   endif
+
+  ! Attribute_bookkeeper takes care of some stuff so just have to make sure the final attribute state
+  ! is independent of the setting for %field_master.
   if (dep_set) then
     if (associated(a_ptr, ele%value(angle$))) then
-      if (ele%value(l$) /= 0) ele%value(g$) = ele%value(angle$) / ele%value(l$)
+      if (ele%value(l$) /= 0) then
+        ele%value(g$) = ele%value(angle$) / ele%value(l$)
+        ele%value(b_field$) = ele%value(g$) * p0c_factor
+      endif
+    elseif (associated(a_ptr, ele%value(rho$))) then
+      if (ele%value(rho$) /= 0) then
+        ele%value(g$) = 1 / ele%value(rho$)
+        ele%value(b_field$) = ele%value(g$) * p0c_factor 
+      endif
+    elseif (associated(a_ptr, ele%value(b_field$))) then
+      ele%value(g$) = ele%value(b_field$) / p0c_factor
+    elseif (associated(a_ptr, ele%value(b_field_err$))) then
+      ele%value(g_err$) = ele%value(b_field_err$) / p0c_factor
+    elseif (associated(a_ptr, ele%value(g$))) then
+      ele%value(b_field$) = ele%value(g$) * p0c_factor 
+    elseif (associated(a_ptr, ele%value(g_err$))) then
+      ele%value(b_field_err$) = ele%value(g_err$) * p0c_factor 
     endif
-    if (associated(a_ptr, ele%value(rho$))) then
-      if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
+  endif
+
+! Sextupole
+
+case (sextupole$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(k2$))) then
+      ele%value(b2_gradient$) = ele%value(k2$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(b2_gradient$))) then
+      ele%value(k2$) = ele%value(b2_gradient$) / p0c_factor
+    endif
+  endif
+
+! Sol_Quad
+
+case (sol_quad$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(ks$))) then
+      ele%value(bs_field$) = ele%value(ks$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(bs_field$))) then
+      ele%value(ks$) = ele%value(bs_field$) / p0c_factor
+    elseif (associated(a_ptr, ele%value(k1$))) then
+      ele%value(b1_gradient$) = ele%value(k1$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(b1_gradient$))) then
+      ele%value(k1$) = ele%value(b1_gradient$) / p0c_factor
+    endif
+  endif
+
+! Solenoid
+
+case (solenoid$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(ks$))) then
+      ele%value(bs_field$) = ele%value(ks$) * p0c_factor
+    elseif (associated(a_ptr, ele%value(bs_field$))) then
+      ele%value(ks$) = ele%value(bs_field$) / p0c_factor
     endif
   endif
 

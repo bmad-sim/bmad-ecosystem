@@ -111,7 +111,7 @@ do j = 1, n_slave
 
   !
 
-  free = attribute_free (slave, attrib_name, .true., .true.)
+  free = attribute_free (slave, attrib_name, .true., .true., .true.)
   err = (err .or. .not. free)
   if (err) then
     call parser_error ('ATTRIBUTE NOT FREE TO VARY: ' // attrib_name, &

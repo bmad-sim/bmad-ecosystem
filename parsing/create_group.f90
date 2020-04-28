@@ -123,9 +123,9 @@ do i = 1, n_control
 
   select case (attrib_name)
   case ('START_EDGE', 'END_EDGE', 'ACCORDION_EDGE', 'S_POSITION')
-    free = attribute_free (slave, 'L')
+    free = attribute_free (slave, 'L', .false., .false., .true.)
   case default
-    free = attribute_free (slave, attrib_name)
+    free = attribute_free (slave, attrib_name, .false., .false., .true.)
   end select
 
   if (.not. free) then

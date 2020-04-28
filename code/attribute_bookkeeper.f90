@@ -194,9 +194,7 @@ if (ele%field_master) then
     val(g_err$) = factor * val(B_field_err$)
     val(k1$)    = factor * val(B1_gradient$)
     val(k2$)    = factor * val(B2_gradient$)
-  case (hkicker$)
-    val(kick$) = factor * val(BL_kick$)
-  case (vkicker$)
+  case (hkicker$, vkicker$)
     val(kick$) = factor * val(BL_kick$)
   end select
 

@@ -269,7 +269,7 @@ a_ptr%r = a_ptr%r + delta * dir
 call set_flags_for_changed_attribute (ele, a_ptr%r)
 ! super_slave length can be varied by a group so don't check this.
 if ((ele%slave_status /= super_slave$ .and. ele%slave_status /= multipass_slave$) .or. attrib_name /= 'L') then
-  err_flag = .not. attribute_free (ele, attrib_name, .true.)
+  err_flag = .not. attribute_free (ele, attrib_name, .true., .false., .true.)
   if (err_flag) then
     call out_io (s_blank$, r_name, 'GROUP_LORD TRYING TO CONTROL THIS ATTRIBUTE IS:' // lord%name)
     return
@@ -1552,7 +1552,7 @@ do i = 1, slave%n_lord
     call overlay_change_this(lord, slave%value(y2_limit$), control);  if (err_flag) return
   case default
     a_name = attribute_name(slave, iv)
-    err_flag = .not. attribute_free (slave, a_name, .true., .true.)
+    err_flag = .not. attribute_free (slave, a_name, .true., .true., .true.)
     if (err_flag) then
       call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
            'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(a_name) // ']')
