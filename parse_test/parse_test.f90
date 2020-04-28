@@ -47,6 +47,11 @@ open (1, file = 'output.now')
 
 !
 
+call bmad_parser('slice.bmad', lat, err_flag = err)
+write (1, '(2a)') '"Slice-OK"  STR ', quote(logic_str(.not. err))
+
+!
+
 call bmad_parser ('control.bmad', lat)
 do i = 1, 3
   ele => lat%ele(i)
