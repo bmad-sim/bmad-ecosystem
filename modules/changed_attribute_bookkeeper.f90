@@ -266,15 +266,16 @@ real(rp), target :: unknown_attrib
 
 integer i
 
-logical coupling_change, found, dep_set
+logical coupling_change, found, dep_set, dep2_set
 logical, optional :: set_dependent
 
 !-------------------
 ! For a particular elemement...
 
 branch => pointer_to_branch(ele)
-dep_set = (logic_option(.true., set_dependent) .and. ele%value(p0c$) /= 0)
-if (dep_set) p0c_factor = ele%value(p0c$) / (c_light * charge_of(branch%param%particle))
+dep_set = logic_option(.true., set_dependent)
+dep2_set = (dep_set .and. ele%value(p0c$) /= 0 .and. charge_of(branch%param%particle) /= 0)
+if (dep2_set) p0c_factor = ele%value(p0c$) / (c_light * charge_of(branch%param%particle))
 
 ! If a lord then set the control flag stale
 
@@ -417,7 +418,7 @@ if (associated(a_ptr, ele%value(num_steps$))) then
   return
 endif
 
-if (dep_set .and. has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
+if (dep2_set .and. has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
   if (associated(a_ptr, ele%value(bl_hkick$))) then
     ele%value(hkick$) = ele%value(bl_hkick$) / p0c_factor
     return
@@ -528,7 +529,7 @@ case (fork$, photon_fork$)
 ! hkicker, vkicker
 
 case (hkicker$, vkicker$)
-  if (dep_set) then
+  if (dep2_set) then
     if (associated(a_ptr, ele%value(kick$))) then
       ele%value(bl_kick$) = ele%value(kick$) * p0c_factor
     elseif (associated(a_ptr, ele%value(bl_kick$))) then
@@ -608,7 +609,7 @@ case (patch$)
 ! Quadrupole
 
 case (quadrupole$)
-  if (dep_set) then
+  if (dep2_set) then
     if (associated(a_ptr, ele%value(k1$))) then
       ele%value(b1_gradient$) = ele%value(k1$) * p0c_factor
     elseif (associated(a_ptr, ele%value(b1_gradient$))) then
@@ -624,7 +625,7 @@ case (floor_shift$, fiducial$)
 ! Octupole
 
 case (octupole$)
-  if (dep_set) then
+  if (dep2_set) then
     if (associated(a_ptr, ele%value(k3$))) then
       ele%value(b3_gradient$) = ele%value(k3$) * p0c_factor
     elseif (associated(a_ptr, ele%value(b3_gradient$))) then
@@ -635,7 +636,7 @@ case (octupole$)
 ! Sad_mult
 
 case (sad_mult$)
-  if (dep_set) then
+  if (dep2_set) then
     if (associated(a_ptr, ele%value(ks$))) then
       ele%value(bs_field$) = ele%value(ks$) * p0c_factor
     elseif (associated(a_ptr, ele%value(bs_field$))) then
@@ -657,28 +658,28 @@ case (sbend$)
     if (associated(a_ptr, ele%value(angle$))) then
       if (ele%value(l$) /= 0) then
         ele%value(g$) = ele%value(angle$) / ele%value(l$)
-        ele%value(b_field$) = ele%value(g$) * p0c_factor
+        if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor
       endif
     elseif (associated(a_ptr, ele%value(rho$))) then
       if (ele%value(rho$) /= 0) then
         ele%value(g$) = 1 / ele%value(rho$)
-        ele%value(b_field$) = ele%value(g$) * p0c_factor 
+        if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
       endif
     elseif (associated(a_ptr, ele%value(b_field$))) then
-      ele%value(g$) = ele%value(b_field$) / p0c_factor
+      if (dep2_set) ele%value(g$) = ele%value(b_field$) / p0c_factor
     elseif (associated(a_ptr, ele%value(b_field_err$))) then
-      ele%value(g_err$) = ele%value(b_field_err$) / p0c_factor
+      if (dep2_set) ele%value(g_err$) = ele%value(b_field_err$) / p0c_factor
     elseif (associated(a_ptr, ele%value(g$))) then
-      ele%value(b_field$) = ele%value(g$) * p0c_factor 
+      if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
     elseif (associated(a_ptr, ele%value(g_err$))) then
-      ele%value(b_field_err$) = ele%value(g_err$) * p0c_factor 
+      if (dep2_set) ele%value(b_field_err$) = ele%value(g_err$) * p0c_factor 
     endif
   endif
 
 ! Sextupole
 
 case (sextupole$)
-  if (dep_set) then
+  if (dep2_set) then
     if (associated(a_ptr, ele%value(k2$))) then
       ele%value(b2_gradient$) = ele%value(k2$) * p0c_factor
     elseif (associated(a_ptr, ele%value(b2_gradient$))) then
@@ -689,7 +690,7 @@ case (sextupole$)
 ! Sol_Quad
 
 case (sol_quad$)
-  if (dep_set) then
+  if (dep2_set) then
     if (associated(a_ptr, ele%value(ks$))) then
       ele%value(bs_field$) = ele%value(ks$) * p0c_factor
     elseif (associated(a_ptr, ele%value(bs_field$))) then
@@ -704,7 +705,7 @@ case (sol_quad$)
 ! Solenoid
 
 case (solenoid$)
-  if (dep_set) then
+  if (dep2_set) then
     if (associated(a_ptr, ele%value(ks$))) then
       ele%value(bs_field$) = ele%value(ks$) * p0c_factor
     elseif (associated(a_ptr, ele%value(bs_field$))) then
