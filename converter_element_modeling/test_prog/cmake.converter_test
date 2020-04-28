@@ -1,0 +1,24 @@
+set (EXENAME converter_test)
+
+FILE (GLOB SRC_FILES "*.f90")
+
+set (LINK_LIBS
+  bsim
+  bmad
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP
+  forest
+  ${PLOT_LINK_LIBS}
+  lapack95
+  lapack
+  fgsl
+  gsl
+  blas
+  gslcblas
+  hdf5hl_fortran
+  hdf5_hl
+  hdf5_fortran
+  hdf5
+)
