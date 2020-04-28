@@ -170,6 +170,13 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_name(ele)) // ')'
 
+    ! Do not check the extra elements temporarily inserted by bmad_parser2.
+
+    select case (ele%key)
+    case (def_mad_beam$, def_parameter$, def_particle_start$, def_bmad_com$, line_ele$) 
+      cycle
+    end select
+
     ! Check switches
 
     if (ele%key /= overlay$ .and. ele%key /= group$) then
@@ -178,8 +185,8 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         if (info%kind /= is_switch$) cycle
         if (switch_attrib_value_name(info%name, ele%value(i), ele) /= null_name$) cycle
         call out_io (s_fatal$, r_name, &
-                    'ELEMENT:' // ele%name, &
-                    'HAS ATTRIBUTE: ' // trim(info%name) // ' WHOSE VALUE IS INVALID: \i0\ ', i_array = [nint(ele%value(multipass_ref_energy$))])
+                    'ELEMENT: ' // ele%name, &
+                    'HAS ATTRIBUTE: ' // trim(info%name) // ' WHOSE VALUE IS INVALID: \i0\ ', i_array = [nint(ele%value(i))])
         err_flag = .true.
       enddo
     endif
@@ -804,19 +811,19 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         if (associated(ele%wall3d) .and. .not. associated(slave%wall3d)) then
           call out_io (s_fatal$, r_name, &
                     'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
+                    'HAS A SLAVE: ' // slave%name, &
                     'THE LORD HAS A %WALL3D BUT THE SLAVE DOES NOT.')
           err_flag = .true.
         elseif (.not. associated(ele%wall3d) .and. associated(slave%wall3d)) then
           call out_io (s_fatal$, r_name, &
                     'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
+                    'HAS A SLAVE: ' // slave%name, &
                     'THE SLAVE HAS A %WALL3D BUT THE LORD DOES NOT.')
           err_flag = .true.
         elseif (.not. associated(ele%wall3d, slave%wall3d)) then
           call out_io (s_fatal$, r_name, &
                     'MULTIPASS_LORD: ' // ele%name, &
-                    'HAS A SLAVE:' // slave%name, &
+                    'HAS A SLAVE: ' // slave%name, &
                     'THE %WALL3D OF BOTH DO NOT POINT TO THE SAME MEMORY LOCATION.')
           err_flag = .true.
         endif
@@ -986,7 +993,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
               call out_io (s_fatal$, r_name, &
                 'CONSECUTIVE SUPER_SLAVES: ' // trim(branch%ele(ix1)%name) // ', ' // branch%ele(ix2)%name, &
                 'OF SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS AN ELEMENT IN BETWEEN WITH NON-ZERO LENGTH:' // trim(slave_branch%ele(ii)%name), &
+                'HAS AN ELEMENT IN BETWEEN WITH NON-ZERO LENGTH: ' // trim(slave_branch%ele(ii)%name), &
                 i_array = [i_t] )
               err_flag = .true.
             endif

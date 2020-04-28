@@ -15,6 +15,8 @@ type seq_ele_struct
   character(40) name                     ! name of element, subline, or sublist
   character(40), allocatable :: actual_arg(:)
   character(40) :: tag = ''              ! tag name.
+  character(40) :: slice_start = ''      ! For "my_line[start:end]" slice constructs.
+  character(40) :: slice_end = ''        ! For "my_line[start:end]" slice constructs.
   integer :: type = 0                    ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
   integer :: ix_ele = 0                  ! if an element: pointer to ELE array
                                          ! if a list: pointer to SEQ array
