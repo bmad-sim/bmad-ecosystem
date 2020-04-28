@@ -1528,8 +1528,8 @@ integer, parameter :: multipass_ref_energy$ = 62
 integer, parameter :: r0_mag$ = 63
 integer, parameter :: ref_time_start$ = 64
 integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, or 6.
-integer, parameter :: num_steps$ = 66
-integer, parameter :: ds_step$ = 67
+integer, parameter :: num_steps$ = 66   ! Assumed unique by set_flags_for_changed_real_attribute
+integer, parameter :: ds_step$ = 67     ! Assumed unique by set_flags_for_changed_real_attribute
 integer, parameter :: lord_pad1$ = 68
 integer, parameter :: lord_pad2$ = 69, ref_wavelength$ = 69
 integer, parameter :: r0_elec$ = 70

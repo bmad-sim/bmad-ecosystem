@@ -2822,7 +2822,6 @@ real(dp) x(6), beta
 integer i, print12
 
 logical, optional :: taylor_map_includes_offsets
-logical :: warning_given = .false.
 logical use_offsets, err_flag
 
 character(16) :: r_name = 'ele_to_taylor'
@@ -2850,10 +2849,6 @@ endif
 
 if (ele%key == match$) then
   call mat6_to_taylor (ele%vec0, ele%mat6, orb_tylr)
-  if (.not. warning_given) then
-    call out_io (s_warn$, r_name, 'Note: Taylor maps for Match elements are always 1st order!')
-    warning_given = .true.
-  endif
   use_bmad_units = .false.
   return
 endif
