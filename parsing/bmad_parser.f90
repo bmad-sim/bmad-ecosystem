@@ -47,8 +47,10 @@ type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
-type (ele_pointer_struct), allocatable :: branch_ele(:), eles(:)
+type (ele_pointer_struct), allocatable :: fork_ele_list(:), eles(:)
 type (parser_controller_struct), allocatable :: pcon(:)
+type (base_line_ele_struct), allocatable :: a_line(:)
+type (seq_ele_struct), pointer :: s_ele
 
 real(rp) beta, val
 
@@ -58,7 +60,7 @@ integer :: ix_param_ele, ix_mad_beam_ele
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave, n_loc
-integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_loop, n_branch_max
+integer ib, ie, ib2, ie2, flip, n_branch, n_forks, i_loop, n_branch_max
 integer, pointer :: n_max
 
 character(*) lat_file
@@ -67,7 +69,7 @@ character(*), optional :: use_line
 character(1) delim
 character(16), parameter :: r_name = 'bmad_parser'
 character(40) word_1, word_2, name, this_name, this_branch_name
-character(40), allocatable :: seq_name(:), names(:)
+character(40), allocatable :: seq_name(:)
 character(80) debug_line
 character(200) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save, line, use_line_str
@@ -736,7 +738,7 @@ bp_com%input_line_meaningful = .false.
 mad_beam_ele => in_lat%ele(ix_mad_beam_ele)
 param_ele    => in_lat%ele(ix_param_ele)
 
-! sort lists and check for duplicates.
+! Sort lists and check for duplicates.
 
 allocate (seq_indexx(iseq_tot), seq_name(iseq_tot))
 seq_name = sequence(1:iseq_tot)%name
@@ -754,6 +756,46 @@ do i = 1, n_max-1
   if (in_lat%ele(ix1)%name == in_lat%ele(ix2)%name) call parser_error ('DUPLICATE ELEMENT NAME ' // in_lat%ele(ix1)%name)
 enddo
 
+! Now to expand the lines and lists to find the elements to use.
+! First go through the lines and lists and index everything.
+
+do k = 1, iseq_tot
+  do i = 1, size(sequence(k)%ele(:))
+
+    s_ele => sequence(k)%ele(i)
+    name = s_ele%name
+
+    if (s_ele%ix_arg > 0) then   ! dummy arg
+      s_ele%type = element$
+      cycle
+    endif
+
+    ! Remember: Sequence names also appear in the element list so search the sequence list first.
+
+    call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
+    if (j == 0) then  ! if not a sequence, it must be an element
+      call find_indexx (name, in_lat%nametable, j)
+      if (j < 0) then  ! if not an element, I don't know what it is
+        s_ele%ix_ele = -1       ! Struggle on for now...
+        s_ele%type = element$
+      else
+        s_ele%ix_ele = j
+        s_ele%type = element$
+      endif
+    else
+      s_ele%ix_ele = j
+      s_ele%type = sequence(j)%type
+      if (s_ele%type == list$ .and. s_ele%ele_order_reflect) call parser_error ( &
+                          'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
+                          // sequence(k)%name, 'FOR LIST: ' // s_ele%name, seq = sequence(k))
+      if (sequence(k)%type == list$) &
+                call parser_error ('A REPLACEMENT LIST: ' // sequence(k)%name, &
+                'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
+    endif
+
+  enddo
+enddo
+
 !----------------------------------------------------------------------
 ! Expand all branches...
 
@@ -769,7 +811,7 @@ endif
 
 if (lat%use_name == blank_name$) then
   if (iseq_tot == 1) then
-    call parser_error ('no "USE" statement found.', &
+    call parser_error ('NO "USE" STATEMENT FOUND.', &
                        'However since there is only one line, that will be used.', level = s_warn$)
     lat%use_name = sequence(1)%name
   else
@@ -780,15 +822,15 @@ if (lat%use_name == blank_name$) then
 endif
 
 use_line_str = lat%use_name
-n_branch_ele = 0
-allocate (branch_ele(20))
+n_forks = 0
+allocate (fork_ele_list(20))
 
 n_branch_max = 1000
 branch_loop: do i_loop = 1, n_branch_max
 
-  ! Expand branches from branch elements before expanding branches from the use command. 
+  ! Expand branches from fork elements before expanding branches from the use command. 
 
-  if (n_branch_ele == 0) then
+  if (n_forks == 0) then
     if (use_line_str == '') exit
     ix = index(use_line_str, ',')
     if (ix == 0) then
@@ -799,7 +841,7 @@ branch_loop: do i_loop = 1, n_branch_max
       use_line_str = use_line_str(ix+1:)
     endif
 
-    call parser_expand_line (this_branch_name, sequence, in_lat%nametable, seq_name, seq_indexx, &
+    call parser_expand_line (1, this_branch_name, sequence, seq_name, seq_indexx, &
                                                     is_true(param_ele%value(no_end_marker$)), n_ele_use, lat, in_lat)
     if (bp_com%fatal_error_flag) then
       call parser_end_stuff (in_lat, .false.)
@@ -808,12 +850,12 @@ branch_loop: do i_loop = 1, n_branch_max
     is_photon_fork = .false.
 
   else
-    ele => branch_ele(1)%ele
-    call parser_add_branch (ele, lat, sequence, in_lat%nametable, seq_name, seq_indexx, &
+    ele => fork_ele_list(1)%ele
+    call parser_add_branch (ele, lat, sequence, seq_name, seq_indexx, &
                        is_true(param_ele%value(no_end_marker$)), in_lat, plat, created_new_branch, this_branch_name)
     is_photon_fork = (ele%key == photon_fork$)
-    n_branch_ele = n_branch_ele - 1
-    branch_ele(1:n_branch_ele) = branch_ele(2:n_branch_ele+1)
+    n_forks = n_forks - 1
+    fork_ele_list(1:n_forks) = fork_ele_list(2:n_forks+1)
     if (.not. created_new_branch) cycle 
   endif
 
@@ -1026,10 +1068,10 @@ branch_loop: do i_loop = 1, n_branch_max
   do i = 1, branch%n_ele_max
     if (branch%ele(i)%key /= photon_fork$ .and. branch%ele(i)%key /= fork$) cycle
     j = j + 1
-    n_branch_ele = n_branch_ele + 1
-    call re_allocate_eles (branch_ele, n_branch_ele + 10, .true., .false.)
-    branch_ele(j+1:n_branch_ele) = branch_ele(j:n_branch_ele-1)
-    branch_ele(j)%ele => branch%ele(i)
+    n_forks = n_forks + 1
+    call re_allocate_eles (fork_ele_list, n_forks + 10, .true., .false.)
+    fork_ele_list(j+1:n_forks) = fork_ele_list(j:n_forks-1)
+    fork_ele_list(j)%ele => branch%ele(i)
   enddo
 
   if (i_loop == n_branch_max) then
@@ -1082,15 +1124,15 @@ do i = 1, n_max
     if (j > n_slave) exit
     call find_indexx(pele%control(j)%name, seq_name, seq_indexx, size(seq_name), k, k2)
     if (k == 0) cycle
-    call parser_expand_line (pele%control(j)%name, sequence, in_lat%nametable, &
-                                         seq_name, seq_indexx, .false., n_ele_use, expanded_line = names)
+    call parser_expand_line (-1, pele%control(j)%name, sequence, &
+                                         seq_name, seq_indexx, .false., n_ele_use, expanded_line = a_line)
     ! Put elements from the line expansion into the slave list.
 
     call move_alloc(pele%control, pcon)
     allocate (pele%control(n_slave+n_ele_use-1))
 
     pele%control(1:j-1) = pcon(1:j-1)
-    pele%control(j:j+n_ele_use-1)%name = names
+    pele%control(j:j+n_ele_use-1)%name = a_line(1:n_ele_use)%name
     pele%control(j+n_ele_use:n_slave+n_ele_use-1) = pcon(j:n_slave-1)
 
     j = j + n_ele_use - 1

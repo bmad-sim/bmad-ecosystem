@@ -125,19 +125,16 @@ specified in the lattice file using the \vn{beginning} statement (\sref{s:beginn
 \vn{geometry} is not specified, \vn{closed} is the default. The exception is that if there is an
 \vn{Lcavity} element present or the reference particle is a photon, \vn{open} will be the default.
 
-Notice that by specifying a \vn{closed} geometry it {\em does} not mean that the downstream end of
+Notice that by specifying a \vn{closed} geometry it does {\em not} mean that the downstream end of
 the last element of the lattice has the same global coordinates (\sref{s:global}) as the global
 coordinates at the beginning. Setting the geometry to \vn{closed} simply signals to a program to
 compute closed orbits and periodic Twiss parameters as opposed to calculating orbits and Twiss
 parameters based upon initial orbit and Twiss parameters at the beginning of the lattice.  Indeed,
 it is sometimes convenient to treat lattices as closed even though there is no closure in the global
-coordinate sense. For example, when a machine has a number of repeating ``super-periods'', it may be
+coordinate sense. For example, when a machine has a number of repeating ``periods'', it may be
 convenient to only use one period in a simulation. Since \bmad ignores closure in the global
-coordinate sense, it is up to the user to ensure that a lattice is truly geometrically closed if
-that is desired.
-
-Note: \vn{geometry} used to be called \vn{lattice_type}, \vn{closed} used to be called
-\vn{circular_lattice} and \vn{open} used to be called \vn{linear_lattice}.
+coordinate sense, it is up to the lattice designer to ensure that a lattice is truly geometrically
+closed if that is desired.
 %
 \item[{high_energy_space_charge_on}] \Newline
 Toggle to turn on or off the ultra-relativistic space charge effect in particle tracking

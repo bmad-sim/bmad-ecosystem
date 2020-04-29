@@ -19,47 +19,34 @@ type seq_ele_struct
   character(40) :: slice_end = ''        ! For "my_line[start:end]" slice constructs.
   integer :: type = 0                    ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
   integer :: ix_ele = 0                  ! if an element: pointer to ELE array
-                                         ! if a list: pointer to SEQ array
+                                         ! if a line or list: pointer to SEQ array
   integer :: ix_arg  = 0                 ! index in arg list (for replacement lines)
   integer ::rep_count = 1                ! how many copies of an element
   logical :: ele_order_reflect = .false. ! Travel through ele sequence in reverse order
-  integer :: ele_orientation = 1         ! Travel through elements in reverse.
+  integer :: ele_orientation = 1         ! element has reverse orientation.
 end type
 
-type seq_struct
-  character(40) name                ! name of sequence
-  type (seq_ele_struct), allocatable :: ele(:)
-  character(40), allocatable :: dummy_arg(:)
-  character(40), allocatable :: corresponding_actual_arg(:)
-  integer type                      ! LINE$, REPLACEMENT_LINE$ or LIST$
-  integer ix                        ! current index of element in %ele
-  integer indexx                    ! alphabetical order sorted index
-  character(200) :: file_name = ''  ! file where sequence is defined
-  integer ix_line                   ! line number in filewhere sequence is defined
-  logical multipass
-  logical ptc_layout                ! Put in separate PTC layout
-end type
-
-type used_seq_struct
-  character(40) :: name = ''            ! name of sequence or element
-  character(40) :: tag = ''             ! tag name.
+type base_line_ele_struct
+  character(40) :: name = ''            ! Name of sequence or element
+  character(40) :: tag = ''             ! Tag name.
   integer :: ix_multi = 0               ! Multipass indentifier
   integer :: orientation = 1            ! Element reversed?
   integer :: ix_ele_in_in_lat = -1
 end type
 
-! A LIFO stack structure is used in the final evaluation of the line that is
-! used to form a lattice
-
-type seq_stack_struct
-  character(40) seq_name        ! Name of sequence.
-  integer ix_seq                ! index to seq(:) array
-  integer ix_ele                ! index to seq%ele(:) array
-  integer rep_count             ! repetition count
-  integer ele_order_direction   ! +1 => forwad, -1 => back reflection.
-  integer orientation_direction ! +1 => forwad, -1 => back reflection.
-  character(40) :: tag = ''
+type seq_struct
+  character(40) name                ! name of sequence
+  type (seq_ele_struct), allocatable :: ele(:)   ! Elements in the sequence
+  character(40), allocatable :: dummy_arg(:)
+  character(40), allocatable :: corresponding_actual_arg(:)
+  integer type                      ! LINE$, REPLACEMENT_LINE$ or LIST$
+  integer ix_list                   ! Current index for lists
+  integer :: list_upcount = 0
+  integer indexx                    ! Alphabetical order sorted index
+  character(200) :: file_name = ''  ! File where sequence is defined
+  integer ix_file_line              ! Line number in file where sequence is defined
   logical multipass
+  logical ptc_layout                ! Put in separate PTC layout
 end type
 
 ! A LIFO stack structure is used to hold the list of input lattice files that are currently open.
@@ -93,7 +80,7 @@ type parser_ele_struct
   type (parser_controller_struct), allocatable :: control(:)
   character(40), allocatable :: field_overlaps(:)
   character(40) :: ref_name = ''
-  integer :: ix_ref_multipass = 0              ! multipass index for reference element.
+  integer :: ix_super_ref_multipass = 0        ! Multipass index for superimpose reference element.
   character(40) :: ele_name = ''               ! For fork element or superimpose statement.
   character(200) :: lat_file = ''              ! File where element was defined.
   real(rp) :: offset = 0
