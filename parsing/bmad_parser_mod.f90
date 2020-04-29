@@ -5065,6 +5065,7 @@ character(40) name
 !
 
 ix_slice = ix_default
+if (slice_edge == '') return
 
 ix = index(slice_edge, '##')
 if (ix == 0) then

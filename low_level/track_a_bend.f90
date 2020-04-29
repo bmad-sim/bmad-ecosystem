@@ -90,7 +90,7 @@ r_step = 1.0_rp / n_step
 step_len = ele%value(l$) * r_step
 angle = g * step_len
 
-if (ix_pole_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp)
+if (ix_pole_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp, step_len)
 
 ! And track with n_step steps
 
@@ -325,9 +325,9 @@ do n = 1, n_step
 
   if (ix_pole_max > -1 .or. ix_elec_max > -1) then
     if (n == n_step) then
-      call apply_multipole_kicks (0.5_rp)
+      call apply_multipole_kicks (0.5_rp, step_len)
     else
-      call apply_multipole_kicks (1.0_rp)
+      call apply_multipole_kicks (1.0_rp, step_len)
     endif
   endif
 
@@ -354,12 +354,13 @@ endif
 !-------------------------------------------------------------------------------------------------------
 contains
 
-subroutine apply_multipole_kicks (coef)
+subroutine apply_multipole_kicks (coef, step_len)
 
 type (em_field_struct) field
 type (coord_struct) orb0
 
-real(rp) coef, ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0
+real(rp) coef, step_len
+real(rp) ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0
 real(rp) mc2, dk_dp, pc0, E0, E1, f, df_dps_coef, dkm(2,2), f_p0c, Ex, Ey
 integer i, charge
 
