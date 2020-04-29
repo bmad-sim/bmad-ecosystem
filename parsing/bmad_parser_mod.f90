@@ -2430,7 +2430,7 @@ if (bp_com%print_err) then
   if (bp_com%num_lat_files /= 0) then
     if (present(seq)) then
       nl=nl+1; lines(nl) = '      IN FILE: ' // trim(seq%file_name)
-      nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', seq%ix_line
+      nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', seq%ix_file_line
     elseif (bp_com%current_file%full_name /= ' ') then
       if (bp_com%input_line_meaningful) then
         nl=nl+1; lines(nl) = '      IN FILE: ' // trim(bp_com%current_file%full_name)
@@ -2782,7 +2782,7 @@ call settable_dep_var_bookkeeping (super_ele)
 
 super_ele_saved = super_ele     ! in case super_ele_in changes
 lat => branch%lat
-pele%ix_ref_multipass = 0
+pele%ix_super_ref_multipass = 0
 
 ! Find all matches
 ! If no refrence element then this implies superposition on branch 0.
@@ -2809,7 +2809,7 @@ do
     cycle
   endif
 
-  if (pele%ix_ref_multipass /= 0 .and. eles(i)%ele%iyy /= pele%ix_ref_multipass) then
+  if (pele%ix_super_ref_multipass /= 0 .and. eles(i)%ele%iyy /= pele%ix_super_ref_multipass) then
     eles(i:n_loc-1) = eles(i+1:n_loc)  ! Remove
     n_loc = n_loc - 1
     cycle
@@ -2876,7 +2876,7 @@ if (n_loc == 1) then
         pele%ref_pt = anchor_end$
         pele%ele_pt = anchor_end$
         pele%offset = super_ele%s - ele_at_s%s
-        pele%ix_ref_multipass = ele_at_s%iyy
+        pele%ix_super_ref_multipass = ele_at_s%iyy
         ! multipass bookkeeping has not been done yet and ele_at_s%name is
         ! the name of the multipass_lord (something like "Q1". 
         call lat_ele_locator (ele_at_s%name, lat, eles, n_loc, err)
@@ -2884,7 +2884,7 @@ if (n_loc == 1) then
         i = 1 ! throw out elements that are the same physical element
         do
           if (i > n_loc) exit
-          if (eles(i)%ele%iyy /= pele%ix_ref_multipass .or. eles(i)%ele%slave_status == super_slave$) then
+          if (eles(i)%ele%iyy /= pele%ix_super_ref_multipass .or. eles(i)%ele%slave_status == super_slave$) then
             eles(i:n_loc-1) = eles(i+1:n_loc)  ! Remove
             n_loc = n_loc - 1
           else
@@ -3527,7 +3527,7 @@ end subroutine get_sequence_args
 !+
 ! Subroutine parse_line_or_list (sequence, iseq_tot, lat, top_level)
 !
-! Subroutine to expand a sequence.
+! Subroutine to parse a sequence.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
@@ -3561,7 +3561,7 @@ allocate (seq_ele_arr(ubound(lat%ele, 1)))
 
 seq => sequence(iseq_tot)
 seq%file_name = bp_com%current_file%full_name 
-seq%ix_line = bp_com%current_file%i_line
+seq%ix_file_line = bp_com%current_file%i_line
 
 ! first thing should be a "("
 
@@ -3601,7 +3601,7 @@ do
       return
     endif
     s_ele%rep_count = rcount
-    call get_next_word (word, ix_word, ':=(,)[]*', delim, delim_found, .true.)
+    call get_next_word (word, ix_word, ':=(,)[]*@', delim, delim_found, .true.)
   endif
 
   s_ele%name = word
@@ -3609,14 +3609,35 @@ do
     if (.not. verify_valid_name (word, ix_word)) return
   endif
 
-  ! Check for line tag
+  ! Check for line slice or tag
+
+  if (delim == '@') then   ! "tag@line_name" syntax
+    s_ele%tag = s_ele%name
+    call get_next_word (s_ele%name, ix_word, '[]:=(,)', delim, delim_found, .true.)
+    if (.not. verify_valid_name (s_ele%name, ix_word)) return
+  endif
 
   if (delim == '[') then
-    call get_next_word (s_ele%tag, ix_word, '[]:=(,)', delim, delim_found, .true.)
-    if (delim /= ']') then
+    call get_next_word (s_ele%slice_start, ix_word, '[]:=(,)', delim, delim_found, .true.)
+    select case (delim)
+
+    case (']')  ! Old style "line_name[tag]" tag syntax
+      s_ele%tag = s_ele%slice_start
+      s_ele%slice_start = ''
+      call parser_error ('OLD STYLE "LINE_NAME[TAG]" LINE TAG SYNTAX DETECTED.', &
+                         'PLEASE CONVERT TO NEW STYLE "TAG@LINE_NAME" SYNTAX.', &
+                         'WILL RUN AS NORMAL FOR NOW...', level = s_warn$)
+    case (':')
+      call get_next_word (s_ele%slice_end, ix_word, '[]:=(,)', delim, delim_found, .true.)
+      if (delim /= ']') then
+        call parser_error ('NO MATCHING "]" FOUND FOR OPENING "[" IN SEQUENCE: ' // seq%name)
+        return
+      endif
+    case default
       call parser_error ('NO MATCHING "]" FOUND FOR OPENING "[" IN SEQUENCE: ' // seq%name)
       return
-    endif
+    end select
+
     call get_next_word (word, ix_word, '[]:=(,)', delim, delim_found, .true.)
     if (ix_word > 0) then
       call parser_error ('ILLEGAL CHARACTERS AFTER CLOSING "]" FOUND IN SEQUENCE: ' // seq%name)
@@ -4556,14 +4577,13 @@ end subroutine form_digested_bmad_file_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_branch (fork_ele, lat, sequence, ele_nametable, seq_name, &
+subroutine parser_add_branch (fork_ele, lat, sequence, seq_name, &
                                     seq_indexx, no_end_marker, in_lat, plat, created_new_branch, new_branch_name)
 
 implicit none
 
 type (lat_struct), target :: lat, in_lat
 type (parser_lat_struct) plat
-type (nametable_struct) ele_nametable
 type (ele_struct) fork_ele
 type (ele_struct), pointer :: target_ele
 type (seq_struct), allocatable, target :: sequence(:)
@@ -4580,9 +4600,10 @@ logical created_new_branch, no_end_marker
 !
 
 created_new_branch = .true.
+nb = ubound(lat%branch, 1)
 
 if (fork_ele%value(new_branch$) == 0) then ! Branch back if
-  do i = 0, ubound(lat%branch, 1) - 1
+  do i = 0, nb - 1
     branch => lat%branch(i)
     if (branch%name /= fork_ele%component_name) cycle
     fork_ele%value(ix_to_branch$) = i
@@ -4592,10 +4613,10 @@ if (fork_ele%value(new_branch$) == 0) then ! Branch back if
 endif
 
 if (created_new_branch) then
-  call parser_expand_line (fork_ele%component_name, sequence, ele_nametable, &
+  call parser_expand_line (1, fork_ele%component_name, sequence, &
                                 seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat)
 
-  nb = ubound(lat%branch, 1)
+  nb = nb + 1
   fork_ele%value(ix_to_branch$) = nb
   branch => lat%branch(nb)
 
@@ -4685,8 +4706,8 @@ end subroutine parser_identify_fork_to_element
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_expand_line (lat, use_name, sequence, ele_nametable, &
-!               seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat, expanded_line)
+! Subroutine parser_expand_line (lat, line_name, sequence, &
+!               seq_name, seq_indexx, no_end_marker, n_ele_expand, lat, in_lat, expanded_line)
 !
 ! Subroutine to do line expansion.
 !
@@ -4696,46 +4717,44 @@ end subroutine parser_identify_fork_to_element
 ! Note: Either lat and in_lat must be present or expanded_line must be present.
 !
 ! Input:
-!   use_name      -- character(*): Root line to expand.
+!   i_lev         -- integer: Subsequence level. 1 => Root level.
+!   line_name      -- character(*): Root line to expand.
 !   sequence(:)   -- seq_struct: Array of sequencies.
-!   ele_nametable -- nametable_struct: Element nametable.
 !   seq_name(:)   -- character(*): Array of sequence names.
 !   seq_indexx(:) -- integer: Index array for the sequence names.
 !   no_end_marker -- logical: Put a marker named "end" at the end of the branch?
-!   in_lat        -- lat_struct, optional: Lattice with array of elements defined in the lattice file.
+!   lat           -- lat_struct, optional: Lattice to put the expanded line
+!   in_lat        -- lat_struct, optional: Lattice with array of defined elements.
 !
 ! Output:
-!   n_ele_use     -- integer: Number of elements in the finished line.
-!   lat           -- lat_struct, optional: Lattice with new line. Except if expanded_line is present.
-!   expanded_line(:) -- character(*), allocatable, optional: If present, lat argument will be
-!                         ignored and expanded_line will have the expanded line.
-!                         This arg is used for girder lords.
+!   n_ele_expand     -- integer: Number of elements in the finished line.
+!   lat              -- lat_struct, optional: Lattice with new line. Except if expanded_line is present.
+!   expanded_line(:) -- base_line_ele_struct, optional: If present, lat argument will be
+!                         ignored and the expanded line will be put into expanded_line.
 !-
 
-recursive subroutine parser_expand_line (use_name, sequence, ele_nametable, &
-               seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat, expanded_line)
+recursive subroutine parser_expand_line (i_lev, line_name, sequence, &
+               seq_name, seq_indexx, no_end_marker, n_ele_expand, lat, in_lat, expanded_line)
 
 implicit none
 
 type (lat_struct), optional, target :: lat, in_lat
-type (nametable_struct) ele_nametable
 type (ele_struct), pointer :: ele_line(:), ele, ele2
 type (seq_struct), allocatable, target :: sequence(:)
 type (seq_ele_struct), pointer :: s_ele, this_seq_ele
-type (seq_stack_struct) stack(40)
-type (seq_struct), pointer :: seq, seq2
-type (used_seq_struct), allocatable ::  used2(:)
 type (seq_ele_struct), target :: dummy_seq_ele
+type (seq_struct), pointer :: seq, seq2
+type (base_line_ele_struct), allocatable, target ::  base_line(:), sub_line(:)
+type (base_line_ele_struct), optional, allocatable :: expanded_line(:)
+type (base_line_ele_struct), pointer :: b_ele
 type (branch_struct), pointer :: branch
-type (used_seq_struct), allocatable ::  used_line(:)
 
 integer, allocatable :: seq_indexx(:)
-integer iseq_tot, i_lev, i_use, n_ele_use
-integer i, j, k, n, ix, ix_multipass, ix_branch, flip
+integer iseq_tot, i_lev, ix_seq, n_ele_expand, rep_count, ix_ele, n_ele2
+integer i, j, k, n, ix, ix_multipass, ix_branch, flip, ixs_start, ixs_end
 
 character(*), allocatable ::  seq_name(:)
-character(*), allocatable, optional :: expanded_line(:)
-character(*) use_name
+character(*) line_name
 character(40) name
 character(40), allocatable :: my_line(:)
 
@@ -4744,135 +4763,74 @@ logical no_end_marker
 ! find line corresponding to the "use" statement.
 
 iseq_tot = size(seq_indexx)
-allocate (used_line(1000))
+allocate (base_line(100))
 
-call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
-if (i_use == 0) then
-  call parser_error ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // use_name, stop_here = .true.)
+call find_indexx (line_name, seq_name, seq_indexx, iseq_tot, ix_seq)
+if (ix_seq == 0) then
+  if (i_lev == 0) then
+    call parser_error ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // line_name, stop_here = .true.)
+  else
+    call parser_error ('CANNOT FIND DEFINITION OF SUBLINE: ' // line_name, stop_here = .true.)
+  endif
   return
 endif
 
-if (sequence(i_use)%type /= line$) then
+if (i_lev == 1 .and. sequence(ix_seq)%type /= line$) then
   call parser_error ('NAME IN "USE" STATEMENT IS NOT A LINE!', stop_here = .true.)
   return
 endif
 
-! Now to expand the lines and lists to find the elements to use.
-! First go through the lines and lists and index everything.
+seq => sequence(ix_seq)
+rep_count = seq%ele(1)%rep_count
+ix_ele =  1              ! we start at the beginning
+n_ele_expand = 0
 
-do k = 1, iseq_tot
-  do i = 1, size(sequence(k)%ele(:))
-
-    s_ele => sequence(k)%ele(i)
-    name = s_ele%name
-
-    if (s_ele%ix_arg > 0) then   ! dummy arg
-      s_ele%type = element$
-      cycle
-    endif
-
-    ! Remember: sequence names also appear in the element list so search the sequence list first.
-
-    call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
-    if (j == 0) then  ! if not an sequence, it must be an element
-      call find_indexx (name, ele_nametable, j)
-      if (j < 0) then  ! if not an element, I don't know what it is
-        s_ele%ix_ele = -1       ! Struggle on for now...
-        s_ele%type = element$
-      else
-        s_ele%ix_ele = j
-        s_ele%type = element$
-      endif
-    else
-      s_ele%ix_ele = j
-      s_ele%type = sequence(j)%type
-      if (s_ele%type == list$ .and. s_ele%ele_order_reflect) call parser_error ( &
-                          'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
-                          // sequence(k)%name, 'FOR LIST: ' // s_ele%name, seq = sequence(k))
-      if (sequence(k)%type == list$) &
-                call parser_error ('A REPLACEMENT LIST: ' // sequence(k)%name, &
-                'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
-    endif
-
-  enddo
-enddo
-
-! to expand the "used" line we use a stack for nested sublines.
-! used_line(:) is the expanded array of elements in the lat.
-! init stack
-
-i_lev = 1                          ! level on the stack
-seq => sequence(i_use)
-
-stack(1)%seq_name = sequence(i_use)%name
-stack(1)%ix_seq    = i_use           ! which sequence to use for the lat
-stack(1)%ix_ele    =  1              ! we start at the beginning
-stack(1)%ele_order_direction = +1              ! element order is forward
-stack(1)%orientation_direction = +1            ! and propagate forward through elements
-stack(1)%rep_count = seq%ele(1)%rep_count
-stack(1)%multipass = seq%multipass
-stack(1)%tag = ''
-
-n_ele_use = 0
          
-sequence(:)%ix = 1  ! Init. Used for replacement list index
-
-! Note: If present(expanded_line) => Expansion is for getting a girder slave list.
-! For non-girder computations, having stack(1)%multipass = T means that the "used" line is marked multipass.
-! This does not make sense but is allowed since it is sometimes convenient to analyze a line even if
-! it is marked multipass.
-
-if (stack(1)%multipass .and. present(expanded_line)) then
-  ix_multipass = 1
-endif
+sequence(:)%ix_list = 1  ! Init. Used for replacement list index
+sequence(:)%list_upcount = 0 ! Count up
 
 !-------------------------------------------------------------------------
-! Expand "used" line...
+! Expand base line...
 
 line_expansion: do
 
   ! If rep_count is zero then we are finished with the current element.
 
-  if (stack(i_lev)%rep_count == 0) then      ! goto next element in the sequence
-    ! goto the next element by changing %ix_ele index by +/- 1 
-    stack(i_lev)%ix_ele = stack(i_lev)%ix_ele + stack(i_lev)%ele_order_direction 
-    ix = stack(i_lev)%ix_ele
+  if (rep_count == 0) then      ! goto next element in the sequence
+    ! Goto the next element 
+    ix_ele = ix_ele + 1
 
     ! Check if off the end of the current line...
-    if (ix > 0 .and. ix <= size(seq%ele)) then  ! Nope. Still have more element to process
-      stack(i_lev)%rep_count = seq%ele(ix)%rep_count  ! set the rep_count for the next ele.
-      if (stack(i_lev)%rep_count == 0) cycle          ! For "0*sub_line" construct.
+    if (ix_ele <= size(seq%ele)) then  ! Nope. Still have more element to process
+      rep_count = seq%ele(ix_ele)%rep_count           ! set the rep_count for the next ele.
+      if (rep_count == 0) cycle                       ! For "0*sub_line" construct.
 
     ! If we have got to the end of the current line then pop the stack back to
     ! the next lower level.
-    else  
-      i_lev = i_lev - 1
-      if (i_lev == 0) exit line_expansion    ! level 0 -> we are done.
-      seq => sequence(stack(i_lev)%ix_seq)
-      cycle
+    else
+      exit
     endif
-
   endif
 
-  stack(i_lev)%rep_count = stack(i_lev)%rep_count - 1
+  rep_count = rep_count - 1
 
   ! if s_ele is a dummy arg then get corresponding actual arg.
 
-  s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
+  s_ele => seq%ele(ix_ele)  ! next element, line, or list
 
   ix = s_ele%ix_arg
   if (ix /= 0) then  ! it is a dummy argument.
     name = seq%corresponding_actual_arg(ix)
     s_ele => dummy_seq_ele
     s_ele%name = name
-    s_ele%ele_orientation = seq%ele(stack(i_lev)%ix_ele)%ele_orientation
+    s_ele%ele_orientation = seq%ele(ix_ele)%ele_orientation
 
     call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
     if (j > 0) then  ! if a sequence
       s_ele%ix_ele = j
       s_ele%type = sequence(j)%type
     else  ! Must be an element
-      call find_indexx (name, ele_nametable, j)
+      call find_indexx (name, in_lat%nametable, j)
       if (j == 0) then  ! if not an element then I don't know what it is
         call parser_error ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, seq = seq)
@@ -4892,13 +4850,16 @@ line_expansion: do
   ! If an element
 
   case (element$, list$) 
-
     if (s_ele%type == list$) then
       seq2 => sequence(s_ele%ix_ele)
-      j = seq2%ix
+      j = seq2%ix_list
       this_seq_ele => seq2%ele(j)
-      seq2%ix = seq2%ix + 1
-      if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
+      seq2%list_upcount = seq2%list_upcount + 1
+      if (seq2%list_upcount == this_seq_ele%rep_count) then
+        seq2%ix_list = seq2%ix_list + 1
+        if (seq2%ix_list > size(seq2%ele(:))) seq2%ix_list = 1
+        seq2%list_upcount = 0
+      endif
     else
       if (s_ele%tag /= '') then
         call parser_error ('ELEMENTS IN A LINE OR LIST ARE NOT ALLOWED TO HAVE A TAG.', &
@@ -4911,39 +4872,14 @@ line_expansion: do
     if (this_seq_ele%ix_ele < 1) call parser_error('NOT A DEFINED ELEMENT: ' // &
                           s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
 
-    if (n_ele_use+2 > size(used_line)) then
-      n = 1.5*n_ele_use
-      ix = size(used_line) 
-      if (ix < n) then
-        call move_alloc (used_line, used2)
-        allocate (used_line(1:n))
-        used_line(1:ix) = used2(1:ix)
-        deallocate (used2)
-      endif
-    endif
+    
+    if (n_ele_expand+10 > size(base_line)) call reallocate_base_line(base_line, 2*n_ele_expand)
 
-    n_ele_use = n_ele_use + 1
-    used_line(n_ele_use)%ix_ele_in_in_lat = this_seq_ele%ix_ele
+    n_ele_expand = n_ele_expand + 1
+    base_line(n_ele_expand)%ix_ele_in_in_lat = this_seq_ele%ix_ele
 
-    used_line(n_ele_use)%name = this_seq_ele%name
-    used_line(n_ele_use)%orientation = stack(i_lev)%orientation_direction * this_seq_ele%ele_orientation
-
-    if (stack(i_lev)%tag /= '' .and. s_ele%tag /= '') then
-      used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
-    elseif (s_ele%tag /= '') then
-      used_line(n_ele_use)%tag = s_ele%tag
-    else
-      used_line(n_ele_use)%tag =  stack(i_lev)%tag
-    endif
-
-    ! i_lev = 1 means that this is the "used" line. This does not make sense but is allowed 
-    ! since it is sometimes convenient to analyze a line even if it is marked multipass.
-    if (stack(i_lev)%multipass .and. i_lev /= 1) then
-      ix_multipass = ix_multipass + 1
-      used_line(n_ele_use)%ix_multi = ix_multipass + 1000000 * stack(i_lev)%ix_seq
-    else
-      used_line(n_ele_use)%ix_multi = 0
-    endif
+    base_line(n_ele_expand)%name = this_seq_ele%name
+    base_line(n_ele_expand)%orientation = this_seq_ele%ele_orientation
 
   ! if a line:
   !     a) move pointer on current level past line element
@@ -4951,14 +4887,14 @@ line_expansion: do
   !     c) initialize pointers for the higher level to use the line
 
   case (line$, replacement_line$)
-    i_lev = i_lev + 1
-    if (i_lev > size(stack)) then
+    if (i_lev > 100) then
       call parser_error ('NESTED LINES EXCEED STACK DEPTH! SUSPECT INFINITE LOOP!')
       if (global_com%exit_on_error) call err_exit
+      return
     endif
 
+    seq2 => sequence(s_ele%ix_ele)
     if (s_ele%type == replacement_line$) then
-      seq2 => sequence(s_ele%ix_ele)
       if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
         call parser_error ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
             s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq = seq)
@@ -4978,36 +4914,41 @@ line_expansion: do
       enddo arg_loop
     endif
 
-    seq => sequence(s_ele%ix_ele)
-    stack(i_lev)%ix_seq = s_ele%ix_ele
-    stack(i_lev)%seq_name = seq%name
-    stack(i_lev)%multipass = (stack(i_lev-1)%multipass .or. seq%multipass)
-
-    if (stack(i_lev-1)%tag /= '' .and. s_ele%tag /= '') then
-       stack(i_lev)%tag = trim(stack(i_lev-1)%tag) // '.' // s_ele%tag
-    elseif (stack(i_lev-1)%tag /= '') then
-       stack(i_lev)%tag = trim(stack(i_lev-1)%tag)
-    else
-       stack(i_lev)%tag = s_ele%tag
+    call parser_expand_line (i_lev+1, s_ele%name, sequence, seq_name, &
+                                            seq_indexx, no_end_marker, n_ele2, lat, in_lat, sub_line)
+    ixs_start = find_slice_edge(s_ele%slice_start, 1, sub_line(1:n_ele2), s_ele)
+    ixs_end = find_slice_edge(s_ele%slice_end, n_ele2, sub_line(1:n_ele2), s_ele)
+    if (ixs_start > ixs_end) then
+      call parser_error ('FOR SLICE OF LINE: ' // s_ele%name, &
+                         'STARTING SLICE POSITION AT: ' // s_ele%slice_start, &
+                         'IS PAST ENDING SLICE POSITION AT: ' // s_ele%slice_end)
+      ixs_start = ixs_end-1  ! Just to be able to limp along.
     endif
+    n_ele2 = ixs_end + 1 - ixs_start
+    sub_line(1:n_ele2) = sub_line(ixs_start:ixs_end)
 
-    stack(i_lev)%orientation_direction = stack(i_lev-1)%orientation_direction * s_ele%ele_orientation
+    call reallocate_base_line (base_line, 2*(n_ele_expand+n_ele2))
 
-    stack(i_lev)%ele_order_direction = stack(i_lev-1)%ele_order_direction
-    if (s_ele%ele_order_reflect) stack(i_lev)%ele_order_direction = -stack(i_lev)%ele_order_direction
+    do i = 1, n_ele2
+      b_ele => base_line(i+n_ele_expand)
+      if (s_ele%ele_order_reflect) then
+        b_ele = sub_line(n_ele2-i+1)
+      else
+        b_ele = sub_line(i)
+      endif
 
-    if (stack(i_lev)%ele_order_direction == 1) then
-      ix = 1
-    else
-      ix = size(seq%ele(:))
-    endif
+      b_ele%orientation = b_ele%orientation * s_ele%ele_orientation
 
-    stack(i_lev)%ix_ele = ix
-    stack(i_lev)%rep_count = seq%ele(ix)%rep_count
+      if (seq2%multipass .and. b_ele%ix_multi == 0) b_ele%ix_multi = i + 1000000 * seq2%indexx
 
-    if (seq%multipass) then
-      ix_multipass = 1
-    endif
+      if (b_ele%tag /= '' .and. s_ele%tag /= '') then
+        b_ele%tag =  trim(s_ele%tag) // '.' // trim(b_ele%tag)
+      elseif (s_ele%tag /= '') then
+        b_ele%tag = s_ele%tag
+      endif
+    enddo
+
+    n_ele_expand = n_ele_expand + n_ele2
 
   case default
     call parser_error ('INTERNAL SEQUENCE ERROR!')
@@ -5020,64 +4961,60 @@ enddo line_expansion
 
 if (bp_com%error_flag) return
 
-! expanded_line present?
-
-if (present(expanded_line)) then
-  if (allocated(expanded_line)) deallocate(expanded_line)
-  allocate(expanded_line(n_ele_use))
-  do i = 1, n_ele_use
-    expanded_line(i) = used_line(i)%name
-  enddo
-  return
-endif
-
 ! Transfer the ele information from the in_lat to lat and
 ! do the bookkeeping for settable dependent variables.
 
-if (lat%n_ele_max < 1) then
+if (present(expanded_line)) then  ! Used by girders and sublines.
+  if (allocated(expanded_line)) deallocate(expanded_line)
+  allocate(expanded_line(n_ele_expand))
+  expanded_line = base_line(1:n_ele_expand)
+  return
+endif
+
+if (lat%n_ele_max == 0) then
   ix_branch = 0
 else
   ix_branch = ubound(lat%branch, 1) + 1
 endif
 
 if (ix_branch == 0) then  ! Main branch
-  call allocate_lat_ele_array(lat, n_ele_use+1)
-  lat%n_ele_track = n_ele_use
-  lat%n_ele_max   = n_ele_use
+  call allocate_lat_ele_array(lat, n_ele_expand+1)
+  lat%n_ele_track = n_ele_expand
+  lat%n_ele_max   = n_ele_expand
   ele_line => lat%ele
 else                    ! branch line
   call allocate_branch_array (lat, ix_branch)
-  call allocate_lat_ele_array(lat, n_ele_use+1, ix_branch)
+  call allocate_lat_ele_array(lat, n_ele_expand+1, ix_branch)
   ele_line => lat%branch(ix_branch)%ele
 endif
 
 branch => lat%branch(ix_branch)
 
-do i = 1, n_ele_use
-  ele_line(i) = in_lat%ele(used_line(i)%ix_ele_in_in_lat) 
-  ele_line(i)%name        = used_line(i)%name
-  ele_line(i)%iyy         = used_line(i)%ix_multi
-  ele_line(i)%orientation = used_line(i)%orientation
+do i = 1, n_ele_expand
+  ele_line(i) = in_lat%ele(base_line(i)%ix_ele_in_in_lat) 
+  ele_line(i)%name        = base_line(i)%name
+  ele_line(i)%iyy         = base_line(i)%ix_multi
+  ele_line(i)%orientation = base_line(i)%orientation
   ele_line(i)%lord_status = not_a_lord$  ! In case element is also being superimposed.
-  if (used_line(i)%tag /= '') ele_line(i)%name = trim(used_line(i)%tag) // '.' // ele_line(i)%name
+  if (base_line(i)%tag /= '') ele_line(i)%name = trim(base_line(i)%tag) // '.' // ele_line(i)%name
   call settable_dep_var_bookkeeping (ele_line(i))
 enddo
 
 ele_line(0)%ix_branch = ix_branch
 ele_line(0)%orientation = ele_line(1)%orientation
 
-deallocate(used_line)
+deallocate(base_line)
 
 ! Add End marker and make sure it's orientation is consistant
 
 if (.not. no_end_marker) then
-  n_ele_use = n_ele_use + 1
-  ele => ele_line(n_ele_use)
+  n_ele_expand = n_ele_expand + 1
+  ele => ele_line(n_ele_expand)
   ele%name = 'END'
   ele%key = marker$
   call set_ele_defaults (ele)
   flip = 1
-  do j = n_ele_use-1, 0, -1
+  do j = n_ele_expand-1, 0, -1
     ele2 => ele_line(j)
     if (ele2%key == patch$ .or. ele2%key == floor_shift$) then
       if (patch_flips_propagation_direction (ele2%value(x_pitch$), ele2%value(y_pitch$))) flip = -flip
@@ -5090,10 +5027,70 @@ endif
 
 ! Branch info
 
-branch%n_ele_track = n_ele_use
-branch%n_ele_max   = n_ele_use
+branch%n_ele_track = n_ele_expand
+branch%n_ele_max   = n_ele_expand
 branch%ix_branch   = ix_branch
-branch%name        = use_name
+branch%name        = line_name
+
+!-------------------------------------------------
+contains
+
+subroutine reallocate_base_line(base_line, n_ele)
+type (base_line_ele_struct), allocatable :: base_line(:), base_temp(:)
+integer n_ele, n
+
+!
+
+n = size(base_line)
+if (n_ele <= n) return
+
+call move_alloc (base_line, base_temp)
+allocate (base_line(1:n_ele))
+base_line(1:n) = base_temp(1:n)
+deallocate (base_temp)
+
+end subroutine reallocate_base_line
+
+!-------------------------------------------------
+! contains
+
+function find_slice_edge(slice_edge, ix_default, this_line, s_ele) result (ix_slice)
+
+type (base_line_ele_struct) ::  this_line(:)
+type (seq_ele_struct) s_ele
+integer i, ix, ix_default, ix_slice, n_count
+character(*) slice_edge
+character(40) name
+
+!
+
+ix_slice = ix_default
+
+ix = index(slice_edge, '##')
+if (ix == 0) then
+  n_count = 1
+  name = slice_edge
+else
+  if (.not. is_integer(slice_edge(ix+2:), n_count)) then
+    call parser_error ('EXPECTING INTEGER AFTER SLICE EDGE NAME: ' // slice_edge, &
+                       'FOR SLICE: ' // trim(s_ele%name) // '[' // trim(s_ele%slice_start) // ':' // trim(s_ele%slice_end) // ']')
+    return
+  endif
+  name = slice_edge(:ix-1)
+endif
+
+do i = 1, size(this_line)
+  if (this_line(i)%name /= name) cycle
+  n_count = n_count - 1
+  if (n_count > 0) cycle
+  ix_slice = i
+  return
+enddo
+
+call parser_error ('CANNOT FIND SLICE EDGE NAME IN LIST OF LINE ELEMENT: ' // slice_edge, &
+                   'FOR SLICE: ' // trim(s_ele%name) // '[' // trim(s_ele%slice_start) // ':' // trim(s_ele%slice_end) // ']')
+
+end function find_slice_edge
 
 end subroutine parser_expand_line
 
@@ -6866,8 +6863,9 @@ end subroutine get_switch
 !+
 ! Function expect_one_of (delim_list, check_input_delim, ele_name, delim, delim_found) result (is_ok)
 !
-! Routine to check for an expected delimitor in the parse stream.
-! This routine is not for general use.
+! Routine to check either that the current delimitor or the next character in the parse stream is the 
+! expected delimitor.
+! This routine is used for Bmad lattice file parsing and is not meant for general use.
 !
 ! Also see: expect_this
 !

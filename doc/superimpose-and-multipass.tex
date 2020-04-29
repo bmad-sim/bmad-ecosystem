@@ -533,32 +533,27 @@ of reversal ``$--$'' (\sref{s:ele.reverse}), reflection here does not make physi
 here is a reversing patch \vn{P} (\sref{s:patch}) between reversed and unreversed elements.
 
 The procedure for how to group lattice elements into multipass slave groups which represent the same
-physical element is done by grouping all lattice elements that have the same ``\vn{signature}''. For
-any given element in the lattice, this element has some line it came from. Call this line $L_0$ and
-denote by $n_0$ the index where the element under consideration is in the $L_0$ line (the first
-element in $L_0$ has index 1, etc.). The $L_0$ line in turn was contained in some other line. Call
-this line $L_1$ and denote by $n_1$ the position of $L_0$ in $L_1$. This chain of lines $L_0$,
-$L_1$, ..., $L_n$ ends at some point and the last (top) line $L_n$ will be one of the root lines
-listed in the \vn{use} statement (\sref{s:use}). For any given element in the lattice, starting with
-$L_0$ and proceeding upwards through the chain, let $L_m$ be the first line in the chain that is
-marked as \vn{multipass}. If no such line exists for a given element, $L_m$ is taken to be the top
-line $L_n$. The \vn{signature} of the element is the list of (line, position) pairs $(L_0, n_0)$,
-..., $(L_m, n_m)$ and two elements have the same signature if this list is the same for
-both. Elements that have the same signature represent the same physical element and are slaved
-together. For example, using the example above, the first element of the lattice, \vn{A\B1}, has the
-chain of (line, position):
+physical element is as follows. For any given element in the lattice, this element has some line it
+came from. Call this line $L_0$. The $L_0$ line in turn may have been contained in some other line
+$L_1$, etc. The chain of lines $L_0$, $L_1$, ..., $L_n$ ends at some point and the last (top) line
+$L_n$ will be one of the root lines listed in the \vn{use} statement (\sref{s:use}) in the lattice
+file. For any given element in the lattice, starting with $L_0$ and proceeding upwards through the
+chain, let $L_m$ be the {\em first} line in the chain that is marked as \vn{multipass}. If no such
+line exists for a given element, that element will not be a multipass slave. For elements that have
+an associated $L_m$ multipass line, all elements that have a common $L_m$ line and have the same
+element index when $L_m$ is expanded are put into a multipass slave group (for a given line the
+element index with respect to that line is 1 for the first element in the expanded line, the second
+element has index 2, etc.).  For example, using the example above, the first element of the lattice,
+\vn{A\B1}, has the chain:
 \begin{example}
-  (\(L_0, n_0\)) = (m_line, 1)
-  (\(L_1, n_1\)) = (u_line, 1)
+    m_line, u_line
 \end{example} 
 The last element in the lattice, (\vn{A\B2}), has the chain
 \begin{example}
-  (\(L_0, n_0\)) = (m_line, 1)
-  (\(L_1, n_1\)) = (m2_line, 1)
-  (\(L_2, n_2\)) = (u_line, 3)
+  m_line, m2_line, u_line
 \end{example}
-The signature for both elements is just the single (line, position) pair \vn{(m_line, 1)}. 
-Since the signatures are identical, the two elements will be slaved together.
+For both elements the $L_m$ line is \vn{m_line} and both elements are derived from the element with
+index 1 with respect to \vn{m_line}. Therefore, the two elements will be slaved together.
 
 As a final example, consider the case where a subline of a multipass line is also marked
 \vn{multipass}:
@@ -568,8 +563,7 @@ As a final example, consider the case where a subline of a multipass line is als
   u_line: line = (m_line, m_line)
   use, u_line
 \end{example}
-Here \vn{a_line} is marked as \vn{multipass} so the \vn{A} element that is contained in it has the
-signature \vn{(a_line, 1)}. In this case the tracking part of the lattice will be:
+In this case the tracking part of the lattice will be:
 \begin{example}
   A\B1, A\B2, B\B1, A\B3, A\B4, B\B2
 \end{example}
