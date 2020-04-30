@@ -988,9 +988,12 @@ else
 
   case ('species')
     if (species_id(unquote(value_str)) == invalid$) then
-      call out_io (s_error$, r_name, 'INVALID RANDOM_ENGINE VALUE: ' // value_str)
+      call out_io (s_error$, r_name, 'INVALID SPECIES VALUE: ' // value_str)
       return
     endif
+    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+
+  case ('position_file')
     write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
 
   case default
