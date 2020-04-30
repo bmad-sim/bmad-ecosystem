@@ -1583,6 +1583,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %only_limit_opt_vars           = ', s%global%only_limit_opt_vars
     nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', angle_units_name(s%global%phase_units)
+    nl=nl+1; write(lines(nl), amt) '  %history_file                  = ', s%global%history_file
     nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
     nl=nl+1; write(lines(nl), lmt) '  %rad_int_calc_on               = ', s%global%rad_int_calc_on
     nl=nl+1; write(lines(nl), lmt) '  %external_plotting             = ', s%global%external_plotting
@@ -1923,7 +1924,7 @@ case ('history')
   enddo
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = 'Note: Commands from previous sessions are stored in: ' // s%com%history_file
+  nl=nl+1; lines(nl) = 'Note: Commands from previous sessions are stored in: ' // s%global%history_file
 
 !----------------------------------------------------------------------
 ! hom

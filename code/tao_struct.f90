@@ -629,6 +629,7 @@ type tao_global_struct
   character(16) :: optimizer     = 'lm'             ! optimizer to use.
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
+  character(100) :: history_file = '~/.history_tao'
   logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.
   logical :: box_plots = .false.                  ! For debugging plot layout issues.
   logical :: command_file_print_on = .true.       ! Depracated. No longer used. 
@@ -655,7 +656,7 @@ type tao_global_struct
   logical :: stop_on_error = .true.               ! For debugging: False prevents tao from exiting on an error.
   logical :: svd_retreat_on_merit_increase = .true.
   logical :: var_limits_on = .true.               ! Respect the variable limits?
-  logical :: wait_for_CR_in_single_mode = .false. ! For use with a python GUI. 
+  logical :: wait_for_CR_in_single_mode = .false. ! For use with a python GUI.
 end type
 
 !
@@ -751,7 +752,6 @@ type tao_common_struct
   character(80) :: single_mode_buffer = ''
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)            ! model, base, ref etc...
-  character(20) :: history_file = '~/.history_tao'
 end type
 
 !-----------------------------------------------------------------------

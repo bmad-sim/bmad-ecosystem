@@ -383,7 +383,6 @@ Example:
 \subsection{tao\_global\_struct Structure}
 \label{s:tao.global.struct} 
 
-The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{n_opti_cycles}\index{ix_key_bank}
 \index{n_lat_layout_label_rows}\index{phase_units}
 \index{bunch_to_plot}\index{random_seed}\index{concatenate_maps}
@@ -395,56 +394,58 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{lattice_calc_on}\index{print_command}\index{default_init_file}\index{derivative_uses_design}
 \index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}
+The \vn{tao_global_struct} structure contains \tao global parameters.
 \begin{example}
 type tao_global_struct
-  real(rp) lm_opt_deriv_reinit = -1   ! Derivative matrix cutoff. -1 => ignore this.
-  real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
-  real(rp) de_var_to_population_factor = 5 
-  real(rp) lmdif_eps = 1e-12          ! tolerance for lmdif optimizer.
-  real(rp) lmdif_negligible_merit = 1d-30  ! lmdif stops if merit is smaller.
-  real(rp) svd_cutoff = 1e-5          ! SVD singular value cutoff limit.
-  real(rp) unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
-  real(rp) merit_stop_value = -1      ! Value below which an optimizer will stop.
-  real(rp) dmerit_stop_value = 0      ! Fractional change below which an optimizer will stop.
-  real(rp) random_sigma_cutoff = -1   ! Cut-off in sigmas.
-  real(rp) delta_e_chrom = 0          ! delta E used from chromaticity calc.
-  integer n_opti_cycles = 20          ! number of optimization cycles
-  integer n_opti_loops = 1            ! number of optimization loops
-  integer n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
-  integer phase_units = radians\$      ! Phase units on output.
-  integer bunch_to_plot = 1           ! Which bunch to plot
-  integer random_seed = 0             ! use system clock by default
-  integer n_top10_merit = 10          ! Number of top constraints to print.
-  character(16)  random_engine = "pseudo"         ! Random number engine to use
-  character(16)  random_gauss_converter = "exact" ! Uniform to gauss conversion method
-  character(16)  track_type = "single"            ! "single" or "beam" 
-  character(16)  prompt_string = "Tao"
-  character(16)  prompt_color = "DEFAULT"         ! See read_a_line routine for possible settings.
-  character(16)  optimizer     = "de"             ! optimizer to use.
-  character(40)  print_command = "lpr"
-  character(80)  var_out_file  = "var#.out"
-  logical beam_timer_on = F               ! For timing the beam tracking calculation.
-  logical concatenate_maps = F           ! False => tracking using DA.
-  logical derivative_recalc = T          ! Recalc derivatives before each optimizer loop?
-  logical derivative_uses_design = F     ! Derivative matrix uses the design lattice?
-  logical disable_smooth_line_calc = F   ! Disable the plotting smooth line calc?
-  logical draw_curve_off_scale_warn = T  ! Display warning on graphs when any part of the 
-                                         !   curve is out-of-bounds
-  logical label_lattice_elements = T     ! For lat_layout plots
-  logical label_keys = T                 ! For lat_layout plots
-  logical lattice_calc_on = T            ! Turn on/off beam and single particle calculations.
-  logical only_limit_opt_vars = F        ! Apply limits only if variable is used in optimization?
-  logical opt_with_ref = F               ! use reference data in optimization?
-  logical opt_with_base = F              ! use base data in optimization?
-  logical optimizer_allow_user_abort = T ! See below.
-  logical optimizer_var_limit_warn = T   ! Warn when vars reach a limit when optimizing?
-  logical plot_on = T                    ! Do plotting?
-  logical quiet = "off"                  ! Print to the terminal when using a command file?
-  logical rf_on = F                      ! RF cavities on?
-  logical svd_retreat_on_merit_increase = T    
-  logical single_step = F                ! Single step through a command file?
-  logical stop_on_error = T              ! For debugging: True -> Tao will not exiting on an error.
-  logical var_limits_on = T              ! Respect the variable limits?
+  lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
+  de_lm_step_ratio = 1             ! Step sizes between DE and LM optimizers.
+  de_var_to_population_factor = 5 
+  lmdif_eps = 1e-12                ! tolerance for lmdif optimizer.
+  lmdif_negligible_merit = 1d-30   ! lmdif stops if merit is smaller.
+  svd_cutoff = 1e-5                ! SVD singular value cutoff limit.
+  unstable_penalty = 1e-3          ! Used in unstable_ring datum merit calculation.
+  merit_stop_value = -1            ! Value below which an optimizer will stop.
+  dmerit_stop_value = 0            ! Fractional change below which an optimizer will stop.
+  random_sigma_cutoff = -1         ! Cut-off in sigmas.
+  delta_e_chrom = 0                ! delta E used from chromaticity calc.
+  n_opti_cycles = 20               ! number of optimization cycles
+  n_opti_loops = 1                 ! number of optimization loops
+  n_lat_layout_label_rows = 1      ! How many rows with a lat_layout
+  phase_units = radians\$           ! Phase units on output.
+  bunch_to_plot = 1                ! Which bunch to plot
+  random_seed = 0                  ! use system clock by default
+  n_top10_merit = 10               ! Number of top constraints to print.
+  random_engine = "pseudo"         ! Random number engine to use
+  random_gauss_converter = "exact" ! Uniform to gauss conversion method
+  track_type = "single"            ! "single" or "beam" 
+  prompt_string = "Tao"
+  prompt_color = "DEFAULT"         ! See read_a_line routine for possible settings.
+  optimizer     = "de"             ! optimizer to use.
+  print_command = "lpr"
+  var_out_file  = "var#.out"
+  history_file = "\~/.history_tao"  ! Command history file.
+  beam_timer_on = F                ! For timing the beam tracking calculation.
+  concatenate_maps = F             ! False => tracking using DA.
+  derivative_recalc = T            ! Recalc derivatives before each optimizer loop?
+  derivative_uses_design = F       ! Derivative matrix uses the design lattice?
+  disable_smooth_line_calc = F     ! Disable the plotting smooth line calc?
+  draw_curve_off_scale_warn = T    ! Display warning on graphs when any part of the 
+                                   !   curve is out-of-bounds
+  label_lattice_elements = T       ! For lat_layout plots
+  label_keys = T                   ! For lat_layout plots
+  lattice_calc_on = T              ! Turn on/off beam and single particle calculations.
+  only_limit_opt_vars = F          ! Apply limits only if variable is used in optimization?
+  opt_with_ref = F                 ! use reference data in optimization?
+  opt_with_base = F                ! use base data in optimization?
+  optimizer_allow_user_abort = T   ! See below.
+  optimizer_var_limit_warn = T     ! Warn when vars reach a limit when optimizing?
+  plot_on = T                      ! Do plotting?
+  quiet = "off"                    ! Print to the terminal when using a command file?
+  rf_on = F                        ! RF cavities on?
+  svd_retreat_on_merit_increase = T    
+  single_step = F                  ! Single step through a command file?
+  stop_on_error = T                ! For debugging: True -> Tao will not exiting on an error.
+  var_limits_on = T                ! Respect the variable limits?
 end type
 \end{example}
 
@@ -495,6 +496,12 @@ any plotting (that is, \vn{global%plot_on} = F). For example, when \tao is run a
 (such as a graphic user interface) program where the client program is taking care of the plotting but
 the data to be plotted is calculated by \tao. In this case by setting \vn{global%force_plot_data_calc} to
 True will force \tao to always calculate curve data points even when \vn{global%plot_on} = F.
+
+  \item{\vn{global%history_file}} \Newline
+The commands typed in by a user are saved in a ``history file'' so that they can be recalled using
+the uparrow key and eve recalled between run sessions. The default is to save the command history
+to the file \vn{\~/.history_tao}. Sometimes is is convenient to have multiple history files and
+in this case the setting of \vn{global%history_file} can varied from init file to init file.
 
   \item{\vn{global%merit_stop_value}} \Newline
 The \vn{global%merit_stop_value} establishes a point such that, during optimization, if

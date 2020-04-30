@@ -248,7 +248,7 @@ if (cmd_out == '') then
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
     call out_io (s_blank$, r_name, '')
     call read_a_line (trim(prompt_string) // '> ', cmd_out, prompt_color = s%global%prompt_color, &
-                            prompt_bold = boldit, history_file = s%com%history_file)
+                            prompt_bold = boldit, history_file = s%global%history_file)
     if (cmd_out == achar(24)) cmd_out = 'exit'   ! Cntl-D pressed
 
   endif
