@@ -52,7 +52,7 @@ namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
 
 ! global inits
 
-call readline_read_history(s%com%history_file, stat)
+call readline_read_history(s%global%history_file, stat)
 
 s%com%n_alias = 0
 s%com%ix_key_bank = 0             ! For single mode.
