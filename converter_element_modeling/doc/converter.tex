@@ -54,7 +54,6 @@
 \newenvironment{problem}[2][Problem]{\begin{trivlist}
 \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
 
-\renewcommand{\theenumi}{\alph{enumi}}
 \begin{document}
 
 \title{Positron Converter Model}
@@ -75,7 +74,7 @@
 
 \section{Introduction}
 
-Every electron-positron colider needs a source of positrons.
+Every electron-positron collider needs a source of positrons.
 At CESR, these positrons are generated in a linear accelerator using a positron converter.
 Until now, we have had limited ability to optimize the design of the linac, as there was no way to model the positron converter in \bmad.
 This project rectifies this problem by providing the information needed for a converter element in \bmad.
@@ -85,7 +84,7 @@ A converter element has been developed in conjunction with this project, which s
 \section{Background/physics}
 The positron converter provides CESR with its positrons.
 The converter is a slab of heavy metal (usually tungsten), which is bombarded with electrons whose energy is on the order of $\sim 100 \MeV$.
-As the incident electrons pass through the converter, they emit photons via Bremmstrahlug, which in turn decay to $e^+ e^-$ pairs:
+As the incident electrons pass through the converter, they emit photons via Bremsstrahlung, which in turn decay to $e^+ e^-$ pairs:
 \begin{align}
 e^- + Z \rightarrow e^- + Z + \gamma \rightarrow e^- + Z + e^+ + e^-
 \end{align}
@@ -117,14 +116,14 @@ With this in mind, we adopt the coordinate system shown in Figure \ref{fig:coord
 We take the $z$ axis to be the direction of the incoming electron's momentum perpendicular to the surface of the converter.
 The outgoing positron's position on the downstream face of the converter is then described by $r$, its distance from the $z$ axis, and the angle $\theta$ shown in the figure.
 By symmetry, $\theta$ must be distributed uniformly between $0$ and $2\pi$.
-We can then largerly ignore this degree of freedom from our model if we define our $x$ axis in the same direction as $\rrr$.
+We can then largely ignore this degree of freedom from our model if we define our $x$ axis in the same direction as $\rrr$.
 We then choose our $y$ axis such that $(x,y,z)$ is a right handed orthogonal coordinate system.
 
 \subsection{Probability Distributions}
 With this coordinate system, the position of an outgoing positron is described entirely by $r$ (and $\theta$, chosen uniformly at random).
 We choose the following three parameters to characterize the outgoing momentum:
 \begin{align}
-p_+ c & = \left| p_+ \right| c \\
+p_+ c & = \left| \mathbf{p}_+ \right| c \\
 \dxds & = \frac{p_x}{p_z} \\
 \dyds & = \frac{p_y}{p_z}
 \end{align}
@@ -151,7 +150,7 @@ Note that the behavior of the converter depends on the energy of the incoming el
 Using Geant\cite{geant}, we simulate many incoming electrons of a given energy incident upon a converter of a given thickness.
 We then record the values of $p_+ c$, $r$, $\dxds$, and $\dyds$ for each outgoing positron at the downstream face of the converter.
 This data is then binned into a two-dimensional histogram by $p_+ c$ and $r$.
-The sizes of the bins are chosen nonuniformly so that each bin holds approximately the same number of positrons.
+The sizes of the bins are chosen non-uniformly so that each bin holds approximately the same number of positrons.
 This histogram is recorded and gives us a discrete sampling of $P_1(p_+c, r)$.
 
 Then, in each $(p_+ c, r)$ bin, we fit the functional form
@@ -202,7 +201,7 @@ With these fits in hand, we have an approximation of $P_2 \left( \dxds, \dyds; p
 
 
 \section{Setup Instructions}
-The converter modelling has two main stages.
+The converter modeling has two main stages.
 In the first stage, the positron creation events are simulated with Geant, and the resulting positrons are binned into a histogram.
 In the second stage, fits are performed for $\dxds$ and $\dyds$.
 As such, we have developed two executables: one responsible for the first stage, \exes, and one responsible for the second, \exef.
@@ -240,7 +239,7 @@ $ tar xzvf ~/Downloads/geant4.10.06.tar.gz
 (change the version number as appropriate).
 
 \item
-Make another directory where you will build geant with
+Make another directory where you will build Geant with
 \begin{verbatim}
 $ mkdir geant4.10.06-build
 \end{verbatim}
@@ -253,7 +252,23 @@ cmake -DGEANT4_INSTALL_DATA=ON \
       ../geant4.10.06
 \end{verbatim}
 The first \texttt{-D} flag will cause the necessary data sets to be downloaded when we build Geant, and the second \texttt{-D} flag sets the install directory.
-If you chose a different location for installing geant, edit this flag as needed.
+If you chose a different location for installing Geant, edit this flag as needed.
+
+Note: if you encounter the the error
+\begin{verbatim}
+Could NOT find EXPAT (missing: EXPAT_LIBRARY EXPAT_INCLUDE_DIR)
+\end{verbatim}
+at this step, try editting the file \\
+\texttt{../geant4.10.06/cmake/Modules/Geant4OptionalComponentents.cmake}, \\
+replacing the line
+\begin{verbatim}
+option(GEANT4_USE_SYSTEM_EXPAT "Use system Expat library" ON)
+\end{verbatim}
+with
+\begin{verbatim}
+option(GEANT4_USE_SYSTEM_EXPAT "Use system Expat library" OFF)
+\end{verbatim}
+and then re-run the above \texttt{cmake} command.
 
 \item
 After \texttt{cmake} finished running, start building Geant with
@@ -302,7 +317,7 @@ to your \texttt{.bashrc}, and then start a new shell.
 \section{How to run the programs}
 
 \subsection{Configuration}
-Both \exes \, and \exef \, are configured by editting the file \configfile, which should be in the working directory where you run both executables.
+Both \exes \, and \exef \, are configured by editing the file \configfile, which should be in the working directory where you run both executables.
 Each line in this file should have the form
 \begin{verbatim}
 setting = value
@@ -349,11 +364,11 @@ The settings \outpcmin, \outdir, \numbins, and \fitxpt \, have default values, w
 The settings \pcin, \outpcmin, and \outpcmax \, take values with dimensions of energy.
 These default to eV if no unit is specified, although \texttt{MeV} and \texttt{GeV} can be added as suffixes to use MeV and GeV instead as shown in the sample file.
 The \targett \, setting takes values with dimensions of length.
-The default unit is meters, although \texttt{cm} and \texttt{mm} are suppored as well.
+The default unit is meters, although \texttt{cm} and \texttt{mm} are supported as well.
 
 The settings \numbins, \numpcbins, and \numrbins \, control the number of bins used in the histogram.
 If you only provide a value for \numbins, it will be used for both the number of $p_+c$ bins and then number of $r$ bins.
-If you provide \numpcbins \, or \numrbins \, in your config file, this value will supercede \numbins \, for the number of $p_+ c$ or $r$ bins respectively.
+If you provide \numpcbins \, or \numrbins \, in your config file, this value will supersede \numbins \, for the number of $p_+ c$ or $r$ bins respectively.
 If you do not set \numbins \, in your config file, you must set both \numpcbins \, and \numrbins.
 
 \subsection{The Simulation Program}
@@ -399,7 +414,7 @@ Once the simulations are complete, just run
 $ converter_fitter
 \end{verbatim}
 in the same directory where you ran \exes.
-\exef will reparse your config file for the settings it needs, and will again report on any errors it encounters.
+\exef will re-parse your config file for the settings it needs, and will again report on any errors it encounters.
 It then performs the fit from Equation \ref{eq:cauchy} in each of the $(p_+c, r)$ bins for each simulation.
 At this stage, the program may report that the fitting iteration limit has been reached a few times; this is not cause for concern.
 Once this step is complete, and the program has obtained values of $c_x$, $\alpha_x$, $\alpha_y$, and $\beta$ in each $(p_+c, r)$ bin,
