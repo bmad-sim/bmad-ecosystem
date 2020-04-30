@@ -163,6 +163,17 @@ namelist / tao_beam_init / ix_universe, beam0_file, beam_init, beam_init_file_na
 
 call tao_hook_init_beam ()
 
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  s%u(i)%beam%beam_init = beam_init_struct()
+  s%u(i)%beam%beam_init%file_name = ''
+  s%u(i)%beam%beam_init%position_file = s%com%beam_init_position_file_arg
+  s%u(i)%beam%track_data_file = s%com%beam_track_data_file_arg
+  s%u(i)%beam%track_start    = ''
+  s%u(i)%beam%track_end      = ''
+  s%u(i)%beam%ix_track_start = 0
+  s%u(i)%beam%ix_track_end   = -1
+enddo
+
 if (.not. s%com%init_beam .or. init_file == '') return
 
 !
@@ -174,18 +185,7 @@ if (iu == 0) then
   call err_exit
 endif
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%beam%beam_init%file_name = ''
-  s%u(i)%beam%beam_init%position_file = ''
-  s%u(i)%beam%track_data_file = s%com%beam_track_data_file_arg
-  s%u(i)%beam%track_start    = ''
-  s%u(i)%beam%track_end      = ''
-  s%u(i)%beam%ix_track_start = 0
-  s%u(i)%beam%ix_track_end   = -1
-enddo
-
-do 
-
+do
   ! defaults
   ix_universe = -1
   beam_init = beam_init_struct()
@@ -261,16 +261,14 @@ do
 
   ! init
 
-  call out_io (s_blank$, r_name, &
-        'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
+  call out_io (s_blank$, r_name, 'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
   if (ix_universe == -1) then
     do i = lbound(s%u, 1), ubound(s%u, 1)
       call init_beam(s%u(i), beam_init)
     enddo
   else
     if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
-      call out_io (s_error$, r_name, &
-            'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
+      call out_io (s_error$, r_name, 'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
       call err_exit
     endif
     call init_beam(s%u(ix_universe), beam_init)
