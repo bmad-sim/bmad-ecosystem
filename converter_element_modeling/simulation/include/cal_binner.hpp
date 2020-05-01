@@ -32,9 +32,9 @@ class CalibrationBinner : public BinnerBase {
     CalibrationBinner& operator=(const CalibrationBinner&) = default;
     void add_point(DataPoint p) { cal_run.push_back(p); }
     bool in_range(DataPoint p) const {
-      return (p.E>E_min) && (p.E<E_max) && (p.r<r_max)
-        && (std::abs(p.dxds) < dxds_bound)
-        && (std::abs(p.dyds) < dyds_bound);
+      return (p.E>E_min) && (p.E<E_max) && (p.r<r_max);
+        // && (std::abs(p.dxds) < dxds_bound)
+        // && (std::abs(p.dyds) < dyds_bound);
     }
 
     std::pair<size_t, size_t> calibrate();

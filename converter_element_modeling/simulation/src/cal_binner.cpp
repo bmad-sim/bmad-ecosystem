@@ -42,6 +42,7 @@ Binner::Binner(CBinT&& cb) :
   r_edges(std::move(cb.r_edges)),
   bin_counts(E_edges.size()-1,
       std::vector<Bin>(r_edges.size()-1)),
+  lowest_pc_vals(r_edges.size()-1, 100),
   total_count(0) {
     size_t E_ix, r_ix;
     E_ix = 0;
