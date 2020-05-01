@@ -533,7 +533,13 @@ parsing_loop: do
 
     bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.
 
-    if (.not. ele_found .and. .not. wild_here) call parser_error ('ELEMENT NOT FOUND')
+    if (.not. ele_found .and. .not. wild_here) then
+      if (index(name, ':') == 0) then
+        call parser_error ('ELEMENT NOT FOUND: ' // name)
+      else
+        call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
+      endif
+    endif
 
     cycle parsing_loop
   endif
