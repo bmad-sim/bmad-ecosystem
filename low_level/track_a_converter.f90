@@ -87,13 +87,14 @@ call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_m
 ! Find dists that straddle thickness
 
 if (.not. allocated(ele%converter%dist(1)%sub_dist(1)%prob_pc_r%p_norm)) call probability_tables_setup(ele, err_flag)
+if (err_flag) goto 9000
 
 pc_in = orbit%p0c * (1 + orbit%vec(6))
 call ran_uniform(r_ran)
 thickness_interpolate = .false.
 
 if (size(conv%dist) == 1) then
-  call calc_out_coords(ele, conv%dist(1), pc_in, r_ran, out1)
+  call calc_out_coords(ele, conv%dist(1), pc_in, r_ran, out1, err_flag);  if (err_flag) goto 9000
   thickness = conv%dist(1)%thickness
 
 else
@@ -106,10 +107,10 @@ else
 
   thickness = ele%value(l$)
   ix = bracket_index(ele%value(l$), conv%dist%thickness, 1, dr = drd)
-  call calc_out_coords(ele, conv%dist(ix), pc_in, r_ran, out1)
+  call calc_out_coords(ele, conv%dist(ix), pc_in, r_ran, out1, err_flag);  if (err_flag) goto 9000
   if (ix /= nd) then
     thickness_interpolate = .true.
-    call calc_out_coords(ele, conv%dist(ix+1), pc_in, r_ran, out2)
+    call calc_out_coords(ele, conv%dist(ix+1), pc_in, r_ran, out2, err_flag);  if (err_flag) goto 9000
   endif
 endif
 
@@ -146,13 +147,20 @@ orbit%vec(4) = orbit%vec(4) + (out1%dx_ds * sin(azimuth_angle) + out1%dy_ds * co
 orbit%vec(5) = orbit%vec(5) * orb0%beta / orbit%beta
 
 call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+return
+
+! Error detected
+
+9000 continue
+orbit%state = lost$
+return
 
 !------------------------------------------------
 contains
 
 ! Calculate output coords for a given thickness.
 
-subroutine calc_out_coords(ele, dist, pc_in, r_ran, out)
+subroutine calc_out_coords(ele, dist, pc_in, r_ran, out, err_flag)
 
 type (ele_struct) ele
 type (converter_distribution_struct) dist
@@ -160,6 +168,7 @@ type (converter_param_storage_struct) out, out1, out2
 
 real(rp) pc_in, r_ran(:), rsd, rsd2
 integer nsd, ix_sd
+logical err_flag
 
 ! Interpolate between energies.
 
@@ -172,8 +181,8 @@ if (pc_in < dist%sub_dist(1)%pc_in .or. pc_in >= dist%sub_dist(nsd)%pc_in) then
 endif
 
 ix_sd = bracket_index(pc_in, dist%sub_dist%pc_in, 1, rsd, restrict = .true.)
-call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd), r_ran, out1)
-call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd+1), r_ran, out2)
+call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd), r_ran, out1, err_flag);  if (err_flag) return
+call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd+1), r_ran, out2, err_flag);  if (err_flag) return
 
 rsd2 = 1 - rsd
 out%pc_out = rsd2 * out1%pc_out + rsd * out2%pc_out
@@ -189,7 +198,7 @@ end subroutine calc_out_coords
 
 ! Calculate output coords for a given thickness and a given incoming particle energy.
 
-subroutine calc_out_coords2(ele, dist, sub_dist, r_ran, out)
+subroutine calc_out_coords2(ele, dist, sub_dist, r_ran, out, err_flag)
 
 type (ele_struct) ele
 type (converter_distribution_struct), target :: dist
@@ -216,7 +225,7 @@ out%r = (1-dr) * ppcr%r(ix_r) + dr * ppcr%r(ix_r+1)
 
 ! dx/ds calc
 
-call calc_dir_out_params(dist, sub_dist, out)
+call calc_dir_out_params(dist, sub_dist, out, err_flag);  if (err_flag) return
 
 com%r_ran = r_ran(3)
 com%integ_prob_tot = out%integ_prob_tot
@@ -315,10 +324,10 @@ do id = 1, size(conv%dist)
         out%pc_out = ppcr%pc_out(ipc)
         out%r = ppcr%r(ir)
         dist%dxy_ds_limit = dist%dxy_ds_max
-        call calc_dir_out_params (dist, sub_dist, out)
+        call calc_dir_out_params (dist, sub_dist, out, err_flag);  if (err_flag) return
         unnorm_integ_prob_tot = out%integ_prob_tot   ! integ_prob_tot is not normalized by angle_max.
         if (ele%value(angle_out_max$) > 0) dist%dxy_ds_limit = min(atan(ele%value(angle_out_max$)), dist%dxy_ds_limit)
-        call calc_dir_out_params (dist, sub_dist, out)
+        call calc_dir_out_params (dist, sub_dist, out, err_flag);  if (err_flag) return
         ppcr%p_norm(ipc,ir) = ppcr%prob(ipc,ir) *  unnorm_integ_prob_tot / out%integ_prob_tot  ! p_norm is normalized by angle_max
       enddo
     enddo
@@ -401,7 +410,7 @@ end function p1_norm_func
 !------------------------------------------------
 ! contains
 
-subroutine calc_dir_out_params (dist, sub_dist, out)
+subroutine calc_dir_out_params (dist, sub_dist, out, err_flag)
 
 type (converter_distribution_struct), target :: dist
 type (converter_sub_distribution_struct), target :: sub_dist
@@ -415,8 +424,11 @@ real(rp) dr, dx, x_min, x, rad, a_tan, b1, drad, arg
 real(rp), pointer :: integ(:)
 
 integer i, n, ix
+logical err_flag
 
 ! beta calc
+
+err_flag = .true.
 
 beta => sub_dist%dir_out%beta
 n = size(beta%fit_1d_r)
@@ -425,7 +437,14 @@ if (out%pc_out >= beta%fit_1d_r(n)%pc_out) then
 else
   ix = bracket_index(out%pc_out, beta%fit_1d_r%pc_out, 1, dr, restrict = .true.)
   out%beta = (1 - dr) * poly_eval(beta%fit_1d_r(ix)%poly, out%r) + &
-                   dr * poly_eval(beta%fit_1d_r(ix+1)%poly, out%r) 
+                  dr * poly_eval(beta%fit_1d_r(ix+1)%poly, out%r) 
+endif
+
+if (abs(out%beta) * dist%dxy_ds_limit > 1) then
+  call out_io (s_error$, r_name, 'BETA VALUE TOO LARGE: \f12.4\ ', &
+                                 '  AT (PC_OUT, R) = (\2es12.4\)', &
+                                 '  PARTICLE WILL BE MARKED AS LOST.', r_array = [out%beta, out%pc_out, out%r])
+  return
 endif
 
 ! c_x calc
@@ -446,6 +465,13 @@ else
                    dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%r) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
 endif
 
+if (out%alpha_x < 0) then
+  call out_io (s_error$, r_name, 'ALPHA_X VALUE IS NEGATIVE: \f12.4\ ', &
+                                 '  AT (PC_OUT, R) = (\2es12.4\)', &
+                                 '  PARTICLE WILL BE MARKED AS LOST.', r_array = [out%alpha_x, out%pc_out, out%r])
+  return
+endif
+
 ! Alpha_y calc
 
 alpha => sub_dist%dir_out%alpha_y
@@ -457,6 +483,13 @@ else
   ix = bracket_index(out%pc_out, alpha%fit_1d_r%pc_out, 1, dr, restrict = .true.)
   out%alpha_y = (1 - dr) * poly_eval(alpha%fit_1d_r(ix)%poly, out%r) * exp(-alpha%fit_1d_r(ix)%k * out%r) + &
                    dr * poly_eval(alpha%fit_1d_r(ix+1)%poly, out%r) * exp(-alpha%fit_1d_r(ix+1)%k * out%r)
+endif
+
+if (out%alpha_y < 0) then
+  call out_io (s_error$, r_name, 'ALPHA_Y VALUE IS NEGATIVE: \f12.4\ ', &
+                                 '  AT (PC_OUT, R) = (\2es12.4\)', &
+                                 '  PARTICLE WILL BE MARKED AS LOST.', r_array = [out%alpha_y, out%pc_out, out%r])
+  return
 endif
 
 ! For dx/ds use a spine fit.
@@ -487,6 +520,7 @@ do i = 0, n_pt
 enddo
 
 out%integ_prob_tot = 1 / integ(n_pt)
+err_flag = .false.
 
 end subroutine calc_dir_out_params
 
