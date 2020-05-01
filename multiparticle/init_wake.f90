@@ -28,15 +28,8 @@ logical, optional :: always_allocate
 
 ! Deallocate wake if all inputs are zero.
 
-if (n_sr_long == 0 .and. n_sr_trans == 0 .and. n_lr_mode == 0) then
-  if (logic_option(.false., always_allocate)) then
-    if (.not. associated(wake)) allocate (wake)
-    allocate (wake%sr%long(n_sr_long))
-    allocate (wake%sr%trans(n_sr_trans))
-    allocate (wake%lr%mode(n_lr_mode))
-  else
-    if (associated(wake)) deallocate (wake)
-  endif
+if (n_sr_long == 0 .and. n_sr_trans == 0 .and. n_lr_mode == 0 .and. .not. logic_option(.false., always_allocate)) then
+  if (associated(wake)) deallocate (wake)
   return
 endif
 
