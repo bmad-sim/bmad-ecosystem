@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 246
+integer, parameter :: bmad_inc_version$ = 247
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1464,22 +1464,22 @@ integer, parameter :: fringe_type$ = 10, dbragg_angle_de$ = 10
 integer, parameter :: fringe_at$ = 11, gang$ = 11, darwin_width_sigma$ = 11
 integer, parameter :: higher_order_fringe_type$ = 12, darwin_width_pi$ = 12
 integer, parameter :: spin_fringe_on$ = 13, pendellosung_period_sigma$ = 13
-integer, parameter :: fb1$ = 14, sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
-integer, parameter :: fb2$ = 15, sig_y$ = 15, graze_angle_in$ = 15
-integer, parameter :: fq1$ = 16, sig_z$ = 16, graze_angle_out$ = 16 
-integer, parameter :: fq2$ = 17, sig_vx$ = 17
+integer, parameter :: sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
+integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15
+integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16
+integer, parameter :: sig_vx$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19, sig_pz$ = 19
 integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, direction_particle_start$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, constant_ref_energy$ = 20
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
-integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
+integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
-integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
+integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
-integer, parameter :: alpha_a_strong$ = 23, alpha_a_out$ = 23, cavity_type$ = 23, E2_probability$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24
+integer, parameter :: fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, cavity_type$ = 23, E2_probability$ = 23
+integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24
 integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24
 integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25
 integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25
@@ -1525,14 +1525,14 @@ integer, parameter :: z_offset_tot$ = 59
 integer, parameter :: tilt_tot$ = 60, roll_tot$ = 60  ! Important: tilt_tot$ = roll_tot$
 integer, parameter :: ref_tilt_tot$ = 61
 integer, parameter :: multipass_ref_energy$ = 62
-integer, parameter :: r0_mag$ = 63
+! Slot 63 is free for use
 integer, parameter :: ref_time_start$ = 64
 integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 66   ! Assumed unique by set_flags_for_changed_real_attribute
 integer, parameter :: ds_step$ = 67     ! Assumed unique by set_flags_for_changed_real_attribute
-integer, parameter :: lord_pad1$ = 68
-integer, parameter :: lord_pad2$ = 69, ref_wavelength$ = 69
-integer, parameter :: r0_elec$ = 70
+integer, parameter :: csr_ds_step$ = 68
+integer, parameter :: lord_pad1$ = 69
+integer, parameter :: lord_pad2$ = 70, ref_wavelength$ = 70
 integer, parameter :: scratch1$ = 71   ! For general use.
 integer, parameter :: scratch2$ = 72   ! For general use.
 integer, parameter :: scratch3$ = 73   ! For general use.

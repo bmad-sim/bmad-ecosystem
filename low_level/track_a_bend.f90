@@ -310,7 +310,7 @@ do n = 1, n_step
       beta = (1 + g * x) * st / (g * alpha) - &
              g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
       orbit%vec(3) = y + py * beta
-      orbit%vec(5) = z + step_len  - rel_p * beta 
+      orbit%vec(5) = z + step_len - rel_p * beta 
     else
       factor = (asin(px/Dy) - asin(px_t/Dy)) / g_tot
       orbit%vec(3) = y + py * (angle/g_tot + factor)
