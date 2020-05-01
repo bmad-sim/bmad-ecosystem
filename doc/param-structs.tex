@@ -319,10 +319,10 @@ file.
 The Coherent Synchrotron Radiation (CSR) calculation is discussed in Section~\sref{s:csr}.
 
 Besides the parameters discussed below, the \vn{csr_and_space_charge_on} parameter of \vn{bmad_com}
-(\sref{s:bmad.com}) must be set True to enable the CSR calculation. Additionally, tracking
-with \vn{CSR} will only be done through elements where the parameter \vn{csr_method}
-(\sref{s:integ}) has been set to \vn{1_dim}. This is done so that the computationally intensive
-\vn{CSR} calculation can be restricted to places where the \vn{CSR} effect is significant.
+(\sref{s:bmad.com}) must be set True to enable the CSR calculation. Additionally, tracking with
+\vn{CSR} will only be done through elements where the parameter \vn{csr_method} (\sref{s:integ}) has
+been set to \vn{1_dim}. This is done so that the computationally intensive \vn{CSR} calculation can
+be restricted to places where the \vn{CSR} effect is significant.
 
 The CSR parameter structure has a \vn{type name} of \vn{csr_parameter_struct} and an \vn{instance
 name} of \vn{csr_param}.  This structure has components
@@ -345,55 +345,48 @@ The values for the various quantities shown above are their default values.
 
 \begin{description}
 \item{ds_track_step} \Newline
-\vn{ds_track_step} is the nominal longitudinal distance traveled by
-the bunch between CSR kicks. The actual distance between kicks within
-a lattice element is adjusted so that there is an integer number of
-steps from steps from the element entrance to the element exit.  This
-parameter must be set to something positive otherwise an error will
-result. Larger values will speed up the calculation at the expense of
-accuracy.
+\vn{ds_track_step} is the nominal longitudinal distance traveled by the bunch between CSR kicks if
+the lattice element in which the bunch is being tracked has not set element's \vn{csr_ds_track}
+parameter. The actual distance between kicks within a lattice element is adjusted so that there is
+an integer number of steps from the element entrance to the element exit. Either \vn{ds_track_step}
+or the element's \vn{csr_track_step} must be set to something positive otherwise an error will
+result when doing CSR or space charge tracking. Larger values will speed up the calculation at the
+expense of accuracy.
 %
 \item{beam_chamber_height} \Newline
-\vn{beam_chamber_height} is the height of the beam chamber in
-meters. This parameter is used when shielding is taken into account.
-See also the description of the parameter \vn{n_shield_images}.
+\vn{beam_chamber_height} is the height of the beam chamber in meters. This parameter is used when
+shielding is taken into account.  See also the description of the parameter \vn{n_shield_images}.
 %
 \item{sigma_cutoff} \Newline
-\vn{sigma_cutoff} is used in the longitudinal space charge (LSC)
-calculation and is used to prevent bins with only a few particles in
-them to give a large contribution to the kick when the computed
+\vn{sigma_cutoff} is used in the longitudinal space charge (LSC) calculation and is used to prevent
+bins with only a few particles in them to give a large contribution to the kick when the computed
 transverse sigmas are abnormally low.
 %
 \item{n_bin} \Newline
-\vn{n_bin} is the number of bins used. The bind width is dynamically
-adjusted at each kick point so that the bins will span the bunch
-length.  This parameter must be set to something positive. Larger
-values will slow the calculation while smaller values will lead to
-inaccuracies and loss of resolution. \vn{n_bin} should also not be set
-so large that the average number of particles in a bin is too small. 
-``Typical'' values are in the range 100 --- 1000.
+\vn{n_bin} is the number of bins used. The bind width is dynamically adjusted at each kick point so
+that the bins will span the bunch length.  This parameter must be set to something positive. Larger
+values will slow the calculation while smaller values will lead to inaccuracies and loss of
+resolution. \vn{n_bin} should also not be set so large that the average number of particles in a bin
+is too small.  ``Typical'' values are in the range 100 --- 1000.
 %
 \item{particle_bin_span} \Newline
-\vn{particle_bin_span} is the width of a particle's triangular density
-distribution (cf.~\sref{s:csr}) in multiples of the bin width. A
-larger span will give better smoothing of the computed particle
-density with an attendant loss in resolution.
+\vn{particle_bin_span} is the width of a particle's triangular density distribution
+(cf.~\sref{s:csr}) in multiples of the bin width. A larger span will give better smoothing of the
+computed particle density with an attendant loss in resolution.
 %
 \item{n_shield_images} \Newline
-\vn{n_shield_images} is the number of shielding current layers used in
-the shielding calculation. A value of zero results in no
-shielding. See also the description of the parameter
-\vn{beam_chamber_height}. The proper setting of this parameter depends
-upon how strong the shielding is. Larger values give better accuracy
-at the expense of computation speed. ``Typical'' values are in the
-range 0 --- 5.
+\vn{n_shield_images} is the number of shielding current layers used in the shielding calculation. A
+value of zero results in no shielding. See also the description of the parameter
+\vn{beam_chamber_height}. The proper setting of this parameter depends upon how strong the shielding
+is. Larger values give better accuracy at the expense of computation speed. ``Typical'' values are
+in the range 0 --- 5.
 %
 \item{sc_min_in_bin} \Newline
-the \vn{sc_min_in_bin} parameter sets the minimum number of particle in a bin needed to
-compute the transverse beam sigmas for that bin. If the number of particles is less than
-this number, the beam sigmas are taken to be equal to the beam sigmas of a nearby bin
-where there are enough particle to compute the sigma. The beam sigmas are needed for the
-CS calculation but not need for the CSR calculation.
+the \vn{sc_min_in_bin} parameter sets the minimum number of particle in a bin needed to compute the
+transverse beam sigmas for that bin. If the number of particles is less than this number, the beam
+sigmas are taken to be equal to the beam sigmas of a nearby bin where there are enough particle to
+compute the sigma. The beam sigmas are needed for the CS calculation but not need for the CSR
+calculation.
 %
 \item{write_csr_wake} \Newline
 If True (default is False), an output file called \vn{csr_wake.dat} is created that contains a table
@@ -402,10 +395,10 @@ done through multiple lattice elements, the wake tables for the elements are app
 file is useful for visualization of the wake.
 \end{description}
 
-Note: \vn{Taylor} map elements (\sref{s:taylor}) that have a finite length cannot be
-subdivided for the CSR calculation. \bmad will ignore any \vn{taylor} elements present in
-the lattice but will print a warning that it is doing so. To suppress the warning,
-\vn{print_taylor_warning} should be set to False.
+Note: \vn{Taylor} map elements (\sref{s:taylor}) that have a finite length cannot be subdivided for
+the CSR calculation. \bmad will ignore any \vn{taylor} elements present in the lattice but will
+print a warning that it is doing so. To suppress the warning, \vn{print_taylor_warning} should be
+set to False.
 
 %-----------------------------------------------------------------
 \section{Opti_DE_Param_Struct}
@@ -413,12 +406,11 @@ the lattice but will print a warning that it is doing so. To suppress the warnin
 \index{de optimizer parameters|hyperbf}
 
 \index{opti_de_param_struct}
-The Differential Evolution (\vn{DE}) optimizer is used in nonlinear
-optimization problems. This optimizer is based upon the work of Storn
-and Price\cite{b:de}. There are a number of parameters that can be
-varied to vary how the optimizer works. These parameters are are
-contained in a structure named \vn{opti_de_param_struct}. the instance
-name is \vn{opti_de_param}.  This structure has components
+The Differential Evolution (\vn{DE}) optimizer is used in nonlinear optimization problems. This
+optimizer is based upon the work of Storn and Price\cite{b:de}. There are a number of parameters
+that can be varied to vary how the optimizer works. These parameters are are contained in a
+structure named \vn{opti_de_param_struct}. the instance name is \vn{opti_de_param}.  This structure
+has components
 \begin{example}
                               Default
   type opti_de_param_struct

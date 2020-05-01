@@ -4,7 +4,7 @@
 !   D. Sagan
 !-
 
-module track_csr_and_space_charge_mod
+module csr_and_space_charge_mod
 
 use beam_utils
 use bmad_interface
@@ -109,7 +109,7 @@ contains
 !   bunch_start  -- Bunch_struct: Starting bunch position.
 !   ele          -- Ele_struct: The element to track through. Must be part of a lattice.
 !   centroid(0:) -- coord_struct, Approximate beam centroid orbit for the lattice branch.
-!                     Hint: Calculate this before beam tracking by tracking a single particle.
+!                     Calculate this before beam tracking by tracking a single particle.
 !   s_start      -- real(rp), optional: Starting position relative to ele. Default = 0
 !   s_end        -- real(rp), optional: Ending position. Default is ele length.
 !
@@ -172,11 +172,11 @@ endif
 
 bunch_end = bunch_start
 
-if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
+if (ele%csr_method == one_dim$ .and. (ele%key == wiggler$ .or. ele%key == undulator$) .and. &
                                 (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$)) then
-  call out_io (s_error$, r_name, 'CALCULATION OF CSR EFFECTS IN PLANAR OR HELICAL MODEL WIGGLERS IS INVALID SINCE', &
-                                 'WIGGLER TRACKING USES AN EFFECTIVE KICK THAT IS AN AVERAGE OVER MANY PERIODS.', &
-                                 'FOR: ' // ele%name)
+  call out_io (s_warn$, r_name, 'CALCULATION OF CSR EFFECTS IN PLANAR OR HELICAL MODEL WIGGLERS MAY BE INVALID SINCE', &
+                                'CSR TRACKING USES A SPLINE FIT FOR THE CENTROID ORBIT WHICH IS INACCURATE FOR A WIGGLING ORBIT.', &
+                                'FOR: ' // ele%name)
 endif
 
 if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
@@ -194,11 +194,18 @@ if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
   return
 endif
 
-if (csr_param%ds_track_step == 0) then
-  call out_io (s_fatal$, r_name, 'CSR_PARAM%DS_TRACK_STEP NOT SET!')
+! make sure that ele_len / track_step is an integer.
+
+csr%ds_track_step = ele%value(csr_ds_step$)
+if (csr%ds_track_step == 0) csr%ds_track_step = csr_param%ds_track_step
+if (csr%ds_track_step == 0) then
+  call out_io (s_fatal$, r_name, 'NEITHER CSR_PARAM%DS_TRACK_STEP NOR CSR_TRACK_STEP FOR THIS ELEMENT ARE SET! ' // ele%name)
   if (global_com%exit_on_error) call err_exit
   return
 endif
+
+n_step = max (1, nint(ele%value(l$) / csr%ds_track_step))
+csr%ds_track_step = ele%value(l$) / n_step
 
 ! Calculate beam centroid info at element edges, etc.
 
@@ -261,10 +268,8 @@ do i = 0, n
   eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
 enddo
 
-! make sure that ele_len / track_step is an integer.
+!
 
-n_step = max (1, nint(ele%value(l$) / csr_param%ds_track_step))
-csr%ds_track_step = ele%value(l$) / n_step
 csr%species = bunch_start%particle(1)%species
 csr%ix_ele_kick = ele%ix_ele
 csr%actual_track_step = csr%ds_track_step * (csr%eleinfo(ele%ix_ele)%L_chord / ele%value(l$))
