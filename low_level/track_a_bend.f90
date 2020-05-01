@@ -70,9 +70,9 @@ k_1 = ele%value(k1$) * rel_charge_dir
 if (nint(ele%value(exact_multipoles$)) /= off$) then
   k_1 = 0  ! Is folded in with multipoles.
   ix_pole_max = max(1, ix_pole_max)
-  call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
 else
-  call multipole_ele_to_ab(ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks_except_k1$)
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks_except_k1$)
 endif
 call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
@@ -202,7 +202,7 @@ do n = 1, n_step
                       g * step_len * (step_len * rel_p + x * px * rel_p / p_long) / p_long**2 - &
                       g * step_len * (step_len * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * rel_p / p_long**4
 
-      elseif (abs(g_tot) < 1d-5 * abs(g)) then
+      elseif (abs(g_tot) < 1d-5 * abs(g) .or. (abs(g_tot) < 1d-10 .and. abs(g) < 1d-10)) then
         alpha = p_long * ct - px * st
         dalpha_dpx = dp_long_dpx * ct - st
         dalpha_dpy = dp_long_dpy * ct
@@ -245,7 +245,7 @@ do n = 1, n_step
       mat6_i(2,4) = -py * st / p_long
       mat6_i(2,6) = rel_p * st / p_long
 
-      if (abs(g_tot) < 1d-5 * abs(g)) then
+      if (abs(g_tot) < 1d-5 * abs(g) .or. (abs(g_tot) < 1d-10 .and. abs(g) < 1d-10)) then
         alpha = p_long * ct - px * st
         dalpha_dpx = dp_long_dpx * ct - st
         dalpha_dpy = dp_long_dpy * ct
@@ -305,7 +305,7 @@ do n = 1, n_step
     orbit%vec(2) = px_t
     orbit%vec(4) = py
 
-    if (abs(g_tot) < 1d-5 * abs(g)) then
+    if (abs(g_tot) < 1d-5 * abs(g) .or. (abs(g_tot) < 1d-10 .and. abs(g) < 1d-10)) then
       alpha = p_long * ct - px * st
       beta = (1 + g * x) * st / (g * alpha) - &
              g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
