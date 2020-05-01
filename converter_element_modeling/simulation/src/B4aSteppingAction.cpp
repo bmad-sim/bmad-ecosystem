@@ -48,8 +48,8 @@ B4aSteppingAction::B4aSteppingAction(
     fDetConstruction(detectorConstruction),
     fEventAction(eventAction),
     prev_track_id(-1),
-    out_energy_min(1),
-    out_energy_max(100),
+    out_energy_min(0),
+    out_energy_max(1000),
     in_particle_angle(0),
     binner_ptr(binner)
 {

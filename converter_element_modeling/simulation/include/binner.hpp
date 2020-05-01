@@ -66,12 +66,12 @@ class Binner : public BinnerBase {
     //double E_bin_width, r_bin_width;
     std::vector<double> E_edges, r_edges;
     std::vector<std::vector<Bin>> bin_counts;
+  public:
+    std::vector<double> lowest_pc_vals;
+  protected:
     size_t total_count;
 
     std::pair<int, int> get_bin_num(double E, double r);
-    //void resize_bins();
-    bool in_range(DataPoint p);
-    //friend std::pair<int, int> calibrate_binner(G4RunManager *runManager, const std::string& target_material, double in_energy, double target_thickness, Binner *binner);
 
   public:
     Binner();
@@ -84,30 +84,10 @@ class Binner : public BinnerBase {
     double get_E_val(int n_E) const;
     double get_r_val(int n_r) const;
     const Bin& get_bin(int n_E, int n_r) const;
+    bool in_range(DataPoint p) const;
     bool has_empty_bins() const;
     bool has_enough_data() const;
     int get_total() const { return total_count; }
     //double bin_area() const;
 };
 
-//class CalibrationBinner : public Binner {
-//  protected:
-//    std::vector<DataPoint> calibration_set;
-//    std::vector<std::vector<Bin>> alt_bin_counts;
-//    std::vector<std::vector<Bin>> *coarse_bins, *fine_bins;
-//    double growth_factor = 1.25;
-//    int calibration_length = 10000;
-//    int fine_num_E_bins;
-//    int fine_num_r_bins;
-//    double fine_E_bin_width;
-//    double fine_r_bin_width;
-//    std::pair<int, int> get_fine_bin_num(DataPoint p);
-//
-//  public:
-//    CalibrationBinner();
-//    void calibrate(G4RunManager *runManager, const std::string& target_material, double in_energy, double target_thickness);
-//    void add_point(DataPoint p);
-//    void resize_bins();
-//    double bin_diff();
-//};
-//

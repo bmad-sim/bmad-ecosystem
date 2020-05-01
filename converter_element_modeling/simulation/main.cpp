@@ -72,6 +72,7 @@ int main() {
 
   // Next: Run simulation for each energy, thickness combination
   char outfile_name[100];
+  char outfile_name_lowpc[100];
 
   std::ofstream eff_file;
   eff_file.open(od + "/yields.dat");
@@ -82,7 +83,9 @@ int main() {
       std::cout << "Simulating target thickness T = "
         << T << "cm, incoming electron energy " << E << " MeV\n";
       std::ofstream outfile;
+      std::ofstream outfile_lowpc;
       sprintf(outfile_name, "%s/E%0.0lf_T%0.3lf_er.dat", od.c_str(), E, T);
+      sprintf(outfile_name_lowpc, "E%0.0lf_T%0.3lf_er_lowpc.dat", E, T);
 
       CalibrationBinner calbin(runManager, settings, E, T);
       auto [num_E_bins, num_r_bins] = calbin.calibrate();
@@ -105,6 +108,7 @@ int main() {
 #endif
       size_t num_elec_in = num_runs * RUN_LENGTH;
       outfile.open(outfile_name);
+      outfile_lowpc.open(outfile_name_lowpc);
       int pos_tot = my_binner.get_total();
       // set up first line with r values
       outfile << num_r_bins;
@@ -123,8 +127,17 @@ int main() {
         }
         outfile << '\n';
       }
+
+      outfile_lowpc << "r\tpc_min\n";
+      for (size_t j=0; j<num_r_bins; j++) {
+        double bin_r = my_binner.get_r_val(j);
+        auto low_pc = my_binner.lowest_pc_vals[j];
+        outfile_lowpc << bin_r << '\t' << low_pc << '\n';
+      }
+
 #ifdef CONTINUOUS_PRINTOUT
       outfile.close();
+      outfile_lowpc.close();
     }
 #endif
       std::cout << "Efficiency: " << ((double) pos_tot) / (10000*num_runs) << '\n';

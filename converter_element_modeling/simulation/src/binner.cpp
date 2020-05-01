@@ -35,117 +35,6 @@ void Bin::add_point(double dxds, double dyds) {
   count++;
 }
 
-//double Bin::normal_chi2(double E, double r) const {
-//  // Computes the reduced chi-squared test
-//  // statistic to determine how well
-//  // a joint normal distribution fits
-//  // this bin's (dxds, dyds) data
-//  // The E(+) and r value are passed as parameters
-//  // to properly label each file containing the binned
-//  // dxds, dyds data and the normal fit
-//
-//  // First: bin the (dxds, dyds) data
-//  // so that bin counts can be compared to
-//  // normal fit predictions
-//
-//
-//  if (p_list.size() == 0) return 0;
-//
-//  constexpr size_t num_bins = 20;
-//
-//  std::vector<BinPoint> bins(num_bins*num_bins, {0,0,0});
-//
-//  // Determine cutoff points for binning
-//  size_t ix_min = p_list.size() * 0.025;
-//  size_t ix_max = p_list.size() * 0.975;
-//  double dxds_min, dxds_max, dyds_min, dyds_max;
-//
-//  std::sort(p_list.begin(), p_list.end(),
-//      [](xy_point p1, xy_point p2) { return p1.x < p2.x; });
-//  dxds_min = p_list[ix_min].x;
-//  dxds_max = p_list[ix_max].x;
-//
-//  std::sort(p_list.begin(), p_list.end(),
-//      [](xy_point p1, xy_point p2) { return p1.y < p2.y; });
-//  dyds_min = p_list[ix_min].y;
-//  dyds_max = p_list[ix_max].y;
-//
-//  // Remove out of range points
-//  auto outside_range = [dxds_min, dxds_max, dyds_min, dyds_max](xy_point p) -> bool {
-//    return !(p.x >= dxds_min && p.x<dxds_max && p.y>=dyds_min && p.y<dyds_max);
-//  };
-//  p_list.erase(std::remove_if(p_list.begin(), p_list.end(), outside_range), p_list.end());
-//
-//  // Make sure we have different min/max values before continuing
-//  //if (p_list.size() <= 4) return 0;
-//  if (dxds_min == dxds_max) return 0;
-//  if (dyds_min == dyds_max) return 0;
-//
-//  // Bin the (dxds,dyds) points
-//  double dxds_width = (dxds_max - dxds_min)/num_bins;
-//  double dyds_width = (dyds_max - dyds_min)/num_bins;
-//  for (const auto& p : p_list) {
-//    size_t x_ix = (p.x - dxds_min) / dxds_width;
-//    size_t y_ix = (p.y - dyds_min) / dyds_width;
-//    size_t bin_ix = x_ix + num_bins * y_ix;
-//    bins[bin_ix].count++;
-//  }
-//
-//  // Fill in bin x/y values
-//  for (size_t y_ix=0; y_ix<num_bins; y_ix++) {
-//    for (size_t x_ix=0; x_ix<num_bins; x_ix++) {
-//      double xval = dxds_min + (x_ix + 0.5) * dxds_width;
-//      double yval = dyds_min + (y_ix + 0.5) * dyds_width;
-//      size_t bin_ix = x_ix + num_bins * y_ix;
-//      bins[bin_ix].x = xval;
-//      bins[bin_ix].y = yval;
-//    }
-//  }
-//
-//  // Now fit the normal distribution to the binned data
-//  FitResults results = normal_fit(bins);
-//
-//  if (results.reduced_chi_square < 0) {
-//    std::cout << "Could not fit normal distribution to (dxds, dyds) for E = " << E << ", r = " << r << '\n';
-//    return 0;
-//  }
-//
-//  auto [mu_x, mu_y, s_x, s_y, amp, chisq] = results;
-//
-//  // Output binned data and fit to a file
-//  if (p_list.size()>50 || chisq>1.5) {
-//    std::ofstream binfile, fitfile, diff_file;
-//    char binfile_name[50], fitfile_name[50], diff_name[50];
-//    sprintf(binfile_name, "dxds_dat/E%0.2lf_T%0.3lf_bin.dat", E, r);
-//    sprintf(fitfile_name, "dxds_dat/E%0.2lf_T%0.3lf_fit.dat", E, r);
-//    sprintf(diff_name, "dxds_dat/E%0.2lf_T%0.3lf_diff.dat", E, r);
-//    binfile.open(binfile_name);
-//    fitfile.open(fitfile_name);
-//    diff_file.open(diff_name);
-//
-//    // print out bins and fit points to file
-//    for (auto [bin_x, bin_y, bin_count] : bins) {
-//      double fit_val = amp * normal2d(bin_x, bin_y, mu_x, mu_y, s_x, s_y);
-//      binfile << bin_x << '\t'
-//        << bin_y << '\t'
-//        << bin_count << '\n';
-//      fitfile << bin_x << '\t'
-//        << bin_y << '\t'
-//        << fit_val << '\n';
-//      diff_file << bin_x << '\t'
-//        << bin_y << '\t'
-//        << bin_count - fit_val << '\n';
-//    }
-//
-//    binfile.close();
-//    fitfile.close();
-//    diff_file.close();
-//  }
-//
-//  return chisq;
-//}
-
-
 void Bin::bin_momenta(const char * output_dir,
     double E_elec, double T, double E, double r) const {
   // Bins the (dxds, dyds) data and writes the
@@ -274,6 +163,7 @@ Binner::Binner(int N_E_bins, int N_r_bins, double p_E_min, double p_r_min, doubl
   dxds_bound(10), dyds_bound(10),
   E_edges(N_E_bins+1), r_edges(N_r_bins+1),
   bin_counts(N_E_bins, std::vector<Bin>(N_r_bins)),
+  lowest_pc_vals(N_r_bins, 100),
   total_count(0) {
     std::iota(E_edges.begin(), E_edges.end(), 0.0);
     std::iota(r_edges.begin(), r_edges.end(), 0.0);
@@ -308,14 +198,18 @@ std::pair<int, int> Binner::get_bin_num(double E, double r) {
   return std::make_pair(n_E, n_r);
 }
 
-bool Binner::in_range(DataPoint p) {
+bool Binner::in_range(DataPoint p) const {
   return (p.E > E_min) && (p.E < E_max)
-    && (p.r > r_min) && (p.r < r_max)
-    && (std::abs(p.dxds) < dxds_bound)
-    && (std::abs(p.dyds) < dyds_bound);
+    && (p.r > r_min) && (p.r < r_max);
+    // && (std::abs(p.dxds) < dxds_bound)
+    // && (std::abs(p.dyds) < dyds_bound);
 }
 
 void Binner::add_point(DataPoint p) {
+  if (p.r > r_edges.front() && p.r < r_edges.back()) {
+    auto [junk, n_r] = get_bin_num(E_edges.front(), p.r);
+    lowest_pc_vals[n_r] = std::min(p.E, lowest_pc_vals[n_r]);
+  }
   if (in_range(p)) {
     auto [n_E, n_r] = get_bin_num(p.E, p.r);
     bin_counts[n_E][n_r].add_point(p.dxds, p.dyds);
@@ -370,7 +264,7 @@ bool Binner::has_enough_data() const {
   std::cout << CLEAR_LINE << "\t\"Average\" bin count variance: "
     << std::sqrt((double) total_count / num_bins) << '\n';
 
-  bool has_enough = total_count > num_bins*1e4;
+  bool has_enough = total_count > num_bins*1e5;
   // If !has_enough, we will be rerunning this function next, so we need to move
   // the cursor back up to write over our output
   if (!has_enough)
