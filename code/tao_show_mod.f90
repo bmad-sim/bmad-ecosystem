@@ -366,6 +366,8 @@ case ('beam')
     nl=nl+1; lines(nl) = 'General beam components (set by "set beam ..."):'
     nl=nl+1; write(lines(nl), amt) 'beam_track_data_file   = ', quote(u%beam%track_data_file)
     nl=nl+1; write(lines(nl), amt) 'beam_saved_at          = ', quote(u%beam%saved_at)
+    nl=nl+1; write(lines(nl), amt) 'beam_dump_at           = ', quote(u%beam%dump_at)
+    nl=nl+1; write(lines(nl), amt) 'beam_dump_file         = ', quote(u%beam%dump_file)
     nl=nl+1; write(lines(nl), fmt) 'beam_track_start       = ', quote(u%beam%track_start), ' (', u%beam%ix_track_start, ')'
     nl=nl+1; write(lines(nl), fmt) 'beam_track_end         = ', quote(u%beam%track_end), ' (', u%beam%ix_track_end, ')'
 
@@ -4232,6 +4234,8 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write(lines(nl), amt) '%beam%track_data_file  = ', quote(trim(u%beam%track_data_file))
   nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', quote(trim(u%beam%saved_at))
+  nl=nl+1; write(lines(nl), amt) '%beam%dump_at:         = ', quote(trim(u%beam%dump_at))
+  nl=nl+1; write(lines(nl), amt) '%beam%dump_file:       = ', quote(trim(u%beam%dump_file))
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', quote(lat%lattice)
   nl=nl+1; write(lines(nl), amt) 'Machine name:           ', quote(lat%machine)

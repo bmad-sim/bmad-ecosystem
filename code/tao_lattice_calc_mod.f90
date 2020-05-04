@@ -575,7 +575,7 @@ character(*), parameter :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f, time, old_time
 
-logical calc_ok, print_err, err, lost
+logical calc_ok, print_err, err, lost, new_beam_file, can_save
 
 ! Initialize 
 
@@ -593,6 +593,7 @@ tao_branch%track_state = moving_forward$  ! Needed by tao_evaluate_a_datum
 ix_track = moving_forward$
 lost = .false.
 calc_ok = .true.
+new_beam_file = .true.
 
 tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
 tao_branch%bunch_params(:)%n_particle_live = 0
@@ -646,7 +647,7 @@ do
     beam = uni_ele(ie)%beam
 
   else
-    if (ie /= ie1) then 
+    if (ie /= ie1) then
       call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit)
       if (err) then
         calc_ok = .false.
@@ -654,8 +655,17 @@ do
       endif
     endif
 
-    if (uni_ele(ie)%save_beam .or. ie == ie1 .or. ie == ie2 .or. &
-                      ele%key == fork$ .or. ele%key == photon_fork$) uni_ele(ie)%beam = beam
+    can_save = (ie == ie1 .or. ie == ie2 .or. ele%key == fork$ .or. ele%key == photon_fork$)
+    if (uni_ele(ie)%save_beam_internally .or. can_save) uni_ele(ie)%beam = beam
+
+    if (u%beam%dump_file /= '' .and. (uni_ele(ie)%save_beam_to_file .or. can_save)) then
+      if (index(u%beam%dump_file, '.h5') == 0 .or. index(u%beam%dump_file, '.hdf5') == 0) then
+        call write_beam_file (u%beam%dump_file, beam, new_beam_file, ascii$, lat)
+      else
+        call write_beam_file (u%beam%dump_file, beam, new_beam_file, hdf5$, lat)
+      endif
+      new_beam_file = .false.
+    endif
   endif
  
   ! Lost particles

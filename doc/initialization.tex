@@ -759,43 +759,45 @@ The syntax of the \vn{tao_beam_init} namelist is:
 \index{beam_init!polarization}\index{beam_track_start}\index{beam_track_end}
 \begin{example}
   &tao_beam_init
-    ix_universe                 = <integer>    ! Universe to apply to.
-    beam_track_data_file               = <string>     ! File used in place of beam tracking.
-    beam_saved_at               = "<ele_list>" ! Where to save the beam info.
-    beam_track_start            = "<ele_name>" ! Beam tracking start element name or index.
-    beam_track_end              = "<ele_name>" ! Beam tracking end element name or index.
-    beam_init%position_file     = <string>     ! Beam position init file.
-    beam_init%distribution_type(3) = "<type>"  ! "ELLIPSE", "KV", "GRID", "" (default)
-    beam_init%ellipse(3)%...    = ...          ! Parameters for an ellipse type distribution.
-    beam_init%KV%...            = ...          ! Parameters for a KV distribution
-    beam_init%grid(i)%...       = ...          ! Parameters for a grid distribution.
-    beam_init%a_norm_emit       = <real>       ! A-mode energy normalized emittance
-    beam_init%b_norm_emit       = <real>       ! B-mode energy normalized emittance
-    beam_init%a_emit            = <real>       ! A-mode emittance
-    beam_init%b_emit            = <real>       ! B-mode emittance
-    beam_init%dPz_dZ            = <real>       ! Energy-Z correlation
-    beam_init%center            = <real>*6     ! Bunch center offset relative to
-                                               !   reference particle (BMAD coords)
-    beam_init%sig_e             = <real>       ! e_sigma in dE/E0
-    beam_init%sig_z             = <real>       ! Z sigma in m
-    beam_init%n_bunch           = <integer>    ! Number of bunches
-    beam_init%dt_bunch          = <real>       ! Time between bunches (meters)
-    beam_init%n_particle        = <real>       ! Number of particles per bunch
-    beam_init%bunch_charge      = <real>       ! charge per bunch (Coulombs)
-    beam_init%renorm_center     = <logical>    ! Default is T
-    beam_init%renorm_sigma      = <logical>    ! Default is F
-    beam_init%center_jitter     = <real>*6     ! Bunch center rms jitter (meters)
-    beam_init%emit_jitter       = <real>*2     ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
-    beam_init%sig_z_jitter      = <real>       ! bunch length rms jitter (dz/z)
-    beam_init%sig_e_jitter      = <real>       ! bunch energy spread rms jitter (dE/E)
-    beam_init%spin(3)           = <real>*3     ! (x, y, z) spin components.
-    beam_init%init_spin         = <logical>    ! Initialize the spin (default: False)
-    beam_init%preserve_dist     = <logical>    ! Use the same particle distribution.
-    beam_init%random_engine     = "pseudo"     ! random number engine to use
-    beam_init%random_gauss_converter = "exact" ! Uniform to gauss conversion method
-    beam_init%random_sigma_cutoff = 4.0        ! Cut-off in sigmas.
-    beam_init%use_t_coords      = <logical>    ! Use time coords (for e_guns)?
-    beam_init%use_z_as_t        = <logical>    ! Use time instead of z (for e_guns)?
+    ix_universe                 = <integer>     ! Universe to apply to.
+    beam_track_data_file        = <string>      ! File used in place of beam tracking.
+    beam_saved_at               = "<ele_list>"  ! At what elements to save beam info.
+    beam_dump_file              = "<file_name>" ! File for saving beam info.
+    beam_dump_at                = "<ele_list>"  ! At what element to save beam info to a file.
+    beam_track_start            = "<ele_name>"  ! Beam tracking start element name or index.
+    beam_track_end              = "<ele_name>"  ! Beam tracking end element name or index.
+    beam_init%position_file     = <string>      ! Beam position init file.
+    beam_init%distribution_type(3) = "<type>"   ! "ELLIPSE", "KV", "GRID", "" (default)
+    beam_init%ellipse(3)%...    = ...           ! Parameters for an ellipse type distribution.
+    beam_init%KV%...            = ...           ! Parameters for a KV distribution
+    beam_init%grid(i)%...       = ...           ! Parameters for a grid distribution.
+    beam_init%a_norm_emit       = <real>        ! A-mode energy normalized emittance
+    beam_init%b_norm_emit       = <real>        ! B-mode energy normalized emittance
+    beam_init%a_emit            = <real>        ! A-mode emittance
+    beam_init%b_emit            = <real>        ! B-mode emittance
+    beam_init%dPz_dZ            = <real>        ! Energy-Z correlation
+    beam_init%center            = <real>*6      ! Bunch center offset relative to
+                                                !   reference particle (BMAD coords)
+    beam_init%sig_e             = <real>        ! e_sigma in dE/E0
+    beam_init%sig_z             = <real>        ! Z sigma in m
+    beam_init%n_bunch           = <integer>     ! Number of bunches
+    beam_init%dt_bunch          = <real>        ! Time between bunches (meters)
+    beam_init%n_particle        = <real>        ! Number of particles per bunch
+    beam_init%bunch_charge      = <real>        ! charge per bunch (Coulombs)
+    beam_init%renorm_center     = <logical>     ! Default is T
+    beam_init%renorm_sigma      = <logical>     ! Default is F
+    beam_init%center_jitter     = <real>*6      ! Bunch center rms jitter (meters)
+    beam_init%emit_jitter       = <real>*2      ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
+    beam_init%sig_z_jitter      = <real>        ! bunch length rms jitter (dz/z)
+    beam_init%sig_e_jitter      = <real>        ! bunch energy spread rms jitter (dE/E)
+    beam_init%spin(3)           = <real>*3      ! (x, y, z) spin components.
+    beam_init%init_spin         = <logical>     ! Initialize the spin (default: False)
+    beam_init%preserve_dist     = <logical>     ! Use the same particle distribution.
+    beam_init%random_engine     = "pseudo"      ! random number engine to use
+    beam_init%random_gauss_converter = "exact"  ! Uniform to gauss conversion method
+    beam_init%random_sigma_cutoff = 4.0         ! Cut-off in sigmas.
+    beam_init%use_t_coords      = <logical>     ! Use time coords (for e_guns)?
+    beam_init%use_z_as_t        = <logical>     ! Use time instead of z (for e_guns)?
   /
 \end{example}
 
