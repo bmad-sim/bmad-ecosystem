@@ -4,6 +4,13 @@ use sim_utils_struct
 
 interface
 
+elemental function asinc(x) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp) y
+end function
+
 function bracket_index (s, s_arr, i_min, dr, restrict) result (ix)
   import
   implicit none
@@ -131,6 +138,13 @@ function downcase(str_in) result (str_out)
 end function
 
 elemental function dsinc(x) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp) y
+end function
+
+elemental function dasinc(x) result (y)
   import
   implicit none
   real(rp), intent(in) :: x
