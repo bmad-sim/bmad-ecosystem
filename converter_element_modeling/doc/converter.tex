@@ -207,6 +207,7 @@ In the second stage, fits are performed for $\dxds$ and $\dyds$.
 As such, we have developed two executables: one responsible for the first stage, \exes, and one responsible for the second, \exef.
 
 \subsection{Dependencies}
+\label{s:deps}
 To build and run the simulation proper, \exes, you will need an up to date installation of Geant4 on your system.
 See the Geant4 installation guide below for details on how to get Geant4 up and running on Linux.
 You will also need \texttt{cmake} installed, although this is already a requirement for a standard \bmad \, distribution.
@@ -214,13 +215,7 @@ You will also need \texttt{cmake} installed, although this is already a requirem
 To build and run the fitting program, \exef, you will need the GNU Scientific Library (GSL) installed on your system.
 This is distributed with \bmad, so you should already have it on your system.
 
-Both executables require a C++ compiler with support for C++17.
-GCC 8.3 or higher should be fine; on the lab machines, you can get access to this GCC by adding
-\begin{verbatim}
-source /opt/rh/devtoolset-8/enable
-\end{verbatim}
-to your \texttt{.bashrc}.
-
+Both executables require a C++ compiler with support for C++17; GCC 8 or higher should be fine.
 \subsubsection{Geant4 Installation Guide}
 
 This guide is an abbreviated version of the instructions found on \href{http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/InstallationGuide/html/}{the Geant4 website}.
@@ -293,10 +288,6 @@ Again, if you chose a different location for installing Geant, modify this as ne
 
 \end{enumerate}
 
-A build of Geant is already available on the lab machines at \texttt{/nfs/acc/temp/jmm699/geant}, so if you are working on the lab machines, you can simply add the following to your \texttt{.bashrc}:
-\begin{verbatim}
-cd /nfs/acc/temp/jmm699/geant/geant4.10.06.p01-build && source geant4make.sh && cd -
-\end{verbatim}
 
 
 \subsection{Compiling the Executables}
@@ -421,6 +412,22 @@ Once this step is complete, and the program has obtained values of $c_x$, $\alph
 it performs the fits from Equations \ref{eq:cx}-\ref{eq:beta2} on these fit parameters.
 Finally, the results of the simulation, as well as the results of the fits, are output to the file \texttt{converter.bmad}, located in the \outdir \, specified in the config file.
 
+
+\appendix
+
+\section{Notes for ACC Computer Users}
+
+As detailed in Section \ref{s:deps}, building \exes and \exef requires GSL, Geant, and a C++ compiler with support for C++17.
+GSL is already available on the lab machines, and a build of Geant is provided at \texttt{/nfs/acc/temp/jmm699/geant}.
+To get access to this Geant build, you can simply add the following to your \texttt{.bashrc}:
+\begin{verbatim}
+cd /nfs/acc/temp/jmm699/geant/geant4.10.06.p01-build && source geant4make.sh && cd -
+\end{verbatim}
+As for the C++ compiler, you can get access to GCC 8.3 by adding
+\begin{verbatim}
+source /opt/rh/devtoolset-8/enable
+\end{verbatim}
+to your \texttt{.bashrc}.
 
 
 
