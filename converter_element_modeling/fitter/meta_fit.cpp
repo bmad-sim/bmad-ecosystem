@@ -15,169 +15,123 @@
 
 #define ABS_PARAMS
 
-const double PI = 4.0 * atan(1.0);
-
-template<typename T>
-inline constexpr T sqr(T x) { return x*x; }
-template<typename T>
-inline constexpr T cube(T x) { return x*x*x; }
-
-
-//////////////////////////// 2D FIT FUNCTIONS ////////////////////////////////
+// Helper templates
 template<fitType T>
-int fit_function_2d(const gsl_vector *fit_params, void *data_points,
-    gsl_vector *fit_residuals) {
-
-  static_assert(T==fitType::CX || T==fitType::AX ||
-                T==fitType::AY || T==fitType::BETA,
-                "Error: unknown fit type selected");
-  // Cast data_points to the appropriate type
-  std::vector<DataPoint>& data = * (std::vector<DataPoint> *) data_points;
-
-  // Extract fit coefficients from fit_params
-  [[maybe_unused]] double ke, kr;
-  std::array<double, 4> E_coefs, r_coefs;
-  if constexpr (T==fitType::CX || T==fitType::BETA) {
-    double a0 = gsl_vector_get(fit_params, 0);
-    double a1 = gsl_vector_get(fit_params, 1);
-    double a2 = gsl_vector_get(fit_params, 2);
-    double b0 = gsl_vector_get(fit_params, 3);
-    double b1 = gsl_vector_get(fit_params, 4);
-    double b2 = gsl_vector_get(fit_params, 5);
-    double b3 = gsl_vector_get(fit_params, 6);
-    E_coefs = {a0, a1, a2, 1.0};
-    r_coefs = {b0, b1, b2, b3};
+constexpr fit_t<T> make_junk() {
+  static_assert(good_fit_type<T,2>());
+  if constexpr (T==fitType::CX) {
+    return fit_t<T>{-1, -1, -1, -1, -1, -1, -1};
+  } else if constexpr (T==fitType::AX || T==fitType::AY) {
+    return fit_t<T>{{}, {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, }};
   } else {
-    ke = std::abs(gsl_vector_get(fit_params, 0));
-    kr = std::abs(gsl_vector_get(fit_params, 1));
-    double ae = gsl_vector_get(fit_params, 2);
-    double be = gsl_vector_get(fit_params, 3);
-    double ce = gsl_vector_get(fit_params, 4);
-    //double de = gsl_vector_get(fit_params, 5);
-    double ar = gsl_vector_get(fit_params, 5);
-    double br = gsl_vector_get(fit_params, 6);
-    double cr = gsl_vector_get(fit_params, 7);
-    double dr = gsl_vector_get(fit_params, 8);
-    E_coefs = {ae, be, ce, 1.0};
-    r_coefs = {ar, br, cr, dr};
+    return fit_t<T>{{}, {-1, -1, -1, -1, -1, -1, -1}};
   }
+}
 
-  // Main loop: compute fit residual at each point
-  size_t num_pts = data.size();
-  for (size_t i=0; i<num_pts; i++) {
-    auto E = data[i].E;
-    auto r = data[i].r;
-    // Select the correct variable to fit to
-    double real_val;
-    if constexpr (T==fitType::CX) real_val = data[i].cx;
-    else if constexpr (T==fitType::AX) real_val = data[i].ax;
-    else if constexpr (T==fitType::AY) real_val = data[i].ay;
-    else if constexpr (T==fitType::BETA) real_val = data[i].beta;
-    // Compute the correct fit value
-    double fit_val = gsl_poly_eval(E_coefs.data(), 4, E)
-      * gsl_poly_eval(r_coefs.data(), 4, r);
-    if constexpr (T==fitType::AX || T==fitType::AY)
-      fit_val *= std::exp(-(ke*E+kr*r));
-    gsl_vector_set(fit_residuals, i, fit_val - real_val);
+template<fitType T, size_t dim>
+void rescale(fit_t_part<T,dim>& fit) {
+  // Rescales the given fit from MeV, cm to eV, m
+  static_assert(good_fit_type<T,dim>());
+  if constexpr (dim==1) {
+    if constexpr (T==fitType::BETA) {
+      fit.a *= 1e2; fit.b *= 1e4; fit.c *= 1e6; fit.d *= 1e8;
+    } else {
+      fit.k *= 1e2;
+      fit.a *= 1e0; fit.b *= 1e2; fit.c *= 1e4; fit.d *= 1e6;
+    }
+  } else {
+    fit.a1 *= 1e-6; fit.a2 *= 1e-12; fit.a3 *= 1e-18;
+    fit.b1 *= 1e2; fit.b2 *= 1e4; fit.b3 *= 1e6;
+    if constexpr (T==fitType::AX || T==fitType::AY) {
+      fit.ke *= 1e-6; fit.kr *= 1e2;
+    }
   }
+}
+
+
+template<fitType T, size_t dim>
+inline fit_t_part<T,dim> gsl_to_fit(const gsl_vector *fit_params) {
+  // Pulls the fit coefficients out of fit_params and
+  // returns them in an appropriately-typed fit struct
+  static_assert(good_fit_type<T,dim>());
+  if constexpr (dim==2) {
+    if constexpr(T==fitType::CX || T==fitType::BETA) {
+      return fit_t_part<T,dim>{gsl_vector_get(fit_params, 0),
+              gsl_vector_get(fit_params, 1),
+              gsl_vector_get(fit_params, 2),
+              gsl_vector_get(fit_params, 3),
+              gsl_vector_get(fit_params, 4),
+              gsl_vector_get(fit_params, 5), 0.0};
+    } else {
+      return fit_t_part<T,dim>{std::abs(gsl_vector_get(fit_params, 0)),
+              std::abs(gsl_vector_get(fit_params, 1)),
+              gsl_vector_get(fit_params, 2),
+              gsl_vector_get(fit_params, 3),
+              gsl_vector_get(fit_params, 4),
+              gsl_vector_get(fit_params, 5),
+              gsl_vector_get(fit_params, 6),
+              gsl_vector_get(fit_params, 7),
+              gsl_vector_get(fit_params, 8), 0.0};
+    }
+  } else {
+    if constexpr(T==fitType::BETA) {
+      return fit_t_part<T,dim>{0.0, gsl_vector_get(fit_params, 0),
+              gsl_vector_get(fit_params, 1),
+              gsl_vector_get(fit_params, 2),
+              gsl_vector_get(fit_params, 3), 0.0};
+    } else {
+      return fit_t_part<T,dim>{0.0, std::abs(gsl_vector_get(fit_params, 0)),
+              gsl_vector_get(fit_params, 1),
+              gsl_vector_get(fit_params, 2),
+              gsl_vector_get(fit_params, 3),
+              gsl_vector_get(fit_params, 4), 0.0};
+    }
+  }
+}
+
+
+template<fitType T>
+inline double get_real_val(const DataPoint& p) {
+  // Returns the value from p corresponding to the given fit type
+  static_assert(good_fit_type<T,2>());
+  if      constexpr (T==fitType::CX) return p.cx;
+  else if constexpr (T==fitType::AX) return p.ax;
+  else if constexpr (T==fitType::AY) return p.ay;
+  else                               return p.beta;
+}
+
+
+
+//////////////////////////// FIT FUNCTION //////////////////////////////
+template<fitType T, size_t dim>
+int fit_function(const gsl_vector *fit_params, void *data_points,
+    gsl_vector *fit_residuals) {
+  // Computes the residuals for each fit point in the fit,
+  // taylored to the calling convention required by gsl_multifit_nlinear
+  static_assert(good_fit_type<T,dim>());
+  std::vector<DataPoint> data = * (std::vector<DataPoint> *) data_points;
+
+  fit_t_part<T, dim> fit = gsl_to_fit<T,dim>(fit_params);
+  size_t ix = 0;
+  for (const auto& p : data)
+    gsl_vector_set(fit_residuals, ix++, eval<T,dim>(fit, p) - get_real_val<T>(p));
 
   return GSL_SUCCESS;
 }
 
-// Specializations
-//int cx_fit_function(const gsl_vector *fit_params, void *data_points,
-//    gsl_vector *fit_residuals) {
-//  return fit_function_2d<fitType::CX>(fit_params, data_points, fit_residuals);
-//}
-//int ax_fit_function_2d(const gsl_vector *fit_params, void *data_points,
-//    gsl_vector *fit_residuals) {
-//  return fit_function_2d<fitType::AX>(fit_params, data_points, fit_residuals);
-//}
-//int ay_fit_function_2d(const gsl_vector *fit_params, void *data_points,
-//    gsl_vector *fit_residuals) {
-//  return fit_function_2d<fitType::AY>(fit_params, data_points, fit_residuals);
-//}
-//int beta_fit_function_2d(const gsl_vector *fit_params, void *data_points,
-//    gsl_vector *fit_residuals) {
-//  return fit_function_2d<fitType::BETA>(fit_params, data_points, fit_residuals);
-//}
 
-
-/////////////////////////1D FIT FUNCTIONS//////////////////////////////////
+///////////////////////// FITTING ROUTINE ///////////////////////////
 template<fitType T>
-int fit_function_1d(const gsl_vector *fit_params, void *data_points,
-    gsl_vector *fit_residuals) {
-  // Computes the fit residuals for the a_{x or y} (r) 1D fit
-  // data_points should point to a vector of data points
-  // which all have the same E value
-
-  static_assert(T==fitType::AX || T==fitType::AY || T==fitType::BETA,
-                "Error: 1D fit only used for ax, ay, beta");
-  // Cast data_points to the appropriate type
-  std::vector<DataPoint>& data = * (std::vector<DataPoint> *) data_points;
-
-  std::array<double, 5> r_coefs;
-  double k = gsl_vector_get(fit_params, 0);
-  double a = gsl_vector_get(fit_params, 1);
-  double b = gsl_vector_get(fit_params, 2);
-  double c = gsl_vector_get(fit_params, 3);
-  double d = gsl_vector_get(fit_params, 4);
-  if constexpr (T==fitType::BETA) {
-    r_coefs = {k, a, b, c, d};
-  } else {
-    r_coefs = {a, b, c, d, 0};
-  }
-
-  size_t num_pts = data.size();
-  for (size_t i=0; i<num_pts; i++) {
-    auto r = data[i].r;
-    double real_val;
-    if constexpr (T==fitType::AX) real_val = data[i].ax;
-    else if constexpr (T==fitType::AY) real_val = data[i].ay;
-    else if constexpr (T==fitType::BETA) real_val = data[i].beta;
-    double fit_val = gsl_poly_eval(r_coefs.data(), 5, r);
-    if constexpr (T!=fitType::BETA) fit_val *= std::exp(-k*r);
-    gsl_vector_set(fit_residuals, i, fit_val - real_val);
-  }
-
-  return GSL_SUCCESS;
-}
-
-// Specializations
-//int ax_fit_function_1d(const gsl_vector *fit_params, void *data_points,
-//    gsl_vector *fit_residuals) {
-//  return fit_function_1d<fitType::AX>(fit_params, data_points, fit_residuals);
-//}
-//int ay_fit_function_1d(const gsl_vector *fit_params, void *data_points,
-//    gsl_vector *fit_residuals) {
-//  return fit_function_1d<fitType::AY>(fit_params, data_points, fit_residuals);
-//}
-//int beta_fit_function_1d(const gsl_vector *fit_params, void *data_points,
-//    gsl_vector *fit_residuals) {
-//  return fit_function_1d<fitType::BETA>(fit_params, data_points, fit_residuals);
-//}
-
-/////////////////////////FITTING ROUTINES///////////////////////////
-template<fitType T>
-FitResults fit_routine(const std::vector<DataPoint>& data_points,
+fit_t<T> fit_routine(const std::vector<DataPoint>& data_points,
     double crossover_point) {
   // This function performs a hybrid 1D/2D fit to
   // ax/ay as functions of r or E and r, and returns the obtained fit
   // parameters.  If fitting fails, { {}, {-1,-1...}} is returned.
   // data_points should be sorted by E and then by r
 
-  // Set up the return type
-  FitResults result, junk;
-  if constexpr (T==fitType::CX) {
-    result = cFitResults{};
-    junk = cFitResults{-1, -1, -1, -1, -1, -1, -1, -1};
-  } else if constexpr(T==fitType::AX || T==fitType::AY) {
-    result = aFitResults{};
-    junk = aFitResults{{}, {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, }};
-  } else if constexpr(T==fitType::BETA) {
-    result = betaFitResults{};
-    junk = betaFitResults{{}, {-1, -1, -1, -1, -1, -1, -1, -1}};
-  }
+  // Set up the return value
+  fit_t<T> result = make_junk<T>();
+
 
   // Partition data_points into the 1D and 2D regions
   // for all but the cx fit
@@ -217,26 +171,23 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
   gsl_multifit_nlinear_fdf fdf;
   gsl_vector *fit_residuals;
   gsl_multifit_nlinear_parameters fdf_params = gsl_multifit_nlinear_default_parameters();
-  constexpr size_t num_fit_params_1d = 5;
-  size_t num_fit_params_2d;
-  //double initial_parameter_guess_1d[num_fit_params_1d];
-  //for (auto& p : initial_parameter_guess_1d) p = 1.0;
-  //double initial_parameter_guess_2d[10];
+  size_t num_fit_params_1d, num_fit_params_2d;
   if constexpr (T==fitType::CX) {
-    num_fit_params_2d = 7;
-    //for (auto& p : initial_parameter_guess_2d) p = 0.0;
+    num_fit_params_1d = 0;
+    num_fit_params_2d = 6;
   } else if constexpr (T==fitType::AX || T==fitType::AY) {
+    num_fit_params_1d = 5;
     num_fit_params_2d = 9;
-    //for (auto& p : initial_parameter_guess_2d) p = 1.0;
   } else {
-    num_fit_params_2d = 7;
-    //for (auto& p : initial_parameter_guess_2d) p = 0.0;
+    num_fit_params_1d = 4;
+    num_fit_params_2d = 6;
   }
 
-  //gsl_vector_view init_param_gsl_1d = gsl_vector_view_array(initial_parameter_guess_1d, num_fit_params_1d);
-  //gsl_vector_view init_param_gsl_2d = gsl_vector_view_array(initial_parameter_guess_2d, num_fit_params_2d);
-  gsl_vector* init_param_gsl_1d = gsl_vector_alloc(num_fit_params_1d);
-  gsl_vector_set_all(init_param_gsl_1d, 1.0);
+  gsl_vector* init_param_gsl_1d;
+  if constexpr (T!=fitType::CX) {
+    init_param_gsl_1d = gsl_vector_alloc(num_fit_params_1d);
+    gsl_vector_set_all(init_param_gsl_1d, 1.0);
+  }
   gsl_vector* init_param_gsl_2d = gsl_vector_alloc(num_fit_params_2d);
   gsl_vector_set_all(init_param_gsl_2d, 1.0);
 
@@ -250,20 +201,13 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
 
   // First, do the 1D fits for everything except cx
   if constexpr(T!=fitType::CX) {
-    fdf.f = fit_function_1d<T>;
-    //if constexpr(T==fitType::AX)
-    //  fdf.f = ax_fit_function_1d;
-    //else if constexpr(T==fitType::AY)
-    //  fdf.f = ay_fit_function_1d;
-    //else if constexpr(T==fitType::BETA)
-    //  fdf.f = beta_fit_function_1d;
-
+    fdf.f = fit_function<T,1>;
     fdf.df = nullptr;
     fdf.fvv = nullptr;
     fdf.p = num_fit_params_1d;
 
-    constexpr size_t ix = type_ix<T>();
-    auto& fit_results_1d = std::get<ix>(result).low_e_fits;
+    //constexpr size_t ix = type_ix<T>();
+    auto& fit_results_1d = result.low_e_fits;
     fit_results_1d.reserve(data_points_1d.size());
 
     size_t ix_1d=0;
@@ -282,7 +226,7 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
         gsl_multifit_nlinear_free(w);
         gsl_vector_free(init_param_gsl_1d);
         gsl_vector_free(init_param_gsl_2d);
-        return junk;
+        return make_junk<T>();
       }
       // compute chisq
       fit_residuals = gsl_multifit_nlinear_residual(w);
@@ -290,26 +234,11 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
       size_t dof = v_1d.size() - num_fit_params_1d;
       chisq = sqrt(chisq/dof);
       // add results to fit_results_1d
-      double fit_k = gsl_vector_get(w->x, 0);
-      double fit_a = gsl_vector_get(w->x, 1);
-      double fit_b = gsl_vector_get(w->x, 2);
-      double fit_c = gsl_vector_get(w->x, 3);
-      double fit_d = gsl_vector_get(w->x, 4);
-      // rescale for correct units
-      if constexpr (T==fitType::BETA) {
-        fit_k *= 1e0; // used as a0
-        fit_a *= 1e2; // used as a1
-        fit_b *= 1e4; // used as a2
-        fit_c *= 1e6; // used as a3
-        fit_d *= 1e8; // used as a4
-      } else {
-        fit_k *= 1e2;
-        fit_a *= 1e0;
-        fit_b *= 1e2;
-        fit_c *= 1e4;
-        fit_d *= 1e6;
-      }
-      fit_results_1d.push_back({low_E_vals[ix_1d], fit_k, fit_a, fit_b, fit_c, fit_d, chisq});
+      auto fit_result = gsl_to_fit<T,1>(w->x);
+      rescale<T,1>(fit_result);
+      fit_result.E = 1e6 * low_E_vals[ix_1d];
+      fit_result.chi2 = chisq;
+      fit_results_1d.push_back(fit_result);
       gsl_multifit_nlinear_free(w);
       ix_1d++;
     }
@@ -317,15 +246,7 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
 
 
   // Now do 2D fits
-  fdf.f = fit_function_2d<T>;
-  //if constexpr(T==fitType::CX)
-  //  fdf.f = cx_fit_function;
-  //else if constexpr(T==fitType::AX)
-  //  fdf.f = ax_fit_function_2d;
-  //else if constexpr(T==fitType::AY)
-  //  fdf.f = ay_fit_function_2d;
-  //else if constexpr(T==fitType::BETA)
-  //  fdf.f = beta_fit_function_2d;
+  fdf.f = fit_function<T,2>;
   fdf.df = nullptr;
   fdf.p = num_fit_params_2d;
   fdf.n = data_points_2d.size();
@@ -339,9 +260,9 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
     std::cout << "Iteration limit reached\n";
   if (status == GSL_ENOPROG) {
     gsl_multifit_nlinear_free(w);
-    gsl_vector_free(init_param_gsl_1d);
+    if constexpr (T!=fitType::CX) gsl_vector_free(init_param_gsl_1d);
     gsl_vector_free(init_param_gsl_2d);
-    return junk;
+    return make_junk<T>();
   }
   // compute chisq
   fit_residuals = gsl_multifit_nlinear_residual(w);
@@ -349,57 +270,21 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
   size_t dof = data_points_2d.size() - num_fit_params_2d;
   chisq = sqrt(chisq/dof);
   // add results to fit_results_1d
-  constexpr size_t ix = type_ix<T>();
-  if constexpr(T==fitType::CX || T==fitType::BETA) {
-    double a0 = 1e+18*gsl_vector_get(w->x, 0);
-    double a1 = 1e+12*gsl_vector_get(w->x, 1);
-    double a2 = 1e+06*gsl_vector_get(w->x, 2);
-    double b0 = 1e-18*gsl_vector_get(w->x, 3);
-    double b1 = 1e-16*gsl_vector_get(w->x, 4);
-    double b2 = 1e-14*gsl_vector_get(w->x, 5);
-    double b3 = 1e-12*gsl_vector_get(w->x, 6);
-    if constexpr (T==fitType::CX) {
-      auto& fit_result = std::get<ix>(result);
-      fit_result = {a0, a1, a2, b0, b1, b2, b3, chisq};
-    } else {
-      auto& fit_result = std::get<ix>(result).high_e_fit;
-      fit_result = {a0, a1, a2, b0, b1, b2, b3, chisq};
-    }
-  } else {
-    double ke = 1e-06 * std::abs(gsl_vector_get(w->x, 0));
-    double kr = 1e+02 * std::abs(gsl_vector_get(w->x, 1));
-    double ae = 1e+18 * gsl_vector_get(w->x, 2);
-    double be = 1e+12 * gsl_vector_get(w->x, 3);
-    double ce = 1e+06 * gsl_vector_get(w->x, 4);
-    //double de = gsl_vector_get(w->x, 5);
-    double ar = 1e-18 * gsl_vector_get(w->x, 5);
-    double br = 1e-16 * gsl_vector_get(w->x, 6);
-    double cr = 1e-14 * gsl_vector_get(w->x, 7);
-    double dr = 1e-12 * gsl_vector_get(w->x, 8);
-    auto& fit_result = std::get<ix>(result).high_e_fit;
-    fit_result = {ke, kr, ae, be, ce, ar, br, cr, dr, chisq};
-  }
+  auto fit_result = gsl_to_fit<T,2>(w->x);
+  rescale<T,2>(fit_result);
+  fit_result.chi2 = chisq;
+  if constexpr (T==fitType::CX) result = fit_result;
+  else result.high_e_fit = fit_result;
+
   gsl_multifit_nlinear_free(w);
-  gsl_vector_free(init_param_gsl_1d);
+  if constexpr (T!=fitType::CX) gsl_vector_free(init_param_gsl_1d);
   gsl_vector_free(init_param_gsl_2d);
 
   return result;
 }
 
 // Specializations
-cFitResults cx_fit(const std::vector<DataPoint>& data_points) {
-  auto result = fit_routine<fitType::CX>(data_points, 0);
-  return std::get<cFitResults>(result);
-}
-aFitResults ax_fit(const std::vector<DataPoint>& data_points, double xpt) {
-  auto result = fit_routine<fitType::AX>(data_points, xpt);
-  return std::get<aFitResults>(result);
-}
-aFitResults ay_fit(const std::vector<DataPoint>& data_points, double xpt) {
-  auto result = fit_routine<fitType::AY>(data_points, xpt);
-  return std::get<aFitResults>(result);
-}
-betaFitResults beta_fit(const std::vector<DataPoint>& data_points, double xpt) {
-  auto result = fit_routine<fitType::BETA>(data_points, xpt);
-  return std::get<betaFitResults>(result);
-}
+cFitResults cx_fit(const std::vector<DataPoint>& data_points) { return fit_routine<fitType::CX>(data_points, 0); }
+aFitResults ax_fit(const std::vector<DataPoint>& data_points, double xpt) { return fit_routine<fitType::AX>(data_points, xpt); }
+aFitResults ay_fit(const std::vector<DataPoint>& data_points, double xpt) { return fit_routine<fitType::AY>(data_points, xpt); }
+betaFitResults beta_fit(const std::vector<DataPoint>& data_points, double xpt) { return fit_routine<fitType::BETA>(data_points, xpt); }
