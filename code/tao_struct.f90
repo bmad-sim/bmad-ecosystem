@@ -867,7 +867,8 @@ end type
 
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
-  logical save_beam               ! Save beam here? Beam also saved at fork elements and at track ends.
+  logical save_beam_internally    ! Save beam here? Beam also saved at fork elements and at track ends.
+  logical save_beam_to_file       ! Save beam to a file? Beam also saved at fork elements and at track ends.
 end type
 
 ! Information for a particular lattice branch of a particular universe.
@@ -889,7 +890,9 @@ type tao_beam_struct
   logical :: init_starting_distribution = .false. ! Init beam
   character(40) :: track_start = '', track_end = ''
   character(200) :: track_data_file = ''          ! track data from previous simulation for reanalysis.
-  character(160) saved_at
+  character(160) :: saved_at = ''
+  character(160) :: dump_file = ''
+  character(160) :: dump_at = ''
 end type
 
 ! Logicals that determine what calculations need to be done.

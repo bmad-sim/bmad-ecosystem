@@ -704,7 +704,8 @@ call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
 call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'beam_track_data_file', &
                     'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
-                    'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file'], ix, matched_name=switch)
+                    'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
+                    'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file'], ix, matched_name=switch)
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
@@ -741,6 +742,27 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     u%beam%beam_init%position_file = value_str
     u%beam%init_starting_distribution = .true.
 
+  case ('dump_file', 'beam_dump_file')
+    u%beam%dump_file = value_str
+
+  case ('dump_at', 'beam_dump_at')
+    call tao_locate_elements (value_str, u%ix_uni, eles, err)
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD BEAM_DUMP_AT STRING: ' // value_str)
+      return
+    endif
+    u%beam%dump_at = value_str
+
+    do ix = 0, ubound(u%uni_branch, 1)
+      u%uni_branch(ix)%ele(:)%save_beam_to_file = .false.
+    enddo
+
+    ! Note: Beam will automatically be dump at fork elements and at the ends of the beam tracking.
+    do ix = 1, size(eles)
+      ele => eles(ix)%ele
+      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_to_file = .true.
+    enddo
+
   case ('saved_at', 'beam_saved_at')
     call tao_locate_elements (value_str, u%ix_uni, eles, err)
     if (err) then
@@ -750,13 +772,13 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     u%beam%saved_at = value_str
 
     do ix = 0, ubound(u%uni_branch, 1)
-      u%uni_branch(ix)%ele(:)%save_beam = .false.
+      u%uni_branch(ix)%ele(:)%save_beam_internally = .false.
     enddo
 
     ! Note: Beam will automatically be saved at fork elements and at the ends of the beam tracking.
     do ix = 1, size(eles)
       ele => eles(ix)%ele
-      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = .true.
+      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = .true.
     enddo
 
   case ('add_saved_at', 'subtract_saved_at')
@@ -769,7 +791,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     logic = (switch == 'add_saved_at')
     do ix = 1, size(eles)
       ele => eles(ix)%ele
-      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = logic
+      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = logic
     enddo
 
   case default
@@ -1359,9 +1381,9 @@ end select
 
 if (this_graph%type == 'phase_space') then
   uni_branch => s%u(i_uni)%uni_branch(i_branch)
-  if (.not. uni_branch%ele(this_curve%ix_ele_ref)%save_beam) then
+  if (.not. uni_branch%ele(this_curve%ix_ele_ref)%save_beam_internally) then
     s%u(i_uni)%calc%lattice = .true.
-    uni_branch%ele(this_curve%ix_ele_ref)%save_beam = .true.
+    uni_branch%ele(this_curve%ix_ele_ref)%save_beam_internally = .true.
   endif
 endif
 

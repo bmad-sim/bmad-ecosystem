@@ -112,7 +112,7 @@ do i = 1, size(region%plot%graph)
     u => s%u(tao_universe_number(tao_curve_ix_uni(curve)))
     if (.not. allocated(u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam%bunch)) then
       if (s%global%plot_on) u%calc%lattice = .true.
-      u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%save_beam = .true.
+      u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%save_beam_internally = .true.
     endif
   enddo
 enddo

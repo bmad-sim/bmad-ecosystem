@@ -282,6 +282,8 @@ case ('beam')
   nl=incr(nl); write (li(nl), amt) 'beam_track_start;STR;T;',               u%beam%track_start
   nl=incr(nl); write (li(nl), amt) 'beam_track_end;STR;T;',                 u%beam%track_end
   nl=incr(nl); write (li(nl), amt) 'beam_saved_at;STR;T;',                  u%beam%saved_at
+  nl=incr(nl); write (li(nl), amt) 'beam_dump_at;STR;T;',                   u%beam%dump_at
+  nl=incr(nl); write (li(nl), amt) 'beam_dump_file;STR;T;',                 u%beam%dump_file
 
 !----------------------------------------------------------------------
 ! Output beam_init parameters.

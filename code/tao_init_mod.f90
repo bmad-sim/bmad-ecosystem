@@ -146,7 +146,7 @@ integer n, iostat, ix_universe, to_universe
 character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
 character(40) track_start, track_end, beam_track_start, beam_track_end
-character(160) beam_saved_at
+character(160) beam_saved_at, beam_dump_at, beam_dump_file
 character(200) file_name, beam0_file, beam_track_data_file
 character(200) beam_init_file_name           ! old style syntax
 character(200) beam_position0_file           ! old style syntax
@@ -156,7 +156,7 @@ logical err
 
 namelist / tao_beam_init / ix_universe, beam0_file, beam_init, beam_init_file_name, &
             beam_saved_at, track_start, track_end, beam_track_start, beam_track_end, beam_position0_file, &
-            beam_track_data_file
+            beam_track_data_file, beam_dump_at, beam_dump_file
          
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -190,6 +190,8 @@ do
   ix_universe = -1
   beam_init = beam_init_struct()
   beam_saved_at = ''
+  beam_dump_at = ''
+  beam_dump_file = ''
   save_beam_at  = ''
   track_start = ''        ! Old style
   track_end = ''          ! Old style
@@ -254,6 +256,8 @@ do
 
   do i = 1, size(save_beam_at)
     if (save_beam_at(i) == '') cycle
+    call out_io (s_error$, r_name, 'OLD STYLE "save_beam_at" REPLACED BY "beam_saved_at".', &
+                                   'PLEASE MODIFY ACCORDINGLY. TAO WILL RUN NORMALLY FOR NOW...')
     beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))
   enddo
 
@@ -345,22 +349,35 @@ u%beam%track_data_file = beam_track_data_file
 
 do i = 0, ubound(u%model%lat%branch, 1)
   branch => u%design%lat%branch(i)
-  u%uni_branch(i)%ele%save_beam = .false.
+  u%uni_branch(i)%ele%save_beam_internally = .false.
+  u%uni_branch(i)%ele%save_beam_to_file = .false.
 enddo
 
+u%beam%saved_at = beam_saved_at
 if (beam_saved_at /= '') then
   call tao_locate_elements (beam_saved_at, u%ix_uni, eles, err, ignore_blank = .false.)
   if (err) then
-    call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT ELEMENT: ' // beam_saved_at)
+    call out_io (s_error$, r_name, 'BAD "beam_saved_at" ELEMENT: ' // beam_saved_at)
   else
     do k = 1, size(eles)
       ele => eles(k)%ele
-      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam = .true.
+      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = .true.
     enddo
   endif
 endif
 
-u%beam%saved_at = beam_saved_at
+u%beam%dump_at = beam_dump_at
+if (beam_dump_at /= '') then
+  call tao_locate_elements (beam_dump_at, u%ix_uni, eles, err, ignore_blank = .false.)
+  if (err) then
+    call out_io (s_error$, r_name, 'BAD "beam_dump_at" ELEMENT: ' // beam_dump_at)
+  else
+    do k = 1, size(eles)
+      ele => eles(k)%ele
+      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_to_file = .true.
+    enddo
+  endif
+endif
 
 ! If beam_track_data_file is set, read in the beam tracking data.
 
