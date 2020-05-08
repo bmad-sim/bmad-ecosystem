@@ -45,24 +45,28 @@ call em_field_calc (ele, param, s_rel, orbit, local_ref_frame, field, present(dg
 
 vel_unit(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
 vel_unit(3) = sqrt(1 - vel_unit(1)**2 - vel_unit(2)**2)
-fact = 1 / (ele%value(p0c$) * (1 + orbit%vec(6)))
-g = g_from_field (field%B, field%E)
+fact = 1 / (orbit%beta * ele%value(p0c$) * (1 + orbit%vec(6)))
+g = g_from_field (field%B, field%E, orbit, vel_unit, param, fact)
 
 ! Derivative
 
 if (present(dg)) then
-  dg(:,1) = g_from_field (field%dB(:,1), field%dE(:,1))
-  dg(:,2) = g_from_field (field%dB(:,2), field%dE(:,2))
-  dg(:,3) = g_from_field (field%dB(:,3), field%dE(:,3))
+  dg(:,1) = g_from_field (field%dB(:,1), field%dE(:,1), orbit, vel_unit, param, fact)
+  dg(:,2) = g_from_field (field%dB(:,2), field%dE(:,2), orbit, vel_unit, param, fact)
+  dg(:,3) = g_from_field (field%dB(:,3), field%dE(:,3), orbit, vel_unit, param, fact)
 endif
 
 !---------------------------------------------------------------
 contains
 
-function g_from_field (B, E) result (g_bend)
+function g_from_field (B, E, orbit, vel_unit, param, fact) result (g_bend)
+
+type (coord_struct) orbit
+type (lat_param_struct) param
 
 real(rp) B(3), E(3), g_bend(3)
 real(rp) force(3), force_perp(3)
+real(rp) vel_unit(3), fact
 
 ! force_perp is the perpendicular component of the force.
 

@@ -464,7 +464,11 @@ parsing_loop: do
     if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
       call find_indexx (word_1, in_lat%nametable, ix)
       if (ix == -1) then
-        call parser_error ('ELEMENT NOT FOUND: ' // word_1)
+        if (index(name, '##') /= 0) then
+          call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
+        else
+          call parser_error ('ELEMENT NOT FOUND: ' // word_1)
+        endif
       else
         ele => in_lat%ele(ix)
         bp_com%parse_line = parse_line_save
@@ -534,10 +538,12 @@ parsing_loop: do
     bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.
 
     if (.not. ele_found .and. .not. wild_here) then
-      if (index(name, ':') == 0) then
-        call parser_error ('ELEMENT NOT FOUND: ' // name)
-      else
+      if (index(name, ':') /= 0) then
         call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
+      elseif (index(name, '##') /= 0) then
+        call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
+      else
+        call parser_error ('ELEMENT NOT FOUND: ' // name)
       endif
     endif
 
@@ -685,8 +691,12 @@ parsing_loop: do
   endif
 
   if (.not. match_found) then
-    call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
-                       'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+    if (index(word_2, '[') /= 0) then
+      call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
+    else
+      call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
+                         'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+    endif
     cycle parsing_loop
   endif
 
