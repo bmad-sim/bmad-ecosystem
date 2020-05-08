@@ -142,7 +142,7 @@ mk: marker, superimpose, ref = qq, offset = 0.3
 !
 
 sub_l: line = (cc, qq)
-tag_line: line = (sub_l[t1], sub_l[t2])
+tag_line: line = (t1@sub_l, t2@sub_l)
 tag_line[geometry] = open
 tag_line[beta_a] = 10
 tag_line[beta_b] = 10
