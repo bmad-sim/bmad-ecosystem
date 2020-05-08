@@ -65,29 +65,22 @@ converted include file names and atomic formulas for materials used in crystal d
 Normally a statement occupies a single line in the file. Several statements may be placed on the
 same line by inserting a semicolon (``;'') between them. A long statement can occupy multiple lines
 by putting an ampersand (``\&'') at the end of each line of the statement except for the last
-line. Additionally, lines that end with an ``implicit continuation character'' are automatically
-continued to the next line. The implicit continuation characters are
+line. Additionally, lines that end with an ``implicit end-line continuation character'' are automatically
+continued to the next line and lines that begin with an ``implicit begin-line continuation character are
+automatically appended to the previous line. The implicit end-line continuation characters are:
 \begin{example}
   ,   (   \{   [   =
 \end{example}
-Notice
-that this is {\em not} like \vn{C/C++}. Thus the following is bad syntax
+The implicit begin-line continuation characters are:
 \begin{example}
-  wall = \{
-    section = \{s = 0.45     ! BAD SYNTAX. NO CONTINUATION CHARACTER HERE.
-    \}                       ! BAD SYNTAX. NO CONTINUATION CHARACTER HERE.
-  \}
+  ,   )   \}   ]   =
 \end{example}
-Correct is:
+The following example shows a command extending over four lines
 \begin{example}
-  wall = \{
-    section = \{s = 0.45\} \}
-\end{example}
-or even:
-\begin{example}
-  wall = \{
-    section = \{s = 0.45\} \&
-  \}
+  wall = \{               ! End-line continuation character.
+    section = \{s = 0.45 
+    \}                    ! Begin-line continuation character.
+  \}                      ! Begin-line continuation character.
 \end{example}
 
 \index{lattice files!name syntax}
