@@ -4,11 +4,20 @@ use sim_utils_struct
 
 interface
 
-elemental function asinc(x) result (y)
+elemental function cosc(x, nd) result (y)
   import
   implicit none
   real(rp), intent(in) :: x
   real(rp) y
+  integer, optional, intent(in) :: nd
+end function
+
+elemental function asinc(x, nd) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp) y
+  integer, optional, intent(in) :: nd
 end function
 
 function bracket_index (s, s_arr, i_min, dr, restrict) result (ix)
@@ -135,27 +144,6 @@ function downcase(str_in) result (str_out)
   implicit none
   character(*) str_in
   character(len(str_in)) str_out
-end function
-
-elemental function dsinc(x) result (y)
-  import
-  implicit none
-  real(rp), intent(in) :: x
-  real(rp) y
-end function
-
-elemental function dasinc(x) result (y)
-  import
-  implicit none
-  real(rp), intent(in) :: x
-  real(rp) y
-end function
-
-elemental function dsinchx_x(x) result (y)
-  import
-  implicit none
-  real(rp), intent(in) :: x
-  real(rp) y
 end function
 
 function factorial(n) result (fact)
@@ -651,18 +639,20 @@ subroutine run_timer(command, time)
   character(*) command
 end subroutine
 
-elemental function sinc(x) result (y)
+elemental function sinc(x, nd) result (y)
   import
   implicit none
   real(rp), intent(in) :: x
   real(rp) y
+  integer, optional, intent(in) :: nd
 end function
 
-elemental function sinchx_x(x) result (y)
+elemental function sinhx_x(x, nd) result (y)
   import
   implicit none
   real(rp), intent(in) :: x
   real(rp) y
+  integer, optional, intent(in) :: nd
 end function
 
 subroutine skip_header (ix_unit, error_flag)
@@ -671,10 +661,11 @@ subroutine skip_header (ix_unit, error_flag)
   logical error_flag
 end subroutine
 
-elemental function sqrt_one(eps) result (ds1)
+elemental function sqrt_one(x, nd) result (ds1)
   import
-  real(rp), intent(in) :: eps
+  real(rp), intent(in) :: x
   real(rp) ds1
+  integer, optional, intent(in) :: nd
 end function
 
 function str_find_first_in_set(line, set) result (ix_match)

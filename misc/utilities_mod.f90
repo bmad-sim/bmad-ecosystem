@@ -26,21 +26,21 @@ contains
 !                       = integer_default   otherwise.
 !-
 
-function integer_option (integer_default, opt_integer) result (integer_out)
+elemental function integer_option (integer_default, opt_integer) result (integer_out)
 
-  implicit none
+implicit none
 
-  integer, intent(in) :: integer_default
-  integer, intent(in), optional :: opt_integer
-  integer integer_out
+integer, intent(in) :: integer_default
+integer, intent(in), optional :: opt_integer
+integer integer_out
 
 !
 
-  if (present(opt_integer)) then
-    integer_out = opt_integer
-  else
-    integer_out = integer_default
-  endif
+if (present(opt_integer)) then
+  integer_out = opt_integer
+else
+  integer_out = integer_default
+endif
 
 end function integer_option
 
@@ -66,21 +66,21 @@ end function integer_option
 !                       = logic_default   otherwise.
 !-
 
-function logic_option (logic_default, opt_logic) result (logic_out)
+elemental function logic_option (logic_default, opt_logic) result (logic_out)
 
-  implicit none
+implicit none
 
-  logical, intent(in) :: logic_default
-  logical, intent(in), optional :: opt_logic
-  logical logic_out
+logical, intent(in) :: logic_default
+logical, intent(in), optional :: opt_logic
+logical logic_out
 
 !
 
-  if (present(opt_logic)) then
-    logic_out = opt_logic
-  else
-    logic_out = logic_default
-  endif
+if (present(opt_logic)) then
+  logic_out = opt_logic
+else
+  logic_out = logic_default
+endif
 
 end function logic_option
 
@@ -106,21 +106,21 @@ end function logic_option
 !                       = real_default   otherwise.
 !-
 
-function real_option (real_default, opt_real) result (real_out)
+elemental function real_option (real_default, opt_real) result (real_out)
 
-  implicit none
+implicit none
 
-  real(rp), intent(in) :: real_default
-  real(rp), intent(in), optional :: opt_real
-  real(rp) real_out
+real(rp), intent(in) :: real_default
+real(rp), intent(in), optional :: opt_real
+real(rp) real_out
 
 !
 
-  if (present(opt_real)) then
-    real_out = opt_real
-  else
-    real_out = real_default
-  endif
+if (present(opt_real)) then
+  real_out = opt_real
+else
+  real_out = real_default
+endif
 
 end function real_option
 
