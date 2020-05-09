@@ -336,29 +336,113 @@ follows:
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Bend Element: Body Tracking}
+\section{Bend Element: Body Tracking with k1 = 0}
 \label{s:bend.body.std}
 \index{sbend}
 
-For a bend without a \vn{k1} component the tracking uses the exact formulas from
-Forest\cite{b:forest} Eq.~12.18:
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=5in]{bend-exact.pdf}
+  \caption{Geometry for the exact bend calculation.}
+  \label{f:bend.exact}
+\end{figure}
+
+
+Function definitions:
 \begin{align}
-  x_2    &= \frac{1}{g_\tot} \, \sqrt{ (1 + p_{z1})^2 - p_{x2}^2 - p_{y1}^2} -
-    \frac{1}{g \, g_\tot} \, \frac{dp_{x2}}{dL} - \frac{1}{g} \CRNO
-  p_{x2} &= p_{x1} \, \cos(g \, L) + 
-    \left[ \sqrt{ (1 + p_{z1})^2 - p_{x1}^2 - p_{y1}^2} - \frac{g_\tot}{g} \, (1 + x_1 \, g ) \right] \,
-    \sin(g \, L) \CRNO
-  y_2    &= y_1 + \frac{g \, p_{y1} \, L}{g_\tot} +
-    \frac{p_{y1}}{g_\tot} \, \left[
-    \sin^{-1} \left( \frac{p_{x1}}{\sqrt{(1 + p_{z1})^2 - p_{y1}}} \right) -
-    \sin^{-1} \left( \frac{p_{x2}}{\sqrt{(1 + p_{z1})^2 - p_{y1}}} \right) \right] \\
-  p_{y2} &= p_{y1} \CRNO
-  z_2    &= z_1 + \frac{g \, (1 + p_{z1}) \, L}{g_\tot} - L + \frac{1 + p_{z1}}{g_\tot} \left[
-    \sin^{-1} \left( \frac{p_{x1}}{\sqrt{(1 + p_{z1})^2 - p_{y1}}} \right) -
-    \sin^{-1} \left( \frac{p_{x2}}{\sqrt{(1 + p_{z1})^2 - p_{y1}}} \right) \right] \CRNO
-  p_{z2} &= p_{z1} \nonumber
+  \sinc(x) &\equiv \frac{\sin(x)}{x} \\
+  \cosc(x) &\equiv \frac{\cos(x) - 1}{x^2} \\
 \end{align}
-where $g_\tot$ is the total bending strength (design + error).
+These functions cannot be directly evaluated at $x = 0$ and are defined at $x = 0$ using the $x
+\rightarrow 0$ limit. The point to keep in mind here is that these functions are well behaved and
+can be easily coded in software.
+
+Refering to Figure~\ref{f:bend.exact}, at point 1 where the particle enters a sector bend, the angle
+$\phi_1$ of the particle trajectory in the $(x,s)$ plane with respect to the $s$ axis is
+\begin{equation}
+  \sin(\phi_1) = \frac{p_{x1}}{\sqrt{(1+p_z)^2 - p_y^2}}
+\end{equation}
+where the subscript ``1'' for $p_z$ and $p_y$ is dropped since these quantities are invariant.
+
+The $(u,v)$ coordinate system in the plane of the bend is defined with the $u$-axis along the exit
+edge of the bend and the $v$-axis is perpendicular to the $u$-axis. The origin is at the design
+center of the bend. In this coordinate system the point $(u_1, v_1)$ where the particle enters the
+bend is given by
+\begin{align}
+  u_1 &= (\rho + x_1) \, \cos(\theta) \\
+  v_1 &= (\rho + x_1) \, \sin(\theta)
+\end{align}
+where $\rho$ is the design radius of curvature, $x_1$ is the offset of the particle from the design
+at the entrance point, and $\theta$ is the design bend angle
+\begin{equation}
+  \theta = \frac{L}{\rho}
+\end{equation}
+with $L$ being the design arc length.
+
+The coordinates $(u_0, v_0)$ of the center of curvature of the particle trajectory is
+\begin{align}
+  u_0 &= u_1 - \rho_p \, \cos(\theta + \phi_1) \\
+  v_0 &= v_1 - \rho_p \, \sin(\theta + \phi_1)
+\end{align}
+where $\rho_p$ is the radius of curvature of the particle trajectory in the $(u, v)$ plane.
+
+The coordinates of the particle at the exit face is $(u_2, 0)$ where
+\begin{equation}
+  u_2 = u_0 + \sqrt{\rho_p^2 - v_0^2}
+\end{equation}
+After some manipulation, the offset of the particle $x_2$ from the design point at the exit face is
+\begin{align}
+  x_2 &= u_2 - \rho \nonumber \\
+  &= x \, \cos(\theta) + L^2 \, g \, \cosc(\theta) + 
+    \frac{\alpha}{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} + \cos(\theta + \phi_1)} 
+    \label{xctlg1} \\
+  &= x \, \cos(\theta) + L^2 \, g \, \cosc(\theta) + 
+    \frac{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} - \cos(\theta + \phi_1)}{g_p}
+    \label{xctlg2}
+\end{align}
+where $g \equiv 1/\rho$  and 
+\begin{align}
+  \alpha &= 2 \, (1 + g \, x_1) \, \sin(\theta + \phi_1) \, L \, \sinc(\theta) - 
+        g_p \, (1 + g \, x_1)^2 \, L^2 \, \sinc^2(\theta) \\
+  g_p &= \frac{1}{\rho_p} = \frac{g_\tot}{\sqrt{(1 + p_z)^2 - p_y^2}}
+\end{align}
+and $g_\tot$ is the bending strength of the actual field. Both \Eq{xctlg1} and \Eq{xctlg2} are
+needed since \Eq{xctlg1} is singular when $g_p$ is zero and \Eq{xctlg2} is singular when $\alpha
+= 0$ and $\theta + \phi_1 = \pi$ which happens when the particle is bent by 180\Deg. A simple way to
+implement the calculation for $x_2$ is to use \Eq{xctlg1} when $|\theta + \phi_1| < \pi/2$ and
+otherwise use \Eq{xctlg2}.
+
+Once $x_2$ is computed, the arc length of the particle $L_p$ is 
+\begin{equation}
+  L_p = \frac{|\bfL_c|}{\sinc(\theta_p/2)}
+\end{equation}
+where $\bfL_c$ is vector (chord) from point 1 and point 2
+\begin{equation}
+  \bfL_c = (L_{cu}, L_{cv}) =
+  \left( x_2 - L^2 \, g \, \cosc(\theta) - x_1 \, \cos(\theta),
+                  -L \, \sinc(\theta) - x_1 \, \sin(\theta) \right) 
+\end{equation}
+and $\theta_p$ is the angle made by the particle trajectory which is twice the angle between
+the initial particle trajectory $\Bf P$ and the vector $\bfL_c$
+\begin{equation}
+  \theta_p = 2 \, \left( \theta + \phi_1 - \frac{\pi}{2} + \atantwo \left( L_{cv}, L_{cu} \right) \right)
+\end{equation}
+where $\atantwo(y, x)$ is the standard two argument arctan function.
+
+Once $L_p$ is computed, $p_{x2}$, $y_2$ and $z_2$ are easily derived from
+\begin{align}
+  p_{x2} &= \sqrt{(1 + p_z)^2 - p_y^2} \, \sin(\theta + \phi_1 - \theta_p) \\
+  y_2 &= y_1 + \frac{p_y \, L_p}{\sqrt{(1+p_z)^2 - p_y^2}} \\
+  z_2 &= z_1 + \frac{\beta \, L}{\beta_{ref}} - \frac{(1 + p_z) \, L_p}{\sqrt{(1+p_z)^2 - p_y^2}}
+\end{align}
+where $\beta$ is the normalized velocity of the particle and $\beta_{ref}$ if the normalized
+velocity of the reference particle.
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Bend Element: Body Tracking with finite k1}
+\label{s:bend.body.std.k1}
+\index{sbend}
 
 For a bend with a finite \vn{k1}, the Hamiltonian for the body of an \vn{sbend} is
 \begin{equation}

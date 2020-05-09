@@ -539,7 +539,11 @@ do
   else
     if (bp_com%next_line_from_file == str_garbage$) then
       read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_line_from_file) bp_com%next_line_from_file
-      call string_trim(bp_com%next_line_from_file, bp_com%next_line_from_file, ix)
+      if (bp_com%ios_next_line_from_file == 0) then
+        call string_trim(bp_com%next_line_from_file, bp_com%next_line_from_file, ix)
+      else
+        bp_com%next_line_from_file = ''
+      endif
     endif
 
     line = bp_com%next_line_from_file
@@ -560,7 +564,11 @@ do
       return
     endif
     read (bp_com%current_file%f_unit, '(a)', iostat = bp_com%ios_next_line_from_file) bp_com%next_line_from_file
-    call string_trim(bp_com%next_line_from_file, bp_com%next_line_from_file, ix)
+    if (bp_com%ios_next_line_from_file == 0) then
+      call string_trim(bp_com%next_line_from_file, bp_com%next_line_from_file, ix)
+    else
+      bp_com%next_line_from_file = ''
+    endif
     bp_com%current_file%i_line = bp_com%current_file%i_line + 1
   endif
 

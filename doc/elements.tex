@@ -424,22 +424,32 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{figure}[tb]
   \centering
   \hfill
-  \begin{subfigure}[b]{0.45\textwidth}
+  \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics{rbend-coords.pdf}
-    \caption{rbend}
-    \label{f:bend.rbend}
+    \caption{Rbend}
+    \label{f:rbend}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[b]{0.45\textwidth}
+  \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics{sbend-coords.pdf}
-    \caption{sbend}
-    \label{f:bend.sbend}
+    \caption{Sbend}
+    \label{f:sbend}
   \end{subfigure}
   \hfill
-  \caption[Coordinate systems for (a) \vn{rbend}\ and (b) \vn{sbend}\ elements.]
-{Coordinate systems for (a) \vn{rbend} and (b) \vn{sbend} elements.  For the bends drawn as viewed
-from ``above'' (viewed from positive $y$), \vn{g}, \vn{angle}, \vn{rho}, \vn{e1} and \vn{e2} are all
-positive.}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includegraphics{sbend-rev.pdf}
+    \caption{Reversed sbend}
+    \label{f:sbend.rev}
+  \end{subfigure}
+  \hfill
+  \caption[Coordinate systems for rbend and sbend elements.]
+{Coordinate systems for (a) normal (non-reversed)\vn{rbend}, (b) normal \vn{sbend}, and (c)
+\vn{reversed sbend} elements. The bends are viewed from ``above'' (viewed from positive $y$).
+Normal bends have \vn{g}, \vn{angle}, and \vn{rho} all positive. Reversed bends have \vn{g},
+\vn{angle}, and \vn{rho} all negative. For (a) and (b), as drawn, \vn{e1} and \vn{e2} are both
+positive. For (c), as drawn, \vn{e1} and \vn{e2} are both negative. In all cases, \vn{L} is
+positive. Notice that for reversed bends, the $x$-axis points towards the center of the bend while
+for normal bends the $x$-axis points towards the outside.}
   \label{f:bend}
 \end{figure}
 
@@ -451,8 +461,8 @@ bend towards negative $x$ values (see \fig{f:local.coords}).
   \index{e1}\index{e2}
   \item[e1, e2] \Newline
 The rotation angle of the entrance pole face is \vn{e1} and at the exit face it is \vn{e2}. Zero
-\vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet (\fig{f:bend.rbend}). Zero \vn{e1}
-and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet (\fig{f:bend.sbend}).  An \vn{sbend} with
+\vn{e1} and \vn{e2} for an \vn{rbend} gives a rectangular magnet (\fig{f:rbend}). Zero \vn{e1}
+and \vn{e2} for an \vn{sbend} gives a wedge shaped magnet (\fig{f:sbend}).  An \vn{sbend} with
 an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see
 above).  This formula holds for both positive and negative angles.
 
@@ -470,12 +480,11 @@ The \vn{exact_multipoles} switch can be set to one of:
   vertically_pure    
   horizontally_pure  
 \end{example}
-This switch determines if the multipole fields, both magnetic and electric, and including
-the \vn{k1} and \vn{k2} components, are corrected for the finite curvature of the
-reference orbit in a bend. See \sref{s:field.exact} for a discussion of what
-\vn{vertically} pure versus \vn{horizontally} pure means. Setting \vn{exact_multipoles} to
-\vn{vertically_pure} means that the individual $a_n$ and $b_n$ multipole components are
-used with the vertically pure solutions
+This switch determines if the multipole fields, both magnetic and electric, and including the
+\vn{k1} and \vn{k2} components, are corrected for the finite curvature of the reference orbit in a
+bend. See \sref{s:field.exact} for a discussion of what \vn{vertically} pure versus
+\vn{horizontally} pure means. Setting \vn{exact_multipoles} to \vn{vertically_pure} means that the
+individual $a_n$ and $b_n$ multipole components are used with the vertically pure solutions
 \begin{align}
   \bfB &= \sum_{n = 0}^\infty \left[ \frac{a_n}{n+1} \nabla \phi_n^r + \frac{b_n}{n+1} \nabla \phi_n^i \right] \nonumber
   \bfE &= \sum_{n = 0}^\infty \left[ \frac{a_{en}}{n+1} \nabla \phi_n^i + \frac{b_{en}}{n+1} \nabla \phi_n^r \right]
