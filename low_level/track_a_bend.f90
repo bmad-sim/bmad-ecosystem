@@ -94,7 +94,6 @@ do n = 1, n_step
   ! with k1 /= 0 use small angle approximation
 
   if (k_1 /= 0) then
-
     call sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
     orbit%vec(5) = orbit%vec(5) + low_energy_z_correction(orbit, ele, step_len, mat6, make_matrix)
 
@@ -123,11 +122,13 @@ do n = 1, n_step
     sin_plus = sin(angle + phi_1)
     alpha = 2 * (1 + g*x) * sin_plus * step_len * sinc_a - g_p * ((1 + g*x) * step_len * sinc_a)**2
     r = cos_plus**2 + g_p*alpha
-    if (r < 0) then   ! Particle does not intersect exit face.
+
+    if (r < 0 .or. (abs(g_p) < 1d-5 .and. abs(cos_plus) < 1d-5)) then   ! Particle does not intersect exit face.
       orbit%state = lost$
       orbit%vec(1) = 2 * bmad_com%max_aperture_limit
       return
     endif
+
     rad = sqrt(r)
     if (cos_a > 0) then
       denom = rad + cos_plus
@@ -136,6 +137,12 @@ do n = 1, n_step
       denom = rad - cos_plus
       orbit%vec(1) = x * cos_a + step_len**2 * g * cosc(angle) + denom / g_p
     endif
+
+    if (abs(orbit%vec(1)) > bmad_com%max_aperture_limit) then
+      orbit%state = lost$
+      return
+    endif
+
     L_u = orbit%vec(1) - step_len**2 * g * cosc(angle) - x * cos_a 
     L_v = -step_len * sinc_a - x * sin_a
     L_c = sqrt(L_v**2 + L_u**2)
@@ -270,7 +277,7 @@ type (em_field_struct) field
 type (coord_struct) orb0
 
 real(rp) coef, step_len
-real(rp) ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0
+real(rp) ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0, r_len
 real(rp) mc2, dk_dp, pc0, E0, E1, f, df_dps_coef, dkm(2,2), f_p0c, Ex, Ey
 integer i, charge
 
@@ -283,7 +290,9 @@ if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
 
 else
   field = em_field_struct()
-  f_p0c = ele%value(p0c$) / (c_light * charge_of(param%particle))
+  r_len = 1
+  if (ele%value(l$) /= 0) r_len = step_len / ele%value(l$)
+  f_p0c = r_len * ele%value(p0c$) / (c_light * charge_of(param%particle))
 
   do i = 0, ix_pole_max
     if (an(i) == 0 .and. bn(i) == 0) cycle
@@ -292,13 +301,13 @@ else
     else
       call ab_multipole_kick(an(i), bn(i), i, param%particle, 0, orbit, kx, ky)
     endif
-    field%B(1) = field%B(1) + f_p0c * ky / ele%value(l$)
-    field%B(2) = field%B(2) - f_p0c * kx / ele%value(l$)
+    field%B(1) = field%B(1) + f_p0c * ky
+    field%B(2) = field%B(2) - f_p0c * kx
     if (logic_option(.false., make_matrix)) then
-      field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
-      field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
-      field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
-      field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
+      field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1)
+      field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2)
+      field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1)
+      field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2)
     endif
   enddo
 
@@ -317,12 +326,12 @@ endif
 
 if (ix_pole_max > -1) then
   orb0 = orbit
-  f_coef = coef * c_dir * step_len * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
+  f_coef = coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
   orbit%vec(2) = orbit%vec(2) - f_coef * field%B(2)
   orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
 
   if (logic_option(.false., make_matrix)) then
-    df_coef_dx = coef * c_dir * step_len * ele%value(g$) * c_light / orb0%p0c
+    df_coef_dx = coef * c_dir * ele%value(g$) * c_light / orb0%p0c
 
     mat6(2,:) = mat6(2,:) - (f_coef * field%dB(2,1) + df_coef_dx * field%B(2)) * mat6(1,:) - & 
                             (f_coef * field%dB(2,2)) * mat6(3,:)
