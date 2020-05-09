@@ -148,7 +148,6 @@ tag_line[beta_a] = 10
 tag_line[beta_b] = 10
 tag_line[live_branch] = F
 
-
 ! group_line
 
 qa: quad, l = 1
