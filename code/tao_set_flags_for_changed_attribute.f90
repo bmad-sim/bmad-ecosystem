@@ -19,8 +19,9 @@ use bookkeeper_mod, only: set_flags_for_changed_attribute
 
 implicit none
 
-type (tao_universe_struct) u
+type (tao_universe_struct), target :: u
 type (ele_struct), pointer, optional :: ele_ptr
+type (lat_struct), pointer :: lat
 
 real(rp), pointer, optional :: val_ptr
 
@@ -30,7 +31,13 @@ character(*) ele_name
 
 u%calc%lattice = .true.
 
-if (ele_name == 'PARTICLE_START') return
+if (ele_name == 'PARTICLE_START') then
+ lat => u%model%lat
+  if (lat%branch(0)%param%geometry == closed$) then
+    u%model%tao_branch(0)%orb0%vec(6) = lat%particle_start%vec(6)
+  endif
+  return
+endif
 
 if (present(ele_ptr)) then
   if (associated(ele_ptr)) then

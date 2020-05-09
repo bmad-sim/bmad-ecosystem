@@ -883,8 +883,12 @@ automatically saved at the beginning position and end position of beam tracking 
                                        !   and all elements that have "34w" in their name. 
   /
 \end{example}
-The elements where the beam is saved may be modified while \tao is running by using the \vn{set beam saved_at},
-\vn{set beam add_saved_at}, and \vn{set beam subtract_saved_at} commands (\sref{s:set.beam}).
+The elements where the beam is saved may be modified while \tao is running by using the \vn{set beam
+saved_at}, \vn{set beam add_saved_at}, and \vn{set beam subtract_saved_at} commands
+(\sref{s:set.beam}). To write the beam particle positions use the \vn{write beam} command (\sref{s:write.beam}).
+
+If the beam size is large or the number of elements at which the beam is to be saved at is large, it
+may be problematic 
 
 The three random number generator parameters (\vn{%random_engine}, \vn{%random_gauss_converter}, and
 \vn{%random_sigma_cutoff}) used for initializing the beam are set in the \vn{tao_global_struct}
