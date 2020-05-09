@@ -28,11 +28,6 @@ z2[beta_a] = 10
 z2[beta_b] = 10
 z2[geometry] = open
 
-xlin: line = (dd, xx, tt1, tt2)
-xlin[beta_a] = 10
-xlin[beta_b] = 10
-xlin[geometry] = open
-
 ylin: line = (dd, yy)
 ylin[beta_a] = 10
 ylin[beta_b] = 10
@@ -41,3 +36,11 @@ ylin[geometry] = open
 use, xlin, ylin, z2
 
 gg: girder = {z1}
+
+xlin: line = (dd&
+, xx, tt1, tt2)
+
+xlin[beta_a] = 10
+xlin[beta_b] = 10
+xlin[geometry] = open
+
