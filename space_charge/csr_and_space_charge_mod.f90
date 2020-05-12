@@ -1,7 +1,7 @@
 !+
 ! See the paper:
-!   "An Efficient Formalism for Simulating Coherent Synchrotron Radiation"
-!   D. Sagan
+!   "Coherent Synchrotron Radiation Simulations for Off-Axis Beams Using the Bmad Toolkit"
+!   D. Sagan & C. Mayes
 !-
 
 module csr_and_space_charge_mod

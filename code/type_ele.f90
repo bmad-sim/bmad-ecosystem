@@ -166,7 +166,7 @@ nl=nl+1; li(nl) = ''
 if (type_zero) then
   nl=nl+1; write (li(nl), *) 'Attribute values:'
 else
-  nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero real/int values shown]:'
+  nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
 endif
 
 n_att = n_attrib_string_max_len() + 1
@@ -238,12 +238,12 @@ endif
 ! Multipoles
 
 if (associated(ele%a_pole) .or. associated(ele%a_pole_elec)) then
-  nl=nl+1; write (li(nl), '(a, l1)') 'MULTIPOLES_ON    = ', ele%multipoles_on 
+  nl=nl+1; write (li(nl), '(5x, a, l1)') 'MULTIPOLES_ON    = ', ele%multipoles_on 
 endif
 
 if (associated(ele%a_pole)) then
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=nl+1; write (li(nl), '(a, l1, 2x, a)') 'SCALE_MULTIPOLES = ', ele%scale_multipoles, &
+    nl=nl+1; write (li(nl), '(5x, a, l1, 2x, a)') 'SCALE_MULTIPOLES = ', ele%scale_multipoles, &
                                     '! Magnet strength scaling? Reference momentum scaling done if FIELD_MASTER = T.'
   endif
 
