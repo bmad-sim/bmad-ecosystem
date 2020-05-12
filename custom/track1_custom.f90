@@ -54,7 +54,8 @@ character(*), parameter :: r_name = 'track1_custom'
 
 ! 
 
-call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
+call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED BY ELEMENT: ' // ele%name, &
+                               'EITHER CHANGE THE TRACKING_METHOD OR LINK THIS PROGRAM TO AN APPROPRIATELY MODIFED TRACK1_CUSTOM ROUTINE.')
 err_flag = .true.
 
 ! Remember to also set end_orb%t
