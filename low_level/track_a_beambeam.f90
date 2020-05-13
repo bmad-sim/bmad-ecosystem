@@ -27,7 +27,7 @@ type (lat_param_struct) :: param
 real(rp), optional :: mat6(6,6)
 real(rp) sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, sig_x, sig_y
 real(rp) beta, s_pos, s_pos_old, k0_x, k0_y, k_xx, k_xy, k_yx, k_yy, coef, del
-real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const
+real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, z
 real(rp), allocatable :: z_slice(:)
 
 integer i, n_slice
@@ -79,8 +79,9 @@ call bbi_slice_calc (ele, n_slice, z_slice)
 s_pos = 0    ! end at the ip
 
 do i = 1, n_slice
+  z = z_slice(i)
   s_pos_old = s_pos
-  s_pos = (orbit%vec(5) + z_slice(i)) / 2
+  s_pos = (orbit%vec(5) + z) / 2
   del_s = s_pos - s_pos_old
 
   call track_a_drift (orbit, del_s, mat6, make_matrix)
@@ -95,12 +96,14 @@ do i = 1, n_slice
     sig_y = sig_y0 * sqrt(beta / beta_b0)
   endif
 
+  ratio = sig_y / sig_x
   bbi_const = -param%n_part * ele%value(charge$) * classical_radius_factor /  &
                                         (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
 
-  x_pos = orbit%vec(1) / sig_x  ! this has offset in it
-  y_pos = orbit%vec(3) / sig_y
-  ratio = sig_y / sig_x
+  x_pos = (orbit%vec(1) + (ele%value(crab_x1$) * z + ele%value(crab_x2$) * z**2 + &
+                           ele%value(crab_x3$) * z**3) * cos(ele%value(crab_tilt$))) / sig_x
+  y_pos = (orbit%vec(3) + (ele%value(crab_x1$) * z + ele%value(crab_x2$) * z**2 + &
+                           ele%value(crab_x3$) * z**3) * sin(ele%value(crab_tilt$))) / sig_y
 
   call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
 

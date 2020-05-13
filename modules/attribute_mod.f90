@@ -809,6 +809,10 @@ call init_attribute_name1 (beambeam$, cmat_11$,                     'CMAT_11')
 call init_attribute_name1 (beambeam$, cmat_12$,                     'CMAT_12')
 call init_attribute_name1 (beambeam$, cmat_21$,                     'CMAT_21')
 call init_attribute_name1 (beambeam$, cmat_22$,                     'CMAT_22')
+call init_attribute_name1 (beambeam$, crab_x1$,                     'CRAB_X1')
+call init_attribute_name1 (beambeam$, crab_x2$,                     'CRAB_X2')
+call init_attribute_name1 (beambeam$, crab_x3$,                     'CRAB_X3')
+call init_attribute_name1 (beambeam$, crab_tilt$,                   'CRAB_TILT')
 
 call init_attribute_name1 (beginning_ele$, l$,                           'l', private$)
 call init_attribute_name1 (beginning_ele$, floor_set$,                   'floor_set', private$)
@@ -1804,7 +1808,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
       'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
-      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY')
+      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1')
   attrib_units = ''
 
 case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
@@ -1836,7 +1840,7 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
       'TILT', 'TILT_CALIB', 'TILT_CORR', 'TILT_TOT', 'GRAZE_ANGLE_IN', 'GRAZE_ANGLE_OUT', &
       'T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', &
       'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', &
-      'MOSAIC_ANGLE_RMS_IN_PLANE', 'MOSAIC_ANGLE_RMS_OUT_PLANE', 'ANGLE_OUT_MAX')
+      'MOSAIC_ANGLE_RMS_IN_PLANE', 'MOSAIC_ANGLE_RMS_OUT_PLANE', 'ANGLE_OUT_MAX', 'CRAB_TILT')
   attrib_units = 'rad'
 
 case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', 'AUTOSCALE_PHASE_TOL')
@@ -1848,10 +1852,11 @@ case ('CRITICAL_ANGLE_FACTOR')
 case ('SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', 'ELLIPTICAL_CURVATURE_Z', 'FOCAL_STRENGTH')
   attrib_units = '1/m'
 
-case ('C21_MAT0', 'C21_MAT1', 'CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'G_ERR', 'G_MAX', 'H1', 'H2')
+case ('C21_MAT0', 'C21_MAT1', 'CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'G_ERR', 'G_MAX', &
+      'H1', 'H2', 'CRAB_X2')
   attrib_units = '1/m'
 
-case ('CURVATURE_X0_Y3', 'CURVATURE_X1_Y2', 'CURVATURE_X2_Y1', 'CURVATURE_X3_Y0', 'DKS_DS')
+case ('CURVATURE_X0_Y3', 'CURVATURE_X1_Y2', 'CURVATURE_X2_Y1', 'CURVATURE_X3_Y0', 'DKS_DS', 'CRAB_X3')
   attrib_units = '1/m^2'
 
 case ('CURVATURE_X0_Y4', 'CURVATURE_X1_Y3', 'CURVATURE_X2_Y2', 'CURVATURE_X3_Y1', 'CURVATURE_X4_Y0')
