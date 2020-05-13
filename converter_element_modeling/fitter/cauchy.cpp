@@ -9,7 +9,6 @@
 
 #include "cauchy.hpp"
 
-#define ABS_PARAMS
 
 
 const double PI = 4.0 * atan(1.0);
@@ -27,15 +26,9 @@ int asym_cauchy_fit_function(const gsl_vector *fit_params, void *data_points,
   double c_x = gsl_vector_get(fit_params, 0);
   double c_y = gsl_vector_get(fit_params, 1);
   double b_x = gsl_vector_get(fit_params, 4);
-#ifdef ABS_PARAMS
   double a_x = std::abs(gsl_vector_get(fit_params, 2));
   double a_y = std::abs(gsl_vector_get(fit_params, 3));
   double amp = std::abs(gsl_vector_get(fit_params, 5));
-#else
-  double a_x = gsl_vector_get(fit_params, 2);
-  double a_y = gsl_vector_get(fit_params, 3);
-  double amp = gsl_vector_get(fit_params, 5);
-#endif
 
   size_t num_pts = bins.size();
   for (size_t i=0; i<num_pts; i++) {
@@ -48,7 +41,7 @@ int asym_cauchy_fit_function(const gsl_vector *fit_params, void *data_points,
 }
 
 
-cauchyFitResults asym_cauchy_fit(const std::vector<BinPoint>& bins) {
+cauchyFitResults asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>& bins) {
   // This function fits a normal distribution to the binned
   // data supplied in bins using the GSL's nonlinear
   // fitting routine.  In case the fitting process fails,
@@ -110,21 +103,16 @@ cauchyFitResults asym_cauchy_fit(const std::vector<BinPoint>& bins) {
 
   // Return results
   if (status == GSL_EMAXITER)
-    std::cout << "Iteration limit reached\n";
+    std::cerr << "Iteration limit reached for cauchy fit at pc_out = "
+      << pc_out << " MeV, r = " << r << " cm\n";
   if (status == GSL_ENOPROG) return {-1, -1, -1, -1, -1, -1, -1};
 
   double fit_c_x = gsl_vector_get(w->x, 0);
   double fit_c_y = gsl_vector_get(w->x, 1);
   double fit_b_x = gsl_vector_get(w->x, 4);
-#ifdef ABS_PARAMS
   double fit_a_x = std::abs(gsl_vector_get(w->x, 2));
   double fit_a_y = std::abs(gsl_vector_get(w->x, 3));
   double fit_amp = std::abs(gsl_vector_get(w->x, 5));
-#else
-  double fit_a_x = gsl_vector_get(w->x, 2);
-  double fit_a_y = gsl_vector_get(w->x, 3);
-  double fit_amp = gsl_vector_get(w->x, 5);
-#endif
   size_t dof = num_pts - num_fit_params;
 
   gsl_multifit_nlinear_free(w);
