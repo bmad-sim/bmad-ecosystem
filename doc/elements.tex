@@ -256,15 +256,19 @@ See \sref{s:list.beambeam} for a full list of element attributes.
 \index{beta_a}\index{beta_b}\index{alpha_a}\index{alpha_b}
 Attributes specific to a \vn{beambeam} element are:
 \begin{example}
-  sig_x   = <Real>        ! Horizontal strong beam sigma at the center 
-  sig_y   = <Real>        ! Vertical strong beam sigma at the center
-  sig_z   = <Real>        ! Strong beam length
-  charge  = <Real>        ! Strong beam charge. Default = -1
-  n_slice = <Integer>     ! Number of strong beam slices
+  sig_x          = <Real> ! Horizontal strong beam sigma at the center 
+  sig_y          = <Real> ! Vertical strong beam sigma at the center
+  sig_z          = <Real> ! Strong beam length
+  charge         = <Real> ! Strong beam charge. Default = -1
+  n_slice        = <Int>  ! Number of strong beam slices
+  crab_x1        = <Real> ! Crabbing linear coefficient.
+  crab_x2        = <Real> ! Crabbing quadratic coefficient.
+  crab_x3        = <Real> ! Crabbing cubic coefficient.
+  crab_tilt      = <Real> ! Crabbing tilt.
   beta_a_strong  = <Real> ! Strong beam $a$-mode beta Twiss parameter
   alpha_a_strong = <Real> ! Strong beam $a$-mode alpha Twiss parameter 
   beta_b_strong  = <Real> ! Strong beam $b$-mode beta Twiss parameter
-  alpha_b_strong = <Real> ! Strong beam $b$-mode alpha Twiss parameter 
+  alpha_b_strong = <Real> ! Strong beam $b$-mode alpha Twiss parameter
   bbi_constant            ! See below. Dependent attribute (\sref{s:depend}).
 \end{example}
 
@@ -314,10 +318,20 @@ $b$-mode Twiss parameters as calculated from the lattice is used.
 \index{x_pitch}\index{y_pitch}\index{tilt}
 The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes (\sref{s:offset}) are used to offset
 the strong beam. Note that in \mad the attributes used to offset the strong beam are called \vn{xma}
-and \vn{yma}. \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a crossing angle. If
-the lattice does not have crab cavities, \vn{x_pitch}, \vn{y_pitch} or some combination of the two
-should be set to the full crossing angle, not the half-angle. If the lattice has a \vn{crab_cavity}
-element, the half-angle should be used. To give the centroid of the strong beam slices some curvature, say, due to nonlinearities in the crab cavity in the strong beam ring, 
+and \vn{yma}. \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a crossing
+angle. \vn{x_pitch}, \vn{y_pitch} or some combination of the two should be set to the crossing angle
+of the strong beam with respect to the reference orbit of the weak beam. To curve the strong beam controid to simulate crabbing, the following parameters can be used:
+\begin{example}
+  crab_x1,    crab_x2
+  crab_x3,    crab_tilt
+\end{example}
+If \vn{crab_tilt} is zero (the default), the strong beam centroid $(x_c, y_c)$ will have $y_c$ zero
+and
+\begin{equation}
+  x_c = \text{crab_x1} \cdot z + \text{crab_x2} \cdot z^2 + \text{crab_x3} \cdot z^3
+\end{equation}
+With a finite \vn{crab_tilt}, the curvature is rotated around the $z$ axis as shown in
+figure~\ref{f:tilt}.
 
 The \vn{bbi_constant} is a measure of the beam--beam interaction strength.  It is a dependent
 variable and is calculated from the equation
