@@ -90,6 +90,17 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
 
   // Print per event (modulo n)
   //
+  //if (G4VVisManager::GetConcreteInstance()) {
+  //  G4TrajectoryContainer* trajectoryContainer = event->GetTrajectoryContainer();
+  //  G4int n_trajectories = 0;
+  //  if (trajectoryContainer) n_trajectories = trajectoryContainer->entries();
+  //  for (G4int i=0; i<n_trajectories; i++) {
+  //    G4Trajectory* trj = (G4Trajectory *) ((*(event->GetTrajectoryContainer()))[i]);
+  //    if (CONDITIONS) trj->DrawTrajectory(50);
+  //  }
+  //}
+
+
   G4int eventID = event->GetEventID();
   G4int printModulo = G4RunManager::GetRunManager()->GetPrintProgress();
   if ( ( printModulo > 0 ) && ( eventID % printModulo == 0 ) )

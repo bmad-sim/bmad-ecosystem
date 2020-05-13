@@ -87,13 +87,18 @@ G4RunManager* Initialize_Geant(void) {
   G4VModularPhysicsList* physicsList = new QGSP_BERT;
   runManager->SetUserInitialization(physicsList);
 
+  // Visualization
+  //G4VisManager* visManager = new G4VisExecutive;
+  //visManager->Initialize();
+
+  G4EventManager::GetEventManager()->GetTrackingManager()->SetStoreTrajectory(1);
+
 
   return runManager;
 }
 
 
 
-//template<typename BinT>
 int run_simulation(G4RunManager *runManager, const std::string& target_material, double in_energy, double target_thickness, BinnerBase* binner, int run_length) {
   //G4String session;
 
@@ -121,6 +126,16 @@ int run_simulation(G4RunManager *runManager, const std::string& target_material,
   runManager->SetUserInitialization(actionInitialization);
 
   runManager->Initialize();
+
+  // Draw the converter
+  //G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
+  //if (pVVisManager) {
+  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/open OGL 800x800-0+0");
+  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/sceneHandler/create OGL");
+  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/create 800x800-0+0");
+  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/drawVolume");
+  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/flush");
+  //}
   //G4UImanager* UI = G4UImanager::GetUIpointer();
   //UI->ApplyCommand("/run/verbose 0");
   //UI->ApplyCommand("/event/verbose 0");
@@ -167,60 +182,3 @@ int run_simulation(G4RunManager *runManager, const std::string& target_material,
   return 0;
 }
 
-// Specializations for Binner* and CalibrationBinner*
-//template int run_simulation(G4RunManager*, const std::string& , double, double, Binner*, int);
-//template int run_simulation(G4RunManager*, const std::string& , double, double, CalibrationBinner*, int);
-
-//std::pair<int, int> calibrate_binner(G4RunManager *runManager, const std::string& target_material, double in_energy, double target_thickness, Binner* binner) {
-//  // Does a small run at the given E- and T values to
-//  // determine the 95th percentile for E+ and r, and
-//  // sets E_max and r_max for the given binner to those values
-//  // Also sets the bin width using the Freedman-Diaconis rule,
-//  // and returns the new number of E bins and r bins as a pair
-//  binner->calibrating = true;
-//  binner->E_cal_list.reserve(10000);
-//  binner->r_cal_list.reserve(10000);
-//  run_simulation(runManager, target_material, in_energy, target_thickness, binner);
-//  // Find 95th percentile in calibration lists
-//  std::sort(binner->E_cal_list.begin(), binner->E_cal_list.end());
-//  std::sort(binner->r_cal_list.begin(), binner->r_cal_list.end());
-//
-//  int N = binner->E_cal_list.size();
-//  int ix_q1 = N*25/100; // r_cal_list is same length
-//  int ix_q3 = N*75/100;
-//  int ix_95 = N*95/100;
-//
-//  double E_iqr = binner->E_cal_list[ix_q3] - binner->E_cal_list[ix_q1];
-//  double r_iqr = binner->r_cal_list[ix_q3] - binner->r_cal_list[ix_q1];
-//
-//  // Want bin_width = 2*IQR*N^(-1/3),
-//  // -> num_bins = E_max / bin_width
-//  // E_max = 95th percentile
-//
-//  double new_E_width = 2 * E_iqr / cbrt((double) N);
-//  double new_r_width = 2 * r_iqr / cbrt((double) N);
-//
-//  double new_E_max = binner->E_cal_list[ix_95];
-//  double new_r_max = binner->r_cal_list[ix_95];
-//
-//  binner->resize_bins(new_E_max, new_r_max, new_E_width, new_r_width);
-//
-//  std::cout << "Using E_max = " << binner->E_max
-//    << ", r_max = " << binner->r_max
-//    << " for in_energy = " << in_energy
-//    << ", target_thickness = " << target_thickness << '\n';
-//
-//  std::cout << "\tNew bin widths: "
-//    << binner->E_bin_width << " MeV, "
-//    << binner->r_bin_width << " cm\n";
-//
-//  std::cout << "\tNumber of bins: "
-//    << binner->num_E_bins << 'x'
-//    << binner->num_r_bins << '\n';
-//
-//  binner->calibrating = false;
-//  return std::make_pair(binner->num_E_bins, binner->num_r_bins);
-//}
-
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
