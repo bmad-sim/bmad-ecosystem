@@ -54,8 +54,8 @@ void Bin::bin_momenta(const char * output_dir,
   std::vector<BinPoint> bins(num_bins*num_bins, {0,0,0});
 
   // Determine cutoff points for binning
-  size_t ix_min = p_list.size() * 0.025;
-  size_t ix_max = p_list.size() * 0.975;
+  size_t ix_min = p_list.size() * 0.04;
+  size_t ix_max = p_list.size() * 0.96;
   double dxds_min, dxds_max, dyds_min, dyds_max;
 
   std::sort(p_list.begin(), p_list.end(),
@@ -264,7 +264,7 @@ bool Binner::has_enough_data() const {
   std::cout << CLEAR_LINE << "\t\"Average\" bin count variance: "
     << std::sqrt((double) total_count / num_bins) << '\n';
 
-  bool has_enough = total_count > num_bins*1e5;
+  bool has_enough = total_count > num_bins*1e6;
   // If !has_enough, we will be rerunning this function next, so we need to move
   // the cursor back up to write over our output
   if (!has_enough)
