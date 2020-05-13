@@ -278,14 +278,6 @@ is a global setting (\sref{s:param}) and is used for all \vn{beambeam} elements.
 of particles in an individual \vn{beambeam} element, the \vn{charge} attribute is used.  The default
 is \vn{charge} = -1 which indicates that the strong beam has the opposite charge of the weak beam.
 
-\index{x_offset}\index{y_offset}\index{z_offset}
-\index{x_pitch}\index{y_pitch}\index{tilt}
-The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes (\sref{s:offset}) are used to offset
-the strong beam. Note that in \mad the attributes used to offset the strong beam are called \vn{xma}
-and \vn{yma}. \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a crossing angle. This
-is the full crossing angle, not the half-angle. The \vn{tilt} attribute can be used to tilt the
-strong beam.
-
 \index{sig_z}\index{n_slice}
 \vn{sig_z} are the strong beam's longitudinal sigma.  The strong beam is divided up into
 \vn{n_slice} equal charge (not equal thickness) slices. Propagation through the strong beam involves
@@ -297,13 +289,15 @@ starting point and ending points are at the \vn{beambeam} element. For example, 
 2 the calculation would proceed as follows:
 \begin{example}
   0. Start with the particle longitudinally at the \vn{beambeam} element.
-  1. Offsets, pitches and tilt are applied to convert from laboratory to element body coordinates (\sref{s:lab.body.transform}.
+  1. Offsets, pitches and tilt are applied to convert from laboratory to element 
+       body coordinates (\sref{s:lab.body.transform}.
   2. Propagate (drift) backwards to the center of the first slice.
   3. Apply the beam--beam kick due to the first slice.
   4. Propagate (drift) forwards to the center of the second slice.
   5. Apply the beam--beam kick due to the second slice.
   6. Propagate (drift) backwards to the body coordinate longitudinal center.
-  7. Offsets, pitches and tilt are applied to convert from element body to laboratory coordinates.
+  7. Offsets, pitches and tilt are applied to convert from element body to 
+       laboratory coordinates.
 \end{example}
 
 \index{sig_x}\index{sig_y}
@@ -315,6 +309,15 @@ parameters at $s_0$ are set by \vn{beta_a_strong}, \vn{beta_b_strong}, \vn{alpha
 \vn{alpha_b_strong}.  If \vn{beta_a_strong} is zero (the default), the $a$-mode Twiss parameters as
 calculated from the lattice is used. Similarly, if \vn{beta_b_strong} is zero (the default), the
 $b$-mode Twiss parameters as calculated from the lattice is used.
+
+\index{x_offset}\index{y_offset}\index{z_offset}
+\index{x_pitch}\index{y_pitch}\index{tilt}
+The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes (\sref{s:offset}) are used to offset
+the strong beam. Note that in \mad the attributes used to offset the strong beam are called \vn{xma}
+and \vn{yma}. \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a crossing angle. If
+the lattice does not have crab cavities, \vn{x_pitch}, \vn{y_pitch} or some combination of the two
+should be set to the full crossing angle, not the half-angle. If the lattice has a \vn{crab_cavity}
+element, the half-angle should be used. To give the centroid of the strong beam slices some curvature, say, due to nonlinearities in the crab cavity in the strong beam ring, 
 
 The \vn{bbi_constant} is a measure of the beam--beam interaction strength.  It is a dependent
 variable and is calculated from the equation
