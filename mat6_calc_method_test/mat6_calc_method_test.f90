@@ -2,6 +2,7 @@ program mat6_calc_method_test
 
 use bmad
 use mad_mod
+use s_def_kind
 
 implicit none
 
@@ -25,6 +26,8 @@ integer :: i, j, k, ib, nargs, ns
 logical custom_test, err, abs_time
 
 !
+
+!old_thick_bend = .true.
 
 global_com%exit_on_error = .false.
 

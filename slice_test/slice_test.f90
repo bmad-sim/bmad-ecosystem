@@ -44,15 +44,17 @@ endif
 call bmad_parser (lat_file, lat)
 
 do i = 1, lat%n_ele_track
+  ele0 => lat%ele(i-1)
   ele => lat%ele(i)
   if (ele%value(l$) == 0) cycle
   call init_coord (start_orb, lat%particle_start, ele, upstream_end$, lat%param%particle)
   call track1 (start_orb, ele, lat%param, end_orb)
   call make_mat6 (ele, lat%param, start_orb)
+  call twiss_propagate1 (ele0, ele)
   xmat = ele%mat6
   s0 = lat%ele(i-1)%s; s1 = ele%s
   end_orb2 = start_orb
-  ele2 = lat%ele(i-1)
+  ele2 = ele0
   ele2%a = lat%ele(0)%a;  ele2%b = lat%ele(0)%b  ! Just to have some non-zero beta
   call mat_make_unit(xmat2)
   n_slice = nint(ele%value(num_steps$))
@@ -86,6 +88,16 @@ do i = 1, lat%n_ele_track
     do j = 1, 6
       print '(6f12.6)', ele%mat6(j,:)-xmat2(j,:)
     enddo
+    print *
+    print '(16x, a)', 'Start       Whole       Split        Diff'
+    print '(a, 4f12.4)', 'Beta_a:  ', ele0%a%beta, ele%a%beta, ele2%a%beta, ele%a%beta - ele2%a%beta
+    print '(a, 4f12.4)', 'Alpha_a: ', ele0%a%alpha, ele%a%alpha, ele2%a%alpha, ele%a%alpha - ele2%a%alpha
+    print '(a, 4f12.4)', 'Beta_b:  ', ele0%b%beta, ele%b%beta, ele2%b%beta, ele%b%beta - ele2%b%beta
+    print '(a, 4f12.4)', 'Alpha_b: ', ele0%b%alpha, ele%b%alpha, ele2%b%alpha, ele%b%alpha - ele2%b%alpha
+    print '(a, 4f12.4)', 'Eta_a:   ', ele0%x%eta, ele%x%eta, ele2%x%eta, ele%x%eta - ele2%x%eta
+    print '(a, 4f12.4)', 'Etap_a:  ', ele0%x%etap, ele%x%etap, ele2%x%etap, ele%x%etap - ele2%x%etap
+    print '(a, 4f12.4)', 'Eta_b:   ', ele0%y%eta, ele%y%eta, ele2%y%eta, ele%y%eta - ele2%y%eta
+    print '(a, 4f12.4)', 'Etap_b:  ', ele0%y%etap, ele%y%etap, ele2%y%etap, ele%y%etap - ele2%y%etap
   endif
 enddo
 
@@ -274,32 +286,32 @@ write (1, '(a, es22.12)') '"D:b%eta"   ABS  1e-14', ele2b%b%eta   - ele2a%b%eta
 
 write (1, *)
 
-write (1, '(a, 6f17.12)') '"xmat_c(1,:)" ABS  1e-10', xmat_c(1,:)
-write (1, '(a, 6f17.12)') '"xmat_c(2,:)" ABS  1e-10', xmat_c(2,:)
-write (1, '(a, 6f17.12)') '"xmat_c(3,:)" ABS  1e-10', xmat_c(3,:)
-write (1, '(a, 6f17.12)') '"xmat_c(4,:)" ABS  1e-10', xmat_c(4,:)
-write (1, '(a, 6f17.12)') '"xmat_c(5,:)" ABS  1e-10', xmat_c(5,:)
-write (1, '(a, 6f17.12)') '"xmat_c(6,:)" ABS  1e-10', xmat_c(6,:)
-write (1, '(a, 6f17.12)') '"vec0_c(:)"   ABS  1e-10', vec0_c
+write (1, '(a, 6es22.12)') '"xmat_c(1,:)" ABS  1e-10', xmat_c(1,:)
+write (1, '(a, 6es22.12)') '"xmat_c(2,:)" ABS  1e-10', xmat_c(2,:)
+write (1, '(a, 6es22.12)') '"xmat_c(3,:)" ABS  1e-10', xmat_c(3,:)
+write (1, '(a, 6es22.12)') '"xmat_c(4,:)" ABS  1e-10', xmat_c(4,:)
+write (1, '(a, 6es22.12)') '"xmat_c(5,:)" ABS  1e-10', xmat_c(5,:)
+write (1, '(a, 6es22.12)') '"xmat_c(6,:)" ABS  1e-10', xmat_c(6,:)
+write (1, '(a, 6es22.12)') '"vec0_c(:)"   ABS  1e-10', vec0_c
 
 write (1, *)
 
-write (1, '(a, 6f17.12)') '"Db:xmat_c(1,:)" ABS  1e-10', xmat_c(1,:) - ele2b%mat6(1,:)
-write (1, '(a, 6f17.12)') '"Db:xmat_c(2,:)" ABS  1e-10', xmat_c(2,:) - ele2b%mat6(2,:)
-write (1, '(a, 6f17.12)') '"Db:xmat_c(3,:)" ABS  1e-10', xmat_c(3,:) - ele2b%mat6(3,:)
-write (1, '(a, 6f17.12)') '"Db:xmat_c(4,:)" ABS  1e-10', xmat_c(4,:) - ele2b%mat6(4,:)
-write (1, '(a, 6f17.12)') '"Db:xmat_c(5,:)" ABS  1e-10', xmat_c(5,:) - ele2b%mat6(5,:)
-write (1, '(a, 6f17.12)') '"Db:xmat_c(6,:)" ABS  1e-10', xmat_c(6,:) - ele2b%mat6(6,:)
-write (1, '(a, 6f17.12)') '"Db:vec0_c(:)"   ABS  1e-10', vec0_c - ele2b%vec0
+write (1, '(a, 6es22.12)') '"Db:xmat_c(1,:)" ABS  1e-10', xmat_c(1,:) - ele2b%mat6(1,:)
+write (1, '(a, 6es22.12)') '"Db:xmat_c(2,:)" ABS  1e-10', xmat_c(2,:) - ele2b%mat6(2,:)
+write (1, '(a, 6es22.12)') '"Db:xmat_c(3,:)" ABS  1e-10', xmat_c(3,:) - ele2b%mat6(3,:)
+write (1, '(a, 6es22.12)') '"Db:xmat_c(4,:)" ABS  1e-10', xmat_c(4,:) - ele2b%mat6(4,:)
+write (1, '(a, 6es22.12)') '"Db:xmat_c(5,:)" ABS  1e-10', xmat_c(5,:) - ele2b%mat6(5,:)
+write (1, '(a, 6es22.12)') '"Db:xmat_c(6,:)" ABS  1e-10', xmat_c(6,:) - ele2b%mat6(6,:)
+write (1, '(a, 6es22.12)') '"Db:vec0_c(:)"   ABS  1e-10', vec0_c - ele2b%vec0
 
 write (1, *)
-write (1, '(a, 6f17.12)') '"Dd:xmat_c(1,:)" ABS  1e-10', xmat_c(1,:) - xmat_d(1,:)
-write (1, '(a, 6f17.12)') '"Dd:xmat_c(2,:)" ABS  1e-10', xmat_c(2,:) - xmat_d(2,:)
-write (1, '(a, 6f17.12)') '"Dd:xmat_c(3,:)" ABS  1e-10', xmat_c(3,:) - xmat_d(3,:)
-write (1, '(a, 6f17.12)') '"Dd:xmat_c(4,:)" ABS  1e-10', xmat_c(4,:) - xmat_d(4,:)
-write (1, '(a, 6f17.12)') '"Dd:xmat_c(5,:)" ABS  1e-10', xmat_c(5,:) - xmat_d(5,:)
-write (1, '(a, 6f17.12)') '"Dd:xmat_c(6,:)" ABS  1e-10', xmat_c(6,:) - xmat_d(6,:)
-write (1, '(a, 6f17.12)') '"Dd:vec0_c(:)"   ABS  1e-10', vec0_c - vec0_d
+write (1, '(a, 6es22.12)') '"Dd:xmat_c(1,:)" ABS  1e-10', xmat_c(1,:) - xmat_d(1,:)
+write (1, '(a, 6es22.12)') '"Dd:xmat_c(2,:)" ABS  1e-10', xmat_c(2,:) - xmat_d(2,:)
+write (1, '(a, 6es22.12)') '"Dd:xmat_c(3,:)" ABS  1e-10', xmat_c(3,:) - xmat_d(3,:)
+write (1, '(a, 6es22.12)') '"Dd:xmat_c(4,:)" ABS  1e-10', xmat_c(4,:) - xmat_d(4,:)
+write (1, '(a, 6es22.12)') '"Dd:xmat_c(5,:)" ABS  1e-10', xmat_c(5,:) - xmat_d(5,:)
+write (1, '(a, 6es22.12)') '"Dd:xmat_c(6,:)" ABS  1e-10', xmat_c(6,:) - xmat_d(6,:)
+write (1, '(a, 6es22.12)') '"Dd:vec0_c(:)"   ABS  1e-10', vec0_c - vec0_d
 
 !------------------------------------------------
 ! Test branch 3
