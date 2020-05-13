@@ -130,7 +130,7 @@ do n = 1, n_step
     endif
 
     rad = sqrt(r)
-    if (cos_a > 0) then
+    if (cos_plus > 0) then
       denom = rad + cos_plus
       orbit%vec(1) = x * cos_a + step_len**2 * g * cosc(angle) + alpha / denom
     else
@@ -170,7 +170,7 @@ do n = 1, n_step
 
       dphi_1 = 1 / (pt * cos(phi_1))
       dalpha = 2 * dphi_1 * (1 + g * x) * cos_plus * step_len * sinc_a
-      if (cos_a > 0) then
+      if (cos_plus > 0) then
         dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
               alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2
       else
@@ -190,7 +190,7 @@ do n = 1, n_step
       dphi_1 = -px * dpt / (pt**2 * cos(phi_1))
       dg_p = -g_tot * dpt / pt**2
       dalpha = 2 * dphi_1 * (1 + g*x) * cos_plus * step_len * sinc_a - dg_p * ((1 + g*x) * step_len * sinc_a)**2
-      if (cos_a > 0) then
+      if (cos_plus > 0) then
         dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
               alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2 - &
               alpha**2 * dg_p / (2 * rad * denom**2)
@@ -213,7 +213,7 @@ do n = 1, n_step
       dphi_1 = -px * dpt / (pt**2 * cos(phi_1))
       dg_p = -g_tot * dpt / pt**2
       dalpha = 2 * dphi_1 * (1 + g*x) * cos_plus * step_len * sinc_a - dg_p * ((1 + g*x) * step_len * sinc_a)**2
-      if (cos_a > 0) then
+      if (cos_plus > 0) then
         dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
               alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2 - &
               alpha**2 * dg_p / (2 * rad * denom**2)

@@ -110,14 +110,21 @@ endif
 
 dlength = l_end - l_start
 
-if (logic_option(.false., reuse_ele_end) .and. abs(ele_end%value(l$)- dlength) < bmad_com%significant_length .and. ele_end%key == ele%key) then
-  ele_p => ele_end
-elseif (do_upstream .and. do_downstream) then
-  ele_p => ele
-else
-  call create_element_slice (runt, ele, dlength, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
-  if (err_flag) return
-  ele_p => runt
+ele_p => null()
+if (present(ele_end)) then
+  if (logic_option(.false., reuse_ele_end) .and. abs(ele_end%value(l$)- dlength) < bmad_com%significant_length .and. ele_end%key == ele%key) then
+    ele_p => ele_end
+  endif
+endif
+
+if (.not. associated(ele_p)) then
+  if (do_upstream .and. do_downstream) then
+    ele_p => ele
+  else
+    call create_element_slice (runt, ele, dlength, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
+    if (err_flag) return
+    ele_p => runt
+  endif
 endif
 
 ! Now track. 
