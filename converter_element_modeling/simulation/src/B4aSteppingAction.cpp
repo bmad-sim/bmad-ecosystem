@@ -37,7 +37,11 @@
 #include "G4SystemOfUnits.hh"
 
 #include "G4Step.hh"
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#else
 #include "G4RunManager.hh"
+#endif
 #include "G4VisManager.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -45,7 +49,7 @@
 B4aSteppingAction::B4aSteppingAction(
                       const B4DetectorConstruction* detectorConstruction,
                       B4aEventAction* eventAction,
-                      BinnerBase* binner)
+                      PointCache* cache)
   : G4UserSteppingAction(),
     fDetConstruction(detectorConstruction),
     fEventAction(eventAction),
@@ -53,11 +57,23 @@ B4aSteppingAction::B4aSteppingAction(
     out_energy_min(0),
     out_energy_max(1000),
     in_particle_angle(0),
-    binner_ptr(binner) { }
+    point_cache(cache) {
+      //std::cout << "Constructor for B4aSteppingAction\n";
+      point_cache->Lock();
+      data_vec = point_cache->GetVec();
+      point_cache->Unlock();
+      //std::cout << "data_vec acquired\n";
+      data_vec->reserve(40000);
+      //std::cout << "data_vec reserved\n";
+    }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-B4aSteppingAction::~B4aSteppingAction() { }
+B4aSteppingAction::~B4aSteppingAction() {
+  point_cache->Lock();
+  point_cache->ReturnVec(data_vec);
+  point_cache->Unlock();
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -76,7 +92,6 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
     if (track_id != prev_track_id)
     {
       G4String pname=step->GetTrack()->GetDefinition()->GetParticleName();
-      //for (int i=0; i<n_part_names; i++)
       if (pname == "e+")
       {
         double px_step=step->GetPreStepPoint()->GetMomentum().x()/MeV;
@@ -86,65 +101,12 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
         if (engy>out_energy_min)
         if (engy<out_energy_max)
         {
-          //G4int evtNb;
-          //evtNb = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
-          //G4double z=step->GetTrack()->GetPosition().z()/cm;
           G4double x=step->GetTrack()->GetPosition().x()/cm;
-          //double x_adj = x-tan(in_particle_angle)*absorber_thickness;
           G4double y=step->GetTrack()->GetPosition().y()/cm;
-          //G4double x_vert=step->GetTrack()->GetVertexPosition().x()/cm;
-          //G4double y_vert=step->GetTrack()->GetVertexPosition().y()/cm;
-          //G4double z_vert=step->GetTrack()->GetVertexPosition().z()/cm;
           G4double r=sqrt(x*x+y*y);
-          //double px_adj = cos(in_particle_angle) * px_step - sin(in_particle_angle) * pz_step;
-          //double pz_adj = sin(in_particle_angle) * px_step + cos(in_particle_angle) * pz_step;
-          //G4double pr_step=sqrt(px_step*px_step + py_step*py_step);
-          //G4double drds=pr_step/pz_step;
           double dxp_ds = ((x/r) * px_step + (y/r) * py_step)/pz_step;
           double dyp_ds = ((-y/r) * px_step + (x/r) * py_step)/pz_step;
-          //sim_data.open( "sim_data.txt", ios::out | ios::app );
-          //sim_data << engy << '\t' << r << '\t' << drds << '\n';
-          binner_ptr->add_point({engy, r, dxp_ds, dyp_ds});
-
-
-          // Record some high energy, high dxds positrons
-          //constexpr size_t max_tracks = 10;
-          //if (engy > 70 && dxp_ds > 10 && num_tracks < max_tracks) {
-          //  std::ofstream log;
-          //  char logname[20];
-          //  sprintf(logname, "positron%02lu.log", num_tracks);
-          //  log.open(logname);
-
-          //  const G4Event* event = G4EventManager::GetEventManager()->GetConstCurrentEvent();
-          //  const auto tr_container = event->GetTrajectoryContainer();
-          //  for (size_t i=0; i<tr_container->size(); i++) {
-          //    tr_container->operator[](i)->ShowTrajectory(log);
-          //    log << "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n";
-          //  }
-          //  log.close();
-          //  num_tracks++;
-          //}
-
-
-          //sim_data << engy << '\t'
-          //  << x << '\t'
-          //  << y << '\t'
-          //  << z << '\t'
-          //  << r << '\t'
-          //  << px_step << '\t'
-          //  << py_step << '\t'
-          //  << pz_step << '\t'
-          //  //<< x_adj << '\t'
-          //  << px_adj << '\t'
-          //  << pz_adj << '\t'
-          //  << drds << '\n';
-          //sim_data<<setw(10)<<evtNb
-//        //      <<setw(10)<<track_id<<setw(10)<<prev_track_id
-          //    <<setw(15)<<name<<setw(10)<<pname<<setw(14)<<x<<setw(14)<<y<<setw(14)<<z
-          //    <<setw(14)<<x_vert<<setw(14)<<y_vert<<setw(14)<<z_vert
-          //    <<setw(14)<<px_step<<setw(14)<<py_step<<setw(14)<<pz_step
-          //    <<setw(14)<<step->GetPreStepPoint()->GetMaterial()->GetName()<<endl;
-          //sim_data.close();
+          data_vec->push_back({engy, r, dxp_ds, dyp_ds});
         }
       }
       prev_track_id=track_id;

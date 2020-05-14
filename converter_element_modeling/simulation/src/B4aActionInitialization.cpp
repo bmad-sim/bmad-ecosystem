@@ -34,16 +34,16 @@
 #include "B4aEventAction.hpp"
 #include "B4aSteppingAction.hpp"
 #include "B4DetectorConstruction.hpp"
-#include "binner.hpp"
+#include "point_cache.hpp"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B4aActionInitialization::B4aActionInitialization
-                            (B4DetectorConstruction* detConstruction, double in_particle_energy, BinnerBase* binner)
+                            (B4DetectorConstruction* detConstruction, double in_particle_energy, PointCache* pc)
  : G4VUserActionInitialization(),
    fDetConstruction(detConstruction),
    m_in_particle_energy(in_particle_energy),
-   m_binner_ptr(binner)
+   m_point_cache(pc)
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -62,11 +62,17 @@ void B4aActionInitialization::BuildForMaster() const
 
 void B4aActionInitialization::Build() const
 {
+  //std::cout << "B4aActionInitizalization::Build\n";
   SetUserAction(new B4PrimaryGeneratorAction(m_in_particle_energy));
+  //std::cout << "B4PrimaryGeneratorAction constructed\n";
   SetUserAction(new B4RunAction);
+  //std::cout << "B4PrimaryGeneratorAction set\n";
   B4aEventAction* eventAction = new B4aEventAction;
+  //std::cout << "B4aEventAction constructed\n";
   SetUserAction(eventAction);
-  SetUserAction(new B4aSteppingAction(fDetConstruction,eventAction, m_binner_ptr));
+  //std::cout << "B4aEventAction set\n";
+  SetUserAction(new B4aSteppingAction(fDetConstruction,eventAction, m_point_cache));
+  //std::cout << "B4aSteppingAction constructed and set\n";
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

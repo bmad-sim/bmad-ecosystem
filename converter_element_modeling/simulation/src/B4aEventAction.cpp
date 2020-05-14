@@ -32,7 +32,11 @@
 #include "B4RunAction.hpp"
 #include "B4Analysis.hpp"
 
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#else
 #include "G4RunManager.hh"
+#endif
 #include "G4Event.hh"
 #include "G4UnitsTable.hh"
 
@@ -69,58 +73,6 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
 
 void B4aEventAction::EndOfEventAction(const G4Event* event)
 {
-  // Accumulate statistics
-  //
-
-  // get analysis manager
-  //G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-
-  //// fill histograms
-  //analysisManager->FillH1(1, fEnergyAbs);
-  //analysisManager->FillH1(2, fEnergyGap);
-  //analysisManager->FillH1(3, fTrackLAbs);
-  //analysisManager->FillH1(4, fTrackLGap);
-
-  //// fill ntuple
-  //analysisManager->FillNtupleDColumn(0, fEnergyAbs);
-  //analysisManager->FillNtupleDColumn(1, fEnergyGap);
-  //analysisManager->FillNtupleDColumn(2, fTrackLAbs);
-  //analysisManager->FillNtupleDColumn(3, fTrackLGap);
-  //analysisManager->AddNtupleRow();
-
-  // Print per event (modulo n)
-  //
-  //if (G4VVisManager::GetConcreteInstance()) {
-  //  G4TrajectoryContainer* trajectoryContainer = event->GetTrajectoryContainer();
-  //  G4int n_trajectories = 0;
-  //  if (trajectoryContainer) n_trajectories = trajectoryContainer->entries();
-  //  for (G4int i=0; i<n_trajectories; i++) {
-  //    G4Trajectory* trj = (G4Trajectory *) ((*(event->GetTrajectoryContainer()))[i]);
-  //    if (CONDITIONS) trj->DrawTrajectory(50);
-  //  }
-  //}
-
-
-  G4int eventID = event->GetEventID();
-  G4int printModulo = G4RunManager::GetRunManager()->GetPrintProgress();
-  if ( ( printModulo > 0 ) && ( eventID % printModulo == 0 ) )
-//  if (eventID%50==1)
-  {
-    G4cout << "---> End of event: " << eventID << G4endl;
-/*
-    G4cout
-       << "   Absorber: total energy: " << std::setw(7)
-                                        << G4BestUnit(fEnergyAbs,"Energy")
-       << "       total track length: " << std::setw(7)
-                                        << G4BestUnit(fTrackLAbs,"Length")
-       << G4endl
-       << "        Gap: total energy: " << std::setw(7)
-                                        << G4BestUnit(fEnergyGap,"Energy")
-       << "       total track length: " << std::setw(7)
-                                        << G4BestUnit(fTrackLGap,"Length")
-       << G4endl;
-*/
-  }
+  return;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

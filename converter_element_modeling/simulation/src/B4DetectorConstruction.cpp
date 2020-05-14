@@ -134,7 +134,7 @@ void B4DetectorConstruction::DefineMaterials()
 //                  kStateGas, 2.73*kelvin, 3.e-18*pascal);
 
   // Print materials
-  G4cout << *(G4Material::GetMaterialTable()) << G4endl;
+  //G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -4,40 +4,52 @@
 #include <utility>
 #include <tuple>
 #include <string>
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#else
 #include "G4RunManager.hh"
-#include "binner.hpp"
+#endif
 #include "parser.hpp"
+#include "bin.hpp"
+#include "point_cache.hpp"
 
-class CalibrationBinner : public BinnerBase {
+#ifdef G4MULTITHREADED
+typedef G4RunManager RunManager_t;
+#else
+typedef G4RunManager RunManager_t;
+#endif
+
+
+class CalibrationBinner {
   private:
-    //double E_min=0, r_min=0;
-    //double E_max, r_max;
-    //size_t num_E_bins, num_r_bins;
-    double E_min, E_max, r_max;
-    double dxds_bound, dyds_bound;
     std::vector<DataPoint> cal_run;
-    //  E_sorted_cal_run, r_sorted_cal_run;
-    //std::vector<std::vector<CalBin>> bins;
     std::vector<double> E_edges, r_edges;
-    size_t total_count;
-    G4RunManager* runManager;
-    std::string target_material;
+    std::vector<std::vector<Bin>> bins;
+    size_t total_count, elec_in;
+    RunManager_t* runManager;
+    PointCache* point_cache;
+    std::string target_material, out_dir;
     const double in_energy, target_thickness;
-    int calibration_length = 10000;
+
+    std::pair<unsigned, unsigned> get_bin_num(double E, double r) const;
 
   public:
     CalibrationBinner() = delete;
-    CalibrationBinner(G4RunManager*, const SimSettings&, double, double);
+    CalibrationBinner(RunManager_t*, PointCache*, const SimSettings&, double, double);
     CalibrationBinner(const CalibrationBinner&) = default;
     CalibrationBinner& operator=(const CalibrationBinner&) = default;
-    void add_point(DataPoint p) { cal_run.push_back(p); }
-    bool in_range(DataPoint p) const {
-      return (p.E>E_min) && (p.E<E_max) && (p.r<r_max);
-        // && (std::abs(p.dxds) < dxds_bound)
-        // && (std::abs(p.dyds) < dyds_bound);
-    }
 
-    std::pair<size_t, size_t> calibrate();
+    void calibrate();
+    void run(size_t run_length);
+    void write_data();
 
-    friend class Binner;
+    void add_point(DataPoint p);
+    double get_E_val(int n_E) const;
+    double get_r_val(int n_r) const;
+    Bin& get_bin(int n_E, int n_r);
+    bool in_range(DataPoint p) const;
+    bool has_empty_bins() const;
+    bool has_enough_data() const;
+    size_t get_total() const { return total_count; }
+
 };

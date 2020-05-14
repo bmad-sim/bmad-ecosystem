@@ -52,13 +52,12 @@
 #include <utility>
 
 #include "G4VisExecutive.hh"
-#include "binner.hpp"
 #include "GeantMain.hpp"
 //#include "G4UIExecutive.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4RunManager* Initialize_Geant(void) {
+RunManager_t* Initialize_Geant(void) {
   // Runs the one-time setup for geant and returns a pointer to the resultant G4RunManager
 #ifdef G4MULTITHREADED
   int nThreads = 4;
@@ -71,9 +70,9 @@ G4RunManager* Initialize_Geant(void) {
   // Construct the default run manager
   //
 #ifdef G4MULTITHREADED
-  G4MTRunManager * runManager = new G4MTRunManager;
+  static G4MTRunManager * runManager = new G4MTRunManager;
   if ( nThreads > 0 ) {
-    static runManager->SetNumberOfThreads(nThreads);
+    runManager->SetNumberOfThreads(nThreads);
   }
 #else
   static G4RunManager * runManager = new G4RunManager;
@@ -99,86 +98,24 @@ G4RunManager* Initialize_Geant(void) {
 
 
 
-int run_simulation(G4RunManager *runManager, const std::string& target_material, double in_energy, double target_thickness, BinnerBase* binner, int run_length) {
-  //G4String session;
-
-  // Clear sim_data.txt and write header
-  //std::ofstream sim_data;
-  //sim_data.open("sim_data.txt");
-  //sim_data << "E\tx\ty\tz\tr\tpx\tpy\tpz\tx_adj\tpx_adj\tpz_adj\tdrds\n";
-  //sim_data.close();
-
-  // Detect interactive mode (if no macro provided) and define UI session
-  //
-  //G4UIExecutive* ui = 0;
-  //if ( ! macro.size() ) {
-  //  ui = new G4UIExecutive(argc, argv, session);
-  //}
-
-
+int run_simulation(RunManager_t *runManager, const std::string& target_material, double in_energy, double target_thickness, PointCache* point_cache, int run_length) {
   // Set mandatory initialization classes
   //
   B4DetectorConstruction* detConstruction = new B4DetectorConstruction(target_material, target_thickness);
   runManager->SetUserInitialization(detConstruction);
 
   B4aActionInitialization* actionInitialization
-     = new B4aActionInitialization(detConstruction, in_energy, binner);
+     = new B4aActionInitialization(detConstruction, in_energy, point_cache);
   runManager->SetUserInitialization(actionInitialization);
 
   runManager->Initialize();
 
-  // Draw the converter
-  //G4VVisManager* pVVisManager = G4VVisManager::GetConcreteInstance();
-  //if (pVVisManager) {
-  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/open OGL 800x800-0+0");
-  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/sceneHandler/create OGL");
-  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/create 800x800-0+0");
-  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/drawVolume");
-  //  G4UImanager::GetUIpointer()->ApplyCommand("/vis/viewer/flush");
-  //}
-  //G4UImanager* UI = G4UImanager::GetUIpointer();
-  //UI->ApplyCommand("/run/verbose 0");
-  //UI->ApplyCommand("/event/verbose 0");
-  //UI->ApplyCommand("/tracking/verbose 0");
-  //UI->ApplyCommand("/printProgress 10001");
   runManager->SetPrintProgress(run_length+1);
   runManager->BeamOn(run_length);
 
-  // Initialize visualization
-  //
-  //G4VisManager* visManager = new G4VisExecutive;
-  //// G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
-  //// G4VisManager* visManager = new G4VisExecutive("Quiet");
-  //visManager->Initialize();
-
-  //// Get the pointer to the User Interface manager
-  //G4UImanager* UImanager = G4UImanager::GetUIpointer();
-
-  //// Process macro or start UI session
-  ////
-  //if ( macro.size() ) {
-  //  // batch mode
-  //  G4String command = "/control/execute ";
-  //  UImanager->ApplyCommand(command+macro);
-  //}
-  //else  {
-  //  // interactive mode : define UI session
-  //  UImanager->ApplyCommand("/control/execute init_vis.mac");
-  //  if (ui->IsGUI()) {
-  //    UImanager->ApplyCommand("/control/execute gui.mac");
-  //  }
-  //  ui->SessionStart();
-  //  delete ui;
-  //}
-
-  // Job termination
-  // Free the store: user actions, physics_list and detector_description are
-  // owned and deleted by the run manager, so they should not be deleted
-  // in the main() program !
-
-  //delete runManager;
   //delete detConstruction;
   //delete actionInitialization;
+
   return 0;
 }
 

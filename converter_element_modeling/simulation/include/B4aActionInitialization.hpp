@@ -32,7 +32,7 @@
 #define B4aActionInitialization_h 1
 
 #include "G4VUserActionInitialization.hh"
-#include "binner.hpp"
+#include "point_cache.hpp"
 
 class B4DetectorConstruction;
 
@@ -42,7 +42,7 @@ class B4DetectorConstruction;
 class B4aActionInitialization : public G4VUserActionInitialization
 {
   public:
-    B4aActionInitialization(B4DetectorConstruction*, double in_particle_energy, BinnerBase* binner);
+    B4aActionInitialization(B4DetectorConstruction*, double in_particle_energy, PointCache* pc);
     B4aActionInitialization(const B4aActionInitialization&) = default;
     B4aActionInitialization& operator=(const B4aActionInitialization&) = default;
     virtual ~B4aActionInitialization();
@@ -53,7 +53,7 @@ class B4aActionInitialization : public G4VUserActionInitialization
   private:
     B4DetectorConstruction* fDetConstruction;
     double m_in_particle_energy;
-    BinnerBase* m_binner_ptr;
+    PointCache* m_point_cache;
 };
 
 #endif

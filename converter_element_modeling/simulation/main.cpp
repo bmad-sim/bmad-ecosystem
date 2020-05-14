@@ -11,8 +11,9 @@
 
 #include "GeantMain.hpp"
 #include "parser.hpp"
-#include "binner.hpp"
+#include "bin.hpp"
 #include "cal_binner.hpp"
+#include "point_cache.hpp"
 
 namespace fs = std::filesystem;
 
@@ -71,83 +72,39 @@ int main() {
   }
 
   // Next: Run simulation for each energy, thickness combination
-  char outfile_name[100];
-  char outfile_name_lowpc[100];
-
-  std::ofstream eff_file;
-  eff_file.open(od + "/yields.dat");
-  eff_file << "E\tT\tY\n";
   auto runManager = Initialize_Geant();
+  // Make a PointCache for runManager to use
+  PointCache point_cache;
   for (auto E: settings.pc_in) {
     for (auto T: settings.target_thickness) {
       std::cout << "Simulating target thickness T = "
         << T << "cm, incoming electron energy " << E << " MeV\n";
-      std::ofstream outfile;
-      std::ofstream outfile_lowpc;
-      sprintf(outfile_name, "%s/E%0.0lf_T%0.3lf_er.dat", od.c_str(), E, T);
-      sprintf(outfile_name_lowpc, "E%0.0lf_T%0.3lf_er_lowpc.dat", E, T);
 
-      CalibrationBinner calbin(runManager, settings, E, T);
-      auto [num_E_bins, num_r_bins] = calbin.calibrate();
+      CalibrationBinner calbin(runManager, &point_cache, settings, E, T);
+      calbin.calibrate();
+
 
       // Construct the real binner using settings obtained during calibration
-      Binner my_binner(std::move(calbin));
+      //Binner my_binner(std::move(calbin));
+      //my_binner.set_point_cache(point_cache);
+      auto& my_binner = calbin;
 
       // Set up the handling of C-c interupt
       std::signal(SIGINT, signal_handler);
       ////////////
 
       // Main data collection loop
-      int num_runs=0;
-      constexpr size_t RUN_LENGTH = 10000;
+      constexpr size_t RUN_LENGTH = 40000;
       while (!my_binner.has_enough_data() && !HALT_SIGNAL) {
-        run_simulation(runManager, settings.target_material, E, T, &my_binner, 10000);
-        num_runs++;
-#ifndef CONTINUOUS_PRINTOUT
+        calbin.run(RUN_LENGTH);
       }
-#endif
-      size_t num_elec_in = num_runs * RUN_LENGTH;
-      outfile.open(outfile_name);
-      outfile_lowpc.open(outfile_name_lowpc);
-      int pos_tot = my_binner.get_total();
-      // set up first line with r values
-      outfile << num_r_bins;
-      for (size_t j=0; j<num_r_bins; j++)
-        outfile << '\t' << my_binner.get_r_val(j);
-      outfile << '\n';
-      // each line should be one E value
-      for (size_t i=0; i<num_E_bins; i++) {
-        outfile << my_binner.get_E_val(i);
-        for (size_t j=0; j<num_r_bins; j++) {
-          double bin_E = my_binner.get_E_val(i);
-          double bin_r = my_binner.get_r_val(j);
-          const auto& bin = my_binner.get_bin(i,j);
-          outfile << '\t' << bin.density(num_elec_in);
-          bin.bin_momenta(od.c_str(), E, T, bin_E, bin_r);
-        }
-        outfile << '\n';
-      }
+      calbin.write_data();
 
-      outfile_lowpc << "r\tpc_min\n";
-      for (size_t j=0; j<num_r_bins; j++) {
-        double bin_r = my_binner.get_r_val(j);
-        auto low_pc = my_binner.lowest_pc_vals[j];
-        outfile_lowpc << bin_r << '\t' << low_pc << '\n';
-      }
-
-#ifdef CONTINUOUS_PRINTOUT
-      outfile.close();
-      outfile_lowpc.close();
-    }
-#endif
-      std::cout << "Efficiency: " << ((double) pos_tot) / (10000*num_runs) << '\n';
-      eff_file << E << '\t' << T << '\t' << ((double) pos_tot) / (10000*num_runs) << '\n';
       if (HALT_SIGNAL) goto END;
     }
   }
 
 END:
-  eff_file.close();
   delete runManager;
   return 0;
 
