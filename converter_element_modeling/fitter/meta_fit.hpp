@@ -70,3 +70,38 @@ double eval(const F& fit, const DataPoint& p) {
       return gsl_poly_eval(r_coefs, 4, p.r);
   }
 }
+
+template<size_t n>
+std::string TAB() {
+  std::string tab = "  ";
+  if constexpr (n==0) return "";
+  else return tab + TAB<n-1>();
+}
+
+template<fitType T>
+void output_bmad(const FitResults& fit, std::ostream& bmad_file) {
+  bmad_file << TAB<3>() << fit_to_string(T) << " = {\n";
+  for (const auto& fit_1d : fit.low_e_fits) {
+    bmad_file << TAB<4>() << "fit_1d_r = {pc_out = " << fit_1d.E
+      << ", poly = [";
+      if constexpr (T==fitType::CX || T==fitType::BETA)
+        bmad_file << 0.0 << ", ";
+      bmad_file << fit_1d.a << ", "
+      << fit_1d.b << ", "
+      << fit_1d.c << ", "
+      << fit_1d.d << "]},\n";
+  }
+  const auto& fit_2d = fit.high_e_fit;
+  if constexpr (T==fitType::DXDS_MIN)
+    bmad_file << TAB<4>() << "C = " << fit_2d.C << ",\n";
+  bmad_file << TAB<4>() << "fit_2d_pc = {k = " << fit_2d.ke << ", poly = [1.0, "
+    << fit_2d.a1 << ", "
+    << fit_2d.a2 << ", "
+    << fit_2d.a3 << "]},\n";
+  bmad_file << TAB<4>() << "fit_2d_r = {k = " << fit_2d.kr << ", poly = ["
+    << fit_2d.b0 << ", "
+    << fit_2d.b1 << ", "
+    << fit_2d.b2 << ", "
+    << fit_2d.b3 << "]}}\n";
+  return;
+}
