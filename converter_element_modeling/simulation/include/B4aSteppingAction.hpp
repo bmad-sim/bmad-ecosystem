@@ -32,7 +32,8 @@
 #define B4aSteppingAction_h 1
 
 #include "G4UserSteppingAction.hh"
-#include "binner.hpp"
+#include "bin.hpp"
+#include "point_cache.hpp"
 
 class B4DetectorConstruction;
 class B4aEventAction;
@@ -48,7 +49,7 @@ class B4aSteppingAction : public G4UserSteppingAction
 public:
   B4aSteppingAction(const B4DetectorConstruction* detectorConstruction,
                     B4aEventAction* eventAction,
-                    BinnerBase* binner);
+                    PointCache* cache);
   B4aSteppingAction(const B4aSteppingAction&) = default;
   B4aSteppingAction& operator=(const B4aSteppingAction&) = default;
   virtual ~B4aSteppingAction();
@@ -59,14 +60,11 @@ private:
   const B4DetectorConstruction* fDetConstruction;
   B4aEventAction*  fEventAction;
   int prev_track_id;
-  //std::ofstream sim_data;
   double out_energy_min;
   double out_energy_max;
   double in_particle_angle;
-  BinnerBase* binner_ptr;
-  //double absorber_thickness;
-  //std::string part_names[20];
-  //int n_part_names;
+  PointCache* point_cache;
+  std::vector<DataPoint>* data_vec;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -30,7 +30,11 @@
 
 #include "B4PrimaryGeneratorAction.hpp"
 
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#else
 #include "G4RunManager.hh"
+#endif
 #include "G4LogicalVolumeStore.hh"
 #include "G4LogicalVolume.hh"
 #include "G4Box.hh"
@@ -55,28 +59,6 @@ B4PrimaryGeneratorAction::B4PrimaryGeneratorAction(double in_particle_energy)
 
   std::string in_particle_name = "e-";
   double in_particle_angle=0;
-  //ifstream conf_file("config.txt", ios::in);
-  //if ( conf_file.is_open() )
-  //{
-  //  //read txt file1
-  //  while ( ! conf_file.eof() )
-  //  {
-  //    getline(conf_file, a_line);
-  //    if(a_line.size()>0)
-  //    {
-  //      while (a_line.substr(0,1)==" ") a_line.erase(0,1);
-  //      if(a_line.size()>15)
-  //      {
-  //        istringstream vars(a_line);
-  //        if (a_line.substr(0,16)=="in_particle_name")  vars >> word[0] >> word[1] >> in_particle_name ;
-  //        if (a_line.substr(0,18)=="in_particle_energy")  vars >> word[0] >> word[1] >> in_particle_energy;
-  //        // added: read incoming angle from config.txt
-  //        if (a_line.substr(0,17)=="in_particle_angle")  vars >> word[0] >> word[1] >> in_particle_angle;
-  //      }
-  //    }
-  //  }
-  //}
-  //conf_file.close();
 
   // default particle kinematic
   //
