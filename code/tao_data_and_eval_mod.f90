@@ -4510,6 +4510,8 @@ if (ix /= 0) then
     source = s_str
   else if (name(max(1,ix-7):ix-1) == 'ele_mid') then
     source = 'ele'
+  else if (name(max(1,ix-9):ix-1) == 'ele_begin') then
+    source = 'ele'
   elseif (name(max(1, ix-4):ix-1) == 'beam') then
     source = 'beam'
   endif

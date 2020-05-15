@@ -236,7 +236,7 @@ character(1) delim
 character(3) undef_str 
 character(9) angle_str
 character(16) velocity_fmt, momentum_fmt, e_field_fmt, b_field_fmt, position_fmt, energy_fmt, s_fmt
-character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2
+character(16) spin_fmt, t_fmt, twiss_fmt, disp_fmt, str1, str2, where
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = '', phase_units_str
 character(24) :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
@@ -266,7 +266,7 @@ integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
-logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
+logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag
 logical print_ptc, print_position, called_from_python_cmd
@@ -2053,7 +2053,7 @@ case ('lattice')
   print_super_slaves = .true.
   limited = .false.
   all_lat = .false.
-  at_ends = .true.
+  where = 'exit'
   by_s = .false.
   print_header_lines = .true.
   print_tail_lines = .true.
@@ -2076,7 +2076,7 @@ case ('lattice')
 
   do
     call tao_next_switch (what2, [character(28):: &
-        '-branch', '-blank_replacement', '-lords', '-middle', '-tracking_elements', '-0undef', &
+        '-branch', '-blank_replacement', '-lords', '-middle', '-tracking_elements', '-0undef', '-beginning', &
         '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
         '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe'], &
@@ -2150,8 +2150,11 @@ case ('lattice')
     case ('-lords')
       print_lords = yes$
 
+    case ('-beginning')
+      where = 'beginning'
+
     case ('-middle')
-      at_ends = .false.
+      where = 'middle'
 
     case ('-no_label_lines')
       print_header_lines = .false.
@@ -2512,11 +2515,11 @@ case ('lattice')
 
     picked_ele = .false.
     do ie = 1, branch%n_ele_track
-      if (at_ends) then;
-        s_ele = branch%ele(ie)%s
-      else
-        s_ele = (branch%ele(ie)%s_start + branch%ele(ie)%s) / 2
-      endif
+      select case (where)
+      case ('exit');      s_ele = branch%ele(ie)%s
+      case ('middle');    s_ele = (branch%ele(ie)%s_start + branch%ele(ie)%s) / 2
+      case ('beginning'); s_ele = branch%ele(ie)%s_start
+      end select
       if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
     enddo
 
@@ -2575,11 +2578,11 @@ case ('lattice')
     ix1 = 0
 
   else
-    if (at_ends) then
-      line1 = '# Values shown are for the Exit End of each Element:'
-    else
-      line1 = '# Values shown are for the Center of each Element:'
-    endif
+    select case (where)
+    case ('exit');      line1 = '# Values shown are for the Exit End of each Element:'
+    case ('middle');    line1 = '# Values shown are for the Center of each Element:'
+    case ('beginning'); line1 = '# Values shown are for the Beginning of each Element:'
+    end select
 
     if (size(lat%branch) > 1) line1 = '# Branch ' // int_str(branch%ix_branch) // '.' // line1(2:)
     if (size(s%u) > 1) line1 = '# Universe ' // int_str(u%ix_uni) // '.' // line1(2:)
@@ -2863,8 +2866,10 @@ case ('lattice')
         write (nam, '(i0, a, i0)') ix_branch, '>>', ie
         call str_substitute (name, '#', trim(nam))
         ix = index(name, 'ele::')
-        if (.not. at_ends .and. ix /= 0) then
+        if (where == 'middle' .and. ix /= 0) then
           name = name(:ix+2) // '_mid' // trim(name(ix+3:))
+        elseif (where == 'beginning' .and. ix /= 0) then
+          name = name(:ix+2) // '_begin' // trim(name(ix+3:))
         endif
         call tao_evaluate_expression (name, 1, .false., value, info, err, .false., &
                                                   dflt_component = tao_lat_type_name(lat_type), dflt_uni = u%ix_uni)

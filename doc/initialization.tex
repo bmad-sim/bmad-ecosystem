@@ -888,7 +888,21 @@ saved_at}, \vn{set beam add_saved_at}, and \vn{set beam subtract_saved_at} comma
 (\sref{s:set.beam}). To write the beam particle positions use the \vn{write beam} command (\sref{s:write.beam}).
 
 If the beam size is large or the number of elements at which the beam is to be saved at is large, it
-may be problematic 
+may be problematic to store all the beam particle position information in memory until the end of
+tracking. If this is the case, the beam particle position information can be writen directly to a
+file during tracking (and not saved in memory) by setting \vn{beam_dump_at} to a list of elements at
+which the position information is to be saved and setting \vn{beam_dump_file} to the name of the
+data file. The data file should have an ".h5" or ".hdf5" suffix to save the data in HDF5
+format. Otherwise, an ASCII file will be produced. The syntax for \vn{beam_dump_at} is the same at
+\vn{beam_saved_at}. Saving directly to a file using \vn{beam_dump_at} is separate from saving to
+memory using \vn{beam_saved_at}. Example
+\begin{example}
+  &tao_beam_init
+    beam_dump_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
+                                      !   and all elements that have "34w" in their name. 
+    beam_dump_file = "beam_dump.h5"
+  /
+\end{example}
 
 The three random number generator parameters (\vn{%random_engine}, \vn{%random_gauss_converter}, and
 \vn{%random_sigma_cutoff}) used for initializing the beam are set in the \vn{tao_global_struct}
