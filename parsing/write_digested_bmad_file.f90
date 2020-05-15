@@ -381,7 +381,7 @@ if (associated(ele%converter)) then
   write (d_unit) ele%converter%species_out, ele%converter%material_type, size(ele%converter%dist)
   do n = 1, size(ele%converter%dist)
     c_dist => ele%converter%dist(n)
-    write (d_unit) c_dist%thickness, c_dist%dxy_ds_max, size(c_dist%sub_dist)
+    write (d_unit) c_dist%thickness, size(c_dist%sub_dist)
     do j = 1, size(c_dist%sub_dist)
       write (d_unit) c_dist%sub_dist(j)%pc_in
       ppcr => c_dist%sub_dist(j)%prob_pc_r
@@ -390,10 +390,16 @@ if (associated(ele%converter)) then
       write (d_unit) ppcr%r
       write (d_unit) ppcr%prob
       c_dir => c_dist%sub_dist(j)%dir_out
-      write (d_unit) size(c_dir%beta%fit_1D_r), size(c_dir%alpha_x%fit_1D_r), size(c_dir%alpha_y%fit_1D_r)
-      write (d_unit) c_dir%beta%fit_1d_r, c_dir%beta%poly_pc, c_dir%c_x
-      write (d_unit) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_2d_pc, c_dir%alpha_x%fit_2d_r
-      write (d_unit) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_2d_pc, c_dir%alpha_y%fit_2d_r
+      write (d_unit) [size(c_dir%beta%fit_1D_r), size(c_dir%alpha_x%fit_1D_r), size(c_dir%alpha_y%fit_1D_r), &
+                  size(c_dir%c_x%fit_1D_r), size(c_dir%dxds_min%fit_1D_r), size(c_dir%dxds_max%fit_1D_r), &
+                  size(c_dir%dyds_max%fit_1D_r)]
+      write (d_unit) c_dir%beta%fit_1d_r, c_dir%beta%fit_2d_pc, c_dir%beta%fit_2d_r, c_dir%beta%c0
+      write (d_unit) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_2d_pc, c_dir%alpha_x%fit_2d_r, c_dir%alpha_x%c0
+      write (d_unit) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_2d_pc, c_dir%alpha_y%fit_2d_r, c_dir%alpha_y%c0
+      write (d_unit) c_dir%c_x%fit_1d_r, c_dir%c_x%fit_2d_pc, c_dir%c_x%fit_2d_r, c_dir%c_x%c0
+      write (d_unit) c_dir%dxds_min%fit_1d_r, c_dir%dxds_min%fit_2d_pc, c_dir%dxds_min%fit_2d_r, c_dir%dxds_min%c0
+      write (d_unit) c_dir%dxds_max%fit_1d_r, c_dir%dxds_max%fit_2d_pc, c_dir%dxds_max%fit_2d_r, c_dir%dxds_max%c0
+      write (d_unit) c_dir%dyds_max%fit_1d_r, c_dir%dyds_max%fit_2d_pc, c_dir%dyds_max%fit_2d_r, c_dir%dyds_max%c0
     enddo
   enddo
 endif

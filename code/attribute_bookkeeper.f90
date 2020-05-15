@@ -550,7 +550,7 @@ case (sbend$)
   else
     val(rho$) = 1 / val(g$)
     val(l_chord$) = 2 * val(rho$) * sin(val(angle$)/2)
-    val(l_sagitta$) = -val(rho$) * cos_one(cos(val(angle$)/2))
+    val(l_sagitta$) = -val(rho$) * cos_one(val(angle$)/2)
   endif
 
   if (ele_value_has_changed(ele, [g$], [1e-10_rp], .false.)) then

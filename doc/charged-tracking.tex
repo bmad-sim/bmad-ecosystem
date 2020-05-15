@@ -621,8 +621,8 @@ parameters using the derivatives $x' = dx/ds$ and $y' = dy/ds$ in the form of a 
 probability distribution $P_d$
 \begin{equation}
   P_d\left( x', y' ; p_\txt{out}, r \right) =
-  A_d \, \frac{1 + \beta \, x'}{1 + \alpha_x \, \left( x' - c_x \right)^2 +
-  \alpha_y \, \left( y' \right)^2}
+  A_d \, \frac{1 + \beta \, x'}{1 + \alpha_x^2 \, \left( x' - c_x \right)^2 +
+  \alpha_y^2 \, \left( y' \right)^2}
   \label{pxsxs}
 \end{equation}
 where the parameters $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ all depend upon $p_\txt{out}$
@@ -646,8 +646,8 @@ $p_i$. At higher energies, the fit function $\beta_h$ is used
 
 For $c_x(p_\txt{out},r)$ the fit function is
 \begin{equation}
-  c_x(p_\txt{out},r) = \left( \sum_{n=1}^3 a_{n} \, r^n \right) \, 
-  \left( \sum_{n=0}^3 b_{n} \, p_\txt{out}^n \right)
+  c_x(p_\txt{out},r) = \left( \sum_{n=1}^4 a_{n} \, r^n \right) \, 
+  \left( \sum_{n=0}^4 b_{n} \, p_\txt{out}^n \right)
 \end{equation}
 The $a_0$ coeficient is zero by symmetry.
 
@@ -655,14 +655,14 @@ For $\alpha_x(p_\txt{out},r)$ and $\alpha_y(p_\txt{out},r)$, like the $\beta$ fi
 one-dimensional fit functions $\alpha_i(r)$ (the $x$ and $y$ subscripts are being suppressed here)
 at momentum $p_i$, $i = 1, \ldots, N_\alpha$ with
 \begin{equation}
-  \alpha_i(r) = \left( \sum_{n=0}^3 d_{n,i} \, r^n \right) \, e^{-k \, r}
+  \alpha_i(r) = \left( \sum_{n=0}^4 d_{n,i} \, r^n \right) \, e^{-k \, r}
 \end{equation}
 To evaluate $\alpha(p_\txt{out},r)$ at momenta lower than $p_{N_\alpha}$, the $\alpha_i$ are used with
 linear interpolation between functions of different $p_i$.  At higher energies, the fit function
 $\alpha_h$ is used
 \begin{equation}
   \alpha_h(p_\txt{out},r) = \frac{1}{p_\txt{out}} \, e^{-(k_p \, p_\txt{out} + k_r \, r)} \,
-  \left( \sum_{n=0}^3 k_{n,i} \, r^n \right) \, \left( \sum_{n=0}^3 w_{n,i} \, p_\txt{out}^n \right)
+  \left( \sum_{n=0}^4 k_{n,i} \, r^n \right) \, \left( \sum_{n=0}^4 w_{n,i} \, p_\txt{out}^n \right)
 \end{equation}
 
 Once $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ are calculated at a given $p_\txt{out}$ and $r$,
@@ -678,8 +678,8 @@ $r$, The calculation of $x'$ starts with integrating $P_d$ in \Eq{pxsxs} over $y
 \begin{align} 
   I_{xd} (x') &\equiv \int_{-y'_\txt{lim}}^{y'_\txt{lim}} dy' \, P_d(x', y')
   \label{ixdyp} \\
-  &= 2 \, A_d \, \frac{1 + \beta \, x'}{\sqrt{ \alpha_y \, (1 + \alpha_x \, (x' - c_x)^2) }} \,
-  \tan^{-1} \left( \sqrt{ \frac{\alpha_y}{1 + \alpha_x \, (x' - c_x)^2} } \, y'_\txt{lim} \right)
+  &= 2 \, A_d \, \frac{1 + \beta \, x'}{\alpha_y \, \sqrt{1 + \alpha_x^2 \, (x' - c_x)^2 }} \,
+  \tan^{-1} \left( \frac{\alpha_y \, y'_\txt{lim}}{\sqrt{1 + \alpha_x^2 \, (x' - c_x)^2}} \right)
   \nonumber
 \end{align}
 where $y'_\txt{lim}$ is either the lesser of $\tan^{-1}(\text{angle_out_max})$ or the maximum
