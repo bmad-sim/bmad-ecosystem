@@ -125,6 +125,7 @@ void CalibrationBinner::run(size_t run_length) {
   run_simulation(runManager, target_material, in_energy, target_thickness,
       point_cache, run_length);
   for (auto& p : *point_cache) add_point(p);
+  elec_in += run_length;
 }
 
 
