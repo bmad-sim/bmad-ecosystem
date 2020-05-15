@@ -2150,7 +2150,7 @@ Shows all key bindings (\sref{s:key.bind}).
 
 Syntax:
 \begin{example}
-  show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\}
+  show lattice \{-0undef\} \{-all\} \{-attribute <attrib>\} \{-base\} \{-beginning\}
       \{-blank_replacement <string>\}  \{-branch <name_or_index>\}
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
       \{-no_label_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-no_tail_lines\} \{-orbit\} 
@@ -2206,6 +2206,14 @@ Also see the \vn{-0undef}, \vn{-undef0}, and \vn{-blank_replacement} switches.
 %
 \item[-base] \Newline
   Show values from the \vn{base} lattice instead of the \vn{model} lattice. Also see the \vn{-design} switch.
+%
+\item[-beginning] \Newline
+Show value evaluated at the beginning of the lattice elements instead of the default exit end.
+The \vn{-beginning} switch is ignored when displaying ``Intrinsic'' element
+parameters such as the element's length or an element's field strength (which can be displayed using
+the \vn{-attribute} switch as discussed below). Also the \vn{-beginning} switch is ignored when
+displaying beam based parameters. Also see \vn{-middle}.
+
 %
 \item[-blank_replacement <string>] \Newline
 The \vn{-blank_replacement} switch specifies that whenever a blank string is
@@ -2294,7 +2302,7 @@ Show value evaluated at the middle of the lattice elements instead of the defaul
 The \vn{-middle} switch is ignored when displaying ``Intrinsic'' element
 parameters such as the element's length or an element's field strength (which can be displayed using
 the \vn{-attribute} switch as discussed below). Also the \vn{-middle} switch is ignored when
-displaying beam based parameters.
+displaying beam based parameters. Also see \vn{-beginning}.
 %
 \item[-no_label_lines] \Newline
 If present, the \vn{-no_label_lines} switch will prevent the printing of the header (containing the

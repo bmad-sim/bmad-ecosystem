@@ -1,7 +1,7 @@
 set global plot_on = false
 !set global lattice_calc_on = false
 set global track_type = single
-set universe * mat6_recalc off
+set universe * twiss_calc off
 
 !---Special Settings
 
@@ -23,7 +23,7 @@ set global merit_stop_value = -1
 run
 
 
-set universe * mat6_recalc on
+set universe * twiss_calc on
 
 !---Dispersion Correction
 !call ../../DispersionCorrect.tao

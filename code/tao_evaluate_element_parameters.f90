@@ -45,9 +45,11 @@ real(rp), allocatable :: values(:)
 real(rp) :: real_val
 
 integer, optional :: dflt_uni
-integer i, j, ix, num, ixe, ix1, ios, n_tot, ix_start, ib
+integer i, j, ix, num, ixe, ix1, ios, n_tot, ix_start, ib, where
 
-logical err, valid, middle
+integer, parameter :: beginning$ = 1, middle$ = 2, end$ = 3
+
+logical err, valid
 logical :: print_err
 
 !
@@ -59,10 +61,13 @@ err = .true.
 
 if (name(1:5) == 'ele::') then
   name = name(6:)  ! Strip off 'ele::'
-  middle = .false.
+  where = end$
 elseif (name(1:9) == 'ele_mid::') then   
   name = name(10:)  ! Strip off 'ele_mid::'
-  middle = .true.
+  where = middle$
+elseif (name(1:11) == 'ele_begin::') then   
+  name = name(12:)  ! Strip off 'ele_begin::'
+  where = beginning$
 elseif (dflt_source /= 'element') then
   return
 endif
@@ -95,7 +100,7 @@ parameter = name(1:ix1-1)
 ! "Intrinsic" element parameter values are not affected by evaluation in the middle.
 ! It is easier to list what is not intrinsic.
 
-if (middle) then
+if (where /= end$) then
   select case (parameter)
   ! These are non-intrinsic
   case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position', &
@@ -108,7 +113,7 @@ if (middle) then
         'phase_x', 'phase.x', 'phase_y', 'phase.y', 't', 'time', 'beta', 'energy', 'pc', 's')
 
   case default
-    middle = .false.
+    where = end$
   end select
 endif
 
@@ -149,7 +154,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       return
     end select
 
-    if (middle .and. ixe /= 0) then
+    if (where /= end$ .and. ixe /= 0) then
       ! Need to find element just before the element under consideration. 
       ! This is complicated if the element under consideration is a lord.
       ele0 => branch%ele(ixe)
@@ -160,21 +165,31 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       ele0 => pointer_to_next_ele(ele0, -1)
       orb0 => tao_branch(ele0%ix_branch)%orbit(ele0%ix_ele)
 
-      select case (parameter)
-      case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position')
-        call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
-                                                       .true., .false., orb0, orb, ele0, ele3, compute_floor_coords = .true.)
-        err = .true. ! To trigger call to pointer_to_attribute
-      case default
-        call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
-                                                                      .true., .false., orb0, orb, ele0, ele3, err)
-        call tao_orbit_value (parameter, orb, values(n_tot+j), err)
-      end select
+      if (where == middle$) then
+        select case (parameter)
+        case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position')
+          call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
+                                                         .true., .false., orb0, orb, ele0, ele3, compute_floor_coords = .true.)
+          err = .true. ! To trigger call to pointer_to_attribute
+        case default
+          call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
+                                                                        .true., .false., orb0, orb, ele0, ele3, err)
+          call tao_orbit_value (parameter, orb, values(n_tot+j), err)
+        end select
 
-      if (err) then
-        call pointer_to_attribute (ele3, parameter, .true., a_ptr, err, print_err)
-        if (err) return
-        values(n_tot+j) = value_of_all_ptr(a_ptr)
+        if (err) then
+          call pointer_to_attribute (ele3, parameter, .true., a_ptr, err, print_err)
+          if (err) return
+          values(n_tot+j) = value_of_all_ptr(a_ptr)
+        endif
+
+      else
+        call tao_orbit_value (parameter, orb0, values(n_tot+j), err)
+        if (err) then
+          call pointer_to_attribute (ele0, parameter, .true., a_ptr, err, print_err)
+          if (err) return
+          values(n_tot+j) = value_of_all_ptr(a_ptr)
+        endif
       endif
 
     else

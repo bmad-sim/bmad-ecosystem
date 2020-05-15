@@ -43,8 +43,8 @@ alias ploton set global plot_on = true
 alias clearplots place floor none;place top none;place middle none;place bottom none
 alias phaseplots place r11 zphase;place r12 xphase;place r21 zhist;place r22 yphase;place bottom layout
 
-alias mat6on  set universe * mat6_recalc on
-alias mat6off set universe * mat6_recalc off
+alias mat6on  set universe * twiss_calc on
+alias mat6off set universe * twiss_calc off
 
 x-a all s
 sc
