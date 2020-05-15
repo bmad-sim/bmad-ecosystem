@@ -1028,42 +1028,30 @@ type converter_prob_pc_r_struct
   real(rp), allocatable :: integ_r_ave(:)
 end type
 
-! dx/ds, dy/ds coef fits
+! coef fits
 
-type converter_beta1_struct
+type converter_dir_1D_struct
   real(rp) :: pc_out = 0          ! pc_out value at fit
-  real(rp) :: poly(0:4) = 0       ! beta(r) = Sum: poly(i) * r^i
+  real(rp) :: poly(0:4) = 0       ! param(r) = Sum: poly(i) * r^i
 end type
 
-type converter_beta_struct
-  type (converter_beta1_struct), allocatable :: fit_1d_r(:)
-  real(rp) :: poly_pc(0:3) = 0     
-  real(rp) :: poly_r(0:3) = 0     
-end type
-
-type converter_alpha1_struct   ! 1D fit
-  real(rp) :: pc_out = 0       ! pc_out value at fit
-  real(rp) :: k = 0            ! alpha(r) = exp(-k) * (Sum: poly(i) * r^i)
+type converter_dir_2D_struct
+  real(rp) :: k = 0
   real(rp) :: poly(0:3) = 0
 end type
 
-type converter_alpha_struct       ! 2D fit
-  type (converter_alpha1_struct), allocatable :: fit_1d_r(:)
-  type (converter_alpha1_struct) :: fit_2d_pc
-  type (converter_alpha1_struct) :: fit_2d_r
-end type
-
-! c_x = A_c * pc_out^k_pc * r^k_r
-
-type converter_c_x_struct
-  real(rp) :: poly_r(0:3) = 0     
-  real(rp) :: poly_pc(0:3) = 0     
+type converter_dir_coef_struct
+  type (converter_dir_1D_struct), allocatable :: fit_1d_r(:)
+  type (converter_dir_2D_struct) :: fit_2d_r
+  type (converter_dir_2D_struct) :: fit_2d_pc
+  real(rp) :: c0 = 0
 end type
 
 type converter_direction_out_struct
-  type (converter_beta_struct) :: beta
-  type (converter_alpha_struct) :: alpha_x, alpha_y
-  type (converter_c_x_struct) :: c_x
+  type (converter_dir_coef_struct) :: beta
+  type (converter_dir_coef_struct) :: alpha_x, alpha_y
+  type (converter_dir_coef_struct) :: dxds_min, dxds_max, dyds_max
+  type (converter_dir_coef_struct) :: c_x
 end type
 
 ! Converter structure for a given incoming particle energy.
@@ -1078,8 +1066,6 @@ end type
 
 type converter_distribution_struct
   real(rp) :: thickness = -1
-  real(rp) :: dxy_ds_max    ! Direction_out parameters fit over range [-dxy_ds_max, dxy_ds_max]
-  real(rp) :: dxy_ds_limit  ! = min(dxy_ds_max, atan(angle_out_max))
   type (converter_sub_distribution_struct), allocatable :: sub_dist(:) ! Distribution at various pc_in values.
 end type
 

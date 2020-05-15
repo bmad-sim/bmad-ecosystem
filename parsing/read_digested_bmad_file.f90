@@ -480,7 +480,7 @@ integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
-integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, n3, ne, nr, ns
+integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns
 
 logical error, is_alloc_pt, ac_kicker_alloc
 
@@ -556,7 +556,7 @@ if (ix_convert == 1) then
   allocate (ele%converter%dist(ns))
   do n = 1, size(ele%converter%dist)
     c_dist => ele%converter%dist(n)
-    read (d_unit, err = 9120) c_dist%thickness, c_dist%dxy_ds_max, ns
+    read (d_unit, err = 9120) c_dist%thickness, ns
     allocate (c_dist%sub_dist(ns))
     do j = 1, size(c_dist%sub_dist)
       read (d_unit, err = 9120) c_dist%sub_dist(j)%pc_in
@@ -567,11 +567,17 @@ if (ix_convert == 1) then
       read (d_unit, err = 9120) ppcr%r
       read (d_unit, err = 9120) ppcr%prob
       c_dir => c_dist%sub_dist(j)%dir_out
-      read (d_unit, err = 9120) n1, n2, n3
-      allocate (c_dir%beta%fit_1D_r(n1), c_dir%alpha_x%fit_1D_r(n2), c_dir%alpha_y%fit_1D_r(n3))
-      read (d_unit, err = 9120) c_dir%beta%fit_1d_r, c_dir%beta%poly_pc, c_dir%c_x
-      read (d_unit, err = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_2d_pc, c_dir%alpha_x%fit_2d_r
-      read (d_unit, err = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_2d_pc, c_dir%alpha_y%fit_2d_r
+      read (d_unit, err = 9120) nn
+      allocate (c_dir%beta%fit_1D_r(nn(1)), c_dir%alpha_x%fit_1D_r(nn(2)), c_dir%alpha_y%fit_1D_r(nn(3)), &
+                c_dir%c_x%fit_1D_r(nn(4)), c_dir%dxds_min%fit_1D_r(nn(5)), c_dir%dxds_max%fit_1D_r(nn(6)), &
+                c_dir%dyds_max%fit_1D_r(nn(7)))
+      read (d_unit, err = 9120) c_dir%beta%fit_1d_r, c_dir%beta%fit_2d_pc, c_dir%beta%fit_2d_r, c_dir%beta%c0
+      read (d_unit, err = 9120) c_dir%alpha_x%fit_1d_r, c_dir%alpha_x%fit_2d_pc, c_dir%alpha_x%fit_2d_r, c_dir%alpha_x%c0
+      read (d_unit, err = 9120) c_dir%alpha_y%fit_1d_r, c_dir%alpha_y%fit_2d_pc, c_dir%alpha_y%fit_2d_r, c_dir%alpha_y%c0
+      read (d_unit, err = 9120) c_dir%c_x%fit_1d_r, c_dir%c_x%fit_2d_pc, c_dir%c_x%fit_2d_r, c_dir%c_x%c0
+      read (d_unit, err = 9120) c_dir%dxds_min%fit_1d_r, c_dir%dxds_min%fit_2d_pc, c_dir%dxds_min%fit_2d_r, c_dir%dxds_min%c0
+      read (d_unit, err = 9120) c_dir%dxds_max%fit_1d_r, c_dir%dxds_max%fit_2d_pc, c_dir%dxds_max%fit_2d_r, c_dir%dxds_max%c0
+      read (d_unit, err = 9120) c_dir%dyds_max%fit_1d_r, c_dir%dyds_max%fit_2d_pc, c_dir%dyds_max%fit_2d_r, c_dir%dyds_max%c0
     enddo
   enddo
 endif
