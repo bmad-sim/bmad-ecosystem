@@ -81,7 +81,7 @@ n_subd = subobject_number(obj0, 'SUB_DISTRIBUTION')
 allocate (dist%sub_dist(n_subd))
 
 if (.not. parser_check_subobjects(obj0, [subobj('THICKNESS',1,1), subobj('SUB_DISTRIBUTION',1,9999), &
-                       subobj('DXY_DS_MAX',1,1), subobj('MATERIAL',1,1), subobj('SPECIES_OUT',1,1)], ele)) return
+                       subobj('MATERIAL',1,1), subobj('SPECIES_OUT',1,1)], ele)) return
 
 if (.not. parser_read_subobj_real(obj0, 'THICKNESS', dist%thickness, ele)) return
 
@@ -173,11 +173,11 @@ obj3 => pointer_to_subobject(obj2, who)
 
 if (has_c) then
   if (.not. parser_check_subobjects (obj3, [subobj('FIT_1D_R',0,9999), subobj('FIT_2D_PC',1,1), &
-                                                 subobj('FIT_2D_R',1,1), subobj('C0',1,1)], ele)) return
+                                                 subobj('FIT_2D_R',1,1), subobj('C',1,1)], ele)) return
   if (.not. parser_read_subobj_real(obj3, 'C', coef_head%c0, ele)) return
 else
   if (.not. parser_check_subobjects (obj3, [subobj('FIT_1D_R',1,9999), subobj('FIT_2D_PC',1,1), &
-                           subobj('FIT_2D_R',1,1), subobj('K_PC',1,1), subobj('K_R',1,1)], ele)) return
+                                                 subobj('FIT_2D_R',1,1)], ele)) return
 endif
 
 n_r = subobject_number(obj3, 'FIT_1D_R')

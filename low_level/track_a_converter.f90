@@ -87,8 +87,10 @@ call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_m
 
 ! Find dists that straddle thickness
 
-if (.not. allocated(ele%converter%dist(1)%sub_dist(1)%prob_pc_r%p_norm)) call probability_tables_setup(ele, err_flag)
-if (err_flag) goto 9000
+if (.not. allocated(ele%converter%dist(1)%sub_dist(1)%prob_pc_r%p_norm)) then
+  call probability_tables_setup(ele, err_flag)
+  if (err_flag) goto 9000
+endif
 
 pc_in = orbit%p0c * (1 + orbit%vec(6))
 call ran_uniform(r_ran)
@@ -259,7 +261,7 @@ end function dxds_func
 !------------------------------------------------
 ! contains
 
-subroutine probability_tables_setup(ele, err_flag)
+subroutine probability_tables_setup (ele, err_flag)
 
 type (ele_struct), target :: ele
 type (converter_struct), pointer :: conv
@@ -276,6 +278,7 @@ logical err_flag, ordered
 
 ! Order distributions in thickness
 
+err_flag = .true.
 conv => ele%converter
 
 ordered  = .true.
@@ -316,7 +319,7 @@ do id = 1, size(conv%dist)
     if (ppcr%pc_out_max <= ppcr%pc_out_min) then
       call out_io(s_fatal$, r_name, 'PC_OUT_MAX IS LESS THAN OR EQUAL TO PC_OUT_MIN. FOR ELEMENT: ' // ele%name, &
                                     'PARTICLE WILL BE MARKED AS LOST.')
-      err_flag = .true.
+      return
     endif
 
     do ipc = 1, npc
@@ -492,9 +495,9 @@ end subroutine calc_dir_out_params
 !------------------------------------------------
 ! contains
 
-function dir_out_calc (value, out, dir_coef) result (is_ok)
+function dir_out_calc (value, out, dc) result (is_ok)
 
-type (converter_dir_coef_struct) dir_coef
+type (converter_dir_coef_struct) dc
 type (converter_param_storage_struct) out
 real(rp) value, dr
 integer n, ix
@@ -502,14 +505,14 @@ logical is_ok
 
 !
 
-n = size(dir_coef%fit_1d_r)
+n = size(dc%fit_1d_r)
 
-if (out%pc_out >= dir_coef%fit_1d_r(n)%pc_out) then
-  value = poly_eval(dir_coef%fit_2d_pc%poly, out%pc_out) * poly_eval(dir_coef%fit_2d_r%poly, out%r) + dir_coef%c0
+if (out%pc_out >= dc%fit_1d_r(n)%pc_out) then
+  value = poly_eval(dc%fit_2d_pc%poly, out%pc_out) * poly_eval(dc%fit_2d_r%poly, out%r) * &
+                 exp(-dc%fit_2d_pc%k * out%pc_out - dc%fit_2d_r%k * out%r) + dc%c0
 else
-  ix = bracket_index(out%pc_out, dir_coef%fit_1d_r%pc_out, 1, dr, restrict = .true.)
-  value = (1 - dr) * poly_eval(dir_coef%fit_1d_r(ix)%poly, out%r) + &
-                dr * poly_eval(dir_coef%fit_1d_r(ix+1)%poly, out%r) 
+  ix = bracket_index(out%pc_out, dc%fit_1d_r%pc_out, 1, dr, restrict = .true.)
+  value = (1 - dr) * poly_eval(dc%fit_1d_r(ix)%poly, out%r) + dr * poly_eval(dc%fit_1d_r(ix+1)%poly, out%r) 
 endif
 
 is_ok = .true.
