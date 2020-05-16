@@ -487,7 +487,7 @@ do i = 0, n_pt
   endif
 enddo
 
-out%integ_prob_tot = 1 / integ(n_pt)
+out%integ_prob_tot = integ(n_pt)
 err_flag = .false.
 
 end subroutine calc_dir_out_params
