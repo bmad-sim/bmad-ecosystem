@@ -1289,10 +1289,10 @@ end type
 !
 
 type branch_struct
-  character(40) :: name = ''       ! Set to name of line that defines the branch.
+  character(40) :: name = ''       ! Name of line that defines the branch.
   integer :: ix_branch = -1        ! Index of this branch. 0 => Main branch
-  integer :: ix_from_branch = -1   ! -1 => No forking element to beginning of branch.
-  integer :: ix_from_ele = -1      ! Forking element which forks to beginning of branch.
+  integer :: ix_from_branch = -1   ! -1 => No creating fork element to this branch.
+  integer :: ix_from_ele = -1      ! Creating fork element which forks to this branch.
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
   type (lat_struct), pointer :: lat => null()
@@ -1497,7 +1497,7 @@ integer, parameter :: lattice_type$ = 45, B1_gradient$ = 45, E1_gradient$ = 45, 
 integer, parameter :: live_branch$ = 46, B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: geometry$ = 47, coupler_at$ = 47, E_tot_set$ = 47, ptc_canonical_coords$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, p0c_set$ = 48, particle$ = 48
-integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49, floor_set$ = 49
+integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50
 integer, parameter :: p0c_start$ = 51
 integer, parameter :: e_tot_start$ = 52

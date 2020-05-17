@@ -899,8 +899,8 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%photon_type             = in_lat%photon_type
     lat%absolute_time_tracking  = in_lat%absolute_time_tracking
     lat%input_taylor_order      = in_lat%input_taylor_order
-    if (allocated(in_lat%custom))   lat%custom                  = in_lat%custom
-    if (allocated(in_lat%constant)) lat%constant                = in_lat%constant
+    if (allocated(in_lat%custom))   lat%custom   = in_lat%custom
+    if (allocated(in_lat%constant)) lat%constant = in_lat%constant
 
     call mat_make_unit (lat%ele(0)%mat6)
     call clear_lat_1turn_mats (lat)
@@ -945,7 +945,7 @@ branch_loop: do i_loop = 1, n_branch_max
       lat%param%geometry = open$
     endif
 
-  endif
+  endif  ! n_branch == 0
 
   !----
 
@@ -986,16 +986,28 @@ branch_loop: do i_loop = 1, n_branch_max
   branch%param%default_tracking_species = ref_particle$
   val = param_ele%value(default_tracking_species$)
   if (n_branch == 0 .and.  val /= real_garbage$) branch%param%default_tracking_species = nint(val)
-  val = ele%value(default_tracking_species$)
-  if (val /= real_garbage$) branch%param%default_tracking_species = nint(val)
 
-  if (ele%value(p0c$)>= 0)        ele0%value(p0c$)      = ele%value(p0c$)
-  if (ele%value(e_tot$)>= 0)      ele0%value(e_tot$)    = ele%value(e_tot$)
-  if (ele%a%beta /= 0)            ele0%a                = ele%a
-  if (ele%b%beta /= 0)            ele0%b                = ele%b
-  if (ele%value(floor_set$) /= 0) ele0%floor            = ele%floor
-  if (ele%s /= 0)                 ele0%s                = ele%s
-  if (ele%ref_time /= 0)          ele0%ref_time         = ele%ref_time
+  do i = 1, num_ele_attrib$
+    if (ele%value(i) == real_garbage$) cycle
+    select case (i)
+    case (default_tracking_species$);  branch%param%default_tracking_species = nint(ele%value(i))
+    case default;                      ele0%value(i) = ele%value(i)
+    end select
+  enddo
+
+  call set_this_real_val (ele%s,                 ele0%s)
+  call set_this_real_val (ele%ref_time,          ele0%ref_time)
+  call set_this_real_val (ele%floor%r(1),        ele0%floor%r(1))
+  call set_this_real_val (ele%floor%r(2),        ele0%floor%r(2))
+  call set_this_real_val (ele%floor%r(3),        ele0%floor%r(3))
+  call set_this_real_val (ele%floor%theta,       ele0%floor%theta)
+  call set_this_real_val (ele%floor%phi,         ele0%floor%phi)
+  call set_this_real_val (ele%floor%psi,         ele0%floor%psi)
+  call set_this_twiss_struct (ele%a, ele0%a)
+  call set_this_twiss_struct (ele%b, ele0%b)
+  call set_this_twiss_struct (ele%z, ele0%z)
+  call set_this_xy_disp_struct (ele%x, ele0%x)
+  call set_this_xy_disp_struct (ele%y, ele0%y)
 
   call floor_angles_to_w_mat(ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, ele0%floor%w)
 
@@ -1459,5 +1471,41 @@ plat%ele(n_max)%lat_file = bp_com%current_file%full_name
 plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
 
 end subroutine new_element_init
+
+!---------------------------------------------------------------------
+! contains
+
+subroutine set_this_twiss_struct (t_in, t_out)
+type (twiss_struct) t_in, t_out
+call set_this_real_val(t_in%beta,      t_out%beta)
+call set_this_real_val(t_in%alpha,     t_out%alpha)
+call set_this_real_val(t_in%gamma,     t_out%gamma)
+call set_this_real_val(t_in%phi,       t_out%phi)
+call set_this_real_val(t_in%eta,       t_out%eta)
+call set_this_real_val(t_in%etap,      t_out%etap)
+call set_this_real_val(t_in%sigma,     t_out%sigma)
+call set_this_real_val(t_in%sigma_p,   t_out%sigma_p)
+call set_this_real_val(t_in%emit,      t_out%emit)
+call set_this_real_val(t_in%norm_emit, t_out%norm_emit)
+end subroutine set_this_twiss_struct
+
+!---------------------------------------------------------------------
+! contains
+
+subroutine set_this_xy_disp_struct (t_in, t_out)
+type (xy_disp_struct) t_in, t_out
+call set_this_real_val(t_in%eta,       t_out%eta)
+call set_this_real_val(t_in%etap,      t_out%etap)
+call set_this_real_val(t_in%sigma,     t_out%sigma)
+end subroutine set_this_xy_disp_struct
+
+!---------------------------------------------------------------------
+! contains
+
+subroutine set_this_real_val (val_in, val_out)
+real(rp) val_in, val_out
+if (val_in /= real_garbage$) val_out = val_in
+end subroutine set_this_real_val
+
 
 end subroutine bmad_parser
