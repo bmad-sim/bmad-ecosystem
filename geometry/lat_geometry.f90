@@ -43,8 +43,6 @@ do ib = 0, ubound(lat%branch, 1)
     is_stale = .false.
   endif
 
-  branch%ele(0)%value(floor_set$) = false$
-
   ! If there are fiducial elements then survey the fiducial regions
 
   do i = 1, branch%n_ele_track
@@ -74,7 +72,6 @@ do ib = 0, ubound(lat%branch, 1)
         exit
       endif
       call ele_geometry (ele2%floor, ele2, branch%ele(i2-1)%floor, -1.0_rp)
-      if (i2 - 1 == 0) branch%ele(i2-1)%value(floor_set$) = true$
       branch%ele(i2-1)%bookkeeping_state%floor_position = ok$
     enddo
   enddo
@@ -167,7 +164,6 @@ endif
 !
 
 if (.not. is_stale .and. ele%bookkeeping_state%floor_position /= stale$) return
-if (ele%ix_ele == 0) ele%value(floor_set$) = true$
 
 floor0 = ele%floor
 

@@ -108,7 +108,7 @@ character(*), parameter :: r_name = 'write_bmad_lattice_file'
 integer, optional :: output_form
 integer i, j, k, n, ii, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, ie1, ie, ib, ib1, ic
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
-integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
+integer ix_slave, ix_ss, ix_l, ix_r, ix_pass, ix_to
 integer ix_lord, ix_super, default_val, imax, ibr
 integer, allocatable :: an_indexx(:), index_list(:), n_count(:)
 
@@ -1178,6 +1178,7 @@ do ib = 0, ubound(lat%branch, 1)
   if (branch%ix_from_branch > -1) then
     branch2 => lat%branch(branch%ix_from_branch)
     if (branch2%param%particle == branch%param%particle) cycle
+
   endif
 
   ele0 => branch%ele(0)
@@ -1186,7 +1187,10 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c$))
   call write_if_logic_param_changed (branch%param%high_energy_space_charge_on, .false., trim(branch%name) // '[high_energy_space_charge_on]')
 
-  if (is_false (ele0%value(floor_set$))) then
+  ix_to = -1
+  if (branch%ix_from_branch /= -1) ix_to = nint(branch2%ele(branch%ix_from_ele)%value(ix_to_element$))
+
+  if (ix_to /= 0) then
     if (ele0%floor%r(1) /= 0)   write (iu, '(3a)') trim(branch%name), '[x_position]     = ', re_str(ele0%floor%r(1))
     if (ele0%floor%r(2) /= 0)   write (iu, '(3a)') trim(branch%name), '[y_position]     = ', re_str(ele0%floor%r(2))
     if (ele0%floor%r(3) /= 0)   write (iu, '(3a)') trim(branch%name), '[z_position]     = ', re_str(ele0%floor%r(3))

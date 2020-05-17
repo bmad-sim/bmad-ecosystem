@@ -815,7 +815,6 @@ call init_attribute_name1 (beambeam$, crab_x3$,                     'CRAB_X3')
 call init_attribute_name1 (beambeam$, crab_tilt$,                   'CRAB_TILT')
 
 call init_attribute_name1 (beginning_ele$, l$,                           'l', private$)
-call init_attribute_name1 (beginning_ele$, floor_set$,                   'floor_set', private$)
 call init_attribute_name1 (beginning_ele$, delta_ref_time$,              'delta_ref_time', private$)
 call init_attribute_name1 (beginning_ele$, ref_time_start$,              'ref_time_start', private$)
 call init_attribute_name1 (beginning_ele$, e_tot_start$,                 'E_TOT_START', dependent$)

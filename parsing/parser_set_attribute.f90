@@ -1840,10 +1840,6 @@ case default   ! normal attribute
       a_ptr%r = value
       call set_flags_for_changed_attribute (ele, a_ptr, .false.)
 
-      if (attrib_word == 'X_POSITION' .or. attrib_word == 'X_POSITION' .or. &
-          attrib_word == 'X_POSITION' .or. attrib_word == 'THETA_POSITION' .or. &
-          attrib_word == 'PHI_POSITION' .or. attrib_word == 'PSI_POSITION') ele%value(floor_set$) = 1
-
       if (logic_option(.true., set_field_master)) then
         ix = len_trim(attrib_word)
         if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.

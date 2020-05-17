@@ -23,6 +23,7 @@ implicit none
 type (ele_struct) ele
 integer i, j
 logical, optional :: do_allocate
+real(rp) g
 
 !
 
@@ -168,14 +169,16 @@ case (lcavity$)
   ele%value(longitudinal_mode$) = 1
 
 case (line_ele$)
-  ele%value(particle$) = real_garbage$
-  ele%value(geometry$) = real_garbage$
-  ele%value(live_branch$) = real_garbage$
-  ele%value(high_energy_space_charge_on$) = real_garbage$
-  ele%value(default_tracking_species$) = real_garbage$
-  ele%value(e_tot$) = -1
-  ele%value(p0c$) = -1
-  ele%value(ix_branch$) = -1
+  g = real_garbage$
+  ele%value = g
+  ele%s     = g
+  ele%ref_time = g
+  ele%a = twiss_struct(g, g, g, g, g, g, g, g, g, g)
+  ele%b = twiss_struct(g, g, g, g, g, g, g, g, g, g)
+  ele%z = twiss_struct(g, g, g, g, g, g, g, g, g, g)
+  ele%x = xy_disp_struct(g,g,g)
+  ele%y = xy_disp_struct(g,g,g)
+  ele%floor = floor_position_struct([g,g,g], w_unit, g,g,g)
 
 case (mask$)
   ele%aperture_at = surface$
@@ -183,7 +186,7 @@ case (mask$)
   ele%offset_moves_aperture = .true.
   ele%value(mode$) = transmission$
   if (logic_option(.true., do_allocate)) then
-    ! Avoid "ele%photon = photon_element_struct()" to get around Ifort bug. 4/10/2019
+    ! Avoid "ele%photon = photon_element_struct()" to get around ifort bug. 4/10/2019
     if (associated(ele%photon)) deallocate(ele%photon)
     allocate(ele%photon)
   endif
@@ -192,7 +195,7 @@ case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (logic_option(.true., do_allocate)) then
-    ! Avoid "ele%photon = photon_element_struct()" to get around Ifort bug. 4/10/2019
+    ! Avoid "ele%photon = photon_element_struct()" to get around ifort bug. 4/10/2019
     if (associated(ele%photon)) deallocate(ele%photon)
     allocate(ele%photon)
   endif
