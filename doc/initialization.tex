@@ -334,25 +334,22 @@ unique. \vn{unique_name_suffix} uses element list format (\sref{s:ele.list.forma
 used to restrict which elements can have their names changed. The \vn{name} part is used as a
 suffix. This suffix must have a single \vn{``?''}  character.  When this suffix is applied to an
 element's name, a unique integer is inserted in place of the \vn{``?''}. For example, if
-\vn{unique_name_suffix} is \vn{"quad::\#\#?"}, and if the following quadrupoles are in the lattice:
+\vn{unique_name_suffix} is \vn{"quad::_?"}, and if the following quadrupoles are in the lattice:
 \begin{example}
         QA    QB    QX    QA    QB     QB
 \end{example}
 then after initialization, the names will be:
 \begin{example}
-        QA##1  QB##1  QX    QA##2  QB##2   QB##3
+        QA_1  QB_1  QX    QA_2  QB_2   QB_3
 \end{example}
-Using \vn{\#\#?"} as the suffix is convenient since it corresponds
-to the \bmad standard convention for distinguishing elements of the
-same name. See the \bmad manual for more details on this.
+Using \vn{_?"} as the suffix is convenient since it corresponds to the \bmad standard convention for
+distinguishing elements of the same name. See the \bmad manual for more details on this.
 
-Setting \vn{aperture_limit_on} to \vn{False} will turn off the
-aperture limits set in all lattices. This overrides the setting of
-\vn{parameter[aperture_limit_on]} in a lattice file.
+Setting \vn{aperture_limit_on} to \vn{False} will turn off the aperture limits set in all
+lattices. This overrides the setting of \vn{parameter[aperture_limit_on]} in a lattice file.
 
-The \vn{common_lattice} switch can be used when there is a baseline
-lattice that is common to all universes. See \sref{s:crl} for more
-details.
+The \vn{common_lattice} switch can be used when there is a baseline lattice that is common to all
+universes. See \sref{s:crl} for more details.
 
 %-----------------------------------------------------------------
 \section{Initializing Globals}

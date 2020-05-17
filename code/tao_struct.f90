@@ -750,7 +750,7 @@ type tao_common_struct
   character(12) :: quiet_arg = ''                  ! -quiet               command line argument
   character(12) :: noinit_arg = ''                 ! -noinit              command line argument
   character(80) :: single_mode_buffer = ''
-  character(40) :: unique_name_suffix
+  character(100) :: unique_name_suffix
   character(16) :: valid_plot_who(10)            ! model, base, ref etc...
 end type
 

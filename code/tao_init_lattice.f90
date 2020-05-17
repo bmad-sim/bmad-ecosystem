@@ -27,8 +27,9 @@ type (branch_struct), pointer :: branch
 
 character(*) namelist_file
 character(200) full_input_name
-character(40) unique_name_suffix, suffix
-character(20) :: r_name = 'tao_init_lattice'
+character(100) unique_name_suffix, suffix
+character(40) name
+character(*), parameter :: r_name = 'tao_init_lattice'
 
 integer i_uni, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie, status
 
@@ -51,7 +52,6 @@ alternative_lat_file_exists = (s%com%hook_lat_file /= '' .or. s%com%lattice_file
 call tao_hook_init_read_lattice_info (namelist_file)
 
 if (s%com%init_read_lat_info) then
-
   ! namelist_file == '' means there is no lattice file so just use the defaults.
 
   if (namelist_file /= '') then
@@ -85,7 +85,7 @@ if (s%com%init_read_lat_info) then
   s%com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
   s%com%common_lattice = common_lattice
   s%com%n_universes = n_universes
-  s%com%unique_name_suffix = unique_name_suffix
+  s%com%unique_name_suffix = trim(unique_name_suffix)
 endif
 
 !
@@ -221,21 +221,32 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
     if (s%com%combine_consecutive_elements_of_like_name) call combine_consecutive_elements(u%design%lat)
 
-    if (s%com%unique_name_suffix /= '') then
-      ix = index(s%com%unique_name_suffix, '::')
-      if (ix == 0) then
-        call create_unique_ele_names (u%design%lat, 0, s%com%unique_name_suffix)
-      else
-        j = key_name_to_key_index(s%com%unique_name_suffix(1:ix-1), .true.)
-        call create_unique_ele_names (u%design%lat, j, s%com%unique_name_suffix(ix+2:))
+    unique_name_suffix = s%com%unique_name_suffix
+    do
+      if (unique_name_suffix == '') exit
+      call string_trim(unique_name_suffix, unique_name_suffix, ix)
+      name = unique_name_suffix(1:ix)
+      unique_name_suffix = unique_name_suffix(ix+1:)
+      if (index(name, '##') /= 0) then
+        call out_io (s_error$, r_name, 'USE OF "##" IN UNIQUE_NAME_SUFFIX CONFLICTS WITH BMAD "##" CONSTRUCT TO', &
+                                       'IDENTIFY THE Nth ELEMENT OF A GIVEN NAME. SUFFIX NOT APPLIED.')
+        cycle
       endif
-    endif
+
+      ix = index(name, '::')
+      if (ix == 0) then
+        call create_unique_ele_names (u%design%lat, 0, name)
+      else
+        j = key_name_to_key_index(name(1:ix-1), .true.)
+        call create_unique_ele_names (u%design%lat, j, name(ix+2:))
+      endif
+    enddo
 
     ! Element range?
 
     if (design_lat%use_element_range(1) /= '') then
       design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
-      call out_io (s_warn$, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
+      call out_io (s_warn$, r_name, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
                   '"design_lattice(i_uni)%use_element_range" is now "design_lattice(i_uni)%slice_lattice".', &
                   'Please modify your file.')
     endif
