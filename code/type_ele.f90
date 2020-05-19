@@ -260,13 +260,13 @@ if (associated(ele%a_pole)) then
   endif
 
   do i = 0, n_pole_maxx
-    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+    if (a(i) == 0 .and. b(i) == 0) cycle
 
     if (ele%key == multipole$) then
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-              'K', i, 'L       =', ele%a_pole(i), 'KS', i, '        =', ele%a_pole_elec(i), 'T', i, '          =', ele%b_pole(i)
+              'K', i, 'L       =', ele%a_pole(i), 'KS', i, '       =', ele%a_pole_elec(i), 'T', i, '        =', ele%b_pole(i)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-              'B', i, '(equiv) =', b(i),          'A', i,  '(equiv)  =', a(i),              'T', i, '(w/Tilt)  =', tn(i)
+              'B', i, '(equiv) =', b(i),          'A', i,  '(equiv) =', a(i),              'T', i, '(equiv) =', tn(i)
 
     elseif (ele%key == ab_multipole$) then
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
@@ -290,7 +290,7 @@ if (associated(ele%a_pole_elec)) then
   call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
 
   do i = 0, n_pole_maxx
-    if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
+    if (a(i) == 0 .and. b(i) == 0) cycle
     nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', i, '_elec =', ele%a_pole_elec(i), 'A', i, '_elec(Scaled) =', a(i)
     nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', i, '_elec =', ele%b_pole_elec(i), 'B', i, '_elec(Scaled) =', b(i)
   enddo

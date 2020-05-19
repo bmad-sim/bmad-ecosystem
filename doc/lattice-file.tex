@@ -220,10 +220,12 @@ For example:
 \index{element!name}\index{superimpose}\index{multipass}
 A valid element name may be up to 40 characters in length. The first character of the name must be a
 letter [A-Z]. After that, the rest of the name can contain only letters, digits [0-9], underscore
-``_'', period ``.'', backslash ``\B'', or a hash mark ``\#''. It is best to avoid these last three
-symbols since \bmad uses them to denote ``relationships''.  Periods are used for tagging
-(\sref{s:tag}), and backslash and hash marks are used for to compose names for superposition
-(\sref{s:super}) and multipass (\sref{s:multipass}) slave elements.
+``_'', period ``.'', backslash ``\B'', or a hash mark ``\#''. A double hash mark ``\#\#'' is not
+permitted since this interfers with the notation for finding the $N$\Th element with a given name
+(\sref{s:ele.match}). It is best to avoid these last three symbols since \bmad uses them to denote
+``relationships''. Periods are used for tagging (\sref{s:tag}), and backslash and hash marks are
+used for to compose names for superposition (\sref{s:super}) and multipass (\sref{s:multipass})
+slave elements.
 
 \index{reserved names}
 \index{beam}\index{particle_start}\index{beginning}

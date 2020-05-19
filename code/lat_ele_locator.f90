@@ -11,25 +11,24 @@
 ! An element name can be of the form
 !   {branch>>}{key::}ele_id{##N}
 ! Where
-!   key     = Optional key name ("quadrupole", "sbend", etc.)
-!   branch  = Name or index of branch. May contain the wild cards "*" and "%".
-!   ele_id  = Name or index of element. May contain the wild cards "*" and "%".
+!   key     -- Optional key name ("quadrupole", "sbend", etc.)
+!   branch  -- Name or index of branch. May contain the wild cards "*" and "%".
+!   ele_id  -- Name or index of element. May contain the wild cards "*" and "%".
 !               If a name and no branch is given, all branches are searched.
 !               If an index and no branch is given, branch 0 is assumed.
-!   ##N     = N^th instance of ele_id in the branch.
-! Note: 
+!   ##N     -- N = integer. N^th instance of ele_id in the branch.
 ! Note: An old syntax that is still supported is:
 !   {key::}{branch>>}ele_id{##N}
 !
 ! An element range is of the form:
 !   {key::}ele1:ele2{:step}
 ! Where:
-!   key      = Optional key name ("quadrupole", "sbend", etc.). 
+!   key      -- Optional key name ("quadrupole", "sbend", etc.). 
 !               Also key may be "type", "alias", or "descrip" in which case the %type, %alias, or 
 !               %descrip field is matched to instead of the element name.
-!   ele1     = Starting element of the range.
-!   ele2     = Ending element of the range. 
-!   step     = Optional step increment Default is 1. 
+!   ele1     -- Starting element of the range.
+!   ele2     -- Ending element of the range. 
+!   step     -- Optional step increment Default is 1. 
 ! Note: ele1 and ele2 must be in the same branch. Branch 0 is the default.
 ! If ele1 or ele2 is a super_lord, the elements in the range are determined by the position of the super_slave elements.
 ! For example, if loc_str is "Q1:Q1" and Q1 is *not* a super_lord, the eles list will simply be Q1.
@@ -334,8 +333,7 @@ name = name_in
 
 ix = index(name, '##')
 target_instance = 0
-if (ix /= 0 .and. match_name_to == ele_name$) then
-  if (.not. is_integer(name(ix+2:))) return
+if (ix /= 0 .and. match_name_to == ele_name$ .and. is_integer(name(ix+2:))) then
   read (name(ix+2:), *) target_instance
   name = name(:ix-1)
 endif
@@ -435,7 +433,10 @@ if (.not. do_match_wild .and. match_name_to == ele_name$) then
 
   ! Due to the way check_this_match works, put first slaves in the list
   if (s_ordered) then
-    do i = ix1, 1*ix2   ! 
+    i = ix1 - 1
+    do
+      i = i + 1
+      if (i > ix2) exit
       ele => pointer_to_ele(lat, ix_nt(i))
       if (ele%n_slave == 0) cycle
       slave => pointer_to_slave (ele, 1)
