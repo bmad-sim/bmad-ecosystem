@@ -60,7 +60,9 @@ use tao_plot_mod, only: tao_set_floor_plan_axis_label
 use tao_data_and_eval_mod, only: tao_evaluate_expression
 use wall3d_mod, only: calc_wall_radius
 use tao_lattice_calc_mod, only: tao_lattice_calc
+use tao_dmerit_mod, only: tao_dmodel_dvar_calc
 use tao_input_struct
+
 
 implicit none
 
@@ -155,7 +157,7 @@ real(rp), allocatable :: re_array(:), value_arr(:)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 
-integer :: i, j, k, ib, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
+integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 integer line_width, n_bend, ic, num_ele, n_arr, n_add
@@ -226,6 +228,7 @@ call match_word (cmd, [character(40) :: &
           'da_params', 'da_aperture', &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'datum_create', 'datum_has_ele', &
+          'derivative', &
           'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
@@ -1186,6 +1189,27 @@ case ('datum_has_ele')
   case (maybe$);          nl=incr(nl); li(nl) = 'maybe'
   case (provisional$);    nl=incr(nl); li(nl) = 'provisional'
   end select
+
+!----------------------------------------------------------------------
+! Optimization derivatives
+!   python derivative
+! Note: To save time, this command will not recalculate derivatives. 
+! Use the "derivative" command beforehand to recalcuate if needed.
+
+case ('derivative')
+
+  call tao_dmodel_dvar_calc(.false., err);  if (err) return
+
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(iu)
+    n2 = ubound(u%dModel_dVar, 2)
+    do id = 1, ubound(u%dModel_dVar, 1)
+      do iv = 0, (n2-1)/10
+        iv0 = 10 * iv + 1
+        nl=incr(nl); write(li(nl), '(3(i0, a), 20a)') iu, ';', id, ';', iv0, (';', re_str(u%dModel_dVar(id, j), 10), j = iv0, min(iv0+9, n2))
+      enddo
+    enddo
+  enddo
 
 !----------------------------------------------------------------------
 ! "Head" Element attributes
