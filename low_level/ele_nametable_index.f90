@@ -2,9 +2,10 @@
 ! Function ele_nametable_index(ele) result(ix_nt)
 !
 ! Routine to return the index in the nametable corresponding to ele.
+! The reverse routine is pointer_to_ele.
 !
 ! Input:
-!   ele       -- ele_struct: Element in a lattice
+!   ele       -- ele_struct: Element in a lattice.
 !
 ! Output:
 !   ix_nt     -- integer: Nametable index. Set to -1 if ele is not a lattice element.
