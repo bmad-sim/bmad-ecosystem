@@ -11,7 +11,7 @@
 !   string  -- Character(*): Character string.
 !
 ! Output:
-!   int     -- integer, optional: Integer value
+!   int     -- integer, optional: Integer value. Default is -999 if not valid.
 !   valid   -- Logical: Is a valid integer 
 !-
 
