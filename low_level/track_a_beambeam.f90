@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
 real(rp) sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, sig_x, sig_y
-real(rp) beta, s_pos, s_pos_old, k0_x, k0_y, k_xx, k_xy, k_yx, k_yy, coef, del
+real(rp) beta, s_pos, s_pos_old, k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del
 real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, z
 real(rp), allocatable :: z_slice(:)
 
@@ -45,7 +45,13 @@ if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 del = 0.001
 sig_x0 = ele%value(sig_x$)
 sig_y0 = ele%value(sig_y$)
-if (sig_x0 == 0 .or. sig_y0 == 0) return
+if (sig_x0 == 0 .or. sig_y0 == 0) then
+  call out_io (s_error$, r_name, 'STRONG BEAM SIGMAS NOT SET FOR BEAMBEAM ELEMENT: ' // ele%name, &
+                                 'PARTICLE WILL BE MARKED AS LOST.')
+  orbit%state = lost$
+  return
+endif
+
 
 if (ele%value(beta_a_strong$) == 0) then
   beta_a0 = ele%a%beta
@@ -63,19 +69,13 @@ else
   alpha_b0 = ele%value(alpha_b_strong$)
 endif
 
-n_slice = max(1, nint(ele%value(n_slice$)))
-if (n_slice > 1 .and. (beta_a0 == 0 .or. beta_b0 == 0)) then
-  call out_io (s_error$, r_name, 'BETA FUNCTION IS ZERO AT BEAMBEAM ELEMENT: ' // ele%name, &
-                                 'PARTICLE WILL BE MARKED AS LOST.')
-  orbit%state = lost$
-  return
-endif
-
 call offset_particle (ele, param, set$, orbit)
 call canonical_to_angle_coords (orbit)
 
+n_slice = max(1, nint(ele%value(n_slice$)))
 allocate(z_slice(n_slice))
 call bbi_slice_calc (ele, n_slice, z_slice)
+
 s_pos = 0    ! end at the ip
 
 do i = 1, n_slice
@@ -112,14 +112,16 @@ do i = 1, n_slice
   orbit%vec(4) = orbit%vec(4) + k0_y * coef
 
   if (logic_option(.false., make_matrix)) then
-    call bbi_kick (x_pos+del, y_pos, ratio, k_xx, k_yx)
-    call bbi_kick (x_pos, y_pos+del, ratio, k_xy, k_yy)
+    call bbi_kick (x_pos-del, y_pos, ratio, k_xx1, k_yx1)
+    call bbi_kick (x_pos, y_pos-del, ratio, k_xy1, k_yy1)
+    call bbi_kick (x_pos+del, y_pos, ratio, k_xx2, k_yx2)
+    call bbi_kick (x_pos, y_pos+del, ratio, k_xy2, k_yy2)
 
     coef = bbi_const / (ele%value(n_slice$) * del * (1 + orbit%vec(6)))
-    mat21 = coef * (k_xx - k0_x) / sig_x
-    mat23 = coef * (k_xy - k0_x) / sig_x
-    mat41 = coef * (k_yx - k0_y) / sig_y
-    mat43 = coef * (k_yy - k0_y) / sig_y
+    mat21 = coef * (k_xx2 - k_xx1) / (2 * sig_x)
+    mat23 = coef * (k_xy2 - k_xy1) / (2 * sig_y)
+    mat41 = coef * (k_yx2 - k_yx1) / (2 * sig_x)
+    mat43 = coef * (k_yy2 - k_yy1) / (2 * sig_y)
 
     mat6(2,:) = mat6(2,:) + mat21 * mat6(1,:) + mat23 * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat41 * mat6(1,:) + mat43 * mat6(3,:)

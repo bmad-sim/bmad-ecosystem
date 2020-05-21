@@ -24,6 +24,8 @@ private pointer_to_ele1, pointer_to_ele2, pointer_to_ele3
 !   ix_nametable = ele%ix_ele + branch(0)%n_ele_max + 1   For elements in branch 1
 !   etc., etc.
 !
+! The reverse routine to pointer_to_ele1 (lat, ix_nametable) is ele_nametable_index.
+! 
 ! Note that using ele_name to locate an element is potentially dangerous if there
 ! are multiple elements that have the same name. Better in this case is to use:
 !   lat_ele_locator

@@ -60,84 +60,85 @@
 
 subroutine bbi_kick (x_norm, y_norm, r, kx, ky)
 
-  use precision_def
-  use physical_constants
+use precision_def
+use physical_constants
 
-  implicit none
+implicit none
 
-  real(rp) x_norm, y_norm, r, xx, yy, rr, kx, ky, u, v, amp, denom, fr, fi, arg
-  real(rp) wr1, wi1, wr2, wi2, expon, scale
-  real(rp) :: emax = 30
+real(rp) x_norm, y_norm, r, xx, yy, rr, kx, ky, u, v, amp, denom, fr, fi, arg
+real(rp) wr1, wi1, wr2, wi2, expon, scale
+real(rp) :: emax = 30
 
 ! round beam case
 
-  if (r >= 0.998 .and. r <= 1.002) then ! round beam
-    amp = (x_norm**2 + y_norm**2) / 2
-    scale = 4 * pi
-    if (amp > emax) then
-      kx = -x_norm * scale / amp
-      ky = -y_norm * scale / amp
-    else if (amp < 1d-4) then
-      kx = -x_norm * scale
-      ky = -y_norm * scale
-    else
-      kx = -(x_norm * scale / amp) * (1 - exp(-amp))
-      ky = -(y_norm * scale / amp) * (1 - exp(-amp))
-    endif
-    return
+if (r >= 0.998 .and. r <= 1.002) then ! round beam
+  amp = (x_norm**2 + y_norm**2) / 2
+  scale = 4 * pi
+  if (amp > emax) then
+    kx = -x_norm * scale / amp
+    ky = -y_norm * scale / amp
+  else if (amp < 1d-4) then
+    kx = -x_norm * scale
+    ky = -y_norm * scale
+  else
+    kx = -(x_norm * scale / amp) * (1 - exp(-amp))
+    ky = -(y_norm * scale / amp) * (1 - exp(-amp))
   endif
+  return
+endif
 
 ! The calculation assumes that r < 1.
 ! If beam has r > 1 then switch x_norm, y_norm, and r
 
-  if (r > 1.0) then
-    xx = y_norm
-    yy = x_norm
-    rr = 1 / r
-  else
-    xx = x_norm
-    yy = y_norm
-    rr = r
-  endif
+if (r > 1.0) then
+  xx = y_norm
+  yy = x_norm
+  rr = 1 / r
+else
+  xx = x_norm
+  yy = y_norm
+  rr = r
+endif
 
 !
-  denom = 1.0/sqrt(2.0*(1 - rr**2))
-  scale = 4 * sqrt(pi**3) * denom * (1 + rr)
-  u = abs(xx) * denom
-  v = abs(yy) * denom
-!
+
+denom = 1.0/sqrt(2.0*(1 - rr**2))
+scale = 4 * sqrt(pi**3) * denom * (1 + rr)
+u = abs(xx) * denom
+v = abs(yy) * denom
+
 !********************************************************
 !
 !                              -(1-R^2)(V^2 +U^2)
 !     F(U,V,R)  =  W(U+iRV) - E                  W(RU+iV)
 !
 !********************************************************
-!
-  call complex_error_function(wr1, wi1, u, rr*v)
-  call complex_error_function(wr2, wi2, rr*u, v)
 
-  arg = (1 - rr**2) * (u**2 + v**2)
+call complex_error_function(wr1, wi1, u, rr*v)
+call complex_error_function(wr2, wi2, rr*u, v)
+
+arg = (1 - rr**2) * (u**2 + v**2)
 
 ! if exponantial exponent is too small use only first term to
 ! evaluate KR and KI
 
-  if (arg > emax) then
-    fr = wr1
-    fi = wi1
-  else
-    expon = exp(-arg)
-    fr = wr1 - expon*wr2
-    fi = wi1 - expon*wi2
-  endif
+if (arg > emax) then
+  fr = wr1
+  fi = wi1
+else
+  expon = exp(-arg)
+  fr = wr1 - expon*wr2
+  fi = wi1 - expon*wi2
+endif
 
 ! if we have switched x_norm, y_norm, and r then switch kx for ky
 
-  if (r > 1.0) then  ! switch
-    kx = -sign(fr, yy) * scale
-    ky = -sign(fi, xx) * scale
-  else
-    kx = -sign(fi, xx) * scale
-    ky = -sign(fr, yy) * scale
-  endif
+if (r > 1.0) then  ! switch
+  kx = -sign(fr, yy) * scale
+  ky = -sign(fi, xx) * scale
+else
+  kx = -sign(fi, xx) * scale
+  ky = -sign(fr, yy) * scale
+endif
 
 end subroutine
