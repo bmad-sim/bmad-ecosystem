@@ -89,7 +89,7 @@ contains
     it=0
 100 continue
     it=it+1
-      call FIND_ORBIT_x(r,CLOSED,state,1.d-7,fibre1=1)
+      call FIND_ORBIT_x(r,CLOSED,state,1.0e-7_dp,fibre1=1)
  
     write(6,*) "closed orbit "
     write(6,*) CLOSED
@@ -4849,7 +4849,7 @@ call alloc(e_y);call alloc(isf);
 
 FIX=0.0_DP  ! FIXED POINT
 fix(5)=0.00d0
-call find_orbit(ring,fix(1:6),1,state,1.d-5)   
+call find_orbit(ring,fix(1:6),1,state,1.e-5_dp)   
  write(6,*)
  write(6,'(a12,5(1x,g12.5))')"Closed Orbit",  FIX(1:5)
  write(6,*)
@@ -4878,7 +4878,7 @@ M=R
 
 
  if(state%spin) then
-    call clean(phase_spin,phase_spin,prec=1.d-10)
+    call clean(phase_spin,phase_spin,prec=1.e-10_dp)
     write(mf,*) " Spin tune "
    call print(phase_spin,mf)
  endif
@@ -4903,9 +4903,9 @@ hb=(1.0_dp.cmono.1)-i_*(1.0_dp.cmono.2)
 f=>ring%start
 r=a_cs+r0
 eval=1
-eval%v(3)=0.0d0
-eval%v(4)=0.0d0
-eval%v(5)=0.0d0
+eval%v(3)=0.0e0_dp
+eval%v(4)=0.0e0_dp
+eval%v(5)=0.0e0_dp
 
 d_CS=h*hb
 d_cs=d_cs*NORMAL%Atot**(-1)
@@ -4953,16 +4953,16 @@ write(mf,*) " ISF "
  e_y=2
  call makeso3(a_spin)
  isf=a_spin%s*e_y
- call clean(isf,isf,prec=1.d-10)
+ call clean(isf,isf,prec=1.0e-10_dp)
  call print(isf,mf)
 
  betx(1)=betaxx
  write(mf,*) " phases  "
- call clean(phase(1:c_%nd),phase(1:c_%nd),prec=1.d-10)
+ call clean(phase(1:c_%nd),phase(1:c_%nd),prec=1.0e-10_dp)
  call print(phase(1:c_%nd),mf)
  if(state%spin) then
   write(mf,*) " spin tune "
-  call clean(phase_spin,phase_spin,prec=1.d-10)
+  call clean(phase_spin,phase_spin,prec=1.0e-10_dp)
   call print(phase_spin,mf)
  endif
 else
@@ -5001,7 +5001,7 @@ Write(mf,*) " change in invariant due to octupole : TPSA "
 d_CS=(h*hb)*a_cs**(-1)
 d_cs=d_cs-(d_cs.cut.5)
 d_cs=(d_cs.o.eval).d.c_%nv
-call clean(d_cs,d_cs,prec=1.d-10)
+call clean(d_cs,d_cs,prec=1.0e-10_dp)
 call print(d_cs,mf)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -5031,7 +5031,7 @@ Write(mf,*) " phase, total phase and beta "
 
 write(6,*) "dnu_dko = ",dnu_dko
  write(mf,*) " <x^2> "
-   x=2.d0*(1d0.cmono.1)**2
+   x=2.0_dp*(1.0e0_dp.cmono.1)**2
    call average(x,a_l,x)
    call print(x,mf)
  

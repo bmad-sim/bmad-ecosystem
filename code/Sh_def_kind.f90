@@ -38,7 +38,7 @@ MODULE S_DEF_KIND
   PRIVATE KICKKTKR,KICKKTKP !,KICKKTK
   PRIVATE INTKTKR,INTKTKD,INTKTK
   PRIVATE SYMPINTKTKR,SYMPINTKTKD
-
+  private wedge_intr,wedge_intp,wedge_int
   PRIVATE KICKPATH6R,KICKPATH6P
   PRIVATE EXPCOSY6R,EXPCOSY6D,EXPCOSY6   ! special for integrated exponential path length
   PRIVATE EXPR,EXPD,EXPCOSY
@@ -134,8 +134,8 @@ MODULE S_DEF_KIND
   INTEGER :: m_abell=1,n_abell=2
  ! logical ::  ABELL_NEW=.TRUE.
   INTEGER :: metcav=0, nstcav=0
-  real(dp) :: xcav(1:6)=0.001d0, symplectic_check=1.d-10
-
+  real(dp) :: xcav(1:6)=0.001e0_dp, symplectic_check=1.d-10
+  integer :: n_wedge = 5 
 
   ! stochastic radiation in straigth
   PRIVATE compute_f4r,compute_f4p,ZEROR_HE22,ZEROP_HE22
@@ -164,6 +164,8 @@ integer :: put_a_abell = 1
 private rk2abellr,rk4abellr,rk6abellr,rk2abellp,rk4abellp,rk6abellp,get_z_abr,get_z_abp
 private fx_newcr,fx_newcp,fx_newc
 integer :: tot_t=1
+logical :: old_thick_bend = .false.
+
   INTERFACE TRACK_SLICE
 !     MODULE PROCEDURE INTER_CAV4
 !     MODULE PROCEDURE INTEP_CAV4
@@ -807,10 +809,14 @@ integer :: tot_t=1
      MODULE PROCEDURE SINTEP
   END INTERFACE
 
-
   INTERFACE wedge
      MODULE PROCEDURE wedgeR
      MODULE PROCEDURE wedgeP       ! USE IN EXACT SECTOR BEND (INTEGRATION)
+  END INTERFACE
+
+  INTERFACE wedge_int
+     MODULE PROCEDURE wedge_intr
+     MODULE PROCEDURE wedge_intp       ! USE IN EXACT SECTOR BEND (INTEGRATION)
   END INTERFACE
 
   INTERFACE fx
@@ -4552,7 +4558,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
     fsad=0.0_dp
     if(fint*hgap/=0.0_dp) then
-      fsad=1.d0/(fint*hgap*2)/36.0_dp
+      fsad=1.e0_dp/(fint*hgap*2)/36.0_dp
     endif
 
     IF(K1==1) THEN
@@ -4676,7 +4682,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
     fsad=0.0_dp
     if(fint*hgap/=0.0_dp) then
-      fsad=1.d0/(fint*hgap*2)/36.0_dp
+      fsad=1.e0_dp/(fint*hgap*2)/36.0_dp
     endif
 
 
@@ -5033,7 +5039,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
                  fsad=0.0_dp
                  if(fint(i)*hgap(i)/=0.0_dp) then
-                        fsad=1.d0/(fint(i)*hgap(I)*2)/36.0_dp
+                        fsad=1.0_dp/(fint(i)*hgap(I)*2)/36.0_dp
                  endif
                  c3=bn(1)**2*fsad
                  x(4)=x(4)-4*c3*x(3)**3
@@ -5047,7 +5053,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
                  fsad=0.0_dp
                  if(fint(I)*hgap(I)/=0.0_dp) then
-                        fsad=1.d0/(fint(I)*hgap(I)*2)/36.0_dp
+                        fsad=1.e0_dp/(fint(I)*hgap(I)*2)/36.0_dp
                  endif
                  c3=bn(1)**2*fsad
                  x(4)=x(4)-4*c3*x(3)**3
@@ -5127,7 +5133,7 @@ integer :: kkk=0
             call alloc(fsad,c3)
                  fsad=0.0_dp
                  if(fint(I)*hgap(I)/=0.0_dp) then
-                        fsad=1.d0/(fint(I)*hgap(I)*2)/36.0_dp
+                        fsad=1.0_dp/(fint(I)*hgap(I)*2)/36.0_dp
                  endif
                  c3=bn(1)**2*fsad
                  x(4)=x(4)-4*c3*x(3)**3
@@ -5141,7 +5147,7 @@ integer :: kkk=0
 
                  fsad=0.0_dp
                  if(fint(I)*hgap(I)/=0.0_dp) then
-                        fsad=1.d0/(fint(I)*hgap(I)*2)/36.0_dp
+                        fsad=1.e0_dp/(fint(I)*hgap(I)*2)/36.0_dp
                  endif
                  c3=bn(1)**2*fsad
                  x(4)=x(4)-4*c3*x(3)**3
@@ -11173,11 +11179,12 @@ integer :: kkk=0
     real(dp),INTENT(IN):: YL,DL
     TYPE(TEAPOT),INTENT(IN):: EL
     real(dp) XN(6),PZ,PZS,DPX,PT
+    real(dp) dpxn,xt1,xt2,xi,zeta,v,w
     real(dp)  A,b,R
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
-
-    DIR=EL%P%DIR*EL%P%CHARGE
+    if(old_thick_bend) then
+   DIR=EL%P%DIR*EL%P%CHARGE
 
 
     A=YL*EL%P%B0
@@ -11216,6 +11223,78 @@ integer :: kkk=0
     X(6)=XN(6)
     !    CALL CHECK_STABILITY(X)
     call check_root_drift(EL%P,X,k)
+
+    else
+    DIR=EL%P%DIR*EL%P%CHARGE
+
+    A=YL*EL%P%B0
+    R=1.0_dp/EL%P%B0
+
+    if(k%TIME) then
+       B=EL%P%BETA0
+       PZ=ROOT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(2)**2-X(4)**2)
+       XN(2)=X(2)*COS(A)+(PZ-DIR*EL%BN(1)*(R+X(1)))*SIN(A)
+       DPX=(-X(2)*SIN(A)+(PZ-DIR*EL%BN(1)*(R+X(1)))*COS(A))/DIR/EL%BN(1)  !DPX*R/B1
+       PT=ROOT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(4)**2)
+       PZS=ROOT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-XN(2)**2-X(4)**2)
+       XN(1)=PZS/DIR/EL%BN(1)-DPX-R
+     !  XN(1)=PZS/DIR/EL%BN(1)-DPX-R
+       dpxn=(-x(2)*SIN(a)+(pz-(DIR*EL%BN(1))*(R+x(1)))*COS(a))
+
+       xt1=(-(DIR*EL%BN(1))*x(1)**2)+pz*(2*x(1)+2*r)-2*(DIR*EL%BN(1))*r*x(1)-(DIR*EL%BN(1))*r**2
+       xt2=dpxn+pzs
+       xn(1)=xt1/xt2-r
+
+
+xi=x(2)/pt
+zeta=xn(2)/pt
+w=sin(a)*ROOT(1.e0_dp-xi**2)+cos(a)*xi
+v=sin(a)*xi-cos(a)*ROOT(1.0_dp-xi**2)
+xt1=(sin(2*a)*x(2)+sin(a)**2*(2*pz-(DIR*EL%BN(1))*(x(1)+r)))*(x(1)+r)/pt**2/(w*root(1-zeta**2)-v*zeta)
+!xn(3)= ARCSIN(xt1/xt2)/De0IR/EL%BN(1)
+xn(3)= ARCSIN_x(xt1*DIR*EL%BN(1))*xt1
+ 
+
+ !      XN(3)=(A+ARCSIN(X(2)/PT)-ARCSIN(XN(2)/PT))/DIR/EL%BN(1)
+       XN(6)=X(6)+XN(3)*(1.0_dp/b+x(5))
+       XN(6)=XN(6)+(k%TOTALPATH-1)*DL/EL%P%BETA0
+       XN(3)=X(3)+X(4)*XN(3)
+    else
+       PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+       XN(2)=X(2)*COS(A) + ( PZ-DIR*EL%BN(1)*(R+X(1)) ) *SIN(A)
+       DPX=(-X(2)*SIN(A)+(PZ-DIR*EL%BN(1)*(R+X(1)))*COS(A))/DIR/EL%BN(1)  !DPX*R/B1
+       PT=ROOT((1.0_dp+X(5))**2-X(4)**2)
+       PZS=ROOT((1.0_dp+X(5))**2-XN(2)**2-X(4)**2)
+
+     !  XN(1)=PZS/DIR/EL%BN(1)-DPX-R
+       dpxn=(-x(2)*SIN(a)+(pz-(DIR*EL%BN(1))*(R+x(1)))*COS(a))
+
+       xt1=(-(DIR*EL%BN(1))*x(1)**2)+pz*(2*x(1)+2*r)-2*(DIR*EL%BN(1))*r*x(1)-(DIR*EL%BN(1))*r**2
+       xt2=dpxn+pzs
+       xn(1)=xt1/xt2-r
+
+xi=x(2)/pt
+zeta=xn(2)/pt
+w=sin(a)*ROOT(1.0_dp-xi**2)+cos(a)*xi
+v=sin(a)*xi-cos(a)*ROOT(1.0_dp-xi**2)
+!write(6,*) " Ssecr ", w*ROOT(1.d0-zeta**2)-v*zeta
+
+xt1=(sin(2*a)*x(2)+sin(a)**2*(2*pz-(DIR*EL%BN(1))*(x(1)+r)))*(x(1)+r)/pt**2/(w*root(1-zeta**2)-v*zeta)
+!xn(3)= ARCSIN(xt1/xt2)/DIR/EL%BN(1)
+xn(3)= ARCSIN_x(xt1*DIR*EL%BN(1))*xt1
+
+       XN(6)=X(6)+XN(3)*(1.0_dp+X(5))
+       XN(6)=XN(6)+(k%TOTALPATH-1)*DL
+       XN(3)=X(3)+X(4)*XN(3)
+
+    endif
+    X(1)=XN(1)
+    X(2)=XN(2)
+    X(3)=XN(3)
+    X(6)=XN(6)
+    !    CALL CHECK_STABILITY(X)
+    call check_root_drift(EL%P,X,k)
+endif
   END SUBROUTINE Ssecr
 
 
@@ -11226,9 +11305,15 @@ integer :: kkk=0
     real(dp),INTENT(IN):: DL
     TYPE(TEAPOTP),INTENT(IN):: EL
     TYPE(REAL_8) XN(6),PZ,PT,A,PZS,DPX
+    TYPE(REAL_8)  dpxn,xt1,xt2,xi,zeta,v,w
+
     real(dp)  b,R
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
+
+    if(old_thick_bend) then
+
+
 
     call PRTP("SSEC:0", X)
 
@@ -11285,6 +11370,87 @@ integer :: kkk=0
 
     call PRTP("SSEC:1", X)
 
+else
+    call PRTP("SSEC:0", X)
+    call alloc(xt1,xt2,xi,zeta,v,w)
+
+
+    DIR=EL%P%DIR*EL%P%CHARGE
+
+    CALL ALLOC( XN,6)
+    CALL ALLOC( PZ,PT,A,PZS,DPX)
+    A=YL*EL%P%B0
+    R=1.0_dp/EL%P%B0
+    if(k%TIME) then
+       B=EL%P%BETA0
+       PZ=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(2)**2-X(4)**2)
+       XN(2)=X(2)*COS(A)+(PZ-DIR*EL%BN(1)*(R+X(1)))*SIN(A)
+ !      DPX=(-X(2)*SIN(A)+(PZ-DIR*EL%BN(1)*(R+X(1)))*COS(A))/DIR/EL%BN(1)  !DPX*R/B1
+       PT=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(4)**2)
+       PZS=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-XN(2)**2-X(4)**2)
+      ! XN(1)=PZS/DIR/EL%BN(1)-DPX-R
+       dpx=(-x(2)*SIN(a)+(pz-(DIR*EL%BN(1))*(R+x(1)))*COS(a))
+
+       xt1=(-(DIR*EL%BN(1))*x(1)**2)+pz*(2*x(1)+2*r)-2*(DIR*EL%BN(1))*r*x(1)-(DIR*EL%BN(1))*r**2
+       xt2=dpx+pzs
+       xn(1)=xt1/xt2-r
+xi=x(2)/pt
+zeta=xn(2)/pt
+w=sin(a)*sqrt(1.e0_dp-xi**2)+cos(a)*xi
+v=sin(a)*xi-cos(a)*sqrt(1.e0_dp-xi**2)
+xt1=(sin(2*a)*x(2)+sin(a)**2*(2*pz-(DIR*EL%BN(1))*(x(1)+r)))*(x(1)+r)/pt**2/(w*sqrt(1-zeta**2)-v*zeta)
+!xn(3)= ARCSIN(xt1/xt2)/DIR/EL%BN(1)
+xn(3)= ARCSIN_x(xt1*DIR*EL%BN(1))*xt1
+
+
+
+
+!       XN(1)=PZS/DIR/EL%BN(1)-DPX-R
+
+!       XN(3)=(A+ASIN(X(2)/PT)-ASIN(XN(2)/PT))/DIR/EL%BN(1)
+
+       XN(6)=X(6)+XN(3)*(1.0_dp/b+x(5))
+       XN(6)=XN(6)+(k%TOTALPATH-1)*DL/EL%P%BETA0
+
+       XN(3)=X(3)+X(4)*XN(3)
+    else
+       PZ=SQRT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+       XN(2)=X(2)*COS(A) + ( PZ-DIR*EL%BN(1)*(R+X(1)) ) *SIN(A)
+!       DPX=(-X(2)*SIN(A)+(PZ-DIR*EL%BN(1)*(R+X(1)))*COS(A))/DIR/EL%BN(1)  !DPX*R/B1
+       PT=SQRT((1.0_dp+X(5))**2-X(4)**2)
+       PZS=SQRT((1.0_dp+X(5))**2-XN(2)**2-X(4)**2)
+      ! XN(1)=PZS/DIR/EL%BN(1)-DPX-R
+       dpx=(-x(2)*SIN(a)+(pz-(DIR*EL%BN(1))*(R+x(1)))*COS(a))
+
+       xt1=(-(DIR*EL%BN(1))*x(1)**2)+pz*(2*x(1)+2*r)-2*(DIR*EL%BN(1))*r*x(1)-(DIR*EL%BN(1))*r**2
+       xt2=dpx+pzs
+       xn(1)=xt1/xt2-r
+xi=x(2)/pt
+zeta=xn(2)/pt
+w=sin(a)*sqrt(1.e0_dp-xi**2)+cos(a)*xi
+v=sin(a)*xi-cos(a)*sqrt(1.e0_dp-xi**2)
+xt1=(sin(2*a)*x(2)+sin(a)**2*(2*pz-(DIR*EL%BN(1))*(x(1)+r)))*(x(1)+r)/pt**2/(w*sqrt(1-zeta**2)-v*zeta)
+!xn(3)= ARCSIN(xt1/xt2)/DIR/EL%BN(1)
+xn(3)= ARCSIN_x(xt1*DIR*EL%BN(1))*xt1
+
+
+       XN(6)=X(6)+XN(3)*(1.0_dp+X(5))
+       XN(6)=XN(6)+(k%TOTALPATH-1)*DL
+       XN(3)=X(3)+X(4)*XN(3)
+
+    endif
+    X(1)=XN(1)
+    X(2)=XN(2)
+    X(3)=XN(3)
+    X(6)=XN(6)
+
+    CALL KILL( XN,6)
+    CALL KILL( PZ,PT,A,PZS,DPX)
+    call KILL(xt1,xt2,xi,zeta,v,w)
+
+    call PRTP("SSEC:1", X)
+
+endif
   END SUBROUTINE SsecP
 
   SUBROUTINE SKICKR(EL,YL,X,k)
@@ -13479,7 +13645,9 @@ integer :: kkk=0
     real(dp)  b
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
+    real(dp) xi,zeta,w,v,xt1,xt2
 
+if(old_thick_bend) then
     DIR=EL%P%DIR*EL%P%CHARGE
 
     if(k%TIME) then
@@ -13516,6 +13684,67 @@ integer :: kkk=0
     X(3)=XN(3)
     X(6)=XN(6)
 
+else    
+
+    DIR=EL%P%DIR*EL%P%CHARGE
+
+    if(k%TIME) then
+       B=EL%P%BETA0
+       PZ=ROOT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(2)**2-X(4)**2)
+       XN(2)=X(2)-YL*DIR*EL%BN(1)
+       PT=ROOT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(4)**2)
+       PZS=ROOT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-XN(2)**2-X(4)**2)
+ !       XN(1)=X(1)+(PZS-PZ)/DIR/EL%BN(1)
+        xn(1)=x(1)+(2*YL*x(2)-YL**2*DIR*EL%BN(1))/(PZS+pz)
+!       XN(3)=(ARCSIN(X(2)/PT)-ARCSIN(XN(2)/PT))/DIR/EL%BN(1)
+xi=x(2)/pt
+zeta=xn(2)/pt
+w= xi
+v=-root(1.e0_dp-xi**2)
+
+!xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))*DIR*EL%BN(1)/pt**2
+!xt2= w*root(1-zeta**2)-v*zeta
+xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))/pt**2/(w*root(1-zeta**2)-v*zeta)
+!xn(3)= ARCSIN(xt1/xt2)/DIR/EL%BN(1)
+xn(3)= ARCSIN_x(xt1*DIR*EL%BN(1))*xt1
+
+       XN(6)=X(6)+XN(3)*(1.0_dp/b+x(5))
+       XN(6)=XN(6)+(k%TOTALPATH-1)*DL/b
+
+       XN(3)=X(3)+X(4)*XN(3)
+    else
+       PZ=ROOT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+       XN(2)=X(2)-YL*DIR*EL%BN(1)
+       PT=ROOT((1.0_dp+X(5))**2-X(4)**2)
+       PZS=ROOT((1.0_dp+X(5))**2-XN(2)**2-X(4)**2)
+!       XN(1)=X(1)+(PZS-PZ)/DIR/EL%BN(1)
+        xn(1)=x(1)+(2*YL*x(2)-YL**2*DIR*EL%BN(1))/(PZS+pz)
+
+!       XN(3)=(ARCSIN(X(2)/PT)-ARCSIN(XN(2)/PT))/DIR/EL%BN(1)
+xi=x(2)/pt
+zeta=xn(2)/pt
+w= xi
+v=-root(1.e0_dp-xi**2)
+write(6,*) " sparr ", w*ROOT(1.e0_dp-zeta**2)-v*zeta
+
+!xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))*DIR*EL%BN(1)/pt**2
+!xt2= w*root(1-zeta**2)-v*zeta
+xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))/pt**2/(w*root(1-zeta**2)-v*zeta)
+!xn(3)= ARCSIN(xt1/xt2)/DIR/EL%BN(1)
+xn(3)= ARCSIN_x(xt1*DIR*EL%BN(1))*xt1
+
+       XN(6)=X(6)+XN(3)*(1.0_dp+X(5))
+       XN(6)=XN(6)+(k%TOTALPATH-1)*DL
+
+       XN(3)=X(3)+X(4)*XN(3)
+
+    endif
+    X(1)=XN(1)
+    X(2)=XN(2)
+    X(3)=XN(3)
+    X(6)=XN(6)
+endif
+
   END SUBROUTINE SPARr
 
   SUBROUTINE SPARP(EL,YL,DL,X,k)
@@ -13528,6 +13757,11 @@ integer :: kkk=0
     real(dp)  b
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
+    TYPE(REAL_8) xi,zeta,w,v,xt1,xt2
+
+if(old_thick_bend) then
+
+
 
     call PRTP("SPAR:0", X)
 
@@ -13574,7 +13808,77 @@ integer :: kkk=0
     CALL KILL(PZ,PZS,PT)
 
     call PRTP("SPAR:1", X)
+else
 
+    call PRTP("SPAR:0", X)
+
+    DIR=EL%P%DIR*EL%P%CHARGE
+
+    CALL ALLOC(XN,6)
+    CALL ALLOC(PZ,PZS,PT)
+    CALL ALLOC(xi,zeta,w,v,xt1,xt2)
+    if(k%TIME) then
+       B=EL%P%BETA0
+       PZ=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(2)**2-X(4)**2)
+       XN(2)=X(2)-YL*DIR*EL%BN(1)
+       PT=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-X(4)**2)
+       PZS=SQRT(1.0_dp+2.0_dp*x(5)/b+X(5)**2-XN(2)**2-X(4)**2)
+!       XN(1)=X(1)+(PZS-PZ)/DIR/EL%BN(1)
+        xn(1)=x(1)+(2*YL*x(2)-YL**2*DIR*EL%BN(1))/(PZS+pz)
+!       XN(3)=(ASIN(X(2)/PT)-ASIN(XN(2)/PT))/DIR/EL%BN(1)
+xi=x(2)/pt
+zeta=xn(2)/pt
+w= xi
+v=-sqrt(1.e0_dp-xi**2)
+
+!xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))*DIR*EL%BN(1)/pt**2
+!xt2= w*root(1-zeta**2)-v*zeta
+xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))/pt**2/(w*sqrt(1-zeta**2)-v*zeta)
+!xn(3)= ARCSIN(xt1/xt2)/DIR/EL%BN(1)
+xn(3)= ARCSIN_x(xt1*DIR*EL%BN(1))*xt1
+       XN(6)=X(6)+XN(3)*(1.0_dp/b+x(5))
+       XN(6)=XN(6)+(k%TOTALPATH-1)*DL/b
+
+       XN(3)=X(3)+X(4)*XN(3)
+    else
+       PZ=SQRT((1.0_dp+X(5))**2-X(2)**2-X(4)**2)
+       XN(2)=X(2)-YL*DIR*EL%BN(1)
+       PT=SQRT((1.0_dp+X(5))**2-X(4)**2)
+       PZS=SQRT((1.0_dp+X(5))**2-XN(2)**2-X(4)**2)
+!       XN(1)=X(1)+(PZS-PZ)/DIR/EL%BN(1)
+        xn(1)=x(1)+(2*YL*x(2)-YL**2*DIR*EL%BN(1))/(PZS+pz)
+
+   !      XN(3)=(ASIN(X(2)/PT)-ASIN(XN(2)/PT))/DIR/EL%BN(1)
+ xi=x(2)/pt
+zeta=xn(2)/pt
+w= xi
+v=-SQRT(1.e0_dp-xi**2)
+
+!xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))*DIR*EL%BN(1)/pt**2
+!xt2= w*root(1-zeta**2)-v*zeta
+xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))/pt**2/(w*sqrt(1-zeta**2)-v*zeta)
+!xn(3)= ARCSIN(xt1/xt2)/DIR/EL%BN(1)
+xt2=xt1*DIR*EL%BN(1)
+xn(3)= ARCSIN_x(xt2)*xt1
+       XN(6)=X(6)+XN(3)*(1.0_dp+X(5))
+       XN(6)=XN(6)+(k%TOTALPATH-1)*DL
+
+       XN(3)=X(3)+X(4)*XN(3)
+
+    endif
+    X(1)=XN(1)
+    X(2)=XN(2)
+    X(3)=XN(3)
+    X(6)=XN(6)
+
+    CALL KILL(XN,6)
+    CALL KILL(PZ,PZS,PT)
+    CALL kill(xi,zeta,w,v,xt1,xt2)
+
+    call PRTP("SPAR:1", X)
+
+
+endif
   END SUBROUTINE SPARP
 
   SUBROUTINE check_root_drift(p,X,k)
@@ -13605,10 +13909,10 @@ integer :: kkk=0
     TYPE(TEAPOT),optional,INTENT(IN):: EL2
     real(dp) XN(6),PZ,PZS,PT,B1
     real(dp)  b
-    integer TOTALPATH
+    integer TOTALPATH,i,j,l
     logical(lp) time,EXACT
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    real(dp) DF(4),DK(4),at
     EXACT=.TRUE.
 
     !    if(abs(x(1))+abs(x(3))+abs(x(2))+abs(x(4))>absolute_aperture.or.(.not.CHECK_MADX_APERTURE)) then
@@ -13637,6 +13941,8 @@ integer :: kkk=0
        !w_p%c(1)= " ERROR IN WEDGER "
        ! call !write_e(101)
     ENDIF
+
+    if(n_wedge==0) then
 
     IF(B1==0.0_dp) THEN
        call ROT_XZ(A,X,B,EXACT,time)
@@ -13668,7 +13974,6 @@ integer :: kkk=0
                & /(PZS+PZ*COS(A)-X(2)*SIN(A))
 
           XN(3)=(A+ARCSIN(X(2)/PT)-ARCSIN(XN(2)/PT))/B1
-
           XN(6)=X(6)+XN(3)*(1.0_dp+X(5))
 
           XN(3)=X(3)+X(4)*XN(3)
@@ -13679,10 +13984,72 @@ integer :: kkk=0
        X(3)=XN(3)
        X(6)=XN(6)
     ENDIF
-    !    CALL CHECK_STABILITY(X)
+ 
+    else
+   
+      call wedge_int(x,a,b1,b,exact,time)
 
+ 
+ 
+
+     endif
+    !    CALL CHECK_STABILITY(X)
+  
   END SUBROUTINE wedger
 
+    subroutine wedge_intr(x,a,b1,b,exact,time)
+    real(dp),INTENT(INOUT):: X(6)
+    real(dp),INTENT(IN):: A
+    real(dp)  b,at
+    real(dp) ,INTENT(INOUT):: b1
+    integer i,j
+    logical(lp) time,EXACT
+   at=a/n_wedge
+
+      do i=1,n_wedge
+         X(2)=X(2)-at*wyoshid(0)*b1*x(1)/2 
+       do j=1,15
+        call ROT_XZ(at*wyoshik(j),X,B,EXACT,time)
+         X(2)=X(2)-at*wyoshid(j)*b1*x(1)/2 
+
+       enddo
+     !   do j=7,0,-1
+     !     X(2)=X(2)-at*wyosh(j)*b1*x(1)/2 
+     !     call ROT_XZ(at*wyosh(j),X,B,EXACT,time)
+     !     X(2)=X(2)-at*wyosh(j)*b1*x(1)/2
+      !   enddo
+
+     !   do j=1,7
+      !    X(2)=X(2)-at*wyosh(j)*b1*x(1)/2 
+      !    call ROT_XZ(at*wyosh(j),X,B,EXACT,time)
+     !     X(2)=X(2)-at*wyosh(j)*b1*x(1)/2      
+      ! enddo
+      
+   enddo
+      end subroutine wedge_intr
+
+    subroutine wedge_intp(x,a,b1,b,exact,time)
+    type(real_8),INTENT(INOUT):: X(6)
+    real(dp),INTENT(IN):: A
+    real(dp)  b,at
+    type(real_8),INTENT(INOUT):: b1
+    integer i,j
+    logical(lp) time,EXACT
+   at=a/n_wedge
+      do i=1,n_wedge
+        do j=7,0,-1
+          X(2)=X(2)-at*wyosh(j)*b1*x(1)/2 
+          call ROT_XZ(at*wyosh(j),X,B,EXACT,time)
+          X(2)=X(2)-at*wyosh(j)*b1*x(1)/2
+         enddo
+
+        do j=1,7
+          X(2)=X(2)-at*wyosh(j)*b1*x(1)/2 
+          call ROT_XZ(at*wyosh(j),X,B,EXACT,time)
+          X(2)=X(2)-at*wyosh(j)*b1*x(1)/2      
+       enddo
+   enddo
+      end subroutine wedge_intp
 
   SUBROUTINE wedgeP(A,X,k,EL1,EL2)
     IMPLICIT NONE
@@ -13694,7 +14061,10 @@ integer :: kkk=0
     real(dp)  b
     integer TOTALPATH
     logical(lp) time,EXACT
+    TYPE(REAL_8) xi,zeta,w,v,xt1,xt2
+
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
 
     call PRTP("WEDGE:0", X)
 
@@ -13723,6 +14093,7 @@ integer :: kkk=0
        !w_p%c(1)= " ERROR IN WEDGEP "
        ! call !write_e(102)
     ENDIF
+    if(n_wedge==0) then
 
     IF(B1==0.0_dp) THEN
        call ROT_XZ(A,X,B,EXACT,time)
@@ -13764,11 +14135,15 @@ integer :: kkk=0
        X(3)=XN(3)
        X(6)=XN(6)
     ENDIF
+    else
+      call wedge_int(x,a,b1,b,exact,time)
+    endif
     CALL KILL(PZ,PZS,PT,B1)
     CALL KILL(XN,6)
+ 
+  call PRTP("WEDGE:1", X)
 
-    call PRTP("WEDGE:1", X)
-
+   
   END SUBROUTINE wedgeP
 
   !  CAV_TRAV
@@ -16017,7 +16392,7 @@ endif
     endif
 
 
-    acc%table(i)%energy=0.d0
+    acc%table(i)%energy=0 
 
    enddo
 

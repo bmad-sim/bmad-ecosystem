@@ -971,7 +971,7 @@ endif
            read(mf,*) filename   !!!  put "nofile" for no plot
            X_ref=0
            p=>my_ering%start
-         call taper(p,X_ref,i1,my_estate,1.d-8,file=filename)  
+         call taper(p,X_ref,i1,my_estate,1.e-8_dp,file=filename)  
        case('UNTAPERING','UNTAPER')
            p=>my_ering%start
            call untaper(p)  
@@ -1579,8 +1579,8 @@ endif
 
 
 if(.not.my_estate%envelope) hgap=-1
-            call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
- if(do_state0)            call FIND_ORBIT_x(x_ref0,state0,1.d-7,fibre1=f1)
+            call FIND_ORBIT_x(x_ref,my_estate,1.e-7_dp,fibre1=f1)
+ if(do_state0)            call FIND_ORBIT_x(x_ref0,state0,1.e-7_dp,fibre1=f1)
 
  if(do_state0)   then
               call fill_tree_element_line_zhe0(state0,my_estate,f1,f2,MY_A_NO,x_ref0,x_ref,file_zher,stochprec=hgap) 
@@ -1622,7 +1622,7 @@ write(6,*) " closed orbit at position ",i1
 
 
 if(.not.my_estate%envelope) hgap=-1
- if(my_a_no>0)            call FIND_ORBIT_x(x_ref,my_estate,1.d-7,fibre1=f1)
+ if(my_a_no>0)            call FIND_ORBIT_x(x_ref,my_estate,1.e-7_dp,fibre1=f1)
 
               call fill_tree_element_line_zhe(my_estate,f1,f2,iabs(MY_A_NO),x_ref,filename,stochprec=hgap) 
 
@@ -1666,9 +1666,9 @@ write(6,*) " closed orbit at position ",i1
              endif
 
 if(noca) then
-             call FIND_ORBIT_x(x_ref,time0+nocavity0,1.d-7,fibre1=f1)
+             call FIND_ORBIT_x(x_ref,time0+nocavity0,1.e-7_dp,fibre1=f1)
 else
-             call FIND_ORBIT_x(x_ref,time0,1.d-7,fibre1=f1)
+             call FIND_ORBIT_x(x_ref,time0,1.e-7_dp,fibre1=f1)
 endif  
 
              name_root=filename
@@ -1722,9 +1722,9 @@ endif
                 ft=>my_fring%start       
              endif
 if(noca) then
-             call FIND_ORBIT_x(x_ref,time0+nocavity0,1.d-7,fibre1=f1)
+             call FIND_ORBIT_x(x_ref,time0+nocavity0,1.e-7_dp,fibre1=f1)
 else
-             call FIND_ORBIT_x(x_ref,time0,1.d-7,fibre1=f1)
+             call FIND_ORBIT_x(x_ref,time0,1.e-7_dp,fibre1=f1)
 endif  
 write(6,*) x_ref
        
@@ -2963,7 +2963,7 @@ number_zhe_maps = 1
 
 !!!! finds the closed orbit at position s=0
 closed_orbit=0
-call FIND_ORBIT_x(closed_orbit,state0,1.d-8,node1=it)
+call FIND_ORBIT_x(closed_orbit,state0,1.e-8_dp,node1=it)
  
     call GET_loss(r,energy,deltap)
  
@@ -2978,7 +2978,7 @@ write(6,'(6(E20.13,1X))' ) closed_orbit
 !!! First order maps for tests.
  
  ray=closed_orbit
-call FIND_ORBIT_x(ray%x,state0,1.d-5,node1=it)
+call FIND_ORBIT_x(ray%x,state0,1.e-5_dp,node1=it)
 
 
  
@@ -3096,7 +3096,7 @@ mapfile="olek"
 m%x0(1:6)=x
 call print(m)
 
-call fill_tree_element_line_zhe_outside_map(m ,mapfile,as_is=.false.,stochprec=1.d-8) 
+call fill_tree_element_line_zhe_outside_map(m ,mapfile,as_is=.false.,stochprec=1.e-8_dp) 
  
  
 call read_tree_zhe(t_olek_map(1:3),mapfile)
@@ -3111,7 +3111,7 @@ call read_tree_zhe(t_olek_map(1:3),mapfile)
   
  do i=1,bunch_zhe%n
  
-    bunch_zhe%xs(i)%q=1.d0
+    bunch_zhe%xs(i)%q=1.e0_dp
   
  enddo
 
@@ -3392,7 +3392,7 @@ matf=0
    if(present(file_bunch)) call kanalnummer(mfg,file_bunch)
   a0=1
   a0%e_ij=normal%s_ij0 
-  call c_stochastic_kick(a0,mat,ki,1.d-38)
+  call c_stochastic_kick(a0,mat,ki,1.0e-38_dp)
   i4=0
   do i1=0,ngen-1
   do i2=0,ngen-1
@@ -3456,7 +3456,7 @@ write(mf1,'(16X,a50)') "   Equilibrium moments in Phasors Basis           "
  do j=i,6 
   if(abs(normal%s_ijr(i,j))>1.d-20) then
    write(mf1,fmd) " Phasors -> ","<x_",i," x_",j,"> = ",  &   ! (14)
-                    c_clean(normal%s_ijr(i,j),1.d-20)  
+                    c_clean(normal%s_ijr(i,j),1.e-20_dp)  
   endif
  enddo
  enddo 
@@ -4867,7 +4867,7 @@ x2div2=2.0_dp*(1.0_dp.cmono.1)**2
 call C_AVERAGE(x2div2,a1,x2div2_f)  
 
 write(mf,*) " Phase advance in x "
-call clean(phase,phase,prec=1.d-10)
+call clean(phase,phase,prec=1.e-10_dp)
 call print(phase(1),mf)
 write(mf,*) " Beginning of lattice "
 call print(x2div2_f,mf)
@@ -4880,12 +4880,12 @@ write(mf,*) " end of Magnet ",f%mag%name
 
  a=xs  ! creates tracked canonical transformation
  xs0=xs
-call c_canonise(a,a_cs,a0,a1,a2,phase) ;call clean(a1,a1,prec=1.d-10);
+call c_canonise(a,a_cs,a0,a1,a2,phase) ;call clean(a1,a1,prec=1.e-10_dp);
  
 call C_AVERAGE(x2div2,a1,x2div2_f)  
 
 write(mf,*) " Phase advance in x "
-call clean(phase,phase,prec=1.d-10)
+call clean(phase,phase,prec=1.e-10_dp)
 call print(phase(1),mf)
 write(mf,*) " 2(x^2> ~ beta"
 call print(x2div2_f,mf)
@@ -4897,7 +4897,7 @@ enddo
 
 
 write(mf,*) " Tune in x from one turn map"
-call clean(phase_one_turn_map,phase_one_turn_map,prec=1.d-10)
+call clean(phase_one_turn_map,phase_one_turn_map,prec=1.e-10_dp)
 call print(phase_one_turn_map(1),mf)
 
 close(mf)

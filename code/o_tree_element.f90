@@ -805,13 +805,12 @@ CONTAINS
     P%AC%t=0.0_dp
     p%e_ij=0.0_dp
     p%damps=0.0_dp
-    p%t_bks=0
-    p%t_bks0=0
+!    p%t_bks=0
+!    p%t_bks0=0
 
     p%b_kin=0.0_dp
     p%d_spin=0.0_dp
-    p%t_bks=0.0_dp
-    p%t_bks0=0.0_dp
+ 
 
   END    subroutine EQUAL_PROBE8_REAL6
 
@@ -848,8 +847,8 @@ CONTAINS
     P8%damps=P%damps
     P8%b_kin=P%b_kin
     p8%d_spin=p%d_spin
-    p8%t_bks=p%t_bks
-    p8%t_bks0=p%t_bks0
+!    p8%t_bks=p%t_bks
+!    p8%t_bks0=p%t_bks0
 
   END subroutine EQUAL_PROBE8_PROBE8
 
@@ -1051,8 +1050,8 @@ CONTAINS
     r%e=0
     r%x0=0
     r%damps=0
-    r%t_bks=0
-    r%t_bks0=0
+!    r%t_bks=0
+!    r%t_bks0=0
 
     r%b_kin=0
     r%d_spin=0
@@ -1389,8 +1388,8 @@ CONTAINS
     r%e=0
     r%x0=0
     r%damps=0
-    r%t_bks=0
-    r%t_bks0=0
+!    r%t_bks=0
+ !  r%t_bks0=0
 
     r%b_kin=0
     r%d_spin=0
@@ -1440,8 +1439,8 @@ CONTAINS
     r%e=0
     r%x0=0
     r%damps=0
-    r%t_bks=0
-    r%t_bks0=0
+!    r%t_bks=0
+ !   r%t_bks0=0
 
     r%b_kin=0
     r%d_spin=0

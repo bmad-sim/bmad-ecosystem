@@ -2675,7 +2675,7 @@ surv=my_true
    read(mf,*) se2,se1
      call input_sector(se2,se1)
 call make_states(my_false)
-call set_mad(energy=2.0d0)
+call set_mad(energy=2.0e0_dp)
 
 
    
