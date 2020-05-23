@@ -79,7 +79,7 @@ module precision_constants
    real(dp),parameter::A_MUON=1.1659208963e-3_dp        ! NIST CODATA 2014
    real(dp),parameter::A_PROTON=1.79284735e-0_dp        !
    real(dp),parameter::pmaMUON=105.658374524E-3_dp      ! NIST CODATA 2014
-   real(dp) :: e_muon = 0.d0, volt_c=1.0e-3_dp, volt_i=1.0_dp
+   real(dp) :: e_muon = 0.e0_dp, volt_c=1.0e-3_dp, volt_i=1.0_dp
  !  real(dp),parameter:: pmadt = 1.875612793e0_dp    ! sateesh
   !  real(dp),parameter:: pmah3 = 2.808391e0_dp    ! sateesh
   !  real(dp),parameter:: A_dt = -0.142987272e0_dp    ! sateesh
@@ -152,6 +152,7 @@ module precision_constants
   real(dp),parameter:: suntao=1.6021766208e-19_dp/299792458.0_dp/9.10938356e-31_dp
   ! Constant Symplectic integrator schemes
   real(dp) YOSK(0:4), YOSD(4)    ! FIRST 6TH ORDER OF YOSHIDA
+  real(dp) wyosh(0:7),wyoshid(0:15),wyoshik(15)    ! FIRST 8TH ORDER OF YOSHIDA
   real(dp),parameter::AAA=-0.25992104989487316476721060727823e0_dp  ! fourth order integrator
   real(dp),parameter::FD1=0.5_dp/(1.0_dp+AAA),FD2=AAA*FD1,FK1=1.0_dp/(1.0_dp+AAA),FK2=(AAA-1.0_dp)*FK1
   ! end of symplectic integrator coefficients
@@ -406,7 +407,8 @@ contains
 
   SUBROUTINE MAKE_YOSHIDA
     IMPLICIT NONE
-    integer i
+    integer i ,id 
+    real(dp) a,b
 
     YOSK(4)=0.0_dp
     YOSK(3)=0.78451361047756e0_dp
@@ -421,8 +423,84 @@ contains
     do i=3,0,-1
        YOSK(i+1)=YOSK(I)
     enddo
+!wyosh(1,1)= -0.161582374150097E1_dp   
+!wyosh(1,2)= -0.244699182370524E1_dp   
+!wyosh(1,3)= -0.716989419708120E-2_dp  
+!wyosh(1,4)= 0.244002732616735E1_dp    
+!wyosh(1,5)= 0.157739928123617E0_dp   
+!wyosh(1,6)= 0.182020630970714E1_dp  
+!wyosh(1,7)= 0.104242620869991E1_dp    
 
+!wyosh(2,1)=  -0.169248587770116E-2_dp  
+!wyosh(2,2)=  0.289195744315849E1_dp  
+!wyosh(2,3)=  0.378039588360192E-2_dp   
+!wyosh(2,4)= -0.289688250328827E1_dp   
+!wyosh(2,5)=  0.289105148970595E1_dp   
+!wyosh(2,6)=  -0.233864815101035E1_dp   
+!wyosh(2,7)=  0.148819229202922E1_dp  
 
+!wyosh(3,1)=  0.311790812418427E0_dp
+!wyosh(3,2)=  -0.155946803821447E1_dp
+!wyosh(3,3)=   -0.167896928259640E1_dp
+!wyosh(3,4)=  0.166335809963315E1_dp
+!wyosh(3,5)=  -0.106458714789183E1_dp
+!wyosh(3,6)=  0.136934946416871E1_dp
+!wyosh(3,7)=  0.629030650210433E0_dp
+
+wyosh(1)= 0.102799849391985e0_dp 
+wyosh(2)= -0.196061023297549E1_dp 
+wyosh(3)= 0.193813913762276E1_dp  
+wyosh(4)= -0.158240635368243E0_dp 
+wyosh(5)= -0.144485223686048E1_dp 
+wyosh(6)= 0.253693336566229E0_dp  
+wyosh(7)= 0.914844246229740E0_dp  
+
+!wyosh(5,1)=0.227738840094906E-1_dp
+!wyosh(5,2)=0.252778927322839E1_dp
+!wyosh(5,3)=-0.719180053552772E-1_dp
+!wyosh(5,4)=0.536018921307285E-2_dp
+!wyosh(5,5)=-0.204809795887393E1_dp
+!wyosh(5,6)=0.107990467703699E0_dp
+!wyosh(5,7)=0.130300165760014E1_dp
+
+ 
+wyosh(0)=1.0_dp
+
+do i=1,7
+wyosh(0)=wyosh(0)-2*wyosh(i)
+enddo
+
+!wyosh(0:7),wyoshid(0:15),wyoshik(15) 
+id=1
+wyoshid(0)=wyosh(7)/2
+do i=7,1,-1
+ wyoshik(id)=wyosh(i)
+ wyoshid(id)=(wyosh(i)+wyosh(i-1))/2
+id=id+1
+enddo
+  wyoshik(id)=wyosh(0)
+  wyoshid(id)=(wyosh(0)+wyosh(1))/2
+  id=id+1
+
+do i=1,6
+ wyoshik(id)=wyosh(i)
+ wyoshid(id)=(wyosh(i)+wyosh(i+1))/2
+ id=id+1
+enddo
+ wyoshik(id)=wyosh(7)
+ wyoshid(id)=wyosh(7)/2
+!write(6,*) id
+!pause 777
+ !a=wyoshid(0) 
+ !b=0
+ !write(6,*) 0,wyoshid(0) 
+!do id=1,15
+!  a=a+wyoshid(id)
+!  b=b+wyoshik(id)
+! write(6,*) id,wyoshid(id),wyoshik(id)
+!enddo
+!write(6,*) a,b
+ 
   END SUBROUTINE MAKE_YOSHIDA
 
   SUBROUTINE input_sector(se2,se1)

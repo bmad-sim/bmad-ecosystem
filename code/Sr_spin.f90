@@ -47,7 +47,10 @@ module ptc_spin
   private quaternion_8_to_matrix
   !  INTEGER, PRIVATE :: ISPIN0P=0,ISPIN1P=3
    ! oleksii 
-  real(dp) n_olek(3),t_bks_olek
+  real(dp) n_oleksii(3)
+  real(dp) :: t_ns_oleksii=0,t_nb_oleksii=0,t_bks_approx=0, i_bks=0 ,theta_oleksii=0
+  integer :: print_oleksii =0
+type(work) w_bks
 
   INTERFACE assignment (=)
      MODULE PROCEDURE equal_temporal
@@ -544,9 +547,9 @@ contains
     type(quaternion) sq,sf
     
 
-
+    s=0.0_dp
     do i=1,3
-     s=0.0_dp
+     sq=0.0_dp
      sq%x(i)=1.0_dp
      sf=q*sq*q**(-1)
      do j=1,3
@@ -570,17 +573,19 @@ contains
     LOGICAL(LP),intent(in) :: BEFORE
     TYPE(REAL_8) st,av(3),z,x(6)
     type(quaternion) q
-    real(dp) b30,x1,x3,denf,a(3),dspin(3),bs(3),ee(3),bb(3),lambda,s(3,3),theta
+    real(dp) b30,x1,x3,denf,a(3),dspin(3),bs(3),ee(3),bb(3),lambda,s(3,3),denf0
     type(damap) xpmap
     integer i,j,ja,ia
     type(internal_state) k
 
     IF(.NOT.CHECK_STABLE) return
+!!!  ee =  ray direction
+!!!  bb =  b field
         do i=1,3
          ee(i)=e(i)
          bb(i)=b(i)
         enddo
-
+ 
     call alloc(x)
     x=p%x
 
@@ -588,10 +593,17 @@ contains
     if(.not.before.and.k%envelope) then
 
        denf=(1.0_dp+x(5))**5/SQRT((1.0_dp+X(5))**2-Xp(1)**2-Xp(2)**2)
+  !     b30=b2
+  !    b30=b30**1.5e0_dp
+  !     b30=cflucf(el%p)*b30
+  !     denf=denf*b30*FAC*DS
+
+
        b30=b2
        b30=b30**1.5e0_dp
-       b30=cflucf(el%p)*b30
-       denf=denf*b30*FAC*DS
+       denf0=cflucf(el%p)
+       denf=denf0*b30 *FAC*DS*denf
+
 
        call alloc(xpmap)
 
@@ -615,8 +627,10 @@ contains
 ! new eq 15
        if(k%spin.and.k%envelope) then
        if(p%use_q) then
-         q=p%q   
+         q=p%q 
+    
          call makeso3(q,s)
+
        else
         DO I=1,3
            DO J=1,3
@@ -640,24 +654,29 @@ contains
 
 !! equation 15 of Barber in Chao's handbook
 
-        theta=(denf/2.0_dp/11.0_dp)*18.0_dp !  comparing to tau_dep
-! if(c%parent_fibre%mag%p%b0/=0)         then
-p%t_bks0=p%t_bks0+theta  
+        theta_oleksii=(denf0/2.0_dp/11.0_dp)*18.0_dp !  comparing to tau_dep
+ 
+ if(c%parent_fibre%mag%p%b0/=0)         then
+w_bks=c%parent_fibre
+i_bks=i_bks+1
+t_bks_approx=t_bks_approx+ (twopi/99.d0)*c%parent_fibre%mag%p%b0**2*w_bks%energy**5/clight
+endif
+
+
 !write(6,*) c%parent_fibre%mag%p%b0**2,b30t,denf
 !endif 
-dspin=matmul(s,n_olek)
-    t_bks_olek=t_bks_olek+theta*(1.d0- 2.0_dp*  (ee(1)*dspin(1)+ee(2)*dspin(2)+ee(3)*dspin(3))**2/9.d0)
+dspin=matmul(s,n_oleksii)
+    t_ns_oleksii=t_ns_oleksii+(1.d0- 2.0_dp*  (ee(1)*dspin(1)+ee(2)*dspin(2)+ee(3)*dspin(3))**2/9.d0)*b30*FAC*DS
+            x3= bb(1)**2+bb(2)**2+bb(3)**2
+            if(x3==0) then  
+                 x3=1
+               else
+                 x3=1.d0/sqrt(x3)
+            endif   
+  
+    t_nb_oleksii=t_nb_oleksii+ (bb(1)*dspin(1)+bb(2)*dspin(2)+bb(3)*dspin(3)) *b30*FAC*DS*x3
 
-        do j=1,3 
-          do i=1,3
-            do ja=1,3 
-             do ia=1,3
-
-            p%t_bks(j,ja)=p%t_bks(j,ja) - theta*2.0_dp* ee(i)*s(i,j) *ee(ia)*s(ia,ja) /9.0_dp
-             enddo
-           enddo
-         enddo
-       enddo
+ 
 
         call crossp(ee,bb,a)
         call crossp(ee,a,dspin)
@@ -754,11 +773,10 @@ dspin=matmul(s,n_olek)
 
     if(before.and.k%envelope) then
        denf=(1.0_dp+x(5))**5/SQRT((1.0_dp+X(5))**2-Xp(1)**2-Xp(2)**2)
-
        b30=b2
        b30=b30**1.5e0_dp
-       b30=cflucf(el%p)*b30
-       denf=denf*b30*FAC*DS
+       denf0=cflucf(el%p)
+       denf=denf0*b30 *FAC*DS*denf
 
        call alloc(xpmap)
        xpmap%v(1)=x(1)
@@ -778,8 +796,12 @@ dspin=matmul(s,n_olek)
        call kill(xpmap)
        if(k%spin.and.k%envelope) then
         if(p%use_q) then
-         q=p%q   
+  
+         q=p%q 
+
+  
          call makeso3(q,s)
+
        else
         DO I=1,3
            DO J=1,3
@@ -801,25 +823,23 @@ dspin=matmul(s,n_olek)
         lambda=denf*24.0_dp*sqrt(3.0_dp)/(1.0_dp+x(5))**2/55.0_dp
 !! equation 15 of Barber in Chao's handbook
  
-        theta=(denf/2.0_dp/11.0_dp)*18.0_dp !  comparing to tau_dep
+        theta_oleksii=(denf0/2.0_dp/11.0_dp)*18.0_dp !  comparing to tau_dep
         
 ! if(c%parent_fibre%mag%p%b0/=0)         then
-p%t_bks0=p%t_bks0+theta  
+  
 !write(6,*) c%parent_fibre%mag%p%b0**2,b30t,denf
 !endif 
-dspin=matmul(s,n_olek)
-    t_bks_olek=t_bks_olek+theta*(1.d0- 2.0_dp*  (ee(1)*dspin(1)+ee(2)*dspin(2)+ee(3)*dspin(3))**2/9.d0)
+dspin=matmul(s,n_oleksii)
+    t_ns_oleksii=t_ns_oleksii+(1.d0- 2.0_dp*  (ee(1)*dspin(1)+ee(2)*dspin(2)+ee(3)*dspin(3))**2/9.d0)*b30*FAC*DS
+            x3= bb(1)**2+bb(2)**2+bb(3)**2
+            if(x3==0) then  
+                 x3=1
+               else
+                 x3=1.d0/sqrt(x3)
+            endif            
+    t_nb_oleksii=t_nb_oleksii+ (bb(1)*dspin(1)+bb(2)*dspin(2)+bb(3)*dspin(3)) *b30*FAC*DS*x3
 
-        do j=1,3 
-          do i=1,3
-            do ja=1,3 
-             do ia=1,3
 
-            p%t_bks(j,ja)=p%t_bks(j,ja) - theta*2.0_dp* ee(i)*s(i,j) *ee(ia)*s(ia,ja) /9.0_dp
-             enddo
-           enddo
-         enddo
-       enddo
 
         call crossp(ee,bb,a)
         call crossp(ee,a,dspin)
@@ -6854,7 +6874,7 @@ enddo
 
  
 
-     ft=1.d0
+     ft=1.e0_dp
      do i=1,6
      ft=ft*exp(-e(i)*(1.0_dp.cmono.i)**2)
     enddo

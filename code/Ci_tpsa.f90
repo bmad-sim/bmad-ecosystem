@@ -3055,7 +3055,7 @@ endif
       t_1=mt-t_1     !  same as a map
       e2=(t*t_1)
  
-      t2=(-0.5d0)*c_1_vf_q(e2,0)
+      t2=(-0.5e0_dp)*c_1_vf_q(e2,0)
       t=t+t2
  
       call c_full_norm_vector_field(t,xnorm1)
@@ -4117,7 +4117,7 @@ io=0
     call ass(c_dputint0)
     j=0
     if(s2>nv) then
-       c_dputint0=0.d0
+       c_dputint0=0.0e0_dp
         c_master=localmaster
        return
     endif
@@ -8748,7 +8748,8 @@ endif
      s2i=s2**(-1) 
 
      do k=1,s2%n
-      transform_vector_field_by_map%v(k)=0.d0
+      transform_vector_field_by_map%v(k)=0.0e0_dp
+        c_master=localmaster
      do i=1,s2%n
        transform_vector_field_by_map%v(k)=s1%v(i)*(s2i%v(k).d.i)+transform_vector_field_by_map%v(k)
      enddo      
@@ -11244,9 +11245,9 @@ subroutine c_linear_ac_longitudinal(xy,a1,ac)
     x%s=1    ! spin part is identity
     x%q=1.0_dp 
     do i=nd2+1,nv
-     x%v(i)=1.d0.cmono.i  !  Identity in all the parameter planes
+     x%v(i)=1.0e0_dp.cmono.i  !  Identity in all the parameter planes
     enddo
-    if(ndpt/=0) x%v(ndpt)=1.d0.cmono.ndpt !  If coasting, then energy is a parameter
+    if(ndpt/=0) x%v(ndpt)=1.0e0_dp.cmono.ndpt !  If coasting, then energy is a parameter
 
     v=w*x  ! v contains the fixed point, for example v(1)= eta_x * x_pt + ...
          
@@ -11287,7 +11288,7 @@ if(dosymp) then
 
 !!! identity is added to a1 except coasting plane (already there) !!! 
     do i=1,nd2 
-     if(i/=ndptb.and.i/=ndpt) a1%v(i)=(1.d0.cmono.i)+a1%v(i)
+     if(i/=ndptb.and.i/=ndpt) a1%v(i)=(1.0e0_dp.cmono.i)+a1%v(i)
     enddo
 
 !call print(a1,6)
@@ -11329,12 +11330,12 @@ else
 
     do i=1,nd2 
      if(i/=ndpt) then 
-       a1%v(i)=(1.d0.cmono.i)+a1%v(i)  ! ndpt is already identity
+       a1%v(i)=(1.0e0_dp.cmono.i)+a1%v(i)  ! ndpt is already identity
      endif
     enddo 
 
     do i=1,nd2t 
-     a1%v(ndptb)=a1%v(ndptb)+mv(i)*(1.d0.cmono.i)
+     a1%v(ndptb)=a1%v(ndptb)+mv(i)*(1.0e0_dp.cmono.i)
     enddo
  deallocate(mt,mv);deallocate(je);
 ! endif ! npdt/=0
@@ -11343,7 +11344,7 @@ else
 else ! npdt=0
 
     do i=1,nd2 
-       a1%v(i)=(1.d0.cmono.i)+a1%v(i)  ! ndpt is already identity
+       a1%v(i)=(1e0_dp.cmono.i)+a1%v(i)  ! ndpt is already identity
     enddo 
 
 endif
@@ -12427,7 +12428,7 @@ end subroutine c_stochastic_kick
     call c_ass_vector_field(c_1_vf_q)
     
     do i=1,s1%n
-      tt=s1%v(i)-ci*(1.d0.cmono.i)
+      tt=s1%v(i)-ci*(1.0e0_dp.cmono.i)
       c_1_vf_q%v(i)=tt
     enddo
     
@@ -12461,7 +12462,7 @@ end subroutine c_stochastic_kick
     call c_assmap(c_1_map)
      c_1_map=s1
     do i=1,s1%n
-      tt=s1%v(i)+ci*(1.d0.cmono.i)
+      tt=s1%v(i)+ci*(1.0e0_dp.cmono.i)
       c_1_map%v(i)=tt
     enddo
     
@@ -17547,10 +17548,10 @@ js=0
 do i=1,size(yu%w,1)   ! should be nd2t # harmonic planes 
   yu%w(i,0)=u%v(i)
   t=yu%w(i,0)
-  p=1.d0
+  p=1.e0_dp
  do j=1,yu%n
    t=f*t
-   p=p*(1.d0+(1.d0.cmono.1))
+   p=p*(1.0e0_dp+(1.0e0_dp.cmono.1))
    yu%w(i,j)=t 
   do k=0,j-1
    js(1)=j-k

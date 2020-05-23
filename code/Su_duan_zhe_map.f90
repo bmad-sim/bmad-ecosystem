@@ -810,7 +810,7 @@ endif
     call track_TREE_G_complex(T(1),X(1:6))
  else
     do i=1,3
-     x(2*i-1)=0.d0   ! use non symplectic as approximation
+     x(2*i-1)=0.0_dp   ! use non symplectic as approximation
     enddo
   endif
 !!! symplectic here!! symplectic here
@@ -1167,7 +1167,7 @@ if(no1>1.and.(.not.as_is0)) then
 
  !else
     do i=1,3
-     x(2*i-1)=0.d0   ! use non symplectic as approximation
+     x(2*i-1)=0.0_dp   ! use non symplectic as approximation
     enddo
  ! endif
 !!! symplectic here!! symplectic here

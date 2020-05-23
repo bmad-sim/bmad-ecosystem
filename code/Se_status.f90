@@ -905,7 +905,7 @@ CONTAINS
       !       call make_coef_e(s_e,I)
 !             call get_bend_coeff(S_EB,I,1.D0,MY_TRUE)
              call get_bend_electric_coeff(s_e,I)
-             call get_bend_magnetic_potential(S_B_from_V,I,1.D0,MY_TRUE)
+             call get_bend_magnetic_potential(S_B_from_V,I,1.0e0_dp,MY_TRUE)
 
 !          ENDDO
           lda_used=lda_old
@@ -9637,8 +9637,8 @@ endif
     call alloc(y0)
 
 
-      x=1.d0.mono.1
-      y=1.d0.mono.2
+      x=1.0e0_dp.mono.1
+      y=1.0e0_dp.mono.2
       y0=1
       y0%v(2)=0
       z=x+i_*y      
@@ -9672,7 +9672,7 @@ endif
     if(present(verb)) then
 
         write(mf,*) " Normal ",k
-         call clean_taylor(f,f,1.d-10)
+         call clean_taylor(f,f,1.0e-10_dp)
         call print(f,mf)
          y=((f.d.1).d.1)+((f.d.2).d.2)+h0*(f.d.1)/h
         y=y.cut.(no-1)
@@ -9686,8 +9686,8 @@ endif
 
        kick_x=-(f.d.1)  ! electric field
        kick_y=-(f.d.2)
-       call clean_taylor(kick_x,kick_x,1.d-6)
-       call clean_taylor(kick_y,kick_y,1.d-6)
+       call clean_taylor(kick_x,kick_x,1.0e-6_dp)
+       call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
         j(1)=s_b0t%i(l)
         j(2)=s_b0t%j(l)
@@ -9726,14 +9726,14 @@ f=fs(k)
  
   cker1=fs(m).sub.j
   f=f-(cker/cker1)*fs(m)
- call clean_taylor(f,f,1.d-10)
+ call clean_taylor(f,f,1.0e-10_dp)
  
  enddo
  
        kick_x=-(f.d.1)  ! electric field
        kick_y=-(f.d.2)
-       call clean_taylor(kick_x,kick_x,1.d-6)
-       call clean_taylor(kick_y,kick_y,1.d-6)
+       call clean_taylor(kick_x,kick_x,1.0e-6_dp)
+       call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
         j(1)=s_b0t%i(l)
         j(2)=s_b0t%j(l)
@@ -9768,7 +9768,7 @@ endif
      enddo
      if(present(verb)) then
         write(mf,*) " Skew ",k
-        call clean_taylor(f,f,1.d-10)
+        call clean_taylor(f,f,1.0e-10_dp)
         call print(f,mf)
          y=((f.d.1).d.1)+((f.d.2).d.2)+h0*(f.d.1)/h
         y=y.cut.(no-1)
@@ -9782,8 +9782,8 @@ endif
 
        kick_x=-(f.d.1)   ! electric field
        kick_y=-(f.d.2)
-       call clean_taylor(kick_x,kick_x,1.d-6)
-       call clean_taylor(kick_y,kick_y,1.d-6)
+       call clean_taylor(kick_x,kick_x,1.0e-6_dp)
+       call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
         j(1)=s_b0t%i(l)
         j(2)=s_b0t%j(l)
@@ -9821,14 +9821,14 @@ f=fs(k)
 
   cker1=fs(m).sub.j
   f=f-(cker/cker1)*fs(m)
- call clean_taylor(f,f,1.d-10)
+ call clean_taylor(f,f,1.0e-10_dp)
 
  enddo
 
        kick_x=-(f.d.1)   ! electric field
        kick_y=-(f.d.2)
-       call clean_taylor(kick_x,kick_x,1.d-6)
-       call clean_taylor(kick_y,kick_y,1.d-6)
+       call clean_taylor(kick_x,kick_x,1.0e-6_dp)
+       call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
         j(1)=s_b0t%i(l)
         j(2)=s_b0t%j(l)
@@ -9885,8 +9885,8 @@ endif
     call alloc(y0)
 
 
-      x=1.d0.mono.1
-      y=1.d0.mono.2
+      x=1.0e0_dp.mono.1
+      y=1.0e0_dp.mono.2
       y0=1
       y0%v(2)=0
       z=x+i_*y      
@@ -9919,7 +9919,7 @@ endif
     if(present(verb)) then
 
         write(mf,*) " Normal ",k
-         call clean_taylor(f,f,1.d-10)
+         call clean_taylor(f,f,1.0e-10_dp)
         call print(f,mf)
          y=((f.d.1).d.1)+((f.d.2).d.2)+h0*(f.d.1)/h
         y=y.cut.(no-1)
@@ -9929,8 +9929,8 @@ endif
        kick_y=-h*(f.d.1)
        kick_x=kick_x.cut.no
        kick_y=kick_y.cut.no
-         call clean_taylor(kick_x,kick_x,1.d-10)
-         call clean_taylor(kick_Y,kick_Y,1.d-10)
+         call clean_taylor(kick_x,kick_x,1.0e-10_dp)
+         call clean_taylor(kick_Y,kick_Y,1.0e-10_dp)
         call print(kick_x,mf)
         call print(kick_Y,mf)
        endif
@@ -9938,8 +9938,8 @@ endif
        kick_x= -(f.d.1)  ! magnetic field
        kick_y= -(f.d.2)
 
-       call clean_taylor(kick_x,kick_x,1.d-6)
-       call clean_taylor(kick_y,kick_y,1.d-6)
+       call clean_taylor(kick_x,kick_x,1.0e-6_dp)
+       call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
         j(1)=s_b0t%i(l)
         j(2)=s_b0t%j(l)
@@ -9975,15 +9975,15 @@ f=fs(k)
  
   cker1=fs(m).sub.j
   f=f-(cker/cker1)*fs(m)
- call clean_taylor(f,f,1.d-10)
+ call clean_taylor(f,f,1.0e-10_dp)
 
  enddo
 
        kick_x= -(f.d.1)  ! magnetic field
        kick_y= -(f.d.2)
 
-       call clean_taylor(kick_x,kick_x,1.d-6)
-       call clean_taylor(kick_y,kick_y,1.d-6)
+       call clean_taylor(kick_x,kick_x,1.0e-6_dp)
+       call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
         j(1)=s_b0t%i(l)
         j(2)=s_b0t%j(l)
@@ -10018,7 +10018,7 @@ endif
      enddo
      if(present(verb)) then
         write(mf,*) " Skew ",k
-        call clean_taylor(f,f,1.d-10)
+        call clean_taylor(f,f,1.0e-10_dp)
         call print(f,mf)
          y=((f.d.1).d.1)+((f.d.2).d.2)+h0*(f.d.1)/h
         y=y.cut.(no-1)
@@ -10028,16 +10028,16 @@ endif
        kick_y=-h*(f.d.1)
        kick_x=kick_x.cut.no
        kick_y=kick_y.cut.no
-         call clean_taylor(kick_x,kick_x,1.d-10)
-         call clean_taylor(kick_Y,kick_Y,1.d-10)
+         call clean_taylor(kick_x,kick_x,1.0e-10_dp)
+         call clean_taylor(kick_Y,kick_Y,1.0e-10_dp)
         call print(kick_x,mf)
         call print(kick_Y,mf)
        endif
 
        kick_x= -(f.d.1)  ! magnetic field
        kick_y= -(f.d.2)
-       call clean_taylor(kick_x,kick_x,1.d-6)
-       call clean_taylor(kick_y,kick_y,1.d-6)
+       call clean_taylor(kick_x,kick_x,1.0e-6_dp)
+       call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
         j(1)=s_b0t%i(l)
         j(2)=s_b0t%j(l)
@@ -10071,14 +10071,14 @@ f=fs(k)
  
   cker1=fs(m).sub.j
   f=f-(cker/cker1)*fs(m)
- call clean_taylor(f,f,1.d-10)
+ call clean_taylor(f,f,1.0e-10_dp)
 
  enddo
 
        kick_x= -(f.d.1)  ! magnetic field
        kick_y= -(f.d.2)
-       call clean_taylor(kick_x,kick_x,1.d-6)
-       call clean_taylor(kick_y,kick_y,1.d-6)
+       call clean_taylor(kick_x,kick_x,1.0e-6_dp)
+       call clean_taylor(kick_y,kick_y,1.0e-6_dp)
        do l=1,s_b0t%n_mono
         j(1)=s_b0t%i(l)
         j(2)=s_b0t%j(l)

@@ -795,7 +795,7 @@ contains
      if(present(ref0)) then
  !  adding orbit for bmad
        do i=1,nd2
-        idf%v(i)=(1.d0.mono.i)-ref0(i)
+        idf%v(i)=(1.0_dp.mono.i)-ref0(i)
        enddo
        do i=1,nd2
         t%v(i)=t%v(i)-(t%v(i).sub.'0')
