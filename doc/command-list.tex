@@ -2409,9 +2409,10 @@ Syntax:
 \end{example}
 
 
-Shows the transfer matrix for the \vn{model} lattice of the default universe (set by
-\vn{set default universe}).  This command is equivalent to \vn{show taylor_map -order
-1}. See the \vn{show taylor_map} documentation for more details.
+Shows the transfer matrix (Jacobian) for the \vn{model} lattice of the default universe (set by
+\vn{set default universe}). The matrix is calculated with respect to the particle orbit, not the
+zero orbit. This command is equivalent to \vn{show taylor_map -order 1}. See the \vn{show
+taylor_map} documentation for more details.
 
 %% show merit --------------------------------------------------------------
 
@@ -2696,6 +2697,8 @@ The \vn{-ptc} switch is used with \vn{-order 1}. By default, order 1 maps (matri
 using native Bmad code. If the \vn{-ptc} switch is present, the matrix is calculated using the
 \vn{PTC} code (see the \bmad manual for details on PTC). Since PTC is always used to calcuate maps
 of order higher than 1, the \vn{-ptc} switch is ignored for higher orders.
+
+Maps are computed about the particle orbit. Not the zero orbit.
 
 Examples:
 \begin{example}
