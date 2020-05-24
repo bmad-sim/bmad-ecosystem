@@ -1001,18 +1001,22 @@ case ('cbar.')
 
   case ('cbar.11')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%cbar(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('cbar.12')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%cbar(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('cbar.21')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%cbar(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case ('cbar.22')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case default
@@ -1672,15 +1676,19 @@ case ('k.')
 
   case ('k.11b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%k_11a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
   case ('k.12a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%k_12a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
   case ('k.12b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%k_12b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
   case ('k.22a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
   case default
@@ -2017,18 +2025,22 @@ case ('orbit.')
 
   case ('orbit.amp_a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case ('orbit.amp_b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case ('orbit.norm_amp_a')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case ('orbit.norm_amp_b')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     call tao_load_this_datum (scratch%cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0, orbit)
 
   case default
@@ -2225,29 +2237,27 @@ case ('ping_a.')
     valid_value = .true.
 
   case ('ping_a.amp_y')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     datum_value = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
     endif
     valid_value = .true.
 
   case ('ping_a.phase_y')
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     datum_value = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), - scratch%cc(ix_ele)%cbar(2,2))
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - ele_ref%a%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), - scratch%cc(ix_ref)%cbar(2,2))
     endif
     valid_value = .true.
 
   case ('ping_a.amp_sin_y')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
     phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
     datum_value = amp * sin(phase)
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
       phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
       datum_value = datum_value - amp * sin(phase)
@@ -2255,12 +2265,11 @@ case ('ping_a.')
     valid_value = .true.
 
   case ('ping_a.amp_cos_y')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     amp = sqrt(ele%b%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(2,2)**2))
     phase = ele%a%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), -scratch%cc(ix_ele)%cbar(2,2))
     datum_value = amp * cos(phase)
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       amp = sqrt(ele_ref%b%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(2,2)**2))
       phase = ele_ref%a%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), -scratch%cc(ix_ref)%cbar(2,2))
       datum_value = datum_value - amp * cos(phase)
@@ -2268,21 +2277,19 @@ case ('ping_a.')
     valid_value = .true.
 
   case ('ping_a.amp_sin_rel_y')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     datum_value = -sqrt(ele%b%beta) * scratch%cc(ix_ele)%cbar(1,2)
 
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value + sqrt(ele_ref%b%beta) * scratch%cc(ix_ref)%cbar(1,2)
     endif
     valid_value = .true.
 
   case ('ping_a.amp_cos_rel_y')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     datum_value = -sqrt(ele%b%beta) * scratch%cc(ix_ele)%cbar(2,2)
 
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value + sqrt(ele_ref%b%beta) * scratch%cc(ix_ref)%cbar(2,2)
     endif
     valid_value = .true.
@@ -2309,30 +2316,27 @@ case ('ping_b.')
     valid_value = .true.
 
   case ('ping_b.amp_x')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     datum_value = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
     endif
     valid_value = .true.
 
   case ('ping_b.phase_x')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     datum_value = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - ele_ref%b%phi - atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
     endif
     valid_value = .true.
 
   case ('ping_b.amp_sin_x')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     amp = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
     phase = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
     datum_value = amp * sin(phase)
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       amp = sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
       phase = ele_ref%b%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
       datum_value = datum_value - amp * sin(phase)
@@ -2340,12 +2344,11 @@ case ('ping_b.')
     valid_value = .true.
 
   case ('ping_b.amp_cos_x')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     amp = sqrt(ele%a%beta * (scratch%cc(ix_ele)%cbar(1,2)**2 + scratch%cc(ix_ele)%cbar(1,1)**2))
     phase = ele%b%phi + atan2(scratch%cc(ix_ele)%cbar(1,2), scratch%cc(ix_ele)%cbar(1,1))
     datum_value = amp * cos(phase)
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       amp = sqrt(ele_ref%a%beta * (scratch%cc(ix_ref)%cbar(1,2)**2 + scratch%cc(ix_ref)%cbar(1,1)**2))
       phase = ele_ref%b%phi + atan2(scratch%cc(ix_ref)%cbar(1,2), scratch%cc(ix_ref)%cbar(1,1))
       datum_value = datum_value - amp * cos(phase)
@@ -2353,21 +2356,17 @@ case ('ping_b.')
     valid_value = .true.
 
   case ('ping_b.amp_sin_rel_x')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     datum_value = -sqrt(ele%a%beta) * scratch%cc(ix_ele)%cbar(1,2)
-
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value + sqrt(ele_ref%a%beta) * scratch%cc(ix_ref)%cbar(1,2)
     endif
     valid_value = .true.
 
   case ('ping_b.amp_cos_rel_x')
-    call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+    call tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
     datum_value = sqrt(ele%a%beta) * scratch%cc(ix_ele)%cbar(1,1)
-
     if (associated(ele_ref)) then
-      call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
       datum_value = datum_value - sqrt(ele_ref%a%beta) * scratch%cc(ix_ref)%cbar(1,1)
     endif
     valid_value = .true.
@@ -3280,7 +3279,6 @@ endif
 ! Set up refrence value
 
 if (ix_ref > -1) then
-  if (present(orbit)) call tao_scratch_values_calc (ix_ref, datum, branch, orbit)
   ref_value = vec(ix_ref)
   if (present(good)) then
     if (.not. good(ix_ref)) then
@@ -3297,7 +3295,6 @@ endif
 ! If ele_start does not exist
 
 if (datum%ele_start_name == '' .or. ix_start == ix_ele) then
-  if (present(orbit)) call tao_scratch_values_calc (ix_ele, datum, branch, orbit)
   datum_value = vec(ix_ele) - ref_value
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ele%ix_ele))
   if (present(good)) valid_value = good(ix_ele)
@@ -3319,15 +3316,6 @@ endif
 ! If there is a range
 
 if (ix_ele < ix_start) then   ! wrap around
-
-  if (present(orbit)) then
-    do i = ix_start, n_track
-      call tao_scratch_values_calc (i, datum, branch, orbit)
-    enddo
-    do i = 0, ix_ele
-      call tao_scratch_values_calc (i, datum, branch, orbit)
-    enddo
-  endif
 
   select case (datum%merit_type)
   case ('min')
@@ -3416,13 +3404,8 @@ if (ix_ele < ix_start) then   ! wrap around
   if (.not. valid_value) call tao_set_invalid (datum, 'INVALID DATA IN RANGE FROM ELE_START TO ELE_REF', why_invalid)
 
 ! no wrap case
-else
-  if (present(orbit)) then
-    do i = ix_start, ix_ele
-      call tao_scratch_values_calc (i, datum, branch, orbit)
-    enddo
-  endif
 
+else
   select case (datum%merit_type)
   case ('min')
     ix_m = minloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
@@ -3501,6 +3484,19 @@ end subroutine tao_load_this_datum
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
+!+
+! Function tao_tracking_ele_index(ele, datum, ix_branch) result (ix_ele)
+!
+! Routine to return the index in the tracking part of a lattice that corresponds to ele.
+!
+! Input:
+!   ele     -- ele_struct: Lattice element.
+!   datum   -- tao_data_struct: Datum
+!
+! Output:
+!   ix_branch -- integer, optional: Lattice branch associated with element
+!   ix_ele    -- integer: Element index associated with ele.
+!-
 
 function tao_tracking_ele_index(ele, datum, ix_branch) result (ix_ele)
 
@@ -3608,25 +3604,61 @@ end subroutine integrate_max
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine tao_scratch_values_calc (ix_ele, datum, branch, orbit)
+subroutine tao_scratch_values_calc (ele_ref, ele_start, ele, datum, branch, orbit)
 
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele_ref, ele_start, ele
 type (tao_beam_shake_struct), pointer :: cc_p
 type (tao_data_struct) datum
 type (branch_struct) branch
 type (coord_struct) orbit(0:)
 
-integer ix_ele, ip
-real(rp) f, f1, f2, gam_c, E_ratio, a_emit, b_emit, z_emit, px_b1, px_b2, py_a1, py_a2
+integer i, ip, ix_ele, ix_start
 
 !
 
-cc_p => scratch%cc(ix_ele)
-ele => branch%ele(ix_ele)
 ip = index(datum%data_type, '.')
 if (ip == 0) return
 
-select case (datum%data_type(1:ip))
+call this_scratch_calc(ele%ix_ele, datum%data_type(1:ip), datum, branch, orbit)
+if (associated(ele_ref)) call this_scratch_calc(ele_ref%ix_ele, datum%data_type(1:ip), datum, branch, orbit)
+
+ix_ele = tao_tracking_ele_index(ele, datum)
+
+if (associated(ele_start)) then
+  ix_start = tao_tracking_ele_index(ele_start, datum)
+  if (ix_start <= ix_ele) then
+    do i = ix_start, ix_ele
+      call this_scratch_calc(i, datum%data_type(1:ip), datum, branch, orbit)
+    enddo
+  else
+    do i = ix_start, branch%n_ele_track
+      call this_scratch_calc(i, datum%data_type(1:ip), datum, branch, orbit)
+    enddo
+    do i = 1, ix_ele
+      call this_scratch_calc(i, datum%data_type(1:ip), datum, branch, orbit)
+    enddo
+  endif
+endif
+
+!--------------------------------
+contains
+
+subroutine this_scratch_calc(ix_ele, data_class, datum, branch, orbit)
+
+type (tao_data_struct) datum
+type (branch_struct), target :: branch
+type (coord_struct) orbit(0:)
+type (ele_struct), pointer :: ele
+type (tao_beam_shake_struct), pointer :: cc_p
+
+real(rp) f, f1, f2
+integer ix_ele
+character(*) data_class
+
+cc_p => scratch%cc(ix_ele)
+ele => branch%ele(ix_ele)
+
+select case (data_class)
 
 case ('k.', 'cbar.', 'ping_a.', 'ping_b.')
   if (cc_p%coupling_calc_done) return
@@ -3653,6 +3685,8 @@ case ('orbit.')
   call orbit_amplitude_calc (ele, orbit(ix_ele), cc_p%amp_a, cc_p%amp_b, cc_p%amp_na, cc_p%amp_nb)
 
 end select
+
+end subroutine this_scratch_calc
 
 end subroutine tao_scratch_values_calc
 
