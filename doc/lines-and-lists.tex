@@ -61,8 +61,8 @@ can be suppressed by inserting into the lattice:
 \begin{example}
  parameter[no_end_marker] = T    ! See: \sref{s:param}
 \end{example}
-Lattice expansion occurs at the end when a lattice file has been parsed or if an \vn{expand_lattice}
-statement (\sref{s:expand}) is present.
+Lattice expansion occurs either at the end after the lattice file has been parsed, or, during parsing, at the
+point where an \vn{expand_lattice} statement (\sref{s:expand}) is found.
 
 Each element is assigned an \vn{element index} number starting from 0 for the \vn{beginning}
 element, 1 for the next element, etc.
@@ -85,8 +85,12 @@ sign is put in front of it. For example:
 \begin{example}
   d, c, b, a, e
 \end{example}
-Reflecting a subline will also reflect any sublines of the subline. For
-example:
+It is important to keep in mind that line reflection is \vn{not} the same as going backwards through
+elements. For example, if an \vn{sbend} or \vn{rbend} element (\sref{s:bend}) is reflected, the
+face angle of the upstream edge (\sref{s:ref.construct}) is still specified by the \vn{e1} attribute
+and not the \vn{e2} attribute. True element reversal can be accomplished as discussed in \Sref{s:ele.reverse}.
+
+Reflecting a subline will also reflect any sublines of the subline. For example:
 \begin{example}
   line0: line = (y, z)
   line1: line = (line0, b, c)
