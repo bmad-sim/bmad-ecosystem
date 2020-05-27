@@ -4091,10 +4091,17 @@ character(*), parameter :: r_name = 'beambeam_fibre_setup'
 !
 
 DO_BEAM_BEAM = .true.
-n_slice = max(1, nint(ele%value(n_slice$)))
-beta_a0 = 0;  beta_b0 = 0
+
 sig_x0 = ele%value(sig_x$)
 sig_y0 = ele%value(sig_y$)
+if (sig_x0 == 0 .or. sig_y0 == 0) then
+  call out_io (s_error$, r_name, 'STRONG BEAM SIGMAS NOT SET FOR BEAMBEAM ELEMENT: ' // ele%name, &
+                                 'SIGMAS WILL BE SET TO 1 METER.')
+  sig_x0 = 1
+  sig_y0 = 1
+endif
+
+beta_a0 = 0;  beta_b0 = 0
 
 if (ele%value(beta_a_strong$) == 0) then
   beta_a0 = ele%a%beta
@@ -4112,11 +4119,7 @@ else
   alpha_b0 = ele%value(alpha_b_strong$)
 endif
 
-if (n_slice > 1 .and. (beta_a0 == 0 .or. beta_b0 == 0)) then
-  call out_io (s_error$, r_name, 'BETA FUNCTION IS ZERO AT BEAMBEAM ELEMENT: ' // ele%name, &
-                                 'WILL IGNORE LONGITUDINAL BEAM SIZE VARIATIONS.')
-endif
-
+n_slice = max(1, nint(ele%value(n_slice$)))
 allocate (z_slice(n_slice))
 call bbi_slice_calc (ele, n_slice, z_slice)
 
@@ -4143,8 +4146,11 @@ do i = 1, n_slice
   bbi_const = -2.0_rp * param%n_part * ele%value(charge$) * classical_radius_factor / ele%value(e_tot$)
 
   node%bb%bbk(i,:) = 0  ! MAD closed orbit kick. Not used here.
-  node%bb%xm(i) = 0   ! Transverse displacement.
-  node%bb%ym(i) = 0
+  node%bb%xm(i) = (ele%value(crab_x1$) * s_pos + ele%value(crab_x2$) * s_pos**2 + &
+                                                 ele%value(crab_x3$) * s_pos**3) * cos(ele%value(crab_tilt$))
+  node%bb%ym(i) = (ele%value(crab_x1$) * s_pos + ele%value(crab_x2$) * s_pos**2 + &
+                                                 ele%value(crab_x3$) * s_pos**3) * sin(ele%value(crab_tilt$))
+  ! Transverse displacement.
   node%bb%sx(i) = sig_x
   node%bb%sy(i) = sig_y
   node%bb%fk(i) = -bbi_const / n_slice
