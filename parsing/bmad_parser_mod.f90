@@ -3290,15 +3290,24 @@ type (branch_struct), pointer :: branch
 integer i, ix, ix_insert, ele_pt, ref_pt
 
 real(rp) s_ref_begin, s_ref_end
+logical reflected_or_reversed
 
 ! Find the reference point on the element being superimposed.
+! ref_ele%select has been set such that if True then reference element was in
+! a reflected or reversed line.
 
 ix_insert = -1
-super_ele%s = pele%offset * ref_ele%orientation
+reflected_or_reversed = ref_ele%select
+
 super_ele%orientation = ref_ele%orientation
+if (reflected_or_reversed) then
+  super_ele%s = -pele%offset
+else
+  super_ele%s = pele%offset
+endif
 
 ele_pt = pele%ele_pt
-if (ref_ele%orientation == -1) then
+if (reflected_or_reversed) then
   if (ele_pt == anchor_beginning$) then
     ele_pt = anchor_end$
   elseif (ele_pt == anchor_end$) then
@@ -3337,7 +3346,7 @@ end select
 ! Now compute the s position at the end of the element and put it in ele%s.
 
 ref_pt = pele%ref_pt
-if (ref_ele%orientation == -1) then
+if (reflected_or_reversed) then
   if (ref_pt == anchor_beginning$) then
     ref_pt = anchor_end$
   elseif (ref_pt == anchor_end$) then
@@ -4888,6 +4897,7 @@ line_expansion: do
 
     base_line(n_ele_expand)%name = this_seq_ele%name
     base_line(n_ele_expand)%orientation = this_seq_ele%ele_orientation
+    base_line(n_ele_expand)%ele_order_reflect = (this_seq_ele%ele_orientation == -1)
 
   ! if a line:
   !     a) move pointer on current level past line element
@@ -4904,7 +4914,7 @@ line_expansion: do
     seq2 => sequence(s_ele%ix_ele)
     if (s_ele%type == replacement_line$) then
       if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
-        call parser_error ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
+        call parser_error ('WRONG NUMBER OF ARGUMENTS FOR REPLACEMENT LINE: ' // &
             s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq = seq)
         return
       endif
@@ -4946,6 +4956,7 @@ line_expansion: do
       endif
 
       b_ele%orientation = b_ele%orientation * s_ele%ele_orientation
+      b_ele%ele_order_reflect = (b_ele%ele_order_reflect .neqv. s_ele%ele_order_reflect)
 
       if (seq2%multipass .and. b_ele%ix_multi == 0) b_ele%ix_multi = i + 1000000 * seq2%indexx
 
@@ -5000,10 +5011,11 @@ branch => lat%branch(ix_branch)
 
 do i = 1, n_ele_expand
   ele_line(i) = in_lat%ele(base_line(i)%ix_ele_in_in_lat) 
-  ele_line(i)%name        = base_line(i)%name
-  ele_line(i)%iyy         = base_line(i)%ix_multi
-  ele_line(i)%orientation = base_line(i)%orientation
-  ele_line(i)%lord_status = not_a_lord$  ! In case element is also being superimposed.
+  ele_line(i)%name              = base_line(i)%name
+  ele_line(i)%iyy               = base_line(i)%ix_multi
+  ele_line(i)%orientation       = base_line(i)%orientation
+  ele_line(i)%select            = base_line(i)%ele_order_reflect
+  ele_line(i)%lord_status       = not_a_lord$  ! In case element is also being superimposed.
   if (base_line(i)%tag /= '') ele_line(i)%name = trim(base_line(i)%tag) // '.' // ele_line(i)%name
   call settable_dep_var_bookkeeping (ele_line(i))
 enddo

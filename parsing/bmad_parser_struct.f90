@@ -27,11 +27,12 @@ type seq_ele_struct
 end type
 
 type base_line_ele_struct
-  character(40) :: name = ''            ! Name of sequence or element
-  character(40) :: tag = ''             ! Tag name.
-  integer :: ix_multi = 0               ! Multipass indentifier
-  integer :: orientation = 1            ! Element reversed?
+  character(40) :: name = ''             ! Name of sequence or element
+  character(40) :: tag = ''              ! Tag name.
+  integer :: ix_multi = 0                ! Multipass indentifier
+  integer :: orientation = 1             ! Element reversed?
   integer :: ix_ele_in_in_lat = -1
+  logical :: ele_order_reflect = .false. ! Part of reflection or reversed line?
 end type
 
 type seq_struct
