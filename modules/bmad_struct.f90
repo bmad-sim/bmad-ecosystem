@@ -1186,7 +1186,7 @@ type ele_struct
   logical :: is_on = .true.                  ! For turning element on/off.
   logical :: logic = .false.                 ! For general use. Not used by Bmad (except during lattice parsing).
   logical :: bmad_logic = .false.            ! For Bmad internal use only.
-  logical :: select = .false.                ! For element selection. Used by make_hybrid_ring, etc.
+  logical :: select = .false.                ! For Bmad internal use only.
   logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
 contains
   procedure next_in_branch
