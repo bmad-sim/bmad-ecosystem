@@ -599,7 +599,7 @@ if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_
   call twiss_and_track_at_s (branch%lat, s_eval, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
                                                                       err, compute_floor_coords = compute_floor)
   if (err) then
-    call tao_set_invalid (datum, 'CANNOT TRACK TO OFFSET POSITION.', why_invalid, .true.)
+    call tao_set_invalid (datum, 'CANNOT TRACK TO OFFSET POSITION.', why_invalid)
     return
   endif
 
@@ -613,7 +613,7 @@ if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_
     call twiss_and_track_at_s (branch%lat, s_eval_ref, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
                                                                       err, compute_floor_coords = compute_floor)
     if (err) then
-      call tao_set_invalid (datum, 'CANNOT TRACK TO REFERENCE POSITION.', why_invalid, .true.)
+      call tao_set_invalid (datum, 'CANNOT TRACK TO REFERENCE POSITION.', why_invalid)
       return
     endif
 
@@ -828,7 +828,7 @@ case ('bpm_orbit.')
   endif
 
   if (particle_lost) then
-    call tao_set_invalid (datum, 'CANNOT EVALUATE DUE TO PARTICLE LOSS', why_invalid, .true.)
+    call tao_set_invalid (datum, 'CANNOT EVALUATE DUE TO PARTICLE LOSS', why_invalid)
     return
   elseif (.not. valid_value) then
     call tao_set_invalid (datum, 'NO VALID MONITOR ELEMENT', why_invalid, .true.)
@@ -1496,7 +1496,7 @@ case ('expression:', 'expression.')
       ix = index(str, 'ele::#[')
       if (ix == 0) exit
       if (ix_ele == -1) then
-        call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENT' // datum%data_type(12:))
+        call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENT' // datum%data_type(12:), why_invalid, .true.)
         return
       endif
       str = str(1:ix+4) // trim(ele_loc_name(ele)) // str(ix+6:)
@@ -1505,7 +1505,7 @@ case ('expression:', 'expression.')
     call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, .true., &
                datum%stack, tao_lat%name, datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni)
     if (err) then
-      call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:))
+      call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
       return
     endif
 
@@ -1800,7 +1800,7 @@ case ('normal.')
   ! Do nothing it the map wasn't made
   if (.not. associated(normal_form%ele_origin) ) then
     !if (present(why_invalid)) why_invalid = 'PTC one-turn map not calculated.'
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  PTC one-turn map not calculated.', exterminate=.true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  PTC one-turn map not calculated.')
     return
   endif
 
@@ -1828,19 +1828,19 @@ case ('normal.')
       case('a')
         datum_value = abs(temp_cplx)
       case default
-        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', exterminate=.true.)
+        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', why_invalid, .true.)
         valid_value = .false.
         return
       end select
     else
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not found in normal_form_struct', exterminate=.true.)
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not found in normal_form_struct', why_invalid, .true.)
       valid_value = .false.
       return
     endif
   else
     i = tao_read_phase_space_index (sub_data_type, iz, .false.)
     if (i == 0) then
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.', exterminate=.true.)
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.', why_invalid, .true.)
       return
     endif
     ! Point to taylor
@@ -5043,7 +5043,9 @@ elseif (.not. datum%err_message_printed) then
   datum%err_message_printed = .true.
 endif
 
-if (logic_option(.false., exterminate)) datum%exists = .false. 
+if (logic_option(.false., exterminate)) then
+  datum%exists = .false. 
+endif
 
 end subroutine tao_set_invalid
 
