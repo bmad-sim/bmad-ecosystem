@@ -59,12 +59,15 @@ integer, parameter :: f_maxx = 20
 type stack_file_struct
   character(200) :: full_name = ''
   character(200) :: dir = './'
-  character(n_parse_line) parse_line_saved  
-  character(n_parse_line) next_line_from_file
-  integer ios_next_line_from_file
-  integer i_line
-  integer f_unit
-  logical inline_call_active
+  character(n_parse_line+20) :: input_line1_saved = ''
+  character(n_parse_line+20) :: input_line2_saved = ''
+  character(n_parse_line) :: rest_of_line_saved = ''
+  character(n_parse_line) :: parse_line_saved = ''
+  character(n_parse_line) :: next_line_from_file_saved = ''
+  integer :: ios_next_line_from_file_saved = 0
+  integer :: i_line = 0
+  integer :: f_unit = 0
+  logical :: inline_call_active = .false.
 end type
 
 ! structure for holding the control names and pointers for superimpose and overlay elements
@@ -132,12 +135,11 @@ type bp_common_struct
   character(n_parse_line) parse_line       ! Current string to be parsed.
   character(n_parse_line+20) input_line1   ! Line before current line. For debug messages.
   character(n_parse_line+20) input_line2   ! Current line. For debug messages.
-  character(n_parse_line) saved_line       ! Line after semicolon saved until current statement is completely parsed.
+  character(n_parse_line) rest_of_line     ! Line after semicolon saved until current statement is completely parsed.
   character(n_parse_line) next_line_from_file  ! Line waiting to be appended to the parse_line.
   character(40) :: parser_name = ''        ! Blank means not in bmad_parser nor bmad_parser2.
   character(100) :: last_word              ! Last word to be parsed
   logical :: bmad_parser_calling = .false. ! used for expand_lattice
-  logical :: have_saved_line
   logical error_flag                       ! Set True on error
   logical fatal_error_flag                 ! Set True on fatal (must abort now) error 
   logical input_line_meaningful

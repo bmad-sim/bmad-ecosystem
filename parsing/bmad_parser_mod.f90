@@ -341,8 +341,15 @@ case ('push', 'push_inline')
     if (global_com%exit_on_error) call err_exit
   endif
 
-  bp_com%file(i_level)%next_line_from_file = bp_com%next_line_from_file
-  bp_com%file(i_level)%ios_next_line_from_file = bp_com%ios_next_line_from_file
+  bp_com%file(i_level)%input_line1_saved  = bp_com%input_line1
+  bp_com%file(i_level)%input_line2_saved  = bp_com%input_line2
+  bp_com%file(i_level)%rest_of_line_saved = bp_com%rest_of_line
+  bp_com%input_line1  = ''
+  bp_com%input_line2  = ''
+  bp_com%rest_of_line = ''
+
+  bp_com%file(i_level)%next_line_from_file_saved = bp_com%next_line_from_file
+  bp_com%file(i_level)%ios_next_line_from_file_saved = bp_com%ios_next_line_from_file
   bp_com%next_line_from_file = str_garbage$
 
   if (how == 'push_inline') then
@@ -447,8 +454,11 @@ case ('pop')
     if (present(finished)) finished = .true.
   endif
 
-  bp_com%next_line_from_file = bp_com%file(i_level+1)%next_line_from_file
-  bp_com%ios_next_line_from_file = bp_com%file(i_level+1)%ios_next_line_from_file
+  bp_com%input_line1  = bp_com%file(i_level+1)%input_line1_saved
+  bp_com%input_line2  = bp_com%file(i_level+1)%input_line2_saved
+  bp_com%rest_of_line = bp_com%file(i_level+1)%rest_of_line_saved
+  bp_com%next_line_from_file = bp_com%file(i_level+1)%next_line_from_file_saved
+  bp_com%ios_next_line_from_file = bp_com%file(i_level+1)%ios_next_line_from_file_saved
 
   if (bp_com%inline_call_active) then
     bp_com%parse_line = trim(bp_com%parse_line) // ' ' // bp_com%file(i_level+1)%parse_line_saved
@@ -506,7 +516,7 @@ logical, optional :: err_flag
 
 if (action == 'init') then
   bp_com%parse_line = ''
-  bp_com%have_saved_line = .false.
+  bp_com%rest_of_line = ''
   bp_com%next_line_from_file = str_garbage$
   bp_com%ios_next_line_from_file = 0  
   return
@@ -521,7 +531,7 @@ if (present(err_flag)) err_flag = .false.
 ! If 'new_command' then will need to flush lines that are part of the rest of the current command. 
 ! This will happen when there has been an error and the entire command was not parsed.
 
-if (action == 'new_command' .and. .not. bp_com%have_saved_line) then
+if (action == 'new_command' .and. bp_com%rest_of_line == '') then
   n = len_trim(bp_com%parse_line)
   if (n /= 0) then
     if (index (',+-*/({[=&', bp_com%parse_line(n:n)) /= 0) flush_this = .true.
@@ -531,10 +541,10 @@ endif
 !
 
 do
-  ! Read a line or use bp_com%saved_line if it exists
-  if (bp_com%have_saved_line) then
-    line = bp_com%saved_line
-    bp_com%have_saved_line = .false.
+  ! Read a line or use bp_com%rest_of_line if it exists
+  if (bp_com%rest_of_line /= '') then
+    line = bp_com%rest_of_line
+    bp_com%rest_of_line = ''
 
   else
     if (bp_com%next_line_from_file == str_garbage$) then
@@ -627,16 +637,13 @@ do
     case (';')
       if (quote_mark /= '') cycle
       if (ix == 1) then
-        call string_trim(line(ix+1:), bp_com%saved_line, n)
-        bp_com%have_saved_line = .true.
+        call string_trim(line(ix+1:), bp_com%rest_of_line, n)
         line = ' '
       elseif (ix > 1) then
-        call string_trim(line(ix+1:), bp_com%saved_line, n)
-        bp_com%have_saved_line = .true.
+        call string_trim(line(ix+1:), bp_com%rest_of_line, n)
         line = line(:ix-1)
       else
-        bp_com%saved_line = ''
-        bp_com%have_saved_line = .false.
+        bp_com%rest_of_line = ''
       endif
       exit
     end select
@@ -644,7 +651,7 @@ do
 
   ! if the command line is blank then go back for more input
   call string_trim (line, line, ix)
-  if (ix /= 0 .or. bp_com%have_saved_line) exit
+  if (ix /= 0 .or. bp_com%rest_of_line /= '') exit
 enddo
 
 ! now simply append the line to %parse_line starting at ix_start

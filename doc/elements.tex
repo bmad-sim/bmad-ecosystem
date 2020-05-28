@@ -842,9 +842,8 @@ particles for a given converter thickness. Multiple \vn{distribution} instances 
 thicknesses may be present in an element. The actual thickness of the converter will be taken to be
 the element's, length \vn{L} parameter. During tracking, the outgoing distribution will be computed
 by interpolating between the two distributions that bracket the actual thickness. The exception is
-when there is only one\vn{distribution} present. In this case, the calculation will just used the
-distribution for the calculation independent of the element length and the \vn{thickness} as set in
-the distribution.
+when there is only one\vn{distribution} present. In this case, the calculation will just use that
+distribution for the calculation independent of the element length.
 
 If there are multiple \vn{distributition}s, specifying an element length that is outside the range
 of thicknesses will generate an error.
