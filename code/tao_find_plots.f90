@@ -291,6 +291,7 @@ endif
 
 nc = 0
 do j = 1, ng
+  if (.not. allocated(g(j)%g%curve)) cycle
   do k = 1, size(g(j)%g%curve)
     if (g(j)%g%curve(k)%name == curve_name .or. curve_name == '*') nc = nc + 1
   enddo
@@ -309,6 +310,7 @@ if (present(curve)) allocate (curve(nc))
 
 nc = 0
 do j = 1, ng
+  if (.not. allocated(g(j)%g%curve)) cycle
   do k = 1, size(g(j)%g%curve)
     if (g(j)%g%curve(k)%name == curve_name .or. curve_name == '*') then
       nc = nc + 1
