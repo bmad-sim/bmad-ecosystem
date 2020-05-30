@@ -265,11 +265,13 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
 integer, allocatable :: ix_c(:), ix_remove(:)
 
+complex(rp) eigen_val(6), eigen_vec(6,6)
+
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag
-logical print_ptc, print_position, called_from_python_cmd
+logical print_ptc, print_position, called_from_python_cmd, print_eigen
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -3673,6 +3675,7 @@ case ('taylor_map', 'matrix')
   ix_branch = s%com%default_branch
   by_s = .false.
   print_ptc = .false.
+  print_eigen = .false.
 
   if (show_what == 'matrix') then
     n_order = 1
@@ -3683,14 +3686,12 @@ case ('taylor_map', 'matrix')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(8):: '-order', '-s', '-ptc'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(16):: '-order', '-s', '-ptc', '-eigen_modes'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
     select case (switch)
-    case ('-ptc')
-      print_ptc = .true.
-    case ('-s')
-      by_s = .true.
+    case  ('-eigen_modes')
+      print_eigen = .true.
     case ('-order')
       read (what2(:ix), *, iostat = ios) n_order
       if (ios /= 0) then
@@ -3704,6 +3705,10 @@ case ('taylor_map', 'matrix')
                   ptc_com%taylor_order_ptc
         return
       endif
+    case ('-ptc')
+      print_ptc = .true.
+    case ('-s')
+      by_s = .true.
     case default
       attrib0 = trim(attrib0) // ' ' // trim(switch)
     end select
@@ -3851,6 +3856,7 @@ case ('taylor_map', 'matrix')
 
   if (n_order > 1) then
     call type_taylors (taylor, lines = lines, n_lines = nl, clean = .true.)
+    if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
   else
     vec_in = 0
     if (n_order == 0) then 
@@ -3867,6 +3873,19 @@ case ('taylor_map', 'matrix')
       enddo
     endif
   endif
+
+  if (print_eigen) then
+    call mat_eigen (mat6, eigen_val, eigen_vec, err)
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), '(75x, a)') 'eVector'
+    nl=nl+1; write(lines(nl), '(t11, a, t29, a, 3(15x, a, 14x, a))') '|eValue|', 'eValue', 'x', 'px', 'y', 'py', 'z', 'pz'
+    do i = 1, 6
+      nl=nl+1; write (lines(nl), '(a, 8es16.8)') 're', abs(eigen_val(i)), real(eigen_val(i), rp), real(eigen_vec(i,:), rp)
+      nl=nl+1; write (lines(nl), '(a, 16x, 8es16.8)') 'im',              aimag(eigen_val(i)), aimag(eigen_vec(i,:))
+      nl=nl+1; lines(nl) = ''
+    enddo
+    nl = nl-1
+  endif  
 
 !----------------------------------------------------------------------
 ! track
