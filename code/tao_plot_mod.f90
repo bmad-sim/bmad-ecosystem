@@ -382,7 +382,7 @@ type (tao_lattice_branch_struct), pointer :: tao_branch
 type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
-real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value, y1, y2
+real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value
 real(rp) x_bend(0:400), y_bend(0:400)
 
 integer isu
@@ -442,7 +442,7 @@ type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_building_wall_point_struct) pt0, pt1
 type (floor_position_struct) end1, end2, floor
 
-real(rp) x_min, x_max, y_min, y_max
+real(rp) x_min, x_max, y_min, y_max, y1, y2
 
 integer i, j, k, n, is, ix, n_bend, isu, ic, ib, ix_shape_min
 integer ix_pass, n_links, iwidth
@@ -625,19 +625,20 @@ type (coord_struct), pointer :: orbit(:)
 type (coord_struct) orb_here, orb_start, orb_end
 type (tao_shape_pattern_struct), pointer :: pat
 
-integer ix_uni, i, j, k, n_bend, n_bend_orb, n, ix, ic, n_mid, isu
+integer ix_uni, i, j, k, n_bend, n, ix, ic, n_mid, isu, n_bend_extra, min1_bend, min2_bend, max1_bend, max2_bend
+integer n1, n2
 
+real(rp) offset1, offset2
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
-real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
-real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400)
-real(rp) dx_orbit(0:400), dy_orbit(0:400), offset1, offset2
+real(rp) x, y, dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
+real(rp) x_bend(-20:220), y_bend(-20:220), dx_bend(-20:220), dy_bend(-20:220)
+real(rp) dx_e1, dy_e1, dx_e2, dy_e2, x_tangent, y_tangent, scale, bend_scale
+real(rp) dx_orbit(0:100), dy_orbit(0:100)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
-real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
-real(rp) x_inch, y_inch, x0, y0, e1_factor, e2_factor
+real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height, x_inch, y_inch, x0, y0
 real(rp) x_00, x_01, x_02, x_10, x_12, x_20, x_21, x_22
 real(rp) y_00, y_01, y_02, y_10, y_12, y_20, y_21, y_22
-real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
-real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2)
+real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2), r2(2)
 
 character(*) label_name
 character(80) str, shape
@@ -708,10 +709,9 @@ endif
 
 ! Bends can be tricky if they are not in the X-Z plane. 
 ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
-! centerline and a set of vectors (dx_bend, dy_bend) tangent to the centerline.
+! centerline and a set of vectors (dx_bend, dy_bend) perpendicular to the centerline.
 
 if (is_bend) then
-
   ! Start at entrance end (not upstream end)
   if (ele%orientation == 1) then
     floor = floor1
@@ -724,10 +724,13 @@ if (is_bend) then
 
   ang    = ele%value(angle$) * ele%orientation
   length = ele%value(l$)     * ele%orientation
+  n_bend_extra = 20
+  bend_scale = 0
 
-  n_bend = int(100*abs(ele%value(angle$))) + 1
-  n_bend = min(n_bend, ubound(x_bend, 1))
-  do j = 0, n_bend
+  ! Extra points are calculated since finite e1 or e2 will lengthen or shorten the side curves.
+  n_bend = int(100*abs(ele%value(angle$))/pi) + 1
+  n_bend = min(n_bend, ubound(x_bend, 1)-n_bend_extra)
+  do j = -n_bend_extra, n_bend+n_bend_extra
     angle = j * ang / n_bend
     cos_t = cos(ele%value(ref_tilt_tot$))
     sin_t = sin(ele%value(ref_tilt_tot$))
@@ -738,26 +741,28 @@ if (is_bend) then
     else
       r_vec = ele%value(rho$) * [cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a]
     endif
-    dr_vec = [-cos_t * sin_a, -sin_t * sin_a, cos_a]
+    dr_vec = [-cos_t * sin_a, -sin_t * sin_a, cos_a]   ! Tangent vector
     ! This keeps dr_vec pointing to the inside (important for the labels).
     if (cos_t < 0) dr_vec = -dr_vec
     v_vec = matmul (w_old, r_vec) + v_old
     dv_vec = matmul (w_old, dr_vec) 
     call tao_floor_to_screen (graph, v_vec, x_bend(j), y_bend(j))
-    call tao_floor_to_screen (graph, dv_vec, dx_bend(j), dy_bend(j))
+    call tao_floor_to_screen (graph, dv_vec, x_tangent, y_tangent)
 
-    ! Correct for e1 and e2 face angles which are a rotation of the faces about
-    ! the local y-axis.
+    ! Construct normals to the e1 and e2 faces.
+    ! Notice that unlike (dx_bend, dy_bend), these normals are not normalized to 1.
 
     if (j == 0) then
       e_edge = ele%value(e1$)
       if (ele%orientation == -1) e_edge = -ele%value(e2$)
-      dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
+      dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]  ! Radial vector
       dv_vec = matmul (w_old, dr_vec) 
       call tao_floor_to_screen (graph, dv_vec, dx1, dy1)
-      dx_bend(j) = dx_bend(j) - dx1
-      dy_bend(j) = dy_bend(j) - dy1
-      e1_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
+      x = x_tangent - dx1
+      y = y_tangent - dy1
+      call qp_convert_point_rel (x, y, 'DATA', dt_x, dt_y, draw_units)
+      dx_e1 =  norm2([x,y]) * dt_y / norm2([dt_x, dt_y])
+      dy_e1 = -norm2([x,y]) * dt_x / norm2([dt_x, dt_y])
     endif
 
     if (j == n_bend) then
@@ -766,26 +771,22 @@ if (is_bend) then
       dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
       call tao_floor_to_screen (graph, dv_vec, dx1, dy1)
-      dx_bend(j) = dx_bend(j) + dx1
-      dy_bend(j) = dy_bend(j) + dy1
-      e2_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
+      x = x_tangent + dx1
+      y = y_tangent + dy1
+      call qp_convert_point_rel (x, y, 'DATA', dt_x, dt_y, draw_units)
+      dx_e2 =  norm2([x,y]) * dt_y / norm2([dt_x, dt_y])
+      dy_e2 = -norm2([x,y]) * dt_x / norm2([dt_x, dt_y])
     endif
-  enddo
 
-  if (graph%floor_plan%orbit_scale /= 0) then
-    n_bend_orb = n_bend + int(100 * graph%floor_plan%orbit_scale * &
-                  (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4))))
-    n_bend_orb = min(n_bend_orb, ubound(dx_orbit, 1))
-    do j = 0, n_bend_orb
-      s_here = j * ele%value(l$) / n_bend_orb
-      call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
-                                                       .true., .true., orb_start, orb_here)
-      f_orb%r(1:2) = graph%floor_plan%orbit_scale * orb_here%vec(1:3:2)
-      f_orb%r(3) = s_here
-      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
-      call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
-    enddo
-  endif
+    ! Convert tangent vector to perpendicular
+
+    call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), draw_units)
+    call qp_convert_point_rel (x_tangent, y_tangent, 'DATA', dt_x, dt_y, draw_units)
+    scale = norm2([dt_x, dt_y])
+    dx_bend(j) =  dt_y / scale 
+    dy_bend(j) = -dt_x / scale
+    bend_scale = max(bend_scale, scale)
+  enddo
 endif
 
 ! Draw orbit?
@@ -795,7 +796,19 @@ call qp_set_line_attrib ('STD', graph%floor_plan%orbit_width, graph%floor_plan%o
 
 if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
   if (is_bend) then
-    call qp_draw_polyline(dx_orbit(0:n_bend_orb), dy_orbit(0:n_bend_orb))
+    n = int(100*abs(ele%value(angle$))/pi) + int(100 * graph%floor_plan%orbit_scale * &
+                  (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4))))
+    n = min(n, ubound(dx_orbit, 1))
+    do j = 0, n
+      s_here = j * ele%value(l$) / n
+      call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
+                                                       .true., .true., orb_start, orb_here)
+      f_orb%r(1:2) = graph%floor_plan%orbit_scale * orb_here%vec(1:3:2)
+      f_orb%r(3) = s_here
+      f_orb = coords_local_curvilinear_to_floor (f_orb, ele, .false.)
+      call tao_floor_to_screen (graph, f_orb%r, dx_orbit(j), dy_orbit(j))
+    enddo
+    call qp_draw_polyline(dx_orbit(0:n), dy_orbit(0:n))
 
   elseif (ele%key == patch$) then
     ele0 => pointer_to_next_ele (ele, -1)
@@ -816,7 +829,9 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
     call qp_draw_polyline(dx_orbit(0:1), dy_orbit(0:1))
 
   else
-    n = int(100 * (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4)))) + 1
+    n = int(100 * (abs(orb_end%vec(2) - orb_start%vec(2)) + abs(orb_end%vec(4) - orb_start%vec(4)))) + &
+                      int(ele%value(num_steps$)) + 1
+    n = min(n, ubound(dx_orbit, 1))
     do ic = 0, n
       s_here = ic * ele%value(l$) / n
       call twiss_and_track_intra_ele (ele, ele%branch%param, 0.0_rp, s_here, &
@@ -846,7 +861,6 @@ endif
 
 call qp_set_line_attrib ('STD', 1, 'black', 'solid')
 
-
 is_there = .false.
 if (associated(ele_shape)) is_there = ele_shape%draw
 if (.not. is_there) then
@@ -865,17 +879,6 @@ off = ele_shape%size * s%plot_page%floor_plan_shape_scale
 off1 = offset1 * s%plot_page%floor_plan_shape_scale
 off2 = offset2 * s%plot_page%floor_plan_shape_scale
 
-! x-ray line parameters if present
-
-if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
-  call init_ele(drift)
-  drift%key = drift$
-  drift%value(l$) = ele%value(x_ray_line_len$)
-  call ele_geometry (floor2, drift, drift%floor) 
-  call tao_floor_to_screen_coords (graph, drift%floor, x_ray)
-  call qp_convert_point_abs (x_ray%r(1), x_ray%r(2), 'DATA', x_ray%r(1), x_ray%r(2), draw_units)
-endif
-
 ! Draw the shape. Since the conversion from floor coords to screen coords can
 ! be different along x and y, we convert to screen coords to make sure that rectangles
 ! remain rectangular.
@@ -883,105 +886,68 @@ endif
 call qp_convert_point_abs (end1%r(1), end1%r(2), 'DATA', end1%r(1), end1%r(2), draw_units)
 call qp_convert_point_abs (end2%r(1), end2%r(2), 'DATA', end2%r(1), end2%r(2), draw_units)
 
+if (is_bend) then
+  if (ele%value(g$) > 0) then
+    if (off1 * ele%value(g$) > scale) off1 = 0.9 * scale * ele%value(rho$)
+  elseif (ele%value(g$) < 0) then
+    if (-off2 * ele%value(g$) > scale) off2 = -0.9 * scale * ele%value(rho$)
+  endif
+
+  ! Find bounds for drawing bend top and bottom.
+  ! First look at top curve.
+
+  r0 = [x_bend(0) + off1 * dx_e1, y_bend(0) + off1 * dy_e1]
+  r2 = [x_bend(n_bend) + off1 * dx_bend(n_bend), y_bend(n_bend) + off1 * dy_bend(n_bend)] - r0
+
+  do j = -n_bend_extra, n_bend
+    r1  = [x_bend(j) + off1 * dx_bend(j), y_bend(j) + off1 * dy_bend(j)] - r0
+    if (dot_product(r1, r2) > 0) exit
+  enddo
+  min1_bend = j
+
+  r0 = [x_bend(n_bend) + off1 * dx_e2, y_bend(n_bend) + off1 * dy_e2]
+  r2 = [x_bend(0) + off1 * dx_bend(0), y_bend(0) + off1 * dy_bend(0)] - r0
+
+  do j = n_bend+n_bend_extra, 0, -1
+    r1  = [x_bend(j) + off1 * dx_bend(j), y_bend(j) + off1 * dy_bend(j)] - r0
+    if (dot_product(r1, r2) > 0) exit
+  enddo
+  max1_bend = j
+
+  ! Now look at the bottom curve
+
+  r0 = [x_bend(0) - off2 * dx_e1, y_bend(0) - off2 * dy_e1]
+  r2 = [x_bend(n_bend) - off2 * dx_bend(n_bend), y_bend(n_bend) - off2 * dy_bend(n_bend)] - r0
+
+  do j = -n_bend_extra, n_bend
+    r1  = [x_bend(j) - off2 * dx_bend(j), y_bend(j) - off2 * dy_bend(j)] - r0
+    if (dot_product(r1, r2) > 0) exit
+  enddo
+  min2_bend = j
+
+  r0 = [x_bend(n_bend) - off2 * dx_e2, y_bend(n_bend) - off2 * dy_e2]
+  r2 = [x_bend(0) - off2 * dx_bend(0), y_bend(0) - off2 * dy_bend(0)] - r0
+
+  do j = n_bend+n_bend_extra, 0, -1
+    r1  = [x_bend(j) - off2 * dx_bend(j), y_bend(j) - off2 * dy_bend(j)] - r0
+    if (dot_product(r1, r2) > 0) exit
+  enddo
+  max2_bend = j
+endif
+
 ! dx1, etc. are offsets perpendicular to the refernece orbit
 
 call qp_convert_point_rel (cos(end1%theta), sin(end1%theta), 'DATA', dt_x, dt_y, draw_units)
-dx1 =  off1 * dt_y / sqrt(dt_x**2 + dt_y**2)
-dy1 = -off1 * dt_x / sqrt(dt_x**2 + dt_y**2)
+dx1 =  off1 * dt_y / norm2([dt_x, dt_y])
+dy1 = -off1 * dt_x / norm2([dt_x, dt_y])
 
 call qp_convert_point_rel (cos(end2%theta), sin(end2%theta), 'DATA', dt_x, dt_y, draw_units)
-dx2 =  off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
-dy2 = -off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
-
-if (is_bend) then
-  do j = 0, n_bend
-    call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), draw_units)
-    call qp_convert_point_rel (dx_bend(j), dy_bend(j), 'DATA', dt_x, dt_y, draw_units)
-    dx_bend(j) =  off * dt_y / sqrt(dt_x**2 + dt_y**2)
-    dy_bend(j) = -off * dt_x / sqrt(dt_x**2 + dt_y**2)
-  enddo
-  dx_bend(0) = dx_bend(0) * e1_factor
-  dy_bend(0) = dy_bend(0) * e1_factor
-  dx_bend(n_bend) = dx_bend(n_bend) * e2_factor
-  dy_bend(n_bend) = dy_bend(n_bend) * e2_factor
-
-  ! Finite e1 or e2 may mean some points extend beyound the outline of the bend.
-  ! Throw out these points.
-
-  ! First look at the first half of the bend for points that are beyound due to e1.
-
-  r0_plus  = [x_bend(0) + dx_bend(0), y_bend(0) + dy_bend(0)]
-  r0_minus = [x_bend(0) - dx_bend(0), y_bend(0) - dy_bend(0)]
-  n_mid = n_bend/2
-  dr2_p = [x_bend(n_mid) + dx_bend(n_mid), y_bend(n_mid) + dy_bend(n_mid)] - r0_plus
-  dr2_m = [x_bend(n_mid) - dx_bend(n_mid), y_bend(n_mid) - dy_bend(n_mid)] - r0_minus
-
-  j = n_bend/2 
-  do 
-    if (j == 0) exit
-    dr_p  = [x_bend(j) + dx_bend(j), y_bend(j) + dy_bend(j)] - r0_plus
-    dr_m  = [x_bend(j) - dx_bend(j), y_bend(j) - dy_bend(j)] - r0_minus
-    ! If one of the points is outside then exit
-    if (dot_product(dr_p, dr2_p) < 0 .or.dot_product(dr_m, dr2_m) < 0) exit
-    j = j - 1
-  enddo
-
-  ! If there are points outside, delete them
-
-  if (j > 0) then
-    x_bend(1:n_bend-j)  = x_bend(j+1:n_bend)
-    y_bend(1:n_bend-j)  = y_bend(j+1:n_bend)
-    dx_bend(1:n_bend-j) = dx_bend(j+1:n_bend)
-    dy_bend(1:n_bend-j) = dy_bend(j+1:n_bend)
-    n_bend = n_bend - j
-  endif
-
-  ! Now look at the last half of the bend for points that are beyound due to e2.
-
-  r0_plus  = [x_bend(n_bend) + dx_bend(n_bend), y_bend(n_bend) + dy_bend(n_bend)]
-  r0_minus = [x_bend(n_bend) - dx_bend(n_bend), y_bend(n_bend) - dy_bend(n_bend)]
-  n_mid = n_bend/2
-  dr2_p = [x_bend(n_mid) + dx_bend(n_mid), y_bend(n_mid) + dy_bend(n_mid)] - r0_plus
-  dr2_m = [x_bend(n_mid) - dx_bend(n_mid), y_bend(n_mid) - dy_bend(n_mid)] - r0_minus
-
-  j = n_bend/2 
-  do 
-    if (j == n_bend) exit
-    dr_p  = [x_bend(j) + dx_bend(j), y_bend(j) + dy_bend(j)] - r0_plus
-    dr_m  = [x_bend(j) - dx_bend(j), y_bend(j) - dy_bend(j)] - r0_minus
-    ! If one of the points is outside then exit
-    if (dot_product(dr_p, dr2_p) < 0 .or.dot_product(dr_m, dr2_m) < 0) exit
-    j = j + 1
-  enddo
-
-  ! If there are points outside, delete them
-
-  if (j < n_bend) then
-    x_bend(j)  = x_bend(n_bend)
-    y_bend(j)  = y_bend(n_bend)
-    dx_bend(j) = dx_bend(n_bend)
-    dy_bend(j) = dy_bend(n_bend)
-    n_bend = j
-  endif
-
-endif
+dx2 =  off2 * dt_y / norm2([dt_x, dt_y])
+dy2 = -off2 * dt_x / norm2([dt_x, dt_y])
 
 ! Draw the element...
 
 call qp_set_line_attrib ('STD', ele_shape%line_width, ele_shape%color)
-
-! Draw x-ray line
-
-if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
-  drift%key = photon_fork$
-  drift%name = ele%name
-  branch_shape => tao_pointer_to_ele_shape (ix_uni, drift, s%plot_page%floor_plan%ele_shape)
-  if (associated(branch_shape)) then
-    if (branch_shape%draw) then
-      call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = draw_units)
-    endif
-  endif
-endif
 
 ix = index(ele_shape%shape, ':')
 if (ix == 0) then
@@ -996,16 +962,16 @@ endif
 
 if (shape == 'diamond' .or. shape(3:) == 'triangle') then
   if (is_bend) then
-    x_00 = x_bend(1) - dx_bend(1);          y_00 = y_bend(1) - dy_bend(1)
-    x_01 = x_bend(1);                       y_01 = y_bend(1)
-    x_02 = x_bend(1) + dx_bend(1);          y_02 = y_bend(1) + dy_bend(1)
+    x_00 = x_bend(1) - off * dx_bend(1);       y_00 = y_bend(1) - off * dy_bend(1)
+    x_01 = x_bend(1);                          y_01 = y_bend(1)
+    x_02 = x_bend(1) + off * dx_bend(1);       y_02 = y_bend(1) + off * dy_bend(1)
     n = n_bend / 2
-    x_10 = (x_bend(n) - dx_bend(n)) / 2;    y_10 = (y_bend(n) - dy_bend(n)) / 2
-    x_12 = (x_bend(n) + dx_bend(n)) / 2;    y_12 = (y_bend(n) + dy_bend(n)) / 2
+    x_10 = (x_bend(n) - off * dx_bend(n)) / 2; y_10 = (y_bend(n) - off * dy_bend(n)) / 2
+    x_12 = (x_bend(n) + off * dx_bend(n)) / 2; y_12 = (y_bend(n) + off * dy_bend(n)) / 2
     n = n_bend
-    x_20 = x_bend(n) - dx_bend(n);          y_20 = y_bend(n) - dy_bend(n)
-    x_21 = x_bend(n);                       y_21 = y_bend(n)
-    x_22 = x_bend(n) + dx_bend(n);          y_22 = y_bend(n) + dy_bend(n)
+    x_20 = x_bend(n) - off * dx_bend(n);       y_20 = y_bend(n) - off * dy_bend(n)
+    x_21 = x_bend(n);                          y_21 = y_bend(n)
+    x_22 = x_bend(n) + off * dx_bend(n);       y_22 = y_bend(n) + off * dy_bend(n)
 
   else
     x_00 = end1%r(1) - dx1;                                y_00 = end1%r(2) - dy1
@@ -1056,8 +1022,8 @@ if (shape == 'x') then
     n = n_bend / 2
     x0  = x_bend(n)
     y0  = y_bend(n)
-    dx1 = dx_bend(n)
-    dy1 = dy_bend(n)
+    dx1 = off * dx_bend(n)
+    dy1 = off * dy_bend(n)
   else
     x0 = (end1%r(1) + end2%r(1)) / 2
     y0 = (end1%r(2) + end2%r(2)) / 2
@@ -1070,10 +1036,12 @@ endif
 
 if (shape == 'rbow_tie' .or. shape == 'box' .or. shape == 'xbox') then
   if (is_bend) then
-    call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
-                          y_bend(:n_bend) + dy_bend(:n_bend), units = draw_units)
-    call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
-                          y_bend(:n_bend) - dy_bend(:n_bend), units = draw_units)
+    n = n_bend; n1 = min1_bend; n2 = max1_bend
+    call qp_draw_polyline([x_bend(0)+off1*dx_e1, x_bend(n1:n2)+off1*dx_bend(n1:n2), x_bend(n)+off1*dx_e2], &
+                          [y_bend(0)+off1*dy_e1, y_bend(n1:n2)+off1*dy_bend(n1:n2), y_bend(n)+off1*dy_e2], units = draw_units)
+    n = n_bend; n1 = min2_bend; n2 = max2_bend
+    call qp_draw_polyline([x_bend(0)-off2*dx_e1, x_bend(n1:n2)-off2*dx_bend(n1:n2), x_bend(n)-off2*dx_e2], &
+                          [y_bend(0)-off2*dy_e1, y_bend(n1:n2)-off2*dy_bend(n1:n2), y_bend(n)-off2*dy_e2], units = draw_units)
 
   else
     call qp_draw_line (end1%r(1)+dx1, end2%r(1)+dx1, end1%r(2)+dy1, end2%r(2)+dy1, units = draw_units)
@@ -1085,11 +1053,11 @@ endif
 
 if (shape == 'bow_tie' .or. shape == 'box' .or. shape == 'xbox') then
   if (is_bend) then
-    call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
-                       y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = draw_units)
+    call qp_draw_line (x_bend(0)-off2*dx_e1, x_bend(0)+off1*dx_e1, &
+                       y_bend(0)-off2*dy_e1, y_bend(0)+off1*dy_e1, units = draw_units)
     n = n_bend
-    call qp_draw_line (x_bend(n)-dx_bend(n), x_bend(n)+dx_bend(n), &
-                       y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = draw_units)
+    call qp_draw_line (x_bend(n)-off2*dx_e2, x_bend(n)+off1*dx_e2, &
+                       y_bend(n)-off2*dy_e2, y_bend(n)+off1*dy_e2, units = draw_units)
   else
     call qp_draw_line (end1%r(1)+dx1, end1%r(1)-dx2, end1%r(2)+dy1, end1%r(2)-dy2, units = draw_units)
     call qp_draw_line (end2%r(1)+dx1, end2%r(1)-dx2, end2%r(2)+dy1, end2%r(2)-dy2, units = draw_units)
@@ -1125,14 +1093,14 @@ if (label_name /= '') then
   if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
     x_center = (end1%r(1) + end2%r(1)) / 2 
     y_center = (end1%r(2) + end2%r(2)) / 2 
-    dx = -1.5 * dt_y / sqrt(dt_x**2 + dt_y**2)
-    dy =  1.5 * dt_x / sqrt(dt_x**2 + dt_y**2)
+    dx = -1.5 * dt_y / norm2([dt_x, dt_y])
+    dy =  1.5 * dt_x / norm2([dt_x, dt_y])
   else
     n = n_bend / 2
     x_center = x_bend(n) 
     y_center = y_bend(n) 
-    dx = -1.5 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
-    dy = -1.5 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
+    dx = -1.5 * dx_bend(n) / norm2([dx_bend(n), dy_bend(n)])
+    dy = -1.5 * dy_bend(n) / norm2([dx_bend(n), dy_bend(n)])
   endif
 
   if (graph%floor_plan%flip_label_side) then
