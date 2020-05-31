@@ -23,62 +23,50 @@ A \vn{d1_data} structure holds an array of datums.}
 \end{figure}
 
 \index{d2_data}\index{d1_data}
-The horizontal orbit at a particular BPM is an example of an
-individual \vn{datum}.  For ease of manipulation, arrays of datums are
-grouped into what is called a \vn{d1_data} structure. Furthermore,
-sets of \vn{d1_data} structures are grouped into what is called a
-\vn{d2_data} structure.  This is illustrated in
-Figure~\ref{f:data.tree}.  For example, a \vn{d2_data} structure for
-orbit data could contain two \vn{d1_data} structures --- one
-\vn{d1_data} structure for the horizontal orbit data and another
-\vn{d1_data} structure for the vertical orbit data. Each datum of,
-say, the horizontal orbit \vn{d1_data} structure would then correspond
-to the horizontal orbit at some point in the machine.
+The horizontal orbit at a particular BPM is an example of an individual \vn{datum}.  For ease of
+manipulation, arrays of datums are grouped into what is called a \vn{d1_data}
+structure. Furthermore, sets of \vn{d1_data} structures are grouped into what is called a
+\vn{d2_data} structure.  This is illustrated in Figure~\ref{f:data.tree}.  For example, a
+\vn{d2_data} structure for orbit data could contain two \vn{d1_data} structures --- one \vn{d1_data}
+structure for the horizontal orbit data and another \vn{d1_data} structure for the vertical orbit
+data. Each datum of, say, the horizontal orbit \vn{d1_data} structure would then correspond to the
+horizontal orbit at some point in the machine.
 
-When issuing \tao commands, all the
-data associated with a \vn{d2_data} structure is specified using the
-\vn{d2_data} structure's \vn{name}.  The data associated with a
-\vn{d1_data} structure is specified using the format
+When issuing \tao commands, all the data associated with a \vn{d2_data} structure is specified using
+the \vn{d2_data} structure's \vn{name}.  The data associated with a \vn{d1_data} structure is
+specified using the format
 \begin{example}
   d2_name.d1_name
 \end{example}
-For example, if a \vn{d2_data} structure has the
-name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the
-name ``\vn{x}'', then \tao commands that refer to the data in this
-\vn{d1_data} structure use the name ``\vn{orbit.x}''. Sometimes there
-is only one \vn{d1_data} structure for a given \vn{d2_data}
-structure. In this case the data can be referred to simply by using
-the \vn{d2_data} structure's name. The individual datums can be
-referred to using the notation
+For example, if a \vn{d2_data} structure has the name ``\vn{orbit}'', and one of its \vn{d1_data}
+structures has the name ``\vn{x}'', then \tao commands that refer to the data in this \vn{d1_data}
+structure use the name ``\vn{orbit.x}''. Sometimes there is only one \vn{d1_data} structure for a
+given \vn{d2_data} structure. In this case the data can be referred to simply by using the
+\vn{d2_data} structure's name. The individual datums can be referred to using the notation
 \begin{example}
   <d2_name>.<d1_name>[<list_of_datum_indexes>]
 \end{example}
-For example, \vn{orbit.x[10]} refers to the horizontal orbit datum
-with index 10. Notice that the beginning (lowest) datum index is user
-selectable and is therefore not necessarily 1. 
+For example, \vn{orbit.x[10]} refers to the horizontal orbit datum with index 10. Notice that the
+beginning (lowest) datum index is user selectable and is therefore not necessarily 1.
 
 Period characters are not allowed in both the \vn{d2_data} and \vn{d1_data} names.
 
-It is important to note that the name given to \vn{d2_data} and \vn{d1_data}
-structures is arbitrary and does not have to correspond to the 
-type of data contained in the 
-structures. In fact, a \vn{d1_data} array can contain heterogeneous data types.
-Thus, for example, it is perfectly permissible (but definitely not recommended) 
-to set up the data structures so that, say, \vn{orbit.x[10]} 
-is the $a$-mode emittance at a certain element and \vn{orbit.x[11]}
-is the $b$-mode beta function at the same element.
+It is important to note that the name given to \vn{d2_data} and \vn{d1_data} structures is arbitrary
+and does not have to correspond to the type of data contained in the structures. In fact, a
+\vn{d1_data} array can contain heterogeneous data types.  Thus, for example, it is perfectly
+permissible (but definitely not recommended) to set up the data structures so that, say,
+\vn{orbit.x[10]} is the $a$-mode emittance at a certain element and \vn{orbit.x[11]} is the $b$-mode
+beta function at the same element.
 
-Ranges of data can be referred to using using a comma \vn{,} to
-separate the indexes combined with the notation \vn{n1:n2} to specify
-all the datums between \vn{n1} and \vn{n2} inclusive. For example
+Ranges of data can be referred to using using a comma \vn{,} to separate the indexes combined with
+the notation \vn{n1:n2} to specify all the datums between \vn{n1} and \vn{n2} inclusive. For example
 \begin{example}
   orbit.x[3:6,23]
 \end{example}
 refers to datums 3, 4, 5, 6, and 23. 
 
-If multiple universes are present, then, as explained in
-\sref{s:universe}, the prefix \vn{"@"} may be used to specify which
-universe the data applies to. The general notation is
+If multiple universes are present, then, as explained in \sref{s:universe}, the prefix \vn{"@"} may
+be used to specify which universe the data applies to. The general notation is
 \begin{example}
   [<universe_range>]@<d2_name>.<d1_name>[<datum_index>]
 \end{example}
@@ -91,8 +79,8 @@ Examples:
   -1@orbit.x      ! Same as "orbit.x".
 \end{example}
 
-As explained in Section~\sref{s:data.anatomy}, each individual datum
-has a number of components. The syntax to refer to a component is:
+As explained in Section~\sref{s:data.anatomy}, each individual datum has a number of components. The
+syntax to refer to a component is:
 \begin{example}
   d2_name.d1_name[datum_index]|component
 \end{example}
@@ -1403,15 +1391,14 @@ Taylor map components between two points. \vn{tt.$ijk\ldots$} is analogous to th
 which is superfluous but is keep for backwards compatibility, is equivalent to \vn{tt.$ijklm\ldots$}
 Also see \vn{r.$ij$}.
 
-Calculation of \vn{t.$ijklm\ldots$} and \vn{tt.$ijklm\ldots$} datums involve symplectic
-integration through lattice elements. One point to be kept in mind is that results will be
-dependent upon the integration step size through an element set by the \vn{ds_step}
-attribute of that element (see the \bmad manual for more details). When a smooth curve
-(\sref{s:template}) is plotted for \vn{t.$ijk$} and \vn{tt.$ijklm\ldots$} data types, and
-the longitudinal (\vn{"s"}) position is used for the x-axis, the integration step used in
-generating the points that define this curve will be decreased if the s-distance between
-points is smaller than the \vn{ds_step}.  In this case, discrepancies between the plot and
-datum values may be observed.
+Calculation of \vn{t.$ijklm\ldots$} and \vn{tt.$ijklm\ldots$} datums involve symplectic integration
+through lattice elements. One point to be kept in mind is that results will be dependent upon the
+integration step size through an element set by the \vn{ds_step} attribute of that element (see the
+\bmad manual for more details). When a smooth curve (\sref{s:template}) is plotted for \vn{t.$ijk$}
+and \vn{tt.$ijklm\ldots$} data types, and the longitudinal (\vn{"s"}) position is used for the
+x-axis, the integration step used in generating the points that define this curve will be decreased
+if the s-distance between points is smaller than the \vn{ds_step}.  In this case, discrepancies
+between the plot and datum values may be observed.
 
   %----------------------
   \item[time] \Newline
@@ -1422,20 +1409,31 @@ Time (in seconds) a particle or the bunch centroid is at the evaluation element.
 Tune in radians.
 
   %----------------------
-  \item[unstable.orbit] \Newline
-The \vn{unstable.orbit} datum is used for linear lattices in an
-optimization to avoid unstable solutions (\sref{s:generalized.design}).
+  \item[unstable.eigen, unstable.eigen.a, .eigen.b, .eigen.c] \Newline
+The \vn{unstable.eigen} data type give the maximum eigenvalue amplitude of the three normal modes
+of oscillation. This calculation uses the transfer matrix calculated from the beginning of the
+specified lattice branch to the end of the branch. The geometry of the lattice branch does not have
+to be set to closed. If the transfer matrix represents stable motion, the value of
+\vn{unstable.eigen} will be one. Also see \vn{unstable.orbit} and \vn{unstable.ring}.
 
-For single particle tracking, the value of an \vn{unstable.orbit}
-datum is zero if the tracked particle survives (has not been lost) up
-to the evaluation element and, if it has been lost, is set to
+The \vn{unstable.eigen.a}, \vn{unstable.eigen.b}, and \vn{unstable.eigen.c} are like
+\vn{unstable.eigen} except that these data types are the maximum of the two eigenvalue amplitudes
+for the \vn{a}, \vn{b}, and \vn{c} modes respectively.
+
+  %----------------------
+  \item[unstable.orbit] \Newline
+The \vn{unstable.orbit} datum is used for linear lattices in an optimization to avoid unstable
+solutions (\sref{s:generalized.design}). Also see \vn{unstable.eigen}.
+
+For single particle tracking, the value of an \vn{unstable.orbit} datum is zero if the tracked
+particle survives (has not been lost) up to the evaluation element and, if it has been lost, is set
+to
 \begin{equation}
  1 + i_{\mbox{ele}} - i_{\mbox{lost}} + \frac{1}{2}
  \left[ \tanh\left( \frac{r_{orbit}}{r_{lim}} - 1 \right) - E \right]
 \end{equation}
-where $i_{\mbox{ele}}$ is the index of the evaluation element in the
-lattice and $i_{\mbox{lost}}$ is the index of the element where the
-particle was lost. In the above equation, $E$ is the function
+where $i_{\mbox{ele}}$ is the index of the evaluation element in the lattice and $i_{\mbox{lost}}$
+is the index of the element where the particle was lost. In the above equation, $E$ is the function
 \begin{equation}
   E = 
   \begin{cases}
@@ -1443,25 +1441,23 @@ particle was lost. In the above equation, $E$ is the function
     0 & \text{if the particle is lost at the entrance end of the element.}
   \end{cases}
 \end{equation}
-In the abouve equation, $r_{orbit}$ is the particle amplitude at the
-point of loss and $r_{lim}$ is the aperture limit. The form of the
-above equation has been choisen so that the datum value will be
+In the abouve equation, $r_{orbit}$ is the particle amplitude at the point of loss and $r_{lim}$ is
+the aperture limit. The form of the above equation has been choisen so that the datum value will be
 monotonic with increasing stability.
 
-The default for the evaluation element, if \vn{ele_name} nor
-\vn{ix_ele} is not specified, is to use the last element in the
-lattice. 
+The default for the evaluation element, if \vn{ele_name} nor \vn{ix_ele} is not specified, is to use
+the last element in the lattice.
 
-When tracking beams, the value of \vn{unstable.orbit} is the averaged
-value over all particles in the bunch.
+When tracking beams, the value of \vn{unstable.orbit} is the averaged value over all particles in
+the bunch.
 
   %----------------------
   \item[unstable.ring] \Newline
-\vn{unstable.ring} is used for storage rings. The value of an
-\vn{unstable.ring} datum is zero if the ring is stable and set to the
-largest growth rate of all the normal modes of oscillation if the ring
-is unstable. \vn{unstable.ring} is used in an optimization to avoid
-unstable solutions (\sref{s:generalized.design}).
+\vn{unstable.ring} is used for lattices with a closed geometry such as a storage ring. The value of
+an \vn{unstable.ring} datum is zero if the ring is stable and set to the largest growth rate of the
+transverse (but not longitudinal) normal modes of oscillation if the ring is unstable.
+\vn{unstable.ring} is used in an optimization to avoid unstable solutions
+(\sref{s:generalized.design}).  Also see \vn{unstable.eigen}.
 
 \begin{figure}
   \centering
@@ -1697,6 +1693,10 @@ squared.
 
   tune.a, .b                          & Tune                                      & lat         & No  \\ \hline 
 
+  \begin{tabular}{@{}l}
+    unstable.eigen, \\
+    unstable.eigen.a, .eigen.b, .eigen.c
+  \end{tabular}                       & Maximum eigenvalue amplitude              & lat         & No  \\ \hline
   unstable.orbit                      & \begin{tabular}{@{}l}   
                                           Nonzero if particles are \\
                                           lost in tracking
