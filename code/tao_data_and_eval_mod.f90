@@ -1,6 +1,7 @@
 module tao_data_and_eval_mod
 
 use tao_interface
+use eigen_mod
 
 implicit none
 
@@ -407,6 +408,7 @@ real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
 
+complex(rp) eigen_val(6), eigen_vec(6,6)
 complex(rp) temp_cplx
 
 ! Cf: Sands Eq 5.46 pg 124.
@@ -2985,7 +2987,7 @@ case ('t.', 'tt.')
       if (k > branch%n_ele_track) k = 0
       call transfer_map_calc (lat, taylor, err, k_old, k, unit_start = .false., concat_if_possible = s%global%concatenate_maps)
       if (err) then
-       call tao_set_invalid (datum, 'MAP TERM OVERFLOW', why_invalid)
+        call tao_set_invalid (datum, 'MAP TERM OVERFLOW', why_invalid)
         return
       endif
     enddo
@@ -2997,6 +2999,23 @@ case ('t.', 'tt.')
 case ('unstable.')
 
   select case (datum%data_type)
+
+  case ('unstable.eigen', 'unstable.eigen.a', 'unstable.eigen.b', 'unstable.eigen.c')
+    call transfer_matrix_calc (lat, mat6, vec0, 0, branch%n_ele_track, branch%ix_branch, one_turn = .true.)
+    call mat_eigen (mat6, eigen_val, eigen_vec, err)
+    if (err) then
+      call tao_set_invalid (datum, 'CANNOT COMPUTE EIGENVALUES FOR TRANSFER MATRIX', why_invalid)
+      return
+    endif
+
+    select case (datum%data_type)
+    case ('unstable.eigen');    datum_value = maxval(abs(eigen_val))
+    case ('unstable.eigen.a');  datum_value = max(abs(eigen_val(1)), abs(eigen_val(2)))
+    case ('unstable.eigen.b');  datum_value = max(abs(eigen_val(3)), abs(eigen_val(4)))
+    case ('unstable.eigen.c');  datum_value = max(abs(eigen_val(5)), abs(eigen_val(6)))
+    end select
+    valid_value = .true.
+    
 
   case ('unstable.orbit')
 
@@ -3036,6 +3055,9 @@ case ('unstable.')
 
   case ('unstable.ring')
     if (data_source == 'beam') goto 9000  ! Set error message and return
+    if (branch%param%geometry == open$) then
+
+    endif
     datum_value = lat%param%unstable_factor
     ! unstable_penalty is needed since at the meta stable borderline the growth rate is zero.
     if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
@@ -3758,7 +3780,7 @@ end function tao_do_wire_scan
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Function tao_pointer_to_datum_ele (lat, ix_ele, datum, valid) result (ele)
+! Function tao_pointer_to_datum_ele (lat, ix_ele, datum, valid, why_invalid) result (ele)
 ! 
 ! Routine to see if an element index corresponds to an element with a definite 
 ! location such as an overlay or multipass element.
@@ -3770,11 +3792,13 @@ end function tao_do_wire_scan
 !   lat    -- Lat_struct: Lattice
 !   ix_ele -- Integer: Index of element.
 !   datum  -- Tao_data_struct: Used for error messages and gives branch index.
-!   valid  -- Logical: Set False if element does not have a definite location.
-!               Set True otherwise
 !
 ! Output:
-!   ele   -- Ele_struct, pointer :: Pointer to the element. Set to NULL if not valid
+!   ele          -- Ele_struct, pointer :: Pointer to the element. Set to NULL if not valid 
+!                     or no associated element.
+!   valid        -- Logical: Set False if element does not have a definite location.
+!                     Set True otherwise
+!   why_invalid  -- Character(*), optional: Tells why datum value is invalid.
 !-
 
 function tao_pointer_to_datum_ele (lat, ele_name, ix_ele, datum, valid, why_invalid) result (ele)
