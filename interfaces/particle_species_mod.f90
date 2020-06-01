@@ -10,7 +10,7 @@
 ! proton$, etc, for particles that have named paramters (see below for a list).
 !
 ! Particles are divided into several categories:
-!   1) Fundamental particles.
+!   1) Subatomic particles.
 !   2) Atoms
 !   3) "Known" molecules which are listed in the molecular_name() array.
 !   4) "Unknown" molecules where the mass and charge are specified.
@@ -19,15 +19,15 @@
 ! Else if |species| > 1000 mapping is:
 ! Write in hex: species = CCPPMMMM (Hex)
 ! Where:
-!   CC   = Charge (2 Hex digits with range [-127, 127]). Set to 0 for fundamental particles.
+!   CC   = Charge (2 Hex digits with range [-127, 127]). Set to 0 for subatomic particles.
 !   PP   = Particle ID (2 Hex digits with range [0, 255]).
-!           if PP = 0                --> Used for fundamental particles.
+!           if PP = 0                --> Used for subatomic particles.
 !           if 0 < PP < 200 (C8 Hex) --> Atom with PP = # Protons 
 !           if PP = 200 (C8 Hex)     --> Molecule of unknown type.
 !           if PP > 200 (C8 Hex)     --> "Named" molecule. See molecular_name array below for a list. 
 !                                        In this case PP = Species ID. EG: nh2$ = 201, etc.
 !   MMMM (4 Hex digits):
-!          For fundamental particles (where CC = PP = 0): Particle integer ID. 
+!          For subatomic particles (where CC = PP = 0): Particle integer ID. 
 !          For atoms: Number of nucleons. If zero then number of nucleons is unknown (EG: "C+")
 !          For Molecules: 100*Mass (That is, resolution is hundredths of an AMU). 0 = Use default (only valid for "Named" molecules).
 !
@@ -54,7 +54,7 @@ integer, parameter :: not_set$ = -999
 character(*), parameter :: invalid_name = 'INVALID!'
 
 !----------------------
-! Fundamental particles.
+! Subatomic particles.
 ! Note: It is convenient for debugging to define an "antiparticle" with reversed sign even though it does not exit in practice. 
 ! Example: anti_deuteron$.
 
@@ -76,27 +76,30 @@ integer, parameter :: anti_neutron       = -6
 integer, parameter :: anti_ref_particle$ = -7
 
 
-character(20), parameter:: fundamental_species_name(-7:8) = [character(20):: 'Anti_Ref_Particle', 'Anti_Neutron     ', &
+character(20), parameter:: subatomic_species_name(-7:8) = [character(20):: 'Anti_Ref_Particle', 'Anti_Neutron     ', &
               'Anti_Deuteron    ', 'Pion-            ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
               'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', 'Pion+            ', &
               'Deuteron         ', 'Neutron          ', 'Ref_Particle     ', 'Pion0            ']
 
-character(20), parameter:: openPMD_fundamental_species_name(-7:8) = [character(20):: 'Garbage!         ', 'anti-neutron     ', &
+character(20), parameter:: openPMD_subatomic_species_name(-7:8) = [character(20):: 'Garbage!         ', 'anti-neutron     ', &
                       'anti-deuteron    ', 'pion-            ', 'muon             ', 'anti-proton      ', 'electron         ', &
                       'photon           ', 'positron         ', 'proton           ', 'anti-muon        ', 'pion+            ', &
                       'deuteron         ', 'neutron          ', 'Garbage!         ', 'pion0            ']
 
-integer, parameter :: charge_of_fundamental(-7:8) = [0, 0, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 0, 0, 0]
+integer, parameter :: charge_of_subatomic(-7:8) = [0, 0, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 0, 0, 0]
 
-real(rp), parameter :: mass_of_fundamental(-7:8) = [0.0_rp, m_neutron, m_deuteron, m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
+real(rp), parameter :: mass_of_subatomic(-7:8) = [0.0_rp, m_neutron, m_deuteron, m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
                                 m_electron, m_proton, m_muon, m_pion_charged, m_deuteron, m_neutron, 0.0_rp, m_pion_0]
 
-real(rp), parameter :: anomalous_moment_of_fundamental(-7:8) = [0.0_rp, anomalous_mag_moment_neutron, anomalous_mag_moment_deuteron, &
+real(rp), parameter :: anomalous_moment_of_subatomic(-7:8) = [0.0_rp, anomalous_mag_moment_neutron, anomalous_mag_moment_deuteron, &
                         0.0_rp, anomalous_mag_moment_muon, anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
                         anomalous_mag_moment_electron, anomalous_mag_moment_proton, anomalous_mag_moment_muon, &
                         0.0_rp, anomalous_mag_moment_deuteron, anomalous_mag_moment_neutron, 0.0_rp, 0.0_rp]
 
 integer, parameter :: antiparticle(-7:8) = [7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, 8]
+
+real(rp), parameter :: spin_of_subatomic(-7:8) = [real_garbage$, 0.5_rp, 1.0_rp, 0.0_rp, 0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, &
+                                                    0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 1.0_rp, 0.5_rp, real_garbage$, 0.0_rp]
 
 !----------------------
 ! Atoms
@@ -750,7 +753,7 @@ contains
 ! Function species_of (mass, charge) result(species)
 !
 ! Routine to return the integer ID index of a particle species given the mass and charge.
-! Note: Currently this routine only works for fundamental particles.
+! Note: Currently this routine only works for subatomic particles.
 !
 ! Input:
 !   mass    -- real(rp): Mass of the particle
@@ -767,8 +770,8 @@ integer charge, species
 
 !
 
-do species = lbound(mass_of_fundamental, 1), ubound(mass_of_fundamental, 1)
-  if (charge == charge_of_fundamental(species) .and. abs(mass - mass_of_fundamental(species)) <= 1d-6 * mass) return
+do species = lbound(mass_of_subatomic, 1), ubound(mass_of_subatomic, 1)
+  if (charge == charge_of_subatomic(species) .and. abs(mass - mass_of_subatomic(species)) <= 1d-6 * mass) return
 enddo
 
 species = invalid$
@@ -783,7 +786,7 @@ end function species_of
 !
 ! Routine to return the integer ID index of a particle species given the name.
 !
-! For fundamental particles, the case does not matter. 
+! For subatomic particles, the case does not matter. 
 ! For all other types of particles, the case does matter.
 !
 ! Input:
@@ -819,11 +822,11 @@ if (upcase(nam) == 'PION_PLUS')  nam = 'pion+'  ! Old style
 if (upcase(nam) == 'PION_0')     nam = 'pion0'  ! Old style
 if (upcase(nam) == 'PION_MINUS') nam = 'pion-'  ! Old style
 
-! Fundamental particle?
+! Subatomic particle?
 
-call match_word(nam, fundamental_species_name, ix, .false., .false.)
+call match_word(nam, subatomic_species_name, ix, .false., .false.)
 if (ix > 0) then
-  species = ix + lbound(fundamental_species_name, 1) - 1
+  species = ix + lbound(subatomic_species_name, 1) - 1
   return
 endif
 
@@ -1032,8 +1035,8 @@ end select
 
 !
 
-if (is_fundamental_species(species)) then
-  name = fundamental_species_name(species)
+if (is_subatomic_species(species)) then
+  name = subatomic_species_name(species)
   return
 endif
 
@@ -1100,11 +1103,11 @@ end function species_name
 ! Function species_id_from_openpmd (pmd_name, charge) result(species)
 !
 ! Routine to return the Bmad species ID given the openPMD species name and given particle charge.
-! Note: If pmd_name corresponds to a fundamental particle, the charge argument is ignored.
+! Note: If pmd_name corresponds to a subatomic particle, the charge argument is ignored.
 !
 ! Input:
 !   pmd_name      -- character(*): OpenPMD species name.
-!   charge        -- integer: Species charge. Ignored for fundamental particles.
+!   charge        -- integer: Species charge. Ignored for subatomic particles.
 !
 ! Output:
 !   species       -- integer: Bmad spicies ID number.
@@ -1116,10 +1119,10 @@ integer charge, species
 integer i
 character(*) pmd_name
 
-! Fundamental particle
+! Subatomic particle
 
-do i = lbound(fundamental_species_name, 1), ubound(fundamental_species_name, 1) 
-  if (pmd_name /= openPMD_fundamental_species_name(i)) cycle
+do i = lbound(subatomic_species_name, 1), ubound(subatomic_species_name, 1) 
+  if (pmd_name /= openPMD_subatomic_species_name(i)) cycle
   species = i
   return
 enddo
@@ -1153,10 +1156,10 @@ function openpmd_species_name(species) result(pmd_name)
 integer :: species, ix
 character(20) :: pmd_name
 
-! Fundamental particles
+! Subatomic particles
 
-if (is_fundamental_species(species)) then
-  pmd_name = openpmd_fundamental_species_name(species)
+if (is_subatomic_species(species)) then
+  pmd_name = openpmd_subatomic_species_name(species)
 
 ! All else just remove any charge suffix. EG: "H-" -> "H".
 else
@@ -1175,24 +1178,25 @@ end function openpmd_species_name
 !+
 ! Function anomalous_moment_of (species) result (moment)
 !
-! Routine to return the anomolous moment for fundamental species type. Otherwise returns 0.
+! Routine to return the anomolous moment for subatomic species type. Otherwise returns 0.
 !
 ! Input:
 !   species -- integer: Species ID.
 !
 ! Output:
-!   moment  -- real(rp) 
+!   moment  -- real(rp): Anomalous moment.
 !-
 
 function anomalous_moment_of (species) result (moment)
+
 integer :: species, sp
 integer, parameter :: He3$ = 2 * z'10000' + 3
 real(rp) :: moment
 
 !
 
-if (is_fundamental_species(species)) then
-	moment = anomalous_moment_of_fundamental(species)
+if (is_subatomic_species(species)) then
+	moment = anomalous_moment_of_subatomic(species)
 	return
 endif
 
@@ -1210,6 +1214,41 @@ end function anomalous_moment_of
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
+! Function spin_of (species, non_subatomic_default) result (spin)
+!
+! Routine to return the spin, in units of hbar, of a particle.
+! This routine is only valid for subatomic particles. 
+! For all other particles, the returned spin value will be the value of non_subatomic_default.
+!
+! Input:
+!   species               -- integer: Species ID.
+!   non_subatomic_default -- real(rp), optional: Default value to be used for non-subatomic species.
+!                             Default value of this argument is zero.
+!
+! Output:
+!   spin    -- real(rp): Particle spin.
+!-
+
+function spin_of (species, non_subatomic_default) result (spin)
+
+integer :: species
+real(rp) spin
+real(rp), optional :: non_subatomic_default
+
+!
+
+if (is_subatomic_species(species)) then
+  spin = spin_of_subatomic(species)
+else
+  spin = real_option(0.0_rp, non_subatomic_default)
+endif
+
+end function spin_of
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
 ! Function charge_of (species) result (charge)
 !
 ! Routine to return the charge, in units of e+, of a particle.
@@ -1222,12 +1261,13 @@ end function anomalous_moment_of
 !-
 
 function charge_of (species) result (charge)
+
 integer :: charge, species
 character(*), parameter :: r_name = 'charge_of'
 !
 
-if (is_fundamental_species(species)) then
-	charge = charge_of_fundamental(species)
+if (is_subatomic_species(species)) then
+	charge = charge_of_subatomic(species)
 	return
 endif
 
@@ -1270,12 +1310,12 @@ real(rp) mass
 integer n, ix, species, n_nuc, pp, charge
 character(*), parameter :: r_name = 'mass_of'
 
-! Fundamental particle
+! Subatomic particle
 
 mass = real_garbage$
 
-if (is_fundamental_species(species)) then
-	mass = mass_of_fundamental(species)
+if (is_subatomic_species(species)) then
+	mass = mass_of_subatomic(species)
 	return
 endif
 
@@ -1385,7 +1425,7 @@ end function charge_to_mass_of
 ! Function set_species_charge(species_in, charge) result(species_charged)
 !
 ! Routine to return the ID for a particle of the same type as species_in but with a different charge.
-! Exception: If species_in corresponds to a fundamental particle, the charge argument is ignored and
+! Exception: If species_in corresponds to a subatomic particle, the charge argument is ignored and
 ! species_charged will be set equal to species_in.
 !
 ! Input:
@@ -1403,7 +1443,7 @@ character(*), parameter :: r_name = 'set_species_charge'
 
 !
 
-if (is_fundamental_species(species_in)) then
+if (is_subatomic_species(species_in)) then
   species_charged = species_in
   return
 endif
@@ -1416,28 +1456,28 @@ end function set_species_charge
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function is_fundamental_species(species) result (is_fundamental)
+! Function is_subatomic_species(species) result (is_subatomic)
 !
-! Routine to return True if species argument corresponds to a fundamental particle.
+! Routine to return True if species argument corresponds to a subatomic particle.
 !
 ! Input:
 !   species     -- integer: Spicies ID.
 !
 ! Output:
-!   is_fundamental  -- logical: Set True if species corresponds to a fundamental particle.
+!   is_subatomic  -- logical: Set True if species corresponds to a subatomic particle.
 !-
 
-elemental function is_fundamental_species(species) result (is_fundamental)
+elemental function is_subatomic_species(species) result (is_subatomic)
 
 integer, intent(in) :: species
-logical is_fundamental
+logical is_subatomic
 
 !
 
-is_fundamental = (lbound(fundamental_species_name, 1) <= species .and. &
-                                species <= ubound(fundamental_species_name, 1)) 
+is_subatomic = (lbound(subatomic_species_name, 1) <= species .and. &
+                                species <= ubound(subatomic_species_name, 1)) 
 
-end function is_fundamental_species
+end function is_subatomic_species
 
 end module
 
