@@ -24,6 +24,7 @@ real(rp), parameter :: dim_velocity(7)       = [1,0,-1,0,0,0,0]
 real(rp), parameter :: dim_energy(7)         = [2,1,-2,0,0,0,0]
 real(rp), parameter :: dim_momentum(7)       = [1,1,-1,0,0,0,0]
 real(rp), parameter :: dim_tesla(7)          = [0,1,-2,-1,0,0,0]
+real(rp), parameter :: dim_hbar(7)           = [2,1,-1,0,0,0,0]
 
 type(pmd_unit_struct), parameter :: unit_1          = pmd_unit_struct('', 1.0_rp, dim_1)
 type(pmd_unit_struct), parameter :: unit_m          = pmd_unit_struct('m', 1.0_rp, dim_length)
@@ -41,6 +42,7 @@ type(pmd_unit_struct), parameter :: unit_m_per_s    = pmd_unit_struct('m/s', 1.0
 type(pmd_unit_struct), parameter :: unit_eV         = pmd_unit_struct('eV', e_charge, dim_energy)
 type(pmd_unit_struct), parameter :: unit_eV_per_c   = pmd_unit_struct('eV/c', e_charge/c_light, dim_momentum)
 type(pmd_unit_struct), parameter :: unit_Tesla      = pmd_unit_struct('Tesla', 1.0_rp, dim_tesla)
+type(pmd_unit_struct), parameter :: unit_hbar       = pmd_unit_struct('hbar', e_charge * h_bar_planck, dim_hbar)
 
 ! 
 

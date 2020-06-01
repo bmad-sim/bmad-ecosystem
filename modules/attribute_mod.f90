@@ -1096,7 +1096,6 @@ call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
 call init_attribute_name1 (lcavity$, l_hard_edge$,                  'L_HARD_EDGE', dependent$)
 
 call init_attribute_name1 (marker$, l$,                             'L', dependent$)
-call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_LEN')
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
 call init_attribute_name1 (marker$, p0c_ref_init$,                  'p0c_ref_init', private$)
 
@@ -1480,7 +1479,6 @@ call init_attribute_name1 (wiggler$, polarity$,                     'POLARITY')
 call init_attribute_name1 (wiggler$, r0_mag$,                       'R0_MAG')
 call init_attribute_name1 (wiggler$, r0_elec$,                      'R0_ELEC')
 call init_attribute_name1 (wiggler$, field_master$,                 'FIELD_MASTER')
-call init_attribute_name1 (wiggler$, x_ray_line_len$,               'X_RAY_LINE_LEN')
 call init_attribute_name1 (wiggler$, cartesian_map$,                'CARTESIAN_MAP')
 call init_attribute_name1 (wiggler$, cylindrical_map$,              'CYLINDRICAL_MAP')
 call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD')
@@ -1822,7 +1820,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'REF_WAVELENGTH', 'RHO', 'S', 'SIGNIFICANT_LENGTH', 'SIG_X', 'SIG_Y', 'SIG_Z', 'S_POSITION', 'THICKNESS', &
       'X', 'X0', 'X1', 'Y', 'Y0', 'Y1', 'X1_LIMIT', 'X2_LIMIT', 'Y1_LIMIT', 'Y2_LIMIT', 'X_LIMIT', 'Y_LIMIT', &
       'X_OFFSET', 'Y_OFFSET', 'X_OFFSET_CALIB', 'Y_OFFSET_CALIB', 'X_OFFSET_MULT', 'Y_OFFSET_MULT', &
-      'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', 'X_RAY_LINE_LEN', &
+      'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', &
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS')
   attrib_units = 'm'

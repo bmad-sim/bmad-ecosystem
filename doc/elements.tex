@@ -2688,17 +2688,6 @@ General \vn{marker} attributes are:
 \toffset
 See \sref{s:list.marker} for a full list of element attributes.
 
-\index{x_ray_line_len}
-Attributes specific to a \vn{marker} element are:
-\begin{example}
-  x_ray_line_len = <Real>
-\end{example}
-
-\vn{x_ray_line_len} is the length of an associated x-ray synchrotron
-light line measured from the marker element. This is used for
-machine geometry calculations and is irrelevant for lattice
-computations.
-
 \index{x_offset}\index{y_offset}
 \index{tilt}\index{is_on}
 The \vn{x_offset}, \vn{y_offset} and \vn{tilt} attributes are not used
@@ -4429,7 +4418,6 @@ Attributes specific to wiggler and undulator elements are:
   k1_pseudo            ! Pseudo K1 value. A Dependent attribute (\sref{s:depend}).
   g_max                ! Maximum bending strength. Dependent attribute.
   osc_amplitude        ! Amplitude of the particle oscillations. Dependent attribute.
-  x_ray_line_len = <Real> ! Deprecated.
 \end{example}
 
 The \vn{polarity} value is used to scale the magnetic field. By
@@ -4439,12 +4427,6 @@ default, \vn{polarity} has a value of 1.0.  Example:
 \end{example}
 In this example the wiggler field is defined by a Cartesian map (\sref{s:cart.map}) and the field is
 reversed from what it would be with \vn{polarity} set to 1.
-
-\index{x_ray_line_len}
-\vn{x_ray_line_len} is the length of an associated x-ray synchrotron light line measured from the
-exit end of the element. This is used for machine geometry calculations and is irrelevant for
-lattice computations. \vn{x_ray_line_len} is deprecated. Use a \vn{photon_fork} (\sref{s:fork})
-with an attached lattice branch instead.
 
 %-----------------------------------------------------
 \subsection{Periodic Type Wigglers}
