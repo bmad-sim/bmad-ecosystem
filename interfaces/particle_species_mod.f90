@@ -847,7 +847,7 @@ endif
 
 if (nam == '') then
   if (mol_mass == 0) return
-  species = abs(charge * z'1000000') + 200 * z'10000' + nint(100 * mol_mass)
+  species = abs(charge * int(z'1000000')) + 200 * int(z'10000') + nint(100 * mol_mass)
   if (charge < 0) species = -species
   return
 endif
@@ -885,7 +885,7 @@ if (ix > 0) then
     return
   endif  
 
-  species = abs(charge * z'1000000') + (ix+200) * z'10000' + nint(mol_mass * 100)
+  species = abs(charge * int(z'1000000')) + (ix+200) * int(z'10000') + nint(mol_mass * 100)
   if (charge < 0) species = -species
   return  
 endif
@@ -906,7 +906,7 @@ case default
       return
     endif  
 
-    species =  abs(charge * z'1000000') + ix * z'10000' + n_nuc
+    species =  abs(charge * int(z'1000000')) + ix * int(z'10000') + n_nuc
     if (charge < 0) species = -species
     return  
   endif
@@ -1040,8 +1040,8 @@ if (is_subatomic_species(species)) then
   return
 endif
 
-pp = mod(abs(species), z'1000000') / z'10000' 
-mmmm = mod(abs(species), z'10000')
+pp = mod(abs(species), int(z'1000000')) / int(z'10000') 
+mmmm = mod(abs(species), int(z'10000'))
 name = ''
 
 ! Atom
@@ -1190,7 +1190,7 @@ end function openpmd_species_name
 function anomalous_moment_of (species) result (moment)
 
 integer :: species, sp
-integer, parameter :: He3$ = 2 * z'10000' + 3
+integer, parameter :: He3$ = 2 * int(z'10000') + 3
 real(rp) :: moment
 
 !
@@ -1200,7 +1200,7 @@ if (is_subatomic_species(species)) then
 	return
 endif
 
-sp = abs(species - z'1000000' * (species / z'1000000'))  ! Subtract off charge
+sp = abs(species - int(z'1000000') * (species / int(z'1000000')))  ! Subtract off charge
 
 if (sp == He3$) then
   moment = anomalous_mag_moment_He3
@@ -1280,7 +1280,7 @@ if (abs(species) < 1000) then
 endif
 
 ! |species| > 1000, decode CC PP MMMM
-charge = species / z'1000000'  ! Charge encoded in first two hex digits of species.
+charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
 
 end function charge_of
 
@@ -1328,18 +1328,18 @@ endif
 
 
 ! |species| > 1000, decode CC PP MMMM
-pp = mod(abs(species), z'1000000') / z'10000'
+pp = mod(abs(species), int(z'1000000')) / int(z'10000')
 
 ! Atom
 if (pp<200) then
-  n_nuc = mod(abs(species), z'10000')
+  n_nuc = mod(abs(species), int(z'10000'))
   if (n_nuc == 0) then
     ! Average naturally occuring mass
     mass = atom(pp)%mass(0) * atomic_mass_unit
   else
     ! Isotope. In general the mass is calculated using the neutral atom plus/minus the weight of any added/missing electrons.
     ! This will be off very slightly due to binding energy effects. 
-    charge = species / z'1000000'  ! Charge encoded in first two hex digits of species.
+    charge = species / int(z'1000000')  ! Charge encoded in first two hex digits of species.
 
     ! For #1H+ (proton) and #2H+ (deuteron) use the exact mass.
     if (pp == 1 .and. n_nuc == 1 .and. charge == 1) then 
@@ -1376,7 +1376,7 @@ endif
 ! Molecule
 if (pp == 200) then
   ! unknown, mass is specified directly in units of u/100
-  mass = mod(abs(species), z'10000') * atomic_mass_unit / 100
+  mass = mod(abs(species), int(z'10000')) * atomic_mass_unit / 100
   return
 else
   ! known molecule
@@ -1448,7 +1448,7 @@ if (is_subatomic_species(species_in)) then
   return
 endif
 
-species_charged = species_in +  z'1000000' * (charge - species_in / z'1000000')
+species_charged = species_in +  int(z'1000000') * (charge - species_in / int(z'1000000'))
 
 end function set_species_charge
 
