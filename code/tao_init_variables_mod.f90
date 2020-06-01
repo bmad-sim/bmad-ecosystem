@@ -149,10 +149,12 @@ do
   var%universe       = ''
   var%low_lim        = default_low_lim
   var%high_lim       = default_high_lim
-  call set_logical_to_garbage (var%good_user)
-  call transfer_logical (default_key_b(n_v1), var(0)%key_bound)
-  var%key_bound = var(0)%key_bound
+  var%key_bound      = var(0)%key_bound
   var%key_delta      = default_key_d(n_v1)
+  call transfer_logical (default_key_b(n_v1), var(0)%key_bound)
+  do i = lbound(var, 1), ubound(var, 1)
+    call set_logical_to_garbage (var(i)%good_user)
+  enddo
 
   read (iu, nml = tao_var, iostat = ios)
   if (ios < 0 .and. v1_var%name == '') exit         ! exit on end-of-file
