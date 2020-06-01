@@ -502,6 +502,11 @@ case ('ELE_BEGINNING', 'ELE_CENTER', 'END_END', 'REF_BEGINNING', 'REF_CENTER', '
 end select
 
 select case (word)
+case ('X_RAY_LINE_LEN')
+  call parser_error ('X_RAY_LINE_LEN NO LONGER SUPPORTED. WILL BE IGNORED. PLEASE USE A PHOTON_FORK ELEMENT INSTEAD', level = s_warn$)
+  err_flag = .false.
+  return
+
 case ('TILT')
   if (ele%key == sbend$ .or. ele%key == rbend$) then
     call parser_error ('BENDS HAVE A "REF_TILT" ATTRIBUTE BUT NOT A "TILT" ATTRIBUTE.')

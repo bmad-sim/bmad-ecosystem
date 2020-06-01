@@ -218,7 +218,7 @@ endif
 
 ! Loop over all datasets.
 
-f_ev = e_charge / c_light
+f_ev = unit_ev_per_c%unitSI
 
 call H5Gget_info_f (g2_id, storage_type, n_links, max_corder, h5_err)
 do idx = 0, n_links-1
@@ -226,9 +226,9 @@ do idx = 0, n_links-1
   call H5Oget_info_by_name_f(g2_id, name, infobuf, h5_stat)
   select case (name)
   case ('spin')
-    call pmd_read_real_dataset(g2_id, 'spin/x', 1.0_rp, bunch%particle%spin(1), error)
-    call pmd_read_real_dataset(g2_id, 'spin/y', 1.0_rp, bunch%particle%spin(2), error)
-    call pmd_read_real_dataset(g2_id, 'spin/z', 1.0_rp, bunch%particle%spin(3), error)
+    call pmd_read_real_dataset(g2_id, 'spin/x', unit_hbar%unitSI, bunch%particle%spin(1), error)
+    call pmd_read_real_dataset(g2_id, 'spin/y', unit_hbar%unitSI, bunch%particle%spin(2), error)
+    call pmd_read_real_dataset(g2_id, 'spin/z', unit_hbar%unitSI, bunch%particle%spin(3), error)
   case ('position')
     call pmd_read_real_dataset(g2_id, 'position/x', 1.0_rp, bunch%particle%vec(1), error)
     call pmd_read_real_dataset(g2_id, 'position/y', 1.0_rp, bunch%particle%vec(3), error)

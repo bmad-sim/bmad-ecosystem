@@ -28,6 +28,7 @@ type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p(:)
 type (lat_struct), optional :: lat
 
+real(rp) f
 real(rp), allocatable :: rvec(:), p0c(:)
 
 integer(HID_T) f_id, g_id, z_id, z2_id, r_id, b_id, b2_id
@@ -159,12 +160,12 @@ do ib = 1, size(bunches)
     ! Spin
 
     call h5gcreate_f(b2_id, 'spin', z_id, h5_err)
-    call pmd_write_real_to_dataset(z_id, 'x', 'Sx', unit_1, p(:)%spin(1), err)
-    call pmd_write_real_to_dataset(z_id, 'y', 'Sy', unit_1, p(:)%spin(2), err)
-    call pmd_write_real_to_dataset(z_id, 'z', 'Sz', unit_1, p(:)%spin(3), err)
+    call pmd_write_real_to_dataset(z_id, 'x', 'Sx', unit_hbar, p(:)%spin(1), err)
+    call pmd_write_real_to_dataset(z_id, 'y', 'Sy', unit_hbar, p(:)%spin(2), err)
+    call pmd_write_real_to_dataset(z_id, 'z', 'Sz', unit_hbar, p(:)%spin(3), err)
     call h5gclose_f(z_id, h5_err)
 
-    if (.not. is_fundamental_species(p(1)%species)) then
+    if (.not. is_subatomic_species(p(1)%species)) then
       do i = 1, size(p)
         ivec = charge_of(p(i)%species)
       enddo
