@@ -1466,20 +1466,20 @@ integer, parameter :: beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_ce
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
 integer, parameter :: fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, cavity_type$ = 23, E2_probability$ = 23
 integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24
-integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24
-integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25
+integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24, px_aperture_width2$ = 24
+integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25
 integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25
-integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26
+integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26
 integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ =  27, energy_distribution$ = 27
-integer, parameter :: x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27
-integer, parameter :: etap_y_out$ = 28, phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28
-integer, parameter :: upstream_ele_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29
+integer, parameter :: x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, py_aperture_center$ = 27
+integer, parameter :: etap_y_out$ = 28, phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, z_aperture_width2$ = 28
+integer, parameter :: upstream_ele_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, z_aperture_center$ = 29
 integer, parameter :: cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29
 integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, scale_field_to_one$ = 30
-integer, parameter :: downstream_ele_dir$ = 30
+integer, parameter :: downstream_ele_dir$ = 30, pz_aperture_width2$ = 30
 integer, parameter :: cmat_21$ = 31, l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
-integer, parameter :: l_soft_edge$ = 31, transverse_sigma_cut$ = 31
+integer, parameter :: l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31
 integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33
 integer, parameter :: x_pitch$ = 34
