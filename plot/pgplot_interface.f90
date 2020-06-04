@@ -346,8 +346,8 @@ call pgqch (char_height)   ! Get current character height
 call pgqci (color)         ! Get current color
 
 call pgsah (arrow%head_type, real(arrow%head_angle), real(arrow%head_barb))  ! Set arrow parameters
-call pgsch (real(arrow%head_size)) ! Set Arrow head size
-call pgsci (arrow%color)           ! Set Arrow color
+call pgsch (real(arrow%head_size))                         ! Set Arrow head size
+call pgsci (qp_string_to_enum(arrow%color, 'color'))       ! Set Arrow color
 
 f = pg_com%page_scale
 call pgarro (real(f*r1(1)), real(f*r1(2)), real(f*r2(1)), real(f*r2(2)))  ! Draw arrow.
