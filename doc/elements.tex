@@ -760,14 +760,43 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
 \end{center}
 \toffset
 
-Note: Collimators are the exception to the rule that the aperture is
-independent of any \vn{tilt}s. See \sref{s:limit} for more
-details. Additionally, the default setting of
-\vn{offset_moves_aperture} is \vn{True} for collimators (\sref{s:offset.ap}).
+Attributes specific to a \vn{capillary} element are:
+\begin{example}
+  px_aperture_width2 = <real>  ! px aperture half width
+  px_aperture_center = <real>  ! px aperture center
+  py_aperture_width2 = <real>  ! py aperture half width
+  py_aperture_center = <real>  ! py aperture center
+  z_aperture_width2  = <real>  ! z aperture half width
+  z_aperture_center  = <real>  ! z aperture center
+  pz_aperture_width2 = <real>  ! pz aperture half width
+  pz_aperture_center = <real>  ! pz aperture center
+\end{example}
+
+Note: Collimators are the exception to the rule that the aperture is independent of any \vn{tilt}s.
+See \sref{s:limit} for more details. Additionally, the default setting of \vn{offset_moves_aperture}
+is \vn{True} for collimators (\sref{s:offset.ap}).
+
+Besides the standard aperture settings \ref{s:limit} that can be used to limit $x$ and $y$ phase
+space coordinates, collimators can be used to limit the other four phase space coordinates as well.  For
+\vn{rcollimator} elements, particles are collimated if \vn{px_aperture_width2} is greater than zero
+and
+\begin{example}
+  px < px_aperture_center - px_aperture_width2  or
+  px > px_aperture_center + px_aperture_width2
+\end{example}
+with similar equations for \vn{py}, \vn{z}, and \vn{pz}. For \vn{ecollimator}s, if \vn{px_aperture_width2}
+and \vn{py_aperture_width2} are both nonzero, particles are collimated if
+\begin{example}
+  ((px - px_aperture_center) / px_aperture_width2)^2 + 
+        ((py - py_aperture_center) / py_aperture_width2)^2 < 1
+\end{example}
+If one or both of \vn{px_aperture_width2} or \vn{py_aperture_width2} are zero, the computation is the
+same as for an \vn{rcollimator}. A similar situation occures for \vn{z} and \vn{pz}. 
 
 Example:
 \begin{example}
-  d21: ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2
+  d21: ecollimator, l = 4.5, x_limit = 0.09, y_limit = 0.05, 
+              px_aperture_width2 = 0.3, py_aperture_width = 0.1
 \end{example}
 
 %-----------------------------------------------------------------

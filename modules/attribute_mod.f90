@@ -1004,6 +1004,24 @@ call init_attribute_name1 (e_gun$, phi0_err$,                       'PHI0_ERR')
 call init_attribute_name1 (e_gun$, phi0_multipass$,                 'phi0_multipass', private$) 
 call init_attribute_name1 (e_gun$, phi0_autoscale$,                 'PHI0_AUTOSCALE', quasi_free$)
 
+call init_attribute_name1 (ecollimator$, px_aperture_width2$,       'PX_APERTURE_WIDTH2')
+call init_attribute_name1 (ecollimator$, px_aperture_center$,       'PX_APERTURE_CENTER')
+call init_attribute_name1 (ecollimator$, py_aperture_width2$,       'PY_APERTURE_WIDTH2')
+call init_attribute_name1 (ecollimator$, py_aperture_center$,       'PY_APERTURE_CENTER')
+call init_attribute_name1 (ecollimator$, pz_aperture_width2$,       'PZ_APERTURE_WIDTH2')
+call init_attribute_name1 (ecollimator$, pz_aperture_center$,       'PZ_APERTURE_CENTER')
+call init_attribute_name1 (ecollimator$, z_aperture_width2$,        'Z_APERTURE_WIDTH2')
+call init_attribute_name1 (ecollimator$, z_aperture_center$,        'Z_APERTURE_CENTER')
+
+call init_attribute_name1 (rcollimator$, px_aperture_width2$,       'PX_APERTURE_WIDTH2')
+call init_attribute_name1 (rcollimator$, px_aperture_center$,       'PX_APERTURE_CENTER')
+call init_attribute_name1 (rcollimator$, py_aperture_width2$,       'PY_APERTURE_WIDTH2')
+call init_attribute_name1 (rcollimator$, py_aperture_center$,       'PY_APERTURE_CENTER')
+call init_attribute_name1 (rcollimator$, pz_aperture_width2$,       'PZ_APERTURE_WIDTH2')
+call init_attribute_name1 (rcollimator$, pz_aperture_center$,       'PZ_APERTURE_CENTER')
+call init_attribute_name1 (rcollimator$, z_aperture_width2$,        'Z_APERTURE_WIDTH2')
+call init_attribute_name1 (rcollimator$, z_aperture_center$,        'Z_APERTURE_CENTER')
+
 call init_attribute_name1 (elseparator$, gap$,                      'GAP')
 call init_attribute_name1 (elseparator$, e_field$,                  'E_FIELD', quasi_free$)
 call init_attribute_name1 (elseparator$, voltage$,                  'VOLTAGE', quasi_free$)
@@ -1805,7 +1823,8 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
       'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
-      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1')
+      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', &
+      'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2', 'PZ_APERTURE_CENTER')
   attrib_units = ''
 
 case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
@@ -1822,7 +1841,8 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_OFFSET', 'Y_OFFSET', 'X_OFFSET_CALIB', 'Y_OFFSET_CALIB', 'X_OFFSET_MULT', 'Y_OFFSET_MULT', &
       'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', &
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
-      'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS')
+      'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS', &
+      'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER')
   attrib_units = 'm'
 
 
