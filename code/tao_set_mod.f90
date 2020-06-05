@@ -3068,12 +3068,15 @@ real(rp), allocatable :: value(:)
 logical err
 
 character(*) sym_str, num_str
+character(40) s_str
 character(*), parameter :: r_name = 'tao_set_symbolic_number_cmd'
 
 !
 
+s_str = adjustl(sym_str)
+
 do i = 1, size(physical_const_list)
-  if (sym_str == physical_const_list(i)%name) then
+  if (s_str == physical_const_list(i)%name) then
     call out_io (s_error$, r_name, 'NAME MATCHES NAME OF A PHYSICAL CONSTANT. SET IGNORED.')
     return
   endif
@@ -3086,7 +3089,7 @@ call tao_evaluate_expression (num_str, 1, .false., value, info, err); if (err) r
 if (allocated(s%com%symbolic_num)) then
   n = size(s%com%symbolic_num)
   do i = 1, n
-    if (sym_str == s%com%symbolic_num(i)%name) exit
+    if (s_str == s%com%symbolic_num(i)%name) exit
   enddo
 
   if (i == n + 1) then
@@ -3095,12 +3098,12 @@ if (allocated(s%com%symbolic_num)) then
     s%com%symbolic_num(1:n) = sym_temp
   endif
 
-  s%com%symbolic_num(i)%name = sym_str
+  s%com%symbolic_num(i)%name = s_str
   s%com%symbolic_num(i)%value = value(1)
 
 else
   allocate (s%com%symbolic_num(1)) 
-  s%com%symbolic_num(1)%name = sym_str
+  s%com%symbolic_num(1)%name = s_str
   s%com%symbolic_num(1)%value = value(1)
 endif
 
