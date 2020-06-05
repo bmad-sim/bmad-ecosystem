@@ -45,7 +45,7 @@ integer n, iostat, n_list
 integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
 
 character(*) var_file
-character(40) :: r_name = 'tao_init_variables'
+character(*), parameter :: r_name = 'tao_init_variables'
 character(40) name, universe, default_universe
 character(40) default_merit_type, default_attribute
 character(40) use_same_lat_eles_as
@@ -85,8 +85,8 @@ endif
 call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
 call tao_open_file (var_file, iu, file_name, s_fatal$)
 if (iu == 0) then
-  call out_io (s_fatal$, r_name, 'CANNOT OPEN VARIABLE INIT FILE: ' // var_file)
-  call err_exit
+  call out_io (s_error$, r_name, 'CANNOT OPEN VARIABLE INIT FILE: ' // var_file)
+  return
 endif
 
 ! Count how many v1_var definitions there are

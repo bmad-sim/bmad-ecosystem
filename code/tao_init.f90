@@ -18,6 +18,7 @@ use tao_plot_mod, dummy6 => tao_init
 use tao_data_and_eval_mod, dummy7 => tao_init
 use tao_command_mod, dummy8 => tao_init
 use input_mod
+use tao_set_mod
 
 implicit none
 
@@ -34,14 +35,14 @@ type (tao_lattice_branch_struct), pointer :: tao_branch
 real(rp) value
 real(rp), pointer :: ptr_attrib
 
-character(80) arg, arg2
+character(100) line, line2
 character(200) plot_file, data_file, var_file, file_name, startup_file, hook_init_file
 character(200) building_wall_file, beam_file, why_invalid, init_tao_file
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
 
-integer i, j, i2, j2, n_universes, iu, ix, n_arg, ib, ip, ios, stat
+integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios, stat
 integer iu_log
 
 logical err, calc_ok, valid_value, this_calc_ok, using_default
@@ -136,9 +137,45 @@ building_wall_file = 'NOT SET!'
 startup_file       = 'NOT SET!'       
 hook_init_file     = 'NOT SET!'
 
-! Read the info
+! Read the global parameters
 
 if (iu /= 0) then
+
+  ! Read symbolic constants
+
+  i = 0
+  do
+    i=i+1; read (iu, '(a)', iostat = ios) line
+    if (ios /= 0) exit
+    call string_trim (line, line, ix)
+    if (line(1:ix) /= '&symbolic_number') cycle
+    ! Found a symbolic number
+    call string_trim (line(ix+1:), line, ix)
+    i0 = i
+    do
+      ix = max(1, len_trim(line))  ! Prevent ix = 0 which will bomb next line.
+      if (line(ix:ix) == '/') exit
+      i=i+1; read (iu, '(a)', iostat = ios) line2
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'CANNOT FIND ENDING "/" FOR "&sybolic_number" NAMELIST STARTING AT LINE \i0\ ', &
+                      i_array = [i0])
+        exit
+      endif
+      line = trim(line) // line2
+    enddo
+    j = index(line, '=')
+    if (j == 0) then
+      call out_io (s_error$, r_name, 'CANNOT FIND ENDING EQUAL SIGN "=" IN "&sybolic_number" NAMELIST STARTING AT LINE \i0\ ', &
+                    i_array = [i0])
+      exit
+    endif
+    call tao_set_symbolic_number_cmd(line(1:j-1), line(j+1:ix-1))
+  enddo
+
+  rewind(iu)
+
+  ! Read tao_start namelist.
+
   read (iu, nml = tao_start, iostat = ios)
 
   if (ios < 0) then

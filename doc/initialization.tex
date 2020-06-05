@@ -212,10 +212,11 @@ first file on the list. All files, however, can contain \vn{tao_template_plot} a
   \vn{floor_plan_drawing}            & Plotting           & \sref{s:shapes}            \\ 
   \vn{tao_beam_init}                 & Particle beams     & \sref{s:beam.init}         \\ 
   \vn{building_wall_section}         & Building Walls     & \sref{s:building.wall}     \\ 
+  \vn{symbolic_number}               & Symbolic Number    & \sref{s:init.sym}          \\
   \vn{tao_design_lattice}            & Lattice Files      & \sref{s:init.lat}          \\ 
   \vn{tao_d1_data}                   & Data               & \sref{s:init.data}         \\ 
   \vn{tao_d2_data}                   & Data               & \sref{s:init.data}         \\ 
-  \vn{tao_params}                    & Global Variables   & \sref{s:globals}           \\ 
+  \vn{tao_params}                    & Global Parameters  & \sref{s:globals}           \\ 
   \vn{tao_plot_page}                 & Plotting           & \sref{s:init.plot}         \\ 
   \vn{tao_template_graph}            & Plotting           & \sref{s:init.plot}         \\ 
   \vn{tao_template_plot}             & Plotting           & \sref{s:init.plot}         \\ 
@@ -350,29 +351,64 @@ The \vn{common_lattice} switch can be used when there is a baseline lattice that
 universes. See \sref{s:crl} for more details.
 
 %-----------------------------------------------------------------
-\section{Initializing Globals}
+\section{Symbolic Numbers}
+\index{initialization!symbolic numbers}
+\label{s:init.sym} 
+
+Symbolic numbers may be defined in the root initialization file using the \vn{symbolic_number}
+namelist. Example:
+\begin{example}
+  &symbolic_number aaa = 37 /
+  &symbolic_number my_const = 17 * pi /
+\end{example}
+There may be multiple \vn{symbolic_number} namelists and each namelist defines one and only one
+symbolic number. In this example, there are two namelists defining two numbers \vn{aaa} and
+\vn{my_const}. Notice that the value of a symbolic number may be an expression. This is unlike any
+other namelist in \tao where expressions will generate an error. Expressions for symbolic numbers
+are immediatly evaluated.
+
+Once defined, symbolic constants may be used in expressions. For example:
+\begin{example}
+  &tao_d1_data
+    ...
+    datum(1)%data_type = "expression: my_const * data::beta.a"
+    ...
+  /
+\end{example}
+Notice that here the ``value'' of \vn{datum(1)%data_type} is a string which will be evaluated after
+the namelist is parsed.
+
+Besides setting symbolic numbers in the main initialization file, symbolic numbers can be defined
+using the \vn{set symbolic_number} command (\sref{s:set.symbolic}) and a list of symbolic numbers
+can be printed using the \vn{show symbolic_number} command (\sref{s:show.symbolic}).
+
+%-----------------------------------------------------------------
+\section{Initializing Global Parameters}
 \index{initialization!globals}
 \label{s:globals} 
 
-Global variables are initialized in the root initialization file using a 
-namelist named \vn{tao_params}.
-
-The syntax of this block is:
 \index{tao_params}\index{global}\index{bmad_com}\index{csr_param}\index{opti_de_param}
+Global parameters are grouped into a number of structures. Four global structures are of interest here:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\it Instance Name}  & {\it Structure}       & {\it Notes}              &                               \\ \midrule
+  global               & tao_global_struct     & Tao global parameters    & \sref{s:tao.global.struct}    \\
+  bmad_com             & bmad_common_struct    & Bmad global parameters   & \sref{s:bmad.com.struct}      \\
+  csr_param            & csr_parameter_struct  & CSR global parameters    & \sref{s:csr.param.struct}     \\
+  opti_de_param        & opti_de_param_struct  & DE optimizer parameters  & \sref{s:opti.de.param.struct} \\ \bottomrule
+\end{tabular}
+\end{center}
+These instances are initialized in the root initialization file using a namelist named
+\vn{tao_params}. Example:
 \begin{example}
   &tao_params
-    global        = <tao_global_struct>     ! global parameters. \sref{s:tao.global.struct}
-    bmad_com      = <bmad_com_struct>       ! Bmad global parameters. \sref{s:bmad.com.struct}
-    csr_param     = <csr_parameter_struct>  ! CSR global parameters. \sref{s:csr.param.struct}
-    opti_de_param = <opti_de_param_struct>  ! de optimizer parameters. \sref{s:opti.de.param.struct}
+    global%optimizer = "lm"               ! Set the default optimizer.
+    bmad_com%radiation_damping_on = True  ! Include radiation damping when tracking.
   /
 \end{example}
-Example:
-\begin{example}
-  &tao_params
-    global%optimizer = "lm"  ! Set the default optimizer.
-  /
-\end{example}
+The \vn{show global} command (\sref{s:show.global}) can be used to show global parameter values. The
+\vn{set} command (\sref{s:set}) can be used to set global parameter values.
 
 %-----------------------------------------------------------------
 \subsection{tao\_global\_struct Structure}
