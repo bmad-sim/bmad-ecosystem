@@ -1421,6 +1421,23 @@ The \vn{unstable.eigen.a}, \vn{unstable.eigen.b}, and \vn{unstable.eigen.c} are 
 for the \vn{a}, \vn{b}, and \vn{c} modes respectively.
 
   %----------------------
+  \item[unstable.lattice] \Newline
+
+The value of \vn{unstable.lattice} will always be zero or positive.
+
+For lattices with a closed geometry such as a storage ring: The value \vn{unstable.lattice} is zero
+if the ring is stable and, if the ring is unstable, the value is set to the largest growth rate of
+the transverse (but not longitudinal) normal modes of oscillation. \vn{unstable.lattice} is used in
+an optimization to avoid unstable solutions (\sref{s:generalized.design}). Also see
+\vn{unstable.eigen}.
+
+For lattices with an open geometry: The value of \vn{unstable.lattice} will be non-zero if there is
+a problem computing the reference energy. This can happen, for example, if the accelerating voltage of
+an \vn{lcavity} is set large and negative such that the reference particle is cannot make it to the exit end.
+
+Note: \vn{unstable.lattice} replaces \vn{unstable.ring}. 
+
+  %----------------------
   \item[unstable.orbit] \Newline
 The \vn{unstable.orbit} datum is used for linear lattices in an optimization to avoid unstable
 solutions (\sref{s:generalized.design}). Also see \vn{unstable.eigen}.
@@ -1453,11 +1470,8 @@ the bunch.
 
   %----------------------
   \item[unstable.ring] \Newline
-\vn{unstable.ring} is used for lattices with a closed geometry such as a storage ring. The value of
-an \vn{unstable.ring} datum is zero if the ring is stable and set to the largest growth rate of the
-transverse (but not longitudinal) normal modes of oscillation if the ring is unstable.
-\vn{unstable.ring} is used in an optimization to avoid unstable solutions
-(\sref{s:generalized.design}).  Also see \vn{unstable.eigen}.
+Deprecated. Replaced by \vn{unstable.lattice}.
+
 
 \begin{figure}
   \centering
@@ -1697,11 +1711,12 @@ squared.
     unstable.eigen, \\
     unstable.eigen.a, .eigen.b, .eigen.c
   \end{tabular}                       & Maximum eigenvalue amplitude              & lat         & No  \\ \hline
+  unstable.lattice                    & Positive if lattice is unstable           & lat         & No  \\ \hline
   unstable.orbit                      & \begin{tabular}{@{}l}   
                                           Nonzero if particles are \\
                                           lost in tracking
                                         \end{tabular}                             & lat         & No  \\ \hline
-  unstable.ring                       & Nonzero if a ring is unstable             & lat         & No  \\ \hline
+  unstable.ring                       & Deprecated. Replaced by unstable.lattice  & lat         & No  \\ \hline
   velocity, velocity.x, .y, .z        & Velocity normalized by $c$                & beam, lat   & Yes \\ \hline
   wall.left_side, .right_side         & Building wall constraint                  & lat         & No  \\ \hline
   wire.<angle>                        & Wire scanner at <angle>                   & beam        & No  \\ \hline

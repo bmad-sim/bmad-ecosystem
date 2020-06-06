@@ -21,11 +21,8 @@ contains
 !+
 ! Subroutine tao_lattice_calc (calc_ok)
 !
-! Routine to calculate the lattice functions and Tao data. 
-! Always tracks through the model lattice. 
-! If initing the design lattices then the tracking will still be done
-! through the model lattices. tao_init then transfers this into the
-! design lattices.
+! For all universes track and calculate the lattice functions for the model lattice.
+! Also compute model values for all data.
 !
 ! Output:
 !   calc_ok       -- logical: Set False if there was an error in the 
@@ -67,7 +64,15 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(iuni)
   if (.not. u%is_on .or. .not. u%calc%lattice) cycle
   tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
-  call tao_lat_bookkeeper (u, tao_lat)
+  call tao_lat_bookkeeper (u, tao_lat, err)
+  if (err) then
+    do id = 1, size(u%data)
+      if (u%data(id)%data_type /= 'unstable.lattice') cycle
+      call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
+    enddo
+    calc_ok = .false.
+    return
+  endif
 enddo
 
 ! do a custom lattice calculation if desired
@@ -85,7 +90,6 @@ call tao_hook_lattice_calc (calc_ok)
 uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   u => s%u(iuni)
-
   if (.not. u%is_on) cycle
 
   if (.not. u%calc%lattice) then
