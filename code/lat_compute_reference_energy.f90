@@ -45,6 +45,7 @@ err_flag = .true.
 do ib = 0, ubound(lat%branch, 1)
 
   branch => lat%branch(ib)
+  branch%param%unstable_factor = 0   ! Set to positive number if there is a problem.
   begin_ele => branch%ele(0)
 
   if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
@@ -303,7 +304,11 @@ do ib = 0, ubound(lat%branch, 1)
     ! Calculate the energy and reference time at the end of the present element.
 
     call ele_compute_ref_energy_and_time (ele0, ele, branch%param, err)
-    if (err) return
+    if (err) then
+      call out_io (s_error$, r_name, 'CANNOT COMPUTE REFERENCE ENERGY FOR: ' // ele%name, &
+                                      'REFERENCE ENERGY NOT COMPUTED FOR REST OF LATTICE')
+      return
+    endif
 
     ele%bookkeeping_state%ref_energy = ok$
 

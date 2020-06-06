@@ -212,9 +212,9 @@ file, \vn{name}, \vn{type}, and \vn{alias} attributes will be converted to to up
 loaded into an \vn{ele_struct}. To save memory, since \vn{%descrip} is not frequently used,
 \vn{%descrip} is a pointer that is only allocated if \vn{descrip} is set for a given element.
 
-When a lattice is constructed by \zzz{bmad_parser}, a ``nametable'' is constructed to enable the
+When a lattice is constructed by \Hyperref{r:bmad.parser}{bmad_parser}, a ``nametable'' is constructed to enable the
 fast lookup of element names. Therefore, It is important that if element names are modified, that 
-the nametable is updated appropriately. This is done by calling \zzz{create_lat_ele_nametable} after
+the nametable is updated appropriately. This is done by calling \Hyperref{r:create.lat.ele.nametable}{create_lat_ele_nametable} after
 any element name modifications.
 
 %--------------------------------------------------------------------------
