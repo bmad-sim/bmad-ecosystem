@@ -16,5 +16,15 @@ infa:    drift,  l=2,
 
 dd: drift, l = 10
 
-ring: line=(dd, infa)
+ec: ecollimator, px_aperture_width2 = 0.01, px_aperture_center = 0.01, 
+                 py_aperture_width2 = 0.015,
+                 z_aperture_width2 = 0.2, z_aperture_center = -0.6,
+                 pz_aperture_width2 = 0.03, pz_aperture_center = 0.02
+
+rc: rcollimator, px_aperture_width2 = 0.01, px_aperture_center = 0.01,
+                 py_aperture_width2 = 0.015,
+                 z_aperture_width2 = 0.2, z_aperture_center = -0.6,
+                 pz_aperture_width2 = 0.03, pz_aperture_center = 0.02
+
+ring: line=(dd, infa, ec, rc)
 use, ring

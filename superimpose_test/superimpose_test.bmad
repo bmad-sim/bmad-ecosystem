@@ -10,7 +10,18 @@ s2: sextupole, k2 = 2, l = 2, b1 = 0.02, superimpose, offset = 2
 
 d: drift, l = 4
 q: quad, l = 1, k1 = 1e-2
+ll: line = (s1, d)
 superimpose, element = q, ref = d, offset = 2, ref_origin = beginning, ele_origin = end
 
-ll: line = (s1, d)
-use, ll
+d1: drift, l = 1
+q2: quad, l = 1
+d3: drift, l = 1
+b0: line = (d1, q2, d3)
+b1: line = (-b0)
+b2: line = (--b0)
+
+ss: sextupole, l = 0.2, superimpose, ref = q2, offset = 0.3, ref_origin = end, ele_origin = beginning
+
+
+
+use, ll, b1, b2

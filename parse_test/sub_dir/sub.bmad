@@ -1,2 +1,2 @@
 print, 'In sub_dir/sub.bmad'
-call, file = sub2_dir/sub2.bmad
+abz = 10;  call, file = sub2_dir/sub2.bmad; atc = 7

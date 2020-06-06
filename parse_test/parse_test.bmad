@@ -122,8 +122,7 @@ q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 
 
 ll: line = (aa, aa, bb, bb, cc, pp, sbend0, tt, m2, aaa)
-call, file = sub_dir/sub.bmad
-phot: line = (ddd, cap, cry, ff)
+call, file = sub_dir/sub.bmad;  abz2 = abz; phot: line = (ddd, cap, cry, ff)
 phot[E_tot] = 1e4
 phot[particle] = photon
 phot[beta_a] = 10
@@ -134,9 +133,7 @@ mp: marker, superimpose, offset = 3, ref = phot>>beginning
 
 ddd: drift, l = 10
 ff: fork, to_line = f_line
-qq: pipe, l = 1
-f_line: line = (qq)
-f_line[particle] = photon
+qq: pipe, l = 1;  f_line: line = (qq); f_line[particle] = photon
 mk: marker, superimpose, ref = qq, offset = 0.3
 
 !
