@@ -108,7 +108,7 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (j == linear$) then
         ele%tracking_method = symp_lie_ptc$
-        if(ele%key == beambeam$ .or. ele%key == ac_kicker$) ele%tracking_method = bmad_standard$
+        if (ele%key == ac_kicker$) ele%tracking_method = bmad_standard$
         if (lat%particle_start%direction == 1) then
           call make_mat6 (ele, branch%param, lat%particle_start)
         else  ! Can happen with a test lattice file

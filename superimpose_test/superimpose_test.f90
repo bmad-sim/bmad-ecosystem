@@ -33,4 +33,14 @@ orb(0) = lat%particle_start
 call track_all (lat, orb)
 write (1, '(a, 6f14.8)') '"track" ABS 1E-7', orb(lat%n_ele_track)%vec
 
+!--------------------------
+
+ele => lat%branch(1)%ele(2)
+write (1, '(2a)') '"Reversed-Name" STR ', quote(ele%name)
+write (1, '(a, es12.4)') '"Reversed-S" ABS 1E-8 ', ele%s
+
+ele => lat%branch(2)%ele(2)
+write (1, '(2a)') '"Reflected-Name" STR ', quote(ele%name)
+write (1, '(a, es12.4)') '"Reflected-S" ABS 1E-8 ', ele%s
+
 end program
