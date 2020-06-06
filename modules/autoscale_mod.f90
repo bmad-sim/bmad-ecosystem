@@ -114,12 +114,16 @@ if (ele%tracking_method == mad$) return
 
 if (ele%tracking_method == bmad_standard$) then
   if (ele%key == lcavity$) then 
-    !Set e_tot$ and p0c$ 
+    ! Set e_tot$ and p0c$ 
     phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$)) 
     e_tot = ele%value(e_tot_start$) + &
             ele%value(gradient$) * ele%value(field_autoscale$) * ele%value(l$) * cos(phi)
     call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag)
-    if (err_flag) return
+    if (err_flag) then
+      ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
+      param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
+      return
+    endif
     ele%value(e_tot$) = e_tot
   endif 
   
