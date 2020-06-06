@@ -510,11 +510,12 @@ subroutine tao_key_info_to_str (ix_key, ix_min_key, ix_max_key, key_str, header_
   character(*) header_str
 end subroutine
 
-subroutine tao_lat_bookkeeper (u, tao_lat)
+subroutine tao_lat_bookkeeper (u, tao_lat, err_flag)
   import
   implicit none
   type (tao_universe_struct), target :: u
   type (tao_lattice_struct) :: tao_lat
+  logical err_flag
 end subroutine
 
 function tao_lat_emit_calc (plane, emit_type, ele, modes) result (emit)
