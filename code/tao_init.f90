@@ -17,8 +17,8 @@ use tao_lattice_calc_mod, dummy5 => tao_init
 use tao_plot_mod, dummy6 => tao_init
 use tao_data_and_eval_mod, dummy7 => tao_init
 use tao_command_mod, dummy8 => tao_init
+use tao_set_mod, dummy9 => tao_init
 use input_mod
-use tao_set_mod
 
 implicit none
 
