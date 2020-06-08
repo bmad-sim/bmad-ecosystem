@@ -536,7 +536,7 @@ subroutine evaluate_expression_stack (stack, value, err_flag, err_str, var, use_
 use random_mod
 
 type (expression_atom_struct) stack(:)
-type (expression_atom_struct) stack2(20)
+type (expression_atom_struct) stack2(size(stack))
 type (controller_var1_struct), optional :: var(:)
 
 real(rp) value
