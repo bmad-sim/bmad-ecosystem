@@ -184,8 +184,9 @@ branch => lat%branch(ix_branch)
 
 if (branch%param%geometry == closed$) then
   call lat_make_mat6 (lat, -1, ix_branch = ix_branch)
-  call twiss_at_start (lat, status, ix_branch)
-  if (status /= ok$) return
+  ! It can happen that the lattice is unstable about the zero orbit but not unstable about the closed orbit.
+  ! So don't give up yet if twiss_at_start returns status /= ok$.
+  call twiss_at_start (lat, status, ix_branch, .false.)
 
   if (rf_is_on(branch)) then
     call closed_orbit_calc (lat, orb, 6, 1, ix_branch, err_flag = err)

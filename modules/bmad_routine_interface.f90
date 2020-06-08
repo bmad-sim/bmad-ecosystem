@@ -2388,12 +2388,13 @@ recursive subroutine twiss_at_element (ele, start_ele, end_ele, average)
   type (ele_struct), optional :: average
 end subroutine
 
-subroutine twiss_at_start (lat, status, ix_branch)
+subroutine twiss_at_start (lat, status, ix_branch, type_out)
   import
   implicit none
   type (lat_struct) lat
   integer, optional, intent(in) :: ix_branch
   integer, optional, intent(out) :: status
+  logical, optional :: type_out
 end subroutine
 
 subroutine twiss1_propagate (twiss1, mat2, ele_type, length, twiss2, err)
