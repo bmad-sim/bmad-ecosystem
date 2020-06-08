@@ -1,12 +1,14 @@
 !+
-! Subroutine twiss_at_start (lat, status, ix_branch)
+! Subroutine twiss_at_start (lat, status, ix_branch, type_out)
 !
 ! Subroutine to calculate, for a circular machine, the closed 1-turn 
 ! solution for the Twiss parameters at the start of the lat.
 !
 ! Input:
 !   lat         -- lat_struct: Lat
-!   ix_branch   -- Integer, option: Branch to use. Default is 0 (main branch).
+!   ix_branch   -- Integer, optional: Branch to use. Default is 0 (main branch).
+!   type_out    -- logical, optional: If True (the default), print an error message
+!                    If the 1-turn matrix is unstable.
 !
 ! Output:
 !   lat         -- Lat_struct: Lattice with twiss parameters computed.
@@ -24,7 +26,7 @@
 !                       ok$, in_stop_band$, unstable$, or non_symplectic$
 !-
 
-subroutine twiss_at_start (lat, status, ix_branch)
+subroutine twiss_at_start (lat, status, ix_branch, type_out)
 
 use bookkeeper_mod, except_dummy => twiss_at_start
 
@@ -41,6 +43,7 @@ integer, optional, intent(in) :: ix_branch
 integer, optional, intent(out) ::status
 integer i, j, n, iu, n_lines, stat
 
+logical, optional :: type_out
 logical :: debug = .false. 
 logical saved_state
 
@@ -108,7 +111,7 @@ branch%param%t1_no_RF = mat6
 ! Compute twiss parameters
 
 call twiss_from_mat6 (mat6, branch%ele(1)%map_ref_orb_in%vec, branch%ele(0), &
-                branch%param%stable, branch%param%unstable_factor, stat, .true.)
+                branch%param%stable, branch%param%unstable_factor, stat, type_out)
 if (present(status)) status = stat
 
 lat%a%tune = branch%ele(0)%a%phi
