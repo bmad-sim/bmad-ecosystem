@@ -5048,6 +5048,10 @@ use geodesic_lm
 
 implicit none
 
+character(200), allocatable :: alloc_lines(:)
+
+!
+
 nl=nl+1; lines(nl) = 'Global optimization parameters (use "set global" to change):'
 nl=nl+1; write(lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
 nl=nl+1; write(lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
