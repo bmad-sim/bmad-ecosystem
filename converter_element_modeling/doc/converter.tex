@@ -458,6 +458,17 @@ gnuplot> call 'c_x_master.gp'
 \end{verbatim}
 This will open the plot for $c_x$ across all $(p_+ c, r)$ bins for $p_+ c = 300$ MeV, $T = 0.635$ cm.
 
+\section{The \bmad \, Converter Element}
+
+As mention in the previous section, \exef outputs a file, \texttt{converter.bmad}, which encodes all of the simulation and fitting output, and can be used to specify the properties of a \bmad \, converter element.
+See the \bmad \, manual for the full details regarding the converter element in \bmad.
+
+The user should be aware that \bmad's method of generating positrons may not be completely faithful to the simulation results.
+In particular, \bmad uses linear interpolation for the $P_1(p_+c, r)$ distribution.
+This can cause noticeable discrepancies on the edges of the distribution, especially in the bins with the lowest values of $p_+ c$.
+Since $P_1(p_+c, r)$ changes rapidly at low $p_+ c$, and \bmad \, additionally does not generate positrons with $p_+ c$ lower than the lowest value of $p_+ c$ for the bins, \bmad \, does not generate as many positrons at low $p_+ c$ as it should.
+
+
 \appendix
 
 \section{Notes for ACC Computer Users}
