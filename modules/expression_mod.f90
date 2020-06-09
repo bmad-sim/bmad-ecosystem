@@ -752,10 +752,10 @@ function expression_stack_to_string (stack, polish) result (str)
 
 type (expression_atom_struct), target :: stack(:)
 type (expression_atom_struct), pointer :: atom, atom2
-type (expression_atom_struct) s2(20)
+type (expression_atom_struct) s2(size(stack))
 
 character(300) str
-character(200) s2_name(20)
+character(200) s2_name(size(stack))
 
 integer i, i2, ix
 logical, optional :: polish
@@ -858,6 +858,79 @@ else
 endif
 
 end function expression_stack_to_string
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine split_expression_string (expr, width, indent, lines)
+!
+! Routine to break an expression into a number of lines for a nicer display.
+! Used when printing expressions.
+!
+! Input:
+!   expr      -- character(*): String containing the expression.
+!   width     -- integer: Maximum width of split expression.
+!   indent    -- integer: Indent for every line after the first.
+!
+! Output:
+!   lines(:)  -- character(*), allocatable: Split expression.
+!-
+
+subroutine split_expression_string (expr, width, indent, lines)
+
+integer width, indent
+integer nn, n0, nl, ind, ww, i_split, large, i, j
+
+real(rp), parameter :: weight(11) = [1.0_rp, 1.0_rp, 1.0_rp, 0.95_rp, 0.95_rp, 0.8_rp, 0.8_rp, 0.8_rp, 0.8_rp, 0.8_rp, 0.8_rp]
+real(rp) score
+
+character(*) expr
+character(*), allocatable :: lines(:)
+character(len(expr)) ex
+character(width), allocatable :: li(:)
+character(1), parameter :: ch_split(11) = ['+', '-', ',', '*', '/', ')', ']', '}', '(', '[', '{']
+
+!
+
+ex = expr
+ind = 0  ! zero indent for first line.
+nl = 0
+nn = len_trim(expr)
+n0 = 1 + 2*nn/(width-indent)
+call re_allocate (li, n0, .true., '')
+
+do
+  nl = nl + 1
+  nn = len_trim(ex)
+  ww = width - ind
+  if (nn <= ww) then
+    li(nl)(ind+1:) = ex
+    exit
+  endif
+
+  i_split = ww
+  score = 0
+  do i = 1, size(ch_split)
+    j = index(ex(1:ww), ch_split(i), back = .true.)
+    if (j == 0) cycle
+    if (j * weight(i) < score) cycle
+    i_split = j
+    score = j * weight(i)
+  enddo
+
+  li(nl)(ind+1:) = ex(1:i_split)  
+  ex = adjustl(ex(i_split+1:))
+
+  ind = indent
+enddo
+
+call re_allocate (lines, nl)
+do i = 1, nl
+  lines(i) = li(i)
+enddo
+
+end subroutine split_expression_string
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
