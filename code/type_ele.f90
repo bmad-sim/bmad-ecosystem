@@ -90,7 +90,7 @@ real(rp), pointer :: r_ptr
 
 character(*), optional, allocatable :: lines(:)
 character(:), allocatable :: expression_str
-character(200), allocatable :: li(:)
+character(200), allocatable, target :: li(:)
 character(200), allocatable :: li2(:)
 character(200) :: line
 character(60) str1, str2
@@ -767,16 +767,20 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         a_name = ''
       case default
         if (allocated(ctl%stack)) then
-          expression_str = expression_stack_to_string (ctl%stack)
+          call split_expression_string (expression_stack_to_string (ctl%stack), 70, 5, li2)
         else
-          expression_str = '<Knots>'
+          call re_allocate (li2, 1)
+          li2(1) = '<Knots>'
         endif
         iv = ctl%ix_attrib
         a_name = attribute_name(ele, iv)
       end select
 
       nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a20, a)') &
-            lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(expression_str)
+            lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(li2(1))
+      do j = 2, size(li2)
+        nl=nl+1; li(nl) = ''; li(nl)(84:) = li2(j)
+      enddo
     enddo
   endif
 
@@ -911,13 +915,18 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         if (.not. allocated(expression_str)) allocate(character(100):: expression_str)
         write (str1, '(es12.4)') ctl%value
         if (allocated(ctl%stack)) then
-          expression_str = str1(1:17) // expression_stack_to_string (ctl%stack)
+          call split_expression_string (str1(1:17) // expression_stack_to_string (ctl%stack), 70, 5, li2)
         else  ! Spline
-          expression_str = str1(1:17) // '<Knots>'
+          call re_allocate (li2, 1)
+          li2(1) = str1(1:17) // '<Knots>'
         endif
 
-        if (len_trim(expression_str) > 140) expression_str = expression_str(1:136) // ' ...'
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), slave%name(1:n_char), ctl%attribute, attrib_val_str, trim(expression_str)
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), slave%name(1:n_char), ctl%attribute, attrib_val_str, li2(1)
+        do i = 2, size(li2)
+          n = 44 + n_char + len(attrib_val_str)
+          nl=nl+1; li(nl) = ''; li(nl)(n:) = li2(i)
+        enddo
+
       enddo
     end select
   endif
