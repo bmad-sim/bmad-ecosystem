@@ -30,6 +30,15 @@ function bracket_index (s, s_arr, i_min, dr, restrict) result (ix)
   integer ix
 end function
 
+function bracket_index_int (s, int_arr, i_min, restrict) result (ix)
+  import
+  implicit none
+  integer i_min, i_max
+  integer int_arr(i_min:), s
+  logical, optional :: restrict
+  integer ix
+end function
+
 function bracket_index2 (s, ix0, s_arr, i_min, dr, restrict) result (ix)
   import
   implicit none
