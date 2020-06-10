@@ -134,6 +134,15 @@ export ACC_ENABLE_FPIC="N"
 
 
 #-----------------------------------------------------------
+# By default the gprof profiling flag "-pg" is off.
+# Setting the variable ACC_ENABLE_PROFILING here to "Y"
+# will enable the "-pg" flag to be added for compiling and 
+# linking all libraries and executables.
+#-----------------------------------------------------------
+export ACC_ENABLE_PROFILING="N"
+
+
+#-----------------------------------------------------------
 # Setting the variable ACC_SET_GMAKE_JOBS here to an 
 # interger value will set gmake to execute that number of 
 # recipes or "jobs" at once, effectively running parallel 
