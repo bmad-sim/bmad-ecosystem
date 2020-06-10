@@ -6,7 +6,7 @@ implicit none
 
 type (lat_struct) lat
 type (coord_struct) end_orb
-real(rp) vec(6), x, y, r, dx_ds, dy_ds
+real(rp) vec(6), x, y, r, dx_ds, dy_ds, ps
 integer i
 
 call bmad_parser('lat.bmad', lat)
@@ -16,8 +16,9 @@ do i = 1, 10
   vec = end_orb%vec
   x = vec(1);  y = vec(3)
   r = sqrt(x**2 + y**2)
-  dx_ds = (x * vec(2) + y * vec(4)) / (r * (1 + vec(6)))
-  dy_ds = (y * vec(2) - x * vec(4)) / (r * (1 + vec(6)))
+  ps = sqrt((1+vec(6))**2 - vec(2)**2 - vec(4)**2)
+  dx_ds = (x * vec(2) + y * vec(4)) / (r * ps)
+  dy_ds = (y * vec(2) - x * vec(4)) / (r * ps)
   write (1, '(4es14.6)') end_orb%charge, end_orb%p0c * (1 + vec(6)), r, dx_ds, dy_ds
 enddo
 
