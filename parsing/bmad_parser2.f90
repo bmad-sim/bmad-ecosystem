@@ -45,7 +45,7 @@ type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
 type (parser_lat_struct), target :: plat
 type (branch_struct), pointer :: branch
-
+type (coord_array_struct), allocatable :: orb_array(:)
 real(rp) v1, v2
 
 integer ix_word, i, j, n, ix, ix1, ix2, n_plat_ele, ixx, ix_word_1
@@ -73,6 +73,8 @@ old_parser_name = bp_com%parser_name
 bp_com%parser_name = 'bmad_parser2'
 bp_com%input_from_file = .true.
 bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 
+bp_com%calc_reference_orbit = .false.
+
 debug_line = ''
 
 ! If lat_file = 'FROM: BMAD_PARSER' then bmad_parser2 has been called by 
@@ -178,6 +180,54 @@ parsing_loop: do
 
   if (delim /= '[') then
     if (.not. verify_valid_name(word_1, ix_word)) cycle parsing_loop
+  endif
+
+  !-------------------------------------------
+  ! CALC_REFERENCE_ORBIT
+
+  if (word_1(:ix_word) == 'CALC_REFERENCE_ORBIT') then
+    bp_com%calc_reference_orbit = .true.
+    if (bp_com%parse_line /= '') then
+      call parser_error ('EXTRA STUFF ON CALC_REFERENCE_ORBIT LINE: ' // bp_com%parse_line)
+    endif
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
+  ! COMBINE_ELEMENTS
+
+  if (word_1(:ix_word) == 'COMBINE_ELEMENTS') then
+    string = trim(bp_com%parse_line) // ', ' // trim(extra_ele_names)
+    call lat_ele_locator(string, lat, eles, n_loc, err)
+    if (err) then
+      call parser_error ('ERROR IN ELEMENT LIST FOR COMBINE_ELEMENTS: ' // bp_com%parse_line)
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    endif
+
+    bp_com%parse_line = ''
+
+    do ib = 0, ubound(lat%branch, 1)
+      lat%branch(ib)%ele%select = .false.
+    enddo
+
+    do i = 1, n_loc
+      eles(i)%ele%select = .true.
+    enddo
+
+    if (bp_com%calc_reference_orbit) then
+      call twiss_and_track(lat, orb_array, status)
+      if (status /= ok$) then
+        call parser_error ('ERROR CALCULATING REFERENCE ORBIT')
+        cycle parsing_loop
+      endif
+      call make_hybrid_lat (lat, lat2, .true., orb_array)
+    else
+      call make_hybrid_lat (lat, lat2, .true.)
+    endif
+
+    lat = lat2
+    cycle parsing_loop
   endif
 
   !-------------------------------------------

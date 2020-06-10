@@ -88,13 +88,8 @@ auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .true.  
 
 if (present(err_flag)) err_flag = .true.
-bp_com%error_flag = .false.              ! Set to true on an error
-bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 
+bp_com = bp_common_struct()
 bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
-bp_com%do_superimpose = .true.
-bp_com%input_from_file = .true.
-bp_com%write_digested = .true.
-bp_com%use_local_lat_file = .false.
 debug_line = ''
 err = .false.
 
@@ -310,12 +305,13 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
-  ! SLICE_LATTICE
+  ! SLICE_LATTICE, etc.
 
-  if (word_1(:ix_word) == 'SLICE_LATTICE') then
-    call parser_error ('A SLICE_LATTICE COMMAND CAN ONLY BE USED AFTER A LATTICE_EXPANSION COMMAND.')
+  select case (word_1(:ix_word))
+  case ('SLICE_LATTICE', 'COMBINE_ELEMENTS', 'CALC_REFERENCE_ORBIT')
+    call parser_error ('A ' // word_1(:ix_word) // ' COMMAND CAN ONLY BE USED AFTER A LATTICE_EXPANSION COMMAND.')
     cycle parsing_loop
-  endif
+  end select
 
   !-------------------------------------------
   ! Superimpose statement

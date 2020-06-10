@@ -119,40 +119,41 @@ type bp_const_struct
 end type
 
 type bp_common_struct
-  type (stack_file_struct) :: file(0:f_maxx)
-  type (stack_file_struct), pointer :: current_file
-  type (lat_struct), pointer :: old_lat
+  type (stack_file_struct) :: file(0:f_maxx) = stack_file_struct()
+  type (stack_file_struct), pointer :: current_file => null()
+  type (lat_struct), pointer :: old_lat => null()
   type (bp_const_struct), allocatable :: const(:)   ! Constant name
-  type (extra_parsing_info_struct) extra
-  integer :: i_file_level
-  integer num_lat_files               ! Number of files opened
-  integer i_const_tot, i_const_init
-  integer ios_next_line_from_file
-  character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
+  type (extra_parsing_info_struct) :: extra = extra_parsing_info_struct()
+  integer :: i_file_level = 0
+  integer :: num_lat_files = 0                        ! Number of files opened
+  integer :: i_const_tot = 0, i_const_init = 0
+  integer :: ios_next_line_from_file = 0
+  character(200), allocatable :: lat_file_names(:)    ! List of all files used to create lat
   ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
-  character(200) line1_file_name           ! Name of file from which %input_line1 was read
-  character(200) line2_file_name           ! Name of file from which %input_line2 was read
-  character(n_parse_line) parse_line       ! Current string to be parsed.
-  character(n_parse_line+20) input_line1   ! Line before current line. For debug messages.
-  character(n_parse_line+20) input_line2   ! Current line. For debug messages.
-  character(n_parse_line) rest_of_line     ! Line after semicolon saved until current statement is completely parsed.
-  character(n_parse_line) next_line_from_file  ! Line waiting to be appended to the parse_line.
-  character(40) :: parser_name = ''        ! Blank means not in bmad_parser nor bmad_parser2.
-  character(100) :: last_word              ! Last word to be parsed
-  logical :: bmad_parser_calling = .false. ! used for expand_lattice
-  logical error_flag                       ! Set True on error
-  logical fatal_error_flag                 ! Set True on fatal (must abort now) error 
-  logical input_line_meaningful
-  logical do_superimpose
-  logical write_digested      ! For bmad_parser
-  logical write_digested2     ! For bmad_parser2
-  logical :: always_parse = .false. ! For debugging to force parsing
-  logical input_from_file     ! Input is from a lattice file?
-  logical inline_call_active
-  logical :: print_err = .true.  ! Print error messages?
+  character(200) :: line1_file_name = ''              ! Name of file from which %input_line1 was read
+  character(200) :: line2_file_name = ''              ! Name of file from which %input_line2 was read
+  character(n_parse_line) :: parse_line = ''          ! Current string to be parsed.
+  character(n_parse_line+20) :: input_line1 = ''      ! Line before current line. For debug messages.
+  character(n_parse_line+20) :: input_line2 = ''      ! Current line. For debug messages.
+  character(n_parse_line) :: rest_of_line = ''        ! Line after semicolon saved until current statement is completely parsed.
+  character(n_parse_line) :: next_line_from_file = '' ! Line waiting to be appended to the parse_line.
+  character(40) :: parser_name = ''            ! Blank means not in bmad_parser nor bmad_parser2.
+  character(100) :: last_word = ''             ! Last word to be parsed
+  logical :: bmad_parser_calling = .false.     ! used for expand_lattice
+  logical :: error_flag = .false.              ! Set True on error
+  logical :: fatal_error_flag = .false.        ! Set True on fatal (must abort now) error 
+  logical :: input_line_meaningful = .false.   
+  logical :: do_superimpose = .true.
+  logical :: write_digested = .true.           ! For bmad_parser
+  logical :: write_digested2 = .true.          ! For bmad_parser2
+  logical :: always_parse = .false.            ! For debugging to force parsing
+  logical :: input_from_file = .true.          ! Input is from a lattice file?
+  logical :: inline_call_active = .false.
+  logical :: print_err = .true.                ! Print error messages?
   logical :: use_local_lat_file = .false.
   logical :: used_line_set_by_calling_routine = .false.
-  real time0, time1, time2, time3            ! For timing parsing
+  logical :: calc_reference_orbit = .false.
+  real :: time0 = 0, time1 = 0, time2 = 0, time3 = 0   ! For timing parsing
 end type
 
 !

@@ -1,16 +1,16 @@
 !+
 ! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, order_by_index)
 !
-! Routine to locate all the elements in a lattice that corresponds to loc_str. 
-!
+! Routine to locate all the elements in a lattice that corresponds to loc_str.
 ! If there are multiple elements of the same name, pointers to all such elements are returned.
 !
 ! loc_str is a list of element names or element ranges.
 ! A space or a comma delimits the elements.
 !
 ! An element name can be of the form
-!   {branch>>}{key::}ele_id{##N}
+!   {~}{branch>>}{key::}ele_id{##N}
 ! Where
+!   ~       -- Negation character. See below.
 !   key     -- Optional key name ("quadrupole", "sbend", etc.)
 !   branch  -- Name or index of branch. May contain the wild cards "*" and "%".
 !   ele_id  -- Name or index of element. May contain the wild cards "*" and "%".
@@ -49,9 +49,25 @@
 !   type::bpm*         All elements whose %type field starts with bpm.
 !   alias::'my duck'   Match to all elements whose %alias matches "my duck"
 !
-! Note: Elements in the eles(:) array will be in the same order as they appear in the lattice with the 
-! possible exception when there is a comma in the loc_str. For example: loc_str = "q5,q1". In this
-! case q5 will appear in eles(:) before q1 independent of the order in the lattice.
+! The negation character "~" signifies that elements are to be removed from the list. For example:
+!   "quadrupole::*, ~q3"
+! The element list would be all quadrupoles except quadrupoles named "Q3". Example:
+!   "*::*, ~octupole::*, oct23"
+! Here the list would be all elements except the octupole elements that are not named "oct23".
+! This shows that order is important when negation is used since adding/subtracting elements from
+! the list is done left to right.
+!
+! Note: For something like loc_str = "quad::*", if order_by_index = True, the eles(:) array will
+! be ordered by element index. If order_by_index = False, the eles(:) array will be ordered by
+! s-position. This is the same as order by index except in the case where where there are super_lord
+! elements. Since super_lord elements always have a greater index (at least in branch 0), order by index
+! will place any super_lord elements at the end of the list.
+!
+! Note: When there are multiple element names in lat_str (which will be separated by a comma or blank), 
+! the elements in the eles(:) array will be in the same order as they appear lat_str. For example,
+! with lat_str = "quad::*,sbend::*", all the quadrupoles will appear in eles(:) before all of the sbends.
+! This is independent of the setting of order_by_index but the setting of order_by_index can affect
+! the ordering of the quads among themselves and the ordering of the sbends among themselves.
 ! 
 ! Input:
 !   loc_str        -- character(*): Element names or indexes. May be lower case.
@@ -64,7 +80,7 @@
 !                       If not present or -1: Search all branches. Exception: For elements specified using 
 !                       an integer index (EG: "43"), if ix_dflt_branch is not present or -1 use branch 0.
 !   order_by_index -- logical, optional: False is default. If True, order by element index instead of 
-!                       longitudinal s-position.
+!                       longitudinal s-position. 
 !
 ! Output:
 !   eles(:)       -- ele_pointer_struct, allocatable: Array of matching elements.
@@ -100,7 +116,7 @@ integer in_range, step, ix_word, key
 integer, parameter :: ele_name$ = -1
 
 logical, optional :: above_ubound_is_err, err, order_by_index
-logical err2, delim_found, above_ub_is_err, s_ordered
+logical err2, delim_found, above_ub_is_err, s_ordered, negate
 
 ! init
 
@@ -129,9 +145,15 @@ do
   ! confused by "name1:name2" range syntax
 
   if (in_range == 0) then
+    negate = .false.
     key = 0
     match_name_to = ele_name$
     step = 1
+  endif
+
+  if (name(1:1) == '~') then
+    negate = .true.
+    name = name(2:)
   endif
 
   ix = index(name, '>>')
@@ -204,10 +226,14 @@ do
   ! If not a range construct then just put this on the list
 
   if (in_range == 0) then
-    if (.not. allocated(eles)) allocate(eles(n_loc+n_loc2))
-    call re_allocate_eles(eles, n_loc+n_loc2, .true.)
-    eles(n_loc+1:n_loc+n_loc2) = eles2(1:n_loc2)
-    n_loc = n_loc + n_loc2
+    if (negate) then
+      call negate_eles(eles, n_loc, eles2(1:n_loc2))
+    else
+      if (.not. allocated(eles)) allocate(eles(n_loc+n_loc2))
+      call re_allocate_eles(eles, n_loc+n_loc2, .true.)
+      eles(n_loc+1:n_loc+n_loc2) = eles2(1:n_loc2)
+      n_loc = n_loc + n_loc2
+    endif
     cycle
   endif
 
@@ -262,17 +288,31 @@ do
     n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) / step + 1
   endif
 
-  call re_allocate_eles(eles, n_loc+n_loc2, .true.)
+  if (negate) then
+    call re_allocate_eles(eles2, n_loc2, .false.)
+    n_loc2 = 0
+    do i = ele_start%ix_ele, ele_end%ix_ele, step
+      if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
+      n_loc2 = n_loc2 + 1
+      eles2(n_loc2)%ele => lat%branch(ib)%ele(i)
+      eles2(n_loc2)%loc = lat_ele_loc_struct(i, ib)
+    enddo
+    call negate_eles(eles, n_loc, eles2(1:n_loc2))
 
-  n_loc2 = 0
-  do i = ele_start%ix_ele, ele_end%ix_ele, step
-    if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
-    n_loc2 = n_loc2 + 1
-    eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
-    eles(n_loc+n_loc2)%loc = lat_ele_loc_struct(i, ib)
-  enddo
+  else
+    call re_allocate_eles(eles, n_loc+n_loc2, .true.)
 
-  n_loc = n_loc + n_loc2
+    n_loc2 = 0
+    do i = ele_start%ix_ele, ele_end%ix_ele, step
+      if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key .and. lat%branch(ib)%ele(i)%sub_key /= key) cycle
+      n_loc2 = n_loc2 + 1
+      eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
+      eles(n_loc+n_loc2)%loc = lat_ele_loc_struct(i, ib)
+    enddo
+
+    n_loc = n_loc + n_loc2
+  endif
+
   in_range = 0
 enddo
 
@@ -668,7 +708,6 @@ character(*) name
 integer match_name_to, key_index
 logical abbrev_allowed
 
-
 !
 
 select case (name)
@@ -687,5 +726,55 @@ case default
 end select
 
 end function extended_key_name_to_key_index
+
+!---------------------------------------------------------------------------
+! contains
+
+subroutine negate_eles(eles, n_ele, eles2)
+
+use nr
+
+type (ele_pointer_struct) eles(:), eles2(:)
+integer n_ele
+integer i, i2, j, ix, nn
+integer :: ix_arr(n_ele), indx(n_ele), sorted(n_ele), ix_rev(n_ele)
+integer :: remove(size(eles2))
+
+!
+
+do i = 1, n_ele
+  ix_arr(i) = ele_nametable_index(eles(i)%ele)
+enddo
+
+call indexx(ix_arr, indx)
+
+do i = 1, n_ele
+  sorted(i) = ix_arr(indx(i))
+  ix_rev(indx(i)) = i
+enddo
+
+do j = 1, size(eles2)
+  i2 = ele_nametable_index(eles2(j)%ele)
+  ix = min(1, bracket_index_int(i2, sorted, 1))
+  do  ! There may be multiple matches
+    if (ix > n_ele) cycle
+    if (i2 /= sorted(ix)) cycle   ! No match
+    nullify(eles(ix_rev(ix))%ele)
+    ix = ix + 1
+  enddo
+enddo
+
+j = 1
+do i = 1, n_ele
+  if (associated(eles(j)%ele)) then
+    j = j + 1
+  else
+    eles(j:n_ele-1) = eles(j+1:n_ele)
+  endif
+enddo
+
+n_ele = j - 1 
+
+end subroutine negate_eles
 
 end subroutine lat_ele_locator
