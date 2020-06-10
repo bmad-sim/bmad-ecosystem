@@ -138,6 +138,8 @@ export ACC_ENABLE_FPIC="N"
 # Setting the variable ACC_ENABLE_PROFILING here to "Y"
 # will enable the "-pg" flag to be added for compiling and 
 # linking all libraries and executables.
+#
+# NOTE - WILL NOT WORK ON macOS WITH XCODE 11.
 #-----------------------------------------------------------
 export ACC_ENABLE_PROFILING="N"
 
