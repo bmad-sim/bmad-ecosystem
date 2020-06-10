@@ -52,7 +52,7 @@ type (lat_param_struct) :: param
 type (converter_struct), pointer :: conv
 
 real(rp), optional :: mat6(6,6)
-real(rp) r_ran(5), pc_in, thickness, drd, drd2, azimuth_angle
+real(rp) r_ran(5), pc_in, thickness, drd, drd2, azimuth_angle, ps
 
 integer i, nd, ix
 
@@ -124,8 +124,8 @@ if (thickness_interpolate) then
   drd2 = 1 - drd
   out1%pc_out = drd2 * out1%pc_out + drd * out2%pc_out
   out1%r      = drd2 * out1%r      + drd * out2%r
-  out1%dxds  = drd2 * out1%dxds  + drd * out2%dxds
-  out1%dyds  = drd2 * out1%dyds  + drd * out2%dyds
+  out1%dxds   = drd2 * out1%dxds   + drd * out2%dxds
+  out1%dyds   = drd2 * out1%dyds   + drd * out2%dyds
   out1%weight = drd2 * out1%weight + drd * out2%weight
 endif
 
@@ -142,11 +142,12 @@ orbit%p0c = ele%value(p0c$)
 orbit%vec(6) = out1%pc_out / ele%value(p0c$) - 1
 call convert_pc_to (out1%pc_out, orbit%species, beta = orbit%beta)
 
+ps = sqrt((1 + orbit%vec(6))**2 / (1 + out1%dxds**2 + out1%dyds**2))
 orbit%charge = out1%weight
 orbit%vec(1) = orbit%vec(1) + out1%r * cos(azimuth_angle)
-orbit%vec(2) = orbit%vec(2) + (out1%dxds * cos(azimuth_angle) - out1%dyds * sin(azimuth_angle)) * (1 + orbit%vec(6))
+orbit%vec(2) = orbit%vec(2) + (out1%dxds * cos(azimuth_angle) - out1%dyds * sin(azimuth_angle)) * ps
 orbit%vec(3) = orbit%vec(3) + out1%r * sin(azimuth_angle)
-orbit%vec(4) = orbit%vec(4) + (out1%dxds * sin(azimuth_angle) + out1%dyds * cos(azimuth_angle)) * (1 + orbit%vec(6))
+orbit%vec(4) = orbit%vec(4) + (out1%dxds * sin(azimuth_angle) + out1%dyds * cos(azimuth_angle)) * ps
 orbit%vec(5) = orbit%vec(5) * orb0%beta / orbit%beta
 
 call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)

@@ -383,6 +383,15 @@ For example:
                    ! Notice that q1 and q5 do not have to be sbends
 \end{example}
 
+With a comma delimited list of names, a tilde prefix can be used to remove elements from the list.
+Adding and subtracting elements is done left to right. For example:
+\begin{example}
+  *::*, ~quadrupole::*  ! All elements except quadrupoles
+  b*, ~b1*, b13         ! All elements with names beginning with B except
+                        !   elements with names beginning with B1. However,
+                        !   elements named B13 are retained.
+\end{example}
+
 %---------------------------------------------------------------------------
 \section{Lattice Element Attributes}
 \label{s:lat.attribs}
@@ -1241,6 +1250,63 @@ secondary files in the primary file so the primary lattice file does not have to
 different secondary files are to be used.
 
 %--------------------------------------------------------------------------
+\section{Calc_Reference_Orbit Statement}
+\label{s:calc.ref.orbit}
+
+The \vn{calc_reference_orbit} statement triggers the computation of the ``standard'' reference orbit
+which is defined to be the closed orbit if the geometry (set by \vn{parameter[geometry]}
+(\sref{s:param})) is closed and which is defined to be the orbit as calculated from the starting
+position (set by any \vn{particle_start} statements (\sref{s:beam.start})) if the geometry is open.
+
+The \vn{calc_reference_orbit} statement is used before a \vn{combine_elements} statement
+(\sref{s:combine.eles}) to signal that the maps of the Taylor elements produced by the
+\vn{combine_elements} statement are computed from the standard reference orbit and not the zero
+orbit.
+
+The \vn{calc_reference_orbit} statement must come after an \vn{expand_lattice} command
+(\sref{s:expand}).
+
+The \vn{calc_reference_orbit} statement can only be used if the standard reference orbit can
+be computed. For example, for a lattice with closed geometry, the closed orbit must exist.
+
+The \vn{calc_reference_orbit} statement has no arguments. Example:
+\begin{example}
+  expand_lattice          ! Expand the lattice.
+  calc_reference_orbit    ! Compute the reference orbit.
+\end{example}
+
+%--------------------------------------------------------------------------
+\section{Combine_Elements Statement}
+\label{s:combine.eles}
+
+The \vn{combine_elements} statement is used to merge groups of consecutive elements into single
+taylor elements (\sref{s:taylor}) for faster tracking. The syntax of this statement is
+\begin{example}
+  combine_elements <list>
+\end{example}
+where \vn{<list>} is a list of elements that are {\em not} to be combined.
+
+Example:
+\begin{example}
+  call, file = my_ring.bmad     ! Read in a lattice
+  parameter[taylor_order] = 3   ! Set the taylor order for the maps
+  expand_lattice                ! Expand the lattice
+  calc_reference_orbit          ! ref orbit calc.
+  combine_elements sbend::*, bb ! Merge everything but sbend elements and 
+                                !   any elements named BB.
+\end{example}
+In this example, groups of elements that are between bends (with the exception of any elements named
+``BB''), are replaced by \vn{taylor} elements. The order of the Taylor maps is set by
+\vn{parameter[taylor_order]} (\sref{s:param}).
+
+The \vn{combine_elements} statement must come after an \vn{expand_lattice} command
+(\sref{s:expand}).
+
+If there is a \vn{calc_reference_orbit} statement before the \vn{combine_elements} statement, the
+``standard'' reference orbit (\sref{s:calc.ref.orbit}) is used for the computation of the Taylor
+maps. Otherwise the zero orbit is used as the reference orbit.
+
+%--------------------------------------------------------------------------
 \section{Slice_Lattice Statement}
 
 The \vn{slice_lattice} statement is used to remove elements from the lattice. The \vn{slice_lattice}
@@ -1259,8 +1325,8 @@ where \vn{<element-list>} is a list of elements (\sref{s:ele.match}). For exampl
 \end{example}
 In this example, all elements outside of the range from element \vn{q1\#\#2} (the second instance of
 \vn{q1} in the lattice) to element with index number 357 are discarded. The exception is that lord
-elements (\sref{s:lord.slave}) of any elements that remain are also not discarded and the
-\vn{beginning} element at the start of any branch is also retained.
+elements (\sref{s:lord.slave}) of any elements that remain are retained and the \vn{beginning}
+element at the start of any branch is also retained.
 
 For any lattice branch where elements are removed, the Twiss parameters and reference energy is
 computed, and the Twiss parameters and reference energy at the entrance end of the first element

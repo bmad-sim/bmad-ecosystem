@@ -34,7 +34,7 @@
 !
 ! Input:
 !   lat_in         -- lat_struct: Input lattice.
-!     %branch(:)%ele(:)%select  -- Set this element component to enable hybridization. See above
+!     %branch(:)%ele(:)%select  -- Roughly: Set True to keep and False to hybridize. See above.
 !   use_taylor     -- Logical, optional: If present and True then the
 !                        hybrid elements will have a taylor series 
 !                        instead of a simple linear matrix. If an element to
