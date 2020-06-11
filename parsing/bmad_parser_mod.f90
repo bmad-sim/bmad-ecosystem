@@ -986,7 +986,7 @@ var_name = upcase(word)
 
 ix1 = index(var_name, '[')
 if (ix1 == 0) then
-  call find_indexx (var_name, bp_com%const%name, bp_com%const%indexx, bp_com%i_const_tot, i)
+  call find_indexx (var_name, bp_com2%const%name, bp_com2%const%indexx, bp_com%i_const_tot, i)
   if (i == 0) then
     do i = 1, size(old_style_physical_const_list)
       if (var_name == upcase(old_style_physical_const_list(i)%name)) then
@@ -1003,16 +1003,16 @@ if (ix1 == 0) then
     err_flag = .false.
     ! To prevent multiple error messages define this variable.
     bp_com%i_const_tot = bp_com%i_const_tot + 1
-    if (bp_com%i_const_tot > size(bp_com%const%name)) call reallocate_bp_com_const()
+    if (bp_com%i_const_tot > size(bp_com2%const%name)) call reallocate_bp_com_const()
     i_const = bp_com%i_const_tot
-    bp_com%const(i_const)%name = var_name
-    bp_com%const(i_const)%value = 0
-    call find_indexx (var_name, bp_com%const%name, bp_com%const%indexx, i_const-1, ixm, ixm2)
-    bp_com%const(ixm2+1:i_const)%indexx = bp_com%const(ixm2:i_const-1)%indexx
-    bp_com%const(ixm2)%indexx = i_const
+    bp_com2%const(i_const)%name = var_name
+    bp_com2%const(i_const)%value = 0
+    call find_indexx (var_name, bp_com2%const%name, bp_com2%const%indexx, i_const-1, ixm, ixm2)
+    bp_com2%const(ixm2+1:i_const)%indexx = bp_com2%const(ixm2:i_const-1)%indexx
+    bp_com2%const(ixm2)%indexx = i_const
 
   else
-    value = bp_com%const(i)%value
+    value = bp_com2%const(i)%value
     err_flag = .false.
   endif
 
@@ -1144,13 +1144,13 @@ logical delim_found, err_flag, redef_is_error
 
 !
 
-call find_indexx (word, bp_com%const%name, bp_com%const%indexx, bp_com%i_const_tot, i)
+call find_indexx (word, bp_com2%const%name, bp_com2%const%indexx, bp_com%i_const_tot, i)
 if (i /= 0) then
-  old_val = bp_com%const(i)%value
-  call parse_evaluate_value (word, bp_com%const(i)%value, lat, delim, delim_found, err_flag)
+  old_val = bp_com2%const(i)%value
+  call parse_evaluate_value (word, bp_com2%const(i)%value, lat, delim, delim_found, err_flag)
 
   if (redef_is_error) then
-    if (bp_com%const(i)%value == old_val) then
+    if (bp_com2%const(i)%value == old_val) then
       call parser_error ('CONSTANTS ARE NOT ALLOWED TO BE REDEFINED: ' // word, &
                          'BUT SINCE OLD_VALUE = NEW_VALUE THIS IS ONLY A WARNING...', &
                          'USE "REDEF:" CONSTRUCT TO GET AROUND THIS (BUT NOT RECOMMENDED IF NOT NECESSARY).', level = s_warn$)
@@ -1162,28 +1162,28 @@ if (i /= 0) then
 
 else
   bp_com%i_const_tot = bp_com%i_const_tot + 1
-  if (bp_com%i_const_tot > size(bp_com%const%name)) call reallocate_bp_com_const()
+  if (bp_com%i_const_tot > size(bp_com2%const%name)) call reallocate_bp_com_const()
   i_const = bp_com%i_const_tot
-  bp_com%const(i_const)%name = word
+  bp_com2%const(i_const)%name = word
   ! Reindex.
-  call find_indexx (word, bp_com%const%name, bp_com%const%indexx, i_const-1, ixm, ixm2)
-  bp_com%const(ixm2+1:i_const)%indexx = bp_com%const(ixm2:i_const-1)%indexx
-  bp_com%const(ixm2)%indexx = i_const
+  call find_indexx (word, bp_com2%const%name, bp_com2%const%indexx, i_const-1, ixm, ixm2)
+  bp_com2%const(ixm2+1:i_const)%indexx = bp_com2%const(ixm2:i_const-1)%indexx
+  bp_com2%const(ixm2)%indexx = i_const
   ! Evaluate
-  call parse_evaluate_value (bp_com%const(i_const)%name, bp_com%const(i_const)%value, lat, delim, delim_found, err_flag)
+  call parse_evaluate_value (bp_com2%const(i_const)%name, bp_com2%const(i_const)%value, lat, delim, delim_found, err_flag)
   ! Put in lat%constant(:) array
   n = 0
   if (allocated(lat%constant)) n = size(lat%constant)
   call move_alloc(lat%constant, temp_const)
   allocate (lat%constant(n+1))
   if (allocated(temp_const)) lat%constant(1:n) = temp_const
-  lat%constant(n+1)%name = bp_com%const(i_const)%name
-  lat%constant(n+1)%value = bp_com%const(i_const)%value
+  lat%constant(n+1)%name = bp_com2%const(i_const)%name
+  lat%constant(n+1)%value = bp_com2%const(i_const)%value
 endif
 
 if (delim_found .and. .not. err_flag) call parser_error  &
                   ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
-                   'FOR CONSTANT: ' // bp_com%const(i_const)%name)
+                   'FOR CONSTANT: ' // bp_com2%const(i_const)%name)
 
 end subroutine parser_add_constant
 
@@ -2743,11 +2743,11 @@ integer n
 
 !
 
-call move_alloc(bp_com%const, var_temp)
+call move_alloc(bp_com2%const, var_temp)
 n = bp_com%i_const_tot+100
-allocate (bp_com%const(n))
+allocate (bp_com2%const(n))
 n = size(var_temp)
-bp_com%const(1:n) = var_temp
+bp_com2%const(1:n) = var_temp
 
 end subroutine reallocate_bp_com_const
 
@@ -5201,7 +5201,7 @@ if (index(debug_line, 'CONST') /= 0) then
   print *, '----------------------------------------'
   print *, 'Number of Defined Constants:', bp_com%i_const_tot - bp_com%i_const_init
   do i = bp_com%i_const_init+1, bp_com%i_const_tot
-    print '(i6, 2x, a, es18.10)', i, bp_com%const(i)%name, bp_com%const(i)%value
+    print '(i6, 2x, a, es18.10)', i, bp_com2%const(i)%name, bp_com2%const(i)%value
   enddo
   found = .true.
 endif

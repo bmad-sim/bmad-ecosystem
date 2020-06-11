@@ -113,16 +113,15 @@ integer, parameter :: def$ = 1, redef$ = 2
 ! common stuff
 
 type bp_const_struct
-  character(40) name      ! Constant name
-  real(rp) value          ! Constant value
-  integer :: indexx = 0   ! Constant sort index
+  character(40) :: name = ''   ! Constant name
+  real(rp) :: value = 0        ! Constant value
+  integer :: indexx = 0        ! Constant sort index
 end type
 
 type bp_common_struct
   type (stack_file_struct) :: file(0:f_maxx) = stack_file_struct()
   type (stack_file_struct), pointer :: current_file => null()
   type (lat_struct), pointer :: old_lat => null()
-  type (bp_const_struct), allocatable :: const(:)   ! Constant name
   type (extra_parsing_info_struct) :: extra = extra_parsing_info_struct()
   integer :: i_file_level = 0
   integer :: num_lat_files = 0                        ! Number of files opened
@@ -156,8 +155,18 @@ type bp_common_struct
   real :: time0 = 0, time1 = 0, time2 = 0, time3 = 0   ! For timing parsing
 end type
 
+! The const component is separated into a separate structure from bp_common_struct to get
+! around a bug in gfortran where an error is generated with initialization in the form
+!   bp_com = bp_common_struct()
+! See GCC Bugzilla Bug report #87568.
+
+type bp_common2_struct
+  type (bp_const_struct), allocatable :: const(:)   ! Constant name
+end type
+
 !
 
 type (bp_common_struct), save, target :: bp_com
+type (bp_common2_struct), save, target :: bp_com2
 
 end module
