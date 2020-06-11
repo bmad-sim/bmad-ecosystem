@@ -74,7 +74,7 @@ if (.not. attribute_free (ele, a_name, err_print_flag, dependent_attribs_free = 
 ! Evaluate and set.
 ! This essentially is a wrapper for the bmad_parser routine parser_set_attribute.
 
-if (.not. allocated(bp_com%const)) call init_bmad_parser_common
+if (.not. allocated(bp_com2%const)) call init_bmad_parser_common
 
 print_save = bp_com%print_err
 file_input_save = bp_com%input_from_file
