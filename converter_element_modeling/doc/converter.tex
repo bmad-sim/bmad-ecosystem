@@ -56,7 +56,7 @@
 
 \begin{document}
 
-\title{Positron Converter Model}
+\title{Bmad Converter Model}
 \author{John Mastroberti}
 
 \maketitle
@@ -77,103 +77,119 @@
 
 \section{Introduction}
 
-Every electron-positron collider needs a source of positrons.
-At CESR, these positrons are generated in a linear accelerator using a positron converter.
-Until now, we have had limited ability to optimize the design of the linac, as there was no way to model the positron converter in \bmad.
-This project rectifies this problem by providing the information needed for a converter element in \bmad.
-A converter element has been developed in conjunction with this project, which should enable optimizations of the linac design.
+This monograph discusses the converter model used in converter lattice elements in \bmad. In a
+converter, incoming particles generate particles of a different type. For example, a converter may
+be used to simulate the production of positrons produced when a tungsten target plate is bombarded
+by electrons.
 
+The converter model currently in \bmad discussed here replaces an older model that was developed by
+Daniel Fromowitz\cite{b:fromowitz}. This older model used equations to model the output
+distribution.  The problems with this approach were the approximations that were used in developing
+the equations coupled with uncertainty as to how to calculate the various coefficients that were
+needed if parameters like the target material or the species of particles simulated were varied.
 
-\section{Background/physics}
-The positron converter provides CESR with its positrons.
-The converter is a slab of heavy metal (usually tungsten), which is bombarded with electrons whose energy is on the order of $\sim 100 \MeV$.
-As the incident electrons pass through the converter, they emit photons via Bremsstrahlung, which in turn decay to $e^+ e^-$ pairs:
+The present model replaces the equations of the older model with probability distribution tables for
+the energy and radial distribution of the outgoing particle along with a generalized
+parameterization of the probability distribution of the outgoing particles's direction of
+propagation.  Probability distribution table values and coefficients needed to characterize the
+velocity distribution are obtained through a Geant\cite{geant} simulation. These tables and
+coefficients can then be stored in a \bmad lattice file and used for efficient generation of
+outgoing particles. The present model is not only more accurate but can also simulate a wider range
+of parameters in terms of converter thickness, converter material, incoming particle energy, and
+different particle species.
+
+While it would be technically feasible to use Geant directly to simulate the converter process, the
+production of outgoing particles in the converter is a stochastic process, the details of which are
+computationally expensive. The use of probability distribution tables, which only have to be
+computed once, while not as accurate, speeds up the computation time by orders of magnitude.
+
+The imputus for developing the new model was to better simulate the converter in the Cornell CESR
+Linac which generated positrons due to bombardment of a tungsten plate by electrons. The electrons
+have an energy of order $\sim 100 \MeV$.  As the incident electrons pass through the
+converter, they emit photons via Bremsstrahlung, which in turn decay to $e^+ e^-$ pairs:
 \begin{align}
-e^- + Z \rightarrow e^- + Z + \gamma \rightarrow e^- + Z + e^+ + e^-
+  e^- + Z \rightarrow e^- + Z + \gamma \rightarrow e^- + Z + e^+ + e^-
 \end{align}
 
-
 \section{The converter model}
-The production of positrons in the converter is a stochastic process, the details of which are computationally expensive to simulate.
-It is therefore desirable to have a model for the properties of the produced positrons in terms of probability distributions.
 
-\subsection{Coordinates}
-The kinematics of a positron produced in the converter are completely described by the following quantities:
-\begin{itemize}
-\item
-The position at which it emerges on the downstream face of the converter.
-
-\item
-Its momentum upon emerging from the converter.
-
-\end{itemize}
-
-With this in mind, we adopt the coordinate system shown in Figure \ref{fig:coords}.
+For now, assume that the incoming particle's momentum is perpendicular to the surface of the
+converter. The coordinate system is shown in Figure \ref{fig:coords}.
 \begin{figure}
 \centering
 \includegraphics[width=0.6\textwidth]{coords1.pdf}
 \includegraphics[width=0.8\textwidth]{coords2.pdf}
-\caption{Coordinates used to describe the positrons exiting the converter.}
+\caption{Coordinates used to describe the outgoing particles exiting the converter. The incoming particle is 
+labeled $e^-$ and the outging particle is labeled $e^+$.}
 \label{fig:coords}
 \end{figure}
-We take the $z$ axis to be the direction of the incoming electron's momentum perpendicular to the surface of the converter.
-The outgoing positron's position on the downstream face of the converter is then described by $r$, its distance from the $z$ axis, and the angle $\theta$ shown in the figure.
-By symmetry, $\theta$ must be distributed uniformly between $0$ and $2\pi$.
-We can then largely ignore this degree of freedom from our model if we define our $x$ axis in the same direction as $\rrr$.
-We then choose our $y$ axis such that $(x,y,z)$ is a right handed orthogonal coordinate system.
+The outgoing particle's position on the downstream face of the converter is then described by $r$,
+its distance from the $z$ axis, and the angle $\theta$ shown in the figure. By symmetry, $\theta$
+must be distributed uniformly between $0$ and $2\pi$ and so the probability distributions will be
+independent of $\theta$. The $x$-axis is defined to be in the same direction as $\rrr$. We then
+choose our $y$ axis such that $(x,y,z)$ is a right handed orthogonal coordinate system.
 
 \subsection{Probability Distributions}
-With this coordinate system, the position of an outgoing positron is described entirely by $r$ (and $\theta$, chosen uniformly at random).
-We choose the following three parameters to characterize the outgoing momentum:
+
+The incoming particle is labeled by a plus symbol subscript and the outgoing particle is labeled by
+a minus symbol subscript. The outgoing particle as it leaves the surface of the converter is
+characterized by $\theta$, its momentum $p_+$, the offset from the origin $r$, and the $dx/ds$ and
+$dy/ds$ slopes with
 \begin{align}
 p_+ c & = \left| \mathbf{p}_+ \right| c \\
-\dxds & = \frac{p_x}{p_z} \\
-\dyds & = \frac{p_y}{p_z}
+\dxds & = \frac{p_x}{p_s} \\
+\dyds & = \frac{p_y}{p_s}
 \end{align}
-Using these four parameters to describe outgoing positrons, we seek the distribution
+Ignoring $\theta$, we seek the distribution
 \begin{align}
 P \left( p_+ c, r, \dxds, \dyds \right)
 \end{align}
-which describes the probability that an outgoing positron will attain particular values of $p_+ c$, $r$, $\dxds$, and $\dyds$.
-This is not a true probability distribution, as it is not normalized to 1.
-Rather, $P$ is normalized to the number of positrons produced per incoming electron:
+which describes the probability that an outgoing particle will attain particular values of $p_+ c$,
+$r$, $\dxds$, and $\dyds$. This probability distribution is dependent upon the incoming particle's
+energy, as well as the thickness and material type of the converter. This will be discussed later.
+
+$P$ is normalized to the number of outgoing particles produced per incoming particle:
 \begin{align}
 \int P \left( p_+ c, r, \dxds, \dyds \right) \, d(p_+ c) \, dr \, d \! \left( \dxds \right) d \! \left( \dyds \right) & = \frac{N_+}{N_-}
 \end{align}
-This normalization lets us easily account for the fact that number of positrons produced varies with the incoming electron energy and converter thickness.
-To make the problem easier to work with, and to aid in visualization, we can separate $P$ into two distributions:
+This normalization lets us easily account for the fact that number of outgoing particles produced
+varies with the incoming particle energy and converter thickness. $P$ can be decomposed into two distributions:
 \begin{align}
 P \left( p_+ c, r, \dxds, \dyds \right) & = P_1 \left( p_+ c, r \right) P_2 \left( \dxds, \dyds ; p_+ c , r \right),
 \end{align}
 where we choose $P_1$ to be normalized to $N_+/N_-$ and $P_2$ to be normalized to 1.
-Note that the behavior of the converter depends on the energy of the incoming electrons and the converter's thickness, so we will have a different $P$ (and $P_1$ and $P_2$) at each incoming electron energy and target thickness.
 
-\subsection{Obtaining $P_1$ and $P_2$}
+\subsection{$P_1$ and $P_2$ Parameterization}
 
-Using Geant\cite{geant}, we simulate many incoming electrons of a given energy incident upon a converter of a given thickness.
-We then record the values of $p_+ c$, $r$, $\dxds$, and $\dyds$ for each outgoing positron at the downstream face of the converter.
-This data is then binned into a two-dimensional histogram by $p_+ c$ and $r$.
-The sizes of the bins are chosen non-uniformly so that each bin holds approximately the same number of positrons.
-This histogram is recorded and gives us a discrete sampling of $P_1(p_+c, r)$.
+Using Geant\cite{geant}, A number of incoming particles of a given energy incident upon a converter
+of a given thickness is simulated.  The values of $p_+ c$, $r$, $\dxds$, and $\dyds$ for each
+outgoing particle at the downstream face of the converter is recorded. This data is then binned into
+a two-dimensional histogram by $p_+ c$ and $r$. The sizes of the bins are chosen non-uniformly so
+that each bin holds approximately the same number of outgoing particles. The binned data produces a
+probability distribution table that characterizes $P_1(p_+c, r)$.
 
-Then, in each $(p_+ c, r)$ bin, we fit the functional form
+To model $P_2$, for each $(p_+ c, r)$ bin, the distribution of particles in $dx/ds$ and $dy/ds$ is
+fit to the functional form
 \begin{align}
 P_2 \left( \dxds, \dyds; p_+ c, r \right) & = A \frac{1 + \beta \dxds}{1 + \alpha_x^2 \left( \dxds - c_x \right)^2 + \alpha_y^2 \left( \dyds \right)^2}. \label{eq:cauchy}
 \end{align}
-Since $P_2$ is normalized to $1$, $A$ is not a true fit parameter, but is fixed by normalization.
-This gives us values of $c_x$, $\alpha_x$, $\alpha_y$, and $\beta$ in each $(p_+ c, r)$ bin.
-The distribution of $\dxds$ and $\dyds$ is also characterized by $\dxds_{min}$, $\dxds_{max}$ and $\left| \dyds \right|_{max}$,
-which define the rectangle in $\dxds \times \dyds$ space where $P_2 \left( \dxds, \dyds \right)$ is nonzero.
-We then perform fits to each of the parameters $c_x, \alpha_x, \alpha_y, \beta, \dxds_{min}, \dxds_{max}, \left| \dyds_{max} \right|$ as functions of $p_+ c$ and $r$ as follows:
+Since $P_2$ is normalized to $1$, $A$ is not a true fit parameter, but is fixed by the
+normalization.  The fit gives values of $c_x$, $\alpha_x$, $\alpha_y$, and $\beta$ in each $(p_+ c,
+r)$ bin.  The distribution of $\dxds$ and $\dyds$ is also characterized by $\dxds_{min}$,
+$\dxds_{max}$ and $\left| \dyds \right|_{max}$, which define the rectangle in $\dxds \times \dyds$
+space where $P_2 \left( \dxds, \dyds \right)$ is significantly nonzero.  Fits to each of the
+parameters $c_x, \alpha_x, \alpha_y, \beta, \dxds_{min}, \dxds_{max}, \left| \dyds_{max} \right|$ as
+functions of $p_+ c$ and $r$ are made as follows:
 \begin{itemize}
 \item
 At each value of $p_+ c$ below a user-defined cutoff, we perform a 1D fit of the form
 \begin{align}
 \pi(r) = a_0 + a_1 r+ a_2 r^2 + a_3 r^3 + a_4 r^4 \label{eq:fit1}
 \end{align}
-for each parameter $\pi =c_x, \alpha_x, \alpha_y, \beta, \dxdsmin, \dxdsmax, \dydsmax$.
-For $c_x$ and $\beta$, $a_0$ is fixed to be 0, as $c_x$ and $\beta$ must be zero at $r=0$ by symmetry.
-For all other parameters, $a_4$ is fixed to be zero, so that a third degree polynomial is fit instead of a fourth degree polynomial.
+for each parameter $\pi =c_x, \alpha_x, \alpha_y, \beta, \dxdsmin, \dxdsmax, \dydsmax$.  For $c_x$
+and $\beta$, $a_0$ is fixed to be 0, as $c_x$ and $\beta$ must be zero at $r=0$ by symmetry.  For
+all other parameters, $a_4$ is fixed to be zero, so that a third degree polynomial is fit instead of
+a fourth degree polynomial.
 
 \item
 Above the user-defined $p_+ c$ cutoff, we perform a 2D fit of the form
@@ -181,35 +197,45 @@ Above the user-defined $p_+ c$ cutoff, we perform a 2D fit of the form
 \pi(r) = (1 + a_1 (p_+c) + a_2 (p_+c)^2 + a_3 (p_+c)^3)
          (b_0 + b_1 r + b_2 r^2 + b_3 r^3) e^{-(k_p (p_+ c) + k_r r)} + C \label{eq:fit2}
 \end{align}
-for each parameter $\pi =c_x, \alpha_x, \alpha_y, \beta, \dxdsmin, \dxdsmax, \dydsmax$.
-The parameter $C$ is only used for $\dxdsmax$.
-Note that we set the constant term for the $p_+ c$ polynomial to $1$ in each case.
-This must be done so that the fitting problem is full rank.
+for each parameter $\pi =c_x, \alpha_x, \alpha_y, \beta, \dxdsmin, \dxdsmax, \dydsmax$.  The
+parameter $C$ is only used for $\dxdsmax$.  Note that we set the constant term for the $p_+ c$
+polynomial to $1$ in each case.  This must be done so that the fitting problem is full rank.
 
 \end{itemize}
 With these fits in hand, we have an approximation of $P_2 \left( \dxds, \dyds; p_+ c, r \right)$.
 
+%--------------------------------------------------------
 
+\section{Setup for Generating the Probability Parameters}
 
-\section{Setup Instructions}
-The converter modeling has two main stages.
-In the first stage, the positron creation events are simulated with Geant, and the resulting positrons are binned into a histogram.
-In the second stage, fits are performed for $\dxds$ and $\dyds$.
-As such, we have developed two executables: one responsible for the first stage, \exes, and one responsible for the second, \exef.
+Generating the probability parameters has two main stages. In the first stage, the particle creation
+events are simulated with Geant, and the resulting outgoing particles are binned into a
+histogram. In the second stage, fits are performed for $\dxds$ and $\dyds$.  As such, we have
+developed two executables: one responsible for the first stage, \exes, and one responsible for the
+second, \exef.
 
-\subsection{Dependencies}
-\label{s:deps}
-To build and run the simulation proper, \exes, you will need an up to date installation of Geant4 on your system.
-See the Geant4 installation guide below for details on how to get Geant4 up and running on Linux.
-You will also need \texttt{cmake} installed, although this is already a requirement for a standard \bmad \, distribution.
+After the probability parameters are generated, a \bmad lattice file can be created that contains
+these parameters and this lattice file is used for simulating the converter independent of Geant.
 
-To build and run the fitting program, \exef, you will need the GNU Scientific Library (GSL) installed on your system.
-This is distributed with \bmad, so you should already have it on your system.
+\subsection{Dependencies} 
+\label{s:deps} 
+
+To build and run the simulation proper, \exes, you will need an up to date installation of Geant4 on
+your system.  See the Geant4 installation guide below for details on how to get Geant4 up and
+running on Linux.  You will also need \texttt{cmake} installed, although this is already a
+requirement for a standard \bmad \, distribution.
+
+To build and run the fitting program, \exef, you will need the GNU Scientific Library (GSL)
+installed on your system.  This is distributed with \bmad, so you should already have it on your
+system.
 
 Both executables require a C++ compiler with support for C++17; GCC 8 or higher should be fine.
-\subsubsection{Geant4 Installation Guide}
 
-This guide is an abbreviated version of the instructions found on \href{http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/InstallationGuide/html/}{the Geant4 website}.
+\subsection{Geant4 Installation Guide}
+
+This guide is an abbreviated version of the instructions found on
+\href{http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/InstallationGuide/html/}{the
+Geant4 website}.
 \begin{enumerate}
 \item
 Download the source files from \url{https://geant4.web.cern.ch/support/download}.
@@ -311,11 +337,11 @@ An example config file, with all available settings listed, is shown below.
 ! The ! introduces a comment that lasts until the end of the line
 target_material = tungsten ! Defines the converter material
 target_thickness = 6.35 mm, 1.0 cm ! Defines the target thicknesses to be simulated
-pc_in = 300 MeV, 500 MeV, 1 GeV ! Defines the electron energies to be simulated
-out_pc_min = 0 ! Minimum pc cutoff for outgoing positrons, defaults to 0
-out_pc_max = 100000000 ! Maximum pc cutoff for outgoing positrons (in eV here)
+pc_in = 300 MeV, 500 MeV, 1 GeV ! Defines the incoming particle energies to be simulated
+out_pc_min = 0 ! Minimum pc cutoff for outgoing particles, defaults to 0
+out_pc_max = 100000000 ! Maximum pc cutoff for outgoing particles (in eV here)
 dxy_ds_max = 10 ! Maximum cutoff for the magnitude of dx/ds
-                ! and dy/ds allowed for outgoing positrons
+                ! and dy/ds allowed for outgoing particles
 output_directory = sim_data ! Name of the directory where data will be output,
                             ! should be specified relative to the working directory
                             ! Defaults to sim_data
@@ -360,11 +386,12 @@ Then, just run
 \begin{verbatim}
 $ converter_simulation
 \end{verbatim}
-at your command prompt.
-The program will parse your config file and report the settings it read, and report if there are any problems reading your config file.
-It will then verify that the directory you set for \outdir \, does not exist or is empty, and will ask you if you want to overwrite it if it already exists.
-Then, for each value of \pcin \, and \targett \, specified in the config file, the program will simulate many positron events for those settings.
-For example, with the above config file, six simulations will be run with the following settings:
+at your command prompt.  The program will parse your config file and report the settings it read,
+and report if there are any problems reading your config file.  It will then verify that the
+directory you set for \outdir \, does not exist or is empty, and will ask you if you want to
+overwrite it if it already exists.  Then, for each value of \pcin \, and \targett \, specified in
+the config file, the program will simulate many particle creation events for those settings.  For example,
+with the above config file, six simulations will be run with the following settings:
 \begin{itemize}
 \item
 300 MeV \pcin \, and 6.35 mm \targett
@@ -463,10 +490,10 @@ This will open the plot for $c_x$ across all $(p_+ c, r)$ bins for $p_+ c = 300$
 As mention in the previous section, \exef outputs a file, \texttt{converter.bmad}, which encodes all of the simulation and fitting output, and can be used to specify the properties of a \bmad \, converter element.
 See the \bmad \, manual for the full details regarding the converter element in \bmad.
 
-The user should be aware that \bmad's method of generating positrons may not be completely faithful to the simulation results.
+The user should be aware that \bmad's method of generating outgoing particles may not be completely faithful to the simulation results.
 In particular, \bmad uses linear interpolation for the $P_1(p_+c, r)$ distribution.
 This can cause noticeable discrepancies on the edges of the distribution, especially in the bins with the lowest values of $p_+ c$.
-Since $P_1(p_+c, r)$ changes rapidly at low $p_+ c$, and \bmad \, additionally does not generate positrons with $p_+ c$ lower than the lowest value of $p_+ c$ for the bins, \bmad \, does not generate as many positrons at low $p_+ c$ as it should.
+Since $P_1(p_+c, r)$ changes rapidly at low $p_+ c$, and \bmad \, additionally does not generate outgoing particles with $p_+ c$ lower than the lowest value of $p_+ c$ for the bins, \bmad \, does not generate as many outgoing particles at low $p_+ c$ as it should.
 
 
 \appendix
