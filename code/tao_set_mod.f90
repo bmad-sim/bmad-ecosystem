@@ -278,12 +278,15 @@ implicit none
 
 type (tao_global_struct) global, old_global
 type (tao_universe_struct), pointer :: u
+type (tao_expression_info_struct), allocatable :: info(:)
 
 character(*) who, value_str
 character(20) :: r_name = 'tao_set_global_cmd'
+character(len(value_str)+24) val
 
+real(rp), allocatable :: set_val(:)
 integer iu, ios, iuni, i, ix
-logical err, needs_quotes
+logical err
 
 namelist / params / global
 
@@ -328,31 +331,45 @@ if (who == 'quiet') then
   return
 endif
 
+! Surprisingly enough, a namelist read will ignore a blank value field so catch this problem here.
+
+if (value_str == '') then
+  call out_io (s_error$, r_name, 'SET VALUE IS BLANK!')
+  return
+endif
+
 ! open a scratch file for a namelist read
 
 iu = tao_open_scratch_file (err);  if (err) return
+ios = 0
 
-needs_quotes = .false.
 select case (who)
-case ('random_engine', 'random_gauss_converter', 'track_type', &
-      'prompt_string', 'optimizer', 'print_command', 'var_out_file')
-  needs_quotes = .true.
-case default
-  ! Surprisingly enough, a namelist read will ignore a blank value field so catch this problem here.
-  if (value_str == '') then
-    call out_io (s_error$, r_name, 'SET VALUE IS BLANK!')
-    return
-  endif
+case ('random_engine', 'random_gauss_converter', 'track_type', 'quiet', 'prompt_color'&
+      'prompt_string', 'optimizer', 'print_command', 'var_out_file', 'history_file')
+  val = quote(value_str)
 
+case ('n_opti_cycles', 'n_opti_loops', 'phase_units', 'bunch_to_plot', &
+      'random_seed', 'n_top10_merit', 'srdt_gen_n_slices', 'srdt_sxt_n_slices')
+  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  write (val, '(i0)', iostat = ios) nint(set_val(1))
+
+case ('lm_opt_deriv_reinit', 'de_lm_step_ratio', 'de_var_to_population_factor', 'lmdif_eps', &
+      'lmdif_negligible_merit', 'svd_cutoff', 'unstable_penalty', 'merit_stop_value', &
+      'dmerit_stop_value', 'random_sigma_cutoff', 'delta_e_chrom')
+  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  write (val, '(es24.16)', iostat = ios) set_val(1)
+
+case default
+  val = value_str
 end select
-if (value_str(1:1) == "'" .or. value_str(1:1) == '"') needs_quotes = .false.
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'BAD NUMBER: ' // value_str)
+  return
+endif
 
 write (iu, '(a)') '&params'
-if (needs_quotes) then
-  write (iu, '(a)') ' global%' // trim(who) // ' = "' // trim(value_str) // '"'
-else
-  write (iu, '(a)') ' global%' // trim(who) // ' = ' // trim(value_str)
-endif
+write (iu, '(a)') ' global%' // trim(who) // ' = ' // trim(val)
 write (iu, '(a)') '/'
 write (iu, *)
 rewind (iu)

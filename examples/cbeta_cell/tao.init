@@ -75,7 +75,7 @@
 &tao_d1_data
         ix_d1_data= 1
         d1_data%name = "stability"
-        datum( 1) =  "unstable.ring"     '' '' ''  'target'   0.0    1e15
+        datum( 1) =  "unstable.lattice"     '' '' ''  'target'   0.0    1e15
 /
 &tao_d1_data
     ix_d1_data= 2
