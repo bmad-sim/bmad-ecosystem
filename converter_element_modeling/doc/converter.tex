@@ -3,6 +3,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amsthm,amssymb,graphicx,gensymb,multicol,mathtools}
 \usepackage{hyperref}
+\usepackage{xspace}
 \hypersetup{
   colorlinks=true,
   linkcolor=blue,
@@ -66,10 +67,10 @@
 \newcommand{\dxdsmin}{\dxds_{\mathrm{min}}}
 \newcommand{\dxdsmax}{\dxds_{\mathrm{max}}}
 \newcommand{\dydsmax}{\left| \dyds \right|_{\mathrm{max}}}
-\newcommand{\exes}{\texttt{converter\_simulation}}
-\newcommand{\exef}{\texttt{converter\_fitter}}
-\newcommand{\configfile}{\texttt{config.txt}}
-\newcommand{\bmad}{\textit{Bmad}}
+\newcommand{\exes}{\texttt{converter\_simulation}\xspace}
+\newcommand{\exef}{\texttt{converter\_fitter}\xspace}
+\newcommand{\configfile}{\texttt{config.txt}\xspace}
+\newcommand{\bmad}{\textit{Bmad}\xspace}
 
 \tableofcontents
 
@@ -210,9 +211,8 @@ With these fits in hand, we have an approximation of $P_2 \left( \dxds, \dyds; p
 
 Generating the probability parameters has two main stages. In the first stage, the particle creation
 events are simulated with Geant, and the resulting outgoing particles are binned into a
-histogram. In the second stage, fits are performed for $\dxds$ and $\dyds$.  As such, we have
-developed two executables: one responsible for the first stage, \exes, and one responsible for the
-second, \exef.
+histogram. In the second stage, fits are performed for $\dxds$ and $\dyds$.  Each stage has an
+associated executable: \exes for the first stage, and \exef for the second.
 
 After the probability parameters are generated, a \bmad lattice file can be created that contains
 these parameters and this lattice file is used for simulating the converter independent of Geant.
@@ -220,10 +220,10 @@ these parameters and this lattice file is used for simulating the converter inde
 \subsection{Dependencies} 
 \label{s:deps} 
 
-To build and run the simulation proper, \exes, you will need an up to date installation of Geant4 on
-your system.  See the Geant4 installation guide below for details on how to get Geant4 up and
-running on Linux.  You will also need \texttt{cmake} installed, although this is already a
-requirement for a standard \bmad \, distribution.
+To build and run the \exes program, you will need an up to date installation of Geant4 on
+your system. See the Geant4 installation guide below for details on how to get Geant4 up and
+running on Linux.  You will also need \texttt{cmake} installed. Since \texttt{cmake} is a
+requirement for a standard \bmad distribution, chances are that \texttt{cmake} is already present.
 
 To build and run the fitting program, \exef, you will need the GNU Scientific Library (GSL)
 installed on your system.  This is distributed with \bmad, so you should already have it on your
@@ -238,15 +238,16 @@ This guide is an abbreviated version of the instructions found on
 Geant4 website}.
 \begin{enumerate}
 \item
-Download the source files from \url{https://geant4.web.cern.ch/support/download}.
+Create a directory where Geant will be installed. I'll be using \texttt{\$HOME/geant}.
 
 \item
-Create a directory where Geant will be installed.  I'll be using \texttt{\$HOME/geant}.
+Download the .tar.gz source files archive from \url{https://geant4.web.cern.ch/support/download}
+into the installation directory.
 
 \item
 \texttt{cd} to this directory and unpack the downloaded files with
 \begin{verbatim}
-$ tar xzvf ~/Downloads/geant4.10.06.tar.gz
+$ tar xzvf geant4.10.06.tar.gz
 \end{verbatim}
 (change the version number as appropriate).
 
@@ -308,7 +309,7 @@ Again, if you chose a different location for installing Geant, modify this as ne
 
 
 \subsection{Compiling the Executables}
-The converter simulation and fitting programs are distributed as part of the \texttt{util\_programs} project, which is included in a standard \bmad \, distribution.
+The converter simulation and fitting programs are distributed as part of the \texttt{util\_programs} project, which is included in a standard \bmad distribution.
 If you are working with a release instead of a distribution, you can pull down the latest version of the \texttt{util\_programs} project with
 \begin{verbatim}
 $ svn co https://accserv.lepp.cornell.edu/svn/trunk/src/util_programs
@@ -318,14 +319,14 @@ Once you have \texttt{util\_programs} on your system, you will need to add
 export ACC_BUILD_TEST_EXES="Y"
 \end{verbatim}
 to your \texttt{.bashrc}, and then start a new shell.
-\texttt{cd} to the \texttt{util\_programs} folder, and then simply run \texttt{mk} to build \exes \, and \exef \, (or \texttt{mkd} for debug builds).
+\texttt{cd} to the \texttt{util\_programs} folder, and then simply run \texttt{mk} to build \exes and \exef  (or \texttt{mkd} for debug builds).
 
 
 
 \section{How to run the programs}
 
 \subsection{Configuration}
-Both \exes \, and \exef \, are configured by editing the file \configfile, which should be in the working directory where you run both executables.
+Both \exes  and \exef  are configured by editing the file \configfile, which should be in the working directory where you run both executables.
 Each line in this file should have the form
 \begin{verbatim}
 setting = value
@@ -354,66 +355,69 @@ fit_crossover = 10 MeV ! For alpha and beta fits, this defines the
                        ! point where the fitter transitions from 1D
                        ! to 2D fits, defaults to 10 MeV
 \end{verbatim}
-\newcommand{\targetm}{\texttt{target\_material}}
-\newcommand{\targett}{\texttt{target\_thickness}}
-\newcommand{\pcin}{\texttt{pc\_in}}
-\newcommand{\outpcmin}{\texttt{out\_pc\_min}}
-\newcommand{\outpcmax}{\texttt{out\_pc\_max}}
-\newcommand{\dxydsmax}{\texttt{dxy\_ds\_max}}
-\newcommand{\outdir}{\texttt{output\_directory}}
-\newcommand{\numbins}{\texttt{num\_bins}}
-\newcommand{\numrbins}{\texttt{num\_r\_bins}}
-\newcommand{\numpcbins}{\texttt{num\_pc\_bins}}
-\newcommand{\fitxpt}{\texttt{fit\_crossover}}
+\newcommand{\targetm}{\texttt{target\_material}\xspace}
+\newcommand{\targett}{\texttt{target\_thickness}\xspace}
+\newcommand{\pcin}{\texttt{pc\_in}\xspace}
+\newcommand{\outpcmin}{\texttt{out\_pc\_min}\xspace}
+\newcommand{\outpcmax}{\texttt{out\_pc\_max}\xspace}
+\newcommand{\dxydsmax}{\texttt{dxy\_ds\_max}\xspace}
+\newcommand{\outdir}{\texttt{output\_directory}\xspace}
+\newcommand{\numbins}{\texttt{num\_bins}\xspace}
+\newcommand{\numrbins}{\texttt{num\_r\_bins}\xspace}
+\newcommand{\numpcbins}{\texttt{num\_pc\_bins}\xspace}
+\newcommand{\fitxpt}{\texttt{fit\_crossover}\xspace}
 
-All settings accept a single value, except for \pcin \, and \targett, which accept a comma separated list of values.
-The settings \outpcmin, \outdir, \numbins, and \fitxpt \, have default values, while the settings \targetm, \targett, \pcin, \outpcmax, and \dxydsmax \, must be specified in the file.
+All settings accept a single value, except for \pcin and \targett, which accept a comma separated
+list of values.  The settings \outpcmin, \outdir, \numbins, and \fitxpt have default values, while
+the settings \targetm, \targett, \pcin, \outpcmax, and \dxydsmax must be specified in the file.
 
-The settings \pcin, \outpcmin, and \outpcmax \, take values with dimensions of energy.
-These default to eV if no unit is specified, although \texttt{MeV} and \texttt{GeV} can be added as suffixes to use MeV and GeV instead as shown in the sample file.
-The \targett \, setting takes values with dimensions of length.
-The default unit is meters, although \texttt{cm} and \texttt{mm} are supported as well.
+The settings \pcin, \outpcmin, and \outpcmax take values with dimensions of energy.  These default
+to eV if no unit is specified, although \texttt{MeV} and \texttt{GeV} can be added as suffixes to
+use MeV and GeV instead as shown in the sample file.  The \targett setting takes values with
+dimensions of length.  The default unit is meters, although \texttt{cm} and \texttt{mm} are
+supported as well.
 
-The settings \numbins, \numpcbins, and \numrbins \, control the number of bins used in the histogram.
-If you only provide a value for \numbins, it will be used for both the number of $p_+c$ bins and then number of $r$ bins.
-If you provide \numpcbins \, or \numrbins \, in your config file, this value will supersede \numbins \, for the number of $p_+ c$ or $r$ bins respectively.
-If you do not set \numbins \, in your config file, you must set both \numpcbins \, and \numrbins.
+The settings \numbins, \numpcbins, and \numrbins control the number of bins used in the histogram.
+If you only provide a value for \numbins, it will be used for both the number of $p_+c$ bins and
+then number of $r$ bins.  If you provide \numpcbins or \numrbins in your config file, this value
+will supersede \numbins for the number of $p_+ c$ or $r$ bins respectively.  If you do not set
+\numbins in your config file, you must set both \numpcbins and \numrbins.
 
 \subsection{The Simulation Program}
 
-To run \exes \, and perform the converter simulation, first create and edit the configuration file \configfile, and place it in your working directory.
+To run \exes  and perform the converter simulation, first create and edit the configuration file \configfile, and place it in your working directory.
 Then, just run
 \begin{verbatim}
 $ converter_simulation
 \end{verbatim}
 at your command prompt.  The program will parse your config file and report the settings it read,
 and report if there are any problems reading your config file.  It will then verify that the
-directory you set for \outdir \, does not exist or is empty, and will ask you if you want to
-overwrite it if it already exists.  Then, for each value of \pcin \, and \targett \, specified in
+directory you set for \outdir  does not exist or is empty, and will ask you if you want to
+overwrite it if it already exists.  Then, for each value of \pcin  and \targett  specified in
 the config file, the program will simulate many particle creation events for those settings.  For example,
 with the above config file, six simulations will be run with the following settings:
 \begin{itemize}
 \item
-300 MeV \pcin \, and 6.35 mm \targett
+300 MeV \pcin  and 6.35 mm \targett
 
 \item
-500 MeV \pcin \, and 6.35 mm \targett
+500 MeV \pcin  and 6.35 mm \targett
 
 \item
-1 GeV \pcin \, and 6.35 mm \targett
+1 GeV \pcin  and 6.35 mm \targett
 
 \item
-300 MeV \pcin \, and 1 cm \targett
+300 MeV \pcin  and 1 cm \targett
 
 \item
-500 MeV \pcin \, and 1 cm \targett
+500 MeV \pcin  and 1 cm \targett
 
 \item
-1 GeV \pcin \, and 1 cm \targett
+1 GeV \pcin  and 1 cm \targett
 \end{itemize}
 
 Depending on your computer and the number of different simulations that need to be run, this step may take several hours.
-%Fortunately, this only has to be done once to set up the \bmad \, converter element.
+%Fortunately, this only has to be done once to set up the \bmad  converter element.
 
 
 \subsection{The Fitting Program}
@@ -422,39 +426,49 @@ Once the simulations are complete, just run
 \begin{verbatim}
 $ converter_fitter
 \end{verbatim}
-in the same directory where you ran \exes.
-\exef will re-parse your config file for the settings it needs, and will again report on any errors it encounters.
-It then performs the fit from Equation \ref{eq:cauchy} in each of the $(p_+c, r)$ bins for each simulation.
-At this stage, the program may report that the fitting iteration limit has been reached a few times; this is not cause for concern.
-Once this step is complete, and the program has obtained values of $c_x$, $\alpha_x$, $\alpha_y$, and $\beta$ in each $(p_+c, r)$ bin,
-it performs the fits from Equations \ref{eq:fit1}-\ref{eq:fit2} on these fit parameters.
-Finally, the results of the simulation, as well as the results of the fits, are output to the file \texttt{converter.bmad}, located in the \outdir \, specified in the config file.
+in the same directory where you ran \exes.  \exef will re-parse your config file for the settings it
+needs, and will again report on any errors it encounters.  It then performs the fit from Equation
+\ref{eq:cauchy} in each of the $(p_+c, r)$ bins for each simulation.  At this stage, the program may
+report that the fitting iteration limit has been reached a few times; this is not cause for concern.
+Once this step is complete, and the program has obtained values of $c_x$, $\alpha_x$, $\alpha_y$,
+and $\beta$ in each $(p_+c, r)$ bin, it performs the fits from Equations \ref{eq:fit1}-\ref{eq:fit2}
+on these fit parameters.  Finally, the results of the simulation, as well as the results of the
+fits, are output to the file \texttt{converter.bmad}, located in the \outdir specified in the config
+file.
 
 \section{Output from the Programs}
 
 \subsection{Simulation Output}
 
-After running the \exes \, program, the directory specified by the \texttt{output\_directory} setting in the configuration file will exist in your working directory.
-Inside it, there will be one file of the format '\texttt{E\{pc\_in\}\_T\{thickness\}\_er.dat}', for each incoming $p_- c$ and target thickness specified in the configuration file, where \texttt{pc\_in} and \texttt{thickness} are the $p_- c$ and thickness in MeV and cm respectively.
-These files contained the binned data which approximate $P_1(p_+ c, r)$.
-The output directory will also contain a directory \texttt{dir\_dat}, with subdirectories \texttt{E\{pc\_in\}\_T\{thickness\}\_er.dat} for each $p_- c$ and target thickness combination.
-Each of these directories will contain files named \texttt{E\{pc\_out\}\_r\{r\_out\}\_bin.dat}, which contain the binned $\dxds$ and $\dyds$ data used by \exef.
+After running the \exes program, the directory specified by the \texttt{output\_directory} setting
+in the configuration file will exist in your working directory.  Inside it, there will be one file
+of the format '\texttt{E\{pc\_in\}\_T\{thickness\}\_er.dat}', for each incoming $p_- c$ and target
+thickness specified in the configuration file, where \texttt{pc\_in} and \texttt{thickness} are the
+$p_- c$ and thickness in MeV and cm respectively.  These files contained the binned data which
+approximate $P_1(p_+ c, r)$.  The output directory will also contain a directory \texttt{dir\_dat},
+with subdirectories \texttt{E\{pc\_in\}\_T\{thickness\}\_er.dat} for each $p_- c$ and target
+thickness combination.  Each of these directories will contain files named
+\texttt{E\{pc\_out\}\_r\{r\_out\}\_bin.dat}, which contain the binned $\dxds$ and $\dyds$ data used
+by \exef.
 
 \subsection{Fitting Output}
 
-After running the \exef \, program, the output directory will also contain a file called \texttt{converter.bmad}.
-This file aggregates all the information about $P_1$ and $P_2$ at each $p_+ c$ and target thickness tested, and is designed for use with a \bmad \, converter element.
+After running the \exef  program, the output directory will also contain a file called \texttt{converter.bmad}.
+This file aggregates all the information about $P_1$ and $P_2$ at each $p_+ c$ and target thickness tested, and is designed for use with a \bmad  converter element.
 
 \subsubsection{Gnuplot Files}
 
-\exef \, also generates several gnuplot scripts for inspecting the quality of the obtained fits.
+\exef  also generates several gnuplot scripts for inspecting the quality of the obtained fits.
 These are all written to the individual \texttt{E\{\}\_r\{\}} directories under \texttt{dir\_dat}.
 
-Each of the $(p_+ c, r)$ bins gets two gnuplot scripts: \texttt{cauchy\_E\{pc\_out\}\_r\{r\_out\}.gp} and \texttt{meta\_E\{pc\_out\}\_r\{r\_out\}.gp}.
-The scripts with the \texttt{cauchy} prefix display the distribution $P_2$ obtained by directly fitting Equation \ref{eq:cauchy} to the data in each bin.
-The scripts with the \texttt{meta} prefix display the distribution $P_2$ obtained from evaluating the fits from Equations \ref{eq:fit1}-\ref{eq:fit2} to the Cauchy fit parameters.
+Each of the $(p_+ c, r)$ bins gets two gnuplot scripts:
+\texttt{cauchy\_E\{pc\_out\}\_r\{r\_out\}.gp} and \texttt{meta\_E\{pc\_out\}\_r\{r\_out\}.gp}.  The
+scripts with the \texttt{cauchy} prefix display the distribution $P_2$ obtained by directly fitting
+Equation \ref{eq:cauchy} to the data in each bin.  The scripts with the \texttt{meta} prefix display
+the distribution $P_2$ obtained from evaluating the fits from Equations \ref{eq:fit1}-\ref{eq:fit2}
+to the Cauchy fit parameters.
 
-\exef \, also outputs scripts for viewing the fits from Equations \ref{eq:fit1}-\ref{eq:fit2} across all $(p_+ c, r)$ bins.
+\exef  also outputs scripts for viewing the fits from Equations \ref{eq:fit1}-\ref{eq:fit2} across all $(p_+ c, r)$ bins.
 These are named \texttt{c\_x\_master.gp},
 \texttt{a\_x\_master.gp},
 \texttt{a\_y\_master.gp},
@@ -485,24 +499,29 @@ gnuplot> call 'c_x_master.gp'
 \end{verbatim}
 This will open the plot for $c_x$ across all $(p_+ c, r)$ bins for $p_+ c = 300$ MeV, $T = 0.635$ cm.
 
-\section{The \bmad \, Converter Element}
+\section{The \bmad  Converter Element}
 
-As mention in the previous section, \exef outputs a file, \texttt{converter.bmad}, which encodes all of the simulation and fitting output, and can be used to specify the properties of a \bmad \, converter element.
-See the \bmad \, manual for the full details regarding the converter element in \bmad.
+As mention in the previous section, \exef outputs a file, \texttt{converter.bmad}, which encodes all
+of the simulation and fitting output, and can be used to specify the properties of a \bmad converter
+element.  See the \bmad manual for the full details regarding the converter element in \bmad.
 
-The user should be aware that \bmad's method of generating outgoing particles may not be completely faithful to the simulation results.
-In particular, \bmad uses linear interpolation for the $P_1(p_+c, r)$ distribution.
-This can cause noticeable discrepancies on the edges of the distribution, especially in the bins with the lowest values of $p_+ c$.
-Since $P_1(p_+c, r)$ changes rapidly at low $p_+ c$, and \bmad \, additionally does not generate outgoing particles with $p_+ c$ lower than the lowest value of $p_+ c$ for the bins, \bmad \, does not generate as many outgoing particles at low $p_+ c$ as it should.
+The user should be aware that \bmad's method of generating outgoing particles may not be completely
+faithful to the simulation results.  In particular, \bmad uses linear interpolation for the
+$P_1(p_+c, r)$ distribution.  This can cause noticeable discrepancies on the edges of the
+distribution, especially in the bins with the lowest values of $p_+ c$.  Since $P_1(p_+c, r)$
+changes rapidly at low $p_+ c$, and \bmad additionally does not generate outgoing particles with
+$p_+ c$ lower than the lowest value of $p_+ c$ for the bins, \bmad does not generate as many
+outgoing particles at low $p_+ c$ as it should.
 
 
 \appendix
 
 \section{Notes for ACC Computer Users}
 
-As detailed in Section \ref{s:deps}, building \exes and \exef requires GSL, Geant, and a C++ compiler with support for C++17.
-GSL is already available on the lab machines, and a build of Geant is provided at \texttt{/nfs/acc/temp/jmm699/geant}.
-To get access to this Geant build, you can simply add the following to your \texttt{.bashrc}:
+As detailed in Section \ref{s:deps}, building \exes and \exef requires GSL, Geant, and a C++
+compiler with support for C++17.  GSL is already available on the lab machines, and a build of Geant
+is provided at \texttt{/nfs/acc/temp/jmm699/geant}.  To get access to this Geant build, you can
+simply add the following to your \texttt{.bashrc}:
 \begin{verbatim}
 cd /nfs/acc/temp/jmm699/geant/geant4.10.06.p01-build && source geant4make.sh && cd -
 \end{verbatim}
