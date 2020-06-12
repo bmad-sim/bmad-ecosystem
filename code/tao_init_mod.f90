@@ -23,6 +23,7 @@ subroutine tao_init_global (init_file)
 
 use random_mod
 use opti_de_mod, only: opti_de_param
+use input_mod
 
 type (tao_global_struct), save :: global, default_global
 
@@ -115,6 +116,18 @@ if (s%com%noplot_arg /= '')                   s%global%plot_on = .false.
 if (s%com%no_rad_int_arg /= '')               s%global%rad_int_calc_on = .false.
 if (s%com%prompt_color_arg /= '')             s%global%prompt_color = s%com%prompt_color_arg
 if (s%com%disable_smooth_line_calc_arg /= '') s%global%disable_smooth_line_calc = .true.
+
+s%com%n_alias = 0
+s%com%ix_key_bank = 0             ! For single mode.
+s%com%use_saved_beam_in_tracking = .false.
+if (.not. allocated(s%com%cmd_file)) allocate (s%com%cmd_file(0:0))
+
+s%global%optimizer_allow_user_abort = (isatty(0) == 1)  ! Allow abort if input from tty (instead of a file).
+
+call getenv ('ACC_PLOT_DISPLAY_TYPE', name)
+if (name /= '') s%plot_page%plot_display_type = name
+
+call readline_read_history(s%global%history_file, ios)
 
 end subroutine end_bookkeeping
 

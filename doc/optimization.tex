@@ -56,42 +56,39 @@ where
   \delta V &= \var\_\model  - \var\_\meas
   \label{dd1}
 \end{align}
-\vn{data_model} is the data as calculated from the \vn{model} and \vn{data_meas} is the
-measured data. \vn{var_model} is the value of a variable in the \vn{model} and
-\vn{var_meas} is the value as measured at the time the data was taken (for example, by
-measuring the current through a steering and using a calibration factor to calculate the
-kick) and the sum \vn{j} runs over all variables that are allowed to be varied to minimize
-\vn{M}. The second term in the merit function prevents degeneracies (or near
-degeneracies) in the problem which would allow \tao to find solutions where
-\vn{data_model} matches \vn{data_measured} with the \vn{var_model} having ``unphysical''
-values (values far from \vn{var_meas}). The weights $w_i$ and $w_j$ need to be set
-depending upon how accurate the measured data is relative to how accurate the calibrations
-for measuring the \vn{var_meas} values are. With the second term in the merit function,
-the number of constraints (number of terms in the merit function) is always larger than
-the number of variables and degeneracies can never occur.
+\vn{data_model} is the data as calculated from the \vn{model} and \vn{data_meas} is the measured
+data. \vn{var_model} is the value of a variable in the \vn{model} and \vn{var_meas} is the value as
+measured at the time the data was taken (for example, by measuring the current through a steering
+and using a calibration factor to calculate the kick) and the sum \vn{j} runs over all variables
+that are allowed to be varied to minimize \vn{M}. The second term in the merit function prevents
+degeneracies (or near degeneracies) in the problem which would allow \tao to find solutions where
+\vn{data_model} matches \vn{data_measured} with the \vn{var_model} having ``unphysical'' values
+(values far from \vn{var_meas}). The weights $w_i$ and $w_j$ need to be set depending upon how
+accurate the measured data is relative to how accurate the calibrations for measuring the
+\vn{var_meas} values are. With the second term in the merit function, the number of constraints
+(number of terms in the merit function) is always larger than the number of variables and
+degeneracies can never occur.
 
-In a correction one wants to change the machine variables so that the
-measured data corresponds to the design values \vn{data_design}. Thus
-the change in the data that one wants is
+In a correction, one wants to change the machine variables so that the measured data corresponds to
+the design values \vn{data_design}. For example, when ``flattening'' the orbit, \vn{data_design}
+will be zero. The desired change in the data when the machine variables are varied is
 \begin{example}
-  data_change = data_design - data_meas
+  desired_data_change = data_design - data_meas
 \end{example}
-Once a fit has been made, and presuming that the \vn{data_model} is
-reasonably close to the \vn{data_meas} this data change within the
-\vn{model} lattice can be accomplished by changing the variables by
+Once a fit has been made, and presuming that the \vn{data_model} is reasonably close to the
+\vn{data_meas} this desired data change within the \vn{model} lattice can be accomplished by
+changing the model variables by
 \begin{example}
   var_change = var_design - var_model
 \end{example}
-This assumes the system is linear. For many situations this is true
-since typically \vn{var_change} is ``small''. Since the variables have
-a measured value of \vn{var_meas} the value that the variables should
-be set to is
+This assumes the system is linear. For many situations this is true since typically \vn{var_change}
+is ``small''. Since the variables have a measured value of \vn{var_meas} the value that the
+variables should be set to is
 \begin{example}
   var_final = var_meas + (var_design - var_model)
 \end{example}
-Notice that the fitting process is independent of the \vn{design}
-lattice. It is only when calculating the corrections to the
-variables that the \vn{design} lattice plays a role. 
+Notice that the fitting process is independent of the \vn{design} lattice. It is only when
+calculating the corrections to the variables that the \vn{design} lattice plays a role.
 
 Sometimes it is desired to fit to changes in data as opposed to the absolute value of the
 data. For example, when closing an orbit bump knob what is important is the difference in
@@ -114,9 +111,8 @@ equal to the \vn{model} lattice. The second step is to fit the model using the d
   \label{dd3}
 \end{align}
 
-Control of what data and what variables are to be used in the fitting
-process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
-\vn{clip} commands.
+Control of what data and what variables are to be used in the fitting process is controlled by the
+\vn{use}, \vn{veto}, \vn{restore}, and \vn{clip} commands.
 
 %------------------------------------------------------------------------
 \section{Lattice Design}
@@ -124,13 +120,11 @@ process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
 \index{optimization!lattice design}
 \index{optimization!constraints}
 
-Lattice design is the process of calculating \vn{variable} strengths
-to meet a number of criteria called constraints. For example, one
-constraint could be that the beta function in some part of the lattice
-not exceed a certain value. In this case we can proceed as was done
-for lattice corrections and use \Eq{m1}. In this case, the deltas
-are computed to limit values to some range so a typical delta
-would be of the form
+Lattice design is the process of calculating \vn{variable} strengths to meet a number of criteria
+called constraints. For example, one constraint could be that the beta function in some part of the
+lattice not exceed a certain value. In this case, we can proceed as was done for lattice corrections
+and use \Eq{m1}. Here the deltas are computed to limit values to some range so a 
+delta would be of the form
 \begin{equation}
   \delta D \; \text{or} \; \delta V = 
     \begin{cases}
@@ -138,24 +132,22 @@ would be of the form
     0                            & \mbox{otherwise}
     \end{cases}
 \end{equation}
-or a constraint is used to keep the \vn{model} at a certain value so
-the form of the constraint would be
+or a constraint is used to keep the \vn{model} at a certain value so the form of the constraint
+would be
 \begin{equation}
     \delta D \; \text{or} \; \delta V = \mbox{model} - \mbox{target}  
 \end{equation}
-Here \vn{model} is the value as calculated from the \vn{model}
-lattice. \vn{target} and \vn{limit} are given numbers. Part of the
-optimization process is in deciding what the values should be for any
-\vn{target} or \vn{limit}.
+Here \vn{model} is the value as calculated from the \vn{model} lattice. \vn{target} and \vn{limit}
+are given by the user. Part of the optimization process is in deciding what the values should be for
+any \vn{target} or \vn{limit}.
 
 %------------------------------------------------------------------------
 \section{Generalized Design}
 \label{s:generalized.design}
 \index{optimization!generalized merit function}
 
-The form of the deltas used in the merit function is determined by two global logicals
-called \vn{opt_with_ref} and \vn{opt_with_base} (\sref{s:globals}) as shown in
-Table~\ref{t:delta}.
+The form of the deltas used in the merit function is determined by two global logicals called
+\vn{opt_with_ref} and \vn{opt_with_base} (\sref{s:globals}) as shown in Table~\ref{t:delta}.
 \begin{table}[ht] 
 \centering 
 {\tt
@@ -195,7 +187,7 @@ Table~\ref{t:con.type}.
 \bottomrule
 \end{tabular}
 }
-\caption{Constraint Type List.}
+\caption{Data Constraint Type List.}
 \label{t:con.type}
 \end{table}
 \index{optimization!optimize with reference}
@@ -225,7 +217,7 @@ and the \vn{target} and \vn{limit} values are identified with \vn{Meas}.
 
 When optimizing a storage ring, If the ring is unstable so that the twiss parameters, closed orbit,
 etc. cannot be computed, the contribution to the merit function from the corresponding datums is set
-to zero. This tends to lower the merit function and in this case an optimizer will never leave the
+to zero. This tends to lower the merit function and in this case, an optimizer will never leave the
 unstable region. To avoid this, an \vn{unstable.lattice} constraint (\sref{s:data.types}) must be set.
 
 To see a list of constraints when running \tao use the \vn{show constraints} command
@@ -237,42 +229,34 @@ included in an optimization.
 \section{Variable Limits and Optimization}
 \label{s:limit}
 
-High (\vn{high_lim}) and low (\vn{low_lim}) limiting values can be set
-for any variable (\sref{s:init.var}). If not explicitly set,
-\vn{high_lim} defaults to $10^{30}$ and \vn{low_lim} defaults to
-$-10^{30}$. When running the optimizer, if the (model) value of a
-variable is outside of the range set by the limits, the value will be
-set to the value of the appropriate limit and the variable's
-\vn{good_user} parameter (\sref{c:var}) is set to False so that no
-further variation by the optimizer is done.
+High (\vn{high_lim}) and low (\vn{low_lim}) limiting values can be set for any variable
+(\sref{s:init.var}). If not explicitly set, \vn{high_lim} defaults to $10^{30}$ and \vn{low_lim}
+defaults to $-10^{30}$. When running the optimizer, if the parameter \vn{global%var_limits_on}
+(\sref{s:globals}) is \vn{True}, and if the (model) value of a variable is outside of
+the range set by the limits, the value will be set to the value of the appropriate limit and the
+variable's \vn{good_user} parameter (\sref{c:var}) is set to False so that no further variation by
+the optimizer is done.
 
-If the parameter \vn{global%var_limits_on} (\sref{s:globals}) is set
-to \vn{False}, limit settings are ignored. 
+By default, any variable value outside of the limit range will reset. Even those variables that are
+not varied by the optimizer. If this behavior is not desired, the parameter
+\vn{global%only_limit_opt_vars} may be set to \vn{True}.  If this is done, only variables that the
+optimizer is allowed to vary are restricted.
 
-By default, any variable value outside of the limit range will
-reset. Even those variables that are not varied by the optimizer. If
-this behavior is not desired, the parameter
-\vn{global%only_limit_opt_vars} may be set to \vn{True}.  If this is
-done, only variables that the optimizer is allowed to vary are
-restricted.
-
-The \vn{global%optimizer_var_limit_warn} parameter controls
-whether a warning is printed when a variable value goes past a limit.
-The default is \vn{True}.
+The \vn{global%optimizer_var_limit_warn} parameter controls whether a warning is printed when a
+variable value goes past a limit.  The default is \vn{True}.
 
 %------------------------------------------------------------------------
 \section{Optimizers in Tao}
 \label{s:tao.opti}
 \index{optimization!optimizer}
 
-The algorithm used to vary the \vn{model} variables to minimize \vn{M} is called an
-\vn{optimizer}. In \vn{command line mode} the \vn{run} command is used to invoke an
-\vn{optimizer}. In \vn{single mode} the \vn{g} key starts an optimizer. In both modes the
-period key (\vn{``.''}) stops the optimization (however, the
-\vn{global%optimizer_allow_user_abort} parameter (\sref{s:globals}) can be set to False to
-prevent this). Running an optimizer is also called ``fitting'' since one is trying to get
-the \vn{model} data to be equal to the \vn{measured} data. With orbits this is also called
-``flattening'' since one generally wants to end up with an orbit that is on--axis.
+The algorithm used to vary the \vn{model} variables to minimize \vn{M} is called an \vn{optimizer}.
+In \vn{command line mode} the \vn{run} command is used to invoke an \vn{optimizer}. In \vn{single
+mode} the \vn{g} key starts an optimizer. In both modes the period key (\vn{``.''}) stops the
+optimization (however, the \vn{global%optimizer_allow_user_abort} parameter (\sref{s:globals}) can
+be set to False to prevent this). Running an optimizer is also called ``fitting'' since one is
+trying to get the \vn{model} data to be equal to the \vn{measured} data. With orbits this is also
+called ``flattening'' since one generally wants to end up with an orbit that is on--axis.
 
 The optimizer that is used can be defined when using the \vn{run} command but
 the default optimizer can be set in the \tao input file by setting the

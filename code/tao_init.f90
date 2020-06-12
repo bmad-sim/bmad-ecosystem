@@ -18,7 +18,6 @@ use tao_plot_mod, dummy6 => tao_init
 use tao_data_and_eval_mod, dummy7 => tao_init
 use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
-use input_mod
 
 implicit none
 
@@ -42,7 +41,7 @@ character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
 
-integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios, stat
+integer i, i0, j, i2, j2, n_universes, iu, ix, ib, ip, ios
 integer iu_log
 
 logical err, calc_ok, valid_value, this_calc_ok, using_default
@@ -50,20 +49,6 @@ logical :: err_flag
 
 namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
                data_file, var_file, plot_file, n_universes, init_name, beam_file
-
-! global inits
-
-call readline_read_history(s%global%history_file, stat)
-
-s%com%n_alias = 0
-s%com%ix_key_bank = 0             ! For single mode.
-s%com%use_saved_beam_in_tracking = .false.
-if (.not. allocated(s%com%cmd_file)) allocate (s%com%cmd_file(0:0))
-
-s%global%optimizer_allow_user_abort = (isatty(0) == 1)  ! Allow abort if input from tty (instead of a file).
-
-call getenv ('ACC_PLOT_DISPLAY_TYPE', name1)
-if (name1 /= '') s%plot_page%plot_display_type = name1
 
 ! Put all informational messages in the tao_init.log file.
 ! Only print error messages. Not standard ones.
