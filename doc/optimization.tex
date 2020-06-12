@@ -206,8 +206,10 @@ For variables, the form of the terms $V_i$ is determined by its \vn{merit_type}.
   target
   limit
 \end{example}
-A \vn{target} \vn{merit_type} for a variable is the same as for datum. In this case \vn{model} is
-just the value of the variable.  A \vn{limit} \vn{merit_type} has the form
+A \vn{target} \vn{merit_type} for a variable is the same as for datum. In this case, \vn{model} is
+just the value of the variable.  
+
+A \vn{limit} \vn{merit_type} has the form
 \begin{equation}
   \delta V = 
     \begin{cases}
@@ -218,13 +220,13 @@ just the value of the variable.  A \vn{limit} \vn{merit_type} has the form
 \end{equation}
 The default \vn{merit_type} for a variable is \vn{limit}.
 
-Note: when doing lattice design \vn{opt_with_ref} and \vn{opt_with_base} are both set to \vn{False}
+Note: when doing lattice design, \vn{opt_with_ref} and \vn{opt_with_base} are both set to \vn{False}
 and the \vn{target} and \vn{limit} values are identified with \vn{Meas}.
 
 When optimizing a storage ring, If the ring is unstable so that the twiss parameters, closed orbit,
 etc. cannot be computed, the contribution to the merit function from the corresponding datums is set
 to zero. This tends to lower the merit function and in this case an optimizer will never leave the
-unstable region. To avoid this, an \vn{unstable_ring} constraint (\sref{s:data.types}) must be set.
+unstable region. To avoid this, an \vn{unstable.lattice} constraint (\sref{s:data.types}) must be set.
 
 To see a list of constraints when running \tao use the \vn{show constraints} command
 (\sref{s:show}). To see how a particular variable or datum is doing use the \vn{show data} or

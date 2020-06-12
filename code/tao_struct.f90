@@ -598,6 +598,7 @@ end type
 !------------------------------------------------------------------------
 ! global parameters that the user has direct access to.
 ! Also see: tao_common_struct.
+! If this structure is changed, change tao_set_global_cmd.
 
 type tao_global_struct
   real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
