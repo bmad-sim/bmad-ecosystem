@@ -114,8 +114,10 @@ converter, they emit photons via Bremsstrahlung, which in turn decay to $e^+ e^-
 
 \section{The converter model}
 
-For now, assume that the incoming particle's momentum is perpendicular to the surface of the
-converter. The coordinate system is shown in Figure \ref{fig:coords}.
+The probability distribution is computed assuming assuming that the incoming particle's momentum is
+perpendicular to the surface of the converter. This is reasonable since deviations of the
+probability distribution will be second order in the transverse momentum. The coordinate system is
+shown in Figure \ref{fig:coords}.
 \begin{figure}
 \centering
 \includegraphics[width=0.6\textwidth]{coords1.pdf}
@@ -222,8 +224,7 @@ these parameters and this lattice file is used for simulating the converter inde
 
 To build and run the \exes program, you will need an up to date installation of Geant4 on
 your system. See the Geant4 installation guide below for details on how to get Geant4 up and
-running on Linux.  You will also need \texttt{cmake} installed. Since \texttt{cmake} is a
-requirement for a standard \bmad distribution, chances are that \texttt{cmake} is already present.
+running on Linux.  You will also need \texttt{cmake} version 3.8 or greater installed.
 
 To build and run the fitting program, \exef, you will need the GNU Scientific Library (GSL)
 installed on your system.  This is distributed with \bmad, so you should already have it on your
@@ -298,30 +299,31 @@ $ make install
 
 \item
 The file \texttt{\$HOME/geant/geant4.10.06-build/geant4make.sh} must be sourced to add Geant4 to your path.
-To do so, add the following to your \texttt{.bashrc}:
+To do so use the following commands:
 \begin{verbatim}
 cd $HOME/geant/geant4.10.06-build && source geant4make.sh && cd -
 \end{verbatim}
-Again, if you chose a different location for installing Geant, modify this as necessary.
-
+Again, if you chose a different location for installing Geant, modify this as necessary. [If you
+are using Bash, and if you want to not have to remember to execute these commands every time you
+login, add these to your \texttt{.bashrc} file.]
 \end{enumerate}
 
+%--------------------------------
 
-
-\subsection{Compiling the Executables}
-The converter simulation and fitting programs are distributed as part of the \texttt{util\_programs} project, which is included in a standard \bmad distribution.
-If you are working with a release instead of a distribution, you can pull down the latest version of the \texttt{util\_programs} project with
+\subsection{Compiling the Executables} The converter simulation and fitting programs are distributed
+as part of any \bmad Distribution and are located in the \texttt{util\_programs} directory. If you
+are working with a Release instead of a Distribution, you can download the latest version of the
+\texttt{util\_programs} directory with the command:
 \begin{verbatim}
 $ svn co https://accserv.lepp.cornell.edu/svn/trunk/src/util_programs
 \end{verbatim}
-Once you have \texttt{util\_programs} on your system, you will need to add
+Execute the command (or you can add this to your ~/.bashrc file)
 \begin{verbatim}
 export ACC_BUILD_TEST_EXES="Y"
 \end{verbatim}
-to your \texttt{.bashrc}, and then start a new shell.
 \texttt{cd} to the \texttt{util\_programs} folder, and then simply run \texttt{mk} to build \exes and \exef  (or \texttt{mkd} for debug builds).
 
-
+%---------------------------------------------------------------------------------
 
 \section{How to run the programs}
 

@@ -155,6 +155,9 @@ bmad_param_name = {
     'lrad':   'l',  
     'xsize':  'x_limit',
     'ysize':  'y_limit',
+    'dx':     'x_offset',
+    'dy':     'y_offset',
+    'ds':     'z_offset',
 }
 
 #------------------------------------------------------------------
@@ -427,7 +430,7 @@ def parse_element(dlist, write_to_file, command):
         params['ey'] = params['ex']
 
   elif ele.madx_base_type == 'xrotation':
-    if 'angle' in params: params['ypitch'] = params.pop('angle')
+    if 'angle' in params: params['y_pitch'] = negate(params.pop('angle'))
 
   elif ele.madx_base_type == 'yrotation':
     if 'angle' in params: params['x_pitch'] = negate(params.pop('angle'))

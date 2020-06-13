@@ -1,4 +1,4 @@
- 2020-02-13 16:27:48 
+ 2020-04-30 18:14:01 
  
    1   Drift                 22   AB_multipole
    2   Sbend                 58   AC_Kicker
@@ -70,6 +70,8 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         57  X_OFFSET_TOT                            
@@ -137,7 +139,7 @@
         42  BL_VKICK                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -170,7 +172,11 @@
         84  LR_WAKE_FILE                            
         85  LR_FREQ_SPREAD                          
         86  MULTIPOLES_ON                           
-        87  APERTURE_TYPE                           
+        87  APERTURE_TYPE  
+						x2_curvature
+						x2_centroid                         
+						x2_center_curvature
+						x2_centroid_curvature
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_METHOD                              
         90  SPACE_CHARGE_METHOD                     
@@ -223,21 +229,22 @@
         15  SIG_Y                                   
         16  SIG_Z                                   
         20  N_SLICE                                 
-        23  BETA_A                                  
-        24  BETA_B                                  
-        25  ALPHA_A                                 
-        26  ALPHA_B                                 
-        27  CMAT_11                                 
-        28  CMAT_12                                 
-        29  CMAT_21                                 
-        30  CMAT_22                                 
+        21  BETA_A_STRONG                           
+        22  BETA_B_STRONG                           
+        23  ALPHA_A_STRONG                          
+        24  ALPHA_B_STRONG                          
+        29  CMAT_11                                 
+        30  CMAT_12                                 
+        31  CMAT_21                                 
+        32  CMAT_22                                 
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
-        52  E_tot_start                               [private]
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -298,6 +305,8 @@
         41  BL_HKICK                                
         42  BL_VKICK                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -364,7 +373,11 @@
  !---------------------------------
  28  Beginning_Ele       
          1  l                                         [private]
-        29  floor_set                                 [private]
+        29  CMAT_11                                 
+        30  CMAT_12                                 
+        31  CMAT_21                                 
+        32  CMAT_22                                 
+        49  floor_set                                 [private]
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
@@ -377,20 +390,16 @@
         74  Scratch4                                  [private]
         75  Scratch5                                  [private]
         80  check_sum                                 [private]
-        81  ALPHA_B                                 
         82  ETA_X                                   
         83  ETA_Y                                   
         84  ETAP_X                                  
         85  ETAP_Y                                  
         86  PHI_A                                   
         87  ETA_Z                                   
-        88  CMAT_11                                 
-        89  CMAT_12                                 
-        90  CMAT_21                                 
-        91  CMAT_22                                 
         92  S                                       
         93  REF_TIME                                
-       100  ALPHA_A                                 
+        99  ALPHA_A                                 
+       100  ALPHA_B                                 
        102  X_POSITION                              
        103  Y_POSITION                              
        104  Z_POSITION                              
@@ -459,15 +468,25 @@
  38  Converter           
          1  L                                       
          2  TILT                                    
-         4  RADIATION_LENGTH                        
-         5  E_MIN                                   
-         6  E_MAX                                   
+         5  PC_OUT_MIN                              
+         6  PC_OUT_MAX                              
+         7  ANGLE_OUT_MAX                           
+        21  BETA_A_OUT                              
+        22  BETA_B_OUT                              
+        23  ALPHA_A_OUT                             
+        24  ALPHA_B_OUT                             
+        25  ETA_X_OUT                               
+        26  ETA_Y_OUT                               
+        27  ETAP_X_OUT                              
+        28  ETAP_Y_OUT                              
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -487,7 +506,9 @@
         78  Y1_LIMIT                                
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
+        81  DISTRIBUTION                            
         82  ALIAS                                   
+        83  SPECIES_OUT                             
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -501,7 +522,6 @@
        107  WALL                                    
        108  APERTURE_AT                             
        112  DESCRIP                                 
-       116  MATERIAL_TYPE                           
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -535,7 +555,7 @@
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -627,6 +647,7 @@
         25  MOSAIC_THICKNESS                        
         26  MOSAIC_ANGLE_RMS_IN_PLANE               
         27  MOSAIC_ANGLE_RMS_OUT_PLANE              
+        29  MOSAIC_DIFFRACTION_NUM                  
         30  B_PARAM                                 
         31  REF_CAP_GAMMA                           
         34  X_PITCH                                 
@@ -800,7 +821,7 @@
  !---------------------------------
  21  Def_Mad_Beam!       
          2  N_PART                                  
-        25  PARTICLE                                
+        48  PARTICLE                                
         53  PC                                      
         54  ENERGY                                  
         71  Scratch1                                  [private]
@@ -815,12 +836,12 @@
          3  TAYLOR_ORDER                            
          6  ix_branch                                 [private]
         20  DEFAULT_TRACKING_SPECIES                
-        23  HIGH_ENERGY_SPACE_CHARGE_ON             
-        24  LIVE_BRANCH                             
-        25  PARTICLE                                
-        26  GEOMETRY                                
-        27  LATTICE_TYPE                            
-        28  PHOTON_TYPE                             
+        43  HIGH_ENERGY_SPACE_CHARGE_ON             
+        44  PHOTON_TYPE                             
+        45  LATTICE_TYPE                            
+        46  LIVE_BRANCH                             
+        47  GEOMETRY                                
+        48  PARTICLE                                
         53  P0C                                     
         54  E_TOT                                   
         55  NO_END_MARKER                           
@@ -890,7 +911,7 @@
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -950,6 +971,8 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -1013,7 +1036,7 @@
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -1090,7 +1113,7 @@
         47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -1368,6 +1391,8 @@
         41  BL_HKICK                                
         42  BL_VKICK                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -1442,6 +1467,8 @@
         31  DPHI_ORIGIN                             
         32  DPSI_ORIGIN                             
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
@@ -1478,6 +1505,8 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
@@ -1525,6 +1554,8 @@
          7  IX_TO_BRANCH                            
          8  IX_TO_ELEMENT                           
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
@@ -1633,7 +1664,7 @@
         47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -1710,8 +1741,8 @@
          1  L                                       
          8  DELTA_E_REF                             
         50  DELTA_REF_TIME                          
-        51  P0C_START                               
-        52  E_TOT_START                             
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
@@ -1780,7 +1811,7 @@
         42  BL_VKICK                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -1865,7 +1896,7 @@
         47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -2110,11 +2141,15 @@
          1  l                                         [private]
          6  ix_branch                                 [private]
         20  DEFAULT_TRACKING_SPECIES                
-        23  HIGH_ENERGY_SPACE_CHARGE_ON             
-        24  LIVE_BRANCH                             
-        25  PARTICLE                                
-        26  GEOMETRY                                
-        29  floor_set                                 [private]
+        29  CMAT_11                                 
+        30  CMAT_12                                 
+        31  CMAT_21                                 
+        32  CMAT_22                                 
+        43  HIGH_ENERGY_SPACE_CHARGE_ON             
+        46  LIVE_BRANCH                             
+        47  GEOMETRY                                
+        48  PARTICLE                                
+        49  floor_set                                 [private]
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
@@ -2127,20 +2162,16 @@
         74  Scratch4                                  [private]
         75  Scratch5                                  [private]
         80  check_sum                                 [private]
-        81  ALPHA_B                                 
         82  ETA_X                                   
         83  ETA_Y                                   
         84  ETAP_X                                  
         85  ETAP_Y                                  
         86  PHI_A                                   
         87  ETA_Z                                   
-        88  CMAT_11                                 
-        89  CMAT_12                                 
-        90  CMAT_21                                 
-        91  CMAT_22                                 
         92  S                                       
         93  REF_TIME                                
-       100  ALPHA_A                                 
+        99  ALPHA_A                                 
+       100  ALPHA_B                                 
        102  X_POSITION                              
        103  Y_POSITION                              
        104  Z_POSITION                              
@@ -2178,7 +2209,7 @@
         41  e_tot_ref_init                            [private]
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -2238,6 +2269,8 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -2328,7 +2361,7 @@
         47  C22_MAT1                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
@@ -2380,6 +2413,8 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -2459,7 +2494,7 @@
         42  BL_VKICK                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -2599,6 +2634,8 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         57  X_OFFSET_TOT                            
@@ -2683,7 +2720,7 @@
         48  B3_GRADIENT                             
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -2835,6 +2872,8 @@
          7  IX_TO_BRANCH                            
          8  IX_TO_ELEMENT                           
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
@@ -2900,6 +2939,8 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -2973,7 +3014,7 @@
         42  BL_VKICK                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3060,7 +3101,7 @@
         47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3174,7 +3215,7 @@
         47  COUPLER_AT                              
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3286,7 +3327,7 @@
         49  PTC_FIELD_GEOMETRY                      
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3378,6 +3419,8 @@
         41  BL_HKICK                                
         42  BL_VKICK                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3469,6 +3512,8 @@
         42  Y_PITCH_MULT                            
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3530,6 +3575,8 @@
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3625,7 +3672,7 @@
         49  PTC_FIELD_GEOMETRY                      
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3721,7 +3768,7 @@
         47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3818,7 +3865,7 @@
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3915,7 +3962,7 @@
         49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -4001,7 +4048,7 @@
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -4086,7 +4133,7 @@
         47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -4178,7 +4225,7 @@
         47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -4277,7 +4324,7 @@
         47  PTC_CANONICAL_COORDS                    
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
-        52  E_tot_start                               [private]
+        52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -4358,10 +4405,10 @@
      1    55
      2    51
      3    26
-     4    20
+     4    19
      5    23
      6    24
-     7    19
+     7    20
      8    23
      9     8
     10    29
@@ -4375,18 +4422,18 @@
     18     8
     19    12
     20    19
-    21    17
-    22    15
-    23    18
-    24    18
-    25    18
-    26    23
-    27    12
-    28     7
-    29    16
-    30    10
-    31     8
-    32     6
+    21    19
+    22    17
+    23    17
+    24    17
+    25    15
+    26    21
+    27    11
+    28     6
+    29    17
+    30    12
+    31    11
+    32     9
     33     9
     34    46
     35    46
@@ -4397,16 +4444,16 @@
     40    25
     41    24
     42    21
-    43     6
-    44     5
-    45     7
-    46     6
-    47    18
-    48     4
-    49     6
+    43     8
+    44     6
+    45     8
+    46     8
+    47    20
+    48     7
+    49     8
     50    53
-    51    36
-    52    37
+    51    53
+    52    53
     53    55
     54    55
     55    44
@@ -4435,17 +4482,17 @@
     78    50
     79    50
     80    57
-    81    12
+    81    11
     82    58
-    83    32
+    83    33
     84    37
     85    37
     86    26
     87    54
-    88    38
-    89    33
-    90    31
-    91    54
+    88    36
+    89    31
+    90    29
+    91    52
     92    53
     93    53
     94    51
@@ -4453,7 +4500,7 @@
     96    51
     97    50
     98    50
-    99     1
+    99     3
    100    31
    101     3
    102     3
@@ -4470,7 +4517,7 @@
    113    14
    114    27
    115    28
-   116     6
+   116     5
    117    55
    118    52
    119    52
@@ -4784,7 +4831,6 @@ Index: 4
     Match               
     Monitor             
     Instrument          
-    Converter           
     Def_Particle_Start  
     Crystal             
     Pipe                
@@ -4858,6 +4904,7 @@ Index: 7
     Match               
     Monitor             
     Instrument          
+    Converter           
     Photon_Fork         
     Fork                
     Mirror              
@@ -5106,6 +5153,7 @@ Index: 21
     Sbend               
     Custom              
     ELseparator         
+    BeamBeam            
     Wiggler             
     Marker              
     Rbend               
@@ -5113,6 +5161,7 @@ Index: 21
     Match               
     Monitor             
     Instrument          
+    Converter           
     Def_Particle_Start  
     Crystal             
     Pipe                
@@ -5125,12 +5174,14 @@ Index: 21
 Index: 22
     Sbend               
     Custom              
+    BeamBeam            
     Wiggler             
     Marker              
     Rbend               
     Match               
     Monitor             
     Instrument          
+    Converter           
     Def_Particle_Start  
     Crystal             
     Pipe                
@@ -5148,10 +5199,9 @@ Index: 23
     Marker              
     Rbend               
     Lcavity             
-    Def_Parameter!      
-    Line_Ele            
     Monitor             
     Instrument          
+    Converter           
     Def_Particle_Start  
     Crystal             
     Pipe                
@@ -5168,11 +5218,10 @@ Index: 24
     Marker              
     Rbend               
     Lcavity             
-    Def_Parameter!      
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
+    Converter           
     Crystal             
     Pipe                
     E_Gun               
@@ -5185,16 +5234,13 @@ Index: 24
 Index: 25
     Sbend               
     RFcavity            
-    BeamBeam            
     Marker              
     Rbend               
-    Def_Mad_Beam!       
     Lcavity             
-    Def_Parameter!      
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
+    Converter           
     Crystal             
     Pipe                
     E_Gun               
@@ -5206,16 +5252,14 @@ Index: 25
 Index: 26
     Sbend               
     RFcavity            
-    BeamBeam            
     Marker              
     Rbend               
     Lcavity             
-    Def_Parameter!      
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
     Girder              
+    Converter           
     Crystal             
     Pipe                
     E_Gun               
@@ -5231,11 +5275,10 @@ Index: 26
  !---------------------------------
 Index: 27
     RFcavity            
-    BeamBeam            
     Lcavity             
-    Def_Parameter!      
     Match               
     Girder              
+    Converter           
     Crystal             
     E_Gun               
     EM_Field            
@@ -5246,10 +5289,9 @@ Index: 27
  !---------------------------------
 Index: 28
     RFcavity            
-    BeamBeam            
-    Def_Parameter!      
     Match               
     Girder              
+    Converter           
     Fiducial            
     Photon_Init         
  
@@ -5265,6 +5307,7 @@ Index: 29
     Line_Ele            
     Match               
     Girder              
+    Crystal             
     E_Gun               
     EM_Field            
     Floor_Shift         
@@ -5278,6 +5321,8 @@ Index: 30
     BeamBeam            
     Rbend               
     Patch               
+    Beginning_Ele       
+    Line_Ele            
     Match               
     Girder              
     Crystal             
@@ -5288,8 +5333,11 @@ Index: 30
  !---------------------------------
 Index: 31
     RFcavity            
+    BeamBeam            
     Solenoid            
     Lcavity             
+    Beginning_Ele       
+    Line_Ele            
     Match               
     Girder              
     Crystal             
@@ -5298,7 +5346,10 @@ Index: 31
  
  !---------------------------------
 Index: 32
+    BeamBeam            
     Patch               
+    Beginning_Ele       
+    Line_Ele            
     Match               
     Girder              
     Fiducial            
@@ -5677,6 +5728,8 @@ Index: 43
     Sbend               
     ELseparator         
     Rbend               
+    Def_Parameter!      
+    Line_Ele            
     Match               
     Hkicker             
     Vkicker             
@@ -5687,6 +5740,7 @@ Index: 44
     RFcavity            
     Rbend               
     Lcavity             
+    Def_Parameter!      
     Match               
  
  !---------------------------------
@@ -5697,6 +5751,7 @@ Index: 45
     Sol_Quad            
     Rbend               
     Lcavity             
+    Def_Parameter!      
     Match               
  
  !---------------------------------
@@ -5706,6 +5761,8 @@ Index: 46
     RFcavity            
     Rbend               
     Lcavity             
+    Def_Parameter!      
+    Line_Ele            
     Match               
  
  !---------------------------------
@@ -5723,6 +5780,8 @@ Index: 47
     Solenoid            
     Patch               
     Lcavity             
+    Def_Parameter!      
+    Line_Ele            
     Match               
     Hkicker             
     Vkicker             
@@ -5734,7 +5793,10 @@ Index: 48
     Sbend               
     Octupole            
     Rbend               
+    Def_Mad_Beam!       
     Patch               
+    Def_Parameter!      
+    Line_Ele            
  
  !---------------------------------
 Index: 49
@@ -5743,6 +5805,8 @@ Index: 49
     Rbend               
     Solenoid            
     Patch               
+    Beginning_Ele       
+    Line_Ele            
     Sad_Mult            
  
  !---------------------------------
@@ -5811,6 +5875,7 @@ Index: 51
     Taylor              
     RFcavity            
     ELseparator         
+    BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
@@ -5818,6 +5883,8 @@ Index: 51
     Hybrid              
     Octupole            
     Rbend               
+    Multipole           
+    AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
@@ -5828,16 +5895,30 @@ Index: 51
     Instrument          
     Hkicker             
     Vkicker             
+    Rcollimator         
+    Ecollimator         
+    Converter           
+    Photon_Fork         
+    Fork                
+    Mirror              
     Crystal             
     Pipe                
     Capillary           
     Multilayer_Mirror   
     E_Gun               
     EM_Field            
+    Floor_Shift         
+    Fiducial            
     Undulator           
+    Diffraction_Plate   
+    Photon_Init         
+    Sample              
     Detector            
+    Sad_Mult            
+    Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -5858,6 +5939,8 @@ Index: 52
     Hybrid              
     Octupole            
     Rbend               
+    Multipole           
+    AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
@@ -5868,16 +5951,30 @@ Index: 52
     Instrument          
     Hkicker             
     Vkicker             
+    Rcollimator         
+    Ecollimator         
+    Converter           
+    Photon_Fork         
+    Fork                
+    Mirror              
     Crystal             
     Pipe                
     Capillary           
     Multilayer_Mirror   
     E_Gun               
     EM_Field            
+    Floor_Shift         
+    Fiducial            
     Undulator           
+    Diffraction_Plate   
+    Photon_Init         
+    Sample              
     Detector            
+    Sad_Mult            
+    Mask                
     AC_Kicker           
     Lens                
+    Beam_Init           
     Crab_Cavity         
  
  !---------------------------------
@@ -7165,8 +7262,7 @@ Index: 81
     Overlay             
     Taylor              
     Def_Bmad_Com!       
-    Beginning_Ele       
-    Line_Ele            
+    Converter           
     Mirror              
     Crystal             
     Multilayer_Mirror   
@@ -7262,6 +7358,7 @@ Index: 83
     Vkicker             
     Rcollimator         
     Ecollimator         
+    Converter           
     Pipe                
     E_Gun               
     EM_Field            
@@ -7454,8 +7551,6 @@ Index: 88
     Def_Bmad_Com!       
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Monitor             
     Instrument          
     Hkicker             
@@ -7497,8 +7592,6 @@ Index: 89
     Def_Bmad_Com!       
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Monitor             
     Instrument          
     Hkicker             
@@ -7531,8 +7624,6 @@ Index: 90
     Def_Bmad_Com!       
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Monitor             
     Instrument          
     Hkicker             
@@ -7571,8 +7662,6 @@ Index: 91
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
@@ -7986,6 +8075,8 @@ Index: 98
  !---------------------------------
 Index: 99
     Def_Bmad_Com!       
+    Beginning_Ele       
+    Line_Ele            
  
  !---------------------------------
 Index: 100
@@ -8463,7 +8554,6 @@ Index: 115
 Index: 116
     Beginning_Ele       
     Line_Ele            
-    Converter           
     Crystal             
     Multilayer_Mirror   
     Sample              
