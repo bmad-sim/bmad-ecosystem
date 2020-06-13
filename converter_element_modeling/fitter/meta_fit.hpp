@@ -5,14 +5,8 @@
 #include <string>
 #include <gsl/gsl_poly.h>
 #include <cmath>
-
-struct DataPoint {
-  double E, r;
-  double cx, ax, ay, beta, dxds_min, dxds_max, dyds_max;
-  double amp;
-  double chi2;
-  size_t npts;
-};
+#include "cauchy.hpp"
+#include "read_data.hpp"
 
 // Fit types:
 enum class fitType { CX, AX, AY, BETA, DXDS_MIN, DXDS_MAX, DYDS_MAX };
@@ -39,18 +33,23 @@ struct FitResults {
 
 
 template <fitType T>
-FitResults fit_routine(const std::vector<DataPoint>&, double);
+FitResults fit_routine(const std::vector<CauchyPoint>&, double);
 
 
 struct MetaFitResults {
   double Ein;
   double T;
   FitResults cx, ax, ay, beta, dxds_min, dxds_max, dyds_max;
+  ER_table table;
+
+  MetaFitResults(double Ein, double T, FitResults&& cx, FitResults&& ax, FitResults&& ay,
+      FitResults&& beta, FitResults&& dxds_min, FitResults&& dxds_max,
+      FitResults&& dyds_max, ER_table&& table);
 };
 
 
 template<fitType T, size_t dim, typename F>
-double eval(const F& fit, const DataPoint& p) {
+double eval(const F& fit, const CauchyPoint& p) {
   // Evaluates the given fit at the given (E,r) point
   // and returns the result
   if constexpr (dim==2) {
@@ -78,8 +77,9 @@ std::string TAB() {
   else return tab + TAB<n-1>();
 }
 
+enum Comma_spec { COMMA_AFTER, NO_COMMA };
 template<fitType T>
-void output_bmad(const FitResults& fit, std::ostream& bmad_file) {
+void output_bmad(const FitResults& fit, std::ostream& bmad_file, Comma_spec comma) {
   bmad_file << TAB<3>() << fit_to_string(T) << " = {\n";
   for (const auto& fit_1d : fit.low_e_fits) {
     bmad_file << TAB<4>() << "fit_1d_r = {pc_out = " << fit_1d.E
@@ -102,6 +102,10 @@ void output_bmad(const FitResults& fit, std::ostream& bmad_file) {
     << fit_2d.b0 << ", "
     << fit_2d.b1 << ", "
     << fit_2d.b2 << ", "
-    << fit_2d.b3 << "]}}\n";
+    << fit_2d.b3 << "]}}";
+  switch (comma) {
+    case COMMA_AFTER: bmad_file << ",\n"; break;
+    case NO_COMMA: bmad_file << "\n"; break;
+  }
   return;
 }

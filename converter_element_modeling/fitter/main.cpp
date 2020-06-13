@@ -14,7 +14,7 @@
 #include "gnuplot.hpp"
 namespace fs = std::filesystem;
 
-inline constexpr double dp_diff(const DataPoint& p1, const DataPoint& p2) {
+inline constexpr double dp_diff(const CauchyPoint& p1, const CauchyPoint& p2) {
   return std::abs(p1.chi2/p1.amp - p2.chi2/p2.amp);
 }
 
@@ -41,65 +41,68 @@ int main(int argc, char* argv[]) {
   bmad_file.open(data_dir + "/converter.bmad");
   std::vector<MetaFitResults> metafits;
 
-
   // Loop over each folder in dir_dat, running the fitting process on each
   std::string folder_name_format = data_dir + "/dir_dat/" + "E%lf_T%lf";
 
   char coef_file_name[100];
   std::ofstream coef_file;
   for (auto& E_T_folder : fs::directory_iterator(data_dir + "/dir_dat")) {
-    double Ein, T, Eout, r;
+    double Ein, T;//, Eout, r;
     // Parse Ein, T out of the directory name
     const char *E_T_folder_name = (E_T_folder.path()).c_str();
     auto ret = sscanf(E_T_folder_name, folder_name_format.c_str(), &Ein, &T);
     if (ret != 2) continue; // parsing failure
     Ein *= 1e6; // convert to eV
     T *= 1e-2; // convert to meters
+    // Read table of E/r probabilities
+    ER_table er_table;
+    read_er_data(data_dir.c_str(), Ein, T, er_table);
     // Vector for holding fitting results
-    std::vector<DataPoint> data_points;
-    data_points.reserve(200);
+    std::vector<CauchyPoint> data_points;
+    data_points.reserve(er_table.probs.size());
 
     sprintf(coef_file_name, "%s/coef.dat", E_T_folder_name);
     coef_file.open(coef_file_name);
-    coef_file << "E\tr\tc_x\ta_x\ta_y\tbeta\tamp\tdxds_min\tdxds_max\tdyds_max\tnpts\tchisq\n";
+    coef_file << "E\tr\tc_x\talpha_x\talpha_y\tbeta\tamp\tdxds_min\tdxds_max\tdyds_max\tnpts\tchisq\n";
 
     // Loop over each file in the folder
-    std::string file_name_format = std::string(E_T_folder_name) + "/E%lf_r%lf_bin.dat";
-    for (auto& bin_file : fs::directory_iterator(E_T_folder.path())) {
-      // Parse Eout, r from the file name
-      const char *bin_file_name = (bin_file.path()).c_str();
-      ret = sscanf(bin_file_name, file_name_format.c_str(), &Eout, &r);
-      if (ret!=2) continue; // parsing failure
-      Eout *= 1e6; // convert to eV
-      r *= 1e-2; // convert to meters
+    //std::string file_name_format = std::string(E_T_folder_name) + "/E%lf_r%lf_bin.dat";
+    //for (auto& bin_file : fs::directory_iterator(E_T_folder.path())) {
+    std::cout << "Running fits for pc_in = " << Ein*1e-6 << " MeV, T = " << T*1e2 << " cm...\n";
+    for (auto Eout : er_table.pc_vals) {
+      //Eout *= 1e6; // convert to eV
+      for (auto r : er_table.r_vals) {
+        // Parse Eout, r from the file name
+        //const char *bin_file_name = (bin_file.path()).c_str();
+        //ret = sscanf(bin_file_name, file_name_format.c_str(), &Eout, &r);
+        //if (ret!=2) continue; // parsing failure
+        //Eout *= 1e6; // convert to eV
+        //r *= 1e-2; // convert to meters
 
+        // Read in the data from the file
+        //char bin_file_name[200];
+        //sprintf(bin_file_name, "%s/E%0.2lf_r%0.3lf_bin.dat", E_T_folder_name, Eout * 1e-6, r * 1e2);
+        std::vector<BinPoint> bins;
+        read_list_data(E_T_folder_name, Eout, r, bins);
+        if (!bins.size()) {
+          std::cerr << "WARNING: no data read for pc_out = " << Eout*1e-6 << " MeV, r = " << r * 1e2 << " cm\n";
+          continue;
+        }
 
-      // Read in the data from the file
-      std::vector<BinPoint> bins;
-      read_list_data(bin_file_name, bins);
-
-      // Skip this file if not enough data is present
-      const size_t per_bin_threshold = 5.0;
-      size_t data_count = std::accumulate(bins.begin(), bins.end(), 0,
-          [](size_t count, const BinPoint& bin) { return count + bin.count; });
-      if (data_count / bins.size() < per_bin_threshold)
-        continue;
-
-      // Record dxds_min, dxds_max, dyds_max
-      double dxds_min = bins.front().x;
-      double dxds_max = bins.back().x;
-      double dyds_max = bins.back().y;
-      // Do the cauchy fit
-      auto [c_x, c_y, a_x, a_y, beta, amp, chi2] = asym_cauchy_fit(Eout/1e6, r/1e-2, bins);
-      a_x = std::sqrt(a_x);
-      a_y = std::sqrt(a_y);
-      // Check for fit success
-      if (chi2 == -1) {
-        std::cout << "Asymmetric cauchy fit failed for " << bin_file_name << '\n';
-      } else {
-        // Record the obtained coefficients on success
-        data_points.push_back({Eout, r, c_x, a_x, a_y, beta, dxds_min, dxds_max, dyds_max, amp, chi2, data_count});
-        output_cauchy_gp(E_T_folder_name, data_points.back());
+        // Do the cauchy fit
+        CauchyPoint result;
+        if (data_points.size()) // use previous fit results as initial param guess
+          result = asym_cauchy_fit(Eout, r, bins, data_points.back());
+        else
+          result = asym_cauchy_fit(Eout, r, bins);
+        // Check for fit success
+        if (result.stat == CauchyStatus::NOPROG) {
+          std::cerr << "Asymmetric cauchy fit failed for pc_out = " << Eout*1e6 << " MeV, r = " << r*1e2 << " cm\n";
+        } else {
+          // Record the obtained coefficients on success
+          data_points.push_back(result);
+          output_cauchy_gp(E_T_folder_name, result);
+        }
       }
     }
 
@@ -110,34 +113,18 @@ int main(int argc, char* argv[]) {
     double crossover_point = 1e7; // in eV
     // sort by E and then r
     std::sort(data_points.begin(), data_points.end(),
-        [](const DataPoint& p1, const DataPoint& p2) {
+        [](const CauchyPoint& p1, const CauchyPoint& p2) {
           return p1.r < p2.r;
         });
     std::stable_sort(data_points.begin(), data_points.end(),
-        [](const DataPoint& p1, const DataPoint& p2) {
+        [](const CauchyPoint& p1, const CauchyPoint& p2) {
           return p1.E < p2.E;
         });
 
-
-    // Remove outliers
-    //const double MAX_DIFF = 20.0;
-    //    size_t data_len = data_points.size();
-    //    std::vector<bool> good(data_points.size());
-    //    std::fill(good.begin(), good.end(), true);
-    //    double new_diff, old_diff = dp_diff(data_points[1], data_points[0]);
-    //    size_t old_ix = 1; // last ix that was good
-    //    for (size_t i=2; i<data_len; i++) {
-    //      new_diff = dp_diff(data_points[i], data_points[old_ix]);
-    //      if ((new_diff/old_diff > MAX_DIFF) && (data_points[i].E == data_points[old_ix].E)) {
-    //        good[i] = false;
-    //      } else {
-    //        old_diff = new_diff;
-    //        old_ix++;
-    //      }
-    //    }
-    //    auto checker = [&good,i=0](const DataPoint& p) mutable { return !good[i++]; };
-    //    data_points.erase(std::remove_if(data_points.begin(), data_points.end(), checker), data_points.end());
-
+    // With data_points sorted, assign amp variable to each CauchyPoint
+    // from er_table for use with weighting meta fits
+    size_t ix=0;
+    for (auto& p : data_points) p.amp = er_table.probs[ix++];
 
     // Do the meta fits
     auto cx_fit_results = fit_routine<fitType::CX>(data_points, crossover_point);
@@ -157,23 +144,38 @@ int main(int argc, char* argv[]) {
     output_metafit_gp<fitType::DXDS_MAX>(xmax_fit_results, data_points, E_T_folder_name, crossover_point);
     output_metafit_gp<fitType::DYDS_MAX>(ymax_fit_results, data_points, E_T_folder_name, crossover_point);
 
+    output_master_gp(E_T_folder_name);
+
+
     for (const auto& p : data_points) {
       coef_file << p.E << '\t' << p.r << '\t' << p.cx << '\t'
         << p.ax << '\t'       << p.ay << '\t'
         << p.beta << '\t'      << p.amp << '\t'
-        << p.dxds_min << '\t' << p.dxds_max << '\t' << p.dyds_max << '\t'
-        << p.npts << '\t'       << p.chi2 << '\n';
+        << p.dxds_min << '\t' << p.dxds_max << '\t'
+        << p.dyds_max << '\t' << p.chi2 << '\n';
     }
     coef_file.close();
 
     // Store the results of the fit
-    metafits.push_back({Ein, T, cx_fit_results,
-        ax_fit_results,
-        ay_fit_results,
-        beta_fit_results,
-        xmin_fit_results,
-        xmax_fit_results,
-        ymax_fit_results});
+    metafits.emplace_back(Ein, T,
+        std::move(cx_fit_results),
+        std::move(ax_fit_results),
+        std::move(ay_fit_results),
+        std::move(beta_fit_results),
+        std::move(xmin_fit_results),
+        std::move(xmax_fit_results),
+        std::move(ymax_fit_results),
+        std::move(er_table));
+
+    // Write cauchy gp filess with parameters from metafits
+    //.auto print_status = [](const char * message, unsigned n, unsigned N) {
+    //.  std::cout << "\033[K" << message << "(" << 100.0 * n / N << "%)\n\033[1A";
+    //.};
+    //.unsigned prog = 0;
+    //.for (const auto& p : data_points) {
+    //.  output_meta_cauchy_gp(E_T_folder_name, metafits.back(), p.E, p.r);
+    //.  print_status("Outputing meta-fit cauchy files...", prog++, data_points.size());
+    //.}
   }
   if (!metafits.size()) {
     std::cout << "Error: could not find data to fit to\n";
@@ -202,52 +204,37 @@ int main(int argc, char* argv[]) {
     if (mf.T != T) { // start a new distribution
       T = mf.T;
       bmad_file << "},\ndistribution = {\n";
-      bmad_file << TAB<1>() << "thickness = " << mf.T << ",\n";
+      bmad_file << TAB<1>() << "material = tungsten" << ",\n";
+      bmad_file << TAB<1>() << "species_out = positron" << ",\n";
+      bmad_file << TAB<1>() << "thickness = " << mf.T;
     }
     bmad_file << ",\n" << TAB<1>() << "sub_distribution = {\n";
     bmad_file << TAB<2>() << "pc_in = " << mf.Ein << ",\n";
     bmad_file << TAB<2>() << "prob_pc_r = {\n";
     bmad_file << TAB<3>() << "r_values = [0.0, "; // fix r=0
-    // Open the ER file to write the E/r probability table
-    std::ifstream er_file;
-    char er_file_name[100];
-    std::string er_name_format = data_dir + "/E%0.0lf_T%0.3lf_er.dat";
-    sprintf(er_file_name, er_name_format.c_str(), mf.Ein*1e-6, mf.T*1e2);
-    er_file.open(er_file_name);
-    // Read r values from first row
-    size_t num_cols;
-    er_file >> num_cols;
-    std::vector<double> r_values(num_cols);
-    for (auto& r : r_values) er_file >> r;
-    for (auto& r : r_values) r *= 1e-2; // convert to meters
     // Write r values to table (no comma after last one)
-    for (size_t i=0; i<num_cols-1; i++) bmad_file << r_values[i] << ", ";
-    bmad_file << r_values[num_cols-1] << "]";
+    auto num_rows = mf.table.pc_vals.size();
+    auto num_cols = mf.table.r_vals.size();
+    for (unsigned i=0; i<num_cols-1; i++) bmad_file << mf.table.r_vals[i] << ", ";
+    bmad_file << mf.table.r_vals[num_cols-1] << "]";
     // Copy over each row of the table
-    double Eout;
-    std::vector<double> probs(num_cols);
-    for (;;) {
-      er_file >> Eout;
-      if (er_file.fail()) break;
-      Eout *= 1e6; // convert to eV
-      for (auto& p : probs) er_file >> p;
-      bmad_file << ",\n" << TAB<3>() << "row = {pc_out = " << Eout;
+    for (unsigned i=0; i<num_rows; i++) {
+      bmad_file << ",\n" << TAB<3>() << "row = {pc_out = " << mf.table.pc_vals[i];
       bmad_file << ", prob = [0.0, "; // r=0 -> prob = 0
-      for (size_t i=0; i<num_cols-1; i++) bmad_file << 1e-4 * probs[i] << ", "; // convert to prob / (eV * m)
-      bmad_file << probs[num_cols-1] << "]}";
+      for (unsigned j=0; j<num_cols-1; j++) bmad_file << 1e-4 * mf.table.probs[i*num_cols + j] << ", "; // convert to prob / (eV * m)
+      bmad_file << 1e-4 * mf.table.probs[(i+1)*num_cols-1] << "]}";
     }
     bmad_file << "\n" << TAB<2>() << "},\n";
-    er_file.close();
 
     // Output the fit parameters
     bmad_file << TAB<2>() << "direction_out = {\n";
-    output_bmad<fitType::CX>(mf.cx, bmad_file);
-    output_bmad<fitType::AX>(mf.ax, bmad_file);
-    output_bmad<fitType::AY>(mf.ay, bmad_file);
-    output_bmad<fitType::BETA>(mf.beta, bmad_file);
-    output_bmad<fitType::DXDS_MIN>(mf.dxds_min, bmad_file);
-    output_bmad<fitType::DXDS_MAX>(mf.dxds_max, bmad_file);
-    output_bmad<fitType::DYDS_MAX>(mf.dyds_max, bmad_file);
+    output_bmad<fitType::CX>(mf.cx, bmad_file, COMMA_AFTER);
+    output_bmad<fitType::AX>(mf.ax, bmad_file, COMMA_AFTER);
+    output_bmad<fitType::AY>(mf.ay, bmad_file, COMMA_AFTER);
+    output_bmad<fitType::BETA>(mf.beta, bmad_file, COMMA_AFTER);
+    output_bmad<fitType::DXDS_MIN>(mf.dxds_min, bmad_file, COMMA_AFTER);
+    output_bmad<fitType::DXDS_MAX>(mf.dxds_max, bmad_file, COMMA_AFTER);
+    output_bmad<fitType::DYDS_MAX>(mf.dyds_max, bmad_file, NO_COMMA);
 
     bmad_file << TAB<2>() << "}\n" << TAB<1>() << "}";
   }

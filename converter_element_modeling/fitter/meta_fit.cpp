@@ -18,8 +18,8 @@ using namespace std::string_literals;
 std::string fit_to_string(fitType T) {
   switch (T) {
     case fitType::CX:       return "c_x"s;
-    case fitType::AX:       return "a_x"s;
-    case fitType::AY:       return "a_y"s;
+    case fitType::AX:       return "alpha_x"s;
+    case fitType::AY:       return "alpha_y"s;
     case fitType::BETA:     return "beta"s;
     case fitType::DXDS_MIN: return "dxds_min"s;
     case fitType::DXDS_MAX: return "dxds_max"s;
@@ -28,6 +28,13 @@ std::string fit_to_string(fitType T) {
   }
 }
 std::ostream& operator<<(std::ostream& out, fitType T) { return (out << fit_to_string(T)); }
+
+// ~move constructor for MetaFitResults
+MetaFitResults:: MetaFitResults(double p_Ein, double p_T, FitResults&& p_cx, FitResults&& p_ax,
+    FitResults&& p_ay, FitResults&& p_beta, FitResults&& p_dxds_min, FitResults&& p_dxds_max,
+    FitResults&& p_dyds_max, ER_table&& p_table)
+  : Ein{p_Ein}, T{p_T}, cx{p_cx}, ax{p_ax}, ay{p_ay}, beta{p_beta},
+    dxds_min{p_dxds_min}, dxds_max{p_dxds_max}, dyds_max{p_dyds_max}, table{p_table} {}
 
 ////////////////////// Fit Routine implementation ///////////////////
 // Helper templates
@@ -102,7 +109,7 @@ inline F gsl_to_fit(const gsl_vector *fit_params) {
 
 
 template<fitType T>
-inline double get_real_val(const DataPoint& p) {
+inline double get_real_val(const CauchyPoint& p) {
   // Returns the value from p corresponding to the given fit type
   if      constexpr (T==fitType::CX)       return p.cx;
   else if constexpr (T==fitType::AX)       return p.ax;
@@ -121,7 +128,7 @@ int fit_function(const gsl_vector *fit_params, void *data_points,
     gsl_vector *fit_residuals) {
   // Computes the residuals for each fit point in the fit,
   // taylored to the calling convention required by gsl_multifit_nlinear
-  std::vector<DataPoint> data = * (std::vector<DataPoint> *) data_points;
+  std::vector<CauchyPoint> data = * (std::vector<CauchyPoint> *) data_points;
 
   F fit = gsl_to_fit<T,F>(fit_params);
   size_t ix = 0;
@@ -135,7 +142,7 @@ int fit_function(const gsl_vector *fit_params, void *data_points,
 
 ///////////////////////// FITTING ROUTINE ///////////////////////////
 template<fitType T>
-FitResults fit_routine(const std::vector<DataPoint>& data_points,
+FitResults fit_routine(const std::vector<CauchyPoint>& data_points,
     double crossover_point) {
   // This function performs a hybrid 1D/2D fit to
   // ax/ay as functions of r or E and r, and returns the obtained fit
@@ -149,9 +156,9 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
   // below crossover_point -> 1D
   // above crossover_point -> 2D
   // Also convert to MeV and cm here
-  auto convert = [](DataPoint& p) { p.E *= 1e-6; p.r *= 1e2; };
-  std::vector<std::vector<DataPoint>> data_points_1d{1};
-  std::vector<DataPoint> data_points_2d;
+  auto convert = [](CauchyPoint& p) { p.E *= 1e-6; p.r *= 1e2; };
+  std::vector<std::vector<CauchyPoint>> data_points_1d{1};
+  std::vector<CauchyPoint> data_points_2d;
   std::vector<double> low_E_vals;
   low_E_vals.reserve(10);
   low_E_vals.push_back(data_points[0].E * 1e-6);
@@ -230,7 +237,7 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
     gsl_vector_set_all(weights, 0);
 
     size_t w_ix = 0;
-    for (const auto& p : v_1d) gsl_vector_set(weights, w_ix++, p.npts);
+    for (const auto& p : v_1d) gsl_vector_set(weights, w_ix++, p.amp);
     w = gsl_multifit_nlinear_alloc(mnT, &fdf_params, v_1d.size(), num_fit_params_1d);
     // do the fit
     gsl_multifit_nlinear_winit(init_param_gsl_1d, weights, &fdf, w);
@@ -278,7 +285,7 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
     gsl_vector_set_all(init_param_gsl_2d, 0.0);
   gsl_vector *weights = gsl_vector_alloc(fdf.n);
   size_t w_ix = 0;
-  for (const auto& p : data_points_2d) gsl_vector_set(weights, w_ix++, p.npts);
+  for (const auto& p : data_points_2d) gsl_vector_set(weights, w_ix++, p.amp);
   fdf.params = (void *) &data_points_2d;
   w = gsl_multifit_nlinear_alloc(mnT, &fdf_params, data_points_2d.size(), num_fit_params_2d);
   // do the fit
@@ -315,10 +322,10 @@ FitResults fit_routine(const std::vector<DataPoint>& data_points,
 
 
 // Instantiate fit_routine
-template FitResults fit_routine<fitType::CX>(const std::vector<DataPoint>& data_points, double crossover_point);
-template FitResults fit_routine<fitType::AX>(const std::vector<DataPoint>& data_points, double crossover_point);
-template FitResults fit_routine<fitType::AY>(const std::vector<DataPoint>& data_points, double crossover_point);
-template FitResults fit_routine<fitType::BETA>(const std::vector<DataPoint>& data_points, double crossover_point);
-template FitResults fit_routine<fitType::DXDS_MIN>(const std::vector<DataPoint>& data_points, double crossover_point);
-template FitResults fit_routine<fitType::DXDS_MAX>(const std::vector<DataPoint>& data_points, double crossover_point);
-template FitResults fit_routine<fitType::DYDS_MAX>(const std::vector<DataPoint>& data_points, double crossover_point);
+template FitResults fit_routine<fitType::CX>(const std::vector<CauchyPoint>& data_points, double crossover_point);
+template FitResults fit_routine<fitType::AX>(const std::vector<CauchyPoint>& data_points, double crossover_point);
+template FitResults fit_routine<fitType::AY>(const std::vector<CauchyPoint>& data_points, double crossover_point);
+template FitResults fit_routine<fitType::BETA>(const std::vector<CauchyPoint>& data_points, double crossover_point);
+template FitResults fit_routine<fitType::DXDS_MIN>(const std::vector<CauchyPoint>& data_points, double crossover_point);
+template FitResults fit_routine<fitType::DXDS_MAX>(const std::vector<CauchyPoint>& data_points, double crossover_point);
+template FitResults fit_routine<fitType::DYDS_MAX>(const std::vector<CauchyPoint>& data_points, double crossover_point);
