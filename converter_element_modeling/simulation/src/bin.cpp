@@ -34,8 +34,8 @@ void Bin::bin_momenta(const char * output_dir,
   std::vector<BinPoint> bins(num_bins*num_bins, {0,0,0});
 
   // Determine cutoff points for binning
-  size_t ix_min = p_list.size() * 0.04;
-  size_t ix_max = p_list.size() * 0.96;
+  size_t ix_min = p_list.size() * 0.03;
+  size_t ix_max = p_list.size() * 0.97;
   double dxds_min, dxds_max, dyds_min, dyds_max;
 
   std::sort(p_list.begin(), p_list.end(),
@@ -89,7 +89,7 @@ void Bin::bin_momenta(const char * output_dir,
   for (auto [bin_x, bin_y, bin_count] : bins) {
     binfile << bin_x << '\t'
       << bin_y << '\t'
-      << bin_count << '\n';
+      << bin_count / (p_list.size() * dxds_width * dyds_width) << '\n'; // normalized to 1
   }
   binfile.close();
 
