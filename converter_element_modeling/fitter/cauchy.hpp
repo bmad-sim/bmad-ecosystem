@@ -3,17 +3,18 @@
 struct BinPoint {
   double x;
   double y;
-  double count;
+  double density;
 };
 
-struct cauchyFitResults {
-  double mu_x;
-  double mu_y;
-  double sigma_x;
-  double sigma_y;
-  double beta_x;
+enum class CauchyStatus { OK, NOPROG, MAXITER };
+
+struct CauchyPoint {
+  double E, r;
+  double cx, ax, ay, beta, dxds_min, dxds_max, dyds_max;
   double amp;
-  double reduced_chi_square;
+  double chi2;
+  CauchyStatus stat;
 };
 
-cauchyFitResults asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>& bins);
+CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>& bins);
+CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>& bins, const CauchyPoint& guess);
