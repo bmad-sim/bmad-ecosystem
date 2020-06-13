@@ -505,7 +505,8 @@ parsing_loop: do
   ! if line or list then this is an error for bmad_parser2
 
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
-    call parser_error ('LINES OR LISTS NOT PERMITTED: ' // word_1)
+    call parser_error ('DEFINING LINES OR LISTS NOT PERMITTED AFTER LATTICE EXPLANSION: ' // word_1, &
+                       'I DO NOT KNOW TO DO WITH THIS SINCE THE LATTICE ALREADY EXISTS!')
     cycle parsing_loop
   endif
 

@@ -3141,7 +3141,7 @@ real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, k1l, t1
 real(rp) dx, dy, cos_t, sin_t, coef, coef_e, coef_b, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
 real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset
 real(rp), pointer :: val(:)
-real(rp), target, save :: value0(num_ele_attrib$) = 0
+real(rp), target :: value0(num_ele_attrib$)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) ld, hd, lc, hc, angc, xc, dc
 
@@ -3156,6 +3156,40 @@ logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
 
 character(16) :: r_name = 'ele_to_fibre'
 
+!
+
+val => ele%value
+key = ele%key
+
+if (.not. ele%is_on) then
+  val => value0
+  val = ele%value
+
+  select case (ele%key)
+  case (sbend$)
+    val = 0
+    val(l$)         = ele%value(l$)
+    val(g$)         = ele%value(g$)
+    val(g_err$)     = -ele%value(g$)
+    val(angle$)     = ele%value(angle$)
+    val(rho$)       = ele%value(rho$)
+    val(ref_tilt_tot$) = val(ref_tilt_tot$)
+
+  case (lcavity$)
+    val(voltage$) = 0
+    val(gradient$) = 0
+
+  case (taylor$)
+    key = drift$
+    val(l$) = 0
+
+  case default
+    key = drift$
+    val     = 0
+    val(l$) = ele%value(l$) 
+  end select
+endif
+
 ! 
 
 call zero_key(ptc_key)  ! init key
@@ -3166,14 +3200,14 @@ case (matrix_kick$); ptc_key%model = 'MATRIX_KICK'
 case (ripken_kick$); ptc_key%model = 'DELTA_MATRIX_KICK'
 end select
 
-if (ele%key == sbend$ .and. ele%value(angle$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
+if (key == sbend$ .and. ele%value(angle$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
   ptc_key%model = 'DRIFT_KICK'
   ! Only need to issue a warning if K1 is nonzero.
   !if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
   !          'BEND WITH ZERO BENDING ANGLE WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
-if (ele%key == sbend$ .and. ele%value(g$) + ele%value(g_err$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
+if (key == sbend$ .and. ele%value(g$) + ele%value(g_err$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
   ptc_key%model = 'DRIFT_KICK'
   ! Only need to issue a warning if K1 is nonzero.
   !if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
@@ -3189,7 +3223,7 @@ endif
 leng = ele%value(l$)
 
 if (use_offsets) then
-  if (ele%key == sbend$) then
+  if (key == sbend$) then
     ptc_key%tiltd = ele%value(ref_tilt_tot$)
   else
     ptc_key%tiltd = ele%value(tilt_tot$)
@@ -3206,8 +3240,8 @@ if (present(steps)) then
   ptc_key%nstep = steps
 elseif (leng == 0) then
   ptc_key%nstep = 1
-elseif (ele%key == taylor$ .or. ele%key == match$ .or. ele%key == multipole$ .or. &
-                                ele%key == ab_multipole$ .or. ele%key == patch$) then
+elseif (key == taylor$ .or. key == match$ .or. key == multipole$ .or. &
+                                key == ab_multipole$ .or. key == patch$) then
   ptc_key%nstep = 1
   leng = 0  ! Problem is that PTC will not ignore the length in tracking which is different from the Bmad convention.
 else
@@ -3235,13 +3269,6 @@ ptc_key%list%kill_ent_spin = (ix == exit_end$ .or. ix == no_end$ .or. kill_spin_
 ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_spin_fringe)
 
 !
-
-key = ele%key
-if (ele%is_on) then
-  val => ele%value
-else
-  val => value0  ! Not is on then has zero strength.
-endif
 
 if (key == sbend$ .and. ele%value(l$) == 0) key = kicker$
 ele2 => pointer_to_field_ele(ele, 1, s_rel)
@@ -3401,7 +3428,7 @@ case (rfcavity$, lcavity$)
   phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$)
   if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) ptc_key%list%l = hard_edge_model_length(ele)
 
-  if (ele%key == lcavity$) then
+  if (key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot
   else
     ptc_key%list%lag = twopi * phi_tot
@@ -3445,7 +3472,7 @@ end select
 
 ! Fringe
 
-if (ele%key == sbend$ .and. ele%value(l$) /= 0) then
+if (key == sbend$ .and. ele%value(l$) /= 0) then
 
   ix = nint(ele%value(ptc_fringe_geometry$))
   ptc_key%list%bend_fringe = (ix == x_invariant$)
@@ -3482,12 +3509,12 @@ elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a val
     ptc_key%list%permfringe = 3
   end select
 
-  if (ele%key == sad_mult$ .and. ele%value(l$) == 0) ptc_key%list%permfringe = 0
+  if (key == sad_mult$ .and. ele%value(l$) == 0) ptc_key%list%permfringe = 0
 endif
 
 ! Electric fields present? Everything is an sbend!
 
-if (ele%key /= multipole$ .and. (associated(ele%a_pole_elec) .or. ele%key == elseparator$)) then
+if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator$)) then
   ptc_key%magnet = 'sbend'
   ptc_key%model = 'DRIFT_KICK'   ! PTC demands this.
   ptc_key%exact = .true.  ! PTC does not implement a non-exact model when there are electric fields.
@@ -3547,7 +3574,7 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
 
   np = size(tf%ptr%plane)
 
-  if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
+  if (key == sbend$ .and. ele%value(g$) /= 0) then
     ld = ele%value(l$)
     hd = ele%value(g$)
     lc = (np-1) * tf%dz   ! Integration length
@@ -3672,7 +3699,7 @@ else
   ptc_fibre%magp%p%mass    => ptc_fibre%mass
   ptc_fibre%magp%p%charge  => ptc_fibre%charge
 
-  if (ele%key == beambeam$) call beambeam_fibre_setup(ele, ptc_fibre, param)
+  if (key == beambeam$) call beambeam_fibre_setup(ele, ptc_fibre, param)
 endif
 
 if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
@@ -3704,7 +3731,7 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
         return
       endif
       coef_e = cy%field_scale * master_parameter_value(cy%master_parameter, ele)
-      if (ele%key == lcavity$ .or. ele%key == rfcavity$) coef_e = coef_e * ele%value(field_autoscale$)
+      if (key == lcavity$ .or. key == rfcavity$) coef_e = coef_e * ele%value(field_autoscale$)
       coef_b = coef_e * c_light / ele%value(p0c$)
       coef_e = -coef_e * 1d-6  ! Notice negative sign.
 
@@ -3764,20 +3791,20 @@ endif
 ! The E-field units that PTC wants on input are MV/m (MAD convention). 
 ! Note: PTC convert MV/m to GV/m internally.
 
-if (ele%key /= multipole$ .and. (associated(ele%a_pole_elec) .or. ele%key == elseparator$)) then
-  if (ele%key /= sbend$) then
+if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator$)) then
+  if (key /= sbend$) then
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
   fh = 1d-9 * sign_of(charge_of(param%particle)) / VOLT_C
-  if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
+  if (key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
     call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$, include_kicks$)
     call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, a_pole, b_pole)
   else
     call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
   endif
 
-  if (ele%key == elseparator$) then
+  if (key == elseparator$) then
     a_pole(0) = a_pole(0) + val(vkick$) * ele%value(p0c$) / leng
     b_pole(0) = b_pole(0) + val(hkick$) * ele%value(p0c$) / leng
   endif
@@ -3814,14 +3841,14 @@ endif
 ! sad_mult & quadrupole
 ! Following the SAD convention: A zero length sad_mult has no fringe.
 
-if ((ele%key == sad_mult$ .and. ele%value(l$) /= 0) .or. ele%key == quadrupole$) then
+if ((key == sad_mult$ .and. ele%value(l$) /= 0) .or. key == quadrupole$) then
   ptc_fibre%mag%va  = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
   ptc_fibre%magp%va = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
   ptc_fibre%mag%vs  = ele%value(fq2$)
   ptc_fibre%magp%vs = ele%value(fq2$)
 endif
 
-if (ele%key == sad_mult$) then
+if (key == sad_mult$) then
   cos_t = cos(ele%value(tilt_tot$))
   sin_t = sin(ele%value(tilt_tot$))
   dx =  ele%value(x_offset_mult$) * cos_t + ele%value(y_offset_mult$) * sin_t 
@@ -3917,7 +3944,7 @@ ptc_fibre%charge = rel_charge
 ! Taylor maps
 ! In theory can put in a taylor map for any element but for now only setup Bmad taylor and match elements.
 
-if (ele%key == taylor$ .or. ele%key == match$) then
+if (key == taylor$ .or. key == match$) then
   ! The map can be split into pieces by taking the log of the map.
   ! onemap = T means do not split.
   ! At this point in time there is no splitting allowed.
