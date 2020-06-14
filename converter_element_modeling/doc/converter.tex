@@ -2,24 +2,29 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amsthm,amssymb,graphicx,gensymb,multicol,mathtools}
-\usepackage{hyperref}
 \usepackage{xspace}
+\usepackage{color}
+\usepackage{alltt}
+\usepackage[english]{babel}
+\usepackage[autostyle, english = american]{csquotes}
+\usepackage{braket}
+\usepackage{tikz, pgfplots}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage{biblatex}
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage{hyperref}  % Must be last package
 \hypersetup{
   colorlinks=true,
   linkcolor=blue,
   filecolor=red,
   urlcolor=cyan,
 }
-\usepackage{color}
-\usepackage[english]{babel}
-\usepackage[autostyle, english = american]{csquotes}
+
 \MakeOuterQuote{"}
 \graphicspath{{figures/}}
-\usepackage{tikz, pgfplots}
 \pgfplotsset{compat=newest}
 \allowdisplaybreaks
 
-\usepackage{biblatex}
 \addbibresource{bibfile.bib}
 
 \newcommand{\pp}{\mathbf{p}}
@@ -42,7 +47,6 @@
 \newcommand{\intoi}{\int_0^\infty}
 \newcommand{\HH}{\mathbb{H}}
 \newcommand{\ang}[3]{\,^{#1} {#2}_{#3}}
-\usepackage{braket}
 \newcommand{\tr}{\mathrm{Tr}}
 
 %units:
@@ -51,17 +55,6 @@
 \newcommand{\eV}{\, \mathrm{eV}}
 \newcommand{\MeV}{\, \mathrm{MeV}}
 \newcommand{\ly}{\, \mathrm{ly}}
-
-\newenvironment{problem}[2][Problem]{\begin{trivlist}
-\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
-
-\begin{document}
-
-\title{Bmad Converter Model}
-\author{John Mastroberti}
-
-\maketitle
-
 \newcommand{\dxds}{\frac{dx}{ds}}
 \newcommand{\dyds}{\frac{dy}{ds}}
 \newcommand{\dxdsmin}{\dxds_{\mathrm{min}}}
@@ -71,6 +64,37 @@
 \newcommand{\exef}{\texttt{converter\_fitter}\xspace}
 \newcommand{\configfile}{\texttt{config.txt}\xspace}
 \newcommand{\bmad}{\textit{Bmad}\xspace}
+\newcommand{\targetm}{\texttt{target\_material}\xspace}
+\newcommand{\targett}{\texttt{target\_thickness}\xspace}
+\newcommand{\pcin}{\texttt{pc\_in}\xspace}
+\newcommand{\outpcmin}{\texttt{out\_pc\_min}\xspace}
+\newcommand{\outpcmax}{\texttt{out\_pc\_max}\xspace}
+\newcommand{\dxydsmax}{\texttt{dxy\_ds\_max}\xspace}
+\newcommand{\outdir}{\texttt{output\_directory}\xspace}
+\newcommand{\numbins}{\texttt{num\_bins}\xspace}
+\newcommand{\numrbins}{\texttt{num\_r\_bins}\xspace}
+\newcommand{\numpcbins}{\texttt{num\_pc\_bins}\xspace}
+\newcommand{\fitxpt}{\texttt{fit\_crossover}\xspace}
+\newcommand{\B}{$\backslash$}
+
+\newenvironment{example}
+  {\vspace{-2.6ex} \begin{alltt}}
+  {\end{alltt} \vspace{-2.3ex}}
+
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\setlength{\parskip}{1.5ex}
+\setlength{\parindent}{0ex}
+
+%----------------------------------
+
+\begin{document}
+
+\title{Bmad Converter Model}
+\author{John Mastroberti}
+
+\maketitle
 
 \tableofcontents
 
@@ -112,6 +136,8 @@ converter, they emit photons via Bremsstrahlung, which in turn decay to $e^+ e^-
   e^- + Z \rightarrow e^- + Z + \gamma \rightarrow e^- + Z + e^+ + e^-
 \end{align}
 
+%-------------------------------------------------------------
+\newpage
 \section{The converter model}
 
 The probability distribution is computed assuming assuming that the incoming particle's momentum is
@@ -207,8 +233,8 @@ polynomial to $1$ in each case.  This must be done so that the fitting problem i
 \end{itemize}
 With these fits in hand, we have an approximation of $P_2 \left( \dxds, \dyds; p_+ c, r \right)$.
 
-%--------------------------------------------------------
-
+%-------------------------------------------------------------
+\newpage
 \section{Setup for Generating the Probability Parameters}
 
 Generating the probability parameters has two main stages. In the first stage, the particle creation
@@ -222,15 +248,14 @@ these parameters and this lattice file is used for simulating the converter inde
 \subsection{Dependencies} 
 \label{s:deps} 
 
-To build and run the \exes program, you will need an up to date installation of Geant4 on
-your system. See the Geant4 installation guide below for details on how to get Geant4 up and
-running on Linux.  You will also need \texttt{cmake} version 3.8 or greater installed.
+Builds require a C++ compiler with support for C++17. GCC 8 or higher should be fine.
 
-To build and run the fitting program, \exef, you will need the GNU Scientific Library (GSL)
-installed on your system.  This is distributed with \bmad, so you should already have it on your
-system.
+A built \bmad Distribution or Release is a prerequisite. See the \bmad web pages (or your local
+\bmad Guru) for details.
 
-Both executables require a C++ compiler with support for C++17; GCC 8 or higher should be fine.
+Needed is an up to date installation of Geant4 on your system. See the Geant4 installation guide
+below for details on how to get Geant4 up and running on Linux.  You will also need \texttt{cmake}
+version 3.8 or greater installed.
 
 \subsection{Geant4 Installation Guide}
 
@@ -239,135 +264,139 @@ This guide is an abbreviated version of the instructions found on
 Geant4 website}.
 \begin{enumerate}
 \item
-Create a directory where Geant will be installed. I'll be using \texttt{\$HOME/geant}.
+Create a directory, here called \texttt{GEANT_DIR}, where Geant will be installed and \texttt{cd}
+to this directory.
 
 \item
 Download the .tar.gz source files archive from \url{https://geant4.web.cern.ch/support/download}
-into the installation directory.
+into \texttt{GEANT_DIR} and unpack with
+\begin{example}
+  tar xzvf geant4.10.06.tar.gz
+\end{example}
+Change the version number as appropriate. There should now be a directory \texttt{geant4.10.06}.
 
 \item
-\texttt{cd} to this directory and unpack the downloaded files with
-\begin{verbatim}
-$ tar xzvf geant4.10.06.tar.gz
-\end{verbatim}
-(change the version number as appropriate).
-
-\item
-Make another directory where you will build Geant with
-\begin{verbatim}
-$ mkdir geant4.10.06-build
-\end{verbatim}
+Make a sub-directory where you will build Geant with
+\begin{example}
+  mkdir geant-build
+\end{example}
 
 \item
 \texttt{cd} to this new directory, and use \texttt{cmake} to configure the Geant4 build with
-\begin{verbatim}
-cmake -DGEANT4_INSTALL_DATA=ON \
-      -DCMAKE_INSTALL_PREFIX=$HOME/geant/geant4.10.06-install \
-      ../geant4.10.06
-\end{verbatim}
-The first \texttt{-D} flag will cause the necessary data sets to be downloaded when we build Geant, and the second \texttt{-D} flag sets the install directory.
-If you chose a different location for installing Geant, edit this flag as needed.
+\begin{example}
+  cmake -DGEANT4_INSTALL_DATA=ON \B
+        -DCMAKE_INSTALL_PREFIX=$GEANT_DIR/geant4-build \B
+        ../geant4.10.06
+\end{example}
+Change the version number as appropriate. The first \texttt{-D} flag will cause the necessary data
+sets to be downloaded when we build Geant, and the second \texttt{-D} flag sets the install
+directory.
 
 Note: if you encounter the the error
-\begin{verbatim}
-Could NOT find EXPAT (missing: EXPAT_LIBRARY EXPAT_INCLUDE_DIR)
-\end{verbatim}
-at this step, try editting the file \\
-\texttt{../geant4.10.06/cmake/Modules/Geant4OptionalComponentents.cmake}, \\
+\begin{example}
+  Could NOT find EXPAT (missing: EXPAT_LIBRARY EXPAT_INCLUDE_DIR)
+\end{example}
+at this step, try editting the file
+\begin{example}
+  ../geant4.10.06/cmake/Modules/Geant4OptionalComponentents.cmake
+\end{example}
 replacing the line
-\begin{verbatim}
-option(GEANT4_USE_SYSTEM_EXPAT "Use system Expat library" ON)
-\end{verbatim}
+\begin{example}
+  option(GEANT4_USE_SYSTEM_EXPAT "Use system Expat library" ON)
+\end{example}
 with
-\begin{verbatim}
-option(GEANT4_USE_SYSTEM_EXPAT "Use system Expat library" OFF)
-\end{verbatim}
+\begin{example}
+  option(GEANT4_USE_SYSTEM_EXPAT "Use system Expat library" OFF)
+\end{example}
 and then re-run the above \texttt{cmake} command.
 
 \item
 After \texttt{cmake} finished running, start building Geant with
-\begin{verbatim}
-$ make -jN
-\end{verbatim}
-where \texttt{N} is the number of threads you want to use for the compilation.
+\begin{example}
+  make -j4
+\end{example}
+This will run four threads. You can change the number of threads to increase or decrease the compile
+speed.
 
 \item
-Once the compilation has finished, install to the install directory you specified in step 5 with
-\begin{verbatim}
-$ make install
-\end{verbatim}
-
-\item
-The file \texttt{\$HOME/geant/geant4.10.06-build/geant4make.sh} must be sourced to add Geant4 to your path.
-To do so use the following commands:
-\begin{verbatim}
-cd $HOME/geant/geant4.10.06-build && source geant4make.sh && cd -
-\end{verbatim}
-Again, if you chose a different location for installing Geant, modify this as necessary. [If you
-are using Bash, and if you want to not have to remember to execute these commands every time you
-login, add these to your \texttt{.bashrc} file.]
+Once the compilation has finished, install with
+\begin{example}
+  make install
+\end{example}
 \end{enumerate}
 
 %--------------------------------
 
 \subsection{Compiling the Executables} The converter simulation and fitting programs are distributed
-as part of any \bmad Distribution and are located in the \texttt{util\_programs} directory. If you
-are working with a Release instead of a Distribution, you can download the latest version of the
-\texttt{util\_programs} directory with the command:
-\begin{verbatim}
-$ svn co https://accserv.lepp.cornell.edu/svn/trunk/src/util_programs
-\end{verbatim}
-Execute the command (or you can add this to your ~/.bashrc file)
-\begin{verbatim}
-export ACC_BUILD_TEST_EXES="Y"
-\end{verbatim}
-\texttt{cd} to the \texttt{util\_programs} folder, and then simply run \texttt{mk} to build \exes and \exef  (or \texttt{mkd} for debug builds).
+as part of any \bmad Distribution or Release and are located in the \texttt{util\_programs}
+directory. [If you are not sure where your Distribution or Release is, ask you local \bmad Guru.]
+You may need to make a local copy of the \texttt{util\_programs} directory if you do not have write
+access to the Distribution or Release version. This can be done with the command:
+\begin{example}
+  $ svn co https://accserv.lepp.cornell.edu/svn/trunk/src/util_programs
+\end{example}
 
-%---------------------------------------------------------------------------------
+The file \texttt{\$GEANT_DIR/geant-build/geant4make.sh} must be sourced to add Geant4 to your path.
+To do so, use the following commands:
+\begin{example}
+  cd $GEANT_DIR/geant-build && source geant4make.sh
+\end{example}
 
+Also execute the command
+\begin{example}
+  export ACC_BUILD_TEST_EXES="Y"
+\end{example}
+
+Now \texttt{cd} to the \texttt{util\_programs} folder, and then simply run \texttt{mk} to build
+\exes and \exef. If you get errors like:
+\begin{example}
+  util_programs/converter_element_modeling/fitter/cauchy.cpp:35:10: 
+  error: expected unqualified-id before '[' token
+      auto [xval, yval, binval] = bins[i];
+           ^
+\end{example}
+The problem is that the C++ compiler does not support C++17.
+
+If \texttt{ROOT} is the name of the directory containing the \texttt{util_programs} directory, the
+executables will be in the directory
+\begin{example}
+  $ROOT/production/bin
+\end{example}
+
+%-------------------------------------------------------------
+\newpage
 \section{How to run the programs}
 
-\subsection{Configuration}
-Both \exes  and \exef  are configured by editing the file \configfile, which should be in the working directory where you run both executables.
-Each line in this file should have the form
-\begin{verbatim}
-setting = value
-\end{verbatim}
+\subsection{Configuration} Both \exes and \exef are configured by editing the file \configfile,
+which should be in the working directory where you run both executables.  Each line in this file
+should have the form
+\begin{example}
+  setting = value
+\end{example}
 Comments can be inserted with an exclamation mark \texttt{!} and last until the end of the line.
 An example config file, with all available settings listed, is shown below.
-\begin{verbatim}
-! Example configuration file
-! The ! introduces a comment that lasts until the end of the line
-target_material = tungsten ! Defines the converter material
-target_thickness = 6.35 mm, 1.0 cm ! Defines the target thicknesses to be simulated
-pc_in = 300 MeV, 500 MeV, 1 GeV ! Defines the incoming particle energies to be simulated
-out_pc_min = 0 ! Minimum pc cutoff for outgoing particles, defaults to 0
-out_pc_max = 100000000 ! Maximum pc cutoff for outgoing particles (in eV here)
-dxy_ds_max = 10 ! Maximum cutoff for the magnitude of dx/ds
-                ! and dy/ds allowed for outgoing particles
-output_directory = sim_data ! Name of the directory where data will be output,
-                            ! should be specified relative to the working directory
-                            ! Defaults to sim_data
-num_bins = 15 ! Number of bins to use for both pc and r histogram binning
-              ! with just this line, you would have a 15x15 histogram
-              ! Defaults to 15
-num_pc_bins = 12 ! Number of pc bins to use for histogram binning
-num_r_bins = 20 ! Number of r bins to use for histogram binning
-fit_crossover = 10 MeV ! For alpha and beta fits, this defines the
-                       ! point where the fitter transitions from 1D
-                       ! to 2D fits, defaults to 10 MeV
-\end{verbatim}
-\newcommand{\targetm}{\texttt{target\_material}\xspace}
-\newcommand{\targett}{\texttt{target\_thickness}\xspace}
-\newcommand{\pcin}{\texttt{pc\_in}\xspace}
-\newcommand{\outpcmin}{\texttt{out\_pc\_min}\xspace}
-\newcommand{\outpcmax}{\texttt{out\_pc\_max}\xspace}
-\newcommand{\dxydsmax}{\texttt{dxy\_ds\_max}\xspace}
-\newcommand{\outdir}{\texttt{output\_directory}\xspace}
-\newcommand{\numbins}{\texttt{num\_bins}\xspace}
-\newcommand{\numrbins}{\texttt{num\_r\_bins}\xspace}
-\newcommand{\numpcbins}{\texttt{num\_pc\_bins}\xspace}
-\newcommand{\fitxpt}{\texttt{fit\_crossover}\xspace}
+\begin{example}
+  ! Example configuration file
+  ! The ! introduces a comment that lasts until the end of the line
+  target_material = tungsten ! Defines the converter material
+  target_thickness = 6.35 mm, 1.0 cm ! Defines the target thicknesses to be simulated
+  pc_in = 300 MeV, 500 MeV, 1 GeV ! Defines the incoming particle energies to be simulated
+  out_pc_min = 0 ! Minimum pc cutoff for outgoing particles, defaults to 0
+  out_pc_max = 100000000 ! Maximum pc cutoff for outgoing particles (in eV here)
+  dxy_ds_max = 10 ! Maximum cutoff for the magnitude of dx/ds
+                  ! and dy/ds allowed for outgoing particles
+  output_directory = sim_data ! Name of the directory where data will be output,
+                              ! should be specified relative to the working directory
+                              ! Defaults to sim_data
+  num_bins = 15 ! Number of bins to use for both pc and r histogram binning
+                ! with just this line, you would have a 15x15 histogram
+                ! Defaults to 15
+  num_pc_bins = 12 ! Number of pc bins to use for histogram binning
+  num_r_bins = 20 ! Number of r bins to use for histogram binning
+  fit_crossover = 10 MeV ! For alpha and beta fits, this defines the
+                         ! point where the fitter transitions from 1D
+                         ! to 2D fits, defaults to 10 MeV
+\end{example}
 
 All settings accept a single value, except for \pcin and \targett, which accept a comma separated
 list of values.  The settings \outpcmin, \outdir, \numbins, and \fitxpt have default values, while
@@ -387,47 +416,43 @@ will supersede \numbins for the number of $p_+ c$ or $r$ bins respectively.  If 
 
 \subsection{The Simulation Program}
 
-To run \exes  and perform the converter simulation, first create and edit the configuration file \configfile, and place it in your working directory.
-Then, just run
-\begin{verbatim}
-$ converter_simulation
-\end{verbatim}
-at your command prompt.  The program will parse your config file and report the settings it read,
-and report if there are any problems reading your config file.  It will then verify that the
-directory you set for \outdir  does not exist or is empty, and will ask you if you want to
-overwrite it if it already exists.  Then, for each value of \pcin  and \targett  specified in
-the config file, the program will simulate many particle creation events for those settings.  For example,
-with the above config file, six simulations will be run with the following settings:
+To run \exes and perform the converter simulation, first create and edit the configuration file
+\configfile, and place it in your working directory.  Then, just run
+\begin{example}
+  $ROOT/production/bin/converter_simulation
+\end{example}
+where \texttt{ROOT} is the directory containing the \vn{util_programs} directory. The program will
+parse your config file and report the settings it read, and report if there are any problems reading
+your config file.  It will then verify that the directory you set for \outdir does not exist or is
+empty, and will ask you if you want to overwrite it if it already exists.  Then, for each value of
+\pcin and \targett specified in the config file, the program will simulate many particle creation
+events for those settings.  For example, with the above config file, six simulations will be run
+with the following settings:
 \begin{itemize}
 \item
 300 MeV \pcin  and 6.35 mm \targett
-
 \item
 500 MeV \pcin  and 6.35 mm \targett
-
 \item
 1 GeV \pcin  and 6.35 mm \targett
-
 \item
 300 MeV \pcin  and 1 cm \targett
-
 \item
 500 MeV \pcin  and 1 cm \targett
-
 \item
 1 GeV \pcin  and 1 cm \targett
 \end{itemize}
-
-Depending on your computer and the number of different simulations that need to be run, this step may take several hours.
+Depending on your computer and the number of different simulations that need to be run, this step
+may take several hours.
 %Fortunately, this only has to be done once to set up the \bmad  converter element.
 
 
 \subsection{The Fitting Program}
 
 Once the simulations are complete, just run
-\begin{verbatim}
-$ converter_fitter
-\end{verbatim}
+\begin{example}
+  $ROOT/production/bin/converter_fitter
+\end{example}
 in the same directory where you ran \exes.  \exef will re-parse your config file for the settings it
 needs, and will again report on any errors it encounters.  It then performs the fit from Equation
 \ref{eq:cauchy} in each of the $(p_+c, r)$ bins for each simulation.  At this stage, the program may
@@ -438,6 +463,8 @@ on these fit parameters.  Finally, the results of the simulation, as well as the
 fits, are output to the file \texttt{converter.bmad}, located in the \outdir specified in the config
 file.
 
+%-------------------------------------------------------------
+\newpage
 \section{Output from the Programs}
 
 \subsection{Simulation Output}
@@ -455,8 +482,9 @@ by \exef.
 
 \subsection{Fitting Output}
 
-After running the \exef  program, the output directory will also contain a file called \texttt{converter.bmad}.
-This file aggregates all the information about $P_1$ and $P_2$ at each $p_+ c$ and target thickness tested, and is designed for use with a \bmad  converter element.
+After running the \exef program, the output directory will also contain a file called
+\texttt{converter.bmad}.  This file aggregates all the information about $P_1$ and $P_2$ at each
+$p_+ c$ and target thickness tested, and is designed for use with a \bmad converter element.
 
 \subsubsection{Gnuplot Files}
 
@@ -470,37 +498,22 @@ Equation \ref{eq:cauchy} to the data in each bin.  The scripts with the \texttt{
 the distribution $P_2$ obtained from evaluating the fits from Equations \ref{eq:fit1}-\ref{eq:fit2}
 to the Cauchy fit parameters.
 
-\exef  also outputs scripts for viewing the fits from Equations \ref{eq:fit1}-\ref{eq:fit2} across all $(p_+ c, r)$ bins.
-These are named \texttt{c\_x\_master.gp},
-\texttt{a\_x\_master.gp},
-\texttt{a\_y\_master.gp},
-\texttt{beta\_master.gp},
-\texttt{dxds\_min\_master.gp},
-\texttt{dxds\_max\_master.gp},
-and \texttt{dyds\_max\_master.gp}.
+\exef also outputs scripts for viewing the fits from Equations \ref{eq:fit1}-\ref{eq:fit2} across
+all $(p_+ c, r)$ bins.  These are named \texttt{c\_x\_master.gp}, \texttt{a\_x\_master.gp},
+\texttt{a\_y\_master.gp}, \texttt{beta\_master.gp}, \texttt{dxds\_min\_master.gp},
+\texttt{dxds\_max\_master.gp}, and \texttt{dyds\_max\_master.gp}.
 
-To view any of these plots, simply open Gnuplot in the \texttt{E\{\}\_T\{\}} directory of interest, and call the script.
-For example:
-\begin{verbatim}
-$ pwd
-/home/user/sim_data/dir_dat/E300_T0.635
-$ gnuplot
-
-        G N U P L O T
-        Version 5.2 patchlevel 8    last modified 2019-12-01
-
-        Copyright (C) 1986-1993, 1998, 2004, 2007-2019
-        Thomas Williams, Colin Kelley and many others
-
-        gnuplot home:     http://www.gnuplot.info
-        faq, bugs, etc:   type "help FAQ"
-        immediate help:   type "help"  (plot window: hit 'h')
-
-Terminal type is now 'qt'
-gnuplot> call 'c_x_master.gp'
-\end{verbatim}
+To view any of these plots, simply open Gnuplot in the \texttt{E\{\}\_T\{\}} directory of interest,
+and call the script.  For example:
+\begin{example}
+  > cd /home/user/sim_data/dir_dat/E300_T0.635
+  > gnuplot
+  gnuplot> call 'c_x_master.gp'
+\end{example}
 This will open the plot for $c_x$ across all $(p_+ c, r)$ bins for $p_+ c = 300$ MeV, $T = 0.635$ cm.
 
+%-------------------------------------------------------------
+\newpage
 \section{The \bmad  Converter Element}
 
 As mention in the previous section, \exef outputs a file, \texttt{converter.bmad}, which encodes all
@@ -515,32 +528,25 @@ changes rapidly at low $p_+ c$, and \bmad additionally does not generate outgoin
 $p_+ c$ lower than the lowest value of $p_+ c$ for the bins, \bmad does not generate as many
 outgoing particles at low $p_+ c$ as it should.
 
-
 \appendix
 
+%-------------------------------------------------------------
+\newpage
 \section{Notes for ACC Computer Users}
 
 As detailed in Section \ref{s:deps}, building \exes and \exef requires GSL, Geant, and a C++
 compiler with support for C++17.  GSL is already available on the lab machines, and a build of Geant
 is provided at \texttt{/nfs/acc/temp/jmm699/geant}.  To get access to this Geant build, you can
 simply add the following to your \texttt{.bashrc}:
-\begin{verbatim}
-cd /nfs/acc/temp/jmm699/geant/geant4.10.06.p01-build && source geant4make.sh && cd -
-\end{verbatim}
+\begin{example}
+  cd /nfs/acc/temp/jmm699/geant/geant4.10.06.p01-build && source geant4make.sh && cd -
+\end{example}
 As for the C++ compiler, you can get access to GCC 8.3 by adding
-\begin{verbatim}
-source /opt/rh/devtoolset-8/enable
-\end{verbatim}
+\begin{example}
+  source /opt/rh/devtoolset-8/enable
+\end{example}
 to your \texttt{.bashrc}.
 
-
-
-
-
-
-
-
-\printbibliography
-
+\printbibliography 
 
 \end{document}
