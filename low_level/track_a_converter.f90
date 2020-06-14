@@ -23,7 +23,7 @@ use spline_mod
 
 implicit none
 
-integer, parameter :: n_pt = 100
+integer, parameter :: n_pt$ = 100
 
 type converter_param_storage_struct
   real(rp) pc_out, r
@@ -37,8 +37,8 @@ end type
 type converter_common_struct
   type (converter_prob_pc_r_struct), pointer :: ppcr
   type (converter_distribution_struct), pointer :: dist
-  type (spline_struct) dxds_spline(0:n_pt)
-  real(rp) dxds_integ(0:n_pt)
+  type (spline_struct) dxds_spline(0:n_pt$)
+  real(rp) dxds_integ(0:n_pt$)
   real(rp) r_ran, integ_prob_tot
   integer ipc
 end type
@@ -134,6 +134,8 @@ if (out1%lost) then
   return
 endif
 
+call track_a_drift (orbit, ele%value(l$), mat6, make_matrix)
+
 azimuth_angle = twopi * r_ran(5)
 
 orb0 = orbit
@@ -191,8 +193,8 @@ call calc_out_coords2 (ele, dist, dist%sub_dist(ix_sd+1), r_ran, out2, err_flag)
 rsd2 = 1 - rsd
 out%pc_out = rsd2 * out1%pc_out + rsd * out2%pc_out
 out%r      = rsd2 * out1%r      + rsd * out2%r
-out%dxds  = rsd2 * out1%dxds  + rsd * out2%dxds
-out%dyds  = rsd2 * out1%dyds  + rsd * out2%dyds
+out%dxds   = rsd2 * out1%dxds   + rsd * out2%dxds
+out%dyds   = rsd2 * out1%dyds   + rsd * out2%dyds
 out%weight = rsd2 * dist%sub_dist(ix_sd)%prob_pc_r%integrated_prob + rsd * dist%sub_dist(ix_sd+1)%prob_pc_r%integrated_prob 
 
 end subroutine calc_out_coords
@@ -238,8 +240,8 @@ out%dxds = super_zbrent(dxds_func, out%dxds_min, out%dxds_max, 0.0_rp, 1e-4_rp, 
 ! dy/ds calc
 
 b = sqrt(1 + (out%alpha_x * (out%dxds - out%c_x))**2)
-k_const = out%alpha_y * b / (atan(out%alpha_y * out%dxds_max / b) - atan(out%alpha_y * out%dxds_min / b))
-out%dyds = b * tan(out%alpha_y * b * (r_ran(4) - 0.5_rp) / k_const) / out%alpha_y
+k_const = atan(out%alpha_y * out%dyds_max / b)
+out%dyds = b * tan((2 * r_ran(4) - 1) * k_const) / out%alpha_y
 
 end subroutine calc_out_coords2
 
@@ -467,14 +469,14 @@ endif
 spn => com%dxds_spline
 integ => com%dxds_integ
 integ(0) = 0
-dx = (out%dxds_max - out%dxds_min) / n_pt
+dx = (out%dxds_max - out%dxds_min) / n_pt$
 x_min = out%dxds_min
 
-do i = 0, n_pt
+do i = 0, n_pt$
   x = x_min + i * dx
-  rad = 1.0_rp / sqrt(out%alpha_y * (1 + out%alpha_x * (x - out%c_x)**2))
-  drad = -out%alpha_x * out%alpha_y * (x - out%c_x)
-  arg = out%alpha_y * rad * out%dyds_max
+  rad = 1.0_rp / sqrt(1 + (out%alpha_x * (x - out%c_x))**2)
+  drad = -out%alpha_x**2 * (x - out%c_x) * rad**3
+  arg = out%alpha_y * out%dyds_max * rad
   a_tan = atan(arg)
   b1 = 1 + out%beta * x
 
@@ -488,7 +490,7 @@ do i = 0, n_pt
   endif
 enddo
 
-out%integ_prob_tot = integ(n_pt)
+out%integ_prob_tot = integ(n_pt$)
 err_flag = .false.
 
 end subroutine calc_dir_out_params
