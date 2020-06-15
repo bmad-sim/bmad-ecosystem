@@ -745,7 +745,7 @@ end subroutine evaluate_expression_stack
 !   polish    -- logical, optional, Construct expression in reverse polish? Default is False.
 !
 ! Output:
-!   str       -- character(300): Expression in string form.
+!   str       -- character(:), allocatable: Expression in string form.
 !-
 
 function expression_stack_to_string (stack, polish) result (str)
@@ -754,7 +754,7 @@ type (expression_atom_struct), target :: stack(:)
 type (expression_atom_struct), pointer :: atom, atom2
 type (expression_atom_struct) s2(size(stack))
 
-character(300) str
+character(:), allocatable :: str
 character(200) s2_name(size(stack))
 
 integer i, i2, ix
@@ -762,6 +762,7 @@ logical, optional :: polish
 
 !
 
+allocate (character(1) :: str)
 str = ''
 
 ! Polish notation

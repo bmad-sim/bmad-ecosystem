@@ -5,7 +5,7 @@ use element_modeling_mod
 use binary_parser_mod
 
 private re_str, rchomp, cmplx_re_str, write_line_element, array_re_str
-private write_lat_in_sad_format
+private write_lat_in_sad_format, write_lat_line
 
 contains
 
@@ -94,7 +94,7 @@ character(*) bmad_file
 character(4000) line
 character(2000) line2
 character(200) file_name, path, basename
-character(100), allocatable :: name_list(:)
+character(100), allocatable :: list(:)
 character(100) string
 character(60) alias
 character(40) name, look_for, attrib_name
@@ -141,9 +141,9 @@ if (path == '') path = '.'
 
 ! Custom attribute names
 
-call custom_ele_attrib_name_list(index_list, name_list)
+call custom_ele_attrib_name_list(index_list, list)
 do i = 1, size(index_list)
-  write (iu, '(a, i0, 2a)') 'parameter[custom_attribute', index_list(i), '] = ', trim(name_list(i))
+  write (iu, '(a, i0, 2a)') 'parameter[custom_attribute', index_list(i), '] = ', trim(list(i))
 enddo
 
 ! Global custom attribute values
@@ -390,10 +390,16 @@ do ib = 0, ubound(lat%branch, 1)
         endif
         name = ctl%attribute  
         if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
-        string = expression_stack_to_string(ctl%stack)
-        if (string /= ele%control%var(1)%name) write (line, '(3a)') trim(line), ':', trim(string)
+        call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
+        if (size(list) /= 1 .or. list(1) /= ele%control%var(1)%name) then
+          write (line, '(3a)') trim(line), ':', trim(list(1))
+          if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
+          do ixs = 2, size(list)
+            line = trim(line) // list(ixs)
+            call write_lat_line(line, iu, .false.)
+          enddo
+        endif
 
-        if (len_trim(line) > len(line)/2) call write_lat_line(line, iu, .false.)
       enddo j_loop
       line = trim(line) // '}, var = {' // ele%control%var(1)%name
 
@@ -1452,7 +1458,7 @@ end subroutine write_map_coef
 subroutine write_this_cartesian_map (ele, iu9, line)
 
 type (ele_struct) ele
-integer iu9
+integer j, iu9
 character(*), optional :: line
 
 !
@@ -1681,8 +1687,7 @@ type (ele_struct), pointer :: lord, m_lord, slave
 character(*) line
 character(40) lord_name
 
-integer iu
-integer j, ix
+integer iu, ix
 
 !
 
@@ -1830,7 +1835,7 @@ end function rchomp
 !-------------------------------------------------------
 !-------------------------------------------------------
 !+
-! Subroutine write_lat_line (line, iu, end_is_neigh, continue_char)
+! Subroutine write_lat_line (line, iu, end_is_neigh)
 !
 ! Routine to write strings to a lattice file.
 ! This routine will break the string up into multiple lines
@@ -1844,15 +1849,13 @@ end function rchomp
 !   iu            -- Integer: Unit number to write to.
 !   end_is_neigh  -- Logical: If true then write out everything.
 !                      Otherwise wait for a full line of max_char characters or so.
-!   continue_char -- character(1), optional. Default is not to use any continue character 
-!                      and put line breaks after commas. Default is Bmad syntax compatible.
 !
 ! Output:
 !   line          -- Character(*): part of the string not written. 
 !                       If end_is_neigh = T then line will be blank.
 !-
 
-subroutine write_lat_line (line, iu, end_is_neigh, continue_char)
+subroutine write_lat_line (line, iu, end_is_neigh)
 
 implicit none
 
@@ -1861,7 +1864,6 @@ integer i, iu
 logical end_is_neigh
 logical, save :: init = .true.
 integer, parameter :: max_char = 105
-character(1), optional :: continue_char
 
 !
 
@@ -1875,22 +1877,20 @@ outer_loop: do
     endif
     return
   endif
-      
-  do i = max_char, 1, -1
-    if (line(i:i) == ',') then
-      call write_this (line(:i), continue_char)
-      line = line(i+1:)
-      cycle outer_loop
-    endif
-  enddo
 
-  do i = max_char+1, len_trim(line)
-    if (line(i:i) == ',') then
-      call write_this (line(:i), continue_char)
-      line = line(i+1:)
-      cycle outer_loop
-    endif
-  enddo
+  i = index(line(1:max_char), ',', back = .true.)
+  if (i /= 0) then
+    call write_this (line(:i))
+    line = line(i+1:)
+    cycle outer_loop
+  endif
+
+  i = index(line, ',', back = .true.)
+  if (i /= 0) then
+    call write_this (line(:i))
+    line = line(i+1:)
+    cycle outer_loop
+  endif
 
   if (end_is_neigh) then
     call write_this (line)
@@ -1898,14 +1898,19 @@ outer_loop: do
     return
   endif
 
+  call write_this (trim(line) // ' &')
+  line = ''
+  return
+
 enddo outer_loop
+
+!-----------------------------------
 
 contains
 
-subroutine write_this (line2, c_char)
+subroutine write_this (line2)
 
 character(*) line2
-character(1), optional :: c_char
 character(20) fmt
 
 !
@@ -1917,11 +1922,7 @@ else
   fmt = '(2x, a, 1x, a)'
 endif
 
-if (present(c_char)) then
-  write (iu, fmt) trim(line2), c_char
-else
-  write (iu, fmt) trim(line2)
-endif
+write (iu, fmt) trim(line2)
 
 end subroutine write_this
 

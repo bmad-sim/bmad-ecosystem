@@ -3,6 +3,8 @@ module opal_interface_mod
 use em_field_mod
 use write_lat_file_mod
 
+private write_opal_line
+
 contains
 
 !------------------------------------------------------------------------
@@ -26,14 +28,13 @@ subroutine write_opal_lattice_file (opal_file_unit, lat, err)
 
 implicit none
 
-
 type (ele_struct), pointer :: ele
 type (lat_struct), target :: lat
 
 integer :: opal_file_unit
 character(200)  :: file_name
 character(40)  :: r_name = 'write_opal_lattice_file', name
-character(2)   :: continue_char, eol_char, comment_char
+character(2)   :: eol_char, comment_char
 character(24)  :: rfmt
 character(4000)  :: line
 
@@ -69,7 +70,6 @@ endif
 
 ! OPAL formatting characters
 comment_char = '//'
-continue_char = ''
 eol_char = ';'
 
 ! Elements to write
@@ -305,7 +305,7 @@ ele_loop: do ie = ix_start, ix_end
   !----------------------------------------------------------
 
   ! Finally write out line
-  call write_lat_line (line, iu, .true., continue_char = continue_char )  
+  call write_opal_line (line, iu, .true.)
 enddo ele_loop
 
 
@@ -323,12 +323,12 @@ lat_loop: do ie = ix_start, ix_end
     ele%key == group$) cycle
 
   write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
-  if (len_trim(line) > 80) call write_lat_line(line, iu, .false., continue_char = continue_char)
+  if (len_trim(line) > 80) call write_opal_line(line, iu, .false.)
 enddo lat_loop    
 
 ! write closing parenthesis
 line = line(:len_trim(line)-1) // ')' // eol_char
-call write_lat_line (line, iu, .true., continue_char = continue_char)
+call write_opal_line (line, iu, .true.)
 
 if (present(err)) err = .false.
 
@@ -693,9 +693,99 @@ if (maxfield == 0) then
   if (global_com%exit_on_error) call err_exit
 end if
 
-
-
 end subroutine write_opal_field_grid_file
 
+!-------------------------------------------------------
+!-------------------------------------------------------
+!-------------------------------------------------------
+!+
+! Subroutine write_opal_line (line, iu, end_is_neigh)
+!
+! Routine to write strings to a lattice file.
+! This routine will break the string up into multiple lines
+! if the string is too long and add a continuation character if needed.
+!
+! If the "line" arg does not represent a full "sentence" (end_is_neigh = False), 
+! then only part of the line may be written and the part not written will be returned.
+!
+! Input:
+!   line          -- character(*): String of text.
+!   iu            -- Integer: Unit number to write to.
+!   end_is_neigh  -- Logical: If true then write out everything.
+!                      Otherwise wait for a full line of max_char characters or so.
+!
+! Output:
+!   line          -- Character(*): part of the string not written. 
+!                       If end_is_neigh = T then line will be blank.
+!-
+
+subroutine write_opal_line (line, iu, end_is_neigh)
+
+implicit none
+
+character(*) line
+integer i, iu
+logical end_is_neigh
+logical, save :: init = .true.
+integer, parameter :: max_char = 105
+
+!
+
+outer_loop: do 
+
+  if (len_trim(line) <= max_char) then
+    if (end_is_neigh) then
+      call write_this (line)
+      line = ''
+      init = .true.
+    endif
+    return
+  endif
+      
+  do i = max_char, 1, -1
+    if (line(i:i) == ',') then
+      call write_this (line(:i))
+      line = line(i+1:)
+      cycle outer_loop
+    endif
+  enddo
+
+  do i = max_char+1, len_trim(line)
+    if (line(i:i) == ',') then
+      call write_this (line(:i))
+      line = line(i+1:)
+      cycle outer_loop
+    endif
+  enddo
+
+  if (end_is_neigh) then
+    call write_this (line)
+    init = .true.
+    return
+  endif
+
+enddo outer_loop
+
+contains
+
+subroutine write_this (line2)
+
+character(*) line2
+character(20) fmt
+
+!
+
+if (init) then
+  fmt = '(a, 1x, a)'
+  init = .false.
+else
+  fmt = '(2x, a, 1x, a)'
+endif
+
+write (iu, fmt) trim(line2)
+
+end subroutine write_this
+
+end subroutine write_opal_line
 
 end module
