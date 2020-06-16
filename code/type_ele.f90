@@ -776,10 +776,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         a_name = attribute_name(ele, iv)
       end select
 
+      if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
       nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a20, a)') &
             lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(li2(1))
       do j = 2, size(li2)
-        nl=nl+1; li(nl) = ''; li(nl)(84:) = li2(j)
+        nl=nl+1; li(nl) = ''; li(nl)(84:) = trim(li2(j))
       enddo
     enddo
   endif
@@ -923,9 +924,10 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), &
                                   slave%name(1:n_char), ctl%attribute, attrib_val_str, trim(li2(1))
+        if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
         do i = 2, size(li2)
-          n = 44 + n_char + len(attrib_val_str)
-          nl=nl+1; li(nl) = ''; li(nl)(n:) = li2(i)
+          n = 50 + n_char + len(attrib_val_str)
+          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(i))
         enddo
 
       enddo
