@@ -1884,7 +1884,7 @@ case ('history')
   n_print = 50
 
   do 
-    call tao_next_switch (what2, ['-no_num'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, ['-no_num', '-all'], .true., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
@@ -1893,15 +1893,14 @@ case ('history')
     case ('-no_num')
       show_labels = .false.
 
+    case ('-all')
+      n_print = 100000
+
     case default
-      if (switch == 'all') then
-        n_print = 100000
-      else
-        read (switch, *, iostat = ios) n_print
-        if (ios /= 0) then
-          call out_io (s_error$, r_name, 'ERROR READING HISTORY NUMBER')
-          return
-        endif
+      read (switch, *, iostat = ios) n_print
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'ERROR READING HISTORY NUMBER')
+        return
       endif
 
     end select

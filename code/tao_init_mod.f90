@@ -281,6 +281,7 @@ do
   call out_io (s_blank$, r_name, 'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
   if (ix_universe == -1) then
     do i = lbound(s%u, 1), ubound(s%u, 1)
+      s%u(i)%beam%dump_file = beam_dump_file
       call init_beam(s%u(i), beam_init)
     enddo
   else
@@ -288,6 +289,7 @@ do
       call out_io (s_error$, r_name, 'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
       call err_exit
     endif
+    s%u(ix_universe)%beam%dump_file = beam_dump_file
     call init_beam(s%u(ix_universe), beam_init)
   endif
 
