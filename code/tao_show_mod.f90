@@ -1884,7 +1884,7 @@ case ('history')
   n_print = 50
 
   do 
-    call tao_next_switch (what2, ['-no_num', '-all'], .true., switch, err, ix_s2)
+    call tao_next_switch (what2, [character(8):: '-no_num', '-all'], .true., switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
