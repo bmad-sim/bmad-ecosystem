@@ -921,7 +921,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
           li2(1) = str1(1:17) // '<Knots>'
         endif
 
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), slave%name(1:n_char), ctl%attribute, attrib_val_str, li2(1)
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), &
+                                  slave%name(1:n_char), ctl%attribute, attrib_val_str, trim(li2(1))
         do i = 2, size(li2)
           n = 44 + n_char + len(attrib_val_str)
           nl=nl+1; li(nl) = ''; li(nl)(n:) = li2(i)
