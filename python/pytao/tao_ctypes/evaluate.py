@@ -19,12 +19,45 @@ def evaluate_tao(settings,
                      verbose=False):
     """
     
+    settings: dict of set_command:value where set_command is a string.
+        Example:
+            'global:track_type':'beam'
+                will issue command:
+            set global track_type = beam
+    
+    run_commands: list of command strings that will be executed.
+    
+    expressions: list of expression strings that will be used to form the output.
+    
+    beam_archive_path: if given, the all of the saved beams will be written to
+        a file named by a fingerprint (hash) of the inputs into path beam_archive_path.
+        This uses the command:
+            write beam -at *
+        which writes ALL of the bunches that are saved using the beam_saved_at list in beam_init. 
+    
+    Returns a dict of expression:value, according to the expressions above, as well as 
+        beam_archive if a  beam_archive_path was given.
     
     
-    Expressions is a list of expressions that will be used to form the output
+    
+    Example:
+    
+    evaluate_tao(settings={}, 
+                   input_file=tao.init', 
+                   run_commands=['set global track_type=beam'],
+                   expressions = ['lat::orbit.x[FF.PIP02A]', 'beam::norm_emit.x[end]'],
+                   ploton=False, 
+                   beam_archive_path = '.')
+                   
+    Returns:
+    
+        {'lat::orbit.x[FF.PIP02A]': 0.0,
+         'beam::norm_emit.x[end]': 9.9982321550206e-07,
+         'beam_archive': /path/to/bmad_beam_7fd6d30ac45a3d8c0d45112f4b569dee.h5'}
     
     
-    beam::n_particle_loss[end]
+    
+    See: run_tao
     
     """
 
