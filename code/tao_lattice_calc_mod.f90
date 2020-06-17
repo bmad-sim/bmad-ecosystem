@@ -663,7 +663,7 @@ do
     if (uni_ele(ie)%save_beam_internally .or. can_save) uni_ele(ie)%beam = beam
 
     if (u%beam%dump_file /= '' .and. (uni_ele(ie)%save_beam_to_file .or. can_save)) then
-      if (index(u%beam%dump_file, '.h5') == 0 .or. index(u%beam%dump_file, '.hdf5') == 0) then
+      if (index(u%beam%dump_file, '.h5') == 0 .and. index(u%beam%dump_file, '.hdf5') == 0) then
         call write_beam_file (u%beam%dump_file, beam, new_beam_file, ascii$, lat)
       else
         call write_beam_file (u%beam%dump_file, beam, new_beam_file, hdf5$, lat)
