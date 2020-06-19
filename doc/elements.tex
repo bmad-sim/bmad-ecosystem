@@ -2094,12 +2094,13 @@ With the first form, a \vn{girder} element will be created for each section of t
 there is a ``consecutive'' sequence of ``slave'' elements \vn{<ele1>} through \vn{<eleN>}.  This
 section of the lattice from \vn{<ele1>} through \vn{<eleN>} is called the ``girder support region''.
 ``Consecutive'' here means there are no other elements in the girder support region except for
-possibly \vn{drift} and/or \vn{marker} elements.  \vn{Drift} elements cannot be controlled by a
-girder but may appear in the girder slave list. If a \vn{drift} does appear in the slave list, only
-\vn{marker} elements, but not \vn{drift} elements will be ignored when determining if elements are
-consecutive. Note: If a drift-like element is desired to be supported by a \vn{girder}, use a
-\vn{pipe} element instead. \vn{Marker} elements present in a girder support region, but not
-mentioned in the girder slave list, are simply ignored.
+possibly \vn{drift} and/or \vn{marker} elements. \vn{Drift} elements cannot be controlled by a
+girder\footnote{This policy was created to avoid the problem where the superposition of marker
+elements on top of drifts would prevent girder formation.} but may appear in the girder slave
+list. If a \vn{drift} does appear in the slave list, \vn{drift} elements will not be ignored when
+determining if elements are consecutive. Note: If a drift-like element is desired to be supported by
+a \vn{girder}, use a \vn{pipe} element instead. \vn{Marker} elements present in a girder support
+region, but not mentioned in the girder slave list, are simply ignored.
 
 The second form of a \vn{girder} statement specifies the first and last elements in the sequence of
 elements to be supported. Everything in between except \vn{drift} elements will be supported by the
