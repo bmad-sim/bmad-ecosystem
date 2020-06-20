@@ -94,9 +94,39 @@ class Tao:
     #---------------------------------------------
     # Send a command to Tao and return the output
 
-    def cmd(self, cmd):
-      self.so_lib.tao_c_command(cmd.encode('utf-8'))
-      return self.get_output()
+    def cmd(self, cmd, exception_on_error=False):
+        """
+        
+        Runs a command, and returns the text output
+        
+        cmd: command string
+        exception_on_error: will raise an exception of [ERROR or [FATAL is detected in the output
+        
+        Returns a list of strings
+        
+        """
+        self.so_lib.tao_c_command(cmd.encode('utf-8'))
+        lines = self.get_output()  
+        if not exception_on_error:
+            return lines
+      
+            
+        error = False
+        for line in lines:
+            # Look for first instance of a problem
+            if '[ERROR' in line or '[FATAL' in line: 
+                error = True
+                badlines = [line]
+                continue
+            if error:
+                # Collect subsequent lines
+                badlines.append(line)
+        if error:
+            printout = cmd+'\n' + '\n'.join(badlines)
+            raise ValueError(f'{printout}')    
+
+     
+      
 
     #---------------------------------------------
     # Get real array output.
@@ -399,7 +429,7 @@ def apply_settings(tao_object, settings):
         
     for cmd in cmds:
         tao_object.vprint(cmd)
-        tao_object.cmd(cmd)
+        tao_object.cmd(cmd, exception_on_error=True)
         
     return cmds    
     
@@ -432,12 +462,21 @@ def run_tao(settings=None,
                  so_lib=so_lib,  # Passed onto Tao superclass
                  auto_configure = True) # Should be disables if inheriting.
                 
+    # Move to local dir, so call commands work 
+    init_dir = os.getcwd()
+    os.chdir(M.path)
     
     if settings:
         apply_settings(M, settings)
     
     for command in run_commands:
-        M.cmd(command)
+        if verbose:
+            print('run command:', command)
+        M.cmd(command, exception_on_error=True)
+    
+    # Return to init_dir
+    os.chdir(init_dir)    
+     
     
     return M
 
