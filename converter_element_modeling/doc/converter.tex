@@ -227,8 +227,8 @@ Above the user-defined $p_+ c$ cutoff, we perform a 2D fit of the form
          (b_0 + b_1 r + b_2 r^2 + b_3 r^3) e^{-(k_p (p_+ c) + k_r r)} + C \label{eq:fit2}
 \end{align}
 for each parameter $\pi =c_x, \alpha_x, \alpha_y, \beta, \dxdsmin, \dxdsmax, \dydsmax$.  The
-parameter $C$ is only used for $\dxdsmax$.  Note that we set the constant term for the $p_+ c$
-polynomial to $1$ in each case.  This must be done so that the fitting problem is full rank.
+parameter $C$ is only used for $\dxdsmin$.  Note that we set the constant term for the $p_+ c$
+polynomial to $1$ in each case.  This must be done so that the fitting problem is non-degenerate.
 
 \end{itemize}
 With these fits in hand, we have an approximation of $P_2 \left( \dxds, \dyds; p_+ c, r \right)$.
@@ -421,7 +421,7 @@ To run \exes and perform the converter simulation, first create and edit the con
 \begin{example}
   $ROOT/production/bin/converter_simulation
 \end{example}
-where \texttt{ROOT} is the directory containing the \vn{util_programs} directory. The program will
+where \texttt{ROOT} is the directory containing the \texttt{util_programs} directory. The program will
 parse your config file and report the settings it read, and report if there are any problems reading
 your config file.  It will then verify that the directory you set for \outdir does not exist or is
 empty, and will ask you if you want to overwrite it if it already exists.  Then, for each value of
