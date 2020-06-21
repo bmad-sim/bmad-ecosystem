@@ -281,7 +281,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_expression_info_struct), allocatable :: info(:)
 
 character(*) who, value_str
-character(20) :: r_name = 'tao_set_global_cmd'
+character(*), parameter :: r_name = 'tao_set_global_cmd'
 character(len(value_str)+24) val
 
 real(rp), allocatable :: set_val(:)
@@ -444,10 +444,13 @@ subroutine tao_set_csr_param_cmd (who, value_str)
 implicit none
 
 type (csr_parameter_struct) local_csr_param
+type (tao_expression_info_struct), allocatable :: info(:)
 
 character(*) who, value_str
-character(20) :: r_name = 'tao_set_csr_param_cmd'
+character(len(value_str)+24) val
+character(*), parameter :: r_name = 'tao_set_csr_param_cmd'
 
+real(rp), allocatable :: set_val(:)
 integer iu, ios
 logical err
 
@@ -455,10 +458,23 @@ namelist / params / local_csr_param
 
 ! open a scratch file for a namelist read
 
+select case (who)
+case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff')
+  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  write (val, '(es24.16)', iostat = ios) set_val(1)
+
+case ('n_bin', 'particle_bin_span', 'n_shield_images', 'sc_min_in_bin')
+  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+  write (val, '(i0)', iostat = ios) nint(set_val(1))
+
+case default  ! Is logical
+  val = value_str
+end select
+
 iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
-write (iu, '(a)') ' local_csr_param%' // trim(who) // ' = ' // trim(value_str)
+write (iu, '(a)') ' local_csr_param%' // trim(who) // ' = ' // trim(val)
 write (iu, '(a)') '/'
 rewind (iu)
 local_csr_param = csr_param  ! set defaults
