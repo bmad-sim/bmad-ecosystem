@@ -57,11 +57,10 @@ B4aSteppingAction::B4aSteppingAction(
     out_energy_min(0),
     out_energy_max(1000),
     in_particle_angle(0),
-    point_cache(cache) {
+    point_cache(cache),
+    data_vec(nullptr) {
       //std::cout << "Constructor for B4aSteppingAction\n";
-      point_cache->Lock();
-      data_vec = point_cache->GetVec();
-      point_cache->Unlock();
+      GetVec();
       //std::cout << "data_vec acquired\n";
       data_vec->reserve(40000);
       //std::cout << "data_vec reserved\n";
@@ -70,10 +69,26 @@ B4aSteppingAction::B4aSteppingAction(
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B4aSteppingAction::~B4aSteppingAction() {
-  point_cache->Lock();
-  point_cache->ReturnVec(data_vec);
-  point_cache->Unlock();
+  ReturnVec();
 }
+
+void B4aSteppingAction::GetVec() const {
+  if (!data_vec) {
+    point_cache->Lock();
+    data_vec = point_cache->GetVec();
+    point_cache->Unlock();
+  }
+}
+
+void B4aSteppingAction::ReturnVec() const {
+  if (data_vec) {
+    point_cache->Lock();
+    point_cache->ReturnVec(data_vec);
+    point_cache->Unlock();
+    data_vec = nullptr;
+  }
+}
+
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

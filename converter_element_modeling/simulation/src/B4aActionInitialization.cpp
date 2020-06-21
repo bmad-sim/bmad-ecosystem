@@ -28,6 +28,11 @@
 /// \file B4aActionInitialization.cc
 /// \brief Implementation of the B4aActionInitialization class
 
+#ifdef G4MULTITHREADED
+#include "G4MTRunManager.hh"
+#else
+#include "G4RunManager.hh"
+#endif
 #include "B4aActionInitialization.hpp"
 #include "B4PrimaryGeneratorAction.hpp"
 #include "B4RunAction.hpp"
@@ -49,7 +54,23 @@ B4aActionInitialization::B4aActionInitialization
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B4aActionInitialization::~B4aActionInitialization()
-{}
+{
+  //.auto sa = G4RunManager::GetRunManager()->GetUserSteppingAction();
+  //.SetUserAction((B4aSteppingAction *) nullptr);
+  //.delete sa;
+
+  //.auto ea = G4RunManager::GetRunManager()->GetUserEventAction();
+  //.SetUserAction((B4aEventAction *) nullptr);
+  //.delete ea;
+
+  //.auto ra = G4RunManager::GetRunManager()->GetUserRunAction();
+  //.SetUserAction((B4RunAction *) nullptr);
+  //.delete ra;
+
+  //.auto pga = G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction();
+  //.SetUserAction((B4PrimaryGeneratorAction *) nullptr);
+  //.delete pga;
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
