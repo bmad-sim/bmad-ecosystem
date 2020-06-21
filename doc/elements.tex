@@ -320,7 +320,7 @@ The \vn{x_offset}, \vn{y_offset}, and \vn{z_offset} attributes (\sref{s:offset})
 the strong beam. Note that in \mad the attributes used to offset the strong beam are called \vn{xma}
 and \vn{yma}. \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a crossing
 angle. \vn{x_pitch}, \vn{y_pitch} or some combination of the two should be set to the crossing angle
-of the strong beam with respect to the reference orbit of the weak beam. To curve the strong beam controid to simulate crabbing, the following parameters can be used:
+of the strong beam with respect to the reference orbit of the weak beam. To curve the strong beam centroid to simulate crabbing, the following parameters can be used:
 \begin{example}
   crab_x1,    crab_x2
   crab_x3,    crab_tilt
@@ -791,7 +791,7 @@ and \vn{py_aperture_width2} are both nonzero, particles are collimated if
         ((py - py_aperture_center) / py_aperture_width2)^2 < 1
 \end{example}
 If one or both of \vn{px_aperture_width2} or \vn{py_aperture_width2} are zero, the computation is the
-same as for an \vn{rcollimator}. A similar situation occures for \vn{z} and \vn{pz}. 
+same as for an \vn{rcollimator}. A similar situation occurs for \vn{z} and \vn{pz}. 
 
 Example:
 \begin{example}
@@ -830,24 +830,16 @@ The attributes specific to an \vn{converter} are
   pc_out_max      = <Real>      ! Maximum outgoing particle momentum (eV).
   angle_out_max   = <Real>      ! Maximum outgoing angle.
   species_out     = <SpeciesID> ! Output species.
-  beta_a_out      = <Real>      ! Output a-mode beta.
-  beta_b_out      = <Real>      ! Output b-mode beta.
-  alpha_a_out     = <Real>      ! Output a-mode alpha.
-  alpha_b_out     = <Real>      ! Output b-mode alpha
-  eta_x_out       = <Real>      ! Output horizontal dispersion.
-  eta_y_out       = <Real>      ! Output vertical dispersion
-  etap_x_out      = <Real>      ! Output horizontal dispersion derivative.
-  etap_y_out      = <Real>      ! Output vertical dispersion derivative.
+  p0c             = <Real>      ! Output reference momentum.
+  E_tot           = <Real>      ! Output reference energy. A settable dependent var (\sref{s:depend}).
 \end{example}
 
 The species of the outgoing particles is specified by the \vn{species_out} parameter
 (\sref{s:species.name}).
 
-To have the reference energy and reference particle for the elements downstream of a converter match
-the output from a converter, the converter should be first element in a lattice branch
-(\sref{s:branch.def}). A \vn{fork} (\sref{s:fork}) element can be used to connect the line
-containing the elements that come before the converter to the line containing the
-converter. Example:
+The converter must be first element in a lattice branch (\sref{s:branch.def}). A \vn{fork}
+(\sref{s:fork}) element can be used to connect the line containing the elements that come before the
+converter to the line containing the converter. Example:
 \begin{example}
   parameter[particle] = electron
   parameter[geometry] = open
@@ -857,59 +849,138 @@ converter. Example:
   post_linac: line = (cvter, ...)   ! cvter element first element in the line.
   post_linac[particle] = positron
   post_linac[p0c] = 3e6
+  post_linac[beta_a] = 27; post_linac[beta_b] = 32
   use, pre_linac
 \end{example}
 The line before the converter, \vn{pre_linac}, ends in a \vn{fork} element called \vn{to_cvter}
 which connects to the line named \vn{post_linac} containing the converter. The reference particle
 for the \vn{post_linac} line is set to \vn{positron} in contrast to the \vn{pre_linac} line where
-\vn{electron}s are the reference particles. It is not manditory for the reference particle of the
+\vn{electron}s are the reference particles. It is not mandatory for the reference particle of the
 branch containing the \vn{converter} to be the same as the \vn{species_out} parameter of the
-converter itself though typically this will be what is wanted.
+converter itself though typically this will be what is wanted. 
 
-The \vn{distribution} parameter of a \vn{converter} element specifies the distribtion of outgoing
+The Twiss and dispersion at the exit end of the converter
+will be taken to be equal to the values of these parameters at the beginning of the beginning of the
+converter. Since the converter is the first element in the branch, These parameters correspond to
+the parameters set for the branch. Thus, in the above example, The beta functions at the exit end
+of the converter will be $\beta_a = 27$~m and $\beta_b = 32$~m.
+
+The \vn{p0c} and \vn{E_tot} attributes set the reference momentum or energy at the exit end of the
+converter. At least one of these attributes must be set. If both are set, \vn{E_tot} is calculated
+from \vn{p0c}.
+
+The \vn{distribution} parameter of a \vn{converter} element specifies the distribution of outgoing
 particles for a given converter thickness. Multiple \vn{distribution} instances with differing
 thicknesses may be present in an element. The actual thickness of the converter will be taken to be
 the element's, length \vn{L} parameter. During tracking, the outgoing distribution will be computed
 by interpolating between the two distributions that bracket the actual thickness. The exception is
 when there is only one\vn{distribution} present. In this case, the calculation will just use that
-distribution for the calculation independent of the element length.
+distribution for the calculation independent of the element length. Example:
+\begin{example}
+cvter: converter, ..., distribution = \{
+    material = tungsten,      ! Optional. Not used in tracking.
+    thickness = 0.003,        ! Converter thickness for this distribution.
+    sub_distribution = \{...\}, ! Distribution at one incoming momentum.
+    sub_distribution = \{...\}, ! Distribution at another incoming momentum.
+    ...                       ! etc.
+  \}
+\end{example}
+The \vn{material} component is optional and is only for recording the converter material. Each
+\vn{distribution} is made up of a number of \vn{sub_distribution} components. Each one specified the
+outgoing distribution for a given incoming particle momentum. During tracking, interpolation is used
+to compute the distribution appropriate for an incoming particle with a given momentum. It is an
+error in the momentum of the incoming particle is outside the range of the momentums specified
+in the \vn{sub_distributions}. A given \vn{sub_distribution} will look like:
+\begin{example}
+  sub_distribution = \{
+    pc_in = 3e8,            ! Incoming momentum*c (eV)>
+    prob_pc_r = \{...\},      ! Momentum and radius probability table 
+    direction_out = \{...\},  ! Momentum orientation probability coefs
+  \}
+\end{example}
 
-If there are multiple \vn{distributition}s, specifying an element length that is outside the range
-of thicknesses will generate an error.
+A \vn{sub_distribution} has three components: The \vn{pc_in} component specifies the incoming
+particle momentum appropriate for the \vn{sub_distribution}, the \vn{prob_pc_r} component holds a
+two-dimensional table of the probability $P(p_\txt{out}, r)$ (\Eq{nnprp}), and \vn{direction_out}
+holds the coefficients for calculating the outgoing particle direction. \vn{prob_pc_r} look like:
+\begin{example}
+  prob_pc_r = \{
+    r_values = [0.0, 4.9e-5, 1.25e-4, ...],
+    row = \{pc_out = 1.55e6, prob = [0.0, 6.1e-6, 1.23e-5, ...]\}, 
+    row = \{pc_out = 3.96e6, prob = [0.0, 1.1e-5, ...]\},
+    ...                   ! More rows
+  \}
+\end{example}
+A \vn{probl_pc_r} has one \vn{r_values} component and multiple \vn{row} components. The
+\vn{r_values} component is a vector of radius values for the columns of the probability table.  The
+value for the first column is always zero and the radius values are strickly increasing.  Each
+\vn{row} component represents one row of the table. Each row has a momentum value \vn{pc_out} in eV
+along with a \vn{prob} component which is a vector of probability values. The length of a \vn{prob}
+vector is always equal to the length of the \vn{r_values} vector which is the number of columns in
+the table. The probability value of the first column is always zero which reflects the fact that
+there is vanishing area in an annulus of width $dr$ as $r$ tends to zero.
 
-There is a program called \vn{converter_element_modeling} which caculates converter output
-distributions. This program outputs text of the correct format which then can be used when
-constructing converter elements. The \vn{converter_element_modeling} program is based upon the
-\vn{Geant} simulation toolkit for the simulation of the passage of particles through matter. The
-\vn{converter_element_modeling} program is distributed with \bmad. Specifically, it is in the
-directory
+The \vn{direction_out} component of \vn{sub_distribution} look like:
+\begin{example}
+  direction_out = \{
+    c_x = \{...\},
+    alpha_x = \{...\},
+    alpha_y = \{...\},
+    beta = \{...\},
+    dxds_min = \{...\},
+    dxds_max = \{...\},
+    dyds_max = \{...\}
+  \}
+\end{example}
+The \vn{c_x}, \vn{alpha_x}, \vn{alpha_y}, and \vn{beta}, components of \vn{direction_out} give the
+coefficients for calculating $c_x$, $\alpha_x$, $\alpha_y$, and $\beta$ respectiely in
+\Eq{pxsxs}. The other three components give, \vn{dxds_min}, \vn{dxds_max}, and \vn{dyds_max} give
+the range for $x'$ and $y'$ over which \Eq{pxsxs} is valid. By symmetry, \vn{dyds_min} will be equal
+to \vn{-dydx_max}. The form of all these components is similar. For example:
+\begin{example}
+  dxds_min = \{
+    fit_1d_r = \{pc_out = 1.5e+06, poly = [-2.48, -658.4, -2.26e5, 1.71e+8]\},
+    fit_1d_r = \{pc_out = 3.9e+06, poly = [...]\}, 
+    ...,
+    C = 2.99394,
+    fit_2d_pc = \{k = 1.96e-8, poly = [1.0, -4.10e-10, 3.7e-16, 2.77e-27]\},
+    fit_2d_r = \{k = 4.2e-4, poly = [-4.50, 400.2, -108985, 9.18e+06]\},
+  \}
+\end{example}
+Here there are multiple \vn{fit_1d_r} components, one for each fit $\Gamma_i$ fit function
+(\Eq{gcr}).  The \vn{pc_out} sub-component of a \vn{fit_1d_r} component gives the momentum $p_i$ at
+which the fit function fits the data and the \vn{poly} sub-component of \vn{fit_1d_r} gives the
+polynomial coefficients needed for \Eq{gcr}. The $C$, \vn{fit_2d_pc} and \vn{fit_2d_r} components
+are used for computing $\Xi$ (\Eq{xkpkr}). The \vn{k} sub-components of \vn{fit_2d_pc} and
+\vn{fit_2d_r} give $k_p$ and $k_r$ respectively in \Eq{xkpkr} and the \vn{poly} sub-components of
+\vn{fit_2d_pc} and \vn{fit_2d_r} give the polynomial coefficients $w_n$ and $k_n$ respectively.
+
+To calculate the distributions and output the appropriate \vn{distribution} structures which then
+can be incorperated into a \bmad lattice, there is modeling code that is distributed with
+\bmad. Specifically, it is in the directory
 \begin{example}
   \$ACC_ROOT_DIR/util_programs/converter_element_modeling
 \end{example}
-[See your local \bmad Geru if you don't know how to find this directory.] There is documentation for
-running the program in this directory.
+[See your local \bmad Guru if you don't know how to find this directory.] There is documentation for
+running the program in this directory. The distribution modeling is based upon the \vn{Geant}
+simulation toolkit for the simulation of the passage of particles through matter.
 
 The mechanics of how \bmad generates outgoing particles is discussed in \Sref{s:converter.track}.
 In a tracking simulation, a single outgoing particle is generated for each incoming particle.  All
 outgoing particles will be assigned a \vn{weight} that represent how many actual outgoing particles
 a single actual incoming particle will generate. For example, if an actual incoming particle with a
-particular momentum would generagte, on average, 0.42 particles, the outgoing particle in the
+particular momentum would generate, on average, 0.42 particles, the outgoing particle in the
 simulation will have a weight of 0.42.  To make simulations more efficient, the \vn{pc_out_min},
 \vn{pc_out_max}, and \vn{angle_out_max} parameters can be set to restrict the momentum and angle
 range of outgoing particles. If the outgoing particles are restricted in momentum or angle, the
-weight of the outgoing particles will be approriately adjusted such that the weighted distribution
+weight of the outgoing particles will be appropriately adjusted such that the weighted distribution
 of outgoing particles within the momentum and/or angle restricted range is independent of the
 whether or not there is are restrictions.  A value of zero (the default) for any one of these
 parameters means that that parameter is ignored.
 
-A converter element does not have a well defined transfer matrix. Rather, the Twiss and dispersion
-parameters are specified at the exit surface of the converter
-\begin{example}
-  beta_a_out     beta_b_out 
-  alpha_a_out    alpha_b_out
-  eta_x_out      eta_y_out  
-  etap_x_out     etap_y_out 
-\end{example} 
+If an element (like a solenoid) is superimposed on top of a converter, the effect of the element on
+tracking within the converter is ignored, the superimposed element will have two slave elements to
+either side of the converter, and the converter itself will remain untouched.
 
 %-----------------------------------------------------------------
 \section{Crab_Cavity}
@@ -1976,10 +2047,13 @@ all branches have a \vn{beginning_ele} element at the beginning. When connecting
 target branch the last element in the target branch must be a marker-like element. Note that, by
 default, a marker element is placed at the end of all branches (\sref{s:branch.construct})
 
-The reference energy of a target branch line, needs to be set using line parameter statements
-(\sref{s:beginning}). The default reference particle type of a branch line will be a \vn{photon} is
-using a \vn{photon_fork} or will be the same type of particle as the base branch if a \vn{fork}
-element is used.
+The default reference particle type of a branch line will be a \vn{photon} is using a
+\vn{photon_fork} or will be the same type of particle as the base branch if a \vn{fork} element is
+used. If the reference particle of a branch line is different from the reference particle in the
+base branch, the reference energy (or reference momentum) of a target branch line needs to be set
+using line parameter statements (\sref{s:beginning}). If the reference particle of a branch line is
+the same as the reference particle in the base branch, the reference energy will default to the
+reference energy of the base branch if the reference energy is not set for the branch.
 
 Example showing an injection line branching to a ring which, in turn, branches to two x-ray lines:
 \begin{example}
