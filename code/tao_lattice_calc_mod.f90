@@ -800,7 +800,7 @@ type (ele_struct), save :: extract_ele
 type (ele_struct), pointer :: from_ele, ele0
 type (coord_struct) pos
 type (coord_struct), pointer :: orb_out, orb_in
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, branch_from
 
 integer ix_branch, i_ele_from, i_br_from
 
@@ -813,9 +813,9 @@ i_br_from  = branch%ix_from_branch
 
 if (i_br_from > -1) then
   i_ele_from = branch%ix_from_ele
-  from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
+  branch_from => model%lat%branch(i_br_from)
+  from_ele => branch_from%ele(i_ele_from)
   ele0 => branch%ele(0)
-  call transfer_twiss (from_ele, ele0)
   orb_out => model%tao_branch(ix_branch)%orbit(0)
   call init_coord (orb_out, model%tao_branch(i_br_from)%orbit(i_ele_from), ele0, &
                   downstream_end$, default_tracking_species(branch%param), 1, ele0%value(E_tot$))
