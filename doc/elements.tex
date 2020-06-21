@@ -837,37 +837,35 @@ The attributes specific to an \vn{converter} are
 The species of the outgoing particles is specified by the \vn{species_out} parameter
 (\sref{s:species.name}).
 
-The converter must be first element in a lattice branch (\sref{s:branch.def}). A \vn{fork}
-(\sref{s:fork}) element can be used to connect the line containing the elements that come before the
-converter to the line containing the converter. Example:
+The converter must be the last element in a lattice branch (\sref{s:branch.def}) except for possible
+\vn{fork}, \vn{photon_fork} or \vn{marker} elements. A \vn{fork} or \vn{photon_fork} element
+(\sref{s:fork}) after the converter is used to connect to the line containing the elements that come
+after the converter Example:
 \begin{example}
   parameter[particle] = electron
   parameter[geometry] = open
-  to_cvter: fork, to_line = post_linac
-  cvter, species_out = positron
-  pre_linac: line = (..., to_cvter) ! to_cvter fork last element in the line.
-  post_linac: line = (cvter, ...)   ! cvter element first element in the line.
-  post_linac[particle] = positron
-  post_linac[p0c] = 3e6
-  post_linac[beta_a] = 27; post_linac[beta_b] = 32
+  to_after: fork, to_line = after_cvter
+  cvter, species_out = positron, p0c = 3e6, distribution = ...
+  pre_linac: line = (..., cvter, to_after)
+  after_cvter: line = (...)                ! Everything after the converter.
+  after_cvter[particle] = positron
+  after_cvter[p0c] = 3e6
+  after_cvter[beta_a] = 27; after_cvter[beta_b] = 32
   use, pre_linac
 \end{example}
-The line before the converter, \vn{pre_linac}, ends in a \vn{fork} element called \vn{to_cvter}
-which connects to the line named \vn{post_linac} containing the converter. The reference particle
-for the \vn{post_linac} line is set to \vn{positron} in contrast to the \vn{pre_linac} line where
-\vn{electron}s are the reference particles. It is not mandatory for the reference particle of the
-branch containing the \vn{converter} to be the same as the \vn{species_out} parameter of the
-converter itself though typically this will be what is wanted. 
+The line up to the fork element, \vn{pre_linac}, has the converter jest before the \vn{fork}
+element.  The \vn{fork} element, called \vn{to_after}, connects to the line named \vn{after_cvter}
+which contains all the elements after the converter. The reference particle and reference momentum
+for the \vn{after_cvter} line is set to \vn{positron} and 3e6 respectively to agree with the setting
+of \vn{species_out} and \vn{p0c} set in the converter element.
 
-The Twiss and dispersion at the exit end of the converter
-will be taken to be equal to the values of these parameters at the beginning of the beginning of the
-converter. Since the converter is the first element in the branch, These parameters correspond to
-the parameters set for the branch. Thus, in the above example, The beta functions at the exit end
-of the converter will be $\beta_a = 27$~m and $\beta_b = 32$~m.
+Since \bmad cannot calculate the appropriate Twiss and dispersion values after the converter, values
+must be set in the lattice file.  Thus, in the above example, the starting beta function at the
+beginning of the \vn{after_cvter} line is set to be $\beta_a = 27$~m and $\beta_b = 32$~m.
 
-The \vn{p0c} and \vn{E_tot} attributes set the reference momentum or energy at the exit end of the
-converter. At least one of these attributes must be set. If both are set, \vn{E_tot} is calculated
-from \vn{p0c}.
+The \vn{p0c} and \vn{E_tot} attributes of the converter set the reference momentum or energy at the
+exit end of the converter. At least one of these attributes must be set. If both are set, \vn{E_tot}
+is calculated to be consistent with \vn{p0c}.
 
 The \vn{distribution} parameter of a \vn{converter} element specifies the distribution of outgoing
 particles for a given converter thickness. Multiple \vn{distribution} instances with differing
@@ -977,10 +975,6 @@ weight of the outgoing particles will be appropriately adjusted such that the we
 of outgoing particles within the momentum and/or angle restricted range is independent of the
 whether or not there is are restrictions.  A value of zero (the default) for any one of these
 parameters means that that parameter is ignored.
-
-If an element (like a solenoid) is superimposed on top of a converter, the effect of the element on
-tracking within the converter is ignored, the superimposed element will have two slave elements to
-either side of the converter, and the converter itself will remain untouched.
 
 %-----------------------------------------------------------------
 \section{Crab_Cavity}

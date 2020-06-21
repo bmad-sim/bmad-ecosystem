@@ -22,7 +22,7 @@ implicit none
 type (lat_struct), target :: lat
 type (nametable_struct), pointer :: nt
 type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
-type (branch_struct), pointer :: branch, slave_branch, branch2
+type (branch_struct), pointer :: branch, slave_branch, branch2, associated_branch
 type (photon_surface_struct), pointer :: surf
 type (wake_sr_mode_struct), pointer :: sr_mode
 type (wake_lr_mode_struct), pointer :: lr
@@ -84,10 +84,6 @@ endif
 if (problem_found) call create_lat_ele_nametable(lat, nt)
 
 ! Some global checks
-
-if (any(lat%ele(:)%key == lcavity$) .and. lat%param%geometry /= open$) then
-  call out_io (s_fatal$, r_name, 'THERE IS A LCAVITY BUT THE GEOMETRY IS NOT SET TO OPEN!')
-endif
 
 if (lat%particle_start%direction /= -1 .and. lat%particle_start%direction /= 1) then
   call out_io (s_fatal$, r_name, 'PARTICLE_START DIRECTION IS NOT -1 NOR 1. IT IS: \i0\ ', lat%particle_start%direction)
@@ -169,6 +165,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
 
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_name(ele)) // ')'
+    associated_branch => pointer_to_branch(ele)
 
     ! Do not check the extra elements temporarily inserted by bmad_parser2.
 
@@ -462,6 +459,22 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                     'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                     'WHICH IS AN LCAVITY OR RF CAVITY HAS LONGITUDINAL_MODE SET TO SOMETHING NOT 0 OR 1: \i0\ ', &
                     i_array = [nint(ele%value(longitudinal_mode$))] )
+      err_flag = .true.
+    endif
+
+    !
+
+    if (ele%key == lcavity$ .and. associated_branch%param%geometry == closed$) then
+      call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                    'WHICH IS AN LCAVITY IS IN A LATTICE BRANCH WITH A CLOSED (NOT OPEN) GEOMETRY.')
+      err_flag = .true.
+    endif
+
+    if (ele%key == converter$ .and. associated_branch%param%geometry == closed$) then
+      call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                    'WHICH IS A CONVERTER IS IN A LATTICE BRANCH WITH A CLOSED (NOT OPEN) GEOMETRY.')
       err_flag = .true.
     endif
 

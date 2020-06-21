@@ -344,6 +344,8 @@ if (associated(a_ptr, ele%value(e_tot$)) .and. associated(branch)) then
 
   if (dep_set) then
     call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+    ! If there is an e_gun then actually want to vary the start energy and e_tot/p0c will be
+    ! dependent parameters dependent upon the gun voltage and starting energy.
     if (ele%key == beginning_ele$) then
       ele%value(e_tot_start$) = ele%value(e_tot$)
       ele%value(p0c_start$) = ele%value(p0c$)
@@ -363,6 +365,8 @@ if (associated(a_ptr, ele%value(p0c$)) .and. associated(branch)) then
 
   if (dep_set) then
     call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
+    ! If there is an e_gun then actually want to vary the start energy and e_tot/p0c will be
+    ! dependent parameters dependent upon the gun voltage and starting energy.
     if (ele%key == beginning_ele$) then
       ele%value(e_tot_start$) = ele%value(e_tot$)
       ele%value(p0c_start$) = ele%value(p0c$)

@@ -3857,6 +3857,7 @@ character(60) err_str
 character(40) slave_name, attrib_name, missing_slave_name
 
 logical err, slave_not_in_lat, created_girder_lord, err_flag, matched_to_drift, have_ignored_a_drift
+logical have_wrapped
 
 ! loop over lord elements
 
@@ -3965,6 +3966,7 @@ main_loop: do n_in = 1, n_ele_max
         n_slave = 0              ! Number of actual slaves found.
         matched_to_drift = .false.
         have_ignored_a_drift = .false.
+        have_wrapped = .false.
 
         if (size(pele%control) == 0) then
           call parser_error ('GIRDER DOES NOT HAVE ANY ELEMENTS TO SUPPORT: ' // lord%name)
@@ -3980,9 +3982,10 @@ main_loop: do n_in = 1, n_ele_max
           ! Wrap around the origin if needed.
           if (ix_ele_now > branch%n_ele_track) then
             ix_ele_now = ix_ele_now - branch%n_ele_track
+            have_wrapped = .true.
           endif
 
-          if (n_slave > 0 .and. ix_ele_now == ie_start) then
+          if (have_wrapped .and. ix_ele_now == ie_start) then
             call parser_error ('GIRDER SLAVE ELEMENT NOT FOUND: ' // slave_name)
             cycle main_loop
           endif
