@@ -28,8 +28,10 @@
 /// \file B4RunAction.cc
 /// \brief Implementation of the B4RunAction class
 
+#include <iostream>
 #include "B4RunAction.hpp"
 #include "B4Analysis.hpp"
+#include "B4aSteppingAction.hpp"
 
 #include "G4Run.hh"
 #ifdef G4MULTITHREADED
@@ -56,11 +58,19 @@ B4RunAction::~B4RunAction()
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void B4RunAction::BeginOfRunAction(const G4Run* /*run*/)
-{ }
+{
+#ifndef G4MULTITHREADED
+  static_cast<const B4aSteppingAction*>(G4RunManager::GetRunManager()->GetUserSteppingAction())->GetVec();
+#endif
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void B4RunAction::EndOfRunAction(const G4Run* /*run*/)
-{ }
+{
+#ifndef G4MULTITHREADED
+  static_cast<const B4aSteppingAction*>(G4RunManager::GetRunManager()->GetUserSteppingAction())->ReturnVec();
+#endif
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

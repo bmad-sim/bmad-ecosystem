@@ -55,6 +55,8 @@ public:
   virtual ~B4aSteppingAction();
 
   virtual void UserSteppingAction(const G4Step* step);
+  virtual void GetVec() const;
+  virtual void ReturnVec() const;
 
 private:
   const B4DetectorConstruction* fDetConstruction;
@@ -64,7 +66,7 @@ private:
   double out_energy_max;
   double in_particle_angle;
   PointCache* point_cache;
-  std::vector<DataPoint>* data_vec;
+  mutable std::vector<DataPoint>* data_vec;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -60,7 +60,7 @@
 RunManager_t* Initialize_Geant(void) {
   // Runs the one-time setup for geant and returns a pointer to the resultant G4RunManager
 #ifdef G4MULTITHREADED
-  int nThreads = 4;
+  int nThreads = 1;
 #endif
   // Choose the Random engine
   //
@@ -81,6 +81,7 @@ RunManager_t* Initialize_Geant(void) {
 
   silentSession * quiet = new silentSession;
   UI->SetCoutDestination(quiet);
+  //runManager->SetVerboseLevel(1);
 
 //  G4VModularPhysicsList* physicsList = new FTFP_BERT;
   G4VModularPhysicsList* physicsList = new QGSP_BERT;
