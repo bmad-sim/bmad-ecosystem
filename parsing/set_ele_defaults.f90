@@ -61,6 +61,7 @@ case (beginning_ele$)
 case (fork$, photon_fork$)
   ele%value(direction$) = 1
   ele%value(particle$) = real_garbage$
+  ele%value(ref_species$) = not_set$   ! Used when element is after a converter
 
 case (capillary$)
   ele%offset_moves_aperture = .true.
@@ -179,6 +180,9 @@ case (line_ele$)
   ele%x = xy_disp_struct(g,g,g)
   ele%y = xy_disp_struct(g,g,g)
   ele%floor = floor_position_struct([g,g,g], w_unit, g,g,g)
+
+case (marker$)
+  ele%value(ref_species$) = not_set$    ! Used when element is after a converter
 
 case (mask$)
   ele%aperture_at = surface$

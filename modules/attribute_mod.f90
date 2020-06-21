@@ -564,22 +564,28 @@ do i = 1, n_key$
   call init_attribute_name1 (i, spin_tracking_method$,   'SPIN_TRACKING_METHOD')
   call init_attribute_name1 (i, ptc_integration_type$,   'PTC_INTEGRATION_TYPE')
 
-  if (i == lcavity$ .or. i == em_field$ .or. i == custom$) then
+  select case (i)   ! Does not include beginning_ele
+  case (lcavity$, em_field$, custom$)
     call init_attribute_name1 (i, E_tot$,                  'E_TOT', dependent$)
     call init_attribute_name1 (i, p0c$,                    'P0C', dependent$)  
     call init_attribute_name1 (i, p0c_start$,              'P0C_START', quasi_free$)
     call init_attribute_name1 (i, e_tot_start$,            'E_TOT_START', quasi_free$)
-  elseif (i == patch$) then
+  case (converter$)
+    call init_attribute_name1 (i, E_tot$,                  'E_TOT')
+    call init_attribute_name1 (i, p0c$,                    'P0C')
+    call init_attribute_name1 (i, p0c_start$,              'P0C_START', dependent$)
+    call init_attribute_name1 (i, e_tot_start$,            'E_TOT_START', dependent$)
+  case (patch$)
     call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
     call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
     call init_attribute_name1 (i, p0c_start$,              'P0C_START', dependent$)
     call init_attribute_name1 (i, e_tot_start$,            'E_TOT_START', dependent$)
-  else
+  case default
     call init_attribute_name1 (i, E_tot$,                  'E_TOT', quasi_free$) ! Free in multipass_lord
     call init_attribute_name1 (i, p0c$,                    'P0C', quasi_free$)   ! Free in multipass_lord
     call init_attribute_name1 (i, e_tot_start$,            'e_tot_start', private$)
     call init_attribute_name1 (i, p0c_start$,              'p0c_start', private$)
-  endif
+  end select
 
   call init_attribute_name1 (i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
   call init_attribute_name1 (i, ref_time_start$,         'ref_time_start', private$)
@@ -789,6 +795,7 @@ call init_attribute_name1 (photon_fork$, to_line$,                  'TO_LINE')
 call init_attribute_name1 (photon_fork$, to_element$,               'TO_ELEMENT')
 call init_attribute_name1 (photon_fork$, new_branch$,               'NEW_BRANCH')
 call init_attribute_name1 (photon_fork$, is_on$,                    'IS_ON')
+call init_attribute_name1 (photon_fork$, ref_species$,              'REF_SPECIES', dependent$)
 
 attrib_array(fork$, :) = attrib_array(photon_fork$, :)
 
@@ -862,14 +869,6 @@ call init_attribute_name1 (converter$, pc_out_min$,                 'PC_OUT_MIN'
 call init_attribute_name1 (converter$, pc_out_max$,                 'PC_OUT_MAX')
 call init_attribute_name1 (converter$, angle_out_max$,              'ANGLE_OUT_MAX')
 call init_attribute_name1 (converter$, species_out$,                'SPECIES_OUT')
-call init_attribute_name1 (converter$, beta_a_out$,                 'BETA_A_OUT')
-call init_attribute_name1 (converter$, beta_b_out$,                 'BETA_B_OUT')
-call init_attribute_name1 (converter$, alpha_a_out$,                'ALPHA_A_OUT')
-call init_attribute_name1 (converter$, alpha_b_out$,                'ALPHA_B_OUT')
-call init_attribute_name1 (converter$, eta_x_out$,                  'ETA_X_OUT')
-call init_attribute_name1 (converter$, eta_y_out$,                  'ETA_Y_OUT')
-call init_attribute_name1 (converter$, etap_x_out$,                 'ETAP_X_OUT')
-call init_attribute_name1 (converter$, etap_y_out$,                 'ETAP_Y_OUT')
 
 call init_attribute_name1 (lens$, l$,                               'L')
 call init_attribute_name1 (lens$, radius$,                          'RADIUS')
@@ -1116,13 +1115,13 @@ call init_attribute_name1 (lcavity$, l_hard_edge$,                  'L_HARD_EDGE
 call init_attribute_name1 (marker$, l$,                             'L', dependent$)
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
 call init_attribute_name1 (marker$, p0c_ref_init$,                  'p0c_ref_init', private$)
-
-call init_attribute_name1 (marker$, sr_wake$,                   'SR_WAKE')
-call init_attribute_name1 (marker$, lr_wake$,                   'LR_WAKE')
-call init_attribute_name1 (marker$, sr_wake_file$,              'SR_WAKE_FILE')
-call init_attribute_name1 (marker$, lr_wake_file$,              'LR_WAKE_FILE')
-call init_attribute_name1 (marker$, lr_freq_spread$,            'LR_FREQ_SPREAD')
-call init_attribute_name1 (marker$, lr_self_wake_on$,           'LR_SELF_WAKE_ON')
+call init_attribute_name1 (marker$, sr_wake$,                       'SR_WAKE')
+call init_attribute_name1 (marker$, lr_wake$,                       'LR_WAKE')
+call init_attribute_name1 (marker$, sr_wake_file$,                  'SR_WAKE_FILE')
+call init_attribute_name1 (marker$, lr_wake_file$,                  'LR_WAKE_FILE')
+call init_attribute_name1 (marker$, lr_freq_spread$,                'LR_FREQ_SPREAD')
+call init_attribute_name1 (marker$, lr_self_wake_on$,               'LR_SELF_WAKE_ON')
+call init_attribute_name1 (marker$, ref_species$,                   'REF_SPECIES', dependent$)
 
 call init_attribute_name1 (match$, l$,                              'L')
 call init_attribute_name1 (match$, delta_time$,                     'DELTA_TIME')
@@ -1756,7 +1755,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
-      'MULTIPASS_REF_ENERGY')
+      'MULTIPASS_REF_ENERGY', 'REF_SPECIES')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -2249,7 +2248,7 @@ case ('PHOTON_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, photon_type_name, lbound(photon_type_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == incoherent$)
 
-case ('PARTICLE')
+case ('PARTICLE', 'REF_SPECIES')
   attrib_val_name = species_name(ix_attrib_val)
   if (present(is_default)) then
     if (ele%key == photon_fork$) then

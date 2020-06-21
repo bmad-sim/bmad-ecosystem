@@ -361,7 +361,7 @@ case (beambeam$)
   else
 
     if (val(sig_x$) == 0 .or. val(sig_y$) == 0) then
-      call out_io(s_abort$, r_name, 'ZERO SIGMA IN BEAMBEAM ELEMENT!')
+      call out_io(s_abort$, r_name, 'ZERO SIGMA IN BEAMBEAM ELEMENT!' // ele%name)
       call type_ele(ele, .true., 0, .false., 0, .false.)
       if (global_com%exit_on_error) call err_exit
     endif
@@ -373,7 +373,7 @@ case (beambeam$)
 
   endif
 
-! Converter
+! Converter. Note: Reference energy bookkeeping handled in ele_compute_ref_energy_and_time.
 
 case (converter$)
   if (allocated(ele%converter%dist) .and. (dval(angle_out_max$) /= 0 .or. &
@@ -384,12 +384,6 @@ case (converter$)
         if (allocated(ppcr%p_norm)) deallocate (ppcr%p_norm, ppcr%integ_pc_out, ppcr%integ_r)
       enddo
     enddo
-  endif
-
-  if (ele%value(p0c$) == 0) then
-    call convert_total_energy_to (ele%value(E_tot$), ele%converter%species_out, pc = ele%value(p0c$))
-  else
-    call convert_pc_to (ele%value(p0c$), ele%converter%species_out, E_tot = ele%value(E_tot$))
   endif
 
 ! Crab_Cavity

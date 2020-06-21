@@ -79,7 +79,7 @@ type (str_indexx_struct) str_index
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
-integer i, i1, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
+integer ia, im, i1, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max
 
 real(rp) coef, val, L_mis(3), S_mis(3,3) 
@@ -176,21 +176,22 @@ write (fmt_l, '(a, i0, a)') '(7x, a, t', n_att+9, ', a, 2x, l1)'
 write (fmt_r, '(a, i0, a)') '(7x, a, t', n_att+9, ', a, 2x, es15.7)'
 
 
-do i = 1, num_ele_attrib$
-  attrib = attribute_info(ele, i)
-  attrib%value = ele%value(i)
+do ia = 1, num_ele_attrib$
+  attrib = attribute_info(ele, ia)
+  attrib%value = ele%value(ia)
   a_name = attrib%name
   if (a_name == null_name$) cycle
   if (a_name == 'MULTIPASS_REF_ENERGY' .and. (ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$)) cycle
   if (a_name == 'LORD_PAD1' .and. ele%lord_status /= super_lord$) cycle
   if (attrib%state == private$) cycle
   if (is_2nd_column_attribute(ele, a_name, ix2_attrib)) cycle
+  if (a_name == 'REF_SPECIES' .and. nint(ele%value(ia)) == not_set$) cycle
 
   attrib2 = ele_attribute_struct()
 
   select case (a_name)
-  case ('RF_FREQUENCY');    if (ele%value(i) /= 0) attrib2 = ele_attribute_struct('RF_WAVELENGTH', dependent$, is_real$, 'm', -1, &
-                                                                            c_light * ele%value(p0c$) / (ele%value(i) * ele%value(e_tot$)))
+  case ('RF_FREQUENCY');    if (ele%value(ia) /= 0) attrib2 = ele_attribute_struct('RF_WAVELENGTH', dependent$, is_real$, 'm', -1, &
+                                                                            c_light * ele%value(p0c$) / (ele%value(ia) * ele%value(e_tot$)))
   case ('P0C')
     if (particle == photon$) then
       attrib2 = ele_attribute_struct('REF_WAVELENGTH', dependent$, is_real$, 'm', -1, c_light * h_planck / ele%value(p0c$))
@@ -201,11 +202,11 @@ do i = 1, num_ele_attrib$
   case ('P0C_START');       attrib2 = ele_attribute_struct('BETA_START', dependent$, is_real$, '', -1, ele%value(p0c_start$) / ele%value(e_tot_start$))
   case ('E_TOT_START');     attrib2 = ele_attribute_struct('DELTA_E', dependent$, is_real$, 'eV', -1, ele%value(e_tot$) - ele%value(e_tot_start$))
   case ('DARWIN_WIDTH_SIGMA', 'DARWIN_WIDTH_PI')
-    attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'eV', -1, ele%value(i) / ele%value(dbragg_angle_de$))
-  case ('DBRAGG_ANGLE_DE'); attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'deg/eV', -1, ele%value(i) * 180 / pi)
+    attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'eV', -1, ele%value(ia) / ele%value(dbragg_angle_de$))
+  case ('DBRAGG_ANGLE_DE'); attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'deg/eV', -1, ele%value(ia) * 180 / pi)
   case default
     if (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
-      attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'deg', -1, ele%value(i) * 180 / pi)
+      attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'deg', -1, ele%value(ia) * 180 / pi)
     else
       if (ix2_attrib > 0) then
         attrib2 = attribute_info(ele, ix2_attrib)
@@ -219,19 +220,19 @@ do i = 1, num_ele_attrib$
   if (z1 .and. z2 .and. .not. type_zero) cycle
 
   line = ''
-  call write_this_attribute (attrib, n_att, line(3:))
-  call write_this_attribute (attrib2, 28, line(n_att+33:))
+  call write_this_attribute (attrib, ia, n_att, line(3:))
+  call write_this_attribute (attrib2, ia, 28, line(n_att+33:))
   nl=nl+1; li(nl) = line
 enddo
 
 ! Custom attributes
 
 if (ele%slave_status /= super_slave$) then
-  do i = 1, custom_attribute_num$
-    attrib = attribute_info(ele, i+custom_attribute0$)
+  do im = 1, custom_attribute_num$
+    attrib = attribute_info(ele, im+custom_attribute0$)
     if (attrib%name(1:1) == '!') cycle
     nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 3x, a)') &
-                  i, attrib%name(1:n_att), '=', value_of_attribute(ele, attrib%name, err_flag), '! Custom attribute'
+                  im, attrib%name(1:n_att), '=', value_of_attribute(ele, attrib%name, err_flag), '! Custom attribute'
   enddo
 endif
 
@@ -259,26 +260,26 @@ if (associated(ele%a_pole)) then
     call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
   endif
 
-  do i = 0, n_pole_maxx
-    if (a(i) == 0 .and. b(i) == 0) cycle
+  do im = 0, n_pole_maxx
+    if (a(im) == 0 .and. b(im) == 0) cycle
 
     if (ele%key == multipole$) then
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-              'K', i, 'L       =', ele%a_pole(i), 'KS', i, '       =', ele%a_pole_elec(i), 'T', i, '        =', ele%b_pole(i)
+              'K', im, 'L       =', ele%a_pole(im), 'KS', im, '       =', ele%a_pole_elec(im), 'T', im, '        =', ele%b_pole(im)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-              'B', i, '(equiv) =', b(i),          'A', i,  '(equiv) =', a(i),              'T', i, '(equiv) =', tn(i)
+              'B', im, '(equiv) =', b(im),          'A', im,  '(equiv) =', a(im),              'T', im, '(equiv) =', tn(im)
 
     elseif (ele%key == ab_multipole$) then
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-                 'A', i, ' =', ele%a_pole(i), 'A', i, '(w/Tilt) =', a2(i), 'K', i, 'L(equiv) =', knl(i)
+                 'A', im, ' =', ele%a_pole(im), 'A', im, '(w/Tilt) =', a2(im), 'K', im, 'L(equiv) =', knl(im)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-                 'B', i, ' =', ele%b_pole(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
+                 'B', im, ' =', ele%b_pole(im), 'B', im, '(w/Tilt) =', b2(im), 'T', im, '(equiv)  =', tn(im)
 
     else
-      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', i, ' =', ele%a_pole(i), &
-                 'A', i, '(Scaled) =', a(i), 'A', i, '(w/Tilt) =', a2(i), 'K', i, 'L(equiv) =', knl(i)
-      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', i, ' =', ele%b_pole(i), &
-                 'B', i, '(Scaled) =', b(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
+      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', im, ' =', ele%a_pole(im), &
+                 'A', im, '(Scaled) =', a(im), 'A', im, '(w/Tilt) =', a2(im), 'K', im, 'L(equiv) =', knl(im)
+      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', im, ' =', ele%b_pole(im), &
+                 'B', im, '(Scaled) =', b(im), 'B', im, '(w/Tilt) =', b2(im), 'T', im, '(equiv)  =', tn(im)
     endif
 
   enddo
@@ -289,10 +290,10 @@ endif
 if (associated(ele%a_pole_elec)) then
   call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
 
-  do i = 0, n_pole_maxx
-    if (a(i) == 0 .and. b(i) == 0) cycle
-    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', i, '_elec =', ele%a_pole_elec(i), 'A', i, '_elec(Scaled) =', a(i)
-    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', i, '_elec =', ele%b_pole_elec(i), 'B', i, '_elec(Scaled) =', b(i)
+  do im = 0, n_pole_maxx
+    if (a(im) == 0 .and. b(im) == 0) cycle
+    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', im, '_elec =', ele%a_pole_elec(im), 'A', im, '_elec(Scaled) =', a(im)
+    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', im, '_elec =', ele%b_pole_elec(im), 'B', im, '_elec(Scaled) =', b(im)
   enddo
 endif
 
@@ -386,7 +387,7 @@ endif
 ! Converter
 
 if (associated(ele%converter)) then
-  do i = 1, size(ele%converter%dist)
+  do im = 1, size(ele%converter%dist)
   enddo
 endif
 
@@ -400,15 +401,15 @@ if (associated(ele%cartesian_map)) then
     else
       nl=nl+1; li(nl) = 'Cartesian_map:'
     endif
-    do i = 1, size(ele%cartesian_map)
-      ct_map => ele%cartesian_map(i)
+    do im = 1, size(ele%cartesian_map)
+      ct_map => ele%cartesian_map(im)
       if (ct_map%master_parameter == 0) then
         name = '<None>'
       else
         name = attribute_name(ele, ct_map%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(ct_map%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    field_type        ', trim(em_field_type_name(ct_map%field_type))
       nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
@@ -443,15 +444,15 @@ if (associated(ele%cylindrical_map)) then
     else
       nl=nl+1; li(nl) = 'Cylindrical_map:'
     endif
-    do i = 1, size(ele%cylindrical_map)
-      cl_map => ele%cylindrical_map(i)
+    do im = 1, size(ele%cylindrical_map)
+      cl_map => ele%cylindrical_map(im)
       if (cl_map%master_parameter == 0) then
         name = '<None>'
       else
         name = attribute_name(ele, cl_map%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:        ', trim(cl_map%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    master_parameter: ', trim(name)
       nl=nl+1; write (li(nl), '(a, i0)')      '    harmonic:         ', cl_map%harmonic
@@ -488,15 +489,15 @@ if (associated(ele%grid_field)) then
     else
       nl=nl+1; li(nl) = 'Grid_field:'
     endif
-    do i = 1, size(ele%grid_field)
-      g_field => ele%grid_field(i)
+    do im = 1, size(ele%grid_field)
+      g_field => ele%grid_field(im)
       if (g_field%master_parameter == 0) then
         name = '<None>'
       else
         name = attribute_name(ele, g_field%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:          ', trim(g_field%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    field_type:         ', em_field_type_name(g_field%field_type)
       nl=nl+1; write (li(nl), '(2a)')         '    geometry:           ', grid_field_geometry_name(g_field%geometry)
@@ -530,15 +531,15 @@ if (associated(ele%taylor_field)) then
     else
       nl=nl+1; li(nl) = 'Taylor_field:'
     endif
-    do i = 1, size(ele%taylor_field)
-      t_field => ele%taylor_field(i)
+    do im = 1, size(ele%taylor_field)
+      t_field => ele%taylor_field(im)
       if (t_field%master_parameter == 0) then
         name = '<None>'
       else
         name = attribute_name(ele, t_field%master_parameter)
       endif
 
-      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', i
+      nl=nl+1; write (li(nl), '(a, i0)')      '  Mode #:', im
       nl=nl+1; write (li(nl), '(2a)')         '    From file:         ', trim(t_field%ptr%file)
       nl=nl+1; write (li(nl), '(2a)')         '    field_type:        ', em_field_type_name(t_field%field_type)
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    field_scale:       ', t_field%field_scale
@@ -564,16 +565,16 @@ if (associated(ele%ac_kick) .and. logic_option(.false., type_field)) then
 
   if (allocated(ac%amp_vs_time)) then
     nl=nl+1; li(nl) = '     Indx      Time       Amplitude'    
-    do i = 1, size(ac%amp_vs_time)
-      nl=nl+1; write (li(nl), '(i9, 2es14.6)') i, ac%amp_vs_time(i)%time, ac%amp_vs_time(i)%amp
+    do im = 1, size(ac%amp_vs_time)
+      nl=nl+1; write (li(nl), '(i9, 2es14.6)') im, ac%amp_vs_time(im)%time, ac%amp_vs_time(im)%amp
     enddo
   endif
 
   if (allocated(ac%frequencies)) then
     nl=nl+1; li(nl) = '     Indx          Freq     Amplitude           Phi'    
-    do i = 1, size(ac%frequencies)
-      nl=nl+1; write (li(nl), '(i9, 3es14.6)') i, &
-                                ac%frequencies(i)%f, ac%frequencies(i)%amp, ac%frequencies(i)%phi
+    do im = 1, size(ac%frequencies)
+      nl=nl+1; write (li(nl), '(i9, 3es14.6)') im, &
+                                ac%frequencies(im)%f, ac%frequencies(im)%amp, ac%frequencies(im)%phi
     enddo
   endif
 endif
@@ -600,9 +601,9 @@ if (associated(ele%wall3d)) then
         nl=nl+1; write (li(nl), '(a, l)') 'Wall%superimpose     = ', wall3d%superimpose
       end select
       n = min(size(wall3d%section), 100)
-      do i = 1, n
+      do im = 1, n
         call re_allocate (li, nl+100, .false.) 
-        section => wall3d%section(i)
+        section => wall3d%section(im)
         if (section%dr_ds == real_garbage$) then
           write (str1, '(a)')        ',  dr_ds = Not-set'
         else
@@ -614,7 +615,7 @@ if (associated(ele%wall3d)) then
         endif
 
         nl=nl+1; write (li(nl), '(a, i0, a, f10.6, 2a, 2(f11.6, a), a)') &
-                    'Wall%Section(', i, '):  S =', section%s, trim(str1),  ',   r0 = (', &
+                    'Wall%Section(', im, '):  S =', section%s, trim(str1),  ',   r0 = (', &
                     section%r0(1), ',', section%r0(2), ')', trim(str2)
 
 
@@ -685,12 +686,12 @@ if (ele%key == fork$ .or. ele%key == photon_fork$) then
   endif
 
   n = nint(ele%value(ix_to_branch$))
-  i = nint(ele%value(ix_to_element$))
+  im = nint(ele%value(ix_to_element$))
   if (associated(lat)) then
     nl=nl+1; write (li(nl), '(5a, 2(i0, a))') 'Branch to: ', trim(lat%branch(n)%name), '>>', &
-                                  trim(lat%branch(n)%ele(i)%name), '  [', n, '>>', i, ']'
+                                  trim(lat%branch(n)%ele(im)%name), '  [', n, '>>', im, ']'
   else
-    nl=nl+1; write (li(nl), '(a, i0, a, i0)') 'Branch to: ', n, '>>', i
+    nl=nl+1; write (li(nl), '(a, i0, a, i0)') 'Branch to: ', n, '>>', im
   endif
 endif
 
@@ -720,8 +721,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     nl=nl+1; write (li(nl), '(3a, i0, a)') 'Associated Multipass_Lord: ', trim(lord%name), '  (Index: ', lord%ix_ele, ')'
     nl=nl+1; li(nl) = 'Other slaves of this Lord:'
     nl=nl+1; li(nl) = '     Index   Name'
-    do i = 1, lord%n_slave
-      slave => pointer_to_slave(lord, i)
+    do im = 1, lord%n_slave
+      slave => pointer_to_slave(lord, im)
       if (slave%ix_ele == ele%ix_ele .and. slave%ix_branch == ele%ix_branch) cycle
       nl=nl+1; write (li(nl), '(a, 3x, a)') adjustr(ele_loc_name(slave)), trim(slave%name)
     enddo
@@ -729,8 +730,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   case (super_slave$)
     nl=nl+1; write (li(nl), '(3a, i0, a)') 'Associated Super_Lord(s):'
     nl=nl+1; li(nl) = '   Index   Name                             Type'
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord(ele, i)
+    do im = 1, ele%n_lord
+      lord => pointer_to_lord(ele, im)
       if (lord%lord_status /= super_lord$) cycle
       if (lord%slave_status == multipass_slave$) then
         lord2 => pointer_to_lord(lord, 1)
@@ -745,8 +746,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   ! Print controller lords
 
   has_it = .false.
-  do i = 1, ele%n_lord
-    lord => pointer_to_lord(ele, i)
+  do im = 1, ele%n_lord
+    lord => pointer_to_lord(ele, im)
     if (lord%lord_status == multipass_lord$ .or. lord%lord_status == super_lord$) cycle
     has_it = .true.
     exit
@@ -757,8 +758,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type           Expression'
 
     allocate (character(100) :: expression_str)
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord (ele, i, ctl)
+    do im = 1, ele%n_lord
+      lord => pointer_to_lord (ele, im, ctl)
       select case (lord%lord_status)
       case (super_lord$, multipass_lord$)
         cycle
@@ -793,20 +794,20 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   nl=nl+1; li(nl) = '   Index   Name                               Type'
 
   if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord(ele, i)
+    do im = 1, ele%n_lord
+      lord => pointer_to_lord(ele, im)
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
       do j = 1, lord%n_lord_field
         has_it = .true.
-        lord2 => pointer_to_lord(lord, lord%n_lord+i)
+        lord2 => pointer_to_lord(lord, lord%n_lord+im)
         nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
                       trim(ele_loc_name(lord2)), lord2%name, key_name(lord2%key)
       enddo
     enddo
   else
-    do i = 1, ele%n_lord_field
+    do im = 1, ele%n_lord_field
       has_it = .true.
-      lord2 => pointer_to_lord(lord, lord%n_lord+i)
+      lord2 => pointer_to_lord(lord, lord%n_lord+im)
       nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
                     trim(ele_loc_name(lord2)), lord2%name, key_name(lord2%key)
 
@@ -830,21 +831,21 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     n_att = maxval(len_trim(ele%control%var%name))
 
     if (ele%lord_status == group_lord$) then
-      do i = 1, size(ele%control%var)
-        a_name = ele%control%var(i)%name
-        nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 11x, 3a, es15.7)')  i, &
-                      a_name(1:n_att), '  =', ele%control%var(i)%value, &
-                      'OLD_', a_name(1:n_att), '  =', ele%control%var(i)%old_value
+      do im = 1, size(ele%control%var)
+        a_name = ele%control%var(im)%name
+        nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7, 11x, 3a, es15.7)')  im, &
+                      a_name(1:n_att), '  =', ele%control%var(im)%value, &
+                      'OLD_', a_name(1:n_att), '  =', ele%control%var(im)%old_value
       enddo
     else  ! overlay_lord
-      do i = 1, size(ele%control%var)
-        nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  i, &
-                      ele%control%var(i)%name, '  =', ele%control%var(i)%value
+      do im = 1, size(ele%control%var)
+        nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  im, &
+                      ele%control%var(im)%name, '  =', ele%control%var(im)%value
       enddo
     endif
 
     if (ele%control%type == spline$ .or. ele%control%type == linear$) then
-      do i = 1, size(ele%control%x_knot)
+      do im = 1, size(ele%control%x_knot)
       enddo
     endif
 
@@ -855,18 +856,18 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       slave => pointer_to_slave (ele, is, ctl)
       if (allocated(ctl%stack)) then
         if (nl + size(ctl%stack) + 100 > size(li)) call re_allocate(li, nl + size(ctl%stack) + 100)
-        do i = 1, size(ctl%stack)
-          if (ctl%stack(i)%type == end_stack$) exit
-          if (ctl%stack(i)%type /= variable$) cycle
-          if (ctl%stack(i)%name == '') cycle
-          if (any(ctl%stack(i)%name == physical_const_list%name)) cycle
-          call find_indexx(ctl%stack(i)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
+        do im = 1, size(ctl%stack)
+          if (ctl%stack(im)%type == end_stack$) exit
+          if (ctl%stack(im)%type /= variable$) cycle
+          if (ctl%stack(im)%name == '') cycle
+          if (any(ctl%stack(im)%name == physical_const_list%name)) cycle
+          call find_indexx(ctl%stack(im)%name, str_index, ix, add_to_list = .true., has_been_added = has_been_added)
           if (.not. (has_been_added)) cycle  ! Avoid duuplicates
           if (print_it) then
             nl=nl+1; li(nl) = 'Named Constants:'
             print_it = .false.
           endif
-          nl=nl+1; write (li(nl), '(8x, 2a, es15.7)') trim(ctl%stack(i)%name), ' = ', ctl%stack(i)%value
+          nl=nl+1; write (li(nl), '(8x, 2a, es15.7)') trim(ctl%stack(im)%name), ' = ', ctl%stack(im)%value
         enddo
       endif
     enddo
@@ -878,8 +879,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     if (nl + ele%n_slave + 100 > size(li)) call re_allocate(li, nl + ele%n_slave + 100)
 
     n_char = 10
-    do i = 1, ele%n_slave
-      slave => pointer_to_slave (ele, i)
+    do im = 1, ele%n_slave
+      slave => pointer_to_slave (ele, im)
       n_char = max(n_char, len_trim(slave%name))
     enddo
 
@@ -888,8 +889,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     case (multipass_lord$, super_lord$, girder_lord$)
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
-      do i = 1, ele%n_slave
-        slave => pointer_to_slave (ele, i)
+      do im = 1, ele%n_slave
+        slave => pointer_to_slave (ele, im)
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, f14.6)') &
                     trim(ele_loc_name(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
       enddo
@@ -925,9 +926,9 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), &
                                   slave%name(1:n_char), ctl%attribute, attrib_val_str, trim(li2(1))
         if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
-        do i = 2, size(li2)
+        do im = 2, size(li2)
           n = 50 + n_char + len(attrib_val_str)
-          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(i))
+          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im))
         enddo
 
       enddo
@@ -942,20 +943,20 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   nl=nl+1; li(nl) = '   Index   Name                                      Type '
 
   if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord(ele, i)
+    do im = 1, ele%n_lord
+      lord => pointer_to_lord(ele, im)
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
       do j = 1, lord%n_slave_field
         has_it = .true.
-        slave => pointer_to_slave(ele, ele%n_slave+i)
+        slave => pointer_to_slave(ele, ele%n_slave+im)
         nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
                       trim(ele_loc_name(slave)), slave%name, trim(key_name(slave%key))
       enddo
     enddo
   else
-    do i = 1, ele%n_slave_field
+    do im = 1, ele%n_slave_field
       has_it = .true.
-      slave => pointer_to_slave(ele, ele%n_slave+i)
+      slave => pointer_to_slave(ele, ele%n_slave+im)
       nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
                     trim(ele_loc_name(slave)), slave%name, trim(key_name(slave%key))
     enddo
@@ -1002,8 +1003,8 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     write (fmt, '(a, i0, a)') '(', n, 'f12.7, a, es13.5, 2es15.5)'
   endif
 
-  do i = 1, n
-    nl=nl+1; write (li(nl), fmt) (ele%mat6(i, j), j = 1, n), '   : ', ele%vec0(i)
+  do im = 1, n
+    nl=nl+1; write (li(nl), fmt) (ele%mat6(im, j), j = 1, n), '   : ', ele%vec0(im)
   enddo
 
   ! Encode taylor series
@@ -1019,8 +1020,8 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
       nl = nl + nt
     else
       n_term = 0
-      do i = 1, size(ele%taylor)
-        n_term = n_term + size(ele%taylor(i)%term)
+      do im = 1, size(ele%taylor)
+        n_term = n_term + size(ele%taylor(im)%term)
       enddo
       nl=nl+1; write (li(nl), '(a, i6)') 'Taylor map total number of terms:', n_term
     endif
@@ -1036,8 +1037,8 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
       nl = nl + nt
     else
       n_term = 0
-      do i = 0, 3
-        n_term = n_term + size(ele%spin_taylor(i)%term)
+      do im = 0, 3
+        n_term = n_term + size(ele%spin_taylor(im)%term)
       enddo
       nl=nl+1; write (li(nl), '(a, i6)') 'Spin_Taylor map total number of terms:', n_term
     endif
@@ -1069,9 +1070,9 @@ if (associated(ele%wake)) then
       nl=nl+1; li(nl) = '  Short-Range Longitudinal Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi   Transverse_Dependence'
-      do i = 1, size(ele%wake%sr%long)
-        mode => ele%wake%sr%long(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') i, mode%amp, mode%damp, mode%k, mode%phi, &
+      do im = 1, size(ele%wake%sr%long)
+        mode => ele%wake%sr%long(im)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') im, mode%amp, mode%damp, mode%k, mode%phi, &
                   sr_longitudinal_position_dep_name(mode%position_dependence)
       enddo
     else
@@ -1086,9 +1087,9 @@ if (associated(ele%wake)) then
       nl=nl+1; li(nl) = '  Short-Range Transverse Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
-      do i = 1, size(ele%wake%sr%trans)
-        mode => ele%wake%sr%trans(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') i, mode%amp, mode%damp, mode%k, mode%phi, &
+      do im = 1, size(ele%wake%sr%trans)
+        mode => ele%wake%sr%trans(im)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') im, mode%amp, mode%damp, mode%k, mode%phi, &
                   sr_transverse_polarization_name(mode%polarization), sr_transverse_position_dep_name(mode%position_dependence)
       enddo
     else
@@ -1116,8 +1117,8 @@ if (associated(ele%wake)) then
       nl=nl+1; li(nl) = '  Long-Range Wake Modes [Note: Freq will not be equal to Freq_in if there is a frequency spread]:'
       nl=nl+1; li(nl) = &
             '  #     Freq_in        Freq         R/Q        Damp           Q        Phi   m   Angle    b_sin     b_cos     a_sin     a_cos'
-      do i = 1, size(ele%wake%lr%mode)
-        lr => ele%wake%lr%mode(i)
+      do im = 1, size(ele%wake%lr%mode)
+        lr => ele%wake%lr%mode(im)
         angle = ' unpolar'
         if (lr%polarized) write (angle, '(f8.3)') lr%angle
         if (lr%damp == 0 .or. lr%freq <= 0) then
@@ -1127,7 +1128,7 @@ if (associated(ele%wake)) then
         endif
 
 
-        nl=nl+1; write (li(nl), '(i3, 4es12.4, a, es12.4, i3, a, 5es10.2)') i, &
+        nl=nl+1; write (li(nl), '(i3, 4es12.4, a, es12.4, i3, a, 5es10.2)') im, &
                 lr%freq_in, lr%freq, lr%R_over_Q, lr%damp, q_factor, lr%phi, lr%m, angle, &
                 lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos
       enddo
@@ -1182,8 +1183,8 @@ if (present(lines)) then
   n_lines = nl
   lines(1:nl) = li(1:nl)
 else
-  do i = 1, nl
-    print '(1x, a)', trim(li(i))
+  do im = 1, nl
+    print '(1x, a)', trim(li(im))
   enddo
 endif
 
@@ -1314,10 +1315,10 @@ end function is_2nd_column_attribute
 !--------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_attribute (attrib, n_name_width, line)
+subroutine write_this_attribute (attrib, ia, n_name_width, line)
 
 type (ele_attribute_struct) attrib
-integer n_name_width
+integer ia, n_name_width
 character(*) line
 character(40) name
 character(3) str_ix
@@ -1334,7 +1335,7 @@ endif
 
 select case (attrib%kind)
 case (is_logical$)
-  if (ele%value(i) /= 0) ele%value(i) = 1
+  if (ele%value(ia) /= 0) ele%value(ia) = 1
   write (line, '(a, 2x, 2a, l1, a, i0, a)')  str_ix, attrib%name(1:n_name_width), '=  ', is_true(attrib%value), ' (', nint(attrib%value), ')'
 case (is_integer$)
   write (line, '(a, 2x, 2a, i0)')  str_ix, attrib%name(1:n_name_width), '= ', nint(attrib%value)

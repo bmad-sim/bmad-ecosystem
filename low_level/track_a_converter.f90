@@ -7,7 +7,7 @@
 !   orbit       -- Coord_struct: Starting position.
 !   ele         -- ele_struct: converter element.
 !   param       -- lat_param_struct: Lattice parameters.
-!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
+!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is False.
 !
 ! Output:
 !   orbit      -- coord_struct: End position.
@@ -83,7 +83,9 @@ if (ele%value(l$) == 0) then
   endif
 endif
 
-call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
+
+call offset_particle (ele, param, set$, orbit)
 
 ! Find dists that straddle thickness
 
@@ -134,7 +136,7 @@ if (out1%lost) then
   return
 endif
 
-call track_a_drift (orbit, ele%value(l$), mat6, make_matrix)
+call track_a_drift (orbit, ele%value(l$))
 
 azimuth_angle = twopi * r_ran(5)
 
@@ -152,7 +154,7 @@ orbit%vec(3) = orbit%vec(3) + out1%r * sin(azimuth_angle)
 orbit%vec(4) = orbit%vec(4) + (out1%dxds * sin(azimuth_angle) + out1%dyds * cos(azimuth_angle)) * ps
 orbit%vec(5) = orbit%vec(5) * orb0%beta / orbit%beta
 
-call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, param, unset$, orbit)
 return
 
 ! Error detected
@@ -180,8 +182,9 @@ logical err_flag
 
 nsd = size(dist%sub_dist)
 if (pc_in < dist%sub_dist(1)%pc_in .or. pc_in >= dist%sub_dist(nsd)%pc_in) then
-  call out_io (s_fatal$, r_name, 'INCOMING PARTICLE ENERGY OUT OF RANGE: \es12.4\ FOR CONVERTER: ' // ele%name, &
-                                 'PARTICLE WILL BE MARKED AS LOST.')
+  call out_io (s_fatal$, r_name, 'INCOMING PARTICLE MOMENTUM \es12.4\ OUT OF THE DISTRIBUTION RANGE: [\es10.4\, \es10.4\]', &
+                                 'FOR CONVERTER: ' // ele%name, &
+                                 'PARTICLE WILL BE MARKED AS LOST.', r_array = [pc_in, dist%sub_dist(1)%pc_in, dist%sub_dist(nsd)%pc_in])
   out%lost = .true.
   return
 endif

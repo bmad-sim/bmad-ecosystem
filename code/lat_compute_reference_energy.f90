@@ -30,13 +30,13 @@ type (coord_struct) start_orb, end_orb
 real(rp) pc, abs_tol(2)
 real(rp), parameter :: zero6(6) = 0
 
-integer j, k, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
+integer j, k, n, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
 integer ix_super_end, ix_e_gun, it
 
 logical stale, err, lord_compute
 logical :: err_flag
 
-character(40), parameter :: r_name = 'lat_compute_ref_energy_and_time'
+character(*), parameter :: r_name = 'lat_compute_ref_energy_and_time'
 
 ! propagate the energy through the tracking part of the lattice
 
@@ -55,20 +55,18 @@ do ib = 0, ubound(lat%branch, 1)
 
   if (stale) then
     if (branch%ix_from_branch >= 0) then
-
       fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-
       if (fork_ele%branch%param%particle == branch%param%particle) then
-        begin_ele%value(E_tot$) = fork_ele%value(E_tot$)
-        begin_ele%value(p0c$) = fork_ele%value(p0c$)
+        begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
+        begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
       endif
 
       begin_ele%value(delta_ref_time$) = 0
       begin_ele%value(ref_time_start$) = begin_ele%ref_time
-
     endif
   endif
 
+  ! Note: E_tot & E_tot_start are both set equal to each other in bmad_parser.
   if (begin_ele%value(E_tot$) == 0) then
     begin_ele%value(E_tot$) = begin_ele%value(E_tot_start$)
     begin_ele%value(p0c$) = begin_ele%value(p0c_start$)
@@ -414,7 +412,7 @@ real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time
 integer i, key
 logical err_flag, err, changed, saved_is_on, energy_stale
 
-character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
+character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
 !
 
@@ -439,6 +437,15 @@ select case (key)
 
 case (converter$)
   ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+
+  if (ele%value(p0c$) == 0 .and. ele%value(E_tot$) == 0)  then
+    call out_io (s_abort$, r_name, 'NEITHER P0C NOR E_TOT IS SET FOR CONVERTER ' // ele%name)
+    return
+  elseif (ele%value(p0c$) == 0) then
+    call convert_total_energy_to (ele%value(E_tot$), ele%converter%species_out, pc = ele%value(p0c$))
+  else
+    call convert_pc_to (ele%value(p0c$), ele%converter%species_out, E_tot = ele%value(E_tot$))
+  endif
 
 case (lcavity$)
 
@@ -541,6 +548,19 @@ case (patch$)
   velocity = c_light * ele%value(p0c$) / ele%value(E_tot$)
   ele%ref_time = ref_time_start + ele%value(t_offset$) + ele%value(l$) / velocity
 
+case (marker$, fork$, photon_fork$)
+  ele%value(E_tot$) = E_tot_start
+  ele%value(p0c$) = p0c_start
+  ele%ref_time = ref_time_start
+
+  ! After a converter the reference species is different than param%particle.
+  select case (ele0%key)
+  case (converter$)
+    ele%value(ref_species$) = ele0%converter%species_out
+  case (marker$, fork$, photon_fork$)   ! Generally there are multiple markers/forks after a converter
+    ele%value(ref_species$) = ele0%value(ref_species$)
+  end select
+
 case default
   if (significant_difference(ele%value(p0c$), p0c_start, rel_tol = small_rel_change$)) then
     ele%value(E_tot$) = E_tot_start
@@ -566,7 +586,6 @@ case default
     call track_this_ele (orb_start, orb_end, .false., err); if (err) return
     call calc_time_ref_orb_out(orb_end)
   endif
-
 end select
 
 ! If delta_ref_time has shifted then any taylor map must be updated.

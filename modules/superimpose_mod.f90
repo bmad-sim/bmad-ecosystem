@@ -381,6 +381,7 @@ endif
 !-------------------------------------------------------------------------
 ! Go through the list of elements being superimposed upon.
 ! Zero length elements (markers, etc.) do not get involved here.
+! Also a converter element is treated like a marker.
 
 ix_slave = ix1_split
 
@@ -392,12 +393,7 @@ do
 
   slave => branch%ele(ix_slave)
   call transfer_ele(slave, slave_saved)
-  if (slave_saved%value(l$) == 0) cycle
-
-  select case (slave_saved%key)
-  case (multipole$, ab_multipole$)
-   if (slave_saved%value(l$) == 0) cycle
-  end select
+  if (slave_saved%value(l$) == 0 .or. slave_saved%key == converter$) cycle
 
   ! Do we need to set up a super lord to control this slave element?
   ! if yes then create the super lord element
