@@ -493,23 +493,6 @@ and
   m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
 \end{alignat}
 
-%-------------------------------------------------------------------------
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{converter.pdf}
-  \caption[Converter geometry.]
-  {
-An incoming particle strikes the bottom of the converter. At some point within the interior, a new
-particle is generated and this new particle exits the top surface. To calculate the position and
-orientation of the outgoing particle, a coordinate system is established where the origin point
-$\wt\calO$ is the point that the incoming particle would strike the top surface if it went straight
-through and the $(x,y)$ axes are randomly rotated with respect to the $(x_b,y_b)$ body coordinate axes.
-By construction, the position of the outgoing particle will be along the $x$-axis.
-  }
-  \label{f:converter}.
-\end{figure}
-
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{Converter Tracking}
@@ -541,6 +524,25 @@ the element parameters (\sref{s:converter}):
   angle_out_max ! Maximum angle to the surface perpendicular (rad).
 \end{example}
 
+%-------------------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{converter.pdf}
+  \caption[Converter geometry.]
+  {
+An incoming particle strikes the bottom of the converter. At some point within the interior, a new
+particle is generated and this new particle exits the top surface. To calculate the position and
+orientation of the outgoing particle, a coordinate system is established where the origin point
+$\wt\calO$ is the point that the incoming particle would strike the top surface if it went straight
+through and the $(x,y)$ axes are randomly rotated with respect to the $(x_b,y_b)$ body coordinate axes.
+By construction, the position of the outgoing particle will be along the $x$-axis.
+  }
+  \label{f:converter}.
+\end{figure}
+
+%-------------------------------------------------------------------------
+
 The geometry of the converter is shown in \fig{f:converter}. On the top surface, where the outgoing
 particle emerges, $(x_b,y_b)$ are the axes for the element body coordinate system (\sref{s:coords.3}).
 To generate the position and orientation of the outgoing particle, another coordinate system is used
@@ -566,6 +568,7 @@ $p_\txt{out}$ and $r$. $P(p_\txt{out},r)$ is normalized so that the integrated p
 to the average number of outgoing particles created for each incoming particle $N_\txt{out}/N_{in}$
 \begin{equation}
   \frac{N_\txt{out}}{N_{in}} = \int \int dp_\txt{out} \, dr \, P(p_\txt{out}, r)
+  \label{nnprp}
 \end{equation}
 The integrals are done using linear interpolation between grid points.  From a $P(p_\txt{out},r)$
 probability table, a ``normalized'' probability $P_\txt{n}(p_\txt{out},r)$ table is computed where
@@ -626,52 +629,36 @@ probability distribution $P_d$
   \label{pxsxs}
 \end{equation}
 where the parameters $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ all depend upon $p_\txt{out}$
-and $r$. Notice that by construction, with the outgoing particle generated on the
-$x$-axis, the distribution is symmetric about $y'$-axis. The pre-computed distribution
-characterizes each of these parameters by a set of one or more fit functions.
-
-The $\beta(p_\txt{out},r)$ parameter fit is divided into two regions. For $p_\txt{out}$ lower than
-some cutoff, $\beta(p_\txt{out},r)$ is fit using a set of one-dimensional functions $\beta_i(r)$
-at momentum $p_i$, $i = 1, \ldots, N_\beta$ with
+and $r$. Notice that by construction, with the outgoing particle generated on the $x$-axis, the
+distribution is symmetric about $y'$-axis. The pre-computed distribution characterizes each of these
+parameters by a set of one or more fits which are functions of $p_\txt{out}$ and $r$. There are also
+four functions of $p_\txt{out}$ and $r$ that give the range over which \Eq{pxsxs} is valid
+$x'_\txt{min}$, $x'_\txt{max}$, $y'_\txt{min}$, and $y'_\txt{max}$. By symmetry, $y'_\txt{min} =
+-y'_\txt{max}$. Also $A_d$ can be computed from knowledge of $\beta$, $c_x$, $\alpha_x$, and
+$\alpha_y$ using the normalization condition that at any given $p_\txt{out}$ and $r$
 \begin{equation}
-  \beta_i(r) = \sum_{n=1}^4 c_{n,i} \, r^n
+  1 = \int_{x'_\txt{min}}^{x'_\txt{max}} dx' 
+  \int_{-y'_\txt{max}}^{y'_\txt{max}} dy' \, P_d \left( x', y' \right)
 \end{equation}
-The $c_{0,i}$ coeficients is zero by symmetry. To evaluate $\beta(p_\txt{out},r)$ at momenta lower than
-$p_{N_\beta}$, the $\beta_i$ are used with linear interpolation between functions of different
-$p_i$. At higher energies, the fit function $\beta_h$ is used
+Thus there are only seven independent parameters that need to be fitted. The fit functions for all
+seven have the same form. The fit is divided into two regions. For $p_\txt{out}$ lower than some
+cutoff, a parameter is fit using a set of one-dimensional functions $\Gamma_i(r)$ at discrete momentum $p_i$,
+$i = 1, \ldots, N_\beta$ with
 \begin{equation}
-  \beta_h(p_\txt{out},r) = \left( \sum_{n=0}^4 k_{n} \, r^n \right) \, 
-  \left( \sum_{n=1}^4 w_{n} \, p_\txt{out}^n \right)
+  \Gamma_i(r) = \sum_{n=1}^M c_{n,i} \, r^n
+  \label{gcr}
 \end{equation}
-
-For $c_x(p_\txt{out},r)$ the fit function is
+The polynomial cutoff $M$ is 4 for $c_x$ and $\beta$ and is 3 for the other five.  To evaluate a
+parameter at momenta lower than $p_{N_\beta}$, the $\Gamma_i$ are used with linear interpolation in
+$p$ between functions of different $p_i$. At higher energies, the parameter variation is smoother so
+a two dimensional fit $Xi$ is used
 \begin{equation}
-  c_x(p_\txt{out},r) = \left( \sum_{n=1}^4 a_{n} \, r^n \right) \, 
-  \left( \sum_{n=0}^4 b_{n} \, p_\txt{out}^n \right)
+  \Xi(p_\txt{out},r) = e^{-(k_p \, p_\txt{out} + k_r \, r)} \,
+  \left( \sum_{n=0}^3 k_{n} \, r^n \right) \, 
+  \left( 1 + \sum_{n=1}^3 w_{n} \, p_\txt{out}^n \right) + C
+  \label{xkpkr}
 \end{equation}
-The $a_0$ coeficient is zero by symmetry.
-
-For $\alpha_x(p_\txt{out},r)$ and $\alpha_y(p_\txt{out},r)$, like the $\beta$ fit, there is a set of
-one-dimensional fit functions $\alpha_i(r)$ (the $x$ and $y$ subscripts are being suppressed here)
-at momentum $p_i$, $i = 1, \ldots, N_\alpha$ with
-\begin{equation}
-  \alpha_i(r) = \left( \sum_{n=0}^4 d_{n,i} \, r^n \right) \, e^{-k \, r}
-\end{equation}
-To evaluate $\alpha(p_\txt{out},r)$ at momenta lower than $p_{N_\alpha}$, the $\alpha_i$ are used with
-linear interpolation between functions of different $p_i$.  At higher energies, the fit function
-$\alpha_h$ is used
-\begin{equation}
-  \alpha_h(p_\txt{out},r) = \frac{1}{p_\txt{out}} \, e^{-(k_p \, p_\txt{out} + k_r \, r)} \,
-  \left( \sum_{n=0}^4 k_{n,i} \, r^n \right) \, \left( \sum_{n=0}^4 w_{n,i} \, p_\txt{out}^n \right)
-\end{equation}
-
-Once $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ are calculated at a given $p_\txt{out}$ and $r$,
-$A_d$ can be calculated using the restriction that the integral of $P_d$ must be properly normalized
-to one
-\begin{equation}
-  1 = \int \int dx' \, dy' \,
-  P_d \left( x', y' \right)
-\end{equation}
+The $C$ parameter is only nonzero for $x'_\txt{min}$. 
 
 Once $A_d$, $\beta$, $c_x$, $\alpha_x$, and $\alpha_y$ have been calculated for a given $p_\txt{out}$ and
 $r$, The calculation of $x'$ starts with integrating $P_d$ in \Eq{pxsxs} over $y'$
@@ -682,9 +669,7 @@ $r$, The calculation of $x'$ starts with integrating $P_d$ in \Eq{pxsxs} over $y
   \tan^{-1} \left( \frac{\alpha_y \, y'_\txt{lim}}{\sqrt{1 + \alpha_x^2 \, (x' - c_x)^2}} \right)
   \nonumber
 \end{align}
-where $y'_\txt{lim}$ is either the lesser of $\tan^{-1}(\text{angle_out_max})$ or the maximum
-value of $y'$ that the pre-computed distribution parameters $\beta$, $c_x$, $\alpha_x$, and
-$\alpha_y$ were fit out to (typically something greater than 80$^\txt{o}$ from the perpendicular).
+where $y'_\txt{lim}$ is either the lesser of $y'_\txt{max}$ and $\tan^{-1}(\text{angle_out_max})$.
 A spline fit is used to integrate $I_{xd}$ and this is used to choose a value for $x'$. Once $x'$
 is known, The integral of $P_d(x', y')$ over $y'$ is used to choose a value for $y'$.
 

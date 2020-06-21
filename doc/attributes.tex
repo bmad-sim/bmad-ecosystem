@@ -354,10 +354,11 @@ particles, and for photons, these two values are the same (\sref{s:phase.space})
 multipass elements (\sref{s:multipass}), \vn{e_tot} and \vn{p0c} are dependent attributes and,
 except for multipass elements, any setting of \vn{e_tot} and \vn{p0c} in the lattice input file is
 an error. The value of \vn{e_tot} and \vn{p0c} for an element is calculated by \bmad to be the same
-as the previous element except for \vn{e_gun}, \vn{lcavity} and \vn{patch} elements. To set the
-\vn{e_tot} or \vn{p0c} at the start of the lattice use the \vn{beginning} or \vn{parameter}
-statements.  See~\sref{s:param}. Since the energy changes from the start to the end of an
-\vn{lcavity} or. \vn{em_field}, an \vn{lcavity} or \vn{em_field} has the dependent attributes
+as the previous element except for \vn{e_gun}, \vn{lcavity}, \vn{converter}, and \vn{patch}
+elements. To set the \vn{e_tot} or \vn{p0c} at the start of the lattice use the \vn{beginning} or
+\vn{parameter} statements.  See~\sref{s:param}. Since the reference energy changes from the start to
+the end of an \vn{lcavity}, \vn{converter} or \vn{em_field} element, these elements have the
+dependent attributes
 \index{em_field}\index{lcavity}
 \begin{example}
   e_tot_start   and
@@ -367,7 +368,7 @@ which are just the reference energy and momentum at the start of the element.
 
 \index{beginning_ele}
 The \vn{beginning_ele} element (\sref{s:begin.ele}) also has associated \vn{e_tot_start} and
-\vn{p0c_start} attributes as well as \vn{e_tot} and \vn{p0c}. Generally, for an \vn{beginning_ele},
+\vn{p0c_start} attributes as well as \vn{e_tot} and \vn{p0c}. Generally, for a \vn{beginning_ele},
 \vn{p0c_start} and \vn{p0c} are the same and \vn{e_tot_start} and \vn{e_tot} are the same and the
 values for these attributes are set in the lattice file with the appropriate \vn{parameter}
 (\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statement. The exception occurs when there
