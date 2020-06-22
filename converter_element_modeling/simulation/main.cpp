@@ -94,7 +94,7 @@ int main() {
       ////////////
 
       // Main data collection loop
-      constexpr size_t RUN_LENGTH = 40000;
+      constexpr size_t RUN_LENGTH = 4000;
       while (!my_binner.has_enough_data() && !HALT_SIGNAL) {
         calbin.run(RUN_LENGTH);
       }

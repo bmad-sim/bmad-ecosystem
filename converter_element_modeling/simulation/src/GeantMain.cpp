@@ -29,6 +29,7 @@
 /// \brief Main program of the B4a example
 
 #include <string>
+#include <thread>
 
 #include "B4DetectorConstruction.hpp"
 #include "B4aActionInitialization.hpp"
@@ -60,7 +61,8 @@
 RunManager_t* Initialize_Geant(void) {
   // Runs the one-time setup for geant and returns a pointer to the resultant G4RunManager
 #ifdef G4MULTITHREADED
-  int nThreads = 1;
+  //int nThreads = 4;
+  int nThreads = std::thread::hardware_concurrency();
 #endif
   // Choose the Random engine
   //
