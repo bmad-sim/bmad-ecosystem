@@ -452,6 +452,10 @@ def parse_command(command, dlist):
   f_out = common.f_out[-1]
   if common.debug: print (str(dlist))
 
+  if len(dlist) == 0: 
+    f_out.write('\n')
+    return
+
   # Ignore this
 
   if dlist[0] in ['show', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
@@ -750,6 +754,8 @@ def get_next_command ():
         if len(common.f_in) == 0: return ['', dlist]
 
     else:
+      f_in = common.f_in[-1]
+      f_out = common.f_out[-1]
       line = common.command
       common.command = ''
 

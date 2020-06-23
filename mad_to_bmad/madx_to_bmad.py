@@ -568,6 +568,10 @@ def parse_command(command, dlist):
 
   f_out = common.f_out[-1]
 
+  if len(dlist) == 0: 
+    f_out.write('\n')
+    return
+
   # Get rid of "real", "int", "const" "const real", etc. prefixes
 
   if dlist[0].startswith('real ') or dlist[0].startswith('int ') or dlist[0].startswith('const '): dlist[0] = dlist[0].split(' ', 1)[1].strip()
@@ -998,6 +1002,8 @@ def get_next_command ():
         if len(common.f_in) == 0: return ['', dlist]  # If root file was closed
 
     else:
+      f_in = common.f_in[-1]
+      f_out = common.f_out[-1]
       line = common.command
       common.command = ''
 
