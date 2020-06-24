@@ -2,17 +2,7 @@ module measurement_mod
 
 use bmad_routine_interface
 
-type measurement_common_struct
-  real(rp) :: x_off, y_off
-  real(rp) :: M_m(2,2)
-  real(rp) :: sqrt_beta_a, sqrt_beta_b
-  real(rp) :: beta_a = 0, beta_b = 0
-  real(rp) :: value(num_ele_attrib$) = real_garbage$
-end type
-
-type (measurement_common_struct), private, save :: m_com
-
-private compute_bpm_transformation_numbers
+private compute_measurement_distortion_mat
 
 contains
 
@@ -63,69 +53,53 @@ end function ele_is_monitor
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine compute_bpm_transformation_numbers (ele)
+! Subroutine compute_measurement_distortion_mat (ele, d_mat)
 !
-! Routine to compute the numbers associated with the transformation between
-! the actual orbit, phase, eta, and coupling, and what the measured values.
+! Routine to compute the matrix associated with the transformation between
+! the actual orbit, phase, eta, and coupling, and what the measured values are.
 !
 ! This routine is private and not meant for general use.
 !
 ! Input:
-!   ele -- Ele_struct: An element at which measurements are made.
-!     %value(x_offset_calib$) -- Offset calibration value.
-!     ... etc ...
+!   ele        -- Ele_struct: An element at which measurements are made.
 !
 ! Output:
-!   m_com -- Private common block of measurement mod.
+!   d_mat(2,2) -- real(rp): Distortion matrix.
 
-subroutine compute_bpm_transformation_numbers (ele)
+subroutine compute_measurement_distortion_mat (ele, d_mat)
 
 implicit none
 
 type (ele_struct) ele
 
-real(rp) x_gain, y_gain, x_angle, y_angle
-integer, parameter :: ix_attribs(12) = [x_gain_err$, x_gain_calib$, &
-          y_gain_err$, y_gain_calib$, tilt_tot$, tilt_calib$, crunch$, crunch_calib$, &
-          x_offset_tot$, x_offset_calib$, y_offset_tot$, y_offset_calib$ ]
+real(rp) d_mat(2,2), x_gain, y_gain, x_angle, y_angle
 
 !
 
-if (m_com%beta_a /= ele%a%beta .or. m_com%beta_b /= ele%b%beta) then
-  m_com%sqrt_beta_a = sqrt(ele%a%beta)
-  m_com%sqrt_beta_b = sqrt(ele%b%beta)
-  m_com%beta_a = ele%a%beta
-  m_com%beta_b = ele%b%beta
+x_gain = 1 + ele%value(x_gain_err$) - ele%value(x_gain_calib$)
+y_gain = 1 + ele%value(y_gain_err$) - ele%value(y_gain_calib$)
+x_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) + (ele%value(crunch$) - ele%value(crunch_calib$))
+y_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) - (ele%value(crunch$) - ele%value(crunch_calib$))
+
+if (x_angle == 0 .and. y_angle == 0) then
+  d_mat(1,1) = x_gain
+  d_mat(1,2) = 0
+  d_mat(2,1) = 0
+  d_mat(2,2) = y_gain
+else
+  d_mat(1,1) =  x_gain * cos(x_angle)
+  d_mat(1,2) =  x_gain * sin(x_angle)
+  d_mat(2,1) = -y_gain * sin(y_angle)
+  d_mat(2,2) =  y_gain * cos(y_angle)
 endif
 
-if (any(m_com%value(ix_attribs) /= ele%value(ix_attribs))) then
-  x_gain = 1 + ele%value(x_gain_err$) - ele%value(x_gain_calib$)
-  y_gain = 1 + ele%value(y_gain_err$) - ele%value(y_gain_calib$)
-  x_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) + (ele%value(crunch$) - ele%value(crunch_calib$))
-  y_angle = (ele%value(tilt_tot$) - ele%value(tilt_calib$)) - (ele%value(crunch$) - ele%value(crunch_calib$))
-  if (x_angle == 0 .and. y_angle == 0) then
-    m_com%M_m(1,1) = x_gain
-    m_com%M_m(1,2) = 0
-    m_com%M_m(2,1) = 0
-    m_com%M_m(2,2) = y_gain
-  else
-    m_com%M_m(1,1) =  x_gain * cos(x_angle)
-    m_com%M_m(1,2) =  x_gain * sin(x_angle)
-    m_com%M_m(2,1) = -y_gain * sin(y_angle)
-    m_com%M_m(2,2) =  y_gain * cos(y_angle)
-  endif
-  m_com%x_off = ele%value(x_offset_tot$) + ele%value(x_offset_calib$)
-  m_com%y_off = ele%value(y_offset_tot$) + ele%value(y_offset_calib$)
-  m_com%value = ele%value
-endif
-
-end subroutine compute_bpm_transformation_numbers
+end subroutine compute_measurement_distortion_mat
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine to_orbit_reading (orb, ele, axis, reading, err)
+! Subroutine to_orbit_reading (orb, ele, axis, add_noise, reading, err)
 !
 ! Calculate the measured reading on a bpm given the actual orbit and the 
 ! BPM's offsets, noise, etc.
@@ -134,14 +108,15 @@ end subroutine compute_bpm_transformation_numbers
 ! monitors, and instruments.
 !
 ! Input: 
-!  orb        -- Coord_struct: Orbit position at BPM.
-!  ele        -- Ele_struct: Element where the orbit is measured.
+!   orb        -- Coord_struct: Orbit position at BPM.
+!   ele        -- Ele_struct: Element where the orbit is measured.
 !    %value(noise$)         -- relative bpm resolution RMS
 !    %value(tilt_tot$)      -- angle error in radians rms.
 !    %value(x_gain_calib$)  -- Horizontal gain correction.
 !    %value(y_gain_err$)    -- Horizontal gain error.
 !    ... etc ...
-!  axis       -- Integer: x_plane$ or y_plane$
+!   axis       -- Integer: x_plane$ or y_plane$
+!   add_noise  -- logical: If True add noise to the reading
 !
 ! Output:
 !  reading  -- Real(rp): BPM reading
@@ -149,7 +124,7 @@ end subroutine compute_bpm_transformation_numbers
 !                For example, if ele%is_on = False.
 !-
 
-subroutine to_orbit_reading (orb, ele, axis, reading, err)
+subroutine to_orbit_reading (orb, ele, axis, add_noise, reading, err)
 
 use random_mod
 
@@ -158,45 +133,45 @@ implicit none
 type (coord_struct) orb
 type (ele_struct) ele
 
-real(rp) reading, noise_factor
+real(rp) d_mat(2,2), reading, noise_factor
 real(rp) ran_num, x, y
 
 integer axis
 
 character(20) :: r_name = "to_orbit_reading"
 
-logical err, error
+logical add_noise, err, error
 
-! Monitor check is currently disabled.
+!
 
 reading = 0.0
-
 err = .true.
 
 if (.not. ele_is_monitor(ele)) return
 if (.not. ele%is_on) return
 
-call compute_bpm_transformation_numbers (ele)
+call compute_measurement_distortion_mat (ele, d_mat)
 
-if (ele%value(noise$) /= 0) then
+if (add_noise .and. ele%value(noise$) /= 0) then
   call ran_gauss (ran_num)
   noise_factor = ele%value(noise$) * ran_num
 else
   noise_factor = 0
 endif
 
-x = orb%vec(1) - m_com%x_off
-y = orb%vec(3) - m_com%y_off
+x = orb%vec(1) - (ele%value(x_offset_tot$) + ele%value(x_offset_calib$))
+y = orb%vec(3) - (ele%value(y_offset_tot$) + ele%value(y_offset_calib$))
 
-if (axis == x_plane$) then
-  reading = noise_factor + (x * m_com%M_m(1,1) + y * m_com%M_m(1,2))
-elseif (axis == y_plane$) then
-  reading = noise_factor + (x * m_com%M_m(2,1) + y * m_com%M_m(2,2))
-else
+select case (axis)
+case (x_plane$)
+  reading = noise_factor + (x * d_mat(1,1) + y * d_mat(1,2))
+case (y_plane$)
+  reading = noise_factor + (x * d_mat(2,1) + y * d_mat(2,2))
+case default
   reading = 0.0
   call out_io (s_warn$, r_name, "This axis not supported for BPM reading!")
   if (global_com%exit_on_error) call err_exit
-endif
+end select
 
 err = .false.
 
@@ -206,7 +181,7 @@ end subroutine to_orbit_reading
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine to_eta_reading (eta, ele, axis, reading, err)
+! Subroutine to_eta_reading (eta, ele, axis, add_noise, reading, err)
 !
 ! Compute the measured dispersion reading given the true dispersion and the 
 ! monitor offsets, noise, etc.
@@ -215,22 +190,23 @@ end subroutine to_orbit_reading
 ! monitors, and instruments.
 !
 ! Input: 
-!  eta_actual(2) -- Real(rp): Actual (eta_x, eta_y) dispersion.
-!  ele           -- Ele_struct: Element where the orbit is measured.
-!    %value(dE_eta_meas$)   -- Percent energy change used in dispersion measurement.
-!    %value(noise$)         -- relative bpm resolution RMS
-!    %value(tilt_tot$)      -- angle error in radians rms.
-!    %value(x_gain_calib$)  -- Horizontal gain correction.
-!    %value(y_gain_err$)    -- Horizontal gain error.
-!    ... etc ...
-!  axis       -- Integer: x_plane$ or y_plane$
+!   eta_actual(2) -- Real(rp): Actual (eta_x, eta_y) dispersion.
+!   ele           -- Ele_struct: Element where the orbit is measured.
+!     %value(dE_eta_meas$)   -- Percent energy change used in dispersion measurement.
+!     %value(noise$)         -- relative bpm resolution RMS
+!     %value(tilt_tot$)      -- angle error in radians rms.
+!     %value(x_gain_calib$)  -- Horizontal gain correction.
+!     %value(y_gain_err$)    -- Horizontal gain error.
+!     ... etc ...
+!   axis          -- Integer: x_plane$ or y_plane$
+!   add_noise     -- logical: If True add noise to the reading
 !
 ! Output:
 !  reading  -- Real(rp): BPM reading
 !  err      -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine to_eta_reading (eta_actual, ele, axis, reading, err)
+subroutine to_eta_reading (eta_actual, ele, axis, add_noise, reading, err)
 
 use random_mod
 
@@ -239,14 +215,14 @@ implicit none
 type (ele_struct) ele
 
 real(rp) eta_actual(:)
-real(rp) reading, noise_factor
+real(rp) d_mat(2,2), reading, noise_factor
 real(rp) ran_num, x, y
 
 integer axis
 
 character(20) :: r_name = "to_eta_reading"
 
-logical err, error
+logical add_noise, err, error
 
 reading = 0.0
 
@@ -257,7 +233,7 @@ err = .true.
 if (.not. ele%is_on) return
 if (.not. ele_is_monitor(ele)) return
 
-if (ele%value(noise$) /= 0) then
+if (add_noise .and. ele%value(noise$) /= 0) then
   if (ele%value(de_eta_meas$) == 0) then
     call out_io (s_warn$, r_name, "dE_eta_meas not set for: " // ele%name)
     return
@@ -268,15 +244,15 @@ else
   noise_factor = 0
 endif
 
-call compute_bpm_transformation_numbers (ele)
+call compute_measurement_distortion_mat (ele, d_mat)
 
 x = eta_actual(1)
 y = eta_actual(2)
 
 if (axis == x_plane$) then
-  reading = noise_factor + (x * m_com%M_m(1,1) + y * m_com%M_m(1,2))
+  reading = noise_factor + (x * d_mat(1,1) + y * d_mat(1,2))
 elseif (axis == y_plane$) then
-  reading = noise_factor + (x * m_com%M_m(2,1) + y * m_com%M_m(2,2))
+  reading = noise_factor + (x * d_mat(2,1) + y * d_mat(2,2))
 else
   reading = 0.0
   call out_io (s_warn$, r_name, "This axis not supported for BPM reading!")
@@ -291,7 +267,7 @@ end subroutine to_eta_reading
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine to_phase_and_coupling_reading (ele, reading, err)
+! Subroutine to_phase_and_coupling_reading (ele, add_noise, reading, err)
 !
 ! Find the measured coupling values given the actual ones
 !
@@ -299,16 +275,17 @@ end subroutine to_eta_reading
 ! monitors, and instruments.
 !
 ! Input: 
-!  actual_phase -- Real(rp): Actual phase reading.
-!  ele          -- Ele_struct: Element where phase is measured.
-!    %value(phase_noise$) -- RMS Noise in radians.
+!   actual_phase  -- Real(rp): Actual phase reading.
+!   ele           -- Ele_struct: Element where phase is measured.
+!     %value(phase_noise$) -- RMS Noise in radians.
+!   add_noise     -- logical: If True add noise to the reading
 !
 ! Output:
-!  reading -- bpm_phase_coupling_struct: K and Cbar coupling parameters
-!  err     -- Logical: Set True if there is an error. False otherwise.
+!   reading   -- bpm_phase_coupling_struct: K and Cbar coupling parameters
+!   err       -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine to_phase_and_coupling_reading (ele, reading, err)
+subroutine to_phase_and_coupling_reading (ele, add_noise, reading, err)
 
 use random_mod
 
@@ -317,7 +294,7 @@ implicit none
 type (ele_struct) ele
 type (bpm_phase_coupling_struct) reading, lab
 
-real(rp) ran_num(6), cbar_lab(2,2), denom, ratio
+real(rp) d_mat(2,2), ran_num(6), cbar_lab(2,2), denom, ratio
 real(rp) q_a1_lab(2), q_a2_lab(2), q_b1_lab(2), q_b2_lab(2)
 real(rp) q_a1_mon(2), q_a2_mon(2), q_b1_mon(2), q_b2_mon(2)
 
@@ -325,7 +302,7 @@ integer axis
 
 character(40) :: r_name = "to_phase_and_coupling_reading"
 
-logical err, error
+logical add_noise, err, error
 
 ! 
 
@@ -341,9 +318,9 @@ err = .true.
 if (.not. ele%is_on) return
 if (.not. ele_is_monitor(ele)) return
 
-call compute_bpm_transformation_numbers (ele)
+call compute_measurement_distortion_mat (ele, d_mat)
 
-if (ele%value(noise$) /= 0) then
+if (add_noise .and. ele%value(noise$) /= 0) then
   if (ele%value(n_sample$) == 0 .or. ele%value(osc_amplitude$) == 0) then
     call out_io (s_error$, r_name, 'N_SAMPLE OR OSC_AMPLITUDE NOT SET!')
     return
@@ -355,7 +332,7 @@ endif
 !
 
 call c_to_cbar (ele, cbar_lab)
-ratio = m_com%sqrt_beta_b / m_com%sqrt_beta_a
+ratio = sqrt(ele%b%beta / ele%a%beta)
 
 ! cbar_lab to k_lab
 
@@ -380,10 +357,10 @@ q_b2_lab(2) = 0
 
 ! q_lab to q_mon
 
-q_a1_mon = matmul(m_com%M_m, q_a1_lab)
-q_a2_mon = matmul(m_com%M_m, q_a2_lab)
-q_b1_mon = matmul(m_com%M_m, q_b1_lab)
-q_b2_mon = matmul(m_com%M_m, q_b2_lab)
+q_a1_mon = matmul(d_mat, q_a1_lab)
+q_a2_mon = matmul(d_mat, q_a2_lab)
+q_b1_mon = matmul(d_mat, q_b1_lab)
+q_b2_mon = matmul(d_mat, q_b2_lab)
 
 ! q_mon to k_mon
 
