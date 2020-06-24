@@ -124,9 +124,14 @@ if (s%global%derivative_uses_design) then
   enddo
 endif
 
+! In an actual machine one would not take small differences like this so turn off
+! measurement noise.
+
+s%com%add_measurement_noise = .false.
 merit_value = tao_merit (calc_ok)
 if (.not. calc_ok) then
   call out_io (s_error$, r_name, 'BASE MODEL CALCULATION HAS PROBLEMS', ' ')
+  s%com%add_measurement_noise = .true.  ! Reset
   err_flag = .true.
   return
 endif
@@ -158,13 +163,13 @@ enddo
 ! Loop over all variables to vary
 
 do j = 1, s%n_var_used
-
   if (.not. s%var(j)%useit_opt) cycle
 
   nv = s%var(j)%ix_dvar
   if (s%var(j)%step == 0) then
     call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // tao_var1_name(s%var(j)))
     err_flag = .true.
+    s%com%add_measurement_noise = .true.  ! Reset
     return
   endif
   model_value = s%var(j)%model_value
@@ -200,7 +205,6 @@ do j = 1, s%n_var_used
   enddo
 
   call tao_set_var_model_value (s%var(j), model_value)
-
 enddo
 
 ! End
@@ -216,6 +220,7 @@ if (s%global%derivative_uses_design) then
   enddo
 endif
 
+s%com%add_measurement_noise = .true.  ! Reset
 merit_value = tao_merit () ! to reset all values
 
 end subroutine

@@ -98,7 +98,7 @@ case ('beta.')
   end select
 
 case ('bpm_cbar.')
-  call to_phase_and_coupling_reading (ele, bpm_data, err_flag)
+  call to_phase_and_coupling_reading (ele, s%com%add_measurement_noise, bpm_data, err_flag)
   select case (data_type)
   case ('bpm_cbar.22a');     value = bpm_data%cbar22_a
   case ('bpm_cbar.12a');     value = bpm_data%cbar12_a
@@ -109,20 +109,20 @@ case ('bpm_cbar.')
 
 case ('bpm_eta.')
   select case (data_type)
-  case ('bpm_eta.x');        call to_eta_reading ([ele%x%eta, ele%y%eta], ele, x_plane$, value, err_flag)
-  case ('bpm_eta.y');        call to_eta_reading ([ele%x%eta, ele%y%eta], ele, y_plane$, value, err_flag)
-  case default;              err_flag = .true.
+  case ('bpm_eta.x');  call to_eta_reading ([ele%x%eta, ele%y%eta], ele, x_plane$, s%com%add_measurement_noise, value, err_flag)
+  case ('bpm_eta.y');  call to_eta_reading ([ele%x%eta, ele%y%eta], ele, y_plane$, s%com%add_measurement_noise, value, err_flag)
+  case default;        err_flag = .true.
   end select
 
 case ('bpm_orbit.')
   select case (data_type)
-  case ('bpm_orbit.x');      call to_orbit_reading (orbit, ele, x_plane$, value, err_flag)
-  case ('bpm_orbit.y');      call to_orbit_reading (orbit, ele, y_plane$, value, err_flag)
+  case ('bpm_orbit.x');      call to_orbit_reading (orbit, ele, x_plane$, s%com%add_measurement_noise, value, err_flag)
+  case ('bpm_orbit.y');      call to_orbit_reading (orbit, ele, y_plane$, s%com%add_measurement_noise, value, err_flag)
   case default;              err_flag = .true.
   end select
 
 case ('bpm_phase.')
-  call to_phase_and_coupling_reading (ele, bpm_data, err_flag)
+  call to_phase_and_coupling_reading (ele, s%com%add_measurement_noise, bpm_data, err_flag)
   if (err_flag) return
   select case (data_type)
   case ('bpm_phase.a');      value = bpm_data%phi_a
@@ -131,7 +131,7 @@ case ('bpm_phase.')
   end select
 
 case ('bpm_k.')
-  call to_phase_and_coupling_reading (ele, bpm_data, err_flag)
+  call to_phase_and_coupling_reading (ele, s%com%add_measurement_noise, bpm_data, err_flag)
   select case (data_type)
   case ('bpm_k.22a');        value = bpm_data%k_22a
   case ('bpm_k.12a');        value = bpm_data%k_12a
