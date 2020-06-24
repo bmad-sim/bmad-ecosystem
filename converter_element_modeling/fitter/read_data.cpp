@@ -83,7 +83,7 @@ void read_er_data(const char* folder, double pc_in, double T, ER_table& table) {
   double pc_out;
   for (;;) {
     er_file >> pc_out;
-    if (er_file.eof()) break;
+    if (er_file.eof() || er_file.fail()) break;
     pc_out *= 1e6; // convert to eV
     table.pc_vals.push_back(pc_out);
     for (const auto& r : table.r_vals) { // run loop for exactly one row
