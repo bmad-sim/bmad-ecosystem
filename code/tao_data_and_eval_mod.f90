@@ -250,7 +250,7 @@ logical, save :: err
 !
 
 if (ix_ele_old /= ele%ix_ele) then
-  call to_phase_and_coupling_reading (ele, old_bpm_data, err)
+  call to_phase_and_coupling_reading (ele, s%com%add_measurement_noise, old_bpm_data, err)
   ix_ele_old = ele%ix_ele
 endif
 
@@ -818,13 +818,13 @@ case ('bpm_orbit.')
       value_vec(i) = 0
       cycle
     endif
-    call to_orbit_reading (orbit(i), branch%ele(i), which, value_vec(i), err)
+    call to_orbit_reading (orbit(i), branch%ele(i), which, s%com%add_measurement_noise, value_vec(i), err)
     particle_lost = particle_lost .or. (tao_branch%track_state /= moving_forward$ .and. i > tao_branch%track_state)
     valid_value = valid_value .and. .not. err
   enddo
 
   if (ix_ref > -1) then
-    call to_orbit_reading (orbit(ix_ref), branch%ele(ix_ref), which, value_vec(ix_ref), err)
+    call to_orbit_reading (orbit(ix_ref), branch%ele(ix_ref), which, s%com%add_measurement_noise, value_vec(ix_ref), err)
     particle_lost = particle_lost .or. (tao_branch%track_state /= moving_forward$ .and. ix_ref > tao_branch%track_state)
     valid_value = valid_value .and. .not. err
   endif
@@ -856,7 +856,7 @@ case ('bpm_eta.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
   vec2 = [ele%x%eta, ele%y%eta]
-  call to_eta_reading (vec2, ele, which, datum_value, err)
+  call to_eta_reading (vec2, ele, which, s%com%add_measurement_noise, datum_value, err)
   valid_value = .not. err
 
 !-----------

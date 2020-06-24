@@ -2,18 +2,20 @@
 \label{c:opti}
 
 \index{optimization|hyperbf}
-\index{merit function}
-This chapter covers the process of \vn{optimization} which involves minimization of a
-\vn{Merit Function}. Optimization can be used to correct or to design lattices. Examples of \vn{lattice
-corrections} include flattening the orbit and adjusting quadrupoles to correct the
-measured betatron phase. \vn{Lattice design} involves creating a lattice that conforms to
-a set of desirable properties. For example, requiring that the beta function in a certain
-region never exceeds a given value. In this chapter,
-Section~\sref{s:lattice.correction} presents the merit function in the context of lattice
-corrections while Section~\sref{s:lattice.design} discuses the merit function in the
-context of lattice design. Since the concepts used in \vn{lattice corrections} and
-\vn{lattice design} are similar, \tao combines the two into one generalized process as
-discussed in Section~\sref{s:generalized.design}.
+
+``Optimization'' is the process of varying (model) (\sref{s:lattice}) lattice parameters to create a
+lattice with a certain set of properties as close to a ``desired'' state as possible. Optimization
+problems generally fall into one of two categories. One category involves ``lattice design'' where
+lattice parameters are varied to achieve some set of ideal properties. For example, varying
+sextupole magnet strengths in order to give maximum dynamic aperture. This is discussed in
+Section~\sref{s:lattice.correction}.
+
+The other category of optimization problems involves ``lattice correction''. Problems in this
+category involve matching the \vn{model} lattice to actual measured data.  For example, orbit
+flattening involves varying steering in the \vn{model} lattice so that the orbit calculated from the
+\vn{model} lattice matches as close as possible the measured orbit. The steering strengths in the
+\vn{model} lattice can then be used to calculate what changes are needed to correct the orbit in the
+actual machine. This is discussed in Section~\sref{s:lattice.design}.
 
 %------------------------------------------------------------------------
 \section{Lattice Corrections}
@@ -22,28 +24,28 @@ discussed in Section~\sref{s:generalized.design}.
 \index{lattice corrections}
 
 \index{optimization!merit function}
-Consider the problem of problem of modifying the orbit of a beam through a lattice to
-conform to some desired orbit (typically a ``flat'' orbit running through the centers of
-the quadrupoles). The process generally goes through three stages: First the orbit is
-measured, then corrections to the steering elements are calculated and finally the
-corrections are applied to the machine. Since these are necessarily machine specific, \tao
-has no specific routines to measure orbits or to load steering corrections but they could
-be implemented with some custom coding as discussed in Chapter~\sref{c:custom.tao}. What
-\tao does, however, is to implement a generalized algorithm procedure for minimizing a
-\vn{merit function} which can be used to calculate the corrections.  The idea is to vary a
-set of variables (steerings in the case of an orbit correction) within the \vn{model}
-lattice (\sref{s:universe}) with the aim to make the \vn{measured} \vn{data} (position
-data for an orbit correction) correspond to the values as calculated from the \vn{model}
-lattice.  Once the model lattice the \vn{model} and \vn{measured} data agree, the
-difference between the \vn{model}, which represents the state of the machine when the
-measurement is made, and the \vn{design}, which represents the desired state of the
-machine, is used to calculate corrections. In the case of flattening an orbit, the
-difference between the \vn{model} steering strengths and the \vn{design} steering
-strengths (typically the \vn{design} steering strengths are zero) is what the real
+Consider the problem of modifying the orbit of a beam through a lattice to conform to some desired
+orbit (typically this is the ``flat'' orbit running through the centers of the quadrupoles). The
+process generally has three stages: First the orbit is measured, then corrections to the steering
+elements are calculated (the optimization stage), and finally the corrections are applied to the
+machine. Since measurement and correction loading necessarily need communication with machine
+hardware, \tao has no native ability to do these tasks.
+
+but they could be implemented with some custom coding as discussed in Chapter~\sref{c:custom.tao}.
+What \tao does, however, is to implement a generalized algorithm procedure for minimizing a
+\vn{merit function} which can be used to calculate the corrections.  The idea is to vary a set of
+variables (steerings in the case of an orbit correction) within the \vn{model} lattice
+(\sref{s:universe}) with the aim to make the \vn{measured} \vn{data} (position data for an orbit
+correction) correspond to the values as calculated from the \vn{model} lattice.  Once the model
+lattice the \vn{model} and \vn{measured} data agree, the difference between the \vn{model}, which
+represents the state of the machine when the measurement is made, and the \vn{design}, which
+represents the desired state of the machine, is used to calculate corrections. In the case of
+flattening an orbit, the difference between the \vn{model} steering strengths and the \vn{design}
+steering strengths (typically the \vn{design} steering strengths are zero) is what the real
 steerings need to be changed by to flatten the orbit.
 
-The merit function \vn{M} that is a measure of how well the data as calculated from the
-\vn{model}, fits the measured data. \tao uses a merit function of the form
+The merit function \vn{M} that is a measure of how well the data as calculated from the \vn{model},
+fits the measured data. \tao uses a merit function of the form
 \begin{equation}
   {\cal M} \equiv 
     \sum_{i} w_i \, \bigl[ \delta D_i \bigr]^2 + 
