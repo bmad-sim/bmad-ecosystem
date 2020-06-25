@@ -93,6 +93,8 @@ else
                   'ELEMENT: ' // insert_ele_copy%name)
 endif
 
+if (branch%ix_to_ele >= ix_ele) branch%ix_to_ele = branch%ix_to_ele + 1
+
 do ix = 0, ubound(lat%branch, 1)
   branch2 => lat%branch(ix)
   if (branch2%ix_from_ele >= ix_ele .and. branch2%ix_from_branch == ix_br) &

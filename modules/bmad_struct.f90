@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 247
+integer, parameter :: bmad_inc_version$ = 248
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -229,7 +229,7 @@ integer, parameter :: ascii$ = 1, binary$ = 2, hdf5$ = 3, one_file$ = 4
 
 ! num_ele_attrib$ is size of ele%value(:) array.
 
-integer, parameter :: num_ele_attrib$ = 80
+integer, parameter :: num_ele_attrib$ = 75
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: none$ = 1
@@ -467,6 +467,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: r = 0               ! For general use. Not used by Bmad. 
   real(rp) :: p0c = 0             ! For non-photons: Reference momentum.
                                   !     For photons: Photon momentum (not reference).
+  real(rp) :: E_potential = 0     ! Potential energy.
   real(rp) :: beta = -1           ! Velocity / c_light.
   integer :: ix_ele = -1          ! Index of the lattice element the particle is in.
                                   !   May be -1 if element is not associated with a lattice.
@@ -1292,7 +1293,8 @@ type branch_struct
   character(40) :: name = ''       ! Name of line that defines the branch.
   integer :: ix_branch = -1        ! Index of this branch. 0 => Main branch
   integer :: ix_from_branch = -1   ! -1 => No creating fork element to this branch.
-  integer :: ix_from_ele = -1      ! Creating fork element which forks to this branch.
+  integer :: ix_from_ele = -1      ! Index of creating fork element which forks to this branch.
+  integer :: ix_to_ele = -1        ! Index of element in this branch that creating fork element forks to.
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
   type (lat_struct), pointer :: lat => null()
@@ -1519,18 +1521,13 @@ integer, parameter :: ds_step$ = 67     ! Assumed unique by set_flags_for_change
 integer, parameter :: csr_ds_step$ = 68
 integer, parameter :: lord_pad1$ = 69
 integer, parameter :: lord_pad2$ = 70, ref_wavelength$ = 70
-integer, parameter :: scratch1$ = 71   ! For general use.
-integer, parameter :: scratch2$ = 72   ! For general use.
-integer, parameter :: scratch3$ = 73   ! For general use.
-integer, parameter :: scratch4$ = 74   ! For general use.
-integer, parameter :: scratch5$ = 75   ! For general use.
-integer, parameter :: x1_limit$ = 76
-integer, parameter :: x2_limit$ = 77
-integer, parameter :: y1_limit$ = 78
-integer, parameter :: y2_limit$ = 79
-integer, parameter :: check_sum$ = 80
+integer, parameter :: x1_limit$ = 71
+integer, parameter :: x2_limit$ = 72
+integer, parameter :: y1_limit$ = 73
+integer, parameter :: y2_limit$ = 74
+integer, parameter :: check_sum$ = 75
 
-!! 81 = 1 + num_ele_attrib$
+!!    = 1 + num_ele_attrib$
 
 integer, parameter :: max_aperture_limit$ = 81     ! bmad_com parameters
 integer, parameter :: default_ds_step$ = 82

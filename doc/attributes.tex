@@ -398,11 +398,20 @@ while avoiding the calculational problems that would occur if the \vn{e_gun} ele
 starting reference momentum of zero.  Specifically, the problem with zero reference momentum is that
 the phase space momentum would be infinity as can be seen from \Eqs{ppp}.
 
+For lattice branches other than the root branch, the reference energy or momentum is set using the
+line name of the branch (\sref{s:beginning}). For example:
+\begin{example}
+  ff: fork, to_line = line_2nd, ...
+  line_2nd: line = (...)
+  line_2nd[particle] = He+
+  line_2nd[p0c] = 1e9
+\end{example}
+
 For \vn{multipass} elements, the reference energy may be set by specifying one of \vn{e_tot},
 \vn{p0c}, as described in \sref{s:multipass}.
 
-For photons, the reference wavelength, \vn{ref_wavelength} is also a
-dependent attribute calculated from the reference energy.
+For photons, the reference wavelength, \vn{ref_wavelength} is also a dependent attribute calculated
+from the reference energy.
 
 \vfill
 

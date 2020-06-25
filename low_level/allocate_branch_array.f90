@@ -76,6 +76,7 @@ do i = curr_ub+1, ub
   branch%ix_branch = i
   branch%ix_from_branch = -1
   branch%ix_from_ele = -1
+  branch%ix_to_ele = -1
   if (i == 0) cycle
   allocate(branch%n_ele_track)
   allocate(branch%n_ele_max)

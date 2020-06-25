@@ -4704,6 +4704,7 @@ character(40) name
 !
 
 do ib = 0, ubound(lat%branch, 1)
+
   do ie = 1, lat%branch(ib)%n_ele_max
 
     fork_ele => lat%branch(ib)%ele(ie)
@@ -4745,6 +4746,13 @@ do ib = 0, ubound(lat%branch, 1)
     end select
 
   enddo
+
+  branch => lat%branch(ib)
+  if (branch%ix_from_branch > -1) then
+    fork_ele => lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)
+    branch%ix_to_ele = nint(fork_ele%value(ix_to_element$))
+  endif
+
 enddo
 
 end subroutine parser_identify_fork_to_element
