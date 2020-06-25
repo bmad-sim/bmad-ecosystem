@@ -1156,6 +1156,36 @@ case ('damp.')
 
 !-----------
 
+case ('curly_h')
+
+  if (data_source == 'beam')  goto 9000  ! Set error message and return
+
+  select case (datum%data_type)
+  case ('curly_h.a')
+    do i = ix_start, ix_ele
+      ele => branch%ele(i)
+      value_vec(i) = ele%a%gamma * ele%a%eta**2 + 2 * ele%a%alpha * ele%a%eta * ele%a%etap + ele%a%beta * ele%a%etap**2
+    enddo
+    if (ix_ref > -1) then
+      ele => branch%ele(ix_ref)
+      value_vec(ix_ref) = ele%a%gamma * ele%a%eta**2 + 2 * ele%a%alpha * ele%a%eta * ele%a%etap + ele%a%beta * ele%a%etap**2
+    endif
+    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+  case ('curly_h.b')
+    do i = ix_start, ix_ele
+      ele => branch%ele(i)
+      value_vec(i) = ele%b%gamma * ele%b%eta**2 + 2 * ele%b%alpha * ele%b%eta * ele%b%etap + ele%b%beta * ele%b%etap**2
+    enddo
+    if (ix_ref > -1) then
+      ele => branch%ele(ix_ref)
+      value_vec(ix_ref) = ele%b%gamma * ele%b%eta**2 + 2 * ele%b%alpha * ele%b%eta * ele%b%etap + ele%b%beta * ele%b%etap**2
+    endif
+    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  end select
+
+!-----------
+
 case ('dpx_dx') 
   if (data_source == 'lat') then
     if (ix_start == ix_ele) then
@@ -1267,11 +1297,21 @@ case ('element_attrib.')
     good(i) = .true.
   enddo
 
+  if (all(.not. good(ix_start:ix_ele))) then
+    call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM WITH DATA_TYPE = "' // trim(datum%data_type) // '" AT ASSOCIATED ELEMENT', why_invalid, .true.)
+    return
+  endif
+
   if (ix_ref > -1) then
     call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
     if (associated (a_ptr%r)) then
       value_vec(ix_ref) = a_ptr%r
       good(ix_ref) = .true.
+    else
+      if (.not. good(ix_ref)) then
+        call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM WITH DATA_TYPE = "' // trim(datum%data_type) // '" AT REFERENCE ELEMENT', why_invalid, .true.)
+        return
+      endif
     endif
   endif
 
@@ -3300,7 +3340,7 @@ if (ix_ref > -1) then
   ref_value = vec(ix_ref)
   if (present(good)) then
     if (.not. good(ix_ref)) then
-      call tao_set_invalid (datum, 'DATA AT REFERENCE ELEMENT NOT VALID', why_invalid)
+      call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM AT REFERENCE ELEMENT.', why_invalid)
       valid_value = .false.
       return
     endif
@@ -3316,8 +3356,7 @@ if (datum%ele_start_name == '' .or. ix_start == ix_ele) then
   datum_value = vec(ix_ele) - ref_value
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ele%ix_ele))
   if (present(good)) valid_value = good(ix_ele)
-  if (.not. valid_value) call tao_set_invalid (datum, 'DATA AT START ELEMENT NOT VALID.', why_invalid)
-
+  if (.not. valid_value) call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM.', why_invalid)
   return
 endif
 

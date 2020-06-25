@@ -169,6 +169,13 @@ case ('coupling.')
   case default;           err_flag = .true.
   end select
 
+case ('curly_h.')
+  select case (data_type)
+  case ('curly_h.a');     value = ele%a%gamma * ele%a%eta**2 + 2 * ele%a%alpha * ele%a%eta * ele%a%etap + ele%a%beta * ele%a%etap**2
+  case ('curly_h.b');     value = ele%b%gamma * ele%b%eta**2 + 2 * ele%b%alpha * ele%b%eta * ele%b%etap + ele%b%beta * ele%b%etap**2
+  case default;           err_flag = .true.
+  end select
+
 case ('e_curl.')
   call em_field_derivatives (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field)
   time = particle_rf_time(orbit, ele, (ele%field_calc /= fieldmap$), orbit%s-ele%s_start)

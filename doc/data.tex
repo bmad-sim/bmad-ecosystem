@@ -748,6 +748,12 @@ chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evalu
 individual elements.
 
   %----------------------
+  \item[curly_h.a, .b] \Newline
+The \vn{curly_h} datum is the standard ``curly H'' function seen in the formulas for the $I_{5a}$
+and $I_{5b}$ radiation integrals. See the \bmad manual section on ``Synchrotron Radiation Integrals''
+for more details.
+
+  %----------------------
   \item[damp.j_a, .j_b, .j_z] \Newline
 Damping partition numbers.
 
@@ -1574,7 +1580,7 @@ squared.
   bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
   bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
   bpm_k.22a, .12a, .11b, .12b         & Measured coupling                         & lat         & Yes \\ \hline
-  bunch_charge.live, .live_relative   & Charge of live particles .                & beam        & No  \\ \hline
+  bunch_charge.live, .live_relative   & Charge of live particles                  & beam        & No  \\ \hline
   bunch_max.x, .px, .y, .py, .z, .pz  & Max relative to centroid                  & beam        & No  \\ \hline
   bunch_min.x, .px, .y, .py, .z, .pz  & Min relative to centroid                  & beam        & No  \\ \hline
 
@@ -1585,6 +1591,7 @@ squared.
   chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline
   chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat         & No  \\ \hline
   chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat         & No  \\ \hline
+  curly_h.a, .b                       & Radiation integrals Curly H function      & lat         & Yes \\ \hline
 
   damp.j_a, .j_b, .j_z                & Damping partition number                  & lat         & No  \\ \hline
   dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
