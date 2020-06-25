@@ -89,7 +89,6 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp), pointer :: r_ptr
 
 character(*), optional, allocatable :: lines(:)
-character(:), allocatable :: expression_str
 character(200), allocatable, target :: li(:)
 character(200), allocatable :: li2(:)
 character(200) :: line
@@ -757,14 +756,14 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     nl=nl+1; li(nl) = 'Controller Lord(s):'
     nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type           Expression'
 
-    allocate (character(100) :: expression_str)
     do im = 1, ele%n_lord
       lord => pointer_to_lord (ele, im, ctl)
       select case (lord%lord_status)
       case (super_lord$, multipass_lord$)
         cycle
       case (girder_lord$)
-        expression_str = ''
+        call re_allocate (li2, 1)
+        li2(1) = ''
         a_name = ''
       case default
         if (allocated(ctl%stack)) then
@@ -914,7 +913,6 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
           if (associated(a_ptr%r)) write (attrib_val_str, '(es12.4)') a_ptr%r
         end select
 
-        if (.not. allocated(expression_str)) allocate(character(100):: expression_str)
         write (str1, '(es12.4)') ctl%value
         if (allocated(ctl%stack)) then
           call split_expression_string (str1(1:17) // expression_stack_to_string (ctl%stack), 70, 5, li2)
