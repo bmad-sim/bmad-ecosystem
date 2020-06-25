@@ -527,12 +527,6 @@ attribute_array_init_needed = .false.
 
 do i = 1, n_key$
 
-  call init_attribute_name1 (i, scratch1$,        'Scratch1', private$)
-  call init_attribute_name1 (i, scratch2$,        'Scratch2', private$)
-  call init_attribute_name1 (i, scratch3$,        'Scratch3', private$)
-  call init_attribute_name1 (i, scratch4$,        'Scratch4', private$)
-  call init_attribute_name1 (i, scratch5$,        'Scratch5', private$)
-
   if (i == def_bmad_com$)       cycle
   if (i == def_mad_beam$)       cycle
   if (i == def_particle_start$) cycle

@@ -1008,12 +1008,12 @@ branch_loop: do i_loop = 1, n_branch_max
   call floor_angles_to_w_mat(ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, ele0%floor%w)
 
   ! Reference energy bookkeeping...
-  ! Do not need to have set the energy for branch lines where the particle is the same
+  ! If there is a fork into this branch at element 0, the reference energy is inherited from the branch forked from.
 
   do_energy_bookkeeping = .true.
   if (branch%ix_from_branch > -1) then
     branch0 => lat%branch(branch%ix_from_branch)
-    if (branch0%param%particle == branch%param%particle) do_energy_bookkeeping = .false.
+    if (branch0%param%particle == branch%param%particle .and. branch%ix_to_ele == 0) do_energy_bookkeeping = .false.
   endif
 
   if (do_energy_bookkeeping) then

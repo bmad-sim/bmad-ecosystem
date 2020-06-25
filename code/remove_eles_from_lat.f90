@@ -118,7 +118,7 @@ enddo
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  if (branch%ix_from_branch > -1) branch%ix_from_ele = ibr(branch%ix_from_branch)%new(branch%ix_from_ele)%ix_ele
+  if (branch%ix_from_ele > -1) branch%ix_from_ele = ibr(branch%ix_from_branch)%new(branch%ix_from_ele)%ix_ele
   if (branch%ix_from_ele < 0) branch%ix_from_branch = -1
 
   i2 = 0
@@ -205,6 +205,8 @@ enddo
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
+  if (branch%ix_to_ele > 0) branch%ix_to_ele = ibr(branch%ix_branch)%new(branch%ix_to_ele)%ix_ele
+  if (branch%ix_to_ele < 0) branch%ix_to_ele = -1
 
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)

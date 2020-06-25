@@ -53,20 +53,19 @@ do ib = 0, ubound(lat%branch, 1)
 
   ! Init energy at beginning of branch if needed.
 
-  if (stale) then
-    if (branch%ix_from_branch >= 0) then
-      fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-      if (fork_ele%branch%param%particle == branch%param%particle) then
-        begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
-        begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
-      endif
-
-      begin_ele%value(delta_ref_time$) = 0
-      begin_ele%value(ref_time_start$) = begin_ele%ref_time
+  if (stale .and. branch%ix_from_branch >= 0) then
+    fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
+    if (fork_ele%branch%param%particle == branch%param%particle .and. branch%ix_to_ele == 0) then
+      begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
+      begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
     endif
   endif
 
   ! Note: E_tot & E_tot_start are both set equal to each other in bmad_parser.
+
+  begin_ele%value(delta_ref_time$) = 0
+  begin_ele%value(ref_time_start$) = begin_ele%ref_time
+
   if (begin_ele%value(E_tot$) == 0) then
     begin_ele%value(E_tot$) = begin_ele%value(E_tot_start$)
     begin_ele%value(p0c$) = begin_ele%value(p0c_start$)
@@ -75,8 +74,8 @@ do ib = 0, ubound(lat%branch, 1)
     begin_ele%value(p0c_start$) = begin_ele%value(p0c$)
   endif
 
-  if (stale) then
-    if (branch%ix_from_branch >= 0) then
+  if (stale .and. branch%ix_from_branch >= 0) then
+    if (fork_ele%branch%param%particle == branch%param%particle .and. branch%ix_to_ele == 0) then
       call init_coord (begin_ele%time_ref_orb_in, zero6, begin_ele, upstream_end$)
       call init_coord (begin_ele%time_ref_orb_out, zero6, begin_ele, downstream_end$)
       stale = .true.
@@ -187,7 +186,8 @@ do ib = 0, ubound(lat%branch, 1)
 
   if (begin_ele%value(p0c$) < 1d-6) then
     if (ix_e_gun == 0) then
-      call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW.')
+      call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW IN BRANCH \i0\ ', &
+                                     i_array = [ib])
     else
       call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW.', &
                                      'PROBLEM IN PART IS ZERO OR LOW VOLTAGE ON THE E-GUN.')
@@ -195,7 +195,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (global_com%exit_on_error) call err_exit
     return
   endif
-    
 
   !----------------------------
   ! Loop over all elements in the branch

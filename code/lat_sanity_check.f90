@@ -145,6 +145,16 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
               'HAS A FROM ELEMENT THAT IS NOT A BRANCH NOR A PHOTON_BRANCH ELEMENT: ' // slave%name)
         err_flag = .true.
       endif
+
+      ix = nint(slave%value(ix_to_element$))
+      if (ix /= branch%ix_to_ele) then
+        call out_io (s_fatal$, r_name, &
+              'BRANCH: ' // trim(branch%name) // ' (\i0\)', &
+              'HAS A FROM FORK ' // trim(slave%name) // ' (\i0\>>\i0\).', &
+              'IN WHICH THE IX_TO_ELEMENT (\i0\) DOES NOT MATCH THE BRANCH%IX_TO_ELEMENT (\i0\).', &
+              i_array = [branch%ix_branch, slave%ix_branch, slave%ix_ele, ix, branch%ix_to_ele])
+        err_flag = .true.
+      endif
     endif
 
   endif

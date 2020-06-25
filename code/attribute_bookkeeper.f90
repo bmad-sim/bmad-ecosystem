@@ -644,7 +644,6 @@ if (has_orientation_attributes(ele)) then
   ! non_offset_changed is used to determine if maps should be killed.
   ! Since maps do not depend upon custom attributes, veto them in the mask.
   vv_mask = v_mask
-  vv_mask(scratch1$:scratch5$) = .false.
   non_offset_changed = (any(dval_change .and. v_mask))
   offset_changed =  (any(dval_change .and. offset_mask))
   offset_nonzero = (any(val /= 0 .and. offset_mask))

@@ -108,7 +108,7 @@ character(*), parameter :: r_name = 'write_bmad_lattice_file'
 integer, optional :: output_form
 integer i, j, k, n, ii, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, ie1, ie, ib, ib1, ic
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
-integer ix_slave, ix_ss, ix_l, ix_r, ix_pass, ix_to
+integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_lord, ix_super, default_val, imax, ibr
 integer, allocatable :: an_indexx(:), index_list(:), n_count(:)
 
@@ -1193,10 +1193,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c$))
   call write_if_logic_param_changed (branch%param%high_energy_space_charge_on, .false., trim(branch%name) // '[high_energy_space_charge_on]')
 
-  ix_to = -1
-  if (branch%ix_from_branch /= -1) ix_to = nint(branch2%ele(branch%ix_from_ele)%value(ix_to_element$))
-
-  if (ix_to /= 0) then
+  if (branch%ix_to_ele /= 0) then
     if (ele0%floor%r(1) /= 0)   write (iu, '(3a)') trim(branch%name), '[x_position]     = ', re_str(ele0%floor%r(1))
     if (ele0%floor%r(2) /= 0)   write (iu, '(3a)') trim(branch%name), '[y_position]     = ', re_str(ele0%floor%r(2))
     if (ele0%floor%r(3) /= 0)   write (iu, '(3a)') trim(branch%name), '[z_position]     = ', re_str(ele0%floor%r(3))
@@ -3264,11 +3261,11 @@ real(rp) xp, yp, xo, yo, zo, sad_fshift
 real(rp) hk, vk, tilt
 
 ! These will be used to point to slots in ele%old_value(:) array for extra needed information in converting to SAD.
-integer, parameter :: sad_f1$  = scratch1$
-integer, parameter :: sad_geo_bound$ = scratch2$
-integer, parameter :: sad_bz$  = scratch3$
-integer, parameter :: sad_fshift$ = scratch4$
-integer, parameter :: sad_mark_offset$  = scratch5$
+integer, parameter :: sad_f1$          = 21  ! scratch1$
+integer, parameter :: sad_geo_bound$   = 22  ! scratch2$
+integer, parameter :: sad_bz$          = 23  ! scratch3$
+integer, parameter :: sad_fshift$      = 24  ! scratch4$
+integer, parameter :: sad_mark_offset$ = 25  ! scratch5$
 
 integer, optional :: ix_start, ix_end, ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
@@ -3816,7 +3813,7 @@ do ix_ele = ie1, ie2
     case (marker$)
       write (line_out, '(4a)') 'MARK ', trim(ele%name), ' = ('
       call value_to_line (line_out, val(sad_mark_offset$), 'OFFSET', 'R', .true., .false.)
-      call value_to_line (line_out, val(sad_geo_bound$), 'GEO', 'R', .true., .false.)
+      call value_to_line (line_out, ele%old_value(sad_geo_bound$), 'GEO', 'R', .true., .false.)
       if (branch_out%param%geometry == open$ .and. ix_ele == 1) then
         call value_to_line (line_out, ele%a%beta, 'BX', 'R', .true., .false.)
         call value_to_line (line_out, ele%b%beta, 'BY', 'R', .true., .false.)
@@ -3827,7 +3824,7 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, ele%x%etap, 'PEPX', 'R', .true., .false.)
         call value_to_line (line_out, ele%y%etap, 'PEPY', 'R', .true., .false.)
         call value_to_line (line_out, lat%a%emit, 'EMITX', 'R', .true., .false.)
-        call value_to_line (line_out, lat%b%emit, 'EMITy', 'R', .true., .false.)
+        call value_to_line (line_out, lat%b%emit, 'EMITY', 'R', .true., .false.)
       endif
 
     ! SAD

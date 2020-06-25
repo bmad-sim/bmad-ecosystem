@@ -547,7 +547,6 @@ if (slave%key == em_field$) then
   slave%value(spin_fringe_on$)        = false$
   slave%value(autoscale_phase$)       = false$
   slave%value(autoscale_amplitude$)   = false$
-  slave%value(scratch1$:scratch5$)    = value(scratch1$:scratch5$)
   slave%mat6_calc_method              = tracking$
   slave%spin_tracking_method          = tracking$
   slave%tracking_method               = runge_kutta$
@@ -1835,7 +1834,6 @@ endif
 
 dv = abs(ele%value - ele%old_value)
 dv(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
-dv(scratch1$:scratch5$) = 0
 if (present(dval)) dval = dv
 
 if (all(dv == 0) .and. ele%key /= capillary$) then
