@@ -3,19 +3,20 @@
 
 \index{optimization|hyperbf}
 
-``Optimization'' is the process of varying (model) (\sref{s:lattice}) lattice parameters to create a
+``Optimization'' is the process of varying model (\sref{s:lattice}) lattice parameters to create a
 lattice with a certain set of properties as close to a ``desired'' state as possible. Optimization
-problems generally fall into one of two categories. One category involves ``lattice design'' where
-lattice parameters are varied to achieve some set of ideal properties. For example, varying
-sextupole magnet strengths in order to give maximum dynamic aperture. This is discussed in
+problems generally fall into one of two categories. One category involves ``lattice
+correction''. Problems in this category involve matching the \vn{model} lattice to actual measured
+data.  For example, orbit flattening involves varying steering in the \vn{model} lattice so that the
+orbit calculated from the \vn{model} lattice matches as close as possible the measured orbit. The
+steering strengths in the \vn{model} lattice can then be used to calculate what changes are needed
+to correct the orbit in the actual machine. This is discussed in
 Section~\sref{s:lattice.correction}.
 
-The other category of optimization problems involves ``lattice correction''. Problems in this
-category involve matching the \vn{model} lattice to actual measured data.  For example, orbit
-flattening involves varying steering in the \vn{model} lattice so that the orbit calculated from the
-\vn{model} lattice matches as close as possible the measured orbit. The steering strengths in the
-\vn{model} lattice can then be used to calculate what changes are needed to correct the orbit in the
-actual machine. This is discussed in Section~\sref{s:lattice.design}.
+The other category of optimization problems involves ``lattice design'' where lattice parameters are
+varied to achieve some set of ideal properties. For example, varying sextupole magnet strengths in
+order to give maximum dynamic aperture. This is discussed in Section~\sref{s:lattice.design}.
+
 
 %------------------------------------------------------------------------
 \section{Lattice Corrections}
