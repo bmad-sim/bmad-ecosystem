@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 248
+integer, parameter :: bmad_inc_version$ = 249
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1326,7 +1326,7 @@ end type
 ! Rule: When lat2 = lat2, lat2%surface and lat1%surface will point to the same location.
 
 type lat_struct
-  character(40) :: use_name = ''                   ! Name of lat given by USE statement
+  character(200) :: use_name = ''                  ! Name of lat given by USE statement
   character(40) :: lattice = ''                    ! Lattice
   character(40) :: machine = ''                    ! Name of the machine the lattice is for ("LHC", etc).
   character(200) :: input_file_name = ''           ! Name of the lattice input file
