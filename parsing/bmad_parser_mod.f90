@@ -3854,9 +3854,9 @@ integer n_slave, nn, n_loc, n_names, n_in_loc, ix1_slave
 integer ix_lord, k_slave, ix_ele_now, ix_super_lord_end
 
 character(60) err_str
-character(40) slave_name, attrib_name, missing_slave_name
+character(40) slave_name, attrib_name
 
-logical err, slave_not_in_lat, created_girder_lord, err_flag, matched_to_drift, have_ignored_a_drift
+logical err, created_girder_lord, err_flag, matched_to_drift, have_ignored_a_drift
 logical have_wrapped
 
 ! loop over lord elements
@@ -3872,11 +3872,11 @@ main_loop: do n_in = 1, n_ele_max
   select case (lord%key)
   case (overlay$, group$)
  
+    ! If a slave name does not match any name in in_lat then this is an error (to catch typos).
+    ! If a slave is defined in in_lat but not present in lat then the slave is ignored.
     ! If all slave elements are defined in in_lat, but are not present in lat, then
     ! this lord can be ignored.
 
-    slave_not_in_lat = .false.
-    n_in_loc = 1
     n_slave = 0
 
     if (allocated(m_eles)) deallocate (m_eles)
@@ -3889,17 +3889,13 @@ main_loop: do n_in = 1, n_ele_max
       n_slave = n_slave + n_loc
 
       if (n_loc == 0) then
-        slave_not_in_lat = .true.
-        missing_slave_name = pc%name
         call lat_ele_locator (pc%name, in_lat, in_eles, n_in_loc, err)
-      endif
 
-      if ((n_loc == 0 .and. n_slave > 0) .or. (n_loc > 0 .and. slave_not_in_lat) .or. &
-          (n_loc == 0 .and. n_in_loc == 0)) then
-        call parser_error ('CANNOT FIND SLAVE ELEMENT FOR ' // trim(upcase(control_name(lord%lord_status))) // &
-                                                                              ' ELEMENT: ' // lord%name, &
-                           'CANNOT FIND: '// missing_slave_name, pele = pele)
-        cycle main_loop
+        if (n_loc == 0 .and. n_in_loc == 0) then
+          call parser_error ('CANNOT FIND SLAVE ELEMENT FOR ' // trim(upcase(control_name(lord%lord_status))) // &
+                                                   ' ELEMENT: ' // lord%name, 'CANNOT FIND: '// pc%name, pele = pele)
+          cycle main_loop
+        endif
       endif
     enddo
 
