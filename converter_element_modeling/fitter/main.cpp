@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <cstdio>
+#include <cstring>
 #include <numeric>
 #include <algorithm>
 #include <cmath>
@@ -14,9 +15,6 @@
 #include "gnuplot.hpp"
 namespace fs = std::filesystem;
 
-inline constexpr double dp_diff(const CauchyPoint& p1, const CauchyPoint& p2) {
-  return std::abs(p1.chi2/p1.amp - p2.chi2/p2.amp);
-}
 
 int main(int argc, char* argv[]) {
   // Given many dxds/dyds bin files of the form "E%lf_r%lf_bin.dat",
@@ -24,18 +22,26 @@ int main(int argc, char* argv[]) {
   // sufficient number of data points, then fits various
   // functional forms to the obtained cauchy fit parameters
 
-  // Step 0: determine where the data directory is
-  std::string data_dir;
-  if (argc==1) {
-    // No arguments -> read data directory from config.txt
-    bool success = parse_config_file("config.txt", data_dir);
-    if (!success) {
-      return 1;
-    }
+  // Step 0: parse config file
+  const auto settings = parse_config_file("config.txt");
+  if (settings.valid()) {
+    std::cout << settings;
   } else {
-    // 2+ arguments; assume argv[1] is the name of the data directory
-    data_dir = argv[1];
+    std::cout << "Please correct the above issues in config.txt\n";
+    return 1;
   }
+  auto& data_dir = settings.output_directory;
+  //std::string data_dir;
+  //if (argc==1) {
+  //  // No arguments -> read data directory from config.txt
+  //  bool success = parse_config_file("config.txt", data_dir);
+  //  if (!success) {
+  //    return 1;
+  //  }
+  //} else {
+  //  // 2+ arguments; assume argv[1] is the name of the data directory
+  //  data_dir = argv[1];
+  //}
 
   std::ofstream bmad_file;
   bmad_file.open(data_dir + "/converter.bmad");
@@ -66,51 +72,87 @@ int main(int argc, char* argv[]) {
     coef_file << "E\tr\tc_x\talpha_x\talpha_y\tbeta\tamp\tdxds_min\tdxds_max\tdyds_max\tnpts\tchisq\n";
 
     // Loop over each file in the folder
-    //std::string file_name_format = std::string(E_T_folder_name) + "/E%lf_r%lf_bin.dat";
-    //for (auto& bin_file : fs::directory_iterator(E_T_folder.path())) {
     std::cout << "Running fits for pc_in = " << Ein*1e-6 << " MeV, T = " << T*1e2 << " cm...\n";
-    for (auto Eout : er_table.pc_vals) {
-      //Eout *= 1e6; // convert to eV
-      for (auto r : er_table.r_vals) {
-        // Parse Eout, r from the file name
-        //const char *bin_file_name = (bin_file.path()).c_str();
-        //ret = sscanf(bin_file_name, file_name_format.c_str(), &Eout, &r);
-        //if (ret!=2) continue; // parsing failure
-        //Eout *= 1e6; // convert to eV
-        //r *= 1e-2; // convert to meters
+    std::ifstream xy_binlist;
+    char list_filename[200];
+    sprintf(list_filename, "%s/E%0.0lf_T%0.3lf_xy_bins.txt", data_dir.c_str(), Ein*1e-6, T*1e2);
+    xy_binlist.open(list_filename);
+    char bin_filename[300];
+    std::string file_name_format = std::string(E_T_folder_name) + "/E%lf_r%lf_bin.dat";
+    for(;;) {
+      xy_binlist.getline(bin_filename, 300);
+      if (!xy_binlist) break;
+      if (!strlen(bin_filename)) continue;
+      double Eout, r;
+      ret = sscanf(bin_filename, file_name_format.c_str(), &Eout, &r);
+      if (ret!=2) continue; // parsing failure
+      Eout *= 1e6; // convert to eV
+      r *= 1e-2; // convert to meters
+      std::vector<BinPoint> bins;
+      read_list_data(bin_filename, bins);
+      if (!bins.size()) continue;
 
-        // Read in the data from the file
-        //char bin_file_name[200];
-        //sprintf(bin_file_name, "%s/E%0.2lf_r%0.3lf_bin.dat", E_T_folder_name, Eout * 1e-6, r * 1e2);
-        std::vector<BinPoint> bins;
-        read_list_data(E_T_folder_name, Eout, r, bins);
-        if (!bins.size()) {
-          std::cerr << "WARNING: no data read for pc_out = " << Eout*1e-6 << " MeV, r = " << r * 1e2 << " cm\n";
-          continue;
-        }
-
-        // Do the cauchy fit
-        CauchyPoint result;
-        if (data_points.size()) // use previous fit results as initial param guess
-          result = asym_cauchy_fit(Eout, r, bins, data_points.back());
-        else
-          result = asym_cauchy_fit(Eout, r, bins);
-        // Check for fit success
-        if (result.stat == CauchyStatus::NOPROG) {
-          std::cerr << "Asymmetric cauchy fit failed for pc_out = " << Eout*1e6 << " MeV, r = " << r*1e2 << " cm\n";
-        } else {
-          // Record the obtained coefficients on success
-          data_points.push_back(result);
-          output_cauchy_gp(E_T_folder_name, result);
-        }
+      CauchyPoint result;
+      if (data_points.size()) // use previous fit results as initial param guess
+        result = asym_cauchy_fit(Eout, r, bins, data_points.back());
+      else
+        result = asym_cauchy_fit(Eout, r, bins);
+      // Check for fit success
+      if (result.stat == CauchyStatus::NOPROG) {
+        std::cerr << "Asymmetric cauchy fit failed for pc_out = " << Eout*1e6 << " MeV, r = " << r*1e2 << " cm\n";
+      } else {
+        // Record the obtained coefficients on success
+        data_points.push_back(result);
+        output_cauchy_gp(E_T_folder_name, result);
       }
     }
 
 
+
+
+
+
+    //for (auto Eout : er_table.pc_vals) {
+    //  //Eout *= 1e6; // convert to eV
+    //  for (auto r : er_table.r_vals) {
+    //    // Parse Eout, r from the file name
+    //    //const char *bin_file_name = (bin_file.path()).c_str();
+    //    //ret = sscanf(bin_file_name, file_name_format.c_str(), &Eout, &r);
+    //    //if (ret!=2) continue; // parsing failure
+    //    //Eout *= 1e6; // convert to eV
+    //    //r *= 1e-2; // convert to meters
+
+    //    // Read in the data from the file
+    //    //char bin_file_name[200];
+    //    //sprintf(bin_file_name, "%s/E%0.2lf_r%0.3lf_bin.dat", E_T_folder_name, Eout * 1e-6, r * 1e2);
+    //    std::vector<BinPoint> bins;
+    //    read_list_data(E_T_folder_name, Eout, r, bins);
+    //    if (!bins.size()) {
+    //      std::cerr << "WARNING: no data read for pc_out = " << Eout*1e-6 << " MeV, r = " << r * 1e2 << " cm\n";
+    //      continue;
+    //    }
+
+    //    // Do the cauchy fit
+    //    CauchyPoint result;
+    //    if (data_points.size()) // use previous fit results as initial param guess
+    //      result = asym_cauchy_fit(Eout, r, bins, data_points.back());
+    //    else
+    //      result = asym_cauchy_fit(Eout, r, bins);
+    //    // Check for fit success
+    //    if (result.stat == CauchyStatus::NOPROG) {
+    //      std::cerr << "Asymmetric cauchy fit failed for pc_out = " << Eout*1e6 << " MeV, r = " << r*1e2 << " cm\n";
+    //    } else {
+    //      // Record the obtained coefficients on success
+    //      data_points.push_back(result);
+    //      output_cauchy_gp(E_T_folder_name, result);
+    //    }
+    //  }
+    //}
+
+
     // Now that a cauchy fit has been performed for each file in this
     // directory, do the meta-fits
-    // TODO: read this from config file
-    double crossover_point = 1e7; // in eV
+    double crossover_point = settings.fit_crossover * 1e6; // convert to eV
     // sort by E and then r
     std::sort(data_points.begin(), data_points.end(),
         [](const CauchyPoint& p1, const CauchyPoint& p2) {
@@ -196,8 +238,7 @@ int main(int argc, char* argv[]) {
 
   double T = metafits[0].T;
   bmad_file << "distribution = {\n";
-  // TODO: read material from config file
-  bmad_file << TAB<1>() << "material = tungsten" << ",\n";
+  bmad_file << TAB<1>() << "material = " << settings.target_material << ",\n";
   bmad_file << TAB<1>() << "species_out = positron" << ",\n";
   bmad_file << TAB<1>() << "thickness = " << T;
   for (const auto& mf : metafits) {

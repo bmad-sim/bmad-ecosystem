@@ -50,6 +50,25 @@ void read_list_data(const char * folder, double pc_out, double r, std::vector<Bi
   return;
 }
 
+void read_list_data(const char* filename, std::vector<BinPoint>& bins) {
+  std::ifstream datafile;
+  datafile.open(filename);
+  if (!datafile) {
+    std::cerr << "WARNING: could not open " << filename << "\n";
+    return;
+  }
+  double x, y, count;
+  for (;;) {
+    datafile >> x;
+    datafile >> y;
+    datafile >> count;
+    if (datafile.fail()) break;
+    bins.push_back({x, y, count});
+  }
+  datafile.close();
+  return;
+}
+
 void read_er_data(const char* folder, double pc_in, double T, ER_table& table) {
   // Reads the data in the E-r file for the given pc_in and target thickness,
   // and stores the data in the ER_table struct
