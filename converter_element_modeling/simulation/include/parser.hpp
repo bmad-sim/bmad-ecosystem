@@ -31,7 +31,7 @@ struct StrNum {
 bool operator==(const StrNum& s1, const StrNum& s2);
 
 struct SimSettings {
-  size_t num_bins, num_pc_bins, num_r_bins;
+  size_t /* num_bins,*/ num_pc_bins, num_r_bins;
   double out_pc_min, out_pc_max;
   double dxy_ds_max;
   double fit_crossover;
@@ -40,7 +40,7 @@ struct SimSettings {
   std::vector<double> pc_in;
   std::vector<double> target_thickness;
 
-  SimSettings() :  num_bins{0},
+  SimSettings() :  /*num_bins{0}, */
                    num_pc_bins{0},
                    num_r_bins{0},
                    out_pc_min{0.0},
