@@ -64,14 +64,14 @@
 \newcommand{\exef}{\texttt{converter\_fitter}\xspace}
 \newcommand{\configfile}{\texttt{config.txt}\xspace}
 \newcommand{\bmad}{\textit{Bmad}\xspace}
-\newcommand{\targetm}{\texttt{target\_material}\xspace}
-\newcommand{\targett}{\texttt{target\_thickness}\xspace}
+\newcommand{\targetm}{\texttt{material}\xspace}
+\newcommand{\targett}{\texttt{thicknesses}\xspace}
 \newcommand{\pcin}{\texttt{pc\_in}\xspace}
 \newcommand{\outpcmin}{\texttt{out\_pc\_min}\xspace}
 \newcommand{\outpcmax}{\texttt{out\_pc\_max}\xspace}
 \newcommand{\dxydsmax}{\texttt{dxy\_ds\_max}\xspace}
 \newcommand{\outdir}{\texttt{output\_directory}\xspace}
-\newcommand{\numbins}{\texttt{num\_bins}\xspace}
+%\newcommand{\numbins}{\texttt{num\_bins}\xspace}
 \newcommand{\numrbins}{\texttt{num\_r\_bins}\xspace}
 \newcommand{\numpcbins}{\texttt{num\_pc\_bins}\xspace}
 \newcommand{\fitxpt}{\texttt{fit\_crossover}\xspace}
@@ -148,7 +148,7 @@ shown in Figure \ref{fig:coords}.
 \centering
 \includegraphics[width=0.6\textwidth]{coords1.pdf}
 \includegraphics[width=0.8\textwidth]{coords2.pdf}
-\caption{Coordinates used to describe the outgoing particles exiting the converter. The incoming particle is 
+\caption{Coordinates used to describe the outgoing particles exiting the converter. The incoming particle is
 labeled $e^-$ and the outging particle is labeled $e^+$.}
 \label{fig:coords}
 \end{figure}
@@ -175,7 +175,7 @@ P \left( p_+ c, r, \dxds, \dyds \right)
 \end{align}
 which describes the probability that an outgoing particle will attain particular values of $p_+ c$,
 $r$, $\dxds$, and $\dyds$. This probability distribution is dependent upon the incoming particle's
-energy, as well as the thickness and material type of the converter. This will be discussed later.
+energy $p_- c$, as well as the thickness $T$ and material type of the converter. This will be discussed later.
 
 $P$ is normalized to the number of outgoing particles produced per incoming particle:
 \begin{align}
@@ -245,8 +245,8 @@ associated executable: \exes for the first stage, and \exef for the second.
 After the probability parameters are generated, a \bmad lattice file can be created that contains
 these parameters and this lattice file is used for simulating the converter independent of Geant.
 
-\subsection{Dependencies} 
-\label{s:deps} 
+\subsection{Dependencies}
+\label{s:deps}
 
 Builds require a C++ compiler with support for C++17. GCC 8 or higher should be fine.
 
@@ -325,6 +325,16 @@ Once the compilation has finished, install with
 \end{example}
 \end{enumerate}
 
+Geant can be compiled to support either single threaded execution or multithreaded execution.
+Due to the substantial associated performance improvement,
+it is highly recommended that Geant be compiled for multithreaded use,
+as the converter simulation takes full advantage of parallel execution.
+To do so, add the flag
+\begin{example}
+  -DGEANT4_BUILD_MULTITHREADED=ON
+\end{example}
+to the \texttt{cmake} command used in step 4, then proceed with steps 5-6.
+
 %--------------------------------
 
 \subsection{Compiling the Executables} The converter simulation and fitting programs are distributed
@@ -350,7 +360,7 @@ Also execute the command
 Now \texttt{cd} to the \texttt{util\_programs} folder, and then simply run \texttt{mk} to build
 \exes and \exef. If you get errors like:
 \begin{example}
-  util_programs/converter_element_modeling/fitter/cauchy.cpp:35:10: 
+  util_programs/converter_element_modeling/fitter/cauchy.cpp:35:10:
   error: expected unqualified-id before '[' token
       auto [xval, yval, binval] = bins[i];
            ^
@@ -362,6 +372,9 @@ executables will be in the directory
 \begin{example}
   $ROOT/production/bin
 \end{example}
+
+Note that if Geant is ever recompiled (for example, to enable multithreaded support),
+\exes will also need to be recompiled.
 
 %-------------------------------------------------------------
 \newpage
@@ -378,9 +391,10 @@ An example config file, with all available settings listed, is shown below.
 \begin{example}
   ! Example configuration file
   ! The ! introduces a comment that lasts until the end of the line
-  target_material = tungsten ! Defines the converter material
-  target_thickness = 6.35 mm, 1.0 cm ! Defines the target thicknesses to be simulated
-  pc_in = 300 MeV, 500 MeV, 1 GeV ! Defines the incoming particle energies to be simulated
+  material = tungsten ! Defines the converter material
+  thicknesses = 6.35 mm, 1.0 cm ! Defines the target thicknesses to be simulated
+  pc_in = 300 MeV, 500 MeV, 1 GeV ! Defines the incoming particle
+                                  ! energies to be simulated
   out_pc_min = 0 ! Minimum pc cutoff for outgoing particles, defaults to 0
   out_pc_max = 100000000 ! Maximum pc cutoff for outgoing particles (in eV here)
   dxy_ds_max = 10 ! Maximum cutoff for the magnitude of dx/ds
@@ -388,9 +402,6 @@ An example config file, with all available settings listed, is shown below.
   output_directory = sim_data ! Name of the directory where data will be output,
                               ! should be specified relative to the working directory
                               ! Defaults to sim_data
-  num_bins = 15 ! Number of bins to use for both pc and r histogram binning
-                ! with just this line, you would have a 15x15 histogram
-                ! Defaults to 15
   num_pc_bins = 12 ! Number of pc bins to use for histogram binning
   num_r_bins = 20 ! Number of r bins to use for histogram binning
   fit_crossover = 10 MeV ! For alpha and beta fits, this defines the
@@ -399,8 +410,8 @@ An example config file, with all available settings listed, is shown below.
 \end{example}
 
 All settings accept a single value, except for \pcin and \targett, which accept a comma separated
-list of values.  The settings \outpcmin, \outdir, \numbins, and \fitxpt have default values, while
-the settings \targetm, \targett, \pcin, \outpcmax, and \dxydsmax must be specified in the file.
+list of values.  The settings \outpcmin, \outdir, and \fitxpt have default values, while
+the settings \targetm, \targett, \pcin, \outpcmax, \numpcbins, \numrbins, and \dxydsmax must be specified in the file.
 
 The settings \pcin, \outpcmin, and \outpcmax take values with dimensions of energy.  These default
 to eV if no unit is specified, although \texttt{MeV} and \texttt{GeV} can be added as suffixes to
@@ -408,11 +419,8 @@ use MeV and GeV instead as shown in the sample file.  The \targett setting takes
 dimensions of length.  The default unit is meters, although \texttt{cm} and \texttt{mm} are
 supported as well.
 
-The settings \numbins, \numpcbins, and \numrbins control the number of bins used in the histogram.
-If you only provide a value for \numbins, it will be used for both the number of $p_+c$ bins and
-then number of $r$ bins.  If you provide \numpcbins or \numrbins in your config file, this value
-will supersede \numbins for the number of $p_+ c$ or $r$ bins respectively.  If you do not set
-\numbins in your config file, you must set both \numpcbins and \numrbins.
+The settings \numpcbins and \numrbins control the number of bins used in the histogram.
+Both values must be set in the config file.
 
 \subsection{The Simulation Program}
 
@@ -429,18 +437,12 @@ empty, and will ask you if you want to overwrite it if it already exists.  Then,
 events for those settings.  For example, with the above config file, six simulations will be run
 with the following settings:
 \begin{itemize}
-\item
-300 MeV \pcin  and 6.35 mm \targett
-\item
-500 MeV \pcin  and 6.35 mm \targett
-\item
-1 GeV \pcin  and 6.35 mm \targett
-\item
-300 MeV \pcin  and 1 cm \targett
-\item
-500 MeV \pcin  and 1 cm \targett
-\item
-1 GeV \pcin  and 1 cm \targett
+\item $p_- c = 300$ MeV  and $T = 6.35$ mm
+\item $p_- c = 500$ MeV  and $T = 6.35$ mm
+\item $p_- c = 1$   GeV  and $T = 6.35$ mm
+\item $p_- c = 300$ MeV  and $T = 1$    cm
+\item $p_- c = 500$ MeV  and $T = 1$    cm
+\item $p_- c = 1$   GeV  and $T = 1$    cm
 \end{itemize}
 Depending on your computer and the number of different simulations that need to be run, this step
 may take several hours.
@@ -547,6 +549,6 @@ As for the C++ compiler, you can get access to GCC 8.3 by adding
 \end{example}
 to your \texttt{.bashrc}.
 
-\printbibliography 
+\printbibliography
 
 \end{document}
