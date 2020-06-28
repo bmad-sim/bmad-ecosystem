@@ -8,4 +8,5 @@ struct ER_table {
 };
 
 void read_list_data(const char * folder, double pc_out, double r, std::vector<BinPoint>& bins);
+void read_list_data(const char* filename, std::vector<BinPoint>& bins);
 void read_er_data(const char *folder, double pc_in, double T, ER_table& table);
