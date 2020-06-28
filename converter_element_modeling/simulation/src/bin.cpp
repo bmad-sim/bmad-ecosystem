@@ -3,6 +3,7 @@
 #include <numeric>
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 
 #include "bin.hpp"
 
@@ -10,9 +11,26 @@
 Bin::Bin()
   : count(0),
   area(0),
-  p_list{} {}
+  p_list{},
+  binned_ptr(nullptr) {}
 
+Bin::~Bin() { if (binned_ptr) delete binned_ptr; }
 
+Bin::Bin(const Bin& o) : count(o.count), area(o.area), p_list(o.p_list) {
+  if (o.binned_ptr) {
+    binned_ptr = new std::vector<BinPoint>(*(o.binned_ptr));
+  }
+}
+
+Bin& Bin::operator=(const Bin& o) {
+  count = o.count;
+  area = o.area;
+  p_list = o.p_list;
+  if (binned_ptr) delete binned_ptr;
+  if (o.binned_ptr)
+    binned_ptr = new std::vector<BinPoint>(*(o.binned_ptr));
+  return *this;
+}
 
 void Bin::add_point(double dxds, double dyds) {
   p_list.push_back({dxds, dyds});
@@ -22,8 +40,34 @@ double Bin::density(size_t num_elec_in) const {
   return count/(num_elec_in * area);
 }
 
-void Bin::bin_momenta(const char * output_dir,
-    double E_elec, double T, double E, double r) const {
+void Bin::write_momenta(const char * output_dir,
+    double E_elec, double T, double E, double r, FILE *binlist) const {
+  if (!binned_ptr) bin_momenta();
+  if (!binned_ptr) return;
+  auto& bins = *binned_ptr;
+  // Write binned data to a file
+  std::ofstream binfile;
+  char binfile_name[100];
+  sprintf(binfile_name, "%s/dir_dat/E%0.0lf_T%0.3lf/E%0.2lf_r%0.3lf_bin.dat",
+      output_dir, E_elec, T, E, r);
+  binfile.open(binfile_name);
+  for (auto [bin_x, bin_y, bin_count, bin_area] : bins) {
+    binfile << bin_x << '\t'
+      << bin_y << '\t'
+      << bin_count / (p_list.size() * bin_area) << '\n'; // normalized to 1
+  }
+  // Write the filename to binlist
+  fprintf(binlist, "%s\n", binfile_name);
+}
+
+void Bin::binary_write_momenta(FILE *binary_file) const {
+  if (!binned_ptr) bin_momenta();
+  if (!binned_ptr) return;
+
+  std::fwrite(binned_ptr->data(), sizeof(BinPoint), binned_ptr->size(), binary_file);
+}
+
+void Bin::bin_momenta() const {
   // Bins the (dxds, dyds) data and writes the
   // binned data to a file, named using the
   // values of E and r
@@ -31,7 +75,9 @@ void Bin::bin_momenta(const char * output_dir,
 
   size_t num_bins = 20;
 
-  std::vector<BinPoint> bins(num_bins*num_bins, {0,0,0});
+  if (binned_ptr) delete binned_ptr;
+  binned_ptr = new std::vector<BinPoint>(num_bins*num_bins, {0,0,0,0});
+  auto& bins = *binned_ptr;
 
   // Determine cutoff points for binning
   size_t ix_min = p_list.size() * 0.03;
@@ -77,21 +123,9 @@ void Bin::bin_momenta(const char * output_dir,
       size_t bin_ix = x_ix + num_bins * y_ix;
       bins[bin_ix].x = xval;
       bins[bin_ix].y = yval;
+      bins[bin_ix].area = dxds_width * dyds_width;
     }
   }
-
-  // Write binned data to a file
-  std::ofstream binfile;
-  char binfile_name[100];
-  sprintf(binfile_name, "%s/dir_dat/E%0.0lf_T%0.3lf/E%0.2lf_r%0.3lf_bin.dat",
-      output_dir, E_elec, T, E, r);
-  binfile.open(binfile_name);
-  for (auto [bin_x, bin_y, bin_count] : bins) {
-    binfile << bin_x << '\t'
-      << bin_y << '\t'
-      << bin_count / (p_list.size() * dxds_width * dyds_width) << '\n'; // normalized to 1
-  }
-  binfile.close();
 
   return;
 }
