@@ -24,17 +24,17 @@ CalibrationBinner::CalibrationBinner(RunManager_t* p_run_manager, PointCache* p_
   target_material(p_s.target_material),
   out_dir(p_s.output_directory),
   in_energy(p_in_energy), target_thickness(p_target_thickness) {
-    if (p_s.num_pc_bins==0)
-      E_edges.resize(p_s.num_bins + 1);
-    else
+    //if (p_s.num_pc_bins==0)
+    //  E_edges.resize(p_s.num_bins + 1);
+    //else
       E_edges.resize(p_s.num_pc_bins + 1);
     E_edges.front() = p_s.out_pc_min;
     E_edges.back() = p_s.out_pc_max;
     bins.resize(E_edges.size()-1);
 
-    if (p_s.num_r_bins==0)
-      r_edges.resize(p_s.num_bins + 1);
-    else
+    //if (p_s.num_r_bins==0)
+    //  r_edges.resize(p_s.num_bins + 1);
+    //else
       r_edges.resize(p_s.num_r_bins + 1);
     r_edges.front() = 0;
     r_edges.back() = 1e6; // set to a ridiculous number initially, fix later
@@ -84,6 +84,7 @@ void CalibrationBinner::calibrate() {
   };
   std::generate(E_edges.begin()+1, E_edges.end()-1, gen_e);
   // r edges
+  stride = (cal_run.size()-1) / (r_edges.size() - 1);
   std::sort(cal_run.begin(), cal_run.end(), rsort);
   c_ix = 0;
   auto gen_r = [&,c_ix]() mutable {
@@ -131,11 +132,34 @@ void CalibrationBinner::run(size_t run_length) {
 
 
 void CalibrationBinner::write_data() {
+  // Performs the following:
+  // * Writes the E,r histogram to E..._T..._er.dat (ASCII)
+  // * For each E,r bin, writes the dxds,dyds histogram
+  //   to dir_dat/E..._T.../E..._r..._bin.dat (ASCII)
+  // * Writes all dxds, dyds histograms to
+  //   dir_dat/E..._T.../binary.dat (BINARY)
   std::ofstream outfile;
   char filename[200];
   sprintf(filename, "%s/E%0.0lf_T%0.3lf_er.dat",
       out_dir.c_str(), in_energy, target_thickness);
   outfile.open(filename);
+  if (!outfile) {
+    std::cerr << "ERROR: Could not open " << filename << " for writing\n";
+    return;
+  }
+
+  //char binary_filename[200];
+  //sprintf(binary_filename, "%s/dir_dat/E%0.0lf_T%0.3lf/binary.dat",
+  //    out_dir.c_str(), in_energy, target_thickness);
+  //FILE *binary_file = std::fopen(binary_filename, "wb");
+  char list_filename[200];
+  sprintf(list_filename, "%s/E%0.0lf_T%0.3lf_xy_bins.txt",
+      out_dir.c_str(), in_energy, target_thickness);
+  FILE *binlist = std::fopen(list_filename, "w");
+  if (!binlist) {
+    std::cerr << "ERROR: Could not open " << list_filename << " for writing\n";
+    return;
+  }
 
   // set up first line with r values
   auto num_E_bins = E_edges.size()-1;
@@ -152,11 +176,14 @@ void CalibrationBinner::write_data() {
       double bin_r = get_r_val(j);
       auto& bin = get_bin(i,j);
       outfile << '\t' << bin.density(elec_in);
-      bin.bin_momenta(out_dir.c_str(), in_energy, target_thickness, bin_E, bin_r);
+      // Write the dxds, dyds bins to an ascii file
+      bin.write_momenta(out_dir.c_str(), in_energy, target_thickness, bin_E, bin_r, binlist);
+      // Also write to the binary file
     }
     outfile << '\n';
   }
   outfile.close();
+  std::fclose(binlist);
 }
 
 
