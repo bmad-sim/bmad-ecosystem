@@ -285,14 +285,15 @@ Make a sub-directory where you will build Geant with
 \texttt{cd} to this new directory, and use \texttt{cmake} to configure the Geant4 build with
 \begin{example}
   cmake -DGEANT4_INSTALL_DATA=ON -DGEANT4_BUILD_MULTITHREADED=ON \B
-        -DCMAKE_INSTALL_PREFIX=$GEANT_DIR/geant4-build \B
+        -DCMAKE_INSTALL_PREFIX=GEANT_DIR/geant4-build \B
         ../geant4.10.06
 \end{example}
-Change the version number as appropriate. The \texttt{GEANT4_INSTALL_DATA} flag will cause the
-necessary data sets to be downloaded when Geant is built, and the \texttt{CMAKE_INSTALL_PREFIX} flag
-sets the install directory. The \texttt{GEANT4_BUILD_MULTITHREADED} causes Geant to be run
-multithreaded. Remove this flag to run single threaded. Due to the substantial associated
-performance improvement, it is highly recommended that Geant be compiled for multithreaded use.
+Change \texttt{GEANT_DIR} and the version number as appropriate. The \texttt{GEANT4_INSTALL_DATA}
+flag will cause the necessary data sets to be downloaded when Geant is built, and the
+\texttt{CMAKE_INSTALL_PREFIX} flag sets the install directory. The
+\texttt{GEANT4_BUILD_MULTITHREADED} causes Geant to be run multithreaded. Remove this flag to run
+single threaded. Due to the substantial associated performance improvement, it is highly recommended
+that Geant be compiled for multithreaded use.
 
 Note: if you encounter the the error
 \begin{example}
