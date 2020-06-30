@@ -100,7 +100,11 @@ int main() {
       }
       calbin.write_data();
 
-      if (HALT_SIGNAL) goto END;
+      if (HALT_SIGNAL) {
+        const char* CURSOR_DOWN = "\033[9E";
+        std::cout << CURSOR_DOWN;
+        goto END;
+      }
     }
   }
 
