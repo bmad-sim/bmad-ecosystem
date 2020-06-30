@@ -1,4 +1,5 @@
 #include <vector>
+#include <deque>
 #include <utility>
 #include <tuple>
 #include <cmath>
@@ -211,7 +212,22 @@ std::pair<unsigned, unsigned> CalibrationBinner::get_bin_num(double E, double r)
   if (n_r >= bins[0].size()) n_r = bins[0].size()-1;
   return std::make_pair(n_E, n_r);
 }
+
+// Helper class for CalibrationBinner::has_enough_data()
+struct BatchStats {
+  size_t num_elec, num_pos;
+  std::chrono::duration<double> time;
+};
+BatchStats operator+(const BatchStats& a, const BatchStats& b) {
+  return { a.num_elec + b.num_elec, a.num_pos + b.num_pos, a.time + b.time };
+}
+
 bool CalibrationBinner::has_enough_data() const {
+  constexpr double per_bin_target = 1e5;
+  // Record of most recent (past minute) incoming/outgoing throughput
+  static std::deque<BatchStats> recent_batches{};
+  constexpr double time_to_keep = 60; // seconds
+
   // Timing
   static auto prev_t = std::chrono::steady_clock::now();
   auto current = std::chrono::steady_clock::now();
@@ -220,9 +236,15 @@ bool CalibrationBinner::has_enough_data() const {
   static size_t prev_pos_count = 0;
   static size_t prev_elec_count = 0;
 
-  const char* CLEAR_LINE = "\033[K";
-  const char* CURSOR_UP = "\033[9A";
-  constexpr double per_bin_target = 1e5;
+  auto delta_elec = (elec_in - prev_elec_count);
+  auto delta_pos = (total_count - prev_pos_count);
+  recent_batches.push_back({delta_elec, delta_pos, delta_t});
+
+  auto recent_total = std::accumulate(recent_batches.begin(), recent_batches.end(),
+      BatchStats{}); // default constructed BatchStats{} has all members == 0
+
+  double elec_throughput = recent_total.num_elec / recent_total.time.count();
+  double pos_throughput = recent_total.num_pos / recent_total.time.count();
 
   size_t num_bins = bins.size() * bins[0].size();
   double count_per_bin = static_cast<double>(total_count) / num_bins;
@@ -234,43 +256,37 @@ bool CalibrationBinner::has_enough_data() const {
       });
 
   double efficiency = static_cast<double>(total_count) / elec_in;
-  double delta_pos = (total_count - prev_pos_count);
-  double delta_elec = (elec_in - prev_elec_count);
-  double elec_throughput = delta_elec / delta_t.count();
-  double pos_throughput = delta_pos / delta_t.count();
-  //for (const auto& row : bins) {
-  //  for (const auto& bin : row) {
-  //    if (bin.count == 0) empty_bins++;
-  //  }
-  //}
+
+  const char* CLEAR_LINE = "\033[K";
+  const char* CURSOR_UP = "\033[9F";
   printf(CLEAR_LINE);
   printf("Simulation progress:\n");
 
   printf(CLEAR_LINE);
-  printf("\tAverage bin count: %0.02g\n", count_per_bin);
+  printf("\tAverage bin count: %0.03e\n", count_per_bin);
 
   printf(CLEAR_LINE);
   printf("\tNumber of empty bins: %lu/%lu\n", empty_bins, num_bins);
 
   printf(CLEAR_LINE);
-  printf("\tAverage bin count s.d.: %0.03g\n", std::sqrt(count_per_bin));
+  printf("\tAverage bin count s.d.: %0.03e\n", std::sqrt(count_per_bin));
 
   printf(CLEAR_LINE);
-  printf("\tNumber of incoming particles tracked: %0.03g / %0.02g\n",
+  printf("\tNumber of incoming particles tracked: %0.03e / %0.02e\n",
       static_cast<double>(elec_in),
       num_bins * per_bin_target * efficiency);
 
   printf(CLEAR_LINE);
-  printf("\tNumber of outgoing particles tracked: %0.03g / %0.02g\n",
+  printf("\tNumber of outgoing particles tracked: %0.03e / %0.02e\n",
       static_cast<double>(total_count),
       static_cast<double>(num_bins * per_bin_target));
 
   if (delta_t.count() > 1e-6) {
     printf(CLEAR_LINE);
-    printf("\tIncoming particle throughput: %0.02g/sec\n", elec_throughput);
+    printf("\tIncoming particle throughput: %0.02e/sec\n", elec_throughput);
 
     printf(CLEAR_LINE);
-    printf("\tOutgoing particle throughput: %0.02g/sec\n", pos_throughput);
+    printf("\tOutgoing particle throughput: %0.02e/sec\n", pos_throughput);
 
     auto time_left = std::max(0.0, (per_bin_target * num_bins - total_count) / elec_throughput);
     unsigned hr = time_left / 3600;
@@ -279,19 +295,28 @@ bool CalibrationBinner::has_enough_data() const {
     printf(CLEAR_LINE);
     printf("\tEstimated time to completion: %u:%02u:%02u\n", hr, mn, sc);
   } else {
-    printf("Delta t = %g\n", delta_t.count());
-    printf("\n\n");
+    printf("\n\n\n");
   }
 
-
+  // Update static variables
   prev_elec_count = elec_in;
   prev_pos_count = total_count;
   prev_t = current;
+  if (recent_total.time.count() > time_to_keep) // only keep 60 seconds of data
+    recent_batches.pop_front();
 
 
   bool has_enough = count_per_bin > per_bin_target;
   // If !has_enough, we will be rerunning this function next, so we need to move
   // the cursor back up to write over our output
-  if (!has_enough) printf(CURSOR_UP);
+  if (!has_enough) {
+    printf(CURSOR_UP);
+  } else {
+    // Clear static variables; the next time this function is called,
+    // it will be for a different pc_in/T combination
+    prev_elec_count = 0;
+    prev_pos_count = 0;
+    recent_batches.clear();
+  }
   return has_enough;
 }
