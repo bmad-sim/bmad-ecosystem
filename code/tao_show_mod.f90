@@ -4260,11 +4260,11 @@ case ('universe')
   nl=nl+1; write(lines(nl), amt) '%beam%dump_at:         = ', quote(trim(u%beam%dump_at))
   nl=nl+1; write(lines(nl), amt) '%beam%dump_file:       = ', quote(trim(u%beam%dump_file))
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', quote(lat%lattice)
-  nl=nl+1; write(lines(nl), amt) 'Machine name:           ', quote(lat%machine)
-  nl=nl+1; write(lines(nl), amt) 'Used line in lat file:  ', quote(lat%use_name)
-  nl=nl+1; write(lines(nl), amt) 'Lattice file name:      ', quote(lat%input_file_name)
-  nl=nl+1; write(lines(nl), amt) 'Reference species:      ', species_name(branch%param%particle)
+  nl=nl+1; write(lines(nl), amt) 'Lattice name:             ', quote(lat%lattice)
+  nl=nl+1; write(lines(nl), amt) 'Machine name:             ', quote(lat%machine)
+  nl=nl+1; write(lines(nl), amt) 'Used line(s) in lat file: ', quote(lat%use_name)
+  nl=nl+1; write(lines(nl), amt) 'Lattice file name:        ', quote(lat%input_file_name)
+  nl=nl+1; write(lines(nl), amt) 'Reference species:        ', species_name(branch%param%particle)
   if (branch%param%particle == photon$) then
     nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
   endif

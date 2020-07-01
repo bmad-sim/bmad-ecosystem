@@ -826,6 +826,7 @@ end type
 type tao_plot_cache_struct
   type (ele_struct) ele
   type (coord_struct) orbit
+  logical err
 end type
 
 ! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
@@ -840,6 +841,7 @@ type tao_lattice_branch_struct
   type (coord_struct) orb0                     ! For saving beginning orbit
   type (lat_struct) :: high_E_lat, low_E_lat  ! For chrom calc.
   type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
+  type (tao_plot_cache_struct) :: plot_ref_cache              ! Plotting data cache
   integer track_state
   logical has_open_match_element
   logical :: plot_cache_valid = .false.        ! Valid plotting data cache?

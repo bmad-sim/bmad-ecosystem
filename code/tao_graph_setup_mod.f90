@@ -1926,7 +1926,7 @@ integer, parameter :: loading_cache$ = 1, using_cache$ = 2
 character(40) data_type, name, sub_data_type
 character(40) data_type_select, data_source
 character(*), parameter :: r_name = 'tao_calc_data_at_s'
-logical err, good(:), first_time, radiation_fluctuations_on
+logical err, good(:), first_time, radiation_fluctuations_on, ok, gd
 
 ! Some init
 
@@ -2060,7 +2060,7 @@ do ii = 1, size(curve%x_line)
   select case (curve%data_source)
   case ('beam')
     if (.not. allocated(tao_branch%bunch_params)) then
-      call out_io (s_fatal$, r_name, 'BUNCH_PARAMS NOT ALLOCATED.')
+      call out_io (s_error$, r_name, 'BUNCH_PARAMS NOT ALLOCATED.')
       return
     endif
  
@@ -2076,7 +2076,7 @@ do ii = 1, size(curve%x_line)
 
     ! Cannot return if no particles since bunch may be injected not at the start of the branch.
     if (bunch_params0%n_particle_live == 0) then
-      good(ii) = .true.
+      good(ii) = .false.
       cycle
     endif
 
@@ -2098,10 +2098,11 @@ do ii = 1, size(curve%x_line)
 
   case ('lat')
     if (cache_status == using_cache$) then
-      ele = tao_branch%plot_cache(ii)%ele
+      ele   = tao_branch%plot_cache(ii)%ele
       orbit = tao_branch%plot_cache(ii)%orbit
-      mat6 = tao_branch%plot_cache(ii)%ele%mat6
-      vec0 = tao_branch%plot_cache(ii)%ele%vec0
+      mat6  = tao_branch%plot_cache(ii)%ele%mat6
+      vec0  = tao_branch%plot_cache(ii)%ele%vec0
+      err   = tao_branch%plot_cache(ii)%err
 
     else
       if (first_time) then
@@ -2124,14 +2125,15 @@ do ii = 1, size(curve%x_line)
       endif
 
       if (cache_status == loading_cache$) then
-        tao_branch%plot_cache(ii)%ele = ele
-        tao_branch%plot_cache(ii)%orbit = orbit
-        tao_branch%plot_cache(ii)%ele%mat6  = mat6
+        tao_branch%plot_cache(ii)%ele      = ele
+        tao_branch%plot_cache(ii)%orbit    = orbit
+        tao_branch%plot_cache(ii)%ele%mat6 = mat6
         tao_branch%plot_cache(ii)%ele%vec0 = vec0
+        tao_branch%plot_cache(ii)%err      = err
       endif
 
       if (err) then
-        tao_branch%plot_cache(ii)%orbit%state = lost$
+        tao_branch%plot_cache(ii:)%err = .true.
         good(ii:) = .false.
         bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
         return
@@ -2141,6 +2143,7 @@ do ii = 1, size(curve%x_line)
 
     if (orbit%state /= alive$) then
       good(ii:) = .false.
+      tao_branch%plot_cache(ii:)%err = .true.
       write (curve%message_text, '(f10.3)') s_now
       curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
                            trim(adjustl(curve%message_text))
@@ -2153,154 +2156,219 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  !-------------------------------
-
-  select case (data_type_select)
-
-  case ('apparent_emit.', 'norm_apparent_emit.')
-    select case (data_type)
-    case ('apparent_emit.x', 'norm_apparent_emit.x')
-      if (curve%data_source == 'beam') then
-        value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
-      else
-        value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_branch%modes)
-      endif
-      if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-    case ('apparent_emit.y', 'norm_apparent_emit.y')
-      if (curve%data_source == 'beam') then
-        value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele, bunch_params)
-      else
-        value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_branch%modes)
-      endif
-      if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-    case default
-      goto 9000  ! Error message & Return
-    end select
-
-  case ('element_attrib.')
-    name = upcase(curve%data_source(16:))
-    ele_dum%key = overlay$  ! so entire attribute name table will be searched
-    i = attribute_index(ele_dum, name)
-    if (i < 1) then
-      good = .false.
-      return  ! Bad attribute name
-    endif
-    call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
-    if (associated (a_ptr%r)) value = a_ptr%r
-
-  case ('emit.')
-    select case (data_type)
-    case ('emit.a')
-      value = bunch_params%a%emit
-    case ('emit.b')
-      value = bunch_params%b%emit
-    case ('emit.x', 'norm_emit.x')
-      if (curve%data_source == 'beam') then
-        value = bunch_params%x%emit
-      else
-        value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_branch%modes)
-      endif
-      if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-    case ('emit.y', 'norm_emit.y')
-      if (curve%data_source == 'beam') then
-        value = bunch_params%y%emit
-      else
-        value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_branch%modes)
-      endif
-      if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
-    case default
-      goto 9000  ! Error message & Return
-    end select
-
-  case ('momentum_compaction')
-    call make_v_mats (ele_ref, v_mat, v_inv_mat)
-    eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
-    eta_vec = matmul (v_mat, eta_vec)
-    one_pz = 1 + orb_ref%vec(6)
-    eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
-    eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
-    ds = ele%s - branch%ele(0)%s
-    if (ds == 0) then
-      value = 0
-    else
-      value = -(sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / ds
-    endif
-
-  case ('norm_emit.')
-    select case (data_type)
-    case ('norm_emit.a')
-      value = bunch_params%a%norm_emit
-    case ('norm_emit.b')
-      value = bunch_params%b%norm_emit
-    case ('norm_emit.z')
-      value = bunch_params%z%norm_emit
-    case default
-      goto 9000  ! Error message & Return
-    end select
-
-  case ('r.')
-    if (ii == 1) call mat_make_unit (mat6)
-    if (s_now < s_last) cycle
-    i = tao_read_phase_space_index (data_type, 3); if (i == 0) return
-    j = tao_read_phase_space_index (data_type, 4); if (j == 0) return
-    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, orbit_last, ix_branch, unit_start = .false.)
-    value = mat6(i, j)
-
-  case ('r56_compaction')
-    call make_v_mats (ele_ref, v_mat, v_inv_mat)
-    eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
-    eta_vec = matmul (v_mat, eta_vec)
-    one_pz = 1 + orb_ref%vec(6)
-    eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
-    eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
-    value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
-
-  case ('sigma.')
-    select case (data_type)
-    case ('sigma.x')
-      value = sqrt(bunch_params%sigma(1,1))
-    case ('sigma.px')
-      value = sqrt(bunch_params%sigma(2,2))
-    case ('sigma.y')
-      value = sqrt(bunch_params%sigma(3,3))
-    case ('sigma.py')
-      value = sqrt(bunch_params%sigma(4,4))
-    case ('sigma.z')
-      value = sqrt(bunch_params%sigma(5,5))
-    case ('sigma.pz')
-      value = sqrt(bunch_params%sigma(6,6))
-    case default
-      goto 9000  ! Error message & Return
-    end select
-
-  case ('t.', 'tt.')
-    if (ii == 1) then
-      call twiss_and_track_at_s (lat, s_last, orb = orb, orb_at_s = orbit, ix_branch = ix_branch)
-      call taylor_make_unit (t_map, orbit%vec)
-    endif
-    if (s_now < s_last) cycle
-    expnt = 0
-    i = tao_read_phase_space_index (sub_data_type, 1); if (i == 0) goto 9000
-    do j = 2, 20
-      if (sub_data_type(j:j) == '') exit
-      k = tao_read_phase_space_index (sub_data_type, j); if (k == 0) goto 9000
-      expnt(k) = expnt(k) + 1
-    enddo
-    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
-                                            unit_start = .false., concat_if_possible = s%global%concatenate_maps)
-    value = taylor_coef (t_map(i), expnt)
-
-  case default
-    value = tao_bmad_parameter_value (data_type, ele, orbit, err)
-    if (err)  goto 9000  ! Error message & Return
-  end select
+  call this_value_at_s (value, good(ii), ok);  if (.not. ok) return
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
-
 enddo
 
+! Subtrack reference?
+
+if (curve%ele_ref_name /= '') then
+  if (curve%data_source /= 'lat') then
+    call tao_set_curve_invalid(curve, 'SETTING ele_ref_name FOR CURVE WHERE curve%data_source IS NOT "lat" IS NOT VALID.')
+    good = .false.
+    bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+    if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
+    return
+  endif
+
+  if (cache_status == using_cache$) then
+    ele   = tao_branch%plot_ref_cache%ele
+    orbit = tao_branch%plot_ref_cache%orbit
+    mat6  = tao_branch%plot_ref_cache%ele%mat6
+    vec0  = tao_branch%plot_ref_cache%ele%vec0
+    err   = tao_branch%plot_ref_cache%err
+  else
+    s_now = branch%ele(curve%ix_ele_ref)%s
+    call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err, compute_floor_coords = .true.)
+
+    if (cache_status == loading_cache$) then
+      tao_branch%plot_ref_cache%ele      = ele
+      tao_branch%plot_ref_cache%orbit    = orbit
+      tao_branch%plot_ref_cache%ele%mat6 = mat6
+      tao_branch%plot_ref_cache%ele%vec0 = vec0
+      tao_branch%plot_ref_cache%err      = err
+    endif
+  endif
+
+  if (err) then
+    tao_branch%plot_cache(ii:)%err = .true.
+    good(ii:) = .false.
+    bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+    return
+  endif
+
+  if (orbit%state /= alive$) then
+    good(ii:) = .false.
+    tao_branch%plot_cache(ii:)%err = .true.
+    write (curve%message_text, '(f10.3)') s_now
+    curve%message_text = trim(curve%data_type) // ': Particle lost at s = ' // &
+                         trim(adjustl(curve%message_text))
+    bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+    return
+  endif
+
+  call this_value_at_s (value, gd, ok);  if (.not. ok) return
+
+  curve%y_line = curve%y_line - comp_sign * value
+
+
+endif
+
+!
+
 bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+
+!--------------------------------------------------------
+contains
+
+subroutine this_value_at_s (value, good1, ok)
+
+real(rp) value
+integer status
+logical good1, ok
+
+!
+
+ok = .true.
+
+select case (data_type_select)
+
+case ('apparent_emit.', 'norm_apparent_emit.')
+  select case (data_type)
+  case ('apparent_emit.x', 'norm_apparent_emit.x')
+    if (curve%data_source == 'beam') then
+      value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
+    else
+      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_branch%modes)
+    endif
+    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+  case ('apparent_emit.y', 'norm_apparent_emit.y')
+    if (curve%data_source == 'beam') then
+      value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele, bunch_params)
+    else
+      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_branch%modes)
+    endif
+    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+  case default
+    goto 9000  ! Error message & Return
+  end select
+
+case ('element_attrib.')
+  name = upcase(curve%data_source(16:))
+  ele_dum%key = overlay$  ! so entire attribute name table will be searched
+  i = attribute_index(ele_dum, name)
+  if (i < 1) goto 9000
+  call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
+  if (associated (a_ptr%r)) value = a_ptr%r
+
+case ('emit.')
+  select case (data_type)
+  case ('emit.a')
+    value = bunch_params%a%emit
+  case ('emit.b')
+    value = bunch_params%b%emit
+  case ('emit.x', 'norm_emit.x')
+    if (curve%data_source == 'beam') then
+      value = bunch_params%x%emit
+    else
+      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_branch%modes)
+    endif
+    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+  case ('emit.y', 'norm_emit.y')
+    if (curve%data_source == 'beam') then
+      value = bunch_params%y%emit
+    else
+      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_branch%modes)
+    endif
+    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+  case default
+    goto 9000  ! Error message & Return
+  end select
+
+case ('momentum_compaction')
+  call make_v_mats (ele_ref, v_mat, v_inv_mat)
+  eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
+  eta_vec = matmul (v_mat, eta_vec)
+  one_pz = 1 + orb_ref%vec(6)
+  eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
+  eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
+  ds = ele%s - branch%ele(0)%s
+  if (ds == 0) then
+    value = 0
+  else
+    value = -(sum(mat6(5,1:4) * eta_vec) + mat6(5,6)) / ds
+  endif
+
+case ('norm_emit.')
+  select case (data_type)
+  case ('norm_emit.a')
+    value = bunch_params%a%norm_emit
+  case ('norm_emit.b')
+    value = bunch_params%b%norm_emit
+  case ('norm_emit.z')
+    value = bunch_params%z%norm_emit
+  case default
+    goto 9000  ! Error message & Return
+  end select
+
+case ('r.')
+  if (ii == 1) call mat_make_unit (mat6)
+  if (s_now < s_last) return
+  i = tao_read_phase_space_index (data_type, 3); if (i == 0) goto 9000
+  j = tao_read_phase_space_index (data_type, 4); if (j == 0) goto 9000
+  call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, orbit_last, ix_branch, unit_start = .false.)
+  value = mat6(i, j)
+
+case ('r56_compaction')
+  call make_v_mats (ele_ref, v_mat, v_inv_mat)
+  eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
+  eta_vec = matmul (v_mat, eta_vec)
+  one_pz = 1 + orb_ref%vec(6)
+  eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
+  eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
+  value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
+
+case ('sigma.')
+  select case (data_type)
+  case ('sigma.x')
+    value = sqrt(bunch_params%sigma(1,1))
+  case ('sigma.px')
+    value = sqrt(bunch_params%sigma(2,2))
+  case ('sigma.y')
+    value = sqrt(bunch_params%sigma(3,3))
+  case ('sigma.py')
+    value = sqrt(bunch_params%sigma(4,4))
+  case ('sigma.z')
+    value = sqrt(bunch_params%sigma(5,5))
+  case ('sigma.pz')
+    value = sqrt(bunch_params%sigma(6,6))
+  case default
+    goto 9000  ! Error message & Return
+  end select
+
+case ('t.', 'tt.')
+  if (ii == 1) then
+    call twiss_and_track_at_s (lat, s_last, orb = orb, orb_at_s = orbit, ix_branch = ix_branch)
+    call taylor_make_unit (t_map, orbit%vec)
+  endif
+  if (s_now < s_last) return
+  expnt = 0
+  i = tao_read_phase_space_index (sub_data_type, 1); if (i == 0) goto 9000
+  do j = 2, 20
+    if (sub_data_type(j:j) == '') exit
+    k = tao_read_phase_space_index (sub_data_type, j); if (k == 0) goto 9000
+    expnt(k) = expnt(k) + 1
+  enddo
+  call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch = ix_branch, &
+                                          unit_start = .false., concat_if_possible = s%global%concatenate_maps)
+  value = taylor_coef (t_map(i), expnt)
+
+case default
+  value = tao_bmad_parameter_value (data_type, ele, orbit, err)
+  if (err)  goto 9000  ! Error message & Return
+end select
 
 return
 
@@ -2313,6 +2381,9 @@ call out_io (s_blank$, r_name, "Will not perform any smoothing.")
 good = .false.
 bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
+ok = .false.
+
+end subroutine this_value_at_s
 
 end subroutine tao_calc_data_at_s
 

@@ -1,6 +1,9 @@
-\section*{Introduction}
+\chapter{Introduction}
 \label{c:introduction}
-\pdfbookmark[1]{Introduction}{Intro}
+
+%------------------------------------------------------------------------
+\section{Overview}
+\label{s:overview}
 
 \tao stands for ``Tool for Accelerator Optics''. \tao is a general purpose program for simulating
 high energy particle beams in accelerators and storage rings. The simulation engine that \tao uses
@@ -15,22 +18,11 @@ flexibility. That is, while the ``vanilla'' version of the \tao program is quite
 simulation tool, \tao has been designed to be easily customizable so that extending \tao to solve
 new and different problems is relatively straight forward.
 
-This manual is divided into two parts. Part I is the reference section which defines the terms used
-by \tao and explains in detail the syntax of the configuration files that \tao uses to make a
-connection with a specific machine. Part II is a programmer's guide which shows how to extend
-\tao's capabilities and incorporate custom calculations.
-
-More information, including the most up--to--date version of this
-manual, can be found at the \bmad web site at:
+More information, including the most up--to--date version of this manual, can be found at the \bmad
+web site at:
 \begin{example}
-  www.classe.cornell.edu/bmad
+  classe.cornell.edu/bmad
 \end{example}
-
-\vspace{0.1in}
-The \tao manual is organized as reference guide and so does not do a good job of instructing the
-beginner as to how to use \tao. For that there is an introduction and tutorial on \bmad and \tao
-concepts that can be downloaded from the \bmad web page. Go to either the \bmad or \tao manual pages
-and there will be a link for the tutorial.
 
 Errors and omissions are a fact of life for any reference work and comments from you, dear reader,
 are therefore most welcome. Please send any missives (or chocolates, or any other kind of
@@ -44,3 +36,30 @@ Berg, Michael Ehrlichman, Chris Mayes, and Jeff Smith for bug reports, suggestio
 improvements, Etc. To John Mastroberti and Kevin Kowalski for their work on a graphics user
 interface and associated plotting, And last but not least thanks also must go to Dave Rubin and
 Georg Hoffstaetter for their help, support, and patience.
+
+%------------------------------------------------------------------------
+\section{Manual Organization}
+
+This manual is divided into two parts. Part I is the reference section which defines the terms used
+by \tao, discusses \tao commands, etc. Part II is a programmer's guide which shows how to extend
+\tao's capabilities including interfacing to Python and how to incorporate custom calculations into
+\tao.
+
+%------------------------------------------------------------------------
+\section{Bmad and Tao Tutorial}
+
+\vspace{0.1in}
+The \tao manual is organized as reference guide and so does not do a good job of instructing the
+beginner as to how to use \tao. For that there is an introduction and tutorial on \bmad and \tao
+concepts that can be downloaded from the \bmad web page. Go to either the \bmad or \tao manual pages
+and there will be a link for the tutorial.
+
+%------------------------------------------------------------------------
+\section{Other Bmad based programs}
+\label{s:other}
+
+\tao is not the only program based upon \bmad. There are other programs which are specialized for
+certain computations such as long-term tracking, beam break-up instability, multi-objective
+optimization, etc. The discussion of these programs is beyound the scope of this manual. More
+information along with instructions for obtaining the programs can be obtained from the \bmad web site (\sref{s:overview}).
+
