@@ -3,10 +3,10 @@
 
 \index{optimization|hyperbf}
 
-``Optimization'' is the process of varying model (\sref{s:lattice}) lattice parameters to create a
-lattice with a certain set of properties as close to a ``desired'' state as possible. Optimization
-problems generally fall into one of two categories. One category involves ``lattice
-correction''. Problems in this category involve matching the \vn{model} lattice to actual measured
+``\vn{Optimization}'' is the process of varying model (\sref{s:lattice}) lattice parameters so that
+a given set of properties are as close to given ``desired'' values as possible. Optimization
+problems generally fall into one of two categories. One category involves ``\vn{lattice
+correction}''. Problems in this category involve matching the \vn{model} lattice to actual measured
 data.  For example, orbit flattening involves varying steering in the \vn{model} lattice so that the
 orbit calculated from the \vn{model} lattice matches as close as possible the measured orbit. The
 steering strengths in the \vn{model} lattice can then be used to calculate what changes are needed
@@ -17,6 +17,42 @@ The other category of optimization problems involves ``lattice design'' where la
 varied to achieve some set of ideal properties. For example, varying sextupole magnet strengths in
 order to give maximum dynamic aperture. This is discussed in Section~\sref{s:lattice.design}.
 
+%------------------------------------------------------------------------
+\section{Optimization Overview}
+
+Optimization involves ``\vn{data}'' and ``\vn{variables}''. \vn{Data} are the parameters to be
+optimized. For example, orbit positions when flattening an orbit or the value of beta at the
+interaction point when designing a lattice. \vn{Variables} are what is to be varied which can be steering
+strengths, magnet positions, etc. 
+
+How data is organized within \tao is discussed in detail in Chapter~\sref{c:data}. In brief, each
+datum has a set of associated parameters. For example, each datum has ``\vn{model}'' and
+``\vn{design}'' values which is the value of the datum as calculated from the \vn{model} and
+\vn{design} lattices. Each datum also has a ``\vn{measured}'' value which is set by the User. This
+value can be from an actual measurement which is typical when doing lattice correction or may be the
+desired value of the datum which is typical when doing lattice design.
+
+How variables are organized within \tao is discussed in detail in Chapter~\sref{c:var}. In brief,
+like datums, each variable has a number of associated parameters. For example, each variable has a
+``\vn{model}'' value which controls the corresponding value or values (a variable can control
+multiple parameters simultaneously) in the \vn{model} lattice. There are also ``\vn{low_lim}'' and
+``\vn{high_lim}'' values that can be set by the user that are used to keep the variable \vn{model}
+value within a given range.
+
+Typically, optimization involves minimizing one or more ``objectives'' or ``merit functions''. \tao
+itself implements ``single objective'' optimization where there is only one merit
+function\footnote{For ``multiple objective'' optimization, there is a separate program called
+\vn{moga} that can be used (\sref{s:other}).}. The general form of the merit function \vn{M} in \tao
+is
+\begin{equation}
+  {\cal M} \equiv 
+    \sum_{i} w_i \, \bigl[ \delta D_i \bigr]^2 + 
+    \sum_{j} w_j \, \bigl[ \delta V_j \bigr]^2
+  \label{m1}
+\end{equation}
+where the first sum is a sum over the \vn{data} and the second sum is a sum over the \vn{variables}.
+The $w_i$ and $w_j$ are weights specified by the user and, as discussed below, the $\delta D_i$ and
+$\delta V_j$ are functions of the data and variables.
 
 %------------------------------------------------------------------------
 \section{Lattice Corrections}
@@ -25,52 +61,103 @@ order to give maximum dynamic aperture. This is discussed in Section~\sref{s:lat
 \index{lattice corrections}
 
 \index{optimization!merit function}
+
 Consider the problem of modifying the orbit of a beam through a lattice to conform to some desired
 orbit (typically this is the ``flat'' orbit running through the centers of the quadrupoles). The
 process generally has three stages: First the orbit is measured, then corrections to the steering
 elements are calculated (the optimization stage), and finally the corrections are applied to the
-machine. Since measurement and correction loading necessarily need communication with machine
-hardware, \tao has no native ability to do these tasks.
+machine.
 
-but they could be implemented with some custom coding as discussed in Chapter~\sref{c:custom.tao}.
-What \tao does, however, is to implement a generalized algorithm procedure for minimizing a
-\vn{merit function} which can be used to calculate the corrections.  The idea is to vary a set of
-variables (steerings in the case of an orbit correction) within the \vn{model} lattice
-(\sref{s:universe}) with the aim to make the \vn{measured} \vn{data} (position data for an orbit
-correction) correspond to the values as calculated from the \vn{model} lattice.  Once the model
-lattice the \vn{model} and \vn{measured} data agree, the difference between the \vn{model}, which
-represents the state of the machine when the measurement is made, and the \vn{design}, which
-represents the desired state of the machine, is used to calculate corrections. In the case of
-flattening an orbit, the difference between the \vn{model} steering strengths and the \vn{design}
-steering strengths (typically the \vn{design} steering strengths are zero) is what the real
-steerings need to be changed by to flatten the orbit.
-
-The merit function \vn{M} that is a measure of how well the data as calculated from the \vn{model},
-fits the measured data. \tao uses a merit function of the form
-\begin{equation}
-  {\cal M} \equiv 
-    \sum_{i} w_i \, \bigl[ \delta D_i \bigr]^2 + 
-    \sum_{j} w_j \, \bigl[ \delta V_j \bigr]^2
-  \label{m1}
-\end{equation}
-where
+In \tao, the idea behind optimization is to vary a set of variables (steerings in the case of an
+orbit correction) within the \vn{model} lattice (\sref{s:universe}) with the aim to make the data as
+\vn{measured} in the machine (position data for an orbit correction) correspond to the values as
+calculated from the \vn{model} lattice. In this case the $\delta D_i$ and $\delta V_j$ in \Eq{m1} will be
 \begin{align}
-  \delta D &= \data\_\model - \data\_\meas \CRNO
-  \delta V &= \var\_\model  - \var\_\meas
+  \delta &\tv{D}_i = \tv{data_model}_i - \tv{data_meas}_i \CRNO
+  \delta &\tv{V}_j = \tv{var_model}_j - \tv{var_meas}_j
   \label{dd1}
 \end{align}
 \vn{data_model} is the data as calculated from the \vn{model} and \vn{data_meas} is the measured
 data. \vn{var_model} is the value of a variable in the \vn{model} and \vn{var_meas} is the value as
 measured at the time the data was taken (for example, by measuring the current through a steering
-and using a calibration factor to calculate the kick) and the sum \vn{j} runs over all variables
-that are allowed to be varied to minimize \vn{M}. The second term in the merit function prevents
-degeneracies (or near degeneracies) in the problem which would allow \tao to find solutions where
-\vn{data_model} matches \vn{data_measured} with the \vn{var_model} having ``unphysical'' values
-(values far from \vn{var_meas}). The weights $w_i$ and $w_j$ need to be set depending upon how
-accurate the measured data is relative to how accurate the calibrations for measuring the
-\vn{var_meas} values are. With the second term in the merit function, the number of constraints
-(number of terms in the merit function) is always larger than the number of variables and
-degeneracies can never occur.
+and using a calibration factor to calculate the kick). The $\delta V_j$ terms in the merit function
+prevents degeneracies (or near degeneracies) in the problem which would allow \tao to find solutions
+where \vn{data_model} matches \vn{data_measured} with the \vn{var_model} having ``unphysical''
+values (values far from \vn{var_meas}). The weights $w_i$ and $w_j$ need to be set depending upon
+how accurate the measured data is relative to how accurate the calibrations for measuring the
+\vn{var_meas} values are. 
+
+If the fit is good, the orbit (or whatever is being measured but for concreteness it will be assumed
+here that it is the orbit that is being measured) is corrected in the machine by changing the actual
+steering strengths $K_{actual}$ by an amount $dK$ given by
+\begin{equation}
+  dK_{j} = K_{j}^{(design)} - K_{j}^{(model)}
+  \label{dkkk}
+\end{equation}
+where $K_{i}^{(design)}$ and $K_{i}^{(model)}$ are the \vn{design} and \vn{model} values for the
+steering strengths respectively. Typically, the \vn{design} steering strengths are zero but that is
+not necessary for the analysis.
+
+\Eq{dkkk} is derived using the following logic: Once a fit to the measured data has been made, the
+\vn{model} represents the actual state of the machine. On the other hand, the desired state is
+represented by the \vn{design} lattice. Thus the difference $K_{i}^{(design)} - K_{i}^{(model)}$
+represents ``desired - actual'' so the final state of the steering magnets after correction will be
+\begin{example}
+  Final_State = Initial_State + Change
+              = Actual_State + (Desired_State - Actual_State)
+              = Desired_State
+\end{example}
+There are a few points that should be kept in mind here. First, it does not matter to the
+correction whether the deviations of the orbit from the ideal are caused by steering strength errors
+or other errors such as dipole rolls or quadrupole offsets. To the extent that the measured orbit
+can be well fit determines the extent to which the orbit can be corrected. For example, if an unwanted
+kick is generated by some element at a spot that is far from any correctors, it will not be possible
+to fit the measured orbit well and it will not be possible to make a good correction. If, on the
+other hand, an unwanted kick is generated next to one corrector, the measured orbit can be well fit
+and the \vn{model} lattice will have a strength change from the \vn{design} for that one
+corrector. Varying that one corrector can then cancel out the unwanted kick.
+
+Another point is that the correction algorithm will work with varying any set of parameters as long
+as the variation in the parameters affect the \vn{model} data. Thus an analysis can be made using
+dipole rolls and/or quadrupole offsets as variables or any combination thereof. If the fit is good,
+rolling the dipoles and moving the quadrupoles will correct the orbit. With \tao, the User has
+complete freedom to vary any parameters in the fitting process.
+
+A third point is that the fitting process is independent of the strengths of the parameters in the
+\vn{design} lattice. That is, the fit involves the actual machine state independent of what the
+desired state is. It is not until the values needed for the correction are computed that the
+parameter strengths in the \vn{design} lattice come into play. 
+
+Typically, at the start of the fit, the \vn{model} lattice is, by default, equal to the \vn{design}
+lattice but this is not necessary. Generally, the actual machine state is near enough to the
+\vn{design} machine state so that the machine will behave roughly linearly with the variation in the
+parameters (typically, if the machine parameters are far from the design values, it will not be
+possible to store beam to take a measurement in the first place). This means that there will be only
+one minimum merit function state so that the parameter values (steering strengths in this case) at
+the end of the fit are independent of the starting state. To put this in other terms, the User
+generally does not have to worry about the initial state of the \vn{model} at the start of a
+fit. This is in contrast to the lattice design example in chapter~\sref{s:optimization}. With
+lattice design, there are typically many local minima and it can take days of work to find a good
+operating point. With lattice correction, on the other hand, the near linear nature of the problem
+means that finding a solution in a machine with hundreds of correctors and hundreds of BPM readings
+can be done in seconds.
+
+
+
+
+
+
+Once the \vn{model} and \vn{measured} data agree, the
+difference between the \vn{model} lattice, which represents the state of the machine when the
+measurement is made, and the \vn{design} lattice, which represents the desired state of the machine,
+is used to calculate corrections. 
+
+
+
+
+In the case of flattening an orbit, the difference between the
+\vn{model} steering strengths and the \vn{design} steering strengths (typically the \vn{design}
+steering strengths are zero) is what the real steerings need to be changed by to flatten the orbit.
 
 In a correction, one wants to change the machine variables so that the measured data corresponds to
 the design values \vn{data_design}. For example, when ``flattening'' the orbit, \vn{data_design}
@@ -98,8 +185,8 @@ data. For example, when closing an orbit bump knob what is important is the diff
 orbits before and after the bump knob is varied. Designating one of these orbit the
 \vn{reference}, the appropriate deltas to be used in \Eq{m1} are
 \begin{align}
-  \delta D &= (\data\_\model - \data\_\design) - (\data\_\meas - \data\_\reference) \CRNO
-  \delta V &= (\var\_\model - \var\_\design)   - (\var\_\meas - \var\_\reference)
+  \delta &(\tv{data_model} - \tv{data_design}) - (\tv{data_meas} - \tv{data_reference}) \CRNO
+  \delta &(\tv{var_model} - \tv{var_design})  - (\tv{var_meas} - \tv{var_reference})
   \label{dd2}
 \end{align}
 where \vn{data_ref} and \vn{var_ref} refer to the reference measurement.  These deltas
@@ -109,8 +196,8 @@ fitting becomes a two step process: The first step is to fit the \vn{model} to t
 \vn{reference} data using the deltas of \Eq{dd1}. The \vn{base} lattice is then set
 equal to the \vn{model} lattice. The second step is to fit the model using the deltas
 \begin{align}
-  \delta D &= (\data\_\model - \data\_\base) - (\data\_\meas - \data\_\reference) \CRNO
-  \delta V &= (\var\_\model - \var\_\base)   - (\var\_\meas - \var\_\reference)
+  \delta&\tv{D} = (\tv{data_model} - \tv{data_base}) - (\tv{data_meas} - \tv{data_reference}) \CRNO
+  \delta&\tv{V} = (\tv{var_model} - \tv{var_base})   - (\tv{var_meas} - \tv{var_reference})
   \label{dd3}
 \end{align}
 
@@ -131,14 +218,14 @@ delta would be of the form
 \begin{equation}
   \delta D \; \text{or} \; \delta V = 
     \begin{cases}
-    \mbox{model} - \mbox{limit}  & \mbox{model $>$ Limit} \\
-    0                            & \mbox{otherwise}
+    \tv{model} - \tv{limit}  & \tv{model $>$ Limit} \\
+    0                            & \tv{otherwise}
     \end{cases}
 \end{equation}
 or a constraint is used to keep the \vn{model} at a certain value so the form of the constraint
 would be
 \begin{equation}
-    \delta D \; \text{or} \; \delta V = \mbox{model} - \mbox{target}  
+    \delta D \; \text{or} \; \delta V = \tv{model} - \tv{target}  
 \end{equation}
 Here \vn{model} is the value as calculated from the \vn{model} lattice. \vn{target} and \vn{limit}
 are given by the user. Part of the optimization process is in deciding what the values should be for
@@ -208,9 +295,9 @@ A \vn{limit} \vn{merit_type} has the form
 \begin{equation}
   \delta V = 
     \begin{cases}
-    \mbox{model} - \mbox{high\_lim}  & \mbox{model} > \mbox{high\_lim} \\
-    \mbox{model} - \mbox{low\_lim}   & \mbox{model} < \mbox{low\_lim} \\
-    0                                & \mbox{Otherwise}
+    \tv{model} - \tv{high_lim}  & \tv{model} > \tv{high_lim} \\
+    \tv{model} - \tv{low_lim}   & \tv{model} < \tv{low_lim} \\
+    0                                & \tv{Otherwise}
     \end{cases}
 \end{equation}
 The default \vn{merit_type} for a variable is \vn{limit}.
