@@ -403,7 +403,7 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
 real(rp) zz_center, xx_center, xx_wall, s_eval, s_eval_ref, phase, amp
-real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c
+real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
@@ -2182,7 +2182,10 @@ case ('phase.', 'phase_frac.')
       datum_value = ele%a%phi
     else
       datum_value = ele%a%phi - ele_ref%a%phi
-      if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
+      if (ix_ref > ix_ele .and. branch%param%geometry == closed$) then
+        dphi = branch%ele(n_track)%a%phi - branch%ele(0)%a%phi
+        if (2*datum_value < -dphi) datum_value = datum_value + dphi
+      endif
     if (datum%data_type == 'phase_frac.a') datum_value = modulo2(datum_value, pi)
     endif
     valid_value = .true.
@@ -2193,7 +2196,10 @@ case ('phase.', 'phase_frac.')
       datum_value = ele%b%phi
     else
       datum_value = ele%b%phi - ele_ref%b%phi
-      if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
+      if (ix_ref > ix_ele .and. branch%param%geometry == closed$) then
+        dphi = branch%ele(n_track)%b%phi - branch%ele(0)%b%phi
+        if (2*datum_value < -dphi) datum_value = datum_value + dphi
+      endif
     endif
     if (datum%data_type == 'phase_frac.b') datum_value = modulo2(datum_value, pi)
     valid_value = .true.
@@ -2208,15 +2214,21 @@ case ('phase.', 'phase_frac.')
 
 case ('phase_frac_diff')
   if (data_source == 'beam') goto 9000  ! Set error message and return
+
   if (ix_ref < 0) then
     px = ele%a%phi 
     py = ele%b%phi 
   else
     px = ele%a%phi - ele_ref%a%phi
     py = ele%b%phi - ele_ref%b%phi
-    if (ix_ref > ix_ele) px = px - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
-    if (ix_ref > ix_ele) py = py - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
+    if (ix_ref > ix_ele .and. branch%param%geometry == closed$) then
+      dphi = branch%ele(n_track)%a%phi - branch%ele(0)%a%phi
+      if (2*px < -dphi) px = px + dphi
+      dphi = branch%ele(n_track)%b%phi - branch%ele(0)%b%phi
+      if (2*px < -dphi) py = py + dphi
+    endif
   endif
+
   datum_value = modulo2 (px - py, pi)
   valid_value = .true.
 
