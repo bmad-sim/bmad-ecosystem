@@ -415,7 +415,7 @@ type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval, c_tot, n_tot
-real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, f
+real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, charge_tot, sig_x_ave, sig_y_ave, f
 integer i, j, n, ix0, ib, ib2, ib_center, n_bin_eff
 
 logical err_flag
@@ -546,17 +546,52 @@ do i = 1, size(particle)
   enddo
 enddo
 
-f = sqrt(pi/2)
+charge_tot = 0;  sig_x_ave = 0;  sig_y_ave = 0
+f = sqrt(pi/2)  ! This corrects for the fact that |x - x0| is used instead of (x - x0)^2 to compute the sigma.
 do ib = 1, csr_param%n_bin
   slice => csr%slice(ib)
-  if (slice%n_particle > csr_param%sc_min_in_bin) then
-    slice%sig_x = f * slice%sig_x / slice%charge
-    slice%sig_y = f * slice%sig_y / slice%charge
+  if (slice%n_particle < csr_param%sc_min_in_bin) cycle
+  slice%sig_x = f * slice%sig_x / slice%charge
+  slice%sig_y = f * slice%sig_y / slice%charge
+  charge_tot = charge_tot + slice%charge
+  sig_x_ave = slice%sig_x * slice%charge
+  sig_y_ave = slice%sig_y * slice%charge
+enddo
+
+if (charge_tot == 0) then   ! Not enough particles for calc
+  csr%slice%sig_x = 1  ! Something large
+  csr%slice%sig_y = 1  ! Something large
+  return
+endif
+
+sig_x_ave = sig_x_ave / charge_tot
+sig_y_ave = sig_y_ave / charge_tot
+
+! At the ends, for bins where there are not enough particles to calculate sigma, use
+! the sigmas of nearest bin that has a valid sigmas
+
+do ib = csr_param%n_bin/2, csr_param%n_bin
+  slice => csr%slice(ib)
+  if (slice%n_particle < csr_param%sc_min_in_bin) then
+    slice%sig_x = csr%slice(ib-1)%sig_x
+    slice%sig_y = csr%slice(ib-1)%sig_y
   else
-    slice%sig_x = 0
-    slice%sig_y = 0
+    if (slice%sig_x < sig_x_ave * csr_param%sigma_cutoff) slice%sig_x = sig_x_ave * csr_param%sigma_cutoff
+    if (slice%sig_y < sig_y_ave * csr_param%sigma_cutoff) slice%sig_y = sig_y_ave * csr_param%sigma_cutoff
   endif
 enddo
+
+do ib = csr_param%n_bin/2, 1, -1
+  slice => csr%slice(ib)
+  if (slice%n_particle < csr_param%sc_min_in_bin) then
+    slice%sig_x = csr%slice(ib+1)%sig_x
+    slice%sig_y = csr%slice(ib+1)%sig_y
+  else
+    if (slice%sig_x < sig_x_ave * csr_param%sigma_cutoff) slice%sig_x = sig_x_ave * csr_param%sigma_cutoff
+    if (slice%sig_y < sig_y_ave * csr_param%sigma_cutoff) slice%sig_y = sig_y_ave * csr_param%sigma_cutoff
+  endif
+enddo
+
 
 !---------------------------------------------------------------------------
 contains
@@ -960,7 +995,7 @@ type (csr_struct), target :: csr
 type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp), pointer :: f(:,:)
-real(rp) sx, sy, a, b, c, z_slice, factor, sig_x_ave, sig_y_ave, charge_tot, f00
+real(rp) sx, sy, a, b, c, z_slice, factor, f00
 real(rp) radix, sr, z1, z2, rho0, drho_dz, dk0, atz1, atz2, bcd, abcz1, abcz2, b2cz1, b2cz2
 real(rp) sx2, sy2, g_z1, g_z2, h_z1, h_z2, alph, bet, ss, f1(0:2,0:2)
 
@@ -968,18 +1003,8 @@ integer i, j, sign_of_z_slice
 
 character(*), parameter :: r_name = 'lsc_kick_params_calc'
 
-! If there are too few particles in a bin the sigma calc may give a bad value.
-! This can be a problem if the computed sigma is small.
-! Therefore  ignore any bins with a very small sigma. 
-! To know what is "small" is, compute the average sigma
+!
 
-charge_tot = sum(csr%slice(:)%charge)
-if (charge_tot == 0) return
-
-sig_x_ave = dot_product(csr%slice(:)%sig_x, csr%slice(:)%charge) / charge_tot
-sig_y_ave = dot_product(csr%slice(:)%sig_y, csr%slice(:)%charge) / charge_tot
-
-if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particles.
 if (ele%space_charge_method /= slice$) return
 
 factor = csr%kick_factor * csr%actual_track_step * classical_radius(csr%species) / &
@@ -996,11 +1021,6 @@ do i = 1, csr_param%n_bin
     slice => csr%slice(j)
     sx = slice%sig_x
     sy = slice%sig_y
-    if (sx < sig_x_ave * csr_param%sigma_cutoff .or. sy < sig_y_ave * csr_param%sigma_cutoff) then
-      slice%sig_x = 0  ! Mark for tsc calc.
-      slice%sig_y = 0
-      cycle
-    endif
     sx2 = sx*sx
     sy2 = sy*sy
     a = sx * sy
@@ -1313,39 +1333,39 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
     call convert_pc_to ((1+p%vec(6))* p%p0c, p%species, beta = p%beta)
     p%vec(5) = p%vec(5) * p%beta / beta0
 
-    ! Transverse space charge. Like the beam-beam interaction but in this case everything is going
-    ! in the same general direction. In this case, the kicks due to the electric and magnetic fields
+    ! Transverse space charge. Like the beam-beam interaction but in this case the particles are going
+    ! in the same direction longitudinally. In this case, the kicks due to the electric and magnetic fields
     ! tend to cancel instead of add as in the bbi case.
 
     f0 = csr%kick_factor * csr%actual_track_step * classical_radius(csr%species) / (twopi * &
-             csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(p%species)) * csr%gamma**3)
+             csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(p%species)) * (1 + p%vec(6)) * csr%gamma**3)
 
     dpx = 0;  dpy = 0
 
+    ! Interpolate between slices. If one of the slices does not have 
+
     slice => csr%slice(i0)
-    if (slice%sig_x /= 0 .and. slice%sig_y /= 0) then
-      call bbi_kick ((p%vec(1)-slice%x0)/slice%sig_x, (p%vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
-      f = f0 * r0 * slice%charge / (slice%sig_x + slice%sig_y)
-      ! The kick is negative of the bbi kick. That is, the kick is outward.
-      dpx = -kx * f
-      dpy = -ky * f
-    endif
+    call bbi_kick ((p%vec(1)-slice%x0)/slice%sig_x, (p%vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
+    f = f0 * r0 * slice%charge / (slice%sig_x + slice%sig_y)
+    ! The kick is negative of the bbi kick. That is, the kick is outward.
+    dpx = -kx * f
+    dpy = -ky * f
 
     slice => csr%slice(i0+1)
-    if (slice%sig_x /= 0 .and. slice%sig_y /= 0) then
-      call bbi_kick ((p%vec(1)-slice%x0)/slice%sig_x, (p%vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
-      f = f0 * r1 * slice%charge / (slice%sig_x + slice%sig_y)
-      ! The kick is negative of the bbi kick. That is, the kick is outward.
-      dpx = dpx - kx * f   
-      dpy = dpy - ky * f
-    endif
+    call bbi_kick ((p%vec(1)-slice%x0)/slice%sig_x, (p%vec(3)-slice%y0)/slice%sig_y, slice%sig_y/slice%sig_x, kx, ky)
+    f = f0 * r1 * slice%charge / (slice%sig_x + slice%sig_y)
+    ! The kick is negative of the bbi kick. That is, the kick is outward.
+    dpx = dpx - kx * f   
+    dpy = dpy - ky * f
+
+    if (slice%sig_x == 0 .or. slice%sig_y == 0) call err_exit
 
     ! 1/2 of the kick is electric and this leads to an energy change.
     ! The formula for p%vec(6) assumes that dpx and dpy are small so only the linear terms are kept.
 
     p%vec(2) = p%vec(2) + dpx
     p%vec(4) = p%vec(4) + dpy
-    p%vec(6) = p%vec(6) + (dpx*p%vec(2) + dpy*p%vec(4)) / (2 * (1 + p%vec(6)))
+    p%vec(6) = p%vec(6) + 0.5_rp * (dpx*p%vec(2) + dpy*p%vec(4))
   endif
 
 
