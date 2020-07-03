@@ -118,6 +118,7 @@ integer ix_ele_start, ix_ele_end
 logical, optional, intent(out) :: err_flag
 logical, optional, intent(in) :: print_err
 logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking, printit, at_end, try_lmdif
+logical invert_step_tried
 logical, allocatable :: maska(:)
 
 character(20) :: r_name = 'closed_orbit_calc'
@@ -263,6 +264,7 @@ allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), a_vec(n_dim), maska(n_dim), me
 vec0 = 0
 maska = .false.
 stable_orbit_found = .false.
+invert_step_tried = .false.
 a_lambda = -1
 old_chisq = 1d30   ! Something large
 a_vec = start_orb%vec(1:n_dim)
@@ -347,11 +349,13 @@ do i_loop = 1, i_max
   if (track_state == moving_forward$ .and. chisq < old_chisq .and. status /= 1) co_saved = closed_orb
 
   ! If not converging fast enough, remake the transfer matrix.
-  ! This is computationally intensive so only do this if the orbit has shifted significantly.
+  ! This is computationally intensive so only do this if the orbit has shifted significantly or the
+  ! 1-turn matrix inverting step was a bust.
   ! Status == 1 means that the change in "a" was too large but t1 does not need to be remade.
 
-  if (chisq > old_chisq/2 .and. status == 0 .and. branch%param%unstable_factor == 0) then
-    if (maxval(abs(start_orb_t1(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6) then ! If not converging
+  if (chisq > old_chisq/2 .and. status == 0 .and. branch%param%unstable_factor == 0) then ! If not converging
+    if (maxval(abs(start_orb_t1(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6 .or. invert_step_tried) then 
+      invert_step_tried = .false.
       if (.not. allocate_m_done) then
         allocate (m(branch%n_ele_max))
         allocate_m_done = .true.
@@ -376,6 +380,7 @@ do i_loop = 1, i_max
 
     ! Else try a step by inverting the 1-turn matrix.
     else
+      invert_step_tried = .true.
       call make_t11_inv (err)
       if (err) then
         call end_cleanup(branch)
@@ -416,7 +421,7 @@ do i_loop = 1, i_max
       dz = rf_wavelen / 8
       do j = -3, 4
         z_here = z0 + j * dz
-        call max_eigen_calc(branch, z_here, max_eigen)
+        call max_eigen_calc(branch, z_here, max_eigen, start_orb_t1)
         if (max_eigen > min_max_eigen) cycle
         j_max = j
         min_max_eigen = max_eigen
@@ -424,7 +429,7 @@ do i_loop = 1, i_max
 
       ! Reset
       a_vec(5) = z0 + j_max * dz
-      call max_eigen_calc(branch, a_vec(5), max_eigen)
+      call max_eigen_calc(branch, a_vec(5), max_eigen, start_orb_t1)
 
       ! If z needs to be shifted, reset super_mrqmin
       if (j_max /= 0) then
@@ -498,10 +503,10 @@ end subroutine
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine max_eigen_calc(branch, z_set, max_eigen)
+subroutine max_eigen_calc(branch, z_set, max_eigen, start_orb_t1)
 
 type (branch_struct) branch
-real(rp) z_set, max_eigen
+real(rp) z_set, max_eigen, start_orb_t1(6)
 logical err
 
 !
