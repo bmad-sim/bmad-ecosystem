@@ -77,7 +77,7 @@ elseif (ele%lord_status == super_lord$ .or. ele%key == girder$ .or. &
       if (ix_mult < 1 .or. ix_mult > ele2%n_slave) return
       ele2 => pointer_to_slave(ele2, ix_mult)
     else
-      ele2 => pointer_to_slave(ele2, ele%n_slave)
+      ele2 => pointer_to_slave(ele2, ele2%n_slave)
     endif
   enddo
 
