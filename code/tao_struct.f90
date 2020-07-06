@@ -405,11 +405,11 @@ type tao_data_struct
   real(rp) :: design_value = 0             ! What the datum value is in the design lattice.
   real(rp) :: old_value = 0                ! The model_value at some previous time.
   real(rp) :: base_value = 0               ! The value as calculated from the base model.
-  real(rp) :: error_rms = 0                ! RMS of data errors.
-  real(rp) :: delta_merit = 0              ! Diff used to calculate the merit function term 
+  real(rp) :: error_rms = 0                ! Measurement error RMS. Used in plotting.
+  real(rp) :: delta_merit = 0              ! Diff used to calculate the merit function term.
   real(rp) :: weight = 0                   ! Weight for the merit function term.
   real(rp) :: invalid_value = 0            ! Value used in merit calc if good_model = F (or possibly good_design & good_base).
-  real(rp) :: merit = 0                    ! Merit function term value: weight * delta^2
+  real(rp) :: merit = 0                    ! Merit function term value: weight * delta_merit^2
   real(rp) :: s = real_garbage$            ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
   type (spin_axis_struct) :: spin_axis = spin_axis_struct()  ! Input axes for spin g-matrix calculations.

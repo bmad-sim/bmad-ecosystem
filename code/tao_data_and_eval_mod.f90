@@ -1566,7 +1566,7 @@ case ('expression:', 'expression.')
       datum_value = 0
       s_len = 0
       do i = 1, size(info)
-        if (.not. associated(info(i)%ele)) exit  ! skip length weighted average
+        if (.not. associated(info(i)%ele)) exit  ! Skip length weighted average if no associated lattice element.
         datum_value = datum_value + expression_value_vec(i) * info(i)%ele%value(l$)
         s_len = s_len + info(i)%ele%value(l$)
       enddo
@@ -3364,7 +3364,7 @@ endif
  
 ! If ele_start does not exist
 
-if (datum%ele_start_name == '' .or. ix_start == ix_ele) then
+if (datum%ele_start_name == '' .or. ix_start == ix_ele .or. datum%merit_type == 'target') then
   datum_value = vec(ix_ele) - ref_value
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ele%ix_ele))
   if (present(good)) valid_value = good(ix_ele)
@@ -3414,18 +3414,6 @@ if (ix_ele < ix_start) then   ! wrap around
     if (abs(vec_ptr(ix_m2)) > abs(vec_ptr(ix_m2))) ix_m = ix_m2
     datum_value = abs(vec_ptr(ix_m))
     if (present(good)) valid_value = good(ix_m)
-
-  case ('int_min')
-    datum_value = 0; ix_m = -1
-    call integrate_min (ix_ele, n_track, datum_value, ix_m, branch, vec_ptr, datum)
-    call integrate_min (0, ix_start, datum_value, ix_m, branch, vec_ptr, datum)
-    if (present(good)) valid_value = all(good(ix_ele:n_track)) .and. all(good(0:ix_start))
-
-  case ('int_max')
-    datum_value = 0; ix_m = -1
-    call integrate_max (ix_ele, n_track, datum_value, ix_m, branch, vec_ptr, datum)
-    call integrate_max (0, ix_start, datum_value, ix_m, branch, vec_ptr, datum)
-    if (present(good)) valid_value = all(good(ix_ele:n_track)) .and. all(good(0:ix_start))
 
   case ('max-min')
     ix_m  = maxloc (vec_ptr(0:ix_ele), 1) - 1
@@ -3495,16 +3483,6 @@ else
     ix_m = maxloc (abs(vec_ptr(ix_start:ix_ele)), 1) + ix_start - 1
     datum_value = abs(vec_ptr(ix_m))
     if (present(good)) valid_value = good(ix_m)
-
-  case ('int_min')
-    datum_value = 0; ix_m = -1
-    call integrate_min (ix_start, ix_ele, datum_value, ix_m, branch, vec_ptr, datum)
-    if (present(good)) valid_value = all(good(ix_start:ix_ele))
-
-  case ('int_max')
-    datum_value = 0; ix_m = -1
-    call integrate_max (ix_start, ix_ele, datum_value, ix_m, branch, vec_ptr, datum)
-    if (present(good)) valid_value = all(good(ix_start:ix_ele))
 
   case ('max-min')
     ix_m = maxloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1

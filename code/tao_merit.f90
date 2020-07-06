@@ -25,7 +25,7 @@ real(rp) this_merit, value, model_value, meas_value, ref_value
 
 integer i, j, k, n, iu0
 
-character(16) :: r_name = "tao_merit"
+character(*), parameter :: r_name = "tao_merit"
 
 logical, optional :: calc_ok
 logical ok, opt_with_ref, opt_with_base
@@ -65,7 +65,7 @@ do j = 1, s%n_var_used
   ! Calculate the merit delta
 
   select case (var%merit_type)
-  case ('target', 'match')
+  case ('target')
     if (opt_with_ref .and. opt_with_base) then
       if (s%com%common_lattice) then
         var%delta_merit = (var%model_value - var%common_slave%model_value) - &
@@ -167,13 +167,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     elseif (opt_with_ref) then
       data(j)%delta_merit = (model_value - data(j)%design_value) - (meas_value - ref_value)
     elseif (opt_with_base) then
-        data(j)%delta_merit = (model_value - data(j)%base_value) - meas_value
+      data(j)%delta_merit = (model_value - data(j)%base_value) - meas_value
     else
-      if (data(j)%merit_type(1:3) == 'int') then
-        data(j)%delta_merit = data(j)%model_value
-      else
-        data(j)%delta_merit = model_value - meas_value 
-      endif
+      data(j)%delta_merit = model_value - meas_value 
     endif
   enddo
 
@@ -194,7 +190,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(data)
     if (.not. data(j)%exists) cycle
     select case (data(j)%merit_type)
-    case ('target', 'match', 'int_max', 'int_min', 'average', 'max-min')  ! Nothing to be done
+    case ('target', 'average', 'max-min')
+      ! Nothing to be done
     case ('max', 'abs_max')
       if (data(j)%delta_merit < 0) data(j)%delta_merit = 0  ! it's OK to be less
     case ('min', 'abs_min')
