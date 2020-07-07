@@ -2253,8 +2253,9 @@ do
   ! kicker elements at half strength just before and just after the element.
   ! Also add a matrix element to get the change in z correct.
   ! A sad_mult gets translated to a matrix element which has kick components so no extra kickers needed here.
+  ! Exception: MAD-X sbend has K0 and K0S attributes.
 
-  if (has_hkick_attributes(ele%key)) then
+  if (has_hkick_attributes(ele%key) .and. .not. (ele%key == sbend$  .and. out_type == 'MAD-X')) then
     if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$ .and. ele%key /= sad_mult$) then
       if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
         j_count = j_count + 1
@@ -2323,7 +2324,7 @@ do
   ! A bend with fringe = sad_full or has non-zero g_err has its fringe kicks modeled as a 1st order map.
 
   iv = nint(ele%value(fringe_type$))
-  if (mad_out .and. ele%key == sbend$ .and. (iv == sad_full$ .or. ele%value(g_err$) /= 0)) then
+  if (ele%key == sbend$ .and. ((mad_out .and. iv == sad_full$) .or. (out_type == 'MAD-8' .and. ele%value(g_err$) /= 0))) then
 
     if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1)
 
@@ -2739,6 +2740,14 @@ do   ! ix_ele = 1e1, ie2
       endif
       call value_to_line (line_out, val(fint$), 'fint', 'R')
       call value_to_line (line_out, val(hgap$), 'hgap', 'R')
+    endif
+
+    ! MAD-X sbend kick fields. MAD-8 conversion uses matrix elements to either side (see above).
+
+    if (out_type == 'MAD-X' .and. ele%value(l$) /= 0) then
+      call multipole_ele_to_ab (ele, .false., ix, a_pole, b_pole, magnetic$, include_kicks$)
+      call value_to_line (line_out, val(g_err$) + b_pole(0)/val(l$), 'k0', 'R')
+      call value_to_line (line_out, a_pole(0)/val(l$), 'k0s', 'R')
     endif
 
   ! sextupole MAD
