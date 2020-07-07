@@ -837,6 +837,7 @@ orb_out => model%tao_branch(ix_branch)%orbit(0)
 
 if (branch%param%geometry == closed$) then
   orb_in => model%tao_branch(ix_branch)%orb0
+  if (.not. rf_is_on(branch)) orb_in%vec(6) = model%lat%particle_start%vec(6)
 else
   orb_in => branch%lat%particle_start
 endif

@@ -3,46 +3,54 @@
 
 \index{optimization|hyperbf}
 
-``\vn{Optimization}'' is the process of varying model (\sref{s:lattice}) lattice parameters so that
-a given set of properties are as close to given ``desired'' values as possible. Optimization
-problems generally fall into one of two categories. One category involves ``\vn{lattice
-correction}''. Problems in this category involve matching the \vn{model} lattice to actual measured
-data.  For example, orbit flattening involves varying steering in the \vn{model} lattice so that the
-orbit calculated from the \vn{model} lattice matches as close as possible the measured orbit. The
-steering strengths in the \vn{model} lattice can then be used to calculate what changes are needed
-to correct the orbit in the actual machine. This is discussed in
-Section~\sref{s:lattice.correction}.
+``\vn{Optimization}'' is the process of varying \vn{model} (\sref{s:lattice}) lattice parameters so
+that a given set of properties are as close to a given set of ``desired'' values as
+possible. Optimization problems generally fall into one of two categories. One category involves
+``\vn{lattice correction}'' (\sref{s:lat.correction}). Problems in this category involve matching
+the \vn{model} lattice to actual measured data. For example, orbit flattening involves varying
+steerings in the \vn{model} lattice so that the orbit calculated from the \vn{model} lattice matches
+the measured orbit. The steering strengths in the \vn{model} lattice can then be used to calculate
+what changes are needed to correct the orbit in the actual machine.
 
-The other category of optimization problems involves ``lattice design'' where lattice parameters are
-varied to achieve some set of ideal properties. For example, varying sextupole magnet strengths in
-order to give maximum dynamic aperture. This is discussed in Section~\sref{s:lattice.design}.
+The other category of optimization problems involves ``\vn{lattice design}'' (\sref{s:lat.design})
+where lattice parameters are varied to achieve some set of ideal properties. For example, varying
+sextupole magnet strengths in order to give maximum dynamic aperture.
+
+Note: The \bmad and \tao tutorial (\sref{s:tutorial}) has examples of how to construct both lattice
+correction and lattice design optimizations.
 
 %------------------------------------------------------------------------
 \section{Optimization Overview}
+\label{s:opt.main}
 
 Optimization involves ``\vn{data}'' and ``\vn{variables}''. \vn{Data} are the parameters to be
-optimized. For example, orbit positions when flattening an orbit or the value of beta at the
-interaction point when designing a lattice. \vn{Variables} are what is to be varied which can be steering
-strengths, magnet positions, etc. 
+optimized. For example, orbit positions when flattening an orbit or the value of the beta function
+at a certain point when designing a lattice. \vn{Variables} are what is to be varied which can be
+steering strengths, magnet positions, etc. Any lattice parameters can be used with optimization as
+long as varying the variables will affect the data. For example, orbit flattening is not restricted
+to varying steerings and can be done by, say, varying magnet misalignments.
 
-How data is organized within \tao is discussed in detail in Chapter~\sref{c:data}. In brief, each
-datum has a set of associated parameters. For example, each datum has ``\vn{model}'' and
-``\vn{design}'' values which is the value of the datum as calculated from the \vn{model} and
-\vn{design} lattices. Each datum also has a ``\vn{measured}'' value which is set by the User. This
-value can be from an actual measurement which is typical when doing lattice correction or may be the
-desired value of the datum which is typical when doing lattice design.
+How data is organized in \tao is discussed in Chapter~\sref{c:data}. How to define datums in a \tao
+initialization file is discussed in Section~\sref{s:init.data}. In brief, each datum has a set of
+associated parameters. For example, each datum has ``\vn{model}'' and ``\vn{design}'' values which
+are the values of the datum as calculated from the \vn{model} and \vn{design} lattices. Each datum
+also has a ``\vn{measured}'' value which is set by the User. This value can be from an actual
+measurement which is typical when doing lattice correction or may be the desired value of the datum
+which is typical when doing lattice design. Which of the defined datums are varied during optimization
+is controlled by setting the \vn{good_user} component of a datum (\sref{s:datum.opt}).
 
-How variables are organized within \tao is discussed in detail in Chapter~\sref{c:var}. In brief,
-like datums, each variable has a number of associated parameters. For example, each variable has a
-``\vn{model}'' value which controls the corresponding value or values (a variable can control
-multiple parameters simultaneously) in the \vn{model} lattice. There are also ``\vn{low_lim}'' and
-``\vn{high_lim}'' values that can be set by the user that are used to keep the variable \vn{model}
-value within a given range.
+How variables are organized in \tao is discussed in Chapter~\sref{c:var}. How to define variables in
+a \tao initialization file is discussed in Section~\sref{s:init.var}. In brief, like datums, each
+variable has a number of associated parameters. For example, each variable has a ``\vn{model}''
+value which controls the corresponding value or values (a variable can control multiple parameters
+simultaneously) in the \vn{model} lattice. There are also ``\vn{low_lim}'' and ``\vn{high_lim}''
+parameters that can be set by the User that are used to keep the variable \vn{model} value within a
+given range.
 
 Typically, optimization involves minimizing one or more ``objectives'' or ``merit functions''. \tao
 itself implements ``single objective'' optimization where there is only one merit
 function\footnote{For ``multiple objective'' optimization, there is a separate program called
-\vn{moga} that can be used (\sref{s:other}).}. The general form of the merit function \vn{M} in \tao
+\vn{moga} that can be used (\sref{s:other}).}. The general form of the merit function $\cal M$ in \tao
 is
 \begin{equation}
   {\cal M} \equiv 
@@ -50,65 +58,273 @@ is
     \sum_{j} w_j \, \bigl[ \delta V_j \bigr]^2
   \label{m1}
 \end{equation}
-where the first sum is a sum over the \vn{data} and the second sum is a sum over the \vn{variables}.
-The $w_i$ and $w_j$ are weights specified by the user and, as discussed below, the $\delta D_i$ and
-$\delta V_j$ are functions of the data and variables.
+The first term on the RHS is a sum over the \vn{data} and the second term is a sum over the
+\vn{variables}.  The $w_i$ and $w_j$ are weights, specified by the User and stored in the
+\vn{weight} component of a datum or variable. The value of $\delta D$ (\sref{s:del.d}) for a datum or
+the value of $\delta V$ (\sref{s:del.v}) for a variable is put in the \vn{delta_merit} component of
+the datum or variable. The contribution to the merit function, which is $[\delta D]^2$ for a datum
+and $[\delta V]^2$ for a variable, is put in the \vn{merit} component of the datum or variable.
+
+In the case where it is not possible to calculate \vn{delta_merit} for a datum, for example, in the
+case where a datum is associated with a Twiss parameter but the lattice is unstable, the value of
+\vn{delta_merit} is set equal to the value of the datum's \vn{invalid} component. This is
+useful for ensuring that the optimization does not get stuck in an unstable state. Additionally, the
+following \vn{data_type} (\sref{s:data.types}) can be used to drive the optimization away from an
+instability:
+\begin{example}
+  unstable.eigen
+  unstable.eigen.a, .b, .c
+  unstable.lattice
+  unstable.orbit
+\end{example}
+
+To see a list of constraints when running \tao use the \vn{show constraints} command
+(\sref{s:show}). To see how a particular variable or datum is doing use the \vn{show data} or
+\vn{show variable} commands.  See \sref{s:datum.opt} for details on how datums are chosen to be
+included in an optimization.
+
+%------------------------------------------------------------------------
+\section{Calculation of $\delta D$ for a Datum}
+\label{s:del.d}
+
+The $\delta D$ terms in the merit function (\Eq{m1}) (the value of which is put in the datum's
+\vn{delta_merit} component) are used to drive the \vn{model} lattice parameters towards a certain
+set of desireable properties. How $\delta D$ is calculated for a given datum is determined, in part,
+by the setting of the datums's \vn{merit_type} component. The possible settings of this component
+are:
+\begin{example}
+  "target"                       ! Default
+  "average"                      ! Uses evaluation range
+  "min", "max"
+  "abs_min", "abs_max"
+  "max-min"                      ! Uses evaluation range
+\end{example}
+As noted, some of these settings need an \vn{evaluation range} (\sref{s:dat.eval}). An evaluation
+range occurs when a datum's \vn{ele_start_name} is set and the evaluation range covers the region
+from the lattice element identified by \vn{ele_start_name} and ending at the \vn{ele_name} element.
+Note: It does not make sense for a datum with a \vn{data_type} that does not have an associated
+evaluation element (for example, a datum with an emittance related \vn{data_type}), to have an
+evaluation range. Therefore, for such datums, it is not possible to use any one of the four
+\vn{merit_type} settings that use an evaluation range.
+
+The calculation of $\delta D$ is a three step process. The first step is calculating the
+\vn{model}, \vn{base} and \vn{design} values for a datum which are calculated from the \vn{model},
+\vn{base}, and \vn{design} lattices. The first step calculation depends upon the setting of
+\vn{merit_type} as well as whether there is an associated evaluation range.
+
+For datums that do not have an evaluation range, the value of the datum's \vn{model}, \vn{base}, or
+\vn{design} component is the appropriate value of the \vn{data_type}. For example, the $b$-mode
+emittance for a \vn{data_type} setting of \vn{"emit.b"} or the horizontal dispersion (for
+\vn{data_type} set to \vn{"eta.x"}) at the evaluation element (named by \vn{ele_name}). If there is
+an associated reference element, the value will be modified by subtracting off the \vn{data_type}
+value at the reference element. The exception is that for \vn{merit_type} set to \vn{"abs_min"} or
+\vn{"abs_max"}, the absolute value is taken (this is done after any reference value is subtracted).
+
+For datums that do have an an evaluation region, the \vn{model}, \vn{base}, or \vn{design} datum values
+are computed as described below. In all cases, if there is an associated reference element, the value
+will be modified by subtracting off the \vn{data_type} value at the reference element.
+\begin{description}[itemsep=0pt,topsep=0pt]
+%
+\item["target"] \Newline
+With \vn{merit_type} set to\vn{"target"}, an evaluation range is not permitted since it does not
+make sense to have one.
+%
+\item["average"] \Newline
+With \vn{"average"} as the \vn{merit_type}, the value for a lattice is the average of the
+\vn{data_type} over the evaluation region.
+%
+\item["min" or "max"] \Newline
+With \vn{"min"} or \vn{"max"} as the \vn{merit_type}, the value
+is the minimum or maximum value of the \vn{data_type} over the evaluation region.
+%
+\item["abs_min" or "abs_max"] \Newline
+With \vn{"abs_min"} or \vn{"abs_max"} as the \vn{merit_type}, the value for a lattice is the minimum
+or maximum value of the absolute value of the \vn{data_type} over the evaluation region.
+%
+\item["max-min"] \Newline
+With \vn{"max-min"} as the \vn{merit_type}, the value for a lattice is the maximum value of the
+\vn{data_type} over the evaluation region minus the minimum value over the evaluation region.
+\end{description}
+
+  %
+\begin{table}[tb] 
+\centering 
+{\tt
+\begin{tabular}{lll} \toprule
+  \vn{Opt_with_ref} & \vn{Opt_with_base} & Composit Value Expression \\ \midrule
+  F & F & model - meas                    \\
+  F & T & model - meas - base             \\
+  T & F & (model - meas) - (design - ref) \\
+  T & T & (model - meas) - (base - ref)   \\
+\bottomrule
+\end{tabular}
+}
+  \caption{
+The expression
+used to combine the values of \vn{model}, \vn{base}, \vn{design}, \vn{meas}, and \vn{ref} into one
+``composit'' value is determined by the settings of \vn{opt_with_ref} and \vn{opt_with_base} global
+parameters. These expressions are the same as Table~\ref{t:delta.v}.
+  }
+\label{t:delta.d}
+\end{table}
+  % 
+
+After a datum's \vn{model}, \vn{base} and \vn{design} values are calculated, these values are
+combined together along with the \vn{meas} and \vn{ref} values set by the User\footnote
+  {
+keep in mind that the \vn{ref} component is different from the \vn{ele_ref_name}
+component (\sref{s:dat.lat.ele}). \vn{ele_ref_name} is used to set a reference element which is used
+when evaluating \vn{model}, \vn{base}, and \vn{design} values (\sref{s:lat.correct}). The value of
+the \vn{ref} component is set by the user.
+  }. 
+The formula used to combine these values into one ``\vn{composit}'' value is determined by the
+setting of two global logicals \vn{opt_with_ref} and \vn{opt_with_base}. These parameters are in the
+\vn{tao_global_struct} structure (\sref{s:tao.global.struct}). Table~\ref{t:delta.d} shows the
+expressions.
+
+After the \vn{composit} value is calculated, $\delta D$ will be set equal to the \vn{composit} value
+except if the \vn{merit_type} is \vn{"min"}, \vn{"max"}, \vn{"abs_min"}, or \vn{"abs_max"}.  For 
+\vn{"min"} and \vn{"abs_min"}, $\delta D$ will be
+\begin{equation}
+  \delta D = 
+  \begin{cases}
+    0 & \tv{composit} > 0 \\
+    \tv{composit} & \tv{otherwise}
+  \end{cases}
+\end{equation}
+That is, the datum only contributes to the merit function if the \vn{composit} is value is negative.
+For \vn{"max"} and \vn{"abs_max"}, $\delta D$ will be
+\begin{equation}
+  \delta D = 
+  \begin{cases}
+    0 & \tv{composit} < 0 \\
+    \tv{composit} & \tv{otherwise}
+  \end{cases}
+\end{equation}
+That is, the datum only contributes to the merit function if the \vn{composit} is value is positive.
+
+%------------------------------------------------------------------------
+\section{Calculation of $\delta V$ for a Variable}
+\label{s:del.v}
+
+The $\delta V$ terms in the merit function (\Eq{m1}) serve one of two purposes. Such terms can be
+used to keep variables within certain limits or can be used to guide the optimization towards a
+solution where a variable has a certain value. How $\delta V$ is calculated for a given variable is
+determined by the setting of the variable's \vn{merit_type} component. This component can
+have one of two values:
+\begin{example}
+  "limit"     ! Default
+  "target"
+\end{example}
+
+For \vn{merit_type} set to \vn{"limit"}, the value of $\delta V$ is determined by the setting of the
+variable's \vn{high_lim} and \vn{low_lim} components. If not explicitly set, \vn{high_lim} defaults
+to $10^{30}$ and \vn{low_lim} defaults to $-10^{30}$. The value of $\delta V$ in this case is
+\begin{equation}
+  \delta V = 
+  \begin{cases}
+    \tv{model} - \tv{high_lim} & \tv{model} > \tv{high_lim} \\
+    \tv{model} - \tv{low_lim} & \tv{model} > \tv{low_lim} \\
+    0 & \tv{otherwise}
+  \end{cases}
+\end{equation}
+
+Note: When running the optimizer, if the parameter \vn{global%var_limits_on} (\sref{s:globals}) is
+\vn{True}, and if the \vn{model} value of a variable is outside of the range set by the limits, \tao
+will do two things: First, the \vn{model} value of the variable will be set to the value of the
+nearest limit and, second, the variable's \vn{good_user} parameter (\sref{c:var}) is set to
+False so that no further variation by the optimizer is done. This is done independent of the setting
+of \vn{merit_type} for the variable and independent of whether the variable is being used in the
+optimization. Sometimes it is convenient to not set the \vn{model} value to the nearest limit for
+variables that are not being used in the optimization. In this case, the global parameter
+\vn{global%only_limit_opt_vars} may be set to \vn{True}.  If this is done, only variables that the
+optimizer is allowed to vary are restricted.
+
+Note: The \vn{global%optimizer_var_limit_warn} parameter controls whether a warning is printed when a
+variable value goes past a limit.  The default is \vn{True}.
+
+  %
+\begin{table}[ht] 
+\centering 
+{\tt
+\begin{tabular}{lll} \toprule
+  \vn{Opt_with_ref} & \vn{Opt_with_base} & \vn{Delta_Merit} ($\delta V$) Formula \\ \midrule
+  F & F & model - meas                    \\
+  F & T & model - meas - base             \\
+  T & F & (model - meas) - (design - ref) \\
+  T & T & (model - meas) - (base - ref)   \\
+\bottomrule
+\end{tabular}
+}
+  \caption{
+When \vn{merit_type} is set to \vn{"target"}, the formula for evaluating $\delta V$ is determined by
+the settings of \vn{opt_with_ref} and \vn{opt_with_base} global parameters. These expressions are
+the same as Table~\ref{t:delta.d}.
+  }
+\label{t:delta.v}
+\end{table}
+  % 
+For \vn{merit_type} set to \vn{"target"}, the formula used to compute $\delta V$ is determined by
+the setting of two global logicals \vn{opt_with_ref} and \vn{opt_with_base}. These parameters are in
+the \vn{tao_global_struct} structure (\sref{s:tao.global.struct}). Table~\ref{t:delta.v} shows the
+expressions used to evaluate $\delta V$
+In the table, \vn{model}, \vn{base} and \vn{design} are the values for the variable as set in the
+\vn{model}, \vn{base}, and \vn{design} lattices, and the variable's \vn{meas} and \vn{ref} values
+are set by the User. 
 
 %------------------------------------------------------------------------
 \section{Lattice Corrections}
-\label{s:lattice.correction}
+\label{s:lat.correction}
 \index{modeling data}
 \index{lattice corrections}
-
 \index{optimization!merit function}
 
-Consider the problem of modifying the orbit of a beam through a lattice to conform to some desired
-orbit (typically this is the ``flat'' orbit running through the centers of the quadrupoles). The
-process generally has three stages: First the orbit is measured, then corrections to the steering
-elements are calculated (the optimization stage), and finally the corrections are applied to the
+Lattice correction is the process of varying a set of parameters in a machine achieve some desirable
+state.  Typically, there are three stages. First there is a measurement, after this corrections can
+be calculated (the optimization stage), and finally the calculated corrections are loaded into the
 machine.
 
-In \tao, the idea behind optimization is to vary a set of variables (steerings in the case of an
-orbit correction) within the \vn{model} lattice (\sref{s:universe}) with the aim to make the data as
-\vn{measured} in the machine (position data for an orbit correction) correspond to the values as
-calculated from the \vn{model} lattice. In this case the $\delta D_i$ and $\delta V_j$ in \Eq{m1} will be
+There are several variations of how optimimization is done. To make the discussion concrete, the
+case where a beta function measurement is used to calculate quadrupole \vn{K1} strength changes to correct
+the machine optics is considered. The beta function can be measured, for example, by pinging the
+beam and observing the oscillations at the beam position monitors. In this case, both data and
+variables will have their \vn{merit_type} set to \vn{"target"}, the global \vn{opt_with_ref} and
+\vn{opt_with_base} will be False, and the $\delta D$ and $\delta V$ in \Eq{m1} will be
 \begin{align}
-  \delta &\tv{D}_i = \tv{data_model}_i - \tv{data_meas}_i \CRNO
-  \delta &\tv{V}_j = \tv{var_model}_j - \tv{var_meas}_j
+  \delta &\tv{D} = \tv{model} - \tv{meas} \CRNO
+  \delta &\tv{V} = \tv{model} - \tv{meas}
   \label{dd1}
 \end{align}
-\vn{data_model} is the data as calculated from the \vn{model} and \vn{data_meas} is the measured
-data. \vn{var_model} is the value of a variable in the \vn{model} and \vn{var_meas} is the value as
-measured at the time the data was taken (for example, by measuring the current through a steering
-and using a calibration factor to calculate the kick). The $\delta V_j$ terms in the merit function
-prevents degeneracies (or near degeneracies) in the problem which would allow \tao to find solutions
-where \vn{data_model} matches \vn{data_measured} with the \vn{var_model} having ``unphysical''
-values (values far from \vn{var_meas}). The weights $w_i$ and $w_j$ need to be set depending upon
-how accurate the measured data is relative to how accurate the calibrations for measuring the
-\vn{var_meas} values are. 
+The data \vn{meas} values will is the measured beta function and the variable \vn{meas} values will
+be the measured quadrupole \vn{k1} at the time the data was taken. The quadrupole \vn{k1} could be
+measured from, for example, the currents through the quadrupoles combined with known current to
+field calibrations. The $\delta V_j$ terms in the merit function prevents degeneracies (or near
+degeneracies) in the problem which would allow \tao to find solutions where data \vn{model} matches
+\vn{meas} with the variable \vn{model} strengths having ``unphysical'' values far from the measured
+strengths. The weights $w_i$ and $w_j$ need to be set depending upon how accurate the measured data
+is relative to how accurate the calibrations for measuring the variable \vn{meas} values are.
 
-If the fit is good, the orbit (or whatever is being measured but for concreteness it will be assumed
-here that it is the orbit that is being measured) is corrected in the machine by changing the actual
-steering strengths $K_{actual}$ by an amount $dK$ given by
+If the fit is good, the beta function is corrected in the machine by changing the actual
+quadrupole strengths $K_{actual}$ by an amount $dK$ given by
 \begin{equation}
   dK_{j} = K_{j}^{(design)} - K_{j}^{(model)}
   \label{dkkk}
 \end{equation}
 where $K_{i}^{(design)}$ and $K_{i}^{(model)}$ are the \vn{design} and \vn{model} values for the
-steering strengths respectively. Typically, the \vn{design} steering strengths are zero but that is
+quadrupole strengths respectively. Typically, the \vn{design} quadrupole strengths are zero but that is
 not necessary for the analysis.
 
 \Eq{dkkk} is derived using the following logic: Once a fit to the measured data has been made, the
 \vn{model} represents the actual state of the machine. On the other hand, the desired state is
 represented by the \vn{design} lattice. Thus the difference $K_{i}^{(design)} - K_{i}^{(model)}$
-represents ``desired - actual'' so the final state of the steering magnets after correction will be
+represents ``desired - actual'' so the final state of the quadrupole magnets after correction will be
 \begin{example}
   Final_State = Initial_State + Change
               = Actual_State + (Desired_State - Actual_State)
               = Desired_State
 \end{example}
 There are a few points that should be kept in mind here. First, it does not matter to the
-correction whether the deviations of the orbit from the ideal are caused by steering strength errors
+correction whether the deviations of the orbit from the ideal are caused by quadrupole strength errors
 or other errors such as dipole rolls or quadrupole offsets. To the extent that the measured orbit
 can be well fit determines the extent to which the orbit can be corrected. For example, if an unwanted
 kick is generated by some element at a spot that is far from any correctors, it will not be possible
@@ -133,7 +349,7 @@ lattice but this is not necessary. Generally, the actual machine state is near e
 \vn{design} machine state so that the machine will behave roughly linearly with the variation in the
 parameters (typically, if the machine parameters are far from the design values, it will not be
 possible to store beam to take a measurement in the first place). This means that there will be only
-one minimum merit function state so that the parameter values (steering strengths in this case) at
+one minimum merit function state so that the parameter values (quadrupole strengths in this case) at
 the end of the fit are independent of the starting state. To put this in other terms, the User
 generally does not have to worry about the initial state of the \vn{model} at the start of a
 fit. This is in contrast to the lattice design example in chapter~\sref{s:optimization}. With
@@ -142,22 +358,14 @@ operating point. With lattice correction, on the other hand, the near linear nat
 means that finding a solution in a machine with hundreds of correctors and hundreds of BPM readings
 can be done in seconds.
 
-
-
-
-
-
 Once the \vn{model} and \vn{measured} data agree, the
 difference between the \vn{model} lattice, which represents the state of the machine when the
 measurement is made, and the \vn{design} lattice, which represents the desired state of the machine,
 is used to calculate corrections. 
 
-
-
-
 In the case of flattening an orbit, the difference between the
-\vn{model} steering strengths and the \vn{design} steering strengths (typically the \vn{design}
-steering strengths are zero) is what the real steerings need to be changed by to flatten the orbit.
+\vn{model} quadrupole strengths and the \vn{design} quadrupole strengths (typically the \vn{design}
+quadrupole strengths are zero) is what the real quadrupoles need to be changed by to flatten the orbit.
 
 In a correction, one wants to change the machine variables so that the measured data corresponds to
 the design values \vn{data_design}. For example, when ``flattening'' the orbit, \vn{data_design}
@@ -206,134 +414,23 @@ Control of what data and what variables are to be used in the fitting process is
 
 %------------------------------------------------------------------------
 \section{Lattice Design}
-\label{s:lattice.design}
+\label{s:lat.design}
 \index{optimization!lattice design}
 \index{optimization!constraints}
 
 Lattice design is the process of calculating \vn{variable} strengths to meet a number of criteria
 called constraints. For example, one constraint could be that the beta function in some part of the
 lattice not exceed a certain value. In this case, we can proceed as was done for lattice corrections
-and use \Eq{m1}. Here the deltas are computed to limit values to some range so a 
-delta would be of the form
-\begin{equation}
-  \delta D \; \text{or} \; \delta V = 
-    \begin{cases}
-    \tv{model} - \tv{limit}  & \tv{model $>$ Limit} \\
-    0                            & \tv{otherwise}
-    \end{cases}
-\end{equation}
+and use \Eq{m1}. 
+
 or a constraint is used to keep the \vn{model} at a certain value so the form of the constraint
 would be
 \begin{equation}
     \delta D \; \text{or} \; \delta V = \tv{model} - \tv{target}  
 \end{equation}
 Here \vn{model} is the value as calculated from the \vn{model} lattice. \vn{target} and \vn{limit}
-are given by the user. Part of the optimization process is in deciding what the values should be for
+are given by the User. Part of the optimization process is in deciding what the values should be for
 any \vn{target} or \vn{limit}.
-
-%------------------------------------------------------------------------
-\section{Generalized Design}
-\label{s:generalized.design}
-\index{optimization!generalized merit function}
-
-The form of the deltas used in the merit function is determined by two global logicals called
-\vn{opt_with_ref} and \vn{opt_with_base} (\sref{s:globals}) as shown in Table~\ref{t:delta}.
-\begin{table}[ht] 
-\centering 
-{\tt
-\begin{tabular}{lll} \toprule
-  \vn{Opt_with_ref} & \vn{Opt_with_base} & \vn{delta} \\ \midrule
-  F & F & model - meas                \\
-  T & F & model - meas + ref - design \\
-  F & T & model - meas - base         \\
-  T & T & model - meas + ref - base   \\
-\bottomrule
-\end{tabular}
-} 
-\caption{The form of \vn{delta}}  
-\label{t:delta}
-\end{table}
-An exception occurs when using a \vn{common root lattice} (\sref{s:crl}). In this case, the common
-universe does not have base or reference values associated with it. Thus all data and variables that
-are associated with the common universe calculate their \vn{delta} as if both \vn{opt_with_ref} and
-\vn{opt_with_base} were set to \vn{False}.
-
-Another exception occurs with data when the datum value cannot be computed (\sref{s:datum.opt}). In
-this case, the datum's \vn{invalid} value is used for the \vn{delta}. This is useful, for example,
-in a linear lattice when the particle trajectory results in the particle being lost.
-
-The \vn{Non-Zero-Condition} needed for a non--zero $D_i$ is dependent upon the \vn{merit_type} of
-the datum (\sref{s:data.anatomy}).  There are seven \vn{merit_type} constraint types as given in
-Table~\ref{t:con.type}.
-\begin{table}[ht]
-\centering
-{\tt
-\begin{tabular}{|l|l|l|} \toprule
-  {\it Merit\_Type}         & {\it Non-zero-Condition} \\ \midrule
-  \vn{target}, \vn{average} & Any \vn{delta}   \\
-  \vn{max-min}              & Any \vn{delta}   \\
-  \vn{min}, \vn{abs_min}    & \vn{delta} $<$ 0 \\
-  \vn{max}, \vn{abs_max}    & \vn{delta} $>$ 0 \\
-\bottomrule
-\end{tabular}
-}
-\caption{Data Constraint Type List.}
-\label{t:con.type}
-\end{table}
-\index{optimization!optimize with reference}
-
-For variables, the form of the terms $V_i$ is determined by its \vn{merit_type}.  Here the
-\vn{merit_type} may be:
-\begin{example}
-  target
-  limit
-\end{example}
-A \vn{target} \vn{merit_type} for a variable is the same as for datum. In this case, \vn{model} is
-just the value of the variable.  
-
-A \vn{limit} \vn{merit_type} has the form
-\begin{equation}
-  \delta V = 
-    \begin{cases}
-    \tv{model} - \tv{high_lim}  & \tv{model} > \tv{high_lim} \\
-    \tv{model} - \tv{low_lim}   & \tv{model} < \tv{low_lim} \\
-    0                                & \tv{Otherwise}
-    \end{cases}
-\end{equation}
-The default \vn{merit_type} for a variable is \vn{limit}.
-
-Note: when doing lattice design, \vn{opt_with_ref} and \vn{opt_with_base} are both set to \vn{False}
-and the \vn{target} and \vn{limit} values are identified with \vn{Meas}.
-
-When optimizing a storage ring, If the ring is unstable so that the twiss parameters, closed orbit,
-etc. cannot be computed, the contribution to the merit function from the corresponding datums is set
-to zero. This tends to lower the merit function and in this case, an optimizer will never leave the
-unstable region. To avoid this, an \vn{unstable.lattice} constraint (\sref{s:data.types}) must be set.
-
-To see a list of constraints when running \tao use the \vn{show constraints} command
-(\sref{s:show}). To see how a particular variable or datum is doing use the \vn{show data} or
-\vn{show variable} commands.  See \sref{s:datum.opt} for details on how datums are chosen to be
-included in an optimization.
-
-%------------------------------------------------------------------------
-\section{Variable Limits and Optimization}
-\label{s:limit}
-
-High (\vn{high_lim}) and low (\vn{low_lim}) limiting values can be set for any variable
-(\sref{s:init.var}). If not explicitly set, \vn{high_lim} defaults to $10^{30}$ and \vn{low_lim}
-defaults to $-10^{30}$. When running the optimizer, if the parameter \vn{global%var_limits_on}
-(\sref{s:globals}) is \vn{True}, and if the (model) value of a variable is outside of
-the range set by the limits, the value will be set to the value of the appropriate limit and the
-variable's \vn{good_user} parameter (\sref{c:var}) is set to False so that no further variation by
-the optimizer is done.
-
-By default, any variable value outside of the limit range will reset. Even those variables that are
-not varied by the optimizer. If this behavior is not desired, the parameter
-\vn{global%only_limit_opt_vars} may be set to \vn{True}.  If this is done, only variables that the
-optimizer is allowed to vary are restricted.
-
-The \vn{global%optimizer_var_limit_warn} parameter controls whether a warning is printed when a
-variable value goes past a limit.  The default is \vn{True}.
 
 %------------------------------------------------------------------------
 \section{Optimizers in Tao}
@@ -477,73 +574,72 @@ as shown with the \vn{show merit -derivative} (\sref{s:show.merit}) or the
 \vn{show derivative} (\sref{s:show.derivative}) command.
 
 %------------------------------------------------------------------------
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%------------------------------------------------------------------------
+
+\endinput
+
+\etcetc...
+
+%------------------------------------------------------------------------
 \section{Common Root Lattice (CRL) Analysis}
 \label{s:crl}
 \index{common root lattice}
 
-Some data analysis problems involve varying variables in a both the
-\vn{model} and \vn{base} lattices simultaneously. Such is the case
-with Orbit Response Matrix (\vn{ORM}) analysis\cite{b:orm}. With
-\vn{ORM}, the analysis starts with a set of difference orbits. A given
-difference orbit is generated by varying a given steering by a known
-amount and the steering varied is different for different difference
-orbits. Typically, The number $N$ of difference orbits is equal to the
-number of steering elements in the machine. In \tao, this will result
-in the creation of $N$ universes, one for each difference
-measurement. The \vn{model} lattice in a universe will correspond to
-the machine with the corresponding steering set to what it was when
-the data was taken. Conversely, the \vn{base} lattices in all the
-universes all correspond to the common condition without any steering
-variation.
+Some data analysis problems involve varying variables in a both the \vn{model} and \vn{base}
+lattices simultaneously. Such is the case with Orbit Response Matrix (\vn{ORM})
+analysis\cite{b:orm}. With \vn{ORM}, the analysis starts with a set of difference orbits. A given
+difference orbit is generated by varying a given steering by a known amount and the steering varied
+is different for different difference orbits. Typically, The number $N$ of difference orbits is
+equal to the number of steering elements in the machine. In \tao, this will result in the creation
+of $N$ universes, one for each difference measurement. The \vn{model} lattice in a universe will
+correspond to the machine with the corresponding steering set to what it was when the data was
+taken. Conversely, the \vn{base} lattices in all the universes all correspond to the common
+condition without any steering variation.
 
-In \tao, this arrangement is called \vn{Common Root Lattice}
-(\vn{CRL}) analysis. To do a CRL analysis, the \vn{common_lattice}
-switch must be set at initialization time (\sref{s:init.lat}).  With
-\vn{CRL}, \tao will set up a \vn{``common''} universe with index 0.
-The \vn{model} lattice of this common universe will be used as the
-\vn{base} lattice for all universes. 
+In \tao, this arrangement is called \vn{Common Root Lattice} (\vn{CRL}) analysis. To do a CRL
+analysis, the \vn{common_lattice} switch must be set at initialization time (\sref{s:init.lat}).
+With \vn{CRL}, \tao will set up a \vn{``common''} universe with index 0.  The \vn{model} lattice of
+this common universe will be used as the \vn{base} lattice for all universes.
 
-The variables (fit parameters) in a \vn{CRL} analysis can be divided
-into two classes. One class consists of the parameters that were
-varied to get the data of the different universes. With \vn{ORM},
-these are the steering strengths. At initialization
-(\sref{s:init.var}), variables must be set up that control these
-parameters. A single variable will control that particular parameter in
-a particular universe, that was varied to create the data for that
-universe. 
+The variables (fit parameters) in a \vn{CRL} analysis can be divided into two classes. One class
+consists of the parameters that were varied to get the data of the different universes. With
+\vn{ORM}, these are the steering strengths. At initialization (\sref{s:init.var}), variables must be
+set up that control these parameters. A single variable will control that particular parameter in a
+particular universe, that was varied to create the data for that universe.
 
-The second class of variables consists of everything that is
-to be varied in the common root lattice. With \vn{ORM}, this generally
-will include such things as quadrupole and BPM error tilts, etc. That
-is, parameters that did {\em not} change during data taking. The
-\tao variables that are created for these parameters will control
-parameters of the \vn{model} lattice in the common universe.
+The second class of variables consists of everything that is to be varied in the common root
+lattice. With \vn{ORM}, this generally will include such things as quadrupole and BPM error tilts,
+etc. That is, parameters that did {\em not} change during data taking. The \tao variables that are
+created for these parameters will control parameters of the \vn{model} lattice in the common
+universe.
 
-To cut down on memory usage when using \vn{CRL} (the number of data
-sets, hence the number of universes, can be very large), \tao does
-not, except for the common \vn{model} lattice, reserve separate memory
-for each \vn{model} lattice. Rather, it reserves memory for a single
-\vn{``working''} lattice and the \vn{model} lattice for a particular
-universe is created by first copying the common \vn{base} lattice to
-the \vn{working} lattice and then applying the variable(s) (a steering
-in the case of \vn{ORM}) appropriate for that universe.  As a result,
-except for the common \vn{model} lattice, it is not possible to vary a
-parameter of a \vn{model} lattice unless that parameter has a \tao
-variable that associated with it. The \vn{change} command
-(\sref{s:change}) is thus restricted to always vary parameters in
-the common \vn{model} lattice.
+To cut down on memory usage when using \vn{CRL} (the number of data sets, hence the number of
+universes, can be very large), \tao does not, except for the common \vn{model} lattice, reserve
+separate memory for each \vn{model} lattice. Rather, it reserves memory for a single
+\vn{``working''} lattice and the \vn{model} lattice for a particular universe is created by first
+copying the common \vn{base} lattice to the \vn{working} lattice and then applying the variable(s)
+(a steering in the case of \vn{ORM}) appropriate for that universe.  As a result, except for the
+common \vn{model} lattice, it is not possible to vary a parameter of a \vn{model} lattice unless
+that parameter has a \tao variable that associated with it. The \vn{change} command
+(\sref{s:change}) is thus restricted to always vary parameters in the common \vn{model} lattice.
 
-With \vn{CRL}, the \vn{opt_with_base} and \vn{opt_with_ref}
-(\sref{s:generalized.design}) global logicals are generally set to
-True. Since \vn{opt_with_base}, and \vn{opt_with_ref} do not make
-sense when applied to the data in the common universe, The
-contribution to the merit function from data in this universe is
-always calculated as if \vn{opt_with_base} and \vn{opt_with_ref} were
-set to False.
+With \vn{CRL}, the \vn{opt_with_base} and \vn{opt_with_ref} (\sref{s:generalized.design}) global
+logicals are generally set to True. Since \vn{opt_with_base}, and \vn{opt_with_ref} do not make
+sense when applied to the data in the common universe, The contribution to the merit function from
+data in this universe is always calculated as if \vn{opt_with_base} and \vn{opt_with_ref} were set
+to False.
 
-With \vn{opt_with_base} set to True, the \vn{base} value for a
-datum is evaluated by looking for a corresponding datum in the common
-universe and using its \vn{model} value. To simplify the bookkeeping,
-it is assumed that the structure of the data arrays is identical from
-universe to universe. That is, the \vn{show data} command gives
-identical results independent of the default universe. 
+With \vn{opt_with_base} set to True, the \vn{base} value for a datum is evaluated by looking for a
+corresponding datum in the common universe and using its \vn{model} value. To simplify the
+bookkeeping, it is assumed that the structure of the data arrays is identical from universe to
+universe. That is, the \vn{show data} command gives identical results independent of the default
+universe.
+
+
+Re: opt_with_ref and opt_with_base global parameters: An exception occurs when using a \vn{common
+root lattice} (\sref{s:crl}). In this case, the common universe does not have base or reference
+values associated with it. Thus all data and variables that are associated with the common universe
+calculate their \vn{delta} as if both \vn{opt_with_ref} and \vn{opt_with_base} were set to
+\vn{False}.
+
