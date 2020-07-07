@@ -537,7 +537,8 @@ These instances are initialized in the root initialization file using a namelist
   /
 \end{example}
 The \vn{show global} command (\sref{s:show.global}) can be used to show global parameter values. The
-\vn{set} command (\sref{s:set}) can be used to set global parameter values.
+\vn{set} command (\sref{s:set}) can be used to set global parameter values. The \vn{show global} and
+\vn{show optimiter} (\sref{s:show}) commands.
 
 %-----------------------------------------------------------------
 \subsection{tao\_global\_struct Structure}
@@ -554,7 +555,7 @@ The \vn{show global} command (\sref{s:show.global}) can be used to show global p
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{lattice_calc_on}\index{print_command}\index{default_init_file}\index{derivative_uses_design}
 \index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}
-The \vn{tao_global_struct} structure contains \tao global parameters.
+The \vn{tao_global_struct} structure contains \tao global parameters. The components of this structure are:
 \begin{example}
 type tao_global_struct
   lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
@@ -609,8 +610,9 @@ type tao_global_struct
 end type
 \end{example}
 
-All global parameters can be changed from their initial value using
-the \vn{set} command (\sref{s:set}).
+In an initialization file, this structure is set in the \vn{tao_params} namelist (\sref{s:globals})
+using ``\vn{global}'' as the instance name. All global parameters can be changed from their initial
+value using the \vn{set} command (\sref{s:set}).
 
   \begin{description}
   \item{\vn{global%concatenate_maps}} \Newline
@@ -667,6 +669,14 @@ in this case the setting of \vn{global%history_file} can varied from init file t
 The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
 the merit function falls below that value, the optimization stops. If the value is
 negative (the default), \vn{global%merit_stop_value} is ignored. Also see \vn{global%dmerit_stop_value}.
+
+  \item{\vn{global%opt_with_ref}} \Newline
+Use the \vn{reference} data and variable values in the calculation of the merit function
+(\sref{s:opt.main})? Default is False.
+
+  \item{\vn{global%opt_with_base}} \Newline
+Use the \vn{base} lattice data and variable values in the calculation of the merit function
+(\sref{s:opt.main})? Default is False.
 
   \item{\vn{global%optimizer_allow_user_abort}} \Newline
 Normally \vn{optimizer_allow_user_abort} defaults to True which allows the optimizer, when
