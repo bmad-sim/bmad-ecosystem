@@ -455,6 +455,9 @@ def parse_element(dlist, write_to_file, command):
     kill_ent = False; kill_exi = False
     if 'kill_ent_fringe' in params: kill_ent = (params['kill_ent_fringe'] == 'true')
     if 'kill_exi_fringe' in params: kill_exi = (params['kill_exi_fringe'] == 'true')
+    if 'k0' in params: params['g_err'] = params.pop('k0')
+    if 'k0s' in params and 'l' in params: params['a0'] = params.pop('k0s') + ' * ' + params['l']
+
     if kill_ent and kill_exi:
       params['fringe_at'] = 'no_end'
     elif kill_exi:
@@ -926,8 +929,11 @@ def parse_command(command, dlist):
 
   # twiss
 
-  if dlist[0] == 'twiss':
-    param = parameter_dictionary(dlist[2:])
+  if dlist[0] == 'twiss' or dlist[2] == 'beta0':
+    if dlist[0] == 'twiss':
+      param = parameter_dictionary(dlist[2:])
+    else:
+      param = parameter_dictionary(dlist[4:])
     if 'betx'   in param: f_out.write(f'beginning[beta_a] = {bmad_expression(param["betx"], "")}\n')
     if 'bety'   in param: f_out.write(f'beginning[beta_b] = {bmad_expression(param["bety"], "")}\n')
     if 'alfx'   in param: f_out.write(f'beginning[alpha_a] = {bmad_expression(param["alfx"], "")}\n')
