@@ -1225,15 +1225,15 @@ end subroutine normal_form_complex_taylors
 !
 ! See bmad/modules/bmad_struct.f90 contents rd_term_struct, normal_form_struct
 ! rd_term_name, and rd_term_descrip for description of contents of
-! normal_form%rd_term(:)
+! normal_form%h(:)
 !
 ! Input:
 !   normal_form%m  -- type(taylor_struct): one-turn taylor map
-!   rf_on          -- logical: perform calculation with RF on.
+!   rf_on          -- logical: perform calculation with RF on?
 !   order          -- integer, optional: order for normal_form_calculation.
 !
 ! Output:
-!   normal_form%term(:)%c_val -- complex values for one-turn driving terms.
+!   normal_form%h(:)%c_val -- complex values for one-turn driving terms.
 !-
 subroutine normal_form_rd_terms(normal_form, rf_on, order)
 
@@ -1258,6 +1258,10 @@ type (c_normal_form) complex_normal_form
 type (internal_state) :: state
 type(fibre), pointer :: fib
 type (probe) co_pr
+
+!
+
+if (.not. allocated(normal_form%h)) return
 
 order_for_normal_form = integer_option(ptc_com%taylor_order_ptc, order)
 
@@ -1307,7 +1311,7 @@ vb = getpb(F)*c_phasor()
 
 do i=1, size(normal_form%h(:))
   if(normal_form%h(i)%c /= '') then
-    normal_form%h(i)%c_val = vb.par.normal_form%h(i)%c(1:6)
+    normal_form%h(i)%c_val = vb .par. normal_form%h(i)%c(1:6)
   endif
 enddo
 
