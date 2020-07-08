@@ -2845,9 +2845,12 @@ else
   spin_tylr => ele%spin_taylor
 endif
 
-! Match elements are not implemented in PTC so just use the matrix.
+! Match elements and helical wiggler/undulators without a map are not implemented in PTC so just use the matrix.
 
-if (ele%key == match$) then
+if (ele%key == match$ .or. &
+            (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
+            .not. associated(ele%taylor_field) .and. (ele%key == wiggler$ .or. ele%key == undulator$) .and. &
+            ele%field_calc == helical_model$)) then
   call mat6_to_taylor (ele%vec0, ele%mat6, orb_tylr)
   use_bmad_units = .false.
   return
@@ -2921,7 +2924,7 @@ enddo
 
 orb_tylr = ptc_probe8%x
 
-call kill(ptc_probe8)
+call kill (ptc_probe8)
 call kill (ptc_cdamap)
 
 use_bmad_units = .false.
@@ -3151,7 +3154,7 @@ integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
 integer np, max_order, ix_pole_max, exact_model_saved, nn
 
-logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler
+logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor
 logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
 
 character(16) :: r_name = 'ele_to_fibre'
@@ -3189,6 +3192,22 @@ if (.not. ele%is_on) then
     val(l$) = ele%value(l$) 
   end select
 endif
+
+!
+
+n_map = 0
+if (associated(ele%cylindrical_map)) n_map = n_map + 1
+if (associated(ele%cartesian_map)) n_map = n_map + 1
+if (associated(ele%taylor_field)) n_map = n_map + 1
+
+if (n_map > 1) then
+  call out_io (s_fatal$, r_name, 'PTC TRACKING IS ONLY ABLE TO HANDLE A SINGLE FIELD MAP IN AN ELEMENT.', &
+                                 'ELEMENT HAS MULTIPLE FIELD MAPS: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+endif
+
+use_taylor = (n_map == 0 .and. (key == wiggler$ .or. key == undulator$) .and. ele%field_calc == helical_model$)
+if (use_taylor) key = match$
 
 ! 
 
@@ -3530,31 +3549,6 @@ endif
 
 call ele_to_ptc_magnetic_an_bn (ele, param, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
-! field map
-
-is_planar_wiggler = ((ele2%key == wiggler$ .or. ele2%key == undulator$) .and. ele2%field_calc == planar_model$) 
- 
-if ((ele2%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$) .or. is_planar_wiggler) then
-
-  if (associated(ele2%grid_field)) then
-    call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-
-  n_map = 0
-  if (associated(ele2%cylindrical_map)) n_map = n_map + size(ele2%cylindrical_map)
-  if (associated(ele2%cartesian_map)) n_map = n_map + size(ele2%cartesian_map)
-  if (associated(ele2%taylor_field)) n_map = n_map + size(ele2%taylor_field)
-
-  if (n_map /= 1 .and. .not. (n_map == 0 .and. is_planar_wiggler)) then
-    call out_io (s_fatal$, r_name, 'PTC TRACKING IS ONLY ABLE TO HANDLE A SINGLE FIELD MAP IN AN ELEMENT.', &
-                                   'ELEMENT HAS MULTIPLE FIELD MAPS: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-endif
-
 ! cylindrical field
 
 if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
@@ -3880,10 +3874,26 @@ ptc_fibre = energy_work
 ! FieldMap cartesian_map element. 
 ! Include all wiggler elements even planar_model with field_calc = bmad_standard$
 
-if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. ele2%key == wiggler$ .or. ele2%key == undulator$) then
-  if (n_map == 0 .and. is_planar_wiggler) then
-    allocate(cm)
-    call create_wiggler_cartesian_map(ele2, cm)
+if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. key == wiggler$ .or. key == undulator$) then
+
+  is_planar_wiggler = ((key == wiggler$ .or. key == undulator$) .and. ele2%field_calc == planar_model$) 
+
+  if (associated(ele2%grid_field)) then
+    call out_io (s_fatal$, r_name, 'PTC TRACKING IS NOT ABLE TO USE GRID_FIELDS. FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+  if (n_map == 0) then
+    if (is_planar_wiggler) then
+      allocate(cm)
+      call create_wiggler_cartesian_map(ele2, cm)
+    else
+      call out_io (s_fatal$, r_name, 'NOT ABLE TO DO PTC TRACKING FOR NON-PLANAR WIGGLER WITHOUT A CARTESIAN (OR OTHER TYPE OF) MAP.', &
+                                     'FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
   else
     cm => ele2%cartesian_map(1)
   endif
@@ -3901,7 +3911,7 @@ if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. ele
   end select
 
   n_term = size(cm%ptr%term)
-  call POINTERS_W (ptc_fibre%mag%wi%w, n_term,0)  ! n_term_electric needed   
+  call POINTERS_W (ptc_fibre%mag%wi%w, n_term, 0)  ! n_term_electric needed   
 
   ptc_fibre%mag%wi%w%k(1,1:n_term)   = cm%ptr%term%kx
   ptc_fibre%mag%wi%w%k(2,1:n_term)   = cm%ptr%term%ky
@@ -3927,7 +3937,7 @@ if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. ele
 
   call copy (ptc_fibre%mag, ptc_fibre%magp)
 
-  if (n == 0 .and. is_planar_wiggler) then
+  if (n_map == 0 .and. is_planar_wiggler) then
     deallocate(cm%ptr)
     deallocate(cm)
   endif
