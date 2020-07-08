@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ September 3, 2019}
+\date{David Sagan \\ July 8, 2020}
 \begin{document}
 \maketitle
 
@@ -204,14 +204,14 @@ PTC element-by-element tracking cannot be done when using the MPI version of the
 \label{s:track.modes}
 
 Tracking can be done on an element-by-element basis or using a one-turn map that includes radiation
-damping and excitation and includes both orbital and spin transport. The map is actually three maps
+damping and fluctuations and includes both orbital and spin transport. The map is actually three maps
 rolled into one. One map is a map with out radiation, another map simulates radiation damping, and
-the third map, with the help of a random number generator, is used to include radiation excitation.
-radiation damping and/or excitation will or will not be included in tracking depending upon the
+the third map, with the help of a random number generator, is used to include radiation fluctuations.
+radiation damping and/or fluctuations will or will not be included in tracking depending upon the
 settings of (\sref{s:input}):
 \begin{code}
   bmad_com%radiation_damping_on
-  bmad_com%radiation_excitation_on
+  bmad_com%radiation_fluctuations_on
 \end{code}
 Note: When tracking with a map, the RF cavities must be powered so that there are synchrotron
 oscillations.
@@ -224,16 +224,16 @@ computation time. Tracking using a map will be extremely quick compared to eleme
 tracking. However, map tracking can be inaccurate if the map order is too small or the particle
 amplitude is too large.
 
-Maps can be saved to a file for later use. Saved maps always include the radiation excitation
-component map independent of the setting of \vn{bmad_com%radiation_excitation_on}. Thus, when a
-saved map is used for tracking, whether radiation excitation is included is determined by the
-setting of \vn{bmad_com%radiation_excitation_on} at the time the map file is read in independent of
+Maps can be saved to a file for later use. Saved maps always include the radiation fluctuations
+component map independent of the setting of \vn{bmad_com%radiation_fluctuations_on}. Thus, when a
+saved map is used for tracking, whether radiation fluctuations is included is determined by the
+setting of \vn{bmad_com%radiation_fluctuations_on} at the time the map file is read in independent of
 the setting at the time the map file is created. Radiation damping is handled differently. The
 radiation damping component map depends on the setting of \vn{bmad_com%radiation_damping_on}. Thus,
 when a saved map is used for tracking, radiation damping is included only if
 \vn{bmad_com%radiation_damping_on} was set True both at the time the map file was created and when
 the map file is read back in. The reason why radiation damping is handled differently from radiation
-excitation is due to the fact that the spin tracking part of the map is always created with respect
+fluctuations is due to the fact that the spin tracking part of the map is always created with respect
 to the closed orbit and the closed orbit will be different if radiation damping is on versus
 off. [The closed orbit is always calculated ignoring radiation fluctuations though.] If you don't
 care about spin tracking, it generally makes sense to always create maps that have damping.
