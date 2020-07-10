@@ -132,7 +132,7 @@ optimization. For example, variables that do not affect the merit function. See 
 Logical set by the user using \vn{veto}, \vn{use}, and \vn{restore} commands to indicate
 whether the variable should be used when optimizing. See below.
   \item[high_lim] \Newline
-High limit for the model value during optimization (\sref{s:generalized.design}) beyond which
+High limit for the model value during optimization (\sref{s:del.v}) beyond which
 the contribution of the variable to the merit function is nonzero.
   \item[ix_attrib] \Newline
 Index assigned by \bmad to the attribute being controlled. Used for diagnosis and not
@@ -159,13 +159,13 @@ command to set the variables and data which contribute most to the merit functio
   \item[merit_type] \Newline
 "target" or "limit".
   \item[low_lim] \Newline
-Lower limit for the model value during optimization (\sref{s:generalized.design}) beyond which
+Lower limit for the model value during optimization (\sref{s:del.v}) beyond which
 the contribution of the variable to the merit function is nonzero.
   \item[model] \Newline
 The value of the variable as given in the \vn{model} lattice.
   \item[reference] \Newline
 The Value of the variable as obtained at the time of a \vn{reference} data measurement
-(\sref{s:lattice.correction}.
+(\sref{s:lat.correction}.
   \item[s] \Newline
 longitudinal position of element whose attribute the variable is controlling.  Since a
 variable may control multipole attributes in multiple elements at different s-positions,

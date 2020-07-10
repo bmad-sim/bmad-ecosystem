@@ -625,20 +625,21 @@ type (coord_struct), pointer :: orbit(:)
 type (coord_struct) orb_here, orb_start, orb_end
 type (tao_shape_pattern_struct), pointer :: pat
 
-integer ix_uni, i, j, k, n_bend, n, ix, ic, n_mid, isu, n_bend_extra, min1_bend, min2_bend, max1_bend, max2_bend
+integer, parameter :: n_bend_extra = 40, l1 = -n_bend_extra, l2 = 200 + n_bend_extra
+integer ix_uni, i, j, k, n_bend, n, ix, ic, n_mid, isu, min1_bend, min2_bend, max1_bend, max2_bend
 integer n1, n2
 
 real(rp) offset1, offset2
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
 real(rp) x, y, dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
-real(rp) x_bend(-20:220), y_bend(-20:220), dx_bend(-20:220), dy_bend(-20:220)
-real(rp) dx_e1, dy_e1, dx_e2, dy_e2, x_tangent, y_tangent, scale, bend_scale
+real(rp) x_bend(l1:l2), y_bend(l1:l2), dx_bend(l1:l2), dy_bend(l1:l2)
 real(rp) dx_orbit(0:100), dy_orbit(0:100)
+real(rp) dx_e1, dy_e1, dx_e2, dy_e2, x_tangent, y_tangent, scale, bend_scale
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height, x_inch, y_inch, x0, y0
 real(rp) x_00, x_01, x_02, x_10, x_12, x_20, x_21, x_22
 real(rp) y_00, y_01, y_02, y_10, y_12, y_20, y_21, y_22
-real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2), r2(2)
+real(rp) x_min, x_max, y_min, y_max, xb, yb, s_here, r0(2), r1(2), dr1(2), dr2(2)
 
 character(*) label_name
 character(80) str, shape
@@ -648,7 +649,7 @@ character(8) :: draw_units
 character(2) justify
 
 logical is_data_or_var, is_there
-logical is_bend
+logical is_bend, can_test
 
 !
 
@@ -724,7 +725,6 @@ if (is_bend) then
 
   ang    = ele%value(angle$) * ele%orientation
   length = ele%value(l$)     * ele%orientation
-  n_bend_extra = 20
   bend_scale = 0
 
   ! Extra points are calculated since finite e1 or e2 will lengthen or shorten the side curves.
@@ -739,7 +739,7 @@ if (is_bend) then
     if (ele%value(g$) == 0) then
       r_vec = length * j * [0, 0, 1]
     else
-      r_vec = ele%value(rho$) * [cos_t * (cos_a - 1), sin_t * (cos_a - 1), sin_a]
+      r_vec = ele%value(rho$) * [cos_t * cos_one(angle), sin_t * cos_one(angle), sin_a]
     endif
     dr_vec = [-cos_t * sin_a, -sin_t * sin_a, cos_a]   ! Tangent vector
     ! This keeps dr_vec pointing to the inside (important for the labels).
@@ -897,40 +897,48 @@ if (is_bend) then
   ! First look at top curve.
 
   r0 = [x_bend(0) + off1 * dx_e1, y_bend(0) + off1 * dy_e1]
-  r2 = [x_bend(n_bend) + off1 * dx_bend(n_bend), y_bend(n_bend) + off1 * dy_bend(n_bend)] - r0
+  dr2 = [x_bend(1) - x_bend(-1), y_bend(1) - y_bend(-1)]
 
   do j = -n_bend_extra, n_bend
-    r1  = [x_bend(j) + off1 * dx_bend(j), y_bend(j) + off1 * dy_bend(j)] - r0
-    if (dot_product(r1, r2) > 0) exit
+    dr1  = [x_bend(j) + off1 * dx_bend(j), y_bend(j) + off1 * dy_bend(j)] - r0
+    if (j == -n_bend_extra) can_test = (dot_product(dr1, dr2) <= 0)
+    if (can_test .and. dot_product(dr1, dr2) > 0) exit
+    can_test = (dot_product(dr1, dr2) <= 0)
   enddo
   min1_bend = j
 
   r0 = [x_bend(n_bend) + off1 * dx_e2, y_bend(n_bend) + off1 * dy_e2]
-  r2 = [x_bend(0) + off1 * dx_bend(0), y_bend(0) + off1 * dy_bend(0)] - r0
+  dr2 = [x_bend(n_bend-1) - x_bend(n_bend+1), y_bend(n_bend-1) - y_bend(n_bend+1)]
 
   do j = n_bend+n_bend_extra, 0, -1
-    r1  = [x_bend(j) + off1 * dx_bend(j), y_bend(j) + off1 * dy_bend(j)] - r0
-    if (dot_product(r1, r2) > 0) exit
+    dr1  = [x_bend(j) + off1 * dx_bend(j), y_bend(j) + off1 * dy_bend(j)] - r0
+    if (j == n_bend+n_bend_extra) can_test = (dot_product(dr1, dr2) <= 0)
+    if (can_test .and. dot_product(dr1, dr2) > 0) exit
+    can_test = (dot_product(dr1, dr2) <= 0)
   enddo
   max1_bend = j
 
   ! Now look at the bottom curve
 
   r0 = [x_bend(0) - off2 * dx_e1, y_bend(0) - off2 * dy_e1]
-  r2 = [x_bend(n_bend) - off2 * dx_bend(n_bend), y_bend(n_bend) - off2 * dy_bend(n_bend)] - r0
+  dr2 = [x_bend(1) - x_bend(-1), y_bend(1) - y_bend(-1)]
 
   do j = -n_bend_extra, n_bend
-    r1  = [x_bend(j) - off2 * dx_bend(j), y_bend(j) - off2 * dy_bend(j)] - r0
-    if (dot_product(r1, r2) > 0) exit
+    dr1  = [x_bend(j) - off2 * dx_bend(j), y_bend(j) - off2 * dy_bend(j)] - r0
+    if (j == -n_bend_extra) can_test = (dot_product(dr1, dr2) <= 0)
+    if (can_test .and. dot_product(dr1, dr2) > 0) exit
+    can_test = (dot_product(dr1, dr2) <= 0)
   enddo
   min2_bend = j
 
   r0 = [x_bend(n_bend) - off2 * dx_e2, y_bend(n_bend) - off2 * dy_e2]
-  r2 = [x_bend(0) - off2 * dx_bend(0), y_bend(0) - off2 * dy_bend(0)] - r0
+  dr2 = [x_bend(n_bend-1) - x_bend(n_bend+1), y_bend(n_bend-1) - y_bend(n_bend+1)]
 
   do j = n_bend+n_bend_extra, 0, -1
-    r1  = [x_bend(j) - off2 * dx_bend(j), y_bend(j) - off2 * dy_bend(j)] - r0
-    if (dot_product(r1, r2) > 0) exit
+    dr1  = [x_bend(j) - off2 * dx_bend(j), y_bend(j) - off2 * dy_bend(j)] - r0
+    if (j == n_bend+n_bend_extra) can_test = (dot_product(dr1, dr2) <= 0)
+    if (can_test .and. dot_product(dr1, dr2) > 0) exit
+    can_test = (dot_product(dr1, dr2) <= 0)
   enddo
   max2_bend = j
 endif
