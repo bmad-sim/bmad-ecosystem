@@ -476,9 +476,6 @@ then after initialization, the names will be:
 Setting \vn{aperture_limit_on} to \vn{False} will turn off the aperture limits set in all
 lattices. This overrides the setting of \vn{parameter[aperture_limit_on]} in a lattice file.
 
-The \vn{common_lattice} switch can be used when there is a baseline lattice that is common to all
-universes. See \sref{s:crl} for more details.
-
 %-----------------------------------------------------------------
 \section{Symbolic Numbers}
 \index{initialization!symbolic numbers}
@@ -904,7 +901,7 @@ region from the exit end of the lattice element with index
 \vn{ix2_ele_csr}. By restricting the CSR calculation,
 the calculational time to track through a lattice is reduced.
 
-See \sref{s:lattice.correction} for more details on
+See \sref{s:lat.correction} for more details on
 \vn{global%n_opti_cycles} and \vn{global%n_opti_loops}. 
 
 %-----------------------------------------------------------------
@@ -1500,7 +1497,7 @@ If \vn{datum(j)%data_type} is not given, and \vni{default_data_type} is not spec
 \vni{d2_data} name and the \vni{d1_data} name are combined for each datum to form the datum's
 \vn{type}. For example, if the \vn{d2_data} name is \vn{orbit}, and the \vn{d1_data} name is \vn{x},
 then the \vn{data_type} is \vn{orbit.x}. The \vn{data_type}s recognized by \tao. are given by
-Table~\ref{t:con.type}. Custom data types not specified in this table must have a corresponding
+Table~\ref{t:delta.d}. Custom data types not specified in this table must have a corresponding
 definition in \vn{tao_hook_load_data_array.f90}. See Chapter~\ref{c:custom.tao} for details.
 
 \index{datum%weight}

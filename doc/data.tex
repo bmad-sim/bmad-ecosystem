@@ -175,7 +175,7 @@ The type of data (\sref{s:data.types}). For example, \vn{beta.a}. At startup, if
 the name of the associated \vn{d1} data structure (\sref{s:init.data}).
 %
   \item[delta_merit] \Newline
-Difference used to calculate the contribution of the datum to the merit function (\sref{s:lattice.correction}).
+Difference used to calculate the contribution of the datum to the merit function (\sref{s:lat.correction}).
 %
   \item[design] \Newline
 The value of the datum as calculated from the design lattice (\sref{s:datum.values}).
@@ -276,10 +276,10 @@ of the beam the datum is evaluated at.
 The value of the datum as obtained from some measurement (\sref{s:datum.values}).
 %
   \item[merit] \Newline
-The contribution to the merit function due to this datum (\sref{s:lattice.correction}).
+The contribution to the merit function due to this datum (\sref{s:lat.correction}).
 %
   \item[merit_type] \Newline
-The type of merit (\sref{s:generalized.design}). Possible values are:
+The type of merit (\sref{s:del.d}). Possible values are:
 \begin{example}
   "target"
   "min",     "max"
@@ -335,7 +335,7 @@ is evaluated using other logical components using the preseciption:
 \end{example}
 %
   \item[weight] \Newline
-Weight used in evaluating the contribution of the datum to the merit function (\sref{s:lattice.correction}).
+Weight used in evaluating the contribution of the datum to the merit function (\sref{s:lat.correction}).
 \end{description}
 
 %------------------------------------------------------------------------
@@ -377,7 +377,7 @@ example, a measurement before some variable is varied could be designated as the
 the datum taken after the variation could be designated the \vn{measured} datum. When designing
 lattices, the \vn{ref} value is the value of the datum associated with the \vn{design} or \vn{base}
 lattice (determined by the setting of the global \vn{opt_with_base} parameter
-(\sref{s:generalized.design}). Note: The \vn{meas} value of a datum is always associated with the
+(\sref{s:del.d}). Note: The \vn{meas} value of a datum is always associated with the
 \vn{model} lattice.
 \end{description}
 
@@ -435,7 +435,7 @@ orbit cannot be computed. Similarly, the \vn{good_design} and \vn{good_base} com
 the \vn{design} and \vn{base} values respectively are valid.
 
 The \vn{delta_merit} component of a datum is set to the \vn{delta} value used in computing the
-contribution to the merit function (\sref{s:generalized.design}). If it is not possible to compute
+contribution to the merit function (\sref{s:del.d}). If it is not possible to compute
 the datum value, then the \vn{invalid} component is used for the computation of \vn{delta_merit}.
 It is not possible to compute the datum value if one of the following three conditions is True: 1)
 \vn{good_model} is False, 2) \vn{good_design} is False and the global \vn{opt_with_ref} is True, or
@@ -1460,7 +1460,7 @@ The value of \vn{unstable.lattice} will always be zero or positive.
 For lattices with a closed geometry such as a storage ring: The value \vn{unstable.lattice} is zero
 if the ring is stable and, if the ring is unstable, the value is set to the largest growth rate of
 the transverse (but not longitudinal) normal modes of oscillation. \vn{unstable.lattice} is used in
-an optimization to avoid unstable solutions (\sref{s:generalized.design}). Also see
+an optimization to avoid unstable solutions (\sref{s:opt.main}). Also see
 \vn{unstable.eigen}.
 
 For lattices with an open geometry: The value of \vn{unstable.lattice} will be non-zero if there is
@@ -1472,7 +1472,7 @@ Note: \vn{unstable.lattice} replaces \vn{unstable.ring}.
   %----------------------
   \item[unstable.orbit] \Newline
 The \vn{unstable.orbit} datum is used for linear lattices in an optimization to avoid unstable
-solutions (\sref{s:generalized.design}). Also see \vn{unstable.eigen}.
+solutions (\sref{s:opt.main}). Also see \vn{unstable.eigen}.
 
 For single particle tracking, the value of an \vn{unstable.orbit} datum is zero if the tracked
 particle survives (has not been lost) up to the evaluation element and, if it has been lost, is set

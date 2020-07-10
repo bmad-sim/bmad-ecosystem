@@ -89,8 +89,8 @@ included in an optimization.
 
 The $\delta D$ terms in the merit function (\Eq{m1}) (the value of which is put in the datum's
 \vn{delta_merit} component) are used to drive the \vn{model} lattice parameters towards a certain
-set of desireable properties. How $\delta D$ is calculated for a given datum is determined, in part,
-by the setting of the datums's \vn{merit_type} component. The possible settings of this component
+set of desirable properties. How $\delta D$ is calculated for a given datum is determined, in part,
+by the setting of the datum's \vn{merit_type} component. The possible settings of this component
 are:
 \begin{example}
   "target"                       ! Default
@@ -151,7 +151,7 @@ With \vn{"max-min"} as the \vn{merit_type}, the value for a lattice is the maxim
 \centering 
 {\tt
 \begin{tabular}{lll} \toprule
-  \vn{Opt_with_ref} & \vn{Opt_with_base} & Composit Value Expression \\ \midrule
+  \vn{Opt_with_ref} & \vn{Opt_with_base} & Composite Value Expression \\ \midrule
   F & F & model - meas                    \\
   F & T & model - meas - base             \\
   T & F & (model - meas) - (design - ref) \\
@@ -162,7 +162,7 @@ With \vn{"max-min"} as the \vn{merit_type}, the value for a lattice is the maxim
   \caption{
 The expression
 used to combine the values of \vn{model}, \vn{base}, \vn{design}, \vn{meas}, and \vn{ref} into one
-``composit'' value is determined by the settings of \vn{opt_with_ref} and \vn{opt_with_base} global
+``composite'' value is determined by the settings of \vn{opt_with_ref} and \vn{opt_with_base} global
 parameters. These expressions are the same as Table~\ref{t:delta.v}.
   }
 \label{t:delta.d}
@@ -173,35 +173,35 @@ After a datum's \vn{model}, \vn{base} and \vn{design} values are calculated, the
 combined together along with the \vn{meas} and \vn{ref} values set by the User\footnote
   {
 keep in mind that the \vn{ref} component is different from the \vn{ele_ref_name}
-component (\sref{s:dat.lat.ele}). \vn{ele_ref_name} is used to set a reference element which is used
-when evaluating \vn{model}, \vn{base}, and \vn{design} values (\sref{s:lat.correct}). The value of
+component (\sref{s:data.anatomy}). \vn{ele_ref_name} is used to set a reference element which is used
+when evaluating \vn{model}, \vn{base}, and \vn{design} values (\sref{s:lat.correction}). The value of
 the \vn{ref} component is set by the user.
   }. 
-The formula used to combine these values into one ``\vn{composit}'' value is determined by the
+The formula used to combine these values into one ``\vn{composite}'' value is determined by the
 setting of two global logicals \vn{opt_with_ref} and \vn{opt_with_base}. These parameters are in the
 \vn{tao_global_struct} structure (\sref{s:tao.global.struct}). Table~\ref{t:delta.d} shows the
 expressions.
 
-After the \vn{composit} value is calculated, $\delta D$ will be set equal to the \vn{composit} value
+After the \vn{composite} value is calculated, $\delta D$ will be set equal to the \vn{composite} value
 except if the \vn{merit_type} is \vn{"min"}, \vn{"max"}, \vn{"abs_min"}, or \vn{"abs_max"}.  For 
 \vn{"min"} and \vn{"abs_min"}, $\delta D$ will be
 \begin{equation}
   \delta D = 
   \begin{cases}
-    0 & \tv{composit} > 0 \\
-    \tv{composit} & \tv{otherwise}
+    0 & \tv{composite} > 0 \\
+    \tv{composite} & \tv{otherwise}
   \end{cases}
 \end{equation}
-That is, the datum only contributes to the merit function if the \vn{composit} is value is negative.
+That is, the datum only contributes to the merit function if the \vn{composite} is value is negative.
 For \vn{"max"} and \vn{"abs_max"}, $\delta D$ will be
 \begin{equation}
   \delta D = 
   \begin{cases}
-    0 & \tv{composit} < 0 \\
-    \tv{composit} & \tv{otherwise}
+    0 & \tv{composite} < 0 \\
+    \tv{composite} & \tv{otherwise}
   \end{cases}
 \end{equation}
-That is, the datum only contributes to the merit function if the \vn{composit} is value is positive.
+That is, the datum only contributes to the merit function if the \vn{composite} is value is positive.
 
 %------------------------------------------------------------------------
 \section{Calculation of $\delta V$ for a Variable}
@@ -280,137 +280,84 @@ are set by the User.
 \index{optimization!merit function}
 
 Lattice correction is the process of varying a set of parameters in a machine achieve some desirable
-state.  Typically, there are three stages. First there is a measurement, after this corrections can
-be calculated (the optimization stage), and finally the calculated corrections are loaded into the
+state.  Typically, there are three stages. First there is a measurement. After this, corrections can
+be calculated (the optimization stage). Finally, the calculated corrections are loaded into the
 machine.
 
-There are several variations of how optimimization is done. To make the discussion concrete, the
-case where a beta function measurement is used to calculate quadrupole \vn{K1} strength changes to correct
-the machine optics is considered. The beta function can be measured, for example, by pinging the
-beam and observing the oscillations at the beam position monitors. In this case, both data and
-variables will have their \vn{merit_type} set to \vn{"target"}, the global \vn{opt_with_ref} and
-\vn{opt_with_base} will be False, and the $\delta D$ and $\delta V$ in \Eq{m1} will be
+There are several variations of how optimization is done. To make the discussion concrete, the
+case where a beta function measurement is used to calculate quadrupole \vn{K1} strength changes to
+correct the machine optics is considered.\footnote
+  { 
+The beta function can be measured, for example, by pinging the
+beam and observing the oscillations at the beam position monitors.
+  }.
+In this case, both data and variables will have their \vn{merit_type} set to \vn{"target"}, the
+global \vn{opt_with_ref} and \vn{opt_with_base} will be False. With this, $\delta D$ and $\delta V$
+in \Eq{m1} will be
 \begin{align}
-  \delta &\tv{D} = \tv{model} - \tv{meas} \CRNO
-  \delta &\tv{V} = \tv{model} - \tv{meas}
+  \delta &\tv{D} = \tv{model_beta} - \tv{meas_beta} \CRNO
+  \delta &\tv{V} = \tv{model_K1} - \tv{meas_K1}
   \label{dd1}
 \end{align}
-The data \vn{meas} values will is the measured beta function and the variable \vn{meas} values will
-be the measured quadrupole \vn{k1} at the time the data was taken. The quadrupole \vn{k1} could be
-measured from, for example, the currents through the quadrupoles combined with known current to
-field calibrations. The $\delta V_j$ terms in the merit function prevents degeneracies (or near
-degeneracies) in the problem which would allow \tao to find solutions where data \vn{model} matches
-\vn{meas} with the variable \vn{model} strengths having ``unphysical'' values far from the measured
-strengths. The weights $w_i$ and $w_j$ need to be set depending upon how accurate the measured data
-is relative to how accurate the calibrations for measuring the variable \vn{meas} values are.
+The \vn{meas_beta} data values will is the measured beta function and the variable \vn{meas_K1}
+values will be the measured quadrupole \vn{K1} at the time the data was taken. The quadrupole
+\vn{K1} could be measured from, for example, from the currents through the quadrupoles combined with
+known current to field calibrations. The $\delta V_j$ terms in the merit function prevents
+degeneracies (or near degeneracies) in the problem which would allow \tao to find solutions where
+\vn{model_beta} matches \vn{meas_beta} with the \vn{model_k1} strengths having ``unphysical'' values
+far from the measured strengths. The weights $w_i$ and $w_j$ in \Eq{m1} need to be set depending
+upon how accurate the measured data is relative to the measured magnet strengths.
 
-If the fit is good, the beta function is corrected in the machine by changing the actual
-quadrupole strengths $K_{actual}$ by an amount $dK$ given by
-\begin{equation}
-  dK_{j} = K_{j}^{(design)} - K_{j}^{(model)}
-  \label{dkkk}
-\end{equation}
-where $K_{i}^{(design)}$ and $K_{i}^{(model)}$ are the \vn{design} and \vn{model} values for the
-quadrupole strengths respectively. Typically, the \vn{design} quadrupole strengths are zero but that is
-not necessary for the analysis.
-
-\Eq{dkkk} is derived using the following logic: Once a fit to the measured data has been made, the
-\vn{model} represents the actual state of the machine. On the other hand, the desired state is
-represented by the \vn{design} lattice. Thus the difference $K_{i}^{(design)} - K_{i}^{(model)}$
-represents ``desired - actual'' so the final state of the quadrupole magnets after correction will be
+If the fit is good, the beta function is corrected by changing the
+quadrupole strengths in the machine by an amount \vn{dK1} given by
+\begin{example}
+  dK1 = design_K1 - model_K1
+\end{example}
+where \vn{design_K1} is the \vn{design} value for the quadrupole strengths. The equation for
+\vn{dK1} is derived using the following logic: Once a fit to the measured data has been made, the
+\vn{model} lattice corresponds, more or less, to the actual state of the machine. On the other hand,
+the desired state is given by the \vn{design} lattice . Thus the difference, \vn{design - model},
+represents the desired state minus the actual state. The final state after the
+correction will be
 \begin{example}
   Final_State = Initial_State + Change
               = Actual_State + (Desired_State - Actual_State)
               = Desired_State
 \end{example}
-There are a few points that should be kept in mind here. First, it does not matter to the
-correction whether the deviations of the orbit from the ideal are caused by quadrupole strength errors
-or other errors such as dipole rolls or quadrupole offsets. To the extent that the measured orbit
-can be well fit determines the extent to which the orbit can be corrected. For example, if an unwanted
-kick is generated by some element at a spot that is far from any correctors, it will not be possible
-to fit the measured orbit well and it will not be possible to make a good correction. If, on the
-other hand, an unwanted kick is generated next to one corrector, the measured orbit can be well fit
-and the \vn{model} lattice will have a strength change from the \vn{design} for that one
+which is what is wanted.
+
+Notice that the fitting process is independent of the strengths of the parameters in the
+\vn{design} lattice. That is, the fit involves the actual machine state independent of what the
+desired state is. It is not until the values needed for the correction are computed that the
+parameter strengths in the \vn{design} lattice come into play.
+
+To the extent that the measured beta function can be well fit determines the extent to which the
+beta function can be corrected. For example, if an unwanted quadrupole error is generated by some
+element at a spot that is far from any correctors (quadrupoles that can vary), it will not be possible to
+fit the measured beta function well and it will not be possible to make a good correction. If, on
+the other hand, an unwanted error is generated next to one corrector, the measured beta function can
+be well fit and the \vn{model} lattice will have a strength change from the \vn{design} for that one
 corrector. Varying that one corrector can then cancel out the unwanted kick.
 
 Another point is that the correction algorithm will work with varying any set of parameters as long
-as the variation in the parameters affect the \vn{model} data. Thus an analysis can be made using
-dipole rolls and/or quadrupole offsets as variables or any combination thereof. If the fit is good,
-rolling the dipoles and moving the quadrupoles will correct the orbit. With \tao, the User has
-complete freedom to vary any parameters in the fitting process.
-
-A third point is that the fitting process is independent of the strengths of the parameters in the
-\vn{design} lattice. That is, the fit involves the actual machine state independent of what the
-desired state is. It is not until the values needed for the correction are computed that the
-parameter strengths in the \vn{design} lattice come into play. 
+as the variation in the parameters affect the \vn{model} data. Thus an analysis can be made of the
+beam orbit using dipole rolls and/or quadrupole offsets as variables or any combination thereof. If
+the fit is good, rolling the dipoles and moving the quadrupoles will correct the orbit. With \tao,
+the User has complete freedom to vary any parameters in the fitting process.
 
 Typically, at the start of the fit, the \vn{model} lattice is, by default, equal to the \vn{design}
 lattice but this is not necessary. Generally, the actual machine state is near enough to the
 \vn{design} machine state so that the machine will behave roughly linearly with the variation in the
-parameters (typically, if the machine parameters are far from the design values, it will not be
-possible to store beam to take a measurement in the first place). This means that there will be only
-one minimum merit function state so that the parameter values (quadrupole strengths in this case) at
-the end of the fit are independent of the starting state. To put this in other terms, the User
-generally does not have to worry about the initial state of the \vn{model} at the start of a
-fit. This is in contrast to the lattice design example in chapter~\sref{s:optimization}. With
-lattice design, there are typically many local minima and it can take days of work to find a good
-operating point. With lattice correction, on the other hand, the near linear nature of the problem
-means that finding a solution in a machine with hundreds of correctors and hundreds of BPM readings
-can be done in seconds.
-
-Once the \vn{model} and \vn{measured} data agree, the
-difference between the \vn{model} lattice, which represents the state of the machine when the
-measurement is made, and the \vn{design} lattice, which represents the desired state of the machine,
-is used to calculate corrections. 
-
-In the case of flattening an orbit, the difference between the
-\vn{model} quadrupole strengths and the \vn{design} quadrupole strengths (typically the \vn{design}
-quadrupole strengths are zero) is what the real quadrupoles need to be changed by to flatten the orbit.
-
-In a correction, one wants to change the machine variables so that the measured data corresponds to
-the design values \vn{data_design}. For example, when ``flattening'' the orbit, \vn{data_design}
-will be zero. The desired change in the data when the machine variables are varied is
-\begin{example}
-  desired_data_change = data_design - data_meas
-\end{example}
-Once a fit has been made, and presuming that the \vn{data_model} is reasonably close to the
-\vn{data_meas} this desired data change within the \vn{model} lattice can be accomplished by
-changing the model variables by
-\begin{example}
-  var_change = var_design - var_model
-\end{example}
-This assumes the system is linear. For many situations this is true since typically \vn{var_change}
-is ``small''. Since the variables have a measured value of \vn{var_meas} the value that the
-variables should be set to is
-\begin{example}
-  var_final = var_meas + (var_design - var_model)
-\end{example}
-Notice that the fitting process is independent of the \vn{design} lattice. It is only when
-calculating the corrections to the variables that the \vn{design} lattice plays a role.
-
-Sometimes it is desired to fit to changes in data as opposed to the absolute value of the
-data. For example, when closing an orbit bump knob what is important is the difference in
-orbits before and after the bump knob is varied. Designating one of these orbit the
-\vn{reference}, the appropriate deltas to be used in \Eq{m1} are
-\begin{align}
-  \delta &(\tv{data_model} - \tv{data_design}) - (\tv{data_meas} - \tv{data_reference}) \CRNO
-  \delta &(\tv{var_model} - \tv{var_design})  - (\tv{var_meas} - \tv{var_reference})
-  \label{dd2}
-\end{align}
-where \vn{data_ref} and \vn{var_ref} refer to the reference measurement.  These deltas
-are acceptable if the reference data is taken with the machine reasonably near the
-design setup so that nonlinearities can be ignored. If this is not the case then the
-fitting becomes a two step process: The first step is to fit the \vn{model} to the
-\vn{reference} data using the deltas of \Eq{dd1}. The \vn{base} lattice is then set
-equal to the \vn{model} lattice. The second step is to fit the model using the deltas
-\begin{align}
-  \delta&\tv{D} = (\tv{data_model} - \tv{data_base}) - (\tv{data_meas} - \tv{data_reference}) \CRNO
-  \delta&\tv{V} = (\tv{var_model} - \tv{var_base})   - (\tv{var_meas} - \tv{var_reference})
-  \label{dd3}
-\end{align}
-
-Control of what data and what variables are to be used in the fitting process is controlled by the
-\vn{use}, \vn{veto}, \vn{restore}, and \vn{clip} commands.
+parameters (if the machine parameters are far from the design values, it may not be possible to
+store beam to take a measurement in the first place). This means that there will be only one minimum
+merit function state so that the parameter values (quadrupole strengths in this case) at the end of
+the fit are independent of the starting state. To put this in other terms, the User generally does
+not have to worry about the initial state of the \vn{model} at the start of a fit. This is in
+contrast to lattice design (\sref{s:lat.design}) where there are typically many local minima and it
+can take days of work to find a good operating point. With lattice correction, on the other hand,
+the near linear nature of the problem means that finding a solution in a machine with hundreds of
+correctors and hundreds of BPM readings can be done in seconds with the \vn{lm} or \vn{lmdif}
+optimizers (\sref{s:tao.opti}).
 
 %------------------------------------------------------------------------
 \section{Lattice Design}
@@ -420,17 +367,20 @@ Control of what data and what variables are to be used in the fitting process is
 
 Lattice design is the process of calculating \vn{variable} strengths to meet a number of criteria
 called constraints. For example, one constraint could be that the beta function in some part of the
-lattice not exceed a certain value. In this case, we can proceed as was done for lattice corrections
-and use \Eq{m1}. 
+lattice not exceed a certain value or a constraint is used to keep the \vn{model} at a certain desired
+value. To keep the nomenclature consistent, the desired value is labeled \vn{meas} even though it is not
+a ``measured'' value.
 
-or a constraint is used to keep the \vn{model} at a certain value so the form of the constraint
-would be
-\begin{equation}
-    \delta D \; \text{or} \; \delta V = \tv{model} - \tv{target}  
-\end{equation}
-Here \vn{model} is the value as calculated from the \vn{model} lattice. \vn{target} and \vn{limit}
-are given by the User. Part of the optimization process is in deciding what the values should be for
-any \vn{target} or \vn{limit}.
+Lattice design is an art in that there is no known algorithm that will guarantee that a global
+minimum has been found. And indeed, there is no known general procedure for checking that a given
+minimum is the global minimum. \tao has one optimizer for global minimum searching and that is the
+\vn{de} optimizer (\sref{s:tao.opti}). Typical strategies involve using the \vn{de} optimizer to
+find a minimum, then using the \vn{lm} or \vn{lmdif} optimizer to refine the answer, and then
+switching back to the \vn{de} optimizer to see if a better minimum can be found. This is repeated
+while varying the \vn{de} parameters and/or weights in the merit function (\Eq{m1}).
+
+As an alternative, there is a \bmad based program separate from \tao called \vn{moga} that can be
+used (\sref{s:other}). This program implements multi objective optimization.
 
 %------------------------------------------------------------------------
 \section{Optimizers in Tao}
@@ -445,102 +395,77 @@ be set to False to prevent this). Running an optimizer is also called ``fitting'
 trying to get the \vn{model} data to be equal to the \vn{measured} data. With orbits this is also
 called ``flattening'' since one generally wants to end up with an orbit that is on--axis.
 
-The optimizer that is used can be defined when using the \vn{run} command but
-the default optimizer can be set in the \tao input file by setting the
-\vn{global%optimizer} component (\sref{s:globals}).
+The optimizer that is used can be defined when using the \vn{run} command but the default optimizer
+can be set in the \tao input file by setting the \vn{global%optimizer} component (\sref{s:globals}).
 
-When the optimizer is run in \tao, the optimizer, after it initializes
-itself, takes a number of \vn{cycles}. Each cycle consists of changing
-the values of the variables the optimizer is allowed to change. The
-number of steps that the optimizer will take is determined by the
-parameter \vn{global%n_opti_cycles} (\sref{s:globals}). When the
-optimizer initializes itself and goes through
-\vn{global%n_opti_cycles}, it is said to have gone through one
-\vn{loop}. After going through through \vn{global%n_opti_loops} loops,
-the optimizer will automatically stop.  To immediately stop the
-optimizer the period key \vn{``.''} may be pressed. Note: In
-\vn{single_mode} (\sref{c:single}), \vn{n_opti_loops} is ignored and
-the optimizer will loop forever.
+When the optimizer is run in \tao, the optimizer, after it initializes itself, takes a number of
+\vn{cycles}. Each cycle consists of changing the values of the variables the optimizer is allowed to
+change. The number of steps that the optimizer will take is determined by the parameter
+\vn{global%n_opti_cycles} (\sref{s:globals}). When the optimizer initializes itself and goes through
+\vn{global%n_opti_cycles}, it is said to have gone through one \vn{loop}. After going through
+through \vn{global%n_opti_loops} loops, the optimizer will automatically stop.  To immediately stop
+the optimizer the period key \vn{``.''} may be pressed. Note: In \vn{single_mode} (\sref{c:single}),
+\vn{n_opti_loops} is ignored and the optimizer will loop forever.
 
 There are currently three optimizers that can be used: 
   \begin{description}
   \index{lm optimizer}
   \item{\vn{lm}} \Newline
-\vn{lm} is an optimizer based upon the Levenburg-Marquardt algorithm
-as implemented in \vn{Numerical Recipes}\cite{b:nr}. This algorithm
-looks at the local derivative matrix of \vn{dData/dVariable} and takes
-steps in variable space accordingly. The derivative matrix is
-calculated beforehand by varying all the variables by an amount set by
-the variable's \vn{step} component (\sref{s:init.var}). The \vn{step}
-size should be chosen large enough so that round-off errors will not
-make computation of the derivatives inaccurate but the step size
-should not be so large that the derivatives are effected by
-nonlinearities. By default, the derivative matrix will be recalculated
-each \vn{loop} but this can be changed by setting the
-\vn{global%derivative_recalc} global parameter (\sref{s:globals}). The
-reason to not recalculate the derivative matrix is one of time.
-However, if the calculated derivative matrix is not accurate (that is,
-if the variables have changed enough from the last time the matrix was
-calculated and the nonlinearities in the lattice are large enough),
-the \vn{lm} optimizer will not work very well.  In any case, this
-method will only find local minimum.
+\vn{lm} is an optimizer based upon the Levenburg-Marquardt algorithm as implemented in \vn{Numerical
+Recipes}\cite{b:nr}. This algorithm looks at the local derivative matrix of \vn{dData/dVariable} and
+takes steps in variable space accordingly. The derivative matrix is calculated beforehand by varying
+all the variables by an amount set by the variable's \vn{step} component (\sref{s:init.var}). The
+\vn{step} size should be chosen large enough so that round-off errors will not make computation of
+the derivatives inaccurate but the step size should not be so large that the derivatives are
+effected by nonlinearities. By default, the derivative matrix will be recalculated each \vn{loop}
+but this can be changed by setting the \vn{global%derivative_recalc} global parameter
+(\sref{s:globals}). The reason to not recalculate the derivative matrix is one of time.  However, if
+the calculated derivative matrix is not accurate (that is, if the variables have changed enough from
+the last time the matrix was calculated and the nonlinearities in the lattice are large enough), the
+\vn{lm} optimizer will not work very well.  In any case, this method will only find local minimum.
   \index{lmdif optimizer}
   \item{\vn{lmdif}} \Newline
-The \vn{lmdif} optimizer is like the \vn{lm} optimizer except that it
-builds up the information it needs on the derivative matrix by
-initially taking small steps over the first \vn{n} cycles where \vn{n}
-is the number of variables. The advantage of this is that you do not
-have to set a \vn{step} size for the variables. The disadvantage is
-that for \vn{lmdif} to be useful, the number of \vn{cycles} must be
-greater than the number of variables. Again, like \vn{lm}, this method
-will only find local minimum.
+The \vn{lmdif} optimizer is like the \vn{lm} optimizer except that it builds up the information it
+needs on the derivative matrix by initially taking small steps over the first \vn{n} cycles where
+\vn{n} is the number of variables. The advantage of this is that you do not have to set a \vn{step}
+size for the variables. The disadvantage is that for \vn{lmdif} to be useful, the number of
+\vn{cycles} must be greater than the number of variables. Again, like \vn{lm}, this method will only
+find local minimum.
   \index{de optimizer}
   \item{\vn{de}} \Newline
-The \vn{de} optimizer stands for \vn{differential
-evolution}\cite{b:de}. The advantage of this optimizer is that it
-looks for global minimum. The disadvantage is that it is slow to find
-the bottom of a local minimum. A good strategy sometimes when trying
-to find a global minimum is to use \vn{de} in combination with \vn{lm}
-or \vn{lmdif} one after the other. One important parameter with the
-\vn{de} optimizer is the \vn{step} size. A larger step size means that
-the optimizer will tend to explore larger areas of variable space but
-the trade off is that this will make it harder to find minimum in the
-locally. One good strategy is to vary the \vn{step} size to see what
-is effective. Remember, the optimal step size will be different for
-different problems and for different starting points. The \vn{step}
-size that is appropriate of the \vn{de} optimizer will, in general, be
-different from the \vn{step} size for the \vn{lm} optimizer. For this
-reason, and to facilitate changing the step size, the actual step size
-used by the \vn{de} optimizer is the step size given by a variable's
-\vn{step} component multiplied by the global variable
-\vn{global%de_lm_step_ratio}. This global variable can be varied using
-the \vn{set} command (\sref{s:set}). The number of trial solutions used 
-in the optimization is
+The \vn{de} optimizer stands for \vn{differential evolution}\cite{b:de}. The advantage of this
+optimizer is that it looks for global minimum. The disadvantage is that it is slow to find the
+bottom of a local minimum. A good strategy sometimes when trying to find a global minimum is to use
+\vn{de} in combination with \vn{lm} or \vn{lmdif} one after the other. One important parameter with
+the \vn{de} optimizer is the \vn{step} size. A larger step size means that the optimizer will tend
+to explore larger areas of variable space but the trade off is that this will make it harder to find
+minimum in the locally. One good strategy is to vary the \vn{step} size to see what is
+effective. Remember, the optimal step size will be different for different problems and for
+different starting points. The \vn{step} size that is appropriate of the \vn{de} optimizer will, in
+general, be different from the \vn{step} size for the \vn{lm} optimizer. For this reason, and to
+facilitate changing the step size, the actual step size used by the \vn{de} optimizer is the step
+size given by a variable's \vn{step} component multiplied by the global variable
+\vn{global%de_lm_step_ratio}. This global variable can be varied using the \vn{set} command
+(\sref{s:set}). The number of trial solutions used in the optimization is
 \begin{example}
   population = number_of_variables * global%de_var_to_population_factor
 \end{example}
-There are also a number of parameters that can be set that will affect
-how the optimizer works. See Section~\sref{s:globals} for more
-details.
+There are also a number of parameters that can be set that will affect how the optimizer works. See
+Section~\sref{s:globals} for more details.
   \index{svd optimizer}
   \item{\vn{svd}} \Newline
-The \vn{svd} optimizer uses a singular value decomposition
-calculation.  See the description of \vn{svdfit} from Numerical
-Recipes\cite{b:nr} for more details. With the \vn{svd} optimizer, the
-setting of the \vn{global%n_opti_cycles} parameter is ignored. One
-optimization loop consists of applying svd to the derivative matrix to
-locate a new set of variable values.  If the merit function decreases
-with the new set, the new values are retained and the optimization
-loop is finished. If the merit function increases, and if the global
-variable \vn{global%svd_retreat_on_merit_increase} is True (the
-default), the variables are set to the original variable settings. In
-either case, an increasing merit function will stop the execution of
-additional loops.
+The \vn{svd} optimizer uses a singular value decomposition calculation.  See the description of
+\vn{svdfit} from Numerical Recipes\cite{b:nr} for more details. With the \vn{svd} optimizer, the
+setting of the \vn{global%n_opti_cycles} parameter is ignored. One optimization loop consists of
+applying svd to the derivative matrix to locate a new set of variable values.  If the merit function
+decreases with the new set, the new values are retained and the optimization loop is finished. If
+the merit function increases, and if the global variable \vn{global%svd_retreat_on_merit_increase}
+is True (the default), the variables are set to the original variable settings. In either case, an
+increasing merit function will stop the execution of additional loops.
 
-The \vn{global%svd_cutoff} variable can be used to vary the cutoff
-that SVD uses to decide what eigenvalues are sigular. See the
-documentation for the Numerical Recipes routine \vn{svdfit} for more
-details.
+The \vn{global%svd_cutoff} variable can be used to vary the cutoff that SVD uses to decide what
+eigenvalues are singular. See the documentation for the Numerical Recipes routine \vn{svdfit} for
+more details.
   \end{description}
 
 %------------------------------------------------------------------------
@@ -565,7 +490,7 @@ can be viewed using the \vn{show variable} and \vn{show data} commands.
 
 If using an optimizer that uses the derivative matrix (\vn{lm}, \vn{geodesic_lm} and 
 \vn{svd} optimizers), The variable \vn{step} sizes that are used to calculate the derivative
-should be checked to make sure that the \vn{step} is not too small so that roundoff is a problem
+should be checked to make sure that the \vn{step} is not too small so that round-off is a problem
 but yet not too large so that nonlinearities make the calculation inaccurate. One way to
 check that the step size is adequate for a given variable is to vary the variable using
 the command \vn{change var} (\sref{s:change}). This command will print out the the change
@@ -624,7 +549,7 @@ common \vn{model} lattice, it is not possible to vary a parameter of a \vn{model
 that parameter has a \tao variable that associated with it. The \vn{change} command
 (\sref{s:change}) is thus restricted to always vary parameters in the common \vn{model} lattice.
 
-With \vn{CRL}, the \vn{opt_with_base} and \vn{opt_with_ref} (\sref{s:generalized.design}) global
+With \vn{CRL}, the \vn{opt_with_base} and \vn{opt_with_ref} (\sref{s:del.d}) global
 logicals are generally set to True. Since \vn{opt_with_base}, and \vn{opt_with_ref} do not make
 sense when applied to the data in the common universe, The contribution to the merit function from
 data in this universe is always calculated as if \vn{opt_with_base} and \vn{opt_with_ref} were set
