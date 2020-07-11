@@ -263,11 +263,11 @@ orbit%vec(6) = 0.1
 orbit%species = positron$
 
 call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), positron$, beta = orbit%beta)
-call apply_energy_kick (1d2, orbit)
+call apply_energy_kick (1d2, orbit, [0.0_rp, 0.0_rp])
 write (1, '(a, 2es20.12)') '"apply_energy_kick:0" REL 1E-12  ', orbit%beta, orbit%vec(6)
 
 call convert_pc_to (orbit%p0c * (1 + orbit%vec(6)), positron$, beta = orbit%beta)
-call apply_energy_kick (1d6, orbit)
+call apply_energy_kick (1d6, orbit, [0.0_rp, 0.0_rp])
 write (1, '(a, 2es20.12)') '"apply_energy_kick:1" REL 1E-12  ', orbit%beta, orbit%vec(6)
 
 !

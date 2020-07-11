@@ -5,6 +5,7 @@ out_file = open('output.now', 'w')
 
 #-----------
 
+print ('Test1...')
 os.chdir('test1')
 results = subprocess.run(['../../../production/bin/tao', '-noplot', '-lat', 'lat.bmad'], stdout=subprocess.PIPE).stdout.decode('utf-8')
 os.chdir('..')
@@ -17,6 +18,7 @@ else:
 
 #-----------
 
+print ('Test1...')
 os.chdir('test2')
 results = subprocess.run(['../../../production/bin/tao', '-noplot', '-lat', 'lat.bmad'], stdout=subprocess.PIPE).stdout.decode('utf-8')
 os.chdir('..')
