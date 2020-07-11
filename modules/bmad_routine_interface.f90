@@ -93,8 +93,8 @@ subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) orbit
-  real(rp) dE
-  real(rp), optional :: ddE_dr(2), mat6(6,6)
+  real(rp) dE, ddE_dr(2)
+  real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine
 

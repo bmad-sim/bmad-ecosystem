@@ -279,7 +279,7 @@ if (hard_ele_field_calc == bmad_standard$) then
         if (a_pole_elec(i) == 0 .and. b_pole_elec(i) == 0) cycle
         ab_elec = cmplx(b_pole_elec(i), -a_pole_elec(i), rp)
         phi = phi - real(ab_elec * xiy) / (i + 1)
-        if (logic_option(.false., make_matrix)) E_r = E_r + [real(ab_elec * xiy_old), -imag(ab_elec * xiy_old)]
+        E_r = E_r + [real(ab_elec * xiy_old), -imag(ab_elec * xiy_old)]
       enddo
       call apply_energy_kick (-f * phi, orb, f * E_r, mat6, make_matrix)
       if (track_spn) call rotate_spin_given_field (orb, sign_z_vel, EL = [0.0_rp, 0.0_rp, -f * phi])

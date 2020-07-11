@@ -9,7 +9,7 @@
 ! Input:
 !   dE          -- real(rp): Energy change
 !   orbit       -- coord_struct: Beginning coordinates
-!   ddE_dr(2)   -- real(rp), optional: Derivatives of dE [ddE_dx, ddE_dy] needed for mat6 calc.
+!   ddE_dr(2)   -- real(rp), Derivatives of dE [ddE_dx, ddE_dy].
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix before fringe.
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !
@@ -27,8 +27,8 @@ use equal_mod, except_dummy => apply_energy_kick
 implicit none
 
 type (coord_struct) orbit
-real(rp) dE, mc2, pc_new, beta_new, p0c, E_new, pc, beta_old, t3, f, E_old, kmat(6,6)
-real(rp), optional :: ddE_dr(2), mat6(6,6)
+real(rp) dE, ddE_dr(2), mc2, pc_new, beta_new, p0c, E_new, pc, beta_old, t3, f, E_old, kmat(6,6)
+real(rp), optional :: mat6(6,6)
 logical, optional :: make_matrix
 
 !
@@ -39,25 +39,20 @@ pc = (1 + orbit%vec(6)) * p0c
 beta_old = orbit%beta
 
 E_old = pc / orbit%beta
-E_new = pc / orbit%beta + dE
+E_new = E_old + dE
 
-if (E_new < 0) then
+if (E_new < mc2) then
   orbit%vec(6) = -1
   orbit%beta = 0
   orbit%state = lost_pz_aperture$
   return
 endif
 
-t3 = mc2**2 * dE**3 / (2 * p0c * beta_old * pc**4) 
-if (t3 < 1d-12) then
-  orbit%vec(6) = orbit%vec(6) + dE / (beta_old * p0c) - (mc2 * dE / pc)**2 / (2 * p0c * pc) + t3
-  pc_new = p0c * (1 + orbit%vec(6))
-else
-  pc_new = sqrt(E_new**2 - mc2**2)
-  orbit%vec(6) = (pc_new - p0c) / p0c
-endif
-
+orbit%vec(6) = orbit%vec(6) + (1 + orbit%vec(6)) * sqrt_one((2*E_old*dE + dE**2)/pc**2)
+pc_new = p0c * (1 + orbit%vec(6))
 beta_new = pc_new / E_new
+
+!! t3 = sqrt(E_new**2 - mc2**2) / p0c - (1 + orbit%vec(6))  !! Should be zero
 
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit(kmat)

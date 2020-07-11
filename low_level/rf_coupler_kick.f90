@@ -70,8 +70,9 @@ old_orbit = orbit
 orbit%vec(2) = orbit%vec(2) + dp_x * cos(ph) / orbit%p0c
 orbit%vec(4) = orbit%vec(4) + dp_y * cos(ph) / orbit%p0c
 
-dE = (dp_x * orbit%vec(1) + dp_y * orbit%vec(3)) * sin(ph) * twopi * ele%value(rf_frequency$) / c_light
-call apply_energy_kick (dE, orbit)
+f2 = sin(ph) * twopi * ele%value(rf_frequency$) / c_light
+dE = (dp_x * orbit%vec(1) + dp_y * orbit%vec(3)) * f2
+call apply_energy_kick (dE, orbit, [dp_x, dp_y] * f2)
 
 ! Matrix
 

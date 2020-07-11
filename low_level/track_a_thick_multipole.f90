@@ -188,7 +188,7 @@ orbit%t = orbit%t + dct / c_light
 orbit%vec(5) = orbit%vec(5) + orbit%beta * (step_len / beta_ref - dct)
 z1 = orbit%vec(5)
 
-call apply_energy_kick (dx*k_E*ele%value(p0c$), orbit)
+call apply_energy_kick (dx*k_E*ele%value(p0c$), orbit, [0.0_rp, 0.0_rp])
 
 if (logic_option(.false., make_matrix)) then
   dErel_dpz = (1 + orbit%vec(6)) / E_rel
