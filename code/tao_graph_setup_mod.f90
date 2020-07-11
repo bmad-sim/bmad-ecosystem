@@ -30,6 +30,7 @@ character(*), parameter :: r_name = 'tao_graph_setup'
 graph%text_legend_out = graph%text_legend
 
 if (graph%type == 'floor_plan') return  ! Nothing to do.
+if (graph%type == 'key_table') return   ! Nothing to do
 
 if (graph%type == 'lat_layout') then
   u => tao_pointer_to_universe(graph%ix_universe, .true.)
