@@ -98,7 +98,7 @@ do i = 0, n_slice
   dE = voltage * sin(phase) / n_slice
   if (i == 0 .or. i == n_slice) dE = dE / 2
 
-  call apply_energy_kick (dE, orbit)
+  call apply_energy_kick (dE, orbit, [0.0_rp, 0.0_rp])
   
   if (orbit%vec(6) == -1) then
     orbit%state = lost_pz_aperture$
