@@ -13,6 +13,10 @@
 ! is interpreted as "orbit.*.*" and all graphs and all curves  of orbit will be returned. 
 ! If name = "orbit.g.x" then the setting of blank_means_all will be irrelavent.
 !
+! Use "@Rnnn" to specify a region by index where "nnn" is the index.
+! Use "@Tnnn" to specify a region by index where "nnn" is the index.
+! Use "T::<name>" to specify a template plot that would be masked if where = "BOTH".
+!
 ! Input:
 !   name            -- Character(*): Name of plot or region.
 !   where           -- Character(*): Where to look: 'TEMPLATE', 'REGION', 'BOTH' 
@@ -93,6 +97,11 @@ endif
 
 np = 0
 allocate (p(10))
+
+if (plot_name(1:3) == 'T::') then
+  where_str = 'TEMPLATE'
+  plot_name = plot_name(4:)
+endif
 
 !
 
