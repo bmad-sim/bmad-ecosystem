@@ -3234,7 +3234,7 @@ case ('plot')
 
   do
     call tao_next_switch (what2, [character(16) :: '-floor_plan', '-lat_layout', '-templates', &
-                                                   '-global', '-regions'], .true., switch, err, ix)
+                                                   '-global', '-regions', '-plot_page'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('') 
@@ -3339,9 +3339,9 @@ case ('plot')
     result_id = 'plot:floor_plan'
     return
 
-  ! Global plot parameters
+  ! Plot_page parameters.
 
-  case ('-global')
+  case ('-plot_page', '-global')
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
     nl=nl+1; write(lines(nl), imt)  '  %size                         = ', nint(s%plot_page%size)
