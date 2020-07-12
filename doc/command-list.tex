@@ -1025,8 +1025,7 @@ See the \vn{Plot Templates} section (\sref{s:template}) for a description of the
 the \vn{show curve} (\sref{s:show}) to see the settings of the attributes.
 
 If there are visible plots with the same name as the plot component of \vn{<curve>}, a template plot
-of the same name is ignored. If it is desired to set the curve(s) in the template plot, add a
-``\vn{T::}'' to the plot name.
+of the same name is ignored. To set template plot curve(s) in this case, add a ``\vn{T::}'' prefix.
 
 Examples:
 \begin{example}
@@ -1229,8 +1228,8 @@ The \vn{set graph} command is used to set components of a graph structure (\sref
 
 If the \vn{<graph>} name corresponds to a plot, the set is applied to all the graphs associated with
 the plot. If there are visible plots with the same name as the plot component of \vn{<graph>}, a
-template plot of the same name is ignored. If it is desired to set the graph(s) in the template
-plot, add a ``\vn{T::}'' prefix to the plot name.
+template plot of the same name is ignored. To set template plot graphs(s) in this case, add a
+``\vn{T::}'' prefix.
 
 For setting the \vn{component} attribute see also the commands:
 \begin{example}
@@ -1435,8 +1434,8 @@ a whole. Other commands that involve \vn{component} are:
   set curve component     ! \sref{s:set.curve}
 \end{example}
 
-If \vn{<plot_or_region>} is a plot name, and there are visible plots, any template plot of the same
-name is ignored. If it is desired to set the template plot, add a ``\vn{T::}'' to the plot name.
+If \vn{<plot_or_region>} is a plot name, and there are visible plots of that name, any template plot of the same
+name is ignored. To set a template plot in this case, add a ``\vn{T::}'' prefix.
 
 Example:
 \begin{example}
@@ -1820,7 +1819,6 @@ Syntax:
   show curve \{-line\} \{-no_header\} \{-symbol\} <curve_name>
 \end{example}
 
-
 Show information on a particular curve of a particular plot. See \sref{c:plotting} for the
 syntax on plot, graph, and curve names.  Use \vn{show plot} to get a list of plot
 names. The \vn{-symbol} switch will additionally print the (x,y) points for the symbol
@@ -1838,6 +1836,9 @@ the same for all curves so the horizontal data values will be put in column 1.
 The \vn{-no_header} switch is used with \vn{-line} and \vn{-symbol} to suppress the
 printing of header lines. This is useful when the generated table is to be read in by
 another program.
+
+If there are visible plots with the same name as the plot component of \vn{<curve>}, a template plot
+of the same name is ignored. To show template plot curve(s) in this case, add a ``\vn{T::}'' prefix.
 
 Also see: \vn{show plot} and \vn{show graph} commands.
 
@@ -2068,6 +2069,10 @@ Syntax:
 
 Show information on a particular graph of a particular plot. See \sref{c:plotting} for the
 syntax on plot, graph, and curve names.  Use \vn{show plot} to get a list of plot names.
+
+If there are visible plots with the same name as the plot component of \vn{<graph>}, a
+template plot of the same name is ignored. To show template plot graphs(s) in this case, add a
+``\vn{T::}'' prefix.
 
 Also see: \vn{show plot} and \vn{show curve} commands.
 
@@ -2540,7 +2545,7 @@ Examples:
 
 Syntax:
 \begin{example}
-  show plot \{-floor_plan\} \{-global\} \{-lat_layout\} \{-regions\} 
+  show plot \{-floor_plan\} \{-plot_page\} \{-lat_layout\} \{-regions\} 
             \{-templates\} \{<plot_or_template_name>\}
 \end{example}
 
@@ -2548,7 +2553,7 @@ The \vn{show plot -floor_plan} and \vn{show plot -lat_layout} commands show the 
 associated with the \vn{floor_plan} or \vn{lat_layout} plots (\sref{s:shapes}).
 Use the \vn{set floor_plan} or \vn{set lat_layout} commands to set these parameters.
 
-The \vn{show plot -global} command shows some global plotting parameters like the size of the plot
+The \vn{show plot -plot_page} command shows some global plotting parameters like the size of the plot
 window.
 
 The \vn{show plot -regions} command shows what plots are placed in which regions. Use the \vn{place}
@@ -2557,8 +2562,9 @@ command to change where plots are placed.
 The \vn{show plot -templates} command displays what plot templates have been defined for plotting.
 See \sref{s:init.plot} for information on setting up template plots.
 
-The \vn{show plot <plot_or_region_name>} command will display information on a
-particular plot.
+The \vn{show plot <plot_or_region_name>} command will display information on a particular plot. If
+there are visible plots with the same name, a template plot of the same name is ignored. To show a
+template plot in this case, add a ``\vn{T::}'' prefix.
 
 The various \vn{show plot} options are mutually exclusive and only the last option is used. That is,
 a command like
@@ -2571,8 +2577,9 @@ Also see \vn{show graph} and \vn{show_curve}.
 
 Examples:
 \begin{example}
-  show plot      ! Show plot region information by default
-  show plot r13  ! Show information on plot in region r13
+  show plot         ! Show plot region information by default.
+  show plot r13     ! Show information on plot in region r13.
+  show plot T::beta ! Show template beta plot.
 \end{example}
 
 %% show spin --------------------------------------------------------------
