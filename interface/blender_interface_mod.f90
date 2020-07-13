@@ -158,7 +158,7 @@ case (sbend$)
 case (crystal$, detector$, mirror$, multilayer_mirror$, diffraction_plate$, mask$)
   write (line, '(a, 3(a, es16.8))') trim(line), c, ele%value(x1_limit$), c, ele%value(y1_limit$), c, 1e-3_rp
 case (wiggler$)
-  write (line, '(a, 3(a, es16.8))') trim(line), c, ele%value(x1_limit$), c, ele%value(y1_limit$), c, ele%value(X_RAY_LINE_LEN$) 
+  write (line, '(a, 3(a, es16.8))') trim(line), c, ele%value(x1_limit$), c, ele%value(y1_limit$), c
 case default
   write (line, '(2a)') trim(line), ', 0.0, 0.0, 0.0'
 end select
