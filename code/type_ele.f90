@@ -260,21 +260,25 @@ if (associated(ele%a_pole)) then
   endif
 
   do im = 0, n_pole_maxx
-    if (a(im) == 0 .and. b(im) == 0) cycle
-
     if (ele%key == multipole$) then
+      if (a(im) == 0 .and. b(im) == 0 .and. tn(im) == 0) cycle
+
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
               'K', im, 'L       =', ele%a_pole(im), 'KS', im, '       =', ele%a_pole_elec(im), 'T', im, '        =', ele%b_pole(im)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
               'B', im, '(equiv) =', b(im),          'A', im,  '(equiv) =', a(im),              'T', im, '(equiv) =', tn(im)
 
     elseif (ele%key == ab_multipole$) then
+      if (a(im) == 0 .and. b(im) == 0) cycle
+
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
                  'A', im, ' =', ele%a_pole(im), 'A', im, '(w/Tilt) =', a2(im), 'K', im, 'L(equiv) =', knl(im)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
                  'B', im, ' =', ele%b_pole(im), 'B', im, '(w/Tilt) =', b2(im), 'T', im, '(equiv)  =', tn(im)
 
     else
+      if (a(im) == 0 .and. b(im) == 0) cycle
+
       nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', im, ' =', ele%a_pole(im), &
                  'A', im, '(Scaled) =', a(im), 'A', im, '(w/Tilt) =', a2(im), 'K', im, 'L(equiv) =', knl(im)
       nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', im, ' =', ele%b_pole(im), &
