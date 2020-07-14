@@ -203,7 +203,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo
 
-  n_tot = n_tot + size(values)
+  n_tot = n_tot + size(scratch%eles)
 enddo
 
 err = .false.
