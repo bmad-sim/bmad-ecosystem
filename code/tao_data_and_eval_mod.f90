@@ -4521,9 +4521,9 @@ if (allocated(s%com%symbolic_num)) then
   endif
 endif
 
-! An array "[...]"
+! An array "[...]", but not "[1,2]@ele::q[k1]"
 
-if (str(1:1) == '[') then
+if (str(1:1) == '[' .and. index(str, ']@') == 0) then
   n = len_trim(str)
   if (str(n:n) /= ']') then
     if (print_err) call out_io (s_warn$, r_name, "Malformed array: " // str)
