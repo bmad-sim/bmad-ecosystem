@@ -423,6 +423,29 @@ but this can be changed by setting the \vn{global%derivative_recalc} global para
 the calculated derivative matrix is not accurate (that is, if the variables have changed enough from
 the last time the matrix was calculated and the nonlinearities in the lattice are large enough), the
 \vn{lm} optimizer will not work very well.  In any case, this method will only find local minimum.
+When running with \vn{lm}, the value of a parameter called \vn{a_lambda} will be printed. This
+``damping factor'', which is always positive definite, is a measure of how well the variation of the
+$\delta D_i$ terms with respect to the variables in \Eq{m1} matches the computed derivative matrix.
+A small \vn{a_lambda}, much less than one, indicates good agreement while a larger \vn{a_lambda},
+much greater than one, means that there is a mismatch. If \vn{a_lambda} is large, the optimizer will
+not be able to make much progress. There are several reasons for a large \vn{a_lambda}. First, the
+working point may have shifted enough so that the derivative matrix needs to be recalculated. If
+recalculating the derivative matrix does not fix the problem, it may be that one or more variable
+\vn{step} sizes are either too small or two large. If the value of \vn{step} is too small for a
+variable, round-off error can cause the calculation of the variable's derivatives to be off. If the
+value of the \vn{step} is too large, nonlinearities can throw off the derivative calculation. To
+test if the step size is set correctly first use the \vn{show merit -derivative} command to see what
+variables have the largest \vn{dMerit/dVariable} values as computed from the derivative
+matrix. [Note: Generally the best thing is to concentrate on the variables with the largest
+derivatives since these give the ``most bang for the buck''.] These values should be small when at
+the true merit function minimum. The \vn{change variable} command can now be used with varying step
+sizes to see if the actual \vn{dMerit/dVariable} change matches this. The output from the
+\vn{change} command will show the \vn{dMerit/dVariable} value computed from varying the variable by
+the amount given in the change command. If the two do not agree, there may be a problem. Warning! At
+the $\cal M$ minimum the value of \vn{dMerit/dVariable} is very sensitive to the value of the
+variables. To not get fooled, move away the minimum. For more information on \vn{a_lambda}, see the
+Wikipedia article on the ``\vn{Levenberg–Marquardt algorithm}''. In this article the variable is
+denoted $\lambda$.
   \index{lmdif optimizer}
   \item{\vn{lmdif}} \Newline
 The \vn{lmdif} optimizer is like the \vn{lm} optimizer except that it builds up the information it

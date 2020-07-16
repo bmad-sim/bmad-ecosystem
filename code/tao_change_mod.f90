@@ -2,6 +2,7 @@ module tao_change_mod
 
 use tao_interface
 use tao_data_and_eval_mod
+use tao_dmerit_mod
 
 contains
 
@@ -131,7 +132,11 @@ nl=nl+1; lines(nl) = ' '
 nl=nl+1; write (lines(nl), fmt) 'Merit:      ', old_merit, '  ->', new_merit
 nl=nl+1; write (lines(nl), fmt) 'dMerit:     ', new_merit - old_merit
 if (delta /= 0) then
-  nl=nl+1; write (lines(nl), '(5x, a, es12.3)') 'dMerit/dVar:', (new_merit-old_merit) / delta
+  call tao_dmerit_calc()
+  nl=nl+1; write (lines(nl), '(5x, a, es12.3, 3x, a)') 'dMerit/dVar:', (new_merit-old_merit) / delta, '! From Change in Merit / Change in Variable'
+  if (size(v_array) == 1) then
+    nl=nl+1; write (lines(nl), '(5x, a, es12.3, 3x, a)') 'dMerit/dVar:', var%dmerit_dvar, '! From Derivative Matrix'
+  endif
 endif
 
 if (.not. silent) call out_io (s_blank$, r_name, lines(1:nl))
