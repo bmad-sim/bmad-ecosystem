@@ -377,17 +377,9 @@ implicit none
 type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (qp_axis_struct) x_ax, y_ax
-type (lat_struct), pointer :: lat
-type (tao_lattice_branch_struct), pointer :: tao_branch
-type (ele_struct), pointer :: ele, slave
-type (branch_struct), pointer :: branch
-
-real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value
-real(rp) x_bend(0:400), y_bend(0:400)
 
 integer isu
 
-character(40) label_name
 character(*), parameter :: r_name = 'tao_draw_floor_plan'
 
 logical err, found
@@ -441,12 +433,19 @@ subroutine draw_this_floor_plan(isu)
 type (tao_ele_shape_struct), pointer :: ele_shape, ele_shape2
 type (tao_building_wall_point_struct) pt0, pt1
 type (floor_position_struct) end1, end2, floor
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele, slave
+type (lat_struct), pointer :: lat
 
 real(rp) x_min, x_max, y_min, y_max, y1, y2
+real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value
+real(rp) x_bend(0:400), y_bend(0:400)
 
 integer i, j, k, n, is, ix, n_bend, isu, ic, ib, ix_shape_min
 integer ix_pass, n_links, iwidth
 logical err
+
+character(40) label_name
 
 !
 
@@ -459,11 +458,12 @@ do n = 0, ubound(lat%branch, 1)
   branch%ele%logic = .false.  ! Used to mark as drawn.
   do i = 0, branch%n_ele_max
     ele => branch%ele(i)
+    if (ele%slave_status == super_slave$) cycle
 
     ix_shape_min = 1
     do
       call tao_ele_shape_info (isu, ele, s%plot_page%floor_plan%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
-      if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) exit   ! Nothing to draw
+      !!! if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) exit   ! Nothing to draw
 
       if (graph%floor_plan%draw_only_first_pass .and. ele%slave_status == multipass_slave$) then
         call multipass_chain (ele, ix_pass, n_links)
@@ -865,7 +865,7 @@ is_there = .false.
 if (associated(ele_shape)) is_there = ele_shape%draw
 if (.not. is_there) then
   if (is_bend) then
-    call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
+    call qp_draw_polyline(x_bend(1:n_bend), y_bend(1:n_bend))
   else
     call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2))
   endif
