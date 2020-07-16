@@ -253,11 +253,11 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (all(.not. free)) then
     if (e_name == 'PARTICLE_START') then
       if (a_name == 'PZ') then
-        call out_io (s_error$, r_name, 'particle_start[pz] NOT FREE TO VARY SINCE RF IS ON AND THE LATTICE IS CLOSED', &
-                          'TO BE ABLE TO SET PZ, USE "set global rf_on = T" and "set branch <branch> geometry = open"')
+        call out_io (s_error$, r_name, 'particle_start[pz] NOT FREE TO VARY SINCE THE RF IS ON AND THE LATTICE IS CLOSED', &
+                          'TO BE ABLE TO SET PZ, USE "set global rf_on = F" OR "set branch 0 geometry = open"')
       else
-        call out_io (s_error$, r_name, 'ATTRIBUTE IS NOT FREE TO VARY SINCE THE LATTICE IS CLOSED', &
-                          'TO VARY THIS ATTRIBUTE, USE "set branch <branch-id> geometry = open"')
+        call out_io (s_error$, r_name, 'particle_start PARAMETER IS NOT FREE TO VARY SINCE THE LATTICE IS CLOSED', &
+                          'TO VARY THIS ATTRIBUTE, USE "set branch 0 geometry = open"')
       endif
     else
       call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE')

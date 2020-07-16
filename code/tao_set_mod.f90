@@ -894,7 +894,7 @@ character(40) who2, name
 character(*), parameter :: r_name = 'tao_set_particle_start_cmd'
 
 logical, allocatable :: this_u(:)
-logical err, free
+logical err
 
 ! Find set_val
 
@@ -913,14 +913,21 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (err) return
 
   if (u%model%lat%param%geometry == closed$) then
-    free = .false.
+    ! All parameters free to vary if multi-turn orbit data is being collected.
     write (name, '(i0, a)') iu, '@multi_turn_orbit'
     call tao_find_data (err, name, d2_array, print_err = .false.)
-    if (size(d2_array) > 0) free = .true.
-    if (who2 == 'PZ' .and. .not. s%global%rf_on) free = .true.
-    if (.not. free) then
-      call out_io (s_error$, r_name, 'ATTRIBUTE NOT FREE TO VARY. NOTHING DONE.')
-      return
+    if (size(d2_array) == 0) then
+      if (who2 == 'PZ') then
+        if (s%global%rf_on) then
+          call out_io (s_error$, r_name, 'particle_start[pz] NOT FREE TO VARY SINCE THE RF IS ON AND THE LATTICE IS CLOSED', &
+                            'TO BE ABLE TO SET PZ, USE "set global rf_on = F" OR "set branch 0 geometry = open"')
+          return
+        endif
+      else
+        call out_io (s_error$, r_name, 'particle_start PARAMETER IS NOT FREE TO VARY SINCE THE LATTICE IS CLOSED', &
+                            'TO VARY THIS ATTRIBUTE, USE "set branch 0 geometry = open"')
+        return
+      endif
     endif
   endif
 
