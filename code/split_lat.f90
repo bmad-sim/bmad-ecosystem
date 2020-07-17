@@ -184,6 +184,12 @@ if (logic_option(.true., add_suffix)) then
   call set_ele_name (ele2, ele%name(:ix) // '#2')
 endif
 
+! The split elements have blank "alias" and "type" values so as to not to pollute the results of
+! searching by alias or type
+
+ele1%type = '';  ele1%alias = ''
+ele2%type = '';  ele2%alias = ''
+
 ! drift_id is used by bmad_parser to keep track of which drifts where originally one bigger drift
 if (ele1%key == drift$ .and. ele1%value(drift_id$) == 0) then
   ele1%value(drift_id$) = s_split 
