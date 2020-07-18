@@ -816,6 +816,8 @@ if (i_br_from > -1) then
   branch_from => model%lat%branch(i_br_from)
   from_ele => branch_from%ele(i_ele_from)
   ele0 => branch%ele(0)
+  ! Note: reference energy set by lat_compute_ref_energy_and_time
+  if (is_true(ele0%value(inherit_from_fork$)) .and. branch%ix_to_ele == 0) call transfer_twiss(from_ele, ele0)
   orb_out => model%tao_branch(ix_branch)%orbit(0)
   call init_coord (orb_out, model%tao_branch(i_br_from)%orbit(i_ele_from), ele0, &
                   downstream_end$, default_tracking_species(branch%param), 1, ele0%value(E_tot$))
