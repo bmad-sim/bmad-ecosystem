@@ -1969,9 +1969,9 @@ logical is_problem, is_free
 is_problem = .false.
 
 if (logic_option(.false., check_free)) then
-  is_free = attribute_free (ele, attrib_name, bp_com%print_err)
+  is_free = attribute_free (ele, attrib_name, bp_com%print_err .and. .not. heterogeneous_ele_list)
   if (.not. is_free) then
-    call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
+    if (.not. heterogeneous_ele_list) call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
     err_flag = .true.
     is_problem = .true.
   endif
