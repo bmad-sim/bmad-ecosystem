@@ -257,9 +257,9 @@ since \bmad uses the \vn{end} name to define a marker in any case.
 \label{s:ele.match}
 \index{element!matching to names}
 
-Where appropriate, for example when setting element attributes (\sref{s:lat.attribs}), the wild
-card characters \vn{``*''} and \vn{``%''} can be used to select multiple elements.  The \vn{``*''} character
-will match any number of characters (including zero) while \vn{``%''} maches to any single
+Where appropriate, for example when setting element attributes (\sref{s:lat.attribs}), the wild card
+characters \vn{``*''} and \vn{``%''} can be used to select multiple elements.  The \vn{``*''}
+character will match any number of characters (including zero) while \vn{``%''} maches to any single
 character. Additionally, matching can be restricted to a certain element class using the syntax:
 \begin{example}
   class::element_name
@@ -270,7 +270,11 @@ where \vn{class} is a class (EG: sextupole). For example:
   a%c             ! Match to "abc" but not to "ac" or "azzc".
   quadrupole::*w  ! Match to all quadrupoles whose name ends in "w"
 \end{example}
-Additionally, instead of matching to an element name, matches may be made to \vn{type}, \vn{alias},
+Note: The character \vn{``%''} can be used in expressions used for setting lattice element parameter
+values. In this case, the \vn{``%''} character represents the name of the lattice element whose
+parameter is being set. This is discussed in section~\sref{s:lat.attribs}.
+
+Instead of matching to an element name, matches may be made to \vn{type}, \vn{alias},
 or \vn{descrip} attributes (\sref{s:alias}) using the syntax:
 \begin{example}
   attribute_name::string
@@ -441,6 +445,22 @@ be used in element names (\sref{s:ele.match}). Examples:
 Unlike when there are no wild cards used in a name, it is not an error if a name with wild cards
 does not match to any element.  Note: A name with wild cards will never match to the \vn{BEGINNING}
 element (\sref{s:use}).
+
+The \vn{``\%''} symbol can be used in expression to represent the lattice element whose parameter is
+being set. For example:
+\begin{example}
+  s%z[k2] = %[k2] + 0.03 * ran_gauss()
+\end{example}
+The \vn{``s\%z''} on the left hand side matches to all three letter elements whose name begins with
+``\vn{s}'' and ends with ``\vn{z}''. For each element that is matched, the \vn{``\%[k2]''} in the
+expression on the right hand side will be the \vn{k2} value of that element. Thus, if there are three
+elements, named \vn{s0z}, \vn{saz}, and \vn{s.z}, in the lattice that match \vn{s\%z}, the above command
+is equivalent to
+\begin{example}
+  s0z[k2] = s0z[k2] + 0.03 * ran_gauss()
+  saz[k2] = saz[k2] + 0.03 * ran_gauss()
+  s.z[k2] = s.z[k2] + 0.03 * ran_gauss()
+\end{example}
 
 After lattice expansion (\sref{s:expand}), the attributes of specific elements may be set using the
 syntax as discussed in Section~\sref{s:ele.match}. Example:

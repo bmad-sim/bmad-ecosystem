@@ -1033,22 +1033,23 @@ if (attrib_name == 'S' .and. bp_com%parser_name == 'bmad_parser') then
   return
 endif
 
+if (ele_name == '%') then
+  if (present(ele)) then
+    call re_allocate_eles(eles, 1)
+    eles(1)%ele => ele
+    err_flag = .false.
+  else
+    err_flag = .true.
+    call parser_error ('"%[...]" CONSTRUCT USED IN EXPRESSION WHERE THERE IS NO ASSOCIATED LATTICE ELEMENT.')
+    return
+  endif
+endif
+
 ! Apertures, etc.
 
 select case (attrib_name)
 case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
-  if (ele_name == '%') then
-    if (present(ele)) then
-      call re_allocate_eles(eles, 1)
-      eles(1)%ele => ele
-      err_flag = .false.
-    else
-      call re_allocate_eles(eles, 0)
-      err_flag = .true.
-    endif
-  else
-    call lat_ele_locator (ele_name, lat, eles, n_loc, err_flag)
-  endif
+  if (ele_name /= '%') call lat_ele_locator (ele_name, lat, eles, n_loc, err_flag)
 
   if (.not. err_flag .and. size(eles) > 0) then
     v => eles(1)%ele%value
@@ -1093,13 +1094,8 @@ case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
 
 case default
   if (ele_name == '%') then
-    if (present(ele)) then
-      call re_allocate (ptr, 1)
-      call pointer_to_attribute (ele, attrib_name, .false., ptr(1), err, .false., ix_attrib)
-    else
-      call re_allocate (ptr, 0)
-      err = .true.
-    endif
+    call re_allocate (ptr, 1)
+    call pointer_to_attribute (ele, attrib_name, .false., ptr(1), err, .false., ix_attrib)
   else
     call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err, .false., eles, ix_attrib)
   endif
@@ -5419,7 +5415,7 @@ do
   select case (attrib_name)
 
   case ('FIELD_SCALE')
-    call parse_evaluate_value (ele%name, ct_map%field_scale, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, ct_map%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
@@ -5488,13 +5484,13 @@ do
     err_str = trim(ele%name) // ' CARTESIAN_MAP TERM'
 
     if (.not. expect_this ('{', .false., .false., 'AFTER "TERM =" IN CARTESIAN_MAP DEFINITION', ele, delim, delim_found)) return
-    call parse_evaluate_value (err_str, tm%coef, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-    call parse_evaluate_value (err_str, tm%kx, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call parse_evaluate_value (err_str, tm%ky, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call parse_evaluate_value (err_str, tm%kz, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call parse_evaluate_value (err_str, tm%x0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call parse_evaluate_value (err_str, tm%y0, lat, delim, delim_found, err_flag, ',');    if (err_flag) return
-    call parse_evaluate_value (err_str, tm%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call parse_evaluate_value (err_str, tm%coef, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+    call parse_evaluate_value (err_str, tm%kx, lat, delim, delim_found, err_flag, ',', ele);    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%ky, lat, delim, delim_found, err_flag, ',', ele);    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%kz, lat, delim, delim_found, err_flag, ',', ele);    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%x0, lat, delim, delim_found, err_flag, ',', ele);    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%y0, lat, delim, delim_found, err_flag, ',', ele);    if (err_flag) return
+    call parse_evaluate_value (err_str, tm%phi_z, lat, delim, delim_found, err_flag, ',', ele); if (err_flag) return
     call get_switch ('FAMILY', ['Y ', 'X ', 'QU', 'SQ'], tm%family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     if (.not. expect_one_of(',}', .false., ele%name, delim, delim_found)) return
@@ -5617,16 +5613,16 @@ do
                        'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.')
 
   case ('PHI0_FIELDMAP')
-    call parse_evaluate_value (ele%name, cl_map%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, cl_map%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('THETA0_AZIMUTH')
-    call parse_evaluate_value (ele%name, cl_map%theta0_azimuth, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, cl_map%theta0_azimuth, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('FIELD_SCALE')
-    call parse_evaluate_value (ele%name, cl_map%field_scale, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, cl_map%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('DZ')            
-    call parse_evaluate_value (trim(ele%name), cl_map%dz, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, cl_map%dz, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
@@ -5836,10 +5832,10 @@ do
   select case (word)
 
   case ('PHI0_FIELDMAP')
-    call parse_evaluate_value (ele%name, g_field%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, g_field%phi0_fieldmap, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('FIELD_SCALE')
-    call parse_evaluate_value (ele%name, g_field%field_scale, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, g_field%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('HARMONIC')
     call parser_get_integer (g_field%harmonic, word, ix_word, delim, delim_found, err_flag, 'CANNOT READ GRID_FIELD HARMONIC NUMBER', 'IN ELEMENT: ' // ele%name)
@@ -6157,7 +6153,7 @@ do
   select case (attrib_name)
 
   case ('FIELD_SCALE')
-    call parse_evaluate_value (ele%name, t_field%field_scale, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, t_field%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
@@ -6165,7 +6161,7 @@ do
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
   case ('DZ')
-    call parse_evaluate_value (ele%name, t_field%dz, lat, delim, delim_found, err_flag, ',}')
+    call parse_evaluate_value (ele%name, t_field%dz, lat, delim, delim_found, err_flag, ',}', ele)
 
   case ('ELE_ANCHOR_PT', 'FIELD_TYPE', 'MASTER_PARAMETER')
     ! Expect "<component> = "
@@ -6261,7 +6257,7 @@ do
         return
       endif
 
-      call parse_evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
+      call parse_evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|', ele);  if (err_flag) return
       delim2 = delim   ! Save
       expn = 0
 

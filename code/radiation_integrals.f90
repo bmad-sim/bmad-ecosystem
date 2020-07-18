@@ -166,10 +166,9 @@ else
   branch => lat%branch(0)
 endif
 
-if (branch%param%particle == photon$) then
-  mode = normal_modes_struct()
-  return
-endif
+mode = normal_modes_struct()
+
+if (branch%param%particle == photon$) return
 
 if (any(orbit(1:branch%n_ele_track)%species == not_set$)) then
   call out_io (s_error$, r_name, 'ORBIT IN UNINITALIZED STATE! RADIATION INTEGRALS NOT COMPUTED.')
@@ -626,37 +625,39 @@ mode%b%synch_int(5) = i5b
 mode%a%synch_int(6) = 0
 mode%b%synch_int(6) = i6b
 
-if (i2 /= 0) then
+if (branch%param%geometry == closed$) then
+  if (i2 /= 0) then
 
-  mode%a%emittance = const_q * gamma2_factor * i5a / (i2 - i4a)
-  mode%b%emittance = const_q * (gamma2_factor * i5b + 13 * i6b / 55) / (i2 - i4b)
+    mode%a%emittance = const_q * gamma2_factor * i5a / (i2 - i4a)
+    mode%b%emittance = const_q * (gamma2_factor * i5b + 13 * i6b / 55) / (i2 - i4b)
 
-  mode%a%j_damp = 1 - i4a / i2
-  mode%b%j_damp = 1 - i4b / i2
-  mode%z%j_damp = 2 + i4z / i2
+    mode%a%j_damp = 1 - i4a / i2
+    mode%b%j_damp = 1 - i4b / i2
+    mode%z%j_damp = 2 + i4z / i2
 
-  arg = (const_q * i3 * gamma2_factor / (2*i2 + i4z))
-  if (arg > 0) then
-    mode%sigE_E = sqrt(arg)
-  else
-    mode%sigE_E = 1d30  ! Something large
+    arg = (const_q * i3 * gamma2_factor / (2*i2 + i4z))
+    if (arg > 0) then
+      mode%sigE_E = sqrt(arg)
+    else
+      mode%sigE_E = 1d30  ! Something large
+    endif
+
   endif
 
+  mode%a%alpha_damp = energy_loss * mode%a%j_damp / (2 * energy)
+  mode%b%alpha_damp = energy_loss * mode%b%j_damp / (2 * energy)
+  mode%z%alpha_damp = energy_loss * mode%z%j_damp / (2 * energy)
+
+  mode%e_loss = energy_loss
+
+  if (m65*i1 > 0) then
+    mode%sig_z = sqrt(i1/m65) * mode%sigE_E
+  else   ! Unstable
+    mode%sig_z = 1d30  ! Something large
+  endif
+
+  mode%z%emittance = mode%sig_z * mode%sigE_E
 endif
-
-mode%a%alpha_damp = energy_loss * mode%a%j_damp / (2 * energy)
-mode%b%alpha_damp = energy_loss * mode%b%j_damp / (2 * energy)
-mode%z%alpha_damp = energy_loss * mode%z%j_damp / (2 * energy)
-
-mode%e_loss = energy_loss
-
-if (m65*i1 > 0) then
-  mode%sig_z = sqrt(i1/m65) * mode%sigE_E
-else   ! Unstable
-  mode%sig_z = 1d30  ! Something large
-endif
-
-mode%z%emittance = mode%sig_z * mode%sigE_E
 
 bmad_com = bmad_com_save
 branch%param = branch_param_save
