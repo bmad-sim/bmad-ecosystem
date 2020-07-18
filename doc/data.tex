@@ -918,7 +918,12 @@ the global coordinate system. See also the documentation on \vn{floor.} \vn{rel_
 
   %----------------------
   \item[floor_orbit.x, .y, .z] \Newline
-Position of the element in the global ``floor'' coordinate system. See the \bmad manual for details
+Position of the orbit in the global ``floor'' coordinate system. See the \bmad manual for details
+on the global coordinate system. See also \vn{floor.}.
+
+  %----------------------
+  \item[floor_orbit.theta, .phi, .psi] \Newline
+Orientation of the orbit in the global ``floor'' coordinate system. See the \bmad manual for details
 on the global coordinate system. See also \vn{floor.}.
 
   %----------------------
@@ -1645,7 +1650,10 @@ squared.
   eta.x, .y, .z                       & Dispersion                                & lat, beam   & Yes \\ \hline 
   eta.a, .b                           & Normal-mode dispersion                    & lat, beam   & Yes \\ \hline 
   etap.x, .y                          & Dispersion derivative                     & lat, beam   & Yes \\ \hline 
-  etap.a, .b                          & Normal-mode dispersion derivative         & lat, beam   & Yes \\ \hline 
+  etap.a, .b                          & \begin{tabular}{@{}l}   
+                                          Normal-mode \\
+                                          dispersion derivative
+                                        \end{tabular}                             & lat, beam   & Yes \\ \hline 
   expression:<expression>             & See text above                            & lat         & No  \\ \hline 
 
   \begin{tabular}{@{}l}   
@@ -1664,6 +1672,10 @@ squared.
                                         \end{tabular}                             & lat         & Yes \\ \hline 
 
   floor_orbit.x, .y, .z               & global position of orbit                  & lat, beam   & Yes \\ \hline 
+  \begin{tabular}{@{}l}   
+    floor_orbit.theta, \\
+    \hspace{3em} .phi, .psi 
+  \end{tabular}                       & global position of orbit                  & lat, beam   & Yes \\ \hline 
 
   gamma.a, .b                         & Normal-mode gamma function                & lat         & Yes \\ \hline 
 
@@ -1697,7 +1709,7 @@ squared.
     periodic.tt.$ijklm\ldots$ \\
     $1 \le i,j,k,\ldots \le 6$   
   \end{tabular}
-                                      & Taylor term of the periodic map           & lat         & No  \\ \hline 
+                                      & Periodic map Taylor terms                 & lat         & No  \\ \hline 
 
   phase.a, .b                         & Betatron phase                            & lat         & Yes \\ \hline 
   phase_frac.a, .b                    & \begin{tabular}{@{}l}
@@ -1705,7 +1717,10 @@ squared.
                                          $-\pi < \phi_{\mbox{frac}} < \pi$ 
                                        \end{tabular}                              & lat         & No  \\ \hline 
 
-  phase_frac_diff                     & Phase diff between $a$ and $b$ modes      & lat         & No  \\ \hline 
+  phase_frac_diff                     & \begin{tabular}{@{}l}
+                                          Phase difference \\
+                                          between $a$ and $b$ modes
+                                        \end{tabular}                             & lat         & No  \\ \hline 
   photon.intensity                    & Photon total intensity                    & lat, beam   & No  \\ \hline 
   \begin{tabular}{@{}l}
     photon.intensity_x, \\

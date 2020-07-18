@@ -5193,8 +5193,18 @@ else
   vec = bunch_params%centroid%vec
 endif
 
-position%r = [vec(1), vec(3), ele%value(l$)]
-position = coords_local_curvilinear_to_floor (position, ele, .false.)
+select case (datum%data_type)
+case ('floor_orbit.x', 'floor_orbit.y', 'floor_orbit.z')
+  position%r = [vec(1), vec(3), orbit%s - ele%s_start]
+  position = coords_local_curvilinear_to_floor (position, ele, .false.)
+case ('floor_orbit.theta', 'floor_orbit.phi', 'floor_orbit.psi')
+  position = orbit_to_local_curvilinear(orbit, ele%s_start)
+  position = coords_local_curvilinear_to_floor (position, ele, .false., calculate_angles = .true.)
+case default
+  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+  value = 0
+  return
+end select
 
 !
 
@@ -5202,10 +5212,9 @@ select case (datum%data_type)
 case ('floor_orbit.x');   value = position%r(1)
 case ('floor_orbit.y');   value = position%r(2)
 case ('floor_orbit.z');   value = position%r(3)
-case default
-  call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
-  value = 0
-  return
+case ('floor_orbit.theta');   value = position%theta
+case ('floor_orbit.phi');     value = position%phi
+case ('floor_orbit.psi');     value = position%psi
 end select
 
 valid_value = .true.
