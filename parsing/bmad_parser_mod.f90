@@ -782,7 +782,7 @@ end function evaluate_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------      
 !+
-! Subroutine parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out, string_in)
+! Subroutine parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, ele, string_out, string_in)
 !
 ! This routine evaluates as a real number the characters at the beginning of bp_com%parse_line.
 !
@@ -793,6 +793,7 @@ end function evaluate_logical
 !   err_str     -- character(*): String to print as part of error message if there is an error.
 !   lat         -- lat_struct: 
 !   end_delims  -- character(*), optional: List of delimiters that should be present after section of line used for evaluation.
+!   ele         -- ele_struct, optional: Used to evaluat "%[...]" constructs.
 !   string_in   -- character(*), optional: If present then use this string as input instead of reading from the lattice file.
 !
 ! Output:
@@ -804,7 +805,7 @@ end function evaluate_logical
 !                   Useful for group and overlay control expressions.
 !-
 
-subroutine parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out, string_in)
+subroutine parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, ele, string_out, string_in)
 
 use expression_mod
 
@@ -812,6 +813,7 @@ implicit none
 
 type (lat_struct)  lat
 type (expression_atom_struct), allocatable :: stk(:)
+type (ele_struct), optional, target :: ele
 
 real(rp) value
 
@@ -917,7 +919,7 @@ do i = 1, n_stk
   case (ran$, ran_gauss$)
     call bp_set_ran_status
   case (variable$)
-    call word_to_value (stk(i)%name, lat, stk(i)%value, err)
+    call word_to_value (stk(i)%name, lat, stk(i)%value, err, ele)
     if (err) return
   case (species_const$)
     stk(i)%value = species_id(stk(i)%name)
@@ -947,12 +949,12 @@ end subroutine parse_evaluate_value
 ! This subroutine is not intended for general use.
 !-
 
-subroutine word_to_value (word, lat, value, err_flag)
+subroutine word_to_value (word, lat, value, err_flag, ele)
 
 implicit none
 
 type (lat_struct), target ::  lat
-type (ele_struct), pointer :: ele
+type (ele_struct), optional, target :: ele
 type (all_pointer_struct), allocatable :: ptr(:)
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_attribute_struct) attrib_info
@@ -1035,7 +1037,19 @@ endif
 
 select case (attrib_name)
 case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
-  call lat_ele_locator (ele_name, lat, eles, n_loc, err_flag)
+  if (ele_name == '%') then
+    if (present(ele)) then
+      call re_allocate_eles(eles, 1)
+      eles(1)%ele => ele
+      err_flag = .false.
+    else
+      call re_allocate_eles(eles, 0)
+      err_flag = .true.
+    endif
+  else
+    call lat_ele_locator (ele_name, lat, eles, n_loc, err_flag)
+  endif
+
   if (.not. err_flag .and. size(eles) > 0) then
     v => eles(1)%ele%value
     if (attrib_name == 'APERTURE') then
@@ -1078,7 +1092,17 @@ case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
 ! Everything else
 
 case default
-  call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err, .false., eles, ix_attrib)
+  if (ele_name == '%') then
+    if (present(ele)) then
+      call re_allocate (ptr, 1)
+      call pointer_to_attribute (ele, attrib_name, .false., ptr(1), err, .false., ix_attrib)
+    else
+      call re_allocate (ptr, 0)
+      err = .true.
+    endif
+  else
+    call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err, .false., eles, ix_attrib)
+  endif
 
   if (err .or. size(ptr) == 0) then
     call parser_error('BAD ATTRIBUTE: ' // word)
@@ -1330,15 +1354,15 @@ do
 
   select case (attrib_name)
   case ('Z_MAX')
-    call parse_evaluate_value (err_str, wake_sr%z_max, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    call parse_evaluate_value (err_str, wake_sr%z_max, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
     cycle
   case ('Z_SCALE')
-    call parse_evaluate_value (err_str, wake_sr%z_scale, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    call parse_evaluate_value (err_str, wake_sr%z_scale, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
     cycle
   case ('AMP_SCALE')
-    call parse_evaluate_value (err_str, wake_sr%amp_scale, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    call parse_evaluate_value (err_str, wake_sr%amp_scale, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
     cycle
   case ('SCALE_WITH_LENGTH')
@@ -1362,10 +1386,10 @@ do
   if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
 
   err_str = trim(ele%name) // ' SR_WAKE ' // attrib_name
-  call parse_evaluate_value (err_str, srm%amp, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-  call parse_evaluate_value (err_str, srm%damp, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-  call parse_evaluate_value (err_str, srm%k, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-  call parse_evaluate_value (err_str, srm%phi, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%amp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%damp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%k, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, srm%phi, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
   if (which == longitudinal_mode$) then
     call get_switch ('POSITION_DEPENDENCE', sr_longitudinal_position_dep_name, srm%position_dependence, err_flag, ele, delim, delim_found)
   else
@@ -1449,19 +1473,19 @@ do
 
   select case (attrib_name)
   case ('AMP_SCALE')
-    call parse_evaluate_value (err_str, wake_lr%amp_scale, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    call parse_evaluate_value (err_str, wake_lr%amp_scale, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
     cycle
   case ('TIME_SCALE')
-    call parse_evaluate_value (err_str, wake_lr%time_scale, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    call parse_evaluate_value (err_str, wake_lr%time_scale, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
     cycle
   case ('FREQ_SPREAD')
-    call parse_evaluate_value (err_str, wake_lr%freq_spread, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    call parse_evaluate_value (err_str, wake_lr%freq_spread, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
     cycle
   case ('T_REF')
-    call parse_evaluate_value (err_str, wake_lr%t_ref, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    call parse_evaluate_value (err_str, wake_lr%t_ref, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
     if (delim == '}') exit
     cycle
   case ('SELF_WAKE_ON')
@@ -1480,11 +1504,11 @@ do
   lrm => lr_mode(iterm)
 
   err_str = trim(ele%name) // ' LR_WAKE MODE'
-  call parse_evaluate_value (err_str, lrm%freq_in, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%freq_in, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
   lrm%freq = lrm%freq_in
-  call parse_evaluate_value (err_str, lrm%r_over_q, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-  call parse_evaluate_value (err_str, lrm%damp, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-  call parse_evaluate_value (err_str, lrm%phi, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%r_over_q, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%damp, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%phi, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
 
   call parser_get_integer (lrm%m, word, ix_word, delim, delim_found, err_flag, 'BAD LR_WAKE M MODE VALUE')
 
@@ -1495,7 +1519,7 @@ do
   else
     lrm%polarized = .true.
     bp_com%parse_line = trim(attrib_name) // delim // bp_com%parse_line
-    call parse_evaluate_value (err_str, lrm%angle, lat, delim, delim_found, err_flag, ',}');  if (err_flag) return
+    call parse_evaluate_value (err_str, lrm%angle, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
   endif
 
   if (delim == '}') then
@@ -1504,10 +1528,10 @@ do
     cycle
   endif
 
-  call parse_evaluate_value (err_str, lrm%b_sin, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-  call parse_evaluate_value (err_str, lrm%b_cos, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-  call parse_evaluate_value (err_str, lrm%a_sin, lat, delim, delim_found, err_flag, ',');  if (err_flag) return
-  call parse_evaluate_value (err_str, lrm%a_cos, lat, delim, delim_found, err_flag, '}');  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%b_sin, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%b_cos, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%a_sin, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+  call parse_evaluate_value (err_str, lrm%a_cos, lat, delim, delim_found, err_flag, '}', ele);  if (err_flag) return
 
   if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
   if (delim == '}') exit
@@ -2167,7 +2191,7 @@ do
     ! Parse expression
     else
       ! Just parse and not evaluate.
-      call parse_evaluate_value (trim(ele%name), value, lat, delim, delim_found, err, ',}', expression(n_slave)%str)
+      call parse_evaluate_value (trim(ele%name), value, lat, delim, delim_found, err, ',}', ele, expression(n_slave)%str)
       if (err) then
         call parser_error ('BAD EXPRESSION: ' // word_in,  'FOR ELEMENT: ' // ele%name)
         return

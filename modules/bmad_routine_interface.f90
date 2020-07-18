@@ -1254,6 +1254,15 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb)
   real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
 end subroutine
 
+function orbit_to_local_curvilinear (orbit, ele_s_start, in_ele_frame) result (local_position)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (floor_position_struct) local_position
+  real(rp) ele_s_start
+  logical, optional :: in_ele_frame
+end function
+
 function orbit_too_large (orbit, param) result (is_too_large)
   import
   implicit none
