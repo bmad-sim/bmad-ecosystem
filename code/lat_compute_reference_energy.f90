@@ -55,7 +55,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   if (stale .and. branch%ix_from_branch >= 0) then
     fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-    if (fork_ele%branch%param%particle == branch%param%particle .and. branch%ix_to_ele == 0) then
+    if (is_true(begin_ele%value(inherit_from_fork$)) .and. branch%ix_to_ele == 0) then
       begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
       begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
     endif

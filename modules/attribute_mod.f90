@@ -845,6 +845,7 @@ call init_attribute_name1 (beginning_ele$, cmat_21$,                     'CMAT_2
 call init_attribute_name1 (beginning_ele$, cmat_22$,                     'CMAT_22')
 call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
+call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK', dependent$)
 
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
@@ -853,6 +854,7 @@ call init_attribute_name1 (line_ele$, geometry$,                    'GEOMETRY')
 call init_attribute_name1 (line_ele$, default_tracking_species$,    'DEFAULT_TRACKING_SPECIES')
 call init_attribute_name1 (line_ele$, ix_branch$,                   'ix_branch', private$)
 call init_attribute_name1 (line_ele$, high_energy_space_charge_on$, 'HIGH_ENERGY_SPACE_CHARGE_ON')
+
 
 call init_attribute_name1 (capillary$, l$,                          'L', dependent$)
 call init_attribute_name1 (capillary$, n_slice_spline$,             'N_SLICE_SPLINE')
@@ -1733,7 +1735,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', '
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'MATCH_END_INPUT', 'MATCH_END_ORBIT_INPUT', 'GEO', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
-      'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC')
+      'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'N_CELL', 'SAD_N_DIV_MAX', &

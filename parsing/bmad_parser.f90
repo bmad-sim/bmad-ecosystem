@@ -876,8 +876,8 @@ branch_loop: do i_loop = 1, n_branch_max
 
   call find_indexx (this_branch_name, in_lat%nametable, ix)
   ele => in_lat%ele(ix) ! line_ele element associated with this branch.
-  ele0 => branch%ele(0)
 
+  ele0 => branch%ele(0)
   ele0%value(e_tot$) = -1
   ele0%value(p0c$)   = -1 
 

@@ -111,7 +111,7 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word =
     endif
   endif
 
-  call parse_evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
+  call parse_evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|', ele);  if (err_flag) return
   delim2 = delim   ! Save
   expn = 0
 
@@ -221,7 +221,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
 
   value = 0
   if (delim == '=') then  ! value
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
     if (err_flag) return
   endif
 
@@ -244,7 +244,7 @@ endif   ! Overlay or Group
 if (ele%key == wiggler$ .or. ele%key == undulator$) then
   if (word == 'L_POLE' .or. word == 'N_POLE') then
     if (.not. expect_one_of ('=', .true., ele%name, delim, delim_found)) return
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
     if (err_flag) return
     if (word == 'L_POLE') then
       ele%value(l_period$) = 2 * value
@@ -333,7 +333,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
   endif
 
   if (associated(a_ptrs(1)%r)) then
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
     a_ptrs(1)%r = value
     if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))             bp_com%extra%max_aperture_limit_set              = .true.
@@ -355,7 +355,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     if (associated(a_ptrs(1)%r, bmad_com%sad_amp_max))                    bp_com%extra%sad_amp_max_set                     = .true.
 
   elseif (associated(a_ptrs(1)%i)) then
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
     if (associated(a_ptrs(1)%i, lat%particle_start%direction) .and. nint(value) /= -1 .and. nint(value) /= 1) then
       call parser_error ('VALUE OF BEAM_SART[DIRECTION] MUST BE -1 OR 1.')
@@ -417,7 +417,7 @@ if (delim == '(' .and. .not. (word == 'TERM' .and. how == def$)) then
     return
   endif
 
-  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
   a_ptr%r = value
   return
 endif
@@ -475,7 +475,7 @@ if (word(1:5) == 'WALL%') then
       return
     endif
 
-    call parse_evaluate_value (ele%name, r_ptr, lat, delim, delim_found, err_flag)
+    call parse_evaluate_value (ele%name, r_ptr, lat, delim, delim_found, err_flag, ele = ele)
 
   ! Not recognized
 
@@ -726,7 +726,7 @@ if (attrib_word == 'WALL') then
       call bmad_parser_string_attribute_set (ele, word, delim, delim_found, str_out = wall3d%clear_material)
 
     case ('THICKNESS') 
-      call parse_evaluate_value (ele%name, wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
+      call parse_evaluate_value (ele%name, wall3d%thickness, lat, delim, delim_found, err_flag, ',}', ele)
       if (err_flag) return
 
     case ('ELE_ANCHOR_PT')
@@ -771,17 +771,17 @@ if (attrib_word == 'WALL') then
           call bmad_parser_string_attribute_set (ele, word, delim, delim_found, str_out = section%material)
 
         case ('THICKNESS')
-          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%thickness, lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%thickness, lat, delim, delim_found, err_flag, ',}', ele)
           if (err_flag) return
           if (ele%key == capillary$) ele%value(l$) = section%s
 
         case ('S')
-          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%s, lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%s, lat, delim, delim_found, err_flag, ',}', ele)
           if (err_flag) return
           if (ele%key == capillary$) ele%value(l$) = section%s
 
         case ('DR_DS') 
-          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%dr_ds, lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%dr_ds, lat, delim, delim_found, err_flag, ',}', ele)
           if (err_flag) return
                   
         case ('ABSOLUTE_VERTICES') 
@@ -789,11 +789,11 @@ if (attrib_word == 'WALL') then
           if (err_flag) return
 
         case ('X0') 
-          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%r0(1), lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%r0(1), lat, delim, delim_found, err_flag, ',}', ele)
           if (err_flag) return
 
         case ('Y0') 
-          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%r0(2), lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name) // ' ' // word, section%r0(2), lat, delim, delim_found, err_flag, ',}', ele)
           if (err_flag) return
 
         case ('R0')
@@ -817,24 +817,24 @@ if (attrib_word == 'WALL') then
 
           if (.not. expect_this (')={', .true., .false., 'AFTER "V(n)" IN WALL CONSTRUCT', ele, delim, delim_found)) return
 
-          call parse_evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
+          call parse_evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',', ele)
           if (err_flag) return
 
-          call parse_evaluate_value (trim(ele%name), section%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}')
+          call parse_evaluate_value (trim(ele%name), section%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}', ele)
           if (err_flag) return
 
           if (delim == ',') then
-            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}')
+            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}', ele)
             if (err_flag) return
           endif
 
           if (delim == ',') then
-            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}')
+            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}', ele)
             if (err_flag) return
           endif
 
           if (delim == ',') then
-            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}')
+            call parse_evaluate_value (trim(ele%name), section%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}', ele)
             if (err_flag) return
           endif
 
@@ -1322,19 +1322,19 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   err_str = trim(ele%name) // ' ' // str_ix
   ct_term => ct_map%ptr%term(ix)
 
-  call parse_evaluate_value (err_str, ct_term%coef, lat, delim, delim_found, err_flag, ',');   if (err_flag) return
-  call parse_evaluate_value (err_str, ct_term%kx, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call parse_evaluate_value (err_str, ct_term%ky, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call parse_evaluate_value (err_str, ct_term%kz, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call parse_evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%coef, lat, delim, delim_found, err_flag, ',', ele);   if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%kx, lat, delim, delim_found, err_flag, ',', ele);     if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%ky, lat, delim, delim_found, err_flag, ',', ele);     if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%kz, lat, delim, delim_found, err_flag, ',', ele);     if (err_flag) return
+  call parse_evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ',}', ele); if (err_flag) return
 
   old_style_input = .true.
   ct_term%family = family_y$
 
   if (delim == ',') then
     ct_term%x0 = ct_term%phi_z
-    call parse_evaluate_value (err_str, ct_term%y0, lat, delim, delim_found, err_flag, ','); if (err_flag) return
-    call parse_evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call parse_evaluate_value (err_str, ct_term%y0, lat, delim, delim_found, err_flag, ',', ele); if (err_flag) return
+    call parse_evaluate_value (err_str, ct_term%phi_z, lat, delim, delim_found, err_flag, ',', ele); if (err_flag) return
     call get_switch ('FAMILY', ['Y ', 'X ', 'QU', 'SQ'], ct_term%family, err_flag, ele, delim, delim_found); if (err_flag) return
     if (.not. expect_this ('}', .true., .false., 'AFTER "FAMILY" SWITCH', ele, delim, delim_found)) return
     old_style_input = .false.
@@ -1458,7 +1458,7 @@ case ('REFERENCE')
   call get_next_word(pele%ref_name, ix_word,  '=,', delim, delim_found, .true.)
 
 case ('OFFSET')
-  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
   if (err_flag) return
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   pele%offset = value
@@ -1781,6 +1781,14 @@ case ('VELOCITY_DISTRIBUTION')
 
 case default   ! normal attribute
 
+  if (ele%key == line_ele$) then
+    select case (attrib_word)
+    case ('CBAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'P0C', 'E_TOT', 'ETA_X', 'ETA_Y', &
+          'ETAP_X', 'ETAP_Y', 'ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B')
+      ele%value(inherit_from_fork$) = true$
+    end select
+  endif
+
   ! attrib_word = "x_limit" for example will generate an error here but this is not a true error.
   call pointer_to_attribute (ele, attrib_word, .true., a_ptr, err_flag, .false.)
   
@@ -1794,7 +1802,8 @@ case default   ! normal attribute
     if (err_flag) return
 
   case default
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag); if (err_flag) return
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
+    if (err_flag) return
 
     ! multipole attribute?
     if (ele%key == hybrid$ .and. is_attribute(ix_attrib, multipole$)) then

@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 249
+integer, parameter :: bmad_inc_version$ = 250
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1434,7 +1434,7 @@ integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25
 integer, parameter :: radius$ = 3, focal_strength$ = 5
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
-integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2 ! Important: tilt$ = roll$
+integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3, ref_time_offset$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, k1_pseudo$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4

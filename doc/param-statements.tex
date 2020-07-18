@@ -371,13 +371,17 @@ parameters that can be set with the \vn{beginning} statement with the additional
   high_energy_space_charge_on
   live_branch
   particle
+  inherit_from_fork
 \end{example}
 Example:
 \begin{example}
   x_ray_fork: fork, to_line = x_ray
-  x_ray = (...)
+  x_ray: line = (...)
   x_ray[E_tot] = 100
 \end{example}
+The \vn{inherit_from_fork} logical is used to determine if the reference energy and Twiss parameters as calculated
+from the \vn{fork} element defining the branch is used to set the beginning element of the branch. This parameter
+is ignored if the fork element does not fork to the beginning element of the branch. The default is True. If any reference energy or momentum or any Twiss parameter is set, \vn{inverit_from_fork} is implicitly set to False.
 
 Rules:
   \begin{enumerate}
