@@ -107,6 +107,7 @@ orient_dir = ele%orientation * end_orb%direction
 rel_tracking_charge = rel_tracking_charge_to_mass(end_orb, param)
 charge_dir = rel_tracking_charge * orient_dir
 allocated_map = .false.
+num_wig_terms = 0
 
 ! element offset 
 
@@ -1011,7 +1012,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1037,7 +1038,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1063,7 +1064,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1089,7 +1090,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1115,7 +1116,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1141,7 +1142,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_y$)
@@ -1167,7 +1168,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_y$)
@@ -1193,7 +1194,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_y$)
@@ -1219,7 +1220,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_y$)
@@ -1245,7 +1246,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_y$)
@@ -1272,7 +1273,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1296,7 +1297,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1320,7 +1321,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1344,7 +1345,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
@@ -1368,7 +1369,7 @@ integer j
 !
 
 value = 0
-do j = 1, size(wig_term)
+do j = 1, num_wig_terms
   wt => wig_term(j)
   select case (wt%family)
   case (family_x$)
