@@ -399,9 +399,11 @@ CWD=$(pwd)
 CWD_DIR_CHECK=$(func_is_dir_toplevel ${CWD})
 DIST_BASE_DIR_CHECK=$(func_is_dir_toplevel ${DIST_BASE_DIR})
 
-if ( [ "${CWD_DIR_CHECK}" == "Y" ] ) ; then
+if ( [ "${CWD_DIR_CHECK}" == "Y" ] && [[ ! ${CWD} -ef ${DIST_BASE_DIR} ]]) ; then
 
-    [ ! -z "${DIST_BASE_DIR}" ] && echo -e "\nNOTE: The DIST_BASE_DIR setting is being overwritten.\n"
+    [ ! -z "${DIST_BASE_DIR}" ] && echo -e "\n-----------------------------------------------------" \
+                                           "\nNOTE: The DIST_BASE_DIR setting is being overwritten." \
+                                           "\n-----------------------------------------------------\n"
 
     export DIST_BASE_DIR=${CWD}
     echo -e "\nCurrent working directory is the root of a Bmad Distribution tree." \
