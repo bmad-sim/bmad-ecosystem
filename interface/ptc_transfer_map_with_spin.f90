@@ -86,7 +86,6 @@ call alloc (y0)
 t_map(:)%ref = orb0%vec
 x = orb0%vec
 
-use_bmad_units = .true.
 ptc_state = DEFAULT + SPIN0
 ptc_c_map = 1
 ptc_probe = orb0%vec
@@ -123,7 +122,5 @@ enddo
 call kill (ptc_c_map)
 call kill (y0)
 call kill (ptc_probe8)
-
-use_bmad_units = .false.
 
 end subroutine ptc_transfer_map_with_spin

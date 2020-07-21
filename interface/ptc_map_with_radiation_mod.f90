@@ -89,7 +89,6 @@ character(*), parameter :: r_name = 'ptc_setup_map_with_radiation'
 if (present(err_flag)) err_flag = .true.
 
 call zhe_ini(bmad_com%spin_tracking_on)
-use_bmad_units = .true.
 
 if (logic_option(.true., include_damping)) then
   state = default + radiation0 + envelope0
@@ -115,7 +114,6 @@ map_with_rad%lattice_file = branch%lat%input_file_name
 if (.not. associated(ptc_layout)) then
   call out_io (s_fatal$, r_name, 'NO ASSOCIATED PTC LAYOUT PRESENT!')
   if (global_com%exit_on_error) call err_exit
-  use_bmad_units = .false.
   return
 endif
 
@@ -137,7 +135,6 @@ else
   call find_orbit_x(orb, STATE, 1.0d-8, fibre1 = f1)
   if (.not. check_stable) then
     call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING WITH RADIATION IN PTC!')
-    use_bmad_units = .false.
     return
   endif
 endif
@@ -159,7 +156,6 @@ call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d
 
 call set_ptc_quiet(0, unset$, val_save)
 
-use_bmad_units = .false. ! Since Zhe stuff is standalone this will not affect the use of map_with_rad.
 if (present(err_flag)) err_flag = .false.
 
 end subroutine ptc_setup_map_with_radiation

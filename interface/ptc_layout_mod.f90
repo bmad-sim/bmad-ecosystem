@@ -394,7 +394,6 @@ end subroutine add_ptc_layout_to_list
 !
 ! Routine to setup PTC tracking that includes radiation damping and stochastic excitation.
 ! To track use the routine track_probe with ptc_state as the state argument.
-! This routine also sets PTC logical use_bmad_units = True.
 !
 ! Input:
 !   branch              -- branch_struct: Lattice branch to setup.
@@ -417,10 +416,6 @@ type (c_damap) cda
 
 real(dp) closed_orb(6)
 logical include_damping, include_excitation
-
-! Use bmad units with PTC
-
-use_bmad_units = .true.
 
 ! If including excitation then need to do a setup calculation with envelope on.
 
@@ -452,7 +447,7 @@ end subroutine ptc_setup_tracking_with_damping_and_excitation
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+! Subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, pz)
 !
 ! Routine to compute the transfer matrices for the individual elements and closed orbit 
 ! for a lattice branch with closed geometry.
@@ -461,8 +456,6 @@ end subroutine ptc_setup_tracking_with_damping_and_excitation
 !
 ! Input:
 !   branch            -- branch_struct: Lattice branch.
-!   to_bmad_coords    -- logical: If False then leave results in PTC phase space units.
-!                                 If True, convert to Bmad phase space units
 !   pz                -- real(rp), optional: energy offset around which to 
 !                          calculate the matrices if there is no RF.
 ! Output:
@@ -472,7 +465,7 @@ end subroutine ptc_setup_tracking_with_damping_and_excitation
 !     %ele(i)%fibre%i%fix(6)    -- Closed orbit at exit.
 !-
 
-subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, pz)
 
 use s_fitting_new, only: default, compute_linear_one_magnet_maps, fibre, layout
 
@@ -483,23 +476,11 @@ type (layout), pointer :: ptc_layout
 real(rp), optional :: pz
 real(rp) c_mat(6,6), c_mat_inv(6,6)
 integer i
-logical to_bmad_coords
 
 !
 
 ptc_fibre => branch%ele(1)%ptc_fibre
 call compute_linear_one_magnet_maps (ptc_fibre, DEFAULT, pz)
-
-if (to_bmad_coords) then
-  ptc_layout => ptc_fibre%parent_layout
-  do i = 1, ptc_layout%n
-    call vec_ptc_to_bmad (ptc_fibre%i%fix0, ptc_fibre%beta0, ptc_fibre%i%fix0, c_mat)
-    call vec_ptc_to_bmad (ptc_fibre%i%fix, ptc_fibre%beta0, ptc_fibre%i%fix)
-    call mat_inverse(c_mat, c_mat_inv)
-    ptc_fibre%i%m = matmul(matmul(c_mat, ptc_fibre%i%m), c_mat_inv)
-    ptc_fibre => ptc_fibre%next
-  enddo
-endif
 
 end subroutine ptc_one_turn_mat_and_closed_orbit_calc
 
@@ -556,10 +537,7 @@ endif
 
 !
 
-use_bmad_units = .true.
-ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 ptc_state = DEFAULT - NOCAVITY0 + RADIATION0
-
 
 ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
@@ -604,8 +582,6 @@ call kill (id)
 call kill (xs)
 call kill (cc_norm)
 
-use_bmad_units = .false.
-ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine ptc_emit_calc 
@@ -667,10 +643,7 @@ endif
 
 !
 
-use_bmad_units = .true.
-ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 ptc_state = DEFAULT - NOCAVITY0 + RADIATION0 + SPIN0
-
 
 ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
@@ -742,8 +715,6 @@ call kill (xs)
 call kill (cc_norm)
 call kill (isf)
 
-use_bmad_units = .false.
-ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine ptc_spin_calc 
@@ -819,11 +790,10 @@ type (coord_struct), allocatable :: orbit(:)
 type (ele_struct), pointer :: ele
 type (fibre), pointer :: fib
 
-real(rp) vec(6)
-real(dp) x(6)
+real(rp) x(6)
 
 integer i
-integer, optional ::track_state
+integer, optional :: track_state
 
 logical, optional :: err_flag
 
@@ -835,7 +805,7 @@ if (present(track_state)) track_state = moving_forward$
 !
 
 if (orbit(0)%state == not_set$) call init_coord(orbit(0), orbit(0)%vec, branch%ele(0), downstream_end$) 
-call vec_bmad_to_ptc (orbit(0)%vec, branch%ele(0)%value(p0c$) / branch%ele(0)%value(E_tot$), x)
+x = orbit(0)%vec
 
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
@@ -849,8 +819,7 @@ do i = 1, branch%n_ele_track
 
   fib => branch%ele(i)%ptc_fibre%next
   call track_probe_x (x, DEFAULT, branch%ele(i-1)%ptc_fibre%next, fib)
-  call vec_ptc_to_bmad (x, fib%beta0, vec)
-  call init_coord (orbit(i), vec, ele, downstream_end$)
+  call init_coord (orbit(i), x, ele, downstream_end$)
 
   call check_aperture_limit (orbit(i), ele, second_track_edge$, branch%param)
   if (orbit(i)%state /= alive$) then
@@ -891,9 +860,7 @@ type (coord_struct), allocatable :: closed_orbit(:)
 type (fibre), pointer :: fib
 type (internal_state) ptc_state
 
-real(dp) x(6)
-real(rp) vec(6)
-
+real(rp) x(6)
 integer i
 
 logical, optional :: radiation_damping_on
@@ -911,14 +878,12 @@ call reallocate_coord(closed_orbit, branch%n_ele_max)
 x = 0
 fib => branch%ele(0)%ptc_fibre%next
 call find_orbit_x (x, ptc_state, 1.0d-7, fibre1 = fib)  ! find closed orbit
-call vec_ptc_to_bmad (x, fib%beta0, vec)
-call init_coord (closed_orbit(0), vec, branch%ele(0), downstream_end$)
+call init_coord (closed_orbit(0), x, branch%ele(0), downstream_end$)
 
 do i = 1, branch%n_ele_track
   fib => branch%ele(i)%ptc_fibre%next
   call track_probe_x (x, ptc_state, branch%ele(i-1)%ptc_fibre%next, fib)
-  call vec_ptc_to_bmad (x, fib%beta0, vec)
-  call init_coord (closed_orbit(i), vec, branch%ele(i), downstream_end$)
+  call init_coord (closed_orbit(i), x, branch%ele(i), downstream_end$)
 enddo
 
 end subroutine ptc_closed_orbit_calc 
@@ -977,9 +942,6 @@ endif
 
 if (spin_on) ptc_state = ptc_state + spin0
 
-use_bmad_units = .true.
-ndpt_bmad = 1  ! Indicates that pz is in position 6 and not 5
-
 map_order = integer_option(ptc_com%taylor_order_ptc, order)
 call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
@@ -1006,9 +968,6 @@ if (spin_on) spin_map = p8%q%x
 
 call kill(p8)
 call kill(da_map)
-
-use_bmad_units = .false.
-ndpt_bmad = 0
 
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
@@ -1063,8 +1022,6 @@ else
   state = default + nocavity0
 endif
 
-ndpt_bmad = 1 ! Indicates that delta is in position 6 and not 5
-
 call init (state, ptc_com%taylor_order_ptc, 0) 
 call alloc(map8)
 call alloc(da_map)
@@ -1101,7 +1058,6 @@ call kill(map8)
 call kill(da_map)
 call kill(normal)
 
-ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_taylors
@@ -1139,8 +1095,6 @@ if (rf_on) then
 else
   state = default + nocavity0
 endif
-
-ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
 
 ! Set PTC state
 !no longer needed: use_complex_in_ptc=my_true
@@ -1207,7 +1161,6 @@ call kill(complex_normal_form)
 ! Reset PTC state
 use_complex_in_ptc=my_false
 c_verbose = c_verbose_save
-ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_complex_taylors
@@ -1271,8 +1224,6 @@ else
   state = default + nocavity0
 endif
 
-ndpt_bmad = 1  ! Indicates that delta is in position 6 and not 5
-
 ! Set PTC state
 !no longer needed: use_complex_in_ptc=my_true
 c_verbose_save = c_verbose
@@ -1330,7 +1281,6 @@ call kill(acs1_a)
 ! Reset PTC state
 use_complex_in_ptc=my_false
 c_verbose = c_verbose_save
-ndpt_bmad = 0
 call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_rd_terms
