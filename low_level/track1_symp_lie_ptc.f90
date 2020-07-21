@@ -35,7 +35,7 @@ type (probe) ptc_probe
 type (integration_node), pointer :: ptc_track
 type (internal_state) state, state0
 
-real(dp) re(6), beta0, beta1
+real(dp) re(6)
 integer i, stm
 
 character(20) :: r_name = 'track1_symp_lie_ptc'
@@ -44,16 +44,13 @@ character(20) :: r_name = 'track1_symp_lie_ptc'
 
 CONVERSION_XPRIME_IN_ABELL = (.not. bmad_com%convert_to_kinetic_momentum) ! Only affects cylindrical map eles
 
-beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
-beta1 = ele%value(p0c$) / ele%value(e_tot$)
-
 STATE0 = DEFAULT
 if (ptc_com%use_totalpath) STATE0 = STATE0 + TOTALPATH0
 
 STATE = STATE0
 if (bmad_com%spin_tracking_on) STATE = STATE0 + SPIN0
 
-call vec_bmad_to_ptc (start_orb%vec, beta0, re)
+re = start_orb%vec
 
 ! Track a drift if using hard edge model
 
@@ -111,8 +108,7 @@ if (tracking_uses_end_drifts(ele)) then
   call track_probe_x (re, STATE0, fibre1 = fibre_ele)
 endif  
 
-call vec_ptc_to_bmad (re, beta1, end_orb%vec, state = end_orb%state)
-if (end_orb%state /= alive$) return
+end_orb%vec = re
 
 ! 
 
@@ -151,9 +147,7 @@ real(dp) re(6)
 ! print '(i4, f10.6, 4x, 6f10.6, 4x, es16.8)', ptc_track%cas, ptc_track%s(1), ptc_probe%x, ptc_probe%E
 
 orbit = start2_orb
-re = ptc_probe%x
-re(5) = 1e9 * ptc_probe%E / end_orb%p0c       ! ptc_probe%E = Delta E in Gev
-call vec_ptc_to_bmad (re, beta1, orbit%vec)
+orbit%vec = ptc_probe%x
 orbit%s = ptc_track%s(1) + ele%s_start
 orbit%spin = rotate_vec_given_quat(ptc_probe%q%x, start2_orb%spin)
 call save_a_step (track, ele, param, .false., orbit, ptc_track%s(1))

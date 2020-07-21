@@ -25,7 +25,7 @@ type (coord_struct) :: end_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
-real(dp) re(lnv), beta0, dtime_ref
+real(dp) re(lnv), dtime_ref
 
 ! Put in offsets if needed.
 
@@ -74,14 +74,9 @@ endif
 
 ! track and add the constant term back in
 
-beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
-call vec_bmad_to_ptc (end_orb%vec, beta0, re(1:6))
-
+re(1:6) = end_orb%vec
 re = ele%ptc_genfield%field * re
-
-beta0 = ele%value(p0c$) / ele%value(e_tot$)
-call vec_ptc_to_bmad (re(1:6), beta0, end_orb%vec)
-end_orb%vec = end_orb%vec + ele%ptc_genfield%vec0
+end_orb%vec = re(1:6) + ele%ptc_genfield%vec0
 
 end subroutine
 
