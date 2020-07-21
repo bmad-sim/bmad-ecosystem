@@ -72,7 +72,7 @@ call taylor_clean(smap)
 call type_taylors (tmap)
 call type_taylors(smap, out_type = 'SPIN')
 
-call ptc_one_turn_mat_and_closed_orbit_calc (lat%branch(0), .true.)
+call ptc_one_turn_mat_and_closed_orbit_calc (lat%branch(0))
 
 !----------------------------
 
@@ -246,28 +246,12 @@ write (1, '(a, es10.2)')  '"TAYLOR2:dvec0"  ABS  1E-11', maxval(abs(diff_vec))
 write (1, '(a, es10.2)')  '"TAYLOR2:dorb%t" ABS  1E-22', &
           (end_orb1p%t - lat2%ele(1)%ref_time) - (end_orb2p%t - lat2%ele(3)%ref_time)
 
-! Vector translation
-
-vec_bmad = [0.01, 0.02, 0.03, 0.04, 1.0, 2.0]
-beta0 = 0.6
-beta1 = 0.7
-
-call vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, m6_to_ptc)
-call vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad2, m6_to_bmad)
-
-m6 = matmul(m6_to_ptc, m6_to_bmad)
-forall (j = 1:6) m6(j,j) = m6(j,j) - 1
-
-write (1, *) 
-write (1, '(a, 6es10.2)') '"vec_convert" ABS 1E-15', vec_bmad2 - vec_bmad
-write (1, '(a, es10.2)')  '"mat_convert" ABS 1E-15', maxval(abs(m6))
-
 ! Map translation
 
 call alloc(y8)
-call taylor_to_real_8 (lat3%ele(1)%taylor, beta0, beta1, y8)
+y8 = lat3%ele(1)%taylor
 bmad_taylor%ref = lat3%ele(1)%taylor%ref
-call real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
+bmad_taylor = y8
 bmad_taylor = bmad_taylor - lat3%ele(1)%taylor
 
 do i = 1, 6
