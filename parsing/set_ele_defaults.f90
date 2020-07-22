@@ -171,7 +171,7 @@ case (lcavity$)
   ele%value(autoscale_phase$) = true$
   ele%value(longitudinal_mode$) = 1
 
-case (line_ele$)
+case (def_line$)
   g = real_garbage$
   ele%value = g
   ele%s     = g

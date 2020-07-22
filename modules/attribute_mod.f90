@@ -530,7 +530,7 @@ do i = 1, n_key$
   if (i == def_bmad_com$)       cycle
   if (i == def_mad_beam$)       cycle
   if (i == def_particle_start$) cycle
-  if (i == line_ele$)           cycle
+  if (i == def_line$)           cycle
   if (i == def_parameter$)      cycle
 
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
@@ -847,13 +847,13 @@ call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
 
-attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
-call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
-call init_attribute_name1 (line_ele$, live_branch$,                 'LIVE_BRANCH')
-call init_attribute_name1 (line_ele$, geometry$,                    'GEOMETRY')
-call init_attribute_name1 (line_ele$, default_tracking_species$,    'DEFAULT_TRACKING_SPECIES')
-call init_attribute_name1 (line_ele$, ix_branch$,                   'ix_branch', private$)
-call init_attribute_name1 (line_ele$, high_energy_space_charge_on$, 'HIGH_ENERGY_SPACE_CHARGE_ON')
+attrib_array(def_line$, :) = attrib_array(beginning_ele$, :)
+call init_attribute_name1 (def_line$, particle$,                    'PARTICLE')
+call init_attribute_name1 (def_line$, live_branch$,                 'LIVE_BRANCH')
+call init_attribute_name1 (def_line$, geometry$,                    'GEOMETRY')
+call init_attribute_name1 (def_line$, default_tracking_species$,    'DEFAULT_TRACKING_SPECIES')
+call init_attribute_name1 (def_line$, ix_branch$,                   'ix_branch', private$)
+call init_attribute_name1 (def_line$, high_energy_space_charge_on$, 'HIGH_ENERGY_SPACE_CHARGE_ON')
 
 
 call init_attribute_name1 (capillary$, l$,                          'L', dependent$)
@@ -2572,7 +2572,7 @@ if (key == 0) then
 
   do i = 1, n_key$
     select case (i)
-    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_particle_start$, line_ele$); cycle
+    case (def_parameter$, def_mad_beam$, def_bmad_com$, def_particle_start$, def_line$); cycle
     end select
     old_attrib = attribute_name(i, ix_attrib+custom_attribute0$)
     if (old_attrib /= null_name$) cycle
@@ -2660,7 +2660,7 @@ do ic = 1, custom_attribute_num$
 
   do is = 1, n_key$
     select case (is)
-    case (def_mad_beam$, def_bmad_com$, def_particle_start$, line_ele$); cycle
+    case (def_mad_beam$, def_bmad_com$, def_particle_start$, def_line$); cycle
     end select
     if (attribute_name(is, icc) == null_name$) cycle
     if (attribute_name(is, icc) == common_name) cycle

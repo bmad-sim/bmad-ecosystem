@@ -129,7 +129,7 @@ call nametable_add(lat%nametable, ele%name, n_max+4)
 
 do i = 0, ubound(lat%branch, 1)
   ele => lat%ele(n_max+5+i)
-  call init_ele(ele, line_ele$, 0, n_max+5+i, lat%branch(0))
+  call init_ele(ele, def_line$, 0, n_max+5+i, lat%branch(0))
   ele%name = lat%branch(i)%name
   ele%value(ix_branch$) = i
   ele%ixx = 5 + i

@@ -819,6 +819,18 @@ type bookkeeping_state_struct
   integer :: ptc = stale$             ! Associated PTC fibre (or layout) status.
 end type
 
+! Cache multipole values in the element. 
+! In one simulation 25% of the time was spent constructing multipole arrays.
+
+type multipole_cache_struct
+  logical valid
+  real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+  integer ix_pole_mag_max
+  integer include_kicks   ! Store value of multipole_ele_to_ab arg.
+  real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
+  integer ix_pole_elec_max
+end type
+
 ! radiation integral data cache
 
 type rad_int_ele_cache_struct
@@ -1153,6 +1165,7 @@ type ele_struct
   type (coord_struct) :: map_ref_orb_out = coord_struct()      ! Exit end transfer map ref orbit
   type (coord_struct) :: time_ref_orb_in = coord_struct()      ! Reference orbit at entrance end for ref_time calc.
   type (coord_struct) :: time_ref_orb_out = coord_struct()     ! Reference orbit at exit end for ref_time calc.
+  type (multipole_cache_struct), allocatable :: multipole_cache
   real(rp) :: value(num_ele_attrib$) = 0                       ! attribute values.
   real(rp) :: old_value(num_ele_attrib$) = 0                   ! Used to see if %value(:) array has changed.
   real(rp) :: vec0(6) = 0                                      ! 0th order transport vector.
@@ -1381,7 +1394,7 @@ integer, parameter :: overlay$ = 6, custom$ = 7, taylor$ = 8, rfcavity$ = 9, els
 integer, parameter :: beambeam$ = 11, wiggler$ = 12, sol_quad$ = 13, marker$ = 14, kicker$ = 15
 integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18, multipole$ = 19, def_bmad_com$ = 20
 integer, parameter :: def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23, patch$ = 24, lcavity$ = 25
-integer, parameter :: def_parameter$ = 26, null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
+integer, parameter :: def_parameter$ = 26, null_ele$ = 27, beginning_ele$ = 28, def_line$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32, hkicker$ = 33, vkicker$ = 34
 integer, parameter :: rcollimator$ = 35, ecollimator$ = 36, girder$ = 37, converter$ = 38
 integer, parameter :: def_particle_start$ = 39, photon_fork$ = 40, fork$ = 41, mirror$ = 42, crystal$ = 43
@@ -1398,7 +1411,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'BeamBeam          ', 'Wiggler           ', 'Sol_Quad          ', 'Marker            ', 'Kicker            ', &
     'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', '!Bmad_Com         ', &
     '!Mad_Beam         ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
-    '!Parameter        ', 'Null_Ele          ', '!Beginning        ', '!Line Parameter   ', 'Match             ', &
+    '!Parameter        ', 'Null_Ele          ', '!Beginning        ', '!Line             ', 'Match             ', &
     'Monitor           ', 'Instrument        ', 'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', &
     'Ecollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
