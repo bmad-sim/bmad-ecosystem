@@ -110,6 +110,22 @@ fringe_at                        & p0c [eV]                         & wall      
  \vfill
  
  %---------------------------------
+ \section{Beginning Element Attributes}
+ \label{s:list.beginning}
+ 
+ \begin{tabular}{llll} \toprule
+alpha_a                          & cmat_22                          & etap_y                           & psi_position [rad]               \\
+alpha_b                          & e_tot [eV]                       & inherit_from_fork                & ref_time [sec]                   \\
+beta_a [m]                       & e_tot_start [eV]                 & p0c [eV]                         & s [m]                            \\
+beta_b [m]                       & eta_x [m]                        & p0c_start [eV]                   & theta_position [rad]             \\
+cmat_11                          & eta_y [m]                        & phi_a [rad]                      & x_position [m]                   \\
+cmat_12                          & eta_z [m]                        & phi_b [rad]                      & y_position [m]                   \\
+cmat_21                          & etap_x                           & phi_position [rad]               & z_position [m]                   \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
  \section{Bends: Rbend and Sbend Element Attributes Element Attributes}
  \label{s:list.bend}
  
@@ -140,6 +156,18 @@ e_tot [eV]                       & lord_pad1 [m]                    & scale_mult
 ele_origin                       & lord_pad2 [m]                    & space_charge_method              & y_pitch_tot                      \\
 exact_multipoles                 & lr_freq_spread [Hz]              & spin_fringe_on                   & z_offset [m]                     \\
 field_calc                       & lr_self_wake_on                  & spin_tracking_method             & z_offset_tot [m]                 \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
+ \section{Bmad_Com Element Attributes}
+ \label{s:list.bmad.com}
+ 
+ \begin{tabular}{llll} \toprule
+abs_tol_adaptive_tracking [m]    & default_ds_step [m]              & max_aperture_limit [m]           & rel_tol_adaptive_tracking        \\
+abs_tol_tracking [m]             & fatal_ds_adaptive_tracking [m]   & max_num_runge_kutta_step         & rel_tol_tracking                 \\
+aperture_limit_on                & init_ds_adaptive_tracking [m]    & min_ds_adaptive_tracking [m]     & significant_length [m]           \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -198,18 +226,18 @@ hkick                            & py_aperture_center               & wall      
  \label{s:list.converter}
  
  \begin{tabular}{llll} \toprule
-alias                            & l [m]                            & superimpose                      & x_pitch_tot                      \\
-angle_out_max [rad]              & mat6_calc_method                 & tilt [rad]                       & y1_limit [m]                     \\
-aperture [m]                     & offset [m]                       & tilt_tot [rad]                   & y2_limit [m]                     \\
-aperture_at                      & offset_moves_aperture            & tracking_method                  & y_limit [m]                      \\
-aperture_type                    & p0c [eV]                         & type                             & y_offset [m]                     \\
-create_jumbo_slave               & pc_out_max [eV]                  & wall                             & y_offset_tot [m]                 \\
-delta_ref_time [sec]             & pc_out_min [eV]                  & x1_limit [m]                     & y_pitch                          \\
-descrip                          & ptc_integration_type             & x2_limit [m]                     & y_pitch_tot                      \\
-distribution [???]               & ref_origin                       & x_limit [m]                      & z_offset [m]                     \\
-e_tot [eV]                       & reference                        & x_offset [m]                     & z_offset_tot [m]                 \\
-ele_origin                       & species_out [???]                & x_offset_tot [m]                 &                                  \\
-is_on                            & spin_tracking_method             & x_pitch                          &                                  \\
+alias                            & is_on                            & species_out [???]                & x_offset_tot [m]                 \\
+angle_out_max [rad]              & l [m]                            & spin_tracking_method             & x_pitch                          \\
+aperture [m]                     & mat6_calc_method                 & superimpose                      & x_pitch_tot                      \\
+aperture_at                      & offset [m]                       & tilt [rad]                       & y1_limit [m]                     \\
+aperture_type                    & offset_moves_aperture            & tilt_tot [rad]                   & y2_limit [m]                     \\
+create_jumbo_slave               & p0c [eV]                         & tracking_method                  & y_limit [m]                      \\
+delta_ref_time [sec]             & p0c_start [eV]                   & type                             & y_offset [m]                     \\
+descrip                          & pc_out_max [eV]                  & wall                             & y_offset_tot [m]                 \\
+distribution [???]               & pc_out_min [eV]                  & x1_limit [m]                     & y_pitch                          \\
+e_tot [eV]                       & ptc_integration_type             & x2_limit [m]                     & y_pitch_tot                      \\
+e_tot_start [eV]                 & ref_origin                       & x_limit [m]                      & z_offset [m]                     \\
+ele_origin                       & reference                        & x_offset [m]                     & z_offset_tot [m]                 \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -491,15 +519,15 @@ ele_origin                       & reference                        & x_limit [m
  \label{s:list.fork}
  
  \begin{tabular}{llll} \toprule
-alias                            & ele_origin                       & p0c [eV]                         & type                             \\
-aperture [m]                     & is_on                            & ptc_integration_type             & x1_limit [m]                     \\
-aperture_at                      & ix_to_branch                     & ref_origin                       & x2_limit [m]                     \\
-aperture_type                    & ix_to_element                    & reference                        & x_limit [m]                      \\
-create_jumbo_slave               & l [m]                            & spin_tracking_method             & y1_limit [m]                     \\
-delta_ref_time [sec]             & mat6_calc_method                 & superimpose                      & y2_limit [m]                     \\
-descrip                          & new_branch                       & to_element                       & y_limit [m]                      \\
-direction                        & offset [m]                       & to_line                          &                                  \\
-e_tot [eV]                       & offset_moves_aperture            & tracking_method                  &                                  \\
+alias                            & ele_origin                       & p0c [eV]                         & tracking_method                  \\
+aperture [m]                     & is_on                            & ptc_integration_type             & type                             \\
+aperture_at                      & ix_to_branch                     & ref_origin                       & x1_limit [m]                     \\
+aperture_type                    & ix_to_element                    & ref_species                      & x2_limit [m]                     \\
+create_jumbo_slave               & l [m]                            & reference                        & x_limit [m]                      \\
+delta_ref_time [sec]             & mat6_calc_method                 & spin_tracking_method             & y1_limit [m]                     \\
+descrip                          & new_branch                       & superimpose                      & y2_limit [m]                     \\
+direction                        & offset [m]                       & to_element                       & y_limit [m]                      \\
+e_tot [eV]                       & offset_moves_aperture            & to_line                          &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -688,25 +716,44 @@ l [m]                            & tilt [rad]                       & x_pitch_to
  \vfill
  
  %---------------------------------
+ \section{Line Parameter Element Attributes}
+ \label{s:list.line parameter}
+ 
+ \begin{tabular}{llll} \toprule
+alpha_a                          & e_tot [eV]                       & inherit_from_fork                & ref_time [sec]                   \\
+alpha_b                          & e_tot_start [eV]                 & live_branch                      & s [m]                            \\
+beta_a [m]                       & eta_x [m]                        & p0c [eV]                         & theta_position [rad]             \\
+beta_b [m]                       & eta_y [m]                        & p0c_start [eV]                   & x_position [m]                   \\
+cmat_11                          & eta_z [m]                        & particle                         & y_position [m]                   \\
+cmat_12                          & etap_x                           & phi_a [rad]                      & z_position [m]                   \\
+cmat_21                          & etap_y                           & phi_b [rad]                      &                                  \\
+cmat_22                          & geometry                         & phi_position [rad]               &                                  \\
+default_tracking_species         & high_energy_space_charge_on      & psi_position [rad]               &                                  \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
  \section{Marker Element Attributes}
  \label{s:list.marker}
  
  \begin{tabular}{llll} \toprule
-alias                            & lr_self_wake_on                  & sr_wake_file                     & x_offset_tot [m]                 \\
-aperture [m]                     & lr_wake                          & superimpose                      & x_pitch                          \\
-aperture_at                      & lr_wake_file                     & tilt [rad]                       & x_pitch_tot                      \\
-aperture_type                    & mat6_calc_method                 & tilt_calib [rad]                 & y1_limit [m]                     \\
-create_jumbo_slave               & n_sample                         & tilt_tot [rad]                   & y2_limit [m]                     \\
-crunch [rad]                     & noise                            & tracking_method                  & y_gain_calib [m]                 \\
-crunch_calib [rad]               & offset [m]                       & type                             & y_gain_err [m]                   \\
-de_eta_meas                      & offset_moves_aperture            & wall                             & y_limit [m]                      \\
-delta_ref_time [sec]             & osc_amplitude [m]                & x1_limit [m]                     & y_offset [m]                     \\
-descrip                          & p0c [eV]                         & x2_limit [m]                     & y_offset_calib [m]               \\
-e_tot [eV]                       & ptc_integration_type             & x_gain_calib [m]                 & y_offset_tot [m]                 \\
-ele_origin                       & ref_origin                       & x_gain_err [m]                   & y_pitch                          \\
-is_on                            & reference                        & x_limit [m]                      & y_pitch_tot                      \\
-l [m]                            & spin_tracking_method             & x_offset [m]                     & z_offset [m]                     \\
-lr_freq_spread [Hz]              & sr_wake                          & x_offset_calib [m]               & z_offset_tot [m]                 \\
+alias                            & lr_wake                          & superimpose                      & x_pitch_tot                      \\
+aperture [m]                     & lr_wake_file                     & tilt [rad]                       & y1_limit [m]                     \\
+aperture_at                      & mat6_calc_method                 & tilt_calib [rad]                 & y2_limit [m]                     \\
+aperture_type                    & n_sample                         & tilt_tot [rad]                   & y_gain_calib [m]                 \\
+create_jumbo_slave               & noise                            & tracking_method                  & y_gain_err [m]                   \\
+crunch [rad]                     & offset [m]                       & type                             & y_limit [m]                      \\
+crunch_calib [rad]               & offset_moves_aperture            & wall                             & y_offset [m]                     \\
+de_eta_meas                      & osc_amplitude [m]                & x1_limit [m]                     & y_offset_calib [m]               \\
+delta_ref_time [sec]             & p0c [eV]                         & x2_limit [m]                     & y_offset_tot [m]                 \\
+descrip                          & ptc_integration_type             & x_gain_calib [m]                 & y_pitch                          \\
+e_tot [eV]                       & ref_origin                       & x_gain_err [m]                   & y_pitch_tot                      \\
+ele_origin                       & ref_species                      & x_limit [m]                      & z_offset [m]                     \\
+is_on                            & reference                        & x_offset [m]                     & z_offset_tot [m]                 \\
+l [m]                            & spin_tracking_method             & x_offset_calib [m]               &                                  \\
+lr_freq_spread [Hz]              & sr_wake                          & x_offset_tot [m]                 &                                  \\
+lr_self_wake_on                  & sr_wake_file                     & x_pitch                          &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -858,6 +905,35 @@ field_master                     & offset [m]                       & tilt_tot [
  \begin{tabular}{llll} \toprule
 alias                            & gang                             & var                              &                                  \\
 descrip                          & type                             & x_knot                           &                                  \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
+ \section{Parameter Element Attributes}
+ \label{s:list.parameter}
+ 
+ \begin{tabular}{llll} \toprule
+absolute_time_tracking           & high_energy_space_charge_on      & n_part                           & ptc_exact_misalign               \\
+default_tracking_species         & lattice                          & no_end_marker                    & ptc_exact_model                  \\
+e_tot [eV]                       & lattice_type [???]               & p0c [eV]                         & ran_seed                         \\
+electric_dipole_moment           & live_branch                      & particle                         & taylor_order                     \\
+geometry                         & machine                          & photon_type                      &                                  \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
+ \section{Particle_Start Element Attributes}
+ \label{s:list.particle.start}
+ 
+ \begin{tabular}{llll} \toprule
+direction                        & field_y                          & sig_pz                           & x [m]                            \\
+e_photon [eV]                    & phase_x [rad]                    & sig_z [m]                        & y [m]                            \\
+emittance_a [m*rad]              & phase_y [rad]                    & spin_x                           & z [m]                            \\
+emittance_b [m*rad]              & px                               & spin_y                           &                                  \\
+emittance_z [m*rad]              & py                               & spin_z                           &                                  \\
+field_x                          & pz                               & t [sec]                          &                                  \\
  \bottomrule
  \end{tabular}
  \vfill

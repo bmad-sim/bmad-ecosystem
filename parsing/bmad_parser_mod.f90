@@ -4657,6 +4657,7 @@ integer i, j, nb, n_ele_use, n, ix, key
 
 character(*), optional :: new_branch_name
 character(*), allocatable ::  seq_name(:)
+character(40) branch_name
 
 logical created_new_branch, no_end_marker
 
@@ -4665,7 +4666,7 @@ logical created_new_branch, no_end_marker
 created_new_branch = .true.
 nb = ubound(lat%branch, 1)
 
-if (fork_ele%value(new_branch$) == 0) then ! Branch back if
+if (is_false(fork_ele%value(new_branch$))) then ! Branch back if
   do i = 0, nb - 1
     branch => lat%branch(i)
     if (branch%name /= fork_ele%component_name) cycle
@@ -4675,20 +4676,31 @@ if (fork_ele%value(new_branch$) == 0) then ! Branch back if
   enddo
 endif
 
-if (created_new_branch) then
-  call parser_expand_line (1, fork_ele%component_name, sequence, &
-                                seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat)
+branch_name = fork_ele%component_name
+if (present(new_branch_name)) new_branch_name = branch_name
+fork_ele%component_name = plat%ele(fork_ele%ixx)%ele_name  ! Substitute element name for line name.
 
+if (created_new_branch) then
+  call parser_expand_line (1, branch_name, sequence, seq_name, seq_indexx, no_end_marker, n_ele_use, lat, in_lat)
   nb = nb + 1
   fork_ele%value(ix_to_branch$) = nb
   branch => lat%branch(nb)
 
   branch%ix_from_branch     = fork_ele%ix_branch
   branch%ix_from_ele        = fork_ele%ix_ele
+  n = branch%ix_from_branch
+  if (lat%branch(n)%param%particle /= branch%param%particle) branch%ele(0)%value(inherit_from_fork$) = false$
+
+  ! Need to know if the reference energy needs to be specified for the new branch which depends upon if the 
+  ! "to" ele is the Beginning element. But the "to" element may not yet exist (may be superimposed later).
+  ! So just do something crude for now.
+  if (fork_ele%component_name == '' .or. fork_ele%component_name == 'BEGINNING') then
+    branch%ix_to_ele = 0
+  else
+    branch%ix_to_ele = -1
+  endif
 endif
 
-if (present(new_branch_name)) new_branch_name = fork_ele%component_name
-fork_ele%component_name = plat%ele(fork_ele%ixx)%ele_name  ! Substitute element name for line name.
 
 end subroutine parser_add_branch
 

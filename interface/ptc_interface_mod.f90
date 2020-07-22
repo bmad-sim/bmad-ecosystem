@@ -1153,7 +1153,8 @@ if (.not. init_ptc_needed .or. logic_option(.false., force_init)) then  ! If mak
   if (t_order == 0) t_order = bmad_com%taylor_order
   if (t_order == 0) t_order = ptc_com%taylor_order_saved
   if (ptc_com%taylor_order_ptc /= t_order) then
-    call init (DEFAULT, t_order, 0)
+    ! Due to Bmad vs PTC units bug, call init with nocavity
+    call init (DEFAULT+NOCAVITY0, t_order, 0)
     init_spin_needed = .true.
     c_verbose_save = c_verbose
     c_verbose = .false.

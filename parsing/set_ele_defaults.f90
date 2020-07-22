@@ -63,6 +63,7 @@ case (fork$, photon_fork$)
   ele%value(direction$) = 1
   ele%value(particle$) = real_garbage$
   ele%value(ref_species$) = not_set$   ! Used when element is after a converter
+  ele%value(new_branch$) = true$
 
 case (capillary$)
   ele%offset_moves_aperture = .true.
@@ -230,7 +231,6 @@ case (multipole$)
 
 case (patch$)
   ele%value(flexible$) = false$ 
-  ele%value(new_branch$) = true$
   ele%value(ref_coordinates$)= exit_end$
   ele%value(upstream_ele_dir$) = 1
   ele%value(downstream_ele_dir$) = 1

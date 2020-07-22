@@ -434,7 +434,7 @@ type of element, all elements of that type will be set. For example
   rfcavity::*[voltage] = 3.7             ! Set all RFcavity elements.
 \end{example}
 
-To set an attribute for multiple element at one time, The wild cards \vn{``*''}, and \vn{``\%''} can
+To set an attribute for multiple element at one time, The wild cards ``\vn{*}'', and ``\vn{\%}'' can
 be used in element names (\sref{s:ele.match}). Examples:
 \begin{example}
   *[tracking_method] = bmad_standard  ! Matches all elements.
@@ -446,16 +446,16 @@ Unlike when there are no wild cards used in a name, it is not an error if a name
 does not match to any element.  Note: A name with wild cards will never match to the \vn{BEGINNING}
 element (\sref{s:use}).
 
-The \vn{``\%''} symbol can be used in expression to represent the lattice element whose parameter is
+The ``\vn{\%}'' symbol can be used in expression to represent the lattice element whose parameter is
 being set. For example:
 \begin{example}
   s%z[k2] = %[k2] + 0.03 * ran_gauss()
 \end{example}
-The \vn{``s\%z''} on the left hand side matches to all three letter elements whose name begins with
-``\vn{s}'' and ends with ``\vn{z}''. For each element that is matched, the \vn{``\%[k2]''} in the
+The ``\vn{s\%{}z}'' on the left hand side matches to all three letter elements whose name begins with
+``\vn{s}'' and ends with ``\vn{z}''. For each element that is matched, the ``\vn{\%[k2]}'' in the
 expression on the right hand side will be the \vn{k2} value of that element. Thus, if there are three
-elements, named \vn{s0z}, \vn{saz}, and \vn{s.z}, in the lattice that match \vn{s\%z}, the above command
-is equivalent to
+elements, named \vn{s0z}, \vn{saz}, and \vn{s.z}, in the lattice that match \vn{s\%{}z}, the above command
+is equivalent to the following three commands
 \begin{example}
   s0z[k2] = s0z[k2] + 0.03 * ran_gauss()
   saz[k2] = saz[k2] + 0.03 * ran_gauss()

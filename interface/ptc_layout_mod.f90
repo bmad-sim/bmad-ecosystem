@@ -356,16 +356,16 @@ end subroutine branch_to_ptc_m_u
 ! Routine to add a layout the a list of layouts.
 !
 ! Input:
-!   branch_ptc_info  -- ptc_branch1_info_struct: List of layouts
+!   branch_ptc_info  -- ptc_branch1_struct: List of layouts
 !   layout_end       -- layout: ptc layout
 !
 ! Output:
-!   branch_ptc_info  -- ptc_branch1_info_struct: Updated list.
+!   branch_ptc_info  -- ptc_branch1_struct: Updated list.
 !-
 
 subroutine add_ptc_layout_to_list (branch_ptc_info, layout_end)   
 
-type (ptc_branch1_info_struct) branch_ptc_info, temp_info
+type (ptc_branch1_struct) branch_ptc_info, temp_info
 type (layout), target :: layout_end
 integer n
 
@@ -544,7 +544,7 @@ ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
 
 ptc_state = ptc_state + ENVELOPE0
-call init_all(ptc_state, 1, 0)
+!! call init_all(ptc_state, 1, 0)
 
 call alloc (id)
 call alloc (xs)
@@ -581,8 +581,6 @@ sigma_mat = cc_norm%s_ij0
 call kill (id)
 call kill (xs)
 call kill (cc_norm)
-
-call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine ptc_emit_calc 
 
@@ -650,7 +648,7 @@ ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
 
 ptc_state = ptc_state + ENVELOPE0
-call init_all(ptc_state, 1, 0)
+!! call init_all(ptc_state, 1, 0)
 
 call alloc (id, U_1, as, a0, a1, a2)
 call alloc (xs)
@@ -714,8 +712,6 @@ call kill (id, U_1, as, a0, a1, a2)
 call kill (xs)
 call kill (cc_norm)
 call kill (isf)
-
-call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine ptc_spin_calc 
 
@@ -892,37 +888,40 @@ end subroutine ptc_closed_orbit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_map_at_ele (ele, map, spin_map, pz, order)
+! Subroutine ptc_one_turn_map_at_ele (ele, orb0, map, pz, order)
 !
-! Routine to calculate the one turn map for a ring.
+! Routine to calculate the PTC one turn map for a ring.
+!
 ! Note: Use set_ptc(no_cavity = True/False) set turn on/off the RF cavities.
+! Note: use_bmad_units = T for the calculation.
 !
 ! Input:
 !   ele     -- ele_struct: Element determining start/end position for one turn map.
+!   map     -- probe_8: Must be allocated.
 !   pz      -- real(rp), optional: momentum deviation of closed orbit. 
 !                                  Default = 0
 !   order   -- integer, optional: Order of the map. If not given then default order is used.
 !
 ! Output:
-!   map(6)      -- taylor_struct: orbital map.
-!   spin_map(4) -- taylor_struct, optional: Quaternion spin map if spin tracking is on.
+!   orb0(6)    -- real(rp): Closed orbit around which map is made.
+!   map        -- probe_8: Map.
+!     %x           -- Orbital part.
+!     %q%x         -- Spin part.
 !-
 
-subroutine ptc_one_turn_map_at_ele (ele, map, spin_map, pz, order)
+subroutine ptc_one_turn_map_at_ele (ele, orb0, map, pz, order)
 
 use madx_ptc_module
 
 type (ele_struct), target :: ele
-type (taylor_struct) map(6)
-type (taylor_struct), optional :: spin_map(4)
 type (internal_state) ptc_state
 type (fibre), pointer :: fib
 type (c_damap) da_map
-type (probe_8) p8
+type (probe_8) map
 type (probe) p0
 
 real(rp), optional :: pz
-real(dp) x(6)
+real(dp) orb0(6)
 
 integer :: map_order
 integer, optional :: order
@@ -932,7 +931,7 @@ logical rf_on, spin_on
 !
 
 rf_on = rf_is_on(ele%branch)
-spin_on = bmad_com%spin_tracking_on .and. present(spin_map)
+spin_on = bmad_com%spin_tracking_on
 
 if (rf_on) then
   ptc_state = default - nocavity0
@@ -943,35 +942,66 @@ endif
 if (spin_on) ptc_state = ptc_state + spin0
 
 map_order = integer_option(ptc_com%taylor_order_ptc, order)
-call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
+!! call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
 
-x = 0
-if (present(pz)) x(6) = pz
+orb0 = 0
+if (present(pz)) orb0(6) = pz
 fib => ele%ptc_fibre%next
-call find_orbit_x (x, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
+call find_orbit_x (orb0, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 
 ! Construct map.
 
-call alloc(p8)
 call alloc(da_map)
 
-p0 = x
+p0 = orb0
 da_map = 1
-p8 = da_map + p0
-call track_probe (p8, ptc_state, fibre1 = fib)
+map = da_map + p0
+call track_probe (map, ptc_state, fibre1 = fib)
 
-map%ref = x
-map = p8%x
-if (spin_on) spin_map = p8%q%x
-
-call kill(p8)
 call kill(da_map)
 
-call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+end subroutine ptc_one_turn_map_at_ele
 
-end Subroutine ptc_one_turn_map_at_ele
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine ptc_map_to_normal_form (one_turn_map, normal_form, phase_map, spin_map)
+!
+! Routine to do normal form analysis on a map.
+! Note: All output quantities must be allocated prior to calling this routine.
+!
+! Input:
+!   one_turn_map    -- probe_8: One turn map.
+!
+! Output:
+!   normal_form     -- c_normal_form: Normal form decomposition.
+!   phase_map(3)    -- c_taylor: Phase Taylor maps.
+!   spin_map        -- c_taylor, optional: Spin quaternion Taylor map.
+!-
+
+subroutine ptc_map_to_normal_form (one_turn_map, normal_form, phase_map, spin_map)
+
+use pointer_lattice
+
+implicit none
+
+type (probe_8) one_turn_map
+type (c_normal_form) normal_form
+type (c_taylor) phase_map(3)
+type (c_taylor), optional :: spin_map
+type (c_damap) c_map
+
+!
+
+call alloc(c_map)
+c_map = one_turn_map
+call c_normal (c_map, normal_form, dospin = bmad_com%spin_tracking_on, phase = phase_map, nu_spin = spin_map)
+call kill(c_map)
+
+end subroutine ptc_map_to_normal_form
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -1022,7 +1052,7 @@ else
   state = default + nocavity0
 endif
 
-call init (state, ptc_com%taylor_order_ptc, 0) 
+!! call init (state, ptc_com%taylor_order_ptc, 0) 
 call alloc(map8)
 call alloc(da_map)
 call alloc(normal)
@@ -1058,7 +1088,7 @@ call kill(map8)
 call kill(da_map)
 call kill(normal)
 
-call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+!! call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_taylors
 
@@ -1070,7 +1100,8 @@ end subroutine normal_form_taylors
 !
 ! UNDER DEVELOPMENT
 !-
-subroutine normal_form_complex_taylors(one_turn_taylor, rf_on, F, L, A, A_inverse, order)
+
+subroutine normal_form_complex_taylors (one_turn_taylor, rf_on, F, L, A, A_inverse, order)
 
 use madx_ptc_module
 
@@ -1086,6 +1117,7 @@ type (internal_state) :: state
 integer :: i, order_for_normal_form
 integer, optional :: order
 logical :: rf_on, c_verbose_save
+
 !
 
 order_for_normal_form = integer_option(1, order)
@@ -1100,7 +1132,7 @@ endif
 !no longer needed: use_complex_in_ptc=my_true
 c_verbose_save = c_verbose
 c_verbose = .false.
-call init_all (state, ptc_com%taylor_order_ptc, 0)
+!! call init_all (state, ptc_com%taylor_order_ptc, 0)
 call alloc(map8)
 call alloc(da)
 call alloc(cda)
@@ -1161,7 +1193,7 @@ call kill(complex_normal_form)
 ! Reset PTC state
 use_complex_in_ptc=my_false
 c_verbose = c_verbose_save
-call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+!! call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_complex_taylors
 
@@ -1169,48 +1201,38 @@ end subroutine normal_form_complex_taylors
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine normal_form_rd_terms(normal_form, rf_on, order)
+! Subroutine normal_form_rd_terms(one_turn_map, normal_form, rf_on, order)
 !
 ! Calculate resonance driving terms using PTC.  The contents of
 ! normal_form%rd_term(:)%c_val are directly comparable to equations
 ! 97 of "The Sextupole Scheme for the Swiss Light Source (SLS): An
 ! An Analytic Approach" SLS Note 9/97, Johan Bengtsson.
 !
-! See bmad/modules/bmad_struct.f90 contents rd_term_struct, normal_form_struct
-! rd_term_name, and rd_term_descrip for description of contents of
-! normal_form%h(:)
-!
 ! Input:
-!   normal_form%m  -- type(taylor_struct): one-turn taylor map
+!   one_turn_map   -- probe_8: One-turn map.
 !   rf_on          -- logical: perform calculation with RF on?
 !   order          -- integer, optional: order for normal_form_calculation.
 !
 ! Output:
-!   normal_form%h(:)%c_val -- complex values for one-turn driving terms.
+!   normal_form%h(:)%c_val -- bmad_normal_form_struct: complex values for one-turn driving terms.
 !-
-subroutine normal_form_rd_terms(normal_form, rf_on, order)
+subroutine normal_form_rd_terms(one_turn_map, normal_form, rf_on, order)
 
 use madx_ptc_module
 
-type(normal_form_struct) normal_form
+type (probe_8) one_turn_map
+type (bmad_normal_form_struct) normal_form
 integer i, order_for_normal_form
 integer, optional :: order
 logical :: rf_on, c_verbose_save
 
-!PTC types need alloc
 type (c_vector_field) F
 type (c_taylor) vb
 type (c_damap) cda
 type (c_damap) a2, a_step1
 type (c_damap) acs1_a
-type (damap) da
-type (real_8) map8(6)
 type (c_normal_form) complex_normal_form
-
-!PTC types no alloc
 type (internal_state) :: state
-type(fibre), pointer :: fib
-type (probe) co_pr
 
 !
 
@@ -1225,33 +1247,26 @@ else
 endif
 
 ! Set PTC state
-!no longer needed: use_complex_in_ptc=my_true
+
 c_verbose_save = c_verbose
 c_verbose = .false.
-call init_all (state, ptc_com%taylor_order_ptc, 0) 
+!! call init_all (state, ptc_com%taylor_order_ptc, 0) 
 
 call alloc(vb)
 call alloc(F)
-call alloc(map8)
-call alloc(da)
 call alloc(cda)
 call alloc(complex_normal_form)
 call alloc(a2)
 call alloc(a_step1)
 call alloc(acs1_a)
 
-co_pr = normal_form%m%ref
-
-! Convert to real_8, then a da map, then complex da map
-map8 = normal_form%m
-da = map8
-cda = da
-
 ! Complex normal form in phasor basis
 ! See: fpp-ptc-read-only/build_book_example_g95/the_fpp_on_line_glossary/complex_normal.htm
 ! M = A o N o A_inverse.
 
-call c_normal(cda, complex_normal_form, dospin=my_false)!, no_used=1) 
+cda = one_turn_map
+
+call c_normal(cda, complex_normal_form, dospin=my_false)  !, no_used=1) 
 call c_fast_canonise(complex_normal_form%a_t,acs1_a)
 
 a_step1 = acs1_a**(-1)*cda*acs1_a
@@ -1269,19 +1284,16 @@ enddo
 ! Cleanup
 call kill(vb)
 call kill(F)
-call kill(map8)
-call kill(da)
 call kill(cda)
 call kill(complex_normal_form)
 call kill(a2)
 call kill(a_step1)
 call kill(acs1_a)
 
-
 ! Reset PTC state
+
 use_complex_in_ptc=my_false
 c_verbose = c_verbose_save
-call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_rd_terms
 
@@ -1327,225 +1339,6 @@ character(*) file_name
 call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
 
 end subroutine write_ptc_flat_file_lattice
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!+
-! Subroutine update_ptc_fibre_from_bmad (ele)
-!
-! Routine to update a fibre when the associated Bmad ele has been modified.
-!
-! Input:
-!   ele           -- ele_struct: Element with corresponding PTC fibre.
-!
-! Output:
-!   ele%ptc_fibre -- PTC fibre.
-!-
-
-subroutine update_ptc_fibre_from_bmad (ele)
-
-use madx_ptc_module
-
-type (ele_struct), target :: ele, m_ele
-type (branch_struct), pointer :: branch
-type (keywords) ptc_key
-type (element), pointer :: mag
-type (elementp), pointer :: magp
-type (magnet_chart), pointer :: p, pp
-
-real(rp) value, hk, vk, phi_tot, fh
-real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
-real(rp), pointer :: val(:)
-
-integer i, ix, ix_pole_max
-
-character(*), parameter :: r_name = 'update_ptc_fibre_from_bmad'
-
-! "0" argument in add routine means set k/ks to value given.
-! As opposed to "1" which means add to existing value.
-
-branch => pointer_to_branch(ele)
-val => ele%value
-
-! Must set all poles even if zero since they might have been non-zero beforehand.
-! Note: On ptc side bn(1) is error field when creating a fibre but is total field when fibre is being modified.	 
-
-! Magnetic
-
-call ele_to_ptc_magnetic_an_bn (ele, branch%param, b_pole, a_pole) ! Yes arg order is b_pole, a_pole.
-if (ele%key == sbend$) b_pole(1) = b_pole(1) + ele%value(g$)	 
-
-do i = n_pole_maxx, 0, -1
-  if (b_pole(i) /= 0) call add (ele%ptc_fibre,  (i+1), 0, b_pole(i))
-  if (a_pole(i) /= 0) call add (ele%ptc_fibre, -(i+1), 0, a_pole(i))
-enddo
-
-! Electric. Notice that PTC assumes horizontally_pure bend multipoles
-
-fh = 1d-9 * sign_of(charge_of(branch%param%particle)) / VOLT_C
-if (ele%key == sbend$ .and. nint(val(exact_multipoles$)) == vertically_pure$) then
-  call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$, include_kicks$)
-  call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, a_pole, b_pole)
-else
-  call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
-endif
-
-if (ele%key == elseparator$) then
-  a_pole(0) = a_pole(0) + val(vkick$) * val(p0c$) / val(l$)
-  b_pole(0) = b_pole(0) + val(hkick$) * val(p0c$) / val(l$)
-endif
-
-do i = 0, n_pole_maxx
-  if (b_pole(i) /= 0) call add (ele%ptc_fibre,  (i+1), 0, fh*b_pole(i), electric = .true.)
-  if (a_pole(i) /= 0) call add (ele%ptc_fibre, -(i+1), 0, fh*a_pole(i), electric = .true.)
-enddo
-
-! Note: ele_to_an_bn takes care of such stuff as sextupole strength conversion so
-! only have to worry about non-multipole components here.
-
-mag  => ele%ptc_fibre%mag
-magp => ele%ptc_fibre%magp
-
-p => mag%p
-pp => magp%p
-
-! call set_integer (p%method, pp%method, nint(val(integrator_order$)))
-! call set_integer (p%nst, pp%nst, nint(val(num_steps$)))
-
-select case (ele%key)
-
-case (solenoid$)
-  call set_real (mag%b_sol, magp%b_sol, val(ks$))
-
-case (sol_quad$)
-  call set_real (mag%b_sol, magp%b_sol, val(ks$))
-
-case (rfcavity$, lcavity$)
-  phi_tot = twopi * (val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$))
-  if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot
-  call set_real (mag%phas, magp%phas, -mag%lag)
-
-  call set_real (mag%volt, magp%volt, 2d-6 * e_accel_field(ele, voltage$))
-
-case (sad_mult$)
-
-  if (val(l$) /= 0) then
-    call set_real (mag%b_sol, magp%b_sol, val(ks$))
-    call set_real (mag%va, magp%va, -sign(sqrt(24 * abs(val(fq1$))), val(fq1$)))
-    call set_real (mag%vs, magp%vs, val(fq2$))
-  endif
-
-  call set_real (mag%b_sol, magp%b_sol, val(ks$))
-
-case (sbend$)
-  call set_real (mag%hgap(1), magp%hgap(1), val(hgap$))
-  call set_real (mag%fint(1), magp%fint(1), val(fint$))
-  call set_real (mag%hgap(2), magp%hgap(2), val(hgapx$))
-  call set_real (mag%fint(2), magp%fint(2), val(fintx$))
-  call set_real_all (mag%p%edge(1), magp%p%edge(1), val(e1$))
-  call set_real_all (mag%p%edge(2), magp%p%edge(2), val(e2$))
-
-end select
-
-! Fringe
-
-if (ele%key == sbend$) then
-  ix = nint(val(ptc_fringe_geometry$))
-  call set_logic (p%bend_fringe, pp%bend_fringe, (ix == x_invariant$))
-
-  ix = nint(val(fringe_type$))
-  select case (ix)
-  case (none$)
-    call set_integer (p%permfringe, pp%permfringe, 0)
-  case (basic_bend$, linear_edge$)
-    call set_integer (p%permfringe, pp%permfringe, 0)
-  case (full$)
-    call set_integer (p%permfringe, pp%permfringe, 1)
-  case (hard_edge_only$)
-    call set_integer (p%permfringe, pp%permfringe, 1)
-  case (soft_edge_only$)
-    call set_integer (p%permfringe, pp%permfringe, 2)
-  case (sad_full$)
-    call set_integer (p%permfringe, pp%permfringe, 3)
-  end select
-
-elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
-  call set_logic (p%bend_fringe, pp%bend_fringe, .false.)
-
-  ix = nint(val(fringe_type$))
-  select case (ix)
-  case (none$)
-    call set_integer (p%permfringe, pp%permfringe, 0)
-  case (hard_edge_only$)
-    call set_integer (p%permfringe, pp%permfringe, 1)
-  case (soft_edge_only$)
-    call set_integer (p%permfringe, pp%permfringe, 2)
-  case (full$)
-    call set_integer (p%permfringe, pp%permfringe, 3)
-  end select
-
-  if (ele%key == sad_mult$ .and. val(l$) == 0) call set_integer (p%permfringe, pp%permfringe, 0)
-endif
-
-if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
-  ix = nint(val(fringe_at$))
-  call set_logic (p%kill_ent_fringe, pp%kill_ent_fringe, (ix == downstream_end$ .or. ix == no_end$))
-  call set_logic (p%kill_exi_fringe, pp%kill_exi_fringe, (ix == upstream_end$ .or. ix == no_end$))
-endif
-
-! misalign
-
-call misalign_ele_to_fibre (ele, .true., ele%ptc_fibre)
-
-ele%bookkeeping_state%ptc = ok$
-
-!-------------------------------------------------------------------------
-contains
-
-subroutine set_real (to1, to2, value)
-real(rp) value, to1
-type(real_8) to2
-
-to1 = value
-to2 = value
-
-end subroutine set_real
-
-!-------------------------------------------------------------------------
-! contains
-
-subroutine set_real_all (to1, to2, value)
-real(rp) value, to1, to2
-
-to1 = value
-to2 = value
-
-end subroutine set_real_all
-
-!-------------------------------------------------------------------------
-! contains
-
-subroutine set_integer (to1, to2, value)
-integer to1, to2, value
-
-to1 = value
-to2 = value
-
-end subroutine set_integer
-
-!-------------------------------------------------------------------------
-! contains
-
-subroutine set_logic (to1, to2, value)
-logical to1, to2, value
-
-to1 = value
-to2 = value
-
-end subroutine set_logic
-
-end subroutine update_ptc_fibre_from_bmad 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

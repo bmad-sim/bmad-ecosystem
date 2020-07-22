@@ -54,7 +54,7 @@ contains
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
 !+ 
-! Subroutine srdt_calc(lat, srdt, order, n_slices_gen_opt, n_slices_sxt_opt)
+! Subroutine srdt_calc(lat, srdt_sums, order, n_slices_gen_opt, n_slices_sxt_opt)
 !
 ! Calculate summation RDT terms up to order=1 or order=2 while slicing sextupoles 
 ! n_slices_sxt_opt times and all other elements n_slices_gen_opt times.
@@ -72,7 +72,7 @@ contains
 !   n_slices_sxt_opt   -- integer, optional: nubmer of times to slice sextupoles.  Default is 20.
 !
 ! Output:
-!   srdt                -- summation_rdt_struct: contains complex RDT strengths.
+!   srdt_sums           -- summation_rdt_struct: contains complex RDT strengths.
 !-
 
 subroutine srdt_calc (lat, srdt_sums, order, n_slices_gen_opt, n_slices_sxt_opt, per_ele_out)

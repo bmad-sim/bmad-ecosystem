@@ -1630,8 +1630,7 @@ case ('INTERPOLATION')
 
 case ('LATTICE_TYPE')   ! Old style
   call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
-                     'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED', &
-                     'THIS PROGRAM WILL RUN NORMALLY...', level = s_warn$)
+                     'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED')
   call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(geometry$) = ix
 
@@ -1785,7 +1784,7 @@ case default   ! normal attribute
     select case (attrib_word)
     case ('CBAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'P0C', 'E_TOT', 'ETA_X', 'ETA_Y', &
           'ETAP_X', 'ETAP_Y', 'ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B')
-      ele%value(inherit_from_fork$) = true$
+      ele%value(inherit_from_fork$) = false$
     end select
   endif
 
