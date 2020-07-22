@@ -759,21 +759,25 @@ individual elements.
 
   %----------------------
   \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline
-Chromaticity and chromatic terms in the Taylor expansion with respect to $p_z$ as calculated from
-Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $.a$ denotes the $a$
-normal mode of oscillation and $.b$ denotes the $b$-mode. $N$ is an integer which gives the order of
-the index in the Taylor expansion
+Terms in the Taylor expansion of the chromaticity which is a function of phase space $p_z$ as
+calculated from Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $.a$
+denotes the $a$ normal mode of oscillation and $.b$ denotes the $b$-mode. $N$ is an integer which
+gives the order of the Taylor term
 \begin{equation}
-  Q(p_z) = Q_0 + Q_1 \, p_z + Q_2 \, p_z^2 + \ldots
+  Q(p_z) = Q_0 + Q_1 \, p_z + Q_2 \, p_z^2 + Q_3 \, p_z^3 + \ldots
 \end{equation}
-$N = 0$, that is \vn{chrom_ptc.a.0} and \vn{chrom_ptc.b.0} are the chromaticities themselves, at
-$p_z = 0$, etc.
+where $Q(p_z)$ is the tune in units of $2\pi$.  $N = 0$, that is \vn{chrom_ptc.a.0} and
+\vn{chrom_ptc.b.0} are the fractional tunes themselves in the range $[-0.5, 0.5]$, and $N = 1$ gives
+the zeroth order chromaticity.
 
 Since there are differences in the tracking between PTC and \bmad, The chromaticities \vn{chrom.a} and
 \vn{chrom.b} which are calculated using \bmad will not exactly agree with the PTC values.
 
+The chromatic Taylor series coefficients $Q_N$ are calculated up to order $N_T-1$ where $N_T$ is the
+Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default is $N_T=3$). 
+
 To save time when the calculation of chromatic terms is not needed, the \vn{one_turn_map_calc} parameter
-(\sref{s:init.lat}) for a universe can be toggled True or False as desired.
+(\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
 
 Note: The RF must be turned off for the calculation to work properly.
 
@@ -960,7 +964,32 @@ Particle momentum amplitude.
 
   %----------------------
   \item[momentum_compaction] \Newline
+Momentum compaction factor. Also see \vn{r56_compaction} and \vn{momentum_compaction_ptc}.
+
+  %----------------------
+  \item[momentum_compaction_ptc.$N$, $N = 1, 2, 3, \ldots$ ] \Newline
 Momentum compaction factor. Also see \vn{r56_compaction}.
+
+Momentum compaction Taylor series, which is a function of phase space $p_z$, as calculated from
+Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
+gives the order of the Taylor term
+\begin{equation}
+  \frac{-1}{L} \, \Delta z(p_z) = \alpha_1 \, p_z + \alpha_2 \, p_z^2 + \alpha_3 \, p_z^3 + \ldots
+\end{equation}
+Where $\Delta z$ is the change in phase space $z$ over one turn and $L$ is the machine length.
+$N = 1$, that is \vn{momentum_compaction_ptc.1}, is the momentum compaction at $p_z = 0$, etc.
+
+Since there are differences in the tracking between PTC and \bmad, The momentum compaction
+\vn{momentum_compaction} which is calculated using \bmad will not exactly agree with
+the PTC values.
+
+The momentum compaction Taylor series coefficients $\alpha_N$ are calculated up to order $N_T$ where $N_T$ is the
+Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default is $N_T=3$). 
+
+To save time when the calculation of momentum compaction terms is not needed, the \vn{one_turn_map_calc} parameter
+(\sref{s:init.lat}) for a universe can be toggled True or False as desired. The default is False.
+
+Note: The RF must be turned off for the calculation to work properly.
 
   %----------------------
   \item[multi_turn_orbit.x, .y, .z, .px, .py, .pz] \Newline
@@ -1726,7 +1755,13 @@ See the previous section for a description of the data types.
 
   momentum                            & Momentum: P*C_light (eV)                  & lat         & Yes \\ \hline
   momentum_compaction                 & Momentum compaction factor                & lat         & No  \\ \hline
-
+  \begin{tabular}{@{}l}   
+    momentum_compaction_ptc.$N$ \\
+    \hspace{3em} $N = 0, 1, \ldots$
+  \end{tabular}                       & \begin{tabular}{@{}l}
+                                           Momentum compaction \\
+                                           Taylor terms
+                                        \end{tabular}                            & lat         & No  \\ \hline
   \begin{tabular}{@{}l}   
     multi_turn_orbit.x, .y, \\ 
     \hspace{3em} .z, .px, .py, .pz

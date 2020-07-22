@@ -1157,9 +1157,9 @@ case ('chrom_ptc.')
   endif
 
   expo = 0
-  expo(6) = n + 1
+  expo(6) = n 
 
-  datum_value = phase_map .sub. expo
+  datum_value = real(phase_map .sub. expo)
   valid_value = .true.
 
 !-----------
@@ -1810,6 +1810,24 @@ case ('momentum_compaction')
     if (i /= ix_ele) mat6 = matmul(branch%ele(i+1)%mat6, mat6)
   enddo
   call tao_load_this_datum (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
+!-----------
+
+case ('momentum_compaction_ptc.')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+  ptc_nf => tao_branch%ptc_normal_form
+
+  if (.not. is_integer(datum%data_type(25:), n)) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    return
+  endif
+
+  expo = 0
+  expo(6) = n 
+
+  datum_value = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+  valid_value = .true.
 
 !-----------
 
