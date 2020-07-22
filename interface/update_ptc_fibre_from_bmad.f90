@@ -13,7 +13,7 @@
 subroutine update_ptc_fibre_from_bmad (ele)
 
 use ptc_interface_mod, dum1 => update_ptc_fibre_from_bmad
-use pointer_lattice, dum2 => twopi, dum3 => pi
+use pointer_lattice, dum2 => twopi, dum3 => pi, dum4 => sqrt
 
 type (ele_struct), target :: ele, m_ele
 type (branch_struct), pointer :: branch

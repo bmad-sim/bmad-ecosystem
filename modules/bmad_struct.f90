@@ -710,9 +710,10 @@ type em_taylor_struct
   type (em_taylor_term_struct), allocatable :: term(:)
 end type
 
+! Gfortran bug: "field(3) = em_taylor_struct()" not accepted.
 
 type taylor_field_plane1_struct
-  type (em_taylor_struct) :: field(3) = em_taylor_struct()    ! [Bx, By, Bz] or [Ex, Ey, Ez]
+  type (em_taylor_struct) :: field(3) = em_taylor_struct(0, null())    ! [Bx, By, Bz] or [Ex, Ey, Ez]
 end type
 
 type taylor_field_plane_struct
