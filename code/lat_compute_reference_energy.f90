@@ -58,6 +58,8 @@ do ib = 0, ubound(lat%branch, 1)
     if (is_true(begin_ele%value(inherit_from_fork$)) .and. branch%ix_to_ele == 0) then
       begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
       begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
+      begin_ele%value(E_tot$) = fork_ele%value(E_tot$)
+      begin_ele%value(p0c$) = fork_ele%value(p0c$)
     endif
   endif
 

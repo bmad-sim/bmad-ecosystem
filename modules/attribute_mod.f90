@@ -845,7 +845,7 @@ call init_attribute_name1 (beginning_ele$, cmat_21$,                     'CMAT_2
 call init_attribute_name1 (beginning_ele$, cmat_22$,                     'CMAT_22')
 call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
-call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK', dependent$)
+call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
 
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
@@ -1751,7 +1751,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
-      'MULTIPASS_REF_ENERGY', 'REF_SPECIES')
+      'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &

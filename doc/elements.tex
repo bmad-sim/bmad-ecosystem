@@ -362,15 +362,17 @@ Example:
 \label{s:begin.ele}
 \index{beginning_ele|hyperbf}
 
-An \vn{beginning_ele} element, named \vn{BEGINNING}, is placed at the beginning of every branch
+A \vn{beginning_ele} element, named \vn{beginning}, is placed at the beginning of every branch
 (\sref{s:branch.def}) of a lattice to mark the start of the branch. The \vn{beginning_ele} always
 has element index 0 (\sref{c:lat.concepts}). The creation of this \vn{beginning_ele} element is
-automatic and it is not permitted for a lattice file to define any other \vn{beginning_ele}
-elements.
+automatic and it is not permitted to define a lattice with \vn{beginning_ele} elements at any
+other position.
 
-\vn{beginning_ele} attributes are generally set using either \vn{parameter}
-(\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statements.
-In particular the initial energy may be set (\sref{s:energy}).
+The attributes of the \vn{beginning} element in the root branch are are generally set using
+\vn{beginning} (\sref{s:beginning}) statements or line parameter (\sref{s:beginning}) statements.
+[The attributes of other \vn{beginning} elements are set solely with line parameter statements.]
+
+See \sref{s:list.beginning} for a full list of element attributes.
 
 %-----------------------------------------------------------------
 \section{Bends: Rbend and Sbend}

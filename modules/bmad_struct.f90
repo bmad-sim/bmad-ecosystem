@@ -8,7 +8,7 @@ use random_mod
 use spline_mod
 use cubic_interpolation_mod
 
-use definition, only: genfield, fibre, layout
+use definition, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8
 
 private next_in_branch
 
@@ -423,18 +423,34 @@ type wall3d_struct
   type (wall3d_section_struct), allocatable :: section(:) ! Indexed from 1.
 end type  
 
-! Note: the taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
-! the universal_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
-! %ref is the reference point about which the taylor expansion was made.
+!
 
 type taylor_term_struct
   real(rp) :: coef = 0
   integer :: expn(6) = 0
 end type
 
+type complex_taylor_term_struct
+  complex(rp) :: coef
+  integer :: expn(6)  
+end type
+
+! Note: the taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
+! the universal_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
+! %ref is the reference point about which the taylor expansion was made.
+
 type taylor_struct
   real (rp) :: ref = 0
   type (taylor_term_struct), pointer :: term(:) => null()
+end type
+
+! Note: the complex_taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
+! the universal_complex_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
+! %ref is the reference point about which the complex_taylor expansion was made
+
+type complex_taylor_struct
+  complex (rp) :: ref = 0
+  type (complex_taylor_term_struct), pointer :: term(:) => null()
 end type
 
 ! plane list, etc
@@ -696,7 +712,7 @@ end type
 
 
 type taylor_field_plane1_struct
-  type (em_taylor_struct) :: field(3)    ! [Bx, By, Bz] or [Ex, Ey, Ez]
+  type (em_taylor_struct) :: field(3) = em_taylor_struct()    ! [Bx, By, Bz] or [Ex, Ey, Ez]
 end type
 
 type taylor_field_plane_struct
@@ -1237,9 +1253,9 @@ type ptc_layout_pointer_struct
   type (layout), pointer :: ptr => null()
 end type
 
-type ptc_branch1_info_struct
+type ptc_branch1_struct
   type (ptc_layout_pointer_struct), allocatable :: m_u_layout(:)
-  type (layout), pointer :: m_t_layout => null()
+  type (layout), pointer :: m_t_layout => null()      ! Tracking layout.
 end type
 
 !
@@ -1253,38 +1269,37 @@ type mode_info_struct
   real(rp) :: sigmap = 0       ! Beam divergence.
 end type
 
-! Note: the complex_taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
-! the universal_complex_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
-! %ref is the reference point about which the complex_taylor expansion was made
-
-type complex_taylor_term_struct
-  complex(rp) :: coef
-  integer :: expn(6)  
-end type
-
-type complex_taylor_struct
-  complex (rp) :: ref = 0
-  type (complex_taylor_term_struct), pointer :: term(:) => null()
-end type
-
-! RD = Resonance Driving term
+! Resonance Driving (RD) term
 
 type :: h_struct
   character(8) :: c = ''
   complex(rp) :: c_val = 0
 end type
 
-type normal_form_struct
-  type (taylor_struct) :: M(6)             ! One-turn taylor map: M = A o N o A_inv, N = exp(:h:)
-  type (taylor_struct) :: A(6)             ! Map from Floquet -> Lab coordinates
-  type (taylor_struct) :: A_inv(6)         ! Map from Lab -> Floquet coordinates
-  type (taylor_struct) :: dhdj(6)          ! Nonlinear tune function operating on Floquet coordinates
-  type (complex_taylor_struct) :: F(6)     ! Vector field factorization in phasor basis:
-  type (complex_taylor_struct) :: L(6)     ! M = A1 o c_inv o L exp(F.grad)Identity o c o A1_inv
-                                           ! A1 and L are linear, and c maps to the phasor basis: h+ = x + i p, h- = x - i p
+! Normal form components using Bmad structures and PTC structures.
+! M = A1 o c_inv o L exp(F.grad)Identity o c o A1_inv
+! A1 and L are linear, and c maps to the phasor basis: h+ = x + i p, h- = x - i p
+! See subroutines: normal_form_taylors and normal_form_complex_taylors
+
+type bmad_normal_form_struct
   type (ele_struct), pointer :: ele_origin => null()  ! Element at which the on-turn map was created.
-                                           ! See subroutines: normal_form_taylors and normal_form_complex_taylors
+  type (taylor_struct) :: M(6) = taylor_struct()                  ! One-turn taylor map: M = A o N o A_inv, N = exp(:h:)
+  type (taylor_struct) :: A(6) = taylor_struct()                  ! Map from Floquet -> Lab coordinates
+  type (taylor_struct) :: A_inv(6) = taylor_struct()              ! Map from Lab -> Floquet coordinates
+  type (taylor_struct) :: dhdj(6) = taylor_struct()               ! Nonlinear tune function operating on Floquet coordinates
+  type (complex_taylor_struct) :: F(6) = complex_taylor_struct()  ! Vector field factorization in phasor basis:
+  type (complex_taylor_struct) :: L(6) = complex_taylor_struct()  ! L component
   type(h_struct), allocatable :: h(:)
+end type
+
+type ptc_normal_form_struct
+  type (ele_struct), pointer :: ele_origin => null()  ! Element at which the on-turn map was created.
+  type (probe_8) one_turn_map                ! One turn map
+  real(rp) orb0(6)                           ! Closed orbit at element.
+  type (c_normal_form) normal_form           ! Complex normal form
+  type (c_taylor) phase(3)                   ! Phase, chromaticity maps
+  type (c_taylor) spin                       ! Spin map
+  logical :: valid_map = .false.
 end type
 
 !
@@ -1302,8 +1317,7 @@ type branch_struct
   type (ele_struct), pointer :: ele(:) => null()
   type (lat_param_struct), pointer :: param => null()
   type (wall3d_struct), pointer :: wall3d(:) => null()
-  type (ptc_branch1_info_struct) ptc
-  type (normal_form_struct) normal_form_with_rf, normal_form_no_rf
+  type (ptc_branch1_struct) ptc              ! Pointer to layout. Note: ptc info not transferred with "branch1 = branch2" set.
 end type
 
 integer, parameter :: opal$ = 1, impactt$ = 2
@@ -1376,15 +1390,17 @@ integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffra
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59, beam_init$ = 60, crab_cavity$ = 61, n_key$ = 61
 
+! An "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
+
 character(20), parameter :: key_name(n_key$) = [ &
     'Drift             ', 'Sbend             ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
     'Overlay           ', 'Custom            ', 'Taylor            ', 'RFcavity          ', 'ELseparator       ', &
     'BeamBeam          ', 'Wiggler           ', 'Sol_Quad          ', 'Marker            ', 'Kicker            ', &
-    'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', 'Def_Bmad_Com!     ', &
-    'Def_Mad_Beam!     ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
-    'Def_Parameter!    ', 'Null_Ele          ', 'Beginning_Ele     ', 'Line_Ele          ', 'Match             ', &
+    'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', '!Bmad_Com         ', &
+    '!Mad_Beam         ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
+    '!Parameter        ', 'Null_Ele          ', '!Beginning        ', '!Line Parameter   ', 'Match             ', &
     'Monitor           ', 'Instrument        ', 'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', &
-    'Ecollimator       ', 'Girder            ', 'Converter         ', 'Def_Particle_Start', 'Photon_Fork       ', &
+    'Ecollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
@@ -2289,8 +2305,5 @@ if (present(ix_ic) .or. present(ix_lord_back)) then
 endif
 
 end function pointer_to_slave
-
-
-
 
 end module

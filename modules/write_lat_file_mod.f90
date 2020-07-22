@@ -1181,48 +1181,38 @@ do ib = 0, ubound(lat%branch, 1)
                         '[default_tracking_species] = ', trim(species_name(branch%param%default_tracking_species))
   if (.not. branch%param%live_branch) write (iu, '(2a)') trim(branch%name), '[live_branch] = F'
 
-  if (branch%ix_from_branch > -1) then
-    branch2 => lat%branch(branch%ix_from_branch)
-    if (branch2%param%particle == branch%param%particle) cycle
-
-  endif
-
   ele0 => branch%ele(0)
 
-  write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(species_name(branch%param%particle))
-  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c$))
-  call write_if_logic_param_changed (branch%param%high_energy_space_charge_on, .false., trim(branch%name) // '[high_energy_space_charge_on]')
-
-  if (branch%ix_to_ele /= 0) then
-    if (ele0%floor%r(1) /= 0)   write (iu, '(3a)') trim(branch%name), '[x_position]     = ', re_str(ele0%floor%r(1))
-    if (ele0%floor%r(2) /= 0)   write (iu, '(3a)') trim(branch%name), '[y_position]     = ', re_str(ele0%floor%r(2))
-    if (ele0%floor%r(3) /= 0)   write (iu, '(3a)') trim(branch%name), '[z_position]     = ', re_str(ele0%floor%r(3))
-    if (ele0%floor%theta /= 0)  write (iu, '(3a)') trim(branch%name), '[theta_position] = ', re_str(ele0%floor%theta)
-    if (ele0%floor%phi /= 0)    write (iu, '(3a)') trim(branch%name), '[phi_position]   = ', re_str(ele0%floor%phi)
-    if (ele0%floor%psi /= 0)    write (iu, '(3a)') trim(branch%name), '[psi_position]   = ', re_str(ele0%floor%psi)
-  endif
+  if (ele0%floor%r(1) /= 0)   write (iu, '(3a)') trim(branch%name), '[x_position]     = ', re_str(ele0%floor%r(1))
+  if (ele0%floor%r(2) /= 0)   write (iu, '(3a)') trim(branch%name), '[y_position]     = ', re_str(ele0%floor%r(2))
+  if (ele0%floor%r(3) /= 0)   write (iu, '(3a)') trim(branch%name), '[z_position]     = ', re_str(ele0%floor%r(3))
+  if (ele0%floor%theta /= 0)  write (iu, '(3a)') trim(branch%name), '[theta_position] = ', re_str(ele0%floor%theta)
+  if (ele0%floor%phi /= 0)    write (iu, '(3a)') trim(branch%name), '[phi_position]   = ', re_str(ele0%floor%phi)
+  if (ele0%floor%psi /= 0)    write (iu, '(3a)') trim(branch%name), '[psi_position]   = ', re_str(ele0%floor%psi)
 
   if (ele0%s /= 0)              write (iu, '(3a)') trim(branch%name), '[s]              = ', re_str(ele0%s)
   if (ele0%ref_time /= 0)       write (iu, '(3a)') trim(branch%name), '[ref_time]       = ', re_str(ele0%ref_time)
   if (branch%param%n_part /= 0) write (iu, '(3a)') trim(branch%name), '[n_part]         = ', re_str(lat%param%n_part)
 
-  if (branch%param%geometry == open$) then
-    write (iu, '(3a)')
-    if (ele0%a%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_a]   = ', re_str(ele0%a%beta)
-    if (ele0%a%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_a]  = ', re_str(ele0%a%alpha)
-    if (ele0%a%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_a]    = ', re_str(ele0%a%phi)
-    if (ele0%x%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_x]    = ', re_str(ele0%x%eta)
-    if (ele0%x%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_x]   = ', re_str(ele0%x%etap)
-    if (ele0%b%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_b]   = ', re_str(ele0%b%beta)
-    if (ele0%b%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_b]  = ', re_str(ele0%b%alpha)
-    if (ele0%b%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_b]    = ', re_str(ele0%b%phi)
-    if (ele0%y%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_y]    = ', re_str(ele0%y%eta)
-    if (ele0%y%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_y]   = ', re_str(ele0%y%etap)
-    if (ele0%c_mat(1,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_11]  = ', re_str(ele0%c_mat(1,1))
-    if (ele0%c_mat(1,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_12]  = ', re_str(ele0%c_mat(1,2))
-    if (ele0%c_mat(2,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_21]  = ', re_str(ele0%c_mat(2,1))
-    if (ele0%c_mat(2,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_22]  = ', re_str(ele0%c_mat(2,2))
-  endif
+  if (ele0%a%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_a]   = ', re_str(ele0%a%beta)
+  if (ele0%a%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_a]  = ', re_str(ele0%a%alpha)
+  if (ele0%a%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_a]    = ', re_str(ele0%a%phi)
+  if (ele0%x%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_x]    = ', re_str(ele0%x%eta)
+  if (ele0%x%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_x]   = ', re_str(ele0%x%etap)
+  if (ele0%b%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_b]   = ', re_str(ele0%b%beta)
+  if (ele0%b%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_b]  = ', re_str(ele0%b%alpha)
+  if (ele0%b%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_b]    = ', re_str(ele0%b%phi)
+  if (ele0%y%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_y]    = ', re_str(ele0%y%eta)
+  if (ele0%y%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_y]   = ', re_str(ele0%y%etap)
+  if (ele0%c_mat(1,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_11]  = ', re_str(ele0%c_mat(1,1))
+  if (ele0%c_mat(1,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_12]  = ', re_str(ele0%c_mat(1,2))
+  if (ele0%c_mat(2,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_21]  = ', re_str(ele0%c_mat(2,1))
+  if (ele0%c_mat(2,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_22]  = ', re_str(ele0%c_mat(2,2))
+
+  if (is_false(ele0%value(inherit_from_fork$))) write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(species_name(branch%param%particle))
+  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', re_str(ele0%value(p0c$))
+  call write_if_logic_param_changed (branch%param%high_energy_space_charge_on, .false., trim(branch%name) // '[high_energy_space_charge_on]')
+  if (branch%ix_from_branch >= 0) write (iu, '(2a, l1)') trim(branch%name), '[inherit_from_fork]      = ', is_true(ele0%value(inherit_from_fork$))
 
 enddo
 
