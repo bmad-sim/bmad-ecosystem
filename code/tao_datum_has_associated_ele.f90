@@ -32,7 +32,7 @@ if (data_type == 'unstable.ring' .or. data_type == 'unstable_lattice' .or. &
               data_type(1:14) == 'unstable.eigen' .or. data_type(1:7) == 'normal.' .or. &
               data_type(1:18) == 'spin.polarization_' .or. data_type == 'spin.depolarization_rate' .or. &
               data_type == 'chrom.a' .or. data_type == 'chrom.b' .or. data_type(1:10) == 'chrom_ptc.' .or. &
-              data_type(1:12) == 'chrom.dtune.' .or.&
+              data_type(1:12) == 'chrom.dtune.' .or. data_type(1:24) == 'momentum_compaction_ptc.' .or. &
               data_type(1:5) == 'srdt.' .or. data_type(1:5) == 'damp.' .or. data_type(1:5) == 'tune.' ) then
   has_associated_ele = no$
 
