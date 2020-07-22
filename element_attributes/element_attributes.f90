@@ -19,7 +19,7 @@ type entry_struct
 end type
 
 type table_struct
-  character(80) :: sort_name = ''
+  character(100) :: sort_name = ''
   character(40) :: label_ref = ''
   integer :: key = -1
   integer :: n_line = 0
@@ -148,8 +148,23 @@ do n = 1, n_key$
   case (wiggler$)
     tab%sort_name = 'Wiggler and Undulator Element Attributes'
     tab%label_ref = 'wiggler'
+  case (def_parameter$)
+    tab%sort_name = 'Parameter Statement Attributes'
+    tab%label_ref = 'parameter'
+  case (def_line$)
+    tab%sort_name = 'Line Statement Attributes'
+    tab%label_ref = 'line'
+  case (def_particle_start$)
+    tab%sort_name = 'Particle_Start Statement Attributes'
+    tab%label_ref = 'particle.start'
+  case (def_bmad_com$)
+    tab%sort_name = 'Bmad_Com Statement Attributes'
+    tab%label_ref = 'bmad.com'
+  case (beginning_ele$)
+    tab%sort_name = 'Beginning Statement Attributes'
+    tab%label_ref = 'beginning'
   case default
-    tab%sort_name = key_name(tab%key)
+    tab%sort_name = trim(key_name(tab%key)) // ' Element Attributes'
     tab%label_ref = downcase(key_name(tab%key))
     call str_substitute (tab%label_ref, '_', '.')
   end select
@@ -217,11 +232,7 @@ call indexx(table%sort_name, key_indx)
 do it = 1, n_key$
   tab => table(key_indx(it))
 
-  if (tab%key == def_bmad_com$) cycle
-  if (tab%key == def_particle_start$) cycle
   if (tab%key == def_mad_beam$) cycle
-  if (tab%key == def_parameter$) cycle
-  if (tab%key == line_ele$) cycle
   if (tab%key == null_ele$) cycle
   if (tab%key == rbend$) cycle
   if (tab%key == rcollimator$) cycle
@@ -230,7 +241,6 @@ do it = 1, n_key$
   if (tab%key == pipe$) cycle
   if (tab%key == vkicker$) cycle
   if (tab%key == undulator$) cycle
-  if (tab%key == beginning_ele$) cycle
 
   nl = tab%n_line
   indx = nl+1  ! point to blank attribute name
@@ -239,7 +249,7 @@ do it = 1, n_key$
 
   write (1, *) '%---------------------------------'
 
-  write (1, *) '\section{', trim(tab%sort_name), ' Element Attributes}'
+  write (1, *) '\section{', trim(tab%sort_name), '}'
   write (1, *) '\label{s:list.', trim(tab%label_ref), '}'
   write (1, *)
   write (1, *) '\begin{tabular}{llll} \toprule'

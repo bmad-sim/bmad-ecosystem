@@ -1,4 +1,4 @@
- 2020-04-30 18:14:01 
+ 2020-07-18 00:13:41 
  
    1   Drift                 22   AB_multipole
    2   Sbend                 58   AC_Kicker
@@ -79,16 +79,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
@@ -127,6 +122,8 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         32  T_OFFSET                                
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -149,34 +146,24 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
         85  LR_FREQ_SPREAD                          
         86  MULTIPOLES_ON                           
-        87  APERTURE_TYPE  
-						x2_curvature
-						x2_centroid                         
-						x2_center_curvature
-						x2_centroid_curvature
+        87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_METHOD                              
         90  SPACE_CHARGE_METHOD                     
@@ -242,6 +229,10 @@
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
+        39  CRAB_X1                                 
+        40  CRAB_X2                                 
+        41  CRAB_X3                                 
+        42  CRAB_TILT                               
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -254,16 +245,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -320,18 +306,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -377,19 +359,13 @@
         30  CMAT_12                                 
         31  CMAT_21                                 
         32  CMAT_22                                 
-        49  floor_set                                 [private]
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        80  check_sum                                 [private]
+        75  check_sum                                 [private]
         82  ETA_X                                   
         83  ETA_Y                                   
         84  ETAP_X                                  
@@ -432,16 +408,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -471,22 +442,14 @@
          5  PC_OUT_MIN                              
          6  PC_OUT_MAX                              
          7  ANGLE_OUT_MAX                           
-        21  BETA_A_OUT                              
-        22  BETA_B_OUT                              
-        23  ALPHA_A_OUT                             
-        24  ALPHA_B_OUT                             
-        25  ETA_X_OUT                               
-        26  ETA_Y_OUT                               
-        27  ETAP_X_OUT                              
-        28  ETAP_Y_OUT                              
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
-        51  p0c_start                                 [private]
-        52  e_tot_start                               [private]
+        51  P0C_START                               
+        52  E_TOT_START                             
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -496,16 +459,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         81  DISTRIBUTION                            
         82  ALIAS                                   
         83  SPECIES_OUT                             
@@ -569,18 +527,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -670,17 +624,12 @@
         61  REF_TILT_TOT                            
         64  ref_time_start                            [private]
         65  THICKNESS                               
-        69  REF_WAVELENGTH                          
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        70  REF_WAVELENGTH                          
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         84  ELLIPTICAL_CURVATURE_X                  
@@ -747,18 +696,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -800,11 +745,6 @@
  
  !---------------------------------
  20  Def_Bmad_Com!       
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
         81  MAX_APERTURE_LIMIT                      
         82  DEFAULT_DS_STEP                         
         83  SIGNIFICANT_LENGTH                      
@@ -824,11 +764,6 @@
         48  PARTICLE                                
         53  PC                                      
         54  ENERGY                                  
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
  
  !---------------------------------
  26  Def_Parameter!      
@@ -845,11 +780,6 @@
         53  P0C                                     
         54  E_TOT                                   
         55  NO_END_MARKER                           
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
         83  ELECTRIC_DIPOLE_MOMENT                  
         86  LATTICE                                 
         87  MACHINE                                 
@@ -881,11 +811,6 @@
         39  EMITTANCE_A                             
         40  EMITTANCE_B                             
         41  EMITTANCE_Z                             
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
  
  !---------------------------------
  55  Detector            
@@ -921,16 +846,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         84  ELLIPTICAL_CURVATURE_X                  
@@ -982,17 +902,12 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        69  REF_WAVELENGTH                          
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        70  REF_WAVELENGTH                          
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         84  ELLIPTICAL_CURVATURE_X                  
@@ -1050,18 +965,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
@@ -1101,6 +1012,8 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         21  GAP                                     
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -1123,24 +1036,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1224,18 +1131,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1320,18 +1223,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1381,6 +1280,14 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        24  PX_APERTURE_WIDTH2                      
+        25  PX_APERTURE_CENTER                      
+        26  PY_APERTURE_WIDTH2                      
+        27  PY_APERTURE_CENTER                      
+        28  Z_APERTURE_WIDTH2                       
+        29  Z_APERTURE_CENTER                       
+        30  PZ_APERTURE_WIDTH2                      
+        31  PZ_APERTURE_CENTER                      
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1406,18 +1313,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1472,12 +1375,7 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        80  check_sum                                 [private]
+        75  check_sum                                 [private]
         82  ALIAS                                   
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -1510,16 +1408,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -1553,22 +1446,18 @@
          6  NEW_BRANCH                              
          7  IX_TO_BRANCH                            
          8  IX_TO_ELEMENT                           
+        27  REF_SPECIES                             
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -1616,12 +1505,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        80  check_sum                                 [private]
+        75  check_sum                                 [private]
         82  ALIAS                                   
        105  IS_ON                                   
        109  ORIGIN_ELE                              
@@ -1631,12 +1515,7 @@
  !---------------------------------
   4  Group               
         11  GANG                                    
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        80  check_sum                                 [private]
+        75  check_sum                                 [private]
         81  X_KNOT                                  
         82  ALIAS                                   
         89  VAR                                     
@@ -1678,18 +1557,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1746,16 +1621,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -1825,18 +1695,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -1884,6 +1750,8 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1906,24 +1774,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2023,18 +1885,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2101,16 +1959,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -2149,19 +2002,13 @@
         46  LIVE_BRANCH                             
         47  GEOMETRY                                
         48  PARTICLE                                
-        49  floor_set                                 [private]
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        80  check_sum                                 [private]
+        75  check_sum                                 [private]
         82  ETA_X                                   
         83  ETA_Y                                   
         84  ETAP_X                                  
@@ -2199,7 +2046,7 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
-        33  X_RAY_LINE_LEN                          
+        27  REF_SPECIES                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2219,16 +2066,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2280,17 +2122,12 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        69  REF_WAVELENGTH                          
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        70  REF_WAVELENGTH                          
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -2365,16 +2202,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -2425,17 +2257,12 @@
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
         64  ref_time_start                            [private]
-        69  REF_WAVELENGTH                          
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        70  REF_WAVELENGTH                          
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         84  ELLIPTICAL_CURVATURE_X                  
@@ -2508,18 +2335,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2587,17 +2410,12 @@
         60  TILT_TOT                                
         61  REF_TILT_TOT                            
         64  ref_time_start                            [private]
-        69  REF_WAVELENGTH                          
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        70  REF_WAVELENGTH                          
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         84  ELLIPTICAL_CURVATURE_X                  
@@ -2643,16 +2461,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -2684,12 +2497,7 @@
  !---------------------------------
  27  Null_Ele            
          6  ix_branch                                 [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        80  check_sum                                 [private]
+        75  check_sum                                 [private]
         82  ALIAS                                   
        112  DESCRIP                                 
        117  TYPE                                    
@@ -2707,6 +2515,8 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2730,24 +2540,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -2797,12 +2601,7 @@
  !---------------------------------
   6  Overlay             
         11  GANG                                    
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        80  check_sum                                 [private]
+        75  check_sum                                 [private]
         81  X_KNOT                                  
         82  ALIAS                                   
         89  VAR                                     
@@ -2832,16 +2631,11 @@
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -2871,22 +2665,18 @@
          6  NEW_BRANCH                              
          7  IX_TO_BRANCH                            
          8  IX_TO_ELEMENT                           
+        27  REF_SPECIES                             
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -2950,17 +2740,12 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        69  REF_WAVELENGTH                          
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        70  REF_WAVELENGTH                          
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         91  MAT6_CALC_METHOD                        
@@ -3028,18 +2813,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3086,8 +2867,10 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        16  FQ1                                     
-        17  FQ2                                     
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
+        23  FQ1                                     
+        24  FQ2                                     
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3111,24 +2894,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3229,18 +3006,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3298,6 +3071,8 @@
         12  HIGHER_ORDER_FRINGE_TYPE                
         13  SPIN_FRINGE_ON                          
         14  EXACT_MULTIPOLES                        
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         19  E1                                      
         20  E2                                      
         21  FINT                                    
@@ -3338,24 +3113,18 @@
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3409,6 +3178,14 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        24  PX_APERTURE_WIDTH2                      
+        25  PX_APERTURE_CENTER                      
+        26  PY_APERTURE_WIDTH2                      
+        27  PY_APERTURE_CENTER                      
+        28  Z_APERTURE_WIDTH2                       
+        29  Z_APERTURE_CENTER                       
+        30  PZ_APERTURE_WIDTH2                      
+        31  PZ_APERTURE_CENTER                      
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3434,18 +3211,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3495,12 +3268,12 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
-        14  FB1                                     
-        15  FB2                                     
-        16  FQ1                                     
-        17  FQ2                                     
         19  E1                                      
         20  E2                                      
+        21  FB1                                     
+        22  FB2                                     
+        23  FQ1                                     
+        24  FQ2                                     
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3525,16 +3298,11 @@
         64  ref_time_start                            [private]
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
@@ -3586,16 +3354,11 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
         84  ELLIPTICAL_CURVATURE_X                  
@@ -3643,6 +3406,8 @@
         12  HIGHER_ORDER_FRINGE_TYPE                
         13  SPIN_FRINGE_ON                          
         14  EXACT_MULTIPOLES                        
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         19  E1                                      
         20  E2                                      
         21  FINT                                    
@@ -3683,24 +3448,18 @@
         60  ROLL_TOT                                
         61  REF_TILT_TOT                            
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3755,6 +3514,8 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3778,24 +3539,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3851,6 +3606,8 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3875,24 +3632,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -3948,6 +3699,8 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         31  L_SOFT_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -3972,24 +3725,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -4058,18 +3805,13 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         81  TT<out><n1><n2>...                      
         82  ALIAS                                   
         83  X_REF                                   
@@ -4117,10 +3859,11 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         21  POLARITY                                
         22  N_PERIOD                                
         23  L_PERIOD                                
-        33  X_RAY_LINE_LEN                          
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4143,24 +3886,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -4239,18 +3976,14 @@
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -4308,10 +4041,11 @@
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
         21  POLARITY                                
         22  N_PERIOD                                
         23  L_PERIOD                                
-        33  X_RAY_LINE_LEN                          
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4334,24 +4068,18 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  MULTIPASS_REF_ENERGY                    
-        63  R0_MAG                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
         67  DS_STEP                                 
-        68  LORD_PAD1                               
-        69  LORD_PAD2                               
-        70  R0_ELEC                                 
-        71  Scratch1                                  [private]
-        72  Scratch2                                  [private]
-        73  Scratch3                                  [private]
-        74  Scratch4                                  [private]
-        75  Scratch5                                  [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
         82  ALIAS                                   
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
@@ -4415,42 +4143,42 @@
     11    32
     12     6
     13    30
-    14     8
-    15     6
-    16     8
-    17     5
+    14     7
+    15    17
+    16    18
+    17     3
     18     8
     19    12
     20    19
     21    19
     22    17
-    23    17
-    24    17
-    25    15
-    26    21
-    27    11
-    28     6
-    29    17
-    30    12
-    31    11
+    23    18
+    24    20
+    25    16
+    26    22
+    27    15
+    28     7
+    29    19
+    30    14
+    31    13
     32     9
-    33     9
+    33     6
     34    46
     35    46
     36    48
     37    48
     38    47
-    39    23
-    40    25
-    41    24
-    42    21
+    39    24
+    40    26
+    41    25
+    42    22
     43     8
     44     6
     45     8
     46     8
     47    20
     48     7
-    49     8
+    49     6
     50    53
     51    53
     52    53
@@ -4464,24 +4192,24 @@
     60    45
     61     6
     62    27
-    63    12
+    63     0
     64    53
     65    28
     66    28
     67    28
-    68    28
-    69    34
-    70    12
-    71    61
-    72    61
-    73    61
-    74    61
-    75    61
-    76    50
-    77    50
-    78    50
-    79    50
-    80    57
+    68    27
+    69    28
+    70    34
+    71    50
+    72    50
+    73    50
+    74    50
+    75    57
+    76     0
+    77     0
+    78     0
+    79     0
+    80     0
     81    11
     82    58
     83    33
@@ -5070,35 +4798,53 @@ Index: 14
     Match               
     Crystal             
     Photon_Init         
-    Sad_Mult            
  
  !---------------------------------
 Index: 15
+    Sbend               
+    Quadrupole          
+    Sextupole           
     Custom              
+    ELseparator         
     BeamBeam            
+    Wiggler             
+    Sol_Quad            
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
     Match               
     Crystal             
+    Undulator           
     Photon_Init         
-    Sad_Mult            
+    AC_Kicker           
  
  !---------------------------------
 Index: 16
+    Sbend               
     Quadrupole          
+    Sextupole           
     Custom              
+    ELseparator         
     BeamBeam            
+    Wiggler             
+    Sol_Quad            
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
     Match               
     Def_Particle_Start  
     Crystal             
+    Undulator           
     Photon_Init         
-    Sad_Mult            
+    AC_Kicker           
  
  !---------------------------------
 Index: 17
-    Quadrupole          
     Custom              
     Match               
     Photon_Init         
-    Sad_Mult            
  
  !---------------------------------
 Index: 18
@@ -5161,7 +4907,6 @@ Index: 21
     Match               
     Monitor             
     Instrument          
-    Converter           
     Def_Particle_Start  
     Crystal             
     Pipe                
@@ -5169,6 +4914,7 @@ Index: 21
     Undulator           
     Photon_Init         
     Detector            
+    Sad_Mult            
  
  !---------------------------------
 Index: 22
@@ -5181,7 +4927,6 @@ Index: 22
     Match               
     Monitor             
     Instrument          
-    Converter           
     Def_Particle_Start  
     Crystal             
     Pipe                
@@ -5189,10 +4934,12 @@ Index: 22
     Undulator           
     Photon_Init         
     Detector            
+    Sad_Mult            
  
  !---------------------------------
 Index: 23
     Sbend               
+    Quadrupole          
     RFcavity            
     BeamBeam            
     Wiggler             
@@ -5201,7 +4948,6 @@ Index: 23
     Lcavity             
     Monitor             
     Instrument          
-    Converter           
     Def_Particle_Start  
     Crystal             
     Pipe                
@@ -5209,10 +4955,12 @@ Index: 23
     Undulator           
     Photon_Init         
     Detector            
+    Sad_Mult            
  
  !---------------------------------
 Index: 24
     Sbend               
+    Quadrupole          
     RFcavity            
     BeamBeam            
     Marker              
@@ -5221,13 +4969,15 @@ Index: 24
     Match               
     Monitor             
     Instrument          
-    Converter           
+    Rcollimator         
+    Ecollimator         
     Crystal             
     Pipe                
     E_Gun               
     EM_Field            
     Photon_Init         
     Detector            
+    Sad_Mult            
     Crab_Cavity         
  
  !---------------------------------
@@ -5240,7 +4990,8 @@ Index: 25
     Match               
     Monitor             
     Instrument          
-    Converter           
+    Rcollimator         
+    Ecollimator         
     Crystal             
     Pipe                
     E_Gun               
@@ -5258,8 +5009,9 @@ Index: 26
     Match               
     Monitor             
     Instrument          
+    Rcollimator         
+    Ecollimator         
     Girder              
-    Converter           
     Crystal             
     Pipe                
     E_Gun               
@@ -5275,10 +5027,14 @@ Index: 26
  !---------------------------------
 Index: 27
     RFcavity            
+    Marker              
     Lcavity             
     Match               
+    Rcollimator         
+    Ecollimator         
     Girder              
-    Converter           
+    Photon_Fork         
+    Fork                
     Crystal             
     E_Gun               
     EM_Field            
@@ -5290,8 +5046,9 @@ Index: 27
 Index: 28
     RFcavity            
     Match               
+    Rcollimator         
+    Ecollimator         
     Girder              
-    Converter           
     Fiducial            
     Photon_Init         
  
@@ -5306,6 +5063,8 @@ Index: 29
     Beginning_Ele       
     Line_Ele            
     Match               
+    Rcollimator         
+    Ecollimator         
     Girder              
     Crystal             
     E_Gun               
@@ -5324,6 +5083,8 @@ Index: 30
     Beginning_Ele       
     Line_Ele            
     Match               
+    Rcollimator         
+    Ecollimator         
     Girder              
     Crystal             
     Floor_Shift         
@@ -5339,6 +5100,8 @@ Index: 31
     Beginning_Ele       
     Line_Ele            
     Match               
+    Rcollimator         
+    Ecollimator         
     Girder              
     Crystal             
     Fiducial            
@@ -5360,13 +5123,10 @@ Index: 32
 Index: 33
     Sbend               
     RFcavity            
-    Wiggler             
-    Marker              
     Rbend               
     Lcavity             
     Match               
     Multilayer_Mirror   
-    Undulator           
  
  !---------------------------------
 Index: 34
@@ -5625,6 +5385,7 @@ Index: 39
     Sextupole           
     RFcavity            
     ELseparator         
+    BeamBeam            
     Wiggler             
     Sol_Quad            
     Kicker              
@@ -5651,6 +5412,7 @@ Index: 40
     Sextupole           
     RFcavity            
     ELseparator         
+    BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
@@ -5678,6 +5440,7 @@ Index: 41
     Quadrupole          
     Sextupole           
     RFcavity            
+    BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
@@ -5705,6 +5468,7 @@ Index: 42
     Quadrupole          
     Sextupole           
     RFcavity            
+    BeamBeam            
     Wiggler             
     Sol_Quad            
     Kicker              
@@ -5805,8 +5569,6 @@ Index: 49
     Rbend               
     Solenoid            
     Patch               
-    Beginning_Ele       
-    Line_Ele            
     Sad_Mult            
  
  !---------------------------------
@@ -6419,18 +6181,6 @@ Index: 62
  
  !---------------------------------
 Index: 63
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    ELseparator         
-    Wiggler             
-    Sol_Quad            
-    Kicker              
-    Octupole            
-    Rbend               
-    Solenoid            
-    Undulator           
-    AC_Kicker           
  
  !---------------------------------
 Index: 64
@@ -6588,7 +6338,6 @@ Index: 68
     Quadrupole          
     Sextupole           
     Custom              
-    Taylor              
     RFcavity            
     ELseparator         
     Wiggler             
@@ -6635,6 +6384,37 @@ Index: 69
     Vkicker             
     Rcollimator         
     Ecollimator         
+    Pipe                
+    E_Gun               
+    EM_Field            
+    Undulator           
+    AC_Kicker           
+    Beam_Init           
+    Crab_Cavity         
+ 
+ !---------------------------------
+Index: 70
+    Drift               
+    Sbend               
+    Quadrupole          
+    Sextupole           
+    Custom              
+    Taylor              
+    RFcavity            
+    ELseparator         
+    Wiggler             
+    Sol_Quad            
+    Kicker              
+    Octupole            
+    Rbend               
+    Solenoid            
+    Lcavity             
+    Monitor             
+    Instrument          
+    Hkicker             
+    Vkicker             
+    Rcollimator         
+    Ecollimator         
     Mirror              
     Crystal             
     Pipe                
@@ -6650,28 +6430,11 @@ Index: 69
     Crab_Cavity         
  
  !---------------------------------
-Index: 70
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    ELseparator         
-    Wiggler             
-    Sol_Quad            
-    Kicker              
-    Octupole            
-    Rbend               
-    Solenoid            
-    Undulator           
-    AC_Kicker           
- 
- !---------------------------------
 Index: 71
     Drift               
     Sbend               
     Quadrupole          
-    Group               
     Sextupole           
-    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -6685,16 +6448,10 @@ Index: 71
     Octupole            
     Rbend               
     Multipole           
-    Def_Bmad_Com!       
-    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
-    Null_Ele            
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
@@ -6702,9 +6459,7 @@ Index: 71
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Girder              
     Converter           
-    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6715,7 +6470,6 @@ Index: 71
     E_Gun               
     EM_Field            
     Floor_Shift         
-    Fiducial            
     Undulator           
     Diffraction_Plate   
     Photon_Init         
@@ -6733,9 +6487,7 @@ Index: 72
     Drift               
     Sbend               
     Quadrupole          
-    Group               
     Sextupole           
-    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -6749,16 +6501,10 @@ Index: 72
     Octupole            
     Rbend               
     Multipole           
-    Def_Bmad_Com!       
-    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
-    Null_Ele            
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
@@ -6766,9 +6512,7 @@ Index: 72
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Girder              
     Converter           
-    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6779,7 +6523,6 @@ Index: 72
     E_Gun               
     EM_Field            
     Floor_Shift         
-    Fiducial            
     Undulator           
     Diffraction_Plate   
     Photon_Init         
@@ -6797,9 +6540,7 @@ Index: 73
     Drift               
     Sbend               
     Quadrupole          
-    Group               
     Sextupole           
-    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -6813,16 +6554,10 @@ Index: 73
     Octupole            
     Rbend               
     Multipole           
-    Def_Bmad_Com!       
-    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
-    Null_Ele            
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
@@ -6830,9 +6565,7 @@ Index: 73
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Girder              
     Converter           
-    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6843,7 +6576,6 @@ Index: 73
     E_Gun               
     EM_Field            
     Floor_Shift         
-    Fiducial            
     Undulator           
     Diffraction_Plate   
     Photon_Init         
@@ -6861,9 +6593,7 @@ Index: 74
     Drift               
     Sbend               
     Quadrupole          
-    Group               
     Sextupole           
-    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -6877,16 +6607,10 @@ Index: 74
     Octupole            
     Rbend               
     Multipole           
-    Def_Bmad_Com!       
-    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
-    Null_Ele            
-    Beginning_Ele       
-    Line_Ele            
     Match               
     Monitor             
     Instrument          
@@ -6894,9 +6618,7 @@ Index: 74
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Girder              
     Converter           
-    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6907,7 +6629,6 @@ Index: 74
     E_Gun               
     EM_Field            
     Floor_Shift         
-    Fiducial            
     Undulator           
     Diffraction_Plate   
     Photon_Init         
@@ -6941,13 +6662,10 @@ Index: 75
     Octupole            
     Rbend               
     Multipole           
-    Def_Bmad_Com!       
-    Def_Mad_Beam!       
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
     Null_Ele            
     Beginning_Ele       
     Line_Ele            
@@ -6960,7 +6678,6 @@ Index: 75
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_Start  
     Photon_Fork         
     Fork                
     Mirror              
@@ -6986,275 +6703,18 @@ Index: 75
  
  !---------------------------------
 Index: 76
-    Drift               
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    Custom              
-    Taylor              
-    RFcavity            
-    ELseparator         
-    BeamBeam            
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Hybrid              
-    Octupole            
-    Rbend               
-    Multipole           
-    AB_multipole        
-    Solenoid            
-    Patch               
-    Lcavity             
-    Match               
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
-    Converter           
-    Photon_Fork         
-    Fork                
-    Mirror              
-    Crystal             
-    Pipe                
-    Capillary           
-    Multilayer_Mirror   
-    E_Gun               
-    EM_Field            
-    Floor_Shift         
-    Undulator           
-    Diffraction_Plate   
-    Photon_Init         
-    Sample              
-    Detector            
-    Sad_Mult            
-    Mask                
-    AC_Kicker           
-    Lens                
-    Beam_Init           
-    Crab_Cavity         
  
  !---------------------------------
 Index: 77
-    Drift               
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    Custom              
-    Taylor              
-    RFcavity            
-    ELseparator         
-    BeamBeam            
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Hybrid              
-    Octupole            
-    Rbend               
-    Multipole           
-    AB_multipole        
-    Solenoid            
-    Patch               
-    Lcavity             
-    Match               
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
-    Converter           
-    Photon_Fork         
-    Fork                
-    Mirror              
-    Crystal             
-    Pipe                
-    Capillary           
-    Multilayer_Mirror   
-    E_Gun               
-    EM_Field            
-    Floor_Shift         
-    Undulator           
-    Diffraction_Plate   
-    Photon_Init         
-    Sample              
-    Detector            
-    Sad_Mult            
-    Mask                
-    AC_Kicker           
-    Lens                
-    Beam_Init           
-    Crab_Cavity         
  
  !---------------------------------
 Index: 78
-    Drift               
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    Custom              
-    Taylor              
-    RFcavity            
-    ELseparator         
-    BeamBeam            
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Hybrid              
-    Octupole            
-    Rbend               
-    Multipole           
-    AB_multipole        
-    Solenoid            
-    Patch               
-    Lcavity             
-    Match               
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
-    Converter           
-    Photon_Fork         
-    Fork                
-    Mirror              
-    Crystal             
-    Pipe                
-    Capillary           
-    Multilayer_Mirror   
-    E_Gun               
-    EM_Field            
-    Floor_Shift         
-    Undulator           
-    Diffraction_Plate   
-    Photon_Init         
-    Sample              
-    Detector            
-    Sad_Mult            
-    Mask                
-    AC_Kicker           
-    Lens                
-    Beam_Init           
-    Crab_Cavity         
  
  !---------------------------------
 Index: 79
-    Drift               
-    Sbend               
-    Quadrupole          
-    Sextupole           
-    Custom              
-    Taylor              
-    RFcavity            
-    ELseparator         
-    BeamBeam            
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Hybrid              
-    Octupole            
-    Rbend               
-    Multipole           
-    AB_multipole        
-    Solenoid            
-    Patch               
-    Lcavity             
-    Match               
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
-    Converter           
-    Photon_Fork         
-    Fork                
-    Mirror              
-    Crystal             
-    Pipe                
-    Capillary           
-    Multilayer_Mirror   
-    E_Gun               
-    EM_Field            
-    Floor_Shift         
-    Undulator           
-    Diffraction_Plate   
-    Photon_Init         
-    Sample              
-    Detector            
-    Sad_Mult            
-    Mask                
-    AC_Kicker           
-    Lens                
-    Beam_Init           
-    Crab_Cavity         
  
  !---------------------------------
 Index: 80
-    Drift               
-    Sbend               
-    Quadrupole          
-    Group               
-    Sextupole           
-    Overlay             
-    Custom              
-    Taylor              
-    RFcavity            
-    ELseparator         
-    BeamBeam            
-    Wiggler             
-    Sol_Quad            
-    Marker              
-    Kicker              
-    Hybrid              
-    Octupole            
-    Rbend               
-    Multipole           
-    AB_multipole        
-    Solenoid            
-    Patch               
-    Lcavity             
-    Null_Ele            
-    Beginning_Ele       
-    Line_Ele            
-    Match               
-    Monitor             
-    Instrument          
-    Hkicker             
-    Vkicker             
-    Rcollimator         
-    Ecollimator         
-    Girder              
-    Converter           
-    Photon_Fork         
-    Fork                
-    Mirror              
-    Crystal             
-    Pipe                
-    Capillary           
-    Multilayer_Mirror   
-    E_Gun               
-    EM_Field            
-    Floor_Shift         
-    Fiducial            
-    Undulator           
-    Diffraction_Plate   
-    Photon_Init         
-    Sample              
-    Detector            
-    Sad_Mult            
-    Mask                
-    AC_Kicker           
-    Lens                
-    Beam_Init           
-    Crab_Cavity         
  
  !---------------------------------
 Index: 81
