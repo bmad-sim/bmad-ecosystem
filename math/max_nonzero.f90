@@ -29,12 +29,16 @@ real(rp), optional :: array2(lbnd:)
 
 !
 
-do ix_max = ubound(array1, 1), lbnd, -1
-  if (array1(ix_max) /= 0) return
-  if (present(array2)) then
+if (present(array2)) then
+  do ix_max = ubound(array1, 1), lbnd, -1
+    if (array1(ix_max) /= 0) return
     if (array2(ix_max) /= 0) return
-  endif
-enddo
+  enddo
+else
+  do ix_max = ubound(array1, 1), lbnd, -1
+    if (array1(ix_max) /= 0) return
+  enddo
+endif
 
 ix_max = lbnd - 1
 
