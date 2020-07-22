@@ -367,7 +367,9 @@ end subroutine
 
 recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid)
 
+use pointer_lattice, only: operator(.sub.)
 use ptc_interface_mod, only: taylor_inverse
+use ptc_layout_mod, only: normal_form_rd_terms
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use measurement_mod, only: to_orbit_reading, to_eta_reading, ele_is_monitor
 
@@ -391,12 +393,14 @@ type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
 type (branch_struct), pointer :: branch
 type (bunch_params_struct), pointer :: bunch_params(:)
-type (normal_form_struct), pointer :: normal_form
+type (bmad_normal_form_struct), pointer :: bmad_nf
+type (ptc_normal_form_struct), pointer :: ptc_nf
 type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
 type (all_pointer_struct) a_ptr
 type (tao_spin_map_struct), pointer :: spin_map
 type (rad_int_branch_struct), pointer :: rad_int_branch
+type (c_taylor), pointer :: phase_map
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
@@ -415,7 +419,7 @@ complex(rp) temp_cplx
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
 integer i, j, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref
-integer n_size, ix0, which, expnt(6), n_track, n_max, ix_branch
+integer n_size, ix0, which, expnt(6), n_track, n_max, ix_branch, expo(6)
 
 character(*), optional :: why_invalid
 character(6) expn_str
@@ -1051,10 +1055,12 @@ case ('chrom.')
   select case (datum%data_type)
 
   case ('chrom.dtune.a', 'chrom.a')
+    if (datum%data_type == 'chrom.dtune.a') call out_io (s_warn$, r_name, '"chrom.dtune.a" IS DEPRECATED. PLEASE CHANGE TO "chrom.a".')
     datum_value = tao_branch%a%chrom
     valid_value = .true.
 
   case ('chrom.dtune.b', 'chrom.b')
+    if (datum%data_type == 'chrom.dtune.b') call out_io (s_warn$, r_name, '"chrom.dtune.b" IS DEPRECATED. PLEASE CHANGE TO "chrom.b".')
     datum_value = tao_branch%b%chrom
     valid_value = .true.
 
@@ -1127,6 +1133,33 @@ case ('chrom.')
     return
 
   end select
+
+!-----------
+
+case ('chrom_ptc.')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+  ptc_nf => tao_branch%ptc_normal_form
+
+  select case (datum%data_type(1:12))
+  case ('chrom_ptc.a.')
+    phase_map => ptc_nf%phase(1)
+  case ('chrom_ptc.b.')
+    phase_map => ptc_nf%phase(2)
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    return
+  end select
+
+  if (.not. is_integer(datum%data_type(13:), n)) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    return
+  endif
+
+  expo = 0
+  expo(6) = n + 1
+
+  value = phase_map .sub. expo
 
 !-----------
 
@@ -1741,209 +1774,6 @@ case ('k.')
 
 !-----------
 
-case ('srdt.')
-  valid_value = .true.
-  term_found = .true.
-  select case(sub_data_type(1:6))
-
-  case('h20001')
-    temp_cplx = tao_branch%srdt%h20001
-    term_cplx = .true.
-  case('h00201')
-    temp_cplx = tao_branch%srdt%h00201
-    term_cplx = .true.
-  case('h10002')
-    temp_cplx = tao_branch%srdt%h10002
-    term_cplx = .true.
-  case('h21000')
-    temp_cplx = tao_branch%srdt%h21000
-    term_cplx = .true.
-  case('h30000')
-    temp_cplx = tao_branch%srdt%h30000
-    term_cplx = .true.
-  case('h10110')
-    temp_cplx = tao_branch%srdt%h10110
-    term_cplx = .true.
-  case('h10020')
-    temp_cplx = tao_branch%srdt%h10020
-    term_cplx = .true.
-  case('h10200')
-    temp_cplx = tao_branch%srdt%h10200
-    term_cplx = .true.
-  case('h31000')
-    temp_cplx = tao_branch%srdt%h31000
-    term_cplx = .true.
-  case('h40000')
-    temp_cplx = tao_branch%srdt%h40000
-    term_cplx = .true.
-  case('h20110')
-    temp_cplx = tao_branch%srdt%h20110
-    term_cplx = .true.
-  case('h11200')
-    temp_cplx = tao_branch%srdt%h11200
-    term_cplx = .true.
-  case('h20020')
-    temp_cplx = tao_branch%srdt%h20020
-    term_cplx = .true.
-  case('h20200')
-    temp_cplx = tao_branch%srdt%h20200
-    term_cplx = .true.
-  case('h00310')
-    temp_cplx = tao_branch%srdt%h00310
-    term_cplx = .true.
-  case('h00400')
-    temp_cplx = tao_branch%srdt%h00400
-    term_cplx = .true.
-  case('h22000')
-    temp_cplx = tao_branch%srdt%h22000
-    term_cplx = .true.
-  case('h00220')
-    temp_cplx = tao_branch%srdt%h00220
-    term_cplx = .true.
-  case('h11110')
-    temp_cplx = tao_branch%srdt%h11110
-    term_cplx = .true.
-  case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not found in summation_rdt_struct', .true.)
-    term_found = .false.
-    valid_value = .false.
-  end select
-
-  if(term_found .and. term_cplx) then
-    select case (sub_data_type(8:8))
-    case('r')
-      datum_value = real(temp_cplx)
-    case('i')
-      datum_value = aimag(temp_cplx)
-    case('a')
-      datum_value = abs(temp_cplx)
-    case default
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not ending in .r, .i, or .a.', .true.)
-      valid_value = .false.
-    end select
-  endif
-
-case ('normal.')
-
-  ! Fetches normal_form components.
-  if (branch%ix_branch /= 0) then
-    call out_io (s_fatal$, r_name, 'TRANSFER MAP CALC NOT YET MODIFIED FOR BRANCHES.')
-    return
-  endif
-
-  if (data_source == 'beam') goto 9000  ! Set error message and return
-
-  if (s%global%rf_on) then
-    normal_form => branch%normal_form_with_rf
-  else
-    normal_form => branch%normal_form_no_rf
-  endif
-  
-  ! Do nothing it the map wasn't made
-  if (.not. associated(normal_form%ele_origin) ) then
-    !if (present(why_invalid)) why_invalid = 'PTC one-turn map not calculated.'
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  PTC one-turn map not calculated.')
-    return
-  endif
-
-  ! Expect: taylor.#.######
-  ! Example: normal.dhdj.2.000001 is the b-mode chromaticity
-  !          head   sub
-  ! Get position of first number. 
-  iz = index(sub_data_type, '.') + 1
-  
-  if(sub_data_type(1:2) == 'h.') then
-    valid_value = .true.
-    term_found = .false.
-    do i=1, size(normal_form%h)
-      if(sub_data_type(3:10) == normal_form%h(i)%c) then
-        temp_cplx = normal_form%h(i)%c_val
-        term_found = .true.
-      endif
-    enddo
-    if(term_found) then
-      select case (sub_data_type(10:10))
-      case('r')
-        datum_value = real(temp_cplx)
-      case('i')
-        datum_value = aimag(temp_cplx)
-      case('a')
-        datum_value = abs(temp_cplx)
-      case default
-        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', why_invalid, .true.)
-        valid_value = .false.
-        return
-      end select
-    else
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not found in normal_form_struct', why_invalid, .true.)
-      valid_value = .false.
-      return
-    endif
-  else
-    i = tao_read_phase_space_index (sub_data_type, iz, .false.)
-    if (i == 0) then
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.', why_invalid, .true.)
-      return
-    endif
-    ! Point to taylor
-    taylor_is_complex = .false.
-    if (sub_data_type(1:5) == 'dhdj.') then
-      taylor_ptr => normal_form%dhdj(i)
-    else if (sub_data_type(1:2) == 'A.') then
-      taylor_ptr => normal_form%A(i)
-    else if (sub_data_type(1:6) == 'A_inv.') then
-      taylor_ptr => normal_form%A_inv(i)
-    else if (sub_data_type(1:2) == 'M.') then
-      taylor_ptr => normal_form%M(i)
-    else if (sub_data_type(1:4) == 'ReF.') then
-      taylor_is_complex = .true.
-      use_real_part = .true.
-      complex_taylor_ptr => normal_form%f(i)
-    else if (sub_data_type(1:4) == 'ImF.') then
-      taylor_is_complex = .true.
-      use_real_part = .false.
-      complex_taylor_ptr => normal_form%F(i)
-    else if (sub_data_type(1:4) == 'ReL.') then
-      taylor_is_complex = .true.
-      use_real_part = .true.
-      complex_taylor_ptr => normal_form%L(i)
-    else if (sub_data_type(1:4) == 'ImL.') then
-      taylor_is_complex = .true.
-      use_real_part = .false.
-      complex_taylor_ptr => normal_form%L(i)
-    endif
-   
-    ! Check for second dot
-    if (sub_data_type(iz+1:iz+1) /= '.') then
-     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
-     call out_io (s_error$, r_name, 'datum%data_type: '//trim(datum%data_type) )
-     call out_io (s_error$, r_name, 'expect dot: ', sub_data_type(1:iz)//'.######' )
-    endif
-   
-    ! Get exponent
-    expn_str = sub_data_type(iz+2:iz+7)
-    expnt = 0
-    do j = 1, 6
-      if (expn_str(j:j) == ' ') exit
-      expnt(j) = index('0123456789', expn_str(j:j)) - 1
-    enddo
-    
-    ! Coefficient
-    if (taylor_is_complex) then
-      if (use_real_part) then
-        datum_value = real(complex_taylor_coef(complex_taylor_ptr, expnt))
-      else
-        datum_value = aimag(complex_taylor_coef(complex_taylor_ptr, expnt))
-      endif
-    else
-      datum_value = taylor_coef(taylor_ptr, expnt)
-    endif
-    valid_value = .true.  
-  endif
-
-
-!-----------
-
 case ('momentum')
   if (data_source == 'beam') goto 9000  ! Set error message and return
   call tao_load_this_datum (branch%ele(0:n_track)%value(p0c$) * (1+orbit(0:n_track)%vec(6)), &
@@ -1987,6 +1817,124 @@ case ('n_particle_loss')
   if (ix_ele < 0) ix_ele = branch%n_ele_track
   datum_value = sum(bunch_params(ix_ref+1:ix_ele)%n_particle_lost_in_ele)
   valid_value = .true.
+
+!--------------
+
+case ('normal.')
+
+  ! Fetches normal_form components.
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+
+  ptc_nf => tao_branch%ptc_normal_form
+  bmad_nf => tao_branch%bmad_normal_form
+
+  ! Do nothing it the map wasn't made
+  if (.not. ptc_nf%valid_map) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  PTC one-turn map not calculated.')
+    return
+  endif
+
+
+  if (.not. associated(bmad_nf%ele_origin)) then
+    ! Get resonant driving terms
+    call normal_form_rd_terms(ptc_nf%one_turn_map, bmad_nf, rf_is_on(branch))
+    bmad_nf%ele_origin => ptc_nf%ele_origin
+  endif
+
+  ! Expect: taylor.#.######
+  ! Example: normal.dhdj.2.000001 is the b-mode chromaticity
+  !          head   sub
+  ! Get position of first number. 
+  iz = index(sub_data_type, '.') + 1
+  
+  if(sub_data_type(1:2) == 'h.') then
+    valid_value = .true.
+    term_found = .false.
+    do i=1, size(bmad_nf%h)
+      if(sub_data_type(3:10) == bmad_nf%h(i)%c) then
+        temp_cplx = bmad_nf%h(i)%c_val
+        term_found = .true.
+      endif
+    enddo
+    if(term_found) then
+      select case (sub_data_type(10:10))
+      case('r')
+        datum_value = real(temp_cplx)
+      case('i')
+        datum_value = aimag(temp_cplx)
+      case('a')
+        datum_value = abs(temp_cplx)
+      case default
+        call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not ending in .r, .i, or .a.', why_invalid, .true.)
+        valid_value = .false.
+        return
+      end select
+    else
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.  data_type not found in normal_form_struct', why_invalid, .true.)
+      valid_value = .false.
+      return
+    endif
+  else
+    i = tao_read_phase_space_index (sub_data_type, iz, .false.)
+    if (i == 0) then
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID.', why_invalid, .true.)
+      return
+    endif
+    ! Point to taylor
+    taylor_is_complex = .false.
+    if (sub_data_type(1:5) == 'dhdj.') then
+      taylor_ptr => bmad_nf%dhdj(i)
+    else if (sub_data_type(1:2) == 'A.') then
+      taylor_ptr => bmad_nf%A(i)
+    else if (sub_data_type(1:6) == 'A_inv.') then
+      taylor_ptr => bmad_nf%A_inv(i)
+    else if (sub_data_type(1:2) == 'M.') then
+      taylor_ptr => bmad_nf%M(i)
+    else if (sub_data_type(1:4) == 'ReF.') then
+      taylor_is_complex = .true.
+      use_real_part = .true.
+      complex_taylor_ptr => bmad_nf%f(i)
+    else if (sub_data_type(1:4) == 'ImF.') then
+      taylor_is_complex = .true.
+      use_real_part = .false.
+      complex_taylor_ptr => bmad_nf%F(i)
+    else if (sub_data_type(1:4) == 'ReL.') then
+      taylor_is_complex = .true.
+      use_real_part = .true.
+      complex_taylor_ptr => bmad_nf%L(i)
+    else if (sub_data_type(1:4) == 'ImL.') then
+      taylor_is_complex = .true.
+      use_real_part = .false.
+      complex_taylor_ptr => bmad_nf%L(i)
+    endif
+   
+    ! Check for second dot
+    if (sub_data_type(iz+1:iz+1) /= '.') then
+     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+     call out_io (s_error$, r_name, 'datum%data_type: '//trim(datum%data_type) )
+     call out_io (s_error$, r_name, 'expect dot: ', sub_data_type(1:iz)//'.######' )
+    endif
+   
+    ! Get exponent
+    expn_str = sub_data_type(iz+2:iz+7)
+    expnt = 0
+    do j = 1, 6
+      if (expn_str(j:j) == ' ') exit
+      expnt(j) = index('0123456789', expn_str(j:j)) - 1
+    enddo
+    
+    ! Coefficient
+    if (taylor_is_complex) then
+      if (use_real_part) then
+        datum_value = real(complex_taylor_coef(complex_taylor_ptr, expnt))
+      else
+        datum_value = aimag(complex_taylor_coef(complex_taylor_ptr, expnt))
+      endif
+    else
+      datum_value = taylor_coef(taylor_ptr, expnt)
+    endif
+    valid_value = .true.  
+  endif
 
 !-----------
 
@@ -2741,6 +2689,17 @@ case ('rel_floor.')
 
 !-----------
 
+case ('s_position') 
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+  if (ix_ref >= 0) then
+    datum_value = ele%s - ele_ref%s
+  else
+    datum_value = ele%s 
+  endif
+  valid_value = .true.
+
+!-----------
+
 case ('sigma.')
 
   ! Looks for numbers: e.g. sigma.13
@@ -2935,14 +2894,87 @@ case ('spin_g_matrix.')
 
 !-----------
 
-case ('s_position') 
-  if (data_source == 'beam') goto 9000  ! Set error message and return
-  if (ix_ref >= 0) then
-    datum_value = ele%s - ele_ref%s
-  else
-    datum_value = ele%s 
-  endif
+case ('srdt.')
   valid_value = .true.
+  term_found = .true.
+  select case(sub_data_type(1:6))
+
+  case('h20001')
+    temp_cplx = tao_branch%srdt%h20001
+    term_cplx = .true.
+  case('h00201')
+    temp_cplx = tao_branch%srdt%h00201
+    term_cplx = .true.
+  case('h10002')
+    temp_cplx = tao_branch%srdt%h10002
+    term_cplx = .true.
+  case('h21000')
+    temp_cplx = tao_branch%srdt%h21000
+    term_cplx = .true.
+  case('h30000')
+    temp_cplx = tao_branch%srdt%h30000
+    term_cplx = .true.
+  case('h10110')
+    temp_cplx = tao_branch%srdt%h10110
+    term_cplx = .true.
+  case('h10020')
+    temp_cplx = tao_branch%srdt%h10020
+    term_cplx = .true.
+  case('h10200')
+    temp_cplx = tao_branch%srdt%h10200
+    term_cplx = .true.
+  case('h31000')
+    temp_cplx = tao_branch%srdt%h31000
+    term_cplx = .true.
+  case('h40000')
+    temp_cplx = tao_branch%srdt%h40000
+    term_cplx = .true.
+  case('h20110')
+    temp_cplx = tao_branch%srdt%h20110
+    term_cplx = .true.
+  case('h11200')
+    temp_cplx = tao_branch%srdt%h11200
+    term_cplx = .true.
+  case('h20020')
+    temp_cplx = tao_branch%srdt%h20020
+    term_cplx = .true.
+  case('h20200')
+    temp_cplx = tao_branch%srdt%h20200
+    term_cplx = .true.
+  case('h00310')
+    temp_cplx = tao_branch%srdt%h00310
+    term_cplx = .true.
+  case('h00400')
+    temp_cplx = tao_branch%srdt%h00400
+    term_cplx = .true.
+  case('h22000')
+    temp_cplx = tao_branch%srdt%h22000
+    term_cplx = .true.
+  case('h00220')
+    temp_cplx = tao_branch%srdt%h00220
+    term_cplx = .true.
+  case('h11110')
+    temp_cplx = tao_branch%srdt%h11110
+    term_cplx = .true.
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not found in summation_rdt_struct', .true.)
+    term_found = .false.
+    valid_value = .false.
+  end select
+
+  if(term_found .and. term_cplx) then
+    select case (sub_data_type(8:8))
+    case('r')
+      datum_value = real(temp_cplx)
+    case('i')
+      datum_value = aimag(temp_cplx)
+    case('a')
+      datum_value = abs(temp_cplx)
+    case default
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not ending in .r, .i, or .a.', .true.)
+      valid_value = .false.
+    end select
+  endif
 
 !-----------
 

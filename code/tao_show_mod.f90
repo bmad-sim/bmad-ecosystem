@@ -193,7 +193,7 @@ type (wall3d_struct), pointer :: wall
 type (wall3d_section_struct), pointer :: wall_sec
 type (wall3d_vertex_struct), pointer :: v
 type (random_state_struct) ran_state
-type (normal_form_struct), pointer :: normal_form
+type (bmad_normal_form_struct), pointer :: bmad_nf
 type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
 type (tao_spin_map_struct), pointer :: sm
@@ -1400,12 +1400,14 @@ case ('element')
     call tao_lattice_calc (ok)
   endif
 
-  gamma2 = (branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle))**2
-  b_emit = tao_branch%modes%b%emittance + tao_branch%modes%b%synch_int(6) / gamma2
-  ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance)
-  ele%b%sigma = sqrt(ele%b%beta * b_emit)
-  ele%x%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance + (ele%x%eta * tao_branch%modes%sigE_E)**2)
-  ele%y%sigma = sqrt(ele%b%beta * b_emit                       + (ele%y%eta * tao_branch%modes%sigE_E)**2)
+  if (mass_of(branch%param%particle) /= 0) then
+    gamma2 = (branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle))**2
+    b_emit = tao_branch%modes%b%emittance + tao_branch%modes%b%synch_int(6) / gamma2
+    ele%a%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance)
+    ele%b%sigma = sqrt(ele%b%beta * b_emit)
+    ele%x%sigma = sqrt(ele%a%beta * tao_branch%modes%a%emittance + (ele%x%eta * tao_branch%modes%sigE_E)**2)
+    ele%y%sigma = sqrt(ele%b%beta * b_emit                       + (ele%y%eta * tao_branch%modes%sigE_E)**2)
+  endif
 
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
@@ -2965,13 +2967,9 @@ case ('merit', 'top10')
 
 case ('normal_form')
   
-  if (s%global%rf_on) then
-    normal_form => branch%normal_form_with_rf
-  else
-    normal_form => branch%normal_form_no_rf
-  endif
-  
-  if (.not. associated(normal_form%ele_origin) ) then
+  bmad_nf => tao_branch%bmad_normal_form
+
+  if (.not. associated(bmad_nf%ele_origin) ) then
     nl=nl+1; lines(nl) ='One-turn-map has not been computed'
     return
   endif
@@ -3003,22 +3001,22 @@ case ('normal_form')
   
   select case(attrib0(1:5))
     case ('dhdj ')
-      call type_taylors (normal_form%dhdj, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+      call type_taylors (bmad_nf%dhdj, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('A    ')
-      call type_taylors (normal_form%A, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+      call type_taylors (bmad_nf%A, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('A_inv')
-      call type_taylors (normal_form%A_inv, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+      call type_taylors (bmad_nf%A_inv, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('M    ')
-      call type_taylors (normal_form%M, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+      call type_taylors (bmad_nf%M, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('F    ')
-      call type_complex_taylors (normal_form%F, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+      call type_complex_taylors (bmad_nf%F, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
     case ('L    ')
-      call type_complex_taylors (normal_form%L, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)      
+      call type_complex_taylors (bmad_nf%L, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)      
     case ('h    ')
-      do i=1, size(normal_form%h)
-        write(lines(i),'(A,"   (",f20.10,", ",f20.10,")   ")') normal_form%h(i)%c, normal_form%h(i)%c_val
+      do i=1, size(bmad_nf%h)
+        write(lines(i),'(A,"   (",f20.10,", ",f20.10,")   ")') bmad_nf%h(i)%c, bmad_nf%h(i)%c_val
       enddo
-      nl = size(normal_form%h)
+      nl = size(bmad_nf%h)
     case default 
       nl=nl+1; lines(nl) = 'bad normal_form map: '//trim(attrib0)
       nl=nl+1; lines(nl) = 'Must be one of: M A A_inv dhdj F L'

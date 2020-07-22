@@ -438,9 +438,10 @@ If there is no \vn{design_lattice} specified for a given universe then the last 
 is used. Thus, in the above example, universes 4 use the same lattice as universe 3.
 
 The \vn{design_lattice(i)%one_turn_map_calc} sets whether a one-turn-map calculation for a ring
-using PTC will be done. If the calculation is made, the \vn{normal.} data type is populated.  See
-Eq.~\ref{normalform1} and Eq.~\ref{normalform2}. After startup, the map calculation can be toggled
-on/off by using the \vn{set universe one_turn_map_calc} command (\sref{s:set}).
+using PTC will be done. If the calculation is made, the \vn{normal.} and \vn{chrom_ptc.} data types
+are populated.  See Eq.~\ref{normalform1} and Eq.~\ref{normalform2}. After startup, the map
+calculation can be toggled on/off by using the \vn{set universe one_turn_map_calc} command
+(\sref{s:set}).
 
 The \vn{design_lattice(i)%dynamic_aperture} component sets whether the dynamic aperture calculation
 (\sref{s:dynamicaperture}) will be done. After startup, this calculation can be toggled on/off by

@@ -731,7 +731,7 @@ The normalized matrix is normalized by factors of $\beta$. See the \bmad manual 
 
   %----------------------
   \item[chrom.a, .b] \Newline
-Chromaticities. Old names: \vn{chrom.dtune.a} and \vn{chrom.dtune.b}
+Chromaticities. Also see \vn{chrom_ptc}.
 
   %----------------------
   \item[chrom.dbeta.a, .dbeta.b] \Newline
@@ -756,6 +756,26 @@ individual elements.
 The chromatic betatron phase $\partial\phi_{a,b}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
+
+  %----------------------
+  \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline
+Chromaticity and chromatic terms in the Taylor expansion with respect to $p_z$ as calculated from
+Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $.a$ denotes the $a$
+normal mode of oscillation and $.b$ denotes the $b$-mode. $N$ is an integer which gives the order of
+the index in the Taylor expansion
+\begin{equation}
+  Q(p_z) = Q_0 + Q_1 \, p_z + Q_2 \, p_z^2 + \ldots
+\end{equation}
+$N = 0$, that is \vn{chrom_ptc.a.0} and \vn{chrom_ptc.b.0} are the chromaticities themselves, at
+$p_z = 0$, etc.
+
+Since there are differences in the tracking between PTC and \bmad, The chromaticities \vn{chrom.a} and
+\vn{chrom.b} which are calculated using \bmad will not exactly agree with the PTC values.
+
+To save time when the calculation of chromatic terms is not needed, the \vn{one_turn_map_calc} parameter
+(\sref{s:init.lat}) for a universe can be toggled True or False as desired.
+
+Note: The RF must be turned off for the calculation to work properly.
 
   %----------------------
   \item[curly_h.a, .b] \Newline
@@ -986,12 +1006,14 @@ Resonance driving terms \`a la \cite{b:bengtsson}.  For example: \vn{h210000}.
 These are the coefficients of the complex polynomial $h$ in Eqn.~\ref{normalform1}.
 The suffix \vn{.r}, \rn{.i}, and \rn{.a} specifies the real part, imaginary part, or absolute value.
 
-The order of the term is the sum of the digits in its monomial.  For example, \vn{h210000} is 3rd order
-and \vn{h201100} is 4th order.  If the term order exceeds the map order, then the term will
-be populated with zero.  The map order is set in the lattice file using
-\vn{parameter[taylor_order] = <order>} or in \vn{tao.init} using 
-\vn{bmad_com{\%}taylor_order = <order>}.  The order set in \vn{tao.init} overrides that in the lattice
-file.
+The order of the term is the sum of the digits in its monomial.  For example, \vn{h210000} is 3rd
+order and \vn{h201100} is 4th order.  If the term order exceeds the map order, then the term will be
+set to zero. The map order is set in the lattice file using \vn{parameter[taylor_order] = <order>}
+or in \vn{tao.init} using \vn{bmad_com{\%}taylor_order = <order>}.  The order set in \vn{tao.init}
+overrides that in the lattice file.
+
+To save time when the calculation of RDTs is not needed, the \vn{one_turn_map_calc} parameter
+(\sref{s:init.lat}) for a universe can be toggled True or False as desired.
 
 Commonly optimized terms and their effect on the map are located in Tab.~\ref{t:dts}.  These terms are typically
 minimized for dynamic aperture optimization.
@@ -1030,8 +1052,6 @@ minimized for dynamic aperture optimization.
 \label{t:dts}
 \end{table}
 
-
-
   %----------------------
   \item[normal.<type>.$i$.<monomial>] \Newline
 Components of the normal form decomposition of the one-turn-map $M$ for a ring. 
@@ -1063,7 +1083,7 @@ imaginary parts of $L$ and $F$ can be accessed through \vn{normal.ReF}, \vn{norm
   \item[null] \Newline
 A \vn{null} data type is used for data where \tao is not able to calculate a model value. Such data
 cannot be used in an optimization. For example, in a linac where the beam intensity is measured at
-the BPMs, \tao is not able to calculate current variations down the linac. Nevertheless, it
+the BPMs, \tao is not able to calculate current variations down the Linac. Nevertheless, it
 could be useful to read in the measured values and plot them.
 
   %----------------------
@@ -1388,12 +1408,23 @@ with the amplitude of the spin set at unity.
 
   %----------------------
   \item[srdt.h<monomial>.\{r,i,a\}] \Newline
-Resonance driving term summations based on summations supplied in \cite{b:bengtsson} (3rd order)
-and \cite{b:wang} (4th order).  The 3rd order monomials for which summations have been implemented
-are \vn{h11001}, \vn{h00111}, \vn{h20001}, \vn{h00201}, \vn{h10002}, \vn{h21000},
-\vn{h30000}, \vn{h10110}, \vn{h10020}, and \vn{h10200}.  The 4th order monomials are
-\vn{h31000}, \vn{h40000}, \vn{h20110}, \vn{h11200}, \vn{h20020}, \vn{h20200}, \vn{h00310}, 
-\vn{h00400}, \vn{h22000}, \vn{h00220}, and \vn{h11110}.
+Resonance driving term summations based on summation formulas by Bengtsson\cite{b:bengtsson} for 3rd
+order terms and Wang\cite{b:wang} for 4th order terms. This is independent from the PTC derived
+\vn{nomial.} data types. 
+
+The 3rd order monomials for which summations have been implemented are
+\begin{example}
+  h21000, h30000, h10110, h10020, h10200,
+  h11001, h20001, h00111, h00201, 
+  h10002
+\end{example}
+
+The 4th order monomials are 
+\begin{example}
+  h31000, h40000, h22000,
+  h00220, h00310, h00400, 
+  h11110, h20110, h11200, h20020, h20200
+\end{example}
 
 Suffixes \vn{.r}, \vn{.i}, and \vn{.a} signify the real part, imaginary part, or absolute value.
 
@@ -1569,6 +1600,11 @@ squared.
 
   \end{description}
 
+%------------------------------------------------------------------------
+\section{Data Types Table}
+\label{s:data.table}
+
+See the previous section for a description of the data types.
 
 \index{data!calculation method}
 \index{unstable.orbit}\index{beta}\index{alpha}\index{eta}\index{eta}
@@ -1635,6 +1671,13 @@ squared.
   chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline
   chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat         & No  \\ \hline
   chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat         & No  \\ \hline
+
+  \begin{tabular}{@{}l}
+    chrom_ptc.a.$N$, \\
+    chrom_ptc.b.$N$
+  \end{tabular} 
+                $N = 0, 1, \ldots$    & Chromaticity Taylor terms                 & lat         & no  \\ \hline
+
   curly_h.a, .b                       & \begin{tabular}{@{}l}
                                           Radiation integrals \\
                                           curly H function 
@@ -1644,7 +1687,7 @@ squared.
   dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
 
   e_tot_ref                           & Lattice reference energy (eV)             & lat         & No  \\ \hline
-  element_attrib.<attrib_name>        & lattice element attribute                 & lat         & No  \\ \hline
+  element_attrib.<attr_name>          & lattice element attribute                 & lat         & No  \\ \hline
   emit.a, .b, .c                      & Emittance                                 & lat, beam   & No  \\ \hline
   emit.x, .y, .z                      & Projected emittance                       & lat, beam   & No  \\ \hline
   eta.x, .y, .z                       & Dispersion                                & lat, beam   & Yes \\ \hline 
@@ -1730,18 +1773,18 @@ squared.
 
   \begin{tabular}{@{}l}
     ping_a.amp_x, .phase_x,                \\
-    \hspace{2em} .amp_y, .phase_y,         \\
-    \hspace{2em} .amp_sin_y, .amp_cos_y,   \\
-    \hspace{2em} .amp_sin_rel_y,           \\
-    \hspace{2em} .amp_cos_rel_y 
+    \hspace{1.5em} .amp_y, .phase_y,         \\
+    \hspace{1.5em} .amp_sin_y, .amp_cos_y,   \\
+    \hspace{1.5em} .amp_sin_rel_y,           \\
+    \hspace{1.5em} .amp_cos_rel_y 
   \end{tabular}                       & Pinged beam $a$-mode response             & lat        & No  \\ \hline
 
   \begin{tabular}{@{}l}
     ping_b.amp_x, .phase_x,               \\
-    \hspace{2em} .amp_y, .phase_y,        \\
-    \hspace{2em} .amp_sin_x, .amp_cos_x,  \\
-    \hspace{2em} .amp_sin_rel_x,          \\
-    \hspace{2em} .amp_cos_rel_x 
+    \hspace{1.5em} .amp_y, .phase_y,        \\
+    \hspace{1.5em} .amp_sin_x, .amp_cos_x,  \\
+    \hspace{1.5em} .amp_sin_rel_x,          \\
+    \hspace{1.5em} .amp_cos_rel_x 
   \end{tabular}                       & Pinged beam $b$-mode response             & lat        & No  \\ \hline
 
   r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
@@ -1750,7 +1793,10 @@ squared.
   rad_int.i1, .i2, etc.               & Lattice Radiation integrals               & lat         & No  \\ \hline
   rad_int1.i1, .i2, etc.              & Element radiation integrals               & lat         & No  \\ \hline
   ref_time                            & Reference time                            & lat, beam   & Yes \\ \hline
-  rel_floor.x, .y, .z, .theta         & Relative global floor position            & lat         & No  \\ \hline 
+  \begin{tabular}{@{}l}
+    rel_floor.x, .y, \\
+    \hspace{3em} .z, .theta
+  \end{tabular}                       & Relative global floor position            & lat         & No  \\ \hline 
 
   s_position                          & longitudinal length constraint            & lat         & Yes \\ \hline 
 
@@ -1779,10 +1825,13 @@ squared.
   time                                & Particle time (sec)                       & lat, beam   & Yes \\ \hline
 
   \begin{tabular}{@{}l}   
-     t.$ijklm\ldots$ \\
+     t.$ijklm\ldots$, \\
      tt.$ijklm\ldots$ 
-  \end{tabular}  $1 \le i,j,k,\ldots \le 6$  
-                                      & Term in n\Th order transfer map           & lat         & No  \\ \hline 
+  \end{tabular} \hspace{-1em} $1 \le i,j,k,\ldots \le 6$  
+                                      & \begin{tabular}{@{}l}
+                                          Term in n\Th \\
+                                          order transfer map
+                                        \end{tabular}                             & lat         & No  \\ \hline 
 
   tune.a, .b                          & Tune                                      & lat         & No  \\ \hline 
 
@@ -1790,7 +1839,10 @@ squared.
     unstable.eigen, .eigen.a,  \\
     \hspace{3em} .eigen.b, .eigen.c
   \end{tabular}                       & Maximum eigenvalue amplitude              & lat         & No  \\ \hline
-  unstable.lattice                    & Positive if lattice is unstable           & lat         & No  \\ \hline
+  unstable.lattice                    & \begin{tabular}{@{}l}
+                                          Positive if \\
+                                          lattice is unstable
+                                        \end{tabular}                             & lat         & No  \\ \hline
   unstable.orbit                      & \begin{tabular}{@{}l}   
                                           Nonzero if particles are \\
                                           lost in tracking

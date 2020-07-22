@@ -247,10 +247,8 @@ enddo  ! d2_data loop
 
 close (iu)
 
-allocate(s%u(1)%model%lat%branch(0)%normal_form_no_rf%h(n_hterms))
-allocate(s%u(1)%model%lat%branch(0)%normal_form_with_rf%h(n_hterms))
-s%u(1)%model%lat%branch(0)%normal_form_no_rf%h(:)%c = h_strings(1:n_hterms)
-s%u(1)%model%lat%branch(0)%normal_form_with_rf%h(:)%c = h_strings(1:n_hterms)
+allocate(s%u(1)%model%tao_branch(0)%bmad_normal_form%h(n_hterms))
+s%u(1)%model%tao_branch(0)%bmad_normal_form%h(:)%c = h_strings(1:n_hterms)
 
 ! Custom data setup?
 
