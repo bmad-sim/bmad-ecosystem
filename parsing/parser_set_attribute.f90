@@ -1780,7 +1780,7 @@ case ('VELOCITY_DISTRIBUTION')
 
 case default   ! normal attribute
 
-  if (ele%key == line_ele$) then
+  if (ele%key == def_line$) then
     select case (attrib_word)
     case ('CBAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'P0C', 'E_TOT', 'ETA_X', 'ETA_Y', &
           'ETAP_X', 'ETAP_Y', 'ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B')

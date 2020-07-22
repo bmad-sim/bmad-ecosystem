@@ -636,7 +636,7 @@ parsing_loop: do
         ele%key = replacement_line$
       else
         sequence(iseq_tot)%type = line$
-        ele%key = line_ele$
+        ele%key = def_line$
         call set_ele_defaults (ele)
       endif
     else

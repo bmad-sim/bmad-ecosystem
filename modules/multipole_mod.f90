@@ -271,7 +271,8 @@ end subroutine multipole1_kt_to_ab
 !   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
 !                      use_ele_tilt is ignored in the case of multipole$ elements.
 !   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   include_kicks -- integer, optional: Possibilities are: 
+!   include_kicks -- integer, optional: Ignored for for pole_type == electroc$ for non-elseparator elements.
+!                      Possibilities are: 
 !            no$                      -- Default. Do not include any kick components in a and b multipoles. 
 !            include_kicks$           -- Include hkick/vkick in the n = 0 components.
 !                                           Also included are quad k1, sextupole k2 and octupole k3 components.
