@@ -61,6 +61,7 @@ allocate (t_shift(nn))
 
 if (calc_fshift_for == 'PTC') then
   call lat_to_ptc_layout (lat)
+  call in_ptc_units() ! find_time_patch does not work with Bmad units
   call find_time_patch (lat%branch(0)%ptc%m_t_layout, DEFAULT, 1d40)
 
   nn = 0
