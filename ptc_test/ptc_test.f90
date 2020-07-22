@@ -66,7 +66,7 @@ call bmad_parser ('figure_8.bmad', lat)
 call lat_to_ptc_layout (lat)
 
 bmad_com%spin_tracking_on = .true.
-call ptc_one_turn_map_at_ele (lat%ele(2), tmap, smap, order = 2)
+!!!!!!!call ptc_one_turn_map_at_ele (lat%ele(2), tmap, smap, order = 2)
 call taylor_clean(tmap)
 call taylor_clean(smap)
 call type_taylors (tmap)
