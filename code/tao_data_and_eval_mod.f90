@@ -1159,7 +1159,8 @@ case ('chrom_ptc.')
   expo = 0
   expo(6) = n + 1
 
-  value = phase_map .sub. expo
+  datum_value = phase_map .sub. expo
+  valid_value = .true.
 
 !-----------
 
