@@ -4187,25 +4187,27 @@ case (sad_mult$)
 
 case (sbend$)
   if (ele%is_on) then
-    bn(1) = ele%value(g_err$)
+
+    ! PTC assumes horizontally_pure
+    if (nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
+      call multipole_ele_to_ab (ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
+      call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, an, bn)
+      if (leng /= 0) then
+        an = an / leng
+        bn = bn / leng
+      endif
+      add_kick = .false.   
+      add_multipoles = .false.
+
+    else
+      bn(2) = val(k1$)
+      bn(3) = val(k2$) / 2
+    endif
+
+    bn(1) = bn(1) + ele%value(g_err$)
+
   else
     bn(1) = -ele%value(g$)
-  endif
-
-  ! PTC assumes horizontally_pure
-  if (nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
-    call multipole_ele_to_ab (ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
-    call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, an, bn)
-    if (leng /= 0) then
-      an = an / leng
-      bn = bn / leng
-    endif
-    add_kick = .false.   
-    add_multipoles = .false.
-
-  else
-    bn(2) = val(k1$)
-    bn(3) = val(k2$) / 2
   endif
 
 case (sextupole$)
