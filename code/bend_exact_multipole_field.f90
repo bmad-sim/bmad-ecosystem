@@ -801,8 +801,8 @@ enddo
 
 !
 
-a_temp(1:np0) = an(1:np0)
-b_temp(1:np0) = bn(1:np0)
+a_temp(0:np0) = an(0:np0)
+b_temp(0:np0) = bn(0:np0)
 
 an = 0
 bn = 0

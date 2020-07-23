@@ -1047,7 +1047,8 @@ end type
 type converter_prob_pc_r_struct
   real(rp), allocatable :: pc_out(:)        ! Grid pc_out values.
   real(rp), allocatable :: r(:)             ! Grid r_out values.
-  real(rp), allocatable :: prob(:, :)       ! Probability grid.
+  real(rp), allocatable :: prob(:,:)        ! Probability grid.
+  real(rp), allocatable :: spin_z(:,:)      ! Z polarization grid.
   ! Stuff below is calculated rather than read in from the lattice file.
   real(rp) pc_out_min, pc_out_max
   real(rp) :: integrated_prob = 0           ! Integrated probability over (pc_out, r) with restrictions factered in.
@@ -1088,6 +1089,7 @@ end type
 
 type converter_sub_distribution_struct
   real(rp) :: pc_in = -1
+  real(rp) :: spin_in
   type (converter_prob_pc_r_struct) :: prob_pc_r
   type (converter_direction_out_struct) :: dir_out
 end type

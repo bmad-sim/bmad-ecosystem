@@ -89,11 +89,20 @@ ix_sd = 0
 do n_sd = 1, n_subd
   obj1 => pointer_to_subobject(obj0, 'SUB_DISTRIBUTION', ix_sd)
 
-  if (.not. parser_check_subobjects (obj1, [subobj('PC_IN',1,1), subobj('PROB_PC_R',1,1), subobj('DIRECTION_OUT',1,1)], ele)) return
+  if (.not. parser_check_subobjects (obj1, [subobj('PC_IN',1,1), subobj('PROB_PC_R',1,1), &
+                                 subobj('SPIN_Z_OUT',0,1), subobj('SPIN_IN',0,1), subobj('DIRECTION_OUT',1,1)], ele)) return
   sub_d => dist%sub_dist(n_sd)
+
   ! PC_IN
   obj2 => pointer_to_subobject(obj1, 'PC_IN')
   if (.not. parser_read_obj_real(obj2, sub_d%pc_in, ele)) return
+
+  ! SPIN_IN
+  obj2 => pointer_to_subobject(obj1, 'SPIN_IN')
+  if (associated(obj2)) then
+    if (.not. parser_read_obj_real(obj2, sub_d%spin_in, ele)) return
+  endif
+
   ! PROB_PC_R
   obj2 => pointer_to_subobject(obj1, 'PROB_PC_R')
   if (.not. parser_check_subobjects (obj2, [subobj('R_VALUES',1,1), subobj('ROW',1,9999)], ele)) return
@@ -112,6 +121,27 @@ do n_sd = 1, n_subd
     if (.not. parser_read_subobj_real_array(obj3, 'PROB', prob_pc_r%prob(k,:), .true., ele)) return
   enddo
   if (.not. parser_check_obj_order (prob_pc_r%pc_out(:), '<', 'ROW->PC_OUT', obj2, ele)) return
+
+  ! SPIN_Z_OUT
+  obj2 => pointer_to_subobject(obj1, 'SPIN_Z_OUT')
+  if (associated(obj2)) then
+    if (.not. parser_check_subobjects (obj2, [subobj('R_VALUES',1,1), subobj('ROW',1,9999)], ele)) return
+    obj3 => pointer_to_subobject(obj2, 'R_VALUES')
+    n_r = obj3%n_token
+    n_pc = subobject_number(obj2, 'ROW')
+    allocate(prob_pc_r%r(n_r))
+    if (.not. parser_read_obj_real_array(obj3, sub_d%prob_pc_r%r, .true., ele)) return
+    allocate (prob_pc_r%prob(n_pc, n_r), prob_pc_r%pc_out(n_pc))
+    ixe = 0
+    do k = 1, n_pc
+      obj3 => pointer_to_subobject(obj2, 'ROW', ixe)
+      if (.not. parser_check_subobjects (obj3, [subobj('SPIN_Z',1,1), subobj('PROB',1,1)], ele)) return
+      if (.not. parser_read_subobj_real(obj3, 'SPIN_Z', prob_pc_r%pc_out(k), ele)) return
+      if (.not. parser_read_subobj_real_array(obj3, 'PROB', prob_pc_r%prob(k,:), .true., ele)) return
+    enddo
+    if (.not. parser_check_obj_order (prob_pc_r%pc_out(:), '<', 'ROW->SPIN_Z', obj2, ele)) return
+  endif
+
   ! DIRECTION_OUT
   obj2 => pointer_to_subobject(obj1, 'DIRECTION_OUT')
   if (.not. parser_check_subobjects (obj2, [subobj('ALPHA_X',1,1), subobj('ALPHA_Y',1,1), &
