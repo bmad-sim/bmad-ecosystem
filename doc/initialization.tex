@@ -404,15 +404,15 @@ reversed from the setting in the lattice file. This is useful for simulating bea
 backward direction.
 
 The \vn{%slice_lattice} parameter specifies a list of elements to be used to pare down the lattice
-so that the only elements that appear in the list are keept in the lattice.  In addition, any lord
-elements that control elements in the list are also retianed. This is identical to putting a
+so that the only elements that appear in the list are kept in the lattice.  In addition, any lord
+elements that control elements in the list are also retained. This is identical to putting a
 \vn{slice_lattice} command directly in the lattice file. For example:
 \begin{example}
   design_lattice(1)%slice_lattice = "Q1:35"
 \end{example}
-In this example, everthing outside of the range from element \vn{Q1} to the element with index 35
+In this example, everything outside of the range from element \vn{Q1} to the element with index 35
 will be discarded.  See the \bmad manual for more details about the \vn{slice_lattice} command.
-Note: There is also a \vn{-slice_lattice} initalization argument (\sref{s:command.line} that can be
+Note: There is also a \vn{-slice_lattice} initialization argument (\sref{s:command.line} that can be
 used.
 
 Example:
@@ -492,7 +492,7 @@ There may be multiple \vn{symbolic_number} namelists and each namelist defines o
 symbolic number. In this example, there are two namelists defining two numbers \vn{aaa} and
 \vn{my_const}. Notice that the value of a symbolic number may be an expression. This is unlike any
 other namelist in \tao where expressions will generate an error. Expressions for symbolic numbers
-are immediatly evaluated.
+are immediately evaluated.
 
 Once defined, symbolic constants may be used in expressions. For example:
 \begin{example}
@@ -536,7 +536,12 @@ These instances are initialized in the root initialization file using a namelist
 \end{example}
 The \vn{show global} command (\sref{s:show.global}) can be used to show global parameter values. The
 \vn{set} command (\sref{s:set}) can be used to set global parameter values. The \vn{show global} and
-\vn{show optimiter} (\sref{s:show}) commands.
+\vn{show optimizer} (\sref{s:show}) commands.
+
+The \vn{tao_params} namelist is read after reading of the lattice file so settings of \vn{bmad_com}
+and \vn{csr_param} structures in the lattice file will be overwritten by settings in the
+\vn{tao_params} namelist. And settings in any startup command file (\sref{s:init.global}) will
+supersede everything else.
 
 %-----------------------------------------------------------------
 \subsection{tao\_global\_struct Structure}
@@ -659,7 +664,7 @@ True will force \tao to always calculate curve data points even when \vn{global%
 
   \item{\vn{global%history_file}} \Newline
 The commands typed in by a user are saved in a ``history file'' so that they can be recalled using
-the uparrow key and eve recalled between run sessions. The default is to save the command history
+the up-arrow key and eve recalled between run sessions. The default is to save the command history
 to the file \vn{\~/.history_tao}. Sometimes is is convenient to have multiple history files and
 in this case the setting of \vn{global%history_file} can varied from init file to init file.
 
@@ -694,7 +699,7 @@ For use with command files. May be set to one of:
 \end{example}
 If set to \vn{all}, output to the terminal during command file running will be suppressed (except
 for warning and error messages) until the command file (or files) returns to the command line level
-at wich point \vn{global%quiet} is automatically reset to \vn{off}. That is, \vn{global%silent_run}
+at which point \vn{global%quiet} is automatically reset to \vn{off}. That is, \vn{global%silent_run}
 must be set each time it is desired to run a command file(s) silently.
 
   \item{\vn{global%random_engine}} \Newline
@@ -1057,7 +1062,7 @@ saved_at}, \vn{set beam add_saved_at}, and \vn{set beam subtract_saved_at} comma
 
 If the beam size is large or the number of elements at which the beam is to be saved at is large, it
 may be problematic to store all the beam particle position information in memory until the end of
-tracking. If this is the case, the beam particle position information can be writen directly to a
+tracking. If this is the case, the beam particle position information can be written directly to a
 file during tracking (and not saved in memory) by setting \vn{beam_dump_at} to a list of elements at
 which the position information is to be saved and setting \vn{beam_dump_file} to the name of the
 data file. The data file should have an ".h5" or ".hdf5" suffix to save the data in HDF5
@@ -1665,8 +1670,8 @@ orientation can be adjusted using \vn{beginning[...]} statements as explained in
 \subsection{Building Orientation}
 \label{s:building.orient}
 
-It may be convenient to use a different two-dimensional coordinate system for the horozontal plane
-than the global coordinate system used by \bmad and \tao. For example, if the building wall coordinants are
+It may be convenient to use a different two-dimensional coordinate system for the horizontal plane
+than the global coordinate system used by \bmad and \tao. For example, if the building wall coordinates are
 obtained from a blueprint. To help with this, an overall position and angle
 shift may be specified by a \vn{building_wall_orientation} namelist in the same file with the
 \vn{building_wall_section} namelists. The syntax of the \vn{building_wall_orientation} namelist is:
@@ -2261,7 +2266,7 @@ The \vn{curve%draw_error_bars} logical determines whether error bars are drawn w
 simple, \tao ignores the setting of \vn{curve%component} when drawing error bars. This must be kept
 in mind since for example, the measurement error associated with a difference plot of measured data
 - reference data (when \vn{curve%component} is set to \vn{meas-ref}) is different from just plotting
-measured data, which in turn is different from a plot of the data as calcuated from the \vn{model}
+measured data, which in turn is different from a plot of the data as calculated from the \vn{model}
 (the measurement error associated with this is zero).
 
 The \vn{curve%ele_ref_name} component is only used if \vn{curve%data_source} is set to \vn{"lat"}.
@@ -2520,7 +2525,7 @@ of this structure can be set to control how a floor plan is drawn. The component
     orbit_width          = <integer>   ! Line width. Default = 1.
   end type
 \end{example}
-A graph is initalized with a \vn{tao_template_graph} namelist (\sref{s:template}). Example:
+A graph is initialized with a \vn{tao_template_graph} namelist (\sref{s:template}). Example:
 \begin{example}
   &tao_template_graph
     ...
@@ -2561,7 +2566,7 @@ vertical extent.
 If element labels are to be drawn, on which side the labels are drawn can be flipped by setting 
 \vn{graph%floor_plan%flip_label_side} to True.
 
-The \vn{size_is_absolute} logical is combinded with the \vn{<size>} setting for a shape to determine the
+The \vn{size_is_absolute} logical is combined with the \vn{<size>} setting for a shape to determine the
 size transverse to the center line curve of the drawn shape (\sref{s:shapes}).
 If \vn{size_is_absolute} is False (the default), \vn{<size>} is taken to be the size of
 the shape in points (72 points is approximately 1 inch). If \vn{size_is_absolute} is True,
@@ -3223,7 +3228,7 @@ is used.
 \subsection{QuickPlot Plotting}
 \label{s:line.symb}
 
-\vn{QuickPLot} is an interface library developed for \bmad for graphics plotting. QuickPlot uses
+\vn{QuickPlot} is an interface library developed for \bmad for graphics plotting. QuickPlot uses
 the following concepts:
 \begin{example}
   PAGE  -- The entire drawing surface.
@@ -3256,7 +3261,7 @@ Where \vn{unit_type} is the type of units:
    'DATA'    - Data units.
    'MM'      - millimeters.
    'INCH'    - Inches.
-   'POINTS'  - Printers points (72 points = 1 inch, 1pt ~ 1pixel).
+   'POINTS'  - Printers points (72 points = 1 inch, 1 pt ~ 1 pixel).
 \end{example}
 \vn{ref_object} is a reference object (optional except if \vn{unit_type} = "\%").
 \begin{example}
@@ -3304,7 +3309,7 @@ The \vn{%bounds} parameter sets how the axes min and max values are calculated.
 Possible settings are:
 \begin{example}
   'ZERO_AT_END'      ! Min or max value is set to zero.
-  'ZERO_SYMMETRIC'   ! Min and max choisen so that max = -min.
+  'ZERO_SYMMETRIC'   ! Min and max chosen so that max = -min.
   'GENERAL'          ! No restrictions.
   'EXACT'            ! The User min/max is used.
 \end{example}
