@@ -970,6 +970,7 @@ character(40) who2
 character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
 
 real(rp), allocatable :: set_val(:)
+real(rp) r_val
 integer i, ix, iu, ios, ib, n_loc
 logical err, eval_err
 logical, allocatable :: picked_uni(:)
@@ -1022,8 +1023,12 @@ iu = tao_open_scratch_file (err);  if (err) return
 
 write (iu, '(a)') '&params'
 
-if (is_real(value_str) .or. is_logical(value_str)) then
-  write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', trim(value_str)
+if (is_real(value_str, real_num = r_val) .or. is_logical(value_str)) then
+  if (who2 == 'n_particle') then  ! Sometimes people use "1E3" for the value
+    write (iu, '(a, i0)') ' beam_init%' // trim(who2) // ' = ', nint(r_val)
+  else
+    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', trim(value_str)
+  endif
 
 elseif (who(1:17) == 'distribution_type') then  ! Value is a vector so quote() function is not good here.
   write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', value_str
