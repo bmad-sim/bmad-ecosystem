@@ -11,9 +11,8 @@
 using namespace std::string_literals;
 
 SettingsSpec SimSettings::lookup(const std::string& name) {
-  //if (name=="num_bins"s) {
-  //  return { false, SetType::count, (void *) &(this->num_bins) };
-  //} else if (name=="num_pc_bins"s) {
+  // Encodes the information about a particular setting, including
+  // a pointer to the relevant member variable, in a SettingsSpec struct
   if (name=="num_pc_bins"s) {
     return { false, SetType::count, (void *) &(this->num_pc_bins) };
   } else if (name=="num_r_bins"s) {
@@ -34,24 +33,33 @@ SettingsSpec SimSettings::lookup(const std::string& name) {
     return { true, SetType::energy, (void *) &(this->pc_in) };
   } else if (name=="thicknesses"s) {
     return { true, SetType::length, (void *) &(this->target_thickness) };
-  } else return {false, SetType::generic, nullptr};
+  } else if (name == "polarization_in"s) {
+    return { true, SetType::generic, (void *) &(this->polarization_in) };
+  } else {
+    return {false, SetType::generic, nullptr};
+  }
 }
 
 
 bool SimSettings::valid() const {
-  // Checks whether or not this is in a valid state
+  // Checks whether or not this is in a valid state,
+  // and issue warnings for any errors
 
-  bool bins_set = /* (num_bins > 0) || */ (num_pc_bins > 0 && num_r_bins > 0);
+  bool bins_set = (num_pc_bins > 0 && num_r_bins > 0);
   bool out_pc_set = (out_pc_min >= 0) && (out_pc_min < out_pc_max);
   bool dxy_ds_set = dxy_ds_max > 0;
   bool fit_crossover_set = (fit_crossover >= 0);
   bool material_set = (target_material != ""s);
   bool output_dir_set = (output_directory != ""s);
   auto is_pos = [](const double x) { return x>0; };
+  auto is_zero = [](const double x) { return x==0; };
   bool pc_in_set = (pc_in.size() != 0) &&
     std::all_of(pc_in.cbegin(), pc_in.cend(), is_pos);
   bool thickness_set = (target_thickness.size() != 0) &&
     std::all_of(target_thickness.cbegin(), target_thickness.cend(), is_pos);
+  bool polarization_set = (polarization_in.size() == 0 ||
+      (polarization_in.size() == 3 &&
+      !std::all_of(polarization_in.begin(), polarization_in.end(), is_zero)));
 
   if (!bins_set)
     std::cerr << "ERROR: num_pc_bins and/or num_r_bins missing or invalid\n";
@@ -69,9 +77,11 @@ bool SimSettings::valid() const {
     std::cerr << "ERROR: pc_in missing or invalid\n";
   if (!thickness_set)
     std::cerr << "ERROR: thicknesses missing or invalid\n";
+  if (!polarization_set)
+    std::cerr << "ERROR: polarization_in, if set, should have three components, not all of which are zero\n";
 
   return bins_set && out_pc_set && dxy_ds_set && fit_crossover_set
-    && material_set && output_dir_set && pc_in_set && thickness_set;
+    && material_set && output_dir_set && pc_in_set && thickness_set && polarization_set;
 }
 
 bool operator==(const StrNum& s1, const StrNum& s2) {
@@ -141,7 +151,7 @@ double convert(const StrNum& v, const SetType T) {
 SimSettings parse_config_file(const char* config_file_name) {
   // Parses the supplied config file and returns a
   // SimSettings object with the values set in the config file
-  SimSettings settings;
+  SimSettings settings{};
 
   std::ifstream config_file(config_file_name);
   if (!config_file.is_open()) {
@@ -232,6 +242,7 @@ SimSettings parse_config_file(const char* config_file_name) {
 }
 
 std::ostream& operator<<(std::ostream& out, const SimSettings& s) {
+  // Defines how a SimSettings struct should be printed
   out << "Minimum outgoing electron pc: " << s.out_pc_min << " MeV\n";
   out << "Maximum outgoing electron pc: " << s.out_pc_max << " MeV\n";
   out << "Maximum dx/ds, dy/ds magnitude: " << s.dxy_ds_max << '\n';
@@ -255,6 +266,13 @@ std::ostream& operator<<(std::ostream& out, const SimSettings& s) {
     out << ": " << s.target_thickness.back();
   }
   out << " cm\n";
+  if (s.polarization_in.size()) {
+    out << "Incoming electron polarization: {"
+      << s.polarization_in[0] << ", "
+      << s.polarization_in[1] << ", "
+      << s.polarization_in[2] << "}\n";
+  }
+
   out << "Output directory: " << s.output_directory << '\n';
   return out;
 }

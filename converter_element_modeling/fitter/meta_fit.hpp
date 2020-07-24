@@ -33,18 +33,18 @@ struct FitResults {
 
 
 template <fitType T>
-FitResults fit_routine(const std::vector<CauchyPoint>&, double);
+FitResults fit_routine(const std::vector<CauchyPoint>& cauchy, const TableData& er_table, double crossover_point);
 
 
 struct MetaFitResults {
   double Ein;
   double T;
   FitResults cx, ax, ay, beta, dxds_min, dxds_max, dyds_max;
-  ER_table table;
+  TableData er_table, polz_table;
 
   MetaFitResults(double Ein, double T, FitResults&& cx, FitResults&& ax, FitResults&& ay,
       FitResults&& beta, FitResults&& dxds_min, FitResults&& dxds_max,
-      FitResults&& dyds_max, ER_table&& table);
+      FitResults&& dyds_max, TableData&& er_table, TableData&& polz_table);
 };
 
 

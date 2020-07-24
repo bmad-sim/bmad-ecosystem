@@ -6,6 +6,12 @@ struct BinPoint {
   double density;
 };
 
+struct XYBinnedData {
+  double E;
+  double r;
+  std::vector<BinPoint> bins;
+};
+
 enum class CauchyStatus { OK, NOPROG, MAXITER };
 
 struct CauchyPoint {
@@ -16,5 +22,5 @@ struct CauchyPoint {
   CauchyStatus stat;
 };
 
-CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>& bins);
-CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>& bins, const CauchyPoint& guess);
+CauchyPoint asym_cauchy_fit(const XYBinnedData& data);
+CauchyPoint asym_cauchy_fit(const XYBinnedData& data, const CauchyPoint& guess);
