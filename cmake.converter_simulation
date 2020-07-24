@@ -42,6 +42,6 @@ SET(CFLAGS "${CMAKE_CXX_FLAGS}")
 # Add the executable, and link it to the Geant4 libraries
 #
 SET (SHARED_LINK_LIBS
-  stdc++fs
+  #stdc++fs
   ${Geant4_LIBRARIES}
   )
