@@ -33,7 +33,7 @@ real(rp) sinc_a, r, rad, denom, L_v, L_u, dalpha, dx2, dL_c, dL_p, dphi_1, dpt, 
 real(rp) cos_a, sin_a, dL_u, dL_v, dangle_p, beta_ref
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
-integer n, n_step, ix_pole_max, ix_elec_max
+integer n, n_step, ix_mag_max, ix_elec_max
 
 logical, optional :: make_matrix
 
@@ -58,13 +58,14 @@ g = ele%value(g$)
 g_tot = (g + ele%value(g_err$)) * rel_charge_dir
 g_err = g_tot - g
 k_1 = ele%value(k1$) * rel_charge_dir
+
 if (nint(ele%value(exact_multipoles$)) /= off$) then
   k_1 = 0  ! Is folded in with multipoles.
-  ix_pole_max = max(1, ix_pole_max)
-  call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
+  call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$)
 else
-  call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks_except_k1$)
+  call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks_except_k1$)
 endif
+
 call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 if (.not. ele%is_on) then
@@ -76,12 +77,13 @@ endif
 ! multipole kick at the beginning.
 
 n_step = 1
-if (ix_pole_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
+if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 r_step = 1.0_rp / n_step
 step_len = ele%value(l$) * r_step
 angle = g * step_len
 
-if (ix_pole_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp, step_len)
+if (ix_mag_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp, step_len, &
+                                                      ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
 
 ! And track with n_step steps
 
@@ -240,11 +242,11 @@ do n = 1, n_step
 
   ! multipole kick
 
-  if (ix_pole_max > -1 .or. ix_elec_max > -1) then
+  if (ix_mag_max > -1 .or. ix_elec_max > -1) then
     if (n == n_step) then
-      call apply_multipole_kicks (0.5_rp, step_len)
+      call apply_multipole_kicks (0.5_rp, step_len, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
     else
-      call apply_multipole_kicks (1.0_rp, step_len)
+      call apply_multipole_kicks (1.0_rp, step_len, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
     endif
   endif
 
@@ -271,7 +273,8 @@ endif
 !-------------------------------------------------------------------------------------------------------
 contains
 
-subroutine apply_multipole_kicks (coef, step_len)
+subroutine apply_multipole_kicks (coef, step_len, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
+
 
 type (em_field_struct) field
 type (coord_struct) orb0
@@ -279,7 +282,9 @@ type (coord_struct) orb0
 real(rp) coef, step_len
 real(rp) ps, ps2, kx, ky, alpha, f_coef, df_coef_dx, kmat(6,6), rel_p0, r_len
 real(rp) mc2, dk_dp, pc0, E0, E1, f, df_dps_coef, dkm(2,2), f_p0c, Ex, Ey
-integer i, charge
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+
+integer i, charge, ix_mag_max, ix_elec_max
 
 ! Calculate field
 
@@ -290,11 +295,9 @@ if (nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
 
 else
   field = em_field_struct()
-  r_len = 1
-  if (ele%value(l$) /= 0) r_len = step_len / ele%value(l$)
-  f_p0c = r_len * ele%value(p0c$) / (c_light * charge_of(param%particle))
+  f_p0c = ele%value(p0c$) / (c_light * charge_of(param%particle))
 
-  do i = 0, ix_pole_max
+  do i = 0, ix_mag_max
     if (an(i) == 0 .and. bn(i) == 0) cycle
     if (logic_option(.false., make_matrix)) then
       call ab_multipole_kick(an(i), bn(i), i, param%particle, 0, orbit, kx, ky, dkm)
@@ -322,11 +325,14 @@ else
   enddo
 endif
 
+r_len = 1
+if (ele%value(l$) /= 0) r_len = step_len / ele%value(l$)
+
 ! Magnetic kick.
 
-if (ix_pole_max > -1) then
+if (ix_mag_max > -1) then
   orb0 = orbit
-  f_coef = coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
+  f_coef = r_len * coef * c_dir * (1 + ele%value(g$) * orbit%vec(1)) * c_light / orb0%p0c
   orbit%vec(2) = orbit%vec(2) - f_coef * field%B(2)
   orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
 
@@ -348,7 +354,7 @@ if (ix_elec_max > -1) then
   rel_p0 = 1 + orb0%vec(6)
   ps2 = rel_p0**2 - orb0%vec(2)**2 - orb0%vec(4)**2
   ps = sqrt(ps2) / rel_p0
-  f_coef = coef * step_len * (1 + ele%value(g$) * orb0%vec(1)) * charge / (ps * orb0%beta * orb0%p0c)
+  f_coef = step_len * coef * (1 + ele%value(g$) * orb0%vec(1)) * charge / (ps * orb0%beta * orb0%p0c)
   Kx = f_coef * field%E(1)
   Ky = f_coef * field%E(2)
   alpha = (kx * (2*orb0%vec(2) + kx) + ky * (2*orb0%vec(4) + ky)) / rel_p0**2

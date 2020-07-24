@@ -261,7 +261,8 @@ if (nint(ele%value(exact_multipoles$)) == horizontally_pure$) then
     ix_mag_max = n_pole_maxx
   endif
   if (ix_elec_max /= -1) then
-    call convert_bend_exact_multipole(g, vertically_pure$, a_pole_elec, b_pole_elec)
+    ! Notice that a_pole and b_pole are reversed for electric fields.
+    call convert_bend_exact_multipole(g, vertically_pure$, b_pole_elec, a_pole_elec)
     ix_elec_max = n_pole_maxx
   endif
 endif
