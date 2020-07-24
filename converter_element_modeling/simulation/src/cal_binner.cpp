@@ -14,29 +14,30 @@
 #include "bin.hpp"
 #include "GeantMain.hpp"
 
+using namespace std::string_literals;
 
-// Constructor
-CalibrationBinner::CalibrationBinner(RunManager_t* p_run_manager, PointCache* p_cache, const SimSettings& p_s, double p_in_energy, double p_target_thickness) :
-  cal_run({}),
-  E_edges({}), r_edges({}),
+CalibrationBinner::CalibrationBinner(G4RunManager* p_run_manager, PointCache* p_cache, const SimSettings& p_s, double p_in_energy, double p_target_thickness) :
+  cal_run(),
+  E_edges(), r_edges(),
   bins(),
   total_count(0), elec_in(0),
   runManager(p_run_manager), point_cache(p_cache),
   target_material(p_s.target_material),
   out_dir(p_s.output_directory),
   in_energy(p_in_energy), target_thickness(p_target_thickness) {
-    //if (p_s.num_pc_bins==0)
-    //  E_edges.resize(p_s.num_bins + 1);
-    //else
-      E_edges.resize(p_s.num_pc_bins + 1);
+    if (p_s.polarization_in.size() != 0) {
+      in_polarization = G4ThreeVector(p_s.polarization_in[0],
+                                      p_s.polarization_in[1],
+                                      p_s.polarization_in[2]);
+    } else {
+      in_polarization = G4ThreeVector(0, 0, 0);
+    }
+    E_edges.resize(p_s.num_pc_bins + 1);
     E_edges.front() = p_s.out_pc_min;
     E_edges.back() = p_s.out_pc_max;
     bins.resize(E_edges.size()-1);
 
-    //if (p_s.num_r_bins==0)
-    //  r_edges.resize(p_s.num_bins + 1);
-    //else
-      r_edges.resize(p_s.num_r_bins + 1);
+    r_edges.resize(p_s.num_r_bins + 1);
     r_edges.front() = 0;
     r_edges.back() = 1e6; // set to a ridiculous number initially, fix later
 }
@@ -46,7 +47,7 @@ CalibrationBinner::CalibrationBinner(RunManager_t* p_run_manager, PointCache* p_
 void CalibrationBinner::calibrate() {
   // Short run
   size_t calibration_length = 10000;
-  run_simulation(runManager, target_material, in_energy, target_thickness, point_cache, calibration_length);
+  run_simulation(runManager, target_material, in_energy, target_thickness, in_polarization, point_cache, calibration_length);
 
   // Read data points from point_cache
   point_cache->Lock();
@@ -71,7 +72,7 @@ void CalibrationBinner::calibrate() {
 
   // -> remove out of range points
   cal_run.erase(std::remove_if(cal_run.begin(), cal_run.end(),
-        [this](DataPoint p) { return !in_range(p); }),
+        [this](GeantParticle p) { return !in_range(p); }),
       cal_run.end());
 
   // Set E,r edges
@@ -113,10 +114,10 @@ void CalibrationBinner::calibrate() {
 }
 
 
-void CalibrationBinner::add_point(DataPoint p) {
+void CalibrationBinner::add_point(const GeantParticle& p) {
   if (!in_range(p)) return;
   auto [n_E, n_r] = get_bin_num(p.E, p.r);
-  bins[n_E][n_r].add_point(p.dxds, p.dyds);
+  bins[n_E][n_r].add_point(p);
   total_count++;
 }
 
@@ -126,7 +127,7 @@ void CalibrationBinner::run(size_t run_length) {
   point_cache->Clear();
   point_cache->Unlock();
   run_simulation(runManager, target_material, in_energy, target_thickness,
-      point_cache, run_length);
+      in_polarization, point_cache, run_length);
   for (auto& p : *point_cache) add_point(p);
   elec_in += run_length;
 }
@@ -134,58 +135,107 @@ void CalibrationBinner::run(size_t run_length) {
 
 void CalibrationBinner::write_data() {
   // Performs the following:
-  // * Writes the E,r histogram to E..._T..._er.dat (ASCII)
+  // * Writes the E,r histogram to E..._T..._er.dat
+  // * Writes the average x polarizations to E..._T..._polx.dat
+  // * Writes the average y polarizations to E..._T..._poly.dat
+  // * Writes the average z polarizations to E..._T..._polz.dat
   // * For each E,r bin, writes the dxds,dyds histogram
-  //   to dir_dat/E..._T.../E..._r..._bin.dat (ASCII)
-  // * Writes all dxds, dyds histograms to
-  //   dir_dat/E..._T.../binary.dat (BINARY)
-  std::ofstream outfile;
-  char filename[200];
-  sprintf(filename, "%s/E%0.0lf_T%0.3lf_er.dat",
-      out_dir.c_str(), in_energy, target_thickness);
-  outfile.open(filename);
-  if (!outfile) {
-    std::cerr << "ERROR: Could not open " << filename << " for writing\n";
-    return;
-  }
+  //   to dir_dat/E..._T.../E..._r..._bin.dat, and records
+  //   these filenames to E..._T..._xy_bins.txt
 
-  //char binary_filename[200];
-  //sprintf(binary_filename, "%s/dir_dat/E%0.0lf_T%0.3lf/binary.dat",
-  //    out_dir.c_str(), in_energy, target_thickness);
-  //FILE *binary_file = std::fopen(binary_filename, "wb");
+  // Open list for dxds, dyds filenames
   char list_filename[200];
   sprintf(list_filename, "%s/E%0.0lf_T%0.3lf_xy_bins.txt",
       out_dir.c_str(), in_energy, target_thickness);
-  FILE *binlist = std::fopen(list_filename, "w");
+  std::ofstream binlist;
+  binlist.open(list_filename);
   if (!binlist) {
     std::cerr << "ERROR: Could not open " << list_filename << " for writing\n";
+    return;
+  }
+
+  // Write the dxds, dyds files
+  auto num_E_bins = E_edges.size()-1;
+  auto num_r_bins = r_edges.size()-1;
+  for (size_t i=0; i<num_E_bins; i++) {
+    for (size_t j=0; j<num_r_bins; j++) {
+      double bin_E = get_E_val(i);
+      double bin_r = get_r_val(j);
+      auto& bin = get_bin(i,j);
+      bin.bin_momenta();
+      bin.write_momenta(out_dir.c_str(), in_energy, target_thickness, bin_E, bin_r, binlist);
+    }
+  }
+  binlist.close();
+
+  // Write the E,r histogram, and polarization files
+  write_table("er"s);
+  write_table("polx"s);
+  write_table("poly"s);
+  write_table("polz"s);
+  write_table("polxcos"s);
+  write_table("polycos"s);
+  write_table("polzcos"s);
+  write_table("polxsin"s);
+  write_table("polysin"s);
+  write_table("polzsin"s);
+}
+
+void CalibrationBinner::write_table(const std::string& param) const {
+  // Averaging functions
+  constexpr auto polx = [](const GeantParticle& p) { return p.polx; };
+  constexpr auto poly = [](const GeantParticle& p) { return p.poly; };
+  constexpr auto polz = [](const GeantParticle& p) { return p.polz; };
+
+  constexpr auto polxcos = [](const GeantParticle& p) { return p.polx * cos(p.theta); };
+  constexpr auto polycos = [](const GeantParticle& p) { return p.poly * cos(p.theta); };
+  constexpr auto polzcos = [](const GeantParticle& p) { return p.polz * cos(p.theta); };
+
+  constexpr auto polxsin = [](const GeantParticle& p) { return p.polx * sin(p.theta); };
+  constexpr auto polysin = [](const GeantParticle& p) { return p.poly * sin(p.theta); };
+  constexpr auto polzsin = [](const GeantParticle& p) { return p.polz * sin(p.theta); };
+
+  // Initialize file io
+  std::ofstream table_file;
+  char filename[200];
+  sprintf(filename, "%s/E%0.0lf_T%0.3lf_%s.dat",
+      out_dir.c_str(), in_energy, target_thickness, param.c_str());
+  table_file.open(filename);
+  if (!table_file) {
+    std::cerr << "ERROR: could not open " << filename << '\n';
     return;
   }
 
   // set up first line with r values
   auto num_E_bins = E_edges.size()-1;
   auto num_r_bins = r_edges.size()-1;
-  outfile << num_r_bins;
+  table_file << num_r_bins;
   for (size_t j=0; j<num_r_bins; j++)
-    outfile << '\t' << get_r_val(j);
-  outfile << '\n';
+    table_file << '\t' << get_r_val(j);
+  table_file << '\n';
   // each line should be one E value
   for (size_t i=0; i<num_E_bins; i++) {
-    outfile << get_E_val(i);
+    table_file << get_E_val(i);
     for (size_t j=0; j<num_r_bins; j++) {
       double bin_E = get_E_val(i);
       double bin_r = get_r_val(j);
       auto& bin = get_bin(i,j);
-      outfile << '\t' << bin.density(elec_in);
-      // Write the dxds, dyds bins to an ascii file
-      bin.write_momenta(out_dir.c_str(), in_energy, target_thickness, bin_E, bin_r, binlist);
-      // Also write to the binary file
+      if (param == "er"s) table_file << '\t' << bin.density(elec_in);
+      else if (param == "polx"s) table_file << '\t' << bin.get_average(polx);
+      else if (param == "poly"s) table_file << '\t' << bin.get_average(poly);
+      else if (param == "polz"s) table_file << '\t' << bin.get_average(polz);
+      else if (param == "polxcos"s) table_file << '\t' << bin.get_average(polxcos);
+      else if (param == "polycos"s) table_file << '\t' << bin.get_average(polycos);
+      else if (param == "polzcos"s) table_file << '\t' << bin.get_average(polzcos);
+      else if (param == "polxsin"s) table_file << '\t' << bin.get_average(polxsin);
+      else if (param == "polysin"s) table_file << '\t' << bin.get_average(polysin);
+      else if (param == "polzsin"s) table_file << '\t' << bin.get_average(polzsin);
     }
-    outfile << '\n';
+    table_file << '\n';
   }
-  outfile.close();
-  std::fclose(binlist);
+  table_file.close();
 }
+
 
 
 // Support methods
@@ -195,10 +245,13 @@ double CalibrationBinner::get_E_val(int n_E) const {
 double CalibrationBinner::get_r_val(int n_r) const {
   return 0.5*(r_edges[n_r] + r_edges[n_r+1]);
 }
-bool CalibrationBinner::in_range(DataPoint p) const {
+bool CalibrationBinner::in_range(const GeantParticle& p) const {
   return (p.E>E_edges.front()) && (p.E<E_edges.back()) && (p.r<r_edges.back());
 }
-Bin& CalibrationBinner::get_bin(int n_E, int n_r) {
+ERBin& CalibrationBinner::get_bin(int n_E, int n_r) {
+  return bins[n_E][n_r];
+}
+const ERBin& CalibrationBinner::get_bin(int n_E, int n_r) const {
   return bins[n_E][n_r];
 }
 std::pair<unsigned, unsigned> CalibrationBinner::get_bin_num(double E, double r) const {
@@ -249,7 +302,7 @@ bool CalibrationBinner::has_enough_data() const {
   size_t num_bins = bins.size() * bins[0].size();
   double count_per_bin = static_cast<double>(total_count) / num_bins;
 
-  auto bin_is_empty = [](const Bin& bin) { return bin.count == 0; };
+  auto bin_is_empty = [](const ERBin& bin) { return bin.count == 0; };
   size_t empty_bins = std::accumulate(bins.begin(), bins.end(), 0ull,
       [&bin_is_empty](const auto& total, const auto& row) {
         return total + std::count_if(row.begin(), row.end(), bin_is_empty);

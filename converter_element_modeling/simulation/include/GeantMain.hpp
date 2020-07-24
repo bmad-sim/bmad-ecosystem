@@ -6,10 +6,5 @@
 #else
 #include "G4RunManager.hh"
 #endif
-#ifdef G4MULTITHREADED
-typedef G4RunManager RunManager_t;
-#else
-typedef G4RunManager RunManager_t;
-#endif
-RunManager_t* Initialize_Geant(void);
-int run_simulation(RunManager_t*, const std::string& , double, double, PointCache*, int);
+G4RunManager* Initialize_Geant(void);
+int run_simulation(G4RunManager*, const std::string& , double, double, G4ThreeVector, PointCache*, int);

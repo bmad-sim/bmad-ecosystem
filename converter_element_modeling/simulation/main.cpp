@@ -17,9 +17,6 @@
 
 namespace fs = std::filesystem;
 
-// Comment this out to use manual binning
-#define AUTO_BIN
-
 // Global state needed to support response to
 // CTRL-C interupt signal
 bool HALT_SIGNAL = false;
@@ -42,7 +39,7 @@ int main() {
 
 
   // Now, make sure output directory exists and is empty
-  auto& od = settings.output_directory; // short var name
+  auto& od = settings.output_directory; // short variable name
   if (!fs::is_directory(od)) {
     fs::create_directory(od);
   } else if (!fs::is_empty(od)) {
@@ -80,29 +77,24 @@ int main() {
       std::cout << "Simulating target thickness T = "
         << T << "cm, incoming electron energy " << E << " MeV\n";
 
-      CalibrationBinner calbin(runManager, &point_cache, settings, E, T);
-      calbin.calibrate();
+      CalibrationBinner binner(runManager, &point_cache, settings, E, T);
+      binner.calibrate();
 
-
-      // Construct the real binner using settings obtained during calibration
-      //Binner my_binner(std::move(calbin));
-      //my_binner.set_point_cache(point_cache);
-      auto& my_binner = calbin;
-
-      // Set up the handling of C-c interupt
+      // Set up the handling of CTRL-c interupt
       std::signal(SIGINT, signal_handler);
-      ////////////
 
       // Main data collection loop
       constexpr size_t RUN_LENGTH = 4000;
-      while (!my_binner.has_enough_data() && !HALT_SIGNAL) {
-        calbin.run(RUN_LENGTH);
+      while (!binner.has_enough_data() && !HALT_SIGNAL) {
+        binner.run(RUN_LENGTH);
       }
-      calbin.write_data();
+
+      binner.write_data();
 
       if (HALT_SIGNAL) {
         const char* CURSOR_DOWN = "\033[9E";
         std::cout << CURSOR_DOWN;
+        binner.write_data();
         goto END;
       }
     }
