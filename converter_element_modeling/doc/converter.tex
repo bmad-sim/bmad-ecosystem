@@ -248,7 +248,7 @@ these parameters and this lattice file is used for simulating the converter inde
 \subsection{Dependencies}
 \label{s:deps}
 
-Builds require a C++ compiler with support for C++17. GCC 8 or higher should be fine.
+Builds require a C++ compiler with support for C++17. GCC 9 or higher should be fine.
 
 A built \bmad Distribution or Release is a prerequisite. See the \bmad web pages (or your local
 \bmad Guru) for details.
@@ -264,12 +264,12 @@ This guide is an abbreviated version of the instructions found on
 Geant4 website}.
 \begin{enumerate}
 \item
-Create a directory, here called \texttt{GEANT_DIR}, where Geant will be installed and \texttt{cd}
+Create a directory, here called \texttt{GEANT\_DIR}, where Geant will be installed and \texttt{cd}
 to this directory.
 
 \item
 Download the .tar.gz source files archive from \url{https://geant4.web.cern.ch/support/download}
-into \texttt{GEANT_DIR} and unpack with
+into \texttt{GEANT\_DIR} and unpack with
 \begin{example}
   tar xzvf geant4.10.06.tar.gz
 \end{example}
@@ -342,7 +342,7 @@ access to the Distribution or Release version. This can be done with the command
 The file \texttt{\$GEANT_DIR/geant-build/geant4make.sh} must be sourced to add Geant4 to your path.
 To do so, use the following commands:
 \begin{example}
-  cd $GEANT_DIR/geant-build 
+  cd $GEANT_DIR/geant-build
   source geant4make.sh
 \end{example}
 
@@ -535,13 +535,13 @@ compiler with support for C++17.  GSL is already available on the lab machines, 
 is provided at \texttt{/nfs/acc/temp/jmm699/geant}.  To get access to this Geant build, you can
 simply add the following to your \texttt{.bashrc}:
 \begin{example}
-  cd /nfs/acc/temp/jmm699/geant/geant4.10.06.p01-build 
-  source geant4make.sh 
+  cd /nfs/acc/temp/jmm699/geant/geant4.10.06.p01-build
+  source geant4make.sh
   cd -
 \end{example}
-As for the C++ compiler, you can get access to GCC 8.3 by adding
+As for the C++ compiler, you can get access to GCC 9.3 by adding
 \begin{example}
-  source /opt/rh/devtoolset-8/enable
+  source /opt/rh/devtoolset-9/enable
 \end{example}
 to your \texttt{.bashrc}.
 
