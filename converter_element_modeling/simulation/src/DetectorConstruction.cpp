@@ -1,35 +1,5 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-// $Id: B4DetectorConstruction.cc 87359 2014-12-01 16:04:27Z gcosmo $
-//
-/// \file B4DetectorConstruction.cc
-/// \brief Implementation of the B4DetectorConstruction class
-
 #include <fstream>
-#include "B4DetectorConstruction.hpp"
+#include "DetectorConstruction.hpp"
 
 #include "G4Material.hh"
 #include "G4NistManager.hh"
@@ -52,60 +22,19 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4ThreadLocal
-G4GlobalMagFieldMessenger* B4DetectorConstruction::fMagFieldMessenger = 0;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-B4DetectorConstruction::B4DetectorConstruction(const std::string& target_material, double target_thickness)
+DetectorConstruction::DetectorConstruction(const std::string& target_material, double target_thickness)
  : G4VUserDetectorConstruction(),
    absorberXY(9),
    absorber_thickness(target_thickness),
    material_name(target_material),
    fAbsorberPV(0),
    fGapPV(0),
-   fCheckOverlaps(true)
-{
-  //
-  //using namespace std;
+   fCheckOverlaps(true) {}
 
-  //string a_line;
-  //string word[10];
-  //ifstream conf_file("config.txt", ios::in);
-  //if ( conf_file.is_open() )
-  //{
-  //  //read txt file1
-  //  while ( ! conf_file.eof() )
-  //  {
-  //    getline(conf_file, a_line);
-  //    if(a_line.size()>0)
-  //    {
-  //      while (a_line.substr(0,1)==" ") a_line.erase(0,1);
-  //      if(a_line.size()>15)
-  //      {
-  //        istringstream vars(a_line);
-  //        if (a_line.substr(0,10)=="absorberXY")  vars >> word[0] >> word[1] >>absorberXY;
-  //        if (a_line.substr(0,18)=="absorber_thickness")  vars >> word[0] >> word[1] >>absorber_thickness;
-  //        if (a_line.substr(0,13)=="material_name") vars >> word[0] >> word[1] >> material_name;
-  //      }
-  //    }
-  //  }
-  //}
-  //conf_file.close();
+DetectorConstruction::~DetectorConstruction() {}
 
-}
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-B4DetectorConstruction::~B4DetectorConstruction()
-{
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4VPhysicalVolume* B4DetectorConstruction::Construct()
+G4VPhysicalVolume* DetectorConstruction::Construct()
 {
   // Define materials
   DefineMaterials();
@@ -114,9 +43,8 @@ G4VPhysicalVolume* B4DetectorConstruction::Construct()
   return DefineVolumes();
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void B4DetectorConstruction::DefineMaterials()
+void DetectorConstruction::DefineMaterials()
 {
   // Lead material defined using NIST Manager
   G4NistManager* nistManager = G4NistManager::Instance();
@@ -128,21 +56,13 @@ void B4DetectorConstruction::DefineMaterials()
   G4double density;
   new G4Material("liquidArgon", z=18., a= 39.95*g/mole, density= 1.390*g/cm3);
          // The argon by NIST Manager is a gas with a different density
-
-  // Vacuum
-//  new G4Material("Galactic", z=1., a=1.01*g/mole,density= universe_mean_density,
-//                  kStateGas, 2.73*kelvin, 3.e-18*pascal);
-
-  // Print materials
-  //G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
+G4VPhysicalVolume* DetectorConstruction::DefineVolumes()
 {
   // Geometry parameters
-//  G4int nofLayers = 5;
   G4double calorSizeXY  = absorberXY*cm;
   G4double calorThickness = absorber_thickness*cm;
 
@@ -192,7 +112,6 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
 
   // Get materials
-//  G4Material* defaultMaterial = G4Material::GetMaterial("Galactic");
   G4Material* absorberMaterial;
   if (material_name=="tungsten") {  absorberMaterial = Tungsten;}
   else if (material_name=="copper") {  absorberMaterial = Copper;}
@@ -203,14 +122,8 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
       << " not recognized, defaulting to tungsten\n";
     absorberMaterial = Tungsten;
   }
-//  G4Material::GetMaterial("G4_Pb");
-//  if (material_name=="lead") absorberMaterial = G4Material::GetMaterial("G4_Pb");
-//  if (material_name=="copper") absorberMaterial = G4Material::GetMaterial("G4_Pb");
-//  if (material_name=="water") absorberMaterial = G4Material::GetMaterial("G4_Pb");
 
-  //
   // World
-  //
   G4VSolid* worldS = new G4Box("World", worldSizeXY/2, worldSizeXY/2, worldSizeZ/2);
   G4LogicalVolume* worldLV = new G4LogicalVolume(worldS, G4vacuum, "World");
 
@@ -224,9 +137,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
                  0,                // copy number
                  fCheckOverlaps);  // checking overlaps
 
-  //
-  // Calorimeter
-  //
+  // Converter
   G4VSolid* calorimeterS = new G4Box("absorber", calorSizeXY/2, calorSizeXY/2, calorThickness/2); // its size
   G4LogicalVolume* calorLV = new G4LogicalVolume(calorimeterS, absorberMaterial, "absorber");
   new G4PVPlacement(
@@ -250,34 +161,28 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
                  false,            // no boolean operation
                  0,                // copy number
                  fCheckOverlaps);  // checking overlaps
-  //
+
   // Visualization attributes
-  //
   worldLV->SetVisAttributes (G4VisAttributes::Invisible);
 
   G4VisAttributes* simpleBoxVisAtt= new G4VisAttributes(G4Colour(1.0,1.0,1.0));
   simpleBoxVisAtt->SetVisibility(true);
   calorLV->SetVisAttributes(simpleBoxVisAtt);
 
-  //
   // Always return the physical World
-  //
   return worldPV;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+//void DetectorConstruction::ConstructSDandField()
+//{
+//  // Create global magnetic field messenger.
+//  // Uniform magnetic field is then created automatically if
+//  // the field value is not zero.
+//  G4ThreeVector fieldValue = G4ThreeVector();
+//  fMagFieldMessenger = new G4GlobalMagFieldMessenger(fieldValue);
+//  fMagFieldMessenger->SetVerboseLevel(1);
+//
+//  // Register the field messenger for deleting
+//  G4AutoDelete::Register(fMagFieldMessenger);
+//}
 
-void B4DetectorConstruction::ConstructSDandField()
-{
-  // Create global magnetic field messenger.
-  // Uniform magnetic field is then created automatically if
-  // the field value is not zero.
-  G4ThreeVector fieldValue = G4ThreeVector();
-  fMagFieldMessenger = new G4GlobalMagFieldMessenger(fieldValue);
-  fMagFieldMessenger->SetVerboseLevel(1);
-
-  // Register the field messenger for deleting
-  G4AutoDelete::Register(fMagFieldMessenger);
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
