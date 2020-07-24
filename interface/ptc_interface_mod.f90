@@ -3526,7 +3526,8 @@ if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator
   fh = 1d-9 * sign_of(charge_of(param%particle)) / VOLT_C
   if (key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
     call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$, include_kicks$)
-    call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, a_pole, b_pole)
+    ! Notice that a_pole and b_pole are reversed for electric fields.
+    call convert_bend_exact_multipole(ele%value(g$), horizontally_pure$, b_pole, a_pole)
   else
     call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
   endif
