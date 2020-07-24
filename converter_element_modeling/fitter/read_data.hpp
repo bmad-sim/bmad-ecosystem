@@ -3,10 +3,10 @@
 
 #include "cauchy.hpp"
 
-struct ER_table {
-  std::vector<double> pc_vals, r_vals, probs;
+struct TableData {
+  std::vector<double> pc_vals, r_vals, data;
 };
 
-void read_list_data(const char * folder, double pc_out, double r, std::vector<BinPoint>& bins);
-void read_list_data(const char* filename, std::vector<BinPoint>& bins);
-void read_er_data(const char *folder, double pc_in, double T, ER_table& table);
+void read_list_data(const char * folder, double pc_out, double r, XYBinnedData& data);
+void read_list_data(const char* filename, XYBinnedData& data);
+void read_table_data(const char *folder, double pc_in, double T, const char *param, TableData& table);

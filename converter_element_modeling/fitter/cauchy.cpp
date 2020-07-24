@@ -48,7 +48,7 @@ int asym_cauchy_fit_function(const gsl_vector *fit_params, void *data_points,
   return GSL_SUCCESS;
 }
 
-CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>& bins) {
+CauchyPoint asym_cauchy_fit(const XYBinnedData& data) {
   // Default guess
   CauchyPoint guess;
   guess.cx = 0.0;
@@ -56,10 +56,10 @@ CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>
   guess.ay = 1.0;
   guess.beta = 1.0;
   guess.amp = 1.0;
-  return asym_cauchy_fit(pc_out, r, bins, guess);
+  return asym_cauchy_fit(data, guess);
 }
 
-CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>& bins, const CauchyPoint& guess) {
+CauchyPoint asym_cauchy_fit(const XYBinnedData& data, const CauchyPoint& guess) {
   // This function fits a normal distribution to the binned
   // data supplied in bins using the GSL's nonlinear
   // fitting routine.  In case the fitting process fails,
@@ -70,7 +70,7 @@ CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>
   gsl_multifit_nlinear_workspace *w;
   gsl_multifit_nlinear_fdf fdf;
   gsl_multifit_nlinear_parameters fdf_params = gsl_multifit_nlinear_default_parameters();
-  const size_t num_pts = bins.size();
+  const size_t num_pts = data.bins.size();
   const size_t num_fit_params = 5; // c_x, a_x, a_y, beta, amp
 
   gsl_vector *fit_residuals;
@@ -90,7 +90,7 @@ CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>
   fdf.fvv = nullptr;
   fdf.n = num_pts;
   fdf.p = num_fit_params;
-  fdf.params = (void *) &bins;
+  fdf.params = (void *) &(data.bins);
 
   // Allocate fitting workspace
   w = gsl_multifit_nlinear_alloc(T, &fdf_params, num_pts, num_fit_params);
@@ -99,7 +99,7 @@ CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>
   gsl_multifit_nlinear_init(&init_param_gsl.vector, &fdf, w);
 
   // Solve the system
-  size_t max_iter = 100;
+  size_t max_iter = 1000;
   status = gsl_multifit_nlinear_driver(max_iter, xtol, gtol, ftol, nullptr, nullptr, &info, w);
 
   // Compute final residuals
@@ -110,8 +110,8 @@ CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>
   auto result = gsl_to_cauchy_point(w->x);
   switch (status) {
     case GSL_EMAXITER:
-      std::cerr << "Iteration limit reached for cauchy fit at pc_out = "
-        << pc_out*1e-6 << " MeV, r = " << r*1e2 << " cm\n";
+      //std::cerr << "Iteration limit reached for cauchy fit at pc_out = "
+      //  << pc_out*1e-6 << " MeV, r = " << r*1e2 << " cm\n";
       result.stat = CauchyStatus::MAXITER;
       break;
     case GSL_ENOPROG:
@@ -124,12 +124,12 @@ CauchyPoint asym_cauchy_fit(double pc_out, double r, const std::vector<BinPoint>
   // Fill in the rest of the parameters to result
   result.ax = std::sqrt(result.ax);
   result.ay = std::sqrt(result.ay);
-  result.E = pc_out;
-  result.r = r;
+  result.E = data.E;
+  result.r = data.r;
   // bins are sorted by increasing dxds, then increasing dyds
-  result.dxds_min = bins.front().x;
-  result.dxds_max = bins.back().x;
-  result.dyds_max = bins.back().y;
+  result.dxds_min = data.bins.front().x;
+  result.dxds_max = data.bins.back().x;
+  result.dyds_max = data.bins.back().y;
   result.chi2 = sqrt(chisq)/(num_pts - num_fit_params);
 
   gsl_multifit_nlinear_free(w);

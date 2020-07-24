@@ -31,7 +31,7 @@ struct StrNum {
 bool operator==(const StrNum& s1, const StrNum& s2);
 
 struct SimSettings {
-  size_t num_bins, num_pc_bins, num_r_bins;
+  size_t /* num_bins,*/ num_pc_bins, num_r_bins;
   double out_pc_min, out_pc_max;
   double dxy_ds_max;
   double fit_crossover;
@@ -39,18 +39,20 @@ struct SimSettings {
   std::string output_directory;
   std::vector<double> pc_in;
   std::vector<double> target_thickness;
+  std::vector<double> polarization_in;
 
-  SimSettings() :  num_bins{0},
-                   num_pc_bins{0},
-                   num_r_bins{0},
-                   out_pc_min{0.0},
-                   out_pc_max{0.0},
-                   dxy_ds_max{0.0},
-                   fit_crossover{0.0},
-                   target_material{},
-                   output_directory{},
-                   pc_in{},
-                   target_thickness{} {}
+  SimSettings() = default;
+  //SimSettings() :  num_pc_bins{0},
+  //                 num_r_bins{0},
+  //                 out_pc_min{0.0},
+  //                 out_pc_max{0.0},
+  //                 dxy_ds_max{0.0},
+  //                 fit_crossover{0.0},
+  //                 target_material{},
+  //                 output_directory{},
+  //                 pc_in{},
+  //                 target_thickness{},
+  //                 polarization_in{} {}
 
   bool valid() const;
   SettingsSpec lookup(const std::string& name);

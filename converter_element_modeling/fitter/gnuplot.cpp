@@ -10,7 +10,7 @@ void output_cauchy_impl(std::ostream& gpfile, const CauchyPoint& p, double pc, d
   gpfile << "set isosamples 20\n"; // TODO: Use num_bins from config file instead
   gpfile << "set xlabel 'dx/ds'\n";
   gpfile << "set ylabel 'dy/ds'\n";
-  gpfile << "set zlabel 'Bin count'\n";
+  gpfile << "set zlabel 'Bin density' rotate by 90\n";
   gpfile << "set title 'pc out = " << pc << " MeV, r = " << r << " cm'\n";
   // Add a label with the fit parameters
   gpfile << "unset label\n";
@@ -188,7 +188,7 @@ void output_metafit_gp(const FitResults& fit, const std::vector<CauchyPoint>& da
   sprintf(filename, "%s/%s_2d.gp", dir, prefix);
   gpfile.open(filename);
   if (!gpfile.good()) {
-    std::cerr << "what";
+    std::cerr << "ERROR: could not open " << filename << '\n';
     return;
   }
 
