@@ -43,9 +43,6 @@ the plot page) is broken up.
 !------------------ layout ------
 &tao_template_plot
 	plot%name = 'layout'
-	plot%x%min = 0
-	plot%x%max = 100
-	!!plot%x%major_div = 10
 	plot%x%label = ' '
 	plot%n_graph = 1
 	plot%x_axis_type = 's'
@@ -67,7 +64,7 @@ the plot page) is broken up.
 /
 
 &lat_layout_drawing
-  ele_shape(1) = "Quadrupole::*"   	"asym_var_box"	"Blue"	 .1 		'none'
+  ele_shape(1) = "Quadrupole::*"   	"asym_var:box"	"Blue"	 .1 		'none'
  ! ele_shape(1) = "Quadrupole::*"   	"box"	"Blue"	 1 		'none'                ! TEMP
   ele_shape(2) = "SBend::*"		"Box"		"Red"		1		'none'
   ele_shape(3) = "lcavity::*"		"XBox"		"Green"		.5		'none'
