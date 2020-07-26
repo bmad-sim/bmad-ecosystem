@@ -450,9 +450,6 @@ case ('beam')
     nl=nl+1; write(lines(nl), imt) '  %n_bin                = ', csr_param%n_bin
     nl=nl+1; write(lines(nl), imt) '  %particle_bin_span    = ', csr_param%particle_bin_span
     nl=nl+1; write(lines(nl), imt) '  %n_shield_images      = ', csr_param%n_shield_images
-    
-    nl=nl+1; write(lines(nl), lmt) '  %use_csr_old          = ', csr_param%use_csr_old
-    nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
 
   ! have element index
 
@@ -1729,8 +1726,6 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %particle_bin_span    = ', csr_param%particle_bin_span
     nl=nl+1; write(lines(nl), imt) '  %n_shield_images      = ', csr_param%n_shield_images
     nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning = ', csr_param%print_taylor_warning
-    nl=nl+1; write(lines(nl), lmt) '  %use_csr_old          = ', csr_param%use_csr_old    
-    nl=nl+1; write(lines(nl), lmt) '  %small_angle_approx   = ', csr_param%small_angle_approx
   end select
 
 !----------------------------------------------------------------------
