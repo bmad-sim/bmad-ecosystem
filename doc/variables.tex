@@ -93,7 +93,7 @@ The list of components that can be set or refereed to are:
   good_var     ! The variable can be varied (set by \tao).
   good_user    ! The variable can be varied (set by the user).
   good_opt     ! For use by extension code.
-  good_plot    ! For use by extension code
+  good_plot    ! Is variable within the horizontal extent of the plot? 
   useit_opt    ! Variable is to be used for optimizing.
   useit_plot   ! Variable is to be used for plotting.
 \end{example}
@@ -124,7 +124,7 @@ array.
   \item[good_opt] \Newline
 Logical not modified by Tao proper and reserved for use by extension code. See below.
   \item[good_plot] \Newline
-Logical not modified by Tao proper and reserved for use by extension code. See below.
+Set by Tao. Is variable point within the horizontal extent of the plot? 
   \item[good_var] \Newline
 Logical controlled by \tao and used to veto variables that should not be varied during
 optimization. For example, variables that do not affect the merit function. See below.
