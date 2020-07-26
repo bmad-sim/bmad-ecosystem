@@ -1164,33 +1164,7 @@ case ('chrom_ptc.')
 
 !-----------
 
-case ('damp.')
-
-  if (data_source == 'beam') goto 9000  ! Set error message and return
-
-  select case (datum%data_type)
-
-  case ('damp.j_a')
-    datum_value = tao_branch%modes%a%j_damp
-    valid_value = .true.
-
-  case ('damp.j_b')
-    datum_value = tao_branch%modes%b%j_damp
-    valid_value = .true.
-
-  case ('damp.j_z')
-    datum_value = tao_branch%modes%z%j_damp
-    valid_value = .true.
-
-  case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
-    return
-
-  end select
-
-!-----------
-
-case ('curly_h')
+case ('curly_h.')
 
   if (data_source == 'beam')  goto 9000  ! Set error message and return
 
@@ -1216,6 +1190,32 @@ case ('curly_h')
       value_vec(ix_ref) = ele%b%gamma * ele%b%eta**2 + 2 * ele%b%alpha * ele%b%eta * ele%b%etap + ele%b%beta * ele%b%etap**2
     endif
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  end select
+
+!-----------
+
+case ('damp.')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+
+  select case (datum%data_type)
+
+  case ('damp.j_a')
+    datum_value = tao_branch%modes%a%j_damp
+    valid_value = .true.
+
+  case ('damp.j_b')
+    datum_value = tao_branch%modes%b%j_damp
+    valid_value = .true.
+
+  case ('damp.j_z')
+    datum_value = tao_branch%modes%z%j_damp
+    valid_value = .true.
+
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    return
+
   end select
 
 !-----------
