@@ -25,7 +25,6 @@ $pl_hash{"lsc_y0_kick_calc"} = "csr_mod.f90";
 $pl_hash{"re_allocate2_real"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate2_integer"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate2_string"} = "re_allocate_mod.f90";
-$pl_hash{"set_string"} = "fortran_and_cpp.f90";
 $pl_hash{"re_allocate2_logical"} = "re_allocate_mod.f90";
 $pl_hash{"form_digested_bmad_file_name"} = "bmad_parser_mod.f90";
 $pl_hash{"add_this_multipass"} = "bmad_parser_mod.f90";
@@ -43,8 +42,6 @@ $pl_hash{"qrfac"} = "lmdif_mod.f90";
 $pl_hash{"parser_add_lord"} = "bmad_parser_mod.f90";
 $pl_hash{"mat4_multipole"} = "make_mat6_mod.f90";
 $pl_hash{"evaluate_logical"} = "bmad_parser_mod.f90";
-$pl_hash{"read_sr_wake"} = "bmad_parser_mod.f90";
-$pl_hash{"read_lr_wake"} = "bmad_parser_mod.f90";
 $pl_hash{"get_sequence_args"} = "bmad_parser_mod.f90";
 $pl_hash{"allocate_plat"} = "bmad_parser_mod.f90";
 $pl_hash{"add_taylor_term"} = "bmad_parser_mod.f90";
@@ -72,7 +69,6 @@ $pl_hash{"term_diff"} = "integration_timer_mod.f90";
 $pl_hash{"integration_timer_ele"} = "integration_timer_mod.f90";
 $pl_hash{"word_read"} =               "word_read.f90";
 $pl_hash{"calc_file_number"} =        "calc_file_number.f90";
-$pl_hash{"odd"} =                     "odd.f90";
 $pl_hash{"fdjac2"} =                  "lmdif_mod.f90";
 $pl_hash{"increment_file_number"} =   "increment_file_number.f90";
 $pl_hash{"get_file_number"} =         "get_file_number.f90";
@@ -124,7 +120,6 @@ $pl_hash{"re_allocate_logical"} = "reallocate_mod.f90";
 $pl_hash{"mat6_add_offsets"} = "mat6_add_offsets.f90";
 $pl_hash{"assignment"} = "bmad_taylor_mod.f90";
 $pl_hash{"re_associate_integer"} = "reallocate_mod.f90";
-$pl_hash{"read_parameter"} = "aml_parser.f90";
 
 #---------------------------------------------------------
 # make a list of names from bmad_subroutines.html
@@ -316,11 +311,11 @@ sub searchit {
 
     # Look for "subroutine ..." to get name list.
 
-    if (/^\s*subroutine /i || /^\s*recursive *subroutine /i || 
+    if (/^\s*subroutine /i || /^\s*recursive *subroutine /i || /^\s*interface /i || 
         /^\s*function /i   || /^\s*recursive *function /i || 
         /^\s*integer *function /i || /^\s*real\(rp\) *function /i || 
         /^\s*logical *function /i || /^\s*pure *subroutine /i || 
-        /^\s*elemental *subroutine /i || /^\s*interface /i) {
+        /^\s*elemental *subroutine /i || /^\s*elemental *function /i) {
       $name = $';              #' strip off "subroutine"
       $name =~ s/ *\(.*//;     # strip off " (..."
       $name =~ s/ +$//;        # strip off trailing blank if no arg list
@@ -361,9 +356,9 @@ sub searchit {
             $count = $count - 1;
           }
         }
-        elsif (/^\s*subroutine /i || /^\s*recursive subroutine /i || 
-              /^\s*function /i || /^\s*elemental subroutine /i || /^\s*pure subroutine /i ||
-              /^\s*real\(rp\) *function /i || /^\s*interface /i) {
+        elsif (/^\s*subroutine /i || /^\s*recursive *subroutine /i || 
+              /^\s*function /i || /^\s*elemental *subroutine /i || /^\s*elemental *function /i || 
+              /^\s*pure *subroutine /i || /^\s*real\(rp\) *function /i || /^\s*interface /i) {
           $count = $count + 1;
         }
         if ($count == 0) {last;}

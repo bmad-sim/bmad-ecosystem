@@ -147,7 +147,7 @@ Routine to initialize either a random or tail-weighted distribution of particles
 
 \index[routine]{reallocate_beam}
 \label{r:reallocate.beam}
-\item[reallocate_beam (beam, n_bunch, n_particle)] \Newline 
+\item[reallocate_beam (beam, n_bunch, n_particle, save)] \Newline 
 Routine to reallocate memory within a beam_struct.
 
 \index[routine]{reallocate_bunch}
@@ -197,12 +197,12 @@ This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{csr_bin_particles}
 \label{r:csr.bin.particles}
-\item[csr_bin_particles (ele, particle, bin)] \Newline 
+\item[csr_bin_particles (ele, particle, csr, err_flag)] \Newline 
 Routine to bin the particles longitudinally in s. 
 
 \index[routine]{csr_bin_kicks}
 \label{r:csr.bin.kicks}
-\item[csr_bin_kicks (lat, ele, s_travel, bin, small_angle_approx)] \Newline 
+\item[csr_bin_kicks (ele, ds_kick_pt, csr, err_flag)] \Newline 
 Routine to cache intermediate values needed for the csr calculations.
 
 \index[routine]{csr_kick_calc}
@@ -212,7 +212,7 @@ Routine to calculate the longitudinal coherent synchrotron radiation kick.
 
 \index[routine]{i_csr}
 \label{r:i.csr}
-\item[i_csr (kick1, i_bin, k_factor, bin) result (i_this)] \Newline 
+\item[i_csr (kick1, i_bin, csr) result (i_this)] \Newline 
 Routine to calculate the CSR kick integral.
 
 \index[routine]{z_calc_csr}
@@ -233,12 +233,6 @@ Routine to calculate the distance between source and kick points.
 \label{r:collective}
 
 \begin{description}
-
-\index[routine]{setup_ultra_rel_space_charge_calc}
-\label{r:setup.trans.space.charge.calc}
-\item[setup_ultra_rel_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)] \Newline 
-Routine to initialize constants needed by the transverse space charge 
-tracking routine track1_space_charge.  
 
 \index[routine]{touschek_lifetime}
 \label{r:touschek.lifetime}
@@ -306,7 +300,7 @@ a custom element.
 
 \index[routine]{time_runge_kutta_periodic_kick_hook}
 \label{r:time.runge.kutta.periodic.kick.hook}
-\item[time_runge_kutta_periodic_kick_hook (orbit, z_phase, ele, param, stop_time, init_needed)] \Newline 
+\item[time_runge_kutta_periodic_kick_hook (orbit, dt_ref, ele, param, stop_time, init_needed)] \Newline 
 Custom routine to add a kick to a particle at periodic times.
 
 \index[routine]{track1_bunch_hook}
@@ -484,7 +478,7 @@ Routine to create a dataset of integers.
 
 \index[routine]{hdf5_read_beam}
 \label{r:hdf5.read.beam}
-\item[hdf5_read_beam (file_name, beam, error, pmd_header)] \Newline 
+\item[hdf5_read_beam (file_name, beam, error, ele, pmd_header)] \Newline 
 Routine to read a beam data file. 
 
 \index[routine]{hdf5_write_grid_field}
@@ -531,7 +525,7 @@ Note: Conventionally, the file name should have an ".h5" suffix.
 
 \index[routine]{hdf5_read_grid_field}
 \label{r:hdf5.read.grid.field}
-\item[hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header)] \Newline 
+\item[hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header, combine)] \Newline 
 Routine to read an hdf5 file that encodes an array of grid_field structures.
 
 
@@ -643,7 +637,7 @@ See out_io for more details.
 
 \index[routine]{output_direct}
 \label{r:output.direct}
-\item[output_direct (file_unit, print_and_capture, min_level, max_level)] \Newline 
+\item[output_direct (file_unit, print_and_capture, min_level, max_level, set, get)] \Newline 
 Routine to set where the output goes when out_io is called.
 Output may be sent to the terminal screen, written to a file, or both.
 Also can be used to restrict output verbosity.
@@ -777,14 +771,6 @@ Routine to take the inverse of a square matrix.
 \label{r:mat.make.unit}
 \item[mat_make_unit (mat)] \Newline 
      routine to create a unit matrix.
-
-\index[routine]{mat_pseudoinverse}
-\label{r:mat.make.pseudoinverse}
-\item[make_pseudoinverse(mat,mat_pinv,svd_condition,print_err,ok)]
-Routine to make the Moore-Penrose pseudoinverse of a rectangular matrix via
-LAPACK DGESDD routine for singular value decomposition.  If svd_condition
-is specified, then only those singular values where
-s(i)/s(1) > svd_condition are used to construct the pseudoinverse.
 
 \index[routine]{mat_rotation}
 \label{r:mat.rotation}
@@ -1012,11 +998,41 @@ Routine to return the string representation of a coord\%state state.
 
 \begin{description}
 
+\index[routine]{bane1}
+\label{r:bane1}
+\item[bane1(ele, coulomb_log, rates, n_part)] \Newline 
+ This is an implementation of equations 10-15 from "Intrabeam
+ scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
+
+\index[routine]{bjmt1}
+\label{r:bjmt1}
+\item[bjmt1(ele, coulomb_log, rates, n_part)] \Newline 
+ This is an implementation of equations 1-9 from "Intrabeam
+ scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
+
+\index[routine]{cimp1}
+\label{r:cimp1}
+\item[cimp1(ele, coulomb_log, rates, n_part)] \Newline 
+ This is an implementation of equations 34,38-40 from "Intrabeam
+ scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
+
 \index[routine]{ibs_lifetime}
 \label{r:ibs.lifetime}
 \item[ibs_lifetime(lat,ibs_sim_params,maxratio,lifetime,granularity)] \Newline 
  This module computes the beam lifetime due to
- the diffusion process according to equation 12
+ the diffusion process.
+
+\index[routine]{mpxx1}
+\label{r:mpxx1}
+\item[mpxx1(ele, coulomb_log, rates, n_part)] \Newline 
+ Modified Piwinski, further modified to treat Coulomb Log
+ in the same manner as Bjorken-Mtingwa, CIMP, Bane, Kubo & Oide, etc.
+
+\index[routine]{mpzt1}
+\label{r:mpzt1}
+\item[mpzt1(ele, coulomb_log, rates, n_part)] \Newline 
+ Modified Piwinski with Zotter's integral.  This is Piwinski's original derivation,
+ generalized to take the derivatives of the optics functions.  
 
 \end{description}
 
@@ -1086,7 +1102,7 @@ Routine to create a group control element.
 Routine to add the controller information to slave elements of an 
 overlay_lord. 
 
-\index[routine]{create_wiggler_model}
+\index[routine]{create_planar_wiggler_model}
 \label{r:create.wiggler.model}
 \item[create_wiggler_model (wiggler_in, lat)] \Newline 
 Routine to create series of bend and drift elements to serve as a model for a wiggler.
@@ -1094,7 +1110,7 @@ This routine uses the mrqmin nonlinear optimizer to vary the parameters in the w
 
 \index[routine]{insert_element}
 \label{r:insert.element}
-\item[insert_element (lat, insert_ele, insert_index, ix_branch, orbit)] \Newline
+\item[insert_element (lat, insert_ele, ix_ele, ix_branch, orbit)] \Newline
 Routine to Insert a new element into the tracking part of the 
 lat structure. 
 
@@ -1105,7 +1121,7 @@ Routine to concatenate together elements to make a hybrid lat
 
 \index[routine]{new_control}
 \label{r:new.control}
-\item[new_control (lat, ix_ele)] \Newline
+\item[new_control (lat, ix_ele, ele_name)] \Newline
 Routine to create a new control element. 
 
 \index[routine]{pointer_to_attribute}
@@ -1324,13 +1340,8 @@ Function to tell if an element has a non-zero offset, pitch or tilt.
 
 \index[routine]{ele_loc_name}
 \label{r:ele.loc.name}
-\item[ele_loc_to_string (ele, show_branch0) result (str)] \Newline 
+\item[ele_loc_to_string (ele, show_branch0, parens) result (str)] \Newline 
 Routine to encode an element's location into a string.
-
-\index[routine]{ele_to_lat_loc}
-\label{r:ele.to.lat.loc}
-\item[ele_to_lat_loc (ele) result (ele_loc)] \Newline 
-Function to return an lat_ele_loc_struct identifying where an element is in the lattice.
 
 \index[routine]{equivalent_taylor_attributes}
 \item[equivalent_taylor_attributes (ele_taylor, ele2) result (equiv)] \Newline 
@@ -1360,7 +1371,7 @@ Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
 \index[routine]{lat_ele_locator}
 \label{r:lat.ele.locator}
 \item[lat_ele_locator (loc_str, lat, eles, n_loc, err, 
-            above_ubound_is_err, ix_dflt_branch)] \Newline 
+            above_ubound_is_err, ix_dflt_branch, order_by_index)] \Newline 
 Routine to locate all the elements in a lattice that corresponds to loc_str. 
 
 \index[routine]{lat_sanity_check}
@@ -1456,7 +1467,7 @@ Routine to return whether a given mat6_calc method is valid for a given element.
 
 \index[routine]{bracket_index}
 \label{r:bracket.index}
-\item[bracket_index (s_arr, i_min, i_max, s, ix)] \Newline
+\item[bracket_index (s, s_arr, i_min, dr, restrict)] \Newline
 Routine to find the index ix so that s(ix) $\le$ s $<$ s(ix+1). 
 If s $<$ s(1) then ix = 0 
 
@@ -1695,7 +1706,7 @@ Routine to read in a digested file.
 
 \index[routine]{write_bmad_lattice_file}
 \label{r:write.bmad.lattice.file}
-\item[write_bmad_lattice_file (bmad_file, lat, err, output_form)] \Newline 
+\item[write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)] \Newline 
 Routine to write a Bmad lattice file using the information in
 a lat_struct.
 
@@ -1868,27 +1879,21 @@ coupling measurements
 
 \begin{description}
 
-\index[routine]{check_if_ele_is_monitor}
-\label{r:check.if.ele.is.monitor}
-\item[check_if_ele_is_monitor (ele, err)] \Newline
-Routine to check that the element is either an instrument, monitor, or marker.
-This routine is private and not meant for general use.
-
 \index[routine]{to_eta_reading}
 \label{r:to.eta.reading}
-\item[to_eta_reading (eta_actual, ele, axis, reading, err)] \Newline
+\item[to_eta_reading (eta_actual, ele, axis, add_noise, reading, err)] \Newline
 Compute the measured dispersion reading given the true dispersion and the
 monitor offsets, noise, etc.
 
 \index[routine]{to_orbit_reading}
 \label{r:to.orbit.reading}
-\item[to_orbit_reading (orb, ele, axis, reading, err)] \Newline
+\item[to_orbit_reading (orb, ele, axis, add_noise, reading, err)] \Newline
 Calculate the measured reading on a bpm given the actual orbit and the
 BPM's offsets, noise, etc.
 
 \index[routine]{to_phase_and_coupling_reading}
 \label{r:to.phase.and.coupling.reading}
-\item[to_phase_and_coupling_reading (ele, reading, err)] \Newline
+\item[to_phase_and_coupling_reading (ele, add_noise, reading, err)] \Newline
 Find the measured coupling values given the actual ones
 
 
@@ -1969,7 +1974,7 @@ Routine to put in the kick due to a multipole.
 
 \index[routine]{multipole_kt_to_ab}
 \label{r:multipole.kt.to.ab}
-\item[multipole_kt_to_ab (knl, tn, an, bn)] \Newline
+\item[multipole_kt_to_ab (knl, knsl, tn, an, bn)] \Newline
 Routine to convert kt (MAD standard) multipoles to ab type multipoles. 
 
 \end{description}
@@ -2126,11 +2131,6 @@ Routine to initialize a photon generated by a charged particle in a bend.
 Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
 angle for a simple bend.
 
-\index[routine]{bend_photon_energy_init}
-\label{r:bend.photon.energy.init}
-\item[bend_photon_energy_init (r_in) result (E_rel)] \Newline 
-Routine to convert a random number in the interval [0,1] to a photon energy.
-
 \end{description}
 
 %------------------------------------------------------------------------
@@ -2174,18 +2174,8 @@ Function to return the name of a PTC kind.
 
 \index[routine]{normal_form_rd_terms}
 \label{r:normal.form.rd.terms}
-\item[normal_form_rd_terms(normal_form, rf_on, order)] \Newline
+\item[normal_form_rd_terms(one_turn_map, normal_form, rf_on, order)] \Newline
 Calculates driving terms \`a la \cite{b:bengtsson} from the one-turn map.
-
-\index[routine]{real_8_to_taylor}
-\label{r:real.8.to.taylor}
-\item[real_8_to_taylor (y8, beta0, beta1, bmad_taylor)] \Newline
-Routine to convert from a real_8 taylor map in \'Etienne's PTC to a taylor map in Bmad. 
-
-\index[routine]{real_8_init}
-\label{r:real.8.init}
-\item[real_8_init (y, set_taylor)] \Newline
-Routine to allocate a PTC real_8 variable. 
 
 \index[routine]{remove_constant_taylor}
 \label{r:remove.constant.taylor}
@@ -2249,16 +2239,6 @@ Routine to construct a genfield (partially inverted map) from a taylor map.
 \item[universal_to_bmad_taylor (u_taylor, bmad_taylor)] \Newline
 Routine to convert from a universal_taylor map in \'Etienne's PTC to a taylor map in Bmad. 
 
-\index[routine]{vec_bmad_to_ptc}
-\label{r:vec.bmad.to.ptc}
-\item[vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, conversion_mat)] \Newline
-Routine to convert from Bmad to PTC coordinates. 
-
-\index[routine]{vec_ptc_to_bmad}
-\label{r:vec.ptc.to.bmad}
-\item[vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat, state)] \Newline
-Routine to convert from PTC to Bmad coordinates. 
-
 \end{description}
 
 %------------------------------------------------------------------------
@@ -2309,15 +2289,9 @@ The higher the score the nicer.
 \index[routine]{qp_calc_axis_params}
 \label{r:qp.calc.axis.params}
 \item[\protect\parbox{6in}{qp_calc_axis_params (data_min, data_max, div_min, \\ 
-      \hspace*{1in} div_max, axis, slop_factor)}] \Newline 
+      \hspace*{1in} div_max, axis)}] \Newline 
      Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. This is similar to calc_axis_scale.
-
-\index[routine]{qp_calc_axis_divisions}
-\label{r:qp.calc.axis.divisions}
-\item[qp_calc_axis_divisions (axis_min, axis_max, div_min, div_max, divisions)] \Newline 
-Routine to calculate the best (gives the nicest looking drawing) number 
-of major divisions for fixed axis minimum and maximum.
 
 \index[routine]{qp_calc_axis_places}
 \label{r:qp.calc.axis.places}
@@ -2327,7 +2301,7 @@ of major divisions for fixed axis minimum and maximum.
 
 \index[routine]{qp_calc_axis_scale}
 \label{r:qp.calc.axis.scale}
-\item[qp_calc_axis_scale (data_min, data_max, axis, niceness_score, slop_factor)] \Newline 
+\item[qp_calc_axis_scale (data_min, data_max, axis, niceness_score)] \Newline 
      Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
@@ -2523,7 +2497,8 @@ between data units and page units is the same for the x and y axes.
 \label{r:qp.set.axis}
 \item[\protect\parbox{6in}{qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, \\
 \hspace*{1in} draw_numbers, minor_div, minor_div_max, mirror, number_offset, \\
-\hspace*{1in} label_offset, major_tick_len, minor_tick_len, ax_type)}] \Newline
+\hspace*{1in} label_offset, major_tick_len, minor_tick_len, ax_type, \\
+\hspace*{1in} tick_min, tick_max, dtick, set_ticks, axis)}] \Newline
     Routine to set (but not plot) the min, max and divisions for the axes of the graph.
 
 \index[routine]{qp_set_box}
@@ -2641,7 +2616,8 @@ Routine to set what axis to use: X or X2, Y or Y2.
 \item[\protect\parbox{6in}{
   qp_get_axis_attrib (axis_str, a_min, a_max, div,  places, label, \\
   \hspace*{1in} draw_label, draw_numbers, minor_div, mirror, number_offset, \\
-  \hspace*{1in} label_offset, major_tick_len, minor_tick_len, ax_type) }] \Newline
+  \hspace*{1in} label_offset, major_tick_len, minor_tick_len, ax_type, \\
+  \hspace*{1in} tick_min, tick_max, dtick) }] \Newline
      Routine to get the min, max, divisions etc. for the X and Y axes.
 
 \index[routine]{qp_get_layout_attrib}
@@ -2848,7 +2824,7 @@ Note: This affects both lines and symbols.
 
 \index[routine]{qp_set_color_basic}
 \label{r:qp.set.color.basic}
-\item[qp_set_color_basic (ix_color)  ] \Newline 
+\item[qp_set_color_basic (ix_color, set_background)  ] \Newline 
 Routine to set the color taking into account that GIF
 inverts the black for white.
 
@@ -2887,11 +2863,6 @@ Routine to set the character text background color.
 \label{r:qp.text.len.basic}
 \item[qp_text_len_basic (text)] \Newline 
 Function to find the length of a text string.
-
-\index[routine]{qp_translate_to_color_index}
-\label{r:qp.translate.to.color.index}
-\item[qp_translate_to_color_index (name)] \Newline 
-     Routine to translate from a string to a color index.
 
 \end{description}
 
@@ -2998,12 +2969,6 @@ tracking 7 particle with different starting conditions.
 \index{complex taylor map!list of routines}
 
 \begin{description}
-
-\index[routine]{add_complex_taylor_term}
-\label{r:add.complex.taylor.term}
-\item[add_complex_taylor_term (bmad_complex_taylor, coef, exp)] \Newline 
-Subroutine add_complex_taylor_term (bmad_complex_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9)
-Routine to add a complex_taylor term to a complex_taylor series.
 
 \index[routine]{complex_taylor_coef}
 \label{r:complex.taylor.coef}
@@ -3299,15 +3264,9 @@ Routine to calculate the closed orbit at the beginning of the lat.
   \hspace*{1in} init_guess, err_flag) }] \Newline
 Routine to find the closed orbit via tracking. 
 
-\index[routine]{compute_even_steps}
-\label{r:compute.even.steps}
-\item[compute_even_steps (ds_in, length, ds_default, ds_out, n_step)] \Newline 
-Routine to compute a step size ds_out, close to ds_in, so that an 
-integer number of steps spans the length.
-
 \index[routine]{dynamic_aperture1}
 \label{r:dynamic.aperture1}
-\item[dynamic_aperture1 (lat, orb0, theta_xy, Sxy, aperture_param, aperture, check_xy_init)] \Newline
+\item[dynamic_aperture1 (lat, orb0, theta_xy, S_xy, aperture_param, aperture, check_xy_init)] \Newline
 Routine to determine the dynamic aperture of a lattice via tracking. 
 
 \index[routine]{multi_turn_tracking_analysis}
@@ -3753,7 +3712,7 @@ Routine to calculate the Twiss parameters and orbit at a particular longitudinal
 
 \index[routine]{twiss_at_start}
 \label{r:twiss.at.start}
-\item[twiss_at_start (lat, status, ix_branch)] \Newline
+\item[twiss_at_start (lat, status, ix_branch, type_out)] \Newline
 Routine to calculate the Twiss parameters at the start of the lat. 
 
 \index[routine]{twiss_from_tracking}
@@ -3825,18 +3784,6 @@ Routine to initialize a wake struct.
 \label{r:randomize.lr.wake.frequencies}
 \item[randomize_lr_wake_frequencies (ele, set_done)] \Newline 
 Routine to randomize the frequencies of the lr wake HOMs.
-
-\index[routine]{sr_long_wake_particle}
-\label{r:sr.long.wake.particle}
-\item[sr_long_wake_particle (ele, orbit)] \Newline 
-Subroutine to apply the short-range wake kick to a particle and then add 
-to the existing short-range wake the contribution from the particle.
-
-\index[routine]{sr_trans_wake_particle}
-\label{r:sr.trans.wake.particle}
-\item[sr_trans_wake_particle (ele, orbit)] \Newline 
-Subroutine to apply the short-range wake kick to a particle and then add 
-to the existing short-range wake the contribution from the particle.
 
 \index[routine]{track1_sr_wake}
 \label{r:track1.sr.wake}
@@ -3932,13 +3879,13 @@ This routine overloaded by:
 
 \index[routine]{to_c_str}
 \label{r:to.c.str}
-\item[to_c_str (f_string, c_string)] \Newline 
+\item[to_c_str (f_str, c_str)] \Newline 
 Subroutine to append a null (0) character at the end of a string (trimmed
 of trailing blanks) so it will look like a C character array. 
 
 \index[routine]{to_f_str}
 \label{r:to.f.str}
-\item[to_f_str (c_string, f_string)] \Newline 
+\item[to_f_str (c_str, f_str)] \Newline 
 Subroutine to append a null (0) character at the end of a string (trimmed
 of trailing blanks) so it will look like a C character array. 
 
