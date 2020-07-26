@@ -71,13 +71,13 @@ case ('var', 'asym_var')
     y2 = y * ele%value(ks$)
   end select
   y1 = y2
-  if (prefix == 'asym_var') y1 = 0
+  if (prefix == 'asym_var') y2 = 0
 case ('vvar')
   y1 = dat_var_value
   y2 = dat_var_value
 case ('asym_vvar')
-  y1 = 0
-  y2 = dat_var_value
+  y1 = dat_var_value
+  y2 = 0
 case ('')
   y1 = y
   y2 = y
