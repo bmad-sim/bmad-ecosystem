@@ -2449,6 +2449,8 @@ logical is_on, err, mat6_toggle
 
 ! Pick universe
 
+call downcase_string(what)
+
 if (uni /= '*') then
   call tao_to_int (uni, n_uni, err)
   if (err) return
@@ -2529,9 +2531,9 @@ endif
 ! One turn map calc.
 
 if ('one_turn_map_calc' == trim(who)) then
-  if (what == 'on') then
+  if (what == 'on' .or. index('true', trim(what)) == 1) then
     is_on = .true.
-  elseif (what == 'off') then
+  elseif (what == 'off' .or. index('false', trim(what)) == 1) then
     is_on = .false.
   else
     call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> one_turn_map_calc on/off"')

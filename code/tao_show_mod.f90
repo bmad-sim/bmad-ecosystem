@@ -6,6 +6,7 @@ use tao_top10_mod
 use tao_lattice_calc_mod
 use tao_c_interface_mod, only: tao_c_interface_com
 use wall3d_mod
+use pointer_lattice, only: operator(.sub.)
 
 type show_common_struct
   type (ele_struct), pointer :: ele 
@@ -194,6 +195,7 @@ type (wall3d_section_struct), pointer :: wall_sec
 type (wall3d_vertex_struct), pointer :: v
 type (random_state_struct) ran_state
 type (bmad_normal_form_struct), pointer :: bmad_nf
+type (ptc_normal_form_struct), pointer :: ptc_nf
 type (aperture_scan_struct), pointer :: aperture_scan
 type (coord_struct) orbit
 type (tao_spin_map_struct), pointer :: sm
@@ -258,7 +260,7 @@ character(16) :: show_what, show_names(41) = [ &
    'merit           ', 'track           ', 'spin            ', 'internal        ', 'control         ', &
    'string          ']
 
-integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width
+integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width, expo(6)
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
@@ -2961,61 +2963,54 @@ case ('merit', 'top10')
 ! normal_form
 
 case ('normal_form')
-  
-  bmad_nf => tao_branch%bmad_normal_form
 
-  if (.not. associated(bmad_nf%ele_origin) ) then
-    nl=nl+1; lines(nl) ='One-turn-map has not been computed'
+  if (.not. u%calc%one_turn_map) then
+    nl=1;    lines(1)  = 'one_turn_map_calc NOT SET TRUE.'
+    nl=nl+1; lines(nl) = 'USE THE "set universe ' // int_str(u%ix_uni) // ' one_turn_map_calc = T" COMMAND TO CHANGE THIS.'
     return
   endif
 
-  attrib0 = ''
+  if (branch%param%geometry /= closed$) then
+    nl=1;    lines(1) = 'BRANCH GEOMETRY NOT CLOSED'
+    nl=nl+1; lines(2) = 'USE THE "set branch ' // int_str(branch%ix_branch) // ' geometry = closed" TO CHANGE THIS.'
+    return
+  endif
 
-  call tao_next_switch (what2, ['-order'], .true., switch, err, ix)
-  if (err) return
-  
-  n_order = ptc_com%taylor_order_ptc
-  select case (switch)
-  case ('-order')
-    read (what2(:ix), *, iostat = ios) n_order
-    if (ios /= 0) then
-      nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
-      return
-    endif
-    call string_trim (what2(ix+1:), what2, ix)
+  bmad_nf => tao_branch%bmad_normal_form
+  ptc_nf  => tao_branch%ptc_normal_form
 
-  case default
-    if (attrib0 /= '') then
-      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // attrib0)
-      return
-    endif
-    attrib0 = switch
-  end select
-  
-  nl=nl+1; lines(nl) = 'normal_form: '//attrib0(1:5)
-  
-  select case(attrib0(1:5))
-    case ('dhdj ')
-      call type_taylors (bmad_nf%dhdj, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
-    case ('A    ')
-      call type_taylors (bmad_nf%A, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
-    case ('A_inv')
-      call type_taylors (bmad_nf%A_inv, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
-    case ('M    ')
-      call type_taylors (bmad_nf%M, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
-    case ('F    ')
-      call type_complex_taylors (bmad_nf%F, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
-    case ('L    ')
-      call type_complex_taylors (bmad_nf%L, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)      
-    case ('h    ')
-      do i=1, size(bmad_nf%h)
-        write(lines(i),'(A,"   (",f20.10,", ",f20.10,")   ")') bmad_nf%h(i)%c, bmad_nf%h(i)%c_val
-      enddo
-      nl = size(bmad_nf%h)
-    case default 
-      nl=nl+1; lines(nl) = 'bad normal_form map: '//trim(attrib0)
-      nl=nl+1; lines(nl) = 'Must be one of: M A A_inv dhdj F L'
-  end select
+  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N  momentum_compaction_ptc.N'
+
+  do i = 0, ptc_com%taylor_order_ptc
+    expo = [0, 0, 0, 0, 0, i]
+    nl=nl+1; write (lines(nl), '(i3, 2es18.7, 9x es18.7)') i, real(ptc_nf%phase(1) .sub. expo), real(ptc_nf%phase(2) .sub. expo), &
+                      -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+  enddo
+
+
+
+!  select case(attrib0(1:5))
+!    case ('dhdj ')
+!      call type_taylors (bmad_nf%dhdj, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+!    case ('A    ')
+!      call type_taylors (bmad_nf%A, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+!    case ('A_inv')
+!      call type_taylors (bmad_nf%A_inv, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+!    case ('M    ')
+!      call type_taylors (bmad_nf%M, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+!    case ('F    ')
+!      call type_complex_taylors (bmad_nf%F, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)
+!    case ('L    ')
+!      call type_complex_taylors (bmad_nf%L, max_order = n_order, lines = lines, n_lines = nl, clean = .true.)      
+!    case ('h    ')
+!      do i=1, size(bmad_nf%h)
+!        write(lines(i),'(A,"   (",f20.10,", ",f20.10,")   ")') bmad_nf%h(i)%c, bmad_nf%h(i)%c_val
+!      enddo
+!      nl = size(bmad_nf%h)
+!    case default 
+!      nl=nl+1; lines(nl) = 'bad normal_form map: '//trim(attrib0)
+!      nl=nl+1; lines(nl) = 'Must be one of: M A A_inv dhdj F L'
+!  end select
 
 !----------------------------------------------------------------------
 ! optimizer
