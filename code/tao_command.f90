@@ -497,14 +497,19 @@ case ('set')
   case ('beam', 'beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', &
         'opti_de_param', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key', 'symbolic_number', &
         'var', 'beam_start', 'particle_start', 'dynamic_aperture'); n_word = 3; n_eq = 2
-  case ('universe'); n_word = 3; n_eq = 10
+  case ('universe'); n_word = 4; n_eq = 3
   case ('plot_page'); n_word = 4; n_eq = 2
   case ('branch', 'curve', 'element', 'graph', 'plot'); n_word = 4; n_eq = 3
   end select
 
   call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
 
-  if (set_word /= 'universe' .and. cmd_word(n_eq) /= '=') then
+  if (set_word == 'universe' .and. cmd_word(3) /= '=') then  ! Old syntax
+    cmd_word(4) = cmd_word(3)
+    cmd_word(3) = '='
+  endif
+
+  if (cmd_word(n_eq) /= '=') then
     call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
     goto 9000
   endif
@@ -558,7 +563,7 @@ case ('set')
   case ('lat_layout')
     call tao_set_drawing_cmd (s%plot_page%lat_layout, cmd_word(1), cmd_word(3))
   case ('universe')    
-    call tao_set_universe_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
+    call tao_set_universe_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
   case ('var')
     call tao_set_var_cmd (cmd_word(1), cmd_word(3))
   case ('wave')
