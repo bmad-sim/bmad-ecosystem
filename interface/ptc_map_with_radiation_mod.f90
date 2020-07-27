@@ -149,7 +149,7 @@ pb = orb
 c_ident = 1
 pb8 = pb + c_ident
 
-call propagate(pb8, state, fibre1 = f1)
+call propagate(pb8, state, fibre1 = f1, fibre2 = f2)
 c_map1 = pb8
 
 call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=map_with_rad%sub_map) 
