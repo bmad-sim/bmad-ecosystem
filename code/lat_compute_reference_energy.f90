@@ -47,46 +47,73 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   branch%param%unstable_factor = 0   ! Set to positive number if there is a problem.
   begin_ele => branch%ele(0)
+  begin_ele%ref_species = branch%param%particle
 
   if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
   stale = (begin_ele%bookkeeping_state%ref_energy == stale$)
 
   ! Init energy at beginning of branch if needed.
+  ! If there is a fork into this branch at element 0, the reference energy is may be inherited from the branch forked from.
 
-  if (stale .and. branch%ix_from_branch >= 0) then
-    fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-    if (is_true(begin_ele%value(inherit_from_fork$)) .and. branch%ix_to_ele == 0) then
+  if (stale) then
+    if (begin_ele%value(inherit_from_fork$) == real_garbage$) then  ! Happens first time this routine is called from bmad_parser. 
+      begin_ele%value(inherit_from_fork$) = false$
+      if (branch%ix_from_branch > -1 .and. branch%ix_to_ele == 0) then
+        ele0 => lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)
+        if (ele0%ref_species == begin_ele%ref_species) begin_ele%value(inherit_from_fork$) = true$
+      endif
+    endif
+
+    ! If inherit from fork.
+    if (is_true(begin_ele%value(inherit_from_fork$))) then
+      fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
       begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
       begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
       begin_ele%value(E_tot$) = fork_ele%value(E_tot$)
       begin_ele%value(p0c$) = fork_ele%value(p0c$)
-    endif
-  endif
-
-  ! Note: E_tot & E_tot_start are both set equal to each other in bmad_parser.
-
-  begin_ele%value(delta_ref_time$) = 0
-  begin_ele%value(ref_time_start$) = begin_ele%ref_time
-
-  if (begin_ele%value(E_tot$) == 0) then
-    begin_ele%value(E_tot$) = begin_ele%value(E_tot_start$)
-    begin_ele%value(p0c$) = begin_ele%value(p0c_start$)
-  elseif (begin_ele%value(E_tot_start$) == 0) then
-    begin_ele%value(E_tot_start$) = begin_ele%value(E_tot$)
-    begin_ele%value(p0c_start$) = begin_ele%value(p0c$)
-  endif
-
-  if (stale .and. branch%ix_from_branch >= 0) then
-    if (fork_ele%branch%param%particle == branch%param%particle .and. branch%ix_to_ele == 0) then
       call init_coord (begin_ele%time_ref_orb_in, zero6, begin_ele, upstream_end$)
       call init_coord (begin_ele%time_ref_orb_out, zero6, begin_ele, downstream_end$)
-      stale = .true.
-      begin_ele%bookkeeping_state%ref_energy = ok$
+
+    ! Else no inherit from fork.
+    else
+      if (begin_ele%value(p0c$) >= 0) then
+        call convert_pc_to (begin_ele%value(p0c$), begin_ele%ref_species, e_tot = begin_ele%value(e_tot$))
+      elseif (begin_ele%value(e_tot$) >= mass_of(begin_ele%ref_species)) then
+        call convert_total_energy_to (begin_ele%value(e_tot$), begin_ele%ref_species, pc = begin_ele%value(p0c$))
+      elseif (branch%ix_from_branch < 0 .and. branch%ix_branch > 0 .and. &
+                              lat%param%particle == begin_ele%ref_species) then ! A root branch.
+        begin_ele%value(e_tot$) = lat%ele(0)%value(e_tot$)
+        begin_ele%value(p0c$)   = lat%ele(0)%value(p0c$)
+      else
+        if (begin_ele%value(e_tot$) < 0 .and. begin_ele%value(p0c$) < 0) then
+          if (begin_ele%ref_species == photon$) then
+            call out_io (s_fatal$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name)
+          else
+            call out_io (s_fatal$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name)
+          endif
+        else
+          call out_io (s_fatal$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH ' // branch%name)
+        endif
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
+
+      ! If E_tot or p0c is modified, set_flags_for_changed_attribute will set E_tot_start = E_tot and 
+      ! p0c_start = E_tot. So only need to consider the case when starting E_tot/p0c is initialized.
+
+      if (begin_ele%value(e_tot_start$) <= 0) then
+        begin_ele%value(e_tot_start$) = begin_ele%value(e_tot$)
+        begin_ele%value(p0c_start$) = begin_ele%value(p0c$)
+      endif
+
+      begin_ele%value(delta_ref_time$) = 0
+      begin_ele%value(ref_time_start$) = begin_ele%ref_time
     endif
-  endif
 
-  if (begin_ele%bookkeeping_state%ref_energy == stale$) begin_ele%bookkeeping_state%ref_energy = ok$
+    begin_ele%bookkeeping_state%ref_energy = ok$
+  endif    ! if (stale)
 
+  !---------------
   ! Look for an e_gun.
   ! Remember that there may be markers or null_eles before an e_gun in the lattice but nothing else.
 
@@ -188,7 +215,7 @@ do ib = 0, ubound(lat%branch, 1)
 
   if (begin_ele%value(p0c$) < 1d-6) then
     if (ix_e_gun == 0) then
-      call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW IN BRANCH \i0\ ', &
+      call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW IN BRANCH \i0\ ' // branch%name, &
                                      i_array = [ib])
     else
       call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW.', &
@@ -319,6 +346,11 @@ do ib = 0, ubound(lat%branch, 1)
 
 enddo ! Branch loop
 
+! Correct particle_start info
+
+call init_coord (lat%particle_start, lat%particle_start, lat%ele(0), downstream_end$, &
+                                                            E_photon = lat%particle_start%p0c, shift_vec6 = .false.)
+
 ! Put the appropriate energy values in the lord elements...
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
@@ -433,6 +465,14 @@ ele%time_ref_orb_out%location = downstream_end$
 
 key = ele%key
 if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = lcavity$
+
+if (key == converter$) then
+  ele%ref_species = ele%converter%species_out
+else
+  ele%ref_species = ele0%ref_species
+endif
+
+!
 
 select case (key)
 
@@ -553,14 +593,6 @@ case (marker$, fork$, photon_fork$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
   ele%ref_time = ref_time_start
-
-  ! After a converter the reference species is different than param%particle.
-  select case (ele0%key)
-  case (converter$)
-    ele%value(ref_species$) = ele0%converter%species_out
-  case (marker$, fork$, photon_fork$)   ! Generally there are multiple markers/forks after a converter
-    ele%value(ref_species$) = ele0%value(ref_species$)
-  end select
 
 case default
   if (significant_difference(ele%value(p0c$), p0c_start, rel_tol = small_rel_change$)) then

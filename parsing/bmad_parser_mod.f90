@@ -4689,7 +4689,6 @@ if (created_new_branch) then
   branch%ix_from_branch     = fork_ele%ix_branch
   branch%ix_from_ele        = fork_ele%ix_ele
   n = branch%ix_from_branch
-  if (lat%branch(n)%param%particle /= branch%param%particle) branch%ele(0)%value(inherit_from_fork$) = false$
 
   ! Need to know if the reference energy needs to be specified for the new branch which depends upon if the 
   ! "to" ele is the Beginning element. But the "to" element may not yet exist (may be superimposed later).

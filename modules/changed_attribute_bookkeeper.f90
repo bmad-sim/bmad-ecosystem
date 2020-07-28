@@ -261,7 +261,7 @@ type (cylindrical_map_struct), pointer :: cl_map
 
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
-real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor
+real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4), p0c_factor, ff
 real(rp), target :: unknown_attrib
 
 integer i
@@ -544,11 +544,27 @@ case (hkicker$, vkicker$)
 ! rfcavity, crab_cavity
 
 case (rfcavity$, crab_cavity$)
-  if (dep_set .and. ele%value(l$) /= 0) then
-    if (associated(a_ptr, ele%value(voltage$))) then
-      ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
-    elseif (associated(a_ptr, ele%value(gradient$))) then
-      ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+  if (dep_set) then
+    if (associated(a_ptr, ele%value(harmon$))) then
+      if (ele%value(e_tot$) /= 0 .and. branch%param%total_length /= 0) then
+        ff = c_light * ele%value(p0c$) / (branch%param%total_length * ele%value(e_tot$))
+        ele%value(rf_frequency$) = ele%value(harmon$) * ff
+      else
+        ele%value(rf_frequency$) = 0
+      endif
+    elseif (associated(a_ptr, ele%value(rf_frequency$))) then
+      if (ele%value(p0c$) /= 0) then
+        ff = branch%param%total_length * ele%value(e_tot$) / (c_light * ele%value(p0c$))
+        ele%value(harmon$) = ele%value(rf_frequency$) * ff
+      else
+        ele%value(harmon$) = 0
+      endif
+    elseif (ele%value(l$) /= 0) then
+      if (associated(a_ptr, ele%value(voltage$))) then
+        ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+      elseif (associated(a_ptr, ele%value(gradient$))) then
+        ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+      endif
     endif
   endif
 
