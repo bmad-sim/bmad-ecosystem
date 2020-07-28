@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 250
+integer, parameter :: bmad_inc_version$ = 251
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1208,6 +1208,7 @@ type ele_struct
   integer :: field_calc = bmad_standard$          ! no_field$, fieldmap$, refer_to_lords$, or custom$
   integer :: aperture_at = exit_end$              ! Aperture location: entrance_end$, ...
   integer :: aperture_type = rectangular$         ! rectangular$, elliptical$, auto_aperture$, ...
+  integer :: ref_species = not_set$               ! Reference species
   integer :: orientation = 1                 ! -1 -> Element is longitudinally reversed. +1 -> Normal.
   logical :: symplectify = .false.           ! Symplectify mat6 matrices.
   logical :: mode_flip = .false.             ! Have the normal modes traded places?
@@ -1505,7 +1506,7 @@ integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_
 integer, parameter :: eta_x_out$ = 25, quad_tilt$ = 25, de_eta_meas$ = 25, spatial_distribution$ = 25
 integer, parameter :: eta_y_out$ = 26, bend_tilt$ = 26, mode$ = 26, velocity_distribution$ = 26, py_aperture_width2$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, mosaic_angle_rms_in_plane$ = 26
-integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ =  27, energy_distribution$ = 27, ref_species$ = 27
+integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ =  27, energy_distribution$ = 27
 integer, parameter :: x_quad$ = 27, ds_photon_slice$ = 27, mosaic_angle_rms_out_plane$ = 27, py_aperture_center$ = 27
 integer, parameter :: etap_y_out$ = 28, phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, z_aperture_width2$ = 28
 integer, parameter :: upstream_ele_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, z_aperture_center$ = 29
@@ -1632,6 +1633,7 @@ integer, parameter :: accordion_edge$  = 128
 integer, parameter :: start_edge$  = 129
 integer, parameter :: end_edge$  = 130
 integer, parameter :: s_position$ = 131
+integer, parameter :: ref_species$ = 132
 
 integer, parameter :: a0$  = 140, a21$  = 161
 integer, parameter :: b0$  = 162, b21$  = 183

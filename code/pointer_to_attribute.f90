@@ -596,6 +596,7 @@ case ('REF_COORDINATES');                a_ptr%r => ele%value(ref_coordinates$)
 case ('SPACE_CHARGE_METHOD');            a_ptr%i => ele%space_charge_method
 case ('SPIN_TRACKING_METHOD');           a_ptr%i => ele%spin_tracking_method
 case ('TRACKING_METHOD');                a_ptr%i => ele%tracking_method
+case ('REF_SPECIES');                    a_ptr%i => ele%ref_species
 ! No corresponding attribute in element.
 case ('TAYLOR_ORDER')
 case ('PTC_EXACT_MODEL')

@@ -38,7 +38,7 @@ type (photon_surface_struct), pointer :: surface
 type (wake_lr_mode_struct), pointer :: lr
 type (converter_prob_pc_r_struct), pointer :: ppcr
 
-real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
+real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time, beta
 real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
@@ -487,10 +487,11 @@ case (quadrupole$)
 ! RFcavity
 
 case (rfcavity$)
-  if (geometry == closed$ .and. associated(branch) .and. val(p0c$) /= 0) then
-    time = branch%ele(branch%n_ele_track)%ref_time
+  if (associated(branch) .and. val(e_tot$) /= 0) then
+    beta = ele%value(p0c$) / ele%value(e_tot$)
+    time = branch%param%total_length / (c_light * beta)
     if (time /= 0) then
-      if (ele%field_master) then
+      if (ele%value(rf_frequency$) <= 0) then
         val(rf_frequency$) = val(harmon$) / time
       else
         val(harmon$) = val(rf_frequency$) * time

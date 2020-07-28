@@ -59,7 +59,7 @@ integer, allocatable :: seq_indexx(:)
 integer :: ix_param_ele, ix_mad_beam_ele
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
-integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave, n_loc
+integer iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave, n_loc
 integer ib, ie, ib2, ie2, flip, n_branch, n_forks, i_loop, n_branch_max
 integer, pointer :: n_max
 
@@ -77,7 +77,7 @@ character(280) parse_line_save, line, use_line_str
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, wild_here
 logical end_of_file, ele_found, match_found, err, finished, exit_on_error
-logical detected_expand_lattice_cmd, multipass, heterogeneous_ele_list, do_energy_bookkeeping
+logical detected_expand_lattice_cmd, multipass, heterogeneous_ele_list
 logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 
 ! See if digested file is open and current. If so read in and return.
@@ -880,6 +880,7 @@ branch_loop: do i_loop = 1, n_branch_max
   ele0 => branch%ele(0)
   ele0%value(e_tot$) = -1
   ele0%value(p0c$)   = -1 
+  call settable_dep_var_bookkeeping(ele0)
 
   ! Add energy, species, etc info for all branches except branch(0) which is handled "old style".
 
@@ -1007,48 +1008,9 @@ branch_loop: do i_loop = 1, n_branch_max
 
   call floor_angles_to_w_mat(ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, ele0%floor%w)
 
-  ! Reference energy bookkeeping...
-  ! If there is a fork into this branch at element 0, the reference energy is inherited from the branch forked from.
-
-  do_energy_bookkeeping = .true.
-  if (branch%ix_from_branch > -1) then
-    branch0 => lat%branch(branch%ix_from_branch)
-    if (branch0%param%particle == branch%param%particle .and. branch%ix_to_ele == 0) do_energy_bookkeeping = .false.
-  endif
-
-  if (do_energy_bookkeeping) then
-    ele => branch%ele(0)
-
-    if (ele%value(p0c$) >= 0) then
-      call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
-    elseif (ele%value(e_tot$) >= mass_of(branch%param%particle)) then
-      call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-    elseif (branch%ix_branch > 0 .and. lat%param%particle == branch%param%particle) then
-      ele%value(e_tot$) = lat%ele(0)%value(e_tot$)
-      ele%value(p0c$)   = lat%ele(0)%value(p0c$)
-    else
-      if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
-        if (branch%param%particle == photon$) then
-          call parser_error ('REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name, 'WILL USE 1000 eV!', level = s_warn$)
-        else
-          call parser_error ('REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name, 'WILL USE 1000 * MC^2!', level = s_warn$)
-        endif
-      else
-        call parser_error ('REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH ' // branch%name, ' WILL USE 1000 * MC^2!')
-      endif
-      ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
-      if (branch%param%particle == photon$) ele%value(e_tot$) = 1000
-      call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-    endif
-
-    ele%value(e_tot_start$) = ele%value(e_tot$)
-    ele%value(p0c_start$) = ele%value(p0c$)
-  endif
-
   !
 
   call create_lat_ele_nametable(lat, lat%nametable)
-  call settable_dep_var_bookkeeping(ele0)
 
   if (bp_com%error_flag) then
     call parser_end_stuff (in_lat)
@@ -1209,20 +1171,6 @@ call parser_add_lord (in_lat, n_max, plat, lat)
 
 call parser_identify_fork_to_element(lat)
 
-! If harmon is set for rfcavity then need to calc rf_frequency
-
-do i = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i)
-  do j = 1, branch%n_ele_max
-    ele => branch%ele(j)
-    if (ele%key /= rfcavity$) cycle
-    if (ele%value(harmon$) == 0 .or. ele%value(rf_frequency$) /= 0) cycle
-    branch0 => pointer_to_branch(ele)
-    beta = branch0%ele(0)%value(p0c$) / branch0%ele(0)%value(e_tot$)
-    ele%value(rf_frequency$) = ele%value(harmon$) * c_light * beta / branch0%param%total_length
-  enddo
-enddo
-
 ! Remove all null_ele elements
 
 do n = 0, ubound(lat%branch, 1)
@@ -1234,16 +1182,6 @@ do n = 0, ubound(lat%branch, 1)
 enddo
 call remove_eles_from_lat (lat, .false.)
 
-! Consistancy check
-
-call s_calc(lat)
-call lat_sanity_check (lat, err)
-if (err) then
-  bp_com%error_flag = .true.
-  call parser_end_stuff (in_lat)
-  return
-endif
-
 ! Bookkeeping...
 ! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
 ! file may contain references to dependent element parameters that are computed in lattice_bookkeeper.
@@ -1251,7 +1189,18 @@ endif
 call cpu_time(bp_com%time1)
 
 call set_flags_for_changed_attribute(lat)
+
+call s_calc(lat)
 call lattice_bookkeeper (lat, err)
+if (err) then
+  bp_com%error_flag = .true.
+  call parser_end_stuff (in_lat)
+  return
+endif
+
+! Consistancy check
+
+call lat_sanity_check (lat, err)
 if (err) then
   bp_com%error_flag = .true.
   call parser_end_stuff (in_lat)
@@ -1322,10 +1271,6 @@ if (err) then
   call parser_end_stuff (in_lat, .false.)
   return
 endif
-
-! Correct particle_start info
-
-call init_coord (lat%particle_start, lat%particle_start, lat%ele(0), downstream_end$, E_photon = lat%particle_start%p0c, shift_vec6 = .false.)
 
 !-------------------------------------------------------------------------
 ! Print lattice info if debug is on

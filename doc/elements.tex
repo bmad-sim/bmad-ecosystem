@@ -1096,10 +1096,10 @@ Attributes specific to a \vn{crystal} element are:
   ref_orbit_follows  = <which_beam> ! Reference orbit aligned with what outgoing beam?
   graze_angle_in     = <Real>       ! Angle between incoming ref orbit and surface.
   graze_angle_out    = <Real>       ! Angle between outgoing ref orbit and surface.
-  is_mosaic          = <Logical>    ! Is a mosaic crystal? Default = False
-  mosaic_thickness   = <Real>       ! Mosaic element thickness
-  mosaic_angle_rms_in_plane  = <Real> ! In-plane mosaic angular half-width.
-  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. 
+%  is_mosaic          = <Logical>    ! Is a mosaic crystal? Default = False
+%  mosaic_thickness   = <Real>       ! Mosaic element thickness
+%  mosaic_angle_rms_in_plane  = <Real> ! In-plane mosaic angular half-width.
+%  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. 
 \end{example}
 
 \index{bragg_angle_in}\index{bragg_angle_out}\index{alpha_angle}
@@ -1152,7 +1152,7 @@ Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1 then ther
 diffraction again with \vn{alpha_H} zero. With the orientation shown in \fig{f:crystal}A,
 \vn{alpha_H} is positive.
 
-The \vn{thickness} parameter is used with Laue diffraction and mosaic crystals.
+%The \vn{thickness} parameter is used with Laue diffraction and mosaic crystals.
 
 The \vn{ref_orbit_follows} parameter sets how the outgoing reference orbit is constructed. This is
 only relevant with Laue diffraction.  The possible settings of this parameter are:
@@ -1243,32 +1243,32 @@ and is given by the formula
 See Section~\sref{s:rowland} for an example lattice that can be used to simulate a Rowland circle
 spectrometer.
 
-%----------------
-\subsection{Mosaic Crystal}
-
-A mosaic crystal is an idealized model of an imperfect crystal imagined to consist of numerous
-small perfect crystals called crystallites that are randomly misoriented. Currently, mosaic crystals
-can only be used with Laue orientation. Mosaic crystals are parameterized by four element
-parameters:
-\begin{example}
-  is_mosaic          = <Logical>    ! Is a mosaic crystal? Default = False
-  mosaic_thickness   = <Real>       ! Mosaic element thickness
-  mosaic_angle_rms_in_plane  = <Real> ! In-plane angular half-width. 
-  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. 
-\end{example}
-The \vn{is_mosaic} logical is used to toggle between mosaic and non-mosaic tracking. Tracking in a
-mosaic is detailed in Section~\sref{s:mosaic.track}. The angular spread of the orientation of the
-crystallites in the diffraction plane is given by \vn{mosaic_angle_rms_in_plane}. This
-corresponds to rotations around the $y$-axis in the element reference frame in \fig{f:crystal}B. The
-\vn{mosaic_angle_rms_out_plane} parameter gives the angular spread of the crystallites for 
-
-The thickness of the mosaic is given by the \vn{mosaic_thickness} parameter. For \vn{Laue}
-diffraction (\vn{b_param} > 0), the actual mosaic thickness $T_m$ used is adjusted so that there is
-an integer number of mosaic layers. That is
-\begin{equation}
-  T_m(\text{in simulation} = \frac{T}{\text{nint} (T/T_m)}
-\end{equation}
-where $T$ is the crystal thickness and \vn{nint} is the nearest integer function.
+%%----------------
+%\subsection{Mosaic Crystal}
+%
+%A mosaic crystal is an idealized model of an imperfect crystal imagined to consist of numerous
+%small perfect crystals called crystallites that are randomly misoriented. Currently, mosaic crystals
+%can only be used with Laue orientation. Mosaic crystals are parameterized by four element
+%parameters:
+%\begin{example}
+%  is_mosaic          = <Logical>    ! Is a mosaic crystal? Default = False
+%  mosaic_thickness   = <Real>       ! Mosaic element thickness
+%  mosaic_angle_rms_in_plane  = <Real> ! In-plane angular half-width. 
+%  mosaic_angle_rms_out_plane = <Real> ! Out-of-plane angular half-width. 
+%\end{example}
+%The \vn{is_mosaic} logical is used to toggle between mosaic and non-mosaic tracking. Tracking in a
+%mosaic is detailed in Section~\sref{s:mosaic.track}. The angular spread of the orientation of the
+%crystallites in the diffraction plane is given by \vn{mosaic_angle_rms_in_plane}. This
+%corresponds to rotations around the $y$-axis in the element reference frame in \fig{f:crystal}B. The
+%\vn{mosaic_angle_rms_out_plane} parameter gives the angular spread of the crystallites for 
+%
+%The thickness of the mosaic is given by the \vn{mosaic_thickness} parameter. For \vn{Laue}
+%diffraction (\vn{b_param} > 0), the actual mosaic thickness $T_m$ used is adjusted so that there is
+%an integer number of mosaic layers. That is
+%\begin{equation}
+%  T_m(\text{in simulation} = \frac{T}{\text{nint} (T/T_m)}
+%\end{equation}
+%where $T$ is the crystal thickness and \vn{nint} is the nearest integer function.
 
 %-----------------------------------------------------------------
 \section{Custom}

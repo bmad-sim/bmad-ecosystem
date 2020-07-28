@@ -1910,6 +1910,12 @@ case default   ! normal attribute
         branch => pointer_to_branch(ele%name, lat, .true.)
         if (associated(branch)) branch%param%n_part = value
 
+      case ('RF_FREQUENCY')
+        if (ele%key == rfcavity$) ele%value(harmon$) = 0
+
+      case ('HARMON')
+        ele%value(rf_frequency$) = 0
+
       end select       ! attrib_word
 
     endif

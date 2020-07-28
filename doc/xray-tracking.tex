@@ -1127,54 +1127,54 @@ first with an appropriately scaled $\what E$.
 
 %---------------------
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{mosaic-crystal.pdf}
-  \caption[Mosaic crystal Monte Carlo tracking.]{Mosaic crystal representation used for Monte Carlo tracking.}
-  \label{f:mosaic.crystal}
-\end{figure}
-
-%-------------------------------------------------------------------------
-\subsection{Mosaic Crystal Tracking}
-\label{s:mosaic.track}
-
-Tracking through a mosaic crystal tracking is illustrated in Figure~\ref{f:mosaic.crystal}. The
-\bmad algorithm is similar to the method presented by Alianelli et al. \cite{b:mosaic}. The mosaic
-crystal is idealized as a number of small perfect crystals, called crystallites, all of which have
-the same specified thickness $T_m$ (the \vn{mosaic_thickness} parameter of the crystal). The
-crystallites are all misoriented with angular probability distribution $W$ given by
-\begin{equation}
-  W(\theta, \phi) = \frac{1}{2 \, \pi \, \sigma_{in} \, \sigma_{out}} \exp \left(-
-  \frac{\theta^2}{2 \, \sigma_{in}^2} - \frac{\phi^2}{2 \, \sigma_{out}^2} \right)
-  \label{w12p}
-\end{equation}
-where $\theta$ is the misorientation angle in the diffraction plane and $\phi$ is the misorientation
-angle out of the diffraction plane. The sigmas, $\sigma_{in}$ and $\sigma_{out}$, correspond to the
-parameters of a crystal element (\sref{s:crystal}) \vn{mosaic_angle_rms_in_plane} and
-\vn{mosaic_angle_rms_out_plane} respectively.
-
-The crystalites are modeled to lie in layers of thickness $T_m$. For \vn{Laue} diffraction
-(\vn{b_param} > 0), the actual thickness $T_m$ used is adjusted so that there is an integer number
-of mosaic layers. That is
-\begin{equation}
-  T_m(\text{in simulation} = \frac{T}{\text{nint} (T/T_m)}
-\end{equation}
-where $T$ is the crystal thickness and \vn{nint} is the nearest integer function. 
-
-Tracking is done step-by-step with a photon either traversing or being reflected by a crystalite.
-Interference effects between crystallites are not taken into account so the tracking is incoherent
-(\sref{s:coher.incoher}).
-
-At the beginning of a step the photon is in between two layers and will be traveling towards one of
-these layers. A random number generator along with \Eq{w12p} is used to determine the misorientation
-of the crystallite that the photon is going through. Factoring this misorientation into account, the
-amplitude scattering $R$ and transmission $T$ probabilities are calculated using dynamical diffraction theory.
-
-A random number generator is used to determine if the photon is scattered or transmitted. If $P_T$ is the
-probability assigned for the probability of transmission, then
-\begin{equation}
-  r_T = 
-\end{equation}
+%\begin{figure}[tb]
+%  \centering
+%  \includegraphics[width=5in]{mosaic-crystal.pdf}
+%  \caption[Mosaic crystal Monte Carlo tracking.]{Mosaic crystal representation used for Monte Carlo tracking.}
+%  \label{f:mosaic.crystal}
+%\end{figure}
+%
+%%-------------------------------------------------------------------------
+%\subsection{Mosaic Crystal Tracking}
+%\label{s:mosaic.track}
+%
+%Tracking through a mosaic crystal tracking is illustrated in Figure~\ref{f:mosaic.crystal}. The
+%\bmad algorithm is similar to the method presented by Alianelli et al. \cite{b:mosaic}. The mosaic
+%crystal is idealized as a number of small perfect crystals, called crystallites, all of which have
+%the same specified thickness $T_m$ (the \vn{mosaic_thickness} parameter of the crystal). The
+%crystallites are all misoriented with angular probability distribution $W$ given by
+%\begin{equation}
+%  W(\theta, \phi) = \frac{1}{2 \, \pi \, \sigma_{in} \, \sigma_{out}} \exp \left(-
+%  \frac{\theta^2}{2 \, \sigma_{in}^2} - \frac{\phi^2}{2 \, \sigma_{out}^2} \right)
+%  \label{w12p}
+%\end{equation}
+%where $\theta$ is the misorientation angle in the diffraction plane and $\phi$ is the misorientation
+%angle out of the diffraction plane. The sigmas, $\sigma_{in}$ and $\sigma_{out}$, correspond to the
+%parameters of a crystal element (\sref{s:crystal}) \vn{mosaic_angle_rms_in_plane} and
+%\vn{mosaic_angle_rms_out_plane} respectively.
+%
+%The crystalites are modeled to lie in layers of thickness $T_m$. For \vn{Laue} diffraction
+%(\vn{b_param} > 0), the actual thickness $T_m$ used is adjusted so that there is an integer number
+%of mosaic layers. That is
+%\begin{equation}
+%  T_m(\text{in simulation} = \frac{T}{\text{nint} (T/T_m)}
+%\end{equation}
+%where $T$ is the crystal thickness and \vn{nint} is the nearest integer function. 
+%
+%Tracking is done step-by-step with a photon either traversing or being reflected by a crystalite.
+%Interference effects between crystallites are not taken into account so the tracking is incoherent
+%(\sref{s:coher.incoher}).
+%
+%At the beginning of a step the photon is in between two layers and will be traveling towards one of
+%these layers. A random number generator along with \Eq{w12p} is used to determine the misorientation
+%of the crystallite that the photon is going through. Factoring this misorientation into account, the
+%amplitude scattering $R$ and transmission $T$ probabilities are calculated using dynamical diffraction theory.
+%
+%A random number generator is used to determine if the photon is scattered or transmitted. If $P_T$ is the
+%probability assigned for the probability of transmission, then
+%\begin{equation}
+%  r_T = 
+%\end{equation}
 
 %-------------------------------------------------------------------------
 \section{X-ray Targeting}

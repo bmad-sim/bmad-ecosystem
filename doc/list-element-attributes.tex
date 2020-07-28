@@ -110,7 +110,7 @@ fringe_at                        & p0c [eV]                         & wall      
  \vfill
  
  %---------------------------------
- \section{Beginning Element Attributes}
+ \section{Beginning Statement Attributes}
  \label{s:list.beginning}
  
  \begin{tabular}{llll} \toprule
@@ -126,7 +126,7 @@ cmat_21                          & etap_x                           & phi_positi
  \vfill
  
  %---------------------------------
- \section{Bends: Rbend and Sbend Element Attributes Element Attributes}
+ \section{Bends: Rbend and Sbend Element Attributes}
  \label{s:list.bend}
  
  \begin{tabular}{llll} \toprule
@@ -161,7 +161,7 @@ field_calc                       & lr_self_wake_on                  & spin_track
  \vfill
  
  %---------------------------------
- \section{Bmad_Com Element Attributes}
+ \section{Bmad_Com Statement Attributes}
  \label{s:list.bmad.com}
  
  \begin{tabular}{llll} \toprule
@@ -193,8 +193,7 @@ l [m]                            & tilt [rad]                       & x_pitch_to
  \vfill
  
  %---------------------------------
- \section{Collimators: Ecollimator and Rcollimator Element Attributes
-  Element Attributes}
+ \section{Collimators: Ecollimator and Rcollimator Element Attributes}
  \label{s:list.collimator}
  
  \begin{tabular}{llll} \toprule
@@ -226,7 +225,7 @@ hkick                            & py_aperture_center               & wall      
  \label{s:list.converter}
  
  \begin{tabular}{llll} \toprule
-alias                            & is_on                            & species_out [???]                & x_offset_tot [m]                 \\
+alias                            & is_on                            & species_out                      & x_offset_tot [m]                 \\
 angle_out_max [rad]              & l [m]                            & spin_tracking_method             & x_pitch                          \\
 aperture [m]                     & mat6_calc_method                 & superimpose                      & x_pitch_tot                      \\
 aperture_at                      & offset [m]                       & tilt [rad]                       & y1_limit [m]                     \\
@@ -234,7 +233,7 @@ aperture_type                    & offset_moves_aperture            & tilt_tot [
 create_jumbo_slave               & p0c [eV]                         & tracking_method                  & y_limit [m]                      \\
 delta_ref_time [sec]             & p0c_start [eV]                   & type                             & y_offset [m]                     \\
 descrip                          & pc_out_max [eV]                  & wall                             & y_offset_tot [m]                 \\
-distribution [???]               & pc_out_min [eV]                  & x1_limit [m]                     & y_pitch                          \\
+distribution                     & pc_out_min [eV]                  & x1_limit [m]                     & y_pitch                          \\
 e_tot [eV]                       & ptc_integration_type             & x2_limit [m]                     & y_pitch_tot                      \\
 e_tot_start [eV]                 & ref_origin                       & x_limit [m]                      & z_offset [m]                     \\
 ele_origin                       & reference                        & x_offset [m]                     & z_offset_tot [m]                 \\
@@ -515,7 +514,7 @@ ele_origin                       & reference                        & x_limit [m
  \vfill
  
  %---------------------------------
- \section{Fork and Photon_Fork Element Attributes Element Attributes}
+ \section{Fork and Photon_Fork Element Attributes}
  \label{s:list.fork}
  
  \begin{tabular}{llll} \toprule
@@ -577,7 +576,7 @@ delta_ref_time [sec]             & offset_moves_aperture            & tracking_m
  \vfill
  
  %---------------------------------
- \section{Instrument, Monitor, and Pipe Element Attributes Element Attributes}
+ \section{Instrument, Monitor, and Pipe Element Attributes}
  \label{s:list.instrument}
  
  \begin{tabular}{llll} \toprule
@@ -635,7 +634,7 @@ field_overlaps                   & offset_moves_aperture            & tracking_m
  \vfill
  
  %---------------------------------
- \section{Kickers: Hkicker and Vkicker Element Attributes Element Attributes}
+ \section{Kickers: Hkicker and Vkicker Element Attributes}
  \label{s:list.hvkicker}
  
  \begin{tabular}{llll} \toprule
@@ -716,8 +715,8 @@ l [m]                            & tilt [rad]                       & x_pitch_to
  \vfill
  
  %---------------------------------
- \section{Line Parameter Element Attributes}
- \label{s:list.line parameter}
+ \section{Line Statement Attributes}
+ \label{s:list.line}
  
  \begin{tabular}{llll} \toprule
 alpha_a                          & e_tot [eV]                       & inherit_from_fork                & ref_time [sec]                   \\
@@ -910,13 +909,13 @@ descrip                          & type                             & x_knot    
  \vfill
  
  %---------------------------------
- \section{Parameter Element Attributes}
+ \section{Parameter Statement Attributes}
  \label{s:list.parameter}
  
  \begin{tabular}{llll} \toprule
 absolute_time_tracking           & high_energy_space_charge_on      & n_part                           & ptc_exact_misalign               \\
 default_tracking_species         & lattice                          & no_end_marker                    & ptc_exact_model                  \\
-e_tot [eV]                       & lattice_type [???]               & p0c [eV]                         & ran_seed                         \\
+e_tot [eV]                       & lattice_type                     & p0c [eV]                         & ran_seed                         \\
 electric_dipole_moment           & live_branch                      & particle                         & taylor_order                     \\
 geometry                         & machine                          & photon_type                      &                                  \\
  \bottomrule
@@ -924,7 +923,7 @@ geometry                         & machine                          & photon_typ
  \vfill
  
  %---------------------------------
- \section{Particle_Start Element Attributes}
+ \section{Particle_Start Statement Attributes}
  \label{s:list.particle.start}
  
  \begin{tabular}{llll} \toprule
@@ -1205,7 +1204,7 @@ lord_pad2 [m]                    & symplectify                      & x_pitch_to
  \vfill
  
  %---------------------------------
- \section{Wiggler and Undulator Element Attributes Element Attributes}
+ \section{Wiggler and Undulator Element Attributes}
  \label{s:list.wiggler}
  
  \begin{tabular}{llll} \toprule

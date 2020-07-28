@@ -57,12 +57,12 @@ case (beambeam$)
 case (beginning_ele$)
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
-  ele%value(inherit_from_fork$) = false$
+  ele%value(inherit_from_fork$) = real_garbage$
 
 case (fork$, photon_fork$)
   ele%value(direction$) = 1
   ele%value(particle$) = real_garbage$
-  ele%value(ref_species$) = not_set$   ! Used when element is after a converter
+  ele%ref_species = not_set$   ! Used when element is after a converter
   ele%value(new_branch$) = true$
 
 case (capillary$)
@@ -182,10 +182,10 @@ case (def_line$)
   ele%x = xy_disp_struct(g,g,g)
   ele%y = xy_disp_struct(g,g,g)
   ele%floor = floor_position_struct([g,g,g], w_unit, g,g,g)
-  ele%value(inherit_from_fork$) = true$
+  ele%value(inherit_from_fork$) = g
 
 case (marker$)
-  ele%value(ref_species$) = not_set$    ! Used when element is after a converter
+  ele%ref_species = not_set$    ! Used when element is after a converter
 
 case (mask$)
   ele%aperture_at = surface$
