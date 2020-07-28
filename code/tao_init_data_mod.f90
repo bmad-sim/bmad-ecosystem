@@ -191,8 +191,12 @@ do
     ! Read datum/data
 
     read (iu, nml = tao_d1_data, iostat = ios)
-    if (ios > 0) then
-      call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
+    if (ios /= 0) then
+      if (ios < 0) then
+        call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST END-OF-FILE READ ERROR (MISSING/BAD QUOTATION MARK PERHAPS?).')
+      else
+        call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
+      endif
       rewind (iu)
       do
         read (iu, nml = tao_d1_data)  ! force printing of error message
