@@ -44,6 +44,7 @@ namelist / tao_design_lattice / design_lattice, &
 ! Defaults
 
 design_lattice = tao_design_lat_input()
+design_lattice(0)%file = 'Garbage!!!'
 
 alternative_lat_file_exists = (s%com%hook_lat_file /= '' .or. s%com%lattice_file_arg /= '')
 
