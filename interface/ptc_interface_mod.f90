@@ -2922,7 +2922,13 @@ if (.not. ele%is_on) then
   case default
     key = drift$
     val     = 0
-    val(l$) = ele%value(l$) 
+    if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) then
+      val(l$) = hard_edge_model_length(ele)
+    else
+      val(l$) = ele%value(l$)
+    endif
+    val(ds_step$) = val(l$)
+    val(num_steps$) = 1
   end select
 endif
 
@@ -2952,17 +2958,17 @@ case (matrix_kick$); ptc_key%model = 'MATRIX_KICK'
 case (ripken_kick$); ptc_key%model = 'DELTA_MATRIX_KICK'
 end select
 
-if (key == sbend$ .and. ele%value(angle$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
+if (key == sbend$ .and. val(angle$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
   ptc_key%model = 'DRIFT_KICK'
   ! Only need to issue a warning if K1 is nonzero.
-  !if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
+  !if (val(k1$) /= 0) call out_io (s_warn$, r_name, &
   !          'BEND WITH ZERO BENDING ANGLE WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
-if (key == sbend$ .and. ele%value(g$) + ele%value(g_err$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
+if (key == sbend$ .and. val(g$) + val(g_err$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
   ptc_key%model = 'DRIFT_KICK'
   ! Only need to issue a warning if K1 is nonzero.
-  !if (ele%value(k1$) /= 0) call out_io (s_warn$, r_name, &
+  !if (val(k1$) /= 0) call out_io (s_warn$, r_name, &
   !          'BEND WITH ZERO NET BENDING FIELD WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
@@ -2972,19 +2978,19 @@ else
   rel_charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
 endif
 
-leng = ele%value(l$)
+leng = val(l$)
 
 if (use_offsets) then
   if (key == sbend$) then
-    ptc_key%tiltd = ele%value(ref_tilt_tot$)
+    ptc_key%tiltd = val(ref_tilt_tot$)
   else
-    ptc_key%tiltd = ele%value(tilt_tot$)
+    ptc_key%tiltd = val(tilt_tot$)
   endif
 else
   ptc_key%tiltd = 0
 endif
 
-ptc_key%method = nint(ele%value(integrator_order$))
+ptc_key%method = nint(val(integrator_order$))
 if (ptc_key%method == 0) ptc_key%method = bmad_com%default_integ_order 
 if (present(integ_order)) ptc_key%method = integ_order
 
@@ -2997,12 +3003,12 @@ elseif (key == taylor$ .or. key == match$ .or. key == multipole$ .or. &
   ptc_key%nstep = 1
   leng = 0  ! Problem is that PTC will not ignore the length in tracking which is different from the Bmad convention.
 else
-  if (ele%value(ds_step$) == 0) then
+  if (val(ds_step$) == 0) then
     call out_io (s_fatal$, r_name, 'DS_STEP IS ZERO FOR ELEMENT: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
   endif
 
-  ptc_key%nstep = nint(abs(leng) / ele%value(ds_step$))
+  ptc_key%nstep = nint(abs(leng) / val(ds_step$))
   if (ptc_key%nstep == 0) ptc_key%nstep = 1
 endif
 
@@ -3022,14 +3028,14 @@ ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_s
 
 !
 
-if (key == sbend$ .and. ele%value(l$) == 0) key = kicker$
+if (key == sbend$ .and. val(l$) == 0) key = kicker$
 ele2 => pointer_to_field_ele(ele, 1, s_rel)
 if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$) key = wiggler$
 
 select case (key)
 
 case (crab_cavity$)
-  if (ele%value(rf_frequency$) == 0) then
+  if (val(rf_frequency$) == 0) then
     call out_io (s_fatal$, r_name, 'RF FREQUENCY IS ZERO FOR: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
@@ -3040,13 +3046,13 @@ case (crab_cavity$)
   !!ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
   ptc_key%list%permfringe = 0
   ptc_key%list%cavity_totalpath = 0
-  ptc_key%list%freq0 = ele%value(rf_frequency$)
-  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + 0.25_rp 
+  ptc_key%list%freq0 = val(rf_frequency$)
+  phi_tot = val(phi0$) + val(phi0_multipass$) + 0.25_rp 
   ptc_key%list%delta_e = 0     ! For radiation calc.
   ptc_key%list%lag = twopi * phi_tot
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
-  if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
+  if (val(hkick$) == 0 .and. val(vkick$) == 0) then
     ptc_key%magnet = 'drift'
   else
     ptc_key%magnet = 'quadrupole'
@@ -3057,7 +3063,7 @@ case (quadrupole$)
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 case (sad_mult$)
-  if (ele%value(l$) == 0) then
+  if (val(l$) == 0) then
     ptc_key%magnet = 'multipole'  ! No Bz field if zero length.
   else
     ptc_key%magnet = 'solenoid'
