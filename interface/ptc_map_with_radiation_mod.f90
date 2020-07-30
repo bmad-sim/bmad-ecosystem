@@ -149,7 +149,14 @@ pb = orb
 c_ident = 1
 pb8 = pb + c_ident
 
-call propagate(pb8, state, fibre1 = f1, fibre2 = f2)
+! If f1 == f2 then want one turn map instead of unit map.
+
+if (associated(f1, f2)) then
+  call propagate(pb8, state, fibre1 = f1)
+else
+  call propagate(pb8, state, fibre1 = f1, fibre2 = f2)
+endif
+
 c_map1 = pb8
 
 call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=map_with_rad%sub_map) 
