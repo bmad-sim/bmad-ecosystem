@@ -1,21 +1,24 @@
-\chapter{PTC/FPP}
-\label{c:ptc}
+\chapter{PTC/FPP Programming}
+\label{c:ptc.program}
 \index{PTC/FPP}
+
 %----------------------------------------------------------------------------
 
 The PTC/FPP library of \'Etienne Forest handles Taylor maps to any arbitrary order. this is also
 known as Truncated Power Series Algebra (TPSA). The core Differential Algebra (DA) package used by
-FPP was developed by Martin Berz\cite{b:berz}. The PTC/FPP libraries are interfaced to \bmad so
+PTC/FPP was developed by Martin Berz\cite{b:berz}. The PTC/FPP code is interfaced to \bmad so
 that calculations that involve both \bmad and PTC/FPP can be done in a fairly seamless manner.
 
 \begin{description}
 \item[FPP] \Newline
-The ``Fully Polymorphic Package'' (\vn{FPP}) library implements Differential Algebra (DA)
-for the manipulation of Taylor maps. \vn{FPP} is purely mathematical in nature. It has no
-knowledge of accelerators, magnetic fields, particle tracking etc.
+The ``Fully Polymorphic Package'' (\vn{FPP}) library implements Differential Algebra (DA) for the
+manipulation of Taylor maps. Thus in FPP you can define a Hamiltonian and then generate the Taylor
+map for this Hamiltonian. FPP is very general. It can work with an arbitrary number of dimensions.
+\vn{FPP} is purely mathematical in nature. It has no knowledge of accelerators, magnetic
+fields, particle tracking, Twiss parameters, etc. 
 
 \item[PTC] \Newline
-The Polymorphic Tracking Code \vn{PTC} library is for accelerator simulation. It uses
+The ``Polymorphic Tracking Code'' \vn{PTC} library is for accelerator simulation. It uses
 \vn{FPP} as a back end for calculating such things as one turn maps.
 \end{description}
 
@@ -23,7 +26,8 @@ PTC is used by \bmad when constructing Taylor maps and when the \vn{tracking_met
 \sref{s:tkm}) is set to \vn{symp_lie_ptc}. All Taylor maps above first order are calculated
 via PTC. No exceptions.
 
-For more information see the FPP/PTC manual\cite{b:ptc}.
+For information on using PTC within \bmad, see Chapter~\sref{c:ptc.use}.  For more information on
+PTC/FPP in general the PTC/FPP manual\cite{b:ptc}.
 
 %--------------------------------------------------------------------------
 \section{Phase Space}

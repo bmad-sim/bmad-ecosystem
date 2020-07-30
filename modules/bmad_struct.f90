@@ -1415,7 +1415,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'BeamBeam          ', 'Wiggler           ', 'Sol_Quad          ', 'Marker            ', 'Kicker            ', &
     'Hybrid            ', 'Octupole          ', 'Rbend             ', 'Multipole         ', '!Bmad_Com         ', &
     '!Mad_Beam         ', 'AB_multipole      ', 'Solenoid          ', 'Patch             ', 'Lcavity           ', &
-    '!Parameter        ', 'Null_Ele          ', '!Beginning        ', '!Line             ', 'Match             ', &
+    '!Parameter        ', 'Null_Ele          ', 'Beginning_Ele     ', '!Line             ', 'Match             ', &
     'Monitor           ', 'Instrument        ', 'Hkicker           ', 'Vkicker           ', 'Rcollimator       ', &
     'Ecollimator       ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Photon_Fork       ', &
     'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
