@@ -3516,11 +3516,13 @@ case ('spin')
     endif
 
     if (all(datum%spin_axis%n0 == 0)) then
-      datum%spin_axis%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele%ix_ele-1)%spin
+      datum%spin_axis%n0 = u%model%tao_branch(ele%ix_branch)%orbit(ele2%ix_ele)%spin
     endif
 
     if (all(datum%spin_axis%n0 == 0)) then
       nl=nl+1; lines(nl) = 'NO N-AXIS GIVEN AND SPIN TRACKING IS NOT ON SO NO N0-AXIS IS AVAILABLE TO USE AS A DEFAULT.'
+      nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON FROM THE COMMAND LINE: "set bmad spin_tracking_on = T"'
+      nl=nl+1; lines(nl) = 'TO TURN SPIN TRACKING ON IN THE LATTICE FILE: "bmad_com[spin_tracking_on] = T"'
       return
     endif
 
@@ -3528,7 +3530,7 @@ case ('spin')
     call tao_spin_g_matrix_calc (datum, u, ele2%ix_ele, ele%ix_ele, spin_map, valid_value, why_invalid)
     if (.not. valid_value) return
 
-    nl=nl+1; write (lines(nl), '(23x, a, 51x, a)') 'Initial', 'Final'
+    nl=nl+1; write (lines(nl), '(23x, a, 34x, a)') 'Initial', 'Final'
     nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'L-axis:', spin_map%axis0%l, spin_map%axis1%l
     nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'N-axis:', spin_map%axis0%n0, spin_map%axis1%n0
     nl=nl+1; write (lines(nl), '(a, 3f12.8, 5x, 3f12.8)') 'M-axis:', spin_map%axis0%m, spin_map%axis1%m
