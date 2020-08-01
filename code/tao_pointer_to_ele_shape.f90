@@ -39,7 +39,7 @@ type (tao_real_pointer_struct), allocatable :: re_array(:)
 real(rp), optional :: dat_var_value
 
 integer, optional :: ix_shape_min
-integer ix_uni, ixu
+integer ix, ix_uni, ixu
 integer j, j2, k, ie, is, n_ele_track
 
 character(*), optional :: dat_var_name
@@ -68,7 +68,7 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
     name = es%ele_id
   else
     prefix = es%ele_id(:ix-1) 
-    name = es%ele_id(ix+2::)
+    name = es%ele_id(ix+2:)
   endif
 
   if (present(ix_shape_min)) ix_shape_min = k + 1

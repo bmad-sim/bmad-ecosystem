@@ -2677,16 +2677,43 @@ For Example:
     ele_shape(5:6)%line_width = 5, 6
   /
 \end{example}
-A figure is drawn for each lattice element in the lattice that matches the \vn{<ele_id>}
-specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.  Thus, in the example above,
-\vn{ele_shape(1)} will match to all quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)}
-will match all quadrupoles. If an element matches more than one shape, what is drawn depends upon
-the setting of \vn{<multi>}. If \vn{<multi>} is False (the default) for the first shape matched in
-the list of shapes, only this shape will be used.  If \vn{<multi>} is True, \tao will draw this
-shape and then look for additional matches. Each time an additional match is found, the shape is
-drawn and the setting of \vn{<multi>} for that shape will be used to determine whether additional
-shapes are searched for. Thus \vn{<multi>} can be use to draw, for example, a \vn{circle} shape
-superimposed upon a \vn{bow_tie} shape.
+A figure is drawn for each lattice element in the lattice that matches the \vn{<ele_id>} field
+(\sref{s:ele.list.format}). Thus, in the example above, \vn{ele_shape(1)} will match to all
+quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will match all quadrupoles.
+
+Besides the usual element class prefixes (\vn{quadrupole::}, \vn{sbend::}, etc.), other prefixes
+that can be used with an \vn{<ele_id>} are
+\begin{example}
+  data::            ! Match to \tao daum name.
+  var::             ! Match to \tao variable name.
+  alias::           ! Match to lattice element alias parameter.
+  type::            ! Match to lattice element type parameter.
+  building_wall::   ! Used in floor_plan plots.
+\end{example}
+The \vn{data::} prefix is used to match to data that will be used in an optimization. Thus, in the
+above example, \vn{ele_shape(7)} specifies that an ``x'' will be drawn at points where there is
+valid \vn{orbit.x} data. For this to work, an \vn{orbit.x} data array must be defined
+(\sref{s:init.data}).
+
+The \vn{var::} prefix is used for drawing variable locations for variables used in an
+optimization. In the above example, it is assumed that a \vn{quad_k1} variable array has been
+setup. A circle will be drawn at each element under control of a \vn{quad_k1} variable.
+
+For \vn{floor_plan} drawings, the building wall (\sref{s:building.wall}) can be drawn by specifying
+an \vn{ele_shape} whose name is \vn{"building_wall::<name>"} where \vn{<name>} is used to match to
+the building wall section name. Use ``\vn{*}'' for \vn{<name>} to match to all names. For the
+building wall, the only attribute that is relevant is the \vn{<color>} attribute.
+
+The \vn{alias::} and \vn{type::} prefixes for \vn{<ele_id>} are used to match to the \vn{alias} and
+\vn{type} string prameters of that can be set in the lattice file for each individual element.
+
+If an element matches more than one shape,
+what is drawn depends upon the setting of \vn{<multi>}. If \vn{<multi>} is False (the default) for
+the first shape matched in the list of shapes, only this shape will be used.  If \vn{<multi>} is
+True, \tao will draw this shape and then look for additional matches. Each time an additional match
+is found, the shape is drawn and the setting of \vn{<multi>} for that shape will be used to
+determine whether additional shapes are searched for. Thus \vn{<multi>} can be use to draw, for
+example, a \vn{circle} shape superimposed upon a \vn{bow_tie} shape.
 
 \tao defines a set of default shapes in case no shapes are defined in the plot file. If the
 optional \vn{include_default_shapes} logical, which can be set for either \vn{floor_plan} and/or
@@ -2697,18 +2724,6 @@ shapes.
 Use the \vn{show plot -floor_plan} and \vn{show plot -lat_layout} commands to see the defined
 shapes. Use the \vn{set floor_plan} and \vn{set lat_layout} commands (\sref{s:set})) to set shape
 parameters on the command line.
-
-Data and variables can also be specified to be drawn by using a \vn{<ele_id>} beginning with
-\vn{data::} for drawing data and \vn{var::} for drawing variable locations. In the above example, it
-is assumed that a \vn{quad_k1} variable array and a \vn{orbit.x} data array have been setup. A
-circle will be drawn at each element under control of a \vn{quad_k1} variable. For the \vn{orbit.x}
-data, an ``x'' will de drawn where the data is being evaluated but only for datums whose
-\vn{useit_opt} parameter is True.
-
-For \vn{floor_plan} drawings, the building wall (\sref{s:building.wall}) can be drawn by specifying
-an \vn{ele_shape} whose name is \vn{"building_wall::<name>"} where \vn{<name>} is used to match to
-the building wall section name. Use ``\vn{*}'' for \vn{<name>} to match to all names. For the
-building wall, the only attribute that is relevant is the \vn{<color>} attribute.
 
 The width of a drawn shape is the width of the associated element. The exception is the \vn{"x"}
 shape whose width is always the same as the height determined by the \vn{<size>} setting.
