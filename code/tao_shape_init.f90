@@ -46,10 +46,15 @@ err = .false.
 shape%ix_key = -1
 ele_id = shape%ele_id
 
-if (ele_id(1:6) == 'data::') return
-if (ele_id(1:5) == 'var::') return
-if (ele_id(1:5) == 'lat::') return
-if (ele_id(1:15) == 'building_wall::') return
+ix = index(ele_id, '::')
+if (ix /= 0) then
+  if (ele_id(1:ix-1) == 'data') return
+  if (ele_id(1:ix-1) == 'var') return
+  if (ele_id(1:ix-1) == 'lat') return
+  if (ele_id(1:ix-1) == 'alias') return
+  if (ele_id(1:ix-1) == 'type') return
+  if (ele_id(1:ix-1) == 'building_wall') return
+endif
 
 !
 

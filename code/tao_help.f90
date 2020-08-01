@@ -138,6 +138,7 @@ do
   call substitute (line, "\#", "#")
   call substitute (line, "\%", "%")
   call substitute (line, "\tao", "Tao")
+  call substitute (line, "\bmad", "Bmad")
   call eliminate2 (line, '\item[', ']', '     ', '')
   call eliminate2 (line, '\vn{', '}', '"', '"')
   call eliminate_inbetween (line, '& \sref{', '}', .true.)
