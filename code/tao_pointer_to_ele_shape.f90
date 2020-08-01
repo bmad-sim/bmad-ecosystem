@@ -44,7 +44,8 @@ integer j, j2, k, ie, is, n_ele_track
 
 character(*), optional :: dat_var_name
 character(*), parameter :: r_name = 'tao_pointer_to_ele_shape'
-
+character(20) prefix
+character(40) name
 logical err
 
 !
@@ -61,12 +62,21 @@ ixu = tao_universe_number(ix_uni, .true.)
 
 do k = integer_option(1, ix_shape_min), size(ele_shape)
   es => ele_shape(k)
+  ix = index(es%ele_id, '::')
+  if (ix == 0) then
+    prefix = ''
+    name = es%ele_id
+  else
+    prefix = es%ele_id(:ix-1) 
+    name = es%ele_id(ix+2::)
+  endif
+
   if (present(ix_shape_min)) ix_shape_min = k + 1
   if (.not. es%draw) cycle
 
   ! Data
 
-  if (es%ele_id(1:6) == 'data::') then
+  if (prefix == 'data') then
     call tao_find_data (err, es%ele_id, d_array = d_array, log_array = logic_array, re_array = re_array)
     if (err) cycle
     do j = 1, size(d_array)
@@ -92,7 +102,7 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
 
   ! Variables
 
-  if (es%ele_id(1:5) == 'var::') then
+  if (prefix == 'var') then
     call tao_find_var (err, es%ele_id, v_array = v_array, log_array = logic_array, re_array = re_array)
     if (err) cycle
 
@@ -147,8 +157,12 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
       endif
     enddo
     cycle
-  else
-    if (.not. match_wild(ele%name, es%name_ele)) cycle
+  elseif (prefix == '') then
+    if (.not. match_wild(ele%name, name)) cycle
+  elseif (prefix == 'alias') then
+    if (.not. match_wild(ele%alias, name)) cycle
+  elseif (prefix == 'type') then
+    if (.not. match_wild(ele%type, name)) cycle
   endif
 
   e_shape => es
