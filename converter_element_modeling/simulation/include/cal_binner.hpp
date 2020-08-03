@@ -12,12 +12,14 @@
 #include "parser.hpp"
 #include "bin.hpp"
 #include "point_cache.hpp"
+#include "spin_bin.hpp"
 
 class CalibrationBinner {
   private:
     std::vector<GeantParticle> cal_run;
     std::vector<double> E_edges, r_edges;
     std::vector<std::vector<ERBin>> bins;
+    std::vector<std::vector<SpinBinner>> spin_bins;
     size_t total_count, elec_in;
     G4RunManager* runManager;
     PointCache* point_cache;
@@ -42,6 +44,7 @@ class CalibrationBinner {
     double get_E_val(int n_E) const;
     double get_r_val(int n_r) const;
     ERBin& get_bin(int n_E, int n_r);
+    SpinBinner& get_sbin(int n_E, int n_r);
     const ERBin& get_bin(int n_E, int n_r) const;
     bool in_range(const GeantParticle& p) const;
     bool has_empty_bins() const;
