@@ -20,6 +20,7 @@ CalibrationBinner::CalibrationBinner(G4RunManager* p_run_manager, PointCache* p_
   cal_run(),
   E_edges(), r_edges(),
   bins(),
+  spin_bins(),
   total_count(0), elec_in(0),
   runManager(p_run_manager), point_cache(p_cache),
   target_material(p_s.target_material),
@@ -36,6 +37,7 @@ CalibrationBinner::CalibrationBinner(G4RunManager* p_run_manager, PointCache* p_
     E_edges.front() = p_s.out_pc_min;
     E_edges.back() = p_s.out_pc_max;
     bins.resize(E_edges.size()-1);
+    spin_bins.resize(bins.size());
 
     r_edges.resize(p_s.num_r_bins + 1);
     r_edges.front() = 0;
@@ -108,6 +110,9 @@ void CalibrationBinner::calibrate() {
     E_ix++;
   }
 
+  for (auto& row : spin_bins)
+    row.resize(r_edges.size()-1);
+
 
   // No point in wasting data -> add cal run to bins
   for (auto& p : cal_run) add_point(p);
@@ -118,6 +123,7 @@ void CalibrationBinner::add_point(const GeantParticle& p) {
   if (!in_range(p)) return;
   auto [n_E, n_r] = get_bin_num(p.E, p.r);
   bins[n_E][n_r].add_point(p);
+  spin_bins[n_E][n_r].add_point(p);
   total_count++;
 }
 
@@ -153,6 +159,15 @@ void CalibrationBinner::write_data() {
     std::cerr << "ERROR: Could not open " << list_filename << " for writing\n";
     return;
   }
+  char spinlist_filename[200];
+  sprintf(spinlist_filename, "%s/E%0.0lf_T%0.3lf_spin_bins.txt",
+      out_dir.c_str(), in_energy, target_thickness);
+  std::ofstream sbinlist;
+  sbinlist.open(spinlist_filename);
+  if (!sbinlist) {
+    std::cerr << "ERROR: Could not open " << spinlist_filename << " for writing\n";
+    return;
+  }
 
   // Write the dxds, dyds files
   auto num_E_bins = E_edges.size()-1;
@@ -162,8 +177,11 @@ void CalibrationBinner::write_data() {
       double bin_E = get_E_val(i);
       double bin_r = get_r_val(j);
       auto& bin = get_bin(i,j);
+      auto& sbin = get_sbin(i,j);
       bin.bin_momenta();
       bin.write_momenta(out_dir.c_str(), in_energy, target_thickness, bin_E, bin_r, binlist);
+      sbin.bin_spins();
+      sbin.write_spins(out_dir.c_str(), in_energy, target_thickness, bin_E, bin_r, sbinlist);
     }
   }
   binlist.close();
@@ -251,6 +269,9 @@ bool CalibrationBinner::in_range(const GeantParticle& p) const {
 ERBin& CalibrationBinner::get_bin(int n_E, int n_r) {
   return bins[n_E][n_r];
 }
+SpinBinner& CalibrationBinner::get_sbin(int n_E, int n_r) {
+  return spin_bins[n_E][n_r];
+}
 const ERBin& CalibrationBinner::get_bin(int n_E, int n_r) const {
   return bins[n_E][n_r];
 }
@@ -327,7 +348,7 @@ bool CalibrationBinner::has_enough_data() const {
   printf(CLEAR_LINE);
   printf("\tNumber of incoming particles tracked: %0.03e / %0.02e\n",
       static_cast<double>(elec_in),
-      num_bins * per_bin_target * efficiency);
+      num_bins * per_bin_target / efficiency);
 
   printf(CLEAR_LINE);
   printf("\tNumber of outgoing particles tracked: %0.03e / %0.02e\n",

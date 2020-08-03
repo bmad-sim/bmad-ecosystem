@@ -65,6 +65,8 @@ int main() {
       char dirname[100];
       sprintf(dirname, "%s/dir_dat/E%0.0lf_T%0.3lf", od.c_str(), E, T);
       fs::create_directories(dirname);
+      sprintf(dirname, "%s/spin_dat/E%0.0lf_T%0.3lf", od.c_str(), E, T);
+      fs::create_directories(dirname);
     }
   }
 
