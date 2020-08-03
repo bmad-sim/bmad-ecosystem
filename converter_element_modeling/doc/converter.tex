@@ -508,6 +508,15 @@ and call the script.  For example:
 \end{example}
 This will open the plot for $c_x$ across all $(p_+ c, r)$ bins for $p_+ c = 300$ MeV, $T = 0.635$ cm.
 
+
+\subsubsection{Goodness of Fit}
+
+\exef generates reports of how well the fits in Equations 8-10 fit the $\dxds$ and $\dyds$ data.
+At each value of $p_- c$ and each thickness $T$, \exef reports on the performance of the direct fits from Equation 8, as well as the performance of the fits derived from Equations 9 and 10.
+These reports are saved in \texttt{E_...T_..._chisq.txt}.
+Fits that receive a lower score are better than those which receive a higher score.
+The user may wish to manually inspect the highest-scoring fits via the Gnuplot files described in the previous section to ensure that all fits are satisfactory.
+
 %-------------------------------------------------------------
 \newpage
 \section{The \bmad  Converter Element}
