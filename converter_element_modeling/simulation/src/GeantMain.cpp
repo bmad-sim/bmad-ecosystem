@@ -32,6 +32,7 @@ G4RunManager* Initialize_Geant(void) {
 
 #ifdef G4MULTITHREADED
   int nThreads = std::thread::hardware_concurrency();
+  std::cerr << "Note: " << nThreads << " CPU threads detected for use\n";
 #endif
 
   // Choose the Random engine
