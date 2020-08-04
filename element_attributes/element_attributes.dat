@@ -1,44 +1,44 @@
- 2020-07-18 00:13:41 
+ 2020-07-27 14:20:39 
  
-   1   Drift                 22   AB_multipole
-   2   Sbend                 58   AC_Kicker
-   3   Quadrupole            11   BeamBeam
-   4   Group                 60   Beam_Init
-   5   Sextupole             28   Beginning_Ele
-   6   Overlay               45   Capillary
-   7   Custom                38   Converter
-   8   Taylor                61   Crab_Cavity
-   9   RFcavity              43   Crystal
-  10   ELseparator            7   Custom
-  11   BeamBeam              20   Def_Bmad_Com!
-  12   Wiggler               21   Def_Mad_Beam!
-  13   Sol_Quad              26   Def_Parameter!
-  14   Marker                39   Def_Particle_Start
-  15   Kicker                55   Detector
-  16   Hybrid                52   Diffraction_Plate
-  17   Octupole               1   Drift
-  18   Rbend                 10   ELseparator
-  19   Multipole             48   EM_Field
-  20   Def_Bmad_Com!         47   E_Gun
-  21   Def_Mad_Beam!         36   Ecollimator
-  22   AB_multipole          50   Fiducial
-  23   Solenoid              49   Floor_Shift
-  24   Patch                 41   Fork
-  25   Lcavity               37   Girder
-  26   Def_Parameter!         4   Group
-  27   Null_Ele              33   Hkicker
-  28   Beginning_Ele         16   Hybrid
-  29   Line_Ele              32   Instrument
-  30   Match                 15   Kicker
-  31   Monitor               25   Lcavity
-  32   Instrument            59   Lens
-  33   Hkicker               29   Line_Ele
+   1   Drift                 28   !Beginning
+   2   Sbend                 20   !Bmad_Com
+   3   Quadrupole            29   !Line
+   4   Group                 21   !Mad_Beam
+   5   Sextupole             26   !Parameter
+   6   Overlay               39   !Particle_Start
+   7   Custom                22   AB_multipole
+   8   Taylor                58   AC_Kicker
+   9   RFcavity              11   BeamBeam
+  10   ELseparator           60   Beam_Init
+  11   BeamBeam              45   Capillary
+  12   Wiggler               38   Converter
+  13   Sol_Quad              61   Crab_Cavity
+  14   Marker                43   Crystal
+  15   Kicker                 7   Custom
+  16   Hybrid                55   Detector
+  17   Octupole              52   Diffraction_Plate
+  18   Rbend                  1   Drift
+  19   Multipole             10   ELseparator
+  20   !Bmad_Com             48   EM_Field
+  21   !Mad_Beam             47   E_Gun
+  22   AB_multipole          36   Ecollimator
+  23   Solenoid              50   Fiducial
+  24   Patch                 49   Floor_Shift
+  25   Lcavity               41   Fork
+  26   !Parameter            37   Girder
+  27   Null_Ele               4   Group
+  28   !Beginning            33   Hkicker
+  29   !Line                 16   Hybrid
+  30   Match                 32   Instrument
+  31   Monitor               15   Kicker
+  32   Instrument            25   Lcavity
+  33   Hkicker               59   Lens
   34   Vkicker               14   Marker
   35   Rcollimator           57   Mask
   36   Ecollimator           30   Match
   37   Girder                42   Mirror
   38   Converter             31   Monitor
-  39   Def_Particle_Start    46   Multilayer_Mirror
+  39   !Particle_Start       46   Multilayer_Mirror
   40   Photon_Fork           19   Multipole
   41   Fork                  27   Null_Ele
   42   Mirror                17   Octupole
@@ -61,6 +61,151 @@
   59   Lens                  51   Undulator
   60   Beam_Init             34   Vkicker
   61   Crab_Cavity           12   Wiggler
+ 
+ !---------------------------------
+ 28  !Beginning          
+         1  l                                         [private]
+         2  INHERIT_FROM_FORK                       
+        29  CMAT_11                                 
+        30  CMAT_12                                 
+        31  CMAT_21                                 
+        32  CMAT_22                                 
+        50  delta_ref_time                            [private]
+        51  P0C_START                               
+        52  E_TOT_START                             
+        53  P0C                                     
+        54  E_TOT                                   
+        64  ref_time_start                            [private]
+        75  check_sum                                 [private]
+        82  ETA_X                                   
+        83  ETA_Y                                   
+        84  ETAP_X                                  
+        85  ETAP_Y                                  
+        86  PHI_A                                   
+        87  ETA_Z                                   
+        92  S                                       
+        93  REF_TIME                                
+        99  ALPHA_A                                 
+       100  ALPHA_B                                 
+       102  X_POSITION                              
+       103  Y_POSITION                              
+       104  Z_POSITION                              
+       105  THETA_POSITION                          
+       106  PHI_POSITION                            
+       107  PSI_POSITION                            
+       108  BETA_A                                  
+       109  BETA_B                                  
+       116  PHI_B                                   
+ 
+ !---------------------------------
+ 20  !Bmad_Com           
+        81  MAX_APERTURE_LIMIT                      
+        82  DEFAULT_DS_STEP                         
+        83  SIGNIFICANT_LENGTH                      
+        84  REL_TOL_TRACKING                        
+        85  ABS_TOL_TRACKING                        
+        86  REL_TOL_ADAPTIVE_TRACKING               
+        87  ABS_TOL_ADAPTIVE_TRACKING               
+        88  INIT_DS_ADAPTIVE_TRACKING               
+        89  MIN_DS_ADAPTIVE_TRACKING                
+        90  FATAL_DS_ADAPTIVE_TRACKING              
+        91  MAX_NUM_RUNGE_KUTTA_STEP                
+        99  APERTURE_LIMIT_ON                       
+ 
+ !---------------------------------
+ 29  !Line               
+         1  l                                         [private]
+         2  INHERIT_FROM_FORK                       
+         6  ix_branch                                 [private]
+        20  DEFAULT_TRACKING_SPECIES                
+        29  CMAT_11                                 
+        30  CMAT_12                                 
+        31  CMAT_21                                 
+        32  CMAT_22                                 
+        43  HIGH_ENERGY_SPACE_CHARGE_ON             
+        46  LIVE_BRANCH                             
+        47  GEOMETRY                                
+        48  PARTICLE                                
+        50  delta_ref_time                            [private]
+        51  P0C_START                               
+        52  E_TOT_START                             
+        53  P0C                                     
+        54  E_TOT                                   
+        64  ref_time_start                            [private]
+        75  check_sum                                 [private]
+        82  ETA_X                                   
+        83  ETA_Y                                   
+        84  ETAP_X                                  
+        85  ETAP_Y                                  
+        86  PHI_A                                   
+        87  ETA_Z                                   
+        92  S                                       
+        93  REF_TIME                                
+        99  ALPHA_A                                 
+       100  ALPHA_B                                 
+       102  X_POSITION                              
+       103  Y_POSITION                              
+       104  Z_POSITION                              
+       105  THETA_POSITION                          
+       106  PHI_POSITION                            
+       107  PSI_POSITION                            
+       108  BETA_A                                  
+       109  BETA_B                                  
+       116  PHI_B                                   
+ 
+ !---------------------------------
+ 21  !Mad_Beam           
+         2  N_PART                                  
+        48  PARTICLE                                
+        53  PC                                      
+        54  ENERGY                                  
+ 
+ !---------------------------------
+ 26  !Parameter          
+         2  N_PART                                  
+         3  TAYLOR_ORDER                            
+         6  ix_branch                                 [private]
+        20  DEFAULT_TRACKING_SPECIES                
+        43  HIGH_ENERGY_SPACE_CHARGE_ON             
+        44  PHOTON_TYPE                             
+        45  LATTICE_TYPE                            
+        46  LIVE_BRANCH                             
+        47  GEOMETRY                                
+        48  PARTICLE                                
+        53  P0C                                     
+        54  E_TOT                                   
+        55  NO_END_MARKER                           
+        83  ELECTRIC_DIPOLE_MOMENT                  
+        86  LATTICE                                 
+        87  MACHINE                                 
+        96  ABSOLUTE_TIME_TRACKING                  
+       100  PTC_EXACT_MISALIGN                      
+       102  PTC_EXACT_MODEL                         
+       109  RAN_SEED                                
+ 
+ !---------------------------------
+ 39  !Particle_Start     
+         1  X                                       
+         2  PX                                      
+         3  Y                                       
+         4  PY                                      
+         5  Z                                       
+         6  PZ                                      
+         8  T                                       
+         9  E_PHOTON                                
+        10  FIELD_X                                 
+        11  FIELD_Y                                 
+        12  PHASE_X                                 
+        13  PHASE_Y                                 
+        16  SIG_Z                                   
+        19  SIG_PZ                                  
+        20  DIRECTION                               
+        21  SPIN_X                                  
+        22  SPIN_Y                                  
+        23  SPIN_Z                                  
+        39  EMITTANCE_A                             
+        40  EMITTANCE_B                             
+        41  EMITTANCE_Z                             
  
  !---------------------------------
  22  AB_multipole        
@@ -351,40 +496,6 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
- 
- !---------------------------------
- 28  Beginning_Ele       
-         1  l                                         [private]
-        29  CMAT_11                                 
-        30  CMAT_12                                 
-        31  CMAT_21                                 
-        32  CMAT_22                                 
-        50  delta_ref_time                            [private]
-        51  P0C_START                               
-        52  E_TOT_START                             
-        53  P0C                                     
-        54  E_TOT                                   
-        64  ref_time_start                            [private]
-        75  check_sum                                 [private]
-        82  ETA_X                                   
-        83  ETA_Y                                   
-        84  ETAP_X                                  
-        85  ETAP_Y                                  
-        86  PHI_A                                   
-        87  ETA_Z                                   
-        92  S                                       
-        93  REF_TIME                                
-        99  ALPHA_A                                 
-       100  ALPHA_B                                 
-       102  X_POSITION                              
-       103  Y_POSITION                              
-       104  Z_POSITION                              
-       105  THETA_POSITION                          
-       106  PHI_POSITION                            
-       107  PSI_POSITION                            
-       108  BETA_A                                  
-       109  BETA_B                                  
-       116  PHI_B                                   
  
  !---------------------------------
  45  Capillary           
@@ -742,75 +853,6 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
- 
- !---------------------------------
- 20  Def_Bmad_Com!       
-        81  MAX_APERTURE_LIMIT                      
-        82  DEFAULT_DS_STEP                         
-        83  SIGNIFICANT_LENGTH                      
-        84  REL_TOL_TRACKING                        
-        85  ABS_TOL_TRACKING                        
-        86  REL_TOL_ADAPTIVE_TRACKING               
-        87  ABS_TOL_ADAPTIVE_TRACKING               
-        88  INIT_DS_ADAPTIVE_TRACKING               
-        89  MIN_DS_ADAPTIVE_TRACKING                
-        90  FATAL_DS_ADAPTIVE_TRACKING              
-        91  MAX_NUM_RUNGE_KUTTA_STEP                
-        99  APERTURE_LIMIT_ON                       
- 
- !---------------------------------
- 21  Def_Mad_Beam!       
-         2  N_PART                                  
-        48  PARTICLE                                
-        53  PC                                      
-        54  ENERGY                                  
- 
- !---------------------------------
- 26  Def_Parameter!      
-         2  N_PART                                  
-         3  TAYLOR_ORDER                            
-         6  ix_branch                                 [private]
-        20  DEFAULT_TRACKING_SPECIES                
-        43  HIGH_ENERGY_SPACE_CHARGE_ON             
-        44  PHOTON_TYPE                             
-        45  LATTICE_TYPE                            
-        46  LIVE_BRANCH                             
-        47  GEOMETRY                                
-        48  PARTICLE                                
-        53  P0C                                     
-        54  E_TOT                                   
-        55  NO_END_MARKER                           
-        83  ELECTRIC_DIPOLE_MOMENT                  
-        86  LATTICE                                 
-        87  MACHINE                                 
-        96  ABSOLUTE_TIME_TRACKING                  
-       100  PTC_EXACT_MISALIGN                      
-       102  PTC_EXACT_MODEL                         
-       109  RAN_SEED                                
- 
- !---------------------------------
- 39  Def_Particle_Start  
-         1  X                                       
-         2  PX                                      
-         3  Y                                       
-         4  PY                                      
-         5  Z                                       
-         6  PZ                                      
-         8  T                                       
-         9  E_PHOTON                                
-        10  FIELD_X                                 
-        11  FIELD_Y                                 
-        12  PHASE_X                                 
-        13  PHASE_Y                                 
-        16  SIG_Z                                   
-        19  SIG_PZ                                  
-        20  DIRECTION                               
-        21  SPIN_X                                  
-        22  SPIN_Y                                  
-        23  SPIN_Z                                  
-        39  EMITTANCE_A                             
-        40  EMITTANCE_B                             
-        41  EMITTANCE_Z                             
  
  !---------------------------------
  55  Detector            
@@ -1988,46 +2030,6 @@
        129  Start_Edge                                [private]
        130  End_Edge                                  [private]
        131  S_Position                                [private]
- 
- !---------------------------------
- 29  Line_Ele            
-         1  l                                         [private]
-         6  ix_branch                                 [private]
-        20  DEFAULT_TRACKING_SPECIES                
-        29  CMAT_11                                 
-        30  CMAT_12                                 
-        31  CMAT_21                                 
-        32  CMAT_22                                 
-        43  HIGH_ENERGY_SPACE_CHARGE_ON             
-        46  LIVE_BRANCH                             
-        47  GEOMETRY                                
-        48  PARTICLE                                
-        50  delta_ref_time                            [private]
-        51  P0C_START                               
-        52  E_TOT_START                             
-        53  P0C                                     
-        54  E_TOT                                   
-        64  ref_time_start                            [private]
-        75  check_sum                                 [private]
-        82  ETA_X                                   
-        83  ETA_Y                                   
-        84  ETAP_X                                  
-        85  ETAP_Y                                  
-        86  PHI_A                                   
-        87  ETA_Z                                   
-        92  S                                       
-        93  REF_TIME                                
-        99  ALPHA_A                                 
-       100  ALPHA_B                                 
-       102  X_POSITION                              
-       103  Y_POSITION                              
-       104  Z_POSITION                              
-       105  THETA_POSITION                          
-       106  PHI_POSITION                            
-       107  PSI_POSITION                            
-       108  BETA_A                                  
-       109  BETA_B                                  
-       116  PHI_B                                   
  
  !---------------------------------
  14  Marker              
@@ -4131,7 +4133,7 @@
  Index usage:
     Ix Count
      1    55
-     2    51
+     2    53
      3    26
      4    19
      5    23
@@ -4427,8 +4429,8 @@ Index: 1
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -4438,7 +4440,7 @@ Index: 1
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_Start  
+    !Particle_Start     
     Photon_Fork         
     Fork                
     Mirror              
@@ -4480,12 +4482,14 @@ Index: 2
     Octupole            
     Rbend               
     Multipole           
-    Def_Mad_Beam!       
+    !Mad_Beam           
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
+    !Parameter          
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -4495,7 +4499,7 @@ Index: 2
     Ecollimator         
     Girder              
     Converter           
-    Def_Particle_Start  
+    !Particle_Start     
     Mirror              
     Crystal             
     Pipe                
@@ -4524,14 +4528,14 @@ Index: 3
     Rbend               
     Solenoid            
     Lcavity             
-    Def_Parameter!      
+    !Parameter          
     Match               
     Monitor             
     Instrument          
     Hkicker             
     Vkicker             
     Girder              
-    Def_Particle_Start  
+    !Particle_Start     
     Photon_Fork         
     Fork                
     Mirror              
@@ -4559,7 +4563,7 @@ Index: 4
     Match               
     Monitor             
     Instrument          
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Pipe                
     Capillary           
@@ -4583,7 +4587,7 @@ Index: 5
     Monitor             
     Instrument          
     Converter           
-    Def_Particle_Start  
+    !Particle_Start     
     Mirror              
     Crystal             
     Pipe                
@@ -4602,14 +4606,14 @@ Index: 6
     Octupole            
     Rbend               
     Lcavity             
-    Def_Parameter!      
+    !Parameter          
     Null_Ele            
-    Line_Ele            
+    !Line               
     Match               
     Monitor             
     Instrument          
     Converter           
-    Def_Particle_Start  
+    !Particle_Start     
     Photon_Fork         
     Fork                
     Pipe                
@@ -4658,7 +4662,7 @@ Index: 8
     Match               
     Monitor             
     Instrument          
-    Def_Particle_Start  
+    !Particle_Start     
     Photon_Fork         
     Fork                
     Crystal             
@@ -4675,7 +4679,7 @@ Index: 9
     ELseparator         
     Lcavity             
     Match               
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     E_Gun               
     Sad_Mult            
@@ -4702,7 +4706,7 @@ Index: 10
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Pipe                
     E_Gun               
@@ -4737,7 +4741,7 @@ Index: 11
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Pipe                
     E_Gun               
@@ -4753,7 +4757,7 @@ Index: 12
     Custom              
     Rbend               
     Match               
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
  
  !---------------------------------
@@ -4779,7 +4783,7 @@ Index: 13
     Vkicker             
     Rcollimator         
     Ecollimator         
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Pipe                
     E_Gun               
@@ -4834,7 +4838,7 @@ Index: 16
     Rbend               
     Solenoid            
     Match               
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Undulator           
     Photon_Init         
@@ -4865,7 +4869,7 @@ Index: 19
     Rbend               
     Lcavity             
     Match               
-    Def_Particle_Start  
+    !Particle_Start     
     E_Gun               
     EM_Field            
     Photon_Init         
@@ -4881,12 +4885,12 @@ Index: 20
     Marker              
     Rbend               
     Lcavity             
-    Def_Parameter!      
-    Line_Ele            
+    !Parameter          
+    !Line               
     Match               
     Monitor             
     Instrument          
-    Def_Particle_Start  
+    !Particle_Start     
     Pipe                
     Multilayer_Mirror   
     EM_Field            
@@ -4907,7 +4911,7 @@ Index: 21
     Match               
     Monitor             
     Instrument          
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Pipe                
     Multilayer_Mirror   
@@ -4927,7 +4931,7 @@ Index: 22
     Match               
     Monitor             
     Instrument          
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Pipe                
     Multilayer_Mirror   
@@ -4948,7 +4952,7 @@ Index: 23
     Lcavity             
     Monitor             
     Instrument          
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Pipe                
     Multilayer_Mirror   
@@ -5060,8 +5064,8 @@ Index: 29
     Rbend               
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Rcollimator         
     Ecollimator         
@@ -5080,8 +5084,8 @@ Index: 30
     BeamBeam            
     Rbend               
     Patch               
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Rcollimator         
     Ecollimator         
@@ -5097,8 +5101,8 @@ Index: 31
     BeamBeam            
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Rcollimator         
     Ecollimator         
@@ -5111,8 +5115,8 @@ Index: 31
 Index: 32
     BeamBeam            
     Patch               
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Girder              
     Fiducial            
@@ -5397,7 +5401,7 @@ Index: 39
     Instrument          
     Rcollimator         
     Ecollimator         
-    Def_Particle_Start  
+    !Particle_Start     
     Crystal             
     Pipe                
     Undulator           
@@ -5426,7 +5430,7 @@ Index: 40
     Instrument          
     Rcollimator         
     Ecollimator         
-    Def_Particle_Start  
+    !Particle_Start     
     Pipe                
     E_Gun               
     Undulator           
@@ -5454,7 +5458,7 @@ Index: 41
     Instrument          
     Rcollimator         
     Ecollimator         
-    Def_Particle_Start  
+    !Particle_Start     
     Pipe                
     E_Gun               
     Undulator           
@@ -5492,8 +5496,8 @@ Index: 43
     Sbend               
     ELseparator         
     Rbend               
-    Def_Parameter!      
-    Line_Ele            
+    !Parameter          
+    !Line               
     Match               
     Hkicker             
     Vkicker             
@@ -5504,7 +5508,7 @@ Index: 44
     RFcavity            
     Rbend               
     Lcavity             
-    Def_Parameter!      
+    !Parameter          
     Match               
  
  !---------------------------------
@@ -5515,7 +5519,7 @@ Index: 45
     Sol_Quad            
     Rbend               
     Lcavity             
-    Def_Parameter!      
+    !Parameter          
     Match               
  
  !---------------------------------
@@ -5525,8 +5529,8 @@ Index: 46
     RFcavity            
     Rbend               
     Lcavity             
-    Def_Parameter!      
-    Line_Ele            
+    !Parameter          
+    !Line               
     Match               
  
  !---------------------------------
@@ -5544,8 +5548,8 @@ Index: 47
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
-    Line_Ele            
+    !Parameter          
+    !Line               
     Match               
     Hkicker             
     Vkicker             
@@ -5557,10 +5561,10 @@ Index: 48
     Sbend               
     Octupole            
     Rbend               
-    Def_Mad_Beam!       
+    !Mad_Beam           
     Patch               
-    Def_Parameter!      
-    Line_Ele            
+    !Parameter          
+    !Line               
  
  !---------------------------------
 Index: 49
@@ -5594,8 +5598,8 @@ Index: 50
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -5650,8 +5654,8 @@ Index: 51
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -5706,8 +5710,8 @@ Index: 52
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -5758,14 +5762,14 @@ Index: 53
     Octupole            
     Rbend               
     Multipole           
-    Def_Mad_Beam!       
+    !Mad_Beam           
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
-    Beginning_Ele       
-    Line_Ele            
+    !Parameter          
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -5816,14 +5820,14 @@ Index: 54
     Octupole            
     Rbend               
     Multipole           
-    Def_Mad_Beam!       
+    !Mad_Beam           
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
-    Beginning_Ele       
-    Line_Ele            
+    !Parameter          
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -5874,7 +5878,7 @@ Index: 55
     Rbend               
     Solenoid            
     Lcavity             
-    Def_Parameter!      
+    !Parameter          
     Monitor             
     Instrument          
     Hkicker             
@@ -6205,8 +6209,8 @@ Index: 64
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -6667,8 +6671,8 @@ Index: 75
     Patch               
     Lcavity             
     Null_Ele            
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -6721,7 +6725,7 @@ Index: 81
     Group               
     Overlay             
     Taylor              
-    Def_Bmad_Com!       
+    !Bmad_Com           
     Converter           
     Mirror              
     Crystal             
@@ -6751,14 +6755,14 @@ Index: 82
     Octupole            
     Rbend               
     Multipole           
-    Def_Bmad_Com!       
+    !Bmad_Com           
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
     Null_Ele            
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -6806,12 +6810,12 @@ Index: 83
     Kicker              
     Octupole            
     Rbend               
-    Def_Bmad_Com!       
+    !Bmad_Com           
     Solenoid            
     Lcavity             
-    Def_Parameter!      
-    Beginning_Ele       
-    Line_Ele            
+    !Parameter          
+    !Beginning          
+    !Line               
     Monitor             
     Instrument          
     Hkicker             
@@ -6842,11 +6846,11 @@ Index: 84
     Kicker              
     Octupole            
     Rbend               
-    Def_Bmad_Com!       
+    !Bmad_Com           
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Monitor             
     Instrument          
     Hkicker             
@@ -6882,11 +6886,11 @@ Index: 85
     Kicker              
     Octupole            
     Rbend               
-    Def_Bmad_Com!       
+    !Bmad_Com           
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Monitor             
     Instrument          
     Hkicker             
@@ -6919,12 +6923,12 @@ Index: 86
     Kicker              
     Octupole            
     Rbend               
-    Def_Bmad_Com!       
+    !Bmad_Com           
     AB_multipole        
     Solenoid            
-    Def_Parameter!      
-    Beginning_Ele       
-    Line_Ele            
+    !Parameter          
+    !Beginning          
+    !Line               
     Hkicker             
     Vkicker             
     Mirror              
@@ -6955,14 +6959,14 @@ Index: 87
     Octupole            
     Rbend               
     Multipole           
-    Def_Bmad_Com!       
+    !Bmad_Com           
     AB_multipole        
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
-    Beginning_Ele       
-    Line_Ele            
+    !Parameter          
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -7008,7 +7012,7 @@ Index: 88
     Kicker              
     Octupole            
     Rbend               
-    Def_Bmad_Com!       
+    !Bmad_Com           
     Solenoid            
     Lcavity             
     Monitor             
@@ -7049,7 +7053,7 @@ Index: 89
     Kicker              
     Octupole            
     Rbend               
-    Def_Bmad_Com!       
+    !Bmad_Com           
     Solenoid            
     Lcavity             
     Monitor             
@@ -7081,7 +7085,7 @@ Index: 90
     Kicker              
     Octupole            
     Rbend               
-    Def_Bmad_Com!       
+    !Bmad_Com           
     Solenoid            
     Lcavity             
     Monitor             
@@ -7117,7 +7121,7 @@ Index: 91
     Octupole            
     Rbend               
     Multipole           
-    Def_Bmad_Com!       
+    !Bmad_Com           
     AB_multipole        
     Solenoid            
     Patch               
@@ -7176,8 +7180,8 @@ Index: 92
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -7232,8 +7236,8 @@ Index: 93
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -7395,7 +7399,7 @@ Index: 96
     Solenoid            
     Patch               
     Lcavity             
-    Def_Parameter!      
+    !Parameter          
     Match               
     Monitor             
     Instrument          
@@ -7534,9 +7538,9 @@ Index: 98
  
  !---------------------------------
 Index: 99
-    Def_Bmad_Com!       
-    Beginning_Ele       
-    Line_Ele            
+    !Bmad_Com           
+    !Beginning          
+    !Line               
  
  !---------------------------------
 Index: 100
@@ -7554,9 +7558,9 @@ Index: 100
     Rbend               
     Solenoid            
     Lcavity             
-    Def_Parameter!      
-    Beginning_Ele       
-    Line_Ele            
+    !Parameter          
+    !Beginning          
+    !Line               
     Monitor             
     Instrument          
     Hkicker             
@@ -7580,9 +7584,9 @@ Index: 101
  
  !---------------------------------
 Index: 102
-    Def_Parameter!      
-    Beginning_Ele       
-    Line_Ele            
+    !Parameter          
+    !Beginning          
+    !Line               
  
  !---------------------------------
 Index: 103
@@ -7602,8 +7606,8 @@ Index: 103
     Rbend               
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Monitor             
     Instrument          
     Hkicker             
@@ -7622,8 +7626,8 @@ Index: 103
  
  !---------------------------------
 Index: 104
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     AC_Kicker           
  
  !---------------------------------
@@ -7646,8 +7650,8 @@ Index: 105
     AB_multipole        
     Solenoid            
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -7689,8 +7693,8 @@ Index: 106
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Monitor             
     Instrument          
     Hkicker             
@@ -7727,8 +7731,8 @@ Index: 107
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Monitor             
     Instrument          
     Hkicker             
@@ -7779,8 +7783,8 @@ Index: 108
     Solenoid            
     Patch               
     Lcavity             
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -7813,9 +7817,9 @@ Index: 108
  
  !---------------------------------
 Index: 109
-    Def_Parameter!      
-    Beginning_Ele       
-    Line_Ele            
+    !Parameter          
+    !Beginning          
+    !Line               
     Girder              
     Floor_Shift         
     Fiducial            
@@ -8012,8 +8016,8 @@ Index: 115
  
  !---------------------------------
 Index: 116
-    Beginning_Ele       
-    Line_Ele            
+    !Beginning          
+    !Line               
     Crystal             
     Multilayer_Mirror   
     Sample              
