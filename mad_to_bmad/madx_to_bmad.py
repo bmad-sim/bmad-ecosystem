@@ -1020,6 +1020,23 @@ def get_next_command ():
       f_out.write('\n')
       continue
 
+    if len(line) > 1 and line[0:2] == '#!':   # "#!madx" line
+      f_out.write('! ' + line + '\n')
+      line = ''
+      continue
+
+    if in_extended_comment:
+      if '*/' in line:
+        print ('Here\n')
+        ix = line.find('*/')
+        f_out.write('! ' + line[:ix] + '\n')
+        line = line[ix+2:].strip()
+        in_extended_comment = False
+      else:
+        f_out.write ('! ' + line + '\n')
+        line = ''
+      continue
+
     while line != '':
       for ix in range(len(line)):
         ##print (f'Ix: {ix} {line[ix]} -{quote}- ' + line)
@@ -1033,7 +1050,7 @@ def get_next_command ():
             line = line[ix+1:]
             continue
 
-        if (line[ix] == '"' or line[ix] == "'") and not in_extended_comment:
+        if (line[ix] == '"' or line[ix] == "'"):
           if line[ix] == quote:
             command += quote + line[:ix+1]
             dlist.append(quote + line[:ix+1])
@@ -1048,15 +1065,7 @@ def get_next_command ():
 
           break
 
-        if quote != '': continue
-
-        if ix < len(line) - 1 and line[ix:ix+2] == '*/':
-          f_out.write(line[:ix] + '\n')
-          line = line[ix+2:]
-          in_extended_comment = False
-          break
-
-        if in_extended_comment: continue
+        if quote != '': continue  # Cycle if in quote string
 
         if line[ix] == '!':
           if len(line) > ix+10 and line[ix:ix+10] == '!!verbatim':
@@ -1092,9 +1101,14 @@ def get_next_command ():
         if line[ix:ix+2] == '/*':
           command += line[:ix]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
-          f_out.write('!' + line[ix+2:] + '\n')
-          line = ''
-          in_extended_comment = True
+          if '*/' in line[ix:]:
+            ix2 = line.find('*/', ix)
+            f_out.write('!' + line[ix+2:ix2] + '\n')
+            line = line[ix+3:]
+          else:
+            f_out.write('!' + line[ix+2:] + '\n')
+            line = ''
+            in_extended_comment = True
           break
 
         elif line[ix:ix+2] == '//':
@@ -1161,7 +1175,7 @@ lines = f_out.readlines()
 f_out.close()
 
 f_out = open(bmad_lattice_file, 'w')
-f_out.write (f'!+\n! Translated from MADX file: {madx_lattice_file}\n!-\n')
+f_out.write (f'!+\n! Translated from MADX to Bmad by madx_to_bmad.py\n! File: {madx_lattice_file}\n!-\n\n')
 
 if common.prepend_vars :
   for set in common.set_list:
