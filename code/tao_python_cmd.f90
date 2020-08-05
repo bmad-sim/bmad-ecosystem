@@ -5,8 +5,6 @@
 !
 ! Note: The syntax for "parameter list form" is:
 !   {component_name};{type};{variable};{component_value}
-! or
-!   {component_name};{type};{variable};{component_value};{sub_component}
 !
 ! {type} is one of:
 !   INT         ! Integer number
@@ -31,11 +29,6 @@
 !   T         ! Can vary
 !   F         ! Cannot vary
 !   I         ! Ignore (Do not display)
-!
-! The optional {sub_component} occurs when a second parameter is to be paired with the component. Example:
-!   ele_name;STR;T;Q10W;ix_ele
-!   ix_ele;INT;I;137
-! In this example the ix_ele parameter is paired with the ele_name parameter.
 !
 ! If the {component_name} has a "^" symbol in it: The component is an enum or inum. Example: "graph^type"
 ! In this case, use the entire string when using "python enum" but suppress everything before the "^"
@@ -767,9 +760,9 @@ case ('data')
   d_ptr => d_array(1)%d
   ix_uni = d_ptr%d1%d2%ix_universe
 
-  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(d_ptr%ele_name), ';ix_ele'
-  nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   trim(d_ptr%ele_start_name), ';ix_ele_start'
-  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(d_ptr%ele_ref_name), ';ix_ele_ref'
+  nl=incr(nl); write (li(nl), amt) 'ele_name;STR;T;',                         trim(d_ptr%ele_name)
+  nl=incr(nl); write (li(nl), amt) 'ele_start_name;STR;T;',                   trim(d_ptr%ele_start_name)
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(d_ptr%ele_ref_name)
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   d_ptr%data_type
   nl=incr(nl); write (li(nl), amt) 'data^merit_type;ENUM;T;',                 d_ptr%merit_type
   nl=incr(nl); write (li(nl), amt) 'data_source;ENUM;T;',                     d_ptr%data_source
@@ -1236,7 +1229,7 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
 
   nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     key_name(ele%key)
-  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name), ';ix_ele'
+  nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name)
   nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
   nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
   if (associated(ele%descrip)) then
@@ -3176,7 +3169,7 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), amt) 'data_type_z;ENUM;T;',                     c%data_type_z
   nl=incr(nl); write (li(nl), amt) 'data_type;DAT_TYPE;T;',                   c%data_type
   nl=incr(nl); write (li(nl), amt) 'component;COMPONENT;T;',                  c%component
-  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name), ';ix_ele_ref'
+  nl=incr(nl); write (li(nl), amt) 'ele_ref_name;STR;T;',                     trim(c%ele_ref_name)
   nl=incr(nl); write (li(nl), amt) 'legend_text;STR;T;',                      c%legend_text
   nl=incr(nl); write (li(nl), amt) 'message_text;STR;F;',                     c%message_text
   nl=incr(nl); write (li(nl), amt) 'units;STR;T;',                            c%units
