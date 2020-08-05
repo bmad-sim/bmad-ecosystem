@@ -2992,9 +2992,9 @@ case ('lat_list')
         nl=incr(nl); li(nl) = ele%name
         cycle
       case ('ele.ix_ele')
-        value = ele%ix_ele
+        values(1) = ele%ix_ele
       case ('ele.ix_branch')
-        value = ele%ix_branch
+        values(1) = ele%ix_branch
       case ('ele.a.beta')
         values(1) = ele%a%beta
       case ('ele.a.alpha')
