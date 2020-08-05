@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <list>
+#include <iterator>
 #include <thread>
 #include <mutex>
 
@@ -14,9 +16,9 @@ class PointCacheIt {
   private:
     std::vector<GeantParticle>::iterator p;
     PointCache *c;
-    std::vector<std::vector<GeantParticle>>::iterator c_it;
+    std::list<std::vector<GeantParticle>>::iterator c_it;
     PointCacheIt(std::vector<GeantParticle>::iterator, PointCache*,
-        std::vector<std::vector<GeantParticle>>::iterator);
+        std::list<std::vector<GeantParticle>>::iterator);
 
   public:
     PointCacheIt() = delete;
@@ -61,14 +63,19 @@ class PointCache {
   // one thread might lock the mutex in between two member function calls
   // of another thread.
   private:
-    std::vector<std::vector<GeantParticle>> tl_vecs; // thread-local vectors
+    // tl_vecs must be implemented as a list instead of a vector;
+    // This class relies on the vectors it manages to not change their location
+    // in memory; std::vector breaks this requirement when it grows.
+    // This is why tl_vecs must be a list of vectors rather than a vector
+    // of vectors.
+    std::list<std::vector<GeantParticle>> tl_vecs; // thread-local vectors
     std::vector<std::vector<GeantParticle>*> issued_vecs;
     std::mutex vec_mutex;
 
     bool is_issued(std::vector<GeantParticle>* v) const;
 
   public:
-    PointCache();
+    PointCache() = default;
     PointCache(const PointCache&) = delete;
     PointCache& operator=(const PointCache&) = delete;
     PointCache(PointCache&&) = default;
@@ -90,7 +97,7 @@ class PointCache {
     }
 
     inline PointCacheIt end() {
-      return PointCacheIt(tl_vecs.back().end(), this, tl_vecs.end()-1);
+      return PointCacheIt(tl_vecs.back().end(), this, std::prev(tl_vecs.end()));
     }
 
     friend class PointCacheIt;

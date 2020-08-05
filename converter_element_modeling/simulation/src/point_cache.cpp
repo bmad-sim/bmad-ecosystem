@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <list>
 #include <thread>
 #include <mutex>
 #include <algorithm>
@@ -9,7 +10,7 @@
 #include "bin.hpp"
 #include "point_cache.hpp"
 
-PointCache::PointCache() { tl_vecs.reserve(4); } // Guess: 4 worker threads
+//PointCache::PointCache() { tl_vecs.reserve(4); } // Guess: 4 worker threads
 
 PointCache::~PointCache() {
   // Acquire the mutex to make sure no one is still using
@@ -72,12 +73,12 @@ void PointCache::Clear() {
 // Boilerplate for the iterator class
 PointCacheIt::PointCacheIt(PointCache* cache) : p{nullptr}, c{cache}, c_it{nullptr} { }
 PointCacheIt::PointCacheIt(std::vector<GeantParticle>::iterator pp, PointCache* pc,
-    std::vector<std::vector<GeantParticle>>::iterator pc_it) : p(pp), c(pc), c_it(pc_it) {}
+    std::list<std::vector<GeantParticle>>::iterator pc_it) : p(pp), c(pc), c_it(pc_it) {}
 
 PointCacheIt& PointCacheIt::operator++() {
   // If we've reached the end of one of the vectors
   // (other than the last one), shift to the next vector
-  if (p == c_it->end()-1 && c_it != c->tl_vecs.end()-1) {
+  if (p == c_it->end()-1 && c_it != std::prev(c->tl_vecs.end())) {
     ++c_it;
     p = c_it->begin();
     return *this;
