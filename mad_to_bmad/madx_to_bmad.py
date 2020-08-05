@@ -42,7 +42,6 @@ class common_struct:
     self.one_file = True             # Command line argument.
     self.in_seq = False
     self.seqedit_name = ''           # Name of sequence in seqedit construct.
-    self.macro_count = False         # Count "{}" braces. 0 -> Not in a "macro" or "if" statement
     self.last_seq = seq_struct()     # Current sequence being parsed.
     self.seq_dict = OrderedDict()    # List of all sequences.
     self.ele_dict = {}               # Dict of elements
@@ -52,7 +51,7 @@ class common_struct:
     self.f_in = []         # MADX input files
     self.f_out = []        # Bmad output files
     self.use = ''
-    self.command = ''    # Scratch storage for get_next_command routine.
+    self.command = ''    # Scratch storage for read_madx_command routine.
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -565,6 +564,8 @@ def parse_element(dlist, write_to_file, command):
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
+# The "command" arg is the unsplit madx command.
+# The "dlist" arg is the command split into pieces and converted to lower case.
 
 def parse_command(command, dlist):
   global common, sequence_refer
@@ -601,12 +602,19 @@ def parse_command(command, dlist):
       dlist = dlist[:i] + [split[0], ',', split[1]] + dlist[i+1:]
     i += 1
 
-  # Ignore this
+  # Ignore the following.
 
-  if dlist[0].startswith('exec '): return
+  if dlist[0] == 'exec': 
+    print (f'ERROR: "EXEC" COMMAND IGNORED: {command}\n' +
+            '  THIS MEANS THAT IT IS LIKELY THAT THE BMAD LATTICE WILL BE DIFFERENT FROM THE MADX LATTICE!')
+    return
+
   if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
-                  'emit', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 
+                  'emit', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 'if',
                   'flatten']:
+    return
+
+  if 'macro' in dlist:
     return
 
   # Flag this
@@ -638,12 +646,6 @@ def parse_command(command, dlist):
 
     return
 
-
-  # Macro and "if" statements are strange since they does not end with a ';' but with a matching '}'
-
-  if (len(dlist) > 2 and dlist[1] == ':' and dlist[2] == 'macro') or dlist[0].startswith('if '): 
-    common.macro_count = command.count('{') - command.count('}')
-    return
 
   # Return
 
@@ -978,15 +980,18 @@ def parse_command(command, dlist):
 # Get next madx command.
 # Read in MADX file line-by-line.  Assemble lines into commands, which are delimited by a ; (colon).
 
-def get_next_command ():
+def read_madx_command ():
   global common
 
   quote = ''
   in_extended_comment = False
   command = ''
   dlist = []
+  curly_brace_count = 0   # Count "{", "}" pairs
 
-  # Loop until a command has been found
+  # Loop until a command has been found.
+  # Note: "macro" and "if" statements are strange since they are permitted to 
+  # not end with a ';' but with a matching '}'
 
   while True:
 
@@ -1027,7 +1032,6 @@ def get_next_command ():
 
     if in_extended_comment:
       if '*/' in line:
-        print ('Here\n')
         ix = line.find('*/')
         f_out.write('! ' + line[:ix] + '\n')
         line = line[ix+2:].strip()
@@ -1043,12 +1047,14 @@ def get_next_command ():
         ##print (f'C: {command}')
         ##print (f'D: {dlist}')
 
-        if common.macro_count != 0:   # Skip macros
-          if line[ix] == '{': common.macro_count += 1
-          if line[ix] == '}': common.macro_count -= 1
-          if common.macro_count == 0:
-            line = line[ix+1:]
-            continue
+        if line[ix] == '{': curly_brace_count += 1
+        if line[ix] == '}': 
+          curly_brace_count -= 1
+          if curly_brace_count == 0 and len(dlist) > 0 and (dlist[0] == 'if' or 'macro' in dlist):
+            command += line[:ix]
+            if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
+            common.command = line[ix+1:]
+            return [command, dlist]
 
         if (line[ix] == '"' or line[ix] == "'"):
           if line[ix] == quote:
@@ -1077,13 +1083,16 @@ def get_next_command ():
           line = ''
           break
 
-        elif line[ix] == ';':
+        # "if" or "macro" commands can have internal ";" characters that need to be ignored.
+        elif line[ix] == ';' and not ((len(dlist) > 0 and dlist[0] == 'if') or 'macro' in dlist):
           command += line[:ix]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           common.command = line[ix+1:]
           return [command, dlist]
 
-        elif line[ix] in '{}:,=':
+        # Need to split "if(" or "while(" constructs at "(". 
+        # This only is necessary at the start of the command string.
+        elif line[ix] in '{}:,=' or (len(dlist) == 0 and line[ix] == '('):
           command += line[:ix+1]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           dlist.append(line[ix])
@@ -1160,7 +1169,7 @@ f_out = common.f_out[-1]
 common.command = ''  # init
 
 while True:
-  [command, dlist] = get_next_command()
+  [command, dlist] = read_madx_command()
   if len(common.f_in) == 0: break
   parse_command(command, dlist)
   if len(common.f_in) == 0: break   # Hit Quit/Exit/Stop statement.
