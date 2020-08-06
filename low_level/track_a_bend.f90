@@ -337,7 +337,7 @@ if (ix_mag_max > -1) then
   orbit%vec(4) = orbit%vec(4) + f_coef * field%B(1)
 
   if (logic_option(.false., make_matrix)) then
-    df_coef_dx = coef * c_dir * ele%value(g$) * c_light / orb0%p0c
+    df_coef_dx = r_len * coef * c_dir * ele%value(g$) * c_light / orb0%p0c
 
     mat6(2,:) = mat6(2,:) - (f_coef * field%dB(2,1) + df_coef_dx * field%B(2)) * mat6(1,:) - & 
                             (f_coef * field%dB(2,2)) * mat6(3,:)
@@ -368,7 +368,7 @@ if (ix_elec_max > -1) then
   orbit%vec(5) = orb0%vec(5) * orbit%beta/ orb0%beta
 
   if (logic_option(.false., make_matrix)) then
-    df_coef_dx = coef * step_len * ele%value(g$) * charge / (ps * orb0%beta * orb0%p0c)
+    df_coef_dx = step_len * coef * ele%value(g$) * charge / (ps * orb0%beta * orb0%p0c)
     df_dps_coef = 1 / (ps**2 * rel_p0**2)
     mc2 = mass_of(orbit%species)
     pc0 = rel_p0 * orb0%p0c

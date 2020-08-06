@@ -230,27 +230,34 @@ end subroutine ptc_track_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_write_map_with_radiation(file_name, map_with_rad)
+! Subroutine ptc_write_map_with_radiation(map_with_rad, file_name, file_unit)
 !
-! Routine to create a binary file containing a ptc_map_with_rad_struct map
+! Routine to create or append to a binary file containing a ptc_map_with_rad_struct map.
+! Either file_name or file_unit must be present but not both.
 !
 ! Input:
-!   file_name        -- character(*): Name of binary file.
-!   map_with_rad     -- ptc_map_with_rad_struct: Map with radiation included.
+!   map_with_rad    -- ptc_map_with_rad_struct: Map with radiation included.
+!   file_name       -- character(*), optional: Name of binary file to create.
+!   file_unit       -- integer, optional: File unit number to append to.
 !-
 
-subroutine ptc_write_map_with_radiation(file_name, map_with_rad)
+subroutine ptc_write_map_with_radiation(map_with_rad, file_name, file_unit)
 
 type (ptc_map_with_rad_struct), target :: map_with_rad
 type (tree_element_zhe), pointer :: t
 
 integer i, j, k, iu
-character(*) file_name
+integer, optional :: file_unit
+character(*), optional :: file_name
 
 !
 
-iu = lunget()
-open (iu, file = file_name, form = 'unformatted')
+if (present(file_name)) then
+  iu = lunget()
+  open (iu, file = file_name, form = 'unformatted')
+else
+  iu = file_unit
+endif
 
 write (iu) map_with_rad%lattice_file
 write (iu) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
@@ -277,7 +284,7 @@ do k = 1, 3
   call write_logic0(t%factored)
 enddo
 
-close(iu)
+if (present(file_unit)) close(iu)
 
 !-------------------------------------------------------------------
 contains
@@ -321,29 +328,38 @@ end subroutine ptc_write_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_read_map_with_radiation(file_name, map_with_rad)
+! Subroutine ptc_read_map_with_radiation(map_with_rad, file_name, file_unit)
 !
 ! Routine to read a binary file containing a ptc_map_with_rad_struct map
+! Either file_name or file_unit must be present but not both.
+! File_unit is used when there are multiple maps in a file.
+!
 !
 ! Input:
-!   file_name        -- character(*): Name of binary file.
+!   file_name       -- character(*), optional: Name of binary file.
+!   file_unit       -- integer, optional: File unit number read from.
 !
 ! Output:
-!   map_with_rad     -- ptc_map_with_rad_struct: Map with radiation included.
+!   map_with_rad    -- ptc_map_with_rad_struct: Map with radiation included.
 !-
 
-subroutine ptc_read_map_with_radiation(file_name, map_with_rad)
+subroutine ptc_read_map_with_radiation(map_with_rad, file_name, file_unit)
 
 type (ptc_map_with_rad_struct), target :: map_with_rad
 type (tree_element_zhe), pointer :: t
 
 integer i, j, k, iu
-character(*) file_name
+integer, optional :: file_unit
+character(*), optional :: file_name
 
 !
 
-iu = lunget()
-open (iu, file = file_name, form = 'unformatted', status = 'old')
+if (present(file_name)) then
+  iu = lunget()
+  open (iu, file = file_name, form = 'unformatted', status = 'old')
+else
+  iu = file_unit
+endif
 
 read (iu) map_with_rad%lattice_file
 read (iu) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
@@ -370,7 +386,7 @@ do k = 1, 3
   call read_logic0(t%factored)
 enddo
 
-close(iu)
+if (present(file_unit)) close(iu)
 
 call zhe_ini(bmad_com%spin_tracking_on)
 
