@@ -604,14 +604,14 @@ def parse_command(command, dlist):
 
   # Ignore the following.
 
-  if dlist[0] == 'exec': 
-    print (f'ERROR: "EXEC" COMMAND IGNORED: {command}\n' +
+  if dlist[0] in ['exec' 'while', 'if']: 
+    print (f'ERROR: "{dlist[0]}" COMMAND IGNORED: {command}\n' +
             '  THIS MEANS THAT IT IS LIKELY THAT THE BMAD LATTICE WILL BE DIFFERENT FROM THE MADX LATTICE!')
     return
 
   if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
-                  'emit', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 'if',
-                  'flatten']:
+                  'emit', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 'flatten', 
+                  'elseif', 'else']:
     return
 
   if 'macro' in dlist:
@@ -1050,7 +1050,7 @@ def read_madx_command ():
         if line[ix] == '{': curly_brace_count += 1
         if line[ix] == '}': 
           curly_brace_count -= 1
-          if curly_brace_count == 0 and len(dlist) > 0 and (dlist[0] == 'if' or 'macro' in dlist):
+          if curly_brace_count == 0 and len(dlist) > 0 and (dlist[0] in ['if', 'elseif', 'else' 'while'] or 'macro' in dlist):
             command += line[:ix]
             if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
             common.command = line[ix+1:]
@@ -1084,7 +1084,7 @@ def read_madx_command ():
           break
 
         # "if" or "macro" commands can have internal ";" characters that need to be ignored.
-        elif line[ix] == ';' and not ((len(dlist) > 0 and dlist[0] == 'if') or 'macro' in dlist):
+        elif line[ix] == ';' and not ((len(dlist) > 0 and dlist[0] in ['if', 'elseif', 'else', 'while']) or 'macro' in dlist):
           command += line[:ix]
           if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
           common.command = line[ix+1:]
