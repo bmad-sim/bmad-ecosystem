@@ -627,18 +627,26 @@ tracking and is discussed in \sref{s:he.space.charge}.
 
 \index{taylor}\index{symp_lie_ptc}\index{symp_lie_bmad}
 \index{runge_kutta}
-One way to create a transfer map through an element is to divide the
-element up into slices and then to propagate the transfer map slice by
-slice.  There are several ways to do this integration. The
-\vn{runge_kutta} type methods integrate the equations of motion to
-give the 0\Th order Taylor map which just represents a particle's
-orbit.  Symplectic integration\index{symplectic!integration} using Lie
-algebraic techniques, on the other hand, can generate Taylor maps to
-any order.  The \vn{ds_step} attribute determines the slice thickness.
-Alternatively, \vn{num_steps} attribute can be used in place of
-\vn{ds_step} to specify the number of slices.
-This is applicable to \vn{symp_lie_bmad} and
-\vn{symp_lie_ptc} integration.
+One way to create a transfer map through an element is to divide the element up into slices and then
+to propagate the transfer map slice by slice.  There are several ways to do this integration. The
+\vn{runge_kutta} type methods integrate the equations of motion to give the 0\Th order Taylor map
+which just represents a particle's orbit.  Symplectic integration\index{symplectic!integration}
+using Lie algebraic techniques, on the other hand, can generate Taylor maps to any order. The
+\vn{ds_step} attribute determines the slice thickness.  Alternatively, \vn{num_steps} attribute can
+be used in place of \vn{ds_step} to specify the number of slices.  This is applicable to
+\vn{symp_lie_bmad} and \vn{symp_lie_ptc} integration. Example:
+\begin{example}
+  q: quadrupole, l = 0.6, ds_step = 0.1  ! 10 cm step size.
+  sbend::*[ds_step] = 0.2                ! Set the step_size for all sbend elements.
+\end{example}
+
+Since computation time will vary with the number of integration steps, the optimum step size is the
+largest length such that the variations of the step size do not significantly affect the
+calculation. It is important to remember that the optimum step size is dependent upon what is to be
+calculated.
+
+The default value for \vn{ds_step} for a given element is calculated based upon the element's field
+strength. One should consider the default as more of a guesstimate.
 
 \index{ds_step}
 \index{runge_kutta}\index{time_runge_kutta}
@@ -711,7 +719,7 @@ across some boundary.
 \index{integrator_order}
 \index{ds_step}\index{symp_lie_bmad}
 The \vn{integrator_order} element attribute is the order of the integration formula for
-\vn{Symp_Lie_PTC}. Possible values are
+\vn{Symp_Lie_PTC} and is used for constructing Taylor maps. Possible values are
 \begin{example}
   integrator_order = 2 (default), 4, or 6
 \end{example}
@@ -770,7 +778,7 @@ component is used for the ``matrix'' tracking between kicks. With the \vn{matrix
 tune of a machine tends to be insensitive to how many integration steps (set by \vn{ds_step} or
 \vn{n_steps}) are used.
 
-PTC does not implement \vn{matrix_kick} tracking for elements with an electric field.  In
+PTC does not implement \vn{matrix_kick} tracking for elements with an electric field. In
 this case, the setting of \vn{ptc_integration_type} is ignored and tracking will be
 \vn{drift_kick}. Thus, if an electric field is introduced into an element, more
 integration steps may be required to get the correct tune.

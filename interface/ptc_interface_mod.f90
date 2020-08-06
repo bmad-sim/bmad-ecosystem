@@ -2300,7 +2300,7 @@ end subroutine concat_ele_taylor
 ! Subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, ptc_re8, ref_orb_ptc, exi_orb_ptc)
 !
 ! Routine to convert a Bmad Taylor map to PTC real_8 map.
-! The constant term of ptc_re8 will be removed.
+! The conversion includes the conversion between Bmad and PTC coordinates.
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Input taylor map.
@@ -2312,8 +2312,9 @@ end subroutine concat_ele_taylor
 ! Output:
 !   ptc_re8(6)      -- real_8: PTC Taylor polymorph. Note: it is the duty of the calling routine
 !                       to call alloc beforehand and kill afterwards.
-!   ref_orb_ptc(6)  -- real(rp): PTC starting reference orbit.
-!   exi_orb_ptc(6)  -- real(rp): Constant part of the map = orbit at the exit end.
+!   ref_orb_ptc(6)  -- real(rp), optional: PTC starting reference orbit.
+!   exi_orb_ptc(6)  -- real(rp), optional: constant part of the map = orbit at the exit end.
+!                        If present, the constant term of ptc_re8 will be removed.
 !-
 
 subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, ptc_re8, ref_orb_ptc, exi_orb_ptc)
@@ -2337,6 +2338,7 @@ integer i, j, k, ie, e_max
 !
 
 ref_ptc = bmad_taylor%ref
+call convert_bmad_to_ptc(ref_ptc, beta0, .true.) 
 
 call alloc(diff_orb)
 call alloc(start_orb)
@@ -2344,7 +2346,9 @@ call alloc(id)
 
 id = 1
 start_orb = id + ref_ptc
-ref_orb_ptc = ref_ptc
+if (present(ref_orb_ptc)) ref_orb_ptc = ref_ptc
+
+call convert_ptc_to_bmad(start_orb, beta0, .true.) 
 
 do i = 1, 6
   diff_orb(i) = start_orb(i) - bmad_taylor(i)%ref
@@ -2396,12 +2400,16 @@ do i = 1, 6
   enddo
 enddo
 
+call convert_bmad_to_ptc(ptc_re8, beta1, .true.)
+
 ! Remove constant.
 
-exi_orb_ptc = ptc_re8
-do i = 1, 6
-  ptc_re8(i) = ptc_re8(i) - exi_orb_ptc(i)
-enddo
+if (present(exi_orb_ptc)) then
+  exi_orb_ptc = ptc_re8
+  do i = 1, 6
+    ptc_re8(i) = ptc_re8(i) - exi_orb_ptc(i)
+  enddo
+endif
 
 ! Cleanup.
 
@@ -2416,6 +2424,78 @@ enddo
 enddo
 
 end subroutine taylor_to_real_8
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
+!
+! Routine to convert a PTC real_8 map to a Bmad Taylor map.
+! The conversion includes the conversion from PTC to Bmad coordinate systems.
+! Warning: This routine has never been used and needs to be tested!
+!
+! Input:
+!   y8(6)           -- real_8: PTC Taylor map. NOTE: y8 is used as scratch space and therefore trashed.
+!   beta0           -- real(rp): Reference particle velocity at beginning of map
+!   beta1           -- real(rp): Reference particle velocity at end of map
+!   bmad_taylor(6)  -- Taylor_struct: Only %ref is used at input.
+!     %ref            -- Reference orbit
+!
+! Output:
+!   bmad_taylor(6) -- Taylor_struct: Bmad Taylor map.
+!-
+
+subroutine real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
+
+use s_fibre_bundle
+
+implicit none
+
+type (taylor_struct) :: bmad_taylor(:)
+type (real_8) y8(:), rr(6), bet, ss(6)
+type (damap) bm, id, si
+
+real(rp) beta0, beta1, fix0(6)
+
+!
+
+call alloc (bm, id, si)
+call alloc (rr)
+call alloc (bet)
+call alloc (ss)
+
+bm = y8
+
+fix0 = bm
+id = 1
+
+rr = id + bmad_taylor%ref
+
+ss = rr 
+ss(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta0 + sqrt(1.d0/beta0**2+rr(6)**2+2.d0*rr(6)))
+bet = (1.d0+rr(6))/(1.d0/beta0+ss(5))
+ss(6) = -rr(5)/bet
+
+si=ss  ! bmad to ptc map
+
+bm = bm * si
+bm = fix0
+
+rr = bm
+ss = rr
+ss(6) = (2.d0*rr(5)/beta1+rr(5)**2)/(sqrt(1.d0+2.d0*rr(5)/beta1+rr(5)**2)+1.d0)
+bet = (1.d0+ss(6))/(1.d0/beta1+rr(5))
+ss(5) = -bet*rr(6)
+
+bmad_taylor = ss
+
+call kill (rr)
+call kill (ss)
+call kill (bet)
+call kill (bm, id, si)
+
+end subroutine real_8_to_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

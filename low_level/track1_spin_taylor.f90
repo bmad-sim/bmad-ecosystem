@@ -39,7 +39,7 @@ quat = track_taylor (start_orb%vec, ele%spin_taylor, ele%taylor%ref)
 norm = norm2(quat)
 if (abs(norm - 1) > 0.5) then
   call out_io (s_warn$, r_name, 'Norm of quaternion computed from the spin taylor map of element: ' // ele%name, &
-                                'is far from 1.0')
+                                'is far from 1.0: \es10.2\ ', r_array = [norm])
 endif
 
 end_orb%spin = rotate_vec_given_quat(quat/norm, start_orb%spin)

@@ -28,7 +28,10 @@ For the programmer, see Chapter~\sref{c:ptc.program} for more information.
 While such things as magnet strengths will be the same, the model that PTC uses when it tracks
 through a lattice element is independent of \bmad. That is, what approximations are made can be
 different. Generally the agreement between PTC and \bmad tracking is quite good. But there are
-situations where there is a noticeble difference.
+situations where there is a noticeble difference. In such cases, one thing to do is to vary
+parameters that affect PTC tracking. Two parameters that affect PTC accuracy are the integration
+step size and the order of the integrator. The step size is set by each lattice element's \vn{ds_step}
+parameter (\sref{s:ds.step}). 
 
 
 %----------------------------------------------------------------------------
