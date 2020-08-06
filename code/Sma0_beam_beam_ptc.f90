@@ -120,7 +120,7 @@ contains
        CALL TRANS(B,X,BETA0,exact,TIME)
        call BBKICKn(BB,X,i)
      enddo
-   b(3)=lh
+   b(3)=-lh
        CALL TRANS(B,X,BETA0,exact,TIME)
   else
        call BBKICKn(BB,X,1)
@@ -148,7 +148,7 @@ contains
        CALL TRANS(B,X,BETA0,exact,TIME)
        call BBKICKn(BB,X,i)
      enddo
-   b(3)=lh
+   b(3)=-lh
        CALL TRANS(B,X,BETA0,exact,TIME)
   else
        call BBKICKn(BB,X,1)
@@ -419,7 +419,7 @@ contains
              xr=-xr*tk/(it+1)
              yr=yr+xr
              if(it>10)nr=full_abs(xr)
-             if(n<=puny) exit
+             if(nr<=puny) exit
           enddo
           if(it>imax-2) then
              write(6,*) it,nr

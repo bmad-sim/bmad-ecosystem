@@ -408,8 +408,9 @@ CONTAINS
     
     if(present(reset)) then
      if(reset) then
-       l%lastpos=1
-       l%last=>L%start
+       l%lastpos=0
+       l%last=>L%start%previous
+       l%last%next=>L%start
      endif
     endif
     

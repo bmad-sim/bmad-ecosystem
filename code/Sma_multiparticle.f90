@@ -2314,7 +2314,7 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
     endif 
 
      call kill(t)
-
+     call convert_bmad_to_ptc(z%x0,b1,time)
      end subroutine convert_bmad_to_ptcp   
 
     subroutine convert_ptc_to_bmadr(z,b1,time,LD)
@@ -2372,7 +2372,8 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
       z%x(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.d0 
      endif
      call kill(t)
-
+ 
+           call convert_ptc_to_bmad(z%x0,b1,time,LD)
 
      end subroutine convert_ptc_to_bmadp 
 
