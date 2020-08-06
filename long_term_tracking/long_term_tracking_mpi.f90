@@ -8,8 +8,7 @@ implicit none
 type (ltt_params_struct) lttp
 type (lat_struct), target :: lat
 type (beam_init_struct) beam_init
-type (ptc_map_with_rad_struct) rad_map
-type (ltt_internal_struct) ltt_internal
+type (ltt_com_struct) ltt_com
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:), sd_arr(:)
 type (ltt_sum_data_struct) sum_data
 type (ltt_sum_data_struct), pointer :: sd
@@ -62,13 +61,13 @@ endif
 ! Only the master should create a map file if a file is to be created.
 
 if (lttp%mpi_rank == master_rank$) then
-  call ltt_init_tracking (lttp, lat, ltt_internal, rad_map)
+  call ltt_init_tracking (lttp, ltt_com)
   call mpi_Bcast (0, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
-  call ltt_print_inital_info (lttp, rad_map)
+  call ltt_print_inital_info (lttp, ltt_com)
 
 else
   call mpi_Bcast (ix, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
-  call ltt_init_tracking (lttp, lat, ltt_internal, rad_map)
+  call ltt_init_tracking (lttp, ltt_com)
 endif
 
 ! Calculation start.
@@ -76,9 +75,9 @@ endif
 call run_timer ('START')
 
 select case (lttp%simulation_mode)
-case ('CHECK');  call ltt_run_check_mode(lttp, lat, rad_map, beam_init, ltt_internal)  ! A single turn tracking check
-case ('SINGLE'); call ltt_run_single_mode(lttp, lat, beam_init, ltt_internal, rad_map) ! Single particle tracking
-case ('STAT');   call ltt_run_stat_mode(lttp, lat, ltt_internal)                            ! Lattice statistics (radiation integrals, etc.).
+case ('CHECK');  call ltt_run_check_mode(lttp, ltt_com, beam_init)  ! A single turn tracking check
+case ('SINGLE'); call ltt_run_single_mode(lttp, ltt_com, beam_init) ! Single particle tracking
+case ('STAT');   call ltt_run_stat_mode(lttp, ltt_com)              ! Lattice statistics (radiation integrals, etc.).
 case default;    print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
 
 !-------------------------
@@ -100,7 +99,7 @@ case ('BUNCH')
   data_size = size(sum_data_arr) * storage_size(sum_data_arr(0)) / 8
 
   if (.not. lttp%using_mpi) then
-    call ltt_run_bunch_mode(lttp, lat, beam_init, ltt_internal, rad_map)  ! Beam tracking
+    call ltt_run_bunch_mode(lttp, ltt_com, beam_init)  ! Beam tracking
 
   !-----------------------------------------
   elseif (lttp%mpi_rank == master_rank$) then
@@ -163,7 +162,7 @@ case ('BUNCH')
       call print_mpi_info (lttp, 'Slave: Tracking Particles...')
 
       ! Run
-      call ltt_run_bunch_mode(lttp, lat, beam_init, ltt_internal, rad_map, sd_arr)  ! Beam tracking
+      call ltt_run_bunch_mode(lttp, ltt_com, beam_init, sd_arr)  ! Beam tracking
       data_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
       call print_mpi_info (lttp, 'Slave: Sending Data...')
       call mpi_send (sd_arr, data_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
