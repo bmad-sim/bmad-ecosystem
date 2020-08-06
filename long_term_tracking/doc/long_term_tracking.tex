@@ -16,11 +16,11 @@
 \usepackage{toc-bmad}
 \usepackage{xspace}
 \usepackage[section]{placeins}   % For preventing floats from floating to end of chapter.
-\usepackage{longtable}  % For splitting long vertical tables into pieces
+\usepackage{longtable}   % For splitting long vertical tables into pieces
 \usepackage{index}
 \usepackage{multirow}
-\usepackage{booktabs}   % For table layouts
-\usepackage{yhmath}     % For widehat
+\usepackage{booktabs}    % For table layouts
+\usepackage{yhmath}      % For widehat
 \usepackage{xcolor}      % Needed for listings package.
 \usepackage{listings}
 \usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
@@ -96,7 +96,7 @@ Distribution with MPI enabled. See the documentation on the Bmad web site for mo
 
 See the documentation for setting up the Bmad environmental variables at
 \begin{code}
-  \url{https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms}
+  https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
 \end{code}
 
 Once the Bmad environmental variables have bee set, the syntax for invoking the single threaded
@@ -136,11 +136,16 @@ simulation mode is set by the \vn{ltt%simulation_mode} parameter in the master i
 
 \begin{description}
 \item["CHECK"] \Newline
-In this mode a particle is tracked for one turn using a 1-turn map and, using the exact same
-starting conditions, tracked element-by-element for one turn. The results are then printed to the
-terminal. This mode can be used to get a sense of how accurate the 1-turn map is.
+In this mode a particle is tracked from \vn{ele_start} to \vn{ele_stop} using a map and
+element-by-element tracking using \bmad and PTC. The results are then printed to the terminal. This
+mode can be used to get a sense of how accurate the 1-turn map is. The starting coordinates are set
+by \vn{particle_start} commands in the lattice file.
 
 No data files are produced in this mode.
+
+Radiation fluctuations are turned off in this mode but radiation damping will still be applied if
+turned on.
+
 %
 \item["SINGLE"] \Newline
 In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The name of the data file is set
@@ -162,31 +167,30 @@ Three data files are produced:
 \end{code}
 \end{description}
 
-
 %------------------------------------------------------------------
-\Section{Using 1-turn Maps and PTC}
+\Section{Using Maps and PTC Tracking}
 \label{s:map}
 
 The \ltt program uses the PTC/FPP library of \'Etienne Forest to handle Taylor maps to any arbitrary
-order. In particular, PTC is used for constructing the 1-turn map used for tracking when the
-\vn{ltt%tracking_method} parameter is set to "\vn{MAP}" (\sref{s:sim.params}). PTC tracking is also
-used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case tracking is done
-element-by-element.
+order. In particular, PTC is used for constructing the map(s) used for tracking when the
+\vn{ltt%tracking_method} parameter is set to "\vn{MAP}" or "\vn{SLICK}" (\sref{s:sim.params}). PTC
+tracking is also used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case, tracking is
+done element-by-element using symplectic integration.
 
 There are a few points to keep in mind. First is that \vn{PTC} trackes through a lattice element
-step by step. This means that the setting of \vn{num_steps} (or equivalently \vn{ds_step}) for each
-element will affect the accuracy and speed of the computations. Bmad tries to choose reasonable
-default settings for the number of steps however the calculation is not perfect. To make sure that
-the number of steps is set properly, vary the number of steps and choose a step size (which will be
-different for different elements) such that the number of steps is minimal (to minimize computation
-time) while at the same time is large enough so that results do not change significantly if the
-number of steps is increased.
+step by step. This is true for both map creation and symplectic integration. This means that the
+setting of \vn{num_steps} (or equivalently \vn{ds_step}) for each element will affect the accuracy
+and speed of the computations. Bmad tries to choose reasonable default settings for the number of
+steps however the calculation is not perfect. To make sure that the number of steps is set properly,
+vary the number of steps and choose a step size (which will be different for different elements)
+such that the number of steps is minimal (to minimize computation time) while at the same time is
+large enough so that results do not change significantly if the number of steps is increased.
 
-Another thing to keep in mind is that whether a 1-turn map will give accurate results is dependent
-on a number of factors. One factor is the order of the map. Generally higher order is better but
-will take more computation time. But all maps with order larger than 1 will be limited to tracking
-partices that are far from any strong resonances. That is, if you are interested in tracking halo
-particles you probably should not be using a 1-turn map.
+Another thing to keep in mind is that whether a map will give accurate results is dependent on a
+number of factors. One factor is the order of the map. Generally higher order is better but will
+take more computation time. For 1-turn maps, all maps with order larger than 1 will be limited to
+tracking partices that are far from any strong resonances. For example, if you are interested in
+tracking halo particles you probably should not be using a 1-turn map.
 
 In terms of speed, using a 1-turn map will be the fastest, using standard Bmad tracking will be much
 slower, and using PTC element-by-element tracking will be slowest.
@@ -198,6 +202,8 @@ effects and standard Bmad tracking can be used. A very rough rule of thumb is th
 or the number of turns tracked are under 100,000 turns then Bmad standard tracking can be used.
 
 PTC element-by-element tracking cannot be done when using the MPI version of the \ltt program.
+
+One turn map tracking 
 
 %------------------------------------------------------------------
 \Section{Particle Tracking}
@@ -257,7 +263,7 @@ with beam particle positions, set the \vn{beam_init} structure appropriately. Ex
   beam_init%file_name = 'beam_particle_file.init'
 \end{code}
 
-In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start_name}.
+In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start}.
 
 %------------------------------------------------------------------
 \Section{Fortran Namelist}
@@ -321,7 +327,7 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
   ! Simulation parameters
   ltt%simulation_mode    = "BUNCH"
   ltt%tracking_method    = 'BMAD'
-  ltt%ele_start_name     = ""
+  ltt%ele_start          = ""
   ltt%n_turns            = 1000
   ltt%map_order          = 5
   ltt%rfcavity_on        = True
@@ -394,7 +400,7 @@ and spin positions averaged over all the particles of the bunch as well as the s
 ($\sigma_x$, $\sigma_{px}$, etc.).  Each line in the file represents the averages at the end of a
 turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of turns. If
 \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
-the beam is at the \vn{ltt%ele_start_name} position independent of where the lattice begins and
+the beam is at the \vn{ltt%ele_start} position independent of where the lattice begins and
 ends. Note: The file \vn{ltt%sigma_matrix_output_file} will show the full 6x6 sigma matrix.
 %
 \item[ltt\%merge_particle_output_files] \Newline
@@ -426,7 +432,7 @@ Default is -1 which will cause a message printed every turn where there is parti
 %
 \item[ltt\%ptc_aperture] \Newline
 The PTC code does not have apertures. This being the case, for \vn{ltt%tracking_method} set to
-\vn{"MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
+\vn{"1_TURN_MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
 apertures. The default is 0.1~meter in both the horizontal and vertical. When used, the aperture is
 applied at the beginning/end of the lattice. PTC has an internal aperture of 1.0~meter. To be safe,
 the \ltt program will additionally impose a 0.9~meters aperture independent of the setting of
@@ -445,7 +451,7 @@ denotes an average over all particles.
 With \vn{ltt%simulation_mode} set to \vn{"BUNCH"}, Each line in the file represents the averages at
 the end of a turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of turns. With
 \vn{ltt%simulation_mode} set to "SINGLE"), The average is done over all the turns. Data is always
-recorded when the beam is at the \vn{ltt%ele_start_name} position independent of where the lattice
+recorded when the beam is at the \vn{ltt%ele_start} position independent of where the lattice
 begins and ends.
 
 Also see the \vn{ltt%averages_output_file} parameter.
@@ -481,15 +487,20 @@ Sets the cutoff for the number of dead particles below which the simulation will
 if \vn{ltt%dead_cutoff} is set to 0.01, when 1\% of the beam has been lost the simulation will stop. The
 default value for \vn{ltt%dead_cutoff} is zero.
 %
-\item[ltt\%ele_start_name] \Newline
+\item[ltt\%ele_start] \Newline
 Name or element index of the element to start the tracking. Examples:
 \begin{code}
-  ele_start_name = "Q3##2"   ! 2nd element named Q3 in the lattice.
-  ele_start_name = 37        ! 37th element in the lattice.
+  ele_start = "Q3##2"   ! 2nd element named Q3 in the lattice.
+  ele_start = 37        ! 37th element in the lattice.
 \end{code}
 The default is to start at the beginning of the lattice. Notice that the tracking starts at the
 downstream end of the element so the first element tracked through is the element after the chosen
-one.
+one. Also see \vn{ttl\%ele_stop}.
+%
+\item[ltt\%ele_stop] \Newline
+Used when \vn{ltt%simulation_mode} is set to \vn{"CHECK"}. \vn{ttl\%ele_stop} sets the stopping
+point for tracking to be the downstream edge of the element. Also see \vn{ttl\%ele_start}. Default
+if not set or set to a blank string is for \vn{tll\%ele_stop} to be equal to \vn{tll\%ele_start}.
 %
 \item[ltt\%map_order] \Newline
 Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice
@@ -519,9 +530,11 @@ messages is set by \vn{ltt%timer_print_dtime} which is a number in seconds.
 String switch which sets how particles are tracked when the \vn{simulation_mode} is set to
 "\vn{BUNCH}" or "\vn{SINGLE}". Possible settings are:
 \begin{code}
-  "MAP"         ! 1-turn map tracking.
-  "PTC"         ! Element-by-element tracking with PTC.
-  "BMAD"        ! Element-by-element tracking using Bmad. Default
+  "1_TURN_MAP"  ! 1-turn map tracking. Will not give correct results when
+                !  tracking with spin and radiation excitation.
+  "SLICK"       ! SLICK like tracking.
+  "PTC"         ! Element-by-element tracking with PTC. Slow.
+  "BMAD"        ! Element-by-element tracking using Bmad. Default. Slow.
 \end{code}
 See sections \sref{s:map} and \vn{s:track.modes} for more details.
 \end{description}
@@ -548,26 +561,27 @@ integral calculation. Additionaly, the longitudinal beam size is calculated via 
 The following describes the particle data output format. Particle data is outputted when the
 \vn{ltt%simulation_mode} is set to \vn{"BUNCH"}.
 
-Particle data is always recorded when the beam is at the \vn{ltt%ele_start_name} position independent of
+Particle data is always recorded when the beam is at the \vn{ltt%ele_start} position independent of
 where the lattice begins and ends.
 
-With \vn{ltt%merge_particle_output_files} set to \vn{False}, an output data file will be produced every
-\vn{ltt%output_every_n_turns} turns. Each line in this file records a particle's orbital and
-spin position. The name of the data file is derived from the \vn{ltt%particle_output_file} string using
-the following rules: If \vn{ltt%particle_output_file} contains a hash character ''\#'', the data file name
-is formed by substituting the turn number for the hash token. If there is no hash character, the
-data file name is formed by appending the turn number to the \vn{ltt%particle_output_file} string.
+With \vn{ltt%merge_particle_output_files} set to \vn{False}, an output data file will be produced
+every \vn{ltt%output_every_n_turns} turns. Each line in this file records a particle's orbital and
+spin position. The name of the data file is derived from the \vn{ltt%particle_output_file} string
+using the following rules: If \vn{ltt%particle_output_file} contains a hash character ''\#'', the
+data file name is formed by substituting the turn number for the hash token. If there is no hash
+character, the data file name is formed by appending the turn number to the
+\vn{ltt%particle_output_file} string.
 
-With \vn{ltt%merge_particle_output_files} set to \vn{True}, instead of generating multiple files, all data is
-put into one file whose name is given by \vn{ltt%particle_output_file}.
+With \vn{ltt%merge_particle_output_files} set to \vn{True}, instead of generating multiple files,
+all data is put into one file whose name is given by \vn{ltt%particle_output_file}.
 
-Nominally particle data is recorded every \vn{ltt%output_every_n_turns} number of
-turns. However, if \vn{ltt%output_every_n_turns} is set to 0, particle data is recorded only
-at the start and end of the tracking. If \vn{ltt%output_every_n_turns} is set to -1,
-particle data is only recorded at the end of tracking.
+Nominally particle data is recorded every \vn{ltt%output_every_n_turns} number of turns. However, if
+\vn{ltt%output_every_n_turns} is set to 0, particle data is recorded only at the start and end of
+the tracking. If \vn{ltt%output_every_n_turns} is set to -1, particle data is only recorded at the
+end of tracking.
 
-If \vn{ltt%output_initial_position} is set to \vn{True}, additional columns will be added to the output
-particle data file to show the initial particle position and spin.
+If \vn{ltt%output_initial_position} is set to \vn{True}, additional columns will be added to the
+output particle data file to show the initial particle position and spin.
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}
