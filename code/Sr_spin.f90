@@ -50,6 +50,10 @@ module ptc_spin
   real(dp) n_oleksii(3)
   real(dp) :: t_ns_oleksii=0,t_nb_oleksii=0,t_bks_approx=0, i_bks=0 ,theta_oleksii=0
   integer :: print_oleksii =0
+ ! logical :: doone = .false.
+  real(dp) :: d_Sij(3,3)
+  type(quaternion) :: q_ij,q_i
+  logical :: do_d_sij=.false.
 type(work) w_bks
 
   INTERFACE assignment (=)
@@ -575,9 +579,11 @@ contains
     type(quaternion) q
     real(dp) b30,x1,x3,denf,a(3),dspin(3),bs(3),ee(3),bb(3),lambda,s(3,3),denf0
     type(damap) xpmap
+    type(c_damap) smap
     integer i,j,ja,ia
     type(internal_state) k
-
+    real(dp) Sm(3,3),sdelta(3,3)
+    type(quaternion) qdelta
     IF(.NOT.CHECK_STABLE) return
 !!!  ee =  ray direction
 !!!  bb =  b field
@@ -603,7 +609,10 @@ contains
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
-
+!       if(doone.and.c%parent_fibre%magp%name(1:5)/="BENDT") denf=0
+!       if(c%pos_in_fibre/=3.and.c%parent_fibre%magp%name(1:5)=="BENDT") denf=0
+!denf=denf*4
+!if(doone.and.c%parent_fibre%magp%name(1:5)=="BENDT") write(6,*) before,c%pos_in_fibre,denf
 
        call alloc(xpmap)
 
@@ -611,8 +620,10 @@ contains
        xpmap%v(3)=x(3)
        xpmap%v(5)=x(5)
        xpmap%v(6)=x(6)
-       xpmap%v(2)=xp(1)
-       xpmap%v(4)=xp(2)
+     !  xpmap%v(2)=xp(1)
+     !  xpmap%v(4)=xp(2)
+       xpmap%v(2)=x(2)
+       xpmap%v(4)=x(4)
 
        xpmap=xpmap**(-1)
 
@@ -630,7 +641,31 @@ contains
          q=p%q 
     
          call makeso3(q,s)
+         if(c_%no>=2.and.do_d_sij) then
+          call alloc(smap)
+          smap=p
+         call makeso3(smap)
+           do i=1,3
+           do j=1,3
+            sm(j,i)=smap%s%s(i,j)
+            sdelta(i,j)=(smap%s%s(i,j).sub.'000020')*denf
+           enddo
+           enddo
+           do i=0,3
+             qdelta%x(i)=(p%q%x(i).sub.'000020')*denf
+           enddo
+           q_ij=q_ij + q**(-1)*qdelta
 
+           do i=0,3
+             qdelta%x(i)=(p%q%x(i).sub.'000010')*sqrt(denf)
+           enddo
+           q_i=q_i + q**(-1)*qdelta
+
+           d_Sij=d_Sij + matmul(sm,sdelta)
+
+
+          call kill(smap)
+         endif
        else
         DO I=1,3
            DO J=1,3
@@ -777,14 +812,17 @@ dspin=matmul(s,n_oleksii)
        b30=b30**1.5e0_dp
        denf0=cflucf(el%p)
        denf=denf0*b30 *FAC*DS*denf
-
+  !     if(doone) denf=0
+ 
        call alloc(xpmap)
        xpmap%v(1)=x(1)
        xpmap%v(3)=x(3)
        xpmap%v(5)=x(5)
        xpmap%v(6)=x(6)
-       xpmap%v(2)=xp(1)
-       xpmap%v(4)=xp(2)
+     !  xpmap%v(2)=xp(1)
+     !  xpmap%v(4)=xp(2)
+       xpmap%v(2)=x(2)
+       xpmap%v(4)=x(4)
        xpmap=xpmap**(-1)
        do i=1,6
           do j=1,6
@@ -801,6 +839,30 @@ dspin=matmul(s,n_oleksii)
 
   
          call makeso3(q,s)
+
+         if(c_%no>=2.and.do_d_sij) then
+          call alloc(smap)
+          smap=p
+         call makeso3(smap)
+           do i=1,3
+           do j=1,3
+            sm(j,i)=smap%s%s(i,j)
+            sdelta(i,j)=(smap%s%s(i,j).sub.'000020')*denf
+           enddo
+           enddo
+           do i=0,3
+             qdelta%x(i)=(p%q%x(i).sub.'000020')*denf
+           enddo
+           q_ij=q_ij + q**(-1)*qdelta
+
+           do i=0,3
+             qdelta%x(i)=(p%q%x(i).sub.'000010')*sqrt(denf)
+           enddo
+           q_i=q_i + q**(-1)*qdelta
+
+           d_Sij=d_Sij + matmul(sm,sdelta)
+          call kill(smap)
+         endif
 
        else
         DO I=1,3
@@ -2945,11 +3007,11 @@ call kill(vm,phi,z)
     if(donew) then   ! actually calling old stuff pre-node
      call TRACK(xs%x,K,fibre1,fibre2=fibre2)
     else
-     if(use_bmad_units.and.(.not.inside_bmad)) then 
-       beta=C%PARENT_FIBRE%beta0
-       if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
-       call convert_bmad_to_ptc(xs,beta,k%time)
-     endif
+    if(use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+    endif
      DO  WHILE(.not.ASSOCIATED(C,n2))
         CALL TRACK_NODE_PROBE(C,XS,K)
         if(.not.check_stable) exit
@@ -3543,11 +3605,11 @@ call kill(vm,phi,z)
  !   endif ! cavity
  
 
-    if(use_bmad_units.and.inside_bmad) then
-      beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
-      call convert_bmad_to_ptc(xs,beta,k%time)
-    endif
+ !   if(use_bmad_units.and.inside_bmad) then
+ !     beta=C%PARENT_FIBRE%beta0
+ !     if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+ !     call convert_bmad_to_ptc(xs,beta,k%time)
+ !   endif
 
     IF(K%MODULATION.and.xs%nac/=0) THEN !modulate
        if(c%parent_fibre%mag%slow_ac/=0) CALL MODULATE(C,XS,K) !modulate
@@ -3608,11 +3670,11 @@ call kill(vm,phi,z)
   !  IF((K%MODULATION.or.ramp).and.c%parent_fibre%mag%slow_ac) THEN  !modulate
   !     CALL restore_ANBN_SINGLE(C%PARENT_FIBRE%MAG,C%PARENT_FIBRE%MAGP)
   !  ENDIF  !modulate
-    if(use_bmad_units.and.inside_bmad) then
-      beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
-      call convert_ptc_to_bmad(xs,beta,k%time)
-    endif
+!    if(use_bmad_units.and.inside_bmad) then
+!      beta=C%PARENT_FIBRE%beta0
+!      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+!      call convert_ptc_to_bmad(xs,beta,k%time)
+!    endif
  else ! full_way
 
 
@@ -3699,11 +3761,11 @@ endif ! full_way
  
  
 
-    if(use_bmad_units.and.inside_bmad) then
-      beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
-      call convert_bmad_to_ptc(xs,beta,k%time)
-    endif
+ !   if(use_bmad_units.and.inside_bmad) then
+ !     beta=C%PARENT_FIBRE%beta0
+ !     if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
+ !     call convert_bmad_to_ptc(xs,beta,k%time)
+ !   endif
 
     IF(K%MODULATION.and.xs%nac/=0) then
        if(c%parent_fibre%mag%slow_ac/=0)  CALL MODULATE(C,XS,K) !modulate
@@ -3796,11 +3858,11 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     call kill(ds)
 
 
-    if(use_bmad_units.and.inside_bmad) then
-      beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
-      call convert_ptc_to_bmad(xs,beta,k%time)
-    endif
+ !   if(use_bmad_units.and.inside_bmad) then
+ !     beta=C%PARENT_FIBRE%beta0
+ !     if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
+ !     call convert_ptc_to_bmad(xs,beta,k%time)
+ !   endif
 else
 
 

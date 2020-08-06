@@ -10613,7 +10613,7 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
     type(probe_8) xs
     type(probe) xs0
     type(real_8) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta,ds
-    real(dp) m(6,6),xi(6),norm,z0(6)
+    real(dp) m(6,6),xi(6),norm,z0(6),X0_PROBE(6)
     type(damap) dm,md,iq
     type(c_damap) m0,mt
     type(quaternion_8) qu
@@ -10621,8 +10621,7 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
     type(internal_state) sta
     logical dofix0,dofix
     integer, allocatable :: js(:)
- 
-    call alloc(x,size_tree)
+     call alloc(x,size_tree)
     call alloc(x0,size_tree)
     call alloc(dx6,beta)
     do i=1,3
@@ -10639,7 +10638,7 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
   ! else
     call alloc(m0,mt)
     m0=xs
-
+    X0_PROBE=XS%X0 
     do o=1,6
      z0(o)=xs%x(o)
      enddo
@@ -10711,8 +10710,9 @@ SUBROUTINE track_TREE_probe_complexp_new(T,xs,dofix0,dofix,sta)
       xi(i)=x0(i)
      enddo
  
+ 
       call  track_TREE_probe_complexr(T,xs0,.false.,.false.,sta,jump=.true.,all_map=.not.t(3)%factored)
-
+ 
 !!! compute map  for speed up
      norm=0.d0
      do i=1,6
@@ -10863,7 +10863,7 @@ endif
        if(sta%totalpath==1) then
         x(6)=x(6)+t(1)%ds
        endif
-    call kill(dx6)
+!    call kill(dx6)
     else
         if(sta%totalpath==1) then
         x(6)=x(6)+t(1)%ds/t(1)%beta0 
@@ -10876,9 +10876,11 @@ endif
       z0(i)=x(i)
     enddo
 
+ 
     mt=xs
+ 
     xs=mt*m0
-    
+  
     do i=1,6
      xs%x(i)=xs%x(i)-(xs%x(i).sub.'0')+z0(i)
     enddo
@@ -10895,7 +10897,8 @@ endif
      call kill(r(i,j))
     enddo
     enddo
-
+    XS%X0 = X0_PROBE
+ 
   end SUBROUTINE track_TREE_probe_complexp_new
 
   SUBROUTINE orthonormalisep(r)

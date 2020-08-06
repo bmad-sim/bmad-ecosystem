@@ -165,6 +165,7 @@ private rk2abellr,rk4abellr,rk6abellr,rk2abellp,rk4abellp,rk6abellp,get_z_abr,ge
 private fx_newcr,fx_newcp,fx_newc
 integer :: tot_t=1
 logical :: old_thick_bend = .false.
+!logical :: old_electric = .false.
 
   INTERFACE TRACK_SLICE
 !     MODULE PROCEDURE INTER_CAV4
@@ -10018,8 +10019,13 @@ integer :: kkk=0
           IF(K+1>=I) THEN
 
         if(el%p%exact.or.pow==0) then
+!if(old_electric) then
              EL%E_X(J)=EL%E_X(J)+(EL%AE(I)*S_E%A_X(I,J)+EL%BE(I)*S_E%B_X(I,J))*EL%P%B0**POW
              EL%E_Y(J)=EL%E_Y(J)+(EL%AE(I)*S_E%A_Y(I,J)+EL%BE(I)*S_E%B_Y(I,J))*EL%P%B0**POW
+!else
+!             EL%E_Y(J)=EL%E_Y(J)+(EL%AE(I)*S_E%A_X(I,J)+EL%BE(I)*S_E%B_X(I,J))*EL%P%B0**POW
+!             EL%E_X(J)=EL%E_X(J)+(EL%AE(I)*S_E%A_Y(I,J)+EL%BE(I)*S_E%B_Y(I,J))*EL%P%B0**POW
+!endif
 !             EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_EB%A_X(I,J)+EL%BN(I)*S_EB%B_X(I,J))*EL%P%B0**POW
 !             EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_EB%A_Y(I,J)+EL%BN(I)*S_EB%B_Y(I,J))*EL%P%B0**POW
              EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_B_from_V%A_X(I,J)+EL%BN(I)*S_B_from_V%B_X(I,J))*EL%P%B0**POW
@@ -10039,14 +10045,18 @@ integer :: kkk=0
     ENDDO
 
     DO I=1,NMUL
+
        DO J=1,S_E%N_MONO
           K=S_E%i(J)+S_E%j(J)
           POW=K-I      !+1
           IF(K>=I) THEN   ! changed
 
         if(el%p%exact.or.pow==0) then
+!if(old_electric) then
              EL%PHI(J)=EL%PHI(J)+(EL%AE(I)*S_E%VA(I,J)+EL%BE(I)*S_E%VB(I,J))*EL%P%B0**POW
-
+!else
+!             EL%PHI(J)=EL%PHI(J)+(EL%AE(I)*S_E%VA(I,J)+EL%BE(I)*S_E%VB(I,J))*EL%P%B0**POW
+!endif
              EL%VM(J)=EL%VM(J)+(EL%AN(I)*S_B_from_V%VA(I,J)+EL%BN(I)*S_B_from_V%VB(I,J))*EL%P%B0**POW
         endif
 
@@ -10081,8 +10091,15 @@ integer :: kkk=0
           IF(K+1>=I) THEN
 
         if(el%p%exact.or.pow==0) then
+!if(old_electric) then
              EL%E_X(J)=EL%E_X(J)+(EL%AE(I)*S_E%A_X(I,J)+EL%BE(I)*S_E%B_X(I,J))*EL%P%B0**POW
              EL%E_Y(J)=EL%E_Y(J)+(EL%AE(I)*S_E%A_Y(I,J)+EL%BE(I)*S_E%B_Y(I,J))*EL%P%B0**POW
+!else
+!             EL%E_Y(J)=EL%E_Y(J)+(EL%AE(I)*S_E%A_X(I,J)+EL%BE(I)*S_E%B_X(I,J))*EL%P%B0**POW
+!             EL%E_X(J)=EL%E_X(J)+(EL%AE(I)*S_E%A_Y(I,J)+EL%BE(I)*S_E%B_Y(I,J))*EL%P%B0**POW
+!endif
+
+
 !             EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_EB%A_X(I,J)+EL%BN(I)*S_EB%B_X(I,J))*EL%P%B0**POW
 !             EL%BF_Y(J)=EL%BF_Y(J)+(EL%AN(I)*S_EB%A_Y(I,J)+EL%BN(I)*S_EB%B_Y(I,J))*EL%P%B0**POW
              EL%BF_X(J)=EL%BF_X(J)+(EL%AN(I)*S_B_from_V%A_X(I,J)+EL%BN(I)*S_B_from_V%B_X(I,J))*EL%P%B0**POW
@@ -10108,7 +10125,11 @@ integer :: kkk=0
           IF(K>=I) THEN   ! changed
 
         if(el%p%exact.or.pow==0) then
+!if(old_electric) then
              EL%PHI(J)=EL%PHI(J)+(EL%AE(I)*S_E%VA(I,J)+EL%BE(I)*S_E%VB(I,J))*EL%P%B0**POW
+!else
+!             EL%PHI(J)=EL%PHI(J)+(EL%AE(I)*S_E%VA(I,J)+EL%BE(I)*S_E%VB(I,J))*EL%P%B0**POW
+!endif
 
              EL%VM(J)=EL%VM(J)+(EL%AN(I)*S_B_from_V%VA(I,J)+EL%BN(I)*S_B_from_V%VB(I,J))*EL%P%B0**POW
         endif
@@ -10510,7 +10531,7 @@ integer :: kkk=0
     E(2)=Ey*volt_c/EL%P%P0C
     E(3)=0.0_dp
     phi=phi*volt_c/EL%P%P0C
-
+ 
     CALL KILL(X1,X3,BX,BY,BTX,BTY,BtYT)
     CALL KILL(phit,EX,ETX,EY,ETY,VMT)
 
@@ -10593,7 +10614,7 @@ integer :: kkk=0
      DIR=EL%P%DIR*EL%P%CHARGE
      call GETELECTRIC(EL,E,del,B,VM,X,kick=my_true)
      E(3)=del
-
+ 
      IF(EL%P%EXACT) THEN
         if(k%TIME) then
            H=1.0_dp+EL%P%B0*X(1)
@@ -13725,7 +13746,7 @@ xi=x(2)/pt
 zeta=xn(2)/pt
 w= xi
 v=-root(1.e0_dp-xi**2)
-write(6,*) " sparr ", w*ROOT(1.e0_dp-zeta**2)-v*zeta
+! write(6,*) " sparr ", w*ROOT(1.e0_dp-zeta**2)-v*zeta
 
 !xt1=(2*YL*x(2)-YL**2*DIR*EL%BN(1))*DIR*EL%BN(1)/pt**2
 !xt2= w*root(1-zeta**2)-v*zeta

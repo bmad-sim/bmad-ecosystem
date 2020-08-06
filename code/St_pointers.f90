@@ -50,7 +50,7 @@ module pointer_lattice
  !private ind1,ind2,ipos,ireal,a_f,a_f0,yfit
   integer, allocatable:: ind1(:),ind2(:),ipos(:)
   logical, allocatable :: ireal(:)
-  real(dp), allocatable :: a_f(:),a_f0(:),yfit(:),dyfit(:,:)
+  real(dp), private, allocatable :: a_f(:),a_f0(:),yfit(:),dyfit(:,:)
   integer sizeind1
   logical :: onefunc = .true.,skipzero=.false.,skipcomplex=.true.
  type(probe), pointer :: xs0g(:) => null()

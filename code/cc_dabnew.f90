@@ -25,6 +25,7 @@ module c_dabnew
   logical(lp) C_STABLE_DA,C_watch_user,C_check_stable
   real(dp), private :: eps=1.d-38,epsprint=1.d-38
 !real(dp),public :: eps_clean=0
+  public c_print_c_nda_dab_c_lda
 complex(dp), private :: i_=(0.0_dp,1.0_dp)
 contains
   !******************************************************************************
@@ -584,7 +585,7 @@ contains
           c_nda_dab = c_nda_dab + 1
           ind=c_nda_dab
           if(c_nda_dab.gt.c_lda) then
-             write(line,'(a50)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
+             write(line,'(a53)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,10'
              ipause=mypauses(8,line)
              call dadeb !(31,'ERR DAALL ',1)
           endif
@@ -684,7 +685,7 @@ contains
              c_nda_dab = c_nda_dab + 1
              ind=c_nda_dab
              if(c_nda_dab.gt.c_lda) then
-                write(6,'(a50)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
+                write(6,'(a53)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,20'
                 !    ipause=mypauses(10,line)
                 call dadeb !(31,'ERR DAALL ',1)
                 stop 111
@@ -786,7 +787,7 @@ contains
           c_nda_dab = c_nda_dab + 1
           ind=c_nda_dab
           if(c_nda_dab.gt.c_lda) then
-             write(line,'(a50)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
+             write(line,'(a53)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,30'
              ipause=mypauses(12,line)
              call dadeb !(31,'ERR DAALL ',1)
           endif
@@ -842,6 +843,13 @@ contains
     return
   end subroutine daall1
 
+  subroutine c_print_c_nda_dab_c_lda(i)
+    implicit none
+     integer i
+     write(6,*) i,c_nda_dab,c_lda
+  end subroutine c_print_c_nda_dab_c_lda
+
+
   subroutine c_etall1(ic)
     implicit none
     integer ic
@@ -896,7 +904,7 @@ contains
           c_nda_dab = c_nda_dab + 1
           ind=c_nda_dab
           if(c_nda_dab.gt.c_lda) then
-             write(6,'(a50)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED'
+             write(6,'(a53)') 'ERROR IN DAALL, MAX NUMBER OF DA VECTORS EXHAUSTED,40'
              write(6,*) c_nda_dab,c_lda
              call dadeb !(31,'ERR DAALL ',1)
           endif
