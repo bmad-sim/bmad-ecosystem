@@ -172,16 +172,25 @@ open (1, file = init_file, status = 'old', action = 'read')
 read (1, nml = params)  
 close (1)
 
+! Sanity checks
+
+select case (ltt%tracking_method)
+case ('MAP', 'SLICK', 'PTC', 'BMAD')
+case default
+  print *, 'UNKNOWN LTT%TRACKING_METHOD: ' // ltt%tracking_method
+  stop
+end select
+
+select case (ltt%simulation_mode)
+case ('CHECK', 'SINGLE', 'BUNCH', 'STAT')
+case default
+  print *, 'UNKNOWN LTT%SIMULATION_MODE: ' // ltt%simulation_mode
+  stop
+end select
+
 ! PTC has an internal aperture of 1.0 meter. To be safe use an aperture of 0.9 meter
 
 ltt%ptc_aperture = min([0.9_rp, 0.9_rp], ltt%ptc_aperture)
-
-!
-
-if (ltt%tracking_method == 'STANDARD') then
-  ltt%tracking_method = 'BMAD'
-  print *, 'Note: LTT%TRACKING_METHOD = "STANDARD" has been renamed "BMAD". Will run normally...'
-endif
 
 ! map file logic
 

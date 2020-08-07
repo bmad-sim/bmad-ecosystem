@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ July 8, 2020}
+\date{David Sagan \\ August 7, 2020}
 \begin{document}
 \maketitle
 
@@ -137,9 +137,14 @@ simulation mode is set by the \vn{ltt%simulation_mode} parameter in the master i
 \begin{description}
 \item["CHECK"] \Newline
 In this mode a particle is tracked from \vn{ele_start} to \vn{ele_stop} using a map and
-element-by-element tracking using \bmad and PTC. The results are then printed to the terminal. This
+element-by-element tracking using Bmad and PTC. The results are then printed to the terminal. This
 mode can be used to get a sense of how accurate the 1-turn map is. The starting coordinates are set
-by \vn{particle_start} commands in the lattice file.
+by \vn{particle_start} commands in the lattice file. Included in the output is the transfer matrix
+(Jacobian) with respect to the tracked orbit for each of the three tracking methods. These transfer
+matrices are computed using finite differences when the starting position is varied. The variation
+used in the computation can be specified by setting in the master input file the vector
+\vn{bmad_com%d_orb}. This vector has 6 components, one for each phase space component. That is,
+\vn{bmad_com%d_orb(1)} sets the variation of the $x$ phase space component, etc.
 
 No data files are produced in this mode.
 
@@ -326,8 +331,9 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
 
   ! Simulation parameters
   ltt%simulation_mode    = "BUNCH"
-  ltt%tracking_method    = 'BMAD'
+  ltt%tracking_method    = "BMAD"
   ltt%ele_start          = ""
+  ltt%ele_stop           = ""            ! Used for "CHECK" simulation_mode 
   ltt%n_turns            = 1000
   ltt%map_order          = 5
   ltt%rfcavity_on        = True
@@ -495,12 +501,12 @@ Name or element index of the element to start the tracking. Examples:
 \end{code}
 The default is to start at the beginning of the lattice. Notice that the tracking starts at the
 downstream end of the element so the first element tracked through is the element after the chosen
-one. Also see \vn{ttl\%ele_stop}.
+one. Also see \vn{ttl%ele_stop}.
 %
 \item[ltt\%ele_stop] \Newline
-Used when \vn{ltt%simulation_mode} is set to \vn{"CHECK"}. \vn{ttl\%ele_stop} sets the stopping
-point for tracking to be the downstream edge of the element. Also see \vn{ttl\%ele_start}. Default
-if not set or set to a blank string is for \vn{tll\%ele_stop} to be equal to \vn{tll\%ele_start}.
+Used when \vn{ltt%simulation_mode} is set to \vn{"CHECK"}. \vn{ttl%ele_stop} sets the stopping
+point for tracking to be the downstream edge of the element. Also see \vn{ttl%ele_start}. Default
+if not set or set to a blank string is for \vn{tll%ele_stop} to be equal to \vn{tll%ele_start}.
 %
 \item[ltt\%map_order] \Newline
 Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice
@@ -530,7 +536,7 @@ messages is set by \vn{ltt%timer_print_dtime} which is a number in seconds.
 String switch which sets how particles are tracked when the \vn{simulation_mode} is set to
 "\vn{BUNCH}" or "\vn{SINGLE}". Possible settings are:
 \begin{code}
-  "1_TURN_MAP"  ! 1-turn map tracking. Will not give correct results when
+  "MAP"         ! 1-turn map tracking. Will not give correct results when
                 !  tracking with spin and radiation excitation.
   "SLICK"       ! SLICK like tracking.
   "PTC"         ! Element-by-element tracking with PTC. Slow.
