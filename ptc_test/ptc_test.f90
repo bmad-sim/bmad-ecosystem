@@ -70,7 +70,7 @@ bmad_com%spin_tracking_on = .true.
 call taylor_clean(tmap)
 call taylor_clean(smap)
 call type_taylors (tmap)
-call type_taylors(smap, out_type = 'SPIN')
+call type_taylors(smap)
 
 call ptc_one_turn_mat_and_closed_orbit_calc (lat%branch(0))
 

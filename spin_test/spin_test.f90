@@ -68,7 +68,7 @@ write (1, '(a, 3f14.9)') '"dBmad-Quad"  ABS 0   ', spin_b - orb0%spin
 if (print_extra) then
   call type_taylors (t_ele%taylor)
   print *, '--------------------------------'
-  call type_taylors (t_ele%spin_taylor, out_type = 'SPIN')
+  call type_taylors (t_ele%spin_taylor)
 
   print '(a, 3f12.6)', 'Init:      ', orb0%spin
   print '(a, 3f12.6)', 'dPTC_Quad: ', spin_a - orb0%spin

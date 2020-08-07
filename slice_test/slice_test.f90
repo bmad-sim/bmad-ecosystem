@@ -132,13 +132,13 @@ write (1, '(a, 6es18.9)') '"rfcav:dmat" ABS 1e-14', (maxval(abs(xmat(j,:)-branch
 
 ! track slice
 
-ele => branch%ele(0)
+ele1 = branch%ele(0)
 call init_coord (start_orb, start_orb, branch%ele(5), downstream_end$)
 start_orb%s = branch%ele(4)%s + 0.1
 start_orb%location = inside$
-call twiss_and_track_from_s_to_s (branch, start_orb, branch%ele(6)%s-0.1, end_orb, ele, ele)
-write (1, '(a, 2es18.9)') '"rfcav-slice:beta" ABS 1e-8', ele%a%beta, ele%b%beta
-write (1, '(a, 2es18.9)') '"rfcav-slice:eta"  ABS 1e-8', ele%a%eta, ele%b%eta
+call twiss_and_track_from_s_to_s (branch, start_orb, branch%ele(6)%s-0.1, end_orb, ele1, ele1)
+write (1, '(a, 2es18.9)') '"rfcav-slice:beta" ABS 1e-8', ele1%a%beta, ele1%b%beta
+write (1, '(a, 2es18.9)') '"rfcav-slice:eta"  ABS 1e-8', ele1%a%eta, ele1%b%eta
 
 !--
 

@@ -101,14 +101,14 @@ do ib = 0, ubound(lat%branch, 1)
         ele2 => eles(j)
         if (k < 7) then
           if (custom_test) then
-            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // int_str(k) // '"' 
             if (err) then
               write (1, '(2a)') final_str(1:ns), '  -------------------------------------- LOST -------------------------------'
             else
               write (1, fmt1) final_str(1:ns), ele2%mat6(k,:)
             endif
           else
-            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // int_str(k) // '"' 
             write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)
           endif
         else if (k == 7) then
@@ -155,14 +155,6 @@ close(1)
 
 !----------------------------------------------------------------------
 contains
-
-character(8) function convert_to_string(a)
-integer :: a
-write(convert_to_string, '(I1.1)') a
-end function convert_to_string
-
-!----------------------------------------------------------------------
-! contains
 
 character(10) function tolerance(instr)
 character(44) :: instr
