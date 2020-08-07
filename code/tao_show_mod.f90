@@ -3665,6 +3665,7 @@ case ('taylor_map', 'matrix')
   by_s = .false.
   print_ptc = .false.
   print_eigen = .false.
+  disp_fmt = ''
 
   if (show_what == 'matrix') then
     n_order = 1
@@ -3675,11 +3676,13 @@ case ('taylor_map', 'matrix')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(16):: '-order', '-s', '-ptc', '-eigen_modes'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(16):: '-order', '-s', '-ptc', '-eigen_modes', '-lattice_format'], .true., switch, err, ix)
     if (err) return
     if (switch == '') exit
     select case (switch)
-    case  ('-eigen_modes')
+    case ('-lattice_format') 
+      disp_fmt = 'BMAD'
+    case ('-eigen_modes')
       print_eigen = .true.
     case ('-order')
       read (what2(:ix), *, iostat = ios) n_order
@@ -3744,7 +3747,7 @@ case ('taylor_map', 'matrix')
 
     call twiss_and_track_at_s (lat, s1, ele0, u%model%tao_branch(ix_branch)%orbit, orb, ix_branch)
 
-    if (n_order > 1 .or. print_ptc) then
+    if (n_order > 1 .or. print_ptc .or. disp_fmt == 'BMAD') then
       call transfer_map_from_s_to_s (lat, taylor, s1, s2, orb, ix_branch, &
                                                         one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       call taylor_to_mat6(taylor, u%model%tao_branch(ix_branch)%orbit(ix1)%vec, vec0, mat6)
@@ -3784,7 +3787,6 @@ case ('taylor_map', 'matrix')
 
     branch => lat%branch(ix_branch)
 
-
     if (ele2_name == '' .and. ele1_name /= '') then
       ix2 = ix1
       if (lat%param%geometry == open$) then
@@ -3792,6 +3794,7 @@ case ('taylor_map', 'matrix')
       else
         ix1 = ix2
       endif
+
     elseif (ele2_name /= '') then
       call tao_locate_elements (ele2_name, u%ix_uni, eles, err)
       if (size(eles) > 1) then
@@ -3815,7 +3818,6 @@ case ('taylor_map', 'matrix')
         nl=1; lines(1) = 'ELEMENTS ARE IN DIFFERENT LATTICE BRANCHES'
         return
       endif
-
     endif
 
     if (ele2_name == '') then
@@ -3823,7 +3825,7 @@ case ('taylor_map', 'matrix')
       nl=nl+1; lines(nl) = '    to:   ' // trim(branch%ele(ix2)%name)
     endif
 
-    if (n_order > 1 .or. print_ptc) then
+    if (n_order > 1 .or. print_ptc .or. disp_fmt == 'BMAD') then
       call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), &
                                                       one_turn = .true., concat_if_possible = s%global%concatenate_maps)
       if (err) then
@@ -3843,8 +3845,8 @@ case ('taylor_map', 'matrix')
 
   if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
 
-  if (n_order > 1) then
-    call type_taylors (taylor, lines = lines, n_lines = nl, clean = .true.)
+  if (n_order > 1 .or. disp_fmt == 'BMAD') then
+    call type_taylors (taylor, lines = lines, n_lines = nl, out_style = disp_fmt, clean = .true.)
     if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
   else
     vec_in = 0
