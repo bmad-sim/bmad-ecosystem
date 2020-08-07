@@ -78,12 +78,14 @@ PointCacheIt::PointCacheIt(std::vector<GeantParticle>::iterator pp, PointCache* 
 PointCacheIt& PointCacheIt::operator++() {
   // If we've reached the end of one of the vectors
   // (other than the last one), shift to the next vector
-  if (p == c_it->end()-1 && c_it != std::prev(c->tl_vecs.end())) {
+  // Case: p != end -> increment p
+  if (p != c_it->end()) ++p;
+  // Case: p == end -> increment c_it until we get to
+  // a non-empty vector, or the last vector, then set p to c_it->begin
+  while (p == c_it->end() && c_it != std::prev(c->tl_vecs.end())) {
     ++c_it;
     p = c_it->begin();
-    return *this;
   }
-  ++p;
   return *this;
 }
 
@@ -96,11 +98,18 @@ PointCacheIt PointCacheIt::operator++(int) {
 PointCacheIt& PointCacheIt::operator--() {
   // If we've reached the beginning of one of the vectors
   // (other than the first one), shift to the previous vector
-  if (p == c_it->begin() && c_it != c->tl_vecs.begin()) {
-    --c_it;
-    p = c_it->end()-1;
+  // Case: p != begin -> just decrement p
+  if (p != c_it->begin()) {
+    --p;
     return *this;
   }
+  // Case: p == begin -> decrement c_it until we get to
+  // a non-empty vector, or the last vector, then set p to c_it->end
+  while (p == c_it->begin() && c_it != c->tl_vecs.begin()) {
+    --c_it;
+    p = c_it->end();
+  }
+  // Finally, decrement p so that it points to c_it->back
   --p;
   return *this;
 }

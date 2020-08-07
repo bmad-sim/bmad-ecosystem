@@ -22,6 +22,7 @@ CalibrationBinner::CalibrationBinner(G4RunManager* p_run_manager, PointCache* p_
   bins(),
   spin_bins(),
   total_count(0), elec_in(0),
+  eff_approx(0.0),
   runManager(p_run_manager), point_cache(p_cache),
   target_material(p_s.target_material),
   out_dir(p_s.output_directory),
@@ -47,15 +48,19 @@ CalibrationBinner::CalibrationBinner(G4RunManager* p_run_manager, PointCache* p_
 
 // Main methods
 void CalibrationBinner::calibrate() {
-  // Short run
+  // Gather some data for calibration
+  unsigned n_runs = 0;
   size_t calibration_length = 10000;
-  run_simulation(runManager, target_material, in_energy, target_thickness, in_polarization, point_cache, calibration_length);
+  do {
+    // Short run
+    run_simulation(runManager, target_material, in_energy, target_thickness, in_polarization, point_cache, calibration_length);
 
-  // Read data points from point_cache
-  point_cache->Lock();
-  point_cache->DumpData(&cal_run);
-  point_cache->Unlock();
-
+    // Read data points from point_cache
+    point_cache->Lock();
+    point_cache->DumpData(&cal_run);
+    point_cache->Unlock();
+    n_runs++;
+  } while (cal_run.size() < 3000);
 
   // Sorting functions
   auto esort = [](const auto& p1, const auto& p2) {
@@ -76,6 +81,9 @@ void CalibrationBinner::calibrate() {
   cal_run.erase(std::remove_if(cal_run.begin(), cal_run.end(),
         [this](GeantParticle p) { return !in_range(p); }),
       cal_run.end());
+
+  // Compute approximate efficiency
+  eff_approx = cal_run.size() / (n_runs * calibration_length);
 
   // Set E,r edges
   size_t stride = (cal_run.size()-1) / (E_edges.size() - 1);
@@ -128,10 +136,13 @@ void CalibrationBinner::add_point(const GeantParticle& p) {
 }
 
 
-void CalibrationBinner::run(size_t run_length) {
+void CalibrationBinner::run(size_t num_positrons) {
   point_cache->Lock();
   point_cache->Clear();
   point_cache->Unlock();
+  size_t run_length;
+  if (eff_approx > 0) run_length = num_positrons / eff_approx;
+  else run_length = num_positrons;
   run_simulation(runManager, target_material, in_energy, target_thickness,
       in_polarization, point_cache, run_length);
   for (auto& p : *point_cache) add_point(p);
@@ -237,6 +248,7 @@ void CalibrationBinner::write_table(const std::string& param) const {
     for (size_t j=0; j<num_r_bins; j++) {
       double bin_E = get_E_val(i);
       double bin_r = get_r_val(j);
+      if (param != "er"s && j == 0) bin_r = 0; // r=0 bin for spin data
       auto& bin = get_bin(i,j);
       if (param == "er"s) table_file << '\t' << bin.density(elec_in);
       else if (param == "polx"s) table_file << '\t' << bin.get_average(polx);
@@ -362,7 +374,7 @@ bool CalibrationBinner::has_enough_data() const {
     printf(CLEAR_LINE);
     printf("\tOutgoing particle throughput: %0.02e/sec\n", pos_throughput);
 
-    auto time_left = std::max(0.0, (per_bin_target * num_bins - total_count) / elec_throughput);
+    auto time_left = std::max(0.0, (per_bin_target * num_bins - total_count) / pos_throughput);
     unsigned hr = time_left / 3600;
     unsigned mn = (time_left - 3600*hr) / 60;
     unsigned sc = (time_left - 3600*hr - 60*mn);
