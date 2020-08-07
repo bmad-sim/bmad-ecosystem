@@ -93,7 +93,9 @@ class PointCache {
     void Clear();
 
     inline PointCacheIt begin() {
-      return PointCacheIt(tl_vecs.begin()->begin(), this, tl_vecs.begin());
+      auto first_nonempty_vec = std::find_if(tl_vecs.begin(), tl_vecs.end(), [](const auto& v) { return v.size() != 0; });
+      if (first_nonempty_vec == tl_vecs.end()) return end();
+      return PointCacheIt(first_nonempty_vec->begin(), this, first_nonempty_vec);
     }
 
     inline PointCacheIt end() {
