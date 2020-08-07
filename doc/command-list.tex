@@ -2671,7 +2671,8 @@ Examples:
 
 Syntax:
 \begin{example}
-  show taylor_map \{-eigen_modes\} \{-order <n_order>\} \{-ptc\} \{-s\} \{loc1 \{loc2\}\}
+  show taylor_map \{-eigen_modes\} \{-lattice_format\} \{-order <n_order>\} 
+                  \{-ptc\} \{-s\} \{loc1 \{loc2\}\}
 \end{example}
 
 Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by
@@ -2705,6 +2706,9 @@ The \vn{-ptc} switch is used with \vn{-order 1}. By default, order 1 maps (matri
 using native Bmad code. If the \vn{-ptc} switch is present, the matrix is calculated using the
 \vn{PTC} code (see the \bmad manual for details on PTC). Since PTC is always used to calcuate maps
 of order higher than 1, the \vn{-ptc} switch is ignored for higher orders.
+
+The \vn{-lattice_format} switch, if present, causes the output to be displayed in a format suitable
+for using in a \bmad lattice file.
 
 Maps are computed about the particle orbit. Not the zero orbit.
 
