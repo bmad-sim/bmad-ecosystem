@@ -1182,6 +1182,11 @@ do n = 0, ubound(lat%branch, 1)
 enddo
 call remove_eles_from_lat (lat, .false.)
 
+if (bp_com%error_flag == .true.) then
+  call parser_end_stuff (in_lat)
+  return
+endif
+
 ! Bookkeeping...
 ! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
 ! file may contain references to dependent element parameters that are computed in lattice_bookkeeper.
@@ -1193,8 +1198,7 @@ call set_flags_for_changed_attribute(lat)
 call s_calc(lat)
 call lattice_bookkeeper (lat, err)
 if (err) then
-  bp_com%error_flag = .true.
-  call parser_end_stuff (in_lat)
+  call parser_end_stuff (in_lat, set_error_flag = .true.)
   return
 endif
 
@@ -1202,8 +1206,7 @@ endif
 
 call lat_sanity_check (lat, err)
 if (err) then
-  bp_com%error_flag = .true.
-  call parser_end_stuff (in_lat)
+  call parser_end_stuff (in_lat, set_error_flag = .true.)
   return
 endif
 
@@ -1304,12 +1307,12 @@ call out_io (s_important$, r_name, 'Lattice parse time(min):\f5.2\ ', r_array = 
 !---------------------------------------------------------------------
 contains
 
-subroutine parser_end_stuff (lat0, do_dealloc)
+subroutine parser_end_stuff (lat0, do_dealloc, set_error_flag)
 
 type (lat_struct) lat0
 type (ele_struct), pointer :: ele
 
-logical, optional :: do_dealloc
+logical, optional :: do_dealloc, set_error_flag
 integer i, j
 
 ! Restore auto_bookkeeper flag
@@ -1323,6 +1326,7 @@ if (logic_option (.true., do_dealloc)) then
   if (allocated (bp_com%lat_file_names))   deallocate (bp_com%lat_file_names)
 endif
 
+if (logic_option(.false., set_error_flag)) bp_com%error_flag = .true.
 if (bp_com%error_flag) then
   if (global_com%exit_on_error) then
     call out_io (s_fatal$, r_name, 'BMAD_PARSER FINISHED. EXITING ON ERRORS')

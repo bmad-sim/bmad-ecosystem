@@ -59,7 +59,7 @@ endif
 
 do i = 1, n_key$
   call str_upcase(this_key, key_name(i))
-  if (abbrev .and. (n_name > 2 .or. name(1:2) == "RF")) then
+  if (abbrev .and. n_name > 1) then
     if (name(:n_name) == this_key(1:n_name)) then
       key_index = i
       n_match = n_match + 1
