@@ -1932,6 +1932,8 @@ character(16), parameter :: ptc_field_geometry_name(0:3) = [ &
 ! %max_aperture_limit is used when no limit is specified or when 
 !   lat%param%aperture_limit_on = False.
 ! Remember: Change extra_parsing_info_struct if bmad_common_struct changed.
+! abs_tol_tracking was changed from 1d-10 to 1d-11 since Tao needs the tighter tol for
+! calculating derivatives. DCS 8/2020.
 
 type bmad_common_struct
   real(rp) :: max_aperture_limit = 1d3                 ! Max Aperture.
@@ -1939,7 +1941,7 @@ type bmad_common_struct
   real(rp) :: default_ds_step    = 0.2_rp              ! Integration step size.  
   real(rp) :: significant_length = 1d-10               ! meter 
   real(rp) :: rel_tol_tracking = 1d-8                  ! Closed orbit relative tolerance.
-  real(rp) :: abs_tol_tracking = 1d-10                 ! Closed orbit absolute tolerance.
+  real(rp) :: abs_tol_tracking = 1d-11                 ! Closed orbit absolute tolerance.
   real(rp) :: rel_tol_adaptive_tracking = 1d-8         ! Runge-Kutta tracking relative tolerance.
   real(rp) :: abs_tol_adaptive_tracking = 1d-10        ! Runge-Kutta tracking absolute tolerance.
   real(rp) :: init_ds_adaptive_tracking = 1d-3         ! Initial step size
