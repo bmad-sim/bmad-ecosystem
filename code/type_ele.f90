@@ -1015,7 +1015,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     nl=nl+1; li(nl) = ' '
     nl=nl+1; write (li(nl), '(a, l1)') 'taylor_map_includes_offsets: ', ele%taylor_map_includes_offsets
     if (logic_option(.false., type_taylor)) then
-      call type_taylors (ele%taylor, lines = li2, n_lines = nt, out_type = 'PHASE')
+      call type_taylors (ele%taylor, lines = li2, n_lines = nt)
       call re_allocate (li, nl+nt+100, .false.)
       li(1+nl:nt+nl) = li2(1:nt)
       deallocate (li2)
@@ -1032,7 +1032,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
   if (associated(ele%spin_taylor(0)%term) .or. ele%key == taylor$) then
     if (logic_option(.false., type_taylor)) then
       nl=nl+1; li(nl) = ''
-      call type_taylors (ele%spin_taylor, lines = li2, n_lines = nt, out_type = 'SPIN')
+      call type_taylors (ele%spin_taylor, lines = li2, n_lines = nt)
       call re_allocate (li, nl+nt+100, .false.)
       li(1+nl:nt+nl) = li2(1:nt)
       deallocate (li2)
