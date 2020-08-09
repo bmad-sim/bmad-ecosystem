@@ -11,7 +11,7 @@ contains
 !-----------------------------------------------------------------------------------------
 !+
 ! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out,
-      !                        save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names)
+!                        save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names)
 !
 ! Routine to superimpose an element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.

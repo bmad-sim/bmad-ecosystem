@@ -46,7 +46,8 @@ end subroutine release_rad_int_cache
 ! If the particle is at the exit edge then the calculation is over the 2nd half of the element.
 !
 ! Input:
-!   orbit     -- coord_struct: Particle position.
+!   orbit     -- coord_struct: Particle position at the entrance edge if edge = start_edge$ and the 
+!                 exit edge if edge = end_edge$.
 !   ele       -- ele_struct: Element that causes radiation.
 !   edge      -- integer: Where the particle is: start_edge$ or end_edge$.
 !     
@@ -283,20 +284,17 @@ end subroutine calc_radiation_tracking_integrals
 ! Subroutine track1_radiation (orbit, ele, param, edge)
 !
 ! Subroutine to apply a kick to a particle to account for radiation dampling and/or fluctuations.
-! "Baier-Katkov" spin flips are included.
 !
 ! For tracking through a given element, this routine should be called initially when
 ! the particle is at the entrance end and at the end when the particle is at the exit end.
 ! That is, each time this routine is called it applies half the radiation kick for the entire element.
 !
-! Note: If both bmad_com%radiation_damping_on and not bmad_com%radiation_fluctuations_on are
-! False then no spin flipping is done.  
-!
+! Also see: track1_radiation_center
 ! Note: This routine is called by track1.
 !
 ! Input:
 !   orbit     -- coord_struct: Particle position before radiation applied.
-!   ele       -- ele_struct: Element that causes radiation.
+!   ele       -- ele_struct: Element generating radiation.
 !   edge      -- integer: Where the particle is: start_edge$ or end_edge$.
 !
 ! Output:
@@ -311,7 +309,6 @@ implicit none
 
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 
 integer :: edge
@@ -373,5 +370,85 @@ orbit%vec(6) = orbit%vec(6)  - dE_p * (1 + orbit%vec(6))
 !endif
 
 end subroutine track1_radiation 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine track1_radiation_center (orbit, ele1, ele2, param, edge)
+!
+! Used for elements that have been split in half: This routine applies a kick to a particle 
+! to account for radiation dampling and/or fluctuations.
+!
+! Also see: track1_radiation.
+!
+! Input:
+!   orbit     -- coord_struct: Particle at center of element before radiation applied.
+!   ele1      -- ele_struct: First half of the split element.
+!   ele2      -- ele_struct: Second half of the split element.
+!
+! Output:
+!   orbit     -- coord_struct: Particle position after radiation has been applied.
+!-
+
+subroutine track1_radiation_center (orbit, ele1, ele2, param)
+
+use random_mod
+
+implicit none
+
+type (coord_struct) :: orbit
+type (ele_struct), target :: ele1, ele2
+type (lat_param_struct) :: param
+
+real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3, gxi, gyi, g2i, g3i
+real(rp) gamma_0, dE_p, fact_d, fact_f, q_charge2, p_spin, spin_norm(3), norm
+real(rp), parameter :: rad_fluct_const = 55.0_rp * classical_radius_factor * h_bar_planck * c_light / (24.0_rp * sqrt_3)
+real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * classical_radius_factor * h_bar_planck * c_light / 16
+real(rp), parameter :: damp_const = 2 * classical_radius_factor / 3
+real(rp), parameter :: c1_spin = 2.0_rp / 9.0_rp, c2_spin = 8.0_rp / (5.0_rp * sqrt_3)
+
+character(*), parameter :: r_name = 'track1_radiation_center'
+
+!
+
+if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
+
+call calc_radiation_tracking_integrals (ele1, orbit, param, start_edge$, int_gx, int_gy, int_g2, int_g3)
+call calc_radiation_tracking_integrals (ele2, orbit, param, end_edge$, gxi, gyi, g2i, g3i)
+int_gx = int_gx + gxi
+int_gy = int_gy + gyi
+int_g2 = int_g2 + g2i
+int_g3 = int_g3 + g3i
+
+if (int_g2 == 0) return
+
+! Apply the radiation kicks
+! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
+! where xi is a random number with sigma = 1.
+
+mc2 = mass_of(param%particle)
+q_charge2 = charge_of(orbit%species)**2
+gamma_0 = ele1%value(e_tot$) / mc2
+
+fact_d = 0
+if (bmad_com%radiation_damping_on) then
+  fact_d = damp_const * q_charge2 * gamma_0**3 * int_g2 / mc2
+  if (bmad_com%backwards_time_tracking_on) fact_d = -fact_d
+endif
+
+fact_f = 0
+if (bmad_com%radiation_fluctuations_on) then
+  call ran_gauss (this_ran)
+  fact_f = sqrt(rad_fluct_const * q_charge2 * gamma_0**5 * int_g3) * this_ran / mc2
+endif
+
+dE_p = (1 + orbit%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
+
+orbit%vec(2) = orbit%vec(2) * (1 - dE_p)
+orbit%vec(4) = orbit%vec(4) * (1 - dE_p)
+orbit%vec(6) = orbit%vec(6)  - dE_p * (1 + orbit%vec(6))
+
+end subroutine track1_radiation_center 
 
 end module
