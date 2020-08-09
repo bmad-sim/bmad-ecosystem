@@ -1866,6 +1866,10 @@ case default   ! normal attribute
       !
 
       select case (attrib_word)
+      case ('CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22')
+        coef = 1 - determinant(ele%c_mat)
+        if (coef >= 0) ele%gamma_c = sqrt(coef)
+
       case ('E_TOT')
         if (ele%key == def_parameter$) then
           lat%ele(0)%value(e_tot$) = value
