@@ -421,7 +421,7 @@ do i_loop = 1, i_max
       dz = rf_wavelen / 8
       do j = -3, 4
         z_here = z0 + j * dz
-        call max_eigen_calc(branch, z_here, max_eigen, start_orb_t1)
+        call max_eigen_calc(branch, z_here, max_eigen, start_orb_t1, betas)
         if (max_eigen > min_max_eigen) cycle
         j_max = j
         min_max_eigen = max_eigen
@@ -429,7 +429,7 @@ do i_loop = 1, i_max
 
       ! Reset
       a_vec(5) = z0 + j_max * dz
-      call max_eigen_calc(branch, a_vec(5), max_eigen, start_orb_t1)
+      call max_eigen_calc(branch, a_vec(5), max_eigen, start_orb_t1, betas)
 
       ! If z needs to be shifted, reset super_mrqmin
       if (j_max /= 0) then
@@ -503,10 +503,10 @@ end subroutine
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine max_eigen_calc(branch, z_set, max_eigen, start_orb_t1)
+subroutine max_eigen_calc(branch, z_set, max_eigen, start_orb_t1, betas)
 
 type (branch_struct) branch
-real(rp) z_set, max_eigen, start_orb_t1(6)
+real(rp) z_set, max_eigen, start_orb_t1(6), betas(2)
 logical err
 
 !
