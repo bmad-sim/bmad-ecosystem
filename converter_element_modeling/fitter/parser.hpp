@@ -40,6 +40,10 @@ struct SimSettings {
   std::vector<double> pc_in;
   std::vector<double> target_thickness;
   std::vector<double> polarization_in;
+  std::vector<double> pc_bin_points;
+  std::vector<double> r_bin_points;
+  std::vector<double> pc_bin_widths;
+  std::vector<double> r_bin_widths;
 
   SimSettings() = default;
   //SimSettings() :  num_pc_bins{0},
