@@ -21,6 +21,14 @@ SettingsSpec SimSettings::lookup(const std::string& name) {
     return { false, SetType::energy, (void *) &(this->out_pc_min) };
   } else if (name=="out_pc_max"s) {
     return { false, SetType::energy, (void *) &(this->out_pc_max) };
+  } else if (name=="pc_bin_points"s) {
+    return { true, SetType::energy, (void *) &(this->pc_bin_points) };
+  } else if (name=="pc_bin_widths"s) {
+    return { true, SetType::energy, (void *) &(this->pc_bin_widths) };
+  } else if (name=="r_bin_points"s) {
+    return { true, SetType::length, (void *) &(this->r_bin_points) };
+  } else if (name=="r_bin_widths"s) {
+    return { true, SetType::length, (void *) &(this->r_bin_widths) };
   } else if (name=="dxy_ds_max"s) {
     return { false, SetType::generic, (void *) &(this->dxy_ds_max) };
   } else if (name=="fit_crossover"s) {
@@ -45,7 +53,8 @@ bool SimSettings::valid() const {
   // Checks whether or not this is in a valid state,
   // and issue warnings for any errors
 
-  bool bins_set = (num_pc_bins > 0 && num_r_bins > 0);
+  bool bins_set = (num_pc_bins > 0 || pc_bin_points.size())
+    && (num_r_bins > 0 || r_bin_points.size());
   bool out_pc_set = (out_pc_min >= 0) && (out_pc_min < out_pc_max);
   bool dxy_ds_set = dxy_ds_max > 0;
   bool fit_crossover_set = (fit_crossover >= 0);
@@ -60,6 +69,36 @@ bool SimSettings::valid() const {
   bool polarization_set = (polarization_in.size() == 0 ||
       (polarization_in.size() == 3 &&
       !std::all_of(polarization_in.begin(), polarization_in.end(), is_zero)));
+
+  bool good_pc_bin_points = pc_bin_points.size() == 0
+      || (std::all_of(pc_bin_points.begin(), pc_bin_points.end(), is_pos)
+      && std::is_sorted(pc_bin_points.begin(), pc_bin_points.end())
+      && std::adjacent_find(pc_bin_points.begin(), pc_bin_points.end()) == pc_bin_points.end());
+
+  bool good_r_bin_points = r_bin_points.size() == 0
+      || (std::all_of(r_bin_points.begin(), r_bin_points.end(), is_pos)
+      && std::is_sorted(r_bin_points.begin(), r_bin_points.end())
+      && std::adjacent_find(r_bin_points.begin(), r_bin_points.end()) == r_bin_points.end());
+
+  auto check_for_overlap = [](const std::vector<double>& points, const std::vector<double>& widths) {
+    // Determines whether or not the bins specified by the points vector and the widths vector overlap
+    auto len = points.size();
+    if (widths.size() != len) return true; // bad if lengths do not match
+    if (len == 1) return false; // impossible for a sequence of one bin to have overlap
+    for (unsigned i = 0; i<len-1; i++)
+      if (points[i] + widths[i]/2 > points[i+1] - widths[i]/2) return true;
+    return false;
+  };
+
+  bool good_pc_bin_widths = pc_bin_widths.size() == 0
+    || (pc_bin_widths.size() == pc_bin_points.size()
+    && std::all_of(pc_bin_widths.begin(), pc_bin_widths.end(), is_pos)
+    && !check_for_overlap(pc_bin_points, pc_bin_widths));
+
+  bool good_r_bin_widths = r_bin_widths.size() == 0
+    || (r_bin_widths.size() == r_bin_points.size()
+    && std::all_of(r_bin_widths.begin(), r_bin_widths.end(), is_pos)
+    && !check_for_overlap(r_bin_points, r_bin_widths));
 
   if (!bins_set)
     std::cerr << "ERROR: num_pc_bins and/or num_r_bins missing or invalid\n";
@@ -79,9 +118,18 @@ bool SimSettings::valid() const {
     std::cerr << "ERROR: thicknesses missing or invalid\n";
   if (!polarization_set)
     std::cerr << "ERROR: polarization_in, if set, should have three components, not all of which are zero\n";
+  if (!good_pc_bin_points)
+    std::cerr << "ERROR: pc_bin_points is invalid\n";
+  if (!good_r_bin_points)
+    std::cerr << "ERROR: r_bin_points is invalid\n";
+  if (!good_pc_bin_widths)
+    std::cerr << "ERROR: pc_bin_widths is invalid or incompatible with pc_bin_points\n";
+  if (!good_r_bin_widths)
+    std::cerr << "ERROR: r_bin_widths is invalid or incompatible with r_bin_points\n";
 
   return bins_set && out_pc_set && dxy_ds_set && fit_crossover_set
-    && material_set && output_dir_set && pc_in_set && thickness_set && polarization_set;
+    && material_set && output_dir_set && pc_in_set && thickness_set && polarization_set
+    && good_pc_bin_points && good_r_bin_points && good_pc_bin_widths && good_r_bin_widths;
 }
 
 bool operator==(const StrNum& s1, const StrNum& s2) {
