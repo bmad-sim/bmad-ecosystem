@@ -27,6 +27,8 @@ class CalibrationBinner {
     std::string target_material, out_dir;
     const double in_energy, target_thickness;
     G4ThreeVector in_polarization;
+    bool adjacent_pc_bins, adjacent_r_bins;
+    bool pc_auto_bin, r_auto_bin;
 
     std::pair<unsigned, unsigned> get_bin_num(double E, double r) const;
     void write_table(const std::string& param) const;

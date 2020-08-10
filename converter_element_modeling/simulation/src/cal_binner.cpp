@@ -26,7 +26,10 @@ CalibrationBinner::CalibrationBinner(G4RunManager* p_run_manager, PointCache* p_
   runManager(p_run_manager), point_cache(p_cache),
   target_material(p_s.target_material),
   out_dir(p_s.output_directory),
-  in_energy(p_in_energy), target_thickness(p_target_thickness) {
+  in_energy(p_in_energy), target_thickness(p_target_thickness),
+  adjacent_pc_bins(true), adjacent_r_bins(true),
+  pc_auto_bin(true), r_auto_bin(true) {
+    // Set polarization
     if (p_s.polarization_in.size() != 0) {
       in_polarization = G4ThreeVector(p_s.polarization_in[0],
                                       p_s.polarization_in[1],
@@ -34,20 +37,65 @@ CalibrationBinner::CalibrationBinner(G4RunManager* p_run_manager, PointCache* p_
     } else {
       in_polarization = G4ThreeVector(0, 0, 0);
     }
-    E_edges.resize(p_s.num_pc_bins + 1);
-    E_edges.front() = p_s.out_pc_min;
-    E_edges.back() = p_s.out_pc_max;
-    bins.resize(E_edges.size()-1);
-    spin_bins.resize(bins.size());
 
-    r_edges.resize(p_s.num_r_bins + 1);
-    r_edges.front() = 0;
-    r_edges.back() = 1e6; // set to a ridiculous number initially, fix later
+    // Initialize edges of pc bins
+    if (p_s.pc_bin_points.size()) { // user specified pc bins
+      pc_auto_bin = false;
+      if (p_s.pc_bin_widths.size()) { // user specified bin widths
+        adjacent_pc_bins = false;
+        E_edges.resize(2*p_s.pc_bin_points.size());
+        for (unsigned i=0; i<p_s.pc_bin_points.size(); i++) {
+          E_edges[2*i] = p_s.pc_bin_points[i] - p_s.pc_bin_widths[i]/2; // lower
+          E_edges[2*i+1] = p_s.pc_bin_points[i] + p_s.pc_bin_widths[i]/2; // upper
+        }
+      } else { // automatically select bin widths so that bins touch each other
+        E_edges.resize(p_s.pc_bin_points.size()+1);
+        E_edges[0] = p_s.out_pc_min;
+        for (unsigned i=0; i<p_s.pc_bin_points.size(); i++)
+          E_edges[i+1] = p_s.pc_bin_points[i] + (p_s.pc_bin_points[i] - E_edges[i]);
+      }
+    } else { // auto binning
+      E_edges.resize(p_s.num_pc_bins + 1);
+      E_edges.front() = p_s.out_pc_min;
+      E_edges.back() = p_s.out_pc_max;
+    }
+
+    // Initialize edges of r bins
+    if (p_s.r_bin_points.size()) { // user specified r bins
+      r_auto_bin = false;
+      if (p_s.r_bin_widths.size()) { // user specified bin widths
+        adjacent_r_bins = false;
+        r_edges.resize(2*p_s.r_bin_points.size());
+        for (unsigned i=0; i<p_s.r_bin_points.size(); i++) {
+          r_edges[2*i] = p_s.r_bin_points[i] - p_s.r_bin_widths[i]/2; // lower
+          r_edges[2*i+1] = p_s.r_bin_points[i] + p_s.r_bin_widths[i]/2; // upper
+        }
+      } else { // automatically select bin widths so that bins touch each other
+        r_edges.resize(p_s.r_bin_points.size()+1);
+        r_edges[0] = 0.0;
+        for (unsigned i=0; i<p_s.r_bin_points.size(); i++)
+          r_edges[i+1] = p_s.r_bin_points[i] + (p_s.r_bin_points[i] - r_edges[i]);
+      }
+    } else { // auto binning
+      r_edges.resize(p_s.num_r_bins + 1);
+      r_edges.front() = 0.0;
+      r_edges.back() = 1e6; // will be fixed in calibration step
+    }
+
+    // Resize bins and spin_bins appropriately
+    auto num_pc_bins = adjacent_pc_bins ? E_edges.size() - 1 : E_edges.size() / 2;
+    auto num_r_bins = adjacent_r_bins ? r_edges.size() - 1 : r_edges.size() / 2;
+    bins.resize(num_pc_bins);
+    for (auto& row : bins) row.resize(num_r_bins);
+    spin_bins.resize(num_pc_bins);
+    for (auto& row : spin_bins) row.resize(num_r_bins);
 }
 
 
 // Main methods
 void CalibrationBinner::calibrate() {
+  // No calibration run if user specified all bin edges
+  if (pc_auto_bin || r_auto_bin) {
   // Gather some data for calibration
   unsigned n_runs = 0;
   size_t calibration_length = 10000;
@@ -72,10 +120,14 @@ void CalibrationBinner::calibrate() {
 
   // Select E_max, r_max to capture 99% of data
   size_t ix99 = 0.99 * cal_run.size();
-  std::sort(cal_run.begin(), cal_run.end(), rsort);
-  r_edges.back() = cal_run[ix99].r;
-  std::sort(cal_run.begin(), cal_run.end(), esort);
-  E_edges.back() = std::min(cal_run[ix99].E, E_edges.back());
+  if (pc_auto_bin) {
+    std::sort(cal_run.begin(), cal_run.end(), esort);
+    E_edges.back() = std::min(cal_run[ix99].E, E_edges.back());
+  }
+  if (r_auto_bin) {
+    std::sort(cal_run.begin(), cal_run.end(), rsort);
+    r_edges.back() = cal_run[ix99].r;
+  }
 
   // -> remove out of range points
   cal_run.erase(std::remove_if(cal_run.begin(), cal_run.end(),
@@ -88,39 +140,45 @@ void CalibrationBinner::calibrate() {
   // Set E,r edges
   size_t stride = (cal_run.size()-1) / (E_edges.size() - 1);
   // E edges
-  std::sort(cal_run.begin(), cal_run.end(), esort);
-  size_t c_ix = 0;
-  auto gen_e = [&,c_ix]() mutable {
-    c_ix += stride;
-    return cal_run[c_ix].E;
-  };
-  std::generate(E_edges.begin()+1, E_edges.end()-1, gen_e);
+  if (pc_auto_bin) {
+    std::sort(cal_run.begin(), cal_run.end(), esort);
+    size_t c_ix = 0;
+    auto gen_e = [&,c_ix]() mutable {
+      c_ix += stride;
+      return cal_run[c_ix].E;
+    };
+    std::generate(E_edges.begin()+1, E_edges.end()-1, gen_e);
+  }
   // r edges
-  stride = (cal_run.size()-1) / (r_edges.size() - 1);
-  std::sort(cal_run.begin(), cal_run.end(), rsort);
-  c_ix = 0;
-  auto gen_r = [&,c_ix]() mutable {
-    c_ix += stride;
-    return cal_run[c_ix].r;
-  };
-  std::generate(r_edges.begin()+1, r_edges.end()-1, gen_r);
+  if (r_auto_bin) {
+    stride = (cal_run.size()-1) / (r_edges.size() - 1);
+    std::sort(cal_run.begin(), cal_run.end(), rsort);
+    size_t c_ix = 0;
+    auto gen_r = [&,c_ix]() mutable {
+      c_ix += stride;
+      return cal_run[c_ix].r;
+    };
+    std::generate(r_edges.begin()+1, r_edges.end()-1, gen_r);
+  }
+  }
 
-  // Set bin areas
+  // Set bin areas (has to be done even if bin edges were specified by user)
   unsigned E_ix=0, r_ix;
+  double E_len, r_len;
   for (auto & row : bins) {
     r_ix = 0;
-    row.resize(r_edges.size()-1);
     for (auto& b : row) {
-      b.area = (E_edges[E_ix+1] - E_edges[E_ix])
-        * (r_edges[r_ix+1] - r_edges[r_ix]);
+      E_len = adjacent_pc_bins
+              ? E_edges[E_ix+1]   - E_edges[E_ix]
+              : E_edges[2*E_ix+1] - E_edges[2*E_ix];
+      r_len = adjacent_r_bins
+              ? r_edges[E_ix+1]   - r_edges[E_ix]
+              : r_edges[2*E_ix+1] - r_edges[2*E_ix];
+      b.area = E_len*r_len;
       r_ix++;
     }
     E_ix++;
   }
-
-  for (auto& row : spin_bins)
-    row.resize(r_edges.size()-1);
-
 
   // No point in wasting data -> add cal run to bins
   for (auto& p : cal_run) add_point(p);
@@ -181,8 +239,8 @@ void CalibrationBinner::write_data() {
   }
 
   // Write the dxds, dyds files
-  auto num_E_bins = E_edges.size()-1;
-  auto num_r_bins = r_edges.size()-1;
+  auto num_E_bins = bins.size();
+  auto num_r_bins = bins.front().size();
   for (size_t i=0; i<num_E_bins; i++) {
     for (size_t j=0; j<num_r_bins; j++) {
       double bin_E = get_E_val(i);
@@ -236,8 +294,8 @@ void CalibrationBinner::write_table(const std::string& param) const {
   }
 
   // set up first line with r values
-  auto num_E_bins = E_edges.size()-1;
-  auto num_r_bins = r_edges.size()-1;
+  auto num_E_bins = bins.size();
+  auto num_r_bins = bins.front().size();
   table_file << num_r_bins;
   for (size_t j=0; j<num_r_bins; j++)
     table_file << '\t' << get_r_val(j);
@@ -270,13 +328,48 @@ void CalibrationBinner::write_table(const std::string& param) const {
 
 // Support methods
 double CalibrationBinner::get_E_val(int n_E) const {
+  if (!adjacent_pc_bins) n_E *= 2;
   return 0.5*(E_edges[n_E] + E_edges[n_E+1]);
 }
 double CalibrationBinner::get_r_val(int n_r) const {
+  if (!adjacent_pc_bins) n_r *= 2;
   return 0.5*(r_edges[n_r] + r_edges[n_r+1]);
 }
 bool CalibrationBinner::in_range(const GeantParticle& p) const {
-  return (p.E>E_edges.front()) && (p.E<E_edges.back()) && (p.r<r_edges.back());
+  // Determine whether or not p falls inside one of the pc-r-bins
+  // For non-adjacent bins, this also means explicitly checking
+  // that p is inside of a bin.  This is done by checking whether
+  // the smallest edge greater than p has an even or odd index
+  // Example:
+  //
+  // Edge index: 0     1     2     3     4     5     6     5...
+  // In/out?     | in  | out | in  | out | in  | out | in  |...
+  // particle    |     |     | x   |     |     |     |     |...
+  //
+  // In this case, upper_edge has an index of 3, and the particle
+  // is inside one of the bins
+
+  bool result = true;
+
+  // Check pc value
+  result &= p.E>E_edges.front();
+  result &= p.E<E_edges.back();
+  if (!adjacent_pc_bins) {
+    auto upper_edge = std::find_if(E_edges.begin(), E_edges.end(),
+        [&p](const double E) { return E >= p.E; });
+    if (std::distance(E_edges.begin(), upper_edge) % 2 != 0) result = false;
+  }
+
+  // Check r value
+  result &= p.r>r_edges.front();
+  result &= p.r<r_edges.back();
+  if (!adjacent_r_bins) {
+    auto upper_edge = std::find_if(r_edges.begin(), r_edges.end(),
+        [&p](const double r) { return r >= p.r; });
+    if (std::distance(r_edges.begin(), upper_edge) % 2 != 0) result = false;
+  }
+
+  return result;
 }
 ERBin& CalibrationBinner::get_bin(int n_E, int n_r) {
   return bins[n_E][n_r];
@@ -288,14 +381,25 @@ const ERBin& CalibrationBinner::get_bin(int n_E, int n_r) const {
   return bins[n_E][n_r];
 }
 std::pair<unsigned, unsigned> CalibrationBinner::get_bin_num(double E, double r) const {
+  // Returns the index pair (n_E, n_r) of the bin which contains the point (E, r)
+  // If (E,r) is not within any bin, returns (-1, -1) (i.e. maximum unsigned ints)
+  GeantParticle p;
+  p.E = E; p.r = r;
+  if (!in_range(p)) return std::pair<unsigned, unsigned> {-1, -1};
+
   auto E_it = std::find_if(E_edges.begin(), E_edges.end(),
       [E](double edge) { return edge >= E; });
-  size_t n_E = std::distance(E_edges.begin(), E_it)-1;
+
   auto r_it = std::find_if(r_edges.begin(), r_edges.end(),
       [r](double edge) { return edge >= r; });
-  size_t n_r = std::distance(r_edges.begin(), r_it)-1;
-  if (n_E >= bins.size()) n_E = bins.size()-1;
-  if (n_r >= bins[0].size()) n_r = bins[0].size()-1;
+
+  unsigned n_E = std::distance(E_edges.begin(), E_it);
+  unsigned n_r = std::distance(r_edges.begin(), r_it);
+  if (!adjacent_pc_bins) n_E /= 2;
+  else n_E -= 1;
+  if (!adjacent_r_bins) n_r /= 2;
+  else n_r -= 1;
+
   return std::make_pair(n_E, n_r);
 }
 
