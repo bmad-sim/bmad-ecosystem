@@ -45,7 +45,7 @@ integer j, j2, k, ie, is, n_ele_track
 character(*), optional :: dat_var_name
 character(*), parameter :: r_name = 'tao_pointer_to_ele_shape'
 character(20) prefix
-character(40) name
+character(40) name, up_name
 logical err
 
 !
@@ -70,6 +70,7 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
     prefix = es%ele_id(:ix-1) 
     name = es%ele_id(ix+2:)
   endif
+  up_name = upcase(name)
 
   if (present(ix_shape_min)) ix_shape_min = k + 1
   if (.not. es%draw) cycle
@@ -158,7 +159,7 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
     enddo
     cycle
   elseif (prefix == '') then
-    if (.not. match_wild(ele%name, name)) cycle
+    if (.not. match_wild(ele%name, up_name)) cycle
   elseif (prefix == 'alias') then
     if (.not. match_wild(ele%alias, name)) cycle
   elseif (prefix == 'type') then
