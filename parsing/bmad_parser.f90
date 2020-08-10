@@ -1182,7 +1182,7 @@ do n = 0, ubound(lat%branch, 1)
 enddo
 call remove_eles_from_lat (lat, .false.)
 
-if (bp_com%error_flag == .true.) then
+if (bp_com%error_flag) then
   call parser_end_stuff (in_lat)
   return
 endif
