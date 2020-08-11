@@ -172,8 +172,8 @@ void CalibrationBinner::calibrate() {
               ? E_edges[E_ix+1]   - E_edges[E_ix]
               : E_edges[2*E_ix+1] - E_edges[2*E_ix];
       r_len = adjacent_r_bins
-              ? r_edges[E_ix+1]   - r_edges[E_ix]
-              : r_edges[2*E_ix+1] - r_edges[2*E_ix];
+              ? r_edges[r_ix+1]   - r_edges[r_ix]
+              : r_edges[2*r_ix+1] - r_edges[2*r_ix];
       b.area = E_len*r_len;
       r_ix++;
     }
@@ -357,7 +357,7 @@ bool CalibrationBinner::in_range(const GeantParticle& p) const {
   if (!adjacent_pc_bins) {
     auto upper_edge = std::find_if(E_edges.begin(), E_edges.end(),
         [&p](const double E) { return E >= p.E; });
-    if (std::distance(E_edges.begin(), upper_edge) % 2 != 0) result = false;
+    if (std::distance(E_edges.begin(), upper_edge) % 2 == 0) result = false;
   }
 
   // Check r value
@@ -366,7 +366,7 @@ bool CalibrationBinner::in_range(const GeantParticle& p) const {
   if (!adjacent_r_bins) {
     auto upper_edge = std::find_if(r_edges.begin(), r_edges.end(),
         [&p](const double r) { return r >= p.r; });
-    if (std::distance(r_edges.begin(), upper_edge) % 2 != 0) result = false;
+    if (std::distance(r_edges.begin(), upper_edge) % 2 == 0) result = false;
   }
 
   return result;
