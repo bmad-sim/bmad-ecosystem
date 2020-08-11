@@ -1249,21 +1249,25 @@ end function spin_of
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function charge_of (species) result (charge)
+! Function charge_of (species, default) result (charge)
 !
 ! Routine to return the charge, in units of e+, of a particle.
 !
 ! Input:
 !   species -- integer: Species ID.
+!   default -- integer, optional: If present then use default value if species = not_set$.
 !
 ! Output:
 !   charge -- integer: particle charge.
 !-
 
-function charge_of (species) result (charge)
+function charge_of (species, default) result (charge)
 
 integer :: charge, species
+integer, optional :: default
 character(*), parameter :: r_name = 'charge_of'
+
+
 !
 
 if (is_subatomic_species(species)) then
@@ -1273,6 +1277,10 @@ endif
 
 ! Invalid
 if (abs(species) < 1000) then
+  if (present(default) .and. species == not_set$) then
+    charge = default
+    return
+  endif
   call out_io (s_abort$, r_name, 'CHARGE NOT KNOWN FOR SPECIES: \i0\ ', species)
   if (global_com%exit_on_error) call err_exit
   charge = int_garbage$
