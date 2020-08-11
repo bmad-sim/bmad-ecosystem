@@ -6,9 +6,8 @@ use mpi
 implicit none
 
 type (ltt_params_struct) lttp
-type (lat_struct), target :: lat
-type (beam_init_struct) beam_init
 type (ltt_com_struct) ltt_com
+type (beam_init_struct) beam_init
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:), sd_arr(:)
 type (ltt_sum_data_struct) sum_data
 type (ltt_sum_data_struct), pointer :: sd
@@ -51,7 +50,7 @@ if (num_slaves /= 0) lttp%using_mpi = .true.
 
 ! If not doing BUNCH tracking then slaves have nothing to do.
 
-call ltt_init_params(lttp, lat, beam_init)
+call ltt_init_params(lttp, ltt_com, beam_init)
 
 if (lttp%simulation_mode /= 'BUNCH' .and. lttp%mpi_rank /= master_rank$) then
   call mpi_finalize(ierr)
