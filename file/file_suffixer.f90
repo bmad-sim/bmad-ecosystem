@@ -5,37 +5,34 @@
 !
 ! Input:
 !   in_file_name  - Character string: Input file name
-!   suffix        - Character string: suffix to be added
-!   add_switch    - Logical: if .true. suffix is always added
-!                            if .false. suffix is only added if FILE_NAME
-!                              doesn't allready contain a suffix
+!   suffix        - Character string: suffix to be added.
+!   add_switch    - Logical: if True: Suffix is always added/replaced.
+!                            if False: Suffix is only added if file_name
+!                              doesn't already contain a suffix.
 !
 ! Output:
-!   out_file_name - Character string: Leading blanks are deleted and
-!                       the suffix is added if file
-!                       name does not already contain a suffix.
+!   out_file_name - Character string: File name with suffix added and leading blanks are deleted.
 !
 ! Example:
 !   In program:
-!     infile = '[dcs.garbage]thisfile.foo'
+!     infile = 'thisfile.foo'
 !     call file_suffixer (infile, outfile, 'tum', .true.)
 !   Result:
-!     outfile = '[dcs.garbage]thisfile.tum'
+!     outfile = 'thisfile.tum'
 !
 ! Example:
 !   In program:
-!     infile = '[dcs.garbage]thisfile.foo'
+!     infile = 'thisfile.foo'
 !     call file_suffixer (infile, outfile, 'tum', .false.)
 !   Result:
-!     outfile = '[dcs.garbage]thisfile.foo'
+!     outfile = 'thisfile.foo'
 !
 ! Example:
 !   In program:
-!     infile = '[dcs.garbage]thisfile'
+!     infile = 'thisfile'
 !     call file_suffixer (infile, outfile, 'tum', .false.)
 !   Result:
-!     outfile = '[dcs.garbage]thisfile.tum'
-!
+!     outfile = 'thisfile.tum'
 !-
 
 subroutine file_suffixer (in_file_name, out_file_name, suffix, add_switch)
