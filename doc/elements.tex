@@ -850,8 +850,6 @@ after the converter Example:
   cvter, species_out = positron, p0c = 3e6, distribution = ...
   pre_linac: line = (..., cvter, to_after)
   after_cvter: line = (...)                ! Everything after the converter.
-  after_cvter[particle] = positron
-  after_cvter[p0c] = 3e6
   after_cvter[beta_a] = 27; after_cvter[beta_b] = 32
   use, pre_linac
 \end{example}

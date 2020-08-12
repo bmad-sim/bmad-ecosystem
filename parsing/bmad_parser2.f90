@@ -39,7 +39,7 @@ implicit none
 type (lat_struct), target :: lat
 type (lat_struct), optional :: in_lat
 type (lat_struct) :: lat2
-type (ele_struct), pointer :: ele, mad_beam_ele, param_ele, lord, slave, slave2
+type (ele_struct), pointer :: ele, param_ele, lord, slave, slave2
 type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
@@ -88,27 +88,27 @@ if (lat_file /= 'FROM: BMAD_PARSER') then
   if (err) return
 endif
 
-!
+! Note: The order of def_parameter and def_mad_beam elements is used by parser_set_attribute
 
 n_max => lat%n_ele_max
 n_def_ele = 4 + size(lat%branch)
 call allocate_plat (plat, n_def_ele)
 if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_max+n_def_ele+100)
 
-ele => lat%ele(n_max+1)
+ele => lat%ele(n_max+1)  ! Important: def_parameter comes after def_mad_beam.
 call init_ele(ele, def_mad_beam$, 0, n_max+1, lat%branch(0))
 ele%name = 'BEAM'              ! For MAD compatibility.
-ele%value(n_part$)     = real_garbage$
-ele%value(particle$)   = real_garbage$
+ele%value(n_part$)  = real_garbage$
+ele%ref_species     = not_set$
 ele%ixx = 1                    ! Pointer to plat%ele() array
 extra_ele_names = ele%name 
 call nametable_add(lat%nametable, ele%name, n_max+1)
 
-ele => lat%ele(n_max+2)
+ele => lat%ele(n_max+2)  ! Important: def_parameter comes after def_mad_beam
 call init_ele (ele, def_parameter$, 0, n_max+2, lat%branch(0))
 ele%name = 'PARAMETER'
-ele%value(n_part$)       = real_garbage$
-ele%value(particle$)     = real_garbage$
+ele%value(n_part$)    = real_garbage$
+ele%ref_species       = not_set$
 ele%ixx = 2                    ! Pointer to plat%ele() array
 extra_ele_names = trim(extra_ele_names) // ', ' // ele%name
 call nametable_add(lat%nametable, ele%name, n_max+2)
@@ -657,7 +657,6 @@ lat%input_taylor_order = bmad_com%taylor_order
 
 call lat_ele_locator ('BEAM', lat, eles, n_loc, err)
 if (n_loc /= 1 .or. err) call err_exit
-mad_beam_ele => eles(1)%ele
 call lat_ele_locator ('PARAMETER', lat, eles, n_loc, err)
 if (n_loc /= 1 .or. err) call err_exit
 param_ele => eles(1)%ele
@@ -668,8 +667,7 @@ if (param_ele%value(default_tracking_species$) /= real_garbage$) lat%param%defau
 if (param_ele%value(high_energy_space_charge_on$) /= real_garbage$) &
                               lat%param%high_energy_space_charge_on = is_true(param_ele%value(high_energy_space_charge_on$))
 
-if (mad_beam_ele%value(particle$) /= real_garbage$)  lat%param%particle = nint(mad_beam_ele%value(particle$))
-if (param_ele%value(particle$) /= real_garbage$)     lat%param%particle = nint(param_ele%value(particle$))
+if (param_ele%ref_species /= not_set$)     lat%param%particle = param_ele%ref_species
 
 if (associated(param_ele%descrip)) then
   lat%lattice = param_ele%descrip
@@ -686,7 +684,6 @@ do i = 0, ubound(lat%branch, 1)
   endif
 enddo
 
-if (mad_beam_ele%value(n_part$) /= real_garbage$)  lat%param%n_part = mad_beam_ele%value(n_part$)
 if (param_ele%value(n_part$) /= real_garbage$)     lat%param%n_part = param_ele%value(n_part$)
 
 ! Remove BEAM and other elements that were temporarily put in as well as null elements.

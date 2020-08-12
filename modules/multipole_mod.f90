@@ -271,7 +271,7 @@ end subroutine multipole1_kt_to_ab
 !   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
 !                      use_ele_tilt is ignored in the case of multipole$ elements.
 !   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   include_kicks -- integer, optional: Ignored for for pole_type == electroc$ for non-elseparator elements.
+!   include_kicks -- integer, optional: Ignored for for pole_type == electric$ for non-elseparator elements.
 !                      Possibilities are: 
 !            no$                      -- Default. Do not include any kick components in a and b multipoles. 
 !            include_kicks$           -- Include hkick/vkick in the n = 0 components.
@@ -288,6 +288,7 @@ subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type,
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
+type (multipole_cache_struct), pointer :: cache
 
 real(rp) const, radius, factor, a(0:), b(0:)
 real(rp) an, bn, sin_t, cos_t
@@ -296,11 +297,37 @@ real(rp), pointer :: a_pole(:), b_pole(:), ksl_pole(:)
 
 integer ix_pole_max
 integer, optional :: pole_type, include_kicks
-integer i, n, ref_exp
+integer i, n, ref_exp, p_type, with_kicks
 
 logical use_ele_tilt
 
 character(*), parameter :: r_name = 'multipole_ele_to_ab'
+
+! Use cache if possible. 
+! Caching requires intelligent bookkeeping.
+
+p_type = integer_option(magnetic$, pole_type)
+with_kicks = integer_option(no$, include_kicks)
+
+cache => ele%multipole_cache
+if (.not. bmad_com%auto_bookkeeper .and. associated(cache)) then
+  select case (p_type)
+  case (magnetic$)
+    if (cache%ix_pole_mag_max /= invalid$ .and. cache%include_kicks == with_kicks) then
+      a = cache%a_pole_mag
+      b = cache%b_pole_mag
+      ix_pole_max = cache%ix_pole_mag_max
+      return
+    endif
+  case default
+    if (cache%ix_pole_elec_max /= invalid$ .and. cache%include_kicks == with_kicks) then
+      a = cache%a_pole_elec
+      b = cache%b_pole_elec
+      ix_pole_max = cache%ix_pole_elec_max
+      return
+    endif
+  end select
+endif
 
 ! Init
 
@@ -308,7 +335,7 @@ a = 0
 b = 0
 ix_pole_max = -1
 
-if (ele%key == multipole$ .and. integer_option(magnetic$, pole_type) == electric$) return
+if (ele%key == multipole$ .and. p_type == electric$) return
 
 ! Slice slaves and super slaves have their associated multipoles stored in the lord
 
@@ -322,14 +349,14 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
 
     if (lord%key == multipole$) then
       ix_pole_max = max_nonzero(0, a_pole, ksl_pole)
-      if (ix_pole_max == -1) return
-      call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
+      if (ix_pole_max > -1) call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
+      if (.not. bmad_com%auto_bookkeeper) call load_this_cache(cache, p_type, with_kicks)
       return
     endif
 
     call convert_this_ab (lord, this_a, this_b)
 
-    if (integer_option(magnetic$, pole_type) == magnetic$) then
+    if (p_type == magnetic$) then
       a = a + this_a * (ele%value(l$) / lord%value(l$))
       b = b + this_b * (ele%value(l$) / lord%value(l$))
     else
@@ -347,8 +374,8 @@ else
 
   if (ele%key == multipole$) then
     ix_pole_max = max_nonzero(0, a_pole, ksl_pole)
-    if (ix_pole_max == -1) return
-    call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
+    if (ix_pole_max > -1) call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
+    if (.not. bmad_com%auto_bookkeeper) call load_this_cache(cache, p_type, with_kicks)
     return
   else
     call convert_this_ab (ele, a, b)
@@ -357,7 +384,7 @@ endif
 
 ! 
 
-select case (integer_option(no$, include_kicks))
+select case (with_kicks)
 case (include_kicks$)
   call multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
 case (include_kicks_except_k1$)
@@ -365,6 +392,7 @@ case (include_kicks_except_k1$)
 end select
 
 ix_pole_max = max_nonzero(0, a, b)
+if (.not. bmad_com%auto_bookkeeper) call load_this_cache(cache, p_type, with_kicks)
 
 !---------------------------------------------
 contains
@@ -415,7 +443,7 @@ endif
 ! field_master = T -> Convert to normalized strength.
 
 if (this_ele%field_master .and. this_ele%value(p0c$) /= 0 .and. &
-        integer_option(magnetic$, pole_type) == magnetic$ .and. this_ele%key /= sad_mult$) then
+        p_type == magnetic$ .and. this_ele%key /= sad_mult$) then
   branch => pointer_to_branch(this_ele)
   if (.not. associated(branch)) then
     call out_io (s_fatal$, r_name, 'ELEMENT WITH MULTIPOLES AND FIELD_MASTER = T NOT ASSOCIATED WITH ANY LATTICE!')
@@ -430,7 +458,7 @@ endif
 ! radius = 0 defaults to radius = 1
 
 if (.not. this_ele%scale_multipoles) return
-if (integer_option(magnetic$, pole_type) == electric$) then
+if (p_type == electric$) then
   radius = this_ele%value(r0_elec$)
   if (radius /= 0 .and. radius /= 1) then
     factor = radius
@@ -511,6 +539,35 @@ else
 endif
 
 end subroutine convert_this_ab
+
+!---------------------------------------------
+! contains
+
+subroutine load_this_cache(cache, p_type, with_kicks)
+
+type (multipole_cache_struct), pointer :: cache
+integer p_type, with_kicks
+
+!
+
+if (.not. associated(ele%multipole_cache)) then
+  allocate(ele%multipole_cache)
+  cache => ele%multipole_cache
+endif
+
+select case (p_type)
+case (magnetic$)
+  cache%a_pole_mag = a
+  cache%b_pole_mag = b
+  cache%ix_pole_mag_max = ix_pole_max
+  cache%include_kicks = with_kicks
+case default
+  cache%a_pole_elec = a
+  cache%b_pole_elec = b
+  cache%ix_pole_elec_max = ix_pole_max
+end select
+
+end subroutine load_this_cache
 
 end subroutine multipole_ele_to_ab
 

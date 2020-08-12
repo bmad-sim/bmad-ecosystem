@@ -274,7 +274,7 @@ logical, optional :: set_dependent
 
 branch => pointer_to_branch(ele)
 dep_set = logic_option(.true., set_dependent)
-dep2_set = (dep_set .and. ele%value(p0c$) /= 0 .and. charge_of(branch%param%particle) /= 0)
+dep2_set = (dep_set .and. ele%value(p0c$) /= 0 .and. charge_of(branch%param%particle, 0) /= 0)
 if (dep2_set) p0c_factor = ele%value(p0c$) / (c_light * charge_of(branch%param%particle))
 
 ! If a lord then set the control flag stale
@@ -342,7 +342,7 @@ if (associated(a_ptr, ele%value(e_tot$)) .and. associated(branch)) then
     call set_ele_status_stale (ele, ref_energy_group$, .false.)
   end select
 
-  if (dep_set) then
+  if (dep2_set) then
     call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
     ! If there is an e_gun then actually want to vary the start energy and e_tot/p0c will be
     ! dependent parameters dependent upon the gun voltage and starting energy.
@@ -363,7 +363,7 @@ if (associated(a_ptr, ele%value(p0c$)) .and. associated(branch)) then
     call set_ele_status_stale (ele, ref_energy_group$, .false.)
   end select
 
-  if (dep_set) then
+  if (dep2_set) then
     call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
     ! If there is an e_gun then actually want to vary the start energy and e_tot/p0c will be
     ! dependent parameters dependent upon the gun voltage and starting energy.
@@ -383,7 +383,7 @@ if (associated(a_ptr, ele%value(e_tot_start$)) .and. associated(branch)) then
     ! Lord energy is set from slave. Not other way around.
     call set_ele_status_stale (ele, ref_energy_group$, .false.)
   end select
-  if (dep_set) then
+  if (dep2_set) then
     call convert_total_energy_to (ele%value(e_tot_start$), branch%param%particle, pc = ele%value(p0c_start$))
   endif
   return
@@ -397,7 +397,7 @@ if (associated(a_ptr, ele%value(p0c_start$)) .and. associated(branch)) then
     ! Lord energy is set from slave. Not other way around.
     call set_ele_status_stale (ele, ref_energy_group$, .false.)
   end select
-  if (dep_set) then
+  if (dep2_set) then
     call convert_pc_to (ele%value(p0c_start$), branch%param%particle, e_tot = ele%value(e_tot_start$))
   endif
   return

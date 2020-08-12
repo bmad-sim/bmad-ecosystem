@@ -40,7 +40,7 @@ implicit none
 
 type (lat_struct), target :: lat, in_lat
 type (ele_struct) this_ele
-type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, mad_beam_ele, param_ele
+type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, param_ele
 type (ele_struct), save :: marker_ele
 type (seq_struct), target, allocatable :: sequence(:)
 type (branch_struct), pointer :: branch0, branch
@@ -174,18 +174,20 @@ bp_com%input_line_meaningful = .true.
 n_max => in_lat%n_ele_max   ! Number of elements encountered
 n_max = -1
 
+! Note: The order of def_parameter and def_mad_beam elements is used by parser_set_attribute
+
 call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
 n_max = n_max + 1
 call nametable_add (in_lat%nametable, in_lat%ele(0)%name, n_max)
 
-ele => in_lat%ele(1)
+ele => in_lat%ele(1) ! Important: def_parameter comes after def_mad_beam.
 n_max = n_max + 1
 call init_ele(ele, def_mad_beam$, 0, 1, in_lat%branch(0))
 ele%name = 'BEAM'                 ! For MAD compatibility.
 call nametable_add (in_lat%nametable, ele%name, n_max)
 ix_mad_beam_ele = 1
 
-ele => in_lat%ele(2)
+ele => in_lat%ele(2)  ! Important: def_parameter comes after def_mad_beam.
 n_max = n_max + 1
 call init_ele(ele, def_parameter$, 0, 2, in_lat%branch(0))
 ele%name = 'PARAMETER'           ! For parameters 
@@ -747,7 +749,6 @@ endif
 ! We now have read in everything. 
 
 bp_com%input_line_meaningful = .false.
-mad_beam_ele => in_lat%ele(ix_mad_beam_ele)
 param_ele    => in_lat%ele(ix_param_ele)
 
 ! Sort lists and check for duplicates.
@@ -902,16 +903,11 @@ branch_loop: do i_loop = 1, n_branch_max
     call mat_make_unit (lat%ele(0)%mat6)
     call clear_lat_1turn_mats (lat)
 
-    if (mad_beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) &
-                                                       call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
-    lat%param%n_part = max(mad_beam_ele%value(n_part$), param_ele%value(n_part$))
+    lat%param%n_part = param_ele%value(n_part$)
 
-    ix1 = nint(param_ele%value(particle$))
-    ix2 = nint(mad_beam_ele%value(particle$))
-    if (ix1 /= positron$ .and. ix2 /= positron$) &
-            call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
-    lat%param%particle = ix1
-    if (ix2 /=  positron$) lat%param%particle = ix2
+    lat%param%particle = param_ele%ref_species
+    if (ele%ref_species /= not_set$) lat%param%particle = ele%ref_species
+    if (lat%param%particle == not_set$) lat%param%particle = positron$
 
     ! The lattice name from a "parameter[lattice] = ..." line is 
     ! stored the param_ele%descrip string
@@ -942,41 +938,15 @@ branch_loop: do i_loop = 1, n_branch_max
       lat%param%geometry = open$
     endif
 
-  endif  ! n_branch == 0
+  else  ! n_branch /= 0
+    branch%param%particle = ele%ref_species
+  endif  
 
   !----
 
-  if (ele%value(particle$) == real_garbage$) then
-    if (is_photon_fork) then
-      branch%param%particle = photon$
-    elseif (branch%ix_from_branch > -1) then
-      branch%param%particle = lat%branch(branch%ix_from_branch)%param%particle
-    else
-      branch%param%particle = lat%param%particle
-      !! if (branch%ix_branch /= 0) call parser_error ('PARTICLE TYPE NOT SET FOR BRANCH: ' // branch%name)
-    endif
-  else
-    branch%param%particle = ele%value(particle$)
-  endif
-
   if (ele%value(live_branch$) /= real_garbage$) branch%param%live_branch = is_true(ele%value(live_branch$))
   if (ele%value(high_energy_space_charge_on$) /= real_garbage$) branch%param%high_energy_space_charge_on = is_true(ele%value(high_energy_space_charge_on$))
-
   if (ele%value(geometry$) /= real_garbage$) branch%param%geometry = nint(ele%value(geometry$))
-  if (branch%param%geometry == 0) then   ! Not set
-    if (branch%param%particle == photon$) then
-      branch%param%geometry = open$
-    elseif (any(branch%ele(:)%key == lcavity$)) then
-      if (n_branch == 0) then
-        call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
-      else
-        call out_io (s_warn$, r_name, 'NOTE: BRANCH ' // trim(branch%name) // ' HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
-      endif
-      branch%param%geometry = open$
-    else
-      branch%param%geometry = closed$
-    endif
-  endif
 
   ! Transfer info from line element if parameters have been set.
 

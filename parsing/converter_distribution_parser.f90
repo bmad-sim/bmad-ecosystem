@@ -1,5 +1,5 @@
 !+
-! Subroutine parse_converter_distribution(ele, delim, delim_found, err_flag)
+! Subroutine converter_distribution_parser(ele, delim, delim_found, err_flag)
 !
 ! Routine to parse a distribution parameter of a converter element
 ! This routine is not for general use.
@@ -14,9 +14,9 @@
 !   err_flag    -- logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine parse_converter_distribution(ele, delim, delim_found, err_flag)
+subroutine converter_distribution_parser(ele, delim, delim_found, err_flag)
 
-use bmad_parser_mod, dummy => parse_converter_distribution
+use bmad_parser_mod, dummy => converter_distribution_parser
 use object_model_mod
 
 implicit none
@@ -38,6 +38,8 @@ type (converter_dir_coef_struct), pointer :: alpha, beta, c_x, dds
 type (object_struct), target :: obj0
 type (object_struct), pointer :: obj1, obj2, obj3, obj4
 
+real(rp), allocatable :: r(:)
+real(rp) val
 integer i, j, k, n, ix_word, n_r, n_pc, ixe, n_sd, n_subd, ix_sd
 
 character(*) delim
@@ -100,7 +102,7 @@ do n_sd = 1, n_subd
   ! SPIN_IN
   obj2 => pointer_to_subobject(obj1, 'SPIN_IN')
   if (associated(obj2)) then
-    if (.not. parser_read_obj_real(obj2, sub_d%spin_in, ele)) return
+    if (.not. parser_read_obj_real_array(obj2, sub_d%spin_in, .true., ele)) return
   endif
 
   ! PROB_PC_R
@@ -129,17 +131,30 @@ do n_sd = 1, n_subd
     obj3 => pointer_to_subobject(obj2, 'R_VALUES')
     n_r = obj3%n_token
     n_pc = subobject_number(obj2, 'ROW')
-    allocate(prob_pc_r%r(n_r))
-    if (.not. parser_read_obj_real_array(obj3, sub_d%prob_pc_r%r, .true., ele)) return
-    allocate (prob_pc_r%prob(n_pc, n_r), prob_pc_r%pc_out(n_pc))
+    call re_allocate(r, n_r)
+    if (.not. parser_read_obj_real_array(obj3, r, .true., ele)) return
+    if (n_pc /= size(prob_pc_r%pc_out) .or. n_r+1 /= size(prob_pc_r%r)) then
+      call parser_error('ARRAY SIZE MISMATCH IN CONVERTER DISTRIBUTION BETWEEN PROB_PC_R AND SPIN_Z_OUT MATRICES.', &
+                        'FOR ELEMENT: ' // ele%name)
+    endif
+    if (any (r /= prob_pc_r%r(2:))) then
+      call parser_error('R VALUE MISMATCH IN CONVERTER DISTRIBUTION BETWEEN PROB_PC_R AND SPIN_Z_OUT MATRICES.', &
+                        'FOR ELEMENT: ' // ele%name)
+    endif
+    allocate (prob_pc_r%spin_z(n_pc, n_r+1))
     ixe = 0
     do k = 1, n_pc
       obj3 => pointer_to_subobject(obj2, 'ROW', ixe)
-      if (.not. parser_check_subobjects (obj3, [subobj('SPIN_Z',1,1), subobj('PROB',1,1)], ele)) return
-      if (.not. parser_read_subobj_real(obj3, 'SPIN_Z', prob_pc_r%pc_out(k), ele)) return
-      if (.not. parser_read_subobj_real_array(obj3, 'PROB', prob_pc_r%prob(k,:), .true., ele)) return
+      if (.not. parser_check_subobjects (obj3, [subobj('SPIN_Z',1,1), subobj('PC_OUT',1,1)], ele)) return
+      if (.not. parser_read_subobj_real_array(obj3, 'SPIN_Z', prob_pc_r%spin_z(k,2:), .true., ele)) return
+      ! Polarization must be symmetric so make this approximation.
+      prob_pc_r%spin_z(k,1) = prob_pc_r%spin_z(k,2)
+      if (.not. parser_read_subobj_real(obj3, 'PC_OUT', val, ele)) return
+      if (val /= prob_pc_r%pc_out(k)) then
+        call parser_error('PC_OUT VALUE MISMATCH IN CONVERTER DISTRIBUTION BETWEEN PROB_PC_R AND SPIN_Z_OUT MATRICES.', &
+                          'FOR ELEMENT: ' // ele%name)
+      endif
     enddo
-    if (.not. parser_check_obj_order (prob_pc_r%pc_out(:), '<', 'ROW->SPIN_Z', obj2, ele)) return
   endif
 
   ! DIRECTION_OUT
@@ -192,7 +207,7 @@ type (ele_struct) ele
 type (object_struct), pointer :: obj2, obj3, obj4
 type (converter_dir_coef_struct) coef_head
 
-integer n_r
+integer k, n_r, ixe
 character(*) who
 logical has_c, is_ok
 
@@ -443,5 +458,5 @@ enddo
 
 end function
 
-end subroutine parse_converter_distribution
+end subroutine converter_distribution_parser
 
