@@ -169,7 +169,7 @@ endif
 
 if (ele%field_master) then
 
-  if (val(p0c$) == 0) then
+  if (val(p0c$) == 0 .or. particle == not_set$) then
     factor = 0
   else
     factor = charge_of(particle) * c_light / val(p0c$)
@@ -205,7 +205,7 @@ if (ele%field_master) then
 
 else
 
-  if (charge_of(particle) == 0) then
+  if (charge_of(particle, 0) == 0) then
     factor = 0
   else
     factor = val(p0c$) / (charge_of(particle) * c_light)
@@ -687,7 +687,11 @@ endif
 
 ! Make stale ele%rad_int_cache if allocated
 
-if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.  ! Forces recalc
+if (associated(ele%rad_int_cache))   ele%rad_int_cache%stale = .true.  ! Forces recalc
+if (associated(ele%multipole_cache)) then
+  ele%multipole_cache%ix_pole_mag_max = invalid$ ! Forces recalc
+  ele%multipole_cache%ix_pole_elec_max = invalid$ ! Forces recalc
+endif
 
 ! Set old_value = value
 

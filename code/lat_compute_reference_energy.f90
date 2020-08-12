@@ -47,8 +47,12 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   branch%param%unstable_factor = 0   ! Set to positive number if there is a problem.
   begin_ele => branch%ele(0)
+  nullify(fork_ele)
+  if (branch%ix_from_branch > -1 .and. branch%ix_to_ele == 0) then
+    fork_ele => lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)
+    if (fork_ele%key == photon_fork$) branch%param%particle = photon$
+  endif
   begin_ele%ref_species = branch%param%particle
-
   if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
   stale = (begin_ele%bookkeeping_state%ref_energy == stale$)
 
@@ -58,24 +62,38 @@ do ib = 0, ubound(lat%branch, 1)
   if (stale) then
     if (begin_ele%value(inherit_from_fork$) == real_garbage$) then  ! Happens first time this routine is called from bmad_parser. 
       begin_ele%value(inherit_from_fork$) = false$
-      if (branch%ix_from_branch > -1 .and. branch%ix_to_ele == 0) then
-        ele0 => lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)
-        if (ele0%ref_species == begin_ele%ref_species) begin_ele%value(inherit_from_fork$) = true$
+      if (associated(fork_ele)) then
+        if (begin_ele%ref_species == fork_ele%ref_species .or. begin_ele%ref_species == not_set$) &
+                                                                           begin_ele%value(inherit_from_fork$) = true$
       endif
     endif
 
     ! If inherit from fork.
     if (is_true(begin_ele%value(inherit_from_fork$))) then
-      fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
       begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
       begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
       begin_ele%value(E_tot$) = fork_ele%value(E_tot$)
       begin_ele%value(p0c$) = fork_ele%value(p0c$)
+      begin_ele%ref_species = fork_ele%ref_species
+      branch%param%particle = begin_ele%ref_species
       call init_coord (begin_ele%time_ref_orb_in, zero6, begin_ele, upstream_end$)
       call init_coord (begin_ele%time_ref_orb_out, zero6, begin_ele, downstream_end$)
 
     ! Else no inherit from fork.
     else
+      if (begin_ele%ref_species == not_set$) then
+        if (associated(fork_ele)) then
+          begin_ele%ref_species = fork_ele%ref_species
+          branch%param%particle = fork_ele%ref_species
+        elseif (ib == 0) then
+          begin_ele%ref_species = positron$
+          branch%param%particle = begin_ele%ref_species
+        else
+          begin_ele%ref_species = lat%param%particle
+          branch%param%particle = lat%param%particle
+        endif
+      endif
+
       if (begin_ele%value(p0c$) >= 0) then
         call convert_pc_to (begin_ele%value(p0c$), begin_ele%ref_species, e_tot = begin_ele%value(e_tot$))
       elseif (begin_ele%value(e_tot$) >= mass_of(begin_ele%ref_species)) then
@@ -111,6 +129,24 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
     begin_ele%bookkeeping_state%ref_energy = ok$
+
+    !
+
+    if (branch%param%geometry == 0) then   ! Not yet set
+      if (branch%param%particle == photon$) then
+        branch%param%geometry = open$
+      elseif (any(branch%ele(:)%key == lcavity$)) then
+        if (branch%ix_branch == 0) then
+          call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
+        else
+          call out_io (s_warn$, r_name, 'NOTE: BRANCH ' // trim(branch%name) // ' HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
+        endif
+        branch%param%geometry = open$
+      else
+        branch%param%geometry = closed$
+      endif
+    endif
+
   endif    ! if (stale)
 
   !---------------

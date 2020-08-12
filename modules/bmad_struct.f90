@@ -824,15 +824,14 @@ end type
 ! In one simulation 25% of the time was spent constructing multipole arrays.
 
 type multipole_cache_struct
-  logical valid
-  real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
-  integer ix_pole_mag_max
-  integer include_kicks   ! Store value of multipole_ele_to_ab arg.
+  real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx)
+  integer :: ix_pole_mag_max = invalid$
+  integer include_kicks   ! Store value of multipole_ele_to_ab arg. no$ include_kicks$, include_kicks_except_k1$
   real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
-  integer ix_pole_elec_max
+  integer :: ix_pole_elec_max = invalid$
 end type
 
-! radiation integral data cache
+! Radiation integral data cache
 
 type rad_int_ele_cache_struct
   real(rp) :: orb0(6) = 0       ! Reference orbit for the calculation
@@ -1089,7 +1088,7 @@ end type
 
 type converter_sub_distribution_struct
   real(rp) :: pc_in = -1
-  real(rp) :: spin_in
+  real(rp) :: spin_in(3)
   type (converter_prob_pc_r_struct) :: prob_pc_r
   type (converter_direction_out_struct) :: dir_out
 end type
@@ -1151,6 +1150,7 @@ type ele_struct
   type (mode3_struct), pointer :: mode3 => null()                     ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
   type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct()  ! For symp_map$
+  type (multipole_cache_struct), pointer :: multipole_cache => null()  
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() ! Radiation integral calc cached values 
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()   ! Quaternion Spin Taylor map.
@@ -1168,7 +1168,6 @@ type ele_struct
   type (coord_struct) :: map_ref_orb_out = coord_struct()      ! Exit end transfer map ref orbit
   type (coord_struct) :: time_ref_orb_in = coord_struct()      ! Reference orbit at entrance end for ref_time calc.
   type (coord_struct) :: time_ref_orb_out = coord_struct()     ! Reference orbit at exit end for ref_time calc.
-  type (multipole_cache_struct), allocatable :: multipole_cache
   real(rp) :: value(num_ele_attrib$) = 0                       ! attribute values.
   real(rp) :: old_value(num_ele_attrib$) = 0                   ! Used to see if %value(:) array has changed.
   real(rp) :: vec0(6) = 0                                      ! 0th order transport vector.
@@ -1252,7 +1251,7 @@ type lat_param_struct
   real(rp) :: t1_with_RF(6,6) = 0              ! Full 1-turn matrix with RF on.
   real(rp) :: t1_no_RF(6,6) = 0                ! Full 1-turn matrix with RF off.
   real(rp) :: spin_tune = 0                    ! Closed orbit spin tune.
-  integer :: particle = positron$              ! Reference particle: positron$, electron$, etc.
+  integer :: particle = not_set$               ! Reference particle: positron$, electron$, etc.
   integer :: default_tracking_species = ref_particle$  ! Default particle type to use in tracking.
   integer :: geometry = 0                      ! open$ or closed$
   integer :: ixx = 0                           ! Integer for general use
@@ -1531,7 +1530,7 @@ integer, parameter :: photon_type$ = 44, coupler_phase$ = 44, B_field_err$ = 44
 integer, parameter :: lattice_type$ = 45, B1_gradient$ = 45, E1_gradient$ = 45, coupler_angle$ = 45
 integer, parameter :: live_branch$ = 46, B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: geometry$ = 47, coupler_at$ = 47, E_tot_set$ = 47, ptc_canonical_coords$ = 47
-integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, p0c_set$ = 48, particle$ = 48
+integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48, p0c_set$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50
 integer, parameter :: p0c_start$ = 51
@@ -1633,7 +1632,7 @@ integer, parameter :: accordion_edge$  = 128
 integer, parameter :: start_edge$  = 129
 integer, parameter :: end_edge$  = 130
 integer, parameter :: s_position$ = 131
-integer, parameter :: ref_species$ = 132
+integer, parameter :: ref_species$ = 132, particle$ = 132
 
 integer, parameter :: a0$  = 140, a21$  = 161
 integer, parameter :: b0$  = 162, b21$  = 183

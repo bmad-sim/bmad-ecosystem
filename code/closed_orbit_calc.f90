@@ -104,12 +104,13 @@ type matrix_save
 end type
 type (matrix_save), allocatable :: m(:)
 
-real(rp) t1(6,6), del_co(6), t11_inv(6,6), i1_int, del_orb(6)
+real(rp), target :: t1(6,6)
+real(rp) del_co(6), t11_inv(6,6), i1_int, del_orb(6)
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), start_orb_t1(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original, betas(2)
 real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), rf_wavelen, dz_step
 real(rp), allocatable, target :: on_off_state(:), vec0(:), dvec(:), weight(:), a_vec(:), merit_vec(:), dy_da(:,:)
-real(rp), pointer :: av(:)
+real(rp), pointer :: av(:), t1_ptr(:,:)
 
 integer, optional :: direction, ix_branch, i_dim
 integer i, j, ie, i2, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
@@ -117,7 +118,7 @@ integer ix_ele_start, ix_ele_end
 
 logical, optional, intent(out) :: err_flag
 logical, optional, intent(in) :: print_err
-logical err, error, allocate_m_done, stable_orbit_found, t1_needs_checking, printit, at_end, try_lmdif
+logical err, error, allocate_m_done, alive_at_end, check_for_z_stability, printit, at_end, try_lmdif
 logical invert_step_tried
 logical, allocatable :: maska(:)
 
@@ -263,7 +264,8 @@ allocate(co_saved(0:ubound(closed_orb, 1)))
 allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), a_vec(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
 vec0 = 0
 maska = .false.
-stable_orbit_found = .false.
+alive_at_end = .false.
+check_for_z_stability = (n_dim == 6)
 invert_step_tried = .false.
 a_lambda = -1
 old_chisq = 1d30   ! Something large
@@ -271,6 +273,7 @@ a_vec = start_orb%vec(1:n_dim)
 if (n_dim == 5) a_vec(5) = start_orb%vec(6)
 try_lmdif = .true.
 
+t1_ptr => t1          ! Used to get around ifort bug
 c_orb => closed_orb   ! Used to get around ifort bug
 s_orb => start_orb    ! Used to get around ifort bug
 e_orb => end_orb      ! Used to get around ifort bug
@@ -278,7 +281,6 @@ av    => a_vec        ! Used to get around ifort bug
 
 !
 
-t1_needs_checking = .true.  
 i_max = 100
 
 do i_loop = 1, i_max
@@ -304,7 +306,7 @@ do i_loop = 1, i_max
       return
     endif
     call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
-    t1_needs_checking = .true.  ! New t1 matrix needs to be checked for stability.
+    check_for_z_stability = (n_dim == 6)  ! New t1 matrix needs to be checked for stability.
     a_lambda = -1    ! Reset super_mrqmin
     try_lmdif = .false.
     cycle
@@ -322,9 +324,11 @@ do i_loop = 1, i_max
     return
   endif
 
-  if (i_loop == 1 .and. .not. stable_orbit_found) then
+  !
+
+  if (i_loop == 1 .and. .not. alive_at_end) then
     a_vec(1:4) = 0  ! Desperation move.
-  elseif (i_loop == 2 .and. .not. stable_orbit_found) then
+  elseif (i_loop == 2 .and. .not. alive_at_end) then
     if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
                                    'USING BRANCH: ' // branch_name(branch))
     call end_cleanup(branch)
@@ -343,7 +347,15 @@ do i_loop = 1, i_max
     endif
 
     amp_del = abs(dorb)
-    if (all(amp_del(1:n_dim) < amp_co(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)) exit
+    if (all(amp_del(1:n_dim) < amp_co(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)) then
+      if (n_dim == 6) then
+        call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
+        if (max_z_eigen(t1) < 1.000001_rp) exit
+        check_for_z_stability = .true.   ! Is unstable
+      else
+        exit
+      endif
+    endif
   endif
 
   if (track_state == moving_forward$ .and. chisq < old_chisq .and. status /= 1) co_saved = closed_orb
@@ -369,7 +381,7 @@ do i_loop = 1, i_max
       enddo
 
       call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
-      t1_needs_checking = .true.  ! New t1 matrix needs to be checked for stability.
+      check_for_z_stability = (n_dim == 6)  ! New t1 matrix needs to be checked for stability.
 
       do n = 1, branch%n_ele_max
         branch%ele(n)%mat6 = m(n)%mat6
@@ -413,9 +425,9 @@ do i_loop = 1, i_max
   ! If we are near an unstable fixed point look for a better spot by shifting the particle in z in steps of pi/4.
   ! Note: due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point.
 
-  if (n_dim == 6 .and. t1_needs_checking .and. stable_orbit_found) then
-    min_max_eigen = eigen_val_z(t1)
-    if (min_max_eigen - 1 > 1d-5) then    ! Is unstable
+  if (check_for_z_stability .and. alive_at_end) then
+    min_max_eigen = max_z_eigen(t1)
+    if (min_max_eigen > 1.000001_rp) then    ! Is unstable
       j_max = 0
       z0 = a_vec(5)
       dz = rf_wavelen / 8
@@ -437,7 +449,7 @@ do i_loop = 1, i_max
         try_lmdif = .true.
       endif
     endif
-    t1_needs_checking = .false.
+    check_for_z_stability = .false.
   endif
 
   !
@@ -522,14 +534,14 @@ if (track_state /= moving_forward$) then
 endif
 
 call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
-max_eigen = eigen_val_z(t1)
+max_eigen = max_z_eigen(t1)
 
 end subroutine max_eigen_calc
 
 !------------------------------------------------------------------------------
 ! contains
 
-function eigen_val_z(t1) result (z_eigen)
+function max_z_eigen(t1) result (z_eigen)
 
 real(rp) t1(6,6), z_eigen
 complex(rp) eigen_val(6), eigen_vec(6,6)
@@ -540,9 +552,13 @@ logical error
 
 call mat_eigen (t1, eigen_val, eigen_vec, error)
 ix = maxloc(abs(eigen_vec(5,:)) + abs(eigen_vec(6,:)), 1)
-z_eigen = abs(eigen_val(ix))
+select case (ix)
+case (1, 2);  z_eigen = max(abs(eigen_val(1)), abs(eigen_val(2)))
+case (3, 4);  z_eigen = max(abs(eigen_val(3)), abs(eigen_val(4)))
+case (5, 6);  z_eigen = max(abs(eigen_val(5)), abs(eigen_val(6)))
+end select
 
-end function eigen_val_z
+end function max_z_eigen
 
 !------------------------------------------------------------------------------
 ! contains
@@ -593,7 +609,7 @@ if (n_dim == 6 .and. branch%lat%absolute_time_tracking) then
 endif
 
 if (track_state == moving_forward$) then
-  stable_orbit_found = .true.
+  alive_at_end = .true.
   y_fit = del_orb(1:n_dim)
 else
   y_fit = 1d10 * branch%param%unstable_factor   ! Some large number

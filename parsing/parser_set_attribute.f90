@@ -9,6 +9,7 @@
 ! Input:
 !   how              -- integer: Either def$ if the element is being construct from scratch or redef$ if the element has
 !                         already been formed and this is part of a "ele_name[attrib_name] = value" construct.
+!   ele              -- ele_struct: Element whose attribute this is.
 !   check_free       -- logical, optional: If present and True then an error will be generated
 !                          if the attribute is not free to vary. Used by bmad_parser2.
 !   heterogeneous_ele_list 
@@ -20,12 +21,11 @@
 !                         called post lattice parsing, setting ele%field_master is *not* wanted.
 !
 ! Output
-!   ele          -- ele_struct: Element whose attribute this is.
-!   delim        -- character(1): Delimiter found where the parsing of the input line stops.
-!   delim_found  -- logical: Delimiter found? False if end of input command.
-!   err_flag     -- logical: Set True if there is a problem parsing the input.
-!   pele         -- parser_ele_struct, optional: Structure to hold additional 
-!                     information that cannot be stored in the ele argument.
+!   delim          -- character(1): Delimiter found where the parsing of the input line stops.
+!   delim_found    -- logical: Delimiter found? False if end of input command.
+!   err_flag       -- logical: Set True if there is a problem parsing the input.
+!   pele           -- parser_ele_struct, optional: Structure to hold additional 
+!                       information that cannot be stored in the ele argument.
 !-
 
 subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
@@ -1041,7 +1041,7 @@ endif
 
 if (attrib_word == 'DISTRIBUTION') then
   if (.not. expect_this ('=', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
-  call parse_converter_distribution(ele, delim, delim_found, err_flag)
+  call converter_distribution_parser (ele, delim, delim_found, err_flag)
   return
 endif
 
@@ -1672,9 +1672,8 @@ case ('PARTICLE')
     return
   endif
 
-  ele%value(particle$) = ix
-  j = nint(ele%value(ix_branch$)) 
-  if (j >= 0) lat%branch(j)%param%particle = ix 
+  ele%ref_species = ix
+  if (ele%key == def_parameter$) lat%param%particle = ix 
 
 case ('PHOTON_TYPE')
   call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
@@ -1887,6 +1886,12 @@ case default   ! normal attribute
       case ('ENERGY')    ! Only in def_mad_beam
         lat%ele(0)%value(e_tot$) = 1d9 * value
         lat%ele(0)%value(p0c$) = -1
+
+      case ('PARTICLE')
+        if (ele%key == def_mad_beam$) then
+          ele2 => lat%ele(ele%ix_ele+1)   ! Points to def_parameter element
+          ele2%ref_species = ele%ref_species
+        endif
 
       case ('P0C')
         if (ele%key == def_parameter$) then

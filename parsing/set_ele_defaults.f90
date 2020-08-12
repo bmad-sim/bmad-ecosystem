@@ -61,7 +61,6 @@ case (beginning_ele$)
 
 case (fork$, photon_fork$)
   ele%value(direction$) = 1
-  ele%value(particle$) = real_garbage$
   ele%ref_species = not_set$   ! Used when element is after a converter
   ele%value(new_branch$) = true$
 
@@ -97,13 +96,13 @@ case (custom$)
 case (def_particle_start$)
 
 case (def_mad_beam$)
-  ele%value(particle$) = positron$
+  ele%ref_species = not_set$
 
 case (def_parameter$)
   ele%value(geometry$) = real_garbage$
   ele%value(live_branch$) = real_garbage$
   ele%value(high_energy_space_charge_on$) = real_garbage$
-  ele%value(particle$) = positron$
+  ele%ref_species = positron$
   ele%value(default_tracking_species$) = real_garbage$
   ele%value(ix_branch$) = -1
 

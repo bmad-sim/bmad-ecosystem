@@ -592,6 +592,10 @@ if (n_major_lords < 2) then
     if (.not. all(slave%map_ref_orb_in%vec == branch%ele(ix_order-1)%map_ref_orb_out%vec)) then
       slave0 => pointer_to_slave(lord, ix_order-1)
       slave%map_ref_orb_in = slave0%map_ref_orb_out
+      if (associated(slave%multipole_cache)) then
+        slave%multipole_cache%ix_pole_mag_max = invalid$
+        slave%multipole_cache%ix_pole_elec_max = invalid$
+      endif
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
   endif
@@ -700,6 +704,10 @@ do j = 1, slave%n_lord
   if (.not. is_first) then
     if (.not. all(slave%map_ref_orb_in%vec == branch%ele(ix_slave-1)%map_ref_orb_out%vec)) then
       slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
+      if (associated(slave%multipole_cache)) then
+        slave%multipole_cache%ix_pole_mag_max = invalid$
+        slave%multipole_cache%ix_pole_elec_max = invalid$
+      endif
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
   endif
