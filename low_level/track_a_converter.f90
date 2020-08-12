@@ -27,6 +27,7 @@ integer, parameter :: n_pt$ = 100
 
 type converter_param_storage_struct
   real(rp) pc_out, r
+  real(rp) rel_spin_z
   real(rp) dxds, dyds
   real(rp) weight
   logical :: lost = .false.
@@ -129,6 +130,7 @@ if (thickness_interpolate) then
   out1%dxds   = drd2 * out1%dxds   + drd * out2%dxds
   out1%dyds   = drd2 * out1%dyds   + drd * out2%dyds
   out1%weight = drd2 * out1%weight + drd * out2%weight
+  out1%rel_spin_z = drd2 * out1%rel_spin_z + drd * out2%rel_spin_z
 endif
 
 if (out1%lost) then
@@ -153,6 +155,7 @@ orbit%vec(2) = orbit%vec(2) + (out1%dxds * cos(azimuth_angle) - out1%dyds * sin(
 orbit%vec(3) = orbit%vec(3) + out1%r * sin(azimuth_angle)
 orbit%vec(4) = orbit%vec(4) + (out1%dxds * sin(azimuth_angle) + out1%dyds * cos(azimuth_angle)) * ps
 orbit%vec(5) = orbit%vec(5) * orb0%beta / orbit%beta
+orbit%spin   = [0, 0, 1] * orbit%spin(3) * out1%rel_spin_z
 
 call offset_particle (ele, param, unset$, orbit)
 return
@@ -231,6 +234,11 @@ out%pc_out = (1-dpc) * ppcr%pc_out(ix_pc) + dpc * ppcr%pc_out(ix_pc+1)
 ppcr%integ_r_ave = (1-dpc) * ppcr%integ_r(ix_pc,:) + dpc * ppcr%integ_r(ix_pc+1,:)
 ix_r = bracket_index(r_ran(2), ppcr%integ_r_ave(:), 1, dr, restrict = .true.)
 out%r = (1-dr) * ppcr%r(ix_r) + dr * ppcr%r(ix_r+1)
+
+! spin calc
+
+out%rel_spin_z = (1-dpc) * ((1-dr) * ppcr%spin_z(ix_pc, ix_r) + dr * ppcr%spin_z(ix_pc, ix_r+1)) + &
+                    dpc * ((1-dr) * ppcr%spin_z(ix_pc+1, ix_r) + dr * ppcr%spin_z(ix_pc+1, ix_r+1))
 
 ! dx/ds calc
 
