@@ -37,7 +37,7 @@ if (nargs > 0) then
 
   bmad_com%auto_bookkeeper = .false.
 
-  call bmad_parser(lat_file, lat)
+  call bmad_parser(lat_file, lat, make_mats6 = .false.)
   stop
 endif
 
@@ -47,12 +47,12 @@ open (1, file = 'output.now')
 
 !
 
-call bmad_parser('slice.bmad', lat, err_flag = err)
+call bmad_parser('slice.bmad', lat, make_mats6 = .false., err_flag = err)
 write (1, '(2a)') '"Slice-OK"  STR ', quote(logic_str(.not. err))
 
 !
 
-call bmad_parser ('control.bmad', lat)
+call bmad_parser ('control.bmad', lat, make_mats6 = .false.)
 do i = 1, 3
   ele => lat%ele(i)
   write (1, '(3a, f12.8)') '"Control-K1-', trim(ele%name), '"   ABS 0', ele%value(k1$)
@@ -64,7 +64,7 @@ enddo
 orb%vec = [0.1_rp, 0.2_rp, 0.3_rp, 0.4_rp, 0.5_rp, 0.6_rp]
 orb%species = electron$
 
-call bmad_parser ('em_field.bmad', lat)
+call bmad_parser ('em_field.bmad', lat, make_mats6 = .false.)
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
@@ -80,7 +80,7 @@ do i = 1, lat%n_ele_track
 enddo
 
 call write_bmad_lattice_file ('z.bmad', lat)
-call bmad_parser ('z.bmad', lat)
+call bmad_parser ('z.bmad', lat, make_mats6 = .false.)
 call form_digested_bmad_file_name ('z.bmad', digested_file)
 call read_digested_bmad_file (digested_file, lat, inc_version, err)
 call write_bmad_lattice_file ('z2.bmad', lat)
@@ -102,7 +102,7 @@ enddo
 
 !
 
-call bmad_parser ('overlap.bmad', lat)
+call bmad_parser ('overlap.bmad', lat, make_mats6 = .false.)
 
 do i = lat%n_ele_track+1, lat%n_ele_max
   write (1, '(a, i0, 3a)')       '"Overlap-Lord', i, '"    STR   "', trim(lat%ele(i)%name), '"'
@@ -118,11 +118,11 @@ call write_bmad_lattice_file ('overlap_out.bmad', lat)
 
 !
 
-call bmad_parser ('parse_test.bmad', lat)
+call bmad_parser ('parse_test.bmad', lat, make_mats6 = .false.)
 lat2 = lat
 call write_bmad_lattice_file ('write_parser_test.bmad', lat2)
-call bmad_parser ('write_parser_test.bmad', lat)
-call bmad_parser ('write_parser_test.bmad', lat)   ! To read digested file
+call bmad_parser ('write_parser_test.bmad', lat, make_mats6 = .false.)
+call bmad_parser ('write_parser_test.bmad', lat, make_mats6 = .false.)   ! To read digested file
 
 write (1, '(a, es12.4)') '"parameter[abc]" ABS 0 ', lat%custom(2)
 
@@ -157,15 +157,16 @@ bp_com%parse_line = '-2*7)'
 call parse_evaluate_value ('ERR', value, lat, delim, delim_found, err, ',)')
 write (1, '(a, f10.4)') '"EVAL 1"  ABS 0', value
 
-write (1, '(a, f10.4)') '"1 REL"  ABS 0', lat%ele(1)%value(k1$)
-write (1, '(a, f10.4)') '"2 REL"  ABS 0', lat%ele(2)%value(k1$)
-write (1, '(a, f10.4)') '"3 REL"  ABS 0', lat%ele(3)%value(k1$)
-write (1, '(a, f10.4)') '"4 REL"  ABS 0', lat%ele(4)%value(k1$)
-write (1, '(a, f10.4)') '"5 REL"  ABS 0', lat%ele(5)%value(k2$)
-write (1, '(4a)')       '"TM1"     STR ', '"', trim(tracking_method_name(lat%ele(1)%tracking_method)), '"'
-write (1, '(4a)')       '"TM5"     STR ', '"', trim(tracking_method_name(lat%ele(5)%tracking_method)), '"'
-write (1, '(a, i3)')    '"N3"     ABS 0', lat%branch(2)%n_ele_track
-write (1, '(4a)')       '"Custom"  STR ', '"', trim(attribute_name(lat%ele(1), custom_attribute0$+1)), '"'
+write (1, '(a, f10.4)') '"1 REL"      ABS 0', lat%ele(1)%value(k1$)
+write (1, '(a, f10.4)') '"2 REL"      ABS 0', lat%ele(2)%value(k1$)
+write (1, '(a, f10.4)') '"3 REL"      ABS 0', lat%ele(3)%value(k1$)
+write (1, '(a, f10.4)') '"4 REL"      ABS 0', lat%ele(4)%value(k1$)
+write (1, '(a, f10.4)') '"5 REL"      ABS 0', lat%ele(5)%value(k2$)
+write (1, '(4a)')       '"TM1"        STR ', quote(tracking_method_name(lat%ele(1)%tracking_method))
+write (1, '(4a)')       '"TM5"        STR ', quote(tracking_method_name(lat%ele(5)%tracking_method))
+write (1, '(a, i3)')    '"N3"         ABS 0', lat%branch(2)%n_ele_track
+write (1, '(4a)')       '"Custom"     STR ', quote(attribute_name(lat%ele(1), custom_attribute0$+1))
+write (1, '(2a)')       '"Geometry-G" STR ', quote(geometry_name(lat%branch(3)%param%geometry))
 
 write (1, '(3a)') '"He++"         STR "', trim(species_name(species_id('He++'))), '"'
 write (1, '(3a)') '"#12C-5"       STR "', trim(species_name(species_id('#12C-5'))), '"'
@@ -174,7 +175,7 @@ write (1, '(3a)') '"@M3.45---"    STR "', trim(species_name(species_id('@M3.45--
 
 !
 
-call bmad_parser ('parse_test.bmad', lat, use_line = 'PHOT')
+call bmad_parser ('parse_test.bmad', lat, make_mats6 = .false., use_line = 'PHOT')
 
 write (1, '(4a)')         '"PHOT-1"    STR ', '"', trim(lat%ele(1)%name), '"'
 write (1, '(2a, i0, a)')  '"PHOT-N"    STR ', '"', lat%n_ele_max, '"'

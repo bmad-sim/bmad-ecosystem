@@ -187,15 +187,16 @@
 "quad-custom_attribute2"                STR   "QQQ"
 "sex-custom_attribute3"                 STR   "ZZZ"
 "EVAL 1"  ABS 0  -14.0000
-"1 REL"  ABS 0    2.0000
-"2 REL"  ABS 0    2.0000
-"3 REL"  ABS 0    1.0000
-"4 REL"  ABS 0    1.0000
-"5 REL"  ABS 0    3.0000
-"TM1"     STR "Symp_Lie_Bmad"
-"TM5"     STR "Runge_Kutta"
-"N3"     ABS 0  4
-"Custom"  STR "MY_CUSTOM"
+"1 REL"      ABS 0    2.0000
+"2 REL"      ABS 0    2.0000
+"3 REL"      ABS 0    1.0000
+"4 REL"      ABS 0    1.0000
+"5 REL"      ABS 0    3.0000
+"TM1"        STR "Symp_Lie_Bmad"
+"TM5"        STR "Runge_Kutta"
+"N3"         ABS 0  5
+"Custom"     STR "MY_CUSTOM"
+"Geometry-G" STR "Open"
 "He++"         STR "He++"
 "#12C-5"       STR "#12C-5"
 "CH3@M34.5+2"  STR "CH3@M34.5++"
