@@ -75,6 +75,10 @@
 \newcommand{\numrbins}{\texttt{num\_r\_bins}\xspace}
 \newcommand{\numpcbins}{\texttt{num\_pc\_bins}\xspace}
 \newcommand{\fitxpt}{\texttt{fit\_crossover}\xspace}
+\newcommand{\pcbinvals}{\texttt{pc\_bin\_points}\xspace}
+\newcommand{\pcbinwids}{\texttt{pc\_bin\_widths}\xspace}
+\newcommand{\rbinvals}{\texttt{r\_bin\_points}\xspace}
+\newcommand{\rbinwids}{\texttt{r\_bin\_widths}\xspace}
 \newcommand{\B}{$\backslash$}
 
 \newenvironment{example}
@@ -413,8 +417,33 @@ use MeV and GeV instead as shown in the sample file.  The \targett setting takes
 dimensions of length.  The default unit is meters, although \texttt{cm} and \texttt{mm} are
 supported as well.
 
-The settings \numpcbins and \numrbins control the number of bins used in the histogram.
-Both values must be set in the config file.
+The histogram binning can be controlled by either \numpcbins and \numrbins, or by \pcbinvals and \rbinvals.
+If \numpcbins and \numrbins are specified in the config file, \exes automatically selects bins so that each bin contains approximately the same number of outgoing particles.
+In this mode, \outpcmin and \outpcmax are both respected.
+Alternatively, the user may specify exactly where the bins are placed by providing \pcbinvals and/or \rbinvals in the config file.
+These should be provided as a list; for example,
+\begin{example}
+  pc_bin_points = 1 MeV, 2 MeV, 5 MeV
+\end{example}
+In this mode, the specified points will be used as the centers of the corresponding histogram bins.
+These lists must be sorted in ascending order.
+\outpcmin, if present, specifies the lower edge of the first \texttt{pc} bin, while 0 is used as the lower edge of the first \texttt{r} bin.
+Bin boundaries are selected so that the upper edge of one bin is the lower edge of the next (that is, there are no gaps in the bins).
+\numpcbins and \numrbins, if specified, are ignored in this mode.
+
+The user may also specify \texttt{pc} and/or \texttt{r} bin widths if the corresponding bin values have been specified.
+This is done by providing \pcbinwids and/or \rbinwids in the config file, as in
+\begin{example}
+  pc_bin_widths = 0.1 MeV, 0.1 MeV, 0.5 MeV
+\end{example}
+These lists must be the same length as the corresponding list of bin points provided in the config file.
+If the bin widths are specified, then \outpcmin and \outpcmax are ignored (in addition to \numpcbins and/or \numrbins).
+In this example, with \pcbinvals and \pcbinwids specified as above, three bins will be used to bin \texttt{pc}: one from $0.9$ to $1.1$ MeV, one from $1.9$ to $2.1$ MeV, and one from $4.5$ to $5.5$ MeV.
+Note that manual binning can be used for one or both of \texttt{pc} and \texttt{r}.
+Likewise, bin widths may be specified for one or both of \texttt{pc} and \texttt{r}.
+
+%The settings \numpcbins and \numrbins control the number of bins used in the histogram.
+%Both values must be set in the config file.
 
 \subsection{The Simulation Program}
 
