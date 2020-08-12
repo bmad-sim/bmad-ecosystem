@@ -3,7 +3,7 @@
 parameter[particle] = ELECTRON
 parameter[e_tot] = 2.4 * 1e9
 
-rfcav: rfcavity, voltage = 0.700 * 1e6 / 12, harmon = 96, l = 0.88    ! 100 MHz RF
+rfcav: rfcavity, voltage = 0.700 * 1e7 / 12, harmon = 96, l = 0.88    ! 100 MHz RF
  
 d0         : drift, l = 0.1
 d1         : drift, l = 0.2

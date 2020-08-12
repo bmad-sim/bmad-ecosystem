@@ -133,8 +133,11 @@ mp: marker, superimpose, offset = 3, ref = phot>>beginning
 
 ddd: drift, l = 10
 ff: fork, to_line = f_line
-qq: pipe, l = 1;  f_line: line = (qq); f_line[particle] = photon
+qq: pipe, l = 1;  f_line: line = (qq, gf); f_line[particle] = photon
 mk: marker, superimpose, ref = qq, offset = 0.3
+
+gf: fork, to_line = g_line
+g_line: line = (ddd)
 
 !
 

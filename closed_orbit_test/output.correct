@@ -4,13 +4,13 @@
 "Rev5"  ABS 1E-10 -1.660613E-05 -2.389585E-03  1.054516E-06 -1.771107E-06 -6.751362E-12 -7.620080E-06
 "Fwd6"  ABS 1E-10  3.510506E-05 -2.429262E-03 -1.050180E-06 -8.475084E-06  1.881899E-02 -7.628358E-06
 "Rev6"  ABS 1E-10 -1.454172E-05 -2.427887E-03  1.052267E-06 -1.584094E-06  1.882309E-02 -7.647687E-06
-"ad05f_pos_RF.lat-1-B Z"          ABS 1E-10        0.99528303
-"ad05f_pos_RF.lat-1-B Z_tune"     ABS 1E-10        0.0003432559
-"ad05f_pos_RF.lat-2-A Z"          ABS 1E-10        0.99528303
-"ad05f_pos_RF.lat-2-B Z"          ABS 1E-10        0.99528305
-"ad05f_pos_RF.lat-2-B Z_tune"     ABS 1E-10        0.0003432559
-"ad05f_neg_RF.lat-1-B Z"          ABS 1E-10       -0.50473069
-"ad05f_neg_RF.lat-1-B Z_tune"     ABS 1E-10        0.0003432559
-"ad05f_neg_RF.lat-2-A Z"          ABS 1E-10       -0.50473069
-"ad05f_neg_RF.lat-2-B Z"          ABS 1E-10       -0.50473069
-"ad05f_neg_RF.lat-2-B Z_tune"     ABS 1E-10        0.0003432560
+"ad05f_pos_RF.lat-1-B Z"          ABS 1E-10        1.45837670
+"ad05f_pos_RF.lat-1-B Z_tune"     ABS 1E-10        0.0015455150
+"ad05f_pos_RF.lat-2-A Z"          ABS 1E-10        1.45837670
+"ad05f_pos_RF.lat-2-B Z"          ABS 1E-10        1.45837669
+"ad05f_pos_RF.lat-2-B Z_tune"     ABS 1E-10        0.0015455115
+"ad05f_neg_RF.lat-1-B Z"          ABS 1E-10       -0.04163706
+"ad05f_neg_RF.lat-1-B Z_tune"     ABS 1E-10        0.0015455115
+"ad05f_neg_RF.lat-2-A Z"          ABS 1E-10       -0.04163706
+"ad05f_neg_RF.lat-2-B Z"          ABS 1E-10       -0.04163706
+"ad05f_neg_RF.lat-2-B Z_tune"     ABS 1E-10        0.0015455115

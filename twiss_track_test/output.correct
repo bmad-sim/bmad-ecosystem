@@ -1,112 +1,112 @@
 "Closed Orb 6T Start"  ABS 1e-12    3.510441E-05   -2.429281E-03   -1.049357E-06   -8.474334E-06    1.881645E-02   -8.187970E-06
-"Closed Orb 6T Del"    ABS 2e-12  4.0237E-12  4.1572E-12 -1.4284E-13  3.2646E-12  1.2824E-11 -9.9565E-13
-"Closed Orb 6 Start"  ABS 1e-12    3.510506E-05   -2.429262E-03   -1.050181E-06   -8.475086E-06    1.881899E-02   -7.628357E-06
-"Closed Orb 6 Del"    ABS 1e-12 -4.1219E-12 -6.2272E-13  1.0724E-13  3.2717E-12 -8.5775E-12  1.1195E-12
-"Closed Orb 5 Start"  ABS 1e-12    3.314039E-05   -2.390967E-03   -1.052821E-06   -8.300698E-06    0.000000E+00   -7.459401E-06
-"Closed Orb 5 Del"    ABS 1e-12 -9.6713E-13 -8.8408E-12  8.0078E-13  7.3669E-12  6.8422E-12  3.3881E-21
+"Closed Orb 6T Del"    ABS 2e-12  4.0349E-12  4.1706E-12 -1.4290E-13  3.2664E-12  1.1681E-11 -1.0003E-12
+"Closed Orb 6 Start"  ABS 1e-12    3.510506E-05   -2.429262E-03   -1.050180E-06   -8.475085E-06    1.881899E-02   -7.628357E-06
+"Closed Orb 6 Del"    ABS 1e-12 -8.8230E-13  2.0060E-13  5.7083E-14  2.9659E-12 -5.7639E-13  2.5708E-13
+"Closed Orb 5 Start"  ABS 1e-12    3.314039E-05   -2.390967E-03   -1.052821E-06   -8.300689E-06    0.000000E+00   -7.459401E-06
+"Closed Orb 5 Del"    ABS 1e-12 -6.5171E-12 -1.4533E-11  6.0072E-14  2.5184E-13  1.4640E-12 -3.3881E-21
 "Closed Orb 4 Start"  ABS 1e-12    3.314039E-05   -2.390967E-03   -1.052821E-06   -8.300688E-06    0.000000E+00   -7.459401E-06
-"Closed Orb 4 Del"    ABS 1e-12 -3.7497E-15  5.0424E-15  6.0357E-15 -9.1191E-14  6.8916E-12  8.4703E-22
+"Closed Orb 4 Del"    ABS 1e-12  3.7805E-15 -6.6592E-15  4.3550E-16  7.3028E-17  1.2802E-12 -3.3881E-21
 "First Descrip"      STR  "First"
 "Second Descrip"     STR  "Second"
-"Cache Diff: I1-no_wig"      ABS   1e-9   816     1.322618257E-03
-"Cache Diff: I2-no_wig"      ABS   1e-9    10     5.770956292E-05
-"Cache Diff: I3-no_wig"      ABS   1e-9    10     1.623110855E-05
-"Cache Diff: I4a-no_wig"     ABS   1e-9   818     2.686217295E-03
-"Cache Diff: I4b-no_wig"     ABS   1e-9    10     2.857192690E-02
-"Cache Diff: I5a-no_wig"     ABS   1e-9   824     8.392852742E-03
-"Cache Diff: I5b-no_wig"     ABS   1e-9    10     4.853336202E-03
-"Dif:Orb(1)"                 ABS   1.0E-07     4.02683249700782E-12
-"Dif:Orb(2)"                 ABS   1.0E-07     4.16944430370325E-12
-"Dif:Orb(3)"                 ABS   1.0E-07    -1.43087443435646E-13
-"Dif:Orb(4)"                 ABS   1.0E-07     3.26573680885277E-12
-"Dif:Orb(5)"                 ABS   1.0E-07     1.09218294130908E-11
-"Dif:Orb(6)"                 ABS   1.0E-07    -1.00415219640438E-12
-"Dif:Beta_X"                 ABS   1.0E-07    -2.16894901239328E-06
-"Dif:Beta_Y"                 ABS   1.0E-07     3.45031572757115E-09
-"Dif:Alpha_X"                ABS   1.0E-07     1.09074925200162E-05
-"Dif:Alpha_Y"                ABS   1.0E-07     1.47637620276711E-07
-"Dif:Eta_X "                 ABS   1.0E-07    -1.61929922888986E-05
-"Dif:Eta_Y "                 ABS   1.0E-07    -7.60149055875105E-09
-"Dif:Etap_X"                 ABS   1.0E-06    -3.88049776461827E-05
-"Dif:Etap_Y"                 ABS   1.0E-06    -3.06097499824451E-07
-"Lat1:Beta_a"                ABS   1.0E-06     5.74793271252518E+00
-"Lat1:Alpha_a"               ABS   1.0E-06     6.17188495941419E-01
-"Lat1:Eta_a"                 ABS   1.0E-06     3.81208351567191E-01
-"Lat1:Etap_a"                ABS   1.0E-06    -1.49515357004298E-01
-"Lat1:Eta_x"                 ABS   1.0E-06     3.81201471488512E-01
-"Lat1:Etap_x"                ABS   1.0E-06    -1.49514449063304E-01
-"Lat1:Phi_a"                 ABS   1.0E-06     6.67148323474241E+00
-"Lat1:Beta_b"                ABS   1.0E-06     3.00645187108380E+01
-"Lat1:Alpha_y"               ABS   1.0E-06    -1.70226449457654E+00
-"Lat1:Eta_b"                 ABS   1.0E-06    -2.69201219963962E-02
-"Lat1:Etap_y"                ABS   1.0E-06    -1.85709067872189E-03
-"Lat1:Eta_y"                 ABS   1.0E-06    -2.26184700036080E-02
-"Lat1:Etap_y"                ABS   1.0E-06    -1.53498513438234E-03
-"Lat1:Phi_y"                 ABS   1.0E-06     5.93989909970891E+00
-"Lat1:Orb X"                 ABS   1.0E-10     3.25365908202292E-03
-"Lat1:Orb P_X"               ABS   1.0E-10    -1.48524516600044E-03
-"Lat1:Orb Y"                 ABS   1.0E-10    -5.00247377524361E-05
-"Lat1:Orb P_Y"               ABS   1.0E-10    -3.20997771521262E-06
-"Lat1:Orb Z"                 ABS   1.0E-10     1.77348565724271E-02
-"Lat1:Orb P_Z"               ABS   1.0E-10     6.01471534742773E-05
-"Lat1:Chrom_x"               ABS   1.0E-05    -1.17373628512496E+00
-"Lat1:Chrom_y"               ABS   1.0E-05    -9.41925314679182E-01
-"Lat1:Synch_int(1)"          ABS   1.0E-06     8.84191187249585E+00
-"Lat1:Synch_int(2)"          ABS   1.0E-06     1.04424975540277E-01
-"Lat1:Synch_int(3)"          ABS   1.0E-06     2.30420725015305E-03
-"Lat1:Sige_e"                ABS   1.0E-10     6.76163913177813E-04
-"Lat1:Sig_z"                 ABS   1.0E-08     1.86182644644901E-02
-"Lat1:E_loss"                ABS   1.0E-01     1.15048022992897E+06
-"Lat1:A%Emittance"           ABS   1.0E-12     2.02094715629710E-07
-"Lat1:B%Emittance"           ABS   1.0E-14     1.78418646560043E-11
-"Lat1:Z%Emittance"           ABS   1.0E-11     1.25889985568891E-05
-"Lat1:A%Synch_int(4)"        ABS   1.0E-07    -1.34265476212885E-03
-"Lat1:A%Synch_int(5)"        ABS   1.0E-07     5.20693393174911E-04
-"Lat1:B%Synch_int(4)"        ABS   1.0E-07    -6.15521121365690E-04
-"Lat1:B%Synch_int(5)"        ABS   1.0E-11     4.55650158092546E-08
-"Lat1:Z%Synch_int(4)"        ABS   1.0E-08    -1.95817588349454E-03
+"Cache Diff: I1-no_wig"      ABS   1e-8   816     1.322618601E-03
+"Cache Diff: I2-no_wig"      ABS   1e-8    10     5.770956280E-05
+"Cache Diff: I3-no_wig"      ABS   1e-8    10     1.623110849E-05
+"Cache Diff: I4a-no_wig"     ABS   1e-8   818     2.686217295E-03
+"Cache Diff: I4b-no_wig"     ABS   1e-8    10     2.857192682E-02
+"Cache Diff: I5a-no_wig"     ABS   1e-8   824     8.392852626E-03
+"Cache Diff: I5b-no_wig"     ABS   1e-8    10     4.853336168E-03
+"Dif:Orb(1)"                 ABS   1.0E-07    -3.04793896285099E-14
+"Dif:Orb(2)"                 ABS   1.0E-07     4.28763361620677E-13
+"Dif:Orb(3)"                 ABS   1.0E-07     1.28139504249633E-15
+"Dif:Orb(4)"                 ABS   1.0E-07    -8.59816368494262E-15
+"Dif:Orb(5)"                 ABS   1.0E-07     3.74931682922686E-12
+"Dif:Orb(6)"                 ABS   1.0E-07    -9.14651930481955E-13
+"Dif:Beta_X"                 ABS   1.0E-07    -2.16894892457464E-06
+"Dif:Beta_Y"                 ABS   1.0E-07     3.45032246176769E-09
+"Dif:Alpha_X"                ABS   1.0E-07     1.09074925222098E-05
+"Dif:Alpha_Y"                ABS   1.0E-07     1.47637607236795E-07
+"Dif:Eta_X "                 ABS   1.0E-07    -1.61929922978439E-05
+"Dif:Eta_Y "                 ABS   1.0E-07    -7.60148867050454E-09
+"Dif:Etap_X"                 ABS   1.0E-06    -3.88049739140292E-05
+"Dif:Etap_Y"                 ABS   1.0E-06    -3.06094246415624E-07
+"Lat1:Beta_a"                ABS   1.0E-06     5.74793271247978E+00
+"Lat1:Alpha_a"               ABS   1.0E-06     6.17188495945144E-01
+"Lat1:Eta_a"                 ABS   1.0E-06     3.81208351434793E-01
+"Lat1:Etap_a"                ABS   1.0E-06    -1.49515356961801E-01
+"Lat1:Eta_x"                 ABS   1.0E-06     3.81201471355985E-01
+"Lat1:Etap_x"                ABS   1.0E-06    -1.49514449020806E-01
+"Lat1:Phi_a"                 ABS   1.0E-06     6.67148323470797E+00
+"Lat1:Beta_b"                ABS   1.0E-06     3.00645187100800E+01
+"Lat1:Alpha_y"               ABS   1.0E-06    -1.70226449449781E+00
+"Lat1:Eta_b"                 ABS   1.0E-06    -2.69201220409848E-02
+"Lat1:Etap_y"                ABS   1.0E-06    -1.85709068271787E-03
+"Lat1:Eta_y"                 ABS   1.0E-06    -2.26184700487790E-02
+"Lat1:Etap_y"                ABS   1.0E-06    -1.53498513762397E-03
+"Lat1:Phi_y"                 ABS   1.0E-06     5.93989909965701E+00
+"Lat1:Orb X"                 ABS   1.0E-10     3.25365908839060E-03
+"Lat1:Orb P_X"               ABS   1.0E-10    -1.48524516629970E-03
+"Lat1:Orb Y"                 ABS   1.0E-10    -5.00247410561192E-05
+"Lat1:Orb P_Y"               ABS   1.0E-10    -3.20997792178367E-06
+"Lat1:Orb Z"                 ABS   1.0E-10     1.77348565831004E-02
+"Lat1:Orb P_Z"               ABS   1.0E-10     6.01471542990612E-05
+"Lat1:Chrom_x"               ABS   1.0E-05    -1.17373628865103E+00
+"Lat1:Chrom_y"               ABS   1.0E-05    -9.41925325754767E-01
+"Lat1:Synch_int(1)"          ABS   1.0E-06     8.84191187204006E+00
+"Lat1:Synch_int(2)"          ABS   1.0E-06     1.04424975534372E-01
+"Lat1:Synch_int(3)"          ABS   1.0E-06     2.30420725003499E-03
+"Lat1:Sige_e"                ABS   1.0E-10     6.76163913176587E-04
+"Lat1:Sig_z"                 ABS   1.0E-08     1.86182644641234E-02
+"Lat1:E_loss"                ABS   1.0E-01     1.15048022986391E+06
+"Lat1:A%Emittance"           ABS   1.0E-12     2.02094715634281E-07
+"Lat1:B%Emittance"           ABS   1.0E-14     1.78418647637595E-11
+"Lat1:Z%Emittance"           ABS   1.0E-11     1.25889985566183E-05
+"Lat1:A%Synch_int(4)"        ABS   1.0E-07    -1.34265476020817E-03
+"Lat1:A%Synch_int(5)"        ABS   1.0E-07     5.20693393148163E-04
+"Lat1:B%Synch_int(4)"        ABS   1.0E-07    -6.15521121327075E-04
+"Lat1:B%Synch_int(5)"        ABS   1.0E-11     4.55650160823972E-08
+"Lat1:Z%Synch_int(4)"        ABS   1.0E-08    -1.95817588153524E-03
  
-"Cache Diff: I1-wig"         ABS   1e-9   854     1.360192231E-03
-"Cache Diff: I2-wig"         ABS   1e-9   917     1.318964843E-05
-"Cache Diff: I3-wig"         ABS   1e-9   917     1.535630150E-06
-"Cache Diff: I4a-wig"        ABS   1e-9    13     1.526371557E-03
-"Cache Diff: I4b-wig"        ABS   1e-9   915     6.699065583E-02
-"Cache Diff: I5a-wig"        ABS   1e-9    50     2.761292637E-05
-"Cache Diff: I5b-wig"        ABS   1e-9   918     1.082500330E-04
-"Lat2:Beta_a"                ABS   1.0E-05     1.62447655964558E+01
-"Lat2:Alpha_a"               ABS   1.0E-05    -1.51415771036278E+00
-"Lat2:Eta_a"                 ABS   1.0E-05     2.25161291628848E+00
-"Lat2:Etap_a"                ABS   1.0E-05     1.85547988717831E-01
-"Lat2:Eta_x"                 ABS   1.0E-05     2.25158163828068E+00
-"Lat2:Etap_x"                ABS   1.0E-05     1.85530795374443E-01
-"Lat2:Phi_a"                 ABS   1.0E-05     5.68448733426084E+00
-"Lat2:Beta_b"                ABS   1.0E-05     2.64415848955501E+01
-"Lat2:Alpha_b"               ABS   1.0E-05     1.51248050522209E+00
-"Lat2:Eta_b"                 ABS   1.0E-05    -8.74471625581432E-03
-"Lat2:Etap_b"                ABS   1.0E-05    -7.89445679184203E-04
-"Lat2:Eta_y"                 ABS   1.0E-05    -2.02131346966458E-02
-"Lat2:Etap_y"                ABS   1.0E-05     1.93854326015569E-03
-"Lat2:Phi_b"                 ABS   1.0E-05     4.76722440778855E+00
-"Lat2:Orb X"                 ABS   1.0E-07     1.18477787144822E-02
-"Lat2:Orb P_X"               ABS   1.0E-07     5.52001777032882E-04
-"Lat2:Orb Y"                 ABS   1.0E-07    -2.63967391104317E-05
-"Lat2:Orb P_Y"               ABS   1.0E-07     5.66230460209372E-06
-"Lat2:Orb Z"                 ABS   1.0E-07    -1.49801187441698E-03
-"Lat2:Orb P_Z"               ABS   1.0E-07    -1.29184092681839E-06
-"Lat2:Chrom_x"               ABS   1.0E-04     6.41623446572481E+00
-"Lat2:Chrom_y"               ABS   1.0E-04     5.69926835085610E+00
-"Lat2:Synch_int(1)"          ABS   1.0E-06     8.65918550718470E+00
-"Lat2:Synch_int(2)"          ABS   1.0E-06     9.96984106554927E-01
-"Lat2:Synch_int(3)"          ABS   1.0E-06     2.62631406040072E-01
-"Lat2:Sige_e"                ABS   1.0E-10     8.40998782725245E-04
-"Lat2:Sig_z"                 ABS   1.0E-08     2.27332383221489E-02
-"Lat2:E_loss"                ABS   1.0E-01     1.77220583851085E+05
-"Lat2:A%Emittance"           ABS   1.0E-12     1.26890929004846E-07
-"Lat2:B%Emittance"           ABS   1.0E-14     9.69441884036347E-11
-"Lat2:Z%Emittance"           ABS   1.0E-11     1.91186257563301E-05
-"Lat2:A%Synch_int(4)"        ABS   1.0E-07    -5.78400714908448E-02
-"Lat2:A%Synch_int(5)"        ABS   1.0E-07     2.56690273692947E-02
-"Lat2:B%Synch_int(4)"        ABS   1.0E-07     1.02836422218675E-04
-"Lat2:B%Synch_int(5)"        ABS   1.0E-11     1.84658847588272E-05
-"Lat2:Z%Synch_int(4)"        ABS   1.0E-08    -5.77372350686261E-02
+"Cache Diff: I1-wig"         ABS   1e-8   854     1.360193926E-03
+"Cache Diff: I2-wig"         ABS   1e-8   917     1.318964848E-05
+"Cache Diff: I3-wig"         ABS   1e-8   917     1.535630159E-06
+"Cache Diff: I4a-wig"        ABS   1e-8    13     1.526371560E-03
+"Cache Diff: I4b-wig"        ABS   1e-8   915     6.699065583E-02
+"Cache Diff: I5a-wig"        ABS   1e-8    50     2.761292441E-05
+"Cache Diff: I5b-wig"        ABS   1e-8   918     1.082500342E-04
+"Lat2:Beta_a"                ABS   1.0E-05     1.62447655539585E+01
+"Lat2:Alpha_a"               ABS   1.0E-05    -1.51415770730224E+00
+"Lat2:Eta_a"                 ABS   1.0E-05     2.25161291659883E+00
+"Lat2:Etap_a"                ABS   1.0E-05     1.85547988819156E-01
+"Lat2:Eta_x"                 ABS   1.0E-05     2.25158163859007E+00
+"Lat2:Etap_x"                ABS   1.0E-05     1.85530795475679E-01
+"Lat2:Phi_a"                 ABS   1.0E-05     5.68448733331400E+00
+"Lat2:Beta_b"                ABS   1.0E-05     2.64415848925677E+01
+"Lat2:Alpha_b"               ABS   1.0E-05     1.51248050556908E+00
+"Lat2:Eta_b"                 ABS   1.0E-05    -8.74471616404913E-03
+"Lat2:Etap_b"                ABS   1.0E-05    -7.89445684156706E-04
+"Lat2:Eta_y"                 ABS   1.0E-05    -2.02131347512609E-02
+"Lat2:Etap_y"                ABS   1.0E-05     1.93854326647658E-03
+"Lat2:Phi_b"                 ABS   1.0E-05     4.76722440749869E+00
+"Lat2:Orb X"                 ABS   1.0E-07     1.18477787343315E-02
+"Lat2:Orb P_X"               ABS   1.0E-07     5.52001777140519E-04
+"Lat2:Orb Y"                 ABS   1.0E-07    -2.63967390726116E-05
+"Lat2:Orb P_Y"               ABS   1.0E-07     5.66230459874995E-06
+"Lat2:Orb Z"                 ABS   1.0E-07    -1.49801187785722E-03
+"Lat2:Orb P_Z"               ABS   1.0E-07    -1.29184092698310E-06
+"Lat2:Chrom_x"               ABS   1.0E-04     6.41623448728090E+00
+"Lat2:Chrom_y"               ABS   1.0E-04     5.69926834204537E+00
+"Lat2:Synch_int(1)"          ABS   1.0E-06     8.65918550663827E+00
+"Lat2:Synch_int(2)"          ABS   1.0E-06     9.96984106551199E-01
+"Lat2:Synch_int(3)"          ABS   1.0E-06     2.62631406040659E-01
+"Lat2:Sige_e"                ABS   1.0E-10     8.40998782716024E-04
+"Lat2:Sig_z"                 ABS   1.0E-08     2.27332383211824E-02
+"Lat2:E_loss"                ABS   1.0E-01     1.77220583850423E+05
+"Lat2:A%Emittance"           ABS   1.0E-12     1.26890929196733E-07
+"Lat2:B%Emittance"           ABS   1.0E-14     9.69441883119504E-11
+"Lat2:Z%Emittance"           ABS   1.0E-11     1.91186257553076E-05
+"Lat2:A%Synch_int(4)"        ABS   1.0E-07    -5.78400714358365E-02
+"Lat2:A%Synch_int(5)"        ABS   1.0E-07     2.56690274066827E-02
+"Lat2:B%Synch_int(4)"        ABS   1.0E-07     1.02836421457588E-04
+"Lat2:B%Synch_int(5)"        ABS   1.0E-11     1.84658847412343E-05
+"Lat2:Z%Synch_int(4)"        ABS   1.0E-08    -5.77372350143789E-02
 "Lat2:Lat"      STR  "T"
