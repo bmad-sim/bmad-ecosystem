@@ -6,7 +6,6 @@ set (EXE_SPECS
   cmake.aperture_test
   cmake.autoscale_test
   cmake.bbu_test
-#  cmake.calc_test
   cmake.closed_orbit_test
   cmake.coord_test
   cmake.csr_and_space_charge
