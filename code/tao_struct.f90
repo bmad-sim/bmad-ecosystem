@@ -631,33 +631,34 @@ type tao_global_struct
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
   character(100) :: history_file = '~/.history_tao'
-  logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.
-  logical :: box_plots = .false.                  ! For debugging plot layout issues.
-  logical :: command_file_print_on = .true.       ! Depracated. No longer used. 
-  logical :: concatenate_maps = .false.           ! False => tracking using DA. 
-  logical :: debug_on = .false.                   ! For debugging.
-  logical :: derivative_recalc = .true.           ! Recalc before each optimizer run?
-  logical :: derivative_uses_design = .false.     ! Derivative calc uses design lattice instead of model?
-  logical :: disable_smooth_line_calc             ! Global disable of the smooth line calculation.
-  logical :: draw_curve_off_scale_warn = .true.   ! Display warning on graphs?
-  logical :: external_plotting = .false.          ! Used with matplotlib and gui.
-  logical :: label_lattice_elements = .true.      ! For lat_layout plots
-  logical :: label_keys = .true.                  ! For lat_layout plots
-  logical :: lattice_calc_on = .true.             ! Turn on/off beam and single particle calculations.
-  logical :: only_limit_opt_vars = .false.        ! Only apply limits to variables used in optimization.
-  logical :: opt_with_ref = .false.               ! use reference data in optimization?
-  logical :: opt_with_base = .false.              ! use base data in optimization?
-  logical :: optimizer_allow_user_abort = .true.  ! See Tao manual for more details.
-  logical :: optimizer_var_limit_warn = .true.    ! Warn when vars reach a limit with optimization.
-  logical :: orm_analysis = .false.               ! ORM using MDSA? 
-  logical :: plot_on = .true.                     ! Do plotting?
-  logical :: rad_int_calc_on = .true.             ! Radiation integrals calculation on/off.
-  logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
-  logical :: single_step = .false.                ! For debugging and demonstrations: Single step through a command file?
-  logical :: stop_on_error = .true.               ! For debugging: False prevents tao from exiting on an error.
+  logical :: beam_timer_on = .false.                  ! For timing the beam tracking calculation.
+  logical :: box_plots = .false.                      ! For debugging plot layout issues.
+  logical :: command_file_print_on = .true.           ! Depracated. No longer used. 
+  logical :: concatenate_maps = .false.               ! False => tracking using DA. 
+  logical :: debug_on = .false.                       ! For debugging.
+  logical :: derivative_recalc = .true.               ! Recalc before each optimizer run?
+  logical :: derivative_uses_design = .false.         ! Derivative calc uses design lattice instead of model?
+  logical :: disable_smooth_line_calc                 ! Global disable of the smooth line calculation.
+  logical :: draw_curve_off_scale_warn = .true.       ! Display warning on graphs?
+  logical :: external_plotting = .false.              ! Used with matplotlib and gui.
+  logical :: label_lattice_elements = .true.          ! For lat_layout plots
+  logical :: label_keys = .true.                      ! For lat_layout plots
+  logical :: lattice_calc_on = .true.                 ! Turn on/off beam and single particle calculations.
+  logical :: only_limit_opt_vars = .false.            ! Only apply limits to variables used in optimization.
+  logical :: opt_with_ref = .false.                   ! use reference data in optimization?
+  logical :: opt_with_base = .false.                  ! use base data in optimization?
+  logical :: optimizer_allow_user_abort = .true.      ! See Tao manual for more details.
+  logical :: optimizer_var_limit_warn = .true.        ! Warn when vars reach a limit with optimization.
+  logical :: orm_analysis = .false.                   ! ORM using MDSA? 
+  logical :: plot_on = .true.                         ! Do plotting?
+  logical :: rad_int_calc_on = .true.                 ! Radiation integrals calculation on/off.
+  logical :: rf_on = .false.                          ! RFcavities on or off? Does not affect lcavities.
+  logical :: single_step = .false.                    ! For debugging and demonstrations: Single step through a command file?
+  logical :: stop_on_error = .true.                   ! For debugging: False prevents tao from exiting on an error.
   logical :: svd_retreat_on_merit_increase = .true.
-  logical :: var_limits_on = .true.               ! Respect the variable limits?
-  logical :: wait_for_CR_in_single_mode = .false. ! For use with a python GUI.
+  logical :: var_limits_on = .true.                   ! Respect the variable limits?
+  logical :: wait_for_CR_in_single_mode = .false.     ! For use with a python GUI.
+  logical :: blank_line_between_commands = .true.     ! Add a blank line between command output?
 end type
 
 !
