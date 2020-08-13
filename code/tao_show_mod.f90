@@ -1609,6 +1609,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
     nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', quote(s%global%var_out_file)
     nl=nl+1; write(lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
+    nl=nl+1; write(lines(nl), lmt) '  %blank_line_between_commands   = ', s%global%blank_line_between_commands
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Tao Parameters:'

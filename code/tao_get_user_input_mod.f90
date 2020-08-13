@@ -215,8 +215,11 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
     enddo loop1
 
-    if (s%global%quiet /= 'all') call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
-    
+    if (s%global%quiet /= 'all') then
+      if (s%global%blank_line_between_commands) call out_io (s_blank$, r_name, '')
+      call out_io (s_blank$, r_name, trim(color_prompt_string) // ': ' // trim(cmd_out))
+    endif
+
     ! Check if in a do loop
     call do_loop(lev_loop, loop, n_level, cmd_out)
     
@@ -246,7 +249,7 @@ if (cmd_out == '') then
   else
     s%com%cmd_from_cmd_file = .false.
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
-    call out_io (s_blank$, r_name, '')
+    if (s%global%blank_line_between_commands) call out_io (s_blank$, r_name, '')
     call read_a_line (trim(prompt_string) // '> ', cmd_out, prompt_color = s%global%prompt_color, &
                             prompt_bold = boldit, history_file = s%global%history_file)
     if (cmd_out == achar(24)) cmd_out = 'exit'   ! Cntl-D pressed
