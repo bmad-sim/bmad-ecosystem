@@ -92,6 +92,13 @@ CauchyPoint asym_cauchy_fit(const XYBinnedData& data, const CauchyPoint& guess) 
   fdf.p = num_fit_params;
   fdf.params = (void *) &(data.bins);
 
+  if (num_pts < num_fit_params) {
+    std::cerr << "ERROR: cannot perform fit with less than " << num_fit_params << " data points!\n";
+    std::cerr << "Problem: only " << num_pts << " bins for pc = "
+      << data.E/1e6 << " MeV, r = " << data.r*1e2 << " cm\n";
+    std::exit(1);
+  }
+
   // Allocate fitting workspace
   w = gsl_multifit_nlinear_alloc(T, &fdf_params, num_pts, num_fit_params);
 
