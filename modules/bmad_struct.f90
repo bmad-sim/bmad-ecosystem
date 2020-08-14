@@ -1383,6 +1383,8 @@ type lat_struct
   integer :: input_taylor_order = 0                ! As set in the input file
   integer, allocatable :: ic(:)                    ! Index to %control(:) from slaves.
   integer :: photon_type = incoherent$             ! Or coherent$. For X-ray simulations.
+  integer :: creation_hash = 0                     ! Integer, set by bmad_parser, that will be different if 
+                                                   !   any of the lattice files have been modified.
   logical :: absolute_time_tracking = .false.      ! Use abs. time for RF phase? Call autoscale if toggled.
   logical :: ptc_uses_hard_edge_drifts = .false.   ! Does associated ptc layout have hard edge model drifts?
 end type

@@ -1,6 +1,6 @@
 
 !+
-! Subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling)
+! Subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling, lat_files)
 !
 ! Subroutine to read in a digested file. The subroutine will check that
 ! the version of the digested file is up to date and that the digested file
@@ -13,21 +13,21 @@
 !   digested_file -- Character(*): Name of the digested file.
 !
 ! Output:
-!   lat         -- lat_struct: Output lattice structure
-!   inc_version -- integer: bmad version number stored in the lattice file.
-!                   If the file is current this number should be the same 
-!                   as the global parameter bmad_inc_version$. 
-!                   Set to -1 if there is a read error.
-!   err_flag    -- logical, optional: Set True if there is an error. False otherwise.
-!   parser_calling
-!               -- logical, optional: Is this routine being called from a parser routine (like bmad_parser)?
-!                  Default is False. This argument determines what are considered errors. For example, a
-!                  moved digested file is considered an error if this routine is called from a parser but
-!                  not otherwise. The reason for this dichotomy is that a parser is able to reread the
-!                  original lattice file.
+!   lat             -- lat_struct: Output lattice structure
+!   inc_version     -- integer: bmad version number stored in the lattice file.
+!                       If the file is current this number should be the same 
+!                       as the global parameter bmad_inc_version$. 
+!                       Set to -1 if there is a read error.
+!   err_flag        -- logical, optional: Set True if there is an error. False otherwise.
+!   parser_calling  -- logical, optional: Is this routine being called from a parser routine (like bmad_parser)?
+!                       Default is False. This argument determines what are considered errors. For example, a
+!                       moved digested file is considered an error if this routine is called from a parser but
+!                       not otherwise. The reason for this dichotomy is that a parser is able to reread the
+!                       original lattice file.
+!   lat_files(:)    -- character(200), optional, allocatable: List of Bmad lattice files that defined this lattice.
 !-
 
-subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling)
+subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling, lat_files)
 
 use ptc_interface_mod, dummy => read_digested_bmad_file
 use bmad_parser_mod, dummy2 => read_digested_bmad_file
@@ -49,9 +49,9 @@ integer ierr, stat, ios, ios2, n_wall_section, garbage, j1, j2, io_err_level, n_
 integer, allocatable :: index_list(:)
 
 character(*) digested_file
+character(*), optional, allocatable :: lat_files(:)
 character(200) fname_read, fname_versionless, fname_full
 character(200) input_file_name, full_digested_file, digested_prefix_in, digested_prefix_out
-character(200), allocatable :: file_names(:)
 character(100), allocatable :: name_list(:)
 character(*), parameter :: r_name = 'read_digested_bmad_file'
 
@@ -87,7 +87,7 @@ open (unit = d_unit, file = full_digested_file, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
 read (d_unit, err = 9010) n_files, file_version
-allocate (file_names(n_files))
+if (present(lat_files)) call re_allocate (lat_files, n_files)
 
 ! Version is old
 
@@ -115,7 +115,7 @@ do i = 1, n_files
   stat_b = 0
 
   read (d_unit, err = 9020, end = 9020) fname_read, stat_b2, stat_b8, stat_b10
-  file_names(i) = fname_read
+  if (present(lat_files)) lat_files(i) = fname_read
   if (.not. parser_call) cycle  ! Do not need to check if file moved in this case.
 
   ! Cannot use full file name to check if this is the original digested file since
