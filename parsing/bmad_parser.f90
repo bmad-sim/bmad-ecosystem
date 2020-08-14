@@ -104,7 +104,8 @@ endif
 
 if (.not. bp_com%always_parse) then
   call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name, use_line)
-  call read_digested_bmad_file (digested_file, lat, digested_version, err, .true.)
+  call read_digested_bmad_file (digested_file, lat, digested_version, err, .true., bp_com%lat_file_names)
+  bp_com%num_lat_files = size(bp_com%lat_file_names)
 endif
 
 ! Must make sure that if use_line is present the digested file has used the 
@@ -1283,7 +1284,20 @@ type (lat_struct) lat0
 type (ele_struct), pointer :: ele
 
 logical, optional :: do_dealloc, set_error_flag
-integer i, j
+integer i, j, stat_b(24), stat, ierr
+character(200) name
+
+! Calculate the creation hash which can be used by programs to verify that the lattice has not been changed since
+! the last time the lattice was read in.
+
+lat%creation_hash = djb_hash(int_str(bmad_inc_version$))
+do i = 1, bp_com%num_lat_files
+  name = bp_com%lat_file_names(i)
+  if (name(1:10) == '!DIGESTED:') cycle  ! Ignore digested file
+  stat_b = 0
+  ierr = stat(name, stat_b)
+  lat%creation_hash = djb_hash(int_str(stat_b(2)) // int_str(stat_b(10)) // name, lat%creation_hash)
+enddo
 
 ! Restore auto_bookkeeper flag
 
