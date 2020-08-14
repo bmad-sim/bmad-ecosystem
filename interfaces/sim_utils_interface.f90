@@ -138,6 +138,12 @@ function dJ_bessel(m, arg) result (dj_bes)
   real(rp) arg, dj_bes
 end function
 
+function djb_hash (str) result (hash)
+  implicit none
+  character(*) :: str
+  integer :: hash
+end function
+
 subroutine doubleup_quotes (str_in, str_out, quote)
   character(*) str_in
   character(*) str_out
