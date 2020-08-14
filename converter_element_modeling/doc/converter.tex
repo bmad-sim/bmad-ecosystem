@@ -405,11 +405,12 @@ An example config file, with all available settings listed, is shown below.
   fit_crossover = 10 MeV ! For alpha and beta fits, this defines the
                          ! point where the fitter transitions from 1D
                          ! to 2D fits, defaults to 10 MeV
+  polarization_in = 0, 0, 1 ! Polarization (x,y,z) of the incoming particles
 \end{example}
 
 All settings accept a single value, except for \pcin and \targett, which accept a comma separated
 list of values.  The settings \outpcmin, \outdir, and \fitxpt have default values, while
-the settings \targetm, \targett, \pcin, \outpcmax, \numpcbins, \numrbins, and \dxydsmax must be specified in the file.
+the settings \targetm, \targett, \pcin, \outpcmax, and \dxydsmax must be specified in the file.
 
 The settings \pcin, \outpcmin, and \outpcmax take values with dimensions of energy.  These default
 to eV if no unit is specified, although \texttt{MeV} and \texttt{GeV} can be added as suffixes to
@@ -442,6 +443,9 @@ In this example, with \pcbinvals and \pcbinwids specified as above, three bins w
 Note that manual binning can be used for one or both of \texttt{pc} and \texttt{r}.
 Likewise, bin widths may be specified for one or both of \texttt{pc} and \texttt{r}.
 
+The polarization of the incoming particles may be specified with \texttt{polarization_in}.
+The incoming polarization should be given as a three component vector in the format \texttt{Sx, Sy, Sz}.
+
 %The settings \numpcbins and \numrbins control the number of bins used in the histogram.
 %Both values must be set in the config file.
 
@@ -469,7 +473,12 @@ with the following settings:
 \end{itemize}
 Depending on your computer and the number of different simulations that need to be run, this step
 may take several hours.
-%Fortunately, this only has to be done once to set up the \bmad  converter element.
+While the simulation is running, warnings of the form
+\begin{example}
+G4WT2 > WARNING  in PolarizedAnnihilationPS::PostStepDoIt
+eps dicing very inefficient =0.00132787, 0.00129244.  For secondary energy = 0.485605   1001
+\end{example}
+may be shown on the screen. These warnings are diagnostic messages from Geant and are not cause for concern.
 
 
 \subsection{The Fitting Program}
