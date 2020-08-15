@@ -389,8 +389,10 @@ Note that if Geant is ever recompiled (for example, to enable multithreaded supp
 \newpage
 \section{How to run the programs}
 
-\subsection{Configuration} Both \exes and \exef are configured by editing the file \configfile,
-which should be in the working directory where you run both executables.  Each line in this file
+\subsection{Configuration}
+
+Both \exes and \exef use the same configuration file which must be named \configfile. This file 
+should be in the working directory where you run both executables.  Each line in this file
 should have the form
 \begin{example}
   setting = value
@@ -454,16 +456,20 @@ In this example, with \pcbinvals and \pcbinwids specified as above, three bins w
 Note that manual binning can be used for one or both of \texttt{pc} and \texttt{r}.
 Likewise, bin widths may be specified for one or both of \texttt{pc} and \texttt{r}.
 
-The polarization of the incoming particles may be specified with \texttt{polarization_in}.
-The incoming polarization should be given as a three component vector in the format \texttt{Sx, Sy, Sz}.
+The polarization of the incoming particles may be specified with \texttt{polarization_in}.  The
+incoming polarization should be given as a three component vector in the format \texttt{Sx, Sy, Sz}.
+Since transversely polarized incomming particles do not produce polarized outgoing particles, it
+does not make sense to use anything but longitudinally polarized incoming particles.
 
 %The settings \numpcbins and \numrbins control the number of bins used in the histogram.
 %Both values must be set in the config file.
 
+%--------------------------------------------------------------------------------------------
 \subsection{The Simulation Program}
 
-To run \exes and perform the converter simulation, first create and edit the configuration file
-\configfile, and place it in your working directory.  Then, just run
+
+To run the geant4 driver program, \exes, first create and edit the configuration file \configfile,
+and place it in your working directory. Then, just run
 \begin{example}
   $ROOT/production/bin/converter_simulation
 \end{example}
@@ -494,7 +500,7 @@ may be shown on the screen. These warnings are diagnostic messages from Geant an
 
 \subsection{The Fitting Program}
 
-Once the simulations are complete, just run
+Once the geant4 simulation is complete, just run
 \begin{example}
   $ROOT/production/bin/converter_fitter
 \end{example}
