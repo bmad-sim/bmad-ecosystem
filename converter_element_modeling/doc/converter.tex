@@ -277,12 +277,13 @@ into \texttt{GEANT\_DIR} and unpack with
 \begin{example}
   tar xzvf geant4.10.06.tar.gz
 \end{example}
-Change the version number as appropriate. There should now be a directory \texttt{geant4.10.06}.
+Change the version number as appropriate in the above command. There should now be a directory with
+a name something like \texttt{geant4.10.06}.
 
 \item
 Make a sub-directory where you will build Geant with
 \begin{example}
-  mkdir geant-build
+  mkdir geant4-build
 \end{example}
 
 \item
@@ -299,11 +300,11 @@ flag will cause the necessary data sets to be downloaded when Geant is built, an
 single threaded. Due to the substantial associated performance improvement, it is highly recommended
 that Geant be compiled for multithreaded use.
 
-Note: if you encounter the the error
+Note: if you encounter the the error at this step:
 \begin{example}
   Could NOT find EXPAT (missing: EXPAT_LIBRARY EXPAT_INCLUDE_DIR)
 \end{example}
-at this step, try editting the file
+try editting the file
 \begin{example}
   ../geant4.10.06/cmake/Modules/Geant4OptionalComponentents.cmake
 \end{example}
@@ -318,7 +319,7 @@ with
 and then re-run the above \texttt{cmake} command.
 
 \item
-After \texttt{cmake} finished running, start building Geant with
+After the \texttt{cmake} command has finished running, start building Geant with
 \begin{example}
   make -j4
 \end{example}
@@ -334,7 +335,19 @@ Once the compilation has finished, install with
 
 %--------------------------------
 
-\subsection{Compiling the Executables} The converter simulation and fitting programs are distributed
+\subsection{Compiling the Executables} 
+
+\begin{enumerate}
+\item
+The file \texttt{\$GEANT_DIR/geant4-build/geant4make.sh} must be sourced to add Geant4 to your path.
+To do so, use the following commands:
+\begin{example}
+  cd $GEANT_DIR/geant4-build
+  source geant4make.sh
+\end{example}
+
+\item
+The converter simulation and fitting programs are distributed
 as part of any \bmad Distribution or Release and are located in the \texttt{util\_programs}
 directory. [If you are not sure where your Distribution or Release is, ask you local \bmad Guru.]
 You may need to make a local copy of the \texttt{util\_programs} directory if you do not have write
@@ -343,20 +356,16 @@ access to the Distribution or Release version. This can be done with the command
   svn co https://accserv.lepp.cornell.edu/svn/trunk/src/util_programs
 \end{example}
 
-The file \texttt{\$GEANT_DIR/geant-build/geant4make.sh} must be sourced to add Geant4 to your path.
-To do so, use the following commands:
-\begin{example}
-  cd $GEANT_DIR/geant-build
-  source geant4make.sh
-\end{example}
-
-Also execute the command
+\item
+Normally the converter simulation executables are not built since there would be problems if the C++
+compiler did not support C++17. To enable building of the executables, execute the command
 \begin{example}
   export ACC_BUILD_TEST_EXES="Y"
 \end{example}
 
-Now \texttt{cd} to the \texttt{util\_programs} folder, and then simply run \texttt{mk} to build
-\exes and \exef. If you get errors like:
+\item
+\texttt{cd} to the \texttt{util\_programs} folder, and then simply run the \texttt{mk} command to
+build \exes and \exef. If you get errors like:
 \begin{example}
   util_programs/converter_element_modeling/fitter/cauchy.cpp:35:10:
   error: expected unqualified-id before '[' token
@@ -365,11 +374,13 @@ Now \texttt{cd} to the \texttt{util\_programs} folder, and then simply run \text
 \end{example}
 The problem is that the C++ compiler does not support C++17.
 
+\item
 If \texttt{ROOT} is the name of the directory containing the \texttt{util_programs} directory, the
 executables will be in the directory
 \begin{example}
   $ROOT/production/bin
 \end{example}
+\end{enumerate}
 
 Note that if Geant is ever recompiled (for example, to enable multithreaded support),
 \exes will also need to be recompiled.
