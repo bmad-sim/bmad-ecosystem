@@ -71,7 +71,7 @@ int main() {
   }
 
   // Next: Run simulation for each energy, thickness combination
-  auto runManager = Initialize_Geant();
+  auto runManager = Initialize_Geant(settings.num_threads);
   // Make a PointCache for runManager to use
   PointCache point_cache;
   for (auto E: settings.pc_in) {
@@ -86,9 +86,8 @@ int main() {
       std::signal(SIGINT, signal_handler);
 
       // Main data collection loop
-      constexpr size_t RUN_LENGTH = 4000;
       while (!binner.has_enough_data() && !HALT_SIGNAL) {
-        binner.run(RUN_LENGTH);
+        binner.run();
       }
 
       binner.write_data();

@@ -6,5 +6,5 @@
 #else
 #include "G4RunManager.hh"
 #endif
-G4RunManager* Initialize_Geant(void);
+G4RunManager* Initialize_Geant(unsigned num_threads);
 int run_simulation(G4RunManager*, const std::string& , double, double, G4ThreeVector, PointCache*, int);

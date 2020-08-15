@@ -1,5 +1,4 @@
 #include <string>
-#include <thread>
 
 #include "DetectorConstruction.hpp"
 #include "ActionInitialization.hpp"
@@ -27,12 +26,8 @@
 #include "GeantMain.hpp"
 
 
-G4RunManager* Initialize_Geant(void) {
+G4RunManager* Initialize_Geant(unsigned num_threads) {
   // Runs the one-time setup for geant and returns a pointer to the resultant G4RunManager
-
-#ifdef G4MULTITHREADED
-  int nThreads = std::thread::hardware_concurrency();
-#endif
 
   // Choose the Random engine
   G4Random::setTheEngine(new CLHEP::RanecuEngine);
@@ -41,11 +36,10 @@ G4RunManager* Initialize_Geant(void) {
   // Construct the run manager
 #ifdef G4MULTITHREADED
   static G4MTRunManager *runManager = new G4MTRunManager;
-  if ( nThreads > 0 ) {
-    runManager->SetNumberOfThreads(nThreads);
-  }
+  runManager->SetNumberOfThreads(num_threads);
 #else
   static G4RunManager *runManager = new G4RunManager;
+  (void) num_threads; // silence unused parameter warning
 #endif
 
   // Disable excessive printouts from geant

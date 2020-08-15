@@ -21,12 +21,12 @@ CalibrationBinner::CalibrationBinner(G4RunManager* p_run_manager, PointCache* p_
   E_edges(), r_edges(),
   bins(),
   spin_bins(),
-  total_count(0), elec_in(0),
-  eff_approx(0.0),
+  total_count(0), elec_in(0), run_length(0),
   runManager(p_run_manager), point_cache(p_cache),
   target_material(p_s.target_material),
   out_dir(p_s.output_directory),
   in_energy(p_in_energy), target_thickness(p_target_thickness),
+  per_bin_target(p_s.particles_per_bin),
   adjacent_pc_bins(true), adjacent_r_bins(true),
   pc_auto_bin(true), r_auto_bin(true) {
     // Set polarization
@@ -99,6 +99,7 @@ void CalibrationBinner::calibrate() {
   // Gather some data for calibration
   unsigned n_runs = 0;
   size_t calibration_length = 10000;
+  auto before = std::chrono::steady_clock::now();
   do {
     // Short run
     run_simulation(runManager, target_material, in_energy, target_thickness, in_polarization, point_cache, calibration_length);
@@ -109,6 +110,8 @@ void CalibrationBinner::calibrate() {
     point_cache->Unlock();
     n_runs++;
   } while (cal_run.size() < 3000);
+  auto after = std::chrono::steady_clock::now();
+  std::chrono::duration<double> delta_t = after - before;
 
   // Sorting functions
   auto esort = [](const auto& p1, const auto& p2) {
@@ -134,8 +137,8 @@ void CalibrationBinner::calibrate() {
         [this](GeantParticle p) { return !in_range(p); }),
       cal_run.end());
 
-  // Compute approximate efficiency
-  eff_approx = cal_run.size() / (n_runs * calibration_length);
+  // Set run length to approximately 5 seconds long
+  run_length = n_runs * calibration_length * 1 / delta_t.count();
 
   // Set E,r edges
   size_t stride = (cal_run.size()-1) / (E_edges.size() - 1);
@@ -194,13 +197,10 @@ void CalibrationBinner::add_point(const GeantParticle& p) {
 }
 
 
-void CalibrationBinner::run(size_t num_positrons) {
+void CalibrationBinner::run() {
   point_cache->Lock();
   point_cache->Clear();
   point_cache->Unlock();
-  size_t run_length;
-  if (eff_approx > 0) run_length = num_positrons / eff_approx;
-  else run_length = num_positrons;
   run_simulation(runManager, target_material, in_energy, target_thickness,
       in_polarization, point_cache, run_length);
   for (auto& p : *point_cache) add_point(p);
@@ -413,7 +413,6 @@ BatchStats operator+(const BatchStats& a, const BatchStats& b) {
 }
 
 bool CalibrationBinner::has_enough_data() const {
-  constexpr double per_bin_target = 1e5;
   // Record of most recent (past minute) incoming/outgoing throughput
   static std::deque<BatchStats> recent_batches{};
   constexpr double time_to_keep = 60; // seconds

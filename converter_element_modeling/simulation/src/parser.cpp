@@ -6,46 +6,58 @@
 #include <sstream>
 #include <fstream>
 #include <cctype>
+#include <thread>
 
 #include "parser.hpp"
 using namespace std::string_literals;
 
+SimSettings::SimSettings()
+  : num_pc_bins{0},
+    num_r_bins{0},
+    num_threads{std::thread::hardware_concurrency()},
+    out_pc_min{0.0},
+    out_pc_max{0.0},
+    dxy_ds_max{0.0},
+    fit_crossover{0.0},
+    particles_per_bin{1e5},
+    target_material{""s},
+    output_directory{"sim_data"s},
+    pc_in{},
+    target_thickness{},
+    polarization_in{},
+    pc_bin_points{},
+    r_bin_points{},
+    pc_bin_widths{},
+    r_bin_widths{},
+    lookup_table{} { make_lookup_table(); }
+
+void SimSettings::make_lookup_table() {
+  lookup_table["num_pc_bins"s]        = { false,  SetType::count,   (void *) &(this->num_pc_bins) };
+  lookup_table["num_r_bins"s]         = { false,  SetType::count,   (void *) &(this->num_r_bins) };
+  lookup_table["out_pc_min"s]         = { false,  SetType::energy,  (void *) &(this->out_pc_min) };
+  lookup_table["out_pc_max"s]         = { false,  SetType::energy,  (void *) &(this->out_pc_max) };
+  lookup_table["pc_bin_points"s]      = { true,   SetType::energy,  (void *) &(this->pc_bin_points) };
+  lookup_table["pc_bin_widths"s]      = { true,   SetType::energy,  (void *) &(this->pc_bin_widths) };
+  lookup_table["r_bin_points"s]       = { true,   SetType::length,  (void *) &(this->r_bin_points) };
+  lookup_table["r_bin_widths"s]       = { true,   SetType::length,  (void *) &(this->r_bin_widths) };
+  lookup_table["dxy_ds_max"s]         = { false,  SetType::generic, (void *) &(this->dxy_ds_max) };
+  lookup_table["fit_crossover"s]      = { false,  SetType::energy,  (void *) &(this->fit_crossover) };
+  lookup_table["material"s]           = { false,  SetType::name,    (void *) &(this->target_material) };
+  lookup_table["output_directory"s]   = { false,  SetType::name,    (void *) &(this->output_directory) };
+  lookup_table["pc_in"s]              = { true,   SetType::energy,  (void *) &(this->pc_in) };
+  lookup_table["thicknesses"s]        = { true,   SetType::length,  (void *) &(this->target_thickness) };
+  lookup_table["polarization_in"s]    = { true,   SetType::generic, (void *) &(this->polarization_in) };
+  lookup_table["num_threads"s]        = { false,  SetType::count,   (void *) &(this->num_threads) };
+  lookup_table["particles_per_bin"s]  = { false,  SetType::generic, (void *) &(this->particles_per_bin) };
+}
+
 SettingsSpec SimSettings::lookup(const std::string& name) {
   // Encodes the information about a particular setting, including
   // a pointer to the relevant member variable, in a SettingsSpec struct
-  if (name=="num_pc_bins"s) {
-    return { false, SetType::count, (void *) &(this->num_pc_bins) };
-  } else if (name=="num_r_bins"s) {
-    return { false, SetType::count, (void *) &(this->num_r_bins) };
-  } else if (name=="out_pc_min"s) {
-    return { false, SetType::energy, (void *) &(this->out_pc_min) };
-  } else if (name=="out_pc_max"s) {
-    return { false, SetType::energy, (void *) &(this->out_pc_max) };
-  } else if (name=="pc_bin_points"s) {
-    return { true, SetType::energy, (void *) &(this->pc_bin_points) };
-  } else if (name=="pc_bin_widths"s) {
-    return { true, SetType::energy, (void *) &(this->pc_bin_widths) };
-  } else if (name=="r_bin_points"s) {
-    return { true, SetType::length, (void *) &(this->r_bin_points) };
-  } else if (name=="r_bin_widths"s) {
-    return { true, SetType::length, (void *) &(this->r_bin_widths) };
-  } else if (name=="dxy_ds_max"s) {
-    return { false, SetType::generic, (void *) &(this->dxy_ds_max) };
-  } else if (name=="fit_crossover"s) {
-    return { false, SetType::energy, (void *) &(this->fit_crossover) };
-  } else if (name=="material"s) {
-    return { false, SetType::name, (void *) &(this->target_material) };
-  } else if (name=="output_directory"s) {
-    return { false, SetType::name, (void *) &(this->output_directory) };
-  } else if (name=="pc_in"s) {
-    return { true, SetType::energy, (void *) &(this->pc_in) };
-  } else if (name=="thicknesses"s) {
-    return { true, SetType::length, (void *) &(this->target_thickness) };
-  } else if (name == "polarization_in"s) {
-    return { true, SetType::generic, (void *) &(this->polarization_in) };
-  } else {
+  if (lookup_table.find(name) == lookup_table.end())
     return {false, SetType::generic, nullptr};
-  }
+  else
+    return lookup_table[name];
 }
 
 
@@ -58,6 +70,7 @@ bool SimSettings::valid() const {
   bool out_pc_set = (out_pc_min >= 0) && (out_pc_min < out_pc_max);
   bool dxy_ds_set = dxy_ds_max > 0;
   bool fit_crossover_set = (fit_crossover >= 0);
+  bool good_particles_per_bin = (particles_per_bin >= 0);
   bool material_set = (target_material != ""s);
   bool output_dir_set = (output_directory != ""s);
   auto is_pos = [](const double x) { return x>0; };
@@ -108,6 +121,8 @@ bool SimSettings::valid() const {
     std::cerr << "ERROR: dxy_ds_max missing or invalid\n";
   if (!fit_crossover_set)
     std::cerr << "ERROR: fit_crossover missing or invalid\n";
+  if (!good_particles_per_bin)
+    std::cerr << "ERROR: particles_per_bin must be positive\n";
   if (!material_set)
     std::cerr << "ERROR: material missing or invalid\n";
   if (!output_dir_set)
@@ -200,6 +215,10 @@ SimSettings parse_config_file(const char* config_file_name) {
   // Parses the supplied config file and returns a
   // SimSettings object with the values set in the config file
   SimSettings settings{};
+
+  // Fill in non-zero default settings
+  settings.num_threads = std::thread::hardware_concurrency();
+  settings.particles_per_bin = 1e5;
 
   std::ifstream config_file(config_file_name);
   if (!config_file.is_open()) {
