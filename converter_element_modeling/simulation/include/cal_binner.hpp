@@ -20,12 +20,12 @@ class CalibrationBinner {
     std::vector<double> E_edges, r_edges;
     std::vector<std::vector<ERBin>> bins;
     std::vector<std::vector<SpinBinner>> spin_bins;
-    size_t total_count, elec_in;
-    double eff_approx; // positrons out per electron in
+    size_t total_count, elec_in, run_length;
     G4RunManager* runManager;
     PointCache* point_cache;
     std::string target_material, out_dir;
     const double in_energy, target_thickness;
+    double per_bin_target;
     G4ThreeVector in_polarization;
     bool adjacent_pc_bins, adjacent_r_bins;
     bool pc_auto_bin, r_auto_bin;
@@ -40,7 +40,7 @@ class CalibrationBinner {
     CalibrationBinner& operator=(const CalibrationBinner&) = delete;
 
     void calibrate();
-    void run(size_t num_positrons);
+    void run();
     void write_data();
 
     void add_point(const GeantParticle& p);

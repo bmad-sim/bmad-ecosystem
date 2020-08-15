@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 enum class SetType {
   energy, length, count, name, generic
@@ -31,10 +32,12 @@ struct StrNum {
 bool operator==(const StrNum& s1, const StrNum& s2);
 
 struct SimSettings {
-  size_t /* num_bins,*/ num_pc_bins, num_r_bins;
+  unsigned num_pc_bins, num_r_bins;
+  unsigned num_threads;
   double out_pc_min, out_pc_max;
   double dxy_ds_max;
   double fit_crossover;
+  double particles_per_bin;
   std::string target_material;
   std::string output_directory;
   std::vector<double> pc_in;
@@ -45,24 +48,15 @@ struct SimSettings {
   std::vector<double> pc_bin_widths;
   std::vector<double> r_bin_widths;
 
-  SimSettings() = default;
-  //SimSettings() :  num_pc_bins{0},
-  //                 num_r_bins{0},
-  //                 out_pc_min{0.0},
-  //                 out_pc_max{0.0},
-  //                 dxy_ds_max{0.0},
-  //                 fit_crossover{0.0},
-  //                 target_material{},
-  //                 output_directory{},
-  //                 pc_in{},
-  //                 target_thickness{},
-  //                 polarization_in{} {}
+  SimSettings();
 
   bool valid() const;
   SettingsSpec lookup(const std::string& name);
+
+  private:
+    std::unordered_map<std::string, SettingsSpec> lookup_table;
+    void make_lookup_table();
 };
-
-
 
 // Make SimSettings printable
 std::ostream& operator<<(std::ostream& out, const SimSettings& s);
