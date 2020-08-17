@@ -162,6 +162,8 @@ c_map1 = pb8
 call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=map_with_rad%sub_map) 
 
 call set_ptc_quiet(0, unset$, val_save)
+call kill (pb8)
+call kill (c_map1, c_ident)
 
 if (present(err_flag)) err_flag = .false.
 
@@ -233,7 +235,10 @@ end subroutine ptc_track_map_with_radiation
 ! Subroutine ptc_write_map_with_radiation(map_with_rad, file_name, file_unit)
 !
 ! Routine to create or append to a binary file containing a ptc_map_with_rad_struct map.
+!
 ! Either file_name or file_unit must be present but not both.
+! If file_unit is present, it is the responsibility of the calling routine to open the file beforehand
+! and to close the file afterwards.
 !
 ! Input:
 !   map_with_rad    -- ptc_map_with_rad_struct: Map with radiation included.
@@ -284,7 +289,7 @@ do k = 1, 3
   call write_logic0(t%factored)
 enddo
 
-if (present(file_unit)) close(iu)
+if (present(file_name)) close(iu)
 
 !-------------------------------------------------------------------
 contains
@@ -328,12 +333,14 @@ end subroutine ptc_write_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_read_map_with_radiation(map_with_rad, file_name, file_unit)
+! Subroutine ptc_read_map_with_radiation(map_with_rad, err_flag, file_name, file_unit)
 !
 ! Routine to read a binary file containing a ptc_map_with_rad_struct map
+!
 ! Either file_name or file_unit must be present but not both.
 ! File_unit is used when there are multiple maps in a file.
-!
+! If file_unit is present, it is the responsibility of the calling routine to open the file beforehand
+! and to close the file afterwards.
 !
 ! Input:
 !   file_name       -- character(*), optional: Name of binary file.
@@ -341,99 +348,126 @@ end subroutine ptc_write_map_with_radiation
 !
 ! Output:
 !   map_with_rad    -- ptc_map_with_rad_struct: Map with radiation included.
+!   err_flag        -- Logical: Set True if there is a read error.
 !-
 
-subroutine ptc_read_map_with_radiation(map_with_rad, file_name, file_unit)
+subroutine ptc_read_map_with_radiation(map_with_rad, err_flag, file_name, file_unit)
 
 type (ptc_map_with_rad_struct), target :: map_with_rad
 type (tree_element_zhe), pointer :: t
 
 integer i, j, k, iu
 integer, optional :: file_unit
+logical err_flag
 character(*), optional :: file_name
 
 !
 
+err_flag = .true.
+
 if (present(file_name)) then
   iu = lunget()
-  open (iu, file = file_name, form = 'unformatted', status = 'old')
+  open (iu, file = file_name, form = 'unformatted', status = 'old', err = 9100)
 else
   iu = file_unit
 endif
 
-read (iu) map_with_rad%lattice_file
-read (iu) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
+read (iu, err = 9000, end = 9000) map_with_rad%lattice_file
+read (iu, err = 9000, end = 9000) map_with_rad%map_order, map_with_rad%radiation_damping_on, &
             map_with_rad%ix_branch, map_with_rad%ix_ele_start, map_with_rad%ix_ele_end
 
 do k = 1, 3
   t => map_with_rad%sub_map(k)
-  call read_real1(t%cc)
-  call read_real1(t%fixr)
-  call read_real1(t%fix)
-  call read_real1(t%fix0)
-  call read_int1(t%jl)
-  call read_int1(t%jv)
-  call read_int0(t%n)
-  call read_int0(t%np)
-  call read_int0(t%no)
-  call read_real2(t%e_ij)
-  call read_real2(t%rad)
-  call read_real0(t%ds)
-  call read_real0(t%beta0)
-  call read_real0(t%eps)
-  call read_logic0(t%symptrack)
-  call read_logic0(t%usenonsymp)
-  call read_logic0(t%factored)
+  if (.not. read_real1(t%cc)) goto 9000
+  if (.not. read_real1(t%fixr)) goto 9000
+  if (.not. read_real1(t%fix)) goto 9000
+  if (.not. read_real1(t%fix0)) goto 9000
+  if (.not. read_int1(t%jl)) goto 9000
+  if (.not. read_int1(t%jv)) goto 9000
+  if (.not. read_int0(t%n)) goto 9000
+  if (.not. read_int0(t%np)) goto 9000
+  if (.not. read_int0(t%no)) goto 9000
+  if (.not. read_real2(t%e_ij)) goto 9000
+  if (.not. read_real2(t%rad)) goto 9000
+  if (.not. read_real0(t%ds)) goto 9000
+  if (.not. read_real0(t%beta0)) goto 9000
+  if (.not. read_real0(t%eps)) goto 9000
+  if (.not. read_logic0(t%symptrack)) goto 9000
+  if (.not. read_logic0(t%usenonsymp)) goto 9000
+  if (.not. read_logic0(t%factored)) goto 9000
 enddo
 
-if (present(file_unit)) close(iu)
+if (present(file_name)) close(iu)
 
 call zhe_ini(bmad_com%spin_tracking_on)
+
+err_flag = .false.
+
+!
+
+9000 continue
+if (present(file_name)) close(iu)
+9100 continue
 
 !-------------------------------------------------------------------
 contains
 
-subroutine read_real0(rr)
+function read_real0(rr) result (ok)
 real(rp), pointer :: rr
+integer ios
+logical ok
 allocate(rr)
-read (iu) rr
-end subroutine read_real0
+read (iu, iostat = ios) rr
+ok = (ios == 0)
+end function read_real0
 
-subroutine read_real1(rr)
+function read_real1(rr) result (ok)
 real(rp), pointer :: rr(:)
-integer n
-read (iu) n
+logical ok
+integer n, ios1, ios2
+read (iu, iostat = ios1) n
 allocate(rr(n))
-read (iu) rr
-end subroutine read_real1
+read (iu, iostat = ios2) rr
+ok = (ios1 == 0 .and. ios2 == 0)
+end function read_real1
 
-subroutine read_real2(rr)
+function read_real2(rr) result (ok)
 real(rp), pointer :: rr(:,:)
-integer n1, n2
-read (iu) n1, n2
+logical ok
+integer n1, n2, ios1, ios2
+read (iu, iostat = ios1) n1, n2
 allocate(rr(n1,n2))
-read (iu) rr
-end subroutine read_real2
+read (iu, iostat = ios2) rr
+ok = (ios1 == 0 .and. ios2 == 0)
+end function read_real2
 
-subroutine read_int0(rr)
+function read_int0(rr) result (ok)
 integer, pointer :: rr
+integer ios
+logical ok
 allocate(rr)
-read (iu) rr
-end subroutine read_int0
+read (iu, iostat = ios) rr
+ok = (ios == 0)
+end function read_int0
 
-subroutine read_int1(rr)
+function read_int1(rr) result (ok)
 integer, pointer :: rr(:)
-integer n
-read (iu) n
+logical ok
+integer n, ios1, ios2
+read (iu, iostat = ios1) n
 allocate(rr(n))
-read (iu) rr
-end subroutine read_int1
+read (iu, iostat = ios2) rr
+ok = (ios1 == 0 .and. ios2 == 0)
+end function read_int1
 
-subroutine read_logic0(rr)
+function read_logic0(rr) result (ok)
+integer ios
+logical ok
 logical, pointer :: rr
 allocate(rr)
-read (iu) rr
-end subroutine read_logic0
+read (iu, iostat = ios) rr
+ok = (ios == 0)
+end function read_logic0
 
 end subroutine ptc_read_map_with_radiation
 
