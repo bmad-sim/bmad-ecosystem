@@ -1191,6 +1191,7 @@ type (lat_struct), pointer :: lat
 type (ltt_section_struct), pointer :: sec
 
 integer i, n, ib, ie
+logical err
 
 !
 
@@ -1207,7 +1208,7 @@ do i = 1, n
   select case (sec%type)
   case (map$)
     allocate (sec%map)
-    call ptc_read_map_with_radiation(sec%map, file_unit = 1)
+    call ptc_read_map_with_radiation(sec%map, err, file_unit = 1)
   case (rad_pt$, ele$)
     read (1) ib, ie
     sec%ele => lat%branch(ib)%ele(ie)
