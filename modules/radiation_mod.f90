@@ -38,7 +38,7 @@ end subroutine release_rad_int_cache
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine calc_radiation_tracking_integrals (ele, orbit, param, edge, int_gx, int_gy, int_g, int_g2, int_g3)
+! Subroutine calc_radiation_tracking_integrals (ele, orbit, param, edge, use_half_length, int_gx, int_gy, int_g2, int_g3)
 !
 ! Routine to calculate the integrated g bending strength parameters for half the element. 
 ! g = 1/rho where rho is the radius of curvature. g points radially outward in the bending plane.
@@ -46,11 +46,11 @@ end subroutine release_rad_int_cache
 ! If the particle is at the exit edge then the calculation is over the 2nd half of the element.
 !
 ! Input:
-!   orbit     -- coord_struct: Particle position at the entrance edge if edge = start_edge$ and the 
-!                 exit edge if edge = end_edge$.
-!   ele       -- ele_struct: Element that causes radiation.
-!   edge      -- integer: Where the particle is: start_edge$ or end_edge$.
-!     
+!   orbit             -- coord_struct: Particle position at the entrance edge if edge = start_edge$ and the 
+!                         exit edge if edge = end_edge$.
+!   ele               -- ele_struct: Element that causes radiation.
+!   edge              -- integer: Where the particle is: start_edge$ or end_edge$.
+!   use_half_length   -- logical: Use only half the element length in the calc?
 !
 ! Output:
 !   int_gx    -- real(rp): Integral of x-component of g.
@@ -59,7 +59,7 @@ end subroutine release_rad_int_cache
 !   int_g3    -- real(rp): Integral of g^3.
 !-
 
-subroutine calc_radiation_tracking_integrals (ele, orbit, param, edge, int_gx, int_gy, int_g2, int_g3)
+subroutine calc_radiation_tracking_integrals (ele, orbit, param, edge, use_half_length, int_gx, int_gy, int_g2, int_g3)
 
 implicit none
 
@@ -71,7 +71,8 @@ type (coord_struct) start0_orb, start_orb, end_orb
 type (track_struct), save, target :: track_save
 type (track_struct), pointer :: track
 
-real(rp) len_half, len2, int_gx, int_gy, int_g2, int_g3, kx, ky, kx_tot, ky_tot, s_here, g2, g3, gx, gy
+real(rp) len2, int_gx, int_gy, int_g2, int_g3, kx, ky, kx_tot, ky_tot, s_here
+real(rp) eff_len, g2, g3, gx, gy
 real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx)
 real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 real(rp), parameter :: del_orb = 1d-4
@@ -79,7 +80,7 @@ real(rp), parameter :: del_orb = 1d-4
 integer edge, direc, track_method_saved
 integer i, j, ix_mag_max, ix_elec_max
 
-logical err_flag
+logical use_half_length, err_flag
 
 character(*), parameter :: r_name = 'calc_radiation_tracking_integrals'
 
@@ -114,8 +115,13 @@ endif
 ! The problem with a negative element length is that it is not possible to undo the stochastic part of the radiation kick.
 ! In this case the best thing is to just set everything to zero
 
-len_half = ele%value(l$) / 2
-if (len_half <= 0) return
+if (use_half_length) then
+  eff_len = ele%value(l$) / 2
+else
+  eff_len = ele%value(l$)
+endif
+
+if (eff_len <= 0) return
 
 !---------------------------------
 ! Calculate the radius of curvature for an on-energy particle
@@ -128,14 +134,14 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
   if (ele%field_calc == planar_model$) then
     g2 = abs(ele%value(k1$))
     g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
-    int_g2 = len_half * g2
-    int_g3 = len_half * g3
+    int_g2 = eff_len * g2
+    int_g3 = eff_len * g3
 
   elseif (ele%field_calc == helical_model$) then
     g2 = abs(ele%value(k1$))
     g3 = sqrt(g2)**3
-    int_g2 = len_half * g2
-    int_g3 = len_half * g3
+    int_g2 = eff_len * g2
+    int_g3 = eff_len * g3
 
   else
     if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) then
@@ -172,8 +178,8 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
       endif
     endif
 
-    int_g2 = len_half * (ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4)))
-    int_g3 = len_half * (ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4)))
+    int_g2 = eff_len * (ele%rad_int_cache%g2_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4)))
+    int_g3 = eff_len * (ele%rad_int_cache%g3_0 + dot_product(orbit%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4)))
     if (int_g3 < 0) int_g3 = 0
   endif
 
@@ -188,8 +194,8 @@ endif
 orbit2 = orbit
 call offset_particle (ele, param, set$, orbit2, s_pos = s_here)
 call canonical_to_angle_coords (orbit2)
-orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * len_half / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
-orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * len_half / 2.0_rp
+orbit2%vec(1) = orbit2%vec(1) + direc * orbit2%vec(2) * eff_len / 2.0_rp ! Extrapolate to center of region 1/4 of way into element.
+orbit2%vec(3) = orbit2%vec(3) + direc * orbit2%vec(4) * eff_len / 2.0_rp
 
 call multipole_ele_to_ab (ele, .false., ix_mag_max, a_pole_mag, b_pole_mag, magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$, include_kicks$)
@@ -225,7 +231,7 @@ case default
   g3 = sqrt(g2)**3
 end select
 
-len2 = len_half * (1.0_rp + ele%value(g$) * orbit2%vec(1))
+len2 = eff_len * (1.0_rp + ele%value(g$) * orbit2%vec(1))
 int_gx = len2 * gx
 int_gy = len2 * gy
 int_g2 = len2 * g2
@@ -326,7 +332,7 @@ character(*), parameter :: r_name = 'track1_radiation'
 
 if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
 
-call calc_radiation_tracking_integrals (ele, orbit, param, edge, int_gx, int_gy, int_g2, int_g3)
+call calc_radiation_tracking_integrals (ele, orbit, param, edge, .true., int_gx, int_gy, int_g2, int_g3)
 if (int_g2 == 0) return
 
 ! Apply the radiation kicks
@@ -414,8 +420,8 @@ character(*), parameter :: r_name = 'track1_radiation_center'
 
 if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
 
-call calc_radiation_tracking_integrals (ele1, orbit, param, start_edge$, int_gx, int_gy, int_g2, int_g3)
-call calc_radiation_tracking_integrals (ele2, orbit, param, end_edge$, gxi, gyi, g2i, g3i)
+call calc_radiation_tracking_integrals (ele1, orbit, param, start_edge$, .false., int_gx, int_gy, int_g2, int_g3)
+call calc_radiation_tracking_integrals (ele2, orbit, param, end_edge$, .false., gxi, gyi, g2i, g3i)
 int_gx = int_gx + gxi
 int_gy = int_gy + gyi
 int_g2 = int_g2 + g2i

@@ -401,8 +401,9 @@ end subroutine add_ptc_layout_to_list
 !   include_damping     -- logical: Include radiation damping?
 !   include_excitation  -- logical: Include radiation excitation?
 !
+! Output:
 !   ptc_state           -- internal_state: Use with track_probe when tracking.
-!   closed_orb(6)       -- real(dp): Closed orbit at start of branch.
+!   closed_orb(6)       -- real(dp): Closed orbit at start of branch. Only set if excitation is included.
 !-
 
 subroutine ptc_setup_tracking_with_damping_and_excitation (branch, include_damping, include_excitation, ptc_state, closed_orb)
