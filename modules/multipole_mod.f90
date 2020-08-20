@@ -291,43 +291,17 @@ type (ele_struct), pointer :: lord
 type (multipole_cache_struct), pointer :: cache
 
 real(rp) const, radius, factor, a(0:), b(0:)
-real(rp) an, bn, sin_t, cos_t
+real(rp) this_a_kick(0:3), this_b_kick(0:3), a_kick(0:3), b_kick(0:3)
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp), pointer :: a_pole(:), b_pole(:), ksl_pole(:)
 
 integer ix_pole_max
 integer, optional :: pole_type, include_kicks
-integer i, n, ref_exp, p_type, with_kicks
+integer i, n, p_type, include_kck
 
-logical use_ele_tilt
+logical use_ele_tilt, can_use_cache
 
 character(*), parameter :: r_name = 'multipole_ele_to_ab'
-
-! Use cache if possible. 
-! Caching requires intelligent bookkeeping.
-
-p_type = integer_option(magnetic$, pole_type)
-with_kicks = integer_option(no$, include_kicks)
-
-cache => ele%multipole_cache
-if (.not. bmad_com%auto_bookkeeper .and. associated(cache)) then
-  select case (p_type)
-  case (magnetic$)
-    if (cache%ix_pole_mag_max /= invalid$ .and. cache%include_kicks == with_kicks) then
-      a = cache%a_pole_mag
-      b = cache%b_pole_mag
-      ix_pole_max = cache%ix_pole_mag_max
-      return
-    endif
-  case default
-    if (cache%ix_pole_elec_max /= invalid$ .and. cache%include_kicks == with_kicks) then
-      a = cache%a_pole_elec
-      b = cache%b_pole_elec
-      ix_pole_max = cache%ix_pole_elec_max
-      return
-    endif
-  end select
-endif
 
 ! Init
 
@@ -335,7 +309,72 @@ a = 0
 b = 0
 ix_pole_max = -1
 
-if (ele%key == multipole$ .and. p_type == electric$) return
+if (.not. ele%is_on) return
+
+! Use cache if possible. 
+! Caching requires intelligent bookkeeping to mark when the cache goes stale.
+! Since most calls to this routine have use_ele_tilt = False, do not cache if use_ele_tilt = True.
+
+p_type = integer_option(magnetic$, pole_type)
+include_kck = integer_option(no$, include_kicks)
+can_use_cache = (.not. bmad_com%auto_bookkeeper)
+
+cache => ele%multipole_cache
+if (can_use_cache .and. associated(cache)) then
+  if (p_type == magnetic$ .and. cache%ix_pole_mag_max /= invalid$) then
+    a = cache%a_pole_mag
+    b = cache%b_pole_mag
+    ix_pole_max = cache%ix_pole_mag_max
+
+    if (cache%ix_kick_mag_max > -1) then
+      select case (include_kck)
+      case (include_kicks$)
+        a(0:3) = a(0:3) + cache%a_kick_mag
+        b(0:3) = b(0:3) + cache%b_kick_mag
+        ix_pole_max = max(ix_pole_max, cache%ix_kick_mag_max)
+      case (include_kicks_except_k1$)
+        a([0,2,3]) = a([0,2,3]) + cache%a_kick_mag([0,2,3])
+        b([0,2,3]) = b([0,2,3]) + cache%b_kick_mag([0,2,3])
+        ix_pole_max = max(ix_pole_max, cache%ix_kick_mag_max)
+      end select
+    endif
+
+    if (use_ele_tilt) call tilt_this_multipole(ele, a, b, ix_pole_max)
+    return
+
+  elseif (p_type == electric$ .and. cache%ix_pole_elec_max /= invalid$) then
+    a = cache%a_pole_elec
+    b = cache%b_pole_elec
+    ix_pole_max = cache%ix_pole_elec_max
+    if (cache%ix_kick_elec_max > -1 .and. include_kck /= no$) then
+      a(0) = a(0) + cache%a_kick_elec(0)
+      b(0) = b(0) + cache%b_kick_elec(0)
+      ix_pole_max = max(ix_pole_max, cache%ix_kick_elec_max)
+    endif
+
+    if (use_ele_tilt) call tilt_this_multipole(ele, a, b, ix_pole_max)
+    return
+  endif
+endif
+
+! Multipole ele 
+
+if (ele%key == multipole$) then
+  if (p_type == electric$) return
+
+  if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+    lord => pointer_to_lord(ele, 1)
+  else
+    lord => ele
+  endif
+
+  call pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
+  call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
+  ix_pole_max = max_nonzero(0, a, b)
+
+  if (can_use_cache) call load_this_cache(cache, p_type, ix_pole_max, a, b, a_kick, b_kick)
+  return
+endif
 
 ! Slice slaves and super slaves have their associated multipoles stored in the lord
 
@@ -343,19 +382,11 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
+    if (.not. lord%is_on) cycle
+
     call pointer_to_ele_multipole (lord, a_pole, b_pole, ksl_pole, pole_type)
-    if (.not. associated(a_pole) .and. .not. associated(ksl_pole)) cycle
-    if (.not. (lord%multipoles_on .and. lord%is_on)) cycle
-
-    if (lord%key == multipole$) then
-      ix_pole_max = max_nonzero(0, a_pole, ksl_pole)
-      if (ix_pole_max > -1) call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
-      if (.not. bmad_com%auto_bookkeeper) call load_this_cache(cache, p_type, with_kicks)
-      return
-    endif
-
-    call convert_this_ab (lord, this_a, this_b)
-
+    if (.not. lord%multipoles_on .or. .not. associated(a_pole)) cycle
+    call convert_this_ab (lord, p_type, a_pole, b_pole, this_a, this_b)
     if (p_type == magnetic$) then
       a = a + this_a * (ele%value(l$) / lord%value(l$))
       b = b + this_b * (ele%value(l$) / lord%value(l$))
@@ -365,51 +396,164 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     endif
   enddo
 
-  ix_pole_max = max_nonzero(0, a, b)
-
 ! Not a slave
 
 else
   call pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
-
-  if (ele%key == multipole$) then
-    ix_pole_max = max_nonzero(0, a_pole, ksl_pole)
-    if (ix_pole_max > -1) call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
-    if (.not. bmad_com%auto_bookkeeper) call load_this_cache(cache, p_type, with_kicks)
-    return
-  else
-    call convert_this_ab (ele, a, b)
+  if (ele%multipoles_on .and. associated(a_pole)) then
+    call convert_this_ab (ele, p_type, a_pole, b_pole, a, b)
   endif
 endif
 
-! 
+!
 
-select case (with_kicks)
-case (include_kicks$)
-  call multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type)
-case (include_kicks_except_k1$)
-  call multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type, .false.)
-end select
+call this_multipole_kick (ele, a_kick, b_kick)
 
 ix_pole_max = max_nonzero(0, a, b)
-if (.not. bmad_com%auto_bookkeeper) call load_this_cache(cache, p_type, with_kicks)
+if (can_use_cache) call load_this_cache(cache, p_type, ix_pole_max, a, b, a_kick, b_kick)
+
+if (include_kck == include_kicks_except_k1$) then
+  a_kick(1) = 0
+  b_kick(1) = 0
+endif
+
+if (include_kck /= no$) then
+  a(0:3) = a(0:3) + a_kick
+  b(0:3) = b(0:3) + b_kick
+  ix_pole_max = max(ix_pole_max, max_nonzero(0, a_kick, b_kick))
+endif
+
+if (use_ele_tilt) call tilt_this_multipole(ele, a, b, ix_pole_max)
 
 !---------------------------------------------
 contains
 
-subroutine convert_this_ab (this_ele, this_a, this_b)
+subroutine this_multipole_kick (ele, a_kick, b_kick)
+
+type (ele_struct) ele
+
+real(rp) a_kick(0:3), b_kick(0:3)
+real(rp) an, bn, hk, vk, tilt, sin_t, cos_t
+
+! Express multipoles in ele element body frame
+
+a_kick = 0
+b_kick = 0
+
+if (.not. can_use_cache .and. include_kck == no$) return
+
+! Magnetic elements
+select case (p_type)
+case (magnetic$)
+  select case (ele%key)
+  case (hkicker$)
+    b_kick(0) = -ele%value(kick$)
+  case (vkicker$)
+    a_kick(0) = ele%value(kick$)
+  case (ac_kicker$, kicker$)
+    b_kick(0) = -ele%value(hkick$)
+    a_kick(0) =  ele%value(vkick$)
+  case (elseparator$)
+    ! Kicks are electric
+  case default
+    ! tilt to element body coords
+    hk = ele%value(hkick$)
+    vk = ele%value(vkick$)
+    if (has_hkick_attributes(ele%key) .and. (hk /= 0 .or. vk /= 0)) then
+      if (ele%key == sbend$) then
+        tilt = ele%value(ref_tilt_tot$)
+      else
+        tilt = ele%value(tilt_tot$) 
+      endif
+
+      if (tilt /= 0) then
+        cos_t = cos(tilt)
+        sin_t = sin(tilt)
+        b_kick(0) = -hk * cos_t - vk * sin_t
+        a_kick(0) = -hk * sin_t + vk * cos_t
+      endif
+    endif
+  end select
+
+  select case (ele%key)
+  case (quadrupole$, sol_quad$)
+    b_kick(1) = ele%value(k1$) * ele%value(l$)
+
+  case (sbend$)
+    b_kick(1) = ele%value(k1$) * ele%value(l$)
+    b_kick(2) = ele%value(k2$) * ele%value(l$) / 2.0_rp
+
+  case (sextupole$)
+    b_kick(2) = ele%value(k2$) * ele%value(l$) / 2.0_rp
+
+  case (octupole$)
+    b_kick(3) = ele%value(k3$) * ele%value(l$) / 6.0_rp
+  end select
+
+! Electric element
+
+case default
+  select case (ele%key)
+  case (elseparator$)
+    if (ele%value(l$) == 0) then
+      b_kick(0) = 0
+      a_kick(0) = 0
+    else
+      b_kick(0) = -ele%value(hkick$) * ele%value(p0c$) / ele%value(l$)
+      a_kick(0) =  ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
+    endif
+  end select
+end select
+
+end subroutine this_multipole_kick
+
+!---------------------------------------------
+! contains
+
+! Tilt from element body coords to laboratory coords
+
+subroutine tilt_this_multipole (ele, a, b, ix_pole_max)
+
+type (ele_struct) ele
+real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
+real(rp) tilt, an, bn, sin_t, cos_t
+integer ix_pole_max, n
+
+!
+
+if (ele%key == sbend$) then
+  tilt = ele%value(ref_tilt_tot$)
+else
+  tilt = ele%value(tilt_tot$) 
+endif
+
+if (tilt == 0) return
+
+do n = 0, ix_pole_max
+  if (a(n) == 0 .and. b(n) == 0) cycle
+  an = a(n); bn = b(n)
+  cos_t = cos((n+1)*tilt)
+  sin_t = sin((n+1)*tilt)
+  b(n) =  bn * cos_t + an * sin_t
+  a(n) = -bn * sin_t + an * cos_t
+enddo
+
+end subroutine tilt_this_multipole
+
+!---------------------------------------------
+! contains
+
+subroutine convert_this_ab (this_ele, p_type, a_in, b_in, this_a, this_b)
 
 type (ele_struct) this_ele
 type (branch_struct), pointer :: branch
-real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx), tilt
-integer ix_max
+real(rp) a_in(0:n_pole_maxx), b_in(0:n_pole_maxx), this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
+real(rp) tilt, an, bn, sin_t, cos_t
+integer p_type, ix_max, ref_exp
 logical has_nonzero
 logical a, b ! protect symbols
 
 !
-
-if (.not. associated(a_pole)) return
-if (.not. (this_ele%multipoles_on .and. this_ele%is_on)) return
 
 this_a = a_pole
 this_b = b_pole
@@ -420,15 +564,10 @@ this_b = b_pole
 ix_max = max_nonzero(0, this_a, this_b)
 if (ix_max == -1) return
 
-! use tilt?
+! tilt?
 
-if (this_ele%key == sbend$) then
-  tilt = ele%value(ref_tilt_tot$)
-else
-  tilt = this_ele%value(tilt_tot$) 
-endif
-
-if (use_ele_tilt .and. tilt /= 0) then
+tilt = this_ele%value(tilt_tot$) - ele%value(tilt_tot$) 
+if (this_ele%key /= sbend$ .and. tilt /= 0) then
   do n = 0, n_pole_maxx
     if (this_a(n) /= 0 .or. this_b(n) /= 0) then
       an = this_a(n); bn = this_b(n)
@@ -543,10 +682,11 @@ end subroutine convert_this_ab
 !---------------------------------------------
 ! contains
 
-subroutine load_this_cache(cache, p_type, with_kicks)
+subroutine load_this_cache(cache, p_type, ix_pole_max, a, b, a_kick, b_kick)
 
 type (multipole_cache_struct), pointer :: cache
-integer p_type, with_kicks
+real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a_kick(0:3), b_kick(0:3)
+integer p_type, ix_pole_max
 
 !
 
@@ -560,153 +700,22 @@ case (magnetic$)
   cache%a_pole_mag = a
   cache%b_pole_mag = b
   cache%ix_pole_mag_max = ix_pole_max
-  cache%include_kicks = with_kicks
+  cache%a_kick_mag = a_kick
+  cache%b_kick_mag = b_kick
+  cache%ix_kick_mag_max = max_nonzero(0, a_kick, b_kick)
+
 case default
   cache%a_pole_elec = a
   cache%b_pole_elec = b
   cache%ix_pole_elec_max = ix_pole_max
+  cache%a_kick_elec = a_kick
+  cache%b_kick_elec = b_kick
+  cache%ix_kick_elec_max = max_nonzero(0, a_kick, b_kick)
 end select
 
 end subroutine load_this_cache
 
 end subroutine multipole_ele_to_ab
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type, include_k1)
-!
-! Routine to add in the hkick/vkick element components along with k1, k2 and k3
-! values into the a and b multipole components.
-!
-! Input:
-!   ele           -- ele_struct: Lattice element.
-!   use_ele_tilt  -- logical: If True then include ele%value(tilt_tot$) in calculations.
-!   pole_type     -- integer, optional: Type of multipole. magnetic$ (default) or electric$.
-!   a(0:), b(0:)  -- real(rp): Existing skew and normal multipole components.    
-!   include_k1    -- logical, option: If present and False, any k1 component will not 
-!                     be added into b(1). Default is True.
-!
-! Output:
-!   a(0:), b(0:)  -- real(rp): Skew and normal multipole components with kick values added in.
-
-subroutine multipole_include_kicks (ele, use_ele_tilt, a, b, pole_type, include_k1)
-
-implicit none
-
-type (ele_struct) ele
-
-real(rp) a(0:), b(0:), hk, vk, tilt, cos_t, sin_t
-
-integer, optional :: pole_type
-integer tilt_dir
-
-logical use_ele_tilt
-logical, optional :: include_k1
-
-!
-
-if (.not. ele%is_on) return
-
-hk = 0; vk = 0
-
-if (integer_option(magnetic$, pole_type) == magnetic$) then
-  select case (ele%key)
-  case (hkicker$)
-    tilt_dir = 0
-    hk = -ele%value(kick$)
-  case (vkicker$)
-    tilt_dir = 0
-    vk = ele%value(kick$)
-  case (ac_kicker$, kicker$)
-    tilt_dir = 0
-    hk = -ele%value(hkick$)
-    vk =  ele%value(vkick$)
-  case (elseparator$)
-    ! Kicks are electric
-  case default
-    if (has_hkick_attributes(ele%key)) then
-      tilt_dir = -1
-      hk = -ele%value(hkick$)
-      vk =  ele%value(vkick$)
-    endif
-  end select
-
-else ! electric
-  select case (ele%key)
-  case (elseparator$)
-    tilt_dir = 0
-    hk = -ele%value(hkick$) * ele%value(p0c$) / ele%value(l$)
-    vk =  ele%value(vkick$) * ele%value(p0c$) / ele%value(l$)
-  end select
-endif
-
-!
-
-if (hk /= 0 .or. vk /= 0) then
-  if (use_ele_tilt) tilt_dir = tilt_dir + 1
-
-  if (ele%key == sbend$) then
-    tilt = tilt_dir * ele%value(ref_tilt_tot$)
-  else
-    tilt = tilt_dir * ele%value(tilt_tot$) 
-  endif
-
-  if (tilt /= 0) then
-    cos_t = cos(tilt)
-    sin_t = sin(tilt)
-    b(0) = b(0) + hk * cos_t + vk * sin_t
-    a(0) = a(0) - hk * sin_t + vk * cos_t
-  else
-    b(0) = b(0) + hk 
-    a(0) = a(0) + vk
-  endif
-endif
-
-!
-
-if (integer_option(magnetic$, pole_type) == magnetic$) then
-  select case (ele%key)
-  case (quadrupole$)
-    if (logic_option(.true., include_k1)) call add_in_this_multipole (ele%value(ref_tilt_tot$), 1, ele%value(k1$))
-
-  case (sbend$)
-    call add_in_this_multipole (ele%value(ref_tilt_tot$), 2, ele%value(k2$))
-    if (logic_option(.true., include_k1)) call add_in_this_multipole (ele%value(ref_tilt_tot$), 1, ele%value(k1$))
-
-  case (sextupole$)
-    call add_in_this_multipole (ele%value(tilt_tot$), 2, ele%value(k2$))
-
-  case (octupole$)
-    call add_in_this_multipole (ele%value(tilt_tot$), 3, ele%value(k3$))
-  end select
-endif
-
-!-------------------------
-contains
-
-subroutine add_in_this_multipole (tilt, n, kn)
-
-real(rp) tilt, kn, t, kk
-integer n
-
-!
-
-if (kn == 0) return
-kk = kn * ele%value(l$) / factorial(n)
-
-if (use_ele_tilt .and. tilt /= 0) then
-  t = (n+1) * tilt
-  b(n) = b(n) + kk * cos(t)
-  a(n) = a(n) - kk * sin(t)
-else
-  b(n) = b(n) + kk
-endif
-
-end subroutine add_in_this_multipole
-
-end subroutine multipole_include_kicks
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

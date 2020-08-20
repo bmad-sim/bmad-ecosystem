@@ -41,9 +41,11 @@ end subroutine release_rad_int_cache
 ! Subroutine calc_radiation_tracking_integrals (ele, orbit, param, edge, use_half_length, int_gx, int_gy, int_g2, int_g3)
 !
 ! Routine to calculate the integrated g bending strength parameters for half the element. 
+!
 ! g = 1/rho where rho is the radius of curvature. g points radially outward in the bending plane.
 ! If the particle is at the starting edge then the calculation is over the first half of the element.
 ! If the particle is at the exit edge then the calculation is over the 2nd half of the element.
+! The calculation is in laboratory (not element body) coords.
 !
 ! Input:
 !   orbit             -- coord_struct: Particle position at the entrance edge if edge = start_edge$ and the 
@@ -72,7 +74,7 @@ type (track_struct), save, target :: track_save
 type (track_struct), pointer :: track
 
 real(rp) len2, int_gx, int_gy, int_g2, int_g3, kx, ky, kx_tot, ky_tot, s_here
-real(rp) eff_len, g2, g3, gx, gy
+real(rp) eff_len, g2, g3, gx, gy, cos_t, sin_t, tilt
 real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx)
 real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
 real(rp), parameter :: del_orb = 1d-4
@@ -189,7 +191,7 @@ endif
 !---------------------------------------------------------
 ! Everything else but wiggler, undulator, em_field
 
-! Get the coords in the frame of reference of the element
+! First calculate things in the element body coords.
 
 orbit2 = orbit
 call offset_particle (ele, param, set$, orbit2, s_pos = s_here)
@@ -223,19 +225,31 @@ case (sbend$)
   gy = -ky_tot/ele%value(l$)
   g2 = gx**2 + gy**2
   g3 = sqrt(g2)**3
+  tilt = ele%value(ref_tilt$)
 
 case default
   gx = -kx_tot/ele%value(l$)
   gy = -ky_tot/ele%value(l$)
   g2 = gx**2 + gy**2
   g3 = sqrt(g2)**3
+  tilt = ele%value(tilt$)
 end select
 
+! Now rotate to laboratory coords
+
 len2 = eff_len * (1.0_rp + ele%value(g$) * orbit2%vec(1))
-int_gx = len2 * gx
-int_gy = len2 * gy
 int_g2 = len2 * g2
 int_g3 = len2 * g3
+
+if (tilt == 0) then
+  int_gx = len2 * gx
+  int_gy = len2 * gy
+else
+  cos_t = cos(tilt)
+  sin_t = sin(tilt)
+  int_gx = len2 * (gx * cos_t - gy * sin_t)
+  int_gy = len2 * (gx * sin_t + gy * cos_t)
+endif
 
 !-------------------------------------------------------
 contains
@@ -292,7 +306,8 @@ end subroutine calc_radiation_tracking_integrals
 ! Subroutine to apply a kick to a particle to account for radiation dampling and/or fluctuations.
 !
 ! For tracking through a given element, this routine should be called initially when
-! the particle is at the entrance end and at the end when the particle is at the exit end.
+! the particle is at the entrance end and at the end when the particle is at the exit end, when
+! the orbit is with respect to laboratory (not element body) coordinates.
 ! That is, each time this routine is called it applies half the radiation kick for the entire element.
 !
 ! Also see: track1_radiation_center
