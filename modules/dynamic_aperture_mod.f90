@@ -97,6 +97,7 @@ if (ap_param%x_init == 0) then
   call dynamic_aperture1 (lat, aperture_scan%ref_orb, 0.0_rp, aperture_scan%S_xy, ap_param, aperture, .false.)
   ap_param%x_init = aperture%x
 endif
+
 if (ap_param%y_init == 0) then
   ap_param%y_init = 0.001_rp
   call dynamic_aperture1 (lat, aperture_scan%ref_orb, pi/2, aperture_scan%S_xy, ap_param, aperture, .false.)
@@ -259,19 +260,21 @@ aperture%i_turn = turn_lost
 
 bmad_com = com_save
 
+!-----------------------------------------------------------------
 contains
 
-  function cosphi(th,S_xy) result(x)
-    real(rp) th, S_xy, x
-    !x = Sx * cos(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
-    x = S_xy * cos(th) / sqrt(S_xy**2 * cos(th)**2 + sin(th)**2 )
-  end function
+function cosphi(th,S_xy) result(x)
+  real(rp) th, S_xy, x
+  !x = Sx * cos(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
+  x = S_xy * cos(th) / sqrt(S_xy**2 * cos(th)**2 + sin(th)**2 )
+end function cosphi
 
-  function sinphi(th,S_xy) result(x)
-    real(rp) th, S_xy, x
-    !x = Sy * sin(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
-    x = sin(th) / sqrt(S_xy**2 * cos(th)**2 + sin(th)**2 )
-  end function
+function sinphi(th,S_xy) result(x)
+  real(rp) th, S_xy, x
+  !x = Sy * sin(th) / sqrt(Sx**2 * cos(th)**2 + Sy**2 * sin(th)**2 )
+  x = sin(th) / sqrt(S_xy**2 * cos(th)**2 + sin(th)**2 )
+end function sinphi
+
 end subroutine dynamic_aperture1
 
 !----------------------------------------------------------------------

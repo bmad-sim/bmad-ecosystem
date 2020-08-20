@@ -825,10 +825,13 @@ end type
 
 type multipole_cache_struct
   real(rp) a_pole_mag(0:n_pole_maxx), b_pole_mag(0:n_pole_maxx)
+  real(rp) a_kick_mag(0:3), b_kick_mag(0:3)     ! From non-multipole parameters like k1, k2, hkick, etc.
   integer :: ix_pole_mag_max = invalid$
-  integer include_kicks   ! Store value of multipole_ele_to_ab arg. no$ include_kicks$, include_kicks_except_k1$
+  integer :: ix_kick_mag_max
   real(rp) a_pole_elec(0:n_pole_maxx), b_pole_elec(0:n_pole_maxx)
+  real(rp) a_kick_elec(0:3), b_kick_elec(0:3)   ! From elseparator hkick and vkick.
   integer :: ix_pole_elec_max = invalid$
+  integer :: ix_kick_elec_max
 end type
 
 ! Radiation integral data cache
