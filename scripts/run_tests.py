@@ -299,7 +299,7 @@ for test_dir in test_dir_list:
     # Error test
 
     else:
-      print_all ('     Bad data ID string in "correct.now" file: ' + now_line, color = True)
+      print_all ('     Bad data ID string in "output.now" file: ' + now_line, color = True)
       print_all ('     Should be one of: STR, REL, or ABS.', True, True)
       break
 

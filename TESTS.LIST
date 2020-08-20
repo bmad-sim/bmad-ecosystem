@@ -12,6 +12,7 @@ mat6_calc_method_test
 mode_flip_test
 mode3_test
 multipass_test
+multipole_test
 parse_test
 particle_species_test
 patch_test
