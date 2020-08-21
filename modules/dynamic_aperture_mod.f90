@@ -40,7 +40,7 @@ type (aperture_data_struct) :: aperture
 type (aperture_param_struct), pointer :: ap_param
 
 real(rp), allocatable  :: angle_list(:)
-real(rp) :: delta_angle
+real(rp) :: delta_angle, time0, time1, time2
 real(rp) x_lims(1:lat%n_ele_track)
 real(rp) y_lims(1:lat%n_ele_track)
 real(rp) Sx, Sy
@@ -92,6 +92,9 @@ if (.not. allocated(aperture_scan%aperture)) allocate(aperture_scan%aperture(ap_
 
 ! Auto-set x_init and y_init if they are zero
 
+call run_timer('ABS', time0)
+call out_io (s_info$, r_name, 'Angle scan setup...')
+
 if (ap_param%x_init == 0) then
   ap_param%x_init = 0.001_rp
   call dynamic_aperture1 (lat, aperture_scan%ref_orb, 0.0_rp, aperture_scan%S_xy, ap_param, aperture, .false.)
@@ -104,6 +107,10 @@ if (ap_param%y_init == 0) then
   ap_param%y_init = aperture%y
 endif
 
+call run_timer('ABS', time1)
+call out_io (s_info$, r_name, 'Angle scale factors calculated. dTime(min): \f8.2\ ', &
+                              '  Starting angle scan...', r_array = [(time1-time0)/60])
+
 ! Only call the parallel routine if there is more than one thread available 
 
 omp_n = 1
@@ -113,6 +120,11 @@ if (logic_option(.false., parallel) .and. omp_n > 1) then
 else
   do i = 1, ap_param%n_angle
     call dynamic_aperture1 (lat, aperture_scan%ref_orb, angle_list(i), aperture_scan%S_xy, ap_param, aperture_scan%aperture(i))
+    call run_timer('ABS', time2)
+    if (time2 - time1 < 60) cycle
+    call out_io (s_info$, r_name, 'Finished angle scan #' // int_str(i) // ' of ' // int_str(ap_param%n_angle) // ' in (min): \f8.2\ ', &
+    r_array = [(time2 - time0) / 60])
+    time1 = time2
   enddo
 endif
 
