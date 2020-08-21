@@ -4047,7 +4047,6 @@ case ('universe')
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;F;',                     u%ix_uni
   nl=incr(nl); write (li(nl), imt) 'n_d2_data_used;INT;F;',                   u%n_d2_data_used
   nl=incr(nl); write (li(nl), imt) 'n_data_used;INT;F;',                      u%n_data_used
-  nl=incr(nl); write (li(nl), lmt) 'reverse_tracking;LOGIC;T;',               u%reverse_tracking
   nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
 
 !----------------------------------------------------------------------

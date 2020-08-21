@@ -24,6 +24,7 @@ type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
 type (branch_struct), pointer :: branch
+type (coord_struct), allocatable :: orbit(:)
 
 character(*) namelist_file
 character(200) full_input_name
@@ -155,16 +156,6 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     design_lat%file = design_lat%file(ix+2:)
   endif
 
-  ! "#reverse" construct is old deprecated syntax.
-
-  ix = index(design_lat%file, '#reverse')
-  if (ix /= 0) then
-    design_lat%reverse_tracking = .true.
-    design_lat%file = design_lat%file(1:ix-1) // design_lat%file(ix+8:)
-  endif
-
-  u%reverse_tracking = design_lat%reverse_tracking
-
   !
 
   ix = index(design_lat%file, '@')
@@ -256,6 +247,18 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
     if (design_lat%slice_lattice /= '') then
       call slice_lattice (u%design%lat, design_lat%slice_lattice, err)
+    endif
+
+    if (design_lat%reverse_lattice) then
+      lat => u%design%lat
+      call reallocate_coord (orbit, lat)
+      call init_coord (orbit(0), lat%particle_start, lat%ele(0), downstream_end$)
+      call twiss_and_track(lat, orbit)
+      call reverse_lat(lat, lat)
+      lat%particle_start = orbit(lat%n_ele_track)
+      lat%particle_start%vec(2) = -lat%particle_start%vec(2)
+      lat%particle_start%vec(4) = -lat%particle_start%vec(4)
+      lat%particle_start%vec(5) = -lat%particle_start%vec(5)
     endif
   endif
 

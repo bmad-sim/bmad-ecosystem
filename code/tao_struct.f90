@@ -1000,7 +1000,6 @@ type tao_universe_struct
   integer :: ix_uni = -1                    ! Universe index.
   integer :: n_d2_data_used = -1            ! Number of used %d2_data(:) components.
   integer :: n_data_used = -1               ! Number of used %data(:) components.
-  logical :: reverse_tracking = .false.     ! Reverse tracking direction?
   logical :: is_on = .true.                 ! universe turned on
   logical :: design_same_as_previous = .false.  ! Design lat same as the previous uni?
   logical :: picked_uni = .false.           ! Scratch logical.
