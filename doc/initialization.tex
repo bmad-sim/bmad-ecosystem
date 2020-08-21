@@ -376,7 +376,7 @@ namelist are:
     design_lattice(i) = "<lattice_file>", \{"<lattice2_file>"\}
     design_lattice(i)%one_turn_map_calc = <logical>     ! Default = False
     design_lattice(i)%dynamic_aperture_calc = <logical> ! Default = False
-    design_lattice(i)%reverse_tracking = <logical>      ! Default = False
+    design_lattice(i)%reverse_lattice = <logical>      ! Default = False
     design_lattice(i)%slice_lattice = "<element_list>"             
   /
 \end{example}
@@ -398,10 +398,11 @@ a basis for constructing the lattice. This overrides the \vn{use} statement in t
 Note: If the \vn{lattice_file} parameter is not set for the N\Th universe, the parameters for the 
 previous universe are used.
 
-If the \vn{%reverse_tracking} logical is present, tracking will be in the reverse direction from the end
-of the lattice to the beginning. The sign of the charge of the tracked particle will also be
-reversed from the setting in the lattice file. This is useful for simulating beams that go in the
-backward direction.
+If the \vn{%reverse_lattice} logical is present, the lattice will be reversed. That is, the elements
+will be in reversed order. The sign of the charge of the tracked particle will be reversed for
+proper tracking. This is useful for simulating beams that go in the backward direction. Note: If there
+are any electric fields, the orbit in the reversed lattice will not be the reverse of the trajectory
+in the unreversed lattice. Currently, lattice reversal only works if the lattice has a single branch.
 
 The \vn{%slice_lattice} parameter specifies a list of elements to be used to pare down the lattice
 so that the only elements that appear in the list are kept in the lattice.  In addition, any lord
