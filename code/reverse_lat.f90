@@ -13,8 +13,7 @@
 !                            the anti-particle of lat_in? Default is True.
 !
 ! Output:
-!   lat_rev            -- lat_struct: Reversed lattice. IMPORTANT! The actual lat_rev 
-!                            argument must be different from the actual arg for lat_in.
+!   lat_rev            -- lat_struct: Reversed lattice.
 !-
 
 subroutine reverse_lat (lat_in, lat_rev, track_antiparticle)
@@ -23,7 +22,7 @@ use bmad, dummy => reverse_lat
 
 implicit none
 
-type (lat_struct), target :: lat_in, lat_rev
+type (lat_struct), target :: lat_in, lat_rev, lat_temp
 type (ele_struct), pointer :: ele_in, ele_rev, lord
 type (branch_struct), pointer :: branch_in, branch_rev
 type (control_struct), pointer :: con
@@ -35,17 +34,19 @@ logical, optional :: track_antiparticle
 logical err_flag, issued_wall_warning
 
 character(*), parameter :: r_name = 'reverse_lat'
+
 !
 
+lat_temp = lat_in
 call kill_ptc_layouts(lat_rev)    ! Cleanup lat_rev
-call allocate_branch_array(lat_rev, ubound(lat_in%branch, 1))
-call transfer_lat_parameters (lat_in, lat_rev)
+call allocate_branch_array(lat_rev, ubound(lat_temp%branch, 1))
+call transfer_lat_parameters (lat_temp, lat_rev)
 issued_wall_warning = .false.
 
 !
 
-do ib = 0, ubound(lat_in%branch, 1)
-  branch_in => lat_in%branch(ib)
+do ib = 0, ubound(lat_temp%branch, 1)
+  branch_in => lat_temp%branch(ib)
   call allocate_lat_ele_array (lat_rev, ubound(branch_in%ele, 1), ib)
   branch_rev => lat_rev%branch(ib)
   branch_rev%lat => lat_rev
@@ -85,16 +86,16 @@ enddo
 
 ! Transfer lords
 
-do ie = lat_in%n_ele_track+1, lat_in%n_ele_max
+do ie = lat_temp%n_ele_track+1, lat_temp%n_ele_max
   ele_rev => lat_rev%ele(ie)
-  ele_rev = lat_in%ele(ie)
+  ele_rev = lat_temp%ele(ie)
 enddo
 
 ! Correct control information
 
-call reallocate_control(lat_rev, size(lat_in%control))
-lat_rev%control = lat_in%control
-lat_rev%ic = lat_in%ic
+call reallocate_control(lat_rev, size(lat_temp%control))
+lat_rev%control = lat_temp%control
+lat_rev%ic = lat_temp%ic
 
 do i = 1, lat_rev%n_control_max
   con => lat_rev%control(i)
@@ -106,7 +107,7 @@ enddo
 ! ix_con keeps track of the switching.
 ! Also: adjust s-position of lords.
 
-n_con = size(lat_in%control)
+n_con = size(lat_temp%control)
 forall (i = 1:n_con) ix_con(i) = i 
 
 do i = lat_rev%n_ele_track+1, lat_rev%n_ele_max
@@ -118,7 +119,7 @@ do i = lat_rev%n_ele_track+1, lat_rev%n_ele_max
   ix_con(i1:i2) = ix_con(i2:i1:-1)
 enddo
 
-n = lat_in%n_ic_max
+n = lat_temp%n_ic_max
 lat_rev%ic(1:n) = ix_con(lat_rev%ic(1:n))
 
 ! Finish
@@ -127,5 +128,6 @@ call set_flags_for_changed_attribute(lat_rev)
 call s_calc(lat_rev)
 call lat_sanity_check (lat_rev, err_flag)
 call lattice_bookkeeper (lat_rev)
+call deallocate_lat_pointers(lat_temp)
 
 end subroutine 
