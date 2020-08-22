@@ -2028,7 +2028,6 @@ do ii = 1, size(curve%x_line)
   s_now =  tao_hook_curve_s_pt (s_now, ii, curve, tao_lat)
 
   if (s_now > branch%ele(n_ele_track)%s) s_now = branch%ele(n_ele_track)%s
-  curve%x_line(ii) = s_now
   value = 0
 
   ! Check if in a hybrid or taylor element within which interpolation cannot be done.
@@ -2052,8 +2051,14 @@ do ii = 1, size(curve%x_line)
       first_time = .true.
       cycle
     endif
+  endif
 
-    curve%x_line(ii) = s_now
+  curve%x_line(ii) = s_now
+
+  if (ii > 1 .and. s_now <= s_last) then
+    good(ii) = .false.
+    first_time = .true.
+    cycle
   endif
 
   !-----------------------------
@@ -2157,7 +2162,7 @@ do ii = 1, size(curve%x_line)
     return
   end select
 
-  call this_value_at_s (value, good(ii), ok);  if (.not. ok) return
+  call this_value_at_s (value, good(ii), ok, ii, s_last, s_now);  if (.not. ok) return
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
   s_last = s_now
@@ -2210,7 +2215,7 @@ if (curve%ele_ref_name /= '') then
     return
   endif
 
-  call this_value_at_s (value, gd, ok);  if (.not. ok) return
+  call this_value_at_s (value, gd, ok, ii, s_last, s_now);  if (.not. ok) return
 
   curve%y_line = curve%y_line - comp_sign * value
 
@@ -2224,10 +2229,10 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 !--------------------------------------------------------
 contains
 
-subroutine this_value_at_s (value, good1, ok)
+subroutine this_value_at_s (value, good1, ok, ii, s_last, s_now)
 
-real(rp) value
-integer status
+real(rp) value, s_last, s_now
+integer status, ii
 logical good1, ok
 
 !
