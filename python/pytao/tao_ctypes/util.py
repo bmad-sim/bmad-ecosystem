@@ -70,7 +70,12 @@ def parse_tao_python_data1(line, clean_key=True):
     See: tao_python_cmd.f90
     """
     dat = {}
-    name, type, setable, val  = line.split(';')
+    sline = line.split(';')
+    name, type, setable, val  = sline[0:4]
+    
+    if len(sline)>4:
+        print(f'Warning: more than 4 items in: {line}')
+    
     f = pytype(type)
     if f == bool:
         val = parse_bool(val)
