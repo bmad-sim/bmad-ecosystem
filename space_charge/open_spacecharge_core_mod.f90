@@ -28,7 +28,9 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 subroutine osc_freespace_solver(rho,gam0,delta,phi,efield,bfield,nlo,nhi,nlo_gbl,nhi_gbl,npad,idirectfieldcalc,igfflag)
-!note well: this assumes that osc_alloc_freespace_array has been called so that cgrn1 is already allocated!
+! This will check the allocation of the global cgrn1. 
+! OLD: note well: this assumes that osc_alloc_freespace_array has been called so that cgrn1 is already allocated!
+! 
 !use mpi
 implicit none
 integer, intent(in) :: igfflag,idirectfieldcalc
@@ -63,12 +65,13 @@ dx=delta(1); dy=delta(2); dz=delta(3)
 ilo=nlo(1);ihi=nhi(1);jlo=nlo(2);jhi=nhi(2);klo=nlo(3);khi=nhi(3)
 ilo2=ilo; jlo2=jlo; klo2=klo
 
-if(.not.allocated(cgrn1))call osc_alloc_freespace_array(nlo,nhi,npad)
+! Always call this. It will check the cgrn1 size, and re-allocate if things changed. 
+call osc_alloc_freespace_array(nlo, nhi, npad)
 
 iperiod=size(cgrn1,1); jperiod=size(cgrn1,2); kperiod=size(cgrn1,3)
 ihi2=ilo2+iperiod-1; jhi2=jlo2+jperiod-1; khi2=klo2+kperiod-1
 allocate(crho(ilo2:ihi2,jlo2:jhi2,klo2:khi2)) !double-size complex array for the charge density
-write(6,*)'iperiod,jperiod,kperiod=',iperiod,jperiod,kperiod
+!! write(6,*)'iperiod,jperiod,kperiod=',iperiod,jperiod,kperiod
 
 if(idirectfieldcalc.eq.0)then
   if(myrank.eq.0)write(6,*)'Solving for Phi'
@@ -102,7 +105,7 @@ call conv3d(crho,cgrn1,phi,ilo,jlo,klo,g1ilo,g1jlo,g1klo,ilo,jlo,klo,iperiod,jpe
 endif
 
 if(idirectfieldcalc.eq.1)then
-  if(myrank.eq.0)write(6,*)'Solving for Ex,Ey,Ez'
+  if(myrank.eq.0)write(6,*)'Solving for Ex, Ey, Ez on mesh:', nhi
   if(.not.allocated(crho))allocate(crho(ilo2:ihi2,jlo2:jhi2,klo2:khi2)) !double-size array
   call getrhotilde(rho,crho,ilo,jlo,klo)
   if(.not.allocated(cgrn1))then
@@ -135,26 +138,50 @@ enddo
 end subroutine osc_freespace_solver
 
 
+
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
+!
+! Allocates the global cgrn1 double-sized mesh
+!
+! If it was already allocated, it will be resized
+!
+!
 subroutine osc_alloc_freespace_array(nlo,nhi,npad)
 implicit none
-integer, intent(in), dimension(3) :: nlo,nhi,npad
-integer :: rilo,rihi,rjlo,rjhi,rklo,rkhi !rho dimensions
-integer :: cilo,cihi,cjlo,cjhi,cklo,ckhi !phi dimensions
-integer :: ipad,jpad,kpad
-integer :: g1ihi,g1jhi,g1khi
+integer, intent(in), dimension(3) :: nlo, nhi, npad
+integer :: i, glo(3), ghi(3)
+logical :: good_sizes
 
-rilo=nlo(1); rihi=nhi(1); rjlo=nlo(2); rjhi=nhi(2); rklo=nlo(3); rkhi=nhi(3)
-cilo=nlo(1); cihi=nhi(1); cjlo=nlo(2); cjhi=nhi(2); cklo=nlo(3); ckhi=nhi(3)
-ipad=npad(1); jpad=npad(2); kpad=npad(3)
+! Set bounds
+glo = nlo - nhi
+ghi = nhi - nlo + npad
 
-g1ilo=cilo-rihi; g1ihi=cihi-rilo; g1jlo=cjlo-rjhi; g1jhi=cjhi-rjlo; g1klo=cklo-rkhi; g1khi=ckhi-rklo
-if(.not.allocated(cgrn1))allocate(cgrn1(g1ilo:g1ihi+ipad,g1jlo:g1jhi+jpad,g1klo:g1khi+kpad))
-return
+! NOTE: These are global, must be set
+g1ilo = glo(1)
+g1jlo = glo(2)
+g1klo = glo(3)
+
+! Check that mesh sizes haven't changed
+if (allocated(cgrn1)) then
+  good_sizes = .true. 
+  do i=1, 3
+    if (lbound(cgrn1, i) /= glo(i)) good_sizes = .false.
+    if (ubound(cgrn1, i) /= ghi(i)) good_sizes = .false.
+  enddo
+  
+  if (.not. good_sizes) then
+    !! print *, 'green function array size changed, deallocating'
+    deallocate(cgrn1)
+  endif
+endif
+
+if(.not. allocated(cgrn1)) allocate(cgrn1( glo(1):ghi(1), glo(2):ghi(2), glo(3):ghi(3)) )
+
 end subroutine osc_alloc_freespace_array
+
 
 
 !------------------------------------------------------------------------
@@ -486,7 +513,7 @@ complex(dp), allocatable, dimension(:,:,:) :: ccon
 real(dp) :: fpei,qtot,factr
 integer :: cihi,cjhi,ckhi
 
-print *, '---------conv3d'
+print *, '3D convolution (conv3d)'
 fpei=299792458.d0**2*1.d-7  ! this is 1/(4 pi eps0)
 qtot=1.d0 !fix later: 1.d-9 ! 1 nC
 allocate(ccon(cilo:cilo+iperiod-1,cjlo:cjlo+jperiod-1,cklo:cklo+kperiod-1))
@@ -539,6 +566,7 @@ ilo=nlo(1);ihi=nhi(1);jlo=nlo(2);jhi=nhi(2);klo=nlo(3);khi=nhi(3)
 ilo2=ilo; jlo2=jlo; klo2=klo
 iperiod=size(cgrn1,1); jperiod=size(cgrn1,2); kperiod=size(cgrn1,3)
 ihi2=ilo2+iperiod-1; jhi2=jlo2+jperiod-1; khi2=klo2+kperiod-1
+
 write(6,*)'iperiod,jperiod,kperiod=',iperiod,jperiod,kperiod
  
 if(idirectfieldcalc.eq.0)then

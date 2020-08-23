@@ -131,11 +131,11 @@ real(dp) :: xa(:),ya(:),za(:)
 type(mesh3d_struct) :: mesh3d
 real(dp), optional :: qa(:), total_charge
 logical, optional :: resize_mesh
-logical :: resize
+logical :: resize, good_mesh_sizes
 
 real(dp) :: dx,dy,dz,xmin,ymin,zmin, xmax,ymax,zmax, charge1, min(3), max(3), delta(3), pad(3)
 real(dp) :: dxi,dyi,dzi,ab,de,gh
-integer :: ilo, jlo, klo, ihi, jhi, khi, nlo(3), nhi(3)
+integer :: i, ilo, jlo, klo, ihi, jhi, khi, nlo(3), nhi(3)
 integer :: n,ip,jp,kp, n_particles
 
 if (present(resize_mesh)) then
@@ -160,9 +160,30 @@ if (resize) then
   mesh3d%delta = delta
 endif
 
-if (.not. allocated(mesh3d%rho)) then
+
+! If allocated, check that the mesh sizes agree. Otherwise deallocate and below will allocate. 
+if (allocated(mesh3d%rho)) then
   nlo = mesh3d%nlo
   nhi = mesh3d%nhi  
+  good_mesh_sizes= .true. 
+  do i=1, 3
+    if (lbound(mesh3d%rho, i) /= nlo(i) ) good_mesh_sizes = .false.
+    if (ubound(mesh3d%rho, i) /= nhi(i) ) good_mesh_sizes = .false.
+  enddo
+  
+  if (.not. good_mesh_sizes) then
+   ! print *, 'mesh size changed, deallocating'
+    deallocate(mesh3d%rho)
+    deallocate(mesh3d%phi)
+    deallocate(mesh3d%efield)
+    deallocate(mesh3d%bfield)
+  endif
+endif
+
+if (.not. allocated(mesh3d%rho)) then
+  nlo = mesh3d%nlo
+  nhi = mesh3d%nhi 
+  !print *, 'Allocating new meshes, nlo, nhi: ', nlo, nhi
   allocate(mesh3d%rho(nlo(1):nhi(1),nlo(2):nhi(2), nlo(3):nhi(3)))
   allocate(mesh3d%phi(nlo(1):nhi(1),nlo(2):nhi(2), nlo(3):nhi(3)))
   allocate(mesh3d%efield(nlo(1):nhi(1),nlo(2):nhi(2), nlo(3):nhi(3), 3))
