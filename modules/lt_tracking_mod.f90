@@ -10,8 +10,9 @@ use beam_mod
 use twiss_and_track_mod
 use ptc_map_with_radiation_mod
 use high_energy_space_charge_mod
-use s_fitting_new, only: probe, internal_state, track_probe, assignment(=)
-
+use s_fitting_new, only: probe, internal_state, track_probe, assignment(=), operator(+), default, spin0
+use superimpose_mod, only: add_superimpose
+use radiation_mod
 implicit none
 
 integer, parameter :: master_rank$ = 0
@@ -19,15 +20,16 @@ integer, parameter :: results_tag$ = 1000
 integer, parameter :: is_done_tag$ = 1001
 
 type ltt_params_struct
-  character(20) :: simulation_mode = ''
-  character(20) :: tracking_method = 'BMAD'
+  character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BUNCH, STAT
+  character(20) :: tracking_method = 'BMAD'   ! MAP, PTC, BMAD
+  character(100) :: exclude_from_maps = 'beambeam::*'
   character(40) :: ele_start = ''
   character(40) :: ele_stop = ''
   character(200) :: lat_file = ''
   character(200) :: common_master_input_file = ''
   character(200) :: particle_output_file = ''
   character(200) :: sigma_matrix_output_file = ''
-  character(200) :: map_file = ''
+  character(200) :: map_file_prefix = ''
   character(200) :: averages_output_file = ''
   integer :: n_turns = -1
   integer :: random_seed = 0
@@ -44,21 +46,22 @@ type ltt_params_struct
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: output_initial_position = .false.
   logical :: merge_particle_output_files = .false.
+  logical :: split_bends_for_radiation = .false.
   integer :: mpi_rank  = master_rank$
   integer :: mpi_n_proc = 1                    ! Number of processeses including master
   integer :: mpi_num_runs = 10                 ! Number of runs a slave process will take on average.
   integer :: mpi_n_particles_per_run = 0       ! Number of particles per run.
   logical :: using_mpi = .false.
   logical :: debug = .false.
-  logical :: write_map = .false.
 end type
 
 ! A section structure is either:
-!   1) A map between two points. Possibly with radiation included.
-!   2) A point where radiation excitation is to be put in. Or
-!   3) An element to track through (EG beambeam element)
+!   1) A map between two points.
+!   2) A pointer to an element where:
+!         a) Radiation is to be put in. Or
+!         b) The element is to be tracked.
 
-integer, parameter :: map$ = 1, rad_pt$ = 2, ele$ = 3
+integer, parameter :: map$ = 1, ele$ = 2
 
 type ltt_section_struct
   integer :: type = 0
@@ -69,11 +72,13 @@ end type
 ! common vars
 type ltt_com_struct
   type (lat_struct) :: lat
-  type (lat_ele_loc_struct) :: start, stop
+  type (lat_struct) :: map_lat      ! Used for tracking with maps. Can contain radiation markers for SLICK sectioning.
   type (internal_state) ptc_state
   type (coord_struct), allocatable :: bmad_closed_orb(:)
-  type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections.
+  type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
+  integer ix_branch
   real(rp) ptc_closed_orb(6)
+  logical :: debug = .false.
 end type
 
 type ltt_sum_data_struct
@@ -96,9 +101,14 @@ type (ltt_params_struct) ltt
 type (ltt_com_struct), target :: ltt_com
 type (beam_init_struct) beam_init
 type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: eles(:)
 
-integer ir, i
+integer ir, i, ix, n_loc
 character(200) init_file, arg
+character(40) m_name
+character(*), parameter :: r_name = 'ltt_init_params'
+logical err
 
 namelist / params / bmad_com, beam_init, ltt
 
@@ -111,9 +121,10 @@ i = 0
 do while (i < cesr_iargc())
   i = i + 1
   call cesr_getarg(i, arg)
-  select case (arg)
-  case ('-write')
-    ltt%write_map = .true.
+  call match_word (arg, ['-debug'], ix, .false., .true., m_name)
+  select case (m_name)
+  case ('-debug')
+    ltt_com%debug = .true.
   case default
     if (init_file /= '') then
       print '(2a)', 'Extra stuff on the command line: ', quote(arg)
@@ -174,29 +185,64 @@ close (1)
 
 ! Sanity checks
 
-select case (ltt%tracking_method)
-case ('MAP', 'SLICK', 'PTC', 'BMAD')
-case default
-  print *, 'UNKNOWN LTT%TRACKING_METHOD: ' // ltt%tracking_method
-  stop
-end select
-
 select case (ltt%simulation_mode)
 case ('CHECK', 'SINGLE', 'BUNCH', 'STAT')
 case default
-  print *, 'UNKNOWN LTT%SIMULATION_MODE: ' // ltt%simulation_mode
+  print '(a)', 'UNKNOWN LTT%SIMULATION_MODE: ' // ltt%simulation_mode
   stop
 end select
 
-! PTC has an internal aperture of 1.0 meter. To be safe use an aperture of 0.9 meter
+if (ltt%simulation_mode /= 'CHECK') then
+  select case (ltt%tracking_method)
+  case ('', 'MAP', 'PTC', 'BMAD')
+  case default
+    print '(a)', 'UNKNOWN LTT%TRACKING_METHOD: ' // ltt%tracking_method
+    stop
+  end select
+endif
 
-ltt%ptc_aperture = min([0.9_rp, 0.9_rp], ltt%ptc_aperture)
+! There is a possible problem with splitting the bends in a lattice if the 
+! ele_start or ele_stop names are the index of the element.
+! In this case the element index in the map_lat will not be the same. 
+! This is solved by setting the type string to something unique.
 
-! map file logic
+if (ltt%ele_start /= '') then
+  call lat_ele_locator (ltt%ele_start, lat, eles, n_loc, err)
+  if (err .or. n_loc == 0) then
+    print '(2a)', 'Starting element not found: ', trim(ltt%ele_start)
+    stop
+  endif
+  if (n_loc > 1) then
+    print '(2a)', 'Multiple elements found with ele_start name: ', trim(ltt%ele_start)
+    print '(a)', 'Will stop here.'
+    stop
+  endif
+  branch => pointer_to_branch(eles(1)%ele)
+  ltt_com%ix_branch = branch%ix_branch
+  eles(1)%ele%type = '@START_ELE'
+else
+  ltt_com%ix_branch = 0
+endif
 
-if (ltt%map_file(1:6) == 'WRITE:') then
-  ltt%map_file = ltt%map_file(7:)
-  ltt%write_map = .true.
+if (ltt%simulation_mode == 'CHECK') then
+  if (ltt%ele_stop /= '' .and. ltt%ele_stop /= ltt%ele_start) then
+    call lat_ele_locator (ltt%ele_stop, lat, eles, n_loc, err)
+    if (err .or. n_loc == 0) then
+      print '(2a)', 'Stopping element not found: ', trim(ltt%ele_stop)
+      stop
+    endif
+    if (n_loc > 1) then
+      print '(2a)', 'Multiple elements found with ele_stop name: ', trim(ltt%ele_stop)
+      print '(a)', 'Will stop here.'
+      stop
+    endif
+    eles(1)%ele%type = '@STOP_ELE'
+  endif
+endif
+
+if (ltt%using_mpi .and. ltt%tracking_method == 'PTC') then
+  print '(a)', 'TRACKING_METHOD = PTC NOT ALLOWED WITH MPI VERSION OF THIS PROGRAM.'
+  stop
 endif
 
 end subroutine ltt_init_params
@@ -205,145 +251,67 @@ end subroutine ltt_init_params
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_init_tracking(lttp, ltt_com)
+subroutine ltt_init_tracking (lttp, ltt_com)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
-type (ele_pointer_struct), allocatable :: eles(:)
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele_start, ele_stop
+type (ele_struct), pointer :: ele, ele_start, ele_stop
 
 real(rp) time, closed_orb(6)
 
-integer n_loc, ix_branch
+integer i, ix_branch, ib, n_slice
 
-logical err, map_file_exists, need_map
+logical err, map_file_exists
 
-!
+character(40) start_name, stop_name
+
+! PTC has an internal aperture of 1.0 meter. To be safe use an aperture of 0.9 meter
 
 lat => ltt_com%lat
-if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
 
-if (lttp%using_mpi .and. lttp%tracking_method == 'PTC') then
-  print '(a)', 'TRACKING_METHOD = PTC NOT ALLOWED WITH MPI VERSION OF THIS PROGRAM.'
-  stop
-endif
-
-!
-
-if (lttp%ele_start == '') Then
-  ltt_com%start = lat_ele_loc_struct(0, 0)
-else
-  call lat_ele_locator (lttp%ele_start, lat, eles, n_loc, err)
-  if (err .or. n_loc == 0) then
-    print '(2a)', 'Starting element not found: ', trim(lttp%ele_start)
-    stop
-  endif
-  if (n_loc > 1) then
-    print '(2a)', 'Multiple elements found with ele_start name: ', trim(lttp%ele_start)
-    print '(a)', 'Will stop here.'
-    stop
-  endif
-  ltt_com%start = lat_ele_loc_struct(eles(1)%ele%ix_ele, eles(1)%ele%ix_branch)
-endif
-
-!
-
-if (lttp%ele_start == '' .or. lttp%simulation_mode /= 'CHECK') Then
-  ltt_com%stop = ltt_com%start
-else
-  call lat_ele_locator (lttp%ele_stop, lat, eles, n_loc, err)
-  if (err .or. n_loc == 0) then
-    print '(2a)', 'Stopping element not found: ', trim(lttp%ele_stop)
-    stop
-  endif
-  if (n_loc > 1) then
-    print '(2a)', 'Multiple elements found with ele_stop name: ', trim(lttp%ele_stop)
-    print '(a)', 'Will stop here.'
-    stop
-  endif
-  ltt_com%stop = lat_ele_loc_struct(eles(1)%ele%ix_ele, eles(1)%ele%ix_branch)
-endif
-
-!
-
-ix_branch = ltt_com%start%ix_branch
-branch => lat%branch(ix_branch)
-
-ele_start => pointer_to_ele(lat, ltt_com%start)
-ele_stop => pointer_to_ele(lat, ltt_com%stop)
-
-call twiss_and_track (lat, ltt_com%bmad_closed_orb, ix_branch = ix_branch)
-
-! Init 1-turn map.
-
-if (lttp%write_map)                       need_map = .true.
-if (lttp%tracking_method == 'MAP')        need_map = .true.
-if (lttp%tracking_method == 'SLICK')      need_map = .true.
-if (lttp%simulation_mode == 'CHECK')      need_map = .true.
-if (lttp%simulation_mode == 'STAT')       need_map = .false.
-
-if (need_map .and. lttp%map_file == '') write (lttp%map_file, '(a, i0, a)') 'Order', lttp%map_order, '.map'
-
-inquire (file = lttp%map_file, exist = map_file_exists)
-
-if (.not. lttp%rfcavity_on .and. lttp%simulation_mode /= 'CHECK') then
-  if (need_map) then
-    print '(a)', 'RF will not be turned OFF since 1-turn map is in use!'
-  else
-    call set_on_off (rfcavity$, lat, off$)
-  endif
-endif
-
-if (need_map .and. map_file_exists .and. .not. lttp%write_map .and. lttp%simulation_mode /= 'CHECK') then
-  call ltt_read_maps(lttp, ltt_com)
-
-  if (lttp%mpi_rank == master_rank$) then
-    print '(2a)',   'Map read in from file: ', trim(lttp%map_file)
-    print '(2a)',   'Lattice file used for map:         ', trim(ltt_com%sec(1)%map%lattice_file)
-    if ((ltt_com%sec(1)%map%radiation_damping_on .neqv. bmad_com%radiation_damping_on) .or. &
-                                                   (ltt_com%sec(1)%map%map_order /= lttp%map_order)) then
-      print '(a)',  'Map in file does not have the same map order or radiation_damping_on setting as in input files.'
-      print '(a)',  'Will make a new map...'
-    else
-      need_map = .false.
-    endif
-
-  else
-    ! Wait until master has created proper map if needed
-    do
-      if ((ltt_com%sec(1)%map%radiation_damping_on .eqv. bmad_com%radiation_damping_on) .and. &
-                                                   (ltt_com%sec(1)%map%map_order == lttp%map_order)) exit
-      call milli_sleep(1000)
-      call ltt_read_maps(lttp, ltt_com)
-    enddo
-  endif
-endif
-
-if (need_map) then
-  print '(a)', 'Creating map...'
-  call run_timer ('START')
-  call lat_to_ptc_layout (lat)
-  allocate(ltt_com%sec(1))
-  allocate(ltt_com%sec(1)%map)
-  call ptc_setup_map_with_radiation (ltt_com%sec(1)%map, ele_start, ele_stop, lttp%map_order, bmad_com%radiation_damping_on)
-  call run_timer ('READ', time)
-  print '(a, f8.2)', 'Map setup time (min)', time/60
-endif
-
-if (lttp%write_map) then
-  call ltt_write_maps (lttp, ltt_com)
-  print '(2a)', 'Created map file: ', trim(lttp%map_file)
-endif
-
-! Init PTC layout if needed
+lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
 
 if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
   if (.not. associated(lat%branch(0)%ptc%m_t_layout)) call lat_to_ptc_layout(lat)
   call ptc_setup_tracking_with_damping_and_excitation(lat%branch(0), bmad_com%radiation_damping_on, &
                                           bmad_com%radiation_fluctuations_on, ltt_com%ptc_state, ltt_com%ptc_closed_orb)
+  if (bmad_com%spin_tracking_on) ltt_com%ptc_state = ltt_com%ptc_state + SPIN0
 endif
+
+!
+
+if (.not. lttp%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
+call twiss_and_track (ltt_com%lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
+
+if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
+
+if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
+  call ltt_make_map_lat(lttp, ltt_com)
+
+  print '(a)', 'Creating map(s)...'
+  call run_timer ('START')
+
+  call ltt_read_map (lttp, ltt_com, err)
+  if (err) then
+    if (lttp%mpi_rank == master_rank$) then
+      call ltt_make_map(lttp, ltt_com)
+      call ltt_write_map(lttp, ltt_com)
+    else
+      do 
+        call milli_sleep(1000)
+        call ltt_read_map(lttp, ltt_com, err)
+        if (.not. err) exit
+      enddo
+    endif
+  endif
+
+  call run_timer ('READ', time)
+  print '(a, f8.2)', ' Map setup time (min)', time/60
+endif
+
+if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'PTC') call lat_to_ptc_layout(ltt_com%lat)
 
 end subroutine ltt_init_tracking
 
@@ -355,24 +323,40 @@ subroutine ltt_print_inital_info (lttp, ltt_com)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
+integer i, nm
 
 ! Print some info.
 
-print '(a)', '--------------------------------------'
-print '(a, a)',  'lattice:                  ', quote(lttp%lat_file)
-print '(a, a)',  'Averages_output_file:     ', quote(lttp%averages_output_file)
-print '(a, a)',  'sigma_matrix_output_file: ', quote(lttp%sigma_matrix_output_file)
-print '(a, a)',  'particle_output_file:     ', quote(lttp%particle_output_file)
-print '(a, a)',  'averages_output_file:     ', quote(lttp%averages_output_file)
-print '(a, a)',  'map_file:                 ', quote(lttp%map_file)
-print '(a, a)',  'simulation_mode: ', trim(lttp%simulation_mode)
-print '(a, a)',  'tracking_method: ', trim(lttp%tracking_method)
-if (lttp%tracking_method == 'MAP') print '(a, i0)', 'map_order: ', ltt_com%sec(1)%map%map_order
-print '(a, l1)', 'Radiation Damping:           ', bmad_com%radiation_damping_on
-print '(a, l1)', 'Stochastic Fluctuations:     ', bmad_com%radiation_fluctuations_on
-print '(a, l1)', 'Spin_tracking_on:            ', bmad_com%spin_tracking_on
+nm = 0
+if (allocated(ltt_com%sec)) then
+  do i = 0, ubound(ltt_com%sec, 1)
+    if (allocated(ltt_com%sec(i)%map)) nm = nm + 1
+  enddo
+endif
 
+print *
 print '(a)', '--------------------------------------'
+print '(a, a)',    'ltt%lat_file:                  ', quote(lttp%lat_file)
+print '(a, a)',    'ltt%averages_output_file:      ', quote(lttp%averages_output_file)
+print '(a, a)',    'ltt%sigma_matrix_output_file:  ', quote(lttp%sigma_matrix_output_file)
+print '(a, a)',    'ltt%particle_output_file:      ', quote(lttp%particle_output_file)
+print '(a, a)',    'ltt%averages_output_file:      ', quote(lttp%averages_output_file)
+print '(a, a)',    'ltt%map_file_prefix:           ', quote(lttp%map_file_prefix)
+print '(a, a)',    'ltt%simulation_mode:           ', trim(lttp%simulation_mode)
+print '(a, a)',    'ltt%tracking_method:           ', trim(lttp%tracking_method)
+if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
+  print '(a, i0)', 'ltt%map_order:                 ', lttp%map_order
+  print '(a, a)',  'ltt%ele_start:                 ', quote(lttp%ele_start)
+  print '(a, a)',  'ltt%ele_stop:                  ', quote(lttp%ele_stop)
+  print '(a, a)',  'ltt%exclude_from_maps:         ', quote(lttp%exclude_from_maps)
+  print '(a, l1)', 'ltt%split_bends_for_radiation: ', lttp%split_bends_for_radiation
+  print '(a, i0)', 'Number of maps:                ', nm
+endif
+print '(a, l1)',   'Radiation Damping:             ', bmad_com%radiation_damping_on
+print '(a, l1)',   'Stochastic Fluctuations:       ', bmad_com%radiation_fluctuations_on
+print '(a, l1)',   'Spin_tracking_on:              ', bmad_com%spin_tracking_on
+print '(a)', '--------------------------------------'
+print *
 
 end subroutine ltt_print_inital_info
 
@@ -397,11 +381,11 @@ integer track_state, ix_branch, ix_start, ix_stop
 
 ! Run serial in check mode.
 
+bmad_com%radiation_fluctuations_on = .false.
 lat => ltt_com%lat
 
-ele_start => pointer_to_ele(lat, ltt_com%start)
-ele_stop => pointer_to_ele(lat, ltt_com%stop)
-ix_branch = ele_start%ix_branch
+call ltt_pointer_to_map_ends(lttp, ltt_com%lat, ele_start, ele_stop)
+ix_branch = ltt_com%ix_branch
 ix_start = ele_start%ix_ele
 ix_stop  = ele_stop%ix_ele
 
@@ -410,65 +394,65 @@ call reallocate_coord(orb, lat)
 
 if (lttp%add_closed_orbit_to_init_position) orb_init%vec = orb_init%vec + ltt_com%bmad_closed_orb(ix_start)%vec
 
-call track_check_all (orb_init, orb, 0, 0, orb_map, orb_bmad, prb_ptc, spin_ptc)
+call track_check_all (orb_init, orb, 0, 0, orb_map, orb_bmad, prb_ptc, spin_ptc, ele_start, ele_stop)
 
-print '(a, 6f14.8)', 'Map closed orbit at start:  ', ltt_com%sec(1)%map%sub_map(1)%fix0
+if (allocated(ltt_com%sec(1)%map)) print '(a, 6f14.8)', 'Map closed orbit at start:  ', ltt_com%sec(1)%map%sub_map(1)%fix0
 print '(a, 6f14.8)', 'Bmad closed orbit at start: ', ltt_com%bmad_closed_orb(ix_start)%vec
 
-print *
+print '(a)'
 print '(a, 6f14.8)', 'Starting orbit for tracking:', orb_init%vec
-
-print *
-print '(a)', 'Phase Space at Track End (Bmad closed orbit used with map tracking:'
-print '(a, 6f14.8)', 'Bmad tracking:  ', orb_bmad%vec
-print '(a, 6f14.8)', 'PTC tracking:   ', prb_ptc%x
-print '(a, 6f14.8)', 'Map tracking:   ', orb_map%vec
-print '(a, 6f14.8)', 'Diff Map - PTC:   ', orb_map%vec - prb_ptc%x
-print '(a, 6f14.8)', 'Diff Bmad - PTC:  ', orb_bmad%vec - prb_ptc%x
-print '(a, 6f14.8)', 'Diff Bmad - Map:  ', orb_bmad%vec - orb_map%vec
-
-print *
 print '(a, 6f14.8)', 'Initial spin: ', orb_init%spin
 
+print '(a)'
+print '(a)', 'Phase Space at Track End (Bmad closed orbit used with map tracking:'
+print '(a, 6f14.8)', 'Bmad tracking:    ', orb_bmad%vec
+print '(a, 6f14.8)', 'PTC tracking:     ', prb_ptc%x
+print '(a, 6f14.8)', 'Map tracking:     ', orb_map%vec
 print *
-print '(a)', 'Spin at Track End:'
-print '(a, 6f14.8)', 'Bmad tracking:', orb_bmad%spin
-print '(a, 6f14.8)', 'PTC tracking: ', spin_ptc
-print '(a, 6f14.8)', 'Map tracking: ', orb_map%spin
-print '(a, 6f14.8)', 'Diff Map - PTC: ', orb_map%spin - spin_ptc
-print '(a, 6f14.8)', 'Diff Bmad - PTC:', orb_bmad%spin - spin_ptc
-print '(a, 6f14.8)', 'Diff Bmad - Map:', orb_bmad%spin - orb_map%spin
+print '(a, 6f14.8)', 'Max Diff Tracking:', max(orb_map%vec, prb_ptc%x, orb_bmad%vec) - &
+                                           min(orb_map%vec, prb_ptc%x, orb_bmad%vec)
 
+print '(a)'
+print '(a)', 'Spin at Track End:'
+print '(a, 6f14.8)', 'Bmad tracking:   ', orb_bmad%spin
+print '(a, 6f14.8)', 'PTC tracking:    ', spin_ptc
+print '(a, 6f14.8)', 'Map tracking:    ', orb_map%spin
+print *
+print '(a, 6f14.8)', 'Max Diff Spin:   ', max(orb_map%spin, spin_ptc, orb_bmad%spin) - &
+                                          min(orb_map%spin, spin_ptc, orb_bmad%spin) 
 !
 
 do i = 1, 6
-  call track_check_all (orb_init, orb, i, -1, orb_map1, orb_bmad1, prb_ptc1, spin_ptc)
-  call track_check_all (orb_init, orb, i, +1, orb_map2, orb_bmad2, prb_ptc2, spin_ptc)
-  mat_ptc(1:6, i)  = (prb_ptc2%x - prb_ptc1%x) / (2 * bmad_com%d_orb(i))
-  mat_bmad(1:6, i) = (orb_bmad2%vec - orb_bmad1%vec) / (2 * bmad_com%d_orb(i))
-  mat_map(1:6, i)  = (orb_map2%vec - orb_map1%vec) / (2 * bmad_com%d_orb(i))
+  call track_check_all (orb_init, orb, i, -1, orb_map1, orb_bmad1, prb_ptc1, spin_ptc, ele_start, ele_stop)
+  call track_check_all (orb_init, orb, i, +1, orb_map2, orb_bmad2, prb_ptc2, spin_ptc, ele_start, ele_stop)
+  mat_ptc(1:6, i)   = (prb_ptc2%x - prb_ptc1%x) / (2 * bmad_com%d_orb(i))
+  mat_bmad(1:6, i)  = (orb_bmad2%vec - orb_bmad1%vec) / (2 * bmad_com%d_orb(i))
+  mat_map(1:6, i)   = (orb_map2%vec - orb_map1%vec) / (2 * bmad_com%d_orb(i))
 enddo
 
-print *
-print *, 'Transfer Matrix for Each Tracking Method Formed Using Finite Differences:'
+print '(a)'
+print '(a)', 'Transfer Matrix for Each Tracking Method Formed Using Finite Differences:'
 
 do i = 1, 6
-  print '(a, i0, 4x, 6es14.6)', 'Bmad:MatrixRow:', i, mat_bmad(i,:)
-  print '(a, i0, 4x, 6es14.6)', ' PTC:MatrixRow:', i, mat_ptc(i,:)
-  print '(a, i0, 4x, 6es14.6)', ' Map:MatrixRow:', i, mat_map(i,:)
-  print *
+  print '(a, i0, 4x, 6es14.6)', ' Bmad:MatrixRow:', i, mat_bmad(i,:)
+  print '(a, i0, 4x, 6es14.6)', '  PTC:MatrixRow:', i, mat_ptc(i,:)
+  print '(a, i0, 4x, 6es14.6)', '  Map:MatrixRow:', i, mat_map(i,:)
+  print '(a)'
 enddo
 
 !------------------------------------------------------------
 contains
 
-subroutine track_check_all (orb_init, orb, i_ps, sgn, orb_map, orb_bmad, prb_ptc, spin_ptc)
+subroutine track_check_all (orb_init, orb, i_ps, sgn, orb_map, orb_bmad, prb_ptc, spin_ptc, ele_start, ele_stop)
 
 type (coord_struct) orb(0:), orb_init, orb_map, orb_bmad, orb_start
 type (probe) prb_ptc
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele_start, ele_stop
+
 real(rp) spin_ptc(3)
 integer i_ps, sgn
+logical is_lost
 
 !
 
@@ -476,12 +460,18 @@ lat => ltt_com%lat
 orb_start = orb_init
 if (i_ps > 0) orb_start%vec(i_ps) = orb_start%vec(i_ps) + sgn * bmad_com%d_orb(i)
 
-orb_map = orb_start
-orb(ix_start) = orb_start
+! Map
 
-call ptc_track_map_with_radiation (orb_map, ltt_com%sec(1)%map)
+orb_map = orb_start
+call ltt_track_map (lttp, ltt_com, orb_map, is_lost)
+
+! Bmad
+
+orb(ix_start) = orb_start
 call track_many (lat, orb, ix_start, ix_stop, 1, ix_branch, track_state)
 orb_bmad = orb(ix_stop)
+
+! PTC
 
 prb_ptc = orb_start%vec
 prb_ptc%q%x = [1, 0, 0, 0]   ! Unit quaternion
@@ -503,10 +493,12 @@ end subroutine ltt_run_check_mode
 
 subroutine ltt_run_single_mode (lttp, ltt_com, beam_init)
 
+use radiation_mod, only: track1_radiation_center
+
 type (ltt_params_struct) lttp
-type (branch_struct), pointer :: branch
-type (beam_init_struct) beam_init
 type (ltt_com_struct), target :: ltt_com
+type (beam_init_struct) beam_init
+type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
 type (coord_struct) :: orbit, orbit_old
@@ -515,7 +507,7 @@ type (ele_struct), pointer :: ele_start
 type (probe) prb
 
 real(rp) average(6), sigma(6,6)
-integer n_sum, ix_ele_start, iu_out, i_turn, track_state, ix_branch
+integer i, n_sum, iu_out, i_turn, track_state, ix_branch
 logical is_lost
 
 character(40) fmt
@@ -527,10 +519,10 @@ lat => ltt_com%lat
 n_sum = 0
 sigma = 0
 average = 0
-ix_ele_start = ltt_com%start%ix_ele
-ix_branch = ltt_com%start%ix_branch
-ele_start => pointer_to_ele(lat, ltt_com%start)
+ix_branch = ltt_com%ix_branch
 branch => lat%branch(ix_branch)
+call ltt_pointer_to_map_ends(lttp, ltt_com%lat, ele_start)
+
 orbit_old%vec = real_garbage$
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch, beam_init)
@@ -540,9 +532,9 @@ call init_coord (orbit, beam_init%center, ele_start, downstream_end$, lat%param%
 
 if (lttp%add_closed_orbit_to_init_position) then
   select case (lttp%tracking_method)
-  case ('MAP');         orbit%vec = orbit%vec + ltt_com%sec(1)%map%sub_map(1)%fix0
-  case ('BMAD');        orbit%vec = orbit%vec + ltt_com%bmad_closed_orb(ix_ele_start)%vec
-  case ('PTC');         orbit%vec = orbit%vec + ltt_com%ptc_closed_orb
+  case ('MAP');     orbit%vec = orbit%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
+  case ('BMAD');    orbit%vec = orbit%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
+  case ('PTC');     orbit%vec = orbit%vec + ltt_com%ptc_closed_orb
   end select
 endif
 
@@ -556,25 +548,28 @@ write (iu_out, fmt) 0, orbit%vec, orbit%spin
 
 do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
-  case ('MAP')
-    call ptc_track_map_with_radiation (orbit, ltt_com%sec(1)%map)
-    is_lost = orbit_too_large(orbit)
+
   case ('BMAD')
-    orb(ix_ele_start) = orbit
-    call track_many (lat, orb, ix_ele_start, ix_ele_start, 1, ix_branch, track_state)
+    orb(ele_start%ix_ele) = orbit
+    call track_many (lat, orb, ele_start%ix_ele, ele_start%ix_ele, 1, ix_branch, track_state)
     is_lost = (track_state /= moving_forward$)
-    orbit = orb(ix_ele_start)
+    orbit = orb(ele_start%ix_ele)
+
   case ('PTC')
     prb = orbit%vec
     prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
-    call track_probe (prb, ltt_com%ptc_state, fibre1 = lat%branch(ix_branch)%ele(1)%ptc_fibre)
+    call track_probe (prb, ltt_com%ptc_state, fibre1 = pointer_to_ptc_ref_fibre(ele_start))
     orbit%vec = prb%x
     orbit%spin = rotate_vec_given_quat(prb%q%x, orbit%spin)
     is_lost = (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2))
     if (all(orbit%vec == orbit_old%vec)) is_lost = .true.
     orbit_old%vec = orbit%vec
+
+  case ('MAP')
+    call ltt_track_map(lttp, ltt_com, orbit, is_lost)
+
   case default
-    print *, 'Unknown tracking_method: ' // lttp%tracking_method
+    print '(a)', 'Unknown tracking_method: ' // lttp%tracking_method
     stop
   end select
 
@@ -626,21 +621,20 @@ type (probe) prb
 
 real(rp) time0, time
 
-integer n, ix_ele_start, n_print_dead_loss, i_turn
+integer n, n_print_dead_loss, i_turn
 integer ip, n_live_old, n_live, ix_branch
 
-logical err_flag
+logical err_flag, is_lost
 
 ! Init
 
 lat => ltt_com%lat
 
-ix_ele_start = ltt_com%start%ix_ele
-ele_start => pointer_to_ele (lat, ltt_com%start)
-ix_branch = ele_start%ix_branch
+ix_branch = ltt_com%ix_branch
+call ltt_pointer_to_map_ends(lttp, ltt_com%lat, ele_start)
 
 if (lttp%using_mpi) beam_init%n_particle = lttp%mpi_n_particles_per_run
-call init_bunch_distribution (ele_start, lat%param, beam_init, ltt_com%start%ix_branch, bunch, err_flag)
+call init_bunch_distribution (ele_start, lat%param, beam_init, ix_branch, bunch, err_flag)
 if (err_flag) stop
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
@@ -651,9 +645,9 @@ do n = 1, size(bunch%particle)
   p => bunch%particle(n)
   if (lttp%add_closed_orbit_to_init_position) then
     select case (lttp%tracking_method)
-    case ('MAP');         p%vec = p%vec + ltt_com%sec(1)%map%sub_map(1)%fix0
-    case ('BMAD');        p%vec = p%vec + ltt_com%bmad_closed_orb(ix_ele_start)%vec
-    case ('PTC');         p%vec = p%vec + ltt_com%ptc_closed_orb
+    case ('MAP');    p%vec = p%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
+    case ('BMAD');   p%vec = p%vec + ltt_com%bmad_closed_orb(ele_start%ix_ele)%vec
+    case ('PTC');    p%vec = p%vec + ltt_com%ptc_closed_orb
     end select
   endif
 enddo
@@ -676,8 +670,8 @@ do i_turn = 1, lttp%n_turns
     do ip = 1, size(bunch%particle)
       p => bunch%particle(ip)
       if (p%state /= alive$) cycle
-      call ptc_track_map_with_radiation (p, ltt_com%sec(1)%map)
-      if (abs(p%vec(1)) > lttp%ptc_aperture(1) .or. abs(p%vec(3)) > lttp%ptc_aperture(2)) p%state = lost$
+      call ltt_track_map (lttp, ltt_com, p, is_lost)
+      if (is_lost) p%state = lost$
     enddo
 
   case ('BMAD')
@@ -696,7 +690,7 @@ do i_turn = 1, lttp%n_turns
     enddo
 
   case default
-    print *, 'Unknown tracking_method: ' // lttp%tracking_method
+    print '(a)', 'Unknown tracking_method: ' // lttp%tracking_method
     stop
   end select
 
@@ -758,7 +752,7 @@ logical err_flag
 ! Run serial in stat mode.
 
 lat => ltt_com%lat
-branch => lat%branch(ltt_com%start%ix_branch)
+branch => lat%branch(ltt_com%ix_branch)
 
 open(unit=20,file="twiss.dat")
 open(unit=21,file="coupling.dat")
@@ -822,13 +816,13 @@ real(rp) n_particle
 if (.not. branch%param%high_energy_space_charge_on) return
 
 if (lttp%tracking_method == 'MAP') then
-  print *, 'NOTE: Space effects are not present when using a 1-turn map for tracking!'
+  print '(a)', 'NOTE: Space effects are not present when using a map tracking!'
   return
 endif
 
 if (.not. lttp%rfcavity_on) then
-  print *, 'NOTE: RF is not on. Cannot calculate a longitudinal bunch length.'
-  print *, '      Therefore no space charge kick will be applied.'
+  print '(a)', 'NOTE: RF is not on. Cannot calculate a longitudinal bunch length.'
+  print '(a)', '      Therefore no space charge kick will be applied.'
   return
 endif
 
@@ -922,17 +916,16 @@ integer iu, n_particle
 
 write (iu,  '(3a)')      '# lattice = "', trim(lttp%lat_file), '"'
 write (iu,  '(3a)')      '# simulation_mode = "', trim(lttp%simulation_mode), '"'
-write (iu,  '(a, i8)')   '# n_particle             = ', n_particle
-write (iu,  '(a, i8)')   '# n_turns                = ', lttp%n_turns
-write (iu,  '(a, l1)')   '# Radiation_Damping      = ', bmad_com%radiation_damping_on
-write (iu,  '(a, l1)')   '# Radiation_Fluctuations = ', bmad_com%radiation_fluctuations_on
-write (iu,  '(a, l1)')   '# Spin_tracking_on       = ', bmad_com%spin_tracking_on
+write (iu,  '(a, i8)')   '# n_particle                = ', n_particle
+write (iu,  '(a, i8)')   '# n_turns                   = ', lttp%n_turns
+write (iu,  '(a, l1)')   '# Radiation_Damping         = ', bmad_com%radiation_damping_on
+write (iu,  '(a, l1)')   '# Radiation_Fluctuations    = ', bmad_com%radiation_fluctuations_on
+write (iu,  '(a, l1)')   '# Spin_tracking_on          = ', bmad_com%spin_tracking_on
+write (iu, '(3a)')       '# Map_file_prefix           = ', quote(lttp%map_file_prefix)
 if (lttp%tracking_method == 'MAP') then
-  write (iu, '(3a)')     '# Map_file               = "', trim(lttp%map_file), '"'
-  write (iu, '(a, i0)')  '# Map_order              = ', ltt_com%sec(1)%map%map_order
-else
-  write (iu, '(a)') '#'
-  write (iu, '(a)') '#'
+  write (iu, '(a, i0)')  '# map_order                 = ', ltt_com%sec(1)%map%map_order
+  write (iu, '(a, a)')   '# exclude_from_maps         = ', lttp%exclude_from_maps
+  write (iu, '(a, l1)')  '# split_bends_for_radiation = ', lttp%split_bends_for_radiation
 endif
 write (iu, '(a)') '#'
 
@@ -1183,78 +1176,382 @@ end subroutine ltt_write_single_mode_sigma_file
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_read_maps (lttp, ltt_com)
+subroutine ltt_read_map (lttp, ltt_com, err_flag)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
 type (ltt_section_struct), pointer :: sec
+type (ptc_map_with_rad_struct), pointer :: map
 
-integer i, n, ib, ie
-logical err
+integer i, ix, n_sec, ib, ie, creation_hash
+real(rp) s
+logical err_flag, err, map_file_exists
+character(200) map_file 
 
 !
 
-lat => ltt_com%lat
+err_flag = .true.
 
-open (1, file = lttp%map_file, form = 'unformatted')
+call ltt_map_file_name (lttp, ltt_com, map_file)
 
-read (1) n
-allocate (ltt_com%sec(n))
+lat => ltt_com%map_lat
+branch => lat%branch(ltt_com%ix_branch)
 
-do i = 1, n
+inquire (file = map_file, exist = map_file_exists)
+if (.not. map_file_exists) then
+  if (lttp%mpi_rank == master_rank$) print '(a)', 'MAP FILE DOES NOT EXIST: ' // map_file
+  return
+endif
+
+open (1, file = map_file, form = 'unformatted')
+read (1, err = 9000, end = 9000) creation_hash
+
+read (1, err = 9000, end = 9000) n_sec
+if (allocated(ltt_com%sec)) deallocate(ltt_com%sec)
+allocate (ltt_com%sec(0:n_sec))
+
+do i = 0, n_sec
   sec => ltt_com%sec(i)
-  read (1) sec%type
-  select case (sec%type)
-  case (map$)
+  read (1, err = 9000, end = 9000) ix, sec%type, ib, ie
+  sec%ele => lat%branch(ib)%ele(ie)
+  if (sec%type == map$) then
     allocate (sec%map)
     call ptc_read_map_with_radiation(sec%map, err, file_unit = 1)
-  case (rad_pt$, ele$)
-    read (1) ib, ie
-    sec%ele => lat%branch(ib)%ele(ie)
-  end select
+    if (err) then
+      print '(a)', 'ERROR READING MAP: ' // map_file
+      return
+    endif
+    map => sec%map
+  endif
 enddo    
 
 close (1)
 
-end subroutine ltt_read_maps
+if (lttp%mpi_rank == master_rank$) then
+  if (ltt_com%lat%creation_hash == creation_hash) then
+    print '(2a)', 'Map read in from file: ', trim(map_file)
+    print '(2a)', 'Lattice file used for map: ', trim(map%lattice_file)
+  else
+    print '(a)', 'NOTE: LATTICE HAS BEEN MODIFIED SINCE MAP FILE ' // trim(map_file) // ' WAS CREATED.'
+    print '(a)', '      WILL MAKE A NEW MAP.'
+  endif
+endif
+
+if (ltt_com%lat%creation_hash == creation_hash) err_flag = .false.
+return
+
+9000 continue
+close (1)
+print '(a)', 'ERROR READING MAP FILE: ' // map_file
+
+end subroutine ltt_read_map
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_maps (lttp, ltt_com)
+subroutine ltt_write_map (lttp, ltt_com)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (ltt_section_struct), pointer :: sec
+
+integer i, n_sec, ib, ie
+character(200) map_file 
+
+!
+
+call ltt_map_file_name (lttp, ltt_com, map_file)
+
+!
+
+open (1, file = map_file, form = 'unformatted')
+write (1) ltt_com%lat%creation_hash
+
+do n_sec = ubound(ltt_com%sec, 1), 0, -1
+  if (associated(ltt_com%sec(n_sec)%ele)) exit
+enddo
+
+write (1) n_sec
+
+do i = 0, n_sec
+  sec => ltt_com%sec(i)
+  write (1) i, sec%type, sec%ele%ix_branch, sec%ele%ix_ele
+  if (sec%type == map$) call ptc_write_map_with_radiation(sec%map, file_unit = 1)
+enddo
+
+close (1)
+
+end subroutine ltt_write_map
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_map_file_name (lttp, ltt_com, map_file)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+
+integer hash
+
+character(*) map_file
+character(200) string
+
+!
+
+if (lttp%map_file_prefix == '') then
+  map_file = 'ltt'
+else
+  map_file = lttp%map_file_prefix
+endif
+
+write (string, '(2a,2l1,i0,l1)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
+         lttp%split_bends_for_radiation, bmad_com%radiation_damping_on, lttp%map_order, lttp%rfcavity_on
+if (lttp%simulation_mode == 'CHECK') string = trim(string) // lttp%ele_stop
+
+hash = djb_hash(string)
+write (string, '(i0)') hash
+if (hash < 0) string(1:1) = 'n'    ! Looks nicer
+
+map_file = trim(map_file) // '.' // trim(string) // '.map'
+
+end subroutine ltt_map_file_name
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_make_map (lttp, ltt_com)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (ltt_section_struct), pointer :: sec
+type (ele_struct), pointer :: ele0, ele, ele_start, ele_stop
+type (branch_struct), pointer :: branch
 
-integer i, n, ib, ie
+integer i, n_sec, ib, ie, ix_branch
+logical err, in_map_section, damping_on
 
 !
 
-lat => ltt_com%lat
+lat => ltt_com%map_lat
+call ltt_pointer_to_map_ends (lttp, ltt_com%map_lat, ele_start, ele_stop)
+branch => lat%branch(ele_start%ix_branch)
+call lat_to_ptc_layout(lat)
 
-open (1, file = lttp%map_file, form = 'unformatted', status = 'old')
+i = 0
+n_sec = 2
+! Count slices and superimpose radiation points.
+do i = 1, branch%n_ele_track
+  ele => branch%ele(i)
+  if (ele%key == sbend$) then
+    n_sec = n_sec + 1
+  elseif (ele%ix_pointer == 1) then
+    n_sec = n_sec + 2
+  endif
+enddo
 
-write (1) size(ltt_com%sec)
+if (allocated(ltt_com%sec)) deallocate (ltt_com%sec)
+allocate (ltt_com%sec(0:n_sec))
+n_sec = 0
+in_map_section = .false.
+damping_on = bmad_com%radiation_damping_on
+if (lttp%split_bends_for_radiation) damping_on = .false.
 
-do i = 1, size(ltt_com%sec)
+ltt_com%sec(0)%ele => ele_start
+ltt_com%sec(0)%type = ele$
+
+ele => ltt_com%sec(0)%ele
+! Section setup
+n_sec = 0
+do i = 1, branch%n_ele_track+1
+  ele0 => ele
+  ele => pointer_to_next_ele(ele, skip_beginning = .false.)
+  if (ele%key == marker$ .and. .not. in_map_section) cycle
+
+  if (ele%ix_pointer == 1) then
+    if (in_map_section) then
+      n_sec = n_sec + 1
+      allocate(ltt_com%sec(n_sec)%map)
+      call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele0, lttp%map_order, damping_on)
+      ltt_com%sec(n_sec)%type = map$
+      ltt_com%sec(n_sec)%ele => ele
+    endif
+
+    n_sec = n_sec + 1
+    ltt_com%sec(n_sec)%type = ele$
+    ltt_com%sec(n_sec)%ele => ele
+    in_map_section = .false.
+  elseif (ele%key /= marker$ .or. ele%key /= beginning_ele$) then
+    in_map_section = .true.
+  endif
+
+
+  if (ele%ix_ele == ele_stop%ix_ele) then
+    if (in_map_section) then
+      n_sec = n_sec + 1
+      allocate(ltt_com%sec(n_sec)%map)
+      call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele, lttp%map_order, damping_on)
+      ltt_com%sec(n_sec)%type = map$
+      ltt_com%sec(n_sec)%ele => ele
+    endif
+    exit
+  endif
+enddo
+
+end subroutine ltt_make_map
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_make_map_lat (lttp, ltt_com)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (ele_struct) marker
+type (ele_struct), pointer :: ele, slave
+type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: eles(:)
+
+integer i, ie, is, n_loc
+logical err
+
+! Mark elements excluded from maps.
+! Need to mark uncut lat in case element indexes are used.
+
+call lat_ele_locator (lttp%exclude_from_maps, ltt_com%lat, eles, n_loc, err)
+if (err) then
+  print '(a)', 'ERROR LOCATING LATTICE ELEMENTS SPECIFIED IN LTT%EXCULDE_FROM_MAPS: ' // lttp%exclude_from_maps
+  stop
+endif
+
+do ie = 1, n_loc
+  eles(ie)%ele%ix_pointer = 1  ! Mark to exclude from any maps
+enddo
+
+!
+
+ltt_com%map_lat = ltt_com%lat
+branch => ltt_com%map_lat%branch(ltt_com%ix_branch)
+
+if (lttp%split_bends_for_radiation) then
+  call init_ele(marker, marker$)
+  marker%name = 'RADIATION_PT'
+  marker%ix_pointer = 1
+
+  i = 0
+  do
+    i = i + 1
+    if (i > branch%n_ele_track) exit
+    ele => branch%ele(i)
+    if (ele%key /= sbend$) cycle
+    marker%s = (ele%s_start + ele%s) / 2.0_rp
+    call add_superimpose(branch%lat, marker, branch%ix_branch, err)
+    i = i + 2
+  enddo
+
+  call lattice_bookkeeper(ltt_com%map_lat)
+endif
+
+! Mark slaves of lords that are not to be part of any map
+
+do ie = ltt_com%map_lat%n_ele_track+1, ltt_com%map_lat%n_ele_max
+  ele => ltt_com%map_lat%ele(ie)
+  if (ele%ix_pointer == 0) cycle
+  do is = 1, ele%n_slave
+    slave => pointer_to_slave(ele, is)
+    slave%ix_pointer = 1
+  enddo
+enddo
+
+end subroutine ltt_make_map_lat
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_pointer_to_map_ends (lttp, lat, ele_start, ele_stop)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (lat_struct) :: lat
+type (ele_struct), pointer :: ele_start
+type (ele_struct), pointer, optional :: ele_stop
+type (ele_pointer_struct), allocatable :: eles(:)
+
+integer n_loc
+logical err
+
+
+! @START_ELE and @STOP_ELE strings are set in ltt_init_params
+
+if (lttp%ele_start == '') then
+  ele_start => lat%ele(0)
+else
+  call lat_ele_locator ('type::@START_ELE', lat, eles, n_loc, err)
+  ele_start => eles(1)%ele
+endif
+
+if (present(ele_stop)) then
+  if (lttp%ele_stop == '' .or. lttp%ele_stop == lttp%ele_start) then
+    ele_stop => ele_start
+  else
+    call lat_ele_locator ('type::@STOP_ELE', lat, eles, n_loc, err)
+    ele_stop => eles(1)%ele
+  endif
+endif
+
+end subroutine ltt_pointer_to_map_ends
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_track_map (lttp, ltt_com, orbit, is_lost)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (coord_struct) orbit
+type (ltt_section_struct), pointer :: sec
+type (branch_struct), pointer :: branch
+
+integer i
+logical is_lost, damping_on, fluct_on
+
+!
+
+damping_on = bmad_com%radiation_damping_on
+fluct_on = bmad_com%radiation_fluctuations_on
+if (lttp%split_bends_for_radiation) then
+  damping_on = .false.
+  fluct_on = .false.
+endif
+
+branch => ltt_com%map_lat%branch(0)
+
+
+do i = 1, ubound(ltt_com%sec, 1)
   sec => ltt_com%sec(i)
-  write (1) sec%type
-  select case (sec%type)
-  case (map$)
-    allocate (sec%map)
-    call ptc_write_map_with_radiation(sec%map, file_unit = 1)
-  case (rad_pt$, ele$)
-    write (1) sec%ele%ix_branch, sec%ele%ix_ele
-  end select
-enddo    
+  if (.not. associated(sec%ele)) exit
 
-close (1)
+  if (allocated(sec%map)) then
+    call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = damping_on, rad_fluct = fluct_on)
+    is_lost = (orbit_too_large(orbit) .or. abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2))
+    if (is_lost) exit
+  elseif (sec%ele%name == 'RADIATION_PT') then
+    call track1_radiation_center(orbit, pointer_to_next_ele(sec%ele, -1), pointer_to_next_ele(sec%ele), branch%param)
+  else  ! EG: beambeam
+    call track1 (orbit, sec%ele, branch%param, orbit)
+  endif
+enddo
 
-end subroutine ltt_write_maps
+
+end subroutine ltt_track_map
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
