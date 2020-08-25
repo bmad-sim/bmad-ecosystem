@@ -143,19 +143,6 @@ call transfer_fieldmap (ele_in, ele_out, grid_field$)
 ele_out%taylor_field => ele_save%taylor_field ! Reinstate for transfer call
 call transfer_fieldmap (ele_in, ele_out, taylor_field$)
 
-! %multipole_cache
-
-if (associated(ele_in%multipole_cache)) then
-  if (associated (ele_save%multipole_cache)) then
-      ele_out%multipole_cache => ele_save%multipole_cache
-  else
-    allocate (ele_out%multipole_cache)
-  endif
-  ele_out%multipole_cache = ele_in%multipole_cache
-else
-  if (associated (ele_save%multipole_cache)) deallocate (ele_save%multipole_cache)
-endif
-
 ! %rad_int_cache
 
 if (associated(ele_in%rad_int_cache)) then
