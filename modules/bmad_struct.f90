@@ -1226,6 +1226,7 @@ type ele_struct
   logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
 contains
   procedure next_in_branch
+  final :: ele_finalizer
 end type
 
 ! struct for element to element control
@@ -2329,5 +2330,31 @@ if (present(ix_ic) .or. present(ix_lord_back)) then
 endif
 
 end function pointer_to_slave
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine ele_finalizer(ele)
+!
+! Finalizer routine for ele_struct instances.
+! This routine deallocates pointers.
+!
+! Input:
+!   ele   -- ele_struct: Element to cleanup.
+!
+! Output:
+!   ele   -- ele_struct: Element with pointers deallocated as needed.
+!-
+
+subroutine ele_finalizer(ele)
+
+type (ele_struct) ele
+
+!
+
+if (associated(ele%multipole_cache))         deallocate (ele%multipole_cache)
+
+end subroutine ele_finalizer
 
 end module
