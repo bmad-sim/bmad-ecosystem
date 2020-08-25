@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ August 7, 2020}
+\date{David Sagan \\ August 25, 2020}
 \begin{document}
 \maketitle
 
@@ -80,14 +80,18 @@
 The \ltt program is for long term tracking of a particle or beam possibly
 including tracking of the spin.
 
-The \ltt program is built atop the the Bmad software library \cite{b:bmad}. The Bmad library,
-developed at Cornell, has been developed for modeling relativistic charged particles in storage
-rings and Linacs, as well as modeling photons in x-ray beam lines.
+The \ltt program is built atop the the Bmad software toolkit \cite{b:bmad}. The Bmad toolkit is a
+library, developed at Cornell, for the modeling relativistic charged particles in storage rings and
+Linacs, as well as modeling photons in x-ray beam lines.
 
-\ltt comes in two versions: A single threaded version whose executable is called
-\vn{long_term_tracking} and an parallel compute version using MPI whose executable is called
-\vn{long_term_tracking_mpi}. [Note to Distribution maintainers: The single threaded version will
-always be built when compiling the Distribution. The MPI version can be built by building the
+\ltt comes in two versions: 
+\begin{code}
+long_term_tracking      ! Single threaded version
+long_term_tracking_mpi  ! Multi-threaded version
+\end{code}
+The first is a single threaded version and the second is a multi-threaded version using MPI.  [Note
+to Distribution maintainers: The single threaded version will be built when compiling a Bmad
+Distribution without MPI which is the default setting. The MPI version can be built by building the
 Distribution with MPI enabled. See the documentation on the Bmad web site for more details.]
 
 %------------------------------------------------------------------
@@ -99,18 +103,17 @@ See the documentation for setting up the Bmad environmental variables at
   https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
 \end{code}
 
-Once the Bmad environmental variables have bee set, the syntax for invoking the single threaded
+Once the Bmad environmental variables have been set, the syntax for invoking the single threaded
 version of the \ltt program is:
 \begin{code}
-  long_term_tracking {-write} {<master_input_file_name>}
+  long_term_tracking {<master_input_file_name>}
 \end{code}
 Example:
 \begin{code}
   long_term_tracking my_input_file.init
 \end{code}
 The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
-default is ``\vn{long_term_tracking.init}''. If the optional \vn{-write} switch is present, the
-1-turn map will be written to a file.
+default value is ``\vn{long_term_tracking.init}''. 
 
 Example input files are in the directory:
 \begin{code}
@@ -120,6 +123,32 @@ Example input files are in the directory:
 To run the parallel version of \ltt, see the documentation on running programs on the Bmad web site
 for more details.
 
+The syntax of the master input file is explained in \sref{s:input}.
+
+%------------------------------------------------------------------
+\Section{Definition of Some Terms}
+\label{s:def}
+
+\begin{description}
+\item[Radiation Damping and fluctuations] \Newline
+At a given particle position, the energy kick $dE$ that a particle receives due to emission of
+radiation can be decomposed into two parts. One part is the average kick $dE_d$ and the other part
+is a random fluctuation $dE_r$ around the average 
+\begin{equation}\large
+  dE = dE_d + dE_r
+\end{equation}
+An analysis shows that the average part $dE_d$ leads to damping with respect to the closed orbit and
+the fluctuation part leads to excitation of the particle motion. Over many turns, there is an
+equilibrium reached which gives a particle beam its natural size. While it is not physically
+possible to have radiation damping without excitation and vice versa, this can be done with ease in
+a simulation.
+
+\item[PTC] \Newline
+PTC is a library developed by \'Etienne Forest to handle Taylor maps to any arbitrary order. In
+particular, PTC is used for constructing maps for the \vn{long_term_tracking} program. PTC can also
+be used to do element-by-element tracking.
+\end{description}
+
 %------------------------------------------------------------------
 \Section{Simulation Modes}
 \label{s:sim.modes}
@@ -128,7 +157,7 @@ There are a number of simulation ``modes'' which determine what is done by the p
 simulation mode is set by the \vn{ltt%simulation_mode} parameter in the master input file
 (\sref{s:input}).  Possible settings of \vn{ltt%simulation_mode} are:
 \begin{code}
-  "CHECK"   ! Quick map check.
+  "CHECK"   ! Quick tracking check.
   "SINGLE"  ! Single particle tracking.
   "BUNCH"   ! Bunch tracking.
   "STAT"    ! Lattice statistics.
@@ -136,15 +165,17 @@ simulation mode is set by the \vn{ltt%simulation_mode} parameter in the master i
 
 \begin{description}
 \item["CHECK"] \Newline
-In this mode a particle is tracked from \vn{ele_start} to \vn{ele_stop} using a map and
-element-by-element tracking using Bmad and PTC. The results are then printed to the terminal. This
-mode can be used to get a sense of how accurate the 1-turn map is. The starting coordinates are set
-by \vn{particle_start} commands in the lattice file. Included in the output is the transfer matrix
-(Jacobian) with respect to the tracked orbit for each of the three tracking methods. These transfer
-matrices are computed using finite differences when the starting position is varied. The variation
-used in the computation can be specified by setting in the master input file the vector
-\vn{bmad_com%d_orb}. This vector has 6 components, one for each phase space component. That is,
-\vn{bmad_com%d_orb(1)} sets the variation of the $x$ phase space component, etc.
+In this mode, a particle is tracked from \vn{ltt%ele_start} to \vn{ltt%ele_stop} three times using a
+different tracking method each time. The three tracking methods are 1) using a set of maps
+(\sref{s:map}), and element-by-element tracking using 2) \vn{Bmad} and 3) \vn{PTC}. The results are then
+printed to the terminal. This mode can be used to get a sense of how the three different methods
+compare to each other. The starting coordinates are set by \vn{particle_start} commands in the
+lattice file. Included in the output is the transfer matrix (Jacobian) with respect to the tracked
+orbit for each of the three tracking methods. These transfer matrices are computed using finite
+differences when the starting position is varied. The variation used in the computation can be
+specified by setting in the master input file the vector \vn{bmad_com%d_orb}. This vector has 6
+components, one for each phase space component. That is, \vn{bmad_com%d_orb(1)} sets the variation
+of the $x$ phase space component, etc.
 
 No data files are produced in this mode.
 
@@ -155,7 +186,7 @@ turned on.
 \item["SINGLE"] \Newline
 In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The name of the data file is set
 by the \vn{ltt%particle_output_file} parameter (\sref{s:input}). The particle position will be output every
-
+\vn{ltt%output_every_n_turns} turns.
 %
 \item["BUNCH"] \Newline
 In this mode a particle bunch is tracked for \vn{ltt%n_turns} turns. The output data file(s) format is
@@ -173,61 +204,19 @@ Three data files are produced:
 \end{description}
 
 %------------------------------------------------------------------
-\Section{Using Maps and PTC Tracking}
-\label{s:map}
+\Section{Tracking Methods}
+\label{s:track.methods}
 
-The \ltt program uses the PTC/FPP library of \'Etienne Forest to handle Taylor maps to any arbitrary
-order. In particular, PTC is used for constructing the map(s) used for tracking when the
-\vn{ltt%tracking_method} parameter is set to "\vn{MAP}" or "\vn{SLICK}" (\sref{s:sim.params}). PTC
-tracking is also used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case, tracking is
-done element-by-element using symplectic integration.
-
-There are a few points to keep in mind. First is that \vn{PTC} trackes through a lattice element
-step by step. This is true for both map creation and symplectic integration. This means that the
-setting of \vn{num_steps} (or equivalently \vn{ds_step}) for each element will affect the accuracy
-and speed of the computations. Bmad tries to choose reasonable default settings for the number of
-steps however the calculation is not perfect. To make sure that the number of steps is set properly,
-vary the number of steps and choose a step size (which will be different for different elements)
-such that the number of steps is minimal (to minimize computation time) while at the same time is
-large enough so that results do not change significantly if the number of steps is increased.
-
-Another thing to keep in mind is that whether a map will give accurate results is dependent on a
-number of factors. One factor is the order of the map. Generally higher order is better but will
-take more computation time. For 1-turn maps, all maps with order larger than 1 will be limited to
-tracking partices that are far from any strong resonances. For example, if you are interested in
-tracking halo particles you probably should not be using a 1-turn map.
-
-In terms of speed, using a 1-turn map will be the fastest, using standard Bmad tracking will be much
-slower, and using PTC element-by-element tracking will be slowest.
-
-In terms of symplecticity, both the PTC tracking and the 1-turn map tracking will be symplectic.
-Bmad is not symplectic but the deviation from symplecticity is generally fairly small. If the
-radiation effects are large enough, the radiative stochastic noise will negate any non-symplectic
-effects and standard Bmad tracking can be used. A very rough rule of thumb is that if the damping times
-or the number of turns tracked are under 100,000 turns then Bmad standard tracking can be used.
-
-PTC element-by-element tracking cannot be done when using the MPI version of the \ltt program.
-
-One turn map tracking 
-
-%------------------------------------------------------------------
-\Section{Particle Tracking}
-\label{s:track.modes}
-
-Tracking can be done on an element-by-element basis or using a one-turn map that includes radiation
-damping and fluctuations and includes both orbital and spin transport. The map is actually three maps
-rolled into one. One map is a map with out radiation, another map simulates radiation damping, and
-the third map, with the help of a random number generator, is used to include radiation fluctuations.
-radiation damping and/or fluctuations will or will not be included in tracking depending upon the
-settings of (\sref{s:input}):
+When tracking with \vn{ltt%simulation_mode} set to \vn{"SINGLE"} or \vn{"BUNCH"}, the setting of
+\vn{ltt%tracking_method} determines how particles are tracked. Possible settings are:
 \begin{code}
-  bmad_com%radiation_damping_on
-  bmad_com%radiation_fluctuations_on
+  "MAP"     ! Tracking using maps.
+  "PTC"     ! Element-by-element tracking with PTC. Slow.
+  "BMAD"    ! Element-by-element tracking using Bmad. Default. Slow.
 \end{code}
-Note: When tracking with a map, the RF cavities must be powered so that there are synchrotron
-oscillations.
 
-What tracking mode is used is determined by the \vn{ltt%tracking_method} switch (\sref{s:input})
+
+
 which is used to determine if tracking is done using a map or not. If a map is used, the order of
 the map (the degree at which the Taylor series comprising the map are truncated) is given by
 \vn{ltt%map_order} parameter. A larger map order will mean better accuracy at the expense of more
@@ -235,19 +224,96 @@ computation time. Tracking using a map will be extremely quick compared to eleme
 tracking. However, map tracking can be inaccurate if the map order is too small or the particle
 amplitude is too large.
 
-Maps can be saved to a file for later use. Saved maps always include the radiation fluctuations
-component map independent of the setting of \vn{bmad_com%radiation_fluctuations_on}. Thus, when a
-saved map is used for tracking, whether radiation fluctuations is included is determined by the
-setting of \vn{bmad_com%radiation_fluctuations_on} at the time the map file is read in independent of
-the setting at the time the map file is created. Radiation damping is handled differently. The
-radiation damping component map depends on the setting of \vn{bmad_com%radiation_damping_on}. Thus,
-when a saved map is used for tracking, radiation damping is included only if
-\vn{bmad_com%radiation_damping_on} was set True both at the time the map file was created and when
-the map file is read back in. The reason why radiation damping is handled differently from radiation
-fluctuations is due to the fact that the spin tracking part of the map is always created with respect
-to the closed orbit and the closed orbit will be different if radiation damping is on versus
-off. [The closed orbit is always calculated ignoring radiation fluctuations though.] If you don't
-care about spin tracking, it generally makes sense to always create maps that have damping.
+%------------------------------------------------------------------
+\Section{Map Tracking}
+\label{s:map}
+
+The \ltt program uses the PTC/FPP library of \'Etienne Forest to handle Taylor maps which can be
+constructed to any arbitrary order. Maps will transport both orbital and spin coordinates.  In
+particular, PTC is used for constructing the map(s) used for tracking when the
+\vn{ltt%tracking_method} parameter is set to "\vn{MAP}" (\sref{s:sim.params}). PTC tracking is also
+used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case, tracking is done
+element-by-element using symplectic integration.
+
+Sometimes it is convenient to exclude certain lattice elements from a map. For example, the
+beam-beam interaction is highly non-linear so excluding any \vn{beambeam} elements can improve map
+accuracy at larger amplitudes. Which elements are excluded is determined by the setting of
+\vn{ltt%exclude_from_maps} which is a list of what elements are to be excluded. Elements can be
+excluded for a number of reasons. When an element is excluded, multiple maps are created, one for
+each of the sections of the lattice where there are no excluded elements. In this case, tracking
+consists of using a map to track from one excluded element to the next followed by tracking through
+the excluded element.
+
+Depending upon how things are setup, a \vn{PTC} map can include radiation damping and fluctuations
+effects. \footnote
+  {
+Radiation fluctuations are included by actually using two maps to track a particle from one point to
+the next. One map represents the transport with damping and the second map represents the
+fluctuations. When a particle is tracked, the first map with damping is applied and then the second
+map is applied using six random numbers.
+  }
+Damping and excitation are cotrolled by two parameters that can be set in the master input file:
+\begin{code}
+bmad_com%radiation_damping_on
+bmad_com%radiation_fluctuations_on
+\end{code}
+
+The problem with trying to use a map to track a particle's spin when there are radiation effects
+present is that a map may not properly model the effect of the radiation fluctuations on the spin
+precission (radiation damping is not problematic in itself but that is small comfort). To get around
+this, the switch \vn{ltt%split_bends_for_radiation} may be set True. In this case, all bend elements
+are split in the center and special radiation marker elements are placed in between the split
+bends. These radiation marker elements are excluded when constructing maps so the result is many
+maps whose boundries will be at the bend centers. When tracking, the maps will not incorporate any
+radiation effects and a radiation kick will be put in at the radiation marker elements as well as any
+other elements that are excluded from the maps.
+
+This technique of bend splitting for the purposes of including radiation effects was originally
+implemented in a program called \vn{SLICK} and later in the offshoot program \vn{SLICKTRACK}. As
+such, this algorithm is known as \vn{SLICK} tracking. A drawback with \vn{SLICK} tracking is the
+number of maps needed to track a particle over one turn may be considerably more than just using one
+map (essentially there will be one map for every bend in the lattice). This will lengthen
+computation times. This being so, it is recommended that \vn{SLICK} tracking only be used when
+needed. That is, when both radiation effects and spin tracking are to be simulated. \vn{SLICK}
+tracking is also potentially problematical in that radiation effects are not taken into account for
+non-dipole elements that are included in any map. If there are any such elements (for example,
+wiggler elements), these elements should be excluded from being included in any map.
+
+Maps are saved to a file for use if the program is rerun. The name of a map file is determined, in
+part, by the setting of the \vn{ltt%map_file_prefix} parameter. See the documentation on this
+parameter in \sref{s:out.params}.
+
+%------------------------------------------------------------------
+\Section{Tuning Map and PTC Tracking Parameters}
+\label{s:map.tuning}
+
+When tracking using maps or element-by-element with PTC 
+there are a few points to keep in mind. First is that \vn{PTC} trackes through a lattice element
+step by step. This is true for both map creation and symplectic integration. This means that the
+setting of the element parameter \vn{num_steps} (or equivalently \vn{ds_step}) for each element will
+affect the accuracy and speed of the computations. Bmad tries to choose reasonable default settings
+for the number of steps however the calculation is not perfect. To make sure that the number of
+steps is set properly, vary the number of steps and choose a step size (which can be different for
+different elements) such that the number of steps is minimal (to minimize computation time) while at
+the same time is large enough so that results do not change significantly if the number of steps is
+increased.
+
+Another thing to keep in mind is that whether a map will give accurate results is dependent on a
+number of factors. One factor is the order of the map. Generally higher order is better but will
+take more computation time. When the lattice is tracked using a single map, the tracking is only
+valid when the tracked partices are far from any strong resonances. That is, if you are interested
+in tracking halo particles, you probably should not be using a single map.
+
+In terms of speed, using maps will be the fastest, using standard Bmad tracking will be much
+slower, and using PTC element-by-element tracking will be slowest.
+
+In terms of symplecticity, both the PTC tracking and map tracking will be symplectic.
+Bmad is not symplectic but the deviation from symplecticity is generally fairly small. If the
+radiation effects are large enough, the radiative stochastic noise will negate any non-symplectic
+effects and standard Bmad tracking can be used. A very rough rule of thumb is that if the damping times
+or the number of turns tracked are under 100,000 turns then Bmad standard tracking can be used.
+
+PTC element-by-element tracking cannot be done when using the MPI version of the \ltt program.
 
 %------------------------------------------------------------------
 \Section{Initial Particle Positions}
@@ -271,11 +337,10 @@ with beam particle positions, set the \vn{beam_init} structure appropriately. Ex
 In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start}.
 
 %------------------------------------------------------------------
-\Section{Fortran Namelist}
+\Section{Fortran Namelist Input}
 \label{s:namelist}
 
-Fortran namelist syntax is used for parameter input. The
-general form of a namelist is
+Fortran namelist syntax is used for parameter input in the master input file. The general form of a namelist is
 \begin{code}
 &<namelist_name>
   <var1> = ...
@@ -311,13 +376,13 @@ needs in Fortran code.
 \Section{Master Input File}
 \label{s:input}
 
-The master input file holds the parameters needed for running the long term tracking program. The
-master input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.  Example:
+The \vn{master input file} holds the parameters needed for running the long term tracking
+program. The master input file must contain a single namelist (\sref{s:namelist}) named \vn{params}.
+Example:
 \begin{code}
 &params
   ! Input files
   ltt%lat_file   =  "lat.bmad"     ! Bmad lattice file
-  ltt%map_file = 'order5.map'
   ltt%common_master_input_file = ""
 
   ! Output parameters
@@ -328,6 +393,7 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
   ltt%output_initial_position = False
   ltt%print_on_dead_loss = -1
   ltt%merge_particle_output_files = False
+  ltt%map_file_prefix = 'ltt'
 
   ! Simulation parameters
   ltt%simulation_mode    = "BUNCH"
@@ -340,7 +406,9 @@ master input file must contain a single namelist (\sref{s:namelist}) named \vn{p
   ltt%timer_print_dtime  = 300
   ltt%random_seed        = 0
   ltt%ptc_aperture       = 0.1, 0.1
+  ltt%exclude_from_maps  = "beambeam::*"
   ltt%add_closed_orbit_to_init_position = True
+  ltt%split_bends_for_radiation = False
   ltt%dead_cutoff = -1
   ltt%b_emittance = 1e-9                 ! Used with space charge calc.
 
@@ -378,27 +446,17 @@ should only set the parameters that are different for that simulation. Parameter
 individual files will override values set in the common file. Using a common master input file means
 that there is only one file to modify when common parameters are changed as opposed to having to
 modify all the initialization files. If \vn{common_master_input_file} is set to blank (the default),
-no common file is used
+no common master file is used.
 %
 \item[ttl\%lat_file] \Newline
 Name of the Bmad lattice file to use. This name is required.
-%
-\item[ttl\%map_file] \Newline
-If the \vn{-write} switch is present on the command line when the long_term_tracking program in
-involked, the 1-turn map is created and written to a file whose name is given by
-\vn{ttl%map_file}. If \vn{ttl%map_file} is blank, a default name will be constructed. The saved map
-will be affected by the setting of \vn{bmad_com%radiation_damping_on}. See \sref{s:track.modes} for
-more details.
-
-If the \vn{-write} switch is not present, the 1-turn map is read in from \vn{ttl%map_file} if it
-exists.  If the order of the map that is read in does not agree with the setting of
-\vn{ttl%map_order} or the map's \vn{radiation_damping_on} setting does not agree with the setting of
-\vn{bmad_com%radiation_damping_on}, the map is ignored and a new one generated for use in tracking.
 \end{description}
 
 %----------------------------------------------------
 \subsection{Output Parameters}
+\label{s:out.params}
 
+Parameters in the master input file that affect the output are:
 \begin{description}
 \item[ltt\%averages_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital
@@ -408,6 +466,23 @@ turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of turns.
 \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
 the beam is at the \vn{ltt%ele_start} position independent of where the lattice begins and
 ends. Note: The file \vn{ltt%sigma_matrix_output_file} will show the full 6x6 sigma matrix.
+%
+\item[ltt\%exclude_from_maps] \Newline
+List of elements to exclude when constructing maps for \vn{SLICK} tracking. These elements will be
+individually tracking. The default value is \vn{"beambeam::*"} which excludes any \vn{beambeam}
+element. See the Bmad manual section on ``\vn{Matching to Lattice Element Names}'' for details on
+the format for such lists.
+%
+\item[ttl\%map_file_prefix] \Newline
+Prefix, including possible directory specification, for creating files in which maps are saved. Map
+files are used to quickly retrieve maps previously computed in prior running of the program. The
+default prefix is \vn{"ltt"}.  The general form of a map file name is
+\begin{code}
+<map_file_prefix>.<hash>.map
+\end{code}
+where \vn{<hash>} is a hash string that represents input parameters (like the order of the map) used
+to compute the map(s). This hash string is used so that map(s) constructed with one set of
+parameters are not used if the parameters are changed.
 %
 \item[ltt\%merge_particle_output_files] \Newline
 If set to \vn{True}, all the particle data will be put in one \vn{ltt%particle_output_file} file. Only
@@ -438,7 +513,7 @@ Default is -1 which will cause a message printed every turn where there is parti
 %
 \item[ltt\%ptc_aperture] \Newline
 The PTC code does not have apertures. This being the case, for \vn{ltt%tracking_method} set to
-\vn{"1_TURN_MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
+\vn{"MAP"} or \vn{"PTC"}, \vn{ltt%ptc_aperture}, which is a 2-vector, defines \vn{x} and \vn{y}
 apertures. The default is 0.1~meter in both the horizontal and vertical. When used, the aperture is
 applied at the beginning/end of the lattice. PTC has an internal aperture of 1.0~meter. To be safe,
 the \ltt program will additionally impose a 0.9~meters aperture independent of the setting of
@@ -448,7 +523,7 @@ the \ltt program will additionally impose a 0.9~meters aperture independent of t
 String specifying the name of the file to create to hold the calculated 6x6 sigma matrix. If blank (the
 default), no sigma matrix file will be created. The 6x6 sigma matrix $\boldsymbol{\sigma}$ is a
 measure of the beam size defined by
-\begin{equation}
+\begin{equation}\large
   \sigma_{ij} = \left< dr_i \, dr_j \right>
 \end{equation}
 where $\bf dr$ is the deviation of the particle phase space position from the average and $<\ldots>$
@@ -468,6 +543,7 @@ Also see the \vn{ltt%averages_output_file} parameter.
 \subsection{Simulation Parameters}
 \label{s:sim.params}
 
+Parameters in the master input file that affect the simulation are:
 \begin{description}
 \item[ltt\%a_emittance, ltt\%b_emittance] \Newline
 Emittances used in the high energy space charge calculation (\sref{s:space.charge}). If set to zero
@@ -509,13 +585,13 @@ point for tracking to be the downstream edge of the element. Also see \vn{ttl%el
 if not set or set to a blank string is for \vn{tll%ele_stop} to be equal to \vn{tll%ele_start}.
 %
 \item[ltt\%map_order] \Newline
-Order of the 1-turn map. See Section~\sref{s:track.modes}. The default is what is set in the lattice
+Map order. See Section~\sref{s:track.methods}. The default is what is set in the lattice
 file and if not set in the lattice file the default is 3. Note: \vn{ltt%map_order} is only used when
 generating a map.  When a map is read in from a file, the order of this map is independent of the
 current setting of \vn{ltt%map_order}.
 %
 \item[ltt\%n_turns] \Newline
-Number of turns to track. See Section~\sref{s:track.modes}.
+Number of turns to track. See Section~\sref{s:track.methods}.
 %
 \item[ltt\%random_seed] \Newline
 The random number seed used by the random number generator. If set to 0, the
@@ -523,10 +599,13 @@ system clock will be used. That is, if set to 0, the output results will vary fr
 %
 \item[ltt\%rfcavity_on] \Newline
 If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.
-If 1-turn map tracking is used, the RF voltage may not be turned off.
 %
 \item[ltt\%simulation_mode] \Newline
-Sets the simulation mode for the program. See Section~\sref{s:sim.modes}.
+Sets the simulation mode for the program. See Section~\sref{s:sim.modes} for more details.
+%
+\item[ltt\%split_bends_for_radiation] \Newline
+Use a radiation point in the middle of all the bends instead of including radiation effects in the
+transport maps? Default is False.
 %
 \item[ltt\%timer_print_dtime] \Newline
 The program will print a tracking status message every so often. The nominal time between status
@@ -536,17 +615,15 @@ messages is set by \vn{ltt%timer_print_dtime} which is a number in seconds.
 String switch which sets how particles are tracked when the \vn{simulation_mode} is set to
 "\vn{BUNCH}" or "\vn{SINGLE}". Possible settings are:
 \begin{code}
-  "MAP"         ! 1-turn map tracking. Will not give correct results when
-                !  tracking with spin and radiation excitation.
-  "SLICK"       ! SLICK like tracking.
-  "PTC"         ! Element-by-element tracking with PTC. Slow.
-  "BMAD"        ! Element-by-element tracking using Bmad. Default. Slow.
+  "MAP"     ! Tracking using maps.
+  "PTC"     ! Element-by-element tracking with PTC. Slow.
+  "BMAD"    ! Element-by-element tracking using Bmad. Default. Slow.
 \end{code}
-See sections \sref{s:map} and \vn{s:track.modes} for more details.
+See sections \sref{s:map} and \sref{s:track.methods} for more details.
 \end{description}
 
 %------------------------------------------------------------------
-\Section{simulations with Ultra-Relativistic Space Charge Effects}
+\Section{Simulations with Ultra-Relativistic Space Charge Effects}
 \label{s:space.charge}
 
 A space charge kick can be applied in the simulation. The space charge kick is calculated using an
@@ -604,3 +681,4 @@ Phys pp 17–21, (2006).
 \end{thebibliography}
 
 \end{document}
+
