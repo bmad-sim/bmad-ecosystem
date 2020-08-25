@@ -320,7 +320,7 @@ include_kck = integer_option(no$, include_kicks)
 can_use_cache = (.not. bmad_com%auto_bookkeeper)
 
 cache => ele%multipole_cache
-if (can_use_cache .and. associated(cache)) then
+if (can_use_cache .and. allocated(ele%multipole_cache)) then
   if (p_type == magnetic$ .and. cache%ix_pole_mag_max /= invalid$) then
     a = cache%a_pole_mag
     b = cache%b_pole_mag
@@ -690,7 +690,7 @@ integer p_type, ix_pole_max
 
 !
 
-if (.not. associated(ele%multipole_cache)) then
+if (.not. allocated(ele%multipole_cache)) then
   allocate(ele%multipole_cache)
   cache => ele%multipole_cache
 endif

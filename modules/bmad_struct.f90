@@ -1153,7 +1153,7 @@ type ele_struct
   type (mode3_struct), pointer :: mode3 => null()                     ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
   type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct()  ! For symp_map$
-  type (multipole_cache_struct), pointer :: multipole_cache => null()  
+  type (multipole_cache_struct), allocatable :: multipole_cache
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() ! Radiation integral calc cached values 
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct()   ! Quaternion Spin Taylor map.
@@ -1226,7 +1226,7 @@ type ele_struct
   logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
 contains
   procedure next_in_branch
-  final :: ele_finalizer
+  !! final :: ele_finalizer
 end type
 
 ! struct for element to element control
@@ -2338,7 +2338,7 @@ end function pointer_to_slave
 ! Subroutine ele_finalizer(ele)
 !
 ! Finalizer routine for ele_struct instances.
-! This routine deallocates pointers.
+! NOTE: Not currently used.
 !
 ! Input:
 !   ele   -- ele_struct: Element to cleanup.
@@ -2352,8 +2352,6 @@ subroutine ele_finalizer(ele)
 type (ele_struct) ele
 
 !
-
-if (associated(ele%multipole_cache))         deallocate (ele%multipole_cache)
 
 end subroutine ele_finalizer
 
