@@ -493,7 +493,7 @@ do  ! Loop over plot files
       if (graph%floor_plan_flip_label_side)             grph%floor_plan%flip_label_side      = graph%floor_plan_flip_label_side
       if (graph%floor_plan_size_is_absolute)            grph%floor_plan%size_is_absolute     = graph%floor_plan_size_is_absolute
       if (graph%floor_plan_draw_only_first_pass)        grph%floor_plan%draw_only_first_pass = graph%floor_plan_draw_only_first_pass
-      if (graph%correct_xy_distortion)                  grph%floor_plan%correct_distortion   = graph%correct_xy_distortion
+      if (.not. graph%correct_xy_distortion)            grph%floor_plan%correct_distortion   = graph%correct_xy_distortion
 
 
       call qp_calc_axis_places (grph%x)

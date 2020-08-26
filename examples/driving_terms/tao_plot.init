@@ -83,7 +83,7 @@ the plot page) is broken up.
   graph%y%min = -0.5
   graph%y%major_div_nominal = 10
   graph%y%label = "Meters"
-  graph%correct_xy_distortion = f
+  graph%floor_plan%correct_distortion = f
 /
 
 &tao_template_plot
@@ -110,7 +110,7 @@ the plot page) is broken up.
   graph%y%min = -0.5
   graph%y%major_div_nominal = 10
   graph%y%label = "Meters"
-  graph%correct_xy_distortion = f
+  graph%floor_plan%correct_distortion = f
 /
 
 &tao_template_plot
@@ -137,7 +137,7 @@ the plot page) is broken up.
   graph%x%draw_numbers = F
   graph%y%major_div_nominal = 10
   graph%y%label = "Meters"
-  graph%correct_xy_distortion = f
+  graph%floor_plan%correct_distortion = f
 /
 
 
@@ -669,7 +669,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max = 550
   graph%y%min = -50
   graph%y%label = "Meters"
-  graph%correct_xy_distortion = T
+  graph%floor_plan%correct_distortion = T
 /
 
 !----------------------------------------------------------------
@@ -692,5 +692,5 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max = 10
   graph%y%min = -10
   graph%y%label = "Meters"
-  !graph%correct_xy_distortion = T
+  !graph%floor_plan%correct_distortion = T
 /
