@@ -45,7 +45,7 @@ sad_mult2:         sad_mult, fringe_type = full, a1 = 2e-5, b2 = 4e-3
 sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sbend3:            sbend, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
-sbend4:            sbend, l = 0.6, g = 0.01, g_err = -0.0099, e1 = 0.1, e2 = 0.2, num_steps = 10, 
+sbend4:            sbend, l = 0.6, g = 0.01, dg = -0.0099, e1 = 0.1, e2 = 0.2, num_steps = 10, 
                           fringe_type = full, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sbend5:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
                           x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, fint = 0.7, hgap = 2

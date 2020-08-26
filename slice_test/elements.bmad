@@ -53,11 +53,11 @@ sad_mult1:         sad_mult, l = 0.1, fringe_type = full, ks = 0.1, a1 = 2e-5, b
 sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sbend3:            sbend, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
-sbend4:            sbend, l = 0.6, g = 0.01, g_err = -0.0099, e1 = 0.1, e2 = 0.2, num_steps = 10, 
+sbend4:            sbend, l = 0.6, g = 0.01, dg = -0.0099, e1 = 0.1, e2 = 0.2, num_steps = 10, 
                           fringe_type = full, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sbend5:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
                           x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, fint = 0.7, hgap = 2
-sbend6:            sbend, l = 0.6, g = 0.01, g_err = -0.00999999, e1 = 0.1, e2 = 0.2, num_steps = 10, 
+sbend6:            sbend, l = 0.6, g = 0.01, dg = -0.00999999, e1 = 0.1, e2 = 0.2, num_steps = 10, 
                           x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sbend7:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sextupole1:        sextupole, l = 0.6, k2 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
