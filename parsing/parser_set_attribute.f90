@@ -17,7 +17,7 @@
 !                           "*[tracking_method] = runge_kutta". 
 !                         In this case, runge_kutta may not be valid for this ele but this is not an error.
 !   set_field_master -- logical, optional: If True (the default) set ele%field_master = T if the
-!                         attribute to be set is something like B_FIELD_ERR. If this routine is being
+!                         attribute to be set is something like DB_FIELD. If this routine is being
 !                         called post lattice parsing, setting ele%field_master is *not* wanted.
 !
 ! Output
@@ -291,6 +291,11 @@ if (word == 'COHERENT_SYNCH_RAD_ON') then
   call parser_error ('Note: "bmad_com[COHERENT_SYNCH_RAD_ON]" has been renamed "bmad_com[CSR_AND_SPACE_CHARGE_ON]"', &
                      'Will run normally...', level = s_warn$)
   word = 'CSR_AND_SPACE_CHARGE_ON'
+endif
+
+if (ele%key == sbend$ .or. ele%key == rbend$) then
+  if (word == 'G_ERR') word = 'DG'
+  if (word == 'B_FIELD_ERR') word = 'DB_FIELD'
 endif
 
 ! particle_start and bmad_com element can have attributes that are not part of the element so

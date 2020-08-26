@@ -618,7 +618,7 @@ case (bmad_standard$)
   case (sbend$)
 
     ! Finite k1 or k2 is handled with rest of multipoles
-    field%b(2) = (ele%value(g$) + ele%value(g_err$)) * f_p0c 
+    field%b(2) = (ele%value(g$) + ele%value(dg$)) * f_p0c 
 
 
   !------------------

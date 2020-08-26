@@ -317,6 +317,8 @@ endif
 ! Special cases
 
 select case (a_name)
+case ('G_ERR');           a_ptr%r => ele%value(dg$)
+case ('B_FIELD_ERR');     a_ptr%r => ele%value(db_field$)
 case ('BETA_A');          a_ptr%r => ele%a%beta
 case ('BETA_B');          a_ptr%r => ele%b%beta
 case ('ALPHA_A');         a_ptr%r => ele%a%alpha

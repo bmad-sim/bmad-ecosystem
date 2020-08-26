@@ -421,8 +421,8 @@ endif
 
 if (slave%key == sbend$ .and. lord%value(p0c$) /= 0) then
   slave%value(b_field$) = lord%value(b_field$) * slave%value(p0c$) / lord%value(p0c$)
-  slave%value(b_field_err$) = (lord%value(b_field$) + lord%value(b_field_err$)) - slave%value(b_field$)
-  slave%value(g_err$) = (lord%value(g$) + lord%value(g_err$)) - slave%value(g$)
+  slave%value(db_field$) = (lord%value(b_field$) + lord%value(db_field$)) - slave%value(b_field$)
+  slave%value(dg$) = (lord%value(g$) + lord%value(dg$)) - slave%value(g$)
 endif
 
 ! Multipoles. Note: p0c = 0 Can happen if not finished parsing lattice file.

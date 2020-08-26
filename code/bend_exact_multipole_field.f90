@@ -5,7 +5,7 @@
 ! The field due to a multipole in a bend is different from a straight element since Maxwell's equations
 ! are modified due to the curvature of the reference orbit.
 !
-! Note: The returned field does not include the bend field (g) itself or the bend field error (g_err) but does
+! Note: The returned field does not include the bend field (g) itself or the bend field error (dg) but does
 ! include contributions from h/vkick, k1, and k2.
 !
 ! Input:

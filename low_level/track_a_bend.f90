@@ -27,7 +27,7 @@ type (lat_param_struct) :: param
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
-real(rp) mat6_i(6,6), rel_charge_dir, c_dir, g, g_tot, g_err, k_1, r_step, step_len, angle
+real(rp) mat6_i(6,6), rel_charge_dir, c_dir, g, g_tot, dg, k_1, r_step, step_len, angle
 real(rp) pz, rel_p, rel_p2, x, px, y, py, z, pt, phi_1, sin_plus, cos_plus, alpha, L_p, L_c, g_p
 real(rp) sinc_a, r, rad, denom, L_v, L_u, dalpha, dx2, dL_c, dL_p, dphi_1, dpt, dg_p, angle_p
 real(rp) cos_a, sin_a, dL_u, dL_v, dangle_p, beta_ref
@@ -55,8 +55,8 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 ! Set some parameters
 
 g = ele%value(g$)
-g_tot = (g + ele%value(g_err$)) * rel_charge_dir
-g_err = g_tot - g
+g_tot = (g + ele%value(dg$)) * rel_charge_dir
+dg = g_tot - g
 k_1 = ele%value(k1$) * rel_charge_dir
 
 if (nint(ele%value(exact_multipoles$)) /= off$) then
@@ -69,7 +69,7 @@ endif
 call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 if (.not. ele%is_on) then
-  g_err = -g
+  dg = -g
   g_tot = 0
   k_1 = 0
 endif
@@ -99,7 +99,7 @@ do n = 1, n_step
     call sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
     orbit%vec(5) = orbit%vec(5) + low_energy_z_correction(orbit, ele, step_len, mat6, make_matrix)
 
-  elseif ((g == 0 .and. g_err == 0) .or. step_len == 0) then
+  elseif ((g == 0 .and. dg == 0) .or. step_len == 0) then
     call track_a_drift (orbit, step_len, mat6, make_matrix)
 
   !-----------------------------------------------------------------------
@@ -447,7 +447,7 @@ type (coord_struct) orbit
 
 real(rp), optional :: mat6(6,6)
 real(rp) mat6_i(6,6)
-real(rp) g, g_err, length
+real(rp) g, dg, length
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, s_y, c_y, r(6)
 real(rp) z0, z1, z2, z11, z12, z22, z33, z34, z44
 real(rp) dom_x, dom_xx, dx_c, dc_x, ds_x, dom_y, dom_yy, dc_y, ds_y, dcs_x, dcs_y
@@ -463,13 +463,13 @@ rel_charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation * o
 
 k_1 = ele%value(k1$) * rel_charge_dir
 g = ele%value(g$)
-g_tot = (g + ele%value(g_err$)) * rel_charge_dir
-g_err = g_tot - g
+g_tot = (g + ele%value(dg$)) * rel_charge_dir
+dg = g_tot - g
 length = ele%value(l$) / n_step
 
 !
 
-g_tot = g + g_err
+g_tot = g + dg
 rel_p = (1 + orbit%vec(6))
 rel_p2 = rel_p**2
 

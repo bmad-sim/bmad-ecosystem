@@ -1481,7 +1481,7 @@ integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, dr
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6
 integer, parameter :: g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
-integer, parameter :: g_err$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
+integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7, sad_flag$ = 7, bragg_angle_in$ = 7
 integer, parameter :: rho$ = 8, delta_e_ref$ = 8, interpolation$ = 8, bragg_angle_out$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8, voltage$ = 8
@@ -1532,7 +1532,7 @@ integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emit
 integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41, crab_x3$ = 41
 integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42, crab_tilt$ = 42
 integer, parameter :: BL_kick$ = 43, B_field$ = 43, E_field$ = 43, high_energy_space_charge_on$ = 43
-integer, parameter :: photon_type$ = 44, coupler_phase$ = 44, B_field_err$ = 44
+integer, parameter :: photon_type$ = 44, coupler_phase$ = 44, dB_field$ = 44
 integer, parameter :: lattice_type$ = 45, B1_gradient$ = 45, E1_gradient$ = 45, coupler_angle$ = 45
 integer, parameter :: live_branch$ = 46, B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: geometry$ = 47, coupler_at$ = 47, E_tot_set$ = 47, ptc_canonical_coords$ = 47
@@ -1565,6 +1565,8 @@ integer, parameter :: y1_limit$ = 73
 integer, parameter :: y2_limit$ = 74
 integer, parameter :: check_sum$ = 75
 
+integer, parameter :: g_err$ = dg$   ! For backwards compatibility.
+integer, parameter :: B_field_err = dB_field$  ! For backwards compatibility
 !!    = 1 + num_ele_attrib$
 
 integer, parameter :: max_aperture_limit$ = 81     ! bmad_com parameters

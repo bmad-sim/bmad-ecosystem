@@ -36,7 +36,8 @@
 !   ele_end    -- ele_struct, optional: Holds the ending Twiss parameters at l_end (except for photons).
 !                  The map (ele_end%mat6, ele_end%vec0) is map from l_start to l_end.
 !                  If present, the ele_start argument must also be present.
-!                  Note: In the calling routine, deallocate_ele_pointers does not have to be called on ele_end. 
+!                  NOTE! In the calling routine, deallocate_ele_pointers must not be called on ele_end since
+!                   the pointers of ele_end point to the same locations as ele. 
 !   err        -- logical, optional: Set True if there is a problem like 
 !                  the particle gets lost in tracking
 !-   
