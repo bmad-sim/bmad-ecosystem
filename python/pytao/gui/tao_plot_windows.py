@@ -974,7 +974,7 @@ class new_graph_frame(tk.Frame):
                 "draw_grid;LOGIC;T;T",
                 "allow_wrap_around;LOGIC;T;F",
                 "symbol_size_scale;REAL;T;",
-                "correct_xy_distortion;LOGIC;T;F",
+                "floor_plan%correct_distortion;LOGIC;T;F",
                 "x_axis_scale_factor;REAL;T;"]
         self.style_labels = [
                 "X-axis:", "Y-axis:", "Y2-axis",

@@ -2613,7 +2613,7 @@ Example Floor Plan template:
     graph%y%label = "SMART LABEL"
     graph%y%max = 2  
     graph%y%min = -1 
-    graph%correct_xy_distortion = T
+    graph%floor_plan%correct__distortion = T
     graph%floor_plan%size_is_absolute = T
     graph%floor_plan%view = 'xz'  ! Looking from beneath
     graph%floor_plan%orbit_scale = 100
@@ -2628,7 +2628,7 @@ grid at the major division points set \vn{graph%draw_grid} to False.
 
 By default, the horizontal or vertical margins of the graph will be increased so that the horizontal
 scale (meters per plotting inch) is equal to the vertical scale.  If
-\vn{graph%correct_xy_distortion} is set to \vn{False}, this scaling will not be done.
+\vn{graph%floor_plan%correct_distortion} is set to \vn{False}, this scaling will not be done.
 
 Note: The \vn{show ele -floor} command (\sref{s:show}) can be used to view an element's global
 coordinates.

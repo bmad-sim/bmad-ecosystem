@@ -28,7 +28,7 @@ contains
 ! a single element.
 !
 ! In the special case where you are changing a sbend strength then use
-! g_err. However, if a relative error is specified it will be relative to 'g'.
+! dg. However, if a relative error is specified it will be relative to 'g'.
 !
 !  Input:
 !      ele_type        -- character(*) : Element type to be misaligned
@@ -132,7 +132,7 @@ if (index(misalign_value, 'x') .eq. 1) then
   rel_error = .true.
   call tao_to_real (misalign_value(2:), misalign_value_num, err)
   if (err) return
-  if (ix_key(1) .eq. sbend$ .and. ix_attrib .eq. g_err$) rel_sbend_error_flag = .true.
+  if (ix_key(1) .eq. sbend$ .and. ix_attrib .eq. dg$) rel_sbend_error_flag = .true.
 else
   call tao_to_real (misalign_value, misalign_value_num, err)
   if (err) return
