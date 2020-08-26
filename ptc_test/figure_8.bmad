@@ -27,7 +27,7 @@ qf : quadrupole, l=0.5, k1= kf
 qd : quadrupole, l=0.5, k1= kd 
 b  : rbend,l_arc = larc, angle=ang 
 
-bb: b, g_err = -2*ang/larc
+bb: b, dg = -2*ang/larc
 
 cell3 : LINE=  (d1, qd, d2, bb, d2, qf, d1)
 cell4 : LINE=  (d1, qd, d2,  b, d2, qf, d1)

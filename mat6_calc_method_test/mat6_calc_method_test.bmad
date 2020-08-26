@@ -61,11 +61,11 @@ sb0: sbend, a0 = 0.001, a1 = 0.1, vkick = -0.0001, b0_elec = -2e3, a1_elec = 2e3
 sbend1:            sb0, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, b1 = 10, b3 = 100, exact_multipole=vertically_pure
 sbend2:            sb0, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, a1 = 10, a3 = 100, exact_multipole=horizontally_pure
 sbend3:            sb0, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
-sbend4:            sb0, l = 0.6, g = 0.01, g_err = -0.0099999, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
+sbend4:            sb0, l = 0.6, g = 0.01, dg = -0.0099999, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
                           x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, b1 = 10, b3 = 100
 sbend5:            sb0, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
                           x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, a1 = 10, a3 = 100, fint = 0.7, hgap = 2
-sbend6:            sb0, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, 
+sbend6:            sb0, l = 0.6, g = 0.01, dg = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, 
                           y_pitch = 0.001, ref_tilt = 0.1
 sbend7:            sb0, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, 
                           a1 = 10, a3 = 100
