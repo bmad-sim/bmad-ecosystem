@@ -36,7 +36,7 @@ do ie = 1, lat%n_ele_max
     include_kicks = inc_kick(ik)
     str = int_str(iu) // int_str(ik) // '-'
 
-    if (associated(ele%multipole_cache)) deallocate(ele%multipole_cache)
+    if (allocated(ele%multipole_cache)) deallocate(ele%multipole_cache)
 
     call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, am1, bm1, magnetic$, include_kicks)
     call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, ae1, be1, electric$, include_kicks)
