@@ -615,8 +615,8 @@ lord unnormalized strength. After this, the normalized strength for the slaves i
 that the normalized strengths for the slaves will differ from each other. For \vn{sbend} and
 \vn{rbend} elements the calculation is a bit trickier. Here the \vn{g} bending strength must be the
 same for all slaves since the setting of \vn{g} determines the reference geometry. In this case,
-\vn{g_err} for each slave is adjusted accordingly so that the total normalized field, \vn{g} +
-\vn{g_err}, gives the same unnormalized field for all slaves. Note that since the normalized field
+\vn{dg} for each slave is adjusted accordingly so that the total normalized field, \vn{g} +
+\vn{dg}, gives the same unnormalized field for all slaves. Note that since the normalized field
 is calculated from the unnormalized field for the slaves, the setting of \vn{field_master}
 (\sref{s:field.master}) is set to True for all the slaves independent of the setting of
 \vn{field_master} for the lord.

@@ -1334,7 +1334,7 @@ call init_attribute_name1 (sbend$, h2$,                             'H2')
 call init_attribute_name1 (sbend$, k1$,                             'K1', quasi_free$)
 call init_attribute_name1 (sbend$, k2$,                             'K2', quasi_free$)
 call init_attribute_name1 (sbend$, g$,                              'G', quasi_free$)
-call init_attribute_name1 (sbend$, g_err$,                          'G_ERR', quasi_free$)
+call init_attribute_name1 (sbend$, dg$,                          'DG', quasi_free$)
 call init_attribute_name1 (sbend$, roll$,                           'ROLL', override = .true.)
 call init_attribute_name1 (sbend$, roll_tot$,                       'ROLL_TOT', dependent$, override = .true.)
 call init_attribute_name1 (sbend$, hgap$,                           'HGAP')
@@ -1347,7 +1347,7 @@ call init_attribute_name1 (sbend$, l_sagitta$,                      'L_SAGITTA',
 call init_attribute_name1 (sbend$, ptc_fringe_geometry$,            'PTC_FRINGE_GEOMETRY')
 call init_attribute_name1 (sbend$, higher_order_fringe_type$,       'HIGHER_ORDER_FRINGE_TYPE')
 call init_attribute_name1 (sbend$, b_field$,                        'B_FIELD', quasi_free$)
-call init_attribute_name1 (sbend$, b_field_err$,                    'B_FIELD_ERR', quasi_free$)
+call init_attribute_name1 (sbend$, db_field$,                    'DB_FIELD', quasi_free$)
 call init_attribute_name1 (sbend$, b1_gradient$,                    'B1_GRADIENT', quasi_free$)
 call init_attribute_name1 (sbend$, b2_gradient$,                    'B2_GRADIENT', quasi_free$)
 call init_attribute_name1 (sbend$, r0_mag$,                         'R0_MAG')
@@ -1864,7 +1864,7 @@ case ('CRITICAL_ANGLE_FACTOR')
 case ('SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', 'ELLIPTICAL_CURVATURE_Z', 'FOCAL_STRENGTH')
   attrib_units = '1/m'
 
-case ('C21_MAT0', 'C21_MAT1', 'CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'G_ERR', 'G_MAX', &
+case ('C21_MAT0', 'C21_MAT1', 'CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'DG', 'G_MAX', &
       'H1', 'H2', 'CRAB_X2')
   attrib_units = '1/m'
 
@@ -1907,7 +1907,7 @@ case ('GRADIENT', 'GRADIENT_ERR')
 case ('LR_FREQ_SPREAD', 'RF_FREQUENCY')
   attrib_units = 'Hz'
 
-case ('BS_FIELD', 'B_FIELD', 'B_FIELD_ERR', 'B_MAX')
+case ('BS_FIELD', 'B_FIELD', 'DB_FIELD', 'B_MAX')
   attrib_units = 'T'
 
 case ('B1_GRADIENT');                                   attrib_units = 'T/m'
@@ -3074,7 +3074,7 @@ if (ele%field_master) then
     if (attrib_name == 'K2') free = .false.
   case (sbend$)
     if (attrib_name == 'G') free = .false.
-    if (attrib_name == 'G_ERR') free = .false.
+    if (attrib_name == 'DG') free = .false.
   case (hkicker$, vkicker$)
     if (attrib_name == 'KICK') free = .false.
   end select
@@ -3101,7 +3101,7 @@ else
     if (attrib_name == 'B1_GRADIENT') free = .false.
   case (sbend$)
     if (attrib_name == 'B_FIELD') free = .false.
-    if (attrib_name == 'B_FIELD_ERR') free = .false.
+    if (attrib_name == 'DB_FIELD') free = .false.
     if (attrib_name == 'B1_GRADIENT') free = .false.
     if (attrib_name == 'B2_GRADIENT') free = .false.
   case (hkicker$, vkicker$)

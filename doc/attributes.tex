@@ -110,7 +110,7 @@ permitted. For example:
   Q3: quadrupole, k1 = 0.6, bl_hkick = 37.5  ! NO. Not VALID.
 \end{example}
 
-\index{g}\index{g_err}\index{b_field}\index{bs_field}\index{b_field_err}
+\index{g}\index{dg}\index{b_field}\index{bs_field}\index{db_field}
 \index{b1_gradient}\index{b2_gradient}\index{b3_gradient}\index{ks}
 \index{k1}\index{k2}\index{k3}
 \index{bl_kick}\index{bl_hkick}\index{bl_vkick}
@@ -122,7 +122,7 @@ permitted. For example:
 \begin{tabular}{lll} \toprule
   {\em Element}              & {\em Normalized} & {\em Unnormalized}   \\ \midrule
   \vn{Sbend}, \vn{Rbend}     & \vn{g}           &  \vn{b_field}        \\
-  \vn{Sbend}, \vn{Rbend}     & \vn{g_err}       &  \vn{b_field_err}    \\
+  \vn{Sbend}, \vn{Rbend}     & \vn{dg}       &  \vn{db_field}    \\
   \vn{Solenoid, Sol_quad}    & \vn{ks}          &  \vn{bs_field}       \\
   \vn{Quadrupole, Sol_quad, Sbend, Rbend}            
                              & \vn{k1}          &  \vn{b1_gradient}    \\
@@ -2096,8 +2096,8 @@ associated error parameter. The elements that have associated error parameters a
   Voltage       Voltage_err           E_gun, LCavity
   Gradient      Gradient_err          E_gun, LCavity
   Phi0          Phi0_err              E_gun, LCavity
-  G             G_err                 Sbend, Rbend
-  B_field       B_field_err           Sbend, Rbend
+  G             dG                 Sbend, Rbend
+  B_field       dB_field           Sbend, Rbend
 \end{example}
   \item[phi0_fieldmap] \Newline
 For AC fields, \vn{phi0_fieldmap} is the phase of the field map field relative to the fundamental

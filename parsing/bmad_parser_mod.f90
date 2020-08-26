@@ -4372,8 +4372,8 @@ case (beginning_ele$)
 
 case (sbend$, rbend$) 
 
-  b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(b_field_err$) /= 0)
-  g_set = (ele%value(g$) /= 0 .or. ele%value(g_err$) /= 0)
+  b_field_set = (ele%value(b_field$) /= 0 .or. ele%value(db_field$) /= 0)
+  g_set = (ele%value(g$) /= 0 .or. ele%value(dg$) /= 0)
 
   if (ele%key /= sad_mult$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
   angle = ele%value(angle$) 
@@ -4385,10 +4385,10 @@ case (sbend$, rbend$)
           ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
 
   if (b_field_set .and. g_set) call parser_error &
-          ('BOTH G (OR G_ERR) AND B_FIELD (OR B_FIELD_ERR) SET FOR A BEND: ' // ele%name)
+          ('BOTH G (OR DG) AND B_FIELD (OR DB_FIELD) SET FOR A BEND: ' // ele%name)
 
   if (b_field_set .and. ele%value(rho$) /= 0) call parser_error &
-          ('BOTH RHO AND B_FIELD (OR B_FIELD_ERR) SET FOR A BEND: ' // ele%name)
+          ('BOTH RHO AND B_FIELD (OR DB_FIELD) SET FOR A BEND: ' // ele%name)
 
   if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
             call parser_error ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)

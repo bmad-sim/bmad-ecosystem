@@ -251,7 +251,7 @@ case (sbend$)
   ! Slice if the angle is more than .2 rad (about 11 degrees)
   n_slice = floor(abs(ele%value(angle$))/.2_rp)
   ds_slice = ele%value(L$)/(n_slice+1)
-  strength = q_sign*(ele%value(b_field$) + ele%value(b_field_err$))
+  strength = q_sign*(ele%value(b_field$) + ele%value(db_field$))
   gap = 2*ele%value(HGAP$)
 
   if (n_slice > 0) write (iu, '(a, i0, a)') '  !  sliced into ', n_slice +1, ' parts'

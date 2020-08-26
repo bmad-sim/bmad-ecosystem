@@ -687,12 +687,12 @@ case (sbend$)
       endif
     elseif (associated(a_ptr, ele%value(b_field$))) then
       if (dep2_set) ele%value(g$) = ele%value(b_field$) / p0c_factor
-    elseif (associated(a_ptr, ele%value(b_field_err$))) then
-      if (dep2_set) ele%value(g_err$) = ele%value(b_field_err$) / p0c_factor
+    elseif (associated(a_ptr, ele%value(db_field$))) then
+      if (dep2_set) ele%value(dg$) = ele%value(db_field$) / p0c_factor
     elseif (associated(a_ptr, ele%value(g$))) then
       if (dep2_set) ele%value(b_field$) = ele%value(g$) * p0c_factor 
-    elseif (associated(a_ptr, ele%value(g_err$))) then
-      if (dep2_set) ele%value(b_field_err$) = ele%value(g_err$) * p0c_factor 
+    elseif (associated(a_ptr, ele%value(dg$))) then
+      if (dep2_set) ele%value(db_field$) = ele%value(dg$) * p0c_factor 
     endif
   endif
 

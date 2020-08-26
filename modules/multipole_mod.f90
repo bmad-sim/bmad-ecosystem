@@ -615,7 +615,7 @@ endif
 select case (this_ele%key)
 
 case (sbend$, rbend$)
-  const = this_ele%value(l$) * (this_ele%value(g$) + this_ele%value(g_err$))
+  const = this_ele%value(l$) * (this_ele%value(g$) + this_ele%value(dg$))
   ref_exp = 0
 
 case (elseparator$, kicker$, ac_kicker$)

@@ -52,7 +52,7 @@ the fork element \vn{BR} connects \vn{INJ_L} with the marker \vn{M} in \vn{RING_
   \includegraphics[width=5.5in]{chicane.pdf}
   \caption[Four bend chicane.]{Four bend chicane. A) Correctly implemented chicane. The red line is 
 the beam orbit magnified by a factor of 100. B) Incorrectly implemented chicane where the \vn{g}
-parameter of the bends is used to control the chicane strength instead of \vn{g_err}.
+parameter of the bends is used to control the chicane strength instead of \vn{dg}.
   }
   \label{f:chicane}
 \end{figure}
@@ -72,17 +72,17 @@ illustrated in \fig{f:chicane}A. The lattice file for this is:
   d1: drift, l = 3
   d2: drift, l = 2
 
-  chicane: overlay = {bnd1[g_err]:-ge, bnd2[g_err]:ge}, var = {ge}, ge = 2e-3
+  chicane: overlay = {bnd1[dg]:-ge, bnd2[dg]:ge}, var = {ge}, ge = 2e-3
 
   c_line: line = (bnd1, d1, bnd2, d2, bnd2, d1, bnd1)
   use, c_line
 \end{example}
 The chicane is controlled by an overlay (\sref{s:overlay}) called \vn{chicane}. This overlay controls
-the \vn{g_err} attribute of the bends (alternatively the \vn{hkick} or \vn{b0} attributes could have
+the \vn{dg} attribute of the bends (alternatively the \vn{hkick} or \vn{b0} attributes could have
 been used).
 
-It is important to note that using \vn{g} instead of \vn{g_err} to control the chicane strength
-would be a mistake. [Or, alternatively, \vn{b_field} instead of \vn{b_field_err} if controlling the
+It is important to note that using \vn{g} instead of \vn{dg} to control the chicane strength
+would be a mistake. [Or, alternatively, \vn{b_field} instead of \vn{db_field} if controlling the
 unnormalized field.] This is illustrated in \fig{f:chicane}B where the chicane overlay was replaced
 by:
 \begin{example}
@@ -90,7 +90,7 @@ by:
 \end{example}
 The problem here is that \vn{g} sets the reference orbit so varying \vn{g} will vary the physical
 layout of the machine which is not what is wanted. Since the actual normalized field is \vn{g +
-g_err}, it is \vn{g_err} that should be varied. Notice that in the case where \vn{g} is varied, the
+dg}, it is \vn{dg} that should be varied. Notice that in the case where \vn{g} is varied, the
 bends are no longer rectangular. This is true since \vn{rbend} elements, when read in from the
 lattice file, are converted to \vn{sbend} elements. In this case the converted bends have \vn{e1}
 and \vn{e2} face angles of zero. When the \vn{chicane} overlay varies \vn{g}, the face angle remain
@@ -180,7 +180,7 @@ Between normal and reversed elements there must be a reflection
 \begin{example}
   D: drift, l = 2
   g_design = pi/12
-  B: sbend, l = 2, g = g_design, g_err = -2*g_design
+  B: sbend, l = 2, g = g_design, dg = -2*g_design
   P: patch, x_pitch = pi
   A_line: line = (D, --B)     ! Illegal. Do not use!
   B_line: line = (D, P, --B)  ! Correct
@@ -195,10 +195,10 @@ a reflection patch (\sref{s:reflect.patch}).  For example, Setting the patch's \
 \vn{pi} would produce a reflection patch.
 
 Since bend \vn{B} is reversed, A particle moving downstream within \vn{B} is going the opposite
-direction from the normal direction. If \vn{g_err} were zero in this instance, a downstream moving
+direction from the normal direction. If \vn{dg} were zero in this instance, a downstream moving
 particle would feel a force that will rotate the particle in a clockwise manner opposite from the
-counterclockwise direction of the bend. To counter this, \vn{g_err} is set so the total bending
-field \vn{g_tot = g + g_err} is opposite the design field. That is, \vn{g_err} is set so that
+counterclockwise direction of the bend. To counter this, \vn{dg} is set so the total bending
+field \vn{g_tot = g + dg} is opposite the design field. That is, \vn{dg} is set so that
 \vn{g_tot = -g}.
 
 %-----------------------------------------------------------------------------

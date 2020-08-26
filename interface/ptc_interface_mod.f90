@@ -2986,7 +2986,7 @@ if (.not. ele%is_on) then
     val = 0
     val(l$)         = ele%value(l$)
     val(g$)         = ele%value(g$)
-    val(g_err$)     = -ele%value(g$)
+    val(dg$)     = -ele%value(g$)
     val(angle$)     = ele%value(angle$)
     val(rho$)       = ele%value(rho$)
     val(ref_tilt_tot$) = val(ref_tilt_tot$)
@@ -3045,7 +3045,7 @@ if (key == sbend$ .and. val(angle$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') th
   !          'BEND WITH ZERO BENDING ANGLE WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
-if (key == sbend$ .and. val(g$) + val(g_err$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
+if (key == sbend$ .and. val(g$) + val(dg$) == 0 .and. ptc_key%model /= 'DRIFT_KICK') then
   ptc_key%model = 'DRIFT_KICK'
   ! Only need to issue a warning if K1 is nonzero.
   !if (val(k1$) /= 0) call out_io (s_warn$, r_name, &
@@ -4291,7 +4291,7 @@ case (sbend$)
       bn(3) = val(k2$) / 2
     endif
 
-    bn(1) = bn(1) + ele%value(g_err$)
+    bn(1) = bn(1) + ele%value(dg$)
 
   else
     bn(1) = -ele%value(g$)

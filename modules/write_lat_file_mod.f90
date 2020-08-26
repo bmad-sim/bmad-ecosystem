@@ -2254,10 +2254,10 @@ do
         kicker_ele%value(vkick$) = val(vkick$) / 2
         val(hkick$) = 0; val(vkick$) = 0
         if (ele%key == sbend$) then
-          f = val(g_err$) * val(l$) / 2
+          f = val(dg$) * val(l$) / 2
           kicker_ele%value(hkick$) = kicker_ele%value(hkick$) - cos(ele%value(ref_tilt_tot$)) * f
           kicker_ele%value(vkick$) = kicker_ele%value(vkick$) - sin(ele%value(ref_tilt_tot$)) * f
-          val(g_err$) = 0
+          val(dg$) = 0
         endif
         write (taylor_ele%name, '(a, i0)') 'Z_SHIFTER', j_count 
         call taylor_make_unit(taylor_ele%taylor)
@@ -2311,10 +2311,10 @@ do
     cycle
   endif
 
-  ! A bend with fringe = sad_full or has non-zero g_err has its fringe kicks modeled as a 1st order map.
+  ! A bend with fringe = sad_full or has non-zero dg has its fringe kicks modeled as a 1st order map.
 
   iv = nint(ele%value(fringe_type$))
-  if (ele%key == sbend$ .and. ((mad_out .and. iv == sad_full$) .or. (out_type == 'MAD-8' .and. ele%value(g_err$) /= 0))) then
+  if (ele%key == sbend$ .and. ((mad_out .and. iv == sad_full$) .or. (out_type == 'MAD-8' .and. ele%value(dg$) /= 0))) then
 
     if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1)
 
@@ -2328,11 +2328,11 @@ do
     call set_fringe_on_off (bend_ele%value(fringe_at$), exit_end$, off$)
     call track1 (orbit_out(ie-1), bend_ele, branch_out%param, orb_center)
 
-    if (at_this_ele_end(entrance_end$, nint(ele%value(fringe_at$))) .or. ele%value(g_err$) /= 0) then
+    if (at_this_ele_end(entrance_end$, nint(ele%value(fringe_at$))) .or. ele%value(dg$) /= 0) then
       call ele_to_taylor (bend_ele, branch_out%param, orbit_out(ie-1), orbital_taylor = taylor_a)
 
       bend_ele%value(fringe_type$) = basic_bend$
-      bend_ele%value(g_err$) = 0
+      bend_ele%value(dg$) = 0
       orb_start = orb_center
       orb_start%direction = -1
       orb_start%species = antiparticle(orb_center%species)
@@ -2350,7 +2350,7 @@ do
       ie2 = ie2 + 1
     endif
 
-    if (at_this_ele_end(exit_end$, nint(ele%value(fringe_at$))) .or. ele%value(g_err$) /= 0) then
+    if (at_this_ele_end(exit_end$, nint(ele%value(fringe_at$))) .or. ele%value(dg$) /= 0) then
       bend_ele = ele
       bend_ele%value(l$) = ele%value(l$)/2
       bend_ele%value(angle$) = ele%value(angle$)/2
@@ -2360,7 +2360,7 @@ do
       call ele_to_taylor (bend_ele, branch_out%param, orb_center, orbital_taylor = taylor_a)
 
       bend_ele%value(fringe_type$) = basic_bend$
-      bend_ele%value(g_err$) = 0
+      bend_ele%value(dg$) = 0
       call ele_to_taylor (bend_ele, branch_out%param, orb_center, orbital_taylor = taylor_b)
       call taylor_inverse (taylor_b, taylor_b)
 
@@ -2373,7 +2373,7 @@ do
     endif
 
     ele%value(fringe_type$) = basic_bend$
-    ele%value(g_err$) = 0
+    ele%value(dg$) = 0
     cycle
   endif
 
@@ -2736,7 +2736,7 @@ do   ! ix_ele = 1e1, ie2
 
     if (out_type == 'MAD-X' .and. ele%value(l$) /= 0) then
       call multipole_ele_to_ab (ele, .false., ix, a_pole, b_pole, magnetic$, include_kicks$)
-      call value_to_line (line_out, val(g_err$) + b_pole(0)/val(l$), 'k0', 'R')
+      call value_to_line (line_out, val(dg$) + b_pole(0)/val(l$), 'k0', 'R')
       call value_to_line (line_out, a_pole(0)/val(l$), 'k0s', 'R')
     endif
 
@@ -3896,7 +3896,7 @@ do ix_ele = ie1, ie2
     case (sbend$)
       write (line_out, '(4a)') 'BEND ', trim(ele%name), ' = (L = ', re_str(val(l$))
       call value_to_line (line_out, val(angle$), 'ANGLE', 'R', .true., .false.)
-      call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'R', .true., .false.)
+      call value_to_line (line_out, val(dg$)*val(l$), 'K0', 'R', .true., .false.)
       call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'R', .true., .false.)
       call value_to_line (line_out, -val(ref_tilt$), 'ROTATE', 'R', .true., .false.)
       if (val(fintx$)*val(hgapx$) == val(fint$)*val(hgap$)) then

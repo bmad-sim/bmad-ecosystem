@@ -118,7 +118,7 @@ if (logic_option(.false., track_spin)) then
   endif
   x = ave_orb%vec(1);  y = ave_orb%vec(3)
   tan_e_x = tan(e_ang) * x
-  field%B = (ele%value(b_field$) + ele%value(b_field_err$)) * [-sin(e_ang)*y, -tan_e_x, cos(e_ang)*y]
+  field%B = (ele%value(b_field$) + ele%value(db_field$)) * [-sin(e_ang)*y, -tan_e_x, cos(e_ang)*y]
   if (ele%value(b1_gradient$) /= 0) field%B = field%B - ele%value(b1_gradient$) * tan_e_x * [x*y, x*x - y*y, 0.0_rp]
   if (ele%value(b2_gradient$) /= 0) field%B = field%B - ele%value(b2_gradient$) * tan_e_x * [3*x*x*y - y**3, x**3 - 3*x*y*y, 0.0_rp]
   if (physical_ele_end(particle_at, orb%direction, ele%orientation) == downstream_end$) field%B(3) = -field%B(3)
@@ -169,14 +169,14 @@ logical, optional :: make_matrix
 character(*), parameter :: r_name = 'linear_bend_edge_kick'
 
 ! Track through the entrence face. 
-! See MAD physics guide for writeup. Note that MAD does not have a g_err.
+! See MAD physics guide for writeup. Note that MAD does not have a dg.
 ! Apply only the first order kick. That is, only edge focusing.
 
 c_dir = rel_tracking_charge_to_mass(orb, param) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
 if (ele%is_on) then
-  g_tot = (ele%value(g$) + ele%value(g_err$)) * c_dir
+  g_tot = (ele%value(g$) + ele%value(dg$)) * c_dir
 else
   g_tot = 0
 endif
@@ -262,7 +262,7 @@ logical, optional :: make_matrix
 character(24), parameter :: r_name = 'second_order_bend_edge_kick'
 
 ! Track through the entrence face. 
-! See MAD physics guide for writeup. Note that MAD does not have a g_err.
+! See MAD physics guide for writeup. Note that MAD does not have a dg.
 
 c_dir = rel_tracking_charge_to_mass(orb, param) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
@@ -270,7 +270,7 @@ fringe_type = nint(ele%value(fringe_type$))
 e_factor = 1 / (1 + orb%vec(6))
 
 if (ele%is_on) then
-  g_tot = (ele%value(g$) + ele%value(g_err$)) * c_dir
+  g_tot = (ele%value(g$) + ele%value(dg$)) * c_dir
   k1 = ele%value(k1$)
 else
   g_tot = 0
@@ -422,7 +422,7 @@ if (.not. fringe_here(ele, orbit, particle_at)) return
 ! extract params from ele
 
 if (ele%key == sbend$) then
-  g = ele%value(g$) + ele%value(g_err$)
+  g = ele%value(g$) + ele%value(dg$)
   t0 = 0
 else
   g = g_bend
@@ -880,7 +880,7 @@ case (sbend$)
 
   if (f1 == 0) return
 
-  g = ele%value(g$) + ele%value(g_err$)
+  g = ele%value(g$) + ele%value(dg$)
   tilt = 0
 
 case (sad_mult$)
@@ -1440,7 +1440,7 @@ character(20) :: r_name = 'exact_bend_edge_kick'
 
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
 if (ele%is_on) then
-  g_tot = ele%value(g$) + ele%value(g_err$)
+  g_tot = ele%value(g$) + ele%value(dg$)
 else
   g_tot = 0
 endif

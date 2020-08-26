@@ -1263,7 +1263,7 @@ logical is_2nd_col_attrib
 character(40), parameter :: att_name(48) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
-                'KS', 'K1', 'K2', 'G', 'G_ERR', 'H1', 'E1', 'FINT', 'HGAP', &
+                'KS', 'K1', 'K2', 'G', 'DG', 'H1', 'E1', 'FINT', 'HGAP', &
                 'L_CHORD', 'PTC_FIELD_GEOMETRY', 'AUTOSCALE_AMPLITUDE', 'FIELD_AUTOSCALE', 'COUPLER_AT', &
                 'VOLTAGE', 'PHI0', 'N_CELL', 'X_GAIN_ERR', 'X_GAIN_CALIB', 'X_OFFSET_CALIB', &
                 'BETA_A', 'ALPHA_A', 'CRAB_X1', 'CRAB_X3', 'PX_APERTURE_WIDTH2', 'PY_APERTURE_WIDTH2', &
@@ -1272,7 +1272,7 @@ character(40), parameter :: att_name(48) = [character(40):: 'X_PITCH', 'Y_PITCH'
 character(40), parameter :: att2_name(48) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
-                'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'B_FIELD_ERR', 'H2', 'E2', 'FINTX', 'HGAPX', &
+                'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'H2', 'E2', 'FINTX', 'HGAPX', &
                 'L_SAGITTA', 'PTC_FRINGE_GEOMETRY', 'AUTOSCALE_PHASE', 'PHI0_AUTOSCALE', 'COUPLER_STRENGTH', &
                 'GRADIENT', 'PHI0_MULTIPASS', 'CAVITY_TYPE', 'Y_GAIN_ERR', 'Y_GAIN_CALIB', 'Y_OFFSET_CALIB', &
                 'BETA_B', 'ALPHA_B', 'CRAB_X2', 'CRAB_TILT', 'PX_APERTURE_CENTER', 'PY_APERTURE_CENTER', &

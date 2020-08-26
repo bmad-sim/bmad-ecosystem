@@ -412,7 +412,7 @@ General \vn{rbend} and \vn{sbend} attributes are:
 \toffset
 See \sref{s:list.bend} for a full list of element attributes along with a their units.
 
-\index{g}\index{b_field}\index{g_err}\index{b_field_err}\index{angle}
+\index{g}\index{b_field}\index{dg}\index{db_field}\index{angle}
 \index{l_chord}\index{angle}\index{h1}\index{h2}
 \index{e1}\index{e2}\index{fint}\index{fintx}\index{l_arc}
 \index{hgap}\index{hgapx}\index{roll}\index{k1}\index{exact_multipoles}
@@ -420,14 +420,14 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
   angle              = <Real>     ! Design bend angle. A settable dependent var (\sref{s:depend}).
   b_field            = <Real>     ! Design field strength (= P_0 g / q) (\sref{s:depend}).
-  b_field_err        = <Real>     ! Field strength error (\sref{s:depend}).
+  db_field           = <Real>     ! Actual - Design bending field difference (\sref{s:depend}).
   b1_gradient        = <Real>     ! Quadrupole field strength (\sref{s:depend}).
   b2_gradient        = <Real>     ! Sextupole field strength (\sref{s:depend}).
   e1, e2             = <Real>     ! Face angles.
   exact_multipoles   = <Switch>   ! Curved coordinate correction? \vn{off} is default.
   fint, fintx        = <Real>     ! Face field integrals.
   g                  = <Real>     ! Design bend strength (= 1/rho).
-  g_err              = <Real>     ! Bend strength error (\sref{s:depend}).
+  dg                 = <Real>     ! Actual - Design bend strength difference (\sref{s:depend}).
   h1, h2             = <Real>     ! Face curvature.
   hgap, hgapx        = <Real>     ! Pole half gap.
   k1                 = <Real>     ! Quadrupole strength.
@@ -473,10 +473,22 @@ for normal bends the $x$-axis points towards the outside.}
 \end{figure}
 
   \begin{description}
+  %
   \index{angle}
   \item[angle] \Newline
 The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see \fig{f:local.coords}).
+  %
+  \index{b_field}\index{db_field}
+  \item[B_field, dB_field] \Newline
+The \vn{B_field} parameter is the design magnetic bending field which determines the reference orbit
+and the placement of lattice elements downstream from the bend. The \vn{dB_field} parameter is
+the difference between the actual (``total'') field and the design field. Thus:
+\begin{example}
+  Actual B-field = B_field + dB_field
+\end{example}
+See the discussion of \vn{g} and \vn{dg} below for more details.
+  %
   \index{e1}\index{e2}
   \item[e1, e2] \Newline
 The rotation angle of the entrance pole face is \vn{e1} and at the exit face it is \vn{e2}. Zero
@@ -491,6 +503,7 @@ SAD program \cite{b:sad} is:
   e1(Bmad) =  e1(SAD) * angle + ae1(SAD)
   e2(Bmad) =  e2(SAD) * angle + ae2(SAD)
 \end{example}
+  %
   \index{exact_multipoles}
   \item[exact_multipoles] \Newline
 The \vn{exact_multipoles} switch can be set to one of:
@@ -525,7 +538,7 @@ the case where PTC is doing exact model tracking (\sref{s:integ}) but the
 as \vn{horizontally_pure} even though \bmad tracking will be treating them as straight
 line multipoles. Note: If the bend has an associated electric field, PTC will always be
 doing exact modeling.
-
+  %
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and
@@ -567,24 +580,45 @@ $C_0$ and $C_1$ then
 \begin{equation}
   C_1 = \frac{1}{2 \,H_{gap} \, F_{int}}
 \end{equation}
-  \index{g}\index{rho}\index{g_err}
-  \item[g, g_err, rho] \Newline
+  %
+  \index{g}\index{rho}\index{dg}
+  \item[g, dg, rho] \Newline
 The design bending radius which determines the reference coordinate system is \vn{rho} (see
-\sref{s:ref}). \vn{g} = 1/\vn{rho} is the curvature function and is proportional to the design
-dipole magnetic field. The true field strength is given by \vn{g}~+~\vn{g_err} so changing
-\vn{g_err} leaves the design orbit unchanged but varies a particle's orbit. See \Sref{s:ex.chicane}
+\sref{s:ref}). \vn{g} = \vn{1/rho} is the curvature function and is proportional to the design
+dipole magnetic field. \vn{g} is related to the design magnetic field \vn{B_field} via
+\begin{equation}
+  \text{g} = \frac{q}{p_0} \, \text{B_field} 
+  \label{gqpb}
+\end{equation}
+where $q$ is the charge of the reference particle and $p_0$ is the reference momentum. It is
+important to keep in mind that changing \vn{g} will change the design orbit (\sref{s:coords.3}) and
+hence will move all downstream lattice elements in space.
+
+The parameter \vn{dg} is the difference between the actual and the design bending strengths. The
+relationship between \vn{dg} and \vn{dB_field} is analogous to the relationship between \vn{g} and
+\vn{B_field} in \Eq{gqpb}. The actual (``total'') field strength is given by the sum:
+\begin{example}
+  Actual g = g + dg
+\end{example}
+Changing \vn{dg} leaves the design orbit and the positions of all downstream lattice elements
+unchanged but will vary a particle's orbit. One common mistake when designing lattices is to vary
+\vn{g} and not \vn{dg} which resluts in downstream elements moving around. See \Sref{s:ex.chicane}
 for an example.
+  %
   \index{h1}\index{h2}
   \item[h1, h2] \Newline
 The attributes \vn{h1} and \vn{h2} are the curvature of the entrance and exit pole faces. They are
 present for compatibility with MAD but are not yet implemented in terms of tracking and other
 calculations.
+  %
   \index{k1}\index{b1_gradient}
   \item[k1, b1_gradient] \Newline
 The normalized and unnormalized quadrupole strength.
+  %
   \index{k2}\index{b2_gradient}
   \item[k2, b2_gradient] \Newline
 The normalized and unnormalized sextupole strength. 
+  %
   \index{l}\index{l_chord}\index{l_arc}
   \item[l, l_arc, l_chord]  \Newline
 For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord length and not the arc length as
@@ -592,6 +626,7 @@ it is for an \vn{sbend}.  However, after reading in a lattice, \bmad will intern
 \vn{rbend}s into \vn{sbend}s, additionally, the \vn{l_chord} attribute will be set to the input
 \vn{l}, and \vn{l} will be set to the true path length (see above). Alternatively for an \vn{rbend},
 instead of setting \vn{l}, the \vn{l_arc} attribute can be set to the true arc length.
+  %
   \index{ref_tilt}
   \item[ref_tilt] \Newline
 The \vn{ref_tilt} attribute rotates a bend about the longitudinal axis at the entrance face of the

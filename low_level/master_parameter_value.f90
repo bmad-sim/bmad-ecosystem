@@ -32,8 +32,8 @@ select case (attribute_name(ele, master_parameter))
 case ('VOLTAGE');   value = ele%value(voltage$) + ele%value(voltage_err$)
 case ('GRADIENT');  value = ele%value(gradient$) + ele%value(gradient_err$)
 case ('PHI0');      value = ele%value(phi0$) + ele%value(phi0_err$)
-case ('G');         value = ele%value(g$) + ele%value(g_err$)
-case ('B_FIELD');   value = ele%value(b_field$) + ele%value(b_field_err$)
+case ('G');         value = ele%value(g$) + ele%value(dg$)
+case ('B_FIELD');   value = ele%value(b_field$) + ele%value(db_field$)
 case default;       value = ele%value(master_parameter)
 end select
 
