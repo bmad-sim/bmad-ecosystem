@@ -73,7 +73,7 @@ ele_inv_param_factor = {
   'ex':       ' * 1e6',
   'ey':       ' * 1e6',
   'pc':       ' * 1e9',
-  'lag':      ' + 0.5',
+  'lag':      ' - 0.5',
 }
 
 const_trans = {
