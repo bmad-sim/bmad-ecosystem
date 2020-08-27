@@ -16,13 +16,14 @@ use madx_ptc_module, only: m_u, m_t, read_universe_pointed
 implicit none
 
 type (tao_universe_struct), pointer :: u
+type (tao_var_struct), pointer :: var
 
 character(*) who, file_name
 character(20) action
 character(20) :: names(2) = ['lattice', 'ptc    ']
 character(*), parameter :: r_name = 'tao_read_cmd'
 
-integer i, j, ix, iu, nd, ii
+integer i, j, iv, is, ix, iu, nd, ii
 logical err
 
 !
@@ -62,6 +63,19 @@ case ('lattice')
               'WILL STOP HERE.')
       stop
     endif
+  enddo
+
+  ! Check for consistancy of variable slaves.
+
+  do iv = 1, s%n_var_used
+    var => s%var(iv)
+    do is = 2, size(var%slave)
+      if (var%slave(is)%model_value == var%slave(1)%model_value) cycle
+      call out_io (s_error$, r_name, 'TAO VARIABLE: ' // tao_var1_name(var), &
+              'WHICH HAS MULTIPLE SLAVE PARAMETERS NOW DOES NOT HAVE ALL SLAVE PARAMETER VALUES THE SAME.', &
+              'THIS WILL CAUSE STRANGE BEHAVIOR. RECOMMENDATION: USE THE "set ele -update" COMMAND INSTEAD.')
+      exit
+    enddo
   enddo
 
 case ('ptc')

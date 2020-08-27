@@ -2592,7 +2592,7 @@ end subroutine tao_set_universe_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_elements_cmd (ele_list, attribute, value)
+! Subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
 !
 ! Sets element parameters.
 !
@@ -2602,7 +2602,7 @@ end subroutine tao_set_universe_cmd
 !   value      -- Character(*): Value to set.
 !-
 
-subroutine tao_set_elements_cmd (ele_list, attribute, value)
+subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
 
 use attribute_mod, only: attribute_type
 use set_ele_attribute_mod, only: set_ele_attribute
@@ -2616,12 +2616,13 @@ type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
 real(rp), allocatable :: set_val(:)
-integer i, j, ix, ix2, n_uni, n_set, n_eles, lat_type
+integer i, ix, ix2, j, n_uni, n_set, n_eles, lat_type
 
 character(*) ele_list, attribute, value
 character(*), parameter :: r_name = "tao_set_elements_cmd"
 character(100) val_str
 
+logical update
 logical is_on, err, mat6_toggle
 
 ! Find elements
@@ -2671,6 +2672,8 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
     if (.not. u%calc%lattice) cycle
     call lattice_bookkeeper (u%model%lat)
   enddo
+
+  call tao_var_check(eles, attribute, update)
 
   return
 
@@ -2757,6 +2760,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. u%calc%lattice) cycle
   call lattice_bookkeeper (u%model%lat)
 enddo
+
+call tao_var_check(eles, attribute, update)
 
 end subroutine tao_set_elements_cmd
 

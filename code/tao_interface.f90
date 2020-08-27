@@ -88,6 +88,14 @@ subroutine tao_call_cmd (file_name, cmd_arg)
   character(*), optional :: cmd_arg(:)
 end subroutine
 
+subroutine tao_var_check (eles, attribute, silent)
+  import
+  implicit none
+  type (ele_pointer_struct), allocatable :: eles(:)
+  logical silent
+  character(*) attribute
+end subroutine
+
 function tao_chrom_calc_needed (data_type, data_source) result (do_chrom)
   import
   implicit none
