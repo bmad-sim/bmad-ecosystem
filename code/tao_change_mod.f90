@@ -147,7 +147,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_change_ele (ele_name, attrib_name, num_str)
+! Subroutine tao_change_ele (ele_name, attrib_name, num_str, update)
 !
 ! Routine to change a variable in the model lattice.
 !
@@ -162,7 +162,7 @@ end subroutine
 !    %u(s%com%default_universe)%model -- model lattice where the variable lives.
 !-
 
-subroutine tao_change_ele (ele_name, attrib_name, num_str)
+subroutine tao_change_ele (ele_name, attrib_name, num_str, update)
 
 use attribute_mod, only: attribute_free
 
@@ -188,7 +188,7 @@ character(20) :: r_name = 'tao_change_ele'
 character(len_lines), allocatable, save :: lines(:)
 character(20) abs_or_rel, str
 
-logical err, etc_added
+logical err, etc_added, update
 logical, allocatable :: this_u(:), free(:)
 
 !-------------------------------------------------
@@ -278,7 +278,6 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   ! put in change
 
   do i = 1, nd
-
     if (.not. free(i)) cycle
 
     old_value(i) = m_ptr(i)%r
@@ -315,7 +314,6 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
         etc_added = .true.
       endif
     endif
-
   enddo
 
 enddo
@@ -337,6 +335,8 @@ if (delta /= 0) then
 endif
 
 call out_io (s_blank$, r_name, lines(1:nl))
+
+call tao_var_check(eles, a_name, update)
 
 end subroutine tao_change_ele
 

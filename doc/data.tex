@@ -1426,6 +1426,16 @@ $\tao_{dk}^{-1}$, and depolarization rate, denoted $\tao_{dep}^{-1}$, are also d
 \bmad manual.
 
   %----------------------
+  \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline
+Terms in the taylor series of the spin tune expanded as a function of $p_z$ as calculated from
+Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
+gives the order of the Taylor term
+\begin{equation}
+  Q_s(p_z) = Q_{s0} + Q_{s1} \, p_z + Q_{s2} \, p_z^2 + Q_{s3} \, p_z^3 + \ldots
+\end{equation}
+where $Q_s(p_z)$ is the spin tune in units of $2\pi$.
+
+  %----------------------
   \item[spin.x, .y, .z, .amp] \Newline
 The \vn{spin.x}, \vn{spin.y} and \vn{spin.z} datums are the spin polarization $(x, y, z)$ components
 and the \vn{spin.amp} datum is the amplitude of the spin. For a beam, this is the spin averaged over
@@ -1678,7 +1688,11 @@ See the previous section for a description of the data types.
   bpm_eta.x, .y                       & Measured dispersion                       & lat         & Yes \\ \hline
   bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
   bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
-  bpm_k.22a, .12a, .11b, .12b         & Measured coupling                         & lat         & Yes \\ \hline
+  \begin{tabular}{@{}l}   
+    bpm_k.22a, .12a, \\
+    \hspace{4em} .11b, .12b   
+  \end{tabular}                       & Measured coupling                         & lat         & Yes \\ \hline
+
   \begin{tabular}{@{}l}   
     bunch_charge.live, \\
     \hspace{4em} .live_relative
@@ -1703,9 +1717,9 @@ See the previous section for a description of the data types.
 
   \begin{tabular}{@{}l}
     chrom_ptc.a.$N$, \\
-    chrom_ptc.b.$N$
-  \end{tabular} 
-                $N = 0, 1, \ldots$    & Chromaticity Taylor terms                 & lat         & no  \\ \hline
+    chrom_ptc.b.$N$, \\
+    \hspace{5em} $N = 0, 1, \ldots$
+  \end{tabular}                       & Chromaticity Taylor terms                 & lat         & no  \\ \hline
 
   curly_h.a, .b                       & \begin{tabular}{@{}l}
                                           Radiation integrals \\
@@ -1785,7 +1799,7 @@ See the previous section for a description of the data types.
 
   \begin{tabular}{@{}l}
     periodic.tt.$ijklm\ldots$ \\
-    $1 \le i,j,k,\ldots \le 6$   
+    \hspace{4em} $1 \le i,j,k,\ldots \le 6$   
   \end{tabular}
                                       & Periodic map Taylor terms                 & lat         & No  \\ \hline 
 
@@ -1830,7 +1844,7 @@ See the previous section for a description of the data types.
   ref_time                            & Reference time                            & lat, beam   & Yes \\ \hline
   \begin{tabular}{@{}l}
     rel_floor.x, .y, \\
-    \hspace{3em} .z, .theta
+    \hspace{4em} .z, .theta
   \end{tabular}                       & Relative global floor position            & lat         & No  \\ \hline 
 
   s_position                          & longitudinal length constraint            & lat         & Yes \\ \hline 
@@ -1846,6 +1860,10 @@ See the previous section for a description of the data types.
   spin.depolarization_rate            & Spin depolarization rate.                 & lat         & No  \\ \hline
   spin.polarization_rate              & Spin polarization rate.                   & lat         & No  \\ \hline
   spin.polarization_limit             & Spin polarization limit.                  & lat         & No  \\ \hline
+  \begin{tabular}{@{}l}   
+    spin_tune_ptc.$N$, \\
+    \hspace{10pt} $N = 0, 1, \ldots$
+  \end{tabular}                       & Spin Tune Taylor terms                 & lat         & no  \\ \hline
 
   \begin{tabular}{@{}l}   
     spin_g_matrix.$ij$ \\
@@ -1861,8 +1879,9 @@ See the previous section for a description of the data types.
 
   \begin{tabular}{@{}l}   
      t.$ijklm\ldots$, \\
-     tt.$ijklm\ldots$ 
-  \end{tabular} \hspace{-1em} $1 \le i,j,k,\ldots \le 6$  
+     tt.$ijklm\ldots$, \\
+     \hspace{4em} $1 \le i,j,k,\ldots \le 6$  
+  \end{tabular} 
                                       & \begin{tabular}{@{}l}
                                           Term in n\Th \\
                                           order transfer map
@@ -1888,7 +1907,10 @@ See the previous section for a description of the data types.
                                         \end{tabular}                             & lat         & No  \\ \hline
   velocity                            & Normalized velocity $v/c$                 & lat, beam   & Yes \\ \hline
   velocity.x, .y, .z                  & Normalized velocity component             & lat, beam   & Yes \\ \hline
-  wall.left_side, .right_side         & Building wall constraint                  & lat         & No  \\ \hline
+  \begin{tabular}{@{}l}   
+    wall.left_side, \\
+    \hspace{4em} .right_side
+  \end{tabular}                       & Building wall constraint                  & lat         & No  \\ \hline
   wire.<angle>                        & Wire scanner at <angle>                   & beam        & No  \\ \hline
 \end{longtable}
 }

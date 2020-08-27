@@ -2,43 +2,37 @@
 \label{c:var}
 \index{variables}
 
-\index{change command}
-\index{optimizer!variables}
-For the \vn{model} lattice (or lattices if there are multiple \vn{universes}) the
-\vn{change} command (\sref{s:change}) can be used to vary lattice parameters such as
-element strengths, the initial Twiss parameters, etc.  Additionally, \vn{variables} can be
-defined in the \tao initialization files (\sref{s:init.var}) that can also be used to vary
-these \vn{model} lattice parameters.  A given \tao variable may control a single attribute
-of one element in one or more universes.  There are a few reasons why one would want to
-setup such variables.  For example, the optimizer (\sref{c:opti}) will only work with
-\tao variables and blocks of these variables can be plotted for visual inspection.
+!-------------------------------------------------------------------------------
+\section{Overview}
+\label{s:var.overview}
+
+\vn{Variables} can be defined in the \tao initialization files (\sref{s:init.var}) that can also be
+used to vary \vn{model} lattice parameters.  A given \tao variable may control a single attribute of
+one element in one or more universes.  There are a few reasons why one would want to setup such
+variables.  For example, the optimizer (\sref{c:opti}) will only work with \tao variables and blocks
+of these variables can be plotted for visual inspection.
 
 \index{variables!v1_var}
-Blocks of variables are associated with what is called a \vn{v1_var}
-structure and each of these structures has a \vn{name} with which to
-refer to them in \tao commands. For example, if \vn{quad_k1} is the
-name of a \vn{v1_var}, then \vn{quad_k1[5]} referees to the variable 
-with index 5 in the block. 
+Blocks of variables are associated with what is called a \vn{v1_var} structure and each of these
+structures has a \vn{name} with which to refer to them in \tao commands. For example, if
+\vn{quad_k1} is the name of a \vn{v1_var}, then \vn{quad_k1[5]} referees to the variable with index
+5 in the block.
 
-A set of variables within a \vn{v1_var} block
-can be referred to by using using a comma \vn{,} to
-separate their indexes. Additionally, a Colon ``\vn{:}'' can be use to
-specify a range of variables. For example
+A set of variables within a \vn{v1_var} block can be referred to by using using a comma \vn{,} to
+separate their indexes. Additionally, a Colon ``\vn{:}'' can be use to specify a range of
+variables. For example
 \begin{example}
   quad_k1[3:6,23]
 \end{example}
-refers to variables 3, 4, 5, 6, and 23. Instead of a number, the
-associated lattice element name can be used so if, in the above
-example, the lattice element named \vn{q01} is associated with
+refers to variables 3, 4, 5, 6, and 23. Instead of a number, the associated lattice element name can
+be used so if, in the above example, the lattice element named \vn{q01} is associated with
 \vn{quad_k1[1]}, etc., then the following is equivalent:
 \begin{example}
   quad_k1[q03:q06,q23]
 \end{example}
-Using lattice names instead of numbers is not valid if the same
-lattice element is associated with more than one variable in a
-\vn{v1_var} array. This can happen, for example, if one variable controls
-an element's \vn{x_offset} and another variable controls the same element's
-\vn{y_offset}. 
+Using lattice names instead of numbers is not valid if the same lattice element is associated with
+more than one variable in a \vn{v1_var} array. This can happen, for example, if one variable
+controls an element's \vn{x_offset} and another variable controls the same element's \vn{y_offset}.
 
 In referring to variables, a ``\vn{*}'' can be used as a wild card to 
 denote ``all''. Thus:
@@ -49,15 +43,17 @@ denote ``all''. Thus:
   quad_k1|model     ! Same as quad_k1[*]|model
 \end{example}
 
-A given variable may control a single attribute of one element in a
-\vn{model} lattice of a single universe or it can be configured to
-simultaneously control an element attribute across multiple
-universes. Any one variable cannot control more than one attribute of
-one element. However, a variable may control an overlay or group
-element which, in turn, can control numerous elements.
+!-------------------------------------------------------------------------------
+\section{Anatomy of a Variable}
+\label{s:var.anatomy}
 
-Each individual variable has a number of values associated with it:
-The list of components that can be set or refereed to are:
+A given variable may control a single attribute of one element in a \vn{model} lattice of a single
+universe or it can be configured to simultaneously control an element attribute across multiple
+universes. Any one variable cannot control more than one attribute of one element. However, a
+variable may control an overlay or group element which, in turn, can control numerous elements.
+
+Each individual variable has a number of values associated with it: The list of components that can
+be set or refereed to are:
 \begin{example}
   ele_name     ! Associated lattice element name.
   attrib_name  ! Name of the attribute to vary.
@@ -181,9 +177,12 @@ If True, variable is used when plotting variable values. See below.
 Weight used in the merit function. $w_j$ in \Eq{m1}
   \end{description}
 
-
 These components and others can be refereed to in expressions using the notation documented
 in \Sref{s:var.token}.
+
+!-------------------------------------------------------------------------------
+\section{Use in Optimization and Graphing}
+\label{s:var.use}
 
 Use the \vn{show var} (\sref{s:show}) command to see variable information
 
@@ -208,3 +207,21 @@ the \vn{useit_plot} component is set to True if the variable is actually used fo
 Since \vn{useit_plot} is set on a graph by graph basis, If multipole graphs that use a particular
 variable are to be plotted, The setting of \vn{useit_plot} at the end of plotting will just be
 the setting for the last graph that was plotted.
+
+!-------------------------------------------------------------------------------
+\section{Slave Value Mismatch}
+\label{s:var.mismatch}
+
+A ``slave value mismatch'' happens when a variable is controlling multiple parameters and something
+happens so that some subset of the controlled parameters have a change in value. For example, if a
+lattice has multiple elements named \vn{``Q''}, and a variable controls the \vn{k1} attribute of all
+of these elements, then, say, if only the value of \vn{k1} of element \vn{Q\#\#2} (the 2nd instance
+of \vn{Q} in the lattice) is changed, there will be a slave value mismatch. This can happen with the
+\vn{change element} or \vn{set element} command, and can also happen with the \vn{read lattice}
+command.  Additionally, slave value mismatches can happen if there are multiple universes with
+variables controlling parameters in more than one universe. In this case, modifying parameters in
+only one universe can cause slave value mismatches.
+
+\tao can fix slave value mismatches when the \vn{set element} or \vn{change element} commands by using
+the changed parameter to set all the slave parameters. In other cases, \tao will not know what is changed
+and will simply set all the slave values to the value of the first slave.

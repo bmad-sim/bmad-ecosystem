@@ -2908,6 +2908,25 @@ case ('spin.')
 
 !-----------
 
+case ('spin_tune_ptc.')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+  ptc_nf => tao_branch%ptc_normal_form
+  phase_map => ptc_nf%spin
+
+  if (.not. is_integer(datum%data_type(15:), n)) then
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    return
+  endif
+
+  expo = 0
+  expo(6) = n 
+
+  datum_value = real(phase_map .sub. expo)
+  valid_value = .true.
+
+!-----------
+
 case ('spin_g_matrix.')
 
   call tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)

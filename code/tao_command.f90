@@ -61,7 +61,7 @@ character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-logical quit_tao, err, silent, gang, abort, err_flag, ok, include_wall
+logical quit_tao, err, silent, gang, abort, err_flag, ok, include_wall, update
 
 ! blank line => nothing to do
 
@@ -134,21 +134,33 @@ case ('change')
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) goto 9000
 
   silent = .false.
-  if (index('-silent', trim(cmd_word(1))) == 1) then
-    silent = .true.
-    call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
-  endif
+  update = .false.
+  do
+    if (index('-silent', trim(cmd_word(1))) == 1) then
+      silent = .true.
+      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
+    elseif (index('-update', trim(cmd_word(1))) == 1) then
+      update = .true.
+      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
+    else
+      exit
+    endif
+  enddo
 
   if (index ('variable', trim(cmd_word(1))) == 1) then
     call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
     call tao_change_var (cmd_word(1), cmd_word(2), silent)
   elseif (index('element', trim(cmd_word(1))) == 1) then
+    if (index('-update', trim(cmd_word(1))) == 1) then
+      update = .true.
+      call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
+    endif
     call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err); if (err) goto 9000
-    call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3))
+    call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3), update)
   elseif (index(trim(cmd_word(1)), 'particle_start') /= 0) then     ! Could be "2@particle_start"
     word = cmd_word(1)
     call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
-    call tao_change_ele (word, cmd_word(1), cmd_word(2))
+    call tao_change_ele (word, cmd_word(1), cmd_word(2), .false.)
   else
     call out_io (s_error$, r_name, 'Change who? (should be: "element", "particle_start", or "variable")')
   endif
@@ -478,8 +490,14 @@ case ('scale')
 ! SET
 
 case ('set')
+  update = .false.
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
+  if (index('-update', trim(cmd_word(1))) == 1 .and. len_trim(cmd_word(1)) > 1) then
+    update = .true.
+    cmd_line = cmd_word(2)
+    call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
+  endif
 
   call match_word (cmd_word(1), [character(20) :: 'branch', 'data', 'var', 'lattice', 'global', &
     'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
@@ -503,6 +521,12 @@ case ('set')
   end select
 
   call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
+
+  if  (set_word == 'element' .and. index('-update', trim(cmd_word(1))) == 1 .and. len_trim(cmd_word(1)) > 1) then
+    update = .true.
+    call tao_cmd_split (cmd_line, 5, cmd_word, .false., err, '=')
+    cmd_word(1:4) = cmd_word(2:5)
+  endif
 
   if (set_word == 'universe' .and. cmd_word(3) /= '=') then  ! Old syntax
     cmd_word(4) = cmd_word(3)
@@ -537,7 +561,7 @@ case ('set')
   case ('dynamic_aperture')
     call tao_set_dynamic_aperture_cmd (cmd_word(1), cmd_word(3))
   case ('element')
-    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
+    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4), update)
   case ('geodesic_lm')
     call tao_set_geodesic_lm_cmd (cmd_word(1), cmd_word(3))
   case ('global')

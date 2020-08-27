@@ -137,7 +137,7 @@ The \vn{call -ptc} command passes the command file to PTC for processing. Previo
 a call, the command \vn{ptc init} must be issued.
 
 If a command file calls another command file, and the name of the second command file has a relative
-(as oposed to absolute) path name, \tao will look for the second command file relative to the
+(as opposed to absolute) path name, \tao will look for the second command file relative to the
 directory of the first command file. To have \tao look relative to your current working directory
 (where you started \tao), use the prefix \vn{\$PWD/}. For example, to call a command file that is
 one level up from your current working directory use
@@ -146,7 +146,7 @@ one level up from your current working directory use
 \end{example}
 
 Command loops can be implemented in a command file. See the documentation on \vn{do/enddo}
-(sref{s:do}) for more details.
+(\sref{s:do}) for more details.
 
 Other useful commands to put in a command file to speed up execution are:
 \begin{example}
@@ -176,7 +176,7 @@ file and ``def'' is substituted for any ``[[2]]''.  \Newline
 The \vn{change} command changes element attribute values or variable values in the
 \vn{model} lattice. Format:
 \begin{example}
-  change element <element_list> <attribute> \{prefix>\} <number>
+  change \{-update\} element <element_list> <attribute> \{prefix>\} <number>
   change \{-silent\} variable <name>[<locations>] \{<prefix>\} <number>
   change  \{n@\}particle_start <coordinate> \{prefix>\} <number>
 \end{example}
@@ -230,6 +230,10 @@ Twiss parameters where \vn{<twiss>} is one of:
 
 The \vn{-silent} switch, if present, suppresses the printing of what variables are
 changed.
+
+The \vn{-update} switch, if present, suppresses \tao from printing error messages if a ``variable
+slave value mismatch'' is detected (\sref{s:var.mismatch}). Independent of whether \vn{-update} is
+present or not, \tao will fix the mismatch using the changed value to set all of the slave values.
 
 Examples:
 \begin{example}
@@ -1128,11 +1132,15 @@ Examples:
 
 Format:
 \begin{example}
-  set element <element_list> <attribute> = <value>
+  set \{-update\} element <element_list> <attribute> = <value>
 \end{example}
 
 The \vn{set element} command sets the attributes of an element. Use the \vn{show element}
 command to view the attributes of an element.
+
+The \vn{-update} switch, if present, suppresses \tao from printing error messages if a ``variable
+slave value mismatch'' is detected (\sref{s:var.mismatch}). Independent of whether \vn{-update} is
+present or not, \tao will fix the mismatch using the changed value to set all of the slave values.
 
 Note: If an element in the \vn{<element_list>} does not specify a universe or universes,
 only the element in the viewed universe is used. See the examples below.
@@ -1192,7 +1200,7 @@ For \vn{set geodesic_lm}: The \vn{show optimizer geodesic_lm} command will give 
 
 Example:
 \begin{example}
-  set geodesic_lm imethod = 10
+  set geodesic_lm method = 10
 \end{example}
 
 %% set global --------------------------------------------------------------
@@ -2235,7 +2243,7 @@ The \vn{-branch <name_or_index>} option can be used to specify the branch of the
 branch (\# 0).
 %
 \item[-custom <file_name>] \Newline
-A table with custimized columns may be constructed either by using the \vn{-custom} switch which
+A table with customized columns may be constructed either by using the \vn{-custom} switch which
 specifies a file containing a description of the custom columns or by using one or more \vn{-attribute} switches.
 to specify  Example customization file:
 \begin{example}
@@ -2335,7 +2343,7 @@ lattices with an open geometry. Use \vn{set particle_start} to vary the starting
 case. If the \vn{-spin} switch is also present, the particle's spin will also be displayed.
 %
 \item[-python] \Newline
-The \vn{-python} switch gives a comma deliminated table as output. This switch is used with the
+The \vn{-python} switch gives a comma delimited table as output. This switch is used with the
 \vn{python} command (\sref{s:python}).
 %
 \item[-radiation_integrals] \Newline
@@ -2604,7 +2612,7 @@ element given by \vn{-ref_element} to the downstream end of the element given by
 If \vn{-ref_element} is not given, the default is to use the element before the element given
 by \vn{-element}. This gives the G-matrix for transport through the \vn{-element} element.
 The G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin vector (see
-the \vn{SLIM Formalism} secton of the Spin chapter in the Bmad manual). The $\Bf n$ and $\Bf l$ axes
+the \vn{SLIM Formalism} section of the Spin chapter in the Bmad manual). The $\Bf n$ and $\Bf l$ axes
 can be specified using the \vn{-n_axis} and \vn{-l_axis} switches. The $\Bf m$ axis is calculated
 from knowledge of the other two axes. If not given, the axes will be taken to be what is computed from
 spin tracking. Note: Commas between axis components are optional.
@@ -2702,9 +2710,9 @@ as a 1-turn matrix and the corresponding eigen values and eigen vectors will be 
 The \vn{-order} switch, if present, gives the limiting order to display. In any case, the
 maximum order of the map is limited to the order set by the lattice file.
 
-The \vn{-ptc} switch is used with \vn{-order 1}. By default, order 1 maps (matricies) are calculated
+The \vn{-ptc} switch is used with \vn{-order 1}. By default, order 1 maps (matrices) are calculated
 using native Bmad code. If the \vn{-ptc} switch is present, the matrix is calculated using the
-\vn{PTC} code (see the \bmad manual for details on PTC). Since PTC is always used to calcuate maps
+\vn{PTC} code (see the \bmad manual for details on PTC). Since PTC is always used to calculate maps
 of order higher than 1, the \vn{-ptc} switch is ignored for higher orders.
 
 The \vn{-lattice_format} switch, if present, causes the output to be displayed in a format suitable
