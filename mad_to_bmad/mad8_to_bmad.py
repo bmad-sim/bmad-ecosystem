@@ -49,23 +49,25 @@ class common_struct:
 #------------------------------------------------------------------
 
 ele_param_factor = {
-  'deltae':   '1e-6',
-  'volt':     '1e-6',
-  'freq':     '1e-6',
-  'energy':   '1e-9',
-  'ex':       '1e-6',
-  'ey':       '1e-6',
-  'pc':       '1e-9',
+  'deltae':   ' * 1e-6',
+  'volt':     ' * 1e-6',
+  'freq':     ' * 1e-6',
+  'energy':   ' * 1e-9',
+  'ex':       ' * 1e-6',
+  'ey':       ' * 1e-6',
+  'pc':       ' * 1e-9',
+  'lag':      ' + 0.5',
 }
 
 ele_inv_param_factor = {
-  'deltae':   '1e6',
-  'volt':     '1e6',
-  'freq':     '1e6',
-  'energy':   '1e9',
-  'ex':       '1e6',
-  'ey':       '1e6',
-  'pc':       '1e9',
+  'deltae':   ' * 1e6',
+  'volt':     ' * 1e6',
+  'freq':     ' * 1e6',
+  'energy':   ' * 1e9',
+  'ex':       ' * 1e6',
+  'ey':       ' * 1e6',
+  'pc':       ' * 1e9',
+  'lag':      ' - 0.5',
 }
 
 const_trans = {
@@ -266,9 +268,9 @@ def bmad_expression(line, target_param):
     if len(lst) > 3 and lst[1] == '[' and lst[3] == ']':
       if lst[2] in ele_param_factor:
         if (len(lst) >= 5 and lst[4] == '^') or (len(out.strip()) > 0 and out.strip()[-1] == '/'):
-          out += '(' + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + '] * ' + ele_param_factor[lst[2]]
+          out += '(' + lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + ']' + ele_param_factor[lst[2]]
         else:
-          out += lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + '] * ' + ele_param_factor[lst[2]]
+          out += lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + ']' + ele_param_factor[lst[2]]
       else:
         out += lst[0] + '[' + bmad_param(lst[2].strip(), lst[0]) + ']'
 
@@ -282,7 +284,7 @@ def bmad_expression(line, target_param):
 
   # End while
 
-  if target_param in ele_inv_param_factor: out = add_parens(out) + ' * ' + ele_inv_param_factor[target_param]
+  if target_param in ele_inv_param_factor: out = add_parens(out) + ele_inv_param_factor[target_param]
   return out
 
 #-------------------------------------------------------------------
