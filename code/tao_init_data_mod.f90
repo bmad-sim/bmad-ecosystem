@@ -632,7 +632,7 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (tao_data_struct), pointer :: data
-type (tao_element_struct), pointer :: uni_ele(:)
+type (tao_model_element_struct), pointer :: tao_model_ele(:)
 integer i, ib, j, k, ix_ele, n_max
 
 logical err

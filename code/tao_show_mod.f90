@@ -189,7 +189,7 @@ type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
 type (ele_pointer_struct), allocatable :: eles(:)
 type (branch_struct), pointer :: branch, branch2, design_branch
-type (tao_universe_branch_struct), pointer :: uni_branch
+type (tao_model_branch_struct), pointer :: model_branch
 type (wall3d_struct), pointer :: wall
 type (wall3d_section_struct), pointer :: wall_sec
 type (wall3d_vertex_struct), pointer :: v
@@ -303,7 +303,7 @@ ix_branch = s%com%default_branch
 u => tao_pointer_to_universe(-1)
 lat => u%model%lat
 branch => lat%branch(ix_branch)
-uni_branch => u%uni_branch(ix_branch)
+model_branch => u%model_branch(ix_branch)
 tao_branch => u%model%tao_branch(ix_branch)
 design_tao_branch => u%design%tao_branch(ix_branch)
 
@@ -375,7 +375,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), fmt) 'beam_track_start       = ', quote(u%beam%track_start), ' (', u%beam%ix_track_start, ')'
     nl=nl+1; write(lines(nl), fmt) 'beam_track_end         = ', quote(u%beam%track_end), ' (', u%beam%ix_track_end, ')'
 
-    beam => uni_branch%ele(u%beam%ix_track_start)%beam
+    beam => model_branch%ele(u%beam%ix_track_start)%beam
     if (allocated(beam%bunch)) then
       nl=nl+1; write(lines(nl), imt) 'n_particle (actual)       = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                   = ', size(beam%bunch)
@@ -511,7 +511,7 @@ case ('beam')
       enddo
     endif
 
-    beam => u%uni_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
+    beam => u%model_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
     nl=nl+1; lines(nl) = ''
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)
@@ -2226,7 +2226,7 @@ case ('lattice')
   tao_lat => tao_pointer_to_tao_lat(u, lat_type)
   lat => tao_lat%lat
   branch => lat%branch(ix_branch)
-  uni_branch => u%uni_branch(ix_branch)
+  model_branch => u%model_branch(ix_branch)
   tao_branch => u%model%tao_branch(ix_branch)
   design_tao_branch => u%design%tao_branch(ix_branch)
 
@@ -3115,13 +3115,13 @@ case ('particle')
 
   enddo
 
-  uni_branch => u%uni_branch(ix_branch)
+  model_branch => u%model_branch(ix_branch)
   branch => u%model%lat%branch(ix_branch)
 
   ! show lost
 
   if (show_lost) then
-    bunch => u%uni_branch(ix_branch)%ele(lat%n_ele_track)%beam%bunch(nb)
+    bunch => u%model_branch(ix_branch)%ele(lat%n_ele_track)%beam%bunch(nb)
     nl=nl+1; write(lines(nl), *) 'Bunch:', nb
     nl=nl+1; lines(nl) = 'Particles lost at:'
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
@@ -3153,11 +3153,11 @@ case ('particle')
     bunch => u%beam%beam_at_start%bunch(nb)
 
   else
-    if (.not. allocated(uni_branch%ele(ix_ele)%beam%bunch)) then
+    if (.not. allocated(model_branch%ele(ix_ele)%beam%bunch)) then
       call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
       return
     endif
-    bunch => uni_branch%ele(ix_ele)%beam%bunch(nb)
+    bunch => model_branch%ele(ix_ele)%beam%bunch(nb)
   endif
 
   ! show all
@@ -4237,7 +4237,7 @@ case ('universe')
   u => s%u(ix_u)
   lat => u%model%lat
   branch => lat%branch(ix_branch)
-  uni_branch => u%uni_branch(ix_branch)
+  model_branch => u%model_branch(ix_branch)
   tao_branch => u%model%tao_branch(ix_branch)
 
   design_lat => u%design%lat

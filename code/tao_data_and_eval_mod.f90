@@ -3362,7 +3362,7 @@ case ('wall.')
 case ('wire.')  
   if (data_source == 'lat') goto 8000  ! Error message and return
   read (datum%data_type(6:), '(a)') angle
-  datum_value = tao_do_wire_scan (ele, angle, u%uni_branch(branch%ix_branch)%ele(ix_ele)%beam)
+  datum_value = tao_do_wire_scan (ele, angle, u%model_branch(branch%ix_branch)%ele(ix_ele)%beam)
   valid_value = .true.
   
 case default

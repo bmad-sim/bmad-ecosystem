@@ -748,7 +748,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   case ('beginning')
     call tao_locate_elements (value_str, u%ix_uni, eles, err, multiple_eles_is_err = .true.)
     ele => eles(1)%ele
-    beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
+    beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
     if (.not. allocated(beam%bunch)) then
       call out_io (s_error$, r_name, 'BEAM NOT SAVED AT: ' // who, 'NOTHING DONE.')
       err = .true.
@@ -786,14 +786,14 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     endif
     u%beam%dump_at = value_str
 
-    do ix = 0, ubound(u%uni_branch, 1)
-      u%uni_branch(ix)%ele(:)%save_beam_to_file = .false.
+    do ix = 0, ubound(u%model_branch, 1)
+      u%model_branch(ix)%ele(:)%save_beam_to_file = .false.
     enddo
 
     ! Note: Beam will automatically be dump at fork elements and at the ends of the beam tracking.
     do ix = 1, size(eles)
       ele => eles(ix)%ele
-      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_to_file = .true.
+      u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_to_file = .true.
     enddo
 
   case ('saved_at', 'beam_saved_at')
@@ -804,14 +804,14 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     endif
     u%beam%saved_at = value_str
 
-    do ix = 0, ubound(u%uni_branch, 1)
-      u%uni_branch(ix)%ele(:)%save_beam_internally = .false.
+    do ix = 0, ubound(u%model_branch, 1)
+      u%model_branch(ix)%ele(:)%save_beam_internally = .false.
     enddo
 
     ! Note: Beam will automatically be saved at fork elements and at the ends of the beam tracking.
     do ix = 1, size(eles)
       ele => eles(ix)%ele
-      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = .true.
+      u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = .true.
     enddo
 
   case ('add_saved_at', 'subtract_saved_at')
@@ -824,7 +824,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     logic = (switch == 'add_saved_at')
     do ix = 1, size(eles)
       ele => eles(ix)%ele
-      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = logic
+      u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = logic
     enddo
 
   case default
@@ -1246,7 +1246,7 @@ subroutine set_this_curve (this_curve)
 type (tao_curve_struct) this_curve
 type (tao_graph_struct), pointer :: this_graph
 type (tao_universe_struct), pointer :: u
-type (tao_universe_branch_struct), pointer :: uni_branch
+type (tao_model_branch_struct), pointer :: model_branch
 type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ix, i_branch
@@ -1425,10 +1425,10 @@ end select
 ! Enable
 
 if (this_graph%type == 'phase_space') then
-  uni_branch => s%u(i_uni)%uni_branch(i_branch)
-  if (.not. uni_branch%ele(this_curve%ix_ele_ref)%save_beam_internally) then
+  model_branch => s%u(i_uni)%model_branch(i_branch)
+  if (.not. model_branch%ele(this_curve%ix_ele_ref)%save_beam_internally) then
     s%u(i_uni)%calc%lattice = .true.
-    uni_branch%ele(this_curve%ix_ele_ref)%save_beam_internally = .true.
+    model_branch%ele(this_curve%ix_ele_ref)%save_beam_internally = .true.
   endif
 endif
 

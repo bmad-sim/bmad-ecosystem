@@ -391,7 +391,7 @@ do k = 1, size(graph%curve)
       return
     endif
 
-    beam => u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
+    beam => u%model_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
     ele => u%model%lat%branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)
     if (.not. allocated(beam%bunch)) then
       call out_io (s_abort$, r_name, 'NO BEAM AT ELEMENT: ' // trim(ele%name), &
@@ -913,7 +913,7 @@ do k = 1, size(graph%curve)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   if (curve%data_source == 'beam') then
-    beam => u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
+    beam => u%model_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
     if (.not. allocated(beam%bunch)) then
       call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')

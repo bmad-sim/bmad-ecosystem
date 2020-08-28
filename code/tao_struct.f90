@@ -870,18 +870,20 @@ end type
 ! Universe wide structure for information that does not fit anywhere else.
 
 !-----------------------------------------------------------------------
-! tao_element_struct is for saving per-element information.
+! tao_model_element_struct is for per-element information that is only used for the model lattice.
+! The reason why the beam is only saved for the model lattice is due to the large size a beam with
+! many particles can have.
 
-type tao_element_struct
+type tao_model_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
   logical save_beam_internally    ! Save beam here? Beam also saved at fork elements and at track ends.
   logical save_beam_to_file       ! Save beam to a file? Beam also saved at fork elements and at track ends.
 end type
 
-! Information for a particular lattice branch of a particular universe.
+! tao_model_branch_struct is for information just used for the model lattice.
 
-type tao_universe_branch_struct
-  type (tao_element_struct), allocatable :: ele(:) ! Per element information
+type tao_model_branch_struct
+  type (tao_model_element_struct), allocatable :: ele(:) ! Per element information
   character(40) :: particle_track_start = '', particle_track_end = ''
   integer :: ix_particle_track_start = 0
   integer :: ix_particle_track_end = -1
@@ -990,7 +992,7 @@ type tao_universe_struct
   type (tao_lattice_struct), pointer :: model, design, base
   type (tao_beam_struct) beam
   type (tao_dynamic_aperture_struct) :: dynamic_aperture
-  type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
+  type (tao_model_branch_struct), pointer :: model_branch(:) ! model specific information
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
   type (tao_ping_scale_struct) ping_scale
