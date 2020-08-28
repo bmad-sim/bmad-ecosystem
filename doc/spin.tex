@@ -353,7 +353,7 @@ $\partial\bfn/\partial\delta$ has been minimized as required.
 
 In contrast to the approach in \cite{b:barber85,b:barber99}, \bmad calculates the $\bfG$ and $\bfD$
 matrices from the quaternion of the spin transport map (which \bmad calculates via PTC
-(\sref{c:ptc})). After the $(\bfl_0, \bfn_0, \bfm_0)$ coordinates have been calculated (or set by
+(\sref{c:ptc.use})). After the $(\bfl_0, \bfn_0, \bfm_0)$ coordinates have been calculated (or set by
 the User) at some initial point, the spin axes can be transported using the $\bfq_0$ quaternion
 (\Eq{qqrq}). When analyzing only a section of a ring, there is no identifiable spin tune so nothing
 further needs to be done. In this case, the $\bfD$ matrix is just a unit matrix. When analyzing
@@ -362,7 +362,7 @@ except at the end of the lattice, the spin phase advance as a function of $s$ wi
 just before the starting position where there will be a discontinuous jump in phase.
 
 Once the $(\bfl_0, \bfn_0, \bfm_0)$ axes have been calculated, the matrices $\bfG$ and $\bfD$
-can be calculated from the spin transport map (which \bmad calculates via PTC (\sref{c:ptc})). To
+can be calculated from the spin transport map (which \bmad calculates via PTC (\sref{c:ptc.use})). To
 first order, the spin transport map $\bfq_s(s1, s2)$ from $s1$ to $s2$ represented as a
 quaternion, can be written in the form
 \begin{equation}

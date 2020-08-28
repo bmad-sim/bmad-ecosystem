@@ -694,14 +694,12 @@ using symplectic integration.
 \end{example}
 \index{ds_step}
 \index{integrator_order}
-Symplectic integration is typically much slower than concatenation.
-The width of an integration step is given by \vn{%ele%value(ds_step\$}.
-The attribute \vn{%ele%value(num_steps\$)}, which gives the number
-of integration steps, is a dependent variable 
-(\sref{s:depend}) and should not be set directly.
-The order of the integrator (\sref{s:taylor.phys})
-is given by \vn{%ele%integrator_order}. 
-PTC (\sref{c:ptc}) currently implements integrators of order 2, 4, or 6.
+Symplectic integration is typically much slower than concatenation.  The width of an integration
+step is given by \vn{%ele%value(ds_step\$}.  The attribute \vn{%ele%value(num_steps\$)}, which gives
+the number of integration steps, is a dependent variable (\sref{s:depend}) and should not be set
+directly.  The order of the integrator (\sref{s:taylor.phys}) is given by
+\vn{%ele%integrator_order}.  PTC (\sref{c:ptc.use}) currently implements integrators of order 2, 4, or
+6.
 
 %----------------------------------------------------------------
 \section{Tracking Backwards}

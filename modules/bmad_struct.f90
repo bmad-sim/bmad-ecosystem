@@ -1566,7 +1566,7 @@ integer, parameter :: y2_limit$ = 74
 integer, parameter :: check_sum$ = 75
 
 integer, parameter :: g_err$ = dg$   ! For backwards compatibility.
-integer, parameter :: B_field_err = dB_field$  ! For backwards compatibility
+integer, parameter :: B_field_err$ = dB_field$  ! For backwards compatibility
 !!    = 1 + num_ele_attrib$
 
 integer, parameter :: max_aperture_limit$ = 81     ! bmad_com parameters
