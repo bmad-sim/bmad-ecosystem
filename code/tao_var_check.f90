@@ -17,7 +17,7 @@
 
 subroutine tao_var_check (eles, attribute, silent)
 
-use tao_interface
+use tao_interface, dummy => tao_var_check
 
 implicit none
 
