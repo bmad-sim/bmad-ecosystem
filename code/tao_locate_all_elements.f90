@@ -57,10 +57,9 @@ endif
 
 string = ele_list
 do 
+  call tao_pick_universe (string, string, picked, err);  if (err) return
   call word_read (string, ', ', word, ix_word, delim, delim_found, string)
   if (ix_word == 0) exit
-  call tao_pick_universe (word, word, picked, err)
-  if (err) return
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. picked(i)) cycle
     call lat_ele_locator (word, s%u(i)%model%lat, this_eles, n_eles, err)
