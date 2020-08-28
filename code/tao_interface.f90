@@ -4,7 +4,7 @@
 ! Module to define the interfaces for the tao routines.
 !-
 
-! Note: To overcome a problem with the intel compiler the following routine interfaces
+! Note: To overcome a problem with the intel compiler, the following routine interfaces
 ! Have been deleted:
 !   tao_command
 !   tao_command_end_calc
@@ -534,7 +534,7 @@ function tao_lat_emit_calc (plane, emit_type, ele, modes) result (emit)
   type (normal_modes_struct) modes
   real(rp) emit
 end function
- 
+
 subroutine tao_limit_calc (limited)
   implicit none
   logical limited
@@ -697,6 +697,13 @@ end function
 subroutine tao_print_command_line_info
   import
   implicit none
+end subroutine
+
+subroutine tao_ptc_normal_form (do_calc, tao_lat, ix_branch)
+  import
+  type (tao_lattice_struct), target :: tao_lat
+  integer ix_branch
+  logical do_calc
 end subroutine
 
 subroutine tao_python_cmd (input_str)

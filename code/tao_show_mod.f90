@@ -222,7 +222,7 @@ type (tao_spin_polarization_struct) spin_pol
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
-real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit
+real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b
 real(rp), allocatable :: value(:)
 
@@ -2965,17 +2965,13 @@ case ('merit', 'top10')
 
 case ('normal_form')
 
-  if (.not. u%calc%one_turn_map) then
-    nl=1;    lines(1)  = 'one_turn_map_calc NOT SET TRUE.'
-    nl=nl+1; lines(nl) = 'USE THE "set universe ' // int_str(u%ix_uni) // ' one_turn_map_calc = T" COMMAND TO CHANGE THIS.'
-    return
-  endif
-
   if (branch%param%geometry /= closed$) then
     nl=1;    lines(1) = 'BRANCH GEOMETRY NOT CLOSED'
     nl=nl+1; lines(2) = 'USE THE "set branch ' // int_str(branch%ix_branch) // ' geometry = closed" TO CHANGE THIS.'
     return
   endif
+
+  if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., tao_lat, ix_branch)
 
   bmad_nf => tao_branch%bmad_normal_form
   ptc_nf  => tao_branch%ptc_normal_form
@@ -3456,10 +3452,19 @@ case ('spin')
     end select
   enddo
 
+  !
+
+  if (.not. bmad_com%spin_tracking_on) then
+    call out_io (s_warn$, r_name, 'Turning on spin tracking (set bmad_com%spin_tracking_on = T)')
+    bmad_com%spin_tracking_on = .true.
+  endif
+
   ! what_to_print = standard
 
   if (what_to_print == 'standard') then
+    if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., u%model, ix_branch)
     ele => branch%ele(0)
+
     r = anomalous_moment_of(branch%param%particle) * ele%value(e_tot$) / mass_of(branch%param%particle)
     nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
     nl=nl+1; lines(nl) = 'bmad_com components:'
@@ -3471,6 +3476,11 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Beginning spin:', orb%spin
     else
+      nl=nl+1; lines(nl) = 'Spin Tune Taylor Series:'
+      do i = 0, ptc_com%taylor_order_ptc
+        expo = [0, 0, 0, 0, 0, i]
+        nl=nl+1; write (lines(nl), '(a, i0, a, es18.7)') '  spin_tune_ptc.', i, ': ', real(ptc_nf%spin .sub. expo)
+      enddo
       call tao_spin_polarization_calc (branch, tao_branch%orbit, spin_pol)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Limit:          ', spin_pol%pol_limit
@@ -4326,7 +4336,7 @@ case ('universe')
   l_lat = branch%param%total_length
   gamma2 = (branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle))**2
   n = branch%n_ele_track
-
+  time1 = branch%ele(branch%n_ele_track)%ref_time
 
   if (branch%param%geometry == closed$ .or. s%global%rad_int_calc_on) then
 
@@ -4349,6 +4359,8 @@ case ('universe')
     if (s%global%rad_int_calc_on) then
       nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', tao_branch%modes%a%alpha_damp, &
             design_tao_branch%modes%a%alpha_damp, tao_branch%modes%b%alpha_damp, design_tao_branch%modes%b%alpha_damp, '! Damping per turn'
+      nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/tao_branch%modes%a%alpha_damp, &
+            time1/design_tao_branch%modes%a%alpha_damp, time1/tao_branch%modes%b%alpha_damp, time1/design_tao_branch%modes%b%alpha_damp, '! Sec'
       nl=nl+1; write(lines(nl), fmt) 'I4', tao_branch%modes%a%synch_int(4), &
             design_tao_branch%modes%a%synch_int(4), tao_branch%modes%b%synch_int(4), design_tao_branch%modes%b%synch_int(4), '! Radiation Integral'
       nl=nl+1; write(lines(nl), fmt) 'I5', tao_branch%modes%a%synch_int(5), &
@@ -4400,6 +4412,8 @@ case ('universe')
       nl=nl+1; write(lines(nl), fmt) 'J_damp:', tao_branch%modes%z%j_damp, design_tao_branch%modes%z%j_damp, '! Longitudinal Damping Partition #'
       nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', tao_branch%modes%z%alpha_damp, &
             design_tao_branch%modes%z%alpha_damp, '! Longitudinal Damping per turn'
+      nl=nl+1; write(lines(nl), fmt) 'damp_time:', time1/tao_branch%modes%z%alpha_damp, &
+            time1/design_tao_branch%modes%z%alpha_damp, '! Longitudinal Damping time (sec)'
       nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', tao_branch%modes%synch_int(1)/l_lat, &
                    design_tao_branch%modes%synch_int(1)/l_lat, '! Momentum Compaction'
       nl=nl+1; write(lines(nl), fmt) 'I0:', tao_branch%modes%synch_int(0), design_tao_branch%modes%synch_int(0), '! Radiation Integral'
