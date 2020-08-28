@@ -543,8 +543,8 @@ type (tao_curve_struct), pointer :: curve
 type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
-type (tao_element_struct), pointer :: uni_ele(:)
-type (tao_universe_branch_struct), pointer :: uni_branch
+type (tao_model_element_struct), pointer :: tao_model_ele(:)
+type (tao_model_branch_struct), pointer :: model_branch
 type (bunch_params_struct), pointer :: bunch_params
 
 real(rp) sig(6,6)
@@ -568,8 +568,8 @@ call re_allocate (ix_ele, 1)
 s%com%have_tracked_beam = .true.
 branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
-uni_branch => u%uni_branch(ix_branch)
-uni_ele => uni_branch%ele
+model_branch => u%model_branch(ix_branch)
+tao_model_ele => model_branch%ele
 
 lat => tao_lat%lat
 
@@ -628,7 +628,7 @@ do
   ! track to the element and save for phase space plot
 
   if (s%com%use_saved_beam_in_tracking) then
-    beam = uni_ele(ie)%beam
+    beam = tao_model_ele(ie)%beam
 
   else
     if (ie /= ie1) then
@@ -640,9 +640,9 @@ do
     endif
 
     can_save = (ie == ie1 .or. ie == ie2 .or. ele%key == fork$ .or. ele%key == photon_fork$)
-    if (uni_ele(ie)%save_beam_internally .or. can_save) uni_ele(ie)%beam = beam
+    if (tao_model_ele(ie)%save_beam_internally .or. can_save) tao_model_ele(ie)%beam = beam
 
-    if (u%beam%dump_file /= '' .and. (uni_ele(ie)%save_beam_to_file .or. can_save)) then
+    if (u%beam%dump_file /= '' .and. (tao_model_ele(ie)%save_beam_to_file .or. can_save)) then
       if (index(u%beam%dump_file, '.h5') == 0 .and. index(u%beam%dump_file, '.hdf5') == 0) then
         call write_beam_file (u%beam%dump_file, beam, new_beam_file, ascii$, lat)
       else
@@ -852,7 +852,7 @@ implicit none
 
 type (tao_universe_struct), target :: u
 type (tao_lattice_struct), target :: model
-type (tao_universe_branch_struct), pointer :: uni_branch
+type (tao_model_branch_struct), pointer :: model_branch
 type (ele_struct), save :: extract_ele
 type (lat_param_struct), pointer :: param
 type (branch_struct), pointer :: branch
@@ -880,19 +880,19 @@ endif
 
 ! if injecting into a branch then use the branch point as the starting distribution.
 
-uni_branch => u%uni_branch(ix_branch)
+model_branch => u%model_branch(ix_branch)
 branch => model%lat%branch(ix_branch)
 
 if (ix_branch > 0) then
   ib = branch%ix_from_branch
   ie = branch%ix_from_ele
 
-  if (.not. allocated (u%uni_branch(ib)%ele(ie)%beam%bunch)) then
+  if (.not. allocated (u%model_branch(ib)%ele(ie)%beam%bunch)) then
     call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // u%model%lat%branch(ib)%ele(ie)%name)
     return
   endif
 
-  u%beam%beam_at_start = u%uni_branch(ib)%ele(ie)%beam
+  u%beam%beam_at_start = u%model_branch(ib)%ele(ie)%beam
   init_ok = .true.
   return
 endif

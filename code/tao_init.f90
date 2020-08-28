@@ -487,11 +487,11 @@ if (allocated (s%u)) then
     ! Beams: All s%u(i)%ele point to the same place with common_lattice.
 
     if (i == 0 .or. .not. s%com%common_lattice) then
-      do ib = 0, ubound(u%uni_branch, 1)
-        call reallocate_beam(u%uni_branch(ib)%ele(0)%beam, 0, 0)
-        deallocate (u%uni_branch(ib)%ele)
+      do ib = 0, ubound(u%model_branch, 1)
+        call reallocate_beam(u%model_branch(ib)%ele(0)%beam, 0, 0)
+        deallocate (u%model_branch(ib)%ele)
       enddo
-      deallocate (u%uni_branch)
+      deallocate (u%model_branch)
     endif
 
     call reallocate_beam(u%beam%beam_at_start, 0, 0)

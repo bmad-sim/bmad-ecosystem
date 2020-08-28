@@ -151,7 +151,7 @@ case ('beam')
       ele => eles(ie)%ele
       ! Write file
 
-      beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
+      beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
       if (.not. allocated(beam%bunch)) cycle
 
       call write_beam_file (file_name, beam, new_file, file_format, u%model%lat)
@@ -307,7 +307,7 @@ case ('curve')
   if (c%g%type == "phase_space") then
     i_uni = c%ix_universe
     if (i_uni == 0) i_uni = s%com%default_universe
-    beam => s%u(i_uni)%uni_branch(c%ix_branch)%ele(c%ix_ele_ref_track)%beam
+    beam => s%u(i_uni)%model_branch(c%ix_branch)%ele(c%ix_ele_ref_track)%beam
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'

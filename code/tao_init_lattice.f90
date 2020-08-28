@@ -284,7 +284,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   allocate (u%model%tao_branch(0:n))
   allocate (u%design%tao_branch(0:n))
   allocate (u%base%tao_branch(0:n))
-  allocate (u%uni_branch(0:n))
+  allocate (u%model_branch(0:n))
 
   do ib = 0, ubound(u%design%lat%branch, 1)
     u%design%tao_branch(ib)%modes%a%emittance = u%design%lat%branch(ib)%a%emit
@@ -293,7 +293,7 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     allocate (u%model%tao_branch(ib)%orbit(0:n), u%model%tao_branch(ib)%bunch_params(0:n))
     allocate (u%design%tao_branch(ib)%orbit(0:n), u%design%tao_branch(ib)%bunch_params(0:n))
     allocate (u%base%tao_branch(ib)%orbit(0:n), u%base%tao_branch(ib)%bunch_params(0:n))
-    allocate (u%uni_branch(ib)%ele(-1:n))
+    allocate (u%model_branch(ib)%ele(-1:n))
   enddo
 
   u%model = u%design
@@ -344,14 +344,14 @@ if (s%com%common_lattice) then
   allocate (u_work%model%tao_branch(0:n))
   allocate (u_work%design%tao_branch(0:n))
   allocate (u_work%base%tao_branch(0:n))
-  allocate (u_work%uni_branch(0:n))
+  allocate (u_work%model_branch(0:n))
 
   do k = 0, ubound(u_work%design%lat%branch, 1)
     n = u_work%design%lat%branch(k)%n_ele_max
     allocate (u_work%model%tao_branch(k)%orbit(0:n), u_work%model%tao_branch(k)%bunch_params(0:n))
     allocate (u_work%design%tao_branch(k)%orbit(0:n), u_work%design%tao_branch(k)%bunch_params(0:n))
     allocate (u_work%base%tao_branch(k)%orbit(0:n), u_work%base%tao_branch(k)%bunch_params(0:n))
-    allocate (u_work%uni_branch(k)%ele(-1:n))
+    allocate (u_work%model_branch(k)%ele(-1:n))
   enddo
 
   ! If unified then point back to the common universe (#1) and the working universe (#2)
@@ -360,7 +360,7 @@ if (s%com%common_lattice) then
     if (i_uni == ix_common_uni$) cycle
     u => s%u(i_uni)
     u%common     => s%u(ix_common_uni$)
-    u%uni_branch => s%u(ix_common_uni$)%uni_branch
+    u%model_branch => s%u(ix_common_uni$)%model_branch
     u%design => s%u(ix_common_uni$)%design
     u%base   => s%u(ix_common_uni$)%base
     u%model  => s%com%u_working%model

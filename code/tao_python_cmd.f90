@@ -101,7 +101,7 @@ type (bunch_params_struct), pointer :: bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (ele_pointer_struct), allocatable, save :: eles(:), eles2(:)
 type (branch_struct), pointer :: branch
-type (tao_universe_branch_struct), pointer :: uni_branch
+type (tao_model_branch_struct), pointer :: model_branch
 type (random_state_struct) ran_state
 type (ele_attribute_struct) attrib
 type (ac_kicker_struct), pointer :: ac
@@ -140,7 +140,7 @@ type (tao_building_wall_point_struct), allocatable :: bwp_temp(:)
 type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_wave_kick_pt_struct), pointer :: wk
-type (tao_element_struct), pointer :: tao_ele
+type (tao_model_element_struct), pointer :: tao_ele
 type (all_pointer_struct) a_ptr
 
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
@@ -416,14 +416,14 @@ case ('bunch1')
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
   ele => point_to_ele(line, err); if (err) return
 
-  beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
+  beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
   if (.not. allocated(beam%bunch)) then
     call invalid ('BEAM NOT SAVED AT ELEMENT.')
     return
   endif
   ix_bunch = parse_int(tail_str, err, 1, size(beam%bunch)); if (err) return
 
-  !save_beam flag: u%uni_branch(<branch-index>)%ele(<ele-index>)%save_beam
+  !save_beam flag: u%model_branch(<branch-index>)%ele(<ele-index>)%save_beam
 
   select case (tail_str)
   case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'state')

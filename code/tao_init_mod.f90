@@ -362,8 +362,8 @@ u%beam%track_data_file = beam_track_data_file
 
 do i = 0, ubound(u%model%lat%branch, 1)
   branch => u%design%lat%branch(i)
-  u%uni_branch(i)%ele%save_beam_internally = .false.
-  u%uni_branch(i)%ele%save_beam_to_file = .false.
+  u%model_branch(i)%ele%save_beam_internally = .false.
+  u%model_branch(i)%ele%save_beam_to_file = .false.
 enddo
 
 u%beam%saved_at = beam_saved_at
@@ -374,7 +374,7 @@ if (beam_saved_at /= '') then
   else
     do k = 1, size(eles)
       ele => eles(k)%ele
-      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = .true.
+      u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_internally = .true.
     enddo
   endif
 endif
@@ -387,7 +387,7 @@ if (beam_dump_at /= '') then
   else
     do k = 1, size(eles)
       ele => eles(k)%ele
-      u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_to_file = .true.
+      u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%save_beam_to_file = .true.
     enddo
   endif
 endif
