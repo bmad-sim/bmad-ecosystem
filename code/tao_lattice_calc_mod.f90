@@ -31,9 +31,7 @@ contains
 
 subroutine tao_lattice_calc (calc_ok)
 
-use ptc_layout_mod
 use srdt_mod
-use pointer_lattice
 
 implicit none
 
@@ -45,7 +43,6 @@ type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
-type (ptc_normal_form_struct), pointer :: ptc_nf
 type (aperture_scan_struct), pointer :: scan
 
 real(rp) tt
@@ -55,7 +52,7 @@ integer iuni, j, ib, ix, n_max, iu, it, id, ix_ele0
 character(20) :: r_name = "tao_lattice_calc"
 character(20) track_type, name
 
-logical calc_ok, this_calc_ok, err, rf_on, mat_changed
+logical calc_ok, this_calc_ok, err, mat_changed
 
 ! Lattice bookkeeping
 
@@ -264,40 +261,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     
     ! PTC one-turn-map and normal form calc. Only for rings. 
 
-    ptc_nf => tao_branch%ptc_normal_form
-    nullify(tao_branch%bmad_normal_form%ele_origin)
-
-    if (u%calc%one_turn_map .and. branch%param%geometry == closed$) then
-      call set_ptc_verbose(.false.)
-      rf_on = rf_is_on(branch)
-
-      if (.not. ptc_nf%valid_map) then
-        call alloc(ptc_nf%one_turn_map)
-        call alloc(ptc_nf%normal_form)
-        call alloc(ptc_nf%phase)
-        call alloc(ptc_nf%spin)
-      endif
-      ptc_nf%valid_map = .true.
-
-      if (.not. associated(ptc_nf%ele_origin)) ptc_nf%ele_origin => branch%ele(0)
-      if (.not. associated(branch%ptc%m_t_layout)) call lat_to_ptc_layout (tao_lat%lat)
-
-      call ptc_one_turn_map_at_ele (ptc_nf%ele_origin, ptc_nf%orb0, ptc_nf%one_turn_map, pz = 0.0_rp)
-
-      call ptc_map_to_normal_form (ptc_nf%one_turn_map, ptc_nf%normal_form, ptc_nf%phase, ptc_nf%spin)
-
-      ! call normal_form_taylors(normal_form%m, rf_on, dhdj = normal_form%dhdj, &
-      !                                  A = normal_form%A, A_inverse = normal_form%A_inv)  ! Get A, A_inv, dhdj
-      ! call normal_form_complex_taylors(normal_form%m, rf_on, F = normal_form%F, L = normal_form%L)  ! Get complex L and F
-    else
-      if (ptc_nf%valid_map) then
-        call kill(ptc_nf%one_turn_map)
-        call kill(ptc_nf%normal_form)
-        call kill(ptc_nf%phase)
-        call kill(ptc_nf%spin)
-        ptc_nf%valid_map = .false.
-      endif
-    endif
+    call tao_ptc_normal_form (u%calc%one_turn_map, tao_lat, ib)
 
     ! Custom calc.
 

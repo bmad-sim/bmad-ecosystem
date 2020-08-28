@@ -52,9 +52,11 @@ do i = 1, size(eles)
     enddo
 
     if (mismatch) then
-      call out_io (s_error$, r_name, 'TAO VARIABLE: ' // tao_var1_name(var), &
+      if (.not. silent) then
+        call out_io (s_warn$, r_name, 'TAO VARIABLE: ' // tao_var1_name(var), &
               'WHICH HAS MULTIPLE SLAVE PARAMETERS NOW DOES NOT HAVE ALL SLAVE PARAMETER VALUES THE SAME.', &
-              'ATTEMPTING A FIX...')
+              'WILL FIX...')
+      endif
 
       do is = 1, size(var%slave)
         var%slave(is)%model_value = var%slave(ix_found)%model_value
