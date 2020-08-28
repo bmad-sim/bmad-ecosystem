@@ -13,6 +13,10 @@
 ! Note: This this routine does a complete job of bookking
 ! and could be unacceptably slow if lat%auto_bookkeeper = True.
 !
+! Note: The documentation for a routine should say if a call to lattice_bookkeeper is needed
+! afterwards. If it is not mentioned in the documentation for a routine, a call to 
+! lattice_bookkeeper is not needed afterwards.
+!
 ! Input:
 !   lat   -- lat_struct: Lattice needing bookkeeping.
 !
