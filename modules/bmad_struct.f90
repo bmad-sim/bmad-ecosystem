@@ -1843,9 +1843,10 @@ type csr_parameter_struct                  ! Common block for csr calc
   integer :: sc_min_in_bin = 10            ! Minimum number of particles in a bin for sigmas to be valid.
   logical :: lsc_kick_transverse_dependence = .false.
   logical :: print_taylor_warning = .true. ! Print warning if Taylor element is present?
-  logical :: write_csr_wake = .false.      ! Write the CSR wake to csr_wake.dat / old_csr_wake.dat? For diagnostics.
+  logical :: write_csr_wake = .false.      ! Write the CSR wake to %wake_output_file for diagnostics?
   logical :: use_csr_old = .false.         ! Use old CSR tracking? Should only be done for testing.
   logical :: small_angle_approx = .true.   ! Use small angle approximation? ONLY USED WITH OLD CSR.
+  character(200) :: wake_output_file = 'csr_wake.dat'  
 end type
 
 type (csr_parameter_struct), save, target :: csr_param
