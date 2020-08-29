@@ -459,6 +459,10 @@ namelist / params / local_csr_param
 ! open a scratch file for a namelist read
 
 select case (who)
+case ('wake_output_file')
+  csr_param%wake_output_file = value_str
+  return
+
 case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff')
   call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
   write (val, '(es24.16)', iostat = ios) set_val(1)
