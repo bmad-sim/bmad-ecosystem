@@ -352,7 +352,7 @@ do i_step = 0, n_step
 
   if (csr_param%write_csr_wake) then
     iu_wake = lunget()
-    open (iu_wake, file = 'csr_wake.dat', access = 'append')
+    open (iu_wake, file = csr_param%wake_output_file, access = 'append')
     if (i_step == 0) then
       write (iu_wake, '(a)') '!------------------------------------------------------------'
       write (iu_wake, '(a, i6, 2x, a)') '! ', ele%ix_ele, trim(ele%name)

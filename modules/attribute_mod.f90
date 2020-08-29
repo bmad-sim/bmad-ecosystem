@@ -259,7 +259,11 @@ if (ilen == 0) return
 if (ilen < 3) ilen = 3  ! Need at least three characters.
 n_abbrev = 0            ! number of abbreviation matches.
 
-name40 = name           ! make sure we have 40 characters
+select case (name)
+case ('G_ERR');       name40 = 'DG'
+case ('B_FIELD_ERR'); name40 = 'DB_FIELD'
+case default;         name40 = name
+end select
 
 !
 
