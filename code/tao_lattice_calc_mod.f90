@@ -60,6 +60,7 @@ calc_ok = .true.
 
 do iuni = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(iuni)
+
   if (.not. u%is_on .or. .not. u%calc%lattice) cycle
   tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
   call tao_lat_bookkeeper (u, tao_lat, err)
@@ -86,201 +87,194 @@ call tao_hook_lattice_calc (calc_ok)
 ! To save time, s%u(:)%calc%lattice are used to determine what gets calculated. 
 
 uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
-
   u => s%u(iuni)
   if (.not. u%is_on) cycle
 
-  if (.not. u%calc%lattice) then
-    ! Datum expressions can refer to other universes so always reevaluate.
-    do id = 1, size(u%data)
-      if (u%data(id)%data_type(1:11) /= 'expression:') cycle
-      call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
-    enddo
-    cycle
-  endif
+  if (u%calc%lattice) then
+    ! Pointer to appropriate lattice and zero data array
 
-  ! Pointer to appropriate lattice and zero data array
+    s%com%lattice_calc_done = .true.
+    tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
 
-  s%com%lattice_calc_done = .true.
-  tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
+    ! Loop over all branches
 
-  ! Loop over all branches
+    branch_loop: do ib = 0, ubound(tao_lat%lat%branch, 1)
+   
+      branch => tao_lat%lat%branch(ib)
+      tao_branch => tao_lat%tao_branch(ib)
 
-  branch_loop: do ib = 0, ubound(tao_lat%lat%branch, 1)
- 
-    branch => tao_lat%lat%branch(ib)
-    tao_branch => tao_lat%tao_branch(ib)
+      u%model%tao_branch(:)%plot_cache_valid = .false.
+      u%design%tao_branch(:)%plot_cache_valid = .false.
+      u%base%tao_branch(:)%plot_cache_valid = .false.
 
-    u%model%tao_branch(:)%plot_cache_valid = .false.
-    u%design%tao_branch(:)%plot_cache_valid = .false.
-    u%base%tao_branch(:)%plot_cache_valid = .false.
+      call tao_data_coupling_init(branch)
 
-    call tao_data_coupling_init(branch)
-
-    if (.not. branch%param%live_branch) cycle
-    
-    do j = 1, 6
-      tao_lat%tao_branch(ib)%orbit%vec(j) = 0.0
-    enddo
-
-    track_type = s%global%track_type
-    if (ib > 0 .and. branch%param%particle == photon$) track_type = 'single'
-
-    select case (track_type)
-    case ('single')
-      call tao_inject_particle (u, tao_lat, ib)
-      call tao_single_track (u, tao_lat, this_calc_ok, ib)
-      if (.not. this_calc_ok) calc_ok = .false.
-      if (.not. this_calc_ok) exit
-
-
-    case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
-      call tao_inject_particle (u, tao_lat, ib)
-      call tao_single_track (u, tao_lat, this_calc_ok, ib)
-      call tao_inject_beam (u, tao_lat, ib, this_calc_ok, ix_ele0)
-      if (.not. this_calc_ok) calc_ok = .false.
-      if (.not. this_calc_ok) then
-        if (ib == 0) then
-          call out_io (s_error$, r_name, 'CANNOT INJECT BEAM. WILL NOT TRACK BEAM...')
-        else
-          call out_io (s_error$, r_name, &
-              'CANNOT INJECT BEAM. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [ib])
-        endif
-        tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
-        tao_branch%bunch_params(:)%n_particle_live = 0
-        exit
-      endif
-      call tao_beam_track (u, tao_lat, this_calc_ok, ib, ix_ele0)
-      if (.not. this_calc_ok) calc_ok = .false.
-      if (.not. this_calc_ok) exit
-
-    case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // track_type)
-      call err_exit
-    end select
-
-    if (s%global%rad_int_calc_on .and. (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting)) then
-      call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                            tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
-    endif
-
-
-    if (tao_lat%lat%param%geometry == closed$ .and. (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting)) then
-      call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, &
-                           tao_branch%b%chrom, err, low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat)
-    endif
-
-    ! do multi-turn tracking if needed. This is always the main lattice. 
-
-    if (ib == 0) then
-      write (name, '(i0, a)') iuni, '@multi_turn_orbit'
-      call tao_find_data (err, name, d2_array, print_err = .false.)
-
-      if (size(d2_array) > 0) then
-        if (size(d2_array) /= 1) then
-          call out_io (s_error$, r_name, 'MULTIPLE D2 DATA ARRAYS ASSOCIATED WITH: ' // name)
-        endif
-        d2_dat => d2_array(1)%d2
-        n_max = 0
-        do id = 1, size(d2_dat%d1)
-          n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
-        enddo
-        call reallocate_coord (orb, branch%n_ele_max)
-        orb(0) = tao_lat%lat%particle_start
-        do it = 0, n_max
-          do id = 1, size(d2_dat%d1)
-            d1_dat => d2_dat%d1(id)
-            if (it >= lbound(d1_dat%d, 1) .and. it <= ubound(d1_dat%d, 1)) then
-              select case (d1_dat%name)
-              case ('x');   d1_dat%d(it)%model_value = orb(0)%vec(1)
-              case ('px');  d1_dat%d(it)%model_value = orb(0)%vec(2)
-              case ('y');   d1_dat%d(it)%model_value = orb(0)%vec(3)
-              case ('py');  d1_dat%d(it)%model_value = orb(0)%vec(4)
-              case ('z');   d1_dat%d(it)%model_value = orb(0)%vec(5)
-              case ('pz');  d1_dat%d(it)%model_value = orb(0)%vec(6)
-              case default
-                call out_io (s_fatal$, r_name, &
-                            'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
-                call err_exit
-              end select
-            endif
-          enddo
-          call track_all (tao_lat%lat, orb, ib)
-          orb(0) = orb(branch%n_ele_track)
-        enddo
-      endif
-    endif
-
-    ! Dynamic aperture calc. Only for rings
-
-    if (u%calc%dynamic_aperture .and. u%dynamic_aperture%ix_branch == ib) then  
-      if (.not. rf_is_on(branch)) call reallocate_coord (orb, branch%n_ele_track)
-      do j = 1, size(u%dynamic_aperture%pz)
-        scan => u%dynamic_aperture%scan(j)
-        scan%param = u%dynamic_aperture%param
-        ! Check for open lattice. Only 1 turn is allowed
-        if (branch%param%geometry == open$ .and. (scan%param%n_turn > 1))then
-          call out_io (s_fatal$, r_name, 'DYNAMIC APERTURE CALC n_turn > 1 FOR OPEN LATTICE')
-          call err_exit       
-        endif
-          
-        if (rf_is_on(branch)) then
-          ! pz surrounds the closed orbit
-          scan%ref_orb = tao_branch%orbit(0)
-          scan%ref_orb%vec(6) = scan%ref_orb%vec(6) + u%dynamic_aperture%pz(j)
-        else
-          ! If the RF is off, new fixed points will be calculated for various pz
-          orb(0)%vec(6) = u%dynamic_aperture%pz(j)
-          call  closed_orbit_calc (tao_lat%lat, orb, 4, ix_branch = ib)
-          scan%ref_orb = orb(0)
-        endif
-    
-        call out_io (s_info$, r_name, 'Starting Dynamic aperture scan for pz: \f10.6\ ... ', r_array = [u%dynamic_aperture%pz(j)])
-        call run_timer ('START')
-        call dynamic_aperture_scan(tao_lat%lat, scan, parallel = .true.)
-        call run_timer ('READ', tt)
-        call out_io (s_info$, r_name, 'Computation time for aperture scan at this energy (min): \f8.2\ ', tt/60)
+      if (.not. branch%param%live_branch) cycle
+      
+      do j = 1, 6
+        tao_lat%tao_branch(ib)%orbit%vec(j) = 0.0
       enddo
-    endif
 
-    ! Note: The SRDT calc does not involve PTC.
+      track_type = s%global%track_type
+      if (ib > 0 .and. branch%param%particle == photon$) track_type = 'single'
 
-    if (u%calc%srdt_for_data > 0) then
-      if (u%calc%srdt_for_data >= 2) then
-        if (s%global%srdt_use_cache) then
-          call srdt_calc_with_cache(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices, scratch%srdt_cache)
-          if(.not. allocated(scratch%srdt_cache)) s%global%srdt_use_cache = .false. ! there was insufficient memory available.
+      select case (track_type)
+      case ('single')
+        call tao_inject_particle (u, tao_lat, ib)
+        call tao_single_track (u, tao_lat, this_calc_ok, ib)
+        if (.not. this_calc_ok) calc_ok = .false.
+        if (.not. this_calc_ok) exit
+
+
+      case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
+        call tao_inject_particle (u, tao_lat, ib)
+        call tao_single_track (u, tao_lat, this_calc_ok, ib)
+        call tao_inject_beam (u, tao_lat, ib, this_calc_ok, ix_ele0)
+        if (.not. this_calc_ok) calc_ok = .false.
+        if (.not. this_calc_ok) then
+          if (ib == 0) then
+            call out_io (s_error$, r_name, 'CANNOT INJECT BEAM. WILL NOT TRACK BEAM...')
+          else
+            call out_io (s_error$, r_name, &
+                'CANNOT INJECT BEAM. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [ib])
+          endif
+          tao_branch%bunch_params(:)%n_particle_lost_in_ele = 0
+          tao_branch%bunch_params(:)%n_particle_live = 0
+          exit
+        endif
+        call tao_beam_track (u, tao_lat, this_calc_ok, ib, ix_ele0)
+        if (.not. this_calc_ok) calc_ok = .false.
+        if (.not. this_calc_ok) exit
+
+      case default
+        call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // track_type)
+        call err_exit
+      end select
+
+      if (s%global%rad_int_calc_on .and. (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting)) then
+        call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+                              tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
+      endif
+
+
+      if (tao_lat%lat%param%geometry == closed$ .and. (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting)) then
+        call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, &
+                             tao_branch%b%chrom, err, low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat)
+      endif
+
+      ! do multi-turn tracking if needed. This is always the main lattice. 
+
+      if (ib == 0) then
+        write (name, '(i0, a)') iuni, '@multi_turn_orbit'
+        call tao_find_data (err, name, d2_array, print_err = .false.)
+
+        if (size(d2_array) > 0) then
+          if (size(d2_array) /= 1) then
+            call out_io (s_error$, r_name, 'MULTIPLE D2 DATA ARRAYS ASSOCIATED WITH: ' // name)
+          endif
+          d2_dat => d2_array(1)%d2
+          n_max = 0
+          do id = 1, size(d2_dat%d1)
+            n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
+          enddo
+          call reallocate_coord (orb, branch%n_ele_max)
+          orb(0) = tao_lat%lat%particle_start
+          do it = 0, n_max
+            do id = 1, size(d2_dat%d1)
+              d1_dat => d2_dat%d1(id)
+              if (it >= lbound(d1_dat%d, 1) .and. it <= ubound(d1_dat%d, 1)) then
+                select case (d1_dat%name)
+                case ('x');   d1_dat%d(it)%model_value = orb(0)%vec(1)
+                case ('px');  d1_dat%d(it)%model_value = orb(0)%vec(2)
+                case ('y');   d1_dat%d(it)%model_value = orb(0)%vec(3)
+                case ('py');  d1_dat%d(it)%model_value = orb(0)%vec(4)
+                case ('z');   d1_dat%d(it)%model_value = orb(0)%vec(5)
+                case ('pz');  d1_dat%d(it)%model_value = orb(0)%vec(6)
+                case default
+                  call out_io (s_fatal$, r_name, &
+                              'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
+                  call err_exit
+                end select
+              endif
+            enddo
+            call track_all (tao_lat%lat, orb, ib)
+            orb(0) = orb(branch%n_ele_track)
+          enddo
+        endif
+      endif
+
+      ! Dynamic aperture calc. Only for rings
+
+      if (u%calc%dynamic_aperture .and. u%dynamic_aperture%ix_branch == ib) then  
+        if (.not. rf_is_on(branch)) call reallocate_coord (orb, branch%n_ele_track)
+        do j = 1, size(u%dynamic_aperture%pz)
+          scan => u%dynamic_aperture%scan(j)
+          scan%param = u%dynamic_aperture%param
+          ! Check for open lattice. Only 1 turn is allowed
+          if (branch%param%geometry == open$ .and. (scan%param%n_turn > 1))then
+            call out_io (s_fatal$, r_name, 'DYNAMIC APERTURE CALC n_turn > 1 FOR OPEN LATTICE')
+            call err_exit       
+          endif
+            
+          if (rf_is_on(branch)) then
+            ! pz surrounds the closed orbit
+            scan%ref_orb = tao_branch%orbit(0)
+            scan%ref_orb%vec(6) = scan%ref_orb%vec(6) + u%dynamic_aperture%pz(j)
+          else
+            ! If the RF is off, new fixed points will be calculated for various pz
+            orb(0)%vec(6) = u%dynamic_aperture%pz(j)
+            call  closed_orbit_calc (tao_lat%lat, orb, 4, ix_branch = ib)
+            scan%ref_orb = orb(0)
+          endif
+      
+          call out_io (s_info$, r_name, 'Starting Dynamic aperture scan for pz: \f10.6\ ... ', r_array = [u%dynamic_aperture%pz(j)])
+          call run_timer ('START')
+          call dynamic_aperture_scan(tao_lat%lat, scan, parallel = .true.)
+          call run_timer ('READ', tt)
+          call out_io (s_info$, r_name, 'Computation time for aperture scan at this energy (min): \f8.2\ ', tt/60)
+        enddo
+      endif
+
+      ! Note: The SRDT calc does not involve PTC.
+
+      if (u%calc%srdt_for_data > 0) then
+        if (u%calc%srdt_for_data >= 2) then
+          if (s%global%srdt_use_cache) then
+            call srdt_calc_with_cache(tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices, scratch%srdt_cache)
+            if(.not. allocated(scratch%srdt_cache)) s%global%srdt_use_cache = .false. ! there was insufficient memory available.
+          else
+            call srdt_calc (tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
+          endif
+
         else
           call srdt_calc (tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
         endif
-
-      else
-        call srdt_calc (tao_lat%lat, tao_branch%srdt, u%calc%srdt_for_data, s%global%srdt_gen_n_slices, s%global%srdt_sxt_n_slices)
       endif
+      
+      ! PTC one-turn-map and normal form calc. Only for rings. 
+
+      call tao_ptc_normal_form (u%calc%one_turn_map, tao_lat, ib)
+
+      ! Custom calc.
+
+      call tao_hook_branch_calc (u, tao_lat, branch)
+
+    enddo branch_loop
+
+    ! If calc is on common model then transfer data to base of all other universes
+
+    if (s%com%common_lattice .and. iuni == ix_common_uni$) then
+      do j = lbound(s%u, 1), ubound(s%u, 1)
+        if (j == ix_common_uni$) cycle
+        s%u(j)%data(:)%base_value = u%data(:)%model_value
+      enddo
     endif
-    
-    ! PTC one-turn-map and normal form calc. Only for rings. 
+  endif  ! if (u%calc%lattice)
 
-    call tao_ptc_normal_form (u%calc%one_turn_map, tao_lat, ib)
-
-    ! Custom calc.
-
-    call tao_hook_branch_calc (u, tao_lat, branch)
-
-  enddo branch_loop
-
-  ! If calc is on common model then transfer data to base of all other universes
-
-  if (s%com%common_lattice .and. iuni == ix_common_uni$) then
-    do j = lbound(s%u, 1), ubound(s%u, 1)
-      if (j == ix_common_uni$) cycle
-      s%u(j)%data(:)%base_value = u%data(:)%model_value
-    enddo
-  endif
-
-  ! Calculate data 
+  ! Calculate non-expression data 
 
   do id = 1, size(u%data)
+    if (u%data(id)%data_type(1:11) == 'expression:') cycle
     call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
   enddo
 
@@ -293,6 +287,16 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 enddo uni_loop
 
 ! do any post-processing
+
+do iuni = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(iuni)
+  if (.not. u%is_on) cycle
+
+  do id = 1, size(u%data)
+    if (u%data(id)%data_type(1:11) /= 'expression:') cycle
+    call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
+  enddo
+enddo
 
 call tao_hook_post_process_data ()
 

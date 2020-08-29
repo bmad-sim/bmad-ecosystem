@@ -23,14 +23,14 @@ A \vn{d1_data} structure holds an array of datums.}
 \end{figure}
 
 \index{d2_data}\index{d1_data}
-The horizontal orbit at a particular BPM is an example of an individual \vn{datum}.  For ease of
+The horizontal orbit at a particular BPM is an example of an individual \vn{datum}. For ease of
 manipulation, arrays of datums are grouped into what is called a \vn{d1_data}
 structure. Furthermore, sets of \vn{d1_data} structures are grouped into what is called a
 \vn{d2_data} structure.  This is illustrated in Figure~\ref{f:data.tree}.  For example, a
 \vn{d2_data} structure for orbit data could contain two \vn{d1_data} structures --- one \vn{d1_data}
 structure for the horizontal orbit data and another \vn{d1_data} structure for the vertical orbit
 data. Each datum of, say, the horizontal orbit \vn{d1_data} structure would then correspond to the
-horizontal orbit at some point in the machine.
+horizontal orbit at some point in the machine. 
 
 When issuing \tao commands, all the data associated with a \vn{d2_data} structure is specified using
 the \vn{d2_data} structure's \vn{name}.  The data associated with a \vn{d1_data} structure is
@@ -65,7 +65,12 @@ the notation \vn{n1:n2} to specify all the datums between \vn{n1} and \vn{n2} in
 \end{example}
 refers to datums 3, 4, 5, 6, and 23. 
 
-If multiple universes are present, then, as explained in \sref{s:universe}, the prefix \vn{"@"} may
+If multiple universes are present, each universe will have its own set of \vn{d2_data}
+structures. The name of a particular \vn{d2_data} structure may be the same as a \vn{d2_data}
+structure in a separate universe. So, for example, an \vn{orbit} \vn{d2_data} structure may
+be present in multiple universes.
+
+As explained in \sref{s:universe}, the prefix \vn{"@"} may
 be used to specify which universe the data applies to. The general notation is
 \begin{example}
   [<universe_range>]@<d2_name>.<d1_name>[<datum_index>]
@@ -902,19 +907,14 @@ which is equivalent to:
   default_data_type = "expression: 1@data::beta.a - 2@data::beta.a"
 \end{example}
 
-To be valid, if an expression has a term with a \vn{data} source, the
-expression must be evaluated after the \vn{data} source components are
-evaluated. Data evaluation is done universe by universe starting with
-universe 1, then universe 2, etc. Within a given universe, the order
-of evaluation can be complicated but in this case a datum using an
-expression will always be evaluated after any datum that appears
-earlier in the initialization file.  In the last example above, the
-expression terms involve an evaluation of \vn{beta.a} in universe 2.  
-Therefore, this expression datum should
-be in universe 2 or higher. Notice that while all datums must be
-assigned a universe, in this case, since all the terms explicitly give
-a universe number, the value of the datum will be independent of the
-universe it is in.
+\tao evaluates datums that contain expressions last after all lattice parameters and all
+non-expression datums have been evaluated. The evaluation for datums that contain expressions start
+with universe 1 and evaluates the expression containing datums of universe 1 in the order that can
+be seen with the \vn{show data} command (which is the same order as the datums are defined in the
+data init file). After this, expression containing datums in universe 2 are evaluated, etc.  It is
+important to keep this in mind since if an expression containing datum references another datum that
+itself contains an expression, and if the referenced datum is evaluated after the the first datum,
+the evaluation of the first datum can be invalid.
 
 In the above examples, the lattice elements involved were explicitly specified.
 To apply an expression to the lattice element associated with a datum use
