@@ -446,12 +446,17 @@ case ('beam')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'csr_param components (set by "set csr_param ..."):'
-    nl=nl+1; write(lines(nl), rmt) '  %ds_track_step        = ', csr_param%ds_track_step
-    nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height  = ', csr_param%beam_chamber_height
-    nl=nl+1; write(lines(nl), rmt) '  %sigma_cutoff         = ', csr_param%sigma_cutoff
-    nl=nl+1; write(lines(nl), imt) '  %n_bin                = ', csr_param%n_bin
-    nl=nl+1; write(lines(nl), imt) '  %particle_bin_span    = ', csr_param%particle_bin_span
-    nl=nl+1; write(lines(nl), imt) '  %n_shield_images      = ', csr_param%n_shield_images
+    nl=nl+1; write(lines(nl), rmt) '  %ds_track_step                  = ', csr_param%ds_track_step
+    nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height            = ', csr_param%beam_chamber_height
+    nl=nl+1; write(lines(nl), rmt) '  %sigma_cutoff                   = ', csr_param%sigma_cutoff
+    nl=nl+1; write(lines(nl), imt) '  %n_bin                          = ', csr_param%n_bin
+    nl=nl+1; write(lines(nl), imt) '  %particle_bin_span              = ', csr_param%particle_bin_span
+    nl=nl+1; write(lines(nl), imt) '  %n_shield_images                = ', csr_param%n_shield_images
+    nl=nl+1; write(lines(nl), imt) '  %sc_min_in_bin                  = ', csr_param%sc_min_in_bin
+    nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning           = ', csr_param%print_taylor_warning
+    nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', csr_param%lsc_kick_transverse_dependence
+    nl=nl+1; write(lines(nl), lmt) '  %write_csr_wake                 = ', csr_param%write_csr_wake
+    nl=nl+1; write(lines(nl), amt) '  %wake_output_file               = ', quote(csr_param%wake_output_file)
 
   ! have element index
 
@@ -1721,7 +1726,7 @@ case ('global')
 
   case ('csr')
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'CSR_param Parameters:'
+    nl=nl+1; lines(nl) = 'CSR_param Parameters (set by "set csr_param ..."):'
     nl=nl+1; write(lines(nl), rmt) '  %ds_track_step                  = ', csr_param%ds_track_step
     nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height            = ', csr_param%beam_chamber_height
     nl=nl+1; write(lines(nl), rmt) '  %sigma_cutoff                   = ', csr_param%sigma_cutoff
@@ -1729,9 +1734,10 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %particle_bin_span              = ', csr_param%particle_bin_span
     nl=nl+1; write(lines(nl), imt) '  %n_shield_images                = ', csr_param%n_shield_images
     nl=nl+1; write(lines(nl), imt) '  %sc_min_in_bin                  = ', csr_param%sc_min_in_bin
-    nl=nl+1; write(lines(nl), lmt) '  %write_csr_wake                 = ', csr_param%write_csr_wake
     nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning           = ', csr_param%print_taylor_warning
     nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', csr_param%lsc_kick_transverse_dependence
+    nl=nl+1; write(lines(nl), lmt) '  %write_csr_wake                 = ', csr_param%write_csr_wake
+    nl=nl+1; write(lines(nl), amt) '  %wake_output_file               = ', quote(csr_param%wake_output_file)
   end select
 
 !----------------------------------------------------------------------
