@@ -364,7 +364,7 @@ do i_step = 0, n_step
     ds_step = csr%kick_factor * csr%actual_track_step
     do j = 1, csr_param%n_bin
       ele0 => branch%ele(csr%kick1(j)%ix_ele_source)
-      write (iu_wake, '(f12.6, 4es14.6)') csr%slice(j)%z_center, &
+      write (iu_wake, '(f14.10, 4es14.6)') csr%slice(j)%z_center, &
                   csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr/ds_step, &
                   csr%kick1(j)%I_csr/ds_step, ele0%s_start + csr%kick1(j)%s_chord_source
     enddo
