@@ -90,6 +90,87 @@ def parse_csr_wake(file, prepend_index=True):
     return eles
 
 
+
+def process_csr_wake_data(data):
+    """
+    Process csr_wake data by concatenating the data. 
+    
+    Returns a dict of np.array with labels and shapes:
+    
+        s_position          (steps,)      
+        ix_ele              (steps,)
+        z                   (steps, bins)
+        charge_per_meter    (steps, bins)
+        csr_kick_per_meter  (steps, bins)
+        I_csr_per_meter     (steps, bins)
+        s_source            (steps, bins)
+    
+    and a dict:
+        ele_name_from_ix
+    that returns the ele_name from an ix_ele for convenience. 
+    
+    
+    """
+    
+    # Sort by ix_ele
+    skeys = sorted(data, key=lambda n: data[n]['ix_ele'] )
+    labels = data[skeys[0]]['labels'].tolist()
+    #return labels
+
+    output = {}
+    # Concatenate all
+    dat = np.concatenate([data[key]['data'] for key in skeys ])
+    output['s_position'] = np.concatenate([data[key]['s_positions'] for key in skeys ])
+    
+    # Fill out ix_ele
+    output['ix_ele'] = np.concatenate([np.full(len(data[key]['s_positions']),  data[key]['ix_ele']) for key in skeys])
+    
+    # ix-> name mapping
+    output['ele_name_from_ix'] = {data[key]['ix_ele']:key for key in data }
+    
+    # Split columns
+    for i, key in enumerate(labels):
+        output[key] = dat[:,:,i]
+    
+    return output
+    
+
+    
+def csr_wake_stats_at_step(data, step=0):
+    """
+    Calculates stats from a single step of processed csr_wake data.
+    
+    Useful for plotting.
+    
+    Returns tuple:
+    
+        avkick, stdkick, avz, stdz
+    
+    """
+ 
+    z = data['z'][step,:]
+
+    
+    zmax = z.max()
+    zmin = z.min()
+    nz = len(z)
+    dz = z.ptp()/(nz-1)
+    density = data['charge_per_meter'][step,:]
+    dsum = np.sum(density)
+    qtot = dsum*dz
+    density = density/dsum
+ 
+    
+    avz = np.sum(z*density)
+    stdz = np.sqrt(np.sum(z**2*density) - avz**2)
+    
+    kick = data['csr_kick_per_meter'][step,:]
+    avkick = np.sum(kick*density)
+    stdkick = np.sqrt(np.sum( kick**2*density) - avkick**2)
+    
+    return avkick, stdkick, avz, stdz    
+
+
 def write_csr_wake_data_h5(h5, data, name=None):
     """
     Write parsed csr_wake data to an open h5 handle
