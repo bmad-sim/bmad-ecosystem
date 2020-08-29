@@ -1,4 +1,5 @@
 from pytao import run_tao
+from pytao.misc.csr import parse_csr_wake, write_csr_wake_data_h5
 
 from .tools import fingerprint
 
@@ -14,6 +15,7 @@ def evaluate_tao(settings,
                      ploton=False,
                     
                      beam_archive_path=None,
+                     archive_csr_wake=False,
                      workdir=None,
                      so_lib='',
                      verbose=False):
@@ -33,7 +35,9 @@ def evaluate_tao(settings,
         a file named by a fingerprint (hash) of the inputs into path beam_archive_path.
         This uses the command:
             write beam -at *
-        which writes ALL of the bunches that are saved using the beam_saved_at list in beam_init. 
+        which writes ALL of the bunches that are saved using the beam_saved_at list in beam_init.
+        
+    archive_csr_wake: if given, will look for csr_wake.dat, parse, and archive to the h5 file above.
     
     Returns a dict of expression:value, according to the expressions above, as well as 
         beam_archive if a  beam_archive_path was given.
@@ -110,6 +114,14 @@ def evaluate_tao(settings,
             for k, v in output.items():
                 if v:
                     g.attrs[k] = v
+                    
+            # CSR wake
+            csr_wake_file = os.path.join(M.path, 'csr_wake.dat')
+
+            if archive_csr_wake and os.path.exists(csr_wake_file):
+                csr_wake_data = parse_csr_wake(csr_wake_file)
+                write_csr_wake_data_h5(h5, csr_wake_data, name='csr_wake')
+                
 
         
     
