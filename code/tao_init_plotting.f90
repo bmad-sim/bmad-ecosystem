@@ -2516,17 +2516,51 @@ if (all(s%plot_page%template%name /= 'pz')) then
 endif
 
 !---------------
-! spin xyz
+! spin dn/dpz
 
-if (all(s%plot_page%template%name /= 'spin_xyz')) then
+if (all(s%plot_page%template%name /= 'spin_dn_dpz')) then
   call default_plot_init (np, plt, default_plot_g1c4)
-  plt%name                 = 'spin_xyz'
-  plt%description          = 'Spin x, y, z components & amplitude'
+  plt%name                 = 'spin_dn_dpz'
+  plt%description          = 'Spin dn/dpz (x,y,z) components & amplitude'
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title         = 'Spin x, y, z & Amplitude'
+  grph%title         = 'Spin dn/dpz (x,y,z) & Amplitude'
   grph%y%label       = 'X, Y, Z, Amp'
+
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'spin_dn_dpz.x'
+  crv%smooth_line_calc = .false.
+
+  crv => grph%curve(2)
+  crv%g => grph
+  crv%data_type     = 'spin_dn_dpz.y'
+  crv%smooth_line_calc = .false.
+
+  crv => grph%curve(3)
+  crv%g => grph
+  crv%data_type     = 'spin_dn_dpz.z'
+  crv%smooth_line_calc = .false.
+
+  crv => grph%curve(4)
+  crv%g => grph
+  crv%data_type     = 'spin_dn_dpz.amp'
+  crv%smooth_line_calc = .false.
+endif
+
+!---------------
+! spin xyz
+
+if (all(s%plot_page%template%name /= 'spin_xyz')) then
+  call default_plot_init (np, plt, default_plot_g1c3)
+  plt%name                 = 'spin_xyz'
+  plt%description          = 'Spin x, y, z components'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Spin x, y, z'
+  grph%y%label       = 'X, Y, Z'
 
   crv => grph%curve(1)
   crv%g => grph
@@ -2539,10 +2573,6 @@ if (all(s%plot_page%template%name /= 'spin_xyz')) then
   crv => grph%curve(3)
   crv%g => grph
   crv%data_type     = 'spin.z'
-
-  crv => grph%curve(4)
-  crv%g => grph
-  crv%data_type     = 'spin.amp'
 endif
 
 !---------------

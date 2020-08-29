@@ -3481,7 +3481,7 @@ case ('spin')
         expo = [0, 0, 0, 0, 0, i]
         nl=nl+1; write (lines(nl), '(a, i0, a, es18.7)') '  spin_tune_ptc.', i, ': ', real(ptc_nf%spin .sub. expo)
       enddo
-      call tao_spin_polarization_calc (branch, tao_branch%orbit, spin_pol)
+      call tao_spin_polarization_calc (branch, tao_branch, spin_pol)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Limit:          ', spin_pol%pol_limit
       nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Rate (1/sec):   ', spin_pol%pol_rate

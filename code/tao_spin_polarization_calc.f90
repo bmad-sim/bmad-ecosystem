@@ -8,13 +8,14 @@
 !
 ! Input:
 !   branch        -- branch_struct: Lattice branch to analyze.
-!   orbit(0:)     -- coord_struct: Reference orbit
+!   tao_branch    -- tao_lattice_branch_struct: Contains %orbit
 !
 ! Output:
-!   spin_pol      -- tao_spin_polarization_struct.
+!   tao_branch    -- tao_lattice_branch_struct: With %dn_dpz(:) calculated
+!   spin_pol      -- tao_spin_polarization_struct: Polarization rates.
 !-
 
-subroutine tao_spin_polarization_calc (branch, orbit, spin_pol)
+subroutine tao_spin_polarization_calc (branch, tao_branch, spin_pol)
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
@@ -26,7 +27,8 @@ use f95_lapack
 implicit none
 
 type (branch_struct), target :: branch
-type (coord_struct) :: orbit(0:)
+type (tao_lattice_branch_struct), target :: tao_branch
+type (coord_struct), pointer :: orbit(:)
 type (tao_spin_polarization_struct) spin_pol
 type (c_linear_map) :: q_1turn
 type (c_linear_map), pointer :: q1
@@ -50,9 +52,10 @@ integer pinfo, ipiv2(2), ipiv6(6)
 
 logical st_on, err
 
-
 !
 
+orbit => tao_branch%orbit
+if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_ele_track))
 spin_pol%valid_value = .true.
 
 q_1turn = 0
@@ -154,6 +157,7 @@ do ie = 0, branch%n_ele_track
   call zgesv_f95(vv, aa, ipiv6, pinfo)
   dn_ddelta = [real(sum(w_vec(:,1)* aa(:,1)), rp), 0.0_rp, real(sum(w_vec(:,2)* aa(:,1)), rp)]
   dn_ddelta = rotate_vec_given_quat (quat_lnm_to_xyz, dn_ddelta)
+  tao_branch%dn_dpz(ie)%vec = dn_ddelta
 
   !
 

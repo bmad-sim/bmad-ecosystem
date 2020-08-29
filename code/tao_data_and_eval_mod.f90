@@ -17,8 +17,8 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err,
-!                    default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
+! Subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, default_source, 
+!               default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
 !
 ! Routine to evaluate data with a lat or beam source of the form:
 !     <universe>@lat::<data_type>[<ix_ele_start>&<ix_ele>]|<component>
@@ -31,15 +31,15 @@ contains
 !   dflt_ele_start -- ele_struct, pointer, optional: Default start element.
 !   dflt_ele       -- ele_struct, pointer, optional: Default element to evaluate at.
 !   dflt_component -- character(*), optional: Default component: 'model' (default), 'base', or 'design'.
-!   dflt_uni       -- integer, optional: Default universe to use
+!   dflt_uni       -- integer, optional: Default universe to use.
 !
 ! Output:
-!   err       -- Logical: True if there is an error. False otherwise
+!   err       -- Logical: True if there is an error. False otherwise.
 !   values(:) -- Real(rp), allocatable: Array of datum valuse.
 !-
 
-subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, &
-                         default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
+subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, default_source, &
+                         dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
 
 type (tao_data_struct) datum
 type (tao_universe_struct), pointer :: u
@@ -55,7 +55,7 @@ character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 real(rp), allocatable :: values(:)
 
 integer, optional :: dflt_uni
-integer i, j, num, ix, ix1, ios, n_tot, n_loc
+integer i, j, num, ix, ix1, ios, n_tot, n_loc, iu
 
 logical err, valid, err_flag
 logical print_err, use_dflt_ele
@@ -2883,19 +2883,19 @@ case ('spin.')
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     
   case ('spin.depolarization_rate')
-    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, orbit, scratch%spin)
+    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, tao_branch, scratch%spin)
     why_invalid = scratch%spin%why_invalid
     valid_value = scratch%spin%valid_value
     datum_value = scratch%spin%depol_rate
 
   case ('spin.polarization_rate')
-    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, orbit, scratch%spin)
+    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, tao_branch, scratch%spin)
     why_invalid = scratch%spin%why_invalid
     valid_value = scratch%spin%valid_value
     datum_value = scratch%spin%pol_rate
 
   case ('spin.polarization_limit')
-    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, orbit, scratch%spin)
+    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, tao_branch, scratch%spin)
     why_invalid = scratch%spin%why_invalid
     valid_value = scratch%spin%valid_value
     datum_value = scratch%spin%pol_limit
@@ -2905,6 +2905,48 @@ case ('spin.')
     return
 
   end select
+
+!-----------
+
+case ('spin_dn_dpz.')
+
+  if (data_source == 'beam') goto 9000  ! Set error message and return
+
+  if (.not. bmad_com%spin_tracking_on) then
+    call tao_set_invalid (datum, 'NO SPIN TRACKING WHEN BMAD_COM%SPIN_TRACKING_ON = FALSE!', why_invalid)
+    return
+  endif
+
+  if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, tao_branch, scratch%spin)
+
+  select case (datum%data_type)
+  case ('spin_dn_dpz.x')
+    do i = ix_start, ix_ele
+      value_vec(i) = tao_branch%dn_dpz(i)%vec(1)
+    enddo
+    value_vec(ix_ele) = tao_branch%dn_dpz(ix_ele)%vec(1)
+  case ('spin_dn_dpz.y')
+    do i = ix_start, ix_ele
+      value_vec(i) = tao_branch%dn_dpz(i)%vec(2)
+    enddo
+    value_vec(ix_ele) = tao_branch%dn_dpz(ix_ele)%vec(2)
+  case ('spin_dn_dpz.z')
+    do i = ix_start, ix_ele
+      value_vec(i) = tao_branch%dn_dpz(i)%vec(3)
+    enddo
+    value_vec(ix_ele) = tao_branch%dn_dpz(ix_ele)%vec(3)
+  case ('spin_dn_dpz.amp')
+    do i = ix_start, ix_ele
+      value_vec(i) = norm2(tao_branch%dn_dpz(i)%vec)
+    enddo
+    value_vec(ix_ele) = norm2(tao_branch%dn_dpz(ix_ele)%vec)
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
+    return
+  end select
+
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+
 
 !-----------
 
@@ -4355,8 +4397,8 @@ parsing_loop: do
       endif
     else
       call pushit (stk%type, i_lev, numeric$)
-      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, &
-             dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, &
+             default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -4403,8 +4445,8 @@ parsing_loop: do
       return
     endif
     call pushit (stk%type, i_lev, numeric$)
-    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, &
-            dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, &
+            default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -4575,8 +4617,8 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 
 recursive &
-subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err, &
-      dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err, dflt_component, &
+      dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, param_uni)
 
 type (tao_eval_stack1_struct) stack, stack2
 type (tao_real_pointer_struct), allocatable :: re_array(:)
@@ -4588,7 +4630,7 @@ type (tao_data_struct), pointer :: d
 type (tao_var_struct), pointer :: v
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
-integer, optional :: dflt_uni
+integer, optional :: dflt_uni, param_uni
 integer ios, i, m, n, ix, ix2, ix_word, ix_uni
 
 character(*) str, saved_prefix
@@ -4640,8 +4682,8 @@ if (str(1:1) == '[' .and. index(str, ']@') == 0) then
 
   do
     call word_read (str2, ',', word2, ix_word, delim, delim_found, str2, ignore_interior = .true.)
-    call tao_param_value_routine (word2, saved_prefix, stack2, err_flag, print_err, &
-      dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+    call tao_param_value_routine (word2, saved_prefix, stack2, err_flag, print_err, dflt_component, &
+      dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
     if (err_flag) return
     m = size(stack%value)
     n = size(stack2%value)
@@ -4708,8 +4750,8 @@ endif
 ! Look for a lat datum.
 
 if (source == 'lat' .or. source == 'beam') then
-  call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, &
-                                dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
+  call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, dflt_source, &
+                                        dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = .not. err_flag
   stack%type = lat_num$

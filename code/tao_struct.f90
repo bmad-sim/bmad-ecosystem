@@ -822,6 +822,10 @@ type tao_sigma_mat_struct
   real(rp) sigma(6,6)
 end type
 
+type tao_dn_dpz_struct
+  real(rp) vec(3)    ! Spin n0 derivative wrt pz.
+end type
+
 ! For caching lattice calculations associated with plotting.
 
 type tao_plot_cache_struct
@@ -836,6 +840,7 @@ end type
 
 type tao_lattice_branch_struct
   type (summation_rdt_struct) srdt
+  type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)
   type (bunch_params_struct), allocatable :: bunch_params(:)
   type (tao_sigma_mat_struct), allocatable :: linear(:) ! Sigma matrix derived from linear lattice.
   type (coord_struct), allocatable :: orbit(:)
@@ -1084,21 +1089,27 @@ integer n1, n2, i
 !
 
 if (allocated(tlb2%bunch_params)) then
-  tlb1%bunch_params           = tlb2%bunch_params
+  tlb1%bunch_params = tlb2%bunch_params
 else
   if (allocated(tlb1%bunch_params)) deallocate(tlb1%bunch_params)
 endif
 
 if (allocated(tlb2%linear)) then
-  tlb1%linear                 = tlb2%linear
+  tlb1%linear = tlb2%linear
 else
   if (allocated(tlb1%linear)) deallocate(tlb1%linear)
 endif
 
 if (allocated(tlb2%orbit)) then
-  tlb1%orbit                  = tlb2%orbit
+  tlb1%orbit = tlb2%orbit
 else
   if (allocated(tlb1%orbit)) deallocate(tlb1%orbit)
+endif
+
+if (allocated(tlb2%dn_dpz)) then
+  tlb1%dn_dpz = tlb2%dn_dpz
+else
+  if (allocated(tlb1%dn_dpz)) deallocate(tlb1%dn_dpz)
 endif
 
 tlb1%srdt                   = tlb2%srdt
