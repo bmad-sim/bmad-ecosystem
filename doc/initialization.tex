@@ -192,7 +192,8 @@ in the array are set.
 
 {\em IMPORTANT:} The notation \vn{n*number} does not denote multiplication but instead can be used to
 denote multiple values. There should be no blank spaces here. Some compilers may accept something
-like ``2 * 34'' but you cannot count on it. Using ``2*34'' is safe.
+like ``2 * 34'' but you cannot count on it. Using ``2*34'' is safe. Also the gfortran compiler has a known
+repeat count bug.
 
 For string input it is always best to use quotes. Some compilers will accept strings without
 quotes. Even those that do will generally not accept strings with special characters.  Thus the
