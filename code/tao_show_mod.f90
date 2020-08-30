@@ -3485,6 +3485,7 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Beginning spin:', orb%spin
     else
+      ptc_nf => u%model%tao_branch(ix_branch)%ptc_normal_form
       nl=nl+1; lines(nl) = 'Spin Tune Taylor Series:'
       do i = 0, ptc_com%taylor_order_ptc
         expo = [0, 0, 0, 0, 0, i]
