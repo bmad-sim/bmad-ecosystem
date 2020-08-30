@@ -18,9 +18,9 @@
 subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
 
 use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
-use ptc_spin, only: probe, assignment(=), operator(+), internal_state, SPIN0, TOTALPATH0, &
-                                              DEFAULT, track_probe, track_probe_x, CONVERSION_XPRIME_IN_ABELL
-use s_tracking, only: DEFAULT, alloc_fibre, integration_node
+use ptc_spin, only: probe, assignment(=), operator(+), SPIN0, TOTALPATH0, &
+                                              track_probe, track_probe_x, CONVERSION_XPRIME_IN_ABELL
+use s_tracking, only: alloc_fibre, integration_node
 use mad_like, only: fibre, kill
 
 implicit none
@@ -44,7 +44,7 @@ character(20) :: r_name = 'track1_symp_lie_ptc'
 
 CONVERSION_XPRIME_IN_ABELL = (.not. bmad_com%convert_to_kinetic_momentum) ! Only affects cylindrical map eles
 
-STATE0 = DEFAULT
+STATE0 = ptc_com%base_state
 if (ptc_com%use_totalpath) STATE0 = STATE0 + TOTALPATH0
 
 STATE = STATE0

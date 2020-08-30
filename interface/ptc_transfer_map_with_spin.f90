@@ -86,7 +86,7 @@ call alloc (y0)
 t_map(:)%ref = orb0%vec
 x = orb0%vec
 
-ptc_state = DEFAULT + SPIN0
+ptc_state = ptc_com%base_state + SPIN0
 ptc_c_map = 1
 ptc_probe = orb0%vec
 ptc_probe8 = ptc_probe + ptc_c_map

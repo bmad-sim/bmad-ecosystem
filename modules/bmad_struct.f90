@@ -8,7 +8,7 @@ use random_mod
 use spline_mod
 use cubic_interpolation_mod
 
-use definition, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8
+use definition, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state
 
 private next_in_branch
 
@@ -2004,9 +2004,11 @@ type ptc_common_struct
   integer :: taylor_order_saved = 3     ! Default to use.
   logical :: complex_ptc_used = .false. ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
   logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
+  type (internal_state) :: base_state   ! Base PTC state
+  type (internal_state) :: alt_state    ! Alternative state used by some analysis routines.
 end type
 
-type (ptc_common_struct), save :: ptc_com
+type (ptc_common_struct), save, target :: ptc_com
 
 real(rp), parameter :: small_rel_change$ = 1d-14
 

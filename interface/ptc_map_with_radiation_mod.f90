@@ -91,10 +91,10 @@ if (present(err_flag)) err_flag = .true.
 call zhe_ini(bmad_com%spin_tracking_on)
 
 if (logic_option(.true., include_damping)) then
-  state = default + radiation0 + envelope0
+  state = ptc_com%base_state + radiation0 + envelope0
   map_with_rad%radiation_damping_on = .true.
 else
-  state = default + envelope0
+  state = ptc_com%base_state + envelope0
   map_with_rad%radiation_damping_on = .false.
 endif
 

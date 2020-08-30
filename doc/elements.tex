@@ -4480,12 +4480,14 @@ A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set to False)
 considered to be like a \vn{marker} element. That is, the orbit and Twiss parameters are
 unchanged when tracking through a \vn{taylor} element that is turned off.
 
-Example \vn{taylor} element definition:
+Example \vn{taylor} element definitions:
 \begin{example}
   tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, \{2:  1.9 | 1 1 2\},
               \{S1: 0.43 | 2 \}, ..., 
               ref_orbit = (0.01, 0.003, 0.002, 0.001, 0.0, 0.2)
+  t_unit: taylor \{s1: 1 | \}  ! This is the identity spin/orbital map.
 \end{example}
+And 
 
 Note: When tracking a particle's spin through a map, the quaternion used to rotate the spin is
 always normalized to one so that the magnitude of the spin will be invariant. 

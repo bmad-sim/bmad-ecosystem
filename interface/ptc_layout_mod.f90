@@ -425,7 +425,7 @@ if (include_excitation) then
   call alloc(prb8)
   call alloc(cda) 
 
-  ptc_state = DEFAULT + envelope0 + radiation0 
+  ptc_state = ptc_com%base_state + envelope0 + radiation0 
   call find_orbit_x (branch%ptc%m_t_layout, closed_orb, ptc_state, 1d-8, fibre1 = 1)
 
   cda = 1
@@ -439,7 +439,7 @@ endif
 
 ! Now set ptc_state without envelope on.
 
-ptc_state = DEFAULT
+ptc_state = ptc_com%base_state
 if (include_damping)    ptc_state = ptc_state + radiation0
 if (include_excitation) ptc_state = ptc_state + stochastic0
 
@@ -469,7 +469,7 @@ end subroutine ptc_setup_tracking_with_damping_and_excitation
 
 subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, pz)
 
-use s_fitting_new, only: default, compute_linear_one_magnet_maps, fibre, layout
+use s_fitting_new, only: compute_linear_one_magnet_maps, fibre, layout
 
 type (branch_struct) branch
 type (fibre), pointer :: ptc_fibre
@@ -482,7 +482,7 @@ integer i
 !
 
 ptc_fibre => branch%ele(1)%ptc_fibre
-call compute_linear_one_magnet_maps (ptc_fibre, DEFAULT, pz)
+call compute_linear_one_magnet_maps (ptc_fibre, ptc_com%base_state, pz)
 
 end subroutine ptc_one_turn_mat_and_closed_orbit_calc
 
@@ -493,6 +493,8 @@ end subroutine ptc_one_turn_mat_and_closed_orbit_calc
 ! Subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
 !
 ! Routine to calculate emittances, etc.
+!
+! Note: This routine calls the PTC init_all routine.
 !
 ! Input: 
 !   ele -- ele_struct: Element at which to evaluate the parameters.
@@ -539,14 +541,14 @@ endif
 
 !
 
-ptc_state = DEFAULT - NOCAVITY0 + RADIATION0
+ptc_state = ptc_com%base_state - NOCAVITY0 + RADIATION0
 
 ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
 
 ptc_state = ptc_state + ENVELOPE0
-!! call init_all(ptc_state, 1, 0)
+call init_all(ptc_state, 1, 0)
 
 call alloc (id)
 call alloc (xs)
@@ -583,6 +585,8 @@ sigma_mat = cc_norm%s_ij0
 call kill (id)
 call kill (xs)
 call kill (cc_norm)
+
+call init_all (ptc_com%base_state, ptc_com%taylor_order_ptc, 0)
 
 end subroutine ptc_emit_calc 
 
@@ -643,7 +647,7 @@ endif
 
 !
 
-ptc_state = DEFAULT - NOCAVITY0 + RADIATION0 + SPIN0
+ptc_state = ptc_com%base_state - NOCAVITY0 + RADIATION0 + SPIN0
 
 ptc_fibre => pointer_to_ptc_ref_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
@@ -816,7 +820,7 @@ do i = 1, branch%n_ele_track
   endif
 
   fib => branch%ele(i)%ptc_fibre%next
-  call track_probe_x (x, DEFAULT, branch%ele(i-1)%ptc_fibre%next, fib)
+  call track_probe_x (x, ptc_com%base_state, branch%ele(i-1)%ptc_fibre%next, fib)
   call init_coord (orbit(i), x, ele, downstream_end$)
 
   call check_aperture_limit (orbit(i), ele, second_track_edge$, branch%param)
@@ -866,9 +870,9 @@ logical, optional :: radiation_damping_on
 !
 
 if (logic_option(bmad_com%radiation_damping_on, radiation_damping_on)) then
-  ptc_state = DEFAULT + radiation0
+  ptc_state = ptc_com%base_state + radiation0
 else
-  ptc_state = DEFAULT - radiation0
+  ptc_state = ptc_com%base_state - radiation0
 endif
 
 call reallocate_coord(closed_orbit, branch%n_ele_max)
@@ -894,12 +898,9 @@ end subroutine ptc_closed_orbit_calc
 !
 ! Routine to calculate the PTC one turn map for a ring.
 !
-! Note: Use set_ptc(no_cavity = True/False) set turn on/off the RF cavities.
-! Note: use_bmad_units = T for the calculation.
-!
 ! Input:
 !   ele     -- ele_struct: Element determining start/end position for one turn map.
-!   map     -- probe_8: Must be allocated.
+!   map     -- probe_8: Will be allocated.
 !   pz      -- real(rp), optional: momentum deviation of closed orbit. 
 !                                  Default = 0
 !   order   -- integer, optional: Order of the map. If not given then default order is used.
@@ -909,6 +910,7 @@ end subroutine ptc_closed_orbit_calc
 !   map        -- probe_8: Map.
 !     %x           -- Orbital part.
 !     %q%x         -- Spin part.
+!   ptc_com%alt_state  -- PTC state to use for further calculations.
 !-
 
 subroutine ptc_one_turn_map_at_ele (ele, orb0, map, pz, order)
@@ -916,7 +918,6 @@ subroutine ptc_one_turn_map_at_ele (ele, orb0, map, pz, order)
 use madx_ptc_module
 
 type (ele_struct), target :: ele
-type (internal_state) ptc_state
 type (fibre), pointer :: fib
 type (c_damap) da_map
 type (probe_8) map
@@ -936,31 +937,35 @@ rf_on = rf_is_on(ele%branch)
 spin_on = bmad_com%spin_tracking_on
 
 if (rf_on) then
-  ptc_state = default - nocavity0
+  ptc_com%alt_state = ptc_com%base_state - nocavity0
 else
-  ptc_state = default + nocavity0
+  ptc_com%alt_state = ptc_com%base_state + nocavity0
 endif
 
-if (spin_on) ptc_state = ptc_state + spin0
+if (spin_on) ptc_com%alt_state = ptc_com%alt_state + spin0
+
+! The call to init is needed since otherwiase FPP is not properly setup and a 
+! call to something like c_normal will then bomb.
 
 map_order = integer_option(ptc_com%taylor_order_ptc, order)
-!! call init(ptc_state, map_order, 0) ! The third argument is the number of parametric variables
+call init_all (ptc_com%alt_state, map_order, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
 
 orb0 = 0
 if (present(pz)) orb0(6) = pz
 fib => ele%ptc_fibre%next
-call find_orbit_x (orb0, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
+call find_orbit_x (orb0, ptc_com%alt_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 
 ! Construct map.
 
 call alloc(da_map)
+call alloc(map)
 
 p0 = orb0
 da_map = 1
 map = da_map + p0
-call track_probe (map, ptc_state, fibre1 = fib)
+call track_probe (map, ptc_com%alt_state, fibre1 = fib)
 
 call kill(da_map)
 
@@ -1049,12 +1054,12 @@ logical :: rf_on
 !
 
 if (rf_on) then
-  state = default - nocavity0
+  state = ptc_com%base_state - nocavity0
 else
-  state = default + nocavity0
+  state = ptc_com%base_state + nocavity0
 endif
 
-!! call init (state, ptc_com%taylor_order_ptc, 0) 
+!! call init_all (state, ptc_com%taylor_order_ptc, 0) 
 call alloc(map8)
 call alloc(da_map)
 call alloc(normal)
@@ -1090,7 +1095,7 @@ call kill(map8)
 call kill(da_map)
 call kill(normal)
 
-!! call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+!! call init_all (ptc_com%base_state, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_taylors
 
@@ -1125,9 +1130,9 @@ logical :: rf_on, c_verbose_save
 order_for_normal_form = integer_option(1, order)
 
 if (rf_on) then
-  state = default - nocavity0
+  state = ptc_com%base_state - nocavity0
 else
-  state = default + nocavity0
+  state = ptc_com%base_state + nocavity0
 endif
 
 ! Set PTC state
@@ -1195,7 +1200,7 @@ call kill(complex_normal_form)
 ! Reset PTC state
 use_complex_in_ptc=my_false
 c_verbose = c_verbose_save
-!! call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+!! call init_all (ptc_com%base_state, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_complex_taylors
 
@@ -1243,9 +1248,9 @@ if (.not. allocated(normal_form%h)) return
 order_for_normal_form = integer_option(ptc_com%taylor_order_ptc, order)
 
 if (rf_on) then
-  state = default - nocavity0
+  state = ptc_com%base_state - nocavity0
 else
-  state = default + nocavity0
+  state = ptc_com%base_state + nocavity0
 endif
 
 ! Set PTC state
