@@ -300,8 +300,8 @@ end subroutine type_map1
 ! Routine to print information on a PTC internal state.
 !
 ! Input:
-!   intern_state -- Internal_state, optional: PTC state. If not present then the PTC 
-!                     state DEFAULT is used.
+!   intern_state -- Internal_state, optional: PTC state. If not present then the 
+!                     ptc_com%base_state is used.
 !
 ! Output:
 !   lines(:)  -- character(100), optional, allocatable: Character array to hold the output.
@@ -309,8 +309,6 @@ end subroutine type_map1
 !-
 
 subroutine type_ptc_internal_state (intern_state, lines, n_lines)
-
-use s_status, only: internal_state, default
 
 implicit none
 
@@ -325,7 +323,7 @@ character(100), allocatable :: li(:)
 
 !
 
-state_ptr => default
+state_ptr => ptc_com%base_state
 if (present(intern_state)) state_ptr => intern_state
 
 allocate (li(20))
@@ -1032,7 +1030,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
                         no_cavity, exact_modeling, exact_misalign, init_complex, force_init) 
 
 use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
-              assignment(=), nocavity0, default, operator(+), in_bmad_units, &
+              assignment(=), nocavity0, operator(+), in_bmad_units, &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, &
               use_info_m, check_longitudinal
@@ -1098,14 +1096,14 @@ if (init_ptc_needed .and. params_present) then
   endif
 
   ! Use PTC time tracking
-  DEFAULT = DEFAULT + TIME0
+  ptc_com%base_state = ptc_com%base_state + TIME0
   PHASE0 = 0
 endif
 
 if (present (exact_modeling))     EXACT_MODEL = exact_modeling
 if (present (exact_misalign))     ALWAYS_EXACTMIS = exact_misalign
-if (present(no_cavity))           DEFAULT = DEFAULT + NOCAVITY0
-if (bmad_com%spin_tracking_on)    DEFAULT = DEFAULT + SPIN0
+if (present(no_cavity))           ptc_com%base_state = ptc_com%base_state + NOCAVITY0
+if (bmad_com%spin_tracking_on)    ptc_com%base_state = ptc_com%base_state + SPIN0
 
 if (present (integ_order)) then
   this_method = integ_order
@@ -1154,7 +1152,7 @@ if (.not. init_ptc_needed .or. logic_option(.false., force_init)) then  ! If mak
   if (t_order == 0) t_order = ptc_com%taylor_order_saved
   if (ptc_com%taylor_order_ptc /= t_order) then
     ! Due to Bmad vs PTC units bug, call init with nocavity
-    call init (DEFAULT+NOCAVITY0, t_order, 0)
+    call init (ptc_com%base_state+NOCAVITY0, t_order, 0)
     init_spin_needed = .true.
     c_verbose_save = c_verbose
     c_verbose = .false.
@@ -1163,7 +1161,7 @@ if (.not. init_ptc_needed .or. logic_option(.false., force_init)) then  ! If mak
   endif
 
   if (ptc_com%complex_ptc_used .and. init_spin_needed) then
-    call init_all (DEFAULT, t_order, 0)
+    call init_all (ptc_com%base_state, t_order, 0)
     init_spin_needed = .false.
   endif
 endif
@@ -1193,7 +1191,7 @@ end subroutine set_ptc
 
 subroutine get_ptc_params (ptc_param)
 
-use mad_like, only: EXACT_MODEL, ALWAYS_EXACTMIS, DEFAULT, PHASE0
+use mad_like, only: EXACT_MODEL, ALWAYS_EXACTMIS, PHASE0
 
 implicit none
 
@@ -2206,7 +2204,7 @@ end subroutine concat_taylor
 
 Subroutine concat_ele_taylor (taylor1, ele, taylor3)
 
-use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=), default, real_8, fibre
+use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=), real_8, fibre
 
 implicit none
 
@@ -2266,12 +2264,12 @@ else
 endif
 
 call dtiltd (tilt, 1, x_ele)
-call mis_fib (fib, x_ele, DEFAULT, .true., entering = .true.)
+call mis_fib (fib, x_ele, ptc_com%base_state, .true., entering = .true.)
 
 x_body = ele%taylor
 
 call concat_real_8 (x_ele, x_body, x_ele)
-call mis_fib (fib, x_ele, DEFAULT, .true., entering = .false.)
+call mis_fib (fib, x_ele, ptc_com%base_state, .true., entering = .false.)
 call dtiltd (tilt, 2, x_ele)
 
 ! Concat with taylor1
@@ -2563,20 +2561,20 @@ ptc_tlr = bmad_taylor
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, upstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
+  call ptc_track (ptc_fibre, ptc_tlr, ptc_com%base_state)  ! "track" in PTC
 endif
 
 ! track the map
 
 call ele_to_fibre (ele, ptc_fibre, param, .true., track_particle = track_particle)
-call track_probe_x (ptc_tlr, DEFAULT, fibre1 = bmadl%start)
+call track_probe_x (ptc_tlr, ptc_com%base_state, fibre1 = bmadl%start)
 
 ! Track exit side drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, downstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call ptc_track (ptc_fibre, ptc_tlr, default)  ! "track" in PTC
+  call ptc_track (ptc_fibre, ptc_tlr, ptc_com%base_state)  ! "track" in PTC
 endif
 
 ! transfer ptc map back to bmad map
@@ -2718,9 +2716,9 @@ ptc_probe8 = ptc_cdamap + ptc_probe ! = IdentityMap + const
 ! 
 
 if (bmad_com%spin_tracking_on) then
-  call track_probe (ptc_probe8, DEFAULT+SPIN0, fibre1 = bmadl%start)
+  call track_probe (ptc_probe8, ptc_com%base_state+SPIN0, fibre1 = bmadl%start)
 else
-  call track_probe (ptc_probe8, DEFAULT-SPIN0, fibre1 = bmadl%start)
+  call track_probe (ptc_probe8, ptc_com%base_state-SPIN0, fibre1 = bmadl%start)
 endif
 
 do i = 0, 3
@@ -3517,7 +3515,7 @@ endif
 
 if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
   call kill_for_pancake(pancake_field)
-  call init_all (DEFAULT, ptc_com%taylor_order_saved, 0)
+  call init_all (ptc_com%base_state, ptc_com%taylor_order_saved, 0)
 endif
 
 ptc_fibre%dir = ele%orientation
