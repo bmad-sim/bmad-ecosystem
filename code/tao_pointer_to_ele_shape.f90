@@ -1,7 +1,9 @@
 !+
 ! Function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape_min) result (e_shape)
 !
-! Routine to return the shape associated with a lattice element
+! Routine to return the shape associated with a lattice element.
+!
+! Note: building_wall shapes are handled by the tao_pointer_to_building_wall_shape routine.
 !
 ! Input:
 !   ix_uni        -- integer: Universe index.
@@ -158,12 +160,12 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
       endif
     enddo
     cycle
-  elseif (prefix == '') then
-    if (.not. match_wild(ele%name, up_name)) cycle
   elseif (prefix == 'alias') then
     if (.not. match_wild(ele%alias, name)) cycle
   elseif (prefix == 'type') then
     if (.not. match_wild(ele%type, name)) cycle
+  elseif (prefix /= 'building_wall') then
+    if (.not. match_wild(ele%name, up_name)) cycle
   endif
 
   e_shape => es
