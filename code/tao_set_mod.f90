@@ -900,44 +900,52 @@ character(*), parameter :: r_name = 'tao_set_particle_start_cmd'
 logical, allocatable :: this_u(:)
 logical err
 
-! Find set_val
-
-call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
-
 !
 
 call tao_pick_universe (who, who2, this_u, err); if (err) return
 call string_trim (upcase(who2), who2, ix)
 
+if (who2 == '*') then
+  call tao_evaluate_expression (value_str, 6, .false., set_val, info, err); if (err) return
+else
+  call tao_evaluate_expression (value_str, 1, .false., set_val, info, err); if (err) return
+endif
+
+!
+
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
 
-  call pointers_to_attribute (u%model%lat, 'PARTICLE_START', who2, .true., a_ptr, err, .true.)
-  if (err) return
+  if (who2 == '*') then
+    u%model%lat%particle_start%vec = set_val
 
-  if (u%model%lat%param%geometry == closed$) then
-    ! All parameters free to vary if multi-turn orbit data is being collected.
-    write (name, '(i0, a)') iu, '@multi_turn_orbit'
-    call tao_find_data (err, name, d2_array, print_err = .false.)
-    if (size(d2_array) == 0) then
-      if (who2 == 'PZ') then
-        if (s%global%rf_on) then
-          call out_io (s_error$, r_name, 'particle_start[pz] NOT FREE TO VARY SINCE THE RF IS ON AND THE LATTICE IS CLOSED', &
-                            'TO BE ABLE TO SET PZ, USE "set global rf_on = F" OR "set branch 0 geometry = open"')
-          return
+  else
+    call pointers_to_attribute (u%model%lat, 'PARTICLE_START', who2, .true., a_ptr, err, .true.)
+    if (err) return
+
+    if (u%model%lat%param%geometry == closed$) then
+      ! All parameters free to vary if multi-turn orbit data is being collected.
+      write (name, '(i0, a)') iu, '@multi_turn_orbit'
+      call tao_find_data (err, name, d2_array, print_err = .false.)
+      if (size(d2_array) == 0) then
+        if (who2 == 'PZ') then
+          if (s%global%rf_on) then
+            call out_io (s_warn$, r_name, 'Setting particle_start[pz] will not affect lattice calculations since the rf is on and the lattice is closed.', &
+                              'Note: "set global rf_on = F" or "set branch 0 geometry = open" will change this situation.')
+          endif
+        else
+          call out_io (s_error$, r_name, 'Setting particle_start non-pz parameter will not affect lattice calculations since the lattice is closed.', &
+                              'Note: "set branch 0 geometry = open" will change this situation.')
         endif
-      else
-        call out_io (s_error$, r_name, 'particle_start PARAMETER IS NOT FREE TO VARY SINCE THE LATTICE IS CLOSED', &
-                            'TO VARY THIS ATTRIBUTE, USE "set branch 0 geometry = open"')
-        return
       endif
     endif
+
+    ! Set value
+
+    a_ptr(1)%r = set_val(1)
   endif
 
-  ! Set value
-
-  a_ptr(1)%r = set_val(1)
   call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START')
 enddo
 
@@ -1984,6 +1992,7 @@ case ('geometry')
   call tao_set_switch_value (ix, c_str, value_str, geometry_name(1:), 1, err)
   if (err) return
   branch%param%geometry = ix
+  if (ix == open$) u%model%lat%particle_start = u%model%tao_branch(branch%ix_branch)%orbit(0)
 
 case ('live_branch')
   call tao_set_logical_value (branch%param%live_branch, c_str, value_str, err)

@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_polarization_calc (branch, orbit, spin_pol)
+! Subroutine tao_spin_polarization_calc (branch, tao_branch)
 !
 ! Routine to calculate the spin equalibrium polarization in a ring along with the polarization rate and
 ! the depolarization rate due to emission of synchrotron radiation photons.
@@ -11,11 +11,12 @@
 !   tao_branch    -- tao_lattice_branch_struct: Contains %orbit
 !
 ! Output:
-!   tao_branch    -- tao_lattice_branch_struct: With %dn_dpz(:) calculated
-!   spin_pol      -- tao_spin_polarization_struct: Polarization rates.
+!   tao_branch    -- tao_lattice_branch_struct: Calculated is:
+!     %dn_dpz(:) 
+!     %spin
 !-
 
-subroutine tao_spin_polarization_calc (branch, tao_branch, spin_pol)
+subroutine tao_spin_polarization_calc (branch, tao_branch)
 
 use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
@@ -29,7 +30,6 @@ implicit none
 type (branch_struct), target :: branch
 type (tao_lattice_branch_struct), target :: tao_branch
 type (coord_struct), pointer :: orbit(:)
-type (tao_spin_polarization_struct) spin_pol
 type (c_linear_map) :: q_1turn
 type (c_linear_map), pointer :: q1
 type (c_linear_map), target :: q_ele(branch%n_ele_track)
@@ -50,13 +50,13 @@ integer ix1, ix2
 integer i, j, k, kk, n, p, ie
 integer pinfo, ipiv2(2), ipiv6(6)
 
-logical st_on, err
+logical valid_value, st_on, err
 
 !
 
 orbit => tao_branch%orbit
 if (.not. allocated(tao_branch%dn_dpz)) allocate (tao_branch%dn_dpz(0:branch%n_ele_track))
-spin_pol%valid_value = .true.
+tao_branch%spin_valid = .true.
 
 q_1turn = 0
 do ie = 1, branch%n_ele_track
@@ -201,8 +201,8 @@ call convert_pc_to ((1 + orbit(0)%vec(6)) * orbit(0)%p0c, branch%param%particle,
 
 f = f_rate * gamma**5 * cm_ratio**2 / branch%param%total_length
 
-spin_pol%pol_limit = -f_limit * integral_bn / (integral_1minus + integral_dn_ddel)
-spin_pol%pol_rate = f * (integral_1minus + integral_dn_ddel)
-spin_pol%depol_rate = f * integral_dn_ddel
+tao_branch%spin%pol_limit = -f_limit * integral_bn / (integral_1minus + integral_dn_ddel)
+tao_branch%spin%pol_rate = f * integral_1minus
+tao_branch%spin%depol_rate = f * integral_dn_ddel
 
 end subroutine tao_spin_polarization_calc
