@@ -31,7 +31,7 @@ do i = lbound(lat%branch, 1), ubound(lat%branch, 1)
     ele => branch%ele(j)
     if (.not. associated (ele%ptc_fibre)) cycle
     if (ele%bookkeeping_state%ptc /= stale$) cycle
-    call update_ptc_fibre_from_bmad (ele)
+    call update_fibre_from_ele (ele)
   enddo
 enddo
 

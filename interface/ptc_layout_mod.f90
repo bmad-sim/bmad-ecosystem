@@ -1351,7 +1351,7 @@ end subroutine write_ptc_flat_file_lattice
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine update_bmad_ele_from_ptc (ele)
+! Subroutine update_ele_from_fibre (ele)
 !
 ! Routine to update a bmad lattice element when the associated PTC fibre has been modified.
 ! Remember to call lattice_bookkeeper after calling this routine.
@@ -1363,7 +1363,7 @@ end subroutine write_ptc_flat_file_lattice
 !   ele       -- ele_struct: Modified element. 
 !-
 
-subroutine update_bmad_ele_from_ptc (ele)
+subroutine update_ele_from_fibre (ele)
 
 use precision_constants, only: volt_c
 
@@ -1544,7 +1544,7 @@ call set_flags_for_changed_attribute (ele, var)
 
 end subroutine update_this_integer
 
-end subroutine update_bmad_ele_from_ptc
+end subroutine update_ele_from_fibre
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
