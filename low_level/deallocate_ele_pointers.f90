@@ -84,6 +84,7 @@ if (associated (ele%photon))                    deallocate (ele%photon)
 if (associated (ele%mode3))                     deallocate (ele%mode3)
 if (associated (ele%wake))                      deallocate (ele%wake)
 if (associated (ele%high_energy_space_charge))  deallocate (ele%high_energy_space_charge)
+if (allocated (ele%multipole_cache))            deallocate (ele%multipole_cache)
 
 call unlink_wall3d (ele%wall3d)
 
