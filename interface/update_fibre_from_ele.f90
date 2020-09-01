@@ -1,5 +1,5 @@
 !+
-! Subroutine update_ptc_fibre_from_bmad (ele)
+! Subroutine update_fibre_from_ele (ele)
 !
 ! Routine to update a fibre when the associated Bmad ele has been modified.
 !
@@ -10,9 +10,9 @@
 !   ele%ptc_fibre -- PTC fibre.
 !-
 
-subroutine update_ptc_fibre_from_bmad (ele)
+subroutine update_fibre_from_ele (ele)
 
-use ptc_interface_mod, dum1 => update_ptc_fibre_from_bmad
+use ptc_interface_mod, dum1 => update_fibre_from_ele
 use pointer_lattice, dum2 => twopi, dum3 => pi, dum4 => sqrt
 
 type (ele_struct), target :: ele, m_ele
@@ -28,7 +28,7 @@ real(rp), pointer :: val(:)
 
 integer i, ix, ix_pole_max
 
-character(*), parameter :: r_name = 'update_ptc_fibre_from_bmad'
+character(*), parameter :: r_name = 'update_fibre_from_ele'
 
 ! "0" argument in add routine means set k/ks to value given.
 ! As opposed to "1" which means add to existing value.
@@ -214,5 +214,5 @@ to2 = value
 
 end subroutine set_logic
 
-end subroutine update_ptc_fibre_from_bmad 
+end subroutine update_fibre_from_ele
 

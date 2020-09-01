@@ -2520,7 +2520,7 @@ subroutine update_floor_angles (floor, floor0)
   type(floor_position_struct), optional :: floor0
 end subroutine update_floor_angles
 
-subroutine update_ptc_fibre_from_bmad (ele)
+subroutine update_fibre_from_ele (ele)
   import
   implicit none
   type (ele_struct) ele
