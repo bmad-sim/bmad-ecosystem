@@ -133,8 +133,8 @@ do i = 1, branch%n_ele_track
   ele => branch%ele(i)
   ele2 => branch2%ele(i)
   ele%ptc_fibre => ele2%ptc_fibre
-  call update_ptc_fibre_from_bmad (ele)
-  call update_bmad_ele_from_ptc (ele2)
+  call update_fibre_from_ele (ele)
+  call update_ele_from_fibre (ele2)
 enddo
 
 call lattice_bookkeeper (lat)
