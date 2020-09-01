@@ -463,7 +463,8 @@ do n = 0, ubound(lat%branch, 1)
     ix_shape_min = 1
     do
       call tao_ele_shape_info (isu, ele, s%plot_page%floor_plan%ele_shape, ele_shape, label_name, y1, y2, ix_shape_min)
-      !!! if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) exit   ! Nothing to draw
+      if (.not. associated(ele_shape) .and. (ele%key == overlay$ .or. &
+                                             ele%key == group$ .or. ele%key == girder$)) cycle   ! Nothing to draw
 
       if (graph%floor_plan%draw_only_first_pass .and. ele%slave_status == multipass_slave$) then
         call multipass_chain (ele, ix_pass, n_links)
