@@ -968,12 +968,12 @@ Example:
 
 Format:
 \begin{example}
-  set branch <branch> <component> = <value>
+  set branch <branch-id> <component> = <value>
 \end{example}
 
 Sets parameters associated with a lattice branch. Use the \vn{show branch} command to see the
-various parameters that can be set. \vn{<branch>} may be the branch index or branch
-name. \vn{<branch>} may also contain an optional \vn{n@} prefix to specify a particular universe
+various parameters that can be set. \vn{<branch-id>} may be the branch index or branch
+name. \vn{<branch-id>} may also contain an optional \vn{n@} prefix to specify a particular universe
 to apply the set to. The default is to only set the current viewed universe.
 
 Examples:
@@ -1383,9 +1383,10 @@ For photons, \vn{<coordinate>} may also be:
 \begin{example}
   field_x, field_y, phase_x, phase_y
 \end{example}
-For closed lattices only the \vn{pz} component is applicable. For lattices that have an \vn{e_gun}
-(which necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must
-be varied instead of \vn{pz}.
+The \vn{*} coordinate denotes the phase space vector $(x, p_x, y, p_y, z, p_z)$.  For closed
+lattices only the \vn{pz} component is applicable. For lattices that have an \vn{e_gun} (which
+necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must be
+varied instead of \vn{pz}.
 
 To see the values for \vn{particle_start} use the command \vn{show element 0}.
 

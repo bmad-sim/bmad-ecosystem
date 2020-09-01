@@ -29,16 +29,17 @@ type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele0
 type (ele_struct) ele3
+type (tao_lattice_struct), pointer :: tao_lat
 type (coord_struct) orb
 type (coord_struct), pointer :: orb0
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
-type (tao_lattice_branch_struct), pointer :: tao_branch(:)
+type (tao_lattice_branch_struct), pointer :: tao_branch
 
 character(*) param_name
 character(*) dflt_source
 character(*), optional :: dflt_component
-character(60) name, class_ele, parameter, component
+character(60) name, class_ele, parameter, component, why_invalid
 character(*), parameter :: r_name = 'tao_evaluate_element_parameters'
 
 real(rp), allocatable :: values(:)
@@ -137,22 +138,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
     ib = scratch%eles(j)%ele%ix_branch
     select case (component)
-    case ('model')
-      lat => u%model%lat
-      tao_branch => u%model%tao_branch
-      branch => u%model%lat%branch(ib)
-    case ('base')
-      lat => u%base%lat
-      tao_branch => u%base%tao_branch
-      branch => u%base%lat%branch(ib)
-    case ('design')
-      lat => u%design%lat
-      tao_branch => u%design%tao_branch
-      branch => u%design%lat%branch(ib)
+    case ('model');     tao_lat => u%model
+    case ('base');      tao_lat => u%base
+    case ('design');    tao_lat => u%design
     case default
       call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
       return
     end select
+
+      lat        => tao_lat%lat
+      tao_branch => tao_lat%tao_branch(ib)
+      branch     => lat%branch(ib)
 
     if (where /= end$ .and. ixe /= 0) then
       ! Need to find element just before the element under consideration. 
@@ -163,7 +159,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         ele0 => pointer_to_slave(ele0, 1)
       enddo
       ele0 => pointer_to_next_ele(ele0, -1)
-      orb0 => tao_branch(ele0%ix_branch)%orbit(ele0%ix_ele)
+      orb0 => tao_lat%tao_branch(ele0%ix_branch)%orbit(ele0%ix_ele)
 
       if (where == middle$) then
         select case (parameter)
@@ -193,12 +189,27 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       endif
 
     else
-      call tao_orbit_value (parameter, tao_branch(ib)%orbit(ixe), values(n_tot+j), err)
-      if (err) then
-        call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
-        if (err) return
-        values(n_tot+j) = value_of_all_ptr(a_ptr)
-      endif
+      select case (parameter)
+      case ('spin_dn_dpz.x')
+        if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
+        values(n_tot+j) = tao_branch%dn_dpz(ixe)%vec(1)
+      case ('spin_dn_dpz.y')
+        if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
+        values(n_tot+j) = tao_branch%dn_dpz(ixe)%vec(2)
+      case ('spin_dn_dpz.z')
+        if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch) ;err = .not. tao_branch%spin_valid
+        values(n_tot+j) = tao_branch%dn_dpz(ixe)%vec(3)
+      case ('spin_dn_dpz.amp')
+        if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
+        values(n_tot+j) = norm2(tao_branch%dn_dpz(ixe)%vec)
+      case default
+        call tao_orbit_value (parameter, tao_branch%orbit(ixe), values(n_tot+j), err)
+        if (err) then
+          call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
+          if (err) return
+          values(n_tot+j) = value_of_all_ptr(a_ptr)
+        endif
+      end select
     endif
 
   enddo

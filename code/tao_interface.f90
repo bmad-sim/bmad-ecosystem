@@ -825,12 +825,11 @@ subroutine tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_val
 character(*) why_invalid
 end subroutine
 
-subroutine tao_spin_polarization_calc (branch, tao_branch, spin_pol)
+subroutine tao_spin_polarization_calc (branch, tao_branch)
   import
   implicit none
   type (branch_struct), target :: branch
   type (tao_lattice_branch_struct) :: tao_branch
-  type (tao_spin_polarization_struct) spin_pol
 end subroutine
 
 function tao_spin_matrices_calc_needed (data_type, data_source) result (do_calc)

@@ -780,14 +780,6 @@ type tao_spin_map_struct
   real(rp) :: mat8(8,8) = 0
 end type
 
-type tao_spin_polarization_struct
-  logical valid_value
-  character(60) why_invalid
-  real(rp) :: pol_limit = real_garbage$  ! Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
-  real(rp) :: pol_rate = real_garbage$   ! Polarization rate (1/sec).
-  real(rp) :: depol_rate = real_garbage$ ! Depolarization rate (1/sec).
-end type
-
 type tao_scratch_space_struct
   type (tao_beam_shake_struct), allocatable :: cc(:)
   type (ele_pointer_struct), allocatable :: eles(:)
@@ -800,7 +792,6 @@ type tao_scratch_space_struct
   type (tao_expression_info_struct), allocatable :: info(:)
   type (tao_expression_info_struct), allocatable :: info_x(:), info_y(:), info_ix(:)
   type (tao_spin_map_struct), allocatable :: spin_map(:)
-  type (tao_spin_polarization_struct) spin
   logical, allocatable :: picked(:)
   logical, allocatable :: this_u(:)
   real(rp), allocatable :: axis1(:), axis2(:), axis3(:)
@@ -826,6 +817,12 @@ type tao_dn_dpz_struct
   real(rp) vec(3)    ! Spin n0 derivative wrt pz.
 end type
 
+type tao_spin_polarization_struct
+  real(rp) :: pol_limit = real_garbage$  ! Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
+  real(rp) :: pol_rate = real_garbage$   ! Polarization rate (1/sec).
+  real(rp) :: depol_rate = real_garbage$ ! Depolarization rate (1/sec).
+end type
+
 ! For caching lattice calculations associated with plotting.
 
 type tao_plot_cache_struct
@@ -840,6 +837,7 @@ end type
 
 type tao_lattice_branch_struct
   type (summation_rdt_struct) srdt
+  type (tao_spin_polarization_struct) spin
   type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)
   type (bunch_params_struct), allocatable :: bunch_params(:)
   type (tao_sigma_mat_struct), allocatable :: linear(:) ! Sigma matrix derived from linear lattice.
@@ -851,6 +849,7 @@ type tao_lattice_branch_struct
   integer track_state
   logical has_open_match_element
   logical :: plot_cache_valid = .false.        ! Valid plotting data cache?
+  logical :: spin_valid = .false.
   real(rp) :: cache_x_min = 0, cache_x_max = 0
   integer :: cache_n_pts = 0
   type (normal_modes_struct) modes             ! Synchrotron integrals stuff

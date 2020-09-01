@@ -218,7 +218,6 @@ end type
 type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 type (tao_expression_info_struct), allocatable, save :: info(:)
-type (tao_spin_polarization_struct) spin_pol
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
@@ -2360,14 +2359,20 @@ case ('lattice')
     column(14)  = show_lat_column_struct('ele::#[spin_z]',         'es14.6',   14, '', .false., 1.0_rp)
 
   case ('spin')
-    column( 1)  = show_lat_column_struct('#',                      'i7',        7, '', .false., 1.0_rp)
-    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
-    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false., 1.0_rp)
-    column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false., 1.0_rp)
-    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false., 1.0_rp)
-    column( 6)  = show_lat_column_struct('ele::#[spin_x]',         'es14.6',   14, '', .false., 1.0_rp)
-    column( 7)  = show_lat_column_struct('ele::#[spin_y]',         'es14.6',   14, '', .false., 1.0_rp)
-    column( 8)  = show_lat_column_struct('ele::#[spin_z]',         'es14.6',   14, '', .false., 1.0_rp)
+    column( 1)  = show_lat_column_struct('#',                        'i7',        7, '', .false., 1.0_rp)
+    column( 2)  = show_lat_column_struct('x',                        'x',         2, '', .false., 1.0_rp)
+    column( 3)  = show_lat_column_struct('ele::#[name]',             'a',         0, '', .false., 1.0_rp)
+    column( 4)  = show_lat_column_struct('ele::#[key]',              'a17',      17, '', .false., 1.0_rp)
+    column( 5)  = show_lat_column_struct('ele::#[s]',                'f10.3',    10, '', .false., 1.0_rp)
+    column( 6)  = show_lat_column_struct('ele::#[spin_x]',           'es14.6',   14, '', .false., 1.0_rp)
+    column( 7)  = show_lat_column_struct('ele::#[spin_y]',           'es14.6',   14, '', .false., 1.0_rp)
+    column( 8)  = show_lat_column_struct('ele::#[spin_z]',           'es14.6',   14, '', .false., 1.0_rp)
+    if (branch%param%geometry == closed$) then
+      column( 9)  = show_lat_column_struct('ele::#[spin_dn_dpz.x]',    'es14.6',   14, '', .false., 1.0_rp)
+      column(10)  = show_lat_column_struct('ele::#[spin_dn_dpz.y]',    'es14.6',   14, '', .false., 1.0_rp)
+      column(11)  = show_lat_column_struct('ele::#[spin_dn_dpz.z]',    'es14.6',   14, '', .false., 1.0_rp)
+      column(12)  = show_lat_column_struct('ele::#[spin_dn_dpz.amp]',  'es14.6',   14, '', .false., 1.0_rp)
+    endif
 
   case ('rad_int')
     column(1)  = show_lat_column_struct('#',                     'i7',        7, '', .false., 1.0_rp)
@@ -3478,7 +3483,7 @@ case ('spin')
     nl=nl+1; lines(nl) = 'a_anomalous_moment * gamma = ' // real_str(r, 6)
     nl=nl+1; lines(nl) = 'bmad_com components:'
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
-    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
+!!!    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
 
     if (branch%param%geometry == open$) then
       orb = tao_branch%orbit(0)
@@ -3491,11 +3496,15 @@ case ('spin')
         expo = [0, 0, 0, 0, 0, i]
         nl=nl+1; write (lines(nl), '(a, i0, a, es18.7)') '  spin_tune_ptc.', i, ': ', real(ptc_nf%spin .sub. expo)
       enddo
-      call tao_spin_polarization_calc (branch, tao_branch, spin_pol)
+      call tao_spin_polarization_calc (branch, tao_branch)
       nl=nl+1; lines(nl) = ''
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Limit:          ', spin_pol%pol_limit
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Rate (1/sec):   ', spin_pol%pol_rate
-      nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Depolarization Rate (1/sec): ', spin_pol%depol_rate
+      if (tao_branch%spin_valid) then
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Limit:        ', tao_branch%spin%pol_limit
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.2)') 'Polarization Time (min):   ', 1.0 / (60*tao_branch%spin%pol_rate)
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.2)') 'Depolarization Time (min): ', 1.0 / (60*tao_branch%spin%depol_rate)
+      else
+        nl=nl+1; lines(nl) = 'Polarization calc not valid since: ' // why_invalid
+      endif
     endif
 
     if (allocated(scratch%spin_map)) then
@@ -3520,7 +3529,7 @@ case ('spin')
     endif
 
   ! what_to_print = element
-  else
+2  else
     call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
     if (err) return
     u => s%u(ix_u)

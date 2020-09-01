@@ -2882,23 +2882,22 @@ case ('spin.')
 
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     
-  case ('spin.depolarization_rate')
-    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, tao_branch, scratch%spin)
-    why_invalid = scratch%spin%why_invalid
-    valid_value = scratch%spin%valid_value
-    datum_value = scratch%spin%depol_rate
+  case ('spin.depolarization_rate', 'spin.polarization_rate', 'spin.polarization_limit')
+    if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch)
+    valid_value = tao_branch%spin_valid
 
-  case ('spin.polarization_rate')
-    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, tao_branch, scratch%spin)
-    why_invalid = scratch%spin%why_invalid
-    valid_value = scratch%spin%valid_value
-    datum_value = scratch%spin%pol_rate
-
-  case ('spin.polarization_limit')
-    if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, tao_branch, scratch%spin)
-    why_invalid = scratch%spin%why_invalid
-    valid_value = scratch%spin%valid_value
-    datum_value = scratch%spin%pol_limit
+    if (.not. valid_value) then
+      call tao_set_invalid (datum, 'ERROR IN SPIN POLARIZAITON CALC.', why_invalid, .false.)
+      return
+    endif
+    select case (datum%data_type)
+    case ('spin.depolarization_rate')
+      datum_value = tao_branch%spin%depol_rate
+    case ('spin.polarization_rate')
+      datum_value = tao_branch%spin%pol_rate
+    case ('spin.polarization_limit')
+      datum_value = tao_branch%spin%pol_limit
+    end select
 
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
@@ -2917,7 +2916,12 @@ case ('spin_dn_dpz.')
     return
   endif
 
-  if (scratch%spin%depol_rate == real_garbage$) call tao_spin_polarization_calc(branch, tao_branch, scratch%spin)
+  if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch)
+  valid_value = tao_branch%spin_valid
+  if (.not. valid_value) then
+     call tao_set_invalid (datum, 'ERROR IN SPIN POLARIZAITON CALC.', why_invalid, .false.)
+     return
+  endif
 
   select case (datum%data_type)
   case ('spin_dn_dpz.x')
