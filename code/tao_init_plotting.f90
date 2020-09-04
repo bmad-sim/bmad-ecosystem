@@ -1252,11 +1252,11 @@ endif
 if (all(s%plot_page%template%name /= 'b_div_curl')) then
   call default_plot_init (np, plt, default_plot_g1c4)
   plt%name                 = 'b_div_curl'
-  plt%description          = 'Magnetic Field Divergence and (Curl B - (dE/dt)/c^2) Along Orbit'
+  plt%description          = 'Mag Field Divergence and (Curl B - (dE/dt)/c\u2\d) Along Orbit'
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title               = 'Magnetic Field Divergence and (Curl B - (dE/dt)/c^2) Along Orbit'
+  grph%title               = 'B-Field Div and (Curl B - (dE/dt)/c\u2\d) Along Orbit'
   grph%y%label             = 'Mag Div, Curl (T/m)'
   grph%y%label_offset= .15
 
@@ -1271,21 +1271,21 @@ if (all(s%plot_page%template%name /= 'b_div_curl')) then
   crv%name         = 'cx'
   crv%g => grph
   crv%data_type    = 'b_curl.x'
-  crv%legend_text  = '(curl B - (dE/dt)/c^2) x-component'
+  crv%legend_text  = '(curl B - (dE/dt)/c\u2\d) x-component'
   crv%units        = 'T/m'
 
   crv => grph%curve(3)
   crv%name         = 'cy'
   crv%g => grph
   crv%data_type    = 'b_curl.y'
-  crv%legend_text  = '(curl B - (dE/dt)/c^2) y-component'
+  crv%legend_text  = '(curl B - (dE/dt)/c\u2\d) y-component'
   crv%units        = 'T/m'
 
   crv => grph%curve(4)
   crv%name         = 'cz'
   crv%g => grph
   crv%data_type    = 'b_curl.z'
-  crv%legend_text  = '(curl B - (dE/dt)/c^2) z-component'
+  crv%legend_text  = '(curl B - (dE/dt)/c\u2\d) z-component'
   crv%units        = 'T/m'
 endif
  
@@ -2585,7 +2585,7 @@ if (all(s%plot_page%template%name /= 'sr_energy_loss')) then
 
   grph => plt%graph(1)
   grph%p => plt
-  grph%title         = 'Synch Rad Energy Loss [Rad_Integral:I2_E4 * r_e * mc^2 * 2 / 3]'
+  grph%title         = 'Synch Rad Energy Loss [Rad_Integral:I2_E4 * r_e * mc\u2\d * 2 / 3]'
   grph%y%label       = 'E\dLoss\u [MeV * m]'
 
   crv => grph%curve(1)
