@@ -234,15 +234,19 @@ if (a_name(1:11) == 'GRID_FIELD(') then
   g_field => ele%grid_field(n_cc)
 
   select case (a_name)
-  case ('%PHI0_FIELDMAP');  a_ptr%r => g_field%phi0_fieldmap
-  case ('%FIELD_SCALE');    a_ptr%r => g_field%field_scale
-  case ('%R0(1)');          a_ptr%r => g_field%r0(1)
-  case ('%R0(2)');          a_ptr%r => g_field%r0(2)
-  case ('%R0(3)');          a_ptr%r => g_field%r0(3)
-  case ('%DR(1)');          a_ptr%r => g_field%dr(1)
-  case ('%DR(2)');          a_ptr%r => g_field%dr(2)
-  case ('%DR(3)');          a_ptr%r => g_field%dr(3)
-  case default;           goto 9000
+  case ('%INTERPOLATION_ORDER');  a_ptr%i => g_field%interpolation_order
+  case ('%HARMONIC');             a_ptr%i => g_field%harmonic
+  case ('%GEOMETRY');             a_ptr%i => g_field%geometry
+  case ('%ELE_ANCHOR_PT');        a_ptr%i => g_field%ele_anchor_pt
+  case ('%PHI0_FIELDMAP');        a_ptr%r => g_field%phi0_fieldmap
+  case ('%FIELD_SCALE');          a_ptr%r => g_field%field_scale
+  case ('%R0(1)');                a_ptr%r => g_field%r0(1)
+  case ('%R0(2)');                a_ptr%r => g_field%r0(2)
+  case ('%R0(3)');                a_ptr%r => g_field%r0(3)
+  case ('%DR(1)');                a_ptr%r => g_field%dr(1)
+  case ('%DR(2)');                a_ptr%r => g_field%dr(2)
+  case ('%DR(3)');                a_ptr%r => g_field%dr(3)
+  case default;                   goto 9000
   end select
 
   err_flag = .false.
@@ -251,7 +255,7 @@ if (a_name(1:11) == 'GRID_FIELD(') then
 endif
 
 !--------------------
-! grid_field
+! taylor_field
 
 if (a_name(1:13) == 'TAYLOR_FIELD(') then
   if (.not. associated(ele%taylor_field)) goto 9130

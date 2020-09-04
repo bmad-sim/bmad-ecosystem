@@ -2292,7 +2292,8 @@ A \vn{grid_field} is grid of field points specified using the syntax:
     field_type       = <String>,    ! Type of field: Default = Mixed.
     field_scale      = <Real>,      ! Scale factor for the E & B fields.
     phi0_fieldmap    = <Real>,      ! Phase of oscillations.
-    harmonic         = <Integer>,   ! RF frequency harmonic number 
+    harmonic         = <Int>,       ! RF frequency harmonic number 
+    interpolation_order = <Int>,    ! 1 (default) or 3 interpolation polynomial order.
     master_parameter = <Name>,      ! Master scaling parameter for E & B fields.
     curved_ref_frame = <Logical>,   ! Use a curved reference frame with bends?
     r0   = (...),                   ! Grid origin. Syntax is \vn{geometry} dependent.
@@ -2415,6 +2416,13 @@ with the file \vn{apex_gun_grid.bmad} being:
     pt(0,1) = ( (0, 0), (0, 0), (0.99, 0),  (0, 0), (0, 0), (0, 0)),
     ... \}
 \end{example}
+
+The order of the polynomials used to interpolate the field is determined by the setting of
+\vn{interpolation_order}. The value of this integer may be either \vn{1} or \vn{3}. A value of
+\vn{1} is the default and gives linear interpolation.  A value of \vn{3} will give cubic
+interpolation which will be better if the field values on the grid are smooth and well behaved.
+However, a cubic interpolation will be slower and will magnify gird field errors so care should be
+taken in choosing the interpolation order.
 
 It is considered an error if the field of the grid is evaluated for a point that is transversely
 outside of the grid. That is, a grid must extend transversely to the aperture or at least beyond the
