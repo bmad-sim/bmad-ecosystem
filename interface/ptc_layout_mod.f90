@@ -1382,6 +1382,7 @@ fib => ele%ptc_fibre
 branch => pointer_to_branch(ele)
 
 call update_this_real (ele%value(l$), fib%mag%p%ld)
+call update_this_real (ele%value(p0c$), 1e9_rp * fib%mag%p%p0c)
 
 if (attribute_name(ele, num_steps$) == 'NUM_STEPS') then
   call update_this_real (ele%value(num_steps$), real(fib%mag%p%nst, rp))
@@ -1399,8 +1400,11 @@ if (name(1:1) /= '!') call update_this_real (ele%value(integrator_order$), real(
 
 ! Multipole
 
-a_pole(0:n_pole_maxx) = fib%mag%an(1:n_pole_maxx+1)
-b_pole(0:n_pole_maxx) = fib%mag%bn(1:n_pole_maxx+1)
+if (associated(fib%mag%an)) then
+  nmul = size(fib%mag%an)
+  a_pole(0:nmul-1) = fib%mag%an
+  b_pole(0:nmul-1) = fib%mag%bn
+endif
 
 call multipole_ab_to_kt (a_pole, b_pole, knl, tn)
 
@@ -1409,8 +1413,9 @@ call multipole_ab_to_kt (a_pole, b_pole, knl, tn)
 if (associated(fib%mag%tp10)) then
   if (associated(fib%mag%tp10%ae)) then
     if (.not. associated(ele%a_pole_elec)) call multipole_init(ele, electric$)
-    a_pole_elec(0:n_pole_maxx) = 1d9 * VOLT_C * fib%mag%tp10%ae(1:n_pole_maxx+1)
-    b_pole_elec(0:n_pole_maxx) = 1d9 * VOLT_C * fib%mag%tp10%be(1:n_pole_maxx+1)
+    nmul = size(fib%mag%tp10%ae)
+    a_pole_elec(0:nmul-1) = 1d9 * VOLT_C * fib%mag%tp10%ae(1:n_pole_maxx+1)
+    b_pole_elec(0:nmul-1) = 1d9 * VOLT_C * fib%mag%tp10%be(1:n_pole_maxx+1)
   endif
 endif
 

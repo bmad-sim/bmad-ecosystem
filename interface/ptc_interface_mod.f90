@@ -1033,7 +1033,7 @@ use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
               assignment(=), nocavity0, operator(+), in_bmad_units, &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, &
-              use_info_m, check_longitudinal
+              use_info_m, check_longitudinal, bmad_automatic
 use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION
 
 implicit none
@@ -1061,7 +1061,8 @@ endif
 
 ! Some init
 
-USE_QUATERNION = .TRUE.
+bmad_automatic = .true. ! For c_normal calc. This enables automatic testing of whether RF is on or off.
+USE_QUATERNION = .true.
 E_MUON = bmad_com%electric_dipole_moment
 CHECK_LONGITUDINAL = .false. ! MAD-X uses the True setting.
 call in_bmad_units
