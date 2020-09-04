@@ -2061,17 +2061,17 @@ end subroutine string_attrib
 ! corresponds to is_switch$. 
 !
 ! Input:
-!   attrib_name  -- Character(*): Name of the attribute. Must be upper case.
-!   attrib_value -- Real(rp): Value of the attribute.
-!   ele          -- ele_struct: Lattice element that the attribute is contained in.
-!                     Generally only needed to determine the default value.
+!   attrib_name    -- character(*): Name of the attribute. Must be upper case.
+!   attrib_value   -- real(rp): Value of the attribute.
+!   ele            -- ele_struct: Lattice element that the attribute is contained in.
+!                       Generally only needed to determine the default value.
 !
 ! Output:
-!   attrib_val_name -- Character(40): Name corresponding to the value. Set to null_name if there is a problem.
-!   is_default      -- Logical, optional: If True then the value of the attiribute
+!   attrib_val_name -- character(40): Name corresponding to the value. Set to null_name if there is a problem.
+!   is_default      -- logical, optional: If True then the value of the attiribute
 !                        corresponds to the default value. If this argument is
 !                        present, the ele argument must also be present.
-!   name_list(:)     -- character(20), allocatable, optional: List of names the switch can take.
+!   name_list(:)    -- character(40), allocatable, optional: List of names the switch can take.
 !                         Deallocated if there is an error.
 !-
 

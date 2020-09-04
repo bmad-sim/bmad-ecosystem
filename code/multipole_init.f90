@@ -30,8 +30,9 @@ logical, optional :: zero
 !
 
 if (who == magnetic$ .or. who == all$) then
-  ! If %a_pole and %b_pole already exist then zero them if zero argument present 
-  ! and True.
+  if (allocated(ele%multipole_cache)) ele%multipole_cache%ix_pole_mag_max = invalid$
+
+  ! If %a_pole and %b_pole already exist then zero them if zero argument present and True.
 
   if (associated (ele%a_pole)) then
     if (logic_option(.false., zero)) then
@@ -40,7 +41,6 @@ if (who == magnetic$ .or. who == all$) then
     endif
 
   ! If memory not allocated then allocate and zero.
-
   else
     allocate (ele%a_pole(0:n_pole_maxx), ele%b_pole(0:n_pole_maxx))
     ele%a_pole = 0
@@ -51,8 +51,9 @@ endif
 !
 
 if (who == electric$ .or. who == all$) then
-  ! If %a_pole_elec and %b_pole_elec already exist then zero them if zero argument present 
-  ! and True.
+  if (allocated(ele%multipole_cache)) ele%multipole_cache%ix_pole_elec_max = invalid$
+
+  ! If %a_pole_elec and %b_pole_elec already exist then zero them if zero argument present and True.
 
   if (associated (ele%a_pole_elec)) then
     if (logic_option(.false., zero)) then
@@ -61,7 +62,6 @@ if (who == electric$ .or. who == all$) then
     endif
 
   ! If memory not allocated then allocate and zero.
-
   else
     allocate (ele%a_pole_elec(0:n_pole_maxx), ele%b_pole_elec(0:n_pole_maxx))
     ele%a_pole_elec = 0

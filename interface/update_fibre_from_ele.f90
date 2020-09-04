@@ -16,37 +16,68 @@ use ptc_interface_mod, dum1 => update_fibre_from_ele
 use pointer_lattice, dum2 => twopi, dum3 => pi, dum4 => sqrt
 
 type (ele_struct), target :: ele, m_ele
+type (fibre), pointer :: fib
 type (branch_struct), pointer :: branch
 type (keywords) ptc_key
 type (element), pointer :: mag
 type (elementp), pointer :: magp
-type (magnet_chart), pointer :: p, pp
+type (magnet_chart), pointer :: mp, mpp
 
 real(rp) value, hk, vk, phi_tot, fh
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) a_ptc(0:n_pole_maxx), b_ptc(0:n_pole_maxx)
 real(rp), pointer :: val(:)
 
-integer i, ix, ix_pole_max
+integer i, ix, ix_pole_max, n
 
 character(*), parameter :: r_name = 'update_fibre_from_ele'
 
-! "0" argument in add routine means set k/ks to value given.
-! As opposed to "1" which means add to existing value.
+!
 
 branch => pointer_to_branch(ele)
+fib => ele%ptc_fibre
 val => ele%value
+
+mag  => fib%mag
+magp => fib%magp
+
+mp => mag%p
+mpp => magp%p
+
+!
+
+call set_real_all (mp%ld, mpp%ld, val(l$))
+if (ele%key == sbend$) then
+  call set_real_all (mp%lc, mpp%lc, val(l_chord$))
+else
+  call set_real_all (mp%lc, mpp%lc, val(l$))
+endif
+
+call set_real_all (mp%p0c, mpp%p0c, 1e-9_rp * val(p0c$))
 
 ! Must set all poles even if zero since they might have been non-zero beforehand.
 ! Note: On ptc side bn(1) is error field when creating a fibre but is total field when fibre is being modified.	 
 
+! "0" argument in add routine means set k/ks to value given.
+! As opposed to "1" which means add to existing value.
+
 ! Magnetic
+
+if (associated(fib%mag%an)) then
+  n = size(fib%mag%an)
+  a_ptc(0:n-1) = fib%mag%an
+  b_ptc(0:n-1) = fib%mag%bn
+else
+  a_ptc = 0
+  b_ptc = 0
+endif
 
 call ele_to_ptc_magnetic_an_bn (ele, branch%param, b_pole, a_pole) ! Yes arg order is b_pole, a_pole.
 if (ele%key == sbend$) b_pole(1) = b_pole(1) + ele%value(g$)	 
 
 do i = n_pole_maxx, 0, -1
-  if (b_pole(i) /= 0) call add (ele%ptc_fibre,  (i+1), 0, b_pole(i))
-  if (a_pole(i) /= 0) call add (ele%ptc_fibre, -(i+1), 0, a_pole(i))
+  if (b_pole(i) /= b_ptc(i)) call add (fib,  (i+1), 0, b_pole(i))
+  if (a_pole(i) /= a_ptc(i)) call add (fib, -(i+1), 0, a_pole(i))
 enddo
 
 ! Electric. Notice that PTC assumes horizontally_pure bend multipoles
@@ -66,21 +97,15 @@ if (ele%key == elseparator$) then
 endif
 
 do i = 0, n_pole_maxx
-  if (b_pole(i) /= 0) call add (ele%ptc_fibre,  (i+1), 0, fh*b_pole(i), electric = .true.)
-  if (a_pole(i) /= 0) call add (ele%ptc_fibre, -(i+1), 0, fh*a_pole(i), electric = .true.)
+  if (b_pole(i) /= 0) call add (fib,  (i+1), 0, fh*b_pole(i), electric = .true.)
+  if (a_pole(i) /= 0) call add (fib, -(i+1), 0, fh*a_pole(i), electric = .true.)
 enddo
 
 ! Note: ele_to_an_bn takes care of such stuff as sextupole strength conversion so
 ! only have to worry about non-multipole components here.
 
-mag  => ele%ptc_fibre%mag
-magp => ele%ptc_fibre%magp
-
-p => mag%p
-pp => magp%p
-
-! call set_integer (p%method, pp%method, nint(val(integrator_order$)))
-! call set_integer (p%nst, pp%nst, nint(val(num_steps$)))
+! call set_integer (mp%method, mpp%method, nint(val(integrator_order$)))
+! call set_integer (mp%nst, mpp%nst, nint(val(num_steps$)))
 
 select case (ele%key)
 
@@ -121,51 +146,51 @@ end select
 
 if (ele%key == sbend$) then
   ix = nint(val(ptc_fringe_geometry$))
-  call set_logic (p%bend_fringe, pp%bend_fringe, (ix == x_invariant$))
+  call set_logic (mp%bend_fringe, mpp%bend_fringe, (ix == x_invariant$))
 
   ix = nint(val(fringe_type$))
   select case (ix)
   case (none$)
-    call set_integer (p%permfringe, pp%permfringe, 0)
+    call set_integer (mp%permfringe, mpp%permfringe, 0)
   case (basic_bend$, linear_edge$)
-    call set_integer (p%permfringe, pp%permfringe, 0)
+    call set_integer (mp%permfringe, mpp%permfringe, 0)
   case (full$)
-    call set_integer (p%permfringe, pp%permfringe, 1)
+    call set_integer (mp%permfringe, mpp%permfringe, 1)
   case (hard_edge_only$)
-    call set_integer (p%permfringe, pp%permfringe, 1)
+    call set_integer (mp%permfringe, mpp%permfringe, 1)
   case (soft_edge_only$)
-    call set_integer (p%permfringe, pp%permfringe, 2)
+    call set_integer (mp%permfringe, mpp%permfringe, 2)
   case (sad_full$)
-    call set_integer (p%permfringe, pp%permfringe, 3)
+    call set_integer (mp%permfringe, mpp%permfringe, 3)
   end select
 
 elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
-  call set_logic (p%bend_fringe, pp%bend_fringe, .false.)
+  call set_logic (mp%bend_fringe, mpp%bend_fringe, .false.)
 
   ix = nint(val(fringe_type$))
   select case (ix)
   case (none$)
-    call set_integer (p%permfringe, pp%permfringe, 0)
+    call set_integer (mp%permfringe, mpp%permfringe, 0)
   case (hard_edge_only$)
-    call set_integer (p%permfringe, pp%permfringe, 1)
+    call set_integer (mp%permfringe, mpp%permfringe, 1)
   case (soft_edge_only$)
-    call set_integer (p%permfringe, pp%permfringe, 2)
+    call set_integer (mp%permfringe, mpp%permfringe, 2)
   case (full$)
-    call set_integer (p%permfringe, pp%permfringe, 3)
+    call set_integer (mp%permfringe, mpp%permfringe, 3)
   end select
 
-  if (ele%key == sad_mult$ .and. val(l$) == 0) call set_integer (p%permfringe, pp%permfringe, 0)
+  if (ele%key == sad_mult$ .and. val(l$) == 0) call set_integer (mp%permfringe, mpp%permfringe, 0)
 endif
 
 if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
   ix = nint(val(fringe_at$))
-  call set_logic (p%kill_ent_fringe, pp%kill_ent_fringe, (ix == downstream_end$ .or. ix == no_end$))
-  call set_logic (p%kill_exi_fringe, pp%kill_exi_fringe, (ix == upstream_end$ .or. ix == no_end$))
+  call set_logic (mp%kill_ent_fringe, mpp%kill_ent_fringe, (ix == downstream_end$ .or. ix == no_end$))
+  call set_logic (mp%kill_exi_fringe, mpp%kill_exi_fringe, (ix == upstream_end$ .or. ix == no_end$))
 endif
 
 ! misalign
 
-call misalign_ele_to_fibre (ele, .true., ele%ptc_fibre)
+call misalign_ele_to_fibre (ele, .true., fib)
 
 ele%bookkeeping_state%ptc = ok$
 
