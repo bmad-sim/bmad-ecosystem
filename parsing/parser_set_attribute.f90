@@ -417,13 +417,20 @@ if (delim == '(' .and. .not. (word == 'TERM' .and. how == def$)) then
 
   call pointer_to_attribute (ele, word, how == def$, a_ptr, err_flag, .false.)
 
-  if (err_flag .or. .not. associated(a_ptr%r)) then
+  if (err_flag .or. (.not. associated(a_ptr%r) .and. .not. associated(a_ptr%i) .and. .not. associated(a_ptr%l))) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
-  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
-  a_ptr%r = value
+  if (associated(a_ptr%r)) then
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
+    a_ptr%r = value
+  elseif (associated(a_ptr%i)) then
+    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
+    a_ptr%i = nint(value)
+  else
+    call parser_get_logical (word, a_ptr%l, ele%name, delim, delim_found, err_flag)
+  endif
   return
 endif
 
