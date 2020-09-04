@@ -120,7 +120,7 @@ logical :: hypercube_integration = .true.
 real(dp) ip_mat(3,6,6),jp_mat(3,6,6),jt_mat(6,6)
 character(24)  formatlf(6)
 !-----------------------------------
-logical :: inside_normal=.false.
+logical :: inside_normal=.false.,bmad_automatic=.false.,spin_automatic=.false.
 integer i_alloc
 
 
@@ -5634,23 +5634,28 @@ endif
     f%k=0
     f%e=0
     f%s=0
- 
+ !!!!    computing the de Moivre Lattice Functions  !!!!
+ !!!!  equivalent to Ripken ones
+
+!!!!  Coefficient of vector field matrices  B**2=-H
      do i = 1,3
       f%B(i,:,:)=matmul(matmul(m%mat,jp_mat(i,:,:)),mi%mat)
      enddo
 
-
+!!!! coefficient of invariants
       do i = 1,3
       f%K(i,:,:)= -matmul(jt_mat,f%B(i,:,:))
      enddo
+!!!! coefficient of moments
      do i = 1,3
       f%E(i,:,:)= -matmul(f%B(i,:,:),jt_mat)
      enddo
+!!!!  Dispersive quantities containing zeta and eta for example
      do i = 1,3
       f%H(i,:,:)=matmul(matmul(m%mat,ip_mat(i,:,:)),mi%mat)
      enddo
 
-
+!!!!    computing the n vector using quaternion
      do i = 1,3
        q=i
        q=m*q*mi
@@ -8467,7 +8472,28 @@ end   SUBROUTINE  c_clean_yu_w
 
   END SUBROUTINE c_clean_vector_field
 
+  subroutine c_bmad_reinit(ndpt_bmad)  !,spin
+    implicit none
+    integer, intent(in) :: ndpt_bmad
+    ndptb=0
+    ndpt=ndpt_bmad
+    if(ndpt==0) then
+     ndct=0  ! 1 if coasting, otherwise 0
+     ndc2t=0  ! 2 if coasting, otherwise 0
+    else
+     ndct=1  ! 1 if coasting, otherwise 0
+     ndc2t=2  ! 2 if coasting, otherwise 0
+      ndptb=ndpt_bmad+1
+      if(mod(ndpt_bmad,2)==0) ndptb=ndpt_bmad-1  
+    endif
+    nd2t=nd2-2*rf-ndc2t   !  size of harmonic oscillators minus modulated clocks
+    ndt=nd2t/2        ! ndt number of harmonic oscillators minus modulated clocks
+    nd2harm=nd2t+2*rf  !!!!  total dimension of harmonic phase space
+    ndharm=ndt+rf  !!!! total number of harmonic planes
+q_phasor=c_phasor()
+qi_phasor=ci_phasor()
 
+end subroutine c_bmad_reinit
 
 ! typical input if code PTC is calling c_init
 !call c_init(c_%NO,c_%nd,c_%np,c_%ndpt,number_of_ac_plane,ptc=my_true)  
@@ -17926,13 +17952,55 @@ END FUNCTION FindDet
     logical dospinr,change
     type(c_spinor) n0,nr
     type(c_quaternion) qnr
-    integer mker, mkers,mdiss,mdis
+    integer mker, mkers,mdiss,mdis,ndptbmad
     if(lielib_print(13)/=0) then
      call kanalnummer(mker,"kernel.txt")
      call kanalnummer(mdis,"distortion.txt")
      call kanalnummer(mkers,"kernel_spin.txt")
      call kanalnummer(mdiss,"distortion_spin.txt")
     endif
+
+    dospinr=.false.
+    if(present(dospin)) dospinr=dospin
+
+if(bmad_automatic) then
+  if(nd2t+ndc2t/=6) then
+   write(6,*) " nd2t , ndc2t ",nd2t,ndc2t
+   write(6,*) " not BMAD on entrance, suspicious"
+  endif
+  ndptbmad=0
+    alpha=abs(xyso3%v(6).sub.'000001')
+    norm=full_abs(xyso3%v(6))
+    alpha=abs(alpha-1.0_dp)+abs(norm-1.0_dp)
+    if(alpha<1.d-12) ndptbmad=6
+     alpha=abs(xyso3%v(5).sub.'000010')
+    norm=full_abs(xyso3%v(5))
+    alpha=abs(alpha-1.0_dp)+abs(norm-1.0_dp)
+    if(alpha<1.d-12) ndptbmad=5
+  call c_bmad_reinit(ndptbmad)
+ 
+
+  if(use_quaternion) then
+    call c_full_norm_quaternion(xyso3%q,k,norm)
+    if(k==-1) dospinr=.true.
+  else
+   call c_full_norm_spin(xyso3%s,k,norm)
+    if(k==-1) dospinr=.true.
+  endif
+endif
+
+if(spin_automatic) then
+  dospinr=.false.
+  if(use_quaternion) then
+    call c_full_norm_quaternion(xyso3%q,k,norm)
+    if(k==-1) dospinr=.true.
+  else
+   call c_full_norm_spin(xyso3%s,k,norm)
+    if(k==-1) dospinr=.true.
+  endif
+write(6,*)"dospin ", dospinr
+endif
+
 inside_normal=.true.
 !call c_count_da(i_alloc)
 !write(6,*)" entering c_normal ", i_alloc
@@ -17944,8 +18012,6 @@ inside_normal=.true.
        if(complex_extra_order==1.and.special_extra_order_1) not=not-1
     endif
 
-    dospinr=.false.
-    if(present(dospin)) dospinr=dospin
     call alloc(xy);
     xy=xyso3
     if(use_quaternion_in_so3.and.(.not.use_quaternion.and.dospinr)) then
