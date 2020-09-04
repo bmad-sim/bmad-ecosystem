@@ -3447,7 +3447,7 @@ call kill(yy); call kill(id);
          object_node1=>object_node1%next
       enddo 
       if(piotr_fix) then
-       call FIND_ORBIT_LAYOUT_noda_object(FIX,STATE,eps,TURNS,fibre1=object_fibre1,total=total)
+       call FIND_ORBIT_LAYOUT_noda_object(FIX,STATE,eps,TURNS,node1=object_node1,total=total)
        else
        call FIND_ORBIT_LAYOUT_noda_object_orig(FIX,STATE,eps,TURNS,node1=object_node1,total=total)
       endif
