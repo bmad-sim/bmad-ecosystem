@@ -36,6 +36,7 @@ character(*), parameter :: r_name = 'tao_var_check'
 !
 
 do i = 1, size(eles)
+  if (.not. associated(eles(i)%ele)) cycle ! Can happen, for example with particle_start var.
   u => s%u(eles(i)%id)
   call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, .false.)
   if (err) cycle
