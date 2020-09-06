@@ -12,6 +12,7 @@ contains
 ! Subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 !
 ! Routine for determining the eigen vectors and eigen values of a matrix.
+! The eigenvectors are normalized to 1.
 !
 ! Modules needed:
 !   use eigen_mod
@@ -32,7 +33,7 @@ subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 implicit none
 
 real(rp) mat(:,:)
-real(rp) :: val(size(mat, 1)), vec(size(mat, 1), size(mat, 1))
+real(rp) :: val(size(mat, 1)), vec(size(mat, 1), size(mat, 1)), fnorm
 integer :: iv(size(mat, 1))
 
 complex(rp) eigen_val(:), eigen_vec(:,:)
@@ -73,6 +74,15 @@ do i = 2, n, 2
     return
   endif
 enddo
+
+!
+
+do i = 1, n
+  fnorm = sum(real(eigen_vec(i,:))**2) + sum(aimag(eigen_vec(i,:))**2)
+  if (fnorm /= 0) eigen_vec(i,:) = eigen_vec(i,:) / sqrt(fnorm)
+enddo
+
+
 
 error = .false.
 
