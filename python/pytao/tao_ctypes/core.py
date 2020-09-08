@@ -217,6 +217,8 @@ class TaoModel(Tao):
                 ):
 
         # Save init
+        
+        
         self.original_input_file = input_file
         self.ploton = ploton
         self.use_tempdir = use_tempdir
@@ -231,7 +233,7 @@ class TaoModel(Tao):
         self.finished = False
         self.configured = False
 
-        if os.path.exists(input_file):
+        if os.path.exists(os.path.expandvars(input_file)):
             f = full_path(input_file)
             self.original_path, self.original_input_file = os.path.split(f) # Get original path, filename
             if auto_configure:
@@ -466,16 +468,18 @@ def run_tao(settings=None,
     init_dir = os.getcwd()
     os.chdir(M.path)
     
-    if settings:
-        apply_settings(M, settings)
+    try:
+        if settings:
+            apply_settings(M, settings)
+        
+        for command in run_commands:
+            if verbose:
+                print('run command:', command)
+            M.cmd(command, exception_on_error=True)
     
-    for command in run_commands:
-        if verbose:
-            print('run command:', command)
-        M.cmd(command, exception_on_error=True)
-    
-    # Return to init_dir
-    os.chdir(init_dir)    
+    finally:
+        # Return to init_dir
+        os.chdir(init_dir)    
      
     
     return M
