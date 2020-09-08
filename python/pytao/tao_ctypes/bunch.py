@@ -39,7 +39,7 @@ def get_bunch_data(tao, ele=0, ix_universe=1, ix_branch=0, ix_bunch=1, verbose=F
     """
     
     # Get species
-    stats = get_bunch_stats(tao, ele=ele, ix_universe=ix_universe, ix_branch=ix_branch, ix_bunch=ix_bunch)
+    stats = get_bunch_stats(tao, ele=ele, ix_universe=ix_universe, ix_branch=ix_branch, ix_bunch=ix_bunch, verbose=verbose)
     species = stats['species']
     
     
