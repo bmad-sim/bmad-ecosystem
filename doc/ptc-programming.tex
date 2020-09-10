@@ -71,6 +71,8 @@ not use \vn{bmad_parser} then to use PTC it must call \vn{set_ptc}. Note that re
 PTC to a different order reinitializes PTC's internal memory so one must be careful if one
 wants to change the order in mid program.
 
+% call init vs call init_all
+
 %--------------------------------------------------------------------------
 \section{PTC Structures Compared to Bmad's}
 \label{s:ptc.structures}
@@ -278,12 +280,6 @@ the calculations. As an example of how to do this, the following minimal program
   call lat_to_ptc_layout (lat, .true.)
   als => lat%branch(0)%ptc%m_t_layout
 \end{example}
-
-%--------------------------------------------------------------------------
-\section{Initialization}
-\label{s:ptc.init}
-
-% call init vs call init_all
 
 %--------------------------------------------------------------------------
 \section{Internal_State}

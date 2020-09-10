@@ -1360,37 +1360,37 @@ end type
 ! Rule: When lat2 = lat2, lat2%surface and lat1%surface will point to the same location.
 
 type lat_struct
-  character(200) :: use_name = ''                  ! Name of lat given by USE statement
-  character(40) :: lattice = ''                    ! Lattice
-  character(40) :: machine = ''                    ! Name of the machine the lattice is for ("LHC", etc).
-  character(200) :: input_file_name = ''           ! Name of the lattice input file
-  character(80) :: title = ''                      ! General title
-  character(100), allocatable :: print_str(:)      ! Saved print statements.
+  character(200) :: use_name = ''                     ! Name of lat given by USE statement
+  character(40) :: lattice = ''                       ! Lattice
+  character(40) :: machine = ''                       ! Name of the machine the lattice is for ("LHC", etc).
+  character(200) :: input_file_name = ''              ! Name of the lattice input file
+  character(80) :: title = ''                         ! General title
+  character(100), allocatable :: print_str(:)         ! Saved print statements.
   type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
-  type (mode_info_struct) a, b, z                  ! Tunes, etc. Note: Tunes are the fractional part.
-  type (lat_param_struct) param                    ! Parameters
-  type (bookkeeping_state_struct) lord_state       ! lord bookkeeping status.
-  type (ele_struct) ele_init                       ! For use by any program
-  type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
-  type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
-  type (control_struct), allocatable :: control(:) ! Control list
-  type (coord_struct) particle_start               ! Starting particle_coords
-  type (beam_init_struct) beam_init                ! Beam initialization.
-  type (pre_tracker_struct) pre_tracker            ! For OPAL/IMPACT-T
-  type (nametable_struct) nametable                ! For quick searching by element name.
-  real(rp), allocatable :: custom(:)               ! Custom attributes.
-  integer :: version = -1                          ! Version number
-  integer :: n_ele_track                           ! Number of lat elements to track through.
-  integer :: n_ele_max                             ! Index of last valid element in %ele(:) array
-  integer :: n_control_max = 0                     ! Last index used in control_array
-  integer :: n_ic_max = 0                          ! Last index used in ic_array
-  integer :: input_taylor_order = 0                ! As set in the input file
-  integer, allocatable :: ic(:)                    ! Index to %control(:) from slaves.
-  integer :: photon_type = incoherent$             ! Or coherent$. For X-ray simulations.
-  integer :: creation_hash = 0                     ! Integer, set by bmad_parser, that will be different if 
-                                                   !   any of the lattice files have been modified.
-  logical :: absolute_time_tracking = .false.      ! Use abs. time for RF phase? Call autoscale if toggled.
-  logical :: ptc_uses_hard_edge_drifts = .false.   ! Does associated ptc layout have hard edge model drifts?
+  type (mode_info_struct), pointer :: a => null(), b => null(), z => null() ! Tunes (fractional part), etc. 
+  type (lat_param_struct), pointer :: param => null() ! Parameters
+  type (bookkeeping_state_struct) lord_state          ! lord bookkeeping status.
+  type (ele_struct) ele_init                          ! For use by any program
+  type (ele_struct), pointer ::  ele(:) => null()     ! Array of elements [=> branch(0)].
+  type (branch_struct), allocatable :: branch(:)      ! Branch(0:) array
+  type (control_struct), allocatable :: control(:)    ! Control list
+  type (coord_struct) particle_start                  ! Starting particle_coords
+  type (beam_init_struct) beam_init                   ! Beam initialization.
+  type (pre_tracker_struct) pre_tracker               ! For OPAL/IMPACT-T
+  type (nametable_struct) nametable                   ! For quick searching by element name.
+  real(rp), allocatable :: custom(:)                  ! Custom attributes.
+  integer :: version = -1                             ! Version number
+  integer, pointer :: n_ele_track => null()           ! Number of lat elements to track through.
+  integer, pointer :: n_ele_max => null()             ! Index of last valid element in %ele(:) array
+  integer :: n_control_max = 0                        ! Last index used in control_array
+  integer :: n_ic_max = 0                             ! Last index used in ic_array
+  integer :: input_taylor_order = 0                   ! As set in the input file
+  integer, allocatable :: ic(:)                       ! Index to %control(:) from slaves.
+  integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
+  integer :: creation_hash = 0                        ! Integer, set by bmad_parser, that will be different if 
+                                                      !   any of the lattice files have been modified.
+  logical :: absolute_time_tracking = .false.         ! Use abs. time for RF phase? Call autoscale if toggled.
+  logical :: ptc_uses_hard_edge_drifts = .false.      ! Does associated ptc layout have hard edge model drifts?
 end type
 
 character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']

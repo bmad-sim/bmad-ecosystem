@@ -1,18 +1,17 @@
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
 !+
 ! Subroutine transfer_branch_parameters (branch_in, branch_out)
 !
-! Subroutine to transfer the branch parameters (such as branch%name, branch%param, etc.)
-! from one branch to another. The only stuff that is not transfered are things
-! that are (or have) pointers or arrays
+! Subroutine to transfer the branch parameters (such as branch%name, branch%param, etc.) from 
+! one branch to another. Not touched are arrays and PTC related. Specifically not touched is:
+!   branch%ele(:)
+!   branch%wall3d(:)
+!   branch%ptc
 !
 ! Input:
-!   branch_in -- branch_struct: Input branch.
+!   branch_in   -- branch_struct: Input branch.
 !
 ! Output:
-!   branch_out -- branch_struct: Output branch with parameters set.
+!   branch_out  -- branch_struct: Output branch with parameters set.
 !-
 
 subroutine transfer_branch_parameters (branch_in, branch_out)
@@ -23,6 +22,9 @@ implicit none
 
 type (branch_struct), intent(in) :: branch_in
 type (branch_struct) :: branch_out
+
+! Note: branch_out inherits %ix_branch from branch_in.
+! In most cases this is fine but there are exceptions.
 
 branch_out%name           = branch_in%name
 branch_out%ix_branch      = branch_in%ix_branch
