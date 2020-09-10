@@ -32,23 +32,14 @@ integer ix_br, i
 
 ix_br = integer_option (0, ix_branch)
 
-if (ix_br == 0) then
-  call allocate_element_array (lat%ele, upper_bound, .true.)
-  if (allocated(lat%branch)) then
-    do i = 0, ubound(lat%ele, 1)
-      lat%ele(i)%branch => lat%branch(0)
-    enddo
-    lat%branch(0)%ele => lat%ele
-  endif
+call allocate_element_array (lat%branch(ix_br)%ele, upper_bound, .true.)
+if (ix_br == 0) lat%ele => lat%branch(0)%ele
 
-else
-  call allocate_element_array (lat%branch(ix_br)%ele, upper_bound, .true.)
-  do i = 0, ubound(lat%branch(ix_br)%ele, 1)
-    lat%branch(ix_br)%ele(i)%branch => lat%branch(ix_br)
-  enddo
-  lat%branch(ix_br)%ele%ix_branch = ix_br
-endif
+do i = 0, ubound(lat%branch(ix_br)%ele, 1)
+  lat%branch(ix_br)%ele(i)%branch => lat%branch(ix_br)
+enddo
 
+lat%branch(ix_br)%ele%ix_branch = ix_br
 
 end subroutine allocate_lat_ele_array
 

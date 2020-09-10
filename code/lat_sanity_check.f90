@@ -142,7 +142,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       if (slave%key /= fork$ .and. slave%key /= photon_fork$) then
         call out_io (s_fatal$, r_name, &
               'BRANCH: ' // branch%name, &
-              'HAS A FROM ELEMENT THAT IS NOT A BRANCH NOR A PHOTON_BRANCH ELEMENT: ' // slave%name)
+              'HAS A FROM ELEMENT THAT IS NOT A FORK NOR A PHOTON_FORK ELEMENT: ' // slave%name)
         err_flag = .true.
       endif
 

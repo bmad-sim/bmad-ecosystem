@@ -135,21 +135,27 @@ is analogous to how rotation matrices are combined (for more information see \ci
 \section{Invariant Spin Field}
 \label{s:isf}
 
-In a storage ring, the \vn{invariant spin field} $\bfn(\bfr, s)$
-\cite{b:spin.hoff,b:duan15}, at some phase space position $\bfr = (x, p_x, y, p_y, z, p_z)$ and at
-some point $s$ in the ring, is the continuous function with unit amplitude that satisfies
+In a storage ring, the \vn{invariant spin field} $\bfn(\bfr, s) = (n_x, n_y, n_z)$
+\cite{b:spin.hoff,b:duan15}, which is a function of phase space position $\bfr = (x, p_x, y, p_y, z,
+p_z)$ and longitudinal position $s$, is the {\em continuous function} with unit amplitude that
+satisfies
 \begin{equation}
   \bfn(\Cal M_r \bfr, s) = \Cal M_s(\bfr) \, \bfn(\bfr, s)
   \label{nmrs}
 \end{equation}
 where $\Cal M_r$ is the orbital part of the 1-turn transfer map and $\Cal M_s(\bfr)$, derived from
-T-BMT equation, is the spin part of the map which is a function of $\bfr$. In general, it is not
-straightforward to calculate $\bfn$. The exceptional case (besides the cases where there is a
-resonance) is if the particle is on the closed orbit $\bfr_0$. In this case, since $\Cal M_r \bfr_0
-= \bfr_0$, and since $\Cal M_s(\bfr)$ is a rotation matrix, \Eq{nmrs} can be solved to give the
-invariant spin field on the closed orbit which is denoted $\bfn_0$.  Over one turn, a spin on the
-closed orbit rotates around $\bfn_0$ by the angle $2 \pi \nu_0$ where $\nu_0$ is the closed-orbit
-spin tune.
+T-BMT equation, is the spin part of the map which is a function of $\bfr$. That is, the invariant
+spin field (ISF) obeys the T-BMT equation so a particle whose spin points in the direction of
+$\bfn(\bfr, s)$ at some time $t$ will, in the absence of radiation effects, always have its spin
+pointing in the direction of $\bfn(\bfr, s)$. When there are no resonances, $\bfn(\bfr, s)$ is
+unique up to a flip of sign.
+
+In general, it is not straightforward to calculate $\bfn$. The exceptional case (besides the cases
+where there is a resonance) is if the particle is on the closed orbit $\bfr_0$. In this case, since
+$\Cal M_r \bfr_0 = \bfr_0$, and since $\Cal M_s(\bfr)$ is a rotation matrix, \Eq{nmrs} can be solved
+to give the invariant spin field on the closed orbit denoted by $\bfn_0$.  Over one turn, a spin on
+the closed orbit rotates around $\bfn_0$ by the angle $2 \pi \nu_0$ where $\nu_0$ is the
+closed-orbit spin tune.
 
 Once the invariant spin field has been calculated, various quantities of interest can be
 computed. For example, given some initial distribution of spins in a beam, the maximum possible time
@@ -219,10 +225,10 @@ The \vn{SLIM} formalism\cite{b:chao.spin,b:barber99}, introduced by Alex Chao (t
 an early computer program that implemented the formalism), is a way to represent the linearized
 (that is, first order) orbital and spin transport as an $8 \cross 8$ matrix which then can be
 analyzed. The idea is to expand the transport map around the closed orbit $(\bfr_0, \bfn_0)$ where
-$\bfr_0$ is the orbital closed orbit and $\bfn_0$ is the ``spin closed orbit''. Namely the unit-vector,
-one-turn periodic solution of the Thomas-BMT equation on 
-%
-$\bfr_0$\footnote{Warning: The symbol $\hat n$ or
+$\bfr_0$ is the orbital closed orbit and $\bfn_0$ is the ``spin closed orbit''. Namely the
+unit-vector, one-turn periodic solution of the Thomas-BMT equation on $\bfr_0$\footnote
+  {
+Warning: The symbol $\hat n$ or
 $\vec n$ used in \cite{b:chao.spin,b:barber85} and other early literature to denote the periodic
 solution of the T--BMT equation on the closed orbit should be replaced by the symbol $\hat n_0$ to
 conform to the modern convention \cite{b:barber99} and thereby avoid confusion with the symbol $\hat
@@ -230,7 +236,8 @@ n$ which denotes the invariant spin field.  In addition, the symbols $\vec m$ an
 appearing, for example, in the formulae for the matrix $\bfG$ in \cite{b:barber85}, should be
 replaced by the symbols $\hat m_0$ and $\hat l_0$, namely by the modern symbols for the two
 (normally) non-periodic solutions of the T-BMT equation, which together with $\hat n_0$, form an
-orthonormal coordinate system.}.
+orthonormal coordinate system.
+  }.
 % 
 $\bfn_0$ is just the invariant spin field on the closed orbit. The formalism provides estimates of
 the equilibrium spin polarization and the rate of depolarization in electron storage rings, both
@@ -428,9 +435,10 @@ as defined in \Eq{qqqqq}. $\what q$ rotates spins in the $(\bfl_0, \bfn_0, \bfm_
 Not the $(x, y, z)$ coordinate system.]
 
 The derivative ${\partial\bfn}/\partial\delta$ is calculated from the one-turn periodic $8 \times 8$
-matrix $\widetilde \bfM$\cite{b:barber99}. Here the periodic $(\bfl(s), \bfn_0(s),
-\bfm(s))$ coordinate system must be used.  The eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$
-($j = 1, \ldots 8$) of $\widetilde \bfM$ are computed first. These eigenvectors are of the form
+matrix $\widetilde \bfM$\cite{b:barber99}. [Here the periodic $(\bfl(s), \bfn_0(s), \bfm(s))$
+coordinate system must be used since the ending coordinates for $\bfM$ must be the same as the
+starting coordinates.]  The eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$ ($j = 1, \ldots 8$) of
+$\widetilde \bfM$ are computed first. These eigenvectors are of the form
 \begin{align}
   \bfu_j &= \begin{pmatrix} \bfv_j \\ \bfw_j \end{pmatrix}, \quad j = 1, \ldots, 6
   \label{qvw} \\
@@ -443,12 +451,23 @@ the $\bfw_j$ are computed via
   \label{wdlgv}
 \end{equation}
 where $\bfI_2$ is the $2 \times 2$ unit matrix. These eigenvectors, computed at the chosen starting
-point $s1$ and are then propagated to other $s$-positions $s2$ using ${\widetilde \bfM}(s1,
-s2)$. Once the eigenvectors are computed, ${\partial \bfn}/\partial \delta$, which is computed at
-constant $x$, $p_x$, $y$, $p_y$, and $z$, is obtained via
+point $s1$ and are then propagated to other $s$-positions $s2$ using ${\widetilde \bfM}(s1, s2)$.
+
+For any set of constants $A_j$, $j = 1, \ldots, 6$, define the function $\bfn$ by
+\begin{equation}
+  \bfn\biggl( \sum_{j = 1}^6 A_j \, \bfv_j \biggr) \equiv \sum_{j = 1}^6 A_j \, \bfw_j
+\end{equation}
+This function obeys the T-BMT equation and is continuous and thus is the solution for
+the invariant spin field.\footnote
+  {
+Not shown in the equation is the component of $\bfn$ in the direction of $\bfn_0$. This is just a
+constant whose value is chosen so that $\bfn$ is properly normalized to one.
+  }
+From this, ${\partial \bfn}/\partial \delta$, which is computed taking
+the derivative at constant $x$, $p_x$, $y$, $p_y$, and $z$, is obtained via
 \begin{equation}
   \frac{\partial \bfn}{\partial \delta} = 
-  \left( \frac{\partial \alpha}{\partial \delta}, \frac{\partial \beta}{\partial \delta} \right) = 
+  \left( \frac{\partial \alpha}{\partial \delta}, \, \frac{\partial \beta}{\partial \delta} \right) = 
   \sum_{j = 1}^6 A_j \, \bfw_j
   \label{ndaw}
 \end{equation}
@@ -457,12 +476,13 @@ with the $A_j$ being computed by inverting the equation
   [0, 0, 0, 0, 0, 1]^t = \sum_{j = 1}^6 A_j \, \bfv_j
   \label{000001}
 \end{equation}
-where the superscript $t$ means transpose.
+where the superscript $t$ means transpose. Notice that for ${\partial \bfn}/\partial \delta$ the component
+in the direction of $\bfn$ is zero.
 
-As an alternative to using \Eqs{ndaw} and \eq{000001}, the usual way given in the literature is to first
-normalize the eigenvectors via \cite{b:chao79}
+In a computer program, \Eq{000001} can be easily solved. Alternatively, Chao \cite{b:chao79} gives a
+an analytical formulation where the eigenvectors are normalized in the form
 \begin{equation}
-  \bfv_j^{*t} \, \bfS \bfv_j = i, \quad j = 1, 3, 5
+  \bfv_{j+1}^{t} \, \bfS \, \bfv_j = i, \quad j = 1, 3, 5
   \label{vsvi}
 \end{equation}
 where the eigenvectors have been arranged in complex conjugate pairs with $\bfv_{j+1} = \bfv_j^*, \,
@@ -482,10 +502,11 @@ With this, ${\partial \bfn}/{\partial \delta}$ is computed via
   \frac{\partial \bfn}{\partial \delta} = i \, \sum_{j = 1}^6 \bfv_{j5}^* \, \bfw_j
   \label{ndivw}
 \end{equation}
-From a computational standpoint, the advantage of \Eq{000001} over \Eq{ndivw} is that \Eq{000001}
-can be used even if there are no synchrotron oscillations (no RF cavities) where the energy is a
-constant of the motion and the $\bfM$ orbital matrix has degenerate eigenvectors which prevent the
-normalization condition \Eq{vsvi} from being used.
+From a computational standpoint, the disadvantage of using \Eq{vsvi} and \Eq{ndivw} is that if there
+are no synchrotron oscillations, the eigenvectors cannot be put in the form \vn{vsvi}.  In this
+case, using \Eq{000001} is also problematic since the eigenvectors are degenerate. However, by
+removing the $z$ coordinate and recasting $\bfG$ to be a $7 \times 7$ matrix, \Eq{000001} may be
+used with the sum now being over $j = 1, \ldots, 5$.
 
 %-----------------------------------------------------------------   
 \section{Spinor Notation}

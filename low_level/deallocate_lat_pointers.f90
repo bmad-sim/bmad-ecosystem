@@ -21,22 +21,16 @@ integer i
 
 !
 
-if (associated (lat%ele)) then
-  call deallocate_ele_array_pointers (lat%ele)
-  call deallocate_ele_pointers (lat%ele_init)
-endif
+call deallocate_ele_pointers (lat%ele_init)
 
 if (allocated(lat%control))  deallocate (lat%control)
 if (allocated(lat%ic))       deallocate (lat%ic)
 if (allocated(lat%custom))   deallocate (lat%custom)
 
-! Do not need to deallocate stuff in lat%branch(0) since
-! these pointers have been deallocated above.
+!
 
 if (allocated (lat%branch)) then
-  call unlink_wall3d (lat%branch(0)%wall3d)
-
-  do i = 1, ubound(lat%branch, 1)
+  do i = 0, ubound(lat%branch, 1)
     call deallocate_ele_array_pointers (lat%branch(i)%ele)
     deallocate (lat%branch(i)%param, lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
     call unlink_wall3d (lat%branch(i)%wall3d)
@@ -46,8 +40,8 @@ endif
 
 !
 
-lat%n_ele_track  = -1
-lat%n_ele_max  = -1
+nullify(lat%n_ele_track)
+nullify(lat%n_ele_max)
 
 lat%nametable%n_min = 0
 lat%nametable%n_max = -1
