@@ -471,6 +471,9 @@ case (magnetic$)
         sin_t = sin(tilt)
         b_kick(0) = -hk * cos_t - vk * sin_t
         a_kick(0) = -hk * sin_t + vk * cos_t
+      else
+        b_kick(0) = -hk
+        a_kick(0) =  vk
       endif
     endif
   end select
