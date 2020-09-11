@@ -453,7 +453,7 @@ end subroutine find_indexx3
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine indexx_str (arr, index)
+! Subroutine indexx_str (str_arr, indx_arr)
 !
 ! Subroutine to sort a character array.
 ! This subroutine is used to overload the generic name indexx.
@@ -462,37 +462,37 @@ end subroutine find_indexx3
 ! See also find_indexx
 !
 ! Input:
-!   arr(:) -- character(*): Array of strings
+!   str_arr(:)  -- character(*): Array of strings
 !
 ! Output:
-!   index(:) -- integer: sorted list such that:
-!                 For all j, arr(i1) < arr(i2) where i1 = index(j), i2 = index(j+1).
+!   indx_arr(:) -- integer: sorted list such that For all j:
+!                    str_arr(i1) < str_arr(i2) where i1 = indx_arr(j), i2 = indx_arr(j+1).
 !-
 
-SUBROUTINE indexx_str(arr,index)
+SUBROUTINE indexx_str(str_arr, indx_arr)
 USE nrtype; USE nrutil, ONLY : arth,assert_eq,nrerror,swap
 
-character(*), DIMENSION(:), INTENT(IN) :: arr
-INTEGER(I4B), DIMENSION(:), INTENT(OUT) :: index
+character(*) :: str_arr(:)
+INTEGER(I4B) :: indx_arr(:)
 INTEGER(I4B), PARAMETER :: NN=15, NSTACK=50
-character(len(arr)) :: a
+character(len(str_arr)) :: a
 INTEGER(I4B) :: n,k,i,j,indext,jstack,l,r
 INTEGER(I4B), DIMENSION(NSTACK) :: istack
-n=assert_eq(size(index),size(arr),'indexx_str')
-index=arth(1,1,n)
+n=assert_eq(size(indx_arr), size(str_arr), 'indexx_str')
+indx_arr=arth(1,1,n)
 jstack=0
 l=1
 r=n
 do
   if (r-l < NN) then
     do j=l+1,r
-      indext=index(j)
-      a=arr(indext)
+      indext=indx_arr(j)
+      a=str_arr(indext)
       do i=j-1,l,-1
-        if (arr(index(i)) <= a) exit
-        index(i+1)=index(i)
+        if (str_arr(indx_arr(i)) <= a) exit
+        indx_arr(i+1)=indx_arr(i)
       end do
-      index(i+1)=indext
+      indx_arr(i+1)=indext
     end do
     if (jstack == 0) RETURN
     r=istack(jstack)
@@ -500,28 +500,28 @@ do
     jstack=jstack-2
   else
     k=(l+r)/2
-    call swap(index(k),index(l+1))
-    call icomp_xchg(index(l),index(r))
-    call icomp_xchg(index(l+1),index(r))
-    call icomp_xchg(index(l),index(l+1))
+    call swap(indx_arr(k),indx_arr(l+1))
+    call icomp_xchg(indx_arr(l),indx_arr(r))
+    call icomp_xchg(indx_arr(l+1),indx_arr(r))
+    call icomp_xchg(indx_arr(l),indx_arr(l+1))
     i=l+1
     j=r
-    indext=index(l+1)
-    a=arr(indext)
+    indext=indx_arr(l+1)
+    a=str_arr(indext)
     do
       do
         i=i+1
-        if (arr(index(i)) >= a) exit
+        if (str_arr(indx_arr(i)) >= a) exit
       end do
       do
         j=j-1
-        if (arr(index(j)) <= a) exit
+        if (str_arr(indx_arr(j)) <= a) exit
       end do
       if (j < i) exit
-      call swap(index(i),index(j))
+      call swap(indx_arr(i),indx_arr(j))
     end do
-    index(l+1)=index(j)
-    index(j)=indext
+    indx_arr(l+1)=indx_arr(j)
+    indx_arr(j)=indext
     jstack=jstack+2
     if (jstack > NSTACK) call nrerror('indexx: NSTACK too small')
     if (r-i+1 >= j-l) then
@@ -535,24 +535,25 @@ do
     end if
   end if
 end do
+
 !-----------------
-CONTAINS
-SUBROUTINE icomp_xchg(i,j)
-INTEGER(I4B), INTENT(INOUT) :: i,j
-INTEGER(I4B) :: swp
-if (arr(j) < arr(i)) then
+contains
+subroutine icomp_xchg(i,j)
+integer(i4b), intent(inout) :: i,j
+integer(i4b) :: swp
+if (str_arr(j) < str_arr(i)) then
   swp=i
   i=j
   j=swp
 end if
-END SUBROUTINE icomp_xchg
-END SUBROUTINE indexx_str
+end subroutine icomp_xchg
+end subroutine indexx_str
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine indexx_var_str (arr, index)
+! Subroutine indexx_var_str (str_arr, indx_arr)
 !
 ! Subroutine to sort a character array.
 ! This subroutine is used to overload the generic name indexx.
@@ -561,37 +562,37 @@ END SUBROUTINE indexx_str
 ! See also find_indexx
 !
 ! Input:
-!   arr(:) -- var_length_string_struct: Array of var_strings
+!   str_arr(:)  -- var_length_string_struct: Array of var_strings
 !
 ! Output:
-!   index(:) -- integer: sorted list such that:
-!                 For all j, arr(i1) < arr(i2) where i1 = index(j), i2 = index(j+1).
+!   indx_arr(:) -- integer: sorted list such that:
+!                 For all j, str_arr(i1) < str_arr(i2) where i1 = indx_arr(j), i2 = indx_arr(j+1).
 !-
 
-SUBROUTINE indexx_var_str(arr,index)
+SUBROUTINE indexx_var_str(str_arr,indx_arr)
 USE nrtype; USE nrutil, ONLY : arth,assert_eq,nrerror,swap
 
-type(var_length_string_struct), DIMENSION(:), INTENT(IN) :: arr
-INTEGER(I4B), DIMENSION(:), INTENT(OUT) :: index
-INTEGER(I4B), PARAMETER :: NN=15, NSTACK=50
+type(var_length_string_struct) :: str_arr(:)
+integer(i4b) :: indx_arr(:)
+integer(i4b), parameter :: nn=15, nstack=50
 type(var_length_string_struct) :: a
-INTEGER(I4B) :: n,k,i,j,indext,jstack,l,r
-INTEGER(I4B), DIMENSION(NSTACK) :: istack
-n=assert_eq(size(index),size(arr),'indexx_var_str')
-index=arth(1,1,n)
+integer(i4b) :: n,k,i,j,indext,jstack,l,r
+integer(i4b), dimension(nstack) :: istack
+n=assert_eq(size(indx_arr),size(str_arr),'indexx_var_str')
+indx_arr=arth(1,1,n)
 jstack=0
 l=1
 r=n
 do
   if (r-l < NN) then
     do j=l+1,r
-      indext=index(j)
-      a=arr(indext)
+      indext=indx_arr(j)
+      a=str_arr(indext)
       do i=j-1,l,-1
-        if (arr(index(i))%str <= a%str) exit
-        index(i+1)=index(i)
+        if (str_arr(indx_arr(i))%str <= a%str) exit
+        indx_arr(i+1)=indx_arr(i)
       end do
-      index(i+1)=indext
+      indx_arr(i+1)=indext
     end do
     if (jstack == 0) RETURN
     r=istack(jstack)
@@ -599,30 +600,30 @@ do
     jstack=jstack-2
   else
     k=(l+r)/2
-    call swap(index(k),index(l+1))
-    call icomp_xchg(index(l),index(r))
-    call icomp_xchg(index(l+1),index(r))
-    call icomp_xchg(index(l),index(l+1))
+    call swap(indx_arr(k),indx_arr(l+1))
+    call icomp_xchg(indx_arr(l),indx_arr(r))
+    call icomp_xchg(indx_arr(l+1),indx_arr(r))
+    call icomp_xchg(indx_arr(l),indx_arr(l+1))
     i=l+1
     j=r
-    indext=index(l+1)
-    a=arr(indext)
+    indext=indx_arr(l+1)
+    a=str_arr(indext)
     do
       do
         i=i+1
-        if (arr(index(i))%str >= a%str) exit
+        if (str_arr(indx_arr(i))%str >= a%str) exit
       end do
       do
         j=j-1
-        if (arr(index(j))%str <= a%str) exit
+        if (str_arr(indx_arr(j))%str <= a%str) exit
       end do
       if (j < i) exit
-      call swap(index(i),index(j))
+      call swap(indx_arr(i),indx_arr(j))
     end do
-    index(l+1)=index(j)
-    index(j)=indext
+    indx_arr(l+1)=indx_arr(j)
+    indx_arr(j)=indext
     jstack=jstack+2
-    if (jstack > NSTACK) call nrerror('indexx: NSTACK too small')
+    if (jstack > NSTACK) call nrerror('indx_arrx: NSTACK too small')
     if (r-i+1 >= j-l) then
       istack(jstack)=r
       istack(jstack-1)=i
@@ -634,17 +635,18 @@ do
     end if
   end if
 end do
+
 !-----------------
-CONTAINS
-SUBROUTINE icomp_xchg(i,j)
-INTEGER(I4B), INTENT(INOUT) :: i,j
-INTEGER(I4B) :: swp
-if (arr(j)%str < arr(i)%str) then
+contains
+subroutine icomp_xchg(i,j)
+integer(i4b), intent(inout) :: i,j
+integer(i4b) :: swp
+if (str_arr(j)%str < str_arr(i)%str) then
   swp=i
   i=j
   j=swp
 end if
-END SUBROUTINE icomp_xchg
-END SUBROUTINE indexx_var_str
+end subroutine icomp_xchg
+end subroutine indexx_var_str
 
 end module
