@@ -1,8 +1,6 @@
 set (EXENAME parse_test)
 
-set (SRC_FILES
-  parse_test/parse_test.f90
-)
+FILE (GLOB SRC_FILES "parse_test/*.f90")
 
 set (INC_DIRS
 )

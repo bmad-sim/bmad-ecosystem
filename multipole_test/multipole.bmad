@@ -26,9 +26,17 @@ ee: elseparator, l = 2e-3, hkick = 1e-3, vkick = 2e-3, tilt = pi/2,
       a0_elec = 1e-2, a1_elec = 2e-2, a2_elec = 3e-2, a3_elec = 4e-2, a4_elec = 5e-2, a5_elec = 6e-2,
       b0_elec = 1e-3, b1_elec = 2e-3, b2_elec = 3e-3, b3_elec = 4e-3, b4_elec = 55-3, b5_elec = 6e-3
 
-ll: line = (qq, bb, mm, ee)
+l0: line = (qq, bb, mm, ee)
 
 m1: marker, superimpose, ref = qq
 m2: marker, superimpose, ref = bb
 
-use, ll
+!
+
+b0: sbend, l = 1
+l1: line = (b0)
+l1[geometry] = open
+l1[beta_a] = 10
+l1[beta_b] = 10
+
+use, l0, l1
