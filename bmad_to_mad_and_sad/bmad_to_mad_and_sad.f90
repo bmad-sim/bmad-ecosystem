@@ -126,10 +126,10 @@ if (.not. nobpm) stop
 
 do i = 1, lat%n_ele_track
   if (lat%ele(i)%name(1:4) == 'DET_') then
-    lat%ele(i)%key = -1 ! Mark for deletion
+    lat%ele(i)%ix_ele = -1 ! Mark for deletion
     if (lat%ele(i-1)%key == drift$ .and. lat%ele(i+1)%key == drift$) then
       lat%ele(i-1)%value(l$) = lat%ele(i-1)%value(l$) + lat%ele(i+1)%value(l$)
-      lat%ele(i+1)%key = -1
+      lat%ele(i+1)%ix_ele = -1
     endif
   endif
 enddo
