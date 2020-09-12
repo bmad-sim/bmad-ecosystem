@@ -410,7 +410,7 @@ case ('rf_on')
   enddo
   s%u%calc%lattice = .true.
 case ('track_type')
-  if (value_str /= 'single' .and. value_str /= 'beam') then
+  if (unquote(value_str) /= 'single' .and. unquote(value_str) /= 'beam') then
     call out_io (s_error$, r_name, 'BAD VALUE. MUST BE "single" OR "beam".')
     return
   endif
