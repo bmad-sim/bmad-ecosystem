@@ -134,6 +134,11 @@ do ie = 0, branch%n_ele_track
   M_1turn(1:6,7:8) = 0
   M_1turn(7:8,7:8) = mat3(1:3:2,1:3:2)
 
+  if (M_1turn(6,5) == 0) then ! Eigen anal is singular without RF so put in a fix.
+    m_1turn(5,1:4) = 0
+    m_1turn(5,6) = 0
+  endif
+
   do p = 1, 6
     qq = q_1turn%q(:,p)
     qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), qq), quat_lnm_to_xyz)

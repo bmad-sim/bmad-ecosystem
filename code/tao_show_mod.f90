@@ -971,7 +971,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)    '%merit             = ', d_ptr%merit
     nl=nl+1; write(lines(nl), rmt)    '%delta_merit       = ', d_ptr%delta_merit
     nl=nl+1; write(lines(nl), rmt)    '%weight            = ', d_ptr%weight
-    if (d_ptr%data_type(1:4) == 'spin') then
+    if (d_ptr%data_type(1:14) == 'spin_g_matrix.') then
       nl=nl+1; write(lines(nl), rmt)  '%spin_axis%l       = ', d_ptr%spin_axis%l
       nl=nl+1; write(lines(nl), rmt)  '%spin_axis%n0      = ', d_ptr%spin_axis%n0
       nl=nl+1; write(lines(nl), rmt)  '%spin_axis%m       = ', d_ptr%spin_axis%m
@@ -3851,8 +3851,8 @@ case ('taylor_map', 'matrix')
     endif
 
     if (ele2_name == '') then
-      nl=nl+1; lines(nl) = 'Map from: ' // trim(branch%ele(ix1)%name)
-      nl=nl+1; lines(nl) = '    to:   ' // trim(branch%ele(ix2)%name)
+      nl=nl+1; lines(nl) = 'From: ' // trim(branch%ele(ix1)%name)
+      nl=nl+1; lines(nl) = 'To:   ' // trim(branch%ele(ix2)%name)
     endif
 
     if (n_order > 1 .or. print_ptc .or. disp_fmt == 'BMAD') then
@@ -3889,6 +3889,8 @@ case ('taylor_map', 'matrix')
         fmt = '(6f15.8, a, es12.4)'
       endif
 
+      nl=nl+1; write (lines(nl), '(a, es10.2)') 'Symplectic Error:', mat_symp_error(mat6)
+      nl=nl+1; lines(nl) = ''
       do i = 1, 6
         nl=nl+1; write(lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
       enddo
