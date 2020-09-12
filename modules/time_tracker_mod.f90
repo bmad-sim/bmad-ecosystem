@@ -200,7 +200,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   !Save track
   if ( present(track) ) then
-    !Check if we are past a save time, or if exited
+    ! Check if we are past a save time, or if exited
     if (track%ds_save <= 0 .or. (rf_time - t_save) * t_dir >= 0 .or. exit_flag) then
       ! For consistency, convert to s-coordinates for save_a_step
       save_orb = orb
@@ -208,7 +208,13 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       call save_a_step (track, ele, param, .true., save_orb, s_body, .true., rf_time = rf_time)
       ! Set next save time 
       t_save = rf_time + dt_save
-    end if
+    endif
+
+    if (dt_did == dt) then
+      track%n_ok = track%n_ok + 1
+    else
+      track%n_bad = track%n_bad + 1
+    endif
   endif
 
   ! Exit when the particle hits surface or hits wall
