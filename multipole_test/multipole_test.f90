@@ -1,6 +1,7 @@
 program multipole_test
 
 use multipole_mod
+use changed_attribute_bookkeeper
 
 implicit none
 
@@ -22,8 +23,19 @@ character(3) str
 ! Init
 
 open (1, file = 'output.now')
-call bmad_parser ('multipole.bmad', lat)
 bmad_com%auto_bookkeeper = .false.
+call bmad_parser ('multipole.bmad', lat)
+
+!
+
+ele => lat%branch(1)%ele(1)
+call multipole_ele_to_ab(ele, .false., ix_pole_max, am1, bm1, include_kicks = include_kicks$)
+ele%value(hkick$) = 0.01_rp
+call set_flags_for_changed_attribute (ele, ele%value(hkick$))
+call lattice_bookkeeper (lat)
+call multipole_ele_to_ab(ele, .false., ix_pole_max, am1, bm1, include_kicks = include_kicks$)
+
+write (1, '(a, f10.6, i4)') '"Changed" ABS 0', bm1(0), ix_pole_max
 
 !
 

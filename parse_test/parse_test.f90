@@ -41,9 +41,16 @@ if (nargs > 0) then
   stop
 endif
 
+open (1, file = 'output.now')
+
 !
 
-open (1, file = 'output.now')
+call bmad_parser('remove_eles.bmad', lat)
+lat%branch(0)%ix_branch = -1
+lat%branch(1)%ix_branch = -1
+!lat%branch(2)%ele(3)%ix_ele = -1
+call remove_eles_from_lat(lat)
+call write_bmad_lattice_file ('z.bmad', lat)
 
 !
 
@@ -98,8 +105,6 @@ do i = 1, lat%n_ele_track
   write (1, *)
 enddo
 
-!!! Test: curved coords...
-
 !
 
 call bmad_parser ('overlap.bmad', lat, make_mats6 = .false.)
@@ -108,10 +113,10 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   write (1, '(a, i0, 3a)')       '"Overlap-Lord', i, '"    STR   "', trim(lat%ele(i)%name), '"'
 enddo
 
-lat%branch(0)%ele(1)%key = -1
-lat%branch(0)%ele(4)%key = -1
-lat%branch(1)%ele(1)%key = -1
-lat%branch(2)%ele(1)%key = -1
+lat%branch(0)%ele(1)%ix_ele = -1
+lat%branch(0)%ele(4)%ix_ele = -1
+lat%branch(1)%ele(1)%ix_ele = -1
+lat%branch(2)%ele(1)%ix_ele = -1
 
 call remove_eles_from_lat (lat, .true.)
 call write_bmad_lattice_file ('overlap_out.bmad', lat)

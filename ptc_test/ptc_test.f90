@@ -15,6 +15,7 @@ implicit none
 
 type (lat_struct), target :: lat, lat2, lat3
 type (ele_struct), pointer :: ele, ele2
+type (ele_struct) ele0
 type (coord_struct), allocatable :: orbit_track(:)
 type (coord_struct) start_orb, end_orb1, end_orb2, end_orb1p, end_orb2p
 type (coord_struct) end_orb1t, end_orb2t, closed_orb, orbit
@@ -29,7 +30,6 @@ type (ptc_map_with_rad_struct) map_with_rad
 real(rp) diff_mat(6,6), diff_vec(6)
 real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0, beta1 
 real(rp) m6_to_ptc(6,6), m6_to_bmad(6,6), m6(6,6), sigma_mat(6,6)
-real(rp) a_pole, b_pole, a_pole2, b_pole2
 real(dp) b_pot, e_pot, b_field_ptc(3), e_field_ptc(3), a(3), da(3,2), x(6), z
 
 integer i, j
@@ -41,6 +41,31 @@ namelist / params / start_orb
 !
 
 open (1, file = 'output.now')
+
+!----------------------------------------------------------
+! Check information passing between bmad element and associated ptc fibre
+
+bmad_com%use_hard_edge_drifts = .false.
+
+call bmad_parser ('diff_test.bmad', lat)
+
+branch => lat%branch(0)
+call branch_to_ptc_m_u (branch, .false.)
+
+call lattice_bookkeeper (lat)
+
+do i = 1, branch%n_ele_track
+  ele => branch%ele(i)
+  ele0 = ele
+  call vary_ele_attributes(ele)
+
+  call update_fibre_from_ele (ele)
+  call update_ele_from_fibre (ele0)
+  str = 'NO-DIFF'
+  call check_if_ele_different(ele0, ele)
+
+  write (1, '(6a)') '"IN-OUT:', trim(ele%name), '" STR  "', trim(str), '"'
+enddo
 
 !----------------------------
 
@@ -111,45 +136,9 @@ print '(a, 3f14.6)','E Bmad: ', field%e
 print '(a, 3f14.6)','E Diff: ', e_field_ptc * ele%value(p0c$) - field%e
 
 !----------------------------------------------------------
-! Check information passing between bmad element and associated ptc fibre
-! Procedure: 
-!   0) branch%ele(i) and branch2%ele(i) are the same type of element but
-!      branch2 elements have zero parameter values.
-!   1) Setup ptc layout using branch2.
-!   2) Point branch%ele to same fibre as branch%ele
-!   3) Transfer attribute values from branch%ele -> ptc fibre -> branch2%ele
-!   4) Check that branch%ele and branch2%ele have same attribute values.
-
-bmad_com%use_hard_edge_drifts = .false.
+! Check information passing via flat file.
 
 call bmad_parser ('ptc_test.bmad', lat)
-
-branch => lat%branch(1)
-branch2 => lat%branch(2)
-
-call branch_to_ptc_m_u (branch2, .false.)
-
-do i = 1, branch%n_ele_track
-  ele => branch%ele(i)
-  ele2 => branch2%ele(i)
-  ele%ptc_fibre => ele2%ptc_fibre
-  call update_fibre_from_ele (ele)
-  call update_ele_from_fibre (ele2)
-enddo
-
-call lattice_bookkeeper (lat)
-
-do i = 1, branch%n_ele_track
-  ele => branch%ele(i)
-  ele2 => branch2%ele(i)
-  str = 'NO-DIFF'
-  call check_if_ele_different(ele, ele2)
-
-  write (1, '(6a)') '"IN-OUT:', trim(ele%name), '" STR  "', trim(str), '"'
-enddo
-
-!----------------------------------------------------------
-! Check information passing via flat file.
 
 call kill_ptc_layouts(lat)
 call branch_to_ptc_m_u(branch, .false.)
@@ -167,7 +156,7 @@ open (2, file = 'ptc_test.bmad')
 read (2, nml = params)
 close (2)
 
-lat%ele(3)%key = -1
+lat%ele(3)%ix_ele = -1
 call remove_eles_from_lat (lat)
 
 call track1 (start_orb, lat%ele(1), lat%param, end_orb1)
@@ -263,39 +252,86 @@ write (1, '(a, 6es10.2)') '"map_convert" ABS 1E-15', diff_vec
 !-----------------------------------------------------------------
 contains
 
+subroutine vary_ele_attributes(ele)
+
+type (ele_struct) ele
+type (ele_attribute_struct) attrib
+character(40) name
+character(40), allocatable :: name_list(:)
+
+!
+
+do j = 1, num_ele_attrib$
+  attrib = attribute_info(ele, j)
+  if (attrib%state == does_not_exist$ .or. attrib%state == private$) cycle
+  select case (attrib%kind)
+  case (is_logical$)
+    if (ele%value(j) == 0) then
+      ele%value(j) = 1
+    else
+      ele%value(j) = 0
+    endif
+  case (is_integer$)
+    ele%value(j) = 2 * ele%value(j) + 1
+  case (is_real$)
+    ele%value(j) = 1.4 * ele%value(j) + 1
+  case (is_switch$)
+    if (nint(ele%value(j)) < 2) then
+      ele%value(j) = nint(ele%value(j)) + 1
+    else
+      ele%value(j) = nint(ele%value(j)) - 1
+    endif
+  end select
+
+  call set_flags_for_changed_attribute(ele, ele%value(j))
+enddo
+
+call multipole_init(ele, all$)
+ele%b_pole(4) = ele%b_pole(3) + 1
+
+call attribute_bookkeeper (ele, .true.)
+
+end subroutine vary_ele_attributes
+
+!-----------------------------------------------------------------
+! contains
+
 subroutine check_if_ele_different(ele, ele2)
 
 type (ele_struct) ele, ele2
+type (ele_attribute_struct) attrib
+real(rp) a_pole, b_pole, a_pole2, b_pole2
+integer j
 
-!!!  do j = 1, num_ele_attrib$
-!!!    if (j == ds_step$) cycle
-!!!    if (j == num_steps$) cycle
-!!!    if (j == integrator_order$) cycle
-!!!    call check_if_different (str, ele, j, ele%value(j), ele2%value(j))
-!!!  enddo
-!!!  do j = 0, n_pole_maxx
-!!!    if (associated(ele%a_pole)) then
-!!!      a_pole = ele%a_pole(j); b_pole = ele%a_pole(j)
-!!!    else
-!!!      a_pole = 0; b_pole = 0
-!!!    endif
-!!!
-!!!    if (associated(ele2%a_pole)) then
-!!!      a_pole2 = ele2%a_pole(j); b_pole2 = ele2%a_pole(j)
-!!!    else
-!!!      a_pole2 = 0; b_pole2 = 0
-!!!    endif
-!!!
-!!!    call check_if_different (str, ele, j+a0$, a_pole, a_pole2)
-!!!    call check_if_different (str, ele, j+b0$, b_pole, b_pole2)
-!!!  enddo
+!
+
+do j = 1, num_ele_attrib$
+  attrib = attribute_info(ele, j)
+  if (attrib%name == null_name$) cycle
+  call check_if_value_different (str, ele, j, ele%value(j), ele2%value(j))
+enddo
+
+do j = 0, n_pole_maxx
+  a_pole = 0; b_pole = 0
+  a_pole2 = 0; b_pole2 = 0
+
+  if (associated(ele%a_pole)) then 
+    a_pole = ele%a_pole(j); b_pole = ele%a_pole(j)
+  endif
+  if (associated(ele2%a_pole)) then
+    a_pole2 = ele2%a_pole(j); b_pole2 = ele2%a_pole(j)
+  endif
+
+  call check_if_value_different (str, ele, j+a0$, a_pole, a_pole2)
+  call check_if_value_different (str, ele, j+b0$, b_pole, b_pole2)
+enddo
 
 end subroutine check_if_ele_different
 
 !-----------------------------------------------------------------
 ! contains
 
-subroutine check_if_different (str, ele, ix_attrib, val, val2)
+subroutine check_if_value_different (str, ele, ix_attrib, val, val2)
 
 type (ele_struct) ele
 real(rp) val, val2
@@ -320,6 +356,6 @@ endif
 
 write (str, '(a, 2es20.10)') trim(attribute_name(ele, ix_attrib)), val, val2
 
-end subroutine
+end subroutine check_if_value_different
 
 end program
