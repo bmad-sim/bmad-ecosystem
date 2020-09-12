@@ -57,10 +57,10 @@ call bmad_parser (lat_file, lat)
 do i = 1, lat%n_ele_max
   ele => lat%ele(i)
 
-  if (ele%key == marker$) ele%key = -1  ! -1 -> mark for delection
+  if (ele%key == marker$) ele%ix_ele = -1  ! -1 -> mark for delection
 
   if (ele%key == multipole$ .or. ele%key == ab_multipole$) then
-    if (all(ele%a_pole == 0) .and. all(ele%b_pole == 0)) ele%key = -1
+    if (all(ele%a_pole == 0) .and. all(ele%b_pole == 0)) ele%ix_ele = -1
   endif
 enddo
 
