@@ -361,13 +361,18 @@ do i_step = 0, n_step
     write (iu_wake, '(a, i4, f12.6)') '! Step index:', i_step
     write (iu_wake, '(a, f12.6)') '! S-position:', ele%s_start + s0_step
     write (iu_wake, '(a)') '!         Z   Charge/Meter    CSR_Kick/m       I_CSR/m      S_Source' 
-    ds_step = csr%kick_factor * csr%actual_track_step
-    do j = 1, csr_param%n_bin
-      ele0 => branch%ele(csr%kick1(j)%ix_ele_source)
-      write (iu_wake, '(f14.10, 4es14.6)') csr%slice(j)%z_center, &
-                  csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr/ds_step, &
-                  csr%kick1(j)%I_csr/ds_step, ele0%s_start + csr%kick1(j)%s_chord_source
-    enddo
+    if (allocated(csr%kick1)) then
+      ds_step = csr%kick_factor * csr%actual_track_step
+      do j = 1, csr_param%n_bin
+        ele0 => branch%ele(csr%kick1(j)%ix_ele_source)
+        write (iu_wake, '(f14.10, 4es14.6)') csr%slice(j)%z_center, &
+                    csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr/ds_step, &
+                    csr%kick1(j)%I_csr/ds_step, ele0%s_start + csr%kick1(j)%s_chord_source
+      enddo
+    elseif (i_step == 0) then
+      write (iu_wake, '(a)') 'Note: CSR wake not calculated for element: ' // ele%name
+      write (iu_wake, '(a)') '      Check settings of ele%space_charge_method and ele%csr_method.'
+    endif
     close (iu_wake)
   endif
 
