@@ -40,8 +40,6 @@ if (allocated (lat%branch)) then
   call transfer_branches (lat%branch(0:curr_ub), temp_branch)
   do i = curr_ub+1, ubound(lat%branch, 1)
     call deallocate_ele_array_pointers(lat%branch(i)%ele)
-    deallocate(lat%branch(i)%n_ele_track)
-    deallocate(lat%branch(i)%n_ele_max)
   enddo
   deallocate (lat%branch)
   allocate(lat%branch(0:ub))
@@ -62,10 +60,6 @@ do i = curr_ub+1, ub
   branch%ix_from_branch = -1
   branch%ix_from_ele = -1
   branch%ix_to_ele = -1
-  allocate(branch%n_ele_track)
-  allocate(branch%n_ele_max)
-  allocate(branch%param)
-  allocate(branch%a, branch%b, branch%z)
   call set_status_flags (branch%param%bookkeeping_state, stale$)
 end do
 

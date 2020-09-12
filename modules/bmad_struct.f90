@@ -1189,8 +1189,8 @@ type ele_struct
   real(rp), pointer :: r(:,:,:) => null()                      ! For general use. Not used by Bmad.
   integer :: key = 0                              ! key value 
   integer :: sub_key = 0                          ! Records bend input type.
-  integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
-  integer :: ix_branch = 0                        ! Index in lat%branch(:) array [0 => In lat%ele(:)].
+  integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(0:) array where n = ele%ix_branch.
+  integer :: ix_branch = 0                        ! Index in lat%branch(:) array. Note: lat%ele => lat%branch(0).
   integer :: lord_status = not_a_lord$            ! Type of lord element this is. overlay_lord$, etc.
   integer :: n_slave = 0                          ! Number of slaves (except field slaves) of this element.
   integer :: n_slave_field = 0                    ! Number of field slaves of this element
@@ -1330,12 +1330,12 @@ type branch_struct
   integer :: ix_from_branch = -1   ! -1 => No creating fork element to this branch.
   integer :: ix_from_ele = -1      ! Index of creating fork element which forks to this branch.
   integer :: ix_to_ele = -1        ! Index of element in this branch that creating fork element forks to.
-  integer, pointer :: n_ele_track => null()
-  integer, pointer :: n_ele_max => null()
+  integer :: n_ele_track
+  integer :: n_ele_max
   type (lat_struct), pointer :: lat => null()
-  type (mode_info_struct), pointer :: a => null(), b => null(), z => null() ! Note: Tunes are the fractional part.
+  type (mode_info_struct) :: a , b , z  ! Note: Tunes are the fractional part.
   type (ele_struct), pointer :: ele(:) => null()
-  type (lat_param_struct), pointer :: param => null()
+  type (lat_param_struct) :: param 
   type (wall3d_struct), pointer :: wall3d(:) => null()
   type (ptc_branch1_struct) ptc              ! Pointer to layout. Note: ptc info not transferred with "branch1 = branch2" set.
 end type

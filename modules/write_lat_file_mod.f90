@@ -2420,7 +2420,7 @@ do
       write (drift_ele%name, '(a, i0)') 'DRIFT_Z', j_count
       write (taylor_ele%name, '(a, i0)') 'SOL_QUAD', j_count
       drift_ele%value(l$) = val(l$) / 2
-      ele%key = -1 ! Mark for deletion
+      ele%ix_ele = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
       call insert_element (lat_out, drift_ele, ix_ele, branch_out%ix_branch, orbit_out)
       call insert_element (lat_out, taylor_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
@@ -2442,7 +2442,7 @@ do
           ! Remove all the slave elements and markers in between.
           call out_io (s_warn$, r_name, &
               'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
-          lord%key = -1 ! mark for deletion
+          lord%ix_ele = -1 ! mark for deletion
           call find_element_ends (lord, ele1, ele2)
           ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
           ! If the wiggler wraps around the origin we are in trouble.
@@ -2451,7 +2451,7 @@ do
             if (global_com%exit_on_error) call err_exit
           endif
           do i = ix1+1, ix2
-            branch_out%ele(i)%key = -1  ! mark for deletion
+            branch_out%ele(i)%ix_ele = -1  ! mark for deletion
           enddo
           ie2 = ie2 - (ix2 - ix1 - 1)
         else
@@ -2460,7 +2460,7 @@ do
       else
         call create_sol_quad_model (ele, lat_model)  ! NOT YET IMPLEMENTED!
       endif
-      ele%key = -1 ! Mark for deletion
+      ele%ix_ele = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
       do j = 1, lat_model%n_ele_track
         call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch_out%ix_branch, orbit_out)
@@ -3580,7 +3580,7 @@ do
       call create_planar_wiggler_model (lord, lat_model)
       ! Remove all the slave elements and markers in between.
       call out_io (s_warn$, r_name, 'Note: Not translating the markers within wiggler: ' // lord%name)
-      lord%key = -1 ! mark for deletion
+      lord%ix_ele = -1 ! mark for deletion
       call find_element_ends (lord, ele1, ele2)
       ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
       ! If the wiggler wraps around the origin we are in trouble.
@@ -3589,14 +3589,14 @@ do
         if (global_com%exit_on_error) call err_exit
       endif
       do i = ix1+1, ix2
-        branch_out%ele(i)%key = -1  ! mark for deletion
+        branch_out%ele(i)%ix_ele = -1  ! mark for deletion
       enddo
       ie2 = ie2 - (ix2 - ix1 - 1)
     else
       call create_planar_wiggler_model (ele, lat_model)
     endif
 
-    ele%key = -1 ! Mark for deletion
+    ele%ix_ele = -1 ! Mark for deletion
     call remove_eles_from_lat (lat_out)
     do j = 1, lat_model%n_ele_track
       call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch_out%ix_branch)

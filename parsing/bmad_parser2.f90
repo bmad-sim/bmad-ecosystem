@@ -690,11 +690,11 @@ if (param_ele%value(n_part$) /= real_garbage$)     lat%param%n_part = param_ele%
 
 call lat_ele_locator(extra_ele_names, lat, eles, n_loc, err)
 do i = 1, n_loc
-  eles(i)%ele%key = -1
+  eles(i)%ele%ix_ele = -1
 enddo
 
 do i = 1, lat%n_ele_max
-  if (lat%ele(i)%key == null_ele$) lat%ele(i)%key = -1 ! mark for deletion
+  if (lat%ele(i)%key == null_ele$) lat%ele(i)%ix_ele = -1 ! mark for deletion
 enddo
 
 call remove_eles_from_lat(lat)

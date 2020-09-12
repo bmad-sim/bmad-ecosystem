@@ -134,7 +134,7 @@ enddo
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do ie = 1, branch%n_ele_max
-    if (branch%ele(ie)%ixx == -1) branch%ele(ie)%key = -1
+    if (branch%ele(ie)%ixx == -1) branch%ele(ie)%ix_ele = -1
   enddo
 enddo
 

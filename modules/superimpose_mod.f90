@@ -262,7 +262,7 @@ do
       j = lat%ic(ic)
       lat%control(j)%slave%ix_ele = ix ! point to new null_ele.
     enddo
-    branch%ele(i)%key = -1  ! Mark old null_ele for deletion
+    branch%ele(i)%ix_ele = -1  ! Mark old null_ele for deletion
     call remove_eles_from_lat (lat, .false.)
     i = i - 1
     if (ix2_split > i) ix2_split = ix2_split - 1
@@ -281,7 +281,7 @@ enddo
 
 if (all_drift) then  
   do i = ix1_split+2, ix2_split    ! remove all drifts but one
-    branch%ele(i)%key = -1    ! mark for deletion
+    branch%ele(i)%ix_ele = -1    ! mark for deletion
   enddo
   call remove_eles_from_lat(lat, .false.)    ! And delete
   ix_super = ix1_split + 1
@@ -541,7 +541,7 @@ if (logic_option(.false., create_jumbo_slave)) then
 
       do j = ele0%ix_ele+1, i
         ele => branch%ele(j)
-        ele%key = -1
+        ele%ix_ele = -1
 
         ! Check lords and make sure that ele0 is a super_slave of the lord.
         ! If not, make ele0 a super_slave.
