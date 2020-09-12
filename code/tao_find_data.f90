@@ -567,8 +567,7 @@ if (present(re_array) .and.  any(component_name == real_components)) then
       case ('old', 'old_value')
         re_array(j)%r => d1%d(i)%old_value
       case ('error_rms')
-        re_array(j)%r => d1%d(i)%meas_value
-        re_array(j)%good_value => d1%d(i)%good_meas
+        re_array(j)%r => d1%d(i)%error_rms
       case ('invalid', 'invalid_value')
         re_array(j)%r => d1%d(i)%invalid_value
       case ('weight')
