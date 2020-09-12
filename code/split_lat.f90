@@ -302,7 +302,7 @@ do i = 1, super_lord%n_slave_field
   lat%control(ixc+2+i)%lord = lat_ele_loc_struct(ix_super_lord, 0)
   ix = ele%ix1_slave+ele%n_slave+i-1
   lat%control(ixc+2+i)%slave = lat%control(ix)%slave
-  lat%control(ix)%ix_attrib = int_garbage$ ! Mark for deletion with remove_eles_from_lat
+  lat%control(ix)%attribute = 'REMOVE'    ! Mark for deletion with remove_eles_from_lat
 enddo
 
 if (ele2%n_slave_field /= 0) controls_need_removing = .true.

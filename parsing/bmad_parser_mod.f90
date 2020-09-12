@@ -3246,7 +3246,7 @@ if (ref_ele%lord_status == multipass_lord$) then
     if (slave%n_lord == 1) then
       do i = 1, n_slave
         ele => pointer_to_ele (lat, m_slaves(i))
-        ele%key = -1 ! Mark for deletion
+        ele%ix_ele = -1 ! Mark for deletion
         ele => pointer_to_slave(ele, 1)
         ele%name = super_ele_saved%name
         m_slaves(i) = ele_loc(ele)

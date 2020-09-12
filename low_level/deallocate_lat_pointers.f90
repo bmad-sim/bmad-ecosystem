@@ -32,7 +32,6 @@ if (allocated(lat%custom))   deallocate (lat%custom)
 if (allocated (lat%branch)) then
   do i = 0, ubound(lat%branch, 1)
     call deallocate_ele_array_pointers (lat%branch(i)%ele)
-    deallocate (lat%branch(i)%param, lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
     call unlink_wall3d (lat%branch(i)%wall3d)
   enddo
   deallocate (lat%branch)
@@ -47,4 +46,3 @@ lat%nametable%n_min = 0
 lat%nametable%n_max = -1
 
 end subroutine deallocate_lat_pointers
-

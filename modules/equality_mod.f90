@@ -374,6 +374,8 @@ is_eq = is_eq .and. (f1%r == f2%r)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%p0c == f2%p0c)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%e_potential == f2%e_potential)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%beta == f2%beta)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
@@ -2210,6 +2212,8 @@ is_eq = is_eq .and. (f1%write_csr_wake .eqv. f2%write_csr_wake)
 is_eq = is_eq .and. (f1%use_csr_old .eqv. f2%use_csr_old)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%small_angle_approx .eqv. f2%small_angle_approx)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%wake_output_file == f2%wake_output_file)
 
 end function eq_csr_parameter
 
@@ -2631,6 +2635,8 @@ is_eq = is_eq .and. (f1%aperture_at == f2%aperture_at)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%aperture_type == f2%aperture_type)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ref_species == f2%ref_species)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%orientation == f2%orientation)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%symplectify .eqv. f2%symplectify)
@@ -2722,42 +2728,26 @@ is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
 is_eq = is_eq .and. (f1%ix_from_branch == f2%ix_from_branch)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_from_ele == f2%ix_from_ele)
-!! f_side.equality_test[integer, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%n_ele_track) .eqv. associated(f2%n_ele_track))
-if (.not. is_eq) return
-if (associated(f1%n_ele_track)) is_eq = (f1%n_ele_track == f2%n_ele_track)
-!! f_side.equality_test[integer, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%n_ele_max) .eqv. associated(f2%n_ele_max))
-if (.not. is_eq) return
-if (associated(f1%n_ele_max)) is_eq = (f1%n_ele_max == f2%n_ele_max)
-!! f_side.equality_test[type, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%a) .eqv. associated(f2%a))
-if (.not. is_eq) return
-if (associated(f1%a)) is_eq = (f1%a == f2%a)
-!! f_side.equality_test[type, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%b) .eqv. associated(f2%b))
-if (.not. is_eq) return
-if (associated(f1%b)) is_eq = (f1%b == f2%b)
-!! f_side.equality_test[type, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%z) .eqv. associated(f2%z))
-if (.not. is_eq) return
-if (associated(f1%z)) is_eq = (f1%z == f2%z)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_to_ele == f2%ix_to_ele)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_ele_track == f2%n_ele_track)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_ele_max == f2%n_ele_max)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%a == f2%a)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%b == f2%b)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%z == f2%z)
 !! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%ele) .eqv. associated(f2%ele))
 if (.not. is_eq) return
 if (associated(f1%ele)) is_eq = all(shape(f1%ele) == shape(f2%ele))
 if (.not. is_eq) return
 if (associated(f1%ele)) is_eq = all(f1%ele == f2%ele)
-!! f_side.equality_test[type, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%param) .eqv. associated(f2%param))
-if (.not. is_eq) return
-if (associated(f1%param)) is_eq = (f1%param == f2%param)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%param == f2%param)
 !! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%wall3d) .eqv. associated(f2%wall3d))
 if (.not. is_eq) return
@@ -2790,20 +2780,38 @@ is_eq = is_eq .and. (f1%machine == f2%machine)
 is_eq = is_eq .and. (f1%input_file_name == f2%input_file_name)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%title == f2%title)
+!! f_side.equality_test[character, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%print_str) .eqv. allocated(f2%print_str))
+if (.not. is_eq) return
+if (allocated(f1%print_str)) is_eq = all(shape(f1%print_str) == shape(f2%print_str))
+if (.not. is_eq) return
+if (allocated(f1%print_str)) is_eq = all(f1%print_str == f2%print_str)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%constant) .eqv. allocated(f2%constant))
 if (.not. is_eq) return
 if (allocated(f1%constant)) is_eq = all(shape(f1%constant) == shape(f2%constant))
 if (.not. is_eq) return
 if (allocated(f1%constant)) is_eq = all(f1%constant == f2%constant)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%a == f2%a)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%b == f2%b)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%z == f2%z)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%param == f2%param)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%a) .eqv. associated(f2%a))
+if (.not. is_eq) return
+if (associated(f1%a)) is_eq = (f1%a == f2%a)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%b) .eqv. associated(f2%b))
+if (.not. is_eq) return
+if (associated(f1%b)) is_eq = (f1%b == f2%b)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%z) .eqv. associated(f2%z))
+if (.not. is_eq) return
+if (associated(f1%z)) is_eq = (f1%z == f2%z)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%param) .eqv. associated(f2%param))
+if (.not. is_eq) return
+if (associated(f1%param)) is_eq = (f1%param == f2%param)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%lord_state == f2%lord_state)
 !! f_side.equality_test[type, 0, NOT]
@@ -2840,10 +2848,16 @@ if (.not. is_eq) return
 if (allocated(f1%custom)) is_eq = all(f1%custom == f2%custom)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%version == f2%version)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_ele_track == f2%n_ele_track)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_ele_max == f2%n_ele_max)
+!! f_side.equality_test[integer, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%n_ele_track) .eqv. associated(f2%n_ele_track))
+if (.not. is_eq) return
+if (associated(f1%n_ele_track)) is_eq = (f1%n_ele_track == f2%n_ele_track)
+!! f_side.equality_test[integer, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%n_ele_max) .eqv. associated(f2%n_ele_max))
+if (.not. is_eq) return
+if (associated(f1%n_ele_max)) is_eq = (f1%n_ele_max == f2%n_ele_max)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_control_max == f2%n_control_max)
 !! f_side.equality_test[integer, 0, NOT]
@@ -2858,6 +2872,8 @@ if (.not. is_eq) return
 if (allocated(f1%ic)) is_eq = all(f1%ic == f2%ic)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%creation_hash == f2%creation_hash)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking .eqv. f2%absolute_time_tracking)
 !! f_side.equality_test[logical, 0, NOT]

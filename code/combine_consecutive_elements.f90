@@ -83,7 +83,7 @@ ele_loop: do i = 1, lat%n_ele_track - 1
 
   ! Now combine
 
-  ele2%key = -1   ! mark for deletion
+  ele2%ix_ele = -1   ! mark for deletion
   call set_flags_for_changed_attribute (ele1)
 
   ele1%value(l$) = 2 * ele1%value(l$)

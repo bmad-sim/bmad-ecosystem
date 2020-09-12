@@ -178,16 +178,13 @@ do ie = lat_out%n_ele_track+1, lat_out%n_ele_max
 enddo
 
 ! Mark elements for deletion and then delete them. 
-! The first element in a group of elements to be hybridized does not get deleted and
-! this element will then be transformed into a hybrid element.
 
 do ib = 0, ubound(lat_out%branch, 1)
   branch => lat_out%branch(ib)
   do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
     if (ele%select) cycle
-    if (ie <= branch%n_ele_track .and. branch%ele(ie-1)%select) cycle
-    ele%key = -1   ! mark for delection
+    ele%ix_ele = -1   ! mark for delection
   enddo
 enddo
 
@@ -207,7 +204,7 @@ do ib = 0, ubound(lat_out%branch, 1)
   call init_coord (c0, particle = b_in%param%particle)
   call init_coord (c2, particle = b_in%param%particle)
 
-  ! loop over all in lat elements
+  ! loop over all lat_in elements
 
   do j_in = 1, b_in%n_ele_track
 
@@ -240,8 +237,8 @@ do ib = 0, ubound(lat_out%branch, 1)
 
       if (init_hybrid_needed) then
         i_out = i_out + 1                       ! starting next element
+        call insert_element(lat_out, ele_in, i_out, ib)
         ele_out => b_out%ele(i_out)
-        ele_out = ele_in
         ele_out%lord_status = not_a_lord$
         ele_out%slave_status = free$
         ele_out%n_slave = 0

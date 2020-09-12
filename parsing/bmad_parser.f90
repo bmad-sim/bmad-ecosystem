@@ -1148,7 +1148,7 @@ do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
-    if (ele%key == null_ele$) ele%key = -1 ! mark for deletion
+    if (ele%key == null_ele$) ele%ix_ele = -1 ! mark for deletion
   enddo
 enddo
 call remove_eles_from_lat (lat, .false.)
