@@ -4,7 +4,7 @@ struct_def_files = [
     '../sim_utils/math/spline_mod.f90',
     '../bmad/modules/bmad_struct.f90', 
     '../bmad/modules/taylor_mod.f90',
-    '../bmad/space_charge/track_csr_and_space_charge_mod.f90',
+    '../bmad/space_charge/csr_and_space_charge_mod.f90',
     '../bmad/modules/complex_taylor_mod.f90',
 ]
 
@@ -117,10 +117,12 @@ component_no_translate_list = set([
   'ptc_branch1_info_struct',
   'layout',
   'exact_bend_multipole_struct',
+  'branch_struct%ptc',
   'ele_struct%ptc_genfield',
   'ele_struct%lord',
   'ele_struct%branch',
   'ele_struct%converter',
+  'ele_struct%multipole_cache',
   'lat_struct%nametable',
   'branch_struct%lat',
   'normal_form_struct',
@@ -130,7 +132,7 @@ component_no_translate_list = set([
 
 # List of structure components links:
 # Structure components that are just links to other structures are handled differently.
-#   1) Not call delete in the C++ destructor.
+#   1) No call to delete in the C++ destructor.
 #   2) Ignore in Fortran and C++ equality tests (could go around in circles).
 #   3) Do not create a test pattern in interface test code.
 

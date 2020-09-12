@@ -1231,21 +1231,23 @@ rhs = 9 + offset; F%r = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 10 + offset; F%p0c = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%beta = rhs
+rhs = 11 + offset; F%e_potential = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 12 + offset; F%beta = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%ix_ele = rhs
+rhs = 13 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%ix_branch = rhs
+rhs = 14 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%ix_user = rhs
+rhs = 15 + offset; F%ix_user = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 15 + offset; F%state = rhs
+rhs = 16 + offset; F%state = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 16 + offset; F%direction = rhs
+rhs = 17 + offset; F%direction = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 17 + offset; F%species = rhs
+rhs = 18 + offset; F%species = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 18 + offset; F%location = rhs
+rhs = 19 + offset; F%location = rhs
 
 end subroutine set_coord_test_pattern
 
@@ -7369,6 +7371,10 @@ rhs = 10 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
 rhs = 11 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%wake_output_file)
+  F%wake_output_file(jd1:jd1) = char(ichar("a") + modulo(100+13+offset+jd1, 26))
+enddo
 
 end subroutine set_csr_parameter_test_pattern
 
@@ -8254,29 +8260,31 @@ rhs = 90 + offset; F%aperture_at = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 91 + offset; F%aperture_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 92 + offset; F%orientation = rhs
+rhs = 92 + offset; F%ref_species = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 93 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 93 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 94 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 94 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 95 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 95 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 96 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 96 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 97 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 97 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
+rhs = 98 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 98 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 99 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 99 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 100 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 100 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 101 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 101 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 102 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 102 + offset; F%select = (modulo(rhs, 2) == 0)
+rhs = 103 + offset; F%select = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 103 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 104 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 
@@ -8558,46 +8566,18 @@ rhs = 2 + offset; F%ix_branch = rhs
 rhs = 3 + offset; F%ix_from_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 4 + offset; F%ix_from_ele = rhs
-!! f_side.test_pat[integer, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%n_ele_track)) deallocate (F%n_ele_track)
-else
-  if (.not. associated(F%n_ele_track)) allocate (F%n_ele_track)
-  rhs = 5 + offset
-  F%n_ele_track = rhs
-endif
-!! f_side.test_pat[integer, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%n_ele_max)) deallocate (F%n_ele_max)
-else
-  if (.not. associated(F%n_ele_max)) allocate (F%n_ele_max)
-  rhs = 7 + offset
-  F%n_ele_max = rhs
-endif
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%a)) deallocate (F%a)
-else
-  if (.not. associated(F%a)) allocate (F%a)
-  rhs = 9 + offset
-  call set_mode_info_test_pattern (F%a, ix_patt)
-endif
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%b)) deallocate (F%b)
-else
-  if (.not. associated(F%b)) allocate (F%b)
-  rhs = 11 + offset
-  call set_mode_info_test_pattern (F%b, ix_patt)
-endif
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%z)) deallocate (F%z)
-else
-  if (.not. associated(F%z)) allocate (F%z)
-  rhs = 13 + offset
-  call set_mode_info_test_pattern (F%z, ix_patt)
-endif
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 5 + offset; F%ix_to_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 6 + offset; F%n_ele_track = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 7 + offset; F%n_ele_max = rhs
+!! f_side.test_pat[type, 0, NOT]
+call set_mode_info_test_pattern (F%a, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_mode_info_test_pattern (F%b, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_mode_info_test_pattern (F%z, ix_patt)
 !! f_side.test_pat[type, 1, PTR]
 
 if (ix_patt < 3) then
@@ -8608,14 +8588,8 @@ else
     call set_ele_test_pattern (F%ele(jd1+lb1), ix_patt+jd1)
   enddo
 endif
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%param)) deallocate (F%param)
-else
-  if (.not. associated(F%param)) allocate (F%param)
-  rhs = 17 + offset
-  call set_lat_param_test_pattern (F%param, ix_patt)
-endif
+!! f_side.test_pat[type, 0, NOT]
+call set_lat_param_test_pattern (F%param, ix_patt)
 !! f_side.test_pat[type, 1, PTR]
 
 if (ix_patt < 3) then
@@ -8730,6 +8704,16 @@ enddo
 do jd1 = 1, len(F%title)
   F%title(jd1:jd1) = char(ichar("a") + modulo(100+5+offset+jd1, 26))
 enddo
+!! f_side.test_pat[character, 1, ALLOC]
+if (ix_patt < 3) then
+  if (allocated(F%print_str)) deallocate (F%print_str)
+else
+  if (.not. allocated(F%print_str)) allocate (F%print_str(3))
+  do jd1 = 1, 3
+  do jd = 1, len(F%print_str)
+    F%print_str(jd1)(jd:jd) = char(ichar("a") + modulo(100+6+offset+10*jd+jd1, 26))
+  enddo; enddo
+endif
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -8740,14 +8724,38 @@ else
     call set_expression_atom_test_pattern (F%constant(jd1+lb1), ix_patt+jd1)
   enddo
 endif
-!! f_side.test_pat[type, 0, NOT]
-call set_mode_info_test_pattern (F%a, ix_patt)
-!! f_side.test_pat[type, 0, NOT]
-call set_mode_info_test_pattern (F%b, ix_patt)
-!! f_side.test_pat[type, 0, NOT]
-call set_mode_info_test_pattern (F%z, ix_patt)
-!! f_side.test_pat[type, 0, NOT]
-call set_lat_param_test_pattern (F%param, ix_patt)
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%a)) deallocate (F%a)
+else
+  if (.not. associated(F%a)) allocate (F%a)
+  rhs = 10 + offset
+  call set_mode_info_test_pattern (F%a, ix_patt)
+endif
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%b)) deallocate (F%b)
+else
+  if (.not. associated(F%b)) allocate (F%b)
+  rhs = 12 + offset
+  call set_mode_info_test_pattern (F%b, ix_patt)
+endif
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%z)) deallocate (F%z)
+else
+  if (.not. associated(F%z)) allocate (F%z)
+  rhs = 14 + offset
+  call set_mode_info_test_pattern (F%z, ix_patt)
+endif
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%param)) deallocate (F%param)
+else
+  if (.not. associated(F%param)) allocate (F%param)
+  rhs = 16 + offset
+  call set_lat_param_test_pattern (F%param, ix_patt)
+endif
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%lord_state, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -8795,22 +8803,34 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%custom)) allocate (F%custom(-1:1))
   do jd1 = 1, size(F%custom,1); lb1 = lbound(F%custom,1) - 1
-    rhs = 100 + jd1 + 23 + offset
+    rhs = 100 + jd1 + 29 + offset
     F%custom(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 25 + offset; F%version = rhs
+rhs = 31 + offset; F%version = rhs
+!! f_side.test_pat[integer, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%n_ele_track)) deallocate (F%n_ele_track)
+else
+  if (.not. associated(F%n_ele_track)) allocate (F%n_ele_track)
+  rhs = 32 + offset
+  F%n_ele_track = rhs
+endif
+!! f_side.test_pat[integer, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%n_ele_max)) deallocate (F%n_ele_max)
+else
+  if (.not. associated(F%n_ele_max)) allocate (F%n_ele_max)
+  rhs = 34 + offset
+  F%n_ele_max = rhs
+endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 26 + offset; F%n_ele_track = rhs
+rhs = 36 + offset; F%n_control_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 27 + offset; F%n_ele_max = rhs
+rhs = 37 + offset; F%n_ic_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 28 + offset; F%n_control_max = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 29 + offset; F%n_ic_max = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 30 + offset; F%input_taylor_order = rhs
+rhs = 38 + offset; F%input_taylor_order = rhs
 !! f_side.test_pat[integer, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -8818,16 +8838,18 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%ic)) allocate (F%ic(-1:1))
   do jd1 = 1, size(F%ic,1); lb1 = lbound(F%ic,1) - 1
-    rhs = 100 + jd1 + 31 + offset
+    rhs = 100 + jd1 + 39 + offset
     F%ic(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 33 + offset; F%photon_type = rhs
+rhs = 41 + offset; F%photon_type = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 42 + offset; F%creation_hash = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 34 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 43 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 35 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 44 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 

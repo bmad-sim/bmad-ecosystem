@@ -770,28 +770,31 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   rhs = 10 + offset; C.p0c = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.beta = rhs;
+  rhs = 11 + offset; C.e_potential = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 12 + offset; C.beta = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 12 + offset; C.ix_ele = rhs;
+  rhs = 13 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.ix_branch = rhs;
+  rhs = 14 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 14 + offset; C.ix_user = rhs;
+  rhs = 15 + offset; C.ix_user = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 15 + offset; C.state = rhs;
+  rhs = 16 + offset; C.state = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 16 + offset; C.direction = rhs;
+  rhs = 17 + offset; C.direction = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 17 + offset; C.species = rhs;
+  rhs = 18 + offset; C.species = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 18 + offset; C.location = rhs;
+  rhs = 19 + offset; C.location = rhs;
 
 
 }
@@ -4963,6 +4966,10 @@ void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
   // c_side.test_pat[logical, 0, NOT]
   rhs = 12 + offset; C.small_angle_approx = (rhs % 2 == 0);
 
+  // c_side.test_pat[character, 0, NOT]
+  C.wake_output_file.resize(200);
+  for (unsigned int i = 0; i < C.wake_output_file.size(); i++)
+    {int rhs = 101 + i + 13 + offset; C.wake_output_file[i] = 'a' + rhs % 26;}
 
 }
 
@@ -5722,40 +5729,43 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   rhs = 91 + offset; C.aperture_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 92 + offset; C.orientation = rhs;
+  rhs = 92 + offset; C.ref_species = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 93 + offset; C.orientation = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 93 + offset; C.symplectify = (rhs % 2 == 0);
+  rhs = 94 + offset; C.symplectify = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 94 + offset; C.mode_flip = (rhs % 2 == 0);
+  rhs = 95 + offset; C.mode_flip = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 95 + offset; C.multipoles_on = (rhs % 2 == 0);
+  rhs = 96 + offset; C.multipoles_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 96 + offset; C.scale_multipoles = (rhs % 2 == 0);
+  rhs = 97 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 97 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
+  rhs = 98 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 98 + offset; C.field_master = (rhs % 2 == 0);
+  rhs = 99 + offset; C.field_master = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 99 + offset; C.is_on = (rhs % 2 == 0);
+  rhs = 100 + offset; C.is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 100 + offset; C.logic = (rhs % 2 == 0);
+  rhs = 101 + offset; C.logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 101 + offset; C.bmad_logic = (rhs % 2 == 0);
+  rhs = 102 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 102 + offset; C.select = (rhs % 2 == 0);
+  rhs = 103 + offset; C.select = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 103 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 104 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }
@@ -5931,45 +5941,23 @@ void set_CPP_branch_test_pattern (CPP_branch& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 4 + offset; C.ix_from_ele = rhs;
 
-  // c_side.test_pat[integer, 0, PTR]
-  if (ix_patt < 3) 
-    C.n_ele_track = NULL;
-  else {
-    C.n_ele_track = new Int;
-    rhs = 5 + offset; (*C.n_ele_track) = rhs;
-  }
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 5 + offset; C.ix_to_ele = rhs;
 
-  // c_side.test_pat[integer, 0, PTR]
-  if (ix_patt < 3) 
-    C.n_ele_max = NULL;
-  else {
-    C.n_ele_max = new Int;
-    rhs = 7 + offset; (*C.n_ele_max) = rhs;
-  }
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 6 + offset; C.n_ele_track = rhs;
 
-  // c_side.test_pat[type, 0, PTR]
-  if (ix_patt < 3) 
-    C.a = NULL;
-  else {
-    C.a = new CPP_mode_info;
-    set_CPP_mode_info_test_pattern((*C.a), ix_patt);
-  }
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 7 + offset; C.n_ele_max = rhs;
 
-  // c_side.test_pat[type, 0, PTR]
-  if (ix_patt < 3) 
-    C.b = NULL;
-  else {
-    C.b = new CPP_mode_info;
-    set_CPP_mode_info_test_pattern((*C.b), ix_patt);
-  }
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_mode_info_test_pattern(C.a, ix_patt);
 
-  // c_side.test_pat[type, 0, PTR]
-  if (ix_patt < 3) 
-    C.z = NULL;
-  else {
-    C.z = new CPP_mode_info;
-    set_CPP_mode_info_test_pattern((*C.z), ix_patt);
-  }
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_mode_info_test_pattern(C.b, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_mode_info_test_pattern(C.z, ix_patt);
 
   // c_side.test_pat[type, 1, PTR]
   if (ix_patt < 3) 
@@ -5979,13 +5967,8 @@ void set_CPP_branch_test_pattern (CPP_branch& C, int ix_patt) {
     for (unsigned int i = 0; i < C.ele.size(); i++)  {set_CPP_ele_test_pattern(C.ele[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[type, 0, PTR]
-  if (ix_patt < 3) 
-    C.param = NULL;
-  else {
-    C.param = new CPP_lat_param;
-    set_CPP_lat_param_test_pattern((*C.param), ix_patt);
-  }
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_lat_param_test_pattern(C.param, ix_patt);
 
   // c_side.test_pat[type, 1, PTR]
   if (ix_patt < 3) 
@@ -6044,7 +6027,7 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[character, 0, NOT]
-  C.use_name.resize(40);
+  C.use_name.resize(200);
   for (unsigned int i = 0; i < C.use_name.size(); i++)
     {int rhs = 101 + i + 1 + offset; C.use_name[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
@@ -6063,6 +6046,18 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   C.title.resize(80);
   for (unsigned int i = 0; i < C.title.size(); i++)
     {int rhs = 101 + i + 5 + offset; C.title[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[character, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.print_str.resize(0);
+  else {
+    C.print_str.resize(3);
+    for (unsigned int i = 0; i < C.print_str.size(); i++){
+      C.print_str[i].resize(100);
+      for (unsigned int j = 0; j < C.print_str[0].size(); j++) {
+        C.print_str[i][j] = 'a' + (101 + i + 10*(j+1) + 6 + offset) % 26;
+    } }
+  }
+
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
     C.constant.resize(0);
@@ -6071,17 +6066,37 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
     for (unsigned int i = 0; i < C.constant.size(); i++)  {set_CPP_expression_atom_test_pattern(C.constant[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_mode_info_test_pattern(C.a, ix_patt);
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
+    C.a = NULL;
+  else {
+    C.a = new CPP_mode_info;
+    set_CPP_mode_info_test_pattern((*C.a), ix_patt);
+  }
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_mode_info_test_pattern(C.b, ix_patt);
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
+    C.b = NULL;
+  else {
+    C.b = new CPP_mode_info;
+    set_CPP_mode_info_test_pattern((*C.b), ix_patt);
+  }
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_mode_info_test_pattern(C.z, ix_patt);
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
+    C.z = NULL;
+  else {
+    C.z = new CPP_mode_info;
+    set_CPP_mode_info_test_pattern((*C.z), ix_patt);
+  }
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_lat_param_test_pattern(C.param, ix_patt);
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
+    C.param = NULL;
+  else {
+    C.param = new CPP_lat_param;
+    set_CPP_lat_param_test_pattern((*C.param), ix_patt);
+  }
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.lord_state, ix_patt);
@@ -6128,25 +6143,35 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.custom.resize(3);
     for (unsigned int i = 0; i < C.custom.size(); i++)
-      {int rhs = 101 + i + 23 + offset; C.custom[i] = rhs;}  }
+      {int rhs = 101 + i + 29 + offset; C.custom[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 25 + offset; C.version = rhs;
+  rhs = 31 + offset; C.version = rhs;
+
+  // c_side.test_pat[integer, 0, PTR]
+  if (ix_patt < 3) 
+    C.n_ele_track = NULL;
+  else {
+    C.n_ele_track = new Int;
+    rhs = 32 + offset; (*C.n_ele_track) = rhs;
+  }
+
+  // c_side.test_pat[integer, 0, PTR]
+  if (ix_patt < 3) 
+    C.n_ele_max = NULL;
+  else {
+    C.n_ele_max = new Int;
+    rhs = 34 + offset; (*C.n_ele_max) = rhs;
+  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 26 + offset; C.n_ele_track = rhs;
+  rhs = 36 + offset; C.n_control_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 27 + offset; C.n_ele_max = rhs;
+  rhs = 37 + offset; C.n_ic_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 28 + offset; C.n_control_max = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 29 + offset; C.n_ic_max = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 30 + offset; C.input_taylor_order = rhs;
+  rhs = 38 + offset; C.input_taylor_order = rhs;
 
   // c_side.test_pat[integer, 1, ALLOC]
   if (ix_patt < 3) 
@@ -6154,16 +6179,19 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.ic.resize(3);
     for (unsigned int i = 0; i < C.ic.size(); i++)
-      {int rhs = 101 + i + 31 + offset; C.ic[i] = rhs;}  }
+      {int rhs = 101 + i + 39 + offset; C.ic[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 33 + offset; C.photon_type = rhs;
+  rhs = 41 + offset; C.photon_type = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 42 + offset; C.creation_hash = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
+  rhs = 43 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 44 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
 
 
 }

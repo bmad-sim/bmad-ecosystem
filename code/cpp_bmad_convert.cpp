@@ -472,23 +472,24 @@ extern "C" void coord_to_c (const Opaque_coord_class*, CPP_coord&);
 
 // c_side.to_f2_arg
 extern "C" void coord_to_f2 (Opaque_coord_class*, c_RealArr, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&);
+    c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&,
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&);
 
 extern "C" void coord_to_f (const CPP_coord& C, Opaque_coord_class* F) {
 
   // c_side.to_f2_call
   coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], &C.field[0], &C.phase[0], C.charge,
-      C.path_len, C.r, C.p0c, C.beta, C.ix_ele, C.ix_branch, C.ix_user, C.state, C.direction,
-      C.species, C.location);
+      C.path_len, C.r, C.p0c, C.e_potential, C.beta, C.ix_ele, C.ix_branch, C.ix_user, C.state,
+      C.direction, C.species, C.location);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t, c_RealArr
     z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real& z_path_len, c_Real&
-    z_r, c_Real& z_p0c, c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_ix_user,
-    c_Int& z_state, c_Int& z_direction, c_Int& z_species, c_Int& z_location) {
+    z_r, c_Real& z_p0c, c_Real& z_e_potential, c_Real& z_beta, c_Int& z_ix_ele, c_Int&
+    z_ix_branch, c_Int& z_ix_user, c_Int& z_state, c_Int& z_direction, c_Int& z_species, c_Int&
+    z_location) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.vec << z_vec;
@@ -510,6 +511,8 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
   C.r = z_r;
   // c_side.to_c2_set[real, 0, NOT]
   C.p0c = z_p0c;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.e_potential = z_e_potential;
   // c_side.to_c2_set[real, 0, NOT]
   C.beta = z_beta;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -2999,7 +3002,7 @@ extern "C" void csr_parameter_to_c (const Opaque_csr_parameter_class*, CPP_csr_p
 
 // c_side.to_f2_arg
 extern "C" void csr_parameter_to_f2 (Opaque_csr_parameter_class*, c_Real&, c_Real&, c_Real&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Char);
 
 extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Opaque_csr_parameter_class* F) {
 
@@ -3007,7 +3010,7 @@ extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Opaque_csr_param
   csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff, C.n_bin,
       C.particle_bin_span, C.n_shield_images, C.sc_min_in_bin,
       C.lsc_kick_transverse_dependence, C.print_taylor_warning, C.write_csr_wake,
-      C.use_csr_old, C.small_angle_approx);
+      C.use_csr_old, C.small_angle_approx, C.wake_output_file.c_str());
 
 }
 
@@ -3016,7 +3019,7 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
     z_beam_chamber_height, c_Real& z_sigma_cutoff, c_Int& z_n_bin, c_Int& z_particle_bin_span,
     c_Int& z_n_shield_images, c_Int& z_sc_min_in_bin, c_Bool& z_lsc_kick_transverse_dependence,
     c_Bool& z_print_taylor_warning, c_Bool& z_write_csr_wake, c_Bool& z_use_csr_old, c_Bool&
-    z_small_angle_approx) {
+    z_small_angle_approx, c_Char z_wake_output_file) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_track_step = z_ds_track_step;
@@ -3042,6 +3045,8 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
   C.use_csr_old = z_use_csr_old;
   // c_side.to_c2_set[logical, 0, NOT]
   C.small_angle_approx = z_small_angle_approx;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.wake_output_file = z_wake_output_file;
 }
 
 //--------------------------------------------------------------------
@@ -3336,8 +3341,9 @@ extern "C" void ele_to_f2 (Opaque_ele_class*, c_Char, c_Char, c_Char, c_Char, c_
     c_RealArr, c_Real&, c_Real&, c_Real&, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int,
     c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, Int, Int, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&);
 
 extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
   // c_side.to_f_setup[character, 0, PTR]
@@ -3462,8 +3468,8 @@ extern "C" void ele_to_f (const CPP_ele& C, Opaque_ele_class* F) {
       C.ix_branch, C.lord_status, C.n_slave, C.n_slave_field, C.ix1_slave, C.slave_status,
       C.n_lord, C.n_lord_field, C.ic1_lord, C.ix_pointer, C.ixx, C.iyy, C.mat6_calc_method,
       C.tracking_method, C.spin_tracking_method, C.csr_method, C.space_charge_method,
-      C.ptc_integration_type, C.field_calc, C.aperture_at, C.aperture_type, C.orientation,
-      C.symplectify, C.mode_flip, C.multipoles_on, C.scale_multipoles,
+      C.ptc_integration_type, C.field_calc, C.aperture_at, C.aperture_type, C.ref_species,
+      C.orientation, C.symplectify, C.mode_flip, C.multipoles_on, C.scale_multipoles,
       C.taylor_map_includes_offsets, C.field_master, C.is_on, C.logic, C.bmad_logic, C.select,
       C.offset_moves_aperture);
 
@@ -3509,10 +3515,11 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     z_n_lord_field, c_Int& z_ic1_lord, c_Int& z_ix_pointer, c_Int& z_ixx, c_Int& z_iyy, c_Int&
     z_mat6_calc_method, c_Int& z_tracking_method, c_Int& z_spin_tracking_method, c_Int&
     z_csr_method, c_Int& z_space_charge_method, c_Int& z_ptc_integration_type, c_Int&
-    z_field_calc, c_Int& z_aperture_at, c_Int& z_aperture_type, c_Int& z_orientation, c_Bool&
-    z_symplectify, c_Bool& z_mode_flip, c_Bool& z_multipoles_on, c_Bool& z_scale_multipoles,
-    c_Bool& z_taylor_map_includes_offsets, c_Bool& z_field_master, c_Bool& z_is_on, c_Bool&
-    z_logic, c_Bool& z_bmad_logic, c_Bool& z_select, c_Bool& z_offset_moves_aperture) {
+    z_field_calc, c_Int& z_aperture_at, c_Int& z_aperture_type, c_Int& z_ref_species, c_Int&
+    z_orientation, c_Bool& z_symplectify, c_Bool& z_mode_flip, c_Bool& z_multipoles_on, c_Bool&
+    z_scale_multipoles, c_Bool& z_taylor_map_includes_offsets, c_Bool& z_field_master, c_Bool&
+    z_is_on, c_Bool& z_logic, c_Bool& z_bmad_logic, c_Bool& z_select, c_Bool&
+    z_offset_moves_aperture) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -3739,6 +3746,8 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
   // c_side.to_c2_set[integer, 0, NOT]
   C.aperture_type = z_aperture_type;
   // c_side.to_c2_set[integer, 0, NOT]
+  C.ref_species = z_ref_species;
+  // c_side.to_c2_set[integer, 0, NOT]
   C.orientation = z_orientation;
   // c_side.to_c2_set[logical, 0, NOT]
   C.symplectify = z_symplectify;
@@ -3836,22 +3845,11 @@ extern "C" void complex_taylor_to_c2 (CPP_complex_taylor& C, c_Complex& z_ref,
 extern "C" void branch_to_c (const Opaque_branch_class*, CPP_branch&);
 
 // c_side.to_f2_arg
-extern "C" void branch_to_f2 (Opaque_branch_class*, c_Char, c_Int&, c_Int&, c_Int&, c_IntArr,
-    Int, c_IntArr, Int, const CPP_mode_info&, Int, const CPP_mode_info&, Int, const
-    CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&, Int, const CPP_wall3d**,
-    Int);
+extern "C" void branch_to_f2 (Opaque_branch_class*, c_Char, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_Int&, c_Int&, const CPP_mode_info&, const CPP_mode_info&, const CPP_mode_info&, const
+    CPP_ele**, Int, const CPP_lat_param&, const CPP_wall3d**, Int);
 
 extern "C" void branch_to_f (const CPP_branch& C, Opaque_branch_class* F) {
-  // c_side.to_f_setup[integer, 0, PTR]
-  unsigned int n_n_ele_track = 0; if (C.n_ele_track != NULL) n_n_ele_track = 1;
-  // c_side.to_f_setup[integer, 0, PTR]
-  unsigned int n_n_ele_max = 0; if (C.n_ele_max != NULL) n_n_ele_max = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_a = 0; if (C.a != NULL) n_a = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_b = 0; if (C.b != NULL) n_b = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_z = 0; if (C.z != NULL) n_z = 1;
   // c_side.to_f_setup[type, 1, PTR]
   int n1_ele = C.ele.size();
   const CPP_ele** z_ele = NULL;
@@ -3859,8 +3857,6 @@ extern "C" void branch_to_f (const CPP_branch& C, Opaque_branch_class* F) {
     z_ele = new const CPP_ele*[n1_ele];
     for (int i = 0; i < n1_ele; i++) z_ele[i] = &C.ele[i];
   }
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_param = 0; if (C.param != NULL) n_param = 1;
   // c_side.to_f_setup[type, 1, PTR]
   int n1_wall3d = C.wall3d.size();
   const CPP_wall3d** z_wall3d = NULL;
@@ -3870,9 +3866,8 @@ extern "C" void branch_to_f (const CPP_branch& C, Opaque_branch_class* F) {
   }
 
   // c_side.to_f2_call
-  branch_to_f2 (F, C.name.c_str(), C.ix_branch, C.ix_from_branch, C.ix_from_ele, C.n_ele_track,
-      n_n_ele_track, C.n_ele_max, n_n_ele_max, *C.a, n_a, *C.b, n_b, *C.z, n_z, z_ele, n1_ele,
-      *C.param, n_param, z_wall3d, n1_wall3d);
+  branch_to_f2 (F, C.name.c_str(), C.ix_branch, C.ix_from_branch, C.ix_from_ele, C.ix_to_ele,
+      C.n_ele_track, C.n_ele_max, C.a, C.b, C.z, z_ele, n1_ele, C.param, z_wall3d, n1_wall3d);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_ele;
@@ -3882,11 +3877,10 @@ extern "C" void branch_to_f (const CPP_branch& C, Opaque_branch_class* F) {
 
 // c_side.to_c2_arg
 extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, c_Int&
-    z_ix_from_branch, c_Int& z_ix_from_ele, c_IntArr z_n_ele_track, Int n_n_ele_track, c_IntArr
-    z_n_ele_max, Int n_n_ele_max, Opaque_mode_info_class* z_a, Int n_a, Opaque_mode_info_class*
-    z_b, Int n_b, Opaque_mode_info_class* z_z, Int n_z, Opaque_ele_class** z_ele, Int n1_ele,
-    Opaque_lat_param_class* z_param, Int n_param, Opaque_wall3d_class** z_wall3d, Int
-    n1_wall3d) {
+    z_ix_from_branch, c_Int& z_ix_from_ele, c_Int& z_ix_to_ele, c_Int& z_n_ele_track, c_Int&
+    z_n_ele_max, const Opaque_mode_info_class* z_a, const Opaque_mode_info_class* z_b, const
+    Opaque_mode_info_class* z_z, Opaque_ele_class** z_ele, Int n1_ele, const
+    Opaque_lat_param_class* z_param, Opaque_wall3d_class** z_wall3d, Int n1_wall3d) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -3896,58 +3890,24 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
   C.ix_from_branch = z_ix_from_branch;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_from_ele = z_ix_from_ele;
-  // c_side.to_c2_set[integer, 0, PTR]
-  if (n_n_ele_track == 0)
-    delete C.n_ele_track;
-  else {
-    C.n_ele_track = new Int;
-    *C.n_ele_track = *z_n_ele_track;
-  }
-
-  // c_side.to_c2_set[integer, 0, PTR]
-  if (n_n_ele_max == 0)
-    delete C.n_ele_max;
-  else {
-    C.n_ele_max = new Int;
-    *C.n_ele_max = *z_n_ele_max;
-  }
-
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_a == 0)
-    delete C.a;
-  else {
-    C.a = new CPP_mode_info;
-    mode_info_to_c(z_a, *C.a);
-  }
-
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_b == 0)
-    delete C.b;
-  else {
-    C.b = new CPP_mode_info;
-    mode_info_to_c(z_b, *C.b);
-  }
-
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_z == 0)
-    delete C.z;
-  else {
-    C.z = new CPP_mode_info;
-    mode_info_to_c(z_z, *C.z);
-  }
-
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_to_ele = z_ix_to_ele;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_ele_track = z_n_ele_track;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_ele_max = z_n_ele_max;
+  // c_side.to_c2_set[type, 0, NOT]
+  mode_info_to_c(z_a, C.a);
+  // c_side.to_c2_set[type, 0, NOT]
+  mode_info_to_c(z_b, C.b);
+  // c_side.to_c2_set[type, 0, NOT]
+  mode_info_to_c(z_z, C.z);
   // c_side.to_c2_set[type, 1, PTR]
   C.ele.resize(n1_ele);
   for (int i = 0; i < n1_ele; i++) ele_to_c(z_ele[i], C.ele[i]);
 
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_param == 0)
-    delete C.param;
-  else {
-    C.param = new CPP_lat_param;
-    lat_param_to_c(z_param, *C.param);
-  }
-
+  // c_side.to_c2_set[type, 0, NOT]
+  lat_param_to_c(z_param, C.param);
   // c_side.to_c2_set[type, 1, PTR]
   C.wall3d.resize(n1_wall3d);
   for (int i = 0; i < n1_wall3d; i++) wall3d_to_c(z_wall3d[i], C.wall3d[i]);
@@ -3961,14 +3921,22 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
 extern "C" void lat_to_c (const Opaque_lat_class*, CPP_lat&);
 
 // c_side.to_f2_arg
-extern "C" void lat_to_f2 (Opaque_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Char, const
-    CPP_expression_atom**, Int, const CPP_mode_info&, const CPP_mode_info&, const
-    CPP_mode_info&, const CPP_lat_param&, const CPP_bookkeeping_state&, const CPP_ele&, const
-    CPP_ele**, Int, const CPP_branch**, Int, const CPP_control**, Int, const CPP_coord&, const
-    CPP_beam_init&, const CPP_pre_tracker&, c_RealArr, Int, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_IntArr, Int, c_Int&, c_Bool&, c_Bool&);
+extern "C" void lat_to_f2 (Opaque_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Char, c_Char*,
+    Int, const CPP_expression_atom**, Int, const CPP_mode_info&, Int, const CPP_mode_info&,
+    Int, const CPP_mode_info&, Int, const CPP_lat_param&, Int, const CPP_bookkeeping_state&,
+    const CPP_ele&, const CPP_ele**, Int, const CPP_branch**, Int, const CPP_control**, Int,
+    const CPP_coord&, const CPP_beam_init&, const CPP_pre_tracker&, c_RealArr, Int, c_Int&,
+    c_IntArr, Int, c_IntArr, Int, c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&, c_Int&,
+    c_Bool&, c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
+  // c_side.to_f_setup[character, 1, ALLOC]
+  int n1_print_str = C.print_str.size();
+  c_Char* z_print_str = NULL;
+  if (n1_print_str != 0) {
+    z_print_str = new c_Char[n1_print_str];
+    for (int i = 0; i < n1_print_str; i++) z_print_str[i] = C.print_str[i].c_str();
+  }
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_constant = C.constant.size();
   const CPP_expression_atom** z_constant = NULL;
@@ -3976,6 +3944,14 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
     z_constant = new const CPP_expression_atom*[n1_constant];
     for (int i = 0; i < n1_constant; i++) z_constant[i] = &C.constant[i];
   }
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_a = 0; if (C.a != NULL) n_a = 1;
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_b = 0; if (C.b != NULL) n_b = 1;
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_z = 0; if (C.z != NULL) n_z = 1;
+  // c_side.to_f_setup[type, 0, PTR]
+  unsigned int n_param = 0; if (C.param != NULL) n_param = 1;
   // c_side.to_f_setup[type, 1, PTR]
   int n1_ele = C.ele.size();
   const CPP_ele** z_ele = NULL;
@@ -4003,6 +3979,10 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
   if (n1_custom > 0) {
     z_custom = &C.custom[0];
   }
+  // c_side.to_f_setup[integer, 0, PTR]
+  unsigned int n_n_ele_track = 0; if (C.n_ele_track != NULL) n_n_ele_track = 1;
+  // c_side.to_f_setup[integer, 0, PTR]
+  unsigned int n_n_ele_max = 0; if (C.n_ele_max != NULL) n_n_ele_max = 1;
   // c_side.to_f_setup[integer, 1, ALLOC]
   int n1_ic = C.ic.size();
   c_IntArr z_ic = NULL;
@@ -4012,12 +3992,15 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
 
   // c_side.to_f2_call
   lat_to_f2 (F, C.use_name.c_str(), C.lattice.c_str(), C.machine.c_str(),
-      C.input_file_name.c_str(), C.title.c_str(), z_constant, n1_constant, C.a, C.b, C.z,
-      C.param, C.lord_state, C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control,
-      n1_control, C.particle_start, C.beam_init, C.pre_tracker, z_custom, n1_custom, C.version,
-      C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic,
-      n1_ic, C.photon_type, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
+      C.input_file_name.c_str(), C.title.c_str(), z_print_str, n1_print_str, z_constant,
+      n1_constant, *C.a, n_a, *C.b, n_b, *C.z, n_z, *C.param, n_param, C.lord_state,
+      C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, C.particle_start,
+      C.beam_init, C.pre_tracker, z_custom, n1_custom, C.version, C.n_ele_track, n_n_ele_track,
+      C.n_ele_max, n_n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic, n1_ic,
+      C.photon_type, C.creation_hash, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
 
+  // c_side.to_f_cleanup[character, 1, ALLOC]
+ delete[] z_print_str;
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_constant;
   // c_side.to_f_cleanup[type, 1, PTR]
@@ -4030,17 +4013,18 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
 
 // c_side.to_c2_arg
 extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Char z_machine,
-    c_Char z_input_file_name, c_Char z_title, Opaque_expression_atom_class** z_constant, Int
-    n1_constant, const Opaque_mode_info_class* z_a, const Opaque_mode_info_class* z_b, const
-    Opaque_mode_info_class* z_z, const Opaque_lat_param_class* z_param, const
-    Opaque_bookkeeping_state_class* z_lord_state, const Opaque_ele_class* z_ele_init,
-    Opaque_ele_class** z_ele, Int n1_ele, Opaque_branch_class** z_branch, Int n1_branch,
-    Opaque_control_class** z_control, Int n1_control, const Opaque_coord_class*
-    z_particle_start, const Opaque_beam_init_class* z_beam_init, const
-    Opaque_pre_tracker_class* z_pre_tracker, c_RealArr z_custom, Int n1_custom, c_Int&
-    z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
-    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type,
-    c_Bool& z_absolute_time_tracking, c_Bool& z_ptc_uses_hard_edge_drifts) {
+    c_Char z_input_file_name, c_Char z_title, c_Char* z_print_str, Int n1_print_str,
+    Opaque_expression_atom_class** z_constant, Int n1_constant, Opaque_mode_info_class* z_a,
+    Int n_a, Opaque_mode_info_class* z_b, Int n_b, Opaque_mode_info_class* z_z, Int n_z,
+    Opaque_lat_param_class* z_param, Int n_param, const Opaque_bookkeeping_state_class*
+    z_lord_state, const Opaque_ele_class* z_ele_init, Opaque_ele_class** z_ele, Int n1_ele,
+    Opaque_branch_class** z_branch, Int n1_branch, Opaque_control_class** z_control, Int
+    n1_control, const Opaque_coord_class* z_particle_start, const Opaque_beam_init_class*
+    z_beam_init, const Opaque_pre_tracker_class* z_pre_tracker, c_RealArr z_custom, Int
+    n1_custom, c_Int& z_version, c_IntArr z_n_ele_track, Int n_n_ele_track, c_IntArr
+    z_n_ele_max, Int n_n_ele_max, c_Int& z_n_control_max, c_Int& z_n_ic_max, c_Int&
+    z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type, c_Int&
+    z_creation_hash, c_Bool& z_absolute_time_tracking, c_Bool& z_ptc_uses_hard_edge_drifts) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -4052,18 +4036,46 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   C.input_file_name = z_input_file_name;
   // c_side.to_c2_set[character, 0, NOT]
   C.title = z_title;
+  // c_side.to_c2_set[character, 1, ALLOC]
+  C.print_str.resize(n1_print_str);
+  for (int i = 0; i < n1_print_str; i++) C.print_str[i] = z_print_str[i];
+
   // c_side.to_c2_set[type, 1, ALLOC]
   C.constant.resize(n1_constant);
   for (int i = 0; i < n1_constant; i++) expression_atom_to_c(z_constant[i], C.constant[i]);
 
-  // c_side.to_c2_set[type, 0, NOT]
-  mode_info_to_c(z_a, C.a);
-  // c_side.to_c2_set[type, 0, NOT]
-  mode_info_to_c(z_b, C.b);
-  // c_side.to_c2_set[type, 0, NOT]
-  mode_info_to_c(z_z, C.z);
-  // c_side.to_c2_set[type, 0, NOT]
-  lat_param_to_c(z_param, C.param);
+  // c_side.to_c2_set[type, 0, PTR]
+  if (n_a == 0)
+    delete C.a;
+  else {
+    C.a = new CPP_mode_info;
+    mode_info_to_c(z_a, *C.a);
+  }
+
+  // c_side.to_c2_set[type, 0, PTR]
+  if (n_b == 0)
+    delete C.b;
+  else {
+    C.b = new CPP_mode_info;
+    mode_info_to_c(z_b, *C.b);
+  }
+
+  // c_side.to_c2_set[type, 0, PTR]
+  if (n_z == 0)
+    delete C.z;
+  else {
+    C.z = new CPP_mode_info;
+    mode_info_to_c(z_z, *C.z);
+  }
+
+  // c_side.to_c2_set[type, 0, PTR]
+  if (n_param == 0)
+    delete C.param;
+  else {
+    C.param = new CPP_lat_param;
+    lat_param_to_c(z_param, *C.param);
+  }
+
   // c_side.to_c2_set[type, 0, NOT]
   bookkeeping_state_to_c(z_lord_state, C.lord_state);
   // c_side.to_c2_set[type, 0, NOT]
@@ -4093,10 +4105,22 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.version = z_version;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_ele_track = z_n_ele_track;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_ele_max = z_n_ele_max;
+  // c_side.to_c2_set[integer, 0, PTR]
+  if (n_n_ele_track == 0)
+    delete C.n_ele_track;
+  else {
+    C.n_ele_track = new Int;
+    *C.n_ele_track = *z_n_ele_track;
+  }
+
+  // c_side.to_c2_set[integer, 0, PTR]
+  if (n_n_ele_max == 0)
+    delete C.n_ele_max;
+  else {
+    C.n_ele_max = new Int;
+    *C.n_ele_max = *z_n_ele_max;
+  }
+
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_control_max = z_n_control_max;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -4110,6 +4134,8 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.photon_type = z_photon_type;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.creation_hash = z_creation_hash;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking = z_absolute_time_tracking;
   // c_side.to_c2_set[logical, 0, NOT]

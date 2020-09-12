@@ -793,6 +793,7 @@ public:
   Real path_len;
   Real r;
   Real p0c;
+  Real e_potential;
   Real beta;
   Int ix_ele;
   Int ix_branch;
@@ -813,6 +814,7 @@ public:
     path_len(0.0),
     r(0.0),
     p0c(0.0),
+    e_potential(0.0),
     beta(-1),
     ix_ele(-1),
     ix_branch(-1),
@@ -2559,7 +2561,7 @@ public:
     t1_with_rf(Real_ARRAY(0.0, 6), 6),
     t1_no_rf(Real_ARRAY(0.0, 6), 6),
     spin_tune(0.0),
-    particle(Bmad::POSITRON),
+    particle(Bmad::NOT_SET),
     default_tracking_species(Bmad::REF_PARTICLE),
     geometry(0),
     ixx(0),
@@ -2908,6 +2910,7 @@ public:
   Bool write_csr_wake;
   Bool use_csr_old;
   Bool small_angle_approx;
+  string wake_output_file;
 
   CPP_csr_parameter() :
     ds_track_step(0.0),
@@ -2921,7 +2924,8 @@ public:
     print_taylor_warning(true),
     write_csr_wake(false),
     use_csr_old(false),
-    small_angle_approx(true)
+    small_angle_approx(true),
+    wake_output_file()
     {}
 
   ~CPP_csr_parameter() {
@@ -2992,7 +2996,7 @@ public:
     default_ds_step(0.0),
     significant_length(1e-10),
     rel_tol_tracking(1e-8),
-    abs_tol_tracking(1e-10),
+    abs_tol_tracking(1e-11),
     rel_tol_adaptive_tracking(1e-8),
     abs_tol_adaptive_tracking(1e-10),
     init_ds_adaptive_tracking(1e-3),
@@ -3224,6 +3228,7 @@ public:
   Int field_calc;
   Int aperture_at;
   Int aperture_type;
+  Int ref_species;
   Int orientation;
   Bool symplectify;
   Bool mode_flip;
@@ -3330,6 +3335,7 @@ public:
     field_calc(Bmad::BMAD_STANDARD),
     aperture_at(Bmad::DOWNSTREAM_END),
     aperture_type(Bmad::RECTANGULAR),
+    ref_species(Bmad::NOT_SET),
     orientation(1),
     symplectify(false),
     mode_flip(false),
@@ -3429,13 +3435,14 @@ public:
   Int ix_branch;
   Int ix_from_branch;
   Int ix_from_ele;
-  Int* n_ele_track;
-  Int* n_ele_max;
-  CPP_mode_info* a;
-  CPP_mode_info* b;
-  CPP_mode_info* z;
+  Int ix_to_ele;
+  Int n_ele_track;
+  Int n_ele_max;
+  CPP_mode_info a;
+  CPP_mode_info b;
+  CPP_mode_info z;
   CPP_ele_ARRAY ele;
-  CPP_lat_param* param;
+  CPP_lat_param param;
   CPP_wall3d_ARRAY wall3d;
 
   CPP_branch() :
@@ -3443,23 +3450,18 @@ public:
     ix_branch(-1),
     ix_from_branch(-1),
     ix_from_ele(-1),
-    n_ele_track(NULL),
-    n_ele_max(NULL),
-    a(NULL),
-    b(NULL),
-    z(NULL),
+    ix_to_ele(-1),
+    n_ele_track(0),
+    n_ele_max(0),
+    a(),
+    b(),
+    z(),
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
-    param(NULL),
+    param(),
     wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0))
     {}
 
   ~CPP_branch() {
-    delete n_ele_track;
-    delete n_ele_max;
-    delete a;
-    delete b;
-    delete z;
-    delete param;
   }
 
 };   // End Class
@@ -3482,11 +3484,12 @@ public:
   string machine;
   string input_file_name;
   string title;
+  String_ARRAY print_str;
   CPP_expression_atom_ARRAY constant;
-  CPP_mode_info a;
-  CPP_mode_info b;
-  CPP_mode_info z;
-  CPP_lat_param param;
+  CPP_mode_info* a;
+  CPP_mode_info* b;
+  CPP_mode_info* z;
+  CPP_lat_param* param;
   CPP_bookkeeping_state lord_state;
   CPP_ele ele_init;
   CPP_ele_ARRAY ele;
@@ -3497,13 +3500,14 @@ public:
   CPP_pre_tracker pre_tracker;
   Real_ARRAY custom;
   Int version;
-  Int n_ele_track;
-  Int n_ele_max;
+  Int* n_ele_track;
+  Int* n_ele_max;
   Int n_control_max;
   Int n_ic_max;
   Int input_taylor_order;
   Int_ARRAY ic;
   Int photon_type;
+  Int creation_hash;
   Bool absolute_time_tracking;
   Bool ptc_uses_hard_edge_drifts;
 
@@ -3513,11 +3517,12 @@ public:
     machine(),
     input_file_name(),
     title(),
+    print_str(String_ARRAY(string(), 0)),
     constant(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
-    a(),
-    b(),
-    z(),
-    param(),
+    a(NULL),
+    b(NULL),
+    z(NULL),
+    param(NULL),
     lord_state(),
     ele_init(),
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
@@ -3528,18 +3533,25 @@ public:
     pre_tracker(),
     custom(0.0, 0),
     version(-1),
-    n_ele_track(0),
-    n_ele_max(0),
+    n_ele_track(NULL),
+    n_ele_max(NULL),
     n_control_max(0),
     n_ic_max(0),
     input_taylor_order(0),
     ic(0, 0),
     photon_type(Bmad::INCOHERENT),
+    creation_hash(0),
     absolute_time_tracking(false),
     ptc_uses_hard_edge_drifts(false)
     {}
 
   ~CPP_lat() {
+    delete a;
+    delete b;
+    delete z;
+    delete param;
+    delete n_ele_track;
+    delete n_ele_max;
   }
 
 };   // End Class

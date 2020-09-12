@@ -1996,13 +1996,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine coord_to_c2 (C, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_path_len, &
-      z_r, z_p0c, z_beta, z_ix_ele, z_ix_branch, z_ix_user, z_state, z_direction, z_species, &
-      z_location) bind(c)
+      z_r, z_p0c, z_e_potential, z_beta, z_ix_ele, z_ix_branch, z_ix_user, z_state, &
+      z_direction, z_species, z_location) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_vec(*), z_s, z_t, z_spin(*), z_field(*), z_phase(*), z_charge
-    real(c_double) :: z_path_len, z_r, z_p0c, z_beta
+    real(c_double) :: z_path_len, z_r, z_p0c, z_e_potential, z_beta
     integer(c_int) :: z_ix_ele, z_ix_branch, z_ix_user, z_state, z_direction, z_species, z_location
   end subroutine
 end interface
@@ -2020,8 +2020,8 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call coord_to_c2 (C, fvec2vec(F%vec, 6), F%s, F%t, fvec2vec(F%spin, 3), fvec2vec(F%field, 2), &
-    fvec2vec(F%phase, 2), F%charge, F%path_len, F%r, F%p0c, F%beta, F%ix_ele, F%ix_branch, &
-    F%ix_user, F%state, F%direction, F%species, F%location)
+    fvec2vec(F%phase, 2), F%charge, F%path_len, F%r, F%p0c, F%e_potential, F%beta, F%ix_ele, &
+    F%ix_branch, F%ix_user, F%state, F%direction, F%species, F%location)
 
 end subroutine coord_to_c
 
@@ -2042,8 +2042,8 @@ end subroutine coord_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine coord_to_f2 (Fp, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_path_len, &
-    z_r, z_p0c, z_beta, z_ix_ele, z_ix_branch, z_ix_user, z_state, z_direction, z_species, &
-    z_location) bind(c)
+    z_r, z_p0c, z_e_potential, z_beta, z_ix_ele, z_ix_branch, z_ix_user, z_state, z_direction, &
+    z_species, z_location) bind(c)
 
 
 implicit none
@@ -2053,7 +2053,7 @@ type(coord_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_vec(*), z_s, z_t, z_spin(*), z_field(*), z_phase(*), z_charge
-real(c_double) :: z_path_len, z_r, z_p0c, z_beta
+real(c_double) :: z_path_len, z_r, z_p0c, z_e_potential, z_beta
 integer(c_int) :: z_ix_ele, z_ix_branch, z_ix_user, z_state, z_direction, z_species, z_location
 
 call c_f_pointer (Fp, F)
@@ -2078,6 +2078,8 @@ F%path_len = z_path_len
 F%r = z_r
 !! f_side.to_f2_trans[real, 0, NOT]
 F%p0c = z_p0c
+!! f_side.to_f2_trans[real, 0, NOT]
+F%e_potential = z_e_potential
 !! f_side.to_f2_trans[real, 0, NOT]
 F%beta = z_beta
 !! f_side.to_f2_trans[integer, 0, NOT]
@@ -8177,13 +8179,14 @@ interface
   subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
       z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
       z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, &
-      z_use_csr_old, z_small_angle_approx) bind(c)
+      z_use_csr_old, z_small_angle_approx, z_wake_output_file) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
     integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
     logical(c_bool) :: z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx
+    character(c_char) :: z_wake_output_file(*)
   end subroutine
 end interface
 
@@ -8202,7 +8205,8 @@ call c_f_pointer (Fp, F)
 call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, F%n_bin, &
     F%particle_bin_span, F%n_shield_images, F%sc_min_in_bin, &
     c_logic(F%lsc_kick_transverse_dependence), c_logic(F%print_taylor_warning), &
-    c_logic(F%write_csr_wake), c_logic(F%use_csr_old), c_logic(F%small_angle_approx))
+    c_logic(F%write_csr_wake), c_logic(F%use_csr_old), c_logic(F%small_angle_approx), &
+    trim(F%wake_output_file) // c_null_char)
 
 end subroutine csr_parameter_to_c
 
@@ -8225,7 +8229,7 @@ end subroutine csr_parameter_to_c
 subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
     z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
     z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, &
-    z_small_angle_approx) bind(c)
+    z_small_angle_approx, z_wake_output_file) bind(c)
 
 
 implicit none
@@ -8237,6 +8241,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
 integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
 logical(c_bool) :: z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx
+character(c_char) :: z_wake_output_file(*)
 
 call c_f_pointer (Fp, F)
 
@@ -8264,6 +8269,8 @@ F%write_csr_wake = f_logic(z_write_csr_wake)
 F%use_csr_old = f_logic(z_use_csr_old)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%small_angle_approx = f_logic(z_small_angle_approx)
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_wake_output_file, F%wake_output_file)
 
 end subroutine csr_parameter_to_f2
 
@@ -8846,9 +8853,9 @@ interface
       z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, &
       z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
       z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
-      z_aperture_type, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
-      z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, &
-      z_bmad_logic, z_select, z_offset_moves_aperture) bind(c)
+      z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, &
+      z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, &
+      z_is_on, z_logic, z_bmad_logic, z_select, z_offset_moves_aperture) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -8866,7 +8873,7 @@ interface
     integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
     integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
     integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method, z_ptc_integration_type
-    integer(c_int) :: z_field_calc, z_aperture_at, z_aperture_type, z_orientation
+    integer(c_int) :: z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
     logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
     logical(c_bool) :: z_logic, z_bmad_logic, z_select, z_offset_moves_aperture
   end subroutine
@@ -9045,11 +9052,11 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     F%n_slave, F%n_slave_field, F%ix1_slave, F%slave_status, F%n_lord, F%n_lord_field, &
     F%ic1_lord, F%ix_pointer, F%ixx, F%iyy, F%mat6_calc_method, F%tracking_method, &
     F%spin_tracking_method, F%csr_method, F%space_charge_method, F%ptc_integration_type, &
-    F%field_calc, F%aperture_at, F%aperture_type, F%orientation, c_logic(F%symplectify), &
-    c_logic(F%mode_flip), c_logic(F%multipoles_on), c_logic(F%scale_multipoles), &
-    c_logic(F%taylor_map_includes_offsets), c_logic(F%field_master), c_logic(F%is_on), &
-    c_logic(F%logic), c_logic(F%bmad_logic), c_logic(F%select), &
-    c_logic(F%offset_moves_aperture))
+    F%field_calc, F%aperture_at, F%aperture_type, F%ref_species, F%orientation, &
+    c_logic(F%symplectify), c_logic(F%mode_flip), c_logic(F%multipoles_on), &
+    c_logic(F%scale_multipoles), c_logic(F%taylor_map_includes_offsets), &
+    c_logic(F%field_master), c_logic(F%is_on), c_logic(F%logic), c_logic(F%bmad_logic), &
+    c_logic(F%select), c_logic(F%offset_moves_aperture))
 
 end subroutine ele_to_c
 
@@ -9083,7 +9090,7 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx, z_iyy, &
     z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, &
     z_space_charge_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
-    z_aperture_type, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
+    z_aperture_type, z_ref_species, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
     z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on, z_logic, &
     z_bmad_logic, z_select, z_offset_moves_aperture) bind(c)
 
@@ -9117,7 +9124,7 @@ real(c_double), pointer :: f_a_pole(:), f_b_pole(:), f_a_pole_elec(:), f_b_pole_
 integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_lord_status, z_n_slave, z_n_slave_field
 integer(c_int) :: z_ix1_slave, z_slave_status, z_n_lord, z_n_lord_field, z_ic1_lord, z_ix_pointer, z_ixx
 integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_csr_method, z_space_charge_method, z_ptc_integration_type
-integer(c_int) :: z_field_calc, z_aperture_at, z_aperture_type, z_orientation
+integer(c_int) :: z_field_calc, z_aperture_at, z_aperture_type, z_ref_species, z_orientation
 logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
 logical(c_bool) :: z_logic, z_bmad_logic, z_select, z_offset_moves_aperture
 
@@ -9442,6 +9449,8 @@ F%aperture_at = z_aperture_at
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%aperture_type = z_aperture_type
 !! f_side.to_f2_trans[integer, 0, NOT]
+F%ref_species = z_ref_species
+!! f_side.to_f2_trans[integer, 0, NOT]
 F%orientation = z_orientation
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%symplectify = f_logic(z_symplectify)
@@ -9681,17 +9690,16 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine branch_to_c2 (C, z_name, z_ix_branch, z_ix_from_branch, z_ix_from_ele, &
-      z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, z_z, n_z, &
-      z_ele, n1_ele, z_param, n_param, z_wall3d, n1_wall3d) bind(c)
+      z_ix_to_ele, z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_ele, n1_ele, z_param, z_wall3d, &
+      n1_wall3d) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_name(*)
-    integer(c_int) :: z_ix_branch, z_ix_from_branch, z_ix_from_ele, z_n_ele_track, z_n_ele_max
-    integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_a, n_b, n_z, n1_ele, n_param
-    integer(c_int), value :: n1_wall3d
+    integer(c_int) :: z_ix_branch, z_ix_from_branch, z_ix_from_ele, z_ix_to_ele, z_n_ele_track, z_n_ele_max
     type(c_ptr), value :: z_a, z_b, z_z, z_param
     type(c_ptr) :: z_ele(*), z_wall3d(*)
+    integer(c_int), value :: n1_ele, n1_wall3d
   end subroutine
 end interface
 
@@ -9700,14 +9708,8 @@ type(c_ptr), value :: C
 type(branch_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-integer(c_int) :: n_n_ele_track
-integer(c_int) :: n_n_ele_max
-integer(c_int) :: n_a
-integer(c_int) :: n_b
-integer(c_int) :: n_z
 type(c_ptr), allocatable :: z_ele(:)
 integer(c_int) :: n1_ele
-integer(c_int) :: n_param
 type(c_ptr), allocatable :: z_wall3d(:)
 integer(c_int) :: n1_wall3d
 
@@ -9715,21 +9717,6 @@ integer(c_int) :: n1_wall3d
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_c_trans[integer, 0, PTR]
-n_n_ele_track = 0
-if (associated(F%n_ele_track)) n_n_ele_track = 1
-!! f_side.to_c_trans[integer, 0, PTR]
-n_n_ele_max = 0
-if (associated(F%n_ele_max)) n_n_ele_max = 1
-!! f_side.to_c_trans[type, 0, PTR]
-n_a = 0
-if (associated(F%a)) n_a = 1
-!! f_side.to_c_trans[type, 0, PTR]
-n_b = 0
-if (associated(F%b)) n_b = 1
-!! f_side.to_c_trans[type, 0, PTR]
-n_z = 0
-if (associated(F%z)) n_z = 1
 !! f_side.to_c_trans[type, 1, PTR]
  n1_ele = 0
 if (associated(F%ele)) then
@@ -9739,9 +9726,6 @@ if (associated(F%ele)) then
     z_ele(jd1) = c_loc(F%ele(jd1+lb1))
   enddo
 endif
-!! f_side.to_c_trans[type, 0, PTR]
-n_param = 0
-if (associated(F%param)) n_param = 1
 !! f_side.to_c_trans[type, 1, PTR]
  n1_wall3d = 0
 if (associated(F%wall3d)) then
@@ -9754,9 +9738,8 @@ endif
 
 !! f_side.to_c2_call
 call branch_to_c2 (C, trim(F%name) // c_null_char, F%ix_branch, F%ix_from_branch, &
-    F%ix_from_ele, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, c_loc(F%a), n_a, &
-    c_loc(F%b), n_b, c_loc(F%z), n_z, z_ele, n1_ele, c_loc(F%param), n_param, z_wall3d, &
-    n1_wall3d)
+    F%ix_from_ele, F%ix_to_ele, F%n_ele_track, F%n_ele_max, c_loc(F%a), c_loc(F%b), c_loc(F%z), &
+    z_ele, n1_ele, c_loc(F%param), z_wall3d, n1_wall3d)
 
 end subroutine branch_to_c
 
@@ -9776,9 +9759,9 @@ end subroutine branch_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine branch_to_f2 (Fp, z_name, z_ix_branch, z_ix_from_branch, z_ix_from_ele, &
-    z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, z_z, n_z, &
-    z_ele, n1_ele, z_param, n_param, z_wall3d, n1_wall3d) bind(c)
+subroutine branch_to_f2 (Fp, z_name, z_ix_branch, z_ix_from_branch, z_ix_from_ele, z_ix_to_ele, &
+    z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_ele, n1_ele, z_param, z_wall3d, n1_wall3d) &
+    bind(c)
 
 
 implicit none
@@ -9788,14 +9771,10 @@ type(branch_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 character(c_char) :: z_name(*)
-integer(c_int) :: z_ix_branch, z_ix_from_branch, z_ix_from_ele
-type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_param
-integer(c_int), pointer :: f_n_ele_track, f_n_ele_max
-integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_a, n_b, n_z, n1_ele, n_param
-integer(c_int), value :: n1_wall3d
-type(mode_info_struct), pointer :: f_a, f_b, f_z
+integer(c_int) :: z_ix_branch, z_ix_from_branch, z_ix_from_ele, z_ix_to_ele, z_n_ele_track, z_n_ele_max
+type(c_ptr), value :: z_a, z_b, z_z, z_param
 type(c_ptr) :: z_ele(*), z_wall3d(*)
-type(lat_param_struct), pointer :: f_param
+integer(c_int), value :: n1_ele, n1_wall3d
 
 call c_f_pointer (Fp, F)
 
@@ -9807,48 +9786,18 @@ F%ix_branch = z_ix_branch
 F%ix_from_branch = z_ix_from_branch
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_from_ele = z_ix_from_ele
-!! f_side.to_f2_trans[integer, 0, PTR]
-if (n_n_ele_track == 0) then                                                                                  
-  if (associated(F%n_ele_track)) deallocate(F%n_ele_track)                                                           
-else                                                                                                   
-  call c_f_pointer (z_n_ele_track, f_n_ele_track)                                                                    
-  if (.not. associated(F%n_ele_track)) allocate(F%n_ele_track)                                                       
-  F%n_ele_track = f_n_ele_track
-endif                                                                                                  
-
-!! f_side.to_f2_trans[integer, 0, PTR]
-if (n_n_ele_max == 0) then                                                                                  
-  if (associated(F%n_ele_max)) deallocate(F%n_ele_max)                                                           
-else                                                                                                   
-  call c_f_pointer (z_n_ele_max, f_n_ele_max)                                                                    
-  if (.not. associated(F%n_ele_max)) allocate(F%n_ele_max)                                                       
-  F%n_ele_max = f_n_ele_max
-endif                                                                                                  
-
-!! f_side.to_f2_trans[type, 0, PTR]
-if (n_a == 0) then
-  if (associated(F%a)) deallocate(F%a)
-else
-  if (.not. associated(F%a)) allocate(F%a)
-  call mode_info_to_f (z_a, c_loc(F%a))
-endif
-
-!! f_side.to_f2_trans[type, 0, PTR]
-if (n_b == 0) then
-  if (associated(F%b)) deallocate(F%b)
-else
-  if (.not. associated(F%b)) allocate(F%b)
-  call mode_info_to_f (z_b, c_loc(F%b))
-endif
-
-!! f_side.to_f2_trans[type, 0, PTR]
-if (n_z == 0) then
-  if (associated(F%z)) deallocate(F%z)
-else
-  if (.not. associated(F%z)) allocate(F%z)
-  call mode_info_to_f (z_z, c_loc(F%z))
-endif
-
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_to_ele = z_ix_to_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_ele_track = z_n_ele_track
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_ele_max = z_n_ele_max
+!! f_side.to_f2_trans[type, 0, NOT]
+call mode_info_to_f(z_a, c_loc(F%a))
+!! f_side.to_f2_trans[type, 0, NOT]
+call mode_info_to_f(z_b, c_loc(F%b))
+!! f_side.to_f2_trans[type, 0, NOT]
+call mode_info_to_f(z_z, c_loc(F%z))
 !! f_side.to_f2_trans[type, 1, PTR]
 if (n1_ele == 0) then
   if (associated(F%ele)) deallocate(F%ele)
@@ -9863,14 +9812,8 @@ else
   enddo
 endif
 
-!! f_side.to_f2_trans[type, 0, PTR]
-if (n_param == 0) then
-  if (associated(F%param)) deallocate(F%param)
-else
-  if (.not. associated(F%param)) allocate(F%param)
-  call lat_param_to_f (z_param, c_loc(F%param))
-endif
-
+!! f_side.to_f2_trans[type, 0, NOT]
+call lat_param_to_f(z_param, c_loc(F%param))
 !! f_side.to_f2_trans[type, 1, PTR]
 if (n1_wall3d == 0) then
   if (associated(F%wall3d)) deallocate(F%wall3d)
@@ -9910,22 +9853,24 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine lat_to_c2 (C, z_use_name, z_lattice, z_machine, z_input_file_name, z_title, &
-      z_constant, n1_constant, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_ele, n1_ele, &
-      z_branch, n1_branch, z_control, n1_control, z_particle_start, z_beam_init, z_pre_tracker, &
-      z_custom, n1_custom, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, &
-      z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
-      z_ptc_uses_hard_edge_drifts) bind(c)
+      z_print_str, n1_print_str, z_constant, n1_constant, z_a, n_a, z_b, n_b, z_z, n_z, &
+      z_param, n_param, z_lord_state, z_ele_init, z_ele, n1_ele, z_branch, n1_branch, &
+      z_control, n1_control, z_particle_start, z_beam_init, z_pre_tracker, z_custom, n1_custom, &
+      z_version, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, &
+      z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
+      z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     character(c_char) :: z_use_name(*), z_lattice(*), z_machine(*), z_input_file_name(*), z_title(*)
-    type(c_ptr) :: z_constant(*), z_ele(*), z_branch(*), z_control(*)
-    integer(c_int), value :: n1_constant, n1_ele, n1_branch, n1_control, n1_custom, n1_ic
+    type(c_ptr) :: z_print_str(*), z_constant(*), z_ele(*), z_branch(*), z_control(*)
+    integer(c_int), value :: n1_print_str, n1_constant, n_a, n_b, n_z, n_param, n1_ele
+    integer(c_int), value :: n1_branch, n1_control, n1_custom, n_n_ele_track, n_n_ele_max, n1_ic
     type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_particle_start
     type(c_ptr), value :: z_beam_init, z_pre_tracker
     real(c_double) :: z_custom(*)
     integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic(*)
-    integer(c_int) :: z_photon_type
+    integer(c_int) :: z_photon_type, z_creation_hash
     logical(c_bool) :: z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts
   end subroutine
 end interface
@@ -9935,8 +9880,15 @@ type(c_ptr), value :: C
 type(lat_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
+type(c_ptr), allocatable :: z_print_str(:)
+character(100+1), allocatable, target :: a_print_str(:)
+integer(c_int) :: n1_print_str
 type(c_ptr), allocatable :: z_constant(:)
 integer(c_int) :: n1_constant
+integer(c_int) :: n_a
+integer(c_int) :: n_b
+integer(c_int) :: n_z
+integer(c_int) :: n_param
 type(c_ptr), allocatable :: z_ele(:)
 integer(c_int) :: n1_ele
 type(c_ptr), allocatable :: z_branch(:)
@@ -9944,12 +9896,25 @@ integer(c_int) :: n1_branch
 type(c_ptr), allocatable :: z_control(:)
 integer(c_int) :: n1_control
 integer(c_int) :: n1_custom
+integer(c_int) :: n_n_ele_track
+integer(c_int) :: n_n_ele_max
 integer(c_int) :: n1_ic
 
 !
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_c_trans[character, 1, ALLOC]
+n1_print_str = 0
+if (allocated(F%print_str)) then
+  n1_print_str = size(F%print_str); lb1 = lbound(F%print_str, 1) - 1
+  allocate (a_print_str(n1_print_str))
+  allocate (z_print_str(n1_print_str))
+  do jd1 = 1, n1_print_str
+    a_print_str(jd1) = trim(F%print_str(jd1+lb1)) // c_null_char
+    z_print_str(jd1) = c_loc(a_print_str(jd1))
+  enddo
+endif
 !! f_side.to_c_trans[type, 1, ALLOC]
  n1_constant = 0
 if (allocated(F%constant)) then
@@ -9959,6 +9924,18 @@ if (allocated(F%constant)) then
     z_constant(jd1) = c_loc(F%constant(jd1+lb1))
   enddo
 endif
+!! f_side.to_c_trans[type, 0, PTR]
+n_a = 0
+if (associated(F%a)) n_a = 1
+!! f_side.to_c_trans[type, 0, PTR]
+n_b = 0
+if (associated(F%b)) n_b = 1
+!! f_side.to_c_trans[type, 0, PTR]
+n_z = 0
+if (associated(F%z)) n_z = 1
+!! f_side.to_c_trans[type, 0, PTR]
+n_param = 0
+if (associated(F%param)) n_param = 1
 !! f_side.to_c_trans[type, 1, PTR]
  n1_ele = 0
 if (associated(F%ele)) then
@@ -9991,6 +9968,12 @@ n1_custom = 0
 if (allocated(F%custom)) then
   n1_custom = size(F%custom, 1)
 endif
+!! f_side.to_c_trans[integer, 0, PTR]
+n_n_ele_track = 0
+if (associated(F%n_ele_track)) n_n_ele_track = 1
+!! f_side.to_c_trans[integer, 0, PTR]
+n_n_ele_max = 0
+if (associated(F%n_ele_max)) n_n_ele_max = 1
 !! f_side.to_c_trans[integer, 1, ALLOC]
 n1_ic = 0
 if (allocated(F%ic)) then
@@ -10000,12 +9983,14 @@ endif
 !! f_side.to_c2_call
 call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_char, &
     trim(F%machine) // c_null_char, trim(F%input_file_name) // c_null_char, trim(F%title) // &
-    c_null_char, z_constant, n1_constant, c_loc(F%a), c_loc(F%b), c_loc(F%z), c_loc(F%param), &
-    c_loc(F%lord_state), c_loc(F%ele_init), z_ele, n1_ele, z_branch, n1_branch, z_control, &
-    n1_control, c_loc(F%particle_start), c_loc(F%beam_init), c_loc(F%pre_tracker), &
-    fvec2vec(F%custom, n1_custom), n1_custom, F%version, F%n_ele_track, F%n_ele_max, &
+    c_null_char, z_print_str, n1_print_str, z_constant, n1_constant, c_loc(F%a), n_a, &
+    c_loc(F%b), n_b, c_loc(F%z), n_z, c_loc(F%param), n_param, c_loc(F%lord_state), &
+    c_loc(F%ele_init), z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, &
+    c_loc(F%particle_start), c_loc(F%beam_init), c_loc(F%pre_tracker), fvec2vec(F%custom, &
+    n1_custom), n1_custom, F%version, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, &
     F%n_control_max, F%n_ic_max, F%input_taylor_order, fvec2vec(F%ic, n1_ic), n1_ic, &
-    F%photon_type, c_logic(F%absolute_time_tracking), c_logic(F%ptc_uses_hard_edge_drifts))
+    F%photon_type, F%creation_hash, c_logic(F%absolute_time_tracking), &
+    c_logic(F%ptc_uses_hard_edge_drifts))
 
 end subroutine lat_to_c
 
@@ -10026,11 +10011,12 @@ end subroutine lat_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_machine, z_input_file_name, z_title, &
-    z_constant, n1_constant, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_ele, n1_ele, &
-    z_branch, n1_branch, z_control, n1_control, z_particle_start, z_beam_init, z_pre_tracker, &
-    z_custom, n1_custom, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, &
-    z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
-    z_ptc_uses_hard_edge_drifts) bind(c)
+    z_print_str, n1_print_str, z_constant, n1_constant, z_a, n_a, z_b, n_b, z_z, n_z, z_param, &
+    n_param, z_lord_state, z_ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, &
+    n1_control, z_particle_start, z_beam_init, z_pre_tracker, z_custom, n1_custom, z_version, &
+    z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_n_control_max, z_n_ic_max, &
+    z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_creation_hash, &
+    z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts) bind(c)
 
 
 implicit none
@@ -10040,13 +10026,17 @@ type(lat_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 character(c_char) :: z_use_name(*), z_lattice(*), z_machine(*), z_input_file_name(*), z_title(*)
-type(c_ptr) :: z_constant(*), z_ele(*), z_branch(*), z_control(*)
-integer(c_int), value :: n1_constant, n1_ele, n1_branch, n1_control, n1_custom, n1_ic
+type(c_ptr) :: z_print_str(*), z_constant(*), z_ele(*), z_branch(*), z_control(*)
+character(c_char), pointer :: f_print_str
+integer(c_int), value :: n1_print_str, n1_constant, n_a, n_b, n_z, n_param, n1_ele
+integer(c_int), value :: n1_branch, n1_control, n1_custom, n_n_ele_track, n_n_ele_max, n1_ic
 type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_particle_start
-type(c_ptr), value :: z_beam_init, z_pre_tracker, z_custom, z_ic
+type(c_ptr), value :: z_beam_init, z_pre_tracker, z_custom, z_n_ele_track, z_n_ele_max, z_ic
+type(mode_info_struct), pointer :: f_a, f_b, f_z
+type(lat_param_struct), pointer :: f_param
 real(c_double), pointer :: f_custom(:)
-integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type
-integer(c_int), pointer :: f_ic(:)
+integer(c_int) :: z_version, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type, z_creation_hash
+integer(c_int), pointer :: f_n_ele_track, f_n_ele_max, f_ic(:)
 logical(c_bool) :: z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts
 
 call c_f_pointer (Fp, F)
@@ -10061,6 +10051,21 @@ call to_f_str(z_machine, F%machine)
 call to_f_str(z_input_file_name, F%input_file_name)
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_title, F%title)
+!! f_side.to_f2_trans[character, 1, ALLOC]
+if (n1_print_str == 0) then
+  if (allocated(F%print_str)) deallocate(F%print_str)
+else
+  if (allocated(F%print_str)) then
+    if (n1_print_str == 0 .or. any(shape(F%print_str) /= [n1_print_str])) deallocate(F%print_str)
+    if (any(lbound(F%print_str) /= 1)) deallocate(F%print_str)
+  endif
+  if (.not. allocated(F%print_str)) allocate(F%print_str(1:n1_print_str+1-1))
+  do jd1 = 1, n1_print_str
+    call c_f_pointer (z_print_str(jd1), f_print_str)
+    call to_f_str(f_print_str, F%print_str(jd1+1-1))
+  enddo
+endif
+
 !! f_side.to_f2_trans[type, 1, ALLOC]
 if (n1_constant == 0) then
   if (allocated(F%constant)) deallocate(F%constant)
@@ -10075,14 +10080,38 @@ else
   enddo
 endif
 
-!! f_side.to_f2_trans[type, 0, NOT]
-call mode_info_to_f(z_a, c_loc(F%a))
-!! f_side.to_f2_trans[type, 0, NOT]
-call mode_info_to_f(z_b, c_loc(F%b))
-!! f_side.to_f2_trans[type, 0, NOT]
-call mode_info_to_f(z_z, c_loc(F%z))
-!! f_side.to_f2_trans[type, 0, NOT]
-call lat_param_to_f(z_param, c_loc(F%param))
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_a == 0) then
+  if (associated(F%a)) deallocate(F%a)
+else
+  if (.not. associated(F%a)) allocate(F%a)
+  call mode_info_to_f (z_a, c_loc(F%a))
+endif
+
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_b == 0) then
+  if (associated(F%b)) deallocate(F%b)
+else
+  if (.not. associated(F%b)) allocate(F%b)
+  call mode_info_to_f (z_b, c_loc(F%b))
+endif
+
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_z == 0) then
+  if (associated(F%z)) deallocate(F%z)
+else
+  if (.not. associated(F%z)) allocate(F%z)
+  call mode_info_to_f (z_z, c_loc(F%z))
+endif
+
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_param == 0) then
+  if (associated(F%param)) deallocate(F%param)
+else
+  if (.not. associated(F%param)) allocate(F%param)
+  call lat_param_to_f (z_param, c_loc(F%param))
+endif
+
 !! f_side.to_f2_trans[type, 0, NOT]
 call bookkeeping_state_to_f(z_lord_state, c_loc(F%lord_state))
 !! f_side.to_f2_trans[type, 0, NOT]
@@ -10150,10 +10179,24 @@ endif
 
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%version = z_version
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%n_ele_track = z_n_ele_track
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%n_ele_max = z_n_ele_max
+!! f_side.to_f2_trans[integer, 0, PTR]
+if (n_n_ele_track == 0) then                                                                                  
+  if (associated(F%n_ele_track)) deallocate(F%n_ele_track)                                                           
+else                                                                                                   
+  call c_f_pointer (z_n_ele_track, f_n_ele_track)                                                                    
+  if (.not. associated(F%n_ele_track)) allocate(F%n_ele_track)                                                       
+  F%n_ele_track = f_n_ele_track
+endif                                                                                                  
+
+!! f_side.to_f2_trans[integer, 0, PTR]
+if (n_n_ele_max == 0) then                                                                                  
+  if (associated(F%n_ele_max)) deallocate(F%n_ele_max)                                                           
+else                                                                                                   
+  call c_f_pointer (z_n_ele_max, f_n_ele_max)                                                                    
+  if (.not. associated(F%n_ele_max)) allocate(F%n_ele_max)                                                       
+  F%n_ele_max = f_n_ele_max
+endif                                                                                                  
+
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_control_max = z_n_control_max
 !! f_side.to_f2_trans[integer, 0, NOT]
@@ -10175,6 +10218,8 @@ endif
 
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%photon_type = z_photon_type
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%creation_hash = z_creation_hash
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%absolute_time_tracking = f_logic(z_absolute_time_tracking)
 !! f_side.to_f2_trans[logical, 0, NOT]
