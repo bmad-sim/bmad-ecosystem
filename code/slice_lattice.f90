@@ -3,21 +3,23 @@
 !
 ! Routine to discard from the lattice all elements not in ele_list.
 !
-! Note: Controllers that control elements that remain will not be cut.
-! Note: Flexible patches will be marked as rigid if it is not possible to calculate the floor 
-!   coords of the downstream element after slicing.
-! Note: ele%multipass_ref_energy will be set to user_set$ if first pass element is discarded.
+! Note: 
+!   * Controllers that control elements that remain will not be cut.
+!   * Flexible patches will be marked as rigid if it is not possible to calculate the floor 
+!     coords of the downstream element after slicing.
+!   * ele%multipass_ref_energy will be set to user_set$ if first pass element is discarded.
+!   * Branches with no retained elements will be discarded.
 !
 ! For each branch where there are elements to be deleted and where the reference energy has been computed:
-!   1) The Twiss, reference energy, floor position, and s-position parameters from the first 
+!   * The Twiss, reference energy, floor position, and s-position parameters from the first 
 !       non-deleted element are transferred to the beginning element.
-!   2) The beginning betatron phase is set to zero.
-!   3) The branch geometry is set to open.
+!   * The beginning betatron phase is set to zero.
+!   * The branch geometry is set to open.
 !   
 !
 ! Note: Not modified is:
-!   1) Beginning s (longitudinal position) value.
-!   2) Beginning floor position.
+!   * Beginning s (longitudinal position) value.
+!   * Beginning floor position.
 !
 ! Input:
 !   lat           -- lat_struct: Lattice to slice.
