@@ -6,7 +6,8 @@
 ! To mark element ie of branch ib for removal use:
 !     lat%branch(ib)%ele(ie)%ix_ele = -1
 ! To remove an entire branch mark the branch index:
-!     lat%branch(ib)%ix_branch = -1 
+!     lat%branch(ib)%ix_branch = -1
+! Branches where all the elements with index above 0 are marked for removal will also be removed. 
 !
 ! Individual lat%control(i) elements, along with the corresponding lat%ic(j), can 
 ! be removed by setting:
@@ -113,11 +114,16 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   enddo
 enddo
 
+! Correct ele%ix_ele.
+! Also a branch will be removed if all elements with index above 0 are marked for removal.
+
 do ib = 0, ubound(lat%branch, 1)
-  do ie = 0, lat%branch(ib)%n_ele_max
-    ele => lat%branch(ib)%ele(ie)
+  branch => lat%branch(ib)
+  do ie = 0, branch%n_ele_max
+    ele => branch%ele(ie)
     if (ele%ix_ele == int_garbage$) ele%ix_ele = ie
   enddo
+  if (all(branch%ele(1:branch%n_ele_track)%ix_ele == -1)) branch%ix_branch = -1
 enddo
 
 ! Mark elements as dead if in a dead branch.
@@ -168,6 +174,7 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   if (branch%ix_from_ele > -1) branch%ix_from_ele = ibr(branch%ix_from_branch)%loc(branch%ix_from_ele)%new_ix_ele
   if (branch%ix_from_ele < 0) then
+    if (branch%ix_to_ele == 0) branch%ele(0)%value(inherit_from_fork$) = false$
     branch%ix_from_branch = -1
     branch%ix_to_ele = -1
   endif
