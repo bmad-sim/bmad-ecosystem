@@ -403,7 +403,11 @@ if (graph%draw_axes) then
   if (graph%title == '' .or. .not. graph%draw_title) then
     call qp_set_graph (title = '')
   else
-    call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+    if (s%plot_page%draw_graph_title_suffix) then
+      call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+    else
+      call qp_set_graph (title = graph%title)
+    endif
   endif
   call qp_draw_axes (draw_grid = graph%draw_grid)
 endif
@@ -1833,7 +1837,11 @@ call qp_set_layout (x_axis = graph%x, x2_mirrors_x = .true.)
 call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, y2_mirrors_y = graph%y2_mirrors_y)
 
 if (graph%draw_title) then
-  call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+  if (s%plot_page%draw_graph_title_suffix) then
+    call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+  else
+    call qp_set_graph (title = graph%title)
+  endif
 else
   call qp_set_graph (title = '')
 endif

@@ -335,6 +335,7 @@ type tao_plot_page_struct
   integer :: n_curve_pts = 401              ! Default number of points for plotting a smooth curve.
   integer :: id_window = -1                 ! X window id number.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
+  logical :: draw_graph_title_suffix = .true.  ! Draw the graph title suffix?
 end type
 
 ! Arrays of structures

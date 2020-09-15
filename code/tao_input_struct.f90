@@ -203,6 +203,7 @@ type tao_plot_page_input
   type (tao_title_struct) :: title(2)       ! Titles at top of page.
   type (qp_rect_struct) :: border           ! Border around plots edge of page.
   logical :: delete_overlapping_plots = .true. ! Delete overlapping plots when a plot is placed?
+  logical :: draw_graph_title_suffix = .true.
 end type
 
 type tao_ele_shape_input
@@ -267,6 +268,7 @@ if (logic_option(.false., reverse)) then
   plot_page%title                        = plot_input%title 
   plot_page%border                       = plot_input%border
   plot_page%delete_overlapping_plots     = plot_input%delete_overlapping_plots
+  plot_page%draw_graph_title_suffix      = plot_input%draw_graph_title_suffix
 endif
 
 ! 
@@ -288,7 +290,8 @@ plot_input%curve_legend_text_offset     = plot_page%curve_legend_text_offset
 plot_input%n_curve_pts                  = plot_page%n_curve_pts
 plot_input%title                        = plot_page%title 
 plot_input%border                       = plot_page%border
-plot_input%delete_overlapping_plots     = plot_page%delete_overlapping_plots 
+plot_input%delete_overlapping_plots     = plot_page%delete_overlapping_plots
+plot_input%draw_graph_title_suffix      = plot_page%draw_graph_title_suffix
 
 ! Plot window geometry specified on cmd line?
 

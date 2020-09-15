@@ -1777,8 +1777,9 @@ page) and defines the ``regions'' where plots go. The syntax of this block is:
     plot_page%title(i)                 = <string>, {<x>, <y>, "<units>", "<justify>"}
     plot_page%n_curve_pts              = <int>    ! Num points used to construct a 
                                                   !   smooth curve. Default = 401
-     = <T/F>    ! Used with "show plot" command.
     plot_page%box_plots                = <T/F>    ! For debugging. Default = F.
+    plot_page%delete_overlapping_plots = <T/F>    ! Default = T.
+    plot_page%draw_graph_title_suffix  = <T/F>    ! Default = T.
     include_default_plots              = <T/F>    ! Include default templates? Def = T.
     region(i) = "<region_name>" <x1\(_{\dstyle{r}}\)>, <x2\(_{\dstyle{r}}\)>, <y1\(_{\dstyle{r}}\)>, <y2\(_{\dstyle{r}}\)>  
     place(i)  = "<region_name>", "<template_name>"
@@ -1873,6 +1874,11 @@ of default regions whose names begin with the letter '\vn{r}'. Use the \vn{show 
 When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a plot (using
 the \vn{place} command \sref{s:place}) causes any existing plots that overlap the
 placed plot to become invisible. 
+
+The \vn{plot_page%draw_graph_title_suffix} is used to suppress the drawing of the string that
+is printed to the right of a graph title (set by \vn{graph%title}). This string is set by \tao
+and has information on what is being plotted (typically the \vn{curve%component}). To suppress
+the suffix, set \vn{plot_page%draw_graph_title_suffix} to False.
 
 The \vn{plot_page%n_curve_pts} parameter sets the default number of points to use for drawing
 ``smooth'' curves. The default is 401. This default may be overridden for individual plots by
@@ -2025,6 +2031,7 @@ namelists should be placed directly after their respective
     graph%type              = "<string>"       ! "data", "floor_plan", etc.
     graph%box               = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%title             = "<string>"       ! Title above the graph.
+    graph%title_suffix                         ! Not user settable.
     graph%margin            =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%scale_margin      =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%x                 = <qp_axis_struct> ! Horizontal axis.
@@ -2095,7 +2102,9 @@ See the QuickPlot documentation (\sref{s:line.symb}) description of the \vn{qp_s
 
 \vn{graph%title} is the string just above the graph. The full string will also include information
 about what is being plotted and the horizontal axis type. To fully suppress the title leave it
-blank.
+blank. Note: A graph also has a \vn{graph%title_suffix} which \tao uses to hold the string which is
+printed to the right of the \vn{graph%title}. This string contains information like what
+\vn{curve%component} is being plotted. The \vn{graph%title_suffix} cannot be set by the user.
 
 If there are multiple curves drawn with a graph then a curve legend showing what lines are
 associated with what data will be drawn. The default is to draw this legend in the upper left hand
