@@ -1746,10 +1746,11 @@ end type
 
 type track_struct
   type (track_point_struct), allocatable :: pt(:) ! Array of track points indexed from 0.
-  real(rp) :: ds_save = 1d-3                      ! Min distance between points. Not positive => Save at all points.
-  integer :: n_pt = -1                            ! Track upper bound for %orb(0:), etc. arrays.
-  integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.
-  integer :: n_ok = 0                             ! Number of good steps when adaptive tracking is done.
+  real(rp) :: ds_save = 1d-3  ! Min distance between points. Not positive => Save at all points.
+  integer :: n_pt = -1        ! Track upper bound for %orb(0:), etc. arrays.
+  ! n_bad and n_ok are used by adaptive trackers to record the number of times the step length had to be shortened.
+  integer :: n_bad = 0        ! Number of "bad" steps where the step length was shortened.
+  integer :: n_ok = 0         ! Number of "good" steps where the step length was not shortened.
 end type
 
 !------------------------------------------------------------------------------
