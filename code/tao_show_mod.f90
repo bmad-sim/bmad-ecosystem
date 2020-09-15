@@ -3359,6 +3359,7 @@ case ('plot')
     nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale       = ', s%plot_page%floor_plan_shape_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale       = ', s%plot_page%lat_layout_shape_scale 
     nl=nl+1; write(lines(nl), lmt)  '  %delete_overlapping_plots     = ', s%plot_page%delete_overlapping_plots
+    nl=nl+1; write(lines(nl), lmt)  '  %draw_graph_title_suffix      = ', s%plot_page%draw_graph_title_suffix
 
     result_id = 'plot:global'
     return 
