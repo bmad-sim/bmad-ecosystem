@@ -1,13 +1,18 @@
 !+
 ! Subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)
 !
-! Routine used by the Runge-Kutta tracking routine to save
-! the trajectory through an element.
+! Routine used by the Runge-Kutta tracking routine to save the trajectory through an element.
 !
-! Note: It is assumed by this routine that here(:) is the orbit in local 
-! element coordinates. The actual track saved will be in laboratory coordinates.
+! Notes: 
+!   * It is assumed by this routine that here(:) is the orbit in local 
+!     element coordinates. The actual track saved will be in laboratory coordinates.
+!   * It is up to the calling routine to keep track of track%n_ok and track%n_bad if desired.
+!     These numbers are used by adaptive trackers to record how many times the step size needed 
+!     to be shortened.
+!     
 !
 ! Input:
+!   track           -- track_struct: Track up to now. If track%n_pt < 0, the structure will be reinitialized.
 !   ele             -- ele_struct: Element being tracked through.
 !   param           -- lat_param_struct: Lattice parameters.
 !   local_ref_frame -- Logical: If True then coordinates are wrt the frame of ref of the element.
@@ -22,7 +27,7 @@
 !                       This is only needed if save_field = True.
 !
 ! Ouput:
-!   track           -- track_struct: Trajectory structure saved to.
+!   track           -- track_struct: Track with current trajectory info appended on.
 !-
 
 subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time)

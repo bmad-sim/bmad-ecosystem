@@ -198,8 +198,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     endif
   end select
 
-  !Save track
-  if ( present(track) ) then
+  ! Save track
+  if (present(track) .and. (n_step > 1 .or. orb%state /= alive$)) then
     ! Check if we are past a save time, or if exited
     if (track%ds_save <= 0 .or. (rf_time - t_save) * t_dir >= 0 .or. exit_flag) then
       ! For consistency, convert to s-coordinates for save_a_step
