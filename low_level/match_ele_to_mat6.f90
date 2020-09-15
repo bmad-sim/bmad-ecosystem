@@ -41,18 +41,46 @@ integer species
 logical :: err_flag
 logical, optional :: include_delta_time
 
-! If no Twiss has been set then just use the unit matrix.
+!
 
 v => ele%value
 
-if (v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. &
-    v(alpha_a0$) == 0 .and. v(alpha_b0$) == 0 .and. &
-    v(beta_a1$) == 0 .and. v(beta_b1$) == 0 .and. &
-    v(alpha_a1$) == 0 .and. v(alpha_b1$) == 0 .and. is_false(v(match_end$))) then
-  call mat_make_unit(mat6)
-  vec0 = [v(x1$)-v(x0$), v(px1$)-v(px0$), v(y1$)-v(y0$), v(py1$)-v(py0$), v(z1$)-v(z0$), v(pz1$)-v(pz0$)]
-  err_flag = .false.
-  return
+if (present(twiss_ele)) then
+  t_ele => twiss_ele
+else
+  t_ele => pointer_to_next_ele (ele, -1)
+endif
+
+! If no Twiss has been set then just set mat6 to a rotation matrix if the Twiss parameters are available.
+! If not available, set mat6 to the unit matrix
+
+if (v(beta_a0$) == 0 .and. v(beta_b0$) == 0 .and. v(alpha_a0$) == 0 .and. v(alpha_b0$) == 0 .and. &
+    v(beta_a1$) == 0 .and. v(beta_b1$) == 0 .and. v(alpha_a1$) == 0 .and. v(alpha_b1$) == 0) then
+  if (t_ele%a%beta > 0 .and. t_ele%b%beta > 0) then
+    v(beta_a0$)  = t_ele%a%beta
+    v(beta_b0$)  = t_ele%b%beta
+    v(alpha_a0$) = t_ele%a%alpha
+    v(alpha_b0$) = t_ele%b%alpha
+    v(eta_x0$)   = t_ele%x%eta
+    v(eta_y0$)   = t_ele%y%eta
+    v(etap_x0$)  = t_ele%x%etap
+    v(etap_y0$)  = t_ele%y%etap
+    v(c11_mat0$:c22_mat0$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
+    v(beta_a1$)  = t_ele%a%beta
+    v(beta_b1$)  = t_ele%b%beta
+    v(alpha_a1$) = t_ele%a%alpha
+    v(alpha_b1$) = t_ele%b%alpha
+    v(eta_x1$)   = t_ele%x%eta
+    v(eta_y1$)   = t_ele%y%eta
+    v(etap_x1$)  = t_ele%x%etap
+    v(etap_y1$)  = t_ele%y%etap
+    v(c11_mat1$:c22_mat1$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
+  else
+    call mat_make_unit(mat6)
+    vec0 = [v(x1$)-v(x0$), v(px1$)-v(px0$), v(y1$)-v(y0$), v(py1$)-v(py0$), v(z1$)-v(z0$), v(pz1$)-v(pz0$)]
+    err_flag = .false.
+    return
+  endif
 endif
 
 ! Error Check. Negative beta can be caused via twiss_propagate1 with a non-symplectic transfer matrix.
@@ -71,19 +99,14 @@ endif
 ! Match_end
 
 if (is_true(v(match_end$))) then
-  if (present(twiss_ele)) then
-    t_ele => twiss_ele
-  else
-    t_ele => pointer_to_next_ele (ele, -1)
-  endif
-  v(beta_a0$)    = t_ele%a%beta
-  v(beta_b0$)    = t_ele%b%beta
-  v(alpha_a0$)   = t_ele%a%alpha
-  v(alpha_b0$)   = t_ele%b%alpha
-  v(eta_x0$)     = t_ele%x%eta
-  v(eta_y0$)     = t_ele%y%eta
-  v(etap_x0$)    = t_ele%x%etap
-  v(etap_y0$)    = t_ele%y%etap
+  v(beta_a0$)  = t_ele%a%beta
+  v(beta_b0$)  = t_ele%b%beta
+  v(alpha_a0$) = t_ele%a%alpha
+  v(alpha_b0$) = t_ele%b%alpha
+  v(eta_x0$)   = t_ele%x%eta
+  v(eta_y0$)   = t_ele%y%eta
+  v(etap_x0$)  = t_ele%x%etap
+  v(etap_y0$)  = t_ele%y%etap
   v(c11_mat0$:c22_mat0$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
 endif
 

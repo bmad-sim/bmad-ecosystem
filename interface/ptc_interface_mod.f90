@@ -4118,7 +4118,7 @@ elseif (use_offsets) then
   if (ele%key == fiducial$) return
   if (attribute_index(ele, 'X_OFFSET_TOT') < 1) return
 
-  ! in PTC the reference point for the offsets is the beginning of the element.
+  ! In PTC the reference point for the offsets is the beginning of the element.
   ! In Bmad the reference point is the center of the element..
 
   x_off = ele%value(x_offset_tot$)
