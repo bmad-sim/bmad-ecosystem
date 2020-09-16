@@ -320,6 +320,19 @@ endif
 
 ! Special cases
 
+if (ele%key == rbend$) then   ! Note: Rbend elements only exist during lattice parsing.
+  select case (a_name)
+  case ('L');       a_ptr%r => ele%value(l_chord$)
+  case ('L_CHORD'); a_ptr%r => ele%value(l_chord$)
+  case ('L_ARC');   a_ptr%r => ele%value(l$)
+  end select
+
+  if (associated(a_ptr%r)) then
+    err_flag = .false.
+    return
+  endif
+endif
+
 select case (a_name)
 case ('G_ERR');           a_ptr%r => ele%value(dg$)
 case ('B_FIELD_ERR');     a_ptr%r => ele%value(db_field$)

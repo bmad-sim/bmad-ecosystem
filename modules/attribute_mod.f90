@@ -262,8 +262,13 @@ n_abbrev = 0            ! number of abbreviation matches.
 select case (name)
 case ('G_ERR');       name40 = 'DG'
 case ('B_FIELD_ERR'); name40 = 'DB_FIELD'
+case ('REF');         name40 = 'REFERENCE'
 case default;         name40 = name
 end select
+
+if (key == rbend$) then  ! Note: Rbends only exist while parsing
+  if (name == 'L')     name40 = 'L_CHORD'
+endif
 
 !
 
@@ -306,8 +311,8 @@ if (key == 0) then
 ! else only search this type of element
 
 elseif (key > 0 .and. key <= n_key$) then
-  do i = 1, attrib_num(key)
 
+  do i = 1, attrib_num(key)
     if (short_attrib_array(key, i) == name40) then
       attrib_index = attrib_ix(key, i)
       if (present(full_name)) then
@@ -323,8 +328,12 @@ elseif (key > 0 .and. key <= n_key$) then
         if (present(full_name)) full_name = short_attrib_array(key, i)
       endif 
     endif
-
   enddo      
+
+  if (key == rbend$ .and. name40 == 'L_ARC') then
+    attrib_index = l$
+    if (present(full_name)) full_name = 'L_ARC'
+  endif 
 
 ! error
 
