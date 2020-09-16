@@ -294,10 +294,13 @@ if (word == 'COHERENT_SYNCH_RAD_ON') then
 endif
 
 if (ele%key == sbend$ .or. ele%key == rbend$) then
-  if (word == 'G_ERR') word = 'DG'
+  if (word == 'G_ERR')       word = 'DG'
   if (word == 'B_FIELD_ERR') word = 'DB_FIELD'
 endif
 
+if (word == 'REF')    word = 'REFERENCE' ! allowed abbrev
+if (key == rfcavity$ .and. word == 'LAG') word = 'PHI0'   ! For MAD compatibility
+  
 ! particle_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
@@ -597,8 +600,6 @@ if (word(1:16) == 'CUSTOM_ATTRIBUTE') then
 endif
 
 !-------------------------------------------------------------------
-
-word = parser_translate_attribute_name (ele%key, word)
 
 ix_attrib = attribute_index(ele, word, attrib_word)
 if (attrib_free_problem(word)) return

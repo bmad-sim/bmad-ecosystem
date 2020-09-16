@@ -27,42 +27,6 @@ contains
 ! This subroutine is not intended for general use.
 !-
 
-function parser_translate_attribute_name (key, word) result (trans_word)
-
-implicit none
-
-character(*) word
-character(40) trans_word
-integer key
-
-!
-
-trans_word = word
-
-if (word == 'REF') then
-  trans_word = 'REFERENCE' ! allowed abbrev
-
-elseif (key == rbend$) then
-  if (word == 'L') then
-    trans_word = 'L_CHORD'
-  elseif (word == 'L_ARC') then
-    trans_word = 'L'
-  endif
-
-elseif (key == rfcavity$ .and. word == 'LAG') then   ! For MAD compatibility
-  trans_word = 'PHI0'
-endif
-
-end function parser_translate_attribute_name 
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
 subroutine get_called_file (delim, call_file, err)
 
 implicit none

@@ -1,4 +1,4 @@
-s\chapter{Elements}
+\chapter{Elements}
 \label{c:elements}
 \index{element|hyperbf}
 
@@ -414,7 +414,7 @@ See \sref{s:list.bend} for a full list of element attributes along with a their 
 
 \index{g}\index{b_field}\index{dg}\index{db_field}\index{angle}
 \index{l_chord}\index{angle}\index{h1}\index{h2}
-\index{e1}\index{e2}\index{fint}\index{fintx}\index{l_arc}
+\index{e1}\index{e2}\index{fint}\index{fintx}\index{l_arc}\index{l_sagitta}
 \index{hgap}\index{hgapx}\index{roll}\index{k1}\index{exact_multipoles}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
@@ -434,9 +434,10 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   k2                 = <Real>     ! Sextupole strength (\sref{s:depend}).
   l                  = <Real>     ! "Length" of bend. See below.
   l_arc              = <Real>     ! Arc length. For \vn{rbend}s only. 
-  l_chord                         ! Chord length. Dependent attribute. See \sref{s:l}.
+  l_chord            = <Real>     ! Chord length. See \sref{s:l}.
+  l_sagitta                       ! Sagitta length. Dependent param (\sref{s:depend}).
   ptc_field_geometry = <Switch>   ! See below.
-  rho                = <Real>     ! Design bend radius. A settable dependent var (\sref{s:depend}).
+  rho                = <Real>     ! Design bend radius. A settable dependent param (\sref{s:depend}).
   roll               = <Real>     ! See \ref{s:offset}.
 \end{example}
 
@@ -619,13 +620,18 @@ The normalized and unnormalized quadrupole strength.
   \item[k2, b2_gradient] \Newline
 The normalized and unnormalized sextupole strength. 
   %
-  \index{l}\index{l_chord}\index{l_arc}
-  \item[l, l_arc, l_chord]  \Newline
+  \index{l}\index{l_chord}\index{l_arc}\index{l_sagitta}
+  \item[l, l_arc, l_chord, l_sagitta]  \Newline
 For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord length and not the arc length as
-it is for an \vn{sbend}.  However, after reading in a lattice, \bmad will internally convert all
-\vn{rbend}s into \vn{sbend}s, additionally, the \vn{l_chord} attribute will be set to the input
-\vn{l}, and \vn{l} will be set to the true path length (see above). Alternatively for an \vn{rbend},
-instead of setting \vn{l}, the \vn{l_arc} attribute can be set to the true arc length.
+it is for an \vn{sbend}.  After reading in a lattice, \bmad will internally convert all \vn{rbend}s
+into \vn{sbend}s, and the \vn{l_chord} attribute of the created \vn{sbend} will be set to the input
+\vn{l}. The \vn{l} of the the created \vn{sbend} will be set to the true path length (see
+above). Alternatively for an \vn{rbend}, instead of setting \vn{l}, the \vn{l_arc} attribute can be
+used to set the true arc length. 
+
+For \vn{sbend} elements, \vn{l_chord} will be set to the calculated chord length. For both types of
+bends, the \vn{l_sagitta} parameter will be set to the sagitta length (The sagitta is the distance
+from the midpoint of the arc to the midpoint of the chord).
   %
   \index{ref_tilt}
   \item[ref_tilt] \Newline
