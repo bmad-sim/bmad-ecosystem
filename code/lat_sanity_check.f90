@@ -184,6 +184,24 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       cycle
     end select
 
+    ! Check limits
+
+    if (has_attribute(ele, 'X1_LIMIT')) then
+      if (ele%value(x1_limit$) /= 0 .and. ele%value(x1_limit$) == -ele%value(x2_limit$)) then
+        call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // ele%name, &
+                    'HAS X1_LIMIT EQUAL TO -X2_LIMIT.')
+        err_flag = .true.
+      endif
+
+      if (ele%value(y1_limit$) /= 0 .and. ele%value(y1_limit$) == -ele%value(y2_limit$)) then
+        call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // ele%name, &
+                    'HAS Y1_LIMIT EQUAL TO -Y2_LIMIT.')
+        err_flag = .true.
+      endif
+    endif
+
     ! Check switches
 
     if (ele%key /= overlay$ .and. ele%key /= group$) then

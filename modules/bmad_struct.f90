@@ -140,7 +140,8 @@ character(20), parameter :: control_name(12) = [character(20):: &
 
 logical, parameter :: set$ = .true., unset$ = .false.
 
-!
+! Auto aperture is different from Rectangular aperture in that with Auto, aperture values are calculated by Bmad 
+! when the lattice file is parsed. Auto is only available for Mask, Detector and Diffraction_plate elements.
 
 integer, parameter :: grided$ = 123
 integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, wall3d$ = 5, custom_aperture$ = 7

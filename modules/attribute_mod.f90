@@ -112,6 +112,11 @@ private check_this_attribute_free
 ! Note:
 !   If ele%key or key = 0 -> Entire name table will be searched.
 !
+! See also:
+!   has_attribute
+!   attribute_info
+!   attribute_name
+!
 ! Input:
 !   ele     -- ele_struct: attribute_index will restrict the name search to 
 !                valid attributes of the given element. 
