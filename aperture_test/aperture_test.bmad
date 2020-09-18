@@ -19,12 +19,16 @@ dd: drift, l = 10
 ec: ecollimator, px_aperture_width2 = 0.01, px_aperture_center = 0.01, 
                  py_aperture_width2 = 0.015,
                  z_aperture_width2 = 0.2, z_aperture_center = -0.6,
-                 pz_aperture_width2 = 0.03, pz_aperture_center = 0.02
+                 pz_aperture_width2 = 0.03, pz_aperture_center = 0.02,
+                 x1_limit = 1e-10, x2_limit = 0.02,
+                 y_limit = 0.015
 
 rc: rcollimator, px_aperture_width2 = 0.01, px_aperture_center = 0.01,
                  py_aperture_width2 = 0.015,
                  z_aperture_width2 = 0.2, z_aperture_center = -0.6,
-                 pz_aperture_width2 = 0.03, pz_aperture_center = 0.02
+                 pz_aperture_width2 = 0.03, pz_aperture_center = 0.02,
+                 x1_limit = 1e-10, x2_limit = 0.02,
+                 y_limit = 0.015
 
 ring: line=(dd, infa, ec, rc)
 use, ring
