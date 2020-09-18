@@ -47,8 +47,9 @@ ele%tracking_method = time_runge_kutta$
 call track1(start_orb, lat%ele(2), lat%param, end_orb)
 write (1, '(a, 6f10.6, i4)') '"TRK"  ABS 0', end_orb%vec, end_orb%state
 
-call check_this_aperture (lat%ele(3))
-call check_this_aperture (lat%ele(4))
+do i = 3, lat%n_ele_track-1  ! Do not include END marker element.
+  call check_this_aperture (lat%ele(i))
+enddo
 
 !
 
@@ -68,6 +69,8 @@ real(rp) xw2, x0, yw2, y0, eps, unstable(9)
 
 call init_coord(orbit, ele = ele, element_end = downstream_end$)
 
+!----------
+
 xw2 = 0.01;   x0 = 0.01
 yw2 = 0.015;  y0 = 0
 eps = 1e-5
@@ -81,8 +84,8 @@ do i = -1, 1;  do j = -1, 1
   state(k) = orbit%state
   unstable(k) = lat%param%unstable_factor
 enddo;  enddo
-write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S1'), 'ABS  1E-8', (state(k), k = 1, 9) 
-write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U1'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S_Pxy-'), 'ABS  1E-8', (state(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U_Pxy-'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
 
 k = 0
 do i = -1, 1;  do j = -1, 1
@@ -93,12 +96,44 @@ do i = -1, 1;  do j = -1, 1
   state(k) = orbit%state
   unstable(k) = lat%param%unstable_factor
 enddo;  enddo
-write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S1'), 'ABS  1E-8', (state(k), k = 1, 9) 
-write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U1'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S_Pxy+'), 'ABS  1E-8', (state(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U_Pxy+'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
+
+!------------
+
+xw2 = 0.01;   x0 = 0.01
+yw2 = 0.015;  y0 = 0
+eps = 1e-5
+
+k = 0
+do i = -1, 1;  do j = -1, 1
+  orbit%vec = [x0+i*(xw2-eps), 0.1_rp, y0+j*(yw2-eps), 0.0_rp, -0.6_rp, 0.02_rp]
+  orbit%state = alive$
+  call check_aperture_limit(orbit, ele, second_track_edge$, lat%param)
+  k = k + 1
+  state(k) = orbit%state
+  unstable(k) = lat%param%unstable_factor
+enddo;  enddo
+write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S_xy-'), 'ABS  1E-8', (state(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U_xy-'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
+
+k = 0
+do i = -1, 1;  do j = -1, 1
+  orbit%vec = [x0+i*(xw2+eps), 0.0_rp, y0+j*(yw2+eps), 0.0_rp, -0.6_rp, 0.02_rp]
+  orbit%state = alive$
+  call check_aperture_limit(orbit, ele, second_track_edge$, lat%param)
+  k = k + 1
+  state(k) = orbit%state
+  unstable(k) = lat%param%unstable_factor
+enddo;  enddo
+write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S_xy+'), 'ABS  1E-8', (state(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U_xy+'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
 
 xw2 = 0.2;   x0 = -0.6
 yw2 = 0.03;   y0 = 0.02
 eps = 1e-5
+
+!-------------
 
 k = 0
 do i = -1, 1;  do j = -1, 1
@@ -109,8 +144,8 @@ do i = -1, 1;  do j = -1, 1
   state(k) = orbit%state
   unstable(k) = lat%param%unstable_factor
 enddo;  enddo
-write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S1'), 'ABS  1E-8', (state(k), k = 1, 9) 
-write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U1'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S_zPz-'), 'ABS  1E-8', (state(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U_zPz-'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
 
 k = 0
 do i = -1, 1;  do j = -1, 1
@@ -121,8 +156,8 @@ do i = -1, 1;  do j = -1, 1
   state(k) = orbit%state
   unstable(k) = lat%param%unstable_factor
 enddo;  enddo
-write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S2'), 'ABS  1E-8', (state(k), k = 1, 9) 
-write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U2'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9i3)') quote(trim(ele%name) // '_S_zPz+'), 'ABS  1E-8', (state(k), k = 1, 9) 
+write (1, '(a, 4x, a, 9es10.2)') quote(trim(ele%name) // '_U_zPz+'), 'ABS  1E-8', (unstable(k), k = 1, 9) 
 
 end subroutine check_this_aperture
 
