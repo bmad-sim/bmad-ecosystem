@@ -3075,7 +3075,7 @@ case ('srdt.')
     temp_cplx = tao_branch%srdt%h11110
     term_cplx = .true.
   case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not found in summation_rdt_struct', .true.)
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     term_found = .false.
     valid_value = .false.
   end select
@@ -3089,7 +3089,7 @@ case ('srdt.')
     case('a')
       datum_value = abs(temp_cplx)
     case default
-      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', 'data_type not ending in .r, .i, or .a.', .true.)
+      call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST (DATA_TYPE NOT ENDING IN .r, .i, or .a).', why_invalid, .true.)
       valid_value = .false.
     end select
   endif
