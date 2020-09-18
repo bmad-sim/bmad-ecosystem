@@ -769,8 +769,9 @@ The aperture attributes are:
   offset_moves_aperture = <Logical> ! Element offsets affect aperture position (\sref{s:offset.ap})
 \end{example}
 \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit} specify the half--width of the
-aperture of an element as shown in figure~\ref{f:limit}. A zero \vn{x1_limit}, \vn{x2_limit},
-\vn{y1_limit}, or \vn{y2_limit} is interpreted as no aperture in the appropriate plane.
+aperture of an element as shown in figure~\ref{f:limit}. Note: Normally all of these will be zero or
+positive. A zero \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, or \vn{y2_limit} is interpreted as no
+aperture in the appropriate plane.
 
 For convenience, \vn{x_limit} can be used to set \vn{x1_limit} and
 \vn{x2_limit} to a common value. Example:
@@ -815,6 +816,9 @@ constructed. Note that The wall thickness and material type are not used when ca
 if a particle has hit the wall. That is, the wall is considered to be infinitely thin.
 Also note that a wall must cover the entire length of the element longitudinally. This is done
 in order to be able to spot errors in specifying the wall geometry.
+
+For elliptical apertures, all four \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit}
+must be non-zero.
 
 For rectangular apertures, the limits \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, or \vn{y2_limit}
 may be negative. For example:

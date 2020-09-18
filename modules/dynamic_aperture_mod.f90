@@ -49,7 +49,8 @@ integer :: i, omp_n
 logical, optional :: parallel
 character(*), parameter :: r_name = 'dynamic_aperture_scan'
 
-! Angle preparation
+! Angle preparation. Since the vertical aperture can be quite different from the horizontal one, the
+! scan angles are scaled to give roughly equally spaced points.
 
 ap_param => aperture_scan%param
 
@@ -64,19 +65,19 @@ if (ap_param%n_angle == 1) then
   aperture_scan%S_xy = 1.0
   angle_list(1) = (ap_param%min_angle + ap_param%max_angle) / 2
 else
-  delta_angle = (ap_param%max_angle - ap_param%min_angle)/(ap_param%n_angle -1)
-  where (abs(lat%ele(1:lat%n_ele_track)%value(x1_limit$)) > 0.0001)
+  delta_angle = (ap_param%max_angle - ap_param%min_angle)/(ap_param%n_angle-1)
+  where (lat%ele(1:lat%n_ele_track)%value(x1_limit$) > 0)
     x_lims(:) = lat%ele(1:)%value(x1_limit$)
   elsewhere
     x_lims(:) = 1.0
   endwhere
-  where (abs(lat%ele(1:lat%n_ele_track)%value(y1_limit$)) > 0.0001)
+  where (lat%ele(1:lat%n_ele_track)%value(y1_limit$) > 0)
     y_lims(:) = lat%ele(1:)%value(y1_limit$)
   elsewhere
     y_lims(:) = 1.0
   endwhere
-  Sx = minval( x_lims / sqrt(lat%ele(1:lat%n_ele_track)%a%beta) ) * sqrt(lat%ele(1)%a%beta)
-  Sy = minval( y_lims / sqrt(lat%ele(1:lat%n_ele_track)%b%beta) ) * sqrt(lat%ele(1)%b%beta)
+  Sx = minval(x_lims / sqrt(lat%ele(1:lat%n_ele_track)%a%beta)) * sqrt(lat%ele(1)%a%beta)
+  Sy = minval(y_lims / sqrt(lat%ele(1:lat%n_ele_track)%b%beta)) * sqrt(lat%ele(1)%b%beta)
   aperture_scan%S_xy = Sx/Sy
   do i=1, ap_param%n_angle
     angle_list(i) = (i-1)*delta_angle + ap_param%min_angle
