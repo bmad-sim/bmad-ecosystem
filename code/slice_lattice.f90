@@ -118,6 +118,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele0%s_start             = ele1%s_start
     ele0%s                   = ele1%s
     ele0%floor               = ele1%floor
+    ele0%ref_time            = ele1%ref_time
     ele0%value(e_tot$)       = ele1%value(e_tot$)
     ele0%value(e_tot_start$) = ele0%value(e_tot$)
     ele0%value(p0c$)         = ele1%value(p0c$)
