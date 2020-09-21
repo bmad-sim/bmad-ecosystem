@@ -506,6 +506,10 @@ case (beginning_ele$)
     return
   endif
 
+  if (associated(a_ptr, ele%ref_time)) then
+    call set_ele_status_stale (ele, ref_energy_group$)
+  endif
+
 ! Converter
 
 case (converter$)

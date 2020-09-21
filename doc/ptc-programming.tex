@@ -305,3 +305,17 @@ type internal_state
 end type internal_state
 \end{example}
 
+\endinput
+
+%!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Placement of magnet in global coordinate system:
+
+TYPE MAGNET_FRAME
+   REAL(DP), POINTER,DIMENSION(:)  ::   A   => null()   ! Entrance point
+   REAL(DP), POINTER,DIMENSION(:,:)::   ENT => null()   ! Entrance orientation. %ent(1,1:3) => x-axis, etc.
+   REAL(DP), POINTER,DIMENSION(:)  ::   O   => null()   ! Mid point. Will be midpoint of chord for a bend.
+   REAL(DP), POINTER,DIMENSION(:,:)::   MID => null()
+   REAL(DP), POINTER,DIMENSION(:)  ::   B   => null()   ! Exit point
+   REAL(DP), POINTER,DIMENSION(:,:)::   EXI => null()
+END TYPE MAGNET_FRAME
