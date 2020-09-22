@@ -695,11 +695,12 @@ do i = 1, n_key$
 
   if (i == pipe$)         cycle
   if (i == custom$)       cycle
-  if (i == crab_cavity$)  cycle
 
-  call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
-  call init_attribute_name1 (i, spin_fringe_on$,     'SPIN_FRINGE_ON')
-  call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
+  if (i /= crab_cavity$) then
+    call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
+    call init_attribute_name1 (i, spin_fringe_on$,     'SPIN_FRINGE_ON')
+    call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
+  endif
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
