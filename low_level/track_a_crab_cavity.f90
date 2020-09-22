@@ -27,14 +27,24 @@ type (lat_param_struct) :: param
 real(rp), optional :: mat6(6,6)
 real(rp) voltage, phase0, phase, t0, length, charge_dir, dt_ref, beta_ref
 real(rp) k_rf, dl, beta_old
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer i, n_slice, orientation
+integer ix_pole_max, ix_elec_max
 
 logical, optional :: make_matrix
 
 !
 
+call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks$)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+!
+
 call offset_particle (ele, param, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
 
 length = ele%value(l$)
 !n_slice = max(1, nint(length / ele%value(ds_step$))) 
@@ -45,8 +55,6 @@ voltage = e_accel_field(ele, voltage$) * charge_dir / (ele%value(p0c$) * n_slice
 beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 dt_ref = length / (c_light * beta_ref)
 k_rf = twopi * ele%value(rf_frequency$) / c_light
-
-!call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_matrix)
 
 ! Track through slices.
 
@@ -79,7 +87,8 @@ call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 
 ! coupler kick, multipoles, back to lab coords.
 
-!call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
+if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
 
 call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
