@@ -4413,7 +4413,7 @@ case (sbend$, rbend$)
   if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
 
 !------------------
-! Accept Use of Voltage for lcavities and vary the mode frequencies.
+! Accept use of Voltage for lcavities and vary the mode frequencies.
 
 case (lcavity$) 
 
@@ -4439,11 +4439,36 @@ case (lcavity$)
 
 !------------------
 
+case (crab_cavity$)
+
+  if (ele%value(voltage$) /= 0) then
+    if (ele%value(gradient$) /= 0) call parser_error &
+                ('BOTH VOLTAGE AND GRADIENT NON-ZERO FOR A CRAB_CAVITY:', ele%name)
+    if (ele%value(l$) == 0) then
+      ele%value(gradient$) = 0
+    else
+      ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+    endif
+  endif
+
+!------------------
+
 case (rfcavity$) 
 
   if (ele%value(rf_frequency$) /= 0 .and. ele%value(harmon$) /= 0) call parser_error &
               ('BOTH RF_FREQUENCY AND HARMON SET FOR RFCAVITY: ' // ele%name, &
                'SETTING OF HARMON WILL BE IGNORED!', level = s_warn$)
+
+  if (ele%value(voltage$) /= 0) then
+    if (ele%value(gradient$) /= 0) call parser_error &
+                ('BOTH VOLTAGE AND GRADIENT NON-ZERO FOR A RFCAVITY:', ele%name)
+    if (ele%value(l$) == 0) then
+      ele%value(gradient$) = 0
+    else
+      ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+    endif
+  endif
+
 
 !------------------
 ! for a planar and helical wigglers n_pole is a dependent attribute

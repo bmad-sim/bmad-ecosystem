@@ -1195,7 +1195,6 @@ if (lord%key == e_gun$) then
     value(e_tot_ref_init$) = lord%value(e_tot_start$)
     value(p0c_ref_init$)   = lord%value(p0c_start$)
   endif
-  value(voltage$) = lord%value(gradient$) * len_slave
 endif
 
 ! fringe fields 
@@ -1233,7 +1232,9 @@ elseif (has_hkick_attributes(lord%key)) then
   value(bl_vkick$) = lord%value(bl_vkick$) * coef
 endif
 
-if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
+select case (slave%key)
+case (rfcavity$, crab_cavity$, lcavity$, e_gun$);  value(voltage$) = lord%value(voltage$) * coef
+end select
 
 ! s_del is the distance between lord and slave centers
 
