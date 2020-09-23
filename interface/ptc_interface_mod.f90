@@ -3058,13 +3058,8 @@ else
 endif
 
 leng = val(l$)
-
-if (use_offsets) then
-  if (key == sbend$) then
-    ptc_key%tiltd = val(ref_tilt_tot$)
-  else
-    ptc_key%tiltd = val(tilt_tot$)
-  endif
+if (use_offsets .and. key == sbend$) then
+  ptc_key%tiltd = val(ref_tilt_tot$)
 else
   ptc_key%tiltd = 0
 endif
@@ -3204,9 +3199,6 @@ case (sextupole$)
   ptc_key%magnet = 'sextupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
-case (taylor$, match$)
-  ptc_key%magnet = 'marker'
-
 case (octupole$)
   ptc_key%magnet = 'octupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
@@ -3221,7 +3213,7 @@ case (sol_quad$)
   ptc_key%list%bsol = val(ks$)
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
-case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shift$, fiducial$)
+case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shift$, fiducial$, taylor$, match$)
   ptc_key%magnet = 'marker'
   ptc_key%nstep = 1
 
@@ -3461,7 +3453,7 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
 
 endif
 
-!-----------------------------
+!--------------------------------------------
 ! Create ptc_fibre
 ! The EXCEPTION argument is an error_flag. Set to 1 if there is an error. Never reset.
 
@@ -3514,12 +3506,21 @@ else
   if (key == beambeam$) call beambeam_fibre_setup(ele, ptc_fibre, param)
 endif
 
+ptc_fibre%dir = ele%orientation
+
+!----------------------------------------------
+
+if (ele%key == floor_shift$) Then
+  ptc_fibre%patch%track = .false.
+endif
+
+!
+
 if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
   call kill_for_pancake(pancake_field)
   call init_all (ptc_com%base_state, ptc_com%taylor_order_saved, 0)
 endif
 
-ptc_fibre%dir = ele%orientation
 if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
 
 call set_ptc_quiet(12, unset$, n)
@@ -4026,7 +4027,7 @@ end subroutine beambeam_fibre_setup
 ! Input:
 !   ele -- ele_struct: Bmad element with misalignments.
 !   use_offsets -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
-!                   This argument is ignored if the element is a patch or floor_shit element.
+!                   This argument is ignored if the element is a patch.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element with misalignments.
@@ -4043,14 +4044,29 @@ type (floor_position_struct) :: floor0, floor1
 type (fibre), pointer :: ptc_fibre
 type (fibre) dummy_fibre
 
-real(rp) dr(3), ang(3), exi(3,3)
-real(dp) mis_rot(6), beta_start, beta_end
-real(dp) omega(3), basis(3,3), angle(3), tiltd
-real(rp) x_off, y_off, x_pitch, y_pitch, roll, z_off
+real(rp) dr(3), ang(3), exi(3,3), beta_start, beta_end
+real(rp) x(6), o_chord(3), o_arc(3), basis(3,3), orient(3,3), sagitta
+real(rp) r0(3), s_mat(3,3), s0_mat(3,3), r(3)
 
-logical use_offsets, good_patch
+logical use_offsets, good_patch, addin
 
 character(*), parameter :: r_name = 'misalign_ele_to_fibre'
+
+!
+
+if (ele%key == fiducial$) return
+
+if (ele%key == floor_shift$) then
+  r0 = 0
+  call mat_make_unit(s0_mat)
+  dr = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = s_mat)
+  call find_patch(dr, s_mat, r0, s0_mat, r, ang)
+  ptc_fibre%patch%b_ang = ang
+  ptc_fibre%patch%b_d   = r
+  ptc_fibre%patch%patch = 2
+  return
+endif
 
 ! In ptc there is no such thing as a reversed patch. Therefore need to
 ! use the reverse transformation if the patch is reversed in Bmad.
@@ -4118,28 +4134,105 @@ elseif (use_offsets) then
   if (ele%key == fiducial$) return
   if (attribute_index(ele, 'X_OFFSET_TOT') < 1) return
 
-  ! In PTC the reference point for the offsets is the beginning of the element.
-  ! In Bmad the reference point is the center of the element..
+  !
 
-  x_off = ele%value(x_offset_tot$)
-  y_off = ele%value(y_offset_tot$)
-  z_off = ele%value(z_offset_tot$)
-  x_pitch = ele%value(x_pitch_tot$)
-  y_pitch = ele%value(y_pitch_tot$)
-  tiltd = ptc_fibre%mag%p%tiltd
-  roll = 0
-  if (ele%key == sbend$) roll = ele%value(roll_tot$)
+  addin = .false.
 
-  if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. x_pitch /= 0 .or. &
-                              y_pitch /= 0 .or. roll /= 0 .or. tiltd /= 0) then
-    mis_rot = [x_off, y_off, z_off, -y_pitch, -x_pitch, roll]
-    angle = 0
-    angle(3) = -tiltd
-    omega = ptc_fibre%chart%f%o
-    basis = ptc_fibre%chart%f%mid
-    call geo_rot(basis, angle, 1, basis)                     ! PTC call
-    call misalign_fibre (ptc_fibre, mis_rot, omega, basis)   ! PTC call
+  if (ele%key == sbend$) then
+    sagitta = ele%value(l_sagitta$)
+
+!!    orient = ptc_fibre%mag%p%f%ent
+    orient = ptc_fibre%chart%f%ent
+    if (ele%value(ref_tilt$) == 0) then
+      call geo_rot(orient, [0.0_rp, ele%value(angle$)/2.0_rp, 0.0_rp], 1, orient)
+    else
+      call geo_rot(orient, [0.0_rp, 0.0_rp, ele%value(ref_tilt$)], 1, orient)
+      call geo_rot(orient, [0.0_rp, ele%value(angle$)/2.0_rp, 0.0_rp], 1, orient)
+      call geo_rot(orient, [0.0_rp, 0.0_rp, -ele%value(ref_tilt$)], 1, orient)
+    endif
+
+    dr = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+    if (any(dr /= 0)) then
+      o_arc = o_chord + sagitta * ptc_fibre%mag%p%f%mid(1,1:3)
+      basis = orient
+      x = 0
+      x(1:3) = dr
+      call misalign_fibre (ptc_fibre, x, o_arc, basis, add = addin)
+      addin = .true.
+    endif
+
+    if (ele%value(x_pitch_tot$) /= 0) then
+      o_chord = ptc_fibre%mag%p%f%o
+      o_arc = o_chord + sagitta * ptc_fibre%mag%p%f%mid(1,1:3)
+      basis = orient
+      x = 0
+      x(5) = -ele%value(x_pitch_tot$)
+      call misalign_fibre (ptc_fibre, x, o_arc, basis, add = addin)
+      addin = .true.
+      call geo_rot(orient, x(4:6), 1, orient)
+    endif
+
+    if (ele%value(y_pitch_tot$) /= 0) then
+      o_chord = ptc_fibre%mag%p%f%o
+      o_arc = o_chord + sagitta * ptc_fibre%mag%p%f%mid(1,1:3)
+      basis = orient
+      x = 0
+      x(4) = -ele%value(y_pitch_tot$)
+      call misalign_fibre (ptc_fibre, x, o_arc, basis, add = addin)
+      addin = .true.
+    endif
+
+    if (ele%value(roll_tot$) /= 0) then
+      o_chord = ptc_fibre%mag%p%f%o   ! Chord origin
+      basis = orient
+      x = 0
+      x(6) = ele%value(roll_tot$)
+      call misalign_fibre (ptc_fibre, x, o_chord, basis, add = addin)
+      addin = .true.
+      call geo_rot(orient, x(4:6), 1, orient)
+    endif
+
+  else ! Not a bend
+    dr = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+    if (any(dr /= 0)) then
+      o_chord = ptc_fibre%mag%p%f%o
+      basis = ptc_fibre%mag%p%f%mid
+      x = 0
+      x(1:3) = dr
+      call misalign_fibre (ptc_fibre, x, o_chord, basis, add = addin)
+      addin = .true.
+    endif
+
+    if (ele%value(y_pitch_tot$) /= 0) then
+      o_chord = ptc_fibre%mag%p%f%o
+      basis = ptc_fibre%mag%p%f%mid
+      x = 0
+      x(4) = -ele%value(y_pitch_tot$)
+      call misalign_fibre (ptc_fibre, x, o_chord, basis, add = addin)
+      addin = .true.
+    endif
+
+    if (ele%value(x_pitch_tot$) /= 0) then
+      o_chord = ptc_fibre%mag%p%f%o
+      basis = ptc_fibre%mag%p%f%mid
+      x = 0
+      x(5) = -ele%value(x_pitch_tot$)
+      call misalign_fibre (ptc_fibre, x, o_chord, basis, add = addin)
+      addin = .true.
+    endif
+
+    if (ele%value(tilt_tot$) /= 0) then
+      o_chord = ptc_fibre%mag%p%f%o   ! Chord origin
+      basis = ptc_fibre%mag%p%f%mid
+      x = 0
+      x(6) = ele%value(tilt_tot$)
+      call misalign_fibre (ptc_fibre, x, o_chord, basis, add = addin)
+      addin = .true.
+    endif
+
   endif
+
+  !
 
   if (ele%value(e_tot_start$) /= ele%value(e_tot$)) then
     ptc_fibre%patch%energy = 4   ! Entrance energy patch

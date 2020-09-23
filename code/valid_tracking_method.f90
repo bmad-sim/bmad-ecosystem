@@ -68,7 +68,6 @@ case (ac_kicker$)
   case (bmad_standard$, runge_kutta$, time_runge_kutta$, linear$, custom$)
     is_valid = .true.
   end select
-  
 
 case (beambeam$)
   select case (method)
@@ -82,7 +81,7 @@ case (crab_cavity$)
     is_valid = .true.
   end select
 
-case (crystal$, mirror$, multilayer_mirror$, capillary$, fiducial$)
+case (converter$, crystal$, mirror$, multilayer_mirror$, capillary$)
   if (species == not_set$) then
     select case (method)
     case (bmad_standard$, custom$)
@@ -132,9 +131,9 @@ case (em_field$)
     is_valid = .true.
   end select
 
-case (floor_shift$, converter$)
+case (floor_shift$, fiducial$)
   select case (method)
-  case (bmad_standard$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, custom$)
     is_valid = .true.
   end select
 

@@ -80,7 +80,7 @@ case (fork$, photon_fork$)
     is_valid = .true.
   end select
 
-case (crystal$, mirror$, multilayer_mirror$, capillary$)
+case (crystal$, diffraction_plate$, mirror$, multilayer_mirror$, capillary$)
   if (species == not_set$) then
     select case (mat6_calc_method)
     case (bmad_standard$, static$, tracking$, custom$)
@@ -94,9 +94,15 @@ case (custom$)
     is_valid = .true.
   end select
 
-case (diffraction_plate$, mask$, fiducial$, floor_shift$)
+case (mask$)
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (fiducial$, floor_shift$)
+  select case (mat6_calc_method)
+  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
