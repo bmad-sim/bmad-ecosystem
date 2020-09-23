@@ -109,6 +109,7 @@ if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 ! Note that fiducial, and girder elements are independent of floor0
 
 if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
+  ele0 => null()
 
   ! Fiducial with no origin ele: Use global origin.
   if (key == fiducial$ .and. ele%component_name == '') then
