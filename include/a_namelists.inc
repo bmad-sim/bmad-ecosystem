@@ -11,6 +11,7 @@ namelist / fibrename / fib0
      integer  A_X1,A_X2,B_X1,B_X2
      real(dp) A_D(3),B_D(3),A_ANG(3),B_ANG(3), A_L,B_L , A_T,B_T 
      INTEGER(2)  ENERGY,TIME,GEOMETRY
+	 logical track
   END TYPE patchlist
 type(patchlist) patch0
 namelist / patchname / patch0

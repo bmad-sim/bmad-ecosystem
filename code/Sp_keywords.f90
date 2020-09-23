@@ -2937,6 +2937,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  patch0%ENERGY=f%ENERGY
  patch0%TIME=f%TIME
  patch0%geometry=f%patch
+ patch0%track=f%track
 
     if(present(mf)) then
      write(mf,NML=patchname)
@@ -2955,6 +2956,7 @@ f%B_X2= patch0%B_X2
  f%B_D=patch0%B_D
  f%A_ANG=patch0%A_ANG
  f%B_ANG=patch0%B_ANG
+ f%track=patch0%track
  f%A_T=patch0%A_T
  f%B_T=patch0%B_T
  f%A_L=patch0%A_L
@@ -4223,6 +4225,7 @@ implicit none
      patch0%ENERGY=0
      patch0%TIME=0
      patch0%GEOMETRY=0
+     patch0%track=.true.
 
 end subroutine zero_patch0
 

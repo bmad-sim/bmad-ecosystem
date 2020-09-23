@@ -41,9 +41,9 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   PRIVATE DEQUAL,REQUAL,varf,varf001,equalc_spinor_cspinor,EQUALql_r  !,CHARINT,pbbrav,cpbbrav
   !  PUBLIC VAR,ASS
   private pbbra,liebra,full_absT,c_asstaylor,getcharnd2s,GETintnd2s,GETintk
-  private shiftda,shift000,cDEQUAL,pri,rea,cfu000,alloc_DA,alloc_c_spinmatrix,cpbbra
+  private shiftda,shift000,cDEQUAL,pri,rea,cfu000,alloc_DA,alloc_c_spinmatrix,cpbbra,alloc_c_damaps
   private alloc_c_damap,c_DPEKMAP,c_DPOKMAP,kill_c_damap,kill_c_spinmatrix,c_etcct,c_spinmatrix_mul_cray
-  private EQUALspinmatrix,c_trxtaylor,powmap,POWMAPs,alloc_c_vector_field,kill_c_vector_field
+  private EQUALspinmatrix,c_trxtaylor,powmap,POWMAPs,alloc_c_vector_field,kill_c_vector_field,kill_c_damaps
   private alloc_c_normal_form,kill_c_normal_form,c_EQUALVEC,c_spinmatrix_spinmatrix,c_IdentityEQUALVEC,qua_ql
   private liebraquaternion,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap
   private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
@@ -703,6 +703,7 @@ type(c_linear_map) q_phasor,qi_phasor
      MODULE PROCEDURE alloc_c_spinmatrix
      MODULE PROCEDURE alloc_c_vector_field_fourier
      MODULE PROCEDURE alloc_c_damap
+     MODULE PROCEDURE alloc_c_damaps
      MODULE PROCEDURE alloc_c_vector_field
      MODULE PROCEDURE alloc_c_factored_lie
      MODULE PROCEDURE alloc_c_normal_form
@@ -735,6 +736,7 @@ type(c_linear_map) q_phasor,qi_phasor
      MODULE PROCEDURE K_opt
      MODULE PROCEDURE K_OPT_c_damap
      MODULE PROCEDURE kill_c_damap
+     MODULE PROCEDURE kill_c_damaps
      MODULE PROCEDURE kill_c_spinmatrix
      MODULE PROCEDURE kill_c_vector_field
      MODULE PROCEDURE kill_c_factored_lie
@@ -1612,7 +1614,16 @@ enddo
     s1%tpsa=use_tpsa
   END SUBROUTINE alloc_c_damap
 
+  SUBROUTINE  alloc_c_damaps(S1)
+!*
+    implicit none
+    type (c_damap),INTENT(INOUT) :: S1(:)
+    INTEGER i 
 
+    do i=1,size(s1)
+     call alloc(s1(i))
+    enddo
+  END SUBROUTINE alloc_c_damaps
 
   SUBROUTINE  alloc_c_yu_w(S1)
 !*
@@ -1798,6 +1809,16 @@ enddo
       s1%sm(i,i)=1.0_dp
     enddo
   END SUBROUTINE kill_c_damap
+
+  SUBROUTINE  kill_c_damaps(S1)
+!*
+    implicit none
+    type (c_damap),INTENT(INOUT) :: S1(:)
+    integer i
+    do i=1,size(s1)
+     call kill(s1(i))
+    enddo
+  END SUBROUTINE kill_c_damaps
 
   SUBROUTINE  kill_c_vector_field(S1)
 !*

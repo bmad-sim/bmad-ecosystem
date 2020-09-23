@@ -198,6 +198,7 @@ CONTAINS
           B%A_ANG(I)=A%A_ANG(I)
           B%B_ANG(I)=A%B_ANG(I)
        ENDDO
+          B%track=a%track
     endif
 
   END SUBROUTINE COPY_PATCH
@@ -259,12 +260,12 @@ CONTAINS
     !   endif
 
     IF(R==0.or.R==1) THEN    !
-       NULLIFY(F%A_T,F%B_T,F%A_L,F%B_L,F%A_D,  F%B_D,   F%A_ANG,F%B_ANG)
+       NULLIFY(F%track,F%A_T,F%B_T,F%A_L,F%B_L,F%A_D,  F%B_D,   F%A_ANG,F%B_ANG)
        NULLIFY(F%A_X1,F%A_X2,F%B_X1,F%B_X2,F%p0b,F%B0b)
 
        NULLIFY(F%TIME,F%ENERGY,F%PATCH)
        ALLOCATE(F%A_D(3),F%B_D(3),F%A_ANG(3),F%B_ANG(3))
-       ALLOCATE(F%A_T,F%B_T,F%A_L,F%B_L)
+       ALLOCATE(F%track,F%A_T,F%B_T,F%A_L,F%B_L)
        ALLOCATE(F%A_X1,F%A_X2,F%B_X1,F%B_X2)
        ALLOCATE(F%TIME,F%ENERGY,F%PATCH,F%p0b,F%B0b)
        F%A_T=0.0_dp
@@ -275,6 +276,7 @@ CONTAINS
        F%A_D=0.0_dp
        F%B_D=0.0_dp
        F%A_ANG=0.0_dp
+       F%track=.true.
        F%B_ANG=0.0_dp
        F%p0b=0.0_dp
        F%B0b=0.0_dp
@@ -282,11 +284,11 @@ CONTAINS
        f%ENERGY=0
        f%TIME=0
     ELSEIF(R==-1) THEN
-       DEALLOCATE(F%A_D,F%B_D,F%A_ANG,F%B_ANG,F%p0b,F%B0b)
+       DEALLOCATE(F%A_D,F%track,F%B_D,F%A_ANG,F%B_ANG,F%p0b,F%B0b)
        DEALLOCATE(F%A_T,F%B_T,F%A_L,F%B_L)
        DEALLOCATE(F%A_X1,F%A_X2,F%B_X1,F%B_X2)
        DEALLOCATE(F%TIME,F%ENERGY,F%PATCH)
-       nullify(F%A_D,F%B_D,F%A_ANG,F%B_ANG,F%p0b,F%B0b)
+       nullify(F%track,F%A_D,F%B_D,F%A_ANG,F%B_ANG,F%p0b,F%B0b)
        nullify(F%A_T,F%B_T,F%A_L,F%B_L)
        nullify(F%A_X1,F%A_X2,F%B_X1,F%B_X2)
        nullify(F%TIME,F%ENERGY,F%PATCH)
@@ -433,6 +435,24 @@ CONTAINS
     ENDDO
     A=A+I*B
   END SUBROUTINE GEO_TRA
+
+  SUBROUTINE print_triad(o,triad,mf)
+  real(dp),optional :: o(3),triad(3,3)
+  integer, optional :: mf
+  integer mf1
+ mf1=6
+  if(present(mf)) mf1=mf
+       if(present(o)) then
+        write(mf1,*) "  origin o(3) "
+        write(mf1,*) o
+       endif
+       if(present(triad)) then
+        write(mf1,*) " Exit frame (i,j,k)  "
+       write(mf1,*) triad(1,:)
+       write(mf1,*) triad(2,:)
+       write(mf1,*) triad(3,:)
+      endif
+end  SUBROUTINE print_triad
 
 
   SUBROUTINE GEO_ROTA_no_vec(ENT,ANG,I,basis)
