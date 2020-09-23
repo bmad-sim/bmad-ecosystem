@@ -4510,6 +4510,7 @@ endif
     !    real(dp), INTENT(INOUT):: s(3)
     logical(lp),INTENT(IN):: ENTERING
     real(dp) da
+    if(C%PATCH%track) then
     IF(ENTERING) THEN
        da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1)/2)*pi
        call rot_spin_x(P,da)
@@ -4527,6 +4528,7 @@ endif
        da=((C%PATCH%B_X2-1)/2)*pi
        call rot_spin_x(P,da)
     ENDIF
+    endif
 
   END SUBROUTINE PATCH_SPINR
 
@@ -4539,6 +4541,7 @@ endif
     logical(lp),INTENT(IN):: ENTERING
     real(dp) da
 
+    if(C%PATCH%track) then
     IF(ENTERING) THEN
        da=C%PATCH%A_ANG(1)+((C%PATCH%A_X1-1)/2)*pi
 
@@ -4563,7 +4566,7 @@ endif
 
        call rot_spin_x(P,da)
     ENDIF
-
+    endif
 
   END SUBROUTINE PATCH_SPINp
 
@@ -4589,25 +4592,16 @@ endif
           ENDIF
        ELSE
           IF(ENTERING) THEN  ! BACKWARD PROPAGATION
-             C%CHART%D_OUT(1)=-C%CHART%D_OUT(1)
-             C%CHART%D_OUT(2)=-C%CHART%D_OUT(2)
-             C%CHART%ANG_OUT(3)=-C%CHART%ANG_OUT(3)
-             call rot_spin_Z(P,C%CHART%ANG_OUT(3))
+
+             call rot_spin_Z(P,-C%CHART%ANG_OUT(3))
              call rot_spin_Y(P,-C%CHART%ANG_OUT(2))   !2016_5_9
-             call rot_spin_X(P,C%CHART%ANG_OUT(1))
-             C%CHART%D_OUT(1)=-C%CHART%D_OUT(1)
-             C%CHART%D_OUT(2)=-C%CHART%D_OUT(2)
-             C%CHART%ANG_OUT(3)=-C%CHART%ANG_OUT(3)
+             call rot_spin_X(P,-C%CHART%ANG_OUT(1))
+
           ELSE
-             C%CHART%D_IN(1)=-C%CHART%D_IN(1)
-             C%CHART%D_IN(2)=-C%CHART%D_IN(2)
-             C%CHART%ANG_IN(3)=-C%CHART%ANG_IN(3)
-             call rot_spin_Z(P,C%CHART%ANG_IN(3))
+             call rot_spin_Z(P,-C%CHART%ANG_IN(3))
              call rot_spin_Y(P,-C%CHART%ANG_IN(2))   !2016_5_9
-             call rot_spin_X(P,C%CHART%ANG_IN(1))
-             C%CHART%D_IN(1)=-C%CHART%D_IN(1)
-             C%CHART%D_IN(2)=-C%CHART%D_IN(2)
-             C%CHART%ANG_IN(3)=-C%CHART%ANG_IN(3)
+             call rot_spin_X(P,-C%CHART%ANG_IN(1))
+
           ENDIF
        ENDIF
     ENDIF
@@ -4633,30 +4627,18 @@ endif
           ENDIF
        ELSE
           IF(ENTERING) THEN  ! BACKWARD PROPAGATION
-             C%CHART%D_OUT(1)=-C%CHART%D_OUT(1)
-             C%CHART%D_OUT(2)=-C%CHART%D_OUT(2)
-             C%CHART%ANG_OUT(3)=-C%CHART%ANG_OUT(3)
 
-
-             call rot_spin_Z(P,C%CHART%ANG_OUT(3))
+             call rot_spin_Z(P,-C%CHART%ANG_OUT(3))
              call rot_spin_Y(P,-C%CHART%ANG_OUT(2))   !2016_5_9
-             call rot_spin_X(P,C%CHART%ANG_OUT(1))
+             call rot_spin_X(P,-C%CHART%ANG_OUT(1))
 
-             C%CHART%D_OUT(1)=-C%CHART%D_OUT(1)
-             C%CHART%D_OUT(2)=-C%CHART%D_OUT(2)
-             C%CHART%ANG_OUT(3)=-C%CHART%ANG_OUT(3)
           ELSE
-             C%CHART%D_IN(1)=-C%CHART%D_IN(1)
-             C%CHART%D_IN(2)=-C%CHART%D_IN(2)
-             C%CHART%ANG_IN(3)=-C%CHART%ANG_IN(3)
 
-             call rot_spin_Z(P,C%CHART%ANG_IN(3))
+
+             call rot_spin_Z(P,-C%CHART%ANG_IN(3))
              call rot_spin_Y(P,-C%CHART%ANG_IN(2))    !2016_5_9
-             call rot_spin_X(P,C%CHART%ANG_IN(1))
+             call rot_spin_X(P,-C%CHART%ANG_IN(1))
 
-             C%CHART%D_IN(1)=-C%CHART%D_IN(1)
-             C%CHART%D_IN(2)=-C%CHART%D_IN(2)
-             C%CHART%ANG_IN(3)=-C%CHART%ANG_IN(3)
           ENDIF
        ENDIF
     ENDIF

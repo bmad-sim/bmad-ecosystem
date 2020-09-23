@@ -1540,6 +1540,7 @@ CONTAINS
 
     ENDIF
 
+if(el1%patch%track) then
     DISCRETE=.false.
     IF(ANG(1)/TWOPI<-0.25_dp) THEN
        DISCRETE=.TRUE.
@@ -1553,7 +1554,7 @@ CONTAINS
     IF(ANG(1)/TWOPI>0.25_dp) THEN
        DISCRETE=.TRUE.
     ENDIF
-
+endif
     IF(DISCRETE) THEN
        if(.not.present(patching))  write(6,*) " NO GEOMETRIC PATCHING POSSIBLE : MORE THAN 90 DEGREES BETWEEN FACES "
     ENDIF
