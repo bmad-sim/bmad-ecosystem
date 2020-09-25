@@ -325,6 +325,10 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     enddo
     u%design%tao_branch(ib)%has_open_match_element = u%model%tao_branch(ib)%has_open_match_element
     u%base%tao_branch(ib)%has_open_match_element = u%model%tao_branch(ib)%has_open_match_element
+
+    u%design%tao_branch(ib)%tao_lat => u%design
+    u%model%tao_branch(ib)%tao_lat  => u%model
+    u%base%tao_branch(ib)%tao_lat   => u%base
   enddo
 
 enddo

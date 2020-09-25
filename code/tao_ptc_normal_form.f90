@@ -51,7 +51,7 @@ rf_on = rf_is_on(branch)
 if (.not. associated(ptc_nf%ele_origin)) ptc_nf%ele_origin => branch%ele(0)
 if (.not. associated(branch%ptc%m_t_layout)) call lat_to_ptc_layout (tao_lat%lat)
 
-call ptc_one_turn_map_at_ele (ptc_nf%ele_origin, ptc_nf%orb0, ptc_nf%one_turn_map, pz = 0.0_rp)
+call ptc_one_turn_map_at_ele (ptc_nf%ele_origin, ptc_nf%orb0, ptc_nf%one_turn_map, ptc_nf%state, pz = 0.0_rp)
 
 call alloc(ptc_nf%normal_form)
 call alloc(ptc_nf%phase)

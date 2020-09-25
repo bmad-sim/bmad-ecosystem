@@ -837,6 +837,7 @@ end type
 ! tao_lattice_branch_equal_tao_lattice_branch must be modified as well.
 
 type tao_lattice_branch_struct
+  type (tao_lattice_struct), pointer :: tao_lat => null()        ! Parent tao_lat
   type (summation_rdt_struct) srdt
   type (tao_spin_polarization_struct) spin
   type (tao_dn_dpz_struct), allocatable :: dn_dpz(:)
