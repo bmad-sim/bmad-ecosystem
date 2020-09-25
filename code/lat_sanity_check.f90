@@ -624,6 +624,37 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                   'FOR ELEMENT: ' // ele%name)
         err_flag = .true.
       endif
+
+      if (ele%value(graze_angle_in$) > pi/2 .or. ele%value(graze_angle_out$) > pi/2) then
+        call out_io (s_fatal$, r_name, &
+                  'GRAZE_ANGLE_IN AND GRAZE_ANGLE_OUT BE LESS THAN PI/2.', &
+                  'FOR ELEMENT: ' // ele%name)
+        err_flag = .true.
+      endif
+
+      if (ele%component_name == '') then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'DOES NOT HAVE ITS CRYSTAL_TYPE SET.')
+        err_flag = .true.
+      endif
+
+      if (ele%value(sig_E$) < 0 .or. ele%value(sig_vx$) < 0 .or. ele%value(sig_vy$) < 0 .or. &
+          ele%value(sig_x$) < 0 .or. ele%value(sig_y$) < 0) then
+        call out_io (s_fatal$, r_name, &
+                  'ALL SIGMA MUST BE NONZERO.', &
+                  'FOR ELEMENT: ' // ele%name)
+        err_flag = .true.
+      endif
+
+      if (ele%value(sig_vx$) > 1 .or. ele%value(sig_vy$) > 1 .or. &
+          ele%value(sig_x$) > 1 .or. ele%value(sig_y$) > 1) then
+        call out_io (s_fatal$, r_name, &
+                  'ALL VELOCITY AND POSITION SIGMAS MUST BE LESS THAN 1.', &
+                  'FOR ELEMENT: ' // ele%name)
+        err_flag = .true.
+      endif
+
     endif
 
 
@@ -645,15 +676,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'DOES NOT HAVE ITS MATERIAL_TYPE SET.')
-        err_flag = .true.
-      endif
-    endif
-
-    if (ele%key == crystal$) then
-      if (ele%component_name == '') then
-        call out_io (s_fatal$, r_name, &
-                  'ELEMENT: ' // ele%name, &
-                  'DOES NOT HAVE ITS CRYSTAL_TYPE SET.')
         err_flag = .true.
       endif
     endif

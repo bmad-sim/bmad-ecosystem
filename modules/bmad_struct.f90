@@ -277,7 +277,7 @@ end type
 type spin_matching_struct
   type (spin_axis_struct) :: axis = spin_axis_struct()
   type (spin_eigen_struct) :: eigen(8) = spin_eigen_struct()
-  real(rp) :: dn_ddelta(3) = 0      ! Invariant spin derivative
+  real(rp) :: dn_dpz(3) = 0         ! Invariant spin derivative
   real(rp) :: alpha(6) = 0          ! Alpha vector
   real(rp) :: beta(6) = 0           ! Beta vector
   real(rp) :: orb0(6) = 0           ! Closed orbit 
@@ -1320,6 +1320,7 @@ type ptc_normal_form_struct
   type (c_normal_form) normal_form           ! Complex normal form
   type (c_taylor) phase(3)                   ! Phase, chromaticity maps
   type (c_taylor) spin                       ! Spin map
+  type (internal_state) state                ! PTC state
   logical :: valid_map = .false.
 end type
 
@@ -2006,8 +2007,7 @@ type ptc_common_struct
   integer :: taylor_order_saved = 3     ! Default to use.
   logical :: complex_ptc_used = .false. ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
   logical :: use_totalpath = .false.    ! phase space z = time instead of time - ref_time?
-  type (internal_state) :: base_state   ! Base PTC state
-  type (internal_state) :: alt_state    ! Alternative state used by some analysis routines.
+  type (internal_state) :: base_state   ! Base PTC state. 
 end type
 
 type (ptc_common_struct), save, target :: ptc_com

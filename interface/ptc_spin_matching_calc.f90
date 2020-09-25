@@ -28,7 +28,7 @@ type (internal_state) ptc_state
 type (fibre), pointer :: ptc_fibre, fib_now, fib_next
 type (layout), pointer :: ptc_layout
 type (c_damap) cdamap, u, u_c, cdamap_1
-type (probe_8) p8_1turn, p8_ele
+type (probe_8) p8_a, p8_ele
 type (probe) probe_orb
 type (c_normal_form) cc_norm
 type (real_8) r8
@@ -73,7 +73,7 @@ if (.not. allocated(match_info)) allocate(match_info(0:branch%n_ele_track))
 call init_all(ptc_state, 1, 0)   ! Only need first order map for this analysis
 
 call alloc(cdamap, cdamap_1, u, u_c)
-call alloc(p8_1turn)
+call alloc(p8_a)
 call alloc(p8_ele)
 call alloc(cc_norm)
 
@@ -96,20 +96,20 @@ if (branch%param%geometry == closed$) then
 
   probe_orb = minfo%orb0
 
-  p8_1turn = probe_orb + cdamap_1
+  p8_a = probe_orb + cdamap_1
 
-  call track_probe(p8_1turn, ptc_state, fibre1 = ptc_fibre)
+  call track_probe(p8_a, ptc_state, fibre1 = ptc_fibre)
 
-  cdamap = p8_1turn
+  cdamap = p8_a
   call c_normal(cdamap, cc_norm, dospin = .true.)
 
   cc_norm%n = cc_norm%atot**(-1) * cdamap * cc_norm%atot
-  p8_1turn = probe_orb + cc_norm%atot
+  p8_a = probe_orb + cc_norm%atot
 
   u = cc_norm%atot
   call c_fast_canonise(u, u_c, dospin = .true.)
 
-  p8_1turn = probe_orb + u_c
+  p8_a = probe_orb + u_c
   p8_ele   = probe_orb + cdamap_1
 
 else
@@ -121,8 +121,8 @@ else
   minfo%orb0 = 0
   probe_orb = minfo%orb0
 
-  p8_1turn = probe_orb + u_c
-  p8_ele   = probe_orb + cdamap_1
+  p8_a = probe_orb + u_c
+  p8_ele = probe_orb + cdamap_1
 endif
 
 fib_now => ptc_fibre
@@ -135,7 +135,7 @@ do ie = 0, branch%n_ele_track
     fib_next => pointer_to_ptc_ref_fibre(branch%ele(ie))
     p8_ele = probe_orb + cdamap_1
 
-    call track_probe(p8_1turn, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
+    call track_probe(p8_a, ptc_state, fibre1 = fib_now, fibre2 = fib_next)
     call track_probe(p8_ele,   ptc_state, fibre1 = fib_now, fibre2 = fib_next)
 
     fib_now => fib_next
@@ -144,13 +144,13 @@ do ie = 0, branch%n_ele_track
   minfo => match_info(ie)
   minfo = spin_matching_struct()
 
-  minfo%orb0 = p8_1turn%x
+  minfo%orb0 = p8_a%x
 
-  u = p8_1turn
+  u = p8_a
   q_invar = u%q * u
 
   q2 = q_invar * q_y * q_invar**(-1)
-  minfo%dn_ddelta = q2%q(1:3,6)
+  minfo%dn_dpz = q2%q(1:3,6)
 
   cdamap = u * cc_norm%n * u**(-1)
   q_1turn = cdamap
@@ -231,8 +231,8 @@ do ie = 0, branch%n_ele_track
 
   !
 
-  probe_orb = p8_1turn
-  p8_1turn = probe_orb + u_c
+  probe_orb = p8_a
+  p8_a = probe_orb + u_c
 enddo
 
 !
@@ -241,7 +241,7 @@ call kill (cdamap_1)
 call kill (cdamap)
 call kill (u)
 call kill (u_c)
-call kill (p8_1turn)
+call kill (p8_a)
 call kill (p8_ele)
 call kill (cc_norm)
 
