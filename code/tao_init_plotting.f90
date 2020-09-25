@@ -361,6 +361,7 @@ allocate (plt%graph(1))
 plt%graph(1)%p => plt
 plt%name = 'scratch'
 plt%graph(1)%name = 'g'
+plt%graph(1)%p => plt
 
 ! Now read in the plots
 
@@ -2663,6 +2664,8 @@ plt => s%plot_page%template(size(s%plot_page%template))
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
 allocate (plt%graph(1))
+plt%graph(1)%p => plt
+plt%graph(1)%name = 'g'
 plt%name = 'scratch'
 
 !-------------------------------------------------
