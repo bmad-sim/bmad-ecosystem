@@ -140,13 +140,19 @@ do
     call get_next_arg (arg0, s%com%plot_file_arg, i_arg, n_arg)
 
   case ('-prompt_color', '-color_prompt')
-    s%com%prompt_color_arg = ''
+    if (i_arg < n_arg) then
+      call get_next_arg (arg0, s%com%prompt_color_arg, i_arg, n_arg)
+      if (s%com%prompt_color_arg(1:1) == '-') then
+        i_arg = i_arg - 1
+        s%com%prompt_color_arg = 'BLUE'
+      endif
+    endif
+
+  case ('-quiet', '-silent_run')       ! "-silent_run" is old syntax
+    s%com%quiet_arg = 'all'
 
   case ('-rf_on')
     s%com%rf_on_arg = '<present>'
-
-  case ('-quiet', '-silent_run')       ! "-silent_run" is old syntax
-    s%com%quiet_arg = '<present>'
 
   case ('-slice_lattice')
     call get_next_arg (arg0, s%com%slice_lattice_arg, i_arg, n_arg, .true.)
@@ -172,22 +178,22 @@ do
   case ('--beam_init_position_file');             s%com%beam_init_position_file_arg = ''
   case ('--building_wall_file');                  s%com%building_wall_file_arg = ''
   case ('--data_file');                           s%com%data_file_arg = ''
-  case ('--disable_smooth_line_calc');            s%com%disable_smooth_line_calc_arg = ''
-  case ('--debug');        s%com%debug_arg = '';  s%global%debug_on = .false.;  s%global%stop_on_error = .true.
+  case ('--disable_smooth_line_calc');            s%com%disable_smooth_line_calc_arg = '<negated>'
+  case ('--debug');        s%com%debug_arg = '<negated>';  s%global%debug_on = .false.;  s%global%stop_on_error = .true.
   case ('--external_plotting');                   s%global%external_plotting = .false.
   case ('--geometry');                            s%com%geometry_arg = ''
   case ('--hook_init_file');                      s%com%hook_init_file_arg = ''
   case ('--init_file');                           s%com%init_file_arg = ''; s%com%init_file_arg_path = ''
   case ('--lattice_file');                        s%com%lattice_file_arg = ''
-  case ('--log_startup');                         s%com%log_startup_arg = ''
-  case ('--no_stopping');                         s%com%no_stopping_arg = ''
+  case ('--log_startup');                         s%com%log_startup_arg = '<negated>'
+  case ('--no_stopping');                         s%com%no_stopping_arg = '<negated>'
   case ('--noinit');                              s%com%noinit_arg = ''
-  case ('--noplot');                              s%com%noplot_arg = ''
-  case ('--no_rad_int');                          s%com%no_rad_int_arg = ''
+  case ('--noplot');                              s%com%noplot_arg = '<negated>'
+  case ('--no_rad_int');                          s%com%no_rad_int_arg = '<negated>'
   case ('--plot_file');                           s%com%plot_file_arg = ''
-  case ('--prompt_color', '--color_prompt');      s%com%prompt_color_arg = ''
-  case ('--rf_on');                               s%com%rf_on_arg = ''
-  case ('--quiet', '--silent_run');               s%com%quiet_arg = ''
+  case ('--prompt_color', '--color_prompt');      s%com%prompt_color_arg = 'DEFAULT'  ! read_a_line recognizes this.
+  case ('--rf_on');                               s%com%rf_on_arg = '<negated>'
+  case ('--quiet', '--silent_run');               s%com%quiet_arg = 'off'
   case ('--slice_lattice');                       s%com%slice_lattice_arg = ''
   case ('--startup_file');                        s%com%startup_file_arg = ''
   case ('--var_file');                            s%com%var_file_arg = ''
@@ -222,7 +228,7 @@ else
   call cesr_getarg(i_arg, arg_next)
 endif
 
-!
+! may_have_blanks = T means that the arg_next string may contain blank characters.
 
 if (logic_option(.false., may_have_blanks)) then
   do

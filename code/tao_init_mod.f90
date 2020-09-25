@@ -107,13 +107,13 @@ call ran_seed_put (s%global%random_seed)
 call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
-if (s%com%rf_on_arg /= '')                    s%global%rf_on = .true.
-if (s%com%quiet_arg /= '')                    s%global%quiet = 'all'
-if (s%com%no_stopping_arg /= '')              s%global%stop_on_error = .false.
-if (s%com%noplot_arg /= '')                   s%global%plot_on = .false.
-if (s%com%no_rad_int_arg /= '')               s%global%rad_int_calc_on = .false.
-if (s%com%prompt_color_arg /= '')             s%global%prompt_color = s%com%prompt_color_arg
-if (s%com%disable_smooth_line_calc_arg /= '') s%global%disable_smooth_line_calc = .true.
+call set_this_logical_command_arg (s%com%rf_on_arg, .false., s%global%rf_on)
+call set_this_logical_command_arg (s%com%no_stopping_arg, .true., s%global%stop_on_error)
+call set_this_logical_command_arg (s%com%noplot_arg, .true., s%global%plot_on)
+call set_this_logical_command_arg (s%com%no_rad_int_arg, .true., s%global%rad_int_calc_on)
+call set_this_logical_command_arg (s%com%disable_smooth_line_calc_arg, .false., s%global%disable_smooth_line_calc)
+if (s%com%prompt_color_arg /= '')  s%global%prompt_color = s%com%prompt_color_arg
+if (s%com%quiet_arg /= '')         s%global%quiet = s%com%quiet_arg
 
 s%com%n_alias = 0
 s%com%ix_key_bank = 0             ! For single mode.
@@ -128,6 +128,19 @@ if (name /= '') s%plot_page%plot_display_type = name
 call readline_read_history(s%global%history_file, ios)
 
 end subroutine end_bookkeeping
+
+!-----------------------------------------------------------------------
+! contains
+
+subroutine set_this_logical_command_arg(cmd_arg, default, global_val)
+character(*) cmd_arg
+logical default, global_val
+!
+select case(cmd_arg)
+case ('<present>');   global_val = .not. default
+case ('<negated>');   global_val = default
+end select
+end subroutine set_this_logical_command_arg
 
 end subroutine tao_init_global
 

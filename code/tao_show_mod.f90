@@ -3470,7 +3470,7 @@ case ('spin')
   !
 
   if (.not. bmad_com%spin_tracking_on) then
-    call out_io (s_warn$, r_name, 'Turning on spin tracking (set bmad_com%spin_tracking_on = T)')
+    call out_io (s_info$, r_name, 'Note: Turning on spin tracking (setting: bmad_com%spin_tracking_on = T)')
     bmad_com%spin_tracking_on = .true.
   endif
 
@@ -5244,8 +5244,12 @@ integer nl
 character(*), allocatable :: lines(:)
 character(*) str, value
 !
-if (value == '') return
-nl=nl+1; write(lines(nl), '(a, t30, a, 1x, a)') str, '=', trim(value)
+select case (value)
+case ('');                              return
+case ('<present>', 'BLUE', 'all');      nl=nl+1; write(lines(nl), '(2x, a)') str
+case ('<negated>', 'off', 'DEFAULT');   nl=nl+1; write(lines(nl), '(2x, 2a)') '-' // str
+case default;                           nl=nl+1; write(lines(nl), '(2x, a, 2x, a)') str, trim(value)
+end select
 end subroutine write_this_arg
 
 !------------------------------------------------------------------------------------------

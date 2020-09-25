@@ -63,7 +63,7 @@ integer ios, n_level
 
 character(*) :: cmd_out
 character(*), optional :: prompt_str, cmd_in
-character(80) prompt_string, color_prompt_string
+character(80) prompt_string, prompt_string_with_color
 character(40) name
 character(*), parameter :: r_name = 'tao_get_user_input'
 
@@ -87,17 +87,17 @@ cmd_out = ''
 
 prompt_string = s%global%prompt_string
 if (present(prompt_str)) prompt_string = prompt_str
-color_prompt_string = prompt_string
+prompt_string_with_color = prompt_string
 
-select case (s%global%prompt_color)
-case ('BLACK');   call add_color (prompt_string, color_prompt_string, black_color)
-case ('RED');     call add_color (prompt_string, color_prompt_string, red_color)
-case ('GREEN');   call add_color (prompt_string, color_prompt_string, green_color)
-case ('YELLOW');  call add_color (prompt_string, color_prompt_string, yellow_color)
-case ('BLUE');    call add_color (prompt_string, color_prompt_string, blue_color)
-case ('MAGENTA'); call add_color (prompt_string, color_prompt_string, magenta_color)
-case ('CYAN');    call add_color (prompt_string, color_prompt_string, cyan_color)
-case ('GRAY');    call add_color (prompt_string, color_prompt_string, gray_color)
+select case (upcase(s%global%prompt_color))
+case ('BLACK');   call add_color (prompt_string, prompt_string_with_color, black_color)
+case ('RED');     call add_color (prompt_string, prompt_string_with_color, red_color)
+case ('GREEN');   call add_color (prompt_string, prompt_string_with_color, green_color)
+case ('YELLOW');  call add_color (prompt_string, prompt_string_with_color, yellow_color)
+case ('BLUE');    call add_color (prompt_string, prompt_string_with_color, blue_color)
+case ('MAGENTA'); call add_color (prompt_string, prompt_string_with_color, magenta_color)
+case ('CYAN');    call add_color (prompt_string, prompt_string_with_color, cyan_color)
+case ('GRAY');    call add_color (prompt_string, prompt_string_with_color, gray_color)
 end select
 
 ! If single character input wanted then...
@@ -174,7 +174,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     ! Nothing more to do if an alias definition
 
     if (cmd_out(1:5) == 'alias') then
-      call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+      call out_io (s_blank$, r_name, '', trim(prompt_string_with_color) // ': ' // trim(cmd_out))
       call tao_quiet_set(s%global%quiet)
       return
     endif
@@ -217,7 +217,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
     if (s%global%quiet /= 'all') then
       if (s%global%blank_line_between_commands) call out_io (s_blank$, r_name, '')
-      call out_io (s_blank$, r_name, trim(color_prompt_string) // ': ' // trim(cmd_out))
+      call out_io (s_blank$, r_name, trim(prompt_string_with_color) // ': ' // trim(cmd_out))
     endif
 
     ! Check if in a do loop
@@ -231,7 +231,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   call check_for_multi_commands ()
 
   if (using_saved_cmd .or. s%com%saved_cmd_line /= '') then
-    call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+    call out_io (s_blank$, r_name, '', trim(prompt_string_with_color) // ': ' // trim(cmd_out))
   endif
 
   call tao_quiet_set(s%global%quiet)
@@ -263,7 +263,7 @@ cmd_out = tao_alias_translate (cmd_out, err)
 call check_for_multi_commands ()
 
 if (using_saved_cmd .or. s%com%saved_cmd_line /= '') then
-  call out_io (s_blank$, r_name, '', trim(color_prompt_string) // ': ' // trim(cmd_out))
+  call out_io (s_blank$, r_name, '', trim(prompt_string_with_color) // ': ' // trim(cmd_out))
 endif
 
 return

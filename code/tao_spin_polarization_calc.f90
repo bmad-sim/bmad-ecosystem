@@ -37,7 +37,7 @@ type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 
 real(rp) vec0(6), mat6(6,6), n0(3), l0(3), m0(3), mat3(3,3)
-real(rp) dn_ddelta(3), m_1turn(8,8)
+real(rp) dn_dpz(3), m_1turn(8,8)
 real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), q0_lnm(0:3), qq(0:3)
 real(rp) integral_bn, integral_1minus, integral_dn_ddel
 real(rp) int_gx, int_gy, int_g, int_g2, int_g3, b_vec(3), s_vec(3), del_p, cm_ratio, gamma, f
@@ -98,14 +98,14 @@ enddo
 
 integral_bn      = 0 ! Integral of g^3 (b_hat dot (n - dn/ddelta))
 integral_1minus  = 0 ! Integral of g^3 (1 - (2/9) (n dot s)^2)
-integral_dn_ddel = 0 ! Integral of g^3 (11/18) dn_ddelta
+integral_dn_ddel = 0 ! Integral of g^3 (11/18) dn_dpz
 
 do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
 
   if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * q_ele(ie)**(-1)
 
-  ! Calculate n0, and dn_ddelta
+  ! Calculate n0, and dn_dpz
   ! Construct coordinate systems (l0, n0, m0) and (l1, n1, m1)
 
   n0 = q_1turn%q(1:3, 0)
@@ -160,9 +160,9 @@ do ie = 0, branch%n_ele_track
   vv = transpose(evec)
   aa(:,1) = [0, 0, 0, 0, 0, 1]
   call zgesv_f95(vv, aa, ipiv6, pinfo)
-  dn_ddelta = [real(sum(w_vec(:,1)* aa(:,1)), rp), 0.0_rp, real(sum(w_vec(:,2)* aa(:,1)), rp)]
-  dn_ddelta = rotate_vec_given_quat (quat_lnm_to_xyz, dn_ddelta)
-  tao_branch%dn_dpz(ie)%vec = dn_ddelta
+  dn_dpz = [real(sum(w_vec(:,1)* aa(:,1)), rp), 0.0_rp, real(sum(w_vec(:,2)* aa(:,1)), rp)]
+  dn_dpz = rotate_vec_given_quat (quat_lnm_to_xyz, dn_dpz)
+  tao_branch%dn_dpz(ie)%vec = dn_dpz
 
   !
 
@@ -177,10 +177,10 @@ do ie = 0, branch%n_ele_track
     if (int_gx /= 0 .or. int_gy /= 0) then
       b_vec = [int_gy, -int_gx, 0.0_rp]
       b_vec = b_vec / norm2(b_vec)
-      integral_bn = integral_bn + int_g3 * dot_product(b_vec, n0 - dn_ddelta)
+      integral_bn = integral_bn + int_g3 * dot_product(b_vec, n0 - dn_dpz)
     endif
     integral_1minus  = integral_1minus  + int_g3 * (1 - (2.0_rp/9.0_rp) * dot_product(n0, s_vec)**2)
-    integral_dn_ddel = integral_dn_ddel + int_g3 * (11.0_rp/18.0_rp) * dot_product(dn_ddelta, dn_ddelta)
+    integral_dn_ddel = integral_dn_ddel + int_g3 * (11.0_rp/18.0_rp) * dot_product(dn_dpz, dn_dpz)
   endif
 
   if (ie == branch%n_ele_track) cycle
@@ -191,10 +191,10 @@ do ie = 0, branch%n_ele_track
     if (int_gx /= 0 .or. int_gy /= 0) then
       b_vec = [int_gy, -int_gx, 0.0_rp]
       b_vec = b_vec / norm2(b_vec)
-      integral_bn = integral_bn + int_g3 * dot_product(b_vec, n0 - dn_ddelta)
+      integral_bn = integral_bn + int_g3 * dot_product(b_vec, n0 - dn_dpz)
     endif
     integral_1minus  = integral_1minus  + int_g3 * (1 - (2.0_rp/9.0_rp) * dot_product(n0, s_vec)**2)
-    integral_dn_ddel = integral_dn_ddel + int_g3 * (11.0_rp/18.0_rp) * dot_product(dn_ddelta, dn_ddelta)
+    integral_dn_ddel = integral_dn_ddel + int_g3 * (11.0_rp/18.0_rp) * dot_product(dn_dpz, dn_dpz)
   endif
 
 enddo

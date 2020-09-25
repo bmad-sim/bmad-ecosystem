@@ -22,7 +22,6 @@ call out_io (s_blank$, r_name, [ &
         '  -beam_init_position_file <file_name> # File containing initial particle positions.            ', &
         '  -beam_track_data_file <file_name>    # Beam info from previous tracking                       ', &
         '  -building_wall_file <file_name>      # Define the building tunnel wall                        ', &
-        '  -color_prompt                        # Set color of prompt string to blue                     ', &
         '  -data_file <file_name>               # Define data for plotting and optimization              ', &
         '  -debug                               # Debug mode for Wizards                                 ', &
         '  -disable_smooth_line_calc            # Disable the smooth line calc used in plotting          ', &
@@ -37,6 +36,7 @@ call out_io (s_blank$, r_name, [ &
         '  -noplot                              # Do not open a plotting window                          ', &
         '  -no_rad_int                          # Do not do any radiation integrals calculations.        ', &
         '  -plot_file <file_name>               # Plotting initialization file                           ', &
+        '  -prompt_color <color>                # Set color of prompt string. Default is blue.           ', &
         '  -rf_on                               # Keep RF on (Default is to turn off)                    ', &
         '  -quiet                               # Suppress terminal output when running a command file?  ', &
         '  -slice_lattice <ele_list>            # Discards elements from lattice that are not in the list', &
