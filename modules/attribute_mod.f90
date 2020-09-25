@@ -2966,8 +2966,7 @@ case (sbend$)
   if (any(ix_attrib == [angle$, l_chord$, rho$])) free = .false.
 case (rfcavity$)
   if (.not. dep_attribs_free) then
-    if (ix_attrib == rf_frequency$ .and. ele%field_master) free = .false.
-    if (ix_attrib == harmon$ .and. .not. ele%field_master) free = .false.
+    if (ix_attrib == harmon$) free = .false.
     if (ix_attrib == gradient$) free = .false.
   endif
 case (lcavity$)

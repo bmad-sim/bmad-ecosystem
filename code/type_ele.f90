@@ -654,17 +654,15 @@ if (associated(p)) then
   else
     nl=nl+1; li(nl) = '    No Curvature'
   endif
-  nl=nl+1; write (li(nl), '(4x, 2a)') 'Grid type:    ', surface_grid_type_name(s%grid%type)
-  if (s%grid%type /= off$) then
-    nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid dr:     ', s%grid%dr
-    if (allocated(s%grid%pt)) then
-      nl=nl+1; write (li(nl), '(4x, a, 2f10.6)') 'Grid r0:     ', s%grid%r0
-      nl=nl+1; write (li(nl), '(4x, a, 2i10)')   'Num grid pts:', ubound(s%grid%pt) + 1
-      nl=nl+1; write (li(nl), '(4x, a, 2(a, f10.6, a, f10.6, a, 4x))') &
-                                                  'Grid bounds:', &
-                        '(', -s%grid%r0(1), ',', -s%grid%r0(1) + ubound(s%grid%pt, 1) * s%grid%dr(1), ')', & 
-                        '(', -s%grid%r0(2), ',', -s%grid%r0(2) + ubound(s%grid%pt, 2) * s%grid%dr(2), ')' 
-    endif
+  nl=nl+1; write (li(nl), '(4x, 2a)')          'Grid type:   ', surface_grid_type_name(s%grid%type)
+  nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid dr:     ', s%grid%dr
+  nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid r0:     ', s%grid%r0
+  if (allocated(s%grid%pt)) then
+    nl=nl+1; write (li(nl), '(4x, a, 2i10)')   'Num grid pts:', ubound(s%grid%pt) + 1
+    nl=nl+1; write (li(nl), '(4x, a, 2(a, f10.6, a, f10.6, a, 4x))') &
+                                                'Grid bounds:', &
+                      '(', -s%grid%r0(1), ',', -s%grid%r0(1) + ubound(s%grid%pt, 1) * s%grid%dr(1), ')', & 
+                      '(', -s%grid%r0(2), ',', -s%grid%r0(2) + ubound(s%grid%pt, 2) * s%grid%dr(2), ')' 
   endif
 
   if (p%material%f_h /= 0) then

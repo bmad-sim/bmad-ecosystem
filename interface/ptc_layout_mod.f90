@@ -629,7 +629,7 @@ type (c_normal_form) cc_norm
 type (c_spinor) isf
 
 real(rp) sigma_mat(6,6), emit(3), ptc_sigma_mat(6,6), tune(3), damp(3), energy_loss, dp_loss
-real(rp) depol, n0(3), dn_ddelta(3)
+real(rp) depol, n0(3), dn_dpz(3)
 complex(rp) cmplx_sigma_mat(6,6)
 
 integer i1, i2, i3
@@ -692,7 +692,7 @@ enddo
 depol = -depol/2
 
 do i1 = 1, 3
-  dn_ddelta(i1) = isf%v(i1).d.6
+  dn_dpz(i1) = isf%v(i1).d.6
   n0(i1) = isf%v(i1)
 enddo
 
@@ -894,7 +894,7 @@ end subroutine ptc_closed_orbit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_one_turn_map_at_ele (ele, orb0, map, pz, order)
+! Subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, order)
 !
 ! Routine to calculate the PTC one turn map for a ring.
 !
@@ -906,14 +906,14 @@ end subroutine ptc_closed_orbit_calc
 !   order   -- integer, optional: Order of the map. If not given then default order is used.
 !
 ! Output:
-!   orb0(6)    -- real(rp): Closed orbit around which map is made.
-!   map        -- probe_8: Map.
+!   orb0(6)     -- real(rp): Closed orbit around which map is made.
+!   map         -- probe_8: Map.
 !     %x           -- Orbital part.
 !     %q%x         -- Spin part.
-!   ptc_com%alt_state  -- PTC state to use for further calculations.
+!   ptc_state   -- internal_state: PTC state used for tracking.
 !-
 
-subroutine ptc_one_turn_map_at_ele (ele, orb0, map, pz, order)
+subroutine ptc_one_turn_map_at_ele (ele, orb0, map, ptc_state, pz, order)
 
 use madx_ptc_module
 
@@ -921,6 +921,7 @@ type (ele_struct), target :: ele
 type (fibre), pointer :: fib
 type (c_damap) da_map
 type (probe_8) map
+type (internal_state) ptc_state
 type (probe) p0
 
 real(rp), optional :: pz
@@ -937,25 +938,25 @@ rf_on = rf_is_on(ele%branch)
 spin_on = bmad_com%spin_tracking_on
 
 if (rf_on) then
-  ptc_com%alt_state = ptc_com%base_state - nocavity0
+  ptc_state = ptc_com%base_state - nocavity0
 else
-  ptc_com%alt_state = ptc_com%base_state + nocavity0
+  ptc_state = ptc_com%base_state + nocavity0
 endif
 
-if (spin_on) ptc_com%alt_state = ptc_com%alt_state + spin0
+if (spin_on) ptc_state = ptc_state + spin0
 
 ! The call to init is needed since otherwiase FPP is not properly setup and a 
 ! call to something like c_normal will then bomb.
 
 map_order = integer_option(ptc_com%taylor_order_ptc, order)
-call init_all (ptc_com%alt_state, map_order, 0) ! The third argument is the number of parametric variables
+call init_all (ptc_state, map_order, 0) ! The third argument is the number of parametric variables
 
 ! Find closed orbit
 
 orb0 = 0
 if (present(pz)) orb0(6) = pz
 fib => ele%ptc_fibre%next
-call find_orbit_x (orb0, ptc_com%alt_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
+call find_orbit_x (orb0, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 
 ! Construct map.
 
@@ -965,7 +966,7 @@ call alloc(map)
 p0 = orb0
 da_map = 1
 map = da_map + p0
-call track_probe (map, ptc_com%alt_state, fibre1 = fib)
+call track_probe (map, ptc_state, fibre1 = fib)
 
 call kill(da_map)
 

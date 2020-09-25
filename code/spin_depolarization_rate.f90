@@ -9,7 +9,7 @@
 ! Input:
 !   branch          -- branch_struct: Lattice branch the beam is going through.
 !   match_info(0:)  -- spin_matching_struct:
-!     %dn_ddelta        -- ISR derivative.
+!     %dn_dpz           -- ISR derivative.
 !   rad_int_by_ele  -- rad_int_all_ele_struct: Element-by-element radiation integrals.
 !     %i3               -- I3 radiation integral.
 !
@@ -40,7 +40,7 @@ ib = branch%ix_branch
 do ie = 1, branch%n_ele_track
   ele => branch%ele(ie)
   depol_rate = depol_rate + 0.5_rp * rad_int_by_ele%branch(ib)%ele(ie)%i3 * ele%value(l$) * &
-                  (norm2(match_info(ie-1)%dn_ddelta) + norm2(match_info(ie)%dn_ddelta))
+                  (norm2(match_info(ie-1)%dn_dpz) + norm2(match_info(ie)%dn_dpz))
                     
 enddo
 
