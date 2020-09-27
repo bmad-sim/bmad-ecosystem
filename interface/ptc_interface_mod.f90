@@ -4061,7 +4061,7 @@ if (ele%key == floor_shift$) then
   call mat_make_unit(s0_mat)
   dr = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
   call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = s_mat)
-  call find_patch(dr, s_mat, r0, s0_mat, r, ang)
+  call find_patch(r0, s0_mat, dr, s_mat, r, ang)
   ptc_fibre%patch%b_ang = ang
   ptc_fibre%patch%b_d   = r
   ptc_fibre%patch%patch = 2
