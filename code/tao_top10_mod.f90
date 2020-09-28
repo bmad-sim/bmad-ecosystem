@@ -656,7 +656,7 @@ if (var%useit_opt) then
 else
   useit_str = '! Not used in optimizing'
 endif
-write (str(1), '(4a, es22.14, 3x, a)')  trim(var%ele_name), &
+write (str(1), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), &
           '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
 call tao_write_out (iu, str(1:1))
 
