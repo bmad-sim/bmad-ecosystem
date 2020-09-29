@@ -23,6 +23,7 @@ implicit none
 
 type (ele_pointer_struct), allocatable :: eles(:)
 type (tao_universe_struct), pointer :: u
+type (tao_var_slave_struct), pointer :: vs
 type (all_pointer_struct) a_ptr
 type (tao_var_struct), pointer :: var
 
@@ -48,8 +49,9 @@ do i = 1, size(eles)
     mismatch = .false.
     ix_found = 1    ! Index of parameter that got changed. Default to 1.
     do is = 1, size(var%slave)
-      if (var%slave(is)%model_value /= var%slave(1)%model_value) mismatch = .true.
-      if (associated(a_ptr%r, var%slave(is)%model_value)) ix_found = is
+      vs => var%slave(is)
+      if (vs%model_value /= var%slave(1)%model_value) mismatch = .true.
+      if (associated(a_ptr%r, vs%model_value)) ix_found = is
     enddo
 
     if (mismatch) then
@@ -59,9 +61,7 @@ do i = 1, size(eles)
               'WILL FIX...')
       endif
 
-      do is = 1, size(var%slave)
-        var%slave(is)%model_value = var%slave(ix_found)%model_value
-      enddo
+      call tao_set_var_model_value(var, var%slave(ix_found)%model_value)
     endif
 
   enddo
