@@ -182,9 +182,9 @@ $\bfP_{dk}$ using the Derbenev-Kondratenko-Mane formula\cite{b:barber99}.
 \end{align}
 This formula neglects any non-radiative processes so it is generally only valid for positrons and
 electrons.  In the above formula, $<>$ denotes an average over phase space, $g = 1/\rho$ is the
-bending strength ($\rho$ is the bending radius), $\delta$ is the fractional energy deviation which,
-for ultra-relativistic particles, is the same as phase space $p_z$, $\what\bfs$ is the unit vector
-in the direction of motion, and $\what\bfb$ is defined to be
+bending strength ($\rho$ is the bending radius), $\what\bfs$ is the unit vector in the direction of
+motion, and $\delta$ is the fractional energy deviation which, for ultra-relativistic particles, is
+the same as phase space $p_z$. In the above equation $\what\bfb$ is defined to be
 \begin{equation}
   \what\bfb \equiv \frac{\what\bfs \cross d\what\bfs/ds}{d\what\bfs/ds}
 \end{equation}
@@ -216,6 +216,88 @@ RHS in \Eq{t583} and the depolarization rate $\tau_{dep}^{-1}$ is given by the t
   \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right>
   \label{tdep}
 \end{equation}
+
+%-----------------------------------------------------------------   
+\section{Linear $d\bfn/d\delta$ Calculation}
+\label{s:dn.calc}
+
+When evaluating the equations in the previous section, in many situations it is sufficient to just
+use the value of $d\bfn/d\delta$ as calculated in the linear regime. In the linear regime,
+$d\bfn/d\delta$ is only dependent upon the $s$-position and is independent of the phase space
+position. The calculation of $d\bfn/d\delta$ starts with the linearized transport equations which
+are characterized by a $6\times6$ orbital transfer matrix $\bfM$ along with the spin transport which
+can be written in the form
+\begin{equation}
+  \bfq_s(\bfr) = \bfq_0 + \overrightarrow{\bfq} \cdot \bfr
+  \label{qqrq}
+\end{equation}
+The quaternion map $\bfq$, evaluated at the orbital phase space point $\bfr$, has a zeroth order
+part $\bfq_0$ (the spin rotation for a particle on the closed orbit) and the first order part
+$\overrightarrow{\bfq} = (\bfq_1, \ldots, \bfq_6)$ which is a vector of six quaternions and which is
+evaluated in \Eq{qqrq} by taking the dot product with the vector $\bfr$.
+
+The closed orbit invariant spin $\bfn_0$ which has unit amplitude satisfies the equation
+\begin{equation}
+  \bfq_0 \, \bfn_0 \, \bfq_0 = \bfn_0
+  \label{qnqn}
+\end{equation}
+The solution to this equation is
+\begin{equation}
+  \bfn_0 = \kappa \, (\bfq_{0,x}, \bfq_{0,y}, \bfq_{0,z})
+  \label{nkqqq}
+\end{equation}
+where $\kappa$ is calculated to give $\bfn_0$ unit amplitude.
+
+To calculate the linear $d\bfn/d\delta$, the first step is to compute the eigenvectors $\bfv_j$ and
+eigenvalues $\lambda_j$, $j = 1, \ldots, 6$ of the 1-turn orbital matrix. The
+corresponding spin eigenvectors $\bfn_j$ are computed from the equation
+\begin{equation}
+  \bfq_s \, (\bfn_0 + \bfn_j) \, \bfq_s^* = \bfn_0 + \lambda_j \, \bfn_j
+  \label{qnnq}
+\end{equation}
+Using \Eqs{qqrq} and \eq{qnqn}, and keeping only linear terms gives
+\begin{equation}
+  \lambda_j \, \bfn_j - \bfq_0 \, \bfn_j \, \bfq_0^* = 
+  (\overrightarrow{\bfq} \cdot \bfv_j) \, \bfn_0 \, \bfq_0^* + 
+  \bfq_0 \, \bfn_0 \, (\overrightarrow{\bfq}^* \cdot \bfv_j)
+  \label{lnqnq}
+\end{equation}
+This equation is linear in the unknown $\bfn_j$ and so may be easily solved using standard linear
+algebra techniques.
+
+Since the eigenvectors $\bfv_j$ span phase space, for any given phase space position $\bfr$ there
+exist a set of values $A_j(\bfr)$, $j = 1, \ldots, 6$, such that
+\begin{equation}
+  \bfr = \sum_{j = 1}^6 A_j \, \bfv_j
+\end{equation}
+Define the function $\bfn$ by
+\begin{equation}
+  \bfn(\bfr) \equiv \bfn_0 + \sum_{j = 1}^6 A_j(\bfr) \, \bfn_j
+\end{equation}
+This function obeys the T-BMT equation and is continuous and thus is the solution (up to a flip in
+sign) for the invariant spin field. From this, ${\partial \bfn}/\partial \delta$, which is computed
+taking the derivative at constant $x$, $p_x$, $y$, $p_y$, and $z$, is obtained via
+\begin{equation}
+  \frac{\partial \bfn}{\partial \delta} = 
+  \sum_{j = 1}^6 A_j \, \bfn_j
+  \label{ndan}
+\end{equation}
+with the $A_j$ being computed by inverting the equation
+\begin{equation}
+  (0, 0, 0, 0, 0, 1)^t = \sum_{j = 1}^6 A_j \, \bfv_j
+  \label{000001}
+\end{equation}
+where the superscript $t$ means transpose. Notice that for ${\partial \bfn}/\partial \delta$, as
+well as any other partial derivative, the component in the direction of $\bfn_0$ will be zero since,
+to first order, the amplitude of $\bfn$ must be constant (since the equation for $\bfn$ is only
+valid to first order, the computed amplitude will have non-zero higher order terms).
+
+A problem arises if the machine that is being simulated does not have any RF cavities or the voltage
+in the cavities is zero. In this case, there are no synchrotron oscillations which results in
+degenerate eigenvectors and the eigenvectors will not span all of phase space. The solution here
+is to reduce the dimensionality of phase space to five by remove the $z$ coordinate. The above
+equations then can be used with the sums over $j$ ranging from 1 to 5.
+
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}
@@ -309,7 +391,6 @@ coordinates and it then provides a good framework for analysis \cite{b:barber85,
 closed orbit. In this case, since the $\bfl_0(s)$ and $\bfm_0(s)$ are solutions to the T-BMT
 equation, $\bfD$ is the unit matrix.
 
-
 To compute $\widetilde\bfM$ for a section of the ring, the first step is to find the $6 \times 6$
 orbital matrix for the section. To calculate $\bfn_0$, $\bfl_0$ and $\bfm_0$, first $\bfn_0$ at some
 starting point $s$ is calculated (section 18.3) and propagated around the ring. This $\bfn_0$ is
@@ -368,21 +449,12 @@ one-turn maps, if the $\bfl$ and $\bfm$ axes are set to be the $\bfl_0(s)$ and $
 except at the end of the lattice, the spin phase advance as a function of $s$ will be zero except
 just before the starting position where there will be a discontinuous jump in phase.
 
-Once the $(\bfl_0, \bfn_0, \bfm_0)$ axes have been calculated, the matrices $\bfG$ and $\bfD$
-can be calculated from the spin transport map (which \bmad calculates via PTC (\sref{c:ptc.use})). To
-first order, the spin transport map $\bfq_s(s1, s2)$ from $s1$ to $s2$ represented as a
-quaternion, can be written in the form
-\begin{equation}
-  \bfq_s = \bfq_0 + \sum_{i = 1}^6 r_i \, \bfq_i
-  \label{qqrq}
-\end{equation}
-The quaternion $\bfq_0$ is the zeroth order part of the map (the spin rotation for a particle on the
-closed orbit) and the six quaternions $\bfq_i$, $i = 1, \ldots, 6$ are the first order part with
-$\bfr$ being the orbital phase space point at $s1$ the map is being evaluated at. Let
-$\bfq_{lnm}(s)$ be the quaternion that transforms from $(\bfl_0, \bfn_0, \bfm_0)$\footnote{
-Such a formalism works also with the $(\bfl, \bfn_0, \bfm)$} coordinates to $(x, y, z)$
-coordinates at a given point $s$. With this, the spin transport $\what\bfq$ from $s_1$ to $s_2$ in
-the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system is
+Once the $(\bfl_0, \bfn_0, \bfm_0)$ axes have been calculated, the matrices $\bfG$ and $\bfD$ can be
+calculated from the spin transport map (which \bmad calculates via PTC (\sref{c:ptc.use})).  The
+first order transport map \Eq{qqrq} is used. Let $\bfq_{lnm}(s)$ be the quaternion that transforms
+from $(\bfl_0, \bfn_0, \bfm_0)$\footnote{ Such a formalism works also with the $(\bfl, \bfn_0,
+\bfm)$} coordinates to $(x, y, z)$ coordinates at a given point $s$. With this, the spin transport
+$\what\bfq$ from $s_1$ to $s_2$ in the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system is
 \begin{equation}
   \what\bfq_s(s_1, s_2) = \bfq_{lnm}(s_2) \, \bfq_s(s_1, s_2) \, \bfq_{lnm}^{-1}(s_1)
 \end{equation}
@@ -434,53 +506,38 @@ Using \Eq{qqrq} in \Eq{rqqq} and keeping only first order terms gives
 as defined in \Eq{qqqqq}. $\what q$ rotates spins in the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system.
 Not the $(x, y, z)$ coordinate system.]
 
-The derivative ${\partial\bfn}/\partial\delta$ is calculated from the one-turn periodic $8 \times 8$
-matrix $\widetilde \bfM$\cite{b:barber99}. [Here the periodic $(\bfl(s), \bfn_0(s), \bfm(s))$
-coordinate system must be used since the ending coordinates for $\bfM$ must be the same as the
-starting coordinates.]  The eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$ ($j = 1, \ldots 8$) of
-$\widetilde \bfM$ are computed first. These eigenvectors are of the form
+The calculation of the derivative ${\partial\bfn}/\partial\delta$ within the SLIM formalism is
+similar to the calculation using quaternions (\sref{s:dn.calc}). The following follows
+Barber\cite{b:barber99}.  The calculation starts with the one-turn periodic $8 \times 8$ matrix
+$\widetilde \bfM$ [Here the periodic $(\bfl(s), \bfn_0(s), \bfm(s))$ coordinate system must be used
+since the ending coordinates for $\bfM$ must be the same as the starting coordinates.]  The
+eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$ ($j = 1, \ldots 8$) of $\widetilde \bfM$ are of
+the form
 \begin{align}
   \bfu_j &= \begin{pmatrix} \bfv_j \\ \bfw_j \end{pmatrix}, \quad j = 1, \ldots, 6
   \label{qvw} \\
   \bfu_j &= \begin{pmatrix} \Bf 0_6 \\ \bfw_j \end{pmatrix}, \quad j = 7, 8 \nonumber
 \end{align}
 where $\bfv_j$ are eigenvectors of the orbital submatrix $\bfM$, and for the first six eigenvectors
-the $\bfw_j$ are computed via
+the $\bfw_j$ are computed via (compare with \Eqs{lnqnq})
 \begin{equation}
-  \bfw_j = -\left[ \bfD - \lambda_j \, \bfI_2 \right]^{-1} \bfG \, \bfv_j, \quad j = 1, \ldots, 6
+  \bfw_j = \left[ \lambda_j \, \bfI_2 - \bfD \right]^{-1} \bfG \, \bfv_j, \quad j = 1, \ldots, 6
   \label{wdlgv}
 \end{equation}
 where $\bfI_2$ is the $2 \times 2$ unit matrix. These eigenvectors, computed at the chosen starting
 point $s1$ and are then propagated to other $s$-positions $s2$ using ${\widetilde \bfM}(s1, s2)$.
 
-For any set of constants $A_j$, $j = 1, \ldots, 6$, define the function $\bfn$ by
-\begin{equation}
-  \bfn\biggl( \sum_{j = 1}^6 A_j \, \bfv_j \biggr) \equiv \sum_{j = 1}^6 A_j \, \bfw_j
-\end{equation}
-This function obeys the T-BMT equation and is continuous and thus is the solution for
-the invariant spin field.\footnote
-  {
-Not shown in the equation is the component of $\bfn$ in the direction of $\bfn_0$. This is just a
-constant whose value is chosen so that $\bfn$ is properly normalized to one.
-  }
-From this, ${\partial \bfn}/\partial \delta$, which is computed taking
-the derivative at constant $x$, $p_x$, $y$, $p_y$, and $z$, is obtained via
+The derivative ${\partial \bfn}/\partial \delta$ is computed analogously to \Eq{ndaw}
 \begin{equation}
   \frac{\partial \bfn}{\partial \delta} = 
   \left( \frac{\partial \alpha}{\partial \delta}, \, \frac{\partial \beta}{\partial \delta} \right) = 
   \sum_{j = 1}^6 A_j \, \bfw_j
   \label{ndaw}
 \end{equation}
-with the $A_j$ being computed by inverting the equation
-\begin{equation}
-  [0, 0, 0, 0, 0, 1]^t = \sum_{j = 1}^6 A_j \, \bfv_j
-  \label{000001}
-\end{equation}
-where the superscript $t$ means transpose. Notice that for ${\partial \bfn}/\partial \delta$ the component
-in the direction of $\bfn$ is zero.
+with the $A_j$ being computed from \Eq{000001}.
 
-In a computer program, \Eq{000001} can be easily solved. Alternatively, Chao \cite{b:chao79} gives a
-an analytical formulation where the eigenvectors are normalized in the form
+Alternatively, Chao \cite{b:chao79} gives a an analytical formulation where the eigenvectors are
+normalized in the form
 \begin{equation}
   \bfv_{j+1}^{t} \, \bfS \, \bfv_j = i, \quad j = 1, 3, 5
   \label{vsvi}
@@ -502,11 +559,6 @@ With this, ${\partial \bfn}/{\partial \delta}$ is computed via
   \frac{\partial \bfn}{\partial \delta} = i \, \sum_{j = 1}^6 \bfv_{j5}^* \, \bfw_j
   \label{ndivw}
 \end{equation}
-From a computational standpoint, the disadvantage of using \Eq{vsvi} and \Eq{ndivw} is that if there
-are no synchrotron oscillations, the eigenvectors cannot be put in the form \vn{vsvi}.  In this
-case, using \Eq{000001} is also problematic since the eigenvectors are degenerate. However, by
-removing the $z$ coordinate and recasting $\bfG$ to be a $7 \times 7$ matrix, \Eq{000001} may be
-used with the sum now being over $j = 1, \ldots, 5$.
 
 %-----------------------------------------------------------------   
 \section{Spinor Notation}

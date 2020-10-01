@@ -611,6 +611,12 @@ recursive function distance_to_aperture (orbit, particle_at, ele, no_aperture_he
   logical no_aperture_here
 end function
 
+subroutine dn_dpz_from_mat8 (mat_1turn, dn_dpz)
+  import
+  implicit none
+  real(rp) mat_1turn(8,8), dn_dpz(3)
+end subroutine
+
 subroutine do_mode_flip (ele, err_flag)
   import
   implicit none

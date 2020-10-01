@@ -169,6 +169,59 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
+! Subroutine hdf5_init_compound_complex(complex_t)
+!
+! Routine to initialize complex data handling using a compound data type.
+! Note: Use hdf5_kill_compound_complex to reclaim allocated memory.
+!
+! Output:
+!   complex_t -- integer(hid_t): Complex compound data type identifier.
+!-
+
+subroutine hdf5_init_interface(complex_t)
+
+integer(hid_t) :: complex_t
+integer hdferr
+integer(size_t) offset
+
+! 
+
+call h5tcreate_f (H5T_COMPOUND_F, sizeof(H5T_FLOAT_F)*2, complex_t, hdferr)
+offset = 0
+call h5tinsert_f (complex_t, "r", offset, H5T_NATIVE_REAL, hdferr)
+offset = sizeof(H5T_NATIVE_REAL)
+call h5tinsert_f (complex_t, "i", offset, H5T_NATIVE_REAL, hdferr)
+
+end subroutine hdf5_init_interface
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_kill_compound_complex(complex_t)
+!
+! Routine to do memory cleanup for complex data handling using a compound data type.
+! Note: Use hdf5_init_compound_complex to first initalize complex_t 
+!
+! Input:
+!   complex_t -- integer(hid_t): Complex compound data type identifier.
+!-
+
+subroutine hdf5_kill_interface(complex_t)
+
+integer(hid_t) :: complex_t
+integer hdferr
+
+! 
+
+call h5tclose_f(complex_t, hdferr)
+
+end subroutine hdf5_kill_interface
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
 ! Subroutine hdf5_write_attribute_string(root_id, attrib_name, string, error)
 !
 ! Routine to create an HDF5 attribute whose value is a string.
@@ -351,7 +404,7 @@ character(*), parameter :: r_name = 'hdf5_open_file'
 
 error = .true.
 
-call h5open_f(h5_err)  ! Init Fortran interface
+call h5open_f(h5_err)         ! Init Fortran interface.
 
 if (hdf5_com%debug_on) then
   call H5Eset_auto_f(1, h5_err)   ! Verbose
@@ -384,12 +437,9 @@ call h5eclear_f(h_err)
 
 if (h5_err < 0) then
   select case (action)
-  case ('READ')
-    call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR READING: ' // file_name)
-  case ('WRITE')
-    call out_io (s_error$, r_name, 'CANNOT CREATE FILE FOR WRITING: ' // file_name)
-  case ('APPEND')
-    call out_io (s_error$, r_name, 'CANNOT OPTN FILE FOR APPENDING: ' // file_name)
+  case ('READ');    call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR READING: ' // file_name)
+  case ('WRITE');   call out_io (s_error$, r_name, 'CANNOT CREATE FILE FOR WRITING: ' // file_name)
+  case ('APPEND');  call out_io (s_error$, r_name, 'CANNOT OPTN FILE FOR APPENDING: ' // file_name)
   end select
   return
 endif
