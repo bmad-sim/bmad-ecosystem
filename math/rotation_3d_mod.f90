@@ -351,6 +351,29 @@ end function axis_angle_to_quat
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Function quat_conj (q_in) result (q_out)
+!
+! Routine to create the conjugate of a quaternian. 
+!
+! Input:
+!   q_in(0:3)     -- real(rp): Quaternion input.
+!
+! Output:
+!   q_out(0:3)    -- real(rp): Conjugate quaternion.
+!-
+
+function quat_conj (q_in) result (q_out)
+
+real(rp) q_in(0:3), q_out(0:3)
+
+q_out = [q_in(0), -q_in(1:3)]
+
+end function quat_conj
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Function quat_inverse (q_in) result (q_out)
 !
 ! Routine to create the inverse of a quaternian. 
