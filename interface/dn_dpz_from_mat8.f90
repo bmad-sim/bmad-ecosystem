@@ -22,20 +22,26 @@ use f95_lapack
 
 implicit none
 
-real(rp) mat_1turn(8,8), dn_dpz(3)
+real(rp) mat_1turn(8,8), dn_dpz(3), mat1(6,6)
 complex(rp) eval(6), evec(6,6), dd(2,2), gv(2,1), w_vec(6,2), vv(6,6), aa(6,1)
 integer k, pinfo, ipiv2(2), ipiv6(6)
 logical err
 
-!
+! With RF off the eigen analysis is singular. 
+! In this case, modify the matrix to remove the singularity.
 
-call mat_eigen(mat_1turn(1:6,1:6), eval, evec, err)
+mat1 = mat_1turn(1:6,1:6)
+if (mat1(6,5) == 0) then ! Eigen anal is singular without RF so put in a fix.
+  mat1(5,1:4) = 0
+  mat1(5,6) = 0
+endif
+
+call mat_eigen(mat1(1:6,1:6), eval, evec, err)
 
 do k = 1, 6
-  dd = mat_1turn(7:8,7:8)
-  dd(1,1) = dd(1,1) - eval(k)
-  dd(2,2) = dd(2,2) - eval(k)
-  gv(:,1) = -matmul(mat_1turn(7:8,1:6), evec(k,1:6))
+  call cplx_mat_make_unit(dd)
+  dd = eval(k) * dd - mat_1turn(7:8,7:8)
+  gv(:,1) = matmul(mat_1turn(7:8,1:6), evec(k,1:6))
   call zgesv_f95 (dd, gv, ipiv2, pinfo)
   w_vec(k,:) = gv(:,1)
 enddo
