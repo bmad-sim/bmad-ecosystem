@@ -238,21 +238,20 @@ evaluated in \Eq{qqrq} by taking the dot product with the vector $\bfr$.
 
 The closed orbit invariant spin $\bfn_0$ which has unit amplitude satisfies the equation
 \begin{equation}
-  \bfq_0 \, \bfn_0 \, \bfq_0 = \bfn_0
+  \bfq_0 \, \bfn_0 \, \bfq_0^* = \bfn_0
   \label{qnqn}
 \end{equation}
 The solution to this equation is
 \begin{equation}
-  \bfn_0 = \kappa \, (\bfq_{0,x}, \bfq_{0,y}, \bfq_{0,z})
+  \bfn_0 = \frac{(q_{0,x}, q_{0,y}, q_{0,z})}{\|(q_{0,x}, q_{0,y}, q_{0,z})\|}
   \label{nkqqq}
 \end{equation}
-where $\kappa$ is calculated to give $\bfn_0$ unit amplitude.
 
 To calculate the linear $d\bfn/d\delta$, the first step is to compute the eigenvectors $\bfv_j$ and
 eigenvalues $\lambda_j$, $j = 1, \ldots, 6$ of the 1-turn orbital matrix. The
 corresponding spin eigenvectors $\bfn_j$ are computed from the equation
 \begin{equation}
-  \bfq_s \, (\bfn_0 + \bfn_j) \, \bfq_s^* = \bfn_0 + \lambda_j \, \bfn_j
+  \bfq_s(\bfv_j) \,\, (\bfn_0 + \bfn_j) \,\, \bfq_s^*(\bfv_j) = \bfn_0 + \lambda_j \, \bfn_j
   \label{qnnq}
 \end{equation}
 Using \Eqs{qqrq} and \eq{qnqn}, and keeping only linear terms gives
@@ -297,7 +296,6 @@ in the cavities is zero. In this case, there are no synchrotron oscillations whi
 degenerate eigenvectors and the eigenvectors will not span all of phase space. The solution here
 is to reduce the dimensionality of phase space to five by remove the $z$ coordinate. The above
 equations then can be used with the sums over $j$ ranging from 1 to 5.
-
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}
