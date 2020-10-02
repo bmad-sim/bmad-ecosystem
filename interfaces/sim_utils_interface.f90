@@ -95,6 +95,11 @@ subroutine cplx_mat_inverse(mat_r, mat_i, inv_r, inv_i, ok, print_err)
   logical, optional :: ok, print_err
 end subroutine
 
+subroutine cplx_mat_make_unit (mat)
+  import
+  complex(rp) mat(:,:)
+end subroutine
+
 subroutine complex_error_function (wr, wi, zr, zi)
   import
   implicit none

@@ -5,6 +5,16 @@ use output_mod
 
 implicit none
 
+interface quat_conj
+  module procedure quat_conj_real
+  module procedure quat_conj_complex
+end interface
+
+interface quat_mul
+  module procedure quat_mul_real
+  module procedure quat_mul_complex
+end interface
+
 contains
 
 !------------------------------------------------------------------------------
@@ -281,7 +291,7 @@ angle = norm2(omega)
 if (angle == 0) then
   quat = [1, 0, 0, 0]
 else
-  quat = [cos(angle/2), omega * (sin(angle/2) / angle)]
+  quat = [cos(angle*0.5_rp), omega * (sin(angle*0.5_rp) / angle)]
 endif
 
 end function omega_to_quat 
@@ -343,7 +353,7 @@ real(rp) axis(3), angle, quat(0:3)
 
 !
 
-quat = [cos(angle/2), axis * sin(angle/2)]
+quat = [cos(angle*0.5_rp), axis * sin(angle*0.5_rp)]
 
 end function axis_angle_to_quat 
 
@@ -351,9 +361,10 @@ end function axis_angle_to_quat
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Function quat_conj (q_in) result (q_out)
+! Function quat_conj_real (q_in) result (q_out)
 !
 ! Routine to create the conjugate of a quaternian. 
+! Overloaded by quat_conj.
 !
 ! Input:
 !   q_in(0:3)     -- real(rp): Quaternion input.
@@ -362,13 +373,37 @@ end function axis_angle_to_quat
 !   q_out(0:3)    -- real(rp): Conjugate quaternion.
 !-
 
-function quat_conj (q_in) result (q_out)
+function quat_conj_real (q_in) result (q_out)
 
 real(rp) q_in(0:3), q_out(0:3)
 
 q_out = [q_in(0), -q_in(1:3)]
 
-end function quat_conj
+end function quat_conj_real
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Function quat_conj_complex (q_in) result (q_out)
+!
+! Routine to create the conjugate of a quaternian. 
+! Overloaded by quat_conj.
+!
+! Input:
+!   q_in(0:3)     -- real(rp): Quaternion input.
+!
+! Output:
+!   q_out(0:3)    -- real(rp): Conjugate quaternion.
+!-
+
+function quat_conj_complex (q_in) result (q_out)
+
+complex(rp) q_in(0:3), q_out(0:3)
+
+q_out = [q_in(0), -q_in(1:3)]
+
+end function quat_conj_complex
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -397,9 +432,10 @@ end function quat_inverse
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Function quat_mul (q1, q2) result (q_out)
+! Function quat_mul_real (q1, q2) result (q_out)
 !
 ! Routine to multiply two quaternions q_out = q1 * q2.
+! Overloaded by quad_mul.
 ! Note: q_out = q1 * q2 represents a rotation of q2 first followed by q1.
 !
 ! Input:
@@ -409,7 +445,7 @@ end function quat_inverse
 !   q_out(0:3)        -- real(rp): Resultant q1 * q2
 !-
 
-function quat_mul (q1, q2) result (q_out)
+function quat_mul_real (q1, q2) result (q_out)
 
 real(rp) q1(0:3), q2(0:3), q_out(0:3)
 real(rp) a, b, c, d, e, f, g, h
@@ -425,12 +461,52 @@ F = (q1(1) - q1(3)) * (q2(1) - q2(2))
 G = (q1(0) + q1(2)) * (q2(0) - q2(3))
 H = (q1(0) - q1(2)) * (q2(0) + q2(3))
 
-q_out(0) = B + (-E - F + G + H)/2
-q_out(1) = A -  (E + F + G + H)/2 
-q_out(2) = C +  (E - F + G - H)/2 
-q_out(3) = D +  (E - F - G + H)/2
+q_out(0) = B + (-E - F + G + H)*0.5_rp
+q_out(1) = A -  (E + F + G + H)*0.5_rp 
+q_out(2) = C +  (E - F + G - H)*0.5_rp 
+q_out(3) = D +  (E - F - G + H)*0.5_rp
 
-end function quat_mul
+end function quat_mul_real
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Function quat_mul_complex (q1, q2) result (q_out)
+!
+! Routine to multiply two quaternions q_out = q1 * q2.
+! Overloaded by quad_mul.
+! Note: q_out = q1 * q2 represents a rotation of q2 first followed by q1.
+!
+! Input:
+!   q1(0:3), q2(0:3)  -- real(rp): Quaternions.
+!
+! Output:
+!   q_out(0:3)        -- real(rp): Resultant q1 * q2
+!-
+
+function quat_mul_complex (q1, q2) result (q_out)
+
+complex(rp) q1(0:3), q2(0:3), q_out(0:3)
+complex(rp) a, b, c, d, e, f, g, h
+
+!
+
+A = (q1(0) + q1(1)) * (q2(0) + q2(1))
+B = (q1(3) - q1(2)) * (q2(2) - q2(3))
+C = (q1(0) - q1(1)) * (q2(2) + q2(3)) 
+D = (q1(2) + q1(3)) * (q2(0) - q2(1))
+E = (q1(1) + q1(3)) * (q2(1) + q2(2))
+F = (q1(1) - q1(3)) * (q2(1) - q2(2))
+G = (q1(0) + q1(2)) * (q2(0) - q2(3))
+H = (q1(0) - q1(2)) * (q2(0) + q2(3))
+
+q_out(0) = B + (-E - F + G + H)*0.5_rp
+q_out(1) = A -  (E + F + G + H)*0.5_rp 
+q_out(2) = C +  (E - F + G - H)*0.5_rp 
+q_out(3) = D +  (E - F - G + H)*0.5_rp
+
+end function quat_mul_complex
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -500,8 +576,8 @@ endif
 
 !
 
-ca = cos(angle/2)
-sa = sin(angle/2)
+ca = cos(angle*0.5_rp)
+sa = sin(angle*0.5_rp)
 
 q0_inv = -sa * (axis(1)*vec_in(1) + axis(2)*vec_in(2) + axis(3)*vec_in(3))
 
