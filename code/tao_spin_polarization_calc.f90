@@ -22,8 +22,6 @@ use tao_data_and_eval_mod, dummy => tao_spin_polarization_calc
 use radiation_mod
 use ptc_interface_mod
 use pointer_lattice, dummy2 => sqrt
-use eigen_mod
-use f95_lapack
 
 implicit none
 
@@ -36,19 +34,14 @@ type (c_linear_map), target :: q_ele(branch%n_ele_track)
 type (ele_struct), pointer :: ele
 type (taylor_struct), pointer :: st
 
-real(rp) vec0(6), mat6(6,6), n0(3), l0(3), m0(3), mat3(3,3)
-real(rp) dn_dpz(3), m_1turn(8,8)
-real(rp) quat0(0:3), quat_lnm_to_xyz(0:3), q0_lnm(0:3), qq(0:3)
+real(rp) vec0(6), mat6(6,6), n0(3), dn_dpz(3)
 real(rp) integral_bn, integral_1minus, integral_dn_ddel
 real(rp) int_gx, int_gy, int_g, int_g2, int_g3, b_vec(3), s_vec(3), del_p, cm_ratio, gamma, f
 real(rp), parameter :: f_limit = 8 / (5 * sqrt(3.0_rp))
 real(rp), parameter :: f_rate = 5 * sqrt(3.0_rp) * classical_radius_factor * h_bar_planck * c_light**2 / 8
 
-complex(rp) eval(6), evec(6,6), dd(2,2), gv(2,1), w_vec(6,2), vv(6,6), aa(6,1)
-
 integer ix1, ix2
 integer i, j, k, kk, n, p, ie
-integer pinfo, ipiv2(2), ipiv6(6)
 
 logical valid_value, st_on, err
 
@@ -102,69 +95,13 @@ integral_dn_ddel = 0 ! Integral of g^3 (11/18) dn_dpz
 
 do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
-
   if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * q_ele(ie)**(-1)
-
-  ! Calculate n0, and dn_dpz
-  ! Construct coordinate systems (l0, n0, m0) and (l1, n1, m1)
+  
+  dn_dpz = dn_dpz_from_qmap(real(q_1turn%mat, rp), real(q_1turn%q, rp))
+  tao_branch%dn_dpz(ie)%vec = dn_dpz
 
   n0 = q_1turn%q(1:3, 0)
   n0 = n0 / norm2(n0)
-
-  j = maxloc(abs(n0), 1)
-  select case (j)
-  case (1); l0 = [-n0(3), 0.0_rp, n0(1)]
-  case (2); l0 = [n0(2), -n0(1), 0.0_rp]
-  case (3); l0 = [0.0_rp, n0(3), -n0(2)]
-  end select
-
-  l0 = l0 / norm2(l0)
-  m0 = cross_product(l0, n0)
-
-  mat3(:,1) = l0
-  mat3(:,2) = n0
-  mat3(:,3) = m0
-  quat_lnm_to_xyz = w_mat_to_quat(mat3)
-
-  quat0 = q_1turn%q(:,0)
-  q0_lnm = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), quat0), quat_lnm_to_xyz)
-  mat3 = quat_to_w_mat(q0_lnm)
-
-  M_1turn(1:6,1:6) = q_1turn%mat
-  M_1turn(1:6,7:8) = 0
-  M_1turn(7:8,7:8) = mat3(1:3:2,1:3:2)
-
-  if (M_1turn(6,5) == 0) then ! Eigen anal is singular without RF so put in a fix.
-    m_1turn(5,1:4) = 0
-    m_1turn(5,6) = 0
-  endif
-
-  do p = 1, 6
-    qq = q_1turn%q(:,p)
-    qq = quat_mul(quat_mul(quat_inverse(quat_lnm_to_xyz), qq), quat_lnm_to_xyz)
-    M_1turn(7,p) = 2 * (q0_lnm(1)*qq(2) + q0_lnm(2)*qq(1) - q0_lnm(0)*qq(3) - q0_lnm(3)*qq(0))
-    M_1turn(8,p) = 2 * (q0_lnm(0)*qq(1) + q0_lnm(1)*qq(0) + q0_lnm(2)*qq(3) + q0_lnm(3)*qq(2))
-  enddo
-
-  call mat_eigen(m_1turn(1:6,1:6), eval, evec, err)
-
-  do k = 1, 6
-    dd = m_1turn(7:8,7:8)
-    dd(1,1) = dd(1,1) - eval(k)
-    dd(2,2) = dd(2,2) - eval(k)
-    gv(:,1) = -matmul(m_1turn(7:8,1:6), evec(k,1:6))
-    call zgesv_f95 (dd, gv, ipiv2, pinfo)
-    w_vec(k,:) = gv(:,1)
-  enddo
-
-  vv = transpose(evec)
-  aa(:,1) = [0, 0, 0, 0, 0, 1]
-  call zgesv_f95(vv, aa, ipiv6, pinfo)
-  dn_dpz = [real(sum(w_vec(:,1)* aa(:,1)), rp), 0.0_rp, real(sum(w_vec(:,2)* aa(:,1)), rp)]
-  dn_dpz = rotate_vec_given_quat (quat_lnm_to_xyz, dn_dpz)
-  tao_branch%dn_dpz(ie)%vec = dn_dpz
-
-  !
 
   del_p  = 1 + orbit(ie)%vec(6)
   s_vec(1:2) = [orbit(ie)%vec(2)/del_p, orbit(ie)%vec(4)/del_p]
