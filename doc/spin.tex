@@ -76,14 +76,19 @@ also be represented in the form:
   \label{qqqqq}
 \end{equation}
 where $\cali$, $\calj$, and $\calk$ are the {\em fundamental quaternion units} with the properties
+under multiplication
 \begin{equation}
   \cali^2 = \calj^2 = \calk^2 = \cali \, \calj \, \calk = -1, \quad 
   \cali \, \calj = \calk, \quad \calj \, \cali = -\calk, \quad \text{etc.}
 \end{equation}
-$\cali$, $\calj$, and $\calk$ do not commute among themselves but do commute with real numbers.
+$\cali$, $\calj$, and $\calk$ do not commute among themselves but do commute with real numbers. 
 
-The $q_1$ component of a quaternion is called the \vn{real} (or sometimes \vn{scalar}) part and the other
-three components are called the \vn{imaginary} (or sometimes \vn{vector}) part.
+The $q_1$ component of a quaternion is called the \vn{real} (or sometimes \vn{scalar}) part and the
+other three components are called the \vn{imaginary} (or sometimes \vn{vector}) part. The dot
+product (inner product) of two quaternions is defined to be standard Euclidean dot product in 4D:
+\begin{equation}
+  \bfa \dotproduct \bfb = a_1 \, b_1 + a_x \, b_x + a_y \, b_y + a_z \, b_z
+\end{equation}
 
 When a quaternion represents a rotation, $\cali$, $\calj$, and $\calk$ can be thought of as representing unit
 vectors along the three Cartesian axes $\bfx$, $\bfy$, and $\bfz$ respectively. A rotation through an angle
@@ -93,9 +98,10 @@ $\theta$ around the unit axis $\bfu = (u_x, u_y, u_z)$ is represented by the qua
   \label{qt2ui}
 \end{equation}
 
-A rotation quaternion $\bfq$ has normalization 1:
+A rotation quaternion $\bfq$ has unit normalization:
 \begin{equation}
-  1 = ||\bfq|| = \sqrt{q_1^2 + q_x^2 + q_y^2 + q_z^2}
+  1 = ||\bfq|| = \sqrt{\bfq \dotproduct \bfq} = \sqrt{q_1^2 + q_x^2 + q_y^2 + q_z^2}
+  \label{1qqq}
 \end{equation}
 Such a quaternion is called a \vn{unit} quaternion.
 The quaternion conjugate $\bfq^*$ is defined by
@@ -174,9 +180,9 @@ $\bfP_{dk}$ using the Derbenev-Kondratenko-Mane formula\cite{b:barber99}.
 \begin{align}
   \bfP_{dk}(s) &= -\bfn(s) \, P_{dk} \\
   P_{dk} &= -\frac{8}{5 \, \sqrt{3}}
-  \frac{\displaystyle \oint ds \,\left< g^3 \, \what\bfb \cdot 
+  \frac{\displaystyle \oint ds \,\left< g^3 \, \what\bfb \dotproduct 
     \left( \bfn - \frac{\partial \bfn}{\partial \delta} \right) \right>}
-  {\displaystyle \oint ds \, \left< g^3 \left( 1 - \frac{2}{9} (\bfn \cdot \what\bfs)^2 + 
+  {\displaystyle \oint ds \, \left< g^3 \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 + 
     \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>}
     \nonumber
 \end{align}
@@ -198,7 +204,7 @@ The time dependence of the polarization is \cite{b:barber99})
 where $\bfP_0$ is the initial polarization and the polarization rate $\tau_{dk}^{-1}$ is 
 \begin{equation}
   \tau_{dk}^{-1} = \frac{5 \, \sqrt{3}}{8} \frac{r_e \, \gamma^5 \, \hbar}{m}
-  \frac{1}{C} \, \oint ds \, \left< g^3 \, \left( 1 - \frac{2}{9} (\bfn \cdot \what\bfs)^2 + 
+  \frac{1}{C} \, \oint ds \, \left< g^3 \, \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 + 
   \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>
   \label{t583}
 \end{equation}
@@ -228,24 +234,30 @@ position. The calculation of $d\bfn/d\delta$ starts with the linearized transpor
 are characterized by a $6\times6$ orbital transfer matrix $\bfM$ along with the spin transport which
 can be written in the form
 \begin{equation}
-  \bfq_s(\bfr) = \bfq_0 + \overrightarrow{\bfq} \cdot \bfr
-  \label{qqrq}
+  \bfq_s(\bfr) = \bfq_0 + \overrightarrow{\bfq} \dotproduct \bfr
+  \label{qqqr}
 \end{equation}
 The quaternion map $\bfq$, evaluated at the orbital phase space point $\bfr$, has a zeroth order
 part $\bfq_0$ (the spin rotation for a particle on the closed orbit) and the first order part
 $\overrightarrow{\bfq} = (\bfq_1, \ldots, \bfq_6)$ which is a vector of six quaternions and which is
-evaluated in \Eq{qqrq} by taking the dot product with the vector $\bfr$.
+evaluated in \Eq{qqqr} by taking the dot product with the vector $\bfr$.
 
 The closed orbit invariant spin $\bfn_0$ which has unit amplitude satisfies the equation
 \begin{equation}
   \bfq_0 \, \bfn_0 \, \bfq_0^* = \bfn_0
   \label{qnqn}
 \end{equation}
-The solution to this equation is
+The solution to this equation, normalized to one, is
 \begin{equation}
   \bfn_0 = \frac{(q_{0,x}, q_{0,y}, q_{0,z})}{\|(q_{0,x}, q_{0,y}, q_{0,z})\|}
   \label{nkqqq}
 \end{equation}
+Since $\bfq_s$ is a rotation quaternion, the magnitude of $\bfq_s(\bfr)$ must remain one. Using
+\Eq{qqqr} in \Eq{1qqq}, to keep a unit magnitude to linear order gives the condition
+\begin{equation}
+  \bfq_0 \dotproduct \bfq_i = 0, \qquad i = 1, \ldots, 6
+\end{equation}
+for all $\bfq_i$ components of $\overrightarrow{\bfq}$.
 
 To calculate the linear $d\bfn/d\delta$, the first step is to compute the eigenvectors $\bfv_j$ and
 eigenvalues $\lambda_j$, $j = 1, \ldots, 6$ of the 1-turn orbital matrix. The
@@ -254,11 +266,11 @@ corresponding spin eigenvectors $\bfn_j$ are computed from the equation
   \bfq_s(\bfv_j) \,\, (\bfn_0 + \bfn_j) \,\, \bfq_s^*(\bfv_j) = \bfn_0 + \lambda_j \, \bfn_j
   \label{qnnq}
 \end{equation}
-Using \Eqs{qqrq} and \eq{qnqn}, and keeping only linear terms gives
+Using \Eqs{qqqr} and \eq{qnqn}, and keeping only linear terms gives
 \begin{equation}
   \lambda_j \, \bfn_j - \bfq_0 \, \bfn_j \, \bfq_0^* = 
-  (\overrightarrow{\bfq} \cdot \bfv_j) \, \bfn_0 \, \bfq_0^* + 
-  \bfq_0 \, \bfn_0 \, (\overrightarrow{\bfq}^* \cdot \bfv_j)
+  (\overrightarrow{\bfq} \dotproduct \bfv_j) \, \bfn_0 \, \bfq_0^* + 
+  \bfq_0 \, \bfn_0 \, (\overrightarrow{\bfq}^* \dotproduct \bfv_j)
   \label{lnqnq}
 \end{equation}
 This equation is linear in the unknown $\bfn_j$ and so may be easily solved using standard linear
@@ -441,7 +453,7 @@ In contrast to the approach in \cite{b:barber85,b:barber99}, \bmad calculates th
 matrices from the quaternion of the spin transport map (which \bmad calculates via PTC
 (\sref{c:ptc.use})). After the $(\bfl_0, \bfn_0, \bfm_0)$ coordinates have been calculated (or set by
 the User) at some initial point, the spin axes can be transported using the $\bfq_0$ quaternion
-(\Eq{qqrq}). When analyzing only a section of a ring, there is no identifiable spin tune so nothing
+(\Eq{qqqr}). When analyzing only a section of a ring, there is no identifiable spin tune so nothing
 further needs to be done. In this case, the $\bfD$ matrix is just a unit matrix. When analyzing
 one-turn maps, if the $\bfl$ and $\bfm$ axes are set to be the $\bfl_0(s)$ and $\bfm_0(s)$ axes
 except at the end of the lattice, the spin phase advance as a function of $s$ will be zero except
@@ -449,7 +461,7 @@ just before the starting position where there will be a discontinuous jump in ph
 
 Once the $(\bfl_0, \bfn_0, \bfm_0)$ axes have been calculated, the matrices $\bfG$ and $\bfD$ can be
 calculated from the spin transport map (which \bmad calculates via PTC (\sref{c:ptc.use})).  The
-first order transport map \Eq{qqrq} is used. Let $\bfq_{lnm}(s)$ be the quaternion that transforms
+first order transport map \Eq{qqqr} is used. Let $\bfq_{lnm}(s)$ be the quaternion that transforms
 from $(\bfl_0, \bfn_0, \bfm_0)$\footnote{ Such a formalism works also with the $(\bfl, \bfn_0,
 \bfm)$} coordinates to $(x, y, z)$ coordinates at a given point $s$. With this, the spin transport
 $\what\bfq$ from $s_1$ to $s_2$ in the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system is
@@ -491,18 +503,34 @@ be calculated from $\what\bfq_i$ which is the first order part of $\what\bfq_s$
 \begin{equation}
   \what\bfq_i = \bfq_{lnm}(s_2) \, \bfq_i(s_1, s_2) \, \bfq_{lnm}^{-1}(s_1)
 \end{equation}
-Using \Eq{qqrq} in \Eq{rqqq} and keeping only first order terms gives
+Using \Eq{qqqr} in \Eq{rqqq} and keeping only first order terms gives
 \begin{align}
-  \bfG(1,j) &= 2 (\what q_{0,x} \, \what q_{j,y} + \what q_{0,y} \, \what q_{j,x} - 
-                  \what q_{0,1} \, \what q_{j,z} - \what q_{0,z} \, \what q_{j,1}) \\
-  \bfG(2,j) &= 2 (\what q_{0,1} \, \what q_{j,x} + \what q_{0,x} \, \what q_{j,1} + 
-                  \what q_{0,y} \, \what q_{j,z} + \what q_{0,z} \, \what q_{j,y}),
-  \quad j = 1, \ldots, 6
+  \bfG(1,i) &= 2 (\what q_{0,y} \, \what q_{i,x} - \what q_{0,1} \, \what q_{i,z}) 
+  \label{g2qqqq} \\
+  \bfG(2,i) &= 2 (\what q_{0,1} \, \what q_{i,x} + \what q_{0,y} \, \what q_{i,z}),
+  \quad i = 1, \ldots, 6
   \nonumber
 \end{align}
-[Do not be confused by the $x$, $y$ and $z$ subscripts which refer to the components of $\what q$
+where the fact that $\what q_{0,x} = \what q_{0,z} = 0$ has been used.\footnote
+  {
+Do not be confused by the $x$, $y$ and $z$ subscripts which refer to the components of $\what q$
 as defined in \Eq{qqqqq}. $\what q$ rotates spins in the $(\bfl_0, \bfn_0, \bfm_0)$ coordinate system.
-Not the $(x, y, z)$ coordinate system.]
+Not the $(x, y, z)$ coordinate system.
+  }
+\footnote
+  {
+Notice that unlike the operation of going from the linearized quaternion transport (\Eq{qqqr} to the
+$\widetilde\bfM$ matrix, given an $\widetilde\bfM$ matrix, it is not possible to uniquely construct
+the first order $\what\bfq_i$ quaternions. $\what q_{i,x}$ and $\what q_{i,z}$ can be determined by
+\Eq{g2qqqq}. However, $\what q_{i,1}$ and $\what q_{i,y}$ can only be determined via \Eq{qnqn} up
+to an unknown factor $\kappa$:
+\begin{equation}
+  \what q_{i,1} = \kappa \, \what q_{0,y}, \qquad \what q_{i,y} = -\kappa \, \what q_{0,1}
+\end{equation}
+A finite $\kappa$ represents a variation of the spin tune with a particle's orbital phase space
+position. This is a non-linear effect which will average to zero over many turns as a particle with
+constant orbital amplitude samples different points on the phase space torus it is on.
+  }
 
 The calculation of the derivative ${\partial\bfn}/\partial\delta$ within the SLIM formalism is
 similar to the calculation using quaternions (\sref{s:dn.calc}). The following follows
@@ -624,10 +652,9 @@ pointing in the same direction as $\pmb\Omega$
   \end{align}   
 where $\Psi_i$ is the initial spin state, $\Psi_f$ is the final spin state, and $\Bf A$, describes
 the spin transport. The Pauli matrices constitute a 2x2 Hermitian-matrix representation of the
-quaternion components $\cali$, $\calj$, and $\calk$ in \Eq{qqqqq} and $\Bf A$ is the SU(2) matrix representation
-of the quaternion $(a_0, \Bf a) = (\cos(\alpha/2), -\sin(\alpha/2) \, \bfhat a)$. $\Bf A$ has the
-normalization condition $a_{0}^{2} + \boldsymbol{a}^{2} = 1$. Thus the three components
-$\boldsymbol{a} = \left(a_{1}, a_{2}, a_{3}\right)$ completely describe $\Bf A$.
+quaternion components $\cali$, $\calj$, and $\calk$ in \Eq{qqqqq} and $\Bf A$ is the SU(2) matrix
+representation of the quaternion $(a_0, \Bf a) = (\cos(\alpha/2), -\sin(\alpha/2) \, \bfhat
+a)$. $\Bf A$ has the normalization condition $a_{0}^{2} + \boldsymbol{a}^{2} = 1$.
 
 With spinors, the matrix representation of the observable $S_{\Bf u}$
 corresponding to the measurement of the spin along the unit vector

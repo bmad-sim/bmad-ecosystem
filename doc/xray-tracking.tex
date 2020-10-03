@@ -884,7 +884,7 @@ After the photons are reflected they will have some field $E_1$ and thus
 Where $dA_1$ is the area that the phtons flow through which is related
 to $dA_0$ via
 \begin{equation}
-  \frac{dA_1}{dA_0} = \frac{\bfk_1 \cdot \bfz}{\bfk_0 \cdot \bfz} \equiv |b|
+  \frac{dA_1}{dA_0} = \frac{\bfk_1 \dotproduct \bfz}{\bfk_0 \dotproduct \bfz} \equiv |b|
 \end{equation}
 Combining the above three equations, the change in field for a photon
 as it reflects from the surface is
@@ -913,16 +913,16 @@ have the same phase when passing through an area transverse to the
 wave. Thus the two photons labeled $a$ and $b$ in
 \fig{f:crystal.reflect} must have the same phase advance in going from
 $dA_0$ to $dA_1$. The difference in the phase advance for photon $b$
-relative to $a$ from $dA_0$ to the surface is $\bfk_0 \cdot \bfr$
+relative to $a$ from $dA_0$ to the surface is $\bfk_0 \dotproduct \bfr$
 where $\bfr$ is the vector between where photon $b$ hits the surface
 relative to phton $a$. Similarly, the difference in the phase advance
 for photon $b$ relative to $a$ from the surface to $dA_0$ is $-\bfk_1
-\cdot \bfr$. Since the total phase advance for both photons is the
+\dotproduct \bfr$. Since the total phase advance for both photons is the
 same from $dA_0$ to $dA_1$ the phase shift $d\phi_b$ of photon $b$ as
 it is reflected from the surface relative to the phase shift $d\phi_a$
 is
 \begin{equation}
-  d\phi_b = d\phi_a - (\bfk_1 - \bfk_0) \cdot \bfr
+  d\phi_b = d\phi_a - (\bfk_1 - \bfk_0) \dotproduct \bfr
   \label{dpbdpa}
 \end{equation}
 
@@ -936,7 +936,7 @@ where $\bfhat n$ is perpendicular to the surface. Combining
 \Eqs{dpbdpa} and \eq{k1k0} and since $\bfr$ is in
 the plane of the surface
 \begin{equation}
-  d\phi_b = d\phi_a - \bfH \cdot \bfr
+  d\phi_b = d\phi_a - \bfH \dotproduct \bfr
 \end{equation}
 This shows that the reflection shift has the same periodicity as the
 pattern of the lattice planes at the surface of the crystal. Notice
@@ -944,7 +944,7 @@ that for a mirror, where one point on the surface is the same as any
 other, $d\phi_b$ must be equal to $d\phi_a$. Using this in \Eq{dpbdpa}
 gives 
 \begin{equation}
-  \bfk_1 \cdot \bfr = \bfk_0 \cdot \bfr
+  \bfk_1 \dotproduct \bfr = \bfk_0 \dotproduct \bfr
 \end{equation}
 and since $|\bfk_1| = |\bfk_0|$ this proves that the angle of
 incidence is equal to the angle of reflection for a mirror.
