@@ -20,7 +20,7 @@ covered in Section~\sref{s:beam.init.file}.
 
 \index{beam_init_struct|hyperbf}
 The \vn{beam_init_struct} \vn{structure} (\sref{s:struct}) holds parameters which are used to
-initialize a beam. The parameters of this structure are:
+initialize a beam. The parameters of this structure, shown with their default values, are:
 \begin{example}
   type beam_init_struct
     character(200) :: position_file = ''       ! Initialization file name.
@@ -32,26 +32,26 @@ initialize a beam. The parameters of this structure are:
     character random_engine            ! "pseudo" (default) or "quasi". 
     character random_gauss_converter   ! "exact" (default) or "quick". 
     real center(6) = 0                 ! Bench center offset.
-    real center_jitter(6) = 0.0        ! Bunch center rms jitter
-    real emit_jitter(2)   = 0.0        ! %RMS a and b-mode emittance jitter
-    real sig_z_jitter     = 0.0        ! bunch length RMS jitter 
-    real sig_pz_jitter     = 0.0       ! pz energy spread RMS jitter 
+    real center_jitter(6) = 0          ! Bunch center rms jitter
+    real emit_jitter(2)   = 0          ! %RMS a and b-mode emittance jitter
+    real sig_z_jitter     = 0          ! bunch length RMS jitter 
+    real sig_pz_jitter     = 0         ! pz energy spread RMS jitter 
     real random_sigma_cutoff = -1      ! -1 => no cutoff used.
     integer n_particle = 0             ! Number of simulated particles per bunch.
     logical renorm_center = T          ! Renormalize centroid?
     logical renorm_sigma = T           ! Renormalize sigma?
-    real(rp) spin(3)                   ! Spin (x, y, z)
-    real a_norm_emit                   ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real b_norm_emit                   ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real a_emit                        ! a-mode emittance (= \(\gamma\,\epsilon\))
-    real b_emit                        ! b-mode emittance (= \(\gamma\,\epsilon\))
+    real(rp) spin(3) = 0, 0, 0         ! Spin (x, y, z)
+    real a_norm_emit = 0               ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real b_norm_emit = 0               ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real a_emit = 0                    ! a-mode emittance (= \(\gamma\,\epsilon\))
+    real b_emit = 0                    ! b-mode emittance (= \(\gamma\,\epsilon\))
     real dpz_dz = 0                    ! Correlation of pz with longitudinal position.
-    real dt_bunch                      ! Time between bunches.
-    real sig_z                         ! Z sigma in m.
-    real sig_pz                        ! pz sigma.
-    real bunch_charge                  ! Charge in a bunch.
+    real dt_bunch = 0                  ! Time between bunches.
+    real sig_z = 0                     ! Z sigma in m.
+    real sig_pz = 0                    ! pz sigma.
+    real bunch_charge = 0              ! Charge in a bunch.
     integer n_bunch = 0                ! Number of bunches.
-    character species                  ! Species. Default is reference particle.
+    character species = ""             ! Species. Default is reference particle.
     logical full_6D_coupling_calc = F  ! Use 6x6 1-turn matrix to match distribution?  
     logical use_t_coords = F  ! If true, the distributions will be 
                               !   calculated using time coordinates (\sref{s:time.phase.space}). 
@@ -72,9 +72,12 @@ from a file is triggered if not-blank. The format of the file is discussed in
 Section~\sref{s:beam.init.file}.
 %
 \item[\%a_emit, \%b_emit, \%a_norm_emit, \%b_norm_emit] \Newline
-Normalized and unnormalized emittances. Either \vn{a_norm_emit} or \vn{a_emit}
-may be set but not both. similarly, either \vn{b_norm_emit} or
-\vn{b_emit} may be set but not both.
+Normalized and unnormalized emittances. Either \vn{a_norm_emit} or \vn{a_emit} may be set but not
+both. similarly, either \vn{b_norm_emit} or \vn{b_emit} may be set but not both. 
+
+When simulating a ring, if any of these parameters is set negative, and if the \bmad based program
+being run has enabled it, the value of the parameter will be set the value as calculated from the
+lattice using synchrotron radiation integral formulas (\sref{s:synch.ints}).
 %
 \item[\%bunch_charge] \Newline
 The \vn{%bunch_charge} paramter sets the charge of a bunch. If reading from a file, the bunch
@@ -232,6 +235,10 @@ particles generated.
 Longitudinal sigmas. \vn{%sig_pz} is the fractional energy spread dE/E.  This, along with
 \vn{%dPz_dz} determine the longitudinal profile. Note: The old, deprecated, name for \vn{%sig_pz} is
 \vn{%sig_e}. This deprecated name is currently accepted.
+
+When simulating a ring, if any of these parameters is set negative, and if the \bmad based program
+being run has enabled it, the value of the parameter will be set the value as calculated from the
+lattice using synchrotron radiation integral formulas (\sref{s:synch.ints}).
 %
 \item[\%species] \Newline
 Name of the species tracked. If not set then the default tracking particle type is used.

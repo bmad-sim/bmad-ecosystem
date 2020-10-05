@@ -68,11 +68,11 @@ definition \Eq{mgq2m2}. See the discussion after \Eq{mgq2m}.
 quaternions. For more information, the reader is referred to the Web. In particular, the
 \vn{Quaternions and spatial rotation} article at \vn{wikipedia.org}. 
 
-A quaternion $\bfq$ is a 4-vector $\bfq = (q_1, q_x, q_y, q_z)$ where the components are reals if they represent a
+A quaternion $\bfq$ is a 4-vector $\bfq = (q_0, q_x, q_y, q_z)$ where the components are reals if they represent a
 rotation and are Taylor series if they represent a rotation map (\sref{s:spin.map}). A quaternion can
 also be represented in the form:
 \begin{equation}
-  \bfq = q_1 + q_x \, \cali + q_y \, \calj + q_z \calk
+  \bfq = q_0 + q_x \, \cali + q_y \, \calj + q_z \calk
   \label{qqqqq}
 \end{equation}
 where $\cali$, $\calj$, and $\calk$ are the {\em fundamental quaternion units} with the properties
@@ -83,11 +83,11 @@ under multiplication
 \end{equation}
 $\cali$, $\calj$, and $\calk$ do not commute among themselves but do commute with real numbers. 
 
-The $q_1$ component of a quaternion is called the \vn{real} (or sometimes \vn{scalar}) part and the
+The $q_0$ component of a quaternion is called the \vn{real} (or sometimes \vn{scalar}) part and the
 other three components are called the \vn{imaginary} (or sometimes \vn{vector}) part. The dot
 product (inner product) of two quaternions is defined to be standard Euclidean dot product in 4D:
 \begin{equation}
-  \bfa \dotproduct \bfb = a_1 \, b_1 + a_x \, b_x + a_y \, b_y + a_z \, b_z
+  \bfa \dotproduct \bfb = a_0 \, b_0 + a_x \, b_x + a_y \, b_y + a_z \, b_z
 \end{equation}
 
 When a quaternion represents a rotation, $\cali$, $\calj$, and $\calk$ can be thought of as representing unit
@@ -100,13 +100,13 @@ $\theta$ around the unit axis $\bfu = (u_x, u_y, u_z)$ is represented by the qua
 
 A rotation quaternion $\bfq$ has unit normalization:
 \begin{equation}
-  1 = ||\bfq|| = \sqrt{\bfq \dotproduct \bfq} = \sqrt{q_1^2 + q_x^2 + q_y^2 + q_z^2}
+  1 = ||\bfq|| = \sqrt{\bfq \dotproduct \bfq} = \sqrt{q_0^2 + q_x^2 + q_y^2 + q_z^2}
   \label{1qqq}
 \end{equation}
 Such a quaternion is called a \vn{unit} quaternion.
 The quaternion conjugate $\bfq^*$ is defined by
 \begin{equation}
-  \bfq^* = q_1 - q_x \, \cali - q_y \, \calj - q_z \calk
+  \bfq^* = q_0 - q_x \, \cali - q_y \, \calj - q_z \calk
 \end{equation}
 and the inverse $\bfq^{-1}$ is given by
 \begin{equation}
@@ -123,9 +123,9 @@ represented by quaternion $\bfq$ to position $\bfr'$ is given by
 The transformation matrix corresponding to the transformation of \Eq{rqrq} is
 \begin{equation}
   \bfR = \begin{pmatrix}
-    q_1^2 + q_x^2 - q_y^2 - q_z^2    & 2 \, q_x \ q_y - 2 \, q_1 \, q_z & 2 \, q_x \ q_z + 2 \, q_1 \, q_y \\
-    2 \, q_x \ q_y + 2 \, q_1 \, q_z & q_1^2 - q_x^2 + q_y^2 - q_z^2    & 2 \, q_y \ q_z - 2 \, q_1 \, q_x \\
-    2 \, q_x \ q_z - 2 \, q_1 \, q_y & 2 \, q_y \ q_z + 2 \, q_1 \, q_x & q_1^2 - q_x^2 - q_y^2 + q_z^2 
+    q_0^2 + q_x^2 - q_y^2 - q_z^2    & 2 \, q_x \ q_y - 2 \, q_0 \, q_z & 2 \, q_x \ q_z + 2 \, q_0 \, q_y \\
+    2 \, q_x \ q_y + 2 \, q_0 \, q_z & q_0^2 - q_x^2 + q_y^2 - q_z^2    & 2 \, q_y \ q_z - 2 \, q_0 \, q_x \\
+    2 \, q_x \ q_z - 2 \, q_0 \, q_y & 2 \, q_y \ q_z + 2 \, q_0 \, q_x & q_0^2 - q_x^2 - q_y^2 + q_z^2 
   \end{pmatrix}
   \label{rqqq}
 \end{equation}
@@ -505,9 +505,9 @@ be calculated from $\what\bfq_i$ which is the first order part of $\what\bfq_s$
 \end{equation}
 Using \Eq{qqqr} in \Eq{rqqq} and keeping only first order terms gives
 \begin{align}
-  \bfG(1,i) &= 2 (\what q_{0,y} \, \what q_{i,x} - \what q_{0,1} \, \what q_{i,z}) 
+  \bfG(1,i) &= 2 (\what q_{0,y} \, \what q_{i,x} - \what q_{0,0} \, \what q_{i,z}) 
   \label{g2qqqq} \\
-  \bfG(2,i) &= 2 (\what q_{0,1} \, \what q_{i,x} + \what q_{0,y} \, \what q_{i,z}),
+  \bfG(2,i) &= 2 (\what q_{0,0} \, \what q_{i,x} + \what q_{0,y} \, \what q_{i,z}),
   \quad i = 1, \ldots, 6
   \nonumber
 \end{align}
@@ -521,15 +521,16 @@ Not the $(x, y, z)$ coordinate system.
   {
 Notice that unlike the operation of going from the linearized quaternion transport (\Eq{qqqr} to the
 $\widetilde\bfM$ matrix, given an $\widetilde\bfM$ matrix, it is not possible to uniquely construct
-the first order $\what\bfq_i$ quaternions. $\what q_{i,x}$ and $\what q_{i,z}$ can be determined by
-\Eq{g2qqqq}. However, $\what q_{i,1}$ and $\what q_{i,y}$ can only be determined via \Eq{qnqn} up
+the $\what\bfq_i$ quaternions. $\what q_{i,x}$ and $\what q_{i,z}$ can be determined by
+\Eq{g2qqqq}. However, $\what q_{i,0}$ and $\what q_{i,y}$ can only be determined via \Eq{qnqn} up
 to an unknown factor $\kappa$:
 \begin{equation}
-  \what q_{i,1} = \kappa \, \what q_{0,y}, \qquad \what q_{i,y} = -\kappa \, \what q_{0,1}
+  \what q_{i,0} = \kappa \, \what q_{0,y}, \qquad \what q_{i,y} = -\kappa \, \what q_{0,0}
 \end{equation}
 A finite $\kappa$ represents a variation of the spin tune with a particle's orbital phase space
-position. This is a non-linear effect which will average to zero over many turns as a particle with
-constant orbital amplitude samples different points on the phase space torus it is on.
+position. This is, a finite $q_{i,0}$ and $q_{i,y}$ represent a non-linear effect which will average
+to zero over many turns as a particle with constant orbital amplitude samples different points on
+the phase space torus it is on.
   }
 
 The calculation of the derivative ${\partial\bfn}/\partial\delta$ within the SLIM formalism is
