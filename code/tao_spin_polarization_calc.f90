@@ -107,7 +107,6 @@ do ie = 0, branch%n_ele_track
   s_vec(1:2) = [orbit(ie)%vec(2)/del_p, orbit(ie)%vec(4)/del_p]
   s_vec(3) = sqrt(1.0_rp - s_vec(1)**2 - s_vec(2)**2)
 
-
   ele => branch%ele(ie)
   call calc_radiation_tracking_integrals (ele, orbit(ie), branch%param, end_edge$, .true., int_gx, int_gy, int_g2, int_g3)
   if (int_g2 /= 0) then
