@@ -91,8 +91,8 @@ type (lat_struct), target ::  lat
 type (ele_struct), pointer :: ele, ele_start
 type (branch_struct), pointer :: branch
 type (coord_struct), allocatable, target ::  closed_orb(:), co_saved(:)
-type (coord_struct), pointer :: c_orb(:), s_orb, e_orb
 type (coord_struct), pointer :: start_orb, end_orb
+type (coord_struct), pointer :: c_orb(:), s_orb, e_orb
 type (bmad_common_struct) bmad_com_saved
 type (super_mrqmin_storage_struct) storage
 
@@ -104,13 +104,20 @@ type matrix_save
 end type
 type (matrix_save), allocatable :: m(:)
 
-real(rp), target :: t1(6,6)
+type closed_orb_com_struct   ! Common block for
+  real(rp) :: t1(6,6)
+  real(rp), allocatable :: a_vec(:)
+  real(rp) rf_wavelen, dz_step
+end type
+
+type (closed_orb_com_struct), target :: coc
+type (closed_orb_com_struct), pointer :: cocp
+
 real(rp) del_co(6), t11_inv(6,6), i1_int, del_orb(6)
 real(rp) :: amp_co(6), amp_del(6), dt, amp, dorb(6), start_orb_t1(6)
 real(rp) z0, dz, z_here, this_amp, dz_norm, max_eigen, min_max_eigen, z_original, betas(2)
-real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), rf_wavelen, dz_step
-real(rp), allocatable, target :: on_off_state(:), vec0(:), dvec(:), weight(:), a_vec(:), merit_vec(:), dy_da(:,:)
-real(rp), pointer :: av(:), t1_ptr(:,:)
+real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3)
+real(rp), allocatable, target :: on_off_state(:), vec0(:), dvec(:), weight(:), merit_vec(:), dy_da(:,:)
 
 integer, optional :: direction, ix_branch, i_dim
 integer i, j, ie, i2, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
@@ -130,6 +137,7 @@ character(20) :: r_name = 'closed_orbit_calc'
 
 allocate_m_done = .false.
 printit = logic_option(.true., print_err)
+cocp => coc   ! To get around Ifort bug.
 
 dir = integer_option(+1, direction)
 if (dir /= 1 .and. dir /= -1) then
@@ -197,10 +205,10 @@ case (4, 5)
   call set_on_off (rfcavity$, lat, off_and_save$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 
   if (any(branch%param%t1_no_RF /= 0) .and. dir == 1) then
-    t1 = branch%param%t1_no_RF
+    coc%t1 = branch%param%t1_no_RF
   else
-    call this_t1_calc(branch, dir, .false., t1, betas, start_orb_t1, err); if (err) return
-    if (dir == 1) branch%param%t1_no_RF = t1
+    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err); if (err) return
+    if (dir == 1) branch%param%t1_no_RF = coc%t1
   endif
 
   start_orb%vec(5) = 0
@@ -219,13 +227,13 @@ case (4, 5)
 
 case (6)
   if (any(branch%param%t1_with_RF /= 0) .and. dir == 1) then
-    t1 = branch%param%t1_with_RF
+    coc%t1 = branch%param%t1_with_RF
   else
-    call this_t1_calc(branch, dir, .false., t1, betas, start_orb_t1, err); if (err) return
-    if (dir == 1)  branch%param%t1_with_RF = t1
+    call this_t1_calc(branch, dir, .false., coc%t1, betas, start_orb_t1, err); if (err) return
+    if (dir == 1)  branch%param%t1_with_RF = coc%t1
   endif
 
-  if (t1(6,5) == 0) then
+  if (coc%t1(6,5) == 0) then
     call out_io (s_error$, r_name, 'CANNOT DO FULL 6-DIMENSIONAL', &
                                    'CALCULATION WITH NO RF VOLTAGE!', &
                                    'USING BRANCH: ' // branch_name(branch))
@@ -244,7 +252,7 @@ case (6)
   enddo
 
   z_original = start_orb%vec(5) 
-  rf_wavelen = c_light * (branch%ele(ix_ele_start)%value(p0c$) / branch%ele(ix_ele_start)%value(e_tot$)) / rf_freq
+  coc%rf_wavelen = c_light * (branch%ele(ix_ele_start)%value(p0c$) / branch%ele(ix_ele_start)%value(e_tot$)) / rf_freq
 
 ! Error
 
@@ -261,7 +269,7 @@ end select
 ! Because of nonlinearities we may need to iterate to find the solution
 
 allocate(co_saved(0:ubound(closed_orb, 1)))
-allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), a_vec(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
+allocate(vec0(n_dim), dvec(n_dim), weight(n_dim), coc%a_vec(n_dim), maska(n_dim), merit_vec(n_dim), dy_da(n_dim,n_dim))
 vec0 = 0
 maska = .false.
 alive_at_end = .false.
@@ -269,15 +277,13 @@ check_for_z_stability = (n_dim == 6)
 invert_step_tried = .false.
 a_lambda = -1
 old_chisq = 1d30   ! Something large
-a_vec = start_orb%vec(1:n_dim)
-if (n_dim == 5) a_vec(5) = start_orb%vec(6)
+coc%a_vec = start_orb%vec(1:n_dim)
+if (n_dim == 5) coc%a_vec(5) = start_orb%vec(6)
 try_lmdif = .true.
 
-t1_ptr => t1          ! Used to get around ifort bug
 c_orb => closed_orb   ! Used to get around ifort bug
 s_orb => start_orb    ! Used to get around ifort bug
 e_orb => end_orb      ! Used to get around ifort bug
-av    => a_vec        ! Used to get around ifort bug
 
 !
 
@@ -285,27 +291,27 @@ i_max = 100
 
 do i_loop = 1, i_max
 
-  weight(1:n_dim) = 1 / (abs(a_vec) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
+  weight(1:n_dim) = 1 / (abs(coc%a_vec) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)**2
   weight(1:4) = weight(1:4) * [1/sqrt(betas(1)), sqrt(betas(1)), 1/sqrt(betas(2)), sqrt(betas(2))]
 
-  call super_mrqmin (vec0, weight, a_vec, chisq, co_func, storage, a_lambda, status)
+  call super_mrqmin (vec0, weight, coc%a_vec, chisq, co_func, storage, a_lambda, status)
 
   if ((branch%param%unstable_factor /= 0 .and. try_lmdif) .or. a_lambda > 1d8) then  ! Particle lost. Try lmdif since lmdif does not need derivatives
     call initial_lmdif()
     do i2 = 1, i_max/4
-      call co_func(a_vec, dvec, dy_da, status)
+      call co_func(coc%a_vec, dvec, dy_da, status)
       do j = 1, n_dim
         merit_vec(j) = sqrt(weight(j)) * dvec(j)
       enddo
-      call suggest_lmdif (a_vec, merit_vec, bmad_com%rel_tol_tracking, i_max, at_end)
+      call suggest_lmdif (coc%a_vec, merit_vec, bmad_com%rel_tol_tracking, i_max, at_end)
     enddo
-    call co_func(a_vec, dvec, dy_da, status)
+    call co_func(coc%a_vec, dvec, dy_da, status)
     if (status /= 0) then
       if (printit) call out_io (s_error$, r_name, 'CANNOT FIND STABLE ORBIT.', 'USING BRANCH: ' // branch_name(branch))
       call end_cleanup(branch)
       return
     endif
-    call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
+    call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
     check_for_z_stability = (n_dim == 6)  ! New t1 matrix needs to be checked for stability.
     a_lambda = -1    ! Reset super_mrqmin
     try_lmdif = .false.
@@ -313,7 +319,7 @@ do i_loop = 1, i_max
   endif
 
   if (status == 1) then ! too large step in z
-    a_lambda = a_lambda * dz_step  ! Scale next step 
+    a_lambda = a_lambda * coc%dz_step  ! Scale next step 
   endif
 
   if (a_lambda < 1d-10) a_lambda = 1d-10
@@ -327,7 +333,7 @@ do i_loop = 1, i_max
   !
 
   if (i_loop == 1 .and. .not. alive_at_end) then
-    a_vec(1:4) = 0  ! Desperation move.
+    coc%a_vec(1:4) = 0  ! Desperation move.
   elseif (i_loop == 2 .and. .not. alive_at_end) then
     if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
                                    'USING BRANCH: ' // branch_name(branch))
@@ -338,7 +344,7 @@ do i_loop = 1, i_max
     dorb = end_orb%vec - start_orb%vec
 
     if (n_dim == 6) then
-      a_vec(5) = modulo2 (a_vec(5), rf_wavelen / 2)   ! Keep z within 1/2 wavelength of original value
+      coc%a_vec(5) = modulo2 (coc%a_vec(5), coc%rf_wavelen / 2)   ! Keep z within 1/2 wavelength of original value
 
       if (branch%lat%absolute_time_tracking) then
         dt = (end_orb%t - start_orb%t) - nint((end_orb%t - start_orb%t) * rf_freq) / rf_freq
@@ -349,8 +355,8 @@ do i_loop = 1, i_max
     amp_del = abs(dorb)
     if (all(amp_del(1:n_dim) < amp_co(1:n_dim) * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking)) then
       if (n_dim == 6) then
-        call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
-        if (max_z_eigen(t1) < 1.000001_rp) exit
+        call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
+        if (max_z_eigen(coc%t1) < 1.000001_rp) exit
         check_for_z_stability = .true.   ! Is unstable
       else
         exit
@@ -363,7 +369,7 @@ do i_loop = 1, i_max
   ! If not converging fast enough, remake the transfer matrix.
   ! This is computationally intensive so only do this if the orbit has shifted significantly or the
   ! 1-turn matrix inverting step was a bust.
-  ! Status == 1 means that the change in "a" was too large but t1 does not need to be remade.
+  ! Status == 1 means that the change in "a" was too large but coc%t1 does not need to be remade.
 
   if (chisq > old_chisq/2 .and. status == 0 .and. branch%param%unstable_factor == 0) then ! If not converging
     if (maxval(abs(start_orb_t1(1:n_dim)-co_saved(0)%vec(1:n_dim))) > 1d-6 .or. invert_step_tried) then 
@@ -380,7 +386,7 @@ do i_loop = 1, i_max
         m(n)%map_ref_orb_out = branch%ele(n)%map_ref_orb_out
       enddo
 
-      call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
+      call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
       check_for_z_stability = (n_dim == 6)  ! New t1 matrix needs to be checked for stability.
 
       do n = 1, branch%n_ele_max
@@ -408,14 +414,14 @@ do i_loop = 1, i_max
         del_co(5) = dorb(5) / i1_int      
 
       elseif (n_dim == 6) then
-        dz_norm = abs(del_co(5)) / (rf_wavelen / 10)
+        dz_norm = abs(del_co(5)) / (coc%rf_wavelen / 10)
         if (dz_norm > 1) then
           del_co = del_co / dz_norm
         endif
       endif
 
       if (all(abs(del_co(1:n_dim)) < 1e-2)) then
-        a_vec = a_vec + del_co(1:n_dim)
+        coc%a_vec = coc%a_vec + del_co(1:n_dim)
       endif
     endif
   endif
@@ -426,11 +432,11 @@ do i_loop = 1, i_max
   ! Note: due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point.
 
   if (check_for_z_stability .and. alive_at_end) then
-    min_max_eigen = max_z_eigen(t1)
+    min_max_eigen = max_z_eigen(coc%t1)
     if (min_max_eigen > 1.000001_rp) then    ! Is unstable
       j_max = 0
-      z0 = a_vec(5)
-      dz = rf_wavelen / 8
+      z0 = coc%a_vec(5)
+      dz = coc%rf_wavelen / 8
       do j = -3, 4
         z_here = z0 + j * dz
         call max_eigen_calc(branch, z_here, max_eigen, start_orb_t1, betas)
@@ -440,8 +446,8 @@ do i_loop = 1, i_max
       enddo
 
       ! Reset
-      a_vec(5) = z0 + j_max * dz
-      call max_eigen_calc(branch, a_vec(5), max_eigen, start_orb_t1, betas)
+      coc%a_vec(5) = z0 + j_max * dz
+      call max_eigen_calc(branch, coc%a_vec(5), max_eigen, start_orb_t1, betas)
 
       ! If z needs to be shifted, reset super_mrqmin
       if (j_max /= 0) then
@@ -533,8 +539,8 @@ if (track_state /= moving_forward$) then
   return
 endif
 
-call this_t1_calc (branch, dir, .true., t1, betas, start_orb_t1, err); if (err) return
-max_eigen = max_z_eigen(t1)
+call this_t1_calc (branch, dir, .true., coc%t1, betas, start_orb_t1, err); if (err) return
+max_eigen = max_z_eigen(coc%t1)
 
 end subroutine max_eigen_calc
 
@@ -579,8 +585,8 @@ integer status, i
 branch => lat%branch(integer_option(0, ix_branch))  ! To get around ifort compiler bug
 
 if (n_dim == 6) then
-  dz_step = abs(a_try(5)-a_vec(5)) / (rf_wavelen / 10)
-  if (dz_step > 1) then
+  coc%dz_step = abs(a_try(5)-coc%a_vec(5)) / (coc%rf_wavelen / 10)
+  if (coc%dz_step > 1) then
     status = 1  ! Veto step
     return
   endif
@@ -615,11 +621,11 @@ else
   y_fit = 1d10 * branch%param%unstable_factor   ! Some large number
 endif
 
-dy_da = t1(1:n_dim,1:n_dim)
+dy_da = coc%t1(1:n_dim,1:n_dim)
 forall (i = 1:n_dim) dy_da(i,i) = dy_da(i,i) - 1
 
 if (n_dim == 5) then
-  dy_da(:,5) = t1(1:5,6)
+  dy_da(:,5) = coc%t1(1:5,6)
 endif
 
 end subroutine co_func
@@ -693,7 +699,7 @@ err = .true.
 
 ok1 = .true.
 call mat_make_unit (mat(1:n_dim,1:n_dim))
-mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - t1(1:n_dim,1:n_dim)
+mat(1:n_dim,1:n_dim) = mat(1:n_dim,1:n_dim) - coc%t1(1:n_dim,1:n_dim)
 call mat_inverse(mat(1:n_dim,1:n_dim), t11_inv(1:n_dim,1:n_dim), ok2)
 
 if (.not. ok1 .or. .not. ok2) then 

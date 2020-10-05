@@ -222,18 +222,25 @@ end subroutine track1_sr_wake
 ! For more information on individual bunch initialization, see the 
 ! init_bunch_distribution routine.
 ! 
+! Note: The optional "modes" argument generally is used to pass in normal mode parameters as 
+! calculated from the lattice. If present, and if a parameter like beam_init%a_emit are 
+! set negative, then the corresponding parameter in the modes structure is used.
+! If not present, a warning message is issued and the parameter is set to zero.
+! This is only used for parameters that cannot be negative.
+!
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at (downstream end).
 !   param       -- Lat_param_struct: Lattice parameters
 !     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
+!   modes       -- normal_modes_struct, optional: Normal mode parameters. See above.
 !
 ! Output:
 !   beam        -- Beam_struct: Structure with initialized particles.
 !   err_flag    -- logical, optional: Set true if there is an error, false otherwise.
 !-
 
-subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag)
+subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes)
  
 use random_mod
 
@@ -243,6 +250,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (beam_init_struct), target :: beam_init
 type (beam_struct), target :: beam
+type (normal_modes_struct), optional :: modes
 type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
 
@@ -285,7 +293,7 @@ call reallocate_beam (beam, max(beam_init%n_bunch, 1), 0)
 
 do i_bunch = 1, size(beam%bunch)
   bunch => beam%bunch(i_bunch)
-  call init_bunch_distribution (ele, param, beam_init, i_bunch-1, bunch, err_here)
+  call init_bunch_distribution (ele, param, beam_init, i_bunch-1, bunch, err_here, modes)
   if (err_here) return
 enddo
   
@@ -297,7 +305,7 @@ end subroutine init_beam_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag)
+! Subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes)
 !
 ! Subroutine to initialize a distribution of particles of a bunch.
 ! Initialization uses the downstream parameters of ele.
@@ -319,6 +327,12 @@ end subroutine init_beam_distribution
 !
 ! Note: Make sure: |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 !
+! Note: The optional "modes" argument generally is used to pass in normal mode parameters as 
+! calculated from the lattice. If present, and if a parameter like beam_init%a_emit are 
+! set negative, then the corresponding parameter in the modes structure is used.
+! If not present, a warning message is issued and the parameter is set to zero.
+! This is only used for parameters that cannot be negative.
+!
 ! Note: To get good results, It is important to make sure that for 
 ! circular rings that beam_init%center is the correct closed orbit. 
 ! The closed orbit will shift if, for example, radiation damping is
@@ -329,13 +343,14 @@ end subroutine init_beam_distribution
 !   param       -- Lat_param_struct: Lattice parameters
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !   ix_bunch    -- integer: Bunch index. 0 = bunch generated at time = 0.
+!   modes       -- normal_modes_struct, optional: Normal mode parameters. See above.
 !
 ! Output:
 !   bunch        -- bunch_struct: Structure with initialized particles.
 !   err_flag     -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag)
+subroutine init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes)
 
 use mode3_mod
 use random_mod
@@ -346,11 +361,12 @@ type (ele_struct) ele
 type (ele_struct) twiss_ele
 type (lat_param_struct) param
 type (beam_struct) beam
-type (beam_init_struct), target :: beam_init
+type (beam_init_struct), target :: beam_init, b_init
 type (bunch_struct), target :: bunch
 type (coord_struct) p_temp
 type (coord_struct), pointer :: p
 type (kv_beam_init_struct), pointer :: kv
+type (normal_modes_struct), optional :: modes
 
 real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6)
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
@@ -369,7 +385,7 @@ logical, optional :: err_flag
 logical ok, correct_for_coupling(6)
 logical ran_gauss_here, err
 
-! Convert from old format to new
+! Convert from old format to new.
 
 if (present(err_flag)) err_flag = .true.
 
@@ -398,9 +414,82 @@ if (beam_init%position_file /= '') then
   return
 endif
 
-! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
+! Use modes info if present
 
-if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_pz) then
+species = species_id(beam_init%species)
+if (species == not_set$) species = default_tracking_species(param)
+
+b_init = beam_init ! To not modify the input arg.
+
+if (b_init%a_emit < 0) then
+  if (present(modes)) then
+    b_init%a_emit = modes%a%emittance
+  else
+    call out_io (s_warn$, r_name, &
+                    'a_emit is set negative but the calling program has not provided lattice emittance numbers!', &
+                    'Will use a value of zero...')
+    b_init%a_emit = 0
+  endif
+endif
+
+if (b_init%b_emit < 0) then
+  if (present(modes)) then
+    b_init%b_emit = modes%a%emittance
+  else
+    call out_io (s_warn$, r_name, &
+                    'b_emit is set negative but the calling program has not provided lattice emittance numbers!', &
+                    'Will use a value of zero...')
+    b_init%b_emit = 0
+  endif
+endif
+
+if (b_init%a_norm_emit < 0) then
+  if (present(modes)) then
+    b_init%a_norm_emit = modes%a%emittance * ele%value(E_tot$) / mass_of(species)
+  else
+    call out_io (s_warn$, r_name, &
+                    'a_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
+                    'Will use a value of zero...')
+    b_init%a_norm_emit = 0
+  endif
+endif
+
+if (b_init%b_norm_emit < 0) then
+  if (present(modes)) then
+    b_init%b_norm_emit = modes%b%emittance * ele%value(E_tot$) / mass_of(species)
+  else
+    call out_io (s_warn$, r_name, &
+                    'b_norm_emit is set negative but the calling program has not provided lattice emittance numbers!', &
+                    'Will use a value of zero...')
+    b_init%b_norm_emit = 0
+  endif
+endif
+
+if (b_init%sig_z < 0) then
+  if (present(modes)) then
+    b_init%sig_z = modes%sig_z
+  else
+    call out_io (s_warn$, r_name, &
+                    'sig_z is set negative but the calling program has not provided lattice emittance numbers!', &
+                    'Will use a value of zero...')
+    b_init%sig_z = 0
+  endif
+endif
+
+if (b_init%sig_pz < 0) then
+  if (present(modes)) then
+    b_init%sig_pz = modes%sigE_E
+  else
+    call out_io (s_warn$, r_name, &
+                    'sig_pz is set negative but the calling program has not provided lattice emittance numbers!', &
+                    'Will use a value of zero...')
+    b_init%sig_pz = 0
+  endif
+endif
+
+! Checking that |b_init%dpz_dz| < mode%sigE_E / mode%sig_z
+
+if (abs(b_init%dPz_dz * b_init%sig_z) > b_init%sig_pz) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   if (global_com%exit_on_error) call err_exit
   return
@@ -408,14 +497,13 @@ endif
 
 ! Save and set the random number generator parameters.
 
-call ran_engine (beam_init%random_engine, old_engine)
-call ran_gauss_converter (beam_init%random_gauss_converter, &
-                  beam_init%random_sigma_cutoff, old_converter, old_cutoff)
+call ran_engine (b_init%random_engine, old_engine)
+call ran_gauss_converter (b_init%random_gauss_converter, b_init%random_sigma_cutoff, old_converter, old_cutoff)
 
 ! Compute the Twiss parameters beta and alpha, and the emittance for each plane
 ! 1 = (x,px), 2 = (y,py), 3 = (z,pz)
 
-if (beam_init%full_6D_coupling_calc) then
+if (b_init%full_6D_coupling_calc) then
   twiss_ele%a%beta = 1.0d0
   twiss_ele%a%alpha = 0.0d0
   twiss_ele%b%beta = 1.0d0
@@ -425,18 +513,15 @@ else
   call transfer_ele (ele, twiss_ele, .true.)
 endif
 
-species = species_id(beam_init%species)
-if (species == not_set$) species = default_tracking_species(param)
+call calc_this_emit (b_init, twiss_ele, species)
 
-call calc_this_emit (beam_init, twiss_ele, species)
-
-covar = beam_init%dPz_dz * beam_init%sig_z**2
-twiss_ele%z%emit = sqrt((beam_init%sig_z*beam_init%sig_pz)**2 - covar**2)
-if (twiss_ele%z%emit == 0 .or. beam_init%full_6D_coupling_calc) then
+covar = b_init%dPz_dz * b_init%sig_z**2
+twiss_ele%z%emit = sqrt((b_init%sig_z*b_init%sig_pz)**2 - covar**2)
+if (twiss_ele%z%emit == 0 .or. b_init%full_6D_coupling_calc) then
   twiss_ele%z%beta = 1
   twiss_ele%z%alpha = 0
 else
-  twiss_ele%z%beta = beam_init%sig_z**2 / twiss_ele%z%emit
+  twiss_ele%z%beta = b_init%sig_z**2 / twiss_ele%z%emit
   twiss_ele%z%alpha = - covar / twiss_ele%z%emit
 endif
 
@@ -454,34 +539,34 @@ correct_for_coupling = .true.
 call reallocate_bunch (bunch, 0)
 
 do i = 1, 3
-  call str_upcase (beam_init%distribution_type(i), beam_init%distribution_type(i))
-  select case (beam_init%distribution_type(i))
+  call str_upcase (b_init%distribution_type(i), b_init%distribution_type(i))
+  select case (b_init%distribution_type(i))
   case ('', 'RAN_GAUSS')
     ran_gauss_here = .true.
   case ('ELLIPSE')
-    call init_ellipse_distribution (i, beam_init%ellipse(i), twiss_ele, bunch)
+    call init_ellipse_distribution (i, b_init%ellipse(i), twiss_ele, bunch)
   case ('GRID')
-    call init_grid_distribution (i, beam_init%grid(i), bunch)
+    call init_grid_distribution (i, b_init%grid(i), bunch)
     ! The grid distribution ignores the local twiss parameters.
     correct_for_coupling(2*i-1:2*i) = .false.
   case ('KV') 
     n_kv = n_kv + 1
     ix_kv(n_kv) = i
   case default
-    call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED: '//trim(beam_init%distribution_type(i)))
+    call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED: '//trim(b_init%distribution_type(i)))
     if (global_com%exit_on_error) call err_exit
     return
   end select
 enddo
 
-if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, twiss_ele, bunch)
+if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), b_init%kv, twiss_ele, bunch)
 
 if (ran_gauss_here) then
-  call init_random_distribution (twiss_ele, species, beam_init, bunch, err)
+  call init_random_distribution (twiss_ele, species, b_init, bunch, err)
   if (err) return
 endif
 
-if (beam_init%full_6D_coupling_calc) then
+if (b_init%full_6D_coupling_calc) then
   call transfer_matrix_calc(ele%branch%lat, t6, ix1=ele%ix_ele, one_turn=.true.)
   call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true.)
   call mat_inverse(G6mat, G6inv, ok)
@@ -494,15 +579,15 @@ else
 endif
 
 bunch%ix_ele = ele%ix_ele
-bunch%charge_tot = beam_init%bunch_charge
-bunch%charge_live = beam_init%bunch_charge
+bunch%charge_tot = b_init%bunch_charge
+bunch%charge_live = b_init%bunch_charge
 bunch%n_live = size(bunch%particle)
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   p%charge = bunch%charge_tot * p%charge
   ! Include Dispersion and coupling
-  if (beam_init%full_6D_coupling_calc) then
+  if (b_init%full_6D_coupling_calc) then
     p%vec(1:6) = matmul(V6mat, p%vec(1:6))
 
   else
@@ -515,7 +600,7 @@ enddo
 
 ! particle spin
 
-call init_spin_distribution (beam_init, bunch)
+call init_spin_distribution (b_init, bunch)
 
 bunch%particle%species = species
 
@@ -530,7 +615,7 @@ endif
 
 ! End stuff
 
-call bunch_init_end_calc(bunch, beam_init, ix_bunch, ele)
+call bunch_init_end_calc(bunch, b_init, ix_bunch, ele)
 
 ! Reset the random number generator parameters.
 
