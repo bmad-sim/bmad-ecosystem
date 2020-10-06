@@ -82,7 +82,12 @@ s%com%ix_ref_taylor = -999   ! Reset taylor map
 if (allocated(scratch%spin_map)) deallocate(scratch%spin_map)
 
 call tao_hook_lattice_calc (calc_ok)
-    
+
+if (s%global%track_type /= 'single' .and. s%global%track_type /= 'beam') then
+  call out_io (s_error$, r_name, 'UNKNOWN TRACK_TYPE: ' // quote(s%global%track_type), 'DEFAULTING TO "single"')
+  s%global%track_type = 'single'
+endif
+
 ! To save time, s%u(:)%calc%lattice are used to determine what gets calculated. 
 
 uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
@@ -118,17 +123,24 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       track_type = s%global%track_type
       if (ib > 0 .and. branch%param%particle == photon$) track_type = 'single'
 
-      select case (track_type)
-      case ('single')
-        call tao_inject_particle (u, tao_lat, ib)
-        call tao_single_track (u, tao_lat, this_calc_ok, ib)
-        if (.not. this_calc_ok) calc_ok = .false.
-        if (.not. this_calc_ok) exit
+      ! Even when beam tracking we need to calculate the lattice parameters with single tracking.
 
+      call tao_inject_particle (u, tao_lat, ib)
+      call tao_single_track (u, tao_lat, this_calc_ok, ib)
+      if (.not. this_calc_ok) calc_ok = .false.
+      if (.not. this_calc_ok) exit
 
-      case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
-        call tao_inject_particle (u, tao_lat, ib)
-        call tao_single_track (u, tao_lat, this_calc_ok, ib)
+      ! Calc radiation integrals when track_type == "beam" since init_beam_distribution may need this.
+
+      if (s%global%rad_int_calc_on .and. &
+            (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. track_type == 'beam')) then
+        call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+                              tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
+      endif
+
+      !
+
+      if (track_type == 'beam') then
         call tao_inject_beam (u, tao_lat, ib, this_calc_ok, ix_ele0)
         if (.not. this_calc_ok) calc_ok = .false.
         if (.not. this_calc_ok) then
@@ -145,17 +157,9 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         call tao_beam_track (u, tao_lat, this_calc_ok, ib, ix_ele0)
         if (.not. this_calc_ok) calc_ok = .false.
         if (.not. this_calc_ok) exit
-
-      case default
-        call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // track_type)
-        call err_exit
-      end select
-
-      if (s%global%rad_int_calc_on .and. (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting)) then
-        call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                              tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
       endif
 
+      !
 
       if (tao_lat%lat%param%geometry == closed$ .and. (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting)) then
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, &
@@ -923,7 +927,8 @@ beam_init => u%beam%beam_init
 beam => u%beam%beam_at_start
 
 if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%beam%beam_init%position_file /= "") then
-  call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err)
+  call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err, &
+                                                                 u%model%tao_branch(ix_branch)%modes)
   if (err) then
     call out_io (s_error$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
     return
