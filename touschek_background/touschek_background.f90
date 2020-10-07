@@ -395,7 +395,7 @@ ALLOCATE(orbit_data_packed(1:(max_job_size*6*n_slices)))  ! contains the 6-dim t
                                                           ! Stored here as one long real array to facilitate passing by MPI.
 
 !- impose a common tracking method for all non-accelerating cavity elements
-!tracking = bmad_standard$ ! linear$, bmad_standard$, taylor$, symp_lie_ptc$, symp_map$
+!tracking = bmad_standard$ ! linear$, bmad_standard$, taylor$, symp_lie_ptc$
 !DO i=1, lat%n_ele_track
 !  IF(lat%ele(i)%key .ne. lcavity$) THEN
 !    lat%ele(i)%tracking_method = tracking

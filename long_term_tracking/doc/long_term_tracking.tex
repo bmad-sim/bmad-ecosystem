@@ -322,8 +322,8 @@ PTC element-by-element tracking cannot be done when using the MPI version of the
 When the \vn{ltt%simulation_mode} (\sref{s:sim.modes}) is set to \vn{"SINGLE"} or \vn{"CHECK"}, the
 initial particle position is determined by the \vn{beam_init%center} and \vn{beam_init%spin}
 components of the \vn{beam_init} structure (\sref{s:input}) in the master input file. If the
-\vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is added to
-\vn{beam_init%center} to get the initial particle position.
+\vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is
+added to \vn{beam_init%center} to get the initial particle position.
 
 When the \vn{ltt%simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
 using the \vn{beam_init} structure as discussed in the \vn{Beam Initialization} chapter of the Bmad
@@ -335,6 +335,47 @@ with beam particle positions, set the \vn{beam_init} structure appropriately. Ex
 \end{code}
 
 In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start}.
+
+The \vn{beam_init} structure:
+\begin{example}
+  type beam_init_struct
+    character(200) :: position_file = ''       ! Initialization file name.
+    character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "" (default).
+    type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
+    type (kv_beam_init_struct) KV              ! For KV beam distribution
+    type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
+    logical use_particle_start_for_center = F  ! Use particle_start instead of center?
+    character random_engine            ! "pseudo" (default) or "quasi". 
+    character random_gauss_converter   ! "exact" (default) or "quick". 
+    real center(6) = 0                 ! Bench center offset.
+    real center_jitter(6) = 0          ! Bunch center rms jitter
+    real emit_jitter(2)   = 0          ! %RMS a and b-mode emittance jitter
+    real sig_z_jitter     = 0          ! bunch length RMS jitter 
+    real sig_pz_jitter     = 0         ! pz energy spread RMS jitter 
+    real random_sigma_cutoff = -1      ! -1 => no cutoff used.
+    integer n_particle = 0             ! Number of simulated particles per bunch.
+    logical renorm_center = T          ! Renormalize centroid?
+    logical renorm_sigma = T           ! Renormalize sigma?
+    real(rp) spin(3) = 0, 0, 0         ! Spin (x, y, z)
+    real a_norm_emit = 0               ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real b_norm_emit = 0               ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
+    real a_emit = 0                    ! a-mode emittance (= \(\gamma\,\epsilon\))
+    real b_emit = 0                    ! b-mode emittance (= \(\gamma\,\epsilon\))
+    real dpz_dz = 0                    ! Correlation of pz with longitudinal position.
+    real dt_bunch = 0                  ! Time between bunches.
+    real sig_z = 0                     ! Z sigma in m.
+    real sig_pz = 0                    ! pz sigma.
+    real bunch_charge = 0              ! Charge in a bunch.
+    integer n_bunch = 0                ! Number of bunches.
+    character species = ""             ! Species. Default is reference particle.
+    logical full_6D_coupling_calc = F  ! Use 6x6 1-turn matrix to match distribution?  
+    logical use_t_coords = F  ! If true, the distributions will be 
+                              !   calculated using time coordinates (\sref{s:time.phase.space}). 
+    logical use_z_as_t   = F  ! Only used if use_t_coords = T:
+                              !   If True,  the z coordinate stores the time.
+                              !   If False, the z coordinate stores the s-position.
+  end type
+\end{example}
 
 %------------------------------------------------------------------
 \Section{Fortran Namelist Input}
@@ -545,16 +586,19 @@ Also see the \vn{ltt%averages_output_file} parameter.
 
 Parameters in the master input file that affect the simulation are:
 \begin{description}
-\item[ltt\%a_emittance, ltt\%b_emittance] \Newline
-Emittances used in the high energy space charge calculation (\sref{s:space.charge}). If set to zero
-(the default), the emittance as calculated via radiation integrals will be used.
 
 \item[ltt\%add_closed_orbit_to_init_position] \Newline
 If set \vn{True} (the default), initial particle positions are set equal to the input particle positions
 plus the closed orbit position. See Section~\sref{s:init.pos}.
 %
 \item[beam_init\%...] \Newline
-This sets the initial beam distribution. See Section~\sref{s:init.pos}.
+This sets the initial beam distribution. See Section~\sref{s:init.pos}. 
+
+Also: the values of
+\vn{beam_init%a_emit} and \vn{beam_init%b_emit} are used in the high energy space charge calculation
+(\sref{s:space.charge}). If set to zero (the default) or negative, the emittance as calculated via
+radiation integrals will be used. Note: A value of 
+
 %
 \item[bmad_com\%...] \Newline
 The \vn{bmad_com} structure contains various parameters that affect tracking. For example, whether
@@ -627,14 +671,15 @@ See sections \sref{s:map} and \sref{s:track.methods} for more details.
 \label{s:space.charge}
 
 A space charge kick can be applied in the simulation. The space charge kick is calculated using an
-approximation suitable at ultra-relativistic energies. The kick is turned on by setting
-the logical \vn{bmad_com%space_charge_on} to \vn{True} (default is \vn{False}. See the Bmad
-manual documentation on \vn{bmad_com%space_charge_on} for more details.
+approximation suitable at ultra-relativistic energies. The kick is turned on by setting the logical
+\vn{bmad_com%space_charge_on} to \vn{True} (default is \vn{False}. See the Bmad manual documentation
+on \vn{bmad_com%space_charge_on} for more details. The high energy space charge kick is only applied when 
+\vn{ltt%tracking_method} is set to \vn{"BMAD"}.
 
 The $a$ and $b$ mode emittances are used as input to the space charge calculation. [If there is no
 coupling, the $a$ mode corresponds to the ``horizontal'' mode and the $b$ mode corresponds to the
-``vertical'' mode.] These emittance can be sepcified by setting \vn{ltt%a_emittance} and/or
-\vn{ltt%b_emittance}. If set to zero (the default), an emittance is calculated using a radiation
+``vertical'' mode.] These emittance can be sepcified by setting \vn{beam_init%a_emit} and/or
+\vn{beam_init%b_emit}. If set to zero or negative, an emittance is calculated using a radiation
 integral calculation. Additionaly, the longitudinal beam size is calculated via radiation integrals.
 
 %------------------------------------------------------------------

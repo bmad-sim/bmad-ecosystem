@@ -75,6 +75,7 @@ type ltt_com_struct
   type (lat_struct) :: map_lat      ! Used for tracking with maps. Can contain radiation markers for SLICK sectioning.
   type (internal_state) ptc_state
   type (coord_struct), allocatable :: bmad_closed_orb(:)
+  type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   integer ix_branch
   real(rp) ptc_closed_orb(6)
@@ -284,6 +285,7 @@ endif
 
 if (.not. lttp%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
 call twiss_and_track (ltt_com%lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
+call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch = ltt_com%ix_branch)
 
 if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
 
@@ -634,7 +636,7 @@ ix_branch = ltt_com%ix_branch
 call ltt_pointer_to_map_ends(lttp, ltt_com%lat, ele_start)
 
 if (lttp%using_mpi) beam_init%n_particle = lttp%mpi_n_particles_per_run
-call init_bunch_distribution (ele_start, lat%param, beam_init, ix_branch, bunch, err_flag)
+call init_bunch_distribution (ele_start, lat%param, beam_init, ix_branch, bunch, err_flag, modes = ltt_com%modes)
 if (err_flag) stop
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
@@ -742,8 +744,6 @@ type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
-type (normal_modes_struct) modes
-type (rad_int_all_ele_struct) rad_int_ele
 
 real(rp) chrom_x, chrom_y, ring_length
 integer i
@@ -780,14 +780,13 @@ close(22)
 ring_length = branch%param%total_length
 call chrom_calc(lat, 1.0d-6, chrom_x, chrom_y, err_flag, ix_branch = branch%ix_branch)
 call calc_z_tune (lat)
-call radiation_integrals (lat, ltt_com%bmad_closed_orb, modes, rad_int_by_ele = rad_int_ele, ix_branch = branch%ix_branch)
 
-print *, 'Momentum Compaction:', modes%synch_int(1)/ring_length
-print *, 'dE/E=', modes%sigE_E
-print *, 'sig_z(m)=', modes%sig_z
-print *, 'emit_I  (m): ',  modes%a%emittance
-print *, 'emit_II (m): ',  modes%b%emittance
-print *, 'emit_III(m): ',  modes%z%emittance
+print *, 'Momentum Compaction:', ltt_com%modes%synch_int(1)/ring_length
+print *, 'dE/E=', ltt_com%modes%sigE_E
+print *, 'sig_z(m)=', ltt_com%modes%sig_z
+print *, 'emit_I  (m): ',  ltt_com%modes%a%emittance
+print *, 'emit_II (m): ',  ltt_com%modes%b%emittance
+print *, 'emit_III(m): ',  ltt_com%modes%z%emittance
 print *, 'QI =',ele%a%phi/twopi
 print *, 'QII=',ele%b%phi/twopi
 print *, 'QIII: ', lat%z%tune / twopi
@@ -808,7 +807,7 @@ type (ltt_params_struct) lttp
 type (branch_struct) branch
 type (beam_init_struct) beam_init
 type (ltt_com_struct), target :: ltt_com
-type (normal_modes_struct) mode
+type (normal_modes_struct) modes
 real(rp) n_particle
 
 !
@@ -826,11 +825,11 @@ if (.not. lttp%rfcavity_on) then
   return
 endif
 
-call radiation_integrals(branch%lat, ltt_com%bmad_closed_orb, mode, ix_branch = branch%ix_branch)
-if (lttp%a_emittance /= 0) mode%a%emittance = lttp%a_emittance
-if (lttp%b_emittance /= 0) mode%b%emittance = lttp%b_emittance
+modes = ltt_com%modes
+if (beam_init%a_emit > 0) modes%a%emittance = beam_init%a_emit
+if (beam_init%b_emit > 0) modes%a%emittance = beam_init%b_emit
 n_particle = abs(beam_init%bunch_charge / (e_charge * charge_of(ltt_com%bmad_closed_orb(0)%species)))
-call setup_high_energy_space_charge_calc (.true., branch, n_particle, mode)
+call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes)
 
 end subroutine ltt_setup_high_energy_space_charge
 
