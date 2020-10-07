@@ -3688,7 +3688,7 @@ endif
 ! Set reference energy to the exit reference energy.
 
 energy_work = 0
-call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c$))
+call find_energy (energy_work, p0c = 1d-9 * ele%value(p0c$))
 ptc_fibre = energy_work
 
 ! FieldMap cartesian_map element. 
@@ -3765,7 +3765,7 @@ endif
 
 ! Misalignments and patches...
 
-call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
+call misalign_ptc_fibre (ele, use_offsets, ptc_fibre)
 
 ! Set charge
 
@@ -4020,7 +4020,7 @@ end subroutine beambeam_fibre_setup
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
+! Subroutine misalign_ptc_fibre (ele, use_offsets, ptc_fibre)
 !
 ! Routine to misalign a fibre associated with a Bmad element.
 !
@@ -4033,7 +4033,7 @@ end subroutine beambeam_fibre_setup
 !   ptc_fibre -- Fibre: PTC fibre element with misalignments.
 !-
 
-subroutine misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
+subroutine misalign_ptc_fibre (ele, use_offsets, ptc_fibre)
 
 use madx_ptc_module
 
@@ -4050,7 +4050,7 @@ real(rp) r0(3), s_mat(3,3), s0_mat(3,3), r(3)
 
 logical use_offsets, good_patch, addin
 
-character(*), parameter :: r_name = 'misalign_ele_to_fibre'
+character(*), parameter :: r_name = 'misalign_ptc_fibre'
 
 !
 
@@ -4242,7 +4242,7 @@ elseif (use_offsets) then
 
 endif
 
-end subroutine misalign_ele_to_fibre
+end subroutine misalign_ptc_fibre
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

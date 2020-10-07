@@ -32,7 +32,7 @@ integer i, ix, ix_pole_max, n
 
 character(*), parameter :: r_name = 'update_fibre_from_ele'
 
-!
+! Note: change_settings_fibre (in PTC) is an alternative way of setting some element parameters.
 
 branch => pointer_to_branch(ele)
 fib => ele%ptc_fibre
@@ -115,15 +115,15 @@ case (solenoid$)
 case (sol_quad$)
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
 
-case (rfcavity$, lcavity$)
+case (rfcavity$, lcavity$, crab_cavity$)
   phi_tot = twopi * (val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$))
   if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot
-  call set_real (mag%phas, magp%phas, -mag%lag)
 
+  call set_real (mag%phas, magp%phas, -mag%lag)
   call set_real (mag%volt, magp%volt, 2d-6 * e_accel_field(ele, voltage$))
+  call set_real (mag%freq0, magp%freq0, val(rf_frequency$))
 
 case (sad_mult$)
-
   if (val(l$) /= 0) then
     call set_real (mag%b_sol, magp%b_sol, val(ks$))
     call set_real (mag%va, magp%va, -sign(sqrt(24 * abs(val(fq1$))), val(fq1$)))
@@ -190,7 +190,7 @@ endif
 
 ! misalign
 
-call misalign_ele_to_fibre (ele, .true., fib)
+call misalign_ptc_fibre (ele, .true., fib)
 
 ele%bookkeeping_state%ptc = ok$
 
