@@ -90,7 +90,7 @@ do ib = 0, ubound(lat%branch, 1)
       if ((j == fixed_step_runge_kutta$ .or. j == fixed_step_time_runge_kutta$)) cycle
       if (track_method /= '' .and. upcase(tracking_method_name(j)) /= upcase(track_method)) cycle
       if (.not. valid_tracking_method(ele, branch%param%particle, j)) cycle
-      if (j == symp_map$ .or. j == custom$) cycle
+      if (j == custom$) cycle
       if (j == mad$) cycle   ! Ignore MAD
       if (j == taylor$ .and. lat%particle_start%direction == -1) cycle
       if (p_sign == -1 .and. (j == taylor$ .or. j == linear$)) cycle
