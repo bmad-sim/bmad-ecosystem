@@ -359,12 +359,6 @@ endif
 ele_out%wake => ele_save%wake  ! reinstate
 call transfer_wake (ele_in%wake, ele_out%wake)
 
-! %ptc_genfield%fields are hard because it involves pointers in PTC.
-! just kill the ptc_genfield in ele_out for now.
-
-if (associated(ele_save%ptc_genfield%field)) call kill_ptc_genfield (ele_save%ptc_genfield%field)
-if (associated(ele_out%ptc_genfield%field)) nullify (ele_out%ptc_genfield%field)
-
 end subroutine ele_equal_ele
 
 !----------------------------------------------------------------------

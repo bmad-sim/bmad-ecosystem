@@ -911,12 +911,6 @@ function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
   integer key_index
 end function
 
-subroutine kill_ptc_genfield (ptc_genfield)
-  import
-  implicit none
-  type (genfield), pointer :: ptc_genfield
-end subroutine
-
 subroutine kill_ptc_layouts (lat)
   import
   implicit none
@@ -2209,15 +2203,6 @@ subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb, track)
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
   type (track_struct), optional :: track
-end subroutine
-
-subroutine track1_symp_map (start_orb, ele, param, end_orb)
-  import
-  implicit none
-  type (coord_struct) :: start_orb
-  type (coord_struct) :: end_orb
-  type (ele_struct) :: ele
-  type (lat_param_struct) :: param
 end subroutine
 
 subroutine track1_taylor (start_orb, ele, param, end_orb, taylor, mat6, make_matrix)

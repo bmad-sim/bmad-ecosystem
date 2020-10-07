@@ -7,7 +7,7 @@
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
 !
-! Note: To save tracking computation time, if ele_in has taylor, symp_lie_ptc, or symp_map 
+! Note: To save tracking computation time, if ele_in has taylor, or symp_lie_ptc
 ! for tracking_method or mat6_calc_method, then this will be changed to symp_lie_bmad 
 ! for wigglers and bmad_standard for everything else.
 !
@@ -130,7 +130,7 @@ endif
 ! Use a speedier tracking method.
 
 select case (sliced_ele%tracking_method)
-case (taylor$, symp_map$, symp_lie_ptc$)
+case (taylor$, symp_lie_ptc$)
   if (sliced_ele%field_calc == fieldmap$) then
     select case (sliced_ele%key)
     case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
@@ -146,7 +146,7 @@ case (taylor$, symp_map$, symp_lie_ptc$)
 end select
 
 select case (sliced_ele%mat6_calc_method)
-case (taylor$, symp_map$, symp_lie_ptc$)
+case (taylor$, symp_lie_ptc$)
   if (sliced_ele%field_calc == fieldmap$) then
     select case (sliced_ele%key)
     case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$

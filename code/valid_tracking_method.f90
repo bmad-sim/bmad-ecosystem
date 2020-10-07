@@ -59,7 +59,7 @@ select case (ele%key)
 
 case (ab_multipole$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, taylor$, custom$)
     is_valid = .true.
   end select
 
@@ -103,7 +103,7 @@ case (diffraction_plate$, mask$)
 
 case (drift$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -115,19 +115,19 @@ case (e_gun$)
 
 case (ecollimator$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (elseparator$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (em_field$)
   select case (method)
-  case (symp_lie_ptc$, taylor$, symp_map$, runge_kutta$, time_runge_kutta$, custom$)
+  case (symp_lie_ptc$, taylor$, runge_kutta$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -145,7 +145,7 @@ case (fork$, photon_fork$)
   
 case (hkicker$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -157,25 +157,25 @@ case (hybrid$)
 
 case (instrument$, pipe$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (kicker$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (lcavity$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (marker$, detector$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, taylor$, custom$)
     is_valid = .true.
   end select
 
@@ -187,19 +187,19 @@ case (match$)
 
 case (monitor$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (multipole$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, taylor$, custom$)
     is_valid = .true.
   end select
 
 case (octupole$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -217,25 +217,25 @@ case (photon_init$)
 
 case (quadrupole$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, symp_lie_bmad$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (rcollimator$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (rfcavity$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (sad_mult$)
   select case (method)
-  case (bmad_standard$, custom$, symp_lie_ptc$, linear$, symp_map$, taylor$)
+  case (bmad_standard$, custom$, symp_lie_ptc$, linear$, taylor$)
     is_valid = .true.
   end select
 
@@ -247,25 +247,25 @@ case (sample$)
 
 case (sbend$, rbend$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$, runge_kutta$, time_runge_kutta$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, taylor$, mad$, custom$, runge_kutta$, time_runge_kutta$)
     is_valid = .true.
   end select
 
 case (sextupole$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (solenoid$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, mad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, symp_lie_bmad$, mad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
 case (sol_quad$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -277,7 +277,7 @@ case (taylor$)
 
 case (vkicker$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, time_runge_kutta$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -285,12 +285,12 @@ case (wiggler$, undulator$)
   ! %field_calc = int_garbage during parsing. Must accept any possible mat6_calc_method in this case.
   if (ele%field_calc == fieldmap$ .or. ele%field_calc == int_garbage$) then
     select case (method)
-    case (symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
+    case (symp_lie_ptc$, runge_kutta$, linear$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
   elseif (ele%field_calc == planar_model$ .or. ele%field_calc == int_garbage$) then
     select case (method)
-    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
+    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
       is_valid = .true.
     end select
   elseif (ele%field_calc == helical_model$ .or. ele%field_calc == int_garbage$) then

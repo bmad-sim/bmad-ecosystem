@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 251
+integer, parameter :: bmad_inc_version$ = 252
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -73,29 +73,28 @@ end type
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
 
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2, runge_kutta$ = 3 
-integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
+integer, parameter :: linear$ = 4, tracking$ = 5, time_runge_kutta$ = 6
 integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10, static$ = 11
 integer, parameter :: fixed_step_time_runge_kutta$ = 13, mad$ = 14
-integer, parameter :: time_runge_kutta$ = 15
-integer, parameter :: n_methods$ = 15
+integer, parameter :: n_methods$ = 14
 
 character(28), parameter :: tracking_method_name(0:n_methods$) = [character(28) :: &
-      'GARBAGE! ', 'Bmad_Standard   ',            'Symp_Lie_PTC ', 'Runge_Kutta     ', &
-      'Linear   ', 'GARBAGE!        ',            'Symp_Map     ', 'Custom          ', &
-      'Taylor   ', 'Fixed_Step_Runge_Kutta',      'Symp_Lie_Bmad', 'Static          ', &
-      'GARBAGE! ', 'Fixed_Step_Time_Runge_kutta', 'MAD          ', 'Time_Runge_Kutta']
+      'GARBAGE!', 'Bmad_Standard',               'Symp_Lie_PTC',     'Runge_Kutta', &
+      'Linear',   'GARBAGE!',                    'Time_Runge_Kutta', 'Custom', &
+      'Taylor',   'Fixed_Step_Runge_Kutta',      'Symp_Lie_Bmad',    'Static', &
+      'GARBAGE!', 'Fixed_Step_Time_Runge_kutta', 'MAD']
 
 character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'GARBAGE!        ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
       'GARBAGE!        ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
       'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', &
-      'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ']
+      'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ']
 
 character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'GARBAGE!        ', &
-      'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
+      'Linear          ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
       'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'Static          ', &
-      'GARBAGE!        ', 'GARBAGE!        ', 'MAD             ', 'GARBAGE!       a']
+      'GARBAGE!        ', 'GARBAGE!        ', 'MAD             ']
 
 integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
 character(16), parameter :: ptc_integration_type_name(0:3) = [&
@@ -785,13 +784,6 @@ type ele_pointer_struct
   integer :: id = -1                    ! For general use. Not used by Bmad.
 end type
 
-! Structure for ptc genfield
-
-type ptc_genfield_struct
-  type (genfield), pointer :: field => null()           ! For symp_map$
-  real(rp) :: vec0(6) = 0                               ! constant part of the genfield map.
-end type
-
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
 
 type mode3_struct
@@ -1153,7 +1145,6 @@ type ele_struct
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
   type (mode3_struct), pointer :: mode3 => null()                     ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
-  type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct()  ! For symp_map$
   type (multipole_cache_struct), allocatable :: multipole_cache
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() ! Radiation integral calc cached values 
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.

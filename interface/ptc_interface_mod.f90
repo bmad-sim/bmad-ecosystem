@@ -2742,8 +2742,6 @@ orb_tylr = ptc_probe8%x
 call kill (ptc_probe8)
 call kill (ptc_cdamap)
 
-if (associated (ele%ptc_genfield%field)) call kill_ptc_genfield (ele%ptc_genfield%field)
-
 call set_ele_status_stale (ele, mat6_group$)
 
 CONVERSION_XPRIME_IN_ABELL = .true. ! Reset to normal.

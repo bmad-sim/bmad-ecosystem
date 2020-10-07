@@ -60,7 +60,6 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%a_pole, ele%b_pole)
   nullify (ele%a_pole_elec, ele%b_pole_elec)
   forall (i = 1:size(ele%taylor)) ele%taylor(i)%term => null()
-  nullify (ele%ptc_genfield%field)
   return
 endif
 
@@ -113,8 +112,6 @@ if (associated (ele%taylor(1)%term)) then
     enddo
   endif
 endif
-
-call kill_ptc_genfield (ele%ptc_genfield%field)
 
 end subroutine deallocate_ele_pointers
 
