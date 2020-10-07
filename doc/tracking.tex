@@ -640,12 +640,11 @@ coefficient of any given term in a Taylor map.
 
 \index{symp_lie_Bmad}
 \index{symp_lie_PTC}
-\index{symp_map}
 \index{taylor}
 \index{taylor!deallocating}
 Transfer Taylor maps for an element are generated as needed when the
 \vn{ele%tracking_method} or \vn{ele%mat6_calc_method} is set to
-\vn{Symp_Lie_Bmad}, \vn{Symp_Lie_PTC}, \vn{Symp_Map}, or
+\vn{Symp_Lie_Bmad}, \vn{Symp_Lie_PTC}, or
 \vn{Taylor}. Since generating a map can take an appreciable time,
 \bmad follows the rule that once generated, these maps are never
 regenerated unless an element attribute is changed.  To generate a

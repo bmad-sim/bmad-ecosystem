@@ -816,11 +816,11 @@ implicit none
 
 type (ele_struct) ele
 
-! The Taylor symp_map tracking methods must be changed since it is not possible to partially track with these.
+! The Taylor tracking methods must be changed since it is not possible to partially track with these.
 ! The symp_lie_ptc tracking method is slow so change this method also.
 
 select case (ele%tracking_method)
-case (taylor$, symp_map$, symp_lie_ptc$)
+case (taylor$, symp_lie_ptc$)
   if (ele%field_calc == fieldmap$ .and. associated(ele%cartesian_map)) then
     ele%tracking_method = symp_lie_bmad$
   else
@@ -836,7 +836,7 @@ end select
 !
 
 select case (ele%mat6_calc_method)
-case (taylor$, symp_map$, symp_lie_ptc$)
+case (taylor$, symp_lie_ptc$)
   if (ele%field_calc == fieldmap$ .and. associated(ele%cartesian_map)) then
     ele%mat6_calc_method = symp_lie_bmad$
   else

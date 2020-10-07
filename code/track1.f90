@@ -201,10 +201,6 @@ case (taylor$)
   call track1_taylor (start2_orb, ele, param, end_orb)
   if (present(track)) call add_to_track()
 
-case (symp_map$) 
-  call track1_symp_map (start2_orb, ele, param, end_orb)
-  if (present(track)) call add_to_track()
-
 case (symp_lie_bmad$) 
   call symp_lie_bmad (ele, param, start2_orb, end_orb, track, mat6, make_matrix)
 

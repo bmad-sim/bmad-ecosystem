@@ -618,7 +618,6 @@ if (bmad_com%auto_bookkeeper) then
   if (all(val == ele%old_value)) return
 endif
 
-! Since things have changed we need to kill the Taylor Map and ptc_genfield.
 ! The factor of 1d-15 is to avoid negligible changes which can be caused if the digested 
 ! file was created on a different machine from the machine where the code is run.
 
@@ -676,14 +675,13 @@ if (associated(ele%taylor(1)%term) .and. ele%taylor_map_includes_offsets .and. &
       "To conserve the element's Taylor map, I will set ele%taylor_map_includes_offsets = False.")
 endif
 
-! Kill the taylor map and ptc_genfield if necessary.
+! Kill the taylor map if necessary.
 
 if (non_offset_changed .or. (offset_changed .and. ele%taylor_map_includes_offsets)) then
   if (associated(ele%taylor(1)%term)) then
     call kill_taylor(ele%taylor)
     call kill_taylor(ele%spin_taylor)
   endif
-  if (associated(ele%ptc_genfield%field)) call kill_ptc_genfield(ele%ptc_genfield%field)
 endif
 
 ! Make stale ele%rad_int_cache if allocated

@@ -43,7 +43,6 @@ type ele_struct
   type (grid_field_struct), pointer :: grid_field(:)           ! Used to define DC and AC fields.
   type (fibre), pointer :: ptc_fiber           ! PTC tracking.
   type (floor_position_struct) floor           ! Global floor position.
-  type (ptc_genfield_struct), pointer :: ptc_genfield  ! For symp_map
   type (mode3_struct), pointer :: mode3        ! Full 6-dimensional normal mode decomposition.
   type (photon_element_struct), pointer :: photon
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache  
@@ -574,14 +573,6 @@ This reference point is saved in \vn{%taylor(1:6)%ref}.  Once a Taylor map is
 made, the reference point is not needed in subsequent
 calculations. However, the Taylor map itself will depend upon what
 reference point is chosen (\sref{s:taylor.phys}).
-
-\index{ele_struct!\%gen_field}
-\index{ele_struct!\%gen0}
-When using the \vn{symp_map\$} tracking method (\sref{s:tkm}), the pointer
-to the partially inverted Taylor map is stored in the \vn{%gen_field} component
-of the \vn{ele_struct}. The actual storage of the map is handled by the
-PTC library (\sref{s:libs}). The PTC partially inverted map does not have any
-zeroth order terms so the zeroth order terms are stored in the \vn{%gen0(6)} vector.
 
 %--------------------------------------------------------------------------
 \section{Reference Energy and Time}

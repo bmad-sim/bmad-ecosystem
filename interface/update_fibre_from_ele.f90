@@ -121,7 +121,7 @@ case (rfcavity$, lcavity$, crab_cavity$)
 
   call set_real (mag%phas, magp%phas, -mag%lag)
   call set_real (mag%volt, magp%volt, 2d-6 * e_accel_field(ele, voltage$))
-  call set_real (mag%freq0, magp%freq0, val(rf_frequency$))
+  call set_real (mag%freq, magp%freq, val(rf_frequency$))
 
 case (sad_mult$)
   if (val(l$) /= 0) then

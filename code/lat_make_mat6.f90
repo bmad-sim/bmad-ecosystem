@@ -156,11 +156,8 @@ if (i_ele < 0) then
 
     transferred = .false.
 
-    if (.not. associated(ele%taylor(1)%term) .and. &
-                 ((ele%mat6_calc_method == taylor$) .or. &
-                  (ele%mat6_calc_method == symp_map$) .or. &
-                  (ele%tracking_method == taylor$) .or. &
-                  (ele%tracking_method == symp_map$))) then
+    if (.not. associated(ele%taylor(1)%term) .and. ((ele%mat6_calc_method == taylor$) .or. &
+                                                               (ele%tracking_method == taylor$))) then
       do j = 1, n_taylor
         ie = branch%ele(j)%iyy   ! Keep track of where Taylor maps are.
         if (.not. equivalent_taylor_attributes (ele, branch%ele(ie))) cycle

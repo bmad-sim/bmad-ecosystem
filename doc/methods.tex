@@ -140,13 +140,6 @@ PTC (\sref{s:ptc.intro}) software for the calculation. This method is symplectic
 slow. Exceptions: The tracking is not symplectic when tracking through and element with an
 associated electric field and when tracking through a \vn{taylor} element.
 
-\index{symp_map!tracking_method}
-\item[\vn{Symp_Map}]
-This uses a partially inverted, implicit Taylor map. The calculation uses \'Etienne Forest's PTC
-software (\sref{s:ptc.intro}).  Since the map is implicit, a Newton search method must be used. This
-will slow things down from the Taylor method but this is guaranteed symplectic. Note: Due to memory
-limitations in PTC, the number of elements using symp_map is limited to be of order 50.
-
 \index{taylor!tracking_method}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from the PTC (\sref{s:ptc.intro}) package. Generating the map may
@@ -193,50 +186,49 @@ explained in \sref{s:rf.time}.
 \begin{sideways}\vn{Runge_Kutta}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
-\begin{sideways}\vn{Symp_Map}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Fixed_Step_Time_Runge_Kutta}\end{sideways}
 \begin{sideways}\vn{Time_Runge_Kutta}\end{sideways} &
 \\ \midrule
-%                               BS   C   L   M   RK    SLB   SLP   SM     T   TRK
-  \vn{ab_multipole}            & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{ac_kicker}               & D & X & X &   &  X  &     &     &     &     & X  \\  
-  \vn{beambeam}                & D & X & X &   &     &     &     &     &     &    \\  
-  \vn{converter}               & D & X &   &   &     &     &     &     &     &    \\  
-  \vn{crab_cavity}             & D & X & X &   &     &     &     &     &     &    \\  
-  \vn{custom}                  &   & D & X &   &  X  &     &     &     &     & X  \\  
-  \vn{drift}                   & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{e_gun}                   &   & X &   &   &X$^a$&     &     &     &     & D  \\  
-  \vn{ecollimator}             & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{elseparator}             & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{em_field}                &   & X &   &   &  D  &     &  X  &  X  &  X  & X  \\  
-  \vn{fiducial}                & D & X &   &   &     &     &  X  &     &     &    \\  
-  \vn{floor_shift}             & D & X &   &   &     &     &  X  &     &     &    \\  
-  \vn{hkicker}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{instrument}              & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{kicker}                  & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{lcavity}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{marker}                  & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{match}                   & D & X &   &   &     &     &     &     &  X  &    \\ 
-  \vn{monitor}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
-  \vn{multipole}               & D & X & X &   &     &     &  X  &  X  &  X  &    \\  
-  \vn{octupole}                & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{patch}                   & D & X &   &   &  X  &     &  X  &     &  X  &    \\ 
-  \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{rbend}                   & D & X & X & X &     &     &  X  &  X  &  X  &    \\ 
-  \vn{rcollimator}             & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{rfcavity}                & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{sad_mult}                & D & X & X &   &     &     &  X  &  X  &  X  &    \\
-  \vn{sbend}                   & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{sextupole}               & D & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{sol_quad}                & D & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{taylor}                  &   & X & X &   &     &     &  X  &     &  D  &    \\ 
-  \vn{vkicker}                 & D & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{wiggler} (map type)      &   & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\
-  \vn{wiggler} (periodic type) & D & X & X &   &X$^b$&X$^b$&X$^b$&X$^b$&X$^b$&    \\ \bottomrule
-  \multicolumn{12}{l}{$^a$Only if the beginning energy is non-zero.}              \\
-  \multicolumn{12}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}        \\
+%                               BS   C   L   M   RK    SLB   SLP    T   TRK
+  \vn{ab_multipole}            & D & X & X &   &     &     &  X  &  X  &    \\  
+  \vn{ac_kicker}               & D & X & X &   &  X  &     &     &     & X  \\  
+  \vn{beambeam}                & D & X & X &   &     &     &     &     &    \\  
+  \vn{converter}               & D & X &   &   &     &     &     &     &    \\  
+  \vn{crab_cavity}             & D & X & X &   &     &     &     &     &    \\  
+  \vn{custom}                  &   & D & X &   &  X  &     &     &     & X  \\  
+  \vn{drift}                   & D & X & X & X &  X  &     &  X  &  X  & X  \\  
+  \vn{e_gun}                   &   & X &   &   &X$^a$&     &     &     & D  \\  
+  \vn{ecollimator}             & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{elseparator}             & D & X & X & X &  X  &     &  X  &  X  & X  \\  
+  \vn{em_field}                &   & X &   &   &  D  &     &  X  &  X  & X  \\  
+  \vn{fiducial}                & D & X &   &   &     &     &  X  &     &    \\  
+  \vn{floor_shift}             & D & X &   &   &     &     &  X  &     &    \\  
+  \vn{hkicker}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{instrument}              & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{kicker}                  & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{lcavity}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{marker}                  & D & X & X &   &     &     &  X  &  X  &    \\  
+  \vn{match}                   & D & X &   &   &     &     &     &  X  &    \\ 
+  \vn{monitor}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
+  \vn{multipole}               & D & X & X &   &     &     &  X  &  X  &    \\  
+  \vn{octupole}                & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
+  \vn{patch}                   & D & X &   &   &  X  &     &  X  &  X  &    \\ 
+  \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{rbend}                   & D & X & X & X &     &     &  X  &  X  &    \\ 
+  \vn{rcollimator}             & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
+  \vn{rfcavity}                & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
+  \vn{sad_mult}                & D & X & X &   &     &     &  X  &  X  &    \\
+  \vn{sbend}                   & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
+  \vn{sextupole}               & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
+  \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{sol_quad}                & D & X & X &   &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{taylor}                  &   & X & X &   &     &     &  X  &  D  &    \\ 
+  \vn{vkicker}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
+  \vn{wiggler} (map type)      &   & X & X &   &  X  &  X  &  X  &  X  & X  \\
+  \vn{wiggler} (periodic type) & D & X & X &   &X$^b$&X$^b$&X$^b$&X$^b$&    \\ \bottomrule
+  \multicolumn{12}{l}{$^a$Only if the beginning energy is non-zero.}        \\
+  \multicolumn{12}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}  \\
 \end{tabular}
 }
 \caption[Table of available tracking_method switches for charged particle tracking.] { 
@@ -319,14 +311,6 @@ Symplectic integration using a Hamiltonian and Lie operators.  This uses the PTC
 (\sref{s:ptc.intro}) software for the calculation.  This method is symplectic but can be
 slow. Exceptions: The tracking is not symplectic when tracking through and element with an
 associated electric field and when tracking through a \vn{taylor} element.
-
-\index{symp_map!tracking_method}
-\item[\vn{Symp_Map}]
-This uses a partially inverted, implicit Taylor map. The calculation
-uses \'Etienne Forest's PTC software (\sref{s:ptc.intro}).  Since the map is implicit, a Newton
-search method must be used. This will slow things down from the Taylor
-method but this is guaranteed symplectic. Note: Due to memory limitations
-in PTC, the number of elements using symp_map is limited to be of order 50.
 
 \index{taylor!mat6_calc_method}
 \item[\vn{Taylor}]
