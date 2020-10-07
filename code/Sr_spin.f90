@@ -4634,7 +4634,6 @@ endif
 
           ELSE
 
-
              call rot_spin_Z(P,-C%CHART%ANG_IN(3))
              call rot_spin_Y(P,-C%CHART%ANG_IN(2))    !2016_5_9
              call rot_spin_X(P,-C%CHART%ANG_IN(1))

@@ -447,6 +447,8 @@ contains
 !wyosh(3,6)=  0.136934946416871E1_dp
 !wyosh(3,7)=  0.629030650210433E0_dp
 
+ ! real(dp) wyosh(0:7),wyoshid(0:15),wyoshik(15)    ! FIRST 8TH ORDER OF YOSHIDA
+
 wyosh(1)= 0.102799849391985e0_dp 
 wyosh(2)= -0.196061023297549E1_dp 
 wyosh(3)= 0.193813913762276E1_dp  
@@ -489,18 +491,21 @@ do i=1,6
 enddo
  wyoshik(id)=wyosh(7)
  wyoshid(id)=wyosh(7)/2
-!write(6,*) id
-!pause 777
- !a=wyoshid(0) 
- !b=0
- !write(6,*) 0,wyoshid(0) 
-!do id=1,15
-!  a=a+wyoshid(id)
-!  b=b+wyoshik(id)
-! write(6,*) id,wyoshid(id),wyoshik(id)
-!enddo
-!write(6,*) a,b
- 
+
+if(.false.) then
+write(6,*) id
+pause 777
+ a=wyoshid(0) 
+ b=0
+ write(6,*) 0,wyoshid(0) 
+do id=1,15
+  a=a+wyoshid(id)
+  b=b+wyoshik(id)
+ write(6,*) id,wyoshid(id),wyoshik(id)
+enddo
+write(6,*) a,b
+ stop 999
+endif
   END SUBROUTINE MAKE_YOSHIDA
 
   SUBROUTINE input_sector(se2,se1)
