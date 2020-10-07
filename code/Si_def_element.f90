@@ -2258,10 +2258,10 @@ fringe,permfringe,bend_like,fint,hgap)
     endif
 
      if(present(fringe)) then
-        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
-        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
-        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
-        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
+!        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
+!        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
+!        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
+!        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
      endif
   if(present(tilt)) then
     EL%p%tiltd=tilt
@@ -2315,10 +2315,10 @@ fringe,permfringe,bend_like,fint,hgap)
   !   endif
 
      if(present(fringe)) then
-        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
-        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
-        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
-        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
+!        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
+!        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
+!        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
+!        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
      endif
   if(present(tilt)) then
     EL%p%tiltd=tilt
