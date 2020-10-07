@@ -89,7 +89,6 @@ do ib = 0, ubound(lat%branch, 1)
       if (im == fixed_step_runge_kutta$ .or. im == fixed_step_time_runge_kutta$) cycle
       if (.not. valid_tracking_method(ele, branch%param%particle, im)) cycle
       if (im == mad$) cycle
-      if (im == symp_map$) cycle
       if (im == custom$) cycle
       if (im == taylor$ .and. ele%key == rfcavity$) cycle
       if (im == taylor$ .and. ele%key == lcavity$) cycle
