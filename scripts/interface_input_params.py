@@ -118,7 +118,6 @@ component_no_translate_list = set([
   'layout',
   'exact_bend_multipole_struct',
   'branch_struct%ptc',
-  'ele_struct%ptc_genfield',
   'ele_struct%lord',
   'ele_struct%branch',
   'ele_struct%converter',
