@@ -2181,7 +2181,161 @@ CONTAINS
 
   END SUBROUTINE force_restore_ANBN
 
+  SUBROUTINE change_settings_fibre(EL,volt,FREQ,phase,B_SOL,TILT,EDGE,fringe,permfringe,bend_like)
+    IMPLICIT NONE
+    TYPE(fibre), target ::  EL
+    logical(lp), optional ::  bend_like
+    integer, optional :: fringe(2,2) , permfringe
+    real(dp), optional ::volt,TILT,EDGE(2),FREQ,phase,B_SOL
 
+    call change_settings_magnetr(EL%mag ,volt,FREQ,phase,B_SOL,TILT,EDGE,fringe,permfringe,bend_like)
+    call change_settings_magnetp(EL%magp,volt,FREQ,phase,B_SOL,TILT,EDGE,fringe,permfringe,bend_like)
+
+  END SUBROUTINE change_settings_fibre
+
+  SUBROUTINE change_settings_magnetr(EL,volt,FREQ,phase,B_SOL,TILT,EDGE, & 
+fringe,permfringe,bend_like,fint,hgap)
+
+    IMPLICIT NONE
+    TYPE(ELEMENT), target ::  EL
+    logical(lp), optional ::  bend_like
+    integer, optional :: fringe(2,2) , permfringe
+    real(dp), optional ::TILT,EDGE(2),volt,FREQ,phase,B_SOL,fint,hgap
+  !!!!   
+!   bend_like  puts regular vertical focussing rather than cos(phi) type fringe field
+!  
+!  fint hgap   the usual second effects of MAD. Default values:    fint=0.5 hgap=0   (only bend_like)
+!
+!   highest_fringe global: defaulted to 2, which is quadrupole. change globally outside this routine
+!
+!  permfringe does not affect bend_like 
+!  permfringe   = 0      is the default
+!  permfringe   = 1     only multipole fringe  (nonlinear on straight axis)  up to highest_fringe
+!  permfringe   = 2     only quad fringe SAD style  
+!  permfringe   = 3     all fringes on  (SAD+PTC)
+!
+!  Electric stuff for kind4,kind15 and kind21  (cavity, eseptum and travelling wave cavity)
+!  kind4 includes the BMAD style cavity if n_bessel=-1
+!  volt, freq and phase are the main input in a cavity. Volt is a multiplicative factor that can]
+! multiply an array of voltages for each mode.
+!
+!  B_SOL  solenoid field
+!   
+!  Killing fringe fields using fringe(2,2)  
+!     array shape  mimics the shape of the magnet      
+!        ( entrance orbital ,   entrance spin)
+!        (  exit    orbital ,   exit     spin)
+!
+!  tilt is the usual design tilt
+!
+!  edge(1:2) are the entrance effective angle. Here they are measured from the "design orbit"
+!  so edge = 0 means entering and exiting along the pipe
+
+    if(present(bend_like)) then
+     EL%p%bend_fringe=bend_like
+    endif
+    if(present(fint)) then
+     EL%fint=fint
+    endif
+    if(present(hgap)) then
+     EL%hgap=hgap
+    endif
+
+    if(present(permfringe)) then
+     EL%p%permfringe=permfringe
+    endif
+    if(present(volt)) then
+     EL%volt=volt
+    endif
+    if(present(FREQ)) then
+     EL%FREQ=FREQ
+    endif
+    if(present(phase)) then
+     EL%phas=phase
+    endif
+    if(present(B_SOL)) then
+     EL%B_SOL=B_SOL
+    endif
+
+     if(present(fringe)) then
+        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
+        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
+        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
+        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
+     endif
+  if(present(tilt)) then
+    EL%p%tiltd=tilt
+  endif
+  if(present(EDGE)) then
+    EL%p%EDGE=EDGE
+  endif
+
+
+  END SUBROUTINE change_settings_magnetr
+
+ 
+  SUBROUTINE change_settings_magnetp(EL,volt,FREQ,phase,B_SOL,TILT,EDGE, & 
+fringe,permfringe,bend_like,fint,hgap)
+    IMPLICIT NONE
+    TYPE(ELEMENTP), target ::  EL
+    logical(lp), optional ::  bend_like
+    integer, optional :: fringe(2,2) , permfringe 
+    real(dp), optional ::volt,TILT,EDGE(2),FREQ,phase,B_SOL,fint,hgap
+ 
+     EL%p%bend_fringe=.false.
+    if(present(bend_like)) then
+     EL%p%bend_fringe=bend_like
+    endif
+    if(present(fint)) then
+     EL%fint=fint
+    endif
+    if(present(hgap)) then
+     EL%hgap=hgap
+    endif
+
+    if(present(permfringe)) then
+     EL%p%permfringe=permfringe
+    endif
+    if(present(volt)) then
+     EL%volt=volt
+    endif
+    if(present(FREQ)) then
+     EL%FREQ=FREQ
+    endif
+    if(present(phase)) then
+     EL%phas=phase
+    endif
+    if(present(B_SOL)) then
+     EL%B_SOL=B_SOL
+    endif
+! highest is global
+! so change globally  defaulted to 2 in PTC (Quadrupole)
+  !   if(present(highest)) then
+ !     HIGHEST_FRINGE=highest
+  !   endif
+
+     if(present(fringe)) then
+        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
+        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
+        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
+        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
+     endif
+  if(present(tilt)) then
+    EL%p%tiltd=tilt
+  endif
+  if(present(EDGE)) then
+    EL%p%EDGE=EDGE
+  endif
+
+
+  END SUBROUTINE change_settings_magnetp
+
+ !   real(dp),  DIMENSION(:), POINTER :: EDGE  => null()        ! INTERNAL FRAME  design entrance and exit angle
+
+ 
+!   integer, pointer :: permFRINGE => null(),highest_fringe => null()     ! highest_fringe = 2 by default            !
+   !                       ! NUMBER OF MULTIPOLE   ! nmul maximum multipole
+ 
   SUBROUTINE ADD_ANBNR(EL,NM,F,V,electric)
     IMPLICIT NONE
     TYPE(ELEMENT), INTENT(INOUT) ::EL
@@ -2191,9 +2345,18 @@ CONTAINS
     real(dp), ALLOCATABLE,dimension(:)::AN,BN
     logical(lp), optional :: electric
     logical(lp) elec
+!!!!  On fibre call  add(EL,NM,F,V,electric)
+!!      nm  > 0   bn(nm)  is changed
+!!      nm  < 0   an(nm)  is changed
+!!    EL%CN(NM)   = F*EL%CN(NM)+V         where cn=an,bn 
+!!  electric is false by default
+!!  if true then AE and BE are changed  for element kind10 only (TEAPOT)
+!!  notice that an and bn are available in cavity kind4, helical dipoles and wigglers
+
     elec=my_false
     if(present(electric)) elec=electric
     if(elec.and.(.not.EL%KIND==kind10)) return
+
 
 if(elec) then
     N=NM
