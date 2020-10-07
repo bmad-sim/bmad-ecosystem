@@ -19,7 +19,7 @@ open (1, file = 'compare_tracking_methods_text.out')
 
 DO i = 1, lat%n_ele_max - 1
    DO j = 1, n_methods$
-      if(.not. valid_tracking_method(lat%ele(i), lat%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
+      if(.not. valid_tracking_method(lat%ele(i), lat%param%particle, j) .or. j == custom$) cycle
       if(lat%ele(i)%key == elseparator$ .and. (j == runge_kutta$ .or. j == time_runge_kutta$)) cycle
       lat%ele(i)%tracking_method = j
       call set_flags_for_changed_attribute(lat%ele(i),lat%ele(i)%tracking_method)
