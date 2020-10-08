@@ -1760,15 +1760,21 @@ case ('s')
     straight_line_between_syms = .false.
   endif
 
-  if (smooth_curve) then
+  ! Smooth curves using expressions...
 
+  if (smooth_curve .and. curve%data_type(1:11) == 'expression:') then
+    call tao_smooth_curve_with_expression_calc (curve)
+
+  ! Smooth curves not using expressions...
+
+  elseif (smooth_curve) then
     ! allocate data space
 
     call re_allocate (curve%y_line, n_curve_pts) 
-    call re_allocate (curve%x_line, n_curve_pts) 
+    call re_allocate (curve%x_line, n_curve_pts)
     call re_allocate (good, n_curve_pts) 
-    curve%y_line = 0
     good = .true.
+    curve%y_line = 0
 
     call tao_split_component(component, scratch%comp, err)
     if (err) then
@@ -2397,9 +2403,55 @@ end subroutine tao_calc_data_at_s
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine tao_smooth_curve_with_expression_calc (curve)
+!
+! Routine to calculate smooth curve data points for a curve that uses an expression for the data_type.
+!
+! Input:
+!   curve     -- tao_curve_struct: 
+!
+! Output:
+!   curve     -- tao_curve_struct: Curve with data filled in.
+!-
+
+subroutine tao_smooth_curve_with_expression_calc (curve)
+
+implicit none
+
+type (tao_curve_struct) curve
+
+! x1 and x2 are the longitudinal end points of the plot
+
+!radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
+!bmad_com%radiation_fluctuations_on = .false.
+!
+!x1 = branch%ele(0)%s
+!x2 = branch%ele(n_ele_track)%s
+!len_tot = x2 - x1
+!if (curve%g%x%min /= curve%g%x%max) then
+!  if (branch%param%geometry == closed$) then
+!    x1 = min(branch%ele(n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
+!    x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s-len_tot))
+!  else
+!    x1 = min(branch%ele(n_ele_track)%s, max(curve%g%x%min, x1))
+!    x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s))
+!  endif
+!endif
+
+!
+
+
+
+
+end subroutine tao_smooth_curve_with_expression_calc
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine tao_data_useit_plot_calc (curve, graph, data)
 !
-! Subroutine to set the data for plotting.
+! Routine to set the data for plotting.
 !
 ! Input:
 !   graph             -- tao_graph_struct

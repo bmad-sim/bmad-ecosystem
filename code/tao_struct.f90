@@ -399,7 +399,7 @@ type tao_data_struct
   integer :: ix_d1 = -1                    ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer :: ix_data = -1                  ! Index of this datum in the u%data(:) array of data_structs.
   integer :: ix_dModel = -1                ! Row number in the dModel_dVar derivative matrix.
-  integer :: eval_point = anchor_end$      ! Where to evaluate the data relative to the lattice element.
+  integer :: eval_point = anchor_end$      ! or anchor_center$, anchor_beginning$. Where to evaluate data relative to the element.
   real(rp) :: meas_value = 0               ! Measured datum value. 
   real(rp) :: ref_value = 0                ! Measured datum value from the reference data set.
   real(rp) :: model_value = 0              ! Datum value as calculated from the model.
