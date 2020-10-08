@@ -17,8 +17,8 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, default_source, 
-!               default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
+! Subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, default_source, default_source,  
+!               dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
 !
 ! Routine to evaluate data with a lat or beam source of the form:
 !     <universe>@lat::<data_type>[<ix_ele_start>&<ix_ele>]|<component>
@@ -32,6 +32,8 @@ contains
 !   dflt_ele       -- ele_struct, pointer, optional: Default element to evaluate at.
 !   dflt_component -- character(*), optional: Default component: 'model' (default), 'base', or 'design'.
 !   dflt_uni       -- integer, optional: Default universe to use.
+!   dflt_eval_point -- integer, optional: Default eval_point. anchor_end$ (default), anchor_center$, or anchor_beginning$.
+!   dflt_s_offset   -- real(rp), optional: Default offset of eval_point. Default = 0.
 !
 ! Output:
 !   err       -- Logical: True if there is an error. False otherwise.
@@ -39,7 +41,7 @@ contains
 !-
 
 subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, default_source, &
-                         dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
+                dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
 
 type (tao_data_struct) datum
 type (tao_universe_struct), pointer :: u
@@ -53,8 +55,9 @@ character(60) name, ele_name, component
 character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
 real(rp), allocatable :: values(:)
+real(rp), optional :: dflt_s_offset
 
-integer, optional :: dflt_uni
+integer, optional :: dflt_uni, dflt_eval_point
 integer i, j, num, ix, ix1, ios, n_tot, n_loc, iu
 
 logical err, valid, err_flag
@@ -193,6 +196,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       datum%ix_ele = eles(j)%ele%ix_ele
       datum%ix_branch = eles(j)%ele%ix_branch
     endif
+
+    datum%eval_point = integer_option(anchor_end$, dflt_eval_point)
+    datum%s_offset = real_option(0.0_rp, dflt_s_offset)
 
     select case (component)
     case ('model')   
@@ -370,7 +376,6 @@ recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid
 use pointer_lattice, only: operator(.sub.)
 use ptc_interface_mod, only: taylor_inverse
 use ptc_layout_mod, only: normal_form_rd_terms
-use twiss_and_track_mod, only: twiss_and_track_at_s
 use measurement_mod, only: to_orbit_reading, to_eta_reading, ele_is_monitor
 
 type (tao_universe_struct), target :: u
@@ -385,7 +390,6 @@ type (tao_expression_info_struct), allocatable :: info(:)
 type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
 type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
-type (ele_struct) ele_at_s
 type (coord_struct), pointer :: orb0, orbit(:), orb
 type (coord_struct) :: orb_at_s
 type (bpm_phase_coupling_struct) bpm_data
@@ -406,7 +410,7 @@ real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value, s_len
 real(rp) dz, dx, cos_theta, sin_theta, zz_pt, xx_pt, zz0_pt, xx0_pt, dE
-real(rp) zz_center, xx_center, xx_wall, s_eval, s_eval_ref, phase, amp
+real(rp) zz_center, xx_center, xx_wall, phase, amp
 real(rp) xx_a, xx_b, dxx1, dzz1, drad, ang_a, ang_b, ang_c, dphi
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
@@ -428,8 +432,8 @@ character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(300) str
 
-logical found, valid_value, err, taylor_is_complex, use_real_part, compute_floor, term_found
-logical particle_lost
+logical found, valid_value, err, taylor_is_complex, use_real_part, term_found
+logical particle_lost, exterminate
 logical, allocatable, save :: good(:)
 
 ! If does not exist
@@ -576,61 +580,14 @@ endif
 !-------------------------------------------------------------
 ! Case where evaluation point not at the end of the element.
 
-if (datum%s_offset /= 0 .or. datum%eval_point == anchor_center$ .or. datum%eval_point == anchor_beginning$) then
+if (head_data_type /= 'expression:' .and. (datum%s_offset /= 0 .or. datum%eval_point /= anchor_end$)) then
   if (data_source /= 'lat') then
     call tao_set_invalid (datum, 'CANNOT USE A BEAM DATA_SOURCE WITH A FINITE S_OFFSET OR EVAL_POINT = CENTER.', why_invalid, .true.)
     return
   endif
 
-  if (.not. associated(ele)) then
-    call tao_set_invalid (datum, 'THERE MUST BE AN ASSOCIATED ELEMENT WHEN S_OFFSET IS NON-ZERO OR EVAL_POINT = CENTER.', why_invalid, .true.)
-    return
-  endif
-
-  select case (datum%eval_point)
-  case (anchor_beginning$)
-    ! Here tao_pointer_to_datum_ele has pointed ele to the element before the element specified in the datum.
-    s_eval = ele%s_start + datum%s_offset
-    if (associated(ele_ref)) s_eval_ref = ele_ref%s_start
-  case (anchor_center$)
-    s_eval = (ele%s_start + ele%s) / 2 + datum%s_offset
-    if (associated(ele_ref)) s_eval_ref = (ele_ref%s_start + ele_ref%s) / 2
-  case (anchor_end$)
-    s_eval = ele%s + datum%s_offset
-    if (associated(ele_ref)) s_eval_ref = ele_ref%s
-  end select
-
-  compute_floor = (head_data_type(1:5) == 'floor')
-
-  call twiss_and_track_at_s (branch%lat, s_eval, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
-                                                                      err, compute_floor_coords = compute_floor)
-  if (err) then
-    call tao_set_invalid (datum, 'CANNOT TRACK TO OFFSET POSITION.', why_invalid)
-    return
-  endif
-
-  datum_value = tao_bmad_parameter_value (datum%data_type, ele_at_s, orb_at_s, err)
-  if (err) then
-    call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM AT OFFSET POSITION.', why_invalid, .true.)
-    return
-  endif
-
-  if (associated(ele_ref)) then
-    call twiss_and_track_at_s (branch%lat, s_eval_ref, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
-                                                                      err, compute_floor_coords = compute_floor)
-    if (err) then
-      call tao_set_invalid (datum, 'CANNOT TRACK TO REFERENCE POSITION.', why_invalid)
-      return
-    endif
-
-    datum_value = datum_value - tao_bmad_parameter_value (datum%data_type, ele_at_s, orb_at_s, err)
-    if (err) then
-      call tao_set_invalid (datum, 'CANNOT EVALUATE DATUM AT REFERENCE POSITION.', why_invalid, .true.)
-      return
-    endif
-  endif
-
-  valid_value = .true.
+  datum_value = tao_evaluate_datum_at_s (datum%eval_point, datum%s_offset, datum%data_type, tao_lat, ele, ele_ref, valid_value, str, exterminate)
+  if (.not. valid_value) call tao_set_invalid (datum, str, why_invalid, exterminate)
   return
 endif
 
@@ -1589,8 +1546,8 @@ case ('expression:', 'expression.')
       str = str(1:ix+4) // trim(ele_loc_name(ele)) // str(ix+6:)
     enddo
 
-    call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, .true., &
-               datum%stack, tao_lat%name, datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni)
+    call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, .true., datum%stack, tao_lat%name, &
+                   datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset)
     if (err) then
       call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
       return
@@ -3667,16 +3624,10 @@ integer, optional :: ix_branch
 
 select case (ele%lord_status)
 case (super_lord$, overlay_lord$, group_lord$)
-  if (datum%eval_point == anchor_beginning$) then
-    ele2 => pointer_to_slave(ele, 1)
-    ele2 => pointer_to_next_ele(ele2, -1)
-  else
-    ele2 => pointer_to_slave(ele, ele%n_slave)
-  endif
+  ele2 => pointer_to_slave(ele, ele%n_slave)
 
 case default
   ele2 => ele
-  if (datum%eval_point == anchor_beginning$) ele2 => pointer_to_next_ele(ele, -1)
 end select
 
 ix_ele = ele2%ix_ele
@@ -4031,28 +3982,30 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-!      value, info, err_flag, print_err, stack, dflt_component, dflt_source, &
-!      dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, info, err_flag, &
+!      print_err, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
+!      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
 !
 ! Mathematically evaluates a character expression.
 !
 ! Input:
-!   expression     -- Character(*): Arithmetic expression.
-!   n_size         -- Integer: Size of the value array. If the expression evaluates to a
-!                      a scalar, each value in the value array will get this value.
-!                      If n_size = 0, the natural size is determined by the expression itself.
-!   use_good_user  -- Logical: Use the good_user logical in evaluating good(:)
-!   print_err      -- Logical, optional: If False then supress evaluation error messages.
-!                      This does not affect syntax error messages. Default is True.
-!   dflt_component -- Character(*), optional: Component to use if not specified in the expression. 
-!                       'model' (default), 'base', or 'design'.
-!   dflt_source    -- Character(*), optional: Default source ('lat', 'data', etc.). Default is ''.
-!   dflt_ele_ref   -- Ele_struct, pointer, optional: Default reference element.
-!   dflt_ele_start -- Ele_struct, pointer, optional: Default start element for ranges.
-!   dflt_ele       -- Ele_struct, pointer, optional: Default element to evaluate at.
-!   dflt_dat_or_var_index -- Character(*), optional: Default datum or variable index to use.
-!   dflt_uni       -- Integer, optional: Default universe to use. If 0 or not present, use viewed universe.
+!   expression      -- character(*): Arithmetic expression.
+!   n_size          -- integer: Size of the value array. If the expression evaluates to a
+!                       a scalar, each value in the value array will get this value.
+!                       If n_size = 0, the natural size is determined by the expression itself.
+!   use_good_user   -- logical: Use the good_user logical in evaluating good(:)
+!   print_err       -- logical, optional: If False then supress evaluation error messages.
+!                       This does not affect syntax error messages. Default is True.
+!   dflt_component  -- character(*), optional: Component to use if not specified in the expression. 
+!                        'model' (default), 'base', or 'design'.
+!   dflt_source     -- character(*), optional: Default source ('lat', 'data', etc.). Default is ''.
+!   dflt_ele_ref    -- ele_struct, pointer, optional: Default reference element.
+!   dflt_ele_start  -- ele_struct, pointer, optional: Default start element for ranges.
+!   dflt_ele        -- ele_struct, pointer, optional: Default element to evaluate at.
+!   dflt_dat_or_var_index -- character(*), optional: Default datum or variable index to use.
+!   dflt_uni        -- integer, optional: Default universe to use. If 0 or not present, use viewed universe.
+!   dflt_eval_point -- integer, optional: Default eval_point. anchor_end$ (default), anchor_center$, or anchor_beginning$.
+!   dflt_s_offset   -- real(rp), optional: Default offset of eval_point. Default = 0.
 !
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
@@ -4067,9 +4020,9 @@ end subroutine
 !                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, &
-          info, err_flag, print_err, stack, dflt_component, dflt_source, &
-          dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, info, err_flag, &
+                  print_err, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, &
+                  dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
 
 use random_mod
 use expression_mod
@@ -4079,11 +4032,12 @@ type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (tao_expression_info_struct), allocatable :: info(:)
 
-integer, optional :: dflt_uni
+integer, optional :: dflt_uni, dflt_eval_point
 integer i_lev, i_op, i, ios, n, n_size, n__size, ix0, ix1, ix2
 integer op(100), n_comma(100), ix_word, i_delim, i2, ix, ix_word2
 
 real(rp), allocatable :: value(:)
+real(rp), optional :: dflt_s_offset
 
 character(*) :: expression
 character(*), optional :: dflt_component, dflt_source
@@ -4362,8 +4316,8 @@ parsing_loop: do
       endif
     else
       call pushit (stk%type, i_lev, numeric$)
-      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, &
-             default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, default_source, &
+             dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -4410,8 +4364,8 @@ parsing_loop: do
       return
     endif
     call pushit (stk%type, i_lev, numeric$)
-    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, &
-            default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, default_source, &
+            dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -4583,7 +4537,8 @@ end subroutine tao_evaluate_expression
 
 recursive &
 subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err, dflt_component, &
-      dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, param_uni)
+                    dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, &
+                    dflt_eval_point, dflt_s_offset)
 
 type (tao_eval_stack1_struct) stack, stack2
 type (tao_real_pointer_struct), allocatable :: re_array(:)
@@ -4593,9 +4548,12 @@ type (tao_var_array_struct), allocatable :: v_array(:)
 type (tao_data_struct) datum
 type (tao_data_struct), pointer :: d
 type (tao_var_struct), pointer :: v
+type (tao_lattice_struct), pointer :: tao_lat
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
-integer, optional :: dflt_uni, param_uni
+real(rp), optional :: dflt_s_offset
+
+integer, optional :: dflt_uni, dflt_eval_point
 integer ios, i, m, n, ix, ix2, ix_word, ix_uni
 
 character(*) str, saved_prefix
@@ -4608,9 +4566,9 @@ character(60) name, word2
 character(200) str2
 character(*), parameter :: r_name = 'tao_param_value_routine'
 
-logical err_flag, print_err, print_error, delim_found
+logical err_flag, print_err, print_error, delim_found, valid_value, exterminate
 
-! pi, etc
+! See if it is a constant like pi, etc.
 
 err_flag = .false.
 
@@ -4647,8 +4605,8 @@ if (str(1:1) == '[' .and. index(str, ']@') == 0) then
 
   do
     call word_read (str2, ',', word2, ix_word, delim, delim_found, str2, ignore_interior = .true.)
-    call tao_param_value_routine (word2, saved_prefix, stack2, err_flag, print_err, dflt_component, &
-      dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni)
+    call tao_param_value_routine (word2, saved_prefix, stack2, err_flag, print_err, dflt_component, dflt_source, &
+                dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
     if (err_flag) return
     m = size(stack%value)
     n = size(stack2%value)
@@ -4716,7 +4674,7 @@ endif
 
 if (source == 'lat' .or. source == 'beam') then
   call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, dflt_source, &
-                                        dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni)
+                              dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = .not. err_flag
   stack%type = lat_num$
@@ -4845,6 +4803,108 @@ else
 endif
 
 end subroutine tao_param_value_routine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function tao_evaluate_datum_at_s (eval_point, s_offset, data_type, tao_lat, ele, ele_ref, valid_value, err_str, bad_datum) result(value)
+!
+! Routine to evaluate a datum at a given s-position in the lattice
+!
+! Input:
+!   eval_point    -- integer: Where to evaluate data relative to the element. anchor_beginning$, anchor_center$, or anchor_end$.
+!   s_offset      -- real(rp): Offset from eval_point to evaluate at.
+!   data_type     -- character(*): Type of data.
+!   tao_lat       -- tao_lattice_struct: 
+!   ele           -- ele_struct, pointer: Evaluation element.
+!   ele_ref       -- ele_struct, pointer: Reference element.
+!   valid_value   -- logical: True if evaluation was sucessful. False if not.
+!
+! Output:
+!   err_str       -- Character(*): Error string for printing an error message.
+!   bad_datum     -- logical: True -> datum is malformed. False -> Could evaluate or evaluation problem was not due to the datum
+!                               itself (EG: the lattice was unstable).
+!-
+
+function tao_evaluate_datum_at_s (eval_point, s_offset, data_type, tao_lat, ele, ele_ref, valid_value, err_str, bad_datum) result(value)
+
+use twiss_and_track_mod, only: twiss_and_track_at_s
+
+type (tao_lattice_struct), target :: tao_lat
+type (ele_struct), pointer :: ele, ele_ref
+type (branch_struct), pointer :: branch
+type (ele_struct) ele_at_s
+type (coord_struct) :: orb_at_s
+type (coord_struct), pointer :: orbit(:)
+
+real(rp) s_offset, value
+real(rp) s_eval, s_eval_ref
+integer eval_point
+logical valid_value, bad_datum, compute_floor, err
+character(*) data_type, err_str
+
+!
+
+valid_value = .false.
+
+if (.not. associated(ele)) then
+  err_str = 'THERE MUST BE AN ASSOCIATED ELEMENT WHEN S_OFFSET IS NON-ZERO OR EVAL_POINT != END.'
+  bad_datum = .true.
+  return
+endif
+
+select case (eval_point)
+case (anchor_beginning$)
+  s_eval = ele%s_start + s_offset
+  if (associated(ele_ref)) s_eval_ref = ele_ref%s_start
+case (anchor_center$)
+  s_eval = (ele%s_start + ele%s) / 2 + s_offset
+  if (associated(ele_ref)) s_eval_ref = (ele_ref%s_start + ele_ref%s) / 2
+case (anchor_end$)
+  s_eval = ele%s + s_offset
+  if (associated(ele_ref)) s_eval_ref = ele_ref%s
+end select
+
+compute_floor = (data_type(1:5) == 'floor')
+branch => pointer_to_branch(ele)
+orbit => tao_lat%tao_branch(ele%ix_branch)%orbit
+
+call twiss_and_track_at_s (branch%lat, s_eval, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
+                                                                    err, compute_floor_coords = compute_floor)
+if (err) then
+  err_str = 'CANNOT TRACK TO OFFSET POSITION.'
+  bad_datum = .false.
+  return
+endif
+
+value = tao_bmad_parameter_value (data_type, ele_at_s, orb_at_s, err)
+if (err) then
+  err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
+  bad_datum = .true.
+  return
+endif
+
+if (associated(ele_ref)) then
+  call twiss_and_track_at_s (branch%lat, s_eval_ref, ele_at_s, orbit, orb_at_s, branch%ix_branch, &
+                                                                    err, compute_floor_coords = compute_floor)
+  if (err) then
+    err_str = 'CANNOT TRACK TO REFERENCE POSITION.'
+    bad_datum = .false.
+    return
+  endif
+
+  value = value - tao_bmad_parameter_value (data_type, ele_at_s, orb_at_s, err)
+  if (err) then
+    err_str = 'CANNOT EVALUATE DATUM AT REFERENCE POSITION.'
+    bad_datum = .true.
+    return
+  endif
+endif
+
+valid_value = .true.
+
+end function tao_evaluate_datum_at_s
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
