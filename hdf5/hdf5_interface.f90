@@ -25,13 +25,13 @@ integer, parameter :: H5O_TYPE_ATTRIBUTE_F = 123
 !   H5O_TYPE_GROUP_F
 !   H5O_TYPE_DATASET_F
 !   H5O_TYPE_ATTRIBUTE_F   ! Defined by bmad. Not by HDF5.
-!   anything else is not useful.
+!   Anything else is not useful.
 !
 ! %data_type identifies the type of the underlying data. Not relavent for groups. can be:
 !   H5T_FLOAT_F
 !   H5T_INTEGER_F
 !   H5T_STRING_F
-!   anything else is not useful.
+!   Anything else is not useful.
 
 type hdf5_info_struct
   integer :: element_type = -1         ! Type of the element. See above.
