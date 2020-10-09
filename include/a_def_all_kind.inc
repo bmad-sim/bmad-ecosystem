@@ -123,10 +123,10 @@ TYPE CAV4
    integer, POINTER :: N_BESSEL => null(),CAVITY_TOTALPATH => null()     ! Cavity information
    logical, pointer :: always_on => null()
    type(acceleration), pointer :: ACC => null()
-   
+   real(dp),   POINTER:: H1 => null(),H2 => null()  
 END  TYPE CAV4
 
-TYPE CAV4P
+TYPE CAV4P 
    logical(lp), POINTER :: THIN => null()
    TYPE(MAGNET_CHART), POINTER:: P => null()
    TYPE(REAL_8) , POINTER ::L => null()
@@ -140,6 +140,7 @@ TYPE CAV4P
    integer, POINTER :: N_BESSEL => null(),CAVITY_TOTALPATH => null()  ! Cavity information
    logical, pointer :: always_on => null()
    type(acceleration), pointer :: ACC => null()
+   TYPE(REAL_8),   POINTER:: H1 => null(),H2 => null()  
 END  TYPE CAV4P
 
 TYPE CAV_TRAV

@@ -1098,6 +1098,8 @@ CONTAINS
        EL%C4%VOLT=>EL%VOLT
        EL%C4%FREQ=>EL%FREQ
        EL%C4%PHAS=>EL%PHAS
+       EL%C4%H1=>EL%H1
+       EL%C4%H2=>EL%H2
        !       EL%C4%P0C=>EL%P0C
        EL%C4%DELTA_E=>EL%DELTA_E
        EL%C4%THIN=>EL%THIN
@@ -1587,6 +1589,8 @@ CONTAINS
        EL%C4%VOLT=>EL%VOLT
        EL%C4%FREQ=>EL%FREQ
        EL%C4%PHAS=>EL%PHAS
+       EL%c4%H1=>EL%H1
+       EL%c4%H2=>EL%H2
        !       EL%C4%P0C=>EL%P0C
        EL%C4%DELTA_E=>EL%DELTA_E
        EL%C4%THIN=>EL%THIN
@@ -2184,8 +2188,8 @@ CONTAINS
   SUBROUTINE change_settings_fibre(EL,volt,FREQ,phase,B_SOL,TILT,EDGE,fringe,permfringe,bend_like)
     IMPLICIT NONE
     TYPE(fibre), target ::  EL
-    logical(lp), optional ::  bend_like
-    integer, optional :: fringe(2,2) , permfringe
+    logical(lp), optional ::  bend_like,fringe(2,2) 
+    integer, optional ::  permfringe
     real(dp), optional ::volt,TILT,EDGE(2),FREQ,phase,B_SOL
 
     call change_settings_magnetr(EL%mag ,volt,FREQ,phase,B_SOL,TILT,EDGE,fringe,permfringe,bend_like)
@@ -2198,8 +2202,8 @@ fringe,permfringe,bend_like,fint,hgap)
 
     IMPLICIT NONE
     TYPE(ELEMENT), target ::  EL
-    logical(lp), optional ::  bend_like
-    integer, optional :: fringe(2,2) , permfringe
+    logical(lp), optional ::  bend_like,fringe(2,2) 
+    integer, optional ::  permfringe
     real(dp), optional ::TILT,EDGE(2),volt,FREQ,phase,B_SOL,fint,hgap
   !!!!   
 !   bend_like  puts regular vertical focussing rather than cos(phi) type fringe field
@@ -2231,6 +2235,7 @@ fringe,permfringe,bend_like,fint,hgap)
 !  edge(1:2) are the entrance effective angle. Here they are measured from the "design orbit"
 !  so edge = 0 means entering and exiting along the pipe
 
+ 
     if(present(bend_like)) then
      EL%p%bend_fringe=bend_like
     endif
@@ -2258,10 +2263,10 @@ fringe,permfringe,bend_like,fint,hgap)
     endif
 
      if(present(fringe)) then
-!        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
-!        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
-!        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
-!        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
+        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
+        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
+        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
+        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
      endif
   if(present(tilt)) then
     EL%p%tiltd=tilt
@@ -2278,11 +2283,11 @@ fringe,permfringe,bend_like,fint,hgap)
 fringe,permfringe,bend_like,fint,hgap)
     IMPLICIT NONE
     TYPE(ELEMENTP), target ::  EL
-    logical(lp), optional ::  bend_like
-    integer, optional :: fringe(2,2) , permfringe 
+    logical(lp), optional ::  bend_like,fringe(2,2)
+    integer, optional :: permfringe 
     real(dp), optional ::volt,TILT,EDGE(2),FREQ,phase,B_SOL,fint,hgap
  
-     EL%p%bend_fringe=.false.
+ 
     if(present(bend_like)) then
      EL%p%bend_fringe=bend_like
     endif
@@ -2315,10 +2320,10 @@ fringe,permfringe,bend_like,fint,hgap)
   !   endif
 
      if(present(fringe)) then
-!        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
-!        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
-!        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
-!        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
+        EL%p%KILL_ENT_FRINGE=.not.(fringe(1,1))
+        EL%p%KILL_EXI_FRINGE=.not.(fringe(2,1))
+        EL%p%KILL_ENT_SPIN=.not.(fringe(1,2))
+        EL%p%KILL_EXI_SPIN=.not.(fringe(2,2))
      endif
   if(present(tilt)) then
     EL%p%tiltd=tilt
@@ -2345,7 +2350,7 @@ fringe,permfringe,bend_like,fint,hgap)
     real(dp), ALLOCATABLE,dimension(:)::AN,BN
     logical(lp), optional :: electric
     logical(lp) elec
-!!!!  On fibre call  add(EL,NM,F,V,electric)
+!!!!  On fibre call  add(FIBRE,NM,F,V,electric)
 !!      nm  > 0   bn(nm)  is changed
 !!      nm  < 0   an(nm)  is changed
 !!    EL%CN(NM)   = F*EL%CN(NM)+V         where cn=an,bn 
@@ -3486,6 +3491,8 @@ nullify(EL%filef,el%fileb);
        ELP%DELTA_E = EL%DELTA_E               ! DELTA_E IS real(dp)
        ELP%THIN = EL%THIN
        N_CAV4_F=EL%C4%NF
+       ELP%H1 = EL%H1
+       ELP%H2 = EL%H2
        CALL SETFAMILY(ELP)
        ELP%C4%N_BESSEL = EL%C4%N_BESSEL
        ELP%C4%cavity_totalpath = EL%C4%cavity_totalpath

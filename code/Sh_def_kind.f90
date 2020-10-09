@@ -95,7 +95,7 @@ MODULE S_DEF_KIND
   PRIVATE FEVAL_pancaker,FEVAL_pancakeP,rks_pancaker,rks_pancakep,rks_pancake
   PRIVATE INTPANCAKER,INTPANCAKEP,conv_to_xpr,conv_to_xpp,conv_to_pxr
   private conv_to_pxp, conv_to_pxpabell ,conv_to_xprabell,conv_to_xppabell,conv_to_pxrabell
-  private ADJUSTR_TIME_CAV4,ADJUSTp_TIME_CAV4,INTER_CAV4,INTEp_CAV4
+  private ADJUST_TIME_CAV4R,ADJUST_TIME_CAV4p,INTER_CAV4,INTEp_CAV4
   private INTER_STREX,INTEP_STREX,INTER_SOL5,INTEP_SOL5,INTER_KTK,INTEP_KTK
   private fringe_STRAIGHTr,fringe_STRAIGHTP
   private INTEr_dkd2,INTEP_dkd2,INTER_DRIFT1,INTEP_DRIFT1
@@ -447,8 +447,8 @@ logical :: old_thick_bend = .false.
   END INTERFACE
 
   INTERFACE ADJUST_TIME_CAV4
-     MODULE PROCEDURE ADJUSTR_TIME_CAV4
-     MODULE PROCEDURE ADJUSTP_TIME_CAV4
+     MODULE PROCEDURE ADJUST_TIME_CAV4R
+     MODULE PROCEDURE ADJUST_TIME_CAV4P
   END INTERFACE
 
   INTERFACE ADJUST_TIME_CAV_TRAV_OUT
@@ -1476,7 +1476,7 @@ CONTAINS !----------------------------------------------------------------------
 
 
 
-  SUBROUTINE ADJUSTR_TIME_CAV4(EL,X,k,J)
+  SUBROUTINE ADJUST_TIME_CAV4R(EL,X,k,J)
     IMPLICIT NONE
     REAL(DP), INTENT(INOUT)::  X(6)
     TYPE(CAV4),INTENT(INOUT):: EL
@@ -1485,6 +1485,7 @@ CONTAINS !----------------------------------------------------------------------
 
     IF(J==1) THEN
        EL%DELTA_E=X(5)
+       CALL DRIFT(EL%h1,EL%h1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
 
        IF(EL%THIN) THEN
@@ -1501,23 +1502,27 @@ CONTAINS !----------------------------------------------------------------------
        else
           X(6)=X(6)-(el%CAVITY_TOTALPATH-k%TOTALPATH)*EL%P%LD
        endif
+       CALL DRIFT(EL%h2,EL%h2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
        EL%DELTA_E=(X(5)-EL%DELTA_E)*EL%P%P0C
     ENDIF
 
-  END SUBROUTINE ADJUSTR_TIME_CAV4
+  END SUBROUTINE ADJUST_TIME_CAV4R
 
-  SUBROUTINE ADJUSTP_TIME_CAV4(EL,X,k,J)
+  SUBROUTINE ADJUST_TIME_CAV4P(EL,X,k,J)
     IMPLICIT NONE
     TYPE(REAL_8), INTENT(INOUT)::  X(6)
     TYPE(CAV4P),INTENT(INOUT):: EL
     integer,INTENT(IN):: J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
+    real(dp) h 
     call PRTP("ADJTIME_CAV4:0", X)
 
     IF(J==1) THEN
        EL%DELTA_E=X(5)
+       h=EL%h1
+       CALL DRIFT(EL%h1,h,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+
        IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
 
        IF(EL%THIN) THEN
@@ -1534,13 +1539,15 @@ CONTAINS !----------------------------------------------------------------------
        else
           X(6)=X(6)-(el%CAVITY_TOTALPATH-k%TOTALPATH)*EL%P%LD
        endif
+       h=EL%h2
+       CALL DRIFT(EL%h2,h,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
        EL%DELTA_E=(X(5)-EL%DELTA_E)*EL%P%P0C
     ENDIF
 
     call PRTP("ADJTIME_CAV4:1", X)
 
-  END SUBROUTINE ADJUSTP_TIME_CAV4
+  END SUBROUTINE ADJUST_TIME_CAV4P
 
   SUBROUTINE track_slice4r(EL,X,kt,zi)
     IMPLICIT NONE
@@ -15397,6 +15404,12 @@ SUBROUTINE ZEROr_teapot(EL,I)
        if(ASSOCIATED(EL%N_BESSEL)) then
           deallocate(EL%N_BESSEL)
        endif
+     !  if(ASSOCIATED(EL%H1)) then
+     !     deallocate(EL%H1)
+     !  endif
+    !   if(ASSOCIATED(EL%H2)) then
+    !      deallocate(EL%H2)
+    !   endif
        if(ASSOCIATED(EL%t)) then
           deallocate(EL%t)
        endif
@@ -15436,6 +15449,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
        NULLIFY(EL%phase0)
        NULLIFY(EL%CAVITY_TOTALPATH)
        NULLIFY(EL%N_BESSEL)
+       NULLIFY(EL%H1)
+       NULLIFY(EL%H2)
        NULLIFY(EL%NF)
        NULLIFY(EL%F)
        NULLIFY(EL%A)
@@ -15458,6 +15473,14 @@ SUBROUTINE ZEROr_teapot(EL,I)
        if(ASSOCIATED(EL%N_BESSEL)) then
           deallocate(EL%N_BESSEL)
        endif
+  !     if(ASSOCIATED(EL%H1)) then
+  !        CALL KILL(EL%h1)
+  !        deallocate(EL%H1)
+  !     endif
+  !     if(ASSOCIATED(EL%H2)) then
+  !        CALL KILL(EL%h2)
+  !        deallocate(EL%H2)
+  !     endif
        if(ASSOCIATED(EL%CAVITY_TOTALPATH)) then
           deallocate(EL%CAVITY_TOTALPATH)
        endif
@@ -15497,6 +15520,8 @@ SUBROUTINE ZEROr_teapot(EL,I)
        NULLIFY(EL%phase0)
        NULLIFY(EL%CAVITY_TOTALPATH)
        NULLIFY(EL%N_BESSEL)
+       NULLIFY(EL%H1)
+       NULLIFY(EL%H2)
        NULLIFY(EL%NF)
        NULLIFY(EL%F)
        NULLIFY(EL%A)
