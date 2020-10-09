@@ -3011,10 +3011,12 @@ endif
 
 !
 
+ele2 => pointer_to_field_ele(ele, 1, s_rel)
+
 n_map = 0
-if (associated(ele%cylindrical_map)) n_map = n_map + 1
-if (associated(ele%cartesian_map)) n_map = n_map + 1
-if (associated(ele%taylor_field)) n_map = n_map + 1
+if (associated(ele2%cylindrical_map)) n_map = n_map + 1
+if (associated(ele2%cartesian_map)) n_map = n_map + 1
+if (associated(ele2%taylor_field)) n_map = n_map + 1
 
 if (n_map > 1) then
   call out_io (s_fatal$, r_name, 'PTC TRACKING IS ONLY ABLE TO HANDLE A SINGLE FIELD MAP IN AN ELEMENT.', &
@@ -3101,7 +3103,6 @@ ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_s
 !
 
 if (key == sbend$ .and. val(l$) == 0) key = kicker$
-ele2 => pointer_to_field_ele(ele, 1, s_rel)
 if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$) key = wiggler$
 
 select case (key)
@@ -3694,6 +3695,7 @@ ptc_fibre = energy_work
 
 if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. key == wiggler$ .or. key == undulator$) then
 
+  
   is_planar_wiggler = ((key == wiggler$ .or. key == undulator$) .and. ele2%field_calc == planar_model$) 
 
   if (associated(ele2%grid_field)) then
@@ -4040,7 +4042,7 @@ implicit none
 type (ele_struct) ele
 type (floor_position_struct) :: floor0, floor1
 type (fibre), pointer :: ptc_fibre
-type (fibre) dummy_fibre
+type (fibre), target :: dummy_fibre
 
 real(rp) dr(3), ang(3), exi(3,3), beta_start, beta_end
 real(rp) x(6), o_chord(3), o_arc(3), basis(3,3), orient(3,3), sagitta
@@ -4071,7 +4073,7 @@ endif
 
 ! Also fibre%dir for a patch must agree with the preceeding element in a layout
 
-if (ele%key == patch$ .or. ele%key == floor_shift$) then
+if (ele%key == patch$) then
   if (ele%orientation == -1) then
     call ele_geometry (floor0, ele, floor1)
     dr = floor1%r
