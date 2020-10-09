@@ -139,11 +139,11 @@ print '(a, 3f14.6)','E Diff: ', e_field_ptc * ele%value(p0c$) - field%e
 ! Check information passing via flat file.
 
 call bmad_parser ('ptc_test.bmad', lat)
-
-call kill_ptc_layouts(lat)
-call branch_to_ptc_m_u(branch, .false.)
-call write_ptc_flat_file_lattice ('ptc_test.flat', branch)
-call ptc_read_flat_file (['ptc_test.flat'], err_flag, lat2)
+!!
+!!call kill_ptc_layouts(lat)
+!!call branch_to_ptc_m_u(branch, .false.)
+!!call write_ptc_flat_file_lattice ('ptc_test.flat', branch)
+!!call ptc_read_flat_file (['ptc_test.flat'], err_flag, lat2)
 !!do i = 1, branch%n_ele_track
 !!  call check_if_diffrent
 !!
@@ -159,6 +159,7 @@ close (2)
 lat%ele(3)%ix_ele = -1
 call remove_eles_from_lat (lat)
 
+call init_coord(start_orb, lat%particle_start, lat%ele(0), downstream_end$)
 call track1 (start_orb, lat%ele(1), lat%param, end_orb1)
 call track1 (start_orb, lat%ele(2), lat%param, end_orb2)
 call track1 (end_orb2, lat%ele(3), lat%param, end_orb2)
