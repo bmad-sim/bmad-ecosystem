@@ -1,4 +1,4 @@
-parameter[p0c] = 4e9
+parameter[p0c] = 4e7
 bmad_com[radiation_damping_on] = T
 bmad_com[radiation_fluctuations_on] = T
 
