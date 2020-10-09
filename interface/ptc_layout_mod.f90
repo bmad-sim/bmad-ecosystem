@@ -80,7 +80,7 @@ end subroutine type_ptc_layout
 subroutine lat_to_ptc_layout (lat, use_hard_edge_drifts)
 
 use madx_ptc_module, only: m_u, m_t, fibre, append_empty_layout, survey, make_node_layout, &
-                           append_point, set_up, ring_l
+                           append_point, set_up, ring_l, survey_integration_layout 
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
@@ -162,12 +162,13 @@ do i = 0, ubound(lat%branch, 1)
   ang = [ele%floor%phi, ele%floor%theta, ele%floor%psi]
   call bmad_patch_parameters_to_ptc (ang, ptc_orientation)
 
-  call survey (m_t%end, ptc_orientation, ele%floor%r)
+  !! call survey (m_t%end, ptc_orientation, ele%floor%r)
 
   ! Create the integration node arrays for the fibres.
 
   call set_ptc_quiet (12, set$, i_save)
   call make_node_layout(m_t%end)
+  call survey_integration_layout(m_t%end%start, a = ele%floor%r, ent = ptc_orientation)
   call set_ptc_quiet (12, unset$, i_save)
 
   ! Beambeam elements are special. 
@@ -242,7 +243,7 @@ subroutine branch_to_ptc_m_u (branch, use_hard_edge_drifts)
 
 use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
 use mad_like, only: set_up, kill, lielib_print
-use madx_ptc_module, only: m_u, m_t, append_empty_layout, survey, make_node_layout
+use madx_ptc_module, only: m_u, m_t, append_empty_layout, survey, make_node_layout, survey_integration_layout
 
 type (branch_struct) :: branch
 type (ele_struct) drift_ele
@@ -339,8 +340,9 @@ call set_ptc_quiet(12, set$, n)
 m_u%end%closed = .true.
 doneit = .true.
 call ring_l (m_u%end, doneit)
-call survey (m_u%end)
+!!call survey (m_u%end)
 call make_node_layout (m_u%end)
+call survey_integration_layout(m_u%end%start)
 
 call set_ptc_quiet(12, unset$, n)
 
