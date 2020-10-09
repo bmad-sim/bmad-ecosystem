@@ -2692,13 +2692,20 @@ if(f%mag%kind==kindpa) then
 
 call ADJUST_PANCAKE_frame(f%mag%pa,a0,exi0,1)
 !
-write(6,*) " I am here in survey_integration_node_p1 "
+!write(6,*) " I am here in survey_integration_node_p1  1"
 endif
+if(f%mag%kind==kind4) then
+
+call ADJUST_cav_frame(f%mag%c4,a0,exi0,1)
+!
+!write(6,*) " I am here in survey_integration_node_p1  2"
+endif
+
 if(f%mag%kind==kindabell) then
 
 call ADJUST_abell_frame(f%mag%ab,a0,exi0,1)
 !
-write(6,*) " I am here in survey_integration_node_p1 "
+!write(6,*) " I am here in survey_integration_node_p1  3"
 endif  
 t%b=a0
 !t%ent=ent0   ! mistake????
@@ -2846,6 +2853,27 @@ ent0=exi0
 end subroutine survey_integration_special_superdrift
 
 
+ SUBROUTINE ADJUST_cav_frame(EL,a0,exi0,J)
+    IMPLICIT NONE
+    real(dp), target :: a0(3),exi0(3,3)
+    TYPE(CAV4),INTENT(INOUT):: EL
+    INTEGER, INTENT(IN) :: J
+    real(dp) d(3),ang(3)
+    d=0
+    ang=0
+
+    IF(J==1) then
+     d(3)=el%H1
+        call GEO_ROT(exi0,ang,1, exi0)
+        call TRANSLATE_point(a0,D,1,exi0)  
+    else
+    d(3)=el%H2
+ 
+        call TRANSLATE_point(a0,D,1,exi0)  
+        call GEO_ROT(exi0,ang,1, exi0)
+    endif
+ 
+  END SUBROUTINE ADJUST_cav_frame
 
  SUBROUTINE ADJUST_PANCAKE_frame(EL,a0,exi0,J)
     IMPLICIT NONE
@@ -2960,14 +2988,21 @@ if(f%mag%kind==kindpa) then
 
 call ADJUST_PANCAKE_frame(f%mag%pa,a0,exi0,2)
 !
-write(6,*) " I am here in survey_integration_node_p1 "
+!write(6,*) " I am here in survey_integration_node_p1 1"
 endif 
+
+if(f%mag%kind==kind4) then
+
+call ADJUST_cav_frame(f%mag%c4,a0,exi0,2)
+!
+!write(6,*) " I am here in survey_integration_node_p1  2"
+endif
 
 if(f%mag%kind==kindabell) then
 
 call ADJUST_abell_frame(f%mag%ab,a0,exi0,2)
 !
-write(6,*) " I am here in survey_integration_node_p1 "
+!write(6,*) " I am here in survey_integration_node_p1 3"
 endif  
 
     IF(f%MAG%MIS) THEN
