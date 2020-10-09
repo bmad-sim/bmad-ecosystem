@@ -90,6 +90,63 @@ contains
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
+! Subroutine pmd_init_compound_complex(complex_t)
+!
+! Routine to initialize complex data handling using a compound data type.
+! Use complex_t in calls to read and write complex data.
+!
+! Note: Use pmd_kill_compound_complex to reclaim allocated memory.
+!
+! Output:
+!   complex_t -- integer(hid_t): Complex compound data type identifier.
+!-
+
+subroutine pmd_init_compound_complex(complex_t)
+
+integer(hid_t) :: complex_t, re_t
+integer hdferr
+integer(size_t) offset, re_size
+
+! 
+
+re_t = H5kind_to_type(rp, H5_REAL_KIND)
+re_size = storage_size(1_rp) / 8
+
+call H5Tcreate_f (H5T_COMPOUND_F, 2*re_size, complex_t, hdferr)
+offset = 0
+call H5Tinsert_f (complex_t, "r", offset, re_t, hdferr)
+call H5Tinsert_f (complex_t, "i", re_size, re_t, hdferr)
+
+end subroutine pmd_init_compound_complex
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine pmd_kill_compound_complex(complex_t)
+!
+! Routine to do memory cleanup for complex data handling using a compound data type.
+! Note: Use pmd_init_compound_complex to first initalize complex_t 
+!
+! Input:
+!   complex_t -- integer(hid_t): Complex compound data type identifier.
+!-
+
+subroutine pmd_kill_compound_complex(complex_t)
+
+integer(hid_t) :: complex_t
+integer hdferr
+
+! 
+
+call h5tclose_f(complex_t, hdferr)
+
+end subroutine pmd_kill_compound_complex
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
 ! Subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 1.
@@ -478,13 +535,14 @@ end subroutine pmd_write_real_to_pseudo_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 1.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
+!   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:)            -- complex(rp): Array to hold the data. Must be of the correct size.
@@ -493,21 +551,25 @@ end subroutine pmd_write_real_to_pseudo_dataset
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-complex(rp) array(:)
+complex(rp) array(:), cc(size(array,1))
 integer h5_err
-integer(hid_t) :: root_id, z_id
+integer(hid_t) :: root_id, dspace_id, z_id, complex_t
+integer(hsize_t) dims(1)
 character(*) dataset_name, bmad_name
 logical err, error
 
-!
+! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-call h5gcreate_f(root_id, dataset_name, z_id, h5_err)
-call pmd_write_real_to_dataset (z_id, 'r', 'real', unit, real(array), err)
-call pmd_write_real_to_dataset (z_id, 'i', 'imaginary', unit, aimag(array), err)
-call h5gclose_f(z_id, h5_err)
+dims = size(array)
+call H5Screate_simple_f(1, dims, dspace_id, h5_err)  ! Create dataspace
+call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
+cc = array
+call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
 end subroutine pmd_write_complex_to_dataset_rank1
 
@@ -515,13 +577,14 @@ end subroutine pmd_write_complex_to_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 2.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
+!   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:,:)          -- complex(rp): Array to hold the data. Must be of the correct size.
@@ -530,21 +593,25 @@ end subroutine pmd_write_complex_to_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-complex(rp) array(:,:)
+complex(rp) array(:,:), cc(size(array,1),size(array,2))
 integer h5_err
-integer(hid_t) :: root_id, z_id
+integer(hid_t) :: root_id, dspace_id, z_id, complex_t
+integer(hsize_t) dims(2)
 character(*) dataset_name, bmad_name
 logical error, err
 
-!
+! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-call h5gcreate_f(root_id, dataset_name, z_id, h5_err)
-call pmd_write_real_to_dataset (z_id, 'r', 'real', unit, real(array), err)
-call pmd_write_real_to_dataset (z_id, 'i', 'imaginary', unit, aimag(array), err)
-call h5gclose_f(z_id, h5_err)
+dims = size(array)
+call H5Screate_simple_f(1, dims, dspace_id, h5_err)  ! Create dataspace
+call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
+cc = array
+call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
 end subroutine pmd_write_complex_to_dataset_rank2
 
@@ -552,13 +619,14 @@ end subroutine pmd_write_complex_to_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 3.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
+!   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
 !   bmad_name           -- character(*): Equivalent Bmad name.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:,:,:)        -- complex(rp): Array to hold the data. Must be of the correct size.
@@ -567,21 +635,25 @@ end subroutine pmd_write_complex_to_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-complex(rp) array(:,:,:)
+complex(rp) array(:,:,:), cc(size(array,1),size(array,2),size(array,3))
 integer h5_err
-integer(hid_t) :: root_id, z_id
+integer(hid_t) :: root_id, dspace_id, z_id, complex_t
+integer(hsize_t) dims(3)
 character(*) dataset_name, bmad_name
-logical error, err
+logical err, error
 
-!
+! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-call h5gcreate_f(root_id, dataset_name, z_id, h5_err)
-call pmd_write_real_to_dataset (z_id, 'r', 'real', unit, real(array), err)
-call pmd_write_real_to_dataset (z_id, 'i', 'imaginary', unit, aimag(array), err)
-call h5gclose_f(z_id, h5_err)
+dims = size(array)
+call H5Screate_simple_f(1, dims, dspace_id, h5_err)  ! Create dataspace
+call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
+cc = array
+call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
+
+call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
 end subroutine pmd_write_complex_to_dataset_rank3
 
@@ -1028,7 +1100,6 @@ endif
 !
 
 if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
-
 call hdf5_close_object(obj_id, info)
 
 end subroutine pmd_read_real_dataset_rank3
@@ -1037,7 +1108,7 @@ end subroutine pmd_read_real_dataset_rank3
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_complex_dataset_rank1 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_complex_dataset_rank1 (root_id, name, complex_t, conversion_factor, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 1.
 !
@@ -1052,34 +1123,60 @@ end subroutine pmd_read_real_dataset_rank3
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_complex_dataset_rank1 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_complex_dataset_rank1 (root_id, name, complex_t, conversion_factor, array, error)
+
+type (hdf5_info_struct) info
 
 complex(rp) array(:)
+complex(rp) :: cc(size(array,1))
 real(rp), allocatable :: re(:), im(:)
-real(rp) conversion_factor
+real(rp) conversion_factor, unit_si
 
-integer(hid_t) :: root_id, z_id
+integer(hid_t) :: root_id, z_id, complex_t
 integer h5_err
+type(c_ptr) :: f_ptr
 
 logical error, err
 
 character(*) name
-character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank1'
+character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
 
-!
+! Non-compound data means old format
 
 error = .true.
 
-allocate (re(size(array)), im(size(array)))
+info = hdf5_object_info(root_id, name, error, .true.)
 
-call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
-call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
-call h5gclose_f(z_id, h5_err)
+if (info%data_class_type /= H5T_COMPOUND_F) then
+  allocate (re(size(array,1)), im(size(array,1)))
 
-array = cmplx(re, im, rp)
+  call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
+  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
+  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+  call h5gclose_f(z_id, h5_err)
 
-error = .false.
+  array = cmplx(re, im, rp)
+  error = .false.
+  return
+endif
+
+! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
+
+if (info%data_dim(1) /= size(array)) then
+  call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
+  return
+endif
+
+z_id = hdf5_open_object(root_id, name, info, error, .true.)
+
+f_ptr = c_loc(cc)
+call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
+array = cc
+
+call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
+call hdf5_close_object(z_id, info)
 
 end subroutine pmd_read_complex_dataset_rank1
 
@@ -1087,7 +1184,7 @@ end subroutine pmd_read_complex_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_complex_dataset_rank2 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 2.
 !
@@ -1102,34 +1199,60 @@ end subroutine pmd_read_complex_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_complex_dataset_rank2 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, array, error)
+
+type (hdf5_info_struct) info
 
 complex(rp) array(:,:)
+complex(rp) :: cc(size(array,1), size(array,2))
 real(rp), allocatable :: re(:,:), im(:,:)
-real(rp) conversion_factor
+real(rp) conversion_factor, unit_si
 
-integer(hid_t) :: root_id, z_id
+integer(hid_t) :: root_id, z_id, complex_t
 integer h5_err
+type(c_ptr) :: f_ptr
 
 logical error, err
 
 character(*) name
-character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank2'
+character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
 
-!
+! Non-compound data means old format
 
 error = .true.
 
-allocate (re(size(array,1), size(array,2)), im(size(array,1), size(array,2)))
+info = hdf5_object_info(root_id, name, error, .true.)
 
-call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
-call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
-call h5gclose_f(z_id, h5_err)
+if (info%data_class_type /= H5T_COMPOUND_F) then
+  allocate (re(size(array,1), size(array,2)), im(size(array,1), size(array,2)))
 
-array = cmplx(re, im, rp)
+  call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
+  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
+  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+  call h5gclose_f(z_id, h5_err)
 
-error = .false.
+  array = cmplx(re, im, rp)
+  error = .false.
+  return
+endif
+
+! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
+
+if (info%data_dim(1) /= size(array)) then
+  call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
+  return
+endif
+
+z_id = hdf5_open_object(root_id, name, info, error, .true.)
+
+f_ptr = c_loc(cc)
+call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
+array = cc
+
+call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
+call hdf5_close_object(z_id, info)
 
 end subroutine pmd_read_complex_dataset_rank2
 
@@ -1137,7 +1260,7 @@ end subroutine pmd_read_complex_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_read_complex_dataset_rank3 (root_id, name, conversion_factor, array, error)
+! Subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, array, error)
 !
 ! Routine to read an openpmd formatted dataset of rank 3.
 !
@@ -1152,34 +1275,60 @@ end subroutine pmd_read_complex_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_read_complex_dataset_rank3 (root_id, name, conversion_factor, array, error)
+subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, array, error)
+
+type (hdf5_info_struct) info
 
 complex(rp) array(:,:,:)
+complex(rp) :: cc(size(array,1), size(array,2), size(array,3))
 real(rp), allocatable :: re(:,:,:), im(:,:,:)
-real(rp) conversion_factor
+real(rp) conversion_factor, unit_si
 
-integer(hid_t) :: root_id, z_id
+integer(hid_t) :: root_id, z_id, complex_t
 integer h5_err
+type(c_ptr) :: f_ptr
 
 logical error, err
 
 character(*) name
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
 
-!
+! Non-compound data means old format
 
 error = .true.
 
-allocate (re(size(array,1), size(array,2), size(array,3)), im(size(array,1), size(array,2), size(array,3)))
+info = hdf5_object_info(root_id, name, error, .true.)
 
-call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
-call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
-call h5gclose_f(z_id, h5_err)
+if (info%data_class_type /= H5T_COMPOUND_F) then
+  allocate (re(size(array,1), size(array,2), size(array,3)), im(size(array,1), size(array,2), size(array,3)))
 
-array = cmplx(re, im, rp)
+  call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
+  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
+  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+  call h5gclose_f(z_id, h5_err)
 
-error = .false.
+  array = cmplx(re, im, rp)
+  error = .false.
+  return
+endif
+
+! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
+
+if (info%data_dim(1) /= size(array)) then
+  call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
+  return
+endif
+
+z_id = hdf5_open_object(root_id, name, info, error, .true.)
+
+f_ptr = c_loc(cc)
+call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
+array = cc
+
+call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
+if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
+call hdf5_close_object(z_id, info)
 
 end subroutine pmd_read_complex_dataset_rank3
 

@@ -24,18 +24,20 @@ integer, parameter :: H5O_TYPE_ATTRIBUTE_F = 123
 ! %element_type identifies the type of element (group, dataset or attribute) can be:
 !   H5O_TYPE_GROUP_F
 !   H5O_TYPE_DATASET_F
-!   H5O_TYPE_ATTRIBUTE_F   ! Defined by bmad. Not by HDF5.
+!   H5O_TYPE_ATTRIBUTE_F   ! Defined by Bmad. Not by HDF5.
 !   Anything else is not useful.
 !
-! %data_type identifies the type of the underlying data. Not relavent for groups. can be:
+! %data_class_type identifies the type of the underlying data. Not relavent for groups. can be:
 !   H5T_FLOAT_F
 !   H5T_INTEGER_F
 !   H5T_STRING_F
+!   H5T_COMPOUND_F      ! A compound type is used for storing complex numbers.
 !   Anything else is not useful.
+! For further info see the HDF5 "Datatype Interface API" help.
 
 type hdf5_info_struct
   integer :: element_type = -1         ! Type of the element. See above.
-  integer :: data_type = -1            ! Type of associated data. Not used for groups. See above.
+  integer :: data_class_type = -1      ! Class type of associated data. Not used for groups. See above.
   integer(hsize_t) :: data_dim(3) = 0  ! Dimensions. Not used for groups. EG: Scaler data has [1, 0, 0].
   integer(size_t) :: data_size = -1    ! Size of datums. Not used for groups. For strings size = # of characters.
   integer :: num_attributes = -1       ! Number of associated attributes. Used for groups and datasets only.
@@ -164,59 +166,6 @@ interface hdf5_write_attribute_int
 end interface
 
 contains
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine hdf5_init_compound_complex(complex_t)
-!
-! Routine to initialize complex data handling using a compound data type.
-! Note: Use hdf5_kill_compound_complex to reclaim allocated memory.
-!
-! Output:
-!   complex_t -- integer(hid_t): Complex compound data type identifier.
-!-
-
-subroutine hdf5_init_interface(complex_t)
-
-integer(hid_t) :: complex_t
-integer hdferr
-integer(size_t) offset
-
-! 
-
-call h5tcreate_f (H5T_COMPOUND_F, sizeof(H5T_FLOAT_F)*2, complex_t, hdferr)
-offset = 0
-call h5tinsert_f (complex_t, "r", offset, H5T_NATIVE_REAL, hdferr)
-offset = sizeof(H5T_NATIVE_REAL)
-call h5tinsert_f (complex_t, "i", offset, H5T_NATIVE_REAL, hdferr)
-
-end subroutine hdf5_init_interface
-
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!------------------------------------------------------------------------------------------
-!+
-! Subroutine hdf5_kill_compound_complex(complex_t)
-!
-! Routine to do memory cleanup for complex data handling using a compound data type.
-! Note: Use hdf5_init_compound_complex to first initalize complex_t 
-!
-! Input:
-!   complex_t -- integer(hid_t): Complex compound data type identifier.
-!-
-
-subroutine hdf5_kill_interface(complex_t)
-
-integer(hid_t) :: complex_t
-integer hdferr
-
-! 
-
-call h5tclose_f(complex_t, hdferr)
-
-end subroutine hdf5_kill_interface
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -867,7 +816,7 @@ if (.not. exists .or. h5_err == -1) then
   return
 endif
 
-call H5LTget_attribute_info_f(root_id, '.', attrib_name, info%data_dim, info%data_type, info%data_size, h5_err)
+call H5LTget_attribute_info_f(root_id, '.', attrib_name, info%data_dim, info%data_class_type, info%data_size, h5_err)
 info%element_type = H5O_TYPE_ATTRIBUTE_F
 
 if (h5_err < 0) then
@@ -918,7 +867,7 @@ info%element_type = infobuf%type
 info%num_attributes = infobuf%num_attrs
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  call H5LTget_dataset_info_f(root_id, obj_name, info%data_dim, info%data_type, info%data_size, h5_err)
+  call H5LTget_dataset_info_f(root_id, obj_name, info%data_dim, info%data_class_type, info%data_size, h5_err)
 endif
 
 error = .false.
@@ -1002,7 +951,7 @@ attrib_value = integer_option(0, dflt_value)
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
-if (info%data_type == H5T_INTEGER_F) then
+if (info%data_class_type == H5T_INTEGER_F) then
   call H5LTget_attribute_int_f(root_id, '.', attrib_name, attrib_value, h5_err)
 else
   if (print_error) call out_io (s_error$, r_name, 'ATTRIBUTE IS NOT OF INTEGER TYPE: ' // attrib_name)
@@ -1097,7 +1046,7 @@ error = .true.
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 if (error) return
 
-if (info%data_type == H5T_INTEGER_F .or. info%data_type == H5T_FLOAT_F) then
+if (info%data_class_type == H5T_INTEGER_F .or. info%data_class_type == H5T_FLOAT_F) then
   call H5LTget_attribute_double_f(root_id, '.', attrib_name, attrib_value, h5_err)
 else
   if (print_error) call out_io (s_error$, r_name, 'ATTRIBUTE IS NOT OF REAL TYPE: ' // attrib_name)
@@ -1144,7 +1093,7 @@ character(*), parameter :: r_name = 'hdf5_read_attribute_alloc_string'
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
-if (info%data_type /= H5T_STRING_F) then
+if (info%data_class_type /= H5T_STRING_F) then
   if (print_error) then
     call out_io (s_error$, r_name, 'ATTRIBUTE: ' // attrib_name, 'IS NOT A STRING!')
   endif
@@ -1204,7 +1153,7 @@ string = ''
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 
-if (info%data_type /= H5T_STRING_F) then
+if (info%data_class_type /= H5T_STRING_F) then
   if (print_error) then
     call out_io (s_error$, r_name, 'ATTRIBUTE: ' // attrib_name, 'IS NOT A STRING!')
   endif

@@ -27,7 +27,7 @@ type (grid_field_pt1_struct), pointer :: gptr(:,:,:)
 type (ele_struct) ele
 
 integer i, j, k, n, ix, im, ig, igf, h5_err, indx(3)
-integer(hid_t) f_id, r_id, b_id, b2_id, z_id
+integer(hid_t) f_id, r_id, b_id, b2_id, z_id, complex_t
 logical err_flag, err
 
 character(*) file_name
@@ -40,6 +40,7 @@ character(8) :: B_name(3), E_name(3)
 
 err_flag = .true.
 call hdf5_open_file (file_name, 'WRITE', f_id, err);  if (err) return
+call pmd_init_compound_complex(complex_t)
 
 call date_and_time_stamp (date_time, .true., .true.)
 root_path = '/ExternalFieldMesh/'
@@ -117,21 +118,22 @@ do igf = 1, size(g_field)
 
   if (gf%field_type == magnetic$ .or. gf%field_type == mixed$) then
     do i = 1, 3
-      call pmd_write_complex_to_dataset (b2_id, B_name(i), B_name(i), unit_tesla, gptr%B(i), err)
+      call pmd_write_complex_to_dataset (b2_id, B_name(i), complex_t, B_name(i), unit_tesla, gptr%B(i), err)
     enddo
   endif
 
   if (gf%field_type == electric$ .or. gf%field_type == mixed$) then
     do i = 1, 3
-      call pmd_write_complex_to_dataset (b2_id, E_name(i), E_name(i), unit_V_per_m, gptr%E(i), err)
+      call pmd_write_complex_to_dataset (b2_id, E_name(i), complex_t, E_name(i), unit_V_per_m, gptr%E(i), err)
     enddo
   endif
 
   call h5gclose_f(b2_id, h5_err)
 enddo
 
-
 call h5gclose_f(b_id, h5_err)
+
+call pmd_kill_compound_complex(complex_t)
 call h5fclose_f(f_id, h5_err)
 
 err_flag = .false.

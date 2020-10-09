@@ -30,7 +30,7 @@ type (pmd_header_struct), optional :: pmd_header
 type (pmd_header_struct) :: pmd_head
 type(H5O_info_t) :: infobuf 
 
-integer(hid_t) f_id, f2_id, z_id
+integer(hid_t) f_id, f2_id, z_id, complex_t
 integer i, j, k, it, n0(3), n1(3), iver, h5_err, n_grid, storage_type, max_corder
 integer n_links, h5_stat
 integer(hsize_t) idx
@@ -48,6 +48,7 @@ character(*), parameter :: r_name = 'hdf5_read_grid_field'
 
 err_flag = .true.
 call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
+call pmd_init_compound_complex(complex_t)
 
 call hdf5_read_attribute_alloc_string (f_id, 'externalFieldPath', pmd_head%basePath, err, .true.);         if (err) return
 call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_head%openPMD, err, .true.);                    if (err) return
@@ -97,7 +98,9 @@ enddo
 
 !
 
+call pmd_kill_compound_complex(complex_t)
 call h5fclose_f(f_id, h5_err)
+
 err_flag = .false.
 
 !--------------------------------------------------------------------------------
@@ -220,13 +223,13 @@ e_field_here = .false.
 
 do i = 1, 3
   if (hdf5_exists(root_id, B_name(i), error, .false.)) then
-    call pmd_read_complex_dataset(root_id, trim(B_name(i)), 1.0_rp, gptr%B(i), error)
+    call pmd_read_complex_dataset(root_id, trim(B_name(i)), complex_t, 1.0_rp, gptr%B(i), error)
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%B(i) = gptr(:,1,:)%B(i)
     b_field_here = .true.
   endif
 
   if (hdf5_exists(root_id, E_name(i), error, .false.)) then
-    call pmd_read_complex_dataset(root_id, trim(E_name(i)), 1.0_rp, gptr%E(i), error)
+    call pmd_read_complex_dataset(root_id, trim(E_name(i)), complex_t, 1.0_rp, gptr%E(i), error)
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%E(i) = gptr(:,1,:)%E(i)
     e_field_here = .true.
   endif
