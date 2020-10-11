@@ -15,7 +15,7 @@ real(rp) ke1(0:n_pole_maxx), te1(0:n_pole_maxx), ke2(0:n_pole_maxx), te2(0:n_pol
 real(rp) dtm, dte, fn, tilt
 
 integer i, ie, iu, ik, ix_pole_max, include_kicks
-integer, parameter :: inc_kick(3) = [no$, include_kicks$, include_kicks_except_k1$]
+integer, parameter :: inc_kick(2) = [no$, include_kicks$]
 
 logical use_ele_tilt
 character(3) str
@@ -43,7 +43,7 @@ do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
 
   do iu = 1, 2
-  do ik = 1, 3
+  do ik = 1, 2
     use_ele_tilt = (iu == 2)
     include_kicks = inc_kick(ik)
     str = int_str(iu) // int_str(ik) // '-'
