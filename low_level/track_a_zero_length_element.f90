@@ -32,7 +32,8 @@ real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), amp
 integer ix_pole_max
 logical err_flag
 
-!
+! Since Bmad always uses electric field parameters and never integrated electric field parameters,
+! the kick due to any electric field over zero length must be zero.
 
 if (present(track)) call save_a_step (track, ele, param, .false., start_orb, 0.0_rp)
 
@@ -48,7 +49,7 @@ call apply_element_edge_kick(end_orb, fringe_info, ele, param, .false.)
 call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
 if (ix_pole_max > -1) then
   amp = ac_kicker_amp(ele, end_orb)
-  call ab_multipole_kicks (an, bn, param%particle, ele, end_orb, magnetic$, amp)
+  call ab_multipole_kicks (an, bn, ix_pole_max, param%particle, ele, end_orb, magnetic$, amp)
 endif
 
 !

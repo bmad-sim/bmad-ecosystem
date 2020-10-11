@@ -112,7 +112,6 @@ end subroutine multipole1_ab_to_kt
 !            no$                      -- Default. Do not include any kick components in a and b multipoles. 
 !            include_kicks$           -- Include hkick/vkick in the n = 0 components.
 !                                           Also included are quad k1, sextupole k2 and octupole k3 components.
-!            include_kicks_except_k1$ -- Like include_kicks$ but no k1 component is included.
 !
 ! Output:
 !   ix_pole_max         -- Integer: Index of largest nonzero pole.
@@ -260,10 +259,10 @@ end subroutine multipole1_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)
+! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
-! Note: The ab values will be scalled by the strength of the element.
+! Note: The ab values will be scalled by the strength of the element if scale_multipole = T is set for the element.
 !
 ! Input:
 !   ele           -- ele_struct: Element.
@@ -276,22 +275,25 @@ end subroutine multipole1_kt_to_ab
 !            no$                      -- Default. Do not include any kick components in a and b multipoles. 
 !            include_kicks$           -- Include hkick/vkick in the n = 0 components.
 !                                           Also included are quad k1, sextupole k2 and octupole k3 components.
-!            include_kicks_except_k1$ -- Like include_kicks$ but no k1 component is included.
 !
 ! Output:
-!   ix_pole_max      -- Integer: Index of largest nonzero pole. Set to -1 if all multipoles are zero.
-!   a(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
-!   b(0:n_pole_maxx) -- real(rp): Array of scalled multipole values.
+!   ix_pole_max       -- Integer: Index of largest nonzero pole. Set to -1 if all multipoles are zero.
+!   a(0:n_pole_maxx)  -- real(rp): Array of scalled multipole values.
+!   b(0:n_pole_maxx)  -- real(rp): Array of scalled multipole values.
+!   b1                -- real(rp), optional: If present and True then b1 is set to the value of the b(1) component
+!                         of the b(:) array and b(1) is set to zero. Also ix_pole_max is ajusted as needed.
+!                         This is used by routines that want to handle b(1) in a special way in tracking.
 !-
 
-subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)
+recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (multipole_cache_struct), pointer :: cache
 
-real(rp) const, radius, factor, a(0:), b(0:)
-real(rp) this_a_kick(0:3), this_b_kick(0:3), a_kick(0:3), b_kick(0:3)
+real(rp) a(0:), b(0:)
+real(rp), optional :: b1
+real(rp) const, radius, factor, k1_lord, this_a_kick(0:3), this_b_kick(0:3), a_kick(0:3), b_kick(0:3)
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp), pointer :: a_pole(:), b_pole(:), ksl_pole(:)
 
@@ -307,17 +309,19 @@ character(*), parameter :: r_name = 'multipole_ele_to_ab'
 
 a = 0
 b = 0
+if (present(b1)) b1 = 0
 ix_pole_max = -1
 
 if (.not. ele%is_on) return
 
 ! Use cache if possible. 
 ! Caching requires intelligent bookkeeping to mark when the cache goes stale.
-! Since most calls to this routine have use_ele_tilt = False, do not cache if use_ele_tilt = True.
 
 p_type = integer_option(magnetic$, pole_type)
 include_kck = integer_option(no$, include_kicks)
 can_use_cache = (.not. bmad_com%auto_bookkeeper)
+
+! Note: slice_slave and super_slave elements have multipoles stored in their lords.
 
 cache => ele%multipole_cache
 if (can_use_cache .and. allocated(ele%multipole_cache)) then
@@ -326,33 +330,28 @@ if (can_use_cache .and. allocated(ele%multipole_cache)) then
     b = cache%b_pole_mag
     ix_pole_max = cache%ix_pole_mag_max
 
-    if (cache%ix_kick_mag_max > -1) then
-      select case (include_kck)
-      case (include_kicks$)
-        a(0:3) = a(0:3) + cache%a_kick_mag
-        b(0:3) = b(0:3) + cache%b_kick_mag
-        ix_pole_max = max(ix_pole_max, cache%ix_kick_mag_max)
-      case (include_kicks_except_k1$)
-        a([0,2,3]) = a([0,2,3]) + cache%a_kick_mag([0,2,3])
-        b([0,2,3]) = b([0,2,3]) + cache%b_kick_mag([0,2,3])
-        ix_pole_max = max(ix_pole_max, cache%ix_kick_mag_max)
-      end select
+    if (cache%ix_kick_mag_max > -1 .and. include_kck == include_kicks$) then
+      a(0:3) = a(0:3) + cache%a_kick_mag
+      b(0:3) = b(0:3) + cache%b_kick_mag
+      ix_pole_max = max(ix_pole_max, cache%ix_kick_mag_max)
     endif
 
-    if (use_ele_tilt) call tilt_this_multipole(ele, a, b, ix_pole_max)
+    if (use_ele_tilt) call tilt_this_multipole(ele, +1, a, b, ix_pole_max)
+    if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
     return
 
   elseif (p_type == electric$ .and. cache%ix_pole_elec_max /= invalid$) then
     a = cache%a_pole_elec
     b = cache%b_pole_elec
     ix_pole_max = cache%ix_pole_elec_max
-    if (cache%ix_kick_elec_max > -1 .and. include_kck /= no$) then
+    if (cache%ix_kick_elec_max > -1 .and. include_kck == include_kicks$) then
       a(0) = a(0) + cache%a_kick_elec(0)
       b(0) = b(0) + cache%b_kick_elec(0)
       ix_pole_max = max(ix_pole_max, cache%ix_kick_elec_max)
     endif
 
-    if (use_ele_tilt) call tilt_this_multipole(ele, a, b, ix_pole_max)
+    if (use_ele_tilt) call tilt_this_multipole(ele, +1, a, b, ix_pole_max)
+    if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
     return
   endif
 endif
@@ -373,20 +372,31 @@ if (ele%key == multipole$) then
   ix_pole_max = max_nonzero(0, a, b)
 
   if (can_use_cache) call load_this_cache(cache, p_type, ix_pole_max, a, b, a_kick, b_kick)
+  if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
   return
 endif
 
-! Slice slaves and super slaves have their associated multipoles stored in the lord
+! Slice slaves and super slaves have their associated multipoles stored in the lord.
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+  ! Easy case
+  if (ele%n_lord == 1) then
+    lord => pointer_to_lord(ele, 1)
+    call multipole_ele_to_ab (lord, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)
+    if (p_type == magnetic$ .and. ix_pole_max > -1) then
+      n = ix_pole_max
+      a(0:n) = a(0:n) * (ele%value(l$) / lord%value(l$))
+      b(0:n) = b(0:n) * (ele%value(l$) / lord%value(l$))
+    endif
+    if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
+    return
+  endif
+  ! Not so easy case
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
     if (.not. lord%is_on) cycle
-
-    call pointer_to_ele_multipole (lord, a_pole, b_pole, ksl_pole, pole_type)
-    if (.not. lord%multipoles_on .or. .not. associated(a_pole)) cycle
-    call convert_this_ab (lord, p_type, a_pole, b_pole, this_a, this_b)
+    call multipole_ele_to_ab (lord, .true., n, this_a, this_b, pole_type, include_kicks)
     if (p_type == magnetic$) then
       a = a + this_a * (ele%value(l$) / lord%value(l$))
       b = b + this_b * (ele%value(l$) / lord%value(l$))
@@ -394,48 +404,47 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
       a = a + this_a
       b = b + this_b
     endif
+    ix_pole_max = max(ix_pole_max, n)
   enddo
+
+  if (.not. use_ele_tilt) call tilt_this_multipole(ele, -1, a, b, ix_pole_max)
+  if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
+  return
+endif
 
 ! Not a slave
 
-else
-  call pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
-  if (ele%multipoles_on .and. associated(a_pole)) then
-    call convert_this_ab (ele, p_type, a_pole, b_pole, a, b)
-  endif
+call pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
+if (ele%multipoles_on .and. associated(a_pole)) then
+  call convert_this_ab (ele, p_type, a_pole, b_pole, a, b)
 endif
 
-!
-
-call this_multipole_kick (ele, a_kick, b_kick)
+call this_ele_non_multipoles (ele, a_kick, b_kick)
 
 ix_pole_max = max_nonzero(0, a, b)
 if (can_use_cache) call load_this_cache(cache, p_type, ix_pole_max, a, b, a_kick, b_kick)
 
-if (include_kck == include_kicks_except_k1$) then
-  a_kick(1) = 0
-  b_kick(1) = 0
-endif
-
-if (include_kck /= no$) then
+if (include_kck == include_kicks$) then
   a(0:3) = a(0:3) + a_kick
   b(0:3) = b(0:3) + b_kick
-  ix_pole_max = max(ix_pole_max, max_nonzero(0, a_kick, b_kick))
 endif
 
-if (use_ele_tilt) call tilt_this_multipole(ele, a, b, ix_pole_max)
+ix_pole_max = max_nonzero(0, a, b)
+
+if (use_ele_tilt) call tilt_this_multipole(ele, +1, a, b, ix_pole_max)
+if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
 
 !---------------------------------------------
 contains
 
-subroutine this_multipole_kick (ele, a_kick, b_kick)
+subroutine this_ele_non_multipoles (ele, a_kick, b_kick)
 
 type (ele_struct) ele
 
 real(rp) a_kick(0:3), b_kick(0:3)
 real(rp) an, bn, hk, vk, tilt, sin_t, cos_t
 
-! Express multipoles in ele element body frame
+! Express non-multipoles in element body frame.
 
 a_kick = 0
 b_kick = 0
@@ -508,26 +517,26 @@ case default
   end select
 end select
 
-end subroutine this_multipole_kick
+end subroutine this_ele_non_multipoles
 
 !---------------------------------------------
 ! contains
 
 ! Tilt from element body coords to laboratory coords
 
-subroutine tilt_this_multipole (ele, a, b, ix_pole_max)
+subroutine tilt_this_multipole (ele, sgn, a, b, ix_pole_max)
 
 type (ele_struct) ele
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) tilt, an, bn, sin_t, cos_t
-integer ix_pole_max, n
+integer sgn, ix_pole_max, n
 
 !
 
 if (ele%key == sbend$) then
-  tilt = ele%value(ref_tilt_tot$)
+  tilt = sgn * ele%value(ref_tilt_tot$)
 else
-  tilt = ele%value(tilt_tot$) 
+  tilt = sgn * ele%value(tilt_tot$) 
 endif
 
 if (tilt == 0) return
@@ -718,6 +727,23 @@ end select
 
 end subroutine load_this_cache
 
+!---------------------------------------------
+! contains
+
+function pull_this_b1 (a, b, ix_pole_max) result (b1)
+
+real(rp) a(0:), b(0:), b1
+integer ix_pole_max
+
+!
+
+b1 = b(1)
+b(1) = 0
+if (ix_pole_max > 1) return
+ix_pole_max = max_nonzero(0, a(0:1), b(0:1))
+
+end function pull_this_b1
+
 end subroutine multipole_ele_to_ab
 
 !------------------------------------------------------------------------
@@ -768,7 +794,7 @@ end subroutine multipole_kicks
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kicks (an, bn, ref_species, ele, orbit, pole_type, scale, mat6, make_matrix)
+! Subroutine ab_multipole_kicks (an, bn, ix_pole_max, ref_species, ele, orbit, pole_type, scale, mat6, make_matrix)
 !
 ! Routine to put in the kick due to ab_multipole components.
 ! The kick will be corrected for the orientation of the element and the particle direction of travel.
@@ -776,6 +802,7 @@ end subroutine multipole_kicks
 ! Input:
 !   an(0:)         -- real(rp): Skew multipole strengths.
 !   bn(0:)         -- real(rp): Normal multipole tilts.
+!   ix_pole_max    -- integer: Maximum pole index.
 !   ref_species    -- integer: Reference species.
 !   ele            -- ele_struct: Lattice element containing the multipoles.
 !   orbit          -- coord_struct: Particle position.
@@ -790,7 +817,7 @@ end subroutine multipole_kicks
 !   mat6(6,6)    -- Real(rp), optional: Transfer matrix transfer matrix including multipole.
 !-
 
-subroutine ab_multipole_kicks (an, bn, ref_species, ele, orbit, pole_type, scale, mat6, make_matrix)
+subroutine ab_multipole_kicks (an, bn, ix_pole_max, ref_species, ele, orbit, pole_type, scale, mat6, make_matrix)
 
 type (coord_struct)  orbit, orb0
 type (ele_struct) ele
@@ -801,7 +828,7 @@ real(rp) E0, E1, mc2
 real(rp), optional :: scale, mat6(6,6)
 
 integer, optional :: pole_type
-integer ref_species, n
+integer ix_pole_max, ref_species, n
 
 logical, optional :: make_matrix
 
@@ -812,9 +839,7 @@ ky_tot = 0
 dk_tot = 0
 orb0 = orbit
 
-do n = 0, n_pole_maxx
-  if (an(n) == 0 .and. bn(n) == 0) cycle
-
+do n = 0, ix_pole_max
   if (logic_option(.false., make_matrix)) then
     call ab_multipole_kick (an(n), bn(n), n, ref_species, ele%orientation, orbit, kx, ky, dk, pole_type = pole_type, scale = scale)
     dk_tot = dk_tot + dk
