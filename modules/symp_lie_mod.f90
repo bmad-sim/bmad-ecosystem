@@ -61,7 +61,7 @@ type (wiggler_computations_struct), pointer :: tm2(:)
 
 real(rp), optional :: mat6(6,6)
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_saved
-real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
+real(rp) g_x, g_y, b1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3, ddAz__dx_dy
 real(rp) dE_p, dpx, dpy, mc2, z_offset, orient_dir, rel_tracking_charge, charge_dir
@@ -69,7 +69,7 @@ real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_pl
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer i, n_step, key
-integer ix_pole_max, ix_elec_max
+integer ix_mag_max, ix_elec_max
 
 integer num_wig_terms  ! number of wiggler terms
 
@@ -111,13 +111,13 @@ num_wig_terms = 0
 
 ! element offset 
 
-call multipole_ele_to_ab (ele, .false., ix_pole_max, an,      bn,      magnetic$, include_kicks_except_k1$)
+call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$, b1)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 if (do_offset) call offset_particle (ele, param, set$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 
-if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  param%particle, ele, end_orb, magnetic$, 1.0_rp/2,   mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
 ! init
 
@@ -322,9 +322,9 @@ case (solenoid$, quadrupole$, sol_quad$)
   case (solenoid$)
     ks = ele%value(ks$) * rel_tracking_charge
   case (quadrupole$)
-    k1_norm = ele%value(k1$) * charge_dir 
+    k1_norm = b1 * charge_dir / ele%value(l$)
   case (sol_quad$)
-    k1_norm = ele%value(k1$) * charge_dir
+    k1_norm = b1 * charge_dir / ele%value(l$)
     ks = ele%value(ks$) * rel_tracking_charge
   end select
 
@@ -334,7 +334,6 @@ case (solenoid$, quadrupole$, sol_quad$)
   ! loop over all steps
 
   do i = 1, n_step
-
     s = s + ds2 * end_orb%direction
     ks_tot_2 = (ks + dks_ds * s) / 2
 
@@ -349,7 +348,6 @@ case (solenoid$, quadrupole$, sol_quad$)
     ks_tot_2 = (ks + dks_ds * s) / 2
 
     if (present(track)) call save_this_track_pt ()
-
   enddo
 
   call soft_quadrupole_edge_kick (ele, param, second_track_edge$, end_orb, mat6, calculate_mat6)
@@ -368,8 +366,8 @@ end select
 !----------------------------------------------------------------------------
 ! element offset
 
-if (ix_pole_max > -1) call ab_multipole_kicks (an,      bn,      param%particle, ele, end_orb, magnetic$, 1.0_rp/2,        mat6, calculate_mat6)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
+if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  param%particle, ele, end_orb, magnetic$, 1.0_rp/2,        mat6, calculate_mat6)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, param%particle, ele, end_orb, electric$, ele%value(l$)/2, mat6, calculate_mat6)
 
 if (do_offset) call offset_particle (ele, param, unset$, end_orb, mat6 = mat6, make_matrix = calculate_mat6)
 

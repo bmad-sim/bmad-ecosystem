@@ -27,7 +27,7 @@ type (lat_param_struct) :: param
 type (fringe_edge_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
-real(rp) mat6_i(6,6), rel_charge_dir, c_dir, g, g_tot, dg, k_1, r_step, step_len, angle
+real(rp) mat6_i(6,6), rel_charge_dir, c_dir, g, g_tot, dg, b1, r_step, step_len, angle
 real(rp) pz, rel_p, rel_p2, x, px, y, py, z, pt, phi_1, sin_plus, cos_plus, alpha, L_p, L_c, g_p
 real(rp) sinc_a, r, rad, denom, L_v, L_u, dalpha, dx2, dL_c, dL_p, dphi_1, dpt, dg_p, angle_p
 real(rp) cos_a, sin_a, dL_u, dL_v, dangle_p, beta_ref
@@ -57,13 +57,13 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 g = ele%value(g$)
 g_tot = (g + ele%value(dg$)) * rel_charge_dir
 dg = g_tot - g
-k_1 = ele%value(k1$) * rel_charge_dir
 
 if (nint(ele%value(exact_multipoles$)) /= off$) then
-  k_1 = 0  ! Is folded in with multipoles.
   call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$)
+  b1 = 0  ! Is folded in with multipoles.
 else
-  call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks_except_k1$)
+  call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$, b1)
+  b1 = b1 * rel_charge_dir
 endif
 
 call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
@@ -71,7 +71,7 @@ call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 if (.not. ele%is_on) then
   dg = -g
   g_tot = 0
-  k_1 = 0
+  b1 = 0
 endif
 
 ! multipole kick at the beginning.
@@ -95,8 +95,8 @@ do n = 1, n_step
 
   ! with k1 /= 0 use small angle approximation
 
-  if (k_1 /= 0) then
-    call sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
+  if (b1 /= 0) then
+    call sbend_body_with_k1_map (ele, b1, param, n_step, orbit, mat6, make_matrix)
     orbit%vec(5) = orbit%vec(5) + low_energy_z_correction(orbit, ele, step_len, mat6, make_matrix)
 
   elseif ((g == 0 .and. dg == 0) .or. step_len == 0) then
@@ -416,13 +416,14 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
+! Subroutine sbend_body_with_k1_map (ele, b1, param, n_step, orbit, mat6, make_matrix)
 !
 ! Subroutine to calculate for a single step the transfer matrix and/or 
 ! ending coordinates for a sbend with a finite k1 but without a tilt.
 !
 ! Input:
 !   ele          -- Ele_struct: Sbend element.
+!   b1           -- real(rp): b1 quadrupole strength * rel_charge_dir
 !   param        -- Lat_param_struct: Branch parameters.
 !   n_step       -- Integer: Number of steps to divide the bend into.
 !                     Only one step is taken by this routine.
@@ -435,7 +436,7 @@ end subroutine track_a_bend
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix with body added in.
 !-
 
-subroutine sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
+subroutine sbend_body_with_k1_map (ele, b1, param, n_step, orbit, mat6, make_matrix)
 
 use bmad, except_dummy => sbend_body_with_k1_map
 
@@ -448,7 +449,7 @@ type (coord_struct) orbit
 real(rp), optional :: mat6(6,6)
 real(rp) mat6_i(6,6)
 real(rp) g, dg, length
-real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, s_y, c_y, r(6)
+real(rp) b1, k1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, s_y, c_y, r(6)
 real(rp) z0, z1, z2, z11, z12, z22, z33, z34, z44
 real(rp) dom_x, dom_xx, dx_c, dc_x, ds_x, dom_y, dom_yy, dc_y, ds_y, dcs_x, dcs_y
 real(rp) g_tot, rel_p, rel_p2, rel_charge_dir
@@ -461,11 +462,11 @@ logical, optional :: make_matrix
 
 rel_charge_dir = rel_tracking_charge_to_mass(orbit, param) * ele%orientation * orbit%direction
 
-k_1 = ele%value(k1$) * rel_charge_dir
 g = ele%value(g$)
 g_tot = (g + ele%value(dg$)) * rel_charge_dir
 dg = g_tot - g
 length = ele%value(l$) / n_step
+k1 = b1 / ele%value(l$)
 
 !
 
@@ -474,14 +475,14 @@ rel_p = (1 + orbit%vec(6))
 rel_p2 = rel_p**2
 
 
-k_x = k_1 + g * g_tot
+k_x = k1 + g * g_tot
 x_c = (g * rel_p - g_tot) / k_x
 
 om_x = sqrt(abs(k_x) / rel_p)
-om_y = sqrt(abs(k_1) / rel_p)
+om_y = sqrt(abs(k1) / rel_p)
 
 tau_x = -sign (1.0_rp, k_x)
-tau_y =  sign (1.0_rp, k_1)
+tau_y =  sign (1.0_rp, k1)
 
 arg = om_x * length
 if (arg < 1d-6) then
@@ -502,7 +503,7 @@ arg = om_y * length
 if (arg < 1d-6) then
   s_y = (1 + tau_y * arg**2 / 6) * length
   c_y = 1 + tau_y * arg**2 / 2
-elseif (k_1 < 0) then
+elseif (k1 < 0) then
   s_y = sin(om_y * length) / om_y
   c_y = cos(om_y * length)
 else

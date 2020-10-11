@@ -1758,13 +1758,14 @@ subroutine save_bunch_track (bunch, ele, s_travel)
   real(rp) s_travel
 end subroutine
 
-subroutine sbend_body_with_k1_map (ele, param, n_step, orbit, mat6, make_matrix)
+subroutine sbend_body_with_k1_map (ele, k_1, param, n_step, orbit, mat6, make_matrix)
   import
   implicit none
   type (ele_struct) ele
   type (lat_param_struct) param
   type (coord_struct) orbit
   integer n_step
+  real(rp) k_1
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine
