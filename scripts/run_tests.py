@@ -269,7 +269,10 @@ for test_dir in test_dir_list:
         vec_amp = math.sqrt(vec_amp)
 
       for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
-        now_val = float(now1)
+        try:
+          now_val = float(now1)
+        except:
+          now_val = 1e100
         correct_val = float(correct1)
         diff_val = abs(now_val - correct_val)
         abs_val = (abs(now_val) + abs(correct_val)) / 2
