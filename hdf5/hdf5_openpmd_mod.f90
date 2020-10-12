@@ -554,7 +554,7 @@ end subroutine pmd_write_real_to_pseudo_dataset
 subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-complex(rp) array(:), cc(size(array,1))
+complex(rp), target :: array(:), cc(size(array,1))
 integer h5_err
 integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(1)
@@ -596,7 +596,7 @@ end subroutine pmd_write_complex_to_dataset_rank1
 subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-complex(rp) array(:,:), cc(size(array,1),size(array,2))
+complex(rp), target :: array(:,:), cc(size(array,1),size(array,2))
 integer h5_err
 integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(2)
@@ -638,7 +638,7 @@ end subroutine pmd_write_complex_to_dataset_rank2
 subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
 
 type (pmd_unit_struct) unit
-complex(rp) array(:,:,:), cc(size(array,1),size(array,2),size(array,3))
+complex(rp), target :: array(:,:,:), cc(size(array,1),size(array,2),size(array,3))
 integer h5_err
 integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(3)
@@ -1128,7 +1128,7 @@ subroutine pmd_read_complex_dataset_rank1 (root_id, name, complex_t, conversion_
 type (hdf5_info_struct) info
 
 complex(rp) array(:)
-complex(rp) :: cc(size(array,1))
+complex(rp), target :: cc(size(array,1))
 real(rp), allocatable :: re(:), im(:)
 real(rp) conversion_factor, unit_si
 
@@ -1204,7 +1204,7 @@ subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_
 type (hdf5_info_struct) info
 
 complex(rp) array(:,:)
-complex(rp) :: cc(size(array,1), size(array,2))
+complex(rp), target :: cc(size(array,1), size(array,2))
 real(rp), allocatable :: re(:,:), im(:,:)
 real(rp) conversion_factor, unit_si
 
@@ -1280,7 +1280,7 @@ subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_
 type (hdf5_info_struct) info
 
 complex(rp) array(:,:,:)
-complex(rp) :: cc(size(array,1), size(array,2), size(array,3))
+complex(rp), target :: cc(size(array,1), size(array,2), size(array,3))
 real(rp), allocatable :: re(:,:,:), im(:,:,:)
 real(rp) conversion_factor, unit_si
 
