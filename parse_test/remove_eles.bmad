@@ -1,0 +1,34 @@
+no_digested
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+parameter[particle] = electron
+parameter[p0c] = +1e12
+
+p0: pipe, l = 1
+p1: pipe, l = 1
+f12: fork, to_line = l2
+s1: sextupole, l = 1
+q2: quad, l = 1
+q3: q2
+q4: q2
+m1: marker, superimpose, ref = p1
+m2: marker, superimpose, ref = q2
+
+l0: line = (p0)
+l0[geometry] = open
+
+l1: line = (p1, f12)
+l1[geometry] = open
+l1[beta_a] = 11
+l1[beta_b] = 11
+
+l2: line = (q2, q3, q4)
+l2[geometry] = open
+
+l3: line = (s1)
+l3[geometry] = open
+l3[beta_a] = 13
+l3[beta_b] = 13
+
+use, l0, l1, l3
