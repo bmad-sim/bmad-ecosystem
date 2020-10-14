@@ -2,15 +2,20 @@
 # dist_prefs
 # ----------
 #
-# The variables in this file control how a distribution
+# The variables in this file control how a Distribution
 # build will proceed.  It allows the user to enable and
 # disable the use and building of various support libraries
 # and to specify locations of 3rd-party libraries installed
 # by the user whose functionality is supported by the 
-# distribution code.
+# Distribution code.
 #
 # All values should be enclosed in quotes " ".
 #-----------------------------------------------------------
+
+# IMPORTANT: IF THE DISTRIBUTION HAS ALREADY BEEN COMPILED, AND
+# YOU CHANGE ANYTHING IN THIS FILE, YOU NEED TO RECOMPILE.
+# IF THE DISTRIBUTION HAS ALREADY BEEN COMPILED, TO BE SAFE, 
+# RUN THE "./util/dist_clean" SCRIPT FIRST BEFORE THE RECOMPILE.
 
 #-----------------------------------------------------------
 # Setting the variable DIST_F90_REQUEST here to the name
@@ -80,7 +85,7 @@ export ACC_ENABLE_OPENMP="N"
 # NOTE: To enable this option, OpenMPI must already be 
 #       installed on your system and be compatible with the
 #       requested Fortran compiler, or it will be built
-#       from included source code in this distribution.
+#       from included source code in this Distribution.
 #-----------------------------------------------------------
 export ACC_ENABLE_MPI="N"
 
@@ -94,7 +99,7 @@ export ACC_ENABLE_MPI="N"
 # NOTE: To enable this option, OpenMPI must already be 
 #       installed on your system and be compatible with the
 #       requested Fortran compiler, or it will be built
-#       from included source code in this distribution.
+#       from included source code in this Distribution.
 #-----------------------------------------------------------
 export ACC_FORCE_BUILTIN_MPI="N"
 
@@ -111,7 +116,7 @@ export ACC_ENABLE_GFORTRAN_OPTIMIZATION="Y"
 
 
 #-----------------------------------------------------------
-# Trying to make shared object libraries with a distribution 
+# Trying to make shared object libraries with a Distribution 
 # generates a gmake error.  This bug is being worked on and 
 # for now the making of shared object libraries is disabled. 
 # That is, static libraries will be used.
