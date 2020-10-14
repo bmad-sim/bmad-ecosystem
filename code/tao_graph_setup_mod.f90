@@ -628,7 +628,7 @@ endif
 ! automatically create more da curves based on defined curves,
 ! looping over defined styles
 
-if ( n_da > n_da_curve) then
+if (n_da > n_da_curve) then
   allocate(temp_curve(nc))
   call move_alloc(graph%curve, temp_curve)
   allocate(graph%curve(n_da + n_pa_curve))
@@ -730,15 +730,19 @@ end subroutine tao_graph_dynamic_aperture_setup
 
 subroutine tao_curve_physical_aperture_setup (curve)
 
+use wall3d_mod
+
 type (tao_curve_struct) :: curve
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele
+type (wall3d_section_struct) sec
 
-real(rp) :: x1, x2, y1, y2, phi
+real(rp) :: x1, x2, y1, y2, phi, min_angle, max_angle, angle, r_wall, dr_dtheta
 integer :: i, ap_type
 integer, parameter :: n = 25 ! points per elliptical quadrant
 character(*), parameter :: r_name = 'tao_curve_physical_aperture_setup'
+logical err
 
 ! Try to find a lattice element at s = 0 that has apertures defined
 
@@ -754,62 +758,51 @@ do i = 1, lat%n_ele_track
     if (allocated(curve%x_symb)) deallocate (curve%x_symb, curve%y_symb)
     return
   endif
-  x1 = ele%value(x1_limit$)
-  x2 = ele%value(x2_limit$)
-  y1 = ele%value(y1_limit$)
-  y2 = ele%value(y2_limit$)
+  x1 = -ele%value(x1_limit$)
+  x2 =  ele%value(x2_limit$)
+  y1 = -ele%value(y1_limit$)
+  y2 =  ele%value(y2_limit$)
   ap_type = ele%aperture_type
-  if (x1 /= 0 .or. x2 /= 0 .or. x1 /= 0 .or. x2 /= 0) exit
+  if (x1 /= 0 .and. x2 /= 0 .and. x1 /= 0 .and. x2 /= 0) exit
 enddo
 
 !
 
+min_angle = u%dynamic_aperture%param%min_angle
+max_angle = u%dynamic_aperture%param%max_angle
+
 select case(ap_type)
 case(elliptical$)
-  call alloc_curves(4*n)
-  ! draw four quadrants
-  do i=1, n
-    phi = pi/2*(i-1)/(n-1)
-    curve%x_line(i) = x1*cos(phi) 
-    curve%y_line(i) = y1*sin(phi)
-  enddo
-  do i=1, n
-    phi = pi/2*(i-1)/(n-1)
-    curve%x_line(i+n) = -x2*sin(phi) 
-    curve%y_line(i+n) =  y1*cos(phi)
-  enddo
-  do i=1, n
-    phi = pi/2*(i-1)/(n-1)
-    curve%x_line(i+2*n) =  -x2*cos(phi) 
-    curve%y_line(i+2*n) =  -y2*sin(phi)
-  enddo
-  do i=1, n
-    phi = pi/2*(i-1)/(n-1)
-    curve%x_line(i+3*n) =   x1*sin(phi) 
-    curve%y_line(i+3*n) =  -y2*cos(phi)
-  enddo
+  allocate (sec%v(1))
+  sec%v(1)%x = (x1 + x2) / 2
+  sec%v(1)%y = (y1 + y2) / 2
+  sec%v(1)%radius_x = (x2 - x1) / 2
+  sec%v(1)%radius_y = (y2 - y1) / 2
 
 case(rectangular$)
-  call alloc_curves(5)
-  curve%x_line = [x1, -x2, -x2,  x1, x1]
-  curve%y_line = [y1,  y1, -y2, -y2, y1]
+  allocate (sec%v(4))
+  sec%v(1)%x = x2;  sec%v(1)%y = y2
+  sec%v(2)%x = x1;  sec%v(2)%y = y2
+  sec%v(3)%x = x1;  sec%v(3)%y = y1
+  sec%v(4)%x = x2;  sec%v(4)%y = y1
 
 case default
   return
 end select
 
-curve%x_symb = curve%x_line
-curve%y_symb = curve%y_line
+sec%n_vertex_input = size(sec%v)
+call wall3d_section_initializer(sec, err)
 
-!-------------------------------------------------
-contains
-subroutine alloc_curves(n)
-integer :: n
-call re_allocate (curve%x_line, n)
-call re_allocate (curve%y_line, n)
-call re_allocate (curve%x_symb, n)
-call re_allocate (curve%y_symb, n)
-end subroutine alloc_curves
+call re_allocate (curve%x_line, 101)
+call re_allocate (curve%y_line, 101)
+if (allocated(curve%x_symb)) deallocate (curve%x_symb, curve%y_symb)
+
+do i = 0, 100
+  angle = (max_angle-min_angle) * i / 100.0_rp + min_angle
+  call calc_wall_radius (sec%v, cos(angle), sin(angle), r_wall, dr_dtheta)
+  curve%x_line(i+1) = cos(angle) * r_wall
+  curve%y_line(i+1) = sin(angle) * r_wall
+enddo
 
 end subroutine tao_curve_physical_aperture_setup
 
