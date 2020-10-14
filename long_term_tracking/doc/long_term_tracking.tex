@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ August 25, 2020}
+\date{David Sagan \\ October 13, 2020}
 \begin{document}
 \maketitle
 
@@ -337,7 +337,7 @@ with beam particle positions, set the \vn{beam_init} structure appropriately. Ex
 In all cases, tracking will start at the lattice element set by \vn{ltt%ele_start}.
 
 The \vn{beam_init} structure:
-\begin{example}
+\begin{code}
   type beam_init_struct
     character(200) :: position_file = ''       ! Initialization file name.
     character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "" (default).
@@ -375,7 +375,7 @@ The \vn{beam_init} structure:
                               !   If True,  the z coordinate stores the time.
                               !   If False, the z coordinate stores the s-position.
   end type
-\end{example}
+\end{code}
 
 %------------------------------------------------------------------
 \Section{Fortran Namelist Input}
@@ -710,6 +710,22 @@ end of tracking.
 
 If \vn{ltt%output_initial_position} is set to \vn{True}, additional columns will be added to the
 output particle data file to show the initial particle position and spin.
+
+%------------------------------------------------------------------
+\Section{Correcting the Orbit when Radiation Fluctuations are Present}
+\label{s:damp.orbit}
+
+When radiation damping is simulated, the closed orbit that is flat when there is no radiation will
+show a ``sawtooth" pattern. In an actual ring, this sawtooth pattern will be compensated using
+steerings.  Thus to simulate the actual ring, steerings should be added to the lattice file. This
+section shows how to calculate steering strengths using the \vn{Tao} simulation program.  If you are
+not familiar with \vn{Tao}, please see the ``Introduction and Tutorial to Bmad and Tao'' which can
+be accessed via the Bmad we page
+\begin{code}
+  https://www.classe.cornell.edu/bmad/tao.html
+\end{code}
+
+
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}
