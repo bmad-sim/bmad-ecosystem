@@ -370,8 +370,10 @@ if (ele%key == multipole$) then
   call pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
   call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
   ix_pole_max = max_nonzero(0, a, b)
-
-  if (can_use_cache) call load_this_cache(cache, p_type, ix_pole_max, a, b, a_kick, b_kick)
+  if (can_use_cache) then
+    a_kick = 0;  b_kick = 0
+    call load_this_cache(cache, p_type, ix_pole_max, a, b, a_kick, b_kick)
+  endif
   if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
   return
 endif

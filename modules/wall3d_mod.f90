@@ -378,10 +378,10 @@ endif
 err = .false.
 
 do i = 1, n-1
-  call calc_vertex_center (i, i+1, err)
+  call calc_vertex_center (v, i, i+1, err)
   if (err) return
 enddo
-call calc_vertex_center (n, 1, err)
+call calc_vertex_center (v, n, 1, err)
 if (err) return
 
 ! Quick sanity check
@@ -399,8 +399,9 @@ enddo
 !----------------------------------------------------------------------------
 contains
 
-subroutine calc_vertex_center (i1, i2, err)
+subroutine calc_vertex_center (v, i1, i2, err)
 
+type (wall3d_vertex_struct), target :: v(:)
 type (wall3d_vertex_struct), pointer :: v1, v2
 
 real(rp) x1, y1, x2, y2, x, y
