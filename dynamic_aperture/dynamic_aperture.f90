@@ -119,7 +119,7 @@ do i = 1, size(dpz)
   endif
 
   da%ref_orb = orbit(0)
-  call dynamic_aperture_scan (lat, da)
+  call dynamic_aperture_scan (lat%branch(0), da)
 
   write (1, *)
   write (1, *)

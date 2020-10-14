@@ -1,0 +1,19 @@
+&tao_design_lattice
+  n_universes =1
+  unique_name_suffix="*::_?"
+  design_lattice(1)%file = "simple_ring.bmad"
+/
+
+&tao_d2_data
+  d2_data%name = "orbit"
+  n_d1_data = 1
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  da
+  search_for_lat_eles = "sbend::*"
+/
+
+&tao_var
+  v1_var%name = 'steering
