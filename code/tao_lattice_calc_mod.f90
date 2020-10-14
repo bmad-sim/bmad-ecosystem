@@ -233,7 +233,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       
           call out_io (s_info$, r_name, 'Starting Dynamic aperture scan for pz: \f10.6\ ... ', r_array = [u%dynamic_aperture%pz(j)])
           call run_timer ('START')
-          call dynamic_aperture_scan(tao_lat%lat, scan, parallel = .true.)
+          call dynamic_aperture_scan(tao_lat%lat%branch(ib), scan, parallel = .true.)
           call run_timer ('READ', tt)
           call out_io (s_info$, r_name, 'Computation time for aperture scan at this energy (min): \f8.2\ ', tt/60)
         enddo

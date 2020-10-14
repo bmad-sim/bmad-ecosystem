@@ -5,7 +5,7 @@ the plot page) is broken up.
 
 &tao_plot_page
   include_default_plots = True
-  plot_page%size = 400, 300
+  plot_page%size = 600, 450
   plot_page%text_height = 12.0 
   plot_page%border = 0, 0, 0, 0, '%PAGE'  
   plot_page%title(1)%string = 'Dynamic Aperture Demo'
@@ -33,23 +33,27 @@ Templates define the basics of, say, how to display an orbit.
   graph%type = 'dynamic_aperture'
   graph_index = 1
   !graph%box = 1, 2, 1, 2
-  graph%title = 'dynamic aperture'
+  graph%title = 'Dynamic Aperture'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%x_axis_scale_factor = 1000
   graph%y%label = 'y (mm)'
   graph%y%label_offset = .2
-  graph%y%max = 0
+  graph%y%max = 8
   graph%y%min = 0
   graph%y%major_div = 4
-  graph%n_curve = 3
+  graph%n_curve = 4
+  curve(1)%line%color = "red"
+  curve(1)%data_type = 'physical_aperture'
+  curve(1)%line%width = 5
   curve(1)%y_axis_scale_factor = 1000
   curve(2)%y_axis_scale_factor = 1000
   curve(3)%y_axis_scale_factor = 1000
+  curve(4)%y_axis_scale_factor = 1000
   curve(1)%draw_symbols = F
-  curve(2)%draw_symbols = F
-  curve(3)%draw_symbols = F
-  curve(3)%data_type = 'physical_aperture'
-  curve(3)%line%color = "red"
-  curve(3)%line%width = 5
+  curve(2)%draw_symbols = T
+  curve(3)%draw_symbols = T
+  curve(4)%draw_symbols = T
+  curve(3)%symbol%color = "purple"
+  curve(3)%line%color = "purple"
  /
 
