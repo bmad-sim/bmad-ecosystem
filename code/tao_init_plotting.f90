@@ -1232,19 +1232,19 @@ if (all(s%plot_page%template%name /= 'alpha')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Alpha Function'
-  grph%y%label             = '\ga\dA\u, \ga\dB\u [m]'
+  grph%y%label             = '\ga\fn\dA\u, \ga\fn\dB\u [m]'
 
   crv => grph%curve(1)
   crv%name         = 'a'
   crv%g => grph
   crv%data_type    = 'alpha.a'
-  crv%legend_text  = '\ga\dA\u'
+  crv%legend_text  = '\ga\fn\dA\u'
 
   crv => grph%curve(2)
   crv%name         = 'b'
   crv%g => grph
   crv%data_type    = 'alpha.b'
-  crv%legend_text  = '\ga\dB\u'
+  crv%legend_text  = '\ga\fn\dB\u'
 endif
 
 !---------------
@@ -1337,21 +1337,21 @@ if (all(s%plot_page%template%name /= 'beta')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Beta Function'
-  grph%y%label             = '\gb\dA\u, \gb\dB\u [m]'
+  grph%y%label             = '\gb\fn\dA\u, \gb\fn\dB\u [m]'
 
 
   crv => grph%curve(1)
   crv%name         = 'a'
   crv%g => grph
   crv%data_type    = 'beta.a'
-  crv%legend_text  = '\gb\dA\u'
+  crv%legend_text  = '\gb\fn\dA\u'
   crv%units        = 'm'
 
   crv => grph%curve(2)
   crv%name         = 'b'
   crv%g => grph
   crv%data_type    = 'beta.b'
-  crv%legend_text  = '\gb\dB\u'
+  crv%legend_text  = '\gb\fn\dB\u'
   crv%units        = 'm'
 endif
 
@@ -1366,7 +1366,7 @@ if (all(s%plot_page%template%name /= 'bunch_sigma_xy')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Bunch transverse sigmas'
-  grph%y%label             = '\gs\dx\u, \gs\dy\u'
+  grph%y%label             = '\gs\fn\dx\u, \gs\fn\dy\u'
 
   crv => grph%curve(1)
   crv%name         = 'x'
@@ -1552,7 +1552,7 @@ if (all(s%plot_page%template%name /= 'dbeta')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Chromatic normalized beta beat'
-  grph%y%label             = '\gb\u-1\d \(2265)\gb/\(2265)\gd (1)'
+  grph%y%label             = '\gb\fn\u-1\d \(2265)\gb\fn/\(2265)\gd\fn (1)'
   grph%y%label_offset= .15
 
   crv => grph%curve(1)
@@ -1581,7 +1581,7 @@ if (all(s%plot_page%template%name /= 'deta')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Second order dispersion'
-  grph%y%label             = '\(2265)\gy/\(2265)\gd (m)'
+  grph%y%label             = '\(2265)\gy\fn/\(2265)\gd\fn (m)'
   grph%y%label_offset= .15
 
   crv => grph%curve(1)
@@ -1610,7 +1610,7 @@ if (all(s%plot_page%template%name /= 'detap')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Second order dispersion slope'
-  grph%y%label             = "\(2265)\gy'/\(2265)\gd (1)"
+  grph%y%label             = "\(2265)\gy\fn'/\(2265)\gd\fn (1)"
   grph%y%label_offset= .15
 
   crv => grph%curve(1)
@@ -1639,20 +1639,20 @@ if (all(s%plot_page%template%name /= 'dispersion')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title         = 'Dispersion'
-  grph%y%label       = '\gy\dX\u, \gy\dY\u [m]'
+  grph%y%label       = '\gy\fn\dX\u, \gy\fn\dY\u [m]'
 
   crv => grph%curve(1)
   crv%name         = 'x'
   crv%g => grph
   crv%data_type    = 'eta.x'
-  crv%legend_text  = '\gy\dX\u'
+  crv%legend_text  = '\gy\fn\dX\u'
   crv%units        = 'm'
 
   crv => grph%curve(2)
   crv%name         = 'y'
   crv%g => grph
   crv%data_type = 'eta.y'
-  crv%legend_text  = '\gy\dY\u'
+  crv%legend_text  = '\gy\fn\dY\u'
   crv%units        = 'm'
 endif
 
@@ -1667,19 +1667,19 @@ if (all(s%plot_page%template%name /= 'ddispersion')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title         = 'Dispersion Derivative'
-  grph%y%label       = 'd\gy\dX\u, d\gy\dY\u'
+  grph%y%label       = 'd\gy\fn\dX\u, d\gy\fn\dY\u'
 
   crv => grph%curve(1)
   crv%name         = 'x'
   crv%g => grph
   crv%data_type    = 'etap.x'
-  crv%legend_text  = 'd\gy\dX\u'
+  crv%legend_text  = 'd\gy\fn\dX\u'
 
   crv => grph%curve(2)
   crv%name         = 'y'
   crv%g => grph
   crv%data_type = 'etap.y'
-  crv%legend_text  = 'd\gy\dY\u'
+  crv%legend_text  = 'd\gy\fn\dY\u'
 endif
 
 !---------------
@@ -1693,20 +1693,20 @@ if (all(s%plot_page%template%name /= 'mode_dispersion')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title         = 'A & B Normal Mode Dispersion'
-  grph%y%label       = '\gy\dA\u, \gy\dB\u [m]'
+  grph%y%label       = '\gy\fn\dA\u, \gy\fn\dB\u [m]'
 
   crv => grph%curve(1)
   crv%name         = 'a'
   crv%g => grph
   crv%data_type    = 'eta.a'
-  crv%legend_text  = '\gy\dA\u'
+  crv%legend_text  = '\gy\fn\dA\u'
   crv%units        = 'm'
 
   crv => grph%curve(2)
   crv%name         = 'b'
   crv%g => grph
   crv%data_type = 'eta.b'
-  crv%legend_text  = '\gy\dB\u'
+  crv%legend_text  = '\gy\fn\dB\u'
   crv%units        = 'm'
 endif
 
@@ -1721,7 +1721,7 @@ if (all(s%plot_page%template%name /= 'dphi')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title               = 'Chromatic phase deviation'
-  grph%y%label             = '\(2265)\gf/\(2265)\gd (1)'
+  grph%y%label             = '\(2265)\gf\fn/\(2265)\gd\fn (1)'
   grph%y%label_offset= .15
 
   crv => grph%curve(1)
@@ -2244,14 +2244,14 @@ if (all(s%plot_page%template%name /= 'phase')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title         = 'Betatron Phase'
-  grph%y%label       = '\gf\dA\u, \gf\dB\u (deg)'
+  grph%y%label       = '\gf\fn\dA\u, \gf\fn\dB\u (deg)'
   grph%component     = 'model - design'
 
   crv => grph%curve(1)
   crv%name         = 'a'
   crv%g => grph
   crv%data_type    = 'phase.a'
-  crv%legend_text  = '\gf\dA\u'
+  crv%legend_text  = '\gf\fn\dA\u'
   crv%units        = 'deg'
   crv%y_axis_scale_factor = 180/pi
 
@@ -2259,7 +2259,7 @@ if (all(s%plot_page%template%name /= 'phase')) then
   crv%name         = 'b'
   crv%g => grph
   crv%data_type    = 'phase.b'
-  crv%legend_text  = '\gf\dB\u'
+  crv%legend_text  = '\gf\fn\dB\u'
   crv%units        = 'deg'
   crv%y_axis_scale_factor = 180/pi
 endif
@@ -2478,7 +2478,7 @@ if (all(s%plot_page%template%name /= 'ping_phase')) then
   grph => plt%graph(1)
   grph%p => plt
   grph%title         = 'Pinged Beam Osc Phase'
-  grph%y%label       = '\gf\dax\u, \gf\dby\u'
+  grph%y%label       = '\gf\fn\dax\u, \gf\fn\dby\u'
   grph%component     = 'model - design'
 
   crv => grph%curve(1)
