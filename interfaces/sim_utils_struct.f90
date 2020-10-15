@@ -24,18 +24,19 @@ type str_indexx_struct
 end type
 
 ! Structure for holding a sorted index for all the elements in a lattice.
-! Create using create_lat_nametable. Find element using find_indexx.
-! The mapping of element locations to index is:
+! Create using create_lat_ele_nametable. Find element using find_indexx.
+! The mapping of element locations to %name(0:) is:
 !   ix_nametable = ele%ix_ele                             for elements in branch 0
 !   ix_nametable = ele%ix_ele + branch(0)%n_ele_max + 1   for elements in branch 1
+!   ix_nametable = ele%ix_ele + branch(0)%n_ele_max + branch(1)%n_ele_max + 2   for elements in branch 2
 !   etc., etc.
 
 type nametable_struct
-  character(40), allocatable :: name(:)    !  Array of names.
-  integer, allocatable :: indexx(:)        !  Sorted index for names(:) array.
-                                           !    names(an_indexx(i)) is in alphabetical order.
-  integer :: n_min = 1                     ! 
-  integer :: n_max = 0                     !  Use only names(n_min:n_max) part of array.
+  character(40), allocatable :: name(:)    ! Array of names.
+  integer, allocatable :: indexx(:)        ! Sorted index for names(:) array.
+                                           !   names(an_indexx(i)) is in alphabetical order.
+  integer :: n_min = 1                     ! Set to 0 for use in a lattice.
+  integer :: n_max = 0                     ! Use only names(n_min:n_max) part of array.
 end type
 
 ! A all_pointer_struct is just a pointer to either a real, integer, or logical variable.
