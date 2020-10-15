@@ -103,13 +103,18 @@ then
     export ACC_SET_GMAKE_JOBS=2
 fi
 
+# Logic to check for the presence of gmake, else use make
+[ "$(type gmake &> /dev/null ; echo $?)" -eq 0 ] \
+    && export GMAKE="gmake" \
+    || export GMAKE="make"
+
 # Only invoke cmake if the user has not requested a 'clean'.
 case ${@} in
     clean)
 	if [ -d ${BUILD_TYPE} ]
 	then
 	    cd ${BUILD_TYPE}
-	    gmake clean
+	    ${GMAKE} clean
 	fi
 	;;
 
@@ -162,7 +167,7 @@ case ${@} in
 	    fi
 
 	    cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} "${ACC_CMAKE_ARGS[@]}" .. || exit 1
-	    gmake -j ${ACC_SET_GMAKE_JOBS} ${ACC_EXE_NAME}
+	    ${GMAKE} -j ${ACC_SET_GMAKE_JOBS} ${ACC_EXE_NAME}
 	    [ $? -eq 0 ] && func_display_build_time
 	fi
 	;;

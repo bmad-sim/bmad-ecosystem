@@ -41,6 +41,7 @@ func_set_base_env () {
     export OTHER_OUTPUT_DIR=${BASE_DIR}/${OTHER_BUILD_TYPE}
     export WORK_DIR=${BASE_DIR}/${PROJ_DIR_NAME}/${BUILD_TYPE}
 
+    # Logic to check for the presence of gmake, else use make 
     [ "$(type gmake &> /dev/null ; echo $?)" -eq 0 ] \
 	&& export GMAKE="gmake" \
 	|| export GMAKE="make"
@@ -455,8 +456,8 @@ func_install_utilities () {
 	    tar -xf ${UTIL}.tar.gz 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1 
 	    cd ${UTIL} 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
 	    ./configure --prefix=${UTIL_DIR} 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
-	    gmake -j ${ACC_SET_GMAKE_JOBS} 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
-	    gmake install 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+	    ${GMAKE} -j ${ACC_SET_GMAKE_JOBS} 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
+	    ${GMAKE} install 1>> ${UTIL_DIR}/log/${UTIL}.log 2>&1
 
 	    STATUS=$?
 
