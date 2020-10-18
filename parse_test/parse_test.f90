@@ -21,7 +21,7 @@ type (coord_struct) orb
 type (em_field_struct) field
 type (ele_pointer_struct), allocatable :: eles(:)
 
-real(rp) value
+real(rp) value, a0(12), a1(12), b0(12), b1(12), ae0(12), ae1(12), be0(12), be1(12)
 integer i, j, inc_version, n_loc, nargs
 character(200) digested_file, lat_file
 character(1) delim
@@ -42,6 +42,53 @@ if (nargs > 0) then
 endif
 
 open (1, file = 'output.now')
+
+! Test if write_bmad_lattice_file can handle multipole elements with a common name but different attributes.
+
+!call bmad_parser ('common_name.bmad', lat)
+call bmad_parser ('common_name.bmad', lat)
+
+call write_bmad_lattice_file ('com2.bmad', lat)
+call bmad_parser ('com2.bmad', lat2)
+
+a0 = 0;  a1 = 0;  b0 = 0;  b1 = 0
+ae0 = 0;  ae1 = 0;  be0 = 0;  be1 = 0
+
+do i = 1, 8
+  ele => lat%ele(i)
+  if (associated(ele%a_pole)) a0(i) = ele%a_pole(3)
+  if (associated(ele%b_pole)) b0(i) = ele%b_pole(3)
+  if (associated(ele%a_pole_elec)) ae0(i) = ele%a_pole_elec(3)
+  if (associated(ele%b_pole_elec)) be0(i) = ele%b_pole_elec(3)
+  ele => lat2%ele(i)
+  if (associated(ele%a_pole)) a1(i) = ele%a_pole(3)
+  if (associated(ele%b_pole)) b1(i) = ele%b_pole(3)
+  if (associated(ele%a_pole_elec)) ae1(i) = ele%a_pole_elec(3)
+  if (associated(ele%b_pole_elec)) be1(i) = ele%b_pole_elec(3)
+  if (i > 4) cycle
+  ele => lat%branch(1)%ele(i)
+  if (associated(ele%a_pole)) a0(i+8) = ele%a_pole(3)
+  if (associated(ele%b_pole)) b0(i+8) = ele%b_pole(3)
+  if (associated(ele%a_pole_elec)) ae0(i+8) = ele%a_pole_elec(3)
+  if (associated(ele%b_pole_elec)) be0(i+8) = ele%b_pole_elec(3)
+  ele => lat2%branch(1)%ele(i)
+  if (associated(ele%a_pole)) a1(i+8) = ele%a_pole(3)
+  if (associated(ele%b_pole)) b1(i+8) = ele%b_pole(3)
+  if (associated(ele%a_pole_elec)) ae1(i+8) = ele%a_pole_elec(3)
+  if (associated(ele%b_pole_elec)) be1(i+8) = ele%b_pole_elec(3)
+enddo
+
+
+write (1, '(a, 12f8.2)') '"Common-in-tilt" ABS 0     ', lat%ele(1:8)%value(tilt$), lat%branch(1)%ele(1:4)%value(tilt$)
+write (1, '(a, 12f8.2)') '"Common-out-tilt" ABS 0    ', lat2%ele(1:8)%value(tilt$), lat2%branch(1)%ele(1:4)%value(tilt$)
+write (1, '(a, 12f8.2)') '"Common-in-a3" ABS 0       ', a0
+write (1, '(a, 12f8.2)') '"Common-out-a3" ABS 0      ', a1
+write (1, '(a, 12f8.2)') '"Common-in-b3" ABS 0       ', b0
+write (1, '(a, 12f8.2)') '"Common-out-b3" ABS 0      ', b1
+write (1, '(a, 12f8.2)') '"Common-in-a3_elec" ABS 0  ', ae0
+write (1, '(a, 12f8.2)') '"Common-out-a3_elec" ABS 0 ', ae1
+write (1, '(a, 12f8.2)') '"Common-in-b3_elec" ABS 0  ', be0
+write (1, '(a, 12f8.2)') '"Common-out-b3_elec" ABS 0 ', be1
 
 !
 

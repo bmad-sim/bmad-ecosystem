@@ -1,0 +1,3 @@
+totalview ../../debug/bin/bookkeeper_test -a 
+cat output.now
+
