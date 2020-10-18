@@ -135,7 +135,7 @@ To convert the integer value of \vn{%state} to a string that can be
 printed, use the function \Hyperref{r:coord.state.name}{coord_state_name}
 \begin{example}
   type (coord_struct) orbit
-  print *, 'State of the orbit: ', coord_state_name(orbit%state)
+  print *, "State of the orbit: ", coord_state_name(orbit%state)
 \end{example}
 
 \item{\%t} \Newline
@@ -178,7 +178,7 @@ single element
   call init_coord (start_orb, start_phase_space, ele, photon\$) 
   call track1 (start_orb, ele, end_orb, err_flag = err)
   if (.not. particle_is_moving_forward(end_orb)) then
-    print *, 'Particle is lost and gone forever...'
+    print *, "Particle is lost and gone forever..."
   endif
 \end{example}
 To check if a particle is still traveling in the forward direction,
@@ -271,8 +271,8 @@ routine can be used to track through a given lattice branch
   call init_coord(orbit(0), init_phase_space, lat%branch(ib)%ele(0), proton$) 
   call track_all (lat, orbit, ib, track_state, err_flag)
   if (track_state /= moving_forward\$) then
-    print *, 'Particle lost at element:', track_state
-    print *, 'Aperture lost at: ', coord_state_name(orbit(track_state)%state) 
+    print *, "Particle lost at element:", track_state
+    print *, "Aperture lost at: ", coord_state_name(orbit(track_state)%state) 
 \end{example}
 After tracking, \vn{orbit(i)} will correspond to the particles orbit
 at the end of \vn{lat%branch(ib)%ele(i)}.  
@@ -563,7 +563,7 @@ program by setting the \vn{%tracking_method} attribute of an element
   type (ele_struct) ele
   ...
   ele%tracking_method = symp_lie_ptc$  ! for symp_lie_ptc, tracking
-  print *, 'Tracking_method: ', calc_method_name(ele%tracking_method)
+  print *, "Tracking_method: ", calc_method_name(ele%tracking_method)
 \end{example}
 To form the corresponding parameter to a given tracking method just
 put ``\$'' after the name. For example, the \vn{bmad_standard}
@@ -581,7 +581,7 @@ For determining what tracking methods are valid for a given element,
 use \Hyperref{r:valid.tracking.method}{valid_tracking_method} and
 \Hyperref{r:valid.mat6.calc.method}{valid_mat6_calc_method} functions
 \begin{example}
-  print *, 'Method is valid: ', valid_tracking_method(ele, symp_lie_ptc\$)
+  print *, "Method is valid: ", valid_tracking_method(ele, symp_lie_ptc\$)
 \end{example}
 
 \index{synchrotron radiation!calculating}
@@ -634,8 +634,8 @@ coefficient of any given term in a Taylor map.
 \begin{example}
   type (taylor_struct) t_map(6)
   ...
-  print *, 'out(4)=coef * in(1)^2:', taylor_coef(t_map(4), 1, 1)
-  print *, 'out(4)=coef * in(1)^2:', taylor_coef(t_map(4), [2,0,0,0,0,0])
+  print *, "out(4)=coef * in(1)^2:", taylor_coef(t_map(4), 1, 1)
+  print *, "out(4)=coef * in(1)^2:", taylor_coef(t_map(4), [2,0,0,0,0,0])
 \end{example}
 
 \index{symp_lie_Bmad}

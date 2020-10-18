@@ -57,7 +57,7 @@ superimposes elements, etc. Example:
   call new_control (lat, ix)
   g_lord => lat%ele(ix)
   allocate (ele%control_var(1))
-  ele%control_var(1)%name = 'A'
+  ele%control_var(1)%name = "A"
   call reallocate_expression_stack(con(1)%stack, 10))
   call expression_string_to_stack ('3.2*A^2', con(1)%stack, n, err_flag)
   con(1)%ix_attrib = k1$
@@ -96,8 +96,8 @@ in a lattice by name or key type or a combination of both. Example:
   integer n_loc; logical err
   ...
   call lat_ele_locator ("quad::skew*", lat, eles, n_loc, err)
-  print *, 'Quadrupole elements whose name begins with the string "SKEW":'
-  print *, 'Name                 Branch_index        Element_index'
+  print *, "Quadrupole elements whose name begins with the string "SKEW":"
+  print *, "Name                 Branch_index        Element_index"
   do i = 1, n_loc  ! Loop over all elements found to match the search string.
     print *, eles(i)%ele%name, eles(i)%ele%ix_branch, eles(i)%ele%ix_ele
   enddo
@@ -124,9 +124,9 @@ check if an attribute is free to vary.
   type (lat_struct) lat
   integer ix_ele
   ...
-  call lat_ele_locator ('Q10W', lat, eles, n_loc, err)   ! look for an element 'Q10W'
-  free = attribute_free (eles(i)%ele, 'K1', lat, .false.)
-  if (.not. free) print *, 'Cannot vary k1 attribute of element Q10W'
+  call lat_ele_locator ('Q10W', lat, eles, n_loc, err)   ! look for an element "Q10W"
+  free = attribute_free (eles(i)%ele, "K1", lat, .false.)
+  if (.not. free) print *, "Cannot vary k1 attribute of element Q10W"
 \end{example}
 
 %---------------------------------------------------------------------------
@@ -168,9 +168,9 @@ recognized) of the pointer components will be associated. For example:
   type (ele_struct) ele
   type (all_pointer_struct) attrib_ptr
   ...
-  call pointer_to_attribute (ele, 'A3_ELEC', .true., attrib_ptr, err)
+  call pointer_to_attribute (ele, "A3_ELEC", .true., attrib_ptr, err)
   attrib_ptr%r = 0.34
-  call attribute_set_bookkeeping (ele, 'A3_ELEC', err_flag, attrib_ptr)
+  call attribute_set_bookkeeping (ele, "A3_ELEC", err_flag, attrib_ptr)
   call lattice_bookkeeper (lat)  ! Bookkeeping needed due to parameter change 
 \end{example}
 Also see the example program in \sref{s:first.program}.
@@ -185,7 +185,7 @@ can evaluate expressions. For example:
   ...
   call lat_ele_locator ('Q01W', lat, eles, n_loc, err_flag)
   do n = 1, n_loc
-    call set_ele_attribute (eles(n)%ele, 'K1 = 0.1*c_light', lat, err_flag)
+    call set_ele_attribute (eles(n)%ele, "K1 = 0.1*c_light", lat, err_flag)
   enddo
 \end{example}
 \index{overlay}

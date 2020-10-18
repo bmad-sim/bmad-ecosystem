@@ -61,7 +61,7 @@ call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
 
 call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)  ! Find element
 cleo => eles(1)%ele                        ! Point to cleo_sol element.
-call pointer_to_attribute (cleo, 'KS', .true., a_ptr, err) ! Point to KS attribute.
+call pointer_to_attribute (cleo, "KS", .true., a_ptr, err) ! Point to KS attribute.
 a_ptr%r = a_ptr%r + 0.001         ! Modify KS component.
 call set_flags_for_changed_attribute (cleo, a_ptr%r)
 call lattice_bookkeeper (lat)
@@ -75,17 +75,17 @@ call twiss_propagate_all (lat)      ! Propagate Twiss parameters
 
 ! Print info on the first 11 elements
 
-print *, ' Ix  Name              Ele_type                   S      Beta_a'
+print *, " Ix  Name              Ele_type                   S      Beta_a"
 do i = 0, 10
   ele => lat%ele(i)
-  print '(i4,2x,a16,2x,a,2f12.4)', i, ele%name, key_name(ele%key), ele%s, ele%a%beta
+  print "(i4,2x,a16,2x,a,2f12.4)", i, ele%name, key_name(ele%key), ele%s, ele%a%beta
 enddo
 
 ! print information on the CLEO_SOL element.
 
 print *
-print *, '!---------------------------------------------------------'
-print *, '! Information on element: CLEO_SOL'
+print *, "!---------------------------------------------------------"
+print *, "! Information on element: CLEO_SOL"
 print *
 call type_ele (cleo, .false., 0, .false., 0, .true., lat)
 

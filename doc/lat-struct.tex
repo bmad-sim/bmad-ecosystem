@@ -297,10 +297,10 @@ the functions \vn{mass_of} and \vn{charge_of} respectively.
 \begin{example}
   type (lat_struct) lat
   ...
-  print *, 'Beam Particles are: ', particle_name(lat%param%particle)
-  if (lat%param%particle == proton\$) print *, 'I do not like protons!'
-  print *, 'Particle mass (eV):    ', mass_of(lat%param%particle)
-  print *, 'Particle charge:       ', charge_of(lat%param%particle)
+  print *, "Beam Particles are: ", particle_name(lat%param%particle)
+  if (lat%param%particle == proton\$) print *, "I do not like protons!"
+  print *, "Particle mass (eV):    ", mass_of(lat%param%particle)
+  print *, "Particle charge:       ", charge_of(lat%param%particle)
 \end{example}
 
 %----------------------------------------------------------------------------
@@ -584,7 +584,7 @@ controlled and coefficients, on all group elements in a lattice.
   do i = lat%n_ele_track+1, lat%n_ele_max  ! loop over all lords
     lord => lat%ele(i) 
     if (lord%lord_status = group_lord$) then 
-      print *, 'Slaves for group lord: ', lord%name
+      print *, "Slaves for group lord: ", lord%name
       do j = 1, lord%n_slave
         slave => pointer_to_slave (lord, j, con)
         attrib_name = attribute_name (slave, con%ix_attrib)
@@ -828,8 +828,8 @@ Custom parameters defined for the lattice as a whole (\sref{s:cust.att} are stor
   if (allocated(lat%custom)) then
     do i = 1, size(lat%custom)
       aname = attribute_name(def_parameter$, i+custom_attribute0$)
-      if (aname(1:1) == '!') cycle    ! Ignore non-existant parameters
-      print '(a, es12.4)', '  parameter[' // trim(aname) // '] = ', lat%custom(i)
+      if (aname(1:1) == "!") cycle    ! Ignore non-existant parameters
+      print "(a, es12.4)", "  parameter[" // trim(aname) // "] = ", lat%custom(i)
     enddo
   endif
 \end{example}

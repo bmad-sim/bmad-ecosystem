@@ -279,7 +279,7 @@ Now suppose you want to do a simulation using only the \vn{sub2} line. Rather th
 original file, one way to do this would be to create a second file which
 overrides the used line:
 \begin{example}
-  call, file = 'full.bmad'
+  call, file = "full.bmad"
   use, sub2
 \end{example}
 where \vn{full.bmad} is the name of the original file. What happens to the superposition
@@ -622,11 +622,11 @@ is calculated from the unnormalized field for the slaves, the setting of \vn{fie
 \vn{field_master} for the lord.
 
 To keep track of how the reference energy has been calculated for an element, \bmad sets an internal
-element switch called \vn{multipass_ref_energy} which is set to \vn{user_set} if the energy is
-explicitly set in the lattice file and is set to \vn{first_pass} if the reference energy is
+element switch called \vn{multipass_ref_energy} which is set to ``\vn{user_set}'' if the energy is
+explicitly set in the lattice file and is set to ``\vn{first_pass}'' if the reference energy is
 calculated from the the standard reference energy calculation of the first pass slave element.
 
 Note: Historically, there was an element parameter \vn{n_ref_pass} that could be set to control the
-reference energy. This parameter may be seen in old lattice files and is currently ignored.
+reference energy. This parameter may be seen in old lattice files but will be ignored.
 
 An example of an ERL lattice with multipass can be found in Section~\sref{s:ex.erl}.

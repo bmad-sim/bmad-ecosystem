@@ -770,10 +770,39 @@ type lat_ele_loc_struct
   integer :: ix_branch = 0
 end type
 
+! Used in lat_ele_order_branch_struct
+
+type lat_ele_order1_struct
+  integer :: ix_branch = -1     ! Branch index
+  integer :: ix_order = -1      ! Order index. -1 -> Unique in lattice, 0 -> unique in branch.
+end type
+
+type lat_ele_order_array_struct
+  type (lat_ele_order1_struct), allocatable :: ele(:)
+end type
+
+! Structure for holding the order index of elements in a lattice.
+! For example, If an element named "QQ" is in lattice branch #2 and is the fifth element
+! in the branch with name "QQ", the order index for this element is 5.
+! That is, a unique name for this element is "2>>QQ##5". 
+! Note: The super_lord elements, which live in branch #0, are associated.
+! with the branch that its super_slaves live in.
+! That is, if a marker is superimpsed upon "2>>QQ##5", the "QQ" lord element will be placed in the lord
+! section of branch 0 but this lord's order index, associated branch, and unique name are not changed.
+!
+! Given:
+!   type (lat_ele_order_struct) order
+! Then for a given lattice element in branch ix_branch and with element index ix_ele:
+!   order%branch(ix_branch)%ele(ix_ele)%ix_order   => Order index. -1 -> Unique in lattice, 0 -> unique in branch.
+!   order%branch(ix_branch)%ele(ix_ele)%ix_branch  => Associated branch index
+
+type lat_ele_order_struct
+  type (lat_ele_order_array_struct), allocatable :: branch(:)
+end type
+
 ! Structure to be used for an array of pointers to elements.
-! The id component is not set by any Bmad routines and can be used, for example, by 
-! programs that handle multiple lattices to indicate which lattice 
-! the element pointer is pointing to.
+! The id component is not set by any Bmad routines and can be used, for example, by programs that 
+! handle multiple lattices to indicate which lattice the element pointer is pointing to.
 ! A pointer to an element in a lattice is not usable if the number of elements in the 
 ! lattice is modified (so that the lattice element array is reallocated). In this case,
 ! the %loc component is potentially useful (as long as the element pointed to does not move).

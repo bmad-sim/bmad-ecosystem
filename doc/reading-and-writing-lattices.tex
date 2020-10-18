@@ -21,8 +21,8 @@ other.  To read in the lattice information along with the aperture limits, there
 possibilities: One possibility is to create a third file that calls the first two:
 \begin{verbatim}
  ! This is a file to be called by bmad_parser
- call, file = 'lattice_file'
- call, file = 'aperture_file'
+ call, file = ""lattice_file""
+ call, file = ""aperture_file""
 \end{verbatim}
 and then just use \vn{bmad_parser} to parse this third file. The
 alternative is to use \vn{bmad_parser2} so that the program code looks
@@ -45,7 +45,7 @@ lattice file into the \vn{lat_struct} it will make what is called a digested fil
 is an image of the \vn{lat_struct} in binary form. When \vn{bmad_parser} is called, it first looks
 in the same directory as the lattice file for a digested file whose name is of the form:
 \begin{verbatim}
-  'digested_' // LAT_FILE 
+  ""digested_"" // LAT_FILE 
 \end{verbatim}
 where \vn{LAT_FILE} is the lattice file name. If \vn{bmad_parser} finds the digested file, it checks
 that the file is not out--of--date (that is, whether the lattice file(s) have been modified after
@@ -101,7 +101,7 @@ compatible lattice files can be created from a \vn{lat_struct} variable using th
   type (lat_struct) lat             ! lattice
   ...
   call bmad_parser (bmad_lat_file, lat)               ! Read in a lattice
-  call write_lattice_in_foreign_format ('lat.mad', 'MAD-8', lat)  ! create MAD file
+  call write_lattice_in_foreign_format ("lat.mad", "MAD-8", lat)  ! create MAD file
 \end{example}
 Information can be lost when creating a \mad or \vn{SAD} file.  For example, neither \mad nor
 \vn{SAD} has the concept of things such as \vn{overlay}s and \vn{group}s.

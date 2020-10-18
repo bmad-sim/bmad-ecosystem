@@ -240,7 +240,7 @@ array for \vn{q1[k1]}.
 If the \vn{gang} attribute is \vn{True} (which is the default) a \vn{controller} will control all
 elements of a given name. Thus, in the above example, if there are multiple elements named \vn{q1}
 then \vn{gr1} will control the \vn{k1} attribute of all of them.  If \vn{gang} is set to \vn{False},
-then a separate controller is created for each element in the lattice of a given name. For example:
+a separate controller is created for each element in the lattice of a given name. For example:
 \begin{example}
   gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}, gang = False
 \end{example}
@@ -2882,9 +2882,9 @@ The \vn{transverse_dependence} parameter may be abbreviated. Note: Due to the wa
 parsed, if \vn{transverse_dependence} is specified for a particular mode, \vn{polarization} must
 also be specified.
 
-For \vn{longitudinal} modes: If the \vn{transverse_dependence} is \vn{none} (the default), then the
+For \vn{longitudinal} modes: If the \vn{transverse_dependence} is \vn{none} (the default), the
 \vn{polarization} must also be \vn{none} (other combinations do not make sense). If the
-\vn{transverse_dependence} is \emph{not} \vn{none} for a \vn{longitudinal} mode, then the
+\vn{transverse_dependence} is \emph{not} \vn{none} for a \vn{longitudinal} mode, the
 \vn{polarization} must be set to \vn{x_axis} or \vn{y_axis}.
 
 %-----------------------------------------------------------------

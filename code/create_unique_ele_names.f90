@@ -18,6 +18,8 @@
 ! For example, if key = quadrupole$ then only quadrupole elements will be looked at. 
 ! key = 0 means that all elements will be considered.
 !
+! Also see the routine: lat_ele_unique_name.
+!
 ! Input:
 !	  lat    -- Lat_struct: Lattice holding the elements.
 !	  key    -- Integer: Class key of elements to consider.

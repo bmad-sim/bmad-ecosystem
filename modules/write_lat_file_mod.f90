@@ -64,7 +64,7 @@ type (ele_attribute_struct) attrib
 type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, super, slave, lord, lord2, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0, girder
 type (ele_struct), target :: ele_default(n_key$), this_ele
-type (ele_pointer_struct), allocatable :: named_eles(:)
+type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
 type (ele_attribute_struct) info
 type (control_struct), pointer :: ctl, ctl2
 type (taylor_term_struct) tm
@@ -87,6 +87,7 @@ type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()
 type (ac_kicker_struct), pointer :: ac
 type (expression_atom_struct), pointer :: stack(:)
 type (str_indexx_struct) str_index
+type (lat_ele_order_struct) order
 
 real(rp) s0, x_lim, y_lim, val
 
@@ -110,7 +111,7 @@ integer i, j, k, n, ii, ix, iu, im, ix_ptr, iu2, iuw, ios, ixs, ie1, ie, ib, ib1
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3, j1, j2, ip, it
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_lord, ix_super, default_val, imax, ibr
-integer, allocatable :: an_indexx(:), index_list(:), n_count(:)
+integer, allocatable :: an_indexx(:), index_list(:)
 
 logical, optional :: err
 logical unit_found, write_term, found, in_multi_region, have_expand_lattice_line
@@ -125,6 +126,7 @@ do i = 1, size(ele_default)
 enddo
 
 if (present(err)) err = .true.
+call ele_order_calc(lat, order)
 
 ! Open the file
 
@@ -323,27 +325,18 @@ do ib = 0, ubound(lat%branch, 1)
 
   ele_loop: do ie = 1, branch%n_ele_max
 
-    if (ie == branch%n_ele_track+1) then
-      write (iu, '(a)')
-      write (iu, '(a)') '!-------------------------------------------------------'
-      write (iu, '(a)') '! Overlays, groups, etc.'
-      write (iu, '(a)')
-    endif
-
     ele => branch%ele(ie)
     if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
-
-    ele_dflt => ele_default(ele%key)
-
-    ! Superposition stragegy: Replace each super_slave with a null_ele which acts as a fiducial for superposing and a drift
-    ! with the same length as the super_slave.
-
+    if (ele%key == overlay$ .or. ele%key == group$) cycle   ! Handled in next section.
     if (ele%key == null_ele$) cycle
+
+    ele_dflt => ele_default(ele%key) ! Element with default attributes.
+
+    ! Superposition stragegy: Swap drifts for super_slaves
+
     multi_lord => pointer_to_multipass_lord (ele, ix_pass) 
     if (ele%lord_status == super_lord$ .and. ix_pass > 0) cycle
     if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
-
-    ! super_slave bookkeeping
 
     if (ele%slave_status == super_slave$) then
       lord => pointer_to_lord(ele, 1)
@@ -357,74 +350,8 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Do not write anything for elements that have a duplicate name.
 
-    if (size(names) < n_names + 1) then
-      call re_allocate(names, 2*size(names))
-      call re_allocate(an_indexx, 2*size(names))
-      call re_allocate_eles(named_eles, 2*size(names), .true.)
-    endif
-    call find_indexx (ele%name, names, an_indexx, n_names, ix_match, &
-                              add_to_list = .true., has_been_added = has_been_added)
+    call add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
     if (.not. has_been_added) cycle
-    named_eles(n_names)%ele => ele
-
-    ! Overlays and groups
-
-    if (ele%key == overlay$ .or. ele%key == group$) then
-      if (ele%key == overlay$) then
-        write (line, '(2a)') trim(ele%name), ': overlay = {'
-      else
-        write (line, '(2a)') trim(ele%name), ': group = {'
-      endif
-      j_loop: do j = 1, ele%n_slave
-        slave => pointer_to_slave(ele, j, ctl)
-        ! do not use elements w/ duplicate names & attributes
-        do k = 1, j-1 
-          slave2 => pointer_to_slave(ele, k, ctl2)
-          if (slave2%name == slave%name .and. ctl2%attribute == ctl%attribute) cycle j_loop
-        enddo
-        ! Now write the slave info
-        if (j == 1) then
-          write (line, '(3a)') trim(line), trim(slave%name)
-        else
-          write (line, '(3a)') trim(line), ', ', trim(slave%name)
-        endif
-        name = ctl%attribute  
-        if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
-        call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
-        if (size(list) /= 1 .or. list(1) /= ele%control%var(1)%name) then
-          write (line, '(3a)') trim(line), ':', trim(list(1))
-          if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
-          do ixs = 2, size(list)
-            line = trim(line) // list(ixs)
-            call write_lat_line(line, iu, .false.)
-          enddo
-        endif
-
-      enddo j_loop
-      line = trim(line) // '}, var = {' // ele%control%var(1)%name
-
-      do j = 2, size(ele%control%var)
-        line = trim(line) // ', ' // ele%control%var(j)%name
-      enddo
-
-      line = trim(line) // '}'
-
-      do j = 1, size(ele%control%var)
-        if (ele%control%var(j)%value /= 0) then
-          line = trim(line) // ', ' // trim(ele%control%var(j)%name) // ' = ' // re_str(ele%control%var(j)%value)
-        endif
-        if (ele%control%var(j)%old_value /= 0) then
-          line = trim(line) // ', old_' // trim(ele%control%var(j)%name) // ' = ' // re_str(ele%control%var(j)%value)
-        endif
-      enddo
-
-      if (is_false(ele%value(gang$))) line = trim(line) // ', gang = False'
-      if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
-      if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
-      if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'
-      call write_lat_line (line, iu, .true.)
-      cycle
-    endif
 
     ! Girder
 
@@ -461,25 +388,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
     if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'
-
-    ! Fill in the superposition information.
-
-    if (ele%lord_status == multipass_lord$) then
-      slave => pointer_to_slave(ele, 1)
-      if (slave%lord_status == super_lord$) then
-        slave2 => pointer_to_slave(slave, 1)
-        write (line, '(2(a, i0))') trim(line) // &
-                ', superimpose, ele_origin = beginning, ref_origin = beginning, ref = slave_drift_', &
-                slave2%ix_branch, '_', slave2%ix_ele
-      endif
-    endif
-
-    if (ele%lord_status == super_lord$) then
-      slave => pointer_to_slave(ele, 1)
-      write (line, '(2(a, i0))') trim(line) // &
-                ', superimpose, ele_origin = beginning, ref_origin = beginning, ref = slave_drift_', &
-                slave%ix_branch, '_', slave%ix_ele
-    endif
 
     ! AC_Kicker
 
@@ -984,7 +892,107 @@ do ib = 0, ubound(lat%branch, 1)
 enddo  ! branch loop
 
 !----------------------------------------------------------
+! Overlays, groups, and superimpose
+
+write (iu, '(a)')
+write (iu, '(a)') '!-------------------------------------------------------'
+write (iu, '(a)') '! Overlays, groups, and superimpose'
+write (iu, '(a)')
+
+do ie = lat%n_ele_track+1, lat%n_ele_max
+  ele => lat%ele(ie)
+
+  ! Superimpose. Only first pass multipass_slaves are superimpsed and with first pass multipass_slaves
+  ! use the lord name in the superimpose statement.
+
+  if (ele%lord_status == super_lord$) then
+    if (ele%slave_status == multipass_slave$) then
+      ele2 => pointer_to_multipass_lord (ele, ix_pass) 
+      if (ix_pass /= 1) cycle
+    else
+      ele2 => ele
+    endif  
+    slave => pointer_to_slave(ele, 1)
+    s0 = ((ele%s_start + ele%s) - (slave%s_start + slave%s)) / 2   ! Center to center distance
+    name = 'slave_drift_' // int_str(slave%ix_branch) // '_' // int_str(slave%ix_ele)
+    line = 'superimpose, element = ' // trim(ele2%name) // ', ref = ' // trim(name) // ', offset = ' // re_str(s0)
+    call write_lat_line (line, iu, .true.)
+    cycle
+  endif
+
+  !
+
+  call add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
+  if (.not. has_been_added) cycle
+  
+  ! Overlays and groups
+
+  if (ele%key == overlay$ .or. ele%key == group$) then
+    if (ele%key == overlay$) then
+      write (line, '(2a)') trim(ele%name), ': overlay = {'
+    else
+      write (line, '(2a)') trim(ele%name), ': group = {'
+    endif
+    j_loop: do j = 1, ele%n_slave
+      slave => pointer_to_slave(ele, j, ctl)
+      ! do not use elements w/ duplicate names & attributes
+      do k = 1, j-1 
+        slave2 => pointer_to_slave(ele, k, ctl2)
+        if (slave2%name == slave%name .and. ctl2%attribute == ctl%attribute) cycle j_loop
+      enddo
+      ! Now write the slave info
+      if (j == 1) then
+        write (line, '(3a)') trim(line), trim(slave%name)
+      else
+        write (line, '(3a)') trim(line), ', ', trim(slave%name)
+      endif
+      name = ctl%attribute  
+      if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
+      call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
+      if (size(list) /= 1 .or. list(1) /= ele%control%var(1)%name) then
+        write (line, '(3a)') trim(line), ':', trim(list(1))
+        if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
+        do ixs = 2, size(list)
+          line = trim(line) // list(ixs)
+          call write_lat_line(line, iu, .false.)
+        enddo
+      endif
+
+    enddo j_loop
+    line = trim(line) // '}, var = {' // ele%control%var(1)%name
+
+    do j = 2, size(ele%control%var)
+      line = trim(line) // ', ' // ele%control%var(j)%name
+    enddo
+
+    line = trim(line) // '}'
+
+    do j = 1, size(ele%control%var)
+      if (ele%control%var(j)%value /= 0) then
+        line = trim(line) // ', ' // trim(ele%control%var(j)%name) // ' = ' // re_str(ele%control%var(j)%value)
+      endif
+      if (ele%control%var(j)%old_value /= 0) then
+        line = trim(line) // ', old_' // trim(ele%control%var(j)%name) // ' = ' // re_str(ele%control%var(j)%value)
+      endif
+    enddo
+
+    if (is_false(ele%value(gang$))) line = trim(line) // ', gang = False'
+    if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
+    if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
+    if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'
+    call write_lat_line (line, iu, .true.)
+    cycle
+  endif
+
+enddo
+
+!----------------------------------------------------------
 ! Lattice Layout...
+
+write (iu, '(a)')
+write (iu, '(a)') '!-------------------------------------------------------'
+write (iu, '(a)') '! Lattice lines'
+write (iu, '(a)')
 
 ! Multipass stuff...
 
@@ -1249,29 +1257,15 @@ enddo
 ! If there are lattice elements with duplicate names but differing parameters then
 ! Write the differences.
 
-allocate(n_count(n_names))
-
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  n_count = 0
 
-  do ie = 1, branch%n_ele_track
+  do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
     if (ele%key == marker$ .and. ele%name == 'END') cycle
-
-    girder => pointer_to_girder(ele, ix_slave_back = ix_slave)
-    if (ix_slave == 1) call eles_with_same_name_handler(girder, ib, names, an_indexx, n_names, n_count)
-
-    if (ele%slave_status == super_slave$) then
-      do ii = 1, ele%n_lord
-        lord => pointer_to_lord(ele, ii, ix_slave_back = ix_slave)
-        if (lord%lord_status == super_lord$ .and. ix_slave == 1) &
-                    call eles_with_same_name_handler(lord, ib, names, an_indexx, n_names, n_count)
-      enddo
-    endif
-
-    if (ele%slave_status == free$ .or. ele%slave_status == minor_slave$) &
-                    call eles_with_same_name_handler(ele, ib, names, an_indexx, n_names, n_count)
+    if (ele%slave_status == super_slave$) cycle
+    if (ele%slave_status == multipass_slave$) cycle
+    call eles_with_same_name_handler(ele, named_eles, an_indexx, names, n_names, order)
   enddo
 enddo
 
@@ -1286,47 +1280,97 @@ if (present(err)) err = .false.
 !--------------------------------------------------------------------------------
 contains
 
-subroutine eles_with_same_name_handler(ele, ix_branch, names, an_indexx, n_names, n_count)
+subroutine eles_with_same_name_handler(ele, named_eles, an_indexx, names, n_names, order)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (lat_struct), pointer :: lat
+type (ele_pointer_struct) :: named_eles(:)
+type (lat_ele_order_struct) order
+
+real(rp), pointer :: a0(:), b0(:), ksl0(:), a(:), b(:), ksl(:)
+real(rp), target :: az(0:n_pole_maxx) = 0, bz(0:n_pole_maxx) = 0
 character(40), allocatable :: names(:)
-integer, allocatable :: an_indexx(:), n_count(:)
-integer ix_branch, n_names, ix_match
-integer iv
+integer, allocatable :: an_indexx(:)
+integer n_names, ix_match
+integer i, iv
 
 !
 
 lat => ele%branch%lat
-
+if (ele%slave_status == multipass_slave$) return
 call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
-if (ix_match == 0) return ! Will happen, EG, with ele = multipass slave.
-ele0 => named_eles(ix_match)%ele
-n_count(ix_match) = n_count(ix_match) + 1
-if (n_count(ix_match) == 1) return    
+ele0 => named_eles(ix_match)%ele   ! Element with this name whose attributes were written to the lattice file.
+if (ele%ix_ele == ele0%ix_ele .and. ele%ix_branch == ele0%ix_branch) return
 
 do iv = 1, num_ele_attrib$
-  if (ele%value(iv) == ele0%value(iv)) return
+  if (ele%value(iv) == ele0%value(iv)) cycle
   info = attribute_info(ele, iv)
-  if (info%state /= is_free$ .and. info%state /= quasi_free$) return
+  if (info%state /= is_free$ .and. info%state /= quasi_free$) cycle
   if (info%state == quasi_free$) then
-    if (.not. attribute_free(ele, info%name, .false.)) return
+    if (.not. attribute_free(ele, info%name, .false.)) cycle
   endif
-
   ! Have a differing attribute
-  if (.not. have_expand_lattice_line) call write_expand_lat_header
-  if (size(lat%branch) == 1) then
-    line = ''
-  else
-    write (line, '(i0, a)') ix_branch, '>>'
-  endif
-  write (iu, '(3a, i0, 4a)') trim(line), trim(ele%name), '##', n_count(ix_match), '[', &
-            trim(attribute_name(ele, iv)), '] = ', re_str(ele%value(iv))
+  call write_this_differing_attrib(iu, ele, attribute_name(ele, iv), ele%value(iv), order)
 enddo
+
+if (associated(ele%a_pole) .or. associated(ele0%a_pole)) then
+  call pointer_to_ele_multipole(ele0, a0, b0, ksl0, magnetic$)
+  if (.not. associated(a0)) a0 => az
+  if (.not. associated(b0)) b0 => bz
+  call pointer_to_ele_multipole(ele, a, b, ksl, magnetic$)
+  if (.not. associated(a)) a => az
+  if (.not. associated(b)) b => bz
+
+  if (ele%key == multipole$) then
+    do i = 0, n_pole_maxx
+      if (a(i) /= a0(i)) call write_this_differing_attrib(iu, ele, 'k' // int_str(i) // 'l', a(i), order)
+      if (b(i) /= b0(i)) call write_this_differing_attrib(iu, ele, 't' // int_str(i), b(i), order)
+      if (ksl(i) /= ksl0(i)) call write_this_differing_attrib(iu, ele, 'k' // int_str(i) // 'sl', ksl(i), order)
+    enddo
+  else
+    do i = 0, n_pole_maxx
+      if (a(i) /= a0(i)) call write_this_differing_attrib(iu, ele, 'a' // int_str(i), a(i), order)
+      if (b(i) /= b0(i)) call write_this_differing_attrib(iu, ele, 'b' // int_str(i), b(i), order)
+    enddo
+  endif
+endif
+
+if (associated(ele%b_pole_elec) .or. associated(ele0%b_pole_elec)) then
+  call pointer_to_ele_multipole(ele0, a0, b0, ksl0, electric$)
+  if (.not. associated(a0)) a0 => az
+  if (.not. associated(b0)) b0 => bz
+  call pointer_to_ele_multipole(ele, a, b, ksl, electric$)
+  if (.not. associated(a)) a => az
+  if (.not. associated(b)) b => bz
+
+  do i = 0, n_pole_maxx
+    if (a(i) /= a0(i)) call write_this_differing_attrib(iu, ele, 'a' // int_str(i) // '_elec', a(i), order)
+    if (b(i) /= b0(i)) call write_this_differing_attrib(iu, ele, 'b' // int_str(i) // '_elec', b(i), order)
+  enddo
+endif
 
 end subroutine eles_with_same_name_handler
 
+!--------------------------------------------------------------------------------
+! contains
+
+subroutine write_this_differing_attrib(iu, ele, attrib_name, value, order)
+
+type (ele_struct) ele
+type (lat_ele_order_struct) order
+
+integer iu
+real(rp) value
+character(*) attrib_name
+
+!
+
+if (.not. have_expand_lattice_line) call write_expand_lat_header
+
+write (iu, '(5a)') trim(ele_unique_name(ele, order)), '[', trim(attrib_name), '] = ', re_str(value)
+
+end subroutine write_this_differing_attrib
 
 !--------------------------------------------------------------------------------
 ! contains
@@ -1357,6 +1401,31 @@ if (param_now == param_default) return
 write (iu, '(2a, i0)') param_name, ' = ', param_now
 
 end subroutine write_if_int_param_changed
+
+!--------------------------------------------------------------------------------
+! contains
+
+subroutine add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
+
+type (ele_struct), target :: ele
+type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
+
+integer, allocatable :: an_indexx(:)
+integer n_names, ix_match
+logical has_been_added
+character(40), allocatable :: names(:)
+
+!
+
+if (size(names) < n_names + 1) then
+  call re_allocate(names, 2*size(names))
+  call re_allocate(an_indexx, 2*size(names))
+  call re_allocate_eles(named_eles, 2*size(names), .true.)
+endif
+call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
+if (has_been_added) named_eles(n_names)%ele => ele
+
+end subroutine add_this_name_to_list
 
 !--------------------------------------------------------------------------------
 ! contains

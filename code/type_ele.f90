@@ -277,7 +277,7 @@ if (associated(ele%a_pole)) then
                  'B', im, ' =', ele%b_pole(im), 'B', im, '(w/Tilt) =', b2(im), 'T', im, '(equiv)  =', tn(im)
 
     else
-      if (a(im) == 0 .and. b(im) == 0) cycle
+      if (ele%a_pole(im) == 0 .and. ele%b_pole(im) == 0 .and. a(im) == 0 .and. b(im) == 0) cycle
 
       nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', im, ' =', ele%a_pole(im), &
                  'A', im, '(Scaled) =', a(im), 'A', im, '(w/Tilt) =', a2(im), 'K', im, 'L(equiv) =', knl(im)
