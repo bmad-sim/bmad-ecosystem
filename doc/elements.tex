@@ -1255,7 +1255,7 @@ curvature. That is, it is assumed that the lattice planes are curved by the bend
 
 Example:
 \begin{example}
-  crystal_ele: crystal, crystal_type = 'Si(111)', b_param = -1
+  crystal_ele: crystal, crystal_type = "Si(111)", b_param = -1
 \end{example}
 
 The \vn{darwin_width_sigma} and \vn{darwin_width_pi} parameters are the computed Darwin width, in
@@ -1368,7 +1368,7 @@ between the starting edge of the element and the ending edge.
 
 Example:
 \begin{example}
-  c1: custom, l = 3, val4 = 5.6, val12 = 0.9, descrip = 'params.dat'
+  c1: custom, l = 3, val4 = 5.6, val12 = 0.9, descrip = "params.dat"
 \end{example}
 In this example the \vn{descrip} string is being used to specify a
 file that contains parameters for the element.
@@ -3235,7 +3235,7 @@ and can include crystal materials or elemental materials.
 
 Example:
 \begin{example}
-  mm: multilayer_mirror, material_type = 'W:BORON_CARBIDE', n_cell = 100, &
+  mm: multilayer_mirror, material_type = "W:BORON_CARBIDE", n_cell = 100, &
             d1_thickness = 1e-9, d2_thickness = 1.5e-9
   m2: multi    ! This is a multipole element!!!
 \end{example}
@@ -3774,7 +3774,7 @@ physical source but the shape of the energy spectrum can be modified by setting 
 
   c_line: line = (pinit, ...)
   c_line[E_tot] = 15e3
-  pinit: photon_init, physical_source = 'b05w', sig_E = 2.1
+  pinit: photon_init, physical_source = "b05w", sig_E = 2.1
 \end{example}
 In this example, the bend \vn{b05w} is a bend producing photons. It is part of the line
 \vn{bend_line}. \vn{bend_line} also contains a \vn{photon_fork} element named \vn{pfork} which

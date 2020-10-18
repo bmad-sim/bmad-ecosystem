@@ -389,6 +389,9 @@ slave%value(delta_ref_time$) = slave_val(delta_ref_time$)
 slave%value(ref_time_start$) = slave_val(ref_time_start$)
 if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
 
+if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
+if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
+
 ! A match element with match_end$: Restore initial Twiss parameters (which
 ! are calculated in twiss_propagate1).
 
@@ -526,6 +529,8 @@ if (slave%slave_status /= super_slave$) then
 endif
 
 slave%field_calc = refer_to_lords$
+if (associated(slave%a_pole)) deallocate(slave%a_pole, slave%b_pole)
+if (associated(slave%a_pole_elec)) deallocate(slave%a_pole_elec, slave%b_pole_elec)
 
 ! Bookkeeping for EM_Field slave is independent of the lords.
 

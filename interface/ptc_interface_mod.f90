@@ -2950,7 +2950,7 @@ type (em_taylor_term_struct), pointer :: tm
 type(taylor), allocatable :: pancake_field(:,:)
 type (taylor) ptc_taylor
 
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, k1l, t1
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, norm, rel_charge, kl(0:n_pole_maxx), t(0:n_pole_maxx)
 real(rp) dx, dy, cos_t, sin_t, coef, coef_e, coef_b, kick_magnitude, ap_lim(2), ap_dxy(2), e1, e2
 real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset
 real(rp), pointer :: val(:)
@@ -3145,8 +3145,8 @@ case (sad_mult$)
     ! uses the quadrupole (and higher order) components. SAD and Bmad combine the quadrupole component
     ! in the Matrix step. Thus PTC may need a smaller step size.
     if (.not. present(integ_order) .and. .not. present(steps)) then
-      call multipole1_ab_to_kt (ele%a_pole(1), ele%b_pole(1), 1, k1l, t1)
-      ptc_key%nstep = max(ptc_key%nstep, nint(ele%value(l$) * abs(k1l) / (ele%value(eps_step_scale$) * bmad_com%ptc_cut_factor)))
+      call multipole_ele_to_kt (ele, .false., ix_pole_max, kl, t, magnetic$)
+      ptc_key%nstep = max(ptc_key%nstep, nint(ele%value(l$) * abs(kl(1)) / (ele%value(eps_step_scale$) * bmad_com%ptc_cut_factor)))
       ptc_key%method = 2
       if (ptc_key%nstep > 18) then
         ptc_key%nstep = nint(ptc_key%nstep / 7.0)

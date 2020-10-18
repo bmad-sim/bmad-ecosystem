@@ -230,7 +230,7 @@ integer to the appropriate string. For example:
 \begin{example}
   type (ele_struct) ele
   if (ele%key == wiggler\$) then       ! Test if element is a wiggler.
-  print *, 'This element: ', key_name(ele%key) ! Prints, for example, 'WIGGLER'
+  print *, "This element: ", key_name(ele%key) ! Prints, for example, "WIGGLER"
 \end{example}
 Note: The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
 outside of a \vn{lat_struct} structure.
@@ -260,8 +260,8 @@ To go back from an index in the \vn{%value} array to a name use the
   type (ele_struct) ele
   call init_ele (ele, quadrupole\$)    ! Initialize element
   ele%value(k1\$) = 0.3                                        ! Set K1 value
-  print *, 'Index for Quad K1:  ', attribute_index(ele, 'K1') ! prints: `4' (= k1\$)
-  print *, 'Name for Quad k1\$: ', attribute_name (ele, k1\$)   ! prints: `K1' 
+  print *, "Index for Quad K1:  ", attribute_index(ele, "K1") ! prints: `4' (= k1\$)
+  print *, "Name for Quad k1\$: ", attribute_name (ele, k1\$)   ! prints: `K1' 
 \end{example}
 The list of attributes for a given element
 type is given in the writeup for the different element in
@@ -415,7 +415,7 @@ the control variables. Each element in the array represents a single variable. \
 is an array of \vn{controller_var_struct} structures and these structures look like:
 \begin{example}
   type controller_struct
-    character(40) :: name = ''
+    character(40) :: name = ""
     real(rp) :: value = 0
     real(rp) :: old_value = 0
   end type
@@ -816,8 +816,8 @@ then a program can access the \vn{rise_time} attribute via:
   type (all_pointer_struct) a_ptr
   ...
   ele => ...            ! Point ele to some element in the lattice
-  call pointer_to_attribute (ele, 'RISE_TIME', .true., a_ptr, err_flag)
-  print *, 'RISE_TIME Attribute has value:', a_ptr%r
+  call pointer_to_attribute (ele, "RISE_TIME", .true., a_ptr, err_flag)
+  print *, "RISE_TIME Attribute has value:", a_ptr%r
 \end{example}
 
 Note: Even if there are custom attributes associated with a given type of element (say, all

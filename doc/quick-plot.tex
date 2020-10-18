@@ -75,19 +75,19 @@ prefix. Also, by convention, all PGPLOT subroutines start with a \vn{pg} prefix.
     call qp_draw_data (x, y, symbol_every = 0)
 
     call qp_save_state (.true.)
-    call qp_set_symbol_attrib ('times', color = 'blue', height = 20.0_rp)
-    call qp_set_line_attrib ("PLOT", color = 'blue', style = 'dashed')
+    call qp_set_symbol_attrib ('times', color = "blue", height = 20.0_rp)
+    call qp_set_line_attrib ("PLOT", color = "blue", style = "dashed")
     call qp_draw_data (x, z, symbol_every = 5)
     call qp_restore_state
 
-    ! draw the right graph. 'star5_filled' is a five pointed star.
+    ! draw the right graph. "star5_filled" is a five pointed star.
     call qp_save_state (.true.)
     call qp_set_box (2, 1, 2, 1)
     call qp_set_graph_attrib (draw_grid = .false.)
     call qp_set_symbol_attrib ('star5_filled', height = 10.0_rp)
     call qp_set_axis ("Y", -0.1_rp, 0.1_rp, 4, 2)
-    call qp_set_axis ('Y2', 1.0_rp, 100.0_rp, label = 'Y2 axis', &
-                                draw_numbers = .true., ax_type = 'LOG')
+    call qp_set_axis ('Y2', 1.0_rp, 100.0_rp, label = "Y2 axis", &
+                                draw_numbers = .true., ax_type = "LOG")
     call qp_draw_axes ("\m1 \m2 \m3 \m4 \m5 \m6 \m7", "\fsLY\fn", title = "That Darn Graph")
     call qp_draw_data (x, t, draw_line = .false., symbol_every = 4)
     call qp_restore_state
@@ -341,7 +341,7 @@ To plot data using the \vn{X2} or \vn{Y2} scale use the
 \Hyperref{r:qp.use.axis}{qp_use_axis} routine. For example:
 \begin{example}
   call qp_save_state (.true.)
-  call qp_use_axis (y = 'Y2')
+  call qp_use_axis (y = "Y2")
   ! ... Do some data plotting here ...
   call qp_restore_state
 \end{example}
@@ -518,8 +518,8 @@ defines a line is a \vn{qp_line_struct}
 \begin{example}
   type qp_line_struct
     integer width         ! Line width. Default = 1
-    character(16) color   ! Line color. Default = 'black'
-    character(16) style   ! Line style. Default = 'solid'
+    character(16) color   ! Line color. Default = "black"
+    character(16) style   ! Line style. Default = "solid"
   end type
 \end{example}
 
@@ -527,10 +527,10 @@ defines a line is a \vn{qp_line_struct}
 The \vn{qp_symbol_struct} defines how symbols are drawn 
 \begin{example}
   type qp_symbol_struct
-    character(16)  type        ! Default = 'circle_dot'
+    character(16)  type        ! Default = "circle_dot"
     real(rp) height            ! Default = 6.0 (points)
-    character(16)  color       ! Default = 'black'
-    character(16)  fill        ! Default = 'solid_fill'
+    character(16)  color       ! Default = "black"
+    character(16)  fill        ! Default = "solid_fill"
     integer  line_width        ! Default = 1
   end type
 \end{example}
@@ -546,7 +546,7 @@ The \vn{qp_axis_struct} defines how axes are drawn
                               !  Default = 0.05
     real(rp) label_offset     ! Offset in inches of the label from the numbering.
                               !  Default = 0.05
-    character(16) label_color ! Default = 'black'
+    character(16) label_color ! Default = "black"
     real(rp) major_tick_len   ! Length of the major ticks in inches. Def = 0.10
     real(rp) minor_tick_len   ! Length of the minor ticks in inches. Def = 0.06
     integer major_div         ! Number of major divisions. Default = 5
@@ -554,8 +554,8 @@ The \vn{qp_axis_struct} defines how axes are drawn
     integer minor_div         ! Number of minor divisions. 0 = auto-choose. Default = 0
     integer minor_div_max     ! Maximum number for auto choose. Default = 5
     integer places            ! Places after the decimal point. Default = 0
-    character(16) type        ! 'LINEAR' (default), 'LOG', or 'CUSTOM'.
-    character(16) bounds      ! 'GENERAL' (default), 'ZERO_AT_END', etc.
+    character(16) type        ! "LINEAR" (default), "LOG", or "CUSTOM".
+    character(16) bounds      ! "GENERAL" (default), "ZERO_AT_END", etc.
     integer tick_side         ! +1 = draw to the inside (def), 0 = both, -1 = outside.
     integer number_side       ! +1 = draw to the inside, -1 = outside (default).
     logical draw_label        ! Draw the label? Default = True.
@@ -565,16 +565,16 @@ The \vn{qp_axis_struct} defines how axes are drawn
 
 The \vn{%bounds} parameter sets how axis min and max values are calculated. Possible settings are:
 \begin{example}
-  'ZERO_AT_END'      ! Min or max value is set to zero.
-  'ZERO_SYMMETRIC'   ! Min and max choisen so that max = -min.
-  'GENERAL'          ! No restrictions.
-  'EXACT'            ! The inputed data min/max is used.
+  "ZERO_AT_END"      ! Min or max value is set to zero.
+  "ZERO_SYMMETRIC"   ! Min and max choisen so that max = -min.
+  "GENERAL"          ! No restrictions.
+  "EXACT"            ! The inputed data min/max is used.
 \end{example}
 
 Finally, the \vn{qp_plot_struct} is a container for the axis that make up a plot
 \begin{example}
   type qp_plot_struct
-    character(80) :: title = ' '
+    character(80) :: title = " "
     type (qp_axis_struct) x, y, x2, y2
     type (qp_axis_struct), pointer :: xx, yy  ! Pointer to axes used for plotting.
     logical :: draw_box    = .true.

@@ -679,7 +679,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, csr_method$,           'CSR_METHOD')
   call init_attribute_name1 (i, csr_ds_step$,          'CSR_DS_STEP')
   call init_attribute_name1 (i, space_charge_method$,  'SPACE_CHARGE_METHOD')
-  call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', quasi_free$)
+  call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', dependent$)
 
   if (i == drift$)        cycle
 
