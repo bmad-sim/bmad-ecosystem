@@ -9,7 +9,7 @@
 !   name        -- character(*): Name to match against.
 !
 ! Output:
-!   ix_indexx
+!   ix_indexx   -- integer: Index.
 !-
 
 function nametable_bracket_indexx (nametable, name) result (ix_indexx)
