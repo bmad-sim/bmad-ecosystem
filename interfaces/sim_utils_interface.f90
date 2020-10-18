@@ -496,12 +496,13 @@ subroutine nametable_add (nametable, name, ix_name)
   integer ix_name
 end subroutine
 
-function nametable_bracket_indexx (nametable, name) result (ix_indexx)
+function nametable_bracket_indexx (nametable, name, n_match) result (ix_max)
   import
   implicit none
   type (nametable_struct) nametable
   character(40) name
-  integer ix_indexx
+  integer ix_max
+  integer, optional :: n_match
 end function
 
 subroutine nametable_change1 (nametable, name, ix_name)
