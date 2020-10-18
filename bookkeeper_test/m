@@ -1,0 +1,5 @@
+cd ../../bmad
+mkd -j99
+cd ../regression_tests
+mkd bookkeeper_test-exe
+cd bookkeeper_test
