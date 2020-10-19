@@ -190,7 +190,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(data)
     if (.not. data(j)%exists) cycle
     select case (data(j)%merit_type)
-    case ('target', 'average', 'max-min')
+    case ('target', 'average', 'integral', 'max-min')
       ! Nothing to be done
     case ('max', 'abs_max')
       if (data(j)%delta_merit < 0) data(j)%delta_merit = 0  ! it's OK to be less

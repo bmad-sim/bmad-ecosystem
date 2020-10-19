@@ -1564,7 +1564,7 @@ case ('expression:', 'expression.')
       datum_value = maxval(abs(expression_value_vec))
     case ('max-min')
       datum_value = maxval(expression_value_vec) - minval(expression_value_vec)
-    case ('average')
+    case ('average', 'integral')
       datum_value = 0
       s_len = 0
       do i = 1, size(info)
@@ -1573,10 +1573,12 @@ case ('expression:', 'expression.')
         s_len = s_len + info(i)%ele%value(l$)
       enddo
 
-      if (i == size(info) + 1 .and. s_len /= 0) then
-        datum_value = datum_value / s_len
-      else  ! skip length weighted average
-        datum_value = sum(expression_value_vec) / size(expression_value_vec)
+      if (datum%merit_type == 'average') then
+        if (i == size(info) + 1 .and. s_len /= 0) then
+          datum_value = datum_value / s_len
+        else  ! skip length weighted average
+          datum_value = sum(expression_value_vec) / size(expression_value_vec)
+        endif
       endif
     case ('target')
       if (size(expression_value_vec) /= 1) then
@@ -3496,7 +3498,7 @@ if (ix_ele < ix_start) then   ! wrap around
     datum_value = datum_value - vec_ptr(ix_m)
     if (present(good)) valid_value = valid_value .and. good(ix_m)
 
-  case ('average')
+  case ('average', 'integral')
     ix_m = -1
     if (present(good)) then
       n = count(good(1:ix_ele)) + count(good(ix_start:n_track))
@@ -3512,12 +3514,14 @@ if (ix_ele < ix_start) then   ! wrap around
                     sum(branch%ele(ix_start:n_track)%value(l$) * vec_ptr(ix_start:n_track))
     endif
 
-    if (l_sum == 0 .and. n == 0) then
-      valid_value = .false.
-    elseif (l_sum == 0) then
-      datum_value = datum_value / n
-    else
-      datum_value = datum_value / l_sum
+    if (datum%merit_type == 'average') then
+      if (l_sum == 0 .and. n == 0) then
+        valid_value = .false.
+      elseif (l_sum == 0) then
+        datum_value = datum_value / n
+      else
+        datum_value = datum_value / l_sum
+      endif
     endif
 
   case default
@@ -3561,7 +3565,7 @@ else
     datum_value = datum_value - vec_ptr(ix_m)
     if (present(good)) valid_value = valid_value .and. good(ix_m)
 
-  case ('average')
+  case ('average', 'integral')
     ix_m = -1
     if (present(good)) then
       n = count(good(ix_start:ix_ele))
@@ -3573,12 +3577,14 @@ else
       datum_value = sum(branch%ele(ix_start:ix_ele)%value(l$) * vec_ptr(ix_start:ix_ele))
     endif
 
-    if (l_sum == 0 .and. n == 0) then
-      valid_value = .false.
-    elseif (l_sum == 0) then
-      datum_value = datum_value / n
-    else
-      datum_value = datum_value / l_sum
+    if (datum%merit_type == 'average') then
+      if (l_sum == 0 .and. n == 0) then
+        valid_value = .false.
+      elseif (l_sum == 0) then
+        datum_value = datum_value / n
+      else
+        datum_value = datum_value / l_sum
+      endif
     endif
 
   case default

@@ -95,6 +95,7 @@ are:
 \begin{example}
   "target"                       ! Default
   "average"                      ! Uses evaluation range
+  "integral"                     ! Uses evaluation range
   "min", "max"
   "abs_min", "abs_max"
   "max-min"                      ! Uses evaluation range
@@ -132,6 +133,10 @@ make sense to have one.
 \item["average"] \Newline
 With \vn{"average"} as the \vn{merit_type}, the value for a lattice is the average of the
 \vn{data_type} over the evaluation region.
+\item["integral"] \Newline
+%
+With \vn{"integral"} as the \vn{merit_type}, the value for a lattice is the integral of the
+\vn{data_type} over the evaluation region. 
 %
 \item["min" or "max"] \Newline
 With \vn{"min"} or \vn{"max"} as the \vn{merit_type}, the value

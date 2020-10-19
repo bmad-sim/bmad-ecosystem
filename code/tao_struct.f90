@@ -30,8 +30,8 @@ character(16), parameter :: tao_x_axis_type_name(10) = [character(16):: 'index',
 character(12), parameter :: tao_data_type_z_name(14) = [character(12):: 'x', 'px', 'y', 'py', 'z', 'pz', 'time', &
                   'intensity', 'intensity_x', 'intensity_y', 'phase_x', 'phase_y', 'Ja', 'energy']
 character(8), parameter :: tao_var_merit_type_name(2) = [character(8):: 'target ', 'limit']
-character(8), parameter :: tao_data_merit_type_name(7) = [character(8):: 'target', 'min', 'max', &
-                                             'abs_min', 'abs_max', 'max-min', 'average']
+character(8), parameter :: tao_data_merit_type_name(8) = [character(8):: 'target', 'min', 'max', &
+                                             'abs_min', 'abs_max', 'max-min', 'average', 'integral']
 character(12), parameter :: tao_optimizer_name(6) = [character(12):: 'de', 'lm', 'lmdif', 'custom', 'svd', 'geodesic_lm']
 character(24), parameter :: tao_shape_shape_name(13) = [character(24):: 'Box', 'Var:Box', 'VVar:Box', 'Asym_Var:Box', &
                                     'Asym_VVar:Box', 'Xbox', 'Diamond', 'Bow_Tie', 'RBow_Tie', 'Circle', 'X', &
@@ -57,10 +57,10 @@ end interface
 
 !---------
 
-type tao_cmd_history_struct  ! record the command history
-  character(:), allocatable :: cmd     ! the command
-  integer :: ix = 0      ! command index (1st command has ix = 1, etc.)
-  logical cmd_file       ! Did command come from a command file
+type tao_cmd_history_struct          ! Record the command history
+  character(:), allocatable :: cmd   ! The command
+  integer :: ix = 0                  ! Command index (1st command has ix = 1, etc.)
+  logical cmd_file                   ! Did command come from a command file
 end type
 
 !-----------------------------------------------------------------------
