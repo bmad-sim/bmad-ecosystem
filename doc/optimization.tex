@@ -452,8 +452,8 @@ The \vn{lmdif} optimizer is like the \vn{lm} optimizer except that it builds up 
 needs on the derivative matrix by initially taking small steps over the first \vn{n} cycles where
 \vn{n} is the number of variables. The advantage of this is that you do not have to set a \vn{step}
 size for the variables. The disadvantage is that for \vn{lmdif} to be useful, the number of
-\vn{cycles} must be greater than the number of variables. Again, like \vn{lm}, this method will only
-find local minimum.
+\vn{cycles} (set by \vn{set global n_cycles =<XXX>}) must be greater than the number of
+variables. Again, like \vn{lm}, this method will only find local minimum.
   \index{de optimizer}
   \item{\vn{de}} \Newline
 The \vn{de} optimizer stands for \vn{differential evolution}\cite{b:de}. The advantage of this
