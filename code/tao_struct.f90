@@ -1004,6 +1004,7 @@ type tao_universe_struct
   type (tao_ping_scale_struct) ping_scale
   type (lat_struct) scratch_lat                          ! Scratch area.
   type (tao_universe_calc_struct) calc                   ! What needs to be calculated?
+  type (lat_ele_order_struct) ele_order                  ! Order of elements with same name.
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
   integer :: ix_uni = -1                    ! Universe index.
   integer :: n_d2_data_used = -1            ! Number of used %d2_data(:) components.

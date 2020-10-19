@@ -621,30 +621,45 @@ subroutine tao_print_vars_bmad_format (iu, ix_uni, show_good_opt_only, v_array)
 implicit none
 
 type (tao_var_array_struct), optional :: v_array(:)
-integer iu, ix_uni, j
+type (tao_universe_struct), pointer :: u
+type (lat_struct), pointer :: lat
+
+integer iu, ix_uni, j, n_line
 character(40) useit_str
-character(200) str(1)
+character(200), allocatable :: str(:)
 logical, optional :: show_good_opt_only
 
 !
 
+u => s%u(ix_uni)
+lat => u%model%lat
+call ele_order_calc(lat, u%ele_order)
+n_line = 0
+
 if (present(v_array)) then
+  allocate (str(size(v_array)))
   do j = 1, size(v_array)
-    call print_this_var(v_array(j)%v)
+    call print_this_var(v_array(j)%v, n_line)
   enddo
 
 else
+  allocate (str(s%n_var_used))
   do j = 1, s%n_var_used
-    call print_this_var(s%var(j))
+    call print_this_var(s%var(j), n_line)
   enddo
 endif
+
+call tao_write_out (iu, str(1:n_line))
 
 !----------------
 
 contains
-subroutine print_this_var (var)
+subroutine print_this_var (var, n_line)
 
 type (tao_var_struct) var
+type (ele_struct), pointer :: ele
+integer n_line
+integer ix, n_ele
 
 !
 
@@ -656,9 +671,31 @@ if (var%useit_opt) then
 else
   useit_str = '! Not used in optimizing'
 endif
-write (str(1), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), &
-          '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
-call tao_write_out (iu, str(1:1))
+
+! A potential problem is that the variable may not control all elements named var%ele_name.
+! If this is the case, must use ele name order index to qualify the name.
+
+ix = nametable_bracket_indexx(lat%nametable, var%ele_name, n_ele)
+if (n_ele == size(var%slave)) then
+  n_line = n_line + 1
+  if (n_line >= size(str)) call re_allocate (str, 2*n_line)
+  write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+else
+  ! Qualified names can only be used after an expand_lattice command.
+  if (str(1) /= 'expand_lattice') then
+    n_line = n_line + 1
+    str(2:n_line) = str(1:n_line-1)
+    str(1) = 'expand_lattice'
+  endif
+
+  do ix = 1, size(var%slave)
+    n_line = n_line + 1
+    if (n_line >= size(str)) call re_allocate (str, 2*n_line)
+    ele => lat%branch(var%slave(ix)%ix_branch)%ele(var%slave(ix)%ix_ele)
+    write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
+                                                            '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+  enddo
+endif
 
 end subroutine print_this_var
 
