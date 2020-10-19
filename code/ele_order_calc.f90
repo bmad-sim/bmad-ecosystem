@@ -14,7 +14,7 @@
 
 subroutine ele_order_calc (lat, order)
 
-use pointer_to_ele_mod
+use pointer_to_ele_mod, dummy => ele_order_calc
 use nr, only: indexx
 
 implicit none
