@@ -3,7 +3,7 @@
 !
 ! Routine to collect the information needed to construct unique lattice element name.
 !
-! The output of this routine is used in lat_ele_unique_name.
+! The output of this routine is used in ele_unique_name.
 !
 ! Input:
 !   lat       -- lat_struct: Lattice to analyze.
@@ -112,7 +112,7 @@ do
     endif
 
     call re_allocate(indx, nn, .false.)
-    call indexx(ord_br(ib)%ele(1:nn)%ix_ele, indx)
+    call indexx(ord_br(ib)%ele(1:nn)%ix_ele, indx(1:nn))
     do ix = 1, nn
       in = ord_br(ib)%ele(indx(ix))%ix_nt
       ele => pointer_to_ele(lat, in)
