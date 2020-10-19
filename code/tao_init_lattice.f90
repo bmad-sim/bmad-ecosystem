@@ -331,6 +331,8 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
     u%base%tao_branch(ib)%tao_lat   => u%base
   enddo
 
+  call ele_order_calc(u%design%lat, u%ele_order)
+
 enddo
 
 ! Working lattice setup
