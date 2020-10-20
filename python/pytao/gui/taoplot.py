@@ -138,9 +138,9 @@ class taoplot:
                 lx = lx.replace('\\\\gX','X')
                 lx = lx.replace('\\\\gQ','\\Psi')
                 lx = lx.replace('\\\\gW','\\Omega')
-
+                lx = lx.replace('\\\\fn', '')
                 if '\\\\' in lx:
-                    raise NotImplementedError('unknown character in string, character not yet added to mpl_string')
+                    raise NotImplementedError('unknown character in string, character not yet added to mpl_string: ' + repr(lx))
                 return lx
             else:
                 return x
