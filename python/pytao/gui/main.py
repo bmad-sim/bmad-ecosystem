@@ -44,7 +44,7 @@ class tao_root_window(tk.Tk):
         self.GUI_DIR += '/tao/python/pytao/gui'
         if sys.platform == "linux": # setting icon only works on linux for now
             self.icon = '@' + self.GUI_DIR + "/assets/tao-logo.xbm"
-        self.iconbitmap(self.icon)
+            self.iconbitmap(self.icon)
 
         # Window lists (accessible for refreshing)
         self.refresh_windows = {}
