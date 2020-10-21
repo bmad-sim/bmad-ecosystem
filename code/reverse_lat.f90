@@ -6,6 +6,10 @@
 ! For lord elements the element positions are unshifted and for tracking elements:
 !   lat_in%branch(ib)%ele(ie) => lat_rev%branch(ib)%ele(nt+1-ie)    ! where nt = lat_in%branch(ib)%n_ele_track
 ! Note: The beginning element %ele(0) is unshifted.
+! Note: The Twiss parameters will be appropriately reversed
+! Note: The global positions of all the elements will not be affected. That is, the beginning 
+!  position of the reversed lattice will be the ending position of the original lattice.
+!  
 !
 ! Input:
 !   lat_in             -- lat_struct: Input lattice to reverse.
@@ -64,6 +68,7 @@ do ib = 0, ubound(lat_temp%branch, 1)
   ele_rev = branch_in%ele(0)
   ele_rev%orientation = -ele_rev%orientation
   ele_rev%s = 0
+  ele_rev%floor = branch_in%ele(nt)%floor
 
   call transfer_twiss (branch_in%ele(nt), ele_rev)
   ele_rev%a%alpha = -ele_rev%a%alpha
