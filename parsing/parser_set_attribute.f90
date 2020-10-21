@@ -1995,20 +1995,20 @@ logical is_problem, is_free
 
 is_problem = .false.
 
-if (logic_option(.false., check_free)) then
-  is_free = attribute_free (ele, attrib_name, bp_com%print_err .and. .not. heterogeneous_ele_list)
-  if (.not. is_free) then
-    if (.not. heterogeneous_ele_list) call parser_error ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
-    err_flag = .true.
-    is_problem = .true.
+attrib_info = attribute_info(ele, attribute_index(ele, attrib_name))
+if (attrib_info%state == dependent$) then
+  if (.not. hetero_list) then
+    call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
   endif
-else
-  attrib_info = attribute_info(ele, attribute_index(ele, attrib_name))
-  if (attrib_info%state == dependent$) then
-    if (.not. hetero_list) then
-      call parser_error ('DEPENDENT ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
-    endif
-    is_problem = .true.
+  is_problem = .true.
+  return
+endif
+
+if (logic_option(.false., check_free)) then
+  is_free = attribute_free (ele, attrib_name, .false.)
+  if (.not. is_free) then
+    call pointer_to_attribute(ele, word, .true., a_ptr, err_flag, .false.)
+    call set_flags_for_changed_attribute (ele, a_ptr%r, .true.)
   endif
 endif
 

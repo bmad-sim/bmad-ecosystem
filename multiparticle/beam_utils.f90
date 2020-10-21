@@ -211,7 +211,7 @@ end subroutine track1_sr_wake
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag)
+! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes)
 !
 ! Subroutine to initialize a beam of particles. 
 ! Initialization uses the downstream parameters of ele.
