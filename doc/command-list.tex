@@ -976,6 +976,10 @@ various parameters that can be set. \vn{<branch-id>} may be the branch index or 
 name. \vn{<branch-id>} may also contain an optional \vn{n@} prefix to specify a particular universe
 to apply the set to. The default is to only set the current viewed universe.
 
+Note: When toggling a branch from closed to open the beginning orbit and Twiss parameters will not
+change. On the other hand, when toggling a branch from open to closed, the orbit and Twiss
+parameters will, in general, shift.
+
 Examples:
 \begin{example}
   set branch 2@0 live_branch = F     ! Suppress calculations for branch \# 0 of universe 2.
