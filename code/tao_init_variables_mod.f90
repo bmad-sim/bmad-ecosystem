@@ -106,7 +106,11 @@ do
     enddo
   endif
   if (ios < 0 .and. v1_var%name == '') exit  ! Exit on end-of-file and no namelist read
-  n = n + 1
+  if (index(default_universe, 'clone') == 0) then
+    n = n + 1
+  else
+    n = n + size(s%u)
+  endif
   if (n >= size(default_key_b)) then
     call re_allocate (default_key_b, 2*size(default_key_b))
     call re_allocate (default_key_d, 2*size(default_key_d))
