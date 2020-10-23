@@ -1479,6 +1479,21 @@ case ('field')
   orb%vec = 0
   orb%t = 0
   z = 0
+  show_all = .false.   ! Show derivatives?
+
+  i0 = index(what2, '-d')
+  if (i0 /= 0) then
+    call string_trim (what2(i0:), line1, ix)
+    aname = line1(1:ix)
+    what2 = what2(:i0-1) // line1(ix+1:)
+    if (index('-derivative', aname(:ix)) /= 1) then
+      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // aname)
+      return
+    endif
+    show_all = .true.
+  endif
+
+  ! 
 
   call  str_upcase(ele_name, word1)
   call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
@@ -1540,12 +1555,24 @@ case ('field')
 
   do i = 1, size(eles)
     ele => eles(i)%ele
-    call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err);  if (err) return
+    call em_field_calc (ele, ele%branch%param, z, orb, .false., field, calc_dfield = show_all, err_flag = err);  if (err) return
     if (size(eles) > 1) then
+      if (i > 1) then
+        nl=nl+1; lines(nl) = ''
+      endif
       nl=nl+1; lines(nl) = trim(ele%name) // '  ' // ele_loc_name(ele, parens = '()')
     endif
-    nl=nl+1; write (lines(nl), '(2a)') '  B (T):  ', reals_to_string(field%B, 12, 2, 6, 6)
-    nl=nl+1; write (lines(nl), '(2a)') '  E (V/m):', reals_to_string(field%E, 12, 2, 6, 2)
+    nl=nl+1; write (lines(nl), '(2a)') '   B (T):    ', reals_to_string(field%B, 12, 2, 6, 6)
+    nl=nl+1; write (lines(nl), '(2a)') '   E (V/m):  ', reals_to_string(field%E, 12, 2, 6, 2)
+
+    if (show_all) then
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dx (T/m):    ', field%dB(1,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dy (T/m):    ', field%dB(2,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dz (T/m):    ', field%dB(3,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dx (V/m^2):   ', field%dE(1,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dy (V/m^2):   ', field%dE(2,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dz (V/m^2):   ', field%dE(3,:)
+    endif
   enddo
 
 !----------------------------------------------------------------------
