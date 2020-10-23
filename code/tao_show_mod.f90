@@ -1566,12 +1566,20 @@ case ('field')
     nl=nl+1; write (lines(nl), '(2a)') '   E (V/m):  ', reals_to_string(field%E, 12, 2, 6, 2)
 
     if (show_all) then
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dx (T/m):    ', field%dB(1,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dy (T/m):    ', field%dB(2,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dz (T/m):    ', field%dB(3,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dx (V/m^2):   ', field%dE(1,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dy (V/m^2):   ', field%dE(2,:)
-      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dz (V/m^2):   ', field%dE(3,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dx (T/m):         ', field%dB(1,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dy (T/m):         ', field%dB(2,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dz (T/m):         ', field%dB(3,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8, a, es16.8)') &
+                                                 '  Curl_B, Div_B (T/m): ', field%dB(3,2) - field%dB(2,3), &
+                                            field%dB(1,3) - field%dB(3,1), field%dB(2,1) - field%dB(1,2), ',', &
+                                            field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dx (V/m^2):         ', field%dE(1,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dy (V/m^2):         ', field%dE(2,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dz (V/m^2):         ', field%dE(3,:)
+      nl=nl+1; write (lines(nl), '(a, 3es16.8, a, es16.8)') &
+                                                 '  Curl_E, Div_E (V/m^2): ', field%dE(3,2) - field%dE(2,3), &
+                                            field%dE(1,3) - field%dE(3,1), field%dE(2,1) - field%dE(1,2), ',', &
+                                            field%dE(1,1) + field%dE(2,2) + field%dE(3,3)
     endif
   enddo
 
