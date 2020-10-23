@@ -99,12 +99,12 @@ lattice while the latter can be any arbitrary orbit.
   \centering
   \includegraphics[width=6in]{element-coord-frame.pdf}
 \caption[Lattice elements as LEGO blocks.]{Lattice elements can be imagined as LEGO blocks which fit
-together such that the entrance coordinates of one element connecting to the exit coordinates of the next.
-This forms the reference orbit along with the laboratory coaordinate system.  A) For straight line
-elements the entrance and exit frames are colinear. B) For bends elements, the two frames are
+together such that the entrance coordinates of one element connecting to the exit coordinates of the
+next.  This forms the reference orbit along with the laboratory coaordinate system.  A) For straight
+line elements the entrance and exit frames are colinear. B) For bends elements, the two frames are
 rotated with respect to each other. C) For \vn{patch} and \vn{floor_shift} elements the exit frame
-may be arbitrarily positioned with respect to the entrance. D) Illustration of elements connected
-together.}
+may be arbitrarily positioned with respect to the entrance. D) Illustration of how elements are
+connected together.}
   \label{f:ele.coord.frame}
   \end{figure}
 
@@ -120,16 +120,16 @@ illustrated in \fig{f:ele.coord.frame}A through C\footnote
 Thanks to Dan Abell for this analogy.
   }. 
 Elements are connected together as illustrated in \fig{f:ele.coord.frame}D with the exit frame of
-one element aligning with the entrance frame of the next. Within an element, the laboratory coordinate
-system depends upon the type of element. Most elements have a ``straight'' geometry as shown in
-\fig{f:ele.coord.frame}A. That is, the reference orbit through the element is a straight line segment
-with the $x$ and $y$ axes always pointing in the same direction.
-For a \vn{bend} element (\sref{s:bend}), the reference orbit is a
-segment of a circular arc as shown in \fig{f:ele.coord.frame}B. With a zero \vn{ref_tilt}, the
-rotation axis between the entrance and exit frames of a bend is the $y$-axis (\sref{s:global}). For
-\vn{patch} (\sref{s:patch}), and \vn{floor_shift} (\sref{s:floor.ele}) elements, the exit face can
-can arbitrarily oriented with respect to the entrance end. In this case, the reference orbit between
-the entrance and exit faces is not defined.
+one element aligning with the entrance frame of the next. Within an element, the laboratory
+coordinate system depends upon the type of element. Most elements have a ``straight'' geometry as
+shown in \fig{f:ele.coord.frame}A. That is, the reference orbit through the element is a straight
+line segment with the $x$ and $y$ axes always pointing in the same direction.  For a \vn{bend}
+element (\sref{s:bend}), the reference orbit is a segment of a circular arc as shown in
+\fig{f:ele.coord.frame}B. With the \vn{ref_tilt} parameter of a bend set to zero, the rotation axis
+between the entrance and exit frames is parallel to the $y$-axis (\sref{s:global}). For \vn{patch}
+(\sref{s:patch}), and \vn{floor_shift} (\sref{s:floor.ele}) elements, the exit face can can
+arbitrarily oriented with respect to the entrance end. In this case, the reference orbit between the
+entrance and exit faces is not defined.
 
 \index{root branch}
 Assuming for the moment that there are no \vn{fiducial} elements present, the construction of the
@@ -137,9 +137,7 @@ reference orbit starts at the beginning element of a branch. If the branch is a 
 (\sref{s:lattice.def}), The orientation of the beginning element can be set via the appropriate
 positioning statements (\sref{s:beginning}). If the branch is not a \vn{root} branch, the position
 of the beginning element is determined by the position of the \vn{fork} or \vn{photon_fork} element
-from which the branch forks from.
-
-Once the beginning element in a branch is positioned, succeeding element LEGO elements are
+from which the branch forks from. Once the beginning element in a branch is positioned, succeeding elements are
 concatenated together as illustrated in \fig{f:ele.coord.frame}D. When a element is joined, the end of the
 element that is mated to the previous element is called the ``\vn{upstream}'' end and the other end
 which will be mated to the following element is called the ``\vn{downstream}'' end.  Normally, the
