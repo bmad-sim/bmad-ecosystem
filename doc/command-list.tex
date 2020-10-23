@@ -2027,23 +2027,25 @@ Example:
 
 Syntax:
 \begin{example}
-  show field <ele> <x> <y> <z> \{<t/z>\}
+  show field <ele> \{-derivative\} <x> <y> <s> \{<t-or-z>\}
 \end{example}
 
-The \vn{show field} command shows the electric and magnetic field at a point in space-time. 
-\vn{<x>}, and \vn{<y>} are the transverse coordinates and 
-\vn{<z>} coordinate is the longitudinal position with respect to the beginning of the element
-specified by \vn{<ele>} (not to be confused with phase space $z$). The syntax for \vn{<ele>} is
-explained in section \sref{s:ele.list.format}. If multiple elements are matched, the fields in each
-will be printed.
+The \vn{show field} command shows the electric and magnetic field at a point in space-time and, if
+the \vn{-derivative} switch is present, the field derivatives as well.
 
-The \vn{<t/z>} argument is optional and specifies the time if absolute time tracking is on or the
-phase space $z$ value if absolute time tracking is off (use the \vn{show universe} command to see if
-absolute time tracking is on or off). The \vn{<t/z>} argument is only useful for elements with RF fields.
-If not set, \vn{<t/z>} will default to zero.
+\vn{<x>}, and \vn{<y>} are the transverse coordinates and \vn{<s>} coordinate is the longitudinal
+position with respect to the beginning of the element specified by \vn{<ele>}. The syntax for
+\vn{<ele>} is explained in section \sref{s:ele.list.format}. Wild card characters are permitted. If
+multiple elements are matched, the field for each will be printed.
+
+The \vn{<t-or-z>} argument is optional and specifies the time if absolute time tracking is being
+used or the phase space $z$ value if relative time tracking is being used (use the \vn{show
+universe} command to see if absolute time tracking is used or not). The \vn{<t-or-z>} argument is
+only useful for elements with RF fields. If not set, \vn{<t-or-z>} will default to zero.
 
 \begin{example}
-  show field q10w 0.1  0.2, 1.2    ! Show field in q10w element.
+  show field q10w 0.1  0.2, 0.5*ele::q10w[L]    ! Show field at (x, y) = (0.1, 0.2) and 
+                                                !    at s-center of q10w element.
 \end{example}
 
 %% show global --------------------------------------------------------------
