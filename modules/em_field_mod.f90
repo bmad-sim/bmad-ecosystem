@@ -2062,7 +2062,6 @@ contains
 subroutine get_this_index (x, ix_x, i0, rel_x0, err_flag, allow_out_of_bounds)
 
 type (coord_struct) orb2
-type (lat_param_struct) param
 real(rp) x, rel_x0, x_norm, x_diff, x_ave
 integer ix_x, i0, ig0, ig1, allow_out_of_bounds
 logical err_flag
@@ -2115,7 +2114,7 @@ if (i0 < ig0 .or. i0 >= ig1) then
   orb2%state = alive$
   if (ele%aperture_at == continuous$) then
     orb2 = orbit
-    call check_aperture_limit(orb2, ele, in_between$, param)
+    call check_aperture_limit(orb2, ele, in_between$, ele%branch%param)
   endif
 
   if (orb2%state == alive$ .and. logic_option(.true., err_print_out_of_bounds)) then

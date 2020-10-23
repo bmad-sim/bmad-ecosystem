@@ -11,7 +11,7 @@ This chapter describes how to define the ordered list of elements that make up a
 \label{s:branch.construct}
 
 \index{list}
-A lattice branch is defined in a lattice file using what are called \vn{beam lines}
+A lattice branch (\sref{s:branch.def}) is defined in a lattice file using what are called \vn{beam lines}
 (\sref{s:lines.wo.arg}) and \vn{replacement lists} (\sref{s:replace.list}).  The \vn{beam lines} are
 divided into two types - lines with (\sref{s:lines.with.arg}) and lines without
 (\sref{s:lines.wo.arg}) \vn{replacement arguments}. This essentially corresponds to the \mad
@@ -22,11 +22,16 @@ Since lines can be nested within other lines, The same element name may be repea
 in a branch. To distinguish between multiple elements of the same name, lines and lists may be
 \vn{tagged} (\sref{s:tag}) to produce unique element names.
 
-There will also be a marker element named \vn{END} automatically placed at the end of the
-lattice. This end marker will not be automatically placed in the lattice if a marker named \vn{end}
-is defined in the lattice file at the end of the lattice. Additionally, a
-\vn{parameter[no_end_marker]} statement (\sref{s:param}) can be used to suppress the insertion of
-the end marker.
+A marker element named \vn{END} will be automatically placed at the ends of the branches unless a
+\vn{parameter[no_end_marker]} statement (\sref{s:param}) is used to suppress the insertion.
+Additionally, if an ending marker named \vn{END} is already present in the lattice file, no extra
+marker will be created.
+
+Branches are ordered in an array (\sref{s:lattice.def}) and each branch is assigned an index number
+starting with index 0. When there are multiple branches in a lattice, the reference orbit
+(\sref{s:ref}) of a branch must not depend upon details of branches later on in the array.  \bmad
+depends upon this and calculates the reference orbits of the branches one at a time starting with
+the first branch.
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines and Lattice Expansion}

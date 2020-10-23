@@ -1,10 +1,9 @@
 \chapter{Bmad Concepts and Organization}
 \label{c:lat.concepts}
 
-This chapter is an overview of some of the nomenclature used
-by \bmad. Presented are the basic concepts, such as \vn{element},
-\vn{branch}, and \vn{lattice}, that \bmad uses to describe such things
-as LINACs, storage rings, X-ray beam lines, etc.  
+This chapter is an overview of some of the nomenclature used by \bmad. Presented are the basic
+concepts, such as \vn{element}, \vn{branch}, and \vn{lattice}, that \bmad uses to describe such
+things as LINACs, storage rings, X-ray beam lines, etc.
 
 %---------------------------------------------------------------------------
 \section{Lattice Elements}
@@ -13,83 +12,65 @@ as LINACs, storage rings, X-ray beam lines, etc.
 \index{lattice element}
 \index{element}
 \index{controller element}
-The basic building block \bmad uses to describe a machine is the
-\vn{lattice} \vn{element}. An element can be a physical thing that
-particles travel ``through'' like a bending magnet, a quadrupole or a
-Bragg crystal, or something like a \vn{marker} element (\sref{s:mark})
-that is used to mark a particular point in the machine.  Besides
-physical elements, there are \vn{controller} elements
-(Table~\ref{t:control.classes}) that can be used for parameter control
-of other elements.
+The basic building block \bmad uses to describe a machine is the \vn{lattice} \vn{element}. An
+element can be a physical thing that particles travel ``through'' like a bending magnet, a
+quadrupole or a Bragg crystal, or something like a \vn{marker} element (\sref{s:mark}) that is used
+to mark a particular point in the machine.  Besides physical elements, there are \vn{controller}
+elements (Table~\ref{t:control.classes}) that can be used for parameter control of other elements.
 
-Chapter~\sref{c:elements} lists the complete set of different element
-types that \bmad knows about.
+Chapter~\sref{c:elements} lists the complete set of different element types that \bmad knows about.
 
 \index{beginning element}\index{end element}
-In a lattice \vn{branch} (\sref{s:branch.def}), The ordered array of
-elements are assigned a number (the element index) starting from
-zero. The zeroth \vn{beginning_ele} (\sref{s:begin.ele}) element,
-which is always named \vn{BEGINNING}, is automatically included in
-every branch and is used as a marker for the beginning of the branch.
-Additionally, every branch will, by default, have a final marker
-element (\sref{s:mark}) named \vn{END}.
+In a lattice \vn{branch} (\sref{s:branch.def}), The ordered array of elements are assigned a number
+(the element index) starting from zero. The zeroth \vn{beginning_ele} (\sref{s:begin.ele}) element,
+which is always named \vn{BEGINNING}, is automatically included in every branch and is used as a
+marker for the beginning of the branch.  Additionally, every branch will, by default, have a final
+marker element (\sref{s:mark}) named \vn{END}.
 
 %---------------------------------------------------------------------------
 \section{Lattice Branches}
 \label{s:branch.def}
 
 \index{branch}
-The next level up from a \vn{lattice} \vn{element} is the \vn{lattice}
-\vn{branch}. A \vn{lattice} \vn{branch} contains an
-ordered sequence of lattice elements that a particle will travel
-through. A branch can represent a LINAC, X-Ray beam line, storage ring
-or anything else that can be represented as a simple ordered list of
-elements.
+The next level up from a \vn{lattice} \vn{element} is the \vn{lattice} \vn{branch}. A \vn{lattice}
+\vn{branch} contains an ordered sequence of lattice elements that a particle will travel through. A
+branch can represent a LINAC, X-Ray beam line, storage ring or anything else that can be represented
+as a simple ordered list of elements.
 
-Chapter~\sref{c:sequence} shows how a \vn{branch} is defined in a
-lattice file with \vn{line}, \vn{list}, and \vn{use} statements.
+Chapter~\sref{c:sequence} shows how a \vn{branch} is defined in a lattice file with \vn{line},
+\vn{list}, and \vn{use} statements.
 
-A \vn{lattice} (\sref{s:lattice.def}), has an array of
-\vn{branches}. Each \vn{branch} in this array is assigned an index
-starting from 0. Additionally, each \vn{branch} is assigned a name
-which is the \vn{line} that defines the branch (\sref{s:use}).
+A \vn{lattice} (\sref{s:lattice.def}), has an array of \vn{branches}. Each \vn{branch} in this array
+is assigned an index starting from 0. Additionally, each \vn{branch} is assigned a name which is the
+\vn{line} that defines the branch (\sref{s:use}).
 
 %---------------------------------------------------------------------------
 \section{Lattice}
 \label{s:lattice.def}
 
 \index{lattice}\index{branch} 
-an array of \vn{branches} that can be interconnected together to
-describe an entire machine complex. A \vn{lattice} can include such
-things as transfer lines, dump lines, x-ray beam lines, colliding beam
-storage rings, etc. All of which are connected together to form a
-coherent whole. In addition, a lattice may contain \vn{controller
-elements} (Table~\ref{t:control.classes}) which can simulate such
-things as magnet power supplies and lattice element mechanical support
-structures.
+an array of \vn{branches} that can be interconnected together to describe an entire machine
+complex. A \vn{lattice} can include such things as transfer lines, dump lines, x-ray beam lines,
+colliding beam storage rings, etc. All of which are connected together to form a coherent whole. In
+addition, a lattice may contain \vn{controller elements} (Table~\ref{t:control.classes}) which can
+simulate such things as magnet power supplies and lattice element mechanical support structures.
 
 \index{root branch}
-Branches can be interconnected using \vn{fork} and
-\vn{photon_fork} elements (\sref{s:fork}). This is used to
-simulate forking beam lines such as a connections
-to a transfer line, dump line, or an X-ray beam line. The \vn{branch}
-from which other \vn{branches} fork is called a \vn{root} branch.
+Branches can be interconnected using \vn{fork} and \vn{photon_fork} elements (\sref{s:fork}). This
+is used to simulate forking beam lines such as a connections to a transfer line, dump line, or an
+X-ray beam line. The \vn{branch} from which other \vn{branches} fork is called a \vn{root} branch.
 
-A lattice may contain multiple \vn{root} \vn{branches}. For example, a
-pair of intersecting storage rings will generally have two \vn{root}
-branches, one for each ring. The \vn{use} statement (\sref{s:use}) in a
-lattice file will list the \vn{root} \vn{branches} of a lattice. To
-connect together lattice elements that are physically shared between
-branches, for example, the interaction region in colliding beam
-machines, \vn{multipass} lines (\sref{s:multipass}) can be used.
+A lattice may contain multiple \vn{root} \vn{branches}. For example, a pair of intersecting storage
+rings will generally have two \vn{root} branches, one for each ring. The \vn{use} statement
+(\sref{s:use}) in a lattice file will list the \vn{root} \vn{branches} of a lattice. To connect
+together lattice elements that are physically shared between branches, for example, the interaction
+region in colliding beam machines, \vn{multipass} lines (\sref{s:multipass}) can be used.
 
-The root branches of a lattice are defined by the \vn{use}
-(\sref{s:use}) statement. To further define such things as dump lines,
-x-ray beam lines, transfer lines, etc., that branch off from a root
-branch, a forking element is used.  \vn{Fork} elements can define
-where the particle beam can branch off, say to a beam
-dump. \vn{photon_fork} elements can define the source point for
-X-ray beams.  Example:
+The root branches of a lattice are defined by the \vn{use} (\sref{s:use}) statement. To further
+define such things as dump lines, x-ray beam lines, transfer lines, etc., that branch off from a
+root branch, a forking element is used.  \vn{Fork} elements can define where the particle beam can
+branch off, say to a beam dump. \vn{photon_fork} elements can define the source point for X-ray
+beams.  Example:
 \begin{example}
   erl: line = (..., dump, ...)               ! Define the root branch 
   use, erl
@@ -97,22 +78,20 @@ X-ray beams.  Example:
   d_line: line = (..., q3d, ...)             ! Define the branch line
 \end{example}
 
-Like the root branch \bmad always automatically creates an element
-with \vn{element index} 0 at the beginning of each branch called
-\vn{beginning}. The longitudinal \vn{s} position of an element in a
+Like the root branch \bmad always automatically creates an element with \vn{element index} 0 at the
+beginning of each branch called \vn{beginning}. The longitudinal \vn{s} position of an element in a
 branch is determined by the distance from the beginning of the branch.
 
-Branches are named after the line that defines the \vn{branch}. In the
-above example, the branch line would be named \vn{d_line}. The root
-branch, by default, is called after the name in the \vn{use} statement
-(\sref{s:use}).
+Branches are named after the line that defines the \vn{branch}. In the above example, the branch
+line would be named \vn{d_line}. The root branch, by default, is called after the name in the
+\vn{use} statement (\sref{s:use}).
 
 The ``branch qualified'' name of an element is of the form
 \begin{example}
   branch_name>>element_name
 \end{example}
-where \vn{branch_name} is the name of the branch and \vn{element_name} is the
-``regular'' name of the element. Example:
+where \vn{branch_name} is the name of the branch and \vn{element_name} is the ``regular'' name of
+the element. Example:
 \begin{example}
   root>>q10w
   xline>>cryst3
@@ -220,14 +199,11 @@ of the branch, \vn{lord_status} will always be
 \vn{not_a_lord}. In the \vn{lord section} of the branch, under normal
 circumstances, there will never be any \vn{not_a_lord} elements.
 
-Lord elements are divided into two classes. 
-A \vn{major} lord represents a physical element which the slave elements are a part of.
-\vn{super_lord}s and \vn{multipass_lord}s are \vn{major} lords. 
-As a consequence, a \vn{major} lord is a lord that
-controls nearly all of the attributes of its slaves. 
-The other lords --- \vn{girder_lord}s, \vn{group_lord}s and 
-\vn{overlay_lord}s --- are called \vn{minor} lords.
-These lords only control some subset of a slaves attributes.
+Lord elements are divided into two classes.  A \vn{major} lord represents a physical element which
+the slave elements are a part of.  \vn{super_lord}s and \vn{multipass_lord}s are \vn{major} lords.
+As a consequence, a \vn{major} lord is a lord that controls nearly all of the attributes of its
+slaves.  The other lords --- \vn{girder_lord}s, \vn{group_lord}s and \vn{overlay_lord}s --- are
+called \vn{minor} lords.  These lords only control some subset of a slaves attributes.
 
 The possible \vn{slave_status} settings are
   \begin{description}
