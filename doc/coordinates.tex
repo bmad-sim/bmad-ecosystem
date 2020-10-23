@@ -2,6 +2,7 @@
 \label{s:coords.3}
 \index{coordinates|hyperbf}
 
+\vspace*{-0.3in}
 \bmad uses three coordinate systems as illustrated in \fig{f:coords}. First, the \vn{global} (also
 called ``\vn{floor}'') coordinates are independent of the accelerator. Thus such things as the
 building the accelerator is in may be described using \vn{global} coordinates.
@@ -15,66 +16,62 @@ The ``nominal'' position of a lattice element is the position of the element wit
 ``misalignments'' (that is, position and orientation shifts). Each lattice element has ``\vn{element
 body}'' coordinates which are attached to the physical element. That is, the electric and magnetic
 fields of an element are described with respect to \vn{element} coordinates.  If there are no
-misalignments, the \vn{element} coordinates are aligned with the \vn{local} coordinates. With
-misalignments, \vn{element} and \vn{local} coordinates will not coincide.  The transformation
-between \vn{local} and \vn{element} coordinates is given in \sref{s:lab.body.transform}.
+misalignments, the \vn{element} coordinates are aligned with the \vn{local} coordinates. The
+transformation between \vn{local} and \vn{element} coordinates is given in
+\sref{s:lab.body.transform}.
 
 When discussing \vn{local} vs \vn{element} coordinates, it can be less confusing to use the name
-``\vn{laboratory}'' cordinates instead of \vn{local} coordinates.
+``\vn{laboratory}'' cordinates instead of \vn{local} coordinates. The $x=y=0$ curved line of the
+laboratory coordinate system is known as the ``\vn{reference orbit}''.
 
 \begin{figure}[!b]
   \centering
-  \includegraphics[width=5in]{coordinates.pdf}
+  \includegraphics[width=5.0in]{coordinates.pdf}
   \caption[The three coordinate system used by \bmad.]
 {The three coordinate systems used by \bmad: The \vn{global} (or ``\vn{floor}'') coordinate system
 is independent of the accelerator.  The \vn{local} curvilinear coordinate system follows the bends
 of the accelerator.  Each lattice element has \vn{element body} coordinates which, if the element is
-not ``misaligned'' is the same as the \vn{local} coordinates.}
+not ``misaligned'' is the same as the \vn{local} coordinates. The $x=y=0$ curved line of the
+laboratory coordinate system is known as the ``reference orbit''.}
   \label{f:coords}
 \end{figure}
 
-
 %-----------------------------------------------------------------------------
-\section{Local Reference Coordinates}
+\section{Laboratory Coordinates and Reference Orbit}
 \label{s:local.coords}
 
 %-----------------------------------------------------------------------------
-\subsection{Local Reference Orbit}
+\subsection{Reference Orbit}
 \label{s:ref}
 \index{reference orbit|hyperbf}
 \index{laboratory coordinates|hyperbf}
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[height=8.4cm]{local-coords.pdf}
+  \includegraphics[width=6in]{local-coords.pdf}
   \caption[The local Reference System.]
 {The local reference coordinate system. By construction, a particle's $z$ coordinate is zero.  This
 is not to be confused with the phase space $z$ coordinate (\sref{s:phase.space}). The curvature
 vector $\bfg$ lies in the $x$-$y$ plane and has a magnitude of $1/\rho$ where $\rho$ is the bending
-radius. The $z$-axis will normally be parallel to the $s$-axis but for \vn{reversed} elements it
-will be antiparallel.  }
+radius. A) The $z$-axis will normally be parallel to the $s$-axis. B) For \vn{reversed} elements it
+will be antiparallel. }
   \label{f:local.coords}
 \end{figure}
 
 The \vn{local reference orbit} is the curved path used to define a coordinate system for describing
 a particle's position as shown in \fig{f:local.coords}. The reference orbit is also used for
 orientating lattice elements in space. At a given time $t$, a particle's position can be described
-by a point on the reference orbit a distance $s$ relative to the reference orbit's zero position
-plus a transverse offset. This point on the reference orbit is used as the origin of the local $(x,
-y, z)$ coordinate system with the $z$--axis tangent to the reference orbit. The $z$--axis will
-generally be pointing in the direction of increasing $s$ but, as discussed in detail below, will
-point counter to $s$ for elements that are \vn{reversed}. The $x$ and $y$--axes are perpendicular to
-the reference orbit. As will be shown later, If the lattice has no vertical bends, the $y$--axis is
-in the vertical direction and the $x$--axis is in the horizontal plane. Notice that, by
-construction, the particle is always at $z = 0$. The coordinate system so constructed is called the
-\vn{``local coordinate system''} or sometimes the \vn{``laboratory coordinate system''} when there
-is need to distinguish it from the \vn{``element coordinate system''} (\sref{s:ele.coords}) which is
-attached to the physical element.
-
-There is a separate reference orbit for each branch (\sref{s:branch.def}) of a lattice. When there
-are multiple branches, the reference orbit of a branch must not depend upon the configuration of
-branches later on in the array of branches in the lattice. As a consequence, the reference orbits of
-the branches can be calculated one at a time starting with the first branch.
+by a point $\calO$ on the reference orbit a distance $s$ relative to the reference orbit's zero
+position plus a transverse $(x,y)$ offset. The point $\calO$ on the reference orbit is used as the
+origin of the local $(x, y, z)$ coordinate system with the $z$--axis tangent to the reference
+orbit. The $z$--axis will generally be pointing in the direction of increasing $s$
+(\fig{f:local.coords}A) but, as discussed below, will point counter to $s$ for elements that are
+\vn{reversed} (\fig{f:local.coords}B). The $x$ and $y$--axes are perpendicular to the reference
+orbit and, by construction, the particle is always at $z = 0$. The coordinate system so constructed
+is called the \vn{``local coordinate system''} or sometimes the \vn{``laboratory coordinate
+system''} when there is need to distinguish it from the \vn{``element coordinate system''}
+(\sref{s:coords.3}) which is attached to the physical element. There is a separate reference orbit
+for each branch (\sref{s:branch.def}) of a lattice.
 
 \index{x_offset}\index{y_offset}
 \index{x_pitch}\index{y_pitch}\index{wiggler}
@@ -90,7 +87,7 @@ orbit about which the transfer maps are calculated (\sref{s:twiss}). The former 
 lattice while the latter can be any arbitrary orbit.
 
 %-----------------------------------------------------------------------------
-\subsection{Reference Orbit Construction: Upstream, Downstream, Entrance, and Exit Element Ends}
+\subsection{Reference Orbit and Laboratory Coordinates Construction}
 \label{s:ref.construct}
 \index{reference orbit!construction}
 \index{upstream element end}\index{downstream element end}
@@ -100,48 +97,39 @@ lattice while the latter can be any arbitrary orbit.
 
   \begin{figure}[tb]
   \centering
-  \includegraphics{element-coord-frame.pdf}
-\caption[Element LEGO blocks.]{Element reference frame LEGO blocks. Shown are the blocks along with
-the entrance and exit reference frames. The physical element may be displaced in the local
-coordinate frame using offsets, tilt, and pitches. A) For straight line elements the two frames are
-colinear. B) For bends elements, the two frames are rotated with respect to each other. C) For
-\vn{patch} and \vn{floor_shift} elements the exit frame may be arbitrarily positioned with respect
-to the entrance.}
+  \includegraphics[width=6in]{element-coord-frame.pdf}
+\caption[Lattice elements as LEGO blocks.]{Lattice elements can be imagined as LEGO blocks which fit
+together such that the entrance coordinates of one element connecting to the exit coordinates of the next.
+This forms the reference orbit along with the laboratory coaordinate system.  A) For straight line
+elements the entrance and exit frames are colinear. B) For bends elements, the two frames are
+rotated with respect to each other. C) For \vn{patch} and \vn{floor_shift} elements the exit frame
+may be arbitrarily positioned with respect to the entrance. D) Illustration of elements connected
+together.}
   \label{f:ele.coord.frame}
   \end{figure}
-
-%--------------------------------------
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics{element-stream.pdf}
-  \caption[Element LEGO block concatenation.]{
-Element LEGO block concatenation. A) The reference orbit is constructed by concatenating the LEGO
-blocks together. B) For normal (non-reversed) elements the $z$-axis is parallel with the
-$s$-axis. C) For \vn{reversed} elements the $z$-axis is antiparallel with the $s$-axis. By
-definition, the ``entrance'' and ``exit'' ends of an element are fixed relative to the element
-(relative to the $z$-axis) while the ``upstream'' and ``downstream'' ends are fixed relative to the
-$s$-axis.}
-  \label{f:stream}
-\end{figure}
 
 %--------------------------------------
 
 \index{sbend}\index{rbend}
 \index{crystal}\index{mirror}\index{entrance_end}
 \index{exit_end}\index{patch}\index{floor_shift}
-Another way of thinking about the reference orbit is to imagine that each element has assigned to it
-a local coordinate reference frame assigned to it in the shape of a LEGO block\footnote{Thanks to
-Dan Abell for this analogy.} as shown in \fig{f:ele.coord.frame}.  Every block has an
-``\vn{entrance}'' and an ``\vn{exit}'' reference frame.  For most types of elements, the LEGO block
-for the element is ``straight'' as shown in \fig{f:ele.coord.frame}A. That is, the reference curve
-through the block is a straight line segment and the length of the block is the length of the
-element. For a \vn{bend} (\sref{s:bend}), the reference curve through the block is a segment of a
-circular arc as shown in \fig{f:ele.coord.frame}B. With a zero \vn{ref_tilt}, the rotation axis
-between the entrance and exit frames of a bend is the $y$-axis (\sref{s:global}). For \vn{patch}
-(\sref{s:patch}), and \vn{floor_shift} (\sref{s:floor.ele}) elements, the exit face can can
-arbitrarily oriented with respect to the entrance end. In this case, the reference orbit between the
-entrance and exit faces is not defined.
+One way of thinking about the reference orbit and the laboratory coordinates is to imagine that each
+element is like a LEGO block with an ``\vn{entrance}'' and an ``\vn{exit}'' coordinate frame as
+illustrated in \fig{f:ele.coord.frame}A through C\footnote
+  {
+Thanks to Dan Abell for this analogy.
+  }. 
+Elements are connected together as illustrated in \fig{f:ele.coord.frame}D with the exit frame of
+one element aligning with the entrance frame of the next. Within an element, the laboratory coordinate
+system depends upon the type of element. Most elements have a ``straight'' geometry as shown in
+\fig{f:ele.coord.frame}A. That is, the reference orbit through the element is a straight line segment
+with the $x$ and $y$ axes always pointing in the same direction.
+For a \vn{bend} element (\sref{s:bend}), the reference orbit is a
+segment of a circular arc as shown in \fig{f:ele.coord.frame}B. With a zero \vn{ref_tilt}, the
+rotation axis between the entrance and exit frames of a bend is the $y$-axis (\sref{s:global}). For
+\vn{patch} (\sref{s:patch}), and \vn{floor_shift} (\sref{s:floor.ele}) elements, the exit face can
+can arbitrarily oriented with respect to the entrance end. In this case, the reference orbit between
+the entrance and exit faces is not defined.
 
 \index{root branch}
 Assuming for the moment that there are no \vn{fiducial} elements present, the construction of the
@@ -151,31 +139,31 @@ positioning statements (\sref{s:beginning}). If the branch is not a \vn{root} br
 of the beginning element is determined by the position of the \vn{fork} or \vn{photon_fork} element
 from which the branch forks from.
 
-Once the beginning element in a branch is positioned, succeeding element LEGO blocks are
-concatenated together as illustrated in \fig{f:stream}A. When a block is joined, the end of the
-block that is mated to the previous block is called the ``\vn{upstream}'' end and the other end
-which will be mated to the following block is called the ``\vn{downstream}'' end.  Normally, the
-\vn{entrance} end of a block is used as the \vn{upstream} end the \vn{exit} end is used as the
+Once the beginning element in a branch is positioned, succeeding element LEGO elements are
+concatenated together as illustrated in \fig{f:ele.coord.frame}D. When a element is joined, the end of the
+element that is mated to the previous element is called the ``\vn{upstream}'' end and the other end
+which will be mated to the following element is called the ``\vn{downstream}'' end.  Normally, the
+\vn{entrance} end of a element is used as the \vn{upstream} end the \vn{exit} end is used as the
 \vn{downstream} end as shown in \fig{f:stream}B. However, for \vn{reversed} elements
-(\sref{s:ele.reverse}), the \vn{upstream} end is the \vn{exit} end of the block and vice versa. To
-put it another way, the \vn{entrance} and \vn{exit} end of the blocks reference the physical
+(\sref{s:ele.reverse}), the \vn{upstream} end is the \vn{exit} end of the element and vice versa. To
+put it another way, the \vn{entrance} and \vn{exit} end of the elements reference the physical
 element. Thus, for example, the \vn{e1} edge of a bend (\sref{s:bend}) is always at the
 \vn{entrance} face and the \vn{e2} is always at the \vn{exit} face. Also the field of a wiggler is
 (\sref{s:wiggler}) is referenced to $z = 0$ which is at the \vn{entrance} end. The \vn{upstream} and
 \vn{downstream} ends, on the other hand, are referenced to the reference orbit and the
 \vn{downstream} end always is at a larger $s$ position relative to the \vn{upstream} end.
 
-In all cases, when a LEGO block is joined to the previous block, the coordinate system at the mating
-end of the block (the \vn{upstream} end) will be aligned with the mating end of the previous block
-(the \vn{downstream} end). The situation where one of the blocks is reversed and the other one not,
+In all cases, when a LEGO element is joined to the previous element, the coordinate system at the mating
+end of the element (the \vn{upstream} end) will be aligned with the mating end of the previous element
+(the \vn{downstream} end). The situation where one of the elements is reversed and the other one not,
 and neither is a \vn{patch} nor \vn{floor_shift} element, does not make physical sense since a
-particle which is moving downstream, when it comes to the face joining the blocks will have to
-magically reverse direction in order to travel through the next block. Thus, to have normal and
+particle which is moving downstream, when it comes to the face joining the elements will have to
+magically reverse direction in order to travel through the next element. Thus, to have normal and
 reversed elements in a branch, \vn{reflection} \vn{patches} must be used in between.  Whether it
 makes physical sense to put a \vn{patch} element next to another element is more complicated. This
 depends upon whether the other element is reversed or not and whether the \vn{patch} is reversed,
 whether the \vn{patch} is \vn{reflecting}, and the sign of \vn{z_offset} for the \vn{patch}. The
-basic criterion is that a particle leaving one block must enter the next. See
+basic criterion is that a particle leaving one element must enter the next. See
 Section~\sref{s:ex.patch} for an example.
 
 If there are \vn{fiducial} elements, the local reference frame is constructed beginning at these
@@ -278,15 +266,17 @@ and by angles $\theta(s)$, $\phi(s)$, and $\psi(s)$.
 \index{reference orbit!origin in global coordinates}
 \index{global coordinates!reference orbit origin}
 By default, at $s = 0$, the reference orbit's origin coincides with the $(X, Y, Z)$ origin and the
-$x$, $y$, and $z$ axes correspond to the $X$, $Y$, and $Z$ axes respectively. $\theta$ decreases as
-one follows the reference orbit when going through a horizontal bend with a positive bending
-angle. This corresponds to $x$ pointing radially outward. Without any vertical bends, the $Y$ and
-$y$ axes will coincide, and $\phi$ and $\psi$ will both be zero. The \vn{beginning} statement
-(\sref{s:beginning}) in a lattice file can be use to override these defaults.
+$x$, $y$, and $z$ axes correspond to the $X$, $Y$, and $Z$ axes respectively. If the lattice has no
+vertical bends (the \vn{ref_tilt} parameter (\sref{s:bend}) of all bends are zero), the $y$--axis
+will always be in the vertical $Y$ direction and the $x$--axis will lie in the horizontal $(X,Z)$
+plane. In this case, $\theta$ decreases as one follows the reference orbit when going through a
+horizontal bend with a positive bending angle. This corresponds to $x$ pointing radially
+outward. Without any vertical bends, the $Y$ and $y$ axes will coincide, and $\phi$ and $\psi$ will
+both be zero. The \vn{beginning} statement (\sref{s:beginning}) in a lattice file can be use to
+override these defaults.
 
 \index{MAD}
-Following \mad, the global position of an element is characterized by
-a vector $\bfV$ 
+Following \mad, the global position of an element is characterized by a vector $\bfV$
 \begin{equation}
   \bfV = 
   \begin{pmatrix}
@@ -347,21 +337,18 @@ axis $\Bf u$ (normalized to 1) and angle of rotation $\beta$
 \label{s:ele.pos}
 
 \index{MAD}
-\bmad, again following \mad, computes $\bfV$ and $\bfW$ by starting
-at the first element of the lattice and iteratively using the
-equations
+\bmad, again following \mad, computes $\bfV$ and $\bfW$ by starting at the first element of the
+lattice and iteratively using the equations
 \begin{align}
   \bfV_i &= \bfW_{i-1} \; \bfL_i + \bfV_{i-1}, 
     \label{vwlv} \\
   \bfW_i &= \bfW_{i-1} \; \bfS_i
     \label{wws}
 \end{align}
-$\bfL_i$ is the displacement vector for the $i$\Th element and matrix
-$\bfS_i$ is the rotation of the local reference system of the exit
-end with respect to the entrance end. For clarity, the subscript $i$ in 
-the equations below will be dripped. For all elements whose
-reference orbit through them is a straight line, the corresponding
-$\bfL$ and $\bfS$ are
+$\bfL_i$ is the displacement vector for the $i$\Th element and matrix $\bfS_i$ is the rotation of
+the local reference system of the exit end with respect to the entrance end. For clarity, the
+subscript $i$ in the equations below will be dripped. For all elements whose reference orbit through
+them is a straight line, the corresponding $\bfL$ and $\bfS$ are
 \begin{equation}
   \bfL = 
   \begin{pmatrix}
@@ -384,14 +371,11 @@ Where $L$ is the length of the element.
 \centering \includegraphics{tilt-bend.pdf} 
 \caption[Orientation of a Bend.] 
   {
-A) Rotation axes (bold arrows) for four different \vn{ref_tilt} angles
-of $\theta_t$ = 0, $\pm \pi/2$, and $\pi$. $(x_0, y_0, z_0)$ are the
-local coordinates at the entrance end of the bend with the $z_0$ axis
-being directed into the page. Any rotation axis will be displaced by a
-distance of the bend radius \vn{rho} from the origin. B) The $(x, y,
-z)$ coordinates at the exit end of the bend for the same four
-\vn{ref_tilt} angles. In this case the bend angle is taken to be
-$\pi/2$.
+A) Rotation axes (bold arrows) for four different \vn{ref_tilt} angles of $\theta_t$ = 0, $\pm
+\pi/2$, and $\pi$. $(x_0, y_0, z_0)$ are the local coordinates at the entrance end of the bend with
+the $z_0$ axis being directed into the page. Any rotation axis will be displaced by a distance of
+the bend radius \vn{rho} from the origin. B) The $(x, y, z)$ coordinates at the exit end of the bend
+for the same four \vn{ref_tilt} angles. In this case the bend angle is taken to be $\pi/2$.
   }
   \label{f:tilt.bend}
 \end{figure}
@@ -401,15 +385,14 @@ $\pi/2$.
 \index{rbend}\index{sbend}
 \index{rho}\index{tilt}\index{angle}
 For a \vn{bend}, the axis of rotation is dependent upon the bend's \vn{ref_tilt} angle
-(\sref{s:offset}) as shown in \fig{f:tilt.bend}A. The axis of rotation points in the
-negative $y_0$ direction for \vn{ref_tilt} = 0 and is offset by the bend radius
-\vn{rho}. Here $(x_0, y_0, z_0)$ are the local coordinates at the entrance end of the bend
-with the $z_0$ axis being directed into the page in the figure.  For a non-zero
-\vn{ref_tilt}, the rotation axis is itself rotated about the $z_0$ axis by the value of
-\vn{ref_tilt}. \fig{f:tilt.bend}B shows the exit coordinates for four different values of
-\vn{ref_tilt} and for a bend angle \vn{angle} of $\pi/2$.
-Notice that for a bend in the horizontal $X-Z$ plane, a positive
-bend \vn{angle} will result in a decreasing azimuth angle $\theta$.
+(\sref{s:offset}) as shown in \fig{f:tilt.bend}A. The axis of rotation points in the negative $y_0$
+direction for \vn{ref_tilt} = 0 and is offset by the bend radius \vn{rho}. Here $(x_0, y_0, z_0)$
+are the local coordinates at the entrance end of the bend with the $z_0$ axis being directed into
+the page in the figure.  For a non-zero \vn{ref_tilt}, the rotation axis is itself rotated about the
+$z_0$ axis by the value of \vn{ref_tilt}. \fig{f:tilt.bend}B shows the exit coordinates for four
+different values of \vn{ref_tilt} and for a bend angle \vn{angle} of $\pi/2$.  Notice that for a
+bend in the horizontal $X-Z$ plane, a positive bend \vn{angle} will result in a decreasing azimuth
+angle $\theta$.
 
 For a bend, $\bfS$ is given using \Eq{wctux2} with 
 \begin{align}
@@ -436,35 +419,27 @@ Note: An alternative equation for \vn{\bfS} for a bend is
   \label{srrr}
 \end{equation}
 
-The bend transformation above is so constructed that the
-transformation is equivalent to rotating the local coordinate system
-around an axis that is perpendicular to the plane of the bend. This
-rotation axis is invariant under the bend transformation. For example,
-for $\theta_t = 0$ (or $\pi$) the $y$-axis is the rotation axis and
-the $y$-axis of the local coordinates before the bend will be parallel
-to the $y$-axis of the local coordinates after the bend as shown in
-\fig{f:tilt.bend}. That is, a lattice with only bends with
-$\theta_t = 0$ or $\pi$ will lie in the horizontal plane (this
-assuming that the $y$-axis starts out pointing along the $Y$-axis as
-it does by default).  For $\theta_t = \pm\pi/2$, the bend axis is the
-$x$-axis. A value of $\theta_t = +\pi/2$ represents a downward
-pointing bend.
+The bend transformation above is so constructed that the transformation is equivalent to rotating
+the local coordinate system around an axis that is perpendicular to the plane of the bend. This
+rotation axis is invariant under the bend transformation. For example, for $\theta_t = 0$ (or $\pi$)
+the $y$-axis is the rotation axis and the $y$-axis of the local coordinates before the bend will be
+parallel to the $y$-axis of the local coordinates after the bend as shown in \fig{f:tilt.bend}. That
+is, a lattice with only bends with $\theta_t = 0$ or $\pi$ will lie in the horizontal plane (this
+assuming that the $y$-axis starts out pointing along the $Y$-axis as it does by default).  For
+$\theta_t = \pm\pi/2$, the bend axis is the $x$-axis. A value of $\theta_t = +\pi/2$ represents a
+downward pointing bend.
 
 \begin{figure}
   \centering \includegraphics{mirror.pdf} 
-\caption[Mirror and crystal geometry] {Mirror and crystal geometry.
-The geometry shown here is appropriate for a \vn{ref_tilt} angle of
-$\theta_t = 0$.  $\theta_g$ is the bend angle of the incoming
-(entrance) ray, and $\alpha_b$ is the total bend
-angle of the reference trajectory. A) Geometry for a mirror or a Bragg
-crystal. Point $\calO$ is the origin of both the local coordinates
-just before and just after the reflection/diffraction. B) Geometry for
-a Laue crystal.  Point $\calO_{out}$ is the origin of the coordinates
-just after diffraction is displaced from the origin $\calO_{in}$ just
-before diffraction due to the finite thickness of the crystal. here
-the bend angles are measured with respect to the line that is in
-the plane of the entrance and exit coordinates and perpendicular to
-the surface. For Laue diffraction, the user has the option of using
+\caption[Mirror and crystal geometry] {Mirror and crystal geometry.  The geometry shown here is
+appropriate for a \vn{ref_tilt} angle of $\theta_t = 0$.  $\theta_g$ is the bend angle of the
+incoming (entrance) ray, and $\alpha_b$ is the total bend angle of the reference trajectory. A)
+Geometry for a mirror or a Bragg crystal. Point $\calO$ is the origin of both the local coordinates
+just before and just after the reflection/diffraction. B) Geometry for a Laue crystal.  Point
+$\calO_{out}$ is the origin of the coordinates just after diffraction is displaced from the origin
+$\calO_{in}$ just before diffraction due to the finite thickness of the crystal. here the bend
+angles are measured with respect to the line that is in the plane of the entrance and exit
+coordinates and perpendicular to the surface. For Laue diffraction, the user has the option of using
 the undiffracted beam (shown in red) as the reference trajectory.
   }  
   \label{f:mirror}
@@ -474,18 +449,17 @@ the undiffracted beam (shown in red) as the reference trajectory.
 \subsection{Position Transformation When Transforming Coordinates}
 \label{s:pos.trans}
 
-A point $\bfQ_g = (X, Y, Z)$ defined in the global coordinate system,
-when expressed in the coordinate system defined by $(\bfV, \bfW)$ is
+A point $\bfQ_g = (X, Y, Z)$ defined in the global coordinate system, when expressed in the
+coordinate system defined by $(\bfV, \bfW)$ is
 \begin{equation}
   \bfQ_{VW} = \bfW^{-1} \left( \bfQ_g - \bfV \right)
   \label{rwrv}
 \end{equation}
-This is essentially the inverse of \Eq{vwlv}. That is, vectors
-propagate inversely to the propagation of the coordinate system.
+This is essentially the inverse of \Eq{vwlv}. That is, vectors propagate inversely to the
+propagation of the coordinate system.
 
-Using \Eq{rwrv} with \Eqs{vwlv}, and \eq{wws}, the transformation of a
-particle's position $\bfq = (x,y,z)$ and momentum $\bfP = (P_x, P_y,
-P_z)$ when the coordinate frame is transformed from frame
+Using \Eq{rwrv} with \Eqs{vwlv}, and \eq{wws}, the transformation of a particle's position $\bfq =
+(x,y,z)$ and momentum $\bfP = (P_x, P_y, P_z)$ when the coordinate frame is transformed from frame
 $(\bfV_{i-1}, \bfW_{i-1})$ to frame $(\bfV_i, \bfW_i)$ is
 \begin{align}
   \bfq_i &= \bfS_i^{-1} \, \left( \bfq_{i-1} - \bfL_i \right), 
@@ -494,9 +468,8 @@ $(\bfV_{i-1}, \bfW_{i-1})$ to frame $(\bfV_i, \bfW_i)$ is
     \label{pps}
 \end{align}
 
-Notice that since $\bfS$ (and $\bfW$) is the product of orthogonal
-rotation matrices, $\bfS$ is itself orthogonal and its inverse is
-just the transpose
+Notice that since $\bfS$ (and $\bfW$) is the product of orthogonal rotation matrices, $\bfS$ is
+itself orthogonal and its inverse is just the transpose
 \begin{equation}
   \bfS^{-1} = \bfS^T
 \end{equation}
@@ -506,20 +479,16 @@ just the transpose
 \label{s:mirror.coords}
 
 \index{crystal}\index{mirror}\index{ref_tilt}
-A \vn{crystal} element (\sref{s:mirror}) diffracts photons and a
-\vn{mirror} element (\sref{s:mirror}) reflects them. For a crystal
-setup for Bragg diffraction, and for a mirror, the reference orbit is
-modeled as a zero length bend with $\bftilde L = (0, 0, 0)$, as shown
-in \fig{f:mirror}A. Shown in the figure is the geometry
-appropriate for a \vn{ref_tilt} angle of $\theta_t = 0$ (the rotation axis is
-here the $y$-axis). Since the mirror or crystal element is modeled to
-be of zero length, the origin points (marked $\calO$ in the figure)
-of the entrance and exit local coordinates are the same. For Laue
-diffraction, the only difference is that $\bftilde L$ is non-zero due
-to the finite thickness of the crystal as shown in
-\fig{f:mirror}B. This results in a separation between the
-entrance coordinate origin $\calO_{in}$ and the exit coordinate
-origin $\calO_{out}$.
+A \vn{crystal} element (\sref{s:mirror}) diffracts photons and a \vn{mirror} element
+(\sref{s:mirror}) reflects them. For a crystal setup for Bragg diffraction, and for a mirror, the
+reference orbit is modeled as a zero length bend with $\bftilde L = (0, 0, 0)$, as shown in
+\fig{f:mirror}A. Shown in the figure is the geometry appropriate for a \vn{ref_tilt} angle of
+$\theta_t = 0$ (the rotation axis is here the $y$-axis). Since the mirror or crystal element is
+modeled to be of zero length, the origin points (marked $\calO$ in the figure) of the entrance and
+exit local coordinates are the same. For Laue diffraction, the only difference is that $\bftilde L$
+is non-zero due to the finite thickness of the crystal as shown in \fig{f:mirror}B. This results in
+a separation between the entrance coordinate origin $\calO_{in}$ and the exit coordinate origin
+$\calO_{out}$.
 
 In all cases, the total bending angle is
 \begin{align}
@@ -528,24 +497,20 @@ In all cases, the total bending angle is
   \alpha_b &= 2 \, \text{graze_angle}                        &&\text{! Mirror}
   \label{agg}
 \end{align}
-With a mirror or Bragg diffraction, the bend angles are measured with
-respect to the surface plane. With Laue diffraction the bend angles
-are measured with respect to the line in the bend plane perpendicular
-to the surface.
+With a mirror or Bragg diffraction, the bend angles are measured with respect to the surface
+plane. With Laue diffraction the bend angles are measured with respect to the line in the bend plane
+perpendicular to the surface.
 
-For Laue diffraction, the user has the option of using the
-undiffracted beam (shown in red) as the reference trajectory.
+For Laue diffraction, the user has the option of using the undiffracted beam (shown in red) as the
+reference trajectory.
 
-The orientation of the exit coordinates (the local coordinates after
-the reflection) are only affected by the element's \vn{ref_tilt} and
-bend angle parameters and is independent of all other parameters such
-as the radius of curvature of the surface, etc. The local $z$-axis of
-the entrance coordinates along with the $z$-axis of the exit
-coordinates define a plane which is called the element's \vn{bend
-plane}.  For a mirror, the graze angle is a parameter supplied by the
-user. For a crystal, the Bragg angles are calculated so that the
-reference trajectory is in the middle of the Darwin curve. Calculation
-of the Bragg angles for a crystal is given in
+The orientation of the exit coordinates (the local coordinates after the reflection) are only
+affected by the element's \vn{ref_tilt} and bend angle parameters and is independent of all other
+parameters such as the radius of curvature of the surface, etc. The local $z$-axis of the entrance
+coordinates along with the $z$-axis of the exit coordinates define a plane which is called the
+element's \vn{bend plane}.  For a mirror, the graze angle is a parameter supplied by the user. For a
+crystal, the Bragg angles are calculated so that the reference trajectory is in the middle of the
+Darwin curve. Calculation of the Bragg angles for a crystal is given in
 Section~\sref{s:crystal.ref}.
 
 %-----------------------------------------------------------------------------
@@ -553,9 +518,8 @@ Section~\sref{s:crystal.ref}.
 \label{s:patch.coords}
 
 \index{patch!coordinate transformation}\index{floor_shift!coordinate transformation}
-For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} (\sref{s:floor.ele}) elements, the
-shift in the exit end reference coordinates is
-given by \Eqs{vwlv} and \eq{wws} with 
+For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} (\sref{s:floor.ele}) elements, the shift in the
+exit end reference coordinates is given by \Eqs{vwlv} and \eq{wws} with
 \begin{align}
   \bfL &= 
     \begin{pmatrix} 
@@ -566,10 +530,10 @@ given by \Eqs{vwlv} and \eq{wws} with
   \label{swww}
 \end{align}
 
-The difference here between \vn{patch} and \vn{floor_shift} elements is that, with a
-\vn{patch} element, the shift is relative to the exit end of the previous element while,
-for a \vn{floor_shift} element, the shift is relative to the reference point on the 
-origin element specified by the \vn{origin_ele} parameter of the \vn{floor_shift}.
+The difference here between \vn{patch} and \vn{floor_shift} elements is that, with a \vn{patch}
+element, the shift is relative to the exit end of the previous element while, for a \vn{floor_shift}
+element, the shift is relative to the reference point on the origin element specified by the
+\vn{origin_ele} parameter of the \vn{floor_shift}.
 
 %-----------------------------------------------------------------------------
 \subsection{Fiducial and Girder Elments Origin Shift Transformation}
@@ -593,12 +557,11 @@ analogous to \Eqs{swww}. Explicitly:
 \label{s:reflect.patch}
 \index{patch!reflection}
 
-A \vn{Patch} (or a series of patches) that reflects the direction of the \vn{z}-axis is
-called a \vn{reflection} \vn{patch}. By ``reflected direction'' it is meant that the dot
-product $\Bf z_1 \cdot \Bf z_2$ is negative where $\Bf z_1$ is the $z$-axis vector at the
-\vn{entrance} face and $\Bf z_2$ is the $z$-axis vector at the \vn{exit} face. This
-condition is equivalent to the condition that the associated $\bfS$ matrix (see \Eq{swww})
-satisfy:
+A \vn{Patch} (or a series of patches) that reflects the direction of the \vn{z}-axis is called a
+\vn{reflection} \vn{patch}. By ``reflected direction'' it is meant that the dot product $\Bf z_1
+\cdot \Bf z_2$ is negative where $\Bf z_1$ is the $z$-axis vector at the \vn{entrance} face and $\Bf
+z_2$ is the $z$-axis vector at the \vn{exit} face. This condition is equivalent to the condition
+that the associated $\bfS$ matrix (see \Eq{swww}) satisfy:
 \begin{equation}
   S(3,3) < 0
   \label{s330}
@@ -607,9 +570,8 @@ Using \Eq{swww} gives, after some simple algebra, this condition is equivalent t
 \begin{equation}
   \cos(\text{x_pitch}) \, \cos(\text{y_pitch}) < 0
 \end{equation}
-When there are a series of patches, The transformations of all the
-patches are concatenated together to form an effective $\bfS$ which
-can then be used with \Eq{s330}.
+When there are a series of patches, The transformations of all the patches are concatenated together
+to form an effective $\bfS$ which can then be used with \Eq{s330}.
 
 %-----------------------------------------------------------------------------
 \section{Transformation Between Laboratory and Element Body Coordinates}
@@ -617,36 +579,33 @@ can then be used with \Eq{s330}.
 \index{laboratory coordinates}
 \index{element body coordinates|hyperbf}
 
-The \vn{element body} coordinates are the coordinate system attached to an
-element. Without any misalignments, where \vn{``misalignments''} are here defined to be
-any offset, pitch or tilt (\sref{s:offset}), the \vn{laboratory} coordinates (\sref{s:ref}) and
-\vn{element body} coordinates are the same. With misalignments, the transformation between
-\vn{laboratory} and \vn{element body} coordinates depends upon whether the local coordinate
-system is straight (\sref{s:straight.mis}) or bent (\sref{s:bend.mis}).
+The \vn{element body} coordinates are the coordinate system attached to an element. Without any
+misalignments, where \vn{``misalignments''} are here defined to be any offset, pitch or tilt
+(\sref{s:offset}), the \vn{laboratory} coordinates (\sref{s:ref}) and \vn{element body} coordinates
+are the same. With misalignments, the transformation between \vn{laboratory} and \vn{element body}
+coordinates depends upon whether the local coordinate system is straight (\sref{s:straight.mis}) or
+bent (\sref{s:bend.mis}).
 
 %-----------------------------------------------------------------------------
 \subsection{Straight Element Misalignment Transformation}
 \label{s:straight.mis}
 
-For straight line elements, given a laboratory coordinate frame $\Lambda_s$ with origin a
-distance $s$ from the beginning of the element, misalignments will shift the coordinates
-to a new reference frame denoted $E_s$. Since misalignments are defined with respect to
-the middle of the element, the transformation between $\Lambda_s$ and $E_s$ is a three
-step process:
+For straight line elements, given a laboratory coordinate frame $\Lambda_s$ with origin a distance
+$s$ from the beginning of the element, misalignments will shift the coordinates to a new reference
+frame denoted $E_s$. Since misalignments are defined with respect to the middle of the element, the
+transformation between $\Lambda_s$ and $E_s$ is a three step process:
 \begin{equation}
   \Lambda_s \longrightarrow \Lambda_\text{mid} 
   \longrightarrow E_\text{mid} \longrightarrow E_s
   \label{llee}
 \end{equation}
-where $\Lambda_\text{mid}$ and $E_\text{mid}$ are the laboratory and
-element reference frames at the center of the element.
+where $\Lambda_\text{mid}$ and $E_\text{mid}$ are the laboratory and element reference frames at the
+center of the element.
 
-The first and last transformations from $\Lambda_s$ to
-$\Lambda_\text{mid}$ and from $E_\text{mid}$ to $E_s$ use \Eqs{vwlv},
-\eq{wws}, and \eq{l00l} with the replacement $L \rightarrow L/2 - s$
-for the first transformation and $L \rightarrow s - L/2$ for the third
-transformation. The middle transformation, by definition of the
-offset, pitch and tilt parameters is
+The first and last transformations from $\Lambda_s$ to $\Lambda_\text{mid}$ and from $E_\text{mid}$
+to $E_s$ use \Eqs{vwlv}, \eq{wws}, and \eq{l00l} with the replacement $L \rightarrow L/2 - s$ for
+the first transformation and $L \rightarrow s - L/2$ for the third transformation. The middle
+transformation, by definition of the offset, pitch and tilt parameters is
 \begin{align}
   \bfL &= 
     \begin{pmatrix} 
@@ -666,30 +625,28 @@ misaligned element depends only on the offsets, and is independent of the pitche
 
 \index{rbend!coordinate transformation}\index{sbend!coordinate transformation}
 \index{roll!coordinate transformation}\index{tilt!coordinate transformation}
-For \vn{rbend} and \vn{sbend} elements there is no \vn{tilt} attribute.  Rather, there is
-the \vn{roll} attribute and a \vn{ref_tilt} attribute. The latter affects both the
-reference orbit and the bend position (\sref{s:bend.orient}). Furthermore, \vn{ref_tilt}
-is calculated with respect to the coordinates at the beginning of the bend while, like
-straight elements, \vn{roll}, offsets, and pitches are calculated with respect to the
-center of the bend. The different reference frame used for \vn{ref_tilt} versus everything
-else means that five transformations are needed to get from the laboratory frame to the
-element body frame (see \Eq{llee}). Symbolically:
+For \vn{rbend} and \vn{sbend} elements there is no \vn{tilt} attribute.  Rather, there is the
+\vn{roll} attribute and a \vn{ref_tilt} attribute. The latter affects both the reference orbit and
+the bend position (\sref{s:bend.orient}). Furthermore, \vn{ref_tilt} is calculated with respect to
+the coordinates at the beginning of the bend while, like straight elements, \vn{roll}, offsets, and
+pitches are calculated with respect to the center of the bend. The different reference frame used
+for \vn{ref_tilt} versus everything else means that five transformations are needed to get from the
+laboratory frame to the element body frame (see \Eq{llee}). Symbolically:
 \begin{equation}
   \Lambda_s \longrightarrow \Lambda_\text{mid} 
   \longrightarrow \Omega_\text{mid} \longrightarrow \Omega_0
   \longrightarrow E_0 \longrightarrow E_s
 \end{equation}
 
-The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from laboratory coordinates
-at a distance $s$ from the beginning of the element to laboratory coordinates at the center the
-bend is a rotation around the center of curvative of the bend and is given by \Eqs{vwlv}
-and \eq{wws} with \Eqs{ustt} and \eq{lrztt} with the substitution $\alpha_b \rightarrow (L/2
-- s)/\rho$.
+The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from laboratory coordinates at a
+distance $s$ from the beginning of the element to laboratory coordinates at the center the bend is a
+rotation around the center of curvative of the bend and is given by \Eqs{vwlv} and \eq{wws} with
+\Eqs{ustt} and \eq{lrztt} with the substitution $\alpha_b \rightarrow (L/2 - s)/\rho$.
 
-The second transformation $\Lambda_\text{mid}$ to $\Omega_\text{mid}$ at the center of the
-element adds in the misalignments (Note that the coordinate frame $\Omega_\text{mid}$ is
-neither a laboratory frame or an element frame so hence the use of a different symbol
-$\Omega$). Explicitly, the $\Lambda_\text{mid} \longrightarrow \Omega_\text{mid}$ transformation is
+The second transformation $\Lambda_\text{mid}$ to $\Omega_\text{mid}$ at the center of the element
+adds in the misalignments (Note that the coordinate frame $\Omega_\text{mid}$ is neither a
+laboratory frame or an element frame so hence the use of a different symbol $\Omega$). Explicitly,
+the $\Lambda_\text{mid} \longrightarrow \Omega_\text{mid}$ transformation is
 \begin{align}
   \bfL &= \bfL_\text{off} + 
     \left[ \bfR_z(\text{roll}) - \Bf1 \right] \; \bfR_z(\theta_t) \; \bfR_{y}(\alpha_b/2) \; \bfL_c \CRNO
@@ -708,28 +665,24 @@ where
       \text{x_offset} \\ \text{y_offset} \\ \text{z_offset} 
     \end{pmatrix}
 \end{equation}
-The reason why $\bfL$ has a different form from straight line elements
-is due to the fact that the axis of rotation for a \vn{roll} is
-displaced from the $z$-axis of the coordinate system at the center of
-the bend (see \fig{f:roll}).
+The reason why $\bfL$ has a different form from straight line elements is due to the fact that the
+axis of rotation for a \vn{roll} is displaced from the $z$-axis of the coordinate system at the
+center of the bend (see \fig{f:roll}).
 
-The third transformation from $\Omega_\text{mid}$ to $\Omega_0$ is
-like the first transformation and rotates from the center of the bend
-to the beginning. Again \Eqs{ustt} and \eq{lrztt} are used with the 
-substitution $\alpha_b \rightarrow -L/2\rho$.
+The third transformation from $\Omega_\text{mid}$ to $\Omega_0$ is like the first transformation and
+rotates from the center of the bend to the beginning. Again \Eqs{ustt} and \eq{lrztt} are used with
+the substitution $\alpha_b \rightarrow -L/2\rho$.
 
-The fourth transformation $\Omega_0$ to $E_0$ tilts the referece frame
-by an amount \vn{ref_tilt}:
+The fourth transformation $\Omega_0$ to $E_0$ tilts the referece frame by an amount \vn{ref_tilt}:
 \begin{equation}
   \bfL = 0, \quad
   \bfS = \bfR_{z}(\theta_t)
   \label{l0sr}
 \end{equation}
 
-The fifth and final transformation, $E_0$ to $E_s$, like the first and
-third, rotates around the center of the bend but in this case, since
-we are dealing with element coordinates, the \vn{ref_tilt} is ignored.
-That is, \Eqs{ustt} and \eq{lrztt} are used with the substitutions
+The fifth and final transformation, $E_0$ to $E_s$, like the first and third, rotates around the
+center of the bend but in this case, since we are dealing with element coordinates, the
+\vn{ref_tilt} is ignored.  That is, \Eqs{ustt} and \eq{lrztt} are used with the substitutions
 $\theta_t \rightarrow 0$ and $\alpha_b \rightarrow L/\rho$.
 
 Notice that with this definition of how elements are misaligned, the position of a misaligned
@@ -749,9 +702,8 @@ and is independent of the offsets.
 \index{reference energy|hyperbf}
 \index{reference time|hyperbf}
 
-The \vn{reference energy} and \vn{reference time} are needed in
-evaluating the phase space coordinates of charged particles
-(\sref{s:phase.space}).  
+The \vn{reference energy} and \vn{reference time} are needed in evaluating the phase space
+coordinates of charged particles (\sref{s:phase.space}).
 
 All lattice elements, except for controller elements, have an associated \vn{reference energy}
 energy.  The reference energy at the start of a lattice's \vn{root branch} (\sref{s:branch.def}) is
@@ -776,23 +728,19 @@ element. The following elements are exceptions:
   lcavity
   patch
 \end{example}
-The reference energy of these elements is determined by tracking a
-particle (the ``\vn{reference particle}'') through the element with the
-particle starting on the reference orbit and whose energy is equal to
-the reference energy.  The energy of the particle at the downstream
-end is the reference energy of the element.
+The reference energy of these elements is determined by tracking a particle (the ``\vn{reference
+particle}'') through the element with the particle starting on the reference orbit and whose energy
+is equal to the reference energy.  The energy of the particle at the downstream end is the reference
+energy of the element.
 
 \index{wiggler!reference time}
-Besides the reference energy, lattice elements have an associated
-\vn{reference time} which is computed, for most elements, by the
-time-of-flight of the \vn{reference particle} assuming that the
-reference particle is following the reference orbit. Exceptions are
-\vn{wiggler} elements which uses the time-of-flight of the actual
-undulating trajectory. [Actually what is used in the computation of the
-$z$ phase space coordinate (\Eq{zbctt}) is the sum of reference time
-deltas of the elements that a particle has passed through. It is not
-possible to assign a unique reference time to an element when particles
-are recirculating through elements as in a storage ring.]
+Besides the reference energy, lattice elements have an associated \vn{reference time} which is
+computed, for most elements, by the time-of-flight of the \vn{reference particle} assuming that the
+reference particle is following the reference orbit. Exceptions are \vn{wiggler} elements which uses
+the time-of-flight of the actual undulating trajectory. [Actually what is used in the computation of
+the $z$ phase space coordinate (\Eq{zbctt}) is the sum of reference time deltas of the elements that
+a particle has passed through. It is not possible to assign a unique reference time to an element
+when particles are recirculating through elements as in a storage ring.]
 
 %-----------------------------------------------------------------------------
 \subsection{Charged Particle Phase Space Coordinates}
@@ -800,29 +748,23 @@ are recirculating through elements as in a storage ring.]
 \index{phase space coordinates|hyperbf}
 
 \begin{figure}
-\centering 
-\includegraphics{canonical-z.pdf} 
-\caption[Interpreting phase space $z$ at constant velocity.]
-{Interpreting phase space $z$ at constant velocity: A) The change in $z$
-going through an element of length $L_0$ is $L_0 - L_p$.  B) At
-constant time, $z$ is the longitudinal distance between the reference
-particle and the particle.}
-\label{f:canonical.z}
+\centering \includegraphics{canonical-z.pdf} \caption[Interpreting phase space $z$ at constant
+velocity.]  {Interpreting phase space $z$ at constant velocity: A) The change in $z$ going through
+an element of length $L_0$ is $L_0 - L_p$.  B) At constant time, $z$ is the longitudinal distance
+between the reference particle and the particle.}  \label{f:canonical.z}
 \end{figure}
 
-For charged particles (more correctly, for everything but photons
-(\sref{s:photon.phase.space})), \bmad uses the canonical phase space
-coordinates
+For charged particles (more correctly, for everything but photons (\sref{s:photon.phase.space})),
+\bmad uses the canonical phase space coordinates
 \begin{equation}
   \Bf r(s) = (x, p_x, y, p_y, z, p_z)
 \end{equation}
-The longitudinal position $s$ is the independent variable instead of
-the time. $x$ and $y$, are the transverse coordinates of the particle
-as shown in~\fig{f:local.coords}. Note that $x$ and $y$ are independent
-of the position of the reference particle.
+The longitudinal position $s$ is the independent variable instead of the time. $x$ and $y$, are the
+transverse coordinates of the particle as shown in~\fig{f:local.coords}A. Note that $x$ and $y$ are
+independent of the position of the reference particle.
 
-The phase space momenta $p_x$ and $p_y$ are normalized by the
-reference (sometimes called the design) momentum $P_0$
+The phase space momenta $p_x$ and $p_y$ are normalized by the reference (sometimes called the
+design) momentum $P_0$
 \begin{align}
   p_x = &\frac{P_x}{P_0} \CRNO
   p_y = &\frac{P_y}{P_0}
