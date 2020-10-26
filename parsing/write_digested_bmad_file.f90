@@ -77,7 +77,7 @@ stat_b = 0
 ierr = stat(full_digested_name, stat_b)
 
 fname = '!DIGESTED:' // full_digested_name
-write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10) ! stat_b(10) = Modification date
+write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10) ! Inode, Size, Modification date
  
 ! write other file names.
 ! file names starting with '!' are not true file names but information to be stored in file.
@@ -88,7 +88,7 @@ do j = 1, n_file
     call simplify_path (file_names(j), fname)
     ierr = stat(fname, stat_b)
   endif
-  write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10) ! stat_b(10) = Modification date
+  write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10) ! Inode, Size, Modification date
 enddo
 
 ! Write the lat structure to the digested file. We do this in pieces

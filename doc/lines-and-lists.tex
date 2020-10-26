@@ -194,9 +194,9 @@ the ``entrance'' end. Being able to reverse elements is useful, for example, in 
 interaction region of a pair of rings where particles of one ring are going in the opposite
 direction relative to the particles in the other ring.
 
-Element reversal is indicated by using a double negative sign ``--'' prefix. The double negative sign
-prefix can be applied to individual elements or to a line. If it is applied to a line, the line is
-both reflected (same as if a single negative sign is used) and each element is reflected. For
+Element reversal is indicated by using a double negative sign ``--'' prefix. The double negative
+sign prefix can be applied to individual elements or to a line. If it is applied to a line, the line
+is both reflected (same as if a single negative sign is used) and each element is reflected. For
 example:
 \begin{example}
   line1: line = (a, b, --c)
@@ -208,14 +208,15 @@ element makes the element unreversed.
 
 Another example involving element reversal is given in Section~\sref{s:reverse}.
 
-Reversed elements, unlike other elements, have their local $z$-axis pointing in the
-opposite direction to the local $s$-axis (\sref{s:ref.construct}). This means that there
-must be a \vn{reflection patch} (\sref{s:reflect.patch}) between reversed and unreversed
-elements. See \sref{s:ex.patch} for an example. Since this complicates matters, it is
-generally only useful to employ element reversal in cases where there are multiple
-intersecting lines with particle beams going in opposite directions through some elements
-(for example, colliding beam interaction regions). In this case, element reversal is
-typically used with \vn{multipass} (\sref{s:multipass}).
+Reversed elements, unlike other elements, have their local $z$-axis pointing in the opposite
+direction to the local $s$-axis (\sref{s:ref.construct}). This means that there must be a
+\vn{reflection patch} (\sref{s:reflect.patch}) between reversed and unreversed elements. Since this
+complicates matters, it is generally only useful to employ element reversal in cases where there are
+multiple intersecting lines with particle beams going in opposite directions through some elements
+(for example, colliding beam interaction regions). In this case, element reversal is typically used
+with \vn{multipass} (\sref{s:multipass}) and the lattice will contain a branch of unreversed
+elements for simulating particles going in one direction along with a branch of reversed elements to
+simulate particle going in the other direction.
 
 Where reversed elements are not needed, it is simple to define elements that are
 effectively reversed. For example:

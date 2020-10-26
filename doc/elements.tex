@@ -362,15 +362,19 @@ Example:
 \label{s:begin.ele}
 \index{beginning_ele|hyperbf}
 
-A \vn{beginning_ele} element, named \vn{beginning}, is placed at the beginning of every branch
+A \vn{beginning_ele} element, named ``\vn{BEGINNING}'', is placed at the beginning of every branch
 (\sref{s:branch.def}) of a lattice to mark the start of the branch. The \vn{beginning_ele} always
 has element index 0 (\sref{c:lat.concepts}). The creation of this \vn{beginning_ele} element is
 automatic and it is not permitted to define a lattice with \vn{beginning_ele} elements at any
 other position.
 
-The attributes of the \vn{beginning} element in the root branch are are generally set using
+The attributes of the \vn{beginning_ele} element in the root branch are are generally set using
 \vn{beginning} (\sref{s:beginning}) statements or line parameter (\sref{s:beginning}) statements.
-[The attributes of other \vn{beginning} elements are set solely with line parameter statements.]
+[The attributes of other \vn{beginning_ele} elements are set solely with line parameter statements.]
+
+If the first element after the \vn{beginning_ele} element at the start of a branch is reversed
+(\sref{s:ele.reverse}), the \vn{beginning_ele} element will be marked as reversed so that a
+reflection patch is not needed in this circumstance.
 
 See \sref{s:list.beginning} for a full list of element attributes.
 
@@ -3573,9 +3577,9 @@ and z change but t does not.
 
 When a lattice branch contains both normally oriented and reversed elements
 (\sref{s:ref.construct}), a \vn{patch}, or series of \vn{patches}, which reflects the $z$ direction
-must be placed in between. See \sref{s:ex.patch} for an example. Such a \vn{patch}, (or patches) is
-called a \vn{reflection} \vn{patch}. See Section~\sref{s:reflect.patch} for more details on how a
-reflection patch is defined.
+must be placed in between. Such a \vn{patch}, (or patches) is called a \vn{reflection}
+\vn{patch}. See Section~\sref{s:reflect.patch} for more details on how a reflection patch is
+defined.
 
 \index{wall}
 Since the geometry of a \vn{patch} element is complicated, interpolation of the chamber wall in the

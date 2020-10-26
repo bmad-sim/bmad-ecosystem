@@ -41,7 +41,7 @@ laboratory coordinate system is known as the ``reference orbit''.}
 \label{s:local.coords}
 
 %-----------------------------------------------------------------------------
-\subsection{Reference Orbit}
+\subsection{The Reference Orbit}
 \label{s:ref}
 \index{reference orbit|hyperbf}
 \index{laboratory coordinates|hyperbf}
@@ -87,24 +87,21 @@ orbit about which the transfer maps are calculated (\sref{s:twiss}). The former 
 lattice while the latter can be any arbitrary orbit.
 
 %-----------------------------------------------------------------------------
-\subsection{Reference Orbit and Laboratory Coordinates Construction}
-\label{s:ref.construct}
-\index{reference orbit!construction}
-\index{upstream element end}\index{downstream element end}
-\index{entrance element end}\index{exit element end}
+\subsection{Element Entrance and Exit Coordinates}
+\label{s:ent.exi}
+\index{element coordinates}
 
 %--------------------------------------
 
   \begin{figure}[tb]
   \centering
-  \includegraphics[width=6in]{element-coord-frame.pdf}
-\caption[Lattice elements as LEGO blocks.]{Lattice elements can be imagined as LEGO blocks which fit
-together such that the entrance coordinates of one element connecting to the exit coordinates of the
-next.  This forms the reference orbit along with the laboratory coaordinate system.  A) For straight
-line elements the entrance and exit frames are colinear. B) For bends elements, the two frames are
-rotated with respect to each other. C) For \vn{patch} and \vn{floor_shift} elements the exit frame
-may be arbitrarily positioned with respect to the entrance. D) Illustration of how elements are
-connected together.}
+  \includegraphics[width=5in]{element-coord-frame.pdf}
+\caption[Lattice elements as LEGO blocks.]{Lattice elements can be imagined as ``LEGO blocks'' which
+fit together to form the reference orbit along with the laboratory coordinate system. How elements
+join together is determined in part by their entrance and exit coordinate frames. A) For
+straight line elements the entrance and exit frames are colinear. B) For bends elements, the two
+frames are rotated with respect to each other. C) For \vn{patch} and \vn{floor_shift} elements the
+exit frame may be arbitrarily positioned with respect to the entrance frame.}
   \label{f:ele.coord.frame}
   \end{figure}
 
@@ -115,61 +112,127 @@ connected together.}
 \index{exit_end}\index{patch}\index{floor_shift}
 One way of thinking about the reference orbit and the laboratory coordinates is to imagine that each
 element is like a LEGO block with an ``\vn{entrance}'' and an ``\vn{exit}'' coordinate frame as
-illustrated in \fig{f:ele.coord.frame}A through C\footnote
+illustrated in \fig{f:ele.coord.frame}\footnote
   {
 Thanks to Dan Abell for this analogy.
   }. 
-Elements are connected together as illustrated in \fig{f:ele.coord.frame}D with the exit frame of
-one element aligning with the entrance frame of the next. Within an element, the laboratory
-coordinate system depends upon the type of element. Most elements have a ``straight'' geometry as
-shown in \fig{f:ele.coord.frame}A. That is, the reference orbit through the element is a straight
-line segment with the $x$ and $y$ axes always pointing in the same direction.  For a \vn{bend}
-element (\sref{s:bend}), the reference orbit is a segment of a circular arc as shown in
+These coordinate frames are attached to the element. that is, things like electric and magnetic
+fields, apertures, etc., are described with respect to the entrance and exit coordinates.  Thus, for
+example, the \vn{e1} edge of a bend (\sref{s:bend}) is always at the \vn{entrance} face and the
+\vn{e2} is always at the \vn{exit} face. Most elements have a ``straight'' geometry as shown in
+\fig{f:ele.coord.frame}A. That is, the reference orbit through the element is a straight line
+segment with the $x$ and $y$ axes always pointing in the same direction.  For a \vn{bend} element
+(\sref{s:bend}), the reference orbit is a segment of a circular arc as shown in
 \fig{f:ele.coord.frame}B. With the \vn{ref_tilt} parameter of a bend set to zero, the rotation axis
 between the entrance and exit frames is parallel to the $y$-axis (\sref{s:global}). For \vn{patch}
 (\sref{s:patch}), and \vn{floor_shift} (\sref{s:floor.ele}) elements, the exit face can can
 arbitrarily oriented with respect to the entrance end. In this case, the reference orbit between the
 entrance and exit faces is not defined.
 
+%-----------------------------------------------------------------------------
+\subsection{Reference Orbit and Laboratory Coordinates Construction}
+\label{s:ref.construct}
+\index{reference orbit!construction}
+\index{upstream element end}\index{downstream element end}
+\index{entrance element end}\index{exit element end}
+
+%-----------------------------------------------------------------------------
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{patch-between.pdf}
+  \caption[Laboratory coordinates construction.]{A) The laboratory coordinates are constructed by
+connecting the \vn{downstream} reference frame of one element with the \vn{upstream} reference frame
+of the next element in the branch. Coordinates shown is for the mating of element \vn{A} to element
+{B}.  B) Example with drift element \vn{dft} followed by a bend \vn{bnd}. Both elements are
+unreversed. C) Similar to (B) but in this case element \vn{bnd} is reversed.  D) Similar to (C) but
+in this case a reflection patch has been added in between \vn{dft} and \vn{bnd}.  In (B), (C), and
+(D) the $(x,z)$ coordinates are drawn at the \vn{entrance} end of the elements. The $y$ coordinate
+is always out of the page.}
+  \label{f:patch.between}
+\end{figure}
+%-----------------------------------------------------------------------------
+
 \index{root branch}
 Assuming for the moment that there are no \vn{fiducial} elements present, the construction of the
-reference orbit starts at the beginning element of a branch. If the branch is a \vn{root} branch
-(\sref{s:lattice.def}), The orientation of the beginning element can be set via the appropriate
+reference orbit starts at the \vn{beginning_ele} element (\sref{s:begin.ele}) at the start of a
+branch. If the branch is a \vn{root} branch (\sref{s:lattice.def}), The orientation of the beginning
+element within the global coordinate system (\sref{s:coords.3}) can be set via the appropriate
 positioning statements (\sref{s:beginning}). If the branch is not a \vn{root} branch, the position
 of the beginning element is determined by the position of the \vn{fork} or \vn{photon_fork} element
-from which the branch forks from. Once the beginning element in a branch is positioned, succeeding elements are
-concatenated together as illustrated in \fig{f:ele.coord.frame}D. When a element is joined, the end of the
-element that is mated to the previous element is called the ``\vn{upstream}'' end and the other end
-which will be mated to the following element is called the ``\vn{downstream}'' end.  Normally, the
-\vn{entrance} end of a element is used as the \vn{upstream} end the \vn{exit} end is used as the
-\vn{downstream} end as shown in \fig{f:stream}B. However, for \vn{reversed} elements
-(\sref{s:ele.reverse}), the \vn{upstream} end is the \vn{exit} end of the element and vice versa. To
-put it another way, the \vn{entrance} and \vn{exit} end of the elements reference the physical
-element. Thus, for example, the \vn{e1} edge of a bend (\sref{s:bend}) is always at the
-\vn{entrance} face and the \vn{e2} is always at the \vn{exit} face. Also the field of a wiggler is
-(\sref{s:wiggler}) is referenced to $z = 0$ which is at the \vn{entrance} end. The \vn{upstream} and
-\vn{downstream} ends, on the other hand, are referenced to the reference orbit and the
-\vn{downstream} end always is at a larger $s$ position relative to the \vn{upstream} end.
+from which the branch forks from. Unless set otherwise in the lattice file, $s = 0$ at the
+\vn{beginning_ele} element.
 
-In all cases, when a LEGO element is joined to the previous element, the coordinate system at the mating
-end of the element (the \vn{upstream} end) will be aligned with the mating end of the previous element
-(the \vn{downstream} end). The situation where one of the elements is reversed and the other one not,
-and neither is a \vn{patch} nor \vn{floor_shift} element, does not make physical sense since a
-particle which is moving downstream, when it comes to the face joining the elements will have to
-magically reverse direction in order to travel through the next element. Thus, to have normal and
-reversed elements in a branch, \vn{reflection} \vn{patches} must be used in between.  Whether it
-makes physical sense to put a \vn{patch} element next to another element is more complicated. This
-depends upon whether the other element is reversed or not and whether the \vn{patch} is reversed,
-whether the \vn{patch} is \vn{reflecting}, and the sign of \vn{z_offset} for the \vn{patch}. The
-basic criterion is that a particle leaving one element must enter the next. See
-Section~\sref{s:ex.patch} for an example.
-
-If there are \vn{fiducial} elements, the local reference frame is constructed beginning at these
+If there are \vn{fiducial} elements, the laboratory coordinates are constructed beginning at these
 elements.
+
+Once the beginning element in a branch is positioned, succeeding elements are concatenated together
+to form the laboratory coordinates. All elements have an ``\vn{upstream}'' and a ``\vn{downstream}''
+end as shown in \fig{f:patch.between}A. The \vn{downstream} end of an element is always farther (at
+greater $s$) from the beginning element than the \vn{upstream} end of the element.  Particles travel
+in the $+s$ direction, so particles will enter an element at the upstream end and exit at the
+downstream end.
+
+Normally, the \vn{upstream} end is the element's \vn{entrance} end (\fig{f:ele.coord.frame}) and the
+\vn{downstream} end is the element's \vn{exit} exit. This corresponds to particles entering at the
+entrance end and exiting the element at the exit end. However, if an element is reversed
+(\sref{s:ele.reverse}), the element's \vn{exit} end will be \vn{upstream} end and the element's
+\vn{entrance} end will be the \vn{downstream} end. That is, for a reversed element, particles will
+enter at the element's \vn{exit} end and will exit at the \vn{entrance} end.
+
+The procedure to connect elements together to form the laboratory coordinates is to mate the
+downstream reference frame of the element with the upstream reference frame of the next element in
+the branch so that, without misalignments, the $(x,y,z)$ axes coincide\footnote
+  {
+If there are misalignments, the \vn{entrance} and \vn{exit} frames will move with the element. However,
+the \vn{upstream} and \vn{downstream} frames, along with the reference orbit and laboratory
+coordinates, will not move.
+  }. 
+This is illustrated in \fig{f:patch.between}. \fig{f:patch.between}A shows the general situation
+with the downstream frame of element \vn{A} mated to the upstream frame of element \vn{B}.
+Figures~\ref{f:patch.between}B-C show branches constructed from the following lattice file:
+\begin{example}
+  DFT: drift, l = 2
+  BND: sbend, l = 2, g = pi/12
+  P: patch, x_pitch = pi          ! Reflection patch.
+  B_line: line = (DFT, BND)       ! No reversal.
+  C_line: line = (DFT, --BND)     ! Illegal. Do not use!
+  D_line: line = (DFT, P, --BND)  ! Valid.
+\end{example}
+The $(x,z)$ coordinates are drawn at the entrance end of the elements and $z$ will always point
+towards the element's exit end.  \fig{f:patch.between}B shows the branch constructed from
+\vn{B_line} containing an unreversed drift named \vn{dft} connected to an unreversed bend named
+\vn{bnd}. \fig{f:patch.between}C shows the branch constructed from \vn{C_line}. This is like
+\vn{B_line} except here element \vn{bnd} is reversed. This gives an unphysical situation since a
+particle traveling through \vn{dft} will ``fall off'' when it gets to the end.
+\fig{f:patch.between}D shows the branch constructed from \vn{D_line}. Here a ``\vn{reflection}''
+patch \vn{P} (\sref{s:reflect.patch}) has been added to get a plausible geometry. The patch rotates the
+coordinate system around the $y$-axis by 180\Deg (leaving the $y$-axis invariant). It is always the
+case that a reflection patch is needed between reversed and unreversed elements
+
+Notes:
+\begin{itemize}
+\item
+If the first element after the \vn{beginning_ele} element at the start of a branch is reversed, the
+\vn{beginning_ele} element will be marked as reversed so that a reflection patch is not needed in
+this circumstance.
+\item
+Irrespective of whether elements are reversed or not, the laboratory $(x,y,z)$ coordinate system
+at all $s$-positions will always be a right-handed coordinate system.
+\item
+Care must be take when using reversed elements. For example, if the field of the \vn{bnd} element in
+\vn{B_line} is appropriate for, say, electrons, that is, electrons will be bent in a clockwise
+fashion going through \vn{bnd}, then an electron going through \vn{D_line} will be lost in the bend
+(the $y$-axis and hence the field is in the same direction for both cases so electrons will still be
+bent in a clockwise fashion but with \vn{D_line} a particle needs to be bent counterclockwise to get
+through the bend). To get a particle through the bend, positrons must be used.
+\item
+A reflection patch that rotated the coordinates, for example, around the $x$-axis by 180\Deg (by
+setting \vn{y_pitch} to \vn{pi}) would also produce a plausible geometry.
+\end{itemize}
 
 %-----------------------------------------------------------------------------
 
-\begin{figure}[tb]
+\begin{figure}[bt]
   \centering
   \includegraphics[width=5in]{patch-problem.pdf}
   \caption[The local reference coordinates in a \vn{patch} element.]
@@ -534,7 +597,7 @@ element, the shift is relative to the reference point on the origin element spec
 \vn{origin_ele} parameter of the \vn{floor_shift}.
 
 %-----------------------------------------------------------------------------
-\subsection{Fiducial and Girder Elments Origin Shift Transformation}
+\subsection{Fiducial and Girder Elements Origin Shift Transformation}
 \label{s:girder.coords}
 
 \index{girder}\index{fiducial}
@@ -638,7 +701,7 @@ laboratory frame to the element body frame (see \Eq{llee}). Symbolically:
 
 The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from laboratory coordinates at a
 distance $s$ from the beginning of the element to laboratory coordinates at the center the bend is a
-rotation around the center of curvative of the bend and is given by \Eqs{vwlv} and \eq{wws} with
+rotation around the center of curvature of the bend and is given by \Eqs{vwlv} and \eq{wws} with
 \Eqs{ustt} and \eq{lrztt} with the substitution $\alpha_b \rightarrow (L/2 - s)/\rho$.
 
 The second transformation $\Lambda_\text{mid}$ to $\Omega_\text{mid}$ at the center of the element
@@ -671,7 +734,7 @@ The third transformation from $\Omega_\text{mid}$ to $\Omega_0$ is like the firs
 rotates from the center of the bend to the beginning. Again \Eqs{ustt} and \eq{lrztt} are used with
 the substitution $\alpha_b \rightarrow -L/2\rho$.
 
-The fourth transformation $\Omega_0$ to $E_0$ tilts the referece frame by an amount \vn{ref_tilt}:
+The fourth transformation $\Omega_0$ to $E_0$ tilts the reference frame by an amount \vn{ref_tilt}:
 \begin{equation}
   \bfL = 0, \quad
   \bfS = \bfR_{z}(\theta_t)
@@ -710,14 +773,14 @@ using a \vn{parameter} (\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) s
 branches, the energy at the start of the branch is set using the appropriate line parameter
 (\sref{s:beginning}) statement.
 
-Note that the reference momentum \vn{p0c} is actually the reerence momentum times the speed of light
+Note that the reference momentum \vn{p0c} is actually the reference momentum times the speed of light
 so that the reference momentum has the same unit (eV) as the reference energy.
 
 
 \index{custom!reference energy}\index{em_field!reference energy}
 \index{hybrid!reference energy}\index{lcavity!reference energy}
 \index{patch!reference energy}
-For most elements, the reference energy is the same as the reference energy of the preceeding
+For most elements, the reference energy is the same as the reference energy of the proceeding
 element. The following elements are exceptions:
 \begin{example}
   custom
@@ -884,7 +947,7 @@ When the tracking is time based the phase space coordinates are:
 \begin{equation}
   (x, c \, p_x, y, c \, p_y, z, c \, p_s)
 \end{equation}
-The positions $x$, $y$, and $z$ are the same as with phase spac
+The positions $x$, $y$, and $z$ are the same as with phase space
 coordinates (\sref{s:phase.space}). The momenta are defined as
 \begin{align}
 c p_x &\equiv m c^2 \gamma \beta_x \CRNO
