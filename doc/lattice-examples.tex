@@ -160,48 +160,6 @@ backwards from a \vn{floor_position} element so that a \vn{floor_position} eleme
 anywhere in the dump line).
 
 %-----------------------------------------------------------------------------
-\section{Example: Patch Between reversed and non-reversed elements}
-\label{s:ex.patch}
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{patch-between.pdf}
-  \caption[Patching between reversed and non-reversed elements.]{
-Drift element \vn{D} is followed by a reversed drift element \vn{B}.  The view is from $+y$ onto the
-$x$-$z$ plane. A) If no patch is present then the geometry does not make physical sense. B) With a
-patch in between, a sane geometry can be obtained.}
-  \label{f:patch.between}
-\end{figure}
-
-\index{patch}
-Between normal and reversed elements there must be a reflection
-\vn{patch} element (\sref{s:patch}).  This is illustrated in
-\fig{f:patch.between}. The basic lattice is
-\begin{example}
-  D: drift, l = 2
-  g_design = pi/12
-  B: sbend, l = 2, g = g_design, dg = -2*g_design
-  P: patch, x_pitch = pi
-  A_line: line = (D, --B)     ! Illegal. Do not use!
-  B_line: line = (D, P, --B)  ! Correct
-\end{example}
-Line \vn{A_line} represents the situation shown in \fig{f:patch.between}A.  With no patch between
-the drift \vn{D} and the reversed bend \vn{B}, a particle leaving \vn{D} at \vn{D}'s downstream end
-will find itself outside of both \vn{D} and \vn{B}. Clearly this is an unphysical situation. Sanity
-is restored in line \vn{B_line} shown in \fig{f:patch.between}B. In this instance, the patch \vn{P}
-rotates the reference coordinates around the $y$-axis leaving the $y$-axis invariant the bend of
-\vn{B} is in the $x$-$z$ plane. There are other patch parameter values that could be used to produce
-a reflection patch (\sref{s:reflect.patch}).  For example, Setting the patch's \vn{y_pitch} to
-\vn{pi} would produce a reflection patch.
-
-Since bend \vn{B} is reversed, A particle moving downstream within \vn{B} is going the opposite
-direction from the normal direction. If \vn{dg} were zero in this instance, a downstream moving
-particle would feel a force that will rotate the particle in a clockwise manner opposite from the
-counterclockwise direction of the bend. To counter this, \vn{dg} is set so the total bending
-field \vn{g_tot = g + dg} is opposite the design field. That is, \vn{dg} is set so that
-\vn{g_tot = -g}.
-
-%-----------------------------------------------------------------------------
 \section{Example: Colliding Beam Storage Rings}
 \label{s:ex.collide}
 

@@ -1916,6 +1916,9 @@ logical from_file, h5_file
 
 ! Adjust center
 
+call ran_gauss(ran_vec)
+center = beam_init%center_jitter * ran_vec
+
 if (beam_init%use_particle_start_for_center) then
   if (.not. associated (ele%branch)) then
     call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
@@ -1925,11 +1928,10 @@ if (beam_init%use_particle_start_for_center) then
     call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START_FOR_CENTER = T.')
     return
   endif
-  beam_init%center = ele%branch%lat%particle_start%vec
+  center = center + ele%branch%lat%particle_start%vec
+else
+  center = center + beam_init%center
 endif
-
-call ran_gauss(ran_vec)
-center = beam_init%center + beam_init%center_jitter * ran_vec
 
 !
 

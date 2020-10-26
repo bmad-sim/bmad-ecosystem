@@ -1296,7 +1296,7 @@ do i = 1, bp_com%num_lat_files
   if (name(1:10) == '!DIGESTED:') cycle  ! Ignore digested file
   stat_b = 0
   ierr = stat(name, stat_b)
-  lat%creation_hash = djb_hash(int_str(stat_b(2)) // int_str(stat_b(10)) // name, lat%creation_hash)
+  lat%creation_hash = djb_hash(int_str(stat_b(2)) // int_str(stat(8)), lat%creation_hash)
 enddo
 
 ! Restore auto_bookkeeper flag
