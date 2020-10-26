@@ -320,10 +320,18 @@ PTC element-by-element tracking cannot be done when using the MPI version of the
 \label{s:init.pos}
 
 When the \vn{ltt%simulation_mode} (\sref{s:sim.modes}) is set to \vn{"SINGLE"} or \vn{"CHECK"}, the
-initial particle position is determined by the \vn{beam_init%center} and \vn{beam_init%spin}
-components of the \vn{beam_init} structure (\sref{s:input}) in the master input file. If the
-\vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed orbit position is
-added to \vn{beam_init%center} to get the initial particle position.
+initial particle position will be set to the inital beam center position. The parameters that are used to
+determine the beam center position are
+\begin{code}
+  beam_init%center           ! (x, px, y, py, z, pz)
+  beam_init%spin             ! (Sx, Sy, Sz)
+  beam_init%use_particle_start_for_center 
+  ltt%add_closed_orbit_to_init_position
+\end{code}
+If \vn{beam_init%use_particle_start_for_center} is set to \vn{True}, instead of using
+\vn{beam_init%center}, the \vn{particle_start} parameters that are set in the lattice file will be
+used. If the \vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed
+orbit position is added in to the center position calculation.
 
 When the \vn{ltt%simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
 using the \vn{beam_init} structure as discussed in the \vn{Beam Initialization} chapter of the Bmad
@@ -428,6 +436,7 @@ Example:
 
   ! Output parameters
   ltt%particle_output_file = "snap.dat"
+  ltt%bunch_output_file = "bunch.dat"
   ltt%averages_output_file = "average.dat"  
   ltt%sigma_matrix_output_file = "sigma.dat"
   ltt%output_every_n_turns = 200
@@ -448,7 +457,6 @@ Example:
   ltt%random_seed        = 0
   ltt%ptc_aperture       = 0.1, 0.1
   ltt%exclude_from_maps  = "beambeam::*"
-  ltt%add_closed_orbit_to_init_position = True
   ltt%split_bends_for_radiation = False
   ltt%dead_cutoff = -1
   ltt%b_emittance = 1e-9                 ! Used with space charge calc.
@@ -458,6 +466,10 @@ Example:
   bmad_com%radiation_fluctuations_on = F 
   bmad_com%space_charge_on = F
 
+  ! Beam initialization
+  ltt%add_closed_orbit_to_init_position = True
+  beam_init%use_particle_start_for_center = F
+  beam_init%center = 0, 0, 0, 0, 0, 0
   beam_init%n_particle = 10
   beam_init%spin = 0, 1, 0        ! See Bmad manual for 
   beam_init%a_emit = 1e-8         !    beam_init_struct parameters.
@@ -499,6 +511,12 @@ Name of the Bmad lattice file to use. This name is required.
 
 Parameters in the master input file that affect the output are:
 \begin{description}
+\item[ltt\%bunch_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that is created to hold
+the particle positions. This file is created at the end of tracking. This is similar to
+\vn{ltt%particle_output_file} but here the file will be a binary file that is portable to other
+programs and can also be used as input to the \ltt program.
+%
 \item[ltt\%averages_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital
 and spin positions averaged over all the particles of the bunch as well as the six beam size sigmas
@@ -539,11 +557,12 @@ Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. If \vn{ltt%output_initia
 particle position and spin. Default is \vn{False}. See Section~\sref{s:part.out}.
 %
 \item[ltt\%particle_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file or files that are created
-to hold the particle positions. If \vn{ltt%merge_particle_output_files} is set to False, a file is
-created every \vn{ltt%ouput_every_n_turns} turns.  If \vn{ltt%merge_particle_ouput_files} is set to True,
-the files are combined into one. See Section~\sref{s:part.out} for more details. If
-\vn{ltt%particle_ouput_file} is blank, no particle output file is created.
+Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the ASCII file or files that are
+created to hold the particle positions. If \vn{ltt%merge_particle_output_files} is set to False, a
+file is created every \vn{ltt%ouput_every_n_turns} turns.  If \vn{ltt%merge_particle_ouput_files} is
+set to True, the files are combined into one. See Section~\sref{s:part.out} for more details. If
+\vn{ltt%particle_ouput_file} is blank, no particle output file is created. See also
+\vn{ltt%bunch_output_file} which will produce a portable binary file.
 %
 \item[ltt\%print_on_dead_loss] \Newline
 After each turn, the number of particles that are still living (have not hit an aperture) are
@@ -594,10 +613,12 @@ plus the closed orbit position. See Section~\sref{s:init.pos}.
 \item[beam_init\%...] \Newline
 This sets the initial beam distribution. See Section~\sref{s:init.pos}. 
 
-Also: the values of
-\vn{beam_init%a_emit} and \vn{beam_init%b_emit} are used in the high energy space charge calculation
-(\sref{s:space.charge}). If set to zero (the default) or negative, the emittance as calculated via
-radiation integrals will be used. Note: A value of 
+If spin tracking is on (\sref{bmad_com%spin_tracking_on = T}), and if all three components of
+\vn{beam_init%spin} are zero, the closed orbit spin direction are used.
+
+Also: the values of \vn{beam_init%a_emit} and \vn{beam_init%b_emit} are used in the high energy
+space charge calculation (\sref{s:space.charge}). If set to zero (the default) or negative, the
+emittance as calculated via radiation integrals will be used. Note: A value of
 
 %
 \item[bmad_com\%...] \Newline
@@ -717,13 +738,14 @@ output particle data file to show the initial particle position and spin.
 
 When radiation damping is simulated, the closed orbit that is flat when there is no radiation will
 show a ``sawtooth" pattern. In an actual ring, this sawtooth pattern will be compensated using
-steerings.  Thus to simulate the actual ring, steerings should be added to the lattice file. This
-section shows how to calculate steering strengths using the \vn{Tao} simulation program.  If you are
-not familiar with \vn{Tao}, please see the ``Introduction and Tutorial to Bmad and Tao'' which can
-be accessed via the Bmad we page
+steerings. Thus to simulate the actual ring, compensating steerings should be added to the lattice
+file. This section shows how to calculate steering strengths using the \vn{Tao} simulation program.
+If you are not familiar with \vn{Tao}, please see the ``Introduction and Tutorial to Bmad and Tao''
+which can be accessed via the Bmad we page
 \begin{code}
   https://www.classe.cornell.edu/bmad/tao.html
 \end{code}
+
 
 
 

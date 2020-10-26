@@ -19,6 +19,9 @@ integer, parameter :: master_rank$ = 0
 integer, parameter :: results_tag$ = 1000
 integer, parameter :: is_done_tag$ = 1001
 
+! Essentially: The ltt_params_struct holds user setable parameters while the ltt_com_struct holds
+! parameters that are not setable.
+
 type ltt_params_struct
   character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BUNCH, STAT
   character(20) :: tracking_method = 'BMAD'   ! MAP, PTC, BMAD
@@ -28,6 +31,7 @@ type ltt_params_struct
   character(200) :: lat_file = ''
   character(200) :: common_master_input_file = ''
   character(200) :: particle_output_file = ''
+  character(200) :: bunch_output_file = ''
   character(200) :: sigma_matrix_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: averages_output_file = ''
@@ -72,7 +76,7 @@ end type
 ! common vars
 type ltt_com_struct
   type (lat_struct) :: lat
-  type (lat_struct) :: map_lat      ! Used for tracking with maps. Can contain radiation markers for SLICK sectioning.
+  type (lat_struct) :: tracking_lat      ! Used for tracking with PTC and maps. Can contain radiation markers for SLICK sectioning.
   type (internal_state) ptc_state
   type (coord_struct), allocatable :: bmad_closed_orb(:)
   type (normal_modes_struct) modes
@@ -204,7 +208,7 @@ endif
 
 ! There is a possible problem with splitting the bends in a lattice if the 
 ! ele_start or ele_stop names are the index of the element.
-! In this case the element index in the map_lat will not be the same. 
+! In this case the element index in the tracking_lat will not be the same. 
 ! This is solved by setting the type string to something unique.
 
 if (ltt%ele_start /= '') then
@@ -246,6 +250,8 @@ if (ltt%using_mpi .and. ltt%tracking_method == 'PTC') then
   stop
 endif
 
+if (beam_init%use_particle_start_for_center) beam_init%center = lat%particle_start%vec
+
 end subroutine ltt_init_params
 
 !-------------------------------------------------------------------------------------------
@@ -260,7 +266,7 @@ type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele_start, ele_stop
 
-real(rp) time, closed_orb(6)
+real(rp) closed_orb(6)
 
 integer i, ix_branch, ib, n_slice
 
@@ -270,7 +276,8 @@ character(40) start_name, stop_name
 
 ! PTC has an internal aperture of 1.0 meter. To be safe use an aperture of 0.9 meter
 
-lat => ltt_com%lat
+call ltt_make_tracking_lat(lttp, ltt_com)
+lat => ltt_com%tracking_lat
 
 lttp%ptc_aperture = min([0.9_rp, 0.9_rp], lttp%ptc_aperture)
 
@@ -284,16 +291,12 @@ endif
 !
 
 if (.not. lttp%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
-call twiss_and_track (ltt_com%lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
+call twiss_and_track (ltt_com%tracking_lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
 call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch = ltt_com%ix_branch)
 
 if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
 
 if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
-  call ltt_make_map_lat(lttp, ltt_com)
-
-  print '(a)', 'Creating map(s)...'
-  call run_timer ('START')
 
   call ltt_read_map (lttp, ltt_com, err)
   if (err) then
@@ -308,12 +311,9 @@ if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
       enddo
     endif
   endif
-
-  call run_timer ('READ', time)
-  print '(a, f8.2)', ' Map setup time (min)', time/60
 endif
 
-if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'PTC') call lat_to_ptc_layout(ltt_com%lat)
+if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'PTC') call lat_to_ptc_layout(ltt_com%tracking_lat)
 
 end subroutine ltt_init_tracking
 
@@ -384,9 +384,9 @@ integer track_state, ix_branch, ix_start, ix_stop
 ! Run serial in check mode.
 
 bmad_com%radiation_fluctuations_on = .false.
-lat => ltt_com%lat
+lat => ltt_com%tracking_lat
 
-call ltt_pointer_to_map_ends(lttp, ltt_com%lat, ele_start, ele_stop)
+call ltt_pointer_to_map_ends(lttp, lat, ele_start, ele_stop)
 ix_branch = ltt_com%ix_branch
 ix_start = ele_start%ix_ele
 ix_stop  = ele_stop%ix_ele
@@ -458,7 +458,7 @@ logical is_lost
 
 !
 
-lat => ltt_com%lat
+lat => ltt_com%tracking_lat
 orb_start = orb_init
 if (i_ps > 0) orb_start%vec(i_ps) = orb_start%vec(i_ps) + sgn * bmad_com%d_orb(i)
 
@@ -516,14 +516,14 @@ character(40) fmt
 
 ! Run serial in single mode.
 
-lat => ltt_com%lat
+lat => ltt_com%tracking_lat
 
 n_sum = 0
 sigma = 0
 average = 0
 ix_branch = ltt_com%ix_branch
 branch => lat%branch(ix_branch)
-call ltt_pointer_to_map_ends(lttp, ltt_com%lat, ele_start)
+call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 
 orbit_old%vec = real_garbage$
 
@@ -610,10 +610,12 @@ subroutine ltt_run_bunch_mode (lttp, ltt_com, beam_init, sum_data_array)
 
 type (ltt_params_struct) lttp
 type (beam_init_struct) beam_init
+type (beam_struct), target :: beam
 type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
-type (bunch_struct), target :: bunch, bunch_init
+type (bunch_struct), pointer :: bunch
+type (bunch_struct), target :: bunch_init
 type (coord_struct), pointer :: p
 type (ltt_sum_data_struct), allocatable, optional :: sum_data_array(:)
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
@@ -623,21 +625,27 @@ type (probe) prb
 
 real(rp) time0, time
 
-integer n, n_print_dead_loss, i_turn
+integer n, n_print_dead_loss, i_turn, ie
 integer ip, n_live_old, n_live, ix_branch
 
 logical err_flag, is_lost
 
 ! Init
 
-lat => ltt_com%lat
+lat => ltt_com%tracking_lat
 
 ix_branch = ltt_com%ix_branch
-call ltt_pointer_to_map_ends(lttp, ltt_com%lat, ele_start)
-
+call ltt_pointer_to_map_ends(lttp, lat, ele_start)
+  
 if (lttp%using_mpi) beam_init%n_particle = lttp%mpi_n_particles_per_run
-call init_bunch_distribution (ele_start, lat%param, beam_init, ix_branch, bunch, err_flag, modes = ltt_com%modes)
+call init_beam_distribution (ele_start, lat%param, beam_init, beam, err_flag, modes = ltt_com%modes)
 if (err_flag) stop
+bunch => beam%bunch(1)
+
+if (bmad_com%spin_tracking_on .and. all(beam_init%spin == 0)) then
+  ie = ele_start%ix_ele
+  forall (n = 1:3) bunch%particle%spin(n) = ltt_com%bmad_closed_orb(ie)%spin(n)
+endif
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
 
@@ -721,7 +729,6 @@ do i_turn = 1, lttp%n_turns
     call ltt_write_bunch_averages(lttp, i_turn, sum_data_arr)
     call ltt_write_sigma_matrix (lttp, i_turn, sum_data_arr)
   endif
-
 end do
 
 if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
@@ -729,6 +736,8 @@ if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lt
 if (lttp%using_mpi) then
   if (allocated(sum_data_array)) deallocate (sum_data_array)
   call move_alloc (sum_data_arr, sum_data_array)
+else
+  if (lttp%bunch_output_file /= '') call write_beam_file (lttp%bunch_output_file, beam)
 endif
 
 end subroutine ltt_run_bunch_mode
@@ -751,7 +760,7 @@ logical err_flag
 
 ! Run serial in stat mode.
 
-lat => ltt_com%lat
+lat => ltt_com%tracking_lat
 branch => lat%branch(ltt_com%ix_branch)
 
 open(unit=20,file="twiss.dat")
@@ -1195,7 +1204,7 @@ err_flag = .true.
 
 call ltt_map_file_name (lttp, ltt_com, map_file)
 
-lat => ltt_com%map_lat
+lat => ltt_com%tracking_lat
 branch => lat%branch(ltt_com%ix_branch)
 
 inquire (file = map_file, exist = map_file_exists)
@@ -1298,6 +1307,7 @@ integer hash
 
 character(*) map_file
 character(200) string
+logical damping_on
 
 !
 
@@ -1307,8 +1317,9 @@ else
   map_file = lttp%map_file_prefix
 endif
 
+damping_on = (bmad_com%radiation_damping_on .and. .not. lttp%split_bends_for_radiation) 
 write (string, '(2a,2l1,i0,l1)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
-         lttp%split_bends_for_radiation, bmad_com%radiation_damping_on, lttp%map_order, lttp%rfcavity_on
+                                   damping_on, lttp%split_bends_for_radiation, lttp%map_order, lttp%rfcavity_on
 if (lttp%simulation_mode == 'CHECK') string = trim(string) // lttp%ele_stop
 
 hash = djb_hash(string)
@@ -1332,13 +1343,18 @@ type (ltt_section_struct), pointer :: sec
 type (ele_struct), pointer :: ele0, ele, ele_start, ele_stop
 type (branch_struct), pointer :: branch
 
+real(rp) time, time0
 integer i, n_sec, ib, ie, ix_branch
 logical err, in_map_section, damping_on
 
 !
 
-lat => ltt_com%map_lat
-call ltt_pointer_to_map_ends (lttp, ltt_com%map_lat, ele_start, ele_stop)
+print '(a)', 'Creating map(s)...'
+call run_timer ('START')
+time0 = 0
+
+lat => ltt_com%tracking_lat
+call ltt_pointer_to_map_ends (lttp, ltt_com%tracking_lat, ele_start, ele_stop)
 branch => lat%branch(ele_start%ix_branch)
 call lat_to_ptc_layout(lat)
 
@@ -1389,7 +1405,6 @@ do i = 1, branch%n_ele_track+1
     in_map_section = .true.
   endif
 
-
   if (ele%ix_ele == ele_stop%ix_ele) then
     if (in_map_section) then
       n_sec = n_sec + 1
@@ -1400,7 +1415,16 @@ do i = 1, branch%n_ele_track+1
     endif
     exit
   endif
+
+  call run_timer ('READ', time)
+  if (time - time0 > lttp%timer_print_dtime) then
+    print '(a)', ' Map setup at (min) ' // real_str(time/60, 3) // ' at element: ' // int_str(i) // ' of: ' // int_str(branch%n_ele_track)
+    time0 = time
+  endif
 enddo
+
+call run_timer ('READ', time)
+print '(a, f8.2)', ' Map setup time (min)', time/60
 
 end subroutine ltt_make_map
 
@@ -1408,7 +1432,7 @@ end subroutine ltt_make_map
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_make_map_lat (lttp, ltt_com)
+subroutine ltt_make_tracking_lat (lttp, ltt_com)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -1435,8 +1459,8 @@ enddo
 
 !
 
-ltt_com%map_lat = ltt_com%lat
-branch => ltt_com%map_lat%branch(ltt_com%ix_branch)
+ltt_com%tracking_lat = ltt_com%lat
+branch => ltt_com%tracking_lat%branch(ltt_com%ix_branch)
 
 if (lttp%split_bends_for_radiation) then
   call init_ele(marker, marker$)
@@ -1454,13 +1478,13 @@ if (lttp%split_bends_for_radiation) then
     i = i + 2
   enddo
 
-  call lattice_bookkeeper(ltt_com%map_lat)
+  call lattice_bookkeeper(ltt_com%tracking_lat)
 endif
 
 ! Mark slaves of lords that are not to be part of any map
 
-do ie = ltt_com%map_lat%n_ele_track+1, ltt_com%map_lat%n_ele_max
-  ele => ltt_com%map_lat%ele(ie)
+do ie = ltt_com%tracking_lat%n_ele_track+1, ltt_com%tracking_lat%n_ele_max
+  ele => ltt_com%tracking_lat%ele(ie)
   if (ele%ix_pointer == 0) cycle
   do is = 1, ele%n_slave
     slave => pointer_to_slave(ele, is)
@@ -1468,7 +1492,7 @@ do ie = ltt_com%map_lat%n_ele_track+1, ltt_com%map_lat%n_ele_max
   enddo
 enddo
 
-end subroutine ltt_make_map_lat
+end subroutine ltt_make_tracking_lat
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1531,7 +1555,7 @@ if (lttp%split_bends_for_radiation) then
   fluct_on = .false.
 endif
 
-branch => ltt_com%map_lat%branch(0)
+branch => ltt_com%tracking_lat%branch(0)
 
 
 do i = 1, ubound(ltt_com%sec, 1)
