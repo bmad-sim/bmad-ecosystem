@@ -1,0 +1,4 @@
+This directory contains a simple example of correcting the closed orbit when the
+closed orbit has been distorted due to the presence of radiation damping.
+
+Full documentation is in the long_term_tracking manual.

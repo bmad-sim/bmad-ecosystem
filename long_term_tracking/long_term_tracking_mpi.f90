@@ -15,7 +15,7 @@ type (ltt_sum_data_struct), pointer :: sd
 real(rp) del_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
-integer ix, ierr, rc, leng, data_size, num_particles_left, storage_size
+integer n, ix, ierr, rc, leng, data_size, num_particles_left, storage_size
 
 logical am_i_done
 logical, allocatable :: slave_is_done(:)
@@ -80,6 +80,7 @@ case ('STAT');   call ltt_run_stat_mode(lttp, ltt_com)              ! Lattice st
 case default;    print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
 
 !-------------------------
+! Only the BUNCH simulation mode uses mpi
 
 case ('BUNCH')
 
@@ -93,7 +94,8 @@ case ('BUNCH')
     stop
   endif
 
-  allocate (sum_data_arr(0:lttp%n_turns / lttp%output_every_n_turns), sd_arr(0:lttp%n_turns / lttp%output_every_n_turns))
+  n = lttp%n_turns / lttp%output_every_n_turns
+  allocate (sum_data_arr(0:n), sd_arr(0:n))
   lttp%mpi_n_particles_per_run = nint(real(beam_init%n_particle, rp) / (lttp%mpi_num_runs * (lttp%mpi_n_proc - 1)))
   data_size = size(sum_data_arr) * storage_size(sum_data_arr(0)) / 8
 
