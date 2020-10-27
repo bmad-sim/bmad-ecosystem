@@ -1,12 +1,14 @@
 set (EXENAME long_term_tracking)
 
-set (SRC_FILES long_term_tracking/long_term_tracking.f90)
+set (SRC_FILES 
+	long_term_tracking/long_term_tracking.f90
+	long_term_tracking/lt_tracking_mod.f90
+)
 
 set (INC_DIRS
 )
 
 set (LINK_LIBS
-	bsim
   bmad
   xrlf03
   xrl
