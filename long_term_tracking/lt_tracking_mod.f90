@@ -38,7 +38,7 @@ type ltt_params_struct
   integer :: n_turns = -1
   integer :: random_seed = 0
   integer :: map_order = -1
-  integer :: n_turn_sigma_average = -1
+  integer :: averaging_window = 1
   integer :: output_every_n_turns = -1
   real(rp) :: ptc_aperture(2) = 0.1
   real(rp) :: print_on_dead_loss = -1
@@ -88,7 +88,8 @@ end type
 
 type ltt_sum_data_struct
   integer :: i_turn = 0
-  integer :: n_live = 0
+  integer :: n_live = 0     ! Number alive on last turn used for averaging.
+  integer :: n_count = 0    ! Number of particles counted over all turns used for averaging.
   real(rp) :: orb_sum(6) = 0    ! Orbit average
   real(rp) :: orb2_sum(6,6) = 0
   real(rp) :: spin_sum(3) = 0   ! Spin
@@ -649,7 +650,10 @@ endif
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
 
-if (lttp%mpi_rank == master_rank$) print '(a, i8)',   'n_particle             = ', size(bunch%particle)
+if (lttp%mpi_rank == master_rank$) then
+  print '(a, i8)',   'n_particle      = ', size(bunch%particle)
+  print '(a, i8)',   'ltt%n_turns     = ', lttp%n_turns
+endif
 
 do n = 1, size(bunch%particle)
   p => bunch%particle(n)
@@ -674,7 +678,7 @@ call ltt_calc_bunch_sums (lttp, 0, bunch, sum_data_arr)
 
 time0 = 0
 
-do i_turn = 1, lttp%n_turns
+do i_turn = 1, lttp%n_turns + lttp%averaging_window/2
   select case (lttp%tracking_method)
   case ('MAP')
     do ip = 1, size(bunch%particle)
@@ -951,34 +955,41 @@ type (bunch_struct) bunch
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 
-integer i, j, ix, i_turn
+integer i, j, ix, i_turn, this_turn, n2w
 
 !
 
 if (lttp%averages_output_file == '') return
+n2w = lttp%averaging_window/2   ! Averaging window half width
 
 select case (lttp%output_every_n_turns)
+! Stats only for end.
 case (-1)
-  if (i_turn /= lttp%n_turns) return
+  this_turn = in_this_window(i_turn, lttp%n_turns, n2w)
+  if (this_turn < 1) return   ! Out of window. Do not do any averaging
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(1))
   sd => sum_data_arr(1)
-
+! Stats for beginning and end
 case (0)
-  if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
+  this_turn = in_this_window(i_turn, lttp%n_turns, n2w)
+  if (this_turn < 0) return   ! Out of window. Do not do any averaging
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:1))
-  ix = i_turn/lttp%output_every_n_turns
+  ix = this_turn/lttp%output_every_n_turns
   sd => sum_data_arr(ix)
 
+! Stats for every %output_every_n_turns 
 case default
-  if (modulo(i_turn, lttp%output_every_n_turns) /= 0) return
+  this_turn = in_this_window(i_turn, lttp%output_every_n_turns, n2w)
+  if (this_turn < 0) return   ! Out of window. Do not do any averaging
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:lttp%n_turns / lttp%output_every_n_turns))
-  ix = i_turn/lttp%output_every_n_turns
+  ix = this_turn/lttp%output_every_n_turns
   sd => sum_data_arr(ix)
 end select
 
 !
 
 sd%n_live = count(bunch%particle%state == alive$)
+sd%n_count = sd%n_count + sd%n_live
 sd%i_turn = i_turn
 
 do i = 1, 6
@@ -991,6 +1002,21 @@ enddo
 do i = 1, 3
   sd%spin_sum(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$)
 enddo
+
+!-------------------------------------------------------------------------------------------
+contains
+
+function in_this_window(i_turn, n_every, n2w) result (this_turn)
+
+integer i_turn, n_every, n2w, this_turn, n
+
+this_turn = nint(i_turn * 1.0_rp / n_every)
+if (i_turn < this_turn - n2w .or. i_turn > this_turn + n2w) then
+  this_turn = -1  ! Out of window
+  return
+endif
+
+end function in_this_window
 
 end subroutine ltt_calc_bunch_sums
 
@@ -1051,11 +1077,11 @@ endif
 do ix = lbound(sum_data_arr, 1), ubound(sum_data_arr, 1)
   if (i_turn /= -1 .and. ix /= ix_last) cycle
   sd => sum_data_arr(ix)
-  if (sd%n_live == 0) exit
-  forall (i = 1:6) sigma(i) = sd%orb2_sum(i,i)/sd%n_live - (sd%orb_sum(i)/sd%n_live)**2
+  if (sd%n_count == 0) exit
+  forall (i = 1:6) sigma(i) = sd%orb2_sum(i,i)/sd%n_count - (sd%orb_sum(i)/sd%n_count)**2
   sigma = sqrt(max(0.0_rp, sigma))
-  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 12es14.6)') sd%i_turn, sd%n_live, &
-          norm2(sd%spin_sum/sd%n_live), sd%spin_sum/sd%n_live, sd%orb_sum/sd%n_live, sigma
+  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 12es14.6)') sd%i_turn, sd%n_count, &
+          norm2(sd%spin_sum/sd%n_count), sd%spin_sum/sd%n_count, sd%orb_sum/sd%n_count, sigma
 enddo
 
 !
@@ -1120,12 +1146,12 @@ endif
 do ix = lbound(sum_data_arr, 1), ubound(sum_data_arr, 1)
   if (i_turn /= -1 .and. ix /= ix_last) cycle
   sd => sum_data_arr(ix)
-  if (sd%n_live == 0) exit
+  if (sd%n_count == 0) exit
   k = 0
   do i = 1, 6
   do j = i, 6
     k = k + 1
-    sigma(k) = sd%orb2_sum(i,j) / sd%n_live - sd%orb_sum(i) * sd%orb_sum(j) / sd%n_live**2
+    sigma(k) = sd%orb2_sum(i,j) / sd%n_count - sd%orb_sum(i) * sd%orb_sum(j) / sd%n_count**2
   enddo
   enddo
   write (iu, '(i9, i9, 2x, 21es14.6)') sd%i_turn, sd%n_live, (sigma(k), k = 1, 21)
@@ -1155,7 +1181,7 @@ if (lttp%sigma_matrix_output_file == '') return
 open (1, file = lttp%sigma_matrix_output_file)
 
 if (n_sum == 0) then
-  write (1, '(a, i0)') '# n_turn_sigma_average = ', lttp%n_turn_sigma_average
+  write (1, '(a, i0)') '# averaging_window = ', lttp%averaging_window
   write (1, '(a)') '# NO DATA TO AVERAGE OVER!'
   return
 endif
@@ -1165,7 +1191,7 @@ endif
 average = average / n_sum
 sigma = sigma / n_sum - outer_product(average, average)
 
-write (1, '(a, i0)') '# n_turn_sigma_average = ', lttp%n_turn_sigma_average
+write (1, '(a, i0)') '# averaging_window = ', lttp%averaging_window
 write (1, '(a)') '# Average:'
 write (1, '(5x, 6es16.8)') average
 write (1, *)
