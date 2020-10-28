@@ -388,9 +388,15 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
     nl=nl+1; write(lines(nl), lmt) '  %use_particle_start_for_center = ', beam_init%use_particle_start_for_center
     if (beam_init%use_particle_start_for_center) then
-      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Slaved to particle_start'
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Note: Will use particle_start instead'
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[x]       = ', u%model%lat%particle_start%vec(1)
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[px]      = ', u%model%lat%particle_start%vec(2)
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[y]       = ', u%model%lat%particle_start%vec(3)
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[py]      = ', u%model%lat%particle_start%vec(4)
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[z]       = ', u%model%lat%particle_start%vec(5)
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  particle_start[pz]      = ', u%model%lat%particle_start%vec(6)
     else
-      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center, '! Independent of slaved particle_start'
+      nl=nl+1; write(lines(nl), '(a, 6es16.8, 3x, a)') '  %center                 = ', beam_init%center
     endif
     nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
     nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
@@ -3535,9 +3541,10 @@ case ('spin')
       call tao_spin_polarization_calc (branch, tao_branch)
       nl=nl+1; lines(nl) = ''
       if (tao_branch%spin_valid) then
+        r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Limit:        ', tao_branch%spin%pol_limit
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.2)') 'Polarization Time (min):   ', 1.0 / (60*tao_branch%spin%pol_rate)
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.2)') 'Depolarization Time (min): ', 1.0 / (60*tao_branch%spin%depol_rate)
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.2)') 'Polarization Time (min/turns):   ', 1 / (60*tao_branch%spin%pol_rate), r / tao_branch%spin%pol_rate
+        nl=nl+1; write(lines(nl), '(2x, a, 3f12.2)') 'Depolarization Time (min/turns): ', 1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
       else
         nl=nl+1; lines(nl) = 'Polarization calc not valid since: ' // why_invalid
       endif
