@@ -9,10 +9,11 @@ about a lattice (\sref{s:lattice.def}). The components of a
 \centering
 \begin{verbatim}
 type lat_struct
-  character(40) name                       ! Name in USE statement
+  character(40) use_name                   ! Name in USE statement
   character(40) lattice                    ! Lattice name
   character(80) input_file_name            ! Lattice input file name
   character(80) title                      ! From TITLE statement
+  character(100), allocatable :: print_str(:) ! Saved print statements
   type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
   type (mode_info_struct) a, b, z             ! Tunes, etc.                       
   type (lat_param_struct) param               ! Parameters                        
@@ -24,6 +25,7 @@ type lat_struct
   type (photon_reflect_surface_struct), pointer :: surface(:) => null()
   type (coord_struct) particle_start      ! Starting coords
   type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACT-T
+  type (nametable_struct) nametable       ! For quick searching by element name.
   real(rp), allocatable :: custom(:)      ! Custom attributes.
   integer version                         ! Version number
   integer n_ele_track                     ! Number of lat elements to track through.
@@ -33,6 +35,7 @@ type lat_struct
   integer input_taylor_order              ! As set in the input file
   integer, allocatable :: ic(:)           ! Index to %control(:)
   integer :: photon_type = incoherent$    ! Or coherent$. For X-ray simulations.
+  integer :: creation_hash                ! Number to determine if lattice is different.
   logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
   logical ptc_uses_hard_edge_drifts       ! Associated ptc layout have hard edge model drifts?
 end type
