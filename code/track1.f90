@@ -52,7 +52,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) p0c_start
 integer tracking_method, stm
 
-character(8), parameter :: r_name = 'track1'
+character(*), parameter :: r_name = 'track1'
 
 logical, optional :: make_matrix
 logical, optional :: err_flag, ignore_radiation
@@ -184,6 +184,7 @@ case (bmad_standard$)
     call track1_bmad_photon (start2_orb, ele, param, end_orb, err)
   else
     call track1_bmad (start2_orb, ele, param, end_orb, err, mat6, make_matrix)
+    if (ele%key == beambeam$) do_spin_tracking = .false.
   endif
 
   if (present(track)) call add_to_track()

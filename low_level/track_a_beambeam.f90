@@ -23,12 +23,14 @@ implicit none
 type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
+type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
 real(rp) sig_x0, sig_y0, beta_a0, beta_b0, alpha_a0, alpha_b0, sig_x, sig_y
 real(rp) beta, s_pos, s_pos_old, k0_x, k0_y, k_xx1, k_xy1, k_yx1, k_yy1, k_xx2, k_xy2, k_yx2, k_yy2, coef, del
 real(rp) mat21, mat23, mat41, mat43, del_s, x_pos, y_pos, ratio, bbi_const, z
 real(rp), allocatable :: z_slice(:)
+real(rp) om(3), quat(0:3)
 
 integer i, n_slice
 
@@ -125,6 +127,14 @@ do i = 1, n_slice
 
     mat6(2,:) = mat6(2,:) + mat21 * mat6(1,:) + mat23 * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat41 * mat6(1,:) + mat43 * mat6(3,:)
+  endif
+
+  if (bmad_com%spin_tracking_on) then
+    field%E = [ k0_x, k0_y, 0.0_rp] * orbit%p0c * orbit%beta / (2 * charge_of(orbit%species))
+    field%B = [-k0_y, k0_x, 0.0_rp] * orbit%p0c / (2 * c_light * charge_of(orbit%species))
+    om = spin_omega (field, orbit, +1)
+    quat = omega_to_quat(om)
+    orbit%spin = rotate_vec_given_quat(quat, orbit%spin)
   endif
 enddo
 

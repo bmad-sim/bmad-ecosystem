@@ -62,7 +62,7 @@ elseif (integer_option(hdf5$, file_format) == ascii$) then
   endif
 
 else
-  append = .not. new_file
+  append = .not. logic_option(.true., new_file)
   call hdf5_write_beam(file_name, beam%bunch, append, error, lat)
   return
 endif
