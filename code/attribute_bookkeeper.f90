@@ -659,7 +659,7 @@ endif
 ! If an element has just been offset and bmad_com%conserve_taylor_map = T then 
 ! conserve the taylor map.
 
-if (associated(ele%taylor(1)%term) .and. ele%taylor_map_includes_offsets .and. &
+if (ele%tracking_method == taylor$ .and. ele%taylor_map_includes_offsets .and. &
         offset_nonzero .and. offset_changed .and. .not. non_offset_changed .and. &
         bmad_com%conserve_taylor_maps .and. ele%key /= patch$) then
   ele%taylor_map_includes_offsets = .false.
