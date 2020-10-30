@@ -101,6 +101,9 @@ else
   call concat_this (q_map, ix_r, ix_ele)
 endif
 
+spin_map%q_map%mat = q_map%mat
+spin_map%q_map%q   = q_map%q
+
 quat0 = q_map%q(:, 0)
 
 ! If 1-turn then calculate n0. Otherwise take the value in the datum.
