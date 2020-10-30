@@ -279,7 +279,14 @@ if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR
   return
 endif
 
-if (word == 'N_REF_PASS') word = 'MULTIPASS_REF_ENERGY'  ! This will be ignored...
+! Setting n_ref_pass and multipass_ref_energy is no longer valid and
+! will be ignored for backwards compatibility.
+if (word == 'N_REF_PASS' .or. word == 'MULTIPASS_REF_ENERGY') then
+  call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele) 
+  return
+endif
+
+!
 
 if (word == 'SPACE_CHARGE_ON') then
   call parser_error ('Note: "bmad_com[SPACE_CHARGE_ON]" has been renamed "bmad_com[HIGH_ENERGY_SPACE_CHARGE_ON]"', &
