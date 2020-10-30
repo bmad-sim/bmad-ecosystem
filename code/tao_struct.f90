@@ -761,6 +761,11 @@ end type
 !-----------------------------------------------------------------------
 ! scratch space
 
+type spin_orbit_linear_map_struct
+  real(rp) :: mat(6,6) = 0      ! Orbital transport matrix.
+  real(rp) :: q(0:3, 0:6) = 0    ! Spin quaternion 0th [q(:, 0)] and 1st order [q(:, 1:6)] transport.
+end type
+
 type tao_beam_shake_struct
   real(rp) cbar(2,2)
   real(rp) k_11a, k_12a, k_12b, k_22b
@@ -773,6 +778,7 @@ end type
 type tao_spin_map_struct
   type (taylor_struct) :: orbit_taylor(6) = taylor_struct()  ! Not yet used.
   type (taylor_struct) :: spin_taylor(0:3) = taylor_struct() ! Not yet used.
+  type (spin_orbit_linear_map_struct) :: q_map = spin_orbit_linear_map_struct()
   type (spin_axis_struct) :: axis_dat = spin_axis_struct()   ! Axes from data_struct
   type (spin_axis_struct) :: axis0 = spin_axis_struct()      ! Initial axes.
   type (spin_axis_struct) :: axis1 = spin_axis_struct()      ! Final axes.

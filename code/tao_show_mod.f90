@@ -272,7 +272,7 @@ logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag
-logical print_ptc, print_position, called_from_python_cmd, print_eigen
+logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_q
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -1737,7 +1737,6 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size          = ', bmad_com%space_charge_mesh_size
 
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
-    nl=nl+1; write(lines(nl), lmt) '  %use_hard_edge_drifts            = ', bmad_com%use_hard_edge_drifts
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %mat6_track_symmetric            = ', bmad_com%mat6_track_symmetric
@@ -3469,12 +3468,14 @@ case ('plot')
 case ('spin')
 
   what_to_print = 'standard'
+  show_q = .false.
   datum%spin_axis = spin_axis_struct()
   ele2_name = ''
   ele2 => null()
 
   do
-    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-ref_element'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', '-ref_element', '-q_map'], &
+                                       .true., switch, err, ix)
     if (err) return
 
     select case (switch)
@@ -3505,6 +3506,8 @@ case ('spin')
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
       call word_read(what2, ' ,', word1, ix, delim, delim_found, what2)
+    case ('-q_map')
+      show_q = .true.
     end select
   enddo
 
@@ -3564,15 +3567,23 @@ case ('spin')
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'L-axis: ', sm%axis0%l, sm%axis1%l
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'N0-axis:', sm%axis0%n0, sm%axis1%n0
         nl=nl+1; write(lines(nl), '(2x, a, 3f12.8, 5x, 3f12.8)') 'M-axis: ', sm%axis0%m, sm%axis1%m
-        nl=nl+1; write(lines(nl), '(2x, a)')         '8x8 matrix:'
+        nl=nl+1; write(lines(nl), '(2x, a)') '8x8 matrix:'
         do j = 1, 8
           nl=nl+1; write(lines(nl), '(5x, a)') reals_to_table_row(sm%mat8(j,:), 13, 7)
         enddo
       enddo
+
+      if (show_q) then
+        nl=nl+1; lines(nl) = ''
+        nl=nl+1; lines(nl) = '  q_map quaternion part.'
+        do i = 0, 3
+          nl=nl+1; write(lines(nl), '(i8, f12.6, 4x, 6f12.6)') i, sm%q_map%q(i,:)
+        enddo
+      endif
     endif
 
   ! what_to_print = element
-2  else
+  else
     call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
     if (err) return
     u => s%u(ix_u)
@@ -4316,10 +4327,11 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) ' do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
   nl=nl+1; write(lines(nl), lmt) ' do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
   nl=nl+1; write(lines(nl), lmt) ' do_beam_sigma_calc    = ', u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting
-  nl=nl+1; write(lines(nl), lmt) '%calc%twiss            = ', u%calc%twiss
-  nl=nl+1; write(lines(nl), lmt) '%calc%dynamic_aperture = ', u%calc%dynamic_aperture
-  nl=nl+1; write(lines(nl), lmt) '%calc%one_turn_map     = ', u%calc%one_turn_map
-  nl=nl+1; write(lines(nl), lmt) '%calc%track            = ', u%calc%track
+  nl=nl+1; write(lines(nl), lmt) ' one_turn_map_calc     = ', u%calc%one_turn_map
+  nl=nl+1; write(lines(nl), lmt) ' twiss_calc            = ', u%calc%twiss
+  nl=nl+1; write(lines(nl), lmt) ' dynamic_aperture_calc = ', u%calc%dynamic_aperture
+  nl=nl+1; write(lines(nl), lmt) ' one_turn_map_calc     = ', u%calc%one_turn_map
+  nl=nl+1; write(lines(nl), lmt) ' track_calc            = ', u%calc%track
   nl=nl+1; write(lines(nl), lmt) '%calc%spin_matrices    = ', u%calc%spin_matrices
   nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write(lines(nl), amt) '%beam%track_data_file  = ', quote(trim(u%beam%track_data_file))
