@@ -27,14 +27,14 @@ type (grid_field_pt1_struct), pointer :: gptr(:,:,:)
 type (ele_struct) ele
 
 integer i, j, k, n, ix, im, ig, igf, h5_err, indx(3)
-integer(hid_t) f_id, r_id, b_id, b2_id, z_id, complex_t
+integer(hid_t) f_id, r_id, b_id, b2_id, b3_id, z_id, complex_t
 logical err_flag, err
 
 character(*) file_name
 character(*), parameter :: r_name = 'dhf5_write_grid_field'
 character(40) this_path
 character(28) date_time, root_path, sub_path
-character(8) :: B_name(3), E_name(3)
+character(8) :: component_name(3)
 
 !
 
@@ -65,13 +65,11 @@ do igf = 1, size(g_field)
   gptr => gf%ptr%pt
   select case (gf%geometry)
   case (xyz$)
-    B_name = [character(6):: 'Bx', 'By', 'Bz']
-    E_name = [character(6):: 'Ex', 'Ey', 'Ez']
+    component_name = [character(6):: 'x', 'y', 'z']
     indx = [1, 2, 3]
     call hdf5_write_attribute_string(b2_id,  'gridGeometry', 'rectangular', err)
   case (rotationally_symmetric_rz$)
-    B_name = [character(6):: 'Br', 'Btheta', 'Bz']
-    E_name = [character(6):: 'Er', 'Etheta', 'Ez']
+    component_name = [character(6):: 'r', 'theta', 'z']
     indx = [1, 3, 2]
     allocate(gpt(lbound(gptr, 1):ubound(gptr, 1), lbound(gptr, 3):ubound(gptr, 3), lbound(gptr, 2):ubound(gptr, 2)))
     gptr => gpt
@@ -117,14 +115,16 @@ do igf = 1, size(g_field)
   !
 
   if (gf%field_type == magnetic$ .or. gf%field_type == mixed$) then
+    call h5gcreate_f(b2_id, 'magneticField/', b3_id, h5_err)
     do i = 1, 3
-      call pmd_write_complex_to_dataset (b2_id, B_name(i), complex_t, B_name(i), unit_tesla, gptr%B(i), err)
+      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_tesla, gptr%B(i), err)
     enddo
   endif
 
   if (gf%field_type == electric$ .or. gf%field_type == mixed$) then
+    call h5gcreate_f(b2_id, 'electricField/', b3_id, h5_err)
     do i = 1, 3
-      call pmd_write_complex_to_dataset (b2_id, E_name(i), complex_t, E_name(i), unit_V_per_m, gptr%E(i), err)
+      call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_V_per_m, gptr%E(i), err)
     enddo
   endif
 

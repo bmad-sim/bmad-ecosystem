@@ -139,10 +139,10 @@ type (grid_field_pt1_struct), pointer :: gptr(:,:,:)
 real(rp) field_scale, total_scale, rho
 
 integer indx(3), lb(3), g_size(3), ub(3)
-integer(hid_t) root_id
+integer(hid_t) root_id, z_id
 
 character(40) name
-character(8) B_name(3), E_name(3)
+character(8) component_name(3), B_name(3), E_name(3)
 logical err_flag, error, b_field_here, e_field_here
 
 !
@@ -206,13 +206,15 @@ gf%ptr%file = file_name
 
 select case (gf%geometry)
 case (xyz$)
-  B_name = [character(6):: 'Bx', 'By', 'Bz']
-  E_name = [character(6):: 'Ex', 'Ey', 'Ez']
+  component_name = [character(6):: 'x', 'y', 'z']
+  B_name = [character(6):: 'Bx', 'By', 'Bz']     ! Old style
+  E_name = [character(6):: 'Ex', 'Ey', 'Ez']     ! Old style
   allocate (gf%ptr%pt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
   gptr => gf%ptr%pt
 case (rotationally_symmetric_rz$)
-  B_name = [character(6):: 'Br', 'Btheta', 'Bz']
-  E_name = [character(6):: 'Er', 'Etheta', 'Ez']
+  component_name = [character(6):: 'r', 'theta', 'z']
+  B_name = [character(6):: 'Br', 'Btheta', 'Bz']       ! Old style
+  E_name = [character(6):: 'Er', 'Etheta', 'Ez']       ! Old style
   allocate(gf%ptr%pt(lb(1):ub(1), lb(3):ub(3), lb(2):ub(2)))
   allocate (gpt(lb(1):ub(1), lb(2):ub(2), lb(3):ub(3)))
   gptr => gpt
@@ -220,6 +222,26 @@ end select
 
 b_field_here = .false.
 e_field_here = .false.
+
+if (hdf5_exists(root_id, 'magneticField', error, .false.)) then
+  b_field_here = .true.
+  z_id = hdf5_open_group(root_id, 'magneticField', err, .true.);  if (err) return
+  do i = 1, 3
+    call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, gptr%B(i), error)
+    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%B(i) = gptr(:,1,:)%B(i)
+  enddo
+endif
+
+if (hdf5_exists(root_id, 'electricField', error, .false.)) then
+  e_field_here = .true.
+  z_id = hdf5_open_group(root_id, 'electricField', err, .true.);  if (err) return
+  do i = 1, 3
+    call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, gptr%E(i), error)
+    if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%E(i) = gptr(:,1,:)%E(i)
+  enddo
+endif
+
+! Old style
 
 do i = 1, 3
   if (hdf5_exists(root_id, B_name(i), error, .false.)) then
@@ -234,6 +256,8 @@ do i = 1, 3
     e_field_here = .true.
   endif
 enddo
+
+!
 
 if (e_field_here .and. b_field_here) then
   gf%field_type = mixed$
