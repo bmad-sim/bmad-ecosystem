@@ -808,9 +808,9 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   else
     do im = 1, ele%n_lord_field
       has_it = .true.
-      lord2 => pointer_to_lord(lord, lord%n_lord+im)
+      lord => pointer_to_lord(ele, ele%n_lord+im)
       nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
-                    trim(ele_loc_name(lord2)), lord2%name, key_name(lord2%key)
+                    trim(ele_loc_name(lord)), lord%name, key_name(lord%key)
 
     enddo
   endif
