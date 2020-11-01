@@ -15,6 +15,8 @@ from matplotlib.backend_managers import ToolManager
 from pytao.util.parameters import *
 
 #---------------------------------------------
+# Note: Help and recalculate buttons are commented out since later version of matplotlib/tkinter will not
+# work with absolute path names. It would be good to fix this at some point...
 
 class taotoolbar(NavigationToolbar2Tk):
     def __init__(self,canvas_,parent_,width_,GUI_DIR_):
@@ -26,12 +28,12 @@ class taotoolbar(NavigationToolbar2Tk):
             ('Forward', 'Forward to next view', 'forward', 'forward'),
             ('Pan', 'Pan axes with left mouse, zoom with right mouse or scroll wheel', 'move', 'pan'),
             ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
-            ('Redraw','Recalculate points',self.GUI_DIR+'/assets/recalculate','redraw'),
+##            ('Redraw','Recalculate points',self.GUI_DIR+'/assets/recalculate','redraw'),
             ('Slider','Width slider','subplots','slider'),
             (None,None,None,None),
             ('Save', 'Save image of figure', 'filesave', 'save_figure'),
             (None,None,None,None),
-            ('Help','Graph help',self.GUI_DIR+'/assets/help','help'),
+##            ('Help','Graph help',self.GUI_DIR+'/assets/help','help'),
             )
         self.parent = parent_
         self.canvas = canvas_
