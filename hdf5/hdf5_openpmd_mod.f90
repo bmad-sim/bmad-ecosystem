@@ -605,8 +605,8 @@ logical error, err
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-dims = size(array)
-call H5Screate_simple_f(1, dims, dspace_id, h5_err)  ! Create dataspace
+dims = [size(array,1), size(array,2)]
+call H5Screate_simple_f(2, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
@@ -647,8 +647,8 @@ logical err, error
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-dims = size(array)
-call H5Screate_simple_f(1, dims, dspace_id, h5_err)  ! Create dataspace
+dims = [size(array,1), size(array,2), size(array,3)]
+call H5Screate_simple_f(3, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
@@ -1238,7 +1238,7 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-if (info%data_dim(1) /= size(array)) then
+if (info%data_dim(1) /= size(array,1) .or. info%data_dim(2) /= size(array,2)) then
   call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
   return
 endif
@@ -1314,7 +1314,7 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-if (info%data_dim(1) /= size(array)) then
+if (info%data_dim(1) /= size(array,1) .or. info%data_dim(2) /= size(array,2) .or. info%data_dim(3) /= size(array,3)) then
   call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
   return
 endif
