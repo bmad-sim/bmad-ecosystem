@@ -3545,9 +3545,9 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       if (tao_branch%spin_valid) then
         r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.8)') 'Polarization Limit:        ', tao_branch%spin%pol_limit
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.2)') 'Polarization Time (min/turns):   ', 1 / (60*tao_branch%spin%pol_rate), r / tao_branch%spin%pol_rate
-        nl=nl+1; write(lines(nl), '(2x, a, 3f12.2)') 'Depolarization Time (min/turns): ', 1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
+        nl=nl+1; write(lines(nl), '(2x, a, f12.8, es12.4)') 'Polarization Limit:        ', tao_branch%spin%pol_limit
+        nl=nl+1; write(lines(nl), '(2x, a, f12.2, es12.4)') 'Polarization Time (minutes, turns):   ', 1 / (60*tao_branch%spin%pol_rate), r / tao_branch%spin%pol_rate
+        nl=nl+1; write(lines(nl), '(2x, a, f12.2, es12.4)') 'Depolarization Time (minutes, turns): ', 1 / (60*tao_branch%spin%depol_rate), r / tao_branch%spin%depol_rate
       else
         nl=nl+1; lines(nl) = 'Polarization calc not valid since: ' // why_invalid
       endif
