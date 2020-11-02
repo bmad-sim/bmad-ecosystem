@@ -1490,6 +1490,44 @@ end subroutine hdf5_read_dataorder
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_check_open (root_id)
+!
+! Routine to print information on what resources are still open.
+! This routine is used for debugging.
+! 
+! Input:
+!   root_id   -- integer(hid_t): ID of root node to check.
+!-
+
+subroutine hdf5_check_open (root_id)
+
+integer(hid_t) root_id
+integer(hid_t), allocatable :: obj_list(:)
+integer(size_t) cnt, n_in, n_out
+integer i, h5_err, typ
+character(100) name
+
+!
+
+call H5Fget_obj_count_f(root_id, H5F_OBJ_ALL_F, cnt, h5_err)
+print *, 'Open: ', cnt
+
+allocate(obj_list(cnt))
+call H5Fget_obj_ids_f(root_id, H5F_OBJ_ALL_F, cnt, obj_list, h5_err)
+
+do i = 1, cnt
+  call H5Iget_type_f(obj_list(i), typ, h5_err)
+  n_in = len(name)
+  call H5Iget_name_f(obj_list(i), name, n_in, n_out, h5_err)
+  print *, '    Open: ', name(1:n_out)
+enddo
+
+end subroutine hdf5_check_open
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_double_kind_8_rank0
 SUBROUTINE hdf5_read_dataset_real_rank0(loc_id, dset_name, buf, error)
   IMPLICIT NONE
