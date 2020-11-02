@@ -74,6 +74,7 @@ if (it == 0) then
   call allocate_this_field (g_field, n_grid)
   z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.); if (err) return
   call read_this_field (z_id, ele, g_field(n_grid), err)
+  call H5Gclose_f(z_id, h5_err)
   return
 endif
 
@@ -95,6 +96,7 @@ do idx = 0, n_links-1
   call read_this_field(z_id, ele, g_field(n_grid), err);     if (err) return
   call h5gclose_f(z_id, h5_err)
 enddo
+call H5Gclose_f(f2_id, h5_err)
 
 !
 
@@ -230,6 +232,7 @@ if (hdf5_exists(root_id, 'magneticField', error, .false.)) then
     call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, gptr%B(i), error)
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%B(i) = gptr(:,1,:)%B(i)
   enddo
+  call H5Gclose_f(z_id, h5_err)
 endif
 
 if (hdf5_exists(root_id, 'electricField', error, .false.)) then
@@ -239,6 +242,7 @@ if (hdf5_exists(root_id, 'electricField', error, .false.)) then
     call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, gptr%E(i), error)
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%E(i) = gptr(:,1,:)%E(i)
   enddo
+  call H5Gclose_f(z_id, h5_err)
 endif
 
 ! Old style

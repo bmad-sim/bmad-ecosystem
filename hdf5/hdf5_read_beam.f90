@@ -74,7 +74,8 @@ if (it == 0) then  ! No "%T" means only one bunch present
   z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.);  if (err) return
   call reallocate_beam (beam, 1)
   call hdf5_read_bunch(z_id, '.', beam%bunch(1), error, pmd_head, ele)
-  call h5fclose_f(f_id, h5_err)
+  call H5Gclose_f(z_id, h5_err)
+  call H5Fclose_f(f_id, h5_err)
   return
 endif
 
@@ -128,7 +129,8 @@ endif
 
 call reallocate_beam(beam, n_bunch)
 
-call h5fclose_f(f_id, h5_err)
+call H5Gclose_f(z_id, h5_err)
+call H5Fclose_f(f_id, h5_err)
 
 !------------------------------------------------------------------------------------------
 contains
@@ -377,6 +379,6 @@ do i = 1, size(re_amp)
   re_amp(i) = amp
 enddo
 
-end subroutine
+end subroutine to_amp_phase
 
 end subroutine hdf5_read_beam

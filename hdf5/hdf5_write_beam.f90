@@ -78,7 +78,7 @@ else
     endif
   endif
 
-  call h5gcreate_f(f_id, trim(root_path), r_id, h5_err) ! Not actually needed if root_path = '/'
+  call H5Gcreate_f(f_id, trim(root_path), r_id, h5_err) ! Not actually needed if root_path = '/'
 endif
 
 ! Loop over bunches
@@ -104,8 +104,8 @@ do ib = 1, size(bunches)
     if (.not. hdf5_exists(r_id, this_path, err, .true.)) exit
   enddo
 
-  call h5gcreate_f(r_id, trim(this_path), b_id, h5_err)
-  call h5gcreate_f(b_id, particle_path, b2_id, h5_err)
+  call H5Gcreate_f(r_id, trim(this_path), b_id, h5_err)
+  call H5Gcreate_f(b_id, particle_path, b2_id, h5_err)
 
   call hdf5_write_attribute_string(b2_id, 'speciesType', openpmd_species_name(p(1)%species), err)
   call hdf5_write_attribute_real(b2_id, 'totalCharge', bunch%charge_tot, err)
@@ -122,23 +122,23 @@ do ib = 1, size(bunches)
 
   if (p(1)%species == photon$) then
     ! Photon polarization
-    call h5gcreate_f(b2_id, 'photonPolarizationAmplitude', z_id, h5_err)
+    call H5Gcreate_f(b2_id, 'photonPolarizationAmplitude', z_id, h5_err)
     call pmd_write_real_to_dataset(z_id, 'x', 'x', unit_1, p(:)%field(1), err)
     call pmd_write_real_to_dataset(z_id, 'y', 'y', unit_1, p(:)%field(2), err)
-    call h5gclose_f(z_id, h5_err)
+    call H5Gclose_f(z_id, h5_err)
 
-    call h5gcreate_f(b2_id, 'photonPolarizationPhase', z_id, h5_err)
+    call H5Gcreate_f(b2_id, 'photonPolarizationPhase', z_id, h5_err)
     call pmd_write_real_to_dataset(z_id, 'x', 'x', unit_1, p(:)%phase(1), err)
     call pmd_write_real_to_dataset(z_id, 'y', 'y', unit_1, p(:)%phase(2), err)
-    call h5gclose_f(z_id, h5_err)
+    call H5Gclose_f(z_id, h5_err)
 
     ! Velocity
 
-    call h5gcreate_f(b2_id, 'velocity', z_id, h5_err)
+    call H5Gcreate_f(b2_id, 'velocity', z_id, h5_err)
     call pmd_write_real_to_dataset(z_id, 'x', 'Vx', unit_c_light, p(:)%vec(2), err)
     call pmd_write_real_to_dataset(z_id, 'y', 'Vy', unit_c_light, p(:)%vec(4), err)
     call pmd_write_real_to_dataset(z_id, 'z', 'Vz', unit_c_light, p(:)%vec(6), err)
-    call h5gclose_f(z_id, h5_err)
+    call H5Gclose_f(z_id, h5_err)
 
     !
 
@@ -149,21 +149,21 @@ do ib = 1, size(bunches)
   else
     ! Momentum
 
-    call h5gcreate_f(b2_id, 'momentum', z_id, h5_err)
+    call H5Gcreate_f(b2_id, 'momentum', z_id, h5_err)
     call pmd_write_real_to_dataset(z_id, 'x', 'px * p0c', unit_ev_per_c, p(:)%vec(2) * p0c, err)
     call pmd_write_real_to_dataset(z_id, 'y', 'py * p0c', unit_ev_per_c, p(:)%vec(4) * p0c, err)
     rvec = p(:)%direction * (sqrt((1 + p(:)%vec(6))**2 - p(:)%vec(2)**2 - p(:)%vec(4)**2) * p0c)
     call pmd_write_real_to_dataset(z_id, 'z', 'ps * p0c', unit_ev_per_c, rvec, err)
-    call h5gclose_f(z_id, h5_err)
+    call H5Gclose_f(z_id, h5_err)
     call pmd_write_real_to_dataset (b2_id, 'totalMomentum', 'pz * p0c', unit_eV_per_c, p(:)%vec(6)*p0c, err)
 
     ! Spin
 
-    call h5gcreate_f(b2_id, 'spin', z_id, h5_err)
+    call H5Gcreate_f(b2_id, 'spin', z_id, h5_err)
     call pmd_write_real_to_dataset(z_id, 'x', 'Sx', unit_hbar, p(:)%spin(1), err)
     call pmd_write_real_to_dataset(z_id, 'y', 'Sy', unit_hbar, p(:)%spin(2), err)
     call pmd_write_real_to_dataset(z_id, 'z', 'Sz', unit_hbar, p(:)%spin(3), err)
-    call h5gclose_f(z_id, h5_err)
+    call H5Gclose_f(z_id, h5_err)
 
     if (.not. is_subatomic_species(p(1)%species)) then
       do i = 1, size(p)
@@ -191,7 +191,7 @@ do ib = 1, size(bunches)
   !-----------------
   ! Position. 
 
-  call h5gcreate_f(b2_id, 'position', z_id, h5_err)
+  call H5Gcreate_f(b2_id, 'position', z_id, h5_err)
 
   call pmd_write_real_to_dataset(z_id, 'x', 'x', unit_m, p(:)%vec(1), err)
   call pmd_write_real_to_dataset(z_id, 'y', 'y', unit_m, p(:)%vec(3), err)
@@ -203,7 +203,7 @@ do ib = 1, size(bunches)
     call pmd_write_real_to_pseudo_dataset(z_id, 'z', 'z', unit_m, 0.0_rp, [size(p)], err)
   endif
 
-  call h5gclose_f(z_id, h5_err)
+  call H5Gclose_f(z_id, h5_err)
 
   !
 
@@ -222,12 +222,12 @@ do ib = 1, size(bunches)
   enddo
   call pmd_write_int_to_dataset(b2_id, 'locationInElement', 'location', unit_1, ivec, err)
 
-  call h5gclose_f(b2_id, h5_err)
-  call h5gclose_f(b_id, h5_err)
+  call H5Gclose_f(b2_id, h5_err)
+  call H5Gclose_f(b_id, h5_err)
 enddo
 
-call h5gclose_f(r_id, h5_err)
-call h5fclose_f(f_id, h5_err)
+call H5Gclose_f(r_id, h5_err)
+call H5Fclose_f(f_id, h5_err)
 error = .false.
 
 end subroutine hdf5_write_beam 

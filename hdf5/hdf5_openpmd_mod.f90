@@ -568,6 +568,7 @@ call H5Screate_simple_f(1, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
+call H5Dclose_f(z_id, h5_err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -605,11 +606,13 @@ logical error, err
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-dims = [size(array,1), size(array,2)]
+dims = shape(array)
 call H5Screate_simple_f(2, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
+call H5Dclose_f(z_id, h5_err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -647,11 +650,13 @@ logical err, error
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-dims = [size(array,1), size(array,2), size(array,3)]
+dims = shape(array)
 call H5Screate_simple_f(3, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
+call H5Dclose_f(z_id, h5_err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -679,14 +684,14 @@ subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, e
 
 type (pmd_unit_struct) unit
 integer(hid_t) :: root_id
-integer err
+integer h5_err
 logical error
 character(*) dataset_name, bmad_name
 
-if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], 1_size_t, err)
-call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], 7_size_t, err)
-call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, err)
+if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, h5_err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], 1_size_t, h5_err)
+call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], 7_size_t, h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, h5_err)
 
 end subroutine pmd_write_units_to_dataset 
 
@@ -753,7 +758,7 @@ endif
 
 !
 
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 call hdf5_close_object(obj_id, info)
 
@@ -822,7 +827,7 @@ endif
 
 !
 
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 call hdf5_close_object(obj_id, info)
 
@@ -891,7 +896,7 @@ endif
 
 !
 
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 call hdf5_close_object(obj_id, info)
 
@@ -961,7 +966,7 @@ endif
 
 !
 
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 call hdf5_close_object(obj_id, info)
 
@@ -1030,7 +1035,7 @@ endif
 
 !
 
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 call hdf5_close_object(obj_id, info)
 
@@ -1099,7 +1104,7 @@ endif
 
 !
 
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 call hdf5_close_object(obj_id, info)
 
 end subroutine pmd_read_real_dataset_rank3
@@ -1174,7 +1179,7 @@ call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
 array = cc
 
 call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 call hdf5_close_object(z_id, info)
 
@@ -1204,17 +1209,18 @@ subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_
 type (hdf5_info_struct) info
 
 complex(rp) array(:,:)
-complex(rp), target :: cc(size(array,1), size(array,2))
+complex(rp), target, allocatable :: cc(:,:)
 real(rp), allocatable :: re(:,:), im(:,:)
 real(rp) conversion_factor, unit_si
 
 integer(hid_t) :: root_id, z_id, complex_t
-integer h5_err
+integer h5_err, i
 type(c_ptr) :: f_ptr
 
 logical error, err
 
 character(*) name
+character(1) d_ord
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
 
 ! Non-compound data means old format
@@ -1238,21 +1244,33 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-if (info%data_dim(1) /= size(array,1) .or. info%data_dim(2) /= size(array,2)) then
+if (any(info%data_dim(1:2) /= shape(array))) then
   call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
   return
 endif
 
-z_id = hdf5_open_object(root_id, name, info, error, .true.)
+call hdf5_read_dataorder(root_id, name, d_ord)
+if (d_ord == 'C') then
+  allocate (cc(size(array,2), size(array,1)))
+else
+  allocate (cc(size(array,1), size(array,2)))
+endif
 
+z_id = hdf5_open_object(root_id, name, info, error, .true.)
 f_ptr = c_loc(cc)
 call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
-array = cc
-
 call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
-
 call hdf5_close_object(z_id, info)
+
+if (d_ord == 'C') then
+  do i = 1, size(array,1)
+    array(i,:) = cc(:,i)
+  enddo
+else
+  array = cc
+endif
+
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
 
 end subroutine pmd_read_complex_dataset_rank2
 
@@ -1280,17 +1298,18 @@ subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_
 type (hdf5_info_struct) info
 
 complex(rp) array(:,:,:)
-complex(rp), target :: cc(size(array,1), size(array,2), size(array,3))
+complex(rp), target, allocatable :: cc(:,:,:)
 real(rp), allocatable :: re(:,:,:), im(:,:,:)
 real(rp) conversion_factor, unit_si
 
 integer(hid_t) :: root_id, z_id, complex_t
-integer h5_err
+integer h5_err, i, j
 type(c_ptr) :: f_ptr
 
 logical error, err
 
 character(*) name
+character(1) d_ord
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
 
 ! Non-compound data means old format
@@ -1314,23 +1333,34 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-if (info%data_dim(1) /= size(array,1) .or. info%data_dim(2) /= size(array,2) .or. info%data_dim(3) /= size(array,3)) then
+if (any(info%data_dim(1:3) /= shape(array))) then
   call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
   return
 endif
 
-z_id = hdf5_open_object(root_id, name, info, error, .true.)
+call hdf5_read_dataorder(root_id, name, d_ord)
+if (d_ord == 'C') then
+  allocate (cc(size(array,3), size(array,2), size(array,1)))
+else
+  allocate (cc(size(array,1), size(array,2), size(array,3)))
+endif
 
+z_id = hdf5_open_object(root_id, name, info, error, .true.)
 f_ptr = c_loc(cc)
 call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
-array = cc
-
 call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
-if (abs(unit_si - conversion_factor) > 1e-15 * conversion_factor) array = array * (conversion_factor / unit_si)
-
 call hdf5_close_object(z_id, info)
 
-end subroutine pmd_read_complex_dataset_rank3
+if (d_ord == 'C') then
+  do i = 1, size(array,1);  do j = 1, size(array,2)
+    array(i,j,:) = cc(:,j,i)
+  enddo;  enddo
+else
+  array = cc
+endif
 
+if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
+end subroutine pmd_read_complex_dataset_rank3
 
 end module
