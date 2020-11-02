@@ -569,6 +569,7 @@ call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
+call H5Sclose_f(dspace_id, h5_err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -613,6 +614,7 @@ call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
+call H5Sclose_f(dspace_id, h5_err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
@@ -657,6 +659,7 @@ call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
+call H5Sclose_f(dspace_id, h5_err)
 
 call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
 
