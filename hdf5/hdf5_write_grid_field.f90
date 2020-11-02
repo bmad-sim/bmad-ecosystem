@@ -54,13 +54,13 @@ call hdf5_write_attribute_string(f_id, 'software',          'Bmad', err)
 call hdf5_write_attribute_string(f_id, 'softwareVersion',   '1.0', err)
 call hdf5_write_attribute_string(f_id, 'date',              date_time, err)
 
-call h5gcreate_f(f_id, trim(root_path), b_id, h5_err)
+call H5Gcreate_f(f_id, trim(root_path), b_id, h5_err)
 
 do igf = 1, size(g_field)
   gf => g_field(igf)
 
   write (sub_path, '(i0)') igf
-  call h5gcreate_f(b_id, trim(sub_path), b2_id, h5_err)
+  call H5Gcreate_f(b_id, trim(sub_path), b2_id, h5_err)
 
   gptr => gf%ptr%pt
   select case (gf%geometry)
@@ -115,26 +115,28 @@ do igf = 1, size(g_field)
   !
 
   if (gf%field_type == magnetic$ .or. gf%field_type == mixed$) then
-    call h5gcreate_f(b2_id, 'magneticField/', b3_id, h5_err)
+    call H5Gcreate_f(b2_id, 'magneticField/', b3_id, h5_err)
     do i = 1, 3
       call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_tesla, gptr%B(i), err)
     enddo
+    call H5Gclose_f(b3_id, h5_err)
   endif
 
   if (gf%field_type == electric$ .or. gf%field_type == mixed$) then
-    call h5gcreate_f(b2_id, 'electricField/', b3_id, h5_err)
+    call H5Gcreate_f(b2_id, 'electricField/', b3_id, h5_err)
     do i = 1, 3
       call pmd_write_complex_to_dataset (b3_id, component_name(i), complex_t, component_name(i), unit_V_per_m, gptr%E(i), err)
     enddo
+    call H5Gclose_f(b3_id, h5_err)
   endif
 
-  call h5gclose_f(b2_id, h5_err)
+  call H5Gclose_f(b2_id, h5_err)
 enddo
 
-call h5gclose_f(b_id, h5_err)
+call H5Gclose_f(b_id, h5_err)
 
 call pmd_kill_compound_complex(complex_t)
-call h5fclose_f(f_id, h5_err)
+call H5Fclose_f(f_id, h5_err)
 
 err_flag = .false.
 
