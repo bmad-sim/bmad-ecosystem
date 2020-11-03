@@ -80,7 +80,7 @@ type (str_indexx_struct) str_index
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
 integer ia, im, i1, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
-integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max
+integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
 
 real(rp) coef, val, L_mis(3), S_mis(3,3) 
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -512,12 +512,22 @@ if (associated(ele%grid_field)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')  '    phi0_fieldmap:      ', g_field%phi0_fieldmap
       nl=nl+1; write (li(nl), '(a, l1)')      '    curved_ref_frame    ', g_field%curved_ref_frame
       nl=nl+1; write (li(nl), '(a, i0)')      '    n_link:             ', g_field%ptr%n_link
-      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:                 ', g_field%dr
       nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r0:                 ', g_field%r0
-      nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_max:          ', ubound(g_field%ptr%pt)
-      nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_min:          ', lbound(g_field%ptr%pt)
-      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:              ', ubound(g_field%ptr%pt)*g_field%dr + g_field%r0
-      nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:              ', lbound(g_field%ptr%pt)*g_field%dr + g_field%r0
+      if (g_field%geometry == rotationally_symmetric_rz$) then
+        lb = [lbound(g_field%ptr%pt,1), lbound(g_field%ptr%pt,2)]
+        ub = [ubound(g_field%ptr%pt,1), ubound(g_field%ptr%pt,2)]
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:                 ', g_field%dr(1:2)
+        nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_max:          ', ub
+        nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_min:          ', lb
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:              ', ub*g_field%dr(1:2) + g_field%r0(1:2)
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:              ', lb*g_field%dr(1:2) + g_field%r0(1:2)
+      else
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    dr:                 ', g_field%dr
+        nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_max:          ', ubound(g_field%ptr%pt)
+        nl=nl+1; write (li(nl), '(a, 3i14)')    '    Index_min:          ', lbound(g_field%ptr%pt)
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_max:              ', ubound(g_field%ptr%pt)*g_field%dr + g_field%r0
+        nl=nl+1; write (li(nl), '(a, 3f14.6)')  '    r_min:              ', lbound(g_field%ptr%pt)*g_field%dr + g_field%r0
+      endif
     enddo
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of Grid_field modes:', size(ele%grid_field)

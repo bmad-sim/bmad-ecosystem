@@ -198,7 +198,6 @@ if (error) call hdf5_read_attribute_real (root_id, 'curvedRefFrame', rho, error,
 
 ub = lb + g_size - 1
 gf%curved_ref_frame = (rho /= 0)
-gf%r0 = gf%r0(indx)
 gf%dr = gf%dr(indx)
 
 !

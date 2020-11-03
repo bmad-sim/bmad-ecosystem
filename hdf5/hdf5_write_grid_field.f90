@@ -68,6 +68,7 @@ do igf = 1, size(g_field)
     component_name = [character(6):: 'x', 'y', 'z']
     indx = [1, 2, 3]
     call hdf5_write_attribute_string(b2_id,  'gridGeometry', 'rectangular', err)
+
   case (rotationally_symmetric_rz$)
     component_name = [character(6):: 'r', 'theta', 'z']
     indx = [1, 3, 2]
@@ -101,7 +102,7 @@ do igf = 1, size(g_field)
   endif
 
   call hdf5_write_attribute_string(b2_id,  'eleAnchorPt',          downcase(anchor_pt_name(gf%ele_anchor_pt)), err)
-  call hdf5_write_attribute_real(b2_id,    'gridOriginOffset',     gf%r0(indx), err)
+  call hdf5_write_attribute_real(b2_id,    'gridOriginOffset',     gf%r0, err)
   call hdf5_write_attribute_real(b2_id,    'gridSpacing',          gf%dr(indx), err)
   call hdf5_write_attribute_int(b2_id,     'harmonic',             gf%harmonic, err)
   call hdf5_write_attribute_int(b2_id,     'interpolationOrder',   gf%interpolation_order, err)
