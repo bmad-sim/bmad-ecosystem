@@ -77,8 +77,10 @@ do igf = 1, size(g_field)
       gptr(:,1,:)%B(i) = gf%ptr%pt(:,:,1)%B(i)
       gptr(:,1,:)%E(i) = gf%ptr%pt(:,:,1)%E(i)
     enddo
-    call hdf5_write_attribute_string(b2_id,  'gridGeometry', 'cylindrical', err)
+    call hdf5_write_attribute_string(b2_id, 'gridGeometry', 'cylindrical', err)
   end select
+
+  call hdf5_write_attribute_string(b2_id, 'axisLabels', component_name, err)
 
   im = gf%master_parameter 
   if (im == 0) then
