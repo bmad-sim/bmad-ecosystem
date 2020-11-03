@@ -980,6 +980,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
     if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'
+    if (has_attribute (ele, 'IS_ON') .and. .not. ele%is_on) write (line, '(2a)') trim(line), ', is_on = F'
     call write_lat_line (line, iu, .true.)
     cycle
   endif

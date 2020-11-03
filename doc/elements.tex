@@ -3327,7 +3327,8 @@ General \vn{overlay} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
-  Custom Attributes          & \ref{s:cust.att}  Description strings        & \ref{s:alias}     \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Is_on                      & \ref{s:is.on}   \\
+  Description strings        & \ref{s:alias}     &                            &                 \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3364,11 +3365,10 @@ For example:
   use, this_line
 \end{example}
 
-In the example the overlay \vn{over1} controls the \vn{hkick}
-attribute of the "slave" elements \vn{a_ele} and
-\vn{b_ele}. \vn{over2} controls the hkick attribute of just
-\vn{b_ele}. \vn{over1[hick]} has a value of 0.003 and \vn{over2[hkick]}
-has been assigned a value of 0.9. Thus:
+In the example the overlay \vn{over1} controls the \vn{hkick} attribute of the "slave" elements
+\vn{a_ele} and \vn{b_ele}. \vn{over2} controls the hkick attribute of just
+\vn{b_ele}. \vn{over1[hick]} has a value of 0.003 and \vn{over2[hkick]} has been assigned a value of
+0.9. Thus:
 \begin{example}
   a_ele[hkick] = over1[hkick]
                = 0.003
@@ -3376,10 +3376,9 @@ has been assigned a value of 0.9. Thus:
                = 0.906
 \end{example}
 
-Overlays completely determine the value of the attributes that
-are controlled by the overlay. in the above example, the hkick of 0.05
-assigned directly to \vn{a_ele} is overwritten by the overlay action
-of \vn{over1}.
+Overlays completely determine the value of the attributes that are controlled by the overlay. in the
+above example, the hkick of 0.05 assigned directly to \vn{a_ele} is overwritten by the overlay
+action of \vn{over1}.
 
 \noindent The default value for an overlay is 0 so for example
 \begin{example}
@@ -3388,24 +3387,28 @@ of \vn{over1}.
 will make \vn{c_ele[k1]} = 0. 
 
 \index{group}\index{girder}
-As illustrated above, different \vn{overlay} elements may control the
-same element attribute. And an \vn{overlay} element may control other
-\vn{overlay}, \vn{group} or \vn{girder} elements. However, It does not
-make sense for an \vn{overlay} element to control the same attribute
-as a \vn{group} element or for an \vn{overlay} element to control a
-\vn{dependent} attribute (\sref{s:depend}).
+As illustrated above, different \vn{overlay} elements may control the same element attribute. And an
+\vn{overlay} element may control other \vn{overlay}, \vn{group} or \vn{girder} elements. However, It
+does not make sense for an \vn{overlay} element to control the same attribute as a \vn{group}
+element or for an \vn{overlay} element to control a \vn{dependent} attribute (\sref{s:depend}).
 
-A lattice file may contain lines and lattice elements that are not
-part of the actual lattice when the lattice is constructed. \vn{Overlay}
-elements where {\em none} of its slave elements are part of the
-finished lattice are ignored and are also not part of the finished
-lattice. It is not permitted to have \vn{overlay} elements that have
-some slave elements that are part of the finished lattice and some
-slave elements that are not.
+The \vn{is_on} parameter may be set for an overlay. If set to \vn{False}, the \vn{overlay} will be
+ignored. If all the overlays controlling a given attribute are turned off, the attribute can be
+set directly just like if there were no controlling overlays to begin with. Example:
+\begin{example}
+  abc: overlay = \{ ... \}, ...
+  abc[is_on] = F
+\end{example}
 
-If the arithmetical expression used for an \vn{overlay} contains an element attribute,
-care must be taken if that element attribute is changed. This is discussed in
-\sref{s:arith} and \sref{s:go.syntax}.
+A lattice file may contain lines and lattice elements that are not part of the actual lattice when
+the lattice is constructed. \vn{Overlay} elements where {\em none} of its slave elements are part of
+the finished lattice are ignored and will not be part of the finished lattice. It is not permitted
+to have \vn{overlay} elements that have some slave elements that are part of the finished lattice
+and some slave elements that are not.
+
+If the arithmetical expression used for an \vn{overlay} contains an element attribute, care must be
+taken if that element attribute is changed. This is discussed in \sref{s:arith} and
+\sref{s:go.syntax}.
 
 %-----------------------------------------------------------------
 \section{Patch}
