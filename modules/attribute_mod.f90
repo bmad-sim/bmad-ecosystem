@@ -1091,6 +1091,7 @@ call init_attribute_name1 (girder$, is_on$,                         'IS_ON')
 call init_attribute_name1 (overlay$, var$,                          'VAR')
 call init_attribute_name1 (overlay$, gang$,                         'GANG')
 call init_attribute_name1 (overlay$, x_knot$,                       'X_KNOT')
+call init_attribute_name1 (overlay$, is_on$,                        'IS_ON')
 
 call init_attribute_name1 (group$, var$,                            'VAR')
 call init_attribute_name1 (group$, gang$,                           'GANG')
@@ -2868,6 +2869,7 @@ endif
 ! Overlay or group lord check
 
 if (ele%key == overlay$ .or. ele%key == group$) then
+  if (attrib_name == 'IS_ON' .and. ele%key == overlay$) return
   if (all(attrib_name /= ele%control%var%name)) then
     call it_is_not_free (free, ele, ix_attrib, does_not_exist$, 'IS NOT A VALID CONTROL VARIABLE', skip = .true.)
   endif
@@ -2887,14 +2889,11 @@ endif
 if (.not. do_except_overlay) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i, control)
+    if (lord%key /= overlay$ .or. .not. lord%is_on) cycle
+    if (control%ix_attrib /= ix_attrib) cycle
 
-    if (lord%key == overlay$) then
-      if (control%ix_attrib == ix_attrib) then 
-        call it_is_not_free (free, ele, ix_attrib, overlay_slave$, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
-        return
-      endif
-    endif
-
+    call it_is_not_free (free, ele, ix_attrib, overlay_slave$, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
+    return
   enddo
 endif
 

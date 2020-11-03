@@ -187,6 +187,10 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     call get_logical_real ('GANG', ele%value(gang$), err_flag)
     return
 
+  case (is_on$)
+    call parser_get_logical (word, ele%is_on, ele%name, delim, delim_found, err_flag)
+    return
+
   case (x_knot$)
     if (.not. parse_real_list2 (lat, 'ERROR PARSING X_KNOT POINTS FOR: ' // ele%name, ele%control%x_knot, n, delim, delim_found, 10, '{', ',', '}')) return
     call re_allocate(ele%control%x_knot, n)

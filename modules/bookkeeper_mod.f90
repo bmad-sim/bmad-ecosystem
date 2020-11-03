@@ -1676,6 +1676,8 @@ character(100) err_str
 
 ! First evaluate the contribution from the overlay lord
 
+if (.not. lord%is_on) return
+
 if (lord%control%type == expression$) then
   call evaluate_expression_stack(c%stack, c%value, err_flag, err_str, lord%control%var, .false.)
   if (err_flag) then

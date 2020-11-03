@@ -756,10 +756,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
   if (has_it) then
     nl=nl+1; li(nl) = 'Controller Lord(s):'
-    nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type           Expression'
+    nl=nl+1; li(nl) = '   Index   Name                            Attribute           Lord_Type            Expression'
 
     do im = 1, ele%n_lord
       lord => pointer_to_lord (ele, im, ctl)
+      str1 = key_name(lord%key)
       select case (lord%lord_status)
       case (super_lord$, multipass_lord$)
         cycle
@@ -776,11 +777,12 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         endif
         iv = ctl%ix_attrib
         a_name = attribute_name(ele, iv)
+        if (lord%lord_status == overlay_lord$ .and. .not. lord%is_on) str1 = 'Overlay [IS_ON = F]'
       end select
 
       if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
-      nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a20, a)') &
-            lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(li2(1))
+      nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a21, a)') &
+            lord%ix_ele, lord%name, a_name, str1, trim(li2(1))
       do j = 2, size(li2)
         nl=nl+1; li(nl) = ''; li(nl)(84:) = trim(li2(j))
       enddo
