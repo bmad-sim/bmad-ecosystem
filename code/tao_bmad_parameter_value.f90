@@ -70,9 +70,9 @@ case ('b_curl.')
   call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field1, rf_time = time+dt)
 
   select case (data_type)
-  case ('b_curl.x');  value = field%dB(2,3) - field%dB(3,2) - (field1%E(1) - field0%E(1)) / (2 * dt * c_light**2)
-  case ('b_curl.y');  value = field%dB(3,1) - field%dB(1,3) - (field1%E(2) - field0%E(2)) / (2 * dt * c_light**2)
-  case ('b_curl.z');  value = field%dB(1,2) - field%dB(2,1) - (field1%E(3) - field0%E(3)) / (2 * dt * c_light**2)
+  case ('b_curl.x');  value = field%dB(3,2) - field%dB(2,3) - (field1%E(1) - field0%E(1)) / (2 * dt * c_light**2)
+  case ('b_curl.y');  value = field%dB(1,3) - field%dB(3,1) - (field1%E(2) - field0%E(2)) / (2 * dt * c_light**2)
+  case ('b_curl.z');  value = field%dB(2,1) - field%dB(1,2) - (field1%E(3) - field0%E(3)) / (2 * dt * c_light**2)
   case default;       err_flag = .true.
   end select
 
@@ -184,9 +184,9 @@ case ('e_curl.')
   call em_field_calc (ele, branch%param, orbit%s-ele%s_start, orbit, .false., field1, rf_time = time+dt)
 
   select case (data_type)
-  case ('e_curl.x');  value = field%dE(2,3) - field%dE(3,2) + (field1%B(1) - field0%B(1)) / (2 * dt)
-  case ('e_curl.y');  value = field%dE(3,1) - field%dE(1,3) + (field1%B(2) - field0%B(2)) / (2 * dt)
-  case ('e_curl.z');  value = field%dE(1,2) - field%dE(2,1) + (field1%B(3) - field0%B(3)) / (2 * dt)
+  case ('e_curl.x');  value = field%dE(3,2) - field%dE(2,3) + (field1%E(1) - field0%E(1)) / (2 * dt)
+  case ('e_curl.y');  value = field%dE(1,3) - field%dE(3,1) + (field1%E(2) - field0%E(2)) / (2 * dt)
+  case ('e_curl.z');  value = field%dE(2,1) - field%dE(1,2) + (field1%E(3) - field0%E(3)) / (2 * dt)
   case default;           err_flag = .true.
   end select
 
