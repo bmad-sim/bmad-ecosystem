@@ -1341,7 +1341,7 @@ character(*) dataset_name
 error = .true.
 v_size = [size(value, 1), size(value, 2)]
 call H5LTmake_dataset_double_f(root_id, dataset_name, 2, v_size, value, h5_err);  if (h5_err < 0) return
-call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 error = .false.
 
 end subroutine hdf5_write_dataset_real_rank2
@@ -1375,7 +1375,7 @@ character(*) dataset_name
 error = .true.
 v_size = [size(value, 1), size(value, 2), size(value, 3)]
 call H5LTmake_dataset_double_f(root_id, dataset_name, 3, v_size, value, h5_err);  if (h5_err < 0) return
-call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 error = .false.
 
 end subroutine hdf5_write_dataset_real_rank3
@@ -1477,7 +1477,7 @@ character(*) dataset_name
 error = .true.
 v_size = [size(value, 1), size(value,2)]
 call H5LTmake_dataset_int_f(root_id, dataset_name, 2, v_size, value, h5_err);  if (h5_err < 0) return
-call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 error = .false.
 
 end subroutine hdf5_write_dataset_int_rank2
@@ -1511,7 +1511,7 @@ character(*) dataset_name
 error = .true.
 v_size = [size(value, 1), size(value, 2), size(value, 3)]
 call H5LTmake_dataset_int_f(root_id, dataset_name, 3, v_size, value, h5_err);  if (h5_err < 0) return
-call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 error = .false.
 
 end subroutine hdf5_write_dataset_int_rank3
@@ -1522,14 +1522,14 @@ end subroutine hdf5_write_dataset_int_rank3
 !+
 ! Subroutine hdf5_read_dataorder(root_id, object_name, d_ord)
 !
-! Routine to read the dataOrder attribute for arrays with dimension higher than 1.
+! Routine to read the gridDataOrder attribute for arrays with dimension higher than 1.
 !
 ! Input:
 !   root_id       -- integer(hid_t): ID of the group the object is to be put in.
 !   object_name   -- character(*): Name of the object containing the data.
 !   
 ! Output:
-!   d_ord         -- character(*): dataOrder value. Set to '' if attribute does not exist.
+!   d_ord         -- character(*): gridDataOrder value. Set to '' if attribute does not exist.
 !-
 
 subroutine hdf5_read_dataorder(root_id, object_name, d_ord)
@@ -1544,7 +1544,7 @@ logical error
 info = hdf5_object_info (root_id, object_name, error, .true.);  if (error) return
 d_ord = ''
 z_id = hdf5_open_object (root_id, object_name, info, error, .true.);  if (error) return
-call hdf5_read_attribute_string(z_id, 'dataOrder', d_ord, error, .false.)
+call hdf5_read_attribute_string(z_id, 'gridDataOrder', d_ord, error, .false.)
 call hdf5_close_object(z_id, info)
 
 end subroutine hdf5_read_dataorder

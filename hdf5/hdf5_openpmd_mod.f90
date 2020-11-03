@@ -610,7 +610,7 @@ logical error, err
 dims = shape(array)
 call H5Screate_simple_f(2, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
-call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
@@ -655,7 +655,7 @@ logical err, error
 dims = shape(array)
 call H5Screate_simple_f(3, dims, dspace_id, h5_err)  ! Create dataspace
 call H5Dcreate_f(root_id, dataset_name, complex_t, dspace_id, z_id, h5_err)
-call H5LTset_attribute_string_f(root_id, dataset_name, 'dataOrder', 'F', h5_err)
+call H5LTset_attribute_string_f(root_id, dataset_name, 'gridDataOrder', 'F', h5_err)
 cc = array
 call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
