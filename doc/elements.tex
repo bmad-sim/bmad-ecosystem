@@ -439,7 +439,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   l                  = <Real>     ! "Length" of bend. See below.
   l_arc              = <Real>     ! Arc length. For \vn{rbend}s only. 
   l_chord            = <Real>     ! Chord length. See \sref{s:l}.
-  l_sagitta                       ! Sagitta length. Dependent param (\sref{s:depend}).
+  l_sagitta                       ! Sagittal length. Dependent param (\sref{s:depend}).
   ptc_field_geometry = <Switch>   ! See below.
   rho                = <Real>     ! Design bend radius. A settable dependent param (\sref{s:depend}).
   roll               = <Real>     ! See \ref{s:offset}.
@@ -607,7 +607,7 @@ relationship between \vn{dg} and \vn{dB_field} is analogous to the relationship 
 \end{example}
 Changing \vn{dg} leaves the design orbit and the positions of all downstream lattice elements
 unchanged but will vary a particle's orbit. One common mistake when designing lattices is to vary
-\vn{g} and not \vn{dg} which resluts in downstream elements moving around. See \Sref{s:ex.chicane}
+\vn{g} and not \vn{dg} which results in downstream elements moving around. See \Sref{s:ex.chicane}
 for an example.
   %
   \index{h1}\index{h2}
@@ -957,7 +957,7 @@ holds the coefficients for calculating the outgoing particle direction. \vn{prob
 \end{example}
 A \vn{probl_pc_r} has one \vn{r_values} component and multiple \vn{row} components. The
 \vn{r_values} component is a vector of radius values for the columns of the probability table.  The
-value for the first column is always zero and the radius values are strickly increasing.  Each
+value for the first column is always zero and the radius values are strictly increasing.  Each
 \vn{row} component represents one row of the table. Each row has a momentum value \vn{pc_out} in eV
 along with a \vn{prob} component which is a vector of probability values. The length of a \vn{prob}
 vector is always equal to the length of the \vn{r_values} vector which is the number of columns in
@@ -977,7 +977,7 @@ The \vn{direction_out} component of \vn{sub_distribution} look like:
   \}
 \end{example}
 The \vn{c_x}, \vn{alpha_x}, \vn{alpha_y}, and \vn{beta}, components of \vn{direction_out} give the
-coefficients for calculating $c_x$, $\alpha_x$, $\alpha_y$, and $\beta$ respectiely in
+coefficients for calculating $c_x$, $\alpha_x$, $\alpha_y$, and $\beta$ respectively in
 \Eq{pxsxs}. The other three components give, \vn{dxds_min}, \vn{dxds_max}, and \vn{dyds_max} give
 the range for $x'$ and $y'$ over which \Eq{pxsxs} is valid. By symmetry, \vn{dyds_min} will be equal
 to \vn{-dydx_max}. The form of all these components is similar. For example:
@@ -1000,7 +1000,7 @@ are used for computing $\Xi$ (\Eq{xkpkr}). The \vn{k} sub-components of \vn{fit_
 \vn{fit_2d_pc} and \vn{fit_2d_r} give the polynomial coefficients $w_n$ and $k_n$ respectively.
 
 To calculate the distributions and output the appropriate \vn{distribution} structures which then
-can be incorperated into a \bmad lattice, there is modeling code that is distributed with
+can be incorporated into a \bmad lattice, there is modeling code that is distributed with
 \bmad. Specifically, it is in the directory
 \begin{example}
   \$ACC_ROOT_DIR/util_programs/converter_element_modeling
@@ -2120,7 +2120,7 @@ ignored.
 
 If the target branch and base branch both have the same reference particle, and if the element
 forked into is the beginning element, the reference energy and momentum of the target branch will be
-set to the refernece energy and momentum at the fork element. In this case, neither the reference
+set to the reference energy and momentum at the fork element. In this case, neither the reference
 energy nor reference momentum of the target branch should be set. If it is desired to have the
 reference energy/momentum of the target branch different from what is inherited from the fork
 element, a patch element (\sref{s:patch}) can be used at the beginning of the target branch. In all
@@ -3399,6 +3399,7 @@ set directly just like if there were no controlling overlays to begin with. Exam
   abc: overlay = \{ ... \}, ...
   abc[is_on] = F
 \end{example}
+Note: \vn{group} elements do not have an \vn{is_on} parameter since this is unnecessary.
 
 A lattice file may contain lines and lattice elements that are not part of the actual lattice when
 the lattice is constructed. \vn{Overlay} elements where {\em none} of its slave elements are part of

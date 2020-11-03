@@ -165,13 +165,18 @@ interface hdf5_write_attribute_int
   module procedure hdf5_write_attribute_int_rank1
 end interface
 
+interface hdf5_write_attribute_string
+  module procedure hdf5_write_attribute_string_rank0
+  module procedure hdf5_write_attribute_string_rank1
+end interface
+
 contains
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine hdf5_write_attribute_string(root_id, attrib_name, string, error)
+! Subroutine hdf5_write_attribute_string_rank0 (root_id, attrib_name, string, error)
 !
 ! Routine to create an HDF5 attribute whose value is a string.
 !
@@ -182,7 +187,7 @@ contains
 !   error         -- logical Set True if there is an error. False otherwise.
 !-
 
-subroutine hdf5_write_attribute_string(root_id, attrib_name, string, error)
+subroutine hdf5_write_attribute_string_rank0 (root_id, attrib_name, string, error)
 
 integer(hid_t) :: root_id
 character(*) :: attrib_name, string
@@ -193,7 +198,64 @@ error = .true.
 call H5LTset_attribute_string_f(root_id, '.', attrib_name, trim(string), h5_err); if (h5_err < 0) return
 error = .false.
 
-end subroutine hdf5_write_attribute_string
+end subroutine hdf5_write_attribute_string_rank0
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine hdf5_write_attribute_string_rank1(root_id, attrib_name, string, error)
+!
+! Routine to create an HDF5 string array attribute.
+!
+! Input:
+!   root_id       -- integer(hid_t): ID of the group or dataset the attribute is to be put in.
+!   attrib_name   -- character(*): Name of the attribute.
+!   string(:)     -- character(*): String array.
+!   error         -- logical Set True if there is an error. False otherwise.
+!-
+
+subroutine hdf5_write_attribute_string_rank1(root_id, attrib_name, string, error)
+
+integer(hid_t) :: root_id, dspace_id, atype, attr_id
+character(*) :: attrib_name, string(:)
+character(:), allocatable :: str
+integer h5_err, i, j, nn, n_len, n0, n1
+integer(hsize_t) dim(1)
+integer(size_t) sze
+logical error
+
+!
+
+error = .true.
+n_len = maxval(len_trim(string))
+nn = size(string) * n_len
+allocate(character(nn):: str)
+
+do i = 1, size(string)
+  n0 = (i - 1) * n_len
+  n1 = len_trim(string(i))
+  str(n0+1:n0+n1) = trim(string(i))
+  do j = n0+n1+1, n0+n_len
+    str(j:j) = c_null_char
+  enddo
+enddo
+
+dim(1) = size(string)
+call H5Screate_simple_f(1, dim, dspace_id, h5_err)
+call H5Tcopy_f(H5T_C_S1, atype, h5_err)
+sze = n_len
+call H5Tset_size_f(atype, sze, h5_err)
+call H5Acreate_f(root_id, attrib_name, atype, dspace_id, attr_id, h5_err, H5P_DEFAULT_F, H5P_DEFAULT_F)
+call H5Awrite_f(attr_id, atype, str, dim, h5_err)
+
+call H5Aclose_f(attr_id, h5_err)
+call H5Tclose_f(atype, h5_err)
+call H5Sclose_f(dspace_id, h5_err)
+
+error = .false.
+
+end subroutine hdf5_write_attribute_string_rank1
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
