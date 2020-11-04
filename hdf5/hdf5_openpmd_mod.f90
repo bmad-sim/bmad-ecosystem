@@ -1147,7 +1147,7 @@ type(c_ptr) :: f_ptr
 logical error, err
 
 character(*) name
-character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
+character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank1'
 
 ! Non-compound data means old format
 
@@ -1224,7 +1224,7 @@ logical error, err
 
 character(*) name
 character(1) d_ord
-character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
+character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank2'
 
 ! Non-compound data means old format
 
@@ -1246,17 +1246,16 @@ if (info%data_class_type /= H5T_COMPOUND_F) then
 endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
-
-if (any(info%data_dim(1:2) /= shape(array))) then
-  call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
-  return
-endif
-
 call hdf5_read_dataorder(root_id, name, d_ord)
 if (d_ord == 'C') then
   allocate (cc(size(array,2), size(array,1)))
 else
   allocate (cc(size(array,1), size(array,2)))
+endif
+
+if (any(info%data_dim(1:2) /= shape(cc))) then
+  call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
+  return
 endif
 
 z_id = hdf5_open_object(root_id, name, info, error, .true.)
@@ -1336,17 +1335,18 @@ endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
-if (any(info%data_dim(1:3) /= shape(array))) then
-  call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
-  return
-endif
-
 call hdf5_read_dataorder(root_id, name, d_ord)
 if (d_ord == 'C') then
   allocate (cc(size(array,3), size(array,2), size(array,1)))
 else
   allocate (cc(size(array,1), size(array,2), size(array,3)))
 endif
+
+if (any(info%data_dim(1:3) /= shape(cc))) then
+  call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
+  return
+endif
+
 
 z_id = hdf5_open_object(root_id, name, info, error, .true.)
 f_ptr = c_loc(cc)
