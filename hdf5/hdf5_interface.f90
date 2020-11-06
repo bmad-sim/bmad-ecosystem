@@ -934,12 +934,12 @@ logical error, print_error
 
 error = .true.
 
-call H5Oget_info_by_name_f(root_id, obj_name, infobuf, h5_err)
+call H5Oget_info_by_name_f(root_id, trim(obj_name), infobuf, h5_err)
 info%element_type = infobuf%type
 info%num_attributes = infobuf%num_attrs
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  call H5LTget_dataset_info_f(root_id, obj_name, info%data_dim, info%data_class_type, info%data_size, h5_err)
+  call H5LTget_dataset_info_f(root_id, trim(obj_name), info%data_dim, info%data_class_type, info%data_size, h5_err)
 endif
 
 error = .false.
@@ -1239,6 +1239,10 @@ if (h5_err < 0) then
   endif
   return
 endif
+
+! This is to get around an HDF5 (V1.10.4) bug where extra garbage characters can be present.
+
+string = string(1:info%data_size)
 
 error = .false.
 
