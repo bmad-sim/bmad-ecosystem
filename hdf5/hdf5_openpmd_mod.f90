@@ -1246,6 +1246,7 @@ if (info%data_class_type /= H5T_COMPOUND_F) then
 endif
 
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
+
 call hdf5_read_dataorder(root_id, name, d_ord)
 if (d_ord == 'C') then
   allocate (cc(size(array,2), size(array,1)))
@@ -1346,7 +1347,6 @@ if (any(info%data_dim(1:3) /= shape(cc))) then
   call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT OF THE CORRECT SIZE! FOR DATA: ' // name)
   return
 endif
-
 
 z_id = hdf5_open_object(root_id, name, info, error, .true.)
 f_ptr = c_loc(cc)
