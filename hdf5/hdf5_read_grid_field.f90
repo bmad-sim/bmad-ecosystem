@@ -228,7 +228,11 @@ if (hdf5_exists(root_id, 'magneticField', error, .false.)) then
   b_field_here = .true.
   z_id = hdf5_open_group(root_id, 'magneticField', err, .true.);  if (err) return
   do i = 1, 3
-    call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, gptr%B(i), error)
+    if (hdf5_exists(z_id, component_name(i), err, .false.)) then
+      call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, gptr%B(i), error)
+    else
+      gptr%B(i) = 0
+    endif
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%B(i) = gptr(:,1,:)%B(i)
   enddo
   call H5Gclose_f(z_id, h5_err)
@@ -238,7 +242,11 @@ if (hdf5_exists(root_id, 'electricField', error, .false.)) then
   e_field_here = .true.
   z_id = hdf5_open_group(root_id, 'electricField', err, .true.);  if (err) return
   do i = 1, 3
-    call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, gptr%E(i), error)
+    if (hdf5_exists(z_id, component_name(i), err, .false.)) then
+      call pmd_read_complex_dataset(z_id, trim(component_name(i)), complex_t, 1.0_rp, gptr%E(i), error)
+    else
+      gptr%E(i) = 0
+    endif
     if (gf%geometry == rotationally_symmetric_rz$) gf%ptr%pt(:,:,1)%E(i) = gptr(:,1,:)%E(i)
   enddo
   call H5Gclose_f(z_id, h5_err)
