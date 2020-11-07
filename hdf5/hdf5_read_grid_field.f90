@@ -151,15 +151,13 @@ logical err_flag, error, b_field_here, e_field_here
 
 err_flag = .true.
 
-call hdf5_read_attribute_real(root_id, 'fieldScale', total_scale, error, .false., 1.0_rp)
-call hdf5_read_attribute_real(root_id, 'componentFieldScale', gf%field_scale, error, .false.)
 call hdf5_read_attribute_string (root_id, 'masterParameter', name, error, .false.)
-
 if (name == '') then
   gf%master_parameter = 0
-  gf%field_scale = total_scale
+  call hdf5_read_attribute_real(root_id, 'fieldScale', gf%field_scale, error, .false., 1.0_rp)
 else
   gf%master_parameter = attribute_index(ele, upcase(name))
+  call hdf5_read_attribute_real(root_id, 'componentFieldScale', gf%field_scale, error, .false.)
 endif
 
 call hdf5_read_attribute_string (root_id, 'gridGeometry', name, error, .false.)
@@ -181,6 +179,7 @@ call match_word (name, anchor_pt_name(1:), gf%ele_anchor_pt, error, .false.);   
 call hdf5_read_attribute_int (root_id, 'harmonic', gf%harmonic, error, .false.)
 call hdf5_read_attribute_real (root_id, 'RFphase', gf%phi0_fieldmap, error, .false.)
 if (gf%harmonic /= 0) then
+  call hdf5_read_attribute_real (root_id, 'fundamentalFrequency', ele%value(rf_frequency$), error, .false.)
   if (ele%key == lcavity$) then
     gf%phi0_fieldmap = gf%phi0_fieldmap / gf%harmonic
   else

@@ -161,15 +161,24 @@ For any \vn{grid_field}, parameters stored in the \vn{grid_field} root group are
   interpolationOrder           & \%interpolation_order      \\ 
   gridLowerBound               & \%ptr\%pt lower bound      \\ 
   gridSize                     & \%ptr\%pt size             \\ 
+  fundamentalFrequency         & ele%value(rf_frequency$)   \\
   gridCurvatureRadius          & ele%value(rho$)            \\ \bottomrule
 \end{tabular}
 \end{center}
 The \vn{Bmad Equivalent} column gives the conversion between the Beam Physics parameters and the
 \vn{grid_field_struct} structure components (that have a ``\%'' prefix). The value for
 \vn{gridCurvatureRadius} is set to the value of \vn{rho} of the associated lattice element if
-\vn{%curved_ref_frame} is True. Notice that the \vn{masterParameter} attribute is not part of the
-standard. If not present, which could happen if a file is created by non-\bmad code, the default
-is a blank string indicating no master parameter.
+\vn{%curved_ref_frame} is True. 
+
+Notice that the \vn{masterParameter} attribute is not part of the standard. If not present, which
+could happen if a file is created by non-\bmad code, the default is a blank string indicating no
+master parameter. If \vn{masterParameter} is set in the data file, there is a potential problem in
+that it may not be possible to calculate \vn{%field_scale} if the value of the master parameter is
+not equal to the value when the data was written. To get around this, if the non-standard
+\vn{masterParameter} is present, the value of the non-standard \vn{componentFieldScale} (which has a
+default value of one) will be used to set \vn{%field_scale} and \vn{fieldScale} is ignored. If
+\vn{masterParameter} is not present, \vn{componentFieldScale} is ignored and \vn{%field_scale} is
+set from the value of \vn{fieldScale}.
 
 When reading a data file, the setting of \vn{grid_field%field_type} is determined by what data is
 stored in the file. If both electric and magnetic field data is present, \vn{%field_type} is set to

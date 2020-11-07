@@ -1211,7 +1211,7 @@ subroutine hdf5_read_attribute_string(root_id, attrib_name, string, error, print
 type (hdf5_info_struct) info
 
 integer(hid_t) root_id, a_id
-integer h5_err
+integer h5_err, n
 
 logical error, print_error
 
@@ -1242,7 +1242,8 @@ endif
 
 ! This is to get around an HDF5 (V1.10.4) bug where extra garbage characters can be present.
 
-string = string(1:info%data_size)
+n = min(len(string), info%data_size)
+string = string(1:n)
 
 error = .false.
 
