@@ -94,6 +94,7 @@ do igf = 1, size(g_field)
 
   
   if (gf%harmonic /= 0) then
+    call hdf5_write_attribute_real(b2_id, 'fundamentalFrequency', ele%value(rf_frequency$), err)
     if (ele%key == lcavity$) then
       call hdf5_write_attribute_real(b2_id, 'RFphase', gf%harmonic * gf%phi0_fieldmap, err)
     else
