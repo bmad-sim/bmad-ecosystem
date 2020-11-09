@@ -164,7 +164,7 @@ type (tao_graph_array_struct), allocatable, save :: graph(:)
 type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_plot_struct), pointer :: p
 type (tao_graph_struct), pointer :: g
-type (tao_curve_struct), pointer :: c1
+type (tao_curve_struct), pointer :: cc, c1
 type (tao_plot_region_struct), pointer :: region
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
@@ -222,7 +222,7 @@ type (tao_expression_info_struct), allocatable, save :: info(:)
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1
-real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b
+real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean
 real(rp), allocatable :: value(:)
 
 character(*) :: what
@@ -730,14 +730,29 @@ case ('curve')
     c1 => curve(1)%c
 
     if (print_header) then
-      nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(tao_curve_name(c1, .true.))
-      do i = 2, size(curve)
-        nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c, .true.))
-      enddo
-      nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(tao_curve_name(c1))
-      do i = 2, size(curve)
-        nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
-      enddo
+      if (associated(c1%g%p%r)) then
+        nl=nl+1; lines(nl) = '                                   |          Line           |          Symbols'
+        nl=nl+1; lines(nl) = 'Curves:                            |     Mean         RMS    |      Mean         RMS'
+        do i = 1, size(curve)
+          cc => curve(i)%c
+          nl=nl+1; lines(nl) = '   ' // trim(tao_curve_name(cc, .true.))
+          if (allocated(cc%x_line)) then
+            call tao_curve_rms_calc(cc, 'LINE', rms, mean)
+            write(lines(nl)(36:), '(2es12.4)') mean, rms
+          endif
+          if (allocated(cc%x_symb)) then
+            call tao_curve_rms_calc(cc, 'SYMBOL', rms, mean)
+            write(lines(nl)(63:), '(2es12.4)') mean, rms
+          endif
+        enddo
+
+      else
+        nl=nl+1; lines(nl) = 'Curves:'
+        do i = 1, size(curve)
+          nl=nl+1; lines(nl) = '   ' // trim(tao_curve_name(curve(i)%c))
+        enddo
+      endif
+
       nl=nl+1; write(lines(nl), amt)  'data_source          = ', quote(c1%data_source)
       nl=nl+1; write(lines(nl), amt)  'data_index           = ', quote(c1%data_index)
       nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', quote(c1%data_type_x)
@@ -1915,9 +1930,18 @@ case ('graph')
   nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
   nl=nl+1; write(lines(nl), lmt)  'allow_wrap_around                = ', g%allow_wrap_around
   if (allocated(g%curve)) then
-    nl=nl+1; lines(nl) = 'Curves:'
+    nl=nl+1; lines(nl) = '                         |          Line           |          Symbols'
+    nl=nl+1; lines(nl) = 'Curves:                  |     Mean         RMS    |      Mean         RMS'
     do i = 1, size(g%curve)
-      nl=nl+1; write(lines(nl), amt) '   ', quote(g%curve(i)%name)
+      nl=nl+1; write(lines(nl), '(3x, a)') quote(g%curve(i)%name)
+      if (allocated(g%curve(i)%x_line)) then
+        call tao_curve_rms_calc(g%curve(i), 'LINE', rms, mean)
+        write(lines(nl)(26:), '(2es12.4)') mean, rms
+      endif
+      if (allocated(g%curve(i)%x_symb)) then
+        call tao_curve_rms_calc(g%curve(i), 'SYMBOL', rms, mean)
+        write(lines(nl)(53:), '(2es12.4)') mean, rms
+      endif
     enddo
   else
     nl=nl+1; lines(nl) = 'Curves: None associated'

@@ -312,8 +312,10 @@ Longitudinal $s$-position of the lattice element.
 Offset of the evaluation point when there is an associated lattice element (\sref{s:dat.eval}).
 %
   \item[spin_axis]
-Used for Spin G-matrix calculations (\vn{spin_g_matrix.$ij$} data type). This gives the coordinate axes at
-the reference element.
+The \vn{spin_axis} component is a structure used for Spin G-matrix calculations
+(\vn{spin_g_matrix.$ij$} data type). \vn{Spin_axis} gives the $(l, n_0, m)$ coordinate axes at the
+reference element. See \sref{s:init.data} for documentation on how to set this structure.
+  
 %
   \item[useit_opt] \Newline
 Datum is used for optimization. \vn{useit_opt} is set by \tao using the other
@@ -1407,17 +1409,38 @@ any emittances or longitudinal sigma values specified in the lattice file.
 
   %----------------------
   \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline
-The $G$-matrix is the $2\times6$ sub-matrix of the $8\times8$ spin-orbital transfer matrix that
-describes the coupling between orbital motion and spin precession as discussed in the chapter on
-spin in the \bmad manual. Lattice design generally involves minimizing components of this matrix.
-The transfer matrix of which the $G$-matrix is a component of is computed from the datum's
-\vn{ref_ele} reference element to the \vn{ele} evaluation element. If the associated lattice branch
-has a closed geometry, and if the reference element is not specified, the reference element will be
-taken to be evaluation element and the 1-turn spin/orbital transfer matrix will be computed. 
+The $\bfG$-matrix is the $2\times6$ sub-matrix of the $8\times8$ spin-orbital transfer matrix $\wt\bfM$
+that describes the coupling between orbital motion and spin precession as discussed in the section
+on the SLIM Formalism in the chapter on spin in the \bmad manual. Lattice design generally involves
+minimizing components of this matrix.  The transfer matrix of which the $G$-matrix is a component of
+is computed from the datum's \vn{ref_ele} reference element to the \vn{ele} evaluation element. If
+the associated lattice branch has a closed geometry, and if the reference element is not specified,
+the reference element will be taken to be evaluation element and the 1-turn spin/orbital transfer
+matrix will be computed.
 
-When using this data type, the \vn{spin_axis} component needs to be set. The exception is if the
-one-turn transfer matrix is computed. See \sref{s:init.data} for more details. In this case, if
-\vn{n0} is not specified, the closed orbit \vn{n0} axis is used.
+When using this data type, if the \vn{spin_axis} component is not set, \tao will try to set
+appropriate values. If \vn{spin_axis%n0} is not set, and if the lattice branch has a closed
+geometry, the value of this parameter will be set to the value of the closed orbit $n_0$ at the
+reference element. If \vn{spin_axis%n0} is not set, and if the lattice branch has an open geometry,
+the value of this parameter will be set to be the same as the direction of the tracked particle's
+spin.\footnote
+  {
+The initial spin for particle tracking in an open geometry can be set either by setting in the
+lattice file parameters like \vn{particle_start[spin_x]} or, when \tao is running, by using the
+\vn{set particle_start} command.
+  }
+If neither \vn{spin_axis%l} nor \vn{spin_axis%m} is set, these axes are chosen such that $(\bfl, \bfn_0, \bfm)$
+form a right handed coordinate system.
+
+Once the $(\bfl, \bfn_0, \bfm)$ coordinate system has been set at the reference element, the $(\bfl,
+\bfn_0, \bfm)$ coordinates at the evaluation element are determined such that a particle on the
+reference orbit with spin pointing along any of the three axes at the reference element will, after
+propagation to the evaluation element, maintain its spin along the axis. With this, the $2\times2$
+submatrix $\bfD$ of the spin-orbital transfer matrix $\wt\bfM$ will be the unit matrix.  An
+exception is made if the reference element is the same as the evaluation element. That is, if the
+1-turn $\bfG$-matrix is being computed. In this case, the final $(\bfl, \bfn_0, \bfm)$ will be taken
+to be the same as the inital coordinates and, in this case, $\bfD$, will be a rotation matrix with
+a rotation angle equal to the spin tune.
 
   %----------------------
   \item[spin.polarization_limit, .polarization_rate, .depolarization_rate] \Newline

@@ -1382,6 +1382,7 @@ or universes to apply the set command to.
 \vn{<coordinate>} is one of:
 \begin{example}
   x, px, y, py, z, pz, t
+  spin_x, spin_y, spin_z
 \end{example}
 For photons, \vn{<coordinate>} may also be:
 \begin{example}
@@ -1401,6 +1402,7 @@ Examples:
 \begin{example}
   set particle_start 2@x = 0.001         ! Set beginning x position in universe 2 to 1 mm.
   set particle_start field_x = 1         ! Set photon field
+  set particle_start spin_y = 0.37       ! Set spin component.
 \end{example}
 
 %% set plot --------------------------------------------------------------

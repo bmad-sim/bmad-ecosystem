@@ -630,23 +630,23 @@ This saves time but the potential drawback is a loss of accuracy. Note that a la
 will only have an associate map if the \vn{tracking_method} or \vn{make_mat6_method} components
 of the lattice element are such that a map is needed for tracking (see the \bmad manual for more
 details).
-
+%
   \item{\vn{global%derivative_recalc}} \Newline
 The \vn{global%derivative_recalc} logical determines whether the derivative matrix is
 recalculated every optimization loop. The \vn{global%derivative_uses_design} logical
 determines if the design lattice is used in the derivative matrix calculation instead of
 the model lattice.
-
+%
   \item{\vn{global%disable_smooth_line_calc}} \Newline
 The \vn{global%disable_smooth_line_calc} is used to disable computation of the ``smooth
 curves'' used in plotting.  This can be used to speed up \tao as discussed in
 \sref{s:plot.data}.
-
+%
   \item{\vn{global%dmerit_stop_value}} \Newline
 When optimizing, if the fractional change in the merit function over one \vn{loop} (set by
 \vn{global%n_opti_loops}) is below the value of \vn{global%dmerit_stop_value}, optimization 
 will stop. The default value is zero. Also see \vn{global%merit_stop_value}.
-
+%
   \item{\vn{global%lattice_calc_on}} \Newline
 \vn{global%lattice_calc_on} controls whether lattice calculations are done when there are changes in
 the lattice. Lattice calculations include the calculation of orbits, Twiss parameters, beam
@@ -657,33 +657,33 @@ the \vn{set} command (\sref{s:set})), then executing a set of commands, and fina
 command generates. Similarly, \vn{global%plot_on} can be toggled to save even more time. Also see
 the \vn{set universe} command (\sref{s:set.universe}) for ways to suppress certain types of
 calculations (for example, calculating the Twiss parameters) that are not needed.
-
+%
   \item{\vn{global%force_plot_data_calc}} \Newline
 Sometimes it is convenient to have \tao calculate plotting curve points even when \tao is not doing
 any plotting (that is, \vn{global%plot_on} = F). For example, when \tao is run as a server by a client
 (such as a graphic user interface) program where the client program is taking care of the plotting but
 the data to be plotted is calculated by \tao. In this case by setting \vn{global%force_plot_data_calc} to
 True will force \tao to always calculate curve data points even when \vn{global%plot_on} = F.
-
+%
   \item{\vn{global%history_file}} \Newline
 The commands typed in by a user are saved in a ``history file'' so that they can be recalled using
 the up-arrow key and eve recalled between run sessions. The default is to save the command history
 to the file \vn{\~/.history_tao}. Sometimes is is convenient to have multiple history files and
 in this case the setting of \vn{global%history_file} can varied from init file to init file.
-
+%
   \item{\vn{global%merit_stop_value}} \Newline
 The \vn{global%merit_stop_value} establishes a point such that, during optimization, if
 the merit function falls below that value, the optimization stops. If the value is
 negative (the default), \vn{global%merit_stop_value} is ignored. Also see \vn{global%dmerit_stop_value}.
-
+%
   \item{\vn{global%opt_with_ref}} \Newline
 Use the \vn{reference} data and variable values in the calculation of the merit function
 (\sref{s:opt.main})? Default is False.
-
+%
   \item{\vn{global%opt_with_base}} \Newline
 Use the \vn{base} lattice data and variable values in the calculation of the merit function
 (\sref{s:opt.main})? Default is False.
-
+%
   \item{\vn{global%optimizer_allow_user_abort}} \Newline
 Normally \vn{optimizer_allow_user_abort} defaults to True which allows the optimizer, when
 it is run, to look for user input from the terminal (\sref{s:tao.opti}). If the user types
@@ -692,7 +692,7 @@ standard input redirected from a file (using the ``<'' character) \tao will not 
 distinguish between input meant as a \tao command and input meant for aborting the
 optimization. In this case, \vn{optimizer_allow_user_abort} will default to False so that
 the optimizer will not do any checking.
-
+%
   \item{\vn{global%quiet}} \Newline
 For use with command files. May be set to one of:
 \begin{example}
@@ -704,22 +704,22 @@ If set to \vn{all}, output to the terminal during command file running will be s
 for warning and error messages) until the command file (or files) returns to the command line level
 at which point \vn{global%quiet} is automatically reset to \vn{off}. That is, \vn{global%silent_run}
 must be set each time it is desired to run a command file(s) silently.
-
+%
   \item{\vn{global%random_engine}} \Newline
 \vn{global%random_engine} selects the algorithm used for generating the random
 numbers. \vn{"pseudo"} causes \tao to use a pseudo-random number generator. \vn{"quasi"}
 uses Sobel quasi-random number generator which generates a distribution that is smoother
 then the pseudo-random number generator. \vn{"pseudo"} is the default.
-
+%
   \item{\vn{global%random_gauss_converter}} \Newline
 \vn{global%random_gauss_converter} selects the algorithm used in the conversion from a
 uniform distribution to a Gaussian distribution.  \vn{"exact"} is an exact conversion and
 \vn{"limited"} has a cut-off so that no particles are generated beyond. This cutoff is set
 by \vn{global%random_sigma_cutoff}.
-
+%
   \item{\vn{global%random_sigma_cutoff}} \Newline
 See \vn{global%random_gauss_converter}.
-
+%
   \item{\vn{global%random_seed}} \Newline
 \vn{global%random_seed} sets the seed number for the pseudo-random number generator. A
 value of \vn{0} (the default) causes the seed number to be picked based upon the system
@@ -732,11 +732,11 @@ the closed orbit which is not the case when the RF is on.  Note: If you want to 
 with RF frequency changes then you will need to set \vn{parameter[absolute_time_tracking]} to
 True. See the ``Relative Versus Absolute Time Tracking'' section in the\bmad manual for more
 details.
-
+%
   \item{\vn{global%single_step}} \Newline
 For use with command files. If set True, this is equivalent to putting a "pause -1" after
 each line in a command file. Useful for debugging or for talk demonstrations. 
-
+%
   \item{\vn{global%track_type}} \Newline
 The setting of the \vn{global%track_type} parameter can be
 \begin{example}
@@ -746,20 +746,34 @@ The setting of the \vn{global%track_type} parameter can be
 The \vn{"single"} setting is used when single particle tracking is desired and \vn{"beam"}
 is used when tracking with a beam of particles. Note that with \vn{"single"} tracking,
 synchrotron radiation fluctuations (but not damping) is always turned off.
-
+%
   \item{\vn{global%var_limits_on}} \Newline
 The \vn{global%var_limits_on} switch controls whether a variable's model value is limited
 by the variable's \vn{high_lim} and \vn{low_lim} settings (\sref{s:init.var}). This is
 particularly important during optimization. If a variable's model value moves outside of
 the limits, the value is set at the limit and the variable's \vn{good_user} parameter is
 set to \vn{False} so it will not be further varied in the optimization.
-
+%
   \item{\vn{global%only_limit_opt_vars}} \Newline
 The \vn{global%only_limit_opt_vars} switch controls whether only the variables being
 optimized are limited or whether all variables are limited. The
 \vn{global%optimizer_var_limit_warn} switch controls whether a warning is printed when a
 variable value goes past a limit.
-
+%
+  \item{\vn{global%var_out_file}} \Newline
+The \vn{global%var_out_file} sets the name of the file that is written when running an optimizer
+that stores variable values. The format of the file is such that the file can be used to construct a
+lattice with the optimized variables. For example, if ``\vn{lat.bmad}'' is the name of the unoptimized
+lattice and the name of the variable file is ``\vn{v.out}'', the following file will can be
+used for the optimized lattice
+\begin{example}
+  call, file = lat.bmad  ! Read in original lattice.
+  call, file = v.out     ! Set optimized values.
+\end{example}
+The default file name is ``\vn{var\#.out}''. If the file contains a hash (``\#'') symbol, a separate
+file will be generated for each universe with the universe index substituted for the hash symbol.
+For example, with the default file name, the name of the file for universe 1 will be ``\vn{var1.out}''.
+If the file name is blank, the results will be printed on the screen and no file will be generated.
 \end{description}
 
 Random number generation in \tao is divided into two categories: Random numbers used for
