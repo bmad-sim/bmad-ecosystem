@@ -206,6 +206,7 @@ type tao_curve_struct
   logical :: draw_symbols = .true.       ! Draw a symbol at the data points?
   logical :: draw_symbol_index = .false. ! Draw the symbol index number curve%ix_symb?
   logical :: draw_error_bars = .false.   ! Draw error bars based upon data%error_rms if drawing data?
+  !!! logical :: draw_rms = .false.          ! Show mean and RMS values with legend?
   logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
   logical :: use_z_color = .false.       ! For phase space plots.
   logical :: autoscale_z_color = .true.  ! Set %z_color0, %z_color1 automatically to the limits of %data_type_z

@@ -155,6 +155,15 @@ function tao_curve_name(curve, use_region) result (curve_name)
   logical, optional :: use_region
 end function
 
+subroutine tao_curve_rms_calc (curve, who, rms, mean)
+  import
+  implicit none
+  type (tao_curve_struct) curve
+  real(rp) rms, mean, ys, dx
+  integer i, n
+  character(*) who
+end subroutine
+
 function tao_d2_d1_name(d1, show_universe) result (d2_d1_name)
   import
   implicit none

@@ -51,11 +51,6 @@ character(*) why_invalid
 valid_value = .false.
 branch => u%model%lat%branch(datum%ix_branch)
 
-if (branch%param%geometry == open$ .and. ix_ref > -1 .and. all(datum%spin_axis%n0 == 0)) then
-  call tao_set_invalid (datum, 'DATUM SPIN_AXIS%N0 NOT SET.', why_invalid, .true.)
-  return
-endif
-
 ! Has this been computed before? If so then use old calculation.
 
 if (allocated(scratch%spin_map)) then
@@ -108,13 +103,19 @@ quat0 = q_map%q(:, 0)
 
 ! If 1-turn then calculate n0. Otherwise take the value in the datum.
 
-if (ix_r == ix_ele .or. all(datum%spin_axis%n0 == 0)) then 
-  n0 = q_map%q(1:3,0)   ! n0 is the rotation axis of the 0th order part of the map.
-  n1 = n0
-else
+if (any(datum%spin_axis%n0 /= 0)) then
   n0 = datum%spin_axis%n0 / norm2(datum%spin_axis%n0)
-  n1 = rotate_vec_given_quat(quat0, n0)
+else  
+  n0 = u%model%tao_branch(datum%ix_branch)%orbit(ix_r)%spin
 endif
+
+if (all(n0 == 0)) then
+  call tao_set_invalid (datum, 'DATUM SPIN_AXIS%N0 NOT SET AND CANNOT BE COMPUTED.', why_invalid, .true.)
+  return
+endif
+
+
+n1 = rotate_vec_given_quat(quat0, n0)
 
 ! Construct coordinate systems (l0, n0, m0) and (l1, n1, m1)
 
