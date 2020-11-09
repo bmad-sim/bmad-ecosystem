@@ -586,9 +586,14 @@ if (head_data_type /= 'expression:' .and. (datum%s_offset /= 0 .or. datum%eval_p
     return
   endif
 
-  datum_value = tao_evaluate_datum_at_s (datum%eval_point, datum%s_offset, datum%data_type, tao_lat, ele, ele_ref, valid_value, str, exterminate)
-  if (.not. valid_value) call tao_set_invalid (datum, str, why_invalid, exterminate)
-  return
+  if (datum%ele_start_name /= '') then
+    call out_io (s_warn$, r_name, 'If there is an evaluation range (that is, ele_start is set), s_offset and', & 
+                                  ' eval_point are ignored. For datum:' // tao_datum_name(datum))
+  else
+    datum_value = tao_evaluate_datum_at_s (datum%eval_point, datum%s_offset, datum%data_type, tao_lat, ele, ele_ref, valid_value, str, exterminate)
+    if (.not. valid_value) call tao_set_invalid (datum, str, why_invalid, exterminate)
+    return
+  endif
 endif
 
 !---------------------------------------------------

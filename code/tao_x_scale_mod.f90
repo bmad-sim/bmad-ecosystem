@@ -319,6 +319,7 @@ else if (graph%p%x_axis_type == 's') then
   if (allocated(graph%curve)) then
     do i = 1, size(graph%curve)
       u => tao_pointer_to_universe(tao_curve_ix_uni(graph%curve(i)), .true.)
+      if (.not. associated(u)) cycle
       ib = graph%curve(i)%ix_branch
       this_min = min (this_min, u%model%lat%branch(ib)%ele(0)%s)
       ix = u%model%lat%branch(ib)%n_ele_track
@@ -327,6 +328,11 @@ else if (graph%p%x_axis_type == 's') then
   else
     ib = graph%ix_branch
     u => tao_pointer_to_universe(graph%ix_universe, .true.)
+    if (.not. associated(u)) then
+      graph%is_valid = .false.
+      graph%why_invalid = 'Bad universe index.'
+      return
+    endif
     this_min = min (this_min, u%model%lat%branch(ib)%ele(0)%s)
     ix = u%model%lat%branch(ib)%n_ele_track
     this_max = max (this_max, u%model%lat%branch(ib)%ele(ix)%s)

@@ -41,6 +41,7 @@ do i = 1, size(s%plot_page%region)
     do k = 1, size(graph%curve)
       curve => graph%curve(k)
       u => tao_pointer_to_universe(tao_curve_ix_uni(curve))
+      if (.not. associated(u)) cycle
 
       if (.not. u%picked_uni .and. tao_rad_int_calc_needed(curve%data_type, curve%data_source)) then
         if (curve%ix_branch /= 0) then

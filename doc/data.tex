@@ -203,7 +203,8 @@ documentation on \vn{curve(i)%draw_error_bars} in \sref{s:plot.data}.
 for more details.
 %
   \item[eval_point] \Newline
-Used with \vn{s_offset} to determine where the datum is evaluated at (\sref{s:dat.eval}).
+Used with \vn{s_offset} to determine where the datum is evaluated at (\sref{s:dat.eval}). The
+evaluation point will be ignored if using an evaluation range (\vn{ele_start_name} is set) is used.
 %
   \item[exists] \Newline
 Set by \tao to True if the datum exists (\sref{s:datum.opt}). 
@@ -292,7 +293,6 @@ The type of merit (\sref{s:del.d}). Possible values are:
   "max-min"                  ! Only used when datum specifies a range of elements.
   "average", "integral"      ! Only used when datum specifies a range of elements.
 \end{example}
-
 %
   \item[model] \Newline
 The value of the datum as calculated from the \vn{model} lattice (\sref{s:datum.values}).
@@ -310,12 +310,12 @@ Longitudinal $s$-position of the lattice element.
 %
   \item[s_offset] \Newline
 Offset of the evaluation point when there is an associated lattice element (\sref{s:dat.eval}).
+The offset will be ignored if using an evaluation range (\vn{ele_start_name} is set) is used.
 %
   \item[spin_axis]
 The \vn{spin_axis} component is a structure used for Spin G-matrix calculations
 (\vn{spin_g_matrix.$ij$} data type). \vn{Spin_axis} gives the $(l, n_0, m)$ coordinate axes at the
 reference element. See \sref{s:init.data} for documentation on how to set this structure.
-  
 %
   \item[useit_opt] \Newline
 Datum is used for optimization. \vn{useit_opt} is set by \tao using the other
