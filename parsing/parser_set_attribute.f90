@@ -69,7 +69,8 @@ integer ix_bounds(2), iy_bounds(2), i_vec(2), n_sec, key
 character(40) :: word, str_ix, attrib_word, word2, name
 character(40), allocatable :: name_list(:)
 character(1) delim, delim1, delim2
-character(80) str, err_str, line
+character(80) str, err_str
+character(200) line
 
 logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, hetero_list
 logical is_attrib, err_flag2, old_style_input, ok
@@ -1075,7 +1076,7 @@ endif
 if (attrib_word == 'CARTESIAN_MAP') then
 
   if (.not. expect_this ('=', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
-  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+  call get_next_word (word, ix_word, ':[],(){}', delim, delim_found, call_check = .true.)
 
   ! "ele1[cartesian_map] = ele2[cartesian_map]" construct
 
@@ -1106,19 +1107,9 @@ if (attrib_word == 'CARTESIAN_MAP') then
 
   ! "ele1[cartesian_map] = call::..." or "ele1: ..., cartesian_map = {...}, ..." construct.
 
-  if (word(1:8) == 'binary::') then
-    call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_cartesian_map(word(9:), ele, ele%cartesian_map(i_ptr), err_flag)
-    call parser_file_stack('pop')
-    if (err_flag) then
-      call parser_error ('ERROR READING BINARY CARTESIAN_MAP FILE.')
-      return
-    endif
-  else
-    if (.not. expect_this ('{', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
-    allocate (ele%cartesian_map(i_ptr)%ptr)
-    call parse_cartesian_map(ele%cartesian_map(i_ptr), ele, lat, delim, delim_found, err_flag)
-  endif
+  if (.not. expect_this ('{', .true., .true., 'AFTER "CARTESIAN_MAP"', ele, delim, delim_found)) return
+  allocate (ele%cartesian_map(i_ptr)%ptr)
+  call parse_cartesian_map(ele%cartesian_map(i_ptr), ele, lat, delim, delim_found, err_flag)
 
   if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
@@ -1157,21 +1148,11 @@ if (attrib_word == 'CYLINDRICAL_MAP') then
     i_ptr = 1
   endif
 
-  if (word(1:8) == 'binary::') then
-    call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_cylindrical_map(word(9:), ele, ele%cylindrical_map(i_ptr), err_flag)
-    call parser_file_stack('pop')
-    if (err_flag) then
-      call parser_error ('ERROR READING BINARY CYLINDIRCAL_MAP FILE.')
-      return
-    endif
-  else
-    if (.not. expect_this ('{', .true., .true., 'AFTER "CYLINDRICAL_MAP"', ele, delim, delim_found)) return
-    allocate (ele%cylindrical_map(i_ptr)%ptr)
-    cl_map => ele%cylindrical_map(i_ptr)
-    if (ele%key == lcavity$ .or. ele%key == rfcavity$) cl_map%harmonic = 1 ! Default
-    call parse_cylindrical_map(cl_map, ele, lat, delim, delim_found, err_flag)
-  endif
+  if (.not. expect_this ('{', .true., .true., 'AFTER "CYLINDRICAL_MAP"', ele, delim, delim_found)) return
+  allocate (ele%cylindrical_map(i_ptr)%ptr)
+  cl_map => ele%cylindrical_map(i_ptr)
+  if (ele%key == lcavity$ .or. ele%key == rfcavity$) cl_map%harmonic = 1 ! Default
+  call parse_cylindrical_map(cl_map, ele, lat, delim, delim_found, err_flag)
 
   if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
@@ -1182,8 +1163,9 @@ endif
 
 if (attrib_word == 'GRID_FIELD') then
 
+  ! Note: get_next_word will change "call::" to "hdf5" or "binary" if appropriate.
   if (.not. expect_this ('=', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
-  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+  call get_next_word (word, ix_word, ':[],(){}', delim, delim_found, call_check = .true.)
 
   ! "ele1[grid_field] = ele2[grid_field]" construct
 
@@ -1198,7 +1180,7 @@ if (attrib_word == 'GRID_FIELD') then
     return
   endif
 
-  if (word(1:6) /= 'hdf5::') then
+  if (word /= 'hdf5') then
     if (associated(ele%grid_field)) then
       i_ptr = size(ele%grid_field) + 1
       ele0%grid_field => ele%grid_field
@@ -1213,20 +1195,22 @@ if (attrib_word == 'GRID_FIELD') then
     endif
   endif
 
-  if (word(1:8) == 'binary::') then
-    call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_grid_field(word(9:), ele, ele%grid_field(i_ptr), err_flag)
+  if (word == 'binary') then
+    call get_next_word (line, ix, ', ', delim, delim_found, .false.)
+    call parser_file_stack('push', line, err = err_flag, open_file = .false.); if (err_flag) return
+    call read_binary_grid_field(line, ele, ele%grid_field(i_ptr), err_flag)
     call parser_file_stack('pop')
     if (err_flag) then
       call parser_error ('ERROR READING BINARY GRID_FIELD FILE.')
       return
     endif
-  elseif (word(1:6) == 'hdf5::') then
-    call parser_file_stack('push', word(7:), err = err_flag, open_file = .false.); if (err_flag) return
-    call hdf5_read_grid_field(word(7:), ele, ele%grid_field, err_flag, combine = .true.)
+  elseif (word == 'hdf5') then
+    call get_next_word (line, ix, ', ', delim, delim_found, .false.)
+    call parser_file_stack('push', line, err = err_flag, open_file = .false.); if (err_flag) return
+    call hdf5_read_grid_field(line, ele, ele%grid_field, err_flag, combine = .true.)
     call parser_file_stack('pop')
     if (err_flag) then
-      call parser_error ('ERROR READING BINARY GRID_FIELD FILE.')
+      call parser_error ('ERROR READING HDF5 GRID_FIELD FILE.')
       return
     endif
   else
@@ -1275,21 +1259,11 @@ if (attrib_word == 'TAYLOR_FIELD') then
     i_ptr = 1
   endif
 
-  if (word(1:8) == 'binary::') then
-    call parser_file_stack('push', word(9:), err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_taylor_field(word(9:), ele, ele%taylor_field(i_ptr), err_flag)
-    call parser_file_stack('pop')
-    if (err_flag) then
-      call parser_error ('ERROR READING BINARY TAYLOR_FIELD FILE.')
-      return
-    endif
-  else
-    if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
-    allocate (ele%taylor_field(i_ptr)%ptr)
-    t_field => ele%taylor_field(i_ptr)
+  if (.not. expect_this ('{', .true., .true., 'AFTER "TAYLOR_FIELD"', ele, delim, delim_found)) return
+  allocate (ele%taylor_field(i_ptr)%ptr)
+  t_field => ele%taylor_field(i_ptr)
 
-    call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
-  endif
+  call parse_taylor_field(t_field, ele, lat, delim, delim_found, err_flag)
 
   if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return
@@ -2018,7 +1992,7 @@ endif
 if (logic_option(.false., check_free)) then
   is_free = attribute_free (ele, attrib_name, .false.)
   if (.not. is_free) then
-    call pointer_to_attribute(ele, word, .true., a_ptr, err_flag, .false.)
+    call pointer_to_attribute(ele, attrib_name, .true., a_ptr, err_flag, .false.)
     call set_flags_for_changed_attribute (ele, a_ptr%r, .true.)
   endif
 endif

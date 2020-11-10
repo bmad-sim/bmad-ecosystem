@@ -176,9 +176,9 @@ master parameter. If \vn{masterParameter} is set in the data file, there is a po
 that it may not be possible to calculate \vn{%field_scale} if the value of the master parameter is
 not equal to the value when the data was written. To get around this, if the non-standard
 \vn{masterParameter} is present, the value of the non-standard \vn{componentFieldScale} (which has a
-default value of one) will be used to set \vn{%field_scale} and \vn{fieldScale} is ignored. If
-\vn{masterParameter} is not present, \vn{componentFieldScale} is ignored and \vn{%field_scale} is
-set from the value of \vn{fieldScale}.
+default value of one) will be used to set \vn{%field_scale} and the \vn{fieldScale} parameter will
+be ignored. If \vn{masterParameter} is not present, \vn{componentFieldScale} is ignored and
+\vn{%field_scale} is set from the value of \vn{fieldScale}.
 
 When reading a data file, the setting of \vn{grid_field%field_type} is determined by what data is
 stored in the file. If both electric and magnetic field data is present, \vn{%field_type} is set to

@@ -174,14 +174,16 @@ if (logic_option(.false., call_check)) then
   if (str == 'CALL::') then
     bp_com%parse_line = bp_com%parse_line(7:)
     call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)
-    if (index(line, '.bin') == len_trim(line) - 3) then
-      if (word(1:8) /= 'binary::') word = 'binary::' // trim(line)
+    if (index(line, '.h5') == len_trim(line)-2 .or. index(line, '.hdf5') == len_trim(line)-4) then
+      word = 'hdf5'
+      bp_com%parse_line = trim(line) // delim // bp_com%parse_line  ! Put line back on parse line.
       return
-    elseif (index(line, '.h5') == len_trim(line)-2 .or. index(line, '.hdf5') == len_trim(line)-4) then
-      if (word(1:6) /= 'hdf5::') word = 'hdf5::' // trim(line)
+    elseif (index(line, '.bin') == len_trim(line)-3) then
+      word = 'binary'
+      bp_com%parse_line = trim(line) // delim // bp_com%parse_line  ! Put line back on parse line.
       return
     else
-      bp_com%parse_line = delim // bp_com%parse_line  ! put delim back on parse line.
+      bp_com%parse_line = delim // bp_com%parse_line  ! Put delim back on parse line.
       call parser_file_stack ('push_inline', line); if (bp_com%fatal_error_flag) return
     endif
   endif
