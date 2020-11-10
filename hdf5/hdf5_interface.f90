@@ -410,10 +410,17 @@ logical error, exist
 
 character(*) file_name, action
 character(*), parameter :: r_name = 'hdf5_open_file'
+character(200) full_name
 
 !
 
 error = .true.
+
+call fullfilename(file_name, full_name, exist)
+if (.not. exist) then
+  call out_io (s_error$, r_name, 'MALFORMED FILE NAME OR ENVIRONMENT VARIABLE NOT DEFINED: ' // file_name)
+  return
+endif
 
 call h5open_f(h5_err)         ! Init Fortran interface.
 
@@ -425,17 +432,17 @@ endif
 
 select case (action)
 case ('READ')
-  call h5fopen_f(file_name, H5F_ACC_RDONLY_F, file_id, h5_err)
+  call h5fopen_f(full_name, H5F_ACC_RDONLY_F, file_id, h5_err)
 
 case ('WRITE')
-  call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, file_id, h5_err)
+  call h5fcreate_f (full_name, H5F_ACC_TRUNC_F, file_id, h5_err)
 
 case ('APPEND')
-  inquire (file = file_name, exist = exist)
+  inquire (file = full_name, exist = exist)
   if (exist) then
-    call h5fopen_f(file_name, H5F_ACC_RDWR_F, file_id, h5_err)
+    call h5fopen_f(full_name, H5F_ACC_RDWR_F, file_id, h5_err)
   else
-    call h5fcreate_f (file_name, H5F_ACC_TRUNC_F, file_id, h5_err)
+    call h5fcreate_f (full_name, H5F_ACC_TRUNC_F, file_id, h5_err)
   endif
 
 case default
@@ -450,7 +457,7 @@ if (h5_err < 0) then
   select case (action)
   case ('READ');    call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR READING: ' // file_name)
   case ('WRITE');   call out_io (s_error$, r_name, 'CANNOT CREATE FILE FOR WRITING: ' // file_name)
-  case ('APPEND');  call out_io (s_error$, r_name, 'CANNOT OPTN FILE FOR APPENDING: ' // file_name)
+  case ('APPEND');  call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR APPENDING: ' // file_name)
   end select
   return
 endif

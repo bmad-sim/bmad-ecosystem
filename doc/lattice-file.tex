@@ -1113,11 +1113,10 @@ more details.
 \label{s:call.inline}
 \index{call!inline}
 
-Any lattice elements will have a set of attributes that need to be defined.
-As a convenience, it is possible to segregate an element attribute or attributes
-into a separate file and then ``call'' this file using an
-``inline call''. The inline call has three forms. In an element definition,
-the inline call has the form
+Any lattice elements will have a set of attributes that need to be defined.  As a convenience, it is
+possible to segregate an element attribute or attributes into a separate file and then ``call'' this
+file using an ``inline call''. The inline call has three forms. In an element definition, the inline
+call has the form
 \begin{example}
   <ele_name>: <ele_type>, ..., call::<file_name>, ...
 \end{example}
@@ -1125,9 +1124,8 @@ or
 \begin{example}
   <ele_name>: <ele_type>, ..., <attribute_name> = call::<file_name>, ...
 \end{example}
-where \vn{<attribute_name>} is the name of the attribute and
-\vn{<file_name>} is the name of the where the attribute structure is
-given.  The third form of the inline call occurs when an element
+where \vn{<attribute_name>} is the name of the attribute and \vn{<file_name>} is the name of the
+where the attribute structure is given.  The third form of the inline call occurs when an element
 attribute is redefined and has the form
 \begin{example}
   <ele_name>[<attribute_name>] = call::<file_name>
@@ -1146,49 +1144,40 @@ To create hdf5 files, first create a lattice with the grid_field defined with pl
 the lattice into any program that can create \bmad lattice files (for example, the \tao program
 (\sref{s:tao.intro}) can do this) and have the program then generate a lattice file.
 
-Note: There is an older binary syntax that used files with a \vn{.bin} suffix. Convert these files
-to \vn{HDF5} by reading into an appropriate program a lattice that uses them and then generate a
-lattice file.
-
 %--------------------------------------------------------------------------
 \section{Use_local_lat_file Statement}
 \label{s:use.loc}
 \index{use_local_lat_file_statement|hyperbf}
 
-It is sometimes convenient to override where \bmad looks for called
-files (see \sref{s:call}). For example, suppose it is desired to
-temporarily override the settings in a called file without modifying
-the called file itself. In this case, the \vn{use_local_lat_file}
-statement can be used. When this statement is encountered in a lattice
-file, the local directory (that is, the directory from which the
-program is run) is searched first for the called file and if a file
-of the correct name is found, that file is used.
+It is sometimes convenient to override where \bmad looks for called files (see \sref{s:call}). For
+example, suppose it is desired to temporarily override the settings in a called file without
+modifying the called file itself. In this case, the \vn{use_local_lat_file} statement can be
+used. When this statement is encountered in a lattice file, the local directory (that is, the
+directory from which the program is run) is searched first for the called file and if a file of the
+correct name is found, that file is used.
 
 An example will make this clear. Suppose lattice file \vn{/A/lat.bmad}
 contains the call:
 \begin{example}
   call, filename = "/B/sub.bmad"
 \end{example}
-Now suppose that you want to use \vn{lat.bmad} with a modified
-\vn{sub.bmad} but you do not want to modify \vn{/A/lat.bmad} or
-\vn{/B/sub.bmad}. The solution is to create two new files. One file,
-call it \vn{new.bmad}, which can be situated in any directory, has two
-lines in it:
+Now suppose that you want to use \vn{lat.bmad} with a modified \vn{sub.bmad} but you do not want to
+modify \vn{/A/lat.bmad} or \vn{/B/sub.bmad}. The solution is to create two new files. One file, call
+it \vn{new.bmad}, which can be situated in any directory, has two lines in it:
 \begin{example}
   use_local_lat_file
   call, filename = "/A/lat.bmad"
 \end{example}
-The second new file is the modified \vn{sub.bmad} and it must be in the
-directory from which the program is run.
+The second new file is the modified \vn{sub.bmad} and it must be in the directory from which the
+program is run.
 
 %--------------------------------------------------------------------------
 \section{Return and End_File Statements}
 \index{return statement|hyperbf}
 \index{end_file statement|hyperbf}
 
-\vn{Return} and \vn{end_file} have identical effect and tell \bmad to
-ignore anything beyond the \vn{return} or \vn{end_file} statement in
-the file.
+\vn{Return} and \vn{end_file} have identical effect and tell \bmad to ignore anything beyond the
+\vn{return} or \vn{end_file} statement in the file.
 
 %----------------------------------------------------------------------------
 \section{Expand_Lattice Statement}
@@ -1209,9 +1198,9 @@ At some point in parsing a lattice file, the ordered sequence (or sequences if t
 branches) of elements that form a lattice must be constructed. This process is called \vn{lattice
 expansion} since the element sequence can be built up from sub--sequences
 (\sref{c:sequence}). Normally, lattice expansion happens automatically at the end of the parsing of
-the lattice file (or files) but an explicit \vn{expand_lattice} statement in a lattice file will cause
-immediate expansion. The reason why lattice expansion may be necessary before the end of the file is
-due to the fact that some operations need to be done after lattice expansion. This includes:
+the lattice file (or files) but an explicit \vn{expand_lattice} statement in a lattice file will
+cause immediate expansion. The reason why lattice expansion may be necessary before the end of the
+file is due to the fact that some operations need to be done after lattice expansion. This includes:
 \begin{Itemize}
 \item 
 \index{ran}
