@@ -2,8 +2,7 @@ module tao_init_data_mod
 
 use tao_interface
 
-integer, parameter, private :: n_data_maxx     = 4000   ! max index of datum per d1_data
-integer, parameter, private :: n_data_minn     = -100   ! min index of datum per d1_data
+integer, parameter, private :: n_datum_min     = -100   ! min index of datum per d1_data
 
 contains
 
@@ -33,7 +32,8 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (tao_d2_data_input) d2_data
 type (tao_d1_data_input) d1_data
-type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
+type (tao_datum_input), allocatable :: datum(:)
+type (lat_struct), pointer :: lat
 
 real(rp) default_weight, def_weight        ! default merit function weight
 
@@ -64,6 +64,17 @@ namelist / tao_d1_data / d1_data, datum, ix_d1_data, &
                use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
 !-----------------------------------------------------------------------
+
+n = 4000
+do i = lbound(s%u, 1), ubound(s%u,1)
+  lat => s%u(i)%model%lat
+  do j = 0, ubound(lat%branch, 1)
+    n = max(n, lat%branch(j)%n_ele_max+10)
+  enddo
+enddo
+
+allocate (datum(n_datum_min:n))
+
 ! Find out how many d2_data structures we need for each universe
 
 if (data_file == '') then
@@ -271,7 +282,7 @@ subroutine d1_data_stuffit (i_d1, u, n_d2, datum)
 use srdt_mod
 
 type (tao_universe_struct), target :: u
-type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
+type (tao_datum_input) :: datum(n_datum_min:)
 type (tao_d1_data_struct), pointer :: d1_this
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
