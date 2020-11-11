@@ -147,8 +147,8 @@ case ('BUNCH')
 
     ! write results and quit
 
-    call ltt_write_bunch_averages (lttp, -1, sum_data_arr)
-    call ltt_write_sigma_matrix (lttp, -1, sum_data_arr)
+    call ltt_write_bunch_averages (lttp, sum_data_arr)
+    call ltt_write_sigma_matrix (lttp, sum_data_arr)
     call print_mpi_info (lttp, 'Master: All done!', .true.)
     call mpi_finalize(ierr)
 
