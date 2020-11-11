@@ -215,8 +215,6 @@ When tracking with \vn{ltt%simulation_mode} set to \vn{"SINGLE"} or \vn{"BUNCH"}
   "BMAD"    ! Element-by-element tracking using Bmad. Default. Slow.
 \end{code}
 
-
-
 which is used to determine if tracking is done using a map or not. If a map is used, the order of
 the map (the degree at which the Taylor series comprising the map are truncated) is given by
 \vn{ltt%map_order} parameter. A larger map order will mean better accuracy at the expense of more
@@ -314,6 +312,15 @@ effects and standard Bmad tracking can be used. A very rough rule of thumb is th
 or the number of turns tracked are under 100,000 turns then Bmad standard tracking can be used.
 
 PTC element-by-element tracking cannot be done when using the MPI version of the \ltt program.
+
+%------------------------------------------------------------------
+\Section{Correcting the Orbit when Radiation is Present}
+
+When radiation damping is simulated, the orbit that is flat when there is no radiation will show a
+``sawtooth" pattern'' in a plot of beam energy versus position. This will lead to a nonzero
+orbit. In an actual ring, the non-zero orbit will be compensated using steerings. Thus, to
+simulate the actual ring, compensating steerings should be added to the simulated lattice as well.
+How to do this is covered in the \bmad and \tao Cookbook available from the \bmad web site.
 
 %------------------------------------------------------------------
 \Section{Initial Particle Positions}
@@ -440,6 +447,7 @@ Example:
   ltt%averages_output_file = "average.dat"  
   ltt%sigma_matrix_output_file = "sigma.dat"
   ltt%output_every_n_turns = 200
+  ltt%averaging_window = 1
   ltt%output_initial_position = False
   ltt%print_on_dead_loss = -1
   ltt%merge_particle_output_files = False
@@ -471,7 +479,7 @@ Example:
   beam_init%use_particle_start_for_center = F
   beam_init%center = 0, 0, 0, 0, 0, 0
   beam_init%n_particle = 10
-  beam_init%spin = 0, 1, 0        ! See Bmad manual for 
+  beam_init%spin = 0, 0, 0        ! See Bmad manual for 
   beam_init%a_emit = 1e-8         !    beam_init_struct parameters.
   beam_init%b_emit = 1e-8
   beam_init%sig_z = 1e-4
@@ -511,6 +519,20 @@ Name of the Bmad lattice file to use. This name is required.
 
 Parameters in the master input file that affect the output are:
 \begin{description}
+\item[ltt\%averaging_window] \Newline
+Number of turns to average over when computing beam sigma matrix and positions. For example:
+\begin{code}
+  ltt%output_every_n_turns = 1000
+  ltt%averaging_window = 201
+\end{code}
+This would average over 201 turns and this averaging would be done every 1000 turns. That is, the
+beam sigma matrix and position is output every 1000 turns and the sigma matrix and position numbers
+for, say, turn 6000 are computed by averaging over all particle positions in the window from turn
+5900 through turn 6100. The averaging window used with turn 0 will be the half interval from 0
+through \vn{(ltt%averaging_window-1)/2}. The number of turns tracked will be extended past
+\vn{ltt%n_turns} so that the averaging window used for the point \vn{ltt%n_turns} has the normal
+width.
+%
 \item[ltt\%bunch_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that is created to hold
 the particle positions. This file is created at the end of tracking. This is similar to
@@ -549,7 +571,7 @@ relevant for \vn{"BEAM"} tracking.  See Section~\sref{s:part.out}.
 %
 \item[ltt\%output_every_n_turns] \Newline
 Sets the number of turns between files specified by \vn{ltt%averages_output_file} and
-\vn{ltt%particle_output_file}.
+\vn{ltt%particle_output_file}. Also see \vn{ltt%averaging_window}.
 %
 \item[ltt\%output_initial_position] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. If \vn{ltt%output_initial_position} is set to
@@ -614,7 +636,7 @@ plus the closed orbit position. See Section~\sref{s:init.pos}.
 This sets the initial beam distribution. See Section~\sref{s:init.pos}. 
 
 If spin tracking is on (\sref{bmad_com%spin_tracking_on = T}), and if all three components of
-\vn{beam_init%spin} are zero, the closed orbit spin direction are used.
+\vn{beam_init%spin} are zero, the closed orbit spin direction ($n_0$) is used.
 
 Also: the values of \vn{beam_init%a_emit} and \vn{beam_init%b_emit} are used in the high energy
 space charge calculation (\sref{s:space.charge}). If set to zero (the default) or negative, the
@@ -731,23 +753,6 @@ end of tracking.
 
 If \vn{ltt%output_initial_position} is set to \vn{True}, additional columns will be added to the
 output particle data file to show the initial particle position and spin.
-
-%------------------------------------------------------------------
-\Section{Correcting the Orbit when Radiation Fluctuations are Present}
-\label{s:damp.orbit}
-
-When radiation damping is simulated, the closed orbit that is flat when there is no radiation will
-show a ``sawtooth" pattern. In an actual ring, this sawtooth pattern will be compensated using
-steerings. Thus to simulate the actual ring, compensating steerings should be added to the lattice
-file. This section shows how to calculate steering strengths using the \vn{Tao} simulation program.
-If you are not familiar with \vn{Tao}, please see the ``Introduction and Tutorial to Bmad and Tao''
-which can be accessed via the Bmad we page
-\begin{code}
-  https://www.classe.cornell.edu/bmad/tao.html
-\end{code}
-
-
-
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}

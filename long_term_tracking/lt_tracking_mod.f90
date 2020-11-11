@@ -86,10 +86,13 @@ type ltt_com_struct
   logical :: debug = .false.
 end type
 
+integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
+
 type ltt_sum_data_struct
   integer :: i_turn = 0
   integer :: n_live = 0     ! Number alive on last turn used for averaging.
   integer :: n_count = 0    ! Number of particles counted over all turns used for averaging.
+  integer :: status = new$  ! Has all data been gathered (valid$)? Has data been written (written$)?
   real(rp) :: orb_sum(6) = 0    ! Orbit average
   real(rp) :: orb2_sum(6,6) = 0
   real(rp) :: spin_sum(3) = 0   ! Spin
@@ -651,8 +654,10 @@ endif
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
 
 if (lttp%mpi_rank == master_rank$) then
-  print '(a, i8)',   'n_particle      = ', size(bunch%particle)
-  print '(a, i8)',   'ltt%n_turns     = ', lttp%n_turns
+  print '(a, i8)',   'n_particle                = ', size(bunch%particle)
+  print '(a, i8)',   'ltt%n_turns               = ', lttp%n_turns
+  print '(a, i8)',   'ltt%output_every_n_turns  = ', lttp%output_every_n_turns
+  print '(a, i8)',   'ltt%averaging_window      = ', lttp%averaging_window
 endif
 
 do n = 1, size(bunch%particle)
@@ -678,7 +683,7 @@ call ltt_calc_bunch_sums (lttp, 0, bunch, sum_data_arr)
 
 time0 = 0
 
-do i_turn = 1, lttp%n_turns + lttp%averaging_window/2
+do i_turn = 1, lttp%n_turns + lttp%averaging_window/2 + 1
   select case (lttp%tracking_method)
   case ('MAP')
     do ip = 1, size(bunch%particle)
@@ -729,9 +734,12 @@ do i_turn = 1, lttp%n_turns + lttp%averaging_window/2
   if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
   call ltt_calc_bunch_sums (lttp, i_turn, bunch, sum_data_arr)
 
+  ! If using mpi then this data will all be written out at the end.
+  ! Here partial writes are used so the user can monitor progress if they want.
   if (.not. lttp%using_mpi) then
-    call ltt_write_bunch_averages(lttp, i_turn, sum_data_arr)
-    call ltt_write_sigma_matrix (lttp, i_turn, sum_data_arr)
+    call ltt_write_bunch_averages(lttp, sum_data_arr)
+    call ltt_write_sigma_matrix (lttp, sum_data_arr)
+    where (sum_data_arr%status == valid$) sum_data_arr%status = written$
   endif
 end do
 
@@ -930,6 +938,8 @@ write (iu,  '(3a)')      '# lattice = "', trim(lttp%lat_file), '"'
 write (iu,  '(3a)')      '# simulation_mode = "', trim(lttp%simulation_mode), '"'
 write (iu,  '(a, i8)')   '# n_particle                = ', n_particle
 write (iu,  '(a, i8)')   '# n_turns                   = ', lttp%n_turns
+write (iu,  '(a, i8)')   '# output_every_n_turns      = ', lttp%output_every_n_turns
+write (iu,  '(a, i8)')   '# averaging_window          = ', lttp%averaging_window
 write (iu,  '(a, l1)')   '# Radiation_Damping         = ', bmad_com%radiation_damping_on
 write (iu,  '(a, l1)')   '# Radiation_Fluctuations    = ', bmad_com%radiation_fluctuations_on
 write (iu,  '(a, l1)')   '# Spin_tracking_on          = ', bmad_com%spin_tracking_on
@@ -960,61 +970,65 @@ integer i, j, ix, i_turn, this_turn, n2w
 !
 
 if (lttp%averages_output_file == '') return
-n2w = lttp%averaging_window/2   ! Averaging window half width
 
 select case (lttp%output_every_n_turns)
 ! Stats only for end.
 case (-1)
-  this_turn = in_this_window(i_turn, lttp%n_turns, n2w)
-  if (this_turn < 1) return   ! Out of window. Do not do any averaging
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(1))
-  sd => sum_data_arr(1)
+  ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
+  if (ix < 1) return   ! Out of window. Do not do any averaging
 ! Stats for beginning and end
 case (0)
-  this_turn = in_this_window(i_turn, lttp%n_turns, n2w)
-  if (this_turn < 0) return   ! Out of window. Do not do any averaging
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:1))
-  ix = this_turn/lttp%output_every_n_turns
-  sd => sum_data_arr(ix)
-
+  ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
+  if (ix < 0) return   ! Out of window. Do not do any averaging
 ! Stats for every %output_every_n_turns 
 case default
-  this_turn = in_this_window(i_turn, lttp%output_every_n_turns, n2w)
-  if (this_turn < 0) return   ! Out of window. Do not do any averaging
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:lttp%n_turns / lttp%output_every_n_turns))
-  ix = this_turn/lttp%output_every_n_turns
-  sd => sum_data_arr(ix)
+  ix = in_this_window(i_turn, lttp%output_every_n_turns, lttp%averaging_window, sum_data_arr)
+  if (ix < 0) return   ! Out of window. Do not do any averaging
 end select
 
 !
 
+sd => sum_data_arr(ix)
 sd%n_live = count(bunch%particle%state == alive$)
 sd%n_count = sd%n_count + sd%n_live
-sd%i_turn = i_turn
 
 do i = 1, 6
-  sd%orb_sum(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) 
+  sd%orb_sum(i) = sd%orb_sum(i) + sum(bunch%particle%vec(i), bunch%particle%state == alive$) 
   do j = i, 6
-    sd%orb2_sum(i,j) = sum(bunch%particle%vec(i) * bunch%particle%vec(j), bunch%particle%state == alive$) 
+    sd%orb2_sum(i,j) = sd%orb2_sum(i,j) + sum(bunch%particle%vec(i) * bunch%particle%vec(j), bunch%particle%state == alive$) 
   enddo
 enddo
 
 do i = 1, 3
-  sd%spin_sum(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$)
+  sd%spin_sum(i) = sd%spin_sum(i) + sum(bunch%particle%spin(i), bunch%particle%state == alive$)
 enddo
 
 !-------------------------------------------------------------------------------------------
 contains
 
-function in_this_window(i_turn, n_every, n2w) result (this_turn)
+function in_this_window(i_turn, n_every, window_width, sum_data_arr) result (ix_this)
 
-integer i_turn, n_every, n2w, this_turn, n
+type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
+integer i_turn, n_every, window_width, n2w, n, ix_this
 
-this_turn = nint(i_turn * 1.0_rp / n_every)
-if (i_turn < this_turn - n2w .or. i_turn > this_turn + n2w) then
-  this_turn = -1  ! Out of window
+!
+
+ix_this = nint(i_turn * 1.0_rp / n_every)
+n2w = window_width/2
+
+do n = lbound(sum_data_arr,1), floor(real(i_turn-n2w)/n_every)
+  if (sum_data_arr(n)%status == new$) sum_data_arr(n)%status = valid$
+enddo
+
+if (i_turn < ix_this*n_every - n2w .or. i_turn > ix_this*n_every + n2w) then
+  ix_this = -1  ! Out of window
   return
 endif
+
+if (ix_this >= lbound(sum_data_arr,1) .and. ix_this <= ubound(sum_data_arr,1)) sum_data_arr(ix_this)%i_turn = ix_this * n_every
 
 end function in_this_window
 
@@ -1024,64 +1038,40 @@ end subroutine ltt_calc_bunch_sums
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_bunch_averages (lttp, i_turn, sum_data_arr)
+subroutine ltt_write_bunch_averages (lttp, sum_data_arr)
 
 type (ltt_params_struct) lttp
 type (ltt_sum_data_struct), target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 
 real(rp) sigma(6)
-integer i_turn, i, iu, ix, ix_last
+integer i, iu, ix
 
-logical new
-
-! i_turn = -1 is used with mpi version.
-
-if (lttp%averages_output_file == '') return
-
-if (i_turn == -1) then
-  new = .true.
-  ix_last = -1
-else
-  select case (lttp%output_every_n_turns)
-  case (-1)
-    if (i_turn /= lttp%n_turns) return
-    new = .true.
-    ix_last = 1
-  case (0)
-    if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
-    ix_last = i_turn/lttp%output_every_n_turns
-    new = (i_turn == 0)
-  case default
-    if (modulo(i_turn, lttp%output_every_n_turns) /= 0) return
-    ix_last = i_turn/lttp%output_every_n_turns
-    new = (i_turn == lttp%output_every_n_turns)
-  end select
-endif 
 
 !
 
 iu = lunget()
 
-if (new) then
+if (sum_data_arr(1)%status == valid$) then
   open (iu, file = lttp%averages_output_file, recl = 300)
   write (iu, '(a1, a8, a9, a14, 3a14, 12a14)') '#', 'Turn', 'N_live', 'Polarization', &
-                     '<Sx>', '<Sy>', '<Sz>', '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', &
-                     'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz'
+                   '<Sx>', '<Sy>', '<Sz>', 'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
+                   '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>'
+                     
 else
   open (iu, file = lttp%averages_output_file, recl = 300, access = 'append')
 endif
 
-! If i_turn = -1 (mpi) then dump all the averages.
+!
 
-do ix = lbound(sum_data_arr, 1), ubound(sum_data_arr, 1)
-  if (i_turn /= -1 .and. ix /= ix_last) cycle
+do ix = 1, size(sum_data_arr)
+  if (sum_data_arr(ix)%status /= valid$) cycle
   sd => sum_data_arr(ix)
   if (sd%n_count == 0) exit
   forall (i = 1:6) sigma(i) = sd%orb2_sum(i,i)/sd%n_count - (sd%orb_sum(i)/sd%n_count)**2
   sigma = sqrt(max(0.0_rp, sigma))
-  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 12es14.6)') sd%i_turn, sd%n_count, &
-          norm2(sd%spin_sum/sd%n_count), sd%spin_sum/sd%n_count, sd%orb_sum/sd%n_count, sigma
+  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 12es14.6)') sd%i_turn, sd%n_live, &
+          norm2(sd%spin_sum/sd%n_count), sd%spin_sum/sd%n_count, sigma, sd%orb_sum/sd%n_count
 enddo
 
 !
@@ -1094,45 +1084,24 @@ end subroutine ltt_write_bunch_averages
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_sigma_matrix (lttp, i_turn, sum_data_arr)
+subroutine ltt_write_sigma_matrix (lttp, sum_data_arr)
 
 type (ltt_params_struct) lttp
 type (ltt_sum_data_struct), target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
 
 real(rp) sigma(21)
-integer i_turn, ix, i, j, k, iu, ix_last
-logical new
+integer ix, i, j, k, iu
 
 ! i_turn = -1 is used with mpi version.
 
 if (lttp%sigma_matrix_output_file == '') return
 
-if (i_turn == -1) then
-  new = .true.
-  ix_last = -1
-else
-  select case (lttp%output_every_n_turns)
-  case (-1)
-    if (i_turn /= lttp%n_turns) return
-    new = .true.
-    ix_last = 1
-  case (0)
-    if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
-    ix_last = i_turn/lttp%output_every_n_turns
-    new = (i_turn == 0)
-  case default
-    if (modulo(i_turn, lttp%output_every_n_turns) /= 0) return
-    ix_last = i_turn/lttp%output_every_n_turns
-    new = (i_turn == lttp%output_every_n_turns)
-  end select
-endif 
-
 !
 
 iu = lunget()
 
-if (new) then
+if (sum_data_arr(1)%status == valid$) then
   open (iu, file = lttp%sigma_matrix_output_file, recl = 400)
   write (iu, '(a1, a8, a9, 21a14)') '#', 'Turn', 'N_live', &
     '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
@@ -1141,10 +1110,10 @@ else
   open (iu, file = lttp%sigma_matrix_output_file, recl = 400, access = 'append')
 endif
 
-! If i_turn = -1 (mpi) then dump all the averages.
+!
 
-do ix = lbound(sum_data_arr, 1), ubound(sum_data_arr, 1)
-  if (i_turn /= -1 .and. ix /= ix_last) cycle
+do ix = 1, size(sum_data_arr)
+  if (sum_data_arr(ix)%status /= valid$) cycle
   sd => sum_data_arr(ix)
   if (sd%n_count == 0) exit
   k = 0
