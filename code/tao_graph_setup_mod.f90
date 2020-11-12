@@ -1755,12 +1755,7 @@ case ('s')
 
   ! Smooth curves using expressions...
 
-  if (smooth_curve .and. curve%data_type(1:11) == 'expression:') then
-    call tao_smooth_curve_with_expression_calc (curve)
-
-  ! Smooth curves not using expressions...
-
-  elseif (smooth_curve) then
+  if (smooth_curve) then
     ! allocate data space
 
     call re_allocate (curve%y_line, n_curve_pts) 
@@ -1909,15 +1904,17 @@ type (bunch_params_struct) :: bunch_params
 type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
-type (ele_struct) ele, ele_dum
+type (ele_struct), target :: ele, ele_dum
 type (ele_struct), pointer :: ele_here, ele_ref
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
 type (all_pointer_struct) a_ptr
+type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign, vec3(3), r_bunch, ds, dt, time
+real(rp), allocatable :: val_arr(:)
 
 integer i, ii, ix, j, k, np, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_track
 integer cache_status
@@ -1983,7 +1980,9 @@ s_last = ele_ref%s
 orbit_last = orbit
 
 ix = index(data_type, '.')
-if (ix == 0) then
+if (data_type(1:11) == 'expression:') then
+  data_type_select = 'expression'
+elseif (ix == 0) then
   data_type_select = data_type
 else
   data_type_select = data_type(:ix)
@@ -2292,6 +2291,12 @@ case ('emit.')
     goto 9000  ! Error message & Return
   end select
 
+case ('expression')
+  ele_here => ele
+  call tao_evaluate_expression (data_type(12:), 1, .false., val_arr, info, err, .true., &
+            dflt_source = 'lat', dflt_ele = ele_here, dflt_uni = tao_lat%u%ix_uni);  if (err) goto 9000  ! Error message & Return
+  value = val_arr(1)
+
 case ('momentum_compaction')
   call make_v_mats (ele_ref, v_mat, v_inv_mat)
   eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
@@ -2391,52 +2396,6 @@ ok = .false.
 end subroutine this_value_at_s
 
 end subroutine tao_calc_data_at_s
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_smooth_curve_with_expression_calc (curve)
-!
-! Routine to calculate smooth curve data points for a curve that uses an expression for the data_type.
-!
-! Input:
-!   curve     -- tao_curve_struct: 
-!
-! Output:
-!   curve     -- tao_curve_struct: Curve with data filled in.
-!-
-
-subroutine tao_smooth_curve_with_expression_calc (curve)
-
-implicit none
-
-type (tao_curve_struct) curve
-
-! x1 and x2 are the longitudinal end points of the plot
-
-!radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
-!bmad_com%radiation_fluctuations_on = .false.
-!
-!x1 = branch%ele(0)%s
-!x2 = branch%ele(n_ele_track)%s
-!len_tot = x2 - x1
-!if (curve%g%x%min /= curve%g%x%max) then
-!  if (branch%param%geometry == closed$) then
-!    x1 = min(branch%ele(n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
-!    x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s-len_tot))
-!  else
-!    x1 = min(branch%ele(n_ele_track)%s, max(curve%g%x%min, x1))
-!    x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s))
-!  endif
-!endif
-
-!
-
-
-
-
-end subroutine tao_smooth_curve_with_expression_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
