@@ -423,7 +423,7 @@ if (present(ele)) then
     if (logic_option(.true., shift_vec6)) then
       if (ele%key == beginning_ele$) then
         orb%vec(6) = orb%vec(6) + (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
-      elseif ((ele%key == e_gun$ .and. element_end == upstream_end$) .or. (ele%key == marker$ .and. ele%value(e_tot_ref_init$) /= 0)) then
+      elseif ((ele%key == e_gun$ .and. orb%location == upstream_end$) .or. (ele%key == marker$ .and. ele%value(e_tot_ref_init$) /= 0)) then
         orb%vec(6) = orb%vec(6) + (ele%value(p0c_ref_init$) - ele%value(p0c$)) / ele%value(p0c$)
       endif
     endif
