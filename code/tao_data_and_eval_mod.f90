@@ -156,13 +156,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
 
   if (use_dflt_ele) then
-    if (associated(dflt_ele_start)) then
-      n_loc = dflt_ele%ix_ele - dflt_ele_start%ix_ele + 1
-    else
-      n_loc = 1
+    n_loc = 1
+    if (present(dflt_ele_start)) then
+      if (associated(dflt_ele_start)) then
+        n_loc = dflt_ele%ix_ele - dflt_ele_start%ix_ele + 1
+      endif
     endif
-    if (associated(dflt_ele_ref)) then
-      datum%ix_ele_ref = dflt_ele_ref%ix_ele
+
+    if (present(dflt_ele_ref)) then
+      if (associated(dflt_ele_ref)) then
+        datum%ix_ele_ref = dflt_ele_ref%ix_ele
+      endif
     endif
 
   else
@@ -186,11 +190,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, n_loc
     if (use_dflt_ele) then
       datum%ix_branch = dflt_ele%ix_branch
-      if (associated(dflt_ele_start)) then
-        datum%ix_ele = dflt_ele_start%ix_ele + j - 1
-      else
-        datum%ix_ele = dflt_ele%ix_ele
+      datum%ix_ele = dflt_ele%ix_ele
+      if (present(dflt_ele_start)) then
+        if (associated(dflt_ele_start)) then
+          datum%ix_ele = dflt_ele_start%ix_ele + j - 1
+        endif
       endif
+
     else
       datum%ele_name = eles(j)%ele%name
       datum%ix_ele = eles(j)%ele%ix_ele
