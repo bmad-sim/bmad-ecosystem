@@ -3963,8 +3963,7 @@ end function tao_pointer_to_datum_ele
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack, &
-!                             print_err, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
+! Subroutine tao_to_real (expression, value, err_flag)
 !
 ! Mathematically evaluates an expression.
 !
@@ -3993,7 +3992,7 @@ call tao_evaluate_expression (expression, 1, .false., vec, info, err_flag)
 if (err_flag) return
 value = vec(1)
 
-end subroutine
+end subroutine tao_to_real
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4001,7 +4000,7 @@ end subroutine
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, info, err_flag, &
 !      print_err, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
-!      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
+!      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -4019,6 +4018,7 @@ end subroutine
 !   dflt_ele_ref    -- ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start  -- ele_struct, pointer, optional: Default start element for ranges.
 !   dflt_ele        -- ele_struct, pointer, optional: Default element to evaluate at.
+!   dflt_orbit      -- coord_struct, optional: Default orbit to evaluate at.
 !   dflt_dat_or_var_index -- character(*), optional: Default datum or variable index to use.
 !   dflt_uni        -- integer, optional: Default universe to use. If 0 or not present, use viewed universe.
 !   dflt_eval_point -- integer, optional: Default eval_point. anchor_end$ (default), anchor_center$, or anchor_beginning$.
@@ -4039,7 +4039,7 @@ end subroutine
 
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, info, err_flag, &
                   print_err, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, &
-                  dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
+                  dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
 
 use random_mod
 use expression_mod
@@ -4047,6 +4047,7 @@ use expression_mod
 type (tao_eval_stack1_struct), save :: stk(100)
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
+type (coord_struct), optional :: dflt_orbit
 type (tao_expression_info_struct), allocatable :: info(:)
 
 integer, optional :: dflt_uni, dflt_eval_point
@@ -4334,7 +4335,7 @@ parsing_loop: do
     else
       call pushit (stk%type, i_lev, numeric$)
       call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, default_source, &
-             dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
+             dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -4382,7 +4383,7 @@ parsing_loop: do
     endif
     call pushit (stk%type, i_lev, numeric$)
     call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, default_source, &
-            dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset)
+            dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -4555,7 +4556,7 @@ end subroutine tao_evaluate_expression
 recursive &
 subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err, dflt_component, &
                     dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, &
-                    dflt_eval_point, dflt_s_offset)
+                    dflt_eval_point, dflt_s_offset, dflt_orbit)
 
 type (tao_eval_stack1_struct) stack, stack2
 type (tao_real_pointer_struct), allocatable :: re_array(:)
@@ -4567,6 +4568,7 @@ type (tao_data_struct), pointer :: d
 type (tao_var_struct), pointer :: v
 type (tao_lattice_struct), pointer :: tao_lat
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
+type (coord_struct), optional :: dflt_orbit
 
 real(rp), optional :: dflt_s_offset
 
@@ -4686,6 +4688,13 @@ if (ix /= 0) then
   endif
 endif
 
+! source = "at_ele" is used for plotting. In this case, dflt_ele and dflt_orbit will be present.
+
+if (source == 'at_ele') then
+  call re_allocate(stack%value, 1)
+  stack%value(1) = tao_bmad_parameter_value (str, dflt_ele, dflt_orbit, err_flag)
+  return
+endif
 
 ! Look for a lat datum.
 
