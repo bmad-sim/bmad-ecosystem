@@ -379,10 +379,10 @@ A program unit is a module such as a subroutine, function, or program.
 the appropriate \vn{use} statement(s) need to appear at the top of the unit to import the
 appropriate modules. This should be a simple matter but, due to historical reasons, \bmad module
 dependencies are somewhat convoluted. At some point in the future this will be straightened out
-but, for now, the following serves as a guide in how to handle things.
+but, for now, the following serves as a guide on how to handle things.
 
 In many cases, a ``\vn{use bmad}'' statement is all that is needed. If there is a problem, an error
-message will be generated at the linking stage. The error message might look like:
+message will be generated at the program linking stage. The error message might look like:
 \begin{example}
   [100%] Linking Fortran executable /home/dcs16/linux_lib/production/bin/test
   CMakeFiles/test-exe.dir/test.f90.o: In function `MAIN__':
@@ -399,12 +399,12 @@ necessary \vn{use} statement. To find the correct \vn{use} statement, use the \v
   File: ../bmad/modules/write_lat_file_mod.f90
       subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
 \end{example}
-This shows that the subroutine lives in the file \vn{write_lat_file_mod.f90} the
-needed module name is the file name minus the \vn{.f90} suffix.\footnote
+This shows that the subroutine lives in the file \vn{write_lat_file_mod.f90}. The coding rule that
+\bmad follows is that the module name is the file name minus the \vn{.f90} suffix.\footnote
   {
 Be aware. PTC code does not follow this logic.
   }
-So the needed \vn{use} statement in this case is:
+Thus the needed \vn{use} statement in this case is:
 \begin{example}
   use write_lat_file_mod
 \end{example}
@@ -421,7 +421,8 @@ here the error message references
   write_lat_file_mod_mp_write_bmad_lattice_file_
 \end{example}
 which is to say that the linker knows to look in the module \vn{write_lat_file_mod} for the
-subroutine. So here the problem is not a missing use statement but rather the problem is that the
+subroutine. Here the problem is not a missing use statement but rather the problem is that the
 linker cannot find the module itself. This indicates something like a library is missing in the list
-of libraries to link to or the order of libraries to link to is wrong. Further documentation on how
+of libraries to link to or the order of libraries to link to is wrong. This kind of problem
+generally happens with libraries other than the \bmad library itself. Further documentation on how
 the list of libraries to link to is defined is contained on the \bmad web site\cite{b:bmad.web}.
