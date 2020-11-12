@@ -1920,8 +1920,8 @@ integer i, ii, ix, j, k, np, expnt(6), ix_ele, ix_ref, ix_branch, idum, n_ele_tr
 integer cache_status
 integer, parameter :: loading_cache$ = 1, using_cache$ = 2
 
-character(40) data_type, name, sub_data_type
-character(40) data_type_select, data_source
+character(40) name, sub_data_type, data_type_select, data_source
+character(200) data_type
 character(*), parameter :: r_name = 'tao_calc_data_at_s'
 logical err, good(:), first_time, radiation_fluctuations_on, ok, gd
 
