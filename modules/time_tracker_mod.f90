@@ -255,7 +255,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     endif
   endif
 
-  if (orb%state /= alive$) return
+  if (orb%state /= alive$) then
+    err_flag = .false.
+    return
+  endif
 
   if (orb%direction /= old_direction) then
     call calc_next_fringe_edge (ele, s_fringe_edge, fringe_info, orb, time_tracking = .true.)

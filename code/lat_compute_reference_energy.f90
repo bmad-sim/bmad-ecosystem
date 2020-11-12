@@ -205,7 +205,12 @@ do ib = 0, ubound(lat%branch, 1)
     gun_ele%value(p0c_start$)   = gun_ele%value(p0c$)
 
     do it = 1, 3
-      call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.); if (err) return
+      call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.)
+      if (err) then
+        call out_io (s_fatal$, r_name, 'AUTOSCALE FAILED FOR ELEMENT: ' // ele%name)
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
 
       call init_coord (start_orb, zero6, gun_ele, upstream_end$)
       call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
