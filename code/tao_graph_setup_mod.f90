@@ -191,9 +191,6 @@ curve_loop: do k = 1, size(graph%curve)
   ! How many good points?
 
   if (size(scratch%x) /= size(scratch%y)) then
-    call out_io (s_error$, r_name, &
-                  'ARRAY SIZES ARE NOT THE SAME FOR BOTH AXES.', &
-                  'FOR: ' // tao_curve_name(curve))
     call tao_set_curve_invalid (curve, 'ARRAY SIZES ARE NOT THE SAME FOR BOTH AXES.')
     cycle
   endif
@@ -1178,6 +1175,7 @@ type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
 type (ele_struct), pointer :: ele, ele1, ele2, slave
 type (branch_struct), pointer :: branch
+type (tao_curve_array_struct), allocatable :: curves(:)
 
 real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx
 real(rp), allocatable :: value_arr(:)
@@ -1311,8 +1309,8 @@ case ('expression')
   !
 
   if (curve%draw_line) then
-    call re_allocate (curve%y_line,  n_dat) ! allocate space for the data
     call re_allocate (curve%x_line,  n_dat) ! allocate space for the data
+    call re_allocate (curve%y_line,  n_dat) ! allocate space for the data
     curve%x_line = curve%x_symb
     curve%y_line = curve%y_symb
   else
@@ -1529,10 +1527,66 @@ case ('data')
     enddo
 
   else
-    call tao_set_curve_invalid (curve, 'UNKNOWN AXIS TYPE!')
+    call tao_set_curve_invalid (curve, 'UNKNOWN X_AXIS_TYPE: ' // quote(plot%x_axis_type))
     return
   endif
 
+!----------------------------------------------------------------------------
+! Case: data_source is another curve.
+
+case ('curve')
+
+  if (plot%x_axis_type /= 'curve') then
+    call tao_set_curve_invalid (curve, 'IF data_source IS SET TO "CURVE" THEN THE PLOT''S x_axis_type MUST BE SET TO "CURVE".', .true.)
+    return
+  endif
+
+  call tao_find_plots (err, curve%data_type, 'REGION', curve = curves, blank_means_all = .true., only_visible = .false.)
+  if (err .or. size(curves) < 2) then
+    call tao_set_curve_invalid (curve, 'CANNOT LOCATE CURVES CORRESPONDING TO: ' // curve%data_type)
+    return
+  endif
+
+  if (size(curves) > 2) then
+    call tao_set_curve_invalid (curve, 'TOO MANY CURVES ASSOCIATED WITH: ' // curve%data_type)
+    return
+  endif
+
+  ! Line setup
+
+  if (curve%draw_line) then
+    if (.not. allocated(curves(1)%c%y_line) .or. .not. allocated (curves(2)%c%y_line)) then
+      call tao_set_curve_invalid (curve, 'DRAW_LINE = T BUT ASSOCIATED CURVES HAVE NO LINE DATA.')
+      return
+    endif
+
+    n = size(curves(1)%c%y_line)
+    call re_allocate (curve%x_line, n)
+    call re_allocate (curve%y_line, n)
+    curve%x_line = curves(1)%c%y_line
+    curve%y_line = curves(2)%c%y_line
+  else
+    if (allocated (curve%x_line)) deallocate (curve%x_line, curve%y_line)
+  endif
+
+  ! Curve setup
+
+  if (curve%draw_symbols) then
+    if (.not. allocated(curves(1)%c%y_symb) .or. .not. allocated (curves(2)%c%y_symb)) then
+      call tao_set_curve_invalid (curve, 'DRAW_SYMBOLS = T BUT ASSOCIATED CURVES HAVE NO SYMBOL DATA.')
+      return
+    endif
+
+    n = size(curves(1)%c%y_symb)
+    call re_allocate (curve%x_symb, n)
+    call re_allocate (curve%y_symb, n)
+    call re_allocate (curve%ix_symb, n)
+    curve%x_symb  = curves(1)%c%y_symb
+    curve%y_symb  = curves(2)%c%y_symb
+    curve%ix_symb = curves(1)%c%ix_symb
+  else
+    if (allocated (curve%x_symb)) deallocate (curve%x_symb, curve%y_symb, curve%ix_symb)
+  endif
 
 !----------------------------------------------------------------------------
 ! Case: data_source is a var_array
@@ -2594,27 +2648,31 @@ end subroutine tao_curve_datum_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_set_curve_invalid (curve, why_invalid)
+! Subroutine tao_set_curve_invalid (curve, why_invalid, print_err)
 !
 ! Routine to set curve%valid to False.
 !
 ! Input:
 !   curve       -- tao_curve_struct: Curve to set.
 !   why_invalid -- character(*): Invalid information.
+!   print_err   -- logical, optional: If present and True then also print an error message.
 !
 ! Output:
 !   curve       -- tao_curve_struct: Curve properly set.
 !-
 
-subroutine tao_set_curve_invalid (curve, why_invalid)
+subroutine tao_set_curve_invalid (curve, why_invalid, print_err)
 
 type (tao_curve_struct) curve
 character(*) why_invalid
+logical, optional :: print_err
+character(*), parameter :: r_name = 'tao_set_curve_invalid'
 
 !
 
 curve%valid = .false.
 curve%why_invalid = trim(curve%name) // ': ' // why_invalid
+if (logic_option(.false., print_err)) call out_io (s_error$, r_name, why_invalid, 'FOR CURVE: ' // tao_curve_name(curve))
 
 end subroutine tao_set_curve_invalid
 

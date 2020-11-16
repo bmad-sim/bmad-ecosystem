@@ -290,7 +290,7 @@ type tao_plot_struct
   logical :: autoscale_gang_x = .true.             ! scale cmd scales graphs together?
   logical :: autoscale_gang_y = .true.             ! scale cmd scales graphs together?
   logical :: list_with_show_plot_command = .true.  ! False used for default plots to shorten the output of "show plot"
-  logical :: phantom = .false.                     ! True used to insert info into output of "show plot"
+  logical :: phantom = .false.                     ! Used by tao_plot_init to add info lines to "show plot -templates"
   logical :: default_plot = .false.                ! One of Tao's default plots? 
 end type
 
@@ -300,11 +300,12 @@ end type
 ! Eg: %location = (0.0, 1.0, 0.5, 1.0) gives the top half of the page inside the border.
 
 type tao_plot_region_struct
-  character(40) :: name = ''     ! Region name. Eg: 'r13', etc.
-  type (tao_plot_struct) plot    ! Plot associated with this region
-  real(rp) location(4)           ! [x1, x2, y1, y2] location on page.
-  logical :: visible = .false.   ! To draw or not to draw.
+  character(40) :: name = ''       ! Region name. Eg: 'r13', etc.
+  type (tao_plot_struct) plot      ! Plot associated with this region
+  real(rp) location(4)             ! [x1, x2, y1, y2] location on page.
+  logical :: visible = .false.     ! To draw or not to draw.
   logical :: list_with_show_plot_command = .true.  ! False used for default plots to shorten the output of "show plot"
+  logical :: setup_done = .false.  ! Used for plot bookkeeping.
 end type
 
 ! The tao_plot_page_struct defines the whole plotting window. 

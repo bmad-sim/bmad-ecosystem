@@ -432,7 +432,8 @@ do  ! Loop over plot files
       do j = 1, size(curve)
         write (curve(j)%name, '(a, i0)') 'c', j
       enddo
-      if (plt%x_axis_type == 's' .or. plt%x_axis_type == 'lat' .or. plt%x_axis_type == 'var') then
+      if (plt%x_axis_type == 's' .or. plt%x_axis_type == 'lat' .or. &
+                  plt%x_axis_type == 'var' .or. plt%x_axis_type == 'curve') then
         curve(:)%draw_symbols = .false.
       else
         curve(:)%draw_symbols = .true.
@@ -2672,12 +2673,12 @@ plt%name = 'scratch'
 ! Regions
 
 if (.not. allocated(s%plot_page%region)) then
-  allocate (s%plot_page%region(110))
+  allocate (s%plot_page%region(120))
   nr = 0
 else
   nr = size(s%plot_page%region)
   call move_alloc (s%plot_page%region, temp_region)
-  allocate (s%plot_page%region(nr + 110))
+  allocate (s%plot_page%region(nr + 120))
   s%plot_page%region(1:nr) = temp_region
   deallocate(temp_region)
 endif
@@ -2733,6 +2734,15 @@ do k1 = 2, 4
     enddo
   enddo
 
+enddo
+
+! For parametric plots
+
+do i = 0, 9
+  nr = size(s%plot_page%region) - i
+  s%plot_page%region(nr)%name = 'scratch' // int_str(i)
+  s%plot_page%region(nr)%list_with_show_plot_command = .false.
+  s%plot_page%region(nr)%location = [0, 1, 0, 1]
 enddo
 
 !
