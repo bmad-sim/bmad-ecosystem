@@ -1482,7 +1482,7 @@ logical err_flag, found
 
 !
 
-call tao_find_plots (err_flag, plot_name, 'BOTH', plot = plot)
+call tao_find_plots (err_flag, plot_name, 'BOTH', plot = plot, only_visible = .false.)
 if (err_flag) return
 
 if (size(plot) == 0) then

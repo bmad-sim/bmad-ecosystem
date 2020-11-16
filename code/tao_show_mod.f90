@@ -721,7 +721,7 @@ case ('curve')
 
   ! Find particular plot
 
-  call tao_find_plots (err, attrib0, 'BOTH', curve = curve, blank_means_all = .true.)
+  call tao_find_plots (err, attrib0, 'BOTH', curve = curve, blank_means_all = .true., only_visible = .false.)
   if (err) return
 
   ! print info on particular plot, graph, or curve
@@ -1813,7 +1813,7 @@ case ('graph')
     case ('-debug')
       print_debug = .true.
     case default
-      call tao_find_plots (err, switch, 'BOTH', graph = graph, blank_means_all = .true.)
+      call tao_find_plots (err, switch, 'BOTH', graph = graph, blank_means_all = .true., only_visible = .false.)
       if (err) return
       if (size(graph) == 0) then
         nl=1; lines(1) = 'This is not a graph'
@@ -3320,14 +3320,23 @@ case ('plot')
 
   if (attrib0 /= '') then
 
-    call tao_find_plots (err, attrib0, 'BOTH', plot, print_flag = .false.)
+    call tao_find_plots (err, attrib0, 'BOTH', plot, print_flag = .false., only_visible = .false.)
     if (err) then
       nl = 1; lines(nl) = 'CANNOT FIND PLOT WITH NAME: ' // attrib0
       return
     endif
 
-    if (size(plot) > 0) then
-      p => plot(1)%p
+    found = .false.
+    do j = 1, size(plot)
+      p => plot(j)%p
+      if (p%name == '') cycle
+
+      if (found) then
+        nl=nl+1; lines(nl) = ''
+        nl=nl+1; lines(nl) = '======================================='
+        nl=nl+1; lines(nl) = ''
+      endif
+      found = .true.
 
       nl=nl+1; lines(nl) = 'Plot:  ' // p%name
       if (associated(p%r)) then
@@ -3354,8 +3363,9 @@ case ('plot')
       do i = 1, size(p%graph)
         nl=nl+1; write(lines(nl), amt) '   ', quote(p%graph(i)%name)
       enddo
+    enddo
 
-    else
+    if (.not. found) then
       nl=1; lines(1) = 'This is not a name of a plot'
       result_id = 'ERROR'
     endif
@@ -3454,8 +3464,8 @@ case ('plot')
     nl=nl+1; lines(nl) = ''
     if (s%global%plot_on) then
       nl=nl+1; lines(nl) = '                                               Location on Page'
-      nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 x1    x2    y1    y2'  
-      nl=nl+1; lines(nl) = '-----------               -----------------------------------------'
+      nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 x1    x2    y1    y2     Visible'
+      nl=nl+1; lines(nl) = '-----------               -----------------------------------------------------'
     else
       nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 Visible'
       nl=nl+1; lines(nl) = '-----------               ----------------------------'
@@ -3470,15 +3480,15 @@ case ('plot')
       endif
       if (.not. s%global%plot_on) then
         nl=nl+1; write(lines(nl), '(a20, a, a21, l1)') region%name, '<-->  ', region%plot%name, region%visible
-      elseif (region%visible) then
-        nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2)') region%name, '<-->  ', region%plot%name, region%location
-      else
+      elseif (region%plot%name == '') then
         nl=nl+1; write(lines(nl), '(a20, a, 18x, 4f6.2)') region%name, '<-->  ', region%location
+      else
+        nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2, l10)') region%name, '<-->  ', region%plot%name, region%location, region%visible
       endif
     enddo
 
     if (found .and. what == '') then
-      nl=nl+1; write(lines(nl), '(a)') '[Etc... In the interest of brevity, other regions not listed. Use "show plot -regions" for the entire list.]'
+      nl=nl+1; write(lines(nl), '(a)') '[Etc... In the interest of brevity, other plotless regions are not listed. Use "show plot -regions" for the entire list.]'
     endif
 
     result_id = 'plot:'

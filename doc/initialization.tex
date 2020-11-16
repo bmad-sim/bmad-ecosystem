@@ -917,15 +917,13 @@ of the \vn{de} optimizer (\sref{s:tao.opti})
 \end{example}
 See the \bmad manual for more details.
 
-If \vn{ix1_ele_csr} and \vn{ix2_ele_csr} are set, The effect of
-coherent synchrotron radiation is only included in tracking in the
-region from the exit end of the lattice element with index
-\vn{ix1_ele_csr} through the exit end of the lattice element with index
-\vn{ix2_ele_csr}. By restricting the CSR calculation,
-the calculational time to track through a lattice is reduced.
+If \vn{ix1_ele_csr} and \vn{ix2_ele_csr} are set, The effect of coherent synchrotron radiation is
+only included in tracking in the region from the exit end of the lattice element with index
+\vn{ix1_ele_csr} through the exit end of the lattice element with index \vn{ix2_ele_csr}. By
+restricting the CSR calculation, the calculational time to track through a lattice is reduced.
 
-See \sref{s:lat.correction} for more details on
-\vn{global%n_opti_cycles} and \vn{global%n_opti_loops}. 
+See \sref{s:lat.correction} for more details on \vn{global%n_opti_cycles} and
+\vn{global%n_opti_loops}.
 
 %-----------------------------------------------------------------
 \section{Initializing Particle Beams}
@@ -1832,7 +1830,7 @@ page) and defines the ``regions'' where plots go. The syntax of this block is:
 \index{region!name}\index{region!location}\index{place}
 \begin{example}
   &tao_plot_page
-    plot_page%plot_display_type        = <string>  ! Display type: 'X' or 'TK'
+    plot_page%plot_display_type        = <string>  ! Display type: "X" or "TK"
     plot_page%size                     = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border                   = <x1\(_{\dstyle{b}}\)>, <x2\(_{\dstyle{b}}\)>, <y1\(_{\dstyle{b}}\)>, <y2\(_{\dstyle{b}}\)>, "<units>"
     plot_page%text_height              = <real>   ! height in POINTS. Def = 12
@@ -1938,7 +1936,7 @@ of the plot area. That is, these four number should be in the range $[0, 1]$.  R
 any one can define as many regions as one likes.
 
 Besides the regions that the user sets up in the \vn{tao_plot_page} namelist, \tao defines a number
-of default regions whose names begin with the letter '\vn{r}'. Use the \vn{show plot} command
+of default regions whose names begin with the letter ``\vn{r}''. Use the \vn{show plot} command
 (\sref{s:plot}) to view a list of these plots.
 
 When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a plot (using
@@ -1959,7 +1957,8 @@ smooth curve to use in the computation of other smooth curves. \tao will only do
 that have \vn{plot_page%n_curve_pts} number of points. Depending upon the circumstances, setting
 \vn{plot%n_curve_pts} for individual plots may slow down plotting calculations significantly.
 
-\vn{place(i)} determines the initial placement of plots.
+The \vn{place(i)} commands, $i = 1,2,3,\ldots$ determine the initial placement of plots. The initial
+placement can be modified while \tao is running using the \vn{place} command (\sref{s:place}).
 
 \vn{default_plot} sets the defaults for any \vn{plot}s defined in the \vn{tao_template_plot}
 namelists (\sref{s:template}). Similarly, \vn{default_graph} sets defaults for the \vn{graph}
@@ -2065,14 +2064,18 @@ that this name not contain any blank spaces since \tao uses this fact in parsing
 \index{ele_index}
 \index{s}
 \begin{example}
-    "index"      ! Data Index
-    "ele_index"  ! Element lattice number index
-    "s"          ! Longitudinal position in the lattice.
-    "data"       ! From a data array
-    "lat"        ! Lattice variable. See \sref{s:plot.var}.
-    "var"        ! Tao variable value. See \sref{s:plot.var}.
-
+    "index"         ! Data Index.
+    "ele_index"     ! Element lattice number index.
+    "s"             ! Longitudinal position in the lattice.
+    "s_expression"  ! s-dependent expression involving lattice parameters.
+    "data"          ! From a data array.
+    "lat"           ! Lattice variable. See \sref{s:plot.var}.
+    "var"           ! Tao variable value. See \sref{s:plot.var}.
+    "phase_space"   ! Set by \tao if graph%type = "phase_space".
+    "none"          ! Set by \tao if graph%type = "key_table".
+    "floor"       ! Set by \tao if graph%type = "floor_plan".
 \end{example}
+
 The \vn{ele_index} switch is used when plotting data arrays. In this
 case the \vn{index} switch refers to the index of the data array and
 \vn{ele_index} refers to the index of the lattice element that the
@@ -2310,8 +2313,8 @@ corresponding the symbol in the \vn{d1_data} or \vn{v1_var} array. These three n
 printed using the \vn{show curve -symbol} command (\sref{s:show}).  \vn{curve%draw_symbol_index}
 determines whether the index number is printed besides the symbol. Use the \vn{set curve} command
 (\sref{s:set}) to toggle the drawing of symbols. The default value for \vn{curve%draw_symbol} is
-False if \vn{plot%x_axis_type} is \vn{"s"} and True otherwise. The
-default\vn{curve%draw_symbol_index} is always False.
+False if \vn{plot%x_axis_type} is \vn{"s"}, \vn{"curve"}, \vn{"lat"}, or \vn{"var"} and True
+otherwise. The default \vn{curve%draw_symbol_index} is always False.
 
 \vn{curve%draw_line} determines whether a curve is drawn through the data point symbols. The
 thickness, style (solid, dashed, etc.), and color of the line can be controlled by setting
@@ -2363,27 +2366,24 @@ evaluated at the reference element.
 \subsection{Graphing a Data Slice}\index{plot!data slice}
 \label{s:graph.data.slice}
 
-The standard data graph, as presented in the previous subsection,
-plots data from a given \vn{d1_data} array. It is also possible to
-graph data that has been ``sliced'' in other ways. For example,
-suppose a number of universes have been established, with each
-universe representing the same machine but with different steerings
-powered. If in each universe an \vn{orbit} \vn{d2_data} structure has
-been defined, an example of a data slice is the collection of
-points (x, y) where:
+Note: Data slicing is a type of parametric plotting. For parametric plotting using curve data see
+section~\sref{s:param.plot}.
+
+The standard data graph, as presented in the previous subsection, plots data from a given
+\vn{d1_data} array. It is also possible to graph data that has been ``sliced'' in other ways. For
+example, suppose a number of universes have been established, with each universe representing the
+same machine but with different steerings powered. If in each universe an \vn{orbit} \vn{d2_data}
+structure has been defined, an example of a data slice is the collection of points (x, y) where:
 \begin{example}
   (x, y) = (<n>@orbit.x[23], <n>@orbit.y[23]),   <n> = 1, ..., n_universe
 \end{example}
-When defining a template for graphing a data slice, the
-plot%x_axis_type is set to \vn{"data"}, and the \vn{graph%type} must
-be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
-\vn{"data"} and the \vn{curve(:)%data_type_x} and
-\vn{curve%data_type} are used to define the x and y axes respectively.
-In the strings given by \vn{<curve%data_type_x} or
-\vn{<curve%data_type}, all substrings that look like \vn{\#ref} are
-eliminated and the string given by \vn{curve%ele_ref_name} is
-substituted in its place.  Similarly, a \vn{\#comp} string is used as a
-place holder for the \vn{graph%component} Example:
+When defining a template for graphing a data slice, the plot%x_axis_type is set to \vn{"data"}, and
+the \vn{graph%type} must be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
+\vn{"data"} and the \vn{curve(:)%data_type_x} and \vn{curve%data_type} are used to define the x and
+y axes respectively.  In the strings given by \vn{<curve%data_type_x} or \vn{<curve%data_type}, all
+substrings that look like \vn{\#ref} are eliminated and the string given by \vn{curve%ele_ref_name}
+is substituted in its place.  Similarly, a \vn{\#comp} string is used as a place holder for the
+\vn{graph%component} Example:
 \begin{example}
   &tao_template_plot
     plot%name = "at_bpm"
@@ -2409,47 +2409,39 @@ place holder for the \vn{graph%component} Example:
     curve(1)%draw_line = F
   /
 \end{example}
-In this example, \vn{curve(1)%data_type_x} expands to
-\vn{"[2:57]@orbit.x[23]|meas-ref"}. That is, the \vn{meas - ref}
-values of \vn{orbit.x[23]} from universes 2 through 57 is used for the
-x-axis.  Similarly, \vn{orbit.y[23]} is used for the y-axis. The
-\vn{set} command (\sref{s:set}) can be used to change
-\vn{curve%ele_ref_name} and \vn{graph%component} strings. 
+In this example, \vn{curve(1)%data_type_x} expands to \vn{"[2:57]@orbit.x[23]|meas-ref"}. That is,
+the \vn{meas - ref} values of \vn{orbit.x[23]} from universes 2 through 57 is used for the x-axis.
+Similarly, \vn{orbit.y[23]} is used for the y-axis. The \vn{set} command (\sref{s:set}) can be used
+to change \vn{curve%ele_ref_name} and \vn{graph%component} strings.
 
-\vn{curve%data_index} sets the index number for the symbol points
-(\sref{s:template}). In the above example, \vn{curve%data_index} is
-set to \vn{"[2:57]@orbit.y[\#ref]|ix_uni"}. The \vn{|ix_uni} component
-will result in the symbol index number being the universe number.
-Additionally, the component \vn{|ix_d1} can be used to specify the
-index in the \vn{d1_data} array, and the component \vn{|ix_ele} can be
-used to specify the lattice element index. Setting the symbol index
-number is important when \vn{curve%draw_symbol_index} is set to True
-so that the symbol index is drawn with the curve. Additionally, the
-command \vn{show curve -symbol} (\sref{s:show}) will print the symbol
+\vn{curve%data_index} sets the index number for the symbol points (\sref{s:template}). In the above
+example, \vn{curve%data_index} is set to \vn{"[2:57]@orbit.y[\#ref]|ix_uni"}. The \vn{|ix_uni}
+component will result in the symbol index number being the universe number.  Additionally, the
+component \vn{|ix_d1} can be used to specify the index in the \vn{d1_data} array, and the component
+\vn{|ix_ele} can be used to specify the lattice element index. Setting the symbol index number is
+important when \vn{curve%draw_symbol_index} is set to True so that the symbol index is drawn with
+the curve. Additionally, the command \vn{show curve -symbol} (\sref{s:show}) will print the symbol
 index number along with the $(x, y)$ coordinates of the symbols.
 
-Arithmetic expressions (\sref{s:arithmetic.exp}) may be mixed with
-explicit datum components in the specification of
-\vn{curve(:)%data_type_x} and \vn{curve(:)%data_type}. Example:
+Arithmetic expressions (\sref{s:arithmetic.exp}) may be mixed with explicit datum components in the
+specification of \vn{curve(:)%data_type_x} and \vn{curve(:)%data_type}. Example:
 \begin{example}
   curve(1)%data_type_x = "[#ref]@orbit.x|model"
   curve(1)%data_type   = "[#ref]@orbit.x|meas-ref"
   curve(1)%ele_ref_name = "3"
 \end{example}
-The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref}
-of \vn{orbit.x} for the data in universe 3. Note: Whenever explicit
-components are specified, the \vn{graph%component} settings are ignored for
-that expression.
+The plots the \vn{model} values of \vn{orbit.x} verses \vn{meas - ref} of \vn{orbit.x} for the data
+in universe 3. Note: Whenever explicit components are specified, the \vn{graph%component} settings
+are ignored for that expression.
 
 %-----------------------------------------------------------------
 \subsection{Plotting With a Variable Parameter on the X-Axis}
 \index{plot!plotting as a function of a variable}
 \label{s:plot.var}
 
-Data can be plotted as a function of a lattice parameter by setting
-\vn{plot%x_axis_type} to \vn{"lat"} (for lattice variables) or
-\vn{"var"} (for \tao variables) and setting \vn{curve(:)%data_type_x}
-to the name of the variable. In this case, the \vn{curve(:)%data_type}
+Data can be plotted as a function of a lattice parameter by setting \vn{plot%x_axis_type} to
+\vn{"lat"} (for lattice variables) or \vn{"var"} (for \tao variables) and setting
+\vn{curve(:)%data_type_x} to the name of the variable. In this case, the \vn{curve(:)%data_type}
 must evaluate to a single number.
 
 Example:
@@ -2469,19 +2461,17 @@ Example:
 \end{example}
 Here the number of curve points has been set to 50 to reduce the evaluation overhead.
 
-Note: \tao treats the \vn{design} and \vn{base} lattices as static so
-that varying a variable will not affect these lattices. Thus,
-constructing a plot with \vn{graph%component} set to, for example,
-\vn{"model - design"} will {\em not} produce a plot that is the
-difference between varying a variable in both \vn{model} and
-\vn{design} lattices. In the case where such a plot is desired, a
-second universe needs to be established. In this case, one would set
-\vn{curve(:)%data_type} to something like
+Note: \tao treats the \vn{design} and \vn{base} lattices as static so that varying a variable will
+not affect these lattices. Thus, constructing a plot with \vn{graph%component} set to, for example,
+\vn{"model - design"} will {\em not} produce a plot that is the difference between varying a
+variable in both \vn{model} and \vn{design} lattices. In the case where such a plot is desired, a
+second universe needs to be established. In this case, one would set \vn{curve(:)%data_type} to
+something like
 \begin{example}
     curve(1)%data_type   = "1@orbit.x[10] - 2@orbit.x[10]"    
 \end{example}
-where the universe \#2 \vn{model} lattice would be setup to be equal
-to the universe \#1 \vn{design} lattice.
+where the universe \#2 \vn{model} lattice would be setup to be equal to the universe \#1 \vn{design}
+lattice.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Lattice Layout}
@@ -2595,7 +2585,7 @@ of this structure can be set to control how a floor plan is drawn. The component
 \begin{example}
   type tao_floor_plan_struct
     rotation             = <real>      ! Rotation of floor plan plot: 1.0 -> 360 deg. 
-    view                 = "<string>"  ! View plane for floor plan plot. default = 'zx'
+    view                 = "<string>"  ! View plane for floor plan plot. default = "zx"
     correct_distortion   = <logical>   ! For Floor Plan plots: Default = F
     flip_label_side      = <logical>   ! Draw element label on other side of element?
     size_is_absolute     = <logical>   ! Shape sizes scaled to absolute dimensions?
@@ -2612,7 +2602,7 @@ A graph is initialized with a \vn{tao_template_graph} namelist (\sref{s:template
     ...
     graph%floor_plan%rotation = 0.5  ! Rotate 180 degrees
     graph%floor_plan%orbit_scale = 100
-    graph%floor_plan%orbit_color = 'red'
+    graph%floor_plan%orbit_color = "red"
     graph%floor_plan%orbit_width = 3
   /
 \end{example}
@@ -2626,12 +2616,12 @@ discontinuity of the reference orbit.
 
 What plane a floor plan is projected onto is determined by the setting of the
 \vn{graph%floor_plan%view} switch. This switch is a two character string.  Each character is either
-'x', 'y', or 'z' and the characters must not be both the same. Default is 'zx'. The first character
+"x", "y", or "z" and the characters must not be both the same. Default is "zx". The first character
 determines which global coordinate is mapped to the horizontal axis of the graph and the second
 character determines which global coordinate is mapped to the vertical axis of the graph. There are
-six possible two character combinations. The default 'zx' setting represents looking at the
-horizontal plane from above. A setting of 'xz' represents looking at the horizontal plane from
-below. The other combinations involving 'y' are only potentially useful if the machine has a significant
+six possible two character combinations. The default "zx" setting represents looking at the
+horizontal plane from above. A setting of "xz" represents looking at the horizontal plane from
+below. The other combinations involving "y" are only potentially useful if the machine has a significant
 vertical extent.
 
 %----------------
@@ -2695,7 +2685,7 @@ Example Floor Plan template:
     graph%y%min = -1 
     graph%floor_plan%correct__distortion = T
     graph%floor_plan%size_is_absolute = T
-    graph%floor_plan%view = 'xz'  ! Looking from beneath
+    graph%floor_plan%view = "xz"  ! Looking from beneath
     graph%floor_plan%orbit_scale = 100
   /
 \end{example}
@@ -2975,23 +2965,23 @@ A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture
 calculation (\sref{s:dynamicaperture}). Example plot setup:
 \begin{example}
 &tao_template_plot
-  plot%name = 'da'
+  plot%name = "da"
   plot%x%min = -20
   plot%x%max =  20
   plot%x%major_div_nominal = 10
-  plot%x%label = 'x (mm)'
-  plot%x_axis_type = 'phase_space'
+  plot%x%label = "x (mm)"
+  plot%x_axis_type = "phase_space"
   plot%n_graph = 1
 /
 
 &tao_template_graph
-  graph%name = 'g1'
-  graph%type = 'dynamic_aperture'
+  graph%name = "g1"
+  graph%type = "dynamic_aperture"
   graph_index = 1
-  graph%title = 'dynamic aperture'
-  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%title = "dynamic aperture"
+  graph%margin =  0.15, 0.06, 0.12, 0.12, "%BOX"
   graph%x_axis_scale_factor = 1000
-  graph%y%label = 'y (mm)'
+  graph%y%label = "y (mm)"
   graph%y%label_offset = .2
   graph%y%max = 0
   graph%y%min = 0
@@ -3003,8 +2993,8 @@ calculation (\sref{s:dynamicaperture}). Example plot setup:
   curve(1)%draw_symbols = F
   curve(2)%draw_symbols = F
   curve(3)%draw_symbols = F
-  curve(3)%data_type = 'physical_aperture'
-  curve(3)%line%color = 'red'
+  curve(3)%data_type = "physical_aperture"
+  curve(3)%line%color = "red"
   curve(3)%line%width = 5 
 /
 \end{example}
@@ -3023,9 +3013,9 @@ beginning of the lattice:
 
 Dynamic aperture curves can have the following \vn{%data_type}:
 \begin{example}
-  'dynamic_aperture' or ''    ! (default) points include the reference orbit
-  'dynamic_aperture_centered' ! points are centered (relative to) the reference orbit
-  'physical_aperture'         ! draws the physical aperture based on x1_limit, etc. 
+  "dynamic_aperture" or ""    ! (default) points include the reference orbit
+  "dynamic_aperture_centered" ! points are centered (relative to) the reference orbit
+  "physical_aperture"         ! draws the physical aperture based on x1_limit, etc. 
 \end{example}
 
 %-----------------------------------------------------------------
@@ -3039,21 +3029,21 @@ are similar to \vn{phase space} plotting (\sref{s:phase.space}). An example is s
 Fig.~\ref{f:histogram}, using the example histogram template:
 \begin{example}
 &tao_template_plot
-  plot%name = 'zhist'
+  plot%name = "zhist"
   plot%x%min = -6
   plot%x%max =  6
-  plot%x%label = 'z (mm)'
+  plot%x%label = "z (mm)"
   plot%n_graph = 1
 /
 
 &tao_template_graph
   graph_index = 1
-  graph%name = 'z'
-  graph%type = 'histogram'
+  graph%name = "z"
+  graph%type = "histogram"
   graph%box = 1, 1, 1, 1
-  graph%title = 'Bunch Histogram: Z'
-  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
-  graph%y%label = 'Current (A)'
+  graph%title = "Bunch Histogram: Z"
+  graph%margin =  0.15, 0.06, 0.12, 0.12, "%BOX"
+  graph%y%label = "Current (A)"
   graph%n_curve = 1
   graph%y%label_offset = .1
   graph%x_axis_scale_factor = 1000.00 !m->mm
@@ -3061,13 +3051,13 @@ Fig.~\ref{f:histogram}, using the example histogram template:
   curve1%hist%density_normalized = T
   curve1%hist%weight_by_charge = T
   curve1%hist%number = 100
-  curve1%line%color = 'blue'
-  curve1%line%pattern = 'dashed'
+  curve1%line%color = "blue"
+  curve1%line%pattern = "dashed"
   curve1%y_axis_scale_factor = 299792458  !Q/m * c_light
-  curve1%data_type = 'z' 
-  curve1%data_source = 'beam_tracking'
+  curve1%data_type = "z" 
+  curve1%data_source = "beam_tracking"
   curve1%ele_ref_name = "BEGINNING"
-  curve1%symbol%type = 'dot'
+  curve1%symbol%type = "dot"
 /
 \end{example}
 
@@ -3078,9 +3068,8 @@ Fig.~\ref{f:histogram}, using the example histogram template:
   \label{f:histogram}
 \end{figure}
 
-For a \vn{"histogram"} type graph, \vn{curve%data_type} determines
-what coordinate is plotted along the x-axis.
-Valid \vn{curve%data_type} values are:
+For a \vn{"histogram"} type graph, \vn{curve%data_type} determines what coordinate is plotted along
+the x-axis.  Valid \vn{curve%data_type} values are:
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \begin{example}
   "x"
@@ -3095,24 +3084,22 @@ Valid \vn{curve%data_type} values are:
   "phase_x"         -- Photon phase along x-axis
   "phase_y"         -- Photon phase along y-axis
 \end{example}
-In this example above, the $x$-axis of the plot will correspond to the
-$z$ phase space coordinate.
+In this example above, the $x$-axis of the plot will correspond to the $z$ phase space coordinate.
 
-The maximum and minimum of the bins is set automatically to fit the data.
-The \vn{curve%hist%number} establishes the number of bins. Alternatively, 
-if \vn{curve%hist%number = 0}, then \vn{curve%hist%width}  establishes
+The maximum and minimum of the bins is set automatically to fit the data.  The
+\vn{curve%hist%number} establishes the number of bins. Alternatively, if \vn{curve%hist%number = 0},
+then \vn{curve%hist%width} establishes
  the width of the histogram bins and sets the number automatically. 
 
-If \vn{curve%hist%density_normalized = T}, then the height of a bin will be
-divided by its width. If \vn{curve%hist%weight_by_charge = T}, then the particle
-charge will be used to bin, otherwise the particle count will be used to bin.
+If \vn{curve%hist%density_normalized = T}, then the height of a bin will be divided by its width. If
+\vn{curve%hist%weight_by_charge = T}, then the particle charge will be used to bin, otherwise the
+particle count will be used to bin.
 
 The \vn{curve%hist%center} will insure that a bin will be centered at this location.
 
 \index{curve!ele_ref_name}
-To change the place in the lattice where the data for the
-\vn{histogram} is evaluated, use the \vn{set curve ele_ref_name}
-command.
+To change the place in the lattice where the data for the \vn{histogram} is evaluated, use the
+\vn{set curve ele_ref_name} command.
 
 If \vn{graph%type} is \vn{"histogram"} then \vn{curve%data_source} 
 must be either:
@@ -3120,44 +3107,37 @@ must be either:
   "beam"
   "multi_turn_orbit"
 \end{example} 
-\vn{"beam"} indicates that the points of the histogram plot
-will be obtained correspond to the positions of the particles within a
-tracked beam. \vn{multi_turn_orbit"} is used for rings where a single
-particle is tracked multiple turns and the position of this particle
-is recorded each turn. In this case, a \vn{d2_data} structure must
-have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
-structure must be called \vn{multi_turn_orbit} and must have
-\vn{d1_data} data arrays for the histogram planes to be plotted. For
-example, if the histogram plot is \vn{x} versus \vn{px}, then there
-must be \vn{d1_data} arrays named \vn{"x"} and \vn{"px"}. The number
-of turns is determined by the setting of \vn{ix_max_data} in the
-\vn{tao_d1_data} namelist (\sref{s:init.data}).
+\vn{"beam"} indicates that the points of the histogram plot will be obtained correspond to the
+positions of the particles within a tracked beam. \vn{multi_turn_orbit"} is used for rings where a
+single particle is tracked multiple turns and the position of this particle is recorded each
+turn. In this case, a \vn{d2_data} structure must have been set up to hold the turn--by--turn
+orbit. This \vn{d2_data} structure must be called \vn{multi_turn_orbit} and must have \vn{d1_data}
+data arrays for the histogram planes to be plotted. For example, if the histogram plot is \vn{x}
+versus \vn{px}, then there must be \vn{d1_data} arrays named \vn{"x"} and \vn{"px"}. The number of
+turns is determined by the setting of \vn{ix_max_data} in the \vn{tao_d1_data} namelist
+(\sref{s:init.data}).
 
 %-----------------------------------------------------------------
 \subsection{Drawing the Beam Chamber Wall}
 \index{beam chamber wall}
 \label{s:beam.wall.draw}
 
-If a beam chamber wall has been defined in the lattice file, This wall
-can be drawn in a \vn{curve} by setting \vn{curve%type} to
-\vn{"beam_chamber_wall"}.
+If a beam chamber wall has been defined in the lattice file, This wall can be drawn in a \vn{curve}
+by setting \vn{curve%type} to \vn{"beam_chamber_wall"}.
 
-Beam chamber walls are drawn, like a \vn{lat_layout}, on a one
-dimensional line as a function of longitudinal position along the
-machine centerline.
+Beam chamber walls are drawn, like a \vn{lat_layout}, on a one dimensional line as a function of
+longitudinal position along the machine centerline.
 
-Note: Use the command \vn{show ele -wall} to print information about the
-beam chamber wall for a particular element.
+Note: Use the command \vn{show ele -wall} to print information about the beam chamber wall for a
+particular element.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Key Table}
 \index{key table}
 \label{s:key.table}
 
-The \vn{key table} is explained more fully in
-Section~\sref{s:key.bind}.  An example is shown in
-Figure~\ref{f:layout.table}. A template to create a key table looks
-like:
+The \vn{key table} is explained more fully in Section~\sref{s:key.bind}.  An example is shown in
+Figure~\ref{f:layout.table}. A template to create a key table looks like:
 \begin{example}
   &tao_template_plot
     plot%name = "table" 
@@ -3171,9 +3151,8 @@ like:
   /
 \end{example}
 
-The number in the upper left corner, to the left of the first column, 
-(\vn{1} in Fig.~\ref{f:layout.table})
-shows the active \vn{key bank}. The columns in the Key Table are:
+The number in the upper left corner, to the left of the first column, (\vn{1} in
+Fig.~\ref{f:layout.table}) shows the active \vn{key bank}. The columns in the Key Table are:
 \begin{example}
   Ix         ! Key index.
   Name       ! Element name whose attribute is bound.
@@ -3185,12 +3164,11 @@ shows the active \vn{key bank}. The columns in the Key Table are:
   Opt        ! Shows if bound attribute is used in an optimization.
 \end{example}
 
-Note that in a \vn{Lattice Layout}, if a displayed element has a bound
-attribute, then the key index number will be displayed just above the
-element's glyph.
+Note that in a \vn{Lattice Layout}, if a displayed element has a bound attribute, then the key index
+number will be displayed just above the element's glyph.
 
-The \vn{key_table} is drawn with respect to the upper left hand corner
-of the region in which it is placed.
+The \vn{key_table} is drawn with respect to the upper left hand corner of the region in which it is
+placed.
 
 %-----------------------------------------------------------------
 \subsection{Phase Space Plotting}
@@ -3211,12 +3189,10 @@ of the region in which it is placed.
   \label{f:phase.space}
 \end{figure}
 
-A \vn{phase space} plot displays a particle or particles phase space
-coordinates at a given location. Phase space plotting is associated
-with a \vn{graph} by setting \vn{graph%type} equal to
-\vn{"phase_space"}. The concepts here are similar to data plotting
-(\sref{s:plot.data}). An example is show in Figure~\ref{f:phase.space}.
-Example Phase Space template:
+A \vn{phase space} plot displays a particle or particles phase space coordinates at a given
+location. Phase space plotting is associated with a \vn{graph} by setting \vn{graph%type} equal to
+\vn{"phase_space"}. The concepts here are similar to data plotting (\sref{s:plot.data}). An example
+is show in Figure~\ref{f:phase.space}.  Example Phase Space template:
 \begin{example}
 &tao_template_plot
   plot%name = "xphase"
@@ -3248,10 +3224,9 @@ Example Phase Space template:
   /
 \end{example}
 
-For a \vn{"phase_space"} type graph, \vn{curve%data_type_x} determines
-what phase space coordinate is plotted along the x-axis and
-\vn{curve%data_type} determines what phase space coordinate is plotted
-along the y-axis. The phase space coordinates are:
+For a \vn{"phase_space"} type graph, \vn{curve%data_type_x} determines what phase space coordinate
+is plotted along the x-axis and \vn{curve%data_type} determines what phase space coordinate is
+plotted along the y-axis. The phase space coordinates are:
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \begin{example}
   "x"
@@ -3266,18 +3241,15 @@ along the y-axis. The phase space coordinates are:
   "phase_x"         -- Photon phase along x-axis
   "phase_y"         -- Photon phase along y-axis
 \end{example}
-In this example above, the $x$-axis of the plot will correspond to the
-$z$ phase space coordinate and the $pz$-axis will correspond to the
-$px$ coordinate.
+In this example above, the $x$-axis of the plot will correspond to the $z$ phase space coordinate
+and the $pz$-axis will correspond to the $px$ coordinate.
 
 \index{curve!ele_ref_name}
-To change the place in the lattice where the data for the
-\vn{phase_space} curve is evaluated, use the \vn{set curve
-ele_ref_name} command.
+To change the place in the lattice where the data for the \vn{phase_space} curve is evaluated, use
+the \vn{set curve ele_ref_name} command.
 
-Points can be colored by another phase space coordinate by activating
-\vn{use_z_color = T}. 
-The available curve options and defaults are:
+Points can be colored by another phase space coordinate by activating \vn{use_z_color = T}.  The
+available curve options and defaults are:
 \begin{example}
   use_z_color = F
   data_type_z = "" 
@@ -3285,13 +3257,11 @@ The available curve options and defaults are:
   z_color1 = 0
   autoscale_z_color = T
 \end{example}
-These can be the init file, or in Tao using the \vn{set curve} command. 
-The \vn{data_type_z} can be set to any of the available phase space coordinates.
-\vn{z_color0} and \vn{z_color1} specify the minimum and maximum of this coordinate
-to be used in the color range. Values above or below this range will be colored
-Black or Grey, respectively. 
-If \vn{autoscale_z_color=T}, then these will be set automatically based on the
-limits of the \vn{data_type_z} coordinate. 
+These can be the init file, or in Tao using the \vn{set curve} command.  The \vn{data_type_z} can be
+set to any of the available phase space coordinates.  \vn{z_color0} and \vn{z_color1} specify the
+minimum and maximum of this coordinate to be used in the color range. Values above or below this
+range will be colored Black or Grey, respectively.  If \vn{autoscale_z_color=T}, then these will be
+set automatically based on the limits of the \vn{data_type_z} coordinate.
 
 If \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source} 
 must be either:
@@ -3300,24 +3270,86 @@ must be either:
   "multi_turn_orbit"
   "twiss"
 \end{example} 
-\vn{"beam"} indicates that the points of the phase space plot
-will be obtained correspond to the positions of the particles within a
-tracked beam. \vn{multi_turn_orbit"} is used for rings where a single
-particle is tracked multiple turns and the position of this particle
-is recorded each turn. In this case, a \vn{d2_data} structure must
-have been set up to hold the turn--by--turn orbit. This \vn{d2_data}
-structure must be called \vn{multi_turn_orbit} and must have
-\vn{d1_data} data arrays for the phase space planes to be plotted. For
-example, if the phase space plot is \vn{x} versus \vn{px}, then there
-must be \vn{d1_data} arrays named \vn{"x"} and \vn{"px"}. The number
-of turns is determined by the setting of \vn{ix_max_data} in the
-\vn{tao_d1_data} namelist (\sref{s:init.data}). Using \vn{"twiss"} as
-the \vn{curve%data_source} indicates that the phase space plot will be
-an ellipse whose shape is based upon the Twiss and coupling
-parameters, and the normal mode emittances. If the normal mode
-emittances have not been computed then a nominal value of 1e-6~m-rad
-is used.
+\vn{"beam"} indicates that the points of the phase space plot will be obtained correspond to the
+positions of the particles within a tracked beam. \vn{multi_turn_orbit"} is used for rings where a
+single particle is tracked multiple turns and the position of this particle is recorded each
+turn. In this case, a \vn{d2_data} structure must have been set up to hold the turn--by--turn
+orbit. This \vn{d2_data} structure must be called \vn{multi_turn_orbit} and must have \vn{d1_data}
+data arrays for the phase space planes to be plotted. For example, if the phase space plot is \vn{x}
+versus \vn{px}, then there must be \vn{d1_data} arrays named \vn{"x"} and \vn{"px"}. The number of
+turns is determined by the setting of \vn{ix_max_data} in the \vn{tao_d1_data} namelist
+(\sref{s:init.data}). Using \vn{"twiss"} as the \vn{curve%data_source} indicates that the phase
+space plot will be an ellipse whose shape is based upon the Twiss and coupling parameters, and the
+normal mode emittances. If the normal mode emittances have not been computed then a nominal value of
+1e-6~m-rad is used.
 
+%-----------------------------------------------------------------
+\subsection{Parametric Plotting}
+\label{s:param.plot}
+
+With parametric plotting, both the $x$ and the $y$ values of the points on a curve are dependent
+upon an independent parameter. An example could be plotting $\alpha_a(s)$ versus $\sqrt{\beta_b(s)}$ over
+some range of the independent parameter $s$. One way to do parametric plotting is to use data slices
+as discussed in section~\sref{s:graph.data.slice}. Another way to do parametric plotting, which is
+discussed in this section, is to setup two plot curves whose $y$ values are the desired dependent
+parameters ($\alpha_x(s)$ and $\beta_y(s)$ say) and then define a parametric curve which uses the
+data from these curves.
+
+The two curves from which the data is to be taken must be in the same graph. The $y$ values from the
+first curve will be taken to define the $x$ coordinate of the parametric curve and the $y$ values
+from the second curve will be taken to define the $y$ coordinate of the parameteric curve. The plot
+that holds these curves will be called the ``\vn{source}'' plot. Example:
+\begin{example}
+  &tao_template_plot
+   plot%name = "src"
+   plot%x_axis_type = "s"
+   plot%n_graph = 1
+  /
+
+  &tao_template_graph
+   graph_index = 1
+   graph%name = "g"
+   graph%n_curve = 2
+   curve(1)%data_source = "lat"
+   curve(1)%data_type = "alpha.a"
+   curve(2)%data_source = "lat"
+   curve(2)%data_type = "expression: sqrt(beta.b)"
+\end{example}
+This defines a source plot called \vn{src} with two curves which will be used in the parametric plot. 
+
+The parametric plot curve references the source curves by setting the parametric curve's
+\vn{data_source} parameter equal to \vn{"curve"} and the parametric curve's \vn{data_type} to the
+graph in the source plot which contains the source curves. For example:
+\begin{example}
+  &tao_template_plot
+    plot%name = "parametric"
+    plot%n_graph = 1
+    plot%x_axis_type = "curve"
+  /
+
+  &tao_template_graph
+    graph_index = 1
+    graph%name = "g1"
+    graph%n_curve = 1
+    curve(1)%data_source = "curve"
+    curve(1)%data_type = "src.g"
+  /
+\end{example}
+The parametric plot's \vn{x_axis_type} needs to be set to \vn{"curve"} along with the parametric
+curve's \vn{data_source}.
+
+When the parametric plot is \vn{placed} in the plot window, \tao will look for a suitable source
+plot to connect with. If \tao does not find a suitable source plot, \tao will place a source plot in
+an unused plot \vn{region} and set the plot to be invisible. The region name will be set to
+\begin{example}
+  <source-plot-name>_<parametric-plot-region>
+\end{example}
+where \vn{<source-plot-name>} is the name of the source plot and \vn{<parametric-plot-region>} is
+the name of the region where the parametric plot has been placed. For example, if the above
+parametric plot is placed in a region called ``\vn{r12}'', the name of the region where the source
+plot is placed will be named ``\vn{src_r12}''. Note: The \vn{show plot} command will show if a plot
+in a given region is visible. The \vn{set plot} (\sref{s:set.plot}) command can be used to toggle 
+plot visibility.
 
 %-----------------------------------------------------------------
 \subsection{QuickPlot Plotting}
@@ -3334,42 +3366,42 @@ the following concepts:
 For text that has an associated \vn{justify} parameter, the \vn{justify} parameter is a two
 character string.  The first character gives the horizontal justification:
 \begin{example}
-   'L' -- Left justify
-   'C' -- Center justify
-   'R' -- Right justify
+   "L" -- Left justify
+   "C" -- Center justify
+   "R" -- Right justify
 \end{example}
 The second character gives the vertical justification
 \begin{example}
-   'B' -- Bottom justify
-   'C' -- Center justify
-   'T' -- Top justify
+   "B" -- Bottom justify
+   "C" -- Center justify
+   "T" -- Top justify
 \end{example}
 
 For text that has an associated \vn{units} parameter, the \vn{units} parameter is a character string
 which is divided up into three parts. The syntax of the \vn{units} parameter is:
 \begin{example}
-   'unit_type/ref_object/corner'
+   "unit_type/ref_object/corner"
 \end{example}
 Where \vn{unit_type} is the type of units:
 \begin{example}
-   '%'       - Percent.
-   'DATA'    - Data units.
-   'MM'      - millimeters.
-   'INCH'    - Inches.
-   'POINTS'  - Printers points (72 points = 1 inch, 1 pt ~ 1 pixel).
+   "%"       - Percent.
+   "DATA"    - Data units.
+   "MM"      - millimeters.
+   "INCH"    - Inches.
+   "POINTS"  - Printers points (72 points = 1 inch, 1 pt ~ 1 pixel).
 \end{example}
 \vn{ref_object} is a reference object (optional except if \vn{unit_type} = "\%").
 \begin{example}
-   'PAGE'  -- Relative to the page.
-   'BOX'   -- Relative to the box.
-   'GRAPH' -- Relative to the graph.
+   "PAGE"  -- Relative to the page.
+   "BOX"   -- Relative to the box.
+   "GRAPH" -- Relative to the graph.
 \end{example}
 And \vn{corner} is the origin location (optional):
 \begin{example}
-   'LB' -- Left Bottom.
-   'LT' -- Left Top.
-   'RB' -- Right Bottom.
-   'RT' -- Right Top.
+   "LB" -- Left Bottom.
+   "LT" -- Left Top.
+   "RB" -- Right Bottom.
+   "RT" -- Right Top.
 \end{example}
 
 \vn{QuickPlot} defines a number of structures to parameterize such things like line and symbol
@@ -3391,8 +3423,8 @@ The \vn{qp_axis_struct} structure defines the properties of a graph axis
     minor_div         = <integer>  ! Minor divisions. 0 = Tao will choose.
     minor_div_max     = <integer>  ! Max minor div number if Tao chooses.
     places            = <integer>  ! Number of digits to print
-    type              = <string>   ! Axis type: 'LINEAR' or 'LOG'.
-    bounds            = <string>   ! Axis bounds: 'GENERAL', 'ZERO_AT_END', etc.
+    type              = <string>   ! Axis type: "LINEAR" or "LOG".
+    bounds            = <string>   ! Axis bounds: "GENERAL", "ZERO_AT_END", etc.
     tick_side         = <integer>  ! 1 = draw to the inside, 0 = both, -1 = outside.
     number_side       = <integer>  ! 1 = draw to the inside, -1 = outside.
     draw_label        = <logical>  ! Draw the label string
@@ -3403,23 +3435,23 @@ The \vn{qp_axis_struct} structure defines the properties of a graph axis
 The \vn{%bounds} parameter sets how the axes min and max values are calculated.
 Possible settings are:
 \begin{example}
-  'ZERO_AT_END'      ! Min or max value is set to zero.
-  'ZERO_SYMMETRIC'   ! Min and max chosen so that max = -min.
-  'GENERAL'          ! No restrictions.
-  'EXACT'            ! The User min/max is used.
+  "ZERO_AT_END"      ! Min or max value is set to zero.
+  "ZERO_SYMMETRIC"   ! Min and max chosen so that max = -min.
+  "GENERAL"          ! No restrictions.
+  "EXACT"            ! The User min/max is used.
 \end{example}
 Example \tao session:
 \begin{example}
-Tao> set graph r13 y%bounds = 'zero_at_end'
+Tao> set graph r13 y%bounds = "zero_at_end"
 Tao> scale r13 200 280   ! Graph bounds set to [0, 300]
 
-Tao> set graph r13 y%bounds = 'zero_symmetric'
+Tao> set graph r13 y%bounds = "zero_symmetric"
 Tao> scale r13 200 280   ! Graph bounds set to [-300, 300]
 
-Tao> set graph r13 y%bounds = 'general'
+Tao> set graph r13 y%bounds = "general"
 Tao> scale r13 20 190    ! Graph bounds set to [0, 200]
 
-Tao> set graph r13 y%bounds = 'exact'
+Tao> set graph r13 y%bounds = "exact"
 Tao> scale r13 20 190    ! Graph bounds set to [20, 190]
 \end{example}
 
@@ -3488,8 +3520,8 @@ The parameters associated with data lines drawn in a graph are contained in the 
 \begin{example}
   type qp_line_struct
     width          = <integer>  ! Default = 1
-    color          = <string>   ! Default = 'black'
-    pattern        = <string>   ! Default = 'solid'
+    color          = <string>   ! Default = "black"
+    pattern        = <string>   ! Default = "solid"
   end type
 \end{example}
 
@@ -3505,10 +3537,10 @@ Pattern names are case insensitive.
 The parameters associated with symbols that are drawn are contained in the \vn{qp_symbol_struct}:
 \begin{example}
   type qp_symbol_struct
-    type          = <string>  ! Default = 'dot'
+    type          = <string>  ! Default = "dot"
     height        = <real>    ! Size in points. Default = 10
-    color         = <string>  ! Default = 'black'
-    fill_pattern  = <string>  ! Default = 'solid_fill'
+    color         = <string>  ! Default = "black"
+    fill_pattern  = <string>  ! Default = "solid_fill"
     line_width    = <integer> ! Default = 1.
   end type
 \end{example}
