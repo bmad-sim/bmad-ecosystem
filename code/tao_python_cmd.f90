@@ -141,6 +141,7 @@ type (tao_dynamic_aperture_struct), pointer :: da
 type (tao_expression_info_struct), allocatable :: info(:)
 type (tao_wave_kick_pt_struct), pointer :: wk
 type (tao_model_element_struct), pointer :: tao_ele
+type (tao_lattice_branch_struct), pointer :: tao_branch
 type (all_pointer_struct) a_ptr
 
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
@@ -197,9 +198,9 @@ do
 
     iu_write = lunget()
     if (switch == '-append') then
-      open (iu_write, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 200)
+      open (iu_write, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 500)
     else
-      open (iu_write, file = file_name, status = 'REPLACE', recl = 200)
+      open (iu_write, file = file_name, status = 'REPLACE', recl = 500)
     endif
 
     opened = .true.
@@ -233,7 +234,7 @@ call match_word (cmd, [character(40) :: &
           'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
           'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'shape_list', &
           'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
-          'show', 'species_to_int', 'species_to_str', 'super_universe', 'twiss_at_s', 'universe', &
+          'show', 'species_to_int', 'species_to_str', 'spin_polarization', 'super_universe', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
           'wave'], ix, matched_name = command)
 
@@ -251,9 +252,9 @@ amt  = '(100a)'
 amt2 = '(a, l1, 10a)'
 imt  = '(a, 100(i0, a))'
 jmt  = '(i0, a, i0)'
-rmt  = '(a, 100(es21.13, a))'
-ramt = '(a, 100(a, es21.13))'
-rmt2 = '(a, l1, a, 100(es21.13, a))'
+rmt  = '(a, 100(es22.14, a))'
+ramt = '(a, 100(a, es22.14))'
+rmt2 = '(a, l1, a, 100(es22.14, a))'
 lmt  = '(a, 100(l1, a))'
 vamt = '(a, i0, 3a)'
 
@@ -447,15 +448,15 @@ case ('bunch1')
   ! Sigma matrix
   do i = 1, 6
     do j = 1,6
-      nl=incr(nl); write (li(nl), '(a, i0, i0, a, es21.13)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)
+      nl=incr(nl); write (li(nl), '(a, i0, i0, a, es22.14)') 'sigma_', i, j, ';REAL;F;', bunch_params%sigma(i,j)
     enddo
   enddo
 
   ! Relative min, max, centroid
   do i = 1, 6
-    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'rel_min_', i, ';REAL;F;',      bunch_params%rel_min(i)
-    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i)
-    nl=incr(nl); write (li(nl), '(a, i0, a, es21.13)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i)
+    nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'rel_min_', i, ';REAL;F;',      bunch_params%rel_min(i)
+    nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'rel_max_', i, ';REAL;F;',      bunch_params%rel_max(i)
+    nl=incr(nl); write (li(nl), '(a, i0, a, es22.14)') 'centroid_vec_', i, ';REAL;F;', bunch_params%centroid%vec(i)
   enddo
 
   nl=incr(nl); write (li(nl), rmt) 'centroid_t;REAL;F;',                       bunch_params%centroid%t
@@ -670,7 +671,7 @@ case ('constraints')
           a_name = branch%ele(ie)%name
         endif
 
-        nl=incr(nl); write (li(nl), '(10a, 5(es21.13, a), 2a)') trim(tao_datum_name(data)), ';', &
+        nl=incr(nl); write (li(nl), '(10a, 5(es22.14, a), 2a)') trim(tao_datum_name(data)), ';', &
             trim(tao_constraint_type_name(data)), ';', &
             trim(data%ele_name), ';', trim(data%ele_start_name), ';', trim(data%ele_ref_name), ';', &
             data%meas_value, ';', data%ref_value, ';', data%model_value, ';', data%base_value, ';', &
@@ -682,7 +683,7 @@ case ('constraints')
     do i = 1, s%n_var_used
       var => s%var(i)
       if (.not. var%useit_opt) cycle
-      nl=incr(nl); write (li(nl), '(4a, 7(es21.13, a))') trim(tao_var1_name(var)), ';', &
+      nl=incr(nl); write (li(nl), '(4a, 7(es22.14, a))') trim(tao_var1_name(var)), ';', &
             trim(tao_var_attrib_name(var)), ';', &
             var%meas_value, ';', var%ref_value, ';', var%model_value, ';', var%base_value, ';', &
             var%weight, var%merit, var%dmerit_dvar
@@ -986,7 +987,7 @@ case ('data_d_array')
   do i = 1, size(d_array)
     d_ptr => d_array(i)%d
     name = tao_constraint_type_name(d_ptr)
-    nl=incr(nl); write(li(nl), '(i0, 11a, 3(es21.13, a), 3(l1, a), es21.13, a, l1)') d_ptr%ix_d1, ';', &
+    nl=incr(nl); write(li(nl), '(i0, 11a, 3(es22.14, a), 3(l1, a), es22.14, a, l1)') d_ptr%ix_d1, ';', &
               trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
               trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
               d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%design_value, ';', &
@@ -1022,6 +1023,8 @@ case ('data_d1_array')
 ! Data d2 info for a given universe.
 ! Command syntax:
 !   python data_d2_array {ix_universe}
+! Example:
+!   python data_d2_array 1
 
 case ('data_d2_array')
 
@@ -1036,6 +1039,8 @@ case ('data_d2_array')
 !----------------------------------------------------------------------
 ! Set the design (and base & model) values for all datums.
 ! Command syntax:
+!   python data_set_design_value
+! Example:
 !   python data_set_design_value
 !
 ! Note: Use the "data_d2_create" and "datum_create" first to create datums.
@@ -1083,6 +1088,7 @@ case ('data_set_design_value')
 !                         {s_offset}^^{ix_bunch}^^{invalid_value}^^{spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
 !                         {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
 !
+! Note: The 3 values for spin_axis%n0, as a group, are optional and the 3 values for spin_axis%l are, as a group, optional.
 ! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
 ! Note: After creating all your datums, use the "data_set_design_value" routine to set the design (and model) values.
 
@@ -1369,7 +1375,7 @@ case ('ele:gen_attribs')
     case (is_integer$)
       nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
     case (is_real$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, es21.13)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, es22.14)') trim(a_name), ';REAL;', free, ';', ele%value(i)
       nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
     case (is_switch$)
       name = switch_attrib_value_name (a_name, ele%value(i), ele)
@@ -1440,15 +1446,15 @@ case ('ele:multipoles')
     if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
 
     if (ele%key == multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, 6(a, es21.13))') i, ';', &
+      nl=incr(nl); write (li(nl), '(i0, 6(a, es22.14))') i, ';', &
                       ele%a_pole(i), ';', ele%b_pole(i), ';', knl(i), ';', tn(i), ';', a(i), ';', b(i)
 
     elseif (ele%key == ab_multipole$) then
-      nl=incr(nl); write (li(nl), '(i0, 6(a, es21.13))') i, ';', &
+      nl=incr(nl); write (li(nl), '(i0, 6(a, es22.14))') i, ';', &
                       ele%a_pole(i), ';', ele%b_pole(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
 
     else
-      nl=incr(nl); write (li(nl), '(i0, 8(a, es21.13))') i, ';', &
+      nl=incr(nl); write (li(nl), '(i0, 8(a, es22.14))') i, ';', &
                       ele%a_pole(i), ';', ele%b_pole(i), ';', a(i), ';', b(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
     endif
   enddo
@@ -1477,13 +1483,13 @@ case ('ele:ac_kicker')
   if (allocated(ac%amp_vs_time)) then
     nl=incr(nl); write (li(nl), '(a)') 'has#amp_vs_time'
     do i = 1, size(ac%amp_vs_time)
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13))') i, ';', ac%amp_vs_time(i)%amp, ';', ac%amp_vs_time(i)%time
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es22.14))') i, ';', ac%amp_vs_time(i)%amp, ';', ac%amp_vs_time(i)%time
     enddo
 
   else
     nl=incr(nl); write (li(nl), '(a)') 'has#frequencies'
     do i = 1, size(ac%frequencies)
-      nl=incr(nl); write (li(nl), '(i0, 3(a, es21.13))') i, ';', &
+      nl=incr(nl); write (li(nl), '(i0, 3(a, es22.14))') i, ';', &
                       ac%frequencies(i)%f, ';', ac%frequencies(i)%amp, ';', ac%frequencies(i)%phi
     enddo
   endif
@@ -1531,7 +1537,7 @@ case ('ele:cartesian_map')
   case ('terms')
     do i = 1, size(ct_map%ptr%term)
       ctt => ct_map%ptr%term(i)
-      nl=incr(nl); write (li(nl), '(i0, 7(a, es21.13), 4a)') i, ';', &
+      nl=incr(nl); write (li(nl), '(i0, 7(a, es22.14), 4a)') i, ';', &
             ctt%coef, ';', ctt%kx, ';', ctt%ky, ';', ctt%kz, ';', ctt%x0, ';', ctt%y0, ';', ctt%phi_z, ';', &
             trim(cartesian_map_family_name(ctt%family)), ';', trim(cartesian_map_form_name(ctt%form))
     enddo
@@ -1667,10 +1673,10 @@ case ('ele:taylor')
   endif
 
   do i = 1, 6
-    nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';ref;', ele%taylor(i)%ref
+    nl=incr(nl); write (li(nl), '(i0, a, es22.14)') i, ';ref;', ele%taylor(i)%ref
     do j = 1, size(ele%taylor(i)%term)
       tt => ele%taylor(i)%term(j)
-      nl=incr(nl); write (li(nl), '(2(i0, a), es21.13, 6(a, i0))') i, ';', j, ';', tt%coef, (';', tt%expn(k), k = 1, 6)
+      nl=incr(nl); write (li(nl), '(2(i0, a), es22.14, 6(a, i0))') i, ';', j, ';', tt%coef, (';', tt%expn(k), k = 1, 6)
     enddo
   enddo
 
@@ -1700,7 +1706,7 @@ case ('ele:spin_taylor')
   do i = 0, 3
     do j = 1, size(ele%spin_taylor(i)%term)
       tt => ele%spin_taylor(i)%term(j)
-      nl=incr(nl); write (li(nl), '(i0, a, es21.13, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
+      nl=incr(nl); write (li(nl), '(i0, a, es22.14, 6(a, i0))') i, ';term;', tt%coef, (';', tt%expn(k), k = 1, 6)
     enddo
   enddo
 
@@ -1768,7 +1774,7 @@ case ('ele:wake')
       lr_mode => wake%lr%mode(i)
       v_str = 'none'
       if (lr_mode%polarized) write (v_str, '(f8.3)') lr_mode%angle
-      nl=incr(nl); write (li(nl), '(4(es21.13, a), 2a)') &
+      nl=incr(nl); write (li(nl), '(4(es22.14, a), 2a)') &
                 lr_mode%freq, ';', lr_mode%R_over_Q, ';', lr_mode%Q, ';', lr_mode%m, ';', v_str
     enddo
 
@@ -1831,7 +1837,7 @@ case ('ele:wall3d')
       endif
       nl=incr(nl); write (li(nl), imt) 'vertex;INT;F;',    i
       do j = 1, size(sec%v)
-        nl=incr(nl); write (li(nl), '(i0, 5(a, es21.13))') j, ';', &
+        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', &
                                         sec%v%x, ';', sec%v%y, ';', sec%v%radius_x, ';', sec%v%radius_y, ';', sec%v%tilt
       enddo
     enddo
@@ -1940,7 +1946,7 @@ case ('ele:mat6')
   select case (tail_str)
   case ('mat6')
     do i = 1, 6
-      nl=incr(nl); write (li(nl), '(i0, a, 6(a, es21.13))') i, ';REAL_ARR;F', (';', ele%mat6(i,j), j = 1, 6)
+      nl=incr(nl); write (li(nl), '(i0, a, 6(a, es22.14))') i, ';REAL_ARR;F', (';', ele%mat6(i,j), j = 1, 6)
     enddo
 
   case ('vec0')
@@ -2003,7 +2009,7 @@ case ('ele:taylor_field')
       do j = 1, 3
         do k = 1, size(t_term%field(j)%term)
           em_tt => t_term%field(j)%term(k)
-          nl=incr(nl); write (li(nl), '(2(i0, a), es21.13, 2(a, i0))') i, ';', j, ';', &
+          nl=incr(nl); write (li(nl), '(2(i0, a), es22.14, 2(a, i0))') i, ';', j, ';', &
                                                        em_tt%coef, ';', em_tt%expn(1), ';', em_tt%expn(2)
         enddo
       enddo
@@ -2245,7 +2251,7 @@ case ('ele:elec_multipoles')
 
   do i = 0, n_pole_maxx
     if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
-    nl=incr(nl); write (li(nl), '(i0, 4(a, es21.13))') i, ';', ele%a_pole_elec(i), ';', ele%b_pole_elec(i), ';', a(i), ';', b(i)
+    nl=incr(nl); write (li(nl), '(i0, 4(a, es22.14))') i, ';', ele%a_pole_elec(i), ';', ele%b_pole_elec(i), ';', a(i), ';', b(i)
   enddo
 
 !----------------------------------------------------------------------
@@ -2264,7 +2270,7 @@ case ('evaluate')
   endif
 
   do i = 1, size(value_arr)
-    nl=incr(nl); write (li(nl), '(i0, a, es21.13)') i, ';', value_arr(i)
+    nl=incr(nl); write (li(nl), '(i0, a, es22.14)') i, ';', value_arr(i)
   enddo
 
 !----------------------------------------------------------------------
@@ -2299,7 +2305,7 @@ case ('em_field')
   endif
 
   call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err);  if (err) return
-  nl=incr(nl); write (li(nl), '(6(es21.13, a))') (field%B(i), ';',  i = 1, 3), (field%E(i), ';',  i = 1, 2), field%E(3)
+  nl=incr(nl); write (li(nl), '(6(es22.14, a))') (field%B(i), ';',  i = 1, 3), (field%E(i), ';',  i = 1, 2), field%E(3)
 
 !----------------------------------------------------------------------
 ! List of possible values for enumerated numbers.
@@ -2791,8 +2797,6 @@ case ('lat_calc_done')
   s%com%lattice_calc_done = .false.
 
 !----------------------------------------------------------------------
-! ********* NOTE: COLWIN IS USING THIS!! *************
-!
 ! Lattice element list.
 ! Command syntax:
 !   python lat_ele {branch_name}
@@ -2810,8 +2814,6 @@ case ('lat_ele_list')
   enddo
 
 !----------------------------------------------------------------------
-! ********* NOTE: COLWIN IS USING THIS!! *************
-!
 ! Lattice general
 ! Command syntax:
 !   python lat_general {ix_universe}
@@ -2829,8 +2831,6 @@ case ('lat_general')
   enddo
 
 !----------------------------------------------------------------------
-! ********* NOTE: COLWIN IS USING THIS!! *************
-!
 ! List of parameters at ends of lattice elements
 ! Command syntax:
 !   python lat_list -no_slaves -track_only -index_order {ix_uni}@{ix_branch}>>{elements}|{which} {who}
@@ -3056,9 +3056,9 @@ case ('lat_list')
             endif
           else
             if (i == 1 .and. ix == 1) then
-              nl=incr(nl); write (li(nl), '(es21.13)') values(ix)
+              nl=incr(nl); write (li(nl), '(es22.14)') values(ix)
             else
-              write (li(nl), '(2a, es21.13)') trim(li(nl)), ';', values(ix)
+              write (li(nl), '(2a, es22.14)') trim(li(nl)), ';', values(ix)
             endif
           endif
         enddo
@@ -3109,7 +3109,7 @@ case ('lat_param_units')
 
 case ('merit')
 
-  nl=incr(nl); write (li(nl), '(es21.13)') tao_merit()
+  nl=incr(nl); write (li(nl), '(es22.14)') tao_merit()
 
 !----------------------------------------------------------------------
 ! Twiss at given s position.
@@ -3225,7 +3225,7 @@ case ('plot_lat_layout')
       y2 = y2 * s%plot_page%lat_layout_shape_scale
       if (.not. associated(shape)) exit
       if (.not. shape%draw) cycle
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13), (a, i0), 2a, 2(a, es10.2), 4a)') i, ';', ele%s_start, ';', ele%s, ';', &
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es22.14), (a, i0), 2a, 2(a, es10.2), 4a)') i, ';', ele%s_start, ';', ele%s, ';', &
                 shape%line_width, ';', trim(shape%shape), ';', y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
     enddo
   enddo
@@ -3545,8 +3545,6 @@ case ('plot_graph_manage')
   endif
 
 !----------------------------------------------------------------------
-! ********* NOTE: COLWIN IS USING THIS!! *************
-!
 ! Points used to construct a smooth line for a plot curve.
 ! Command syntax:
 !   python plot_line {region_name}.{graph_name}.{curve_name} {x-or-y}
@@ -3599,7 +3597,7 @@ endif
 
   case ('')
     do i = 1, n
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es21.13))') i, ';', c%x_line(i), ';', c%y_line(i)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es22.14))') i, ';', c%x_line(i), ';', c%y_line(i)
     enddo
 
   case default
@@ -3656,9 +3654,9 @@ case ('plot_symbol')
   case ('')
     do i = 1, size(c%x_symb)
       if (allocated(c%ix_symb)) then
-        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', c%ix_symb(i), ';', c%x_symb(i), ';', c%y_symb(i)
+        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es22.14, a))') i, ';', c%ix_symb(i), ';', c%x_symb(i), ';', c%y_symb(i)
       else
-        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es21.13, a))') i, ';', 0, ';', c%x_symb(i), ';', c%y_symb(i)
+        nl=incr(nl); write (li(nl), '(2(i0, a), 2(es22.14, a))') i, ';', 0, ';', c%x_symb(i), ';', c%y_symb(i)
       endif
     enddo
 
@@ -4004,6 +4002,25 @@ case ('species_to_str')
   nl=incr(nl); write (li(nl), '(a)') trim(name)
 
 !----------------------------------------------------------------------
+! Spin information
+! Command syntax:
+!   python spin {ix_uni}@{ix_branch}
+! Example:
+!   python spin 1@0
+!
+! Note: This command is under development. If you want to use please contact David Sagan.
+
+case ('spin_polarization')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err); if (err) return
+  ix_branch = parse_branch(line, .true., err); if (err) return
+  tao_branch => tao_lat%tao_branch(ix_branch)
+
+  nl=incr(nl); write (li(nl), rmt) 'polarization_rate;REAL;F;',                tao_branch%spin%pol_rate
+  nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',                tao_branch%spin%depol_rate
+
+!----------------------------------------------------------------------
 ! Super_Universe information
 ! Command syntax:
 !   python super_universe
@@ -4246,7 +4263,7 @@ case ('var_v_array')
   do i = 1, size(v_array)
     v_ptr => v_array(i)%v
     if (.not. v_ptr%exists) cycle
-    nl=incr(nl); write(li(nl), '(i0, 3a, 3(es21.13, a), 2(l1, a), es21.13)') &
+    nl=incr(nl); write(li(nl), '(i0, 3a, 3(es22.14, a), 2(l1, a), es22.14)') &
                   v_ptr%ix_v1, ';', trim(tao_var_attrib_name(v_ptr)), ';', v_ptr%meas_value, ';', &
                   v_ptr%model_value, ';', v_ptr%design_value, ';', v_ptr%useit_opt, ';', v_ptr%good_user, ';', v_ptr%weight
   enddo
@@ -4271,7 +4288,7 @@ case ('var_v1_array')
   do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     v_ptr => v1_ptr%v(i)
     if (.not. v_ptr%exists) cycle
-    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es21.13, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
+    nl=incr(nl); write (li(nl), '(2a, i0, 5a, 3(es22.14, a), 2 (l1, a))') trim(v1_ptr%name), '[', &
                      v_ptr%ix_v1, '];', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
                      v_ptr%meas_value, ';', v_ptr%model_value, ';', &
                      v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt
@@ -4872,7 +4889,7 @@ else
   v_str = ';REAL;F;'
 endif
 
-fmt = '(3a, es21.13)'
+fmt = '(3a, es22.14)'
 
 nl=incr(nl); write (li(nl), fmt) 'beta_', suffix, v_str,                          twiss%beta
 nl=incr(nl); write (li(nl), fmt) 'alpha_', suffix, v_str,                         twiss%alpha
@@ -4907,7 +4924,7 @@ else
   v_str = ';REAL;F;'
 endif
 
-fmt = '(3a, es21.13)'
+fmt = '(3a, es22.14)'
 
 nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           xy_disp%eta
 nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          xy_disp%etap
@@ -5116,7 +5133,7 @@ function real_part_str(z) result (str)
 complex(rp) z
 character(22) str
 
-write (str, '(a, es21.13)') ';', real(z)
+write (str, '(a, es22.14)') ';', real(z)
 
 end function real_part_str
 
@@ -5128,7 +5145,7 @@ function cmplx_str(z) result (str)
 complex(rp) z
 character(44) str
 
-write (str, '(2(a, es21.13))') ';', real(z), ';', aimag(z)
+write (str, '(2(a, es22.14))') ';', real(z), ';', aimag(z)
 
 end function cmplx_str
 
