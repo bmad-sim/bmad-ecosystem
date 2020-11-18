@@ -12,21 +12,12 @@
 
 func_set_base_env () {
 
-    if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then	
-	if [ ${DIST_BUILD} ] ; then
-	    export CMAKE_UTIL="cmake-3.7.2" # Minimum required for PLplot 5.14.0 12-Dec-2018
-	else
-	    export CMAKE_UTIL="cmake-3.6.2"
-	fi
+    # Logic to set cmake version for PLplot support 17-Nov-2020 RT#55118
+    if [ ${DIST_BUILD} ] ; then
+	export CMAKE_UTIL="cmake-3.13.2" # Minimum required for PLplot version 5.15.0 released on 01-Jun-2019
+	export CMAKE_UTIL_SRC="cmake-3.18.4"
     else
-	if [ ${DIST_BUILD} ] ; then
-	    #export CMAKE_UTIL="cmake-3.7.2" # Minimum required for PLplot 5.14.0 12-Dec-2018
-	    export CMAKE_UTIL="cmake-2.8.12.2"
-	else
-	    [ "${ACC_CMAKE_VERSION}" ] \
-		&& export CMAKE_UTIL="cmake-${ACC_CMAKE_VERSION}" \
-		|| export CMAKE_UTIL="cmake-2.8.5"
-	fi
+	export CMAKE_UTIL="cmake-3.18.4" # now the default version for all ACC Release builds RT#56587
     fi
 
     export ACC_LIB_TOOLS_WIKI='https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc#A_42Libraries_and_Tools_Needed_for_Compiling_42'
@@ -409,6 +400,8 @@ func_install_utilities () {
 
 	[ -d ${UTIL_DIR}/log ] || mkdir -p ${UTIL_DIR}/log
 	[ -d ${UTIL_DIR}/src ] || mkdir -p ${UTIL_DIR}/src
+
+	[ ${UTIL} == ${CMAKE_UTIL} ] && local UTIL=${CMAKE_UTIL_SRC} && local CMAKE_UTIL=${CMAKE_UTIL_SRC}
 
 	[ -e ${UTIL_SRC_DIR}/${UTIL}.tar.gz ] && ln -s ${UTIL_SRC_DIR}/${UTIL}.tar.gz ${UTIL_DIR}/src/
 
