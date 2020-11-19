@@ -73,7 +73,7 @@ do i = 1, n_step
   if (logic_option(.false., make_matrix)) call mat_make_unit (kmat)
 
   rel_p = 1 + orbit%vec(6)  ! Can change when there are electric fields
-  k1 = b1 / (ele%value(l$) * rel_p)
+  k1 = charge_dir * b1 / (ele%value(l$) * rel_p)
 
   call quad_mat2_calc (-k1, step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
   call quad_mat2_calc ( k1, step_len, rel_p, kmat(3:4,3:4), dz_y, ddz_y)
