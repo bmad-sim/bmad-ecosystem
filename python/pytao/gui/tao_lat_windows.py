@@ -6,7 +6,7 @@ from tkinter import ttk
 from tkinter import messagebox
 
 from pytao.util.parameters import str_to_tao_param, tao_parameter_dict
-from pytao.util.elements import *
+from pytao.util.lattice_element import *
 from .tao_widget import *
 from .tao_set import *
 from .tao_base_windows import *
