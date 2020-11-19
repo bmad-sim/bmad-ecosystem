@@ -32,19 +32,19 @@ class tao_parameter():
     '''
     Basic class for holding the properties of a parameter in Tao.
 
-    param_name:     the name of the parameter
-    param_type:     "STR", "INT", "REAL", "LOGIC", "ENUM", etc...
-    can_vary:       either 'T', 'F', or 'I', indicating whether or not the
+    name:           The name of the parameter
+    type:           "STR", "INT", "REAL", "LOGIC", "ENUM", etc...
+    can_vary:       Either 'T', 'F', or 'I', indicating whether or not the
                     user may change the value of the paramter. 'I' indicates
                     that the parameter is to be ignored by the gui, except
                     to possibly be displayed as a sub-parameter to another
                     tao_parameter.
-                    a
-    param_value:    the value held in the parameter, should be of the
+    value:          The value held in the parameter, should be of the
                     appropriate type for the specified param_type
                     (or 'T'/'F' for LOGIC)
-    sub_param:      the name of the sub_parameter associated with this parameter,
-                    e.g. ele_name has the sub parameter ix_ele
+    NOTE: It is unclear if sub_param is actually ever set by a Tao python command. -- DCS 11/2020
+    sub_param:      The name of the sub_parameter associated with this parameter,
+                    For example: ele_name has the sub parameter ix_ele.
     '''
 
     def __init__(self, param_name, param_type, can_vary, param_value, sub_param=None):
@@ -103,6 +103,8 @@ class tao_parameter():
                 return param.value
         return None
 
+#
+
 class InvalidParamError(Exception):
     '''
     Provides an exception for when a param_string is improperly formatted
@@ -112,19 +114,26 @@ class InvalidParamError(Exception):
     pass
 
 # An item in the parameter list is a string that looks like:
-#                'lattice_file;STR;T;bmad.lat'
 
 def tao_parameter_dict(param_list):
+    '''
+    Takes a list of strings, each string looks something like: 'param_name;STR;T;abcd'
+    and returns a dictionary with keys being the param_name.
+    Blank strings will be ignored.
+    '''
     this_dict = OrderedDict()
-    for param in param_list:
-        v = param.split(';')
-        this_dict[v[0]] = str_to_tao_param(param)
+    for param_str in param_list:
+        if param_str.strip() == '': continue
+        v = param_str.split(';')
+        this_dict[v[0]] = str_to_tao_param(param_str)
     return this_dict
+
+#
 
 def str_to_tao_param(param_str):
     '''
-    Takes a parameter string ('lattice_file;STR;T;bmad.lat')
-    and returns a tao_parameter
+    Takes a parameter string (EG: 'param_name;STR;T;abcd')
+    and returns a tao_parameter instance
     param_str MUST have at least 3 semicolons
     '''
     v = param_str.split(';')

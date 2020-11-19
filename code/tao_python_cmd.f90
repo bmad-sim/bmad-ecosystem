@@ -4004,9 +4004,13 @@ case ('species_to_str')
 !----------------------------------------------------------------------
 ! Spin information
 ! Command syntax:
-!   python spin {ix_uni}@{ix_branch}
+!   python spin {ix_uni}@{ix_branch}|{which}
+! where {which} is one of:
+!   model
+!   base
+!   design
 ! Example:
-!   python spin 1@0
+!   python spin 1@0|model
 !
 ! Note: This command is under development. If you want to use please contact David Sagan.
 
@@ -4014,11 +4018,17 @@ case ('spin_polarization')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err); if (err) return
-  ix_branch = parse_branch(line, .true., err); if (err) return
+  ix_branch = parse_branch(line, .false., err); if (err) return
   tao_branch => tao_lat%tao_branch(ix_branch)
+  branch => tao_lat%lat%branch(ix_branch)
 
+  if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc (branch, tao_branch)
+
+  z = anomalous_moment_of(branch%param%particle) * branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
+  nl=incr(nl); write (li(nl), rmt) 'anom_moment_times_gamma;REAL;F;',          z
+  nl=incr(nl); write (li(nl), rmt) 'polarization_limit;REAL;F;',               tao_branch%spin%pol_limit
   nl=incr(nl); write (li(nl), rmt) 'polarization_rate;REAL;F;',                tao_branch%spin%pol_rate
-  nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',                tao_branch%spin%depol_rate
+  nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',              tao_branch%spin%depol_rate
 
 !----------------------------------------------------------------------
 ! Super_Universe information

@@ -54,11 +54,13 @@ these files for further information.
 
 %--------------------------------------------------------------------------
 \section{Tao Python command}
+\label{s:python.python}
 
 To get output from \tao that can be easily parsed by Python, use the \vn{python} command
 (\sref{s:python}). The output of this command are semi-colon delimited lists. Besides being easily
 parsed, the syntax of the output from the \vn{python} command will not change over time as the \tao
-program is developed.
+program is developed. [However, the content of the lists will change when \tao's internal structures
+are modified in the course of \tao program development.]
 
 Documentation on the \vn{python} command is contained in the code file itself at:
 \begin{example}
@@ -79,6 +81,33 @@ will produce as output:
   unstable_penalty;REAL;T;  1.0000000474974513E-03
   ... etc ...
 \end{example}
+
+To simplify the process of parsing parameter lists, a Python class called \vn{tao_parameter} is
+defined in the file:
+\begin{example}
+  tao/python/pytao/util/parameters.py
+\end{example}
+This class defines components
+\begin{example}
+    name:       The name of the parameter
+    type:       "STR", "INT", "REAL", "LOGIC", "ENUM", etc...
+    can_vary:   Either 'T', 'F', or 'I', indicating whether or not the
+                user may change the value of the paramter. 'I' indicates
+                that the parameter is to be ignored by a gui when displaying parameters.
+    value:      The value held in the parameter, should be of the
+                appropriate type for the specified param_type
+                (or 'T'/'F' for LOGIC)
+\end{example}
+Further documentation on this class is in this file. The following Python program will parse a parameter
+list data file and crate a dictionary holding the information
+\begin{example}
+  from pytao.util.parameters import *
+  df = open('spin.dat', 'r')
+  param_dict = tao_parameter_dict(df.readlines())
+  print (str(param_dict))
+\end{example}
+Note: The \bmad setup scripts will append the directory \vn{tao/python} to the \vn{PYTHONPATH}
+environment variable.
 
 
 %--------------------------------------------------------------------------

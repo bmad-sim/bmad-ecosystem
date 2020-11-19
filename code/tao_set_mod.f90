@@ -1238,7 +1238,7 @@ logical err
 
 !
 
-call tao_find_plots (err, curve_name, 'BOTH', curve = curve, blank_means_all = .true.)
+call tao_find_plots (err, curve_name, 'BOTH', curve = curve, blank_means_all = .true., only_visible = .false.)
 if (err) return
 
 if (size(curve) == 0) then
@@ -1600,7 +1600,7 @@ logical err
 
 ! 'BOTH' was 'REGION'. Not sure why.
 
-call tao_find_plots (err, graph_name, 'BOTH', plot = plot, graph = graph)
+call tao_find_plots (err, graph_name, 'BOTH', plot = plot, graph = graph, only_visible = .false.)
 if (err) return
 
 if (size(graph) > 0) then
