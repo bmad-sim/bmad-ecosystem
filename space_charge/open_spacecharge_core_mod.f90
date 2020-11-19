@@ -105,7 +105,7 @@ call conv3d(crho,cgrn1,phi,ilo,jlo,klo,g1ilo,g1jlo,g1klo,ilo,jlo,klo,iperiod,jpe
 endif
 
 if(idirectfieldcalc.eq.1)then
-  if(myrank.eq.0)write(6,*)'Solving for Ex, Ey, Ez on mesh:', nhi
+  !if(myrank.eq.0)write(6,*)'Solving for Ex, Ey, Ez on mesh:', nhi
   if(.not.allocated(crho))allocate(crho(ilo2:ihi2,jlo2:jhi2,klo2:khi2)) !double-size array
   call getrhotilde(rho,crho,ilo,jlo,klo)
   if(.not.allocated(cgrn1))then
@@ -468,7 +468,7 @@ iperiod=size(cgrn,1); jperiod=size(cgrn,2); kperiod=size(cgrn,3)
 ipad=npad(1); jpad=npad(2); kpad=npad(3)
 !this puts the Green function where it's needed so the convolution ends up in the correct location in the array
 ishift=iperiod/2-(ipad+1)/2; jshift=jperiod/2-(jpad+1)/2; kshift=kperiod/2-(kpad+1)/2
-!$ print *, 'OpenMP Green function calc'
+!$ write(*, '(a, i0)') 'OpenMP Green function calc, max threads = ', omp_get_max_threads()
 !$OMP PARALLEL DO &
 !$OMP DEFAULT(FIRSTPRIVATE), &
 !$OMP SHARED(cgrn)
@@ -513,7 +513,7 @@ complex(dp), allocatable, dimension(:,:,:) :: ccon
 real(dp) :: fpei,qtot,factr
 integer :: cihi,cjhi,ckhi
 
-print *, '3D convolution (conv3d)'
+! print *, '3D convolution (conv3d)'
 fpei=299792458.d0**2*1.d-7  ! this is 1/(4 pi eps0)
 qtot=1.d0 !fix later: 1.d-9 ! 1 nC
 allocate(ccon(cilo:cilo+iperiod-1,cjlo:cjlo+jperiod-1,cklo:cklo+kperiod-1))
