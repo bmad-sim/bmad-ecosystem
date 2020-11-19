@@ -117,6 +117,8 @@ do ib = 0, ubound(lat%branch, 1)
         ele%tracking_method = j
       endif
 
+      if (ele%key /= sbend$ .and. ele%key /= lcavity$ .and. ele%key /= rfcavity$) ele%orientation = p_sign
+
       start_orb = lat%particle_start
 
       if (p_sign == -1) then
