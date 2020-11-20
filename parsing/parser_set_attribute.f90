@@ -441,8 +441,18 @@ if (delim == '(' .and. .not. (word == 'TERM' .and. how == def$)) then
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
     a_ptr%r = value
   elseif (associated(a_ptr%i)) then
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
-    a_ptr%i = nint(value)
+    if (index(word, '%MASTER_PARAMETER') /= 0) then
+      call get_next_word (word2, ix_word, ',', delim, delim_found)
+      ix = attribute_index(ele, word2)
+      if (ix < 1 .or. ix > num_ele_attrib$) then
+        call parser_error ('BAD MASTER_PARAMETER NAME FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      a_ptr%i = ix
+    else
+      call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
+      a_ptr%i = nint(value)
+    endif
   else
     call parser_get_logical (word, a_ptr%l, ele%name, delim, delim_found, err_flag)
   endif
