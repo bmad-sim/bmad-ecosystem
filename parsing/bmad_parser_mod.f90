@@ -5445,7 +5445,7 @@ do
         ix = attribute_index(ele, word2)
         if (ix < 1 .or. ix > num_ele_attrib$) then
           call parser_error ('BAD NAME FOR "MASTER_PARAMETER = <NAME>" CONSTRUCT', &
-                               'FOUND IN ELEMENT: ' // ele%name)
+                             'FOUND IN ELEMENT: ' // ele%name)
           return
         endif
       endif

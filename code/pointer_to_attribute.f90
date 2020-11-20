@@ -187,10 +187,11 @@ if (a_name(1:14) == 'CARTESIAN_MAP(') then
   ct_map => ele%cartesian_map(n_cc)
 
   select case (a_name)
-  case ('%FIELD_SCALE');    a_ptr%r => ct_map%field_scale
-  case ('%R0(1)');          a_ptr%r => ct_map%r0(1)
-  case ('%R0(2)');          a_ptr%r => ct_map%r0(2)
-  case ('%R0(3)');          a_ptr%r => ct_map%r0(3)
+  case ('%FIELD_SCALE');      a_ptr%r => ct_map%field_scale
+  case ('%R0(1)');            a_ptr%r => ct_map%r0(1)
+  case ('%R0(2)');            a_ptr%r => ct_map%r0(2)
+  case ('%R0(3)');            a_ptr%r => ct_map%r0(3)
+  case ('%MASTER_PARAMETER'); a_ptr%i => ct_map%master_parameter
   case default;           goto 9000
   end select
 
@@ -209,13 +210,14 @@ if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
   cl_map => ele%cylindrical_map(n_cc)
 
   select case (a_name)
-  case ('%PHI0_FIELDMAP');  a_ptr%r => cl_map%phi0_fieldmap
-  case ('%THETA0_AZIMUTH'); a_ptr%r => cl_map%theta0_azimuth
-  case ('%FIELD_SCALE');    a_ptr%r => cl_map%field_scale
-  case ('%DZ');             a_ptr%r => cl_map%dz
-  case ('%R0(1)');          a_ptr%r => cl_map%r0(1)
-  case ('%R0(2)');          a_ptr%r => cl_map%r0(2)
-  case ('%R0(3)');          a_ptr%r => cl_map%r0(3)
+  case ('%PHI0_FIELDMAP');    a_ptr%r => cl_map%phi0_fieldmap
+  case ('%THETA0_AZIMUTH');   a_ptr%r => cl_map%theta0_azimuth
+  case ('%FIELD_SCALE');      a_ptr%r => cl_map%field_scale
+  case ('%DZ');               a_ptr%r => cl_map%dz
+  case ('%R0(1)');            a_ptr%r => cl_map%r0(1)
+  case ('%R0(2)');            a_ptr%r => cl_map%r0(2)
+  case ('%R0(3)');            a_ptr%r => cl_map%r0(3)
+  case ('%MASTER_PARAMETER'); a_ptr%i => cl_map%master_parameter
   case default;           goto 9000
   end select
 
@@ -246,6 +248,7 @@ if (a_name(1:11) == 'GRID_FIELD(') then
   case ('%DR(1)');                a_ptr%r => g_field%dr(1)
   case ('%DR(2)');                a_ptr%r => g_field%dr(2)
   case ('%DR(3)');                a_ptr%r => g_field%dr(3)
+  case ('%MASTER_PARAMETER');     a_ptr%i => g_field%master_parameter
   case default;                   goto 9000
   end select
 
@@ -264,11 +267,12 @@ if (a_name(1:13) == 'TAYLOR_FIELD(') then
   t_field => ele%taylor_field(n_cc)
 
   select case (a_name)
-  case ('%FIELD_SCALE');    a_ptr%r => t_field%field_scale
-  case ('%DZ');             a_ptr%r => t_field%dz
-  case ('%R0(1)');          a_ptr%r => t_field%r0(1)
-  case ('%R0(2)');          a_ptr%r => t_field%r0(2)
-  case ('%R0(3)');          a_ptr%r => t_field%r0(3)
+  case ('%FIELD_SCALE');      a_ptr%r => t_field%field_scale
+  case ('%DZ');               a_ptr%r => t_field%dz
+  case ('%R0(1)');            a_ptr%r => t_field%r0(1)
+  case ('%R0(2)');            a_ptr%r => t_field%r0(2)
+  case ('%R0(3)');            a_ptr%r => t_field%r0(3)
+  case ('%MASTER_PARAMETER'); a_ptr%i => t_field%master_parameter
   case default;           goto 9000
   end select
 
