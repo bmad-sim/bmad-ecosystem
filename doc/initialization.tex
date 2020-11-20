@@ -1749,7 +1749,7 @@ The \vn{show dynamic_aperture} command (\sref{s:show.da}) shows parameter values
 If Tao is compiled with the appropriate OpenMP flags, the dynamic aperture calculation will be done
 in parallel.
 
-To plot the results, an appropriate plot must be defined (\sref{s:dynamicapertureplot}) and
+To plot the results, an appropriate plot must be defined (\sref{s:dynamic.ap.plot}) and
 \vn{placed} in the plotting window (\sref{s:init.plot}. An example dynamic aperture plot is
 shown in Fig.~\ref{f:da-plot}.
 
@@ -2127,7 +2127,7 @@ namelists should be placed directly after their respective
     curve(i)%name                = "<string>"  ! Default is "c<i>", <i> = curve num.
     curve(i)%data_source         = "<string>"  ! Source for the data curve points
     curve(i)%data_type_x         = "<string>"  ! Used with plot%x_axis_type = "data" or "var".
-    curve(i)%data_type           = "<string>"  ! Default = plot%name.graph%name
+    curve(i)%data_type           = "<string>"  ! EG: "orbit.x"
     curve(i)%component           = "<string>"  ! Eg: "model - design". Overrides graph%component.
     curve(i)%data_index          = "<string>"  ! Index number for data points.
     curve(i)%legend_text         = "<string>"  ! Text for curve legend. 
@@ -2210,6 +2210,7 @@ following types:
 \index{floor_plan}\index{beam_chamber_wall}
 \begin{example}
   "data"               ! Lattice parameters, data and/or variable plots (default) (\sref{s:plot.data}).
+  "dynamic_aperture"   ! Dynamic aperture plot (\sref{s:dynamic.ap.plot}
   "floor_plan"         ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
   "histogram"          ! Histogram of plot (\sref{s:histogram}).
   "key_table"          ! Key binding table for single mode (\sref{s:key.table}).
@@ -2952,7 +2953,7 @@ of the line segments is set by the pattern definition.
 %-----------------------------------------------------------------
 \subsection{Drawing a Dynamic Aperture}
 \index{dynamic aperture drawing}
-\label{s:dynamicapertureplot}
+\label{s:dynamic.ap.plot}
 
 \begin{figure}
   \centering
@@ -3048,16 +3049,16 @@ Fig.~\ref{f:histogram}, using the example histogram template:
   graph%y%label_offset = .1
   graph%x_axis_scale_factor = 1000.00 !m->mm
 
-  curve1%hist%density_normalized = T
-  curve1%hist%weight_by_charge = T
-  curve1%hist%number = 100
-  curve1%line%color = "blue"
-  curve1%line%pattern = "dashed"
-  curve1%y_axis_scale_factor = 299792458  !Q/m * c_light
-  curve1%data_type = "z" 
-  curve1%data_source = "beam_tracking"
-  curve1%ele_ref_name = "BEGINNING"
-  curve1%symbol%type = "dot"
+  curve(1)%hist%density_normalized = T
+  curve(1)%hist%weight_by_charge = T
+  curve(1)%hist%number = 100
+  curve(1)%line%color = "blue"
+  curve(1)%line%pattern = "dashed"
+  curve(1)%y_axis_scale_factor = 299792458  !Q/m * c_light
+  curve(1)%data_type = "z" 
+  curve(1)%data_source = "beam_tracking"
+  curve(1)%ele_ref_name = "BEGINNING"
+  curve(1)%symbol%type = "dot"
 /
 \end{example}
 
