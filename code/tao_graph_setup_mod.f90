@@ -2439,9 +2439,7 @@ return
 ! Error message
 
 9000 continue
-call tao_set_curve_invalid(curve, 'CANNOT EVALUATE FOR SMOOTH LINE CALC: ' // data_type)
-call out_io (s_warn$, r_name, 'For the smooth curve calculation: I do not know about this data_type: ' // data_type)
-call out_io (s_blank$, r_name, "Will not perform any smoothing.")
+call tao_set_curve_invalid(curve, 'CANNOT EVALUATE FOR SMOOTH LINE CALC: ' // data_type, .true.)
 good = .false.
 bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.

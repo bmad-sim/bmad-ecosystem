@@ -18,7 +18,7 @@ use quick_plot
 implicit none
 
 integer, parameter :: n_region_maxx   = 50     ! number of plotting regions.
-integer, parameter :: n_curve_maxx    = 20     ! number of curves per graph
+integer, parameter :: n_curve_maxx    = 30     ! number of curves per graph
 
 type old_tao_ele_shape_struct    ! for the element layout plot
   character(40) key_name     ! Element key name
@@ -37,7 +37,7 @@ type (tao_curve_struct), pointer :: crv
 type (tao_plot_input) plot, default_plot
 type (tao_graph_input) :: graph, default_graph, master_default_graph
 type (tao_region_input) region(n_region_maxx)
-type (tao_curve_input) curve(n_curve_maxx), curve1, curve2, curve3, curve4
+type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(30)
 type (old_tao_ele_shape_struct) shape(30)
 type (tao_ele_shape_input) ele_shape(50)
@@ -63,7 +63,7 @@ logical err, include_default_plots, all_set, include_default_shapes, include_dfl
 
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, include_default_plots
 namelist / tao_template_plot / plot, default_graph
-namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
+namelist / tao_template_graph / graph, graph_index, curve
 
 namelist / floor_plan_drawing / ele_shape, include_default_shapes
 namelist / lat_layout_drawing / ele_shape, include_default_shapes
@@ -441,8 +441,6 @@ do  ! Loop over plot files
       curve(2:7)%symbol%type = [character(16):: 'times', 'square', 'plus', 'triangle', 'x_symbol', 'diamond']
       curve(2:7)%symbol%color = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
       curve(2:7)%line%color = curve(2:7)%symbol%color
-      ! to get around gfortran compiler bug.
-      curve1 = curve(1); curve2 = curve(2); curve3 = curve(3); curve4 = curve(4)
 
       read (iu, nml = tao_template_graph, err = 9200)
       call out_io (s_blank$, r_name, 'Init: Read tao_template_graph ' // graph%name)
@@ -546,13 +544,6 @@ do  ! Loop over plot files
       do j = 1, graph%n_curve
         crv => grph%curve(j)
 
-        select case (j)
-        case (1); if (curve1%data_type /= '') curve(1) = curve1
-        case (2); if (curve2%data_type /= '') curve(2) = curve2
-        case (3); if (curve3%data_type /= '') curve(3) = curve3
-        case (4); if (curve4%data_type /= '') curve(4) = curve4
-        end select
-
         crv%g                    => grph
         crv%data_source          = curve(j)%data_source
         crv%component            = curve(j)%component
@@ -614,7 +605,12 @@ do  ! Loop over plot files
 
         ! Default data type
 
-        if (crv%data_type == '') crv%data_type = trim(plt%name) // '.' // trim(grph%name)
+        if (crv%data_type == '') then
+          crv%data_type = trim(plt%name) // '.' // trim(grph%name)
+          if (graph%type /= 'dynamic_aperture') call out_io (s_warn$, r_name, &
+                                'CURVE(' // int_str(j) // ') OF GRAPH ' // trim(crv%data_type) // ' HAS %data_type NOT SET!', &
+                                ' WILL DEFAULT TO: ' // crv%data_type)
+        endif
 
         ! A dot in the name is verboten.
         do
