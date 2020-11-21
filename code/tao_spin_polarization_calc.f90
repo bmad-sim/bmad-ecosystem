@@ -142,7 +142,7 @@ call convert_pc_to ((1 + orbit(0)%vec(6)) * orbit(0)%p0c, branch%param%particle,
 
 f = f_rate * gamma**5 * cm_ratio**2 / branch%param%total_length
 
-tao_branch%spin%pol_limit = -f_limit * integral_bn / (integral_1minus + integral_dn_ddel)
+tao_branch%spin%pol_limit = f_limit * integral_bn / (integral_1minus + integral_dn_ddel)
 tao_branch%spin%pol_rate = f * integral_1minus
 tao_branch%spin%depol_rate = f * integral_dn_ddel
 

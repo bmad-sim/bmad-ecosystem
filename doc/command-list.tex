@@ -2608,7 +2608,7 @@ Examples:
 
 Syntax:
 \begin{example}
-  show spin \{-ref_element <ele_name_or_index>\} \{-element <ele_name_or_index>\} 
+  show spin \{-element \{<ref_ele_name\} <ele_name\} 
                                     \{-n_axis <nx>, <ny>, <nz>\} \{-l_axis <lx>, <ly>, <lz>\}
 \end{example}
 
@@ -2621,19 +2621,22 @@ equilibrium polarization, polarization rates, and any G matrices needed to evalu
 have been defined of type \vn{spin_g_matrix.}$ij$ (\sref{s:data.source}).
 
 If \vn{-element} is present, the output will be the 8x8 G-matrix from the downstream end of the
-element given by \vn{-ref_element} to the downstream end of the element given by \vn{-element}.
-If \vn{-ref_element} is not given, the default is to use the element before the element given
-by \vn{-element}. This gives the G-matrix for transport through the \vn{-element} element.
-The G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin vector (see
-the \vn{SLIM Formalism} section of the Spin chapter in the Bmad manual). The $\Bf n$ and $\Bf l$ axes
+element given by \vn{<ref_ele_name>} to the downstream end of the element given by \vn{<ele_name>}.
+If \vn{<ref_ele_name>} is not given, the default is to use the element before the element given by
+\vn{<ele_name>}. This gives the G-matrix for transport through the \vn{<ele_name>} element.  The
+G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin vector (see the
+\vn{SLIM Formalism} section of the Spin chapter in the Bmad manual). The $\Bf n$ and $\Bf l$ axes
 can be specified using the \vn{-n_axis} and \vn{-l_axis} switches. The $\Bf m$ axis is calculated
-from knowledge of the other two axes. If not given, the axes will be taken to be what is computed from
-spin tracking. Note: Commas between axis components are optional.
+from knowledge of the other two axes. If not given, the $\Bf n$ axes will be set to the reference
+orbit $\bfn_0$ value (the reference orbit is the closed orbit if the lattice geometry is closed).
+The $\Bf l$ axis, if not given, will be choosen to be perpendicular to $\Bf n$.  Commas between axis
+components are optional.
 
 Example:
 \begin{example}
   show spin
   show spin -ele Q10W -n 0,1,0 -l 1,0,0  ! G-matrix for Q10W
+  show spin -ele 4 7    ! G-matrix from end of element 4 to end of element 7
 \end{example}
 
 %% show string --------------------------------------------------------------

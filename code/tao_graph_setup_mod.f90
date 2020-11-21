@@ -431,7 +431,7 @@ do k = 1, size(graph%curve)
       curve%x_symb(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       curve%y_symb(n+1:n+m) = pack(scratch%axis2, mask = (p%state == alive$))
       if (curve%use_z_color) then
-        call tao_phase_space_axis (curve%data_type_z,   ix3_ax, p, scratch%axis3, ele)
+        call tao_phase_space_axis (curve%data_type_z, ix3_ax, p, scratch%axis3, ele)
         curve%z_symb(n+1:n+m) = pack(scratch%axis3, mask = (p%state == alive$))
       endif
       if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
@@ -912,7 +912,7 @@ do k = 1, size(graph%curve)
 
     if (curve%ix_bunch == 0) then
       n = 0
-      do ib = 1,  size(beam%bunch)
+      do ib = 1, size(beam%bunch)
         n = n + count(beam%bunch(ib)%particle%state == alive$)
       enddo
     else
@@ -1072,7 +1072,7 @@ case ('energy')
   ix_axis = 13
   if (present(p)) then
     do i=1, size(p)
-      call convert_pc_to((1 + p(i)%vec(6)) * p(i)%p0c,  p(i)%species, e_tot =  axis(i))
+      call convert_pc_to((1 + p(i)%vec(6)) * p(i)%p0c, p(i)%species, e_tot =  axis(i))
     enddo
   endif
   
