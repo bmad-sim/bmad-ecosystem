@@ -4018,11 +4018,11 @@ end subroutine tao_to_real
 !   dflt_ele_ref    -- ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start  -- ele_struct, pointer, optional: Default start element for ranges.
 !   dflt_ele        -- ele_struct, pointer, optional: Default element to evaluate at.
-!   dflt_orbit      -- coord_struct, optional: Default orbit to evaluate at.
 !   dflt_dat_or_var_index -- character(*), optional: Default datum or variable index to use.
 !   dflt_uni        -- integer, optional: Default universe to use. If 0 or not present, use viewed universe.
 !   dflt_eval_point -- integer, optional: Default eval_point. anchor_end$ (default), anchor_center$, or anchor_beginning$.
 !   dflt_s_offset   -- real(rp), optional: Default offset of eval_point. Default = 0.
+!   dflt_orbit      -- coord_struct, optional: Default orbit to evaluate at.
 !
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
@@ -4080,6 +4080,7 @@ default_source = ''
 if (present(dflt_source)) default_source = dflt_source
 
 phrase = expression
+if (phrase(1:11) == 'expression:') phrase = phrase(12:)
 
 ! if phrase is blank then return 0.0
 

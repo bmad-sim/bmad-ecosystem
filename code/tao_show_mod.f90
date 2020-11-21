@@ -3519,7 +3519,12 @@ case ('spin')
       what_to_print = 'element'
       ele_name = upcase(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
-    case ('-ref_element')
+      if (what2(1:1) /= '-' .and. what2(1:1) /= ' ') then
+        ele2_name = ele_name
+        ele_name = upcase(what2(1:ix))
+        call string_trim(what2(ix+1:), what2, ix)
+      endif
+    case ('-ref_element')  ! Note: This is old deprecated syntax.
       ele2_name = upcase(what2(1:ix))
       call string_trim(what2(ix+1:), what2, ix)
     case ('-n_axis')
