@@ -73,7 +73,7 @@ if (len_trim(where) == 0 .or. where == '*' .or. where == 'all' .or. where == 's'
   allocate(graph(0))
 
 else
-  call tao_find_plots (err, where, 'REGION', plot, graph)
+  call tao_find_plots (err, where, 'REGION', plot, graph, only_visible = .false.)
   if (err) return
 endif
 
