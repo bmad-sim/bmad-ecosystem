@@ -276,7 +276,7 @@ end type
 
 
 type tao_plot_struct
-  character(40) :: name = ' '                      ! Identifying name
+  character(40) :: name = ' '                      ! Identifying name. Rule: If name is blank, plot is not valid.
   character(100) :: description = ''               ! Descriptive string.
   type (tao_graph_struct), allocatable :: graph(:) ! individual graphs of a plot
   type (qp_axis_struct) :: x = qp_axis_struct()    ! X-axis parameters.

@@ -259,6 +259,7 @@ endif
 
 ng = 0
 do i = 1, np
+  if (p(i)%p%name == '') cycle  ! Blank name means plot is invalid.
   do j = 1, size(p(i)%p%graph)
     if (p(i)%p%graph(j)%name == graph_name .or. graph_name == '*') ng = ng + 1
   enddo

@@ -260,7 +260,7 @@ character(16) :: show_what, show_names(41) = [ &
    'string          ']
 
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width, expo(6)
-integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
+integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
@@ -271,7 +271,7 @@ complex(rp) eigen_val(6), eigen_vec(6,6)
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag
+logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag, print_rms
 logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_q
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
@@ -1800,10 +1800,11 @@ case ('global')
 case ('graph')
 
   print_debug = .false.
+  print_rms = .false.
   if (allocated(graph)) deallocate(graph)
 
   do
-    call tao_next_switch (what2, ['-debug'], .true., switch, err, ix)
+    call tao_next_switch (what2, [character(8):: '-debug', '-rms'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case ('')
@@ -1819,25 +1820,35 @@ case ('graph')
         nl=1; lines(1) = 'This is not a graph'
         return
       endif
+    case ('-rms')
+      print_rms = .true.
     end select
   enddo    
 
-  ! Find particular graph
+  ! RMS
 
-  do i = 1, size(graph)
-    g => graph(i)%g
-    if (g%p%name == '') cycle  ! Can happen if plot associated with a region is nullified and the region has the same name as the plot.
-    if (associated(g%p%r)) then
-      if (.not. g%p%r%visible) cycle
-    endif
-    exit
+  nl=nl+1; lines(nl) = '                         |          Line           |          Symbols'
+  nl=nl+1; lines(nl) = 'Curves:                  |     Mean         RMS    |      Mean         RMS'
+
+  do ig = 1, size(graph)
+    g => graph(ig)%g
+    if (.not. allocated(g%curve)) cycle
+    do i = 1, size(g%curve)
+      nl=nl+1; write(lines(nl), '(3x, a)') tao_curve_name(g%curve(i), .true.)
+      if (allocated(g%curve(i)%x_line)) then
+        call tao_curve_rms_calc(g%curve(i), 'LINE', rms, mean)
+        write(lines(nl)(26:), '(2es12.4)') mean, rms
+      endif
+      if (allocated(g%curve(i)%x_symb)) then
+        call tao_curve_rms_calc(g%curve(i), 'SYMBOL', rms, mean)
+        write(lines(nl)(53:), '(2es12.4)') mean, rms
+      endif
+    enddo
   enddo
 
-  if (i == size(graph) + 1) then
-    nl=1; lines(1) = 'This is not a visible graph'
-    return
-  endif
+  ! Standard
 
+  g => graph(1)%g
   fmt = '(a, f6.3)'
 
   if (associated(g%p%r)) then
@@ -4472,10 +4483,12 @@ case ('universe')
     endif
 
     if (s%global%rad_int_calc_on) then
-      nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', tao_branch%modes%a%alpha_damp, &
-            design_tao_branch%modes%a%alpha_damp, tao_branch%modes%b%alpha_damp, design_tao_branch%modes%b%alpha_damp, '! Damping per turn'
-      nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/tao_branch%modes%a%alpha_damp, &
-            time1/design_tao_branch%modes%a%alpha_damp, time1/tao_branch%modes%b%alpha_damp, time1/design_tao_branch%modes%b%alpha_damp, '! Sec'
+      if (tao_branch%modes%b%alpha_damp /= 0) then
+        nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', tao_branch%modes%a%alpha_damp, &
+              design_tao_branch%modes%a%alpha_damp, tao_branch%modes%b%alpha_damp, design_tao_branch%modes%b%alpha_damp, '! Damping per turn'
+        nl=nl+1; write(lines(nl), fmt) 'Damping_time', time1/tao_branch%modes%a%alpha_damp, &
+              time1/design_tao_branch%modes%a%alpha_damp, time1/tao_branch%modes%b%alpha_damp, time1/design_tao_branch%modes%b%alpha_damp, '! Sec'
+      endif
       nl=nl+1; write(lines(nl), fmt) 'I4', tao_branch%modes%a%synch_int(4), &
             design_tao_branch%modes%a%synch_int(4), tao_branch%modes%b%synch_int(4), design_tao_branch%modes%b%synch_int(4), '! Radiation Integral'
       nl=nl+1; write(lines(nl), fmt) 'I5', tao_branch%modes%a%synch_int(5), &
@@ -4521,14 +4534,16 @@ case ('universe')
     endif
 
     if (s%global%rad_int_calc_on) then
-      nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', tao_branch%modes%sigE_E, design_tao_branch%modes%sigE_E
-      nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', tao_branch%modes%sig_z, design_tao_branch%modes%sig_z, '! Only calculated when RF is on'
-      nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', tao_branch%modes%e_loss, design_tao_branch%modes%e_loss, '! Energy_Loss (eV / Turn)'
-      nl=nl+1; write(lines(nl), fmt) 'J_damp:', tao_branch%modes%z%j_damp, design_tao_branch%modes%z%j_damp, '! Longitudinal Damping Partition #'
-      nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', tao_branch%modes%z%alpha_damp, &
+      if (tao_branch%modes%z%alpha_damp /= 0) then
+        nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', tao_branch%modes%sigE_E, design_tao_branch%modes%sigE_E
+        nl=nl+1; write(lines(nl), fmt) 'Sig_z:  ', tao_branch%modes%sig_z, design_tao_branch%modes%sig_z, '! Only calculated when RF is on'
+        nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', tao_branch%modes%e_loss, design_tao_branch%modes%e_loss, '! Energy_Loss (eV / Turn)'
+        nl=nl+1; write(lines(nl), fmt) 'J_damp:', tao_branch%modes%z%j_damp, design_tao_branch%modes%z%j_damp, '! Longitudinal Damping Partition #'
+        nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', tao_branch%modes%z%alpha_damp, &
             design_tao_branch%modes%z%alpha_damp, '! Longitudinal Damping per turn'
-      nl=nl+1; write(lines(nl), fmt) 'damp_time:', time1/tao_branch%modes%z%alpha_damp, &
-            time1/design_tao_branch%modes%z%alpha_damp, '! Longitudinal Damping time (sec)'
+        nl=nl+1; write(lines(nl), fmt) 'damp_time:', time1/tao_branch%modes%z%alpha_damp, &
+              time1/design_tao_branch%modes%z%alpha_damp, '! Longitudinal Damping time (sec)'
+      endif
       nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', tao_branch%modes%synch_int(1)/l_lat, &
                    design_tao_branch%modes%synch_int(1)/l_lat, '! Momentum Compaction'
       nl=nl+1; write(lines(nl), fmt) 'I0:', tao_branch%modes%synch_int(0), design_tao_branch%modes%synch_int(0), '! Radiation Integral'
