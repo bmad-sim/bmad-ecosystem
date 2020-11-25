@@ -169,10 +169,11 @@ do
     if (.not. good_unis(i)) cycle  
     ! check if this data type has already been defined for this universe
     do k = 1, size(s%u(i)%d2_data)
-      if (trim(s%u(i)%d2_data(k)%name) == trim(d2_data%name)) then
-        mask(i) = .false.
-        cycle uni_loop
-      endif
+      if (trim(s%u(i)%d2_data(k)%name) /= trim(d2_data%name)) cycle
+      mask(i) = .false.
+      call out_io (s_error$, r_name, 'TWO D2 DATA STRUCTURES HAVE THE SAME NAME: ' // d2_data%name, &
+                                     'THE SECOND ONE WILL BE IGNORED!')
+      cycle uni_loop
     enddo
 
     call tao_d2_data_stuffit (s%u(i), d2_data%name, n_d1_data)
@@ -739,15 +740,6 @@ type (tao_d2_data_struct), pointer :: d2
 integer i, nn, n_d1_data
 character(*) d2_name
 character(*), parameter :: r_name = 'tao_d2_data_stuffit'
-
-! Check
-
-do i = 1, u%n_d2_data_used
-  if (d2_name /= u%d2_data(i)%name) cycle
-  call out_io (s_error$, r_name, 'TWO D2 DATA STRUCTURES HAVE THE SAME NAME: ' // d2_name, &
-                                 'THE SECOND ONE WILL BE IGNORED!')
-  return
-enddo
 
 ! Setup another d2_data structure.
 
