@@ -128,7 +128,6 @@ do
   endif
 
   where (good_unis) n_d2_data = n_d2_data + 1
-
 enddo
 
 rewind (iu)
@@ -739,7 +738,16 @@ type (tao_d2_data_struct), pointer :: d2
 
 integer i, nn, n_d1_data
 character(*) d2_name
-character(40) :: r_name = 'tao_d2_data_stuffit'
+character(*), parameter :: r_name = 'tao_d2_data_stuffit'
+
+! Check
+
+do i = 1, u%n_d2_data_used
+  if (d2_name /= u%d2_data(i)%name) cycle
+  call out_io (s_error$, r_name, 'TWO D2 DATA STRUCTURES HAVE THE SAME NAME: ' // d2_name, &
+                                 'THE SECOND ONE WILL BE IGNORED!')
+  return
+enddo
 
 ! Setup another d2_data structure.
 
