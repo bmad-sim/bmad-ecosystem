@@ -129,7 +129,7 @@ rewind (iu)
 allocate (dflt_good_unis(lbound(s%u,1):ubound(s%u, 1)), good_unis(lbound(s%u,1):ubound(s%u,1)))
 
 n_v1 = 0
-do
+var_loop: do
   n_v1 = n_v1 + 1
   if (n_v1 > n_list) exit
 
@@ -164,6 +164,14 @@ do
   read (iu, nml = tao_var, iostat = ios)
   if (ios < 0 .and. v1_var%name == '') exit         ! exit on end-of-file
   call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // v1_var%name)
+
+  do i = 1, n_v1-1
+    if (v1_var%name /= s%v1_var(i)%name) cycle
+    call out_io (s_error$, r_name, 'TWO V1 VARIABLE ARRAYS HAVE THE SAME NAME: ' // v1_var%name, &
+                                   'THE SECOND ONE WILL BE IGNORED!')
+    n_v1 = n_v1 - 1
+    cycle var_loop
+  enddo
 
   ! Convert old format to new
 
@@ -271,7 +279,7 @@ do
     enddo
   endif
 
-enddo
+enddo var_loop
 
 close (iu)
 deallocate (dflt_good_unis, good_unis)

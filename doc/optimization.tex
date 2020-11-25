@@ -501,30 +501,56 @@ more details.
 \label{s:opt.trouble}
 \index{optimization troubleshooting}
 
-Optimizations can behave in strange ways. Here are some tips on how to diagnose problems.
+Optimization can be tricky. There are many parameters that affect the optimization and often it
+comes down to trial and error to find an acceptible an acceptible solution. And even in expert
+hands, optimizations can take days. The following are some tips if there are problems with an
+optimization.
 
-The \vn{show optimizer} (\sref{s:show.optimizer}) command will show global parameters
-associated with optimizations. This will show some of the parameters that can be 
-varied to get better convergence. One quick thing to do is to increase the number of
-optimization loops and/or optimization cycles:
+\begin{description}
+%
+\item[Show commands] \Newline
+Commands that can be used to view optimizer parameters are:
 \begin{example}
-	set global n_opti_loops = ...
-	set global n_opti_cycles = ...
+  show constraints
+  show data
+  show derivative
+  show merit
+  show optimizer
+  show variable
 \end{example}
+%
+\item[Set the optimizer to run longer] \Newline
+One quick thing to do is to increase the number of optimization loops and/or optimization cycles:
+\begin{example}
+	set global n_opti_loops = 30
+	set global n_opti_cycles = 50
+\end{example}
+The \vn{show optimizer} (\sref{s:show.optimizer}) command will show global parameters
+associated with optimizations.
+%
+\item[Check merit function and weights] \Newline
+One of the first things to check is the merit function, the top contributors can be seen with the
+command \vn{show merit} (\sref{s:show.merit}). And individual contributions can be viewed using the
+\vn{show variable} and \vn{show data} commands. If the weight of an individual datum is too small,
+the optimizer will tend to ignore it. So one trick is to raise the weights for datums that are not
+being well optimized. When running \tao this is done with the \vn{data data} command. For example:
+\begin{example}
+  set data twiss.a[1:2]|weight = 100*twiss.a[1:2]|weight
+\end{example}
+This example will increase the weight of datums \vn{twiss.a[1]} and \vn{twiss.a[2]} by a factor of
+100.
+%
+\item[Check step size] \Newline
+If using an optimizer that uses the derivative matrix (\vn{lm}, \vn{geodesic_lm} and \vn{svd}
+optimizers), The variable \vn{step} sizes that are used to calculate the derivative should be
+checked to make sure that the \vn{step} is not too small so that round-off is a problem but yet not
+too large so that nonlinearities make the calculation inaccurate. One way to check that the step
+size is adequate for a given variable is to vary the variable using the command \vn{change var}
+(\sref{s:change}). This command will print out the the change in the merit function per change in
+variable which can be compared to the derivatives as shown with the \vn{show merit -derivative}
+(\sref{s:show.merit}) or the \vn{show derivative} (\sref{s:show.derivative}) command.
+\end{description}
 
-One of the first things to check is the merit function, the top contributors can be seen
-with the command \vn{show merit} (\sref{s:show.merit}). And individual contributions
-can be viewed using the \vn{show variable} and \vn{show data} commands.
-
-If using an optimizer that uses the derivative matrix (\vn{lm}, \vn{geodesic_lm} and 
-\vn{svd} optimizers), The variable \vn{step} sizes that are used to calculate the derivative
-should be checked to make sure that the \vn{step} is not too small so that round-off is a problem
-but yet not too large so that nonlinearities make the calculation inaccurate. One way to
-check that the step size is adequate for a given variable is to vary the variable using
-the command \vn{change var} (\sref{s:change}). This command will print out the the change
-in the merit function per change in variable which can be compared to the derivatives 
-as shown with the \vn{show merit -derivative} (\sref{s:show.merit}) or the
-\vn{show derivative} (\sref{s:show.derivative}) command.
 
 %------------------------------------------------------------------------
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
