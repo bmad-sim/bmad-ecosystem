@@ -253,7 +253,7 @@ type (coord_struct) orb
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
-real(rp) e, g_tot, fint_gap, gt, cos_e, sin_e, tan_e, sec_e, v(6), k1_eff
+real(rp) e, g_tot, fint_gap, gt, cos_e, sin_e, tan_e, sec_e, v(6), k2_bar
 real(rp) gt2, gs2, c_dir, k1, kmat(6,6), e_factor
 real(rp) dx, dpx, dy, dpy
 integer particle_at, element_end, fringe_type
@@ -289,16 +289,16 @@ cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
 gt = g_tot * tan_e
 gt2 = g_tot * tan_e**2
 gs2 = g_tot * sec_e**2
-k1_eff = k1 * tan_e * c_dir
+k2_bar = k1 * tan_e * c_dir
 fint_gap = fint_gap * gs2 * (1 + sin_e**2) * g_tot * sec_e
 
 v = orb%vec
 
 if (particle_at == first_track_edge$) then
   dx  = (-gt2 * v(1)**2 + gs2 * v(3)**2) * e_factor / 2
-  dpx = (gt * g_tot * (1 + 2 * tan_e**2) * v(3)**2 / 2 + gt2 * (v(1) * v(2) - v(3) * v(4)) + k1_eff * (v(1)**2 - v(3)**2)) * e_factor
+  dpx = (gt * g_tot * (1 + 2 * tan_e**2) * v(3)**2 / 2 + gt2 * (v(1) * v(2) - v(3) * v(4)) + k2_bar * (v(1)**2 - v(3)**2)) * e_factor
   dy  = gt2 * v(1) * v(3) * e_factor
-  dpy = (fint_gap * v(3) - gt2 * v(1) * v(4) - (g_tot + gt2) * v(2) * v(3) - 2 * k1_eff * v(1) * v(3)) * e_factor
+  dpy = (fint_gap * v(3) - gt2 * v(1) * v(4) - (g_tot + gt2) * v(2) * v(3) - 2 * k2_bar * v(1) * v(3)) * e_factor
   orb%vec(1) = v(1) + dx
   orb%vec(2) = v(2) + dpx + gt * v(1)
   orb%vec(3) = v(3) + dy
@@ -308,25 +308,25 @@ if (particle_at == first_track_edge$) then
     call mat_make_unit (kmat)
     kmat(1,1) = 1 - gt2 * v(1) * e_factor
     kmat(1,3) = gs2 * v(3) * e_factor
-    kmat(2,1) = gt + (gt2 * v(2) + 2 * k1_eff * v(1)) * e_factor
+    kmat(2,1) = gt + (gt2 * v(2) + 2 * k2_bar * v(1)) * e_factor
     kmat(2,2) = 1 + (gt2 * v(1)) * e_factor
-    kmat(2,3) = (-gt2 * v(4) - 2 * k1_eff * v(3) + gt * g_tot * (1 + 2 * tan_e**2) * v(3)) * e_factor
+    kmat(2,3) = (-gt2 * v(4) - 2 * k2_bar * v(3) + gt * g_tot * (1 + 2 * tan_e**2) * v(3)) * e_factor
     kmat(2,4) = (-gt2 * v(3)) * e_factor
     kmat(3,1) = gt2 * v(3) * e_factor
     kmat(3,3) = 1 +  gt2 * v(1) * e_factor
-    kmat(4,1) = (-gt2 * v(4) - 2 * k1_eff * v(3)) * e_factor
+    kmat(4,1) = (-gt2 * v(4) - 2 * k2_bar * v(3)) * e_factor
     kmat(4,2) = -(g_tot + gt2) * v(3) * e_factor
-    kmat(4,3) = -gt + (fint_gap - (g_tot + gt2) * v(2) - 2 * k1_eff * v(1)) * e_factor
+    kmat(4,3) = -gt + (fint_gap - (g_tot + gt2) * v(2) - 2 * k2_bar * v(1)) * e_factor
     kmat(4,4) = 1 - gt2 * v(1) * e_factor
-    kmat(5,6) = (fint_gap * v(3)**2 / 2 + (4*k1_eff - gt*gt2) * v(1)**3 / 12 + (-4*k1_eff + gt*gs2) * v(1) * v(3)**2 /4 + &
+    kmat(5,6) = (fint_gap * v(3)**2 / 2 + (4*k2_bar - gt*gt2) * v(1)**3 / 12 + (-4*k2_bar + gt*gs2) * v(1) * v(3)**2 /4 + &
                   gt2 * (v(1)**2 * v(2) - 2 * v(1) * v(3) * v(4)) / 2 - (g_tot + gt2) * v(2) * v(3)**2 / 2) * e_factor**2
   end if
 
 else
   dx  = (gt2 * v(1)**2 - gs2 * v(3)**2) * e_factor / 2
-  dpx = (gt2 * (v(3) * v(4) - v(1) * v(2)) + k1_eff * (v(1)**2 - v(3)**2) - gt * gt2 * (v(1)**2 + v(3)**2) / 2) * e_factor
+  dpx = (gt2 * (v(3) * v(4) - v(1) * v(2)) + k2_bar * (v(1)**2 - v(3)**2) - gt * gt2 * (v(1)**2 + v(3)**2) / 2) * e_factor
   dy  = -gt2 * v(1) * v(3) * e_factor
-  dpy = (fint_gap * v(3) + gt2 * v(1) * v(4) + (g_tot + gt2) * v(2) * v(3) + (gt * gs2 - 2 * k1_eff) * v(1) * v(3)) * e_factor
+  dpy = (fint_gap * v(3) + gt2 * v(1) * v(4) + (g_tot + gt2) * v(2) * v(3) + (gt * gs2 - 2 * k2_bar) * v(1) * v(3)) * e_factor
   orb%vec(1) = v(1) + dx
   orb%vec(2) = v(2) + dpx + gt * v(1)
   orb%vec(3) = v(3) + dy
@@ -336,17 +336,17 @@ else
     call mat_make_unit (kmat)
     kmat(1,1) = 1 + gt2 * v(1) * e_factor
     kmat(1,3) = -gs2 * v(3) * e_factor
-    kmat(2,1) = gt + (-gt2 * v(2) + 2 * k1_eff * v(1) - gt * gt2 * v(1)) * e_factor
+    kmat(2,1) = gt + (-gt2 * v(2) + 2 * k2_bar * v(1) - gt * gt2 * v(1)) * e_factor
     kmat(2,2) = 1 - gt2 * v(1) * e_factor
-    kmat(2,3) = (gt2 * v(4) - 2 * k1_eff * v(3) - gt * gt2 * v(3)) * e_factor
+    kmat(2,3) = (gt2 * v(4) - 2 * k2_bar * v(3) - gt * gt2 * v(3)) * e_factor
     kmat(2,4) = gt2 * v(3) * e_factor
     kmat(3,1) = -gt2 * v(3) * e_factor
     kmat(3,3) = 1 -  gt2 * v(1) * e_factor
-    kmat(4,1) = (gt2 * v(4) + (gt * gs2 - 2 * k1_eff) * v(3)) * e_factor
+    kmat(4,1) = (gt2 * v(4) + (gt * gs2 - 2 * k2_bar) * v(3)) * e_factor
     kmat(4,2) = (g_tot + gt2) * v(3) * e_factor
-    kmat(4,3) = -gt + (fint_gap + (g_tot + gt2) * v(2) + (gt * gs2 - 2 * k1_eff) * v(1)) * e_factor
+    kmat(4,3) = -gt + (fint_gap + (g_tot + gt2) * v(2) + (gt * gs2 - 2 * k2_bar) * v(1)) * e_factor
     kmat(4,4) = 1 + gt2 * v(1) * e_factor
-    kmat(5,6) = (fint_gap * v(3)**2 / 2 + (4*k1_eff - gt*gt2) * v(1)**3 / 12 + (-4*k1_eff + gt*gs2) * v(1) * v(3)**2 /4 + &
+    kmat(5,6) = (fint_gap * v(3)**2 / 2 + (4*k2_bar - gt*gt2) * v(1)**3 / 12 + (-4*k2_bar + gt*gs2) * v(1) * v(3)**2 /4 + &
                   gt2 * (-v(1)**2 * v(2) + 2 * v(1) * v(3) * v(4)) / 2 + (g_tot + gt2) * v(2) * v(3)**2 / 2) * e_factor**2
   end if
 endif

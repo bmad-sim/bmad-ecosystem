@@ -638,7 +638,9 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                   'DOES NOT HAVE ITS CRYSTAL_TYPE SET.')
         err_flag = .true.
       endif
+    endif
 
+    if (ele%key == photon_init$) then
       if (ele%value(sig_E$) < 0 .or. ele%value(sig_vx$) < 0 .or. ele%value(sig_vy$) < 0 .or. &
           ele%value(sig_x$) < 0 .or. ele%value(sig_y$) < 0) then
         call out_io (s_fatal$, r_name, &
@@ -654,7 +656,6 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
                   'FOR ELEMENT: ' // ele%name)
         err_flag = .true.
       endif
-
     endif
 
 

@@ -79,8 +79,11 @@ modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:
 Lie map generator $\Omega_M$ given by Hwang and Lee Eqs.~(35) and (36) is used under the conditions
 that
 \begin{equation}
-  K_0 = K_2 = K_3 = K_4 = K_5 = K_6 = 0
+  K_{0h} = K_{1h} = K_{2h} = K_{3h} = K_{4h} = K_{5h} = K_{6h} = 0
 \end{equation}
+Here the subscript ``\vn{h}'' has been added so as to not confuse these parameters with the magnetic multipole
+coefficients $K_1$, $K_2$, etc.
+
 The generator used by \bmad for the entrance fringe is:
 \begin{align}
   \Omega_{M1} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_1)}{2} 
@@ -90,7 +93,7 @@ The generator used by \bmad for the entrance fringe is:
   &\qquad + \frac{(x^2 \, p_x - 2 \, x \, y \, p_y) \, g_\tot \, \tan^2 (e_1)}{2 \, (1 + p_z)}
   - \frac{y^2 \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{2 \, (1 + p_z)} \nonumber
 \end{align}
-where $g_\tot$ is the total bending strength (design + error).
+where $g_\tot$ is the total bending strength (design + error) and $K_1$ is the quadrupole moment of the bend.
 The generator for the exit fringe is
 \begin{align}
   \Omega_{M2} &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2} 
