@@ -502,7 +502,7 @@ more details.
 \index{optimization troubleshooting}
 
 Optimization can be tricky. There are many parameters that affect the optimization and often it
-comes down to trial and error to find an acceptible an acceptible solution. And even in expert
+comes down to trial and error to find an acceptable an acceptable solution. And even in expert
 hands, optimizations can take days. The following are some tips if there are problems with an
 optimization.
 
@@ -549,6 +549,18 @@ size is adequate for a given variable is to vary the variable using the command 
 (\sref{s:change}). This command will print out the the change in the merit function per change in
 variable which can be compared to the derivatives as shown with the \vn{show merit -derivative}
 (\sref{s:show.merit}) or the \vn{show derivative} (\sref{s:show.derivative}) command.
+%
+\item[Rotate optimizer usage] \Newline
+Problems generally occur when there are many local minima. In this case, the \vn{de} optimizer
+(\sref{s:tao.opti}) should be tried. This optimizer has several parameters which will need to be
+varied by trial and error to find values that are suitable for the problem at hand. Optimization
+strategies here include doing multiple optimizations one after another using the \vn{de} optimizer
+every other optimization interlaced with one of the other optimizers. Also varying the merit
+function weights between optimizations can help guide the optimization process towards an acceptable
+solution.
+\item[Use a non-\tao optimizer]
+Using, for example, a Python based optimizer interfaced to \tao is possible. There is also the \vn{moga}
+program which implements multi-objective optimization.
 \end{description}
 
 
