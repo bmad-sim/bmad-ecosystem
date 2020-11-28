@@ -180,7 +180,7 @@ if (set) then
       position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
       call mat_make_unit (position%w)
 
-      if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0)) then
+      if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
         position = bend_shift(position, ele%value(g$), ds_center, ref_tilt = ref_tilt)
 
         call ele_misalignment_L_S_calc(ele, L_mis, ws)
@@ -337,7 +337,7 @@ else
       position%r = [orbit%vec(1), orbit%vec(3), 0.0_rp]
       call mat_make_unit (position%w)
 
-      if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0)) then
+      if (ele%key == sbend$ .and. (ele%value(g$) /= 0 .or. ref_tilt /= 0 .or. ele%value(roll$) /= 0)) then
 
         if (ref_tilt == 0) then
           position = bend_shift(position, ele%value(g$), ds_center)

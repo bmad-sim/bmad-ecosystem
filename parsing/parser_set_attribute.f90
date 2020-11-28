@@ -276,7 +276,6 @@ key = ele%key
 if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') key = def_bmad_com$
 if (ele%key == def_parameter$ .and. word == 'ELECTRIC_DIPOLE_MOMENT') key = def_bmad_com$
 if (ele%key == def_parameter$ .and. word == 'PTC_CUT_FACTOR') key = def_bmad_com$
-if (ele%key == def_parameter$ .and. word == 'USE_HARD_EDGE_DRIFTS') key = def_bmad_com$
 
 if (word == 'SPINOR_POLARIZATION' .or. word == 'SPINOR_PHI' .or. word == 'SPINOR_THETA' .or. word == 'SPINOR_XI') then
   call parser_error ('DUE TO BOOKKEEPING COMPLICATIONS, THE OLD SPINOR ATTRIBUTES NO LONGER EXIST: ' // word, &
@@ -330,6 +329,13 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     delim = '='
     call string_trim(bp_com%parse_line(ix+1:), bp_com%parse_line, ix)
   endif
+
+  ! USE_HARD_EDGE_DRIFTS does not exist anymore. Will ignore to preserve backwards compatibility.
+  if (word == 'USE_HARD_EDGE_DRIFTS') then
+    call parser_get_logical (word, logic, ele%name, delim, delim_found, err_flag) ! Parse rest of line & ignore.
+    return
+  endif
+
 
   call pointers_to_attribute (lat, name, word, .false., a_ptrs, err_flag, .false.)
   if (err_flag .or. size(a_ptrs) == 0) then
@@ -393,7 +399,6 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     call parser_get_logical (word, a_ptrs(1)%l, ele%name, delim, delim_found, err_flag)
     if (err_flag) return
     if (associated(a_ptrs(1)%l, bmad_com%rf_phase_below_transition_ref))  bp_com%extra%rf_phase_below_transition_ref_set   = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%use_hard_edge_drifts))           bp_com%extra%use_hard_edge_drifts_set            = .true.
     if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%mat6_track_symmetric))           bp_com%extra%mat6_track_symmetric_set            = .true.
@@ -1534,11 +1539,6 @@ case ('SYMPLECTIFY')
   
 case ('IS_ON')
   call parser_get_logical (attrib_word, ele%is_on, ele%name, delim, delim_found, err_flag)
-
-case ('USE_HARD_EDGE_DRIFTS')
-  call parser_error ('PLEASE CONVERT "PARAMETER[USE_HARD_EDGE_DRIFTS]" TO "BMAD_COM[USE_HARD_EDGE_DRIFTS]"', level = s_warn$)
-  call parser_get_logical (attrib_word, bmad_com%use_hard_edge_drifts, ele%name, delim, delim_found, err_flag)
-  bp_com%extra%use_hard_edge_drifts_set = .true.
 
 case ('SUPERIMPOSE')
   call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag); if (err_flag) return

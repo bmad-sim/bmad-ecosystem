@@ -45,7 +45,6 @@ lat_out%n_control_max             = lat_in%n_control_max
 lat_out%n_ic_max                  = lat_in%n_ic_max
 lat_out%input_taylor_order        = lat_in%input_taylor_order
 lat_out%absolute_time_tracking    = lat_in%absolute_time_tracking
-lat_out%ptc_uses_hard_edge_drifts = lat_in%ptc_uses_hard_edge_drifts
 lat_out%nametable                 = lat_in%nametable
 
 end subroutine transfer_lat_parameters

@@ -1033,7 +1033,7 @@ use mad_like, only: make_states, exact_model, always_exactmis, pmaMUON, pmaE, &
               assignment(=), nocavity0, operator(+), in_bmad_units, &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, &
-              use_info_m, check_longitudinal, bmad_automatic
+              use_info_m, check_longitudinal, bmad_automatic, OLD_SURVEY
 use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION
 
 implicit none
@@ -1061,7 +1061,8 @@ endif
 
 ! Some init
 
-bmad_automatic = .true. ! For c_normal calc. This enables automatic testing of whether RF is on or off.
+OLD_SURVEY = .false.
+BMAD_AUTOMATIC = .true. ! For c_normal calc. This enables automatic testing of whether RF is on or off.
 USE_QUATERNION = .true.
 E_MUON = bmad_com%electric_dipole_moment
 CHECK_LONGITUDINAL = .false. ! MAD-X uses the True setting.
@@ -2557,26 +2558,10 @@ beta1 = ele%value(p0c$) / ele%value(e_tot$)
 call alloc (ptc_tlr)
 ptc_tlr = bmad_taylor
 
-! Track entrance drift if PTC is using a hard edge model
-
-if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, upstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call ptc_track (ptc_fibre, ptc_tlr, ptc_com%base_state)  ! "track" in PTC
-endif
-
 ! track the map
 
 call ele_to_fibre (ele, ptc_fibre, param, .true., track_particle = track_particle)
 call track_probe_x (ptc_tlr, ptc_com%base_state, fibre1 = bmadl%start)
-
-! Track exit side drift if PTC is using a hard edge model
-
-if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, downstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call ptc_track (ptc_fibre, ptc_tlr, ptc_com%base_state)  ! "track" in PTC
-endif
 
 ! transfer ptc map back to bmad map
 
@@ -2618,9 +2603,9 @@ end subroutine taylor_propagate1
 subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, orbital_taylor, spin_taylor)
 
 use s_tracking
-use mad_like, only: real_8, fibre, ring_l, survey, make_node_layout, CONVERSION_XPRIME_IN_ABELL
+use mad_like, only: real_8, fibre, ring_l, survey, CONVERSION_XPRIME_IN_ABELL
 use ptc_spin, only: track_probe_x, track_probe
-use s_family, only: survey
+use ptc_multiparticle, only: survey
 use madx_ptc_module, only: bmadl
 
 implicit none
@@ -2677,21 +2662,7 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 
 use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
 
-if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, upstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)  ! Do not kill ptc_fibre2
-  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0, kill_layout = .false.)
-  call create_hard_edge_drift (ele, downstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, ptc_fibre, param, .true., kill_layout = .false.)
-  bmadl%closed = .true.
-  call ring_l (bmadl, bmadl%closed)
-  call survey (bmadl)
-  call set_ptc_quiet (12, set$, print12)
-  call make_node_layout(bmadl)
-  call set_ptc_quiet (12, unset$, print12)
-else
-  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
-endif
+call ele_to_fibre (ele, ptc_fibre, param, use_offsets, track_particle = orb0)
 
 call alloc(ptc_cdamap)
 call alloc(ptc_probe8)
@@ -2891,7 +2862,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !+                                
 ! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, 
-!                                  for_layout, track_particle, use_hard_edge_drifts, kill_layout)
+!                                                           for_layout, track_particle)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -2913,19 +2884,12 @@ end subroutine type_map
 !                             Default is False.
 !   track_particle       -- coord_struct, optional: Particle to be tracked. ref_particle$, electron$, etc.
 !                             This argument should only be present when the fibre is not to be put in a layout.
-!   use_hard_edge_drifts -- logical, optional: If False then hard edge drifts are not used.
-!                                              If True then this argument has no effect.
-!                              Default is set by bmad_com%use_hard_edge_drifts.
-!                              Default bmad_com%use_hard_edge_drifts is True.
-!   kill_layout          -- logical, optional: If False, and for_layout = False, do not kill the special layout
-!                             containing any previous "no layout" fibres. Default is True.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, &
-                                       for_layout, track_particle, use_hard_edge_drifts, kill_layout)
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, track_particle)
 
 use madx_ptc_module
 
@@ -2964,8 +2928,8 @@ integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
 integer np, max_order, ix_pole_max, exact_model_saved, nn
 
-logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor
-logical, optional :: for_layout, use_hard_edge_drifts, kill_layout
+logical use_offsets, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
+logical, optional :: for_layout
 
 character(16) :: r_name = 'ele_to_fibre'
 
@@ -2988,7 +2952,7 @@ if (.not. ele%is_on) then
     val(rho$)       = ele%value(rho$)
     val(ref_tilt_tot$) = val(ref_tilt_tot$)
 
-  case (lcavity$)
+  case (lcavity$, rfcavity$)
     val(voltage$) = 0
     val(gradient$) = 0
 
@@ -2999,11 +2963,7 @@ if (.not. ele%is_on) then
   case default
     key = drift$
     val     = 0
-    if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) then
-      val(l$) = hard_edge_model_length(ele)
-    else
-      val(l$) = ele%value(l$)
-    endif
+    val(l$) = ele%value(l$)
     val(ds_step$) = val(l$)
     val(num_steps$) = 1
   end select
@@ -3235,9 +3195,8 @@ case (rfcavity$, lcavity$)
     ptc_key%magnet = 'rfcavity'
     ptc_key%list%cavity_totalpath = 1  ! 
     if (ptc_key%nstep == 1) ptc_key%nstep = 5  ! Avoid bug with nstep = 1.
-    ! If an element has a length that is less than the pillbox length then avoid drifts with negative
-    ! length and use a "fake" RF cavity model. 
-    if (tracking_uses_end_drifts(ele)) then  ! Has end drifts means end drifts have positive length.
+    ! Currently all cavities use end drifts so the fake model is never used.
+    if (tracking_uses_end_drifts(ele)) then 
       ptc_key%list%n_bessel = -1   ! pillbox cavity.
       ptc_key%list%volt = 2d-6 * e_accel_field(ele, voltage$)
     else
@@ -3254,7 +3213,12 @@ case (rfcavity$, lcavity$)
 
   ptc_key%list%freq0 = ele%value(rf_frequency$)
   phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$)
-  if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) ptc_key%list%l = hard_edge_model_length(ele)
+
+  if (tracking_uses_end_drifts(ele)) then
+    ptc_key%list%l = hard_edge_model_length(ele)
+    ptc_key%list%h1 = (val(l$) - ptc_key%list%l) / 2
+    ptc_key%list%h2 = (val(l$) - ptc_key%list%l) / 2
+  endif
 
   if (key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot
@@ -3465,24 +3429,26 @@ call set_ptc_quiet(12, set$, n)
 if (logic_option(.false., for_layout)) then
   call create_fibre_append (.true., m_u%end, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
   ptc_fibre => m_u%end%end
+
   if (present (track_particle)) then
     call out_io (s_fatal$, r_name, 'TRACK_PARTICLE ARGUMENT SHOULD NOT BE PRESENT WHEN FOR_LAYOUT IS TRUE!')
     if (global_com%exit_on_error) call err_exit
     return
   endif
 
+  ptc_fibre%dir = ele%orientation
+  if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
+
+! Non-layout case
+
 else
   call set_madx (energy = ele%value(e_tot$), method = ptc_key%method , step = ptc_key%nstep)
 
-  if (logic_option(.true., kill_layout)) then
-    if (associated(bmadl%start)) then
-      call kill (bmadl)
-      call set_up(bmadl)
-    endif
-    call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
-  else
-    call create_fibre_append (.true., bmadl, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
+  if (associated(bmadl%start)) then
+    call kill (bmadl)
+    call set_up(bmadl)
   endif
+  call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION, br = pancake_field)   ! ptc routine
 
   ptc_fibre => bmadl%end
 
@@ -3503,9 +3469,16 @@ else
   ptc_fibre%magp%p%charge  => ptc_fibre%charge
 
   if (key == beambeam$) call beambeam_fibre_setup(ele, ptc_fibre, param)
+
+  ptc_fibre%dir = ele%orientation
+  if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
+
+  call survey (ptc_fibre, ent = global_frame, a = global_origin)
+  ! Note: Misalignments/patch setup for the layout is handled after the layout is instantiated.
+  call misalign_ptc_fibre (ele, use_offsets, ptc_fibre, .false.)
+
 endif
 
-ptc_fibre%dir = ele%orientation
 
 !----------------------------------------------
 
@@ -3519,8 +3492,6 @@ if (associated(ele2%taylor_field) .and. ele2%field_calc == fieldmap$) then
   call kill_for_pancake(pancake_field)
   call init_all (ptc_com%base_state, ptc_com%taylor_order_saved, 0)
 endif
-
-if (present(track_particle)) ptc_fibre%dir = ptc_fibre%dir * track_particle%direction
 
 call set_ptc_quiet(12, unset$, n)
 
@@ -3762,10 +3733,6 @@ if ((associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$) .or. key
     deallocate(cm)
   endif
 endif
-
-! Misalignments and patches...
-
-call misalign_ptc_fibre (ele, use_offsets, ptc_fibre)
 
 ! Set charge
 
@@ -4033,9 +4000,10 @@ end subroutine beambeam_fibre_setup
 !   ptc_fibre -- Fibre: PTC fibre element with misalignments.
 !-
 
-subroutine misalign_ptc_fibre (ele, use_offsets, ptc_fibre)
+subroutine misalign_ptc_fibre (ele, use_offsets, ptc_fibre, for_layout)
 
 use madx_ptc_module
+use s_frame, only: find_patch_bmad_marker
 
 implicit none
 
@@ -4046,9 +4014,9 @@ type (fibre), target :: dummy_fibre
 
 real(rp) dr(3), ang(3), exi(3,3), beta_start, beta_end
 real(rp) x(6), o_chord(3), o_arc(3), basis(3,3), orient(3,3), sagitta
-real(rp) r0(3), s_mat(3,3), s0_mat(3,3), r(3)
+real(rp) r0(3), s_mat(3,3), s0_mat(3,3), r(3), b(3)
 
-logical use_offsets, good_patch, addin
+logical use_offsets, for_layout, good_patch, addin
 
 character(*), parameter :: r_name = 'misalign_ptc_fibre'
 
@@ -4085,44 +4053,35 @@ if (ele%key == patch$) then
 
   call bmad_patch_parameters_to_ptc (ang, exi)
 
-  call set_madx_(.true., .false.)
-  dummy_fibre = marker('dummy')
-  call set_madx_(.false., .false.)
-
   ptc_fibre%dir = nint(ele%value(upstream_ele_dir$))
-  dummy_fibre%dir = nint(ele%value(downstream_ele_dir$))
 
-  call survey (dummy_fibre, exi, dr)
-  call find_patch (ptc_fibre, dummy_fibre, next = .false., patching=good_patch)
-  if (.not. good_patch) then
-    call out_io (s_fatal$, r_name, 'CANNOT COMPUTE PTC PATCH FOR: ' // ele%name)
-    return
+  if (for_layout) then
+    call survey_integration_fibre(ptc_fibre%next, exi = transpose(ele%floor%w), b = ele%floor%r)
+    call find_patch(ptc_fibre, patching = good_patch)
+    call survey(ptc_fibre%next, ptc_fibre%parent_layout%end)
+  else
+    call find_patch_bmad_marker(ptc_fibre, dr, exi, nint(ele%value(downstream_ele_dir$)), patching = good_patch) 
   endif
-
-  call super_zero_fibre(dummy_fibre, -1)
 
   ! energy and time patches
 
-  if (ele%key == patch$) then
+  beta_start = ele%value(p0c_start$) / ele%value(E_tot_start$)
+  beta_end = ele%value(p0c$) / ele%value(E_tot$)
 
-    beta_start = ele%value(p0c_start$) / ele%value(E_tot_start$)
-    beta_end = ele%value(p0c$) / ele%value(E_tot$)
-
-    if (beta_start == beta_end) then
-      ptc_fibre%patch%energy = 0
-    else
-      ptc_fibre%patch%energy = 4 ! Internal entrance patch. Must be done after find_patch call.
-      ptc_fibre%patch%p0b = ele%value(p0c_start$) * 1d-9
-      ptc_fibre%patch%b0b = beta_start  ! beta velocity
-    endif
-
-    ! PTC uses beta_start for the reference time calculation while Bmad uses beta_end so
-    ! renormalize the patch length to get PTC to agree with Bmad.
-
-    ptc_fibre%patch%time = 2     ! Subtract off reference time (which affects z in tracking).
-    ptc_fibre%patch%b_t = ele%value(l$) / beta_end + ele%value(t_offset$) * c_light 
-    ptc_fibre%patch%b_l = ele%value(l$) + ele%value(t_offset$) * c_light * beta_end
+  if (beta_start == beta_end) then
+    ptc_fibre%patch%energy = 0
+  else
+    ptc_fibre%patch%energy = 4 ! Internal entrance patch. Must be done after find_patch call.
+    ptc_fibre%patch%p0b = ele%value(p0c_start$) * 1d-9
+    ptc_fibre%patch%b0b = beta_start  ! beta velocity
   endif
+
+  ! PTC uses beta_start for the reference time calculation while Bmad uses beta_end so
+  ! renormalize the patch length to get PTC to agree with Bmad.
+
+  ptc_fibre%patch%time = 2     ! Subtract off reference time (which affects z in tracking).
+  ptc_fibre%patch%b_t = ele%value(l$) / beta_end + ele%value(t_offset$) * c_light 
+  ptc_fibre%patch%b_l = ele%value(l$) + ele%value(t_offset$) * c_light * beta_end
 
 !----------------------------------------------------------------------
 ! Not patch nor floor_shift element.

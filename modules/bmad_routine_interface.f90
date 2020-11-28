@@ -2254,12 +2254,11 @@ subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, tr
   type (track_struct), optional :: track
 end subroutine
 
-function tracking_uses_end_drifts (ele, use_hard_edge_model) result (has_drifts)
+function tracking_uses_end_drifts (ele) result (has_drifts)
   import
   implicit none
   type (ele_struct) ele
   logical has_drifts
-  logical, optional :: use_hard_edge_model
 end function
 
 subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)

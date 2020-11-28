@@ -19,7 +19,7 @@ real(rp) l_hard
 
 !
 
-if (bmad_com%use_hard_edge_drifts .and. has_attribute(ele, 'L_HARD_EDGE')) then
+if (has_attribute(ele, 'L_HARD_EDGE')) then
   l_hard = ele%value(l_hard_edge$)
 else
   l_hard = ele%value(l$)

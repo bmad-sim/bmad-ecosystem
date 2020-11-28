@@ -41,7 +41,6 @@ to the \vn{root} branch. The variables that can be set by \vn{parameter} are
                                                     !    Default: 2 => Quadrupole.
   parameter[ran_seed]                 = <Integer>   ! Random number generator init.
   parameter[taylor_order]             = <Integer>   ! Default: 3
-  parameter[use_hard_edge_drifts]     = <Logical>
   parameter[high_energy_space_charge_on] = <logical>
 \end{example}
 
@@ -201,15 +200,6 @@ For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
   \item[{parameter[taylor_order]}] \Newline
 The Taylor order (\sref{s:taylor.phys}) is set by \vn{parameter[taylor_order]} and is the maximum
 order for a Taylor map.
-%
-  \index{use_hard_edge_drifts}
-  \item[{parameter[use_hard_edge_drifts]}] \Newline
-The \vn{use_hard_edge_drifts} switch determines if a ``hard edge'' model of certain elements is
-used. For example, if \vn{runge_kutta} tracking is used for an \vn{rfcavity} or \vn{lcavity} using a
-standing wave model then the cavity length should be a multiple of the RF wavelength/2. To achieve
-this, during tracking, the cavity length is appropriately modified and drifts are inserted at either
-ends of the cavity to keep the total length constant. Default is \vn{True}.
-
   \end{description}
 
 %-----------------------------------------------------------------------------

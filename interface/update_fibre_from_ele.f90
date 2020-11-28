@@ -190,7 +190,7 @@ endif
 
 ! misalign
 
-call misalign_ptc_fibre (ele, .true., fib)
+call misalign_ptc_fibre (ele, .true., fib, .true.)
 
 ele%bookkeeping_state%ptc = ok$
 
