@@ -1183,7 +1183,6 @@ for name in sad_info.param_list:
 # The SuperKEK-B sler lattice may need PTC_exact_model = True
 
 f_out.write ('parameter[ptc_exact_model] = true\n')
-f_out.write ('bmad_com[use_hard_edge_drifts] = False\n')
 
 # If there is a SOL element with an F1 attribute. See the DOC file for more info.
 
@@ -1270,5 +1269,6 @@ f_in.close()
 f_out.close()
 
 if patch_for_fshift:
-  print ('\nRunning sad_to_bmad_postprocess to complete the translation...\n')
-  subprocess.call (sad_to_bmad_postprocess_exe + ' ' + bmad_lattice_file + ' ' + calc_fshift_for, shell = True)
+  command = sad_to_bmad_postprocess_exe + ' ' + bmad_lattice_file + ' ' + calc_fshift_for
+  print (f'\nRunning sad_to_bmad_postprocess to complete the translation. Command is:\n   {command}')
+  subprocess.call (command, shell = True)
