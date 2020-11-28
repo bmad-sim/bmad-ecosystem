@@ -92,7 +92,7 @@ endif
 ! Track.
 ! Note that if ele is a slave, ele%field_calc = refer_to_lords$ and no error message is printed. 
 
-if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. bmad_com%use_hard_edge_drifts .and. &
+if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. &
                 ele%field_calc == bmad_standard$ .and. ele%value(l$) < ele%value(l_hard_edge$)) then
   call out_io (s_error$, r_name, 'RUNGE-KUTTA TRACKING THROUGH RF CAVITY: ' // ele%name, &
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')

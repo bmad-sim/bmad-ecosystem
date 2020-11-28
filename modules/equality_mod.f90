@@ -2283,8 +2283,6 @@ is_eq = is_eq .and. (f1%max_num_runge_kutta_step == f2%max_num_runge_kutta_step)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%rf_phase_below_transition_ref .eqv. f2%rf_phase_below_transition_ref)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%use_hard_edge_drifts .eqv. f2%use_hard_edge_drifts)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%sr_wakes_on .eqv. f2%sr_wakes_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%lr_wakes_on .eqv. f2%lr_wakes_on)
@@ -2876,8 +2874,6 @@ is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 is_eq = is_eq .and. (f1%creation_hash == f2%creation_hash)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking .eqv. f2%absolute_time_tracking)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%ptc_uses_hard_edge_drifts .eqv. f2%ptc_uses_hard_edge_drifts)
 
 end function eq_lat
 

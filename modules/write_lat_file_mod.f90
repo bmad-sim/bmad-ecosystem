@@ -211,7 +211,6 @@ call write_if_int_param_changed (bmad_com%default_integ_order, bmad_com_default%
 call write_if_int_param_changed (bmad_com%ptc_max_fringe_order, bmad_com_default%ptc_max_fringe_order, 'bmad_com[ptc_max_fringe_order]')
 call write_if_int_param_changed (bmad_com%max_num_runge_kutta_step, bmad_com_default%max_num_runge_kutta_step, 'bmad_com[max_num_runge_kutta_step]')
 call write_if_logic_param_changed (bmad_com%rf_phase_below_transition_ref, bmad_com_default%rf_phase_below_transition_ref, 'bmad_com[rf_phase_below_transition_ref]')
-call write_if_logic_param_changed (bmad_com%use_hard_edge_drifts, bmad_com_default%use_hard_edge_drifts, 'bmad_com[use_hard_edge_drifts]')
 call write_if_logic_param_changed (bmad_com%sr_wakes_on, bmad_com_default%sr_wakes_on, 'bmad_com[sr_wakes_on]')
 call write_if_logic_param_changed (bmad_com%lr_wakes_on, bmad_com_default%lr_wakes_on, 'bmad_com[lr_wakes_on]')
 call write_if_logic_param_changed (bmad_com%mat6_track_symmetric, bmad_com_default%mat6_track_symmetric, 'bmad_com[mat6_track_symmetric]')

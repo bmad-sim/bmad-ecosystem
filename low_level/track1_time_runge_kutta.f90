@@ -131,7 +131,7 @@ endif
 
 ! Track through element
 
-if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. bmad_com%use_hard_edge_drifts .and. &
+if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. &
                   ele%field_calc == bmad_standard$ .and. ele%value(l$) < ele%value(l_hard_edge$)) then
   call out_io (s_error$, r_name, 'TIME-RUNGE-KUTTA TRACKING THROUGH RF CAVITY: ' // ele%name, &
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')

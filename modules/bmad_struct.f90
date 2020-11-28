@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 252
+integer, parameter :: bmad_inc_version$ = 253
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1412,7 +1412,6 @@ type lat_struct
   integer :: creation_hash = 0                        ! Integer, set by bmad_parser, that will be different if 
                                                       !   any of the lattice files have been modified.
   logical :: absolute_time_tracking = .false.         ! Use abs. time for RF phase? Call autoscale if toggled.
-  logical :: ptc_uses_hard_edge_drifts = .false.      ! Does associated ptc layout have hard edge model drifts?
 end type
 
 character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
@@ -1604,7 +1603,7 @@ integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 integer, parameter :: max_num_runge_kutta_step$ = 91
 
 integer, parameter :: spherical_curvature$ = 81, distribution$ = 81
-integer, parameter :: use_hard_edge_drifts$ = 81, tt$ = 81, x_knot$ = 81
+integer, parameter :: tt$ = 81, x_knot$ = 81
 integer, parameter :: alias$  = 82, ptc_max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83, eta_y$ = 83
 integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, elliptical_curvature_x$ = 84, etap_x$ = 84
@@ -1928,7 +1927,6 @@ type extra_parsing_info_struct
   logical :: runge_kutta_order_set                  = .false.
   logical :: default_integ_order_set                = .false.
   logical :: ptc_max_fringe_order_set               = .false.
-  logical :: use_hard_edge_drifts_set               = .false.
   logical :: sr_wakes_on_set                        = .false.
   logical :: lr_wakes_on_set                        = .false.
   logical :: mat6_track_symmetric_set               = .false.
@@ -1995,7 +1993,6 @@ type bmad_common_struct
                                                        !   Must call set_ptc after changing.
   integer :: max_num_runge_kutta_step = 10000          ! Maximum number of RK steps before particle is considered lost.
   logical :: rf_phase_below_transition_ref = .false.   ! Autoscale uses below transition stable point for RFCavities?
-  logical :: use_hard_edge_drifts = .true.             ! Insert drifts when tracking through cavity?
   logical :: sr_wakes_on = .true.                      ! Short range wakefields?
   logical :: lr_wakes_on = .true.                      ! Long range wakefields
   logical :: mat6_track_symmetric = .true.             ! symmetric offsets

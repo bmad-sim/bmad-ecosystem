@@ -320,7 +320,6 @@ if (found_it) then
   if (extra%default_integ_order_set)              bmad_com%default_integ_order             = bmad_com_read%default_integ_order
   if (extra%ptc_max_fringe_order_set)             bmad_com%ptc_max_fringe_order            = bmad_com_read%ptc_max_fringe_order
   if (extra%runge_kutta_order_set)                bmad_com%runge_kutta_order               = bmad_com_read%runge_kutta_order
-  if (extra%use_hard_edge_drifts_set)             bmad_com%use_hard_edge_drifts            = bmad_com_read%use_hard_edge_drifts
   if (extra%sr_wakes_on_set)                      bmad_com%sr_wakes_on                     = bmad_com_read%sr_wakes_on
   if (extra%lr_wakes_on_set)                      bmad_com%lr_wakes_on                     = bmad_com_read%lr_wakes_on
   if (extra%mat6_track_symmetric_set)             bmad_com%mat6_track_symmetric            = bmad_com_read%mat6_track_symmetric

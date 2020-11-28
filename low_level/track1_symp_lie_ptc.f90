@@ -30,7 +30,7 @@ type (coord_struct) :: end_orb
 type (track_struct), optional :: track
 type (ele_struct) :: ele, drift_ele
 type (lat_param_struct) :: param
-type (fibre), pointer :: fibre_ele
+type (fibre), pointer :: ptc_fibre
 type (probe) ptc_probe
 type (integration_node), pointer :: ptc_track
 type (internal_state) state, state0
@@ -52,21 +52,13 @@ if (bmad_com%spin_tracking_on) STATE = STATE0 + SPIN0
 
 re = start_orb%vec
 
-! Track a drift if using hard edge model
-
-if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, upstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, fibre_ele, param, .true.)
-  call track_probe_x (re, STATE0, fibre1 = fibre_ele)
-endif  
-
 !-----------------------------
 ! track element
 
 start2_orb = start_orb   ! Save initial state
 end_orb = start_orb
 
-call ele_to_fibre (ele, fibre_ele, param, .true., track_particle = start_orb)
+call ele_to_fibre (ele, ptc_fibre, param, .true., track_particle = start_orb)
 
 !
 
@@ -76,10 +68,10 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
   ptc_probe%q%x = [1, 0, 0, 0]
 
   if (present(track)) then
-    ptc_track => fibre_ele%t1
+    ptc_track => ptc_fibre%t1
     call save_this_step(track, ptc_probe, ele)
 
-    do while (.not. associated(ptc_track, fibre_ele%t2))
+    do while (.not. associated(ptc_track, ptc_fibre%t2))
       call track_probe (ptc_probe, STATE, node1 = ptc_track, node2 = ptc_track%next)
       call save_this_step(track, ptc_probe, ele)
       ptc_track => ptc_track%next
@@ -89,24 +81,18 @@ if (bmad_com%spin_tracking_on .and. (stm == tracking$ .or. stm == symp_lie_ptc$)
     call save_this_step(track, ptc_probe, ele)
 
   else
-    call track_probe (ptc_probe, STATE, fibre1 = fibre_ele)
+    call track_probe (ptc_probe, STATE, fibre1 = ptc_fibre)
   endif
 
   end_orb%spin = rotate_vec_given_quat(ptc_probe%q%x, start2_orb%spin)
   re = ptc_probe%x
 
 else
-  ! Orignally used track (fibre_ele, re, STATE) but this will not track taylor elements correctly.
-  call track_probe_x (re, STATE0, fibre1 = fibre_ele)
+  ! Orignally used track (ptc_fibre, re, STATE) but this will not track taylor elements correctly.
+  call track_probe_x (re, STATE0, fibre1 = ptc_fibre)
 endif
 
 !-----------------------------
-
-if (tracking_uses_end_drifts(ele)) then
-  call create_hard_edge_drift (ele, downstream_end$, drift_ele)
-  call ele_to_fibre (drift_ele, fibre_ele, param, .true.)
-  call track_probe_x (re, STATE0, fibre1 = fibre_ele)
-endif  
 
 end_orb%vec = re
 
