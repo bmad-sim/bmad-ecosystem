@@ -494,7 +494,7 @@ enddo
 
 if(.false.) then
 write(6,*) id
-pause 777
+!pause 777
  a=wyoshid(0) 
  b=0
  write(6,*) 0,wyoshid(0) 

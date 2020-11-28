@@ -816,7 +816,7 @@ endif
        case('SURVEY_THIN_LAYOUT','SURVEYLAYOUT','SURVEY_NODE_LAYOUT')
 
           IF(associated(my_ering%t)) THEN
-             CALL fill_survey_data_in_NODE_LAYOUT(my_ering)
+             CALL survey(my_ering)
           ELSE
              WRITE(6,*) " NO NODE LAYOUT PRESENT "
           ENDIF
@@ -2474,17 +2474,6 @@ write(6,*) x_ref
 
           !         WRITE(6,*) M_U%END%N, M_U%END%END%POS
 
-       case('PSREXAMPLEOFPATCHING')
-
-          call APPEND_EMPTY_LAYOUT(m_u)
-          CALL remove_drifts(my_ering,m_u%END)
-          m_u%end%name="psr_no_drift"
-          call APPEND_EMPTY_LAYOUT(m_u)
-          m_u%end%name="psr_quads_for_bends"
-          CALL remove_drifts_bends(my_ering,m_u%END)
-
-          WRITE(6,*) my_ering%N , m_u%END%N
-
        case('NORMALFORM')
           READ(MF,*)POS,name
           READ(MF,*) FILENAME
@@ -3718,74 +3707,6 @@ endif
 
   end SUBROUTINE remove_drifts
 
-  SUBROUTINE remove_drifts_bends(R,NR)  ! special example to be removed later
-    IMPLICIT NONE
-    TYPE(LAYOUT),TARGET :: R,NR
-    integer I,IG
-    type(fibre), pointer :: P,bend
-    logical(lp) doneit
-    real(dp) ent(3,3),a(3),ang(3),d(3)
-
-    p=>r%start
-    bend=>r%next%start%next   ! second layout in universe
-    write(6,*) " using bend called ",bend%mag%name
-    write(6,*) " 'USING SURVEY' TYPE 1 / 'USING GEOMETRY' TYPE 0 "
-    READ(5,*) IG
-    do i=1,r%n
-       IF(P%MAG%KIND/=KIND0.AND.P%MAG%KIND/=KIND1.and.P%MAG%p%b0==0.0_dp) THEN
-
-          CALL APPEND( NR, P )
-       elseif(P%MAG%p%b0/=0.0_dp) then
-          bend%mag%p%bend_fringe=.true.
-          bend%magp%p%bend_fringe=.true.
-          bend%mag%L=P%MAG%p%lc
-          bend%magp%L=P%MAG%p%lc   ! give it correct arc length
-          bend%mag%p%Lc=P%MAG%p%lc
-          bend%magp%p%Lc=P%MAG%p%lc   ! give it correct arc length
-          bend%mag%p%Ld=P%MAG%p%lc
-          bend%magp%p%Ld=P%MAG%p%lc   ! give it correct arc length
-          call add(bend,1,0,p%mag%bn(1))    ! Give a huge B field to quadrupole, i.e. looks like a kicker now
-          CALL APPEND( NR, bend )
-          ent=p%chart%f%mid     !  storing the bend location
-          a=p%chart%f%a         !
-          !     since we use a quadrupole, the entrance frame of this quad is the mid frame of the bend
-          !     The  fibre bend must be rotated and translated into position
-          ! easiest way is to survey it with initial condition correspounding to the actual position and orientation
-          !
-          IF(IG==1) THEN
-             call SURVEY(nr%end,ENT,A)
-          ELSE
-             d=a-nr%end%chart%f%a
-             CALL TRANSLATE_Fibre(nr%end,D)  ! translation in global frame
-             CALL COMPUTE_ENTRANCE_ANGLE(nr%end%chart%f%ENT,ENT,ANG)
-             CALL ROTATE_Fibre(nr%end,A,ang)  ! translation in global frame
-          ENDIF
-
-
-       ENDIF
-       P=>P%NEXT
-    ENDDO
-
-    NR%closed=.true.
-    doneit=.true.
-    call ring_l(NR,doneit)
-
-
-
-    p=>nr%start
-
-    do i=1,nr%n-1
-       CALL FIND_PATCH(P,P%next,NEXT=MY_TRUE,ENERGY_PATCH=MY_FALSE)
-
-       P=>P%NEXT
-
-    ENDDO
-    CALL FIND_PATCH(P,P%next,NEXT=my_false,ENERGY_PATCH=MY_FALSE)
-
-    ! avoiding putting a patch on the very first fibre since survey is not a self-check in that case
-
-
-  end SUBROUTINE remove_drifts_bends
 
 
 

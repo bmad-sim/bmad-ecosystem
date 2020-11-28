@@ -2898,11 +2898,16 @@ call kill(vm,phi,z)
     if(present(node1)) n1=>node1
     if(present(node2)) n2=>node2
     if(present(fibre1)) n1=>fibre1%t1
-    if(present(fibre2)) n2=>fibre2%t1
-
+    if(present(fibre2)) then
+      if(associated(fibre2)) then
+       n2=>fibre2%t1
+      else
+        nullify(n2)
+      endif
+    endif
     c=>n1
 
-    if(associated(n2)) then
+    if(associated(n2).and.(.not.associated(n1,n2))) then
        nullify(last)
     else
        if(n1%parent_fibre%parent_layout%closed) then
@@ -2924,14 +2929,17 @@ call kill(vm,phi,z)
        if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
        call convert_bmad_to_ptc(xs,beta,k%time)
      endif
+ 
+
      DO  WHILE(.not.ASSOCIATED(C,n2))
         CALL TRACK_NODE_PROBE(C,XS,K)
         if(.not.check_stable) exit
-
-        C=>C%NEXT
+         C=>C%NEXT
      ENDDO
      if(associated(last).and.check_stable) then
+      
        CALL TRACK_NODE_PROBE(last,XS,K)
+ 
      endif
     if(use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
@@ -3445,7 +3453,8 @@ call kill(vm,phi,z)
     if(present(ref)) ref0=ref
 
     IF(.NOT.ASSOCIATED(T%B)) THEN
-       call FILL_SURVEY_DATA_IN_NODE_LAYOUT(t%parent_fibre%parent_LAYOUT)
+    call survey(t%parent_fibre%parent_LAYOUT)
+  !     call FILL_SURVEY_DATA_IN_NODE_LAYOUT(t%parent_fibre%parent_LAYOUT)
        WRITE(6,*)  " SURVEY DONE FOR THIN LAYOUT IN TRACK_NODE_LAYOUT_FLAG_spin_v "
     ENDIF
 

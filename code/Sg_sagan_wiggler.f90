@@ -545,11 +545,11 @@ end subroutine kick_integral_p
 
 
 
-  SUBROUTINE INTR(EL,X,k,mid)
+  SUBROUTINE INTR(EL,X,k)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
     TYPE(SAGAN),INTENT(INOUT):: EL
-    TYPE(WORM),OPTIONAL,INTENT(INOUT):: mid
+    
     INTEGER I,ENT,EXI
     TYPE(INTERNAL_STATE),OPTIONAL :: K
  
@@ -559,16 +559,16 @@ end subroutine kick_integral_p
        ENT=2;EXI=1;
     ENDIF
 
-    IF(.NOT.PRESENT(MID))call ADJUST_LIKE_ABELL(EL,X,k,ENT)
+    call ADJUST_LIKE_ABELL(EL,X,k,ENT)
 
-    IF(PRESENT(MID)) CALL XMID(MID,X,0)
+    !  IF(PRESENT(MID)) CALL XMID(MID,X,0)
 
     DO I=1,EL%P%NST
        call track_slice(el,x,k,i)
-       IF(PRESENT(MID)) CALL XMID(MID,X,i)
+       !  IF(PRESENT(MID)) CALL XMID(MID,X,i)
     ENDDO
 
-   IF(.NOT.PRESENT(MID))call ADJUST_LIKE_ABELL(EL,X,k,EXI)
+   call ADJUST_LIKE_ABELL(EL,X,k,EXI)
 
     call ADJUST_WI(EL,X,k,2)
 

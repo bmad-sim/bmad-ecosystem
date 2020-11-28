@@ -137,11 +137,11 @@ MODULE S_DEF_ELEMENT
 CONTAINS
 
 
-  SUBROUTINE TRACKR(EL,X,K,MID)
+  SUBROUTINE TRACKR(EL,X,K)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
     TYPE(ELEMENT),INTENT(INOUT):: EL
-    TYPE(WORM),OPTIONAL, INTENT(INOUT):: MID
+    
     TYPE(INTERNAL_STATE) K
 
     if(associated(el%p%aperture)) then
@@ -153,50 +153,50 @@ CONTAINS
     !    endif
     SELECT CASE(EL%KIND)
     CASE(KIND0)
-       IF(PRESENT(MID)) CALL XMID(MID,X,0)
-       IF(PRESENT(MID)) CALL XMID(MID,X,1)   ! ADDED FOR NST=1 IN MARKER FOR THIN_LAYOUT SURVEY
+      ! IF(PRESENT(MID)) CALL XMID(MID,X,0)
+      ! IF(PRESENT(MID)) CALL XMID(MID,X,1)   ! ADDED FOR NST=1 IN MARKER FOR THIN_LAYOUT SURVEY
     case(KIND1)
-       CALL TRACK(EL%D0,X,K,MID)
+       CALL TRACK(EL%D0,X,K)
     case(KIND2)
-       CALL TRACK(EL%K2,X,k,MID)
+       CALL TRACK(EL%K2,X,k)
     case(KIND3)
-       CALL TRACK(EL%K3,X,k,MID)
+       CALL TRACK(EL%K3,X,k)
     case(KIND4)
-       CALL TRACK(EL%C4,X,k,MID)
+       CALL TRACK(EL%C4,X,k)
     case(KIND5)
-       CALL TRACK(EL%S5,X,k,MID)
+       CALL TRACK(EL%S5,X,k)
     case(KIND6)
-       CALL TRACK(EL%T6,X,k,MID)
+       CALL TRACK(EL%T6,X,k)
     case(KIND7)
-       CALL TRACK(EL%T7,X,k,MID)
+       CALL TRACK(EL%T7,X,k)
     case(KIND8)
-       CALL TRACK(EL%S8,X,k,MID)
+       CALL TRACK(EL%S8,X,k)
     case(KIND9)
-       CALL TRACK(EL%S9,X,k,MID)
+       CALL TRACK(EL%S9,X,k)
     case(KIND10)
-       CALL TRACK(EL%TP10,X,k,MID)
+       CALL TRACK(EL%TP10,X,k)
     CASE(KIND11:KIND14)
-       call TRACK(EL%MON14,X,k,MID)
+       call TRACK(EL%MON14,X,k)
     CASE(KIND15)
-       call TRACK(EL%SEP15,X,k,MID)
+       call TRACK(EL%SEP15,X,k)
     CASE(KIND16,KIND20)
-       call TRACK(EL%K16,X,k,MID)
+       call TRACK(EL%K16,X,k)
     CASE(KIND18)
-       call TRACK(EL%RCOL18,X,k,MID)
+       call TRACK(EL%RCOL18,X,k)
     CASE(KIND19)
-       call TRACK(EL%ECOL19,X,k,MID)
+       call TRACK(EL%ECOL19,X,k)
     CASE(KIND21)
-       call TRACK(EL%CAV21,X,k,MID)
+       call TRACK(EL%CAV21,X,k)
     CASE(KIND22)
-       call TRACK(EL%HE22,X,k,MID)
+       call TRACK(EL%HE22,X,k)
     case(KINDWIGGLER)
-       call TRACK(EL%WI,X,k,MID)
+       call TRACK(EL%WI,X,k)
     case(KINDPA)
-       call TRACK(EL%PA,X,k,MID)
+       call TRACK(EL%PA,X,k)
     case(kindsuperdrift)
-       call TRACK(EL%SDR,X,k,MID)
+       call TRACK(EL%SDR,X,k)
     case(KINDABELL)
-       call TRACK(EL%AB,X,k,MID)
+       call TRACK(EL%AB,X,k)
 
     case default
  
