@@ -8,7 +8,6 @@ beginning[alpha_a]  =  0
 parameter[geometry] = closed
 beginning[E_tot]    = 5.289e9
 
-bmad_com[use_hard_edge_drifts] = false
 parameter[ptc_exact_model] =  false
 
 !

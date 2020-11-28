@@ -180,5 +180,3 @@ expand_lattice
 
 aa[k1] = 2
 a*[tracking_method] = symp_lie_bmad
-
-bmad_com[use_hard_edge_drifts] = F

@@ -231,8 +231,6 @@ call bmad_parser ('parse_test.bmad', lat, make_mats6 = .false., use_line = 'PHOT
 
 write (1, '(4a)')         '"PHOT-1"    STR ', '"', trim(lat%ele(1)%name), '"'
 write (1, '(2a, i0, a)')  '"PHOT-N"    STR ', '"', lat%n_ele_max, '"'
-write (1, '(2a, l1, a)')  '"Hard-Edge" STR ', '"', bmad_com%use_hard_edge_drifts, '"'
-
 
 close(1)
 

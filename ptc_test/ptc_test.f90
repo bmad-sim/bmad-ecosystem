@@ -45,12 +45,10 @@ open (1, file = 'output.now')
 !----------------------------------------------------------
 ! Check information passing between bmad element and associated ptc fibre
 
-bmad_com%use_hard_edge_drifts = .false.
-
 call bmad_parser ('diff_test.bmad', lat)
 
 branch => lat%branch(0)
-call branch_to_ptc_m_u (branch, .false.)
+call branch_to_ptc_m_u (branch)
 
 call lattice_bookkeeper (lat)
 
