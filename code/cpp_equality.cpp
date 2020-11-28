@@ -1283,7 +1283,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.ptc_max_fringe_order == y.ptc_max_fringe_order);
   is_eq = is_eq && (x.max_num_runge_kutta_step == y.max_num_runge_kutta_step);
   is_eq = is_eq && (x.rf_phase_below_transition_ref == y.rf_phase_below_transition_ref);
-  is_eq = is_eq && (x.use_hard_edge_drifts == y.use_hard_edge_drifts);
   is_eq = is_eq && (x.sr_wakes_on == y.sr_wakes_on);
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
   is_eq = is_eq && (x.mat6_track_symmetric == y.mat6_track_symmetric);
@@ -1557,7 +1556,6 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && (x.photon_type == y.photon_type);
   is_eq = is_eq && (x.creation_hash == y.creation_hash);
   is_eq = is_eq && (x.absolute_time_tracking == y.absolute_time_tracking);
-  is_eq = is_eq && (x.ptc_uses_hard_edge_drifts == y.ptc_uses_hard_edge_drifts);
   return is_eq;
 };
 

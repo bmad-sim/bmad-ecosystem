@@ -3060,7 +3060,7 @@ extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_IntArr, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3073,11 +3073,11 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, &C.space_charge_mesh_size[0],
       C.sad_n_div_max, C.taylor_order, C.runge_kutta_order, C.default_integ_order,
       C.ptc_max_fringe_order, C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref,
-      C.use_hard_edge_drifts, C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric,
-      C.auto_bookkeeper, C.csr_and_space_charge_on, C.spin_tracking_on,
-      C.backwards_time_tracking_on, C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on,
-      C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
-      C.convert_to_kinetic_momentum, C.aperture_limit_on, C.ptc_print_info_messages, C.debug);
+      C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper,
+      C.csr_and_space_charge_on, C.spin_tracking_on, C.backwards_time_tracking_on,
+      C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_fluctuations_on,
+      C.conserve_taylor_maps, C.absolute_time_tracking_default, C.convert_to_kinetic_momentum,
+      C.aperture_limit_on, C.ptc_print_info_messages, C.debug);
 
 }
 
@@ -3092,14 +3092,13 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     c_Real& z_sad_amp_max, c_IntArr z_space_charge_mesh_size, c_Int& z_sad_n_div_max, c_Int&
     z_taylor_order, c_Int& z_runge_kutta_order, c_Int& z_default_integ_order, c_Int&
     z_ptc_max_fringe_order, c_Int& z_max_num_runge_kutta_step, c_Bool&
-    z_rf_phase_below_transition_ref, c_Bool& z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on,
-    c_Bool& z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
-    z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on, c_Bool&
-    z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
-    z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
-    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
-    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool&
-    z_ptc_print_info_messages, c_Bool& z_debug) {
+    z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on, c_Bool&
+    z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool& z_csr_and_space_charge_on,
+    c_Bool& z_spin_tracking_on, c_Bool& z_backwards_time_tracking_on, c_Bool&
+    z_spin_sokolov_ternov_flipping_on, c_Bool& z_radiation_damping_on, c_Bool&
+    z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
+    z_absolute_time_tracking_default, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
+    z_aperture_limit_on, c_Bool& z_ptc_print_info_messages, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -3153,8 +3152,6 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.max_num_runge_kutta_step = z_max_num_runge_kutta_step;
   // c_side.to_c2_set[logical, 0, NOT]
   C.rf_phase_below_transition_ref = z_rf_phase_below_transition_ref;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.use_hard_edge_drifts = z_use_hard_edge_drifts;
   // c_side.to_c2_set[logical, 0, NOT]
   C.sr_wakes_on = z_sr_wakes_on;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -3927,7 +3924,7 @@ extern "C" void lat_to_f2 (Opaque_lat_class*, c_Char, c_Char, c_Char, c_Char, c_
     const CPP_ele&, const CPP_ele**, Int, const CPP_branch**, Int, const CPP_control**, Int,
     const CPP_coord&, const CPP_beam_init&, const CPP_pre_tracker&, c_RealArr, Int, c_Int&,
     c_IntArr, Int, c_IntArr, Int, c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&, c_Int&,
-    c_Bool&, c_Bool&);
+    c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
   // c_side.to_f_setup[character, 1, ALLOC]
@@ -3997,7 +3994,7 @@ extern "C" void lat_to_f (const CPP_lat& C, Opaque_lat_class* F) {
       C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, C.particle_start,
       C.beam_init, C.pre_tracker, z_custom, n1_custom, C.version, C.n_ele_track, n_n_ele_track,
       C.n_ele_max, n_n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic, n1_ic,
-      C.photon_type, C.creation_hash, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
+      C.photon_type, C.creation_hash, C.absolute_time_tracking);
 
   // c_side.to_f_cleanup[character, 1, ALLOC]
  delete[] z_print_str;
@@ -4024,7 +4021,7 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
     n1_custom, c_Int& z_version, c_IntArr z_n_ele_track, Int n_n_ele_track, c_IntArr
     z_n_ele_max, Int n_n_ele_max, c_Int& z_n_control_max, c_Int& z_n_ic_max, c_Int&
     z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type, c_Int&
-    z_creation_hash, c_Bool& z_absolute_time_tracking, c_Bool& z_ptc_uses_hard_edge_drifts) {
+    z_creation_hash, c_Bool& z_absolute_time_tracking) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -4138,8 +4135,6 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   C.creation_hash = z_creation_hash;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking = z_absolute_time_tracking;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.ptc_uses_hard_edge_drifts = z_ptc_uses_hard_edge_drifts;
 }
 
 //--------------------------------------------------------------------

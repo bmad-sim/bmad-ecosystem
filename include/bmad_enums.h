@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 251;
+  const int BMAD_INC_VERSION = 253;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -31,11 +31,10 @@ namespace Bmad {
   const int TAYLOR_OFFSET = 1000000000;
   const int EXPRESSION = 2, SPLINE = 3;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2, RUNGE_KUTTA = 3;
-  const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
+  const int LINEAR = 4, TRACKING = 5, TIME_RUNGE_KUTTA = 6;
   const int FIXED_STEP_RUNGE_KUTTA = 9, SYMP_LIE_BMAD = 10, STATIC = 11;
   const int FIXED_STEP_TIME_RUNGE_KUTTA = 13, MAD = 14;
-  const int TIME_RUNGE_KUTTA = 15;
-  const int N_METHODS = 15;
+  const int N_METHODS = 14;
   const int DRIFT_KICK = 1, MATRIX_KICK = 2, RIPKEN_KICK = 3;
   const int FIELDMAP = 2, PLANAR_MODEL = 3, REFER_TO_LORDS = 4, NO_FIELD = 5;
   const int HELICAL_MODEL = 6, SOFT_EDGE = 8;
@@ -236,7 +235,7 @@ namespace Bmad {
   const int FATAL_DS_ADAPTIVE_TRACKING = 90;
   const int MAX_NUM_RUNGE_KUTTA_STEP = 91;
   const int SPHERICAL_CURVATURE = 81, DISTRIBUTION = 81;
-  const int USE_HARD_EDGE_DRIFTS = 81, TT = 81, X_KNOT = 81;
+  const int TT = 81, X_KNOT = 81;
   const int ALIAS  = 82, PTC_MAX_FRINGE_ORDER = 82, ETA_X = 82;
   const int ELECTRIC_DIPOLE_MOMENT = 83, LR_SELF_WAKE_ON = 83, X_REF = 83, SPECIES_OUT = 83, ETA_Y = 83;
   const int LR_WAKE_FILE = 84, PX_REF = 84, ELLIPTICAL_CURVATURE_X = 84, ETAP_X = 84;

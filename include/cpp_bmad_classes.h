@@ -2972,7 +2972,6 @@ public:
   Int ptc_max_fringe_order;
   Int max_num_runge_kutta_step;
   Bool rf_phase_below_transition_ref;
-  Bool use_hard_edge_drifts;
   Bool sr_wakes_on;
   Bool lr_wakes_on;
   Bool mat6_track_symmetric;
@@ -3017,7 +3016,6 @@ public:
     ptc_max_fringe_order(2),
     max_num_runge_kutta_step(10000),
     rf_phase_below_transition_ref(false),
-    use_hard_edge_drifts(true),
     sr_wakes_on(true),
     lr_wakes_on(true),
     mat6_track_symmetric(true),
@@ -3509,7 +3507,6 @@ public:
   Int photon_type;
   Int creation_hash;
   Bool absolute_time_tracking;
-  Bool ptc_uses_hard_edge_drifts;
 
   CPP_lat() :
     use_name(),
@@ -3541,8 +3538,7 @@ public:
     ic(0, 0),
     photon_type(Bmad::INCOHERENT),
     creation_hash(0),
-    absolute_time_tracking(false),
-    ptc_uses_hard_edge_drifts(false)
+    absolute_time_tracking(false)
     {}
 
   ~CPP_lat() {
