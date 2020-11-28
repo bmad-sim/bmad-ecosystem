@@ -255,6 +255,7 @@ character(*) :: instr
     case("WIGGLER_PLANAR1-Anti:Runge_Kutta")           ; tolerance = 'ABS 5e-13'
     case("WIGGLER_PLANAR1-Anti:Bmad_Standard")         ; tolerance = 'ABS 5e-13'
     case("WIGGLER_PLANAR1-Anti:Time_Runge_Kutta")      ; tolerance = 'ABS 2e-13'                  
+    case("WIGGLER_PLANAR1-Anti:Symp_Lie_Bmad")         ; tolerance = 'ABS 2e-14'                  
     case("WIGGLER_HELICAL1-Anti:Runge_Kutta")          ; tolerance = 'ABS 5e-13'
     case("WIGGLER_HELICAL1-Anti:Time_Runge_Kutta")     ; tolerance = 'ABS 2e-13'                  
 
