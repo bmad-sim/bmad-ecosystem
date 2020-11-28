@@ -63,7 +63,8 @@ MODULE S_FIBRE_BUNDLE
   END INTERFACE
 
   INTERFACE move_to
-     MODULE PROCEDURE move_to_p
+   !  MODULE PROCEDURE move_to_p
+     MODULE PROCEDURE move_to_p_safe
      MODULE PROCEDURE move_to_name_old
      MODULE PROCEDURE move_to_nameS
      MODULE PROCEDURE move_to_name_FIRSTNAME
@@ -149,6 +150,7 @@ CONTAINS
     current%magp=>el%magp
     current%CHART=>el%CHART
     current%PATCH=>el%PATCH
+
     if(use_info) current%i=>el%i
     current%dir=>el%dir
     !  OCTOBER 2007
@@ -163,10 +165,11 @@ CONTAINS
     current%PARENT_LAYOUT=>L
     if(L%N==1) current%next=> L%start
     Current % previous => L % end  ! point it to next fibre
+
+
     if(L%N>1)  THEN
        L % end % next => current      !
     ENDIF
-
     L % end => Current
     if(L%N==1) L%start=> Current
 
@@ -174,7 +177,6 @@ CONTAINS
     L%LAST=>CURRENT;
 
   END SUBROUTINE APPEND_mad_like
-
 
   SUBROUTINE kill_layout( L )  ! Destroys a layout
     implicit none
@@ -376,8 +378,11 @@ CONTAINS
     TYPE (fibre), POINTER :: Current
     TYPE (layout), TARGET, intent(inout):: L
     integer i,k,POS
-
-    !    CALL LINE_L(L,doneit)  !TGV
+    if(L%closed) then
+      call move_to_p( L,current,POS )
+       return
+    endif
+     !    CALL LINE_L(L,doneit)  !TGV
     I=mod_n(POS,L%N)
  
 
@@ -406,6 +411,7 @@ CONTAINS
     logical(lp) foundit
     TYPE (fibre), POINTER :: p
     
+if(l%closed) then
     if(present(reset)) then
      if(reset) then
        l%lastpos=0
@@ -423,6 +429,7 @@ CONTAINS
 
     if(.not.associated(p)) goto 100
     do i=1,l%n
+ 
        if(p%mag%name==s1name) then
           foundit=.true.
           goto 100
@@ -440,6 +447,54 @@ CONTAINS
        poss=0
        WRITE(6,*) " Fibre not found in move_to_name_old ",S1name
     endif
+else
+    if(present(reset)) then
+     if(reset) then
+       l%lastpos=0
+       l%last=>L%start  !%previous
+     endif
+    endif
+    
+    foundit=.false.
+    S1NAME=name
+    CALL CONTEXT(S1name)
+    
+    nullify(p)
+
+   if(l%lastpos==0) then
+      p=>l%last
+     if(p%mag%name==s1name) then
+          foundit=.true.
+          goto 101
+       endif
+
+   endif
+
+    p=>l%last%next
+
+    if(.not.associated(p)) goto 101
+    do i=l%lastpos+1,l%n
+    !   write(6,*) i, p%pos,p%mag%name
+       if(p%mag%name==s1name) then
+          foundit=.true.
+          goto 101
+       endif
+       p=>p%next
+       if(.not.associated(p)) goto 101
+    enddo
+101 continue
+    if(foundit) then
+       current=>p
+       poss=mod_n(l%lastpos+i,l%n)
+       l%lastpos=poss
+       l%last=>current
+    else
+       poss=0
+       WRITE(6,*) " Fibre not found in move_to_name_old ",S1name
+    endif
+
+
+endif
     if(present(pos)) pos=poss
   END SUBROUTINE move_to_name_old
 

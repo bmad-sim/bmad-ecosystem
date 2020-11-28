@@ -78,8 +78,9 @@ contains
 
      doneit=my_true
      call ring_l(mylat,doneit)
-
-     call survey(mylat)
+     call line_l(mylat,doneit)
+     mylat%closed=.false.
+   !  call survey(mylat)
      call MAKE_NODE_LAYOUT( mylat)     
     endif
   end subroutine create_fibre_append
@@ -2817,8 +2818,6 @@ enddo
  if(present(arpent)) surv=arpent
 
    if(surv) then
-
-
      call survey(r)
    endif
 
