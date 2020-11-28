@@ -2106,6 +2106,15 @@ subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
   logical, optional :: err_flag
 end subroutine
 
+subroutine track_bunch_time (lat, bunch, t_end, dt_step)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (bunch_struct) :: bunch
+  real(rp) t_end
+  real(rp), optional :: dt_step(:)
+end subroutine
+
 subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
   import
   implicit none
@@ -2233,9 +2242,10 @@ subroutine track1_taylor (start_orb, ele, param, end_orb, taylor, mat6, make_mat
   type (taylor_struct), optional, target :: taylor(6)
 end subroutine
 
-subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
+subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)
   import
   implicit none
+  real(rp), optional :: t_end, dt_step
   type (coord_struct) :: start_orb
   type (coord_struct) :: end_orb
   type (ele_struct), target :: ele

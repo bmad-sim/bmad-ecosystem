@@ -1,5 +1,5 @@
 !+ 
-! Subroutine track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track)
+! Subroutine track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)
 !
 ! Routine to track a particle through an element using 
 ! Runge-Kutta time-based tracking. Converts to and from element
@@ -9,6 +9,11 @@
 !   start_orb   -- coord_struct: starting position, t-based global
 !   ele         -- ele_struct: element
 !   param       -- lat_param_struct: lattice parameters
+!   t_end       -- real(rp), optional: If present, maximum time to which the particle will be tracked.
+!                   Used for tracking with given time steps. The time orb%t at which tracking stops 
+!                   may be less than this if the particle gets to the end of the element
+!   dt_step     -- real(rp), optional: If positive, next RK time step to take. 
+!                   This overrides bmad_com%init_ds_adaptive_tracking. Used by track_bunch_time.
 !
 ! Output:
 !   end_orb     -- coord_struct: end position, t-based global
@@ -17,9 +22,11 @@
 !                    trajectory along with the field at these positions.
 !                    When tracking through multiple elements, the trajectory in an element
 !                    is appended to the existing trajectory. To reset: Set track%n_pt = -1.
+!   dt_step     -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
+!                   Used by track_bunch_time.
 !-
 
-subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
+subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)
 
 use time_tracker_mod, dummy => track1_time_runge_kutta
 use fringe_mod, dummy2 => track1_time_runge_kutta
@@ -34,6 +41,7 @@ type (ele_struct), pointer :: hard_ele
 type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
+real(rp), optional :: t_end, dt_step
 real(rp) vec(6), d_radius
 real(rp) s_lab, s0, s1, s2, ds_ref, del_s, p0c_save, s_body, dt_ref
 real(rp) s_edge_track, s_edge_hard, rf_time, beta_ref, r, dref_time
@@ -129,7 +137,7 @@ if ((ele%key == lcavity$ .or. ele%key == rfcavity$) .and. bmad_com%use_hard_edge
                           'WILL NOT BE ACCURATE SINCE THE LENGTH IS LESS THAN THE HARD EDGE MODEL LENGTH.')
 endif
 
-call odeint_bmad_time(end_orb, dt_ref, ele, param, t_dir, rf_time, err, track)
+call odeint_bmad_time(end_orb, dt_ref, ele, param, t_dir, rf_time, err, track, t_end, dt_step)
 
 if (err) return
 

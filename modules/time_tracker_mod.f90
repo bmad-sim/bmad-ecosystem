@@ -10,7 +10,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track)
+! Subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track, t_end, dt_step)
 ! 
 ! Subroutine to do Runge Kutta tracking in time. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -18,30 +18,36 @@ contains
 ! Tracking is done until the particle is lost or exits the element.
 !
 ! Input: 
-!   orb             -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
-!   dt_ref          -- real(rp): Inital time - time_ref. Needed for phase space z tracking.
-!   ele             -- Ele_struct: Element to track through.
+!   orb           -- Coord_struct: Starting coords: (x, px, y, py, s, ps) [t-based]
+!   dt_ref        -- real(rp): Inital time - time_ref. Needed for phase space z tracking.
+!   ele           -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field_standard
-!   param           -- lat_param_struct: Beam parameters.
-!   t_dir           -- real(rp): Direction of time travel = +/-1. Can be negative for patches.
-!                       Will be -1 if element has a negative length.
+!   param         -- lat_param_struct: Beam parameters.
+!   t_dir         -- real(rp): Direction of time travel = +/-1. Can be negative for patches.
+!                     Will be -1 if element has a negative length.
 !
-!   rf_time         -- real(rp): Time relative to RF clock.
-!   track           -- Track_struct: Structure holding the track information.
-!     %save_track     -- Logical: Set True if track is to be saved.
+!   rf_time       -- real(rp): Time relative to RF clock.
+!   track         -- Track_struct, optional: Structure holding the track information.
+!     %save_track   -- Logical: Set True if track is to be saved.
+!   t_end         -- real(rp), optional: If present, maximum time to which the particle will be tracked.
+!                     Used for tracking with given time steps. The time orb%t at which tracking stops 
+!                     may be less than this if the particle gets to the end of the element
+!   dt_step       -- real(rp), optional: If positive, next RK time step to take. 
+!                     This overrides bmad_com%init_ds_adaptive_tracking. Used by track_bunch_time.
 !
 ! Output:
-!   orb             -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
-!   dt_ref         -- real(rp): Final z phase space coordinate.
-!   err_flag        -- Logical: Set True if there is an error. False otherwise.
-!   track           -- Track_struct: Structure holding the track information.
-!
+!   orb           -- Coord_struct: Ending coords: (x, px, y, py, s, ps) [t-based]
+!   dt_ref        -- real(rp): Final z phase space coordinate.
+!   err_flag      -- Logical: Set True if there is an error. False otherwise.
+!   track         -- Track_struct: Structure holding the track information.
+!   dt_step       -- real(rp), optional: Next RK time step that this tracker would take based on the error tolerance.
+!                     Used by track_bunch_time.
 !-
 
-subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track)
+subroutine odeint_bmad_time (orb, dt_ref, ele, param, t_dir, rf_time, err_flag, track, t_end, dt_step)
 
 use nr, only: zbrent
 
@@ -57,6 +63,7 @@ type (track_struct), optional :: track
 type (fringe_edge_info_struct) fringe_info
 
 real(rp) dt_ref
+real(rp), optional :: t_end, dt_step
 real(rp), target :: old_t, dt_tol, s_fringe_edge
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_time
 real(rp), target  :: dvec_dt(10), vec_err(10), s_target, dt_next_save
@@ -198,6 +205,12 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     endif
   end select
 
+  ! Check time
+
+  if (present(t_end)) then
+    if (abs(orb%t-t_end) < bmad_com%significant_length / c_light) exit_flag = .true.
+  endif
+
   ! Save track
   if (present(track) .and. (n_step > 1 .or. orb%state /= alive$)) then
     ! Check if we are past a save time, or if exited
@@ -217,7 +230,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
     endif
   endif
 
-  ! Exit when the particle hits surface or hits wall
+  ! Exit when the particle hits an aperture or gets to the end of the element
+
   if (exit_flag) then
     err_flag = .false. 
     return
@@ -227,6 +241,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   stop_time_limited = .false.
   dt = dt_next
+  if (present(t_end)) then
+    if (present(dt_step) .and. dt + orb%t < t_end) dt_step = dt
+    dt = min(dt, t_end-orb%t)
+  endif
 
   if (stop_time /= real_garbage$ .and. t_dir * dt > t_dir * (stop_time - orb%t)) then
     if (t_dir * stop_time < t_dir * orb%t) then
