@@ -17,7 +17,7 @@
 
 subroutine track_bunch_time (lat, bunch, t_end, dt_step)
 
-use bmad_interface
+use bmad_interface, dummy => track_bunch_time
 
 implicit none
 
