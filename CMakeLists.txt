@@ -26,6 +26,7 @@ SET (SHARED_DEPS
   sim_utils
   ${PLOT_LINK_LIBS}
   ${ACC_BMAD_LINK_LIBS}
+  gomp
   X11
   readline
 )
