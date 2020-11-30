@@ -24,24 +24,10 @@ SET (EXE_SPECS
 SET (SHARED_DEPS
   bmad
   sim_utils
-  recipes_f-90_LEPP 
   ${PLOT_LINK_LIBS}
-  xrlf03
-  xrl
-  forest
-  fgsl
-  gsl
-  gslcblas
-  lapack95
-  lapack
-  blas
+  ${ACC_BMAD_LINK_LIBS}
   X11
   readline
-  gomp
-  hdf5hl_fortran
-  hdf5_fortran
-  hdf5_hl
-  hdf5
-  )
+)
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
