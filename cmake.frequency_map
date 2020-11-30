@@ -6,18 +6,5 @@ set (LINK_LIBS
   bsim
   bmad
   sim_utils
-  recipes_f-90_LEPP
-  forest
-  fgsl
-  gsl
-  gslcblas
-  xrlf03
-  xrl
-  lapack95
-  lapack
-  blas
-  hdf5hl_fortran
-  hdf5_hl
-  hdf5_fortran
-  hdf5
+  ${ACC_BMAD_LINK_LIBS}
 )
