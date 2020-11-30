@@ -7,17 +7,7 @@ SET (LINK_FLAGS ${READLINE_LINK_FLAGS})
 
 set (LINK_LIBS
   bmad
-  xrlf03
-  xrl
   sim_utils
   ${PLOT_LINK_LIBS}
-  recipes_f-90_LEPP
-  forest
-  fgsl
-  gsl
-  gslcblas
-  hdf5hl_fortran
-  hdf5_hl
-  hdf5_fortran
-  hdf5
+  ${ACC_BMAD_LINK_LIBS}
 )
