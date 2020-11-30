@@ -168,7 +168,7 @@ case (lcavity$)
   ele%value(fringe_type$) = full$
   ele%value(autoscale_amplitude$) = true$
   ele%value(autoscale_phase$) = true$
-  ele%value(longitudinal_mode$) = 1
+  ele%value(longitudinal_mode$) = 0
 
 case (def_line$)
   g = real_garbage$
@@ -267,7 +267,7 @@ case (rfcavity$)
   ele%value(fringe_type$) = full$
   ele%value(autoscale_amplitude$) = true$
   ele%value(autoscale_phase$) = true$
-  ele%value(longitudinal_mode$) = 1
+  ele%value(longitudinal_mode$) = 0
 
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1
