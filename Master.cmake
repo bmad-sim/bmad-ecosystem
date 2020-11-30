@@ -324,6 +324,14 @@ SET (ACC_LIB_DIRS ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS} ${MPI_LIB_DIRS})
 
 
 #--------------------------------------
+# Set ACC_BMAD_LINK_LIBS variable
+# As requested by dcs16 in RT#56661
+#--------------------------------------
+
+SET (ACC_BMAD_LINK_LIBS xrlf03 xrl recipes_f-90_LEPP forest fgsl gsl gslcblas lapack95 lapack blas hdf5hl_fortran hdf5_hl hdf5_fortran hdf5 fftw3 fftw3_omp)
+
+
+#--------------------------------------
 # Honor requests for debug builds 
 # composed with any variation in case.
 #--------------------------------------
@@ -428,6 +436,9 @@ ENDIF()
 message("FFLAGS               : ${FFLAGS} ${FCFLAGS}")
 message("${FORTRAN_COMPILER} Compiler Flags : ${BASE_Fortran_FLAGS}")
 message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}\n")
+
+MESSAGE("Linking Libraries defined in ACC_BMAD_LINK_LIBS : ${ACC_BMAD_LINK_LIBS}")
+MESSAGE("")
 
 #-----------------------------------
 # Output path definitions
