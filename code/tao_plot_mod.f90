@@ -66,7 +66,7 @@ enddo
 
 ! Draw view universe
 
-if (size(s%u) > 1) then
+if (size(s%u) > 1 .and. s%plot_page%draw_graph_title_suffix) then
   write (default_uni, '(i3)') s%com%default_universe
   call qp_draw_text ('Default Universe:' // default_uni, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
 endif
