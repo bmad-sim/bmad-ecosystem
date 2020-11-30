@@ -7,20 +7,7 @@ set (SRC_FILES
 
 set (LINK_LIBS
   bmad
-  xrlf03
-  xrl
-  lapack95
-  lapack
-  blas
   sim_utils
-  recipes_f-90_LEPP
-  forest
   ${PLOT_LINK_LIBS}
-  fgsl
-  gsl
-  gslcblas
-  hdf5hl_fortran
-  hdf5_hl
-  hdf5_fortran
-  hdf5
+  ${ACC_BMAD_LINK_LIBS}
 )
