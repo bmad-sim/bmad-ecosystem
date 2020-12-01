@@ -238,6 +238,11 @@ end select
 ! Now rotate to laboratory coords
 
 len2 = eff_len * (1.0_rp + ele%value(g$) * orbit2%vec(1))
+if (len2 < 0) then   ! Can happen if g * x < -1. Effectively the particle is lost.
+  orbit%state = lost_neg_x_aperture$
+  return
+endif
+
 int_g2 = len2 * g2
 int_g3 = len2 * g3
 
@@ -348,7 +353,7 @@ character(*), parameter :: r_name = 'track1_radiation'
 if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on) return
 
 call calc_radiation_tracking_integrals (ele, orbit, param, edge, .true., int_gx, int_gy, int_g2, int_g3)
-if (int_g2 == 0) return
+if (int_g2 == 0 .or. orbit%state /= alive$) return
 
 ! Apply the radiation kicks
 ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light

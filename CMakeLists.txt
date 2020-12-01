@@ -35,24 +35,8 @@ SET (SRC_DIRS
 
 SET (SHARED_DEPS
   bmad 
-  xrlf03
-  xrl
   sim_utils
-  recipes_f-90_LEPP 
-  ${PLOT_LINK_LIBS}
-  forest 
-  fgsl
-  gsl
-  gslcblas
-  lapack95
-  lapack
-  blas
-  X11
-  readline
-  hdf5hl_fortran
-  hdf5_fortran
-  hdf5_hl
-  hdf5
+  ${ACC_BMAD_LINK_LIBS}
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
