@@ -470,6 +470,7 @@ integer, parameter :: alive$ = 1, lost$ = 2
 integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
+integer, parameter :: unborn$ = 8    ! EG: For electrons not yet emitted from a cathode.
 
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
@@ -2220,6 +2221,7 @@ case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
 case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
 case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
 case (lost_pz_aperture$);      state_str = 'Hit Z Side'
+case (unborn$);                state_str = 'Unborn'
 case default;                  state_str = 'UNKNOWN!'
 end select
 
