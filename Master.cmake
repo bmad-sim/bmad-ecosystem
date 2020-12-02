@@ -328,7 +328,7 @@ SET (ACC_LIB_DIRS ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS} ${MPI_LIB_DIRS})
 # As requested by dcs16 in RT#56661
 #--------------------------------------
 
-SET (ACC_BMAD_LINK_LIBS xrlf03 xrl recipes_f-90_LEPP forest fgsl gsl gslcblas lapack95 lapack blas hdf5hl_fortran hdf5_hl hdf5_fortran hdf5 fftw3 fftw3_omp)
+SET (ACC_BMAD_LINK_LIBS $ENV{ACC_BMAD_LINK_LIBS})
 
 
 #--------------------------------------
