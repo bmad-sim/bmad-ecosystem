@@ -37,6 +37,8 @@ SET (SHARED_DEPS
   bmad 
   sim_utils
   ${ACC_BMAD_LINK_LIBS}
+  X11
+  readline
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
