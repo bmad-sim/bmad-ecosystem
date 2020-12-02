@@ -38,7 +38,7 @@ real(rp), parameter :: e_charge = 1.602176634d-19          ! electron charge [Co
 real(rp), parameter :: h_planck = 4.135667696d-15          ! Planck's constant [eV*sec]
 real(rp), parameter :: h_bar_planck = h_planck / twopi     ! h_planck/twopi [eV*sec]
 
-real(rp), parameter :: mu_0_vac = fourpi * 1d-7                     ! Permeability of free space
+real(rp), parameter :: mu_0_vac = 1.25663706212d-6         ! Vacuum permeability 2018 CODATA.
 real(rp), parameter :: eps_0_vac = 1 / (c_light*c_light * mu_0_vac) ! Permittivity of free space
 
 ! Radiation constants
