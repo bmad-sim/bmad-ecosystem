@@ -607,7 +607,7 @@ do  ! Loop over plot files
 
         if (crv%data_type == '') then
           crv%data_type = trim(plt%name) // '.' // trim(grph%name)
-          if (graph%type /= 'dynamic_aperture' .and. size(graph%curve) > 1) call out_io (s_warn$, r_name, &
+          if (grph%type /= 'dynamic_aperture' .and. size(grph%curve) > 1) call out_io (s_warn$, r_name, &
                         'CURVE(' // int_str(j) // ') OF GRAPH ' // trim(crv%data_type) // ' HAS %data_type NOT SET.', &
                         ' WILL DEFAULT TO: ' // crv%data_type)
         endif
