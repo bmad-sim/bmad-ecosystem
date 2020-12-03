@@ -219,7 +219,8 @@ do i = 1, s%n_var_used
     var_slave => var%slave(j)
     u => s%u(var_slave%ix_uni)
     if (var_slave%ix_ele < 0) cycle  ! Do not check EG "particle_start".
-    if (.not. attribute_free (var_slave%ix_ele, var_slave%ix_branch, var%attrib_name, u%model%lat)) then
+    if (.not. attribute_free (var_slave%ix_ele, var_slave%ix_branch, var%attrib_name, &
+                                                                u%model%lat, dependent_attribs_free = .true.)) then
       call out_io (s_abort$, r_name, &
                 'ERROR: VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
                 '       VARIABLE:  ' // tao_var1_name(var), &
@@ -239,8 +240,7 @@ do i = 1, s%n_var_used
       if (.not. allocated(s%var(i2)%slave)) cycle
       do j2 = 1, size(s%var(i2)%slave)
         if (i == i2 .and. j == j2) cycle
-        if (s%com%common_lattice .and. &
-                          s%var(i)%slave(j)%ix_uni /= s%var(i2)%slave(j2)%ix_uni) cycle
+        if (s%com%common_lattice .and. s%var(i)%slave(j)%ix_uni /= s%var(i2)%slave(j2)%ix_uni) cycle
         if (associated (s%var(i)%slave(j)%model_value, &
                           s%var(i2)%slave(j2)%model_value)) then
           write (name1, '(2a, i0, a)') trim(s%var(i)%v1%name), '[', s%var(i)%ix_v1, ']'  
