@@ -4080,7 +4080,9 @@ default_source = ''
 if (present(dflt_source)) default_source = dflt_source
 
 phrase = expression
-if (phrase(1:11) == 'expression:') phrase = phrase(12:)
+if (len(phrase) > 11) then
+  if (phrase(1:11) == 'expression:') phrase = phrase(12:)
+endif
 
 ! if phrase is blank then return 0.0
 
