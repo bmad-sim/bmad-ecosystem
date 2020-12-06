@@ -983,7 +983,7 @@ def parse_command(command, dlist):
 def read_madx_command ():
   global common
 
-  quote = ''
+  quote_delim = ''  # Quote mark delimiting a string. Blank means not parsing a string yet.
   in_extended_comment = False
   command = ''
   dlist = []
@@ -1043,7 +1043,7 @@ def read_madx_command ():
 
     while line != '':
       for ix in range(len(line)):
-        ##print (f'Ix: {ix} {line[ix]} -{quote}- ' + line)
+        ##print (f'Ix: {ix} {line[ix]} -{quote_delim}- ' + line)
         ##print (f'C: {command}')
         ##print (f'D: {dlist}')
 
@@ -1057,21 +1057,21 @@ def read_madx_command ():
             return [command, dlist]
 
         if (line[ix] == '"' or line[ix] == "'"):
-          if line[ix] == quote:
-            command += quote + line[:ix+1]
-            dlist.append(quote + line[:ix+1])
+          if line[ix] == quote_delim:      # Found end of string
+            command += quote_delim + line[:ix+1]
+            dlist.append(quote_delim + line[:ix+1])
             line = line[ix+1:]
-            quote = ''
+            quote_delim = ''
+            break
 
-          else:
-            quote = line[ix]
+          elif quote_delim == '':          # Found start of string
+            quote_delim = line[ix]
             command += line[:ix]
             if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
             line = line[ix+1:]
+            break
 
-          break
-
-        if quote != '': continue  # Cycle if in quote string
+        if quote_delim != '': continue    # Cycle if in quote string
 
         if line[ix] == '!':
           if len(line) > ix+10 and line[ix:ix+10] == '!!verbatim':
