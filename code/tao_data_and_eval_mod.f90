@@ -61,7 +61,7 @@ integer, optional :: dflt_uni, dflt_eval_point
 integer i, j, num, ix, ix1, ios, n_tot, n_loc, iu
 
 logical err, valid, err_flag
-logical print_err, use_dflt_ele
+logical print_err, use_dflt_ele, has_assoc_ele
 logical, allocatable, save :: this_u(:)
 
 !
@@ -104,27 +104,29 @@ endif
 
 ! Get data type
 
-ix1 = index(name, '[');
+use_dflt_ele = .true.
+has_assoc_ele = .true.
+ix1 = index(name, '[')
+
 if (ix1 == 0) then
-  if (.not. present(dflt_ele) .or. .not. associated(dflt_ele)) then
-    if (print_err) call out_io (s_error$, r_name, 'NO "[" FOUND IN:' // data_name)
+  has_assoc_ele = (tao_datum_has_associated_ele(name) == yes$)
+  if ((.not. present(dflt_ele) .or. .not. associated(dflt_ele)) .and. has_assoc_ele) then
+    if (print_err) call out_io (s_error$, r_name, 'NO "[" FOUND IN: ' // data_name)
     return
   endif
   datum%data_type = name
-  name = dflt_ele%name
-  use_dflt_ele = .true.
 
 else
   datum%data_type = name(1:ix1-1)
   name = name(ix1+1:)
   ix1 = index(name, ']')
   if (ix1 == 0) then
-    if (print_err) call out_io (s_error$, r_name, 'NO "]" FOUND IN:' // data_name)
+    if (print_err) call out_io (s_error$, r_name, 'NO "]" FOUND IN: ' // data_name)
     return
   endif
   name(ix1:ix1) = ''
   if (name(ix1+1:) /= '') then
-    if (print_err) call out_io (s_error$, r_name, 'MANGLED CONSTRUCT:' // data_name)
+    if (print_err) call out_io (s_error$, r_name, 'MANGLED CONSTRUCT: ' // data_name)
     return
   endif
   use_dflt_ele = .false.
@@ -155,56 +157,65 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   u => s%u(i)
 
-  if (use_dflt_ele) then
-    n_loc = 1
-    if (present(dflt_ele_start)) then
-      if (associated(dflt_ele_start)) then
-        n_loc = dflt_ele%ix_ele - dflt_ele_start%ix_ele + 1
-      endif
-    endif
-
-    if (present(dflt_ele_ref)) then
-      if (associated(dflt_ele_ref)) then
-        datum%ix_ele_ref = dflt_ele_ref%ix_ele
-      endif
-    endif
-
-  else
-    if (datum%ele_ref_name /= '') then
-      call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err_flag)
-      if (err_flag) return
-      if (n_loc /= 1) then
-        if (print_err) call out_io (s_error$, r_name, &
-                        'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
-        return
-      endif
-      datum%ix_ele_ref = eles(1)%ele%ix_ele
-    endif
-
-    call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err_flag)
-    if (err_flag) return
-  endif
-
-  call re_allocate (values, n_tot + n_loc)
-
-  do j = 1, n_loc
+  if (has_assoc_ele) then
     if (use_dflt_ele) then
-      datum%ix_branch = dflt_ele%ix_branch
-      datum%ix_ele = dflt_ele%ix_ele
+      n_loc = 1
       if (present(dflt_ele_start)) then
         if (associated(dflt_ele_start)) then
-          datum%ix_ele = dflt_ele_start%ix_ele + j - 1
+          n_loc = dflt_ele%ix_ele - dflt_ele_start%ix_ele + 1
+        endif
+      endif
+
+      if (present(dflt_ele_ref)) then
+        if (associated(dflt_ele_ref)) then
+          datum%ix_ele_ref = dflt_ele_ref%ix_ele
         endif
       endif
 
     else
-      datum%ele_name = eles(j)%ele%name
-      datum%ix_ele = eles(j)%ele%ix_ele
-      datum%ix_branch = eles(j)%ele%ix_branch
+      if (datum%ele_ref_name /= '') then
+        call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err_flag)
+        if (err_flag) return
+        if (n_loc /= 1) then
+          if (print_err) call out_io (s_error$, r_name, &
+                          'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
+          return
+        endif
+        datum%ix_ele_ref = eles(1)%ele%ix_ele
+      endif
+
+      call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err_flag)
+      if (err_flag) return
     endif
 
-    datum%eval_point = integer_option(anchor_end$, dflt_eval_point)
-    datum%s_offset = real_option(0.0_rp, dflt_s_offset)
+  else
+    n_loc = 1
+  endif
+
+  call re_allocate (values, n_tot + n_loc)
+
+  !
+
+  do j = 1, n_loc
+    if (has_assoc_ele) then
+      if (use_dflt_ele) then
+        datum%ix_branch = dflt_ele%ix_branch
+        datum%ix_ele = dflt_ele%ix_ele
+        if (present(dflt_ele_start)) then
+          if (associated(dflt_ele_start)) then
+            datum%ix_ele = dflt_ele_start%ix_ele + j - 1
+          endif
+        endif
+
+      else
+        datum%ele_name = eles(j)%ele%name
+        datum%ix_ele = eles(j)%ele%ix_ele
+        datum%ix_branch = eles(j)%ele%ix_branch
+      endif
+
+      datum%eval_point = integer_option(anchor_end$, dflt_eval_point)
+      datum%s_offset = real_option(0.0_rp, dflt_s_offset)
+    endif
 
     select case (component)
     case ('model')   
@@ -941,23 +952,28 @@ case ('bunch_max.', 'bunch_min.')
 
 !-----------
 
-case ('c_mat.')
+case ('c_mat.', 'cmat')
+
+  if (datum%data_type(1:5) == 'c_mat') then
+    datum%data_type = 'cmat' // datum%data_type(6:)
+    call out_io (s_warn$, r_name, 'Note: "c_mat" data type is now called "cmat"')
+  endif
 
   select case (datum%data_type)
 
-  case ('c_mat.11')
+  case ('cmat.11')
     if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (branch%ele(:)%c_mat(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
-  case ('c_mat.12')
+  case ('cmat.12')
     if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (branch%ele(:)%c_mat(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
-  case ('c_mat.21')
+  case ('cmat.21')
     if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (branch%ele(:)%c_mat(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
-  case ('c_mat.22')
+  case ('cmat.22')
     if (data_source == 'beam') goto 9000  ! Set error message and return
     call tao_load_this_datum (branch%ele(:)%c_mat(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, orbit = orbit)
 
@@ -4695,7 +4711,7 @@ endif
 
 if (source == 'at_ele') then
   call re_allocate(stack%value, 1)
-  stack%value(1) = tao_bmad_parameter_value (str, dflt_ele, dflt_orbit, err_flag)
+  stack%value(1) = tao_param_value_at_s (str, dflt_ele, dflt_orbit, err_flag)
   return
 endif
 
@@ -4907,7 +4923,7 @@ if (err) then
   return
 endif
 
-value = tao_bmad_parameter_value (data_type, ele_at_s, orb_at_s, err)
+value = tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
 if (err) then
   err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
   bad_datum = .true.
@@ -4923,7 +4939,7 @@ if (associated(ele_ref)) then
     return
   endif
 
-  value = value - tao_bmad_parameter_value (data_type, ele_at_s, orb_at_s, err)
+  value = value - tao_param_value_at_s (data_type, ele_at_s, orb_at_s, err)
   if (err) then
     err_str = 'CANNOT EVALUATE DATUM AT REFERENCE POSITION.'
     bad_datum = .true.

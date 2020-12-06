@@ -153,7 +153,7 @@ Each datum has a number of components associated with it:
   good_meas        ! Logical: Does the meas   component contain a valid value?
   good_ref         ! Logical: Does the ref    component contain a valid value?
   good_user        ! Logical: Does the user want this datum used in optimization?
-  good_opt\Dd         ! Logical: Can be used in Tao extensions.
+  good_opt\Dd         ! Logical: Similar to good_user. Can be used in Tao extensions.
   good_plot\Dd        ! Logical: Is datum within the horizontal extent of the plot?
   useit_plot\Ss       ! Logical: Is this datum to be used in plotting?
   useit_opt\Ss        ! Logical: Is this datum to be used for optimization?
@@ -230,7 +230,8 @@ compute the orbit at the BPM due to the particle being lost upstream of the elem
 \vn{good_model} will be False.
 %
   \item[good_opt] \Newline
-Set by the user. Is the datum valid for optimization?
+Set by the user. This component is similar \vn{good_user} except that it is unaffected by the
+\vn{veto}, \vn{restore} and \vn{use} commands.
 %
   \item[good_plot] \Newline
 Set by Tao. Is datum within the horizontal extent of the plot? 
@@ -239,7 +240,8 @@ Set by Tao. Is datum within the horizontal extent of the plot?
 Set by the user. Is the \vn{ref} value valid?
 %
   \item[good_user] \Newline
-Set by the user. Is the datum valid for optimization or plotting?
+Set by the user. Is the datum valid for optimization or plotting? Use the commands \vn{veto}, \vn{restore},
+\vn{use} and \vn{set data} to set while running \tao.
 %
   \item[invalid] \Newline
 The value used in the computation of \vn{delta_merit} one of the following three conditions is
@@ -728,7 +730,7 @@ The charge of the live particles in a bunch as expressed unnormalized or nomaliz
 Maximum or minimum phase space coordinate in a bunch, relative to its centroid.
 
   %----------------------
-  \item[c_mat.11, .12, .21, .22] \Newline
+  \item[cmat.11, .12, .21, .22] \Newline
 Coupling matrix components. The 2x2 C matrix describe the $x$-$y$ coupling of the beam.
 See the \bmad manual for more details.
 
@@ -1734,8 +1736,8 @@ See the previous section for a description of the data types.
     \hspace{4em} .px, .py, .pz  
   \end{tabular}                       & Min relative to centroid                  & beam        & No  \\ \hline
 
-  c_mat.11, .12, .21, .22             & Coupling                                  & lat         & Yes \\ \hline 
-  cbar.11, .12, .21, .22              & Coupling                                  & lat         & Yes \\ \hline 
+  cmat.11, .12, .21, .22              & Coupling matrix elements                  & lat         & Yes \\ \hline 
+  cbar.11, .12, .21, .22              & Normalized coupling matrix                & lat         & Yes \\ \hline 
   chrom.a, .b                         & Chromaticities for a ring                 & lat         & No  \\ \hline
   chrom.dbeta.a, .dbeta.b             & Normalized Chromatic beta                 & lat         & No  \\ \hline
   chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline

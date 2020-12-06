@@ -2430,7 +2430,7 @@ case ('t.', 'tt.')
   value = taylor_coef (t_map(i), expnt)
 
 case default
-  value = tao_bmad_parameter_value (data_type, ele, orbit, err)
+  value = tao_param_value_at_s (data_type, ele, orbit, err)
   if (err)  goto 9000  ! Error message & Return
 end select
 

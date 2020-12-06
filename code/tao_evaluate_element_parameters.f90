@@ -88,7 +88,7 @@ endif
 
 ! Get class:name
 
-ix1 = index(name, '[');  
+ix1 = index(name, '[');
 if (ix1 == 0) return
 
 ix1 = index(name, '[');  if (ix1 == 0) return
@@ -107,7 +107,8 @@ if (where /= end$) then
   case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position', &
         'beta_a', 'beta_b', 'alpha_a', 'alpha_b', 'gamma_a', 'gamma_b', 'phi_a', 'phi_b', &
         'eta_a', 'eta_b', 'eta_x', 'eta_y', 'eta_z', 'etap_a', 'etap_b', 'etap_x', 'etap_y', 'etap_z', &
-        'cmat_11', 'cmat_12', 'cmat_21', 'cmat_22', &
+        'cmat_11', 'cmat_12', 'cmat_21', 'cmat_22', 'cmat.11', 'cmat.12', 'cmat.21', 'cmat.22', &
+        'cbar_11', 'cbar_12', 'cbar_21', 'cbar_22', 'cbar.11', 'cbar.12', 'cbar.21', 'cbar.22', &
         'orbit_x', 'orbit.x', 'orbit_px', 'orbit.px', 'orbit_y', 'orbit.y', 'orbit_py', 'orbit.py', &
         'orbit_z', 'orbit.z', 'orbit_pz', 'orbit.pz', 'spin.x', 'spin_x', 'spin.y', 'spin_y', &
         'spin.z', 'spin_z', 'intensity', 'intensity_x', 'intensity.x', 'intensity_y', 'intensity.y', &
@@ -170,7 +171,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         case default
           call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
                                                                         .true., .false., orb0, orb, ele0, ele3, err)
-          call tao_orbit_value (parameter, orb, values(n_tot+j), err)
+          values(n_tot+j) = tao_param_value_at_s (parameter, ele3, orb, err)
         end select
 
         if (err) then
@@ -180,7 +181,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         endif
 
       else
-        call tao_orbit_value (parameter, orb0, values(n_tot+j), err)
+        values(n_tot+j) = tao_param_value_at_s (parameter, ele0, orb0, err)
         if (err) then
           call pointer_to_attribute (ele0, parameter, .true., a_ptr, err, print_err)
           if (err) return
@@ -203,7 +204,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
         values(n_tot+j) = norm2(tao_branch%dn_dpz(ixe)%vec)
       case default
-        call tao_orbit_value (parameter, tao_branch%orbit(ixe), values(n_tot+j), err)
+        values(n_tot+j) = tao_param_value_at_s (parameter, branch%ele(ixe), tao_branch%orbit(ixe), err)
         if (err) then
           call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
           if (err) return
