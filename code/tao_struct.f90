@@ -370,7 +370,7 @@ end type
 ! %good_ref     -- Like good_meas this is set for a reference data set.
 ! %good_user    -- What the user has selected using the use, veto, and restore 
 !                    commands.
-! %good_opt     -- Not modified by Tao. Setting is reserved for use by by extension code.
+! %good_opt     -- Like %good_user. Not modified by Tao. Can be used by extension code.
 ! %good_plot    -- Set True if datum point is within the horizontal plot range.
 ! %useit_plot   -- Datum is valid for plotting:
 !                    = %exists & %good_plot (w/o measured & reference data)

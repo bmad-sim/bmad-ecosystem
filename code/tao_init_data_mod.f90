@@ -336,6 +336,7 @@ if (search_for_lat_eles /= '') then
   ! Get element names
 
   u%data(n1:n2)%good_user        = datum(ix1:ix2)%good_user
+  u%data(n1:n2)%good_opt         = datum(ix1:ix2)%good_opt
   u%data(n1:n2)%invalid_value    = datum(ix1:ix2)%invalid_value
   u%data(n1:n2)%spin_axis        = datum(ix1:ix2)%spin_axis
   u%data(n1:n2)%ele_start_name   = datum(ix1:ix2)%ele_start_name
@@ -473,6 +474,7 @@ else
   ! Transfer info from the input structure
 
   u%data(n1:n2)%good_user        = datum(ix1:ix2)%good_user
+  u%data(n1:n2)%good_opt         = datum(ix1:ix2)%good_opt
   u%data(n1:n2)%weight           = datum(ix1:ix2)%weight
   u%data(n1:n2)%ele_name         = datum(ix1:ix2)%ele_name
   u%data(n1:n2)%invalid_value    = datum(ix1:ix2)%invalid_value

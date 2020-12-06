@@ -72,7 +72,7 @@ function tao_beam_sigma_calc_needed (data_type, data_source) result (do_beam_sig
   logical do_beam_sigma
 end function
  
-function tao_bmad_parameter_value (dat_name, ele, orbit, err_flag) result (value)
+function tao_param_value_at_s (dat_name, ele, orbit, err_flag) result (value)
   import
   implicit none
   type (ele_struct) ele
@@ -609,15 +609,6 @@ function tao_optimization_status (datum) result (why_str)
   type (tao_data_struct) :: datum
   character(60) why_str
 end function
-
-subroutine tao_orbit_value (component, orbit, value, err)
-  import
-  implicit none
-  character(*) component
-  type (coord_struct) orbit
-  real(rp) value
-  logical err
-end subroutine
 
 function tao_oreint_building_wall_pt(pt_in) result (pt_out)
   import

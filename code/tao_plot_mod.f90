@@ -680,6 +680,13 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   floor%r = [0.0_rp, 0.0_rp, ele2%value(l$)]
   floor2 = coords_local_curvilinear_to_floor (floor, ele, .false.)
 
+elseif (ele%key == patch$) then
+  floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true., use_patch_entrance = .true.)
+
+  floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
+  floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+
 else
   floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
   floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
@@ -825,7 +832,7 @@ if (graph%floor_plan%orbit_scale /= 0 .and. ele%value(l$) /= 0) then
     dy_orbit(0) = f_orb%r(2)
 
     floor%r(1:2) = graph%floor_plan%orbit_scale * orb_end%vec(1:3:2)
-    floor%r(3) = ele%value(l$)
+    floor%r(3) = 0  ! coords are relative to exit end.
     floor1 = coords_local_curvilinear_to_floor (floor, ele, .false.)
     call tao_floor_to_screen_coords (graph, floor1, f_orb)
     dx_orbit(1) = f_orb%r(1)

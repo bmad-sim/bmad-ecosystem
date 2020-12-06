@@ -31,6 +31,7 @@ type tao_datum_input
   real(rp) :: meas = real_garbage$  ! used to tag when %meas_value is set in file
   real(rp) :: weight = 0
   logical :: good_user = .true.
+  logical :: good_opt = .true.
   character(20) :: data_source = ''
   character(20) :: eval_point = 'end'
   real(rp) :: s_offset = 0

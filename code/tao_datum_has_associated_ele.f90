@@ -28,7 +28,7 @@ integer, optional :: branch_geometry
 
 !
 
-if (data_type == 'unstable.ring' .or. data_type == 'unstable_lattice' .or. &
+if (data_type == 'unstable.ring' .or. data_type == 'unstable.lattice' .or. &
               data_type(1:14) == 'unstable.eigen' .or. data_type(1:7) == 'normal.' .or. &
               data_type(1:18) == 'spin.polarization_' .or. data_type == 'spin.depolarization_rate' .or. &
               data_type == 'chrom.a' .or. data_type == 'chrom.b' .or. data_type(1:10) == 'chrom_ptc.' .or. &
