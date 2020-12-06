@@ -178,7 +178,7 @@ if (i_ele < 0) then
       if (ref_orb(i)%state /= alive$) then
         ele%mat6 = 0
         ele%vec0 = 0
-        ele%map_ref_orb_in%vec = 0
+        ele%map_ref_orb_in%vec = real_garbage$
         cycle
       endif
       call make_mat6(ele, branch%param, ref_orb(i-1), err_flag = err)

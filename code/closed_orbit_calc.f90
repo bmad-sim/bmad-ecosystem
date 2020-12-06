@@ -650,6 +650,10 @@ err = .false.
 if (dir == 1) then
   if (make_mat6) call lat_make_mat6 (branch%lat, -1, closed_orb, branch%ix_branch)
   call transfer_matrix_calc (branch%lat, t1, ix_branch = branch%ix_branch)
+  if (all(t1 == 0)) then ! Something is really wrong so try a hard reset of t1 around the zero orbit.
+    call lat_make_mat6 (branch%lat, -1, ix_branch = branch%ix_branch)
+    call transfer_matrix_calc (branch%lat, t1, ix_branch = branch%ix_branch)
+  endif
 
 else
   call track_many (branch%lat, closed_orb, branch%n_ele_track, 0, dir, branch%ix_branch, track_state)
