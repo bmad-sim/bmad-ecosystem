@@ -51,8 +51,8 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
-real(rp) :: xfer_mat(:,:)
-real(rp), optional :: xfer_vec(:)
+real(rp) :: xfer_mat(6,6)
+real(rp), optional :: xfer_vec(6)
 real(rp) rf_mat(6,6)
 
 integer, optional :: ix1, ix2, ix_branch
@@ -92,7 +92,7 @@ if (i1 == i2 .and. .not. logic_option (.false., one_turn)) return
 
 if (i1 < i2) then  
   do i = i1+1, i2
-    call add_on_to_xfer_mat
+    call add_on_to_xfer_mat(i, xfer_mat, xfer_vec)
   enddo
 
 ! Here when i2 < i1 ...
@@ -100,17 +100,17 @@ if (i1 < i2) then
 
 elseif (branch%param%geometry == closed$) then
   do i = i1+1, branch%n_ele_track
-    call add_on_to_xfer_mat
+    call add_on_to_xfer_mat(i, xfer_mat, xfer_vec)
   enddo
   do i = 1, i2
-    call add_on_to_xfer_mat
+    call add_on_to_xfer_mat(i, xfer_mat, xfer_vec)
   enddo
 
 ! For an open lattice compute the backwards matrix
 
 else
   do i = i2+1, i1 
-    call add_on_to_xfer_mat
+    call add_on_to_xfer_mat(i, xfer_mat, xfer_vec)
   enddo
   call mat_inverse (xfer_mat, xfer_mat)
   xfer_vec = -matmul(xfer_mat, xfer_vec)
@@ -120,7 +120,10 @@ endif
 !--------------------------------------------------------
 contains
 
-subroutine add_on_to_xfer_mat
+subroutine add_on_to_xfer_mat(i, xfer_mat, xfer_vec)
+integer i
+real(rp) :: xfer_mat(6,6)
+real(rp), optional :: xfer_vec(6)
 
 xfer_mat = matmul (branch%ele(i)%mat6, xfer_mat)
 if (vec_present) xfer_vec = matmul(branch%ele(i)%mat6, xfer_vec) + branch%ele(i)%vec0

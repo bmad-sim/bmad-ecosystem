@@ -3,26 +3,29 @@
 !                                        w_mat, calculate_angles, use_patch_entrance) result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates.
-! Note: if the element is a patch then local_position%r(3) is the longitudinal position with
-! respect to the exit end instead of the entrance end.
+!
+! Note: If the element is a patch and use_patch_entrance = False (the default), local_position%r(3) is the 
+! longitudinal position with respect to the exit end instead of the entrance end.
 !
 ! Input:
-!   local_position  -- floor_position_struct: Floor position in local curvilinear coordinates,
-!                        with %r = [x, y, z_local] where z_local is wrt the entrance end of the element.
-!   ele             -- ele_struct: element that local_position coordinates are relative to.
-!   in_ele_frame    -- logical, optional :: True => local_position is in ele body frame and includes misalignments.
-!                               Ignored if element is a patch. Default: False. 
+!   local_position      -- floor_position_struct: Floor position in local curvilinear coordinates,
+!                            with %r = [x, y, z_local] where z_local is wrt the entrance end of the element.
+!   ele                 -- ele_struct: element that local_position coordinates are relative to.
+!   in_ele_frame        -- logical, optional: True => local_position is in ele body frame and includes misalignments.
+!                            Ignored if element is a patch. Default: False. 
+!   use_patch_entrance  -- logical, optional: Default is False. If True and ele is a patch, use the
+!                            position of the previous lattice element as a starting point.
 !
 ! Output:
-!   global_position -- floor_position_struct: Position in global coordinates.
-!                       %r and %w
-!   w_mat(3,3)      -- real(rp), optional: W matrix at z, to transform vectors. 
-!                                  v_global = w_mat . v_local
-!                                  v_local = transpose(w_mat) . v_global
+!   global_position     -- floor_position_struct: Position in global coordinates.
+!                           %r and %w
+!   w_mat(3,3)          -- real(rp), optional: W matrix at z, to transform vectors. 
+!                                    v_global = w_mat . v_local
+!                                    v_local = transpose(w_mat) . v_global
 !   
-!   calculate_angles  -- logical, optional: calculate angles for global_position 
-!                          Default: True.
-!                          False returns local_position angles (%theta, %phi, %psi) = 0.
+!   calculate_angles    -- logical, optional: calculate angles for global_position 
+!                            Default: True.
+!                            False returns local_position angles (%theta, %phi, %psi) = 0.
 !-  
 
 function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, &

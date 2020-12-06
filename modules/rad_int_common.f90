@@ -10,7 +10,7 @@ use em_field_mod
 ! The "cache" is for saving values for g, etc through an element to speed
 ! up the calculation.
 
-integer, parameter :: no_cache$ = 0, cache_with_misalign$ = 1, cache_no_misalign$ = 2
+integer, parameter :: no_cache$ = 0, cache_no_misalign$ = 2
 
 type rad_int_track_point_struct
   real(rp) :: s_body = 0

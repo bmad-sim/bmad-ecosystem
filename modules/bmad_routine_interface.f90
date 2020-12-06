@@ -2361,8 +2361,8 @@ subroutine transfer_matrix_calc (lat, xfer_mat, xfer_vec, ix1, ix2, ix_branch, o
   import
   implicit none
   type (lat_struct) lat
-  real(rp) :: xfer_mat(:,:)
-  real(rp), optional :: xfer_vec(:)
+  real(rp) :: xfer_mat(6,6)
+  real(rp), optional :: xfer_vec(6)
   integer, optional :: ix1, ix2, ix_branch
   logical, optional :: one_turn
 end subroutine

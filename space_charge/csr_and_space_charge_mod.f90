@@ -126,7 +126,7 @@ type (bunch_struct), target :: bunch_start, bunch_end
 type (coord_struct), pointer :: pt, c0
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
-type (ele_struct), save :: runt
+type (ele_struct) :: runt
 type (ele_struct), pointer :: ele0, s_ele
 type (csr_struct), target :: csr
 type (csr_ele_info_struct), pointer :: eleinfo
