@@ -730,7 +730,7 @@ def parse_command(command, dlist):
 def get_next_command ():
   global common
 
-  quote = ''
+  quote_delim = ''  # Quote mark delimiting a string. Blank means not parsing a string yet.
   command = ''
   dlist = []
 
@@ -769,26 +769,26 @@ def get_next_command ():
 
     while line != '':
       for ix in range(len(line)):
-        ##print (f'Ix: {ix:4} {line[ix]} -{quote}--{line.rstrip()}')
+        ##print (f'Ix: {ix:4} {line[ix]} -{quote_delim}--{line.rstrip()}')
         ##print (f'C: {command}')
         ##print (f'D: {dlist}')
 
         if line[ix] == '"' or line[ix] == "'":
-          if line[ix] == quote:
-            command += quote + line[:ix+1]
-            dlist.append(quote + line[:ix+1])
+          if line[ix] == quote_delim:      # Found end of string
+            command += quote_delim + line[:ix+1]
+            dlist.append(quote_delim + line[:ix+1])
             line = line[ix+1:]
-            quote = ''
+            quote_delim = ''
+            break
 
-          else:
-            quote = line[ix]
+          elif quote_delim == '':          # Found start of string
+            quote_delim = line[ix]
             command += line[:ix]
             if line[:ix].strip() != '': dlist.append(line[:ix].strip().lower())
             line = line[ix+1:]
+            break
 
-          break
-
-        if quote != '': continue
+        if quote_delim != '': continue     # Cycle if in quote string
 
         if line[ix] == '!':
           if len(line) > ix+10 and line[ix:ix+10] == '!!verbatim':
