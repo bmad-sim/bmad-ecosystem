@@ -3,7 +3,6 @@ module tao_lm_optimizer_mod
 use tao_interface
 use tao_dmerit_mod
 use tao_top10_mod
-use tao_var_mod
 use input_mod
 use super_recipes_mod
 
@@ -104,8 +103,7 @@ call out_io (s_blank$, r_name, '  Cycle      Merit   A_lambda')
 do i = 1, s%global%n_opti_cycles+1
 
   if (a_lambda > 1e10) then
-    call out_io (s_blank$, r_name, &
-                    'Optimizer at minimum or derivatives need to be recalculated.')
+    call out_io (s_blank$, r_name, 'Optimizer at minimum or derivatives need to be recalculated.')
     finished = .true.
   endif
 

@@ -1,54 +1,3 @@
-module tao_var_mod
-
-use tao_interface
-use input_mod
-
-contains
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Function tao_user_is_terminating_optimization () result (is_terminating)
-!
-! Routine to check for keyboard input of a period '.' signaling optimization termination.
-!
-! Module needed:
-!   use tao_var_mod
-!
-! Output:
-!   is_terminating -- logical: Set True of '.' is detected. False otherwise.
-!-
-
-function tao_user_is_terminating_optimization () result (is_terminating)
-
-implicit none
-
-logical is_terminating
-
-character(52) :: r_name = 'tao_user_is_terminating_optimization'
-character(1) char
-
-!
-
-is_terminating = .false.
-if (.not. s%global%optimizer_allow_user_abort) return
-
-do
-  call get_tty_char (char, .false., .false.) 
-  if (char == '.') then
-    call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', 'Stopping now.')
-    is_terminating = .true.
-    return
-  endif
-  if (char == achar(0)) return   ! return if there is no more input
-enddo
-
-end function tao_user_is_terminating_optimization
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
 !+
 ! Subroutine tao_get_opt_vars (var_value, var_step, var_delta, var_weight, var_ix,
 !                                             ignore_if_weight_is_zero, ignore_if_not_limited)
@@ -72,6 +21,8 @@ end function tao_user_is_terminating_optimization
 
 subroutine tao_get_opt_vars (var_value, var_step, var_delta, var_weight, var_ix, &
                                     ignore_if_weight_is_zero, ignore_if_not_limited)
+
+use tao_interface, dummy => tao_get_opt_vars
 
 implicit none
 
@@ -122,46 +73,3 @@ do i = 1, s%n_var_used
 enddo
 
 end subroutine tao_get_opt_vars
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_set_opt_vars (var_vec, print_limit_warning)
-!
-! Subrutine to set variable values from a vector of values. 
-! This routine is used with optimization since optimimizers
-! generally like their variables in the form of a vector.
-!
-! This routine assumes that the variables in each s%u(i) universe
-! gets the same values. 
-!
-! Input:
-!   var_vec(:) -- Real(rp): Vector of variables. 
-!   print_limit_warning
-!         -- Logical, optional: Print a warning if the value is past the variable's limits.
-!             Default is True.
-!
-! Output:
-!-
-
-subroutine tao_set_opt_vars (var_vec, print_limit_warning)
-
-implicit none
-
-real(rp) var_vec(:)
-integer i, j, k
-logical, optional :: print_limit_warning
-
-! Transfer the values from var_vec to the variables of each universe.
-
-j = 0
-do i = 1, s%n_var_used
-  if (.not. s%var(i)%useit_opt) cycle
-  j = j + 1
-  call tao_set_var_model_value (s%var(i), var_vec(j), print_limit_warning)
-enddo
-
-end subroutine tao_set_opt_vars
-
-end module

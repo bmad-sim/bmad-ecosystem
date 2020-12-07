@@ -257,28 +257,41 @@ end subroutine tao_evaluate_lat_or_beam_data
 !   valid_value  -- Logical: Valid data value?
 !-
 
-subroutine tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
+subroutine tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value, why_invalid, datum)
 
-use measurement_mod, only: to_phase_and_coupling_reading
+use measurement_mod, only: to_phase_and_coupling_reading, ele_is_monitor
 
 type (ele_struct) ele
 type (bpm_phase_coupling_struct) bpm_data
 type (bpm_phase_coupling_struct), save :: old_bpm_data
+type (tao_data_struct) datum
 
 integer, save :: ix_ele_old = -1
 
 logical valid_value
 logical, save :: err
 
+character(*) why_invalid
+
 !
+
+valid_value = .false.
 
 if (ix_ele_old /= ele%ix_ele) then
   call to_phase_and_coupling_reading (ele, s%com%add_measurement_noise, old_bpm_data, err)
+  if (err) then
+    if (ele%a%beta == 0) then;               call tao_set_invalid (datum, 'UNSTABLE LATTICE', why_invalid)
+    elseif (.not. ele%is_on) then;           call tao_set_invalid (datum, 'ELEMENT IS TURNED OFF.', why_invalid)
+    elseif (.not. ele_is_monitor(ele)) then; call tao_set_invalid (datum, &
+              'ELEMENT TYPE IS NOT SUITABLE FOR BEAM MONITORING: ' // key_name(ele%key), why_invalid, .true.)
+    endif
+    return
+  endif
   ix_ele_old = ele%ix_ele
 endif
 
 bpm_data = old_bpm_data
-valid_value = .not. err
+valid_value = .true.
 
 end subroutine
 
@@ -847,7 +860,7 @@ case ('bpm_eta.')
 case ('bpm_phase.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
-  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
 
   select case (datum%data_type)
   case ('bpm_phase.a')
@@ -865,7 +878,7 @@ case ('bpm_phase.')
 case ('bpm_k.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
-  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
 
   select case (datum%data_type)
   case ('bpm_k.22a')
@@ -887,7 +900,7 @@ case ('bpm_k.')
 case ('bpm_cbar.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
-  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value, why_invalid, datum); if (.not. valid_value) return
 
   select case (datum%data_type)
   case ('bpm_cbar.22a')
@@ -986,6 +999,11 @@ case ('c_mat.', 'cmat')
 !-----------
 
 case ('cbar.')
+
+  if (ele%a%beta == 0) then ! Can happen if the lattice is unstable.
+    call tao_set_invalid (datum, 'UNSTABLE LATTICE', why_invalid)
+    return
+  endif
 
   select case (datum%data_type)
 

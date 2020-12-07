@@ -2,7 +2,6 @@ module tao_svd_optimizer_mod
 
 use tao_interface
 use tao_dmerit_mod
-use tao_var_mod
 
 contains
 
