@@ -317,6 +317,7 @@ err = .true.
 
 if (.not. ele%is_on) return
 if (.not. ele_is_monitor(ele)) return
+if (ele%a%beta == 0) return   ! Can happen if lattice is unstable
 
 call compute_measurement_distortion_mat (ele, d_mat)
 
