@@ -229,7 +229,11 @@ end subroutine linear_bend_edge_kick
 ! Subroutine second_order_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 !
 ! Subroutine to track through the edge field of an sbend using a 2nd order map.
-! See the Bmad manual for details on how the map was constructed.
+! Adapted from:
+!   Hwang and S. Y. Lee, 
+!   "Dipole Fringe Field Thin Map for Compact Synchrotrons",
+!   Phys. Rev. ST Accel. Beams, 12, 122401, (2015).
+! See the Bmad manual for details.
 !
 ! Input:
 !   orb         -- Coord_struct: Starting coords.
@@ -372,7 +376,7 @@ end subroutine second_order_bend_edge_kick
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
+! Subroutine sad_mult_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
 !
 ! Routine to track through the hard edge bend fringe field for a bend or sad_mult element.
 ! Only the bend field is taken into account here. Higher order multipolse must be handled elsewhere.
@@ -397,7 +401,7 @@ end subroutine second_order_bend_edge_kick
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
 !-
 
-subroutine no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
+subroutine sad_mult_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
 
 implicit none
 
@@ -478,7 +482,7 @@ endif
 
 if (t0 /= 0) call tilt_coords (-t0, orbit%vec)
 
-end subroutine no_edge_angle_hard_bend_edge_kick
+end subroutine sad_mult_hard_bend_edge_kick
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
