@@ -205,6 +205,14 @@ do j = 1, s%n_var_used
   enddo
 
   call tao_set_var_model_value (s%var(j), model_value)
+
+  ! look for keyboard input to end optimization
+
+  if (tao_user_is_terminating_optimization()) then
+    err_flag = .true.
+    exit
+  endif
+
 enddo
 
 ! End

@@ -18,7 +18,6 @@ use tao_interface, dummy => tao_de_optimizer
 use tao_top10_mod, only: tao_var_write
 !use opti_de_mod, only: opti_de
 use opti_de_mod, only: opti_de !MPI , opti_de_mpi
-use tao_var_mod, only: tao_get_opt_vars, tao_set_opt_vars
 
 implicit none
 
@@ -111,7 +110,6 @@ function merit_wrapper (var_vec, status, iter_count) result (this_merit)
 
 use tao_interface
 use input_mod
-use tao_var_mod
 
 implicit none
 

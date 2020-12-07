@@ -3,7 +3,6 @@ module tao_geodesic_lm_optimizer_mod
 use tao_interface
 use tao_dmerit_mod
 use tao_top10_mod
-use tao_var_mod
 use input_mod
 use geodesic_lm
 
@@ -246,10 +245,7 @@ real(8) :: x(n), v(n), acc(n)
 
 end subroutine
 
-
 end module
-
-
 
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
@@ -259,13 +255,12 @@ end module
 !
 subroutine user_signal(flag, is_set)
 
-use tao_var_mod
+use tao_interface
 
 implicit none
 
 integer :: flag
 logical :: is_set
-
 
 if (tao_user_is_terminating_optimization()) then
   flag = -10

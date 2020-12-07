@@ -312,6 +312,17 @@ subroutine tao_floor_to_screen_coords (graph, floor, screen)
   type (floor_position_struct) floor, screen
 end subroutine
 
+subroutine tao_get_opt_vars (var_value, var_step, var_delta, var_weight, var_ix, &
+                                    ignore_if_weight_is_zero, ignore_if_not_limited)
+  import
+  implicit none
+  real(rp), allocatable, optional :: var_value(:), var_delta(:)
+  real(rp), allocatable, optional :: var_step(:), var_weight(:)
+  integer, allocatable, optional :: var_ix(:)
+  logical, optional :: ignore_if_weight_is_zero, ignore_if_not_limited
+  logical ignore_weight_is_zero, ignore_not_limited
+end subroutine
+
 function tao_graph_name(graph, use_region) result (graph_name)
   import
   implicit none
@@ -732,6 +743,13 @@ subroutine tao_remove_blank_characters (str)
   character(*) str
 end subroutine
 
+subroutine tao_set_opt_vars (var_vec, print_limit_warning)
+  import
+  implicit none
+  real(rp) var_vec(:)
+  logical, optional :: print_limit_warning
+end subroutine
+
 function tao_srdt_calc_needed (data_type, data_source) result (do_srdt)
   import
   implicit none
@@ -884,6 +902,11 @@ subroutine tao_use_var (action, var_name)
   character(*) :: action
   character(*) :: var_name
 end subroutine
+
+function tao_user_is_terminating_optimization () result (is_terminating)
+  implicit none
+  logical is_terminating
+end function
 
 function tao_var1_name(var) result (var1_name)
   import
