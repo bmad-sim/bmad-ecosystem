@@ -12,6 +12,7 @@ set (EXE_SPECS
   cmake.bookkeeper_test
   cmake.em_field_test
   cmake.field_test
+  cmake.fringe_test
   cmake.geometry_test
   cmake.girder_test
   cmake.hdf5_test

@@ -5,6 +5,7 @@ bbu_test
 bookkeeper_test
 closed_orbit_test
 coord_test
+fringe_test
 geometry_test
 girder_test
 hdf5_test
