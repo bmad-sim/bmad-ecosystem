@@ -5032,10 +5032,6 @@ line_expansion: do
 
 enddo line_expansion
 
-! Stop here if there has been an error
-
-if (bp_com%error_flag) return
-
 ! Transfer the ele information from the in_lat to lat and
 ! do the bookkeeping for settable dependent variables.
 
@@ -5045,6 +5041,12 @@ if (present(expanded_line)) then  ! Used by girders and sublines.
   expanded_line = base_line(1:n_ele_expand)
   return
 endif
+
+! Stop here if there has been an error
+
+if (bp_com%error_flag) return
+
+!
 
 if (lat%n_ele_max == 0) then
   ix_branch = 0
