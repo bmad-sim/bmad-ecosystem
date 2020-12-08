@@ -139,8 +139,8 @@ type bp_common_struct
   character(40) :: parser_name = ''            ! Blank means not in bmad_parser nor bmad_parser2.
   character(100) :: last_word = ''             ! Last word to be parsed
   logical :: bmad_parser_calling = .false.     ! used for expand_lattice
-  logical :: error_flag = .false.              ! Set True on error
   logical :: fatal_error_flag = .false.        ! Set True on fatal (must abort now) error 
+  logical :: error_flag = .false.              ! Set True on error
   logical :: input_line_meaningful = .false.   
   logical :: do_superimpose = .true.
   logical :: write_digested = .true.           ! For bmad_parser
