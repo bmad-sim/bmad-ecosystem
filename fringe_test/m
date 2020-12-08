@@ -1,0 +1,5 @@
+cd ../../bmad
+mkd -j99
+cd ../regression_tests
+mkd fringe_test-exe
+cd fringe_test
