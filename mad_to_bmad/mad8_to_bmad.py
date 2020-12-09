@@ -38,7 +38,7 @@ class common_struct:
     self.seq_dict = OrderedDict()    # List of all sequences.
     self.super_list = []             # List of superimpose statements to be prepended to the bmad file.
     self.ele_dict = {}               # Dict of elements
-    self.set_list = []               # List of "A = B" sets after translation to Bmad. Does not Include "A,P = B" parameter sets.
+    self.var_def_list = []               # List of "A = B" sets after translation to Bmad. Does not Include "A,P = B" parameter sets.
     self.var_name_list = []          # List of mad8 variable names.
     self.f_in = []         # MAD8 input files
     self.f_out = []        # Bmad output files
@@ -142,6 +142,50 @@ bmad_param_name = {
     'xsize':    'x_limit',
     'ysize':    'y_limit',
     'lrad':      'l',  }
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+# Order var defs so that vars that depend upon other vars are come later.
+# Also comment out first occurances if there are multiple defs of the same var.
+
+def order_var_def_list():
+
+  # Mark duplicates
+  dependent_list = {}   # Stores names and dependencies
+  new_def_list = []
+
+  for vdef in reversed(common.var_def_list):
+    if vdef[0] in dependent_list:
+      new_def_list.insert(0, ['! Duplicate: ' + vdef[0], vdef[1]])
+    else:
+      new_def_list.insert(0, vdef)
+      exp_list = re.split('\+|-|\*|/|\(|\)|\^|,', vdef[1])
+      dependent_list[vdef[0]] = list(x.split() for x in exp_list)
+
+  common.var_def_list = new_def_list
+
+  # Move vars that are dependent upon vars defined further up the list.
+  new_def_list = common.var_def_list[:]
+
+  ix = 0
+  while ix < len(new_def_list):
+    vdef = new_def_list[ix]
+
+    if vdef[0][0] == '!':
+      ix += 1
+      continue
+
+    moved = False
+    for ix2 in range(len(new_def_list)-1, ix, -1):
+      if new_def_list[ix2][0] in vdef[1]:
+        new_def_list.pop(ix)
+        new_def_list.insert(ix2, vdef)
+        moved = True
+        break
+
+    if not moved: ix += 1
+
+  common.var_def_list = new_def_list
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -632,13 +676,15 @@ def parse_command(command, dlist):
     wrap_write(command, f_out)
     return
 
-  # Var set.
-  # Do not store variables whose value is an expression tht involves an element parameter
+  # Var definition.
+  # If a variable value is an expression that involves an element parameter, write
+  # the line instead of adding the line to the var list. This is done to avoid moving
+  # the def to before the point where the element is defined.
 
   if dlist[1] == '=':
     if dlist[0] in common.var_name_list:
       print (f'Duplicate variable name: {dlist[0]}\n' + 
-             f'  You will have to edit the lattice file by hand to resolve this problem.')
+             f'  You may have to edit the Bmad lattice file by hand to resolve this problem.')
 
     common.var_name_list.append(dlist[0])
     name = dlist[0]
@@ -646,7 +692,7 @@ def parse_command(command, dlist):
     if '[' in value or not common.prepend_vars:    # Involves an element parameter
       f_out.write(f'{name} = {value}\n')
     else:
-      common.set_list.append([name, value])
+      common.var_def_list.append([name, value])
 
     return
 
@@ -897,8 +943,9 @@ f_out = open(bmad_lattice_file, 'w')
 f_out.write (f'!+\n! Translated from MAD8 file: {mad8_lattice_file}\n!-\n\n')
 
 if common.prepend_vars :
-  for set in common.set_list:
-    wrap_write(f'{set[0]} = {set[1]}\n', f_out)
+  order_var_def_list()
+  for vdef in common.var_def_list:
+    wrap_write(f'{vdef[0]} = {vdef[1]}\n', f_out)
   f_out.write('\n')
 
 if len(common.super_list) > 0:
