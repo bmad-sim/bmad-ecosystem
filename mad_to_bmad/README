@@ -81,9 +81,11 @@ the --no_prepend_vars (or -v) option will prevent variable definitions from bein
 Note: The definition of a variable whose value involves an expression that references an element
 parameter will not be moved.
 
-Note: The conversion scripts do not try to arrange the relative order of variable definitions. Thus
-it may be that the User will have to do some rearranging by hand. The Bmad parser will give
-appropriate error messages so It will be obvious if rearranging is needed.
+Note: If variable definitions are moved to the top of the output file, the conversion scripts will
+arrange the relative order of the variable definitions so that variables whose values depend upon
+other variables will appear after the other variables have been defined as required by Bmad.
+Additionally, if there are multiple definitions of the same variable, all but the last one will be
+commented out.
 
 Note: If the string "!!verbatim" appears in the MAD8 or MADX file, everything after this string will
 be put in the Bmad file. This is useful for transfering extra information to the Bmad file without
