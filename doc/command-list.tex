@@ -2181,7 +2181,7 @@ Syntax:
       \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\}
       \{-no_label_lines\} \{-no_slaves\} \{-no_super_slaves\} \{-no_tail_lines\} \{-orbit\} 
       \{-python\} \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} 
-      \{-s <s1>:<s2>\} \{-spin\} \{-sum_radiation_integrals\} \{-tracking_elements\} 
+      \{-rms\} \{-s <s1>:<s2>\} \{-spin\} \{-sum_radiation_integrals\} \{-tracking_elements\} 
       \{-undef0\} \{-universe <index>\} \{<element_list>\} 
 \end{example}
 
@@ -2378,6 +2378,11 @@ will then remove all lines associated with elements whose length is zero. Multip
 \vn{-remove_line_if_zero} may be present. In this case the row will be suppressed if all designated
 columns have a zero entry.
 %
+\item[-rms] \Newline
+When the \vn{-rms} switch is present, three additional lines will be added to the output showing the
+mean and rms values for columns that had floating point numbers. Only valid values will be included 
+in the calculation.
+%
 \item[-s <s1>:<s2>] \Newline
 The locations to show are specified either by specifying a longitudinal position range with \vn{-s},
 or by specifying a list \vn{<element_list>} of elements. 
@@ -2422,6 +2427,8 @@ Examples:
   show lat marker::bpm*       ! Show marker elements whose name begins with "bpm"
   show lat -s 23.9:55.3       ! Show elements whose position is between 
                               !   23.9 meters and 55.3 meters.
+  show lat -att x_offset -rms ! Table will have a column of lattice element x_offset
+                              !   values. Additionally, mean and RMS will be shown.
 \end{example}
 
 %% show matrix --------------------------------------------------------------

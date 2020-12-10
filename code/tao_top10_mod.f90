@@ -568,6 +568,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   call tao_print_vars_bmad_format (iu, i, show_good_opt_only)
   call tao_write_out (iu, ['        ', 'end_file', '        '])
   call tao_show_constraints (iu, 'TOP10')
+  call tao_top10_merit_categories_print (0)
   if (size(s%u) == 1) call tao_show_constraints (iu, 'ALL')
 
   close (iu)
