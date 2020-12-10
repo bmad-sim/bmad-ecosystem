@@ -211,8 +211,12 @@ type show_lat_column_struct
 end type
 
 type show_lat_column_info_struct
-  integer attrib_type
-  character(40) attrib_name  ! Is Upper case
+  integer :: attrib_type = -1
+  character(40) :: attrib_name = '' ! Is Upper case
+  real(rp) :: sum = 0
+  real(rp) :: sum2 = 0
+  integer :: n_sum = 0
+  integer :: indent = 0   ! Spacing from start of line to beginning of column.
 end type
 
 type (show_lat_column_struct) column(60)
@@ -271,8 +275,8 @@ complex(rp) eigen_val(6), eigen_vec(6,6)
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag, print_rms
-logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_q
+logical show_all, name_found, print_taylor, print_em_field, print_attributes, err_flag
+logical print_ptc, print_position, called_from_python_cmd, print_eigen, show_q, print_rms
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
@@ -2153,6 +2157,7 @@ case ('lattice')
   attrib0 = ''
   undef_uses_column_format = .false.
   called_from_python_cmd = .false.
+  print_rms = .false.
 
   column(:) = show_lat_column_struct()
 
@@ -2163,7 +2168,7 @@ case ('lattice')
         '-branch', '-blank_replacement', '-lords', '-middle', '-tracking_elements', '-0undef', '-beginning', &
         '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
         '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
-        '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe'], &
+        '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe', '-rms'], &
             .true., switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -2266,6 +2271,9 @@ case ('lattice')
 
     case ('-radiation_integrals')
       what_to_print = 'rad_int'
+
+    case ('-rms')
+      print_rms = .true.
 
     case ('-sum_radiation_integrals')
       what_to_print = 'sum_rad_int'
@@ -2540,7 +2548,6 @@ case ('lattice')
 
   end select
 
-
   ! remove_line_if_zero bookkeeping. Ignore space lines (name = 'x')
 
   do ix = 1, n_remove
@@ -2574,6 +2581,8 @@ case ('lattice')
   enddo
 
   ! Compute some column info
+
+  col_info = show_lat_column_info_struct()
 
   do i = 1, size(column)
     name = column(i)%name
@@ -2993,8 +3002,16 @@ case ('lattice')
           if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) n_zeros_found = n_zeros_found + 1
 
         else
-          call write_real (line(nc:), column(i)%format, value(1) * column(i)%scale_factor)
-          if (column(i)%remove_line_if_zero .and. value(1) == 0) n_zeros_found = n_zeros_found + 1
+          r = value(1) * column(i)%scale_factor
+          call write_real (line(nc:), column(i)%format, r)
+          if (column(i)%remove_line_if_zero .and. value(1) == 0) then
+            n_zeros_found = n_zeros_found + 1
+          else
+            col_info(i)%indent = nc
+            col_info(i)%n_sum = col_info(i)%n_sum + 1
+            col_info(i)%sum   = col_info(i)%sum + r
+            col_info(i)%sum2  = col_info(i)%sum2 + r*r
+          endif
         endif
       endif
 
@@ -3028,6 +3045,30 @@ case ('lattice')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), '(a, i0)') &
           'NOTE: Since no range given, the number of elements shown is first 200 of ', branch%n_ele_track
+  endif
+
+  ! RMS
+
+  if (print_rms) then
+    lines(nl+1) = 'N_count:'
+    lines(nl+2) = 'Average:'
+    lines(nl+3) = 'RMS:'
+
+    do i = 1, size(column)
+      n = col_info(i)%n_sum
+      if (n == 0) cycle
+      mean = col_info(i)%sum / n
+      rms = sqrt(max(0.0_rp, col_info(i)%sum2 / n - mean**2))
+      nc = col_info(i)%indent
+      write (lines(nl+1)(nc:), '()') 
+      write (lines(nl+2)(nc:), column(i)%format) mean 
+      write (lines(nl+3)(nc:), column(i)%format) rms
+      aname = int_str(n)
+      nc = len_trim(lines(nl+2)) - len_trim(aname) + 1
+      lines(nl+1)(nc:) = aname
+    enddo
+
+    nl=nl+3
   endif
 
   deallocate(picked_ele)
