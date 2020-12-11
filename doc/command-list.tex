@@ -2379,8 +2379,10 @@ will then remove all lines associated with elements whose length is zero. Multip
 columns have a zero entry.
 %
 \item[-rms] \Newline
-When the \vn{-rms} switch is present, three additional lines will be added to the output showing the
-mean and rms values for columns that had floating point numbers. Only valid values will be included 
+When the \vn{-rms} switch is present, five additional lines will be added to the output showing the
+mean and RMS values for columns that had floating point numbers along with mean and RMS values
+integrated over the longitudinal s-position. A simple trapezoid integration is used for the
+integrated values. The fifth row shows the number of data points. Only valid values will be included
 in the calculation.
 %
 \item[-s <s1>:<s2>] \Newline

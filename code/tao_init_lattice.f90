@@ -19,7 +19,7 @@ use ptc_interface_mod
 implicit none
 
 type (tao_design_lat_input), target :: design_lattice(0:200)
-type (tao_design_lat_input), pointer :: design_lat
+type (tao_design_lat_input), pointer :: design_lat, dl0
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele1, ele2
 type (tao_universe_struct), pointer :: u, u_work
@@ -127,6 +127,17 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
 
   design_lat => design_lattice(i_uni)
 
+  ! Element range?
+
+  if (design_lat%use_element_range(1) /= '') then
+    design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
+    call out_io (s_warn$, r_name, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
+                '"design_lattice(i_uni)%use_element_range" is now "design_lattice(i_uni)%slice_lattice".', &
+                'Please modify your file.')
+  endif
+
+  !
+
   if (s%com%lattice_file_arg /= '') then
     design_lat%file = s%com%lattice_file_arg
     design_lat%language = ''
@@ -176,9 +187,10 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
   ! A blank means use the lattice form universe 1.
 
   allocate (u%design, u%base, u%model)
-
-  if (design_lat%file == design_lattice(i_uni-1)%file .and. design_lat%file2 == design_lattice(i_uni-1)%file2 .and. &
-      design_lat%use_line == design_lattice(i_uni-1)%use_line .and. design_lat%slice_lattice == design_lattice(i_uni-1)%slice_lattice) then
+  dl0 => design_lattice(i_uni-1)
+  if (design_lat%file == dl0%file .and. design_lat%slice_lattice == dl0%slice_lattice .and. &
+            design_lat%file2 == dl0%file2 .and. design_lat%use_line == dl0%use_line .and. &
+           (design_lat%reverse_lattice .eqv. dl0%reverse_lattice)) then
     u%design_same_as_previous = .true.
     u%design%lat = s%u(i_uni-1)%design%lat
   else
@@ -233,15 +245,6 @@ do i_uni = lbound(s%u, 1), ubound(s%u, 1)
         call create_unique_ele_names (u%design%lat, j, name(ix+2:))
       endif
     enddo
-
-    ! Element range?
-
-    if (design_lat%use_element_range(1) /= '') then
-      design_lat%slice_lattice = trim(design_lat%use_element_range(1)) // ':' // trim(design_lat%use_element_range(2))
-      call out_io (s_warn$, r_name, 'In the tao_design_lattice namelist in the init file: ' // namelist_file, &
-                  '"design_lattice(i_uni)%use_element_range" is now "design_lattice(i_uni)%slice_lattice".', &
-                  'Please modify your file.')
-    endif
 
     if (s%com%slice_lattice_arg /= '') design_lat%slice_lattice = s%com%slice_lattice_arg
 

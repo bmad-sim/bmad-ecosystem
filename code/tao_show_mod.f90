@@ -215,6 +215,10 @@ type show_lat_column_info_struct
   character(40) :: attrib_name = '' ! Is Upper case
   real(rp) :: sum = 0
   real(rp) :: sum2 = 0
+  real(rp) :: int_sum = 0
+  real(rp) :: int_sum2 = 0
+  real(rp) :: int_s = 0
+  real(rp) :: val_last = real_garbage$
   integer :: n_sum = 0
   integer :: indent = 0   ! Spacing from start of line to beginning of column.
 end type
@@ -225,8 +229,8 @@ type (tao_expression_info_struct), allocatable, save :: info(:)
 
 real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
-real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1
-real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean
+real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds
+real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now
 real(rp), allocatable :: value(:)
 
 character(*) :: what
@@ -2848,7 +2852,9 @@ case ('lattice')
   !--------------------------------------------------------------------------------------------
   ! Loop over all rows
 
+  s_last = real_garbage$
   ie0 = branch%n_ele_max
+
   row_loop: do ie = 0, branch%n_ele_max
     if (.not. picked_ele(ie)) cycle
 
@@ -2869,6 +2875,11 @@ case ('lattice')
     ele => branch%ele(ie)
     n_zeros_found = 0
     n_remove = 0
+    select case (where)
+    case ('beginning');   s_now = ele%s_start
+    case ('middle');      s_now = (ele%s_start + ele%s) / 2
+    case default;         s_now = ele%s
+    end select
 
     do i = 1, size(column)
 
@@ -3011,6 +3022,14 @@ case ('lattice')
             col_info(i)%n_sum = col_info(i)%n_sum + 1
             col_info(i)%sum   = col_info(i)%sum + r
             col_info(i)%sum2  = col_info(i)%sum2 + r*r
+            if (s_last /= real_garbage$ .and. ie <= branch%n_ele_track) then
+              ds  = s_now - s_last
+              z = (r + col_info(i)%val_last) / 2
+              col_info(i)%int_s    = col_info(i)%int_s + ds
+              col_info(i)%int_sum  = col_info(i)%int_sum + ds * z
+              col_info(i)%int_sum2 = col_info(i)%int_sum2 + ds * z*z
+              col_info(i)%val_last = r
+            endif
           endif
         endif
       endif
@@ -3026,6 +3045,7 @@ case ('lattice')
 
     if (n_remove > 0 .and. n_zeros_found == n_remove) cycle
     if (called_from_python_cmd) line(nc-1:nc-1) = ' '  ! Remove final ';'
+    s_last = s_now
 
     nl=nl+1; lines(nl) = line
 
@@ -3050,25 +3070,36 @@ case ('lattice')
   ! RMS
 
   if (print_rms) then
-    lines(nl+1) = 'N_count:'
-    lines(nl+2) = 'Average:'
-    lines(nl+3) = 'RMS:'
+    lines(nl+1) = 'Average:'
+    lines(nl+2) = 'RMS:'
+    lines(nl+3) = 'N_count:'
+    lines(nl+4) = 'Integrated Average:'
+    lines(nl+5) = 'Integrated RMS:'
 
     do i = 1, size(column)
       n = col_info(i)%n_sum
       if (n == 0) cycle
+      nc = col_info(i)%indent
+
       mean = col_info(i)%sum / n
       rms = sqrt(max(0.0_rp, col_info(i)%sum2 / n - mean**2))
-      nc = col_info(i)%indent
-      write (lines(nl+1)(nc:), '()') 
-      write (lines(nl+2)(nc:), column(i)%format) mean 
-      write (lines(nl+3)(nc:), column(i)%format) rms
+      write (lines(nl+1)(nc:), column(i)%format) mean 
+      write (lines(nl+2)(nc:), column(i)%format) rms
+
       aname = int_str(n)
       nc = len_trim(lines(nl+2)) - len_trim(aname) + 1
-      lines(nl+1)(nc:) = aname
+      lines(nl+3)(nc:) = aname    ! Right justified
+
+      ds = col_info(i)%int_s
+      if (ds /= 0) then
+        mean = col_info(i)%int_sum / ds
+        rms = sqrt(max(0.0_rp, col_info(i)%int_sum2 / ds - mean**2))
+        write (lines(nl+4)(nc:), column(i)%format) mean 
+        write (lines(nl+5)(nc:), column(i)%format) rms
+      endif
     enddo
 
-    nl=nl+3
+    nl=nl+5
   endif
 
   deallocate(picked_ele)
