@@ -170,7 +170,7 @@ integer n, iostat, ix_universe, to_universe
 character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
 character(40) track_start, track_end, beam_track_start, beam_track_end
-character(160) beam_saved_at, beam_dump_at, beam_dump_file
+character(200) beam_saved_at, beam_dump_at, beam_dump_file
 character(200) file_name, beam0_file, beam_track_data_file
 character(200) beam_init_file_name           ! old style syntax
 character(200) beam_position0_file           ! old style syntax

@@ -5432,7 +5432,7 @@ case ('floor_orbit.x', 'floor_orbit.y', 'floor_orbit.z')
   position%r = [vec(1), vec(3), orbit%s - ele%s_start]
   position = coords_local_curvilinear_to_floor (position, ele, .false.)
 case ('floor_orbit.theta', 'floor_orbit.phi', 'floor_orbit.psi')
-  position = orbit_to_local_curvilinear(orbit, ele%s_start)
+  position = orbit_to_local_curvilinear(orbit, ele)
   position = coords_local_curvilinear_to_floor (position, ele, .false., calculate_angles = .true.)
 case default
   call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
