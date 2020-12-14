@@ -50,7 +50,7 @@ real(rp), intent(in) :: s_rel
 logical local_ref_frame
 type (em_field_struct) :: field
 logical, optional :: calc_dfield, err_flag
-character(32) :: r_name = 'em_field_custom'
+character(*), parameter :: r_name = 'em_field_custom'
 
 real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3), r0vec(3)
 real(rp), pointer :: v(:)
@@ -71,7 +71,6 @@ r_vec = matmul(w_mat, r_vec) +  r0vec     ! coords in entrance frame
 ele2 => ele%branch%ele(ele%ix_ele-1)
 orb2 = orb
 orb2%vec(1:3:2) = r_vec(1:2)
-!call em_field_calc (ele2, param, r_vec(3), orb2, .false., field, calc_dfield, err_flag)
 call em_field_calc (ele2, param, ele2%value(l$)/2, orb2, .false., field, calc_dfield, err_flag)
 
 ! Convert field from entrance to exit frame
