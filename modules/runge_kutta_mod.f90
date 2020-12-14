@@ -664,9 +664,7 @@ if (ele%key == patch$) then
   if (rel_dir == 1) then
     call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
   else
-!    call patch_transform_coords (orbit, orbit2, w_mat)
     call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
-!    call rotate_em_field (field, w, w, .false.)
   endif
 
 else

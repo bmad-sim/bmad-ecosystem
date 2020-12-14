@@ -3495,16 +3495,15 @@ and pitch attributes as described in \sref{s:patch.coords}. This type of \vn{pat
 
 With \vn{flexible} set to \vn{True}, the exit face is taken to be the reference frame of the
 entrance face of the next element in the lattice. In this case, it must be possible to compute the
-reference coordinates of the next element (or any element downstream of the \vn{patch} as long as
-the elements in between have zero length) before the reference coordinates of the \vn{patch} are
-computed. A \vn{flexible} \vn{patch} will have the its offsets, pitches, and tilt as dependent
+reference coordinates of the next element before the reference coordinates of the \vn{patch} are
+computed. A \vn{flexible} \vn{patch} will have its offsets, pitches, and tilt as dependent
 parameters (\sref{s:depend}) and these parameters will be computed appropriately. Here the
 \vn{patch} is called ``flexible'' since the geometry of the patch will depend upon the geometry of
 the rest of the lattice and, therefore, if the geometry of the rest of the lattice is modified (is
 ``flexed''), the geometry of the \vn{patch} will vary as well. See Section~\sref{s:ex.erl} for an
 example.
 
-The coordinates of the lattice element downstream of a \vn{flexible} \vn{patch} is can be computed
+The coordinates of the lattice element downstream of a \vn{flexible} \vn{patch} can be computed
 if there is a \vn{fiducial} element (\sref{s:fiducial}) somewhere downstream or if there is a
 \vn{multipass_slave} (\sref{s:multipass}) element which is just downstream of the \vn{patch} or at
 most separated by zero length elements from the \vn{patch}. In this latter case, the
@@ -3559,13 +3558,11 @@ where \vn{dt_travel_ref} is the time for the reference particle to travel throug
 \begin{example}
   dt_travel_ref = L / beta_ref
 \end{example}
-Where \vn{L} is the length of the \vn{patch} as shown in \fig{f:patch}
-and \vn{beta_ref} is the reference velocity/c at the exit end of the
-element. That is, the reference energy offset is applied {\em before}
-the reference particle is tracked through the patch. Since this point
-can be confusing, it is recommended that a \vn{patch} element be split
-into two consecutive patches if the \vn{patch} has finite \vn{l} and
-\vn{E_tot_offset} values.
+Where \vn{L} is the length of the \vn{patch} as shown in \fig{f:patch} and \vn{beta_ref} is the
+reference velocity/c at the exit end of the element. That is, the reference energy offset is applied
+{\em before} the reference particle is tracked through the patch. Since this point can be confusing,
+it is recommended that a \vn{patch} element be split into two consecutive patches if the \vn{patch}
+has finite \vn{l} and \vn{E_tot_offset} values.
 
 While a finite \vn{t_offset} will affect the reference time at the end of a patch, a finite
 \vn{t_offset} will {\em not} affect the time that is calculated for a particle to reach the end of
@@ -3581,9 +3578,14 @@ and z change but t does not.
 
 When a lattice branch contains both normally oriented and reversed elements
 (\sref{s:ref.construct}), a \vn{patch}, or series of \vn{patches}, which reflects the $z$ direction
-must be placed in between. Such a \vn{patch}, (or patches) is called a \vn{reflection}
-\vn{patch}. See Section~\sref{s:reflect.patch} for more details on how a reflection patch is
-defined.
+must be placed in between. Such a \vn{patch}, (or patches) is called a \vn{reflection} \vn{patch}.
+See Section~\sref{s:reflect.patch} for more details on how a reflection patch is defined. In order
+to avoid some confusing conceptual problems involving the coordinate system through a reflection
+patch, Runge-Kutta type tracking is prohibited with a reflection patch.\footnote
+  {
+In general, Runge-Kutta type tracking through a patch is a waste of time unless electric or magnetic
+fields are present.
+  }
 
 \index{wall}
 Since the geometry of a \vn{patch} element is complicated, interpolation of the chamber wall in the

@@ -3211,23 +3211,27 @@ For programmers who deal with PTC directly: The translation between \vn{ptc_frin
 describe errors associated with orbit, betatron phase, dispersion and coupling measurements. These
 attributes are: \hfill\break \hspace*{0.1in}
 \begin{tabular}{lll} \toprule
-  {\em Attribute}     & {\em Symbol} (See: \sref{s:meas.calc}) & \\ \midrule
-  \vn{tilt}           & $\theta_t$             & See \sref{s:offset} \\ 
-  \vn{x_offset}       & $x_{\text{err}}$       & See \sref{s:offset} \\ 
-  \vn{y_offset}       & $y_{\text{err}}$       & See \sref{s:offset} \\ 
-  \vn{x_gain_err}     & $dg_{x,\text{err}}$    & Horizontal gain error \\ 
-  \vn{y_gain_err}     & $dg_{y,\text{err}}$    & Vertical gain error \\ 
-  \vn{crunch}         & $\psi_{\text{err}}$    & Crunch angle \\ 
-  \vn{tilt_calib}     & $\theta_{\text{err}}$  & tilt angle calibration \\ 
-  \vn{x_offset_calib} & $x_{\text{cal}}$       & Horizontal offset calibration \\ 
-  \vn{y_offset_calib} & $y_{\text{cal}}$       & Vertical offset calibration \\ 
-  \vn{x_gain_calib}   & $dg_{x,\text{cal}}$    & Horizontal gain calibration \\ 
-  \vn{y_gain_calib}   & $dg_{y,\text{cal}}$    & Vertical gain calibration \\ 
-  \vn{crunch_calib}   & $\psi_{\text{cal}}$    & Crunch angle calibration \\ 
-  \vn{noise}          & $n_f$                  & Noise factor \\ 
-  \vn{de_eta_meas}    & $dE/E$                 & Percent change in energy \\ 
-  \vn{n_sample}       & $N_s$                  & Number of sampling points \\ 
-  \vn{osc_amplitude}  & $A_{\text{osc}}$       & Oscillation amplitude \\ \bottomrule
+  {\em Attribute}           & {\em Symbol} (See: \sref{s:meas.calc}) & \\ \midrule
+  \vn{tilt}                 & $\theta_t$               & See \sref{s:offset} \\ 
+  \vn{x_offset}             & $x_{\text{off}}$         & See \sref{s:offset} \\ 
+  \vn{y_offset}             & $y_{\text{off}}$         & See \sref{s:offset} \\ 
+  \vn{x_gain_err}           & $dg_{x,\text{err}}$      & Horizontal gain error \\ 
+  \vn{y_gain_err}           & $dg_{y,\text{err}}$      & Vertical gain error \\ 
+  \vn{crunch}               & $\psi_{\text{err}}$      & Crunch angle \\ 
+  \vn{tilt_calib}           & $\theta_{\text{err}}$    & tilt angle calibration \\ 
+  \vn{x_offset_calib}       & $x_{\text{calib}}$       & Horizontal offset calibration \\ 
+  \vn{y_offset_calib}       & $y_{\text{calib}}$       & Vertical offset calibration \\ 
+  \vn{x_gain_calib}         & $dg_{x,\text{calib}}$    & Horizontal gain calibration \\ 
+  \vn{y_gain_calib}         & $dg_{y,\text{calib}}$    & Vertical gain calibration \\ 
+  \vn{crunch_calib}         & $\psi_{\text{calib}}$    & Crunch angle calibration \\ 
+  \vn{noise}                & $n_f$                    & Noise factor \\ 
+  \vn{de_eta_meas}          & $dE/E$                   & Percent change in energy \\ 
+  \vn{x_dispersion_err}     & $\eta_{x,\text{err}}$    & Horizontal dispersion error \\ 
+  \vn{y_dispersion_err}     & $\eta_{y,\text{err}}$    & Vertical dispersion error \\ 
+  \vn{x_dispersion_calib}   & $\eta_{x,\text{calib}}$  & Horizontal dispersion calibration \\ 
+  \vn{y_dispersion_calib}   & $\eta_{y,\text{calib}}$  & Vertical dispersion calibration \\ 
+  \vn{n_sample}             & $N_s$                    & Number of sampling points \\ 
+  \vn{osc_amplitude}        & $A_{\text{osc}}$         & Oscillation amplitude \\ \bottomrule
 \end{tabular}
 \hfill\break A program can use these quantities to calculate ``measured'' values from the
 ``laboratory'' values. Here, ``laboratory'' means as calculated from some model lattice.  See

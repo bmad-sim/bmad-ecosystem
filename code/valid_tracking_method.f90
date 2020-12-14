@@ -207,6 +207,8 @@ case (patch$)
   select case (method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, custom$, runge_kutta$, time_runge_kutta$)
     is_valid = .true.
+    if ((method == runge_kutta$ .or. method == time_runge_kutta$) .and. &
+                      cos(ele%value(x_pitch$)) * cos(ele%value(y_pitch$)) < 0) is_valid = .false.
   end select
 
 case (photon_init$)

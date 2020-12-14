@@ -175,7 +175,7 @@ explained in \sref{s:rf.time}.
 \index{element!table of class types}
 \begin{table}[pht]
 \centering {
-\begin{tabular}{lcccccccccccc}  % \toprule
+\begin{tabular}{lccccccccc}  % \toprule
 \rule{0pt}{80pt} 
 {\em Element Class} &
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
@@ -188,7 +188,7 @@ explained in \sref{s:rf.time}.
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Fixed_Step_Time_Runge_Kutta}\end{sideways}
-\begin{sideways}\vn{Time_Runge_Kutta}\end{sideways} &
+\begin{sideways}\vn{Time_Runge_Kutta}\end{sideways}
 \\ \midrule
 %                               BS   C   L   M   RK    SLB   SLP    T   TRK
   \vn{ab_multipole}            & D & X & X &   &     &     &  X  &  X  &    \\  
@@ -213,7 +213,7 @@ explained in \sref{s:rf.time}.
   \vn{monitor}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\  
   \vn{multipole}               & D & X & X &   &     &     &  X  &  X  &    \\  
   \vn{octupole}                & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
-  \vn{patch}                   & D & X &   &   &  X  &     &  X  &  X  &    \\ 
+  \vn{patch}                   & D & X &   &   &X$^c$&     &  X  &  X  &    \\ 
   \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  &  X  & X  \\ 
   \vn{rbend}                   & D & X & X & X &     &     &  X  &  X  &    \\ 
   \vn{rcollimator}             & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
@@ -227,8 +227,9 @@ explained in \sref{s:rf.time}.
   \vn{vkicker}                 & D & X & X &   &  X  &     &  X  &  X  & X  \\ 
   \vn{wiggler} (map type)      &   & X & X &   &  X  &  X  &  X  &  X  & X  \\
   \vn{wiggler} (periodic type) & D & X & X &   &X$^b$&X$^b$&X$^b$&X$^b$&    \\ \bottomrule
-  \multicolumn{12}{l}{$^a$Only if the beginning energy is non-zero.}        \\
-  \multicolumn{12}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}  \\
+  \multicolumn{10}{l}{$^a$Only if the beginning energy is non-zero.}        \\
+  \multicolumn{10}{l}{$^b$See \sref{s:wiggler.periodic} for more details.}  \\
+  \multicolumn{10}{l}{$^c$Only available for non-reflection patch elements.}
 \end{tabular}
 }
 \caption[Table of available tracking_method switches for charged particle tracking.] { 

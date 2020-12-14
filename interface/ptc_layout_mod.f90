@@ -181,7 +181,7 @@ call append_point(lay, ele_fib)
 this_fib => lay%end
 
 if (ele%key == patch$ .or. ele%key == floor_shift$) then
-  this_fib%dir = ele%value(upstream_ele_dir$)
+  this_fib%dir = ele%value(upstream_coord_dir$)
 else
   this_fib%dir = ele%orientation
 endif
