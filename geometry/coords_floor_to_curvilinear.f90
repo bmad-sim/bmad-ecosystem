@@ -64,7 +64,7 @@ do
   local_coords = coords_floor_to_local_curvilinear (floor_coords, ele1, this_stat) 
 
   if (ele1%key == patch$) then
-    local_coords%r(3) = ele1%value(downstream_ele_dir$) * local_coords%r(3) + ele1%s
+    local_coords%r(3) = ele1%value(downstream_coord_dir$) * local_coords%r(3) + ele1%s
   elseif (ele1%orientation == 1) then
     local_coords%r(3) = local_coords%r(3) + ele1%s_start
   else

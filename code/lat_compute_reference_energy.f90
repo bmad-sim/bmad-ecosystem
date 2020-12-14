@@ -282,9 +282,17 @@ do ib = 0, ubound(lat%branch, 1)
     !
 
     if (ele%key == patch$ .or. ele%key == floor_shift$) then
-      ele%value(upstream_ele_dir$) = ele0%orientation
-      ele2 => pointer_to_next_ele(ele)
-      ele%value(downstream_ele_dir$) = ele2%orientation
+      if (ele0%key == patch$) then
+        ele%value(upstream_coord_dir$) = ele0%value(downstream_coord_dir$)
+      else
+        ele%value(upstream_coord_dir$) = ele0%orientation
+      endif
+
+      if (cos(ele%value(x_pitch$)) * cos(ele%value(y_pitch$)) > 0) then
+        ele%value(downstream_coord_dir$) = ele%value(upstream_coord_dir$)
+      else
+        ele%value(downstream_coord_dir$) = -ele%value(upstream_coord_dir$)
+      endif
     endif
 
     ! If we are in the middle of a super_lord region then the "zero" orbit is just the continuation

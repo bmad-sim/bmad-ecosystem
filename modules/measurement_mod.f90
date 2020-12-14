@@ -246,8 +246,8 @@ endif
 
 call compute_measurement_distortion_mat (ele, d_mat)
 
-x = eta_actual(1)
-y = eta_actual(2)
+x = eta_actual(1) - (ele%value(x_dispersion_err$) + ele%value(x_dispersion_calib$))
+y = eta_actual(2) - (ele%value(y_dispersion_err$) + ele%value(y_dispersion_calib$))
 
 if (axis == x_plane$) then
   reading = noise_factor + (x * d_mat(1,1) + y * d_mat(1,2))

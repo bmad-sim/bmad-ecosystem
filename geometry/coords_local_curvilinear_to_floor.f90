@@ -4,9 +4,6 @@
 !
 ! Given a position local to ele, return global floor coordinates.
 !
-! Note: If the element is a patch and use_patch_entrance = False (the default), local_position%r(3) is the 
-! longitudinal position with respect to the exit end instead of the entrance end.
-!
 ! Input:
 !   local_position      -- floor_position_struct: Floor position in local curvilinear coordinates,
 !                            with %r = [x, y, z_local] where z_local is wrt the entrance end of the element.
@@ -77,26 +74,14 @@ endif
 ! Get global floor coordinates
 
 if (ele1%key == patch$) then
-  if (ele%orientation == 1) then
-    if (logic_option(.false., use_patch_entrance)) then
-      floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
-    else
-      floor0 = ele%floor
-    endif
-
+  if (logic_option(.false., use_patch_entrance)) then
+    floor0 = ele%branch%ele(ele%ix_ele-1)%floor        ! Get floor0 from previous element
   else
-    if (logic_option(.false., use_patch_entrance)) then
-      floor0 = ele%floor
-    else
-      floor0 = ele%branch%ele(ele%ix_ele+1)%floor        ! Get floor0 from next element
-    endif
+    floor0 = ele%floor
   endif
 
-elseif (ele1%orientation == 1) then
-  floor0 = ele1%floor
-
 else
-  call ele_geometry (ele1%floor, ele1, floor0, -1.0_rp)
+  floor0 = ele1%floor
 endif
 
 global_position%r = matmul(floor0%w, p%r) + floor0%r

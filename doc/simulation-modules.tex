@@ -428,26 +428,22 @@ For orbits, the relationship between measured position $(x, y)_{\text{meas}}$ an
 y)_{true}$ is
 \begin{equation}
   \begin{pmatrix}
-    x \\
-    y
+    x \\ y
   \end{pmatrix}_{\! \text{meas}}
   =
   n_f \, 
   \begin{pmatrix}
-    r_1 \\ 
-    r_2
+    r_1 \\ r_2
   \end{pmatrix}
   +
   \bfM_m \, 
   \left[
   \begin{pmatrix}
-    x \\
-    y
+    x \\ y
   \end{pmatrix}_{\! true}
   -
   \begin{pmatrix}
-    x \\
-    y
+    x \\ y
   \end{pmatrix}_{\! 0}
   \right]
   \label{xynrr}
@@ -462,6 +458,7 @@ represents a measurement offset and $\bfM_g$ is a ``gain'' matrix writen in the 
      (1 + dg_x) \, \cos (\theta + \psi) & (1 + dg_x) \, \sin (\theta + \psi) \\
     -(1 + dg_y) \, \sin (\theta - \psi) & (1 + dg_y) \, \cos (\theta - \psi) 
   \end{pmatrix}
+  \label{m1dg}
 \end{equation}
 Here $dg_x$ and $dg_y$ represent gain errors and the angles $\theta$ and $\psi$ are tilt and 
 ``crunch'' errors.
@@ -469,12 +466,12 @@ Here $dg_x$ and $dg_y$ represent gain errors and the angles $\theta$ and $\psi$ 
 In the above equations, various quantities are writen as a difference between an ``error'' quantity
 and a ``calibration'' quantity:
 \begin{alignat}{1}
-  x_0     &= x_{\text{err}} - x_{\text{cal}} \CRNO
-  y_0     &= y_{\text{err}} - y_{\text{cal}} \CRNO
-  \psi   &= \psi_{\text{err}}   - \psi_{\text{cal}} \CRNO
-  \theta &= \theta_{\text{err}} - \theta_{\text{cal}} \\
-  dg_x     &= dg_{x,\text{err}} - dg_{x,\text{cal}} \CRNO
-  dg_y     &= dg_{y,\text{err}} - dg_{y,\text{cal}} \nonumber
+  x_0     &= x_{\text{off}} - x_{\text{calib}} \CRNO
+  y_0     &= y_{\text{off}} - y_{\text{calib}} \CRNO
+  \psi    &= \psi_{\text{err}}   - \psi_{\text{calib}} \CRNO
+  \theta  &= \theta_{\text{err}} - \theta_{\text{calib}} \\
+  dg_x    &= dg_{x,\text{err}} - dg_{x,\text{calib}} \CRNO
+  dg_y    &= dg_{y,\text{err}} - dg_{y,\text{calib}} \nonumber
 \end{alignat}
 See \sref{s:meas.attrib} for the element attribute names that correspond to these quantities.
 
@@ -493,23 +490,31 @@ A dispersion measurement is considered to be the result of measuring the orbit a
 energies. The measured values are then
 \begin{equation}
   \begin{pmatrix}
-    \eta_x \\
-    \eta_y
- \end{pmatrix}_{\! \text{meas}}
+    \eta_x \\ \eta_y
+  \end{pmatrix}_{\! \text{meas}}
   =
   \frac{\sqrt{2} \, n_f}{dE/E} \, 
   \begin{pmatrix}
-    r_1 \\ 
-    r_2
+    r_1 \\ r_2
   \end{pmatrix}
   +
-  \bfM_m \, 
+  \bfM_m \, \left[
   \begin{pmatrix}
-    \eta_x \\
-    \eta_y
+    \eta_x \\ \eta_y
   \end{pmatrix}_{\! true}
+  -
+  \left(
+  \begin{pmatrix}
+    \eta_x \\ \eta_y
+  \end{pmatrix}_{\! err}
+  -
+  \begin{pmatrix}
+    \eta_x \\ \eta_y
+  \end{pmatrix}_{\! calib}
+  \right)
+  \right]
 \end{equation}
-The factor of $\sqrt{2}$ comes from the fact that there are two measurements.
+The factor of $\sqrt{2}$ comes from the fact that there are two measurements. $\bfM_m$ is given in \Eq{m1dg}.
 
 %-----------------------------------------------------------------
 \subsection{Coupling Measurement}

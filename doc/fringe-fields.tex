@@ -75,14 +75,15 @@ For the exit face, the approperiate equations can be derived using the subsituti
 \label{s:fringe.bend.hard}
 
 The bend fringe kick is a combination of the equations developed by Hwang and Lee\cite{b:hwang}
-modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:madphysics}.  The
+modified to include quadrupole terms as given in Section~5.3.1 of Iselin\cite{b:madphysics}. The
 Lie map generator $\Omega_M$ given by Hwang and Lee Eqs.~(35) and (36) is used under the conditions
 that
 \begin{equation}
   K_{0h} = K_{1h} = K_{2h} = K_{3h} = K_{4h} = K_{5h} = K_{6h} = 0
 \end{equation}
-Here the subscript ``\vn{h}'' has been added so as to not confuse these parameters with the magnetic multipole
-coefficients $K_1$, $K_2$, etc.
+Here the subscript ``\vn{h}'' has been added so as to not confuse these parameters with the magnetic
+multipole coefficients $K_1$, $K_2$, etc. Note: Hwang and Lee do not present an equation for the
+change in $z$ in their paper.
 
 The generator used by \bmad for the entrance fringe is:
 \begin{align}
@@ -122,12 +123,8 @@ The transport for the entrance fringe is then
     &\qquad\qquad - \frac{(x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
     - \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{1 + p_z} 
     - \frac{2 \, x \, y \, K_1 \tan (e_1)}{(1 + p_z)} \CRNO
-  \Delta z &= \frac{\what \Omega_{M1}}{1 + p_z} \nonumber
+  \Delta z &= \frac{\Omega_{M1} - (x^2 - y^2) \, g_\tot \, \tan (e_1)/2}{1 + p_z} \nonumber
 \end{align}
-where $\what \Omega_{M1} = \Omega_{M1} - (x^2 - y^2) \, g_\tot \, \tan (e_1)/2$.
-%\begin{equation}
-%  \what \Omega_{M1} = \Omega_{M1} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_1)}{2}
-%\end{equation}
 The transport for the exit fringe is
 \begin{align}
   \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ x^2 \, \tan^2 (e_2) - y^2 \sec^2 (e_2) \right] \CRNO
@@ -142,12 +139,8 @@ The transport for the exit fringe is
     &\qquad\qquad + \frac{(x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
     + \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{1 + p_z} 
     - \frac{2 \, x \, y \, K_1 \tan (e_2)}{(1 + p_z)} \CRNO
-  \Delta z &= \frac{\what \Omega_{M2}}{1 + p_z} \nonumber
+  \Delta z &= \frac{\Omega_{M2} - (x^2 - y^2) \, g_\tot \, \tan (e_2)/2}{1 + p_z} \nonumber
 \end{align}
-where $\what \Omega_{M2} = \Omega_{M2} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2}$
-%\begin{equation}
-%  \what \Omega_{M2} = \Omega_{M2} - \frac{(x^2 - y^2) \, g_\tot \, \tan (e_2)}{2}
-%\end{equation}
 
 %---------------------------------------------------------------------------------
 \section{Quadrupole Soft Edge Fringe Map}

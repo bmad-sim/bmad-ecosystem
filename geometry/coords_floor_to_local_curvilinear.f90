@@ -113,8 +113,8 @@ elseif (ele%key == patch$) then
   floor0 = ele%branch%ele(ele%ix_ele-1)%floor
   floor1 = ele%floor
 
-  dz0 = ele%value(upstream_ele_dir$) * dot_product(floor0%w(:,3), (global_position%r - floor0%r)) ! Use w_inv = transpose
-  dz1 = ele%value(downstream_ele_dir$) * dot_product(floor1%w(:,3), (global_position%r - floor1%r))
+  dz0 = ele%value(upstream_coord_dir$) * dot_product(floor0%w(:,3), (global_position%r - floor0%r)) ! Use w_inv = transpose
+  dz1 = ele%value(downstream_coord_dir$) * dot_product(floor1%w(:,3), (global_position%r - floor1%r))
 
   if (dz0 > 0 .and. dz1 > 0) then
     status = downstream_end$

@@ -36,7 +36,7 @@ type (ele_attribute_struct) info
 real(rp) s1, s2, ds, ds_small, l_lord, g(3)
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2, ib, ie
-integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is, tm, ix_match
+integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is, tm, ix_match, dir1, dir2
 
 character(16) str_ix_slave, str_ix_lord, str_ix_ele
 character(*), parameter :: r_name = 'lat_sanity_check'
@@ -171,11 +171,36 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
   !--------------------------------
   ! Loop over all elements
 
-  ele_loop: do i_t = 1, branch%n_ele_max
+  ele_loop: do i_t = 0, branch%n_ele_max
 
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_name(ele)) // ')'
     associated_branch => pointer_to_branch(ele)
+
+    ! Element orientation
+
+    if (i_t < branch%n_ele_track) then
+      ele2 => branch%ele(i_t+1)
+      if (ele%key == patch$) then
+        dir1 = nint(ele%value(downstream_coord_dir$))
+      else
+        dir1 = ele%orientation
+      endif
+
+      if (ele2%key == patch$) then
+        dir2 = nint(ele2%value(upstream_coord_dir$))
+      else
+        dir2 = ele2%orientation
+      endif
+
+      if (dir1 /= dir2) then
+        call out_io (s_fatal$, r_name, &
+                  'REVERSED (DOUBLE NEGATIVE SIGN IN LINE DEF) AND UNREVERSED ELEMENTS: ' // &
+                  trim(ele%name) // ' AND ' // trim(ele%name), &
+                  'MUST HAVE A REFECTION PATCH PATCH IN BETWEEN.')
+        err_flag = .true.
+      endif
+    endif
 
     ! Do not check the extra elements temporarily inserted by bmad_parser2.
 

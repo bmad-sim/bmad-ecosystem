@@ -150,8 +150,8 @@ case (fiducial$)
 
 case (floor_shift$)
   ele%value(origin_ele_ref_pt$) = exit_end$
-  ele%value(upstream_ele_dir$) = 1
-  ele%value(downstream_ele_dir$) = 1
+  ele%value(upstream_coord_dir$) = 1
+  ele%value(downstream_coord_dir$) = 1
 
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$
@@ -231,8 +231,8 @@ case (multipole$)
 case (patch$)
   ele%value(flexible$) = false$ 
   ele%value(ref_coordinates$)= exit_end$
-  ele%value(upstream_ele_dir$) = 1
-  ele%value(downstream_ele_dir$) = 1
+  ele%value(upstream_coord_dir$) = 1
+  ele%value(downstream_coord_dir$) = 1
 
 case (photon_init$)
   ele%value(ds_slice$) = 0.01

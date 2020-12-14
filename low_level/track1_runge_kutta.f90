@@ -65,19 +65,19 @@ endif
 ! is the distance before the downstream face so the s0_body starting position is 
 ! negative and the s1_body stopping position is 0.
 
-beta_ref = ele%value(p0c$) / ele%value(e_tot$)
 set_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 if (ele%key == patch$) then
   call track_a_patch (ele, end_orb, .false., s0_body, ds_ref)
-  if (end_orb%direction == 1) then
-    s0_body = s0_body * end_orb%direction * ele%orientation
-    s1_body = 0
+  beta_ref = ele%value(p0c$) / ele%value(e_tot$)
+  if (ele%orientation*end_orb%direction == 1) then
     end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0_body) * end_orb%beta / beta_ref 
+    s0_body = ele%value(l$) + s0_body
+    s1_body = ele%value(l$)
   else
-    s1_body = s0_body * end_orb%direction * ele%orientation
-    s0_body = 0
-    end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s1_body) * end_orb%beta / beta_ref 
+    end_orb%vec(5) = end_orb%vec(5) + (ds_ref - s0_body) * end_orb%beta / beta_ref 
+    s0_body = s0_body
+    s1_body = 0
   endif
 else
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., &

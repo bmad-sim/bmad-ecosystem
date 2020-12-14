@@ -4053,14 +4053,14 @@ if (ele%key == patch$) then
 
   call bmad_patch_parameters_to_ptc (ang, exi)
 
-  ptc_fibre%dir = nint(ele%value(upstream_ele_dir$))
+  ptc_fibre%dir = nint(ele%value(upstream_coord_dir$))
 
   if (for_layout) then
     call survey_integration_fibre(ptc_fibre%next, exi = transpose(ele%floor%w), b = ele%floor%r)
     call find_patch(ptc_fibre, patching = good_patch)
     call survey(ptc_fibre%next, ptc_fibre%parent_layout%end)
   else
-    call find_patch_bmad_marker(ptc_fibre, dr, exi, nint(ele%value(downstream_ele_dir$)), patching = good_patch) 
+    call find_patch_bmad_marker(ptc_fibre, dr, exi, nint(ele%value(downstream_coord_dir$)), patching = good_patch) 
   endif
 
   ! energy and time patches

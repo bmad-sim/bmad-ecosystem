@@ -480,8 +480,7 @@ case (lcavity$)
 case (patch$) 
 
   call floor_angles_to_w_mat (val(x_pitch$), val(y_pitch$), val(tilt$), w_mat_inv = w_inv)
-  val(l$) = ele%value(downstream_ele_dir$) * &
-              (w_inv(3,1) * val(x_offset$) + w_inv(3,2) * val(y_offset$) + w_inv(3,3) * val(z_offset$))
+  val(l$) = (w_inv(3,1) * val(x_offset$) + w_inv(3,2) * val(y_offset$) + w_inv(3,3) * val(z_offset$))
 
 ! Quadrupole
 

@@ -19,8 +19,8 @@
 !
 ! Output:
 !   orbit      -- coord_struct: Coords after applying a patch transformation.
-!   s_ent      -- real(rp), optional: Longitudinal coordinate of initial particle position at
-!                   the entrance face in the frame of reference of the exit face.
+!   s_ent      -- real(rp), optional: Longitudinal coordinate of the initial particle 
+!                   position in the frame of reference of the face where the particle exits.
 !                   For a patch with positive z_offset and all other attributes zero, s_ent = -z_offset.
 !   ds_ref     -- real(rp), optional: Distance reference particle travels from entrance to exit.
 !   mat6(6,6)  -- Real(rp), optional: Transfer matrix through the element.
@@ -52,17 +52,21 @@ v => ele%value
 
 if (logic_option(.true., make_matrix)) orb_in = orbit
 rel_p = 1 + orbit%vec(6)
-p_vec = [orbit%vec(2), orbit%vec(4), orbit%direction * sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
+p_vec = [orbit%vec(2), orbit%vec(4), sqrt(rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
 
 ! For other types of elements, the ele%orientation is the same as the upstream and downstream 
 ! elements orientation. For a patch this is not necessarily true which is why a patch element
 ! needs to store the upstream and downstream orientations.
 
-! orbit%direction * ele%orientation = -1 means we are going from the downstream end to the upstream end.
+! orbit%direction * ele%orientation = -1 means we are going from the exit end to the entrance end.
 ! In this case, must reverse the order of application of the offsets and pitches.
 
 if (orbit%direction * ele%orientation == 1) then
-  p_vec(3) = p_vec(3) * ele%value(upstream_ele_dir$)
+  if (ele%orientation == 1) then ! Entering from upstream
+    p_vec(3) = p_vec(3) * ele%value(upstream_coord_dir$) * orbit%direction  
+  else    ! Entering from downstream
+    p_vec(3) = p_vec(3) * ele%value(downstream_coord_dir$) * orbit%direction  
+  endif
   r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)]
   if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
     call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat_inv = ww)
@@ -80,7 +84,11 @@ if (orbit%direction * ele%orientation == 1) then
   orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
 else
-  p_vec(3) = p_vec(3) * ele%value(downstream_ele_dir$)
+  if (ele%orientation == 1) then ! Entering from downstream
+    p_vec(3) = p_vec(3) * ele%value(downstream_coord_dir$) * orbit%direction  
+  else    ! Entering from upstream
+    p_vec(3) = p_vec(3) * ele%value(upstream_coord_dir$) * orbit%direction  
+  endif
   r_vec = [orbit%vec(1), orbit%vec(3), 0.0_rp]
   if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
     call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat = ww)
@@ -144,9 +152,9 @@ if (logic_option(.false., make_matrix)) then
 
   rel_p = 1 + orb_in%vec(6)
   if (ele%orientation*orb_in%direction == 1) then
-    dir = ele%value(upstream_ele_dir$) * orb_in%direction
+    dir = ele%value(upstream_coord_dir$) * orb_in%direction
   else
-    dir = ele%value(downstream_ele_dir$) * orb_in%direction
+    dir = ele%value(downstream_coord_dir$) * orb_in%direction
   endif
   pz_in = sqrt(rel_p**2 - orb_in%vec(2)**2 - orb_in%vec(4)**2) * dir
   beta_ref = v(p0c$) / v(e_tot$)
