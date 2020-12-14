@@ -737,12 +737,12 @@ end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
 
-real(rp), parameter :: r0_vec(3) = 0
-real(rp), parameter :: w_unit(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
+real(rp), parameter :: r0_vec$(3) = 0
+real(rp), parameter :: w_unit$(3,3) = reshape( [1, 0, 0, 0, 1, 0, 0, 0, 1], [3,3])
 
 type floor_position_struct
   real(rp) :: r(3) = [0, 0, 0]              ! (x, y, z) offset from origin
-  real(rp) :: w(3,3) =  w_unit              ! W matrix. Columns are unit vectors of the frame axes.
+  real(rp) :: w(3,3) =  w_unit$              ! W matrix. Columns are unit vectors of the frame axes.
   real(rp) :: theta = 0, phi = 0, psi = 0   ! angular orientation consistent with W matrix
 end type
 
@@ -1170,7 +1170,7 @@ type ele_struct
   type (converter_struct), pointer :: converter => null()                ! EG: Positron converter in linac.
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC tracking.
-  type (floor_position_struct) :: floor = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
+  type (floor_position_struct) :: floor = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
                                                                       ! Global coords reference position
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
   type (mode3_struct), pointer :: mode3 => null()                     ! 6D normal mode structure.
