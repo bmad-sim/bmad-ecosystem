@@ -54,8 +54,9 @@ endif
 ! Deal with ele misalignments if needed
 
 p = local_position
- 
+
 if (ele1%key == patch$) then
+  if (.not. logic_option(.false., use_patch_entrance)) p%r(3) = p%r(3) - ele1%value(L$)  ! Shift position to be relative to ele's exit: 
   call mat_make_unit(S_mat)
 
 elseif (logic_option(.false., in_ele_frame)) then  ! General geometry with possible misalignments
