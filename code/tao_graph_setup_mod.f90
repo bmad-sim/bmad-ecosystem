@@ -133,7 +133,7 @@ real(rp) value
 
 integer i, j, k, m, n_symb, ix
 
-character(160) name
+character(200) name
 character(60) component
 character(40) :: r_name = 'tao_graph_data_slice_setup'
 

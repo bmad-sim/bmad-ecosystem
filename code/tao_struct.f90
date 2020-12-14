@@ -913,9 +913,9 @@ type tao_beam_struct
   logical :: init_starting_distribution = .false. ! Init beam
   character(40) :: track_start = '', track_end = ''
   character(200) :: track_data_file = ''          ! track data from previous simulation for reanalysis.
-  character(160) :: saved_at = ''
-  character(160) :: dump_file = ''
-  character(160) :: dump_at = ''
+  character(200) :: saved_at = ''
+  character(200) :: dump_file = ''
+  character(200) :: dump_at = ''
 end type
 
 ! Logicals that determine what calculations need to be done.
@@ -945,7 +945,7 @@ type tao_mpi_struct
   logical :: master = .true.        ! Is this the master task? If yes, rank == 0
   integer :: rank = 0               ! Rank of task (rank is 0, 1, 2, ... n_tasks-1 ) 
   integer :: max_rank = 0           ! Maximum rank, should be n_tasks-1
-  character(160) :: host_name  =''  ! Name of the host machine
+  character(200) :: host_name = ''  ! Name of the host machine
 end type
 
 !-----------------------------------------------------------------------
