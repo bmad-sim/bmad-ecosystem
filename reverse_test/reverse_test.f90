@@ -185,8 +185,8 @@ elseif (ele_r%key == lcavity$) then
   ele_r%value(phi0$)     = -ele%value(phi0$)
   ele_r%value(phi0_err$) = -ele%value(phi0_err$)
 elseif (ele_r%key == patch$) then
-   ele_r%value(upstream_ele_dir$) = -1
-   ele_r%value(downstream_ele_dir$) = -1
+   ele_r%value(upstream_coord_dir$) = -1
+   ele_r%value(downstream_coord_dir$) = -1
 endif
 
 if (associated(ele_r%a_pole_elec)) then
