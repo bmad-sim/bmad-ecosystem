@@ -619,10 +619,10 @@ type (coord_struct) orbit, orbit2
 real(rp), intent(in) :: s_body
 real(rp), intent(out) :: dr_ds(11)
 real(rp) g_bend, dt_ds, dp_ds, dbeta_ds
-real(rp) vel(3), E_force(3), B_force(3), w_mat(3,3)
+real(rp) vel(3), E_force(3), B_force(3), w_mat(3,3), ww(3,3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0, mc2, delta, dh_bend, rel_pc
 
-integer rel_dir
+integer rel_dir, i
 
 logical :: err, calc_dfield
 logical, optional :: print_err
@@ -658,13 +658,25 @@ e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 ! Note: Field is in frame of element. When ele%orientation = -1 => +z in -s direction.
 
 calc_dfield = runge_kutta_com%calc_field_derivatives
+
 if (ele%key == patch$) then
   ! Particle going towards an end uses the coordinate of that end.
   ! But the field is specified in the exit end coords so must transform if particle is traveling towards the entrance end.
   if (rel_dir == 1) then
     call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
   else
-    call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
+    orbit2 = orbit
+    call track_a_patch(ele, orbit2, .false.)
+    call em_field_calc (ele, param, s_body, orbit2, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
+    call floor_angles_to_w_mat(ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = ww)
+    field%B = matmul(ww, field%B)
+    field%E = matmul(ww, field%E)
+    if (calc_dfield) then
+      do i = 1, 3
+        field%dB(:,i) = matmul(ww, field%dB(:,i))
+        field%dE(:,i) = matmul(ww, field%dE(:,i))
+      enddo
+    endif
   endif
 
 else

@@ -83,6 +83,10 @@ do ib = 0, ubound(lat_temp%branch, 1)
     ele_rev => branch_rev%ele(ie)
     ele_rev = ele_in
     ele_rev%orientation = -ele_rev%orientation
+    if (ele_rev%key == patch$) then
+      ele_rev%value(downstream_coord_dir$) = -ele_rev%value(downstream_coord_dir$)
+      ele_rev%value(upstream_coord_dir$)   = -ele_rev%value(upstream_coord_dir$)
+    endif
     ele_rev%ix_ele = ie
     if (associated(ele_rev%taylor(1)%term)) call kill_taylor(ele_rev%taylor)
     ! Need to fix this but for now give a warning...
