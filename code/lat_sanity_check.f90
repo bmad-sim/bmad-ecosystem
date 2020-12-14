@@ -196,7 +196,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       if (dir1 /= dir2) then
         call out_io (s_fatal$, r_name, &
                   'REVERSED (DOUBLE NEGATIVE SIGN IN LINE DEF) AND UNREVERSED ELEMENTS: ' // &
-                  trim(ele%name) // ' AND ' // trim(ele%name), &
+                  trim(ele%name) // ' AND ' // trim(ele2%name), &
                   'MUST HAVE A REFECTION PATCH PATCH IN BETWEEN.')
         err_flag = .true.
       endif
