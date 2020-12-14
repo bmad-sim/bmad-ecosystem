@@ -36,7 +36,7 @@ open (1, file = 'output.now')
 
 !
 
-local = floor_position_struct(r0_vec, w_unit, 0.0_rp, 0.0_rp, 0.0_rp)
+local = floor_position_struct(r0_vec$, w_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
 branch => lat%branch(0)
 
 do i = 1, lat%n_ele_max
