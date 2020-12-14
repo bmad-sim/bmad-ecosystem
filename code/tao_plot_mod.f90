@@ -680,16 +680,9 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   floor%r = [0.0_rp, 0.0_rp, ele2%value(l$)]
   floor2 = coords_local_curvilinear_to_floor (floor, ele, .false.)
 
-elseif (ele%key == patch$) then
-  floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
-  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true., use_patch_entrance = .true.)
-
-  floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
-  floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
-
 else
   floor%r = [0.0_rp, 0.0_rp, 0.0_rp]
-  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true.)
+  floor1 = coords_local_curvilinear_to_floor (floor, ele, .true., use_patch_entrance = .true.)
 
   floor%r = [0.0_rp, 0.0_rp, ele%value(l$)]
   floor2 = coords_local_curvilinear_to_floor (floor, ele, .true.)
