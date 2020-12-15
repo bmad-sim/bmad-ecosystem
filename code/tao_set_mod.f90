@@ -3,7 +3,6 @@ module tao_set_mod
 use tao_interface
 use tao_data_and_eval_mod
 use tao_lattice_calc_mod
-use set_ele_attribute_mod
 
 implicit none
 
@@ -2617,7 +2616,6 @@ end subroutine tao_set_universe_cmd
 subroutine tao_set_elements_cmd (ele_list, attribute, value, update)
 
 use attribute_mod, only: attribute_type
-use set_ele_attribute_mod, only: set_ele_attribute
 
 implicit none
 
