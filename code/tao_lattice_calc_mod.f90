@@ -832,7 +832,8 @@ else
   orb_in => branch%lat%particle_start
 endif
 
-call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, default_tracking_species(branch%param), 1, orb_in%p0c)
+call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, &
+                      default_tracking_species(branch%param), 1, orb_in%p0c, shift_vec6 = .false.)
 
 end subroutine tao_inject_particle
 
