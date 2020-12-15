@@ -618,8 +618,8 @@ type (coord_struct) orbit, orbit2
 
 real(rp), intent(in) :: s_body
 real(rp), intent(out) :: dr_ds(11)
-real(rp) g_bend, dt_ds, dp_ds, dbeta_ds
-real(rp) vel(3), E_force(3), B_force(3), w_mat(3,3), ww(3,3)
+real(rp) g_bend, dt_ds, dp_ds, dbeta_ds, s2
+real(rp) vel(3), E_force(3), B_force(3), w_mat(3,3), ww(3,3), ww_inv(3,3), r_vec(3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0, mc2, delta, dh_bend, rel_pc
 
 integer rel_dir, i
@@ -665,16 +665,17 @@ if (ele%key == patch$) then
   if (rel_dir == 1) then
     call em_field_calc (ele, param, s_body, orbit, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
   else
+    call floor_angles_to_w_mat(ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat = ww, w_mat_inv = ww_inv)
     orbit2 = orbit
-    call track_a_patch(ele, orbit2, .false.)
-    call em_field_calc (ele, param, s_body, orbit2, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
-    call floor_angles_to_w_mat(ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = ww)
-    field%B = matmul(ww, field%B)
-    field%E = matmul(ww, field%E)
+    r_vec = matmul(ww, [orbit%vec(1), orbit%vec(3), s_body]) + [ele%value(x_offset$), ele%value(y_offset$), 0.0_rp]
+    orbit2%vec(1:3:2) = r_vec(1:2)
+    call em_field_calc (ele, param, r_vec(3), orbit2, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
+    field%B = matmul(ww_inv, field%B)
+    field%E = matmul(ww_inv, field%E)
     if (calc_dfield) then
       do i = 1, 3
-        field%dB(:,i) = matmul(ww, field%dB(:,i))
-        field%dE(:,i) = matmul(ww, field%dE(:,i))
+        field%dB(:,i) = matmul(ww_inv, field%dB(:,i))
+        field%dE(:,i) = matmul(ww_inv, field%dE(:,i))
       enddo
     endif
   endif

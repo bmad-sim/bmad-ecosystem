@@ -112,6 +112,15 @@ subroutine attribute_bookkeeper (ele, force_bookkeeping)
   logical, optional :: force_bookkeeping
 end subroutine
 
+subroutine attribute_set_bookkeeping (ele, attrib_name, err_flag, attrib_ptr)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (all_pointer_struct), optional :: attrib_ptr
+  character(*) attrib_name
+  logical err_flag
+end subroutine
+
 function average_twiss (frac1, twiss1, twiss2) result (ave_twiss)
   import
   implicit none
@@ -1306,17 +1315,6 @@ subroutine converter_distribution_parser (ele, delim, delim_found, err_flag)
   logical delim_found, err_flag
 end subroutine
 
-subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
-  use bmad_parser_struct
-  implicit none
-  integer how
-  type (ele_struct), target ::  ele
-  character(1) delim
-  logical delim_found, err_flag
-  type (parser_ele_struct), optional :: pele
-  logical, optional :: check_free, heterogeneous_ele_list, set_field_master
-end subroutine
-
 function particle_is_moving_backwards (orbit) result (is_moving_backwards)
   import
   implicit none
@@ -1697,11 +1695,30 @@ subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_fie
   logical, optional :: save_field, make_matrix
 end subroutine
 
+subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag)
+  import
+  implicit none
+  type (ele_struct) ele
+  logical, optional :: err_print_flag
+  logical err_flag
+  character(*) set_string
+end subroutine
+
 subroutine set_ele_name(ele, name)
   import
   implicit none
   type (ele_struct) ele
   character(*) name
+end subroutine
+
+subroutine set_ele_real_attribute (ele, attrib_name, value, err_flag, err_print_flag)
+  import
+  implicit none
+  type (ele_struct) ele
+  real(rp) value
+  logical, optional :: err_print_flag
+  logical err_flag
+  character(*) attrib_name
 end subroutine
 
 recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
