@@ -667,15 +667,15 @@ if (ele%key == patch$) then
   else
     call floor_angles_to_w_mat(ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat = ww, w_mat_inv = ww_inv)
     orbit2 = orbit
-    r_vec = matmul(ww, [orbit%vec(1), orbit%vec(3), s_body]) + [ele%value(x_offset$), ele%value(y_offset$), 0.0_rp]
+    r_vec = matmul(ww_inv, [orbit%vec(1), orbit%vec(3), s_body] - [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)])
     orbit2%vec(1:3:2) = r_vec(1:2)
-    call em_field_calc (ele, param, r_vec(3), orbit2, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
-    field%B = matmul(ww_inv, field%B)
-    field%E = matmul(ww_inv, field%E)
+    call em_field_calc (ele, param, r_vec(3)+ele%value(l$), orbit2, .true., field, calc_dfield, err, err_print_out_of_bounds = print_err)
+    field%B = matmul(ww, field%B)
+    field%E = matmul(ww, field%E)
     if (calc_dfield) then
       do i = 1, 3
-        field%dB(:,i) = matmul(ww_inv, field%dB(:,i))
-        field%dE(:,i) = matmul(ww_inv, field%dE(:,i))
+        field%dB(:,i) = matmul(ww, field%dB(:,i))
+        field%dE(:,i) = matmul(ww, field%dE(:,i))
       enddo
     endif
   endif
