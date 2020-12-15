@@ -1881,7 +1881,7 @@ case default   ! normal attribute
         return
       endif
       a_ptr%r = value
-      call set_flags_for_changed_attribute (ele, a_ptr, .false.)
+      call set_flags_for_changed_attribute (ele, a_ptr, set_dependent = (bp_com%parser_name == 'bmad_parser2'))
 
       if (logic_option(.true., set_field_master)) then
         ix = len_trim(attrib_word)
@@ -1911,7 +1911,8 @@ case default   ! normal attribute
         branch => pointer_to_branch(ele%name, lat, .true.)
         if (associated(branch)) then
           branch%ele(0)%value(e_tot$) = value
-          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(e_tot$), .false.)
+          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(e_tot$), &
+                                                        set_dependent = (bp_com%parser_name == 'bmad_parser2'))
         endif
 
       case ('ENERGY')    ! Only in def_mad_beam
@@ -1935,7 +1936,8 @@ case default   ! normal attribute
         branch => pointer_to_branch(ele%name, lat, .true.)
         if (associated(branch)) then
           branch%ele(0)%value(p0c$) = value
-          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(p0c$), .false.)
+          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(p0c$), &
+                                                    set_dependent = (bp_com%parser_name == 'bmad_parser2'))
         endif
 
       case ('PC')    ! Only in def_mad_beam

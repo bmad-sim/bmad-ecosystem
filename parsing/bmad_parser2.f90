@@ -70,7 +70,7 @@ logical multiple_eles_here, heterogeneous_ele_list
 if (present(err_flag)) err_flag = .true.
 bp_com%write_digested2 = (.not. bp_com%always_parse)
 old_parser_name = bp_com%parser_name
-bp_com%parser_name = 'bmad_parser2'
+bp_com%parser_name = 'bmad_parser2'     ! Note: Code in parser_set_attribute depends upon this string being what it is.
 bp_com%input_from_file = .true.
 bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 
 bp_com%calc_reference_orbit = .false.
