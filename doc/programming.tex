@@ -390,9 +390,10 @@ message will be generated at the program linking stage. The error message might 
   gmake[2]: *** [/home/dcs16/linux_lib/production/bin/test] Error 1
   gmake[1]: *** [CMakeFiles/test-exe.dir/all] Error 2
 \end{example}
-In this example the subroutine \vn{write_bmad_lattice_file} was called in the program without the
-necessary \vn{use} statement. To find the correct \vn{use} statement, use the \vn{getf} or
-\vn{listf} command (\sref{s:getf}) to find the file that the subroutine is in. Example:
+The ``\vn{undefined reference}'' line shows that the subroutine \vn{write_bmad_lattice_file} was
+called in the program (``\vn{MAIN}'') without the necessary \vn{use} statement. To find the correct \vn{use}
+statement, use the \vn{getf} or \vn{listf} command (\sref{s:getf}) to find the file that the
+subroutine is in. Example:
 \begin{example}
   > listf write_bmad_lattice_file
 
@@ -420,9 +421,10 @@ here the error message references
 \begin{example}
   write_lat_file_mod_mp_write_bmad_lattice_file_
 \end{example}
-which is to say that the linker knows to look in the module \vn{write_lat_file_mod} for the
-subroutine. Here the problem is not a missing use statement but rather the problem is that the
-linker cannot find the module itself. This indicates something like a library is missing in the list
-of libraries to link to or the order of libraries to link to is wrong. This kind of problem
-generally happens with libraries other than the \bmad library itself. Further documentation on how
-the list of libraries to link to is defined is contained on the \bmad web site\cite{b:bmad.web}.
+The ``\vn{write_lat_file_mod_mp}'' prefix shows that the linker knows to look in the module
+\vn{write_lat_file_mod} for the subroutine. Here the problem is not a missing use statement but
+rather the problem is that the linker cannot find the module itself. This indicates something like a
+library is missing in the list of libraries to link to or the order of libraries to link to is
+wrong. This kind of problem generally happens with libraries other than the \bmad library
+itself. Further documentation on how the list of libraries to link to is defined is contained on the
+\bmad web site\cite{b:bmad.web}.
