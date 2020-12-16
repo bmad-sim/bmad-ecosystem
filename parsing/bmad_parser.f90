@@ -177,11 +177,14 @@ n_max = -1
 
 ! Note: The order of def_parameter and def_mad_beam elements is used by parser_set_attribute
 
-call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
+ele => in_lat%ele(0) 
 n_max = n_max + 1
-call nametable_add (in_lat%nametable, in_lat%ele(0)%name, n_max)
+call init_ele(ele, beginning_ele$, 0, 0, in_lat%branch(0))
+ele%name = 'BEGINNING'
+call set_ele_defaults (ele)   ! Defaults for beginning_ele element
+call nametable_add (in_lat%nametable, ele%name, n_max)
 
-ele => in_lat%ele(1) ! Important: def_parameter comes after def_mad_beam.
+ele => in_lat%ele(1) ! Important: def_parameter must come after def_mad_beam due to overlapping parameters.
 n_max = n_max + 1
 call init_ele(ele, def_mad_beam$, 0, 1, in_lat%branch(0))
 ele%name = 'BEAM'                 ! For MAD compatibility.

@@ -1,5 +1,5 @@
 !+
-! Subroutine allocate_element_array (ele, upper_bound, init_ele0)
+! Subroutine allocate_element_array (ele, upper_bound)
 !
 ! Subroutine to allocate or re-allocate an element array.
 ! The old information is saved.
@@ -12,16 +12,12 @@
 !   ele(:)      -- Ele_struct, pointer: Element array.
 !   upper_bound -- Integer, Optional: Optional desired upper bound.
 !                    Default: 1.3*ubound(ele(:)) or 10 if ele is not allocated.
-!   init_ele0   -- Logical, optional: If present and True and ele(:) array has not been allocated then set:
-!                     ele(0)%name = 'BEGINNING'
-!                     ele(0)%key = beginning_ele$
-!                     ele(0)%mat6 = unit matrix
 !
 ! Output:
 !   ele(:)      -- Ele_struct, pointer: Allocated element array.
 !-
 
-subroutine allocate_element_array (ele, upper_bound, init_ele0)
+subroutine allocate_element_array (ele, upper_bound)
 
 use equal_mod, dummy => allocate_element_array
 
@@ -32,8 +28,6 @@ type (ele_struct), pointer :: temp_ele(:)
 
 integer, optional :: upper_bound
 integer curr_ub, ub, i
-
-logical, optional :: init_ele0
 
 ! get new size
 
@@ -64,13 +58,6 @@ do i = curr_ub+1, ub
   call init_ele (ele(i))
   ele(i)%ix_ele = i
 end do
-
-if (logic_option(.false., init_ele0) .and. curr_ub == -1) then
-  ele(0)%name = 'BEGINNING'
-  ele(0)%key = beginning_ele$
-  call mat_make_unit (ele(0)%mat6)
-  call set_ele_defaults(ele(0))
-endif
 
 end subroutine allocate_element_array
 

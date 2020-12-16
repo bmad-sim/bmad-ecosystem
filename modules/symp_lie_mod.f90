@@ -322,9 +322,9 @@ case (solenoid$, quadrupole$, sol_quad$)
   case (solenoid$)
     ks = ele%value(ks$) * rel_tracking_charge
   case (quadrupole$)
-    k1_norm = b1 * charge_dir / ele%value(l$)
+    if (ele%value(l$) /= 0) k1_norm = b1 * charge_dir / ele%value(l$)
   case (sol_quad$)
-    k1_norm = b1 * charge_dir / ele%value(l$)
+    if (ele%value(l$) /= 0) k1_norm = b1 * charge_dir / ele%value(l$)
     ks = ele%value(ks$) * rel_tracking_charge
   end select
 
