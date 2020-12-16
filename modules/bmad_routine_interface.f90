@@ -38,12 +38,11 @@ subroutine allocate_branch_array (lat, upper_bound)
   integer :: upper_bound
 end subroutine
 
-subroutine allocate_element_array (ele, upper_bound, init_ele0)
+subroutine allocate_element_array (ele, upper_bound)
   import
   implicit none
   type (ele_struct), pointer :: ele(:)
   integer, optional :: upper_bound
-  logical, optional :: init_ele0
 end subroutine
 
 subroutine allocate_lat_ele_array (lat, upper_bound, ix_branch)

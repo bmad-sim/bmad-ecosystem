@@ -32,7 +32,7 @@ integer ix_br, i
 
 ix_br = integer_option (0, ix_branch)
 
-call allocate_element_array (lat%branch(ix_br)%ele, upper_bound, .true.)
+call allocate_element_array (lat%branch(ix_br)%ele, upper_bound)
 if (ix_br == 0) lat%ele => lat%branch(0)%ele
 
 do i = 0, ubound(lat%branch(ix_br)%ele, 1)

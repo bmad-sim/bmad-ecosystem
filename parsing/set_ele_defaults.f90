@@ -58,6 +58,7 @@ case (beginning_ele$)
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
   ele%value(inherit_from_fork$) = real_garbage$
+  call mat_make_unit (ele%mat6)
 
 case (fork$, photon_fork$)
   ele%value(direction$) = 1

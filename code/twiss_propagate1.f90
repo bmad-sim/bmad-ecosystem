@@ -56,8 +56,8 @@ if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
     endif
   endif
 
-  call out_io (s_fatal$, r_name, 'ZERO BETA DETECTED AT: ' // trim(ele1%name), &
-                                 'ELEMENT # \i0\ ',  i_array = [ele1%ix_ele])
+  call out_io (s_fatal$, r_name, 'ZERO BETA DETECTED AT ELEMENT: ' // &
+                                  trim(ele1%name) // '  ' // ele_loc_name(ele1, .true., '()'))
   if (global_com%exit_on_error .and. .not. present(err_flag)) call err_exit
   return
 endif

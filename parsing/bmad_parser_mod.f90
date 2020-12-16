@@ -7119,7 +7119,9 @@ do i = 1, n_ele_expand
   call settable_dep_var_bookkeeping (ele_line(i))
 enddo
 
-ele_line(0)%ix_branch = ix_branch
+call init_ele(ele_line(0), beginning_ele$, ix_branch, 0, lat%branch(ix_branch))
+call set_ele_defaults (ele_line(0))   ! Defaults for beginning_ele element
+ele_line(0)%name = 'BEGINNING'
 ele_line(0)%orientation = ele_line(1)%orientation
 
 deallocate(base_line)
