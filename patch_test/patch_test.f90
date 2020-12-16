@@ -53,7 +53,17 @@ do ie = 1, branch%n_ele_track
 
     write (1, '(3a, f12.6)') '"', trim(ele%name), '-L"  ABS 1E-12 ', ele%value(l$)
     write (1, '(3a, 6es14.6)') '"', trim(ele%name), '-RK-BS"  ABS 1E-12  ', end_orb%vec - end_orb_bs%vec
+    write (1, *)
+
+    ele%field_calc = custom$
+    call track1 (start_orb, ele, branch%param, end_orb)
+    call reverse_orbit(end_orb, start2_orb)
+    call track1 (start2_orb, ele, branch%param, end2_orb)
+    call reverse_orbit(end2_orb, end2_orb)
+    write (1, '(3a, 6es14.6)') '"', trim(ele%name), '-RKC"  ABS 1E-12     ', end_orb%vec
+    write (1, '(3a, 6es14.6)') '"', trim(ele%name), '-RKC-dif"  ABS 1E-12 ', end2_orb%vec - start_orb%vec
   endif
+
   write (1, *)
 enddo
 
@@ -89,6 +99,7 @@ orb_out%vec(2) = -orb_out%vec(2)
 orb_out%vec(4) = -orb_out%vec(4)
 orb_out%vec(5) = -orb_out%vec(5)
 orb_out%direction = -1
+orb_out%species = antiparticle(orb_out%species)
 
 end subroutine
 

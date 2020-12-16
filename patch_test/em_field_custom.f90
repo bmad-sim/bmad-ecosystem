@@ -41,44 +41,28 @@ use em_field_mod, except_dummy2 => em_field_custom
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele2
 type (lat_param_struct) param
 type (coord_struct), intent(in) :: orb
-type (coord_struct) :: orb2
+type (em_field_struct) :: field
 
 real(rp), intent(in) :: s_rel
+real(rp) f
 logical local_ref_frame
-type (em_field_struct) :: field
 logical, optional :: calc_dfield, err_flag
 character(*), parameter :: r_name = 'em_field_custom'
 
-real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3), r0vec(3)
-real(rp), pointer :: v(:)
-
 !
+
+if (s_rel < -1 .or. s_rel > 10) then
+  if (present(err_flag)) err_flag = .true.
+  call out_io (s_fatal$, r_name, 'OUT OF RANGE!')
+  call err_exit
+endif
+
+f = -0.001 * (1 + s_rel)
+field%e = 0
+field%b = [f*orb%vec(3), -f*orb%vec(1), 100*f*orb%vec(1)]
 
 if (present(err_flag)) err_flag = .false.
-
-! Convert particle coordinates from exit to entrance frame.
-v => ele%value   ! v helps makes code compact
-call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat, w_mat_inv)
-r0vec = [v(x_offset$), v(y_offset$), v(z_offset$)]
-r_vec = [orb%vec(1), orb%vec(3), s_rel]  ! coords in exit frame
-r_vec = matmul(w_mat, r_vec) +  r0vec     ! coords in entrance frame
-
-!
-
-ele2 => ele%branch%ele(ele%ix_ele-1)
-orb2 = orb
-orb2%vec(1:3:2) = r_vec(1:2)
-call em_field_calc (ele2, param, ele2%value(l$)/2, orb2, .false., field, calc_dfield, err_flag)
-
-! Convert field from entrance to exit frame
-field%E = matmul(w_mat_inv, field%E)
-field%B = matmul(w_mat_inv, field%B)
-if (logic_option(.false., calc_dfield)) then
-  field%dE = matmul(w_mat_inv, matmul(field%dE, w_mat))
-  field%dB = matmul(w_mat_inv, matmul(field%dB, w_mat))
-endif
 
 end subroutine
