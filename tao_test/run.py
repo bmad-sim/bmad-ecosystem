@@ -18,7 +18,7 @@ else:
 
 #-----------
 
-print ('Test1...')
+print ('Test2...')
 os.chdir('test2')
 results = subprocess.run(['../../../production/bin/tao', '-noplot', '-lat', 'lat.bmad'], stdout=subprocess.PIPE).stdout.decode('utf-8')
 os.chdir('..')
