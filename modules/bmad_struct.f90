@@ -54,21 +54,6 @@ type expression_atom_struct
   real(rp) :: value = 0
 end type
 
-type controller_var1_struct
-  character(40) :: name = ''
-  real(rp) :: value = 0
-  real(rp) :: old_value = 0
-end type
-
-integer, parameter :: expression$ = 2, spline$ = 3
-character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'Expression', 'Spline', 'Linear']
-
-type controller_struct
-  integer :: type = expression$   ! or spline$ or linear$.
-  type (controller_var1_struct), allocatable :: var(:)
-  real(rp), allocatable :: x_knot(:)
-end type
-
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
 
@@ -130,12 +115,12 @@ character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 
 integer, parameter :: minor_slave$ = 1, super_slave$ = 2, free$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
-integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12
+integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12, ramper_lord$ = 13
 
-character(20), parameter :: control_name(12) = [character(20):: &
+character(20), parameter :: control_name(13) = [character(20):: &
             'Minor_Slave', 'Super_Slave', 'Free', 'Group_Lord', &
             'Super_Lord', 'Overlay_Lord', 'Girder_Lord', 'Multipass_Lord ', &
-            'Multipass_Slave', 'Not_a_Lord', 'Slice_Slave', 'Control_Lord']
+            'Multipass_Slave', 'Not_a_Lord', 'Slice_Slave', 'Control_Lord', 'Ramper_Lord']
 
 logical, parameter :: set$ = .true., unset$ = .false.
 
@@ -1135,6 +1120,36 @@ type converter_struct
   type (converter_distribution_struct), allocatable :: dist(:)  ! Distribution at various thicknesses 
 end type
 
+! Struct for element to element control
+
+type control_struct
+  real(rp) :: value = 0          ! Used by group and overlay elements.
+  real(rp), allocatable :: y_knot(:)
+  type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
+  type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
+  type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
+  character(40) :: attribute     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
+  ! DO NOT USE %IX_ATTRIB. WILL BE EVENTUALLY DELETED IN FAVOR OF %ATTRIBUTE.
+  integer :: ix_attrib = 0       ! Index of attribute controlled. 
+end type
+
+type controller_var1_struct
+  character(40) :: name = ''
+  real(rp) :: value = 0
+  real(rp) :: old_value = 0
+end type
+
+integer, parameter :: expression$ = 2, spline$ = 3
+character(8), parameter :: interpolation_name(4) = [character(8):: null_name$, 'Expression', 'Spline', 'Linear']
+
+type controller_struct
+  integer :: type = expression$   ! or spline$ or linear$.
+  type (controller_var1_struct), allocatable :: var(:)
+  type (control_struct), allocatable :: ramp(:)             ! For ramper elements
+  real(rp), allocatable :: x_knot(:)
+end type
+
+
 !-------------------------------------------------------------------------
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
@@ -1249,19 +1264,6 @@ type ele_struct
 contains
   procedure next_in_branch
   !! final :: ele_finalizer
-end type
-
-! struct for element to element control
-
-type control_struct
-  real(rp) :: value = 0          ! Used by group and overlay elements.
-  real(rp), allocatable :: y_knot(:)
-  type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
-  type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
-  type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
-  character(40) :: attribute     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
-  ! DO NOT USE %IX_ATTRIB. WILL BE EVENTUALLY DELETED IN FAVOR OF %ATTRIBUTE.
-  integer :: ix_attrib = 0       ! Index of attribute controlled. 
 end type
 
 ! lat_param_struct should be called branch_param_struct [Present name is an historical artifact.]
@@ -1432,7 +1434,8 @@ integer, parameter :: def_particle_start$ = 39, photon_fork$ = 40, fork$ = 41, m
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46, e_gun$ = 47, em_field$ = 48
 integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffraction_plate$ = 52
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
-integer, parameter :: ac_kicker$ = 58, lens$ = 59, beam_init$ = 60, crab_cavity$ = 61, n_key$ = 61
+integer, parameter :: ac_kicker$ = 58, lens$ = 59, beam_init$ = 60, crab_cavity$ = 61, ramper$ = 62
+integer, parameter :: n_key$ = 62
 
 ! An "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
@@ -1449,7 +1452,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Multilayer_Mirror ', 'E_Gun             ', 'EM_Field          ', 'Floor_Shift       ', 'Fiducial          ', &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
     'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', 'Beam_Init         ', &
-    'Crab_Cavity       ']
+    'Crab_Cavity       ', 'Ramper            ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.

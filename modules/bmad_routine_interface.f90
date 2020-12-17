@@ -541,6 +541,14 @@ subroutine create_overlay (lord, contl, err)
   logical err
 end subroutine
 
+subroutine create_ramper (lord, contl, err)
+  import
+  implicit none
+  type (ele_struct) lord
+  type (control_struct) contl(:)
+  logical err
+end subroutine
+
 subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
   import
   implicit none

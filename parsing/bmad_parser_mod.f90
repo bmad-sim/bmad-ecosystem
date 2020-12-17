@@ -189,7 +189,7 @@ endif  ! Taylor term
 
 ! overlay or group
 
-if (ele%key == overlay$ .or. ele%key == group$) then
+if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) then
   i = attribute_index(ele, word)       ! general attribute search
 
   select case (i)
@@ -265,7 +265,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   
   err_flag = .false.
   return
-endif   ! Overlay or Group
+endif   ! Overlay, Ramper, or Group
 
 ! L_pole, N_pole for wiggler/undulator are deprecated in favor of L_period, N_period.
 
@@ -4127,12 +4127,6 @@ do
 
   if (delim == ':' .and. ele%key == girder$) pele%is_range = .true.
 
-  ! If "{}" with no slaves... 
-  if (delim == '}' .and. ix_word == 0 .and. n_slave == 0) then
-    call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
-    exit
-  endif
-
   n_slave = n_slave + 1
   word = word_in
 
@@ -4143,7 +4137,7 @@ do
   endif
 
   j = index(word, '[')
-  if (j > 1) then
+  if (j > 0) then
     k = index(word, ']')
     if (k <= j+1) then
       call parser_error ('BAD ATTRIBUTE SYNTAX: ' // word_in, 'FOR: ' // ele%name)
@@ -4157,7 +4151,16 @@ do
   endif
 
   name(n_slave) = word
-  if (word == '') call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
+
+  if (is_control_var_list) then
+    if (word == '') call parser_error ('VARIABLE NAME MISSING WHEN PARSING LORD: ' // ele%name)
+  else
+    if (ele%key == ramper$) then
+      if (word /= '') call parser_error ('SLAVE ELEMENT NAME MUST BE OMITTED WHEN DEFINING A RAMPER ELEMENT: ' // ele%name)
+    else
+      if (word == '') call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
+    endif
+  endif
 
   ! If ele_names_only = True then evaluating "var = {...}" construct or is a girder.
   ! In this case, there are no expressions
@@ -4227,7 +4230,7 @@ if (is_control_var_list) then
   allocate(ele%control%var(n_slave))
   ele%control%var%name = name(1:n_slave)
 else
-  if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
+  if (ele%lord_status /= girder_lord$) then
     allocate(ele%control)
     if (allocated(y_knot)) then
       ele%control%type = spline$
@@ -5901,9 +5904,51 @@ main_loop: do n_in = 1, n_ele_max
   pele => plat%ele(lord%ixx)
   
   !-----------------------------------------------------
-  ! overlay and groups
+  ! overlays, groups, and rampers
 
   select case (lord%key)
+
+  case (ramper$)
+    if (allocated(cs)) deallocate(cs)
+    allocate (cs(size(pele%control)))
+
+    do ip = 1, size(pele%control)
+      pc => pele%control(ip)
+
+      if (allocated(pc%y_knot)) then
+        cs(ip)%y_knot = pc%y_knot
+      else
+        call reallocate_expression_stack (cs(ip)%stack, pc%n_stk)
+        cs(ip)%stack = pc%stack(1:pc%n_stk)
+      endif
+
+      attrib_name = pc%attrib_name
+      if (attrib_name == blank_name$) attrib_name = pele%default_attrib
+      ix = attribute_index(0, attrib_name)
+      ! If attribute not found it may be a special attribute like accordion_edge$.
+      ! A special attribute will have ix > num_ele_attrib$
+      if (ix < 1 .and. lord%key == group$) then
+        ix = attribute_index(lord, attrib_name)
+        if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
+      endif
+      cs(ip)%ix_attrib = ix
+      cs(ip)%attribute = attrib_name
+      if (ix < 1) then
+        call parser_error ('IN RAMPER ELEMENT: ' // lord%name, &
+                          'ATTRIBUTE: ' // attrib_name, &
+                          'IS NOT A VALID ATTRIBUTE', &
+                          pele = pele)
+        return
+      endif
+    enddo
+
+    ! Create the ramper
+
+    call new_control (lat, ix_lord, lord%name)  ! get index in lat where lord goes
+    lat%ele(ix_lord) = lord
+
+    call create_ramper (lat%ele(ix_lord), cs(1:n_slave), err)
+
   case (overlay$, group$)
  
     ! If a slave name does not match any name in in_lat then this is an error (to catch typos).

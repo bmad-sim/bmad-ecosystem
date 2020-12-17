@@ -158,8 +158,10 @@ if (ele%sub_key /= 0) then
   nl=nl+1; write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
 endif
 
-nl=nl+1; write (li(nl), '(1x, 3(a, f14.6))')  'S_start, S:',  ele%s_start, ',', ele%s
-nl=nl+1; write (li(nl), '(1x, a, es14.6)') 'Ref_time:', ele%ref_time
+if (ele%key /= girder$ .and. ele%key /= ramper$) then
+  nl=nl+1; write (li(nl), '(1x, 3(a, f14.6))')  'S_start, S:',  ele%s_start, ',', ele%s
+  nl=nl+1; write (li(nl), '(1x, a, es14.6)') 'Ref_time:', ele%ref_time
+endif
 
 nl=nl+1; li(nl) = ''
 if (type_zero) then
@@ -383,7 +385,7 @@ if (attribute_index(ele, 'FIELD_MASTER') /= 0) then
   call encode_2nd_column_parameter (li, nl2, nl, 'FIELD_MASTER', logic_val = ele%field_master)
 endif
 
-if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$) then
+if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= girder$ .and. ele%key /= ramper$) then
   call encode_2nd_column_parameter (li, nl2, nl, 'LONGITUDINAL ORIENTATION', int_val = ele%orientation)
 endif
 
@@ -850,7 +852,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
                       a_name(1:n_att), '  =', ele%control%var(im)%value, &
                       'OLD_', a_name(1:n_att), '  =', ele%control%var(im)%old_value
       enddo
-    else  ! overlay_lord
+    else  ! overlay_lord or ramper_lord
       do im = 1, size(ele%control%var)
         nl=nl+1; write (li(nl), '(i5, 3x, 2a, es15.7)')  im, &
                       ele%control%var(im)%name, '  =', ele%control%var(im)%value
@@ -888,7 +890,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
   !
 
-  if (ele%n_slave /= 0) then
+  if (ele%n_slave /= 0 .or. ele%key == ramper$) then
     if (nl + ele%n_slave + 100 > size(li)) call re_allocate(li, nl + ele%n_slave + 100)
 
     n_char = 10
@@ -908,13 +910,34 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
                     trim(ele_loc_name(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
       enddo
 
+    case (ramper_lord$)
+      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
+      nl=nl+1; li(nl) = '   Attribute         Expression'
+      do ix = 1, size(ele%control%ramp)
+        ctl => ele%control%ramp(ix)
+
+        if (allocated(ctl%stack)) then
+          call split_expression_string (expression_stack_to_string (ctl%stack), 70, 5, li2)
+        else  ! Spline
+          call re_allocate (li2, 1)
+          li2(1) = str1(1:17) // '<Knots>'
+        endif
+
+        nl=nl+1; write (li(nl), '(3x, a18, a, 4x, a)') ctl%attribute, trim(li2(1))
+        if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
+        do im = 2, size(li2)
+          n = 50 + n_char + len(attrib_val_str)
+          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im))
+        enddo
+      enddo
+
     case default
       if (ele%key == overlay$) then
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Expression_Val summed over all Overlays controlling the attribute.]'
       else ! Group
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Value of the controlled attribute, Expression_Val = Value calculated by this Group element.]'
       endif
-      nl=nl+1; li(nl) = '   Index   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression'
+      nl=nl+1; li(nl) = ' Ele_Loc   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
 
@@ -928,6 +951,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         end select
 
         write (str1, '(es12.4)') ctl%value
+
         if (allocated(ctl%stack)) then
           call split_expression_string (str1(1:17) // expression_stack_to_string (ctl%stack), 70, 5, li2)
         else  ! Spline
@@ -995,7 +1019,7 @@ endif
 
 l_status = ele%lord_status
 if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
-    l_status /= group_lord$ .and. l_status /= girder_lord$) then
+    l_status /= group_lord$ .and. l_status /= girder_lord$ .and. l_status /= ramper_lord$) then
 
   ! Encode mat6 info
 

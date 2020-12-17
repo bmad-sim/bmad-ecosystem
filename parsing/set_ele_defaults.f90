@@ -332,6 +332,13 @@ case (overlay$)
   ele%field_calc = no_field$
   ele%value(gang$) = true$
 
+case (ramper$)
+  ele%bookkeeping_state%attributes     = ok$
+  ele%bookkeeping_state%mat6           = ok$
+  ele%bookkeeping_state%rad_int        = ok$
+  ele%bookkeeping_state%ptc            = ok$
+  ele%field_calc = no_field$
+
 case (girder$)
   ele%bookkeeping_state%attributes     = ok$
   ele%bookkeeping_state%ref_energy     = ok$
