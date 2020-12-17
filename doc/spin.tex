@@ -224,7 +224,7 @@ RHS in \Eq{t583} and the depolarization rate $\tau_{dep}^{-1}$ is given by the t
 \end{equation}
 
 %-----------------------------------------------------------------   
-\section{Linear $d\bfn/d\delta$ Calculation}
+\section{Linear \texorpdfstring{$d\bfn/d\delta$}{dn/dpz} Calculation}
 \label{s:dn.calc}
 
 When evaluating the equations in the previous section, in many situations it is sufficient to just
@@ -276,7 +276,7 @@ Using \Eqs{qqqr} and \eq{qnqn}, and keeping only linear terms gives
 This equation is linear in the unknown $\bfn_j$ and so may be easily solved using standard linear
 algebra techniques.
 
-Since the eigenvectors $\bfv_j$ span phase space, for any given phase space position $\bfr$ there
+Since the eigenvectors $\bfv_j$ span phase space, for any given phase space position $\bfr$, there
 exist a set of values $A_j(\bfr)$, $j = 1, \ldots, 6$, such that
 \begin{equation}
   \bfr = \sum_{j = 1}^6 A_j \, \bfv_j
@@ -307,7 +307,11 @@ A problem arises if the machine that is being simulated does not have any RF cav
 in the cavities is zero. In this case, there are no synchrotron oscillations which results in
 degenerate eigenvectors and the eigenvectors will not span all of phase space. The solution here
 is to reduce the dimensionality of phase space to five by remove the $z$ coordinate. The above
-equations then can be used with the sums over $j$ ranging from 1 to 5.
+equations then can be used with the sums over $j$ ranging from 1 to 5. 
+
+It is also sometimes convienent to compute ${\partial \bfn}/\partial \delta$ due to excitation of
+one of the three modes of oscillation. In this case, the sum in \Eq{ndan} is restricted to be over
+the two corresponding eigen states that comprise the oscillation mode of interest.
 
 %-----------------------------------------------------------------   
 \section{SLIM Formalism}

@@ -251,6 +251,11 @@ if the number of instances in the lattice for a given slave name is different fr
 name. In this example, it would be an error if the number of \vn{q1} elements in the lattice is
 different from the number of \vn{q2} elements in the lattice.
 
+Wild card characters can be used in element names. Example:
+\begin{example}
+  rf_control: overlay = \{rfcavity::*[voltage]:v\}, var = \{v\}
+\end{example}
+
 The syntax for specifying an attribute \vn{attrib} of element \vn{ele} to be controlled is
 \vn{ele[attrib]}. The attribute part \vn{[attrib]} may be omitted and in this case the name of the
 attribute will be taken to be the name of the first variable. Example:

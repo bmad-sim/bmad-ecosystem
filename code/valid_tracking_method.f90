@@ -142,7 +142,10 @@ case (fork$, photon_fork$)
   case (bmad_standard$, linear$, custom$)
     is_valid = .true.
   end select
-  
+
+case (group$, overlay$, girder$)
+  ! No valid methods
+
 case (hkicker$)
   select case (method)
   case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)

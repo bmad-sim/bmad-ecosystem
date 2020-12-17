@@ -4089,7 +4089,7 @@ type (var_length_string_struct), allocatable :: expression(:)
 real(rp) value
 real(rp), allocatable :: y_knot(:,:), y_val(:)
 
-integer ix_word, n_slave, i, j, k, n, i_last
+integer ix_word, ix, n_slave, i, j, k, n, i_last
                            
 character(1) delim
 character(40) word_in, word
@@ -4118,6 +4118,13 @@ n_slave = 0
 do 
 
   call get_next_word (word_in, ix_word, '{,}/:', delim, delim_found, .true.)
+  if (bp_com%parse_line(1:1) == ':') then   ! Element is something like "rfcavity::*" in which case the break is in the wrong place
+    bp_com%parse_line = bp_com%parse_line(2:)
+    call get_next_word (word, ix, '{,}/:', delim, delim_found, .true.)
+    word_in = trim(word_in) // '::' // word
+    ix_word = ix_word + 2 + ix
+  endif
+
   if (delim == ':' .and. ele%key == girder$) pele%is_range = .true.
 
   ! If "{}" with no slaves... 

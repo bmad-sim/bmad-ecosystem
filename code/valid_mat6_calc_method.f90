@@ -94,18 +94,6 @@ case (custom$)
     is_valid = .true.
   end select
 
-case (mask$)
-  select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
-case (fiducial$, floor_shift$)
-  select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
 case (drift$)
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
@@ -136,6 +124,15 @@ case (em_field$)
     is_valid = .true.
   end select
 
+case (fiducial$, floor_shift$)
+  select case (mat6_calc_method)
+  case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (group$, overlay$, girder$)
+  ! No valid methods
+
 case (hkicker$)
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
@@ -163,6 +160,12 @@ case (kicker$)
 case (lcavity$)
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (mask$)
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
