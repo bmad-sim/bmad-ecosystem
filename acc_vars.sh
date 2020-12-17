@@ -309,7 +309,7 @@ export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
 export ACC_BUILD_SYSTEM=${RELEASE_ARCHIVE_BASE_DIR}/build_system
 export ACC_BUILD_EXES=Y
-export ACC_CMAKE_VERSION=2.8.5
+export ACC_CMAKE_VERSION=3.13.2 # Updated as per request in RT#56874
 export TAO_DIR=${ACC_RELEASE_DIR}/tao
 
 #--------------------------------------------------------------
