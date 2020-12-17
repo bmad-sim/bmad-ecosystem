@@ -706,16 +706,19 @@ parsing_loop: do
   ! First parse any overlay/group/girder slave list
 
   key = in_lat%ele(n_max)%key
-  if (key == overlay$ .or. key == group$ .or. key == girder$) then
+  if (key == overlay$ .or. key == group$ .or. key == girder$ .or. key == ramper$) then
     if (delim /= '=') then
       call parser_error ('EXPECTING: "=" BUT GOT: ' // delim,  &
                          'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       cycle parsing_loop        
     endif
 
-    if (key == overlay$) in_lat%ele(n_max)%lord_status = overlay_lord$
-    if (key == group$)   in_lat%ele(n_max)%lord_status = group_lord$
-    if (key == girder$)  in_lat%ele(n_max)%lord_status = girder_lord$
+    select case (key)
+    case (overlay$); in_lat%ele(n_max)%lord_status = overlay_lord$
+    case (group$);   in_lat%ele(n_max)%lord_status = group_lord$
+    case (girder$);  in_lat%ele(n_max)%lord_status = girder_lord$
+    case (ramper$);  in_lat%ele(n_max)%lord_status = ramper_lord$
+    end select
 
     call get_overlay_group_names(in_lat%ele(n_max), in_lat, plat%ele(n_max), delim, delim_found, .false., err)
     if (err) cycle parsing_loop

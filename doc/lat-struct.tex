@@ -152,7 +152,7 @@ element that marks the beginning of the $i$\Th branch. Example:
 
 \index{lat_struct!\%ele(:)}\index{lat_struct!\%n_ele_track}
 \index{lat_struct!\%n_ele_max}\index{ele_struct!in lat_struct} 
-\index{girder}\index{overlay}\index{group}
+\index{girder}\index{overlay}\index{group}\index{ramper}
 The \vn{%branch%ele(:)} array holds the array of elements in the
 branch. Historically, the \vn{lat_struct} was developed at the start
 of the \bmad project and branches were implemented well after that. To
@@ -310,26 +310,21 @@ the functions \vn{mass_of} and \vn{charge_of} respectively.
 \label{s:lat.control}
 
 \index{lord|hyperbf}\index{slave|hyperbf}
-In the \vn{lat_struct} structure, certain elements in the \vn{%ele(:)} 
-array (equivalent to the \vn{%branch(0)%ele(:)} array),
-called \vn{lord} elements, can control the attributes (component
-values) of other \vn{%branch(:)%ele(:)} elements.  Elements so controlled are
-called \vn{slave} elements.  The situation is complicated by the fact
-that a given element may simultaneously be a \vn{lord} and a
-\vn{slave}. For example, an \vn{overlay} element (\sref{s:overlay}) is
-a lord since it controls attributes of other elements but an
-\vn{overlay} can itself be controlled by other \vn{overlay} and
-\vn{group} elements. In all cases, circular lord/slave chains are not permitted.
+In the \vn{lat_struct} structure, certain elements in the \vn{%ele(:)} array (equivalent to the
+\vn{%branch(0)%ele(:)} array), called \vn{lord} elements, can control the attributes (component
+values) of other \vn{%branch(:)%ele(:)} elements.  Elements so controlled are called \vn{slave}
+elements.  The situation is complicated by the fact that a given element may simultaneously be a
+\vn{lord} and a \vn{slave}. For example, an \vn{overlay} element (\sref{s:overlay}) is a lord since
+it controls attributes of other elements but an \vn{overlay} can itself be controlled by other
+\vn{overlay} and \vn{group} elements. In all cases, circular lord/slave chains are not permitted.
 
 \index{ele_struct!\%lord_status}\index{ele_struct!\%slave_status}
-The lord and slave elements can be divided up into classes. What type of
-lord an element is, is set by the value of the element's
-\vn{ele%lord_status} component. Similarly, what type of slave an element
-is is set by the value of the element's \vn{ele%slave_status} component.
-Nomenclature note: An element may be referred to by it's
-\vn{%lord_status} or \vn{%slave_status} value. For example, an element
-with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to as
-a ``\vn{super_lord}'' element.
+The lord and slave elements can be divided up into classes. What type of lord an element is, is set
+by the value of the element's \vn{ele%lord_status} component. Similarly, what type of slave an
+element is is set by the value of the element's \vn{ele%slave_status} component.  Nomenclature note:
+An element may be referred to by it's \vn{%lord_status} or \vn{%slave_status} value. For example, an
+element with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to as a
+``\vn{super_lord}'' element.
 
 \index{super_lord\$}
 \index{group_lord}\index{girder_lord\$}
@@ -337,32 +332,38 @@ a ``\vn{super_lord}'' element.
 \index{girder_lord\$}\index{not_a_lord\$}
 The value of the \vn{ele%lord_status} component can be one of:
   \begin{description}
+  %
   \item[super_lord\$]\Newline 
-A \vn{super_lord} element is created when elements are
-superimposed on top of other elements (\sref{s:super}).
+A \vn{super_lord} element is created when elements are superimposed on top of other elements
+(\sref{s:super}).
+  %
   \item[girder_lord\$]\Newline 
-A \vn{girder_lord} element is a \vn{girder} element  (\sref{s:girder}). 
-That is, the element will have \vn{ele%key} = \vn{girder\$}.
+A \vn{girder_lord} element is a \vn{girder} element (\sref{s:girder}). That is, the element will
+have \vn{ele%key} = \vn{girder\$}.
+  %
   \item[multipass_lord\$]\Newline
-\vn{multipass_lord} elements are created when
-multipass lines are present (\sref{s:multipass}). 
+\vn{multipass_lord} elements are created when multipass lines are present (\sref{s:multipass}).
+  %
   \item[overlay_lord\$]\Newline 
-An \vn{overlay_lord} is an \vn{overlay} element (\sref{s:overlay}). 
-That is, such an element will have \vn{ele%key} = \vn{overlay\$}.
+An \vn{overlay_lord} is an \vn{overlay} element (\sref{s:overlay}). That is, such an element will
+have \vn{ele%key} = \vn{overlay\$}.
+  %
+  \item[ramper_lord\$]\Newline 
+A \vn{ramper_lord} is a \vn{ramper} element (\sref{s:ramper}). That is, such an element will have
+\vn{ele%key} = \vn{ramper\$}. Note that a \vn{ramper_lord} will not have any associated slaves.
+  %
   \item[group_lord\$]\Newline 
-A \vn{group_lord} is a \vn{group} element (\sref{s:group}). That is,
-such an element will have \vn{ele%key} = \vn{group\$}.
+A \vn{group_lord} is a \vn{group} element (\sref{s:group}). That is, such an element will have
+\vn{ele%key} = \vn{group\$}.
+  %
   \item[not_a_lord\$]\Newline
 This element does not control anything.
   \end{description}
-Any element whose \vn{%lord_status} is something other than
-\vn{not_a_lord\$} is called a \vn{lord} element. In the \vn{tracking part}
-of the branch (\sref{s:lat.struct}), \vn{%lord_status} will always be
-\vn{not_a_lord\$}. In the \vn{lord section} of the branch, under normal
-circumstances, there will never be any \vn{not_a_lord} elements.
-However, it is permissible,
-and sometimes convenient, for programs to set the \vn{%lord_status} of
-a lord element to \vn{not_a_lord\$}.
+Any element whose \vn{%lord_status} is something other than \vn{not_a_lord\$} is called a \vn{lord}
+element. In the \vn{tracking part} of the branch (\sref{s:lat.struct}), \vn{%lord_status} will
+always be \vn{not_a_lord\$}. In the \vn{lord section} of the branch, under normal circumstances,
+there will never be any \vn{not_a_lord} elements.  However, it is permissible, and sometimes
+convenient, for programs to set the \vn{%lord_status} of a lord element to \vn{not_a_lord\$}.
 
 \index{super_slave\$}\index{multipass_slave\$}
 \index{free\$}\index{minor_slave\$}\index{slice_slave\$}

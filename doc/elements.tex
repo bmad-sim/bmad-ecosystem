@@ -81,7 +81,7 @@ use.
 \begin{tabular}{llll} \toprule
   {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \\ \midrule
   Group          & \ref{s:group}     &  Overlay       & \ref{s:overlay}  \\
-  Girder         & \ref{s:girder}    &                &                  \\ \bottomrule
+  Girder         & \ref{s:girder}    &  Ramper        & \ref{s:ramper}   \\ \bottomrule
 \end{tabular}
 }
 \caption{Table of controller elements.}
@@ -3857,6 +3857,51 @@ Example:
 \begin{example}
   q03w: quad, l = 0.6, k1 = 0.003, tilt  ! same as tilt = pi/4
 \end{example}
+
+%-----------------------------------------------------------------------------
+\section{Ramper}
+\label{s:ramper}
+\index{ovlerlay|hyperbf}
+
+\vn{Ramper} elements are a type of \vn{control} element (\sref{s:lord.slave}) used to make
+variations in the attributes of other elements (called ``slave'' attributes) while a program is
+running. For example, to simulate the action of a magnet power supply that controls a string of
+magnets. Also see \vn{group} (\sref{s:group}) The difference between \vn{group} and \vn{ramper}
+elements is that \vn{ramper} elements set the values of the attributes directly while \vn{group}
+elements make delta changes to attribute values.
+
+General \vn{ramper} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Custom Attributes          & \ref{s:cust.att}  & Is_on                      & \ref{s:is.on}   \\
+  Description strings        & \ref{s:alias}     &                            &                 \\ 
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.ramper} for a full list of element attributes along with a their units.
+
+There are two types of \vn{ramper} elements: \vn{Expression} based and \vn{spline} based.
+The general syntax for a \vn{expression} based \vn{ramper} element is
+\begin{example}
+  name: RAMPER = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
+                                                       default_attrib = init_value
+\end{example}
+where \vn{ele1}[\vn{attrib1}], \vn{ele2}[\vn{attrib2}], etc. specify the slave attributes and
+\vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1},
+\vn{var2}, etc., and are used to determine a value for the slave attributes.
+
+The general syntax for a \vn{spline} based  \vn{ramper} element is
+\begin{example}
+  name: RAMPER = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
+              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ...
+\end{example}
+
+\textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
+
+An \vn{ramper} element is used to control the attributes of other elements. 
 
 %-----------------------------------------------------------------
 \section{RFcavity}

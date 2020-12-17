@@ -87,7 +87,7 @@ type (ele_struct) ele_save
 type (nametable_struct), pointer :: nt
 type (converter_sub_distribution_struct), pointer :: sd_in, sd_out
 
-integer i, j, n, n2, ub(2), ub1
+integer i, j, n, n1, n2, ub(2), ub1
 logical comensurate
 
 ! 1) Save ele_out pointers in ele_save
@@ -203,14 +203,17 @@ endif
 ! %control
 
 if (associated(ele_in%control)) then
-  n = size(ele_in%control%var)
+  n1 = size(ele_in%control%var)
+  n2 = size(ele_in%control%ramp)
   ele_out%control => ele_save%control   ! reinstate
   if (associated(ele_out%control)) then
-    if (size(ele_out%control%var) /= n) deallocate(ele_out%control)
+    if (size(ele_out%control%var) /= n1)  deallocate(ele_out%control)
+    if (size(ele_out%control%ramp) /= n2) deallocate(ele_out%control)
   endif
   if (.not. associated(ele_out%control)) then
     allocate(ele_out%control)
-    allocate(ele_out%control%var(n))
+    allocate(ele_out%control%var(n1))
+    allocate(ele_out%control%ramp(n2))
   endif
   ele_out%control = ele_in%control
 

@@ -562,6 +562,7 @@ do i = 1, n_key$
   if (i == group$)    cycle
   if (i == overlay$)  cycle
   if (i == girder$)   cycle
+  if (i == ramper$)   cycle
 
   call init_attribute_name1 (i, superimpose$,        'SUPERIMPOSE')
   call init_attribute_name1 (i, offset$,             'OFFSET')
@@ -1096,6 +1097,10 @@ call init_attribute_name1 (overlay$, var$,                          'VAR')
 call init_attribute_name1 (overlay$, gang$,                         'GANG')
 call init_attribute_name1 (overlay$, x_knot$,                       'X_KNOT')
 call init_attribute_name1 (overlay$, is_on$,                        'IS_ON')
+
+call init_attribute_name1 (ramper$, var$,                          'VAR')
+call init_attribute_name1 (ramper$, x_knot$,                       'X_KNOT')
+call init_attribute_name1 (ramper$, is_on$,                        'IS_ON')
 
 call init_attribute_name1 (group$, var$,                            'VAR')
 call init_attribute_name1 (group$, gang$,                           'GANG')
@@ -2171,8 +2176,8 @@ case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, field_calc_name, lbound(field_calc_name, 1))
   if (present(is_default)) then
     select case (ele%key)
-    case (group$, overlay$, girder$); is_default = (ix_attrib_val == no_field$)
-    case default;                     is_default = (ix_attrib_val == bmad_standard$)
+    case (group$, overlay$, girder$, ramper$); is_default = (ix_attrib_val == no_field$)
+    case default;                              is_default = (ix_attrib_val == bmad_standard$)
     end select
   endif
 

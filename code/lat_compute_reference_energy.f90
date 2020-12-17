@@ -414,6 +414,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   ! Multipass lords have their enegy computed above.
 
   if (lord%lord_status == multipass_lord$) cycle
+  if (lord%lord_status == ramper_lord$) cycle
 
   ! Now for everything but multipass_lord elements...
   ! The lord inherits the energy from the last slave.

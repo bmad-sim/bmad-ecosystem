@@ -664,6 +664,13 @@ do
     endif
     end_ele => pointer_to_slave(end_ele, 1)
 
+  case (ramper_lord$)
+    call out_io (s_error$, r_name, &
+        'FOR ELEMENT: ' // orig_ele%name, 'WHICH IS PART OF A RANGE CONSTRUCT IN: ' // loc_str, &
+        'THE PROBLEM IS THAT THIS ELEMENT IS A RAMPER LORD AND DOES ', &
+        'NOT HAVE A UNIQUE SLAVE ELEMENT TO COMPUTE THE RANGE END POSITION.')
+    return
+
   case (multipass_lord$)
     if (orig_ele%lord_status == multipass_lord$) then
       call out_io (s_error$, r_name, &

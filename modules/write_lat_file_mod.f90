@@ -326,7 +326,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ele => branch%ele(ie)
     if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
-    if (ele%key == overlay$ .or. ele%key == group$) cycle   ! Handled in next section.
+    if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) cycle   ! Handled in next section.
     if (ele%key == null_ele$) cycle
 
     ele_dflt => ele_default(ele%key) ! Element with default attributes.
@@ -895,7 +895,7 @@ enddo  ! branch loop
 
 write (iu, '(a)')
 write (iu, '(a)') '!-------------------------------------------------------'
-write (iu, '(a)') '! Overlays, groups, and superimpose'
+write (iu, '(a)') '! Overlays, groups, rampers, and superimpose'
 write (iu, '(a)')
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
@@ -926,12 +926,13 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   
   ! Overlays and groups
 
-  if (ele%key == overlay$ .or. ele%key == group$) then
-    if (ele%key == overlay$) then
-      write (line, '(2a)') trim(ele%name), ': overlay = {'
-    else
-      write (line, '(2a)') trim(ele%name), ': group = {'
-    endif
+  if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) then
+    select case (ele%key)
+    case (overlay$);  write (line, '(2a)') trim(ele%name), ': overlay = {'
+    case (group$);    write (line, '(2a)') trim(ele%name), ': group = {'
+    case (ramper$);   write (line, '(2a)') trim(ele%name), ': ramper = {'
+    end select
+
     j_loop: do j = 1, ele%n_slave
       slave => pointer_to_slave(ele, j, ctl)
       ! do not use elements w/ duplicate names & attributes
@@ -956,8 +957,8 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
           call write_lat_line(line, iu, .false.)
         enddo
       endif
-
     enddo j_loop
+
     line = trim(line) // '}, var = {' // ele%control%var(1)%name
 
     do j = 2, size(ele%control%var)
@@ -975,7 +976,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       endif
     enddo
 
-    if (is_false(ele%value(gang$))) line = trim(line) // ', gang = False'
+    if (ele%key /= ramper$ .and. is_false(ele%value(gang$))) line = trim(line) // ', gang = False'
     if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
     if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'

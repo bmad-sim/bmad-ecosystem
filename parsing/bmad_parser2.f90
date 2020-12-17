@@ -568,14 +568,19 @@ parsing_loop: do
   ! the plat structure where storage for the control lists is
                
   key = ele%key
-  if (key == overlay$ .or. key == group$ .or. key == girder$) then
+  if (key == overlay$ .or. key == group$ .or. key == girder$ .or. key == ramper$) then
     if (delim /= '=') then
       call parser_error ('EXPECTING: "=" BUT GOT: ' // delim,  &
                   'FOR ELEMENT: ' // ele%name)
+
     else
-      if (key == overlay$) ele%lord_status = overlay_lord$
-      if (key == group$)   ele%lord_status = group_lord$
-      if (key == girder$)  ele%lord_status = girder_lord$
+      select case (key)
+      case (overlay$); in_lat%ele(n_max)%lord_status = overlay_lord$
+      case (group$);   in_lat%ele(n_max)%lord_status = group_lord$
+      case (girder$);  in_lat%ele(n_max)%lord_status = girder_lord$
+      case (ramper$);  in_lat%ele(n_max)%lord_status = ramper_lord$
+      end select
+
       call get_overlay_group_names(ele, lat,  pele, delim, delim_found, .false., err)
       if (err) cycle parsing_loop
     endif
