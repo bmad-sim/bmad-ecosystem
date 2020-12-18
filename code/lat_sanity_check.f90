@@ -962,7 +962,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    ! check that element is in correct part of the ele(:) array
+    ! Check that element is in correct part of the ele(:) array
 
     if (ele%key == null_ele$ .and. i_t > branch%n_ele_track) cycle      
 

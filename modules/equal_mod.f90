@@ -204,17 +204,22 @@ endif
 
 if (associated(ele_in%control)) then
   n1 = size(ele_in%control%var)
-  n2 = size(ele_in%control%ramp)
+  n2 = -1
+  if (allocated(ele_in%control%ramp)) n2 = size(ele_in%control%ramp)
+
   ele_out%control => ele_save%control   ! reinstate
+
   if (associated(ele_out%control)) then
-    if (size(ele_out%control%var) /= n1)  deallocate(ele_out%control)
-    if (size(ele_out%control%ramp) /= n2) deallocate(ele_out%control)
+    if (size(ele_out%control%var) /= n1)  deallocate(ele_out%control%var)
+    if (allocated(ele_out%control%ramp)) then
+      if (size(ele_out%control%ramp) /= n2) deallocate(ele_out%control%ramp)
+    endif
   endif
-  if (.not. associated(ele_out%control)) then
-    allocate(ele_out%control)
-    allocate(ele_out%control%var(n1))
-    allocate(ele_out%control%ramp(n2))
-  endif
+
+  if (.not. associated(ele_out%control)) allocate(ele_out%control)
+  if (.not. allocated(ele_out%control%var)) allocate(ele_out%control%var(n1))
+  if (.not. allocated(ele_out%control%ramp) .and. n2 > -1) allocate(ele_out%control%ramp(n2))
+
   ele_out%control = ele_in%control
 
 else
