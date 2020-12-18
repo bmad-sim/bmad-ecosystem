@@ -30,7 +30,6 @@ type (lat_struct), target, intent(in) :: lat
 type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct), optional :: extra
 type (ptc_parameter_struct) ptc_param
-type (control_struct), pointer :: c
 type (wake_struct), pointer :: wake
 
 real(rp) value(num_ele_attrib$)
@@ -154,16 +153,7 @@ enddo
 ! write the control info, etc
 
 do i = 1, lat%n_control_max
-  c => lat%control(i)
-  n = 0
-  if (allocated(c%stack)) n = size(c%stack)
-  nk = 0
-  if (allocated(c%y_knot)) nk = size(c%y_knot)
-  write (d_unit) n, nk, c%value, c%lord, c%slave, c%ix_attrib, c%attribute
-  do j = 1, n
-    write (d_unit) c%stack(j)
-  enddo
-  if (nk /= 0) write (d_unit) c%y_knot
+  call write_this_control_struct(lat%control(i))
 enddo
 
 do i = 1, lat%n_ic_max
@@ -229,7 +219,7 @@ type (converter_direction_out_struct), pointer :: c_dir
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
-integer i, j, k, n, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_branch
+integer i, j, k, n, nr, n_grid, n_cart, n_cyl, n_tay, ix_ele, ix_c, ix_branch
 integer n_cus, ix_convert
 
 logical write_wake, mode3
@@ -237,8 +227,8 @@ logical write_wake, mode3
 !
 
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
-ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; n_var = 0; ix_st = -1
-mode3 = .false.; ix_wall3d = 0; ix_convert = 0
+ix_sr_long = 0; ix_sr_trans = 0; ix_lr_mode = 0; ix_st = -1
+mode3 = .false.; ix_wall3d = 0; ix_convert = 0; ix_c = 0
 n_cart = 0; n_grid = 0; n_cyl = 0; n_tay = 0; n_cus = 0
 
 if (associated(ele%mode3))             mode3 = .true.
@@ -253,6 +243,7 @@ if (associated(ele%photon))            ix_s = 1
 if (associated(ele%descrip))           ix_d = 1
 if (associated(ele%a_pole))            ix_m = 1
 if (associated(ele%a_pole_elec))       ix_e = 1
+if (associated(ele%control))           ix_c = 1
 do n = 1, size(ele%taylor)
   if (associated(ele%taylor(n)%term)) ix_t(n) = size(ele%taylor(n)%term)
 enddo
@@ -260,7 +251,6 @@ do i = 0, 3
   if (associated(ele%spin_taylor(i)%term)) ix_st(i) = size(ele%spin_taylor(i)%term)
 enddo
 if (associated(ele%wall3d))     ix_wall3d = size(ele%wall3d)
-if (associated(ele%control))    n_var = size(ele%control%var)
 
 ! Since some large lattices with a large number of wakes can take a lot of time writing the wake info,
 ! we only write a wake when needed and ix_lr_mode serves as a pointer to a previously written wake.
@@ -315,7 +305,7 @@ endif
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), &
           ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-          ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus, ix_convert
+          ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_grid, n_tay, n_cus, ix_convert
 
 write (d_unit) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -347,9 +337,18 @@ write (d_unit) ix_value(1:k), value(1:k)
 
 ! Control vars
 
-if (n_var /= 0) then
+if (ix_c == 1) then
+  nk = -1; nr = -1
+  n_var = size(ele%control%var)
+  if (allocated(ele%control%x_knot)) nk = size(ele%control%x_knot)
+  if (allocated(ele%control%ramp)) nr = size(ele%control%ramp)
+  write (d_unit) ele%control%type, n_var, nk, nr
+  write (d_unit) ele%control%x_knot
   do i = 1, n_var
     write (d_unit) ele%control%var(i)
+  enddo
+  do i = 1, nr
+    call write_this_control_struct(ele%control%ramp(nr))
   enddo
 endif
 
@@ -647,6 +646,28 @@ do k = 1, nv
 enddo
 
 end subroutine write_this_wall3d_section
+
+!-------------------------------------------------------------------------------------
+! contains
+
+subroutine write_this_control_struct (ctl)
+
+type (control_struct) :: ctl
+integer n, nk, j
+
+!
+
+n = 0
+if (allocated(ctl%stack)) n = size(ctl%stack)
+nk = 0
+if (allocated(ctl%y_knot)) nk = size(ctl%y_knot)
+write (d_unit) ctl%slave_name, n, nk, ctl%value, ctl%lord, ctl%slave, ctl%ix_attrib, ctl%attribute
+do j = 1, n
+  write (d_unit) ctl%stack(j)
+enddo
+if (nk /= 0) write (d_unit) ctl%y_knot
+
+end subroutine write_this_control_struct
 
 end subroutine
 

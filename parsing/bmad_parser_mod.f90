@@ -187,7 +187,7 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. delim == '{' .and. word =
   return
 endif  ! Taylor term
 
-! overlay or group
+! Overlay, ramper, or group
 
 if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) then
   i = attribute_index(ele, word)       ! general attribute search
@@ -4155,11 +4155,7 @@ do
   if (is_control_var_list) then
     if (word == '') call parser_error ('VARIABLE NAME MISSING WHEN PARSING LORD: ' // ele%name)
   else
-    if (ele%key == ramper$) then
-      if (word /= '') call parser_error ('SLAVE ELEMENT NAME MUST BE OMITTED WHEN DEFINING A RAMPER ELEMENT: ' // ele%name)
-    else
-      if (word == '') call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
-    endif
+    if (word == '') call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
   endif
 
   ! If ele_names_only = True then evaluating "var = {...}" construct or is a girder.
@@ -5912,7 +5908,8 @@ main_loop: do n_in = 1, n_ele_max
     if (allocated(cs)) deallocate(cs)
     allocate (cs(size(pele%control)))
 
-    do ip = 1, size(pele%control)
+    nn = size(pele%control)
+    do ip = 1, nn
       pc => pele%control(ip)
 
       if (allocated(pc%y_knot)) then
@@ -5933,6 +5930,8 @@ main_loop: do n_in = 1, n_ele_max
       endif
       cs(ip)%ix_attrib = ix
       cs(ip)%attribute = attrib_name
+      cs(ip)%slave_name = pc%name
+
       if (ix < 1) then
         call parser_error ('IN RAMPER ELEMENT: ' // lord%name, &
                           'ATTRIBUTE: ' // attrib_name, &
@@ -5947,7 +5946,7 @@ main_loop: do n_in = 1, n_ele_max
     call new_control (lat, ix_lord, lord%name)  ! get index in lat where lord goes
     lat%ele(ix_lord) = lord
 
-    call create_ramper (lat%ele(ix_lord), cs(1:n_slave), err)
+    call create_ramper (lat%ele(ix_lord), cs(1:nn), err)
 
   case (overlay$, group$)
  

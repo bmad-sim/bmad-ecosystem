@@ -1,4 +1,3 @@
-
 !+
 ! Subroutine read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling, lat_files)
 !
@@ -39,7 +38,6 @@ type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct) :: extra
 type (ptc_parameter_struct) ptc_param
-type (control_struct), pointer :: c
 type (bmad_common_struct) bmad_com_read
 real(rp) value(num_ele_attrib$)
 
@@ -253,19 +251,8 @@ enddo
 ! read the control info, etc
 
 do i = 1, lat%n_control_max
-  c => lat%control(i)
-  read (d_unit, err = 9040) n, nk, c%value, c%lord, c%slave, c%ix_attrib, c%attribute
-  if (n > 0) then
-    allocate (c%stack(n))
-    do j = 1, n
-      read (d_unit, err = 9045) c%stack(j)
-    enddo
-  endif
-
-  if (nk > 0) then
-    allocate (c%y_knot(nk))
-    read (d_unit, err = 9045) c%y_knot
-  endif
+  call read_this_control_struct (lat%control(i), error)
+  if (error) return
 enddo
 
 do i = 1, lat%n_ic_max
@@ -424,20 +411,6 @@ return
 
 !--------------------------------------------------------------
 
-9040  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
-close (d_unit)
-return
-
-!--------------------------------------------------------------
-
-9045  continue
-call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL STACK.')
-close (d_unit)
-return
-
-!--------------------------------------------------------------
-
 9050  continue
 call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE IC.')
 close (d_unit)
@@ -478,7 +451,7 @@ type (converter_direction_out_struct), pointer :: c_dir
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, n_cyl, n_cart, n_tay, n_grid, ix_ele, ix_branch, ix_wall3d
 integer i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
-integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert
+integer ix_r, ix_s, n_var, ix_d, ix_m, idum, n_cus, ix_convert, ix_c 
 integer ix_sr_long, ix_sr_trans, ix_lr_mode, ix_wall3d_branch, ix_st(0:3)
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns
 
@@ -491,7 +464,7 @@ error = .true.
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_r, ix_s, ix_wall3d_branch, ac_kicker_alloc, &
         ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
-        ix_lr_mode, ix_wall3d, n_var, n_cart, n_cyl, n_grid, n_tay, n_cus, ix_convert
+        ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_grid, n_tay, n_cus, ix_convert
 
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -519,11 +492,18 @@ enddo
 
 ! Control vars
 
-if (n_var /= 0) then
+if (ix_c /= 0) then
   allocate (ele%control)
+  read (d_unit, err = 9120) ele%control%type, n_var, nk, nr
   allocate (ele%control%var(n_var))
+  if (nk > -1) allocate(ele%control%x_knot(nk))
+  if (nr > -1) allocate(ele%control%ramp(nr))
+  read (d_unit, err = 9120) ele%control%x_knot
   do i = 1, n_var
     read (d_unit, err = 9120) ele%control%var(i)
+  enddo
+  do i = 1, nr
+    call read_this_control_struct(ele%control%ramp(nr), err); if (err) return
   enddo
 endif
 
@@ -1008,5 +988,53 @@ do k = 1, nv
 enddo
 
 end subroutine read_this_wall3d_section
+
+
+!-----------------------------------------------
+! contains
+
+subroutine read_this_control_struct(ctl, error)
+
+type (control_struct) :: ctl
+
+integer n, nk
+logical error
+
+!
+
+error = .false.
+
+read (d_unit, err = 9040) ctl%slave_name, n, nk, ctl%value, ctl%lord, ctl%slave, ctl%ix_attrib, ctl%attribute
+if (n > 0) then
+  allocate (ctl%stack(n))
+  do j = 1, n
+    read (d_unit, err = 9045) ctl%stack(j)
+  enddo
+endif
+
+if (nk > 0) then
+  allocate (ctl%y_knot(nk))
+  read (d_unit, err = 9045) ctl%y_knot
+endif
+
+return
+
+!--------------------------------------------------------------
+
+9040  continue
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
+error = .true.
+close (d_unit)
+return
+
+!--------------------------------------------------------------
+
+9045  continue
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL STACK.')
+error = .true.
+close (d_unit)
+return
+
+end subroutine read_this_control_struct
 
 end subroutine read_digested_bmad_file

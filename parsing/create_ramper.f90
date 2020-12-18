@@ -79,6 +79,7 @@ do j = 1, n_slave
   c => lord%control%ramp(j)
   c%ix_attrib = contrl(j)%ix_attrib
   c%attribute = contrl(j)%attribute
+  c%slave_name = contrl(j)%slave_name
 
   !
 

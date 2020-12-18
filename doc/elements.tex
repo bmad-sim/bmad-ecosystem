@@ -3865,8 +3865,12 @@ Example:
 
 \vn{Ramper} elements are a type of \vn{control} element (\sref{s:lord.slave}) used to make
 variations in the attributes of other elements while a program is running. The \vn{ramper} element
-is similar to an \vn{overlay} element except that \vn{ramper} elements do not control a specific
-element. Rather, \vn{ramper} elements \etcetc...
+is similar to an \vn{overlay} element except that \vn{ramper} elements are designed to efficiently
+control large sets of elements. \vn{Ramper} elements where implemented to solve the problem of
+simulating machine ramping where the strength of many elements in a machine are varied continuously
+as a function of time. The drawback of \vn{ramper} elements is that they can be only be used with
+programs that that are designed to handle them. In particular, the \vn{long_term_tracking} program
+that is part of the \bmad Distribution. \etcetc...
 
 General \vn{ramper} attributes are:
 \begin{center}

@@ -912,7 +912,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
     case (ramper_lord$)
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-      nl=nl+1; li(nl) = '   Attribute         Expression'
+      nl=nl+1; li(nl) = '   Ele_Name           Attribute         Expression'
       do ix = 1, size(ele%control%ramp)
         ctl => ele%control%ramp(ix)
 
@@ -923,7 +923,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
           li2(1) = str1(1:17) // '<Knots>'
         endif
 
-        nl=nl+1; write (li(nl), '(3x, a18, a, 4x, a)') ctl%attribute, trim(li2(1))
+        nl=nl+1; write (li(nl), '(3x, a20, a18, a, 4x, a)') ctl%slave_name, ctl%attribute, trim(li2(1))
         if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
         do im = 2, size(li2)
           n = 50 + n_char + len(attrib_val_str)
