@@ -1553,16 +1553,16 @@ do i = 1, slave%n_lord
   select case (iv)
 
   case (x_limit$)
-    call overlay_change_this(lord, slave%value(x1_limit$), control);  if (err_flag) return
-    call overlay_change_this(lord, slave%value(x2_limit$), control);  if (err_flag) return
+    call overlay_change_this(lord, slave%value(x1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
+    call overlay_change_this(lord, slave%value(x2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
   case (y_limit$)
-    call overlay_change_this(lord, slave%value(y1_limit$), control);  if (err_flag) return
-    call overlay_change_this(lord, slave%value(y2_limit$), control);  if (err_flag) return
+    call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
+    call overlay_change_this(lord, slave%value(y2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
   case (aperture$)
-    call overlay_change_this(lord, slave%value(x1_limit$), control);  if (err_flag) return
-    call overlay_change_this(lord, slave%value(x2_limit$), control);  if (err_flag) return
-    call overlay_change_this(lord, slave%value(y1_limit$), control);  if (err_flag) return
-    call overlay_change_this(lord, slave%value(y2_limit$), control);  if (err_flag) return
+    call overlay_change_this(lord, slave%value(x1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
+    call overlay_change_this(lord, slave%value(x2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
+    call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
+    call overlay_change_this(lord, slave%value(y2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
   case default
     a_name = attribute_name(slave, iv)
     err_flag = .not. attribute_free (slave, a_name, .true., .true., .true.)
@@ -1577,7 +1577,7 @@ do i = 1, slave%n_lord
       if (global_com%exit_on_error) call err_exit
       return
     endif
-    call overlay_change_this(lord, a_ptr%r, control)
+    call overlay_change_this(lord, a_ptr%r, control, val_attrib, ptr_attrib)
   end select
 
 enddo
@@ -1663,12 +1663,14 @@ contains
 
 ! Add to slave attribute the contribution from a lord overlay.
 
-subroutine overlay_change_this (lord, r_attrib, c)
+subroutine overlay_change_this (lord, r_attrib, c, val_attrib, ptr_attrib)
 
 type (ele_struct), pointer :: lord
 type (control_struct) c
+type (all_pointer_struct) ptr_attrib(:)
 
 real(rp), target :: r_attrib
+real(rp) val_attrib(:)
 integer iv
 logical err_flag, ok
 

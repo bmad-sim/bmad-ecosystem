@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 253
+integer, parameter :: bmad_inc_version$ = 254
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1128,9 +1128,10 @@ type control_struct
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
-  character(40) :: attribute     ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
+  character(40) :: attribute = ''    ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
+  character(40) :: slave_name = ''   ! Name of slaves. Used by ramper element.
   ! DO NOT USE %IX_ATTRIB. WILL BE EVENTUALLY DELETED IN FAVOR OF %ATTRIBUTE.
-  integer :: ix_attrib = 0       ! Index of attribute controlled. 
+  integer :: ix_attrib = -1       ! Index of attribute controlled. 
 end type
 
 type controller_var1_struct

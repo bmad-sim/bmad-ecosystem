@@ -938,14 +938,25 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       do j = 1, size(ele%control%ramp)
         ctl => ele%control%ramp(j)
         if (j /= 1) line = trim(line) // ','
-        line = trim(line) // ' [' // trim(ctl%attribute) // ']'
-        call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
-        write (line, '(3a)') trim(line), ':', trim(list(1))
-        if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
-        do ixs = 2, size(list)
-          line = trim(line) // list(ixs)
+        line = trim(line) // trim(ctl%slave_name) // ' [' // trim(ctl%attribute) // ']'
+
+        if (allocated(ctl%stack)) then
+          call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
+          write (line, '(3a)') trim(line), ':', trim(list(1))
+          if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
+          do ixs = 2, size(list)
+            line = trim(line) // list(ixs)
+            call write_lat_line(line, iu, .false.)
+          enddo
+        else
+          if (j > 1) then
+            if (all(ctl%y_knot == ele%control%ramp(j-1)%y_knot)) cycle
+          endif
+          write (line, '(1000a)') trim(line), ':{', (re_str(ctl%y_knot(ix)), ', ', ix = 1, size(ctl%y_knot))
+          n = len_trim(line)
+          line(n:) = '}'
           call write_lat_line(line, iu, .false.)
-        enddo
+        endif
       enddo
     else
       j_loop: do j = 1, ele%n_slave
@@ -963,14 +974,25 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
         endif
         name = ctl%attribute  
         if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
-        call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
-        if (size(list) /= 1 .or. list(1) /= ele%control%var(1)%name) then
-          write (line, '(3a)') trim(line), ':', trim(list(1))
-          if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
-          do ixs = 2, size(list)
-            line = trim(line) // list(ixs)
-            call write_lat_line(line, iu, .false.)
-          enddo
+
+        if (allocated(ctl%stack)) then
+          call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
+          if (size(list) /= 1 .or. list(1) /= ele%control%var(1)%name) then
+            write (line, '(3a)') trim(line), ':', trim(list(1))
+            if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
+            do ixs = 2, size(list)
+              line = trim(line) // list(ixs)
+              call write_lat_line(line, iu, .false.)
+            enddo
+          endif
+        else
+          if (j > 1) then
+            if (all(ctl%y_knot == ctl2%y_knot)) cycle
+          endif
+          write (line, '(1000a)') trim(line), ':{', (re_str(ctl%y_knot(ix)), ', ', ix = 1, size(ctl%y_knot))
+          n = len_trim(line)
+          line(n:) = '}'
+          call write_lat_line(line, iu, .false.)
         endif
       enddo j_loop
     endif
@@ -982,6 +1004,13 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     enddo
 
     line = trim(line) // '}'
+
+    if (allocated(ele%control%x_knot)) then
+      write (line, '(1000a)') trim(line), ', x_knot = {', (re_str(ele%control%x_knot(ix)), ', ', &
+                                                                      ix = 1, size(ele%control%x_knot))
+      n = len_trim(line)
+      line(n:) = '}'
+    endif
 
     do j = 1, size(ele%control%var)
       if (ele%control%var(j)%value /= 0) then

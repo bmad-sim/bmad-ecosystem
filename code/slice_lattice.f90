@@ -2,6 +2,7 @@
 ! Subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
 !
 ! Routine to discard from the lattice all elements not in ele_list.
+! This is useful if simulations on just a section of a lattice is desired.
 !
 ! Note: 
 !   * Controllers that control elements that remain will not be cut.
@@ -10,24 +11,20 @@
 !   * ele%multipass_ref_energy will be set to user_set$ if first pass element is discarded.
 !   * Branches with no retained elements will be discarded.
 !
-! For each branch where there are elements to be deleted and where the reference energy has been computed:
+! For all branches:
 !   * The Twiss, reference energy, floor position, and s-position parameters from the first 
 !       non-deleted element are transferred to the beginning element.
 !   * The beginning betatron phase is set to zero.
 !   * The branch geometry is set to open.
-!   
-!
-! Note: Not modified is:
-!   * Beginning s (longitudinal position) value.
-!   * Beginning floor position.
 !
 ! Input:
 !   lat            -- lat_struct: Lattice to slice.
 !   ele_list       -- character(*): List of elements to retain. See the documentation for
 !                      the lat_ele_locator routine for the syntax of the list.
 !   do_bookkeeping -- logical, optional: Default is True. If false, the calling routine is responsible for:
-!                       Initializing lat%ele(0)
-!                       calling lattice_bookkeeper
+!                       Modifying lat%particle_start if needed.
+!                       Calculating Twiss functions.
+!                       Calling lattice_bookkeeper.
 !
 ! Output:
 !   lat           -- lat_struct: Lattice with unwanted elements sliced out.
@@ -100,15 +97,16 @@ enddo
 
 ! Transfer particle_start orbit
 
-if (logic_option(.true., do_bookkeeping)) then
-  do ie = 1, lat%n_ele_track
-    if (lat%ele(ie)%ixx == -1) cycle
-    call twiss_and_track(lat, orbit, status, 0, .true.)
-    if (lat%param%geometry == closed$ .and. status /= ok$) exit
-    if (orbit(ie-1)%state /= alive$) exit
-    lat%particle_start = orbit(ie-1)
-    exit
-  enddo
+if (logic_option(.true., do_bookkeeping) .and. lat%param%geometry == open$) then
+  call twiss_and_track(lat, orbit, status, 0, .true.)
+  if (status == ok$) then
+    do ie = 1, lat%n_ele_track
+      if (lat%ele(ie)%ixx == -1) cycle
+      if (orbit(ie-1)%state /= alive$) exit
+      lat%particle_start = orbit(ie-1)
+      exit
+    enddo
+  endif
 endif
 
 ! Transfer Twiss from first non-deleted element back to beginning element.
