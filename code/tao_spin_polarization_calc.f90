@@ -97,7 +97,7 @@ do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
   if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * q_ele(ie)**(-1)
   
-  dn_dpz = dn_dpz_from_qmap(real(q_1turn%mat, rp), real(q_1turn%q, rp))
+  dn_dpz = spin_dn_dpz_from_qmap(real(q_1turn%mat, rp), real(q_1turn%q, rp))
   tao_branch%dn_dpz(ie)%vec = dn_dpz
 
   n0 = q_1turn%q(1:3, 0)
