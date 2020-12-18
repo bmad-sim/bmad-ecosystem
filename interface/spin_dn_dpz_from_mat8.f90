@@ -1,5 +1,5 @@
 !+
-! Function dn_dpz_from_mat8 (mat_1turn) result (dn_dpz)
+! Function spin_dn_dpz_from_mat8 (mat_1turn) result (dn_dpz)
 !
 ! Rotine to calculate dn_dpz from a 1-turn 8x8 spin-orbital matrix.
 !
@@ -14,7 +14,7 @@
 !
 !-
 
-function dn_dpz_from_mat8 (mat_1turn) result (dn_dpz)
+function spin_dn_dpz_from_mat8 (mat_1turn) result (dn_dpz)
 
 use sim_utils
 use eigen_mod
@@ -51,4 +51,4 @@ aa(:,1) = [0, 0, 0, 0, 0, 1]
 call zgesv_f95(vv, aa, ipiv6, pinfo)
 dn_dpz = [real(sum(w_vec(:,1)* aa(:,1)), rp), 0.0_rp, real(sum(w_vec(:,2)* aa(:,1)), rp)]
 
-end function dn_dpz_from_mat8
+end function spin_dn_dpz_from_mat8

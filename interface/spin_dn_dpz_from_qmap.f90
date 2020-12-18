@@ -1,5 +1,5 @@
 !+
-! Function dn_dpz_from_qmap (orb_mat, q_map) result (dn_dpz)
+! Function spin_dn_dpz_from_qmap (orb_mat, q_map) result (dn_dpz)
 !
 ! Rotine to calculate dn_dpz from th 1-turn 6x6 orbital matrix and the linear quaternian map
 ! This uses the standard SLIM coordinates for the spin motion.
@@ -15,7 +15,7 @@
 !   dn_dpz(3)       -- real(rp): dn_dpz.
 !-
 
-function dn_dpz_from_qmap (orb_mat, q_map) result (dn_dpz)
+function spin_dn_dpz_from_qmap (orb_mat, q_map) result (dn_dpz)
 
 use sim_utils
 use eigen_mod
@@ -60,4 +60,4 @@ aa(:,1) = [0, 0, 0, 0, 0, 1]
 call zgesv_f95(vv, aa, ipiv6, pinfo)
 dn_dpz = real(matmul(aa(:,1), n_eigen), rp)
 
-end function dn_dpz_from_qmap
+end function spin_dn_dpz_from_qmap
