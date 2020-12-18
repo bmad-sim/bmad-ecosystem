@@ -304,32 +304,22 @@ if (present(re_array) .and.  any(component_name == real_components)) then
     if (.not. list(i)) cycle
     j = j + 1
     select case (component_name)
-    case ('model', 'model_value')
-      re_array(j)%r => v1%v(i)%model_value
-    case ('base', 'base_value')
-      re_array(j)%r => v1%v(i)%base_value
-    case ('design', 'design_value')
-      re_array(j)%r => v1%v(i)%design_value
-    case ('meas', 'meas_value')
-      re_array(j)%r => v1%v(i)%meas_value
-    case ('ref', 'ref_value')
-      re_array(j)%r => v1%v(i)%ref_value
-    case ('old', 'old_value')
-      re_array(j)%r => v1%v(i)%old_value
-    case ('step')
-      re_array(j)%r => v1%v(i)%step
-    case ('weight')
-      re_array(j)%r => v1%v(i)%weight
-    case ('high_lim')
-      re_array(j)%r => v1%v(i)%high_lim
-    case ('low_lim')
-      re_array(j)%r => v1%v(i)%low_lim
-    case ('key_delta')
-      re_array(j)%r => v1%v(i)%key_delta
-    case ('merit')
-      re_array(j)%r => v1%v(i)%merit
-    case ('delta_merit')
-      re_array(j)%r => v1%v(i)%delta_merit
+    case ('correction_value');        re_array(j)%r => v1%v(i)%correction_value
+    case ('model', 'model_value');    re_array(j)%r => v1%v(i)%model_value
+    case ('base', 'base_value');      re_array(j)%r => v1%v(i)%base_value
+    case ('design', 'design_value');  re_array(j)%r => v1%v(i)%design_value
+    case ('dmerit_dvar');             re_array(j)%r => v1%v(i)%dmerit_dvar
+    case ('meas', 'meas_value');      re_array(j)%r => v1%v(i)%meas_value
+    case ('ref', 'ref_value');        re_array(j)%r => v1%v(i)%ref_value
+    case ('old', 'old_value');        re_array(j)%r => v1%v(i)%old_value
+    case ('s');                       re_array(j)%r => v1%v(i)%s
+    case ('step');                    re_array(j)%r => v1%v(i)%step
+    case ('weight');                  re_array(j)%r => v1%v(i)%weight
+    case ('high_lim');                re_array(j)%r => v1%v(i)%high_lim
+    case ('low_lim');                 re_array(j)%r => v1%v(i)%low_lim
+    case ('key_delta');               re_array(j)%r => v1%v(i)%key_delta
+    case ('merit');                   re_array(j)%r => v1%v(i)%merit
+    case ('delta_merit');             re_array(j)%r => v1%v(i)%delta_merit
     case default
       call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL VAR")
       this_err = .true.
