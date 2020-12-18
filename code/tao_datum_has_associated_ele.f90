@@ -37,7 +37,7 @@ if (data_type == 'unstable.ring' .or. data_type == 'unstable.lattice' .or. &
   has_associated_ele = no$
 
 elseif (data_type == 'emit.a' .or. data_type == 'norm_emit.a' .or. data_type == 'emit.b' .or. &
-        data_type == 'norm_emit.b' .or. data_type == 'unstable.orbit') then
+        data_type == 'norm_emit.b') then
   if (present(branch_geometry)) then
     if (branch_geometry == closed$) then
       has_associated_ele = no$
@@ -47,6 +47,10 @@ elseif (data_type == 'emit.a' .or. data_type == 'norm_emit.a' .or. data_type == 
   else
     has_associated_ele = provisional$
   endif
+
+elseif (data_type == 'unstable.orbit') then
+  has_associated_ele = maybe$
+  if (integer_option(int_garbage$, branch_geometry) == closed$) has_associated_ele = no$
 
 elseif ((data_type(1:11) == 'expression:' .and. index(data_type, 'ele::#[') == 0) .or. data_type(1:8) == 'rad_int.') then
   has_associated_ele = maybe$
