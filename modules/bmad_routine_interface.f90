@@ -97,6 +97,13 @@ subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine apply_ramper (ele, ramper, err_flag)
+  import
+  implicit none
+  type (ele_struct) :: ele, ramper
+  logical err_flag
+end subroutine
+
 function at_this_ele_end (now_at, where_at) result (is_at_this_end)
   import
   implicit none
@@ -1843,12 +1850,13 @@ function significant_difference (value1, value2, abs_tol, rel_tol) result (is_di
   logical is_different
 end function
 
-subroutine slice_lattice (lat, ele_list, error)
+subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
   import
   implicit none
   type (lat_struct) lat
   character(*) ele_list
   logical error
+  logical, optional :: do_bookkeeping
 end subroutine
 
 subroutine sol_quad_mat6_calc (ks, k1, s_len, ele, orbit, mat6, make_matrix)

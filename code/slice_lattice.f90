@@ -1,5 +1,5 @@
 !+
-! Subroutine slice_lattice (lat, ele_list, error)
+! Subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
 !
 ! Routine to discard from the lattice all elements not in ele_list.
 !
@@ -22,16 +22,19 @@
 !   * Beginning floor position.
 !
 ! Input:
-!   lat           -- lat_struct: Lattice to slice.
-!   ele_list      -- character(*): List of elements to retain. See the documentation for
-!                     the lat_ele_locator routine for the syntax of the list.
+!   lat            -- lat_struct: Lattice to slice.
+!   ele_list       -- character(*): List of elements to retain. See the documentation for
+!                      the lat_ele_locator routine for the syntax of the list.
+!   do_bookkeeping -- logical, optional: Default is True. If false, the calling routine is responsible for:
+!                       Initializing lat%ele(0)
+!                       calling lattice_bookkeeper
 !
 ! Output:
 !   lat           -- lat_struct: Lattice with unwanted elements sliced out.
 !   error         -- logical: Set True if there is an error Set False if not.
 !-
 
-subroutine slice_lattice (lat, ele_list, error)
+subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
 
 use bmad, dummy => slice_lattice
 
@@ -44,6 +47,7 @@ type (ele_struct), pointer :: ele, ele0, ele1, ele2
 type (ele_pointer_struct), allocatable :: eles(:)
 
 integer i, j, ie, ib, n_loc, n_links, ix_pass, status
+logical, optional :: do_bookkeeping
 logical error, err
 
 character(*) ele_list
@@ -96,14 +100,16 @@ enddo
 
 ! Transfer particle_start orbit
 
-do ie = 1, lat%n_ele_track
-  if (lat%ele(ie)%ixx == -1) cycle
-  call twiss_and_track(lat, orbit, status, 0, .true.)
-  if (lat%param%geometry == closed$ .and. status /= ok$) exit
-  if (orbit(ie-1)%state /= alive$) exit
-  lat%particle_start = orbit(ie-1)
-  exit
-enddo
+if (logic_option(.true., do_bookkeeping)) then
+  do ie = 1, lat%n_ele_track
+    if (lat%ele(ie)%ixx == -1) cycle
+    call twiss_and_track(lat, orbit, status, 0, .true.)
+    if (lat%param%geometry == closed$ .and. status /= ok$) exit
+    if (orbit(ie-1)%state /= alive$) exit
+    lat%particle_start = orbit(ie-1)
+    exit
+  enddo
+endif
 
 ! Transfer Twiss from first non-deleted element back to beginning element.
 

@@ -924,7 +924,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   call add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
   if (.not. has_been_added) cycle
   
-  ! Overlays and groups
+  ! Overlays, rampers, and groups
 
   if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) then
     select case (ele%key)
@@ -933,31 +933,47 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     case (ramper$);   write (line, '(2a)') trim(ele%name), ': ramper = {'
     end select
 
-    j_loop: do j = 1, ele%n_slave
-      slave => pointer_to_slave(ele, j, ctl)
-      ! do not use elements w/ duplicate names & attributes
-      do k = 1, j-1 
-        slave2 => pointer_to_slave(ele, k, ctl2)
-        if (slave2%name == slave%name .and. ctl2%attribute == ctl%attribute) cycle j_loop
-      enddo
-      ! Now write the slave info
-      if (j == 1) then
-        write (line, '(3a)') trim(line), trim(slave%name)
-      else
-        write (line, '(3a)') trim(line), ', ', trim(slave%name)
-      endif
-      name = ctl%attribute  
-      if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
-      call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
-      if (size(list) /= 1 .or. list(1) /= ele%control%var(1)%name) then
+
+    if (ele%key == ramper$) then
+      do j = 1, size(ele%control%ramp)
+        ctl => ele%control%ramp(j)
+        if (j /= 1) line = trim(line) // ','
+        line = trim(line) // ' [' // trim(ctl%attribute) // ']'
+        call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
         write (line, '(3a)') trim(line), ':', trim(list(1))
         if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
         do ixs = 2, size(list)
           line = trim(line) // list(ixs)
           call write_lat_line(line, iu, .false.)
         enddo
-      endif
-    enddo j_loop
+      enddo
+    else
+      j_loop: do j = 1, ele%n_slave
+        slave => pointer_to_slave(ele, j, ctl)
+        ! do not use slaves w/ duplicate name & attribute
+        do k = 1, j-1 
+          slave2 => pointer_to_slave(ele, k, ctl2)
+          if (slave2%name == slave%name .and. ctl2%attribute == ctl%attribute) cycle j_loop
+        enddo
+        ! Now write the slave info
+        if (j == 1) then
+          write (line, '(3a)') trim(line), trim(slave%name)
+        else
+          write (line, '(3a)') trim(line), ', ', trim(slave%name)
+        endif
+        name = ctl%attribute  
+        if (name /= ele%control%var(1)%name) line = trim(line) // '[' // trim(name) // ']'
+        call split_expression_string(expression_stack_to_string(ctl%stack), 100, 0, list)
+        if (size(list) /= 1 .or. list(1) /= ele%control%var(1)%name) then
+          write (line, '(3a)') trim(line), ':', trim(list(1))
+          if (len_trim(line) > 100) call write_lat_line(line, iu, .false.)
+          do ixs = 2, size(list)
+            line = trim(line) // list(ixs)
+            call write_lat_line(line, iu, .false.)
+          enddo
+        endif
+      enddo j_loop
+    endif
 
     line = trim(line) // '}, var = {' // ele%control%var(1)%name
 

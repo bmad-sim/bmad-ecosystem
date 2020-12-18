@@ -811,12 +811,20 @@ for all elements whose transfer matrices are recomputed.
 
 \index{particle_start}
 \index{lat_struct!\%particle_start}
-The \vn{lat%particle_start} component is a \vn{coord_struct} structure for
-holding the information obtained from \vn{particle_start} statements
-(\sref{s:beam.start}) in a \bmad lattice file.
+The \vn{lat%particle_start} component is a \vn{coord_struct} structure for holding the information
+obtained from \vn{particle_start} statements (\sref{s:beam.start}) in a \bmad lattice file.
 
-This component is not used in any standard \bmad calculation. It is up
-to an individual program to use as desired.
+This component is not used in any standard \bmad calculation. It is up to an individual program to
+use as desired. Use \Hyperref{r:init.coord}{init_coord} to initalize a particle position. Example:
+\begin{example}
+  type (lat_struct) lat
+  type (coord_struct) orbit_start
+  ...
+  call bmad_parser("lat.bmad", lat)  ! Read in a lattice.
+  ...
+  ! orbit_start is initalized for tracking from the beginning of the lattice
+  call init_coord(orbit_start, lat%particle_start, lat%ele(0), downstream_end$)
+\end{example}
 
 %----------------------------------------------------------------------------
 \section{Custom Parameters}
