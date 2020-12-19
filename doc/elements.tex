@@ -3869,8 +3869,11 @@ is similar to an \vn{overlay} element except that \vn{ramper} elements are desig
 control large sets of elements. \vn{Ramper} elements where implemented to solve the problem of
 simulating machine ramping where the strength of many elements in a machine are varied continuously
 as a function of time. The drawback of \vn{ramper} elements is that they can be only be used with
-programs that that are designed to handle them. In particular, the \vn{long_term_tracking} program
-that is part of the \bmad Distribution. \etcetc...
+programs that that are designed to handle them.\footnote 
+  {
+In particular, the \vn{long_term_tracking} program that is bundled with the \bmad software
+(\sref{s:tao.intro}) can handle \vn{ramper} elements.
+  }
 
 General \vn{ramper} attributes are:
 \begin{center}
@@ -3883,10 +3886,13 @@ General \vn{ramper} attributes are:
 \end{tabular}
 \end{center}
 \toffset
-See \sref{s:list.ramper} for a full list of element attributes along with a their units.
+See \sref{s:list.ramper} for a full list of element attributes.
 
-There are two types of \vn{ramper} elements: \vn{Expression} based and \vn{spline} based.
-The general syntax for a \vn{expression} based \vn{ramper} element is
+The syntax for \vn{ramper} elements is exactly the same as for \vn{overlay} (\sref{s:overlay}) elements 
+except that \vn{ramper} elements do not have a \vn{gang} attribute.
+
+Like \vn{overlay}s, There are two types of \vn{ramper} elements: \vn{Expression} based and
+\vn{spline} based.  The general syntax for a \vn{expression} based \vn{ramper} element is
 \begin{example}
   name: RAMPER = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
                                                        default_attrib = init_value
@@ -3902,8 +3908,6 @@ The general syntax for a \vn{spline} based  \vn{ramper} element is
 \end{example}
 
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
-
-An \vn{ramper} element is used to control the attributes of other elements. 
 
 %-----------------------------------------------------------------
 \section{RFcavity}
@@ -4599,16 +4603,18 @@ section~\sref{s:field.calc}. For example:
 In this example \vn{wig1} is a map type wiggler. 
 
 \index{polarity}\index{b_max}\index{l_pole}\index{n_pole}\index{polarity}
-\index{k1_pseudo}\index{g_max}\index{l_period}
+\index{k1x}\index{k1y}\index{g_max}\index{l_period}
 Attributes specific to wiggler and undulator elements are: 
 \begin{example}
   b_max      = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline.
   l_period   = <Real>  ! Length over which field vector returns to the same orientation.
-  n_period   = <Real>  ! The number of periods (L / L_period). A settable dependent attribute (\sref{s:depend}).
+  n_period   = <Real>  ! The number of periods. Settable dependent attribute (\sref{s:depend}).
   l_pole     = <Real>  ! Wiggler pole length. DEPRECATED. USE L_PERIOD INSTEAD.
   n_pole     = <Real>  ! The number of poles. DEPRECATED. USE N_PERIOD INSTEAD.
   polarity   = <Real>  ! For scaling the field.
-  k1_pseudo            ! Pseudo K1 value. A Dependent attribute (\sref{s:depend}).
+  kx         = <Real>  ! Planar wiggler horizontal wave number.
+  k1x                  ! Planar wiggler hoizontal defocusing strength. Dependent attribute (\sref{s:depend}).
+  k1y                  ! Planar wiggler vertical focusing strength. Dependent attribute (\sref{s:depend}).
   g_max                ! Maximum bending strength. Dependent attribute.
   osc_amplitude        ! Amplitude of the particle oscillations. Dependent attribute.
 \end{example}
@@ -4640,20 +4646,20 @@ Example:
 \end{example}
 This defines a periodic type wiggler with \vn{field_type} defaulting to \vn{planar_model}.
 
-For the \vn{planar_model}, wigglers use a simplified model where the wiggler has infinitely wide
-poles and the magnetic field components are
+For the \vn{planar_model}, wigglers use a simplified model where the wiggler has field components
 \begin{alignat}{1}
-  B_x &=  0 \CRNO
-  B_y &= \hphantom{-}\text{b_max} \, \cosh(k_z \, y) \, \cos(k_z \, z + \phi_z) \\
-  B_z &=            -\text{b_max} \, \sinh(k_z \, y) \, \sin(k_z \, z + \phi_z) \nonumber
+  B_x &=            -\text{b_max} \, \frac{k_x}{k_y} \, \sin(k_x \, x) \, \sinh(k_y \, y) \, \cos(k_z \, z + \phi_z)  \CRNO
+  B_y &= \hphantom{-}\text{b_max} \,                    \cos(k_x \, x) \, \cosh(k_y \, y) \, \cos(k_z \, z + \phi_z) \\
+  B_z &=            -\text{b_max} \, \frac{k_z}{k_y} \, \cos(k_x \, x) \, \sinh(k_y \, y) \, \sin(k_z \, z + \phi_z) \nonumber
   \label{bbkykz}
 \end{alignat}
-where $z$ is the distance from the beginning of the wiggler, the input parameter $\vn{b_max}$ is the
-maximum field on the centerline, and $k$ is given in terms of the period length (\vn{l_period}) by
+with $k_y^2 = k_x^2 + k_z^2$. Here $z$ is the distance from the beginning of the wiggler, the input
+parameter $\vn{b_max}$ is the maximum field on the centerline, and $k_z$ is given in terms of the
+period length (\vn{l_period}) by
 \begin{equation}
   k_z = \frac{2\pi}{l_{\text{period}}}
 \end{equation}
-Here the phase $\phi_z$ is chosen so that $B_y$ is symmetric about the center of the wiggler
+The phase $\phi_z$ is chosen so that $B_y$ is symmetric about the center of the wiggler
 \begin{equation}
   \phi_z = \frac{-k_z \, L}{2}
   \label{pkl2}
@@ -4674,21 +4680,28 @@ The \vn{helical_model} for the field is
 \end{alignat}
 
 With \vn{field_calc} set to \vn{planar_model}, and with \vn{bmad_standard} tracking
-(\sref{c:methods}), the vertical focusing is assumed small so averaged over many periods the horizontal
-motion looks like a drift and the vertical motion is modeled as a combination focusing quadrupole
-and focusing octupole giving a kick\cite{b:corbett}
+(\sref{c:methods}), the horizontal and vertical focusing is assumed small. The vertical motion is
+modeled as a combination focusing quadrupole and focusing octupole giving a kick (modified from \cite{b:corbett})
 \begin{equation}
-  \frac{dp_y}{dz} = k1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
+  \frac{dp_y}{dz} = k_{1y} \left( y + \frac{2}{3} \, k_y^2 \, y^3 \right)
   \label{pyzk1}
 \end{equation}
 where
 \begin{alignat}{2}
   g_\text{max} &= \frac{e \, B_{\max}}{P_0 \, (1 + p_z)} \\
-  \text{k1_pseudo} &= \frac{-1}{2} \, g_\text{max}^2 
+  k_{1y} &= \frac{-k_y^2}{2 \, k_z^2} \, g_\text{max}^2 
 \end{alignat}
-with \vn{k1_pseudo} (a dependent element attribute) being the linear focusing constant. Notice that the focusing
-is only in the vertical plane. The subscript \vn{pseudo} is used to remind the user that this is not the same
-as the \vn{k1} attribute of a quadrupole since the focusing is only in one plane.
+with \vn{k1y} (a dependent element attribute) being the linear focusing constant. 
+
+The averaged horizontal motion is
+\begin{equation}
+  \frac{dp_x}{dz} = k_{1x} \, x
+  \label{pxzk1}
+\end{equation}
+with
+\begin{equation}
+  k_{1x} = \frac{k_x^2}{2 \, k_z^2} \, g_\text{max}^2 
+\end{equation}
 
 With \vn{field_calc} set to \vn{helical_model}, and with \vn{bmad_standard} tracking, the transport
 in the vertical and horizontal planes is the same as with the transport in the vertical plane with

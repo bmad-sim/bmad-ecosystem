@@ -634,18 +634,6 @@ recursive function distance_to_aperture (orbit, particle_at, ele, no_aperture_he
   logical no_aperture_here
 end function
 
-function spin_dn_dpz_from_mat8 (mat_1turn) result (dn_dpz)
-  import
-  implicit none
-  real(rp) mat_1turn(8,8), dn_dpz(3)
-end function
-
-function spin_dn_dpz_from_qmap (orb_mat, q_map) result (dn_dpz)
-  import
-  implicit none
-  real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3)
-end function
-
 subroutine do_mode_flip (ele, err_flag)
   import
   implicit none
@@ -1885,6 +1873,20 @@ function spin_depolarization_rate (branch, match_info, rad_int_by_ele) result (d
   type (spin_matching_struct) match_info(0:)
   type (rad_int_all_ele_struct) rad_int_by_ele
   real(rp) depol_rate
+end function
+
+function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial) result (dn_dpz)
+  import
+  implicit none
+  real(rp) mat_1turn(8,8), dn_dpz(3)
+  real(rp), optional :: dn_dpz_partial(3,3)
+end function
+
+function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial) result (dn_dpz)
+  import
+  implicit none
+  real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3)
+  real(rp), optional :: dn_dpz_partial(3,3)
 end function
 
 function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega)

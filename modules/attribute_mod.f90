@@ -1512,7 +1512,9 @@ call init_attribute_name1 (taylor$, pz_ref$,                        'PZ_REF')
 call init_attribute_name1 (taylor$, delta_e_ref$,                   'DELTA_E_REF')
 call init_attribute_name1 (taylor$, delta_ref_time$,                'DELTA_REF_TIME', override = .true.) ! Here not dependent
 
-call init_attribute_name1 (wiggler$, k1_pseudo$,                    'K1_PSEUDO', dependent$)
+call init_attribute_name1 (wiggler$, k1x$,                          'K1X', dependent$)
+call init_attribute_name1 (wiggler$, k1y$,                          'K1Y', dependent$)
+call init_attribute_name1 (wiggler$, kx$,                           'KX')
 call init_attribute_name1 (wiggler$, l_period$,                     'L_PERIOD')
 call init_attribute_name1 (wiggler$, n_period$,                     'N_PERIOD')
 call init_attribute_name1 (wiggler$, b_max$,                        'B_MAX')
@@ -1945,8 +1947,8 @@ case ('B2_GRADIENT');                                   attrib_units = 'T/m^2'
 case ('B3_GRADIENT');                                   attrib_units = 'T/m^3'
 case ('BL_HKICK', 'BL_KICK', 'BL_VKICK');               attrib_units = 'T*m'
 case ('A0', 'B0', 'K0L', 'K0SL');                       attrib_units = ''
-case ('A1', 'B1', 'K1L', 'K1SL', 'KS');                 attrib_units = '1/m'
-case ('A2', 'B2', 'K2L', 'K2SL', 'K1', 'K1_PSEUDO');    attrib_units = '1/m^2'
+case ('A1', 'B1', 'K1L', 'K1SL', 'KS', 'KX');           attrib_units = '1/m'
+case ('A2', 'B2', 'K2L', 'K2SL', 'K1', 'K1X', 'K1Y');   attrib_units = '1/m^2'
 case ('A3', 'B3', 'K3L', 'K3SL', 'K2');                 attrib_units = '1/m^3'
 case ('A4', 'B4', 'K4L', 'K4SL', 'K3');                 attrib_units = '1/m^4'
 case ('A5', 'B5', 'K5L', 'K5SL');                       attrib_units = '1/m^5'

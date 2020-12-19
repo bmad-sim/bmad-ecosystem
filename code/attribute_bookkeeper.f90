@@ -40,7 +40,7 @@ type (wake_lr_mode_struct), pointer :: lr
 type (converter_prob_pc_r_struct), pointer :: ppcr
 
 real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time, beta
-real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin
+real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin, ky, kz
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
@@ -590,12 +590,21 @@ case (wiggler$, undulator$)
     val(polarity$) = polarity
   endif
 
-  if (val(p0c$) == 0) then
-    val(g_max$) = 0
-    val(k1_pseudo$) = 0
-  else
+  val(g_max$) = 0
+  val(k1x$) = 0
+  val(k1y$) = 0
+
+  if (val(p0c$) /= 0 .and. val(l_period$) /= 0) then
     val(g_max$) = c_light * val(b_max$) / val(p0c$)
-    val(k1_pseudo$) = -0.5 * val(g_max$)**2
+    if (ele%field_calc == helical_model$) then
+      val(k1x$) =  0.5 * val(g_max$)**2
+      val(k1y$) =  0.5 * val(g_max$)**2
+    elseif (ele%field_calc == planar_model$) then
+      kz = twopi / val(l_period$)
+      
+      val(k1x$) =  0.5 * (val(g_max$) * val(kx$) / kz)**2
+      val(k1y$) = -0.5 * val(g_max$)**2 * (kz**2 + val(kx$)**2) / kz**2
+    endif
   endif
 
   if (val(l_period$) == 0) then

@@ -26,7 +26,7 @@ type (ele_struct), pointer :: field_ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
-real(rp) mat2(2,2), z_start, beta_ref, p_factor, k1_factor, k1, k3l, length, k_z, rel_p, t_start
+real(rp) mat2(2,2), z_start, beta_ref, p_factor, k1x, k1y, k1yy, k1xx, k3l, length, ky2, kz, rel_p, t_start
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 real(rp) m43, m46, m52, m54, m56, mc2_rel, kmat(6,6), factor
 real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), r_step, step_len
@@ -47,6 +47,8 @@ logical, optional :: make_matrix
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
+field_ele => pointer_to_field_ele(ele, 1)
+
 z_start = orbit%vec(5)
 t_start = orbit%t
 
@@ -58,13 +60,21 @@ length = ele%value(l$)
 mc2_rel = mass_of(orbit%species) / orbit%p0c
 
 if (ele%value(l_period$) == 0) then
-  k_z = 1d100    ! Something large
+  kz = 1d100    ! Something large
+  ky2 = 0
 else
-  k_z = twopi / ele%value(l_period$)
+  kz = twopi / ele%value(l_period$)
+  ky2 = kz**2 + ele%value(kx$)**2
 endif
 
-k1_factor = -abs(rel_tracking_charge_to_mass(orbit, param)) * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2
-field_ele => pointer_to_field_ele(ele, 1)
+factor = abs(rel_tracking_charge_to_mass(orbit, param)) * 0.5 * (c_light * ele%value(b_max$) / ele%value(p0c$))**2
+if (field_ele%field_calc == helical_model$) then
+  k1x = -factor
+  k1y = -factor
+else
+  k1x =  factor * (ele%value(kx$) / kz)**2
+  k1y = -factor * ky2 / kz**2
+endif
 
 !
 
@@ -82,25 +92,25 @@ do i = 1, n_step
 
   beta_ref = ele%value(p0c$) / ele%value(e_tot$)
   rel_p = 1 + orbit%vec(6)
-  k1 = k1_factor / rel_p**2
+  k1yy = k1y / rel_p**2
 
   ! 1/2 of the octupole kick.
 
-  k3l = 2 * step_len * k1
+  k3l = 2 * step_len * k1yy
   if (i == 1) k3l = k3l / 2
 
   if (logic_option(.false., make_matrix)) then
-    m43 = k3l * rel_p * k_z**2 * orbit%vec(3)**2
-    m46 = -k3l * k_z**2 * orbit%vec(3)**3 / 3
+    m43 = k3l * rel_p * kz**2 * orbit%vec(3)**2
+    m46 = -k3l * kz**2 * orbit%vec(3)**3 / 3
     mat6(4,:) = mat6(4,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
     if (field_ele%field_calc == helical_model$) then
       mat6(2,:) = mat6(2,:) + m43 * mat6(1,:) + m46 * mat6(6,:)
     endif
   endif
 
-  orbit%vec(4) = orbit%vec(4) + k3l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
+  orbit%vec(4) = orbit%vec(4) + k3l * rel_p * kz**2 * orbit%vec(3)**3 / 3
   if (field_ele%field_calc == helical_model$) then
-    orbit%vec(2) = orbit%vec(2) + k3l * rel_p * k_z**2 * orbit%vec(1)**3 / 3
+    orbit%vec(2) = orbit%vec(2) + k3l * rel_p * kz**2 * orbit%vec(1)**3 / 3
   endif
 
   ! Quadrupole body
@@ -108,12 +118,12 @@ do i = 1, n_step
   if (logic_option(.false., make_matrix)) call mat_make_unit (kmat)
 
   if (field_ele%field_calc == helical_model$) then
-    call quad_mat2_calc (k1,     step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
+    call quad_mat2_calc (k1yy,   step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
   else
-    call quad_mat2_calc (0.0_rp, step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
+    call quad_mat2_calc (k1x / rel_p**2, step_len, rel_p, kmat(1:2,1:2), dz_x, ddz_x)
   endif
 
-  call quad_mat2_calc (k1,     step_len, rel_p, kmat(3:4,3:4), dz_y, ddz_y)
+  call quad_mat2_calc (k1yy, step_len, rel_p, kmat(3:4,3:4), dz_y, ddz_y)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
@@ -151,21 +161,21 @@ do i = 1, n_step
 
   ! 1/2 of the octupole kick.
 
-  k3l = 2 * step_len * k1
+  k3l = 2 * step_len * k1yy
   if (i == n_step) k3l = k3l / 2
 
   if (logic_option(.false., make_matrix)) then
-    m43 = k3l * rel_p * k_z**2 * orbit%vec(3)**2
-    m46 = -k3l * k_z**2 * orbit%vec(3)**3 / 3
+    m43 = k3l * rel_p * kz**2 * orbit%vec(3)**2
+    m46 = -k3l * kz**2 * orbit%vec(3)**3 / 3
     mat6(4,:) = mat6(4,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
     if (field_ele%field_calc == helical_model$) then
       mat6(2,:) = mat6(2,:) + m43 * mat6(1,:) + m46 * mat6(6,:)
     endif
   endif
 
-  orbit%vec(4) = orbit%vec(4) + k3l * rel_p * k_z**2 * orbit%vec(3)**3 / 3
+  orbit%vec(4) = orbit%vec(4) + k3l * rel_p * kz**2 * orbit%vec(3)**3 / 3
   if (field_ele%field_calc == helical_model$) then
-    orbit%vec(2) = orbit%vec(2) + k3l * rel_p * k_z**2 * orbit%vec(1)**3 / 3
+    orbit%vec(2) = orbit%vec(2) + k3l * rel_p * kz**2 * orbit%vec(1)**3 / 3
   endif
 
   !
@@ -186,9 +196,9 @@ call offset_particle (ele, param, unset$, orbit, mat6 = mat6, make_matrix = make
 orbit%t = t_start + length / (c_light * beta_ref) + (z_start - orbit%vec(5)) / (c_light * orbit%beta)
 
 if (field_ele%field_calc == helical_model$) then
-  factor = ele%value(l$) * (k_z * ele%value(osc_amplitude$))**2 / 2 
+  factor = ele%value(l$) * (kz * ele%value(osc_amplitude$))**2 / 2 
 else
-  factor = ele%value(l$) * (k_z * ele%value(osc_amplitude$))**2 / 4
+  factor = ele%value(l$) * (kz * ele%value(osc_amplitude$))**2 / 4
 endif
 
 orbit%t = orbit%t + factor / (c_light * orbit%beta * rel_p**2)
