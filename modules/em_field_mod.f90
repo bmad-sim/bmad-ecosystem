@@ -122,13 +122,13 @@ type (spline_struct) spline
 real(rp), optional :: rf_time
 real(rp) :: x, y, j1, dj1, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, ch_x, ch_y, sh_x, sh_y, coef, fd(3), Ex, Ey, amp
-real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, kx, ky, dkm(2,2), cos_ks, sin_ks
+real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp, inte
-real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start, f, f1, f2, f3, kk
+real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start, f, f1, f2, f3, kx, ky, kz
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
 real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
-real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bz
+real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bx, By, Bz
 real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
 real(rp) phi0_autoscale, field_autoscale, ds, beta_ref, ds_small
 real(rp) rho, a, b, B0, gamma, Brho, voltage, k_rf
@@ -771,22 +771,36 @@ case (bmad_standard$)
 
 case(planar_model$)
 
-  kk = twopi * ele%value(n_period$) / ele%value(l$)
-  ch_y = cosh(kk * y)
-  sh_y = sinh(kk * y)
-  c_z = cos(kk * (s_body - ele%value(l$)/2))
-  s_z = sin(kk * (s_body - ele%value(l$)/2))
+  kz = twopi / ele%value(l_period$)
+  kx = ele%value(kx$)
+  ky = sqrt(kx**2 + kz**2)
+  c_x = cos(kx * x)
+  s_x = sin(kx * x)
+  ch_y = cosh(ky * y)
+  sh_y = sinh(ky * y)
+  c_z = cos(kz * (s_body - ele%value(l$)/2))
+  s_z = sin(kz * (s_body - ele%value(l$)/2))
+  bx = (kx/ky) * ele%value(b_max$) 
+  by =           ele%value(b_max$) 
+  bz = (kz/ky) * ele%value(b_max$)
 
-  field%B(1) =  0
-  field%B(2) =  ele%value(b_max$) * ch_y * c_z
-  field%B(3) = -ele%value(b_max$) * sh_y * s_z
+  field%B(1) = -bx * s_x * sh_y * c_z
+  field%B(2) =  by * c_x * ch_y * c_z
+  field%B(3) = -bz * c_x * sh_y * s_z
 
   if (do_df_calc) then
     dfield_computed = .true.
-    field%db(2,2) =  kk * ele%value(b_max$) * sh_y * c_z
-    field%db(2,3) = -kk * ele%value(b_max$) * ch_y * s_z
-    field%db(3,2) = -kk * ele%value(b_max$) * ch_y * s_z
-    field%db(3,3) = -kk * ele%value(b_max$) * sh_y * c_z
+    field%db(1,1) = -kx * bx * c_x * sh_y * c_z
+    field%db(1,2) = -ky * bx * s_x * ch_y * c_z
+    field%db(1,3) =  kz * bx * s_x * sh_y * s_z
+
+    field%db(2,1) = -kx * by * s_x * ch_y * c_z
+    field%db(2,2) =  ky * by * c_x * sh_y * c_z
+    field%db(2,3) = -kz * by * c_x * ch_y * s_z
+
+    field%db(3,1) =  kx * by * s_x * ch_y * s_z
+    field%db(3,2) = -ky * by * c_x * sh_y * s_z
+    field%db(3,3) = -kz * by * c_x * ch_y * c_z
   endif
 
 !----------------------------------------------------------------------------------------------
@@ -794,13 +808,13 @@ case(planar_model$)
 
 case(helical_model$)
 
-  kk = twopi * ele%value(n_period$) / ele%value(l$)
-  ch_x = cosh(kk * x)
-  sh_x = sinh(kk * x)
-  ch_y = cosh(kk * y)
-  sh_y = sinh(kk * y)
-  c_z = cos(kk * (s_body - ele%value(l$)/2))
-  s_z = sin(kk * (s_body - ele%value(l$)/2))
+  kz = twopi * ele%value(n_period$) / ele%value(l$)
+  ch_x = cosh(kz * x)
+  sh_x = sinh(kz * x)
+  ch_y = cosh(kz * y)
+  sh_y = sinh(kz * y)
+  c_z = cos(kz * (s_body - ele%value(l$)/2))
+  s_z = sin(kz * (s_body - ele%value(l$)/2))
 
   field%B(1) = -ele%value(b_max$) * ch_x * s_z
   field%B(2) =  ele%value(b_max$) * ch_y * c_z
@@ -808,13 +822,13 @@ case(helical_model$)
 
   if (do_df_calc) then
     dfield_computed = .true.
-    field%db(1,1) = -kk * ele%value(b_max$) * sh_x * s_z
-    field%db(1,3) = -kk * ele%value(b_max$) * ch_x * c_z
-    field%db(2,2) =  kk * ele%value(b_max$) * sh_y * c_z
-    field%db(2,3) = -kk * ele%value(b_max$) * ch_y * s_z
-    field%db(3,1) = -kk * ele%value(b_max$) * ch_x * c_z
-    field%db(3,2) = -kk * ele%value(b_max$) * ch_y * s_z
-    field%db(3,3) =  kk * ele%value(b_max$) * (sh_x * s_z - sh_y * c_z)
+    field%db(1,1) = -kz * ele%value(b_max$) * sh_x * s_z
+    field%db(1,3) = -kz * ele%value(b_max$) * ch_x * c_z
+    field%db(2,2) =  kz * ele%value(b_max$) * sh_y * c_z
+    field%db(2,3) = -kz * ele%value(b_max$) * ch_y * s_z
+    field%db(3,1) = -kz * ele%value(b_max$) * ch_x * c_z
+    field%db(3,2) = -kz * ele%value(b_max$) * ch_y * s_z
+    field%db(3,3) =  kz * ele%value(b_max$) * (sh_x * s_z - sh_y * c_z)
   endif
 
 !----------------------------------------------------------------------------------------------

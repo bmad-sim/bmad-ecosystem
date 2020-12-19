@@ -134,13 +134,13 @@ if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) th
   int_gy = 0
 
   if (ele%field_calc == planar_model$) then
-    g2 = abs(ele%value(k1$))
+    g2 = abs(ele%value(k1y$))
     g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
     int_g2 = eff_len * g2
     int_g3 = eff_len * g3
 
   elseif (ele%field_calc == helical_model$) then
-    g2 = abs(ele%value(k1$))
+    g2 = abs(ele%value(k1y$))
     g3 = sqrt(g2)**3
     int_g2 = eff_len * g2
     int_g3 = eff_len * g3

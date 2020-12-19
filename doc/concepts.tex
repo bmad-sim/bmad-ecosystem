@@ -1,4 +1,3 @@
-
 \chapter{Bmad Concepts and Organization}
 \label{c:lat.concepts}
 
@@ -237,44 +236,4 @@ call a \vn{fibre}.  [Actually, PTC has two structures for the physical element, 
 \vn{elementp}. The latter being the ``polymorph'' version.] This \vn{element} and \vn{fibre}
 combination corresponds to \bmad \vn{multipass_lord} and \vn{multipass_slave} elements. PTC does not
 handle overlapping fields as \bmad does with \vn{superposition} (\sref{s:super}).
-
-%---------------------------------------------------------------------------
-\section{PTC: Polymorphic Tracking Code}
-\label{s:ptc.intro}
-\index{PTC}
-
-The PTC/FPP library of \'Etienne Forest handles Taylor maps to any arbitrary order. This is also
-known as Truncated Power Series Algebra (TPSA). The core Differential Algebra (DA) package used by
-PTC/FPP was developed by Martin Berz\cite{b:berz}. The PTC/FPP libraries are interfaced to \bmad so
-that calculations that involve both \bmad and PTC/FPP can be done in a fairly seamless manner.
-
-Basically, the FPP (``Fully Polymorphic Package'') part of the code handles Taylor map
-manipulation. This is purely mathematical. FPP has no knowledge of accelerators, magnetic fields,
-particle tracking etc. PTC (``Polymorphic Tracking Code'') implements the physics and uses FPP to
-handle the Taylor map manipulation. Since the distinction between \vn{FPP} and \vn{PTC} is
-irrelevant to the non-programmer, ``PTC'' will be used to refer to the entire package.
-
-PTC is used by \bmad when constructing Taylor maps and when the \vn{tracking_method}
-\sref{s:tkm}) is set to \vn{symp_lie_ptc}. All Taylor maps above first order are calculated
-via PTC. No exceptions.
-
-For more discussion of PTC see Chapter~\sref{c:ptc.use}.  For the programmer, also see
-Chapter~\sref{c:ptc.program}.
-
-For the purposes of this manual, PTC and FPP are generally considered one package and
-the combined PTC/FPP library will be referred to as simply ``PTC''.
-
-%---------------------------------------------------------------------------
-\section{Tao: Tool for Accelerator Optics Program}
-\label{s:tao.intro}
-\index{Tao}
-
-The strength of \bmad is that, as a subroutine library, it provides a flexible framework from which
-sophisticated simulation programs may easily be developed.  The weakness of \bmad comes from its
-strength: \bmad cannot be used straight out of the box. Someone must put the pieces together into a
-program. To partially remedy this problem, the \tao program\cite{b:tao} has been developed at
-Cornell. \tao, which uses \bmad as its simulation engine, is a general purpose program for
-simulating particle beams in accelerators and storage rings.  Thus \bmad combined with \tao
-represents the best of both worlds: The flexibility of a software library with the ease of use of a
-program.
 

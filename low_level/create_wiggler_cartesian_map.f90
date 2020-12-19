@@ -22,7 +22,7 @@ type (ele_struct) ele
 type (cartesian_map_struct), target :: cart_map
 type (cartesian_map_term1_struct), pointer :: term
 
-real(rp) kk
+real(rp) kz
 
 character(*), parameter :: r_name = 'create_wiggler_cartesian_map'
 
@@ -40,15 +40,10 @@ cart_map%master_parameter = polarity$
 cart_map%field_type = magnetic$
 
 
-if (ele%value(l$) == 0) then
-  kk = 0
+if (ele%value(l_period$) == 0) then
+  kz = 0
 else
-  if (ele%value(n_period$) == 0) then
-    call out_io (s_error$, r_name, 'NUMBER OF PERIODS NOT SET FOR WIGGLER/UNDULATOR: ' // trim(ele%name))
-    kk = pi * 2 / ele%value(l$)  ! Assume one period
-  else
-    kk = twopi * ele%value(n_period$) / ele%value(l$)
-  endif
+  kz = twopi / ele%value(l_period$)  ! Assume one period
 endif
 
 !
@@ -62,12 +57,12 @@ if (ele%field_calc == planar_model$) then
 
   term => cart_map%ptr%term(1)
   term%coef   = ele%value(b_max$)
-  term%kx     = 0
-  term%ky     = kk
-  term%kz     = kk
+  term%kx     = ele%value(kx$)
+  term%ky     = sqrt(term%kx**2 + kz**2)
+  term%kz     = kz
   term%x0     = 0
   term%y0     = 0
-  term%phi_z  = -kk * ele%value(l$) / 2 
+  term%phi_z  = -kz * ele%value(l$) / 2 
   term%family = family_y$
   term%form   = hyper_y$
 
@@ -81,19 +76,19 @@ elseif (ele%field_calc == helical_model$) then
   term => cart_map%ptr%term(1)
   term%coef   = ele%value(b_max$)
   term%kx     = 0
-  term%ky     = kk
-  term%kz     = kk
+  term%ky     = kz
+  term%kz     = kz
   term%x0     = 0
   term%y0     = 0
-  term%phi_z  = -kk * ele%value(l$) / 2 
+  term%phi_z  = -kz * ele%value(l$) / 2 
   term%family = family_y$
   term%form   = hyper_y$
 
   term => cart_map%ptr%term(2)
   term%coef   = ele%value(b_max$)
-  term%kx     = kk
+  term%kx     = kz
   term%ky     = 0
-  term%kz     = kk
+  term%kz     = kz
   term%x0     = 0
   term%y0     = 0
   term%phi_z  = cart_map%ptr%term(1)%phi_z + pi / 2
