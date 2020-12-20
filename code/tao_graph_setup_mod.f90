@@ -724,6 +724,7 @@ end subroutine tao_graph_dynamic_aperture_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
+! routine for drawing the physical aperture for dynamic aperture plots.
 
 subroutine tao_curve_physical_aperture_setup (curve)
 
@@ -1177,8 +1178,8 @@ type (ele_struct), pointer :: ele, ele1, ele2, slave
 type (branch_struct), pointer :: branch
 type (tao_curve_array_struct), allocatable :: curves(:)
 
-real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx
-real(rp), allocatable :: value_arr(:)
+real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx, limit
+real(rp), allocatable :: value_arr(:), x_arr(:), y_arr(:)
 real(rp), pointer :: var_ptr
 
 integer ii, k, m, n, n_dat, ie, jj, iv, ic
@@ -1776,6 +1777,65 @@ end select
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! Now calculate the points for drawing the curve through the symbols...
+
+if (curve%data_type(1:9) == 'aperture.') then
+  branch => u%model%lat%branch(curve%ix_branch)
+  call re_allocate (x_arr, 100)
+  call re_allocate (y_arr, 100)
+  ir = 0
+
+  do i = 0, branch%n_ele_track
+    ele => branch%ele(i)
+
+    select case (curve%data_type)
+    case ('aperture.-x'); limit = ele%value(x1_limit$)
+    case ('aperture.+x'); limit = ele%value(x2_limit$)
+    case ('aperture.-y'); limit = ele%value(y1_limit$)
+    case ('aperture.+y'); limit = ele%value(y2_limit$)
+    end select
+
+    if (limit == 0) cycle
+
+    if (ir + 2 > size(x_arr)) then
+      call re_allocate (x_arr, 2*size(x_arr))
+      call re_allocate (y_arr, 2*size(y_arr))
+    endif    
+
+    if (at_this_ele_end(physical_ele_end(first_track_edge$, 1, ele%orientation), ele%aperture_at)) then
+      ir = ir + 1
+      y_arr(ir) = limit
+      select case (plot%x_axis_type)
+      case ('index', 'ele_index');      x_arr(ir) = i - 1 
+      case ('s');                       x_arr(ir) = ele%s_start
+      end select
+    endif
+
+    if (at_this_ele_end(physical_ele_end(second_track_edge$, 1, ele%orientation), ele%aperture_at)) then
+      ir = ir + 1
+      y_arr(ir) = limit
+      select case (plot%x_axis_type)
+      case ('index', 'ele_index');      x_arr(ir) = i
+      case ('s');                       x_arr(ir) = ele%s
+      end select
+    endif
+  enddo
+
+  if (curve%draw_symbols) then
+    call re_allocate(curve%x_symb, ir)
+    call re_allocate(curve%y_symb, ir)
+    curve%x_symb = x_arr(1:ir)
+    curve%y_symb = y_arr(1:ir)
+  endif
+    
+  if (curve%draw_line) then
+    call re_allocate(curve%x_line, ir)
+    call re_allocate(curve%y_line, ir)
+    curve%x_line = x_arr(1:ir)
+    curve%y_line = y_arr(1:ir)
+  endif
+    
+  return
+endif
 
 ! If the x-axis is by index or ele_index then these points are the same as the symbol points.
 ! That is, for x-axis = 'index' or 'ele_index' the line is piece-wise linear between the symbols.

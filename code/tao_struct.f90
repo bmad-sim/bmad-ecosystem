@@ -823,7 +823,8 @@ type tao_sigma_mat_struct
 end type
 
 type tao_dn_dpz_struct
-  real(rp) vec(3)    ! Spin n0 derivative wrt pz.
+  real(rp) vec(3)       ! Spin n0 derivative wrt pz.
+  real(rp) partial(3,3) ! partial(i:) is spin n0 derivative wrt pz for i^th oscillation mode (1 => a-mode, etc.)
 end type
 
 type tao_spin_polarization_struct

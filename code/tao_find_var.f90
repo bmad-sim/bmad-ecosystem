@@ -351,22 +351,14 @@ if (present(log_array) .and. any(component_name == logic_components)) then
     if (.not. list(i)) cycle
     j = j + 1
     select case (component_name)
-    case ('exists')
-      log_array(j)%l => v1%v(i)%exists
-    case ('good_var')
-      log_array(j)%l => v1%v(i)%good_var
-    case ('good_user')
-      log_array(j)%l => v1%v(i)%good_user
-    case ('good_opt')
-      log_array(j)%l => v1%v(i)%good_opt
-    case ('good_plot')
-      log_array(j)%l => v1%v(i)%good_plot
-    case ('useit_opt')
-      log_array(j)%l => v1%v(i)%useit_opt
-    case ('useit_plot')
-      log_array(j)%l => v1%v(i)%useit_plot
-    case ('key_bound')
-      log_array(j)%l => v1%v(i)%key_bound
+    case ('exists');      log_array(j)%l => v1%v(i)%exists
+    case ('good_var');    log_array(j)%l => v1%v(i)%good_var
+    case ('good_user');   log_array(j)%l => v1%v(i)%good_user
+    case ('good_opt');    log_array(j)%l => v1%v(i)%good_opt
+    case ('good_plot');   log_array(j)%l => v1%v(i)%good_plot
+    case ('useit_opt');   log_array(j)%l => v1%v(i)%useit_opt
+    case ('useit_plot');  log_array(j)%l => v1%v(i)%useit_plot
+    case ('key_bound');   log_array(j)%l => v1%v(i)%key_bound
     case default
       call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC VAR")
       this_err = .true.
@@ -398,12 +390,9 @@ if (present(str_array) .and. any(component_name == string_components)) then
     if (.not. list(i)) cycle
     j = j + 1
     select case (component_name)
-    case ('merit_type')
-      str_array(j)%s => v1%v(i)%merit_type
-    case ('ele_name')
-      str_array(j)%s => v1%v(i)%merit_type
-    case ('attrib_name')
-      str_array(j)%s => v1%v(i)%merit_type
+    case ('merit_type');    str_array(j)%s => v1%v(i)%merit_type
+    case ('ele_name');      str_array(j)%s => v1%v(i)%merit_type
+    case ('attrib_name');   str_array(j)%s => v1%v(i)%merit_type
     case default
       call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING VAR")
       this_err = .true.
