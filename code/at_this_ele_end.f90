@@ -2,6 +2,7 @@
 ! Function at_this_ele_end (now_at, where_at) result (is_at_this_end)
 !
 ! Routine to determine if an aperture or fringe field is present.
+! When tracking use this routine conjunction with physical_ele_end.
 !
 ! Input:
 !   now_at      -- Integer: Which end is under consideration: entrance_end$, exit_end$, surface$, or in_between$.
