@@ -495,16 +495,25 @@ enddo
 if (ix_c /= 0) then
   allocate (ele%control)
   read (d_unit, err = 9120) ele%control%type, n_var, nk, nr
-  allocate (ele%control%var(n_var))
-  if (nk > -1) allocate(ele%control%x_knot(nk))
-  if (nr > -1) allocate(ele%control%ramp(nr))
-  read (d_unit, err = 9120) ele%control%x_knot
-  do i = 1, n_var
-    read (d_unit, err = 9120) ele%control%var(i)
-  enddo
-  do i = 1, nr
-    call read_this_control_struct(ele%control%ramp(nr), err); if (err) return
-  enddo
+
+  if (nk > -1) then
+    allocate(ele%control%x_knot(nk))
+    read (d_unit, err = 9120) ele%control%x_knot
+  endif
+
+  if (n_var > -1) then
+    allocate (ele%control%var(n_var))
+    do i = 1, n_var
+      read (d_unit, err = 9120) ele%control%var(i)
+    enddo
+  endif
+
+  if (nr > -1) then
+    allocate(ele%control%ramp(nr))
+    do i = 1, nr
+      call read_this_control_struct(ele%control%ramp(nr), err); if (err) return
+    enddo
+  endif
 endif
 
 ! AC_kicker
