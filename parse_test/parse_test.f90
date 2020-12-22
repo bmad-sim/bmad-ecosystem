@@ -104,9 +104,12 @@ call write_bmad_lattice_file ('z.bmad', lat)
 call bmad_parser('slice.bmad', lat, make_mats6 = .false., err_flag = err)
 write (1, '(2a)') '"Slice-OK"  STR ', quote(logic_str(.not. err))
 
-!
+! Control.bmad
 
 call bmad_parser ('control.bmad', lat, make_mats6 = .false.)
+call write_bmad_lattice_file ('c2.bmad', lat)
+call bmad_parser ('c2.bmad', lat)
+
 do i = 1, 3
   ele => lat%ele(i)
   write (1, '(3a, f12.8)') '"Control-K1-', trim(ele%name), '"   ABS 0', ele%value(k1$)
