@@ -608,131 +608,6 @@ extern "C" void test_c_photon_reflect_surface (Opaque_photon_reflect_surface_cla
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_controller_var1 (CPP_controller_var1&, bool&);
-
-void set_CPP_controller_var1_test_pattern (CPP_controller_var1& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[character, 0, NOT]
-  C.name.resize(40);
-  for (unsigned int i = 0; i < C.name.size(); i++)
-    {int rhs = 101 + i + 1 + offset; C.name[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.value = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.old_value = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_controller_var1 (Opaque_controller_var1_class* F, bool& c_ok) {
-
-  CPP_controller_var1 C, C2;
-
-  c_ok = true;
-
-  controller_var1_to_c (F, C);
-  set_CPP_controller_var1_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " controller_var1: C side convert F->C: Good" << endl;
-  } else {
-    cout << " controller_var1: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_controller_var1_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_controller_var1 (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_controller_var1_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " controller_var1: F side convert F->C: Good" << endl;
-  } else {
-    cout << " controller_var1: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_controller_var1_test_pattern (C2, 4);
-  controller_var1_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_controller (CPP_controller&, bool&);
-
-void set_CPP_controller_test_pattern (CPP_controller& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.type = rhs;
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.var.resize(0);
-  else {
-    C.var.resize(3);
-    for (unsigned int i = 0; i < C.var.size(); i++)  {set_CPP_controller_var1_test_pattern(C.var[i], ix_patt+i+1);}
-  }
-
-  // c_side.test_pat[real, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.x_knot.resize(0);
-  else {
-    C.x_knot.resize(3);
-    for (unsigned int i = 0; i < C.x_knot.size(); i++)
-      {int rhs = 101 + i + 4 + offset; C.x_knot[i] = rhs;}  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_controller (Opaque_controller_class* F, bool& c_ok) {
-
-  CPP_controller C, C2;
-
-  c_ok = true;
-
-  controller_to_c (F, C);
-  set_CPP_controller_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " controller: C side convert F->C: Good" << endl;
-  } else {
-    cout << " controller: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_controller_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_controller (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_controller_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " controller: F side convert F->C: Good" << endl;
-  } else {
-    cout << " controller: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_controller_test_pattern (C2, 4);
-  controller_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_coord (CPP_coord&, bool&);
 
 void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
@@ -3639,11 +3514,11 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 10 + offset; C.ix_branch = rhs;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.patch_in_region = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 11 + offset; C.vertices_state = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.absolute_vertices_input = (rhs % 2 == 0);
+  rhs = 12 + offset; C.patch_in_region = (rhs % 2 == 0);
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 13 + offset; C.thickness = rhs;
@@ -3838,8 +3713,12 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
   C.attribute.resize(40);
   for (unsigned int i = 0; i < C.attribute.size(); i++)
     {int rhs = 101 + i + 8 + offset; C.attribute[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[character, 0, NOT]
+  C.slave_name.resize(40);
+  for (unsigned int i = 0; i < C.slave_name.size(); i++)
+    {int rhs = 101 + i + 9 + offset; C.slave_name[i] = 'a' + rhs % 26;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 9 + offset; C.ix_attrib = rhs;
+  rhs = 10 + offset; C.ix_attrib = rhs;
 
 
 }
@@ -3877,6 +3756,139 @@ extern "C" void test_c_control (Opaque_control_class* F, bool& c_ok) {
 
   set_CPP_control_test_pattern (C2, 4);
   control_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_controller_var1 (CPP_controller_var1&, bool&);
+
+void set_CPP_controller_var1_test_pattern (CPP_controller_var1& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.name.resize(40);
+  for (unsigned int i = 0; i < C.name.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.name[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.value = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.old_value = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_controller_var1 (Opaque_controller_var1_class* F, bool& c_ok) {
+
+  CPP_controller_var1 C, C2;
+
+  c_ok = true;
+
+  controller_var1_to_c (F, C);
+  set_CPP_controller_var1_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " controller_var1: C side convert F->C: Good" << endl;
+  } else {
+    cout << " controller_var1: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_controller_var1_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_controller_var1 (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_controller_var1_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " controller_var1: F side convert F->C: Good" << endl;
+  } else {
+    cout << " controller_var1: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_controller_var1_test_pattern (C2, 4);
+  controller_var1_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_controller (CPP_controller&, bool&);
+
+void set_CPP_controller_test_pattern (CPP_controller& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.type = rhs;
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.var.resize(0);
+  else {
+    C.var.resize(3);
+    for (unsigned int i = 0; i < C.var.size(); i++)  {set_CPP_controller_var1_test_pattern(C.var[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.ramp.resize(0);
+  else {
+    C.ramp.resize(3);
+    for (unsigned int i = 0; i < C.ramp.size(); i++)  {set_CPP_control_test_pattern(C.ramp[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[real, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.x_knot.resize(0);
+  else {
+    C.x_knot.resize(3);
+    for (unsigned int i = 0; i < C.x_knot.size(); i++)
+      {int rhs = 101 + i + 6 + offset; C.x_knot[i] = rhs;}  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_controller (Opaque_controller_class* F, bool& c_ok) {
+
+  CPP_controller C, C2;
+
+  c_ok = true;
+
+  controller_to_c (F, C);
+  set_CPP_controller_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " controller: C side convert F->C: Good" << endl;
+  } else {
+    cout << " controller: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_controller_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_controller (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_controller_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " controller: F side convert F->C: Good" << endl;
+  } else {
+    cout << " controller: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_controller_test_pattern (C2, 4);
+  controller_to_f (C2, F);
 
 }
 

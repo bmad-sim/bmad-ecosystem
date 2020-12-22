@@ -200,32 +200,6 @@ template bool is_all_equal (const CPP_photon_reflect_surface_MATRIX&, const CPP_
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_controller_var1& x, const CPP_controller_var1& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.name == y.name);
-  is_eq = is_eq && (x.value == y.value);
-  is_eq = is_eq && (x.old_value == y.old_value);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_controller_var1_ARRAY&, const CPP_controller_var1_ARRAY&);
-template bool is_all_equal (const CPP_controller_var1_MATRIX&, const CPP_controller_var1_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_controller& x, const CPP_controller& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.type == y.type);
-  is_eq = is_eq && is_all_equal(x.var, y.var);
-  is_eq = is_eq && is_all_equal(x.x_knot, y.x_knot);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_controller_ARRAY&, const CPP_controller_ARRAY&);
-template bool is_all_equal (const CPP_controller_MATRIX&, const CPP_controller_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_coord& x, const CPP_coord& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.vec, y.vec);
@@ -917,8 +891,8 @@ bool operator== (const CPP_wall3d_section& x, const CPP_wall3d_section& y) {
   is_eq = is_eq && (x.n_vertex_input == y.n_vertex_input);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_branch == y.ix_branch);
+  is_eq = is_eq && (x.vertices_state == y.vertices_state);
   is_eq = is_eq && (x.patch_in_region == y.patch_in_region);
-  is_eq = is_eq && (x.absolute_vertices_input == y.absolute_vertices_input);
   is_eq = is_eq && (x.thickness == y.thickness);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
@@ -965,12 +939,40 @@ bool operator== (const CPP_control& x, const CPP_control& y) {
   is_eq = is_eq && (x.slave == y.slave);
   is_eq = is_eq && (x.lord == y.lord);
   is_eq = is_eq && (x.attribute == y.attribute);
+  is_eq = is_eq && (x.slave_name == y.slave_name);
   is_eq = is_eq && (x.ix_attrib == y.ix_attrib);
   return is_eq;
 };
 
 template bool is_all_equal (const CPP_control_ARRAY&, const CPP_control_ARRAY&);
 template bool is_all_equal (const CPP_control_MATRIX&, const CPP_control_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_controller_var1& x, const CPP_controller_var1& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.name == y.name);
+  is_eq = is_eq && (x.value == y.value);
+  is_eq = is_eq && (x.old_value == y.old_value);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_controller_var1_ARRAY&, const CPP_controller_var1_ARRAY&);
+template bool is_all_equal (const CPP_controller_var1_MATRIX&, const CPP_controller_var1_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_controller& x, const CPP_controller& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.type == y.type);
+  is_eq = is_eq && is_all_equal(x.var, y.var);
+  is_eq = is_eq && is_all_equal(x.ramp, y.ramp);
+  is_eq = is_eq && is_all_equal(x.x_knot, y.x_knot);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_controller_ARRAY&, const CPP_controller_ARRAY&);
+template bool is_all_equal (const CPP_controller_MATRIX&, const CPP_controller_MATRIX&);
 
 //--------------------------------------------------------------
 

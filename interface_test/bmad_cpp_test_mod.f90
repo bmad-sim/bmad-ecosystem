@@ -922,205 +922,6 @@ end subroutine set_photon_reflect_surface_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_controller_var1 (ok)
-
-implicit none
-
-type(controller_var1_struct), target :: f_controller_var1, f2_controller_var1
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_controller_var1 (c_controller_var1, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_controller_var1
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_controller_var1_test_pattern (f2_controller_var1, 1)
-
-call test_c_controller_var1(c_loc(f2_controller_var1), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_controller_var1_test_pattern (f_controller_var1, 4)
-if (f_controller_var1 == f2_controller_var1) then
-  print *, 'controller_var1: C side convert C->F: Good'
-else
-  print *, 'controller_var1: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_controller_var1
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_controller_var1 (c_controller_var1, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_controller_var1
-type(controller_var1_struct), target :: f_controller_var1, f2_controller_var1
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call controller_var1_to_f (c_controller_var1, c_loc(f_controller_var1))
-
-call set_controller_var1_test_pattern (f2_controller_var1, 2)
-if (f_controller_var1 == f2_controller_var1) then
-  print *, 'controller_var1: F side convert C->F: Good'
-else
-  print *, 'controller_var1: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_controller_var1_test_pattern (f2_controller_var1, 3)
-call controller_var1_to_c (c_loc(f2_controller_var1), c_controller_var1)
-
-end subroutine test2_f_controller_var1
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_controller_var1_test_pattern (F, ix_patt)
-
-implicit none
-
-type(controller_var1_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[character, 0, NOT]
-do jd1 = 1, len(F%name)
-  F%name(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
-enddo
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%value = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%old_value = rhs
-
-end subroutine set_controller_var1_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_controller (ok)
-
-implicit none
-
-type(controller_struct), target :: f_controller, f2_controller
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_controller (c_controller, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_controller
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_controller_test_pattern (f2_controller, 1)
-
-call test_c_controller(c_loc(f2_controller), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_controller_test_pattern (f_controller, 4)
-if (f_controller == f2_controller) then
-  print *, 'controller: C side convert C->F: Good'
-else
-  print *, 'controller: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_controller
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_controller (c_controller, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_controller
-type(controller_struct), target :: f_controller, f2_controller
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call controller_to_f (c_controller, c_loc(f_controller))
-
-call set_controller_test_pattern (f2_controller, 2)
-if (f_controller == f2_controller) then
-  print *, 'controller: F side convert C->F: Good'
-else
-  print *, 'controller: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_controller_test_pattern (f2_controller, 3)
-call controller_to_c (c_loc(f2_controller), c_controller)
-
-end subroutine test2_f_controller
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_controller_test_pattern (F, ix_patt)
-
-implicit none
-
-type(controller_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%type = rhs
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%var)) deallocate (F%var)
-else
-  if (.not. allocated(F%var)) allocate (F%var(-1:1))
-  do jd1 = 1, size(F%var,1); lb1 = lbound(F%var,1) - 1
-    call set_controller_var1_test_pattern (F%var(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-!! f_side.test_pat[real, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%x_knot)) deallocate (F%x_knot)
-else
-  if (.not. allocated(F%x_knot)) allocate (F%x_knot(-1:1))
-  do jd1 = 1, size(F%x_knot,1); lb1 = lbound(F%x_knot,1) - 1
-    rhs = 100 + jd1 + 4 + offset
-    F%x_knot(jd1+lb1) = rhs
-  enddo
-endif
-
-end subroutine set_controller_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
 subroutine test1_f_coord (ok)
 
 implicit none
@@ -5494,10 +5295,10 @@ rhs = 8 + offset; F%n_vertex_input = rhs
 rhs = 9 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 10 + offset; F%ix_branch = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 11 + offset; F%vertices_state = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%patch_in_region = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%absolute_vertices_input = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%patch_in_region = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[real, 0, NOT]
 rhs = 13 + offset; F%thickness = rhs
 !! f_side.test_pat[real, 0, NOT]
@@ -5766,10 +5567,223 @@ call set_lat_ele_loc_test_pattern (F%lord, ix_patt)
 do jd1 = 1, len(F%attribute)
   F%attribute(jd1:jd1) = char(ichar("a") + modulo(100+8+offset+jd1, 26))
 enddo
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%slave_name)
+  F%slave_name(jd1:jd1) = char(ichar("a") + modulo(100+9+offset+jd1, 26))
+enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 9 + offset; F%ix_attrib = rhs
+rhs = 10 + offset; F%ix_attrib = rhs
 
 end subroutine set_control_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_controller_var1 (ok)
+
+implicit none
+
+type(controller_var1_struct), target :: f_controller_var1, f2_controller_var1
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_controller_var1 (c_controller_var1, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_controller_var1
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_controller_var1_test_pattern (f2_controller_var1, 1)
+
+call test_c_controller_var1(c_loc(f2_controller_var1), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_controller_var1_test_pattern (f_controller_var1, 4)
+if (f_controller_var1 == f2_controller_var1) then
+  print *, 'controller_var1: C side convert C->F: Good'
+else
+  print *, 'controller_var1: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_controller_var1
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_controller_var1 (c_controller_var1, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_controller_var1
+type(controller_var1_struct), target :: f_controller_var1, f2_controller_var1
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call controller_var1_to_f (c_controller_var1, c_loc(f_controller_var1))
+
+call set_controller_var1_test_pattern (f2_controller_var1, 2)
+if (f_controller_var1 == f2_controller_var1) then
+  print *, 'controller_var1: F side convert C->F: Good'
+else
+  print *, 'controller_var1: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_controller_var1_test_pattern (f2_controller_var1, 3)
+call controller_var1_to_c (c_loc(f2_controller_var1), c_controller_var1)
+
+end subroutine test2_f_controller_var1
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_controller_var1_test_pattern (F, ix_patt)
+
+implicit none
+
+type(controller_var1_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%name)
+  F%name(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%value = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%old_value = rhs
+
+end subroutine set_controller_var1_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_controller (ok)
+
+implicit none
+
+type(controller_struct), target :: f_controller, f2_controller
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_controller (c_controller, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_controller
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_controller_test_pattern (f2_controller, 1)
+
+call test_c_controller(c_loc(f2_controller), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_controller_test_pattern (f_controller, 4)
+if (f_controller == f2_controller) then
+  print *, 'controller: C side convert C->F: Good'
+else
+  print *, 'controller: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_controller
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_controller (c_controller, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_controller
+type(controller_struct), target :: f_controller, f2_controller
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call controller_to_f (c_controller, c_loc(f_controller))
+
+call set_controller_test_pattern (f2_controller, 2)
+if (f_controller == f2_controller) then
+  print *, 'controller: F side convert C->F: Good'
+else
+  print *, 'controller: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_controller_test_pattern (f2_controller, 3)
+call controller_to_c (c_loc(f2_controller), c_controller)
+
+end subroutine test2_f_controller
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_controller_test_pattern (F, ix_patt)
+
+implicit none
+
+type(controller_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%type = rhs
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%var)) deallocate (F%var)
+else
+  if (.not. allocated(F%var)) allocate (F%var(-1:1))
+  do jd1 = 1, size(F%var,1); lb1 = lbound(F%var,1) - 1
+    call set_controller_var1_test_pattern (F%var(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%ramp)) deallocate (F%ramp)
+else
+  if (.not. allocated(F%ramp)) allocate (F%ramp(-1:1))
+  do jd1 = 1, size(F%ramp,1); lb1 = lbound(F%ramp,1) - 1
+    call set_control_test_pattern (F%ramp(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%x_knot)) deallocate (F%x_knot)
+else
+  if (.not. allocated(F%x_knot)) allocate (F%x_knot(-1:1))
+  do jd1 = 1, size(F%x_knot,1); lb1 = lbound(F%x_knot,1) - 1
+    rhs = 100 + jd1 + 6 + offset
+    F%x_knot(jd1+lb1) = rhs
+  enddo
+endif
+
+end subroutine set_controller_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------

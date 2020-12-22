@@ -388,84 +388,6 @@ extern "C" void photon_reflect_surface_to_c2 (CPP_photon_reflect_surface& C, c_C
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_controller_var1
-
-extern "C" void controller_var1_to_c (const Opaque_controller_var1_class*, CPP_controller_var1&);
-
-// c_side.to_f2_arg
-extern "C" void controller_var1_to_f2 (Opaque_controller_var1_class*, c_Char, c_Real&,
-    c_Real&);
-
-extern "C" void controller_var1_to_f (const CPP_controller_var1& C, Opaque_controller_var1_class* F) {
-
-  // c_side.to_f2_call
-  controller_var1_to_f2 (F, C.name.c_str(), C.value, C.old_value);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void controller_var1_to_c2 (CPP_controller_var1& C, c_Char z_name, c_Real& z_value,
-    c_Real& z_old_value) {
-
-  // c_side.to_c2_set[character, 0, NOT]
-  C.name = z_name;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.value = z_value;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.old_value = z_old_value;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_controller
-
-extern "C" void controller_to_c (const Opaque_controller_class*, CPP_controller&);
-
-// c_side.to_f2_arg
-extern "C" void controller_to_f2 (Opaque_controller_class*, c_Int&, const
-    CPP_controller_var1**, Int, c_RealArr, Int);
-
-extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_class* F) {
-  // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_var = C.var.size();
-  const CPP_controller_var1** z_var = NULL;
-  if (n1_var != 0) {
-    z_var = new const CPP_controller_var1*[n1_var];
-    for (int i = 0; i < n1_var; i++) z_var[i] = &C.var[i];
-  }
-  // c_side.to_f_setup[real, 1, ALLOC]
-  int n1_x_knot = C.x_knot.size();
-  c_RealArr z_x_knot = NULL;
-  if (n1_x_knot > 0) {
-    z_x_knot = &C.x_knot[0];
-  }
-
-  // c_side.to_f2_call
-  controller_to_f2 (F, C.type, z_var, n1_var, z_x_knot, n1_x_knot);
-
-  // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_var;
-}
-
-// c_side.to_c2_arg
-extern "C" void controller_to_c2 (CPP_controller& C, c_Int& z_type,
-    Opaque_controller_var1_class** z_var, Int n1_var, c_RealArr z_x_knot, Int n1_x_knot) {
-
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.type = z_type;
-  // c_side.to_c2_set[type, 1, ALLOC]
-  C.var.resize(n1_var);
-  for (int i = 0; i < n1_var; i++) controller_var1_to_c(z_var[i], C.var[i]);
-
-  // c_side.to_c2_set[real, 1, ALLOC]
-
-  C.x_knot.resize(n1_x_knot);
-  C.x_knot << z_x_knot;
-
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
 // CPP_coord
 
 extern "C" void coord_to_c (const Opaque_coord_class*, CPP_coord&);
@@ -2172,7 +2094,7 @@ extern "C" void wall3d_section_to_c (const Opaque_wall3d_section_class*, CPP_wal
 // c_side.to_f2_arg
 extern "C" void wall3d_section_to_f2 (Opaque_wall3d_section_class*, c_Char, c_Char, const
     CPP_wall3d_vertex**, Int, const CPP_photon_reflect_surface&, Int, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Bool&, c_Bool&, c_Real&, c_Real&, c_RealArr, c_Real&, c_Real&, c_RealArr,
+    c_Int&, c_Int&, c_Bool&, c_Real&, c_Real&, c_RealArr, c_Real&, c_Real&, c_RealArr,
     c_RealArr, c_Real&, c_RealArr, c_RealArr);
 
 extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Opaque_wall3d_section_class* F) {
@@ -2188,8 +2110,8 @@ extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Opaque_wall3d_
 
   // c_side.to_f2_call
   wall3d_section_to_f2 (F, C.name.c_str(), C.material.c_str(), z_v, n1_v, *C.surface,
-      n_surface, C.type, C.n_vertex_input, C.ix_ele, C.ix_branch, C.patch_in_region,
-      C.absolute_vertices_input, C.thickness, C.s, &C.r0[0], C.dx0_ds, C.dy0_ds, &C.x0_coef[0],
+      n_surface, C.type, C.n_vertex_input, C.ix_ele, C.ix_branch, C.vertices_state,
+      C.patch_in_region, C.thickness, C.s, &C.r0[0], C.dx0_ds, C.dy0_ds, &C.x0_coef[0],
       &C.y0_coef[0], C.dr_ds, &C.p1_coef[0], &C.p2_coef[0]);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
@@ -2200,8 +2122,8 @@ extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Opaque_wall3d_
 extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Char z_name, c_Char z_material,
     Opaque_wall3d_vertex_class** z_v, Int n1_v, Opaque_photon_reflect_surface_class* z_surface,
     Int n_surface, c_Int& z_type, c_Int& z_n_vertex_input, c_Int& z_ix_ele, c_Int& z_ix_branch,
-    c_Bool& z_patch_in_region, c_Bool& z_absolute_vertices_input, c_Real& z_thickness, c_Real&
-    z_s, c_RealArr z_r0, c_Real& z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef, c_RealArr
+    c_Int& z_vertices_state, c_Bool& z_patch_in_region, c_Real& z_thickness, c_Real& z_s,
+    c_RealArr z_r0, c_Real& z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef, c_RealArr
     z_y0_coef, c_Real& z_dr_ds, c_RealArr z_p1_coef, c_RealArr z_p2_coef) {
 
   // c_side.to_c2_set[character, 0, NOT]
@@ -2228,10 +2150,10 @@ extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Char z_name, c_Ch
   C.ix_ele = z_ix_ele;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_branch = z_ix_branch;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.vertices_state = z_vertices_state;
   // c_side.to_c2_set[logical, 0, NOT]
   C.patch_in_region = z_patch_in_region;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.absolute_vertices_input = z_absolute_vertices_input;
   // c_side.to_c2_set[real, 0, NOT]
   C.thickness = z_thickness;
   // c_side.to_c2_set[real, 0, NOT]
@@ -2320,7 +2242,7 @@ extern "C" void control_to_c (const Opaque_control_class*, CPP_control&);
 
 // c_side.to_f2_arg
 extern "C" void control_to_f2 (Opaque_control_class*, c_Real&, c_RealArr, Int, const
-    CPP_expression_atom**, Int, const CPP_lat_ele_loc&, const CPP_lat_ele_loc&, c_Char,
+    CPP_expression_atom**, Int, const CPP_lat_ele_loc&, const CPP_lat_ele_loc&, c_Char, c_Char,
     c_Int&);
 
 extern "C" void control_to_f (const CPP_control& C, Opaque_control_class* F) {
@@ -2340,7 +2262,7 @@ extern "C" void control_to_f (const CPP_control& C, Opaque_control_class* F) {
 
   // c_side.to_f2_call
   control_to_f2 (F, C.value, z_y_knot, n1_y_knot, z_stack, n1_stack, C.slave, C.lord,
-      C.attribute.c_str(), C.ix_attrib);
+      C.attribute.c_str(), C.slave_name.c_str(), C.ix_attrib);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_stack;
@@ -2350,7 +2272,7 @@ extern "C" void control_to_f (const CPP_control& C, Opaque_control_class* F) {
 extern "C" void control_to_c2 (CPP_control& C, c_Real& z_value, c_RealArr z_y_knot, Int
     n1_y_knot, Opaque_expression_atom_class** z_stack, Int n1_stack, const
     Opaque_lat_ele_loc_class* z_slave, const Opaque_lat_ele_loc_class* z_lord, c_Char
-    z_attribute, c_Int& z_ix_attrib) {
+    z_attribute, c_Char z_slave_name, c_Int& z_ix_attrib) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.value = z_value;
@@ -2369,8 +2291,102 @@ extern "C" void control_to_c2 (CPP_control& C, c_Real& z_value, c_RealArr z_y_kn
   lat_ele_loc_to_c(z_lord, C.lord);
   // c_side.to_c2_set[character, 0, NOT]
   C.attribute = z_attribute;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.slave_name = z_slave_name;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_attrib = z_ix_attrib;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_controller_var1
+
+extern "C" void controller_var1_to_c (const Opaque_controller_var1_class*, CPP_controller_var1&);
+
+// c_side.to_f2_arg
+extern "C" void controller_var1_to_f2 (Opaque_controller_var1_class*, c_Char, c_Real&,
+    c_Real&);
+
+extern "C" void controller_var1_to_f (const CPP_controller_var1& C, Opaque_controller_var1_class* F) {
+
+  // c_side.to_f2_call
+  controller_var1_to_f2 (F, C.name.c_str(), C.value, C.old_value);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void controller_var1_to_c2 (CPP_controller_var1& C, c_Char z_name, c_Real& z_value,
+    c_Real& z_old_value) {
+
+  // c_side.to_c2_set[character, 0, NOT]
+  C.name = z_name;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.value = z_value;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.old_value = z_old_value;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_controller
+
+extern "C" void controller_to_c (const Opaque_controller_class*, CPP_controller&);
+
+// c_side.to_f2_arg
+extern "C" void controller_to_f2 (Opaque_controller_class*, c_Int&, const
+    CPP_controller_var1**, Int, const CPP_control**, Int, c_RealArr, Int);
+
+extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_var = C.var.size();
+  const CPP_controller_var1** z_var = NULL;
+  if (n1_var != 0) {
+    z_var = new const CPP_controller_var1*[n1_var];
+    for (int i = 0; i < n1_var; i++) z_var[i] = &C.var[i];
+  }
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_ramp = C.ramp.size();
+  const CPP_control** z_ramp = NULL;
+  if (n1_ramp != 0) {
+    z_ramp = new const CPP_control*[n1_ramp];
+    for (int i = 0; i < n1_ramp; i++) z_ramp[i] = &C.ramp[i];
+  }
+  // c_side.to_f_setup[real, 1, ALLOC]
+  int n1_x_knot = C.x_knot.size();
+  c_RealArr z_x_knot = NULL;
+  if (n1_x_knot > 0) {
+    z_x_knot = &C.x_knot[0];
+  }
+
+  // c_side.to_f2_call
+  controller_to_f2 (F, C.type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_var;
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_ramp;
+}
+
+// c_side.to_c2_arg
+extern "C" void controller_to_c2 (CPP_controller& C, c_Int& z_type,
+    Opaque_controller_var1_class** z_var, Int n1_var, Opaque_control_class** z_ramp, Int
+    n1_ramp, c_RealArr z_x_knot, Int n1_x_knot) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.type = z_type;
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.var.resize(n1_var);
+  for (int i = 0; i < n1_var; i++) controller_var1_to_c(z_var[i], C.var[i]);
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.ramp.resize(n1_ramp);
+  for (int i = 0; i < n1_ramp; i++) control_to_c(z_ramp[i], C.ramp[i]);
+
+  // c_side.to_c2_set[real, 1, ALLOC]
+
+  C.x_knot.resize(n1_x_knot);
+  C.x_knot << z_x_knot;
+
 }
 
 //--------------------------------------------------------------------

@@ -61,16 +61,6 @@ typedef valarray<CPP_photon_reflect_surface>          CPP_photon_reflect_surface
 typedef valarray<CPP_photon_reflect_surface_ARRAY>    CPP_photon_reflect_surface_MATRIX;
 typedef valarray<CPP_photon_reflect_surface_MATRIX>   CPP_photon_reflect_surface_TENSOR;
 
-class CPP_controller_var1;
-typedef valarray<CPP_controller_var1>          CPP_controller_var1_ARRAY;
-typedef valarray<CPP_controller_var1_ARRAY>    CPP_controller_var1_MATRIX;
-typedef valarray<CPP_controller_var1_MATRIX>   CPP_controller_var1_TENSOR;
-
-class CPP_controller;
-typedef valarray<CPP_controller>          CPP_controller_ARRAY;
-typedef valarray<CPP_controller_ARRAY>    CPP_controller_MATRIX;
-typedef valarray<CPP_controller_MATRIX>   CPP_controller_TENSOR;
-
 class CPP_coord;
 typedef valarray<CPP_coord>          CPP_coord_ARRAY;
 typedef valarray<CPP_coord_ARRAY>    CPP_coord_MATRIX;
@@ -295,6 +285,16 @@ class CPP_control;
 typedef valarray<CPP_control>          CPP_control_ARRAY;
 typedef valarray<CPP_control_ARRAY>    CPP_control_MATRIX;
 typedef valarray<CPP_control_MATRIX>   CPP_control_TENSOR;
+
+class CPP_controller_var1;
+typedef valarray<CPP_controller_var1>          CPP_controller_var1_ARRAY;
+typedef valarray<CPP_controller_var1_ARRAY>    CPP_controller_var1_MATRIX;
+typedef valarray<CPP_controller_var1_MATRIX>   CPP_controller_var1_TENSOR;
+
+class CPP_controller;
+typedef valarray<CPP_controller>          CPP_controller_ARRAY;
+typedef valarray<CPP_controller_ARRAY>    CPP_controller_MATRIX;
+typedef valarray<CPP_controller_MATRIX>   CPP_controller_TENSOR;
 
 class CPP_ellipse_beam_init;
 typedef valarray<CPP_ellipse_beam_init>          CPP_ellipse_beam_init_ARRAY;
@@ -718,62 +718,6 @@ extern "C" void photon_reflect_surface_to_c (const Opaque_photon_reflect_surface
 extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface&, Opaque_photon_reflect_surface_class*);
 
 bool operator== (const CPP_photon_reflect_surface&, const CPP_photon_reflect_surface&);
-
-
-//--------------------------------------------------------------------
-// CPP_controller_var1
-
-class Opaque_controller_var1_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_controller_var1 {
-public:
-  string name;
-  Real value;
-  Real old_value;
-
-  CPP_controller_var1() :
-    name(),
-    value(0.0),
-    old_value(0.0)
-    {}
-
-  ~CPP_controller_var1() {
-  }
-
-};   // End Class
-
-extern "C" void controller_var1_to_c (const Opaque_controller_var1_class*, CPP_controller_var1&);
-extern "C" void controller_var1_to_f (const CPP_controller_var1&, Opaque_controller_var1_class*);
-
-bool operator== (const CPP_controller_var1&, const CPP_controller_var1&);
-
-
-//--------------------------------------------------------------------
-// CPP_controller
-
-class Opaque_controller_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_controller {
-public:
-  Int type;
-  CPP_controller_var1_ARRAY var;
-  Real_ARRAY x_knot;
-
-  CPP_controller() :
-    type(Bmad::EXPRESSION),
-    var(CPP_controller_var1_ARRAY(CPP_controller_var1(), 0)),
-    x_knot(0.0, 0)
-    {}
-
-  ~CPP_controller() {
-  }
-
-};   // End Class
-
-extern "C" void controller_to_c (const Opaque_controller_class*, CPP_controller&);
-extern "C" void controller_to_f (const CPP_controller&, Opaque_controller_class*);
-
-bool operator== (const CPP_controller&, const CPP_controller&);
 
 
 //--------------------------------------------------------------------
@@ -2221,8 +2165,8 @@ public:
   Int n_vertex_input;
   Int ix_ele;
   Int ix_branch;
+  Int vertices_state;
   Bool patch_in_region;
-  Bool absolute_vertices_input;
   Real thickness;
   Real s;
   Real_ARRAY r0;
@@ -2243,8 +2187,8 @@ public:
     n_vertex_input(0),
     ix_ele(0),
     ix_branch(0),
+    vertices_state(Bmad::RELATIVE),
     patch_in_region(false),
-    absolute_vertices_input(false),
     thickness(-1),
     s(0.0),
     r0(0.0, 2),
@@ -2324,6 +2268,7 @@ public:
   CPP_lat_ele_loc slave;
   CPP_lat_ele_loc lord;
   string attribute;
+  string slave_name;
   Int ix_attrib;
 
   CPP_control() :
@@ -2333,7 +2278,8 @@ public:
     slave(),
     lord(),
     attribute(),
-    ix_attrib(0)
+    slave_name(),
+    ix_attrib(-1)
     {}
 
   ~CPP_control() {
@@ -2345,6 +2291,64 @@ extern "C" void control_to_c (const Opaque_control_class*, CPP_control&);
 extern "C" void control_to_f (const CPP_control&, Opaque_control_class*);
 
 bool operator== (const CPP_control&, const CPP_control&);
+
+
+//--------------------------------------------------------------------
+// CPP_controller_var1
+
+class Opaque_controller_var1_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_controller_var1 {
+public:
+  string name;
+  Real value;
+  Real old_value;
+
+  CPP_controller_var1() :
+    name(),
+    value(0.0),
+    old_value(0.0)
+    {}
+
+  ~CPP_controller_var1() {
+  }
+
+};   // End Class
+
+extern "C" void controller_var1_to_c (const Opaque_controller_var1_class*, CPP_controller_var1&);
+extern "C" void controller_var1_to_f (const CPP_controller_var1&, Opaque_controller_var1_class*);
+
+bool operator== (const CPP_controller_var1&, const CPP_controller_var1&);
+
+
+//--------------------------------------------------------------------
+// CPP_controller
+
+class Opaque_controller_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_controller {
+public:
+  Int type;
+  CPP_controller_var1_ARRAY var;
+  CPP_control_ARRAY ramp;
+  Real_ARRAY x_knot;
+
+  CPP_controller() :
+    type(Bmad::EXPRESSION),
+    var(CPP_controller_var1_ARRAY(CPP_controller_var1(), 0)),
+    ramp(CPP_control_ARRAY(CPP_control(), 0)),
+    x_knot(0.0, 0)
+    {}
+
+  ~CPP_controller() {
+  }
+
+};   // End Class
+
+extern "C" void controller_to_c (const Opaque_controller_class*, CPP_controller&);
+extern "C" void controller_to_f (const CPP_controller&, Opaque_controller_class*);
+
+bool operator== (const CPP_controller&, const CPP_controller&);
 
 
 //--------------------------------------------------------------------

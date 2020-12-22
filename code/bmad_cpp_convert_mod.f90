@@ -98,24 +98,6 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine controller_var1_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
-  subroutine controller_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
   subroutine coord_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -513,6 +495,24 @@ end interface
 
 interface 
   subroutine control_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine controller_var1_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine controller_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -1758,221 +1758,6 @@ F%initialized = f_logic(z_initialized)
 F%ix_surface = z_ix_surface
 
 end subroutine photon_reflect_surface_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine controller_var1_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad controller_var1_struct to a C++ CPP_controller_var1 structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad controller_var1_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_controller_var1 struct.
-!-
-
-subroutine controller_var1_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine controller_var1_to_c2 (C, z_name, z_value, z_old_value) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    character(c_char) :: z_name(*)
-    real(c_double) :: z_value, z_old_value
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(controller_var1_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call controller_var1_to_c2 (C, trim(F%name) // c_null_char, F%value, F%old_value)
-
-end subroutine controller_var1_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine controller_var1_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_controller_var1 structure to a Bmad controller_var1_struct structure.
-! This routine is called by controller_var1_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the controller_var1_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad controller_var1_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine controller_var1_to_f2 (Fp, z_name, z_value, z_old_value) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(controller_var1_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-character(c_char) :: z_name(*)
-real(c_double) :: z_value, z_old_value
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[character, 0, NOT]
-call to_f_str(z_name, F%name)
-!! f_side.to_f2_trans[real, 0, NOT]
-F%value = z_value
-!! f_side.to_f2_trans[real, 0, NOT]
-F%old_value = z_old_value
-
-end subroutine controller_var1_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine controller_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad controller_struct to a C++ CPP_controller structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad controller_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_controller struct.
-!-
-
-subroutine controller_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine controller_to_c2 (C, z_type, z_var, n1_var, z_x_knot, n1_x_knot) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    integer(c_int) :: z_type
-    type(c_ptr) :: z_var(*)
-    integer(c_int), value :: n1_var, n1_x_knot
-    real(c_double) :: z_x_knot(*)
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(controller_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-type(c_ptr), allocatable :: z_var(:)
-integer(c_int) :: n1_var
-integer(c_int) :: n1_x_knot
-
-!
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_c_trans[type, 1, ALLOC]
- n1_var = 0
-if (allocated(F%var)) then
-  n1_var = size(F%var); lb1 = lbound(F%var, 1) - 1
-  allocate (z_var(n1_var))
-  do jd1 = 1, n1_var
-    z_var(jd1) = c_loc(F%var(jd1+lb1))
-  enddo
-endif
-!! f_side.to_c_trans[real, 1, ALLOC]
-n1_x_knot = 0
-if (allocated(F%x_knot)) then
-  n1_x_knot = size(F%x_knot, 1)
-endif
-
-!! f_side.to_c2_call
-call controller_to_c2 (C, F%type, z_var, n1_var, fvec2vec(F%x_knot, n1_x_knot), n1_x_knot)
-
-end subroutine controller_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine controller_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_controller structure to a Bmad controller_struct structure.
-! This routine is called by controller_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the controller_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad controller_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine controller_to_f2 (Fp, z_type, z_var, n1_var, z_x_knot, n1_x_knot) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(controller_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_type
-type(c_ptr) :: z_var(*)
-integer(c_int), value :: n1_var, n1_x_knot
-type(c_ptr), value :: z_x_knot
-real(c_double), pointer :: f_x_knot(:)
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%type = z_type
-!! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_var == 0) then
-  if (allocated(F%var)) deallocate(F%var)
-else
-  if (allocated(F%var)) then
-    if (n1_var == 0 .or. any(shape(F%var) /= [n1_var])) deallocate(F%var)
-    if (any(lbound(F%var) /= 1)) deallocate(F%var)
-  endif
-  if (.not. allocated(F%var)) allocate(F%var(1:n1_var+1-1))
-  do jd1 = 1, n1_var
-    call controller_var1_to_f (z_var(jd1), c_loc(F%var(jd1+1-1)))
-  enddo
-endif
-
-!! f_side.to_f2_trans[real, 1, ALLOC]
-if (allocated(F%x_knot)) then
-  if (n1_x_knot == 0 .or. any(shape(F%x_knot) /= [n1_x_knot])) deallocate(F%x_knot)
-  if (any(lbound(F%x_knot) /= 1)) deallocate(F%x_knot)
-endif
-if (n1_x_knot /= 0) then
-  call c_f_pointer (z_x_knot, f_x_knot, [n1_x_knot])
-  if (.not. allocated(F%x_knot)) allocate(F%x_knot(n1_x_knot))
-  F%x_knot = f_x_knot(1:n1_x_knot)
-else
-  if (allocated(F%x_knot)) deallocate(F%x_knot)
-endif
-
-
-end subroutine controller_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -6272,9 +6057,9 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wall3d_section_to_c2 (C, z_name, z_material, z_v, n1_v, z_surface, n_surface, &
-      z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region, &
-      z_absolute_vertices_input, z_thickness, z_s, z_r0, z_dx0_ds, z_dy0_ds, z_x0_coef, &
-      z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
+      z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_vertices_state, z_patch_in_region, &
+      z_thickness, z_s, z_r0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, &
+      z_p2_coef) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -6282,8 +6067,8 @@ interface
     type(c_ptr) :: z_v(*)
     integer(c_int), value :: n1_v, n_surface
     type(c_ptr), value :: z_surface
-    integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
-    logical(c_bool) :: z_patch_in_region, z_absolute_vertices_input
+    integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_vertices_state
+    logical(c_bool) :: z_patch_in_region
     real(c_double) :: z_thickness, z_s, z_r0(*), z_dx0_ds, z_dy0_ds, z_x0_coef(*), z_y0_coef(*)
     real(c_double) :: z_dr_ds, z_p1_coef(*), z_p2_coef(*)
   end subroutine
@@ -6318,9 +6103,9 @@ if (associated(F%surface)) n_surface = 1
 !! f_side.to_c2_call
 call wall3d_section_to_c2 (C, trim(F%name) // c_null_char, trim(F%material) // c_null_char, &
     z_v, n1_v, c_loc(F%surface), n_surface, F%type, F%n_vertex_input, F%ix_ele, F%ix_branch, &
-    c_logic(F%patch_in_region), c_logic(F%absolute_vertices_input), F%thickness, F%s, &
-    fvec2vec(F%r0, 2), F%dx0_ds, F%dy0_ds, fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), &
-    F%dr_ds, fvec2vec(F%p1_coef, 3), fvec2vec(F%p2_coef, 3))
+    F%vertices_state, c_logic(F%patch_in_region), F%thickness, F%s, fvec2vec(F%r0, 2), &
+    F%dx0_ds, F%dy0_ds, fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, &
+    fvec2vec(F%p1_coef, 3), fvec2vec(F%p2_coef, 3))
 
 end subroutine wall3d_section_to_c
 
@@ -6341,9 +6126,9 @@ end subroutine wall3d_section_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine wall3d_section_to_f2 (Fp, z_name, z_material, z_v, n1_v, z_surface, n_surface, &
-    z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region, &
-    z_absolute_vertices_input, z_thickness, z_s, z_r0, z_dx0_ds, z_dy0_ds, z_x0_coef, &
-    z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
+    z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_vertices_state, z_patch_in_region, &
+    z_thickness, z_s, z_r0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, &
+    z_p2_coef) bind(c)
 
 
 implicit none
@@ -6357,8 +6142,8 @@ type(c_ptr) :: z_v(*)
 integer(c_int), value :: n1_v, n_surface
 type(c_ptr), value :: z_surface
 type(photon_reflect_surface_struct), pointer :: f_surface
-integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
-logical(c_bool) :: z_patch_in_region, z_absolute_vertices_input
+integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_vertices_state
+logical(c_bool) :: z_patch_in_region
 real(c_double) :: z_thickness, z_s, z_r0(*), z_dx0_ds, z_dy0_ds, z_x0_coef(*), z_y0_coef(*)
 real(c_double) :: z_dr_ds, z_p1_coef(*), z_p2_coef(*)
 
@@ -6398,10 +6183,10 @@ F%n_vertex_input = z_n_vertex_input
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_branch = z_ix_branch
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%vertices_state = z_vertices_state
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%patch_in_region = f_logic(z_patch_in_region)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%absolute_vertices_input = f_logic(z_absolute_vertices_input)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%thickness = z_thickness
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -6583,7 +6368,7 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine control_to_c2 (C, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, z_slave, &
-      z_lord, z_attribute, z_ix_attrib) bind(c)
+      z_lord, z_attribute, z_slave_name, z_ix_attrib) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -6591,7 +6376,7 @@ interface
     integer(c_int), value :: n1_y_knot, n1_stack
     type(c_ptr) :: z_stack(*)
     type(c_ptr), value :: z_slave, z_lord
-    character(c_char) :: z_attribute(*)
+    character(c_char) :: z_attribute(*), z_slave_name(*)
     integer(c_int) :: z_ix_attrib
   end subroutine
 end interface
@@ -6626,7 +6411,8 @@ endif
 
 !! f_side.to_c2_call
 call control_to_c2 (C, F%value, fvec2vec(F%y_knot, n1_y_knot), n1_y_knot, z_stack, n1_stack, &
-    c_loc(F%slave), c_loc(F%lord), trim(F%attribute) // c_null_char, F%ix_attrib)
+    c_loc(F%slave), c_loc(F%lord), trim(F%attribute) // c_null_char, trim(F%slave_name) // &
+    c_null_char, F%ix_attrib)
 
 end subroutine control_to_c
 
@@ -6647,7 +6433,7 @@ end subroutine control_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine control_to_f2 (Fp, z_value, z_y_knot, n1_y_knot, z_stack, n1_stack, z_slave, z_lord, &
-    z_attribute, z_ix_attrib) bind(c)
+    z_attribute, z_slave_name, z_ix_attrib) bind(c)
 
 
 implicit none
@@ -6661,7 +6447,7 @@ type(c_ptr), value :: z_y_knot, z_slave, z_lord
 real(c_double), pointer :: f_y_knot(:)
 integer(c_int), value :: n1_y_knot, n1_stack
 type(c_ptr) :: z_stack(*)
-character(c_char) :: z_attribute(*)
+character(c_char) :: z_attribute(*), z_slave_name(*)
 integer(c_int) :: z_ix_attrib
 
 call c_f_pointer (Fp, F)
@@ -6701,10 +6487,255 @@ call lat_ele_loc_to_f(z_slave, c_loc(F%slave))
 call lat_ele_loc_to_f(z_lord, c_loc(F%lord))
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_attribute, F%attribute)
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_slave_name, F%slave_name)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_attrib = z_ix_attrib
 
 end subroutine control_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine controller_var1_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad controller_var1_struct to a C++ CPP_controller_var1 structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad controller_var1_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_controller_var1 struct.
+!-
+
+subroutine controller_var1_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine controller_var1_to_c2 (C, z_name, z_value, z_old_value) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    character(c_char) :: z_name(*)
+    real(c_double) :: z_value, z_old_value
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(controller_var1_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call controller_var1_to_c2 (C, trim(F%name) // c_null_char, F%value, F%old_value)
+
+end subroutine controller_var1_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine controller_var1_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_controller_var1 structure to a Bmad controller_var1_struct structure.
+! This routine is called by controller_var1_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the controller_var1_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad controller_var1_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine controller_var1_to_f2 (Fp, z_name, z_value, z_old_value) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(controller_var1_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+character(c_char) :: z_name(*)
+real(c_double) :: z_value, z_old_value
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_name, F%name)
+!! f_side.to_f2_trans[real, 0, NOT]
+F%value = z_value
+!! f_side.to_f2_trans[real, 0, NOT]
+F%old_value = z_old_value
+
+end subroutine controller_var1_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine controller_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad controller_struct to a C++ CPP_controller structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad controller_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_controller struct.
+!-
+
+subroutine controller_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine controller_to_c2 (C, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
+      bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int) :: z_type
+    type(c_ptr) :: z_var(*), z_ramp(*)
+    integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
+    real(c_double) :: z_x_knot(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(controller_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_var(:)
+integer(c_int) :: n1_var
+type(c_ptr), allocatable :: z_ramp(:)
+integer(c_int) :: n1_ramp
+integer(c_int) :: n1_x_knot
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_var = 0
+if (allocated(F%var)) then
+  n1_var = size(F%var); lb1 = lbound(F%var, 1) - 1
+  allocate (z_var(n1_var))
+  do jd1 = 1, n1_var
+    z_var(jd1) = c_loc(F%var(jd1+lb1))
+  enddo
+endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_ramp = 0
+if (allocated(F%ramp)) then
+  n1_ramp = size(F%ramp); lb1 = lbound(F%ramp, 1) - 1
+  allocate (z_ramp(n1_ramp))
+  do jd1 = 1, n1_ramp
+    z_ramp(jd1) = c_loc(F%ramp(jd1+lb1))
+  enddo
+endif
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_x_knot = 0
+if (allocated(F%x_knot)) then
+  n1_x_knot = size(F%x_knot, 1)
+endif
+
+!! f_side.to_c2_call
+call controller_to_c2 (C, F%type, z_var, n1_var, z_ramp, n1_ramp, fvec2vec(F%x_knot, &
+    n1_x_knot), n1_x_knot)
+
+end subroutine controller_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine controller_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_controller structure to a Bmad controller_struct structure.
+! This routine is called by controller_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the controller_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad controller_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine controller_to_f2 (Fp, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
+    bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(controller_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_type
+type(c_ptr) :: z_var(*), z_ramp(*)
+integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
+type(c_ptr), value :: z_x_knot
+real(c_double), pointer :: f_x_knot(:)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_var == 0) then
+  if (allocated(F%var)) deallocate(F%var)
+else
+  if (allocated(F%var)) then
+    if (n1_var == 0 .or. any(shape(F%var) /= [n1_var])) deallocate(F%var)
+    if (any(lbound(F%var) /= 1)) deallocate(F%var)
+  endif
+  if (.not. allocated(F%var)) allocate(F%var(1:n1_var+1-1))
+  do jd1 = 1, n1_var
+    call controller_var1_to_f (z_var(jd1), c_loc(F%var(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_ramp == 0) then
+  if (allocated(F%ramp)) deallocate(F%ramp)
+else
+  if (allocated(F%ramp)) then
+    if (n1_ramp == 0 .or. any(shape(F%ramp) /= [n1_ramp])) deallocate(F%ramp)
+    if (any(lbound(F%ramp) /= 1)) deallocate(F%ramp)
+  endif
+  if (.not. allocated(F%ramp)) allocate(F%ramp(1:n1_ramp+1-1))
+  do jd1 = 1, n1_ramp
+    call control_to_f (z_ramp(jd1), c_loc(F%ramp(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%x_knot)) then
+  if (n1_x_knot == 0 .or. any(shape(F%x_knot) /= [n1_x_knot])) deallocate(F%x_knot)
+  if (any(lbound(F%x_knot) /= 1)) deallocate(F%x_knot)
+endif
+if (n1_x_knot /= 0) then
+  call c_f_pointer (z_x_knot, f_x_knot, [n1_x_knot])
+  if (.not. allocated(F%x_knot)) allocate(F%x_knot(n1_x_knot))
+  F%x_knot = f_x_knot(1:n1_x_knot)
+else
+  if (allocated(F%x_knot)) deallocate(F%x_knot)
+endif
+
+
+end subroutine controller_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
