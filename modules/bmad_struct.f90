@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 256
+integer, parameter :: bmad_inc_version$ = 257
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -364,6 +364,8 @@ end type
 ! Vertices are always ordered in increasing angle.
 ! Note: %surface is not saved in digested files.
 
+integer, parameter :: absolute$ = 1, relative$ = 2, shifted_to_relative$ = 3
+
 type wall3d_section_struct
   character(40) :: name = ''                ! Identifying name
   character(20) :: material = ''            ! Material.
@@ -374,8 +376,9 @@ type wall3d_section_struct
   integer :: n_vertex_input = 0             ! Number of vertices specified by the user.
   integer :: ix_ele = 0                     ! index of lattice element containing section
   integer :: ix_branch = 0                  ! Index of branch lattice element is in.
+  integer :: vertices_state = relative$     ! absolute$, or shifted_to_relative$. If set to absolute$ on input, 
+                                            !   will be changed to shifted_to_relative$ by section initalizer.
   logical :: patch_in_region = .false.      ! Patch element exists between this section and previous one?
-  logical :: absolute_vertices_input = .false. ! Input vertex numbers absolute or relative to r0?
   real(rp) :: thickness = -1                ! Material thickness.
   real(rp) :: s = 0                         ! Longitudinal position
   real(rp) :: r0(2) = 0                     ! Center of section

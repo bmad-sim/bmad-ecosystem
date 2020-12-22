@@ -232,9 +232,10 @@ endif
 ! Relative or absolute vertex numbers?
 ! Vertex numbers are always stored as relative so need to convert if input numbers are absolute.
 
-if (section%absolute_vertices_input) then
+if (section%vertices_state == absolute$) then
   v%x = v%x - section%r0(1)
   v%y = v%y - section%r0(2)
+  section%vertices_state = shifted_to_relative$
 endif
 
 ! Error check if there is only a single vertex

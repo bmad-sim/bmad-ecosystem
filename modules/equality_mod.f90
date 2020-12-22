@@ -15,17 +15,17 @@ use bmad_struct
 
 interface operator (==)
   module procedure eq_spline, eq_spin_polar, eq_surface_orientation, eq_ac_kicker_time, eq_ac_kicker_freq
-  module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var1
-  module procedure eq_controller, eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom
-  module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc
-  module procedure eq_wake, eq_taylor_term, eq_taylor, eq_em_taylor_term, eq_em_taylor
-  module procedure eq_cartesian_map_term1, eq_cartesian_map_term, eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term
-  module procedure eq_cylindrical_map, eq_grid_field_pt1, eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1
-  module procedure eq_taylor_field_plane, eq_taylor_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp
-  module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt
-  module procedure eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target
-  module procedure eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
-  module procedure eq_control, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init
+  module procedure eq_ac_kicker, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord
+  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_mode, eq_wake_sr
+  module procedure eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake, eq_taylor_term
+  module procedure eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term
+  module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
+  module procedure eq_grid_field_pt, eq_grid_field, eq_taylor_field_plane1, eq_taylor_field_plane, eq_taylor_field
+  module procedure eq_floor_position, eq_high_energy_space_charge, eq_xy_disp, eq_twiss, eq_mode3
+  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
+  module procedure eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element
+  module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_control, eq_controller_var1
+  module procedure eq_controller, eq_ellipse_beam_init, eq_kv_beam_init, eq_grid_beam_init, eq_beam_init
   module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
   module procedure eq_normal_modes, eq_em_field, eq_track_point, eq_track, eq_synch_rad_common
   module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_branch, eq_rad_int_all_ele
@@ -287,58 +287,6 @@ is_eq = is_eq .and. (f1%initialized .eqv. f2%initialized)
 is_eq = is_eq .and. (f1%ix_surface == f2%ix_surface)
 
 end function eq_photon_reflect_surface
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-elemental function eq_controller_var1 (f1, f2) result (is_eq)
-
-implicit none
-
-type(controller_var1_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[character, 0, NOT]
-is_eq = is_eq .and. (f1%name == f2%name)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%value == f2%value)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%old_value == f2%old_value)
-
-end function eq_controller_var1
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-elemental function eq_controller (f1, f2) result (is_eq)
-
-implicit none
-
-type(controller_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%type == f2%type)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%var) .eqv. allocated(f2%var))
-if (.not. is_eq) return
-if (allocated(f1%var)) is_eq = all(shape(f1%var) == shape(f2%var))
-if (.not. is_eq) return
-if (allocated(f1%var)) is_eq = all(f1%var == f2%var)
-!! f_side.equality_test[real, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%x_knot) .eqv. allocated(f2%x_knot))
-if (.not. is_eq) return
-if (allocated(f1%x_knot)) is_eq = all(shape(f1%x_knot) == shape(f2%x_knot))
-if (.not. is_eq) return
-if (allocated(f1%x_knot)) is_eq = all(f1%x_knot == f2%x_knot)
-
-end function eq_controller
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1606,10 +1554,10 @@ is_eq = is_eq .and. (f1%n_vertex_input == f2%n_vertex_input)
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%vertices_state == f2%vertices_state)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%patch_in_region .eqv. f2%patch_in_region)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%absolute_vertices_input .eqv. f2%absolute_vertices_input)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%thickness == f2%thickness)
 !! f_side.equality_test[real, 0, NOT]
@@ -1706,10 +1654,70 @@ is_eq = is_eq .and. (f1%slave == f2%slave)
 is_eq = is_eq .and. (f1%lord == f2%lord)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%attribute == f2%attribute)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%slave_name == f2%slave_name)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_attrib == f2%ix_attrib)
 
 end function eq_control
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_controller_var1 (f1, f2) result (is_eq)
+
+implicit none
+
+type(controller_var1_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%name == f2%name)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%value == f2%value)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%old_value == f2%old_value)
+
+end function eq_controller_var1
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_controller (f1, f2) result (is_eq)
+
+implicit none
+
+type(controller_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%type == f2%type)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%var) .eqv. allocated(f2%var))
+if (.not. is_eq) return
+if (allocated(f1%var)) is_eq = all(shape(f1%var) == shape(f2%var))
+if (.not. is_eq) return
+if (allocated(f1%var)) is_eq = all(f1%var == f2%var)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%ramp) .eqv. allocated(f2%ramp))
+if (.not. is_eq) return
+if (allocated(f1%ramp)) is_eq = all(shape(f1%ramp) == shape(f2%ramp))
+if (.not. is_eq) return
+if (allocated(f1%ramp)) is_eq = all(f1%ramp == f2%ramp)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%x_knot) .eqv. allocated(f2%x_knot))
+if (.not. is_eq) return
+if (allocated(f1%x_knot)) is_eq = all(shape(f1%x_knot) == shape(f2%x_knot))
+if (.not. is_eq) return
+if (allocated(f1%x_knot)) is_eq = all(f1%x_knot == f2%x_knot)
+
+end function eq_controller
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
