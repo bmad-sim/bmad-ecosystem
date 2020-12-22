@@ -89,7 +89,7 @@ type (expression_atom_struct), pointer :: stack(:)
 type (str_indexx_struct) str_index
 type (lat_ele_order_struct) order
 
-real(rp) s0, x_lim, y_lim, val
+real(rp) s0, x_lim, y_lim, val, x, y
 
 character(*) bmad_file
 character(4000) line
@@ -443,7 +443,11 @@ do ib = 0, ubound(lat%branch, 1)
  
         open (iu2, file = trim(path) // '/wall_' // trim(name))
         write (iu2, '(a)') '{'
-        write (iu2, '(2x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(ele%wall3d(1)%ele_anchor_pt)), ','
+
+        if (ele%key /= diffraction_plate$ .and. ele%key /= mask$) then
+          write (iu2, '(2x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(ele%wall3d(1)%ele_anchor_pt)), ','
+        endif
+
         do i = 1, size(ele%wall3d(1)%section)
           section => ele%wall3d(1)%section(i)
           write (iu2, '(2x, a)')   'section = {'
@@ -455,6 +459,14 @@ do ib = 0, ubound(lat%branch, 1)
             if (section%dr_ds /= real_garbage$) write (iu2, '(4x, 3a)')  'dr_ds = ', re_str(section%s), ','
           endif
 
+          if (any(section%r0 /= 0)) then
+            write (iu2, '(4x, 3a)')  'r0    = ', trim(array_re_str(section%r0, '()')), ','
+          endif
+
+          if (section%vertices_state == shifted_to_relative$) then
+            write (iu2, '(4x, 3a)')  'absolute_vertices = True,'
+          endif
+
           end_str = ','
           do j = 1, size(section%v)
             if (j == size(section%v)) then
@@ -462,18 +474,27 @@ do ib = 0, ubound(lat%branch, 1)
               if (i == size(ele%wall3d(1)%section)) end_str = '}}'
             endif
             v => section%v(j)
+
+            if (section%vertices_state == shifted_to_relative$) then
+              x = v%x + section%r0(1)
+              y = v%y + section%r0(2)
+            else
+              x = v%x
+              y = v%y
+            endif
+
             if (v%tilt /= 0) then
               write (iu2, '(4x, a, i0, 3a)') 'v(', j, ') = ', &
-                    trim(array_re_str([v%x, v%y, v%radius_x, v%radius_y, v%tilt], '{}')), end_str
+                    trim(array_re_str([x, y, v%radius_x, v%radius_y, v%tilt], '{}')), end_str
             elseif (v%radius_y /= 0) then
               write (iu2, '(4x, a, i0, 3a)') 'v(', j, ') = ', &
-                    trim(array_re_str([v%x, v%y, v%radius_x, v%radius_y], '{}')), end_str
+                    trim(array_re_str([x, y, v%radius_x, v%radius_y], '{}')), end_str
             elseif (v%radius_x /= 0) then
               write (iu2, '(4x, a, i0, 3a)') 'v(', j, ') = ', &
-                    trim(array_re_str([v%x, v%y, v%radius_x], '{}')), end_str
+                    trim(array_re_str([x, y, v%radius_x], '{}')), end_str
             else
               write (iu2, '(4x, a, i0, 3a)') 'v(', j, ') = ', &
-                    trim(array_re_str([v%x, v%y], '{}')), end_str
+                    trim(array_re_str([x, y], '{}')), end_str
             endif
           enddo
         enddo
@@ -702,6 +723,10 @@ do ib = 0, ubound(lat%branch, 1)
       if (.not. attribute_free (ele, attrib%name, .false., .true.)) cycle
       if ((attrib%name == 'P0C' .or. attrib%name == 'P0C_START') .and. &
                           (ele%lord_status /= multipass_lord$ .or. nint(ele%value(multipass_ref_energy$)) == first_pass$)) cycle
+
+      if (ele%key == mask$ .or. ele%key == diffraction_plate$) then
+        if (j == x1_limit$ .or. j == x2_limit$ .or. j == y1_limit$ .or. j == y2_limit$)  cycle
+      endif
 
       ! Default for ds_step and integrator_order is determined by attribute_bookkeeper based upon the
       ! settings of other parameters like the element's strength.
