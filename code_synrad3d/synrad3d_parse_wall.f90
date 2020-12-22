@@ -350,7 +350,11 @@ do i = 1, n_shape
   sec3d%r0 = r0
   sec3d%n_vertex_input = nv-1
 
-  sec3d%absolute_vertices_input = absolute_vertices
+  if (absolute_vertices) then
+    sec3d%vertices_state = absolute$
+  else
+    sec3d%vertices_state = relative$
+  endif
 
   call wall3d_section_initializer (sec3d, err)
   if (err) then
