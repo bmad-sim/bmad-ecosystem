@@ -655,7 +655,7 @@ def parse_command(command, dlist):
 
   if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
                   'emit', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 'flatten', 
-                  'elseif', 'else']:
+                  'elseif', 'else', 'savebeta']:
     return
 
   if 'macro' in dlist:
