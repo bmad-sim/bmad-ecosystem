@@ -2871,7 +2871,6 @@ General \vn{mask} element attributes are:
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}  \\
   Description strings        & \ref{s:alias}     & Superposition              & \ref{s:super}   \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods} \\
-  Mask geometry              & \ref{s:wall}      &                            &                 \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2883,9 +2882,11 @@ Notice that, unlike a \vn{rcollimator} or a \vn{ecollimator}, a \vn{mask} elemen
 \index{mode}\index{field_scale_factor}
 Attributes specific to a \vn{mask} element are:
 \begin{example}
-  mode               = <Type>   ! Reflection or transmission.
-  field_scale_factor = <Real>   ! Factor to scale the photon field
-  ref_wavelength                ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
+  mode               = <Type>   ! Reflection or transmission (photon tracking only).
+  field_scale_factor = <Real>   ! Factor to scale the photon field.
+  ref_wavelength                ! Reference wavelength (\sref{s:energy}). Dependent attrib (\sref{s:depend}).
+  wall               = \{...\}    ! Defines mask geometry (\ref{s:wall}, \ref{s:masking.wall}).
+
 \end{example}
 
 Note: These attributes are only pertinent for photon tracking. Charged
@@ -2900,20 +2901,18 @@ or reflected. Possible values for the \vn{mode} switch are:
   transmission        ! Default
 \end{example}
 
-The geometry of the mask, that is, where the openings (in
-transmission mode) or reflection regions are, is defined using the
-``wall'' attribute. See (\sref{s:wall}) for more details.
+The geometry of the mask, that is, where the openings (in transmission mode) or reflection regions
+are, is defined using the ``wall'' attribute. See \sref{s:wall} and \ref{s:masking.wall} for more
+details.
 
-In transmission mode, a \vn{mask} is nominally orientated
-transversely to the beam. Like all other elements, the
-\vn{mask} can be reoriented using the element's offsets,
-pitches and tilt attributes (\sref{s:offset}).
+In transmission mode, a \vn{mask} is nominally orientated transversely to the beam. Like all other
+elements, the \vn{mask} can be reoriented using the element's offsets, pitches and tilt attributes
+(\sref{s:offset}).
 
 \index{aperture_type}
-The \vn{aperture_type} (\sref{s:limit}) parameter of a
-\vn{mask} will default to \vn{auto} which will set the
-aperture limits to define a rectangular aperture that just cover the
-clear area of the mask.
+The \vn{aperture_type} (\sref{s:limit}) parameter of a \vn{mask} will default to \vn{auto} which
+will set the aperture limits to define a rectangular aperture that just cover the clear area of the
+mask.
 
 \index{field_scale_factor}
 The \vn{field_scale_factor}, if set to a non-zero value (zero is the
@@ -2922,19 +2921,20 @@ the \vn{mask} element:
 \begin{example}
   field -> field * field_scale_factor
 \end{example}
-Scaling is useful since the electric field of photons traveling through a
-\vn{mask} are renormalized (see \Eqs{eeo4p} and
-\eq{eek4p}). This can lead to large variation of the photon field and
-can, for example, make visual interpretation of plots of field verses
-longitudinal position difficult to interpret. \vn{field_scale_factor}
-can be used to keep the field more or less constant.
+Scaling is useful since the electric field of photons traveling through a \vn{mask} are renormalized
+(see \Eqs{eeo4p} and \eq{eek4p}). This can lead to large variation of the photon field and can, for
+example, make visual interpretation of plots of field verses longitudinal position difficult to
+interpret. \vn{field_scale_factor} can be used to keep the field more or less constant.
 
-A \vn{mask} that is ``turned off'' (\vn{is_on} attribute set to
-False), does not mask at all and transmits everything.
+A \vn{mask} that is ``turned off'' (\vn{is_on} attribute set to False), does not mask at all and
+transmits everything.
 
 Example:
 \begin{example}
-  scrapper: mask, wall = \{...\}
+scrapper: mask, mode = transmission, wall = \{
+    section = \{type = clear, v(1) = \{0.9, 0.5\}\},
+    section = \{type = opaque, r0 = (0, 0.4), v(1) = \{0.1, 0.1\}\}
+  \}
 \end{example}
 
 %-----------------------------------------------------------------

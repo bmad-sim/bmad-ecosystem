@@ -1348,8 +1348,9 @@ The syntax of the \vn{wall} attribute is:
     section = \{ 
       type = <section_type>,           ! Chamber Mask, and Diffraction_plate only
       s = <longitudinal_position>,     ! Relative to beginning of element.
-      r0 = (<x0>, <y0>),               ! section (x,y) origin
-      absolute_vertices = <T/F>,       ! Vertex nums: abs or relative to r0? Default = F.
+                                       !   Not used for mask or diffraction_plate.
+      r0 = (<x0>, <y0>),               ! section (x,y) origin. Default = (0, 0).
+      absolute_vertices = <T/F>,       ! Vertex relative to r0? Default = F.
       material = <material_type>,      ! Mask and Diffraction_plate only.
       thickness = <real>,              ! Mask and Diffraction_plate only.
       dr_ds = <value>,                 ! Capillary and Chamber only
@@ -1398,12 +1399,11 @@ section of an ellipse.}
 
 The wall is defined by a number of cross-sectional slices. For \fig{f:chamber.wall}A shows the
 geometry for \vn{capillary} or vacuum chamber walls.  Each cross-section is defined by a
-longitudinal position $s$ relative to the beginning of the element and a number of vertices. The
-verticies are defined with respect to the local sector origin $r_0$ except if \vn{absolute_vertices}
-is set to \vn{True} in which case the vertex numbers are taken as absolute. The arc between each
-vertex may be either a straight line, an arc of a circle, or a section of an ellipse. For a
-capillary it is mandatory that a cross-section be convex. That is, given any two points within the
-cross-section, all points on the line segment connecting them must be within the cross-section.
+longitudinal position $s$ relative to the beginning of the element and a number of vertices. The arc
+between each vertex may be either a straight line, an arc of a circle, or a section of an
+ellipse. For a capillary it is mandatory that a cross-section be convex. That is, given any two
+points within the cross-section, all points on the line segment connecting them must be within the
+cross-section.
 
 The \vn{v(<j>)} within a cross-section define the vertices for each cross-section. The vertices are
 defined with respect to the section origin given by \vn{r0}. Each \vn{v(<j>)} has five
@@ -1434,11 +1434,12 @@ For vertices \vn{<v(i)>} and \vn{<v(i+1)>} connected by a line segment
 this translates to
 \begin{equation}
   0 < \theta_{i+1} - \theta_{i} \pmod{2\pi} < \pi
+  \label{0tt2p}
 \end{equation}
-where $(r_n, \theta_n)$ are the polar coordinates of the $n^{th}$ vertex. For vertices connected by
-an arc, ``counter clockwise manner'' means that the line segment with one end at the center of the
-arc and the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>} rotates in counter
-clockwise as shown in \fig{f:chamber.wall}B.
+where $(r_n, \theta_n)$ are the polar coordinates of the $n^{th}$ vertex with respect to the point
+\vn{r0$. For vertices connected by an arc, ``counter clockwise manner'' means that the line segment
+with one end at the center of the arc and the other end traversing the arc from \vn{<v(i)>} to
+\vn{<v(i+1)>} rotates in counter clockwise as shown in \fig{f:chamber.wall}B.
 
 The red line segment with one end at the center of the arc and the other end traversing the arc
 from, in this case, $V(2)$ to $V(3)$, rotates in counter clockwise manner. In general, there are two
@@ -1481,6 +1482,18 @@ specified, the cross-section is a rectangle. For example
 \begin{example}
   section = \{s = 0.3, v(1) = \{0.03, 0.01\}\}
 \end{example}
+
+The verticies are defined with respect to the local sector origin $r_0$ except if
+\vn{absolute_vertices} is set to \vn{True} in which case the vertex numbers are taken as absolute.
+For example, the following two cross-sections are identical and describe a rectangle with edges at
+$x = 1$ and 5 and $y = -6$ and 6
+\begin{example}
+  section = \{absolute_vertices = T, r0 = (4, 0), 
+                  v(1) = \{5, 6\}, v(2) = \{1, 6\}, v(3) = \{1, -6\}, v(4) = \{5, -6\}\}
+  section = \{r0 = (4, 0), v(1) = \{2, 6\}\}
+\end{example}
+Notice that while $r0$ is not needed in the first section for positioning of the vertices, it is
+needed in the first section to make \Eq{0tt2p} true.
 
 %-----------------------------------------------------------------
 \subsection{Interpolation Between Sections}
@@ -1675,50 +1688,64 @@ need a different interpolation scheme since, \vn{leg1} and \vn{trunk1}, as well 
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[width=5in]{diffraction-plate.pdf}
+  \includegraphics[width=6in]{diffraction-plate.pdf}
   \caption[Example mask wall]{
-A) The diffraction plate or mask surface is divided into ``clear'' (white) and ``opaque'' (black)
-areas. In this example there are two clear sections labeled \#1 and \#2. B) All wall sections must
-be star shaped with respect to the section's origin. In this example, The section is {\em not} star
-shaped since a line drawn from the origin point $o$ to the point $p$ on the boundary intersects the
-boundary twice in between. In this case the section can be made star shaped by moving the origin to
-$o'$.
+A) The surface of a \vn{diffraction_plate} or \vn{mask} element is divided into ``clear'' (white)
+and ``opaque'' (black) areas. As explained in the text, these areas are defined by five
+\vn{sections} labelled $s_1$ through $s_5$. B) All wall sections must be star shaped with respect to
+the section's origin. In this example, The section is {\em not} star shaped since a line drawn from
+the origin point $o$ to the point $p$ on the boundary intersects the boundary twice in between. In
+this case the section can be made star shaped by moving the origin to $o'$.
   }
   \label{f:diff.plate}
 \end{figure}
 
-The \vn{wall} of a \vn{diffraction_plate} or \vn{mask} element specifies what areas of the element
-will transmit or reflect particle and what areas will not. The areas where there is transmission or
-reflection are called ``clear'' areas and everything else is called ``opaque''.
+The \vn{wall} attribute (\sref{s:wall}) of a \vn{diffraction_plate} or \vn{mask} element specifies
+what areas of the element will transmit or reflect particle and what areas will not. Here the
+``wall'' defines a 2-dimensional area where particles (or X-rays) impinge upon and not a
+3-dimensional surface.  As such, the \vn{s} longitudinal position parameter of wall \vn{sections} is
+not used with \vn{mask} and \vn{diffraction_plate} elements.
 
-A \vn{wall} is comprised a a ordered list of \vn{sections} as discussed in
-\sref{s:wall.section}. Each section of the wall must have its \vn{type} attribute set to one of:
+The algorithm used to decide if a particle hitting a given point will be transmitted or not is as
+follows.  A \vn{wall} is comprised a a ordered list of \vn{sections} as discussed in
+\sref{s:wall.section}.  Sections will be labeled $s_1, s_2, s_3, \ldots$ with $s_i$ being the $i$\Th
+section defined in the \vn{wall} structure. Each section of the wall must have its \vn{type}
+attribute set to one of:
 \begin{example}
   clear
   opaque
 \end{example}
-A section is called ``clear'' or ``opaque'' depending upon the setting
-of its \vn{type} attribute. Do not confuse ``clear section'' with 
-``clear area''.
+A section is called ``clear'' or ``opaque'' depending upon the setting of its \vn{type} attribute.
+The first section $s_1$ must be labeled \vn{clear}. Each \vn{clear} section has zero or more
+associated \vn{opaque} sections. An opaque section $s_j$ is associated with clear section $s_i$ if
+and only if $i$ is less than $j$, and all the sections $k$ between $i$ and $j$ (that is, $i < k < j$)
+are opaque sections. For example, if the \vn{wall} defines 6 sections:
+\begin{example}
+  $s_1$   Clear
+  $s_2$   Clear
+  $s_3$   Opaque
+  $s_4$   Opaque
+  $s_5$   Clear
+  $s_6$   Opaque
+\end{example}
+Then clear section $s_1$ does not have any associated opaque sections, clear section $s_2$ has two
+associated opaque section $s_3$ and $s_4$, and clear section $s_5$ has one associated opaque section
+$s_6$.
 
-A clear area is defined by one or more consecutive wall sections. The first section that defines a
-clear area must be a clear section.  All the other sections associated with a clear area must be
-opaque sections.  That is, a clear area starts with a clear section and any proceeding opaque
-sections up to the next clear section or the end of the section list. As a consequence of the above
-rules, the fist section of the wall must be a clear section and the number of clear areas is equal
-to the number of clear sections.
+Each \vn{section} covers an area specified by the vertex list associated with the \vn{section}. To
+decide if a particle is transmitted, each clear section, starting from $s_1$, is tested to see if
+the particle's $(x,y)$ coordinates is within the section. If the particle position is not within any
+clear section, the particle is considered to have hit an opaque region. If a particle is within one
+or more clear regions, let $s_i$ be the clear region with the smallest index $i$ that the particle
+is within. The particle is transmitted if the particle is outside of all associated opaque region of
+$s_i$.
 
-The default behavior is that a photon will be transmitted if it is within any clear area. A photon
-is considered to be within a given clear area if its $(x,y)$ coordinates put in within the
-corresponding clear section but not within any \vn{opaque} section of the clear area.  \vn{Opaque}
-sections only affect the clear area they are associated with. See the example below.
+When tracking photons, any clear section can be given a \vn{material} and \vn{thickness}. Available
+materials are listed in \sref{s:cryst.list}. A photon transversing a clear area with a defined
+material will be attenuated and have a phase shift. Note that \vn{material} and \vn{thickness}
+properties are not to be assigned to \vn{opaque} sections.
 
-Any clear section can be given a \vn{material} and \vn{thickness}. Available materials are listed in
-\sref{s:cryst.list}. A photon transversing a clear area with a defined material will be attenuated
-and have a phase shift. Note that \vn{material} and \vn{thickness} properties are not to be assigned
-to \vn{opaque} sections.
-
-To enable \bmad to quickly calculate whether a photon has landed on a clear or opaque section, All
+To enable \bmad to quickly calculate whether a particle has landed on a clear or opaque section, All
 sections, both clear and opaque, must be ``star shaped'' with respect to the $(x_0, y_0)$ origin
 used by the section. That is, a line drawn from the section origin to any point on the section
 boundary must not pass through any boundary points of the section in between. This is illustrated in
@@ -1728,40 +1755,34 @@ section can trivially be made star shaped by moving the origin to point $o'$. If
 to make a section star shaped by moving the origin, the section must be divided into multiple
 sections.
 
-An example geometry is shown in \fig{f:diff.plate}A.  In the figure, there are two openings labeled
-\#1, and \#2. A wall that constructs this geometry is:
+An example geometry is shown in \fig{f:diff.plate}A. A wall that constructs this geometry is:
 \begin{example}
   z_plate: diffraction_plate, wall = \{
-    thickness = <real>
-    opaque_material = <material_type>
-    clear_material = <material_type>
-    section = \{           ! Clear area \# 1
-      type = clear, 
-      v(1) = \{0.04, 0\}, v(2) = \{0.04, 0.022\},
-      v(3) = \{0, 0.03\},
-    section = \{
-      type = opaque,
-      v(1) = \{0.032, 0.016\},
-    section = \{          ! Clear area \# 2
+    section = \{          ! $s_1$ 
       type = clear,
       v(1) = \{0, 0, 0.03, 0.013\},
-    section = \{
+    section = \{          ! $s_2$
       type = opaque,
       v(1) = \{0, 0, 0.005\},
-    section = \{
+    section = \{          ! $s_3$
       type = opaque,
       r0 = (0.02, 0.00),
       v(1) = \{0, 0, 0.005\} \}
+    section = \{          ! $s_4$
+      type = clear, 
+      v(1) = \{0.04, 0\}, v(2) = \{0.04, 0.022\},
+      v(3) = \{0, 0.03\},
+    section = \{          ! $s_5$
+      type = opaque,
+      v(1) = \{0.032, 0.016\},
 \end{example}
-Clear area \#1 has a clear section and one opaque section. These sections rely on the four fold
-symmetry of the sections so that only points in the first quadrant need be specified. Clear area \#2
-has one clear section in the shape of an ellipse with two opaque circles. Notice that the
-\vn{opaque} section of clear area \#1 does not affect the clear area \#2 even though it (completely)
-overlaps clear area \#2.
-
-Sections may overlap and a opaque section does not have to be wholly within the corresponding clear
-section. If a photon is within multiple clear areas then, for the purposes of calculation, it is
-considered to be within the first possible clear area in the list.
+There are two clear sections $s_1$ and $s_4$. Clear section $s_1$ has an oval shape and has two
+associated circular opaque sections $s_2$ and $s_3$. Clear section $s_4$ has a hexagonal shape and
+has one associated rectangular opaque section $s_5$. Notice that because opaque section $s_5$ is
+associated with clear section $s_4$, and since clear section $s_4$ comes after clear section $s_1$,
+opaque section $s_5$ does not affect clear section $s_1$ even though $s_5$ (completely) overlaps
+$s_1$. This shows that the ordering of the clear sections is important but the ordering of the
+opaque sections associated with a given clear section is not important.
 
 %-----------------------------------------------------------------
 \section{Length Attributes}
