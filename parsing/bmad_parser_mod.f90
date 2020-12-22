@@ -848,8 +848,13 @@ if (attrib_word == 'WALL') then
           if (err_flag) return
                   
         case ('ABSOLUTE_VERTICES') 
-          call parser_get_logical (word, section%absolute_vertices_input, ele%name, delim, delim_found, err_flag)
+          call parser_get_logical (word, logic, ele%name, delim, delim_found, err_flag)
           if (err_flag) return
+          if (logic) then
+            section%vertices_state = absolute$
+          else
+            section%vertices_state = relative$
+          endif
 
         case ('X0') 
           call parse_evaluate_value (trim(ele%name) // ' ' // word, section%r0(1), lat, delim, delim_found, err_flag, ',}', ele)
