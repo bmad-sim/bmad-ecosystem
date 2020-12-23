@@ -828,9 +828,10 @@ type tao_dn_dpz_struct
 end type
 
 type tao_spin_polarization_struct
-  real(rp) :: pol_limit = real_garbage$  ! Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
-  real(rp) :: pol_rate = real_garbage$   ! Polarization rate (1/sec).
-  real(rp) :: depol_rate = real_garbage$ ! Depolarization rate (1/sec).
+  real(rp) :: pol_limit = real_garbage$    ! Equalibrium Polarization calculated via the Derbenev-Kondratenko-Mane formula.
+  real(rp) :: pol_limit_partial(3) = real_garbage$  ! Limit using only single mode to calc dn_dpz
+  real(rp) :: pol_rate = real_garbage$     ! Polarization rate (1/sec).
+  real(rp) :: depol_rate = real_garbage$   ! Depolarization rate (1/sec).
 end type
 
 ! For caching lattice calculations associated with plotting.
