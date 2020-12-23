@@ -2195,7 +2195,8 @@ what a box is see the QuickPlot documentation (\sref{s:line.symb}). In the above
 divides the region into two vertically stacked boxes and places itself into the bottom one.
 
 \vn{graph%allow_wrap_around} sets if, for a lattice with closed geometry, the curves contained in
-the graph are ``wrapped'' around the ends of the lattice. The default is \vn{True}.
+the graph are ``wrapped'' around the end of the lattice if \vn{graph%x%min} is negative. The default
+is \vn{True}. This only applies if \vn{plot%x_axis_type} is set to \vn{"s"}.
 
 \vn{graph%margin} sets the margin between the \vn{graph} and the \vn{box}
 it is drawn in.
@@ -2209,6 +2210,7 @@ following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
 \index{floor_plan}\index{beam_chamber_wall}
 \begin{example}
+  "controller"         ! Plot slave response for a controller lattice element (\sref{s:draw.control})
   "data"               ! Lattice parameters, data and/or variable plots (default) (\sref{s:plot.data}).
   "dynamic_aperture"   ! Dynamic aperture plot (\sref{s:dynamic.ap.plot}
   "floor_plan"         ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
@@ -2951,16 +2953,60 @@ attribute of the \vn{ele_shape}. The color of the line segments is set by the de
 of the line segments is set by the pattern definition.
 
 %-----------------------------------------------------------------
-\subsection{Drawing a Dynamic Aperture}
+\subsection{Drawing the Beam Aperture}
+\index{beam aperture drawing}
+\index{aperture drawing}
+\label{s:draw.ap}
+
+Beam apertures can be defined in the \bmad lattice file. Apertures can be defined in one of three
+ways. The most common is to set limit or aperture parameters for an element. Another possibility 
+is to use a \vn{mask} element (which can be used to define an aperture of arbitrary shape). The
+third possibility involves defining a continuous three-dimensional wall. This third possibility 
+is only used with Runge-Kutta type tracking. 
+
+To simplify things, the drawing of the beam aperture ignores any \vn{mask} elements (since the
+geometry can be very complicated here) and ignores any three-dimensional walls (which are only
+used for Runge-Kutta type tracking).
+
+To draw an aperture, the \vn{data_type} parameter of a \vn{curve} is set to one of
+\begin{example}
+  "aperture.+x"     ! Aperture in +X direction
+  "aperture.-x"     ! Aperture in -X direction
+  "aperture.+y"     ! Aperture in +Y direction
+  "aperture.-y"     ! Aperture in -Y direction
+\end{example}
+The apertures in the $+x$ and $+y$ directions will have positive values and the apertures in the
+$-x$ and $-y$ directions will have negative values
+
+The following example will graphs the horizontal orbit along with the horizontal apertures.
+\begin{example}
+  &tao_template_plot
+    plot%name        = "x_orbit"
+    plot%x_axis_type = "s"
+    plot%n_graph     = 1
+  /
+
+  &tao_template_graph
+    graph%name    = "x"
+    graph_index   = 1
+    graph%n_curve = 3
+
+    curve(1)%data_type    = "aperture.+x"
+    curve(1)%draw_symbols = T
+    curve(1)%draw_line    = F
+    curve(2)%data_type    = "aperture.-x"
+    curve(2)%draw_symbols = T
+    curve(2)%draw_line    = F
+    curve(3)%data_type = "orbit.x"
+  /
+\end{example}
+
+Note: Aperture curves will ignore the \vn{curve%component} parameter.
+
+%-----------------------------------------------------------------
+\subsection{Drawing Dynamic Aperture Curves}
 \index{dynamic aperture drawing}
 \label{s:dynamic.ap.plot}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=5in]{dynamic-aperture.pdf}
-  \caption{Example dynamic aperture plot.}
-  \label{f:da-plot}
-\end{figure}
 
 A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture
 calculation (\sref{s:dynamicaperture}). Example plot setup:
@@ -2984,25 +3030,26 @@ calculation (\sref{s:dynamicaperture}). Example plot setup:
   graph%x_axis_scale_factor = 1000
   graph%y%label = "y (mm)"
   graph%y%label_offset = .2
-  graph%y%max = 0
-  graph%y%min = 0
   graph%y%major_div = 4
   graph%n_curve = 3
-  curve(1)%y_axis_scale_factor = 1000
-  curve(2)%y_axis_scale_factor = 1000
-  curve(3)%y_axis_scale_factor = 1000
-  curve(1)%draw_symbols = F
-  curve(2)%draw_symbols = F
-  curve(3)%draw_symbols = F
+  curve(1:3)%y_axis_scale_factor = 3*1000
+  curve(1:3)%draw_symbols = 3*F
   curve(3)%data_type = "physical_aperture"
   curve(3)%line%color = "red"
   curve(3)%line%width = 5 
 /
 \end{example}
-This produces the plot on Fig.~\ref{f:da-plot}.  Each curve represents a single momentum
+This produces Fig.~\ref{f:da-plot}.  Each curve represents a single momentum
 calculation.  If there are more momenta than curves (as in this case), additional curves will
 automatically be created using the styles of the previous curves. Note that apertures are calculated
 at element 0.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{dynamic-aperture.pdf}
+  \caption{Example dynamic aperture plot.}
+  \label{f:da-plot}
+\end{figure}
 
 If there is a curve with \vn{%data_type} set to \vn{"physical_aperture"}, and if there is a lattice
 element at $s = 0$ that has an aperture set, this physical aperture will be drawn. Example: In the
@@ -3131,6 +3178,17 @@ longitudinal position along the machine centerline.
 
 Note: Use the command \vn{show ele -wall} to print information about the beam chamber wall for a
 particular element.
+
+%-----------------------------------------------------------------
+\subsection{Drawing a Controller Element Curves}
+\index{drawing controller element curves}
+\label{s:draw.control}
+
+A controller element is a \bmad lattice element that controls the parameters of other elements.
+There are three types of controller elements: \vn{groups}, \vn{overlays}, and \vn{rampers}. See 
+the Bmad manual for more details. A controller has one or more independent variables that control
+parameters of other elements. The response of a controlled parameter as a function of any one of 
+controller variables may be plotted.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Key Table}
@@ -3298,7 +3356,7 @@ data from these curves.
 
 The two curves from which the data is to be taken must be in the same graph. The $y$ values from the
 first curve will be taken to define the $x$ coordinate of the parametric curve and the $y$ values
-from the second curve will be taken to define the $y$ coordinate of the parameteric curve. The plot
+from the second curve will be taken to define the $y$ coordinate of the parametric curve. The plot
 that holds these curves will be called the ``\vn{source}'' plot. Example:
 \begin{example}
   &tao_template_plot

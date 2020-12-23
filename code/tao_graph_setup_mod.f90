@@ -4,6 +4,7 @@ use tao_interface
 use tao_lattice_calc_mod
 use tao_command_mod
 use tao_data_and_eval_mod
+use expression_mod, only: evaluate_expression_stack
 
 contains
 
@@ -82,6 +83,10 @@ case ('histogram')
 
 case ('dynamic_aperture')
   call tao_graph_dynamic_aperture_setup (plot, graph)
+
+case ('controller')
+  call tao_graph_controller_setup (graph)
+
 end select
 
 ! Renormalize
@@ -114,6 +119,126 @@ endif
 call tao_hook_graph_postsetup (plot, graph)
 
 end subroutine tao_graph_setup
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_graph_controller_setup (graph)
+
+implicit none
+
+type (tao_graph_struct), target :: graph
+type (tao_plot_struct), pointer :: plot
+type (tao_curve_struct), pointer :: curve
+type (tao_universe_struct), pointer :: u
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele, slave
+type (control_struct), pointer :: ctl
+
+real(rp) var, var0, value
+real(rp), allocatable :: x(:), y(:)
+integer i, j, ix, ix_slave, n_curve_pts, n_loc
+
+logical err, ok
+
+character(100) err_str
+character(40) name
+character(*), parameter :: r_name = 'tao_graph_controller_setup'
+
+
+!
+
+n_curve_pts = s%plot_page%n_curve_pts
+if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts
+
+allocate (x(0:n_curve_pts), y(0:n_curve_pts))
+
+do i = 1, size(graph%curve)
+  curve => graph%curve(i)
+  u => tao_pointer_to_universe (tao_curve_ix_uni(curve))
+
+  ix = index(curve%data_type, ':')
+  if (ix == 0) then
+    ix_slave = 1
+    name = curve%data_type
+  else
+    name = curve%data_type(:ix-1)
+    if (.not. is_integer(curve%data_type(ix+1:), ix_slave)) then
+      curve%valid = .false.
+      call out_io (s_error$, r_name, 'CURVE DATA_TYPE HAS NON-INTEGER SLAVE INDEX: ' // curve%data_type, &
+                                     'FOR CURVE: ' // tao_curve_name(curve))
+      cycle
+    endif
+  endif
+
+  call lat_ele_locator (name, u%model%lat, eles, n_loc, err)
+  if (n_loc == 0) then
+    call out_io (s_error$, r_name, 'CANNOT FIND CONTROLLER ELEMENT: ' // name, &
+                                   'FOR CURVE: ' // tao_curve_name(curve))
+    curve%valid = .false.
+    cycle
+  endif
+
+  if (n_loc > 0) then
+    call out_io (s_warn$, r_name, 'MULTIPLE ELEMENTS FOUND THAT MATCH: ' // name, &
+                                  'USING THE FIRST ONE.', &
+                                  'FOR CURVE: ' // tao_curve_name(curve))
+  endif
+
+  ele => eles(1)%ele
+  if (ele%key == group$ .or. ele%key == overlay$) then
+    if (ix_slave < 1 .or. ix_slave > ele%n_slave) then
+      call out_io (s_error$, r_name, 'SLAVE INDEX OF CONTROLLER ELEMENT OUT OF RANGE: ' // curve%data_type, &
+                                     'FOR CURVE: ' // tao_curve_name(curve))
+      curve%valid = .false.
+      cycle
+    endif
+    slave => pointer_to_slave (ele, ix_slave, ctl)
+
+  elseif (ele%key == ramper$) then
+    if (ix_slave < 1 .or. ix_slave > size(ele%control%ramp)) then
+      call out_io (s_error$, r_name, 'SLAVE INDEX OF CONTROLLER ELEMENT OUT OF RANGE: ' // curve%data_type, &
+                                     'FOR CURVE: ' // tao_curve_name(curve))
+      curve%valid = .false.
+      cycle
+    endif
+    ctl => ele%control%ramp(ix_slave)
+
+  else
+    call out_io (s_error$, r_name, 'ELEMENT IS NOT A GROUP, RAMPER, OR OVERLAY: ' // name, &
+                                   'FOR CURVE: ' // tao_curve_name(curve))
+    curve%valid = .false.
+    cycle
+  endif
+
+  var0 = ele%control%var(1)%value
+
+  do j = 1, n_curve_pts
+    var = graph%x%min + (j - 1) * (graph%x%max - graph%x%min) / n_curve_pts
+    ele%control%var(1)%value = var
+    if (ele%control%type == expression$) then
+      call evaluate_expression_stack(ctl%stack, value, err, err_str, ele%control%var, .false.)
+    else
+      call spline_akima_interpolate (ele%control%x_knot, ctl%y_knot, value, ok, value)
+    endif
+
+    x(j) = var
+    y(j) = value
+  enddo
+
+  call re_allocate (curve%x_symb, n_curve_pts)
+  call re_allocate (curve%y_symb, n_curve_pts)
+  curve%x_symb = x
+  curve%y_symb = y
+
+  call re_allocate (curve%x_line, n_curve_pts)
+  call re_allocate (curve%y_line, n_curve_pts)
+  curve%x_line = x
+  curve%y_line = y
+enddo
+
+end subroutine tao_graph_controller_setup
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1178,12 +1303,13 @@ type (ele_struct), pointer :: ele, ele1, ele2, slave
 type (branch_struct), pointer :: branch
 type (tao_curve_array_struct), allocatable :: curves(:)
 
-real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx, limit
+real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx, limit, len_branch
 real(rp), allocatable :: value_arr(:), x_arr(:), y_arr(:)
 real(rp), pointer :: var_ptr
 
-integer ii, k, m, n, n_dat, ie, jj, iv, ic
+integer ii, k, m, n, n_dat, n2_dat, ie, jj, iv, ic
 integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2, n_curve_pts
+integer, allocatable :: xx_arr(:)
 
 logical err, err_flag, smooth_curve, found, zero_average_phase, ok
 logical straight_line_between_syms, valid, in_graph
@@ -1761,10 +1887,10 @@ case ('lat', 'beam')
     return
   end select
 
-if (curve%draw_symbols) then
-  call tao_curve_datum_calc (scratch%eles, plot, curve, 'SYMBOL')
-  if (.not. curve%valid) return
-endif
+  if (curve%draw_symbols .and. curve%data_type(1:9) /= 'aperture.') then
+    call tao_curve_datum_calc (scratch%eles, plot, curve, 'SYMBOL')
+    if (.not. curve%valid) return
+  endif
 
 !----------------------------------------------------------------------------
 ! Case: Bad data_source
@@ -1780,6 +1906,7 @@ end select
 
 if (curve%data_type(1:9) == 'aperture.') then
   branch => u%model%lat%branch(curve%ix_branch)
+  call re_allocate (xx_arr, 100)
   call re_allocate (x_arr, 100)
   call re_allocate (y_arr, 100)
   ir = 0
@@ -1788,15 +1915,16 @@ if (curve%data_type(1:9) == 'aperture.') then
     ele => branch%ele(i)
 
     select case (curve%data_type)
-    case ('aperture.-x'); limit = ele%value(x1_limit$)
-    case ('aperture.+x'); limit = ele%value(x2_limit$)
-    case ('aperture.-y'); limit = ele%value(y1_limit$)
-    case ('aperture.+y'); limit = ele%value(y2_limit$)
+    case ('aperture.-x'); limit = -ele%value(x1_limit$)
+    case ('aperture.+x'); limit =  ele%value(x2_limit$)
+    case ('aperture.-y'); limit = -ele%value(y1_limit$)
+    case ('aperture.+y'); limit =  ele%value(y2_limit$)
     end select
 
     if (limit == 0) cycle
 
     if (ir + 2 > size(x_arr)) then
+      call re_allocate (xx_arr, 2*size(xx_arr))
       call re_allocate (x_arr, 2*size(x_arr))
       call re_allocate (y_arr, 2*size(y_arr))
     endif    
@@ -1804,35 +1932,75 @@ if (curve%data_type(1:9) == 'aperture.') then
     if (at_this_ele_end(physical_ele_end(first_track_edge$, 1, ele%orientation), ele%aperture_at)) then
       ir = ir + 1
       y_arr(ir) = limit
-      select case (plot%x_axis_type)
-      case ('index', 'ele_index');      x_arr(ir) = i - 1 
-      case ('s');                       x_arr(ir) = ele%s_start
-      end select
+      xx_arr(ir) = i - 1 
+      x_arr(ir) = ele%s_start
     endif
 
     if (at_this_ele_end(physical_ele_end(second_track_edge$, 1, ele%orientation), ele%aperture_at)) then
       ir = ir + 1
       y_arr(ir) = limit
-      select case (plot%x_axis_type)
-      case ('index', 'ele_index');      x_arr(ir) = i
-      case ('s');                       x_arr(ir) = ele%s
-      end select
+      xx_arr(ir) = i
+      x_arr(ir) = ele%s
     endif
   enddo
 
-  if (curve%draw_symbols) then
-    call re_allocate(curve%x_symb, ir)
-    call re_allocate(curve%y_symb, ir)
-    curve%x_symb = x_arr(1:ir)
-    curve%y_symb = y_arr(1:ir)
-  endif
-    
-  if (curve%draw_line) then
-    call re_allocate(curve%x_line, ir)
-    call re_allocate(curve%y_line, ir)
-    curve%x_line = x_arr(1:ir)
-    curve%y_line = y_arr(1:ir)
-  endif
+  !
+
+
+  select case (plot%x_axis_type)
+  case ('s')
+    len_branch = branch%param%total_length
+    call tao_graph_s_min_max_calc(graph, branch, x_min, x_max)
+
+    if (x_min < branch%ele(0)%s) then  ! Wrap case
+      ix1 = bracket_index(x_min+len_branch-10*bmad_com%significant_length, x_arr(1:ir), 1, restrict = .true.) 
+      if (x_max < branch%ele(0)%s) then
+        ix2 = bracket_index(x_max+len_branch+10*bmad_com%significant_length, x_arr(1:ir), 1, restrict = .true.) + 1
+      else
+        ix2 = ir
+      endif
+
+      n_dat = ix2 - ix1 + 1
+      call re_allocate(curve%x_symb, n_dat)
+      call re_allocate(curve%y_symb, n_dat)
+      curve%x_symb = x_arr(ix1:ix2)
+      curve%y_symb = y_arr(ix1:ix2)
+
+      if (x_max > branch%ele(0)%s) then
+        ix2 = bracket_index(x_max+10*bmad_com%significant_length, x_arr(1:ir), 1, restrict = .true.) + 1
+        n2_dat = ix2 + n_dat
+        call re_allocate(curve%x_symb, n2_dat)
+        call re_allocate(curve%y_symb, n2_dat)
+        curve%x_symb(n_dat+1:n2_dat) = x_arr(1:ix2)
+        curve%y_symb(n_dat+1:n2_dat) = y_arr(1:ix2)
+      endif
+
+    else  ! No wrap case.
+      ix1 = bracket_index(x_min-10*bmad_com%significant_length, x_arr(1:ir), 1, restrict = .true.) 
+      ix2 = bracket_index(x_max+10*bmad_com%significant_length, x_arr(1:ir), 1, restrict = .true.) + 1
+      n_dat = ix2 - ix1 + 1
+      call re_allocate(curve%x_symb, n_dat)
+      call re_allocate(curve%y_symb, n_dat)
+      curve%x_symb = x_arr(ix1:ix2)
+      curve%y_symb = y_arr(ix1:ix2)
+    endif
+
+
+  ! Index x-axis.
+  case default
+    ix1 = bracket_index_int(nint(x_min), xx_arr(1:ir), 1, restrict = .true.)
+    ix2 = bracket_index_int(nint(x_max), xx_arr(1:ir), 1, restrict = .true.) + 1
+    n_dat = ix2 - ix1 + 1
+    call re_allocate(curve%x_symb, n_dat)
+    call re_allocate(curve%y_symb, n_dat)
+    curve%x_symb = xx_arr(ix1:ix2)
+    curve%y_symb = y_arr(ix1:ix2)
+  end select
+
+  call re_allocate(curve%x_line, size(curve%x_symb))
+  call re_allocate(curve%y_line, size(curve%y_symb))
+  curve%x_line = curve%x_symb
+  curve%y_line = curve%y_symb
     
   return
 endif
@@ -2073,21 +2241,11 @@ endif
 
 ! x1 and x2 are the longitudinal end points of the plot
 
+call tao_graph_s_min_max_calc(curve%g, branch, x1, x2)
+
 radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
 
-x1 = branch%ele(0)%s
-x2 = branch%ele(n_ele_track)%s
-len_tot = x2 - x1
-if (curve%g%x%min /= curve%g%x%max) then
-  if (branch%param%geometry == closed$) then
-    x1 = min(branch%ele(n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
-    x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s-len_tot))
-  else
-    x1 = min(branch%ele(n_ele_track)%s, max(curve%g%x%min, x1))
-    x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s))
-  endif
-endif
 ele_ref => branch%ele(ix_ref)
 orb_ref => orb(ix_ref)
 s_last = ele_ref%s
@@ -2772,5 +2930,53 @@ endif
 is_ok = curve%valid
 
 end function tao_curve_check_universe
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_graph_s_min_max_calc(graph, branch, s_min, s_max)
+!
+! Routine to calculate min and max for a graph when plot%x_axis_type is set to "s".
+!
+! Input:
+!   graph   -- tao_graph_struct: Graph to calculate for.
+!   branch  -- branch_struct: Associated lattice branch.
+!
+! Output:
+!   s_min   -- real(rp): Graph min. May be negative with graph%allow_wrap_around = T.
+!   s_max   -- real(rp): Graph max.
+!-
+
+subroutine tao_graph_s_min_max_calc(graph, branch, s_min, s_max)
+
+implicit none
+
+type (tao_graph_struct) graph
+type (branch_struct) branch
+
+real(rp) s_min, s_max, len_tot
+integer n
+
+!
+
+n = branch%n_ele_track
+
+s_min = branch%ele(0)%s
+s_max = branch%ele(n)%s
+
+len_tot = s_max - s_min
+
+if (graph%x%min /= graph%x%max) then
+  if (branch%param%geometry == closed$) then
+    s_min = min(branch%ele(n)%s, max(graph%x%min, s_min-len_tot))
+    s_max = min(s_max, max(graph%x%max, branch%ele(0)%s-len_tot))
+  else
+    s_min = min(branch%ele(n)%s, max(graph%x%min, s_min))
+    s_max = min(s_max, max(graph%x%max, branch%ele(0)%s))
+  endif
+endif
+
+end subroutine tao_graph_s_min_max_calc
 
 end module
