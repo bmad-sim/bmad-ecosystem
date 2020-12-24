@@ -1,0 +1,32 @@
+Overview
+--------
+
+Program to plot output vs input of controller slave functions.
+Optionally, a table of the slave functions can be generated.
+
+A controller is Bmad Group, Overlay, or Ramper element.
+
+Example. In the lattice file:
+	ov: overlay = {q1[k1]:t^2}, var = {t}
+In this example the slave function for controller ov of parameter q1[k1] is the quadratic t^2. 
+
+
+Running
+-------
+
+On the command line:
+	> controller_function_plot {input-file-name}
+
+If input-file-name is not specified, the default is:
+	controller_function_plot.init
+
+There is an example in the directory (relative to a Bmad Distribution or Release):
+	util_programs/controller_function_plot
+
+Input parameters
+----------------
+
+Example:
+
+
+
