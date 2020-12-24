@@ -1,0 +1,13 @@
+&params
+  lat_file = 'lat.bmad'
+  controller_name = 'ramper'
+  control_var = ''   ! '' -> first var
+  slave_list = -1    ! -1 -> All slaves
+  var_min = 0        ! var_max = var_min for knot type rampers -> autoscale 
+  var_max = 0
+  n_curve_points = 0 ! Default is 200.
+  plot_size = 300, 400
+  table_file_name = 'table.dat'
+  make_plot = T
+  make_postscript = F
+/
