@@ -4,9 +4,6 @@
 ! Takes the inverse of a square matrix using LU Decomposition from
 ! Numerical Recipes.
 !
-! Module needed:
-!   sim_utils_interface
-!
 ! Input:
 !   mat(:,:)     -- Real(rp): Input matrix array
 !   print_err    -- Logical, optional: If True then the subroutine will type out

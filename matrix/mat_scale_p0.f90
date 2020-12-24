@@ -13,9 +13,6 @@
 !
 ! Note: This routine scales the exit P0 keeping the entrance P0 fixed.
 !
-! Module Needed:
-!   use sim_utils_interface
-!
 ! Input:
 !   mat_in(:,:) -- Real(rp): Matrix
 !   p0_ratio    -- Real(rp): optional: p0_exit / p0_entrance. is scaled by p0_ratio.

@@ -31,9 +31,6 @@ contains
 !
 ! The rotation angle is chosen in the range [-pi, pi].
 !
-! Module needed:
-!   use rotation_3d_mod
-!
 ! Input:
 !   w_mat(3,3) -- real(rp): Rotation matrix
 !
@@ -78,9 +75,6 @@ end subroutine w_mat_to_axis_angle
 ! Function w_mat_to_quat (w_mat) result (quat)
 !
 ! Routine to find the quaternion corresponding to a given 3D rotation matrix.
-!
-! Module needed:
-!   use rotation_3d_mod
 !
 ! Input:
 !   w_mat(3,3) -- real(rp): Rotation matrix
@@ -137,9 +131,6 @@ end function w_mat_to_quat
 !
 ! Routine to construct the 3D rotation matrix w_mat given a rotation quaternion
 !
-! Module needed:
-!   use rotation_3d_mod
-!
 ! Input:
 !   quat(4)    -- real(rp): Quaternion.
 !
@@ -188,9 +179,6 @@ end function quat_to_w_mat
 !
 ! Routine to construct the 3D rotation matrix w_mat given an axis of rotation
 ! and a rotation angle.
-!
-! Module needed:
-!   use rotation_3d_mod
 !
 ! Input:
 !   axis(3)    -- real(rp): Rotation axis. Does not have to be normalized.
@@ -600,9 +588,6 @@ end function rotate_vec_given_axis_angle
 !            
 ! Basic routine to rotate vector components around the x, y, or z axis.
 ! 
-! Module needed:
-!   use rotation_3d_mod
-!
 ! Input:
 !   vec(3)          -- real(rp): vector
 !   axis            -- integer: x_axis$, y_axis$, or z_axis$
@@ -645,9 +630,6 @@ end subroutine
 !            
 ! Basic routine to apply a rotation matrix to mat that rotates around the x, y, or z axis.
 ! 
-! Module needed:
-!   use rotation_3d_mod
-!
 ! Input:
 !   mat(3,3)        -- real(rp): matrix
 !   axis            -- integer: x_axis$, y_axis$, or z_axis$
