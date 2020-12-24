@@ -1429,15 +1429,14 @@ and \vn{v(2)} is circular in nature with a radius of 0.02. Since \vn{v(3)} does 
 \vn{<radius_x>} nor \vn{<radius_y>}, the cross-section between \vn{v(2)} and \vn{v(3)} is a straight
 line segment.
 
-The vertex points must be arranged in a ``counter clockwise manner''. 
-For vertices \vn{<v(i)>} and \vn{<v(i+1)>} connected by a line segment
-this translates to
+The vertex points must be arranged in a ``counter clockwise manner''.  For vertices \vn{<v(i)>} and
+\vn{<v(i+1)>} connected by a line segment this translates to
 \begin{equation}
   0 < \theta_{i+1} - \theta_{i} \pmod{2\pi} < \pi
   \label{0tt2p}
 \end{equation}
 where $(r_n, \theta_n)$ are the polar coordinates of the $n^{th}$ vertex with respect to the point
-\vn{r0$. For vertices connected by an arc, ``counter clockwise manner'' means that the line segment
+\vn{r0}. For vertices connected by an arc, ``counter clockwise manner'' means that the line segment
 with one end at the center of the arc and the other end traversing the arc from \vn{<v(i)>} to
 \vn{<v(i+1)>} rotates in counter clockwise as shown in \fig{f:chamber.wall}B.
 

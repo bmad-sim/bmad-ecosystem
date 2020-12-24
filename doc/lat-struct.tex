@@ -451,43 +451,33 @@ be in either the tracking or control parts of the branch.
 \end{table}
 
 \index{ele_struct!\%lord_status}\index{ele_struct!\%slave_status}
-Only some combinations of \vn{%lord_status}
-values and \vn{%slave_status} values are permissible for a given element.
-Table~\ref{f:lord.slave.a} lists the valid combinations. Thus, for
-example, it is {\em not} possible for an element to be simultaneously a
-\vn{super_lord} and a \vn{super_slave}. 
+Only some combinations of \vn{%lord_status} values and \vn{%slave_status} values are permissible for
+a given element.  Table~\ref{f:lord.slave.a} lists the valid combinations. Thus, for example, it is
+{\em not} possible for an element to be simultaneously a \vn{super_lord} and a \vn{super_slave}.
 
 \begin{figure}[tb]
-\centering
-\includegraphics[width=5.5in]{superimpose-and-multipass.pdf}
-\caption[Example of multipass combined with superposition]
-{Example of multipass combined with superposition. A \vn{multipass_lord}
-element named \vn{A} controls a set of \vn{multipass_slaves} (only one shown).
-The \vn{multipass_slave} elements are also \vn{super_lord} elements and they
-will control \vn{super_slave} elements in the tracking part of the branch.}
-\label{f:super.mul}
+\centering \includegraphics[width=5.5in]{superimpose-and-multipass.pdf} \caption[Example of
+multipass combined with superposition] {Example of multipass combined with superposition. A
+\vn{multipass_lord} element named \vn{A} controls a set of \vn{multipass_slaves} (only one shown).
+The \vn{multipass_slave} elements are also \vn{super_lord} elements and they will control
+\vn{super_slave} elements in the tracking part of the branch.}  \label{f:super.mul}
 \end{figure}
 
-For lord/slave pairs,
-Table~\ref{f:lord.slave.b} lists the valid combinations of
-\vn{%lord_status} values in the lord element and \vn{%slave_status}
-values in the slave element. Thus, for example, a
-\vn{super_slave} may only be controlled by a \vn{super_lord}. In the
-example in Section~\sref{s:multipass}, element \vn{A} would be a
-\vn{multipass_lord} and \vn{A\B1} and \vn{A\B2} would be
-\vn{multipass_slave}s. When superposition is combined with multipass,
-the elements in the tracking part of the branch will be
-\vn{super_slave}s.  These elements will be controlled by
-\vn{super_lord}s which will also be \vn{multipass_slave}s and these
-\vn{super_lord}/\vn{multipass_slave} elements will be controlled by
-\vn{multipass_lord}s. This is illustrated in \fig{f:super.mul}.
+For lord/slave pairs, Table~\ref{f:lord.slave.b} lists the valid combinations of \vn{%lord_status}
+values in the lord element and \vn{%slave_status} values in the slave element. Thus, for example, a
+\vn{super_slave} may only be controlled by a \vn{super_lord}. In the example in
+Section~\sref{s:multipass}, element \vn{A} would be a \vn{multipass_lord} and \vn{A\B1} and
+\vn{A\B2} would be \vn{multipass_slave}s. When superposition is combined with multipass, the
+elements in the tracking part of the branch will be \vn{super_slave}s.  These elements will be
+controlled by \vn{super_lord}s which will also be \vn{multipass_slave}s and these
+\vn{super_lord}/\vn{multipass_slave} elements will be controlled by \vn{multipass_lord}s. This is
+illustrated in \fig{f:super.mul}.
 
 \index{ele_struct!\%n_lord}\index{ele_struct!\%n_slave}
-The number of slave elements that a lord controls is given by the value
-of the lord's \vn{%n_slave} component. Additionally, the number of lord
-elements that the slave has is given by the value of the slave's.
-\vn{%n_lord} component. To find the slaves and lords of a given element,
-use the routines \Hyperref{r:pointer.to.slave}{pointer_to_slave} and
+The number of slave elements that a lord controls is given by the value of the lord's \vn{%n_slave}
+component. Additionally, the number of lord elements that the slave has is given by the value of the
+slave's.  \vn{%n_lord} component. To find the slaves and lords of a given element, use the routines
+\Hyperref{r:pointer.to.slave}{pointer_to_slave} and
 \Hyperref{r:pointer.to.lord}{pointer_to_lord}. Example:
 \begin{example}
   type (lat_struct), target :: lat
@@ -507,9 +497,8 @@ use the routines \Hyperref{r:pointer.to.slave}{pointer_to_slave} and
     ...
   enddo
 \end{example}
-The lord/slave bookkeeping is bidirectional. That is, 
-for any given element, call it \vn{this_ele}, consider the
-i\Th lord:
+For non-ramper elements, the lord/slave bookkeeping is bidirectional. That is, for any given
+element, call it \vn{this_ele}, consider the i\Th lord:
 \begin{example}
   lord_ele_i => pointer_to_lord (this_ele, i)
 \end{example}
@@ -518,8 +507,8 @@ element pointed to by
 \begin{example}
   pointer_to_slave(lord_ele_i, j)
 \end{example}
-is the original element \vn{this_ele}. The same is true for
-the slaves of any given element. That is, for the i\Th slave
+is the original element \vn{this_ele}. The same is true for the slaves of any given element. That
+is, for the i\Th slave
 \begin{example}
   slave_ele_i => pointer_to_slave (this_ele, i)
 \end{example}
@@ -529,6 +518,10 @@ element pointed to by
   pointer_to_lord(slave_ele_i, j)
 \end{example}
 
+For \vn{ramper} elements, slaves are chosen dynamically at run time. And it is up to the program to 
+implement code to use rampers. \bmad provides a helper routine (\zzz{apply_ramper}) to apply a ramper element
+to control any given element but \bmad itself never calls \vn{apply_ramper}.
+
 \index{slave!ordering}\index{lords!ordering}
 \index{super_lord}\index{super_slave}
 \index{multipass_lord}\index{multipass_slave}
@@ -536,27 +529,23 @@ element pointed to by
 The following ordering of slaves and lords is observed:
   \begin{description}
   \item[Slaves of a super_lord:] \Newline
-The associated \vn{super_slave} elements of a given \vn{super_lord}
-element are ordered from the entrance end of the \vn{super_lord}
-to the exit end. That is, in the code snippet above,
-\vn{pointer_to_slave (this_ele, 1)} will point to the slave at
-the start of the \vn{super_lord} and 
-\vn{ pointer_to_slave (this_ele, this_ele%n_lord)}
-will point to the slave at the exit end of the \vn{super_lord}.
+The associated \vn{super_slave} elements of a given \vn{super_lord} element are ordered from the
+entrance end of the \vn{super_lord} to the exit end. That is, in the code snippet above,
+\vn{pointer_to_slave (this_ele, 1)} will point to the slave at the start of the \vn{super_lord} and
+\vn{ pointer_to_slave (this_ele, this_ele%n_lord)} will point to the slave at the exit end of the
+\vn{super_lord}.
   \item[Slaves of a multipass_lord:] \Newline
-The associated \vn{multipass_slave} elements of a 
-\vn{multipass_lord} element are ordered by pass number. That is, 
-in the code snippet above, \vn{pointer_to_slave (this_ele, i)}
-will point to the slave of the $i$\Th pass.
+The associated \vn{multipass_slave} elements of a \vn{multipass_lord} element are ordered by pass
+number. That is, in the code snippet above, \vn{pointer_to_slave (this_ele, i)} will point to the
+slave of the $i$\Th pass.
   \item[Lord of a multipass_slave:] \Newline
-A \vn{multipass_slave} will have exactly one associated \vn{multipass_lord}
-and this lord will be the first one. That is, 
-\vn{pointer_to_lord (this_ele, 1)}.
+A \vn{multipass_slave} will have exactly one associated \vn{multipass_lord} and this lord will be
+the first one. That is, \vn{pointer_to_lord (this_ele, 1)}.
   \end{description}
 
 \index{control_struct}
-The element control information is stored in the \vn{lat%control(:)} array.
-Each element of this array is a \vn{control_struct} structure 
+The element control information is stored in the \vn{lat%control(:)} array.  Each element of this
+array is a \vn{control_struct} structure
 \begin{example}
   type control_struct
     type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
@@ -567,18 +556,15 @@ Each element of this array is a \vn{control_struct} structure
 \end{example}
 \index{girder}\index{overlay}\index{group}
 \index{lat_struct!\%control}
-Each element in the \vn{lat%control(:)} array holds the information on
-one lord/slave pair. The \vn{%lord} component gives the location of
-the lord element which is always in the root branch --- branch 0. The
-\vn{%slave} component give the element location of the slave element.
-The \vn{%stack} and \vn{%ix_attrib} components are used to store the
-arithmetic expression and attribute index for \vn{overlay} and \vn{group}
-control. The appropriate control_struct for a given lord/slave pair
-can be obtained from the optional fourth argument of the
-\Hyperref{r:pointer.to.lord}{pointer_to_lord} and
-\Hyperref{r:pointer.to.slave}{pointer_to_slave} functions.  Example:
-The following prints a list of the slaves, along with the attributes
-controlled and coefficients, on all group elements in a lattice.
+Each element in the \vn{lat%control(:)} array holds the information on one lord/slave pair. The
+\vn{%lord} component gives the location of the lord element which is always in the root branch ---
+branch 0. The \vn{%slave} component give the element location of the slave element.  The \vn{%stack}
+and \vn{%ix_attrib} components are used to store the arithmetic expression and attribute index for
+\vn{overlay} and \vn{group} control. The appropriate control_struct for a given lord/slave pair can
+be obtained from the optional fourth argument of the \Hyperref{r:pointer.to.lord}{pointer_to_lord}
+and \Hyperref{r:pointer.to.slave}{pointer_to_slave} functions.  Example: The following prints a list
+of the slaves, along with the attributes controlled and coefficients, on all group elements in a
+lattice.
 \begin{example}
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: lord, slave
@@ -599,11 +585,9 @@ controlled and coefficients, on all group elements in a lattice.
 
 \index{lat_struct!\%control}\index{lat_struct!\%n_slave_field}
 \index{lat_struct!\%ix1_slave}\index{lat_struct!\%n_slave}
-The elements in the \vn{lat%control(:)} array associated with
-the slaves of a given lord are in the same order as the slaves and the 
-index of the associated \vn{lat%control(:)} element of the first slave 
-is given by the \vn{%ix1_slave} component of the lord
-Example:
+The elements in the \vn{lat%control(:)} array associated with the slaves of a given lord are in the
+same order as the slaves and the index of the associated \vn{lat%control(:)} element of the first
+slave is given by the \vn{%ix1_slave} component of the lord Example:
 \begin{example}
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: lord, slave
@@ -639,32 +623,27 @@ This method for finding the lords of an element is considered
 ``private''. That is, no code outside of the official \bmad library
 should rely on this.
 
-\vn{slice_slave} element bookkeeping has is different depending upon
-whether the element being sliced is a \vn{super_slave} or not. If the
-element being sliced is a \vn{super_slave}, a \vn{slice_slave} element
-that is created is, for bookkeeping purposes, considered to be a slave
-of the \vn{super_slave}'s lords. In this case, the bookkeeping is
-exactly the same as that of any \vn{super_slave}, and
-\vn{pointer_to_lord} will return a pointer to one of the
-\vn{super_slave}'s lords.
+\vn{slice_slave} element bookkeeping has is different depending upon whether the element being
+sliced is a \vn{super_slave} or not. If the element being sliced is a \vn{super_slave}, a
+\vn{slice_slave} element that is created is, for bookkeeping purposes, considered to be a slave of
+the \vn{super_slave}'s lords. In this case, the bookkeeping is exactly the same as that of any
+\vn{super_slave}, and \vn{pointer_to_lord} will return a pointer to one of the \vn{super_slave}'s
+lords.
 
-On the other hand, if a non \vn{super_slave} element is being sliced,
-the \vn{%lord} pointer component of the \vn{slice_slave} will be set to
-point to the element being sliced.
+On the other hand, if a non \vn{super_slave} element is being sliced, the \vn{%lord} pointer
+component of the \vn{slice_slave} will be set to point to the element being sliced.
 
 %----------------------------------------------------------------------------
 \section{Lattice Bookkeeping}
 \label{s:lat.bookkeeping}
 
 \index{reference energy}
-The term ``lattice bookkeeping'' refers to the updating of
-the appropriate parameter values when a given parameter in the lattice is
-changed. For example, if the accelerating gradient of an \vn{lcavity}
-element is modified, the reference energy parameter of all elements
-downstream of the \vn{lcavity} will need to be changed and this can
-also alter the transfer maps of the \vn{lcavity} and downstream
-elements. \bmad divides the lattice bookkeeping into ``core'' part
-and everything else. The core part itself is divided into five parts:
+The term ``lattice bookkeeping'' refers to the updating of the appropriate parameter values when a
+given parameter in the lattice is changed. For example, if the accelerating gradient of an
+\vn{lcavity} element is modified, the reference energy parameter of all elements downstream of the
+\vn{lcavity} will need to be changed and this can also alter the transfer maps of the \vn{lcavity}
+and downstream elements. \bmad divides the lattice bookkeeping into ``core'' part and everything
+else. The core part itself is divided into five parts:
   \begin{description}
   \item[Attribute bookkeeping] \Newline
 This refers to intra-element dependent attribute bookkeeping (\sref{s:depend}).
@@ -686,37 +665,27 @@ This refers to the reference energy assigned to each element (\sref{s:ref.energy
 
 \index{bookkeeping!automatic}
 \index{bookkeeping!intelligent}
-Historically, as the concept of lattice bookkeeping was being
-developed, to be back compatible with existing programs, calls to
-bookkeeping routines were added to calculational routines such as the
-tracking routine \Hyperref{r:track1}{track1} and the routine for
-calculating the linear transfer map \Hyperref{r:make.mat6}{make_mat6}.
-This ``automatic'' bookkeeping system is inefficient since there is no
-good way to keep track of what element attributes have been modified
-which leads to redundant bookkeeping calculations. Eventually, as
-\bmad developed and became more complicated, it was found that the
-unnecessary bookkeeping load was generally causing a significant
-slowdown in program execution time --- even in programs where no
-element attributes were changed. To avoid this, an ``intelligent''
-bookkeeping system was developed. In order to be back compatible with
-existing programs, the automatic bookkeeping system is the
-default. However, given the fact that the automatic bookkeeping system
-has known deficiencies, and given the overhead with maintaining two
-bookkeeping systems, the current plan is to start phasing out the
-automatic bookkeeping system sometime in the not-so-far future. Thus
-old programs should be converted to the new system and all new
-programs should use the new bookkeeping system.
+Historically, as the concept of lattice bookkeeping was being developed, to be back compatible with
+existing programs, calls to bookkeeping routines were added to calculational routines such as the
+tracking routine \Hyperref{r:track1}{track1} and the routine for calculating the linear transfer map
+\Hyperref{r:make.mat6}{make_mat6}.  This ``automatic'' bookkeeping system is inefficient since there
+is no good way to keep track of what element attributes have been modified which leads to redundant
+bookkeeping calculations. Eventually, as \bmad developed and became more complicated, it was found
+that the unnecessary bookkeeping load was generally causing a significant slowdown in program
+execution time --- even in programs where no element attributes were changed. To avoid this, an
+``intelligent'' bookkeeping system was developed. In order to be back compatible with existing
+programs, the automatic bookkeeping system is the default. However, given the fact that the
+automatic bookkeeping system has known deficiencies, and given the overhead with maintaining two
+bookkeeping systems, the current plan is to start phasing out the automatic bookkeeping system
+sometime in the not-so-far future. Thus old programs should be converted to the new system and all
+new programs should use the new bookkeeping system.
 
 \index{bmad_common_struct!auto_bookkeeper}
-To use intelligent bookkeeping, a program must set the global
-\vn{bmad_com%auto_bookkeepper} to false. This is done once at the
-start of the program. When a set of attributes needs to be modified,
-the
-\Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
-routine must be called for each element attribute that is set. After
-all the attributes have been set,
-\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is called to do
-the core bookkeeping. Example
+To use intelligent bookkeeping, a program must set the global \vn{bmad_com%auto_bookkeepper} to
+false. This is done once at the start of the program. When a set of attributes needs to be modified,
+the \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute} routine must be
+called for each element attribute that is set. After all the attributes have been set,
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is called to do the core bookkeeping. Example
 \begin{example}
   type (lat_struct) lat
   ...
@@ -737,9 +706,8 @@ The \vn{attribute} argument may be either real, integer, or logical.
 
 \index{ele!\%status}
 \index{bookkeeper_status_struct}
-The \vn{set_flags_for_changed_attribute} routine sets flags in the
-\vn{ele%status} structure. This structure is of type
-\vn{bookkeeper_status_struct} and looks like
+The \vn{set_flags_for_changed_attribute} routine sets flags in the \vn{ele%status} structure. This
+structure is of type \vn{bookkeeper_status_struct} and looks like
 \begin{example}
   type bookkeeper_status_struct
     integer attributes      ! Intra element dependent attribute status
@@ -762,26 +730,21 @@ Possible values for the status components are
   ok\$
   stale\$
 \end{example}
-The \vn{set_flags_for_changed_attribute} routine sets the appropriate
-status components of an element to \vn{stale\$} which marks that
-element for the appropriate bookkeeping. When the bookkeeping is done
-by \vn{lattice_bookkeeper}, the \vn{stale\$} status components are set
-to \vn{ok\$}. The \vn{super_ok\$} value is reserved for use by any
-program that needs to do its own custom bookkeeping. How this works is
-as follows: The \bmad bookkeeping routines will never convert a status
-component with value \vn{super_ok\$} to \vn{ok\$} without first doing
-some needed bookkeeping. Thus if a program sets a status component to
-\vn{super_ok\$} and then later on finds that the status component is
-set to \vn{ok\$}, the program knows that bookkeeping has been done. An
-example will make this clear. Suppose a program needs to keep track of
-a collection of high order transfer maps between various points in a
-lattice. Suppose that the constant calculation of these maps would
-slow the program done so it is desired to recalculate a given map only
-when necessary. To implement this, the program could set the
-\vn{ele%status%mat6} attribute of all the element to \vn{super_ok\$}
-when the maps are calculated. If the program subsequently finds a
-\vn{ele%status%mat6} attribute of an element set to \vn{ok\$} it knows
-that it should recalculate any transfer maps that span that element.
+The \vn{set_flags_for_changed_attribute} routine sets the appropriate status components of an
+element to \vn{stale\$} which marks that element for the appropriate bookkeeping. When the
+bookkeeping is done by \vn{lattice_bookkeeper}, the \vn{stale\$} status components are set to
+\vn{ok\$}. The \vn{super_ok\$} value is reserved for use by any program that needs to do its own
+custom bookkeeping. How this works is as follows: The \bmad bookkeeping routines will never convert
+a status component with value \vn{super_ok\$} to \vn{ok\$} without first doing some needed
+bookkeeping. Thus if a program sets a status component to \vn{super_ok\$} and then later on finds
+that the status component is set to \vn{ok\$}, the program knows that bookkeeping has been done. An
+example will make this clear. Suppose a program needs to keep track of a collection of high order
+transfer maps between various points in a lattice. Suppose that the constant calculation of these
+maps would slow the program done so it is desired to recalculate a given map only when necessary. To
+implement this, the program could set the \vn{ele%status%mat6} attribute of all the element to
+\vn{super_ok\$} when the maps are calculated. If the program subsequently finds a
+\vn{ele%status%mat6} attribute of an element set to \vn{ok\$} it knows that it should recalculate
+any transfer maps that span that element.
 
 It is guaranteed that when \vn{lattice_bookkeeper} is run,
 all five core status components will not be \vn{stale\$}.
@@ -793,17 +756,14 @@ The routines used by \vn{lattice_bookkeeper} are:
   \Hyperref{r:lat.geometry}{lat_geometry}              ! Global (floor) positions.
   \Hyperref{r:lat.compute.ref.energy.and.time}{lat_compute_ref_energy_and_time}  ! Reference energy 
 \end{example}
-In general, these routines should not be called directly since the
-correct way to do things is not always straight forward. See the code
-for \vn{lattice_bookkeeper} for more details.
+In general, these routines should not be called directly since the correct way to do things is not
+always straight forward. See the code for \vn{lattice_bookkeeper} for more details.
 
-After the core bookkeeping is done, a program can call
-\Hyperref{r:lat.make.mat6}{lat_make_mat6} to remake the transfer matrices.
-\vn{lat_make_mat6} will remake the transfer matrices if either the
-\vn{ele%status%mat6} flag is \vn{stale\$} or the reference orbit
-around which the existing transfer matrix was computed has shifted.
-\vn{lat_make_mat6} will set the \vn{ele%status%mat6} flag to \vn{ok\$}
-for all elements whose transfer matrices are recomputed.
+After the core bookkeeping is done, a program can call \Hyperref{r:lat.make.mat6}{lat_make_mat6} to
+remake the transfer matrices.  \vn{lat_make_mat6} will remake the transfer matrices if either the
+\vn{ele%status%mat6} flag is \vn{stale\$} or the reference orbit around which the existing transfer
+matrix was computed has shifted.  \vn{lat_make_mat6} will set the \vn{ele%status%mat6} flag to
+\vn{ok\$} for all elements whose transfer matrices are recomputed.
 
 %----------------------------------------------------------------------------
 \section{particle_start Component}
