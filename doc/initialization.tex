@@ -2000,8 +2000,7 @@ syntax is:
   &tao_template_plot
     plot%name        = "<plot_name>"
     plot%x           = <qp_axis_struct>
-    plot%x_axis_type = "<x_axis_type>"   ! "index", "ele_index" "s", "lat", or "var". 
-                                         ! Default is "index".
+    plot%x_axis_type = "<x_axis_type>"   ! "index", "ele_index" "s", "lat", "var", etc. 
     plot%n_graph     = <n_graphs>
     plot%autoscale_gang_x = <logical>    ! Default: True.
     plot%autoscale_gang_y = <logical>    ! Default: True.
@@ -2073,7 +2072,7 @@ that this name not contain any blank spaces since \tao uses this fact in parsing
     "var"           ! Tao variable value. See \sref{s:plot.var}.
     "phase_space"   ! Set by \tao if graph%type = "phase_space".
     "none"          ! Set by \tao if graph%type = "key_table".
-    "floor"       ! Set by \tao if graph%type = "floor_plan".
+    "floor"         ! Set by \tao if graph%type = "floor_plan".
 \end{example}
 
 The \vn{ele_index} switch is used when plotting data arrays. In this
@@ -2210,7 +2209,6 @@ following types:
 \index{data}\index{lat_layout}\index{key_table}\index{phase_space}
 \index{floor_plan}\index{beam_chamber_wall}
 \begin{example}
-  "controller"         ! Plot slave response for a controller lattice element (\sref{s:draw.control})
   "data"               ! Lattice parameters, data and/or variable plots (default) (\sref{s:plot.data}).
   "dynamic_aperture"   ! Dynamic aperture plot (\sref{s:dynamic.ap.plot}
   "floor_plan"         ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
@@ -3179,16 +3177,20 @@ longitudinal position along the machine centerline.
 Note: Use the command \vn{show ele -wall} to print information about the beam chamber wall for a
 particular element.
 
-%-----------------------------------------------------------------
-\subsection{Drawing a Controller Element Curves}
-\index{drawing controller element curves}
-\label{s:draw.control}
+%%-----------------------------------------------------------------
+%\subsection{Drawing a Controller Element Curves}
+%\index{drawing controller element curves}
+%\label{s:draw.control}
+%
+%A controller element is a \bmad lattice element that controls the parameters of other elements.
+%There are three types of controller elements: \vn{groups}, \vn{overlays}, and \vn{rampers}. See 
+%the Bmad manual for more details. A controller has one or more independent variables that control
+%parameters of other elements. The response of a controlled parameter as a function of any one of 
+%controller variables may be plotted.
 
-A controller element is a \bmad lattice element that controls the parameters of other elements.
-There are three types of controller elements: \vn{groups}, \vn{overlays}, and \vn{rampers}. See 
-the Bmad manual for more details. A controller has one or more independent variables that control
-parameters of other elements. The response of a controlled parameter as a function of any one of 
-controller variables may be plotted.
+%% Put under graph%type:
+%%  "control_curve"      ! Plot slave response for a controller lattice element (\sref{s:draw.control})
+
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Key Table}
