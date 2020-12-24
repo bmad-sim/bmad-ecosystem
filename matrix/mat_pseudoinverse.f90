@@ -3,9 +3,6 @@
 !
 ! Makes Monroe-Penrose pseudoinverse of a matrix A.
 !
-! Module needed:
-!   sim_utils_interface
-!
 ! Input:
 !   A(:,:)        -- Real(rp): Input matrix array
 !   svd_condition -- Real(rp), optional: use only those singular values where

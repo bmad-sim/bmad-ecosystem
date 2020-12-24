@@ -56,9 +56,6 @@ type (random_state_struct), private, target, save :: ran_state_dflt
 ! Note: Use ran_engine to set which random number generator to use.
 ! Note: Use ran_gauss_converter to set which conversion routine to use.
 !
-! Module needed:
-!   use random_mod
-!
 ! Input:
 !   ran_state -- random_state_struct, optional: Internal state.
 !                     See the ran_seed_put documentation for more details.
@@ -552,9 +549,6 @@ end subroutine ran_seed_get
 ! Routine to set or get the state of the default random number generator.
 ! See the ran_seed_put documentation for more details
 !
-! Module needed:
-!   use random_mod
-!
 ! Input:
 !   set_state -- random_state_struct, optional: State to set the default generator to.
 !
@@ -684,9 +678,6 @@ end subroutine ran_uniform_vector
 !
 ! Routine patterened after sobseq in Numerical Recipes.
 ! Difference is that this version has an argument for the internal state.
-!
-! Module needed:
-!   use random_mod
 !
 ! Input:
 !   ran_state -- random_state_struct, optional: Generator state.

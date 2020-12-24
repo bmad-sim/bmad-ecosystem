@@ -3,9 +3,6 @@
 ! 
 ! Function to return the cross product of two vectors.
 !
-! Module needed:
-!  use sim_utils
-!
 ! Input:
 !   a(3), b(3) -- Real(rp): Input vectors.
 !

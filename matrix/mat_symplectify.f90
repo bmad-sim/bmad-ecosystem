@@ -20,9 +20,6 @@
 !   r_root = 1/N --> mat_symp^N ~ mat_in
 !   r_root = 1   --> mat_symp ~ mat_in
 !   
-! Module needed:
-!   use sim_utils_interface
-!
 ! Input:
 !   mat_in(:,:) -- Real(rp): Input matrix to symplectify.
 !   p0_ratio    -- Real(rp): optional: Ratio of p0_exit / p0_entrance. Default is 1.

@@ -10,9 +10,6 @@ contains
 !
 ! Routine to set a bit in a word.
 !
-! Module needed:
-!   use bit_mod
-!
 ! Input:
 !   word     -- Integer: Input word
 !   pos      -- Integer: position to set.

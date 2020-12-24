@@ -11,11 +11,11 @@ contains
 !+
 ! Subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 !
-! Routine for determining the eigen vectors and eigen values of a matrix.
+! Routine for determining the eigenvectors and eigenvalues of a matrix.
 ! The eigenvectors are normalized to 1.
 !
-! Modules needed:
-!   use eigen_mod
+! When the eigenvalues are complex conjugate pairs, the eigenvectors and eigenvalues
+! are grouped so that the conjugate pairs are in slots (1,2), (3,4), etc.
 !
 ! Input:
 !   mat(n,n)  -- Real(rp): Matrix. n must be even.

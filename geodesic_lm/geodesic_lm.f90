@@ -54,9 +54,6 @@ contains
 ! Routine to print or put information into a string array of the geodesic_lm parameters.
 ! If "lines" is not present, the information will be printed to the screen.
 !
-! Module needed:
-!   use geodesic_lm_mod
-!
 ! Input:
 !   print_coords -- logical, optional: If True then print coordinate and  patch information.
 !                     Default is True.

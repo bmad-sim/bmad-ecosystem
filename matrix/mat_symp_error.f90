@@ -14,9 +14,6 @@
 ! When the p0_ratio is not 1, mat is scalled to coordinates p0_ratio is 1 before the
 ! symplectic error is computed.
 !
-! Module Needed:
-!   use sim_utils_interface
-!
 ! Input:
 !   mat(:,:)      -- Real(rp): Matrix to check
 !   p0_ratio      -- Real(rp), optional: Ratio of p0_exit / p0_entrance. Default is 1.
