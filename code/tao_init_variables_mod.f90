@@ -41,7 +41,7 @@ real(rp) default_low_lim, default_high_lim, default_key_delta
 real(rp), allocatable, save :: default_key_d(:)
 
 integer ios, iu, i, j, j1, j2, k, ix, num
-integer n, iostat, n_list
+integer n, iostat, n_list, n_nml
 integer ix_min_var, ix_max_var, ix_ele, n_v1, n_v1_var_max
 
 character(*) var_file
@@ -93,13 +93,17 @@ endif
 
 allocate (default_key_b(100), default_key_d(100))
 n = 0
+n_nml = 0
 do
   call set_logical_to_garbage(default_key_bound)
   default_key_delta = 0
   v1_var%name = ''
+  n_nml = n_nml + 1
   read (iu, nml = tao_var, iostat = ios)
   if (ios > 0) then
-    call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR.')
+    call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR IN FILE: ' // var_file, &
+                                   'THIS IS THE ' // ordinal_str(n_nml) // ' TAO_VAR NAMELIST IN THE FILE.', &
+                                   'WITH V1_VAR%NAME = ' // quote(v1_var%name))
     rewind (iu)
     do
       read (iu, nml = tao_var)  ! force printing of error message
@@ -163,11 +167,11 @@ var_loop: do
 
   read (iu, nml = tao_var, iostat = ios)
   if (ios < 0 .and. v1_var%name == '') exit         ! exit on end-of-file
-  call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // v1_var%name)
+  call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // quote(v1_var%name))
 
   do i = 1, n_v1-1
     if (v1_var%name /= s%v1_var(i)%name) cycle
-    call out_io (s_error$, r_name, 'TWO V1 VARIABLE ARRAYS HAVE THE SAME NAME: ' // v1_var%name, &
+    call out_io (s_error$, r_name, 'TWO V1 VARIABLE ARRAYS HAVE THE SAME NAME: ' // quote(v1_var%name), &
                                    'THE SECOND ONE WILL BE IGNORED!')
     n_v1 = n_v1 - 1
     cycle var_loop
@@ -218,7 +222,7 @@ var_loop: do
     call location_decode (default_universe, dflt_good_unis, 1, num)
     if (num == 0) dflt_good_unis = .true.  ! blank => all
     if (num < 0) then
-      call out_io (s_error$, r_name, 'ERROR READING DEFAULT_UNIVERSE FOR: ' // v1_var%name)
+      call out_io (s_error$, r_name, 'ERROR READING DEFAULT_UNIVERSE FOR: ' // quote(v1_var%name))
       cycle
     endif
   endif
@@ -244,7 +248,7 @@ var_loop: do
             else
               call location_decode (var(j)%universe, good_unis, 1, num)
               if (num < 0) then
-                call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // v1_var%name)
+                call out_io (s_error$, r_name, 'ERROR READING UNIVERSE FOR: ' // quote(v1_var%name))
                 cycle
               endif
             endif
@@ -252,7 +256,7 @@ var_loop: do
         endif
 
         if (count(good_unis) == 0) then
-          call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // v1_var%name)
+          call out_io (s_error$, r_name, 'ERROR: NO UNIVERSE FOR: ' // quote(v1_var%name))
           call err_exit
         endif
 
@@ -560,7 +564,7 @@ else
   endif
 
   if (ix_max_var < ix_min_var) then
-    call out_io (s_abort$, r_name, 'NO ELEMENTS FOR: ' // v1_var%name)
+    call out_io (s_abort$, r_name, 'NO ELEMENTS FOR: ' // quote(v1_var%name))
     call err_exit
   endif
 

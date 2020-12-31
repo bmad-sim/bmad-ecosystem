@@ -84,7 +84,7 @@ case ('histogram')
 case ('dynamic_aperture')
   call tao_graph_dynamic_aperture_setup (plot, graph)
 
-case ('controller')
+case ('control_curve')  ! Not yet implemented
   call tao_graph_controller_setup (graph)
 
 end select
@@ -148,6 +148,8 @@ character(*), parameter :: r_name = 'tao_graph_controller_setup'
 
 
 !
+
+plot => graph%p
 
 n_curve_pts = s%plot_page%n_curve_pts
 if (plot%n_curve_pts > 0) n_curve_pts = plot%n_curve_pts

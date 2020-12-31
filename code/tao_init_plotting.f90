@@ -55,7 +55,7 @@ character(len(plot_file_in)) plot_file_array
 character(100) plot_file, full_file_name
 character(100) graph_name
 character(80) label
-character(40) str
+character(40) str, old_name
 character(16) color
 character(*), parameter :: r_name = 'tao_init_plotting'
 
@@ -331,7 +331,6 @@ ip = 0   ! number of template plots
 plot_file_array = plot_file_in
 
 do   ! Loop over plot files
-
   call string_trim(plot_file_array, plot_file_array, ix)
   if (ix == 0) exit
   plot_file = plot_file_array(1:ix)
@@ -339,8 +338,20 @@ do   ! Loop over plot files
   call tao_open_file (plot_file, iu, full_file_name, s_fatal$)
 
   do   ! Loop over templates in a file
-    read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
-    call out_io (s_blank$, r_name, 'Init: Read tao_template_plot ' // plot%name)
+    read (iu, nml = tao_template_plot, iostat = ios)
+    if (ios > 0) then
+      call out_io (s_error$, r_name, &
+                'TAO_TEMPLATE_PLOT NAMELIST READ ERROR.', 'IN FILE: ' // full_file_name, &
+                'THIS IS THE ' // ordinal_str(ip+1) // ' TAO_TEMPLATE_PLOT NAMELIST IN THE FILE.')
+
+      rewind (iu)
+      do
+        read (iu, nml = tao_template_plot)  ! force printing of error message
+      enddo
+      return
+    endif
+
+    call out_io (s_blank$, r_name, 'Init: Read tao_template_plot ' // quote(plot%name))
     if (ios /= 0) exit
     ip = ip + 1
   enddo
@@ -382,7 +393,7 @@ do  ! Loop over plot files
     plot = default_plot
     default_graph = master_default_graph
 
-    read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
+    read (iu, nml = tao_template_plot, iostat = ios)  
     if (ios /= 0) exit
 
     call out_io (s_blank$, r_name, 'Init: Read tao_template_plot namelist: ' // plot%name)
@@ -442,15 +453,26 @@ do  ! Loop over plot files
       curve(2:7)%symbol%color = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
       curve(2:7)%line%color = curve(2:7)%symbol%color
 
-      read (iu, nml = tao_template_graph, err = 9200)
+      read (iu, nml = tao_template_graph, iostat = ios)
+      if (ios > 0) then
+        call out_io (s_error$, r_name, &
+               'TAO_TEMPLATE_GRAPH NAMELIST READ ERROR.', 'IN FILE: ' // full_file_name, &
+               'AFTER TAO_TEMPLATE_PLOT WITH PLOT%NAME = ' // quote(plot%name), &
+               'READING TAO_TEMPLATE_GRAPH WITH INDEX: ' // int_str(i_graph))
+        rewind (iu)
+        do
+          read (iu, nml = tao_template_graph)  ! force printing of error message
+        enddo
+      endif
+
       call out_io (s_blank$, r_name, 'Init: Read tao_template_graph ' // graph%name)
       graph_name = trim(plot%name) // '.' // graph%name
       call out_io (s_blank$, r_name, 'Init: Read tao_template_graph namelist: ' // graph_name)
       if (graph_index /= i_graph) then
         call out_io (s_fatal$, r_name, &
-              'BAD "GRAPH_INDEX" FOR PLOT: ' // plot%name, &
+              'BAD "GRAPH_INDEX" FOR PLOT: ' // quote(plot%name), &
               'LOOKING FOR GRAPH_INDEX: \I0\ ', &
-              'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ', 'IN FILE: ' // plot_file, &
+              'BUT TAO_TEMPLATE_GRAPH HAD GRAPH_INDEX: \I0\ ', 'IN FILE: ' // plot_file, &
               i_array = [i_graph, graph_index] )
         call err_exit
       endif
@@ -753,28 +775,6 @@ call tao_hook_init_plotting()
 ! And finish
 
 call tao_create_plot_window
-
-return
-
-!-----------------------------------------
-
-9100 continue
-call out_io (s_error$, r_name, &
-        'TAO_TEMPLATE_PLOT NAMELIST READ ERROR.', 'IN FILE: ' // full_file_name)
-rewind (iu)
-do
-  read (iu, nml = tao_template_plot)  ! force printing of error message
-enddo
-
-!-----------------------------------------
-
-9200 continue
-call out_io (s_error$, r_name, &
-       'TAO_TEMPLATE_GRAPH NAMELIST READ ERROR.', 'IN FILE: ' // full_file_name)
-rewind (iu)
-do
-  read (iu, nml = tao_template_graph)  ! force printing of error message
-enddo
 
 !----------------------------------------------------------------------------------------
 contains
