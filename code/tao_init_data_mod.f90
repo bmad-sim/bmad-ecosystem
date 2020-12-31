@@ -38,7 +38,7 @@ type (lat_struct), pointer :: lat
 real(rp) default_weight, def_weight        ! default merit function weight
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
-integer n, iostat, n_loc, n_hterms
+integer n, iostat, n_loc, n_hterms, n_nml
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
 integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
@@ -96,13 +96,17 @@ if (iu == 0) then
 endif
 
 n_d2_data = 0
+n_nml = 0
 
 do 
   universe = '*'
   d2_data%name = ''
+  n_nml = n_nml + 1
   read (iu, nml = tao_d2_data, iostat = ios)
   if (ios > 0) then
-    call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR.')
+    call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR IN FILE: ' // data_file, &
+                                   'THIS IS THE ' // ordinal_str(n_nml) // ' TAO_D2_DATA NAMELIST IN THE FILE', &
+                                   'WITH D2_DATA%NAME = ' // quote(d2_data%name))
     rewind (iu)
     do
       read (iu, nml = tao_d2_data)  ! force printing of error message
@@ -112,7 +116,8 @@ do
 
   if (index(d2_data%name, '.') /= 0) then
     call out_io (s_abort$, r_name, &
-          'D2_DATA%NAME IN TAO_D2_DATA NAMELIST CANNOT CONTAIN A PERIOD CHARACTER: ' // d2_data%name)
+          'D2_DATA%NAME IN TAO_D2_DATA NAMELIST CANNOT CONTAIN A PERIOD CHARACTER: ' // quote(d2_data%name), &
+          'IN FILE: ' // data_file)
     stop
   endif
 
@@ -122,7 +127,8 @@ do
     call location_decode (universe, good_unis, lbound(s%u, 1), num)
     if (num < 0) then
       call out_io (s_abort$, r_name, &
-            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // quote(d2_data%name), &
+            'IN FILE: ' // data_file)
       stop
     endif
   endif
@@ -157,7 +163,7 @@ do
 
   read (iu, nml = tao_d2_data, iostat = ios)
   if (ios < 0 .and. d2_data%name == '') exit    ! Exit on end-of-file and no namelist read
-  call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // d2_data%name)
+  call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // quote(d2_data%name))
 
   if (universe == '*') then
     good_unis = .true.
@@ -171,7 +177,7 @@ do
     do k = 1, size(s%u(i)%d2_data)
       if (trim(s%u(i)%d2_data(k)%name) /= trim(d2_data%name)) cycle
       mask(i) = .false.
-      call out_io (s_error$, r_name, 'TWO D2 DATA STRUCTURES HAVE THE SAME NAME: ' // d2_data%name, &
+      call out_io (s_error$, r_name, 'TWO D2 DATA STRUCTURES HAVE THE SAME NAME: ' // quote(d2_data%name), &
                                      'THE SECOND ONE WILL BE IGNORED!')
       cycle uni_loop
     enddo
@@ -204,9 +210,15 @@ do
     read (iu, nml = tao_d1_data, iostat = ios)
     if (ios /= 0) then
       if (ios < 0) then
-        call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST END-OF-FILE READ ERROR (MISSING/BAD QUOTATION MARK PERHAPS?).')
+        call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST END-OF-FILE READ ERROR (MISSING/BAD QUOTATION MARK PERHAPS?).', &
+                                       'IN FILE: ' // data_file, &
+                                       'THIS IS THE ' // ordinal_str(k) // ' TAO_D1_DATA NAMELIST AFTER THE ', &
+                                       'TAO_D2_DATA NAMELIST WITH D2_DATA%NAME = ' // quote(d2_data%name))
       else
-        call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.')
+        call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.', &
+                                       'IN FILE: ' // data_file, &
+                                       'THIS IS THE ' // ordinal_str(k) // ' TAO_D1_DATA NAMELIST AFTER THE ', &
+                                       'TAO_D2_DATA NAMELIST WITH D2_DATA%NAME = ' // quote(d2_data%name))
       endif
       rewind (iu)
       do
@@ -216,7 +228,7 @@ do
 
     if (index(d1_data%name, '.') /= 0) then
       call out_io (s_abort$, r_name, &
-            'D1_DATA%NAME IN TAO_D1_DATA NAMELIST CANNOT CONTAIN A PERIOD CHARACTER: ' // d1_data%name)
+            'D1_DATA%NAME IN TAO_D1_DATA NAMELIST CANNOT CONTAIN A PERIOD CHARACTER: ' // quote(d1_data%name))
       stop
     endif
 
@@ -233,8 +245,8 @@ do
     if (ix_d1_data /= k) then
       write (line, '(a, 2i4)') ', k, ix_d1_data'
       call out_io (s_abort$, r_name, &
-                'ERROR: IX_D1_DATA MISMATCH FOR D2_DATA: ' // d2_data%name, &
-                '       THE D1_DATA HAD THE NAME: ' // d1_data%name, &
+                'ERROR: IX_D1_DATA MISMATCH FOR D2_DATA: ' // quote(d2_data%name), &
+                '       THE D1_DATA HAD THE NAME: ' // quote(d1_data%name), &
                 '       I EXPECTED IX_D1_DATA TO BE: \i3\ ', &
                 '       I READ IX_D1_DATA TO BE: \i3\ ', &
                 i_array = (/ k, ix_d1_data /) )  
@@ -244,11 +256,11 @@ do
     do i = lbound(datum, 1), ubound(datum, 1)
       if (index(datum(i)%data_type, 'dat::') /= 0) then
         call out_io (s_error$, r_name, &
-                     'DATA_TYPE USES OLD "dat::" PREFIX. PLEASE CHANGE TO "data::": ' // datum(i)%data_type)
+                     'DATA_TYPE USES OLD "dat::" PREFIX. PLEASE CHANGE TO "data::": ' // quote(datum(i)%data_type))
         call err_exit
       endif
     enddo
-    call out_io (s_blank$, r_name, 'Init: Read tao_d1_data namelist: ' // d1_data%name)
+    call out_io (s_blank$, r_name, 'Init: Read tao_d1_data namelist: ' // quote(d1_data%name))
 
     do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. good_unis(i)) cycle
