@@ -2434,7 +2434,8 @@ end subroutine qp_draw_symbol
 ! Also see: qp_draw_symbol.
 !
 ! Input:
-!   x(:), y(:)   -- Real(rp): Symbol coordinates in data units.
+!   x(:), y(:)   -- Real(rp): Symbol coordinates.
+!   units        -- character(*), optional: Units of (x, y). Default is: 'DATA/GRAPH/LB'
 !   type         -- Character(*), optional: Symbol type. 
 !   height       -- Real(rp), optional: Size of the symbol.
 !   color        -- Character(*), optional: Symbol color.
@@ -2892,15 +2893,16 @@ end subroutine qp_draw_text_legend
 !                    See quick_plot writeup for more details.
 !   line(:)     -- qp_line_struct, optional: Array of lines.
 !                    Set line(i)%width < 0 to suppress drawing of the i^th line
-!   line_length -- Real(rp), optional: Length of the line in points.
+!   line_length -- Real(rp), optional: Length of the line in points. Default is 72 pts (~ 1 inch).
 !   symbol(:)   -- qp_symbol_struct, optional: Array of symbols.
 !                    Set symbol(i)%type < 0 to suppress drawing of the i^th symbol.
 !   text(:)     -- Character(*), optional: Array of text lines.
-!   text_offset -- Real(rp), optional: Horizontal offset in pints between the line and the text.
-!   draw_line   -- Logical, optional: Draw lines? Default is True.
+!   text_offset -- Real(rp), optional: Horizontal offset in points between the line and the text.
+!                   Default is 10 pt.
+!   draw_line   -- Logical, optional: Draw lines? Default is True if line arg is present.
 !                   Line style set by the LEGEND line style. See qp_set_line_attrib.
-!   draw_symbol -- Logical, optional: Draw symbols? Default is True.
-!   draw_text   -- Logical, optional: Draw text? Default is True.
+!   draw_symbol -- Logical, optional: Draw symbols? Default is True if symbol arg is present.
+!   draw_text   -- Logical, optional: Draw text? Default is True if text arg is present.
 !-
 
 subroutine qp_draw_curve_legend (x_origin, y_origin, units, line, line_length, &

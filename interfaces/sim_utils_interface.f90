@@ -538,6 +538,12 @@ subroutine node_put (node, n1, n2, val_in, cmd_only, val_out, bad_set)
   logical bad_set
 end subroutine
 
+function ordinal_str(n) result (str)
+  implicit none
+  integer n
+  character(:), allocatable :: str
+end function
+
 function outer_product (a, b) result (c)
   import
   implicit none
