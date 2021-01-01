@@ -21,20 +21,21 @@ use utilities_mod
 implicit none
 
 real(rp), intent(in) :: x
-real(rp) y, rad
+real(rp) y, rad, sq
 
 integer, optional, intent(in) :: nd
 
 !
 
-rad = sqrt(1 + x) + 1
+sq = sqrt(1 + x)
+rad = sq + 1
 
 select case (integer_option(0, nd))
 case (0)
   y = x / rad
 
 case (1)
-  y = (1 / rad**2 - x) / rad
+  y = 1 / rad - x / (2 * rad**2 * sq)
 end select
 
 end function
