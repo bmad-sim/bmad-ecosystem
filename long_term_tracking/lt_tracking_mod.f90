@@ -35,6 +35,7 @@ type ltt_params_struct
   character(200) :: sigma_matrix_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: averages_output_file = ''
+  character(200) :: ramper_elements = ''
   integer :: n_turns = -1
   integer :: random_seed = 0
   integer :: map_order = -1
@@ -74,6 +75,7 @@ type ltt_section_struct
 end type
 
 ! common vars
+
 type ltt_com_struct
   type (lat_struct) :: lat
   type (lat_struct) :: tracking_lat      ! Used for tracking with PTC and maps. Can contain radiation markers for SLICK sectioning.
@@ -82,6 +84,7 @@ type ltt_com_struct
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   integer ix_branch
+  integer :: ix_ramper(20) = -1   ! Element indexes for ramper elements.
   real(rp) ptc_closed_orb(6)
   logical :: debug = .false.
 end type
@@ -98,6 +101,9 @@ type ltt_sum_data_struct
   real(rp) :: spin_sum(3) = 0   ! Spin
 end type
 
+type (ltt_params_struct), pointer, save :: ltt_params_global   ! Needed for track1_preprocess and track1_bunch_hook
+type (ltt_com_struct),    pointer, save :: ltt_com_global      ! Needed for track1_preprocess and track1_bunch_hook
+
 contains
 
 !-------------------------------------------------------------------------------------------
@@ -106,7 +112,7 @@ contains
 
 subroutine ltt_init_params(ltt, ltt_com, beam_init)
 
-type (ltt_params_struct) ltt
+type (ltt_params_struct), target :: ltt
 type (ltt_com_struct), target :: ltt_com
 type (beam_init_struct) beam_init
 type (lat_struct), pointer :: lat
@@ -255,6 +261,33 @@ if (ltt%using_mpi .and. ltt%tracking_method == 'PTC') then
 endif
 
 if (beam_init%use_particle_start_for_center) beam_init%center = lat%particle_start%vec
+
+!
+
+if (ltt%ramper_elements /= '') then
+  call lat_ele_locator (ltt%ramper_elements, lat, eles, n_loc, err)
+  if (err) then
+    print '(2a)', 'ERROR FINDING RAMPER ELEMENTS MATCHING LTT%RAMPER_ELEMENTS SETTING: ' // ltt%ramper_elements
+    stop
+  endif
+  do i = 1, n_loc
+    if (eles(i)%ele%key /= ramper$) then
+      print *, 'Element is not a ramper element: ' // eles(i)%ele%name
+      stop
+    endif
+    ltt_com%ix_ramper(i) = eles(i)%ele%ix_ele
+  enddo
+
+  if (ltt%tracking_method /= 'BMAD') THEN
+    print *, 'ltt%tracking_method MUST BE SET TO "BMAD" IF RAMPER ELEMENTS ARE USED.'
+    stop
+  endif
+endif
+
+!
+
+ltt_params_global => ltt
+ltt_com_global => ltt_com
 
 end subroutine ltt_init_params
 
@@ -482,10 +515,10 @@ orb_bmad = orb(ix_stop)
 prb_ptc = orb_start%vec
 prb_ptc%q%x = [1, 0, 0, 0]   ! Unit quaternion
 if (ix_stop == ix_start) then
-  call track_probe (prb_ptc, ltt_com%ptc_state, fibre1 = pointer_to_ptc_ref_fibre(ele_start))
+  call track_probe (prb_ptc, ltt_com%ptc_state, fibre1 = pointer_to_fibre(ele_start))
 else
-  call track_probe (prb_ptc, ltt_com%ptc_state, fibre1 = pointer_to_ptc_ref_fibre(ele_start), &
-                                                fibre2 = pointer_to_ptc_ref_fibre(ele_stop))
+  call track_probe (prb_ptc, ltt_com%ptc_state, fibre1 = pointer_to_fibre(ele_start), &
+                                                fibre2 = pointer_to_fibre(ele_stop))
 endif
 spin_ptc = rotate_vec_given_quat(prb_ptc%q%x, orb_start%spin)
 
@@ -564,7 +597,7 @@ do i_turn = 1, lttp%n_turns
   case ('PTC')
     prb = orbit%vec
     prb%q%x = [1, 0, 0, 0]  ! Unit quaternion
-    call track_probe (prb, ltt_com%ptc_state, fibre1 = pointer_to_ptc_ref_fibre(ele_start))
+    call track_probe (prb, ltt_com%ptc_state, fibre1 = pointer_to_fibre(ele_start))
     orbit%vec = prb%x
     orbit%spin = rotate_vec_given_quat(prb%q%x, orbit%spin)
     is_lost = (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2))
