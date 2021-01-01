@@ -3866,7 +3866,8 @@ Example:
 \vn{Ramper} elements are a type of \vn{control} element (\sref{s:lord.slave}) used to make
 variations in the attributes of other elements while a program is running. The \vn{ramper} element
 is similar to an \vn{overlay} element except that \vn{ramper} elements are designed to efficiently
-control large sets of elements. \vn{Ramper} elements where implemented to solve the problem of
+control large sets of elements. Also \vn{ramper} elements can be used to smoothly vary parameters
+as particle are propagated through a lattice. \vn{Ramper} elements where implemented to solve the problem of
 simulating machine ramping where the strength of many elements in a machine are varied continuously
 as a function of time. The drawback of \vn{ramper} elements is that they can be only be used with
 programs that that are designed to handle them.\footnote 
@@ -3874,6 +3875,7 @@ programs that that are designed to handle them.\footnote
 In particular, the \vn{long_term_tracking} program that is bundled with the \bmad software
 (\sref{s:tao.intro}) can handle \vn{ramper} elements.
   }
+Parameters that \vn{ramper} elements control must not be controlled by any \vn{overlay}.
 
 General \vn{ramper} attributes are:
 \begin{center}
@@ -3908,6 +3910,9 @@ The general syntax for a \vn{spline} based  \vn{ramper} element is
 \end{example}
 
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
+
+Note: There is a program to plot controller response curves bundled with the \bmad software
+(\sref{s:tao.intro}) called \vn{controller_function_plot}.
 
 %-----------------------------------------------------------------
 \section{RFcavity}

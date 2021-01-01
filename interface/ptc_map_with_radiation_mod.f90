@@ -117,11 +117,11 @@ if (.not. associated(ptc_layout)) then
   return
 endif
 
-f1 => pointer_to_ptc_ref_fibre(ele1)
+f1 => pointer_to_fibre(ele1)
 map_with_rad%ix_ele_start = ele1%ix_ele
 
 if (present(ele2)) then
-  f2 => pointer_to_ptc_ref_fibre(ele2)
+  f2 => pointer_to_fibre(ele2)
   map_with_rad%ix_ele_end = ele2%ix_ele
 else
   f2 => f1

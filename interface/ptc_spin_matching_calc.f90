@@ -85,7 +85,7 @@ cdamap_1 = 1
 ele => branch%ele(0)
 minfo => match_info(0)
 
-ptc_fibre => pointer_to_ptc_ref_fibre(ele)
+ptc_fibre => pointer_to_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
 
 !
@@ -132,7 +132,7 @@ q_invar = 1   ! Set %mat = unit matrix
 
 do ie = 0, branch%n_ele_track
   if (ie /= 0) then
-    fib_next => pointer_to_ptc_ref_fibre(branch%ele(ie))
+    fib_next => pointer_to_fibre(branch%ele(ie))
     p8_ele = probe_orb + cdamap_1
 
     call track_probe(p8_a, ptc_state, fibre1 = fib_now, fibre2 = fib_next)

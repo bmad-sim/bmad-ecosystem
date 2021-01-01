@@ -93,8 +93,8 @@ ptc_probe8 = ptc_probe + ptc_c_map
 
 ! Track
 
-fib1 => pointer_to_ptc_ref_fibre(branch%ele(i1))
-fib2 => pointer_to_ptc_ref_fibre(branch%ele(i2))
+fib1 => pointer_to_fibre(branch%ele(i1))
+fib2 => pointer_to_fibre(branch%ele(i2))
 
 if (logic_option(.false., one_turn) .and. i1 == i2 .and. branch%param%geometry == closed$) then
   call propagate (branch%ptc%m_t_layout, ptc_probe8, +ptc_state, fib1%pos)

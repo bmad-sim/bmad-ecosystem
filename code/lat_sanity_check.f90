@@ -1050,6 +1050,33 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
+    ! Check knots
+
+    if (associated(ele%control)) then
+      if (ele%control%type == spline$) then
+        if (ele%key == ramper$) then
+          do i = 1, size(ele%control%ramp)
+            if (size(ele%control%x_knot) /= size(ele%control%ramp(i)%y_knot)) then
+              call out_io (s_fatal$, r_name, &
+                    'RAMPER LORD: ' // ele%name, &
+                    'HAS X_KNOT SIZE DIFFERENT FROM Y_KNOT SIZE FOR SLAVE #' // int_str(i))
+              err_flag = .true.
+            endif
+          enddo
+        else
+          do i = 1, ele%n_slave
+            slave => pointer_to_slave(ele, i, ctl)
+            if (size(ele%control%x_knot) /= size(ctl%y_knot)) then
+              call out_io (s_fatal$, r_name, &
+                    'RAMPER LORD: ' // ele%name, &
+                    'HAS X_KNOT SIZE DIFFERENT FROM Y_KNOT SIZE FOR SLAVE #' // int_str(i))
+              err_flag = .true.
+            endif
+          enddo
+        endif
+      endif
+    endif
+
     ! check that super_lord elements have their slaves in the correct order
 
     if (l_stat == super_lord$) then

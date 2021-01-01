@@ -97,10 +97,10 @@ subroutine apply_energy_kick (dE, orbit, ddE_dr, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
-subroutine apply_ramper (ele, ramper, err_flag)
+subroutine apply_ramper (slave, ramper, err_flag)
   import
   implicit none
-  type (ele_struct) :: ele, ramper
+  type (ele_struct) :: slave, ramper
   logical err_flag
 end subroutine
 
