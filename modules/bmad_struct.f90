@@ -1123,18 +1123,19 @@ type converter_struct
   type (converter_distribution_struct), allocatable :: dist(:)  ! Distribution at various thicknesses 
 end type
 
-! Struct for element to element control
+! Struct for element to element control.
+! Note: Unlike the old days, not all attributes have an associated index. 
+!   So %ix_attrib may be -1. Using pointer_to_attribute with %attribute will always work.
 
 type control_struct
-  real(rp) :: value = 0          ! Used by group and overlay elements.
+  real(rp) :: value = 0          ! Used by group, overlay, and ramper elements.
   real(rp), allocatable :: y_knot(:)
   type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
   type (lat_ele_loc_struct) :: slave = lat_ele_loc_struct()
   type (lat_ele_loc_struct) :: lord = lat_ele_loc_struct()
   character(40) :: attribute = ''    ! Name of attribute controlled. Set to "FIELD_OVERLAPS" for field overlaps.
   character(40) :: slave_name = ''   ! Name of slaves. Used by ramper element.
-  ! DO NOT USE %IX_ATTRIB. WILL BE EVENTUALLY DELETED IN FAVOR OF %ATTRIBUTE.
-  integer :: ix_attrib = -1       ! Index of attribute controlled. 
+  integer :: ix_attrib = -1          ! Index of attribute controlled. See note above!
 end type
 
 type controller_var1_struct

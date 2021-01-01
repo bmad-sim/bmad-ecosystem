@@ -520,7 +520,23 @@ element pointed to by
 
 For \vn{ramper} elements, slaves are chosen dynamically at run time. And it is up to the program to 
 implement code to use rampers. \bmad provides a helper routine (\zzz{apply_ramper}) to apply a ramper element
-to control any given element but \bmad itself never calls \vn{apply_ramper}.
+to control any given element but \bmad itself never calls \vn{apply_ramper}. If \vn{pointer_to_slave} is
+called with a \vn{ramper} lord, a nullified pointer will be returned. Looping over the slave parameters
+looks like:
+\begin{example}
+  type (ele_struct) ramper
+  type (control_struct), pointer :: ctl
+  ...
+  do i = 1, size(ramper%control%ramp)
+    ctl => ramper%control%ramp(i)  ! ctl has the slave info
+    ...
+  enddo
+\end{example}
+See the \vn{apply_ramper} code for a fuller example.
+
+
+  
+
 
 \index{slave!ordering}\index{lords!ordering}
 \index{super_lord}\index{super_slave}

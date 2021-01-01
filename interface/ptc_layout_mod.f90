@@ -520,7 +520,7 @@ endif
 
 ptc_state = ptc_com%base_state - NOCAVITY0 + RADIATION0
 
-ptc_fibre => pointer_to_ptc_ref_fibre(ele)
+ptc_fibre => pointer_to_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
 
@@ -626,7 +626,7 @@ endif
 
 ptc_state = ptc_com%base_state - NOCAVITY0 + RADIATION0 + SPIN0
 
-ptc_fibre => pointer_to_ptc_ref_fibre(ele)
+ptc_fibre => pointer_to_fibre(ele)
 ptc_layout => ptc_fibre%parent_layout
 call find_orbit_x (closed_orb%vec, ptc_state, 1e-8_rp, fibre1 = ptc_fibre) 
 
@@ -702,29 +702,28 @@ end subroutine ptc_spin_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function pointer_to_ptc_ref_fibre (ele) result (ref_fibre)
+! Function pointer_to_fibre (ele) result (assoc_fibre)
 !
-! Routine to return the reference fibre for a bmad element.
+! Routine to return the PTC fibre associated with a given Bmad element.
 !
-! The reference fibre is the fibre whose upstream edge corresponds
-! to the downstream end fo the bmad element. 
+! The reference fibre is the fibre whose upstream edge corresponds to the downstream end 
+! of the bmad element. 
 !
-! The reference fibre is so choisen since the referece edge of a
-! Bmad element where such things as Twiss parameters are computed
-! is the downstream edge while a PTC fibre uses the upstream edge 
-! for the reference.
+! The reference fibre is so choisen since the referece edge of a Bmad element where such things 
+! as Twiss parameters are computed is the downstream edge while a PTC fibre uses the upstream 
+! edge for the reference.
 !
 ! Input:
 !   ele   -- ele_struct: Bmad element
 !
 ! Output:
-!   ref_fibre -- fibre, pointer: Pointer to the corresponding reference fibre.
+!   assoc_fibre -- fibre, pointer: Pointer to the associated fibre.
 !-
 
-function pointer_to_ptc_ref_fibre (ele) result (ref_fibre)
+function pointer_to_fibre (ele) result (assoc_fibre)
 
 type (ele_struct), target :: ele
-type (fibre), pointer :: ref_fibre
+type (fibre), pointer :: assoc_fibre
 type (branch_struct), pointer :: branch
 
 !
@@ -732,12 +731,12 @@ type (branch_struct), pointer :: branch
 branch => pointer_to_branch(ele)
 
 if (ele%ix_ele == 0) then
-  ref_fibre => branch%ele(1)%ptc_fibre
+  assoc_fibre => branch%ele(1)%ptc_fibre
 else
-  ref_fibre => ele%ptc_fibre%next
+  assoc_fibre => ele%ptc_fibre%next
 endif
 
-end function pointer_to_ptc_ref_fibre
+end function pointer_to_fibre
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
