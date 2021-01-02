@@ -17,7 +17,7 @@
 
 !------------------------------------------------------------------------
 &tao_params
-  !global%plot_on = .true.
+  !global%plot_on = True
   global%track_type = 'single'
   !global%track_type = 'beam'
   global%beam_timer_on = T

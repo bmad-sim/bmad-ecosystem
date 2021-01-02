@@ -14,7 +14,7 @@
 
 !------------------------------------------------------------------------
 &tao_params
-  !global%plot_on = .true.
+  !global%plot_on = True
   global%track_type = 'single'
   global%beam_timer_on = T
   global%random_engine = 'pseudo'

@@ -10,7 +10,7 @@
   n_universes = 1
   design_lattice(1) = "bmad.lat"
   design_lattice(1)%dynamic_aperture_calc = f
-  design_lattice(1)%one_turn_map_calc = .true.
+  design_lattice(1)%one_turn_map_calc = True
 /
 
 !------------------------------------------------------------------------
@@ -30,7 +30,7 @@
   global%plot_on = t
   global%n_opti_cycles = 20
   global%n_opti_loops = 10000
-  global%srdt_use_cache = .true.
+  global%srdt_use_cache = True
   global%srdt_gen_n_slices=15
   global%srdt_sxt_n_slices=30
   bmad_com%taylor_order = 5

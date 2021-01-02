@@ -13,7 +13,7 @@
 
 !------------------------------------------------------------------------
 &tao_params
-  !global%plot_on = .true.
+  !global%plot_on = True
   global%track_type = 'single'
   !---Bmad---
   bmad_com%radiation_damping_on = F

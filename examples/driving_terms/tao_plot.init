@@ -64,7 +64,7 @@ the plot page) is broken up.
   plot%x%min = 0.
   plot%x%max = 90
   plot%x%label = 'Meters'
-  plot%x%draw_label = .false.
+  plot%x%draw_label = False
   plot%x_axis_type = 's'
   plot%x%major_div_nominal = 9
   plot%n_graph = 1
@@ -91,7 +91,7 @@ the plot page) is broken up.
   plot%x%min = 680
   plot%x%max = 770
   plot%x%label = 'Meters'
-  plot%x%draw_label = .false.
+  plot%x%draw_label = False
   plot%x_axis_type = 's'
   plot%x%major_div_nominal = 9
   plot%n_graph = 1
@@ -118,7 +118,7 @@ the plot page) is broken up.
   plot%x%min = 0.
   plot%x%max = 770.
   plot%x%label = 'Meters'
-  plot%x%draw_label = .false.
+  plot%x%draw_label = False
   plot%x_axis_type = 's'
   plot%x%major_div_nominal = 14
   plot%n_graph = 1
@@ -185,7 +185,7 @@ the plot page) is broken up.
   curve(3)%data_type   = 'eta.x'
   curve(3)%y_axis_scale_factor = 100
   curve(3)%ix_branch = 0
-  curve(3)%use_y2 = .true.
+  curve(3)%use_y2 = True
 
 /
 
@@ -233,7 +233,7 @@ the plot page) is broken up.
   curve(3)%data_type   = 'eta.x'
   curve(3)%y_axis_scale_factor = 100
   curve(3)%ix_branch = 0
-  curve(3)%use_y2 = .true.
+  curve(3)%use_y2 = True
 
 /
 
@@ -271,20 +271,20 @@ the plot page) is broken up.
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ix_branch = 0
-!  curve(1)%smooth_line_calc = .true.
+!  curve(1)%smooth_line_calc = True
 
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'beta.b'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%ix_branch = 0
-!  curve(2)%smooth_line_calc = .true.
+!  curve(2)%smooth_line_calc = True
 
   curve(3)%data_source = 'lattice'
   curve(3)%data_type   = 'eta.x'
   curve(3)%y_axis_scale_factor = 100
   curve(3)%ix_branch = 0
-  curve(3)%use_y2 = .true.
-!  curve(3)%smooth_line_calc = .true.
+  curve(3)%use_y2 = True
+!  curve(3)%smooth_line_calc = True
 
 /
 
@@ -391,13 +391,13 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
   curve(1)%ix_branch = 0
-!  curve(1)%smooth_line_calc = .true.
+!  curve(1)%smooth_line_calc = True
 
   curve(2)%data_source = 'lattice'
   curve(2)%data_type   = 'beta.b'
   curve(2)%y_axis_scale_factor = 1
   curve(2)%ix_branch = 0
-!  curve(2)%smooth_line_calc = .true.
+!  curve(2)%smooth_line_calc = True
 
 /
 
