@@ -31,8 +31,7 @@
 
 subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
 
-use bmad, except_dummy => track1_preprocess
-use lt_tracking_mod
+use lt_tracking_mod, except_dummy => track1_preprocess
 
 implicit none
 

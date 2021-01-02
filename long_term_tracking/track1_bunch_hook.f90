@@ -20,8 +20,7 @@
 
 subroutine track1_bunch_hook (bunch_start, lat, ele, bunch_end, err, centroid, direction, finished)
 
-use bmad, dummy => track1_bunch_hook
-use lt_tracking_mod
+use lt_tracking_mod, dummy => track1_bunch_hook
 
 implicit none
 

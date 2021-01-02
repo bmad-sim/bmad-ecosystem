@@ -15,7 +15,7 @@
   emit_a               = 0     ! Horiontal emit. If < 0 -> Use value from radiation integral calc.
   emit_b               = 0     ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
   sig_pz               = 0     ! Sigma pz. If < 0 -> Use value from radiation integral calc.
-  sr3d_params%allow_reflections = .true.  ! For testing purposes.
+  sr3d_params%allow_reflections = True  ! For testing purposes.
                                !    of photon before/after reflection coords.
   random_seed  = 123456        ! Random number seed. 0 -> Use sys clock.
   e_filter_min = 4
