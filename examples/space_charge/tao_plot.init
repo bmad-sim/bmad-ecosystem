@@ -97,7 +97,7 @@ the plot page) is broken up.
 	graph%name = 'u1'
 	graph%type = 'lat_layout'
 	graph%box = 1, 1, 1, 1
-	graph%x%draw_numbers = .false.
+	graph%x%draw_numbers = False
 	graph%ix_universe = -1 !Syntax Changed from 0
 	graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
 	graph%n_curve = 0
