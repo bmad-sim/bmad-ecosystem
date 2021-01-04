@@ -208,7 +208,7 @@ call qp_draw_curve_legend (0.1_rp, -0.1_rp, '%/GRAPH/LT', line(1:n_slave), text 
 
 if (who == 'X') then
   write (*, '(a)', advance = 'NO') 'Hit any key to continue.'
-  read (*, '(a)'), ans
+  read (*, '(a)') ans
 endif
 
 call qp_close_page()
