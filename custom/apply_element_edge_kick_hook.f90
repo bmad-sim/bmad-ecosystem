@@ -29,7 +29,7 @@ use fringe_mod, dummy => apply_element_edge_kick_hook
 implicit none
 
 type (ele_struct) track_ele
-type (fringe_edge_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info
 type (coord_struct) orb
 type (lat_param_struct) param
 

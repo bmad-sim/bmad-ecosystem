@@ -18,7 +18,7 @@
 !
 ! Input:
 !   orb               -- Coord_struct: Starting coords in element reference frame.
-!   fringe_info       -- fringe_edge_info_struct: Fringe information.
+!   fringe_info       -- fringe_field_info_struct: Fringe information.
 !   track_ele         -- ele_struct: Element being tracked through. Is different from fringe_info%hard_ele
 !                          when there are superpositions and track_ele can be a super_slave of fringe_info%hard_ele.
 !   param             -- lat_param_struct: lattice parameters.
@@ -29,7 +29,7 @@
 !   apply_sol_fringe  -- logical, optional: Apply the solenoid fringe kick? Default is True.
 !
 ! Output:
-!   fringe_info   -- fringe_edge_info_struct: Fringe information.
+!   fringe_info   -- fringe_field_info_struct: Fringe information.
 !   orb           -- Coord_struct: Coords after application of the edge fringe field.
 !   mat6(6,6)     -- Real(rp), optional: Transfer matrix transfer matrix including fringe.
 !-
@@ -45,7 +45,7 @@ type (ele_struct), target :: ele, track_ele
 type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
-type (fringe_edge_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info
 type (ele_struct), pointer :: hard_ele, lord
 
 real(rp), optional :: mat6(6,6), rf_time
@@ -69,14 +69,10 @@ if (associated(fringe_info%hard_ele)) then
 
   if (particle_at == first_track_edge$) then
     fringe_info%hard_location = inside$
+  elseif (orb%direction * track_ele%orientation == 1) then
+    fringe_info%hard_location = exit_end$
   else
-    dir = orb%direction
-    if (hard_ele%value(l$) < 0) dir = -dir
-    if (dir == 1) then
-      fringe_info%hard_location = downstream_end$
-    else
-      fringe_info%hard_location = upstream_end$
-    endif
+    fringe_info%hard_location = entrance_end$
   endif
 
 else
