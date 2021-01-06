@@ -1,12 +1,12 @@
 &bbu_params
   bbu_param%lat_filename = 'oneturn_lat.bmad'
-  bbu_param%keep_overlays_and_groups = .false.
+  bbu_param%keep_overlays_and_groups = False
   bbu_param%simulation_turns_max = 500
   bbu_param%elname = 'T1'
-  bbu_param%hybridize = .true.
+  bbu_param%hybridize = True
   bbu_param%nrep = 5
   bbu_param%limit_factor = 3
-  bbu_param%keep_all_lcavities = .false.
+  bbu_param%keep_all_lcavities = False
   bbu_param%ran_gauss_sigma_cut = 3
   bbu_param%nstep = 50
   bbu_param%current = 1.000
