@@ -27,16 +27,17 @@ integer, parameter :: bmad_inc_version$ = 257
 !                     Will be nullified if there is no hard edge.
 !                     This will be track_ele (if it has a hard edge) unless track_ele is a super_slave.
 !   s_edge_hard  -- Real(rp): S-position of next hard egde in hard_ele frame.
-!   particle_at  -- Edge of hard_ele being tracked through. first_track_edge$, second_track_edge$, or none$
+!   particle_at  -- Edge of hard_ele being tracked through. 
 
-type fringe_edge_info_struct
-  type (ele_struct), pointer :: hard_ele
-  real(rp) s_edge_hard
-  real(rp) ds_edge                     ! Distance from particle to edge
-  integer particle_at                  !
-  integer, pointer :: hard_location    ! Particle location wrt hard_ele.
-  integer, allocatable :: location(:)  ! Particle location in an element.
-                                       ! elements in list are the tracking element or its lords.
+type fringe_field_info_struct
+  type (ele_struct), pointer :: hard_ele => null()
+  real(rp) :: s_edge_hard = 0
+  real(rp) :: ds_edge = 0                     ! Distance from particle to edge.
+  integer :: particle_at = -1                 ! first_track_edge$, second_track_edge$, or none$
+  integer, pointer :: hard_location => null() ! Particle location wrt hard_ele. Points to element in location(:).
+  integer, allocatable :: location(:)         ! Particle location in an element. entrance_end$, inside$, or exit_end$
+                                              ! Elements in list are the tracking element or its lords.
+  logical :: has_fringe = .false.             ! Has a fringe to worry about?
 end type
 
 !

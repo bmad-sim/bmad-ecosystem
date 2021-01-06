@@ -23,7 +23,7 @@ implicit none
 type (coord_struct) :: orbit, start_orb
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
-type (fringe_edge_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) kmat(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), vec0(6), mc2

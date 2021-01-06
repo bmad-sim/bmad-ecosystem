@@ -24,7 +24,7 @@ implicit none
 type (coord_struct) :: orbit, start_orb
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
-type (fringe_edge_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) mat6_i(6,6), rel_charge_dir, c_dir, g, g_tot, dg, b1, r_step, step_len, angle
@@ -48,9 +48,11 @@ call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., mat6 = mat
 rel_charge_dir = ele%orientation * orbit%direction * rel_tracking_charge_to_mass(orbit, param)
 c_dir = ele%orientation * orbit%direction * charge_of(orbit%species)
 
-nullify(fringe_info%hard_ele)
-fringe_info%particle_at = first_track_edge$
-call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+call init_fringe_info (fringe_info, ele)
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = first_track_edge$
+  call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+endif
 
 ! Set some parameters
 
@@ -261,8 +263,10 @@ enddo
 
 if (orbit_too_large(orbit, param)) return
 
-fringe_info%particle_at = second_track_edge$
-call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = second_track_edge$
+  call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+endif
 
 call offset_particle (ele, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 

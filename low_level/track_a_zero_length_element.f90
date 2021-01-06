@@ -26,7 +26,7 @@ type (coord_struct) :: start_orb, end_orb
 type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
-type (fringe_edge_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info
 
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), amp
 integer ix_pole_max
@@ -40,9 +40,11 @@ if (present(track)) call save_a_step (track, ele, param, .false., start_orb, 0.0
 end_orb = start_orb
 call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
 
-nullify(fringe_info%hard_ele)
-fringe_info%particle_at = first_track_edge$
-call apply_element_edge_kick(end_orb, fringe_info, ele, param, .false.)
+call init_fringe_info (fringe_info, ele)
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = first_track_edge$
+  call apply_element_edge_kick(end_orb, fringe_info, ele, param, .false.)
+endif
 
 !
 
@@ -54,8 +56,10 @@ endif
 
 !
 
-fringe_info%particle_at = second_track_edge$
-call apply_element_edge_kick(end_orb, fringe_info, ele, param, .false.)
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = second_track_edge$
+  call apply_element_edge_kick(end_orb, fringe_info, ele, param, .false.)
+endif
 
 call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
 

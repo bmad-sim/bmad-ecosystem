@@ -24,7 +24,7 @@ implicit none
 type (coord_struct) :: orbit, start_orb
 type (ele_struct), target :: ele
 type (lat_param_struct) :: param
-type (fringe_edge_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
 real(rp) rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass
@@ -81,10 +81,12 @@ step_len = ele%value(l$) * r_step
 
 call offset_particle (ele, param, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
-nullify(fringe_info%hard_ele)
-fringe_info%particle_at = first_track_edge$
-call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
-if (orbit%state /= alive$) return
+call init_fringe_info (fringe_info, ele)
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = first_track_edge$
+  call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+  if (orbit%state /= alive$) return
+endif
 
 ! Multipole kicks. Notice that the magnetic multipoles have already been normalized by the length.
 
@@ -119,9 +121,11 @@ enddo
 
 ! Exit edge
 
-fringe_info%particle_at = second_track_edge$
-call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
-if (orbit%state /= alive$) return
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = second_track_edge$
+  call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
+  if (orbit%state /= alive$) return
+endif
 
 call offset_particle (ele, param, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 

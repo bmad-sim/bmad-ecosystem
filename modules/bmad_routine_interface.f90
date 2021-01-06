@@ -80,7 +80,7 @@ subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_sp
   import
   implicit none
   type (coord_struct) orb
-  type (fringe_edge_info_struct) fringe_info
+  type (fringe_field_info_struct) fringe_info
   type (ele_struct) hard_ele, track_ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6), rf_time
@@ -223,7 +223,7 @@ end subroutine
 subroutine calc_next_fringe_edge (track_ele, s_edge_body, fringe_info, orbit, init_needed, time_tracking)
   import
   type (ele_struct), target :: track_ele
-  type (fringe_edge_info_struct) fringe_info
+  type (fringe_field_info_struct) fringe_info
   type (coord_struct) :: orbit
   real(rp) s_edge_body
   logical, optional :: init_needed, time_tracking
@@ -894,6 +894,15 @@ subroutine init_ele (ele, key, sub_key, ix_ele, branch)
   type (branch_struct), optional, target :: branch
   integer, optional :: key, sub_key
   integer, optional :: ix_ele
+end subroutine
+
+subroutine init_fringe_info (fringe_info, ele, orbit, leng_sign)
+  import
+  implicit none
+  type (fringe_field_info_struct) fringe_info
+  type (ele_struct) ele
+  type (coord_struct), optional :: orbit
+  integer, optional :: leng_sign
 end subroutine
 
 subroutine init_lat (lat, n)
@@ -2718,7 +2727,7 @@ subroutine apply_element_edge_kick_hook (orb, fringe_info, track_ele, param, fin
   import
   implicit none
   type (coord_struct) orb
-  type (fringe_edge_info_struct) fringe_info
+  type (fringe_field_info_struct) fringe_info
   type (ele_struct) track_ele
   type (lat_param_struct) param
   real(rp), optional :: mat6(6,6), rf_time

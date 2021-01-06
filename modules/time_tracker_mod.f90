@@ -60,7 +60,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct), target ::  param
 type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
-type (fringe_edge_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info
 
 real(rp) dt_ref
 real(rp), optional :: t_end, dt_step
@@ -84,7 +84,7 @@ s_fringe_ptr => s_fringe_edge   ! To get around an intel bug: s_fringe_ptr is us
 
 if (ele%key == patch$) then
   s_stop_fwd = 0  ! By convention.
-elseif (ele%orientation == -1) then
+elseif (orb%direction*ele%orientation == -1) then
   s_stop_fwd = 0
 else
   s_stop_fwd = ele%value(l$)
@@ -126,18 +126,17 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   ! edge?
 
-  if ((s_body - s_fringe_edge)*sign_of(orb%vec(6))*t_dir > -ds_safe) then
-  
+  if ((s_body - s_fringe_edge)*sign_of(orb%vec(6))*t_dir > -ds_safe) then  
     zbrent_needed = .true.
     if ((s_body-s_fringe_edge)*sign_of(orb%vec(6))*t_dir < ds_safe) zbrent_needed = .false.
     if (n_step == 1) zbrent_needed = .false.
 
     add_ds_safe = .true.
-    if (orb%direction == 1 .and. abs(s_fringe_edge - s_stop_fwd) < ds_safe) then
+    if (orb%direction*ele%orientation == 1 .and. abs(s_fringe_edge - s_stop_fwd) < ds_safe) then
       orb%location = downstream_end$
       add_ds_safe = .false.
       exit_flag = .true.
-    elseif (orb%direction == -1 .and. abs(s_fringe_edge) < ds_safe) then
+    elseif (orb%direction*ele%orientation == -1 .and. abs(s_fringe_edge) < ds_safe) then
       orb%location = upstream_end$
       add_ds_safe = .false.
       exit_flag = .true.
@@ -157,7 +156,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
     edge_kick_applied = .false. 
     do 
-      if (.not. associated(fringe_info%hard_ele)) exit
+      if (.not. fringe_info%has_fringe .or. .not. associated(fringe_info%hard_ele)) exit
       if ((s_body-s_fringe_edge)*sign_of(orb%vec(6)) < -ds_safe) exit
       ! Get radius before first edge kick
       if (.not. edge_kick_applied) edge_kick_applied = .true. 
@@ -172,8 +171,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
         s_body = s_body + sign_of(orb%vec(6)) * ds_safe
         orb%s = orb%s + orb%direction * ds_safe
       endif
-    enddo      
-    
+    enddo
   endif
 
   ! Check if hit wall.

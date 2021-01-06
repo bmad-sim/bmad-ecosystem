@@ -59,12 +59,13 @@ type (coord_struct) old_orbit
 type (ele_struct) ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
-type (fringe_edge_info_struct) fringe_info
+type (fringe_field_info_struct) fringe_info
 
 real(rp), intent(in) :: s1_body, s2_body
 real(rp), optional :: mat6(6,6)
-real(rp) :: ds, ds_did, ds_next, s_body, s_last_save, ds_saved, s_edge_body
+real(rp), target :: ds, ds_did, ds_next, s_body, s_last_save, ds_saved, s_edge_body
 real(rp) :: old_s, ds_zbrent, dist_to_wall, ds_tiny, mat6_old(6,6)
+real(rp), pointer :: s_body_ptr
 
 integer :: n_step, s_dir, nr_max, n_step_max
 
@@ -77,6 +78,7 @@ character(*), parameter :: r_name = 'odeint_bmad'
 
 err_flag = .true.
 s_body = s1_body
+s_body_ptr => s_body     ! s_body_ptr used to get around an ifort bug.
 s_dir = sign(1.0_rp, s2_body-s1_body)
 ds_next = bmad_com%init_ds_adaptive_tracking * s_dir
 if (ele%tracking_method == fixed_step_runge_kutta$) ds_next = ele%value(ds_step$)
@@ -124,7 +126,7 @@ do n_step = 1, n_step_max
   ! For super_slaves there may be multiple hard edges at a single s-position.
 
   do
-    if (.not. associated(fringe_info%hard_ele)) exit
+    if (.not. fringe_info%has_fringe .or. .not. associated(fringe_info%hard_ele)) exit
     if ((s_body-s_edge_body)*s_dir < -ds_tiny) exit
 
     if (present(track) .and. s_body /= s_last_save) call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
@@ -274,8 +276,8 @@ logical no_aperture_here
 
 call rk_step1 (ele, param, old_orbit, dr_ds, old_s, ds, orbit, r_err, err_flag, .true.)
 
-s_body = old_s + ds
-orbit%s = s_body + ele%s_start
+s_body_ptr = old_s + ds
+orbit%s = s_body_ptr + ele%s_start
 d_radius = distance_to_aperture (orbit, in_between$, ele, no_aperture_here)
 
 if (no_aperture_here) then
