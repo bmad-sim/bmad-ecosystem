@@ -814,13 +814,13 @@ The \vn{bmad_com_struct} holds bmad global variables.
 
     integer space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
     integer sad_n_div_max = 1000                ! Used in sad_mult step length calc.
+    integer taylor_order = 3                    ! 3rd order is default
     integer runge_kutta_order = 4               ! Runge Kutta order.
     integer default_integ_order = 2             ! PTC integration order.
     integer ptc_max_fringe_order = 2            ! PTC max fringe order (2  = > Quadrupole !).
-                                                !   Must call set_ptc after changing.
     integer max_num_runge_kutta_step = 10000    ! Maximum number of RK steps before particle is considered lost.
+
     logical rf_phase_below_transition_ref = F   ! Autoscale uses below transition stable point for RFCavities?
-    logical use_hard_edge_drifts = T            ! Insert drifts when tracking through cavity?
     logical sr_wakes_on = T                     ! Short range wakefields?
     logical lr_wakes_on = T                     ! Long range wakefields
     logical mat6_track_symmetric = T            ! symmetric offsets
@@ -837,29 +837,6 @@ The \vn{bmad_com_struct} holds bmad global variables.
     logical aperture_limit_on = T               ! use apertures in tracking?
     logical ptc_print_info_messages = F         ! Allow PTC to print informational messages?
     logical debug = F                           ! Used for code debugging.
-
-
-
-
-    integer taylor_order = 3               ! 3rd order is default
-    integer default_integ_order = 2        ! PTC integration order.
-    integer ptc_max_fringe_order = 2       ! PTC max fringe order (2 => Quadrupole !).
-                                           !   Must call set_ptc after changing.
-    logical use_hard_edge_drifts = T       ! Insert drifts when tracking through cavity?
-    logical sr_wakes_on = T                ! Short range wakefields?
-    logical lr_wakes_on = T                ! Long range wakefields
-    logical mat6_track_symmetric = T       ! symmetric offsets
-    logical auto_bookkeeper = T            ! Automatic bookkeeping?
-    logical space_charge_on = F            ! Space charge switch
-    logical coherent_synch_rad_on = F      ! Longitudinal csr 
-    logical spin_tracking_on = T           ! Do particle spin tracking
-    logical radiation_damping_on = F       ! Damping toggle.
-    logical radiation_fluctuations_on = F  ! Fluctuations toggle.
-    logical conserve_taylor_maps = T       ! Enable bookkeeper to set ele%map_with_offsets = F?
-    logical absolute_time_tracking_default = F  ! Default for lat%absolute_time_tracking
-    logical rf_auto_scale_phase_default = T     ! Default for lat%rf_auto_scale_phase
-    logical rf_auto_scale_amp_default = T       ! Default for lat%rf_auto_scale_amp
-    logical use_ptc_layout_default = F          ! Default for lat%use_ptc_layout
   end type
 \end{example}
 See the \bmad manual for more details.

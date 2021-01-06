@@ -17,8 +17,8 @@ use quick_plot
 
 implicit none
 
-integer, parameter :: n_region_maxx   = 50     ! number of plotting regions.
-integer, parameter :: n_curve_maxx    = 30     ! number of curves per graph
+integer, parameter :: n_region_maxx   = 100     ! number of plotting regions.
+integer, parameter :: n_curve_maxx    = 40      ! number of curves per graph
 
 type old_tao_ele_shape_struct    ! for the element layout plot
   character(40) key_name     ! Element key name
@@ -40,7 +40,7 @@ type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(30)
 type (old_tao_ele_shape_struct) shape(30)
-type (tao_ele_shape_input) ele_shape(50)
+type (tao_ele_shape_input) ele_shape(60)
 type (tao_ele_shape_struct), pointer :: e_shape
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (qp_axis_struct) init_axis
