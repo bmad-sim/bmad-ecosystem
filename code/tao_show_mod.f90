@@ -3756,7 +3756,6 @@ case ('spin')
 
 case ('string')
 
-  
   nc = 0
 
   do

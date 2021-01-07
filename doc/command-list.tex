@@ -2661,7 +2661,7 @@ see \vn{show value}.
 Examples:
 \begin{example}
   show -append a.dat str 2 + 2 = \`{}2+2\`{} ! Writes the line "2 + 2 = 4" to a.dat
-  show `1e3*lat::orbit.x[3:5]@@2`      ! Prints something like "[3.4, 3.2, 2.7]"
+  show str \`{}1e3*lat::orbit.x[3:5]@@2\`{}  ! Prints something like "[3.4, 3.2, 2.7]"
 \end{example}
 
 %% show symbolic_numbers --------------------------------------------------------------

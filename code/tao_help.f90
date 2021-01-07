@@ -126,9 +126,11 @@ do
     endif
   endif
 
+  call substitute (line, "{}", "")
   call eliminate2 (line, '\item[\vn{\{', '\}}]', '   Argument: ', '')
   call substitute (line, "``\vn", '"')
   call substitute (line, "``", '"')
+  call substitute (line, "\`", '`')
   call substitute (line, "}''", '"')
   call substitute (line, "''", '"')
   call substitute (line, "\$", '$', has_subbed)
@@ -157,6 +159,7 @@ do
   call substitute (line, '\\')
   call substitute (line, '\W ', '^')
   call substitute (line, '"\W"', '"^"')
+  call substitute (line, "\B", "\")
 
   if (line(1:2) == '% ') line = line(3:)
   if (line(1:1) == '%')  line = line(2:)
