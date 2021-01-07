@@ -71,6 +71,7 @@ do iv = 1, size(ramper%control%ramp)
   endif
 
   a_ptr%r = c%value
+  call set_flags_for_changed_attribute (slave, a_ptr%r, .true.)
 enddo
 
 end subroutine
