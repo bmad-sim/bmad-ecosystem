@@ -227,6 +227,19 @@ case (wiggler$, undulator$)
 case (do_nothing$)
 
 !-----------------------------------------------
+! Confused case
+
+case (capillary$, crystal$, diffraction_plate$, lens$, mirror$, multilayer_mirror$, sample$, photon_init$)
+
+  if (present(err_flag)) err_flag = .true.
+  call out_io (s_fatal$, r_name, &
+          'ELEMENT: ' // ele%name, &
+          'WHICH IS OF TYPE: ' // key_name(ele%key), &
+          'CANNOT BE USED TO TRACK A NON-PHOTON PARTICLE.')
+  if (global_com%exit_on_error) call err_exit
+  return
+
+!-----------------------------------------------
 ! unknown
 
 case default

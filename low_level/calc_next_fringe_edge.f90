@@ -36,7 +36,7 @@ type (fringe_field_info_struct) fringe_info
 type (ele_struct), pointer :: lord
 type (coord_struct) :: orbit
 
-real(rp) s_edge_body, s_orb
+real(rp) s_edge_body
 integer i, leng_sign
 logical, optional :: init_needed, time_tracking
 
@@ -81,13 +81,6 @@ endif
 if (.not. fringe_info%has_fringe) return
 
 !-----------------------------------------
-! s_orb is the distance traveled from the entrance end
-
-if (orbit%direction == 1) then
-  s_orb = orbit%s - track_ele%s_start
-else
-  s_orb = track_ele%s - orbit%s
-endif
 
 ! Now test all other edges to see if they are nearer the particle.
 
@@ -98,17 +91,17 @@ if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_
   do i = 1, track_ele%n_lord
     lord => pointer_to_lord(track_ele, i)
     if (lord%key == overlay$ .or. lord%key == group$) cycle
-    call does_this_ele_contain_the_next_edge (lord, i, track_ele, leng_sign, orbit, s_edge_body, s_orb, fringe_info)
+    call does_this_ele_contain_the_next_edge (lord, i, track_ele, leng_sign, orbit, s_edge_body, fringe_info)
   enddo
 
 else
-  call does_this_ele_contain_the_next_edge (track_ele, 1, track_ele, leng_sign, orbit, s_edge_body, s_orb, fringe_info)
+  call does_this_ele_contain_the_next_edge (track_ele, 1, track_ele, leng_sign, orbit, s_edge_body, fringe_info)
 endif
 
 !---------------------------------------------------------------------------
 contains
 
-subroutine does_this_ele_contain_the_next_edge (this_ele, ix_loc, track_ele, leng_sign, orbit, s_edge_body, s_orb, fringe_info)
+subroutine does_this_ele_contain_the_next_edge (this_ele, ix_loc, track_ele, leng_sign, orbit, s_edge_body, fringe_info)
 
 type (ele_struct), target :: this_ele, track_ele
 type (fringe_field_info_struct), target :: fringe_info
@@ -119,16 +112,22 @@ integer this_end, ix_loc, leng_sign
 
 ! Remamber: element length can be less than zero.
 
-leng = this_ele%value(l$)
-s_off = this_ele%s_start - track_ele%s_start
+if (track_ele%orientation == 1) then
+  s_off = this_ele%s_start - track_ele%s_start
+  s_orb = orbit%s - track_ele%s_start
+else
+  s_off = track_ele%s - this_ele%s
+  s_orb = track_ele%s - orbit%s
+endif
 
-s1 = s_off + (leng - hard_edge_model_length(this_ele)) / 2 
-s2 = s_off + (leng + hard_edge_model_length(this_ele)) / 2 
+leng = this_ele%value(l$)
+s1 = s_off + (leng - hard_edge_model_length(this_ele)) / 2  ! Distance from entrance end to hard edge
+s2 = s_off + (leng + hard_edge_model_length(this_ele)) / 2  ! Distance from entrance end to the other hard edge
 
 ! With a solenoid must always apply the fringe kick due to the longitudinal field. 
 ! If not done the matrix calc will not be symplectic.
-! For other elements, especially quadrupoles, this is problematic due to the soft edge kick not being being exactly the reverse
-! going from inside to outside and vice versa (it is confusing if a superimposed marker shifts the tracking).
+! For other elements, especially quadrupoles, this is problematic due to the soft edge kick not being being exactly the reverse going 
+! from inside to outside and vice versa. So applying an edge kick could be confusing since a superimposed marker would shift the tracking.
 
 if (track_ele%key == solenoid$ .or. track_ele%key == sol_quad$) then
   s1 = max(s1, 0.0_rp)
@@ -138,11 +137,11 @@ endif
 !
 
 if (leng_sign > 0) then
-  s_hard_entrance   = min(s1, s2)
-  s_hard_exit = max(s1, s2)
+  s_hard_entrance = min(s1, s2)
+  s_hard_exit     = max(s1, s2)
 else
-  s_hard_entrance   = max(s1, s2)
-  s_hard_exit = min(s1, s2)
+  s_hard_entrance = max(s1, s2)
+  s_hard_exit     = min(s1, s2)
 endif
 
 ds_small = bmad_com%significant_length / 100
@@ -188,7 +187,7 @@ else
   if (leng_sign * s_this_edge < leng_sign * s_edge_body - ds_small) return
 endif
 
-! This looks like the next hard edge
+! 
 
 fringe_info%hard_ele => this_ele
 fringe_info%particle_at = this_end
