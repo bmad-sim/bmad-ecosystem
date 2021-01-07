@@ -443,14 +443,14 @@ Example:
 
   ! Output parameters
   ltt%particle_output_file = "snap.dat"
-  ltt%bunch_output_file = "bunch.dat"
+  ltt%bunch_binary_output_file = "bunch.dat"
   ltt%averages_output_file = "average.dat"  
   ltt%sigma_matrix_output_file = "sigma.dat"
+  ltt%one_particle_output_file = False
   ltt%output_every_n_turns = 200
   ltt%averaging_window = 1
   ltt%output_initial_position = False
   ltt%print_on_dead_loss = -1
-  ltt%merge_particle_output_files = False
   ltt%map_file_prefix = 'ltt'
 
   ! Simulation parameters
@@ -533,9 +533,9 @@ through \vn{(ltt%averaging_window-1)/2}. The number of turns tracked will be ext
 \vn{ltt%n_turns} so that the averaging window used for the point \vn{ltt%n_turns} has the normal
 width.
 %
-\item[ltt\%bunch_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that is created to hold
-the particle positions. This file is created at the end of tracking. This is similar to
+\item[ltt\%bunch_binary_output_file] \Newline
+Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. This parameter sets the name of the file
+that is created to hold the particle positions at the end of tracking. This is similar to
 \vn{ltt%particle_output_file} but here the file will be a binary file that is portable to other
 programs and can also be used as input to the \ltt program.
 %
@@ -565,7 +565,7 @@ where \vn{<hash>} is a hash string that represents input parameters (like the or
 to compute the map(s). This hash string is used so that map(s) constructed with one set of
 parameters are not used if the parameters are changed.
 %
-\item[ltt\%merge_particle_output_files] \Newline
+\item[ltt\%one_particle_output_file] \Newline
 If set to \vn{True}, all the particle data will be put in one \vn{ltt%particle_output_file} file. Only
 relevant for \vn{"BEAM"} tracking.  See Section~\sref{s:part.out}.
 %
@@ -580,11 +580,11 @@ particle position and spin. Default is \vn{False}. See Section~\sref{s:part.out}
 %
 \item[ltt\%particle_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the ASCII file or files that are
-created to hold the particle positions. If \vn{ltt%merge_particle_output_files} is set to False, a
+created to hold the particle positions. If \vn{ltt%one_particle_output_file} is set to False, a
 file is created every \vn{ltt%ouput_every_n_turns} turns.  If \vn{ltt%merge_particle_ouput_files} is
 set to True, the files are combined into one. See Section~\sref{s:part.out} for more details. If
 \vn{ltt%particle_ouput_file} is blank, no particle output file is created. See also
-\vn{ltt%bunch_output_file} which will produce a portable binary file.
+\vn{ltt%bunch_binary_output_file} which will produce a portable binary file.
 %
 \item[ltt\%print_on_dead_loss] \Newline
 After each turn, the number of particles that are still living (have not hit an aperture) are
@@ -726,7 +726,7 @@ coupling, the $a$ mode corresponds to the ``horizontal'' mode and the $b$ mode c
 integral calculation. Additionaly, the longitudinal beam size is calculated via radiation integrals.
 
 %------------------------------------------------------------------
-\Section{Particle Data Output Format}
+\Section{Particle Data Output}
 \label{s:part.out}
 
 The following describes the particle data output format. Particle data is outputted when the
@@ -735,16 +735,18 @@ The following describes the particle data output format. Particle data is output
 Particle data is always recorded when the beam is at the \vn{ltt%ele_start} position independent of
 where the lattice begins and ends.
 
-With \vn{ltt%merge_particle_output_files} set to \vn{False}, an output data file will be produced
+With \vn{ltt%one_particle_output_file} set to \vn{False}, an output data file will be produced
 every \vn{ltt%output_every_n_turns} turns. Each line in this file records a particle's orbital and
-spin position. The name of the data file is derived from the \vn{ltt%particle_output_file} string
-using the following rules: If \vn{ltt%particle_output_file} contains a hash character ''\#'', the
+spin position. The name of the data file is derived from the \vn{ltt%particle_output_file} string.
+If \vn{ltt%particle_output_file} contains a hash character ''\#'', the
 data file name is formed by substituting the turn number for the hash token. If there is no hash
 character, the data file name is formed by appending the turn number to the
 \vn{ltt%particle_output_file} string.
 
-With \vn{ltt%merge_particle_output_files} set to \vn{True}, instead of generating multiple files,
-all data is put into one file whose name is given by \vn{ltt%particle_output_file}.
+With \vn{ltt%one_particle_output_file} set to \vn{True}, instead of generating multiple files
+over multiple turns, all data is put into one file whose name is given by
+\vn{ltt%particle_output_file}. In this case, a hash character in the file name is not treated as
+a special character.
 
 Nominally particle data is recorded every \vn{ltt%output_every_n_turns} number of turns. However, if
 \vn{ltt%output_every_n_turns} is set to 0, particle data is recorded only at the start and end of
