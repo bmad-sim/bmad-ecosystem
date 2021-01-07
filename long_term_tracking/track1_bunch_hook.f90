@@ -38,9 +38,12 @@ integer ip, ir, ie
 
 logical err, finished
 
-!
+! To save time, rampers are only applied to the element once per bunch. 
+! That is, it is assumed that the ramper control function variation is negligible over the
+! time scale of a bunch passage.
 
 finished = .false.
+if (size(ltt_com_global%ix_ramper) == 0) return
 
 t = sum(bunch_start%particle%t, bunch_start%particle%state == alive$) / &
                      count(bunch_start%particle%state == alive$) + 0.5_rp * ele%value(delta_ref_time$)
@@ -54,16 +57,16 @@ enddo
 
 ! Adjust particle reference energy if needed.
 
+if (bunch_start%particle(1)%p0c == ele%value(p0c_start$)) return
+
 do ip = 1, size(bunch_start%particle)
   orb => bunch_start%particle(ip)
   if (orb%state /= alive$) cycle
-  if (orb%p0c == ele%value(p0c_start$)) return
   r = orb%p0c / ele%value(p0c_start$)
   orb%vec(2) = r * orb%vec(2)
   orb%vec(4) = r * orb%vec(4)
   orb%vec(6) = r * orb%vec(6) + (orb%p0c - ele%value(p0c_start$)) / ele%value(p0c_start$)
   orb%p0c = ele%value(p0c_start$)
 enddo
-
 
 end subroutine

@@ -31,7 +31,7 @@ type ltt_params_struct
   character(200) :: lat_file = ''
   character(200) :: common_master_input_file = ''
   character(200) :: particle_output_file = ''
-  character(200) :: bunch_output_file = ''
+  character(200) :: bunch_binary_output_file = ''
   character(200) :: sigma_matrix_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: averages_output_file = ''
@@ -50,7 +50,7 @@ type ltt_params_struct
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: output_initial_position = .false.
-  logical :: merge_particle_output_files = .false.
+  logical :: one_particle_output_file = .false.
   logical :: split_bends_for_radiation = .false.
   integer :: mpi_rank  = master_rank$
   integer :: mpi_n_proc = 1                    ! Number of processeses including master
@@ -84,8 +84,9 @@ type ltt_com_struct
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   integer ix_branch
-  integer :: ix_ramper(20) = -1   ! Element indexes for ramper elements.
+  integer, allocatable :: ix_ramper(:)    ! Element indexes for ramper elements.
   real(rp) ptc_closed_orb(6)
+  logical :: ramp_in_track1_preprocess = .false.
   logical :: debug = .false.
 end type
 
@@ -99,6 +100,7 @@ type ltt_sum_data_struct
   real(rp) :: orb_sum(6) = 0    ! Orbit average
   real(rp) :: orb2_sum(6,6) = 0
   real(rp) :: spin_sum(3) = 0   ! Spin
+  real(rp) :: p0c_sum = 0
 end type
 
 type (ltt_params_struct), pointer, save :: ltt_params_global   ! Needed for track1_preprocess and track1_bunch_hook
@@ -126,6 +128,11 @@ character(*), parameter :: r_name = 'ltt_init_params'
 logical err
 
 namelist / params / bmad_com, beam_init, ltt
+
+!
+
+ltt_params_global => ltt
+ltt_com_global => ltt_com
 
 ! Parse command line
 
@@ -265,11 +272,18 @@ if (beam_init%use_particle_start_for_center) beam_init%center = lat%particle_sta
 !
 
 if (ltt%ramper_elements /= '') then
+  if (ltt%tracking_method /= 'BMAD') THEN
+    print *, 'NOTE: ltt%tracking_method MUST BE SET TO "BMAD" IF RAMPER ELEMENTS ARE USED.'
+  endif
+
   call lat_ele_locator (ltt%ramper_elements, lat, eles, n_loc, err)
   if (err) then
     print '(2a)', 'ERROR FINDING RAMPER ELEMENTS MATCHING LTT%RAMPER_ELEMENTS SETTING: ' // ltt%ramper_elements
     stop
   endif
+
+  allocate (ltt_com%ix_ramper(n_loc))
+
   do i = 1, n_loc
     if (eles(i)%ele%key /= ramper$) then
       print *, 'Element is not a ramper element: ' // eles(i)%ele%name
@@ -278,16 +292,9 @@ if (ltt%ramper_elements /= '') then
     ltt_com%ix_ramper(i) = eles(i)%ele%ix_ele
   enddo
 
-  if (ltt%tracking_method /= 'BMAD') THEN
-    print *, 'ltt%tracking_method MUST BE SET TO "BMAD" IF RAMPER ELEMENTS ARE USED.'
-    stop
-  endif
+else
+  allocate (ltt_com%ix_ramper(0))
 endif
-
-!
-
-ltt_params_global => ltt
-ltt_com_global => ltt_com
 
 end subroutine ltt_init_params
 
@@ -376,7 +383,6 @@ endif
 print *
 print '(a)', '--------------------------------------'
 print '(a, a)',    'ltt%lat_file:                  ', quote(lttp%lat_file)
-print '(a, a)',    'ltt%averages_output_file:      ', quote(lttp%averages_output_file)
 print '(a, a)',    'ltt%sigma_matrix_output_file:  ', quote(lttp%sigma_matrix_output_file)
 print '(a, a)',    'ltt%particle_output_file:      ', quote(lttp%particle_output_file)
 print '(a, a)',    'ltt%averages_output_file:      ', quote(lttp%averages_output_file)
@@ -563,6 +569,7 @@ branch => lat%branch(ix_branch)
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 
 orbit_old%vec = real_garbage$
+ltt_com%ramp_in_track1_preprocess = .true.
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, branch, beam_init)
 
@@ -712,7 +719,15 @@ n_live_old = size(bunch%particle)
 ! 
 
 if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, ltt_com, 0, bunch, bunch_init)
+! If using mpi then this data will all be written out at the end.
+! Here partial writes are used so the user can monitor progress if they want.
 call ltt_calc_bunch_sums (lttp, 0, bunch, sum_data_arr)
+if (.not. lttp%using_mpi) then
+  call ltt_write_bunch_averages(lttp, sum_data_arr)
+  call ltt_write_sigma_matrix (lttp, sum_data_arr)
+  where (sum_data_arr%status == valid$) sum_data_arr%status = written$
+endif
+
 
 time0 = 0
 
@@ -782,7 +797,7 @@ if (lttp%using_mpi) then
   if (allocated(sum_data_array)) deallocate (sum_data_array)
   call move_alloc (sum_data_arr, sum_data_array)
 else
-  if (lttp%bunch_output_file /= '') call write_beam_file (lttp%bunch_output_file, beam)
+  if (lttp%bunch_binary_output_file /= '') call write_beam_file (lttp%bunch_binary_output_file, beam)
 endif
 
 end subroutine ltt_run_bunch_mode
@@ -912,7 +927,7 @@ if (lttp%output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= lttp%n_turn
 if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) /= 0) return
 
 if (iu_snap == 0) then
-  if (lttp%merge_particle_output_files) then
+  if (lttp%one_particle_output_file) then
     file_name = lttp%particle_output_file
   else
     j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
@@ -947,7 +962,7 @@ do ip = 1, size(bunch%particle)
   endif
 enddo
 
-if (.not. lttp%merge_particle_output_files) then
+if (.not. lttp%one_particle_output_file) then
   close(iu_snap)
   iu_snap = 0
 endif
@@ -1039,6 +1054,8 @@ do i = 1, 3
   sd%spin_sum(i) = sd%spin_sum(i) + sum(bunch%particle%spin(i), bunch%particle%state == alive$)
 enddo
 
+sd%p0c_sum = sd%p0c_sum + sum(bunch%particle%p0c, bunch%particle%state == alive$)
+
 !-------------------------------------------------------------------------------------------
 contains
 
@@ -1087,9 +1104,9 @@ iu = lunget()
 
 if (sum_data_arr(1)%status == valid$) then
   open (iu, file = lttp%averages_output_file, recl = 300)
-  write (iu, '(a1, a8, a9, a14, 3a14, 12a14)') '#', 'Turn', 'N_live', 'Polarization', &
+  write (iu, '(a1, a8, a9, a14, 3a14, 13a14)') '#', 'Turn', 'N_live', 'Polarization', &
                    '<Sx>', '<Sy>', '<Sz>', 'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
-                   '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>'
+                   '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>'
                      
 else
   open (iu, file = lttp%averages_output_file, recl = 300, access = 'append')
@@ -1103,8 +1120,8 @@ do ix = 1, size(sum_data_arr)
   if (sd%n_count == 0) exit
   forall (i = 1:6) sigma(i) = sd%orb2_sum(i,i)/sd%n_count - (sd%orb_sum(i)/sd%n_count)**2
   sigma = sqrt(max(0.0_rp, sigma))
-  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 12es14.6)') sd%i_turn, sd%n_live, &
-          norm2(sd%spin_sum/sd%n_count), sd%spin_sum/sd%n_count, sigma, sd%orb_sum/sd%n_count
+  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 13es14.6)') sd%i_turn, sd%n_live, &
+          norm2(sd%spin_sum/sd%n_count), sd%spin_sum/sd%n_count, sigma, sd%orb_sum/sd%n_count, sd%p0c_sum/sd%n_count
 enddo
 
 !
@@ -1136,7 +1153,7 @@ iu = lunget()
 
 if (sum_data_arr(1)%status == valid$) then
   open (iu, file = lttp%sigma_matrix_output_file, recl = 400)
-  write (iu, '(a1, a8, a9, 21a14)') '#', 'Turn', 'N_live', &
+  write (iu, '(a1, a8, a9, 22a14)') '#', 'Turn', 'N_live', '<p0c>', &
     '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
     '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
 else
@@ -1156,7 +1173,7 @@ do ix = 1, size(sum_data_arr)
     sigma(k) = sd%orb2_sum(i,j) / sd%n_count - sd%orb_sum(i) * sd%orb_sum(j) / sd%n_count**2
   enddo
   enddo
-  write (iu, '(i9, i9, 2x, 21es14.6)') sd%i_turn, sd%n_live, (sigma(k), k = 1, 21)
+  write (iu, '(i9, i9, 2x, 22es14.6)') sd%i_turn, sd%n_live, sd%p0c_sum/sd%n_count, (sigma(k), k = 1, 21)
 enddo
 
 !

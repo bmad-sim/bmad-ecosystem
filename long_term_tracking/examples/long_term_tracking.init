@@ -6,7 +6,9 @@
 
   ltt%particle_output_file = 'bmad.dat'
   ltt%averages_output_file = 'ave.dat'
-  ltt%merge_particle_output_files = F
+  ltt%bunch_binary_output_file = ''
+  ltt_sigma_matrix_output_file = ''
+  ltt%one_particle_output_file = F
   ltt%output_every_n_turns = 1
   ltt%output_initial_position = F
 

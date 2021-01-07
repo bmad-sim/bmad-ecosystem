@@ -49,7 +49,7 @@ character(*), parameter :: r_name = 'track1_preprocess'
 ! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
 
 err_flag = .false.
-if (ltt_params_global%tracking_method /= 'SINGLE') return 
+if (.not. ltt_com_global%ramp_in_track1_preprocess) return 
 
 do i = 1, size(ltt_com_global%ix_ramper)
   ie = ltt_com_global%ix_ramper(i)
