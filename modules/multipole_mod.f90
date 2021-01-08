@@ -262,6 +262,7 @@ end subroutine multipole1_kt_to_ab
 ! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
+!
 ! Note: The ab values will be scalled by the strength of the element if scale_multipole = T is set for the element.
 !
 ! Input:
@@ -307,12 +308,13 @@ character(*), parameter :: r_name = 'multipole_ele_to_ab'
 
 ! Init
 
-a = 0
-b = 0
-if (present(b1)) b1 = 0
 ix_pole_max = -1
 
-if (.not. ele%is_on) return
+if (.not. ele%is_on) then
+  a = 0;  b = 0
+  if (present(b1)) b1 = 0
+  return
+endif
 
 ! Use cache if possible. 
 ! Caching requires intelligent bookkeeping to mark when the cache goes stale.
@@ -326,9 +328,15 @@ can_use_cache = (.not. bmad_com%auto_bookkeeper)
 cache => ele%multipole_cache
 if (can_use_cache .and. allocated(ele%multipole_cache)) then
   if (p_type == magnetic$ .and. cache%ix_pole_mag_max /= invalid$) then
+    ix_pole_max = cache%ix_pole_mag_max
+    if (ix_pole_max == -1 .and. (.not. include_kicks$ .or. cache%ix_kick_mag_max == -1)) then
+      a = 0;  b = 0
+      if (present(b1)) b1 = 0
+      return
+    endif
+
     a = cache%a_pole_mag
     b = cache%b_pole_mag
-    ix_pole_max = cache%ix_pole_mag_max
 
     if (cache%ix_kick_mag_max > -1 .and. include_kck == include_kicks$) then
       a(0:3) = a(0:3) + cache%a_kick_mag
@@ -359,7 +367,11 @@ endif
 ! Multipole ele 
 
 if (ele%key == multipole$) then
-  if (p_type == electric$) return
+  if (p_type == electric$) then
+    a = 0;  b = 0
+    if (present(b1)) b1 = 0
+    return
+  endif
 
   if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     lord => pointer_to_lord(ele, 1)
@@ -380,6 +392,9 @@ endif
 
 ! Slice slaves and super slaves have their associated multipoles stored in the lord.
 
+a = 0
+b = 0
+
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   ! Easy case
   if (ele%n_lord == 1) then
@@ -399,14 +414,16 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
     if (.not. lord%is_on) cycle
     call multipole_ele_to_ab (lord, .true., n, this_a, this_b, pole_type, include_kicks)
-    if (p_type == magnetic$) then
-      a = a + this_a * (ele%value(l$) / lord%value(l$))
-      b = b + this_b * (ele%value(l$) / lord%value(l$))
-    else
-      a = a + this_a
-      b = b + this_b
+    if (n > -1) then
+      if (p_type == magnetic$) then
+        a(0:n) = a(0:n) + this_a(0:n) * (ele%value(l$) / lord%value(l$))
+        b(0:n) = b(0:n) + this_b(0:n) * (ele%value(l$) / lord%value(l$))
+      else
+        a(0:n) = a(0:n) + this_a(0:n)
+        b(0:n) = b(0:n) + this_b(0:n)
+      endif
+      ix_pole_max = max(ix_pole_max, n)
     endif
-    ix_pole_max = max(ix_pole_max, n)
   enddo
 
   if (.not. use_ele_tilt) call tilt_this_multipole(ele, -1, a, b, ix_pole_max)
