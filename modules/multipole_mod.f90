@@ -329,7 +329,7 @@ cache => ele%multipole_cache
 if (can_use_cache .and. allocated(ele%multipole_cache)) then
   if (p_type == magnetic$ .and. cache%ix_pole_mag_max /= invalid$) then
     ix_pole_max = cache%ix_pole_mag_max
-    if (ix_pole_max == -1 .and. (.not. include_kicks$ .or. cache%ix_kick_mag_max == -1)) then
+    if (ix_pole_max == -1 .and. (include_kck == no$ .or. cache%ix_kick_mag_max == -1)) then
       a = 0;  b = 0
       if (present(b1)) b1 = 0
       return
