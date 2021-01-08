@@ -31,7 +31,7 @@ type (fringe_field_info_struct) fringe_info
 type (em_field_struct) field
 
 real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_end_lab
-real(rp) voltage, k_rf, phase
+real(rp) voltage, k_rf, phase, l_hard_edge
 integer key
 logical, optional :: make_quaternion
 
@@ -64,6 +64,8 @@ if (ele%key == crab_cavity$) then
 endif
 
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
+
+l_hard_edge = hard_edge_model_length(ele)
 
 if (start_orb%direction == 1) then
   s_end_lab = ele%value(l$)
@@ -102,7 +104,7 @@ if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ 
   call multipole_spin_tracking (ele, param, temp_end)
 else
   call spline_fit_orbit (ele, temp_start, temp_end, spline_x, spline_y)
-  omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
+  omega = trapzd_omega (ele, l_hard_edge, spline_x, spline_y, temp_start, temp_end, param)
   if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*start_orb%direction*ele%orientation, 0.0_rp]
   call rotate_spin(omega, temp_end%spin)
 endif
@@ -117,124 +119,126 @@ call offset_particle (ele, param, unset$, temp_end, set_hvkicks = .false., set_s
 
 end_orb%spin = temp_end%spin
 
+!---------------------------------------------------------------------------------------------
 contains
 
-  function trapzd_omega (ele, spline_x, spline_y, start_orb, end_orb, param) result (omega)
-  
-  use nr, only: polint
-  
-  implicit none
-  
-  type q_array_struct
-    real(rp) h
-    real(rp) omega(3)
-  end type
-  
-  integer, parameter ::  j_max = 10
-  
-  type (q_array_struct) q_array(j_max), z(0:512)
-  type (ele_struct) ele
-  type (coord_struct) start_orb, end_orb, orb
-  type (lat_param_struct) param
-  
-  real(rp) s0, s1, del_s, s, spline_x(0:3), spline_y(0:3), omega(3)
-  real(rp) dint, eps, quat(0:3)
-  real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
-  
-  integer j, k, n, n_pts
-  
-  ! Only integrate over where the field is finite.
-  ! This will be the whole element except for RF cavities.
-  
-  s0 = (ele%value(l$) - hard_edge_model_length(ele)) / 2 + bmad_com%significant_length/10
-  s1 = (ele%value(l$) + hard_edge_model_length(ele)) / 2 - bmad_com%significant_length/10
-  
-  q_array(1)%h = 1
-  z(0)%omega = omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param)
-  z(1)%omega = omega_func(s1, spline_x, spline_y, start_orb, end_orb, ele, param)
-  
-  del_s = abs(s1 - s0)
-  q_array(1)%omega = quat_to_omega(quat_mul(omega_to_quat(z(1)%omega * del_s / 2), omega_to_quat(z(0)%omega * del_s / 2)))
-  
-  do j = 2, j_max
-    ! This is trapzd from NR
-    n_pts = 2**(j-2)
-    del_s = (s1 - s0) / (2 * n_pts)
-    quat = omega_to_quat(z(0)%omega * abs(del_s) / 2)
-  
-    z(2:2*n_pts:2) = z(1:n_pts)
-  
-    do n = 1, n_pts
-      s = s0 + del_s * (2*n - 1)
-      z(2*n-1)%omega = omega_func(s, spline_x, spline_y, start_orb, end_orb, ele, param)
-      quat = quat_mul(omega_to_quat(z(2*n-1)%omega * abs(del_s)), quat)
-      if (n == n_pts) del_s = del_s / 2
-      quat = quat_mul(omega_to_quat(z(2*n)%omega * abs(del_s)), quat)
-    enddo
-    
-    q_array(j)%omega = quat_to_omega(quat)
-    q_array(j)%h = q_array(j-1)%h / 4
-  
-    eps = eps_abs + eps_rel * sum(abs(q_array(j)%omega))
-  
-    if (ele%key == wiggler$ .and. j < 5) cycle  ! Cannot trust until have enough points
-  
-    do k = 1, 3
-      call polint (q_array(1:j)%h, q_array(1:j)%omega(k), 0.0_rp, omega(k), dint)
-      if (abs(dint) > eps .and. j < j_max) exit ! Failed test. Note: Last loop with j = j_max -> no test.
-      if (k == 3) return                        ! Passed all tests or last loop
-    enddo
-  
+function trapzd_omega (ele, l_hard_edge, spline_x, spline_y, start_orb, end_orb, param) result (omega)
+
+use nr, only: polint
+
+implicit none
+
+type q_array_struct
+  real(rp) h
+  real(rp) omega(3)
+end type
+
+integer, parameter ::  j_max = 10
+
+type (q_array_struct) q_array(j_max), z(0:512)
+type (ele_struct) ele
+type (coord_struct) start_orb, end_orb, orb
+type (lat_param_struct) param
+
+real(rp) s0, s1, del_s, s, spline_x(0:3), spline_y(0:3), omega(3)
+real(rp) dint, eps, quat(0:3), l_hard_edge
+real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
+
+integer j, k, n, n_pts
+
+! Only integrate over where the field is finite.
+! This will be the whole element except for RF cavities.
+
+s0 = (ele%value(l$) - l_hard_edge) / 2 + bmad_com%significant_length/10
+s1 = (ele%value(l$) + l_hard_edge) / 2 - bmad_com%significant_length/10
+
+q_array(1)%h = 1
+z(0)%omega = omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param)
+z(1)%omega = omega_func(s1, spline_x, spline_y, start_orb, end_orb, ele, param)
+
+del_s = abs(s1 - s0)
+q_array(1)%omega = quat_to_omega(quat_mul(omega_to_quat(z(1)%omega * del_s / 2), omega_to_quat(z(0)%omega * del_s / 2)))
+
+do j = 2, j_max
+  ! This is trapzd from NR
+  n_pts = 2**(j-2)
+  del_s = (s1 - s0) / (2 * n_pts)
+  quat = omega_to_quat(z(0)%omega * abs(del_s) / 2)
+
+  z(2:2*n_pts:2) = z(1:n_pts)
+
+  do n = 1, n_pts
+    s = s0 + del_s * (2*n - 1)
+    z(2*n-1)%omega = omega_func(s, spline_x, spline_y, start_orb, end_orb, ele, param)
+    quat = quat_mul(omega_to_quat(z(2*n-1)%omega * abs(del_s)), quat)
+    if (n == n_pts) del_s = del_s / 2
+    quat = quat_mul(omega_to_quat(z(2*n)%omega * abs(del_s)), quat)
   enddo
   
-  end function trapzd_omega
+  q_array(j)%omega = quat_to_omega(quat)
+  q_array(j)%h = q_array(j-1)%h / 4
 
-  !-
+  eps = eps_abs + eps_rel * sum(abs(q_array(j)%omega))
 
-  function omega_func (s_eval, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega)
-  
-  implicit none
-  
-  type (coord_struct) start_orb, end_orb, orb
-  type (ele_struct) ele
-  type (em_field_struct) field
-  type (lat_param_struct) param
-  
-  real(rp) s_eval, spline_x(0:3), spline_y(0:3), omega(3), B(3)
-  real(rp) ds, s_tot, s2
-  
-  !
-  
-  ds = s_eval
-  s_tot = abs(end_orb%s - start_orb%s)
-  
-  orb = end_orb
-  
-  orb%vec(5) = start_orb%vec(5) * (s_tot - ds) / s_tot + end_orb%vec(5) * ds / s_tot
-  orb%vec(6) = start_orb%vec(6) * (s_tot - ds) / s_tot + end_orb%vec(6) * ds / s_tot
-  
-  orb%vec(1) =                     spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
-  orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + 2 * spline_x(2) * ds + 3 * spline_x(3) * ds**2)
-  orb%vec(3) =                     spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
-  orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + 2 * spline_y(2) * ds + 3 * spline_y(3) * ds**2)
-  
-  orb%t      = start_orb%t      * (s_tot - ds) / s_tot + end_orb%t      * ds / s_tot
-  orb%beta   = start_orb%beta   * (s_tot - ds) / s_tot + end_orb%beta   * ds / s_tot
-  
-  if (orb%direction == 1) then
-    s2 = s_eval
-  else
-    s2 = ele%value(l$) - s_eval
-  endif
-  
-  call em_field_calc (ele, param, s2, orb, .true., field)
-  
-  ! 1 + g*x term comes from the curved coordinates.
-  
-  omega = spin_omega (field, orb, start_orb%direction * ele%orientation)
-  if (ele%key == sbend$) omega = (1 + ele%value(g$) * orb%vec(1)) * omega
-  
-  end function omega_func
+  if (ele%key == wiggler$ .and. j < 5) cycle  ! Cannot trust until have enough points
+
+  do k = 1, 3
+    call polint (q_array(1:j)%h, q_array(1:j)%omega(k), 0.0_rp, omega(k), dint)
+    if (abs(dint) > eps .and. j < j_max) exit ! Failed test. Note: Last loop with j = j_max -> no test.
+    if (k == 3) return                        ! Passed all tests or last loop
+  enddo
+
+enddo
+
+end function trapzd_omega
+
+!-----------------------------------------------------------------------------------
+! contains
+
+function omega_func (s_eval, spline_x, spline_y, start_orb, end_orb, ele, param) result (omega)
+
+implicit none
+
+type (coord_struct) start_orb, end_orb, orb
+type (ele_struct) ele
+type (em_field_struct) field
+type (lat_param_struct) param
+
+real(rp) s_eval, spline_x(0:3), spline_y(0:3), omega(3), B(3)
+real(rp) ds, s_tot, s2
+
+!
+
+ds = s_eval
+s_tot = abs(end_orb%s - start_orb%s)
+
+orb = end_orb
+
+orb%vec(5) = start_orb%vec(5) * (s_tot - ds) / s_tot + end_orb%vec(5) * ds / s_tot
+orb%vec(6) = start_orb%vec(6) * (s_tot - ds) / s_tot + end_orb%vec(6) * ds / s_tot
+
+orb%vec(1) =                     spline_x(0) + spline_x(1) * ds + spline_x(2) * ds**2 + spline_x(3) * ds**3
+orb%vec(2) = (1 + orb%vec(6)) * (spline_x(1) + 2 * spline_x(2) * ds + 3 * spline_x(3) * ds**2)
+orb%vec(3) =                     spline_y(0) + spline_y(1) * ds + spline_y(2) * ds**2 + spline_y(3) * ds**3
+orb%vec(4) = (1 + orb%vec(6)) * (spline_y(1) + 2 * spline_y(2) * ds + 3 * spline_y(3) * ds**2)
+
+orb%t      = start_orb%t      * (s_tot - ds) / s_tot + end_orb%t      * ds / s_tot
+orb%beta   = start_orb%beta   * (s_tot - ds) / s_tot + end_orb%beta   * ds / s_tot
+
+if (orb%direction == 1) then
+  s2 = s_eval
+else
+  s2 = ele%value(l$) - s_eval
+endif
+
+call em_field_calc (ele, param, s2, orb, .true., field)
+
+! 1 + g*x term comes from the curved coordinates.
+
+omega = spin_omega (field, orb, start_orb%direction * ele%orientation)
+if (ele%key == sbend$) omega = (1 + ele%value(g$) * orb%vec(1)) * omega
+
+end function omega_func
 
 end subroutine track1_spin_bmad
 
