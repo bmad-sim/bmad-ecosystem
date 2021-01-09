@@ -1344,11 +1344,12 @@ computed, and the Twiss parameters and reference energy at the entrance end of t
 that is not removed is transferred to the beginning branch element. The branch \vn{geometry} is also
 set to \vn{open}.
 
-For a lattice branch with a closed geometry, the Twiss parameters are computed with the RF on.
-That is, the reference energy at the beginning of the sliced lattice branch will probably be
-non-zero. This will affect the Twiss calculation. If this is not what is wanted, the RF can
-be turned off before the \vn{slice_lattice} command which will ensure the reference energy is
-zero at the beginning of the lattice branch. Example: 
+For a lattice branch with a closed geometry, the Twiss parameters are computed with the RF on. That
+is, the reference momentum at the beginning of the sliced lattice branch, which is computed from the
+closed orbit phase space $p_z$ of the unsliced lattice, may be non-zero. This will affect the Twiss
+calculation. If this is not what is wanted, the RF can be turned off before the \vn{slice_lattice}
+command which will ensure the reference momentum is zero at the beginning of the lattice
+branch. Example:
 \begin{example}
   expand_lattice
   rfcavity::*[is_on] = False    ! Turn RF off
