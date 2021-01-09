@@ -41,6 +41,7 @@ type ltt_params_struct
   integer :: map_order = -1
   integer :: averaging_window = 1
   integer :: output_every_n_turns = -1
+  real(rp) :: ramper_start_time
   real(rp) :: ptc_aperture(2) = 0.1
   real(rp) :: print_on_dead_loss = -1
   real(rp) :: timer_print_dtime = 120
@@ -312,13 +313,13 @@ type (ele_struct), pointer :: ele, ele_start, ele_stop
 
 real(rp) closed_orb(6)
 
-integer i, ix_branch, ib, n_slice
+integer i, ix_branch, ib, n_slice, ie, ir
 
 logical err, map_file_exists
 
 character(40) start_name, stop_name
 
-! PTC has an internal aperture of 1.0 meter. To be safe use an aperture of 0.9 meter
+! PTC has an internal aperture of 1.0 meter. To be safe, use an aperture of 0.9 meter
 
 call ltt_make_tracking_lat(lttp, ltt_com)
 lat => ltt_com%tracking_lat
@@ -332,6 +333,18 @@ if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
   if (bmad_com%spin_tracking_on) ltt_com%ptc_state = ltt_com%ptc_state + SPIN0
 endif
 
+! If using ramping elements, setup the lattice using lttp%ramper_start_time
+
+if (lttp%ramper_elements /= '') then
+  branch => lat%branch(ix_branch)
+  do ie = 0, branch%n_ele_track
+    do i = 1, size(ltt_com%ix_ramper)
+      ir = ltt_com%ix_ramper(i)
+      call apply_ramper (branch%ele(ie), lat%ele(ir), err)
+    enddo
+  enddo
+endif  
+
 !
 
 if (.not. lttp%rfcavity_on) call set_on_off (rfcavity$, lat, off$)
@@ -341,7 +354,6 @@ call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch
 if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false.
 
 if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
-
   call ltt_read_map (lttp, ltt_com, err)
   if (err) then
     if (lttp%mpi_rank == master_rank$) then
@@ -551,7 +563,7 @@ type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: ele_start
 type (probe) prb
 
-real(rp) average(6), sigma(6,6)
+real(rp) average(6), sigma(6,6), dt
 integer i, n_sum, iu_out, i_turn, track_state, ix_branch
 logical is_lost
 
@@ -583,6 +595,8 @@ if (lttp%add_closed_orbit_to_init_position) then
   case ('PTC');     orbit%vec = orbit%vec + ltt_com%ptc_closed_orb
   end select
 endif
+
+!
 
 fmt = '(i6, 6es16.8, 3x, 3f10.6)'
 iu_out = lunget()
