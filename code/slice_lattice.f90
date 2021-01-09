@@ -97,7 +97,7 @@ enddo
 
 ! Transfer particle_start orbit
 
-if (logic_option(.true., do_bookkeeping) .and. lat%param%geometry == open$) then
+if (logic_option(.true., do_bookkeeping)) then
   call twiss_and_track(lat, orbit, status, 0, .true.)
   if (status == ok$) then
     do ie = 1, lat%n_ele_track
