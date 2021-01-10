@@ -336,10 +336,11 @@ endif
 ! If using ramping elements, setup the lattice using lttp%ramper_start_time
 
 if (lttp%ramper_elements /= '') then
-  branch => lat%branch(ix_branch)
-  do ie = 0, branch%n_ele_track
-    do i = 1, size(ltt_com%ix_ramper)
-      ir = ltt_com%ix_ramper(i)
+  branch => lat%branch(ltt_com%ix_branch)
+  do i = 1, size(ltt_com%ix_ramper)
+    ir = ltt_com%ix_ramper(i)
+    lat%ele(ir)%control%var(1)%value = lttp%ramper_start_time
+    do ie = 0, branch%n_ele_max
       call apply_ramper (branch%ele(ie), lat%ele(ir), err)
     enddo
   enddo
