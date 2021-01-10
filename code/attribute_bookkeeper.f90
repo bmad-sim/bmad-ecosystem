@@ -470,9 +470,9 @@ case (lcavity$)
   endif
 
   if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
-    val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+    val(l_active$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   else
-    val(l_hard_edge$) = val(l$)
+    val(l_active$) = val(l$)
   endif
 
 ! Patch
@@ -502,9 +502,9 @@ case (rfcavity$)
   endif
 
   if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
-    val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+    val(l_active$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
   else
-    val(l_hard_edge$) = val(l$)
+    val(l_active$) = val(l$)
   endif
 
   if (val(voltage$) == 0) then

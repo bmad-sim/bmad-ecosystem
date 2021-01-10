@@ -2699,7 +2699,7 @@ The attributes specific to an \vn{lcavity} are
   e_loss          = <Real>    ! Loss parameter for short range wakefields (V/Coul).
   rf_frequency    = <Real>    ! RF frequency (Hz).
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
-  l_hard_edge     = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
+  l_active        = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
   n_cell          = <Int>     ! Number of cavity cells. Default is 1.
   longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
 \end{example}
@@ -2779,7 +2779,7 @@ be modeled.
 When an element's \vn{tracking_method} is set to \vn{runge_kutta} (\sref{s:tkm}), the ``active
 region'' over which there is a finite field is \vn{n_cell} half-wave pillbox resonators where each
 pillbox has length $\lambda/2$ (\sref{s:rf.fields}). The default setting for \vn{n_cell} is 1. The
-dependent parameter \vn{l_hard_edge} is set to the length of the active region. The active region
+dependent parameter \vn{l_active} is set to the length of the active region. The active region
 should have a length less than the length of the element. If the length of the element is not equal
 to the active region, the active region is centered in the element and the regions to either side
 are treated as field free.

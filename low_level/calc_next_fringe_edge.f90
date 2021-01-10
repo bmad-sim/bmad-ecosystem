@@ -121,8 +121,14 @@ else
 endif
 
 leng = this_ele%value(l$)
-s1 = s_off + (leng - hard_edge_model_length(this_ele)) / 2  ! Distance from entrance end to hard edge
-s2 = s_off + (leng + hard_edge_model_length(this_ele)) / 2  ! Distance from entrance end to the other hard edge
+select case (this_ele%key)
+case (rfcavity$, lcavity$)
+  s1 = s_off + (leng - this_ele%value(l_active$)) / 2  ! Distance from entrance end to active edge
+  s2 = s_off + (leng + this_ele%value(l_active$)) / 2  ! Distance from entrance end to the other active edge
+case default
+  s1 = s_off         ! Distance from entrance end to hard edge
+  s2 = s_off + leng  ! Distance from entrance end to the other hard edge
+end select
 
 ! With a solenoid must always apply the fringe kick due to the longitudinal field. 
 ! If not done the matrix calc will not be symplectic.

@@ -3195,9 +3195,9 @@ case (rfcavity$, lcavity$)
     ptc_key%magnet = 'rfcavity'
     ptc_key%list%cavity_totalpath = 1  ! 
     if (ptc_key%nstep == 1) ptc_key%nstep = 5  ! Avoid bug with nstep = 1.
-    ! Currently all cavities use end drifts so the fake model is never used.
-    if (tracking_uses_end_drifts(ele)) then 
-      ptc_key%list%n_bessel = -1   ! pillbox cavity.
+    ! Avoid negative drift lengths
+    if (val(l$) > val(l_active$)) then
+      ptc_key%list%n_bessel = -1   ! Pillbox cavity.
       ptc_key%list%volt = 2d-6 * e_accel_field(ele, voltage$)
     else
       ptc_key%list%n_bessel = 1 ! Fake model
@@ -3211,13 +3211,13 @@ case (rfcavity$, lcavity$)
     ptc_key%list%cavity_totalpath = 0
   end select
 
-  ptc_key%list%freq0 = ele%value(rf_frequency$)
-  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$)
+  ptc_key%list%freq0 = val(rf_frequency$)
+  phi_tot = val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$)
 
-  if (tracking_uses_end_drifts(ele)) then
-    ptc_key%list%l = hard_edge_model_length(ele)
-    ptc_key%list%h1 = (val(l$) - ptc_key%list%l) / 2
-    ptc_key%list%h2 = (val(l$) - ptc_key%list%l) / 2
+  if (val(l$) > val(l_active$)) then
+    ptc_key%list%l = val(l_active$)
+    ptc_key%list%h1 = (val(l$) - val(l_active$)) / 2
+    ptc_key%list%h2 = (val(l$) - val(l_active$)) / 2
   endif
 
   if (key == lcavity$) then
