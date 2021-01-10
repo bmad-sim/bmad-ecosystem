@@ -1,5 +1,5 @@
 !+
-! Subroutine set_particle_from_rf_time (rf_time, ele, apply_hard_edge_offset, orbit)
+! Subroutine set_particle_from_rf_time (rf_time, ele, reference_active_edge, orbit)
 !
 ! Routine to set the z (vec(5)) and t components of a particle orbit given a time related to the "RF clock".
 ! Also see particle_rf_time which is the inverse of this routine.
@@ -7,13 +7,13 @@
 ! Input:
 !   rf_time   -- rel(rp): Time related to the RF clock.
 !   ele       -- rel(rp): Element that uses this clock.
-!   apply_hard_edge_offset -- logical: If True then account for offset due to a hard edge model.
+!   reference_active_edge -- logical: If True then account for offset due to a hard edge model.
 !
 ! Ouput:
 !   orbit     -- coord_struct: Particle orbit.
 !-
 
-subroutine set_particle_from_rf_time (rf_time, ele, apply_hard_edge_offset, orbit)
+subroutine set_particle_from_rf_time (rf_time, ele, reference_active_edge, orbit)
 
 use equal_mod, dummy_except => set_particle_from_rf_time
 use attribute_mod, only: has_attribute
@@ -27,7 +27,7 @@ type (ele_pointer_struct), allocatable :: chain(:)
 
 real(rp) rf_time, s_hard_offset
 integer ix_pass, n_links
-logical apply_hard_edge_offset
+logical reference_active_edge
 
 !
 
@@ -45,8 +45,8 @@ orbit%vec(5) = -rf_time * orbit%beta * c_light
 
 !
 
-if (apply_hard_edge_offset .and. has_attribute(ele, 'L_HARD_EDGE')) then
-  s_hard_offset = (ele%value(l$) - hard_edge_model_length(ele)) / 2  ! Relative to entrance end of the cavity
+if (reference_active_edge .and. (ele%key == rfcavity$ .or. ele%key == lcavity$)) then
+  s_hard_offset = (ele%value(l$) - ele%value(l_active$)) / 2
   orbit%t = orbit%t + s_hard_offset / (c_light * orbit%beta)
   orbit%vec(5) = orbit%vec(5) + c_light * orbit%beta * s_hard_offset
 endif

@@ -1322,14 +1322,14 @@ is_2nd_col_attrib = .false.
 select case (attrib_name)
 case ('L')
   is_2nd_col_attrib = .false.
-  if (has_attribute(ele, 'L_HARD_EDGE')) then
-    ix2_attrib = l_hard_edge$
+  if (has_attribute(ele, 'L_ACTIVE')) then
+    ix2_attrib = l_active$
   elseif (has_attribute(ele, 'L_SOFT_EDGE')) then
     ix2_attrib = l_soft_edge$
   endif
   return
 
-case ('L_SOFT_EDGE', 'L_HARD_EDGE')
+case ('L_SOFT_EDGE', 'L_ACTIVE')
   is_2nd_col_attrib = .true.
   return
 end select

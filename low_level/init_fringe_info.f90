@@ -73,14 +73,22 @@ contains
 subroutine init_this_ele (this_ele, ix_loc, leng_sign)
 
 type (ele_struct) this_ele
-real(rp) s_off, s1, s2, s_hard_entrance, s_hard_exit, ds_small
+real(rp) s_off, s1, s2, s_hard_entrance, s_hard_exit, ds_small, leng
 integer ix_loc, leng_sign
 
 !
 
 s_off = this_ele%s_start - ele%s_start
-s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
-s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
+
+leng = this_ele%value(l$)
+select case (this_ele%key)
+case (rfcavity$, lcavity$)
+  s1 = s_off + (leng - this_ele%value(l_active$)) / 2  ! Distance from entrance end to active edge
+  s2 = s_off + (leng + this_ele%value(l_active$)) / 2  ! Distance from entrance end to the other active edge
+case default
+  s1 = s_off         ! Distance from entrance end to hard edge
+  s2 = s_off + leng  ! Distance from entrance end to the other hard edge
+end select
 
 if (leng_sign > 0) then
   s_hard_entrance   = min(s1, s2)

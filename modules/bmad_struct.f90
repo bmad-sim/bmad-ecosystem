@@ -1550,7 +1550,7 @@ integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffract
 integer, parameter :: cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29, x_dispersion_calib$ = 29
 integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord$ = 30, scale_field_to_one$ = 30
 integer, parameter :: downstream_coord_dir$ = 30, pz_aperture_width2$ = 30, y_dispersion_calib$ = 30
-integer, parameter :: cmat_21$ = 31, l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
+integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
 integer, parameter :: l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31
 integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33

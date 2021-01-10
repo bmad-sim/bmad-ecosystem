@@ -1135,7 +1135,7 @@ call init_attribute_name1 (lcavity$, grid_field$,                   'GRID_FIELD'
 call init_attribute_name1 (lcavity$, taylor_field$,                 'TAYLOR_FIELD')
 call init_attribute_name1 (lcavity$, phi0_autoscale$,               'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
-call init_attribute_name1 (lcavity$, l_hard_edge$,                  'L_HARD_EDGE', dependent$)
+call init_attribute_name1 (lcavity$, l_active$,                     'L_ACTIVE', dependent$)
 
 call init_attribute_name1 (marker$, l$,                             'L', dependent$)
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
@@ -1352,7 +1352,7 @@ call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', 
 call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', dependent$)
 call init_attribute_name1 (rfcavity$, gradient_err$,                'gradient_err', private$)
 call init_attribute_name1 (rfcavity$, voltage_err$,                 'voltage_err', private$)
-call init_attribute_name1 (rfcavity$, l_hard_edge$,                 'L_HARD_EDGE', dependent$)
+call init_attribute_name1 (rfcavity$, l_active$,                    'L_ACTIVE', dependent$)
 
 call init_attribute_name1 (sbend$, angle$,                          'ANGLE', quasi_free$)
 call init_attribute_name1 (sbend$, ref_tilt$,                       'REF_TILT')
@@ -1364,7 +1364,7 @@ call init_attribute_name1 (sbend$, h2$,                             'H2')
 call init_attribute_name1 (sbend$, k1$,                             'K1', quasi_free$)
 call init_attribute_name1 (sbend$, k2$,                             'K2', quasi_free$)
 call init_attribute_name1 (sbend$, g$,                              'G', quasi_free$)
-call init_attribute_name1 (sbend$, dg$,                          'DG', quasi_free$)
+call init_attribute_name1 (sbend$, dg$,                             'DG', quasi_free$)
 call init_attribute_name1 (sbend$, roll$,                           'ROLL', override = .true.)
 call init_attribute_name1 (sbend$, roll_tot$,                       'ROLL_TOT', dependent$, override = .true.)
 call init_attribute_name1 (sbend$, hgap$,                           'HGAP')
@@ -1377,7 +1377,7 @@ call init_attribute_name1 (sbend$, l_sagitta$,                      'L_SAGITTA',
 call init_attribute_name1 (sbend$, ptc_fringe_geometry$,            'PTC_FRINGE_GEOMETRY')
 call init_attribute_name1 (sbend$, higher_order_fringe_type$,       'HIGHER_ORDER_FRINGE_TYPE')
 call init_attribute_name1 (sbend$, b_field$,                        'B_FIELD', quasi_free$)
-call init_attribute_name1 (sbend$, db_field$,                    'DB_FIELD', quasi_free$)
+call init_attribute_name1 (sbend$, db_field$,                       'DB_FIELD', quasi_free$)
 call init_attribute_name1 (sbend$, b1_gradient$,                    'B1_GRADIENT', quasi_free$)
 call init_attribute_name1 (sbend$, b2_gradient$,                    'B2_GRADIENT', quasi_free$)
 call init_attribute_name1 (sbend$, r0_mag$,                         'R0_MAG')
@@ -1694,6 +1694,8 @@ logical has_attribs
 ! If it is a super_slave or a mutipass_slave, the fields always reside in the lord elements and thus
 ! the em_field is not considered to have orientation attributes in this case.
 
+if (attribute_array_init_needed) call init_attribute_name_array
+
 has_attribs = has_orientation_attributes_key(ele%key)
 if (ele%key == em_field$ .and. (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$)) &
       has_attribs = .false.
@@ -1861,7 +1863,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
       'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
-      'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_HARD_EDGE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
+      'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_ACTIVE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
       'MIN_DS_ADAPTIVE_TRACKING', 'OFFSET', 'PENDELLOSUNG_PERIOD_PI', 'PENDELLOSUNG_PERIOD_SIGMA', 'R0_ELEC', 'R0_MAG', &
       'REF_WAVELENGTH', 'RHO', 'S', 'SIGNIFICANT_LENGTH', 'SIG_X', 'SIG_Y', 'SIG_Z', 'S_POSITION', 'THICKNESS', &
       'X', 'X0', 'X1', 'Y', 'Y0', 'Y1', 'X1_LIMIT', 'X2_LIMIT', 'Y1_LIMIT', 'Y2_LIMIT', 'X_LIMIT', 'Y_LIMIT', &

@@ -124,7 +124,7 @@ real(rp) :: x, y, j1, dj1, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), r
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, ch_x, ch_y, sh_x, sh_y, coef, fd(3), Ex, Ey, amp
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp, inte
-real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start, f, f1, f2, f3, kx, ky, kz
+real(rp) k_t, k_zn, kappa2_n, kap_rho, s_active_offset, beta_start, f, f1, f2, f3, kx, ky, kz
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef, z_center
 real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
@@ -476,13 +476,13 @@ case (bmad_standard$)
 
     if (.not. ele%is_on) gradient = 0
     gradient = (gradient + gradient_shift_sr_wake(ele, param)) / ref_charge
-    gradient = gradient * ele%value(l$) / hard_edge_model_length(ele)
+    gradient = gradient * ele%value(l$) / ele%value(l_active$)
     omega = twopi * ele%value(rf_frequency$)
     k_wave = omega / c_light
 
-    s_hard_offset = (ele%value(l$) - hard_edge_model_length(ele)) / 2  ! Relative to entrance end of the cavity
-    s_eff = s_body - s_hard_offset
-    if (s_eff < 0 .or. s_eff > hard_edge_model_length(ele)) then
+    s_active_offset = (ele%value(l$) - ele%value(l_active$)) / 2  ! Relative to entrance end of the cavity
+    s_eff = s_body - s_active_offset
+    if (s_eff < 0 .or. s_eff > ele%value(l_active$)) then
       dfield_computed = .true.
       goto 8000  ! Zero field outside
     endif

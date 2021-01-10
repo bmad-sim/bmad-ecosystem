@@ -31,7 +31,7 @@ type (fringe_field_info_struct) fringe_info
 type (em_field_struct) field
 
 real(rp) spline_x(0:3), spline_y(0:3), omega(3), s_edge_track, s_end_lab
-real(rp) voltage, k_rf, phase, l_hard_edge
+real(rp) voltage, k_rf, phase
 integer key
 logical, optional :: make_quaternion
 
@@ -64,8 +64,6 @@ if (ele%key == crab_cavity$) then
 endif
 
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
-
-l_hard_edge = hard_edge_model_length(ele)
 
 if (start_orb%direction == 1) then
   s_end_lab = ele%value(l$)
@@ -104,7 +102,7 @@ if (ele%value(l$) == 0 .or. ele%key == multipole$ .or. ele%key == ab_multipole$ 
   call multipole_spin_tracking (ele, param, temp_end)
 else
   call spline_fit_orbit (ele, temp_start, temp_end, spline_x, spline_y)
-  omega = trapzd_omega (ele, l_hard_edge, spline_x, spline_y, temp_start, temp_end, param)
+  omega = trapzd_omega (ele, spline_x, spline_y, temp_start, temp_end, param)
   if (ele%key == sbend$) omega = omega + [0.0_rp, ele%value(g$)*ele%value(l$)*start_orb%direction*ele%orientation, 0.0_rp]
   call rotate_spin(omega, temp_end%spin)
 endif
@@ -122,7 +120,7 @@ end_orb%spin = temp_end%spin
 !---------------------------------------------------------------------------------------------
 contains
 
-function trapzd_omega (ele, l_hard_edge, spline_x, spline_y, start_orb, end_orb, param) result (omega)
+function trapzd_omega (ele, spline_x, spline_y, start_orb, end_orb, param) result (omega)
 
 use nr, only: polint
 
@@ -141,7 +139,7 @@ type (coord_struct) start_orb, end_orb, orb
 type (lat_param_struct) param
 
 real(rp) s0, s1, del_s, s, spline_x(0:3), spline_y(0:3), omega(3)
-real(rp) dint, eps, quat(0:3), l_hard_edge
+real(rp) dint, eps, quat(0:3)
 real(rp), parameter :: eps_rel = 1d-5, eps_abs = 1d-8
 
 integer j, k, n, n_pts
@@ -149,8 +147,14 @@ integer j, k, n, n_pts
 ! Only integrate over where the field is finite.
 ! This will be the whole element except for RF cavities.
 
-s0 = (ele%value(l$) - l_hard_edge) / 2 + bmad_com%significant_length/10
-s1 = (ele%value(l$) + l_hard_edge) / 2 - bmad_com%significant_length/10
+select case (ele%key)
+case (rfcavity$, lcavity$)
+  s0 = (ele%value(l$) - ele%value(l_active$)) / 2 + bmad_com%significant_length/10
+  s1 = (ele%value(l$) + ele%value(l_active$)) / 2 - bmad_com%significant_length/10
+case default
+  s0 = 0             + bmad_com%significant_length/10
+  s1 = ele%value(l$) - bmad_com%significant_length/10
+end select
 
 q_array(1)%h = 1
 z(0)%omega = omega_func(s0, spline_x, spline_y, start_orb, end_orb, ele, param)

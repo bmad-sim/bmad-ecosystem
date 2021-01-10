@@ -526,13 +526,6 @@ subroutine create_group (lord, con, err)
   logical err
 end subroutine
 
-subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
-  import
-  implicit none
-  type (ele_struct) ele_in, drift_ele
-  integer which_end
-end subroutine
-
 subroutine create_lat_ele_nametable (lat, nametable)
   import
   implicit none
@@ -826,13 +819,6 @@ function gradient_shift_sr_wake (ele, param) result (grad_shift)
   type (ele_struct) ele
   type (lat_param_struct) param
   real(rp) grad_shift
-end function
-
-function hard_edge_model_length (ele) result (l_hard)
-  import
-  implicit none
-  type (ele_struct) ele
-  real(rp) l_hard
 end function
 
 subroutine hdf5_read_beam (file_name, beam, error, ele, pmd_header)
@@ -1340,14 +1326,14 @@ function particle_is_moving_forward (orbit) result (is_moving_forward)
   logical is_moving_forward
 end function
 
-function particle_rf_time (orbit, ele, apply_hard_edge_offset, s_rel) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel) result (time)
   import
   implicit none
   type (coord_struct) orbit
   type (ele_struct) ele
   real(rp), optional :: s_rel
   real(rp) time
-  logical apply_hard_edge_offset
+  logical reference_active_edge
 end function
 
 function patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)
@@ -1776,13 +1762,13 @@ subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)
   integer, optional :: ix_noset
 end subroutine
 
-subroutine set_particle_from_rf_time (rf_time, ele, apply_hard_edge_offset, orbit)
+subroutine set_particle_from_rf_time (rf_time, ele, reference_active_edge, orbit)
   import
   implicit none
   type (ele_struct) ele
   type (coord_struct) orbit
   real(rp) rf_time
-  logical apply_hard_edge_offset
+  logical reference_active_edge
 end subroutine
 
 subroutine set_status_flags (bookkeeping_state, stat)
@@ -2295,13 +2281,6 @@ subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, tr
   logical err_flag
   type (track_struct), optional :: track
 end subroutine
-
-function tracking_uses_end_drifts (ele) result (has_drifts)
-  import
-  implicit none
-  type (ele_struct) ele
-  logical has_drifts
-end function
 
 subroutine transfer_ac_kick (ac_kick_in, ac_kick_out)
   import
