@@ -655,7 +655,7 @@ case ('alpha.')
     endif
 
   case ('alpha.z')
-    if (data_source == 'lat') goto 8000  ! Error message and return
+    if (data_source == 'lat') goto 9001  ! Error message and return
     call tao_load_this_datum (bunch_params(:)%z%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
 
   case default
@@ -755,7 +755,7 @@ case ('beta.')
     endif
 
   case ('beta.z')
-    if (data_source == 'lat') goto 8000  ! Error message and return
+    if (data_source == 'lat') goto 9001  ! Error message and return
     call tao_load_this_datum (bunch_params(:)%z%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     if (bunch_params(ix_ele)%z%norm_emit == 0) then
       valid_value = .false.
@@ -1408,7 +1408,7 @@ case ('emit.', 'norm_emit.')
 
   case ('emit.z', 'norm_emit.z')
     if (data_source == 'lat') then
-      return
+      goto 9001   ! Error message and return
     elseif (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%z%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
@@ -1457,7 +1457,7 @@ case ('emit.', 'norm_emit.')
 
   case ('emit.c', 'norm_emit.c')  
     if (data_source == 'lat') then
-      return
+      goto 9001     ! Error message and return
     elseif (data_source == 'beam') then
       call tao_load_this_datum (bunch_params(:)%c%emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
     endif
@@ -1627,9 +1627,7 @@ case ('expression:', 'expression.')
       endif
     case ('target')
       if (size(expression_value_vec) /= 1) then
-        call out_io (s_error$, r_name, &
-                  'DATUM: ' // tao_datum_name(datum), &
-                  'HAS "TARGET" MERIT_TYPE BUT DOES NOT EVALUATE TO A SINGLE NUMBER!')
+        call tao_set_invalid (datum, 'MERIT_TYPE IS SET TO "TARGET" BUT DATUM DOES NOT EVALUATE TO A SINGLE NUMBER!', why_invalid, .true.)
         return
       endif
       datum_value = expression_value_vec(1)
@@ -1638,6 +1636,7 @@ case ('expression:', 'expression.')
                   'SINCE THIS DATUM: ' // tao_datum_name(datum), &
                   'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
                   'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
+      call tao_set_invalid (datum, 'MERIT_TYPE: ' // quote(datum%merit_type) // ' IS NOT VALID WHEN THERE IS AN EVALUATION RANGE', why_invalid, .true.)
       return
     end select
 
@@ -1750,7 +1749,7 @@ case ('gamma.')
     endif
 
   case ('gamma.z')
-    if (data_source == 'lat') goto 8000  ! Error message and return
+    if (data_source == 'lat') goto 9001  ! Error message and return
     call tao_load_this_datum (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
 
   case default
@@ -2269,9 +2268,6 @@ case ('photon.')
 !-----------
 
 case ('ping_a.')
-
-  if (.not. associated(ele)) return  ! Bad
-
   select case (datum%data_type)
   case ('ping_a.amp_x')
     datum_value = ele%gamma_c * sqrt(ele%a%beta)
@@ -2348,9 +2344,6 @@ case ('ping_a.')
 !-----------
 
 case ('ping_b.')
-
-  if (.not. associated(ele)) return  ! Bad
-
   select case (datum%data_type)
   case ('ping_b.amp_y')
     datum_value = ele%gamma_c * sqrt(ele%b%beta)
@@ -3186,7 +3179,7 @@ case ('unstable.')
 
   case ('unstable.orbit')
 
-    if (lat%param%geometry /= open$) return
+    if (lat%param%geometry /= open$) goto 9101  ! Error message and return
     if (datum%ele_name == '') ix_ele = branch%n_ele_track
 
     if (data_source == 'beam') then
@@ -3371,7 +3364,7 @@ case ('wall.')
 !-----------
 
 case ('wire.')  
-  if (data_source == 'lat') goto 8000  ! Error message and return
+  if (data_source == 'lat') goto 9001  ! Error message and return
   read (datum%data_type(6:), '(a)') angle
   datum_value = tao_do_wire_scan (ele, angle, u%model_branch(branch%ix_branch)%ele(ix_ele)%beam)
   valid_value = .true.
@@ -3400,12 +3393,20 @@ return
 call tao_set_invalid (datum, 'PARTICLE SPECIES TYPE NOT SET ??!! PLEASE SEEK HELP!', why_invalid)
 return
 
-8000 continue
+9000 continue
+call tao_set_invalid (datum, 'DATA_TYPE = "beam" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid, .true.)
+return
+
+9001 continue
 call tao_set_invalid (datum, 'DATA_TYPE = "lat" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid, .true.)
 return
 
-9000 continue
-call tao_set_invalid (datum, 'DATA_TYPE = "beam" NOT VALID FOR THIS DATA_TYPE: ' // datum%data_type, why_invalid, .true.)
+9100 continue
+call tao_set_invalid (datum, 'DATA_TYPE: ' // quote(datum%data_type) // ' NOT APPLICABLE TO A LATTICE BRANCH WITH AN OPEN GEOMETRY.', why_invalid, .true.)
+return
+
+9101 continue
+call tao_set_invalid (datum, 'DATA_TYPE: ' // quote(datum%data_type) // ' NOT APPLICABLE TO A LATTICE BRANCH WITH A CLOSED GEOMETRY.', why_invalid, .true.)
 return
 
 end subroutine tao_evaluate_a_datum

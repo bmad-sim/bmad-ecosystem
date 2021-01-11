@@ -502,7 +502,7 @@ case ('set')
   call match_word (cmd_word(1), [character(20) :: 'branch', 'data', 'var', 'lattice', 'global', &
     'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
     'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
-    'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture'], &
+    'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', 'ramper'], &
                                                                  ix, .true., matched_name = set_word)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED OR AMBIGUOUS: ' // cmd_word(1))
@@ -517,6 +517,7 @@ case ('set')
         'var', 'beam_start', 'particle_start', 'dynamic_aperture'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 4; n_eq = 3
   case ('plot_page'); n_word = 4; n_eq = 2
+  case ('ramper'); n_word = 2; n_eq = -1
   case ('branch', 'curve', 'element', 'graph', 'plot'); n_word = 4; n_eq = 3
   end select
 
@@ -533,9 +534,11 @@ case ('set')
     cmd_word(3) = '='
   endif
 
-  if (cmd_word(n_eq) /= '=') then
-    call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
-    goto 9000
+  if (n_eq > 0) then
+    if (cmd_word(n_eq) /= '=') then
+      call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
+      goto 9000
+    endif
   endif
 
   select case (set_word)
@@ -578,6 +581,8 @@ case ('set')
     call tao_set_plot_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
   case ('plot_page')
     call tao_set_plot_page_cmd (cmd_word(1), cmd_word(3), cmd_word(4))
+  case ('ramper')
+    call tao_set_ramper(cmd_word(1), cmd_word(2))
   case ('ran_state')
     call tao_set_ran_state_cmd (cmd_word(2))
   case ('symbolic_number')

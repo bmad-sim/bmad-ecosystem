@@ -11,6 +11,81 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+!+
+! Subroutine tao_set_ramper (ramper_name, ramper_value)
+!
+! Routine to set ramper elements to a given value.
+!
+! Input:
+!   ramper_name   -- character(*): Name of ramper(s). May contain wild cards.
+!   ramper_value  -- character(*): Value to set ramper to. May be an expression.
+!-
+
+subroutine tao_set_ramper (ramper_name, ramper_value)
+
+type (tao_universe_struct), pointer :: u
+type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
+type (tao_expression_info_struct), allocatable :: info(:)
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ramper
+
+real(rp), allocatable :: value(:)
+
+integer iu, ir, ib, ie, n_loc
+
+logical, allocatable :: this_u(:)
+logical err, found
+
+character(*) ramper_name, ramper_value
+character(60) rmp_name
+character(*), parameter :: r_name = 'tao_set_ramper'
+
+!
+
+call tao_pick_universe (ramper_name, rmp_name, this_u, err)
+if (err) return
+
+call tao_evaluate_expression (ramper_value, 1, .false., value, info, err)
+if (err) return
+
+found = .false.
+
+do iu = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. this_u(iu)) cycle
+  u => s%u(iu)
+  lat => u%model%lat
+
+  call lat_ele_locator(rmp_name, lat, eles, n_loc, err)
+  if (err) then
+    call out_io (s_error$, r_name, 'MALFORMED LATTICE ELEMENT NAME LIST: ' // ramper_name)
+    return
+  endif
+
+  do ir = 1, n_loc
+    ramper => eles(ir)%ele
+    if (ramper%key /= ramper$) cycle
+    found = .true.
+    ramper%control%var(1)%value = value(1)
+    do ib = 0, ubound(lat%branch, 1)
+      branch => lat%branch(ib)
+      do ie = 0, branch%n_ele_max
+        call apply_ramper(branch%ele(ie), ramper, err)
+      enddo
+    enddo
+  enddo
+enddo
+
+if (.not. found) then
+  call out_io (s_warn$, r_name, 'No ramper elements found matching name: ' // ramper_name)
+endif
+
+end subroutine tao_set_ramper
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_key_cmd (key_str, cmd_str)
 !
 ! Associates a command with a key press for single mode.
@@ -52,6 +127,7 @@ end subroutine tao_set_key_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_ran_state_cmd (state_string)
 !
 ! Sets the random number generator state.
@@ -109,6 +185,7 @@ end subroutine tao_set_ran_state_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_lattice_cmd (dest_lat, source_lat)
 !
 ! Sets a lattice equal to another. This will also update the data structs
