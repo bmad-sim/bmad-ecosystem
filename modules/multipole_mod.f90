@@ -292,7 +292,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (multipole_cache_struct), pointer :: cache
 
-real(rp) a(0:), b(0:)
+real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp), optional :: b1
 real(rp) const, radius, factor, k1_lord, this_a_kick(0:3), this_b_kick(0:3), a_kick(0:3), b_kick(0:3)
 real(rp) this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
