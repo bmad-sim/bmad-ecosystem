@@ -25,9 +25,9 @@ SET (SRC_DIRS
   )
 
 # For profiling... - Note: This is not compatible with the -fPIC flag, so -pg can't be set for SHARED build.
-# SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-# SET (FFLAGS "-pg") 
-# SET (CFLAGS "-pg")
+SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+SET (FFLAGS "-pg") 
+SET (CFLAGS "-pg")
 
 # For SHARED support - Note: should now be set automatically by Master.cmake
 # SET (FFLAGS "-fPIC")
