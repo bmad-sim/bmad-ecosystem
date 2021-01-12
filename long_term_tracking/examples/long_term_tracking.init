@@ -10,6 +10,7 @@
   ltt_sigma_matrix_output_file = ''
   ltt%one_particle_output_file = F
   ltt%output_every_n_turns = 1
+  ltt%averaging_window = 1
   ltt%output_initial_position = F
 
   ltt%simulation_mode = 'CHECK'

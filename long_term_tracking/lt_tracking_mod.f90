@@ -22,6 +22,12 @@ integer, parameter :: is_done_tag$ = 1001
 ! Essentially: The ltt_params_struct holds user setable parameters while the ltt_com_struct holds
 ! parameters that are not setable.
 
+type ltt_column_struct
+  character(60) :: param = ''
+  character(40) :: header_str = ''
+  character(20) :: format = ''
+end type
+
 type ltt_params_struct
   character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BUNCH, STAT
   character(20) :: tracking_method = 'BMAD'   ! MAP, PTC, BMAD
@@ -33,9 +39,11 @@ type ltt_params_struct
   character(200) :: particle_output_file = ''
   character(200) :: bunch_binary_output_file = ''
   character(200) :: sigma_matrix_output_file = ''
+  character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: averages_output_file = ''
   character(200) :: ramper_elements = ''
+  type (ltt_column_struct) column(100)
   integer :: n_turns = -1
   integer :: random_seed = 0
   integer :: map_order = -1
@@ -84,7 +92,7 @@ type ltt_com_struct
   type (coord_struct), allocatable :: bmad_closed_orb(:)
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
-  integer ix_branch
+  integer :: ix_branch = 0                   ! Lattice branch being tracked.
   integer, allocatable :: ix_ramper(:)    ! Element indexes for ramper elements.
   real(rp) ptc_closed_orb(6)
   logical :: ramp_in_track1_preprocess = .false.
@@ -399,6 +407,7 @@ print '(a, a)',    'ltt%lat_file:                  ', quote(lttp%lat_file)
 print '(a, a)',    'ltt%sigma_matrix_output_file:  ', quote(lttp%sigma_matrix_output_file)
 print '(a, a)',    'ltt%particle_output_file:      ', quote(lttp%particle_output_file)
 print '(a, a)',    'ltt%averages_output_file:      ', quote(lttp%averages_output_file)
+print '(a, a)',    'ltt%custom_output_file:        ', quote(lttp%custom_output_file)
 print '(a, a)',    'ltt%map_file_prefix:           ', quote(lttp%map_file_prefix)
 print '(a, a)',    'ltt%simulation_mode:           ', trim(lttp%simulation_mode)
 print '(a, a)',    'ltt%tracking_method:           ', trim(lttp%tracking_method)
@@ -565,7 +574,7 @@ type (ele_struct), pointer :: ele_start
 type (probe) prb
 
 real(rp) average(6), sigma(6,6), dt
-integer i, n_sum, iu_out, i_turn, track_state, ix_branch
+integer i, n_sum, iu_part, i_turn, track_state, ix_branch
 logical is_lost
 
 character(40) fmt
@@ -600,12 +609,14 @@ endif
 !
 
 fmt = '(i6, 6es16.8, 3x, 3f10.6)'
-iu_out = lunget()
+iu_part = lunget()
 if (lttp%particle_output_file == '') lttp%particle_output_file = 'single.dat'
-open(iu_out, file = lttp%particle_output_file, recl = 200)
-call ltt_write_this_header(lttp, ltt_com, iu_out, 1)
-write (iu_out, '(a)') '# Turn |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z'
-write (iu_out, fmt) 0, orbit%vec, orbit%spin
+open(iu_part, file = lttp%particle_output_file, recl = 200)
+call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
+write (iu_part, '(a)') '# Turn |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z'
+write (iu_part, fmt) 0, orbit%vec, orbit%spin
+
+if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com)
 
 do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
@@ -635,7 +646,7 @@ do i_turn = 1, lttp%n_turns
   end select
 
   if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) == 0) then
-    write (iu_out, fmt) i_turn, orbit%vec, orbit%spin
+    write (iu_part, fmt) i_turn, orbit%vec, orbit%spin
   endif
 
   if (is_lost) then
@@ -650,10 +661,12 @@ do i_turn = 1, lttp%n_turns
     sigma = sigma + outer_product(orbit%vec, orbit%vec)
     n_sum = n_sum + 1
   endif
+
+  if (lttp%custom_output_file /= '') call ltt_write_custom (i_turn, lttp, ltt_com)
 enddo
 
 print '(2a)', 'Particle output file: ', trim(lttp%particle_output_file)
-close (iu_out)
+close (iu_part)
 
 if (lttp%sigma_matrix_output_file /= '') then
   call ltt_write_single_mode_sigma_file (lttp, n_sum, average, sigma)
@@ -743,6 +756,7 @@ if (.not. lttp%using_mpi) then
   where (sum_data_arr%status == valid$) sum_data_arr%status = written$
 endif
 
+if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com, sum_data_arr)
 
 time0 = 0
 
@@ -782,6 +796,11 @@ do i_turn = 1, lttp%n_turns + lttp%averaging_window/2 + 1
     n_live_old = n_live
   endif
 
+  if (n_live  == 0 .and. .not. lttp%using_mpi) then
+    print '(a)', 'NO LIVE PARTICLES! STOPPING NOW.'
+    exit
+  endif
+
   if (size(bunch%particle) - n_live > lttp%dead_cutoff * size(bunch%particle) .and. .not. lttp%using_mpi) then
     print '(a)', 'Particle loss greater than set by dead_cutoff. Stopping now.'
     exit
@@ -804,6 +823,8 @@ do i_turn = 1, lttp%n_turns + lttp%averaging_window/2 + 1
     call ltt_write_sigma_matrix (lttp, sum_data_arr)
     where (sum_data_arr%status == valid$) sum_data_arr%status = written$
   endif
+
+  if (lttp%custom_output_file /= '') call ltt_write_custom (i_turn, lttp, ltt_com, sum_data_arr)
 end do
 
 if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
@@ -929,7 +950,7 @@ type (bunch_struct), target :: bunch, bunch_init
 type (coord_struct), pointer :: p, p0
 
 integer i_turn, ix, ip, j
-integer, save :: iu_snap = 0
+integer, save :: iu_part = 0
 
 character(200) file_name
 character(40) fmt
@@ -941,7 +962,7 @@ if (lttp%output_every_n_turns == -1 .and. i_turn /= lttp%n_turns) return
 if (lttp%output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= lttp%n_turns) return
 if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) /= 0) return
 
-if (iu_snap == 0) then
+if (iu_part == 0) then
   if (lttp%one_particle_output_file) then
     file_name = lttp%particle_output_file
   else
@@ -955,15 +976,15 @@ if (iu_snap == 0) then
     endif
   endif
 
-  iu_snap = lunget()
-  open (iu_snap, file = file_name, recl = 300)
-  call ltt_write_this_header(lttp, ltt_com, iu_snap, size(bunch%particle))
+  iu_part = lunget()
+  open (iu_part, file = file_name, recl = 300)
+  call ltt_write_params_header(lttp, ltt_com, iu_part, size(bunch%particle))
 
   if (lttp%output_initial_position) then
-    write (iu_snap, '(2a)') '#      Ix     Turn | Start:    x              px               y              py               z              pz         spin_x    spin_y    spin_z  ', &
+    write (iu_part, '(2a)') '#      Ix     Turn | Start:    x              px               y              py               z              pz         spin_x    spin_y    spin_z  ', &
                                             '| End:         x              px               y              py               z              pz         spin_x    spin_y    spin_z    State'
   else
-    write (iu_snap, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
+    write (iu_part, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
   endif
 endif
 
@@ -971,15 +992,15 @@ do ip = 1, size(bunch%particle)
   p0 => bunch_init%particle(ip)
   p => bunch%particle(ip)
   if (lttp%output_initial_position) then
-    write (iu_snap, '(i9, i9, 2(6es16.8, 3x, 3f10.6, 4x), a)') ip, i_turn, p0%vec, p0%spin, p%vec, p%spin, trim(coord_state_name(p%state))
+    write (iu_part, '(i9, i9, 2(6es16.8, 3x, 3f10.6, 4x), a)') ip, i_turn, p0%vec, p0%spin, p%vec, p%spin, trim(coord_state_name(p%state))
   else
-    write (iu_snap, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ip, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
+    write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ip, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
   endif
 enddo
 
 if (.not. lttp%one_particle_output_file) then
-  close(iu_snap)
-  iu_snap = 0
+  close(iu_part)
+  iu_part = 0
 endif
 
 end subroutine ltt_write_particle_data
@@ -988,7 +1009,107 @@ end subroutine ltt_write_particle_data
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_this_header(lttp, ltt_com, iu, n_particle)
+subroutine ltt_write_custom (i_turn, lttp, ltt_com, sum_data_arr)
+
+type (ltt_params_struct), target :: lttp
+type (ltt_com_struct), target :: ltt_com
+type (ltt_sum_data_struct), optional :: sum_data_arr(:)
+type (ltt_column_struct), pointer :: col
+type (ele_pointer_struct), allocatable :: eles(:)
+type (all_pointer_struct) a_ptr
+
+integer i_turn
+integer i, iu, ix1, ix2, multi, power, width, digits, n_loc
+
+logical err
+
+character(1000) line
+character(40) fmt, str, ele_name, param
+character(4) code
+
+!
+
+iu = lunget()
+
+if (i_turn == 0) then
+  open (iu, file = lttp%custom_output_file, recl = 1000)
+  line = '#'
+  do i = 1, size(lttp%column)
+    col => lttp%column(i)
+    if (col%param == '') exit
+    call parse_fortran_format (col%format, multi, power, code, width, digits)
+    line = trim(line) // adjustr(col%header_str(1:width))
+  enddo
+  write (iu, '(a)') trim(line)
+
+else
+  open (iu, file = lttp%custom_output_file, access = 'append', recl = 1000)
+endif
+
+!
+
+line = ''
+
+do i = 1, size(lttp%column)
+  col => lttp%column(i)
+  if (col%param == '') exit
+
+  fmt = '(' // trim(col%format) // ')'
+
+  if (col%param == 'n_turn') then
+    write (str, fmt) i_turn
+
+  elseif (col%param(1:5) == 'ele::') then
+    ix1 = index(col%param, '[')
+    if (ix1 == 0) then
+      print '(a)', 'NO "[" FOUND IN CUSTOM COLUMN PARAMETER NAME: ' // quote(col%param)
+      exit
+    endif
+    ix2 = index(col%param, ']')
+    if (ix2 == 0) then
+      print '(a)', 'NO "]" FOUND IN CUSTOM COLUMN PARAMETER NAME: ' // quote(col%param)
+      exit
+    endif
+    if (col%param(ix2+1:) /= '') then
+      print '(a)', 'MALFORMED CUSTOM COLUMN PARAMETER NAME: ' // quote(col%param)
+      exit
+    endif
+    ele_name = col%param(6:ix1-1)
+    param = col%param(ix1+1:ix2-1)
+    call lat_ele_locator(ele_name, ltt_com%tracking_lat, eles, n_loc, err, .true.)
+    if (n_loc == 0) then
+      print '(a)', 'CANNOT FIND ELEMENT REFERENCED IN CUSTOM COLUMN PARAMETER: ' // quote(col%param)
+      exit
+    endif
+    call pointer_to_attribute (eles(1)%ele, param, .true., a_ptr, err, .true.)
+    if (err) exit
+    if (associated(a_ptr%r)) then
+      write (str, fmt) a_ptr%r
+    elseif (associated(a_ptr%i)) then
+      write (str, fmt) a_ptr%i
+    elseif (associated(a_ptr%l)) then
+      write (str, fmt) a_ptr%l
+    endif
+
+  else
+    print '(a)', 'UNKNOWN CUSTOM COLUMN PARAMETER: ' // quote(col%param)
+    exit
+  endif
+
+  line = trim(line) // str 
+enddo
+
+write (iu, '(2a)') ' ', trim(line)
+
+close (iu)
+
+end subroutine ltt_write_custom
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_write_params_header(lttp, ltt_com, iu, n_particle)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
@@ -1014,7 +1135,7 @@ if (lttp%tracking_method == 'MAP') then
 endif
 write (iu, '(a)') '#'
 
-end subroutine ltt_write_this_header
+end subroutine ltt_write_params_header
 
 
 !-------------------------------------------------------------------------------------------
@@ -1047,7 +1168,7 @@ case (0)
   if (ix < 0) return   ! Out of window. Do not do any averaging
 ! Stats for every %output_every_n_turns 
 case default
-  if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:lttp%n_turns / lttp%output_every_n_turns))
+  if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:1+lttp%n_turns/lttp%output_every_n_turns))
   ix = in_this_window(i_turn, lttp%output_every_n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 0) return   ! Out of window. Do not do any averaging
 end select
