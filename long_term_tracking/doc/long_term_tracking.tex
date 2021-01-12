@@ -520,7 +520,8 @@ Name of the Bmad lattice file to use. This name is required.
 Parameters in the master input file that affect the output are:
 \begin{description}
 \item[ltt\%averaging_window] \Newline
-Number of turns to average over when computing beam sigma matrix and positions. For example:
+Number of turns to average over when computing beam sigma matrix and positions. Default is 1. For
+example:
 \begin{code}
   ltt%output_every_n_turns = 1000
   ltt%averaging_window = 201
