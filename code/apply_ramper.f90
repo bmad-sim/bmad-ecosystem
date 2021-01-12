@@ -74,4 +74,6 @@ do iv = 1, size(ramper%control%ramp)
   call set_flags_for_changed_attribute (slave, a_ptr%r, .true.)
 enddo
 
+call attribute_bookkeeper(slave, .true.)
+
 end subroutine
