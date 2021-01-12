@@ -4321,19 +4321,23 @@ case ('twiss_and_orbit')
   if (ix == 0) then
     s_pos = 0
   else
-    if (.not. is_real(attrib0)) then
+    call tao_evaluate_expression (attrib0, 1, .false., value, info, err, .false., &
+                                           dflt_component = tao_lat_type_name(lat_type), dflt_uni = u%ix_uni)
+
+    if (err) then
       nl=1; lines(1) = 'NOT A REAL NUMBER: ' // attrib0
       return
     endif
-    read (attrib0, *) s_pos
+    s_pos = value(1)
   endif
 
   call twiss_and_track_at_s (lat, s_pos, ele0, tao_lat%tao_branch(ix_branch)%orbit, orb, ix_branch, err)
   if (err) return 
-  ele => ele0%lord
+  ele => ele0
+  if (associated(ele%lord)) ele => ele0%lord    ! If ele0 is a slice slave
 
-  nl=nl+1; write(lines(nl), '(a, f10.5)') 'At S =', s_pos
-  nl=nl+1; write(lines(nl), '(3a, 2(i0, a))')       'In Element: ', trim(ele0%name), '  (', ele%ix_branch, '>>', ele%ix_ele, ')'
+  nl=nl+1; write(lines(nl), '(a, f10.5)')     'At S =', s_pos
+  nl=nl+1; write(lines(nl), '(3a, 2(i0, a))') 'In Element: ', trim(ele0%name), '  (', ele%ix_branch, '>>', ele%ix_ele, ')'
 
   call type_twiss (ele0, s%global%phase_units, lines = lines(nl+1:), n_lines = n)
   nl = nl + n
