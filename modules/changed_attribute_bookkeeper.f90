@@ -500,9 +500,11 @@ case (beginning_ele$)
 
   if (associated(a_ptr, ele%floor%r(1)) .or. associated(a_ptr, ele%floor%r(2)) .or. &
       associated(a_ptr, ele%floor%r(3)) .or. associated(a_ptr, ele%floor%theta) .or. &
-      associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi)) then
-    call set_ele_status_stale (ele, floor_position_group$)
+      associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi) .or. &
+      associated(a_ptr, ele%s)) then
+    call set_ele_status_stale (ele, s_and_floor_position_group$)
     call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, ele%floor%w)
+    ele%s_start = ele%s
     return
   endif
 
