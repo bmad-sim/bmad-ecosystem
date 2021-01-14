@@ -6600,14 +6600,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine controller_to_c2 (C, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
-      bind(c)
+  subroutine controller_to_c2 (C, z_type, z_var, n1_var, z_x_knot, n1_x_knot) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_type
-    type(c_ptr) :: z_var(*), z_ramp(*)
-    integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
+    type(c_ptr) :: z_var(*)
+    integer(c_int), value :: n1_var, n1_x_knot
     real(c_double) :: z_x_knot(*)
   end subroutine
 end interface
@@ -6619,8 +6618,6 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_var(:)
 integer(c_int) :: n1_var
-type(c_ptr), allocatable :: z_ramp(:)
-integer(c_int) :: n1_ramp
 integer(c_int) :: n1_x_knot
 
 !
@@ -6636,15 +6633,6 @@ if (allocated(F%var)) then
     z_var(jd1) = c_loc(F%var(jd1+lb1))
   enddo
 endif
-!! f_side.to_c_trans[type, 1, ALLOC]
- n1_ramp = 0
-if (allocated(F%ramp)) then
-  n1_ramp = size(F%ramp); lb1 = lbound(F%ramp, 1) - 1
-  allocate (z_ramp(n1_ramp))
-  do jd1 = 1, n1_ramp
-    z_ramp(jd1) = c_loc(F%ramp(jd1+lb1))
-  enddo
-endif
 !! f_side.to_c_trans[real, 1, ALLOC]
 n1_x_knot = 0
 if (allocated(F%x_knot)) then
@@ -6652,8 +6640,7 @@ if (allocated(F%x_knot)) then
 endif
 
 !! f_side.to_c2_call
-call controller_to_c2 (C, F%type, z_var, n1_var, z_ramp, n1_ramp, fvec2vec(F%x_knot, &
-    n1_x_knot), n1_x_knot)
+call controller_to_c2 (C, F%type, z_var, n1_var, fvec2vec(F%x_knot, n1_x_knot), n1_x_knot)
 
 end subroutine controller_to_c
 
@@ -6673,8 +6660,7 @@ end subroutine controller_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine controller_to_f2 (Fp, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
-    bind(c)
+subroutine controller_to_f2 (Fp, z_type, z_var, n1_var, z_x_knot, n1_x_knot) bind(c)
 
 
 implicit none
@@ -6684,8 +6670,8 @@ type(controller_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int) :: z_type
-type(c_ptr) :: z_var(*), z_ramp(*)
-integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
+type(c_ptr) :: z_var(*)
+integer(c_int), value :: n1_var, n1_x_knot
 type(c_ptr), value :: z_x_knot
 real(c_double), pointer :: f_x_knot(:)
 
@@ -6704,20 +6690,6 @@ else
   if (.not. allocated(F%var)) allocate(F%var(1:n1_var+1-1))
   do jd1 = 1, n1_var
     call controller_var1_to_f (z_var(jd1), c_loc(F%var(jd1+1-1)))
-  enddo
-endif
-
-!! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_ramp == 0) then
-  if (allocated(F%ramp)) deallocate(F%ramp)
-else
-  if (allocated(F%ramp)) then
-    if (n1_ramp == 0 .or. any(shape(F%ramp) /= [n1_ramp])) deallocate(F%ramp)
-    if (any(lbound(F%ramp) /= 1)) deallocate(F%ramp)
-  endif
-  if (.not. allocated(F%ramp)) allocate(F%ramp(1:n1_ramp+1-1))
-  do jd1 = 1, n1_ramp
-    call control_to_f (z_ramp(jd1), c_loc(F%ramp(jd1+1-1)))
   enddo
 endif
 

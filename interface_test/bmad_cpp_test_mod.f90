@@ -5761,16 +5761,6 @@ else
     call set_controller_var1_test_pattern (F%var(jd1+lb1), ix_patt+jd1)
   enddo
 endif
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%ramp)) deallocate (F%ramp)
-else
-  if (.not. allocated(F%ramp)) allocate (F%ramp(-1:1))
-  do jd1 = 1, size(F%ramp,1); lb1 = lbound(F%ramp,1) - 1
-    call set_control_test_pattern (F%ramp(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
 !! f_side.test_pat[real, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -5778,7 +5768,7 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%x_knot)) allocate (F%x_knot(-1:1))
   do jd1 = 1, size(F%x_knot,1); lb1 = lbound(F%x_knot,1) - 1
-    rhs = 100 + jd1 + 6 + offset
+    rhs = 100 + jd1 + 4 + offset
     F%x_knot(jd1+lb1) = rhs
   enddo
 endif

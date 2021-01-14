@@ -2330,13 +2330,11 @@ class CPP_controller {
 public:
   Int type;
   CPP_controller_var1_ARRAY var;
-  CPP_control_ARRAY ramp;
   Real_ARRAY x_knot;
 
   CPP_controller() :
     type(Bmad::EXPRESSION),
     var(CPP_controller_var1_ARRAY(CPP_controller_var1(), 0)),
-    ramp(CPP_control_ARRAY(CPP_control(), 0)),
     x_knot(0.0, 0)
     {}
 

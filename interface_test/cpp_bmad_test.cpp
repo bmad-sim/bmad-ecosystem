@@ -3837,21 +3837,13 @@ void set_CPP_controller_test_pattern (CPP_controller& C, int ix_patt) {
     for (unsigned int i = 0; i < C.var.size(); i++)  {set_CPP_controller_var1_test_pattern(C.var[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.ramp.resize(0);
-  else {
-    C.ramp.resize(3);
-    for (unsigned int i = 0; i < C.ramp.size(); i++)  {set_CPP_control_test_pattern(C.ramp[i], ix_patt+i+1);}
-  }
-
   // c_side.test_pat[real, 1, ALLOC]
   if (ix_patt < 3) 
     C.x_knot.resize(0);
   else {
     C.x_knot.resize(3);
     for (unsigned int i = 0; i < C.x_knot.size(); i++)
-      {int rhs = 101 + i + 6 + offset; C.x_knot[i] = rhs;}  }
+      {int rhs = 101 + i + 4 + offset; C.x_knot[i] = rhs;}  }
 
 
 }

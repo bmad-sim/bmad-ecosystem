@@ -2334,7 +2334,7 @@ extern "C" void controller_to_c (const Opaque_controller_class*, CPP_controller&
 
 // c_side.to_f2_arg
 extern "C" void controller_to_f2 (Opaque_controller_class*, c_Int&, const
-    CPP_controller_var1**, Int, const CPP_control**, Int, c_RealArr, Int);
+    CPP_controller_var1**, Int, c_RealArr, Int);
 
 extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -2344,13 +2344,6 @@ extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_clas
     z_var = new const CPP_controller_var1*[n1_var];
     for (int i = 0; i < n1_var; i++) z_var[i] = &C.var[i];
   }
-  // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_ramp = C.ramp.size();
-  const CPP_control** z_ramp = NULL;
-  if (n1_ramp != 0) {
-    z_ramp = new const CPP_control*[n1_ramp];
-    for (int i = 0; i < n1_ramp; i++) z_ramp[i] = &C.ramp[i];
-  }
   // c_side.to_f_setup[real, 1, ALLOC]
   int n1_x_knot = C.x_knot.size();
   c_RealArr z_x_knot = NULL;
@@ -2359,28 +2352,21 @@ extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_clas
   }
 
   // c_side.to_f2_call
-  controller_to_f2 (F, C.type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot);
+  controller_to_f2 (F, C.type, z_var, n1_var, z_x_knot, n1_x_knot);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_var;
-  // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_ramp;
 }
 
 // c_side.to_c2_arg
 extern "C" void controller_to_c2 (CPP_controller& C, c_Int& z_type,
-    Opaque_controller_var1_class** z_var, Int n1_var, Opaque_control_class** z_ramp, Int
-    n1_ramp, c_RealArr z_x_knot, Int n1_x_knot) {
+    Opaque_controller_var1_class** z_var, Int n1_var, c_RealArr z_x_knot, Int n1_x_knot) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
   // c_side.to_c2_set[type, 1, ALLOC]
   C.var.resize(n1_var);
   for (int i = 0; i < n1_var; i++) controller_var1_to_c(z_var[i], C.var[i]);
-
-  // c_side.to_c2_set[type, 1, ALLOC]
-  C.ramp.resize(n1_ramp);
-  for (int i = 0; i < n1_ramp; i++) control_to_c(z_ramp[i], C.ramp[i]);
 
   // c_side.to_c2_set[real, 1, ALLOC]
 
