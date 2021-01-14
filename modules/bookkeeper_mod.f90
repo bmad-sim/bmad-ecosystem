@@ -244,8 +244,8 @@ endif
 ! Evaluate value and old value.
 
 if (lord%control%type == expression$) then
-  call evaluate_expression_stack (ctl%stack, ctl%value, err_flag, err_str, lord%control%var, .false.)
-  call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control%var, .true.)
+  ctl%value = expression_stack_value (ctl%stack, err_flag, err_str, lord%control%var, .false.)
+  val_old   = expression_stack_value (ctl%stack, err_flag, err_str, lord%control%var, .true.)
   if (err_flag) then
     call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
     return
@@ -1681,7 +1681,7 @@ character(100) err_str
 if (.not. lord%is_on) return
 
 if (lord%control%type == expression$) then
-  call evaluate_expression_stack(c%stack, c%value, err_flag, err_str, lord%control%var, .false.)
+  c%value = expression_stack_value(c%stack, err_flag, err_str, lord%control%var, .false.)
   if (err_flag) then
     call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
     err_flag = .true.
