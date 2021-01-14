@@ -142,7 +142,7 @@ do i = 0, n_var_points
     if (draw_knot_points .and. i == 0) knots(:,j) = ctl%y_knot
 
     if (ele%control%type == expression$) then
-      call evaluate_expression_stack(ctl%stack, ctl%value, err_flag, err_str, ele%control%var, .false.)
+      ctl%value = expression_stack_value(ctl%stack, err_flag, err_str, ele%control%var, .false.)
     else
       call spline_akima_interpolate (ele%control%x_knot, ctl%y_knot, ele%control%var(1)%value, ok, ctl%value)
     endif
