@@ -13,6 +13,8 @@ use high_energy_space_charge_mod
 use s_fitting_new, only: probe, internal_state, track_probe, assignment(=), operator(+), default, spin0
 use superimpose_mod, only: add_superimpose
 use radiation_mod
+use expression_mod
+
 implicit none
 
 integer, parameter :: master_rank$ = 0
@@ -23,7 +25,7 @@ integer, parameter :: is_done_tag$ = 1001
 ! parameters that are not setable.
 
 type ltt_column_struct
-  character(60) :: param = ''
+  character(120) :: param = ''
   character(40) :: header_str = ''
   character(20) :: format = ''
 end type
@@ -110,6 +112,7 @@ type ltt_sum_data_struct
   real(rp) :: orb2_sum(6,6) = 0
   real(rp) :: spin_sum(3) = 0   ! Spin
   real(rp) :: p0c_sum = 0
+  real(rp) :: time_sum = 0
 end type
 
 type (ltt_params_struct), pointer, save :: ltt_params_global   ! Needed for track1_preprocess and track1_bunch_hook
@@ -616,7 +619,7 @@ call ltt_write_params_header(lttp, ltt_com, iu_part, 1)
 write (iu_part, '(a)') '# Turn |            x              px               y              py               z              pz    |   spin_x    spin_y    spin_z'
 write (iu_part, fmt) 0, orbit%vec, orbit%spin
 
-if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com)
+if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com, orbit = orbit)
 
 do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
@@ -662,7 +665,7 @@ do i_turn = 1, lttp%n_turns
     n_sum = n_sum + 1
   endif
 
-  if (lttp%custom_output_file /= '') call ltt_write_custom (i_turn, lttp, ltt_com)
+  if (lttp%custom_output_file /= '') call ltt_write_custom (i_turn, lttp, ltt_com, orbit = orbit)
 enddo
 
 print '(2a)', 'Particle output file: ', trim(lttp%particle_output_file)
@@ -756,7 +759,7 @@ if (.not. lttp%using_mpi) then
   where (sum_data_arr%status == valid$) sum_data_arr%status = written$
 endif
 
-if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com, sum_data_arr)
+if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com, bunch = bunch)
 
 time0 = 0
 
@@ -824,7 +827,7 @@ do i_turn = 1, lttp%n_turns + lttp%averaging_window/2 + 1
     where (sum_data_arr%status == valid$) sum_data_arr%status = written$
   endif
 
-  if (lttp%custom_output_file /= '') call ltt_write_custom (i_turn, lttp, ltt_com, sum_data_arr)
+  if (lttp%custom_output_file /= '') call ltt_write_custom (i_turn, lttp, ltt_com, bunch = bunch)
 end do
 
 if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
@@ -1009,21 +1012,26 @@ end subroutine ltt_write_particle_data
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_custom (i_turn, lttp, ltt_com, sum_data_arr)
+subroutine ltt_write_custom (i_turn, lttp, ltt_com, orbit, bunch)
 
 type (ltt_params_struct), target :: lttp
 type (ltt_com_struct), target :: ltt_com
-type (ltt_sum_data_struct), optional :: sum_data_arr(:)
+type (coord_struct), optional :: orbit
+type (bunch_struct), optional :: bunch
+type (coord_struct) orb
 type (ltt_column_struct), pointer :: col
 type (ele_pointer_struct), allocatable :: eles(:)
 type (all_pointer_struct) a_ptr
+type (expression_atom_struct), allocatable, target :: stack(:)
+type (expression_atom_struct), pointer :: st
 
 integer i_turn
-integer i, iu, ix1, ix2, multi, power, width, digits, n_loc
+integer i, n, iu, ix1, ix2, is, multi, power, width, digits, n_loc, n_stack
 
 logical err
 
 character(1000) line
+character(100) err_str
 character(40) fmt, str, ele_name, param
 character(4) code
 
@@ -1048,7 +1056,21 @@ endif
 
 !
 
+if (present(orbit)) then
+  orb = orbit
+else
+  n = count(bunch%particle%state == alive$)
+  orb%t = sum(bunch%particle%t, bunch%particle%state == alive$) / n
+  do i = 1, 6
+    orb%vec(i) = sum(bunch%particle%vec(i), bunch%particle%state == alive$) / n
+  enddo
+  do i = 1, 3
+    orb%spin(i) = sum(bunch%particle%spin(i), bunch%particle%state == alive$) / n
+  enddo
+endif
+
 line = ''
+
 
 do i = 1, size(lttp%column)
   col => lttp%column(i)
@@ -1056,44 +1078,64 @@ do i = 1, size(lttp%column)
 
   fmt = '(' // trim(col%format) // ')'
 
-  if (col%param == 'n_turn') then
-    write (str, fmt) i_turn
-
-  elseif (col%param(1:5) == 'ele::') then
-    ix1 = index(col%param, '[')
-    if (ix1 == 0) then
-      print '(a)', 'NO "[" FOUND IN CUSTOM COLUMN PARAMETER NAME: ' // quote(col%param)
-      exit
-    endif
-    ix2 = index(col%param, ']')
-    if (ix2 == 0) then
-      print '(a)', 'NO "]" FOUND IN CUSTOM COLUMN PARAMETER NAME: ' // quote(col%param)
-      exit
-    endif
-    if (col%param(ix2+1:) /= '') then
-      print '(a)', 'MALFORMED CUSTOM COLUMN PARAMETER NAME: ' // quote(col%param)
-      exit
-    endif
-    ele_name = col%param(6:ix1-1)
-    param = col%param(ix1+1:ix2-1)
-    call lat_ele_locator(ele_name, ltt_com%tracking_lat, eles, n_loc, err, .true.)
-    if (n_loc == 0) then
-      print '(a)', 'CANNOT FIND ELEMENT REFERENCED IN CUSTOM COLUMN PARAMETER: ' // quote(col%param)
-      exit
-    endif
-    call pointer_to_attribute (eles(1)%ele, param, .true., a_ptr, err, .true.)
-    if (err) exit
-    if (associated(a_ptr%r)) then
-      write (str, fmt) a_ptr%r
-    elseif (associated(a_ptr%i)) then
-      write (str, fmt) a_ptr%i
-    elseif (associated(a_ptr%l)) then
-      write (str, fmt) a_ptr%l
-    endif
-
-  else
-    print '(a)', 'UNKNOWN CUSTOM COLUMN PARAMETER: ' // quote(col%param)
+  call expression_string_to_stack (col%param, stack, n_stack, err, err_str)
+  if (err) then
+    print *, err_str
     exit
+  endif
+
+  do is = 1, n_stack
+    st => stack(is)
+    if (st%type /= variable$) cycle
+
+    ix1 = index(st%name, '[')
+    if (ix1 /= 0) then
+      ix2 = index(st%name, ']')
+      if (ix2 == 0) then
+        print '(a)', 'NO "]" FOUND IN CUSTOM COLUMN PARAMETER NAME: ' // quote(st%name)
+        exit
+      endif
+      if (st%name(ix2+1:) /= '') then
+        print '(a)', 'MALFORMED CUSTOM COLUMN PARAMETER NAME: ' // quote(st%name)
+        exit
+      endif
+      ele_name = st%name(1:ix1-1)
+      param = st%name(ix1+1:ix2-1)
+      call lat_ele_locator(ele_name, ltt_com%tracking_lat, eles, n_loc, err, .true.)
+      if (n_loc == 0) then
+        print '(a)', 'CANNOT FIND ELEMENT REFERENCED IN CUSTOM COLUMN PARAMETER: ' // quote(st%name)
+        exit
+      endif
+      call pointer_to_attribute (eles(1)%ele, param, .true., a_ptr, err, .true.)
+      if (err) exit
+      if (associated(a_ptr%r)) then
+        st%value = a_ptr%r
+      elseif (associated(a_ptr%i)) then
+        st%value = a_ptr%i
+      endif
+      cycle
+    endif
+
+    select case (st%name)
+    case ('n_turn');      st%value = i_turn
+    case ('x');           st%value = orb%vec(1)
+    case ('px');          st%value = orb%vec(2)
+    case ('y');           st%value = orb%vec(3)
+    case ('py');          st%value = orb%vec(4)
+    case ('z');           st%value = orb%vec(5)
+    case ('pz');          st%value = orb%vec(6)
+    case ('time');        st%value = orb%t
+    case ('sx');          st%value = orb%spin(1)
+    case ('sy');          st%value = orb%spin(2)
+    case ('sz');          st%value = orb%spin(3)
+    case default
+    end select
+  enddo
+
+  if (col%format(1:1) == 'i') then
+    write (str, fmt) nint(expression_stack_value(stack, err, err_str))
+  else
+    write (str, fmt) expression_stack_value(stack, err, err_str)
   endif
 
   line = trim(line) // str 
@@ -1191,6 +1233,7 @@ do i = 1, 3
 enddo
 
 sd%p0c_sum = sd%p0c_sum + sum(bunch%particle%p0c, bunch%particle%state == alive$)
+sd%time_sum = sd%time_sum + sum(bunch%particle%t, bunch%particle%state == alive$)
 
 !-------------------------------------------------------------------------------------------
 contains
@@ -1239,13 +1282,13 @@ integer i, iu, ix
 iu = lunget()
 
 if (sum_data_arr(1)%status == valid$) then
-  open (iu, file = lttp%averages_output_file, recl = 300)
-  write (iu, '(a1, a8, a9, a14, 3a14, 13a14)') '#', 'Turn', 'N_live', 'Polarization', &
+  open (iu, file = lttp%averages_output_file, recl = 400)
+  write (iu, '(a1, a8, a9, 2a14, 3a14, 13a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
                    '<Sx>', '<Sy>', '<Sz>', 'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
                    '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>'
                      
 else
-  open (iu, file = lttp%averages_output_file, recl = 300, access = 'append')
+  open (iu, file = lttp%averages_output_file, recl = 400, access = 'append')
 endif
 
 !
@@ -1256,7 +1299,7 @@ do ix = 1, size(sum_data_arr)
   if (sd%n_count == 0) exit
   forall (i = 1:6) sigma(i) = sd%orb2_sum(i,i)/sd%n_count - (sd%orb_sum(i)/sd%n_count)**2
   sigma = sqrt(max(0.0_rp, sigma))
-  write (iu, '(i9, i9, f14.9, 2x, 3f14.9, 2x, 13es14.6)') sd%i_turn, sd%n_live, &
+  write (iu, '(i9, i9, 2f14.9, 2x, 3f14.9, 2x, 13es14.6)') sd%i_turn, sd%n_live, sd%time_sum/sd%n_count, &
           norm2(sd%spin_sum/sd%n_count), sd%spin_sum/sd%n_count, sigma, sd%orb_sum/sd%n_count, sd%p0c_sum/sd%n_count
 enddo
 
