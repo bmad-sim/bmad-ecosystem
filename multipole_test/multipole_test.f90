@@ -51,10 +51,14 @@ do ie = 1, lat%n_ele_max
     if (allocated(ele%multipole_cache)) deallocate(ele%multipole_cache)
 
     call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, am1, bm1, magnetic$, include_kicks)
+    am1(ix_pole_max+1:) = 0; bm1(ix_pole_max+1:) = 0
     call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, ae1, be1, electric$, include_kicks)
+    ae1(ix_pole_max+1:) = 0; be1(ix_pole_max+1:) = 0
 
     call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, am2, bm2, magnetic$, include_kicks)
+    am2(ix_pole_max+1:) = 0; bm2(ix_pole_max+1:) = 0
     call multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, ae2, be2, electric$, include_kicks)
+    ae2(ix_pole_max+1:) = 0; be2(ix_pole_max+1:) = 0
 
     write (1, '(a, 6es12.4, i3)') '"MULT-' // str // trim(ele%name) // '"   ABS 0', am1(1:5:2), bm1(2:6:2), ix_pole_max
     write (1, '(a, 6es12.4)') '"DEL-' // str // trim(ele%name) // '"   ABS 0', maxval(abs(am1-am2)), maxval(abs(bm1-bm2)), &
