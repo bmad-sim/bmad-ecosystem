@@ -2944,7 +2944,7 @@ enddo
 
 ! Evaluate
 
-call evaluate_expression_stack (stk, value, err, err_str2)
+value = expression_stack_value (stk, err, err_str2)
 if (err) then
   call parser_error (err_str2, 'FOR: ' // err_str)
 endif

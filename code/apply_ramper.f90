@@ -54,7 +54,7 @@ do iv = 1, size(ramper%control%ramp)
   endif
 
   if (ramper%control%type == expression$) then
-    call evaluate_expression_stack(c%stack, c%value, err_flag, err_str, ramper%control%var, .false.)
+    c%value = expression_stack_value(c%stack, err_flag, err_str, ramper%control%var, .false.)
     if (err_flag) then
       call out_io (s_error$, r_name, err_str, ' OF RAMPER: ' // ramper%name)
       err_flag = .true.

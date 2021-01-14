@@ -1119,6 +1119,7 @@ call init_attribute_name1 (lcavity$, phi0_multipass$,               'PHI0_MULTIP
 call init_attribute_name1 (lcavity$, phi0$,                         'PHI0')
 call init_attribute_name1 (lcavity$, gradient$,                     'GRADIENT')
 call init_attribute_name1 (lcavity$, rf_frequency$,                 'RF_FREQUENCY')
+call init_attribute_name1 (lcavity$, rf_wavelength$,                'RF_WAVELENGTH', dependent$)
 call init_attribute_name1 (lcavity$, e_loss$,                       'E_LOSS')
 call init_attribute_name1 (lcavity$, voltage$,                      'VOLTAGE', quasi_free$)
 call init_attribute_name1 (lcavity$, field_master$,                 'FIELD_MASTER')
@@ -1307,8 +1308,8 @@ call init_attribute_name1 (patch$, p0c_set$,                        'P0C_SET')
 call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSET')
 call init_attribute_name1 (patch$, flexible$,                       'FLEXIBLE')
 call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC')
-call init_attribute_name1 (patch$, upstream_coord_dir$,               'UPSTREAM_ELE_DIR', dependent$)
-call init_attribute_name1 (patch$, downstream_coord_dir$,             'DOWNSTREAM_ELE_DIR', dependent$)
+call init_attribute_name1 (patch$, upstream_coord_dir$,             'UPSTREAM_ELE_DIR', dependent$)
+call init_attribute_name1 (patch$, downstream_coord_dir$,           'DOWNSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
 
 call init_attribute_name1 (crab_cavity$, voltage$,                  'VOLTAGE')
@@ -1321,6 +1322,7 @@ call init_attribute_name1 (crab_cavity$, grid_field$,               'GRID_FIELD'
 call init_attribute_name1 (crab_cavity$, taylor_field$,             'TAYLOR_FIELD')
 call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
 call init_attribute_name1 (crab_cavity$, rf_frequency$,             'RF_FREQUENCY')
+call init_attribute_name1 (crab_cavity$, rf_wavelength$,            'RF_WAVELENGTH', dependent$)
 call init_attribute_name1 (crab_cavity$, field_autoscale$,          'FIELD_AUTOSCALE', private$)  ! Not yet used
 call init_attribute_name1 (crab_cavity$, phi0_autoscale$,           'PHI0_AUTOSCALE', private$)  ! Not yet used
 call init_attribute_name1 (crab_cavity$, autoscale_amplitude$,      'AUTOSCALE_AMPLITUDE', private$)  ! Not yet used
@@ -1335,6 +1337,7 @@ call init_attribute_name1 (rfcavity$, autoscale_phase$,             'AUTOSCALE_P
 call init_attribute_name1 (rfcavity$, cavity_type$,                 'CAVITY_TYPE')
 call init_attribute_name1 (rfcavity$, voltage$,                     'VOLTAGE')
 call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENCY', quasi_free$)
+call init_attribute_name1 (rfcavity$, rf_wavelength$,               'RF_WAVELENGTH', dependent$)
 call init_attribute_name1 (rfcavity$, phi0_multipass$,              'PHI0_MULTIPASS')
 call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
 call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON', quasi_free$)

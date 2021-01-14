@@ -401,6 +401,12 @@ case (crab_cavity$)
     val(gradient$) = val(voltage$) / val(l$)
   endif
 
+  if (val(rf_frequency$) /= 0) then
+    val(rf_wavelength$) = c_light / val(rf_frequency$)
+  else
+    val(rf_wavelength$) = 0
+  endif
+
 ! Crystal
 
 case (crystal$, multilayer_mirror$, mirror$)
@@ -469,8 +475,14 @@ case (lcavity$)
     val(voltage_err$) = val(gradient_err$) * val(l$)
   endif
 
+  if (val(rf_frequency$) /= 0) then
+    val(rf_wavelength$) = c_light / val(rf_frequency$)
+  else
+    val(rf_wavelength$) = 0
+  endif
+
   if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
-    val(l_active$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+    val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
   else
     val(l_active$) = val(l$)
   endif
@@ -501,8 +513,14 @@ case (rfcavity$)
     endif
   endif
 
+  if (val(rf_frequency$) /= 0) then
+    val(rf_wavelength$) = c_light / val(rf_frequency$)
+  else
+    val(rf_wavelength$) = 0
+  endif
+
   if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
-    val(l_active$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+    val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
   else
     val(l_active$) = val(l$)
   endif

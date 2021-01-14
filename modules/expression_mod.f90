@@ -5,6 +5,7 @@ use bmad_struct
 implicit none
 
 ! The numeric$ category is for numeric constants [EG: "1.3d-5"].
+! The constant$ category is for constants like pi.
 ! The variable$ category includes symbolic constants defined in a lattice file, lattice parameters, etc.
 ! The species$ category is for the species() function. 
 ! The species_const$ category is for particle species ('He3', etc).
@@ -18,18 +19,18 @@ integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ =
 integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceiling$ = 28
 integer, parameter :: numeric$ = 29, variable$ = 30
 integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_const$ = 35
-integer, parameter :: sinc$ = 36, comma$ = 37
+integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38
 
-character(20), parameter :: expression_op_name(37) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(38) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
                                     '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
-                                    'species', '?!+Species', 'sinc', ',']
+                                    'species', '?!+Species', 'sinc', '?!+Constant', ',']
 
 
-integer, parameter :: expression_eval_level(37) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0]
+integer, parameter :: expression_eval_level(38) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0]
 
 private pushit
 
@@ -47,7 +48,7 @@ contains
 ! Stack end elements not used are marked stack(i)%type = end_stack$
 !
 ! Stack elements with stack(i)%type = variable$ are elements that need
-! to be evaluated before calling evaluate_expression_stack.
+! to be evaluated before calling expression_stack_value.
 !
 ! Input:
 !   string    -- character(*): Expression to be converted.
@@ -450,6 +451,13 @@ else
     stack(n_stack)%value = species_id(word)
     if (species_id(word) == invalid$) stack(n_stack)%type = variable$
   endif
+
+  select case (word)
+  case ('c_light');  stack(n_stack) = expression_atom_struct(word, constant$, c_light)
+  case ('twopi');    stack(n_stack) = expression_atom_struct(word, constant$, twopi)
+  case ('pi');       stack(n_stack) = expression_atom_struct(word, constant$, pi)
+  case ('e');        stack(n_stack) = expression_atom_struct(word, constant$, exp(0.0_rp))
+  end select
 endif
 
 err = .false.
@@ -512,17 +520,18 @@ end subroutine pushit
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine evaluate_expression_stack (stack, value, err_flag, err_str, var, use_old)
+! Function expression_stack_value (stack, err_flag, err_str, var, use_old) result (value)
 !
 ! Routine to evaluate an mathematical expression represented by an "expression stack".
-! Expression stacks are created by bmad_parser code.
+! Expression stacks are created by expression_string_to_stack.
 !
-! Note: Stack elements with stack(i)%type == variable$ need to be evelauated before
+! Note: Stack elements with stack(i)%type == variable$ need to be evalauated before
 ! calling this routine and the value placed in stack(i)%value.
 !
 ! Input:
 !   stack(:)    -- expression_atom_struct: Expression to evaluate.
-!   var(:)      -- controller_var1_struct, optional: Array of variables.
+!   var(:)      -- controller_var1_struct, optional: Array of control variables. 
+!                   Used with Bmad controller elements.
 !   use_old     -- logical, optional: Use var%old_value? Must be present if var(:) is present.
 !
 ! Output:
@@ -531,7 +540,7 @@ end subroutine pushit
 !   err_str     -- character(*): Error string explaining error if there is one.
 !-
 
-subroutine evaluate_expression_stack (stack, value, err_flag, err_str, var, use_old)
+function expression_stack_value (stack, err_flag, err_str, var, use_old) result (value)
 
 use random_mod
 
@@ -546,7 +555,7 @@ logical, optional :: use_old
 logical err_flag
 
 character(*) err_str
-character(*), parameter :: r_name = 'evaluate_expression_stack'
+character(*), parameter :: r_name = 'expression_stack_value'
 
 !
 
@@ -560,7 +569,7 @@ do i = 1, size(stack)
   case (end_stack$)
     exit
 
-  case (numeric$, variable$)
+  case (numeric$, variable$, constant$)
     i2 = i2 + 1
     stack2(i2)%value = stack(i)%value
 
@@ -730,7 +739,7 @@ endif
 value = stack2(1)%value
 err_flag = .false.
 
-end subroutine evaluate_expression_stack
+end function expression_stack_value
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -818,7 +827,7 @@ else
       s2(i2-1)%type = atom%type
       i2 = i2 - 1
 
-    case (numeric$, variable$, species_const$)
+    case (numeric$, variable$, constant$, species_const$)
       i2 = i2 + 1
       s2(i2)%type = atom%type
       if (atom%name == '') then
@@ -990,7 +999,7 @@ else
   return
 endif
 
-call evaluate_expression_stack(stack(i0:i1), coef, err_flag, err_str)
+coef = expression_stack_value(stack(i0:i1), err_flag, err_str)
 
 end function linear_coef
 
