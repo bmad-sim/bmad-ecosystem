@@ -140,8 +140,8 @@ Therefore, the converter's behavior is modelled with a probability distribution,
 
 \subsection{Coordinate System}
 
-Consider an electron incident on the upstream face of a positron converter of thickness $T$, with momentum $p_- c$ perpendicular to the face of the converter as depicted in \ref{fig:coords1}.
-Positrons produced in the converter emerge from the downstream face with some radial displacement $r$ and at an angle $\theta$ relative to the horizontal, as depicted in \ref{fig:coords2}.
+Consider an electron incident on the upstream face of a positron converter of thickness $T$, with momentum $p_- c$ perpendicular to the face of the converter as depicted in Figure \ref{fig:coords1}.
+Positrons produced in the converter emerge from the downstream face with some radial displacement $r$ and at an angle $\theta$ relative to the horizontal, as depicted in Figure \ref{fig:coords2}.
 The direction of the radial displacement defines for each outgoing positron an $\xx$ and $\yy$ axis, with $\xx$ taken in the same direction as $\rrr$, and $\yy$ taken so that $(\xx, \yy, \mathbf{s})$ is a right-handed orthogonal coordinate system.
 
 By symmetry, $\theta$ must be uniformly distributed from 0 to $2\pi$.
@@ -186,7 +186,7 @@ To make the problem easier to grapple with, $P$ is decomposed into two subdistri
 P \left( p_+ c, r, \dxds, \dyds \right) & = P_1 \left( p_+ c, r \right) P_2 \left( \dxds, \dyds ; p_+ c, r \right)
 \end{align}
 which are normalized to $N_+/N_-$ and $1$ respectively.
-Note that $P_2$ depends on $p_+ c$ and $r$, so that the shape of $P_2$ may vary with $p_+ c$ and $r$.
+Note that $P_2$ depends on $p_+ c$ and $r$, so that the shape of $P_2$ varies with $p_+ c$ and $r$.
 
 Using Geant\cite{geant}, a large number of electrons incident upon the converter are simulated, and the produced positrons and their kinematics are recorded.
 The produced positrons are binned into a two-dimensional histogram by their $p_+ c$ and $r$ values.
@@ -233,14 +233,69 @@ As an example, Figure \ref{fig:sz} illustrates $S_z$ as a function of $p_+ c$ an
 \label{fig:sz}
 \end{figure}
 
-\begin{itemize}
-\item
-Discuss 2016 PRL
+Recently, the PEPPo collaboration %TODO: cite arXiv:1606.08877
+has published experimental results of polarized positron production from a polarized electron beam via Bremsstrahlung, to which the spin tracking results from this simulation can be compared.
+This simulation yields polarization transfer efficiencies significantly higher than those observed experimentally for outgoing positrons with $p_+ c$ less than 5 MeV.
+In contrast, the simulation's results for higher momentum positrons agrees closely with experiment.
+The discrepancy is likely due to approximations made by the Geant library in computing polarization transfer during the pair production step. % According to email with Eric Voutier in August 2020, reproduced below
+While this disagreement shows that the spin tracking components of this simulation should not be relied on for accuracy at present, all of the infrastructure is in place to handle spin tracking.
+When more accurate spin tracking methods become available in Geant, this simulation, and the \bmad \, converter element, will be ready to use their results.
+%% Dear Dr. Mastroberti,
+%%
+%%  From the description you are giving, I would primarily question the physics you are taking into account in
+%%  GEANT4 simulations. Have a look at the previous work of Jonathan Dumas in his thesis
+%%
+%%  https://tel.archives-ouvertes.fr/tel-00647307
+%%
+%%  The main point is that Olsen & Maximon calculations implemented in GEANT4 dont work for pair creation, especially
+%%  in the low energy part of the positron spectra. The origin of this was tracked down to electron mass effects which
+%%  persist even at high initial beam energies. This was corrected in the work below
+%%
+%%  arXiv:0907.5271  [pdf, ps, other]  hep-ph doi 10.1103/PhysRevC.81.055208
+%%
+%%  You have a short explanation of that also in
+%%
+%%  https://arxiv.org/pdf/1711.09659.pdf
+%%
+%%  So if you are using GEANT4 with Olsen & Maximon calculations, I think the disagreement is normal.
+%%
+%%  Hope this will help. Regards, Eric
+%%
+%% ----- Mail original -----
+%% De: "John Mastroberti" <jmm699@cornell.edu>
+%% À: "ERIC VOUTIER" <voutier@ipno.in2p3.fr>
+%% Cc: "david sagan" <david.sagan@cornell.edu>, shanks@cornell.edu
+%% Envoyé: Samedi 15 Août 2020 19:52:04
+%% Objet: Positron Converter Polarization Simulation
+%%
+%% Dr. Voutier,
+%%
+%% Hi, my name is John Mastroberti.
+%% I am a researcher at Cornell University.
+%% I am working with David Sagan and Jim Shanks (CC'd) on a positron converter model based on Geant4.
+%% We have recently implemented polarization tracking in our model, and we wanted to compare our model results to the results of your 2016 PRL, "Production of Highly Polarized Positrons Using Electrons at MeV Energies."
+%%
+%% We ran a simulation with incoming electrons of momentum 8.19 MeV with longitudinal polarization, and examined the outgoing positron polarization for positrons of momenta 3.07 MeV, 4.02 MeV, 5.34 MeV, and 6.25 MeV, as you did in your experiment.
+%% We found polarization transfer efficiencies about 1.9 sigma and 2.8 sigma larger than your group did at the outgoing momenta of 3.07 MeV and 4.02 MeV respectively.
+%% In contrast, our results at 5.34 MeV and 6.25 MeV agree quite closely with yours.
+%% Our simulation records the polarization of the outgoing positrons directly after they emerge from the downstream face of the converter, whereas your measurement was taken after some additional beam optics.
+%% Do you think this difference could account for the large discrepancy between our results and yours at the lower momenta?
+%%
+%% We were also wondering what physics list you used in the Geant simulations that you performed.
+%% Ours is a custom list which basically just turns on all of the polarized E&M physics processes that Geant supports.
+%% This may also be a cause of the discrepancy.
+%%
+%% Thank you,
+%% John Mastroberti
 
-\item
-Compare our simulation output to their experimental results
-
-\end{itemize}
+% \begin{itemize}
+% \item
+% Discuss 2016 PRL (arXiv:1606.08877)
+%
+% \item
+% Compare our simulation output to their experimental results
+%
+% \end{itemize}
 
 
 %\begin{itemize}
