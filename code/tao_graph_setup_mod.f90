@@ -4,7 +4,7 @@ use tao_interface
 use tao_lattice_calc_mod
 use tao_command_mod
 use tao_data_and_eval_mod
-use expression_mod, only: evaluate_expression_stack
+use expression_mod, only: expression_stack_value
 
 contains
 
@@ -220,7 +220,7 @@ do i = 1, size(graph%curve)
     var = graph%x%min + (j - 1) * (graph%x%max - graph%x%min) / n_curve_pts
     ele%control%var(1)%value = var
     if (ele%control%type == expression$) then
-      call evaluate_expression_stack(ctl%stack, value, err, err_str, ele%control%var, .false.)
+      value = expression_stack_value(ctl%stack, err, err_str, ele%control%var, .false.)
     else
       call spline_akima_interpolate (ele%control%x_knot, ctl%y_knot, value, ok, value)
     endif
