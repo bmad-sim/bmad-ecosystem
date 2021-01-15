@@ -22,8 +22,11 @@ implicit none
 type (tao_universe_struct), target :: u
 type (ele_struct), pointer, optional :: ele_ptr
 type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
 
 real(rp), pointer, optional :: val_ptr
+integer ib, ie
+logical err
 
 character(*) ele_name
 
@@ -41,8 +44,19 @@ endif
 
 if (present(ele_ptr)) then
   if (associated(ele_ptr)) then
-    if (ele_ptr%ix_ele == 0) u%beam%init_starting_distribution = .true.
-    if (present(val_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
+
+    if (ele_ptr%key == ramper$) then
+      do ib = 0, ubound(lat%branch, 1)
+        branch => lat%branch(ib)
+        do ie = 0, branch%n_ele_max
+          call apply_ramper(branch%ele(ie), ele_ptr, err)
+        enddo
+      enddo
+    else
+      if (ele_ptr%ix_ele == 0) u%beam%init_starting_distribution = .true.
+      if (present(val_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
+    endif
+
   endif
 endif
 
