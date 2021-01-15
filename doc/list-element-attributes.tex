@@ -246,25 +246,25 @@ ele_origin                       & reference                        & x_offset [
  \label{s:list.crab.cavity}
  
  \begin{tabular}{llll} \toprule
-alias                            & gradient [eV/m]                  & phi0 [rad/2pi]                   & voltage [Volt]                   \\
-aperture [m]                     & grid_field                       & phi0_multipass [rad/2pi]         & wall                             \\
-aperture_at                      & harmon                           & ptc_integration_type             & x1_limit [m]                     \\
-aperture_type                    & hkick                            & ref_origin                       & x2_limit [m]                     \\
-bl_hkick [T*m]                   & integrator_order                 & reference                        & x_limit [m]                      \\
-bl_vkick [T*m]                   & is_on                            & rf_frequency [Hz]                & x_offset [m]                     \\
-cartesian_map                    & l [m]                            & space_charge_method              & x_offset_tot [m]                 \\
-create_jumbo_slave               & lord_pad1 [m]                    & spin_tracking_method             & x_pitch                          \\
-csr_ds_step [m]                  & lord_pad2 [m]                    & sr_wake                          & x_pitch_tot                      \\
-csr_method                       & lr_freq_spread [Hz]              & sr_wake_file                     & y1_limit [m]                     \\
-cylindrical_map                  & lr_self_wake_on                  & superimpose                      & y2_limit [m]                     \\
-delta_ref_time [sec]             & lr_wake                          & symplectify                      & y_limit [m]                      \\
-descrip                          & lr_wake_file                     & taylor_field                     & y_offset [m]                     \\
-ds_step [m]                      & mat6_calc_method                 & taylor_map_includes_offsets      & y_offset_tot [m]                 \\
-e_tot [eV]                       & multipass_ref_energy             & tilt [rad]                       & y_pitch                          \\
-ele_origin                       & num_steps                        & tilt_tot [rad]                   & y_pitch_tot                      \\
-field_calc                       & offset [m]                       & tracking_method                  & z_offset [m]                     \\
-field_master                     & offset_moves_aperture            & type                             & z_offset_tot [m]                 \\
-field_overlaps                   & p0c [eV]                         & vkick                            &                                  \\
+alias                            & gradient [eV/m]                  & phi0 [rad/2pi]                   & vkick                            \\
+aperture [m]                     & grid_field                       & phi0_multipass [rad/2pi]         & voltage [Volt]                   \\
+aperture_at                      & harmon                           & ptc_integration_type             & wall                             \\
+aperture_type                    & hkick                            & ref_origin                       & x1_limit [m]                     \\
+bl_hkick [T*m]                   & integrator_order                 & reference                        & x2_limit [m]                     \\
+bl_vkick [T*m]                   & is_on                            & rf_frequency [Hz]                & x_limit [m]                      \\
+cartesian_map                    & l [m]                            & rf_wavelength [???]              & x_offset [m]                     \\
+create_jumbo_slave               & lord_pad1 [m]                    & space_charge_method              & x_offset_tot [m]                 \\
+csr_ds_step [m]                  & lord_pad2 [m]                    & spin_tracking_method             & x_pitch                          \\
+csr_method                       & lr_freq_spread [Hz]              & sr_wake                          & x_pitch_tot                      \\
+cylindrical_map                  & lr_self_wake_on                  & sr_wake_file                     & y1_limit [m]                     \\
+delta_ref_time [sec]             & lr_wake                          & superimpose                      & y2_limit [m]                     \\
+descrip                          & lr_wake_file                     & symplectify                      & y_limit [m]                      \\
+ds_step [m]                      & mat6_calc_method                 & taylor_field                     & y_offset [m]                     \\
+e_tot [eV]                       & multipass_ref_energy             & taylor_map_includes_offsets      & y_offset_tot [m]                 \\
+ele_origin                       & num_steps                        & tilt [rad]                       & y_pitch                          \\
+field_calc                       & offset [m]                       & tilt_tot [rad]                   & y_pitch_tot                      \\
+field_master                     & offset_moves_aperture            & tracking_method                  & z_offset [m]                     \\
+field_overlaps                   & p0c [eV]                         & type                             & z_offset_tot [m]                 \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -669,30 +669,30 @@ field_overlaps                   & offset_moves_aperture            & type      
  \label{s:list.lcavity}
  
  \begin{tabular}{llll} \toprule
-alias                            & ele_origin                       & n_cell                           & tilt_tot [rad]                   \\
-aperture [m]                     & field_autoscale                  & num_steps                        & tracking_method                  \\
-aperture_at                      & field_calc                       & offset [m]                       & type                             \\
-aperture_type                    & field_master                     & offset_moves_aperture            & vkick                            \\
-autoscale_amplitude              & field_overlaps                   & p0c [eV]                         & voltage [Volt]                   \\
-autoscale_phase                  & fringe_at                        & p0c_start [eV]                   & voltage_err [Volt]               \\
-bl_hkick [T*m]                   & fringe_type                      & phi0 [rad/2pi]                   & wall                             \\
-bl_vkick [T*m]                   & gradient [eV/m]                  & phi0_autoscale [rad/2pi]         & x1_limit [m]                     \\
-cartesian_map                    & gradient_err [eV/m]              & phi0_err [rad/2pi]               & x2_limit [m]                     \\
-cavity_type                      & grid_field                       & phi0_multipass [rad/2pi]         & x_limit [m]                      \\
-coupler_angle [rad]              & hkick                            & ptc_integration_type             & x_offset [m]                     \\
-coupler_at                       & integrator_order                 & ref_origin                       & x_offset_tot [m]                 \\
-coupler_phase [rad/2pi]          & is_on                            & reference                        & x_pitch                          \\
-coupler_strength                 & l [m]                            & rf_frequency [Hz]                & x_pitch_tot                      \\
-create_jumbo_slave               & l_hard_edge [m]                  & space_charge_method              & y1_limit [m]                     \\
-csr_ds_step [m]                  & longitudinal_mode                & spin_fringe_on                   & y2_limit [m]                     \\
-csr_method                       & lord_pad1 [m]                    & spin_tracking_method             & y_limit [m]                      \\
-cylindrical_map                  & lord_pad2 [m]                    & sr_wake                          & y_offset [m]                     \\
-delta_ref_time [sec]             & lr_freq_spread [Hz]              & sr_wake_file                     & y_offset_tot [m]                 \\
-descrip                          & lr_self_wake_on                  & superimpose                      & y_pitch                          \\
-ds_step [m]                      & lr_wake                          & symplectify                      & y_pitch_tot                      \\
-e_loss [eV]                      & lr_wake_file                     & taylor_field                     & z_offset [m]                     \\
-e_tot [eV]                       & mat6_calc_method                 & taylor_map_includes_offsets      & z_offset_tot [m]                 \\
-e_tot_start [eV]                 & multipass_ref_energy             & tilt [rad]                       &                                  \\
+alias                            & ele_origin                       & n_cell                           & tilt [rad]                       \\
+aperture [m]                     & field_autoscale                  & num_steps                        & tilt_tot [rad]                   \\
+aperture_at                      & field_calc                       & offset [m]                       & tracking_method                  \\
+aperture_type                    & field_master                     & offset_moves_aperture            & type                             \\
+autoscale_amplitude              & field_overlaps                   & p0c [eV]                         & vkick                            \\
+autoscale_phase                  & fringe_at                        & p0c_start [eV]                   & voltage [Volt]                   \\
+bl_hkick [T*m]                   & fringe_type                      & phi0 [rad/2pi]                   & voltage_err [Volt]               \\
+bl_vkick [T*m]                   & gradient [eV/m]                  & phi0_autoscale [rad/2pi]         & wall                             \\
+cartesian_map                    & gradient_err [eV/m]              & phi0_err [rad/2pi]               & x1_limit [m]                     \\
+cavity_type                      & grid_field                       & phi0_multipass [rad/2pi]         & x2_limit [m]                     \\
+coupler_angle [rad]              & hkick                            & ptc_integration_type             & x_limit [m]                      \\
+coupler_at                       & integrator_order                 & ref_origin                       & x_offset [m]                     \\
+coupler_phase [rad/2pi]          & is_on                            & reference                        & x_offset_tot [m]                 \\
+coupler_strength                 & l [m]                            & rf_frequency [Hz]                & x_pitch                          \\
+create_jumbo_slave               & l_active [m]                     & rf_wavelength [???]              & x_pitch_tot                      \\
+csr_ds_step [m]                  & longitudinal_mode                & space_charge_method              & y1_limit [m]                     \\
+csr_method                       & lord_pad1 [m]                    & spin_fringe_on                   & y2_limit [m]                     \\
+cylindrical_map                  & lord_pad2 [m]                    & spin_tracking_method             & y_limit [m]                      \\
+delta_ref_time [sec]             & lr_freq_spread [Hz]              & sr_wake                          & y_offset [m]                     \\
+descrip                          & lr_self_wake_on                  & sr_wake_file                     & y_offset_tot [m]                 \\
+ds_step [m]                      & lr_wake                          & superimpose                      & y_pitch                          \\
+e_loss [eV]                      & lr_wake_file                     & symplectify                      & y_pitch_tot                      \\
+e_tot [eV]                       & mat6_calc_method                 & taylor_field                     & z_offset [m]                     \\
+e_tot_start [eV]                 & multipass_ref_energy             & taylor_map_includes_offsets      & z_offset_tot [m]                 \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -1022,29 +1022,29 @@ field_overlaps                   & offset [m]                       & tracking_m
  \label{s:list.rfcavity}
  
  \begin{tabular}{llll} \toprule
-alias                            & field_autoscale                  & num_steps                        & type                             \\
-aperture [m]                     & field_calc                       & offset [m]                       & vkick                            \\
-aperture_at                      & field_overlaps                   & offset_moves_aperture            & voltage [Volt]                   \\
-aperture_type                    & fringe_at                        & p0c [eV]                         & wall                             \\
-autoscale_amplitude              & fringe_type                      & phi0 [rad/2pi]                   & x1_limit [m]                     \\
-autoscale_phase                  & gradient [eV/m]                  & phi0_autoscale [rad/2pi]         & x2_limit [m]                     \\
-bl_hkick [T*m]                   & grid_field                       & phi0_multipass [rad/2pi]         & x_limit [m]                      \\
-bl_vkick [T*m]                   & harmon                           & ptc_integration_type             & x_offset [m]                     \\
-cartesian_map                    & hkick                            & ref_origin                       & x_offset_tot [m]                 \\
-cavity_type                      & integrator_order                 & reference                        & x_pitch                          \\
-coupler_angle [rad]              & is_on                            & rf_frequency [Hz]                & x_pitch_tot                      \\
-coupler_at                       & l [m]                            & space_charge_method              & y1_limit [m]                     \\
-coupler_phase [rad/2pi]          & l_hard_edge [m]                  & spin_fringe_on                   & y2_limit [m]                     \\
-coupler_strength                 & longitudinal_mode                & spin_tracking_method             & y_limit [m]                      \\
-create_jumbo_slave               & lord_pad1 [m]                    & sr_wake                          & y_offset [m]                     \\
-csr_ds_step [m]                  & lord_pad2 [m]                    & sr_wake_file                     & y_offset_tot [m]                 \\
-csr_method                       & lr_freq_spread [Hz]              & superimpose                      & y_pitch                          \\
-cylindrical_map                  & lr_self_wake_on                  & symplectify                      & y_pitch_tot                      \\
-delta_ref_time [sec]             & lr_wake                          & taylor_field                     & z_offset [m]                     \\
-descrip                          & lr_wake_file                     & taylor_map_includes_offsets      & z_offset_tot [m]                 \\
-ds_step [m]                      & mat6_calc_method                 & tilt [rad]                       &                                  \\
-e_tot [eV]                       & multipass_ref_energy             & tilt_tot [rad]                   &                                  \\
-ele_origin                       & n_cell                           & tracking_method                  &                                  \\
+alias                            & field_autoscale                  & num_steps                        & tracking_method                  \\
+aperture [m]                     & field_calc                       & offset [m]                       & type                             \\
+aperture_at                      & field_overlaps                   & offset_moves_aperture            & vkick                            \\
+aperture_type                    & fringe_at                        & p0c [eV]                         & voltage [Volt]                   \\
+autoscale_amplitude              & fringe_type                      & phi0 [rad/2pi]                   & wall                             \\
+autoscale_phase                  & gradient [eV/m]                  & phi0_autoscale [rad/2pi]         & x1_limit [m]                     \\
+bl_hkick [T*m]                   & grid_field                       & phi0_multipass [rad/2pi]         & x2_limit [m]                     \\
+bl_vkick [T*m]                   & harmon                           & ptc_integration_type             & x_limit [m]                      \\
+cartesian_map                    & hkick                            & ref_origin                       & x_offset [m]                     \\
+cavity_type                      & integrator_order                 & reference                        & x_offset_tot [m]                 \\
+coupler_angle [rad]              & is_on                            & rf_frequency [Hz]                & x_pitch                          \\
+coupler_at                       & l [m]                            & rf_wavelength [???]              & x_pitch_tot                      \\
+coupler_phase [rad/2pi]          & l_active [m]                     & space_charge_method              & y1_limit [m]                     \\
+coupler_strength                 & longitudinal_mode                & spin_fringe_on                   & y2_limit [m]                     \\
+create_jumbo_slave               & lord_pad1 [m]                    & spin_tracking_method             & y_limit [m]                      \\
+csr_ds_step [m]                  & lord_pad2 [m]                    & sr_wake                          & y_offset [m]                     \\
+csr_method                       & lr_freq_spread [Hz]              & sr_wake_file                     & y_offset_tot [m]                 \\
+cylindrical_map                  & lr_self_wake_on                  & superimpose                      & y_pitch                          \\
+delta_ref_time [sec]             & lr_wake                          & symplectify                      & y_pitch_tot                      \\
+descrip                          & lr_wake_file                     & taylor_field                     & z_offset [m]                     \\
+ds_step [m]                      & mat6_calc_method                 & taylor_map_includes_offsets      & z_offset_tot [m]                 \\
+e_tot [eV]                       & multipass_ref_energy             & tilt [rad]                       &                                  \\
+ele_origin                       & n_cell                           & tilt_tot [rad]                   &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
