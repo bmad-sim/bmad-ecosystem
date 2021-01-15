@@ -2485,9 +2485,8 @@ position of an elements edges are varied. This is done by appropriate control of
 length and the lengths of the elements to either side. In all cases the total length of the lattice
 is kept invariant.
 
-As an example, consider \vn{accordion_edge} which varies the edges of
-an element so that the center of the element is fixed but the length
-varies:
+As an example, consider \vn{accordion_edge} which varies the edges of an element so that the center
+of the element is fixed but the length varies:
 \begin{example}
   gr: group = \{Z[accordion_edge]\}, var = \{offset\}
 \end{example}
@@ -2507,17 +2506,18 @@ are decreased by 0.1 meters to keep the total lattice length constant.
 The effect of  \vn{gr2[a]} will be to lengthen the length of
 \vn{q10} and shorten the length of \vn{d1}.
 
-A lattice file may contain lines and lattice elements that are not
-part of the actual lattice when the lattice is constructed. \vn{Group}
-elements where {\em none} of its slave elements are part of the
-finished lattice are ignored and are also not part of the finished
-lattice. It is not permitted to have \vn{group} elements that have
-some slave elements that are part of the finished lattice and some
-slave elements that are not.
+A lattice file may contain lines and lattice elements that are not part of the actual finished
+lattice when the lattice is constructed. \vn{Group} elements where {\em none} of its slave elements
+are part of the finished lattice are ignored and are also not part of the finished lattice.  When a
+\vn{group} element has some slave elements that are part of the finished lattice and some slave
+elements that are not, the \vn{group} element as implemented in the finished lattice will only
+control slave elements that actually exist in the finished. In any case, a slave element that a
+\vn{group} element references must be defined (but not necessarily be used in the finished lattice)
+in the lattice file. This rule is enforced in order to catch spelling mistakes.
 
-If the arithmetical expression used for an \vn{group} contains an element attribute,
-care must be taken if that element attribute is changed. This is discussed in
-\sref{s:arith} and \sref{s:go.syntax}.
+If the arithmetical expression used for an \vn{group} contains an element attribute, care must be
+taken if that element attribute is changed. This is discussed in \sref{s:arith} and
+\sref{s:go.syntax}.
 
 %-----------------------------------------------------------------
 \section{Hybrid}
@@ -3353,8 +3353,9 @@ The general syntax for a \vn{spline} based  \vn{overlay} element is
 
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
 
-An \vn{overlay} element is used to control the attributes of other elements. 
-For example: 
+An \vn{overlay} element is used to control the attributes of other elements. If multiple
+\vn{overlays} control the same slave parameter, the parameter value will be the
+sum of the values set by the individual \vn{overlays}. For example:
 \begin{example}
   over1: overlay = \{a_ele, b_ele:2.0\}, var = \{hkick\}, hkick = 0.003
   over2: overlay = \{b_ele\}, var = \{hkick\}
@@ -3401,11 +3402,14 @@ set directly just like if there were no controlling overlays to begin with. Exam
 \end{example}
 Note: \vn{group} elements do not have an \vn{is_on} parameter since this is unnecessary.
 
-A lattice file may contain lines and lattice elements that are not part of the actual lattice when
-the lattice is constructed. \vn{Overlay} elements where {\em none} of its slave elements are part of
-the finished lattice are ignored and will not be part of the finished lattice. It is not permitted
-to have \vn{overlay} elements that have some slave elements that are part of the finished lattice
-and some slave elements that are not.
+A lattice file may contain lines and lattice elements that are not part of the actual finished
+lattice when the lattice is constructed. \vn{Group} elements where {\em none} of its slave elements
+are part of the finished lattice are ignored and are also not part of the finished lattice.  When a
+\vn{group} element has some slave elements that are part of the finished lattice and some slave
+elements that are not, the \vn{group} element as implemented in the finished lattice will only
+control slave elements that actually exist in the finished. In any case, a slave element that a
+\vn{group} element references must be defined (but not necessarily be used in the finished lattice)
+in the lattice file. This rule is enforced in order to catch spelling mistakes.
 
 If the arithmetical expression used for an \vn{overlay} contains an element attribute, care must be
 taken if that element attribute is changed. This is discussed in \sref{s:arith} and
@@ -3863,18 +3867,21 @@ Example:
 \label{s:ramper}
 \index{ovlerlay|hyperbf}
 
-\vn{Ramper} elements are a type of \vn{control} element (\sref{s:lord.slave}) used to make
-variations in the attributes of other elements while a program is running. The \vn{ramper} element
-is similar to an \vn{overlay} element except that \vn{ramper} elements are designed to efficiently
-control large sets of elements. Also \vn{ramper} elements can be used to smoothly vary parameters
-as particle are propagated through a lattice. \vn{Ramper} elements where implemented to solve the problem of
-simulating machine ramping where the strength of many elements in a machine are varied continuously
-as a function of time. The drawback of \vn{ramper} elements is that they can be only be used with
-programs that that are designed to handle them.\footnote 
+A \vn{ramper} element is a type of \vn{control} element (\sref{s:lord.slave}). That is, a
+\vn{ramper} element can be used to make variations in the attributes of other elements while a
+program is running. The \vn{ramper} element is similar to an \vn{overlay} element except that
+\vn{ramper} elements are designed to efficiently control large sets of elements. Also \vn{ramper}
+elements can be used to smoothly vary parameters as particle are propagated through a
+lattice. \vn{Ramper} elements where implemented to solve the problem of simulating machine ramping
+where the strength of many elements in a machine are varied continuously as a function of time. The
+drawback of \vn{ramper} elements is that they can be only be used with programs that that are
+designed to handle them.\footnote 
   {
 In particular, the \vn{long_term_tracking} program that is bundled with the \bmad software
 (\sref{s:tao.intro}) can handle \vn{ramper} elements.
   }
+Ramper elements will be ignored in programs that are not designed to handle them.
+
 Parameters that \vn{ramper} elements control must not be controlled by any \vn{overlay}.
 
 General \vn{ramper} attributes are:
@@ -3899,7 +3906,7 @@ Like \vn{overlay}s, There are two types of \vn{ramper} elements: \vn{Expression}
   name: RAMPER = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
                                                        default_attrib = init_value
 \end{example}
-where \vn{ele1}[\vn{attrib1}], \vn{ele2}[\vn{attrib2}], etc. specify the slave attributes and
+where \vn{ele1[attrib1]}, \vn{ele2[attrib2]}, etc. specify the slave attributes and
 \vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1},
 \vn{var2}, etc., and are used to determine a value for the slave attributes.
 
@@ -3910,6 +3917,22 @@ The general syntax for a \vn{spline} based  \vn{ramper} element is
 \end{example}
 
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
+
+Examples:
+\begin{example}
+  ramp_pc: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
+                var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}
+  amp = 1e9;  omega = 0.167;  t0 = 0.053
+  ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(t + t0)),
+        rfcavity::*[phi0]:0.00158*t^2 \}, var = \{time\}
+\end{example}
+Here \vn{ramp_pc} is used to ramp the reference energy \vn{e_tot}. The \vn{*[e_tot]} construct
+means that the ramper will be applied to the \vn{e_tot} attribute of all elements. \vn{Ramp_pc}
+uses a spline fit to interpolate between the knot points specified in the element definition.
+
+The \vn{ramp_rf} ramper in the above example varias the \vn{voltage} and \vn{phase} (\vn{phi0}) of
+all \vn{rfcavity} elements (specified by \vn{rfcavity::*}). Here mathematical expressions are used
+instead of spline interpolation.
 
 Note: There is a program to plot controller response curves bundled with the \bmad software
 (\sref{s:tao.intro}) called \vn{controller_function_plot}. Documentation on this can
