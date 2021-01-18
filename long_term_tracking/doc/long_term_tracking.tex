@@ -67,7 +67,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ October 13, 2020}
+\date{David Sagan \\ January 14, 2021}
 \begin{document}
 \maketitle
 
@@ -77,14 +77,17 @@
 
 \Section{Introduction} 
 
-The \ltt program is for long term tracking of a particle or beam possibly
-including tracking of the spin.
+The \ltt program is for long term tracking of a particle or beam possibly including tracking of the
+spin.
 
-The \ltt program is built atop the the Bmad software toolkit \cite{b:bmad}. The Bmad toolkit is a
+The \ltt program is built atop the Bmad software toolkit \cite{b:bmad}. The Bmad toolkit is a
 library, developed at Cornell, for the modeling relativistic charged particles in storage rings and
 Linacs, as well as modeling photons in x-ray beam lines.
 
-\ltt comes in two versions: 
+The \ltt program comes with the ``Bmad Distribution'' which is a package which contains Bmad along with
+a number of Bmad based programs. See the Bmad web site for more details.
+
+The \ltt program comes in two versions: 
 \begin{code}
 long_term_tracking      ! Single threaded version
 long_term_tracking_mpi  ! Multi-threaded version
@@ -115,13 +118,10 @@ Example:
 The \vn{<master_input_file_name>} optional argument is used to set the master input file name. The
 default value is ``\vn{long_term_tracking.init}''. 
 
-Example input files are in the directory:
+Example input files are in the directory (relative to the root of a Distribution):
 \begin{code}
-  $ACC_ROOT_DIR/bsim/long_turn_tracking/example
+  bsim/long_turn_tracking/example
 \end{code}
-
-To run the parallel version of \ltt, see the documentation on running programs on the Bmad web site
-for more details.
 
 The syntax of the master input file is explained in \sref{s:input}.
 
@@ -250,7 +250,7 @@ the next. One map represents the transport with damping and the second map repre
 fluctuations. When a particle is tracked, the first map with damping is applied and then the second
 map is applied using six random numbers.
   }
-Damping and excitation are cotrolled by two parameters that can be set in the master input file:
+Damping and excitation are controlled by two parameters that can be set in the master input file:
 \begin{code}
 bmad_com%radiation_damping_on
 bmad_com%radiation_fluctuations_on
@@ -258,11 +258,11 @@ bmad_com%radiation_fluctuations_on
 
 The problem with trying to use a map to track a particle's spin when there are radiation effects
 present is that a map may not properly model the effect of the radiation fluctuations on the spin
-precission (radiation damping is not problematic in itself but that is small comfort). To get around
+precession (radiation damping is not problematic in itself but that is small comfort). To get around
 this, the switch \vn{ltt%split_bends_for_radiation} may be set True. In this case, all bend elements
 are split in the center and special radiation marker elements are placed in between the split
 bends. These radiation marker elements are excluded when constructing maps so the result is many
-maps whose boundries will be at the bend centers. When tracking, the maps will not incorporate any
+maps whose boundaries will be at the bend centers. When tracking, the maps will not incorporate any
 radiation effects and a radiation kick will be put in at the radiation marker elements as well as any
 other elements that are excluded from the maps.
 
@@ -286,7 +286,7 @@ parameter in \sref{s:out.params}.
 \label{s:map.tuning}
 
 When tracking using maps or element-by-element with PTC 
-there are a few points to keep in mind. First is that \vn{PTC} trackes through a lattice element
+there are a few points to keep in mind. First is that \vn{PTC} tracks through a lattice element
 step by step. This is true for both map creation and symplectic integration. This means that the
 setting of the element parameter \vn{num_steps} (or equivalently \vn{ds_step}) for each element will
 affect the accuracy and speed of the computations. Bmad tries to choose reasonable default settings
@@ -299,7 +299,7 @@ increased.
 Another thing to keep in mind is that whether a map will give accurate results is dependent on a
 number of factors. One factor is the order of the map. Generally higher order is better but will
 take more computation time. When the lattice is tracked using a single map, the tracking is only
-valid when the tracked partices are far from any strong resonances. That is, if you are interested
+valid when the tracked particles are far from any strong resonances. That is, if you are interested
 in tracking halo particles, you probably should not be using a single map.
 
 In terms of speed, using maps will be the fastest, using standard Bmad tracking will be much
@@ -316,18 +316,75 @@ PTC element-by-element tracking cannot be done when using the MPI version of the
 %------------------------------------------------------------------
 \Section{Correcting the Orbit when Radiation is Present}
 
-When radiation damping is simulated, the orbit that is flat when there is no radiation will show a
-``sawtooth" pattern'' in a plot of beam energy versus position. This will lead to a nonzero
-orbit. In an actual ring, the non-zero orbit will be compensated using steerings. Thus, to
-simulate the actual ring, compensating steerings should be added to the simulated lattice as well.
-How to do this is covered in the \bmad and \tao Cookbook available from the \bmad web site.
+In storage rings, When radiation damping is simulated, the orbit that is flat when there is no
+radiation will show a ``sawtooth" pattern'' in a plot of beam energy versus position. This will lead
+to a nonzero orbit. In an actual ring, the non-zero orbit will be compensated using steerings. Thus,
+to simulate the actual ring, compensating steerings should be added to the simulated lattice as
+well. How to do this is covered in the \bmad and \tao Cookbook available from the \bmad web site.
+
+%------------------------------------------------------------------
+\Section{Lattice Ramping}
+\label{s:ramp}
+
+Here ``\vn{ramping}'' means changing lattice parameters as a function of time. Ramping examples
+include changing magnet and RF strengths to ramp the beam energy or changing magnet strengths to
+squeeze beta at the interaction pont of a colliding beam machine.
+
+Ramping is accomplished by defining \vn{ramper} elements in the lattice file. These ramper elements
+will be applied to each element in turn before particles are tracked through them. Example:
+\begin{example}
+  ramp_e: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
+                var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}
+  amp = 1e9;  omega = 0.167;  t0 = 0.053
+  ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(t + t0)),
+        rfcavity::*[phi0]:0.00158*t^2 + 2*q \}, var = \{t, q\}
+\end{example}
+See the \bmad manual for documentation on \vn{ramper} syntax. The ``\vn{*[e_tot]}'' construct in the
+definition of \vn{ramp_e} means that the ramper will be applied all elements (since the wild card
+character ``\vn{*}'' will match to any element name), and it is the element's \vn{e_tot} attribute
+(the element's reference energy) that will be varied.
+
+In the above example, the \vn{ramp_rf} ramper will be applied to all \vn{rfcavity} elements with
+the cavity voltage and phase (\vn{phi0}) being varied.
+
+In the case where the reference energy \vn{e_tot} or reference momentum \vn{p0c} is being varied, the
+effect on an element will depend upon the setting of the element's \vn{field_master} parameter. For
+example:
+\begin{example}
+  q1: quadrupole, k1 = 0.3
+  q2: quadrupole, k1 = 0.3, field_master = T
+\end{example}
+In this example, \vn{q1} will have its \vn{field_master} parameter set to \vn{False} since the
+quadrupole strength was specified using the normalized strength \vn{k1}. With \vn{q1}, since
+\vn{field_master} is False, varying the reference energy or momentum will result in the normalized
+strength \vn{k1} remaining fixed and the unnormalized strength \vn{B1_gradient} varying in
+proportion to the reference momentum. With \vn{q2}, since \vn{field_master} is True, the
+unnormalized strength \vn{B1_gradient} will remain fixed and normalized \vn{k1} will vary
+inversely with the reference momentum.
+
+Before ramper elements are applied to an element, the time bench center is at the center of the
+element is computed and this value is applied to the first variable of each ramper. For example,
+with the \vn{ramp_rf} element defined above, the \vn{t} variable will be set to the time. particle
+time The \ltt program assumes that the fist variable of a ramper element is that the ramper control
+variable is time. Implicit in this is the assumption that controlled parameters are varying slow
+enough so that the ramplers only need be applied once per bunch passage. This is done to minimize
+computational time.
+
+If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulation_mode} is set to
+"\vn{BUNCH}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.
+
+\ltt program parameters that affect ramping in the simulation are:
+\begin{example}
+  ltt%ramping_on
+  ltt%ramper_start_time
+\end{example}
 
 %------------------------------------------------------------------
 \Section{Initial Particle Positions}
 \label{s:init.pos}
 
 When the \vn{ltt%simulation_mode} (\sref{s:sim.modes}) is set to \vn{"SINGLE"} or \vn{"CHECK"}, the
-initial particle position will be set to the inital beam center position. The parameters that are used to
+initial particle position will be set to the initial beam center position. The parameters that are used to
 determine the beam center position are
 \begin{code}
   beam_init%center           ! (x, px, y, py, z, pz)
@@ -437,21 +494,28 @@ program. The master input file must contain a single namelist (\sref{s:namelist}
 Example:
 \begin{code}
 &params
-  ! Input files
+  ! Input
   ltt%lat_file   =  "lat.bmad"     ! Bmad lattice file
   ltt%common_master_input_file = ""
+  ltt%ramper_on = False
+  ltt%ramper_start_time = 0
 
   ! Output parameters
   ltt%particle_output_file = "snap.dat"
   ltt%bunch_binary_output_file = "bunch.dat"
-  ltt%averages_output_file = "average.dat"  
+  ltt%averages_output_file = "average.dat"
   ltt%sigma_matrix_output_file = "sigma.dat"
+  ltt%custom_output_file = ""
   ltt%one_particle_output_file = False
   ltt%output_every_n_turns = 200
   ltt%averaging_window = 1
   ltt%output_initial_position = False
   ltt%print_on_dead_loss = -1
-  ltt%map_file_prefix = 'ltt'
+  ltt%map_file_prefix = "ltt"
+
+  ltt%column(1) = "n_turn", "N_turn", "i7"
+  ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
+  ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "f12.8"
 
   ! Simulation parameters
   ltt%simulation_mode    = "BUNCH"
@@ -497,7 +561,7 @@ simulation parameters.
 
 The input files that can be specified in the \vn{params} namelist of the master input file are:
 \begin{description}
-\item[ttl\%common_master_input_file] \Newline
+\item[ltt\%common_master_input_file] \Newline
 The \vn{common_master_input_file} is used in situations where you want to run multipole simulations
 with multiple initialization files and where most parameters are the same across all the
 simulations. In this case, an initialization file containing the parameters that are the same can be
@@ -509,7 +573,7 @@ that there is only one file to modify when common parameters are changed as oppo
 modify all the initialization files. If \vn{common_master_input_file} is set to blank (the default),
 no common master file is used.
 %
-\item[ttl\%lat_file] \Newline
+\item[ltt\%lat_file] \Newline
 Name of the Bmad lattice file to use. This name is required.
 \end{description}
 
@@ -520,19 +584,30 @@ Name of the Bmad lattice file to use. This name is required.
 Parameters in the master input file that affect the output are:
 \begin{description}
 \item[ltt\%averaging_window] \Newline
-Number of turns to average over when computing beam sigma matrix and positions. Default is 1. For
-example:
+Number of turns to average over when computing beam sigma matrix and averaged positions. Default is
+1. This affects the files specified by: 
+\begin{example}
+  ltt%averages_output_file
+  ltt%sigma_matrix_output_file
+\end{example}
+
+For example:
 \begin{code}
   ltt%output_every_n_turns = 1000
   ltt%averaging_window = 201
+  ltt%n_turns = 20040
 \end{code}
 This would average over 201 turns and this averaging would be done every 1000 turns. That is, the
 beam sigma matrix and position is output every 1000 turns and the sigma matrix and position numbers
 for, say, turn 6000 are computed by averaging over all particle positions in the window from turn
 5900 through turn 6100. The averaging window used with turn 0 will be the half interval from 0
-through \vn{(ltt%averaging_window-1)/2}. The number of turns tracked will be extended past
-\vn{ltt%n_turns} so that the averaging window used for the point \vn{ltt%n_turns} has the normal
-width.
+through \vn{(ltt%averaging_window-1)/2}. The number of turns averaged over for the last point will
+extend from \vn{n_last - (ltt%averaging_window-1)/2} up through \vn{ltt%n_turns} where \vn{n_last}
+is the number of turns of the nominal ``center'' of the last averaging window. In the above example,
+\vn{n_last} will be 20000 and the averaging window will extend from turn 19900 through 20040. The
+value of \vn{ltt%averaging_window} should be set to an odd number. If the value of
+\vn{ltt%averaging_window} is even, the effective averaging window with will be one more than the set
+number.
 %
 \item[ltt\%bunch_binary_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. This parameter sets the name of the file
@@ -547,7 +622,38 @@ and spin positions averaged over all the particles of the bunch as well as the s
 turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of turns. If
 \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
 the beam is at the \vn{ltt%ele_start} position independent of where the lattice begins and
-ends. Note: The file \vn{ltt%sigma_matrix_output_file} will show the full 6x6 sigma matrix.
+ends. To reduce noise, the \vn{ltt%averaging_window} parameter can be set appropriately.
+Note: The file \vn{ltt%sigma_matrix_output_file} will show the 6x6 sigma matrix.
+%
+\item[ltt\%custom_output_file]\Newline
+A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
+$N$ is set by \vn{ltt%output_every_n_turns}. Columns are specified by setting \vn{ltt%column(<i>)}. The general
+syntax is:
+\begin{example}
+  ltt%column(<i>) = "<expression>", "<header-name>",  "<format>"
+\end{example}
+where \vn{<i>} is the column index, \vn{<expression>} is an arithmetical expression that determines
+the values displayed in the column, \vn{<header-name>} is a descriptive string used in constructing
+the header line (first line) in the file, and \vn{<format>} is the format specifier used when
+converting the value of an expression into a string. Example:
+\begin{example}
+  ltt%column(1) = "n_turn", "N_turn", "i7"
+  ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
+  ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "es12.8"
+\end{example}
+Here three columns are specified. Parameters that are used in a column's \vn{<expression>} can be element
+attributes or beam quantities. Using element attributes can be helpful when ramping is used. In the above
+example, the second column's expression is the \vn{voltage} of the first element named \vn{rf0} in the
+lattice (see the Bmad manual for lists of element parameters). Other parameters are:
+\begin{example}
+  n_turn    -- Turn number
+  time      -- Time at the N\Th turn averaged over the beam.
+  x, px, y, py, z, pz
+            -- Particle phase space averaged over the beam.
+\end{example}
+Thus the third column in the above example is the averaged particle phase with respect to the zero
+crossing phase of the first element named \vn{rf0} in the lattice. [Note that $z$ is always evaluated
+at the start of the turn and not at the position of the RF cavity.]
 %
 \item[ltt\%exclude_from_maps] \Newline
 List of elements to exclude when constructing maps for \vn{SLICK} tracking. These elements will be
@@ -571,8 +677,18 @@ If set to \vn{True}, all the particle data will be put in one \vn{ltt%particle_o
 relevant for \vn{"BEAM"} tracking.  See Section~\sref{s:part.out}.
 %
 \item[ltt\%output_every_n_turns] \Newline
-Sets the number of turns between files specified by \vn{ltt%averages_output_file} and
-\vn{ltt%particle_output_file}. Also see \vn{ltt%averaging_window}.
+Sets the number of turns between data rows specified by:
+\begin{example}
+  ltt%averages_output_file
+  ltt%particle_output_file
+  ltt%custom_output_file
+\end{example}
+If set to -1 (the default), the output will only happen at the last turn. If set to 0, output will
+happen on the beginning turn (turn 0) and the last turn. Example:
+\begin{code}
+  ltt%output_every_n_turns = 1000
+\end{code}
+In this example, output will happen every 1000 turns.
 %
 \item[ltt\%output_initial_position] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. If \vn{ltt%output_initial_position} is set to
@@ -665,12 +781,12 @@ Name or element index of the element to start the tracking. Examples:
 \end{code}
 The default is to start at the beginning of the lattice. Notice that the tracking starts at the
 downstream end of the element so the first element tracked through is the element after the chosen
-one. Also see \vn{ttl%ele_stop}.
+one. Also see \vn{ltt%ele_stop}.
 %
 \item[ltt\%ele_stop] \Newline
 Used when \vn{ltt%simulation_mode} is set to \vn{"CHECK"}. \vn{ttl%ele_stop} sets the stopping
-point for tracking to be the downstream edge of the element. Also see \vn{ttl%ele_start}. Default
-if not set or set to a blank string is for \vn{tll%ele_stop} to be equal to \vn{tll%ele_start}.
+point for tracking to be the downstream edge of the element. Also see \vn{ltt%ele_start}. Default
+if not set or set to a blank string is for \vn{ltt%ele_stop} to be equal to \vn{tll%ele_start}.
 %
 \item[ltt\%map_order] \Newline
 Map order. See Section~\sref{s:track.methods}. The default is what is set in the lattice
@@ -680,6 +796,14 @@ current setting of \vn{ltt%map_order}.
 %
 \item[ltt\%n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.methods}.
+%
+\item[ltt\%ramping_on] \Newline
+If set to True, \vn{ramper} control elements will be use to modify the lattice during tracking
+(\sref{s:ramp}). Default is False.
+%
+\item[ltt\%ramper_start_time] \Newline
+The starting (offset) time used to set \vn{ramper} elements. This enables simulations to start in the middle
+of a ramp cycle. Default is 0.
 %
 \item[ltt\%random_seed] \Newline
 The random number seed used by the random number generator. If set to 0, the
@@ -722,9 +846,9 @@ on \vn{bmad_com%space_charge_on} for more details. The high energy space charge 
 
 The $a$ and $b$ mode emittances are used as input to the space charge calculation. [If there is no
 coupling, the $a$ mode corresponds to the ``horizontal'' mode and the $b$ mode corresponds to the
-``vertical'' mode.] These emittance can be sepcified by setting \vn{beam_init%a_emit} and/or
+``vertical'' mode.] These emittance can be specified by setting \vn{beam_init%a_emit} and/or
 \vn{beam_init%b_emit}. If set to zero or negative, an emittance is calculated using a radiation
-integral calculation. Additionaly, the longitudinal beam size is calculated via radiation integrals.
+integral calculation. Additionally, the longitudinal beam size is calculated via radiation integrals.
 
 %------------------------------------------------------------------
 \Section{Particle Data Output}
