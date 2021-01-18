@@ -44,20 +44,20 @@ type ltt_params_struct
   character(200) :: custom_output_file = ''
   character(200) :: map_file_prefix = ''
   character(200) :: averages_output_file = ''
-  character(200) :: ramper_elements = ''
   type (ltt_column_struct) column(100)
   integer :: n_turns = -1
   integer :: random_seed = 0
   integer :: map_order = -1
   integer :: averaging_window = 1
   integer :: output_every_n_turns = -1
-  real(rp) :: ramper_start_time
+  real(rp) :: ramping_start_time
   real(rp) :: ptc_aperture(2) = 0.1
   real(rp) :: print_on_dead_loss = -1
   real(rp) :: timer_print_dtime = 120
   real(rp) :: dead_cutoff = 1
   real(rp) :: a_emittance = 0   ! Used for space charge calculation.
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
+  logical :: ramping_on = .false.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: output_initial_position = .false.
@@ -94,8 +94,9 @@ type ltt_com_struct
   type (coord_struct), allocatable :: bmad_closed_orb(:)
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
+  type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper elements.
+  integer :: n_ramper_loc = 0
   integer :: ix_branch = 0                   ! Lattice branch being tracked.
-  integer, allocatable :: ix_ramper(:)    ! Element indexes for ramper elements.
   real(rp) ptc_closed_orb(6)
   logical :: ramp_in_track1_preprocess = .false.
   logical :: debug = .false.
@@ -283,29 +284,16 @@ if (beam_init%use_particle_start_for_center) beam_init%center = lat%particle_sta
 
 !
 
-if (ltt%ramper_elements /= '') then
+if (ltt%ramping_on) then
   if (ltt%tracking_method /= 'BMAD') THEN
-    print *, 'NOTE: ltt%tracking_method MUST BE SET TO "BMAD" IF RAMPER ELEMENTS ARE USED.'
+    print *, 'NOTE: ltt%tracking_method MUST BE SET TO "BMAD" IF LTT%RAMPING_ON IS SET TO TRUE.'
   endif
 
-  call lat_ele_locator (ltt%ramper_elements, lat, eles, n_loc, err)
-  if (err) then
-    print '(2a)', 'ERROR FINDING RAMPER ELEMENTS MATCHING LTT%RAMPER_ELEMENTS SETTING: ' // ltt%ramper_elements
+  call lat_ele_locator ('RAMPER::*', lat, ltt_com%ramper, ltt_com%n_ramper_loc, err)
+  if (ltt_com%n_ramper_loc == 0) then
+    print '(2a)', 'Warning! NO RAMPER ELEMENTS FOUND IN LATTICE.'
     stop
   endif
-
-  allocate (ltt_com%ix_ramper(n_loc))
-
-  do i = 1, n_loc
-    if (eles(i)%ele%key /= ramper$) then
-      print *, 'Element is not a ramper element: ' // eles(i)%ele%name
-      stop
-    endif
-    ltt_com%ix_ramper(i) = eles(i)%ele%ix_ele
-  enddo
-
-else
-  allocate (ltt_com%ix_ramper(0))
 endif
 
 end subroutine ltt_init_params
@@ -344,16 +332,15 @@ if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
   if (bmad_com%spin_tracking_on) ltt_com%ptc_state = ltt_com%ptc_state + SPIN0
 endif
 
-! If using ramping elements, setup the lattice using lttp%ramper_start_time
+! If using ramping elements, setup the lattice using lttp%ramping_start_time
 
-if (lttp%ramper_elements /= '') then
+if (lttp%ramping_on) then
+  do i = 1, ltt_com%n_ramper_loc
+    ltt_com%ramper(i)%ele%control%var(1)%value = lttp%ramping_start_time
+  enddo
   branch => lat%branch(ltt_com%ix_branch)
-  do i = 1, size(ltt_com%ix_ramper)
-    ir = ltt_com%ix_ramper(i)
-    lat%ele(ir)%control%var(1)%value = lttp%ramper_start_time
-    do ie = 0, branch%n_ele_max
-      call apply_ramper (branch%ele(ie), lat%ele(ir), err)
-    enddo
+  do ie = 0, branch%n_ele_max
+    call apply_ramper (branch%ele(ie), ltt_com%ramper(1:ltt_com%n_ramper_loc), err)
   enddo
 endif  
 
@@ -406,25 +393,30 @@ endif
 
 print *
 print '(a)', '--------------------------------------'
-print '(a, a)',    'ltt%lat_file:                  ', quote(lttp%lat_file)
-print '(a, a)',    'ltt%sigma_matrix_output_file:  ', quote(lttp%sigma_matrix_output_file)
-print '(a, a)',    'ltt%particle_output_file:      ', quote(lttp%particle_output_file)
-print '(a, a)',    'ltt%averages_output_file:      ', quote(lttp%averages_output_file)
-print '(a, a)',    'ltt%custom_output_file:        ', quote(lttp%custom_output_file)
-print '(a, a)',    'ltt%map_file_prefix:           ', quote(lttp%map_file_prefix)
-print '(a, a)',    'ltt%simulation_mode:           ', trim(lttp%simulation_mode)
-print '(a, a)',    'ltt%tracking_method:           ', trim(lttp%tracking_method)
+print '(a, a)',    'ltt%lat_file:                       ', quote(lttp%lat_file)
+print '(a, a)',    'ltt%sigma_matrix_output_file:       ', quote(lttp%sigma_matrix_output_file)
+print '(a, a)',    'ltt%particle_output_file:           ', quote(lttp%particle_output_file)
+print '(a, a)',    'ltt%averages_output_file:           ', quote(lttp%averages_output_file)
+print '(a, a)',    'ltt%custom_output_file:             ', quote(lttp%custom_output_file)
+print '(a, a)',    'ltt%map_file_prefix:                ', quote(lttp%map_file_prefix)
+print '(a, a)',    'ltt%simulation_mode:                ', trim(lttp%simulation_mode)
+print '(a, a)',    'ltt%tracking_method:                ', trim(lttp%tracking_method)
 if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
-  print '(a, i0)', 'ltt%map_order:                 ', lttp%map_order
-  print '(a, a)',  'ltt%ele_start:                 ', quote(lttp%ele_start)
-  print '(a, a)',  'ltt%ele_stop:                  ', quote(lttp%ele_stop)
-  print '(a, a)',  'ltt%exclude_from_maps:         ', quote(lttp%exclude_from_maps)
-  print '(a, l1)', 'ltt%split_bends_for_radiation: ', lttp%split_bends_for_radiation
-  print '(a, i0)', 'Number of maps:                ', nm
+  print '(a, i0)', 'ltt%map_order:                      ', lttp%map_order
+  print '(a, a)',  'ltt%ele_start:                      ', quote(lttp%ele_start)
+  print '(a, a)',  'ltt%ele_stop:                       ', quote(lttp%ele_stop)
+  print '(a, a)',  'ltt%exclude_from_maps:              ', quote(lttp%exclude_from_maps)
+  print '(a, l1)', 'ltt%split_bends_for_radiation:      ', lttp%split_bends_for_radiation
+  print '(a, i0)', 'Number of maps:                     ', nm
 endif
-print '(a, l1)',   'Radiation Damping:             ', bmad_com%radiation_damping_on
-print '(a, l1)',   'Stochastic Fluctuations:       ', bmad_com%radiation_fluctuations_on
-print '(a, l1)',   'Spin_tracking_on:              ', bmad_com%spin_tracking_on
+print '(a, l1)',   'bmad_com%radiation_damping_on:      ', bmad_com%radiation_damping_on
+print '(a, l1)',   'bmad_com%radiation_fluctuations_on: ', bmad_com%radiation_fluctuations_on
+print '(a, l1)',   'bmad_com%spin_tracking_on:          ', bmad_com%spin_tracking_on
+print '(a, i8)',   'ltt%n_turns:                        ', lttp%n_turns
+print '(a, i8)',   'ltt%output_every_n_turns:           ', lttp%output_every_n_turns
+print '(a, l1)',   'ltt%ramping_on:                     ', lttp%ramping_on
+print '(2a)',      'ltt%ramping_start_time:             ', real_str(lttp%ramping_start_time, 6)
+print '(a, i8)',   'ltt%averaging_window:               ', lttp%averaging_window
 print '(a)', '--------------------------------------'
 print *
 
@@ -725,10 +717,7 @@ endif
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
 
 if (lttp%mpi_rank == master_rank$) then
-  print '(a, i8)',   'n_particle                = ', size(bunch%particle)
-  print '(a, i8)',   'ltt%n_turns               = ', lttp%n_turns
-  print '(a, i8)',   'ltt%output_every_n_turns  = ', lttp%output_every_n_turns
-  print '(a, i8)',   'ltt%averaging_window      = ', lttp%averaging_window
+  print '(a, i8)',   'n_particle:                    ', size(bunch%particle)
 endif
 
 do n = 1, size(bunch%particle)
@@ -763,7 +752,7 @@ if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com, bunc
 
 time0 = 0
 
-do i_turn = 1, lttp%n_turns + lttp%averaging_window/2 + 1
+do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
   case ('MAP')
     do ip = 1, size(bunch%particle)
@@ -1037,9 +1026,25 @@ character(4) code
 
 !
 
+select case (lttp%output_every_n_turns)
+! Stats only for end.
+case (-1)
+  if (i_turn /= lttp%n_turns) return
+
+! Stats for beginning and end
+case (0)
+  if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
+
+! Stats for every %output_every_n_turns 
+case default
+  if (mod(i_turn, lttp%output_every_n_turns) /= 0) return
+end select
+
+!
+
 iu = lunget()
 
-if (i_turn == 0) then
+if (i_turn == 0 .or. lttp%output_every_n_turns == -1) then
   open (iu, file = lttp%custom_output_file, recl = 1000)
   line = '#'
   do i = 1, size(lttp%column)
@@ -1160,14 +1165,16 @@ integer iu, n_particle
 
 !
 
-write (iu,  '(3a)')      '# lattice = "', trim(lttp%lat_file), '"'
-write (iu,  '(3a)')      '# simulation_mode = "', trim(lttp%simulation_mode), '"'
+write (iu,  '(3a)')      '# lattice                   = ', quote(lttp%lat_file)
+write (iu,  '(3a)')      '# simulation_mode           = ', quote(lttp%simulation_mode)
 write (iu,  '(a, i8)')   '# n_particle                = ', n_particle
 write (iu,  '(a, i8)')   '# n_turns                   = ', lttp%n_turns
+write (iu,  '(a, l1)')   '# ramping_on                = ', lttp%ramping_on
+write (iu,  '(2a)')      '# ramping_start_time        = ', real_str(lttp%ramping_start_time, 6)
 write (iu,  '(a, i8)')   '# output_every_n_turns      = ', lttp%output_every_n_turns
 write (iu,  '(a, i8)')   '# averaging_window          = ', lttp%averaging_window
-write (iu,  '(a, l1)')   '# Radiation_Damping         = ', bmad_com%radiation_damping_on
-write (iu,  '(a, l1)')   '# Radiation_Fluctuations    = ', bmad_com%radiation_fluctuations_on
+write (iu,  '(a, l1)')   '# Radiation_Damping_on      = ', bmad_com%radiation_damping_on
+write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on = ', bmad_com%radiation_fluctuations_on
 write (iu,  '(a, l1)')   '# Spin_tracking_on          = ', bmad_com%spin_tracking_on
 write (iu, '(3a)')       '# Map_file_prefix           = ', quote(lttp%map_file_prefix)
 if (lttp%tracking_method == 'MAP') then
@@ -1203,11 +1210,13 @@ case (-1)
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(1))
   ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 1) return   ! Out of window. Do not do any averaging
+
 ! Stats for beginning and end
 case (0)
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:1))
   ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 0) return   ! Out of window. Do not do any averaging
+
 ! Stats for every %output_every_n_turns 
 case default
   if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:1+lttp%n_turns/lttp%output_every_n_turns))
@@ -1332,7 +1341,7 @@ iu = lunget()
 
 if (sum_data_arr(1)%status == valid$) then
   open (iu, file = lttp%sigma_matrix_output_file, recl = 400)
-  write (iu, '(a1, a8, a9, 22a14)') '#', 'Turn', 'N_live', '<p0c>', &
+  write (iu, '(a1, a8, a9, a12, 2x, 22a14)') '#', 'Turn', 'N_live', 'Time', '<p0c>', &
     '<x.x>', '<x.px>', '<x.y>', '<x.py>', '<x.z>', '<x.pz>', '<px.px>', '<px.y>', '<px.py>', '<px.z>', '<px.pz>', &
     '<y.y>', '<y.py>', '<y.z>', '<y.pz>', '<py.py>', '<py.z>', '<py.pz>', '<z.z>', '<z.pz>', '<pz.pz>'
 else
@@ -1352,7 +1361,8 @@ do ix = 1, size(sum_data_arr)
     sigma(k) = sd%orb2_sum(i,j) / sd%n_count - sd%orb_sum(i) * sd%orb_sum(j) / sd%n_count**2
   enddo
   enddo
-  write (iu, '(i9, i9, 2x, 22es14.6)') sd%i_turn, sd%n_live, sd%p0c_sum/sd%n_count, (sigma(k), k = 1, 21)
+  write (iu, '(i9, i9, es14.6, 2x, 22es14.6)') sd%i_turn, sd%n_live, sd%time_sum/sd%n_live, &
+                                                  sd%p0c_sum/sd%n_count, (sigma(k), k = 1, 21)
 enddo
 
 !

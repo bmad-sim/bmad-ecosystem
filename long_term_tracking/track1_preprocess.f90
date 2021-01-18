@@ -40,8 +40,8 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
-real(rp) r
-integer i, ie
+real(rp) r, t
+integer ir, n
 logical err_flag, finished, radiation_included
 
 character(*), parameter :: r_name = 'track1_preprocess'
@@ -50,13 +50,14 @@ character(*), parameter :: r_name = 'track1_preprocess'
 
 err_flag = .false.
 if (.not. ltt_com_global%ramp_in_track1_preprocess) return 
+t = start_orb%t + 0.5_rp * ele%value(delta_ref_time$) + ltt_params_global%ramping_start_time
 
-do i = 1, size(ltt_com_global%ix_ramper)
-  ie = ltt_com_global%ix_ramper(i)
-  if (ie == -1) exit
-  ltt_com_global%lat%ele(ie)%control%var(1)%value = start_orb%t + 0.5_rp * ele%value(delta_ref_time$)
-  call apply_ramper (ele, ltt_com_global%lat%ele(ie), err_flag)
+do ir = 1, ltt_com_global%n_ramper_loc
+  ltt_com_global%ramper(ir)%ele%control%var(1)%value = t
 enddo
+
+n = ltt_com_global%n_ramper_loc
+call apply_ramper (ele, ltt_com_global%ramper(1:n), err_flag)
 
 ! Adjust particle reference energy if needed.
 

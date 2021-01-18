@@ -34,7 +34,7 @@ type (coord_struct), pointer :: orb
 real(rp) t, r
 
 integer, optional :: direction
-integer ip, ir, ie
+integer ip, ir, ie, n
 
 logical err, finished
 
@@ -43,17 +43,19 @@ logical err, finished
 ! time scale of a bunch passage.
 
 finished = .false.
-if (size(ltt_com_global%ix_ramper) == 0) return
+n = ltt_com_global%n_ramper_loc
+if (n == 0) return
 
 t = sum(bunch_start%particle%t, bunch_start%particle%state == alive$) / &
-                     count(bunch_start%particle%state == alive$) + 0.5_rp * ele%value(delta_ref_time$)
+           count(bunch_start%particle%state == alive$) + 0.5_rp * ele%value(delta_ref_time$) + &
+           ltt_params_global%ramping_start_time
 
-do ir = 1, size(ltt_com_global%ix_ramper)
-  ie = ltt_com_global%ix_ramper(ir)
-  if (ie == -1) exit
-  ltt_com_global%lat%ele(ie)%control%var(1)%value = t
-  call apply_ramper (ele, ltt_com_global%lat%ele(ie), err)
+do ir = 1, ltt_com_global%n_ramper_loc
+  ltt_com_global%ramper(ir)%ele%control%var(1)%value = t
 enddo
+
+n = ltt_com_global%n_ramper_loc
+call apply_ramper (ele, ltt_com_global%ramper(1:n), err)
 
 ! Adjust particle reference energy if needed.
 
