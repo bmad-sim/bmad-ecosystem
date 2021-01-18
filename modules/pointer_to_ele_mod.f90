@@ -16,7 +16,7 @@ private pointer_to_ele1, pointer_to_ele2, pointer_to_ele3
 ! pointer_to_ele is an overloaded name for:
 !     Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
 !     Function pointer_to_ele1 (lat, ix_nametable) result (ele_ptr)
-!     Function pointer_to_ele2 (lat, ele_loc_id) result (ele_ptr)
+!     Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
 !     Function pointer_to_ele3 (lat, ele_name) result (ele_ptr)
 !
 ! Ix_nametable is a mapping of ele locations to integers. The mapping is:
