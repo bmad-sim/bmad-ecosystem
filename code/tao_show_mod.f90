@@ -4528,7 +4528,8 @@ case ('universe')
   endif
 
   if (lat%param%geometry == closed$) then
-    call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, ix_branch = ix_branch)
+    call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
+                          pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch)
   endif
 
   fmt  = '(1x, a16, 2es13.5, 2x, 2es13.5, 2x, a)'
