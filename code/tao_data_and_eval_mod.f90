@@ -4251,7 +4251,7 @@ parsing_loop: do
             if (index(': ]|', word(ix:ix)) /= 0) found = .true.
           enddo
           do ix = 1, ix1-1
-            if (index(': ]|', word(ix:ix)) /= 0) found = .true.
+            if (index(': ]|', phrase(ix:ix)) /= 0) found = .true.
           enddo
           if (.not. found) wild = .true.
         endif
