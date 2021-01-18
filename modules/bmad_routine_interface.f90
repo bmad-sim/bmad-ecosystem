@@ -100,7 +100,8 @@ end subroutine
 subroutine apply_ramper (slave, ramper, err_flag)
   import
   implicit none
-  type (ele_struct) :: slave, ramper
+  type (ele_struct) :: slave
+  type (ele_pointer_struct) ramper(:)
   logical err_flag
 end subroutine
 

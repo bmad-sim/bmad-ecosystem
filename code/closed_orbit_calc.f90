@@ -421,7 +421,8 @@ do i_loop = 1, i_max
       endif
 
       if (all(abs(del_co(1:n_dim)) < 1e-2)) then
-        coc%a_vec = coc%a_vec + del_co(1:n_dim)
+        call co_func (coc%a_vec + del_co(1:n_dim), dvec, dy_da, status)
+        if (track_state == moving_forward$) coc%a_vec = coc%a_vec + del_co(1:n_dim)
       endif
     endif
   endif

@@ -7,16 +7,16 @@
 !
 ! Input:
 !   lat          -- lat_struct: Lat
-!   delta_e      -- Real(rp): +/- Delta energy used for the calculation. Notice that the energy difference
+!   delta_e      -- real(rp): +/- Delta energy used for the calculation. Notice that the energy difference
 !                     between high and low is 2 * delta_e. If 0 then default of 1.0d-4 is used.
-!   ix_branch    -- Integer, optional: Index of the lattice branch to use. Default is 0.
+!   pz           -- real(rp), optional: reference momentum about which to calculate. Default is 0. 
+!   ix_branch    -- integer, optional: Index of the lattice branch to use. Default is 0.
 !
 ! Output:
-!   delta_e      -- Real(rp): Set to 1.0d-4 if on input DELTA_E =< 0.
-!   chrom_x      -- Real(rp): Horizontal chromaticity.
-!   chrom_y      -- Real(rp): Vertical chromaticity.
-!   err_flag     -- Logical, optional: Set true if there is an error. False otherwise.
-!   pz           -- Real(rp), optional: reference momentum about which to calculate. Default is 0. 
+!   delta_e      -- real(rp): Set to 1.0d-4 if on input DELTA_E =< 0.
+!   chrom_x      -- real(rp): Horizontal chromaticity.
+!   chrom_y      -- real(rp): Vertical chromaticity.
+!   err_flag     -- logical, optional: Set true if there is an error. False otherwise.
 !   low_E_lat    -- lat_struct, optional: Lattice with RF off and matrices computed at E_lat +pz - delta_e
 !   high_E_lat   -- lat_struct, optional: Lattice with RF off and matrices computed at E_lat +pz + delta_e
 !   low_E_orb(:) -- coord_struct, allocatable, optional: Orbit computed at E_lat + pz - delta_e.

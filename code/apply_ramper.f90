@@ -1,9 +1,11 @@
 !+
 ! Subroutine apply_ramper (slave, ramper, err_flag)
 !
+! Routine to apply the ramper elements of a lattice to a particular element.
+!
 ! Input:
-!   slave       -- ele_struct: Element to apply ramper to.
-!   ramper      -- ele_struct: Ramper element.
+!   slave       -- ele_struct: Element to apply ramper elements to.
+!   ramper(:)   -- ele_pointer_struct: Pointers to ramper elements in the lattice
 !
 ! Output:
 !   err_flag    -- logical: Set true if there is an error. False otherwise.
@@ -15,65 +17,142 @@ use bmad, except_dummy => apply_ramper
 
 implicit none
 
-type (ele_struct), target :: slave, ramper
-type (control_struct), pointer :: c
-type (all_pointer_struct) a_ptr
+type (ele_struct), target :: slave
+type (ele_struct), pointer :: rmp
+type (ele_pointer_struct), target :: ramper(:)
+type (lat_struct), pointer :: lat
+type (control_struct), pointer :: ctl
 
-integer iv, key, ix
+integer iv, key, ix, ir
 logical err_flag, ok
 
 character(100) err_str
 character(40) name
 character(*), parameter :: r_name = 'apply_ramper'
 
-! 
+! Intit
 
 err_flag = .false.
+if (size(ramper) == 0) return
+lat => ramper(1)%ele%branch%lat
 
-do iv = 1, size(ramper%control%ramp)
-  c => ramper%control%ramp(iv)
+do ix = 1, size(ramper)
+  ramper(ix)%ele%select = .false.
+enddo
 
-  ix = index(c%slave_name, '::')
-  if (ix == 0) then
-    key = 0
-    name = c%slave_name
-  else
-    key = key_name_to_key_index(c%slave_name(1:ix-1), .true.)
-    name = c%slave_name(ix+2:)
-  endif
+! Apply
 
-  if ((key /= 0 .and. key /= slave%key) .or. .not. match_wild(slave%name, name)) then
-    c%value = real_garbage$
-    cycle
-  endif
+do ix = 1, size(ramper)
+  call this_ramper_bookkeeper(ramper(ix)%ele, ramper, lat)
+enddo
 
-  call pointer_to_attribute (slave, c%attribute, .true., a_ptr, err_flag, .false.)
-  if (err_flag .or. .not. associated(a_ptr%r)) then
-    c%value = real_garbage$
-    cycle
-  endif
+!
 
-  if (ramper%control%type == expression$) then
-    c%value = expression_stack_value(c%stack, err_flag, err_str, ramper%control%var, .false.)
-    if (err_flag) then
-      call out_io (s_error$, r_name, err_str, ' OF RAMPER: ' // ramper%name)
-      err_flag = .true.
-      return
+do ir = 1, size(ramper)
+  rmp => ramper(ir)%ele
+  if (.not. rmp%is_on) cycle
+
+  do iv = 1, size(rmp%control%ramp)
+    ctl => rmp%control%ramp(iv)
+
+    ix = index(ctl%slave_name, '::')
+    if (ix == 0) then
+      key = 0
+      name = ctl%slave_name
+    else
+      key = key_name_to_key_index(ctl%slave_name(1:ix-1), .true.)
+      name = ctl%slave_name(ix+2:)
     endif
 
-  else
-    call spline_akima_interpolate (ramper%control%x_knot, c%y_knot, ramper%control%var(1)%value, ok, c%value)
-    if (.not. ok) then
-      call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
-      err_flag = .true.
-      return
+    if ((key /= 0 .and. key /= slave%key) .or. .not. match_wild(slave%name, name)) then
+      ctl%value = real_garbage$
+      cycle
     endif
-  endif
 
-  a_ptr%r = c%value
-  call set_flags_for_changed_attribute (slave, a_ptr%r, .true.)
+    call this_slave_bookkeeper(rmp, slave, ctl)
+  enddo
 enddo
 
 call attribute_bookkeeper(slave, .true.)
+
+!-------------------------------------------------------------------
+contains
+
+recursive subroutine this_ramper_bookkeeper (this_ramp, ramper, lat)
+
+type (ele_struct) this_ramp
+type (ele_pointer_struct) ramper(:)
+type (ele_struct), pointer :: lord, slave
+type (lat_struct) lat
+type (control_struct), pointer :: ctl
+
+integer ir, is
+
+!
+
+if (this_ramp%select) return
+
+do ir = 1, this_ramp%n_lord
+  lord => pointer_to_lord(this_ramp, ir)
+  if (lord%key /= ramper$) cycle
+  call this_ramper_bookkeeper(this_ramp, ramper, lat)
+enddo
+
+if (this_ramp%is_on) then
+  do is = 1, this_ramp%n_slave
+    ctl => this_ramp%control%ramp(is)
+    if (index(ctl%slave_name, '*') /= 0 .or. index(ctl%slave_name,'%') /= 0) cycle
+    do ir = 1, size(ramper)
+      if (ramper(ir)%ele%name /= ctl%slave_name) cycle
+      slave => pointer_to_ele(lat, ctl%slave)
+      call this_slave_bookkeeper(ramper(ir)%ele, slave, ctl)
+    enddo
+  enddo
+endif
+
+this_ramp%select = .true.
+
+end subroutine this_ramper_bookkeeper
+
+!-------------------------------------------------------------------
+! contains
+
+subroutine this_slave_bookkeeper (this_ramp, slave, ctl)
+
+type (ele_struct) this_ramp, slave
+type (control_struct) ctl
+type (all_pointer_struct) a_ptr
+
+logical err_flag
+
+!
+
+call pointer_to_attribute (slave, ctl%attribute, .true., a_ptr, err_flag, .false.)
+if (err_flag .or. .not. associated(a_ptr%r)) then
+  ctl%value = real_garbage$
+  return
+endif
+
+if (this_ramp%control%type == expression$) then
+  ctl%value = expression_stack_value(ctl%stack, err_flag, err_str, this_ramp%control%var, .false.)
+  if (err_flag) then
+    call out_io (s_error$, r_name, err_str, ' OF RAMPER: ' // this_ramp%name)
+    err_flag = .true.
+    return
+  endif
+
+else
+  call spline_akima_interpolate (this_ramp%control%x_knot, ctl%y_knot, this_ramp%control%var(1)%value, ok, ctl%value)
+  if (.not. ok) then
+    call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
+    err_flag = .true.
+    return
+  endif
+endif
+
+a_ptr%r = ctl%value
+call set_flags_for_changed_attribute (slave, a_ptr%r, .true.)
+
+end subroutine this_slave_bookkeeper
 
 end subroutine

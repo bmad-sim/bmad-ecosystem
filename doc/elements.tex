@@ -3920,19 +3920,27 @@ The general syntax for a \vn{spline} based  \vn{ramper} element is
 
 Examples:
 \begin{example}
-  ramp_pc: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
+  ramp_e: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
                 var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}
   amp = 1e9;  omega = 0.167;  t0 = 0.053
   ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(t + t0)),
-        rfcavity::*[phi0]:0.00158*t^2 \}, var = \{time\}
+        rfcavity::*[phi0]:0.00158*t^2 + 3*q\}, var = \{t, q\}
 \end{example}
-Here \vn{ramp_pc} is used to ramp the reference energy \vn{e_tot}. The \vn{*[e_tot]} construct
-means that the ramper will be applied to the \vn{e_tot} attribute of all elements. \vn{Ramp_pc}
-uses a spline fit to interpolate between the knot points specified in the element definition.
+\vn{Ramp_e} uses a spline fit to interpolate between the knot points specified in the element
+definition.  The ``\vn{*[e_tot]}'' construct in the definition of \vn{ramp_e} means that the ramper will
+be applied to the \vn{e_tot} attribute (\sref{s:energy}) of all elements (since the wild card
+character ``\vn{*}'' (\sref{s:ele.match}) will match to all element names).
 
-The \vn{ramp_rf} ramper in the above example varias the \vn{voltage} and \vn{phase} (\vn{phi0}) of
-all \vn{rfcavity} elements (specified by \vn{rfcavity::*}). Here mathematical expressions are used
-instead of spline interpolation.
+The \vn{ramp_rf} ramper in the above example varias the \vn{voltage} and \vn{phase} (\vn{phi0})
+attributes of all elements that match to \vn{rfcavity::*}. That is, all \vn{rfcavity} elements. Here mathematical
+expressions are used instead of spline interpolation.
+
+\vn{Ramper} elements can control the variables of other controller element but in this case it is
+not permitted to use wild card characters. That is, in the above example, ``\vn{*}'' will not match
+to any controller elements.
+
+Unlike \vn{group} or \vn{overlay} elements, it is not permitted for different \vn{ramper} elements
+to control the same parameter of a given slave element.
 
 Note: There is a program to plot controller response curves bundled with the \bmad software
 (\sref{s:tao.intro}) called \vn{controller_function_plot}. Documentation on this can

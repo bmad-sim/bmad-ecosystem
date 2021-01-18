@@ -695,7 +695,7 @@ end select
 ! scale multipole values
 
 radius = this_ele%value(r0_mag$)
-if (radius == 0 .and. radius /= 1) then
+if (radius == 0) then
   this_a = const * this_a
   this_b = const * this_b
 
