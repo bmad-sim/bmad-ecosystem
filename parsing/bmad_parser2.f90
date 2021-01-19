@@ -575,10 +575,10 @@ parsing_loop: do
 
     else
       select case (key)
-      case (overlay$); in_lat%ele(n_max)%lord_status = overlay_lord$
-      case (group$);   in_lat%ele(n_max)%lord_status = group_lord$
-      case (girder$);  in_lat%ele(n_max)%lord_status = girder_lord$
-      case (ramper$);  in_lat%ele(n_max)%lord_status = ramper_lord$
+      case (overlay$); ele%lord_status = overlay_lord$
+      case (group$);   ele%lord_status = group_lord$
+      case (girder$);  ele%lord_status = girder_lord$
+      case (ramper$);  ele%lord_status = ramper_lord$
       end select
 
       call get_overlay_group_names(ele, lat,  pele, delim, delim_found, .false., err)
