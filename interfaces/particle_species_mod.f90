@@ -75,6 +75,7 @@ integer, parameter :: anti_deuteron$     = -5
 integer, parameter :: anti_neutron       = -6
 integer, parameter :: anti_ref_particle$ = -7
 
+integer, parameter :: lbound_subatomic = -7, ubound_subatomic = 8
 
 character(20), parameter:: subatomic_species_name(-7:8) = [character(20):: 'Anti_Ref_Particle', 'Anti_Neutron     ', &
               'Anti_Deuteron    ', 'Pion-            ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
@@ -770,7 +771,7 @@ integer charge, species
 
 !
 
-do species = lbound(mass_of_subatomic, 1), ubound(mass_of_subatomic, 1)
+do species = lbound_subatomic, ubound_subatomic
   if (charge == charge_of_subatomic(species) .and. abs(mass - mass_of_subatomic(species)) <= 1d-6 * mass) return
 enddo
 
@@ -826,7 +827,7 @@ if (upcase(nam) == 'PION_MINUS') nam = 'pion-'  ! Old style
 
 call match_word(nam, subatomic_species_name, ix, .false., .false.)
 if (ix > 0) then
-  species = ix + lbound(subatomic_species_name, 1) - 1
+  species = ix + lbound_subatomic - 1
   return
 endif
 
@@ -1035,7 +1036,7 @@ end select
 
 !
 
-if (is_subatomic_species(species)) then
+if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
   name = subatomic_species_name(species)
   return
 endif
@@ -1121,7 +1122,7 @@ character(*) pmd_name
 
 ! Subatomic particle
 
-do i = lbound(subatomic_species_name, 1), ubound(subatomic_species_name, 1) 
+do i = lbound_subatomic, ubound_subatomic
   if (pmd_name /= openPMD_subatomic_species_name(i)) cycle
   species = i
   return
@@ -1158,7 +1159,7 @@ character(20) :: pmd_name
 
 ! Subatomic particles
 
-if (is_subatomic_species(species)) then
+if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
   pmd_name = openpmd_subatomic_species_name(species)
 
 ! All else just remove any charge suffix. EG: "H-" -> "H".
@@ -1195,9 +1196,9 @@ real(rp) :: moment
 
 !
 
-if (is_subatomic_species(species)) then
-	moment = anomalous_moment_of_subatomic(species)
-	return
+if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+  moment = anomalous_moment_of_subatomic(species)
+  return
 endif
 
 sp = abs(species - int(z'1000000') * (species / int(z'1000000')))  ! Subtract off charge
@@ -1237,7 +1238,7 @@ real(rp), optional :: non_subatomic_default
 
 !
 
-if (is_subatomic_species(species)) then
+if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
   spin = spin_of_subatomic(species)
 else
   spin = real_option(0.0_rp, non_subatomic_default)
@@ -1270,9 +1271,9 @@ character(*), parameter :: r_name = 'charge_of'
 
 !
 
-if (is_subatomic_species(species)) then
-	charge = charge_of_subatomic(species)
-	return
+if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+  charge = charge_of_subatomic(species)
+  return
 endif
 
 ! Invalid
@@ -1322,9 +1323,9 @@ character(*), parameter :: r_name = 'mass_of'
 
 mass = real_garbage$
 
-if (is_subatomic_species(species)) then
-	mass = mass_of_subatomic(species)
-	return
+if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+  mass = mass_of_subatomic(species)
+  return
 endif
 
 ! Invalid
@@ -1451,7 +1452,7 @@ character(*), parameter :: r_name = 'set_species_charge'
 
 !
 
-if (is_subatomic_species(species_in)) then
+if (lbound_subatomic <= species_in .and. species_in <= ubound_subatomic) then
   species_charged = species_in
   return
 endif
@@ -1482,8 +1483,7 @@ logical is_subatomic
 
 !
 
-is_subatomic = (lbound(subatomic_species_name, 1) <= species .and. &
-                                species <= ubound(subatomic_species_name, 1)) 
+is_subatomic = (lbound_subatomic <= species .and. species <= ubound_subatomic)
 
 end function is_subatomic_species
 
