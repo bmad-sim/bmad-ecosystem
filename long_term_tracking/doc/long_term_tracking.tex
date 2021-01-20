@@ -46,6 +46,7 @@
 \newcommand{\ltt}{\vn{long_term_tracking}\xspace}
 \newcommand{\Newline}{\hfil \\}
 \newcommand{\sref}[1]{$\S$\ref{#1}}
+\newcommand{\Th}{$^{th}$\xspace}
 
 %---------------------------------------------------------------------------------
 
@@ -67,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ January 14, 2021}
+\date{David Sagan \\ January 18, 2021}
 \begin{document}
 \maketitle
 
@@ -76,6 +77,7 @@
 %---------------------------------------------------------------------------------
 
 \Section{Introduction} 
+\label{s:intro}
 
 The \ltt program is for long term tracking of a particle or beam possibly including tracking of the
 spin.
@@ -320,7 +322,7 @@ In storage rings, When radiation damping is simulated, the orbit that is flat wh
 radiation will show a ``sawtooth" pattern'' in a plot of beam energy versus position. This will lead
 to a nonzero orbit. In an actual ring, the non-zero orbit will be compensated using steerings. Thus,
 to simulate the actual ring, compensating steerings should be added to the simulated lattice as
-well. How to do this is covered in the \bmad and \tao Cookbook available from the \bmad web site.
+well. How to do this is covered in the Bmad and Tao Cookbook available from the Bmad web site.
 
 %------------------------------------------------------------------
 \Section{Lattice Ramping}
@@ -332,14 +334,14 @@ squeeze beta at the interaction pont of a colliding beam machine.
 
 Ramping is accomplished by defining \vn{ramper} elements in the lattice file. These ramper elements
 will be applied to each element in turn before particles are tracked through them. Example:
-\begin{example}
+\begin{code}
   ramp_e: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
                 var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}
   amp = 1e9;  omega = 0.167;  t0 = 0.053
   ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(t + t0)),
         rfcavity::*[phi0]:0.00158*t^2 + 2*q \}, var = \{t, q\}
-\end{example}
-See the \bmad manual for documentation on \vn{ramper} syntax. The ``\vn{*[e_tot]}'' construct in the
+\end{code}
+See the Bmad manual for documentation on \vn{ramper} syntax. The ``\vn{*[e_tot]}'' construct in the
 definition of \vn{ramp_e} means that the ramper will be applied all elements (since the wild card
 character ``\vn{*}'' will match to any element name), and it is the element's \vn{e_tot} attribute
 (the element's reference energy) that will be varied.
@@ -350,10 +352,10 @@ the cavity voltage and phase (\vn{phi0}) being varied.
 In the case where the reference energy \vn{e_tot} or reference momentum \vn{p0c} is being varied, the
 effect on an element will depend upon the setting of the element's \vn{field_master} parameter. For
 example:
-\begin{example}
+\begin{code}
   q1: quadrupole, k1 = 0.3
   q2: quadrupole, k1 = 0.3, field_master = T
-\end{example}
+\end{code}
 In this example, \vn{q1} will have its \vn{field_master} parameter set to \vn{False} since the
 quadrupole strength was specified using the normalized strength \vn{k1}. With \vn{q1}, since
 \vn{field_master} is False, varying the reference energy or momentum will result in the normalized
@@ -374,10 +376,10 @@ If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulatio
 "\vn{BUNCH}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.
 
 \ltt program parameters that affect ramping in the simulation are:
-\begin{example}
+\begin{code}
   ltt%ramping_on
   ltt%ramper_start_time
-\end{example}
+\end{code}
 
 %------------------------------------------------------------------
 \Section{Initial Particle Positions}
@@ -412,11 +414,11 @@ The \vn{beam_init} structure:
 \begin{code}
   type beam_init_struct
     character(200) :: position_file = ''       ! Initialization file name.
-    character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "" (default).
+    character distribution_type(3)             ! "ELLIPSE", "KV", "GRID", "".
     type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
     type (kv_beam_init_struct) KV              ! For KV beam distribution
     type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
-    logical use_particle_start_for_center = F  ! Use particle_start instead of center?
+    logical use_particle_start_for_center = F  ! Use particle_start?
     character random_engine            ! "pseudo" (default) or "quasi". 
     character random_gauss_converter   ! "exact" (default) or "quick". 
     real center(6) = 0                 ! Bench center offset.
@@ -425,27 +427,27 @@ The \vn{beam_init} structure:
     real sig_z_jitter     = 0          ! bunch length RMS jitter 
     real sig_pz_jitter     = 0         ! pz energy spread RMS jitter 
     real random_sigma_cutoff = -1      ! -1 => no cutoff used.
-    integer n_particle = 0             ! Number of simulated particles per bunch.
+    integer n_particle = 0             ! Num of simulated particles per bunch.
     logical renorm_center = T          ! Renormalize centroid?
     logical renorm_sigma = T           ! Renormalize sigma?
     real(rp) spin(3) = 0, 0, 0         ! Spin (x, y, z)
-    real a_norm_emit = 0               ! a-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real b_norm_emit = 0               ! b-mode normalized emittance (= \(\gamma\,\epsilon\))
-    real a_emit = 0                    ! a-mode emittance (= \(\gamma\,\epsilon\))
-    real b_emit = 0                    ! b-mode emittance (= \(\gamma\,\epsilon\))
-    real dpz_dz = 0                    ! Correlation of pz with longitudinal position.
+    real a_norm_emit = 0               ! a-mode normalized emittance
+    real b_norm_emit = 0               ! b-mode normalized emittance
+    real a_emit = 0                    ! a-mode emittance
+    real b_emit = 0                    ! b-mode emittance
+    real dpz_dz = 0                    ! pz vs z correlation.
     real dt_bunch = 0                  ! Time between bunches.
     real sig_z = 0                     ! Z sigma in m.
     real sig_pz = 0                    ! pz sigma.
     real bunch_charge = 0              ! Charge in a bunch.
     integer n_bunch = 0                ! Number of bunches.
-    character species = ""             ! Species. Default is reference particle.
-    logical full_6D_coupling_calc = F  ! Use 6x6 1-turn matrix to match distribution?  
+    character species = ""             ! Species to track.
+    logical full_6D_coupling_calc = F  ! Use 6x6 1-turn mat to match distribution?  
     logical use_t_coords = F  ! If true, the distributions will be 
-                              !   calculated using time coordinates (\sref{s:time.phase.space}). 
+                              !   calculated using time coordinates
     logical use_z_as_t   = F  ! Only used if use_t_coords = T:
-                              !   If True,  the z coordinate stores the time.
-                              !   If False, the z coordinate stores the s-position.
+                              !   True:  The z coordinate stores the time.
+                              !   False: The z coordinate stores the s-position.
   end type
 \end{code}
 
@@ -530,9 +532,10 @@ Example:
   ltt%ptc_aperture       = 0.1, 0.1
   ltt%exclude_from_maps  = "beambeam::*"
   ltt%split_bends_for_radiation = False
-  ltt%dead_cutoff = -1
-  ltt%b_emittance = 1e-9                 ! Used with space charge calc.
-
+  ltt%dead_cutoff        = -1
+  ltt%b_emittance        = 1e-9          ! Used with space charge calc.
+  ltt%num_runs = 4
+  ltt%debug              = F
   bmad_com%spin_tracking_on = T          ! See Bmad manual for 
   bmad_com%radiation_damping_on = F      !    bmad_com parameters.
   bmad_com%radiation_fluctuations_on = F 
@@ -586,10 +589,10 @@ Parameters in the master input file that affect the output are:
 \item[ltt\%averaging_window] \Newline
 Number of turns to average over when computing beam sigma matrix and averaged positions. Default is
 1. This affects the files specified by: 
-\begin{example}
+\begin{code}
   ltt%averages_output_file
   ltt%sigma_matrix_output_file
-\end{example}
+\end{code}
 
 For example:
 \begin{code}
@@ -629,28 +632,28 @@ Note: The file \vn{ltt%sigma_matrix_output_file} will show the 6x6 sigma matrix.
 A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
 $N$ is set by \vn{ltt%output_every_n_turns}. Columns are specified by setting \vn{ltt%column(<i>)}. The general
 syntax is:
-\begin{example}
+\begin{code}
   ltt%column(<i>) = "<expression>", "<header-name>",  "<format>"
-\end{example}
+\end{code}
 where \vn{<i>} is the column index, \vn{<expression>} is an arithmetical expression that determines
 the values displayed in the column, \vn{<header-name>} is a descriptive string used in constructing
 the header line (first line) in the file, and \vn{<format>} is the format specifier used when
 converting the value of an expression into a string. Example:
-\begin{example}
+\begin{code}
   ltt%column(1) = "n_turn", "N_turn", "i7"
   ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
   ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "es12.8"
-\end{example}
+\end{code}
 Here three columns are specified. Parameters that are used in a column's \vn{<expression>} can be element
 attributes or beam quantities. Using element attributes can be helpful when ramping is used. In the above
 example, the second column's expression is the \vn{voltage} of the first element named \vn{rf0} in the
 lattice (see the Bmad manual for lists of element parameters). Other parameters are:
-\begin{example}
+\begin{code}
   n_turn    -- Turn number
   time      -- Time at the N\Th turn averaged over the beam.
   x, px, y, py, z, pz
             -- Particle phase space averaged over the beam.
-\end{example}
+\end{code}
 Thus the third column in the above example is the averaged particle phase with respect to the zero
 crossing phase of the first element named \vn{rf0} in the lattice. [Note that $z$ is always evaluated
 at the start of the turn and not at the position of the RF cavity.]
@@ -678,11 +681,11 @@ relevant for \vn{"BEAM"} tracking.  See Section~\sref{s:part.out}.
 %
 \item[ltt\%output_every_n_turns] \Newline
 Sets the number of turns between data rows specified by:
-\begin{example}
+\begin{code}
   ltt%averages_output_file
   ltt%particle_output_file
   ltt%custom_output_file
-\end{example}
+\end{code}
 If set to -1 (the default), the output will only happen at the last turn. If set to 0, output will
 happen on the beginning turn (turn 0) and the last turn. Example:
 \begin{code}
@@ -752,7 +755,7 @@ plus the closed orbit position. See Section~\sref{s:init.pos}.
 \item[beam_init\%...] \Newline
 This sets the initial beam distribution. See Section~\sref{s:init.pos}. 
 
-If spin tracking is on (\sref{bmad_com%spin_tracking_on = T}), and if all three components of
+If spin tracking is on (\vn{bmad_com%spin_tracking_on} = T), and if all three components of
 \vn{beam_init%spin} are zero, the closed orbit spin direction ($n_0$) is used.
 
 Also: the values of \vn{beam_init%a_emit} and \vn{beam_init%b_emit} are used in the high energy
@@ -772,6 +775,9 @@ parameter set in the master input file will take precedence over parameters set 
 Sets the cutoff for the number of dead particles below which the simulation will stop. For example,
 if \vn{ltt%dead_cutoff} is set to 0.01, when 1\% of the beam has been lost the simulation will stop. The
 default value for \vn{ltt%dead_cutoff} is zero.
+%
+\item[ltt\%debug] \Newline
+This parameter is used for debugging the program. This is not of interest to the general user.
 %
 \item[ltt\%ele_start] \Newline
 Name or element index of the element to start the tracking. Examples:
@@ -793,6 +799,17 @@ Map order. See Section~\sref{s:track.methods}. The default is what is set in the
 file and if not set in the lattice file the default is 3. Note: \vn{ltt%map_order} is only used when
 generating a map.  When a map is read in from a file, the order of this map is independent of the
 current setting of \vn{ltt%map_order}.
+%
+\item[ltt\%mpi_num_runs] \Newline
+Only used when the MPI version of the \ltt program is used (\sref{s:intro}). This parameter
+determines the number of times, on average, the simulation will be run in a given subprocess. The
+default value is 4.
+For example, if there are 11 subprocesses, one of these will be designated the ``master'' subprocess
+and will just be responsible for collecting the data together. The other 10 subprocesses will run
+simulations. If, say, there are 1M particles in the bunch, and if \vn{ltt%mpi_num_runs} has the default
+value of 4, then each simulation will use 25K particles (= 1M / (4 * 10)) and each of the 10 subprocesses
+will run the simulation about 4 times. The reason why the work is broken up this way is to minimize the
+effect that one slow subprocess can have on the simulation time.
 %
 \item[ltt\%n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.methods}.

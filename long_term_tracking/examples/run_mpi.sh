@@ -5,15 +5,15 @@
 #		https://wiki.classe.cornell.edu/ACC/ACL/RunningPrograms
 
 # To use this script, use the command:
-#   qsub run_lux_mpi.sh
+#   qsub run_mpi.sh
 # Further documentation is at:
 #		https://wiki.classe.cornell.edu/Computing/GridEngine
 
 # Set shell, but the default is /bin/bash
 #$ -S /bin/bash
 
-# To set the run time name of the job to “JOBNAME”
-#$ -N JOB
+# To set the run time name of the job to "Long-Term-Tracking"
+#$ -N Long-Term-Tracking
 
 # To make sure that the .e and .o file arrive in the working directory
 #$ -cwd
