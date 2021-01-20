@@ -143,18 +143,20 @@ end subroutine tao_re_execute
 ! For example: 
 !   separator = '-+' 
 !   cmd_line = 'model-design'
-! Restult:
+! Result:
 !   cmd_word(1) = 'model'
 !   cmd_word(2) = '-'
 !   cmd_word(3) = 'design'
 !
-! Anything between single or double quotes is treated as a single word.
-! Whitespace or a separator inside of "{}", "()", or "[]" is ignored.
+! Notes:
+!   Anything between single or double quotes is treated as a single word.
+!   Whitespace or a separator inside of "{}", "()", or "[]" is ignored.
+!   Whitespace after or before a comma is ignored.
 !-
 
 subroutine tao_cmd_split (cmd_line, n_word, cmd_word, extra_words_is_error, err, separator)
 
-integer i, ix, nw, n_word, ix_b1, ix_b2, ix_b3
+integer i, ix, nw, n_word, ix_b1, ix_b2, ix_b3, ix_comma
 
 character(*) cmd_line
 character(*), optional :: separator
@@ -164,7 +166,7 @@ character(len(cmd_line)) line
 character(1), parameter :: tab = char(9)
 
 logical err
-logical extra_words_is_error
+logical extra_words_is_error, comma_here
 
 !
 
@@ -172,11 +174,19 @@ err = .false.
 line = cmd_line
 cmd_word(:) = ''
 nw = 0
+comma_here = .false.
 
 forall (i = 1:len(line), line(i:i) == tab) line(i:i) = ' '
 
 nw_loop: do 
   call string_trim (line, line, ix)
+  ix_comma = 0
+
+  if (nw > 0 .and. line(1:1) == ',') then  ! append to previous
+    line = trim(cmd_word(nw)) // line
+    ix_comma = len_trim(cmd_word(nw)) + 1
+    nw = nw - 1
+  endif
 
   if (ix == 0) exit
 
@@ -207,7 +217,9 @@ nw_loop: do
   endif
 
   ix_b1 = 0; ix_b2 = 0; ix_b3 = 0
+
   do i = 1, len(line)
+    if (i < ix_comma) cycle
 
     if (line(i:i) == '{') ix_b1 = ix_b1 + 1
     if (line(i:i) == '}') ix_b1 = ix_b1 - 1
@@ -215,6 +227,12 @@ nw_loop: do
     if (line(i:i) == ')') ix_b2 = ix_b2 - 1
     if (line(i:i) == '[') ix_b3 = ix_b3 + 1
     if (line(i:i) == ']') ix_b3 = ix_b3 - 1
+
+    if (line(i:i) == ',') then
+      comma_here = .true.
+    elseif (line(i:i) /= ' ') then
+      comma_here = .false.
+    endif
 
     if (ix_b1 /= 0 .or. ix_b2 /= 0 .or. ix_b3 /= 0) cycle
 
@@ -232,6 +250,7 @@ nw_loop: do
     endif
 
     if (line(i:i) == ' ') then
+      if (comma_here) cycle
       nw=nw+1; cmd_word(nw) = line(1:i-1)
       line = line(i+1:)
       cycle nw_loop
