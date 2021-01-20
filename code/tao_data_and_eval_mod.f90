@@ -3179,7 +3179,6 @@ case ('unstable.')
 
   case ('unstable.orbit')
 
-    if (lat%param%geometry /= open$) goto 9101  ! Error message and return
     if (datum%ele_name == '') ix_ele = branch%n_ele_track
 
     if (data_source == 'beam') then
@@ -3190,7 +3189,7 @@ case ('unstable.')
       datum_value = datum_value / tao_branch%bunch_params(ix_ele)%n_particle_tot
       datum%ix_ele_merit = -1
 
-    else
+    elseif (lat%param%geometry /= open$) then
       iz = tao_branch%track_state
       if (iz /= moving_forward$ .and. iz <= ix_ele) then
         datum_value = 1 + ix_ele - iz
@@ -3209,7 +3208,16 @@ case ('unstable.')
 
         datum_value = datum_value + 0.5 * tanh(lat%param%unstable_factor)
       endif
+
+    else   ! closed geometry
+      if (tao_branch%track_state == moving_forward$) then
+        datum_value = 0
+      else
+        datum_value = 1
+      endif
+      datum%ix_ele_merit = 0
     endif
+
     valid_value = .true.
 
   case ('unstable.ring', 'unstable.lattice')

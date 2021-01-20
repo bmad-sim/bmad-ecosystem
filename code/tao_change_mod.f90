@@ -228,6 +228,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   call pointers_to_attribute (u%model%lat, e_name, a_name, .true., m_ptr, err, .true., eles)
   if (err) return
 
+  eles%id = iu  ! Used by tao_var_check
+
   ! Make sure attributes are free to vary. 
   ! With something like "change ele quad::* x_offset ..." then need to ignore any super_slave elements.
   ! So things are OK if at least one free attribute exists.

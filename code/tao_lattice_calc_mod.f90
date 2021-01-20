@@ -359,7 +359,6 @@ if (u%calc%track) then
   bmad_com%radiation_fluctuations_on = .false.
 
   if (branch%param%geometry == closed$) then
-    
     if (rf_is_on(branch)) then
       i_dim = 6
     else
@@ -385,6 +384,7 @@ if (u%calc%track) then
     endif
 
     if (err) then
+      tao_branch%track_state = lost$
       calc_ok = .false.
       if (i_dim == 4) then
         orbit(0)%vec(1:5) = 0
@@ -395,6 +395,7 @@ if (u%calc%track) then
         orbit(i)%vec = orbit(0)%vec
       enddo
     else
+      tao_branch%track_state = moving_forward$
       tao_branch%orb0 = orbit(0)   ! Save beginning orbit as initial guess next time.
     endif
 
@@ -437,17 +438,23 @@ endif
 ! Twiss
 
 if (u%calc%twiss .and. branch%param%particle /= photon$) then
-  call lat_make_mat6 (lat, -1, orbit, ix_branch)
+  if (tao_branch%track_state == moving_forward$) then
+    call lat_make_mat6 (lat, -1, orbit, ix_branch)
 
-  if (branch%param%geometry == closed$) then
-    call twiss_at_start (lat, status, branch%ix_branch)
-    if (status /= ok$) then
-      calc_ok = .false.
-      return
+    if (branch%param%geometry == closed$) then
+      call twiss_at_start (lat, status, branch%ix_branch)
+      if (status /= ok$) then
+        calc_ok = .false.
+        return
+      endif
     endif
-  endif
 
-  call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+    call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
+
+  else
+    branch%param%stable = .false.
+    branch%param%unstable_factor = 0  ! Unknown
+  endif
 endif
 
 ! Sigma matric calc.
