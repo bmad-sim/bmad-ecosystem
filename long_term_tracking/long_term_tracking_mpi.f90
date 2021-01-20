@@ -12,7 +12,7 @@ type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:), sd_arr(:)
 type (ltt_sum_data_struct) sum_data
 type (ltt_sum_data_struct), pointer :: sd
 
-real(rp) del_time
+real(rp) time_now
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer n, ix, ierr, rc, leng, data_size, num_particles_left, storage_size
@@ -71,7 +71,7 @@ endif
 
 ! Calculation start.
 
-call run_timer ('START')
+call run_timer ('ABS', ltt_com%time_start)
 
 select case (lttp%simulation_mode)
 case ('CHECK');  call ltt_run_check_mode(lttp, ltt_com, beam_init)  ! A single turn tracking check
@@ -107,18 +107,22 @@ case ('BUNCH')
 
     print '(a, i0)', 'Number of processes (including Master): ', lttp%mpi_n_proc
     print '(a, i0, 2x, i0)', 'Number of particles per run: ', lttp%mpi_n_particles_per_run
-    call print_mpi_info (lttp, 'Master: Starting...')
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting...')
 
     allocate (slave_is_done(num_slaves))
     slave_is_done = .false.
+    data_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
 
     ! Slaves automatically start one round of tracking
     num_particles_left = beam_init%n_particle - num_slaves * lttp%mpi_n_particles_per_run
 
     do
       ! Get data from a slave
-      call print_mpi_info (lttp, 'Master: Waiting for a Slave...')
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for data from a Slave...')
       call mpi_recv (sd_arr, data_size, MPI_BYTE, MPI_ANY_SOURCE, results_tag$, MPI_COMM_WORLD, stat, ierr)
+
+      slave_rank = stat(MPI_SOURCE)
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Gathered data from Slave: ' // int_str(slave_rank))
 
       ! Add to data
       do ix = lbound(sum_data_arr, 1), ubound(sum_data_arr, 1)
@@ -130,13 +134,9 @@ case ('BUNCH')
         sd%spin_sum = sd%spin_sum + sd_arr(ix)%spin_sum
       enddo
 
-      slave_rank = stat(MPI_SOURCE)
-      write (line, '(a, i0)') 'Master: Gathered data from Slave: ', slave_rank
-      call print_mpi_info (lttp, line)
-
       ! Tell slave if more tracking needed
-      write (line, '(a, i0, a, i0)') 'Master: Commanding slave: ', slave_rank, '. Particles left:', num_particles_left
-      call print_mpi_info (lttp, line, .true.)
+      write (line, '(a, i0, a, i0)') 'Master: Commanding slave: ', slave_rank, '. Particles left to simulate: ', num_particles_left
+      call ltt_print_mpi_info (lttp, ltt_com, line, .true.)
       if (num_particles_left < 1) slave_is_done(slave_rank) = .true.
       call mpi_send (slave_is_done(slave_rank), 1, MPI_LOGICAL, slave_rank, is_done_tag$, MPI_COMM_WORLD, ierr)
       if (.not. slave_is_done(slave_rank)) num_particles_left = num_particles_left - lttp%mpi_n_particles_per_run
@@ -149,32 +149,32 @@ case ('BUNCH')
 
     call ltt_write_bunch_averages (lttp, sum_data_arr)
     call ltt_write_sigma_matrix (lttp, sum_data_arr)
-    call print_mpi_info (lttp, 'Master: All done!', .true.)
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: All done!', .true.)
     call mpi_finalize(ierr)
 
-    call run_timer ('READ', del_time)
-    print '(a, f8.2)', 'Tracking time (min):', del_time/60
+    call run_timer ('ABS', time_now)
+    print '(a, f8.2)', 'Tracking time (min):', (time_now - ltt_com%time_start) / 60
 
   !-----------------------------------------
   else  ! Is a slave
 
     do
       ! Init the output arrays
-      call print_mpi_info (lttp, 'Slave: Tracking Particles...')
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Tracking Particles...')
 
       ! Run
       call ltt_run_bunch_mode(lttp, ltt_com, beam_init, sd_arr)  ! Beam tracking
       data_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
-      call print_mpi_info (lttp, 'Slave: Sending Data...')
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Sending Data...')
       call mpi_send (sd_arr, data_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
 
       ! Query Master if more tracking needed
-      call print_mpi_info (lttp, 'Slave: Query to master...')
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Query to master...')
       call mpi_recv (am_i_done, 1, MPI_LOGICAL, master_rank$, is_done_tag$, MPI_COMM_WORLD, stat, ierr)
       if (am_i_done) exit
     enddo
 
-    call print_mpi_info (lttp, 'Slave: All done!')
+    call ltt_print_mpi_info (lttp, ltt_com, 'Slave: All done!')
     call mpi_finalize(ierr)
 
   endif

@@ -63,10 +63,11 @@ type ltt_params_struct
   logical :: output_initial_position = .false.
   logical :: one_particle_output_file = .false.
   logical :: split_bends_for_radiation = .false.
-  integer :: mpi_rank  = master_rank$
+  integer :: mpi_rank = master_rank$
   integer :: mpi_n_proc = 1                    ! Number of processeses including master
-  integer :: mpi_num_runs = 10                 ! Number of runs a slave process will take on average.
+  integer :: mpi_num_runs = 4                  ! Number of runs a slave process will take on average.
   integer :: mpi_n_particles_per_run = 0       ! Number of particles per run.
+  integer :: mpi_run_index = 0                 ! Run index
   logical :: using_mpi = .false.
   logical :: debug = .false.
 end type
@@ -97,7 +98,8 @@ type ltt_com_struct
   type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper elements.
   integer :: n_ramper_loc = 0
   integer :: ix_branch = 0                   ! Lattice branch being tracked.
-  real(rp) ptc_closed_orb(6)
+  real(rp) :: ptc_closed_orb(6) = 0
+  real(rp) :: time_start = 0
   logical :: ramp_in_track1_preprocess = .false.
   logical :: debug = .false.
 end type
@@ -690,7 +692,7 @@ type (ltt_sum_data_struct), pointer :: sd
 type (ele_struct), pointer :: ele_start
 type (probe) prb
 
-real(rp) time0, time
+real(rp) time0, time1, time_now
 
 integer n, n_print_dead_loss, i_turn, ie
 integer ip, n_live_old, n_live, ix_branch
@@ -699,7 +701,10 @@ logical err_flag, is_lost
 
 ! Init
 
+lttp%mpi_run_index = lttp%mpi_run_index + 1
 lat => ltt_com%tracking_lat
+call run_timer('ABS', time0)
+time1 = time0
 
 ix_branch = ltt_com%ix_branch
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
@@ -716,7 +721,7 @@ endif
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
 
-if (lttp%mpi_rank == master_rank$) then
+if (.not. lttp%using_mpi) then
   print '(a, i8)',   'n_particle:                    ', size(bunch%particle)
 endif
 
@@ -748,7 +753,8 @@ if (.not. lttp%using_mpi) then
   where (sum_data_arr%status == valid$) sum_data_arr%status = written$
 endif
 
-if (lttp%custom_output_file /= '') call ltt_write_custom (0, lttp, ltt_com, bunch = bunch)
+if (lttp%custom_output_file /= '' .and. (lttp%mpi_rank == master_rank$ .or. lttp%mpi_rank == 1) .and. &
+                          lttp%mpi_run_index == 1) call ltt_write_custom (0, lttp, ltt_com, bunch = bunch)
 
 time0 = 0
 
@@ -798,11 +804,10 @@ do i_turn = 1, lttp%n_turns
     exit
   endif
 
-  call run_timer('READ', time)
-
-  if (time-time0 > lttp%timer_print_dtime) then
-    print '(a, f10.2, a, i0)', 'Ellapsed time (min): ', time/60, ', At turn: ', i_turn
-    time0 = time
+  call run_timer('ABS', time_now)
+  if (time_now-time1 > lttp%timer_print_dtime) then
+    print '(a, f10.2, a, i0)', 'Ellapsed time (min): ', (time_now-time0)/60, ', At turn: ', i_turn
+    time1 = time_now
   endif
 
   if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
@@ -816,15 +821,13 @@ do i_turn = 1, lttp%n_turns
     where (sum_data_arr%status == valid$) sum_data_arr%status = written$
   endif
 
-  if (lttp%custom_output_file /= '') call ltt_write_custom (i_turn, lttp, ltt_com, bunch = bunch)
+  if (lttp%custom_output_file /= '' .and. (lttp%mpi_rank == master_rank$ .or. lttp%mpi_rank == 1) .and. &
+                          lttp%mpi_run_index == 1) call ltt_write_custom (i_turn, lttp, ltt_com, bunch = bunch)
 end do
 
 if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
 
-if (lttp%using_mpi) then
-  if (allocated(sum_data_array)) deallocate (sum_data_array)
-  call move_alloc (sum_data_arr, sum_data_array)
-else
+if (.not. lttp%using_mpi) then
   if (lttp%bunch_binary_output_file /= '') call write_beam_file (lttp%bunch_binary_output_file, beam)
 endif
 
@@ -1577,15 +1580,15 @@ type (ltt_section_struct), pointer :: sec
 type (ele_struct), pointer :: ele0, ele, ele_start, ele_stop
 type (branch_struct), pointer :: branch
 
-real(rp) time, time0
+real(rp) time0, time1, time_now
 integer i, n_sec, ib, ie, ix_branch
 logical err, in_map_section, damping_on
 
 !
 
 print '(a)', 'Creating map(s)...'
-call run_timer ('START')
-time0 = 0
+call run_timer ('ABS', time0)
+time1 = time0
 
 lat => ltt_com%tracking_lat
 call ltt_pointer_to_map_ends (lttp, ltt_com%tracking_lat, ele_start, ele_stop)
@@ -1650,15 +1653,15 @@ do i = 1, branch%n_ele_track+1
     exit
   endif
 
-  call run_timer ('READ', time)
-  if (time - time0 > lttp%timer_print_dtime) then
-    print '(a)', ' Map setup at (min) ' // real_str(time/60, 3) // ' at element: ' // int_str(i) // ' of: ' // int_str(branch%n_ele_track)
-    time0 = time
+  call run_timer ('ABS', time_now)
+  if (time_now - time1 > lttp%timer_print_dtime) then
+    print '(a)', ' Map setup at (min) ' // real_str((time_now-time0)/60, 3) // ' at element: ' // int_str(i) // ' of: ' // int_str(branch%n_ele_track)
+    time1 = time_now
   endif
 enddo
 
-call run_timer ('READ', time)
-print '(a, f8.2)', ' Map setup time (min)', time/60
+call run_timer ('ABS', time_now)
+print '(a, f8.2)', ' Map setup time (min)', (time_now-time0)/60
 
 end subroutine ltt_make_map
 
@@ -1814,21 +1817,25 @@ end subroutine ltt_track_map
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine print_mpi_info (lttp, line, do_print)
+subroutine ltt_print_mpi_info (lttp, ltt_com, line, do_print)
 
 type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
 
+real(rp) time_now
 character(*) line
-character(20) dtime
+character(20) time_str
 logical, optional :: do_print
 
 !
 
 if (.not. logic_option(lttp%debug, do_print)) return
 
-call date_and_time_stamp (dtime)
-print '(a, 2x, i0, 2a)', dtime, lttp%mpi_rank, ': ', trim(line)
+call run_timer ('ABS', time_now)
+call date_and_time_stamp (time_str)
+print '(a, f8.2, 2a, 2x, i0, 2a)', 'dTime:', (time_now-ltt_com%time_start)/60, &
+                                        'Now: ', time_str, lttp%mpi_rank, ': ', trim(line)
 
-end subroutine print_mpi_info
+end subroutine ltt_print_mpi_info
 
 end module
