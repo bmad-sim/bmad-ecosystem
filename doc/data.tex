@@ -1567,20 +1567,27 @@ the transverse (but not longitudinal) normal modes of oscillation. \vn{unstable.
 an optimization to avoid unstable solutions (\sref{s:opt.main}). Also see
 \vn{unstable.eigen}.
 
-For lattices with an open geometry: The value of \vn{unstable.lattice} will be non-zero if there is
-a problem computing the reference energy. This can happen, for example, if the accelerating voltage of
-an \vn{lcavity} is set large and negative such that the reference particle is cannot make it to the exit end.
+At the borderline between stability and instability the growth rate is zero. This means that an
+optimizer may find an optimum that is close to the borderline and unstable. To prevent this,
+the value of \vn{global%unstable_penalty}, which has a default value of 0.001, is added to the 
+computed growth rate when the lattice is unstable.
 
-Note: \vn{unstable.lattice} replaces \vn{unstable.ring}. 
+For lattices with an open geometry: The value of \vn{unstable.lattice} will be non-zero if there is
+a problem computing the reference energy. This can happen, for example, if the accelerating voltage
+of an \vn{lcavity} is set large and negative such that the reference particle is cannot make it to
+the exit end.
+
+Note: \vn{unstable.lattice} replaces \vn{unstable.ring}.
 
   %----------------------
   \item[unstable.orbit] \Newline
-The \vn{unstable.orbit} datum is used for linear lattices in an optimization to avoid unstable
-solutions (\sref{s:opt.main}). Also see \vn{unstable.eigen}.
+The \vn{unstable.orbit} datum is used in an optimization to avoid unstable
+solutions (\sref{s:opt.main}). Also see \vn{unstable.eigen} and \vn{unstable.lattice}.
 
-For single particle tracking, the value of an \vn{unstable.orbit} datum is zero if the tracked
-particle survives (has not been lost) up to the evaluation element and, if it has been lost, is set
-to
+for open geometry lattices with single particle tracking, the value of an \vn{unstable.orbit} datum is zero
+
+if the tracked particle survives (has not been lost) up to the evaluation element and, if it has
+been lost, is set to
 \begin{equation}
  1 + i_{\mbox{ele}} - i_{\mbox{lost}} + \frac{1}{2}
  \left[ \tanh\left( \frac{r_{orbit}}{r_{lim}} - 1 \right) - E \right]
@@ -1601,8 +1608,11 @@ monotonic with increasing stability.
 The default for the evaluation element, if \vn{ele_name} nor \vn{ix_ele} is not specified, is to use
 the last element in the lattice.
 
-When tracking beams, the value of \vn{unstable.orbit} is the averaged value over all particles in
-the bunch.
+For open geometry lattices, when tracking beams, the value of \vn{unstable.orbit} is the averaged
+value over all particles in the bunch.
+
+With simulations with a closed geometry lattice, \vn{unstable.orbit} is set to zero if the orbit is stable
+and set to one if the orbit is unstable.
 
   %----------------------
   \item[unstable.ring] \Newline
