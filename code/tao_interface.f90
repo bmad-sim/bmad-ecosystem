@@ -757,9 +757,9 @@ function tao_srdt_calc_needed (data_type, data_source) result (do_srdt)
   integer do_srdt
 end function
 
-subroutine tao_read_cmd (which, file)
+subroutine tao_read_cmd (which, unis, file)
   implicit none
-  character(*) which, file
+  character(*) which, unis, file
 end subroutine
 
 function tao_read_phase_space_index (name, ixc, print_err) result (ix_ps)

@@ -381,8 +381,20 @@ case ('re_execute')
 
 case ('read')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) goto 9000
-  call tao_read_cmd (cmd_word(1), cmd_word(2))
+  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) goto 9000
+  word = ''
+  do i = 1, 3
+    if (cmd_word(i) == '') exit
+    call match_word (cmd_word(i), [character(16):: '-universe'], ix, .true., matched_name=switch)
+    select case (switch)
+    case ('-universe')
+      word = cmd_word(i+1)
+      cmd_word(i:i+1) = cmd_word(i+2:i+3)
+      exit
+    end select
+  enddo
+
+  call tao_read_cmd (cmd_word(1), word, cmd_word(2))
 
 !--------------------------------
 ! RESTORE, USE, VETO

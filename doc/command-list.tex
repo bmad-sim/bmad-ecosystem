@@ -645,17 +645,18 @@ Examples
 \label{s:read}
 
 The \vn{read} command is used to modify the (\bmad) \vn{model} lattice or the associated
-\vn{PTC} lattice.  Format:
+\vn{PTC} lattice. Format:
 \begin{example}
-  read lattice <file_name>
+  read lattice \{-universes <universe-list>\} <file_name>
   read ptc \{-old\} <file_name>
 \end{example}
 
 \vskip 10pt 
 
-With the \vn{read lattice} command, the \vn{model} lattice contained in the default
-universe (\sref{s:universe}) is modified using a ``secondary lattice'' file.  [See the
-\bmad manual for the definition of ``secondary lattice''.]
+With the \vn{read lattice} command, the \vn{model} lattices contained in the universes specified by
+\vn{<universe-list>} are modified using a ``secondary lattice'' file.  [See the \bmad manual for the
+definition of ``secondary lattice''.] If \vn{-universes} is not present, only the \vn{model} lattice
+in the default universe is modified.
 
 For example, with the appropriate file, the \vn{read} command can be used to misalign the
 lattice elements. The input file must be in Bmad standard lattice format.
@@ -666,6 +667,12 @@ files, this can be done as illustrated in \sref{s:init.lat}.
 
 The \vn{read ptc} command reads in a PTC lattice. WARNING: This command is
 untested. Please contact David Sagan if you want to use it.
+
+Examples:
+\begin{example}
+  read lat -uni * lat.bmad   ! Modify model lattice of all universes.
+  read lat -uni 2,3 lat.bmad ! Modify model lattice universes 2 and 3.
+\end{example}
 
 %% restore --------------------------------------------------------------
 \section{restore}\index{commands!restore}
