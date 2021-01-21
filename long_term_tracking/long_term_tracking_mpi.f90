@@ -129,9 +129,12 @@ case ('BUNCH')
         sd => sum_data_arr(ix)
         sd%i_turn   = ix * lttp%output_every_n_turns
         sd%n_live   = sd%n_live + sd_arr(ix)%n_live
+        sd%n_count  = sd%n_count + sd_arr(ix)%n_count
         sd%orb_sum  = sd%orb_sum + sd_arr(ix)%orb_sum
         sd%orb2_sum = sd%orb2_sum + sd_arr(ix)%orb2_sum
         sd%spin_sum = sd%spin_sum + sd_arr(ix)%spin_sum
+        sd%p0c_sum  = sd%p0c_sum + sd_arr(ix)%p0c_sum
+        sd%time_sum = sd%time_sum + sd_arr(ix)%time_sum
       enddo
 
       ! Tell slave if more tracking needed
