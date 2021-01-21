@@ -130,7 +130,7 @@ if (.not. err .and. .not. bp_com%always_parse) then
 
   else
     if (present(digested_read_ok)) digested_read_ok = .true.
-    call parser_end_stuff (in_lat, .false.)
+    call parser_end_stuff (in_lat)
     return
   endif
 endif
@@ -154,7 +154,7 @@ call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a minute
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then
-  call parser_end_stuff (in_lat, .false.)
+  call parser_end_stuff (in_lat)
   return
 endif
 
@@ -864,7 +864,7 @@ branch_loop: do i_loop = 1, n_branch_max
     call parser_expand_line (1, this_branch_name, sequence, seq_name, seq_indexx, &
                                                     is_true(param_ele%value(no_end_marker$)), n_ele_use, lat, in_lat)
     if (bp_com%fatal_error_flag) then
-      call parser_end_stuff (in_lat, .false.)
+      call parser_end_stuff (in_lat)
       return
     endif
     is_photon_fork = .false.
@@ -1248,7 +1248,7 @@ call cpu_time(bp_com%time3)
 
 call create_concatenated_wall3d (lat, err)
 if (err) then
-  call parser_end_stuff (in_lat, .false.)
+  call parser_end_stuff (in_lat)
   return
 endif
 
@@ -1284,12 +1284,12 @@ call out_io (s_important$, r_name, 'Lattice parse time(min):\f5.2\ ', r_array = 
 !---------------------------------------------------------------------
 contains
 
-subroutine parser_end_stuff (lat0, do_dealloc, set_error_flag)
+subroutine parser_end_stuff (lat0, set_error_flag)
 
 type (lat_struct) lat0
 type (ele_struct), pointer :: ele
 
-logical, optional :: do_dealloc, set_error_flag
+logical, optional :: set_error_flag
 integer i, j, stat_b(24), stat, ierr
 character(200) name
 
@@ -1311,10 +1311,7 @@ bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 
 ! deallocate pointers
 
-if (logic_option (.true., do_dealloc)) then
-  if (allocated (seq_indexx))              deallocate (seq_indexx, seq_name)
-  if (allocated (bp_com%lat_file_names))   deallocate (bp_com%lat_file_names)
-endif
+if (allocated (bp_com%lat_file_names))   deallocate (bp_com%lat_file_names)
 
 if (logic_option(.false., set_error_flag)) bp_com%error_flag = .true.
 if (bp_com%error_flag) then
