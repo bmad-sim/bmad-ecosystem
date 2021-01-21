@@ -29,6 +29,7 @@ integer i, n_old
 
 if (.not. allocated(lat%control)) then
   allocate (lat%control(n), lat%ic(n))
+  lat%ic = 0
   return
 endif
 
