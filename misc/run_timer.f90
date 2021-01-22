@@ -17,7 +17,7 @@
 !   time    -- Real(rp), optional: 
 !                 If command = 'READ': Elapsed time from last 'START' in seconds.
 !                 If command = 'ABS':  Time in seconds from reference year.
-!                   If not set using 'REF', Reference is January 1, 1970.
+!                 If not set using 'REF', Reference is January 1, 1970.
 !
 ! Example:
 !     call run_timer ('START')          ! Start (reset) the timer.
@@ -54,12 +54,12 @@ case ('READ', 'STOP')
   call date_and_time (values = t1)
   t1(3) = julian_day(t1(1), t1(2), t1(3))
   dt = t1 - t0
-  time = 60*(60*(24*dt(3) + dt(5)) + dt(6)) + dt(7) + dt(8) / 1000.0
+  time = 60.0_rp*(60.0_rp*(24.0_rp*dt(3) + dt(5)) + dt(6)) + dt(7) + dt(8) / 1000.0_rp
 
 case ('ABS')
   call date_and_time (values = t1)
   t1(3) = julian_day(t1(1), t1(2), t1(3)) - julian_day(ref_year, 0, 0)
-  time = 60*(60*(24*t1(3) + t1(5)) + t1(6)) + t1(7) + t1(8) / 1000.0
+  time = 60.0_rp*(60.0_rp*(24.0_rp*t1(3) + t1(5)) + t1(6)) + t1(7) + t1(8) / 1000.0_rp
 
 case ('REF')
   ref_year = nint(time)
