@@ -94,10 +94,16 @@ The \ltt program comes in two versions:
 long_term_tracking      ! Single threaded version
 long_term_tracking_mpi  ! Multi-threaded version
 \end{code}
-The first is a single threaded version and the second is a multi-threaded version using MPI.  [Note
-to Distribution maintainers: The single threaded version will be built when compiling a Bmad
-Distribution without MPI which is the default setting. The MPI version can be built by building the
-Distribution with MPI enabled. See the documentation on the Bmad web site for more details.]
+The first is a single threaded version and the second is a multi-threaded version using MPI.
+
+[Note to Distribution maintainers: The single threaded version will be built when compiling a Bmad
+Distribution. If MPI is not enabled (which is the default setting), the MPI version will not be built. 
+The MPI version can be built by setting:
+\begin{code}
+  export ACC_ENABLE_MPI=Y
+\end{code}
+and then using the ``\vn{mk}'' command in the \vn{bsim} directory to build the executable. See the
+documentation on the Bmad web site for more details.]
 
 %------------------------------------------------------------------
 \Section{Running the Long Term Tracking Program} 
