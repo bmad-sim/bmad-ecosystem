@@ -6,18 +6,24 @@ use mpi
 implicit none
 
 type (ltt_params_struct) lttp
-type (ltt_com_struct) ltt_com
+type (ltt_com_struct), target :: ltt_com
 type (beam_init_struct) beam_init
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:), sd_arr(:)
 type (ltt_sum_data_struct) sum_data
 type (ltt_sum_data_struct), pointer :: sd
+type (ele_struct), pointer :: ele_start
+type (lat_struct), pointer :: lat
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
+type (bunch_struct) :: bunch0
 
 real(rp) time_now
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
-integer n, ix, ierr, rc, leng, data_size, num_particles_left, storage_size
+integer i, n, ix, ierr, rc, leng, sd_arr_dat_size, storage_size, dat_size
+integer ix0_p, ix1_p
 
-logical am_i_done
+logical am_i_done, err_flag
 logical, allocatable :: slave_is_done(:)
 
 character(80) line
@@ -94,10 +100,7 @@ case ('BUNCH')
     stop
   endif
 
-  n = lttp%n_turns / lttp%output_every_n_turns
-  allocate (sum_data_arr(0:n), sd_arr(0:n))
   lttp%mpi_n_particles_per_run = nint(real(beam_init%n_particle, rp) / (lttp%mpi_num_runs * (lttp%mpi_n_proc - 1)))
-  data_size = size(sum_data_arr) * storage_size(sum_data_arr(0)) / 8
 
   if (.not. lttp%using_mpi) then
     call ltt_run_bunch_mode(lttp, ltt_com, beam_init)  ! Beam tracking
@@ -106,20 +109,40 @@ case ('BUNCH')
   elseif (lttp%mpi_rank == master_rank$) then
 
     print '(a, i0)', 'Number of processes (including Master): ', lttp%mpi_n_proc
-    print '(a, i0, 2x, i0)', 'Number of particles per run: ', lttp%mpi_n_particles_per_run
-    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting...')
+    print '(a, i0, 2x, i0)', 'Nominal number of particles per pass: ', lttp%mpi_n_particles_per_run
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting...', .true.)
 
     allocate (slave_is_done(num_slaves))
     slave_is_done = .false.
-    data_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
 
-    ! Slaves automatically start one round of tracking
-    num_particles_left = beam_init%n_particle - num_slaves * lttp%mpi_n_particles_per_run
+    lat => ltt_com%tracking_lat
+    call ltt_pointer_to_map_ends(lttp, lat, ele_start)
+    call init_beam_distribution (ele_start, lat%param, beam_init, beam, err_flag, modes = ltt_com%modes)
+    bunch => beam%bunch(1)
+
+    call ltt_allocate_sum_array(lttp, sd_arr)
+    call ltt_allocate_sum_array(lttp, sum_data_arr)
+    sd_arr_dat_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
+
+    ix0_p = 0
+    do i = 1, lttp%mpi_n_proc-1
+      ix1_p = min(ix0_p+lttp%mpi_n_particles_per_run, size(bunch%particle))
+      n = ix1_p-ix0_p
+      dat_size = n * storage_size(bunch%particle(1)) / 8
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init position data size to slave: ' // int_str(i))
+      call mpi_send (n, 1, MPI_INTEGER, i, num_tag$, MPI_COMM_WORLD, ierr)
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial positions to slave: ' // int_str(i) // &
+                                                  '  For particles: [' // int_str(ix0_p) // ':' // int_str(ix1_p) // ']', .true.)
+      call mpi_send (bunch%particle(ix0_p+1:ix1_p), dat_size, MPI_BYTE, i, particle_tag$, MPI_COMM_WORLD, ierr)
+      ix0_p = ix1_p
+    enddo
+
+    !
 
     do
       ! Get data from a slave
-      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for data from a Slave...')
-      call mpi_recv (sd_arr, data_size, MPI_BYTE, MPI_ANY_SOURCE, results_tag$, MPI_COMM_WORLD, stat, ierr)
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for data from a Slave... ' // int_str(sd_arr_dat_size))
+      call mpi_recv (sd_arr, sd_arr_dat_size, MPI_BYTE, MPI_ANY_SOURCE, results_tag$, MPI_COMM_WORLD, stat, ierr)
 
       slave_rank = stat(MPI_SOURCE)
       call ltt_print_mpi_info (lttp, ltt_com, 'Master: Gathered data from Slave: ' // int_str(slave_rank))
@@ -127,7 +150,7 @@ case ('BUNCH')
       ! Add to data
       do ix = lbound(sum_data_arr, 1), ubound(sum_data_arr, 1)
         sd => sum_data_arr(ix)
-        sd%i_turn   = ix * lttp%output_every_n_turns
+        sd%i_turn   = sd_arr(ix)%i_turn
         sd%n_live   = sd%n_live + sd_arr(ix)%n_live
         sd%n_count  = sd%n_count + sd_arr(ix)%n_count
         sd%orb_sum  = sd%orb_sum + sd_arr(ix)%orb_sum
@@ -135,20 +158,32 @@ case ('BUNCH')
         sd%spin_sum = sd%spin_sum + sd_arr(ix)%spin_sum
         sd%p0c_sum  = sd%p0c_sum + sd_arr(ix)%p0c_sum
         sd%time_sum = sd%time_sum + sd_arr(ix)%time_sum
+        if (sd_arr(ix)%status == valid$) sd%status = valid$
       enddo
 
       ! Tell slave if more tracking needed
-      write (line, '(a, i0, a, i0)') 'Master: Commanding slave: ', slave_rank, '. Particles left to simulate: ', num_particles_left
-      call ltt_print_mpi_info (lttp, ltt_com, line, .true.)
-      if (num_particles_left < 1) slave_is_done(slave_rank) = .true.
-      call mpi_send (slave_is_done(slave_rank), 1, MPI_LOGICAL, slave_rank, is_done_tag$, MPI_COMM_WORLD, ierr)
-      if (.not. slave_is_done(slave_rank)) num_particles_left = num_particles_left - lttp%mpi_n_particles_per_run
 
-      ! All done?
-      if (all(slave_is_done)) exit
+      if (ix0_p == size(bunch%particle)) slave_is_done(slave_rank) = .true.
+      call mpi_send (slave_is_done(slave_rank), 1, MPI_LOGICAL, slave_rank, is_done_tag$, MPI_COMM_WORLD, ierr)
+      if (all(slave_is_done)) exit       ! All done?
+      if (ix0_p == size(bunch%particle)) cycle
+      
+      ! Give slave particle positions
+
+      ix1_p = min(ix0_p+lttp%mpi_n_particles_per_run, size(bunch%particle))
+
+      n = ix1_p-ix0_p
+      dat_size = n * storage_size(bunch%particle(1)) / 8
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Position data size to slave: ' // int_str(slave_rank))
+      call mpi_send (n, 1, MPI_INTEGER, slave_rank, num_tag$, MPI_COMM_WORLD, ierr)
+      call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial positions to slave: ' // int_str(slave_rank) // &
+                                                   '  For particles: [' // int_str(ix0_p) // ':' // int_str(ix1_p) // ']', .true.)
+      call mpi_send (bunch%particle(ix0_p+1:ix1_p), dat_size, MPI_BYTE, slave_rank, particle_tag$, MPI_COMM_WORLD, ierr)
+
+      ix0_p = ix1_p
     enddo
 
-    ! write results and quit
+    ! Write results and quit
 
     call ltt_write_bunch_averages (lttp, sum_data_arr)
     call ltt_write_sigma_matrix (lttp, sum_data_arr)
@@ -162,17 +197,25 @@ case ('BUNCH')
   else  ! Is a slave
 
     do
-      ! Init the output arrays
-      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Tracking Particles...')
+      ! Init positions
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for position size info.')
+      call mpi_recv (n, 1, MPI_INTEGER, master_rank$, num_tag$, MPI_COMM_WORLD, stat, ierr)
+      if (allocated(bunch0%particle)) then
+        if (size(bunch0%particle) /= n) deallocate(bunch0%particle)
+      endif
+      if (.not. allocated(bunch0%particle)) allocate(bunch0%particle(n))
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Waiting for position info for ' // int_str(n) // ' particles.')
+      dat_size = n * storage_size(bunch0%particle(1)) / 8
+      call mpi_recv (bunch0%particle, dat_size, MPI_BYTE, MPI_ANY_SOURCE, particle_tag$, MPI_COMM_WORLD, stat, ierr)
 
       ! Run
-      call ltt_run_bunch_mode(lttp, ltt_com, beam_init, sd_arr)  ! Beam tracking
-      data_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
-      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Sending Data...')
-      call mpi_send (sd_arr, data_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
+      call ltt_run_bunch_mode(lttp, ltt_com, beam_init, sd_arr, bunch0)  ! Beam tracking
+      sd_arr_dat_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Sending Data... ' // int_str(sd_arr_dat_size))
+      call mpi_send (sd_arr, sd_arr_dat_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
 
       ! Query Master if more tracking needed
-      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Query to master...')
+      call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Query am-i-done to master...')
       call mpi_recv (am_i_done, 1, MPI_LOGICAL, master_rank$, is_done_tag$, MPI_COMM_WORLD, stat, ierr)
       if (am_i_done) exit
     enddo
@@ -183,8 +226,6 @@ case ('BUNCH')
   endif
 
 end select
-
-!
 
 end program
 

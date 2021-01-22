@@ -17,9 +17,11 @@ use expression_mod
 
 implicit none
 
-integer, parameter :: master_rank$ = 0
-integer, parameter :: results_tag$ = 1000
-integer, parameter :: is_done_tag$ = 1001
+integer, parameter :: master_rank$  = 0
+integer, parameter :: results_tag$  = 1000
+integer, parameter :: is_done_tag$  = 1001
+integer, parameter :: particle_tag$ = 1002
+integer, parameter :: num_tag$      = 1003
 
 ! Essentially: The ltt_params_struct holds user setable parameters while the ltt_com_struct holds
 ! parameters that are not setable.
@@ -675,7 +677,7 @@ end subroutine ltt_run_single_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_bunch_mode (lttp, ltt_com, beam_init, sum_data_array)
+subroutine ltt_run_bunch_mode (lttp, ltt_com, beam_init, sum_data_array, bunch_in)
 
 type (ltt_params_struct) lttp
 type (beam_init_struct) beam_init
@@ -685,6 +687,7 @@ type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
 type (bunch_struct), pointer :: bunch
 type (bunch_struct), target :: bunch_init
+type (bunch_struct), optional, target :: bunch_in  ! Used with mpi
 type (coord_struct), pointer :: p
 type (ltt_sum_data_struct), allocatable, optional :: sum_data_array(:)
 type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
@@ -709,10 +712,14 @@ time1 = time0
 ix_branch = ltt_com%ix_branch
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
   
-if (lttp%using_mpi) beam_init%n_particle = lttp%mpi_n_particles_per_run
-call init_beam_distribution (ele_start, lat%param, beam_init, beam, err_flag, modes = ltt_com%modes)
-if (err_flag) stop
-bunch => beam%bunch(1)
+if (lttp%using_mpi) then
+  bunch => bunch_in
+else
+  call init_beam_distribution (ele_start, lat%param, beam_init, beam, err_flag, modes = ltt_com%modes)
+  if (err_flag) stop
+  bunch => beam%bunch(1)
+  print '(a, i8)',   'n_particle:                    ', size(bunch%particle)
+endif
 
 if (bmad_com%spin_tracking_on .and. all(beam_init%spin == 0)) then
   ie = ele_start%ix_ele
@@ -720,10 +727,6 @@ if (bmad_com%spin_tracking_on .and. all(beam_init%spin == 0)) then
 endif
 
 call ltt_setup_high_energy_space_charge(lttp, ltt_com, lat%branch(ix_branch), beam_init)
-
-if (.not. lttp%using_mpi) then
-  print '(a, i8)',   'n_particle:                    ', size(bunch%particle)
-endif
 
 do n = 1, size(bunch%particle)
   p => bunch%particle(n)
@@ -810,12 +813,12 @@ do i_turn = 1, lttp%n_turns
     time1 = time_now
   endif
 
-  if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
   call ltt_calc_bunch_sums (lttp, i_turn, bunch, sum_data_arr)
 
   ! If using mpi then this data will all be written out at the end.
   ! Here partial writes are used so the user can monitor progress if they want.
   if (.not. lttp%using_mpi) then
+    call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
     call ltt_write_bunch_averages(lttp, sum_data_arr)
     call ltt_write_sigma_matrix (lttp, sum_data_arr)
     where (sum_data_arr%status == valid$) sum_data_arr%status = written$
@@ -825,11 +828,11 @@ do i_turn = 1, lttp%n_turns
                           lttp%mpi_run_index == 1) call ltt_write_custom (i_turn, lttp, ltt_com, bunch = bunch)
 end do
 
-if (lttp%mpi_rank == master_rank$) print '(2a)', 'Tracking data file: ', trim(lttp%particle_output_file)
-
 if (.not. lttp%using_mpi) then
   if (lttp%bunch_binary_output_file /= '') call write_beam_file (lttp%bunch_binary_output_file, beam)
 endif
+
+if (present(sum_data_array)) sum_data_array = sum_data_arr
 
 end subroutine ltt_run_bunch_mode
 
@@ -1189,6 +1192,24 @@ write (iu, '(a)') '#'
 
 end subroutine ltt_write_params_header
 
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+
+subroutine ltt_allocate_sum_array (lttp, sum_data_arr)
+
+type (ltt_params_struct) lttp
+type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
+
+!
+
+select case (lttp%output_every_n_turns)
+case (-1);      allocate (sum_data_arr(1))    ! Stats only for end.
+case (0);       allocate (sum_data_arr(0:1))  ! Stats for beginning and end
+case default;   allocate (sum_data_arr(0:1+lttp%n_turns/lttp%output_every_n_turns)) ! Stats for every %output_every_n_turns 
+end select
+
+end subroutine ltt_allocate_sum_array
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1206,23 +1227,21 @@ integer i, j, ix, i_turn, this_turn, n2w
 !
 
 if (lttp%averages_output_file == '') return
+if (.not. allocated(sum_data_arr)) call ltt_allocate_sum_array (lttp, sum_data_arr)
 
 select case (lttp%output_every_n_turns)
 ! Stats only for end.
 case (-1)
-  if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(1))
   ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 1) return   ! Out of window. Do not do any averaging
 
 ! Stats for beginning and end
 case (0)
-  if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:1))
   ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 0) return   ! Out of window. Do not do any averaging
 
 ! Stats for every %output_every_n_turns 
 case default
-  if (.not. allocated(sum_data_arr)) allocate (sum_data_arr(0:1+lttp%n_turns/lttp%output_every_n_turns))
   ix = in_this_window(i_turn, lttp%output_every_n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 0) return   ! Out of window. Do not do any averaging
 end select
@@ -1287,7 +1306,6 @@ type (ltt_sum_data_struct), pointer :: sd
 
 real(rp) sigma(6)
 integer i, iu, ix
-
 
 !
 
@@ -1834,7 +1852,7 @@ if (.not. logic_option(lttp%debug, do_print)) return
 call run_timer ('ABS', time_now)
 call date_and_time_stamp (time_str)
 print '(a, f8.2, 2a, 2x, i0, 2a)', 'dTime:', (time_now-ltt_com%time_start)/60, &
-                                        'Now: ', time_str, lttp%mpi_rank, ': ', trim(line)
+                                        ' Now: ', time_str, lttp%mpi_rank, ': ', trim(line)
 
 end subroutine ltt_print_mpi_info
 
