@@ -89,6 +89,7 @@ bmad_com%auto_bookkeeper = .true.
 
 if (present(err_flag)) err_flag = .true.
 bp_com = bp_common_struct()
+allocate(bp_com%lat_file_names(1))       !! To get around an ifort bug in Versions 18+
 bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
 debug_line = ''
 err = .false.
