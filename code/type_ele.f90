@@ -126,48 +126,48 @@ nl = 0
 
 if (ele%ix_branch /= 0) then
   if (associated(lat)) then
-    nl=nl+1; write (li(nl), *) 'Branch #      ', ele%ix_branch, ': ', trim(branch%name)
+    nl=nl+1; write (li(nl), '(a, i0, 2a)') 'Branch # ', ele%ix_branch, ': ', trim(branch%name)
   else
-    nl=nl+1; write (li(nl), *) 'Branch #      ', ele%ix_branch
+    nl=nl+1; write (li(nl), '(a, i0)') 'Branch # ', ele%ix_branch
   endif
 endif
-nl=nl+1; write (li(nl), *)     'Element #     ', ele%ix_ele
-nl=nl+1; write (li(nl), *)     'Element Name: ', trim(ele%name)
+nl=nl+1; write (li(nl), '(a, i0)')     'Element # ', ele%ix_ele
+nl=nl+1; write (li(nl), '(2a)')     'Element Name: ', trim(ele%name)
 
 if (ele%type /= blank_name$) then
-  nl=nl+1; write (li(nl), *) 'Element Type: "', trim(ele%type), '"'
+  nl=nl+1; write (li(nl), '(2a)') 'Element Type: "', trim(ele%type), '"'
 endif
 
 if (ele%alias /= blank_name$) then
-  nl=nl+1; write (li(nl), *) 'Element Alias: "', trim(ele%alias), '"'
+  nl=nl+1; write (li(nl), '(2a)') 'Element Alias: "', trim(ele%alias), '"'
 endif
 
 if (associated(ele%descrip)) then
-  nl=nl+1; write (li(nl), *) 'Descrip: "', trim(ele%descrip), '"'
+  nl=nl+1; write (li(nl), '(2a)') 'Descrip: "', trim(ele%descrip), '"'
 endif
 
 ! Encode element key and attributes
 
 if (ele%key <= 0) then
-  nl=nl+1; write (li(nl), *) 'Key: BAD VALUE!', ele%key
+  nl=nl+1; write (li(nl), '(a, i0)') 'Key: BAD VALUE!', ele%key
 else
-  nl=nl+1; write (li(nl), *) 'Key: ', key_name(ele%key)
+  nl=nl+1; write (li(nl), '(2a)') 'Key: ', key_name(ele%key)
 endif
 
 if (ele%sub_key /= 0) then
-  nl=nl+1; write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
+  nl=nl+1; write (li(nl), '(2a)') 'Sub Key: ', sub_key_name(ele%sub_key)
 endif
 
 if (ele%key /= girder$ .and. ele%key /= ramper$) then
-  nl=nl+1; write (li(nl), '(1x, 3(a, f14.6))')  'S_start, S:',  ele%s_start, ',', ele%s
-  nl=nl+1; write (li(nl), '(1x, a, es14.6)') 'Ref_time:', ele%ref_time
+  nl=nl+1; write (li(nl), '(3(a, f14.6))')  'S_start, S:',  ele%s_start, ',', ele%s
+  nl=nl+1; write (li(nl), '(a, es14.6)') 'Ref_time:', ele%ref_time
 endif
 
 nl=nl+1; li(nl) = ''
 if (type_zero) then
-  nl=nl+1; write (li(nl), *) 'Attribute values:'
+  nl=nl+1; write (li(nl), '(a)') 'Attribute values:'
 else
-  nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
+  nl=nl+1; write (li(nl), '(a)') 'Attribute values [Only non-zero values shown]:'
 endif
 
 n_att = n_attrib_string_max_len() + 1

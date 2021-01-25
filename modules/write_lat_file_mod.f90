@@ -169,8 +169,12 @@ if (.not. lat%param%live_branch) write (iu, '(a)') 'parameter[live_branch] = F'
 if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] = ', lat%input_taylor_order
 
 write (iu, '(a)')
-write (iu, '(4a)')    'parameter[p0c]                    = ', re_str(lat%ele(0)%value(p0c_start$))
-write (iu, '(4a)')    'parameter[particle]               = ', trim(species_name(lat%param%particle))
+write (iu, '(4a)')    'parameter[p0c]                      = ', re_str(lat%ele(0)%value(p0c_start$))
+write (iu, '(4a)')    'parameter[particle]                 = ', trim(species_name(lat%param%particle))
+if (lat%param%default_tracking_species /= ref_particle$) then
+  write (iu, '(4a)')    'parameter[default_tracking_species] = ', species_name(lat%param%default_tracking_species)
+endif
+
 call write_if_logic_param_changed (lat%param%high_energy_space_charge_on, .false., 'parameter[high_energy_space_charge_on]')
 
 if (lat%param%n_part /= 0)             write (iu, '(2a)') 'parameter[n_part]                 = ', re_str(lat%param%n_part)
