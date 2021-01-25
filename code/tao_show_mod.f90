@@ -270,7 +270,7 @@ character(16) :: show_what, show_names(41) = [ &
 integer data_number, ix_plane, ix_class, n_live, n_order, i0, i1, i2, ix_branch, width, expo(6)
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
-integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word
+integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word, species
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
 integer, allocatable :: ix_c(:), ix_remove(:)
 
@@ -1392,7 +1392,6 @@ case ('element')
 
     result_id = 'element:*'
     return
-
   endif
 
   ! No wildcard case...
@@ -1445,6 +1444,7 @@ case ('element')
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
   call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, &
             twiss_out, .true., .true., print_floor, print_em_field, print_wall, lines = alloc_lines, n_lines = n)
+  if (size(s%u) > 1) alloc_lines(1) = trim(alloc_lines(1)) // ',   Universe: ' // int_str(ix_u)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = alloc_lines(1:n)
@@ -4470,6 +4470,12 @@ case ('universe')
   nl=nl+1; write(lines(nl), amt) 'Used line(s) in lat file: ', quote(lat%use_name)
   nl=nl+1; write(lines(nl), amt) 'Lattice file name:        ', quote(lat%input_file_name)
   nl=nl+1; write(lines(nl), amt) 'Reference species:        ', species_name(branch%param%particle)
+  species = branch%param%default_tracking_species
+  if (species == ref_particle$ .or. species == anti_ref_particle$) then
+    nl=nl+1; write(lines(nl), amt) 'Default tracking species: ', trim(species_name(species)), ' (', trim(species_name(default_tracking_species(branch%param))), ')'
+  else
+    nl=nl+1; write(lines(nl), amt) 'Default tracking species: ', species_name(species)
+  endif
   if (branch%param%particle == photon$) then
     nl=nl+1; write(lines(nl), amt) 'photon_type:                 ', photon_type_name(lat%photon_type)
   endif
