@@ -17,11 +17,11 @@ type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (bunch_struct) :: bunch0
 
-real(rp) time_now
+real(rp) time_now, mpi_particles_per_run
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, ix, ierr, rc, leng, sd_arr_dat_size, storage_size, dat_size
-integer ix0_p, ix1_p
+integer ix0_p, ix1_p, mpi_n_proc, n_pass
 
 logical am_i_done, err_flag
 logical, allocatable :: slave_is_done(:)
@@ -38,11 +38,11 @@ if (ierr /= MPI_SUCCESS) then
 end if
 
 ! Get the number of processors this job is using:
-call mpi_comm_size(MPI_COMM_WORLD, lttp%mpi_n_proc, ierr)
+call mpi_comm_size(MPI_COMM_WORLD, mpi_n_proc, ierr)
 
 ! Get the rank of the processor this thread is running on.
 ! Each processor has a unique rank.
-call mpi_comm_rank(MPI_COMM_WORLD, lttp%mpi_rank, ierr)
+call mpi_comm_rank(MPI_COMM_WORLD, ltt_com%mpi_rank, ierr)
 
 ! Get the name of this processor (usually the hostname)
 call mpi_get_processor_name(name, leng, ierr)
@@ -51,21 +51,21 @@ if (ierr /= MPI_SUCCESS) then
   call mpi_abort(MPI_COMM_WORLD, rc, ierr)
 end if
 
-num_slaves = lttp%mpi_n_proc - 1
-if (num_slaves /= 0) lttp%using_mpi = .true.
+num_slaves = mpi_n_proc - 1
+if (num_slaves /= 0) ltt_com%using_mpi = .true.
 
 ! If not doing BUNCH tracking then slaves have nothing to do.
 
 call ltt_init_params(lttp, ltt_com, beam_init)
 
-if (lttp%simulation_mode /= 'BUNCH' .and. lttp%mpi_rank /= master_rank$) then
+if (lttp%simulation_mode /= 'BUNCH' .and. ltt_com%mpi_rank /= master_rank$) then
   call mpi_finalize(ierr)
   stop
 endif
 
 ! Only the master should create a map file if a file is to be created.
 
-if (lttp%mpi_rank == master_rank$) then
+if (ltt_com%mpi_rank == master_rank$) then
   call ltt_init_tracking (lttp, ltt_com)
   call mpi_Bcast (0, 1, MPI_INTEGER, master_rank$, MPI_COMM_WORLD, ierr)
   call ltt_print_inital_info (lttp, ltt_com)
@@ -90,27 +90,22 @@ case default;    print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
 
 case ('BUNCH')
 
-  if (lttp%using_mpi .and. lttp%output_every_n_turns < 1) then
-    if (lttp%mpi_rank == 0) print *, 'OUTPUT_EVERY_N_TURNS MUST BE POSITIVE WHEN USING MPI!'
+  if (ltt_com%using_mpi .and. lttp%output_every_n_turns < 1) then
+    if (ltt_com%mpi_rank == 0) print *, 'OUTPUT_EVERY_N_TURNS MUST BE POSITIVE WHEN USING MPI!'
     stop
   endif
 
-  if (lttp%using_mpi .and. lttp%averages_output_file == '') then
-    if (lttp%mpi_rank == 0) print *, 'AVERAGES_OUPUT_FILE MUST BE SET WHEN USING MPI!'
+  if (ltt_com%using_mpi .and. lttp%averages_output_file == '') then
+    if (ltt_com%mpi_rank == 0) print *, 'AVERAGES_OUPUT_FILE MUST BE SET WHEN USING MPI!'
     stop
   endif
 
-  lttp%mpi_n_particles_per_run = nint(real(beam_init%n_particle, rp) / (lttp%mpi_num_runs * (lttp%mpi_n_proc - 1)))
-
-  if (.not. lttp%using_mpi) then
+  if (.not. ltt_com%using_mpi) then
+    print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
     call ltt_run_bunch_mode(lttp, ltt_com, beam_init)  ! Beam tracking
 
   !-----------------------------------------
-  elseif (lttp%mpi_rank == master_rank$) then
-
-    print '(a, i0)', 'Number of processes (including Master): ', lttp%mpi_n_proc
-    print '(a, i0, 2x, i0)', 'Nominal number of particles per pass: ', lttp%mpi_n_particles_per_run
-    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting...', .true.)
+  elseif (ltt_com%mpi_rank == master_rank$) then
 
     allocate (slave_is_done(num_slaves))
     slave_is_done = .false.
@@ -119,14 +114,21 @@ case ('BUNCH')
     call ltt_pointer_to_map_ends(lttp, lat, ele_start)
     call init_beam_distribution (ele_start, lat%param, beam_init, beam, err_flag, modes = ltt_com%modes)
     bunch => beam%bunch(1)
+    mpi_particles_per_run = real(size(bunch%particle), rp) / real((lttp%mpi_runs_per_subprocess * (mpi_n_proc - 1)), rp)
+
+    print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
+    print '(a, i0, 2x, i0)', 'Nominal number of particles per pass: ', nint(mpi_particles_per_run)
+    call ltt_print_mpi_info (lttp, ltt_com, 'Master: Starting...', .true.)
 
     call ltt_allocate_sum_array(lttp, sd_arr)
     call ltt_allocate_sum_array(lttp, sum_data_arr)
     sd_arr_dat_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
 
+    n_pass = 0
     ix0_p = 0
-    do i = 1, lttp%mpi_n_proc-1
-      ix1_p = min(ix0_p+lttp%mpi_n_particles_per_run, size(bunch%particle))
+    do i = 1, mpi_n_proc-1
+      n_pass = n_pass + 1
+      ix1_p = min(nint(n_pass * mpi_particles_per_run), size(bunch%particle))
       n = ix1_p-ix0_p
       dat_size = n * storage_size(bunch%particle(1)) / 8
       call ltt_print_mpi_info (lttp, ltt_com, 'Master: Init position data size to slave: ' // int_str(i))
@@ -170,7 +172,8 @@ case ('BUNCH')
       
       ! Give slave particle positions
 
-      ix1_p = min(ix0_p+lttp%mpi_n_particles_per_run, size(bunch%particle))
+      n_pass = n_pass + 1
+      ix1_p = min(nint(n_pass*mpi_particles_per_run), size(bunch%particle))
 
       n = ix1_p-ix0_p
       dat_size = n * storage_size(bunch%particle(1)) / 8

@@ -65,12 +65,7 @@ type ltt_params_struct
   logical :: output_initial_position = .false.
   logical :: one_particle_output_file = .false.
   logical :: split_bends_for_radiation = .false.
-  integer :: mpi_rank = master_rank$
-  integer :: mpi_n_proc = 1                    ! Number of processeses including master
-  integer :: mpi_num_runs = 4                  ! Number of runs a slave process will take on average.
-  integer :: mpi_n_particles_per_run = 0       ! Number of particles per run.
-  integer :: mpi_run_index = 0                 ! Run index
-  logical :: using_mpi = .false.
+  integer :: mpi_runs_per_subprocess = 4                  ! Number of runs a slave process will take on average.
   logical :: debug = .false.
 end type
 
@@ -104,6 +99,9 @@ type ltt_com_struct
   real(rp) :: time_start = 0
   logical :: ramp_in_track1_preprocess = .false.
   logical :: debug = .false.
+  integer :: mpi_rank = master_rank$
+  integer :: mpi_run_index = 0                 ! Run index
+  logical :: using_mpi = .false.
 end type
 
 integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
@@ -178,7 +176,7 @@ if (init_file == '') init_file = 'long_term_tracking.init'
 
 ! Read parameters
 
-if (.not. ltt%using_mpi .or. ltt%mpi_rank == master_rank$) then
+if (.not. ltt_com%using_mpi .or. ltt_com%mpi_rank == master_rank$) then
   print '(2a)', 'Initialization file: ', trim(init_file)
 endif
 
@@ -207,10 +205,10 @@ bmad_com%auto_bookkeeper = .false.
 call ran_seed_put (ltt%random_seed)
 call ptc_ran_seed_put (ltt%random_seed)
 
-if (ltt%using_mpi) then
+if (ltt_com%using_mpi) then
   call ran_seed_get (ir)
-  call ran_seed_put (ir + 10 * ltt%mpi_rank)
-  call ptc_ran_seed_put (ir + 10 * ltt%mpi_rank)
+  call ran_seed_put (ir + 10 * ltt_com%mpi_rank)
+  call ptc_ran_seed_put (ir + 10 * ltt_com%mpi_rank)
 endif
 
 call bmad_parser (ltt%lat_file, lat)
@@ -279,7 +277,7 @@ if (ltt%simulation_mode == 'CHECK') then
   endif
 endif
 
-if (ltt%using_mpi .and. ltt%tracking_method == 'PTC') then
+if (ltt_com%using_mpi .and. ltt%tracking_method == 'PTC') then
   print '(a)', 'TRACKING_METHOD = PTC NOT ALLOWED WITH MPI VERSION OF THIS PROGRAM.'
   stop
 endif
@@ -359,7 +357,7 @@ if (lttp%simulation_mode == 'CHECK') bmad_com%radiation_fluctuations_on = .false
 if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
   call ltt_read_map (lttp, ltt_com, err)
   if (err) then
-    if (lttp%mpi_rank == master_rank$) then
+    if (ltt_com%mpi_rank == master_rank$) then
       call ltt_make_map(lttp, ltt_com)
       call ltt_write_map(lttp, ltt_com)
     else
@@ -702,9 +700,11 @@ integer ip, n_live_old, n_live, ix_branch
 
 logical err_flag, is_lost
 
+character(16) prefix_str
+
 ! Init
 
-lttp%mpi_run_index = lttp%mpi_run_index + 1
+ltt_com%mpi_run_index = ltt_com%mpi_run_index + 1
 lat => ltt_com%tracking_lat
 call run_timer('ABS', time0)
 time1 = time0
@@ -712,13 +712,15 @@ time1 = time0
 ix_branch = ltt_com%ix_branch
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
   
-if (lttp%using_mpi) then
+if (ltt_com%using_mpi) then
   bunch => bunch_in
+  prefix_str = 'Slave ' // int_str(ltt_com%mpi_rank) // ':'
 else
   call init_beam_distribution (ele_start, lat%param, beam_init, beam, err_flag, modes = ltt_com%modes)
   if (err_flag) stop
   bunch => beam%bunch(1)
   print '(a, i8)',   'n_particle:                    ', size(bunch%particle)
+  prefix_str = ''
 endif
 
 if (bmad_com%spin_tracking_on .and. all(beam_init%spin == 0)) then
@@ -746,20 +748,18 @@ n_live_old = size(bunch%particle)
 
 ! 
 
-if (.not. lttp%using_mpi) call ltt_write_particle_data (lttp, ltt_com, 0, bunch, bunch_init)
+if (.not. ltt_com%using_mpi) call ltt_write_particle_data (lttp, ltt_com, 0, bunch, bunch_init)
 ! If using mpi then this data will all be written out at the end.
 ! Here partial writes are used so the user can monitor progress if they want.
 call ltt_calc_bunch_sums (lttp, 0, bunch, sum_data_arr)
-if (.not. lttp%using_mpi) then
+if (.not. ltt_com%using_mpi) then
   call ltt_write_bunch_averages(lttp, sum_data_arr)
   call ltt_write_sigma_matrix (lttp, sum_data_arr)
   where (sum_data_arr%status == valid$) sum_data_arr%status = written$
 endif
 
-if (lttp%custom_output_file /= '' .and. (lttp%mpi_rank == master_rank$ .or. lttp%mpi_rank == 1) .and. &
-                          lttp%mpi_run_index == 1) call ltt_write_custom (0, lttp, ltt_com, bunch = bunch)
-
-time0 = 0
+if (lttp%custom_output_file /= '' .and. (ltt_com%mpi_rank == master_rank$ .or. ltt_com%mpi_rank == 1) .and. &
+                          ltt_com%mpi_run_index == 1) call ltt_write_custom (0, lttp, ltt_com, bunch = bunch)
 
 do i_turn = 1, lttp%n_turns
   select case (lttp%tracking_method)
@@ -793,23 +793,23 @@ do i_turn = 1, lttp%n_turns
 
   n_live = count(bunch%particle%state == alive$)
   if (n_live_old - n_live >= n_print_dead_loss) then
-    print '(a, i0, a, i0)', 'Total number dead on turn ', i_turn, ': ', size(bunch%particle) - n_live
+    print '(2a, i0, a, i0)', trim(prefix_str), ' Cumulative number dead on turn ', i_turn, ': ', size(bunch%particle) - n_live
     n_live_old = n_live
   endif
 
-  if (n_live  == 0 .and. .not. lttp%using_mpi) then
-    print '(a)', 'NO LIVE PARTICLES! STOPPING NOW.'
+  if (n_live  == 0 .and. .not. ltt_com%using_mpi) then
+    print '(2a)', trim(prefix_str), ' NO LIVE PARTICLES! STOPPING NOW.'
     exit
   endif
 
-  if (size(bunch%particle) - n_live > lttp%dead_cutoff * size(bunch%particle) .and. .not. lttp%using_mpi) then
-    print '(a)', 'Particle loss greater than set by dead_cutoff. Stopping now.'
+  if (size(bunch%particle) - n_live > lttp%dead_cutoff * size(bunch%particle) .and. .not. ltt_com%using_mpi) then
+    print '(2a)', trim(prefix_str), ' Particle loss greater than set by dead_cutoff. Stopping now.'
     exit
   endif
 
   call run_timer('ABS', time_now)
-  if (time_now-time1 > lttp%timer_print_dtime) then
-    print '(a, f10.2, a, i0)', 'Ellapsed time (min): ', (time_now-time0)/60, ', At turn: ', i_turn
+  if (time_now-time1 > lttp%timer_print_dtime .and. .not. ltt_com%using_mpi) then
+    print '(2a, f10.2, a, i0)', trim(prefix_str), ' Ellapsed time (min): ', (time_now-time0)/60, ', At turn: ', i_turn
     time1 = time_now
   endif
 
@@ -817,18 +817,18 @@ do i_turn = 1, lttp%n_turns
 
   ! If using mpi then this data will all be written out at the end.
   ! Here partial writes are used so the user can monitor progress if they want.
-  if (.not. lttp%using_mpi) then
+  if (.not. ltt_com%using_mpi) then
     call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
     call ltt_write_bunch_averages(lttp, sum_data_arr)
     call ltt_write_sigma_matrix (lttp, sum_data_arr)
     where (sum_data_arr%status == valid$) sum_data_arr%status = written$
   endif
 
-  if (lttp%custom_output_file /= '' .and. (lttp%mpi_rank == master_rank$ .or. lttp%mpi_rank == 1) .and. &
-                          lttp%mpi_run_index == 1) call ltt_write_custom (i_turn, lttp, ltt_com, bunch = bunch)
+  if (lttp%custom_output_file /= '' .and. (ltt_com%mpi_rank == master_rank$ .or. ltt_com%mpi_rank == 1) .and. &
+                          ltt_com%mpi_run_index == 1) call ltt_write_custom (i_turn, lttp, ltt_com, bunch = bunch)
 end do
 
-if (.not. lttp%using_mpi) then
+if (.not. ltt_com%using_mpi) then
   if (lttp%bunch_binary_output_file /= '') call write_beam_file (lttp%bunch_binary_output_file, beam)
 endif
 
@@ -1464,7 +1464,7 @@ branch => lat%branch(ltt_com%ix_branch)
 
 inquire (file = map_file, exist = map_file_exists)
 if (.not. map_file_exists) then
-  if (lttp%mpi_rank == master_rank$) print '(a)', 'MAP FILE DOES NOT EXIST: ' // map_file
+  if (ltt_com%mpi_rank == master_rank$) print '(a)', 'MAP FILE DOES NOT EXIST: ' // map_file
   return
 endif
 
@@ -1492,7 +1492,7 @@ enddo
 
 close (1)
 
-if (lttp%mpi_rank == master_rank$) then
+if (ltt_com%mpi_rank == master_rank$) then
   if (ltt_com%lat%creation_hash == creation_hash) then
     print '(2a)', 'Map read in from file: ', trim(map_file)
     print '(2a)', 'Lattice file used for map: ', trim(map%lattice_file)
@@ -1852,7 +1852,7 @@ if (.not. logic_option(lttp%debug, do_print)) return
 call run_timer ('ABS', time_now)
 call date_and_time_stamp (time_str)
 print '(a, f8.2, 2a, 2x, i0, 2a)', 'dTime:', (time_now-ltt_com%time_start)/60, &
-                                        ' Now: ', time_str, lttp%mpi_rank, ': ', trim(line)
+                                        ' Now: ', time_str, ltt_com%mpi_rank, ': ', trim(line)
 
 end subroutine ltt_print_mpi_info
 
