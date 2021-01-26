@@ -135,15 +135,15 @@ nl=nl+1; write (li(nl), '(a, i0)')     'Element # ', ele%ix_ele
 nl=nl+1; write (li(nl), '(2a)')     'Element Name: ', trim(ele%name)
 
 if (ele%type /= blank_name$) then
-  nl=nl+1; write (li(nl), '(2a)') 'Element Type: "', trim(ele%type), '"'
+  nl=nl+1; write (li(nl), '(2a)') 'Element Type:  ', quote(ele%type)
 endif
 
 if (ele%alias /= blank_name$) then
-  nl=nl+1; write (li(nl), '(2a)') 'Element Alias: "', trim(ele%alias), '"'
+  nl=nl+1; write (li(nl), '(2a)') 'Element Alias:  ', quote(ele%alias)
 endif
 
 if (associated(ele%descrip)) then
-  nl=nl+1; write (li(nl), '(2a)') 'Descrip: "', trim(ele%descrip), '"'
+  nl=nl+1; write (li(nl), '(2a)') 'Descrip:  ', quote(ele%descrip)
 endif
 
 ! Encode element key and attributes
@@ -320,11 +320,11 @@ if (attribute_name(ele, material_type$) == 'MATERIAL_TYPE') then
 endif
 
 if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
-  nl=nl+1; write (li(nl), fmt_a) 'ORIGIN_ELE', '=', '"', trim(ele%component_name), '"'
+  nl=nl+1; write (li(nl), fmt_a) 'ORIGIN_ELE', '=', quote(ele%component_name)
 endif
 
 if (attribute_name(ele, physical_source$) == 'PHYSICAL_SOURCE') then
-  nl=nl+1; write (li(nl), fmt_a) 'PHYSICAL_SOURCE', '=', '"', trim(ele%component_name), '"'
+  nl=nl+1; write (li(nl), fmt_a) 'PHYSICAL_SOURCE', '=', quote(ele%component_name)
 endif
 
 if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then
