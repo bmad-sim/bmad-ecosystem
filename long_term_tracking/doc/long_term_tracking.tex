@@ -540,8 +540,8 @@ Example:
   ltt%split_bends_for_radiation = False
   ltt%dead_cutoff        = -1
   ltt%b_emittance        = 1e-9          ! Used with space charge calc.
-  ltt%num_runs = 4
   ltt%debug              = F
+  ltt%mpi_runs_per_subprocess = 4
   bmad_com%spin_tracking_on = T          ! See Bmad manual for 
   bmad_com%radiation_damping_on = F      !    bmad_com parameters.
   bmad_com%radiation_fluctuations_on = F 
@@ -806,16 +806,16 @@ file and if not set in the lattice file the default is 3. Note: \vn{ltt%map_orde
 generating a map.  When a map is read in from a file, the order of this map is independent of the
 current setting of \vn{ltt%map_order}.
 %
-\item[ltt\%mpi_num_runs] \Newline
+\item[ltt\%mpi_runs_per_subprocess] \Newline
 Only used when the MPI version of the \ltt program is used (\sref{s:intro}). This parameter
 determines the number of times, on average, the simulation will be run in a given subprocess. The
-default value is 4.
-For example, if there are 11 subprocesses, one of these will be designated the ``master'' subprocess
-and will just be responsible for collecting the data together. The other 10 subprocesses will run
-simulations. If, say, there are 1M particles in the bunch, and if \vn{ltt%mpi_num_runs} has the default
-value of 4, then each simulation will use 25K particles (= 1M / (4 * 10)) and each of the 10 subprocesses
-will run the simulation about 4 times. The reason why the work is broken up this way is to minimize the
-effect that one slow subprocess can have on the simulation time.
+default value is 4. For example, if there are 11 subprocesses, one of these will be designated the
+``master'' subprocess and will just be responsible for collecting the data together. The other 10
+subprocesses will run simulations. If, say, there are 1M particles in the bunch, and if
+\vn{ltt%mpi_runs_per_subprocess} has the default value of 4, then each simulation will use 25K
+particles (= 1M / (4 * 10)) and each of the 10 subprocesses will run the simulation about 4
+times. The reason why the work is broken up this way is to minimize the effect that one slow
+subprocess can have on the simulation time.
 %
 \item[ltt\%n_turns] \Newline
 Number of turns to track. See Section~\sref{s:track.methods}.

@@ -16,7 +16,7 @@ set (SRC_DIRS
 set (EXE_SPECS
   #cmake.ansga2
   #cmake.aspea2
-  #cmake.envelope_ibs
+  cmake.envelope_ibs
   cmake.srdt_lsq_soln
   cmake.frequency_map
   cmake.bbu
