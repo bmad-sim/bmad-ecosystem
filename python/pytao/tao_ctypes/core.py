@@ -26,10 +26,9 @@ class Tao:
     tao.init("command line args here...")
     """
 
-  #---------------------------------------------
+    #---------------------------------------------
 
     def __init__(self, init='', so_lib = ''):
-
 
         # Library needs to be set.
         if so_lib == '':
@@ -66,7 +65,6 @@ class Tao:
             # Call init
             self.init(init)
 
-
     #---------------------------------------------
     # Used by init and cmd routines
 
@@ -90,26 +88,23 @@ class Tao:
             tao_ctypes.initialized = True
             return self.get_output()
 
-
     #---------------------------------------------
     # Send a command to Tao and return the output
 
     def cmd(self, cmd, exception_on_error=False):
         """
-        
         Runs a command, and returns the text output
         
         cmd: command string
         exception_on_error: will raise an exception of [ERROR or [FATAL is detected in the output
         
         Returns a list of strings
-        
         """
+
         self.so_lib.tao_c_command(cmd.encode('utf-8'))
         lines = self.get_output()  
         if not exception_on_error:
             return lines
-      
             
         error = False
         for line in lines:
@@ -124,9 +119,6 @@ class Tao:
         if error:
             printout = cmd+'\n' + '\n'.join(badlines)
             raise ValueError(f'{printout}')    
-
-     
-      
 
     #---------------------------------------------
     # Get real array output.
@@ -148,7 +140,6 @@ class Tao:
             (ctypes.c_double * n).from_address(ctypes.addressof(self.so_lib.tao_c_get_real_array().contents)))
         # Return a copy
         return np.copy(array)
-
 
     #----------
     # Get integer array output.
@@ -176,8 +167,8 @@ class Tao:
       Invoke by
       %%tao
       sho lat
-
       """
+
       from IPython.core.magic import register_cell_magic
       @register_cell_magic
       def tao(line, cell):
@@ -192,10 +183,7 @@ class Tao:
                    print(l)
       del tao
 
-
-
-
-
+#----------------------------------------------------------------------
 
 class TaoModel(Tao):
     """
@@ -203,28 +191,25 @@ class TaoModel(Tao):
 
     If use_tempdir==True, then the input_file and its directory will be copied to a temporary directory.
     If workdir is given, then this temporary directory will be placed in workdir.
-
-
     """
+
     def __init__(self,
-                 input_file='tao.init',
-                 ploton = True,
-                 use_tempdir=True,
-                 workdir=None,
-                 verbose=True,
-                 so_lib='',  # Passed onto Tao superclass
-                 auto_configure = True # Should be disables if inheriting.
-                ):
+          input_file='tao.init',
+          ploton = True,
+          use_tempdir=True,
+          workdir=None,
+          verbose=True,
+          so_lib='',  # Passed onto Tao superclass
+          auto_configure = True # Should be disables if inheriting.
+          ):
 
         # Save init
-        
-        
+
         self.original_input_file = input_file
         self.ploton = ploton
         self.use_tempdir = use_tempdir
         self.workdir = workdir
-        if workdir:
-            assert os.path.exists(workdir), 'workdir does not exist: '+workdir
+        if workdir: assert os.path.exists(workdir), 'workdir does not exist: '+workdir
 
         self.verbose=verbose
         self.so_lib=so_lib
@@ -245,9 +230,7 @@ class TaoModel(Tao):
 
         # Set paths
         if self.use_tempdir:
-
             # Need to attach this to the object. Otherwise it will go out of scope.
-
             self.tempdir = tempfile.TemporaryDirectory(dir=self.workdir)
             # Make yet another directory to overcome the limitations of shutil.copytree
             self.path = full_path(os.path.join(self.tempdir.name, 'tao/'))
@@ -287,18 +270,14 @@ class TaoModel(Tao):
             
     #---------------------------------
     # Conveniences        
-    
 
-    
-    
-    
     @property
     def globals(self):
         """
         Returns dict of tao parameters.
-        
         Note that the name of this function cannot be named 'global'
         """
+
         dat = self.cmd('python global')
         return tao_parameter_dict(dat)            
 
@@ -313,32 +292,27 @@ class TaoModel(Tao):
             TaoModel['global:track_type'] = 'beam'
         will issue command:
             set global track_type = beam
-            
-        
         """
+
         cmd = form_set_command(key, item,  delim=':')
         self.vprint(cmd)
         self.cmd(cmd)
 
-
+    #---------------------------------
     def evaluate(self, expression):
         """
-        
         Example: 
             .evaluate('lat::orbit.x[beginning:end]')
         Returns an np.array of floats
         """
+
         return tao_object_evaluate(self, expression)
 
-
+    #---------------------------------
     def __str__(self):
         s = 'Tao Model initialized from: '+self.original_path
         s +='\n Working in path: '+self.path
         return s
-        
-        
-        
-        
         
 #------------------------------------------------------------------------------- 
 #------------------------------------------------------------------------------- 
@@ -350,9 +324,7 @@ def tao_object_evaluate(tao_object, expression):
     
     Example expressions:
         beam::norm_emit.x[end]        # returns a single float
-        lat::orbit.x[beginning:end]   # returns an np array of floats
-        
-        
+        lat::orbit.x[beginning:end]   # returns an np array of floats 
     """
     
     cmd = f'python evaluate {expression}'
@@ -392,7 +364,7 @@ def form_set_command(s, value,  delim=':'):
     att = x[-1]
     cmd = f'set {cmd0} {what} {att} = {value}'
     
-   # cmd = 'set '+' '.join(x) + f' = {value}'
+    # cmd = 'set '+' '.join(x) + f' = {value}'
   
     return cmd
     
@@ -400,9 +372,7 @@ def form_set_command(s, value,  delim=':'):
 def apply_settings(tao_object, settings):
     """
     Applies multiple settings to a tao object.
-    
     Checks for lattice_calc_on and plot_on, and temporarily disables these for speed.
-    
     """
     
     cmds = []
@@ -434,13 +404,10 @@ def apply_settings(tao_object, settings):
         tao_object.cmd(cmd, exception_on_error=True)
         
     return cmds    
-    
-    
-    
+
 #------------------------------------------------------------------------------- 
 #------------------------------------------------------------------------------- 
 # Helper functions        
-
 
 def run_tao(settings=None,
                 run_commands=['set global track_type=single'],
@@ -451,7 +418,6 @@ def run_tao(settings=None,
                 verbose=False):
     """
     Creates an LCLSTaoModel object, applies settings, and runs the beam.
-    
     """
     
     assert os.path.exists(input_file), f'Tao input file does not exist: {input_file}'
@@ -480,13 +446,7 @@ def run_tao(settings=None,
     finally:
         # Return to init_dir
         os.chdir(init_dir)    
-     
-    
+
     return M
 
 
-
-
-
-    
-    
