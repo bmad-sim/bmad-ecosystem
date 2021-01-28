@@ -300,7 +300,7 @@ character(*), parameter :: r_name = 'make_V'
 temp_mat = M  !LA_GEEV destroys the contents of its first argument.
 
 call la_geev(temp_mat, eval_r, eval_i, VR=VR, INFO=i_error)
-eval = cmplx(eval_r, eval_i, rp)
+eval = cmplx(eval_r, -eval_i, rp)
 if ( i_error /= 0 ) THEN
   call out_io (s_fatal$, r_name, "la_geev returned error: \i0\ ", i_error)
   if (global_com%exit_on_error) call err_exit
@@ -319,16 +319,22 @@ if ( aimag(check_mat(1,1)) > 0.0 ) then
   temp_vec = Vinv(:,1)
   Vinv(:,1) = Vinv(:,2)
   Vinv(:,2) = temp_vec
+  eval(1) = conjg(eval(1))
+  eval(2) = conjg(eval(2))
 endif
 if ( aimag(check_mat(3,3)) > 0.0 ) then
   temp_vec = Vinv(:,3)
   Vinv(:,3) = Vinv(:,4)
   Vinv(:,4) = temp_vec
+  eval(3) = conjg(eval(3))
+  eval(4) = conjg(eval(4))
 endif
 if ( aimag(check_mat(5,5)) > 0.0 ) then
   temp_vec = Vinv(:,5)
   Vinv(:,5) = Vinv(:,6)
   Vinv(:,6) = temp_vec
+  eval(5) = conjg(eval(5))
+  eval(6) = conjg(eval(6))
 endif
 
 mat_tunes(1) = MyTan(aimag(eval(1)), real(eval(1)))
@@ -825,6 +831,19 @@ sig_pp = ar_sigma_mat(4:6,4:6)
 R=sig_xx  ! LA_SYEV destroys the contents of R
 
 call LA_SYEV(R,u,JOBZ='N')  !evals and evecs of symmetric real matrix
+u(1) = max(u(1),1.0d-20)
+u(2) = max(u(2),1.0d-20)
+u(3) = max(u(3),1.0d-20)
+if( (sqrt(u(1)/u(2)) .gt. 1.0e10) .or. \
+    (sqrt(u(2)/u(1)) .gt. 1.0e10) .or. \
+    (sqrt(u(1)/u(3)) .gt. 1.0e10) .or. \
+    (sqrt(u(3)/u(1)) .gt. 1.0e10) .or. \
+    (sqrt(u(2)/u(3)) .gt. 1.0e10) .or. \
+    (sqrt(u(3)/u(2)) .gt. 1.0e10) ) then
+    write(*,'(a)') "Warning from beam_envelope_ibs: beam dimensions differ by more than 10 orders of magnitude."
+    write(*,'(a)') "Something could be wrong, check emittances.  Program will try to continue on."
+    write(*,'(a,3es13.3)') "sqrt(u(1)), sqrt(u(2)), sqrt(u(3)): ", sqrt(u(1)), sqrt(u(2)), sqrt(u(3))
+endif
 vol1 = sqrt(u(1)*u(2)*u(3))
 vol = sqrt(4.0d0*pi)**3 * vol1
 

@@ -501,7 +501,7 @@ evec(:, 4) = cmplx(VR(:, 3), -VR(:, 4), rp)
 evec(:, 5) = cmplx(VR(:, 5),  VR(:, 6), rp)
 evec(:, 6) = cmplx(VR(:, 5), -VR(:, 6), rp)
 
-check_mat = matmul(transpose(evec), matmul(S, evec))
+check_mat = matmul(transpose(evec), matmul(S, evec))  !Ohmi Eqn. 79
 
 if ( aimag(check_mat(1,2)) < 0.0 ) then
   evec(:, 1) = conjg(evec(:, 1))
@@ -751,24 +751,24 @@ if ( any(abs(abz_tunes(1:3)) .lt. 0.0001) ) then
   return
 endif
 
-val(1) = ( (abz_tunes(1)-mat_tunes(1)) / (abz_tunes(1)+mat_tunes(1)) )**2 + &
-         ( (abz_tunes(2)-mat_tunes(2)) / (abz_tunes(2)+mat_tunes(2)) )**2 + &
-         ( (abz_tunes(3)-mat_tunes(3)) / (abz_tunes(3)+mat_tunes(3)) )**2
-val(2) = ( (abz_tunes(1)-mat_tunes(1)) / (abz_tunes(1)+mat_tunes(1)) )**2 + &
-         ( (abz_tunes(2)-mat_tunes(3)) / (abz_tunes(2)+mat_tunes(3)) )**2 + &
-         ( (abz_tunes(3)-mat_tunes(2)) / (abz_tunes(3)+mat_tunes(2)) )**2
-val(3) = ( (abz_tunes(1)-mat_tunes(2)) / (abz_tunes(1)+mat_tunes(2)) )**2 + &
-         ( (abz_tunes(2)-mat_tunes(1)) / (abz_tunes(2)+mat_tunes(1)) )**2 + &
-         ( (abz_tunes(3)-mat_tunes(3)) / (abz_tunes(3)+mat_tunes(3)) )**2
-val(4) = ( (abz_tunes(1)-mat_tunes(2)) / (abz_tunes(1)+mat_tunes(2)) )**2 + &
-         ( (abz_tunes(2)-mat_tunes(3)) / (abz_tunes(2)+mat_tunes(3)) )**2 + &
-         ( (abz_tunes(3)-mat_tunes(1)) / (abz_tunes(3)+mat_tunes(1)) )**2
-val(5) = ( (abz_tunes(1)-mat_tunes(3)) / (abz_tunes(1)+mat_tunes(3)) )**2 + &
-         ( (abz_tunes(2)-mat_tunes(1)) / (abz_tunes(2)+mat_tunes(1)) )**2 + &
-         ( (abz_tunes(3)-mat_tunes(2)) / (abz_tunes(3)+mat_tunes(2)) )**2
-val(6) = ( (abz_tunes(1)-mat_tunes(3)) / (abz_tunes(1)+mat_tunes(3)) )**2 + &
-         ( (abz_tunes(2)-mat_tunes(2)) / (abz_tunes(2)+mat_tunes(2)) )**2 + &
-         ( (abz_tunes(3)-mat_tunes(1)) / (abz_tunes(3)+mat_tunes(1)) )**2
+val(1) = (abz_tunes(1)-mat_tunes(1))**2 + &
+         (abz_tunes(2)-mat_tunes(2))**2 + &
+         (abz_tunes(3)-mat_tunes(3))**2
+val(2) = (abz_tunes(1)-mat_tunes(1))**2 + &
+         (abz_tunes(2)-mat_tunes(3))**2 + &
+         (abz_tunes(3)-mat_tunes(2))**2
+val(3) = (abz_tunes(1)-mat_tunes(2))**2 + &
+         (abz_tunes(2)-mat_tunes(1))**2 + &
+         (abz_tunes(3)-mat_tunes(3))**2
+val(4) = (abz_tunes(1)-mat_tunes(2))**2 + &
+         (abz_tunes(2)-mat_tunes(3))**2 + &
+         (abz_tunes(3)-mat_tunes(1))**2
+val(5) = (abz_tunes(1)-mat_tunes(3))**2 + &
+         (abz_tunes(2)-mat_tunes(1))**2 + &
+         (abz_tunes(3)-mat_tunes(2))**2
+val(6) = (abz_tunes(1)-mat_tunes(3))**2 + &
+         (abz_tunes(2)-mat_tunes(2))**2 + &
+         (abz_tunes(3)-mat_tunes(1))**2
 
 if (minval(val, 1) .gt. 0.1) then
   call out_io (s_fatal$, r_name, "Unable to match mat_tunes.  Printing mat_tunes and abz_tunes.")
