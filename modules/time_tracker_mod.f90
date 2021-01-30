@@ -1,8 +1,14 @@
 module time_tracker_mod
 
 use em_field_mod
-use bmad_interface
-use runge_kutta_mod
+use element_at_s_mod
+
+type time_runge_kutta_common_struct
+  integer :: num_steps_done = -1              ! Number of integration steps. Not used by Bmad. For external use.
+end type
+
+type (time_runge_kutta_common_struct), save :: time_runge_kutta_com
+
 
 contains
 
@@ -122,7 +128,7 @@ edge_kick_applied  = .false.
 
 do n_step = 1, bmad_com%max_num_runge_kutta_step
 
-  runge_kutta_com%num_steps_done = n_step
+  time_runge_kutta_com%num_steps_done = n_step
 
   ! edge?
 

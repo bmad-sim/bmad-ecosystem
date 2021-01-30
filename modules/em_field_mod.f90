@@ -6,8 +6,10 @@
 
 module em_field_mod
 
-use bmad_interface
+use coord_mod
 use spline_mod
+use multipole_mod
+use taylor_mod
 
 implicit none
 
@@ -98,7 +100,6 @@ end function g_bend_from_em_field
 recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
              calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, err_print_out_of_bounds)
 
-use bmad_interface
 use super_recipes_mod
 
 type (ele_struct), target :: ele, ele2

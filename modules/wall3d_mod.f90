@@ -1,7 +1,8 @@
 module wall3d_mod
 
-use bmad_interface
-use bmad_interface
+use pointer_to_branch_mod
+use pointer_to_ele_mod
+use element_at_s_mod
 
 implicit none
 

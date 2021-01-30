@@ -5,6 +5,7 @@
 module srdt_mod
 
 use twiss_and_track_mod
+use multipole_mod
 
 implicit none
 

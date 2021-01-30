@@ -27,6 +27,7 @@ use bookkeeper_mod, except_dummy => attribute_bookkeeper
 use xraylib_interface, except_dummy2 => attribute_bookkeeper
 use super_recipes_mod, only: super_brent
 use ptc_layout_mod, only: update_ele_from_fibre
+use taylor_mod, only: kill_taylor
 
 implicit none
 

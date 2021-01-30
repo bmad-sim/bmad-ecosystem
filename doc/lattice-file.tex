@@ -810,15 +810,15 @@ Examples:
   abc     := my_const * 23
 \end{example}
 \index{MAD!delayed substitution}
-Unlike \mad, \bmad uses immediate substitution so that all constants
-in an expression must have been previously defined. For example, the
-following is {\em not} valid:
+Unlike \mad, \bmad uses immediate substitution so that all constants in an expression must have been
+previously defined. For example, the following is {\em not} valid:
 \begin{example}
   abc      = my_const * 23      ! No: my_const needs to be defined first.
   my_const = sqrt(10.3) * pi^3
 \end{example}
-here the value of \vn{my_const} is not known when the line ``\vn{abc}
-= $\ldots$'' is parsed. 
+here the value of \vn{my_const} is not known when the line ``\vn{abc} = $\ldots$'' is parsed. Note:
+To get the effect of delayed evaluation, use \vn{overlay} (\sref{s:overlay}) or \vn{group}
+(\sref{s:group}) controller elements.
 
 Once defined, symbolic constants cannot be redefined. For example:
 \begin{example}
@@ -849,12 +849,11 @@ Example:
   expand_lattice
 \end{example}
 Here the expression of overlay \vn{sk} is evaluated, when the lattice is expanded, to be
-\vn{-0.68 = -2*0.34}. This uses uses the length of element \vn{s_20W} at the point when
+\vn{-0.68 = -2*0.34}. This uses the length of element \vn{s_20W} at the point when
 the lattice is expanded and not at the point when \vn{sk} was defined. Additionally, the
 element \vn{s_30E}, which inherits the attributes of \vn{s_20W}, inherits a value of zero
 for \vn{a1} (skew multipole moment) since inheritance uses immediate evaluation just like
 the setting of constants.
-
 
 Element attributes can be used after they have been defined but not
 before.  Example:

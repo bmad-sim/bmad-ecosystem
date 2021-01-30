@@ -1194,6 +1194,18 @@ subroutine multipass_chain (ele, ix_pass, n_links, chain_ele, use_super_lord)
   logical, optional :: use_super_lord
 end subroutine
 
+recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rp), optional :: b1
+  integer ix_pole_max
+  integer, optional :: pole_type, include_kicks
+  integer include_kck
+  logical use_ele_tilt
+end subroutine
+
 subroutine multipole_init (ele, who, zero)
   import
   implicit none
@@ -1371,6 +1383,14 @@ subroutine pointer_to_attribute (ele, attrib_name, do_allocation, a_ptr, err_fla
   logical do_allocation
   logical, optional :: err_print_flag
   integer, optional :: ix_attrib
+end subroutine
+
+subroutine pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  real(rp), pointer :: a_pole(:), b_pole(:), ksl_pole(:)
+  integer, optional :: pole_type
 end subroutine
 
 function pointer_to_girder(ele, ix_slave_back) result (girder)
@@ -2668,6 +2688,16 @@ function w_mat_for_tilt (tilt, return_inverse) result (w_mat)
   logical, optional :: return_inverse
 end function w_mat_for_tilt
 
+subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
+  import
+  implicit none
+  character(*) bmad_file
+  type (lat_struct), target :: lat
+  logical, optional :: err
+  integer, optional :: output_form
+  type (coord_struct), optional :: orbit0
+end subroutine
+
 subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, extra, err_flag)
   import
   implicit none
@@ -2677,6 +2707,19 @@ subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, e
   character(*), optional :: file_names(:)
   type (extra_parsing_info_struct), optional :: extra
   logical, optional :: err_flag
+end subroutine
+
+subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
+                       include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (lat_struct), optional, target :: converted_lat
+  type (coord_struct), allocatable, optional :: ref_orbit(:)
+  real(rp), optional :: dr12_drift_max
+  integer, optional :: ix_start, ix_end, ix_branch
+  character(*) out_type, out_file_name
+  logical, optional :: use_matrix_model, include_apertures, err
 end subroutine
 
 subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line, err_flag)

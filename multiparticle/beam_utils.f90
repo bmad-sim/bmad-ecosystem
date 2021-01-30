@@ -4,7 +4,6 @@ use beam_file_io
 use eigen_mod
 use wake_mod
 use coord_mod
-use bmad_interface
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution

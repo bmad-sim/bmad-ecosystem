@@ -9,7 +9,7 @@
 
 module mad_mod
 
-use bmad_interface
+use taylor_mod
 
 type mad_energy_struct
   real(rp) total 

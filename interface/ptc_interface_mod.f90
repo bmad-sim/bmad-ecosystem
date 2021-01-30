@@ -7,7 +7,11 @@
 
 module ptc_interface_mod
 
-use bmad_interface
+use taylor_mod
+use attribute_mod
+use pointer_to_ele_mod
+use coord_mod
+use multipole_mod
 
 interface assignment (=)
   module procedure real_8_equal_bmad_taylor

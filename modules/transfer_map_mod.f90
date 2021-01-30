@@ -1,6 +1,7 @@
 module transfer_map_mod
 
-use bmad_interface
+use element_at_s_mod
+use taylor_mod
 
 private transfer_this_map, transfer_this_mat
 
