@@ -53,7 +53,8 @@ type ltt_params_struct
   integer :: random_seed = 0
   integer :: map_order = -1
   integer :: averaging_window = 1
-  integer :: output_every_n_turns = -1
+  integer :: particle_output_every_n_turns = -1
+  integer :: average_output_every_n_turns = -1
   real(rp) :: ramping_start_time
   real(rp) :: ptc_aperture(2) = 0.1
   real(rp) :: print_on_dead_loss = -1
@@ -64,8 +65,6 @@ type ltt_params_struct
   logical :: ramping_on = .false.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
-  logical :: output_initial_position = .false.
-  logical :: one_particle_output_file = .false.
   logical :: split_bends_for_radiation = .false.
   integer :: mpi_runs_per_subprocess = 4                  ! Number of runs a slave process will take on average.
   logical :: debug = .false.
@@ -427,7 +426,8 @@ print '(a, l1)',   'bmad_com%radiation_damping_on:      ', bmad_com%radiation_da
 print '(a, l1)',   'bmad_com%radiation_fluctuations_on: ', bmad_com%radiation_fluctuations_on
 print '(a, l1)',   'bmad_com%spin_tracking_on:          ', bmad_com%spin_tracking_on
 print '(a, i8)',   'ltt%n_turns:                        ', lttp%n_turns
-print '(a, i8)',   'ltt%output_every_n_turns:           ', lttp%output_every_n_turns
+print '(a, i8)',   'ltt%particle_output_every_n_turns:  ', lttp%particle_output_every_n_turns
+print '(a, i8)',   'ltt%average_output_every_n_turns:   ', lttp%average_output_every_n_turns
 print '(a, l1)',   'ltt%ramping_on:                     ', lttp%ramping_on
 print '(2a)',      'ltt%ramping_start_time:             ', real_str(lttp%ramping_start_time, 6)
 print '(a, i8)',   'ltt%averaging_window:               ', lttp%averaging_window
@@ -654,7 +654,7 @@ do i_turn = 1, lttp%n_turns
     stop
   end select
 
-  if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) == 0) then
+  if (lttp%particle_output_every_n_turns > 0 .and. modulo(i_turn, lttp%particle_output_every_n_turns) == 0) then
     write (iu_part, fmt) i_turn, orbit%vec, orbit%spin
   endif
 
@@ -696,7 +696,6 @@ type (ltt_com_struct), target :: ltt_com
 type (lat_struct), pointer :: lat
 type (coord_struct), allocatable :: orb(:)
 type (bunch_struct), pointer :: bunch
-type (bunch_struct), target :: bunch_init
 type (bunch_struct), optional, target :: bunch_in  ! Used with mpi
 type (coord_struct), pointer :: p
 type (ltt_sum_data_struct), allocatable, optional :: sum_data_array(:)
@@ -754,13 +753,11 @@ do n = 1, size(bunch%particle)
 enddo
 
 n_print_dead_loss = max(1, nint(lttp%print_on_dead_loss * size(bunch%particle)))
-allocate(bunch_init%particle(size(bunch%particle)))
-bunch_init%particle = bunch%particle
 n_live_old = size(bunch%particle)
 
 ! 
 
-call ltt_write_particle_data (lttp, ltt_com, 0, bunch, bunch_init)
+call ltt_write_particle_data (lttp, ltt_com, 0, bunch)
 
 ! If using mpi then this data will all be written out at the end.
 ! Here partial writes are used so the user can monitor progress if they want.
@@ -826,7 +823,7 @@ do i_turn = 1, lttp%n_turns
     time1 = time_now
   endif
 
-  call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
+  call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch)
 
   ! If using mpi then this data will all be written out at the end.
   ! Here partial writes are used so the user can monitor progress if they want.
@@ -959,12 +956,12 @@ end subroutine ltt_setup_high_energy_space_charge
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
+subroutine ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, use_mpi)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
-type (bunch_struct), target :: bunch, bunch_init
-type (coord_struct), pointer :: p, p0
+type (bunch_struct), target :: bunch
+type (coord_struct), pointer :: p
 
 integer i_turn, ix, ip, j
 integer iu_part
@@ -972,19 +969,21 @@ integer iu_part
 character(200) file_name
 character(40) fmt
 
+logical, optional :: use_mpi
+logical using_mpi
 !
 
 if (lttp%particle_output_file == '') return
-if (lttp%output_every_n_turns == -1 .and. i_turn /= lttp%n_turns) return
-if (lttp%output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= lttp%n_turns) return
-if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) /= 0) return
+if (lttp%particle_output_every_n_turns == -1 .and. i_turn /= lttp%n_turns) return
+if (lttp%particle_output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= lttp%n_turns) return
+if (lttp%particle_output_every_n_turns > 0 .and. modulo(i_turn, lttp%particle_output_every_n_turns) /= 0) return
 
 !
 
-if (ltt_com%using_mpi) then
-  file_name = trim(ltt_com%mpi_data_dir) // int_str(ltt_com%mpi_rank) // '_' // int_str(ltt_com%mpi_run_index) // '_' // int_str(i_turn)
-elseif (lttp%one_particle_output_file) then
-  file_name = lttp%particle_output_file
+using_mpi = logic_option(ltt_com%using_mpi, use_mpi)
+
+if (using_mpi) then
+  file_name = trim(ltt_com%mpi_data_dir) // int_str(i_turn) // '_' // int_str(ltt_com%mpi_rank) // '_' // int_str(ltt_com%mpi_run_index)
 else
   j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
   write (fmt, '(a, i0, a, i0, a)') '(a, i', j, '.', j, ', a)'
@@ -1000,20 +999,12 @@ endif
 
 iu_part = lunget()
 
-if (ltt_com%using_mpi) then
+if (using_mpi) then
   open (iu_part, file = file_name, recl = 300)
-elseif (lttp%one_particle_output_file .and. ltt_com%wrote_particle_file_header) then
-  open (iu_part, file = file_name, recl = 300, position = 'APPEND')
 else
   open (iu_part, file = file_name, recl = 300)
   call ltt_write_params_header(lttp, ltt_com, iu_part, size(bunch%particle))
-
-  if (lttp%output_initial_position) then
-    write (iu_part, '(2a)') '#      Ix     Turn | Start:    x              px               y              py               z              pz         spin_x    spin_y    spin_z  ', &
-                                            '| End:         x              px               y              py               z              pz         spin_x    spin_y    spin_z    State'
-  else
-    write (iu_part, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
-  endif
+  write (iu_part, '(a)')  '#      Ix     Turn |           x              px               y              py               z              pz   |     spin_x    spin_y    spin_z    State'
 endif
 
 ltt_com%wrote_particle_file_header = .true.
@@ -1021,20 +1012,16 @@ ltt_com%wrote_particle_file_header = .true.
 !
 
 do ip = 1, size(bunch%particle)
-  p0 => bunch_init%particle(ip)
   p => bunch%particle(ip)
   ix = ip + ltt_com%mpi_ix0_particle
-  if (lttp%output_initial_position) then
-    write (iu_part, '(i9, i9, 2(6es16.8, 3x, 3f10.6, 4x), a)') ix, i_turn, p0%vec, p0%spin, p%vec, p%spin, trim(coord_state_name(p%state))
+  if (using_mpi) then
+    write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, i5)')  ix, i_turn, p%vec, p%spin, p%state
   else
     write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
   endif
 enddo
 
-if (ltt_com%using_mpi .or. .not. lttp%one_particle_output_file) then
-  close(iu_part)
-  iu_part = 0
-endif
+close(iu_part)
 
 end subroutine ltt_write_particle_data
 
@@ -1067,7 +1054,7 @@ character(4) code
 
 !
 
-select case (lttp%output_every_n_turns)
+select case (lttp%average_output_every_n_turns)
 ! Stats only for end.
 case (-1)
   if (i_turn /= lttp%n_turns) return
@@ -1076,16 +1063,16 @@ case (-1)
 case (0)
   if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
 
-! Stats for every %output_every_n_turns 
+! Stats for every %average_output_every_n_turns 
 case default
-  if (mod(i_turn, lttp%output_every_n_turns) /= 0) return
+  if (mod(i_turn, lttp%average_output_every_n_turns) /= 0) return
 end select
 
 !
 
 iu = lunget()
 
-if (i_turn == 0 .or. lttp%output_every_n_turns == -1) then
+if (i_turn == 0 .or. lttp%average_output_every_n_turns == -1) then
   open (iu, file = lttp%custom_output_file, recl = 1000)
   line = '#'
   do i = 1, size(lttp%column)
@@ -1206,22 +1193,23 @@ integer iu, n_particle
 
 !
 
-write (iu,  '(3a)')      '# lattice                   = ', quote(lttp%lat_file)
-write (iu,  '(3a)')      '# simulation_mode           = ', quote(lttp%simulation_mode)
-write (iu,  '(a, i8)')   '# n_particle                = ', n_particle
-write (iu,  '(a, i8)')   '# n_turns                   = ', lttp%n_turns
-write (iu,  '(a, l1)')   '# ramping_on                = ', lttp%ramping_on
-write (iu,  '(2a)')      '# ramping_start_time        = ', real_str(lttp%ramping_start_time, 6)
-write (iu,  '(a, i8)')   '# output_every_n_turns      = ', lttp%output_every_n_turns
-write (iu,  '(a, i8)')   '# averaging_window          = ', lttp%averaging_window
-write (iu,  '(a, l1)')   '# Radiation_Damping_on      = ', bmad_com%radiation_damping_on
-write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on = ', bmad_com%radiation_fluctuations_on
-write (iu,  '(a, l1)')   '# Spin_tracking_on          = ', bmad_com%spin_tracking_on
-write (iu, '(3a)')       '# Map_file_prefix           = ', quote(lttp%map_file_prefix)
+write (iu,  '(3a)')      '# lattice                       = ', quote(lttp%lat_file)
+write (iu,  '(3a)')      '# simulation_mode               = ', quote(lttp%simulation_mode)
+write (iu,  '(a, i8)')   '# n_particle                    = ', n_particle
+write (iu,  '(a, i8)')   '# n_turns                       = ', lttp%n_turns
+write (iu,  '(a, l1)')   '# ramping_on                    = ', lttp%ramping_on
+write (iu,  '(2a)')      '# ramping_start_time            = ', real_str(lttp%ramping_start_time, 6)
+write (iu,  '(a, i8)')   '# particle_output_every_n_turns = ', lttp%particle_output_every_n_turns
+write (iu,  '(a, i8)')   '# average_output_every_n_turns  = ', lttp%average_output_every_n_turns
+write (iu,  '(a, i8)')   '# averaging_window              = ', lttp%averaging_window
+write (iu,  '(a, l1)')   '# Radiation_Damping_on          = ', bmad_com%radiation_damping_on
+write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on     = ', bmad_com%radiation_fluctuations_on
+write (iu,  '(a, l1)')   '# Spin_tracking_on              = ', bmad_com%spin_tracking_on
+write (iu, '(3a)')       '# Map_file_prefix               = ', quote(lttp%map_file_prefix)
 if (lttp%tracking_method == 'MAP') then
-  write (iu, '(a, i0)')  '# map_order                 = ', ltt_com%sec(1)%map%map_order
-  write (iu, '(a, a)')   '# exclude_from_maps         = ', lttp%exclude_from_maps
-  write (iu, '(a, l1)')  '# split_bends_for_radiation = ', lttp%split_bends_for_radiation
+  write (iu, '(a, i0)')  '# map_order                     = ', ltt_com%sec(1)%map%map_order
+  write (iu, '(a, a)')   '# exclude_from_maps             = ', lttp%exclude_from_maps
+  write (iu, '(a, l1)')  '# split_bends_for_radiation     = ', lttp%split_bends_for_radiation
 endif
 write (iu, '(a)') '#'
 
@@ -1238,10 +1226,10 @@ type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
 
 !
 
-select case (lttp%output_every_n_turns)
+select case (lttp%average_output_every_n_turns)
 case (-1);      allocate (sum_data_arr(1))    ! Stats only for end.
 case (0);       allocate (sum_data_arr(0:1))  ! Stats for beginning and end
-case default;   allocate (sum_data_arr(0:1+lttp%n_turns/lttp%output_every_n_turns)) ! Stats for every %output_every_n_turns 
+case default;   allocate (sum_data_arr(0:1+lttp%n_turns/lttp%average_output_every_n_turns)) ! Stats for every %average_output_every_n_turns 
 end select
 
 end subroutine ltt_allocate_sum_array
@@ -1264,7 +1252,7 @@ integer i, j, ix, i_turn, this_turn, n2w
 if (lttp%averages_output_file == '') return
 if (.not. allocated(sum_data_arr)) call ltt_allocate_sum_array (lttp, sum_data_arr)
 
-select case (lttp%output_every_n_turns)
+select case (lttp%average_output_every_n_turns)
 ! Stats only for end.
 case (-1)
   ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
@@ -1275,9 +1263,9 @@ case (0)
   ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 0) return   ! Out of window. Do not do any averaging
 
-! Stats for every %output_every_n_turns 
+! Stats for every %average_output_every_n_turns 
 case default
-  ix = in_this_window(i_turn, lttp%output_every_n_turns, lttp%averaging_window, sum_data_arr)
+  ix = in_this_window(i_turn, lttp%average_output_every_n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 0) return   ! Out of window. Do not do any averaging
 end select
 
