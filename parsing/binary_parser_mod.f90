@@ -1,6 +1,6 @@
 module binary_parser_mod
 
-use bmad_interface
+use attribute_mod
 
 contains
 

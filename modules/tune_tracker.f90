@@ -28,7 +28,7 @@
 
 module tune_tracker_mod
 
-use bmad_interface
+use bmad_routine_interface
 use windowls_mod
 
 implicit none

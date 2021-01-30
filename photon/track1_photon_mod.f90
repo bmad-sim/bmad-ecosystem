@@ -1,7 +1,5 @@
 module track1_photon_mod
 
-use fringe_mod
-use wall3d_mod
 use photon_utils_mod
 use xraylib_interface
 

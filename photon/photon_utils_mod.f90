@@ -1,6 +1,7 @@
 module photon_utils_mod
 
-use bmad_interface
+use pointer_to_ele_mod
+use pointer_to_branch_mod
 
 implicit none
 

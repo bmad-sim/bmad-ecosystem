@@ -2,11 +2,11 @@ module bookkeeper_mod
 
 use wall3d_mod
 use multipole_mod
-use bmad_interface
 use equality_mod
 use em_field_mod
 use expression_mod
 use changed_attribute_bookkeeper
+use attribute_mod
 
 implicit none
 

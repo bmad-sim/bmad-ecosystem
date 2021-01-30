@@ -1,6 +1,7 @@
 module superimpose_mod
 
-use bmad_interface
+use element_at_s_mod
+use changed_attribute_bookkeeper
 
 private delete_underscore, adjust_drift_names, split_this_lat
 

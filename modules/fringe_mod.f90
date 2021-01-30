@@ -6,8 +6,8 @@
 
 module fringe_mod
 
-use bmad_interface
 use multipole_mod
+use pointer_to_ele_mod
 
 ! Private routines for exact_bend_edge_kick
 private ptc_rot_xz, ptc_wedger, ptc_fringe_dipoler
