@@ -11,7 +11,7 @@ type (ele_pointer_struct), allocatable, target :: eles(:)
 type (ele_struct), pointer :: ele, slave
 type (control_struct), pointer :: ctl
 
-real(rp) var, var_min, var_max, plot_size(2)
+real(rp) var, var_min, var_max, plot_size(2), text_scale, height
 real(rp), allocatable :: table(:,:), knots(:,:)
 
 integer n_var_points, slave_list(20)
@@ -25,7 +25,7 @@ character(40) attrib_name(20)
 
 namelist / params / var_min, var_max, slave_list, table_file_name, make_plot, plot_size, &
                     controller_name, control_var, lat_file, n_var_points, postscript_file, &
-                    draw_knot_points
+                    draw_knot_points, text_scale
 
 ! Read input
 
@@ -39,6 +39,7 @@ table_file_name = 'table.dat'
 make_plot = .true.
 postscript_file = ''
 draw_knot_points = .true.
+text_scale = 1.2
 
 open (1, file = init_file, status = 'old')
 read (1, nml = params)
@@ -190,12 +191,23 @@ else
   call qp_open_page ('PS', id, plot_size(1), plot_size(2), 'POINTS', plot_file = postscript_file)
 endif
 
-call qp_set_page_border (0.02_rp, 0.02_rp, 0.02_rp, 0.02_rp, '%PAGE')
-call qp_set_margin (0.07_rp, 0.02_rp, 0.05_rp, 0.01_rp, '%PAGE')
+call qp_get_text_attrib ('AXIS_NUMBERS', height)
+call qp_set_text_attrib ('AXIS_NUMBERS', text_scale*height)
+
+call qp_get_text_attrib ('AXIS_LABEL', height)
+call qp_set_text_attrib ('AXIS_LABEL', text_scale*height)
+
+call qp_set_page_border (0.01_rp, 0.01_rp, 0.01_rp, 0.01_rp, '%PAGE')
+call qp_set_margin (0.10_rp, 0.02_rp, 0.07_rp, 0.01_rp, '%PAGE')
 call qp_set_box (1, 1, 1, 1)
 call qp_calc_and_set_axis ('X', var_min, var_max, 4, 8, 'GENERAL')
 call qp_calc_and_set_axis ('Y', minval(table(:,1:)), maxval(table(:,1:)), 4, 8, 'GENERAL')
-call qp_draw_axes (ele%control%var(ix_var)%name, 'Slave Value')
+if (n_slave == 1) then
+  call qp_draw_axes (ele%control%var(ix_var)%name, attrib_name(1))
+else
+  call qp_draw_axes (ele%control%var(ix_var)%name, 'Slave Value')
+endif
+
 do j = 1, n_slave
   call qp_set_line_attrib ('PLOT', color = line(j)%color)
   call qp_draw_data (table(:,0), table(:,j), .true., 0)
