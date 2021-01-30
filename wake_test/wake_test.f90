@@ -1,7 +1,7 @@
 program wake_test
 
 use beam_mod
-use wake_mod
+use bmad
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, ele_z1, ele_p1, ele_p2
