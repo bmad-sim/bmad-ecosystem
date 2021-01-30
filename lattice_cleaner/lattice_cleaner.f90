@@ -18,7 +18,6 @@
 program lattice_cleaner
 
 use bmad
-use write_lat_file_mod
 
 implicit none
 

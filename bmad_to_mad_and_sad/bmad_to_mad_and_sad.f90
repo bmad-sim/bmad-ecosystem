@@ -31,7 +31,6 @@
 program bmad_to_mad_and_sad
 
 use bmad
-use write_lat_file_mod
 
 implicit none
 
