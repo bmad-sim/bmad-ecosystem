@@ -1,7 +1,6 @@
 program bbu_program
 
 use bbu_track_mod
-use write_lat_file_mod
 
 implicit none
 
