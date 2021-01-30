@@ -16,6 +16,6 @@ implicit none
 character(*) line
 !
 
-call system (line)
+call execute_command_line (line)
 
 end subroutine

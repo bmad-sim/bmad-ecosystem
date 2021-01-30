@@ -144,7 +144,7 @@ type qp_state_struct
   type (qp_text_struct) :: graph_title= qp_text_struct(20.0, 'black', .false.)
   type (qp_text_struct) :: legend     = qp_text_struct(13.0, 'black', .false.)
   type (qp_text_struct) :: text       = qp_text_struct(18.0, 'black', .false.)
-  type (qp_text_struct) :: axis_number= qp_text_struct(10.0, 'black', .false.)
+  type (qp_text_struct) :: axis_number= qp_text_struct(12.0, 'black', .false.)
   type (qp_text_struct) :: axis_label = qp_text_struct(15.0, 'black', .false.)
   type (qp_text_struct) :: this_text  ! current settings.
   type (qp_symbol_struct) :: symbol 
