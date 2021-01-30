@@ -8,7 +8,6 @@ program parse_test
 
 use bmad
 use bmad_parser_mod
-use write_lat_file_mod
 
 implicit none
 
