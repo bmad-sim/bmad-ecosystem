@@ -95,7 +95,12 @@
 
 %----------------------------------------------------
 \begin{abstract}
-Abstract
+A numerical model for the behaviour of positron converters has been developed.
+This model simulates the fundamental physics of Bremsstrahlung radiation using the Geant4 toolkit, and produces a probabilistic model of the positrons produced in the converter.
+This model emulates the physics of the converter much faster than the Geant4 routines, making it suitable for use within \bmad.
+The model predicts the distribution of positions and momenta for outgoing positrons over a range of incoming electron energies and target thicknesses.
+Preliminary support for positron polarization tracking is also discussed.
+This model enables optimizations to accelerator lattices involving converters that were previously impossible in \bmad, which could allow increased positron yield for accelerators using a converter as their positron source.
 \end{abstract}
 
 %----------------------------------------------------
@@ -311,45 +316,79 @@ When more accurate spin tracking methods become available in Geant, this simulat
 %----------------------------------------------------
 \section{The Bmad Converter Element}
 
-\begin{itemize}
-\item
-Describe how simulation output is read into Bmad
+The converter simulation and fitting programs aggregate their results into a single output file.
+This output file provides \bmad \, with all of the binned data and fit parameters necessary to emulate the behaviour of the converter.
 
-\item
-Discuss Bmad's scheme for generating positrons from simulation output
+A converter element has been added to \bmad \, which uses the model developed here to simulate a positron converter.
+Previously, \bmad \, lattices could be constructed to model the elements upstream or downstream of a converter.
+Now, the converter element can be used to connect these lattices together, allowing for the simulation of an entire linac end-to-end.
 
-\item
-Compare Bmad/Geant distributiions?
+Since the converter simulation program samples a discrete set of incoming electron energies and target thickneses, \bmad \, performs interpolation to determine the correct behaviour of the converter for intermediate values.
+For each incoming electron, \bmad \, randomly pulls values of $p_+ c$, $r$, $\dxds$, and $\dyds$ from the interpolated probability distributions.
+The likelihood of producing a positron from the incoming electron is encoded in the weighting of the outgoing particle, a system which \bmad \, uses counting fractions of particles.
 
-\end{itemize}
+Agreement between direct output from Geant4 and emulated output from \bmad \, is quite good, with the distribution of particles from \bmad \, coming within a few percent of the Geant distributions.
+This is illustrated in Figure \ref{fig:bmad}. %TODO: make hard comparisons between bmad and geant
+This close agreement indicates that little accuracy is sacrificed in using the aggregate model of the converter.
+Moreover, \bmad \, simulates the positron converter approximately Y times faster than the direct Geant4 physics simulations. % TODO: run timing comparisons
+
+\begin{figure}
+\centering
+\includegraphics[width=0.45\textwidth]{p1}
+\caption{Placeholder figure for comparison between Geant and Bmad.}
+\label{fig:bmad}
+\end{figure}
+
+% \begin{itemize}
+% \item
+% Describe how simulation output is read into Bmad
+%
+% \item
+% Discuss Bmad's scheme for generating positrons from simulation output
+%
+% \item
+% Compare Bmad/Geant distributiions?
+%
+% \end{itemize}
 
 
 %----------------------------------------------------
-\section{Applications}
-
-\begin{itemize}
-\item
-CESR Linac lattice
-
-\item
-Optimizations could include
-\begin{itemize}
-\item
-Tuning quad/solenoid strengths
-
-\item
-Tuning element positions
-
-\end{itemize}
-
-\item
-Discuss increase in yield due to optimizations that were made possible by the converter element?
-
-\end{itemize}
+%\section{Applications}
+%
+%\begin{itemize}
+%\item
+%CESR Linac lattice
+%
+%\item
+%Optimizations could include
+%\begin{itemize}
+%\item
+%Tuning quad/solenoid strengths
+%
+%\item
+%Tuning element positions
+%
+%\end{itemize}
+%
+%\item
+%Discuss increase in yield due to optimizations that were made possible by the converter element?
+%
+%\end{itemize}
 
 
 %----------------------------------------------------
 \section{Conclusion}
+
+This method of modeling the positron converter provides simulation results that are in close agreement to Geant4's direct simulation of Bremsstrahlung radiation and pair production.
+A small sacrifice in accuracy is made in return for a significant increase in simulation speed, making this method appropriate for use in lattice simulation and optimization software such as \bmad.
+
+One of the primary motivators for this work was the desire to fully model the CESR linac lattice.
+Work is currently underway to do so using the model developed here.
+A first goal in this endeavour is to assess the agreement between the \bmad\,  model of the linac as a whole the linac's experimentally observed beam.
+Once good agreement is established, \bmad \, and Tao can be used to optimize the lattice design, including quadrupole and solenoid tuning.
+Other future applications could include the optimization of element positioning on the linac beam line.
+
+
 
 %--------------------------------------------------------------------------------------
 \section{Acknowledgments}
