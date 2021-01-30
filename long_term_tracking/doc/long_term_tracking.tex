@@ -194,7 +194,7 @@ turned on.
 \item["SINGLE"] \Newline
 In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The name of the data file is set
 by the \vn{ltt%particle_output_file} parameter (\sref{s:input}). The particle position will be output every
-\vn{ltt%output_every_n_turns} turns.
+\vn{ltt%particle_output_every_n_turns} turns.
 %
 \item["BUNCH"] \Newline
 In this mode a particle bunch is tracked for \vn{ltt%n_turns} turns. The output data file(s) format is
@@ -514,10 +514,9 @@ Example:
   ltt%averages_output_file = "average.dat"
   ltt%sigma_matrix_output_file = "sigma.dat"
   ltt%custom_output_file = ""
-  ltt%one_particle_output_file = False
-  ltt%output_every_n_turns = 200
+  ltt%average_output_every_n_turns = 200
+  ltt%particle_output_every_n_turns = 200
   ltt%averaging_window = 1
-  ltt%output_initial_position = False
   ltt%print_on_dead_loss = -1
   ltt%map_file_prefix = "ltt"
 
@@ -592,6 +591,20 @@ Name of the Bmad lattice file to use. This name is required.
 
 Parameters in the master input file that affect the output are:
 \begin{description}
+\item[ltt\%average_output_every_n_turns] \Newline
+Sets the number of turns between data rows specified by:
+\begin{code}
+  ltt%averages_output_file
+  ltt%sigma_matrix_output_file
+  ltt%custom_output_file
+\end{code}
+If set to -1 (the default), the output will only happen at the last turn. If set to 0, output will
+happen on the beginning turn (turn 0) and the last turn. Example:
+\begin{code}
+  ltt%average_output_every_n_turns = 1000
+\end{code}
+In this example, output will happen every 1000 turns.  Also see: \vn{particle_output_every_n_turns}.
+%
 \item[ltt\%averaging_window] \Newline
 Number of turns to average over when computing beam sigma matrix and averaged positions. Default is
 1. This affects the files specified by: 
@@ -602,7 +615,7 @@ Number of turns to average over when computing beam sigma matrix and averaged po
 
 For example:
 \begin{code}
-  ltt%output_every_n_turns = 1000
+  ltt%average_output_every_n_turns = 1000
   ltt%averaging_window = 201
   ltt%n_turns = 20040
 \end{code}
@@ -636,8 +649,8 @@ Note: The file \vn{ltt%sigma_matrix_output_file} will show the 6x6 sigma matrix.
 %
 \item[ltt\%custom_output_file]\Newline
 A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
-$N$ is set by \vn{ltt%output_every_n_turns}. Columns are specified by setting \vn{ltt%column(<i>)}. The general
-syntax is:
+$N$ is set by \vn{ltt%average_output_every_n_turns}. Columns are specified by setting
+\vn{ltt%column(<i>)}. The general syntax is:
 \begin{code}
   ltt%column(<i>) = "<expression>", "<header-name>",  "<format>"
 \end{code}
@@ -681,36 +694,22 @@ where \vn{<hash>} is a hash string that represents input parameters (like the or
 to compute the map(s). This hash string is used so that map(s) constructed with one set of
 parameters are not used if the parameters are changed.
 %
-\item[ltt\%one_particle_output_file] \Newline
-If set to \vn{True}, all the particle data will be put in one \vn{ltt%particle_output_file} file. Only
-relevant for \vn{"BEAM"} tracking.  See Section~\sref{s:part.out}.
-%
-\item[ltt\%output_every_n_turns] \Newline
-Sets the number of turns between data rows specified by:
+\item[ltt\%particle_output_every_n_turns] \Newline
+Sets the number of turns between particle position data files.
+If set to -1 (the default), a file will only be generated at the last turn. If set to 0, a file 
+will be generated at the beginning turn (turn 0) and at the last turn. Example:
 \begin{code}
-  ltt%averages_output_file
-  ltt%particle_output_file
-  ltt%custom_output_file
-\end{code}
-If set to -1 (the default), the output will only happen at the last turn. If set to 0, output will
-happen on the beginning turn (turn 0) and the last turn. Example:
-\begin{code}
-  ltt%output_every_n_turns = 1000
+  ltt%particle_output_every_n_turns = 1000
 \end{code}
 In this example, output will happen every 1000 turns.
-%
-\item[ltt\%output_initial_position] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. If \vn{ltt%output_initial_position} is set to
-\vn{True}, additional columns will be added to the output tracking data file to show the initial
-particle position and spin. Default is \vn{False}. See Section~\sref{s:part.out}.
+Also see: \vn{average_output_every_n_turns}.
 %
 \item[ltt\%particle_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the ASCII file or files that are
-created to hold the particle positions. If \vn{ltt%one_particle_output_file} is set to False, a
-file is created every \vn{ltt%ouput_every_n_turns} turns.  If \vn{ltt%merge_particle_ouput_files} is
-set to True, the files are combined into one. See Section~\sref{s:part.out} for more details. If
-\vn{ltt%particle_ouput_file} is blank, no particle output file is created. See also
-\vn{ltt%bunch_binary_output_file} which will produce a portable binary file.
+created to hold the particle positions. A file is created every \vn{ltt%ouput_every_n_turns}
+turns. See Section~\sref{s:part.out} for more details. If \vn{ltt%particle_ouput_file} is blank, no
+particle output file is created. See also \vn{ltt%bunch_binary_output_file} which will produce a
+portable binary file.
 %
 \item[ltt\%print_on_dead_loss] \Newline
 After each turn, the number of particles that are still living (have not hit an aperture) are
@@ -883,26 +882,17 @@ The following describes the particle data output format. Particle data is output
 Particle data is always recorded when the beam is at the \vn{ltt%ele_start} position independent of
 where the lattice begins and ends.
 
-With \vn{ltt%one_particle_output_file} set to \vn{False}, an output data file will be produced
-every \vn{ltt%output_every_n_turns} turns. Each line in this file records a particle's orbital and
-spin position. The name of the data file is derived from the \vn{ltt%particle_output_file} string.
-If \vn{ltt%particle_output_file} contains a hash character ''\#'', the
-data file name is formed by substituting the turn number for the hash token. If there is no hash
-character, the data file name is formed by appending the turn number to the
+An output data file will be produced every \vn{ltt%particle_output_every_n_turns} turns. Each line in this
+file records a particle's orbital and spin position. The name of the data file is derived from the
+\vn{ltt%particle_output_file} string.  If \vn{ltt%particle_output_file} contains a hash character
+''\#'', the data file name is formed by substituting the turn number for the hash token. If there is
+no hash character, the data file name is formed by appending the turn number to the
 \vn{ltt%particle_output_file} string.
 
-With \vn{ltt%one_particle_output_file} set to \vn{True}, instead of generating multiple files
-over multiple turns, all data is put into one file whose name is given by
-\vn{ltt%particle_output_file}. In this case, a hash character in the file name is not treated as
-a special character.
-
-Nominally particle data is recorded every \vn{ltt%output_every_n_turns} number of turns. However, if
-\vn{ltt%output_every_n_turns} is set to 0, particle data is recorded only at the start and end of
-the tracking. If \vn{ltt%output_every_n_turns} is set to -1, particle data is only recorded at the
+Nominally particle data is recorded every \vn{ltt%particle_output_every_n_turns} number of turns. However, if
+\vn{ltt%particle_output_every_n_turns} is set to 0, particle data is recorded only at the start and end of
+the tracking. If \vn{ltt%particle_output_every_n_turns} is set to -1, particle data is only recorded at the
 end of tracking.
-
-If \vn{ltt%output_initial_position} is set to \vn{True}, additional columns will be added to the
-output particle data file to show the initial particle position and spin.
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}

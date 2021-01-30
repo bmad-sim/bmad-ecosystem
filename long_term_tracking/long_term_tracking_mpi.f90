@@ -2,6 +2,7 @@ program long_term_tracking
 
 use lt_tracking_mod
 use mpi
+use directory_mod
 
 implicit none
 
@@ -13,20 +14,24 @@ type (ltt_sum_data_struct) sum_data
 type (ltt_sum_data_struct), pointer :: sd
 type (ele_struct), pointer :: ele_start
 type (lat_struct), pointer :: lat
-type (beam_struct), target :: beam
+type (beam_struct), target :: beam, beam2
 type (bunch_struct), pointer :: bunch
 type (bunch_struct) :: bunch0
+type (coord_struct) orb
 
 real(rp) time_now, mpi_particles_per_run
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
-integer i, n, ix, ierr, rc, leng, sd_arr_dat_size, storage_size, dat_size
-integer ix0_p, ix1_p, mpi_n_proc, n_pass
+integer i, n, nn, ix, ierr, rc, leng, sd_arr_dat_size, storage_size, dat_size
+integer ix0_p, ix1_p, mpi_n_proc, n_pass, ix_path, n_out, iu, ios, i_turn
+integer, allocatable :: turn(:)
 
-logical am_i_done, err_flag
+logical am_i_done, err_flag, ok
 logical, allocatable :: slave_is_done(:)
 
-character(80) line
+character(100) line, path, basename
+character(40) file
+character(40), allocatable :: file_list(:)
 character(MPI_MAX_PROCESSOR_NAME) name
 
 ! Initialize MPI
@@ -87,20 +92,10 @@ case ('BUNCH');  ! Handled below. Only the BUNCH simulation mode uses mpi.
 case default;    print *, 'BAD SIMULATION_MODE: ' // lttp%simulation_mode
 end select
 
-!
-
-if (ltt_com%using_mpi .and. lttp%output_every_n_turns < 1) then
-  if (ltt_com%mpi_rank == 0) print *, 'OUTPUT_EVERY_N_TURNS MUST BE POSITIVE WHEN USING MPI!'
-  stop
-endif
-
-if (ltt_com%using_mpi .and. lttp%averages_output_file == '') then
-  if (ltt_com%mpi_rank == 0) print *, 'AVERAGES_OUPUT_FILE MUST BE SET WHEN USING MPI!'
-  stop
-endif
+! Not using mpi if there is only one thread.
 
 if (.not. ltt_com%using_mpi) then
-  print '(a, i0)', 'Number of processes (including Master): ', mpi_n_proc
+  print '(a, i0)', 'Number of threads is one!'
   call ltt_run_bunch_mode(lttp, ltt_com, beam_init)  ! Beam tracking
   stop
 endif
@@ -109,7 +104,7 @@ endif
 ! MPI BUNCH simulation
 
 ix_path = splitfilename (lttp%particle_output_file, path, basename)
-ltt_com%mpi_data_dir = trim(path) // 'MPI_DATA'
+ltt_com%mpi_data_dir = trim(path) // 'MPI_DATA/'
 
 !
 
@@ -144,7 +139,7 @@ if (ltt_com%mpi_rank == master_rank$) then
     call mpi_send (n, 1, MPI_INTEGER, i, num_tag$, MPI_COMM_WORLD, ierr)
     call mpi_send (ix0_p, 1, MPI_INTEGER, i, num_tag$, MPI_COMM_WORLD, ierr)
     call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial positions to slave: ' // int_str(i) // &
-                                                '  For particles: [' // int_str(ix0_p) // ':' // int_str(ix1_p) // ']', .true.)
+                                                '  For particles: [' // int_str(ix0_p+1) // ':' // int_str(ix1_p) // ']', .true.)
     call mpi_send (bunch%particle(ix0_p+1:ix1_p), dat_size, MPI_BYTE, i, particle_tag$, MPI_COMM_WORLD, ierr)
     ix0_p = ix1_p
   enddo
@@ -191,20 +186,71 @@ if (ltt_com%mpi_rank == master_rank$) then
     call mpi_send (n, 1, MPI_INTEGER, slave_rank, num_tag$, MPI_COMM_WORLD, ierr)
     call mpi_send (ix0_p, 1, MPI_INTEGER, slave_rank, num_tag$, MPI_COMM_WORLD, ierr)
     call ltt_print_mpi_info (lttp, ltt_com, 'Master: Initial positions to slave: ' // int_str(slave_rank) // &
-                                                 '  For particles: [' // int_str(ix0_p) // ':' // int_str(ix1_p) // ']', .true.)
+                                                 '  For particles: [' // int_str(ix0_p+1) // ':' // int_str(ix1_p) // ']', .true.)
     call mpi_send (bunch%particle(ix0_p+1:ix1_p), dat_size, MPI_BYTE, slave_rank, particle_tag$, MPI_COMM_WORLD, ierr)
 
     ix0_p = ix1_p
   enddo
 
-  ! Write results and quit
+  ! Write results
 
   call ltt_write_bunch_averages (lttp, sum_data_arr)
   call ltt_write_sigma_matrix (lttp, sum_data_arr)
   call ltt_print_mpi_info (lttp, ltt_com, 'Master: All done!', .true.)
   call mpi_finalize(ierr)
 
+  ! Gather particle data files
+
+  ok = dir_list (ltt_com%mpi_data_dir, file_list)
+  iu = lunget()
+
+  if (lttp%particle_output_file /= '') then
+    n_out = 0   ! Number of output files to generage
+    allocate (turn(size(file_list)))
+    do i = 1, size(file_list)
+      file = file_list(i)
+      if (file(1:1) == 'b') cycle
+      ix = index(file, '_')
+      read (file(1:ix-1), *) n
+      if (any(n == turn(1:n_out))) cycle
+      n_out = n_out + 1
+      turn(n_out) = n
+    enddo
+
+    do nn = 1, n_out
+      do i = 1, size(file_list)
+        file = file_list(i)
+        if (file(1:1) == 'b') cycle
+        ix = index(file, '_')
+        read (file(1:ix-1), *) n
+        if (n /= turn(nn)) cycle
+        open (iu, file = trim(ltt_com%mpi_data_dir) // file, status = 'OLD')
+        do
+          read (iu, '()', iostat = ios) ix, i_turn, orb%vec, orb%spin, orb%state
+          if (ios /= 0) exit
+          bunch%particle(ix) = orb
+        enddo
+        close (iu)
+      enddo
+      call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, .false.)
+    enddo
+  endif
+
+  if (lttp%bunch_binary_output_file /= '') then
+    do i = 1, size(file_list)
+      file = file_list(i)
+      if (file(1:1) /= 'b') cycle
+      call hdf5_read_beam(trim(ltt_com%mpi_data_dir) // file, beam2, err_flag)
+      read (file(2:), *) ix
+      n = size(beam2%bunch(1)%particle)
+      bunch%particle(ix+1:ix+n) = beam2%bunch(1)%particle
+    enddo
+    call write_beam_file (lttp%bunch_binary_output_file, beam)
+  endif
+
 !!  call system_command ('rm -rf ltt_com%mpi_data_dir')
+
+  ! And end
 
   call run_timer ('ABS', time_now)
   print '(a, f8.2)', 'Tracking time (min):', (time_now - ltt_com%time_start) / 60
