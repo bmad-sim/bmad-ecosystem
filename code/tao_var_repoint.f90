@@ -6,7 +6,7 @@
 
 subroutine tao_var_repoint ()
 
-use tao_struct
+use tao_interface, dummy => tao_var_repoint
 
 implicit none
 

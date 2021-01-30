@@ -270,7 +270,7 @@ call output_direct (-1, print_and_capture=s%com%print_to_terminal)
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
 if (bmad_com%radiation_fluctuations_on .and. s%global%track_type == 'single') then
-  call out_io (s_info$, r_name, 'Note: Radiation fluctuations are always turned off for single particle tracking...')
+  call out_io (s_info$, r_name, 'Note: Radiation fluctuations (but not necessarily damping) are always turned off for single particle tracking...')
 endif
 
 ! Calculate radiation integrals.

@@ -15,7 +15,6 @@ use tao_plot_mod, only: tao_draw_plots
 use tao_top10_mod, only: tao_var_write
 
 use quick_plot, only: qp_open_page, qp_base_library, qp_close_page
-use write_lat_file_mod, only: write_lattice_in_foreign_format, write_bmad_lattice_file
 use blender_interface_mod, only: write_blender_lat_layout
 use madx_ptc_module, only: m_u, m_t, print_universe_pointed, &
                            print_complex_single_structure, print_new_flat, print_universe
@@ -71,7 +70,7 @@ call match_word (action, [character(20):: &
               'hard', 'gif', 'ps', 'variable', 'bmad_lattice', 'derivative_matrix', 'digested', &
               'curve', 'mad_lattice', 'beam', 'ps-l', 'hard-l', 'covariance_matrix', &
               'mad8_lattice', 'madx_lattice', 'pdf', 'pdf-l', 'opal_lattice', '3d_model', 'gif-l', &
-              'ptc', 'sad_lattice', 'blender', 'namelist'], ix, .true., matched_name = action)
+              'ptc', 'sad_lattice', 'blender', 'namelist', 'xsif_lattice'], ix, .true., matched_name = action)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
@@ -453,8 +452,8 @@ case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice
   case ('mad_lattice');   file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
   case ('mad8_lattice');  file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
   case ('madx_lattice');  file_name0 = 'lat_#.madx'; lat_type = 'MAD-X'
-  case ('opal_latice');   file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
-  case ('xsif_latice');   file_name0 = 'lat_#.xsif'; lat_type = 'XSIF'
+  case ('opal_lattice');  file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
+  case ('xsif_lattice');  file_name0 = 'lat_#.xsif'; lat_type = 'XSIF'
   case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
   end select
 
