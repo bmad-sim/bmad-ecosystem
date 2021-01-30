@@ -32,6 +32,8 @@ type ltt_column_struct
   character(20) :: format = ''
 end type
 
+! User settable parameters
+
 type ltt_params_struct
   character(20) :: simulation_mode = ''       ! CHECK, SINGLE, BUNCH, STAT
   character(20) :: tracking_method = 'BMAD'   ! MAP, PTC, BMAD
@@ -83,7 +85,7 @@ type ltt_section_struct
   type (ele_struct), pointer :: ele => null()
 end type
 
-! common vars
+! Common vars
 
 type ltt_com_struct
   type (lat_struct) :: lat
@@ -97,11 +99,14 @@ type ltt_com_struct
   integer :: ix_branch = 0                   ! Lattice branch being tracked.
   real(rp) :: ptc_closed_orb(6) = 0
   real(rp) :: time_start = 0
+  logical :: wrote_particle_file_header = .false.
   logical :: ramp_in_track1_preprocess = .false.
   logical :: debug = .false.
   integer :: mpi_rank = master_rank$
   integer :: mpi_run_index = 0                 ! Run index
+  integer :: mpi_ix0_particle = 0              ! Index of first particle
   logical :: using_mpi = .false.
+  character(200) :: mpi_data_dir = ''          ! Temporary directory For storing particle position data when running with mpi.
 end type
 
 integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
@@ -297,6 +302,13 @@ if (ltt%ramping_on) then
     stop
   endif
 endif
+
+!
+
+call fullfilename (ltt%common_master_input_file, ltt%common_master_input_file)
+call fullfilename (ltt%particle_output_file, ltt%particle_output_file)
+call fullfilename (ltt%sigma_matrix_output_file, ltt%sigma_matrix_output_file)
+call fullfilename (ltt%custom_output_file, ltt%custom_output_file)
 
 end subroutine ltt_init_params
 
@@ -748,7 +760,8 @@ n_live_old = size(bunch%particle)
 
 ! 
 
-if (.not. ltt_com%using_mpi) call ltt_write_particle_data (lttp, ltt_com, 0, bunch, bunch_init)
+call ltt_write_particle_data (lttp, ltt_com, 0, bunch, bunch_init)
+
 ! If using mpi then this data will all be written out at the end.
 ! Here partial writes are used so the user can monitor progress if they want.
 call ltt_calc_bunch_sums (lttp, 0, bunch, sum_data_arr)
@@ -813,12 +826,14 @@ do i_turn = 1, lttp%n_turns
     time1 = time_now
   endif
 
-  call ltt_calc_bunch_sums (lttp, i_turn, bunch, sum_data_arr)
+  call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
 
   ! If using mpi then this data will all be written out at the end.
   ! Here partial writes are used so the user can monitor progress if they want.
+
+  call ltt_calc_bunch_sums (lttp, i_turn, bunch, sum_data_arr)
+
   if (.not. ltt_com%using_mpi) then
-    call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, bunch_init)
     call ltt_write_bunch_averages(lttp, sum_data_arr)
     call ltt_write_sigma_matrix (lttp, sum_data_arr)
     where (sum_data_arr%status == valid$) sum_data_arr%status = written$
@@ -828,8 +843,12 @@ do i_turn = 1, lttp%n_turns
                           ltt_com%mpi_run_index == 1) call ltt_write_custom (i_turn, lttp, ltt_com, bunch = bunch)
 end do
 
-if (.not. ltt_com%using_mpi) then
-  if (lttp%bunch_binary_output_file /= '') call write_beam_file (lttp%bunch_binary_output_file, beam)
+if (lttp%bunch_binary_output_file /= '') then
+  if (ltt_com%using_mpi) then
+    call write_beam_file (trim(ltt_com%mpi_data_dir) // 'binary_' // int_str(ltt_com%mpi_rank), beam)
+  else
+    call write_beam_file (lttp%bunch_binary_output_file, beam)
+  endif
 endif
 
 if (present(sum_data_array)) sum_data_array = sum_data_arr
@@ -948,7 +967,7 @@ type (bunch_struct), target :: bunch, bunch_init
 type (coord_struct), pointer :: p, p0
 
 integer i_turn, ix, ip, j
-integer, save :: iu_part = 0
+integer iu_part
 
 character(200) file_name
 character(40) fmt
@@ -960,21 +979,32 @@ if (lttp%output_every_n_turns == -1 .and. i_turn /= lttp%n_turns) return
 if (lttp%output_every_n_turns == 0 .and. i_turn /= 0 .and. i_turn /= lttp%n_turns) return
 if (lttp%output_every_n_turns > 0 .and. modulo(i_turn, lttp%output_every_n_turns) /= 0) return
 
-if (iu_part == 0) then
-  if (lttp%one_particle_output_file) then
-    file_name = lttp%particle_output_file
-  else
-    j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
-    write (fmt, '(a, i0, a, i0, a)') '(a, i', j, '.', j, ', a)'
-    ix = index(lttp%particle_output_file, '#')
-    if (ix == 0) then
-      write (file_name, fmt) trim(lttp%particle_output_file), i_turn
-    else
-      write (file_name, fmt) lttp%particle_output_file(1:ix-1), i_turn, trim(lttp%particle_output_file(ix+1:))
-    endif
-  endif
+!
 
-  iu_part = lunget()
+if (ltt_com%using_mpi) then
+  file_name = trim(ltt_com%mpi_data_dir) // int_str(ltt_com%mpi_rank) // '_' // int_str(ltt_com%mpi_run_index) // '_' // int_str(i_turn)
+elseif (lttp%one_particle_output_file) then
+  file_name = lttp%particle_output_file
+else
+  j = int(log10(real(lttp%n_turns, rp)) + 1 + 1d-10)
+  write (fmt, '(a, i0, a, i0, a)') '(a, i', j, '.', j, ', a)'
+  ix = index(lttp%particle_output_file, '#')
+  if (ix == 0) then
+    write (file_name, fmt) trim(lttp%particle_output_file), i_turn
+  else
+    write (file_name, fmt) lttp%particle_output_file(1:ix-1), i_turn, trim(lttp%particle_output_file(ix+1:))
+  endif
+endif
+
+!
+
+iu_part = lunget()
+
+if (ltt_com%using_mpi) then
+  open (iu_part, file = file_name, recl = 300)
+elseif (lttp%one_particle_output_file .and. ltt_com%wrote_particle_file_header) then
+  open (iu_part, file = file_name, recl = 300, position = 'APPEND')
+else
   open (iu_part, file = file_name, recl = 300)
   call ltt_write_params_header(lttp, ltt_com, iu_part, size(bunch%particle))
 
@@ -986,17 +1016,22 @@ if (iu_part == 0) then
   endif
 endif
 
+ltt_com%wrote_particle_file_header = .true.
+
+!
+
 do ip = 1, size(bunch%particle)
   p0 => bunch_init%particle(ip)
   p => bunch%particle(ip)
+  ix = ip + ltt_com%mpi_ix0_particle
   if (lttp%output_initial_position) then
-    write (iu_part, '(i9, i9, 2(6es16.8, 3x, 3f10.6, 4x), a)') ip, i_turn, p0%vec, p0%spin, p%vec, p%spin, trim(coord_state_name(p%state))
+    write (iu_part, '(i9, i9, 2(6es16.8, 3x, 3f10.6, 4x), a)') ix, i_turn, p0%vec, p0%spin, p%vec, p%spin, trim(coord_state_name(p%state))
   else
-    write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ip, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
+    write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
   endif
 enddo
 
-if (.not. lttp%one_particle_output_file) then
+if (ltt_com%using_mpi .or. .not. lttp%one_particle_output_file) then
   close(iu_part)
   iu_part = 0
 endif
