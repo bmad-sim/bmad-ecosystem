@@ -54,7 +54,7 @@ type ltt_params_struct
   integer :: map_order = -1
   integer :: averaging_window = 1
   integer :: particle_output_every_n_turns = -1
-  integer :: average_output_every_n_turns = -1
+  integer :: averages_output_every_n_turns = -1
   real(rp) :: ramping_start_time
   real(rp) :: ptc_aperture(2) = 0.1
   real(rp) :: print_on_dead_loss = -1
@@ -427,7 +427,7 @@ print '(a, l1)',   'bmad_com%radiation_fluctuations_on: ', bmad_com%radiation_fl
 print '(a, l1)',   'bmad_com%spin_tracking_on:          ', bmad_com%spin_tracking_on
 print '(a, i8)',   'ltt%n_turns:                        ', lttp%n_turns
 print '(a, i8)',   'ltt%particle_output_every_n_turns:  ', lttp%particle_output_every_n_turns
-print '(a, i8)',   'ltt%average_output_every_n_turns:   ', lttp%average_output_every_n_turns
+print '(a, i8)',   'ltt%averages_output_every_n_turns:  ', lttp%averages_output_every_n_turns
 print '(a, l1)',   'ltt%ramping_on:                     ', lttp%ramping_on
 print '(2a)',      'ltt%ramping_start_time:             ', real_str(lttp%ramping_start_time, 6)
 print '(a, i8)',   'ltt%averaging_window:               ', lttp%averaging_window
@@ -712,6 +712,7 @@ integer ip, n_live_old, n_live, ix_branch
 logical err_flag, is_lost
 
 character(16) prefix_str
+character(200) file_name
 
 ! Init
 
@@ -842,10 +843,11 @@ end do
 
 if (lttp%bunch_binary_output_file /= '') then
   if (ltt_com%using_mpi) then
-    call write_beam_file (trim(ltt_com%mpi_data_dir) // 'binary_' // int_str(ltt_com%mpi_rank), beam)
+    file_name = trim(ltt_com%mpi_data_dir) // 'b' // int_str(ltt_com%mpi_ix0_particle)
   else
-    call write_beam_file (lttp%bunch_binary_output_file, beam)
+    file_name = lttp%bunch_binary_output_file
   endif
+  call hdf5_write_beam (file_name, [bunch], .false., err_flag)
 endif
 
 if (present(sum_data_array)) sum_data_array = sum_data_arr
@@ -1054,7 +1056,7 @@ character(4) code
 
 !
 
-select case (lttp%average_output_every_n_turns)
+select case (lttp%averages_output_every_n_turns)
 ! Stats only for end.
 case (-1)
   if (i_turn /= lttp%n_turns) return
@@ -1063,16 +1065,16 @@ case (-1)
 case (0)
   if (i_turn /= 0 .and. i_turn /= lttp%n_turns) return
 
-! Stats for every %average_output_every_n_turns 
+! Stats for every %averages_output_every_n_turns 
 case default
-  if (mod(i_turn, lttp%average_output_every_n_turns) /= 0) return
+  if (mod(i_turn, lttp%averages_output_every_n_turns) /= 0) return
 end select
 
 !
 
 iu = lunget()
 
-if (i_turn == 0 .or. lttp%average_output_every_n_turns == -1) then
+if (i_turn == 0 .or. lttp%averages_output_every_n_turns == -1) then
   open (iu, file = lttp%custom_output_file, recl = 1000)
   line = '#'
   do i = 1, size(lttp%column)
@@ -1193,23 +1195,23 @@ integer iu, n_particle
 
 !
 
-write (iu,  '(3a)')      '# lattice                       = ', quote(lttp%lat_file)
-write (iu,  '(3a)')      '# simulation_mode               = ', quote(lttp%simulation_mode)
-write (iu,  '(a, i8)')   '# n_particle                    = ', n_particle
-write (iu,  '(a, i8)')   '# n_turns                       = ', lttp%n_turns
-write (iu,  '(a, l1)')   '# ramping_on                    = ', lttp%ramping_on
-write (iu,  '(2a)')      '# ramping_start_time            = ', real_str(lttp%ramping_start_time, 6)
-write (iu,  '(a, i8)')   '# particle_output_every_n_turns = ', lttp%particle_output_every_n_turns
-write (iu,  '(a, i8)')   '# average_output_every_n_turns  = ', lttp%average_output_every_n_turns
-write (iu,  '(a, i8)')   '# averaging_window              = ', lttp%averaging_window
-write (iu,  '(a, l1)')   '# Radiation_Damping_on          = ', bmad_com%radiation_damping_on
-write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on     = ', bmad_com%radiation_fluctuations_on
-write (iu,  '(a, l1)')   '# Spin_tracking_on              = ', bmad_com%spin_tracking_on
-write (iu, '(3a)')       '# Map_file_prefix               = ', quote(lttp%map_file_prefix)
+write (iu,  '(3a)')      '# lattice                        = ', quote(lttp%lat_file)
+write (iu,  '(3a)')      '# simulation_mode                = ', quote(lttp%simulation_mode)
+write (iu,  '(a, i8)')   '# n_particle                     = ', n_particle
+write (iu,  '(a, i8)')   '# n_turns                        = ', lttp%n_turns
+write (iu,  '(a, l1)')   '# ramping_on                     = ', lttp%ramping_on
+write (iu,  '(2a)')      '# ramping_start_time             = ', real_str(lttp%ramping_start_time, 6)
+write (iu,  '(a, i8)')   '# particle_output_every_n_turns  = ', lttp%particle_output_every_n_turns
+write (iu,  '(a, i8)')   '# averages_output_every_n_turns  = ', lttp%averages_output_every_n_turns
+write (iu,  '(a, i8)')   '# averaging_window               = ', lttp%averaging_window
+write (iu,  '(a, l1)')   '# Radiation_Damping_on           = ', bmad_com%radiation_damping_on
+write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on      = ', bmad_com%radiation_fluctuations_on
+write (iu,  '(a, l1)')   '# Spin_tracking_on               = ', bmad_com%spin_tracking_on
+write (iu, '(3a)')       '# Map_file_prefix                = ', quote(lttp%map_file_prefix)
 if (lttp%tracking_method == 'MAP') then
-  write (iu, '(a, i0)')  '# map_order                     = ', ltt_com%sec(1)%map%map_order
-  write (iu, '(a, a)')   '# exclude_from_maps             = ', lttp%exclude_from_maps
-  write (iu, '(a, l1)')  '# split_bends_for_radiation     = ', lttp%split_bends_for_radiation
+  write (iu, '(a, i0)')  '# map_order                      = ', ltt_com%sec(1)%map%map_order
+  write (iu, '(a, a)')   '# exclude_from_maps              = ', lttp%exclude_from_maps
+  write (iu, '(a, l1)')  '# split_bends_for_radiation      = ', lttp%split_bends_for_radiation
 endif
 write (iu, '(a)') '#'
 
@@ -1226,10 +1228,10 @@ type (ltt_sum_data_struct), allocatable, target :: sum_data_arr(:)
 
 !
 
-select case (lttp%average_output_every_n_turns)
+select case (lttp%averages_output_every_n_turns)
 case (-1);      allocate (sum_data_arr(1))    ! Stats only for end.
 case (0);       allocate (sum_data_arr(0:1))  ! Stats for beginning and end
-case default;   allocate (sum_data_arr(0:1+lttp%n_turns/lttp%average_output_every_n_turns)) ! Stats for every %average_output_every_n_turns 
+case default;   allocate (sum_data_arr(0:1+lttp%n_turns/lttp%averages_output_every_n_turns)) ! Stats for every %averages_output_every_n_turns 
 end select
 
 end subroutine ltt_allocate_sum_array
@@ -1252,7 +1254,7 @@ integer i, j, ix, i_turn, this_turn, n2w
 if (lttp%averages_output_file == '') return
 if (.not. allocated(sum_data_arr)) call ltt_allocate_sum_array (lttp, sum_data_arr)
 
-select case (lttp%average_output_every_n_turns)
+select case (lttp%averages_output_every_n_turns)
 ! Stats only for end.
 case (-1)
   ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
@@ -1263,9 +1265,9 @@ case (0)
   ix = in_this_window(i_turn, lttp%n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 0) return   ! Out of window. Do not do any averaging
 
-! Stats for every %average_output_every_n_turns 
+! Stats for every %averages_output_every_n_turns 
 case default
-  ix = in_this_window(i_turn, lttp%average_output_every_n_turns, lttp%averaging_window, sum_data_arr)
+  ix = in_this_window(i_turn, lttp%averages_output_every_n_turns, lttp%averaging_window, sum_data_arr)
   if (ix < 0) return   ! Out of window. Do not do any averaging
 end select
 
