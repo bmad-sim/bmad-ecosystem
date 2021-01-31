@@ -249,7 +249,7 @@ if (ltt_com%mpi_rank == master_rank$) then
     call write_beam_file (lttp%bunch_binary_output_file, beam)
   endif
 
-  call system_command ('rm -rf ltt_com%mpi_data_dir')
+  call system_command ('rm -rf ' // trim(ltt_com%mpi_data_dir))
 
   ! And end
 
