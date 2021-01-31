@@ -104,7 +104,7 @@ endif
 ! MPI BUNCH simulation
 
 ix_path = splitfilename (lttp%particle_output_file, path, basename)
-ltt_com%mpi_data_dir = trim(path) // 'MPI_DATA/'
+ltt_com%mpi_data_dir = trim(path) // 'mpi_temp_dir/'
 
 !
 
@@ -226,12 +226,13 @@ if (ltt_com%mpi_rank == master_rank$) then
         if (n /= turn(nn)) cycle
         open (iu, file = trim(ltt_com%mpi_data_dir) // file, status = 'OLD')
         do
-          read (iu, '()', iostat = ios) ix, i_turn, orb%vec, orb%spin, orb%state
+          read (iu, *, iostat = ios) ix, i_turn, orb%vec, orb%spin, orb%state
           if (ios /= 0) exit
           bunch%particle(ix) = orb
         enddo
         close (iu)
       enddo
+      print *, 'Here:', i_turn, turn(nn)
       call ltt_write_particle_data (lttp, ltt_com, i_turn, bunch, .false.)
     enddo
   endif
@@ -248,7 +249,7 @@ if (ltt_com%mpi_rank == master_rank$) then
     call write_beam_file (lttp%bunch_binary_output_file, beam)
   endif
 
-!!  call system_command ('rm -rf ltt_com%mpi_data_dir')
+  call system_command ('rm -rf ltt_com%mpi_data_dir')
 
   ! And end
 

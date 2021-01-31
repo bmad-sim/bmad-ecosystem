@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ January 18, 2021}
+\date{David Sagan \\ January 30, 2021}
 \begin{document}
 \maketitle
 
@@ -514,7 +514,7 @@ Example:
   ltt%averages_output_file = "average.dat"
   ltt%sigma_matrix_output_file = "sigma.dat"
   ltt%custom_output_file = ""
-  ltt%average_output_every_n_turns = 200
+  ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
   ltt%averaging_window = 1
   ltt%print_on_dead_loss = -1
@@ -591,7 +591,7 @@ Name of the Bmad lattice file to use. This name is required.
 
 Parameters in the master input file that affect the output are:
 \begin{description}
-\item[ltt\%average_output_every_n_turns] \Newline
+\item[ltt\%averages_output_every_n_turns] \Newline
 Sets the number of turns between data rows specified by:
 \begin{code}
   ltt%averages_output_file
@@ -601,7 +601,7 @@ Sets the number of turns between data rows specified by:
 If set to -1 (the default), the output will only happen at the last turn. If set to 0, output will
 happen on the beginning turn (turn 0) and the last turn. Example:
 \begin{code}
-  ltt%average_output_every_n_turns = 1000
+  ltt%averages_output_every_n_turns = 1000
 \end{code}
 In this example, output will happen every 1000 turns.  Also see: \vn{particle_output_every_n_turns}.
 %
@@ -615,7 +615,7 @@ Number of turns to average over when computing beam sigma matrix and averaged po
 
 For example:
 \begin{code}
-  ltt%average_output_every_n_turns = 1000
+  ltt%averages_output_every_n_turns = 1000
   ltt%averaging_window = 201
   ltt%n_turns = 20040
 \end{code}
@@ -649,7 +649,7 @@ Note: The file \vn{ltt%sigma_matrix_output_file} will show the 6x6 sigma matrix.
 %
 \item[ltt\%custom_output_file]\Newline
 A custom output file can be created that records beam and lattice parameters every $N$\Th turn where
-$N$ is set by \vn{ltt%average_output_every_n_turns}. Columns are specified by setting
+$N$ is set by \vn{ltt%averages_output_every_n_turns}. Columns are specified by setting
 \vn{ltt%column(<i>)}. The general syntax is:
 \begin{code}
   ltt%column(<i>) = "<expression>", "<header-name>",  "<format>"
@@ -702,7 +702,7 @@ will be generated at the beginning turn (turn 0) and at the last turn. Example:
   ltt%particle_output_every_n_turns = 1000
 \end{code}
 In this example, output will happen every 1000 turns.
-Also see: \vn{average_output_every_n_turns}.
+Also see: \vn{averages_output_every_n_turns}.
 %
 \item[ltt\%particle_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the ASCII file or files that are
