@@ -2,6 +2,63 @@ module directory_mod
 
 contains
 
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Function dir_list (dir_name, file_list) result (ok)
+!
+! Routine to return a list of files/subdirectories within a given directory.
+!
+! Input:
+!   dir_name     -- character(*): Directory name.
+!
+! Output:
+!   file_list(:) -- character(*), allocatable: A list of files/subdirectories.
+!                     Files "." and ".." will not appear in the list.
+!                     File names will not contain the path name.
+!   ok           -- logical: True if everything is OK.
+!-
+
+function dir_list (dir_name, file_list) result (ok)
+
+use re_allocate_mod
+
+implicit none
+
+character(*) dir_name
+character(*), allocatable :: file_list(:)
+character(200) file_name
+integer i, n
+logical ok
+
+!
+
+ok = dir_open(dir_name); 
+if (.not. ok) then
+  if (allocated(file_list)) deallocate(file_list)
+  return
+endif
+
+n = 0
+do
+  if (.not. dir_read(file_name)) exit
+  n = n + 1
+enddo
+
+call re_allocate (file_list, n)
+
+ok = dir_open(dir_name); 
+do i = 1, n
+  ok = dir_read(file_list(i))
+enddo
+call dir_close()
+
+end function dir_list
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !+
 ! Function dir_open (dir_name) result (opened)
 !
@@ -17,10 +74,10 @@ contains
 !   use directory_mod
 !
 ! Input:
-!   dir_name -- Character(*): directory name.
+!   dir_name -- character(*): Directory name.
 !
 ! Output:
-!   opened -- Logical: True if successful. False otherwise.
+!   opened -- logical: True if successful. False otherwise.
 !-
 
 function dir_open (dir_name) result (opened)
@@ -38,7 +95,7 @@ logical opened
 call open_dir (c_string(dir_name), ok)
 opened = f_logic(ok)
 
-end function
+end function dir_open
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -85,7 +142,7 @@ do
   return
 enddo
 
-end function
+end function dir_read
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -111,6 +168,6 @@ implicit none
 
 call close_dir()
 
-end subroutine
+end subroutine dir_close
 
 end module
