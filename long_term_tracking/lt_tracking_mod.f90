@@ -62,6 +62,7 @@ type ltt_params_struct
   real(rp) :: dead_cutoff = 1
   real(rp) :: a_emittance = 0   ! Used for space charge calculation.
   real(rp) :: b_emittance = 0   ! Used for space charge calculation.
+  logical :: only_live_particles_out = .true.
   logical :: ramping_on = .false.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
@@ -1019,6 +1020,7 @@ do ip = 1, size(bunch%particle)
   if (using_mpi) then
     write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, i5)')  ix, i_turn, p%vec, p%spin, p%state
   else
+    if (lttp%only_live_particles_out .and. p%state /= alive$) cycle
     write (iu_part, '(i9, i9, 6es16.8, 3x, 3f10.6, 4x, a)')  ix, i_turn, p%vec, p%spin, trim(coord_state_name(p%state))
   endif
 enddo

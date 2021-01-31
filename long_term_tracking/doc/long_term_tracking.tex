@@ -516,6 +516,7 @@ Example:
   ltt%custom_output_file = ""
   ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
+  ltt%only_live_particles_out = T
   ltt%averaging_window = 1
   ltt%print_on_dead_loss = -1
   ltt%map_file_prefix = "ltt"
@@ -641,7 +642,7 @@ programs and can also be used as input to the \ltt program.
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital
 and spin positions averaged over all the particles of the bunch as well as the six beam size sigmas
 ($\sigma_x$, $\sigma_{px}$, etc.).  Each line in the file represents the averages at the end of a
-turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of turns. If
+turn and a new line is added every \vn{ltt%averages_ouput_every_n_turns} number of turns. If
 \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
 the beam is at the \vn{ltt%ele_start} position independent of where the lattice begins and
 ends. To reduce noise, the \vn{ltt%averaging_window} parameter can be set appropriately.
@@ -694,6 +695,11 @@ where \vn{<hash>} is a hash string that represents input parameters (like the or
 to compute the map(s). This hash string is used so that map(s) constructed with one set of
 parameters are not used if the parameters are changed.
 %
+\item[ltt\%only_live_particles_out] \Newline
+If this parameter is True (the default), dead particles will not be recorded in the
+\vn{ltt%particles_ouput_file}. If set to False, all particles will be recorded. Note: The last
+column of this file indicates if the particle is alive or dead.
+%
 \item[ltt\%particle_output_every_n_turns] \Newline
 Sets the number of turns between particle position data files.
 If set to -1 (the default), a file will only be generated at the last turn. If set to 0, a file 
@@ -706,7 +712,7 @@ Also see: \vn{averages_output_every_n_turns}.
 %
 \item[ltt\%particle_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the ASCII file or files that are
-created to hold the particle positions. A file is created every \vn{ltt%ouput_every_n_turns}
+created to hold the particle positions. A file is created every \vn{ltt%particle_ouput_every_n_turns}
 turns. See Section~\sref{s:part.out} for more details. If \vn{ltt%particle_ouput_file} is blank, no
 particle output file is created. See also \vn{ltt%bunch_binary_output_file} which will produce a
 portable binary file.
