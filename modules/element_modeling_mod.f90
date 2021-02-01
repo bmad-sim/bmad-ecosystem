@@ -268,10 +268,10 @@ call init_lat (lat, n_ele)
 
 lat%n_ele_track = n_ele
 lat%n_ele_max   = n_ele
-lat%ele(0)%value(p0c$) = wiggler%value(p0c$)
-lat%ele(0)%value(e_tot$) = wiggler%value(e_tot$)
-call set_flags_for_changed_attribute (lat%ele(0))
 lat%param%particle = positron$
+lat%ele(0)%key = beginning_ele$
+lat%ele(0)%value(p0c$) = wiggler%value(p0c$)
+call set_flags_for_changed_attribute (lat%ele(0), lat%ele(0)%value(p0c$))
 
 ! Simple model if there is no field
 
