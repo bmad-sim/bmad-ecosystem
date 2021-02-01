@@ -86,7 +86,7 @@ real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole
 integer, optional :: ix_start, ix_end, ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, f_count, ix_ele
-integer ie, ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv, ifa, ix_pole_max
+integer ie, ie1, ie2, ios, a_count, ix_lord, ix_match, iv, ifa, ix_pole_max
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, n_taylor_order_saved
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 
@@ -200,7 +200,6 @@ endif
 
 f_count = 0    ! fringe around bends and quads. Also drift nonlinearities.
 j_count = 0    ! drift around solenoid or sol_quad index. Also z shift count.
-t_count = 0    ! taylor element count.
 a_count = 0    ! Aperture count
 i_unique = 1000
 
@@ -212,36 +211,12 @@ n_elsep_warn = 0
 ix_ele = ie1 - 1
 
 do
-
   ix_ele = ix_ele + 1
   if (ix_ele > ie2) exit
   ele => branch_out%ele(ix_ele)
+  if (ele%key == -1) cycle
+
   val => ele%value
-
-  ! If the name has more than 16 characters then replace the name by something shorter and unique.
-
-  orig_name = ele%name
-
-  if (len_trim(ele%name) > 16) then
-    i_unique = i_unique + 1
-    write (ele%name, '(a, i0)') ele%name(1:11), i_unique
-  endif
-
-  ! Replace element name containing "/" or "#" with "_"
-
-  do
-    j = index (ele%name, '\')         ! '
-    j = index (ele%name, '#')   
-    if (j == 0) exit
-    ele%name(j:j) = '_'
-  enddo
-
-  if (ele%name /= orig_name .and. n_name_change_warn <= n_warn_max) then
-    call out_io (s_info$, r_name, 'Element name changed from: ' // trim(orig_name) // ' to: ' // ele%name)
-    if (n_name_change_warn == n_warn_max) call out_io (s_info$, r_name, &
-                           'Enough name change warnings. Will stop issuing them now.')
-    n_name_change_warn = n_name_change_warn + 1
-  endif
 
   ! If there is an aperture with an element that is not an ecoll or rcoll then need to make a separate
   ! element with the aperture info. Exception: MAD-X can handle apertures on non-collimator elements.
@@ -341,17 +316,19 @@ do
           kicker_ele%value(vkick$) = kicker_ele%value(vkick$) - sin(ele%value(ref_tilt_tot$)) * f
           val(dg$) = 0
         endif
-        write (taylor_ele%name, '(a, i0)') 'Z_SHIFTER', j_count 
+        !!! write (taylor_ele%name, '(a, i0)') 'Z_SHIFTER', j_count 
+        taylor_ele%name = ele%name
         call taylor_make_unit(taylor_ele%taylor)
         orb_start = orbit_out(ix_ele-1)
         orb_start%vec(2) = orb_start%vec(2) - kicker_ele%value(hkick$)
         orb_start%vec(4) = orb_start%vec(4) - kicker_ele%value(vkick$)
         call track1 (orb_start, ele, branch_out%param, orb_end) 
+        ele%key = -1  ! Mark to ignore
         f = (ele%map_ref_orb_out%vec(5) - ele%map_ref_orb_in%vec(5)) - (orb_end%vec(5) - orb_start%vec(5))
         call add_taylor_term (taylor_ele%taylor(5), f, [0, 0, 0, 0, 0, 0])
-        call insert_element (lat_out, kicker_ele, ix_ele, branch_out%ix_branch, orbit_out)
-        call insert_element (lat_out, kicker_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
-        call insert_element (lat_out, taylor_ele, ix_ele+3, branch_out%ix_branch, orbit_out)
+        call insert_element (lat_out, kicker_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+        call insert_element (lat_out, taylor_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
+        call insert_element (lat_out, kicker_ele, ix_ele+3, branch_out%ix_branch, orbit_out)
         ie2 = ie2 + 3
         cycle
       endif
@@ -462,8 +439,8 @@ do
   ! A drift where the ref orbit is too large needs an added 1st order matrix element 
 
   f = ele%value(l$) / (1 + orbit_out(ele%ix_ele)%vec(6))
-  if (mad_out .and. ele%key == drift$ .and. abs(ele%mat6(1,2) - f) > real_option(1d-5, dr12_drift_max)) then
-
+  if (mad_out .and. ele%key == drift$ .and. ele%name(1:7) /= 'DRIFT_Z' .and. &
+                                               abs(ele%mat6(1,2) - f) > real_option(1d-5, dr12_drift_max)) then
     if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1) 
 
     drift_ele = ele
@@ -477,8 +454,7 @@ do
     call kill_taylor (taylor_a)
     call kill_taylor (taylor_b)
 
-    f_count = f_count + 1
-    write (taylor_ele%name, '(a, i0)') 'D_NONLIN', f_count
+    taylor_ele%name = 'TAYLOR_' // ele%name
     call insert_element (lat_out, taylor_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
     ie2 = ie2 + 1
     ix_ele = ix_ele + 1
@@ -499,15 +475,13 @@ do
 
       ! Add drifts before and after wigglers and sol_quads so total length is invariant
       j_count = j_count + 1
-      t_count = t_count + 1
       write (drift_ele%name, '(a, i0)') 'DRIFT_Z', j_count
-      write (taylor_ele%name, '(a, i0)') 'SOL_QUAD', j_count
+      taylor_ele%name = ele%name
       drift_ele%value(l$) = val(l$) / 2
-      ele%ix_ele = -1 ! Mark for deletion
-      call remove_eles_from_lat (lat_out, .false.)
-      call insert_element (lat_out, drift_ele, ix_ele, branch_out%ix_branch, orbit_out)
-      call insert_element (lat_out, taylor_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-      call insert_element (lat_out, drift_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
+      ele%key = -1 ! Mark to ignore
+      call insert_element (lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+      call insert_element (lat_out, taylor_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
+      call insert_element (lat_out, drift_ele, ix_ele+3, branch_out%ix_branch, orbit_out)
       ie2 = ie2 + 2
       cycle
 
@@ -543,10 +517,9 @@ do
       else
         call create_sol_quad_model (ele, lat_model)  ! NOT YET IMPLEMENTED!
       endif
-      ele%ix_ele = -1 ! Mark for deletion
-      call remove_eles_from_lat (lat_out)
+      ele%key = -1 ! Mark to ignore
       do j = 1, lat_model%n_ele_track
-        call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch_out%ix_branch, orbit_out)
+        call insert_element (lat_out, lat_model%ele(j), ix_ele+j, branch_out%ix_branch, orbit_out)
       enddo
       ie2 = ie2 + lat_model%n_ele_track - 1
       cycle
@@ -563,6 +536,34 @@ do
   ix_ele = ix_ele + 1
   if (ix_ele > ie2) exit
   ele => branch_out%ele(ix_ele)
+  if (ele%key == -1) cycle
+
+  ! If the name has more than 16 characters then replace the name by something shorter and unique.
+
+  orig_name = ele%name
+
+  if (len_trim(ele%name) > 16) then
+    i_unique = i_unique + 1
+    write (ele%name, '(a, i0)') ele%name(1:11), i_unique
+  endif
+
+  ! Replace element name containing "/" or "#" with "_"
+
+  do
+    j = max(index(ele%name, '\'), index(ele%name, '#'))        ! '
+    if (j == 0) exit
+    ele%name(j:j) = '_'
+  enddo
+
+  if (ele%name /= orig_name .and. n_name_change_warn <= n_warn_max) then
+    call out_io (s_info$, r_name, 'Element name changed from: ' // trim(orig_name) // ' to: ' // ele%name)
+    if (n_name_change_warn == n_warn_max) call out_io (s_info$, r_name, &
+                           'Enough name change warnings. Will stop issuing them now.')
+    n_name_change_warn = n_name_change_warn + 1
+  endif
+
+  !
+
   val => ele%value
 
   if (ele%key == patch$ .and. ele%value(z_offset$) /= 0) then
@@ -606,8 +607,9 @@ ix_ele = ie1 - 1
 do   ! ix_ele = 1e1, ie2
   ix_ele = ix_ele + 1
   if (ix_ele > ie2) exit
-
   ele => branch_out%ele(ix_ele)
+  if (ele%key == -1) cycle
+
   val => ele%value
 
   if (out_type == 'XSIF') then
@@ -1052,9 +1054,9 @@ init_needed = .true.
 line = ' '
 
 do n = ie1, ie2
-
   ele => branch_out%ele(n)
   if (ele%key == null_ele$) cycle  ! Will happen with patch elements translated to MAD-X
+  if (ele%key == -1) cycle
 
   if (init_needed) then
     write (iu, '(a)')
