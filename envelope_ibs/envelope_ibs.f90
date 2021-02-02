@@ -31,8 +31,9 @@ integer nturns, nslices, ns, six
 integer status
 integer pct_complete, last_display
 
-logical err_flag, include_ibs, tail_cut
+logical err_flag, include_ibs, tail_cut, user_supplied_tunes
 
+real(rp) tune_x, tune_y, tune_z
 real(rp) one_turn_mat(6,6), one_turn_vec(6)
 real(rp) one_turn_check(6,6), vec_check(6)
 real(rp) alpha(3), emit(3)
@@ -47,9 +48,11 @@ real(rp), allocatable :: M(:,:,:), Bbar(:,:,:), Ybar(:,:,:)
 
 complex(rp) Lambda(6,6), Theta(6,6), Iota_base(6,6), Iota(6,6)
 
-namelist /envelope_tracker/ lat_file, starting_a_emit, starting_b_emit, starting_c_emit, ey0, nturns, include_ibs, current, tail_cut, bend_slice_length, slice_length
+namelist /envelope_tracker/ lat_file, starting_a_emit, starting_b_emit, starting_c_emit, ey0, nturns, include_ibs, current, &
+                            tail_cut, bend_slice_length, slice_length, user_supplied_tunes, tune_x, tune_y, tune_z
 
 !set defaults
+user_supplied_tunes = .false.
 ey0 = -1.0 !negative number to disable
 bend_slice_length = 100.0d0
 slice_length = 100.0d0  !large value results in element length being used
@@ -76,9 +79,16 @@ call calc_z_tune(lat)
 npart = current / e_charge * lat%param%total_length / c_light
 
 !make_smat_from_abc uses mode tunes to label modes
-mode%a%tune = lat%a%tune
-mode%b%tune = lat%b%tune
-mode%z%tune = lat%z%tune
+if(user_supplied_tunes) then
+  mode%a%tune = tune_x
+  mode%b%tune = tune_y
+  mode%z%tune = tune_z
+else
+  mode%a%tune = lat%a%tune
+  mode%b%tune = lat%b%tune
+  mode%z%tune = lat%z%tune
+endif
+
 mode%a%emittance = starting_a_emit
 mode%b%emittance = starting_b_emit
 mode%z%emittance = starting_c_emit
