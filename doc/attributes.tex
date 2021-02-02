@@ -179,13 +179,13 @@ either a \vn{group}, \vn{overlay}, or \vn{ramper} element.
 Controller elements have a set of one or more ``\vn{variables}'' that are used to control the values
 of attributes of other elements (called ``\vn{slave}'' attributes).
 
-There are two types of controllers in terms of how slave attribute values are
-computed --- \vn{Expression} based controllers and \vn{Spline} based controllers. \vn{Expression} based
-controllers use mathematical expressions (\sref{s:arith}) to define how slave attribute values are calculated based
-upon the values of the controller variables. \vn{Spline} based controllers use a spline fit (in
-particular, the cubic non-smoothing Akima spline\cite{b:akima}) to a set of
-points (called ``\vn{knots}'') to determine the relationship between variables and slave
-attributes. With a spline based controller, the number of controller variables is restricted to be one.
+There are two types of controllers in terms of how slave attribute values are computed ---
+\vn{Expression} based controllers and \vn{Spline} based controllers. \vn{Expression} based
+controllers use mathematical expressions (\sref{s:arith}) to define how slave attribute values are
+calculated based upon the values of the controller variables. \vn{Spline} based controllers use a
+spline fit (in particular, the cubic non-smoothing Akima spline\cite{b:akima}) to a set of points
+(called ``\vn{knots}'') to determine the relationship between variables and slave attributes. With a
+spline based controller, the number of controller variables is restricted to be one.
 
 The general syntax for an expression based \vn{group} element is
 \begin{example}

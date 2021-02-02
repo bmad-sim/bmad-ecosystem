@@ -6277,9 +6277,11 @@ type (lat_struct) lat
 type (control_struct), allocatable, target :: cs(:)
 type (parser_ele_struct), target :: pele
 type (multi_ele_pointer_struct), allocatable :: m_eles(:)
+type (all_pointer_struct) a_ptr
+
 integer n_slave
 integer k, ix, ip, ix_pick, ix_lord
-logical err_flag
+logical err_flag, err
 
 !
 
@@ -6315,16 +6317,17 @@ do ip = 1, size(pele%control)
     cs(n_slave)%lord%ix_ele = -1             ! dummy value
     attrib_name = pc%attrib_name
     if (attrib_name == blank_name$) attrib_name = pele%default_attrib
-    ix = attribute_index(slave, attrib_name)
+    call pointer_to_attribute (slave, attrib_name, .true., a_ptr, err, .false., ix_attrib = ix)
+    
     ! If attribute not found it may be a special attribute like accordion_edge$.
     ! A special attribute will have ix > num_ele_attrib$
-    if (ix < 1 .and. lord%key == group$) then
+    if (.not. associated(a_ptr%r) .and. lord%key == group$) then
       ix = attribute_index(lord, attrib_name)
       if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
     endif
     cs(n_slave)%ix_attrib = ix
     cs(n_slave)%attribute = attrib_name
-    if (ix < 1) then
+    if (ix < 1 .and. .not. associated(a_ptr%r)) then
       call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
                     'ATTRIBUTE: ' // attrib_name, &
                     'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, &

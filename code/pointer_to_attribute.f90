@@ -38,6 +38,7 @@ use bmad_interface, except_dummy => pointer_to_attribute
 implicit none
 
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: slave
 type (wake_lr_mode_struct), allocatable :: lr_mode(:)
 type (cartesian_map_struct), pointer :: ct_map
 type (cylindrical_map_struct), pointer :: cl_map
@@ -46,6 +47,7 @@ type (taylor_field_struct), pointer :: t_field
 type (all_pointer_struct) a_ptr
 type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
+type (control_struct), pointer :: ctl
 
 real(rp), pointer :: ptr_attrib, r(:,:,:)
 
@@ -287,7 +289,7 @@ endif
 if (a_name(1:12) == 'WALL%SECTION') then
   if (.not. associated(ele%wall3d)) goto 9210
   n_cc = get_cross_index(a_name, 13, err, 1, size(ele%wall3d(1)%section))
-  if (err) goto 9200
+  if (err) goto 9130
 
   if (a_name == 'S') then
     if (n_cc == 1) goto 9210  ! must have s = 0
@@ -304,7 +306,7 @@ if (a_name(1:12) == 'WALL%SECTION') then
 
   if (a_name(1:1) == 'V') then
     n_v = get_cross_index(a_name, 2, err, 1, size(ele%wall3d(1)%section(n_cc)%v))
-    if (err) goto 9200
+    if (err) goto 9130
 
     select case (a_name)
     case ('%X');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%x
@@ -319,7 +321,49 @@ if (a_name(1:12) == 'WALL%SECTION') then
     return
   endif
 
-  goto 9200
+  goto 9130
+endif
+
+!--------------------
+! Controller slave
+
+if (a_name(1:6) == 'SLAVE(') then
+  if (.not. associated(ele%control)) goto 9000
+  n = get_cross_index(a_name, 6, err, 1, ele%n_slave); if (err) goto 9130
+  if (a_name(1:1) /= '%') goto 9000
+
+  if (ele%key == ramper$) then
+    ctl => ele%control%ramp(n)
+  else
+    slave => pointer_to_slave(ele, n, ctl)
+  endif
+
+  if (allocated(ctl%y_knot)) then
+    if (a_name(1:7) /= '%Y_KNOT(') goto 9300
+    n = get_cross_index(a_name, 7, err, 1, size(ctl%y_knot)); if (err) goto 9130
+    a_ptr%r => ctl%y_knot(n)
+    err_flag = .false.
+    return
+  endif
+
+  a_name = a_name(2:)  ! Remove '%'
+  do i = 1, size(ctl%stack)
+    if (upcase(ctl%stack(i)%name) /= a_name) cycle
+    a_ptr%r => ctl%stack(i)%value
+    err_flag = .false.
+    return
+  enddo
+
+  goto 9310
+endif
+
+if (a_name(1:7) == 'X_KNOT(') then
+  if (.not. associated(ele%control)) goto 9000
+  if (.not. allocated(ele%control%x_knot)) goto 9320
+  n = get_cross_index(a_name, 7, err, 1, size(ele%control%x_knot)); if (err) goto 9130
+  a_ptr%r => ele%control%x_knot(n)
+  err_flag = .false.
+  return
 endif
 
 ! Special cases
@@ -338,8 +382,8 @@ if (ele%key == rbend$) then   ! Note: Rbend elements only exist during lattice p
 endif
 
 select case (a_name)
-case ('G_ERR');           a_ptr%r => ele%value(dg$)
-case ('B_FIELD_ERR');     a_ptr%r => ele%value(db_field$)
+case ('G_ERR');           a_ptr%r => ele%value(dg$)        ! Old name
+case ('B_FIELD_ERR');     a_ptr%r => ele%value(db_field$)  ! Old name
 case ('BETA_A');          a_ptr%r => ele%a%beta
 case ('BETA_B');          a_ptr%r => ele%b%beta
 case ('ALPHA_A');         a_ptr%r => ele%a%alpha
@@ -648,20 +692,20 @@ return
 
 9000 continue
 if (do_print) call out_io (s_error$, r_name, &
-          'INVALID ATTRIBUTE: ' // a_name, 'FOR THIS ELEMENT: ' // ele%name)
+          'INVALID ATTRIBUTE: ' // attrib_name, 'FOR THIS ELEMENT: ' // ele%name)
 return
 
 !----------------------------------------
 9100 continue
 if (do_print) call out_io (s_error$, r_name, &
-                 'WAKE ATTRIBUTE NOT ALLOCATED: ' // a_name, &
+                 'WAKE ATTRIBUTE NOT ALLOCATED: ' // attrib_name, &
                  'FOR THIS ELEMENT: ' // ele%name)
 return
 
 !----------------------------------------
 9110 continue
 if (do_print) call out_io (s_error$, r_name, &
-                 'R_CUSTOM ATTRIBUTE NOT ALLOCATED: ' // a_name, &
+                 'R_CUSTOM ATTRIBUTE NOT ALLOCATED: ' // attrib_name, &
                  'FOR THIS ELEMENT: ' // ele%name)
 return
 
@@ -670,11 +714,11 @@ return
 if (do_print) then
   if (out_of_bounds) then
     call out_io (s_error$, r_name, &
-        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // a_name, &
+        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // attrib_name, &
         'FOR THIS ELEMENT: ' // ele%name)
   else
     call out_io (s_error$, r_name, &
-        'MALFORMED ATTRIBUTE: ' // a_name, &
+        'MALFORMED ATTRIBUTE: ' // attrib_name, &
         'FOR THIS ELEMENT: ' // ele%name)
   endif
 endif
@@ -683,29 +727,42 @@ return
 !----------------------------------------
 9140 continue
 if (do_print) call out_io (s_error$, r_name, &
-                 '(EM) FIELD ATTRIBUTE NOT ALLOCATED: ' // a_name, &
+                 '(EM) FIELD ATTRIBUTE NOT ALLOCATED: ' // attrib_name, &
                  'FOR THIS ELEMENT: ' // ele%name)
 return
 
 !----------------------------------------
 9200 continue
-if (do_print) then
-  if (out_of_bounds) then
-    call out_io (s_error$, r_name, &
-        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // a_name, &
+if (do_print) call out_io (s_error$, r_name, &
+        'BAD VERTEX COMPONENT IN ATTRIBUTE: ' // attrib_name, &
         'FOR THIS ELEMENT: ' // ele%name)
-  else
-    call out_io (s_error$, r_name, &
-        'MALFORMED ATTRIBUTE: ' // a_name, &
-        'FOR THIS ELEMENT: ' // ele%name)
-  endif
-endif
 return
 
 !----------------------------------------
 9210 continue
 if (do_print) call out_io (s_error$, r_name, &
-        'CROSS-SECTION NOT DEFINED SO CANNOT SET ATTRIBUTE: ' // a_name, &
+        'CROSS-SECTION NOT DEFINED SO CANNOT SET ATTRIBUTE: ' // attrib_name, &
+        'FOR THIS ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9300 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ATTRIBUTE: ' // trim(attrib_name) // ' IS NOT A KNOT POINT', &
+        'FOR THIS ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9310 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ATTRIBUTE: ' // trim(attrib_name) // ' IS NOT A NAMED PARAMETER OF CONTROL EXPRESSION.', &
+        'FOR THIS ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9320 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'ATTRIBUTE: ' // trim(attrib_name) // ' IS NOT VALID SINCE CONTROLLER DOES NOT USE KNOTS.', &
         'FOR THIS ELEMENT: ' // ele%name)
 return
 
