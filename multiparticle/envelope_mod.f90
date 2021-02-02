@@ -522,6 +522,7 @@ real(rp) abz_tunes(3)
 real(rp) tau(3), tau_max
 real(rp) emit_new(3)
 real(rp) one_turn_mat(6,6), one_turn_mat0(6,6), sigma_mat(6,6), temp_mat(6,6)
+real(rp) ibs_C(6,6)
 real(rp) energy, res
 real(rp) l
 
@@ -547,8 +548,8 @@ emit(1) = (real(Iota(1,1))+real(Theta(1,1)))/2.0d0/real(Lambda(1,1))
 emit(2) = (real(Iota(3,3))+real(Theta(3,3)))/2.0d0/real(Lambda(3,3))  
 emit(3) = (real(Iota(5,5))+real(Theta(5,5)))/2.0d0/real(Lambda(5,5))  
 
-alpha = abs(alpha)
-emit = abs(emit)
+!alpha = abs(alpha)
+!emit = abs(emit)
 
 tau_max = maxval(eles(size(eles))%s / c_light / alpha)
 mode%a%emittance = emit(1)
@@ -563,7 +564,8 @@ do while(.true.)
     l = eles(i)%value(l$)
     energy = eles(i)%value(E_TOT$)
     call make_V(one_turn_mat,V,abz_tunes)
-    Omega = Omega + l*matmul(V,matmul(ibs_matrix_C(sigma_mat,tail_cut,tau_max,energy,npart,species),conjg(transpose((V)))))
+    ibs_C = ibs_matrix_C(sigma_mat,tail_cut,tau_max,energy,npart,species)
+    Omega = Omega + l*matmul(V,matmul(ibs_C,conjg(transpose((V)))))
     one_turn_mat = matmul(eles(i)%mat6,matmul(one_turn_mat,mat_symp_conj(eles(i)%mat6)))
   enddo
 
@@ -617,8 +619,8 @@ emit(1) = (real(Iota(1,1))+real(Theta(1,1)))/2.0d0/real(Lambda(1,1))  !Eqn.
 emit(2) = (real(Iota(3,3))+real(Theta(3,3)))/2.0d0/real(Lambda(3,3))
 emit(3) = (real(Iota(5,5))+real(Theta(5,5)))/2.0d0/real(Lambda(5,5))
 
-alpha = abs(alpha)
-emit = abs(emit)
+!alpha = abs(alpha)
+!emit = abs(emit)
 end subroutine
 
 !---------------------------------------------------------------------------------------
@@ -802,7 +804,6 @@ real(fgsl_double) :: integration_result
 logical ok, error
 
 !
-
 call convert_total_energy_to(energy, -1, gamma)
 
 ! ! make transfer matrix from canonical to spatial coordinates
@@ -815,7 +816,6 @@ call convert_total_energy_to(energy, -1, gamma)
 ! !  Tspat(5,6) = element_length/4/gamma/gamma
 ! spatial_sigma_mat = matmul(Tspat,matmul(sigma_mat,transpose(Tspat)))
 spatial_sigma_mat = sigma_mat
-
 ! boost sigma matrix to COM frame of bunch
 Tboost = I6
 Tboost(5,5) = 1.0d0 + gamma*gamma/(1.0d0+gamma)
@@ -824,10 +824,10 @@ boosted_sigma_mat = matmul(Tboost,matmul(spatial_sigma_mat,transpose(Tboost)))
 
 ! permute sigma matrix to x,y,z,px,py,pz form
 ar_sigma_mat = matmul(matmul(transpose(Ps),boosted_sigma_mat),Ps)
+!call eigensys(sig_xx, u, R, etypes, 3, error)
 sig_xx = ar_sigma_mat(1:3,1:3)
 sig_xp = ar_sigma_mat(1:3,4:6)
 sig_pp = ar_sigma_mat(4:6,4:6)
-!call eigensys(sig_xx, u, R, etypes, 3, error)
 R=sig_xx  ! LA_SYEV destroys the contents of R
 
 call LA_SYEV(R,u,JOBZ='N')  !evals and evecs of symmetric real matrix
@@ -840,9 +840,10 @@ if( (sqrt(u(1)/u(2)) .gt. 1.0e10) .or. \
     (sqrt(u(3)/u(1)) .gt. 1.0e10) .or. \
     (sqrt(u(2)/u(3)) .gt. 1.0e10) .or. \
     (sqrt(u(3)/u(2)) .gt. 1.0e10) ) then
-    write(*,'(a)') "Warning from beam_envelope_ibs: beam dimensions differ by more than 10 orders of magnitude."
-    write(*,'(a)') "Something could be wrong, check emittances.  Program will try to continue on."
+    write(*,'(a)') "Warning from beam_envelope_ibs: physical beam dimensions differ by more than 10 orders of magnitude."
+    write(*,'(a)') "Something could be wrong, check emittances."
     write(*,'(a,3es13.3)') "sqrt(u(1)), sqrt(u(2)), sqrt(u(3)): ", sqrt(u(1)), sqrt(u(2)), sqrt(u(3))
+    if (global_com%exit_on_error) call err_exit
 endif
 vol1 = sqrt(u(1)*u(2)*u(3))
 vol = sqrt(4.0d0*pi)**3 * vol1
@@ -929,6 +930,7 @@ do i=1,3
     sigma_update(i*2,j*2) = sig_pp_update(i,j)
   enddo
 enddo
+
 
 ! boost updates to lab frame
 call mat_inverse(Tboost,Tboost_inv,ok)
