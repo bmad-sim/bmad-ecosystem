@@ -1468,7 +1468,6 @@ real(rp), pointer :: v(:), vs(:), tt
 integer i, j, ix, iv, ix_slave, icom, l_stat, n_attrib
 logical err_flag, on_an_offset_girder
 
-character(40) a_name
 character(*), parameter :: r_name = 'makeup_control_slave'
 
 !
@@ -1549,30 +1548,27 @@ do i = 1, slave%n_lord
 
   ! overlay lord
 
-  iv = control%ix_attrib  
-  select case (iv)
-
-  case (x_limit$)
+  select case (control%attribute)
+  case ('X_LIMIT')
     call overlay_change_this(lord, slave%value(x1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(x2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
-  case (y_limit$)
+  case ('Y_LIMIT')
     call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
-  case (aperture$)
+  case ('APERTURE')
     call overlay_change_this(lord, slave%value(x1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(x2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
   case default
-    a_name = attribute_name(slave, iv)
-    err_flag = .not. attribute_free (slave, a_name, .true., .true., .true.)
+    err_flag = .not. attribute_free (slave, control%attribute, .true., .true., .true.)
     if (err_flag) then
       call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
-           'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(a_name) // ']')
+           'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(control%attribute) // ']')
       return
     endif
 
-    call pointer_to_attribute (slave, a_name, .true., a_ptr, err_flag)
+    call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag)
     if (err_flag) then
       if (global_com%exit_on_error) call err_exit
       return

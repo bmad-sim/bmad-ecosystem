@@ -52,6 +52,7 @@ nt => lat%nametable
 n = -1
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
+
   do ie = 0, branch%n_ele_max
     n = n + 1
     ele => branch%ele(ie)
@@ -104,7 +105,6 @@ err_flag = .false.
 ! loop over all branches
 
 branch_loop: do i_b = 0, ubound(lat%branch, 1)
-
   branch => lat%branch(i_b)
 
   if (branch%ix_branch /= i_b) then

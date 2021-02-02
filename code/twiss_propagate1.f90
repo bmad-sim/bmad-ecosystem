@@ -45,7 +45,7 @@ character(*), parameter :: r_name = 'twiss_propagate1'
 
 if (present(err_flag)) err_flag = .true.
 
-if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
+if (ele1%a%beta <= 0 .or. ele1%b%beta <= 0) then
 
   ! For x-ray lines assume that since beta = 0 there is no interest in calculating the Twiss parameters.
   ! So this is not treated as an error.
@@ -56,7 +56,7 @@ if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
     endif
   endif
 
-  call out_io (s_fatal$, r_name, 'ZERO BETA DETECTED AT ELEMENT: ' // &
+  call out_io (s_fatal$, r_name, 'NON-POSITIVE BETA DETECTED AT ELEMENT: ' // &
                                   trim(ele1%name) // '  ' // ele_loc_name(ele1, .true., '()'))
   if (global_com%exit_on_error .and. .not. present(err_flag)) call err_exit
   return
