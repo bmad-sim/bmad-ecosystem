@@ -430,8 +430,8 @@ logical err_flag
 integer i, j
 
 one_turn_mat = I6
-do i=1,size(eles)
-  one_turn_mat = matmul(eles(i)%mat6,one_turn_mat)
+do i=1, size(eles)
+  one_turn_mat = matmul(eles(i)%mat6, one_turn_mat)
 enddo
 
 Y = 0.0d0
@@ -441,24 +441,24 @@ abz_tunes(1) = mode%a%tune
 abz_tunes(2) = mode%b%tune
 abz_tunes(3) = mode%z%tune
 
-Lambda = (0.0d0,0.0d0)
-Theta = (0.0d0,0.0d0)
-Iota = (0.0d0,0.0d0)
-do i=1,size(eles)
+Lambda = (0.0d0, 0.0d0)
+Theta = (0.0d0, 0.0d0)
+Iota = (0.0d0, 0.0d0)
+do i=1, size(eles)
   l = eles(i)%value(l$)
-  one_turn_mat = matmul(eles(i)%mat6,matmul(one_turn_mat,mat_symp_conj(eles(i)%mat6)))
-  call make_V(one_turn_mat,V,abz_tunes)
+  one_turn_mat = matmul(eles(i)%mat6, matmul(one_turn_mat, mat_symp_conj(eles(i)%mat6)))
+  call make_V(one_turn_mat, V, abz_tunes)
   Vinv = mat_symp_conj_i(V) 
-  if(any(eles(i)%key==(/sbend$,rbend$/))) then
+  if(any(eles(i)%key==(/sbend$, rbend$/))) then
     call convert_total_energy_to(eles(i)%value(E_TOT$), -1, gamma)
     delta = coos(i)%vec(6)
     rho = eles(i)%value(rho$)
     B0 = eles(i)%value(b_field$)
     B1 = eles(i)%value(b1_gradient$)
-    Lambda = Lambda + l*matmul(V,matmul(damping_matrix_D(gamma,rho,B0,B1,delta, coos(i)%species),Vinv))
-    Theta = Theta + l*matmul(V,matmul(diffusion_matrix_B(gamma,rho,coos(i)%species),conjg(transpose((V)))))
+    Lambda = Lambda + l*matmul(V, matmul(damping_matrix_D(gamma, rho, B0, B1, delta, coos(i)%species), Vinv))
+    Theta = Theta + l*matmul(V, matmul(diffusion_matrix_B(gamma, rho, coos(i)%species), conjg(transpose((V)))))
   endif
-  Iota = Iota + l*matmul(V,matmul(Y,conjg(transpose((V)))))
+  Iota = Iota + l*matmul(V, matmul(Y, conjg(transpose((V)))))
 enddo
 end subroutine
 
@@ -466,7 +466,7 @@ end subroutine
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! subroutine envelope_radints_ibs(Lambda,Theta,Iota,eles,alpha,emit,mode,tail_cut,npart, species)
+! subroutine envelope_radints_ibs(Lambda, Theta, Iota, eles, alpha, emit, mode, tail_cut, npart, species)
 !
 ! Calculates damping decrement and emittance of the three
 ! normal modes by integrating the IBS, SR diffusion, and SR damping matrices.
@@ -587,7 +587,7 @@ end subroutine
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! subroutine envelope_radints(eles,co,alpha,emit)
+! subroutine envelope_radints(Lambda,Theta,Iota,alpha,emit)
 !
 ! Calculates damping decrement and emittance of the three
 ! normal modes from the integrate diffusion, damping, and vertical
