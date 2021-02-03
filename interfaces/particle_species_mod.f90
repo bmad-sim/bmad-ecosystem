@@ -783,7 +783,7 @@ end function species_of
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function species_id (name) result(species)
+! Function species_id (name, default) result(species)
 !
 ! Routine to return the integer ID index of a particle species given the name.
 !
@@ -791,17 +791,20 @@ end function species_of
 ! For all other types of particles, the case does matter.
 !
 ! Input:
-!   name    -- Character(20): Name of the species.
+!   name    -- character(20): Name of the species.
+!   default -- integer, optional: Default species to use if name is blank.
+!               If not present, a blank name is an error.
 !
 ! Output:
 !   species -- integer: Species ID. Will return invalid$ if name is not valid.
 !                       Will return not_set$ if name is blank
 !-
 
-function species_id (name) result(species)
+function species_id (name, default) result(species)
 
 integer ::  species, charge, i, ix, ix1, ix2, iso, ios, n_nuc
 real(rp) :: mol_mass
+integer, optional :: default
 character(*) :: name
 character(20) :: nam
 character(40), parameter :: r_name = 'species_id'
@@ -809,7 +812,11 @@ character(40), parameter :: r_name = 'species_id'
 ! Init
 
 if (name == '') then
-  species = not_set$
+  if (present(default)) then
+    species = default
+  else
+    species = not_set$
+  endif
   return
 endif
 
