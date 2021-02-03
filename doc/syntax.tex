@@ -53,6 +53,7 @@ match to all elements of that name. Examples
   "134"        ! Element with index 134 in branch 0 of the default universe.
   "1>>13"      ! Element with index 13 in branch 1 of the default universe.
   "5@q*"       ! All elements whose name begins with "q" of universe 5.
+  "2@3>>q1##4" ! The fourth element named "q1" in branch 3 of universe 2.
   "*@sex10w"   ! Element "sex10w" of all universes.
   "b37"        ! Element "b37" of the default universe.
   "0@b37"      ! Same as the previous example.
@@ -63,7 +64,7 @@ An element index item is simply the index of the number in the lattice list of e
 followed by the string ">>" can be used to specify a branch. As with element names, a universe
 prefix can be given. Example
 \begin{example}
-  2@2>>183   ! Element number 183 of branch \# 2 of universe 2.
+  2@3>>183   ! Element number 183 of branch \# 3 of universe 2.
 \end{example}
 
 A range of elements is specified using the format:

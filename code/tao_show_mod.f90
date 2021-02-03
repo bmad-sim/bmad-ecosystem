@@ -391,6 +391,9 @@ case ('beam')
     endif
 
     beam_init => u%beam%beam_init
+    species = species_id(beam_init%species, default_tracking_species(branch%param))
+    gamma = branch%ele(0)%value(E_tot$) / mass_of(species)
+
     nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
     nl=nl+1; write(lines(nl), amt) '  %position_file          = ', quote(beam_init%position_file)
     nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', quoten(beam_init%distribution_type)
@@ -409,10 +412,15 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
     nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
     nl=nl+1; write(lines(nl), rmt) '  %bunch_charge           = ', beam_init%bunch_charge
-    nl=nl+1; write(lines(nl), rmt) '  %a_norm_emit            = ', beam_init%a_norm_emit
-    nl=nl+1; write(lines(nl), rmt) '  %b_norm_emit            = ', beam_init%b_norm_emit
-    nl=nl+1; write(lines(nl), rmt) '  %a_emit                 = ', beam_init%a_emit
-    nl=nl+1; write(lines(nl), rmt) '  %b_emit                 = ', beam_init%b_emit
+    if (branch%param%particle == photon$) then
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_emit                 = ', beam_init%a_emit
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_emit                 = ', beam_init%b_emit
+    else
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_norm_emit            = ', beam_init%a_norm_emit, '  ! Equivalent emittance:', beam_init%a_norm_emit / gamma
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_norm_emit            = ', beam_init%b_norm_emit, '  ! Equivalent emittance:', beam_init%b_norm_emit / gamma
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_emit                 = ', beam_init%a_emit, '  ! Equivalent normalized emittance:', beam_init%a_emit * gamma
+      nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_emit                 = ', beam_init%b_emit, '  ! Equivalent normalized emittance:', beam_init%b_emit * gamma
+    endif
     nl=nl+1; write(lines(nl), rmt) '  %dPz_dz                 = ', beam_init%dPz_dz
     nl=nl+1; write(lines(nl), rmt) '  %dt_bunch               = ', beam_init%dt_bunch
     nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
@@ -421,6 +429,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
     nl=nl+1; write(lines(nl), rmt) '  %sig_pz_jitter          = ', beam_init%sig_pz_jitter
     nl=nl+1; write(lines(nl), rmt) '  %spin                   = ', beam_init%spin
+    nl=nl+1; write(lines(nl), amt) '  %species                = ', quote(beam_init%species)
     nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
     nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
     nl=nl+1; write(lines(nl), amt) '  %random_engine          = ', quote(beam_init%random_engine)
@@ -516,12 +525,12 @@ case ('beam')
                       sqrt(bunch_p%sigma(1,1)), sqrt(bunch_p%sigma(2,2)), sqrt(bunch_p%sigma(3,3)), &
                       sqrt(bunch_p%sigma(4,4)), sqrt(bunch_p%sigma(5,5)), sqrt(bunch_p%sigma(6,6))
     if (u%model%lat%branch(eles(1)%ele%ix_branch)%param%particle /= photon$) then
-      nl=nl+1; write(lines(nl), rmt) '             norm_emitt           beta             alpha'
-      nl=nl+1; write(lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta, bunch_p%a%alpha
-      nl=nl+1; write(lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta, bunch_p%b%alpha
-      nl=nl+1; write(lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta, bunch_p%x%alpha
-      nl=nl+1; write(lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta, bunch_p%y%alpha
-      nl=nl+1; write(lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
+      nl=nl+1; write(lines(nl), rmt) '               norm_emitt            emit            beta           alpha'
+      nl=nl+1; write(lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%emit, bunch_p%a%beta, bunch_p%a%alpha
+      nl=nl+1; write(lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%emit, bunch_p%b%beta, bunch_p%b%alpha
+      nl=nl+1; write(lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%emit, bunch_p%x%beta, bunch_p%x%alpha
+      nl=nl+1; write(lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%emit, bunch_p%y%beta, bunch_p%y%alpha
+      nl=nl+1; write(lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%emit, bunch_p%z%beta
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Sigma Mat       x              px               y              py              z             pz'
       do i = 1, 6
