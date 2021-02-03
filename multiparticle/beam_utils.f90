@@ -1389,9 +1389,9 @@ end subroutine calc_bunch_params_slice
 ! set to zero.
 ! 
 ! Input:
-!   bunch     -- Bunch_struct
-!   print_err -- Logical, optional: If present and False then suppress 
-!                  "no eigen-system found" messages.
+!   bunch        -- Bunch_struct
+!   print_err    -- Logical, optional: If present and False then suppress 
+!                     "no eigen-system found" messages.
 !
 ! Output     
 !   bunch_params -- bunch_params_struct:
@@ -1405,20 +1405,15 @@ implicit none
 type (bunch_struct), intent(in) :: bunch
 type (bunch_params_struct) bunch_params
 
-real(rp) exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
-real(rp) avg_energy, temp6(6), eta, etap
-real(rp) :: sigma_s(6,6), s(6,6), sigma_s_save(6,6) = 0.0, sigma(6,6) = 0.0
-real(rp) :: u(6,6), n_real(6,6), charge_live
+real(rp) eta, etap, gamma
+real(rp) :: sigma(6,6) = 0.0
+real(rp) :: charge_live, avg_energy
 real(rp), allocatable :: charge(:)
 
-complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
-complex(rp) :: sigma_s_complex(6,6) = 0.0
-complex(rp) :: n_cmplx(6,6), q(6,6)
-
-integer i, j, species, dim
+integer i, j, species
 
 logical, optional :: print_err
-logical error, err, err1
+logical error, err
 
 character(*), parameter :: r_name = "calc_bunch_params"
 
@@ -1431,15 +1426,6 @@ if (bunch%charge_tot == 0) then
   if (logic_option(.true., print_err)) call out_io (s_error$, r_name, 'CHARGE OF PARTICLES IN BUNCH NOT SET. CALCULATION CANNOT BE DONE.')
   return
 endif
-
-s = 0.0
-
-s(1,2) =  1.0 
-s(2,1) = -1.0
-s(3,4) =  1.0 
-s(4,3) = -1.0
-s(5,6) =  1.0 
-s(6,5) = -1.0
 
 call re_allocate (charge, size(bunch%particle))
 
@@ -1500,30 +1486,92 @@ if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
 
 avg_energy = sum((1+bunch%particle%vec(6)) * charge, mask = (bunch%particle%state == alive$))
 avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
+gamma = avg_energy / mass_of(species)
 
 ! Rather arbitrary cutoff: If less than 12 particles, calculation of sigma matrix, etc is declared invalid
 
 if (bunch_params%n_particle_live < 12) return
 
-! Convert to geometric coords and find the sigma matrix
+! Sigma matrix calc
 
-call find_bunch_sigma_matrix (bunch%particle, charge, bunch_params, sigma_s)
+call calc_bunch_sigma_matrix (bunch%particle, charge, bunch_params)
+call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, err, print_err)
+if (err) return
+
+!----------------------------------------------------------------------
+contains
+subroutine zero_plane (twiss)
+
+implicit none
+
+type (twiss_struct), intent(out) :: twiss
+
+twiss%beta       = 0
+twiss%alpha      = 0
+twiss%gamma      = 0
+twiss%eta        = 0
+twiss%etap       = 0
+twiss%norm_emit  = 0
+twiss%emit       = 0
+
+end subroutine zero_plane
+
+end subroutine calc_bunch_params
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine calc_emittances_and_twiss_from_sigma_matrix(sigma_mat, gamma, bunch_params, error, print_err)
+!
+! Routine to calc emittances and Twiss function from a beam sigma matrix.
+!
+! Input:
+!   sigma_mat(6,6)  -- real(rp): Sigma matrix.
+!   gamma           -- real(rp): Relativistic gamma factor (Energy/mass)
+!   print_err       -- Logical, optional: If present and False then suppress 
+!                        "no eigen-system found" messages.
+!
+! Output:
+!   bunch_params    -- bunch_params_struct: Holds Twiss and emittance info.
+!   error           -- Logical: Set True if there is an error.
+!-
+
+subroutine calc_emittances_and_twiss_from_sigma_matrix (sigma_mat, gamma, bunch_params, error, print_err)
+
+implicit none
+
+type (bunch_params_struct) bunch_params
+
+real(rp) sigma_mat(6,6), sigma_s(6,6), avg_energy, n_real(6,6), gamma
+
+complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
+complex(rp) :: n_cmplx(6,6), q(6,6)
+
+integer dim
+
+logical, optional :: print_err
+logical error, err
+
+character(*), parameter :: r_name = 'calc_emittances_and_twiss_from_sigma_matrix'
 
 ! X, Y, & Z Projected Parameters
-call projected_twiss_calc ('X', bunch_params%x, bunch_params%sigma(1,1), bunch_params%sigma(2,2), &
-                      bunch_params%sigma(1,2), bunch_params%sigma(1,6), bunch_params%sigma(2,6))
 
-call projected_twiss_calc ('Y', bunch_params%y, bunch_params%sigma(3,3), bunch_params%sigma(4,4), &
-                      bunch_params%sigma(3,4), bunch_params%sigma(3,6), bunch_params%sigma(4,6))
-
-call projected_twiss_calc ('Z', bunch_params%z, bunch_params%sigma(5,5), bunch_params%sigma(6,6), &
-                      bunch_params%sigma(5,6), 0.0_rp, 0.0_rp)
+call projected_twiss_calc ('X', bunch_params%x, sigma_mat(1,1), sigma_mat(2,2), sigma_mat(1,2), sigma_mat(1,6), sigma_mat(2,6))
+call projected_twiss_calc ('Y', bunch_params%y, sigma_mat(3,3), sigma_mat(4,4), sigma_mat(3,4), sigma_mat(3,6), sigma_mat(4,6))
+call projected_twiss_calc ('Z', bunch_params%z, sigma_mat(5,5), sigma_mat(6,6), sigma_mat(5,6), 0.0_rp, 0.0_rp)
      
 ! Normal-Mode Parameters.
 ! Use Andy Wolski's eigemode method to find normal-mode beam parameters.
 ! find eigensystem of sigma.S 
 
-sigma_s_save = sigma_s
+sigma_s(:,1) = -sigma_mat(:,2)
+sigma_s(:,2) =  sigma_mat(:,1)
+sigma_s(:,3) = -sigma_mat(:,4)
+sigma_s(:,4) =  sigma_mat(:,3)
+sigma_s(:,5) = -sigma_mat(:,6)
+sigma_s(:,6) =  sigma_mat(:,5)
+
 call mat_eigen (sigma_s, eigen_val, eigen_vec, err, print_err)
 if (err) return
 
@@ -1533,9 +1581,9 @@ bunch_params%a%emit = aimag(eigen_val(1))
 bunch_params%b%emit = aimag(eigen_val(3))
 bunch_params%c%emit = aimag(eigen_val(5))
 
-bunch_params%a%norm_emit = bunch_params%a%emit * (avg_energy/mass_of(species))
-bunch_params%b%norm_emit = bunch_params%b%emit * (avg_energy/mass_of(species))
-bunch_params%c%norm_emit = bunch_params%c%emit * (avg_energy/mass_of(species))
+bunch_params%a%norm_emit = bunch_params%a%emit * gamma
+bunch_params%b%norm_emit = bunch_params%b%emit * gamma
+bunch_params%c%norm_emit = bunch_params%c%emit * gamma
 
 ! Now find normal-mode sigma matrix and twiss parameters
 ! N = E.Q from Eq. 44
@@ -1604,24 +1652,6 @@ error = .false.
 
 !----------------------------------------------------------------------
 contains
-subroutine zero_plane (twiss)
-
-implicit none
-
-type (twiss_struct), intent(out) :: twiss
-
-twiss%beta       = 0
-twiss%alpha      = 0
-twiss%gamma      = 0
-twiss%eta        = 0
-twiss%etap       = 0
-twiss%norm_emit  = 0
-twiss%emit       = 0
-
-end subroutine zero_plane
-  
-!----------------------------------------------------------------------
-! contains
 
 subroutine projected_twiss_calc (plane, twiss, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d)
 
@@ -1638,19 +1668,19 @@ character(*) plane
 
 !
 
-if (bunch_params%sigma(6,6) /= 0) then
-  twiss%eta   = exp_x_d / bunch_params%sigma(6,6)
-  twiss%etap  = exp_px_d / bunch_params%sigma(6,6)
+if (sigma_mat(6,6) /= 0) then
+  twiss%eta   = exp_x_d / sigma_mat(6,6)
+  twiss%etap  = exp_px_d / sigma_mat(6,6)
 endif
 
-if (bunch_params%sigma(6,6) == 0) then
+if (sigma_mat(6,6) == 0) then
   x2   = exp_x2 
   x_px = exp_x_px 
   px2  = exp_px2  
 else
-  x2   = exp_x2 - exp_x_d**2 / bunch_params%sigma(6,6)
-  x_px = exp_x_px - exp_x_d * exp_px_d / bunch_params%sigma(6,6)
-  px2  = exp_px2  - exp_px_d**2 / bunch_params%sigma(6,6)
+  x2   = exp_x2 - exp_x_d**2 / sigma_mat(6,6)
+  x_px = exp_x_px - exp_x_d * exp_px_d / sigma_mat(6,6)
+  px2  = exp_px2  - exp_px_d**2 / sigma_mat(6,6)
 endif
 
 twiss%sigma = sqrt(max(0.0_rp, x2))          ! Roundoff may give negative argument.
@@ -1659,7 +1689,7 @@ twiss%sigma_p = sqrt(max(0.0_rp, px2))       ! Roundoff may give negative argume
 emit = sqrt(max(0.0_rp, x2*px2 - x_px**2))   ! Roundoff may give negative argument.
 
 twiss%emit      = emit
-twiss%norm_emit = (avg_energy/mass_of(species)) * emit
+twiss%norm_emit = gamma * emit
 
 if (emit /= 0) then
   twiss%alpha = -x_px / emit
@@ -1720,8 +1750,8 @@ err = .false.
 
 end subroutine normalize_e
   
-end subroutine calc_bunch_params
-  
+end subroutine calc_emittances_and_twiss_from_sigma_matrix
+
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -1769,7 +1799,7 @@ end subroutine calc_spin_params
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine find_bunch_sigma_matrix (particle, charge, bunch_params, sigma_s)
+! Subroutine calc_bunch_sigma_matrix (particle, charge, bunch_params)
 !
 ! Routine to find the sigma matrix elements of a particle distribution.
 ! 
@@ -1783,10 +1813,9 @@ end subroutine calc_spin_params
 !     %centroid%vec(6)
 !     %rel_max(6)
 !     %rel_min(6)
-!   sigma_S(6,6) -- Sigma x S matrix for Wolski normal-modes
 !-
 
-subroutine find_bunch_sigma_matrix (particle, charge, bunch_params, sigma_s)
+subroutine calc_bunch_sigma_matrix (particle, charge, bunch_params)
 
 implicit none
 
@@ -1794,12 +1823,12 @@ type (coord_struct) :: particle(:)
 type (bunch_params_struct), target :: bunch_params
 
 real(rp) charge_live
-real(rp) sigma_s(6,6), s(6,6), charge(:)
+real(rp) charge(:)
 real(rp), pointer :: avg(:), sigma(:,:)
 
 integer i
 
-character(*), parameter :: r_name = 'find_bunch_sigma_matrix'
+character(*), parameter :: r_name = 'calc_bunch_sigma_matrix'
 
 !
 
@@ -1841,21 +1870,6 @@ sigma(5,5) = exp_calc (particle, charge, 5, 5, avg)
 sigma(5,6) = exp_calc (particle, charge, 5, 6, avg);  sigma(6,5) = sigma(5,6)
 sigma(6,6) = exp_calc (particle, charge, 6, 6, avg)
 
-! make sigma.S matrix
-
-sigma_s = sigma
-
-s = 0.0
-
-s(1,2) =  1.0 
-s(2,1) = -1.0
-s(3,4) =  1.0 
-s(4,3) = -1.0
-s(5,6) =  1.0 
-s(6,5) = -1.0
-
-sigma_s = matmul(sigma_s, s)
-
 !----------------------------------------------------------------------
 contains
 
@@ -1878,7 +1892,7 @@ this_sigma = this_sigma / charge_live
 
 end function exp_calc
 
-end subroutine find_bunch_sigma_matrix 
+end subroutine calc_bunch_sigma_matrix 
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
