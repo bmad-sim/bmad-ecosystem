@@ -92,7 +92,7 @@ This class defines components
     name:       The name of the parameter
     type:       "STR", "INT", "REAL", "LOGIC", "ENUM", etc...
     can_vary:   Either 'T', 'F', or 'I', indicating whether or not the
-                user may change the value of the paramter. 'I' indicates
+                user may change the value of the parameter. 'I' indicates
                 that the parameter is to be ignored by a gui when displaying parameters.
     value:      The value held in the parameter, should be of the
                 appropriate type for the specified param_type
@@ -118,21 +118,22 @@ When using \tao with a \vn{GUI}, and when the \vn{GUI} is doing the plotting, th
 \vn{-external_plotting} options (\sref{s:command.line}) should be used when starting \tao. The
 \vn{-noplot} option (which sets \vn{global%plot_on}) prevents \tao from opening a plotting
 window. Note: Both of these options can also be set, after startup, with the \vn{set global} command
-and the setting of both can be viewd using the \vn{show global} command.
+and the setting of both can be viewed using the \vn{show global} command.
 
-With \vn{-external_plotting} set, the \vn{place} command will save its input to a buffer which then
-can be read out by the \vn{python place_buffer} command. The reason for this is that with external
-plotting, it is the external scripts that should handle the placement of plots in regions and it would
-be potentially distruptive if a user tired to bypass this (which could inadventantly happen when running
-command files).
+With \vn{-external_plotting} set, the external code should handle how plots are assigned to plot
+regions and it would be potentially disruptive if a user tired to place plots (which could
+inadvertently happen when running command files). To avoid this, with \vn{-external_plotting} set,
+the \vn{place} command will not do any placement but rather save the \vn{place} arguments (which is
+the name of a template plot and a region name) to a buffer which then can be read out by the
+external code \vn{python place_buffer} command. The external code may then decide how to
+proceed. The external code is able to bypass the buffering and perform placements by using
+\vn{place} with the \vn{-no_buffer} switch (\sref{s:place}).
 
 Normally when \tao is not displaying the plot page when the \vn{-noplot} option is used, \tao will,
-to save time, not calculate the points needed for plotting curves. The exception is if \vn{-external_plotting}
-is turned on. In this case 
-
-To make plot references unambiguous, plot can be referred to by their index number. The plot index
-number can be viewed using the \vn{python plot_list} command. Template plots can be referenced using
-the syntax ``\vn{@Tnnn}'' where \vn{nnn} is the index number. For example, \vn{@T3} referrers to the
-template plot with index 3. Similarly, the displayed plots (plots that are associated with plot
-regions) can be referred to using the syntax ``\vn{@Rnnn}''. This is useful when doing external
-plotting.
+to save time, not calculate the points needed for plotting curves. The exception is if
+\vn{-external_plotting} is turned on. In this case, to make plot references unambiguous, plot can be
+referred to by their index number. The plot index number can be viewed using the \vn{python
+plot_list} command. Template plots can be referenced using the syntax ``\vn{@Tnnn}'' where \vn{nnn}
+is the index number. For example, \vn{@T3} referrers to the template plot with index 3. Similarly,
+the displayed plots (plots that are associated with plot regions) can be referred to using the
+syntax ``\vn{@Rnnn}''.

@@ -3131,7 +3131,8 @@ case ('orbit_at_s')
   call orbit_out (orb)
 
 !----------------------------------------------------------------------
-! Output place command buffer and reset the buffer
+! Output place command buffer and reset the buffer.
+! The contents of the buffer are the place commands that the user has issued.
 ! Command syntax:
 !   python place_buffer
 
