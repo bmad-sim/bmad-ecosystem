@@ -131,7 +131,7 @@ for test_dir in test_dir_list:
   # run.py
   if os.path.exists('run.py'):
     print_all ('     Found run.py. Running this script.')
-    os.system('python run.py')
+    os.system('python run.py ' + bin_dir)
 
   else:
     program = bin_dir + program

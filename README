@@ -13,7 +13,9 @@ subdirectories.
 When the regression test script is run, each regression subdirectory is visited in turn. In each
 regression subdirectory, the appropriate program is run. The name of the program is assumed to be
 the same as the name of the regression subdirectory. However, if the regression subdirectory has a
-file name 'run.py', this script is run instead of any program.
+file name 'run.py', this script is run instead of any program. If 'run.py' is executed, the
+directory where the regression test script is looking for executable program files is passed as the
+first (and only) argument to run.py.
 
 The program will create an output file called "output.now".  The regression script will compare this
 file to an existing file in the subdirectory named "output.correct". The regression test is
