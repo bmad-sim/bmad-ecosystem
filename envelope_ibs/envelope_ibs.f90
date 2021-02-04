@@ -6,6 +6,7 @@
 ! "From the beam-envelope matrix to synchrotron-radiation integrals" by
 ! K. Ohmi, K. Hirata, and K. Oide.
 !-
+
 program envelope_ibs
 
 use bmad
@@ -15,9 +16,8 @@ use envelope_mod
 
 implicit none
 
-character lat_file*200
-character in_file*200
-character ix_str*5
+character(200) lat_file, in_file
+character(5) ix_str
 
 type(lat_struct) lat
 type(ele_struct) temp_ele
@@ -29,9 +29,8 @@ type(normal_modes_struct) mode
 integer i,j
 integer nturns, nslices, ns, six
 integer status
-integer pct_complete, last_display
 
-logical err_flag, include_ibs, tail_cut, user_supplied_tunes
+logical err_flag, include_ibs, tail_cut, user_supplied_tunes, regression_test
 
 real(rp) tune_x, tune_y, tune_z
 real(rp) one_turn_mat(6,6), one_turn_vec(6)
@@ -40,7 +39,7 @@ real(rp) alpha(3), emit(3)
 real(rp) mat6(6,6), vec0(6)
 real(rp) Sigma_ent(6,6), Sigma_exit(6,6)
 real(rp) normal(3)
-real(rp) current, npart
+real(rp) current, npart, now_time, last_time
 real(rp) bend_slice_length, slice_length
 real(rp) tau(3), tau_max, ey0, Ykick_strength
 real(rp) starting_a_emit, starting_b_emit, starting_c_emit
@@ -48,8 +47,9 @@ real(rp), allocatable :: M(:,:,:), Bbar(:,:,:), Ybar(:,:,:)
 
 complex(rp) Lambda(6,6), Theta(6,6), Iota_base(6,6), Iota(6,6)
 
-namelist /envelope_tracker/ lat_file, starting_a_emit, starting_b_emit, starting_c_emit, ey0, nturns, include_ibs, current, &
-                            tail_cut, bend_slice_length, slice_length, user_supplied_tunes, tune_x, tune_y, tune_z
+namelist /envelope_tracker/ lat_file, starting_a_emit, starting_b_emit, starting_c_emit, ey0, nturns, include_ibs, &
+                            current, tail_cut, bend_slice_length, slice_length, user_supplied_tunes, tune_x, &
+                            tune_y, tune_z, regression_test
 
 !set defaults
 user_supplied_tunes = .false.
@@ -63,6 +63,7 @@ nturns = 40000
 include_ibs = .false.
 tail_cut = .true.
 current = 0.001
+regression_test = .false.
 
 call getarg(1, in_file)
 open (unit = 20, file = in_file, action='read')
@@ -95,7 +96,7 @@ mode%z%emittance = starting_c_emit
 call transfer_matrix_calc(lat, mat6, vec0, ix1=0, one_turn=.true.)
 call make_smat_from_abc(mat6, mode, Sigma_ent, err_flag)
 
-write(*,'(a,3es14.5)') "Initial Emittances: ", mode%a%emittance, mode%b%emittance, mode%z%emittance
+write (*,'(a,3es14.5)') "Initial Emittances: ", mode%a%emittance, mode%b%emittance, mode%z%emittance
 open(10,file='sigma_start.out')
 do i=1,6
   write(10,'(6es14.4)') Sigma_ent(i,:)
@@ -218,7 +219,10 @@ if(nturns .gt. 0) then
   ! Track element-slice by element-slice for number of turns.
   open(11,file='emit_vs_turn.out')
   write(11,'(a8,3a14)') "# turn", "emit_a", "emit_b", "emit_c"
-  last_display = -1.0
+
+  last_time = 0
+  call run_timer ('START')
+
   do i=1,nturns
     do j=1,nslices
       if(include_ibs) then
@@ -233,10 +237,11 @@ if(nturns .gt. 0) then
       call get_emit_from_sigma_mat(Sigma_exit, normal, err_flag = err_flag)
       write(11,'(i8,3es14.5)') i, normal(1:3)
     endif
-    pct_complete = floor((i*100.0d0)/nturns)
-    if( pct_complete .gt. last_display ) then
-      write(*,'(i8,a,i8,a)') i, " turns of ", nturns, " complete."
-      last_display = pct_complete
+
+    call run_timer ('READ', now_time)
+    if (now_time - last_time > 100) then
+      print '(a, f10.2, a, i8, a, i8)', 'Time (min): ', now_time/60, i, " turns ", i, ' of ', nturns
+      last_time = now_time
     endif
   enddo
   close(11)
@@ -260,6 +265,35 @@ endif
 
 deallocate(eles)
 deallocate(coos)
+
+! Create output appropriate for Bmad regression test suite.
+
+if (regression_test) then
+  open (1, file = 'output.now')
+
+  write (1, '(a, 3es16.8)') '"init-emit" REL 1E-8', mode%a%emittance, mode%b%emittance, mode%z%emittance
+
+  do i = 1, 6
+    write (1, '(a, 6es16.8)') '"sigma-ent-' // int_str(i) // '" ABS 1E-18', sigma_ent(i,:)
+  enddo
+
+  do i = 1, 6
+    write(1, '(a, 6es16.8)') '"one-turn-mat-' // int_str(i) // '" ABS 1e-12', one_turn_mat(i,:)
+  enddo 
+
+  write(1, '(a, 3es16.8)') '"emit" REL 1e-8', emit
+  write(1, '(a, 3es16.8)') '"alpha" REL 1e-8', alpha
+  write(1, '(a, 3es16.8)') '"tao" REL 1e-8', tau
+  write(1, '(a, 3es16.8)') '"normal" REL 1e-8', normal
+
+  do i = 1, 6
+    write(1, '(a, 6es16.8)') '"sigma-exi-' // int_str(i) // '" ABS 1e-18', sigma_exit(i,:)
+  enddo 
+
+  close (1)
+endif
+
+
 
 end program
 
