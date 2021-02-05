@@ -65,7 +65,9 @@ tail_cut = .true.
 current = 0.001
 regression_test = .false.
 
+
 call getarg(1, in_file)
+if (in_file == '') in_file = 'envelope_ibs.init'
 open (unit = 20, file = in_file, action='read')
 read (20, nml = envelope_tracker)
 close (20)
