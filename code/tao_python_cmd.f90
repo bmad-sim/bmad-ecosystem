@@ -543,9 +543,10 @@ case ('building_wall_graph')
 !   python building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
 ! Where:
 !   {ix_section}    -- Section index.
-!   {ix_point}      -- Point index. Points of higher indexes will be moved up if adding a point and down if deleting.
+!   {ix_point}      -- Point index. Points of higher indexes will be moved up 
+!                        if adding a point and down if deleting.
 !   {z}, etc...     -- See tao_building_wall_point_struct components.
-!                   --  If {z} is set to "delete" then delete the point.
+!                   -- If {z} is set to "delete" then delete the point.
 
 case ('building_wall_point')
 
@@ -590,7 +591,8 @@ case ('building_wall_point')
 ! Command syntax:
 !   python building_wall_section {ix_section}^^{sec_name}^^{sec_constraint}
 ! Where:
-!   {ix_section}      -- Section index. Sections with higher indexes will be moved up if adding a section and down if deleting.
+!   {ix_section}      -- Section index. Sections with higher indexes will be
+!                          moved up if adding a section and down if deleting.
 !   {sec_name}        -- Section name.
 !   {sec_constraint}  -- Must be one of:
 !       delete     -- Delete section. Anything else will add the section.
@@ -810,18 +812,22 @@ case ('data')
 ! {n_d1_data} is the number of associated d1 data structures.
 ! {d_data_arrays_name_min_max} has the form
 !   {name1}^^{lower_bound1}^^{upper_bound1}^^....^^{nameN}^^{lower_boundN}^^{upper_boundN}
-! where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds of the array.
+! where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds 
+! of the array.
 !
 ! Example:
 !   python data_d2_create 2@orbit^^2^^x^^0^^45^^y^^1^^47
-! This example creates a d2 data structure called "orbit" with two d1 structures called "x" and "y".
+! This example creates a d2 data structure called "orbit" with 
+! two d1 structures called "x" and "y".
+!
 ! The "x" d1 structure has an associated data array with indexes in the range [0, 45].
 ! The "y" d1 structure has an associated data arrray with indexes in the range [1, 47].
 !
 ! Use the "set data" command to set a created datum parameters.
-! Note: When setting multiple data parameters, temporarily toggle s%global%lattice_calc_on to False
-!   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the partially created datum and
-!   generating unwanted error messages.
+! Note: When setting multiple data parameters, 
+!       temporarily toggle s%global%lattice_calc_on to False
+!   ("set global lattice_calc_on = F") to prevent Tao trying to 
+!       evaluate the partially created datum and generating unwanted error messages.
 
 case ('data_d2_create')
 
@@ -1082,14 +1088,18 @@ case ('data_set_design_value')
 !----------------------------------------------------------------------
 ! Create a datum.
 ! Command syntax:
-!   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^{ele_name}^^{merit_type}^^
-!                         {meas}^^{good_meas}^^{ref}^^{good_ref}^^{weight}^^{good_user}^^{data_source}^^{eval_point}^^
-!                         {s_offset}^^{ix_bunch}^^{invalid_value}^^{spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
-!                         {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
+!   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^
+!                       {ele_name}^^{merit_type}^^{meas}^^{good_meas}^^{ref}^^
+!                       {good_ref}^^{weight}^^{good_user}^^{data_source}^^
+!                       {eval_point}^^{s_offset}^^{ix_bunch}^^{invalid_value}^^
+!                       {spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
+!                       {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
 !
-! Note: The 3 values for spin_axis%n0, as a group, are optional and the 3 values for spin_axis%l are, as a group, optional.
+! Note: The 3 values for spin_axis%n0, as a group, are optional and the 3 values 
+!       for spin_axis%l are, as a group, optional.
 ! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
-! Note: After creating all your datums, use the "data_set_design_value" routine to set the design (and model) values.
+! Note: After creating all your datums, use the "data_set_design_value" routine to 
+!       set the design (and model) values.
 
 case ('datum_create')
 
@@ -2786,7 +2796,8 @@ case ('inum')
   end select
 
 !----------------------------------------------------------------------
-! Check if a lattice recalculation has been proformed since the last time "python lat_calc_done" was called.
+! Check if a lattice recalculation has been proformed since the last time
+!   "python lat_calc_done" was called.
 ! Command syntax:
 !   python lat_calc_done
 
@@ -2832,11 +2843,14 @@ case ('lat_general')
 !----------------------------------------------------------------------
 ! List of parameters at ends of lattice elements
 ! Command syntax:
-!   python lat_list -no_slaves -track_only -index_order {ix_uni}@{ix_branch}>>{elements}|{which} {who}
+!   python lat_list -no_slaves -track_only -index_order 
+!                   {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 ! where:
-!   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
+!   -no_slaves is optional. If present, multipass_slave and super_slave elements
+!              will not be matched to.
 !   -track_only is optional. If present, lord elements will not be matched to.
-!   -index_order is optional. If present, order elements by element index instead of the standard s-position.
+!   -index_order is optional. If present, order elements by element index instead 
+!                of the standard s-position.
 !
 !   {which} is one of:
 !     model
@@ -2857,11 +2871,12 @@ case ('lat_general')
 !     ele.y.eta, ele.y.etap,
 !     ele.s, ele.l
 !     ele.e_tot, ele.p0c
-!     ele.mat6, ele.vec0  ! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
+!     ele.mat6, ele.vec0
 !
 !   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
 !
+! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 ! Note: To output through the real array buffer, add the prefix "real:" to {who}.
 ! Note: Only a single item permitted with real buffer out.
 !
@@ -3206,7 +3221,8 @@ case ('plot_curve')
 ! Plot Lat_layout info
 ! Command syntax:
 !   python plot_lat_layout {ix_universe}@{ix_branch}
-! Note: The returned list of element positions is not ordered in increasing longitudinal position.
+! Note: The returned list of element positions is not ordered in increasing
+!       longitudinal position.
 
 case ('plot_lat_layout')
 
@@ -3397,9 +3413,10 @@ case ('plot_histogram')
 !----------------------------------------------------------------------
 ! Template plot creation or destruction.
 ! Command syntax:
-!   pyton plot_plot_manage {plot_location}^^{plot_name}^^{n_graph}^^{graph1_name}^^{graph2_name}...{graphN_name}
-! Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a spot where
-! there is already a template.
+!   pyton plot_plot_manage {plot_location}^^{plot_name}^^
+!                          {n_graph}^^{graph1_name}^^{graph2_name}...{graphN_name}
+! Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a 
+! spot where there is already a template.
 ! If {n_graph} is set to -1 then just delete the plot.
 
 case ('plot_plot_manage')
@@ -3548,12 +3565,14 @@ case ('plot_graph_manage')
 ! Points used to construct a smooth line for a plot curve.
 ! Command syntax:
 !   python plot_line {region_name}.{graph_name}.{curve_name} {x-or-y}
-! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y component put into the real array buffer.
-! Note: The plot must come from a region, and not a template, since no template plots have associated line data.
+! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y 
+! component put into the real array buffer.
+! Note: The plot must come from a region, and not a template, since no template plots 
+!       have associated line data.
 ! Examples:
-!   python plot_line r13.g.a       ! String array output.
-!   python plot_line r13.g.a x     ! x-component of line points loaded into the real array buffer.
-!   python plot_line r13.g.a y     ! y-component of line points loaded into the real array buffer.
+!   python plot_line r13.g.a   ! String array output.
+!   python plot_line r13.g.a x ! x-component of line points loaded into the real array buffer.
+!   python plot_line r13.g.a y ! y-component of line points loaded into the real array buffer.
 
 case ('plot_line')
 
@@ -3609,12 +3628,16 @@ endif
 ! Locations to draw symbols for a plot curve.
 ! Command syntax:
 !   python plot_symbol {region_name}.{graph_name}.{curve_name} {x-or-y}
-! Optional {x-or-y} may be set to "x" or "y" to get the symbol x or y positions put into the real array buffer.
-! Note: The plot must come from a region, and not a template, since no template plots have associated symbol data.
+! Optional {x-or-y} may be set to "x" or "y" to get the symbol x or y 
+! positions put into the real array buffer.
+! Note: The plot must come from a region, and not a template, 
+!       since no template plots have associated symbol data.
 ! Examples:
 !   python plot_symbol r13.g.a       ! String array output.
-!   python plot_symbol r13.g.a x     ! x-component of the symbol positions loaded into the real array buffer.
-!   python plot_symbol r13.g.a y     ! y-component of the symbol positions loaded into the real array buffer.
+!   python plot_symbol r13.g.a x     ! x-component of the symbol positions 
+!                                      loaded into the real array buffer.
+!   python plot_symbol r13.g.a y     ! y-component of the symbol positions 
+!                                      loaded into the real array buffer.
 
 case ('plot_symbol')
 
@@ -3669,8 +3692,9 @@ case ('plot_symbol')
 ! Command syntax:
 !   python plot_transfer {from_plot} {to_plot}
 ! To avoid confusion, use "@Tnnn" and "@Rnnn" syntax for {from_plot}.
-! If {to_plot} is not present and {from_plot} is a template plot, the "to plots" are the equivalent
-! region plots with the same name. And vice versa if {from_plot} is a region plot.
+! If {to_plot} is not present and {from_plot} is a template plot, the "to plots" 
+!  are the equivalent region plots with the same name. And vice versa 
+!  if {from_plot} is a region plot.
 
 case ('plot_transfer')
 
@@ -3782,13 +3806,15 @@ case ('shape_list')
 !   lat_layout
 !   floor_plan
 ! {add-or-delete} is one of:
-!   add     -- Add a shape at {index}. Shapes with higher index get moved up one to make room.
-!   delete  -- Delete shape at {index}. Shapes with higher index get moved down one to fill the gap.
+!   add     -- Add a shape at {index}. 
+!              Shapes with higher index get moved up one to make room.
+!   delete  -- Delete shape at {index}. 
+!              Shapes with higher index get moved down one to fill the gap.
 !
 ! Example:
 !   python shape_manage floor_plan 2 add
-! Note: After adding a shape use "python shape_set" to set shape parameters. This is important since
-! an added shape is in a ill-defined state.
+! Note: After adding a shape use "python shape_set" to set shape parameters.
+! This is important since an added shape is in a ill-defined state.
 
 case ('shape_manage')
 
@@ -3850,9 +3876,11 @@ case ('shape_pattern_list')
 ! Command syntax:
 !   python shape_pattern_manage {ix_pattern}^^{pat_name}^^{pat_line_width}
 ! where:
-!   {ix_pattern}      -- Pattern index. Patterns with higher indexes will be moved up if adding a pattern and down if deleting.
+!   {ix_pattern}      -- Pattern index. Patterns with higher indexes will be moved up 
+!                                       if adding a pattern and down if deleting.
 !   {pat_name}        -- Pattern name.
-!   {pat_line_width}  -- Line width. Integer. If set to "delete" then section will be deleted.
+!   {pat_line_width}  -- Line width. Integer. If set to "delete" then section 
+!                                             will be deleted.
 
 case ('shape_pattern_manage')
 
@@ -3885,7 +3913,8 @@ case ('shape_pattern_manage')
 !   python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
 ! where:
 !   {ix_pattern}      -- Pattern index.
-!   {ix_point}        -- Point index. Points of higher indexes will be moved up if adding a point and down if deleting.
+!   {ix_point}        -- Point index. Points of higher indexes will be moved up
+!                                     if adding a point and down if deleting.
 !   {s}, {x}          -- Point location. If {s} is "delete" then delete the point.
 
 case ('shape_pattern_point_manage')
@@ -3919,7 +3948,8 @@ case ('shape_pattern_point_manage')
 ! lat_layout or floor_plan shape set
 ! Command syntax:
 !   python shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
-!                                           {shape_size}^^{type_label}^^{shape_draw?}^^{multi_shape?}^^{line_width}
+!                    {shape_size}^^{type_label}^^{shape_draw?}^^
+!                    {multi_shape?}^^{line_width}
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
@@ -4151,10 +4181,12 @@ case ('var')
 !----------------------------------------------------------------------
 ! Create a single variable
 ! Command syntax:
-!   python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^{weight}^^{step}^^{low_lim}^^{high_lim}^^
-!                                                                     {merit_type}^^{good_user}^^{key_bound}^^{key_delta}
+!   python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^
+!                     {weight}^^{step}^^{low_lim}^^{high_lim}^^{merit_type}^^
+!                     {good_user}^^{key_bound}^^{key_delta}
 ! {var_name} is something like "kick[5]".
-! Before using var_create, setup the appropriate v1_var array using the "python var_v1_create" command.
+! Before using var_create, setup the appropriate v1_var array using 
+! the "python var_v1_create" command.
 
 case ('var_create')
 
@@ -4326,9 +4358,10 @@ case ('var_v1_array')
 ! Examples:
 !   set quad_k1[2]|ele_name = 2@q01w[k1]
 !   set quad_k1[2]|ele_name = 2@0>>10[k1]
-! Note: When setting multiple variable parameters, temporarily toggle s%global%lattice_calc_on to False
-!   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the partially created variable
-!   and generating unwanted error messages.
+! Note: When setting multiple variable parameters, 
+!       temporarily toggle s%global%lattice_calc_on to False
+!   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the 
+! partially created variable and generating unwanted error messages.
 
 case ('var_v1_create')
 
