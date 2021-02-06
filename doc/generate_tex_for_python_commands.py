@@ -8,12 +8,14 @@
 # In[1]:
 
 
+import json
 import os
 
 #F90_FILE = os.path.join(os.environ['ACC_ROOT_DIR'], 'tao/code/tao_python_cmd.f90')
 F90_FILE = '../code/tao_python_cmd.f90'
 
-OUTFILE = 'python-interface-commands.tex'
+TEXFILE = 'python-interface-commands.tex'
+JSONFILE =  'python-interface-commands.json'
 
 assert os.path.exists(F90_FILE)
 LINES = open(F90_FILE).readlines()
@@ -51,7 +53,7 @@ def convert_header(lines):
             if len(sline)==1:
                 return None
             command = sline[1]
-            return {command:comment}
+            return {command:'\n'.join(comment)}
     return None
 
 convert_header(HEADERS[-1])
@@ -67,6 +69,13 @@ for res in map(convert_header, HEADERS):
     else:
         break
 doclines.keys()
+doclines['beam']
+
+
+# In[ ]:
+
+
+
 
 
 # In[5]:
@@ -75,7 +84,7 @@ doclines.keys()
 def tex_from_lines(lines, label):
     text = '\\subsection{python '+label+'}\n'
     text += '\\begin{example}\n'
-    text += ('\n'.join(lines))
+    text +=  lines
     text += '\n\\end{example}\n'
     return text
 #print(tex_from_lines(doclines['beam'], 'X'))
@@ -88,7 +97,7 @@ def tex_from_lines(lines, label):
 def tex_from_lines(lines, label):
     text = '\\item['+label+'] \\Newline'
     text += '\\begin{example}\n'
-    text += ('\n'.join(lines))
+    text += lines
     text += '\n\\end{example}\n'
     return text
 #print(tex_from_lines(doclines['beam'], 'X'))
@@ -101,7 +110,7 @@ def tex_from_lines(lines, label):
 
 
 
-with open(OUTFILE, 'w') as f:
+with open(TEXFILE, 'w') as f:
     f.write('% WARNING: this is automatically generated. DO NOT EDIT.\n')
     f.write('\\begin{description}\n')
     for k, lines in doclines.items():
@@ -109,7 +118,14 @@ with open(OUTFILE, 'w') as f:
         f.write(tex)
     f.write('\\end{description}\n')  
 
-print('Written:', OUTFILE)
+print('Written:', TEXFILE)
+
+
+# In[8]:
+
+
+json.dump(doclines, open(JSONFILE, 'w'))
+print('Written:', JSONFILE)
 
 
 # In[ ]:
