@@ -197,11 +197,9 @@ The syntax for defining a lattice element roughly follows the
 \begin{example}
   ele_name: keyword [, attributes]
 \end{example}
-where \vn{ele_name} is the element name, \vn{keyword} is the type of
-element, and \vn{attributes} is a list of the elements
-attributes. \cref{c:elements} gives a list of elements types with
-their attributes.
-\vn{Overlay} and \vn{group} type elements have a slightly different syntax:
+where \vn{ele_name} is the element name, \vn{keyword} is the type of element, and \vn{attributes} is
+a list of the elements attributes. \cref{c:elements} gives a list of elements types with their
+attributes.  \vn{Overlay} and \vn{group} type elements have a slightly different syntax:
 \begin{example}
   ele_name: keyword = \{ list \}, master-attribute [= value] [, attributes]
 \end{example}
@@ -211,9 +209,21 @@ and \vn{Girder} elements have the syntax
 \end{example}  
 For example:
 \begin{example}
-  q01w: quadrupole, type = "A String", l = 0.6, tilt = pi/2
+  q01w: quadrupole, type = "A String", l = 0.6, tilt = pi/4
   h10e: overlay = \{ b08e, b10e \}, var = \{hkick\}
 \end{example}
+
+The \vn{keyword} specifying the element type can be the name of an element that has already been
+declared. In this case, the element being defined will inherit the attributes that have been
+set for the element associated with \vn{keyword}. Example:
+\begin{example}
+  qa, quad, l = 0.6, tilt = pi/4  ! Define QA.
+  qb: qa                          ! QB Inherits from QA.
+  qa[k1] = 0.12                   ! QB unaffected by modifications of QA.
+\end{example}
+In this example, element \vn{QB} inherits the attributes of \vn{QA} which, in this case, are the
+length and tilt parameters of \vn{QA}. Once \vn{QB} is defined, the elements are separate so 
+modifications of the parameters of \vn{QA} after \vn{QB} is defined will not affect \vn{QB}.
 
 %---------------------------------------------------------------------------
 \section{Lattice Element Names}
@@ -414,6 +424,12 @@ After an element's definition, an individual attribute may be referred
 to using the syntax
 \begin{example}
   class::element_name[attribute_name]
+\end{example}
+Examples:
+\begin{example}
+  q01[k1]                       ! K1 attribute of element Q01.
+  sbend::b0%[dg]                ! DG attribute of sbend elements whose name
+                                !   has three characters starting with "B0"
 \end{example}
 Element attributes can be set or used in an algebraic expression:
 \begin{example}
