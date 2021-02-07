@@ -609,7 +609,7 @@ do i=1, 6
   pair2 = iterations(i, 2)
   pair3 = iterations(i, 3)
 
-  pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
+  pairIndexes = [2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3]
   evec_local = evec(:, pairIndexes)
   call normalize_evecs(evec_local, err_flag)
   if (err_flag) return
@@ -718,62 +718,59 @@ end subroutine order_evecs_by_plane_dominance
 !   err_flag     -- logical, optional:  Set to true if an error occured.
 !-
 
-subroutine order_evecs_by_tune (evec, eval, mat_tunes, abz_tunes_in, err_flag)
+subroutine order_evecs_by_tune (evec, eval, mat_tunes, abz_tunes, err_flag)
 
 complex(rp) eval(6), evec(6,6)
 real(rp) mat_tunes(3)
 logical err_flag
 
-real(rp) abz_tunes_in(3)
 real(rp) abz_tunes(3)
+real(rp) abz(3), dtune(3,3)
 real(rp) val(6)
-integer pairindexes(6)
+integer j, pairindexes(6)
 
 character(*), parameter :: r_name = 'order_evecs_by_tune'
 
 ! Order eigenvector pairs
 
-abz_tunes = abz_tunes_in
-where(abz_tunes < 0.0) abz_tunes = twopi + abz_tunes
+abz = abz_tunes
+where(abz < 0.0) abz = twopi + abz
 
 err_flag = .true.
 
 if ( any(abs(mat_tunes(1:3)) .lt. 0.0001) ) then
   call out_io (s_fatal$, r_name, "mat_tunes is not fully populated.  Printing mat_tunes.")
-  write(*, '(3f14.5)') mat_tunes(1:3)
-  if (global_com%exit_on_error) call err_exit
-  return
-endif
-if ( any(abs(abz_tunes(1:3)) .lt. 0.0001) ) then
-  call out_io (s_fatal$, r_name, "abz_tunes is not fully populated.  Printing abz_tunes.")
-  write(*, '(3f14.5)') abz_tunes(1:3)
+  write(*, '(3f14.5)') mat_tunes(1:3) / twopi
   if (global_com%exit_on_error) call err_exit
   return
 endif
 
-val(1) = (abz_tunes(1)-mat_tunes(1))**2 + &
-         (abz_tunes(2)-mat_tunes(2))**2 + &
-         (abz_tunes(3)-mat_tunes(3))**2
-val(2) = (abz_tunes(1)-mat_tunes(1))**2 + &
-         (abz_tunes(2)-mat_tunes(3))**2 + &
-         (abz_tunes(3)-mat_tunes(2))**2
-val(3) = (abz_tunes(1)-mat_tunes(2))**2 + &
-         (abz_tunes(2)-mat_tunes(1))**2 + &
-         (abz_tunes(3)-mat_tunes(3))**2
-val(4) = (abz_tunes(1)-mat_tunes(2))**2 + &
-         (abz_tunes(2)-mat_tunes(3))**2 + &
-         (abz_tunes(3)-mat_tunes(1))**2
-val(5) = (abz_tunes(1)-mat_tunes(3))**2 + &
-         (abz_tunes(2)-mat_tunes(1))**2 + &
-         (abz_tunes(3)-mat_tunes(2))**2
-val(6) = (abz_tunes(1)-mat_tunes(3))**2 + &
-         (abz_tunes(2)-mat_tunes(2))**2 + &
-         (abz_tunes(3)-mat_tunes(1))**2
+if ( any(abs(abz(1:3)) .lt. 0.0001) ) then
+  call out_io (s_fatal$, r_name, "Input tunes is not fully set: \3f14.5\ ", r_array = abz(1:3)/twopi)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
 
-if (minval(val, 1) .gt. 0.1) then
-  call out_io (s_fatal$, r_name, "Unable to match mat_tunes.  Printing mat_tunes and abz_tunes.")
-  write(*, '(3f14.5)') mat_tunes(1:3)
-  write(*, '(3f14.5)') abz_tunes(1:3)
+! This takes into account that the z-tune may be the negative of what is mathematically calculated 
+! by the eigen analysis.
+
+do j = 1, 3
+  dtune(1,j) = abs(modulo2(abz(1) - mat_tunes(j), pi))
+  dtune(2,j) = abs(modulo2(abz(2) - mat_tunes(j), pi))
+  dtune(3,j) = min(abs(modulo2(abz(3)-mat_tunes(j), pi)), abs(modulo2(abz(3)+mat_tunes(j), pi)))
+enddo
+
+val(1) = max(dtune(1,1), dtune(2,2), dtune(3,3))
+val(2) = max(dtune(1,1), dtune(2,3), dtune(3,2))
+val(3) = max(dtune(1,2), dtune(2,1), dtune(3,3))
+val(4) = max(dtune(1,2), dtune(2,3), dtune(3,1))
+val(5) = max(dtune(1,3), dtune(2,1), dtune(3,2))
+val(6) = max(dtune(1,3), dtune(2,2), dtune(3,1))
+
+if (minval(val, 1) > 0.1) then
+  call out_io (s_fatal$, r_name, "Unable to match input tunes with calculated tunes.", &
+           'Input tunes:      \3f14.5\ ', &
+           'Calculated tunes: \3f14.5\ ', r_array = [abz(1:3)/twopi, mat_tunes(1:3)/twopi])
   return
 endif
 
