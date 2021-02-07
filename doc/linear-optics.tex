@@ -48,7 +48,7 @@ $\bfT$ is uncoupled then $w$ corresponds to the horizontal mode and $w$ correspo
 vertical mode.
 
 The $\bfQ$ and $\bfW$ matrices can be parameterized using the standard 1-dimensional Twiss
-parameterization:
+parametrization:
 \begin{equation}
   \bfQ = \begin{pmatrix}
     \cos\theta_q + \alpha_q \, \sin\theta_q & \beta_q \, \sin\theta_q \\
@@ -89,12 +89,10 @@ and $\bfV\inv$ is given by
     \end{pmatrix}
     . \label{vgicc2}
   \end{equation} 
-$\bfC$ is a measure of the coupling. 
-$\bfT$ is uncoupled if and only if $\bfC = \Bf 0$. 
+$\bfC$ is a measure of the coupling. $\bfT$ is uncoupled if and only if $\bfC = \Bf 0$.
 
-It is useful to normalize out the $\beta(s)$ variation in the above
-analysis. Normalized quantities being denoted by a bar above them. The
-normalized normal mode matrix $\BAR\bfU$ is defined by
+It is useful to normalize out the $\beta(s)$ variation in the above analysis. Normalized quantities
+being denoted by a bar above them. The normalized normal mode matrix $\BAR\bfU$ is defined by
   \begin{equation}
     \BAR\bfU = \bfG \, \bfU \, \bfG\inv
     , \label{ugug}
@@ -117,9 +115,9 @@ with
     \end{pmatrix}
     , \label{g1b0a} 
   \end{equation}
-with a similar equation for $\bfG_w$. With this definition, the corresponding
-$\BAR\bfQ$ and $\BAR\bfW$ (cf.~\Eq{ua00b}) are just rotation matrices.
-The relationship between $\bfT$ and $\BAR\bfU$ is 
+with a similar equation for $\bfG_w$. With this definition, the corresponding $\BAR\bfQ$ and
+$\BAR\bfW$ (cf.~\Eq{ua00b}) are just rotation matrices. The relationship between $\bfT$ and
+$\BAR\bfU$ is
   \begin{equation}
     \bfT = \bfG\inv \, \BAR\bfV \, \BAR\bfU \, \BAR\bfV\inv \, \bfG
     , \label{tgvuv}
@@ -143,15 +141,13 @@ with the normalized matrix $\BAR\bfC$ given by
     . \label{cgcg}
   \end{equation}
 
-The normal mode coordinates ${\bf q} = (q, q', w, w')$ are related to
-the laboratory frame via
+The normal mode coordinates ${\bf q} = (q, q', w, w')$ are related to the laboratory frame via
   \begin{equation}
     {\bf q} = \bfV\inv \, {\bf x}
     . \label{avx}
   \end{equation} 
-In particular the normal mode dispersion $\bfeta_q = (\eta_q,
-\eta'_q, \eta_w, \eta'_w)$ is related to the laboratory frame
-dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
+In particular the normal mode dispersion $\bfeta_q = (\eta_q, \eta'_q, \eta_w, \eta'_w)$ is related
+to the laboratory frame dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
   \begin{equation}
     {\bfeta_q} = \bfV\inv \, {\bfeta_x}
     . \label{etaavx}
@@ -159,14 +155,109 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
 When there is no coupling ($\bfC = 0$), $\bfeta_q$ and $\bfeta_x$ are
 equal to each other.
 
+%-----------------------------------------------------------------
+\section{Tunes From One-Turn Matrix Eigen Analysis}
+\label{s:eigen.tune}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{tune.pdf}
+  \caption[Illustration of a positive tune]{A) The standard accelerator physics convention is that 
+a clockwise rotation in $(x, p_x)$ or $(y, p_y)$ space represents a positive tune. B) For longitudinal
+oscillations, it is sometimes conventional to take counterclockwise rotation as positive if a machine
+is always running above transition.}
+  \label{f:tune}
+\end{figure}
+
+Given the $6 \times 6$ one-turn matrix for a storage ring, one issue is how to extract the tunes. If
+there is no coupling the analysis is simple but with coupling things get more complicated. In the
+general case, calculating with eigenvectors and eigenvalues gives, assuming that the lattice is
+stable, three pairs of eigenvalues with the two eigenvalues of a given pair being complex
+conjugates and all eigenvalues having unit amplitude. That is, the eigenvalues $\lambda_i$, $i =
+1, \ldots 6$ can be written in the form:
+\begin{align}
+  \lambda_1, \lambda_2 &= \exp(i \, \theta_a), \exp(-i \, \theta_a) \CRNO
+  \lambda_3, \lambda_4 &= \exp(i \, \theta_b), \exp(-i \, \theta_b) \\
+  \lambda_5, \lambda_6 &= \exp(i \, \theta_c), \exp(-i \, \theta_c) \nonumber
+  \label{lleit}
+\end{align}
+where $\theta_a$, $\theta_b$, and $\theta_c$ are the three tunes. To associate $\lambda_1$ and
+$\lambda_2$, along with their associated eigenvectors $\bfV_1$ and $\bfV_2$, with the
+``horizontal-like'' mode, all the eigenvectors are compared to one another and the eigenvector pair
+with the largest values for the $x$ and $p_x$ components are used for $\bfV_1$ and $\bfV_2$.
+Similarly, for the ``vertical-like'' mode, eigenvector pair with the largest values for the $y$ and
+$p_y$ components are associated with $\bfV_3$ and $bfV_4$, and finally for the ``longitudinal-like''
+mode the eigenvector pair with the largest values for the $z$ and $p_z$ components are associated
+with $\bfV_5$ and $\bfV_6$.
+
+It can be useful to arrange the eigenvalues such that the odd numbered eigenvalues (1, 3, and 5) are
+associated with the tune and and the even numbered eigen values (2, 4, and 6) are associated with
+the negative of the tune as arranged in \Eq{lleit}. The algorithm for doing this can be deduced by
+first considering the case where the motion is in one-dimension only. Here taken to be $(x, p_x)$ as
+shown in \fig{f:tune}. Assuming $\beta_x = 1$ and $\alpha_x = 0$, the one-turn matrix $bfM$ is a
+simple rotation matrix
+\begin{equation}
+  \bfM = \begin{pmatrix}
+    \cos(\theta_x) & \sin(\theta_x) \\
+   -\sin(\theta_x) & \cos(\theta_x)
+  \end{pmatrix}
+\end{equation}
+where $\theta_x$ is the tune. Notice that, by the standard accelerator physics convention, a
+positive tune represents a clockwise rotation. The eignvalues and
+eigenvectors are
+\begin{alignat}{2}
+  \lambda_1 &= \exp( i \, \theta_x),  \qquad &&\bfV_1 = \frac{1}{\sqrt{2}} \, (1, i) \CRNO
+  \lambda_2 &= \exp(-i \, \theta_x),  \qquad &&\bfV_2 = \frac{1}{\sqrt{2}} \, (1, -i) 
+\end{alignat}
+Thus the angle associated with the eigenvector $(1, i)/\sqrt{2}$ is the tune and the angle
+associated with the eigenvector $(1, -i)/\sqrt{2}$ is associated with the negative of the tune.
+
+In the general case, each $\bfV_i$, $i = 1, \ldots 6$, is a vector in $(x, p_x, y, p_y, z, p_z)$
+space with each component of the vector being a complex number. And each $\bfV_i$ is only unique up
+to some arbitrary phase factor. That is, $e^{i\phi} \, \bfV_i$ is a valid normalized eigenvector for
+all real $\phi$.  The prescription for making sure that $\bfV_1, \lambda_1$ is associated with the
+horizontal-like tune (and not the negative of the tune), is to choose for $\bfV_1$ the horizontal
+like eigenvector whose $v_x$ and $v_{px}$ components have an angular orientation that is similar to
+the vector $(1, i)$. One way to do this is to demand that $\bfV_1$ be such that the product $v_x^*
+\, v_{px}$ of its $v_x$ and $v_{px}$ components have positive imaginary part where $*$ is the
+complex conjugate. Similarly, the vertical-like and longitudinal-like mode eigenvectors can be
+tested and the vertical-like eigenvector associated with the positive tune is the one with the
+imaginary part of $v_y^* \, v_{py}$ positive and the longitudinal-like eigenvector associated with
+the positive tune is the one with the imaginary part of $v_z^* \, v_{pz}$.
+
+Note: The longitudinal-like mode is a slight bit tricky here in that, while the mathematics is the
+same as for the other modes, in the case where a machine is above transition, what counts as
+positive tune for a User may be a counterclockwise rotation in $(z, p_z)$ space.
+
+In some analyses (see, for example, section~\sref{s:slim}), it is useful to fix the phase
+relationship between $\bfV_j$ and $\bfV_{j+1}$, $j = 1, 3, 5$. For example, Chao \cite{b:chao79}
+uses $\bfV_{j+1} = \bfV_j^*$ and, in this case, the normalization condition used to get the tune
+associated with $j$ odd is
+\begin{equation}
+  \bfv_{j+1}^{t} \, \bfS \, \bfv_j = i, \quad j = 1, 3, 5
+  \label{vsvi0}
+\end{equation}
+with $\bfS$ being the matrix
+\begin{equation}
+  \bfS = \begin{pmatrix}
+      0 & -1 &  0 &  0 &  0 &  0 \\
+      1 &  0 &  0 &  0 &  0 &  0 \\
+      0 &  0 &  0 & -1 &  0 &  0 \\
+      0 &  0 &  1 &  0 &  0 &  0 \\
+      0 &  0 &  0 &  0 &  0 & -1 \\
+      0 &  0 &  0 &  0 &  1 &  0 \\
+  \end{pmatrix}
+\end{equation}
+Ohmi, Hirata, and Oide \cite{b:ohmi}, on the other hand, use the convention $\bfV_{j+1} = i \,
+\bfV_j^*$ which leads to a different normalization condition (see Eq.~79 in their paper). Notice
+that in this paper, the matrix $\bfS$ is the negative of the matrix $\bfS$ defined here.
 
 %-----------------------------------------------------------------
 \section{Dispersion Calculation}
 \label{s:dispersion}
 \index{dispersion|hyperbf}
 
-The dispersion ($\eta$) and the dispersion derivative ($\eta'$) are 
-defined by the equations
+The dispersion ($\eta$) and the dispersion derivative ($\eta'$) are defined by the equations
 \begin{align}
   \eta_x(s) &\equiv \left. \frac{dx}{dp_z} \right|_s \comma \qquad
     \eta'_x(s) \equiv \left. \frac{d\eta_x}{ds} \right|_s
@@ -177,11 +268,10 @@ defined by the equations
   \eta_z(s) &\equiv \left. \frac{dz}{dp_z} \right|_s \nonumber
 \end{align}
 
-Given the dispersion at a given point, the dispersion at some other
-point is calculated as follows: Let $\Bf r = (x, p_x, y, p_y, z, p_z)$
-be the reference orbit, around which the dispersion is to be
-calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order
-components of the transfer map between two points labeled 1 and 2:
+Given the dispersion at a given point, the dispersion at some other point is calculated as follows:
+Let $\Bf r = (x, p_x, y, p_y, z, p_z)$ be the reference orbit, around which the dispersion is to be
+calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order components of the transfer map
+between two points labeled 1 and 2:
 \begin{equation}
   \Bf r_2 = \bfM \, \Bf r_1 + \bfV
   \label{rmrv}
@@ -193,8 +283,8 @@ Define the dispersion vector $\bfeta$ by
     \eta_x, \eta'_x \, (1 + p_z), \eta_y, \eta'_y \, (1 + p_z), \eta_z, 1
   \right)
 \end{equation}
-Differentiating \Eq{rmrv} with respect to energy, 
-the dispersion at point 2 in terms of the dispersion at point 1 is
+Differentiating \Eq{rmrv} with respect to energy, the dispersion at point 2 in terms of the
+dispersion at point 1 is
 \begin{equation}
   \bfeta_2 = \left[ \frac{dp_{z2}}{dp_{z1}} \right]^{-1} \, 
     \left[ \bfM \, \bfeta_1 \right] + \bfV_\eta 
@@ -236,27 +326,22 @@ Explicitly
 For everything except \vn{RFcavity} and \vn{Lcavity} elements, 
 $dp_{z2}/dp_{z1}$ is 1.
 
-For a non-circular machine, there are two ways one can imagine
-defining the dispersion: Either with respect to changes in energy at
-the beginning of the machine or with respect to the local change in
-energy at the point of measurement. The former definition will be
-called ``non-local dispersion'' and the latter definition will be
-called ``local dispersion''. For a circular machine, local dispersion
-is always used.  The dispersion defined in the above equations, which
-is what \bmad uses in calculations, is the local dispersion. The
-non-local dispersion $\wt\bfeta(s_1)$ at some point $s_1$ is related
-to the local dispersion $\bfeta(s_1)$ via
+For a non-circular machine, there are two ways one can imagine defining the dispersion: Either with
+respect to changes in energy at the beginning of the machine or with respect to the local change in
+energy at the point of measurement. The former definition will be called ``non-local dispersion''
+and the latter definition will be called ``local dispersion''. For a circular machine, local
+dispersion is always used.  The dispersion defined in the above equations, which is what \bmad uses
+in calculations, is the local dispersion. The non-local dispersion $\wt\bfeta(s_1)$ at some point
+$s_1$ is related to the local dispersion $\bfeta(s_1)$ via
 \begin{equation}
   \wt\bfeta(s_1) = \frac{dp_{z1}}{dp_{z0}} \, \bfeta(s_1)
 \end{equation}
 where $s_0$ is the beginning of the machine.
 
-For a non-circular machine, there are advantages and disadvantages to
-using either local or non-local dispersion. Local dispersion has the
-problem that $dp_{z2}/dp_{z1}$ in \Eq{eppmev} may go through zero at a
-point producing infinite dispersions at that point. The non-local
-dispersion has the merit of reflecting what one would measure if the
-starting energy of the beam is veried. The local dispersion, on the
-other hand, reflects the correlations between the particle energy and
+For a non-circular machine, there are advantages and disadvantages to using either local or
+non-local dispersion. Local dispersion has the problem that $dp_{z2}/dp_{z1}$ in \Eq{eppmev} may go
+through zero at a point producing infinite dispersions at that point. The non-local dispersion has
+the merit of reflecting what one would measure if the starting energy of the beam is varied. The
+local dispersion, on the other hand, reflects the correlations between the particle energy and
 particle position within a beam.
 

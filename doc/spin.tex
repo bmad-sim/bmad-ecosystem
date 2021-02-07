@@ -540,7 +540,7 @@ the phase space torus it is on.
 
 The calculation of the derivative ${\partial\bfn}/\partial\delta$ within the SLIM formalism is
 similar to the calculation using quaternions (\sref{s:dn.calc}). The following follows
-Barber\cite{b:barber99}.  The calculation starts with the one-turn periodic $8 \times 8$ matrix
+Barber\cite{b:barber99}. The calculation starts with the one-turn periodic $8 \times 8$ matrix
 $\widetilde \bfM$ [Here the periodic $(\bfl(s), \bfn_0(s), \bfm(s))$ coordinate system must be used
 since the ending coordinates for $\bfM$ must be the same as the starting coordinates.]  The
 eigenvectors $\bfu_j$ and eigenvalues $\lambda_j$ ($j = 1, \ldots 8$) of $\widetilde \bfM$ are of
@@ -569,7 +569,10 @@ The derivative ${\partial \bfn}/\partial \delta$ is computed analogously to \Eq{
 with the $A_j$ being computed from \Eq{000001}.
 
 Alternatively, Chao \cite{b:chao79} gives a an analytical formulation where the eigenvectors are
-normalized in the form
+normalized in the form\footnote
+  {
+See section~\sref{s:eigen.tune} for a discussion on the implications of this normalization.
+  }
 \begin{equation}
   \bfv_{j+1}^{t} \, \bfS \, \bfv_j = i, \quad j = 1, 3, 5
   \label{vsvi}

@@ -532,9 +532,9 @@ $\phi_n^i$.
 
 To use exact multipoles with PTC based tracking (\sref{c:methods}), the PTC exact model
 tracking must be turned on. That is, in the lattice file set:
-\begin{example}
+\begin{example2}
   parameter[ptc_exact_model] = T
-\end{example}
+\end{example2}
 With exact model tracking, PTC always assumes that multipole coefficients correspond to
 \vn{horizontally_pure}. In this case, \bmad will convert \vn{vertically_pure} to
 \vn{horizontally_pure} as needed when passing multipole coefficients to PTC. Note that in
@@ -565,10 +565,10 @@ exit faces. For compatibility with \mad, if \vn{fint} is given but \vn{fintx} is
 
 Note: The SAD program uses \vn{fb1+f1} for the entrance fringe and \vn{fb2+f1} for the exit
 fringe. The correspondence between the two is
-\begin{example}
+\begin{example2}
   fint  * hgap  = (fb1 + f1) / 12
   fintx * hgapx = (fb2 + f1) / 12
-\end{example}
+\end{example2}
 
 \index{Enge function}
 \vn{fint} and \vn{hgap} can be related to the Enge function which is sometimes used to model the
@@ -3695,17 +3695,17 @@ $E_x^2 + E_y^2 = 1$.
 Sets the type of energy spectrum for emitted photons. If there is an associated physical element
 then this parameter is ignored and the energy distribution is calculated from the properties of the
 physical element. Possible settings are:
-\begin{example2}
+\begin{example}
   gaussian   ! Default
   uniform
-\end{example2}
+\end{example}
 The \vn{gaussian} setting gives Gaussian distributions for the two modes with width
 set by \vn{sig_E} and \vn{sig_E2}. The \vn{uniform} setting gives a flat
 distribution in the range:
-\begin{example2}
+\begin{example}
   [-sig_E, sig_E]    ! For the 1st mode
   [-sig_E2, sig_E2]  ! For the 2nd mode
-\end{example2}
+\end{example}
 
   \index{physical_source}
   \item[\vn{physical_source}] \Newline
@@ -3731,17 +3731,17 @@ Width of emitted photons in $x$, $y$ and $z$ directions. See
 Sets spacial $(x, y, z)$ spectrum of emitted photons. If there is an associated physical element
 then this parameter is ignored and the energy distribution is calculated from the properties of the
 physical element. Possible settings are:
-\begin{example2}
+\begin{example}
   gaussian    ! Default
   uniform
-\end{example2}
+\end{example}
 The \vn{gaussian} setting gives a Gaussian distribution with width
 $\sigma$ where $sigma$ is 
-\begin{example2}
+\begin{example}
   sig_x     ! for x distribution
   sig_y     ! for y distribution
   sig_z     ! for z distribution
-\end{example2}
+\end{example}
 The \vn{uniform} setting gives a flat
 distribution in the range: $[-\sigma, \sigma]$.
 
@@ -3751,17 +3751,17 @@ Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted photons. If th
 physical element then this parameter is ignored and the energy distribution is calculated from the
 properties of the physical element. The longitudinal velocity is always computed to make $v_x^2 +
 v_y^2 + v_z^2 = c^2$ Possible settings are:
-\begin{example2}
+\begin{example}
   gaussian    ! Default
   spherical
   uniform
-\end{example2}
+\end{example}
 The \vn{gaussian} setting gives a Gaussian distribution with width
 $\sigma$ where $sigma$ is 
-\begin{example2}
+\begin{example}
   sig_vx     for vx/c distribution
   sig_vy     for vy/c distribution
-\end{example2}
+\end{example}
 The \vn{uniform} setting gives a flat distribution in the range: $[-\sigma, \sigma]$. The
 \vn{spherical} setting gives flat distribution in all directions. With the \vn{spherical}
 setting is used, and the next downstream element excluding drifts and markers is an element
