@@ -13,6 +13,7 @@ use bmad
 use transfer_map_mod
 use mode3_mod
 use envelope_mod
+use eigen_mod
 
 implicit none
 
@@ -46,6 +47,7 @@ real(rp) starting_a_emit, starting_b_emit, starting_c_emit
 real(rp), allocatable :: M(:,:,:), Bbar(:,:,:), Ybar(:,:,:)
 
 complex(rp) Lambda(6,6), Theta(6,6), Iota_base(6,6), Iota(6,6)
+complex(rp) eval(6), evec(6,6)
 
 namelist /envelope_tracker/ lat_file, starting_a_emit, starting_b_emit, starting_c_emit, ey0, nturns, include_ibs, &
                             current, tail_cut, bend_slice_length, slice_length, user_supplied_tunes, tune_x, &
@@ -65,7 +67,6 @@ tail_cut = .true.
 current = 0.001
 regression_test = .false.
 
-
 call getarg(1, in_file)
 if (in_file == '') in_file = 'envelope_ibs.init'
 open (unit = 20, file = in_file, action='read')
@@ -81,24 +82,43 @@ call calc_z_tune(lat)
 
 npart = current / e_charge * lat%param%total_length / c_light
 
-!make_smat_from_abc uses mode tunes to label modes
-if(user_supplied_tunes) then
-  mode%a%tune = tune_x
-  mode%b%tune = tune_y
-  mode%z%tune = tune_z
+! Make_smat_from_abc uses mode tunes to label modes
+
+if (user_supplied_tunes) then
+  mode%a%tune = twopi * tune_x
+  mode%b%tune = twopi * tune_y
+  mode%z%tune = twopi * tune_z
+
+  if (tune_x == 0 .or. tune_y == 0 .or. tune_z == 0) then
+    print *, 'USER_SUPPLIED_TUNES = TRUE BUT NOT ALL TUNE_X, TUNE_Y, OR TUNE_Z SET!'
+    stop
+  endif
+
+  if (abs(tune_x) > 1 .or. abs(tune_y) > 1 .or. abs(tune_z) > 1) then
+    print *, 'UNITS OF FRACTIONAL TUNES TUNE_X, TUNE_Y, AND TUNE_Z ARE NOW RAD/2PI AND MUST BE IN THE INTERVAL (0:1).'
+    stop
+  endif
+
 else
-  mode%a%tune = lat%a%tune
-  mode%b%tune = lat%b%tune
-  mode%z%tune = lat%z%tune
+  call transfer_matrix_calc(lat, mat6, vec0)
+  call mat_eigen (mat6, eval, evec, err_flag)
+
+  mode%a%tune = modulo(atan2(aimag(eval(1)), real(eval(1))), twopi)
+  mode%b%tune = modulo(atan2(aimag(eval(3)), real(eval(3))), twopi)
+  mode%z%tune = modulo(atan2(aimag(eval(5)), real(eval(5))), twopi)
+  if (mode%z%tune > pi) mode%z%tune = twopi - mode%z%tune
 endif
 
 mode%a%emittance = starting_a_emit
 mode%b%emittance = starting_b_emit
 mode%z%emittance = starting_c_emit
+
+print '(a, 3f10.6)', 'Tunes: ', mode%a%tune/twopi, mode%b%tune/twopi, mode%z%tune/twopi
+print '(a, 3es14.5)', "Initial Emittances: ", mode%a%emittance, mode%b%emittance, mode%z%emittance
+
 call transfer_matrix_calc(lat, mat6, vec0, ix1=0, one_turn=.true.)
 call make_smat_from_abc(mat6, mode, Sigma_ent, err_flag)
 
-write (*,'(a,3es14.5)') "Initial Emittances: ", mode%a%emittance, mode%b%emittance, mode%z%emittance
 open(10,file='sigma_start.out')
 do i=1,6
   write(10,'(6es14.4)') Sigma_ent(i,:)
@@ -106,6 +126,7 @@ enddo
 close(10)
 
 ! Build element slices and damping matrix D and diffusion matrix B for each slice.
+
 nslices = 0
 do i=1,lat%n_ele_track
   if(any(lat%ele(i)%key==(/marker$,monitor$/))) then
@@ -128,7 +149,7 @@ allocate(Ybar(6,6,nslices))
 six = 0
 coos(0)=co(0)
 do i=1,lat%n_ele_track
-  if(any(lat%ele(i)%key==(/marker$,monitor$/))) then
+  if(any(lat%ele(i)%key== [marker$,monitor$])) then
     cycle
   else
     if(any(lat%ele(i)%key==(/sbend$,rbend$,wiggler$/))) then
@@ -276,7 +297,7 @@ if (regression_test) then
   write (1, '(a, 3es16.8)') '"init-emit" REL 1E-8', mode%a%emittance, mode%b%emittance, mode%z%emittance
 
   do i = 1, 6
-    write (1, '(a, 6es16.8)') '"sigma-ent-' // int_str(i) // '" ABS 1E-18', sigma_ent(i,:)
+    write (1, '(a, 6es16.8)') '"sigma-ent-' // int_str(i) // '" ABS 2E-13', sigma_ent(i,:)
   enddo
 
   do i = 1, 6
@@ -286,10 +307,10 @@ if (regression_test) then
   write(1, '(a, 3es16.8)') '"emit" REL 1e-8', emit
   write(1, '(a, 3es16.8)') '"alpha" REL 1e-8', alpha
   write(1, '(a, 3es16.8)') '"tao" REL 1e-8', tau
-  write(1, '(a, 3es16.8)') '"normal" REL 1e-8', normal
+  write(1, '(a, 3es16.8)') '"normal" REL 1e-6', normal
 
   do i = 1, 6
-    write(1, '(a, 6es16.8)') '"sigma-exi-' // int_str(i) // '" ABS 1e-18', sigma_exit(i,:)
+    write(1, '(a, 6es16.8)') '"sigma-exi-' // int_str(i) // '" ABS 2e-13', sigma_exit(i,:)
   enddo 
 
   close (1)
