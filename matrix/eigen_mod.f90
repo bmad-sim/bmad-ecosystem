@@ -17,6 +17,17 @@ contains
 ! When the eigenvalues are complex conjugate pairs, the eigenvectors and eigenvalues
 ! are grouped so that the conjugate pairs are in slots (1,2), (3,4), etc.
 !
+! Also: For complex conjugate pairs (i, i+1), i = 1, 3, or 5, the odd numbered 
+! eigenvector/eigenvalues will be such that the product (v_i^*) (v_{i+1}) has 
+! positive imaginary part where v_i is the i^th component of the eigenvector.
+! This ensures that the odd numbered eigenvector/eigenvalues are associated
+! with the tune and the even numbered ones have the negative of the tune.
+! See the Bmad manual 
+!
+! Also: the eigenvectors will be sorted so that 
+! eigenvectors (1,2) will have the largest "horizontal" components corresponding to vec(1:2), 
+! eigenvectors (3,4) will have the largest "vertical" components corresponding to vec(3:4), etc.
+!
 ! Input:
 !   mat(n,n)  -- Real(rp): Matrix. n must be even.
 !   print_err -- Logical, optional: If present and False then suppress 
@@ -33,19 +44,23 @@ subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 implicit none
 
 real(rp) mat(:,:)
-real(rp) :: val(size(mat, 1)), vec(size(mat, 1), size(mat, 1)), fnorm
-integer :: iv(size(mat, 1))
+real(rp) :: val(size(mat,1)), vec(size(mat,1), size(mat,1)), fnorm, amp(size(mat,1)/2, size(mat,1)/2)
+
+integer :: iv(size(mat,1)), sort(size(mat,1)/2)
 
 complex(rp) eigen_val(:), eigen_vec(:,:)
 
-integer i, n, ier
+integer i, j, k, ii, jj, kk, n, nn, ier
 
 logical, optional :: print_err
 logical error, err
+logical :: picked(size(mat,1)/2)
 
 !
 
-n = ubound(mat, 1)
+n = size(mat,1)
+nn = n / 2
+
 error = .true.
 
 call eigensys (mat, val, vec, iv, n, err, print_err)
@@ -56,33 +71,59 @@ if (err) return
 call ordersys (val, vec, iv, n, err, print_err)
 if (err) return
 
-do i = 2, n, 2
-  if (iv(i-1) == 0) then
-    eigen_val(i-1) = val(i-1)
-    eigen_val(i)   = val(i)
-    eigen_vec(i-1, :) = vec(:, i-1)
-    eigen_vec(i, :)   = vec(:, i)
+do ii = 1, nn
+  i = 2 * ii
+  fnorm = sqrt(sum(vec(:, i-1:i)**2))
+  if (fnorm == 0) return
+  vec(:, i-1:i) = vec(:, i-1:i) / fnorm
+  do kk = 1, nn
+    k = 2 * kk
+    amp(ii,kk) = sum(vec(k-1:k, i-1:i)**2)
+  enddo
+enddo
 
-  elseif (iv(i-1) == 1) then
-    eigen_val(i-1) = cmplx(val(i-1), val(i))
-    eigen_val(i)   = cmplx(val(i-1), -val(i))
-    eigen_vec(i-1, :) = cmplx(vec(:, i-1), vec(:, i))
-    eigen_vec(i, :)   = cmplx(vec(:, i-1), -vec(:, i))
+! Order eigen with horizontal first etc. 
+
+picked = .false.
+do i = 1, nn
+  do
+    sort(i) = maxloc(amp(:,i), 1)
+    if (.not. picked(sort(i))) exit
+    amp(sort(i),i) = -1
+  enddo
+  picked(sort(i)) = .true.
+enddo
+
+!
+
+do ii = 1, nn
+  i = 2 * ii
+  j = 2 * sort(ii)
+
+  if (iv(i-1) == 0) then  ! Unstable mode
+    eigen_val(j-1)    = val(i-1)
+    eigen_val(j)      = val(i)
+    eigen_vec(j-1, :) = vec(:, i-1)
+    eigen_vec(j, :)   = vec(:, i)
+
+  elseif (iv(i-1) == 1) then   ! Stable mode with complex conjugate pairs.
+    if (vec(j-1,i-1) * vec(j,i) - vec(j-1,i) * vec(j,i-1) > 0) then
+      eigen_val(j-1)    = cmplx(val(i-1),  val(i))
+      eigen_val(j)      = cmplx(val(i-1), -val(i))
+      eigen_vec(j-1, :) = cmplx(vec(:, i-1),  vec(:, i))
+      eigen_vec(j, :)   = cmplx(vec(:, i-1), -vec(:, i))
+    else
+      eigen_val(j-1)    = cmplx(val(i-1), -val(i))
+      eigen_val(j)      = cmplx(val(i-1),  val(i))
+      eigen_vec(j-1, :) = cmplx(vec(:, i-1), -vec(:, i))
+      eigen_vec(j, :)   = cmplx(vec(:, i-1),  vec(:, i))
+    endif
 
   else
     if (logic_option(.true., print_err)) call out_io (s_fatal$, 'mat_eigen', 'BAD IV FROM EIGENSYS')
     return
   endif
 enddo
-
-!
-
-do i = 1, n
-  fnorm = sum(real(eigen_vec(i,:))**2) + sum(aimag(eigen_vec(i,:))**2)
-  if (fnorm /= 0) eigen_vec(i,:) = eigen_vec(i,:) / sqrt(fnorm)
-enddo
-
-
 
 error = .false.
 
