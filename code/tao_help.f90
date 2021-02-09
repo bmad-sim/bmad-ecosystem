@@ -2,16 +2,14 @@
 ! Subroutine tao_help (what1, what2, lines, n_lines)
 !
 ! Online help for TAO commmands. 
-! Interfaces with the documentation.
 !
 ! Input:
 !   what1   -- Character(*): command to query. EG: "show".
-!   what1   -- Character(*): subcommand to query. EG: "element".
+!   what2   -- Character(*): subcommand to query. EG: "element".
 !
 ! Output:
-!   lines(:) -- character(200), optional, allocatable: If present 
-!                 then the output will be put in this string 
-!                 array instead of printing to the terminal.
+!   lines(:) -- character(200), optional, allocatable: If present then the output will 
+!                 be put in this string array instead of printing to the terminal.
 !   n_lines  -- integer, optional: Must be present if lines is present.
 !                 Number of lines used in the lines(:) array.
 !-
@@ -32,12 +30,24 @@ character(40) start_tag, left_over_eliminate, left_over_sub
 character(200) line, file_name, full_file_name
 character(*), optional, allocatable :: lines(:)
 
-logical blank_line_before, in_example, has_subbed
+logical blank_line_before, in_example, has_subbed, python_search
+
+! This help system depends upon parsing one of three files:
+!       tao/doc/single-mode.tex
+!       tao/doc/command-list.tex
+!       tao/code/tao_python_cmd.f90
+! The code here will look for the appropriate string (start_tag) that signals that
+! the wanted documentation has been found.
 
 ! Help depends upon if we are in single mode or not.
 ! Determine what file to open and starting tag.
 
-if (s%com%single_mode) then
+python_search = .false.
+
+if (index('python', trim(what1)) == 1 .and. what2 /= '') then
+  file_name = '$TAO_DIR/code/tao_python_cmd.f90'
+  python_search = .true.
+elseif (s%com%single_mode) then
   file_name = '$TAO_DIR/doc/single-mode.tex'
 else
   file_name = '$TAO_DIR/doc/command-list.tex'
@@ -45,7 +55,9 @@ endif
 
 call fullfilename (file_name, full_file_name)
 
-if (what1 == '' .or. what1 == 'help-list') then
+if (python_search) then
+  start_tag = '!%% ' // what2
+elseif (what1 == '' .or. what1 == 'help-list') then
   start_tag = '%% command_table'
 else
   start_tag = '%% ' // what1
@@ -60,18 +72,36 @@ if (ios /= 0) then
   return
 endif
 
+! Python search
+
+if (python_search) then
+  n = len_trim(start_tag)
+  ! Find start of desired comment block
+  do
+    if (.not. read_this_line(line)) return
+    if (line(1:n) == start_tag(1:n)) exit
+  enddo
+
+  ! Print comment block
+  do
+    read (iu, '(a)', iostat = ios) line
+    if (ios /= 0) exit
+    if (line(1:1) /= '!') exit
+    call this_line_out (line)
+  enddo
+
+  close (iu)
+  if (present(n_lines)) n_lines = nl
+
+  return
+endif
+
 ! Skip all lines before the start tag.
 
 n = len_trim(start_tag)
-do 
-  read (iu, '(a)', iostat = ios) line
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, &
-           'CANNOT FIND ANY INFO FOR: ' // trim(what1) // ' ' // trim(what2), &
-           'IN FILE: ' // file_name)
-    close(iu)
-    return
-  endif
+do
+  if (.not. read_this_line(line)) return
+
   ! If a match for what1 then check for a match for what2.
   if (line(1:n) == start_tag(1:n)) then
     if (what2 == '') exit
@@ -159,7 +189,7 @@ do
   call substitute (line, '\\')
   call substitute (line, '\W ', '^')
   call substitute (line, '"\W"', '"^"')
-  call substitute (line, "\B", "\")
+  call substitute (line, "\B", "\")       ! "
 
   if (line(1:2) == '% ') line = line(3:)
   if (line(1:1) == '%')  line = line(2:)
@@ -191,22 +221,56 @@ do
     blank_line_before = .false.
   endif
 
-  if (present(lines)) then
-    if (.not. allocated(lines)) allocate(lines(100))
-    if (nl >= size(lines)) call re_allocate (lines, nl+100)
-    nl = nl+1; lines(nl) = line
-  else
-    call out_io (s_blank$, r_name, line)
-  endif
-
+  call this_line_out(line)
 enddo
 
 close (iu)
-
 if (present(n_lines)) n_lines = nl
 
 !-----------------------------------------------------------------------------
 contains
+
+subroutine this_line_out(line)
+
+character(*) line
+
+!
+
+if (present(lines)) then
+  if (.not. allocated(lines)) allocate(lines(100))
+  if (nl >= size(lines)) call re_allocate (lines, nl+100)
+  nl = nl+1; lines(nl) = line
+else
+  call out_io (s_blank$, r_name, line)
+endif
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+! contains
+
+function read_this_line(line) result (ok)
+
+character(*) line
+logical ok
+
+!
+
+read (iu, '(a)', iostat = ios) line
+ok = .true.
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, &
+         'CANNOT FIND ANY INFO FOR: ' // trim(what1) // ' ' // trim(what2), &
+         'IN FILE: ' // file_name)
+  close(iu)
+  ok = .false.
+endif
+
+end function
+
+!-----------------------------------------------------------------------------
+! contains
 !
 ! Removes a string and optionally replaces it with another.
 
