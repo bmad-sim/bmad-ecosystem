@@ -662,7 +662,7 @@ do
     can_save = (ie == ie1 .or. ie == ie2 .or. ele%key == fork$ .or. ele%key == photon_fork$)
     if (tao_model_ele(ie)%save_beam_internally .or. can_save) tao_model_ele(ie)%beam = beam
 
-    if (u%beam%dump_file /= '' .and. (tao_model_ele(ie)%save_beam_to_file .or. can_save)) then
+    if (u%beam%dump_file /= '' .and. tao_model_ele(ie)%save_beam_to_file) then
       if (index(u%beam%dump_file, '.h5') == 0 .and. index(u%beam%dump_file, '.hdf5') == 0) then
         call write_beam_file (u%beam%dump_file, beam, new_beam_file, ascii$, lat)
       else
