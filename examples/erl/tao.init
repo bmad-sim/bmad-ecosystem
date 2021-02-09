@@ -38,8 +38,8 @@
         !ix_track_start = 123 !corresponts to la.mar.beg\1
 		beam_saved_at =  "MARKER::*"
 		!track_start = 'LA.MAR.BEG\1'
-        beam_init%a_norm_emit = 1.0e-6
-        beam_init%b_norm_emit = 1.0e-6
+        beam_init%a_norm_emit = 1.0e-6  ! normalized emit = emit * gamma
+        beam_init%b_norm_emit = 1.0e-6  ! normalized emit = emit * gamma
         beam_init%dPz_dz = 0.0
         beam_init%n_bunch = 1     
         beam_init%bunch_charge = 77.0e-12
