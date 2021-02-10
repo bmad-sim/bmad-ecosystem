@@ -1200,6 +1200,7 @@ case ('datum_has_ele')
 
 !%% derivative -------------------------------------------
 ! Optimization derivatives
+! Command syntax:
 !   python derivative
 ! Note: To save time, this command will not recalculate derivatives. 
 ! Use the "derivative" command beforehand to recalcuate if needed.
@@ -3309,7 +3310,7 @@ case ('plot_list')
 
 !%% plot_graph -------------------------------------------
 ! Graph
-! Syntax:
+! Command syntax:
 !   python plot_graph {graph_name}
 ! {graph_name} is in the form:
 !   {p_name}.{g_name}
@@ -3418,7 +3419,7 @@ case ('plot_graph')
 
 !%% plot_histogram -------------------------------------------
 ! Plot Histogram
-! Syntax:
+! Command syntax:
 !   python plot_histograph {curve_name}
 
 case ('plot_histogram')
@@ -3800,7 +3801,7 @@ case ('plot1')
 
 !%% shape_list -------------------------------------------
 ! lat_layout and floor_plan shapes list
-! Syntax:
+! Command syntax:
 !   python shape_list {who}
 ! {who} is one of:
 !   lat_layout
