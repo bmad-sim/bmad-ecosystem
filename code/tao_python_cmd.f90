@@ -2210,7 +2210,7 @@ case ('ele:photon')
   end select
 
 !%% ele:lord_slave -------------------------------------------
-! Element lord_slave
+! Lists the lord/slave tree of an element.
 ! Command syntax:
 !   python ele:lord_slave {ele_id}|{which}
 ! where {ele_id} is an element name or index and {which} is one of
@@ -2219,7 +2219,13 @@ case ('ele:photon')
 !   design
 ! Example:
 !   python ele:lord_slave 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
+! This gives lord and slave info on element number 7 in branch 1 of universe 3.
+! Note: The lord/slave info is independent of the setting of {which}.
+!
+! The output is a number of lines, each line giving information on an element (element index, etc.).
+! Some lines begin with the word "Element". 
+! After each "Element" line, there are a number of lines (possibly zero) that begin with the word "Slave or "Lord".
+! These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
 
 case ('ele:lord_slave')
 
