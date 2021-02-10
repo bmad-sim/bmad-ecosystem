@@ -152,7 +152,7 @@ real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 
 integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
-integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type
+integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type, loc
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 integer line_width, n_bend, ic, num_ele, n_arr, n_add
 integer, allocatable, save :: index_arr(:)
@@ -2030,13 +2030,10 @@ case ('ele:taylor_field')
 ! Command syntax:
 !   python ele:grid_field {ele_id}|{which} {index} {who}
 ! where {ele_id} is an element name or index and {which} is one of
-!   model
-!   base
-!   design
+!   model, base, design
 ! {index} is the index number in the ele%grid_field(:) array.
 ! {who} is one of:
-!   base
-!   points
+!   base, points
 ! Example:
 !   python ele:grid_field 3@1>>7|model 2 base
 ! This gives grid #2 of element number 7 in branch 1 of universe 3.
@@ -2102,13 +2099,19 @@ case ('ele:grid_field')
   end select
 
 !%% ele:floor -------------------------------------------
-! Element floor
+! Element floor coordinates. The output gives two lines. "Reference" is
+! without element misalignments and "Actual" is with misalignments.
 ! Command syntax:
-!   python ele:floor {ele_id}|{which}
+!   python ele:floor {ele_id}|{which} {where}
 ! where {ele_id} is an element name or index and {which} is one of
 !   model
 !   base
 !   design
+! {where} is an optional argument which, if present, is one of
+!   beginning  ! Upstream end
+!   center     ! Middle of element
+!   end        ! Downstream end (default)
+! Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
 ! Example:
 !   python ele:floor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
@@ -2119,21 +2122,42 @@ case ('ele:floor')
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
 
   ele => point_to_ele(line, err); if (err) return
-  ele0 => pointer_to_next_ele(ele, -1)
+  if (ele%ix_ele == 0) then
+    ele0 => ele
+  else
+    ele0 => pointer_to_next_ele(ele, -1)
+  endif
 
   can_vary = (ele%ix_ele == 0 .and. which == 'model')
-  floor = ele%floor
 
   select case (ele%key)
   case (crystal$, mirror$, multilayer_mirror$)
-    call ele_geometry (ele0%floor, ele, floor2, 0.5_rp)
+    floor = ele%floor
     floor2 = ele_geometry_with_misalignments (ele, 0.5_rp)
   case default
-    floor2 = ele_geometry_with_misalignments (ele)
+    if (tail_str == '') tail_str = 'end'
+    call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
+    if (loc == 0) then
+      call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
+      return
+    endif
+    select case (loc)
+    case (1)
+      floor  = ele0%floor
+      floor2 = ele_geometry_with_misalignments (ele, 0.0_rp)
+    case (2)
+      call ele_geometry(ele0%floor, ele, floor, 0.5_rp)
+      floor2 = ele_geometry_with_misalignments (ele, 0.5_rp)
+    case (3)
+      floor  = ele%floor
+      floor2 = ele_geometry_with_misalignments (ele)
+    end select
   end select
 
   nl=incr(nl); write (li(nl), rmt2) 'Reference;REAL_ARR;', can_vary, (';', floor%r(i), i = 1, 3), ';', floor%theta, ';', floor%phi, ';', floor%psi
+  nl=incr(nl); write (li(nl), rmt2) 'Reference-W;REAL_ARR;', .false., ((';', floor%w(i,j), i = 1, 3), j = 1, 3)
   nl=incr(nl); write (li(nl), rmt2) 'Actual;REAL_ARR;', .false., (';', floor2%r(i), i = 1, 3), ';', floor2%theta, ';', floor2%phi, ';', floor2%psi
+  nl=incr(nl); write (li(nl), rmt2) 'Actual-W;REAL_ARR;', .false., ((';', floor2%w(i,j), i = 1, 3), j = 1, 3)
 
 !%% ele:photon -------------------------------------------
 ! Element photon
