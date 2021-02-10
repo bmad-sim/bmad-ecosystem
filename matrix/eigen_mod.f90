@@ -107,7 +107,7 @@ do ii = 1, nn
     eigen_vec(j, :)   = vec(:, i)
 
   elseif (iv(i-1) == 1) then   ! Stable mode with complex conjugate pairs.
-    if (vec(j-1,i-1) * vec(j,i) - vec(j-1,i) * vec(j,i-1) > 0) then
+    if (sum(vec(1:n-1:2, i-1) * vec(2:n:2, i)) - sum(vec(1:n-1:2, i) * vec(2:n:2, i-1)) > 0) then
       eigen_val(j-1)    = cmplx(val(i-1),  val(i))
       eigen_val(j)      = cmplx(val(i-1), -val(i))
       eigen_vec(j-1, :) = cmplx(vec(:, i-1),  vec(:, i))
