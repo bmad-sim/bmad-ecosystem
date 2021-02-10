@@ -176,10 +176,9 @@ stable, three pairs of eigenvalues with the two eigenvalues of a given pair bein
 conjugates and all eigenvalues having unit amplitude. That is, the eigenvalues $\lambda_i$, $i =
 1, \ldots 6$ can be written in the form:
 \begin{align}
-  \lambda_1, \lambda_2 &= \exp(i \, \theta_a), \exp(-i \, \theta_a) \CRNO
-  \lambda_3, \lambda_4 &= \exp(i \, \theta_b), \exp(-i \, \theta_b) \\
-  \lambda_5, \lambda_6 &= \exp(i \, \theta_c), \exp(-i \, \theta_c) \nonumber
-  \label{lleit}
+  \lambda_1, \, \lambda_2 &= \exp(i \, \theta_a), \, \exp(-i \, \theta_a) \CRNO
+  \lambda_3, \, \lambda_4 &= \exp(i \, \theta_b), \, \exp(-i \, \theta_b) \label{lleit} \\
+  \lambda_5, \, \lambda_6 &= \exp(i \, \theta_c), \, \exp(-i \, \theta_c) \nonumber
 \end{align}
 where $\theta_a$, $\theta_b$, and $\theta_c$ are the three tunes. To associate $\lambda_1$ and
 $\lambda_2$, along with their associated eigenvectors $\bfV_1$ and $\bfV_2$, with the
@@ -209,35 +208,20 @@ eigenvectors are
   \lambda_1 &= \exp( i \, \theta_x),  \qquad &&\bfV_1 = \frac{1}{\sqrt{2}} \, (1, i) \CRNO
   \lambda_2 &= \exp(-i \, \theta_x),  \qquad &&\bfV_2 = \frac{1}{\sqrt{2}} \, (1, -i) 
 \end{alignat}
-Thus the angle associated with the eigenvector $(1, i)/\sqrt{2}$ is the tune and the angle
-associated with the eigenvector $(1, -i)/\sqrt{2}$ is associated with the negative of the tune.
+Thus, for the eigenvector $(1, i)/\sqrt{2}$, were the the momentum component is rotated by a factor
+of $\pi/2$ counterclockwise from the position coordinate, the rotation angle is the tune. The
+rotation angle associated with the eigenvector $(1, -i)/\sqrt{2}$ is associated with the negative of
+the tune.
 
 In the general case, each $\bfV_i$, $i = 1, \ldots 6$, is a vector in $(x, p_x, y, p_y, z, p_z)$
-space with each component of the vector being a complex number. And each $\bfV_i$ is only unique up
-to some arbitrary phase factor. That is, $e^{i\phi} \, \bfV_i$ is a valid normalized eigenvector for
-all real $\phi$.  The prescription for making sure that $\bfV_1, \lambda_1$ is associated with the
-horizontal-like tune (and not the negative of the tune), is to choose for $\bfV_1$ the horizontal
-like eigenvector whose $v_x$ and $v_{px}$ components have an angular orientation that is similar to
-the vector $(1, i)$. One way to do this is to demand that $\bfV_1$ be such that the product $v_x^*
-\, v_{px}$ of its $v_x$ and $v_{px}$ components have positive imaginary part where $*$ is the
-complex conjugate. Similarly, the vertical-like and longitudinal-like mode eigenvectors can be
-tested and the vertical-like eigenvector associated with the positive tune is the one with the
-imaginary part of $v_y^* \, v_{py}$ positive and the longitudinal-like eigenvector associated with
-the positive tune is the one with the imaginary part of $v_z^* \, v_{pz}$.
-
-Note: The longitudinal-like mode is a slight bit tricky here in that, while the mathematics is the
-same as for the other modes, in the case where a machine is above transition, what counts as
-positive tune for a User may be a counterclockwise rotation in $(z, p_z)$ space.
-
-In some analyses (see, for example, section~\sref{s:slim}), it is useful to fix the phase
-relationship between $\bfV_j$ and $\bfV_{j+1}$, $j = 1, 3, 5$. For example, Chao \cite{b:chao79}
-uses $\bfV_{j+1} = \bfV_j^*$ and, in this case, the normalization condition used to get the tune
-associated with $j$ odd is
+space with each component of the vector being a complex number. The criterion that an eigenvector
+is associated with the tune is that the phase of the momentum components are on average rotated
+clockwise from the position coordinates is
 \begin{equation}
-  \bfv_{j+1}^{t} \, \bfS \, \bfv_j = i, \quad j = 1, 3, 5
+  \wt\bfV_{j}^* \, \bfS \, \bfV_j = i, \quad j = 1, 3, 5
   \label{vsvi0}
 \end{equation}
-with $\bfS$ being the matrix
+where the tilde means transpose and $\bfS$ is the matrix
 \begin{equation}
   \bfS = \begin{pmatrix}
       0 & -1 &  0 &  0 &  0 &  0 \\
@@ -248,9 +232,17 @@ with $\bfS$ being the matrix
       0 &  0 &  0 &  0 &  1 &  0 \\
   \end{pmatrix}
 \end{equation}
-Ohmi, Hirata, and Oide \cite{b:ohmi}, on the other hand, use the convention $\bfV_{j+1} = i \,
-\bfV_j^*$ which leads to a different normalization condition (see Eq.~79 in their paper). Notice
-that in this paper, the matrix $\bfS$ is the negative of the matrix $\bfS$ defined here.
+\Eq{vsvi0} also makes sure that $\bfV$ is properly normalized.\footnote
+  {
+Different Authors can use different conventions. For example, the $\bfS$ matrix in the paper by
+Ohmi, Hirata, and Oide \cite{b:ohmi}, is the negative of the $\bfS$ matrix defined here and their
+phases are reversed (positive phase is counterclockwise rotation) as can be seen from Eqs.~(77) and
+(79) in their paper
+  }
+
+Note: The longitudinal-like mode is a slight bit tricky here in that, while the mathematics is the
+same as for the other modes, in the case where a machine is above transition, what counts as a
+positive tune for a User may be a counterclockwise rotation in $(z, p_z)$ space.
 
 %-----------------------------------------------------------------
 \section{Dispersion Calculation}
