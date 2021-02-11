@@ -263,13 +263,23 @@ call re_allocate_lines (li, 200)
 
 select case (command)
 
-!%% beam -------------------------------------------
+!%% beam -----------------------
 ! Output beam parameters that are not in the beam_init structure.
 ! Command syntax:
 !   python beam {ix_universe}
 ! where
 !   {ix_universe} is a universe index.
 ! To set beam_init parameters use the "set beam" command
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('beam')
 
@@ -282,13 +292,23 @@ case ('beam')
   nl=incr(nl); write (li(nl), amt) 'beam_dump_at;STR;T;',                   u%beam%dump_at
   nl=incr(nl); write (li(nl), amt) 'beam_dump_file;STR;T;',                 u%beam%dump_file
 
-!%% beam_init -------------------------------------------
+!%% beam_init -----------------------
 ! Output beam_init parameters.
 ! Command syntax:
 !   python beam_init {ix_universe}
 ! where
 !   {ix_universe} is a universe index.
 ! To set beam_init parameters use the "set beam_init" command
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('beam_init')
 
@@ -321,10 +341,11 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
   nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
 
-!%% bmad_com -------------------------------------------
+!%% bmad_com -----------------------
 ! Bmad_com structure components
 ! Command syntax:
 !   python bmad_com
+! 
 
 case ('bmad_com')
 
@@ -370,13 +391,24 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), lmt) 'ptc_print_info_messages;LOGIC;T;',           bmad_com%ptc_print_info_messages
   nl=incr(nl); write (li(nl), lmt) 'debug;LOGIC;T;',                             bmad_com%debug
 
-!%% branch1 -------------------------------------------
+!%% branch1 -----------------------
 ! Lattice element list.
 ! Command syntax:
 !   python branch1 {ix_universe}@{ix_branch}
 ! where
 !   {ix_universe} is a universe index
 !   {ix_branch} is a lattice branch index
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+! ix_branch
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('branch1')
 
@@ -397,7 +429,7 @@ case ('branch1')
   nl=incr(nl); write (li(nl), amt) 'param.geometry;ENUM;T;',                    geometry_name(branch%param%geometry)
   nl=incr(nl); write (li(nl), lmt) 'param.stable;LOGIC;F;',                     branch%param%stable
 
-!%% bunch1 -------------------------------------------
+!%% bunch1 -----------------------
 ! Bunch parameters at the exit end of a given lattice element.
 ! Command syntax:
 !   python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} {ix_bunch} {coordinate}
@@ -405,10 +437,25 @@ case ('branch1')
 !   model
 !   base
 !   design
-!
+! 
 ! Optional {coordinate} is one of:
 !   x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
 ! and will return an array.
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+! ix_branch
+! ix_ele
+! which
+! ix_bunch
+! coordinate
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('bunch1')
 
@@ -472,12 +519,22 @@ case ('bunch1')
   nl=incr(nl); write (li(nl), imt) 'n_particle_lost_in_ele;INT;F;',            bunch_params%n_particle_lost_in_ele
   nl=incr(nl); write (li(nl), lmt) 'beam_saved;LOGIC;T;',                      allocated(beam%bunch)
 
-!%% building_wall_list -------------------------------------------
+!%% building_wall_list -----------------------
 ! List of building wall sections or section points
 ! Command syntax:
 !   python building_wall_list {ix_section}
 ! If {ix_section} is not present then a list of building wall sections is given.
 ! If {ix_section} is present then a list of section points is given
+! 
+!
+! Parameters
+! ----------
+! ix_section
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('building_wall_list')
 
@@ -504,11 +561,21 @@ case ('building_wall_list')
     endif
   endif
 
-!%% building_wall_graph -------------------------------------------
+!%% building_wall_graph -----------------------
 ! (x, y) points for drawing the building wall for a particular graph.
 ! The graph defines the coordinate system for the (x, y) points.
 ! Command syntax:
 !   python building_wall_graph {graph}
+! 
+!
+! Parameters
+! ----------
+! graph
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('building_wall_graph')
 
@@ -537,7 +604,7 @@ case ('building_wall_graph')
     enddo
   enddo
 
-!%% building_wall_point -------------------------------------------
+!%% building_wall_point -----------------------
 ! add or delete a building wall point
 ! Command syntax:
 !   python building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
@@ -547,6 +614,22 @@ case ('building_wall_graph')
 !                        if adding a point and down if deleting.
 !   {z}, etc...     -- See tao_building_wall_point_struct components.
 !                   -- If {z} is set to "delete" then delete the point.
+! 
+!
+! Parameters
+! ----------
+! ix_section
+! ix_point
+! z
+! x
+! radius
+! z_center
+! x_center
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('building_wall_point')
 
@@ -586,7 +669,7 @@ case ('building_wall_point')
     bws%point(ip)%x_center = parse_real(name1(7), err);  if (err) return
   end select
 
-!%% building_wall_section -------------------------------------------
+!%% building_wall_section -----------------------
 ! add or delete a building wall section
 ! Command syntax:
 !   python building_wall_section {ix_section}^^{sec_name}^^{sec_constraint}
@@ -599,6 +682,18 @@ case ('building_wall_point')
 !       none
 !       left_side
 !       right_side
+! 
+!
+! Parameters
+! ----------
+! ix_section
+! sec_name
+! sec_constraint
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('building_wall_section')
 
@@ -625,7 +720,7 @@ case ('building_wall_section')
     bws%constraint = name1(3)
   end select
 
-!%% constraints -------------------------------------------
+!%% constraints -----------------------
 ! Optimization data and variables that contribute to the merit function.
 ! Command syntax:
 !   python constraints {who}
@@ -655,6 +750,16 @@ case ('building_wall_section')
 !   weight
 !   merit value
 !   dmerit/dvar
+! 
+!
+! Parameters
+! ----------
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('constraints')
 
@@ -695,10 +800,20 @@ case ('constraints')
     return
   end select
 
-!%% da_aperture -------------------------------------------
+!%% da_aperture -----------------------
 ! Dynamic aperture data
 ! Command syntax:
-!   python da_aperture ix_uni
+!   python da_aperture {ix_uni}
+! 
+!
+! Parameters
+! ----------
+! ix_uni
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('da_aperture')
 
@@ -717,10 +832,20 @@ case ('da_aperture')
     enddo
   enddo
 
-!%% da_params -------------------------------------------
+!%% da_params -----------------------
 ! Dynamic aperture input parameters
 ! Command syntax:
-!   python da_params ix_uni
+!   python da_params {ix_uni}
+! 
+!
+! Parameters
+! ----------
+! ix_uni
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('da_params')
 
@@ -741,7 +866,7 @@ case ('da_params')
   nl=incr(nl); write (li(nl), rmt) 'accuracy;REAL;T;',     da%param%accuracy
   nl=incr(nl); write (li(nl), ramt) 'pz;REAL_ARR;T',       (';', da%pz(i), i = 1, size(da%pz))
 
-!%% data -------------------------------------------
+!%% data -----------------------
 ! Individual datum info.
 ! Command syntax:
 !   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
@@ -749,6 +874,19 @@ case ('da_params')
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
 ! Example:
 !   python data_d1 1@orbit.x[10]
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+! d2_name
+! d1_datum
+! dat_index
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('data')
 
@@ -803,9 +941,9 @@ case ('data')
   nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
   nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
 
-!%% data_d2_create -------------------------------------------
+!%% data_d2_create -----------------------
 ! Create a d2 data structure along with associated d1 and data arrays.
-!
+! 
 ! Command syntax:
 !   python data_d2_create {d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
 ! {d2_name} should be of the form {ix_uni}@{d2_datum_name}
@@ -814,20 +952,32 @@ case ('data')
 !   {name1}^^{lower_bound1}^^{upper_bound1}^^....^^{nameN}^^{lower_boundN}^^{upper_boundN}
 ! where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds 
 ! of the array.
-!
+! 
 ! Example:
 !   python data_d2_create 2@orbit^^2^^x^^0^^45^^y^^1^^47
 ! This example creates a d2 data structure called "orbit" with 
 ! two d1 structures called "x" and "y".
-!
+! 
 ! The "x" d1 structure has an associated data array with indexes in the range [0, 45].
 ! The "y" d1 structure has an associated data arrray with indexes in the range [1, 47].
-!
+! 
 ! Use the "set data" command to set a created datum parameters.
 ! Note: When setting multiple data parameters, 
 !       temporarily toggle s%global%lattice_calc_on to False
 !   ("set global lattice_calc_on = F") to prevent Tao trying to 
 !       evaluate the partially created datum and generating unwanted error messages.
+! 
+!
+! Parameters
+! ----------
+! d2_name
+! n_d1_data
+! d_data_arrays_name_min_max
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('data_d2_create')
 
@@ -929,23 +1079,43 @@ case ('data_d2_create')
     call tao_point_d1_to_data (d1_ptr, u%data(i1:i2), ix_min(j))
   enddo
 
-!%% data_d2_destroy -------------------------------------------
+!%% data_d2_destroy -----------------------
 ! Destroy a d2 data structure along with associated d1 and data arrays.
 ! Command syntax:
 !   python data_d2_destroy {d2_datum}
 ! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
+! 
+!
+! Parameters
+! ----------
+! d2_datum
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('data_d2_destroy')
 
 call destroy_this_data_d2(line)
 
-!%% data_d2 -------------------------------------------
+!%% data_d2 -----------------------
 ! Information on a d2_datum.
 ! Command syntax:
 !   python data_d2 {d2_datum}
 ! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
+! 
+!
+! Parameters
+! ----------
+! d2_datum
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('data_d2')
 
@@ -970,7 +1140,7 @@ case ('data_d2')
   nl=incr(nl); write (li(nl), lmt) 'data_read_in;LOGIC;F;',                   d2_ptr%data_read_in
   nl=incr(nl); write (li(nl), lmt) 'ref_read_in;LOGIC;F;',                    d2_ptr%ref_read_in
 
-!%% data_d_array -------------------------------------------
+!%% data_d_array -----------------------
 ! List of datums for a given data_d1.
 ! Command syntax:
 !   python data_d_array {d1_datum}
@@ -978,6 +1148,16 @@ case ('data_d2')
 !   {ix_uni}@{d2_datum_name}.{d1_datum_name}
 ! Example:
 !   python data_d_array 1@orbit.x
+! 
+!
+! Parameters
+! ----------
+! d1_datum
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('data_d_array')
 
@@ -1000,12 +1180,22 @@ case ('data_d_array')
   enddo
 
 
-!%% data_d1_array -------------------------------------------
+!%% data_d1_array -----------------------
 ! List of d1 arrays for a given data_d2.
 ! Command syntax:
 !   python data_d1_array {d2_datum}
 ! {d2_datum} should be of the form
 !   {ix_uni}@{d2_datum_name}
+! 
+!
+! Parameters
+! ----------
+! d2_datum
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('data_d1_array')
 
@@ -1024,12 +1214,22 @@ case ('data_d1_array')
                                                                                      lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
   enddo
 
-!%% data_d2_array -------------------------------------------
+!%% data_d2_array -----------------------
 ! Data d2 info for a given universe.
 ! Command syntax:
 !   python data_d2_array {ix_universe}
 ! Example:
 !   python data_d2_array 1
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('data_d2_array')
 
@@ -1041,14 +1241,15 @@ case ('data_d2_array')
     nl=incr(nl); write (li(nl), '(a)') d2_ptr%name
   enddo
 
-!%% data_set_design_value -------------------------------------------
+!%% data_set_design_value -----------------------
 ! Set the design (and base & model) values for all datums.
 ! Command syntax:
 !   python data_set_design_value
 ! Example:
 !   python data_set_design_value
-!
+! 
 ! Note: Use the "data_d2_create" and "datum_create" first to create datums.
+! 
 
 case ('data_set_design_value')
 
@@ -1085,7 +1286,7 @@ case ('data_set_design_value')
   s%u%calc%lattice = .true.
   call tao_lattice_calc (calc_ok)
 
-!%% datum_create -------------------------------------------
+!%% datum_create -----------------------
 ! Create a datum.
 ! Command syntax:
 !   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^
@@ -1094,12 +1295,44 @@ case ('data_set_design_value')
 !                       {eval_point}^^{s_offset}^^{ix_bunch}^^{invalid_value}^^
 !                       {spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
 !                       {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
-!
+! 
 ! Note: The 3 values for spin_axis%n0, as a group, are optional and the 3 values 
 !       for spin_axis%l are, as a group, optional.
 ! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
 ! Note: After creating all your datums, use the "data_set_design_value" routine to 
 !       set the design (and model) values.
+! 
+!
+! Parameters
+! ----------
+! datum_name
+! data_type
+! ele_ref_name
+! ele_start_name
+! ele_name
+! merit_type
+! meas
+! good_meas
+! ref
+! good_ref
+! weight
+! good_user
+! data_source
+! eval_point
+! s_offset
+! ix_bunch
+! invalid_value
+! spin_axis%n0(1)
+! spin_axis%n0(2)
+! spin_axis%n0(3)
+! spin_axis%l(1)
+! spin_axis%l(2)
+! spin_axis%l(3)
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('datum_create')
 
@@ -1184,10 +1417,20 @@ case ('datum_create')
   d_ptr%exists = tao_data_sanity_check (d_ptr, d_ptr%exists)
   if (tao_chrom_calc_needed(d_ptr%data_type, d_ptr%data_source)) u%calc%chrom_for_data = .true.
 
-!%% datum_has_ele -------------------------------------------
+!%% datum_has_ele -----------------------
 ! Does datum type have an associated lattice element?
 ! Command syntax:
 !   python datum_has_ele {datum_type}
+! 
+!
+! Parameters
+! ----------
+! datum_type
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('datum_has_ele')
 
@@ -1198,12 +1441,13 @@ case ('datum_has_ele')
   case (provisional$);    nl=incr(nl); li(nl) = 'provisional'
   end select
 
-!%% derivative -------------------------------------------
+!%% derivative -----------------------
 ! Optimization derivatives
 ! Command syntax:
 !   python derivative
 ! Note: To save time, this command will not recalculate derivatives. 
 ! Use the "derivative" command beforehand to recalcuate if needed.
+! 
 
 case ('derivative')
 
@@ -1220,7 +1464,7 @@ case ('derivative')
     enddo
   enddo
 
-!%% ele:head -------------------------------------------
+!%% ele:head -----------------------
 ! "Head" Element attributes
 ! Command syntax:
 !   python ele:head {ele_id}|{which}
@@ -1231,6 +1475,17 @@ case ('derivative')
 ! Example:
 !   python ele:head 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:head')
 
@@ -1284,7 +1539,7 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), lmt) 'has#photon;LOGIC;F;',           associated(ele%photon)
   nl=incr(nl); write (li(nl), lmt) 'has#lord_slave;LOGIC;F;',       .true.
 
-!%% ele:methods -------------------------------------------
+!%% ele:methods -----------------------
 ! Element methods
 ! Command syntax:
 !   python ele:methods {ele_id}|{which}
@@ -1295,6 +1550,17 @@ case ('ele:head')
 ! Example:
 !   python ele:methods 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:methods')
 
@@ -1350,7 +1616,7 @@ case ('ele:methods')
     nl=incr(nl); write (li(nl), imt) 'longitudinal_orientation;INT;F;',              ele%orientation
   endif
 
-!%% ele:gen_attribs -------------------------------------------
+!%% ele:gen_attribs -----------------------
 ! Element general attributes
 ! Command syntax:
 !   python ele:gen_attribs {ele_id}|{which}
@@ -1361,6 +1627,17 @@ case ('ele:methods')
 ! Example:
 !   python ele:gen_attribs 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:gen_attribs')
 
@@ -1406,7 +1683,7 @@ case ('ele:gen_attribs')
     nl=incr(nl); write (li(nl), lmt) 'field_master;LOGIC;T;',                   ele%field_master
   endif
 
-!%% ele:multipoles -------------------------------------------
+!%% ele:multipoles -----------------------
 ! Element multipoles
 ! Command syntax:
 !   python ele:multipoles {ele_id}|{which}
@@ -1417,6 +1694,17 @@ case ('ele:gen_attribs')
 ! Example:
 !   python ele:multipoles 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:multipoles')
 
@@ -1469,7 +1757,7 @@ case ('ele:multipoles')
     endif
   enddo
 
-!%% ele:ac_kicker -------------------------------------------
+!%% ele:ac_kicker -----------------------
 ! Element ac_kicker
 ! Command syntax:
 !   python ele:ac_kicker {ele_id}|{which}
@@ -1480,6 +1768,17 @@ case ('ele:multipoles')
 ! Example:
 !   python ele:ac_kicker 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:ac_kicker')
 
@@ -1504,7 +1803,7 @@ case ('ele:ac_kicker')
     enddo
   endif
 
-!%% ele:cartesian_map -------------------------------------------
+!%% ele:cartesian_map -----------------------
 ! Element cartesian_map
 ! Command syntax:
 !   python ele:cartesian_map {ele_id}|{which} {index} {who}
@@ -1519,6 +1818,19 @@ case ('ele:ac_kicker')
 ! Example:
 !   python ele:cartesian_map 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! index
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:cartesian_map')
 
@@ -1557,7 +1869,7 @@ case ('ele:cartesian_map')
     return
   end select
 
-!%% ele:chamber_wall -------------------------------------------
+!%% ele:chamber_wall -----------------------
 ! Element beam chamber wall
 ! Command syntax:
 !   python ele:chamber_wall {ele_id}|{which} {index} {who}
@@ -1569,6 +1881,19 @@ case ('ele:cartesian_map')
 ! {who} is one of:
 !   x       ! Return min/max in horizontal plane
 !   y       ! Return min/max in vertical plane
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! index
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:chamber_wall')
 
@@ -1600,7 +1925,7 @@ case ('ele:chamber_wall')
     nl=incr(nl); write (li(nl), '(i0, 3(a, es14.6))') i, ';', wall3d%section(i)%s, ';', z1, ';', -z2
   enddo
 
-!%% ele:cylindrical_map -------------------------------------------
+!%% ele:cylindrical_map -----------------------
 ! Element cylindrical_map
 ! Command syntax:
 !   python ele:cylindrical_map {ele_id}|{which} {index} {who}
@@ -1615,6 +1940,19 @@ case ('ele:chamber_wall')
 ! Example:
 !   python ele:cylindrical_map 3@1>>7|model 2 base
 ! This gives map #2 of element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! index
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:cylindrical_map')
 
@@ -1655,7 +1993,7 @@ case ('ele:cylindrical_map')
     return
   end select
 
-!%% ele:taylor -------------------------------------------
+!%% ele:taylor -----------------------
 ! Element taylor
 ! Command syntax:
 !   python ele:taylor {ele_id}|{which}
@@ -1666,6 +2004,17 @@ case ('ele:cylindrical_map')
 ! Example:
 !   python ele:taylor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:taylor')
 
@@ -1690,7 +2039,7 @@ case ('ele:taylor')
     enddo
   enddo
 
-!%% ele:spin_taylor -------------------------------------------
+!%% ele:spin_taylor -----------------------
 ! Element spin_taylor
 ! Command syntax:
 !   python ele:spin_taylor {ele_id}|{which}
@@ -1701,6 +2050,17 @@ case ('ele:taylor')
 ! Example:
 !   python ele:spin_taylor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:spin_taylor')
 
@@ -1720,7 +2080,7 @@ case ('ele:spin_taylor')
     enddo
   enddo
 
-!%% ele:wake -------------------------------------------
+!%% ele:wake -----------------------
 ! Element wake
 ! Command syntax:
 !   python ele:wake {ele_id}|{which} {who}
@@ -1736,6 +2096,18 @@ case ('ele:spin_taylor')
 ! Example:
 !   python ele:wake 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:wake')
 
@@ -1793,7 +2165,7 @@ case ('ele:wake')
     return
   end select
 
-!%% ele:wall3d -------------------------------------------
+!%% ele:wall3d -----------------------
 ! Element wall3d
 ! Command syntax:
 !   python ele:wall3d {ele_id}|{which} {index} {who}
@@ -1808,6 +2180,19 @@ case ('ele:wake')
 ! Example:
 !   python ele:wall3d 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! index
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:wall3d')
 
@@ -1857,7 +2242,7 @@ case ('ele:wall3d')
     return
   end select
 
-!%% ele:twiss -------------------------------------------
+!%% ele:twiss -----------------------
 ! Element twiss
 ! Command syntax:
 !   python ele:twiss {ele_id}|{which}
@@ -1868,6 +2253,17 @@ case ('ele:wall3d')
 ! Example:
 !   python ele:twiss 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:twiss')
 
@@ -1885,7 +2281,7 @@ case ('ele:twiss')
   call xy_disp_out (ele%x, 'x', can_vary = free)
   call xy_disp_out (ele%y, 'y', can_vary = free)
 
-!%% ele:control -------------------------------------------
+!%% ele:control -----------------------
 ! Element control
 ! Command syntax:
 !   python ele:control {ele_id}|{which}
@@ -1896,6 +2292,17 @@ case ('ele:twiss')
 ! Example:
 !   python ele:control 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:control')
 
@@ -1911,7 +2318,7 @@ case ('ele:control')
   do i = 1, size(ele%control%var)
   enddo
 
-!%% ele:orbit -------------------------------------------
+!%% ele:orbit -----------------------
 ! Element orbit
 ! Command syntax:
 !   python ele:orbit {ele_id}|{which}
@@ -1922,6 +2329,17 @@ case ('ele:control')
 ! Example:
 !   python ele:orbit 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:orbit')
 
@@ -1931,7 +2349,7 @@ case ('ele:orbit')
 
   call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
 
-!%% ele:mat6 -------------------------------------------
+!%% ele:mat6 -----------------------
 ! Element mat6
 ! Command syntax:
 !   python ele:mat6 {ele_id}|{which} {who}
@@ -1946,6 +2364,18 @@ case ('ele:orbit')
 ! Example:
 !   python ele:mat6 3@1>>7|model mat6
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:mat6')
 
@@ -1970,7 +2400,7 @@ case ('ele:mat6')
     return
   end select
 
-!%% ele:taylor_field -------------------------------------------
+!%% ele:taylor_field -----------------------
 ! Element taylor_field
 ! Command syntax:
 !   python ele:taylor_field {ele_id}|{which} {index} {who}
@@ -1985,6 +2415,19 @@ case ('ele:mat6')
 ! Example:
 !   python ele:taylor_field 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! index
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:taylor_field')
 
@@ -2026,7 +2469,7 @@ case ('ele:taylor_field')
     enddo
   end select
 
-!%% ele:grid_field -------------------------------------------
+!%% ele:grid_field -----------------------
 ! Element grid_field
 ! Command syntax:
 !   python ele:grid_field {ele_id}|{which} {index} {who}
@@ -2038,6 +2481,19 @@ case ('ele:taylor_field')
 ! Example:
 !   python ele:grid_field 3@1>>7|model 2 base
 ! This gives grid #2 of element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! index
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:grid_field')
 
@@ -2099,7 +2555,7 @@ case ('ele:grid_field')
     enddo; enddo; enddo
   end select
 
-!%% ele:floor -------------------------------------------
+!%% ele:floor -----------------------
 ! Element floor coordinates. The output gives two lines. "Reference" is
 ! without element misalignments and "Actual" is with misalignments.
 ! Command syntax:
@@ -2116,6 +2572,18 @@ case ('ele:grid_field')
 ! Example:
 !   python ele:floor 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! where
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:floor')
 
@@ -2160,7 +2628,7 @@ case ('ele:floor')
   nl=incr(nl); write (li(nl), rmt2) 'Actual;REAL_ARR;', .false., (';', floor2%r(i), i = 1, 3), ';', floor2%theta, ';', floor2%phi, ';', floor2%psi
   nl=incr(nl); write (li(nl), rmt2) 'Actual-W;REAL_ARR;', .false., ((';', floor2%w(i,j), i = 1, 3), j = 1, 3)
 
-!%% ele:photon -------------------------------------------
+!%% ele:photon -----------------------
 ! Element photon
 ! Command syntax:
 !   python ele:photon {ele_id}|{which} {who}
@@ -2175,6 +2643,18 @@ case ('ele:floor')
 ! Example:
 !   python ele:photon 3@1>>7|model base
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:photon')
 
@@ -2210,7 +2690,7 @@ case ('ele:photon')
     nl=incr(nl); write (li(nl), ramt) 'elliptical_curvature;REAL_ARR;T', (';', ph%surface%elliptical_curvature(i), i = 1, 3)
   end select
 
-!%% ele:lord_slave -------------------------------------------
+!%% ele:lord_slave -----------------------
 ! Lists the lord/slave tree of an element.
 ! Command syntax:
 !   python ele:lord_slave {ele_id}|{which}
@@ -2222,11 +2702,22 @@ case ('ele:photon')
 !   python ele:lord_slave 3@1>>7|model
 ! This gives lord and slave info on element number 7 in branch 1 of universe 3.
 ! Note: The lord/slave info is independent of the setting of {which}.
-!
+! 
 ! The output is a number of lines, each line giving information on an element (element index, etc.).
 ! Some lines begin with the word "Element". 
 ! After each "Element" line, there are a number of lines (possibly zero) that begin with the word "Slave or "Lord".
 ! These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:lord_slave')
 
@@ -2255,7 +2746,7 @@ case ('ele:lord_slave')
   enddo
 
 
-!%% ele:elec_multipoles -------------------------------------------
+!%% ele:elec_multipoles -----------------------
 ! Element electric multipoles
 ! Command syntax:
 !   python ele:elec_multipoles {ele_id}|{which}
@@ -2266,6 +2757,17 @@ case ('ele:lord_slave')
 ! Example:
 !   python ele:elec_multipoles 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('ele:elec_multipoles')
 
@@ -2294,12 +2796,22 @@ case ('ele:elec_multipoles')
     nl=incr(nl); write (li(nl), '(i0, 4(a, es22.14))') i, ';', ele%a_pole_elec(i), ';', ele%b_pole_elec(i), ';', a(i), ';', b(i)
   enddo
 
-!%% evaluate -------------------------------------------
+!%% evaluate -----------------------
 ! Evaluate an expression. The result may be a vector.
 ! Command syntax:
 !   python evaluate {expression}
 ! Example:
 !   python evaluate 2*data::cbar.11[1:10]|model
+! 
+!
+! Parameters
+! ----------
+! expression
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('evaluate')
 
@@ -2313,10 +2825,10 @@ case ('evaluate')
     nl=incr(nl); write (li(nl), '(i0, a, es22.14)') i, ';', value_arr(i)
   enddo
 
-!%% em_field -------------------------------------------
+!%% em_field -----------------------
 ! EM field at a given point generated by a given element.
 ! Command syntax:
-!   python em_field {ele_id}|{which} {x}, {y}, {z}, {t/z}
+!   python em_field {ele_id}|{which} {x}, {y}, {z}, {t_or_z}
 ! where {which} is one of:
 !   model
 !   base
@@ -2324,7 +2836,22 @@ case ('evaluate')
 ! Where:
 !   {x}, {y}  -- Transverse coords.
 !   {z}       -- Longitudainal coord with respect to entrance end of element.
-!   {t/z}     -- time or phase space z depending if lattice is setup for absolute time tracking.
+!   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
+! 
+!
+! Parameters
+! ----------
+! ele_id
+! which
+! x
+! y
+! z
+! t_or_z
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('em_field')
 
@@ -2347,12 +2874,22 @@ case ('em_field')
   call em_field_calc (ele, ele%branch%param, z, orb, .false., field, err_flag = err);  if (err) return
   nl=incr(nl); write (li(nl), '(6(es22.14, a))') (field%B(i), ';',  i = 1, 3), (field%E(i), ';',  i = 1, 2), field%E(3)
 
-!%% enum -------------------------------------------
+!%% enum -----------------------
 ! List of possible values for enumerated numbers.
 ! Command syntax:
 !   python enum {enum_name}
 ! Example:
 !   python enum tracking_method
+! 
+!
+! Parameters
+! ----------
+! enum_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('enum')
 
@@ -2490,10 +3027,20 @@ case ('enum')
     enddo
   end select
 
-!%% floor_plan -------------------------------------------
+!%% floor_plan -----------------------
 ! Floor plan elements
 ! Command syntax:
 !   python floor_plan {graph}
+! 
+!
+! Parameters
+! ----------
+! graph
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('floor_plan')
 
@@ -2561,10 +3108,20 @@ case ('floor_plan')
     enddo
   enddo
 
-!%% floor_orbit -------------------------------------------
+!%% floor_orbit -----------------------
 ! (x, y) coordinates for drawing the particle orbit on a floor plan.
 ! Command syntax:
 !   python floor_orbit {graph}
+! 
+!
+! Parameters
+! ----------
+! graph
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('floor_orbit')
 
@@ -2695,18 +3252,19 @@ case ('floor_orbit')
     enddo
   enddo
 
-!%% global -------------------------------------------
+!%% global -----------------------
 ! Global parameters
 ! Command syntax:
 !   python global
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
-!
+! 
 ! Note: The follow is intentionally left out:
 !   optimizer_allow_user_abort
 !   quiet
 !   single_step
 !   prompt_color
 !   prompt_string
+! 
 
 case ('global')
 
@@ -2760,10 +3318,11 @@ case ('global')
   nl=incr(nl); write (li(nl), lmt) 'debug_on;LOGIC;T;',                       s%global%debug_on
 
 
-!%% help -------------------------------------------
+!%% help -----------------------
 ! returns list of "help xxx" topics
 ! Command syntax:
 !   python help
+! 
 
 case ('help')
 
@@ -2783,10 +3342,20 @@ case ('help')
   li(nl+1:nl+nl2) = name2(1:nl2)
   nl = nl + nl2
 
-!%% inum -------------------------------------------
+!%% inum -----------------------
 ! INUM
 ! Command syntax:
 !   python inum {who}
+! 
+!
+! Parameters
+! ----------
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('inum')
 
@@ -2826,23 +3395,34 @@ case ('inum')
     call invalid ('Not a recognized inum')
   end select
 
-!%% lat_calc_done -------------------------------------------
+!%% lat_calc_done -----------------------
 ! Check if a lattice recalculation has been proformed since the last time
 !   "python lat_calc_done" was called.
 ! Command syntax:
 !   python lat_calc_done
+! 
 
 case ('lat_calc_done')
 
   nl=incr(nl); write (li(nl), '(l1)') s%com%lattice_calc_done
   s%com%lattice_calc_done = .false.
 
-!%% lat_ele_list -------------------------------------------
+!%% lat_ele_list -----------------------
 ! Lattice element list.
 ! Command syntax:
 !   python lat_ele {branch_name}
 ! {branch_name} should have the form:
 !   {ix_uni}@{ix_branch}
+! 
+!
+! Parameters
+! ----------
+! branch_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('lat_ele_list')
 
@@ -2854,14 +3434,24 @@ case ('lat_ele_list')
     nl=incr(nl); write (li(nl), '(i0, 2a)') i, ';', branch%ele(i)%name
   enddo
 
-!%% lat_general -------------------------------------------
+!%% lat_general -----------------------
 ! Lattice general
 ! Command syntax:
 !   python lat_general {ix_universe}
-!
+! 
 ! Output syntax:
 !   branch_index;branch_name;n_ele_track;n_ele_max
-case ('lat_general')
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+!
+!    
+! Returns
+! -------
+! ?? 
+
 
   u => point_to_uni(line, .false., err); if (err) return
   lat => u%model%lat
@@ -2871,7 +3461,7 @@ case ('lat_general')
     nl=incr(nl); write (li(nl), '(i0, 3a, 2(i0, a))') i, ';', trim(branch%name), ';', branch%n_ele_track, ';', branch%n_ele_max
   enddo
 
-!%% lat_list -------------------------------------------
+!%% lat_list -----------------------
 ! List of parameters at ends of lattice elements
 ! Command syntax:
 !   python lat_list -no_slaves -track_only -index_order 
@@ -2882,12 +3472,12 @@ case ('lat_general')
 !   -track_only is optional. If present, lord elements will not be matched to.
 !   -index_order is optional. If present, order elements by element index instead 
 !                of the standard s-position.
-!
+! 
 !   {which} is one of:
 !     model
 !     base
 !     design
-!
+! 
 !   {who} is a comma deliminated list of:
 !     orbit.floor.x, orbit.floor.y, orbit.floor.z    ! Floor coords at particle orbit.
 !     orbit.spin.1, orbit.spin.2, orbit.spin.3,
@@ -2903,17 +3493,18 @@ case ('lat_general')
 !     ele.s, ele.l
 !     ele.e_tot, ele.p0c
 !     ele.mat6, ele.vec0
-!
+! 
 !   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
-!
+! 
 ! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 ! Note: To output through the real array buffer, add the prefix "real:" to {who}.
 ! Note: Only a single item permitted with real buffer out.
-!
+! 
 ! Examples:
 !   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
 !   python lat_list 3@0>>Q*|base real:ele.s    
+! 
 
 case ('lat_list')
 
@@ -3136,10 +3727,20 @@ case ('lat_list')
     endif
   endif
 
-!%% lat_param_units -------------------------------------------
+!%% lat_param_units -----------------------
 ! Units of a parameter associated with a lattice or lattice element.
 ! Command syntax:
 !   python lat_param_units {param_name}
+! 
+!
+! Parameters
+! ----------
+! param_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('lat_param_units')
 
@@ -3147,16 +3748,17 @@ case ('lat_param_units')
   a_name = attribute_units(name)
   nl=incr(nl); write(li(nl), '(a)') a_name
 
-!%% merit -------------------------------------------
+!%% merit -----------------------
 ! Merit value.
 ! Command syntax:
 !   python merit
+! 
 
 case ('merit')
 
   nl=incr(nl); write (li(nl), '(es22.14)') tao_merit()
 
-!%% orbit_at_s -------------------------------------------
+!%% orbit_at_s -----------------------
 ! Twiss at given s position.
 ! Command syntax:
 !   python orbit_at_s {ix_uni}@{ix_branch}>>{s}|{which}
@@ -3166,7 +3768,20 @@ case ('merit')
 !     base
 !     design
 !   {s} is the longitudinal s-position.
-case ('orbit_at_s')
+! 
+!
+! Parameters
+! ----------
+! ix_uni
+! ix_branch
+! s
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
+
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err); if (err) return
@@ -3176,11 +3791,12 @@ case ('orbit_at_s')
   call twiss_and_track_at_s (tao_lat%lat, s_pos, orb = tao_lat%tao_branch(ix_branch)%orbit, orb_at_s = orb, ix_branch = ix_branch)
   call orbit_out (orb)
 
-!%% place_buffer -------------------------------------------
+!%% place_buffer -----------------------
 ! Output place command buffer and reset the buffer.
 ! The contents of the buffer are the place commands that the user has issued.
 ! Command syntax:
 !   python place_buffer
+! 
 
 case ('place_buffer')
 
@@ -3192,10 +3808,20 @@ case ('place_buffer')
 
   deallocate(s%com%plot_place_buffer)
 
-!%% plot_curve -------------------------------------------
+!%% plot_curve -----------------------
 ! Curve information for a plot
 ! Command syntax:
 !   pyton plot_curve {curve_name}
+! 
+!
+! Parameters
+! ----------
+! curve_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_curve')
 
@@ -3248,12 +3874,23 @@ case ('plot_curve')
 
   nl=incr(nl); write (li(nl), imt)  'symbol.line_width;INT;T;',               c%symbol%line_width
 
-!%% plot_lat_layout -------------------------------------------
+!%% plot_lat_layout -----------------------
 ! Plot Lat_layout info
 ! Command syntax:
 !   python plot_lat_layout {ix_universe}@{ix_branch}
 ! Note: The returned list of element positions is not ordered in increasing
 !       longitudinal position.
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+! ix_branch
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_lat_layout')
 
@@ -3277,13 +3914,23 @@ case ('plot_lat_layout')
     enddo
   enddo
 
-!%% plot_list -------------------------------------------
+!%% plot_list -----------------------
 ! List of plot templates or plot regions.
 ! Command syntax:
-!   python plot_list {r/g}
+!   python plot_list {r_or_g}
 ! where "{r/g}" is:
 !   "r"      ! list regions
 !   "t"      ! list template plots
+! 
+!
+! Parameters
+! ----------
+! r_or_g
+!
+!    
+! Returns
+! -------
+! ?? 
 
 
 case ('plot_list')
@@ -3308,7 +3955,7 @@ case ('plot_list')
     call invalid ('Expect "r" or "t"')
   endif
 
-!%% plot_graph -------------------------------------------
+!%% plot_graph -----------------------
 ! Graph
 ! Command syntax:
 !   python plot_graph {graph_name}
@@ -3318,6 +3965,16 @@ case ('plot_list')
 !   {p_name} is the plot region name if from a region or the plot name if a template plot.
 !   This name is obtained from the python plot_list command.
 !   {g_name} is the graph name obtained from the python plot1 command.
+! 
+!
+! Parameters
+! ----------
+! graph_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_graph')
 
@@ -3417,10 +4074,20 @@ case ('plot_graph')
 
   endif
 
-!%% plot_histogram -------------------------------------------
+!%% plot_histogram -----------------------
 ! Plot Histogram
 ! Command syntax:
 !   python plot_histograph {curve_name}
+! 
+!
+! Parameters
+! ----------
+! curve_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_histogram')
 
@@ -3441,7 +4108,7 @@ case ('plot_histogram')
   nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       c%hist%center
   nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       c%hist%number
 
-!%% plot_plot_manage -------------------------------------------
+!%% plot_plot_manage -----------------------
 ! Template plot creation or destruction.
 ! Command syntax:
 !   pyton plot_plot_manage {plot_location}^^{plot_name}^^
@@ -3449,6 +4116,21 @@ case ('plot_histogram')
 ! Use "@Tnnn" sytax for {plot_location} to place a plot. A plot may be placed in a 
 ! spot where there is already a template.
 ! If {n_graph} is set to -1 then just delete the plot.
+! 
+!
+! Parameters
+! ----------
+! plot_location
+! plot_name
+! n_graph
+! graph1_name
+! graph2_name
+! graphN_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_plot_manage')
 
@@ -3492,7 +4174,7 @@ case ('plot_plot_manage')
     p%graph(i)%p => p
   enddo
 
-!%% plot_curve_manage -------------------------------------------
+!%% plot_curve_manage -----------------------
 ! Template plot curve creation/destruction
 ! Command syntax:
 !   pyton plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
@@ -3500,6 +4182,18 @@ case ('plot_plot_manage')
 ! In this case the {curve_name} is ignored and does not have to be present.
 ! If {curve_index} does not not correspond to an existing curve, {curve_index}
 ! must be one greater than the number of curves.
+! 
+!
+! Parameters
+! ----------
+! graph_name
+! curve_index
+! curve_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_curve_manage')
 
@@ -3542,7 +4236,7 @@ case ('plot_curve_manage')
     g%curve(n:n0-1) = curve_temp(n+1:n0)
   endif
 
-!%% plot_graph_manage -------------------------------------------
+!%% plot_graph_manage -----------------------
 ! Template plot graph creation/destruction
 ! Command syntax:
 !   pyton plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
@@ -3550,6 +4244,18 @@ case ('plot_curve_manage')
 ! In this case the {graph_name} is ignored and does not have to be present.
 ! If {graph_index} does not not correspond to an existing graph, {graph_index}
 ! must be one greater than the number of graphs.
+! 
+!
+! Parameters
+! ----------
+! plot_name
+! graph_index
+! graph_name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_graph_manage')
 
@@ -3592,10 +4298,10 @@ case ('plot_graph_manage')
     p%graph(n:n0-1) = graph_temp(n+1:n0)
   endif
 
-!%% plot_line -------------------------------------------
+!%% plot_line -----------------------
 ! Points used to construct a smooth line for a plot curve.
 ! Command syntax:
-!   python plot_line {region_name}.{graph_name}.{curve_name} {x-or-y}
+!   python plot_line {region_name}.{graph_name}.{curve_name} {x_or_y}
 ! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y 
 ! component put into the real array buffer.
 ! Note: The plot must come from a region, and not a template, since no template plots 
@@ -3604,6 +4310,19 @@ case ('plot_graph_manage')
 !   python plot_line r13.g.a   ! String array output.
 !   python plot_line r13.g.a x ! x-component of line points loaded into the real array buffer.
 !   python plot_line r13.g.a y ! y-component of line points loaded into the real array buffer.
+! 
+!
+! Parameters
+! ----------
+! region_name
+! graph_name
+! curve_name
+! x_or_y
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_line')
 
@@ -3655,11 +4374,11 @@ endif
   end select
 
 
-!%% plot_symbol -------------------------------------------
+!%% plot_symbol -----------------------
 ! Locations to draw symbols for a plot curve.
 ! Command syntax:
-!   python plot_symbol {region_name}.{graph_name}.{curve_name} {x-or-y}
-! Optional {x-or-y} may be set to "x" or "y" to get the symbol x or y 
+!   python plot_symbol {region_name}.{graph_name}.{curve_name} {x_or_y}
+! Optional {x_or_y} may be set to "x" or "y" to get the symbol x or y 
 ! positions put into the real array buffer.
 ! Note: The plot must come from a region, and not a template, 
 !       since no template plots have associated symbol data.
@@ -3669,6 +4388,19 @@ endif
 !                                      loaded into the real array buffer.
 !   python plot_symbol r13.g.a y     ! y-component of the symbol positions 
 !                                      loaded into the real array buffer.
+! 
+!
+! Parameters
+! ----------
+! region_name
+! graph_name
+! curve_name
+! x_or_y
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_symbol')
 
@@ -3718,7 +4450,7 @@ case ('plot_symbol')
     call invalid ('word after curve name not "x" nor "y"')
   end select
 
-!%% plot_transfer -------------------------------------------
+!%% plot_transfer -----------------------
 ! Transfer plot parameters from the "from plot" to the "to plot" (or plots).
 ! Command syntax:
 !   python plot_transfer {from_plot} {to_plot}
@@ -3726,6 +4458,17 @@ case ('plot_symbol')
 ! If {to_plot} is not present and {from_plot} is a template plot, the "to plots" 
 !  are the equivalent region plots with the same name. And vice versa 
 !  if {from_plot} is a region plot.
+! 
+!
+! Parameters
+! ----------
+! from_plot
+! to_plot
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot_transfer')
 
@@ -3764,12 +4507,22 @@ case ('plot_transfer')
     enddo
   endif
 
-!%% plot1 -------------------------------------------
+!%% plot1 -----------------------
 ! Info on a given plot.
 ! Command syntax:
 !   python plot1 {name}
 ! {name} should be the region name if the plot is associated with a region.
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
+! 
+!
+! Parameters
+! ----------
+! name
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('plot1')
 
@@ -3799,13 +4552,23 @@ case ('plot1')
   nl=incr(nl); write (li(nl), imt) 'n_curve_pts;INT;T;',                      p%n_curve_pts
 
 
-!%% shape_list -------------------------------------------
+!%% shape_list -----------------------
 ! lat_layout and floor_plan shapes list
 ! Command syntax:
 !   python shape_list {who}
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
+! 
+!
+! Parameters
+! ----------
+! who
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('shape_list')
 
@@ -3828,24 +4591,36 @@ case ('shape_list')
   enddo
 
 
-!%% shape_manage -------------------------------------------
+!%% shape_manage -----------------------
 ! element shape creation or destruction
 ! Command syntax:
-!   python shape_manage {who} {index} {add-or-delete}
-!
+!   python shape_manage {who} {index} {add_or_delete}
+! 
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
-! {add-or-delete} is one of:
+! {add_or_delete} is one of:
 !   add     -- Add a shape at {index}. 
 !              Shapes with higher index get moved up one to make room.
 !   delete  -- Delete shape at {index}. 
 !              Shapes with higher index get moved down one to fill the gap.
-!
+! 
 ! Example:
 !   python shape_manage floor_plan 2 add
 ! Note: After adding a shape use "python shape_set" to set shape parameters.
 ! This is important since an added shape is in a ill-defined state.
+! 
+!
+! Parameters
+! ----------
+! who
+! index
+! add_or_delete
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('shape_manage')
 
@@ -3880,11 +4655,21 @@ case ('shape_manage')
     return
   end select
 
-!%% shape_pattern_list -------------------------------------------
+!%% shape_pattern_list -----------------------
 ! List of shape patterns
 ! Command syntax:
 !   python shape_pattern_list {ix_pattern}
 ! If optional {ix_pattern} index is omitted then list all the patterns
+! 
+!
+! Parameters
+! ----------
+! ix_pattern
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('shape_pattern_list')
 
@@ -3902,7 +4687,7 @@ case ('shape_pattern_list')
     enddo
   endif
 
-!%% shape_pattern_manage -------------------------------------------
+!%% shape_pattern_manage -----------------------
 ! Add or remove shape pattern
 ! Command syntax:
 !   python shape_pattern_manage {ix_pattern}^^{pat_name}^^{pat_line_width}
@@ -3912,6 +4697,18 @@ case ('shape_pattern_list')
 !   {pat_name}        -- Pattern name.
 !   {pat_line_width}  -- Line width. Integer. If set to "delete" then section 
 !                                             will be deleted.
+! 
+!
+! Parameters
+! ----------
+! ix_pattern
+! pat_name
+! pat_line_width
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('shape_pattern_manage')
 
@@ -3938,7 +4735,7 @@ case ('shape_pattern_manage')
     pattern%line%width = parse_int(name1(3), err, 1)
   end select
 
-!%% shape_pattern_point_manage -------------------------------------------
+!%% shape_pattern_point_manage -----------------------
 ! Add or remove shape pattern point
 ! Command syntax:
 !   python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
@@ -3947,6 +4744,19 @@ case ('shape_pattern_manage')
 !   {ix_point}        -- Point index. Points of higher indexes will be moved up
 !                                     if adding a point and down if deleting.
 !   {s}, {x}          -- Point location. If {s} is "delete" then delete the point.
+! 
+!
+! Parameters
+! ----------
+! ix_pattern
+! ix_point
+! s
+! x
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('shape_pattern_point_manage')
 
@@ -3975,7 +4785,7 @@ case ('shape_pattern_point_manage')
       pattern%pt(ip)%x = parse_real(name1(4), err);  if (err) return
     end select
 
-!%% shape_set -------------------------------------------
+!%% shape_set -----------------------
 ! lat_layout or floor_plan shape set
 ! Command syntax:
 !   python shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
@@ -3984,6 +4794,25 @@ case ('shape_pattern_point_manage')
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
+! 
+!
+! Parameters
+! ----------
+! who
+! shape_index
+! ele_name
+! shape
+! color
+! shape_size
+! type_label
+! shape_draw?
+! multi_shape?
+! line_width
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('shape_set')
 
@@ -4014,24 +4843,44 @@ case ('shape_set')
   drawing%ele_shape(ix) = tao_ele_shape_input_to_struct (shape_input)
   call tao_shape_init(drawing%ele_shape(ix), err, .true.)
 
-!%% show -------------------------------------------
+!%% show -----------------------
 ! Show command pass through
 ! Command syntax:
 !   python show {line}
 ! {line} is the string to pass through to the show command.
 ! Example:
 !   python show lattice -python
+! 
+!
+! Parameters
+! ----------
+! line
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('show')
 
   call tao_show_this(trim(line), name, li, nl)
 
-!%% species_to_int -------------------------------------------
+!%% species_to_int -----------------------
 ! Convert species name to corresponding integer
 ! Command syntax:
 !   python species_to_int {species_str}
 ! Example:
 !   python species_to_int CO2++
+! 
+!
+! Parameters
+! ----------
+! species_str
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('species_to_int')
 
@@ -4043,12 +4892,22 @@ case ('species_to_int')
 
   nl=incr(nl); write (li(nl), '(i0)') n
 
-!%% species_to_str -------------------------------------------
+!%% species_to_str -----------------------
 ! Convert species integer id to corresponding
 ! Command syntax:
 !   python species_to_str {species_int}
 ! Example:
 !   python species_to_str -1     ! Returns 'Electron'
+! 
+!
+! Parameters
+! ----------
+! species_int
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('species_to_str')
 
@@ -4062,7 +4921,7 @@ case ('species_to_str')
 
   nl=incr(nl); write (li(nl), '(a)') trim(name)
 
-!%% spin_polarization -------------------------------------------
+!%% spin_polarization -----------------------
 ! Spin information
 ! Command syntax:
 !   python spin {ix_uni}@{ix_branch}|{which}
@@ -4072,8 +4931,20 @@ case ('species_to_str')
 !   design
 ! Example:
 !   python spin 1@0|model
-!
+! 
 ! Note: This command is under development. If you want to use please contact David Sagan.
+! 
+!
+! Parameters
+! ----------
+! ix_uni
+! ix_branch
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('spin_polarization')
 
@@ -4094,10 +4965,11 @@ case ('spin_polarization')
   nl=incr(nl); write (li(nl), rmt) 'polarization_rate;REAL;F;',                tao_branch%spin%pol_rate
   nl=incr(nl); write (li(nl), rmt) 'depolarization_rate;REAL;F;',              tao_branch%spin%depol_rate
 
-!%% super_universe -------------------------------------------
+!%% super_universe -----------------------
 ! Super_Universe information
 ! Command syntax:
 !   python super_universe
+! 
 
 case ('super_universe')
 
@@ -4105,7 +4977,7 @@ case ('super_universe')
   nl=incr(nl); write (li(nl), imt) 'n_v1_var_used;INT;F',              s%n_v1_var_used
   nl=incr(nl); write (li(nl), imt) 'n_var_used;INT;F;',                s%n_var_used
 
-!%% twiss_at_s -------------------------------------------
+!%% twiss_at_s -----------------------
 ! Twiss at given s position
 ! Command syntax:
 !   python twiss_at_s {ix_uni}@{ix_branch}>>{s}|{which}
@@ -4113,6 +4985,19 @@ case ('super_universe')
 !   model
 !   base
 !   design
+! 
+!
+! Parameters
+! ----------
+! ix_uni
+! ix_branch
+! s
+! which
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('twiss_at_s')
 
@@ -4125,11 +5010,21 @@ case ('twiss_at_s')
   call twiss_out (this_ele%a, 'a')
   call twiss_out (this_ele%b, 'b')
 
-!%% universe -------------------------------------------
+!%% universe -----------------------
 ! Universe info
 ! Command syntax:
 !   python universe {ix_universe}
 ! Use "python global" to get the number of universes.
+! 
+!
+! Parameters
+! ----------
+! ix_universe
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('universe')
 
@@ -4140,12 +5035,22 @@ case ('universe')
   nl=incr(nl); write (li(nl), imt) 'n_data_used;INT;F;',                      u%n_data_used
   nl=incr(nl); write (li(nl), lmt) 'is_on;LOGIC;T;',                          u%is_on
 
-!%% var -------------------------------------------
+!%% var -----------------------
 ! Info on an individual variable
 ! Command syntax:
 !   python var {var}        or
 !   python var {var} slaves
+! 
+! 
 !
+! Parameters
+! ----------
+! var
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('var')
 
@@ -4209,7 +5114,7 @@ case ('var')
     return
   end select
 
-!%% var_create -------------------------------------------
+!%% var_create -----------------------
 ! Create a single variable
 ! Command syntax:
 !   python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^
@@ -4218,6 +5123,27 @@ case ('var')
 ! {var_name} is something like "kick[5]".
 ! Before using var_create, setup the appropriate v1_var array using 
 ! the "python var_v1_create" command.
+! 
+!
+! Parameters
+! ----------
+! var_name
+! ele_name
+! attribute
+! universes
+! weight
+! step
+! low_lim
+! high_lim
+! merit_type
+! good_user
+! key_bound
+! key_delta
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('var_create')
 
@@ -4304,12 +5230,13 @@ case ('var_create')
   enddo
 
 
-!%% var_general -------------------------------------------
+!%% var_general -----------------------
 ! List of all variable v1 arrays
 ! Command syntax:
 !   python var_general
 ! Output syntax:
 !   {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
+! 
 
 case ('var_general')
 
@@ -4320,12 +5247,22 @@ case ('var_general')
     nl=incr(nl); write (li(nl), '(4a, 2(i0, a))') trim(v1_ptr%name), ';', trim(line), ';', lbound(v1_ptr%v, 1), ';', ubound(v1_ptr%v, 1)
   enddo
 
-!%% var_v_array -------------------------------------------
+!%% var_v_array -----------------------
 ! List of variables for a given data_v1.
 ! Command syntax:
 !   python var_v_array {v1_var}
 ! Example:
 !   python var_v_array quad_k1
+! 
+!
+! Parameters
+! ----------
+! v1_var
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('var_v_array')
 
@@ -4345,10 +5282,20 @@ case ('var_v_array')
   enddo
 
 
-!%% var_v1_array -------------------------------------------
+!%% var_v1_array -----------------------
 ! List of variables in a given variable v1 array
 ! Command syntax:
 !   python var_v1_array {v1_var}
+! 
+!
+! Parameters
+! ----------
+! v1_var
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('var_v1_array')
 
@@ -4372,7 +5319,7 @@ case ('var_v1_array')
 
   nl=incr(nl); write (li(nl), imt) 'ix_v1_var;INT;F;',                       v1_ptr%ix_v1_var
 
-!%% var_v1_create -------------------------------------------
+!%% var_v1_create -----------------------
 ! Create a v1 variable structure along with associated var array.
 ! Command syntax:
 !   python var_v1_create {v1_name} {n_var_min} {n_var_max}
@@ -4381,7 +5328,7 @@ case ('var_v1_array')
 !   python var_v1_create quad_k1 0 45
 ! This example creates a v1 var structure called "quad_k1" with an associated
 ! variable array that has the range [0, 45].
-!
+! 
 ! Use the "set variable" command to set a created variable parameters.
 ! In particular, to slave a lattice parameter to a variable use the command:
 !   set {v1_name}|ele_name = {lat_param}
@@ -4393,6 +5340,18 @@ case ('var_v1_array')
 !       temporarily toggle s%global%lattice_calc_on to False
 !   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the 
 ! partially created variable and generating unwanted error messages.
+! 
+!
+! Parameters
+! ----------
+! v1_name
+! n_var_min
+! n_var_max
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('var_v1_create')
 
@@ -4447,16 +5406,26 @@ case ('var_v1_create')
   i2 = i2 + n_delta
   call tao_point_v1_to_var (s%v1_var(nn), s%var(i1:i2), ix_min(1))
 
-!%% var_v1_destroy -------------------------------------------
+!%% var_v1_destroy -----------------------
 ! Destroy a v1 var structure along with associated var sub-array.
 ! Command syntax:
 !   python var_v1_destroy {v1_datum}
+! 
+!
+! Parameters
+! ----------
+! v1_datum
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('var_v1_destroy')
 
   call destroy_this_var_v1(line)
 
-!%% wave -------------------------------------------
+!%% wave -----------------------
 ! Wave analysis info.
 ! Command syntax:
 !   python wave {what}
@@ -4465,6 +5434,16 @@ case ('var_v1_destroy')
 !   loc_header
 !   locations
 !   plot1, plot2, plot3
+! 
+!
+! Parameters
+! ----------
+! what
+!
+!    
+! Returns
+! -------
+! ?? 
 
 case ('wave')
 
