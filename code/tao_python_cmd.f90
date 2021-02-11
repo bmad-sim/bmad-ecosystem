@@ -432,8 +432,8 @@ case ('branch1')
 !%% bunch1 -----------------------
 ! Bunch parameters at the exit end of a given lattice element.
 ! Command syntax:
-!   python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} {ix_bunch} {coordinate}
-! where {which} is one of:
+!   python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
+!  where {ele_id} is an element name or index  and {which} is one of:
 !   model
 !   base
 !   design
@@ -445,9 +445,7 @@ case ('branch1')
 !
 ! Parameters
 ! ----------
-! ix_universe
-! ix_branch
-! ix_ele
+! ele_id
 ! which
 ! ix_bunch
 ! coordinate
