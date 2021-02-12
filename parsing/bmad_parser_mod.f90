@@ -6814,8 +6814,10 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: target_ele
 type (ele_struct), pointer :: fork_ele
 type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: eles(:)
 
-integer ib, ie, j
+integer ib, ie, j, n_loc
+logical err
 
 character(40) name
 
@@ -6838,21 +6840,22 @@ do ib = 0, ubound(lat%branch, 1)
       else
         target_ele => branch%ele(branch%n_ele_track)
       endif
+
     else
-      do j = 0, branch%n_ele_max
-        if (branch%ele(j)%name /= name) cycle
-        if (associated(target_ele)) then
-          call parser_error('DUPLICATE TO_ELEMENT: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
-          exit
-        endif
-        target_ele => branch%ele(j)
-      enddo
+      call lat_ele_locator (name, lat, eles, n_loc, err, ix_dflt_branch = branch%ix_branch)
+      if (n_loc > 1) then
+        call parser_error('DUPLICATE TO_ELEMENT: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
+        return
+      endif
+
+      if (n_loc == 0) then
+        call parser_error('TO_ELEMENT NOT FOUND: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
+        return
+      endif
+
+      target_ele => eles(1)%ele
     endif
 
-    if (.not. associated(target_ele)) then
-      call parser_error('TO_ELEMENT NOT FOUND: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
-      return
-    endif
 
     fork_ele%value(ix_to_element$) = target_ele%ix_ele
 
