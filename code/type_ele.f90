@@ -910,7 +910,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
 
     case (ramper_lord$)
       nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-      nl=nl+1; li(nl) = '   Ele_Name           Attribute         Expression'
+      nl=nl+1; li(nl) = '   Ele_Name            Attribute         Expression'
       do ix = 1, size(ele%control%ramp)
         ctl => ele%control%ramp(ix)
 
