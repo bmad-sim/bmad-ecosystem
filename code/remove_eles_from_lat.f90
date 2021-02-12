@@ -126,6 +126,10 @@ do ib = 0, ubound(lat%branch, 1)
   if (all(branch%ele(1:branch%n_ele_track)%ix_ele == -1)) branch%ix_branch = -1
 enddo
 
+! If all elements in all branches are to be removed, keep branch 0 and element 0 of branch 0.
+
+if (all(lat%branch%ix_branch == -1)) lat%branch(0)%ix_branch = 0
+
 ! Mark elements as dead if in a dead branch.
 
 do ib = 0, ubound(lat%branch, 1)

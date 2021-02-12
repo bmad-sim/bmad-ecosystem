@@ -1528,7 +1528,8 @@ end subroutine calc_bunch_params
 !
 ! Input:
 !   sigma_mat(6,6)  -- real(rp): Sigma matrix.
-!   gamma           -- real(rp): Relativistic gamma factor (Energy/mass)
+!   gamma           -- real(rp): Relativistic gamma factor (Energy/mass). 
+!                        Just used to calculate the normalized emittances.
 !   print_err       -- Logical, optional: If present and False then suppress 
 !                        "no eigen-system found" messages.
 !
