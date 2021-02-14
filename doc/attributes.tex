@@ -2114,7 +2114,8 @@ defined, it is multiplied with the \vn{field_scale} to give the overall scale.
 Example:
 \begin{example}
   qq, quadrupole, grid_field = \{field_scale = 0.5, ...\}, ...
-  qq[grid_field(1)%field_scale] = 0.7  ! Change field_scale value after element def.
+  qq[grid_field(1)%field_scale] = 0.7     ! Change value after element def.
+  qq[grid_field(1)%master_parameter] = k1 ! Change value after element def.
 \end{example}
   \item[harmonic] \Newline
 The \vn{harmonic} attribute, along with \vn{rf_frequency} element attribute, sets the oscillation

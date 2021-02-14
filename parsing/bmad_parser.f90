@@ -77,7 +77,7 @@ character(280) parse_line_save, line, use_line_str
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, wild_here
 logical end_of_file, ele_found, match_found, err, finished, exit_on_error
-logical detected_expand_lattice_cmd, multipass, heterogeneous_ele_list
+logical multipass, heterogeneous_ele_list
 logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 
 ! See if digested file is open and current. If so read in and return.
@@ -212,7 +212,7 @@ ele%name = 'BMAD_COM'           ! Global bmad parameters
 call nametable_add (in_lat%nametable, ele%name, n_max)
 
 lat%n_control_max = 0
-detected_expand_lattice_cmd = .false.
+bp_com%detected_expand_lattice_cmd = .false.
 
 call load_parse_line ('init', 1, end_of_file)
 
@@ -401,7 +401,7 @@ parsing_loop: do
   ! EXPAND_LATTICE command
 
   if (word_1(:ix_word) == 'EXPAND_LATTICE') then
-    detected_expand_lattice_cmd = .true.
+    bp_com%detected_expand_lattice_cmd = .true.
     exit parsing_loop
   endif
 
@@ -1208,7 +1208,7 @@ enddo
 
 ! Do we need to expand the lattice and call bmad_parser2?
 
-if (detected_expand_lattice_cmd) then
+if (bp_com%detected_expand_lattice_cmd) then
   exit_on_error = global_com%exit_on_error
   global_com%exit_on_error = .false.
   bp_com%bmad_parser_calling = .true.

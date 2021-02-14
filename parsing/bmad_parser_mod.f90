@@ -4468,14 +4468,17 @@ if (bp_com%print_err) then
 
   if (present(what2)) then
     nl=nl+1; lines(nl) = '     ' // trim(what2)
+    if (lines(nl) == '') nl = nl - 1 
   endif
 
   if (present(what3)) then
     nl=nl+1; lines(nl) = '     ' // trim(what3)
+    if (lines(nl) == '') nl = nl - 1 
   endif
 
   if (present(what4)) then
     nl=nl+1; lines(nl) = '     ' // trim(what4)
+    if (lines(nl) == '') nl = nl - 1 
   endif
 
   ! If bp_com%num_lat_files = 0 then no parser init has been done
@@ -4484,12 +4487,15 @@ if (bp_com%print_err) then
     if (present(seq)) then
       nl=nl+1; lines(nl) = '      IN FILE: ' // trim(seq%file_name)
       nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', seq%ix_file_line
-    elseif (bp_com%current_file%full_name /= ' ') then
+    elseif (bp_com%current_file%full_name /= '') then
       if (bp_com%input_line_meaningful) then
         nl=nl+1; lines(nl) = '      IN FILE: ' // trim(bp_com%current_file%full_name)
         nl=nl+1; write (lines(nl), '(a, i0)') '      AT OR BEFORE LINE: ', bp_com%current_file%i_line
       else
-        nl=nl+1; lines(nl) = '      ROOT FILE: ' // trim(bp_com%current_file%full_name)
+        if (bp_com%i_file_level > 1) then
+          nl=nl+1; lines(nl) = '     IN FILE: ' // trim(bp_com%file(bp_com%i_file_level)%full_name)
+        endif
+        nl=nl+1; lines(nl) = '     ROOT FILE: ' // trim(bp_com%file(1)%full_name)
       endif
     endif
 
@@ -6933,6 +6939,7 @@ character(*), allocatable ::  seq_name(:)
 character(*) line_name
 character(40) name
 character(40), allocatable :: my_line(:)
+character(100) err_line2
 
 logical no_end_marker
 
@@ -6940,13 +6947,16 @@ logical no_end_marker
 
 iseq_tot = size(seq_indexx)
 allocate (base_line(100))
+err_line2 = ''
+if (bp_com%detected_expand_lattice_cmd) err_line2 = &
+                      'NOTE: ERROR HAPPENS AFTER AN EXPAND_LATTICE COMMAND. THIS MAY BE OF SIGNIFICANCE.'
 
 call find_indexx (line_name, seq_name, seq_indexx, iseq_tot, ix_seq)
 if (ix_seq == 0) then
-  if (i_lev == 0) then
-    call parser_error ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // line_name, stop_here = .true.)
+  if (i_lev == 1) then
+    call parser_error ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // line_name, err_line2, stop_here = .true.)
   else
-    call parser_error ('CANNOT FIND DEFINITION OF SUBLINE: ' // line_name, stop_here = .true.)
+    call parser_error ('CANNOT FIND DEFINITION OF SUBLINE: ' // line_name, err_line2, stop_here = .true.)
   endif
   return
 endif
@@ -7009,7 +7019,7 @@ line_expansion: do
       call find_indexx (name, in_lat%nametable, j)
       if (j == 0) then  ! if not an element then I don't know what it is
         call parser_error ('CANNOT FIND DEFINITION FOR: ' // name, &
-                          'IN LINE: ' // seq%name, seq = seq)
+                          'IN LINE: ' // seq%name, err_line2, seq = seq)
         if (global_com%exit_on_error) call err_exit
         return
       endif
@@ -7046,7 +7056,7 @@ line_expansion: do
     endif
 
     if (this_seq_ele%ix_ele < 1) call parser_error('NOT A DEFINED ELEMENT: ' // &
-                          s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq = seq)
+                          s_ele%name, 'IN THE LINE/LIST: ' // seq%name, err_line2, seq = seq)
 
     
     if (n_ele_expand+10 > size(base_line)) call reallocate_base_line(base_line, 2*n_ele_expand)
