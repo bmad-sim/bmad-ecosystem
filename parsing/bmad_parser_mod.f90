@@ -477,6 +477,8 @@ if (delim == '(' .and. .not. (word == 'TERM' .and. how == def$)) then
         return
       endif
       a_ptr%i = ix
+    elseif (index(word, '%ELE_ANCHOR_PT') /= 0) then
+      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), a_ptr%i, err_flag, ele, delim, delim_found)
     else
       call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
       a_ptr%i = nint(value)
