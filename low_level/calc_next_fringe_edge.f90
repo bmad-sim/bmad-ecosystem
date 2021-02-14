@@ -130,16 +130,6 @@ case default
   s2 = s_off + leng  ! Distance from entrance end to the other hard edge
 end select
 
-! With a solenoid must always apply the fringe kick due to the longitudinal field. 
-! If not done the matrix calc will not be symplectic.
-! For other elements, especially quadrupoles, this is problematic due to the soft edge kick not being being exactly the reverse going 
-! from inside to outside and vice versa. So applying an edge kick could be confusing since a superimposed marker would shift the tracking.
-
-if (track_ele%key == solenoid$ .or. track_ele%key == sol_quad$) then
-  s1 = max(s1, 0.0_rp)
-  s2 = min(s2, track_ele%value(l$))
-endif
-
 !
 
 if (leng_sign > 0) then
