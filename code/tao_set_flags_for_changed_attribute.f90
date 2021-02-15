@@ -34,9 +34,9 @@ character(*) ele_name
 ! If the beginning element is modified, need to reinit any beam distribution.
 
 u%calc%lattice = .true.
+lat => u%model%lat
 
 if (ele_name == 'PARTICLE_START') then
- lat => u%model%lat
   if (lat%branch(0)%param%geometry == closed$) then
     u%model%tao_branch(0)%orb0%vec(6) = lat%particle_start%vec(6)
   endif

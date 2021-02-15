@@ -150,6 +150,7 @@ real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(
 real(rp), allocatable :: re_array(:), value_arr(:)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
+real(rp) mat6(6,6), vec0(6), array(7)
 
 integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type, loc
@@ -229,7 +230,7 @@ call match_word (cmd, [character(40) :: &
           'ele:mat6', 'ele:taylor_field', 'ele:grid_field', 'ele:floor', 'ele:photon', 'ele:lord_slave', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', 'global', 'help', 'inum', &
           'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
-          'merit', 'orbit_at_s', 'place_buffer', &
+          'matrix', 'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_graph', 'plot_histogram', 'plot_lat_layout', 'plot_line', &
           'plot_plot_manage', 'plot_graph_manage', 'plot_curve_manage', &
           'plot_list', 'plot_symbol', 'plot_transfer', 'plot1', 'shape_list', &
@@ -459,7 +460,7 @@ case ('bunch1')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   beam => u%model_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
   if (.not. allocated(beam%bunch)) then
@@ -1489,7 +1490,7 @@ case ('ele:head')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
 
@@ -1564,7 +1565,7 @@ case ('ele:methods')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
     nl=incr(nl); write (li(nl), amt) 'crystal_type;STR;T;', ele%component_name
@@ -1641,7 +1642,7 @@ case ('ele:gen_attribs')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   do i = 1, num_ele_attrib$
     attrib = attribute_info(ele, i)
@@ -1708,7 +1709,7 @@ case ('ele:multipoles')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
@@ -1782,7 +1783,7 @@ case ('ele:ac_kicker')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%ac_kick)) return
   ac => ele%ac_kick
@@ -1834,7 +1835,7 @@ case ('ele:cartesian_map')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%cartesian_map)) then
     call invalid ('cartesian_map not allocated')
@@ -1897,7 +1898,7 @@ case ('ele:chamber_wall')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%wall3d)) then
     call invalid ('No associated wall')
@@ -1956,7 +1957,7 @@ case ('ele:cylindrical_map')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%cylindrical_map)) then
     call invalid ('cylindrical_map not allocated')
@@ -2018,7 +2019,7 @@ case ('ele:taylor')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (attribute_name(ele, taylor_map_includes_offsets$) == 'TAYLOR_MAP_INCLUDES_OFFSETS') then
     nl=incr(nl); write (li(nl), lmt) 'taylor_map_includes_offsets;LOGIC;T;',    ele%taylor_map_includes_offsets
@@ -2064,7 +2065,7 @@ case ('ele:spin_taylor')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%spin_taylor(1)%term)) then
     call invalid('Spin Taylor map not allocated')
@@ -2111,7 +2112,7 @@ case ('ele:wake')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%wake)) then
     call invalid ('No wake associated')
@@ -2196,7 +2197,7 @@ case ('ele:wall3d')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%wall3d)) then
     call invalid ('wall3d not allocated')
@@ -2267,7 +2268,7 @@ case ('ele:twiss')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (ele%a%beta == 0) return
   free = attribute_free(ele, 'BETA_A', .false.) .and. (which == 'model')
@@ -2306,7 +2307,7 @@ case ('ele:control')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%control)) then
     call invalid ('ele%control not allocated')
@@ -2343,7 +2344,7 @@ case ('ele:orbit')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   call orbit_out (tao_lat%tao_branch(ele%ix_branch)%orbit(ele%ix_ele))
 
@@ -2379,7 +2380,7 @@ case ('ele:mat6')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   select case (tail_str)
   case ('mat6')
@@ -2431,7 +2432,7 @@ case ('ele:taylor_field')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%taylor_field)) then
     call invalid ('taylor_field not allocated')
@@ -2497,7 +2498,7 @@ case ('ele:grid_field')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%grid_field)) then
     call invalid ('grid_field not allocated')
@@ -2588,7 +2589,7 @@ case ('ele:floor')
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
 
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
   if (ele%ix_ele == 0) then
     ele0 => ele
   else
@@ -2658,7 +2659,7 @@ case ('ele:photon')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   if (.not. associated(ele%photon)) then
     call invalid ('photon not allocated')
@@ -2721,7 +2722,7 @@ case ('ele:lord_slave')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   call tao_control_tree_list(ele, eles)
   do i = size(eles), 1, -1  ! Show lords first
@@ -2771,7 +2772,7 @@ case ('ele:elec_multipoles')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
@@ -2855,7 +2856,7 @@ case ('em_field')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
-  ele => point_to_ele(line, err); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
   call init_coord (orb, ele = ele, element_end = downstream_end$)
 
@@ -3745,6 +3746,41 @@ case ('lat_param_units')
   name = upcase(line)
   a_name = attribute_units(name)
   nl=incr(nl); write(li(nl), '(a)') a_name
+
+!%% matrix -----------------------
+! Matrix value from the exit end of one element to the exit end of the other.
+! Command syntax:
+!   python matrix {ele1_id} {ele2_id}
+! where:
+!   {ele1_id} is the start element.
+!   {ele2_id} is the end element.
+! If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
+! Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+!
+! Example:
+!   python matrix 2@1>>q01w|design q02w
+
+case ('matrix')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  call lat_ele_locator (tail_str, tao_lat%lat, eles, n_loc, err, ix_dflt_branch = ele%ix_branch)
+  if (err .or. n_loc == 0) then
+    call invalid ('Bad ele2_id: ' // line)
+    return
+  endif
+  if (n_loc > 1) then
+    call invalid ('More than one element matches name: ' // line)
+    return
+  endif
+
+  call transfer_matrix_calc (tao_lat%lat, mat6, vec0, ele%ix_ele, eles(1)%ele%ix_ele, ele%ix_branch, one_turn = .true.)
+  do i = 1, 6
+    array(1:7) = [mat6(i,:), vec0(i)]
+    nl=incr(nl); write (li(nl), ramt) int_str(i), (';', array(j), j = 1, 7)
+  enddo
 
 !%% merit -----------------------
 ! Merit value.
@@ -5701,9 +5737,12 @@ end function point_to_tao_lat
 !----------------------------------------------------------------------
 ! contains
 
-function point_to_ele (line, err) result (ele)
+function point_to_ele (line, lat, err) result (ele)
 
+type (lat_struct) lat
 type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: eles(:)
+integer n_loc
 character(*) line
 logical err
 
@@ -5711,7 +5750,7 @@ logical err
 
 err = .true.
 nullify(ele)
-call lat_ele_locator (line, tao_lat%lat, eles, n_loc)
+call lat_ele_locator (line, lat, eles, n_loc)
 
 if (n_loc /= 1) then
   call invalid ('Cannot locate element.')
