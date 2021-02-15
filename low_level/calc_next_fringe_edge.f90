@@ -6,11 +6,6 @@
 ! This routine is called repeatedly as the integration routine tracks through the element.
 ! If the element is a super_slave, there are potentially many hard edges.
 !
-! Rule: When track_ele is a super_slave, the edges of track_ele may be inside the field of a super_lord.
-! In this case, the hard edge is applied at the edges to make the particle look like it is
-! outside the field. This is done to make the tracking symplectic from entrance edge to exit
-! edge. [Remember that Bmad's coordinates are not canonical inside a field region.]
-!
 ! Input:
 !   track_ele       -- ele_struct: Element being tracked through.
 !   orbit           -- coord_struct: Particle position
@@ -101,15 +96,20 @@ endif
 !---------------------------------------------------------------------------
 contains
 
-subroutine does_this_ele_contain_the_next_edge (this_ele, ix_loc, track_ele, leng_sign, orbit, s_edge_body, fringe_info)
+subroutine does_this_ele_contain_the_next_edge (this_ele, ix_this_ele, track_ele, leng_sign, orbit, s_edge_body, fringe_info)
 
 type (ele_struct), target :: this_ele, track_ele
 type (fringe_field_info_struct), target :: fringe_info
 type (coord_struct) orbit
 
 real(rp) s_this_edge, s1, s2, s_hard_entrance, s_hard_exit, s_off, s_edge_body, ds_small, s_orb, leng
-integer this_end, ix_loc, leng_sign
+integer this_end, ix_this_ele, leng_sign
 
+!
+
+if (fringe_info%location(ix_this_ele) == nowhere$) return
+
+! This_ele is either a lord or the track_ele itself.
 ! Remamber: element length can be less than zero.
 
 if (track_ele%orientation == 1) then
@@ -126,8 +126,8 @@ case (rfcavity$, lcavity$)
   s1 = s_off + (leng - this_ele%value(l_active$)) / 2  ! Distance from entrance end to active edge
   s2 = s_off + (leng + this_ele%value(l_active$)) / 2  ! Distance from entrance end to the other active edge
 case default
-  s1 = s_off         ! Distance from entrance end to hard edge
-  s2 = s_off + leng  ! Distance from entrance end to the other hard edge
+  s1 = s_off         ! Distance from track_ele entrance end to entrance hard edge
+  s2 = s_off + leng  ! Distance from track_ele entrance end to the exit hard edge
 end select
 
 !
@@ -143,7 +143,7 @@ endif
 ds_small = bmad_com%significant_length / 100
 
 if (orbit%direction * track_ele%orientation == 1) then
-  select case (fringe_info%location(ix_loc))
+  select case (fringe_info%location(ix_this_ele))
   case (entrance_end$)
     ! e_gun does not have an entrance edge
     if (this_ele%key == e_gun$) then
@@ -167,7 +167,7 @@ if (orbit%direction * track_ele%orientation == 1) then
 !
 
 else
-  select case (fringe_info%location(ix_loc))
+  select case (fringe_info%location(ix_this_ele))
   case (entrance_end$)
     return
   case (inside$)
@@ -187,7 +187,7 @@ endif
 
 fringe_info%hard_ele => this_ele
 fringe_info%particle_at = this_end
-fringe_info%hard_location => fringe_info%location(ix_loc)
+fringe_info%hard_location => fringe_info%location(ix_this_ele)
 
 s_edge_body = s_this_edge
 fringe_info%s_edge_hard = s_edge_body - s_off
