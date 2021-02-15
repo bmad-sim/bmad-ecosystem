@@ -38,7 +38,9 @@ select case (ele%key)
 case (solenoid$, sol_quad$, wiggler$, rfcavity$, lcavity$, crab_cavity$, elseparator$, e_gun$, sad_mult$, custom$)
   fringe_info%has_fringe = .true.
 case default
-  if ((nint(ele%value(fringe_type$)) == none$ .or. nint(ele%value(fringe_at$)) == no_end$) .and. &
+  if (attribute_name(ele, fringe_at$) /= 'FRINGE_AT') then
+    fringe_info%has_fringe = .false.
+  elseif ((nint(ele%value(fringe_type$)) == none$ .or. nint(ele%value(fringe_at$)) == no_end$) .and. &
                                                                         .not. associated(ele%a_pole_elec)) then
     fringe_info%has_fringe = .false.
   else
@@ -61,6 +63,7 @@ if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
     if (lord%key == overlay$ .or. lord%key == group$) cycle
     call init_this_ele (lord, i, leng_sign)
   enddo
+  if (all(fringe_info%location == nowhere$)) fringe_info%has_fringe = .false.
 
 else
   call re_allocate(fringe_info%location, 1)
@@ -73,7 +76,7 @@ contains
 subroutine init_this_ele (this_ele, ix_loc, leng_sign)
 
 type (ele_struct) this_ele
-real(rp) s_off, s1, s2, s_hard_entrance, s_hard_exit, ds_small, leng
+real(rp) s_off, s1, s2, s_hard_entrance, s_hard_exit, ds_small, leng, sa, sb
 integer ix_loc, leng_sign
 
 !
@@ -91,14 +94,22 @@ case default
 end select
 
 if (leng_sign > 0) then
-  s_hard_entrance   = min(s1, s2)
-  s_hard_exit = max(s1, s2)
+  s_hard_entrance = min(s1, s2)
+  s_hard_exit     = max(s1, s2)
 else
-  s_hard_entrance   = max(s1, s2)
-  s_hard_exit = min(s1, s2)
+  s_hard_entrance = max(s1, s2)
+  s_hard_exit     = min(s1, s2)
 endif
 
 ds_small = bmad_com%significant_length
+
+sa = min(0.0_rp, ele%value(l$)) - bmad_com%significant_length
+sb = max(0.0_rp, ele%value(l$)) + bmad_com%significant_length
+
+if ((s1 < sa .or. s1 > sb) .and. (s2 < sa .or. s2 > sb)) then
+  fringe_info%location(ix_loc) = nowhere$
+  return
+endif
 
 if (orbit%direction * ele%orientation == 1) then
   if ((orbit%location == upstream_end$ .and. ele%orientation == 1) .or. &
