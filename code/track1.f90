@@ -1,24 +1,33 @@
 !+
-! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix)
+! Subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix, init_to_edge)
 !
 ! Particle tracking through a single element. 
 ! This includes synchrotron radiation and space charge kicks if enabled by the appropriate
 ! bmad_com%radiation_damping_on, etc. components. See the code for more details. 
 !
-! Note: the ignore_radiation argument is meant as a "temporary" override to turn off
+! Note: The ignore_radiation argument is meant as a "temporary" override to turn off
 ! all radiation and space-charge effects independent of the settings of the bmad_com%xxx
 ! switches. This is used by routines that are tracking the reference particle.
 !
+! Note: The init_to_edge argument is needed for historical reasons since calling routines may
+! not call track1 with start_orb properly initialized to be at the element's edge. 
+! Initializing start_orb to the element's edge is fine for the vast majority of cases.
+! Setting init_to_edge = False will handle the other cases (EG: Dark current tracking).
+! 
+!
 ! Input:
-!   start_orb   -- Coord_struct: Starting position.
-!   ele         -- Ele_struct: Element to track through.
-!   param       -- lat_param_struct: Reference particle info.
-!   track       -- track_struct, optional: Structure holding existing track.
+!   start_orb     -- Coord_struct: Starting position.
+!   ele           -- Ele_struct: Element to track through.
+!   param         -- lat_param_struct: Reference particle info.
+!   track         -- track_struct, optional: Structure holding existing track.
 !   ignore_radiation
-!               -- Logical, optional: If present and True then do not include radiation
-!                  effects along with space charge effects. 
-!   mat6(6,6)   -- Real(rp), optional: Transfer matrix before the element.
-!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
+!                 -- Logical, optional: If present and True then do not include radiation
+!                    effects along with space charge effects. 
+!   mat6(6,6)     -- Real(rp), optional: Transfer matrix before the element.
+!   make_matrix   -- logical, optional: Propagate the transfer matrix? Default is false.
+!   init_to_edge  -- logical, optional: Default is True. If True then force the tracked particle to
+!                    begin at the element's edge. See above. 
+!                    Do not use this argument unless you know what you are doing.
 !
 ! Output:
 !   end_orb     -- Coord_struct: End position.
@@ -33,7 +42,8 @@
 !   make_matrix -- logical, optional: Propagate the transfer matrix? Default is false.
 !-
 
-recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, &
+                                                                                     make_matrix, init_to_edge)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -55,7 +65,7 @@ integer tracking_method, stm
 character(*), parameter :: r_name = 'track1'
 
 logical, optional :: make_matrix
-logical, optional :: err_flag, ignore_radiation
+logical, optional :: err_flag, ignore_radiation, init_to_edge
 logical err, do_extra, finished, radiation_included, do_spin_tracking, time_RK_tracking
 
 ! Use start2_orb since start_orb is strictly input.
@@ -86,7 +96,7 @@ endif
 ! For time runge-kutta the particle may be starting inside the element.
 ! In this case, do not set the location.
 
-if (.not. time_RK_tracking .or. start2_orb%location /= inside$) then
+if (logic_option(.true., init_to_edge)) then
   if (start2_orb%direction == 1) then
     start2_orb%location = upstream_end$
     start2_orb%s = ele%s_start

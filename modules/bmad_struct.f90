@@ -461,6 +461,11 @@ integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
 integer, parameter :: unborn$ = 8    ! EG: For electrons not yet emitted from a cathode.
 
+! The %location component gives the particle location with respect to the element being tracked through
+! even if that element is a super_slave or slice_slave. For example, a particle at the beginning of a
+! slice_element will have %location = upstream_end$ even though the slice is at the center of the
+! encopassing lord element.
+
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)
   real(rp) :: s = 0               ! Longitudinal position 

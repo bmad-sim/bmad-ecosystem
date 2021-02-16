@@ -102,6 +102,7 @@ if (logic_option(.true., do_bookkeeping)) then
   if (status == ok$) then
     do ie = 1, lat%n_ele_track
       if (lat%ele(ie)%ixx == -1) cycle
+      if (ie == 1) exit      ! No need to do anything if branch beginning is preserved.
       if (orbit(ie-1)%state /= alive$) exit
       lat%particle_start = orbit(ie-1)
       exit
@@ -115,6 +116,7 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do ie = 1, branch%n_ele_track
     if (branch%ele(ie)%ixx == -1) cycle
+    if (ie == 1) exit        ! No need to do anything if branch beginning is preserved.
     ele0 => branch%ele(0)
     ele1 => branch%ele(ie-1)
     if (ele1%value(e_tot$) <= 0) exit  ! Energy has not been computed
