@@ -149,7 +149,7 @@ real(rp), allocatable :: dt(:), tot_mom(:), mom_x_off(:), mom_y_off(:), mom_z_of
 integer(hid_t), value :: root_id
 integer(hid_t) g_id, g2_id, a_id
 integer(hsize_t) idx
-integer n, stat, h5_stat, ia, ip, species
+integer n, stat, h5_stat, ia, ip, species, h5_err
 integer, allocatable :: charge_state(:)
 
 character(*) bunch_obj_name
@@ -296,7 +296,7 @@ enddo
 
 ! g_id = g2_id when pmd_head%particlesPath = "./". In this case both refer to the same group.
 
-call H5Gclose_f(g2_id, h5_err)
+if (g2_id /= root_id) call H5Gclose_f(g2_id, h5_err)
 if (g_id /= g2_id) call H5Gclose_f(g_id, h5_err)
 
 if (error) then
