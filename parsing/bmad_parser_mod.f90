@@ -1243,7 +1243,7 @@ if (attrib_word == 'GRID_FIELD') then
   if (word == 'binary') then
     call get_next_word (line, ix, ', ', delim, delim_found, .false.)
     call parser_file_stack('push', line, err = err_flag, open_file = .false.); if (err_flag) return
-    call read_binary_grid_field(line, ele, ele%grid_field(i_ptr), err_flag)
+    call read_binary_grid_field(bp_com%current_file%full_name, ele, ele%grid_field(i_ptr), err_flag)
     call parser_file_stack('pop')
     if (err_flag) then
       call parser_error ('ERROR READING BINARY GRID_FIELD FILE.')
@@ -1252,7 +1252,7 @@ if (attrib_word == 'GRID_FIELD') then
   elseif (word == 'hdf5') then
     call get_next_word (line, ix, ', ', delim, delim_found, .false.)
     call parser_file_stack('push', line, err = err_flag, open_file = .false.); if (err_flag) return
-    call hdf5_read_grid_field(line, ele, ele%grid_field, err_flag, combine = .true.)
+    call hdf5_read_grid_field(bp_com%current_file%full_name, ele, ele%grid_field, err_flag, combine = .true.)
     call parser_file_stack('pop')
     if (err_flag) then
       call parser_error ('ERROR READING HDF5 GRID_FIELD FILE.')
