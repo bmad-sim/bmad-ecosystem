@@ -3,6 +3,11 @@
 !
 ! Routine to initalize a fringe_info_struct for a particular lattice element.
 !
+! Note: An element that has a longitudinal field component or an electric field is considered to 
+! have a fringe at both ends even though the slice ends may not actually abut the ends of the full element.
+! This is done to make computed transfer matrices symplectic. Non-symplectic matrices
+! will mess up Twiss calculations. EG: Think of the case of a solenoid with a superimposed marker.
+!
 ! Input:
 !   ele           -- ele_struct: Lattice element associated with fringe_info.
 !   orbit         -- coord_struct, optional: Particle position. Must be present for a full init.
@@ -103,13 +108,22 @@ endif
 
 ds_small = bmad_com%significant_length
 
-sa = min(0.0_rp, ele%value(l$)) - bmad_com%significant_length
-sb = max(0.0_rp, ele%value(l$)) + bmad_com%significant_length
+! If there are no longitudinal fields nor electric fields then mark the element as having
+! no fringe if the there is a lord with edges outside of the slice. 
 
-if ((s1 < sa .or. s1 > sb) .and. (s2 < sa .or. s2 > sb)) then
-  fringe_info%location(ix_loc) = nowhere$
-  return
+if (ele%key /= rfcavity$ .and. ele%key /= lcavity$ .and. ele%key /= crab_cavity$ .and. &
+      (ele%field_calc == bmad_standard$ .or. ele%tracking_method == bmad_standard$) .and. &
+      .not. associated(ele%a_pole_elec)) then
+  sa = min(0.0_rp, ele%value(l$)) - bmad_com%significant_length
+  sb = max(0.0_rp, ele%value(l$)) + bmad_com%significant_length
+
+  if ((s1 < sa .or. s1 > sb) .and. (s2 < sa .or. s2 > sb)) then
+    fringe_info%location(ix_loc) = nowhere$
+    return
+  endif
 endif
+
+!
 
 if (orbit%direction * ele%orientation == 1) then
   if ((orbit%location == upstream_end$ .and. ele%orientation == 1) .or. &

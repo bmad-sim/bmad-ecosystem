@@ -131,7 +131,7 @@ real(rp) sx_over_kx, sy_over_ky, sz_over_kz, rot2(2,2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), pot
 real(rp) w_ele_mat(3,3), w_lord_mat(3,3), Er, Ep, Ez, Br, Bp, Bx, By, Bz
 real(rp) :: fld(3), dfld(3,3), fld0(3), fld1(3), dfld0(3,3), dfld1(3,3)
-real(rp) phi0_autoscale, field_autoscale, ds, beta_ref, ds_small
+real(rp) phi0_autoscale, field_autoscale, ds, beta_ref, ds_small, abs_tol
 real(rp) rho, a, b, B0, gamma, Brho, voltage, k_rf
 real(rp) rad_p, z_p, alpha_p, beta_p, k_p, rad_m, z_m, alpha_m, beta_m, k_m
 
@@ -1421,7 +1421,8 @@ case(fieldmap$)
 
         if (logic_option(.false., calc_potential)) then
           if (r /= 0) then
-            inte = super_qromb(rb_field, 0.0_rp, r, 1e-12_rp, 0.0_rp, 2, err) / r
+            abs_tol = abs(1e-10_rp * r * orbit%p0c * (1 + orbit%vec(6)) / (c_light * charge_of(orbit%species)))
+            inte = super_qromb(rb_field, 0.0_rp, r, 1e-12_rp, abs_tol, 2, err) / r
             field%A(1:2) = field%A(1:2) + inte * [-y, x] / r
           endif
         endif
