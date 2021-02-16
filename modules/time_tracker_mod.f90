@@ -1141,9 +1141,9 @@ track_loop: do iteration = 1, max_iteration
 
   !Track particle until it hits something (beginning, end, wall)
   if (present(track)) then
-    call track1( start2_orb, ele, lat%param, end_orb, track = track)
+    call track1 (start2_orb, ele, lat%param, end_orb, track = track, init_to_edge = .false.)
   else
-    call track1( start2_orb, ele, lat%param, end_orb)
+    call track1 (start2_orb, ele, lat%param, end_orb, init_to_edge = .false.)
   end if
 
   !Determine if dead, or next element

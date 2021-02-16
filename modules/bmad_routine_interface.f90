@@ -2185,7 +2185,8 @@ subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track
   integer, optional :: ix_branch, track_state
 end subroutine
 
-recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix)
+recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, &
+                                                                           mat6, make_matrix, init_to_edge)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -2193,7 +2194,7 @@ recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ig
   type (ele_struct)   :: ele
   type (lat_param_struct) :: param
   type (track_struct), optional :: track
-  logical, optional :: err_flag, ignore_radiation
+  logical, optional :: err_flag, ignore_radiation, init_to_edge
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine
