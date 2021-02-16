@@ -6,6 +6,15 @@
 ! This routine is called repeatedly as the integration routine tracks through the element.
 ! If the element is a super_slave, there are potentially many hard edges.
 !
+! Note: An element that has a longitudinal field component or an electric field is considered to 
+! have a fringe at both ends even though the slice ends may not actually abut the ends of the full element.
+! This is done to make computed transfer matrices symplectic. Non-symplectic matrices
+! will mess up Twiss calculations. EG: Think of the case of a solenoid with a superimposed marker.
+!
+! Note: For other elements, especially quadrupoles, always applying edge effects is potentially problematic 
+! due to the soft edge kick not being being exactly the reverse going from inside to outside and vice versa.
+! So applying an edge kick could be confusing since a superimposed marker would shift the tracking.
+!
 ! Input:
 !   track_ele       -- ele_struct: Element being tracked through.
 !   orbit           -- coord_struct: Particle position
@@ -129,6 +138,11 @@ case default
   s1 = s_off         ! Distance from track_ele entrance end to entrance hard edge
   s2 = s_off + leng  ! Distance from track_ele entrance end to the exit hard edge
 end select
+
+! Make sure that fringes are not outside of track_ele. This is done so calculated maps are symplectic.
+
+s1 = max(s1, 0.0_rp)
+s2 = min(s2, track_ele%value(l$))
 
 !
 
