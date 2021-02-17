@@ -163,7 +163,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
       if (tao_lat%lat%param%geometry == closed$ .and. (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting)) then
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
-                    tao_branch%orbit(0)%vec(6), low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat)
+                       tao_branch%orbit(0)%vec(6), low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat, &
+                       ix_branch = ib)
       endif
 
       ! do multi-turn tracking if needed. This is always the main lattice. 

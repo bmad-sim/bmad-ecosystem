@@ -4537,7 +4537,7 @@ case ('universe')
   endif
  
   if (s%global%rad_int_calc_on) then
-    call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache)
+    call radiation_integrals (lat, tao_branch%orbit, tao_branch%modes, tao_branch%ix_rad_int_cache, ix_branch)
   else
     nl= nl+1; lines(nl) = ' Note: User has turned radiation integrals calculations off so emittances, etc. will not be displayed.'
   endif
