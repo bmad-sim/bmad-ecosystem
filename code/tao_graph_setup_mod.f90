@@ -2416,7 +2416,6 @@ do ii = 1, size(curve%x_line)
         bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
         return
       endif
-
     endif
 
     if (orbit%state /= alive$) then

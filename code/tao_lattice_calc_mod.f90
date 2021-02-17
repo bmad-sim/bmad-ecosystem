@@ -425,7 +425,7 @@ if (u%calc%track) then
       ix_lost = tao_branch%track_state
       orbit(ix_lost+1:branch%n_ele_track) = coord_struct()
       call out_io (s_blank$, r_name, &
-              "particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
+              "tao_single_track: particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
               trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
               r_array = [branch%ele(ix_lost)%s], i_array = [ix_branch, ix_lost])
     endif

@@ -785,6 +785,17 @@ case ('beta.')
       endif
     endif
 
+  case ('beta.c')
+    if (data_source == 'lat') then
+      call tao_load_this_datum (branch%ele(:)%z%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    elseif (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%c%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
+      if (bunch_params(ix_ele)%a%norm_emit == 0) then
+        valid_value = .false.
+        call tao_set_invalid (datum, 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!', why_invalid)
+      endif
+    endif
+    
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" DOES NOT EXIST', why_invalid, .true.)
     return
