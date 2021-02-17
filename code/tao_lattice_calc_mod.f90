@@ -44,6 +44,7 @@ type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (aperture_scan_struct), pointer :: scan
+type (beam_struct) beam
 
 real(rp) tt
 
@@ -141,7 +142,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       !
 
       if (track_type == 'beam') then
-        call tao_inject_beam (u, tao_lat, ib, this_calc_ok, ix_ele0)
+        call tao_inject_beam (u, tao_lat, ib, ix_ele0, beam, this_calc_ok)
         if (.not. this_calc_ok) calc_ok = .false.
         if (.not. this_calc_ok) then
           if (ib == 0) then
@@ -154,7 +155,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           tao_branch%bunch_params(:)%n_particle_live = 0
           exit
         endif
-        call tao_beam_track (u, tao_lat, this_calc_ok, ib, ix_ele0)
+        call tao_beam_track (u, tao_lat, ib, ix_ele0, beam, this_calc_ok)
         if (.not. this_calc_ok) calc_ok = .false.
         if (.not. this_calc_ok) exit
       endif
@@ -546,7 +547,7 @@ end subroutine tao_single_track
 ! Right now, there is no beam tracking in circular lattices. 
 ! If extracting from a lat then the beam is generated at the extraction point.
 
-subroutine tao_beam_track (u, tao_lat, calc_ok, ix_branch, ix_ele0)
+subroutine tao_beam_track (u, tao_lat, ix_branch, ix_ele0, beam, calc_ok)
 
 use wake_mod, only: zero_lr_wakes_in_lat
 use beam_utils, only: calc_bunch_params
@@ -627,8 +628,6 @@ if (s%global%beam_timer_on) then
   call run_timer ('START')
   old_time = 0
 endif
-
-beam = u%beam%beam_at_start
 
 if (ie2 < ie1 .and. branch%param%geometry == open$) then
   call out_io (s_abort$, r_name, 'BEAM TRACKING WITH STARTING POINT AFTER ENDING POINT IN AN OPEN LATTICE DOES NOT MAKE SENSE.')
@@ -851,20 +850,21 @@ end subroutine tao_inject_particle
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-! Subroutine tao_inject_beam (u, model, ix_branch, init_ok, ix_ele0)
+! Subroutine tao_inject_beam (u, model, ix_branch, ix_ele0, beam, init_ok)
 !
 ! This will initialize the beam for a given lattice branch.
 !
 ! Input:
 !   u         -- tao_universe_struct: Universe containing the lattice.
-!   model     -- tao_lattic_struct: Universe parameters.
+!   model     -- tao_lattice_struct: Universe parameters.
 !   ix_branch -- integer: Lattice branch index to inject into.
 !
 ! Output:
-!   init_ok   -- logical: Set False if there are problems. True otherwise.
 !   ix_ele0   -- integer: Index of element injected into in branch. Typically = 0.
+!   beam      -- beam_struct: Initial beam.
+!   init_ok   -- logical: Set False if there are problems. True otherwise.
 !-
-subroutine tao_inject_beam (u, model, ix_branch, init_ok, ix_ele0)
+subroutine tao_inject_beam (u, model, ix_branch, ix_ele0, beam, init_ok)
 
 use beam_utils
 use beam_file_io
@@ -874,11 +874,8 @@ implicit none
 type (tao_universe_struct), target :: u
 type (tao_lattice_struct), target :: model
 type (tao_model_branch_struct), pointer :: model_branch
-type (ele_struct), save :: extract_ele
-type (lat_param_struct), pointer :: param
 type (branch_struct), pointer :: branch
-type (beam_init_struct), pointer :: beam_init
-type (beam_struct), pointer :: beam
+type (beam_struct) :: beam
 type (coord_struct), pointer :: orbit
 
 real(rp) v(6)
@@ -916,7 +913,7 @@ if (ix_branch > 0) then
     return
   endif
 
-  u%beam%beam_at_start = u%model_branch(ib)%ele(ie)%beam
+  beam = u%model_branch(ib)%ele(ie)%beam
   init_ok = .true.
   return
 endif
@@ -935,11 +932,8 @@ if (u%beam%beam_init%use_particle_start_for_center .and. any(u%beam%beam_init%ce
   u%beam%init_starting_distribution = .true.
 endif
 
-beam_init => u%beam%beam_init
-beam => u%beam%beam_at_start
-
-if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%beam%beam_init%position_file /= "") then
-  call init_beam_distribution (branch%ele(ix_ele0), branch%param, beam_init, beam, err, &
+if (u%beam%init_starting_distribution .or. u%beam%beam_init%position_file /= "") then
+  call init_beam_distribution (branch%ele(ix_ele0), branch%param, u%beam%beam_init, beam, err, &
                                                                  u%model%tao_branch(ix_branch)%modes)
   if (err) then
     call out_io (s_error$, r_name, 'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
@@ -956,6 +950,10 @@ if (u%beam%init_starting_distribution .or. .not. allocated(beam%bunch) .or. u%be
   endif
 
   u%beam%init_starting_distribution = .false.
+  u%beam%beam_at_start = beam
+
+else
+  beam = u%beam%beam_at_start
 endif
 
 init_ok = .true.
