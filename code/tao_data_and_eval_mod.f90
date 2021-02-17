@@ -229,7 +229,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       if (print_err) call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // data_name)
       return
     end select
+
+    if (valid) err = .false.
   enddo
+
   n_tot = n_tot + size(values)
 enddo
 
@@ -237,8 +240,6 @@ if (n_tot == 0) then
   if (print_err) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
   return
 endif
-
-err = .false.
 
 end subroutine tao_evaluate_lat_or_beam_data
 
