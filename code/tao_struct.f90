@@ -910,8 +910,8 @@ end type
 type tao_beam_struct
   type (beam_init_struct) :: beam_init            ! Beam distrubution at beginning of lattice
   type (beam_struct) beam_at_start                ! Initial
-  integer :: ix_track_start = 0                   ! Element start index of tracking
-  integer :: ix_track_end = -1                    ! Element end index of tracking
+  integer :: ix_track_start = not_set$            ! Element start index of tracking
+  integer :: ix_track_end = not_set$              ! Element end index of tracking
   logical :: init_starting_distribution = .false. ! Init beam
   character(40) :: track_start = '', track_end = ''
   character(200) :: track_data_file = ''          ! track data from previous simulation for reanalysis.

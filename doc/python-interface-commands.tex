@@ -68,8 +68,8 @@ Returns
 \item[bunch1] \Newline\begin{example}
 Bunch parameters at the exit end of a given lattice element.
 Command syntax:
-  python bunch1 {ix_universe}@{ix_branch}>>{ix_ele}|{which} {ix_bunch} {coordinate}
-where {which} is one of:
+  python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
+ where {ele_id} is an element name or index  and {which} is one of:
   model
   base
   design
@@ -81,9 +81,7 @@ and will return an array.
 
 Parameters
 ----------
-ix_universe
-ix_branch
-ix_ele
+ele_id
 which
 ix_bunch
 coordinate
@@ -1324,6 +1322,20 @@ param_name
 Returns
 -------
 ?? 
+
+\end{example}
+\item[matrix] \Newline\begin{example}
+Matrix value from the exit end of one element to the exit end of the other.
+Command syntax:
+  python matrix {ele1_id} {ele2_id}
+where:
+  {ele1_id} is the start element.
+  {ele2_id} is the end element.
+If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
+Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+
+Example:
+  python matrix 2@1>>q01w|design q02w
 
 \end{example}
 \item[merit] \Newline\begin{example}

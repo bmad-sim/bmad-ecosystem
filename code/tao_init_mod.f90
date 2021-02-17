@@ -194,8 +194,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%beam%track_data_file = s%com%beam_track_data_file_arg
   s%u(i)%beam%track_start    = ''
   s%u(i)%beam%track_end      = ''
-  s%u(i)%beam%ix_track_start = 0
-  s%u(i)%beam%ix_track_end   = -1
+  s%u(i)%beam%ix_track_start = not_set$
+  s%u(i)%beam%ix_track_end   = not_set$
 enddo
 
 if (.not. s%com%init_beam .or. init_file == '') return
@@ -338,13 +338,13 @@ if (beam_track_start /= '') then
   if (err .or. n_loc == 0) then
     call out_io (s_error$, r_name, 'BEAM_TRACK_START ELEMENT NOT FOUND: ' // beam_track_start, &
                                    'WILL NOT TRACK A BEAM.')
-    u%beam%ix_track_start = -999
+    s%global%track_type = 'single'
     return
   endif
   if (n_loc > 1) then
     call out_io (s_error$, r_name, 'MULTIPLE BEAM_TRACK_START ELEMENTS FOUND: ' // beam_track_start, &
                                    'WILL NOT TRACK A BEAM.')
-    u%beam%ix_track_start = -999
+    s%global%track_type = 'single'
     return
   endif
   u%beam%ix_track_start = eles(1)%ele%ix_ele
@@ -355,13 +355,13 @@ if (beam_track_end /= '') then
   if (err .or. n_loc == 0) then
     call out_io (s_error$, r_name, 'BEAM_TRACK_END ELEMENT NOT FOUND: ' // beam_track_end, &
                                    'WILL NOT TRACK A BEAM.')
-    u%beam%ix_track_start = -999
+    s%global%track_type = 'single'
     return
   endif
   if (n_loc > 1) then
     call out_io (s_error$, r_name, 'MULTIPLE BEAM_TRACK_END ELEMENTS FOUND: ' // beam_track_end, &
                                    'WILL NOT TRACK A BEAM.')
-    u%beam%ix_track_start = -999
+    s%global%track_type = 'single'
     return
   endif
   u%beam%ix_track_end = eles(1)%ele%ix_ele
