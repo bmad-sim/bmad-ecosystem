@@ -1413,7 +1413,7 @@ real(rp), allocatable :: charge(:)
 integer i, j, species
 
 logical, optional :: print_err
-logical error, err
+logical error
 
 character(*), parameter :: r_name = "calc_bunch_params"
 
@@ -1495,8 +1495,7 @@ if (bunch_params%n_particle_live < 12) return
 ! Sigma matrix calc
 
 call calc_bunch_sigma_matrix (bunch%particle, charge, bunch_params)
-call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, err, print_err)
-if (err) return
+call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, gamma, bunch_params, error, print_err)
 
 !----------------------------------------------------------------------
 contains
