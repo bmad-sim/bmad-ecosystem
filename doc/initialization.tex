@@ -1003,13 +1003,14 @@ the closed orbit, and the emittance will be calculated using the \bmad routine
 \vn{radiation_integrals}.
 
 \vn{beam_track_start} and \vn{beam_track_end} are used when it is desired to only track the beam
-through part of a lattice branch. \vn{beam_track_start} gives the starting element name or
+through part of the root lattice branch. \vn{beam_track_start} gives the starting element name or
 index. Tracking will start at the exit end of this element so the beam {\em will not} be tracked
 through this element. The tracking will end at the exit end of the lattice element with name or
 index \vn{beam_track_end}. The default, if \vn{beam_track_start} is not given, is to start at
-the beginning of the branch if the beam is not being injected into the branch via a \vn{fork} element. If
-the beam is being injected from another branch, the default is to start at forked to element in the 
-branch. The default for \vn{beam_track_end} is the end of the lattice.
+the beginning of the branch The default for \vn{beam_track_end} is the end of the root branch if the 
+branch has an open geometry or beam tracking is beginning at the start of the branch. For a root
+branch with a closed geometry and with the beam starting in the middle, the tracking will wrap 
+around from the branch end to the beginning of the branch and will end up just before the starting point.
 
 After initialization, the \vn{set beam_init} (\sref{s:set.beam.init}) command can be used to set
 \vn{beam_track_start} and \vn{beam_track_end}. Note: Deprecated names for \vn{beam_track_start} and

@@ -909,7 +909,8 @@ end type
 
 type tao_beam_struct
   type (beam_init_struct) :: beam_init                 ! Beam distrubution at beginning of lattice
-  type (beam_struct) beam_at_start                     ! Initial
+  type (beam_struct) beam_at_start                     ! Initial beam 
+  type (ele_struct) ele_at_start                       ! To save starting element parameters.
   integer :: ix_track_start = not_set$                 ! Element start index of tracking
   integer :: ix_track_end = not_set$                   ! Element end index of tracking
   logical :: init_starting_distribution = .true.       ! Init beam
