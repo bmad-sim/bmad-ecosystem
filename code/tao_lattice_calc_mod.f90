@@ -882,7 +882,7 @@ type (coord_struct), pointer :: orbit
 
 real(rp) v(6)
 integer ix_ele0
-integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib, ie
+integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib
 
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
@@ -898,21 +898,26 @@ if (s%com%use_saved_beam_in_tracking) then
   return
 endif
 
+ix_ele0 = u%beam%ix_track_start
+if (ix_ele0 == not_set$) then
+
 ! if injecting into a branch then use the branch point as the starting distribution.
 
 model_branch => u%model_branch(ix_branch)
 branch => model%lat%branch(ix_branch)
 
 if (ix_branch > 0) then
-  ib = branch%ix_from_branch
-  ie = branch%ix_from_ele
+  if (ix_ele0 == not_set$) then
+    ib = branch%ix_from_branch
+    ix_ele0 = branch%ix_from_ele
 
-  if (.not. allocated (u%model_branch(ib)%ele(ie)%beam%bunch)) then
-    call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // u%model%lat%branch(ib)%ele(ie)%name)
-    return
+    if (.not. allocated (u%model_branch(ib)%ele(ix_ele0)%beam%bunch)) then
+      call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // u%model%lat%branch(ib)%ele(ix_ele0)%name)
+      return
+    endif
   endif
 
-  u%beam%beam_at_start = u%model_branch(ib)%ele(ie)%beam
+  u%beam%beam_at_start = u%model_branch(ib)%ele(ix_ele0)%beam
   init_ok = .true.
   return
 endif
@@ -924,15 +929,11 @@ endif
 ! Of course if, for example, the beam_init structure is modified then we do want a distribution recalc.
 ! So only reinit the distribution if the distribution has not already been initialized or if commanded via %init_starting_distribution.
 
+if (ix_ele0 == not_set$) ix_ele0 = 0
+
 if (u%beam%beam_init%use_particle_start_for_center .and. any(u%beam%beam_init%center /= u%model%lat%particle_start%vec)) then
   u%beam%beam_init%center = u%model%lat%particle_start%vec
   u%beam%init_starting_distribution = .true.
-endif
-
-ix_ele0 = u%beam%ix_track_start
-if (ix_ele0 == -999) then
-  call out_io(s_error$, r_name, 'NOTE: Bad start or stop beam track locations. No beam tracking done.')
-  return
 endif
 
 beam_init => u%beam%beam_init

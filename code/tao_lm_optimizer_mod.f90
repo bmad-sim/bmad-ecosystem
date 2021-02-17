@@ -193,7 +193,7 @@ call tao_set_opt_vars (a, s%global%optimizer_var_limit_warn)
 call tao_limit_calc (limited)
 
 if (limited) then
-  status = -999
+  status = not_set$
   y_fit = 1e10 
   return
 endif
