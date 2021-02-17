@@ -307,7 +307,7 @@ do i_loop = 1, i_max
     enddo
     call co_func(coc%a_vec, dvec, dy_da, status)
     if (status /= 0) then
-      if (printit) call out_io (s_error$, r_name, 'CANNOT FIND STABLE ORBIT.', 'USING BRANCH: ' // branch_name(branch))
+      if (printit) call out_io (s_error$, r_name, 'CANNOT FIND STABLE ORBIT.', 'TRACKING BRANCH: ' // branch_name(branch))
       call end_cleanup(branch)
       return
     endif
@@ -325,7 +325,7 @@ do i_loop = 1, i_max
   if (a_lambda < 1d-10) a_lambda = 1d-10
 
   if (status < 0) then  
-    if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'USING BRANCH: ' // branch_name(branch))
+    if (printit) call out_io (s_error$, r_name, 'SINGULAR MATRIX ENCOUNTERED!', 'TRACKING BRANCH: ' // branch_name(branch))
     call end_cleanup(branch)
     return
   endif
@@ -336,7 +336,7 @@ do i_loop = 1, i_max
     coc%a_vec(1:4) = 0  ! Desperation move.
   elseif (i_loop == 2 .and. .not. alive_at_end) then
     if (printit) call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING!!', 'ABORTING CLOSED ORBIT SEARCH.', &
-                                   'USING BRANCH: ' // branch_name(branch))
+                                   'TRACKING BRANCH: ' // branch_name(branch))
     call end_cleanup(branch)
     return
   else
