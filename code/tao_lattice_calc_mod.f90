@@ -618,7 +618,7 @@ call zero_lr_wakes_in_lat (lat)
 
 ie1 = ix_ele0
 ie2 = branch%n_ele_track
-if (u%beam%ix_track_end > -1 .and. ix_branch == 0) ie2 = u%beam%ix_track_end
+if (u%beam%ix_track_end /= not_set$) ie2 = u%beam%ix_track_end
 
 print_err = .true.
 
@@ -899,7 +899,6 @@ if (s%com%use_saved_beam_in_tracking) then
 endif
 
 ix_ele0 = u%beam%ix_track_start
-if (ix_ele0 == not_set$) then
 
 ! if injecting into a branch then use the branch point as the starting distribution.
 
