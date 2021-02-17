@@ -882,7 +882,7 @@ type (coord_struct), pointer :: orbit
 
 real(rp) v(6)
 integer ix_ele0
-integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib
+integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib, ie
 
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
@@ -906,17 +906,17 @@ model_branch => u%model_branch(ix_branch)
 branch => model%lat%branch(ix_branch)
 
 if (ix_branch > 0) then
-  if (ix_ele0 == not_set$) then
-    ib = branch%ix_from_branch
-    ix_ele0 = branch%ix_from_ele
+  if (ix_ele0 == not_set$) ix_ele0 = branch%ix_to_ele
 
-    if (.not. allocated (u%model_branch(ib)%ele(ix_ele0)%beam%bunch)) then
-      call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // u%model%lat%branch(ib)%ele(ix_ele0)%name)
-      return
-    endif
+  ib = branch%ix_from_branch
+  ie = branch%ix_from_ele
+
+  if (.not. allocated (u%model_branch(ib)%ele(ie)%beam%bunch)) then
+    call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // u%model%lat%branch(ib)%ele(ie)%name)
+    return
   endif
 
-  u%beam%beam_at_start = u%model_branch(ib)%ele(ix_ele0)%beam
+  u%beam%beam_at_start = u%model_branch(ib)%ele(ie)%beam
   init_ok = .true.
   return
 endif
