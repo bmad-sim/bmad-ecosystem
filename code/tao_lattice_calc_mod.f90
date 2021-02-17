@@ -907,8 +907,7 @@ model_branch => u%model_branch(ix_branch)
 branch => model%lat%branch(ix_branch)
 
 if (ix_branch > 0) then
-  if (ix_ele0 == not_set$) ix_ele0 = branch%ix_to_ele
-
+  ix_ele0 = branch%ix_to_ele
   ib = branch%ix_from_branch
   ie = branch%ix_from_ele
 
