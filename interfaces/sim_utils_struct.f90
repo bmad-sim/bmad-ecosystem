@@ -63,6 +63,13 @@ character(*), parameter :: null_name$ = '!NULL', str_garbage$ = 'Garbage 5%+K?s@
 
 character(1), parameter :: lf$ = achar(10)
 
+! Note: Some routines rely on the fact that not_set$ and invalid$ are negative and not "near" zero.
+
+integer, parameter :: invalid$ = -666
+integer, parameter :: not_set$ = -999
+
+character(*), parameter :: invalid_name = 'INVALID!'
+
 ! 
 
 integer, parameter :: x_axis$ = 1, y_axis$ = 2, z_axis$ = 3
