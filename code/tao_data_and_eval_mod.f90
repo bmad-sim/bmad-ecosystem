@@ -5367,13 +5367,14 @@ elseif (.not. datum%err_message_printed) then
 
   s%com%n_err_messages_printed = s%com%n_err_messages_printed + 1
   if (s%com%n_err_messages_printed == s%global%datum_err_messages_max + 1) then
-    call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE ERROR MESSAGES FOR THIS EVALUATION CYCLE.')
+    call out_io (s_warn$, r_name, 'NUMBER OF ERROR MESSAGES EXCEEDS GLOBAL%DATUM_ERR_MESSAGES_MAX.', &
+                                  'WILL NOT PRINT ANY MORE DATUM ERROR MESSAGES FOR THIS EVALUATION CYCLE.')
   endif
   if (s%com%n_err_messages_printed > s%global%datum_err_messages_max) return
 
   call out_io (s_error$, r_name, message, 'FOR DATUM: ' // tao_datum_name(datum))
   if (identified_err_found) then
-    call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF ERROR FOR THIS EVALUATION CYCLE.')
+    call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF DATUM ERROR MESSAGE FOR THIS EVALUATION CYCLE.')
   endif
 endif
 
