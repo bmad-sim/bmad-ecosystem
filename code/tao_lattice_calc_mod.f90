@@ -58,7 +58,8 @@ logical calc_ok, this_calc_ok, err, mat_changed
 ! Lattice bookkeeping
 
 calc_ok = .true.
-s%com%err_message_printed = .false.  ! Reset for this round of computations
+s%com%is_err_message_printed = .false.  ! Reset for this round of computations
+s%com%n_err_messages_printed = 0
 
 do iuni = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(iuni)

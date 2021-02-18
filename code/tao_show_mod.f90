@@ -1655,6 +1655,7 @@ case ('global')
     nl=nl+1; lines(nl) = 'Tao Global parameters [Note: To print optimizer globals use: "show optimizer"]'
     nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
     nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
+    nl=nl+1; write(lines(nl), imt) '  %datum_err_messages_max        = ', s%global%datum_err_messages_max
     nl=nl+1; write(lines(nl), lmt) '  %concatenate_maps              = ', s%global%concatenate_maps
     nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
@@ -4719,7 +4720,7 @@ case ('use')
 
 case ('value')
 
-  s_fmt = 'es25.17'
+  s_fmt = 'es24.16'
   ix = index(what2, '-f')
   if (ix /= 0) then
     ix2 = index(what2(ix:), ' ')
@@ -4737,12 +4738,19 @@ case ('value')
 
   if (size(value) == 1) then
     s_fmt = '(3x, ' // trim(s_fmt) // ')'
-    nl=nl+1; write(lines(nl), s_fmt) value(1)
+    nl=nl+1; write(lines(nl), s_fmt, iostat = ios) value(1)
+    if (ios /= 0) then
+      write(lines(nl), '(3x, es24.16, a)') value(1), '  ! Note: Value/format mismatch detected'
+    endif
+
   else
     s_fmt = '(i4, a, ' // trim(s_fmt) // ')'
     call re_allocate (lines, size(value)+100, .false.)
     do i = 1, size(value)
-      nl=nl+1; write(lines(nl), s_fmt) i, ':  ', value(i)
+      nl=nl+1; write(lines(nl), s_fmt, iostat = ios) i, ':  ', value(i)
+      if (ios /= 0) then
+        write(lines(nl), '(i4, a, es24.16, a)', iostat = ios) i, ':  ', value(i), '  ! Note: Value/format mismatch detected'
+      endif
     enddo
   endif
 

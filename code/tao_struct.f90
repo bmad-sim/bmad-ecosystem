@@ -607,23 +607,24 @@ type tao_global_struct
   real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
   real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
   real(rp) :: de_var_to_population_factor = 5.0_rp ! DE population = max(n_var*factor, 20)
-  real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
+  real(rp) :: lmdif_eps = 1e-12          ! Tollerance for lmdif optimizer.
   real(rp) :: lmdif_negligible_merit = 1d-30
   real(rp) :: svd_cutoff = 1e-5          ! SVD singular value cutoff.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) :: merit_stop_value = -1      ! Merit value below which an optimizer will stop.
   real(rp) :: dmerit_stop_value = 0      ! Fractional Merit change below which an optimizer will stop.
-  real(rp) :: random_sigma_cutoff = -1   ! cut-off in sigmas.
-  real(rp) :: delta_e_chrom = 0          ! delta E used from chrom calc.
-  integer :: n_opti_cycles = 20          ! number of optimization cycles
-  integer :: n_opti_loops = 1            ! number of optimization loops
+  real(rp) :: random_sigma_cutoff = -1   ! Cut-off in sigmas.
+  real(rp) :: delta_e_chrom = 0          ! Delta E used from chrom calc.
+  integer :: n_opti_cycles = 20          ! Number of optimization cycles
+  integer :: n_opti_loops = 1            ! Number of optimization loops
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: random_seed = 0             ! Use system clock by default
   integer :: n_top10_merit = 10          ! Number of top merit constraints to print.
-  integer :: srdt_gen_n_slices = 10      ! number times to slice elements for summation RDT calculation
-  integer :: srdt_sxt_n_slices = 20      ! number times to slice sextupoles for summation RDT calculation
-  logical :: srdt_use_cache = .true.     ! create cache for SRDT calculations.  Can use lots of memory if srdt_*_n_slices large.
+  integer :: srdt_gen_n_slices = 10      ! Number times to slice elements for summation RDT calculation
+  integer :: datum_err_messages_max = 10 ! Maximum number of error messages per cycle.
+  integer :: srdt_sxt_n_slices = 20      ! Number times to slice sextupoles for summation RDT calculation
+  logical :: srdt_use_cache = .true.     ! Create cache for SRDT calculations.  Can use lots of memory if srdt_*_n_slices large.
   character(12) :: quiet = 'off'                    ! "all", or "output". Print I/O when running a command file?
   character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
   character(16) :: random_gauss_converter = 'exact' ! Non-beam
@@ -648,8 +649,8 @@ type tao_global_struct
   logical :: label_keys = .true.                      ! For lat_layout plots
   logical :: lattice_calc_on = .true.                 ! Turn on/off beam and single particle calculations.
   logical :: only_limit_opt_vars = .false.            ! Only apply limits to variables used in optimization.
-  logical :: opt_with_ref = .false.                   ! use reference data in optimization?
-  logical :: opt_with_base = .false.                  ! use base data in optimization?
+  logical :: opt_with_ref = .false.                   ! Use reference data in optimization?
+  logical :: opt_with_base = .false.                  ! Use base data in optimization?
   logical :: optimizer_allow_user_abort = .true.      ! See Tao manual for more details.
   logical :: optimizer_var_limit_warn = .true.        ! Warn when vars reach a limit with optimization.
   logical :: orm_analysis = .false.                   ! ORM using MDSA? 
@@ -701,6 +702,7 @@ type tao_common_struct
   integer :: default_branch = 0          ! Default lattice branch to work with.
   integer :: ix_history = 0 ! present index to command history array
   integer :: n_history      ! present history index
+  integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   logical :: initialized = .false.              ! Does tao_init() need to be called?
   logical :: cmd_file_paused
   logical :: use_cmd_here  = .false.            ! Used for the cmd history stack
@@ -717,13 +719,13 @@ type tao_common_struct
   logical :: parse_cmd_args        = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
-  logical :: print_to_terminal = .true.        ! Print command prompt to the terminal? For use with GUIs.
-  logical :: lattice_calc_done = .false.       ! Used by GUI for deciding when to refresh.
-  logical :: add_measurement_noise = .true.    ! Turn off to take data derivatives.
-  logical :: err_message_printed(2) = .false.  ! Used by tao_set_invalid
-  character(100) :: cmd                        ! Used for the cmd history
-  character(16) :: init_name = 'Tao'           ! label for initialization          
-  character(200) :: hook_init_file = ''        ! 
+  logical :: print_to_terminal = .true.          ! Print command prompt to the terminal? For use with GUIs.
+  logical :: lattice_calc_done = .false.         ! Used by GUI for deciding when to refresh.
+  logical :: add_measurement_noise = .true.      ! Turn off to take data derivatives.
+  logical :: is_err_message_printed(2) = .false. ! Used by tao_set_invalid
+  character(100) :: cmd                          ! Used for the cmd history
+  character(16) :: init_name = 'Tao'             ! label for initialization          
+  character(200) :: hook_init_file = ''          ! 
   character(200) :: hook_lat_file = ''             ! To be set by tao_hook_parse_command_args
   character(200) :: hook_beam_file = ''            ! To be set by tao_hook_parse_command_args
   character(200) :: hook_data_file = ''            ! To be set by tao_hook_parse_command_args
