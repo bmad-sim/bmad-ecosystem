@@ -5334,22 +5334,40 @@ end subroutine
 Subroutine tao_set_invalid (datum, message, why_invalid, exterminate)
 
 type (tao_data_struct) datum
+
+logical, optional :: exterminate
+logical identified_err_found
+integer i
 character(*) message
 character(*), optional :: why_invalid
 character(*), parameter :: r_name = 'tao_set_invalid'
-logical, optional :: exterminate
+character(40) :: err_str(2) = [character(40):: 'NO BEAM TRACKING HAS BEEN DONE', &
+                                               'CANNOT EVALUATE DUE TO PARTICLE LOSS']
 
-!
+
+! The idea with err_str is to limit the number of error messages generated of a given type.
+
+if (logic_option(.false., exterminate)) then
+  datum%exists = .false. 
+endif
 
 if (present(why_invalid)) then
   why_invalid = message
 elseif (.not. datum%err_message_printed) then
-  call out_io (s_error$, r_name, message, 'FOR DATUM: ' // tao_datum_name(datum))
   datum%err_message_printed = .true.
-endif
+  identified_err_found = .false.
+  do i = 1, size(err_str)
+    if (index(message, trim(err_str(i))) == 0) cycle
+    identified_err_found = .true.
+    if (s%com%err_message_printed(i)) return
+    s%com%err_message_printed(i) = .true.
+    identified_err_found = .true.
+  enddo
 
-if (logic_option(.false., exterminate)) then
-  datum%exists = .false. 
+  call out_io (s_error$, r_name, message, 'FOR DATUM: ' // tao_datum_name(datum))
+  if (identified_err_found) then
+    call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF WARNING FOR NOW.')
+  endif
 endif
 
 end subroutine tao_set_invalid

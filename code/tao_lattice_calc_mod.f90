@@ -58,6 +58,7 @@ logical calc_ok, this_calc_ok, err, mat_changed
 ! Lattice bookkeeping
 
 calc_ok = .true.
+s%com%err_message_printed = .false.  ! Reset for this round of computations
 
 do iuni = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(iuni)
@@ -635,7 +636,6 @@ ie = ix_ele1 - 1
 
 do 
   ie = ie + 1
-  if (ie == ix_ele2 + 1) exit
   if (ie > branch%n_ele_track) ie = 1
 
   bunch_params => tao_branch%bunch_params(ie)
@@ -703,11 +703,13 @@ do
   ! Only generate error message once per tracking
   if (err .and. print_err) then
     sig = bunch_params%sigma
-    call out_io (s_error$, r_name, [character(80):: 'Singular sigma matrix is:', &
+    if (any(sig /= 0)) then
+      call out_io (s_error$, r_name, [character(80):: 'Singular sigma matrix is:', &
             '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', '  \6es15.7\', &
             'Will not print any more singular sigma matrices for this track...'], &
             r_array = [sig(1,:), sig(2,:), sig(3,:), sig(4,:), sig(5,:), sig(6,:)])
-    print_err = .false.  
+      print_err = .false.  
+    endif
   endif
 
   if (ie == ix_ele1) then
@@ -728,6 +730,7 @@ do
     endif
   endif
 
+  if (ie == ix_ele2) exit
 enddo
 
 ! only post total lost if no extraction or extracting to a turned off lattice
