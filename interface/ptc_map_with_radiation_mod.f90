@@ -22,7 +22,8 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, include_damping, orbit1, err_flag)
+! Subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, include_damping, 
+!                                                                          create_symplectic_map, orbit1, err_flag)
 !
 ! Routine to construct a map including radiation damping and excitation.
 ! Note: The setting of bmad_com%radiation_damping_on will determine if damping is included in the map.
@@ -43,20 +44,24 @@ contains
 !                        If not present or less than 1, the currently set order is used.
 !   include_damping -- logical, optional: If True (default), the map will be constructed with radiation damping included.
 !                        If False, the map will not be constructed with radiation dampling included. 
-!                        Since radiation damping can always be turned off when tracking, if you are only concerned about
-!                        the orbital motion, there is no reason to create a map without damping. 
-!                        However, the spin map is constructed about the closed orbit so the spin map will be affected
-!                        by whether damping is on or not. 
+!                        Since radiation damping can always be turned off when tracking, if you are only 
+!                        concerned about the orbital motion, there is no reason to create a map without damping. 
+!                        However, the spin map is constructed about the closed orbit so the spin map will be 
+!                        affected by whether damping is on or not. 
 !                        To the extent that the damping is small the shift in the spin map will be small.
 !   orbit1          -- coord_struct, optional: Orbit at ele1 about which the map is constructed.
 !                        If not present then the orbit will be computed using PTC tracking.
+!   create_symplectic_map
+!                   -- logical, optional: If False (default), create a Taylor map. If True, create a partially 
+!                        inverted map which can be symplecitally tracked.
 !
 ! Output:
 !   map_with_rad    -- ptc_map_with_rad_struct: Transport map.
 !   err_flag        -- logical, optional: Set True if there is an error such as not associated PTC layout.
 !-
 
-subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, include_damping, orbit1, err_flag)
+subroutine ptc_setup_map_with_radiation (map_with_rad, ele1, ele2, map_order, include_damping, &
+                                                                           create_symplectic_map, orbit1, err_flag)
 
 use pointer_lattice
 
@@ -80,7 +85,7 @@ real(rp) orb(6), orb0(6), e_ij(6,6)
 integer, optional :: map_order
 integer val_save
 
-logical, optional :: err_flag, include_damping
+logical, optional :: err_flag, include_damping, create_symplectic_map
 
 character(*), parameter :: r_name = 'ptc_setup_map_with_radiation'
 
@@ -158,8 +163,11 @@ else
 endif
 
 c_map1 = pb8
+c_map1%x0(1:6) = orb   ! This may not be needed but cannot hurt 
 
+sagan_gen = logic_option(.false., create_symplectic_map)
 call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=map_with_rad%sub_map) 
+sagan_gen = .false.  ! Reset to False so wont affect other PTC calculations.
 
 call set_ptc_quiet(0, unset$, val_save)
 call kill (pb8)

@@ -34,10 +34,10 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
+type (ele_struct), target :: drift_ele
 type (branch_struct), pointer :: branch
 
 real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), map0(4), m56
-real(rp), allocatable :: on_off_state(:)
 
 integer, optional, intent(in) :: ix_branch
 integer, optional, intent(out) ::status
@@ -58,6 +58,7 @@ m56 = 0
 
 branch => lat%branch(integer_option(0, ix_branch))
 
+
 ! Propagate the transfer map around branch. 
 ! Since the RF is taken to be off we use a trick so we only have to multiply
 ! 4x4 matrices.
@@ -69,11 +70,16 @@ endif
 
 !
 
-call set_on_off (rfcavity$, lat, off_and_save$, use_ref_orb = .true., &
-                              ix_branch = branch%ix_branch, saved_values = on_off_state)
-
 do n = 1, branch%n_ele_track
   ele => branch%ele(n)
+  if (ele%key == rfcavity$) then
+    drift_ele%map_ref_orb_out = ele%map_ref_orb_in
+    call mat_make_unit(drift_ele%mat6)
+    call track_a_drift(drift_ele%map_ref_orb_out, ele%value(l$), drift_ele%mat6, .true.)
+    drift_ele%vec0 = 0
+    ele => drift_ele
+  endif
+
   m56 = m56 + ele%mat6(5,6) + dot_product(ele%mat6(5,1:4), eta_vec)
   eta_vec = matmul (ele%mat6(1:4,1:4), eta_vec) + ele%mat6(1:4,6)
   map0 = matmul (ele%mat6(1:4,1:4), map0) + ele%vec0(1:4)
@@ -93,9 +99,6 @@ do n = 1, branch%n_ele_track
     write (iu, '(a, 4es20.12)') 'Map0:', map0
   endif
 enddo
-
-call set_on_off (rfcavity$, lat, restore_state$, use_ref_orb = .true., &
-                              ix_branch = branch%ix_branch, saved_values = on_off_state)
 
 if (debug) close (iu)
 
