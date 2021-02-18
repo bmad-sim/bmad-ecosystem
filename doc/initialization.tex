@@ -578,6 +578,7 @@ type tao_global_struct
   n_opti_cycles = 20               ! number of optimization cycles
   n_opti_loops = 1                 ! number of optimization loops
   n_lat_layout_label_rows = 1      ! How many rows with a lat_layout
+  datum_err_messages_max = 10      ! Max number of error messages per cycle.
   phase_units = radians\$           ! Phase units on output.
   bunch_to_plot = 1                ! Which bunch to plot
   random_seed = 0                  ! use system clock by default
@@ -630,6 +631,12 @@ This saves time but the potential drawback is a loss of accuracy. Note that a la
 will only have an associate map if the \vn{tracking_method} or \vn{make_mat6_method} components
 of the lattice element are such that a map is needed for tracking (see the \bmad manual for more
 details).
+%
+  \item{\vn{datum_err_messages_max}} \Newline
+Sets the maximum number of error messages per cycle generated when evaluating all datums. A
+``cycle'', which generally happens after most commands or every optimization cycle, consists of the
+reevaluation of lattice parameters and subsequent datum evaluations. Limiting the number of error
+messages is useful when many essentially similar error messages are being generated.
 %
   \item{\vn{global%derivative_recalc}} \Newline
 The \vn{global%derivative_recalc} logical determines whether the derivative matrix is

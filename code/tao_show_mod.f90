@@ -4732,14 +4732,14 @@ case ('value')
     endif
   endif
 
-
   call tao_evaluate_expression (what2, 0, .false., value, info, err)
   if (err) return
 
   if (size(value) == 1) then
     s_fmt = '(3x, ' // trim(s_fmt) // ')'
     nl=nl+1; write(lines(nl), s_fmt, iostat = ios) value(1)
-    if (ios /= 0) then
+    ! For some funny reason ios can be zero on a bad format so check for a star in the string.
+    if (ios /= 0 .or. index(lines(nl), '*') /= 0) then
       write(lines(nl), '(3x, es24.16, a)') value(1), '  ! Note: Value/format mismatch detected'
     endif
 
@@ -4748,7 +4748,8 @@ case ('value')
     call re_allocate (lines, size(value)+100, .false.)
     do i = 1, size(value)
       nl=nl+1; write(lines(nl), s_fmt, iostat = ios) i, ':  ', value(i)
-      if (ios /= 0) then
+      ! For some funny reason ios can be zero on a bad format so check for a star in the string.
+      if (ios /= 0 .or. index(lines(nl), '*') /= 0) then
         write(lines(nl), '(i4, a, es24.16, a)', iostat = ios) i, ':  ', value(i), '  ! Note: Value/format mismatch detected'
       endif
     enddo
