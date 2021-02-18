@@ -9648,7 +9648,7 @@ endif
     h0=1.d0
     if(present(h00)) h0=h00
 
-    h=(1.d0+h0*x)
+    h=(1.e0_dp+h0*x)
     do k=1,no1
     !  erect multipole
     f=dreal(-z**K/K)
@@ -9896,7 +9896,7 @@ endif
     h0=1.d0
     if(present(h00)) h0=h00
 
-    h=(1.d0+h0*x)
+    h=(1.e0_dp+h0*x)
     do k=1,no1
     !  erect multipole
     f=dreal(i_*z**K/K)

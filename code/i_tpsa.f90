@@ -1989,7 +1989,8 @@ endif
  if(present(i)) then
    if(.not.(i>=1.and.i<=c_%nv)) then
     check_gtpsa=.false.
-    write(6,*)"i,c_%nv", i,c_%nv
+    write(6,*)"i,c_%nv", i,c_%nv, "Crash it ? "
+     read(5,*) ii
   endif
  else
   k=0
@@ -4818,7 +4819,7 @@ enddo
   rr2 = r2 / 4
   denom = 1.0_dp
   r2k = 1
-  dvalo=1.d38
+  dvalo=1.e38_dp
   do k = 1, nk_max
     r2k = r2k * rr2
     denom = denom * k * (n + k)
@@ -4891,7 +4892,7 @@ enddo
   rr2 = r2 / 4
   denom = 1.0_dp
   r2k = 1
-  dvalo=1.d38
+  dvalo=1.e38_dp
   do k = 1, nk_max
     r2k = r2k * rr2
     denom = denom * k * (n + k)
@@ -4964,7 +4965,7 @@ enddo
   rr2 = r2 / 4
   denom = 1.0_dp
   r2k = 1
-  dvalo=1.d38
+  dvalo=1.e38_dp
   do k = 1, nk_max
     r2k = r2k * rr2
     denom = denom * k * (n + k)

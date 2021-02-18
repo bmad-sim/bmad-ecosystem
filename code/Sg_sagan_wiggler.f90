@@ -1927,7 +1927,7 @@ ENDIF
        elseif (EL%W%FORM(I) == hyper_y_family_qu) THEN
           A =    EL%W%A(I)*sin(EL%W%K(1,i)*(X(1)+EL%W%X0(i)))*cosh(EL%W%K(2,i)*(X(3)+EL%W%Y0(I)))* &
                 SIN(EL%W%K(3,i)*Z+EL%W%F(I))/EL%W%K(3,i) + A
-          B =   0.5_dp*EL%W%A(I)*sinx_x(0.5d0*EL%W%K(1,i)*(X(1)+EL%W%X0(i)))**2*sinh(EL%W%K(2,i)*(X(3)+EL%W%Y0(I)))* &
+          B =   0.5_dp*EL%W%A(I)*sinx_x(0.5_dp*EL%W%K(1,i)*(X(1)+EL%W%X0(i)))**2*sinh(EL%W%K(2,i)*(X(3)+EL%W%Y0(I)))* &
                 SIN(EL%W%K(3,i)*Z+EL%W%F(I))*EL%W%K(1,i)*EL%W%K(2,i)/EL%W%K(3,i)*(X(1)+EL%W%X0(i))**2 + B
        elseif (EL%W%FORM(I) == hyper_xy_family_qu) THEN
           A =    EL%W%A(I)*sinh(EL%W%K(1,i)*(X(1)+EL%W%X0(i)))*cosh(EL%W%K(2,i)*(X(3)+EL%W%Y0(I)))* &

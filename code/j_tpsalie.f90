@@ -11,7 +11,7 @@ module tpsalie
   private DABSMAP,EQUALMAP,EQUALVEC    !,EQUALMAPVEC,EQUALVECMAP
   private EQUALvecpb,EQUALpbpb,EQUALpbvec,EQUALpbda,EQUALdapb,CUTORDER,CUTORDERPB,CUTORDERVEC
   private GETORDERVEC,GETORDERMAP,GETORDERPB,concator,pushtree,concat,pushmatrixr,push1polslow
-  private pushmap
+  private pushmap,checksympo
   private trxflow,trxpb,trxtaylor !,DMULMAPsc,MULMAPsc,IMULMAPsc,DMULVECsc,MULVECsc,IMULVECsc
   !  private DMULpbsc,MULpbsc,IMULpbsc
   private scDMULMAP,scMULMAP,scIMULMAP !,scDMULVEC,scMULVEC,scIMULVEC,scDMULpb,scMULpb,scIMULpb
@@ -178,6 +178,9 @@ module tpsalie
      MODULE PROCEDURE DAPRINTpb
   END INTERFACE
 
+    INTERFACE checksymp
+     MODULE PROCEDURE checksympo
+  end INTERFACE checksymp
 
   INTERFACE print_for_bmad
      MODULE PROCEDURE print_for_bmad_parsem
@@ -2804,7 +2807,7 @@ concat=t2
 
   END FUNCTION POWMAP_INV
 
-  subroutine checksymp(s1,norm,orthogonal)
+  subroutine checksympo(s1,norm,orthogonal)
     implicit none
     TYPE (damap) s1
     real(dp)  norm1,mat(8,8),xj(8,8)
@@ -2849,7 +2852,7 @@ concat=t2
     if(lielib_print(9)==1.or.nn) write(6,'(a29,(1x,E15.8))')"deviation from symplecticity ", norm1
     if(present(norm)) norm=abs(norm1)
 
-  end subroutine checksymp
+  end subroutine checksympo
 
 
   subroutine checkmap(s1)

@@ -20,7 +20,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
 
   IMPLICIT NONE
   public
- private ety2,etdiv,ety,etyt
+ private ety2,etdiv,ety,etyt,checksympn
 
   integer,private::nd2par,nd2part,nd2partt
   integer,private,target ::pos_of_delta  
@@ -45,7 +45,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   private alloc_c_damap,c_DPEKMAP,c_DPOKMAP,kill_c_damap,kill_c_spinmatrix,c_etcct,c_spinmatrix_mul_cray
   private EQUALspinmatrix,c_trxtaylor,powmap,POWMAPs,alloc_c_vector_field,kill_c_vector_field,kill_c_damaps
   private alloc_c_normal_form,kill_c_normal_form,c_EQUALVEC,c_spinmatrix_spinmatrix,c_IdentityEQUALVEC,qua_ql
-  private liebraquaternion,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap
+  private liebraquaternion,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap,iexp_ad
   private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
   private NO,ND,ND2,NP,NDPT,NV,ndptb,rf
   integer, target :: NP,NO,ND,ND2,NDPT,NV,ndptb,rf
@@ -122,7 +122,7 @@ character(24)  formatlf(6)
 !-----------------------------------
 logical :: inside_normal=.false.,bmad_automatic=.false.,spin_automatic=.false.
 integer i_alloc
-
+    logical :: sagan_gen =.false.
 
 type c_linear_map
  complex(dp) mat(6,6)
@@ -130,11 +130,16 @@ type c_linear_map
 end type c_linear_map
 
 type c_lattice_function
- real(dp) E(3,6,6),K(3,6,6),B(3,6,6)
- real(dp) H(3,6,6)
- real(dp)  S(1:3,1:3,0:6)
- logical symplectic 
-end type c_lattice_function
+ real(dp) :: E(3,6,6) =0 ,K(3,6,6) =0,B(3,6,6) =0
+ real(dp) :: H(3,6,6) = 0
+ real(dp) :: S(1:3,1:3,0:6) =0
+ real(dp) ::phase(3) =0 ,damping(3) =0 , spin(2) =0,fix(6) =0
+ type(fibre), pointer :: f => null()
+ type(integration_node), pointer :: t => null()
+ logical :: symplectic = .true.
+!!!!  radiation quantity
+ real(dp) :: sigmas(6,6)
+end type c_lattice_function 
 
 type(c_linear_map) q_phasor,qi_phasor
 
@@ -475,6 +480,9 @@ type(c_linear_map) q_phasor,qi_phasor
   !end INTERFACE cgetvf
 
   ! intrisic functions overloaded
+    INTERFACE checksymp
+     MODULE PROCEDURE checksympn
+  end INTERFACE checksymp
 
   INTERFACE q_part
      MODULE PROCEDURE qua_ql
@@ -537,6 +545,9 @@ type(c_linear_map) q_phasor,qi_phasor
      MODULE PROCEDURE exp_ad    ! exp(<F,>)F    F is a vector field  !v5
   END INTERFACE
 
+  INTERFACE iexp 
+       MODULE PROCEDURE iexp_ad
+  END INTERFACE iexp 
 
   INTERFACE texp
      MODULE PROCEDURE c_expflo   
@@ -4340,7 +4351,7 @@ cm=0
 if(c>0.or.cm>no) then
 r1=0.0_dp
 else
-    CALL c_dapek(S1%I,j,r1)
+  CALL c_dapek(S1%I,j,r1)
 endif
 
 
@@ -5624,6 +5635,7 @@ endif
 
  end   function  qua_ql
 
+
   SUBROUTINE  EQUAL_c_l_f(S2,S1)
     implicit none
     type(c_lattice_function), intent(out) :: s2
@@ -5633,7 +5645,14 @@ endif
     s2%h=0
     s2%b=0
     s2%s=0
-    s2%symplectic= s1
+    s2%spin=0
+    s2%phase=0
+    s2%damping=0
+    s2%f=>null()
+    s2%t=>null()
+    s2%symplectic=s1
+    S2%FIX=0
+    s2%sigmas=0
  end SUBROUTINE  EQUAL_c_l_f
 
   SUBROUTINE  compute_lattice_functions(m,f)
@@ -5655,6 +5674,7 @@ endif
     f%k=0
     f%e=0
     f%s=0
+
  !!!!    computing the de Moivre Lattice Functions  !!!!
  !!!!  equivalent to Ripken ones
 
@@ -7410,47 +7430,33 @@ else
 endif
             call c_check_rad(s1%e_ij,rad_in)
         if(rad_in) then
+          call print_e_ij(S1,mfi)
+        else
+         write(mfi,*) "No Stochastic Radiation "
+        endif   
+
+  END SUBROUTINE c_pri_map
+
+
+  SUBROUTINE  print_e_ij(S1,MFILE)
+    implicit none
+    INTEGER,OPTIONAL,INTENT(IN)::MFILE
+    type (c_damap),INTENT(INout)::S1
+    integer i,j,mfi
+
+
+     mfi=6
+     if(present(mfile)) mfi=mfile
+
          write(mfi,*) "Stochastic Radiation "
           do i=1,6
           do j=1,6
            write(mfi,*) i,j,s1%e_ij(i,j)
           enddo
           enddo
-        else
-         write(mfi,*) "No Stochastic Radiation "
-        endif   
-            call c_check_rad_spin(s1%damps,rad_in)
-        if(rad_in) then
-         write(mfi,*) "Stochastic Spin Fluctuation"
-          do i=1,3
-          do j=1,3
-           write(mfi,*) i,j,s1%b_kin(i,j)
-          enddo
-          enddo
-        else
-         write(mfi,*) "No Stochastic Spin Fluctuation "
-        endif   
-        if(rad_in) then
-         write(mfi,*) "Stochastic Spin Damping"
-          do i=1,3
-          do j=1,3
-           write(mfi,*) i,j,s1%damps(i,j)
-          enddo
-          enddo
-        else
-         write(mfi,*) "No Stochastic Spin Damping "
-        endif   
-        if(rad_in) then
-         write(mfi,*) "Stochastic Spin Kick"
-          do i=1,3
-           write(mfi,*) i,s1%d_spin(i)
-          enddo
-        else
-         write(mfi,*) "No Stochastic Spin Kick "
-        endif   
 
+   end SUBROUTINE  print_e_ij
 
-  END SUBROUTINE c_pri_map
 
   SUBROUTINE  c_pri_quaternion(S2,mf,prec)
     implicit none
@@ -8363,7 +8369,7 @@ end   SUBROUTINE  c_clean_yu_w
     real(dp) prec
     INTEGER ipresent,n,I,illa,k
     complex(dp) value,v,y
-    real(dp) x,xx
+!    real(dp) x  ,xx
     INTEGER, allocatable :: j(:)
     type(c_ray),optional :: r
     type (c_taylor) t
@@ -8393,16 +8399,16 @@ end   SUBROUTINE  c_clean_yu_w
      else
       y=value
     endif
-       xx=y
-       x=value
-       if(abs(xx)>prec) v=x
-       xx=aimag(y)
-       x=aimag(value)      
-       if(abs(xx)>prec) v=v+i_*x
-!       if(abs(value)>prec) then
-          t=t+(v.cmono.j)
-!       endif
-    ENDDO
+       v=c_clean(y,prec)
+
+    !   xx=y
+    !   x=value
+    !   if(abs(xx)>prec) v=x
+    !   xx=aimag(y)
+    !   x=aimag(value)      
+    !   if(abs(xx)>prec) v=v+i_*x
+           t=t+(v.cmono.j)
+     ENDDO
     s2=t
     deallocate(j)
     call kill(t)
@@ -12823,7 +12829,7 @@ end subroutine c_stochastic_kick
     call kill(ri,r0)
   END FUNCTION map_mul_vec
 
-    function exp_ad(h,x)  !  exp(Lie bracket)
+    function exp_ad(h,x,m)  !  exp(Lie bracket)
     implicit none
     ! DOES EXP( \VEC{H} ) X = Y
 
@@ -12831,12 +12837,15 @@ end subroutine c_stochastic_kick
     type(c_vector_field) exp_ad,ft
     type(c_vector_field), intent(in):: x
     type(c_vector_field), intent(in) :: h
+    complex(dp), optional, intent(in) :: m
     real(dp) prec,xnorm,r,xnorma 
+    complex(dp) m0
     IF(.NOT.C_STABLE_DA) then
      exp_ad%v%i=0
      RETURN
      endif 
-
+     m0=0
+     if(present(m)) m0=m
 prec=1.d-8
     localmaster=c_master
 
@@ -12858,7 +12867,7 @@ prec=1.d-8
       
      do i=1,x%nrmax
 
-         ft=(1.0_dp/i)*(h.lb.ft)
+         ft=(1.0_dp/i)*((h.lb.ft)+(m0*ft))
          exp_ad=exp_ad+ ft
          
           xnorma=0.0_dp
@@ -12882,6 +12891,70 @@ prec=1.d-8
     c_master=localmaster
  
   end function exp_ad
+
+    function iexp_ad(h,x,m)  !  (exp(Lie bracket)- 1)/Lie bracket
+    implicit none
+    ! DOES EXP( \VEC{H} ) X = Y
+
+    integer i,j,localmaster
+    type(c_vector_field) iexp_ad,ft
+    type(c_vector_field), intent(in):: x
+    type(c_vector_field), intent(in) :: h
+    complex(dp), optional, intent(in) :: m
+    real(dp) prec,xnorm,r,xnorma 
+    complex(dp) m0
+    IF(.NOT.C_STABLE_DA) then
+     iexp_ad%v%i=0
+     RETURN
+     endif 
+     m0=0
+     if(present(m)) m0=m
+prec=1.d-8
+    localmaster=c_master
+
+ 
+     iexp_ad%n=x%n
+     ft%n=x%n
+     call alloc(ft)
+    call c_ass_vector_field(iexp_ad)
+
+     iexp_ad=x
+   !  c=1.0_dp
+     ft=x
+     
+         xnorm=0.0_dp
+          do j=1,ft%n
+             r=full_abs(ft%v(j))
+             xnorm=xnorm+r
+          enddo
+      
+     do i=2,x%nrmax
+
+         ft=(1.0_dp/i)*((h.lb.ft)+(m0*ft))
+         iexp_ad=iexp_ad+ ft
+         
+          xnorma=0.0_dp
+          do j=1,ft%n
+             r=full_abs(ft%v(j))
+             xnorma=xnorma+r
+          enddo        
+      
+          if(xnorma>=xnorm.and.i > 20) then
+
+             exit 
+          endif    
+          xnorm=xnorma      
+     enddo
+    
+ 
+
+
+     call kill(ft)
+     
+    c_master=localmaster
+ 
+  end function iexp_ad
+
 
 
   function c_expflo_map(h,x)   !,eps,nrmax)
@@ -16975,11 +17048,11 @@ subroutine print_vector_field_fourier(s1,mf)
     INTEGER I,mf
  
      write(mf,*) 0,"th mode"
-     call print(s1%f(0),mf,dospin=.false.)
+     call print(s1%f(0),mf)  !,dospin=.false.)
     do i=1,n_fourier
      write(mf,*) i,"th mode"
-     call print(s1%f(i),mf,dospin=.false.)
-     call print(s1%f(-i),mf,dospin=.false.)
+     call print(s1%f(i),mf)  !,dospin=.false.)
+     call print(s1%f(-i),mf)  !,dospin=.false.)
     enddo
 
 end subroutine print_vector_field_fourier
@@ -17106,8 +17179,10 @@ end subroutine mulc_vector_field_fourier
     integer i
 
     S2=0
-    do i=-n_fourier,n_fourier
+    do i=lbound(s1%f,1),ubound(s1%f,1)
+
        S2=S2+(exp(i_*i*theta))*S1%f(i)
+
     enddo
 
   END SUBROUTINE c_evaluate_vector_field_fourier
@@ -18418,6 +18493,9 @@ endif
       call kill(qnr) 
     endif
       
+    call c_check_rad(m1%e_ij,rad_in)
+    if(rad_in) call c_normal_radiation(m1,n)
+
      ri=from_phasor()
     n%n=c_simil(ri,m1,1)
     n%Atot=n%as*n%a_t
@@ -18450,9 +18528,11 @@ endif
           qphase=qphasedef
     endif
 
-
-    call c_check_rad(m1%e_ij,rad_in)
-    if(rad_in) call c_normal_radiation(m1,n)
+! error because m1 was reutilized in present(rot)
+!   call c_check_rad(m1%e_ij,rad_in)
+ !!   if(rad_in) call c_normal_radiation(m1,n)
+ !   call c_check_rad(m1%e_ij,rad_in)
+ !!   if(rad_in) call c_normal_radiation(m1,n)
 
     call kill(m1);call kill(nonl);call kill(a1);call kill(a2);call kill(ri);
 
@@ -18518,9 +18598,9 @@ inside_normal=.false.
 
     call alloc(L_ns , N_pure_ns , N_s , L_s)
     
-    call symplectify_for_zhe(ma,L_ns , N_pure_ns, L_s , N_s )
+     if(.not.sagan_gen) call symplectify_for_zhe(ma,L_ns , N_pure_ns, L_s , N_s )
 
-
+     
 
 
 
@@ -18554,12 +18634,26 @@ inside_normal=.false.
      mg(i)=0.e0_dp
     enddo
 
+if(.not.sagan_gen) then
       L_ns = L_ns*N_pure_ns
+else
+   !  L_ns=L_ns*L_s
+       L_s=ma.sub.1
+       L_ns=L_s**(-1)*ma
+ 
+endif
+
+if(.not.sagan_gen) then
 
      do i=1,L_ns%n
       m(i)=L_ns%v(i)   ! orbital part
      enddo
+else
+     do i=1,L_ns%n
+      m(i)= 1.0_dp.mono.i
+     enddo
 
+endif
 
 
 if(use_quaternion) then
@@ -18594,7 +18688,16 @@ endif
      call alloc(ms)
 
 
+if(.not.sagan_gen) then
+      
        ms=n_s
+
+else
+
+      ms =   L_ns
+
+endif
+
 
 
 
@@ -18628,7 +18731,11 @@ endif
 
 
 !     write(6,*) " mul ",mul
-      t(3)%rad=L_s
+      if(.not.sagan_gen) then
+        t(3)%rad=L_s
+      else
+           t(3)%rad=L_s
+      endif
 
 
        mat=ma**(-1)
@@ -19261,5 +19368,19 @@ allocate(id(n,n),ik(n,n), j(n,n),ji(n,n))
       rt=matmul(r,matmul(j,transpose(r)) )
 deallocate(id,ik, j,ji)
 end   SUBROUTINE furman_step
+
+
+  subroutine checksympn(s1,norm,orthogonal)
+    implicit none
+    TYPE (c_damap) s1
+    real(dp), optional :: norm
+    logical(lp), optional :: orthogonal
+    TYPE (damap) s1o
+     call alloc(s1o)
+       s1o=s1
+     call checksymp(s1o,norm,orthogonal)
+     call kill(s1o)
+
+  end subroutine checksympn
 
   END MODULE  c_tpsa

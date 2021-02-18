@@ -153,6 +153,7 @@ module precision_constants
   ! Constant Symplectic integrator schemes
   real(dp) YOSK(0:4), YOSD(4)    ! FIRST 6TH ORDER OF YOSHIDA
   real(dp) wyosh(0:7),wyoshid(0:15),wyoshik(15)    ! FIRST 8TH ORDER OF YOSHIDA
+  real(dp) ck8(11),bk8(11),ak8(11,11)
   real(dp),parameter::AAA=-0.25992104989487316476721060727823e0_dp  ! fourth order integrator
   real(dp),parameter::FD1=0.5_dp/(1.0_dp+AAA),FD2=AAA*FD1,FK1=1.0_dp/(1.0_dp+AAA),FK2=(AAA-1.0_dp)*FK1
   ! end of symplectic integrator coefficients
@@ -408,7 +409,7 @@ contains
   SUBROUTINE MAKE_YOSHIDA
     IMPLICIT NONE
     integer i ,id 
-    real(dp) a,b
+    real(dp) a,b,b8,s21,ak
 
     YOSK(4)=0.0_dp
     YOSK(3)=0.78451361047756e0_dp
@@ -506,6 +507,114 @@ enddo
 write(6,*) a,b
  stop 999
 endif
+
+ck8=0
+bk8=0
+ak8=0
+!!! these are free parameters
+ak8(10,5)=1.0_dp/9.0_dp
+bk8(8)=49.0_dp/180.0_dp     ! cannot be zero
+
+!!!  
+s21=sqrt(21.0_dp)
+b8=bk8(8)
+ak=ak8(10,5)
+bk8(7) = -b8+49.0_dp/180.0_dp
+
+
+!  real(dp) ck8(11),bk8(11),ak8(11,11)
+bk8(1)=1.0_dp/20.0_dp
+bk8(9)=16.0_dp/45.0_dp
+bk8(10)=49.0_dp/180.0_dp
+bk8(11)=1.0_dp/20.0_dp
+
+ck8(2)=1.0_dp/2.0_dp
+ck8(3)=1.0_dp/2.0_dp
+ck8(4)=(7.0_dp+s21)/14.0_dp
+ck8(5)=(7.0_dp+s21)/14.0_dp
+ck8(6)=1.0_dp/2.0_dp
+ck8(7)=(7.0_dp-s21)/14.0_dp
+ck8(8)=(7.0_dp-s21)/14.0_dp
+ck8(9)=1.0_dp/2.0_dp
+ck8(10)=(7.0_dp+s21)/14.0_dp
+ck8(11)=1.0_dp
+
+ak8(2,1)=0.5_dp
+ak8(3,1)=0.25_dp
+ak8(3,2)=0.25_dp
+ak8(4,1)=1.0_dp/7.0_dp
+ak8(4,2)= (-7.0_dp-3.0_dp*s21)/98.0_dp
+ak8(4,3)= (21.0_dp+5.0_dp*s21)/49.0_dp
+ak8(5,1)= (11.0_dp+s21)/84.0_dp
+ak8(5,3)= (4.0_dp*s21)/63.0_dp + 2.0_dp/7.0_dp
+ak8(5,4)= (21.0_dp-s21)/252.0_dp
+ak8(6,1)= (5.0_dp+s21)/48.0_dp
+ak8(6,3)= (9.0_dp+s21)/36.0_dp
+ak8(6,4)= (-231.0_dp+14*s21)/360.0_dp
+ak8(6,5)= (63.0_dp-7*s21)/80.0_dp
+ak8(7,1)= (10.0_dp-s21)/42.0_dp
+ak8(9,1)=  1.0_dp/32.0_dp
+ak8(10,1)=  1.0_dp/14.0_dp
+ak8(10,9)=  4.0_dp*s21/35.0_dp+132.0_dp/245.0_dp
+ak8(11,9)=  (28.0_dp-28.0_dp*s21)/45.0_dp 
+ak8(11,10)=  (49.0_dp-7.0_dp*s21)/18.0_dp 
+
+ak8(7,3) = -(24.0_dp/35.0_dp)*ak-136.0_dp/105.0_dp+(-(12.0_dp/245.0_dp)*ak+ (656.0_dp/2205.0_dp))*s21
+
+
+ak8(7,4) = 7.0_dp -(3.0_dp/10.0_dp)*ak*s21-(71.0_dp/45.0_dp)*s21 + (3.0_dp/10.0_dp)*ak
+
+
+ak8(7,5) = -(3.0_dp/10.0_dp)*ak + (3.0_dp/10.0_dp)*ak*s21-43.0_dp/6.0_dp+ (169.0_dp/105.0_dp)*s21
+ak8(7,6) = -(277.0_dp/735.0_dp)*s21+181.0_dp/105.0_dp+(12.0_dp/245.0_dp)*ak*s21+24.0_dp/35.0_dp*ak
+ak8(8,1) = -(180.0_dp*b8*s21-49.0_dp*s21-1800*b8+343.0_dp)/b8/7560.0_dp
+ak8(8,5) = -(441.0_dp*ak*s21-3240.0_dp*ak8(7,5)*b8-28.0_dp*s21+882.0_dp*ak8(7,5)-2205.0_dp*ak &
+          +147.0_dp)/b8/3240.0_dp
+ak8(8,6) =  (72.0_dp*ak*s21+1620.0_dp*ak8(7,6)*b8-29.0_dp*s21-441.0_dp*ak8(7,6)-252.0_dp*ak+119.0_dp )/1620.0_dp/b8
+
+ak8(8,3) = -(900.0_dp*b8*s21+11340.0_dp*ak8(7,2)*b8+11340.0_dp*ak8(8,6)*b8-98.0_dp*s21-3087.0_dp*ak8(7,2) - 4860.0_dp*b8 &
++686.0_dp )/11340.0_dp/b8
+
+ak8(8,7) = 49.0_dp/1620.0_dp/b8
+
+ak8(8,4) = ( ck8(8)**2/2 -  ak8(8,2)*ck8(2) - ak8(8,3)*ck8(3) - ak8(8,5)*ck8(5)- ak8(8,6)*ck8(6)-ak8(8,7)*ck8(7))/ck8(4)
+
+
+ak8(9,3) =   (1.0_dp/8.0_dp)*ak*s21-(1.0_dp/8.0_dp)*ak-1.0_dp/72.0_dp*s21 + 1.0_dp/72.0_dp
+
+ak8(9,4) =   -49.0_dp/288.0_dp -(7.0_dp/32.0_dp)*ak*s21 +(7.0_dp/288.0_dp)*s21 + (49.0_dp/32.0_dp)*ak
+! etienne
+ak8(9,5) =   (7.0_dp/32.0_dp)*ak*s21-(35.0_dp/576.0_dp)*s21-(49.0_dp/32.0_dp)*ak+21.0_dp/64.0_dp
+
+
+ak8(9,6) =   -(1.0_dp/8.0_dp)*ak*s21+(1.0_dp/8.0_dp)*ak+(1.0_dp/72.0_dp)*s21 + 5.0_dp/36.0_dp
+
+ak8(9,7) =   (91.0_dp/576.0_dp)+(7.0_dp/192.0_dp)*s21-(585.0_dp/1568.0_dp)*b8*s21-(405.0_dp/224.0_dp)*b8
+
+ak8(9,8) = (585.0_dp/1568.0_dp)*b8*s21 +(405.0_dp/224.0_dp)*b8
+
+ak8(10,3) = -(6.0_dp/49.0_dp)*ak*s21 -(2.0_dp/7.0_dp)*ak + (2.0_dp/147.0_dp)*s21 +2.0_dp/63.0_dp
+
+ak8(10,4) = 1.0_dp/9.0_dp - ak
+
+ak8(10,6) = (2.0_dp/7.0_dp)*ak - (803.0_dp/2205.0_dp) + (6.0_dp/49.0_dp)*ak*s21 -(59.0_dp/735.0_dp)*s21
+
+ak8(10,7) = 1.0_dp/9.0_dp + (1.0_dp/42.0_dp)*s21 +(2295.0_dp/686.0_dp)*b8 + (495.0_dp/686.0_dp)*b8*s21
+
+ak8(10,8) = -(2295.0_dp/686.0_dp)*b8 - (495.0_dp/686.0_dp)*b8*s21
+
+ak8(11,3) = (2.0_dp/3.0_dp)*ak*s21 -(2.0_dp/3.0_dp)*ak - (2.0_dp/27.0_dp)*s21 +2.0_dp/27.0_dp
+
+ak8(11,4) = -(7.0_dp/6.0_dp)*ak*s21 +(7.0_dp/54.0_dp)*s21 + (49.0_dp/6.0_dp)*ak -49.0_dp/54.0_dp
+
+ak8(11,5) = (7.0_dp/27.0_dp)*s21 -(77.0_dp/54.0_dp)  - (49.0_dp/6.0_dp)*ak + (7.0_dp/6.0_dp)*ak*s21
+
+ak8(11,6) = (2.0_dp/3.0_dp) * ak - (64.0_dp/135.0_dp) -(2.0_dp/3.0_dp)*ak*s21 +(94.0_dp/135.0_dp)*s21
+
+ak8(11,7) =  7.0_dp/18.0_dp -(265.0_dp/98.0_dp) *b8*s21 - (215.0_dp/14.0_dp)*b8
+
+ak8(11,8) = (295.0_dp/98.0_dp)*b8*s21 + (215.0_dp/14.0_dp)*b8
+
   END SUBROUTINE MAKE_YOSHIDA
 
   SUBROUTINE input_sector(se2,se1)
