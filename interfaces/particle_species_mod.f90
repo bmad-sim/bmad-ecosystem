@@ -47,13 +47,6 @@ use sim_utils_struct
 
 implicit none
 
-! Note: Some routines rely on the fact that not_set$ and invalid$ are negative and not "near" zero.
-
-integer, parameter :: invalid$ = -666
-integer, parameter :: not_set$ = -999
-
-character(*), parameter :: invalid_name = 'INVALID!'
-
 !----------------------
 ! Subatomic particles.
 ! Note: It is convenient for debugging to define an "antiparticle" with reversed sign even though it does not exit in practice. 
@@ -98,7 +91,7 @@ real(rp), parameter :: anomalous_moment_of_subatomic(-7:8) = [0.0_rp, anomalous_
                         anomalous_mag_moment_electron, anomalous_mag_moment_proton, anomalous_mag_moment_muon, &
                         0.0_rp, anomalous_mag_moment_deuteron, anomalous_mag_moment_neutron, 0.0_rp, 0.0_rp]
 
-integer, parameter :: antiparticle(-7:8) = [7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, 8]
+integer, parameter :: antiparticle_of_subatomic(-7:8) = [7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, 8]
 
 real(rp), parameter :: spin_of_subatomic(-7:8) = [real_garbage$, 0.5_rp, 1.0_rp, 0.0_rp, 0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, &
                                                     0.5_rp, 0.5_rp, 0.5_rp, 0.0_rp, 1.0_rp, 0.5_rp, real_garbage$, 0.0_rp]
@@ -752,7 +745,39 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Function species_of (mass, charge) result(species)
+! Function antiparticle (species) result (anti_species)
+!
+! Routine to return the antiparticle ID given the particle ID.
+! For atoms, the "antiparticle" is just the atom with the charge negated.
+!
+! Input:
+!   species       -- integer: Particle ID.
+!
+! Output:
+!   anti_species  -- integer: Antiparticle ID.
+!-
+
+function antiparticle (species) result (anti_species)
+
+integer species, anti_species
+
+!
+
+if (lbound_subatomic <= species .and. species <= ubound_subatomic) then
+  anti_species = antiparticle_of_subatomic(species)
+  return
+
+else
+  anti_species = -species
+endif
+
+end function antiparticle
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!+
+! Function species_of (mass, charge) result (species)
 !
 ! Routine to return the integer ID index of a particle species given the mass and charge.
 ! Note: Currently this routine only works for subatomic particles.
