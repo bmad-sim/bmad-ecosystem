@@ -2252,7 +2252,7 @@ doit=p%mag%kind==kind16.and.p%mag%p%b0/=0.0_dp
      else
       t=z%x(5)
       z%x(5)=-(z%x(6)-l)*sqrt(1.0_dp +2*t/b0+t**2)/(1.0_dp/b0+t)
-      z%x(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.d0 
+      z%x(6)=sqrt(1.0_dp +2*t/b0+t**2)-1.e0_dp 
      endif
      call kill(t)
  

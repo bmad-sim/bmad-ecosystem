@@ -12,7 +12,7 @@ module c_da_arrays
   integer c_lda,c_lea,c_lia,c_lst
   integer,private,parameter::nmax=400
   real(dp),private,parameter::tiny=1e-20_dp
- 
+
   ! johan
   ! integer,parameter::c_lno=2,c_lnv=6,c_lc_nomax=8,c_lc_nvmax=9,c_lstmax=800500,c_ldamax=16000,c_leamax=5000,c_liamax=50000
   !
@@ -36,7 +36,7 @@ module c_da_arrays
   integer c_nst0,c_nomax,c_nvmax,c_nmmax,c_nocut,c_lfi
  ! real(dp) c_facint(0:c_lno)
   integer c_nhole
-  integer,TARGET :: c_lda_used =15000
+  integer,TARGET :: c_lda_used =1500
 
 contains
 

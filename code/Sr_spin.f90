@@ -16,7 +16,7 @@ module ptc_spin
   PRIVATE  B_PARA_PERPr,B_PARA_PERPp,B_PARA_PERP
   PRIVATE get_omega_spinR,get_omega_spinP,get_omega_spin
   PRIVATE PUSH_SPINR,PUSH_SPINP !,PUSH_SPIN
-  PRIVATE TRACK_FRINGE_spin_R,TRACK_FRINGE_spin_P,TRACK_FRINGE_spin
+  PRIVATE TRACK_FRINGE_spinR,TRACK_FRINGE_spinP,TRACK_FRINGE_spin
   PRIVATE TRACK_NODE_LAYOUT_FLAG_pr_s12_R,TRACK_NODE_LAYOUT_FLAG_pr_s12_P
   PRIVATE GET_BE_CAVR,GET_BE_CAVP ,GET_BE_CAV
   private rot_spin_xr,rot_spin_xp,rot_spin_zr,rot_spin_zp  !,rot_spin_z,rot_spin_x,
@@ -39,7 +39,7 @@ module ptc_spin
   private alloc_temporal_probe,GET_BZ_fringe,GET_BZ_fringer,GET_BZ_fringep
   private TRACK_rotate_spin_r,TRACK_rotate_spin_p,TRACK_rotate_spin
   private TRACK_FRINGE_multipole_r,TRACK_FRINGE_multipole_p,TRACK_FRINGE_multipole
-  private TRACK_wedge_spin_R,TRACK_wedge_spin_p,TRACK_wedge_spin, find_as,find_frac_r,find_n0
+  private TRACK_wedge_spinR,TRACK_wedge_spinp,TRACK_wedge_spin, find_as,find_frac_r,find_n0
   !REAL(DP) :: AG=A_ELECTRON
   REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
@@ -169,8 +169,8 @@ type(work) w_bks
   END INTERFACE
 
   INTERFACE TRACK_wedge_spin
-     MODULE PROCEDURE TRACK_wedge_spin_R
-     MODULE PROCEDURE TRACK_wedge_spin_p
+     MODULE PROCEDURE TRACK_wedge_spinr
+     MODULE PROCEDURE TRACK_wedge_spinp
   END INTERFACE
 
 
@@ -197,8 +197,8 @@ type(work) w_bks
   END INTERFACE
 
   INTERFACE TRACK_FRINGE_spin
-     MODULE PROCEDURE TRACK_FRINGE_spin_R
-     MODULE PROCEDURE TRACK_FRINGE_spin_P
+     MODULE PROCEDURE TRACK_FRINGE_spinR
+     MODULE PROCEDURE TRACK_FRINGE_spinP
   END INTERFACE
 
   INTERFACE superdrift_SPIN
@@ -1936,14 +1936,14 @@ endif
              call get_Bfield_fringe(EL,B,E,X,pos,k)   ! fringe effect
           ELSE
 !             if(EL%TP10%electric) then
-              call GETELECTRIC(EL%TP10,E,phi,B,VM,X); E(3)=0.d0;
+              call GETELECTRIC(EL%TP10,E,phi,B,VM,X); E(3)=0.0_dp;
 !             else
 !              CALL GETMULB_TEAPOT(EL%TP10,B,VM,X)
 !             endif
           ENDIF
        else
 !             if(EL%TP10%electric) then
-              call GETELECTRIC(EL%TP10,E,phi,B,VM,X); E(3)=0.d0;
+              call GETELECTRIC(EL%TP10,E,phi,B,VM,X); E(3)=0.0_dp;
 !             else
 !              CALL GETMULB_TEAPOT(EL%TP10,B,VM,X)
 !             endif
@@ -3902,7 +3902,7 @@ endif
 
 
 
-  SUBROUTINE TRACK_FRINGE_spin_R(C,p,K)
+  SUBROUTINE TRACK_FRINGE_spinR(C,p,K)
     IMPLICIT NONE
     !    real(dp), INTENT(INOUT):: X(6),S(3)
     type(probe), INTENT(INOUT):: p
@@ -3930,7 +3930,7 @@ endif
 
        endif
     else
-      ! write(6,*) " TRACK_FRINGE_spin_R "
+      ! write(6,*) " TRACK_FRINGE_spinR "
        IF(C%CAS==CASE1) THEN
           call TRACK_rotate_spin(C,p,K)
           if(.not.C%parent_fibre%mag%p%kill_exi_spin) call TRACK_FRINGE_multipole(C,p,K)
@@ -3942,9 +3942,9 @@ endif
        endif
      !  stop 888
     endif
-  end SUBROUTINE TRACK_FRINGE_spin_R
+  end SUBROUTINE TRACK_FRINGE_spinR
 
-  SUBROUTINE TRACK_FRINGE_spin_p(C,p,K)
+  SUBROUTINE TRACK_FRINGE_spinp(C,p,K)
     IMPLICIT NONE
     TYPE(probe_8), INTENT(INOUT)::p
     !    TYPE(REAL_8), INTENT(INOUT):: X(6),S(3)
@@ -3982,13 +3982,13 @@ endif
           if(.not.C%parent_fibre%magp%p%kill_ent_spin) call TRACK_FRINGE_multipole(C,p,K)
           call TRACK_rotate_spin(C,p,K)
        endif
-      ! write(6,*) " TRACK_FRINGE_spin_p "
+      ! write(6,*) " TRACK_FRINGE_spinp "
       ! stop 888
     endif
 
-  end SUBROUTINE TRACK_FRINGE_spin_p
+  end SUBROUTINE TRACK_FRINGE_spinp
 
-  SUBROUTINE TRACK_wedge_spin_R(C,p,K)
+  SUBROUTINE TRACK_wedge_spinR(C,p,K)
     IMPLICIT NONE
     !  this is a fake wedge.....
     type(probe), INTENT(INOUT):: p
@@ -3996,15 +3996,23 @@ endif
     TYPE (INTEGRATION_NODE), POINTER :: C
     TYPE(ELEMENT), POINTER :: EL
     integer pos
+    real(dp) edge(2)
     el=>C%PARENT_FIBRE%MAG
-
+    if(C%PARENT_FIBRE%dir==1) then
+     edge=C%PARENT_FIBRE%MAG%P%EDGE 
+    else
+     edge(1)=-C%PARENT_FIBRE%MAG%P%EDGE(2)
+     edge(2)=-C%PARENT_FIBRE%MAG%P%EDGE(1)
+    endif 
     SELECT CASE(EL%KIND)
     case(KIND10)
 
        IF(C%CAS==CASE1) THEN
-          CALL rot_spin_y(p,-C%PARENT_FIBRE%MAG%P%EDGE(1))
+!          CALL rot_spin_y(p,-C%PARENT_FIBRE%MAG%P%EDGE(1))
+          CALL rot_spin_y(p,-EDGE(1))
        ELSE
-          CALL rot_spin_y(p,-C%PARENT_FIBRE%MAG%P%EDGE(2))
+!          CALL rot_spin_y(p,-C%PARENT_FIBRE%MAG%P%EDGE(2))
+          CALL rot_spin_y(p,-EDGE(2))
        ENDIF
 
        !       IF(C%CAS==CASE1) THEN
@@ -4027,10 +4035,10 @@ endif
     END SELECT
 
 
-  END SUBROUTINE TRACK_wedge_spin_R
+  END SUBROUTINE TRACK_wedge_spinR
 
 
-  SUBROUTINE TRACK_wedge_spin_p(C,p,K)
+  SUBROUTINE TRACK_wedge_spinp(C,p,K)
     IMPLICIT NONE
     !  this is a fake wedge.....
     type(probe_8), INTENT(INOUT):: p
@@ -4038,15 +4046,24 @@ endif
     TYPE (INTEGRATION_NODE), POINTER :: C
     TYPE(ELEMENTP), POINTER :: EL
     integer pos
+    real(dp) edge(2)
+
+    if(C%PARENT_FIBRE%dir==1) then
+     edge=C%PARENT_FIBRE%MAGp%P%EDGE 
+    else
+     edge(1)=-C%PARENT_FIBRE%MAGp%P%EDGE(2)
+     edge(2)=-C%PARENT_FIBRE%MAGp%P%EDGE(1)
+    endif 
+
     el=>C%PARENT_FIBRE%MAGp
 
     SELECT CASE(EL%KIND)
     case(KIND10)
 
        IF(C%CAS==CASE1) THEN
-          CALL rot_spin_y(p,-C%PARENT_FIBRE%MAGp%P%EDGE(1))
+          CALL rot_spin_y(p,-EDGE(1))
        ELSE
-          CALL rot_spin_y(p,-C%PARENT_FIBRE%MAGp%P%EDGE(2))
+          CALL rot_spin_y(p,-EDGE(2))
        ENDIF
 
        !       IF(C%CAS==CASE1) THEN
@@ -4069,7 +4086,7 @@ endif
     END SELECT
 
 
-  END SUBROUTINE TRACK_wedge_spin_p
+  END SUBROUTINE TRACK_wedge_spinp
 
 
   SUBROUTINE TRACK_rotate_spin_r(C,p,K)
@@ -4080,14 +4097,22 @@ endif
     TYPE (INTEGRATION_NODE), POINTER :: C
     TYPE(ELEMENT), POINTER :: EL
     integer pos
+    real(dp) edge(2)
     el=>C%PARENT_FIBRE%MAG
-
+    if(C%PARENT_FIBRE%dir==1) then
+     edge=C%PARENT_FIBRE%MAG%P%EDGE 
+    else
+     edge(1)=-C%PARENT_FIBRE%MAG%P%EDGE(2)
+     edge(2)=-C%PARENT_FIBRE%MAG%P%EDGE(1)
+    endif   
     SELECT CASE(EL%KIND)
     case(KIND16,KIND10)
        IF(C%CAS==CASE1) THEN
-          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(1))
+   !       CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(1))
+          CALL rot_spin_y(p,EDGE(1))
        ELSE
-          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(2))
+!          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(2))
+          CALL rot_spin_y(p,EDGE(2))
        ENDIF
     case(KIND20)
        IF(C%CAS==CASE1) THEN
@@ -4143,14 +4168,22 @@ endif
     TYPE (INTEGRATION_NODE), POINTER :: C
     TYPE(ELEMENTP), POINTER :: EL
     integer pos
+    real(dp) edge(2)
     el=>C%PARENT_FIBRE%MAGP
 
+ 
+    if(C%PARENT_FIBRE%dir==1) then
+     edge=C%PARENT_FIBRE%MAG%P%EDGE 
+    else
+     edge(1)=-C%PARENT_FIBRE%MAG%P%EDGE(2)
+     edge(2)=-C%PARENT_FIBRE%MAG%P%EDGE(1)
+    endif 
     SELECT CASE(EL%KIND)
     case(KIND16,KIND10)
        IF(C%CAS==CASE1) THEN
-          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(1))
+          CALL rot_spin_y(p,EDGE(1))
        ELSE
-          CALL rot_spin_y(p,el%p%dir*C%PARENT_FIBRE%MAG%P%EDGE(2))
+          CALL rot_spin_y(p,EDGE(2))
        ENDIF
     case(KIND20)
        IF(C%CAS==CASE1) THEN

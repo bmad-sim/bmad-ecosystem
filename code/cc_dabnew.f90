@@ -1271,6 +1271,7 @@ contains
     integer,dimension(c_lnv)::jj
     complex(dp) cjj
     !
+    cjj=0
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -1352,9 +1353,11 @@ contains
        return
     elseif(ic.eq.icu) then
        cjj = c_cc(iu)
+
        return
     elseif(ic.eq.icz) then
        cjj = c_cc(iz)
+
        return
     elseif(ic.lt.icu.or.ic.gt.icz) then
        cjj = 0
@@ -1382,6 +1385,7 @@ contains
     return
 40  iz = i
     goto 10
+
     !
   end subroutine c_dapek
   !
