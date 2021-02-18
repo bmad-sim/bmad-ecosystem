@@ -68,7 +68,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ January 30, 2021}
+\date{David Sagan \\ February 8, 2021}
 \begin{document}
 \maketitle
 
@@ -230,6 +230,10 @@ computation time. Tracking using a map will be extremely quick compared to eleme
 tracking. However, map tracking can be inaccurate if the map order is too small or the particle
 amplitude is too large.
 
+Only the \vn{BMAD} method is able to handle a machine that is being ramped (\sref{s:ramp}). That is,
+when \vn{ltt%ramping_on} set to True. The program will detect if there is a conflict and issue an error
+message and stop.
+
 %------------------------------------------------------------------
 \Section{Map Tracking}
 \label{s:map}
@@ -240,6 +244,8 @@ particular, PTC is used for constructing the map(s) used for tracking when the
 \vn{ltt%tracking_method} parameter is set to "\vn{MAP}" (\sref{s:sim.params}). PTC tracking is also
 used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case, tracking is done
 element-by-element using symplectic integration.
+
+Note: Using maps is not compatible when a machine is being ramped (\sref{s:ramp}.
 
 Sometimes it is convenient to exclude certain lattice elements from a map. For example, the
 beam-beam interaction is highly non-linear so excluding any \vn{beambeam} elements can improve map
@@ -331,12 +337,12 @@ to simulate the actual ring, compensating steerings should be added to the simul
 well. How to do this is covered in the Bmad and Tao Cookbook available from the Bmad web site.
 
 %------------------------------------------------------------------
-\Section{Lattice Ramping}
+\Section{Ramping in a Lattice}
 \label{s:ramp}
 
-Here ``\vn{ramping}'' means changing lattice parameters as a function of time. Ramping examples
-include changing magnet and RF strengths to ramp the beam energy or changing magnet strengths to
-squeeze beta at the interaction pont of a colliding beam machine.
+``\vn{Ramping}'' is the situation where lattice parameters are changing as a function of
+time. Ramping examples include changing magnet and RF strengths to ramp the beam energy or changing
+magnet strengths to squeeze beta at the interaction pont of a colliding beam machine.
 
 Ramping is accomplished by defining \vn{ramper} elements in the lattice file. These ramper elements
 will be applied to each element in turn before particles are tracked through them. Example:
@@ -378,6 +384,13 @@ variable is time. Implicit in this is the assumption that controlled parameters 
 enough so that the ramplers only need be applied once per bunch passage. This is done to minimize
 computational time.
 
+In the lattice file, individual ramper elements may be toggled on or off using the element's
+\vn{is_on} attribute. 
+\begin{code}
+  ramp_rf: ramper = ...  ! Ramper element defined.
+  ramp_rf[is_on] = F     ! After being defined, ramper may be turned off.
+\end{code}
+
 If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulation_mode} is set to
 "\vn{BUNCH}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.
 
@@ -386,6 +399,9 @@ If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulatio
   ltt%ramping_on
   ltt%ramper_start_time
 \end{code}
+
+When ramping, the \vn{ltt%simulation_mode} (\sref{s:track.methods}) must be set to "\vn{BMAD}". The
+program will detect if there is a conflict and issue an error message and stop.
 
 %------------------------------------------------------------------
 \Section{Initial Particle Positions}
@@ -538,6 +554,7 @@ Example:
   ltt%ptc_aperture       = 0.1, 0.1
   ltt%exclude_from_maps  = "beambeam::*"
   ltt%split_bends_for_radiation = False
+  ltt%symplectic_map_tracking = False
   ltt%dead_cutoff        = -1
   ltt%b_emittance        = 1e-9          ! Used with space charge calc.
   ltt%debug              = F
@@ -846,6 +863,12 @@ Sets the simulation mode for the program. See Section~\sref{s:sim.modes} for mor
 \item[ltt\%split_bends_for_radiation] \Newline
 Use a radiation point in the middle of all the bends instead of including radiation effects in the
 transport maps? Default is False.
+%
+\item[ltt\%symplecitic_map_tracking]\Newline
+If False (the default), the maps used for tracking will be a set of truncated Taylor series
+polynomials. If True, the tracking maps will be derived from the Taylor map by partially inverting
+it forming an implicit symplectic map. The advantage of the symplectic map is that it is symplectic.
+The disadvantage is that, being an implicit map, the computation time will be longer.
 %
 \item[ltt\%timer_print_dtime] \Newline
 The program will print a tracking status message every so often. The nominal time between status

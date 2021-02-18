@@ -165,6 +165,7 @@ if (ltt_com%mpi_rank == master_rank$) then
       sd%spin_sum = sd%spin_sum + sd_arr(ix)%spin_sum
       sd%p0c_sum  = sd%p0c_sum + sd_arr(ix)%p0c_sum
       sd%time_sum = sd%time_sum + sd_arr(ix)%time_sum
+      sd%species  = bunch%particle(1)%species
       if (sd_arr(ix)%status == valid$) sd%status = valid$
     enddo
 

@@ -1,0 +1,13 @@
+call, file = DA_opt.bmad
+rf0[is_on] = F
+parameter[p0c] = 1e9
+
+call, file = ramp_1GeV.bmad
+bmad_com[radiation_damping_on] = T
+bmad_com[spin_tracking_on] = T
+
+expand_lattice
+rf0##1[is_on] = T
+rf0##1[voltage] = 0.32048e6
+rf0##1[phi0] = 0.0020036
+

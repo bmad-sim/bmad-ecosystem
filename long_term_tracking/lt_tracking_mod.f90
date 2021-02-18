@@ -66,6 +66,7 @@ type ltt_params_struct
   logical :: ramping_on = .false.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
+  logical :: symplectic_map_tracking = .false.
   logical :: split_bends_for_radiation = .false.
   integer :: mpi_runs_per_subprocess = 4                  ! Number of runs a slave process will take on average.
   logical :: debug = .false.
@@ -121,6 +122,7 @@ type ltt_sum_data_struct
   real(rp) :: spin_sum(3) = 0   ! Spin
   real(rp) :: p0c_sum = 0
   real(rp) :: time_sum = 0
+  integer :: species = 0
 end type
 
 type (ltt_params_struct), pointer, save :: ltt_params_global   ! Needed for track1_preprocess and track1_bunch_hook
@@ -421,6 +423,7 @@ if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
   print '(a, a)',  'ltt%ele_stop:                       ', quote(lttp%ele_stop)
   print '(a, a)',  'ltt%exclude_from_maps:              ', quote(lttp%exclude_from_maps)
   print '(a, l1)', 'ltt%split_bends_for_radiation:      ', lttp%split_bends_for_radiation
+  print '(a, l1)', 'ltt%symplectic_map_tracking:        ', lttp%symplectic_map_tracking
   print '(a, i0)', 'Number of maps:                     ', nm
 endif
 print '(a, l1)',   'bmad_com%radiation_damping_on:      ', bmad_com%radiation_damping_on
@@ -1214,6 +1217,7 @@ if (lttp%tracking_method == 'MAP') then
   write (iu, '(a, i0)')  '# map_order                      = ', ltt_com%sec(1)%map%map_order
   write (iu, '(a, a)')   '# exclude_from_maps              = ', lttp%exclude_from_maps
   write (iu, '(a, l1)')  '# split_bends_for_radiation      = ', lttp%split_bends_for_radiation
+  write (iu, '(a, l1)')  '# symplectic_map_tracking        = ', lttp%symplectic_map_tracking
 endif
 write (iu, '(a)') '#'
 
@@ -1278,6 +1282,7 @@ end select
 sd => sum_data_arr(ix)
 sd%n_live = count(bunch%particle%state == alive$)
 sd%n_count = sd%n_count + sd%n_live
+sd%species = bunch%particle(1)%species
 
 do i = 1, 6
   sd%orb_sum(i) = sd%orb_sum(i) + sum(bunch%particle%vec(i), bunch%particle%state == alive$) 
@@ -1330,9 +1335,11 @@ subroutine ltt_write_bunch_averages (lttp, sum_data_arr)
 type (ltt_params_struct) lttp
 type (ltt_sum_data_struct), target :: sum_data_arr(:)
 type (ltt_sum_data_struct), pointer :: sd
+type (bunch_params_struct) bunch_params
 
-real(rp) sigma(6)
-integer i, iu, ix
+real(rp) sig1(6), sigma(6,6)
+integer i, j, iu, ix
+logical error
 
 !
 
@@ -1340,9 +1347,9 @@ iu = lunget()
 
 if (sum_data_arr(1)%status == valid$) then
   open (iu, file = lttp%averages_output_file, recl = 400)
-  write (iu, '(a1, a8, a9, 2a14, 3a14, 13a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
+  write (iu, '(a1, a8, a9, 2a14, 2x, 3a14, 2x, 13a14, 2x, 3a14)') '#', 'Turn', 'N_live', 'Time', 'Polarization', &
                    '<Sx>', '<Sy>', '<Sz>', 'Sig_x', 'Sig_px', 'Sig_y', 'Sig_py', 'Sig_z', 'Sig_pz', &
-                   '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>'
+                   '<x>', '<px>', '<y>', '<py>', '<z>', '<pz>', '<p0c>', 'emit_a', 'emit_b', 'emit_c'
                      
 else
   open (iu, file = lttp%averages_output_file, recl = 400, access = 'append')
@@ -1354,10 +1361,21 @@ do ix = 1, size(sum_data_arr)
   if (sum_data_arr(ix)%status /= valid$) cycle
   sd => sum_data_arr(ix)
   if (sd%n_count == 0) exit
-  forall (i = 1:6) sigma(i) = sd%orb2_sum(i,i)/sd%n_count - (sd%orb_sum(i)/sd%n_count)**2
-  sigma = sqrt(max(0.0_rp, sigma))
-  write (iu, '(i9, i9, 2f14.9, 2x, 3f14.9, 2x, 13es14.6)') sd%i_turn, sd%n_live, sd%time_sum/sd%n_count, &
-          norm2(sd%spin_sum/sd%n_count), sd%spin_sum/sd%n_count, sigma, sd%orb_sum/sd%n_count, sd%p0c_sum/sd%n_count
+
+  do i = 1, 6
+  do j = i, 6
+    sigma(i,j) = sd%orb2_sum(i,j) / sd%n_count - sd%orb_sum(i) * sd%orb_sum(j) / sd%n_count**2
+    sigma(j,i) = sigma(i,j)
+  enddo
+  enddo
+
+  forall (i = 1:6) sig1(i) = sqrt(max(0.0_rp, sigma(i,i)))
+
+  call calc_emittances_and_twiss_from_sigma_matrix (sigma, 0.0_rp, bunch_params, error)
+
+  write (iu, '(i9, i9, 2f14.9, 2x, 3f14.9, 2x, 13es14.6, 2x, 3es14.6)') sd%i_turn, sd%n_live, sd%time_sum/sd%n_count, &
+          norm2(sd%spin_sum/sd%n_count), sd%spin_sum/sd%n_count, sig1, sd%orb_sum/sd%n_count, sd%p0c_sum/sd%n_count, &
+          bunch_params%a%emit, bunch_params%b%emit, bunch_params%c%emit
 enddo
 
 !
@@ -1674,7 +1692,8 @@ do i = 1, branch%n_ele_track+1
     if (in_map_section) then
       n_sec = n_sec + 1
       allocate(ltt_com%sec(n_sec)%map)
-      call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele0, lttp%map_order, damping_on)
+      call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele0, &
+                                              lttp%map_order, damping_on, lttp%symplectic_map_tracking)
       ltt_com%sec(n_sec)%type = map$
       ltt_com%sec(n_sec)%ele => ele
     endif
@@ -1691,7 +1710,8 @@ do i = 1, branch%n_ele_track+1
     if (in_map_section) then
       n_sec = n_sec + 1
       allocate(ltt_com%sec(n_sec)%map)
-      call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele, lttp%map_order, damping_on)
+      call ptc_setup_map_with_radiation (ltt_com%sec(n_sec)%map, ltt_com%sec(n_sec-1)%ele, ele, &
+                                             lttp%map_order, damping_on, lttp%symplectic_map_tracking)
       ltt_com%sec(n_sec)%type = map$
       ltt_com%sec(n_sec)%ele => ele
     endif
