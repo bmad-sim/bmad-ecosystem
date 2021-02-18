@@ -47,6 +47,7 @@ use sim_utils_struct
 
 implicit none
 
+! Note: Some routines rely on the fact that not_set$ and invalid$ are negative and not "near" zero.
 
 integer, parameter :: invalid$ = -666
 integer, parameter :: not_set$ = -999
