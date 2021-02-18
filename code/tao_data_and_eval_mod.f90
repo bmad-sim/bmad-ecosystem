@@ -465,7 +465,7 @@ character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(300) str
 
 logical found, valid_value, err, taylor_is_complex, use_real_part, term_found
-logical particle_lost, exterminate
+logical particle_lost, exterminate, printit
 logical, allocatable, save :: good(:)
 
 ! If does not exist
@@ -1604,7 +1604,8 @@ case ('expression:', 'expression.')
       str = str(1:ix+4) // trim(ele_loc_name(ele)) // str(ix+6:)
     enddo
 
-    call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, .true., datum%stack, tao_lat%name, &
+    printit = (s%com%n_err_messages_printed < s%global%datum_err_messages_max) 
+    call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, printit, datum%stack, tao_lat%name, &
                    datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset)
     if (err) then
       call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
@@ -5359,14 +5360,20 @@ elseif (.not. datum%err_message_printed) then
   do i = 1, size(err_str)
     if (index(message, trim(err_str(i))) == 0) cycle
     identified_err_found = .true.
-    if (s%com%err_message_printed(i)) return
-    s%com%err_message_printed(i) = .true.
+    if (s%com%is_err_message_printed(i)) return
+    s%com%is_err_message_printed(i) = .true.
     identified_err_found = .true.
   enddo
 
+  s%com%n_err_messages_printed = s%com%n_err_messages_printed + 1
+  if (s%com%n_err_messages_printed == s%global%datum_err_messages_max + 1) then
+    call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE ERROR MESSAGES FOR THIS EVALUATION CYCLE.')
+  endif
+  if (s%com%n_err_messages_printed > s%global%datum_err_messages_max) return
+
   call out_io (s_error$, r_name, message, 'FOR DATUM: ' // tao_datum_name(datum))
   if (identified_err_found) then
-    call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF WARNING FOR NOW.')
+    call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF ERROR FOR THIS EVALUATION CYCLE.')
   endif
 endif
 

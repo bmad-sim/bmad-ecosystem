@@ -46,7 +46,6 @@ integer iu_log
 
 logical err_flag
 logical err, calc_ok, valid_value, this_calc_ok, using_default
-logical beam_track_err_printed, beam_track_err
 
 namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
                data_file, var_file, plot_file, n_universes, init_name, beam_file
@@ -372,22 +371,12 @@ call tao_draw_plots ()     ! Update the plotting window
 
 ! Print bad data
 
-beam_track_err_printed = .false.
-
 do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(s%u(i)%data)
     data => s%u(i)%data(j)
     if (data%exists .and. data%data_type /= 'null' .and. .not. data%good_model) then
       call tao_evaluate_a_datum (data, s%u(i), s%u(i)%model, value, valid_value, why_invalid)
-      beam_track_err = (index(why_invalid, 'NO BEAM TRACKING HAS BEEN DONE') /= 0)
-      if (beam_track_err_printed .and. beam_track_err) cycle
-      call out_io(s_warn$, r_name, &
-                  'DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE: ' // tao_datum_name(data), &
-                  '   INVALID SINCE: ' // why_invalid)
-      if (beam_track_err) then
-        beam_track_err_printed = .true.
-        call out_io (s_warn$, r_name, 'WILL NOT PRINT ANY MORE OF THIS KIND OF WARNING.')
-      endif
+      call tao_set_invalid (data, why_invalid)
     endif
   enddo
 enddo
