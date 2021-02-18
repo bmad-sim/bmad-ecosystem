@@ -720,6 +720,7 @@ type tao_common_struct
   logical :: print_to_terminal = .true.        ! Print command prompt to the terminal? For use with GUIs.
   logical :: lattice_calc_done = .false.       ! Used by GUI for deciding when to refresh.
   logical :: add_measurement_noise = .true.    ! Turn off to take data derivatives.
+  logical :: err_message_printed(2) = .false.  ! Used by tao_set_invalid
   character(100) :: cmd                        ! Used for the cmd history
   character(16) :: init_name = 'Tao'           ! label for initialization          
   character(200) :: hook_init_file = ''        ! 
