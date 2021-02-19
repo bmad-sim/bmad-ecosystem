@@ -147,32 +147,33 @@ type (all_pointer_struct) a_ptr
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
-real(rp), allocatable :: re_array(:), value_arr(:)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp) mat6(6,6), vec0(6), array(7)
+real(rp), allocatable :: real_arr(:), value_arr(:)
 
-integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, n1, n2, i0, i1, i2
+integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type, loc
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
-integer line_width, n_bend, ic, num_ele, n_arr, n_add
-integer, allocatable, save :: index_arr(:)
+integer line_width, n_bend, ic, num_ele, n_arr, n_add, n1, n2, i0, i1, i2
+integer, allocatable, save :: index_arr(:), int_arr(:)
 
-logical, allocatable :: picked(:)
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
 logical first_time, found_one, calc_ok, no_slaves, index_order
+logical, allocatable :: picked(:), logic_arr(:)
 
 character(*) input_str
 character(len(input_str)) line
 character(n_char_show), allocatable :: li(:)
 character(n_char_show) li2
 character(200) file_name, all_who
-character(300), allocatable :: name_arr(:)
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
 character(40) max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(20), allocatable :: name_list(:)
 character(20) cmd, tail_str, which, v_str, head
 character(20) switch, color, shape_shape
+character(300), allocatable :: name_arr(:)
+character(40), allocatable :: str_arr(:)
 character(*), parameter :: r_name = 'tao_python_cmd'
 
 !
@@ -222,8 +223,8 @@ call match_word (cmd, [character(40) :: &
           'building_wall_point', 'building_wall_section', 'constraints', &
           'da_params', 'da_aperture', &
           'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
-          'data_d2', 'data_d2_array', 'data_set_design_value', 'datum_create', 'datum_has_ele', &
-          'derivative', &
+          'data_d2', 'data_d2_array', 'data_set_design_value', 'data_parameter', &
+          'datum_create', 'datum_has_ele', 'derivative', &
           'ele:head', 'ele:gen_attribs', 'ele:multipoles', 'ele:elec_multipoles', 'ele:ac_kicker', &
           'ele:cartesian_map', 'ele:chamber_wall', 'ele:cylindrical_map', 'ele:orbit', &
           'ele:taylor', 'ele:spin_taylor', 'ele:wake', 'ele:wall3d', 'ele:twiss', 'ele:methods', 'ele:control', &
@@ -1212,6 +1213,138 @@ case ('data_d1_array')
     nl=incr(nl); write (li(nl), '(a, i0, 5a, i0, a, i0)') 'd1[', i, '];STR2;F;', trim(d1_ptr%name), ';', trim(line), ';', &
                                                                                      lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1)
   enddo
+
+!%% data_parameter -----------------------
+! Given an array of datums, generate an array of values for a particular datum parameter.
+! Command syntax:
+!   python data_parameter {data_array} {parameter}
+! {parameter} may be any tao_data_struct parameter.
+! Example:
+!   python data_parameter orbit.x model_value
+!
+! Parameters
+! ----------
+! ix_universe
+!
+!    
+! Returns
+! -------
+! ?? 
+
+case ('data_parameter')
+
+  call split_this_line (line, name1, 2, err, n, .true.); if (err) return
+  call tao_find_data (err, name1(1), d_array = d_array)
+
+  n = size(d_array)
+  if (n == 0) then
+    call invalid ('Not a valid datum name.')
+    return
+  endif
+
+  select case (name1(2))
+  case ('data_type')
+    allocate (name_arr(n))
+
+  case ('ele_name', 'ele_start_name', 'ele_ref_name', 'merit_type', 'id', 'data_source')
+    allocate (str_arr(n))
+
+  case ('ix_uni', 'ix_bunch', 'ix_branch', 'ix_ele', 'ix_ele_start', 'ix_ele_ref', &
+        'ix_ele_merit', 'ix_d1', 'ix_data', 'ix_dModel', 'eval_point')
+    allocate (int_arr(n))
+
+  case ('meas_value', 'ref_value', 'model_value', 'design_value', 'old_value', 'base_value', &
+        'error_rms', 'delta_merit', 'weight', 'invalid_value', 'merit', 's', 's_offset')
+    allocate (real_arr(n))
+
+  case ('err_message_printed', 'exists', 'good_model', 'good_base', 'good_design', 'good_meas', &
+        'good_ref', 'good_user', 'good_opt', 'good_plot', 'useit_plot', 'useit_opt')
+    allocate (logic_arr(n))
+  end select
+
+  !
+
+  do j = 1, n
+    select case (name1(2))
+    case ('data_type');            name_arr(j) = d_array(j)%d%data_type
+
+    case ('ele_name');             str_arr(j) = d_array(j)%d%ele_name
+    case ('ele_start_name');       str_arr(j) = d_array(j)%d%ele_start_name
+    case ('ele_ref_name');         str_arr(j) = d_array(j)%d%ele_ref_name
+    case ('merit_type');           str_arr(j) = d_array(j)%d%merit_type
+    case ('id');                   str_arr(j) = d_array(j)%d%id
+    case ('data_source');          str_arr(j) = d_array(j)%d%data_source
+
+    case ('ix_uni');               int_arr(j) = d_array(j)%d%ix_uni
+    case ('ix_bunch');             int_arr(j) = d_array(j)%d%ix_bunch
+    case ('ix_branch');            int_arr(j) = d_array(j)%d%ix_branch
+    case ('ix_ele');               int_arr(j) = d_array(j)%d%ix_ele
+    case ('ix_ele_start');         int_arr(j) = d_array(j)%d%ix_ele_start
+    case ('ix_ele_ref');           int_arr(j) = d_array(j)%d%ix_ele_ref
+    case ('ix_ele_merit');         int_arr(j) = d_array(j)%d%ix_ele_merit
+    case ('ix_d1');                int_arr(j) = d_array(j)%d%ix_d1
+    case ('ix_data');              int_arr(j) = d_array(j)%d%ix_data
+    case ('ix_dModel');            int_arr(j) = d_array(j)%d%ix_dModel
+    case ('eval_point');           int_arr(j) = d_array(j)%d%eval_point
+
+    case ('meas_value');           real_arr(j) = d_array(j)%d%meas_value
+    case ('ref_value');            real_arr(j) = d_array(j)%d%ref_value
+    case ('model_value');          real_arr(j) = d_array(j)%d%model_value
+    case ('design_value');         real_arr(j) = d_array(j)%d%design_value
+    case ('old_value');            real_arr(j) = d_array(j)%d%old_value
+    case ('base_value');           real_arr(j) = d_array(j)%d%base_value
+    case ('error_rms');            real_arr(j) = d_array(j)%d%error_rms
+    case ('delta_merit');          real_arr(j) = d_array(j)%d%delta_merit
+    case ('weight');               real_arr(j) = d_array(j)%d%weight
+    case ('invalid_value');        real_arr(j) = d_array(j)%d%invalid_value
+    case ('merit');                real_arr(j) = d_array(j)%d%merit
+    case ('s');                    real_arr(j) = d_array(j)%d%s
+    case ('s_offset');             real_arr(j) = d_array(j)%d%s_offset
+
+    case ('err_message_printed');  logic_arr(j) = d_array(j)%d%err_message_printed
+    case ('exists');               logic_arr(j) = d_array(j)%d%exists
+    case ('good_model');           logic_arr(j) = d_array(j)%d%good_model
+    case ('good_base');            logic_arr(j) = d_array(j)%d%good_base
+    case ('good_design');          logic_arr(j) = d_array(j)%d%good_design
+    case ('good_meas');            logic_arr(j) = d_array(j)%d%good_meas
+    case ('good_ref');             logic_arr(j) = d_array(j)%d%good_ref
+    case ('good_user');            logic_arr(j) = d_array(j)%d%good_user
+    case ('good_opt');             logic_arr(j) = d_array(j)%d%good_opt
+    case ('good_plot');            logic_arr(j) = d_array(j)%d%good_plot
+    case ('useit_plot');           logic_arr(j) = d_array(j)%d%useit_plot
+    case ('useit_opt');            logic_arr(j) = d_array(j)%d%useit_opt
+    end select
+  enddo
+
+  if (allocated(name_arr)) then
+    do j = 1, n
+      nl=incr(nl); write(li(nl), '(i0, 2a)') j, ';', trim(name_arr(j))
+    enddo
+
+  elseif (allocated(str_arr)) then
+    do j = 0, (n-1)/10
+      iv0 = 10 * j + 1
+      nl=incr(nl); write(li(nl), '(i0, 30a)') iv0, (';', trim(str_arr(i)), i = iv0, min(iv0+9, n))
+    enddo
+
+  elseif (allocated(int_arr)) then
+    do j = 0, (n-1)/10
+      iv0 = 10 * j + 1
+      nl=incr(nl); write(li(nl), '(i0, 20(a, i0))') iv0, (';', int_arr(i), i = iv0, min(iv0+9, n))
+    enddo
+
+  elseif (allocated(real_arr)) then
+    do j = 0, (n-1)/10
+      iv0 = 10 * j + 1
+      nl=incr(nl); write(li(nl), '(i0, 30a)') iv0, (';', re_str(real_arr(i), 10), i = iv0, min(iv0+9, n))
+    enddo
+
+  elseif (allocated(logic_arr)) then
+    do j = 0, (n-1)/10
+      iv0 = 10 * j + 1
+      nl=incr(nl); write(li(nl), '(i0, 20(a, l1))') iv0, (';', logic_arr(i), i = iv0, min(iv0+9, n))
+    enddo
+  endif
 
 !%% data_d2_array -----------------------
 ! Data d2 info for a given universe.
@@ -3542,7 +3675,7 @@ case ('lat_list')
   use_real_array_buffer = (all_who(1:5) == 'real:')
   if (use_real_array_buffer) then
     all_who = all_who(6:)
-    call re_allocate(re_array, 1000)
+    call re_allocate(real_arr, 1000)
   endif
 
   call upcase_string(line)
@@ -3677,8 +3810,8 @@ case ('lat_list')
 
       if (use_real_array_buffer) then
         n_arr = n_arr
-        if (n_arr+n_add > size(re_array)) call re_allocate(re_array, 2*(n_arr+n_add))
-        re_array(n_arr+1:n_arr+n_add) = values(1:n_add)
+        if (n_arr+n_add > size(real_arr)) call re_allocate(real_arr, 2*(n_arr+n_add))
+        real_arr(n_arr+1:n_arr+n_add) = values(1:n_add)
         n_arr = n_arr + n_add
 
       else
@@ -3712,7 +3845,7 @@ case ('lat_list')
       endif
 
       tao_c_interface_com%n_int = n_arr
-      tao_c_interface_com%c_integer(1:n_arr) = nint(re_array(1:n_arr))
+      tao_c_interface_com%c_integer(1:n_arr) = nint(real_arr(1:n_arr))
 
     else
       if (.not. allocated(tao_c_interface_com%c_real)) allocate (tao_c_interface_com%c_real(n_arr))
@@ -3722,7 +3855,7 @@ case ('lat_list')
       endif
 
       tao_c_interface_com%n_real = n_arr
-      tao_c_interface_com%c_real(1:n_arr) = re_array(1:n_arr)
+      tao_c_interface_com%c_real(1:n_arr) = real_arr(1:n_arr)
     endif
   endif
 
