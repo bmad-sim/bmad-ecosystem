@@ -434,6 +434,7 @@ type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_x, d1_y
 type (coord_struct), pointer :: p(:)
+type (tao_beam_branch_struct), pointer :: bb
 
 real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
@@ -625,10 +626,11 @@ do k = 1, size(graph%curve)
     call make_v_mats (ele, v_mat, v_inv_mat)
     call make_g_mats (ele, g_mat, g_inv_mat)
 
+    bb => u%model_branch(0)%beam
     mat4 = matmul(v_mat, g_inv_mat)
-    emit_a = u%beam%beam_init%a_emit
+    emit_a = bb%beam_init%a_emit
     if (emit_a == 0) emit_a = 1e-6  ! default value
-    emit_b = u%beam%beam_init%b_emit
+    emit_b = bb%beam_init%b_emit
     if (emit_b == 0) emit_b = 1e-6  ! default value
 
     sigma_mat =  0

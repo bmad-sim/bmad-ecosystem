@@ -427,7 +427,7 @@ case ('reinitialize')
 
   case ('beam') 
     do i = lbound(s%u, 1), ubound(s%u, 1)
-      s%u(i)%beam%init_starting_distribution = .true.
+      s%u(i)%model_branch(:)%beam%init_starting_distribution = .true.
       s%u(i)%calc%lattice = .true.
     enddo
 

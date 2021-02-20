@@ -288,8 +288,8 @@ case ('beam')
   u => point_to_uni(line, .false., err); if (err) return
 
   nl=incr(nl); write (li(nl), amt) 'beam_track_data_file;STR;T;',           u%beam%track_data_file
-  nl=incr(nl); write (li(nl), amt) 'beam_track_start;STR;T;',               u%beam%track_start
-  nl=incr(nl); write (li(nl), amt) 'beam_track_end;STR;T;',                 u%beam%track_end
+  nl=incr(nl); write (li(nl), amt) 'beam_track_start;STR;T;',               u%model_branch(0)%beam%track_start
+  nl=incr(nl); write (li(nl), amt) 'beam_track_end;STR;T;',                 u%model_branch(0)%beam%track_end
   nl=incr(nl); write (li(nl), amt) 'beam_saved_at;STR;T;',                  u%beam%saved_at
   nl=incr(nl); write (li(nl), amt) 'beam_dump_at;STR;T;',                   u%beam%dump_at
   nl=incr(nl); write (li(nl), amt) 'beam_dump_file;STR;T;',                 u%beam%dump_file
@@ -315,7 +315,7 @@ case ('beam')
 case ('beam_init')
 
   u => point_to_uni(line, .false., err); if (err) return
-  beam_init => u%beam%beam_init
+  beam_init => u%model_branch(0)%beam%beam_init
 
   nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    beam_init%position_file
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
@@ -3511,7 +3511,7 @@ case ('inum')
 
   case ('ix_bunch')
     u => point_to_uni(head, .false., err);  if (err) return
-    do i = 0, u%beam%beam_init%n_bunch
+    do i = 0, u%model_branch(0)%beam%beam_init%n_bunch
       nl=incr(nl); write (li(nl), '(i0)') i
     enddo
 

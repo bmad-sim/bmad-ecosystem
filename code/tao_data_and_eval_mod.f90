@@ -454,7 +454,7 @@ complex(rp) temp_cplx
 ! Cf: Sands Eq 5.46 pg 124.
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
-integer i, j, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref
+integer i, j, jj, k, m, n, k_old, ix, ie, is, iz, ix_ele, ix_start, ix_ref, ie0, ie1
 integer n_size, ix0, which, expnt(6), n_track, n_max, ix_branch, expo(6)
 
 character(*), optional :: why_invalid
@@ -3193,17 +3193,38 @@ case ('unstable.')
 
   case ('unstable.orbit')
 
-    if (datum%ele_name == '') ix_ele = branch%n_ele_track
-
     if (data_source == 'beam') then
+      ie0 = u%model_branch(ix_branch)%beam%ix_track_start
+
+      if (datum%ele_name == '') then
+        ie1 = u%model_branch(ix_branch)%beam%ix_track_end
+      else
+        ie1 = ix_ele
+      endif
+
+      if (ie0 == not_set$) then
+        call tao_set_invalid (datum, 'NO TRACKING DONE IN BRANCH', why_invalid)
+        return
+      endif
+
+      if (ie1 > ie0) then
+        n = ie1 - ie0
+      else
+        n = branch%n_ele_track - ie0 + ie1
+      endif
+
       datum_value = 0
-      do i = 1, ix_ele
-        datum_value = datum_value + (1 + ix_ele - i) * bunch_params(i)%n_particle_lost_in_ele
+      do j = 1, branch%n_ele_track
+        jj = j + ie0
+        if (jj > branch%n_ele_track) jj = jj - branch%n_ele_track
+        datum_value = datum_value + (n - j + 1) * bunch_params(jj)%n_particle_lost_in_ele
+        if (jj == ie1) exit
       enddo
-      datum_value = datum_value / tao_branch%bunch_params(ix_ele)%n_particle_tot
+      datum_value = datum_value / tao_branch%bunch_params(ie0)%n_particle_tot
       datum%ix_ele_merit = -1
 
-    elseif (lat%param%geometry /= open$) then
+    elseif (lat%param%geometry == open$) then
+      if (datum%ele_name == '') ix_ele = branch%n_ele_track
       iz = tao_branch%track_state
       if (iz /= moving_forward$ .and. iz <= ix_ele) then
         datum_value = 1 + ix_ele - iz

@@ -57,7 +57,7 @@ if (present(ele_ptr)) then
       call set_flags_for_changed_attribute (lat)
 
     else
-      if (ele_ptr%ix_ele == 0) u%beam%init_starting_distribution = .true.
+      if (ele_ptr%ix_ele == 0) u%model_branch(0)%beam%init_starting_distribution = .true.
       if (present(val_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
     endif
 

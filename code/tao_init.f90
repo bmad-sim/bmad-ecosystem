@@ -489,11 +489,10 @@ if (allocated (s%u)) then
       do ib = 0, ubound(u%model_branch, 1)
         call reallocate_beam(u%model_branch(ib)%ele(0)%beam, 0, 0)
         deallocate (u%model_branch(ib)%ele)
+        call reallocate_beam(u%model_branch(ib)%beam%beam_at_start, 0, 0)
       enddo
       deallocate (u%model_branch)
     endif
-
-    call reallocate_beam(u%beam%beam_at_start, 0, 0)
 
     ! Lattices
 

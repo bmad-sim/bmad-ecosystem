@@ -899,25 +899,29 @@ type tao_model_element_struct
   logical save_beam_to_file       ! Save beam to a file? Beam also saved at fork elements and at track ends.
 end type
 
+! Beam information for a branch in a universe
+
+type tao_beam_branch_struct
+  type (beam_init_struct) :: beam_init                 ! Beam distrubution at beginning of lattice
+  type (beam_struct) beam_at_start                     ! Initial beam 
+  type (ele_struct) ele_at_start                       ! To save starting element parameters.
+  logical :: init_starting_distribution = .true.       ! Init beam
+  character(40) :: track_start = ''
+  character(40) :: track_end = ''
+  integer :: ix_track_start = not_set$                 ! Element start index of tracking
+  integer :: ix_track_end = not_set$                   ! Element end index of tracking
+end type
+
 ! tao_model_branch_struct is for information just used for the model lattice.
 
 type tao_model_branch_struct
   type (tao_model_element_struct), allocatable :: ele(:) ! Per element information
-  character(40) :: particle_track_start = '', particle_track_end = ''
-  integer :: ix_particle_track_start = 0
-  integer :: ix_particle_track_end = -1
+  type (tao_beam_branch_struct) beam
 end type
 
-! Beam information for a particular universe 
+! Beam information for a universe 
 
-type tao_beam_struct
-  type (beam_init_struct) :: beam_init                 ! Beam distrubution at beginning of lattice
-  type (beam_struct) beam_at_start                     ! Initial beam 
-  type (ele_struct) ele_at_start                       ! To save starting element parameters.
-  integer :: ix_track_start = not_set$                 ! Element start index of tracking
-  integer :: ix_track_end = not_set$                   ! Element end index of tracking
-  logical :: init_starting_distribution = .true.       ! Init beam
-  character(40) :: track_start = '', track_end = ''
+type tao_beam_uni_struct
   character(200) :: track_data_file = ''               ! track data from previous simulation for reanalysis.
   character(200) :: saved_at = ''
   character(200) :: dump_file = ''
@@ -1010,7 +1014,7 @@ end type
 type tao_universe_struct
   type (tao_universe_struct), pointer :: common => null()
   type (tao_lattice_struct), pointer :: model, design, base
-  type (tao_beam_struct) beam
+  type (tao_beam_uni_struct) beam
   type (tao_dynamic_aperture_struct) :: dynamic_aperture
   type (tao_model_branch_struct), pointer :: model_branch(:) ! model specific information
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
