@@ -647,10 +647,10 @@ Description of the data types:
 
   \begin{description}
   %----------------------
-  \item[alpha.a, .b] \Newline
+  \item[alpha.a, .b] \Newline \hlabel{alpha}
 Twiss function \vn{alpha}.
   %----------------------
-  \item[apparent_emit.x, .y] \Newline
+  \item[apparent_emit.x, .y] \Newline \hlabel{apparent.emit}
 The apparent emittance is the emittance that one would calculate based
 upon a measurement of the beam size\cite{b:emit}. It can be useful to
 compare this to the true normal mode emittance. Also See the
@@ -668,11 +668,11 @@ calculated from the true normal mode emittance and the Twiss
 parameters (Cf.~ Eqs (4) and (5) of \cite{b:emit}).
 
   %----------------------
-  \item[beta.a, .b, .c] \Newline
+  \item[beta.a, .b, .c] \Newline \hlabel{beta.a}
 Lattice normal mode betas.
 
   %----------------------
-  \item[beta.x, .y, .z] \Newline
+  \item[beta.x, .y, .z] \Newline \hlabel{beta.x}
 Beam projected beta functions. \vn{beta.x} is defined by
 \begin{equation}
   \beta.x = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
@@ -684,7 +684,7 @@ Note: If the beta function is calculated from the beam distribution,
 the initial beam emittance must be set to something non-zero.
 
   %----------------------
-  \item[bpm_cbar.22a, .12a, .11b, .12b] \Newline
+  \item[bpm_cbar.22a, .12a, .11b, .12b] \Newline \hlabel{bpm.cbar}
 The normalized Cbar coupling parameters. The computed \vn{model} values include detector
 misalignments, rotations, gain errors, etc. This type of datum is useful for simulating how well
 actual coupling corrections are. See the \bmad manual on ``Instrumental Measurement Attributes'' for
@@ -692,7 +692,7 @@ more details.  Note: This type of datum can only be used with \vn{detector}, \vn
 \vn{monitor} or \vn{marker} elements
 
   %----------------------
-  \item[bpm_eta.x, y] \Newline
+  \item[bpm_eta.x, y] \Newline \hlabel{bpm.eta}
 The horizontal and vertical dispersion components. The computed \vn{model} values include detector
 misalignments, rotations, gain errors, etc. This type of datum is useful for simulating how well
 actual dispersion corrections are. See the \bmad manual on ``Instrumental Measurement Attributes''
@@ -700,21 +700,21 @@ for more details.  Note: This type of datum can only be used with \vn{detector},
 \vn{monitor} or \vn{marker} elements
 
   %----------------------
-  \item[bpm_orbit.x, y] \Newline
+  \item[bpm_orbit.x, y] \Newline \hlabel{bpm.orbit}
 Beam Orbit. The computed \vn{model} values include detector misalignments, rotations, gain errors,
 etc. This type of datum is useful for simulating how well actual orbit corrections are. See the
 \bmad manual on ``Instrumental Measurement Attributes'' for more details.  Note: This type of datum
 can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
 
   %----------------------
-  \item[bpm_phase.a, b] \Newline
+  \item[bpm_phase.a, b] \Newline \hlabel{bpm.phase}
 Betatron phase. The computed \vn{model} values include detector misalignments, rotations, gain
 errors, etc. This type of datum is useful for simulating how well actual orbit corrections are. See
 the \bmad manual on ``Instrumental Measurement Attributes'' for more details.  Note: This type of
 datum can only be used with \vn{detector}, \vn{instrument}, \vn{monitor} or \vn{marker} elements
 
   %----------------------
-  \item[bpm_k.22a, .12a, .11b, .12b] \Newline
+  \item[bpm_k.22a, .12a, .11b, .12b] \Newline \hlabel{bpm.k}
 Measured beam coupling components. The computed \vn{model} values include detector misalignments,
 rotations, gain errors, etc. This type of datum is useful for simulating how well actual coupling
 corrections are. See the \bmad manual on ``Instrumental Measurement Attributes'' for more details.
@@ -722,53 +722,57 @@ Note: This type of datum can only be used with \vn{detector}, \vn{instrument}, \
 \vn{marker} elements
 
   %----------------------
-  \item[bunch_charge.live, .live_relative] \Newline
+  \item[bunch_charge.live, .live_relative] \Newline \hlabel{bunch.charge}
 The charge of the live particles in a bunch as expressed unnormalized or nomalized by the total charge.
 
   %----------------------
-  \item[bunch_max, bunch_min.x, .px, .y, .py, .z, .pz] \Newline
-Maximum or minimum phase space coordinate in a bunch, relative to its centroid.
+  \item[bunch_max.x, .px, .y, .py, .z, .pz] \Newline \hlabel{bunch.max}
+Maximum phase space coordinate in a bunch, relative to its centroid.
 
   %----------------------
-  \item[cmat.11, .12, .21, .22] \Newline
+  \item[bunch_min.x, .px, .y, .py, .z, .pz] \Newline \hlabel{bunch.min}
+Minimum phase space coordinate in a bunch, relative to its centroid.
+
+  %----------------------
+  \item[cmat.11, .12, .21, .22] \Newline \hlabel{cmat}
 Coupling matrix components. The 2x2 C matrix describe the $x$-$y$ coupling of the beam.
 See the \bmad manual for more details.
 
   %----------------------
-  \item[cbar.11, .12, .21, .22] \Newline
+  \item[cbar.11, .12, .21, .22] \Newline \hlabel{cbar}
 Normalized coupling matrix components. The 2x2 C matrix describe the $x$-$y$ coupling of the beam.
 The normalized matrix is normalized by factors of $\beta$. See the \bmad manual for more details.
 
   %----------------------
-  \item[chrom.a, .b] \Newline
+  \item[chrom.a, .b] \Newline \hlabel{chrom.a}
 Chromaticities. Also see \vn{chrom_ptc}.
 
   %----------------------
-  \item[chrom.dbeta.a, .dbeta.b] \Newline
+  \item[chrom.dbeta.a, .dbeta.b] \Newline \hlabel{chrom.dbeta}
 The normalized change of the beta function with energy
 $(1/\beta_{a,b})\partial\beta_{a,b}/\partial\delta$. Unlike the standard chromaticities,\vn{chrom.a} and \vn{chrom.b},
 the these chromaticities are evaluated at individual elements.
 
   %----------------------
-  \item[chrom.deta.x, .deta.y] \Newline
+  \item[chrom.deta.x, .deta.y] \Newline \hlabel{chrom.deta}
 The chromatic dispersion $\partial\eta_{x,y}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 
   %----------------------
-  \item[chrom.detap.x, .detap.y] \Newline
+  \item[chrom.detap.x, .detap.y] \Newline \hlabel{chrom.detap}
 The chromatic dispersion derivatives $\partial\eta'_{x,y}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 
   %----------------------
-  \item[chrom.dphi.a, .dphi.b] \Newline
+  \item[chrom.dphi.a, .dphi.b] \Newline \hlabel{chrom.dphi}
 The chromatic betatron phase $\partial\phi_{a,b}/\partial\delta$. Unlike the standard
 chromaticities,\vn{chrom.a} and \vn{chrom.b}, the these chromaticities are evaluated at
 individual elements.
 
   %----------------------
-  \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline
+  \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{chrom.ptc}
 Terms in the Taylor expansion of the chromaticity which is a function of phase space $p_z$ as
 calculated from Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $.a$
 denotes the $a$ normal mode of oscillation and $.b$ denotes the $b$-mode. $N$ is an integer which
@@ -792,26 +796,26 @@ To save time when the calculation of chromatic terms is not needed, the \vn{one_
 Note: The RF must be turned off for the calculation to work properly.
 
   %----------------------
-  \item[curly_h.a, .b] \Newline
+  \item[curly_h.a, .b] \Newline \hlabel{curly.h}
 The \vn{curly_h} datum is the standard ``curly H'' function seen in the formulas for the $I_{5a}$
 and $I_{5b}$ radiation integrals. See the \bmad manual section on ``Synchrotron Radiation Integrals''
 for more details.
 
   %----------------------
-  \item[damp.j_a, .j_b, .j_z] \Newline
+  \item[damp.j_a, .j_b, .j_z] \Newline \hlabel{damp}
 Damping partition numbers.
 
   %----------------------
-  \item[dpx_dx, dpy_dy, etc.] \Newline
+  \item[dpx_dx, dpy_dy, etc.] \Newline \hlabel{dpx.dx}
 Bunch sigma matrix ratios, <x px> / <$x^2$> \& Etc.
 
   %----------------------
-  \item[e_tot_ref] \Newline
+  \item[e_tot_ref] \Newline \hlabel{e.tot.ref}
 The reference energy of the lattice. This is the same as the \vn{E_tot} attribute of a lattice element.
 For the actual particle energy, use \vn{orbit.e_tot}.
 
   %----------------------
-  \item[element_attrib.<attrib_name>] \Newline
+  \item[element_attrib.<attrib_name>] \Newline \hlabel{element.attrib}
 The \vn{element_attrib.<attrib_name>} data type is associated with the
 lattice element attribute named \vn{<attrib_name>}. See the \bmad
 (\cite{b:bmad}) manual for information on attribute names. For
@@ -837,14 +841,14 @@ plot template (\sref{s:init.plot}) can be used:
 \end{example}
 
   %----------------------
-  \item[emit.a, .b, .c] \Newline
+  \item[emit.a, .b, .c] \Newline \hlabel{emit.a}
 True normal mode (eigen) emittances.  With \vn{data_source} set to \vn{"beam"}, the
 emittance is calculated from the beam sigma matrix. With \vn{data_source} set to
 \vn{"lat"}, the normal mode emittance is calculated using the standard radiation
 integrals.
 
   %----------------------
-  \item[emit.x, .y, .z] \Newline
+  \item[emit.x, .y, .z] \Newline \hlabel{emit.x}
 ``Projected'' emittances\cite{b:emit}. 
 For a linear lattice, the emittance varies along the length
 of the line while for a circular lattice there is a single emittance
@@ -871,23 +875,23 @@ See also the \vn{norm_emit.}, \vn{apparent_emit.}, and
 \vn{norm_apparent_emit.} data types.
 
   %----------------------
-  \item[eta.x, .y, .z] \Newline
+  \item[eta.x, .y, .z] \Newline \hlabel{eta.x}
 Horizontal, vertical, and longitudinal dispersion.
 
   %----------------------
-  \item[eta.a, .b] \Newline
+  \item[eta.a, .b] \Newline \hlabel{eta.a}
 Normal mode dispersion.
 
   %----------------------
-  \item[etap.x, .y] \Newline
+  \item[etap.x, .y] \Newline \hlabel{etap.x}
 Horizontal and vertical, dispesion derivative.
 
   %----------------------
-  \item[eta.a, .b] \Newline
+  \item[etap.a, .b] \Newline \hlabel{etap.a}
 Normal mode dispersion derivative.
 
   %----------------------
-  \item[expression: <arithmetic_expression>] \Newline
+  \item[expression: <arithmetic_expression>] \Newline \hlabel{expression}
 \vn{<arithmetic_expression>} is an arithmetic expression (\sref{s:arithmetic.exp}) which
 is evaluated to get the value of the datum. For example:
 \begin{example}
@@ -932,47 +936,47 @@ In this example the values of the four datums will the integrated quadrupole str
 of the associated lattice elements \vn{Q01} for the first datum, etc.
 
   %----------------------
-  \item[floor.x, .y, .z, .theta, .phi, .psi] \Newline
+  \item[floor.x, .y, .z, .theta, .phi, .psi] \Newline \hlabel{floor}
 Position and orientation of the element in the global ``floor'' coordinate system. This is the
 nominal position ignoring any misalignments. That is, this is the ``laboratory'' coordinates that
 define the curvilinear reference orbit. See the \bmad manual for details on the global coordinate
 system. Also see the documentation on \vn{floor_actual.} \vn{rel_floor.}, and \vn{floor_orbit.} datum types.
 
   %----------------------
-  \item[floor_actual.x, .y, .z, .theta, .phi, .psi] \Newline
+  \item[floor_actual.x, .y, .z, .theta, .phi, .psi] \Newline \hlabel{floor.actual}
 Position and orientation of the element with misalignments in the global ``floor'' coordinate
 system.  That is, this is the ``element body'' coordinates''. See the \bmad manual for details on
 the global coordinate system. See also the documentation on \vn{floor.} \vn{rel_floor.}, and
 \vn{floor_orbit.} datum types.
 
   %----------------------
-  \item[floor_orbit.x, .y, .z] \Newline
+  \item[floor_orbit.x, .y, .z] \Newline \hlabel{floor.orbit.x}
 Position of the orbit in the global ``floor'' coordinate system. See the \bmad manual for details
 on the global coordinate system. See also \vn{floor.}.
 
   %----------------------
-  \item[floor_orbit.theta, .phi, .psi] \Newline
+  \item[floor_orbit.theta, .phi, .psi] \Newline \hlabel{floor.orbit.t}
 Orientation of the orbit in the global ``floor'' coordinate system. See the \bmad manual for details
 on the global coordinate system. See also \vn{floor.}.
 
   %----------------------
-  \item[gamma.a, .b] \Newline
+  \item[gamma.a, .b] \Newline \hlabel{gamma}
 Normal mode Twiss gamma function.
 
   %----------------------
-  \item[k.11b, .12a, .12b, .22a] \Newline
+  \item[k.11b, .12a, .12b, .22a] \Newline \hlabel{k.11b}
 Measured beam coupling parameters. See also \vn{bpm_k.11b, ...}.
 
   %----------------------
-  \item[momentum] \Newline
+  \item[momentum] \Newline \hlabel{momentum}
 Particle momentum amplitude.
 
   %----------------------
-  \item[momentum_compaction] \Newline
+  \item[momentum_compaction] \Newline \hlabel{mom.comp}
 Momentum compaction factor. Also see \vn{r56_compaction} and \vn{momentum_compaction_ptc}.
 
   %----------------------
-  \item[momentum_compaction_ptc.$N$, $N = 1, 2, 3, \ldots$ ] \Newline
+  \item[momentum_compaction_ptc.$N$, $N = 1, 2, 3, \ldots$ ] \Newline \hlabel{mom.comp.ptc}
 Momentum compaction factor. Also see \vn{r56_compaction}.
 
 Momentum compaction Taylor series, which is a function of phase space $p_z$, as calculated from
@@ -997,12 +1001,12 @@ To save time when the calculation of momentum compaction terms is not needed, th
 Note: The RF must be turned off for the calculation to work properly.
 
   %----------------------
-  \item[multi_turn_orbit.x, .y, .z, .px, .py, .pz] \Newline
+  \item[multi_turn_orbit.x, .y, .z, .px, .py, .pz] \Newline \hlabel{multi.turn.orb}
 Used for storing the orbit over many turns. Only used for plotting purposes.
 See \sref{s:plot.data} for more details.
 
   %----------------------
-  \item[n_particle_loss] \Newline
+  \item[n_particle_loss] \Newline \hlabel{n.part.loss}
 If the reference element is not specified, \vn{n_particle_loss} gives
 the number of particles lost at the evaluation element. If the
 reference element is specified, \vn{n_particle_loss} gives the
@@ -1013,7 +1017,7 @@ evaluation element is given then the total number of lost particles is
 given.
 
   %----------------------
-  \item[norm_apparent_emit.x, .y] \Newline
+  \item[norm_apparent_emit.x, .y] \Newline \hlabel{norm.app.emit}
 Energy normalized apparent emittance. The normalization is the standard gamma factor:
 \begin{equation}
   \text{emit}_{\text{norm}} = \gamma \, \text{emit}
@@ -1021,21 +1025,21 @@ Energy normalized apparent emittance. The normalization is the standard gamma fa
 See the \vn{apparent_emit.x, .y} data type for more details.
 
   %----------------------
-  \item[norm_emit.a, .b, .c] \Newline
+  \item[norm_emit.a, .b, .c] \Newline \hlabel{norm.emit.a}
 Energy normalized normal mode emittance. The normalization is the standard gamma factor:
 \begin{equation}
   \epsilon_{norm} = \gamma \, \epsilon
 \end{equation}
 
   %----------------------
-  \item[norm_emit.x, .y, .z] \Newline
+  \item[norm_emit.x, .y, .z] \Newline \hlabel{norm.emit.x}
 Energy normalized projected emittance. The normalization is the standard gamma factor:
 \begin{equation}
   \epsilon_{norm} = \gamma \, \epsilon
 \end{equation}
 
   %----------------------
-  \item[normal.h.<monomial>.\{r,i,a\}] \Newline
+  \item[normal.h.<monomial>.\{r,i,a\}] \Newline \hlabel{normal.h}
 Resonance driving terms \`a la \cite{b:bengtsson}.  For example: \vn{h210000}.
 These are the coefficients of the complex polynomial $h$ in Eqn.~\ref{normalform1}.
 The suffix \vn{.r}, \rn{.i}, and \rn{.a} specifies the real part, imaginary part, or absolute value.
@@ -1087,7 +1091,7 @@ minimized for dynamic aperture optimization.
 \end{table}
 
   %----------------------
-  \item[normal.<type>.$i$.<monomial>] \Newline
+  \item[normal.<type>.$i$.<monomial>] \Newline \hlabel{normal.type}
 Components of the normal form decomposition of the one-turn-map $M$ for a ring. 
 Possible settings for \vn{type} is
 \begin{example}
@@ -1114,22 +1118,22 @@ imaginary parts of $L$ and $F$ can be accessed through \vn{normal.ReF}, \vn{norm
 \vn{normal.ReL}, and \vn{normal.ImL}.
 
   %----------------------
-  \item[null] \Newline
+  \item[null] \Newline \hlabel{null}
 A \vn{null} data type is used for data where \tao is not able to calculate a model value. Such data
 cannot be used in an optimization. For example, in a linac where the beam intensity is measured at
 the BPMs, \tao is not able to calculate current variations down the Linac. Nevertheless, it
 could be useful to read in the measured values and plot them.
 
   %----------------------
-  \item[orbit.amp_a, .amp_b] \Newline
+  \item[orbit.amp_a, .amp_b] \Newline \hlabel{orbit.amp}
 ``Invariant'' amplitude of the orbital motion.
 
   %----------------------
-  \item[orbit.norm_amp_a, .norm_amp_b] Newline
+  \item[orbit.norm_amp_a, .norm_amp_b] \Newline \hlabel{orbit.norm.amp}
 Energy normalized ``invariant'' amplitude of the orbital motion.
 
   %----------------------
-  \item[orbit.e_tot] \Newline
+  \item[orbit.e_tot] \Newline \hlabel{orbit.e.tot}
 The \vn{orbit.e_tot} data type gives the total energy of a tracked particle (with
 \vn{data_source} = \vn{lat}) or the average energy of a beam (with \vn{data_source} =
 \vn{beam}).
@@ -1138,11 +1142,11 @@ Notice that this is different from the \vn{E_tot} attribute of a lattice element
 is the reference energy at that element.
 
   %----------------------
-  \item[orbit.x, .y, .z, .px, .py, .pz] \Newline
+  \item[orbit.x, .y, .z, .px, .py, .pz] \Newline \hlabel{orbit.x}
 Orbit position and momenta.
 
   %----------------------
-  \item[periodic.tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline
+  \item[periodic.tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline \hlabel{periodic.tt}
 This is like the \vn{tt.} datum except here the terms are from the
 periodic Taylor map defined by
 \begin{equation}
@@ -1174,7 +1178,7 @@ element is the same as the evaluation element, this data type cannot
 be used with a linear lattice.
 
   %----------------------
-  \item[phase.a, .b] \Newline
+  \item[phase.a, .b] \Newline \hlabel{phase}
 Betatron phase.  If a \vn{d1_data} array has a set of
 \vn{phase} datums, and if the reference element is {\em not}
 specified, the average phase used for optimizations ($D$ in
@@ -1188,31 +1192,31 @@ since one does not have to worry about arbitrary offsets between the
 specified then there is no arbitrary constant in the evaluation.
 
   %----------------------
-  \item[phase_frac.a, .b] \Newline
+  \item[phase_frac.a, .b] \Newline \hlabel{phase.frac}
 Fractional betatron phase. Also see the discussion under \vn{phase.a, .b}.
 
   %----------------------
-  \item[phase_frac_diff] \Newline
+  \item[phase_frac_diff] \Newline \hlabel{phase.frac.diff}
 Fractional betatron phase difference between the $a$ and $b$ normal modes. 
 $-\pi < d\phi_{\mbox{frac}} < \pi$
 
   %----------------------
-  \item[photon.intensity] \Newline
+  \item[photon.intensity] \Newline \hlabel{photon.intens}
 Photon total intensity.
 
   %----------------------
-  \item[photon.intensity_x, .intensity_y] \Newline
+  \item[photon.intensity_x, .intensity_y] \Newline \hlabel{photon.intens.x}
 Photon intensity components in the horizontal and vertical planes.
 
   %----------------------
-  \item[photon.phase_x, .phase_y] \Newline
+  \item[photon.phase_x, .phase_y] \Newline \hlabel{photon.phase}
 Photon phases in the horizontal and vertical planes.
 
   %----------------------
   \item[\begin{tabular}{@{}l}
   ping_a.amp_x, .phase_x, .amp_y, .phase_y, .amp_sin_y, \\
   \hspace*{1.5in} .amp_cos_y, .amp_sin_rel_y, .amp_cos_rel_y
-  \end{tabular} ] \Newline
+  \end{tabular} ] \Newline \hlabel{ping.a}
 
 Phase and amplitude response at a BPM from turn-by-turn data acquired after the beam is
 pinged. Ignoring damping, the beam response will be the sum of three components, one for
@@ -1295,7 +1299,7 @@ multipliers are shown with the \vn{show data} command.
   \item[\begin{tabular}{@{}l}
   ping_b.amp_y, .phase_y, .amp_x, .phase_x, .amp_sin_x, \\
   \hspace*{1.5in} .amp_cos_x, .amp_sin_rel_x, .amp_cos_rel_x
-  \end{tabular} ] \Newline
+  \end{tabular} ] \Newline \hlabel{ping.b}
 Similar to \vn{ping_a} except this is for the \vn{b}-mode component of the response which.
 The response is (see \Eq{xanop1})
 \begin{align}
@@ -1331,35 +1335,11 @@ The corresponding multiplicative values are derived from \vn{ping_b.amp_y} in an
 fashion to the multiplicative values for the $a$-mode ping data.
 
   %----------------------
-  \item[r.$ij$ \hspace{0.2in} $1 \le i,j \le 6$] \Newline
+  \item[r.$ij$ \hspace{0.2in} $1 \le i,j \le 6$] \Newline \hlabel{r.ij}
 Terms of the linear transfer map.
 
   %----------------------
-  \item[\begin{tabular}{@{}l}
-  rad_int.i0, .i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6 \\
-  rad_int1.i0, i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6
-  \end{tabular} ] \Newline
-Synchrotron radiation integrals. See the \bmad manual for details.
-The \vn{rad_int1.xxx} datums are the radiation integrals over a single element.
-With the \vn{rad_int.xxx} datums, the integral is from \vn{ele_ref} to \vn{ele}.
-\begin{example}
-  .i0         ! I0 radiation integral
-  .i1         ! I1 radiation integral
-  .i2         ! I2 radiation integral
-  .i2_e4      ! Energy normalized I2 radiation integral
-  .i3         ! I3 radiation integral
-  .i3_e7      ! I3 radiation integral
-  .i4a        ! $a$ mode I4 radiation integral
-  .i4b        ! $b$ mode I4 radiation integral
-  .i4z        ! Sum of I4a, and I4b radiation integrals
-  .i5a        ! $a$ mode I5 radiation integral
-  .i5b        ! $b$ mode I5 radiation integral
-  .i5a_e6     ! Energy normalized I5a
-  .i5b_e6     ! Energy normalized I5b
-\end{example}
-
-  %----------------------
-  \item[r56_compaction] \Newline
+  \item[r56_compaction] \Newline \hlabel{r56.comp}
 This datum is defined to be
 \begin{equation}
   M_{5,6} + \sum_{i=1}^4 M_{5,i} \, \eta_i
@@ -1376,21 +1356,52 @@ momentum compaction via:
 where \vn{L} is the length of the lattice. 
 
   %----------------------
-  \item[ref_time] \Newline
-This is the time the reference particle passes the exit end of the element.
-If the particle is ultra-relativistic then this is just $c * s$ where $s$
-is the longitudinal distance from the start of the lattice.
+  \item[rad_int.i0, .i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6] \Newline \hlabel{rad.int}
+Synchrotron radiation integrals over all elements in a lattice branch from \vn{ele_ref} to
+\vn{ele}. If \vn{ele} is not specified, the radiation integral is over the entire associated lattice
+branch. See the \bmad manual for more details.  Also see the \vn{rad_int1} datum type.
+\begin{example}
+  .i0         ! I0 radiation integral
+  .i1         ! I1 radiation integral
+  .i2         ! I2 radiation integral
+  .i2_e4      ! Energy normalized I2 radiation integral
+  .i3         ! I3 radiation integral
+  .i3_e7      ! I3 radiation integral
+  .i4a        ! a-mode I4 radiation integral
+  .i4b        ! b-mode I4 radiation integral
+  .i4z        ! Sum of I4a, and I4b radiation integrals
+  .i5a        ! a-mode I5 radiation integral
+  .i5b        ! b-mode I5 radiation integral
+  .i5a_e6     ! Energy normalized I5a
+  .i5b_e6     ! Energy normalized I5b
+\end{example}
 
   %----------------------
-  \item[rel_floor.x, .y, .z, .theta] \Newline
-This is the global floor position at the exit end of the evaluation
-element relative to the exit end of the reference element in a global
-coordinate system where the exit end of the reference element is taken to be at
-\vn{x = y = z = theta = phi = 0}. See the \bmad manual for details on
-the global coordinate system. See also \vn{floor.} and \vn{wall.}.
+  \item[rad_int1.i0, .i1, .i2, .i2_e4, .i3, .i3_e7, .i4a, .i4b, .i4z, .i5a, .i5b, .i5a_e6, .i5b_e6] \Newline \hlabel{rad.int1}
+Similar to the \vn{rad_int} datum type but here the radiation integrals are just over a single
+element given by \vn{ele}.  If \vn{ele_ref} is given, the value of the datum is the difference
+between the integral over \vn{ele} and over \vn{ele_ref}.
 
   %----------------------
-  \item[sigma.x, .y, .z, .px, .py, .pz, .Lxy, .$ij$ \hspace{0.02in} $1 \le i,j \le 6$] \Newline
+  \item[ref_time] \Newline \hlabel{ref.time}
+This is the time the reference particle passes the exit end of the element.  If the particle is
+ultra-relativistic then this is just $c * s$ where $s$ is the longitudinal distance from the start
+of the lattice.
+
+  %----------------------
+  \item[rel_floor.x, .y, .z, .theta] \Newline \hlabel{rel.floor}
+This is the global floor position at the exit end of the evaluation element relative to the exit end
+of the reference element in a global coordinate system where the exit end of the reference element
+is taken to be at \vn{x = y = z = theta = phi = 0}. See the \bmad manual for details on the global
+coordinate system. See also \vn{floor.} and \vn{wall.}.
+
+  %----------------------
+  \item[s_position] \Newline \hlabel{s.position}
+The longitudinal position of \vn{ele}. This type of datum is potentially useful when lattice elements are shifting in space.
+Also see \vn{wall.left_side} and \vn{wall.right_side}.
+
+  %----------------------
+  \item[sigma.x, .y, .z, .px, .py, .pz, .Lxy, .$ij$ \hspace{0.02in} $1 \le i,j \le 6$] \Newline \hlabel{sigma}
 The 6$\times$6 sigma matrix \vn{sigma.$ij$} with $1 \le i,j \le 6$ describes the beam size in phase
 space. That is
 \begin{equation}
@@ -1410,7 +1421,7 @@ values will be taken from the \vn{beam_init} structure (\sref{s:beam.init}) and 
 any emittances or longitudinal sigma values specified in the lattice file.
 
   %----------------------
-  \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline
+  \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline \hlabel{spin.g.matrix}
 The $\bfG$-matrix is the $2\times6$ sub-matrix of the $8\times8$ spin-orbital transfer matrix $\wt\bfM$
 that describes the coupling between orbital motion and spin precession as discussed in the section
 on the SLIM Formalism in the chapter on spin in the \bmad manual. Lattice design generally involves
@@ -1445,14 +1456,14 @@ to be the same as the inital coordinates and, in this case, $\bfD$, will be a ro
 a rotation angle equal to the spin tune.
 
   %----------------------
-  \item[spin.polarization_limit, .polarization_rate, .depolarization_rate] \Newline
+  \item[spin.polarization_limit, .polarization_rate, .depolarization_rate] \Newline \hlabel{spin.pol}
 The spin depolarization limit, denoted $P_{dk}$, is calculated from the Derbenev-Kondratenko-Mane
 formula as outlined in the chapter on spin in the \bmad manual. The polarization rate, denoted
 $\tao_{dk}^{-1}$, and depolarization rate, denoted $\tao_{dep}^{-1}$, are also discussed in the
 \bmad manual.
 
   %----------------------
-  \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline
+  \item[spin_tune_ptc.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{spin.tune.ptc}
 Terms in the taylor series of the spin tune expanded as a function of $p_z$ as calculated from
 Etienne Forest's PTC code. [See the \bmad manual for documentation on PTC.] $N$ is an integer which
 gives the order of the Taylor term
@@ -1465,7 +1476,7 @@ The spin tune Taylor series coefficients $Q_N$ are calculated up to order $N_T$ 
 Taylor map order set in the lattice file by \vn{parameter[taylor_order]} (the default is $N_T=3$). 
 
   %----------------------
-  \item[spin.x, .y, .z, .amp] \Newline
+  \item[spin.x, .y, .z, .amp] \Newline \hlabel{spin}
 The \vn{spin.x}, \vn{spin.y} and \vn{spin.z} datums are the spin polarization $(x, y, z)$ components
 and the \vn{spin.amp} datum is the amplitude of the spin. For a beam, this is the spin averaged over
 the beam.  For particles with a lattice with an open geometry, the spin is calculated by propagating
@@ -1475,7 +1486,7 @@ manual. For a lattice with a closed geometry, the calculated spin is the closed 
 with the amplitude of the spin set at unity.
 
   %----------------------
-  \item[srdt.h<monomial>.\{r,i,a\}] \Newline
+  \item[srdt.h<monomial>.\{r,i,a\}] \Newline \hlabel{srdt.h}
 Resonance driving term summations based on summation formulas by Bengtsson\cite{b:bengtsson} for 3rd
 order terms and Wang\cite{b:wang} for 4th order terms. This is independent from the PTC derived
 \vn{nomial.} data types. 
@@ -1520,7 +1531,7 @@ that the cache can be rather large and grows as with the squares of \vn{srdt_sxt
 message and revert to a \vn{srdt_use_cache=.false.} state.
 
   %----------------------
-  \item[t.$ijklm\ldots$,  tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline
+  \item[t.$ijklm\ldots$,  tt.$ijklm\ldots$ \hspace{0.2in} $1 \le i,j,k,\ldots \le 6$] \Newline \hlabel{t.ijk}
 Taylor map components between two points. \vn{tt.$ijk\ldots$} is analogous to the \vn{tt} syntax for
 \vn{taylor} elements (see the \bmad manual description of \vn{taylor} elements). For example,
 \vn{tt.34} corresponds to the linear $M_{34}$ matrix element. The \vn{t.$ijklm\ldots$} notation,
@@ -1537,15 +1548,15 @@ if the s-distance between points is smaller than the \vn{ds_step}.  In this case
 between the plot and datum values may be observed.
 
   %----------------------
-  \item[time] \Newline
+  \item[time] \Newline \hlabel{time}
 Time (in seconds) a particle or the bunch centroid is at the evaluation element.
 
   %----------------------
-  \item[tune.a, .b] \Newline
+  \item[tune.a, .b] \Newline \hlabel{tune}
 Tune in radians.
 
   %----------------------
-  \item[unstable.eigen, unstable.eigen.a, .eigen.b, .eigen.c] \Newline
+  \item[unstable.eigen, unstable.eigen.a, .eigen.b, .eigen.c] \Newline \hlabel{unstable.eigen}
 The \vn{unstable.eigen} data type give the maximum eigenvalue amplitude of the three normal modes
 of oscillation. This calculation uses the transfer matrix calculated from the beginning of the
 specified lattice branch to the end of the branch. The geometry of the lattice branch does not have
@@ -1557,7 +1568,7 @@ The \vn{unstable.eigen.a}, \vn{unstable.eigen.b}, and \vn{unstable.eigen.c} are 
 for the \vn{a}, \vn{b}, and \vn{c} modes respectively.
 
   %----------------------
-  \item[unstable.lattice] \Newline
+  \item[unstable.lattice] \Newline \hlabel{unstable.lat}
 
 The value of \vn{unstable.lattice} will always be zero or positive.
 
@@ -1580,14 +1591,16 @@ the exit end.
 Note: \vn{unstable.lattice} replaces \vn{unstable.ring}.
 
   %----------------------
-  \item[unstable.orbit] \Newline
-The \vn{unstable.orbit} datum is used in an optimization to avoid unstable
-solutions (\sref{s:opt.main}). Also see \vn{unstable.eigen} and \vn{unstable.lattice}.
+  \item[unstable.orbit] \Newline \hlabel{unstable.orbit}
+The \vn{unstable.orbit} datum is used in an optimization to avoid losing particles during tracking.
+The idea is that \vn{unstable.orbit} will be zero if there is no loss and be positive if there is.
+Including \vn{unstable.orbit} in the merit function will thus tend to stabalize the lattice.
+Also see \vn{unstable.eigen} and \vn{unstable.lattice}.
 
-for open geometry lattices with single particle tracking, the value of an \vn{unstable.orbit} datum is zero
-
-if the tracked particle survives (has not been lost) up to the evaluation element and, if it has
-been lost, is set to
+For a lattice branch with an open geometry, and with single particle tracking (datum's
+\vn{data_source} set to "lat"), if the tracked particle survives (has not been lost) up to the
+evaluation element, the value of \vn{unstable.orbit} is zero. If it has been lost, the value is set
+to
 \begin{equation}
  1 + i_{\mbox{ele}} - i_{\mbox{lost}} + \frac{1}{2}
  \left[ \tanh\left( \frac{r_{orbit}}{r_{lim}} - 1 \right) - E \right]
@@ -1605,17 +1618,20 @@ In the abouve equation, $r_{orbit}$ is the particle amplitude at the point of lo
 the aperture limit. The form of the above equation has been choisen so that the datum value will be
 monotonic with increasing stability.
 
-The default for the evaluation element, if \vn{ele_name} nor \vn{ix_ele} is not specified, is to use
-the last element in the lattice.
+If \vn{ele_name} is not specified, the default for the evaluation element is to use
+the last element in the lattice branch.
 
-For open geometry lattices, when tracking beams, the value of \vn{unstable.orbit} is the averaged
-value over all particles in the bunch.
+With a closed geometry lattice and with single particle tracking, \vn{unstable.orbit} is set to zero
+if the orbit is stable and set to one if the orbit is unstable.
 
-With simulations with a closed geometry lattice, \vn{unstable.orbit} is set to zero if the orbit is stable
-and set to one if the orbit is unstable.
+When tracking beams (datum's \vn{data_source} set to "beam"), a beam is tracked a maximum of one
+turn in a branch. This being the case, the geometry of the branch is not pertainent and the value of
+\vn{unstable.orbit} is value as shown above for a single particle in an open branch but hereaveraged
+over all particles in the bunch. In this case, if \vn{ele_name} is not specified, it is taken to be
+the bunch tracking end point (which may not be the end of the branch).
 
   %----------------------
-  \item[unstable.ring] \Newline
+  \item[unstable.ring] \Newline \hlabel{unstable.ring}
 Deprecated. Replaced by \vn{unstable.lattice}.
 
 
@@ -1629,11 +1645,11 @@ centerline of a machine and the walls of the containment building.}
 \end{figure}
 
   %----------------------
-  \item[velocity, velocity.x, .y, .z] \Newline
+  \item[velocity, velocity.x, .y, .z] \Newline \hlabel{velocity}
 The velocity normalized by the speed of light $c$.
 
   %----------------------
-  \item[wall.left_side, .right_side] \Newline
+  \item[wall.left_side, .right_side] \Newline \hlabel{wall}
 The \vn{wall} data data type is used to constrain the shape of a machine to fit inside a building's
 walls (\sref{s:building.wall}). The general layout is shown in Figure~\ref{f:wall.constraint}. The
 machine centerline is projected onto the horizontal $(Z, X)$ plane in the Global (floor) coordinate
@@ -1660,13 +1676,13 @@ only wall sections that have a \vn{constraint} matching the datum will be used w
 possible points \vn{B}. If there are no wall points with $\wt z = 0$, the datum will be marked
 invalid.
 
-For \vn{wall} data there can be no reference element since this does
-not make sense.
+For \vn{wall} data there can be no reference element since this does not make sense.
 
-Note: To constrain the machine vertically, use the \vn{floor.y} datum type.
+Note: To constrain the machine vertically, use the \vn{floor.y} datum type. To constrain the length of
+the machine, use the \vn{s_position} datum type.
 
   %----------------------
-  \item[wire.<angle>] \Newline
+  \item[wire.<angle>] \Newline \hlabel{wire}
 \vn{wire} data simulates the measurement of a wire scanner. The angle
 specified is the angle of the wire with respect to the horizontal
 axis. The measurement then measures the second moment $<uu>$ along an
@@ -1697,259 +1713,226 @@ See the previous section for a description of the data types.
 %----------------------------------------------------------------------------------------------
 
 {\tt\small
-\begin{longtable}{llll} 
+\begin{longtable}{lllll} 
   \caption{Predefined Data Types in Tao}
   \label{t:data.types}
   \\ \hline
 
-  {\it Data_Type}                    & {\it Description}   & {\it data_source} & \parbox{0.5in}{\begin{tabular}{@{}l}
-                                                                              {\it Can use} \\
-                                                                              {\it s_offset?}
-                                                                        \end{tabular}} \\ \hline\hline 
+  {\it Pg}{\texttt \#}    & {\it Data_Type}                      & {\it Description}   & {\it data_source} & 
+                                            \begin{sideways} \parbox{0.6in}{\begin{tabular}{@{}l}
+                                            {\it Can use} \\ {\it s_offset?} \end{tabular}} \end{sideways} \\ \hline\hline
   \endfirsthead
 
   \caption[]{(continued)} \\ \hline
-  {\it Data_Type}                    & {\it Description}   & {\it data_source} & \parbox{0.5in}{\begin{tabular}{@{}l}
-                                                                              {\it Can use} \\
-                                                                              {\it s_offset?}
-                                                                        \end{tabular}} \\ \hline\hline 
+  {\it Pg}{\texttt \#}    & {\it Data_Type}                      & {\it Description}   & {\it data_source} & 
+                                            \begin{sideways} \parbox{0.6in}{\begin{tabular}{@{}l}
+                                            {\it Can use} \\ {\it s_offset?} \end{tabular}} \end{sideways} \\ \hline\hline
   \endhead
 
-  alpha.a, .b                         & Normal-Mode alpha function                & lat         & Yes \\ \hline 
-  apparent_emit.x, .y                 & Apparent emittance                        & lat, beam   & No  \\ \hline
-
-  beta.a, .b, .c                      & Normal-mode beta function                 & lat, beam   & Yes \\ \hline 
-  beta.x, .y, .z                      & Projected beta function                   & lat, beam   & No  \\ \hline 
-  \begin{tabular}{@{}l}   
-    bpm_cbar.22a, .12a, \\
-    \hspace{4em} .11b, .12b  
-  \end{tabular}                       & Measured coupling                         & lat         & Yes \\ \hline
-  bpm_eta.x, .y                       & Measured dispersion                       & lat         & Yes \\ \hline
-  bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
-  bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
-  \begin{tabular}{@{}l}   
-    bpm_k.22a, .12a, \\
-    \hspace{4em} .11b, .12b   
-  \end{tabular}                       & Measured coupling                         & lat         & Yes \\ \hline
-
-  \begin{tabular}{@{}l}   
-    bunch_charge.live, \\
-    \hspace{4em} .live_relative
-  \end{tabular}                       & Charge of live particles                  & beam        & No  \\ \hline
-  \begin{tabular}{@{}l}   
-    bunch_max.x, .y, .z, \\ 
-    \hspace{4em} .px, .py, .pz  
-  \end{tabular}                       & Max relative to centroid                  & beam        & No  \\ \hline
-
-  \begin{tabular}{@{}l}   
-    bunch_min.x, .y, .z, \\ 
-    \hspace{4em} .px, .py, .pz  
-  \end{tabular}                       & Min relative to centroid                  & beam        & No  \\ \hline
-
-  cmat.11, .12, .21, .22              & Coupling matrix elements                  & lat         & Yes \\ \hline 
-  cbar.11, .12, .21, .22              & Normalized coupling matrix                & lat         & Yes \\ \hline 
-  chrom.a, .b                         & Chromaticities for a ring                 & lat         & No  \\ \hline
-  chrom.dbeta.a, .dbeta.b             & Normalized Chromatic beta                 & lat         & No  \\ \hline
-  chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline
-  chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat         & No  \\ \hline
-  chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat         & No  \\ \hline
-
-  \begin{tabular}{@{}l}
-    chrom_ptc.a.$N$, \\
-    chrom_ptc.b.$N$, \\
-    \hspace{5em} $N = 0, 1, \ldots$
-  \end{tabular}                       & Chromaticity Taylor terms                 & lat         & no  \\ \hline
-
-  curly_h.a, .b                       & \begin{tabular}{@{}l}
-                                          Radiation integrals \\
-                                          curly H function 
-                                        \end{tabular}                             & lat         & Yes \\ \hline
-
-  damp.j_a, .j_b, .j_z                & Damping partition number                  & lat         & No  \\ \hline
-  dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
-
-  e_tot_ref                           & Lattice reference energy (eV)             & lat         & No  \\ \hline
-  element_attrib.<attr_name>          & lattice element attribute                 & lat         & No  \\ \hline
-  emit.a, .b, .c                      & Emittance                                 & lat, beam   & No  \\ \hline
-  emit.x, .y, .z                      & Projected emittance                       & lat, beam   & No  \\ \hline
-  eta.x, .y, .z                       & Dispersion                                & lat, beam   & Yes \\ \hline 
-  eta.a, .b                           & Normal-mode dispersion                    & lat, beam   & Yes \\ \hline 
-  etap.x, .y                          & Dispersion derivative                     & lat, beam   & Yes \\ \hline 
-  etap.a, .b                          & \begin{tabular}{@{}l}   
-                                          Normal-mode \\
-                                          dispersion derivative
-                                        \end{tabular}                             & lat, beam   & Yes \\ \hline 
-  expression:<expression>             & See text above                            & lat         & No  \\ \hline 
-
-  \begin{tabular}{@{}l}   
-    floor.x, .y, .z, \\             
-    \hspace{2em} theta, .phi, .psi
-  \end{tabular}                       & \begin{tabular}{@{}l}   
-                                          Lattice element \\
-                                          global position
-                                        \end{tabular}                             & lat         & Yes \\ \hline 
-  \begin{tabular}{@{}l}   
-    floor_actual.x, .y, .z,         \\
-    \hspace{3em} .theta, .phi, .psi 
-  \end{tabular}                       & \begin{tabular}{@{}l}   
-                                          Lattice element \\ 
-                                          misaligned global position
-                                        \end{tabular}                             & lat         & Yes \\ \hline 
-
-  floor_orbit.x, .y, .z               & global position of orbit                  & lat, beam   & Yes \\ \hline 
-  \begin{tabular}{@{}l}   
-    floor_orbit.theta, \\
-    \hspace{3em} .phi, .psi 
-  \end{tabular}                       & global position of orbit                  & lat, beam   & Yes \\ \hline 
-
-  gamma.a, .b                         & Normal-mode gamma function                & lat         & Yes \\ \hline 
-
-  k.11b, .12a, .12b, .22a             & Coupling                                  & lat         & Yes \\ \hline 
-
-  momentum                            & Momentum: P*C_light (eV)                  & lat         & Yes \\ \hline
-  momentum_compaction                 & Momentum compaction factor                & lat         & No  \\ \hline
-  \begin{tabular}{@{}l}   
-    momentum_compaction_ptc.$N$ \\
-    \hspace{3em} $N = 0, 1, 2, \ldots$
-  \end{tabular}                       & \begin{tabular}{@{}l}
-                                           Momentum compaction \\
-                                           Taylor terms
-                                        \end{tabular}                            & lat         & No  \\ \hline
-  \begin{tabular}{@{}l}   
-    multi_turn_orbit.x, .y, \\ 
-    \hspace{3em} .z, .px, .py, .pz
-  \end{tabular}                       & Store orbit over many turns               & lat         & No  \\ \hline 
-
-  n_particle_loss                     & Number of particles lost                  & beam        & No  \\ \hline 
-  norm_apparent_emit.x, .y            & Normalized apparent emittance             & lat, beam   & No  \\ \hline
-  norm_emit.a, .b, .c                 & Normalized beam emittance                 & lat, beam   & No  \\ \hline 
-  norm_emit.x, .y, .z                 & Normalized projected emittance            & lat, beam   & No  \\ \hline 
-  normal.<type>.$i$.<monomial>        & Normal form map component                 & lat         & No  \\ \hline
-  normal.h.<monomial>                 & Normal form driving term                  & lat         & No  \\ \hline
-  null                                & Data without model evaluation             & lat, beam   & No  \\ \hline
-  orbit.e_tot                         & Beam energy (eV)                          & lat, beam   & Yes \\ \hline
-  orbit.x, .y, .z                     & Orbit position                            & lat, beam   & Yes \\ \hline 
-  orbit.px, .py, .pz                  & Orbit Momenta                             & lat, beam   & Yes \\ \hline 
-  orbit.amp_a, .amp_b                 & Orbit amplitude                           & lat         & Yes \\ \hline 
-  \begin{tabular}{@{}l}
-    orbit.norm_amp_a, \\
-    \hspace{2em} .norm_amp_b       
-  \end{tabular}                       & Energy normalized amplitude               & lat         & Yes \\ \hline 
-
-  \begin{tabular}{@{}l}
-    periodic.tt.$ijklm\ldots$ \\
-    \hspace{4em} $1 \le i,j,k,\ldots \le 6$   
-  \end{tabular}
-                                      & Periodic map Taylor terms                 & lat         & No  \\ \hline 
-
-  phase.a, .b                         & Betatron phase                            & lat         & Yes \\ \hline 
-  phase_frac.a, .b                    & \begin{tabular}{@{}l}
-                                         Fractional betatron phase \\       
-                                         $-\pi < \phi_{\mbox{frac}} < \pi$ 
-                                       \end{tabular}                              & lat         & No  \\ \hline 
-
-  phase_frac_diff                     & \begin{tabular}{@{}l}
-                                          Phase difference \\
-                                          between $a$ and $b$ modes
-                                        \end{tabular}                             & lat         & No  \\ \hline 
-  photon.intensity                    & Photon total intensity                    & lat, beam   & No  \\ \hline 
-  \begin{tabular}{@{}l}
-    photon.intensity_x, \\
-    \hspace{2em} .intensity_y
-  \end{tabular}                       & Photon intensity components               & lat, beam   & No  \\ \hline
-  photon.phase_x, .phase_y            & Photon phase                              & lat, beam   & No  \\ \hline
-
-  \begin{tabular}{@{}l}
-    ping_a.amp_x, .phase_x,                \\
-    \hspace{1.5em} .amp_y, .phase_y,         \\
-    \hspace{1.5em} .amp_sin_y, .amp_cos_y,   \\
-    \hspace{1.5em} .amp_sin_rel_y,           \\
-    \hspace{1.5em} .amp_cos_rel_y 
-  \end{tabular}                       & Pinged beam $a$-mode response             & lat        & No  \\ \hline
-
-  \begin{tabular}{@{}l}
-    ping_b.amp_x, .phase_x,               \\
-    \hspace{1.5em} .amp_y, .phase_y,        \\
-    \hspace{1.5em} .amp_sin_x, .amp_cos_x,  \\
-    \hspace{1.5em} .amp_sin_rel_x,          \\
-    \hspace{1.5em} .amp_cos_rel_x 
-  \end{tabular}                       & Pinged beam $b$-mode response             & lat        & No  \\ \hline
-
-  r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
-                                      & Term in linear transfer map               & lat         & No  \\ \hline 
-  r56_compaction                      & R56 like compaction factor.               & lat         & No  \\ \hline
-  rad_int.i1, .i2, etc.               & Lattice Radiation integrals               & lat         & No  \\ \hline
-  rad_int1.i1, .i2, etc.              & Element radiation integrals               & lat         & No  \\ \hline
-  ref_time                            & Reference time                            & lat, beam   & Yes \\ \hline
-  \begin{tabular}{@{}l}
-    rel_floor.x, .y, \\
-    \hspace{4em} .z, .theta
-  \end{tabular}                       & Relative global floor position            & lat         & No  \\ \hline 
-
-  s_position                          & longitudinal length constraint            & lat         & Yes \\ \hline 
-
-  \begin{tabular}{@{}l}   
-    sigma.x, .y, .z, \\
-    \hspace{2em} .px, px, .pz, \\
-    \hspace{2em} .$ij$ \hspace{10pt} $1 \le i,j \le 6$, \\
-    \hspace{2em} .Lxy
-  \end{tabular}                       & Bunch size                                & lat, beam   & No  \\ \hline 
-
-  spin.x, .y, .z                      & Particle spin                             & lat, beam   & No  \\ \hline 
-  spin.depolarization_rate            & Spin depolarization rate.                 & lat         & No  \\ \hline
-  spin.polarization_rate              & Spin polarization rate.                   & lat         & No  \\ \hline
-  spin.polarization_limit             & Spin polarization limit.                  & lat         & No  \\ \hline
-  \begin{tabular}{@{}l}   
-    spin_tune_ptc.$N$, \\
-    \hspace{10pt} $N = 0, 1, \ldots$
-  \end{tabular}                       & Spin Tune Taylor terms                 & lat         & no  \\ \hline
-
-  \begin{tabular}{@{}l}   
-    spin_g_matrix.$ij$ \\
-    \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
-  \end{tabular}                       & Spin G-matrix components                  & lat         & No  \\ \hline
-
-  srdt.h<monomial>.\{r,i,a\}          & \begin{tabular}{@{}l}
-                                          Normal form driving terms \\
-                                          calculated by summation 
-                                        \end{tabular}                             & lat & No \\ \hline
-
-  time                                & Particle time (sec)                       & lat, beam   & Yes \\ \hline
-
-  \begin{tabular}{@{}l}   
-     t.$ijklm\ldots$, \\
-     tt.$ijklm\ldots$, \\
-     \hspace{4em} $1 \le i,j,k,\ldots \le 6$  
-  \end{tabular} 
-                                      & \begin{tabular}{@{}l}
-                                          Term in n\Th \\
-                                          order transfer map
-                                        \end{tabular}                             & lat         & No  \\ \hline 
-
-  tune.a, .b                          & Tune                                      & lat         & No  \\ \hline 
-
-  \begin{tabular}{@{}l}
-    unstable.eigen, .eigen.a,  \\
-    \hspace{3em} .eigen.b, .eigen.c
-  \end{tabular}                       & Maximum eigenvalue amplitude              & lat         & No  \\ \hline
-  unstable.lattice                    & \begin{tabular}{@{}l}
-                                          Positive if \\
-                                          lattice is unstable
-                                        \end{tabular}                             & lat         & No  \\ \hline
-  unstable.orbit                      & \begin{tabular}{@{}l}   
-                                          Nonzero if particles are \\
-                                          lost in tracking
-                                        \end{tabular}                             & lat         & No  \\ \hline
-  unstable.ring                       & \begin{tabular}{@{}l}
-                                          Deprecated!           \\
-                                          Use unstable.lattice  
-                                        \end{tabular}                             & lat         & No  \\ \hline
-  velocity                            & Normalized velocity $v/c$                 & lat, beam   & Yes \\ \hline
-  velocity.x, .y, .z                  & Normalized velocity component             & lat, beam   & Yes \\ \hline
-  \begin{tabular}{@{}l}   
-    wall.left_side, \\
-    \hspace{4em} .right_side
-  \end{tabular}                       & Building wall constraint                  & lat         & No  \\ \hline
-  wire.<angle>                        & Wire scanner at <angle>                   & beam        & No  \\ \hline
+  \pref{alpha}            & alpha.a, .b                         & Normal-Mode alpha function                & lat         & Yes \\ \hline 
+  \pref{apparent.emit}    & apparent_emit.x, .y                 & Apparent emittance                        & lat, beam   & No  \\ \hline
+  \pref{beta.a}           & beta.a, .b, .c                      & Normal-mode beta function                 & lat, beam   & Yes \\ \hline 
+  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & lat, beam   & No  \\ \hline 
+  \pref{bpm.cbar}         & \begin{tabular}{@{}l}   
+                              bpm_cbar.22a, .12a, \\
+                              \hspace{4em} .11b, .12b
+                            \end{tabular}                       & Measured coupling                         & lat         & Yes \\ \hline
+  \pref{bpm.eta}          & bpm_eta.x, .y                       & Measured dispersion                       & lat         & Yes \\ \hline
+  \pref{bpm.orbit}        & bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
+  \pref{bpm.phase}        & bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
+  \pref{bpm.k}            & \begin{tabular}{@{}l}   
+                              bpm_k.22a, .12a, \\
+                              \hspace{4em} .11b, .12b   
+                             \end{tabular}                      & Measured coupling                         & lat         & Yes \\ \hline
+  \pref{bunch.charge}     & \begin{tabular}{@{}l}   
+                              bunch_charge.live, \\
+                              \hspace{4em} .live_relative
+                            \end{tabular}                       & Charge of live particles                  & beam        & No  \\ \hline
+  \pref{bunch.max}        & \begin{tabular}{@{}l}   
+                              bunch_max.x, .y, .z, \\ 
+                              \hspace{4em} .px, .py, .pz  
+                            \end{tabular}                       & Max relative to centroid                  & beam        & No  \\ \hline
+  \pref{bunch.min}        & \begin{tabular}{@{}l}   
+                              bunch_min.x, .y, .z, \\ 
+                              \hspace{4em} .px, .py, .pz  
+                            \end{tabular}                       & Min relative to centroid                  & beam        & No  \\ \hline
+  \pref{cmat}             & cmat.11, .12, .21, .22              & Coupling matrix elements                  & lat         & Yes \\ \hline 
+  \pref{cmat}             & cbar.11, .12, .21, .22              & Normalized coupling matrix                & lat         & Yes \\ \hline 
+  \pref{chrom.a}          & chrom.a, .b                         & Chromaticities for a ring                 & lat         & No  \\ \hline
+  \pref{chrom.dbeta}      & chrom.dbeta.a, .dbeta.b             & Normalized Chromatic beta                 & lat         & No  \\ \hline
+  \pref{chrom.deta}       & chrom.deta.x, .deta.y               & Chromatic dispersions                     & lat         & No  \\ \hline
+  \pref{chrom.detap}      & chrom.detap.x, .detap.y             & Chromatic dispersion slopes               & lat         & No  \\ \hline
+  \pref{chrom.dphi}       & chrom.dphi.a, .dphi.b               & Chromatic betatron phase                  & lat         & No  \\ \hline
+  \pref{chrom.ptc}        & \begin{tabular}{@{}l}
+                              chrom_ptc.a.$N$, \\
+                              chrom_ptc.b.$N$, \\
+                              \hspace{5em} $N = 0, 1, \ldots$
+                            \end{tabular}                       & Chromaticity Taylor terms                 & lat         & no  \\ \hline
+  \pref{curly.h}          & curly_h.a, .b                       & \begin{tabular}{@{}l}
+                                                                    Radiation integrals \\
+                                                                    curly H function 
+                                                                  \end{tabular}                             & lat         & Yes \\ \hline
+  \pref{damp}             & damp.j_a, .j_b, .j_z                & Damping partition number                  & lat         & No  \\ \hline
+  \pref{dpx.dx}           & dpx_dx, dpx_dy, etc.                & Bunch <x px> / <$x^2$> \& Etc...          & beam        & No  \\ \hline 
+  \pref{e.tot.ref}        & e_tot_ref                           & Lattice reference energy (eV)             & lat         & No  \\ \hline
+  \pref{element.attrib}   & element_attrib.<attr_name>          & lattice element attribute                 & lat         & No  \\ \hline
+  \pref{emit.a}           & emit.a, .b, .c                      & Emittance                                 & lat, beam   & No  \\ \hline
+  \pref{emit.x}           & emit.x, .y, .z                      & Projected emittance                       & lat, beam   & No  \\ \hline
+  \pref{eta.x}            & eta.x, .y, .z                       & Dispersion                                & lat, beam   & Yes \\ \hline 
+  \pref{eta.a}            & eta.a, .b                           & Normal-mode dispersion                    & lat, beam   & Yes \\ \hline 
+  \pref{etap.x}           & etap.x, .y                          & Dispersion derivative                     & lat, beam   & Yes \\ \hline 
+  \pref{etap.a}           & etap.a, .b                          & \begin{tabular}{@{}l}   
+                                                                    dispersion derivative
+                                                                  \end{tabular}                             & lat, beam   & Yes \\ \hline 
+  \pref{expression}       & expression:<expression>             & See text above                            & lat         & No  \\ \hline 
+  \pref{floor}            & \begin{tabular}{@{}l}   
+                              floor.x, .y, .z, \\             
+                              \hspace{2em} theta, .phi, .psi
+                            \end{tabular}                       & \begin{tabular}{@{}l}   
+                                                                    Lattice element \\
+                                                                    global position
+                                                                   \end{tabular}                            & lat         & Yes \\ \hline
+  \pref{floor.actual}     & \begin{tabular}{@{}l}
+                              floor_actual.x, .y, .z, \\
+                              \hspace{3em} .theta, .phi, .psi 
+                            \end{tabular}                       & \begin{tabular}{@{}l}   
+                                                                    Lattice element \\ 
+                                                                    misaligned global position
+                                                                  \end{tabular}                             & lat         & Yes \\ \hline 
+  \pref{floor.orbit.x}    & floor_orbit.x, .y, .z               & global position of orbit                  & lat, beam   & Yes \\ \hline 
+  \pref{floor.orbit.t}    & \begin{tabular}{@{}l}   
+                              floor_orbit.theta, \\
+                              \hspace{3em} .phi, .psi 
+                            \end{tabular}                       & global position of orbit                  & lat, beam   & Yes \\ \hline 
+  \pref{gamma}            & gamma.a, .b                         & Normal-mode gamma function                & lat         & Yes \\ \hline 
+  \pref{k.11b}            & k.11b, .12a, .12b, .22a             & Coupling                                  & lat         & Yes \\ \hline   
+  \pref{momentum}         & momentum                            & Momentum: P*C_light (eV)                  & lat         & Yes \\ \hline
+  \pref{mom.comp}         & momentum_compaction                 & Momentum compaction factor                & lat         & No  \\ \hline
+  \pref{mom.comp.ptc}     & \begin{tabular}{@{}l}
+                              momentum_compaction_ptc.$N$ \\
+                              \hspace{3em} $N = 0, 1, 2, \ldots$
+                            \end{tabular}                       & \begin{tabular}{@{}l}
+                                                                    Momentum compaction \\
+                                                                    Taylor terms
+                                                                  \end{tabular}                             & lat         & No  \\ \hline
+  \pref{multi.turn.orb}   &  \begin{tabular}{@{}l}
+                               multi_turn_orbit.x, .y, \\ 
+                               \hspace{3em} .z, .px, .py, .pz
+                             \end{tabular}                      & Store orbit over many turns               & lat         & No  \\ \hline 
+  \pref{n.part.loss}      & n_particle_loss                     & Number of particles lost                  & beam        & No  \\ \hline 
+  \pref{norm.app.emit}    & norm_apparent_emit.x, .y            & Normalized apparent emittance             & lat, beam   & No  \\ \hline
+  \pref{norm.emit.a}      & norm_emit.a, .b, .c                 & Normalized beam emittance                 & lat, beam   & No  \\ \hline 
+  \pref{norm.emit.x}      & norm_emit.x, .y, .z                 & Normalized projected emittance            & lat, beam   & No  \\ \hline 
+  \pref{normal.type}      & normal.<type>.$i$.<monomial>        & Normal form map component                 & lat         & No  \\ \hline
+  \pref{normal.h}         & normal.h.<monomial>                 & Normal form driving term                  & lat         & No  \\ \hline
+  \pref{null}             & null                                & Data without model evaluation             & lat, beam   & No  \\ \hline
+  \pref{orbit.e.tot}      & orbit.e_tot                         & Beam energy (eV)                          & lat, beam   & Yes \\ \hline
+  \pref{orbit.x}          & \begin{tabular}{@{}l}
+                              orbit.x, .y, .z \\
+                              \hspace{3em} .px, .py, .pz
+                            \end{tabular}                       & Phase space orbit                         & lat, beam   & Yes \\ \hline 
+  \pref{orbit.amp}        & orbit.amp_a, .amp_b                 & Orbit amplitude                           & lat         & Yes \\ \hline 
+  \pref{orbit.norm.amp}   & \begin{tabular}{@{}l}
+                              orbit.norm_amp_a, \\
+                              \hspace{2em} .norm_amp_b       
+                            \end{tabular}                       & Energy normalized amplitude               & lat         & Yes \\ \hline 
+  \pref{periodic.tt}      & \begin{tabular}{@{}l}
+                              periodic.tt.$ijklm\ldots$ \\
+                              \hspace{4em} $1 \le i,j,k,\ldots \le 6$   
+                            \end{tabular}                       & Periodic map Taylor terms                 & lat         & No  \\ \hline 
+  \pref{phase}            & phase.a, .b                         & Betatron phase                            & lat         & Yes \\ \hline 
+  \pref{phase.frac}       & phase_frac.a, .b                    & \begin{tabular}{@{}l}
+                                                                    Fractional betatron phase \\       
+                                                                    $-\pi < \phi_{\mbox{frac}} < \pi$ 
+                                                                  \end{tabular}                             & lat         & No  \\ \hline 
+  \pref{phase.frac.diff}  & phase_frac_diff                     & \begin{tabular}{@{}l}
+                                                                    Phase difference \\
+                                                                    between $a$ and $b$ modes
+                                                                  \end{tabular}                             & lat         & No  \\ \hline 
+  \pref{photon.intens}    & photon.intensity                    & Photon total intensity                    & lat, beam   & No  \\ \hline 
+  \pref{photon.intens.x}  & \begin{tabular}{@{}l}
+                              photon.intensity_x, \\
+                              \hspace{2em} .intensity_y
+                            \end{tabular}                       & Photon intensity components               & lat, beam   & No  \\ \hline
+  \pref{photon.phase}     & photon.phase_x, .phase_y            & Photon phase                              & lat, beam   & No  \\ \hline  
+  \pref{ping.a}           & \begin{tabular}{@{}l}
+                              ping_a.amp_x, .phase_x,                  \\
+                              \hspace{1.5em} .amp_y, .phase_y,         \\
+                              \hspace{1.5em} .amp_sin_y, .amp_cos_y,   \\
+                              \hspace{1.5em} .amp_sin_rel_y,           \\
+                              \hspace{1.5em} .amp_cos_rel_y 
+                            \end{tabular}                       & Pinged beam $a$-mode response             & lat        & No  \\ \hline
+  \pref{ping.b}           & \begin{tabular}{@{}l}
+                              ping_b.amp_x, .phase_x,                 \\
+                              \hspace{1.5em} .amp_y, .phase_y,        \\
+                              \hspace{1.5em} .amp_sin_x, .amp_cos_x,  \\
+                              \hspace{1.5em} .amp_sin_rel_x,          \\
+                              \hspace{1.5em} .amp_cos_rel_x 
+                            \end{tabular}                       & Pinged beam $b$-mode response             & lat        & No  \\ \hline
+  \pref{r.ij}             & r.$ij$ \hspace{10pt} $1 \le i,j \le 6$ & Term in linear transfer map            & lat        & No  \\ \hline 
+  \pref{r56.comp}         & r56_compaction                        & R56 like compaction factor.             & lat        & No  \\ \hline
+  \pref{rad.int}          & rad_int.i1, .i2, etc.               & Lattice Radiation integrals               & lat        & No  \\ \hline
+  \pref{rad.int1}         & rad_int1.i1, .i2, etc.              & Element radiation integrals               & lat        & No  \\ \hline
+  \pref{ref.time}         & ref_time                            & Reference time                            & lat, beam  & Yes \\ \hline
+  \pref{rel.floor}        & \begin{tabular}{@{}l}
+                              rel_floor.x, .y, \\
+                              \hspace{4em} .z, .theta
+                            \end{tabular}                       & Relative global floor position            & lat        & No  \\ \hline 
+  \pref{s.position}       & s_position                          & longitudinal length constraint            & lat        & Yes \\ \hline 
+  \pref{sigma}            & \begin{tabular}{@{}l}   
+                              sigma.x, .y, .z, \\
+                              \hspace{2em} .px, px, .pz, \\
+                              \hspace{2em} .$ij$ \hspace{10pt} $1 \le i,j \le 6$, \\
+                              \hspace{2em} .Lxy
+                            \end{tabular}                       & Bunch size                                & lat, beam  & No  \\ \hline 
+  \pref{spin}             & spin.x, .y, .z                      & Particle spin                             & lat, beam  & No  \\ \hline 
+  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate.                 & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate.                   & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit.                  & lat        & No  \\ \hline
+  \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
+                              spin_tune_ptc.$N$, \\
+                              \hspace{10pt} $N = 0, 1, \ldots$
+                            \end{tabular}                       & Spin Tune Taylor terms                    & lat        & no  \\ \hline
+  \pref{spin.g.matrix}    & \begin{tabular}{@{}l}   
+                              spin_g_matrix.$ij$ \\
+                              \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
+                            \end{tabular}                       & Spin G-matrix components                  & lat        & No  \\ \hline
+  \pref{srdt.h}           & srdt.h<monomial>.\{r,i,a\}          & \begin{tabular}{@{}l}
+                                                                    Normal form driving terms \\
+                                                                    calculated by summation 
+                                                                  \end{tabular}                             & lat        & No \\ \hline
+  \pref{time}             & time                                & Particle time (sec)                       & lat, beam  & Yes \\ \hline
+  \pref{t.ijk}            & \begin{tabular}{@{}l}   
+                              t.$ijklm\ldots$, \\
+                              tt.$ijklm\ldots$, \\
+                            \hspace{4em} $1 \le i,j,k,\ldots \le 6$  
+                            \end{tabular}                       & \begin{tabular}{@{}l}
+                                                                    Term in n\Th \\
+                                                                    order transfer map
+                                                                  \end{tabular}                             & lat        & No  \\ \hline 
+  \pref{tune}             & tune.a, .b                          & Tune                                      & lat        & No  \\ \hline 
+  \pref{unstable.eigen}   & \begin{tabular}{@{}l}
+                              unstable.eigen, .eigen.a,  \\
+                              \hspace{3em} .eigen.b, .eigen.c
+                            \end{tabular}                       & Maximum eigenvalue amplitude              & lat        & No  \\ \hline
+  \pref{unstable.lat}     & unstable.lattice                    & \begin{tabular}{@{}l}
+                                                                    Positive if \\
+                                                                    lattice is unstable
+                                                                  \end{tabular}                             & lat        & No  \\ \hline
+  \pref{unstable.orbit}   & unstable.orbit                      & \begin{tabular}{@{}l}   
+                                                                    Nonzero if particles are \\
+                                                                    lost in tracking
+                                                                  \end{tabular}                             & lat        & No  \\ \hline
+  \pref{unstable.ring}    & unstable.ring                       & \begin{tabular}{@{}l}
+                                                                    Deprecated!           \\
+                                                                    Use unstable.lattice  
+                                                                  \end{tabular}                             & lat        & No  \\ \hline
+  \pref{velocity}         & velocity                            & Normalized velocity $v/c$                 & lat, beam  & Yes \\ \hline
+  \pref{velocity}         & velocity.x, .y, .z                  & Normalized velocity component             & lat, beam  & Yes \\ \hline
+  \pref{wall}             & \begin{tabular}{@{}l}   
+                              wall.left_side, \\
+                              \hspace{4em} .right_side
+                            \end{tabular}                       & Building wall constraint                  & lat        & No  \\ \hline
+  \pref{wire}             & wire.<angle>                        & Wire scanner at <angle>                   & beam       & No  \\ \hline
 \end{longtable}
 }

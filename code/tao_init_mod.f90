@@ -163,9 +163,10 @@ use tao_input_struct
 
 type (tao_universe_struct), pointer :: u
 type (beam_init_struct) beam_init
+type (tao_beam_branch_struct), pointer :: bb
 
 integer i, k, iu, ios, ib, n_uni
-integer n, iostat, ix_universe, to_universe
+integer n, iostat, ix_universe, ix_branch
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
@@ -178,7 +179,7 @@ character(60), target :: save_beam_at(100)   ! old style syntax
 
 logical err
 
-namelist / tao_beam_init / ix_universe, beam0_file, beam_init, beam_init_file_name, &
+namelist / tao_beam_init / ix_universe, ix_branch, beam0_file, beam_init, beam_init_file_name, &
             beam_saved_at, track_start, track_end, beam_track_start, beam_track_end, beam_position0_file, &
             beam_track_data_file, beam_dump_at, beam_dump_file
          
@@ -188,14 +189,15 @@ namelist / tao_beam_init / ix_universe, beam0_file, beam_init, beam_init_file_na
 call tao_hook_init_beam ()
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%beam%beam_init = beam_init_struct()
-  s%u(i)%beam%beam_init%file_name = ''
-  s%u(i)%beam%beam_init%position_file = s%com%beam_init_position_file_arg
+  bb => s%u(i)%model_branch(0)%beam
+  bb%beam_init = beam_init_struct()
+  bb%beam_init%file_name = ''
+  bb%beam_init%position_file = s%com%beam_init_position_file_arg
+  bb%track_start    = ''
+  bb%track_end      = ''
+  bb%ix_track_start = not_set$
+  bb%ix_track_end   = not_set$
   s%u(i)%beam%track_data_file = s%com%beam_track_data_file_arg
-  s%u(i)%beam%track_start    = ''
-  s%u(i)%beam%track_end      = ''
-  s%u(i)%beam%ix_track_start = not_set$
-  s%u(i)%beam%ix_track_end   = not_set$
 enddo
 
 if (.not. s%com%init_beam .or. init_file == '') return
@@ -212,6 +214,7 @@ endif
 do
   ! defaults
   ix_universe = -1
+  ix_branch = 0
   beam_init = beam_init_struct()
   beam_saved_at = ''
   beam_dump_at = ''
@@ -330,8 +333,9 @@ character(60) at, class, ele_name, line
 
 ! Set tracking start/stop
 
-u%beam%track_start = beam_track_start
-u%beam%track_end   = beam_track_end
+bb => u%model_branch(0)%beam
+bb%track_start = beam_track_start
+bb%track_end   = beam_track_end
 
 if (beam_track_start /= '') then
   call lat_ele_locator (beam_track_start, u%design%lat, eles, n_loc, err)
@@ -347,7 +351,7 @@ if (beam_track_start /= '') then
     s%global%track_type = 'single'
     return
   endif
-  u%beam%ix_track_start = eles(1)%ele%ix_ele
+  bb%ix_track_start = eles(1)%ele%ix_ele
 endif
 
 if (beam_track_end /= '') then
@@ -364,10 +368,10 @@ if (beam_track_end /= '') then
     s%global%track_type = 'single'
     return
   endif
-  u%beam%ix_track_end = eles(1)%ele%ix_ele
+  bb%ix_track_end = eles(1)%ele%ix_ele
 endif
 
-u%beam%beam_init = beam_init
+bb%beam_init = beam_init
 u%beam%track_data_file = beam_track_data_file
 
 ! Find where to save the beam at.

@@ -175,6 +175,7 @@ type (tao_spin_map_struct), pointer :: spin_map
 type (all_pointer_struct) a_ptr
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
+type (tao_beam_branch_struct), pointer :: bb
 type (lat_struct), pointer :: lat, design_lat
 type (ele_struct), pointer :: ele, ele1, ele2, slave, lord
 type (ele_struct), target :: ele3, ele0
@@ -361,13 +362,38 @@ case ('alias')
 
 case ('beam')
 
+  word1 = ''
+
+  do 
+    call tao_next_switch (what2, ['-universe'], .false., switch, err, ix_s2);  if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+
+    case ('-universe')
+      read (what2(1:ix_s2), *, iostat = ios) ix
+      u => tao_pointer_to_universe(ix)
+      lat => u%model%lat
+      if (ix_s2 == 0 .or. ios /= 0 .or. .not. associated(u)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-universe" ARGUMENT'
+        return
+      endif
+      call string_trim(what2(ix_s2+1:), what2, ix_s2)
+
+    case default
+      word1 = switch
+
+    end select
+  enddo
+
+
   ! no element index
+
+  bb => u%model_branch(0)%beam
 
   if (word1 == '') then
 
     nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
-    nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
-
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', quote(s%global%track_type)
     nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on        = ', s%global%beam_timer_on
@@ -379,10 +405,10 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt) 'beam_saved_at          = ', quote(u%beam%saved_at)
     nl=nl+1; write(lines(nl), amt) 'beam_dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt) 'beam_dump_file         = ', quote(u%beam%dump_file)
-    nl=nl+1; write(lines(nl), fmt) 'beam_track_start       = ', quote(u%beam%track_start), ' (', u%beam%ix_track_start, ')'
-    nl=nl+1; write(lines(nl), fmt) 'beam_track_end         = ', quote(u%beam%track_end), ' (', u%beam%ix_track_end, ')'
+    nl=nl+1; write(lines(nl), fmt) 'beam_track_start       = ', quote(bb%track_start), ' (', bb%ix_track_start, ')'
+    nl=nl+1; write(lines(nl), fmt) 'beam_track_end         = ', quote(bb%track_end), ' (', bb%ix_track_end, ')'
 
-    beam => model_branch%ele(u%beam%ix_track_start)%beam
+    beam => u%model_branch(0)%ele(bb%ix_track_start)%beam
     if (allocated(beam%bunch)) then
       nl=nl+1; write(lines(nl), imt) 'n_particle (actual)       = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                   = ', size(beam%bunch)
@@ -390,9 +416,9 @@ case ('beam')
       nl=nl+1; write(lines(nl), amt) 'bunch_species             = ', species_name(beam%bunch(1)%particle(1)%species)
     endif
 
-    beam_init => u%beam%beam_init
-    species = species_id(beam_init%species, default_tracking_species(branch%param))
-    gamma = branch%ele(0)%value(E_tot$) / mass_of(species)
+    beam_init => bb%beam_init
+    species = species_id(beam_init%species, default_tracking_species(u%model%lat%branch(0)%param))
+    gamma = u%model%lat%branch(0)%ele(0)%value(E_tot$) / mass_of(species)
 
     nl=nl+1; lines(nl) = 'beam_init components (set by "set beam_init ..."):'
     nl=nl+1; write(lines(nl), amt) '  %position_file          = ', quote(beam_init%position_file)
@@ -412,7 +438,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
     nl=nl+1; write(lines(nl), imt) '  %n_particle             = ', beam_init%n_particle
     nl=nl+1; write(lines(nl), rmt) '  %bunch_charge           = ', beam_init%bunch_charge
-    if (branch%param%particle == photon$) then
+    if (u%model%lat%branch(0)%param%particle == photon$) then
       nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %a_emit                 = ', beam_init%a_emit
       nl=nl+1; write(lines(nl), '(2(a, es16.8))') '  %b_emit                 = ', beam_init%b_emit
     else
@@ -480,6 +506,23 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) '  %write_csr_wake                 = ', csr_param%write_csr_wake
     nl=nl+1; write(lines(nl), amt) '  %wake_output_file               = ', quote(csr_param%wake_output_file)
 
+    if (size(lat%branch) > 1) then
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = 'Branch  Start_Track                            End_Track'
+      do i = 0, ubound(lat%branch, 1)
+        branch => lat%branch(i)
+        bb => u%model_branch(i)%beam
+
+        if (bb%ix_track_start == not_set$) then
+          nl=nl+1; write (lines(nl), '(i4, 6x, a)') i, '.... No Tracking Done ...'
+        else
+          nl=nl+1; write (lines(nl), '(i4, 4x, 4a, t48, 4a)') i, trim(branch%ele(bb%ix_track_start)%name), ' (', int_str(bb%ix_track_start), ')', &
+                                                   trim(branch%ele(bb%ix_track_end)%name), ' (', int_str(bb%ix_track_end), ')'
+        endif
+      enddo
+    endif
+
+  !-------------------------------
   ! have element index
 
   else
@@ -554,12 +597,8 @@ case ('beam')
 
 case ('branch')
 
-  sub_name = ''
-
   do 
-    call tao_next_switch (what2, ['-universe'], .false., switch, err, ix_s2)
-
-    if (err) return
+    call tao_next_switch (what2, ['-universe'], .false., switch, err, ix_s2);  if (err) return
     if (switch == '') exit
 
     select case (switch)
@@ -573,15 +612,13 @@ case ('branch')
       endif
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
+    case default
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // what2)
+      return
+
     end select
   enddo
 
-  if (sub_name == '') then
-    sub_name = what2
-  elseif (what2 /= '') then
-    call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // what2)
-    return
-  endif
 
   lat => u%model%lat
 
@@ -3308,12 +3345,12 @@ case ('particle')
 
   ! check
 
-  if (.not. allocated(u%beam%beam_at_start%bunch)) then
+  if (.not. allocated(model_branch%beam%beam_at_start%bunch)) then
     call out_io (s_error$, r_name, 'NO BEAM TRACKING HAS BEEN DONE.')
     return
   endif
 
-  if (nb < 1 .or. nb > size(u%beam%beam_at_start%bunch)) then
+  if (nb < 1 .or. nb > size(model_branch%beam%beam_at_start%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = [ nb ])
     return
   endif
@@ -3321,7 +3358,7 @@ case ('particle')
   !
 
   if (ix_ele == -1) then
-    bunch => u%beam%beam_at_start%bunch(nb)
+    bunch => model_branch%beam%beam_at_start%bunch(nb)
 
   else
     if (.not. allocated(model_branch%ele(ix_ele)%beam%bunch)) then

@@ -727,7 +727,7 @@ type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, save, target :: eles(:)
 type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
-
+type (tao_beam_branch_struct), pointer :: bb
 integer ix, iu, n_loc, ie
 
 logical, allocatable :: this_u(:)
@@ -749,6 +749,7 @@ call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
+  bb => u%model_branch(0)%beam
 
   select case (switch)
   case ('beginning')
@@ -760,26 +761,26 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       err = .true.
       return
     endif
-    u%beam%beam_at_start = beam
+    bb%beam_at_start = beam
     u%calc%lattice = .true.
 
   case ('track_start', 'beam_track_start')
-    call set_this_track(u%beam%track_start, u%beam%ix_track_start)
+    call set_this_track(bb%track_start, bb%ix_track_start)
 
   case ('track_end', 'beam_track_end')
-    call set_this_track(u%beam%track_end, u%beam%ix_track_end)
+    call set_this_track(bb%track_end, bb%ix_track_end)
 
   case ('beam_track_data_file')
     u%beam%track_data_file = value_str
 
   case ('beam_init_file_name')
     call out_io (s_warn$, r_name, 'Note: "beam_init_file_name" has been renamed to "beam_init_position_file".')
-    u%beam%beam_init%position_file = value_str
-    u%beam%init_starting_distribution = .true.
+    bb%beam_init%position_file = value_str
+    bb%init_starting_distribution = .true.
 
   case ('beam_init_position_file')
-    u%beam%beam_init%position_file = value_str
-    u%beam%init_starting_distribution = .true.
+    bb%beam_init%position_file = value_str
+    bb%init_starting_distribution = .true.
 
   case ('dump_file', 'beam_dump_file')
     u%beam%dump_file = value_str
@@ -978,6 +979,7 @@ type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_expression_info_struct), allocatable :: info(:)
+type (tao_beam_branch_struct), pointer :: bb
 
 character(*) who, value_str
 character(40) who2
@@ -1005,6 +1007,7 @@ case ('beam_track_start', 'beam_track_end')
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. picked_uni(i)) cycle
     u => s%u(i)
+    bb => u%model_branch(0)%beam
     call lat_ele_locator (value_str, u%design%lat, eles, n_loc, err)
     if (err .or. n_loc == 0) then
       call out_io (s_fatal$, r_name, 'ELEMENT NOT FOUND: ' // value_str)
@@ -1018,11 +1021,11 @@ case ('beam_track_start', 'beam_track_end')
 
     select case (who2)
     case ('beam_track_start')
-      u%beam%track_start = value_str
-      u%beam%ix_track_start = ele%ix_ele
+      bb%track_start = value_str
+      bb%ix_track_start = ele%ix_ele
     case ('beam_track_end')
-      u%beam%track_end = value_str
-      u%beam%ix_track_end = ele%ix_ele
+      bb%track_end = value_str
+      bb%ix_track_end = ele%ix_ele
     end select
   enddo
 
@@ -1099,7 +1102,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   rewind (iu)
   u => s%u(i)
-  beam_init = u%beam%beam_init  ! set defaults
+  bb => u%model_branch(0)%beam
+  beam_init = bb%beam_init  ! set defaults
   read (iu, nml = params, iostat = ios)
   if (ios /= 0 .or. eval_err) then
     if (ios /= 0) then
@@ -1110,9 +1114,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     exit
   endif
 
-  u%beam%beam_init = beam_init
-  u%beam%init_starting_distribution = .true.  ! Force reinit
-  if (u%beam%beam_init%use_particle_start_for_center) u%beam%beam_init%center = u%model%lat%particle_start%vec
+  bb%beam_init = beam_init
+  bb%init_starting_distribution = .true.  ! Force reinit
+  if (bb%beam_init%use_particle_start_for_center) bb%beam_init%center = u%model%lat%particle_start%vec
   u%calc%lattice = .true.
 enddo
 
@@ -1316,7 +1320,7 @@ case ('ix_branch')
 case ('ix_bunch')
   u => tao_pointer_to_universe (tao_curve_ix_uni(this_curve))
   if (.not. associated(u)) return
-  call tao_set_integer_value (this_curve%ix_bunch, component, value_str, err, 0, u%beam%beam_init%n_bunch)
+  call tao_set_integer_value (this_curve%ix_bunch, component, value_str, err, 0, u%model_branch(0)%beam%beam_init%n_bunch)
 
 case ('symbol_every')
   call tao_set_integer_value (this_curve%symbol_every, component, value_str, err, 0, 1000000)

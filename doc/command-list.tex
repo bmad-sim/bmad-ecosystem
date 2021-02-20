@@ -1791,11 +1791,13 @@ Shows a list of defined aliases. See the \vn{alias} command for more details.
 
 Syntax:
 \begin{example}
-  show beam \{<element_name_or_index>\}
+  show beam \{-universe <universe>\} \{<element_name_or_index>\}
 \end{example}
 
 If \vn{<element_name_or_index>} is absent, \vn{show beam} shows parameters used with beam tracking
-including the number of particles in a bunch, etc.
+including the number of particles in a bunch, etc. 
+
+If no universe is given, the current default universe (\sref{s:universe}) is used.
 
 If \vn{<element_name_or_index>} is present, \vn{show beam} will show beam parameters at the selected
 element. Also see \vn{show particle}.  Use the \vn{set beam_init} command to set values of the
@@ -1810,7 +1812,6 @@ Syntax:
 \begin{example}
   show branch \{-universe <universe>\}
 \end{example}
-
 
 Lists the lattice branches of the lattice associated with the given universe along with
 information on the fork elements connecting the branches.  If no universe is given, the

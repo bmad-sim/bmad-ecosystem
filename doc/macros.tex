@@ -1,4 +1,7 @@
-\newcommand{\extref}[1]{$\S$\ref*{#1}}   % No hyperlink. For external refs. \extref
+\newcommand{\hlabel}{\phantomsection\label}  % Used so hyper links will point to the spot where \hlabel is used.
+\newcommand{\extref}[1]{$\S$\ref*{#1}}       % No hyperlink. For external refs. \extref
+\newcommand{\pref}[1]{[\pageref{#1}]}
+
 \newcommand{\comma}{\> ,}
 \newcommand{\period}{\> .}
 \newcommand{\wt}{\widetilde}
