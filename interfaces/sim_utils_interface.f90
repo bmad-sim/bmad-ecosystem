@@ -821,9 +821,10 @@ subroutine str_downcase(dst, src)
   character(*) dst, src
 end subroutine str_downcase
 
-subroutine system_command (line)
+subroutine system_command (line, err_flag)
   implicit none
   character(*) line
+  logical, optional :: err_flag
 end subroutine
 
 subroutine string_trim (in_string, out_string, word_len)
