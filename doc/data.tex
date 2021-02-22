@@ -218,7 +218,7 @@ Set by \tao. Is the \vn{base} value valid?
   \item[good_design] \Newline
 Set by \tao. Is the value as calculated from the \vn{design} lattice valid? For example, if the
 datum is the particle orbit at some BPM in a ring and if it is not possible to compute the orbit at
-the BPM due to the lattice being ustable then \vn{good_design} will be False.
+the BPM due to the lattice being unstable then \vn{good_design} will be False.
 %
   \item[good_meas] \Newline
 Set by \tao. Is the \vn{meas} value valid?
@@ -335,7 +335,7 @@ place of a value computed from lattice.
 Set \vn{True} if the datum is valid for plotting for a particular graph. This component gets
 reevaluated for each \vn{graph} that potentially uses the datum so the value observed after plotting is
 refreshed is simply the value as calculated for the last \vn{graph} considered. The value for \vn{useit_plot}
-is evaluated using other logical components using the preseciption:
+is evaluated using other logical components using the prescription:
 \begin{example}
   useit_plot = exists \& good_plot \& 
                   (good_user | graph:draw_only_good_user_data_or_vars) \&
@@ -621,11 +621,11 @@ above rule and datum types treat the \vn{reference} element in a different manne
 \vn{r.} data type uses the \vn{reference} element as the starting point in constructing a transfer
 matrix.
 
-Do not confuse the \vn{ele_ref_name} component (see preceeding paragraph) with the \vn{ref}
+Do not confuse the \vn{ele_ref_name} component (see preceding paragraph) with the \vn{ref}
 component. The \vn{ref} component is set by the User and typically represents the measured value of
 the datum. For example, if two orbit measurements are made, the \vn{meas} component of a datum can
 be set to the measured orbit for one of the measurements while the \vn{ref} component can be set to
-the measured orbit for the other measurement. This way orbit differences can be anlyzed.
+the measured orbit for the other measurement. This way orbit differences can be analyzed.
 
 %------------------------------------------------------------------------
 \section{Tao Data Types}\index{data!data Types}
@@ -723,7 +723,7 @@ Note: This type of datum can only be used with \vn{detector}, \vn{instrument}, \
 
   %----------------------
   \item[bunch_charge.live, .live_relative] \Newline \hlabel{bunch.charge}
-The charge of the live particles in a bunch as expressed unnormalized or nomalized by the total charge.
+The charge of the live particles in a bunch as expressed unnormalized or normalized by the total charge.
 
   %----------------------
   \item[bunch_max.x, .px, .y, .py, .z, .pz] \Newline \hlabel{bunch.max}
@@ -884,7 +884,7 @@ Normal mode dispersion.
 
   %----------------------
   \item[etap.x, .y] \Newline \hlabel{etap.x}
-Horizontal and vertical, dispesion derivative.
+Horizontal and vertical, dispersion derivative.
 
   %----------------------
   \item[etap.a, .b] \Newline \hlabel{etap.a}
@@ -1452,7 +1452,7 @@ propagation to the evaluation element, maintain its spin along the axis. With th
 submatrix $\bfD$ of the spin-orbital transfer matrix $\wt\bfM$ will be the unit matrix.  An
 exception is made if the reference element is the same as the evaluation element. That is, if the
 1-turn $\bfG$-matrix is being computed. In this case, the final $(\bfl, \bfn_0, \bfm)$ will be taken
-to be the same as the inital coordinates and, in this case, $\bfD$, will be a rotation matrix with
+to be the same as the initial coordinates and, in this case, $\bfD$, will be a rotation matrix with
 a rotation angle equal to the spin tune.
 
   %----------------------
@@ -1594,7 +1594,7 @@ Note: \vn{unstable.lattice} replaces \vn{unstable.ring}.
   \item[unstable.orbit] \Newline \hlabel{unstable.orbit}
 The \vn{unstable.orbit} datum is used in an optimization to avoid losing particles during tracking.
 The idea is that \vn{unstable.orbit} will be zero if there is no loss and be positive if there is.
-Including \vn{unstable.orbit} in the merit function will thus tend to stabalize the lattice.
+Including \vn{unstable.orbit} in the merit function will thus tend to stabilize the lattice.
 Also see \vn{unstable.eigen} and \vn{unstable.lattice}.
 
 For a lattice branch with an open geometry, and with single particle tracking (datum's
@@ -1614,8 +1614,8 @@ is the index of the element where the particle was lost. In the above equation, 
     0 & \text{if the particle is lost at the entrance end of the element.}
   \end{cases}
 \end{equation}
-In the abouve equation, $r_{orbit}$ is the particle amplitude at the point of loss and $r_{lim}$ is
-the aperture limit. The form of the above equation has been choisen so that the datum value will be
+In the above equation, $r_{orbit}$ is the particle amplitude at the point of loss and $r_{lim}$ is
+the aperture limit. The form of the above equation has been chosen so that the datum value will be
 monotonic with increasing stability.
 
 If \vn{ele_name} is not specified, the default for the evaluation element is to use
@@ -1625,8 +1625,8 @@ With a closed geometry lattice and with single particle tracking, \vn{unstable.o
 if the orbit is stable and set to one if the orbit is unstable.
 
 When tracking beams (datum's \vn{data_source} set to "beam"), a beam is tracked a maximum of one
-turn in a branch. This being the case, the geometry of the branch is not pertainent and the value of
-\vn{unstable.orbit} is value as shown above for a single particle in an open branch but hereaveraged
+turn in a branch. This being the case, the geometry of the branch is not pertinent and the value of
+\vn{unstable.orbit} is value as shown above for a single particle in an open branch but here averaged
 over all particles in the bunch. In this case, if \vn{ele_name} is not specified, it is taken to be
 the bunch tracking end point (which may not be the end of the branch).
 

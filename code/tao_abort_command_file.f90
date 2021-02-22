@@ -1,4 +1,10 @@
-subroutine tao_abort_command_file
+!+
+! Subroutine tao_abort_command_file()
+!
+! Routine to close all open command files.
+!-
+
+subroutine tao_abort_command_file()
 
 use tao_struct
 

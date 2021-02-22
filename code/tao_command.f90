@@ -632,7 +632,8 @@ case ('single_mode')
 
 case ('spawn')
 
-  call system_command (cmd_line)
+  call system_command (cmd_line, err)
+  if (err) call tao_abort_command_file()
   return
 
 !--------------------------------
