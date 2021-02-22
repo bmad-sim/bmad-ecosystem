@@ -248,7 +248,6 @@ end subroutine spline_evaluate
 function bracket_index_for_spline (x_knot, x, ix0) result (ok)
 
 real(rp) x_knot(:), x
-real(rp) eps
 
 integer ix0, ix_max
 logical ok
@@ -258,17 +257,17 @@ character(*), parameter :: r_name = 'bracket_index_for_spline'
 !
 
 ok = .false.
-
 ix_max = size(x_knot)
-eps = 1d-6 * (x_knot(ix_max) - x_knot(1))   ! something small
 
-if (x < x_knot(1) - eps) then
-  call out_io (s_error$, r_name, 'X EVALUATION POINT LESS THAN LOWER BOUND OF SPLINE INTERVAL')
+if (x < x_knot(1) - (x_knot(2) - x_knot(1))) then
+  call out_io (s_error$, r_name, 'X EVALUATION POINT (\es12.4\) IS MUCH LESS THAN LOWER BOUND OF SPLINE INTERVAL (\es12.4\)', &
+                                 r_array = [x, x_knot(1)])
   return
 endif
                               
-if (x > x_knot(ix_max) + eps) then
-  call out_io (s_error$, r_name, 'X EVALUATION POINT GREATER THAN UPPER BOUND OF SPLINE INTERVAL')
+if (x > x_knot(ix_max) + (x_knot(ix_max) - x_knot(ix_max-1))) then
+  call out_io (s_error$, r_name, 'X EVALUATION POINT (\es12.4\) IS MUCH GREATER THAN UPPER BOUND OF SPLINE INTERVAL (\es12.4\) ', &
+                                 r_array = [x, x_knot(ix_max)])
   return
 endif
 
