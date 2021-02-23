@@ -29,9 +29,9 @@ type (ele_pointer_struct), allocatable :: eles(:)
 
 character(*) search_string
 character(*), optional :: attribute
-character(80) string
+character(len(search_string)) string
 character(40) ele_name, key_name_in
-character(20) :: r_name = 'tao_init_find_elements'
+character(*), parameter :: r_name = 'tao_init_find_elements'
 
 integer key, found_key, ix_attrib, t
 integer i, k, ix, ii, j, ix0, ix1, ix2, n_ele

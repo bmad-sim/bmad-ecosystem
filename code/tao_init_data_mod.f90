@@ -48,7 +48,7 @@ character(40) :: r_name = 'tao_init_data'
 character(200) file_name
 character(40) name,  universe, d_typ, use_same_lat_eles_as
 character(40) default_merit_type, default_data_source, def_merit_type, def_data_source
-character(100) search_for_lat_eles
+character(200) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
 character(8), allocatable :: h_strings(:)
 

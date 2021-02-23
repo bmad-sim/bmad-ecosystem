@@ -49,11 +49,11 @@ character(*), parameter :: r_name = 'tao_init_variables'
 character(40) name, universe, default_universe
 character(40) default_merit_type, default_attribute
 character(40) use_same_lat_eles_as
-logical default_key_bound
 character(200) file_name
-logical, allocatable, save :: default_key_b(:)
-character(100) line, search_for_lat_eles
+character(200) line, search_for_lat_eles
 
+logical default_key_bound
+logical, allocatable, save :: default_key_b(:)
 logical err, free, gang
 logical searching, limited
 logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
