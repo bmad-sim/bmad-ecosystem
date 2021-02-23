@@ -132,11 +132,12 @@ make sense to have one.
 %
 \item["average"] \Newline
 With \vn{"average"} as the \vn{merit_type}, the value for a lattice is the average of the
-\vn{data_type} over the evaluation region.
+\vn{data_type} over the evaluation region. This is just the integral normalized by the length
+of the region.
 \item["integral"] \Newline
-%
-With \vn{"integral"} as the \vn{merit_type}, the value for a lattice is the integral of the
-\vn{data_type} over the evaluation region. 
+% With \vn{"integral"} as the \vn{merit_type}, the value for a lattice is the integral of the
+\vn{data_type} over the evaluation region. The integral is evaluated using a simple trapezoid
+formula.
 %
 \item["min" or "max"] \Newline
 With \vn{"min"} or \vn{"max"} as the \vn{merit_type}, the value
