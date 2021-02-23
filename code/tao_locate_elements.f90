@@ -45,8 +45,8 @@ integer, optional :: lat_type, ix_dflt_branch
 integer ios, ix, ix_universe, num, i, i_ix_ele, n_loc
 
 character(*) ele_list
-character(200) ele_name
-character(20) :: r_name = 'tao_locate_elements'
+character(len(ele_list)) ele_name
+character(*), parameter :: r_name = 'tao_locate_elements'
 
 logical err, printit
 logical, optional :: ignore_blank, print_err, above_ubound_is_err, multiple_eles_is_err
