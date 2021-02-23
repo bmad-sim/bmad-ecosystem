@@ -295,7 +295,7 @@ endif
 bpm_data = old_bpm_data
 valid_value = .true.
 
-end subroutine
+end subroutine tao_to_phase_and_coupling_reading
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1613,32 +1613,24 @@ case ('expression:', 'expression.')
     endif
 
     select case (datum%merit_type)
-    case ('min')
-      datum_value = minval(expression_value_vec)
-    case ('max') 
-      datum_value = maxval(expression_value_vec)
-    case ('abs_min')
-      datum_value = minval(abs(expression_value_vec))
-    case ('abs_max') 
-      datum_value = maxval(abs(expression_value_vec))
-    case ('max-min')
-      datum_value = maxval(expression_value_vec) - minval(expression_value_vec)
-    case ('average', 'integral')
-      datum_value = 0
-      s_len = 0
+    case ('min');      datum_value = minval(expression_value_vec)
+    case ('max');      datum_value = maxval(expression_value_vec)
+    case ('abs_min');  datum_value = minval(abs(expression_value_vec))
+    case ('abs_max');  datum_value = maxval(abs(expression_value_vec))
+    case ('max-min');  datum_value = maxval(expression_value_vec) - minval(expression_value_vec)
+
+    case ('integral', 'average')
       do i = 1, size(info)
-        if (.not. associated(info(i)%ele)) exit  ! Skip length weighted average if no associated lattice element.
-        datum_value = datum_value + expression_value_vec(i) * info(i)%ele%value(l$)
-        s_len = s_len + info(i)%ele%value(l$)
+        if (.not. associated(info(i)%ele)) then
+          call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENTS TO INTEGRATE OVER.' // datum%data_type(12:), why_invalid, .true.)
+          return
+        endif
+        info(i)%s = tao_datum_s_position(datum, info(i)%ele)
       enddo
 
-      if (datum%merit_type == 'average') then
-        if (i == size(info) + 1 .and. s_len /= 0) then
-          datum_value = datum_value / s_len
-        else  ! skip length weighted average
-          datum_value = sum(expression_value_vec) / size(expression_value_vec)
-        endif
-      endif
+      datum_value = tao_datum_integrate(datum, branch, expression_value_vec, info(:)%s, valid_value, why_invalid)
+      return
+
     case ('target')
       if (size(expression_value_vec) /= 1) then
         call tao_set_invalid (datum, 'MERIT_TYPE IS SET TO "TARGET" BUT DATUM DOES NOT EVALUATE TO A SINGLE NUMBER!', why_invalid, .true.)
@@ -3421,9 +3413,11 @@ end select
 ! End stuff
 
 if (datum%ix_ele_merit > -1) then
-  datum%s = branch%ele(datum%ix_ele_merit)%s
+  datum%s = tao_datum_s_position(datum, branch%ele(datum%ix_ele_merit))
 elseif (associated(ele)) then
-  datum%s = ele%s
+  datum%s = tao_datum_s_position(datum, ele)
+else
+  datum%s = real_garbage$
 endif
 
 if (valid_value) datum%err_message_printed = .false.  ! Reset
@@ -3468,6 +3462,7 @@ type (coord_struct), optional :: orbit(0:)
 real(rp), target :: vec(0:)
 real(rp) datum_value, ref_value, l_sum
 real(rp), pointer :: vec_ptr(:)
+real(rp), allocatable :: s_pos(:), value(:)
 
 character(*), parameter :: r_name = 'tao_load_this_datum'
 character(*), optional :: why_invalid
@@ -3544,6 +3539,13 @@ endif
 ! If there is a range
 
 if (ix_ele < ix_start) then   ! wrap around
+  if (present(good)) then
+    if (.not. all(good(0:ix_ele)) .or. .not. all(good(ix_start:n_track))) then
+      call tao_set_invalid (datum, 'CANNOT EVALUATE OVER EVALUATION RANGE.', why_invalid)
+      valid_value = .false.
+      return
+    endif
+  endif
 
   select case (datum%merit_type)
   case ('min')
@@ -3551,67 +3553,54 @@ if (ix_ele < ix_start) then   ! wrap around
     ix_m2 = minloc (vec_ptr(ix_start:n_track), 1) + ix_start - 1
     if (vec_ptr(ix_m2) < vec_ptr(ix_m2)) ix_m = ix_m2
     datum_value = vec_ptr(ix_m)
-    if (present(good)) valid_value = good(ix_m)
 
   case ('max')
     ix_m = maxloc (vec_ptr(0:ix_ele), 1) - 1
     ix_m2 = maxloc (vec_ptr(ix_start:n_track), 1) + ix_start - 1
     if (vec_ptr(ix_m2) > vec_ptr(ix_m2)) ix_m = ix_m2
     datum_value = vec_ptr(ix_m)
-    if (present(good)) valid_value = good(ix_m)
 
   case ('abs_min')
     ix_m = minloc (abs(vec_ptr(0:ix_ele)), 1) - 1
     ix_m2 = minloc (abs(vec_ptr(ix_start:n_track)), 1) + ix_start - 1
     if (abs(vec_ptr(ix_m2)) < abs(vec_ptr(ix_m2))) ix_m = ix_m2
     datum_value = abs(vec_ptr(ix_m))
-    if (present(good)) valid_value = good(ix_m)
 
   case ('abs_max')
     ix_m = maxloc (abs(vec_ptr(0:ix_ele)), 1) - 1
     ix_m2 = maxloc (abs(vec_ptr(ix_start:n_track)), 1) + ix_start - 1
     if (abs(vec_ptr(ix_m2)) > abs(vec_ptr(ix_m2))) ix_m = ix_m2
     datum_value = abs(vec_ptr(ix_m))
-    if (present(good)) valid_value = good(ix_m)
 
   case ('max-min')
     ix_m  = maxloc (vec_ptr(0:ix_ele), 1) - 1
     ix_m2 = maxloc (vec_ptr(ix_start:n_track), 1) + ix_start - 1
     if (vec_ptr(ix_m2) > vec_ptr(ix_m2)) ix_m = ix_m2
     datum_value = vec_ptr(ix_m)
-    if (present(good)) valid_value = good(ix_m)
 
     ix_m  = minloc (vec_ptr(0:ix_ele), 1) - 1
     ix_m2 = minloc (vec_ptr(ix_start:n_track), 1) + ix_start - 1
     if (vec_ptr(ix_m2) < vec_ptr(ix_m2)) ix_m = ix_m2
     datum_value = datum_value - vec_ptr(ix_m)
-    if (present(good)) valid_value = valid_value .and. good(ix_m)
 
   case ('average', 'integral')
-    ix_m = -1
-    if (present(good)) then
-      n = count(good(1:ix_ele)) + count(good(ix_start:n_track))
-      l_sum = sum(branch%ele(1:ix_ele)%value(l$), mask = good(1:ix_ele)) + &
-              sum(branch%ele(ix_start:n_track)%value(l$), mask = good(ix_start:n_track))
-      datum_value = sum(branch%ele(1:ix_ele)%value(l$) * vec_ptr(1:ix_ele), mask = good(1:ix_ele)) + &
-                    sum(branch%ele(ix_start:n_track)%value(l$) * vec_ptr(ix_start:n_track), mask = good(ix_start:n_track))
-    else
-      n = (ix_ele) + (ix_start - n_track + 1)
-      l_sum = sum(branch%ele(1:ix_ele)%value(l$)) + &
-              sum(branch%ele(ix_start:n_track)%value(l$))
-      datum_value = sum(branch%ele(1:ix_ele)%value(l$) * vec_ptr(1:ix_ele)) + &
-                    sum(branch%ele(ix_start:n_track)%value(l$) * vec_ptr(ix_start:n_track))
-    endif
+    n = ix_ele + n_track - ix_start + 2
+    allocate(s_pos(n), value(n))
 
-    if (datum%merit_type == 'average') then
-      if (l_sum == 0 .and. n == 0) then
-        valid_value = .false.
-      elseif (l_sum == 0) then
-        datum_value = datum_value / n
-      else
-        datum_value = datum_value / l_sum
-      endif
-    endif
+    n = 0
+    do i = ix_start, n_track
+      n = n + 1
+      s_pos(n) = tao_datum_s_position(datum, branch%ele(i))
+      value(n) = vec_ptr(i)
+    enddo
+
+    do i = 0, ix_ele
+      n = n + 1
+      s_pos(n) = tao_datum_s_position(datum, branch%ele(i))
+      value(n) = vec_ptr(i)
+    enddo
+
+    datum_value = tao_datum_integrate(datum, branch, s_pos, vec_ptr, valid_value, why_invalid)
 
   case default
     call tao_set_invalid (datum, 'BAD MERIT_TYPE WHEN THERE IS A RANGE OF ELEMENTS: ' // datum%merit_type, why_invalid, .true.)
@@ -3624,57 +3613,51 @@ if (ix_ele < ix_start) then   ! wrap around
 ! no wrap case
 
 else
+
+  if (present(good)) then
+    if (.not. all(good(ix_start:ix_ele))) then
+      call tao_set_invalid (datum, 'CANNOT EVALUATE OVER EVALUATION RANGE.', why_invalid)
+      valid_value = .false.
+      return
+    endif
+  endif
+
   select case (datum%merit_type)
   case ('min')
     ix_m = minloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
     datum_value = vec_ptr(ix_m)
-    if (present(good)) valid_value = good(ix_m)
 
   case ('max')
     ix_m = maxloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
     datum_value = vec_ptr(ix_m)
-    if (present(good)) valid_value = good(ix_m)
 
   case ('abs_min')
     ix_m = minloc (abs(vec_ptr(ix_start:ix_ele)), 1) + ix_start - 1
     datum_value = abs(vec_ptr(ix_m))
-    if (present(good)) valid_value = good(ix_m)
 
   case ('abs_max')
     ix_m = maxloc (abs(vec_ptr(ix_start:ix_ele)), 1) + ix_start - 1
     datum_value = abs(vec_ptr(ix_m))
-    if (present(good)) valid_value = good(ix_m)
 
   case ('max-min')
     ix_m = maxloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
     datum_value = vec_ptr(ix_m)
-    if (present(good)) valid_value = good(ix_m)
 
     ix_m = minloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
     datum_value = datum_value - vec_ptr(ix_m)
-    if (present(good)) valid_value = valid_value .and. good(ix_m)
 
   case ('average', 'integral')
-    ix_m = -1
-    if (present(good)) then
-      n = count(good(ix_start:ix_ele))
-      l_sum = sum(branch%ele(ix_start:ix_ele)%value(l$), mask = good(ix_start:ix_ele))
-      datum_value = sum(branch%ele(ix_start:ix_ele)%value(l$) * vec_ptr(ix_start:ix_ele), mask = good(ix_start:ix_ele))
-    else
-      n = ix_ele - ix_start + 1
-      l_sum = sum(branch%ele(ix_start:ix_ele)%value(l$))
-      datum_value = sum(branch%ele(ix_start:ix_ele)%value(l$) * vec_ptr(ix_start:ix_ele))
-    endif
+    n = ix_ele - ix_start + 1
+    allocate(s_pos(n), value(n))
 
-    if (datum%merit_type == 'average') then
-      if (l_sum == 0 .and. n == 0) then
-        valid_value = .false.
-      elseif (l_sum == 0) then
-        datum_value = datum_value / n
-      else
-        datum_value = datum_value / l_sum
-      endif
-    endif
+    n = 0
+    do i = ix_start, ix_ele
+      n = n + 1
+      s_pos(n) = tao_datum_s_position(datum, branch%ele(i))
+      value(n) = vec_ptr(i)
+    enddo
+
+    datum_value = tao_datum_integrate(datum, branch, s_pos, vec_ptr, valid_value, why_invalid)
 
   case default
     call tao_set_invalid (datum, 'BAD MERIT_TYPE WHEN THERE IS A RANGE OF ELEMENTS: ' // datum%merit_type, why_invalid, .true.)
@@ -3683,13 +3666,111 @@ else
   end select
 
   if (.not. valid_value) call tao_set_invalid (datum, 'INVALID DATA IN RANGE FROM ELE_START TO ELE_REF', why_invalid)
-
 endif
 
 datum%ix_ele_merit = ix_m
 if (ref_value /= 0) deallocate (vec_ptr)
 
 end subroutine tao_load_this_datum
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function tao_datum_s_position (datum, ele) result (s_pos)
+!
+! Routine to calculate the longitudinal position associated with a datum.
+!
+! Input:
+!   datum     -- tao_data_struct: Datum under conideration.
+!   ele       -- ele_struct: Associated lattice element.
+!
+! Output
+!   s_pos     -- real(rp): Associated longitudinal position.
+!-
+
+function tao_datum_s_position (datum, ele) result (s_pos)
+
+type (tao_data_struct) datum
+type (ele_struct) ele
+
+real(rp) s_pos
+
+!
+
+select case (datum%eval_point)
+case (anchor_beginning$); s_pos = ele%s_start
+case (anchor_center$);    s_pos = 0.5_rp * (ele%s_start + ele%s)
+case (anchor_end$);       s_pos = ele%s
+end select
+
+end function tao_datum_s_position
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function tao_datum_integrate (datum, branch, values, s_pos, valid_value, why_invalid) result (integral)
+!
+! Routine to integrate or average an array of values associated with a datum.
+!
+! Input:
+!   datum         -- tao_data_struct: Datum under consideration.
+!   branch        -- branch_struct: Associated lattice branch.
+!   values(:)     -- real(rp): Array of values.
+!   s_pos(:)      -- real(rp): Array of s-positions of the values.
+!
+! Output:
+!   valid_value   -- logical: Set false if, for example, all s_pos(:) are the same.
+!   why_invalid   -- character(*): Information string if there is a problem.
+!   integral      -- real(rp): Integral or average depending upon datum%merit_type.
+!-
+
+function tao_datum_integrate (datum, branch, values, s_pos, valid_value, why_invalid) result (integral)
+
+type (tao_data_struct) datum
+type (branch_struct) branch
+
+real(rp) values(:), s_pos(:)
+real(rp) integral,  ds1, ds2
+integer i, n
+
+logical valid_value
+character(*) why_invalid
+
+!
+
+valid_value = .false.
+
+if (size(values) /= size(s_pos)) then
+  call tao_set_invalid (datum, 'INTERNAL ERROR. PLEASE REPORT!', why_invalid)
+  return
+endif
+
+n = size(values)
+if (n < 2) then
+  call tao_set_invalid (datum, 'NUMBER OF POINTS TO INTEGRATE/AVERAGE OVER LESS THAN 2!')
+  return
+endif
+
+ds1 = s_pos(2) - s_pos(1)
+if (ds1 < 0) ds1 = ds1 + branch%param%total_length
+
+ds2 = s_pos(n) - s_pos(n-1)
+if (ds2 < 0) ds2 = ds2 + branch%param%total_length
+
+integral = 0.5_rp * (values(1) * ds1 + values(n) * ds2)
+
+do i = 2, n-1
+  ds2 = s_pos(i+1) - s_pos(i)
+  if (ds2 < 0) ds2 = ds2 + branch%param%total_length
+  integral = integral + 0.5_rp * values(n) * (ds1 + ds2)
+  ds1 = ds2
+enddo
+
+valid_value = .true.
+
+end function tao_datum_integrate
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
