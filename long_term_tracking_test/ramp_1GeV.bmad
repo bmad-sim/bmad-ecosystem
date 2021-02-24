@@ -1,0 +1,11 @@
+! Number of turns, time (sec): (12.81337 usec/turn)
+!   5GeV: 2611, 0.033455 
+!  10GeV: 4873, 0.062439
+!  18GeV: 8493, 0.108811
+
+ramp_pc: ramper = {*[p0c]: 1e9 + 4e12*time}, var = {time}
+
+ramp_volt1: ramper = {rfcavity::*[voltage]:{1e6, 2e6}}, var = {time}, x_knot = {0, 2.5e-6}
+
+ramp_phase: ramper = {rfcavity::*[phi0]:{0.0, 0.1}}, var = {time}, x_knot = {0, 2.5e-6}
+
