@@ -116,6 +116,7 @@ if (ix1 == 0) then
     return
   endif
   datum%data_type = name
+  ele_name = dflt_ele%name
 
 else
   datum%data_type = name(1:ix1-1)
@@ -164,6 +165,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       if (present(dflt_ele_start)) then
         if (associated(dflt_ele_start)) then
           n_loc = dflt_ele%ix_ele - dflt_ele_start%ix_ele + 1
+          if (n_loc < 0) n_loc = n_loc + dflt_ele%branch%n_ele_track + 1
         endif
       endif
 
@@ -205,6 +207,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         if (present(dflt_ele_start)) then
           if (associated(dflt_ele_start)) then
             datum%ix_ele = dflt_ele_start%ix_ele + j - 1
+            if (datum%ix_ele > dflt_ele%branch%n_ele_track) datum%ix_ele = datum%ix_ele - dflt_ele%branch%n_ele_track + 1
           endif
         endif
 
@@ -1621,12 +1624,16 @@ case ('expression:', 'expression.')
 
     case ('integral', 'average')
       do i = 1, size(info)
-        if (.not. associated(info(i)%ele)) then
-          call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENTS TO INTEGRATE OVER.' // datum%data_type(12:), why_invalid, .true.)
-          return
-        endif
-        info(i)%s = tao_datum_s_position(datum, info(i)%ele)
+        j = i + ele_start%ix_ele - 1
+        if (j > branch%n_ele_track) j = j - branch%n_ele_track - 1
+        info(i)%s = tao_datum_s_position(datum, branch%ele(j))
       enddo
+
+      if (j /= ele%ix_ele) then
+        call out_io (s_error$, r_name, 'BOOKKEEPING ERROR IN EVALUATING INTEGRAL/AVERAGE OF EXPRESSION.', &
+                                       'PLEASE REPORT!')
+        call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
+      endif
 
       datum_value = tao_datum_integrate(datum, branch, expression_value_vec, info(:)%s, valid_value, why_invalid)
       return
