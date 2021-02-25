@@ -77,18 +77,14 @@ do n = 0, ubound(erl%branch, 1)
     end do
 
     if (ele%key == sbend$) then
-      write (1, '(a, 2x, a, 6es18.10)') ele%name, key_name(ele%key), ele%value(l$), &
-               ele%value(x1_limit$), &
+      write (1, '(a, 2x, a, 6es18.10)') ele%name, key_name(ele%key), ele%value(l$), ele%value(x1_limit$), &
                ele%value(angle$), ele%value(e1$), ele%value(e2$)
     else if (ele%key == wiggler$) then
-      write (1, '(a, 2x, a, 6es18.10)') ele%name, key_name(ele%key), ele%value(l$), &
-               ele%value(x1_limit$), ele%value(x_ray_line_len$)
+      write (1, '(a, 2x, a, 6es18.10)') ele%name, key_name(ele%key), ele%value(l$), ele%value(x1_limit$)
     else if (ele%type == "BPM") then
-      write (1, '(a30, a17, 11x, 2es18.10)') ele%name, "BPMON", ele%value(l$), &
-               ele%value(x1_limit$)
+      write (1, '(a30, a17, 11x, 2es18.10)') ele%name, "BPMON", ele%value(l$), ele%value(x1_limit$)
     else
-      write (1, '(a, 2x, a, 6es18.10)') ele%name, key_name(ele%key), ele%value(l$), &
-               ele%value(x1_limit$)
+      write (1, '(a, 2x, a, 6es18.10)') ele%name, key_name(ele%key), ele%value(l$), ele%value(x1_limit$)
     endif
 
     if (ele%value(l$) < 0) then

@@ -129,7 +129,7 @@ ele_type_to_bmad = {
 ele_param_translate = {
     'apert:dx': 'x_offset',
     'apert:dy': 'y_offset',
-    'bend:k0': ['g_err', ' / @l@'],
+    'bend:k0': ['dg', ' / @l@'],
     'bend:k1': ['k1', ' / @l@'],
     'bend:fb1': ['hgap', '/6, fint = 0.5'],
     'bend:fb2': ['hgapx', '/6, fintx = 0.5'],
@@ -1051,6 +1051,10 @@ def parse_directive(directive, sad_info):
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 # Main program.
+
+if sys.version_info.major != 3:
+  print ('This script requires Python 3!\n')
+  sys.exit(1)
 
 # Read the parameter file specifying the SAD lattice file, etc.
 
