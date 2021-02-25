@@ -3664,7 +3664,8 @@ else
       value(n) = vec_ptr(i)
     enddo
 
-    datum_value = tao_datum_integrate(datum, branch, s_pos, vec_ptr, valid_value, why_invalid)
+    datum_value = tao_datum_integrate(datum, branch, s_pos, value, valid_value, why_invalid)
+    ix_m = -1
 
   case default
     call tao_set_invalid (datum, 'BAD MERIT_TYPE WHEN THERE IS A RANGE OF ELEMENTS: ' // datum%merit_type, why_invalid, .true.)
