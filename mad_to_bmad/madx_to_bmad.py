@@ -498,7 +498,7 @@ def parse_element(dlist, write_to_file, command):
     kill_ent = False; kill_exi = False
     if 'kill_ent_fringe' in params: kill_ent = (params['kill_ent_fringe'] == 'true')
     if 'kill_exi_fringe' in params: kill_exi = (params['kill_exi_fringe'] == 'true')
-    if 'k0' in params: params['g_err'] = params.pop('k0')
+    if 'k0' in params: params['dg'] = params.pop('k0')
     if 'k0s' in params and 'l' in params: params['a0'] = params.pop('k0s') + ' * ' + params['l']
 
     if kill_ent and kill_exi:
