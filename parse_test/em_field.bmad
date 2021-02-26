@@ -44,7 +44,7 @@ m1: lcavity, l = 1, rf_frequency = 1e6, voltage = 2, voltage_err = 1, cylindrica
 m2: lcavity, l = m1[l], voltage = m1[voltage], rf_frequency = m1[rf_frequency], field_calc = m1[field_calc]
 m2[cylindrical_map] = m1[cylindrical_map]
 
-g1: rfcavity, voltage = 2, rf_frequency = 0e6, grid_field = {
+g1: rfcavity, voltage = 2, rf_frequency = 500e6, grid_field = {
   geometry = xyz,
   field_type = electric,
   harmonic = 0,
