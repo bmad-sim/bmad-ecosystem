@@ -102,7 +102,7 @@ given. Example:
 
 \tao is able to handle arithmetic expressions within commands (\sref{c:command}) and in strings in a
 \tao initialization file.  Arithmetic expressions can be used in a place where a real value or an
-array of real values are required.  The standard operators are defined: \hfil\break \hspace*{0.15in}
+array of real values are required.  The standard binary operators are defined: \hfil\break \hspace*{0.15in}
 \begin{tabular}{ll}
   $a + b$           & Addition        \\
   $a - b$           & Subtraction     \\
@@ -110,8 +110,8 @@ array of real values are required.  The standard operators are defined: \hfil\br
   $a \; / \; b$     & Division        \\
   $a \, \land \, b$ & Exponentiation  \\
 \end{tabular} \newline
-The following intrinsic functions are also recognized (this is the
-same list as the \bmad parser): \hfil\break
+The following intrinsic functions are also recognized (this is the same list as the \bmad parser):
+\hfil\break
 \index{intrinsic functions}
 \hspace*{0.15in}
 \begin{tabular}{ll}
@@ -133,12 +133,18 @@ same list as the \bmad parser): \hfil\break
   \vn{nint(x)}      & Nearest integer to x \\
   \vn{floor(x)}     & Nearest integer less than x \\
   \vn{ceiling(x)}   & Nearset integer greater than x \\
+  \vn{rms(arr)}     & RMS value of an array \\
+  \vn{average(arr)} & Average value of an array
 \end{tabular} \newline
-Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
-Setting the seed is described in Section~\sref{s:globals}.
+Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator.  Setting the seed is
+described in Section~\sref{s:globals}.
 
-See the following sections for the syntax for using data, variable, and
-lattice parameters in an expression.
+Expressions may involve arrays of values. If an array is For example:
+\begin{example}
+  lat::orbit.x[5:8]
+
+See the following sections for the syntax for using data, variable, and lattice parameters in an
+expression. Use the \vn{show value} command (\sref{s:show.value}) to show the results of expressions.
 
 %------------------------------------------------------------------------
 \section{Specifying Data Parameters in Expressions}
