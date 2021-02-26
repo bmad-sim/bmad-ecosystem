@@ -14,7 +14,7 @@
 
 function rms_value(val_arr, good_val, ave_val) result (rms_val)
 
-use sim_utils_interface
+use output_mod, dummy => rms_value
 
 implicit none
 
