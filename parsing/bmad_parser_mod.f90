@@ -275,9 +275,9 @@ if (ele%key == wiggler$ .or. ele%key == undulator$) then
     call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
     if (err_flag) return
     if (word == 'L_POLE') then
-      ele%value(l_period$) = 2 * value
+      ele%value(l_period$) = 2.0_rp * value
     else
-      ele%value(n_period$) = value / 2
+      ele%value(n_period$) = 0.5_rp * value
     endif
     return
   endif
@@ -569,11 +569,6 @@ case ('ELE_BEGINNING', 'ELE_CENTER', 'END_END', 'REF_BEGINNING', 'REF_CENTER', '
 end select
 
 select case (word)
-case ('X_RAY_LINE_LEN')
-  call parser_error ('X_RAY_LINE_LEN NO LONGER SUPPORTED. WILL BE IGNORED. PLEASE USE A PHOTON_FORK ELEMENT INSTEAD', level = s_warn$)
-  err_flag = .false.
-  return
-
 case ('TILT')
   if (ele%key == sbend$ .or. ele%key == rbend$) then
     call parser_error ('BENDS HAVE A "REF_TILT" ATTRIBUTE BUT NOT A "TILT" ATTRIBUTE.')
@@ -5371,7 +5366,7 @@ endif
 if (ele_pt == anchor_beginning$) then
   super_ele%s = super_ele%s + super_ele%value(l$)
 elseif (ele_pt == anchor_center$ .or. ele_pt == not_set$) then
-  super_ele%s = super_ele%s + super_ele%value(l$) / 2
+  super_ele%s = super_ele%s + 0.5_rp * super_ele%value(l$)
 elseif (ele_pt /= anchor_end$) then
   call parser_error ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!')
   if (global_com%exit_on_error) call err_exit
@@ -5410,7 +5405,7 @@ endif
 if (ref_pt == anchor_beginning$) then
   super_ele%s = super_ele%s + s_ref_begin
 elseif (ref_pt == anchor_center$ .or. ref_pt == not_set$) then
-  super_ele%s = super_ele%s + (s_ref_begin + s_ref_end) / 2
+  super_ele%s = super_ele%s + 0.5_rp * (s_ref_begin + s_ref_end)
 elseif (ref_pt == anchor_end$) then
   super_ele%s = super_ele%s + s_ref_end
 else
@@ -6488,22 +6483,22 @@ case (sbend$, rbend$)
       if (ele%value(l_chord$) == 0) then
         angle = 0
       elseif (angle /= 0) then
-        ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+        ele%value(l$) = ele%value(l_chord$) * angle / (2.0_rp * sin(0.5_rp*angle))
       elseif (ele%value(g$) /= 0) then
-        a = ele%value(l_chord$) * ele%value(g$) / 2
+        a = 0.5_rp * ele%value(l_chord$) * ele%value(g$)
         if (abs(a) >= 1) then
           call parser_error ('G * L FOR RBEND IS TOO LARGE TO BE PHYSICAL! ' // ele%name)
           return
         endif
         angle = 2 * asin(a)
-        ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+        ele%value(l$) = ele%value(l_chord$) * angle / (2.0_rp * sin(0.5_rp*angle))
       else  ! g and angle are zero.
         ele%value(l$) = ele%value(l_chord$)
       endif
     endif
     
-    ele%value(e1$) = ele%value(e1$) + angle / 2
-    ele%value(e2$) = ele%value(e2$) + angle / 2
+    ele%value(e1$) = ele%value(e1$) + 0.5_rp * angle
+    ele%value(e2$) = ele%value(e2$) + 0.5_rp * angle
     ele%key = sbend$
 
   endif

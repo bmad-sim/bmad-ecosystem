@@ -144,7 +144,8 @@ if (this_ramp%control%type == expression$) then
 else
   call spline_akima_interpolate (this_ramp%control%x_knot, ctl%y_knot, this_ramp%control%var(1)%value, ok, ctl%value)
   if (.not. ok) then
-    call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
+    call out_io (s_error$, r_name, 'VARIABLE VALUE (\es12.4\) OF RAMPER ELEMENT: ' // this_ramp%name, &
+                                   'IS OUTSIDE OF SPLINE KNOT RANGE OF SLAVE: ' // ctl%slave_name)
     err_flag = .true.
     return
   endif
