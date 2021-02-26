@@ -17,7 +17,7 @@ gr2: group = {q3}, end_edge
 gr3: group = {q3}, l
 
 s: solenoid, l = 10
-lc: lcavity, l = 6, superimpose, ref =  s, create_jumbo_slave = T
+lc: lcavity, l = 6, superimpose, ref =  s, create_jumbo_slave = T, rf_frequency = 500e6
 
 gr4: group = {lc}, l = 8
 
