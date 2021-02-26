@@ -50,8 +50,15 @@ integer ix_mag_max, ix_elec_max
 
 logical, optional :: make_matrix
 
+character(*), parameter :: r_name = 'track_a_lcavity'
 
 ! 
+
+if (ele%value(rf_frequency$) == 0) then
+  call out_io (s_error$, r_name, 'LCAVITY ELEMENT HAS ZERO RF_FREQUENCY: ' // ele%name)
+  orbit%state = lost$
+  return
+endif
 
 length = ele%value(l$)
 if (length == 0) return

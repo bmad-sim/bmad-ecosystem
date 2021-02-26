@@ -35,7 +35,15 @@ integer ix_mag_max, ix_elec_max
 logical, optional :: make_matrix
 logical drifting
 
+character(*), parameter :: r_name = 'track_a_rfcavity'
+
 !
+
+if (ele%value(rf_frequency$) == 0) then
+  call out_io (s_error$, r_name, 'RFCAVITY ELEMENT HAS ZERO RF_FREQUENCY: ' // ele%name)
+  orbit%state = lost$
+  return
+endif
 
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
