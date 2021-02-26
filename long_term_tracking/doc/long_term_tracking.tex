@@ -167,7 +167,7 @@ simulation mode is set by the \vn{ltt%simulation_mode} parameter in the master i
 \begin{code}
   "CHECK"   ! Quick tracking check.
   "SINGLE"  ! Single particle tracking.
-  "BUNCH"   ! Bunch tracking.
+  "BEAM"    ! Beam tracking.
   "STAT"    ! Lattice statistics.
 \end{code}
 
@@ -196,8 +196,8 @@ In this mode a single particle is tracked for \vn{ltt%n_turns} turns. The name o
 by the \vn{ltt%particle_output_file} parameter (\sref{s:input}). The particle position will be output every
 \vn{ltt%particle_output_every_n_turns} turns.
 %
-\item["BUNCH"] \Newline
-In this mode a particle bunch is tracked for \vn{ltt%n_turns} turns. The output data file(s) format is
+\item["BEAM"] \Newline
+In this mode a particle beam is tracked for \vn{ltt%n_turns} turns. The output data file(s) format is
 described in Section~\sref{s:part.out}.
 %
 \item["STAT"] \Newline
@@ -215,7 +215,7 @@ Three data files are produced:
 \Section{Tracking Methods}
 \label{s:track.methods}
 
-When tracking with \vn{ltt%simulation_mode} set to \vn{"SINGLE"} or \vn{"BUNCH"}, the setting of
+When tracking with \vn{ltt%simulation_mode} set to \vn{"SINGLE"} or \vn{"BEAM"}, the setting of
 \vn{ltt%tracking_method} determines how particles are tracked. Possible settings are:
 \begin{code}
   "MAP"     ! Tracking using maps.
@@ -392,7 +392,7 @@ In the lattice file, individual ramper elements may be toggled on or off using t
 \end{code}
 
 If \vn{ltt%ramping_on} is set to True, ramping will be done if \vn{ltt%simulation_mode} is set to
-"\vn{BUNCH}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.
+"\vn{BEAM}" or "\vn{SINGLE}". Ramping will be ignored in the other modes.
 
 \ltt program parameters that affect ramping in the simulation are:
 \begin{code}
@@ -421,7 +421,7 @@ If \vn{beam_init%use_particle_start_for_center} is set to \vn{True}, instead of 
 used. If the \vn{ltt%add_closed_orbit_to_init_position} logical is set to \vn{True}, the closed
 orbit position is added in to the center position calculation.
 
-When the \vn{ltt%simulation_mode} is set to \vn{"BUNCH"}, the initial particle positions are calculated
+When the \vn{ltt%simulation_mode} is set to \vn{"BEAM"}, the initial particle positions are calculated
 using the \vn{beam_init} structure as discussed in the \vn{Beam Initialization} chapter of the Bmad
 manual. Like the other modes, if the \vn{ltt%add_closed_orbit_to_init_position} logical is set to
 \vn{True}, the closed orbit position is added to the initial particle positions. To read in a file
@@ -520,7 +520,6 @@ Example:
 &params
   ! Input
   ltt%lat_file   =  "lat.bmad"     ! Bmad lattice file
-  ltt%common_master_input_file = ""
   ltt%ramper_on = False
   ltt%ramper_start_time = 0
 
@@ -542,7 +541,7 @@ Example:
   ltt%column(3) = "rf0##1[phi0] + z/rf0##1[rf_wavelength]", "dPhi", "f12.8"
 
   ! Simulation parameters
-  ltt%simulation_mode    = "BUNCH"
+  ltt%simulation_mode    = "BEAM"
   ltt%tracking_method    = "BMAD"
   ltt%ele_start          = ""
   ltt%ele_stop           = ""            ! Used for "CHECK" simulation_mode 
@@ -587,18 +586,6 @@ simulation parameters.
 
 The input files that can be specified in the \vn{params} namelist of the master input file are:
 \begin{description}
-\item[ltt\%common_master_input_file] \Newline
-The \vn{common_master_input_file} is used in situations where you want to run multipole simulations
-with multiple initialization files and where most parameters are the same across all the
-simulations. In this case, an initialization file containing the parameters that are the same can be
-created along with individual initialization files one for each simulation. The individual files
-should set \vn{common_master_input_file} to the name of the common file and the individual files
-should only set the parameters that are different for that simulation. Parameter values set in the
-individual files will override values set in the common file. Using a common master input file means
-that there is only one file to modify when common parameters are changed as opposed to having to
-modify all the initialization files. If \vn{common_master_input_file} is set to blank (the default),
-no common master file is used.
-%
 \item[ltt\%lat_file] \Newline
 Name of the Bmad lattice file to use. This name is required.
 \end{description}
@@ -650,13 +637,13 @@ value of \vn{ltt%averaging_window} should be set to an odd number. If the value 
 number.
 %
 \item[ltt\%bunch_binary_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. This parameter sets the name of the file
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file
 that is created to hold the particle positions at the end of tracking. This is similar to
 \vn{ltt%particle_output_file} but here the file will be a binary file that is portable to other
 programs and can also be used as input to the \ltt program.
 %
 \item[ltt\%averages_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the file that contain orbital
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the file that contain orbital
 and spin positions averaged over all the particles of the bunch as well as the six beam size sigmas
 ($\sigma_x$, $\sigma_{px}$, etc.).  Each line in the file represents the averages at the end of a
 turn and a new line is added every \vn{ltt%averages_ouput_every_n_turns} number of turns. If
@@ -728,7 +715,7 @@ In this example, output will happen every 1000 turns.
 Also see: \vn{averages_output_every_n_turns}.
 %
 \item[ltt\%particle_output_file] \Newline
-Used with \vn{ltt%simulation_mode} set to \vn{"BUNCH"}. The name of the ASCII file or files that are
+Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the ASCII file or files that are
 created to hold the particle positions. A file is created every \vn{ltt%particle_ouput_every_n_turns}
 turns. See Section~\sref{s:part.out} for more details. If \vn{ltt%particle_ouput_file} is blank, no
 particle output file is created. See also \vn{ltt%bunch_binary_output_file} which will produce a
@@ -759,7 +746,7 @@ measure of the beam size defined by
 where $\bf dr$ is the deviation of the particle phase space position from the average and $<\ldots>$
 denotes an average over all particles. 
 
-With \vn{ltt%simulation_mode} set to \vn{"BUNCH"}, Each line in the file represents the averages at
+With \vn{ltt%simulation_mode} set to \vn{"BEAM"}, Each line in the file represents the averages at
 the end of a turn and a new line is added every \vn{ltt%ouput_every_n_turns} number of turns. With
 \vn{ltt%simulation_mode} set to "SINGLE"), The average is done over all the turns. Data is always
 recorded when the beam is at the \vn{ltt%ele_start} position independent of where the lattice
@@ -876,7 +863,7 @@ messages is set by \vn{ltt%timer_print_dtime} which is a number in seconds.
 %
 \item[ltt\%tracking_method] \Newline
 String switch which sets how particles are tracked when the \vn{simulation_mode} is set to
-"\vn{BUNCH}" or "\vn{SINGLE}". Possible settings are:
+"\vn{BEAM}" or "\vn{SINGLE}". Possible settings are:
 \begin{code}
   "MAP"     ! Tracking using maps.
   "PTC"     ! Element-by-element tracking with PTC. Slow.
@@ -906,7 +893,7 @@ integral calculation. Additionally, the longitudinal beam size is calculated via
 \label{s:part.out}
 
 The following describes the particle data output format. Particle data is outputted when the
-\vn{ltt%simulation_mode} is set to \vn{"BUNCH"}.
+\vn{ltt%simulation_mode} is set to \vn{"BEAM"}.
 
 Particle data is always recorded when the beam is at the \vn{ltt%ele_start} position independent of
 where the lattice begins and ends.
