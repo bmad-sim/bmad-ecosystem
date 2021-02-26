@@ -1626,7 +1626,7 @@ case ('expression:', 'expression.')
       call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
     endif
 
-    datum_value = tao_datum_integrate(datum, branch, expression_value_vec, info(:)%s, valid_value, why_invalid)
+    datum_value = tao_datum_integrate(datum, branch, info(:)%s, expression_value_vec, valid_value, why_invalid)
     return
 
   case ('target')
@@ -3708,15 +3708,15 @@ end function tao_datum_s_position
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function tao_datum_integrate (datum, branch, values, s_pos, valid_value, why_invalid) result (integral)
+! Function tao_datum_integrate (datum, branch, s_pos, values, valid_value, why_invalid) result (integral)
 !
 ! Routine to integrate or average an array of values associated with a datum.
 !
 ! Input:
 !   datum         -- tao_data_struct: Datum under consideration.
 !   branch        -- branch_struct: Associated lattice branch.
-!   values(:)     -- real(rp): Array of values.
 !   s_pos(:)      -- real(rp): Array of s-positions of the values.
+!   values(:)     -- real(rp): Array of values.
 !
 ! Output:
 !   valid_value   -- logical: Set false if, for example, all s_pos(:) are the same.
@@ -3724,7 +3724,7 @@ end function tao_datum_s_position
 !   integral      -- real(rp): Integral or average depending upon datum%merit_type.
 !-
 
-function tao_datum_integrate (datum, branch, values, s_pos, valid_value, why_invalid) result (integral)
+function tao_datum_integrate (datum, branch, s_pos, values, valid_value, why_invalid) result (integral)
 
 type (tao_data_struct) datum
 type (branch_struct) branch
