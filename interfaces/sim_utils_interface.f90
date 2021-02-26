@@ -269,9 +269,10 @@ function index_nocase(string1, string2) result (indx)
   character(*) string2
 end function
 
-function int_str(int) result (str)
+function int_str(int, width) result (str)
   implicit none
   integer int
+  integer, optional :: width
   character(:), allocatable :: str
 end function
 
