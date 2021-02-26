@@ -2,7 +2,6 @@
   ltt%lat_file = 'simple_ring.bmad'         ! Lattice file
   ltt%ele_start = '2'                   ! Where to start in the lattice
   ltt%ele_stop = ''                     ! Where to start in the lattice
-  ltt%common_master_input_file = ''
 
   ltt%particle_output_file = 'bmad.dat'
   ltt%averages_output_file = 'ave.dat'

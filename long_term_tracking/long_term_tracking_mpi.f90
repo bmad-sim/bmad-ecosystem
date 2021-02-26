@@ -96,7 +96,7 @@ end select
 
 if (.not. ltt_com%using_mpi) then
   print '(a, i0)', 'Number of threads is one!'
-  call ltt_run_bunch_mode(lttp, ltt_com, beam_init)  ! Beam tracking
+  call ltt_run_beam_mode(lttp, ltt_com, beam_init)  ! Beam tracking
   stop
 endif
 
@@ -274,7 +274,7 @@ else  ! Is a slave
     call mpi_recv (bunch0%particle, dat_size, MPI_BYTE, MPI_ANY_SOURCE, particle_tag$, MPI_COMM_WORLD, stat, ierr)
 
     ! Run
-    call ltt_run_bunch_mode(lttp, ltt_com, beam_init, sd_arr, bunch0)  ! Beam tracking
+    call ltt_run_beam_mode(lttp, ltt_com, beam_init, sd_arr, bunch0)  ! Beam tracking
     sd_arr_dat_size = size(sd_arr) * storage_size(sd_arr(1)) / 8
     call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Sending Data... ' // int_str(sd_arr_dat_size))
     call mpi_send (sd_arr, sd_arr_dat_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)

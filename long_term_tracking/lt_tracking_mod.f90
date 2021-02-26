@@ -41,7 +41,6 @@ type ltt_params_struct
   character(40) :: ele_start = ''
   character(40) :: ele_stop = ''
   character(200) :: lat_file = ''
-  character(200) :: common_master_input_file = ''
   character(200) :: particle_output_file = ''
   character(200) :: bunch_binary_output_file = ''
   character(200) :: sigma_matrix_output_file = ''
@@ -68,8 +67,9 @@ type ltt_params_struct
   logical :: add_closed_orbit_to_init_position = .true.
   logical :: symplectic_map_tracking = .false.
   logical :: split_bends_for_radiation = .false.
-  integer :: mpi_runs_per_subprocess = 4                  ! Number of runs a slave process will take on average.
+  integer :: mpi_runs_per_subprocess = 4        ! Number of runs a slave process will take on average.
   logical :: debug = .false.
+  logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
 end type
 
 ! A section structure is either:
@@ -95,8 +95,10 @@ type ltt_com_struct
   type (coord_struct), allocatable :: bmad_closed_orb(:)
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
-  type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper elements.
+  type (ele_pointer_struct), allocatable :: ramper(:)    ! Ramper element locations.
+  type (bunch_struct) bunch                    ! Used when regression testing.
   integer :: n_ramper_loc = 0
+  integer, allocatable :: ix_wake_ele(:)     ! List of element indexes where a wake is applied.
   integer :: ix_branch = 0                   ! Lattice branch being tracked.
   real(rp) :: ptc_closed_orb(6) = 0
   real(rp) :: time_start = 0
@@ -108,6 +110,7 @@ type ltt_com_struct
   integer :: mpi_ix0_particle = 0              ! Index of first particle
   logical :: using_mpi = .false.
   character(200) :: mpi_data_dir = ''          ! Temporary directory For storing particle position data when running with mpi.
+  character(200) :: master_input_file = ''
 end type
 
 integer, parameter :: new$ = 0,  valid$ = 1, written$ = 2
@@ -143,8 +146,9 @@ type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
 
-integer ir, i, ix, n_loc
-character(200) init_file, arg
+real(rp) dummy
+integer ir, i, n, ix, n_loc
+character(200) arg
 character(40) m_name
 character(*), parameter :: r_name = 'ltt_init_params'
 logical err
@@ -159,7 +163,7 @@ ltt_com_global => ltt_com
 ! Parse command line
 
 lat => ltt_com%lat
-init_file = ''
+ltt_com%master_input_file = ''
 
 i = 0
 do while (i < cesr_iargc())
@@ -170,40 +174,28 @@ do while (i < cesr_iargc())
   case ('-debug')
     ltt_com%debug = .true.
   case default
-    if (init_file /= '') then
+    if (ltt_com%master_input_file /= '') then
       print '(2a)', 'Extra stuff on the command line: ', quote(arg)
       print '(a)',  'Stopping here.'
       stop
     endif
-    init_file = arg
+    ltt_com%master_input_file = arg
   end select
 end do
 
-if (init_file == '') init_file = 'long_term_tracking.init'
+if (ltt_com%master_input_file == '') ltt_com%master_input_file = 'long_term_tracking.init'
 
 ! Read parameters
 
 if (.not. ltt_com%using_mpi .or. ltt_com%mpi_rank == master_rank$) then
-  print '(2a)', 'Initialization file: ', trim(init_file)
+  print '(2a)', 'Initialization file: ', trim(ltt_com%master_input_file)
 endif
 
-open (1, file = init_file, status = 'old', action = 'read')
+open (1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)
 close (1)
 
 call upcase_string(ltt%simulation_mode)
-
-if (ltt%common_master_input_file /= '') then
-  print '(2a)', 'Using common_master_input_file: ', trim(ltt%common_master_input_file)
-
-  open (1, file = ltt%common_master_input_file, status = 'old', action = 'read')
-  read (1, nml = params)
-  close (1)
-
-  open (1, file = init_file, status = 'old', action = 'read')
-  read (1, nml = params)
-  close (1)
-endif
 
 ! Lattice init
 
@@ -223,15 +215,17 @@ call bmad_parser (ltt%lat_file, lat)
 ! Read the master input file again so that bmad_com parameters set in the file
 ! take precedence over bmad_com parameters set in the lattice file.
 
-open (1, file = init_file, status = 'old', action = 'read')
+open (1, file = ltt_com%master_input_file, status = 'old', action = 'read')
 read (1, nml = params)  
 close (1)
 
 ! Sanity checks
 
 select case (ltt%simulation_mode)
-case ('CHECK', 'SINGLE', 'BUNCH', 'STAT')
-case default
+case ('CHECK', 'SINGLE', 'BEAM', 'STAT')
+case ('BUNCH')
+  print '(a)', '"BUNCH" SETTING FOR LTT%SIMULATION_MODE HAS BEEN CHANGED TO "BEAM"'
+case defaulT
   print '(a)', 'UNKNOWN LTT%SIMULATION_MODE: ' // ltt%simulation_mode
   stop
 end select
@@ -267,6 +261,8 @@ if (ltt%ele_start /= '') then
 else
   ltt_com%ix_branch = 0
 endif
+
+branch => lat%branch(ltt_com%ix_branch)
 
 if (ltt%simulation_mode == 'CHECK') then
   if (ltt%ele_stop /= '' .and. ltt%ele_stop /= ltt%ele_start) then
@@ -305,9 +301,23 @@ if (ltt%ramping_on) then
   endif
 endif
 
+! Get list of wake elements.
+
+if (bmad_com%sr_wakes_on) then
+  n = 0
+  do i = 1, branch%n_ele_track
+    if (.not. associated(pointer_to_wake_ele(branch%ele(i), dummy))) cycle
+    n = n + 1
+    call re_allocate(ltt_com%ix_wake_ele, n)
+    ltt_com%ix_wake_ele(n) = i
+  enddo
+  if (n == 0) then
+    print '(a)', 'Warning: bmad_com%sr_wakes_on = True but no wake elements have been defined.'
+  endif
+endif
+
 !
 
-call fullfilename (ltt%common_master_input_file, ltt%common_master_input_file)
 call fullfilename (ltt%particle_output_file, ltt%particle_output_file)
 call fullfilename (ltt%sigma_matrix_output_file, ltt%sigma_matrix_output_file)
 call fullfilename (ltt%custom_output_file, ltt%custom_output_file)
@@ -429,6 +439,7 @@ endif
 print '(a, l1)',   'bmad_com%radiation_damping_on:      ', bmad_com%radiation_damping_on
 print '(a, l1)',   'bmad_com%radiation_fluctuations_on: ', bmad_com%radiation_fluctuations_on
 print '(a, l1)',   'bmad_com%spin_tracking_on:          ', bmad_com%spin_tracking_on
+print '(a, l1)',   'bmad_com%sr_wakes_on:               ', bmad_com%sr_wakes_on
 print '(a, i8)',   'ltt%n_turns:                        ', lttp%n_turns
 print '(a, i8)',   'ltt%particle_output_every_n_turns:  ', lttp%particle_output_every_n_turns
 print '(a, i8)',   'ltt%averages_output_every_n_turns:  ', lttp%averages_output_every_n_turns
@@ -691,7 +702,7 @@ end subroutine ltt_run_single_mode
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_run_bunch_mode (lttp, ltt_com, beam_init, sum_data_array, bunch_in)
+subroutine ltt_run_beam_mode (lttp, ltt_com, beam_init, sum_data_array, bunch_in)
 
 type (ltt_params_struct) lttp
 type (beam_init_struct) beam_init
@@ -855,8 +866,9 @@ if (lttp%bunch_binary_output_file /= '') then
 endif
 
 if (present(sum_data_array)) sum_data_array = sum_data_arr
+if (lttp%regression_test) ltt_com%bunch = bunch 
 
-end subroutine ltt_run_bunch_mode
+end subroutine ltt_run_beam_mode
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1061,6 +1073,8 @@ character(4) code
 
 !
 
+if (lttp%custom_output_file == '') return
+
 select case (lttp%averages_output_every_n_turns)
 ! Stats only for end.
 case (-1)
@@ -1212,6 +1226,7 @@ write (iu,  '(a, i8)')   '# averaging_window               = ', lttp%averaging_w
 write (iu,  '(a, l1)')   '# Radiation_Damping_on           = ', bmad_com%radiation_damping_on
 write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on      = ', bmad_com%radiation_fluctuations_on
 write (iu,  '(a, l1)')   '# Spin_tracking_on               = ', bmad_com%spin_tracking_on
+write (iu,  '(a, l1)')   '# sr_wakes_on                    = ', bmad_com%sr_wakes_on
 write (iu, '(3a)')       '# Map_file_prefix                = ', quote(lttp%map_file_prefix)
 if (lttp%tracking_method == 'MAP') then
   write (iu, '(a, i0)')  '# map_order                      = ', ltt_com%sec(1)%map%map_order
@@ -1342,6 +1357,8 @@ integer i, j, iu, ix
 logical error
 
 !
+
+if (lttp%averages_output_file == '') return
 
 iu = lunget()
 
