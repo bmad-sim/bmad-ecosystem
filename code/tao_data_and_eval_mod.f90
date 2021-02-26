@@ -412,6 +412,7 @@ use pointer_lattice, only: operator(.sub.)
 use ptc_interface_mod, only: taylor_inverse
 use ptc_layout_mod, only: normal_form_rd_terms
 use measurement_mod, only: to_orbit_reading, to_eta_reading, ele_is_monitor
+use expression_mod, only: numeric$
 
 type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
@@ -1646,7 +1647,7 @@ case ('expression:', 'expression.')
 
   ! Make sure that any datums used in the expression have already been evaluated.
   do i = 1, size(datum%stack)
-    if (datum%stack(i)%name == '') cycle
+    if (datum%stack(i)%type /= numeric$) cycle
     call tao_find_data (err, datum%stack(i)%name, d_array = d_array, print_err = .false.)
     if (err .or. size(d_array) == 0) cycle  ! Err -> This is not associated then not a datum.
     dp => d_array(1)%d
