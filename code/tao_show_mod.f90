@@ -514,9 +514,9 @@ case ('beam')
         bb => u%model_branch(i)%beam
 
         if (bb%ix_track_start == not_set$) then
-          nl=nl+1; write (lines(nl), '(i4, 6x, a)') i, '.... No Tracking Done ...'
+          nl=nl+1; write (lines(nl), '(i5, 6x, a)') i, '.... No Tracking Done ...'
         else
-          nl=nl+1; write (lines(nl), '(i4, 4x, 4a, t48, 4a)') i, trim(branch%ele(bb%ix_track_start)%name), ' (', int_str(bb%ix_track_start), ')', &
+          nl=nl+1; write (lines(nl), '(i5, 4x, 4a, t48, 4a)') i, trim(branch%ele(bb%ix_track_start)%name), ' (', int_str(bb%ix_track_start), ')', &
                                                    trim(branch%ele(bb%ix_track_end)%name), ' (', int_str(bb%ix_track_end), ')'
         endif
       enddo
@@ -1118,7 +1118,7 @@ case ('data')
     ! Element names are left justified and real quantities are right justified
 
     line1 = ''; line2 = ''
-    n=9+n_name;    line2(n:) = 'Ref_Ele'  ! n = i4 + 2x + n_name + 2x + 1
+    n=10+n_name;    line2(n:) = 'Ref_Ele'  ! n = i4 + 2x + n_name + 2x + 1
     n=n+n_ref+2;   line2(n:) = 'Start_Ele'
     n=n+n_start+2; line2(n:) = 'Ele'
     n=n+n_ele+12;  line2(n:) = 'Meas           Model          Design | Opt  Plot'
@@ -1131,8 +1131,8 @@ case ('data')
 
     call re_allocate (lines, nl+100+2*size(d_array), .false.)
 
-    fmt  = '(i4, 4(2x, a), 3es16.7, 2l6)'
-    fmt2 = '(4x, 4(2x, a), 3es16.7, 2l6)'
+    fmt  = '(i5, 4(2x, a), 3es16.7, 2l6)'
+    fmt2 = '(5x, 4(2x, a), 3es16.7, 2l6)'
 
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
@@ -1192,7 +1192,7 @@ case ('data')
       nl=nl+1; lines(nl) = 'Descrip:'
       do i = 1, size(d2_ptr%descrip)
         if (d2_ptr%descrip(i) /= ' ') then
-          nl=nl+1; write(lines(nl), '(i4, 2a)') i, ': ', d2_ptr%descrip(i)
+          nl=nl+1; write(lines(nl), '(i5, 2a)') i, ': ', d2_ptr%descrip(i)
         endif
       enddo
     endif
@@ -2055,7 +2055,7 @@ case ('history')
 
     if (s%history(i)%ix /= 0) then
       if (show_labels) then
-        nl=nl+1; write (lines(nl), '(i4, 2a)') s%history(i)%ix, ': ', s%history(i)%cmd
+        nl=nl+1; write (lines(nl), '(i5, 2a)') s%history(i)%ix, ': ', s%history(i)%cmd
       else
         nl=nl+1; write (lines(nl), '(a)') s%history(i)%cmd
       endif
@@ -4781,13 +4781,13 @@ case ('value')
     endif
 
   else
-    s_fmt = '(i4, a, ' // trim(s_fmt) // ')'
+    s_fmt = '(i5, a, ' // trim(s_fmt) // ')'
     call re_allocate (lines, size(value)+100, .false.)
     do i = 1, size(value)
       nl=nl+1; write(lines(nl), s_fmt, iostat = ios) i, ':  ', value(i)
       ! For some funny reason ios can be zero on a bad format so check for a star in the string.
       if (ios /= 0 .or. index(lines(nl), '*') /= 0) then
-        write(lines(nl), '(i4, a, es24.16, a)', iostat = ios) i, ':  ', value(i), '  ! Note: Value/format mismatch detected'
+        write(lines(nl), '(i5, a, es24.16, a)', iostat = ios) i, ':  ', value(i), '  ! Note: Value/format mismatch detected'
       endif
     enddo
   endif
@@ -5193,8 +5193,8 @@ case ('wall')
 
 case ('wave')
 
-  nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_a:', s%wave%ix_a1, s%wave%ix_a2
-  nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_b:', s%wave%ix_b1, s%wave%ix_b2
+  nl=nl+1; write(lines(nl), '(a, 2i5)') 'ix_a:', s%wave%ix_a1, s%wave%ix_a2
+  nl=nl+1; write(lines(nl), '(a, 2i5)') 'ix_b:', s%wave%ix_b1, s%wave%ix_b2
 
   select case (s%wave%data_type)
   case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')

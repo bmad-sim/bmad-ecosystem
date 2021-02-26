@@ -4760,6 +4760,8 @@ call match_word(str, physical_const_list%name, ix, .true., .false.)
 if (ix > 0) then
   call re_allocate(stack%value, 1)
   stack%value(1) = physical_const_list(ix)%value
+  call tao_re_allocate_expression_info (stack%info, 1)
+  stack%info%good = .true.
   return
 endif
 
@@ -4770,6 +4772,8 @@ if (allocated(s%com%symbolic_num)) then
   if (ix > 0) then
     call re_allocate(stack%value, 1)
     stack%value(1) = s%com%symbolic_num(ix)%value
+    call tao_re_allocate_expression_info (stack%info, 1)
+    stack%info%good = .true.
     return
   endif
 endif
@@ -4862,6 +4866,8 @@ endif
 if (source == 'at_ele') then
   call re_allocate(stack%value, 1)
   stack%value(1) = tao_param_value_at_s (str, dflt_ele, dflt_orbit, err_flag)
+  call tao_re_allocate_expression_info (stack%info, 1)
+  stack%info%good = (.not. err_flag)
   return
 endif
 
@@ -4871,7 +4877,7 @@ if (source == 'lat' .or. source == 'beam') then
   call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, dflt_source, &
                               dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
-  stack%info%good = .not. err_flag
+  stack%info%good = (.not. err_flag)
   stack%type = lat_num$
   return
 
@@ -4880,7 +4886,7 @@ if (source == 'lat' .or. source == 'beam') then
 elseif (source == 'ele') then
   call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_source, dflt_component, dflt_uni)
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
-  stack%info%good = .not. err_flag
+  stack%info%good = (.not. err_flag)
   stack%type = ele_num$
   return
 
@@ -5387,11 +5393,12 @@ endif
 if (size(stk2(1)%value) == 1 .and. n_size_in > 1) then
   call re_allocate(value, n_size_in)
   value = stk2(1)%value(1)
+  if (.not. info(1)%good) value = 0
 else
   call value_transfer (value, stk2(1)%value)
+  where (.not. info%good) value = 0
 endif
 
-where (.not. info%good) value = 0
 
 n_size = size(value)
 if (n_size_in /= 0) then
