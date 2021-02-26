@@ -660,6 +660,14 @@ function real_str(r_num, n_signif) result (str)
   character(:), allocatable :: str
 end function
 
+function rms_value(val_arr, good_val, ave_val) result (rms_val)
+  import
+  implicit none
+  real(rp) val_arr(:), rms_val
+  logical, optional :: good_val(:)
+  real(rp), optional :: ave_val
+end function
+
 subroutine run_timer(command, time)
   import
   implicit none
