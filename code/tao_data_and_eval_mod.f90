@@ -1585,91 +1585,81 @@ case ('etap.')
 !-----------
 
 case ('expression:', 'expression.')
-  ! The point here is that tao_evaluate_stack is much quicker than tao_evaluate_expression.
-  ! So on the fist time through, construct datum%stack and for subsequent times, use
-  ! datum%stack with tao_evaluate_stack.
-  !! if (allocated (datum%stack)) then
-  !!   call tao_evaluate_stack (datum%stack, 1, .false., value1, good_exp, err, .true.)
-  !!   if (err) return
-  !!   datum_value = value1(1)
-  !!   valid_value = good_exp(1)
 
-  !! else ! Only do this first time through...
-    write (dflt_dat_index, '(i0)') datum%ix_d1
-    str = datum%data_type(12:)
-    do
-      ix = index(str, 'ele::#[')
-      if (ix == 0) exit
-      if (ix_ele == -1) then
-        call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENT' // datum%data_type(12:), why_invalid, .true.)
-        return
-      endif
-      str = str(1:ix+4) // trim(ele_loc_name(ele)) // str(ix+6:)
-    enddo
-
-    printit = (s%com%n_err_messages_printed < s%global%datum_err_messages_max) 
-    call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, printit, datum%stack, tao_lat%name, &
-                   datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset)
-    if (err) then
-      call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
+  write (dflt_dat_index, '(i0)') datum%ix_d1
+  str = datum%data_type(12:)
+  do
+    ix = index(str, 'ele::#[')
+    if (ix == 0) exit
+    if (ix_ele == -1) then
+      call tao_set_invalid (datum, 'NO ASSOCIATED ELEMENT' // datum%data_type(12:), why_invalid, .true.)
       return
     endif
+    str = str(1:ix+4) // trim(ele_loc_name(ele)) // str(ix+6:)
+  enddo
 
-    select case (datum%merit_type)
-    case ('min');      datum_value = minval(expression_value_vec)
-    case ('max');      datum_value = maxval(expression_value_vec)
-    case ('abs_min');  datum_value = minval(abs(expression_value_vec))
-    case ('abs_max');  datum_value = maxval(abs(expression_value_vec))
-    case ('max-min');  datum_value = maxval(expression_value_vec) - minval(expression_value_vec)
+  printit = (s%com%n_err_messages_printed < s%global%datum_err_messages_max) 
+  call tao_evaluate_expression (str, 0, .false., expression_value_vec, info, err, printit, datum%stack, tao_lat%name, &
+                 datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset)
+  if (err) then
+    call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
+    return
+  endif
 
-    case ('integral', 'average')
-      do i = 1, size(info)
-        j = i + ele_start%ix_ele - 1
-        if (j > branch%n_ele_track) j = j - branch%n_ele_track - 1
-        info(i)%s = tao_datum_s_position(datum, branch%ele(j))
-      enddo
+  select case (datum%merit_type)
+  case ('min');      datum_value = minval(expression_value_vec)
+  case ('max');      datum_value = maxval(expression_value_vec)
+  case ('abs_min');  datum_value = minval(abs(expression_value_vec))
+  case ('abs_max');  datum_value = maxval(abs(expression_value_vec))
+  case ('max-min');  datum_value = maxval(expression_value_vec) - minval(expression_value_vec)
 
-      if (j /= ele%ix_ele) then
-        call out_io (s_error$, r_name, 'BOOKKEEPING ERROR IN EVALUATING INTEGRAL/AVERAGE OF EXPRESSION.', &
-                                       'PLEASE REPORT!')
-        call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
-      endif
-
-      datum_value = tao_datum_integrate(datum, branch, expression_value_vec, info(:)%s, valid_value, why_invalid)
-      return
-
-    case ('target')
-      if (size(expression_value_vec) /= 1) then
-        call tao_set_invalid (datum, 'MERIT_TYPE IS SET TO "TARGET" BUT DATUM DOES NOT EVALUATE TO A SINGLE NUMBER!', why_invalid, .true.)
-        return
-      endif
-      datum_value = expression_value_vec(1)
-    case default
-      call out_io (s_error$, r_name, &
-                  'SINCE THIS DATUM: ' // tao_datum_name(datum), &
-                  'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
-                  'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
-      call tao_set_invalid (datum, 'MERIT_TYPE: ' // quote(datum%merit_type) // ' IS NOT VALID WHEN THERE IS AN EVALUATION RANGE', why_invalid, .true.)
-      return
-    end select
-
-    ! Make sure that any datums used in the expression have already been evaluated.
-    do i = 1, size(datum%stack)
-      if (datum%stack(i)%name == '') cycle
-      call tao_find_data (err, datum%stack(i)%name, d_array = d_array, print_err = .false.)
-      if (err .or. size(d_array) == 0) cycle  ! Err -> This is not associated then not a datum.
-      dp => d_array(1)%d
-      if (dp%d1%d2%ix_universe < u%ix_uni) cycle ! OK
-      if (dp%d1%d2%ix_universe == u%ix_uni .and. dp%ix_data < datum%ix_data) cycle
-      call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
-                      'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
-                      'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
-                      'AND THIS COMPONENT IS EVALUATED AFTER THE EXPRESSION!', &
-                      'TO FIX: MOVE THE EXPRESSION DATUM TO BE AFTER THE COMPONENT DATUM IN THE FILE THAT DEFINES THE DATA.')
-      return
+  case ('integral', 'average')
+    do i = 1, size(info)
+      j = i + ele_start%ix_ele - 1
+      if (j > branch%n_ele_track) j = j - branch%n_ele_track - 1
+      info(i)%s = tao_datum_s_position(datum, branch%ele(j))
     enddo
-    valid_value = .true.
-  !! endif
+
+    if (j /= ele%ix_ele) then
+      call out_io (s_error$, r_name, 'BOOKKEEPING ERROR IN EVALUATING INTEGRAL/AVERAGE OF EXPRESSION.', &
+                                     'PLEASE REPORT!')
+      call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // datum%data_type(12:), why_invalid)
+    endif
+
+    datum_value = tao_datum_integrate(datum, branch, expression_value_vec, info(:)%s, valid_value, why_invalid)
+    return
+
+  case ('target')
+    if (size(expression_value_vec) /= 1) then
+      call tao_set_invalid (datum, 'MERIT_TYPE IS SET TO "TARGET" BUT DATUM DOES NOT EVALUATE TO A SINGLE NUMBER!', why_invalid, .true.)
+      return
+    endif
+    datum_value = expression_value_vec(1)
+  case default
+    call out_io (s_error$, r_name, &
+                'SINCE THIS DATUM: ' // tao_datum_name(datum), &
+                'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
+                'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
+    call tao_set_invalid (datum, 'MERIT_TYPE: ' // quote(datum%merit_type) // ' IS NOT VALID WHEN THERE IS AN EVALUATION RANGE', why_invalid, .true.)
+    return
+  end select
+
+  ! Make sure that any datums used in the expression have already been evaluated.
+  do i = 1, size(datum%stack)
+    if (datum%stack(i)%name == '') cycle
+    call tao_find_data (err, datum%stack(i)%name, d_array = d_array, print_err = .false.)
+    if (err .or. size(d_array) == 0) cycle  ! Err -> This is not associated then not a datum.
+    dp => d_array(1)%d
+    if (dp%d1%d2%ix_universe < u%ix_uni) cycle ! OK
+    if (dp%d1%d2%ix_universe == u%ix_uni .and. dp%ix_data < datum%ix_data) cycle
+    call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
+                    'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
+                    'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
+                    'AND THIS COMPONENT IS EVALUATED AFTER THE EXPRESSION!', &
+                    'TO FIX: MOVE THE EXPRESSION DATUM TO BE AFTER THE COMPONENT DATUM IN THE FILE THAT DEFINES THE DATA.')
+    return
+  enddo
+  valid_value = .true.
 
 !-----------
 
@@ -4218,7 +4208,7 @@ type (coord_struct), optional :: dflt_orbit
 type (tao_expression_info_struct), allocatable :: info(:)
 
 integer, optional :: dflt_uni, dflt_eval_point
-integer i_lev, i_op, i, ios, n, n_size, n__size, ix0, ix1, ix2
+integer i_lev, i_op, i, ios, n, n_size, ix0, ix1, ix2
 integer op(100), n_comma(100), ix_word, i_delim, i2, ix, ix_word2
 
 real(rp), allocatable :: value(:)
@@ -4451,6 +4441,8 @@ parsing_loop: do
         n_comma(i_op) = 0
       case ('abs') 
         call pushit (op, i_op, abs$)
+      case ('rms') 
+        call pushit (op, i_op, rms$)
       case ('sqrt') 
         call pushit (op, i_op, sqrt$)
       case ('log') 
@@ -4503,7 +4495,7 @@ parsing_loop: do
         return
       endif
     else
-      call pushit (stk%type, i_lev, numeric$)
+      call pushit2 (stk, i_lev, numeric$)
       call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, default_source, &
              dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
       if (err) then
@@ -4519,7 +4511,7 @@ parsing_loop: do
     do
       do i = i_op, 1, -1       ! release pending ops
         if (op(i) == l_parens$) exit            ! break do loop
-        call pushit (stk%type, i_lev, op(i))
+        call pushit2 (stk, i_lev, op(i))
       enddo
 
       if (i == 0) then
@@ -4551,7 +4543,7 @@ parsing_loop: do
       call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING IN EXPRESSION: ' // expression)
       return
     endif
-    call pushit (stk%type, i_lev, numeric$)
+    call pushit2 (stk, i_lev, numeric$)
     call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, dflt_component, default_source, &
             dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
     if (err) then
@@ -4622,7 +4614,7 @@ parsing_loop: do
       call out_io (s_warn$, r_name, 'MALFORMED ATAN2 ARGUMENT IN EXPRESSION: ' // expression)
       return
     endif
-    call pushit (stk%type, i_lev, op(i))
+    call pushit2 (stk, i_lev, op(i))
   enddo
 
   ! put the pending operation on the OP stack
@@ -4652,32 +4644,12 @@ if (i_lev == 0) then
   return
 endif
 
-n__size = 1
-do i = 1, i_lev
-  if (stk(i)%type < numeric$) cycle
-  n = size(stk(i)%value)
-  if (n == 1) cycle
-  if (n__size == 1) n__size = n
-  if (n /= n__size) then
-    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
-    return
-  endif
-enddo
-
-if (n_size /= 0) then
-  if (n__size /= 1 .and. n_size /= n__size) then
-    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
-    return
-  endif
-  n__size = n_size
-endif
-
 if (phrase /= '') then
   call out_io (s_error$, r_name, 'EXTRA STUFF AFTER EXPRESSION: ' // phrase)
   return
 endif
 
-call tao_evaluate_stack (stk(1:i_lev), n__size, use_good_user, value, info, err_flag, printit)
+call tao_evaluate_stack (stk(1:i_lev), n_size, use_good_user, value, info, err_flag, printit, expression)
 
 ! If the stack argument is present then copy stk to stack
 
@@ -4695,14 +4667,36 @@ if (present(stack)) then
 endif
 
 !-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 contains
 
-subroutine pushit (stack, i_lev, value)
+subroutine pushit (int_stack, i_lev, value)
 
-integer stack(:), i_lev, value
+integer int_stack(:), i_lev, value
 
-character(6) :: r_name = "pushit"
+character(*), parameter :: r_name = "pushit"
+
+!
+
+i_lev = i_lev + 1
+
+if (i_lev > size(int_stack)) then
+  call out_io (s_warn$, r_name, 'STACK OVERFLOW.')
+  call err_exit
+endif
+
+int_stack(i_lev) = value
+
+end subroutine pushit
+
+!-------------------------------------------------------------------------
+! contains
+
+subroutine pushit2 (stack, i_lev, value)
+
+type (tao_eval_stack1_struct) stack(:)
+integer i_lev, value
+
+character(*), parameter :: r_name = "pushit2"
 
 !
 
@@ -4713,9 +4707,10 @@ if (i_lev > size(stack)) then
   call err_exit
 endif
 
-stack(i_lev) = value
+stack(i_lev)%type = value
+stack(i_lev)%name = expression_op_name(value)
 
-end subroutine pushit
+end subroutine pushit2
                        
 end subroutine tao_evaluate_expression
 
@@ -4800,7 +4795,9 @@ if (str(1:1) == '[' .and. index(str, ']@') == 0) then
     m = size(stack%value)
     n = size(stack2%value)
     call re_allocate(stack%value, m+n)
+    call tao_re_allocate_expression_info (stack%info, n+m)
     stack%value(m+1:m+n) = stack2%value
+    stack%info(m+1:m+n) = stack2%info
     if (.not. delim_found) return
   enddo
 
@@ -4815,6 +4812,8 @@ if (is_real(str)) then
     if (print_err) call out_io (s_warn$, r_name, "This doesn't seem to be a number: " // str)
     err_flag = .true.
   endif
+  call tao_re_allocate_expression_info (stack%info, 1)
+  stack%info%good = (ios == 0)
   return
 endif
 
@@ -5106,26 +5105,29 @@ end function tao_evaluate_datum_at_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, info, err_flag, print_err)
+! Subroutine tao_evaluate_stack (stack, n_size_in, use_good_user, value, info, err_flag, print_err, expression)
 !
 ! Routine to evaluate an expression stack.
 !
 ! Input:
-!   stack(:)      -- Tao_eval_stack1_struct: Expression stack
-!   n_size        -- Integer: Result array size.
-!   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
-!   print_err     -- Logical: If False then supress evaluation error messages.
+!   stack(:)      -- tao_eval_stack1_struct: Expression stack
+!   n_size_in     -- integer: Desired array size. If the expression evaluates to a
+!                      a scalar, each value in the value array will get this value.
+!                      If n_size = 0, the natural size is determined by the expression itself.
+!   use_good_user -- logical: Use the good_user logical in evaluating good(:)
+!   print_err     -- logical: If False then supress evaluation error messages.
 !                      This does not affect syntax error messages. Default is True.
+!   expression    -- character(*): Original expression. Used for error messages.
 !
 ! Output:
-!   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
-!   info(:)      -- tao_expression_info_struct, allocatable: Is the value valid? 
-!                     Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
-!                     orbit.x[23]|good_user is False.
-!   err_flag     -- Logical: True on error. False otherwise
+!   value(:)      -- Real(rp), allocatable: Value of arithmetic expression.
+!   info(:)       -- tao_expression_info_struct, allocatable: Is the value valid? 
+!                      Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
+!                      orbit.x[23]|good_user is False.
+!   err_flag      -- Logical: True on error. False otherwise
 !-
 
-subroutine tao_evaluate_stack (stack, n_size, use_good_user, value, info, err_flag, print_err)
+subroutine tao_evaluate_stack (stack, n_size_in, use_good_user, value, info, err_flag, print_err, expression)
 
 use expression_mod
 
@@ -5136,24 +5138,21 @@ type (tao_expression_info_struct), allocatable :: info(:)
 
 real(rp), allocatable :: value(:)
 
-integer i, i2, j, n
-integer n_size
+integer n_size_in
+integer i, i2, j, n, ns, ni, n_size
 
-logical err_flag, use_good_user, print_err
+logical err_flag, use_good_user, print_err, info_allocated
 
+character(*) expression
 character(*), parameter :: r_name = 'tao_evaluate_stack'
 
 ! Calculate good
 
 s => stack   ! For debugging purposes
 err_flag = .true.
-
-call re_allocate (value, n_size)
-call tao_re_allocate_expression_info (info, n_size)
-info = tao_expression_info_struct()
+if (allocated(info)) deallocate(info)
 
 do i = 1, size(stack)
-
   if (allocated(stack(i)%value_ptr)) then
     if (associated(stack(i)%value_ptr(1)%good_value)) then    
       do j = 1, size(stack(i)%value_ptr)
@@ -5165,28 +5164,37 @@ do i = 1, size(stack)
       enddo
     endif
   endif
-
-  if (.not. allocated(stack(i)%info)) cycle
-
-  if (size(stack(i)%info) == 1) then
-    info%good = info%good .and. stack(i)%info(1)%good
-  else
-   info%good = info%good .and. stack(i)%info%good
-  endif
-
-  if (size(stack(i)%info) == size(info)) then
-    do j = 1, size(info)
-      if (stack(i)%info(j)%s /= real_garbage$) info(j)%s = stack(i)%info(j)%s
-      info(j)%ele => stack(i)%info(j)%ele
-    enddo 
-  endif
-
 enddo
 
 ! Go through the stack and perform the operations...
 
 i2 = 0  ! stack pointer
 do i = 1, size(stack)
+
+  if (allocated(stack(i)%info)) then
+    ns = size(stack(i)%info)
+    if (.not. allocated(info)) then
+      call tao_re_allocate_expression_info(info, ns)
+      info = tao_expression_info_struct()
+    endif
+    ni = size(info)
+
+    if (.not. this_size_check(ns, ni)) return
+    if (ns == ni) then
+      info%good = info%good .and. stack(i)%info%good
+      do j = 1, size(info)
+        if (stack(i)%info(j)%s /= real_garbage$) info(j)%s = stack(i)%info(j)%s
+        info(j)%ele => stack(i)%info(j)%ele
+      enddo 
+    elseif (ns == 1) then
+      info%good = info%good .and. stack(i)%info(1)%good
+    elseif (ni == 1) then
+      call tao_re_allocate_expression_info(info, ns)
+      info%good = info(1)%good .and. stack(i)%info(1)%good
+    endif
+  endif
+
+  !
 
   select case (stack(i)%type)
   case (numeric$) 
@@ -5213,7 +5221,8 @@ do i = 1, size(stack)
   case (unary_plus$) 
     ! Nothing to do
 
-  case (plus$) 
+  case (plus$)
+    if (.not. this_size_check(size(stk2(i2)%value), size(stk2(i2-1)%value))) return
     if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
       stk2(i2-1)%value = stk2(i2-1)%value + stk2(i2)%value(1)
     elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
@@ -5223,7 +5232,8 @@ do i = 1, size(stack)
     endif
     i2 = i2 - 1
 
-  case (minus$) 
+  case (minus$)
+    if (.not. this_size_check(size(stk2(i2)%value), size(stk2(i2-1)%value))) return
     if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
       stk2(i2-1)%value = stk2(i2-1)%value - stk2(i2)%value(1)
     elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
@@ -5233,7 +5243,7 @@ do i = 1, size(stack)
     endif
     i2 = i2 - 1
 
-  case (times$) 
+  case (times$)
     if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
       stk2(i2-1)%value = stk2(i2-1)%value * stk2(i2)%value(1)
     elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
@@ -5243,7 +5253,8 @@ do i = 1, size(stack)
     endif
     i2 = i2 - 1
 
-  case (divide$) 
+  case (divide$)
+    if (.not. this_size_check(size(stk2(i2)%value), size(stk2(i2-1)%value))) return
     n = size(stk2(i2)%value)
     do j = 1, n
       if (stk2(i2)%value(j) /= 0) cycle
@@ -5268,7 +5279,8 @@ do i = 1, size(stack)
     endif
     i2 = i2 - 1
 
-  case (power$) 
+  case (power$)
+    if (.not. this_size_check(size(stk2(i2)%value), size(stk2(i2-1)%value))) return
     if (size(stk2(i2)%value) < size(stk2(i2-1)%value)) then
       stk2(i2-1)%value = stk2(i2-1)%value ** stk2(i2)%value(1)
     elseif (size(stk2(i2)%value) > size(stk2(i2-1)%value)) then
@@ -5306,6 +5318,20 @@ do i = 1, size(stack)
   case (abs$) 
     stk2(i2)%value = abs(stk2(i2)%value)
 
+  case (rms$)
+    stk2(i2)%value(1) = rms_value(stk2(i2)%value, info%good)
+    call re_allocate(stk2(i2)%value, 1)
+    info(1)%good = any(info%good)
+    call tao_re_allocate_expression_info(info, 1)
+
+  case (average$)
+    if (any(info%good)) then
+      stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good) / count(info%good)
+    endif
+    call re_allocate(stk2(i2)%value, 1)
+    info(1)%good = any(info%good)
+    call tao_re_allocate_expression_info(info, 1)
+
   case (sqrt$) 
     stk2(i2)%value = sqrt(stk2(i2)%value)
 
@@ -5322,11 +5348,15 @@ do i = 1, size(stack)
 
   case (ran$) 
     i2 = i2 + 1
+    n_size = 1
+    if (n_size_in /= 0) n_size = n_size_in
     call re_allocate(stk2(i2)%value, n_size)
     call ran_uniform(stk2(i2)%value)
 
   case (ran_gauss$) 
     i2 = i2 + 1
+    n_size = 1
+    if (n_size_in /= 0) n_size = n_size_in
     call re_allocate(stk2(i2)%value, n_size)
     call ran_gauss(stk2(i2)%value)
 
@@ -5353,13 +5383,23 @@ if (i2 /= 1) then
   call err_exit
 endif
 
-if (size(stk2(1)%value) == 1 .and. n_size > 1) then
+
+if (size(stk2(1)%value) == 1 .and. n_size_in > 1) then
+  call re_allocate(value, n_size_in)
   value = stk2(1)%value(1)
 else
   call value_transfer (value, stk2(1)%value)
 endif
 
 where (.not. info%good) value = 0
+
+n_size = size(value)
+if (n_size_in /= 0) then
+  if (n_size /= 1 .and. n_size_in /= n_size) then
+    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH FROM WHAT IS EXPECTED IN EXPRESSION: ' // expression)
+    return
+  endif
+endif
 
 err_flag = .false.
 
@@ -5376,7 +5416,19 @@ real(rp) from_array(:)
 call re_allocate (to_array, size(from_array))
 to_array = from_array
 
-end subroutine
+end subroutine value_transfer
+
+!-------------------------------------------------------------------------
+! contains
+
+function this_size_check (isize1, isize2) result (ok)
+integer isize1, isize2
+logical ok
+ok = (isize1 == 1 .or. isize2 == 1 .or. isize1 == isize2)
+if (.not. ok) then
+  call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH IN EXPRESSION: ' // expression)
+endif
+end function this_size_check
 
 end subroutine tao_evaluate_stack 
 
