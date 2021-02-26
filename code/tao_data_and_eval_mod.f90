@@ -3763,7 +3763,7 @@ integral = 0.5_rp * (values(1) * ds1 + values(n) * ds2)
 do i = 2, n-1
   ds2 = s_pos(i+1) - s_pos(i)
   if (ds2 < 0) ds2 = ds2 + branch%param%total_length
-  integral = integral + 0.5_rp * values(n) * (ds1 + ds2)
+  integral = integral + 0.5_rp * values(i) * (ds1 + ds2)
   ds1 = ds2
 enddo
 

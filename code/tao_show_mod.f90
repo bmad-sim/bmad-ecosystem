@@ -3254,8 +3254,7 @@ case ('orbit')
   call tao_locate_elements (word1, u%ix_uni, eles, err)
   if (err) return
   do i = 1, 6
-    nl=nl+1; write(lines(nl), rmt) '     ', &
-                u%model%tao_branch(eles(1)%ele%ix_branch)%orbit%vec(eles(1)%ele%ix_ele)
+    nl=nl+1; write(lines(nl), rmt) '     ', u%model%tao_branch(eles(1)%ele%ix_branch)%orbit%vec(i)
   enddo
 
 !----------------------------------------------------------------------
