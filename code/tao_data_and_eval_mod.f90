@@ -4444,6 +4444,8 @@ parsing_loop: do
         call pushit (op, i_op, abs$)
       case ('rms') 
         call pushit (op, i_op, rms$)
+      case ('mean') 
+        call pushit (op, i_op, average$)
       case ('sqrt') 
         call pushit (op, i_op, sqrt$)
       case ('log') 
