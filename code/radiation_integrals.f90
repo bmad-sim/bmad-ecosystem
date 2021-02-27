@@ -106,7 +106,7 @@ type (track_struct), target :: track
 type (track_point_struct), pointer :: tp
 type (rad_int_all_ele_struct), optional, target :: rad_int_by_ele
 type (rad_int_branch_struct), target :: rad_int_branch
-type (rad_int_branch_struct), pointer :: rad_int_b_ptr
+type (rad_int_branch_struct), pointer :: ri_branch
 type (rad_int_info_struct) :: ri_info
 type (rad_int_cache_struct), pointer :: cache
 type (rad_int_cache1_struct), pointer :: cache_ele ! pointer to cache in use
@@ -143,9 +143,12 @@ if (present(rad_int_by_ele)) then
     if (ubound(rad_int_by_ele%branch, 1) /= ubound(lat%branch, 1)) deallocate (rad_int_by_ele%branch)
     if (allocated(rad_int_by_ele%branch)) then
       do ib = 0, ubound(lat%branch, 1)
-        if (ubound(rad_int_by_ele%branch(ib)%ele, 1) == lat%branch(ib)%n_ele_max) cycle
-        deallocate (rad_int_by_ele%branch(ib)%ele)
-        allocate (rad_int_by_ele%branch(ib)%ele(0:lat%branch(ib)%n_ele_max))
+        ri_branch => rad_int_by_ele%branch(ib)
+        if (allocated(ri_branch%ele)) then
+          if (ubound(ri_branch%ele, 1) == lat%branch(ib)%n_ele_max) cycle
+          deallocate (ri_branch%ele)
+        endif
+        if (.not. allocated(ri_branch%ele)) allocate (ri_branch%ele(0:lat%branch(ib)%n_ele_max))
       enddo
     endif
   endif
@@ -668,8 +671,8 @@ call deallocate_ele_pointers(ele_end)
 ! Fill in rad_int_by_ele
 
 if (present(rad_int_by_ele)) then
-  rad_int_b_ptr => rad_int_by_ele%branch(branch%ix_branch)
-  call move_alloc (rad_int_branch%ele, rad_int_b_ptr%ele)
+  ri_branch => rad_int_by_ele%branch(branch%ix_branch)
+  call move_alloc (rad_int_branch%ele, ri_branch%ele)
 
   do i = branch%n_ele_track+1, branch%n_ele_max
     ele => branch%ele(i)
@@ -678,21 +681,21 @@ if (present(rad_int_by_ele)) then
       slave => pointer_to_slave(ele, j)
       ib = slave%ix_branch
       k = slave%ix_ele
-      rad_int_b_ptr%ele(i)%i0 = rad_int_b_ptr%ele(i)%i0 + rad_int_by_ele%branch(ib)%ele(k)%i0
-      rad_int_b_ptr%ele(i)%i1 = rad_int_b_ptr%ele(i)%i1 + rad_int_by_ele%branch(ib)%ele(k)%i1
-      rad_int_b_ptr%ele(i)%i2 = rad_int_b_ptr%ele(i)%i2 + rad_int_by_ele%branch(ib)%ele(k)%i2
-      rad_int_b_ptr%ele(i)%i3 = rad_int_b_ptr%ele(i)%i3 + rad_int_by_ele%branch(ib)%ele(k)%i3
-      rad_int_b_ptr%ele(i)%i4a = rad_int_b_ptr%ele(i)%i4a + rad_int_by_ele%branch(ib)%ele(k)%i4a
-      rad_int_b_ptr%ele(i)%i4b = rad_int_b_ptr%ele(i)%i4b + rad_int_by_ele%branch(ib)%ele(k)%i4b
-      rad_int_b_ptr%ele(i)%i4z = rad_int_b_ptr%ele(i)%i4z + rad_int_by_ele%branch(ib)%ele(k)%i4z
-      rad_int_b_ptr%ele(i)%i5a = rad_int_b_ptr%ele(i)%i5a + rad_int_by_ele%branch(ib)%ele(k)%i5a
-      rad_int_b_ptr%ele(i)%i5b = rad_int_b_ptr%ele(i)%i5b + rad_int_by_ele%branch(ib)%ele(k)%i5b
-      rad_int_b_ptr%ele(i)%i6b = rad_int_b_ptr%ele(i)%i6b + rad_int_by_ele%branch(ib)%ele(k)%i6b
-      rad_int_b_ptr%ele(i)%n_steps = rad_int_b_ptr%ele(i)%n_steps + rad_int_by_ele%branch(ib)%ele(k)%n_steps
-      rad_int_b_ptr%ele(i)%lin_i2_E4 = rad_int_b_ptr%ele(i)%lin_i2_E4 + rad_int_by_ele%branch(ib)%ele(k)%lin_i2_E4
-      rad_int_b_ptr%ele(i)%lin_i3_E7 = rad_int_b_ptr%ele(i)%lin_i3_E7 + rad_int_by_ele%branch(ib)%ele(k)%lin_i3_E7
-      rad_int_b_ptr%ele(i)%lin_i5a_E6 = rad_int_b_ptr%ele(i)%lin_i5a_E6 + rad_int_by_ele%branch(ib)%ele(k)%lin_i5a_E6
-      rad_int_b_ptr%ele(i)%lin_i5b_E6 = rad_int_b_ptr%ele(i)%lin_i5b_E6 + rad_int_by_ele%branch(ib)%ele(k)%lin_i5b_E6
+      ri_branch%ele(i)%i0 = ri_branch%ele(i)%i0 + rad_int_by_ele%branch(ib)%ele(k)%i0
+      ri_branch%ele(i)%i1 = ri_branch%ele(i)%i1 + rad_int_by_ele%branch(ib)%ele(k)%i1
+      ri_branch%ele(i)%i2 = ri_branch%ele(i)%i2 + rad_int_by_ele%branch(ib)%ele(k)%i2
+      ri_branch%ele(i)%i3 = ri_branch%ele(i)%i3 + rad_int_by_ele%branch(ib)%ele(k)%i3
+      ri_branch%ele(i)%i4a = ri_branch%ele(i)%i4a + rad_int_by_ele%branch(ib)%ele(k)%i4a
+      ri_branch%ele(i)%i4b = ri_branch%ele(i)%i4b + rad_int_by_ele%branch(ib)%ele(k)%i4b
+      ri_branch%ele(i)%i4z = ri_branch%ele(i)%i4z + rad_int_by_ele%branch(ib)%ele(k)%i4z
+      ri_branch%ele(i)%i5a = ri_branch%ele(i)%i5a + rad_int_by_ele%branch(ib)%ele(k)%i5a
+      ri_branch%ele(i)%i5b = ri_branch%ele(i)%i5b + rad_int_by_ele%branch(ib)%ele(k)%i5b
+      ri_branch%ele(i)%i6b = ri_branch%ele(i)%i6b + rad_int_by_ele%branch(ib)%ele(k)%i6b
+      ri_branch%ele(i)%n_steps = ri_branch%ele(i)%n_steps + rad_int_by_ele%branch(ib)%ele(k)%n_steps
+      ri_branch%ele(i)%lin_i2_E4 = ri_branch%ele(i)%lin_i2_E4 + rad_int_by_ele%branch(ib)%ele(k)%lin_i2_E4
+      ri_branch%ele(i)%lin_i3_E7 = ri_branch%ele(i)%lin_i3_E7 + rad_int_by_ele%branch(ib)%ele(k)%lin_i3_E7
+      ri_branch%ele(i)%lin_i5a_E6 = ri_branch%ele(i)%lin_i5a_E6 + rad_int_by_ele%branch(ib)%ele(k)%lin_i5a_E6
+      ri_branch%ele(i)%lin_i5b_E6 = ri_branch%ele(i)%lin_i5b_E6 + rad_int_by_ele%branch(ib)%ele(k)%lin_i5b_E6
     enddo
   enddo
 endif
