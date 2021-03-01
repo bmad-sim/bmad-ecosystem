@@ -51,7 +51,7 @@ real(rp) tt
 integer iuni, j, ib, ix, n_max, iu, it, id
 
 character(20) :: r_name = "tao_lattice_calc"
-character(20) track_type, name
+character(20) name
 
 logical calc_ok, this_calc_ok, err, mat_changed
 
@@ -123,9 +123,6 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         tao_lat%tao_branch(ib)%orbit%vec(j) = 0.0
       enddo
 
-      track_type = s%global%track_type
-      if (ib > 0 .and. branch%param%particle == photon$) track_type = 'single'
-
       ! Even when beam tracking we need to calculate the lattice parameters with single tracking.
 
       call tao_inject_particle (u, tao_lat, ib)
@@ -133,17 +130,9 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. this_calc_ok) calc_ok = .false.
       if (.not. this_calc_ok) exit
 
-      ! Calc radiation integrals when track_type == "beam" since init_beam_distribution may need this.
-
-      if (s%global%rad_int_calc_on .and. &
-            (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. track_type == 'beam')) then
-        call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
-                              tao_branch%modes, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
-      endif
-
       !
 
-      if (track_type == 'beam') then
+      if (s%global%track_type == 'beam' .and. branch%param%particle /= photon$) then
         call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
         if (.not. this_calc_ok) calc_ok = .false.
         if (this_calc_ok) then
@@ -454,9 +443,18 @@ if (u%calc%twiss .and. branch%param%particle /= photon$) then
   endif
 endif
 
+! Calc radiation integrals when track_type == "beam" since init_beam_distribution may need this.
+
+if (branch%param%particle /= photon$ .and. s%global%rad_int_calc_on .and. &
+            (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam')) then
+  call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+                      tao_branch%modes, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int)
+endif
+
 ! Sigma matric calc.
 
-if (u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) then
+if ((u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) .and. &
+                                              branch%param%particle /= photon$) then
   beam_init => u%model_branch(0)%beam%beam_init
   ele => branch%ele(0)
   if (.not. associated(ele%mode3)) allocate (ele%mode3)
@@ -474,12 +472,12 @@ if (u%calc%beam_sigma_for_data .or. u%calc%beam_sigma_for_plotting) then
     endif
   
     D_mat = 0
-    D_mat(1,1) = beam_init%a_emit
-    D_mat(2,2) = beam_init%a_emit
-    D_mat(3,3) = beam_init%b_emit
-    D_mat(4,4) = beam_init%b_emit
-    D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
-    D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
+    D_mat(1,1) = beam_init%a_emit   ! tao_branch%modes%a%emittance
+    D_mat(2,2) = beam_init%a_emit   ! tao_branch%modes%a%emittance
+    D_mat(3,3) = beam_init%b_emit   ! tao_branch%modes%b%emittance
+    D_mat(4,4) = beam_init%b_emit   ! tao_branch%modes%b%emittance
+    D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz   ! tao_branch%modes%z%emittance
+    D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz   ! tao_branch%modes%z%emittance
 
     tao_branch%linear(0)%sigma = matmul(matmul(N_mat, D_mat), transpose(N_mat))
 
