@@ -32,7 +32,7 @@ character(20), parameter :: expression_op_name(41) = [character(20) :: '+', '-',
                                     'species', '?!+Species', 'sinc', '?!+Constant', ',', 'rms', 'mean', 'sum']
 
 
-integer, parameter :: expression_eval_level(40) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+integer, parameter :: expression_eval_level(41) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                       9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9]
 
 private pushit
