@@ -4446,6 +4446,8 @@ parsing_loop: do
         call pushit (op, i_op, rms$)
       case ('mean') 
         call pushit (op, i_op, mean$)
+      case ('sum') 
+        call pushit (op, i_op, sum$)
       case ('sqrt') 
         call pushit (op, i_op, sqrt$)
       case ('log') 
@@ -5339,6 +5341,12 @@ do i = 1, size(stack)
     endif
     call re_allocate(stk2(i2)%value, 1)
     info(1)%good = any(info%good)
+    call tao_re_allocate_expression_info(info, 1)
+
+  case (sum$)
+    stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good)
+    call re_allocate(stk2(i2)%value, 1)
+    info(1)%good = .true.
     call tao_re_allocate_expression_info(info, 1)
 
   case (sqrt$) 
