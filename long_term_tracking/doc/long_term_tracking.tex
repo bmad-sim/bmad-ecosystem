@@ -79,7 +79,7 @@
 \Section{Introduction} 
 \label{s:intro}
 
-The \ltt program is for long term tracking of a particle or beam possibly including tracking of the
+The \ltt program is for long term tracking of a particle or a beam possibly including tracking of the
 spin.
 
 The \ltt program is built atop the Bmad software toolkit \cite{b:bmad}. The Bmad toolkit is a
@@ -138,6 +138,10 @@ The syntax of the master input file is explained in \sref{s:input}.
 \label{s:def}
 
 \begin{description}
+\item[Beam] \Newline
+A \vn{beam} consists of a train \vn{bunches}. Each \vn{bunch} consists of a number of particles contained
+within one RF bucket.
+%
 \item[Radiation Damping and fluctuations] \Newline
 At a given particle position, the energy kick $dE$ that a particle receives due to emission of
 radiation can be decomposed into two parts. One part is the average kick $dE_d$ and the other part
@@ -150,7 +154,7 @@ the fluctuation part leads to excitation of the particle motion. Over many turns
 equilibrium reached which gives a particle beam its natural size. While it is not physically
 possible to have radiation damping without excitation and vice versa, this can be done with ease in
 a simulation.
-
+%
 \item[PTC] \Newline
 PTC is a library developed by \'Etienne Forest to handle Taylor maps to any arbitrary order. In
 particular, PTC is used for constructing maps for the \vn{long_term_tracking} program. PTC can also
@@ -381,7 +385,7 @@ element is computed and this value is applied to the first variable of each ramp
 with the \vn{ramp_rf} element defined above, the \vn{t} variable will be set to the time. particle
 time The \ltt program assumes that the fist variable of a ramper element is that the ramper control
 variable is time. Implicit in this is the assumption that controlled parameters are varying slow
-enough so that the ramplers only need be applied once per bunch passage. This is done to minimize
+enough so that the ramplers only need be applied once per beam passage. This is done to minimize
 computational time.
 
 In the lattice file, individual ramper elements may be toggled on or off using the element's
@@ -525,7 +529,7 @@ Example:
 
   ! Output parameters
   ltt%particle_output_file = "snap.dat"
-  ltt%bunch_binary_output_file = "bunch.dat"
+  ltt%beam_binary_output_file = "beam.dat"
   ltt%averages_output_file = "average.dat"
   ltt%sigma_matrix_output_file = "sigma.dat"
   ltt%custom_output_file = ""
@@ -636,7 +640,7 @@ value of \vn{ltt%averaging_window} should be set to an odd number. If the value 
 \vn{ltt%averaging_window} is even, the effective averaging window with will be one more than the set
 number.
 %
-\item[ltt\%bunch_binary_output_file] \Newline
+\item[ltt\%beam_binary_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. This parameter sets the name of the file
 that is created to hold the particle positions at the end of tracking. This is similar to
 \vn{ltt%particle_output_file} but here the file will be a binary file that is portable to other
@@ -644,7 +648,7 @@ programs and can also be used as input to the \ltt program.
 %
 \item[ltt\%averages_output_file] \Newline
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the file that contain orbital
-and spin positions averaged over all the particles of the bunch as well as the six beam size sigmas
+and spin positions averaged over all the particles of the bunches as well as the six bunch size sigmas
 ($\sigma_x$, $\sigma_{px}$, etc.).  Each line in the file represents the averages at the end of a
 turn and a new line is added every \vn{ltt%averages_ouput_every_n_turns} number of turns. If
 \vn{ltt%averages_output_file} is blank, no averages file is produced. Data is always recorded when
@@ -718,7 +722,7 @@ Also see: \vn{averages_output_every_n_turns}.
 Used with \vn{ltt%simulation_mode} set to \vn{"BEAM"}. The name of the ASCII file or files that are
 created to hold the particle positions. A file is created every \vn{ltt%particle_ouput_every_n_turns}
 turns. See Section~\sref{s:part.out} for more details. If \vn{ltt%particle_ouput_file} is blank, no
-particle output file is created. See also \vn{ltt%bunch_binary_output_file} which will produce a
+particle output file is created. See also \vn{ltt%beam_binary_output_file} which will produce a
 portable binary file.
 %
 \item[ltt\%print_on_dead_loss] \Newline
@@ -820,9 +824,9 @@ Only used when the MPI version of the \ltt program is used (\sref{s:intro}). Thi
 determines the number of times, on average, the simulation will be run in a given subprocess. The
 default value is 4. For example, if there are 11 subprocesses, one of these will be designated the
 ``master'' subprocess and will just be responsible for collecting the data together. The other 10
-subprocesses will run simulations. If, say, there are 1M particles in the bunch, and if
-\vn{ltt%mpi_runs_per_subprocess} has the default value of 4, then each simulation will use 25K
-particles (= 1M / (4 * 10)) and each of the 10 subprocesses will run the simulation about 4
+subprocesses will run simulations. If, say, there are 1M particles in each of two bunches, and if
+\vn{ltt%mpi_runs_per_subprocess} has the default value of 4, then each simulation will use 50K
+particles (= 2 * 1M / (4 * 10)) and each of the 10 subprocesses will run the simulation about 4
 times. The reason why the work is broken up this way is to minimize the effect that one slow
 subprocess can have on the simulation time.
 %
@@ -898,12 +902,16 @@ The following describes the particle data output format. Particle data is output
 Particle data is always recorded when the beam is at the \vn{ltt%ele_start} position independent of
 where the lattice begins and ends.
 
-An output data file will be produced every \vn{ltt%particle_output_every_n_turns} turns. Each line in this
-file records a particle's orbital and spin position. The name of the data file is derived from the
-\vn{ltt%particle_output_file} string.  If \vn{ltt%particle_output_file} contains a hash character
-''\#'', the data file name is formed by substituting the turn number for the hash token. If there is
-no hash character, the data file name is formed by appending the turn number to the
-\vn{ltt%particle_output_file} string.
+An output data file will be produced every \vn{ltt%particle_output_every_n_turns} turns. Each line
+in this file records a particle's orbital and spin position. The name of the data file is derived
+from the \vn{ltt%particle_output_file} string.  If \vn{ltt%particle_output_file} contains a hash
+character ''\#'', the data file name is formed by substituting the turn number for the hash
+token. If there is no hash character, the data file name is formed by appending the turn number to
+the \vn{ltt%particle_output_file} string. If there are multiple bunches, instead of using the turn
+number, the substituted string will be of the form
+\begin{code}
+  \{bunch index\}-\{turn number\}
+\end{code}
 
 Nominally particle data is recorded every \vn{ltt%particle_output_every_n_turns} number of turns. However, if
 \vn{ltt%particle_output_every_n_turns} is set to 0, particle data is recorded only at the start and end of
