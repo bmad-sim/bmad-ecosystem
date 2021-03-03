@@ -301,7 +301,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_inject_particle (u, tao_lat, ib)
     call tao_single_track (u, tao_lat, this_calc_ok, ib)
 
-    tao_branch%modes_rf_on = tao_branch%modes
+    if (branch%param%particle /= photon$) then
+      call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+                                  tao_branch%modes_rf_on, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int)
+    endif
+
     if (branch%param%geometry == closed$) then
       call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
                  tao_branch%orbit(0)%vec(6), low_E_lat=tao_branch%low_E_lat, high_E_lat=tao_branch%high_E_lat, &
