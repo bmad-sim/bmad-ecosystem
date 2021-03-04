@@ -929,7 +929,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       ele2 => ele
     endif  
     slave => pointer_to_slave(ele, 1)
-    s0 = ((ele%s_start + ele%s) - (slave%s_start + slave%s)) / 2   ! Center to center distance
+    s0 = (ele%s_start + 0.5_rp * ele%value(l$)) - (slave%s_start + 0.5_rp * slave%value(l$))   ! Center to center distance
     name = 'slave_drift_' // int_str(slave%ix_branch) // '_' // int_str(slave%ix_ele)
     line = 'superimpose, element = ' // trim(ele2%name) // ', ref = ' // trim(name) // ', offset = ' // re_str(s0)
     call write_lat_line (line, iu, .true.)
