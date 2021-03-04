@@ -2569,7 +2569,8 @@ case ('emit.')
 case ('expression')
   ele_here => ele
   call tao_evaluate_expression (data_type(12:), 1, .false., val_arr, info, err, .true., &
-            dflt_source = 'at_ele', dflt_ele = ele_here, dflt_uni = tao_lat%u%ix_uni);  if (err) goto 9000  ! Error message & Return
+            dflt_source = 'at_ele', dflt_ele = ele_here, dflt_uni = tao_lat%u%ix_uni, &
+            dflt_orbit = orbit);  if (err) goto 9000  ! Error message & Return
   value = val_arr(1)
 
 case ('momentum_compaction')
