@@ -365,7 +365,7 @@ case ('beam')
   word1 = ''
 
   do 
-    call tao_next_switch (what2, ['-universe'], .false., switch, err, ix_s2);  if (err) return
+    call tao_next_switch (what2, ['-universe'], .true., switch, err, ix_s2);  if (err) return
     if (switch == '') exit
 
     select case (switch)
@@ -381,6 +381,11 @@ case ('beam')
       call string_trim(what2(ix_s2+1:), what2, ix_s2)
 
     case default
+      if (word1 /= '') then
+        nl=1; lines(1) = 'EXTRA STUFF ON THE COMMAND LINE: ' // switch
+        return
+      endif
+
       word1 = switch
 
     end select
