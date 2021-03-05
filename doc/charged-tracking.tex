@@ -351,7 +351,7 @@ follows:
 Function definitions:
 \begin{align}
   \sinc(x) &\equiv \frac{\sin(x)}{x} \\
-  \cosc(x) &\equiv \frac{\cos(x) - 1}{x^2}
+  \cosc(x) &\equiv \frac{1 - \cos(x)}{x^2}
 \end{align}
 These functions cannot be directly evaluated at $x = 0$ and are defined at $x = 0$ using the $x
 \rightarrow 0$ limit. The point to keep in mind here is that these functions are well behaved and
@@ -393,10 +393,10 @@ The coordinates of the particle at the exit face is $(u_2, 0)$ where
 After some manipulation, the offset of the particle $x_2$ from the design point at the exit face is
 \begin{align}
   x_2 &= u_2 - \rho \nonumber \\
-  &= x \, \cos(\theta) + L^2 \, g \, \cosc(\theta) + 
+  &= x \, \cos(\theta) - L^2 \, g \, \cosc(\theta) + 
     \frac{\alpha}{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} + \cos(\theta + \phi_1)} 
     \label{xctlg1} \\
-  &= x \, \cos(\theta) + L^2 \, g \, \cosc(\theta) + 
+  &= x \, \cos(\theta) - L^2 \, g \, \cosc(\theta) + 
     \frac{\left[ \cos^2(\theta + \phi_1) + g_p \, \alpha \right]^{1/2} - \cos(\theta + \phi_1)}{g_p}
     \label{xctlg2}
 \end{align}
@@ -419,7 +419,7 @@ Once $x_2$ is computed, the arc length of the particle $L_p$ is
 where $\bfL_c$ is the vector (chord) from point 1 and point 2
 \begin{equation}
   \bfL_c = (L_{cu}, L_{cv}) =
-  \left( x_2 - L^2 \, g \, \cosc(\theta) - x_1 \, \cos(\theta),
+  \left( x_2 + L^2 \, g \, \cosc(\theta) - x_1 \, \cos(\theta),
                   -L \, \sinc(\theta) - x_1 \, \sin(\theta) \right) 
 \end{equation}
 and $\theta_p$ is the angle made by the particle trajectory which is twice the angle between
@@ -437,6 +437,31 @@ Once $L_p$ is computed, $p_{x2}$, $y_2$ and $z_2$ are easily derived from
 \end{align}
 where $\beta$ is the normalized velocity of the particle and $\beta_{ref}$ if the normalized
 velocity of the reference particle.
+
+Using the above equation, round-off error will give a non-zero final position even if the initial
+position is zero. Even though the round-off error will be very small, a non-zero result can be
+confusing. To avoid this, the standard linear transfer matrix for a bend is used if all the
+following conditions are satisfied:
+\begin{equation}
+  |x \, g|, |p_x|, |p_y|, |p_z| <  10^{-9}, \quad \text{and}, \quad g_\tot = g
+\end{equation}
+The matrix is:
+\begin{equation}
+  \begin{pmatrix}
+    \cos(\theta)            & L \, \sinc(\theta)  & 0 & 0 & 0 & g \, L^2 \, \cosc(\theta) \\
+   -g \, \sin(\theta)       & \cos(\theta)        & 0 & 0 & 0 & g \, L \, \sinc(\theta)   \\
+    0                       & 0                   & 1 & L & 0 & 0                         \\
+    0                       & 0                   & 0 & 1 & 0 & 0                         \\
+   -g \, L \, \sinc(\theta) & 
+                       -g \, L^2 \, \cosc(\theta) & 0 & 0 & 1 & 
+                   L \,  \left( \frac{1}{\gamma^2} - g^2 \, L^2 \, \sincc(\theta) \right) \\
+    0                       & 0                   & 0 & 0 & 0 & 1                       
+  \end{pmatrix}
+\end{equation}
+where
+\begin{equation}
+  \sincc(\theta) \equiv \frac{x - \sin(x)}{x^3}
+\end{equation}
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
