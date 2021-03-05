@@ -30,7 +30,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) mat6_i(6,6), rel_charge_dir, c_dir, g, g_tot, dg, b1, r_step, step_len, angle
 real(rp) pz, rel_p, rel_p2, x, px, y, py, z, pt, phi_1, sin_plus, cos_plus, alpha, L_p, L_c, g_p
 real(rp) sinc_a, r, rad, denom, L_v, L_u, dalpha, dx2, dL_c, dL_p, dphi_1, dpt, dg_p, angle_p
-real(rp) cos_a, sin_a, dL_u, dL_v, dangle_p, beta_ref
+real(rp) cos_a, sin_a, cosc_a, dL_u, dL_v, dangle_p, beta_ref, ll, m56, gam2
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer n, n_step, ix_mag_max, ix_elec_max
@@ -91,10 +91,6 @@ if (ix_mag_max > -1 .or. ix_elec_max > -1) call apply_multipole_kicks (0.5_rp, s
 
 do n = 1, n_step
 
-  pz = orbit%vec(6)
-  rel_p  = 1 + pz
-  rel_p2 = rel_p**2
-
   ! with k1 /= 0 use small angle approximation
 
   if (b1 /= 0) then
@@ -114,136 +110,171 @@ do n = 1, n_step
     y  = orbit%vec(3)
     py = orbit%vec(4)
     z  = orbit%vec(5)
+    pz = orbit%vec(6)
+    rel_p  = 1 + pz
+    rel_p2 = rel_p**2
 
-    beta_ref = ele%value(p0c$) / ele%value(E_tot$)
-    sinc_a = sinc(angle)
-    pt = sqrt(rel_p2 - py**2)
-    if (abs(px) > pt) then
-      orbit%state = lost_pz_aperture$
-      return
-    endif
-    g_p = g_tot / pt
-    phi_1 = asin(px / pt)
-    cos_a = cos(angle)
-    sin_a = sin(angle)
-    cos_plus = cos(angle + phi_1)
-    sin_plus = sin(angle + phi_1)
-    alpha = 2 * (1 + g*x) * sin_plus * step_len * sinc_a - g_p * ((1 + g*x) * step_len * sinc_a)**2
-    r = cos_plus**2 + g_p*alpha
+    ! Use semi-linear map if near zero orbit.
 
-    if (r < 0 .or. (abs(g_p) < 1d-5 .and. abs(cos_plus) < 1d-5)) then   ! Particle does not intersect exit face.
-      orbit%state = lost$
-      orbit%vec(1) = 2 * bmad_com%max_aperture_limit
-      return
-    endif
+    if (dg == 0 .and. abs(x * g) < 1d-9 .and. abs(px) < 1d-9 .and. &
+                                                       abs(py) < 1d-9 .and. abs(pz) < 1d-9) then
+      ll = step_len
+      cos_a   = cos(angle)
+      sin_a   = sin(angle)
+      sinc_a  = sinc(angle)
+      cosc_a  = cosc(angle)
+      gam2 = mass_of(orbit%species)**2 / ((rel_p * orbit%p0c)**2 + mass_of(orbit%species)**2)  ! 1/gamma^2
+      m56 = ll * (gam2 - (g*ll)**2 * sincc(angle))
 
-    rad = sqrt(r)
-    if (cos_plus > 0) then
-      denom = rad + cos_plus
-      orbit%vec(1) = x * cos_a + step_len**2 * g * cosc(angle) + alpha / denom
+      orbit%vec(1) = cos_a * x      + ll * sinc_a * px + g * ll**2 * cosc_a * pz
+      orbit%vec(2) = -g * sin_a * x + cos_a * px       + g * ll * sinc_a * pz
+      orbit%vec(3) = y + ll * py
+      orbit%vec(5) = -g * ll * sinc_a * x - g * ll**2 * cosc_a * px + z + m56 * pz
+
+      if (logic_option(.false., make_matrix)) then
+        mat6_i(1,:) = [cos_a,             ll * sinc_a,  0.0_rp, 0.0_rp, 0.0_rp, g * ll**2 * cosc_a]
+        mat6_i(2,:) = [-g * sin_a,        cos_a,        0.0_rp, 0.0_rp, 0.0_rp, g * ll * sinc_a]
+        mat6_i(3,:) = [0.0_rp,            0.0_rp,       1.0_rp, ll,     0.0_rp, 0.0_rp]
+        mat6_i(4,:) = [0.0_rp,            0.0_rp,       0.0_rp, 1.0_rp, 0.0_rp, 0.0_rp]
+        mat6_i(5,:) = [-g * ll * sinc_a, -g * ll**2 * cosc_a, 0.0_rp, 0.0_rp, 1.0_rp, m56]
+        mat6_i(6,:) = [0.0_rp,            0.0_rp,       0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp]
+        mat6 = matmul(mat6_i, mat6)
+      endif
+
+    ! General case
+
     else
-      denom = rad - cos_plus
-      orbit%vec(1) = x * cos_a + step_len**2 * g * cosc(angle) + denom / g_p
-    endif
-
-    if (abs(orbit%vec(1)) > bmad_com%max_aperture_limit) then
-      orbit%state = lost$
-      return
-    endif
-
-    L_u = orbit%vec(1) - step_len**2 * g * cosc(angle) - x * cos_a 
-    L_v = -step_len * sinc_a - x * sin_a
-    L_c = sqrt(L_v**2 + L_u**2)
-    angle_p = 2 * (angle + phi_1 - atan2(L_v, L_u)) - pi
-    L_p = L_c / sinc(angle_p/2)
-    orbit%vec(2) = pt * sin(phi_1 + angle - angle_p)
-    orbit%vec(3) = y + py * L_p / pt
-    orbit%vec(5) = z + orbit%beta * step_len / beta_ref - rel_p * L_p / pt 
-
-    if (logic_option(.false., make_matrix)) then
-      call mat_make_unit (mat6_i)
-
-      dalpha = 2 * g * sin_plus * step_len * sinc_a - 2 * g_p * g * (1 + g*x) * (step_len * sinc_a)**2
-      dx2 = cos_a + dalpha * (1 / (2 * rad))   ! cos_a < 0 form
-      dL_u = dx2 - cos_a
-      dL_v = -sin_a
-      dL_c = (L_u * dL_u + L_v * dL_v)/ L_c
-      dangle_p = 2 * (dL_u * L_v - dL_v * L_u) / L_c**2
-      dL_p = dL_c / sinc(angle_p/2) - dangle_p * L_c * sinc(angle_p/2, 1) / (2 * sinc(angle_p/2)**2)
-
-      mat6_i(1,1) = dx2
-      mat6_i(2,1) = -dangle_p * pt * cos(phi_1 + angle - angle_p)
-      mat6_i(3,1) = py * dL_p / pt
-      mat6_i(5,1) = -rel_p * dL_p / pt
-
-      dphi_1 = 1 / (pt * cos(phi_1))
-      dalpha = 2 * dphi_1 * (1 + g * x) * cos_plus * step_len * sinc_a
-      if (cos_plus > 0) then
-        dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
-              alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2
-      else
-        dx2 = dalpha / (2 * rad) + dphi_1 * sin_plus * (-cos_plus / rad + 1) / g_p
+      beta_ref = ele%value(p0c$) / ele%value(E_tot$)
+      sinc_a = sinc(angle)
+      pt = sqrt(rel_p2 - py**2)
+      if (abs(px) > pt) then
+        orbit%state = lost_pz_aperture$
+        return
       endif
-      dL_u = dx2
-      dL_c = (L_u * dL_u)/ L_c
-      dangle_p = 2 * dphi_1 + 2 * (dL_u * L_v) / L_c**2
-      dL_p = dL_c / sinc(angle_p/2) - dangle_p * L_c * sinc(angle_p/2, 1) / (2 * sinc(angle_p/2)**2)
+      g_p = g_tot / pt
+      phi_1  = asin(px / pt)
+      cos_a  = cos(angle)
+      sin_a  = sin(angle)
+      cosc_a = cosc(angle)
+      cos_plus = cos(angle + phi_1)
+      sin_plus = sin(angle + phi_1)
+      alpha = 2 * (1 + g*x) * sin_plus * step_len * sinc_a - g_p * ((1 + g*x) * step_len * sinc_a)**2
+      r = cos_plus**2 + g_p*alpha
 
-      mat6_i(1,2) = dx2
-      mat6_i(2,2) = (dphi_1 - dangle_p) * pt * cos(phi_1 + angle - angle_p)
-      mat6_i(3,2) = py * dL_p / pt
-      mat6_i(5,2) = -rel_p * dL_p / pt
-
-      dpt = -py / pt
-      dphi_1 = -px * dpt / (pt**2 * cos(phi_1))
-      dg_p = -g_tot * dpt / pt**2
-      dalpha = 2 * dphi_1 * (1 + g*x) * cos_plus * step_len * sinc_a - dg_p * ((1 + g*x) * step_len * sinc_a)**2
-      if (cos_plus > 0) then
-        dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
-              alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2 - &
-              alpha**2 * dg_p / (2 * rad * denom**2)
-      else
-        dx2 = dalpha / (2 * rad) + dphi_1 * sin_plus * (-cos_plus / rad + 1) / g_p + &
-              dg_p * (alpha / (2 * rad * g_p) - denom / g_p**2)
+      if (r < 0 .or. (abs(g_p) < 1d-5 .and. abs(cos_plus) < 1d-5)) then  ! Particle does not intersect exit face.
+        orbit%state = lost$
+        orbit%vec(1) = 2 * bmad_com%max_aperture_limit
+        return
       endif
-      dL_u = dx2
-      dL_c = (L_u * dL_u)/ L_c
-      dangle_p = 2 * dphi_1 + 2 * (dL_u * L_v) / L_c**2
-      dL_p = dL_c / sinc(angle_p/2) - dangle_p * L_c * sinc(angle_p/2, 1) / (2 * sinc(angle_p/2)**2)
 
-      mat6_i(1,4) = dx2
-      mat6_i(2,4) = dpt * sin(phi_1 + angle - angle_p) + &
-                    (dphi_1 - dangle_p) * pt * cos(phi_1 + angle - angle_p)
-      mat6_i(3,4) = (L_p + py * dL_p) / pt - py * L_p * dpt / pt**2
-      mat6_i(5,4) = -rel_p * (dL_p / pt - L_p * dpt / pt**2)
-
-      dpt = rel_p / pt
-      dphi_1 = -px * dpt / (pt**2 * cos(phi_1))
-      dg_p = -g_tot * dpt / pt**2
-      dalpha = 2 * dphi_1 * (1 + g*x) * cos_plus * step_len * sinc_a - dg_p * ((1 + g*x) * step_len * sinc_a)**2
+      rad = sqrt(r)
       if (cos_plus > 0) then
-        dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
-              alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2 - &
-              alpha**2 * dg_p / (2 * rad * denom**2)
+        denom = rad + cos_plus
+        orbit%vec(1) = x * cos_a - step_len**2 * g * cosc_a + alpha / denom
       else
-        dx2 = dalpha / (2 * rad) + dphi_1 * sin_plus * (-cos_plus / rad + 1) / g_p + &
-              dg_p * (alpha / (2 * rad * g_p) - denom / g_p**2)
+        denom = rad - cos_plus
+        orbit%vec(1) = x * cos_a - step_len**2 * g * cosc_a + denom / g_p
       endif
-      dL_u = dx2
-      dL_c = (L_u * dL_u)/ L_c
-      dangle_p = 2 * dphi_1 + 2 * (dL_u * L_v) / L_c**2
-      dL_p = dL_c / sinc(angle_p/2) - dangle_p * L_c * sinc(angle_p/2, 1) / (2 * sinc(angle_p/2)**2)
 
-      mat6_i(1,6) = dx2
-      mat6_i(2,6) = dpt * sin(phi_1 + angle - angle_p) + &
-                    (dphi_1 - dangle_p) * pt * cos(phi_1 + angle - angle_p)
-      mat6_i(3,6) = py * dL_p / pt - py * L_p * dpt / pt**2
-      mat6_i(5,6) = (1 - orbit%beta**2) * orbit%beta * step_len / (rel_p * beta_ref) - &
-                      L_p / pt - rel_p * (dL_p / pt - L_p * dpt / pt**2)
+      if (abs(orbit%vec(1)) > bmad_com%max_aperture_limit) then
+        orbit%state = lost$
+        return
+      endif
 
-      mat6 = matmul(mat6_i, mat6)
+      L_u = orbit%vec(1) + step_len**2 * g * cosc_a - x * cos_a 
+      L_v = -step_len * sinc_a - x * sin_a
+      L_c = sqrt(L_v**2 + L_u**2)
+      angle_p = 2 * (angle + phi_1 - atan2(L_v, L_u)) - pi
+      L_p = L_c / sinc(angle_p/2)
+      orbit%vec(2) = pt * sin(phi_1 + angle - angle_p)
+      orbit%vec(3) = y + py * L_p / pt
+      orbit%vec(5) = z + orbit%beta * step_len / beta_ref - rel_p * L_p / pt 
+
+      if (logic_option(.false., make_matrix)) then
+        call mat_make_unit (mat6_i)
+
+        dalpha = 2 * g * sin_plus * step_len * sinc_a - 2 * g_p * g * (1 + g*x) * (step_len * sinc_a)**2
+        dx2 = cos_a + dalpha * (1 / (2 * rad))   ! cos_a < 0 form
+        dL_u = dx2 - cos_a
+        dL_v = -sin_a
+        dL_c = (L_u * dL_u + L_v * dL_v)/ L_c
+        dangle_p = 2 * (dL_u * L_v - dL_v * L_u) / L_c**2
+        dL_p = dL_c / sinc(angle_p/2) - dangle_p * L_c * sinc(angle_p/2, 1) / (2 * sinc(angle_p/2)**2)
+
+        mat6_i(1,1) = dx2
+        mat6_i(2,1) = -dangle_p * pt * cos(phi_1 + angle - angle_p)
+        mat6_i(3,1) = py * dL_p / pt
+        mat6_i(5,1) = -rel_p * dL_p / pt
+
+        dphi_1 = 1 / (pt * cos(phi_1))
+        dalpha = 2 * dphi_1 * (1 + g * x) * cos_plus * step_len * sinc_a
+        if (cos_plus > 0) then
+          dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
+                alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2
+        else
+          dx2 = dalpha / (2 * rad) + dphi_1 * sin_plus * (-cos_plus / rad + 1) / g_p
+        endif
+        dL_u = dx2
+        dL_c = (L_u * dL_u)/ L_c
+        dangle_p = 2 * dphi_1 + 2 * (dL_u * L_v) / L_c**2
+        dL_p = dL_c / sinc(angle_p/2) - dangle_p * L_c * sinc(angle_p/2, 1) / (2 * sinc(angle_p/2)**2)
+
+        mat6_i(1,2) = dx2
+        mat6_i(2,2) = (dphi_1 - dangle_p) * pt * cos(phi_1 + angle - angle_p)
+        mat6_i(3,2) = py * dL_p / pt
+        mat6_i(5,2) = -rel_p * dL_p / pt
+
+        dpt = -py / pt
+        dphi_1 = -px * dpt / (pt**2 * cos(phi_1))
+        dg_p = -g_tot * dpt / pt**2
+        dalpha = 2 * dphi_1 * (1 + g*x) * cos_plus * step_len * sinc_a - dg_p * ((1 + g*x) * step_len * sinc_a)**2
+        if (cos_plus > 0) then
+          dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
+                alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2 - &
+                alpha**2 * dg_p / (2 * rad * denom**2)
+        else
+          dx2 = dalpha / (2 * rad) + dphi_1 * sin_plus * (-cos_plus / rad + 1) / g_p + &
+                dg_p * (alpha / (2 * rad * g_p) - denom / g_p**2)
+        endif
+        dL_u = dx2
+        dL_c = (L_u * dL_u)/ L_c
+        dangle_p = 2 * dphi_1 + 2 * (dL_u * L_v) / L_c**2
+        dL_p = dL_c / sinc(angle_p/2) - dangle_p * L_c * sinc(angle_p/2, 1) / (2 * sinc(angle_p/2)**2)
+
+        mat6_i(1,4) = dx2
+        mat6_i(2,4) = dpt * sin(phi_1 + angle - angle_p) + &
+                      (dphi_1 - dangle_p) * pt * cos(phi_1 + angle - angle_p)
+        mat6_i(3,4) = (L_p + py * dL_p) / pt - py * L_p * dpt / pt**2
+        mat6_i(5,4) = -rel_p * (dL_p / pt - L_p * dpt / pt**2)
+
+        dpt = rel_p / pt
+        dphi_1 = -px * dpt / (pt**2 * cos(phi_1))
+        dg_p = -g_tot * dpt / pt**2
+        dalpha = 2 * dphi_1 * (1 + g*x) * cos_plus * step_len * sinc_a - dg_p * ((1 + g*x) * step_len * sinc_a)**2
+        if (cos_plus > 0) then
+          dx2 = dalpha * (1 / denom - alpha * g_p / (2 * rad * denom**2)) + &
+                alpha * dphi_1 * sin_plus * (cos_plus / rad + 1) / denom**2 - &
+                alpha**2 * dg_p / (2 * rad * denom**2)
+        else
+          dx2 = dalpha / (2 * rad) + dphi_1 * sin_plus * (-cos_plus / rad + 1) / g_p + &
+                dg_p * (alpha / (2 * rad * g_p) - denom / g_p**2)
+        endif
+        dL_u = dx2
+        dL_c = (L_u * dL_u)/ L_c
+        dangle_p = 2 * dphi_1 + 2 * (dL_u * L_v) / L_c**2
+        dL_p = dL_c / sinc(angle_p/2) - dangle_p * L_c * sinc(angle_p/2, 1) / (2 * sinc(angle_p/2)**2)
+
+        mat6_i(1,6) = dx2
+        mat6_i(2,6) = dpt * sin(phi_1 + angle - angle_p) + &
+                      (dphi_1 - dangle_p) * pt * cos(phi_1 + angle - angle_p)
+        mat6_i(3,6) = py * dL_p / pt - py * L_p * dpt / pt**2
+        mat6_i(5,6) = (1 - orbit%beta**2) * orbit%beta * step_len / (rel_p * beta_ref) - &
+                        L_p / pt - rel_p * (dL_p / pt - L_p * dpt / pt**2)
+
+        mat6 = matmul(mat6_i, mat6)
+      endif
+
     endif
-
   endif
 
   ! multipole kick
@@ -255,7 +286,6 @@ do n = 1, n_step
       call apply_multipole_kicks (1.0_rp, step_len, ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec)
     endif
   endif
-
 enddo
 
 ! Track through the exit face. Treat as thin lens.
