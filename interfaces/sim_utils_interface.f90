@@ -684,6 +684,14 @@ elemental function sinc(x, nd) result (y)
   integer, optional, intent(in) :: nd
 end function
 
+elemental function sincc(x, nd) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: x
+  real(rp) y
+  integer, optional, intent(in) :: nd
+end function
+
 elemental function sinhx_x(x, nd) result (y)
   import
   implicit none
