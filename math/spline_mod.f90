@@ -84,6 +84,9 @@ end function create_a_spline
 ! The advantage of this routine is that only the (x, y) knot points need to be stored
 ! and it will be faster if the number of evaluations is small.
 !
+! This routine will extrapolate past the range of x_knot(:) up to a distance equal to the 
+! length between an end point and the point just inside the end point. 
+!
 ! Input:
 !   x_knot(:)   -- real(rp): Array of x values for the knot points. 
 !                    Must have more than 2 points and be in asending order.
@@ -378,7 +381,7 @@ subroutine spline_akima (spline, ok)
 
 type (spline_struct) :: spline(:)
 
-real(rp) y21, y32, x21, x32, x221, x232
+real(rp) x21, x31, x32
 
 logical ok
 
@@ -405,7 +408,7 @@ do i = 2, nmax
   endif
 enddo
 
-spline(:)%coef(0) = spline(:)%y0  ! spline passes through all the data points
+spline(:)%coef(0) = spline(:)%y0  ! Spline must pass through all the data points
 
 ! special case for 2 two points: use a straight line
 
@@ -419,17 +422,18 @@ endif
 ! special case for 3 points: use a quadratic
 
 if (nmax .eq. 3) then
-  y21 = spline(2)%y0 - spline(1)%y0
-  y32 = spline(3)%y0 - spline(2)%y0
   x21 = spline(2)%x0 - spline(1)%x0
+  x31 = spline(3)%x0 - spline(1)%x0
   x32 = spline(3)%x0 - spline(2)%x0
-  x221 = spline(2)%x0**2 - spline(1)%x0**2
-  x232 = spline(3)%x0**2 - spline(2)%x0**2
-  spline(1)%coef(2) = 2 * (y21*x32 - y32*x21) / (x221*x32 - x232*x21)
-  spline(2)%coef(1) = (x32*y21/x21 + x21*y32/x32) / (x32 + x21) 
-  spline(1)%coef(1) = spline(2)%coef(1) - spline(1)%coef(2) * x21
-  spline(2)%coef(2) = spline(1)%coef(2)
+
   spline(1:2)%coef(3) = 0
+
+  spline(1)%coef(2) = spline(1)%y0 / (x21 * x31) - spline(2)%y0 / (x21 * x32) + spline(3)%y0 / (x31 * x32)
+  spline(2)%coef(2) = spline(1)%coef(2)
+
+  spline(1)%coef(1) = ((spline(3)%y0 - spline(2)%y0) - spline(1)%coef(2) * (x31**2 - x21**2)) / x32
+  spline(2)%coef(1) = ((spline(3)%y0 - spline(1)%y0) - spline(2)%coef(2) * (x32**2 - x21**2)) / x31
+
   ok = .true.
   return
 endif
