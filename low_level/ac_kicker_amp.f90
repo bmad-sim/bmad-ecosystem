@@ -24,8 +24,9 @@ type (ac_kicker_struct), pointer :: ac
 type (ele_struct), pointer :: ref_ele
 type (ele_pointer_struct), allocatable :: chain(:)
 
-real(rp) t, time, ac_amp, f, dt_ds0
-integer i, n, ix, ix_pass, n_links
+real(rp) t, time, ac_amp, dt_ds0
+integer i, ix_pass, n_links
+logical err_flag
 
 character(*), parameter :: r_name = 'ac_kicker_amp'
 
@@ -61,19 +62,9 @@ if (allocated(ac%frequencies)) then
   enddo
 
 else
-  n = size(ac%amp_vs_time)
-  ix = bracket_index(t, ac%amp_vs_time%time, 1)
-  if (ix < 1) then
-    ac_amp = ac%amp_vs_time(1)%amp
-  elseif (ix == n) then
-    ac_amp = ac%amp_vs_time(n)%amp
-  elseif (nint(ele%value(interpolation$)) == linear$) then
-    f = (t - ac%amp_vs_time(ix)%time) / (ac%amp_vs_time(ix+1)%time - ac%amp_vs_time(ix)%time)
-    ac_amp = ac%amp_vs_time(ix)%amp * (1 - f) + ac%amp_vs_time(ix+1)%amp * f
-  elseif (nint(ele%value(interpolation$)) == spline$) then
-    ac_amp = spline1 (ac%amp_vs_time(ix)%spline, t)
-  else
-    call out_io (s_fatal$, r_name, 'UNKNOWN INTERPOLATION TYPE FOR AC_KICKER: ' // ele%name)
+  ac_amp = knot_interpolate(ac%amp_vs_time%time, ac%amp_vs_time%amp, t, nint(ele%value(interpolation$)), err_flag)
+  if (err_flag) then
+    call out_io (s_fatal$, r_name, 'INTERPOLATION PROBLEM FOR AC_KICKER: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif

@@ -197,9 +197,10 @@ determined by the setting of the \vn{interpolate} parameter which may be one of
   linear      ! Linear interpolation.
   spline      ! Cubic spline interpolation (default).
 \end{example}
-For times before of the range specified by \vn{amp_vs_time}, the amplitude is taken to be the
-amplitude of the first point of the range. Similarly, for times after the the range specified by
-\vn{amp_vs_time}, the amplitude is taken to be the amplitude of the last point of the range.
+For times before of the range specified by \vn{amp_vs_time}, the amplitude is extrapolated either
+linearly or using a cubic based upon the setting for \vn{interpolate}. For the cubic spline, 
+extrapolation is permitted over a distance outside the time range equal to the time difference
+between an end point and the next nearest point.
 
 The second way to specify $A(\delta t)$ is to specify the frequencies in the $A(t)$ spectrum using the
 \vn{frequencies} attribute:

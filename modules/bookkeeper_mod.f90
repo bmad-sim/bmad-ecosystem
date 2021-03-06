@@ -252,11 +252,13 @@ if (lord%control%type == expression$) then
   endif
 
 else
-  call spline_akima_interpolate (lord%control%x_knot, ctl%y_knot, lord%control%var(1)%value, ok, ctl%value)
-  call spline_akima_interpolate (lord%control%x_knot, ctl%y_knot, lord%control%var(1)%old_value, ok, val_old)
-  if (.not. ok) then
-    call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
-    err_flag = .true.
+  val_old = knot_interpolate(lord%control%x_knot, ctl%y_knot, lord%control%var(1)%old_value, &
+                                                            nint(lord%value(interpolation$)), err_flag)
+  ctl%value = knot_interpolate(lord%control%x_knot, ctl%y_knot, lord%control%var(1)%value, &
+                                                            nint(lord%value(interpolation$)), err_flag)
+  if (err_flag) then
+    call out_io (s_error$, r_name, 'EVALUATION PROBLEM FOR GROUP ELEMENT: ' // lord%name, &
+                    'WHILE CALCULATING VALUE FOR: ' // trim(ele%name) // '[' // trim(attrib_name) // ']')
     return
   endif
 endif
@@ -1685,10 +1687,10 @@ if (lord%control%type == expression$) then
   endif
 
 else
-  call spline_akima_interpolate (lord%control%x_knot, c%y_knot, lord%control%var(1)%value, ok, c%value)
-  if (.not. ok) then
+  c%value = knot_interpolate (lord%control%x_knot, c%y_knot, lord%control%var(1)%value, &
+                  nint(lord%value(interpolation$)), err_flag)
+  if (err_flag) then
     call out_io (s_error$, r_name, 'VARIABLE VALUE OUTSIDE OF SPLINE KNOT RANGE.')
-    err_flag = .true.
     return
   endif
 endif

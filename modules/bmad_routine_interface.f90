@@ -939,6 +939,14 @@ subroutine kill_ptc_layouts (lat)
   type (lat_struct) lat
 end subroutine
 
+function knot_interpolate (x_knot, y_knot, x_pt, interpolation, err_flag) result (y_pt)
+  import
+  implicit none
+  real(rp) x_knot(:), y_knot(:), x_pt, y_pt
+  integer interpolation
+  logical err_flag
+end function
+
 subroutine lat_compute_ref_energy_and_time (lat, err_flag)
   import
   implicit none
