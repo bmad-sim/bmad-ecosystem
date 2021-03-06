@@ -321,23 +321,26 @@ case (group$)
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
-  ele%field_calc = no_field$
-  ele%value(gang$) = true$
+  ele%field_calc            = no_field$
+  ele%value(gang$)          = true$
+  ele%value(interpolation$) = spline$
 
 case (overlay$)
   ele%bookkeeping_state%attributes     = ok$
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
-  ele%field_calc = no_field$
-  ele%value(gang$) = true$
+  ele%field_calc            = no_field$
+  ele%value(gang$)          = true$
+  ele%value(interpolation$) = spline$
 
 case (ramper$)
   ele%bookkeeping_state%attributes     = ok$
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
-  ele%field_calc = no_field$
+  ele%field_calc            = no_field$
+  ele%value(interpolation$) = spline$
 
 case (girder$)
   ele%bookkeeping_state%attributes     = ok$
