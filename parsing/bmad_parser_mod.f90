@@ -193,10 +193,8 @@ if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) then
   i = attribute_index(ele, word)       ! general attribute search
 
   select case (i)
-  case (type$, alias$, descrip$)
-    call bmad_parser_string_attribute_set (ele, word, delim, delim_found)
-    err_flag = .false.
-    return
+  case (type$, alias$, descrip$, gang$, is_on$, interpolation$)
+    ! Handled below
 
   case (var$)
     if (how == redef$ .or. allocated(ele%control%var)) then
@@ -207,14 +205,6 @@ if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) then
     pele%default_attrib = ele%control%var(1)%name
     return
 
-  case (gang$)
-    call get_logical_real ('GANG', ele%value(gang$), err_flag)
-    return
-
-  case (is_on$)
-    call parser_get_logical (word, ele%is_on, ele%name, delim, delim_found, err_flag)
-    return
-
   case (x_knot$)
     if (.not. parse_real_list2 (lat, 'ERROR PARSING X_KNOT POINTS FOR: ' // ele%name, ele%control%x_knot, n, delim, delim_found, 10, '{', ',', '}')) return
     call re_allocate(ele%control%x_knot, n)
@@ -222,49 +212,49 @@ if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$) then
     err_flag = .false.
     return
 
-  end select
+  case default
+    ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordion_edge for example.
 
-  ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordion_edge for example.
+    is_attrib = (attribute_index(0, word) > 0 .or. (ele%key == group$ .and. word == 'COMMAND'))
+    if (how == def$ .and. .not. allocated(ele%control%var) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
+      pele%default_attrib = word
+      allocate (ele%control)
+      allocate (ele%control%var(1))
+      if (ele%key == group$) word = 'COMMAND'
+      ele%control%var(1)%name = word
+      i = 1 + var_offset$
+    endif
 
-  is_attrib = (attribute_index(0, word) > 0 .or. (ele%key == group$ .and. word == 'COMMAND'))
-  if (how == def$ .and. .not. allocated(ele%control%var) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
-    pele%default_attrib = word
-    allocate (ele%control)
-    allocate (ele%control%var(1))
-    if (ele%key == group$) word = 'COMMAND'
-    ele%control%var(1)%name = word
-    i = 1 + var_offset$
-  endif
+    !
 
-  !
-
-  if (i < 1) then
-    if (hetero_list) then
-      err_flag = .false.
+    if (i < 1) then
+      if (hetero_list) then
+        err_flag = .false.
+        return
+      endif
+      call parser_error ('BAD OVERLAY/GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
       return
     endif
-    call parser_error ('BAD OVERLAY/GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+
+    value = 0
+    if (delim == '=') then  ! value
+      call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
+      if (err_flag) return
+    endif
+
+    call pointer_to_attribute (ele, word, .true., a_ptr, err_flag, .true.)
+    if (err_flag) then
+      call parser_error ('')
+      return
+    endif
+
+    a_ptr%r = value
+
+    if (attrib_free_problem(word)) return
+    
+    err_flag = .false.
     return
-  endif
-
-  value = 0
-  if (delim == '=') then  ! value
-    call parse_evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag, ele = ele)
-    if (err_flag) return
-  endif
-
-  call pointer_to_attribute (ele, word, .true., a_ptr, err_flag, .true.)
-  if (err_flag) then
-    call parser_error ('')
-    return
-  endif
-
-  a_ptr%r = value
-
-  if (attrib_free_problem(word)) return
-  
-  err_flag = .false.
-  return
+  end select
 endif   ! Overlay, Ramper, or Group
 
 ! L_pole, N_pole for wiggler/undulator are deprecated in favor of L_period, N_period.
