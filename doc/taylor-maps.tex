@@ -82,7 +82,7 @@ The reference column in the above example shows the input coordinates around
 which the Taylor map is calculated. In this case, the reference
 coordinates where 
 \begin{equation}
-  (x, p_x, y, p_y, z, p_z)_{ref} = (0.2, 0, 0.1, 0, 0, 0, 0)
+  (x, p_x, y, p_y, z, p_z)_\REF = (0.2, 0, 0.1, 0, 0, 0, 0)
 \end{equation}
 The choice of the reference point will affect the values of the
 coefficients of the Taylor map. As an example, consider the 1-dimension map
@@ -95,8 +95,8 @@ Then a Taylor map to 1\St order is
 \end{equation}
 where
 \begin{align}
-  c_1 &= A \, k \, \cos(k \, x_{\text{ref}}) \\
-  c_0 &= A \, \sin(k \, x_{\text{ref}})
+  c_1 &= A \, k \, \cos(k \, x_\REF) \\
+  c_0 &= A \, \sin(k \, x_\REF)
 \end{align}
 
 %-----------------------------------------------------------------

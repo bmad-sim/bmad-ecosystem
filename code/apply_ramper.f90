@@ -30,7 +30,7 @@ character(100) err_str
 character(40) name
 character(*), parameter :: r_name = 'apply_ramper'
 
-! Intit
+! Init
 
 err_flag = .false.
 if (size(ramper) == 0) return
@@ -40,13 +40,13 @@ do ix = 1, size(ramper)
   ramper(ix)%ele%select = .false.
 enddo
 
-! Apply
+! Bookkeeping for ramper controlling ramper.
 
 do ix = 1, size(ramper)
   call this_ramper_bookkeeper(ramper(ix)%ele, ramper, lat)
 enddo
 
-!
+! Calculate slave values
 
 do ir = 1, size(ramper)
   rmp => ramper(ir)%ele
@@ -55,25 +55,30 @@ do ir = 1, size(ramper)
   do iv = 1, size(rmp%control%ramp)
     ctl => rmp%control%ramp(iv)
 
-    ix = index(ctl%slave_name, '::')
-    if (ix == 0) then
-      key = 0
-      name = ctl%slave_name
-    else
-      key = key_name_to_key_index(ctl%slave_name(1:ix-1), .true.)
-      name = ctl%slave_name(ix+2:)
-    endif
+    ! slave%key = int_garbage$ is used by the controller_function_plot program to bypass 
+    ! some of the bookkeeping of this routine.
 
-    if ((key /= 0 .and. key /= slave%key) .or. .not. match_wild(slave%name, name)) then
-      ctl%value = real_garbage$
-      cycle
+    if (slave%key /= int_garbage$) then
+      ix = index(ctl%slave_name, '::')
+      if (ix == 0) then
+        key = 0
+        name = ctl%slave_name
+      else
+        key = key_name_to_key_index(ctl%slave_name(1:ix-1), .true.)
+        name = ctl%slave_name(ix+2:)
+      endif
+
+      if ((key /= 0 .and. key /= slave%key) .or. .not. match_wild(slave%name, name)) then
+        ctl%value = real_garbage$
+        cycle
+      endif
     endif
 
     call this_slave_bookkeeper(rmp, slave, ctl)
   enddo
 enddo
 
-call attribute_bookkeeper(slave, .true.)
+if (slave%key /= int_garbage$) call attribute_bookkeeper(slave, .true.)
 
 !-------------------------------------------------------------------
 contains
@@ -125,12 +130,15 @@ type (all_pointer_struct) a_ptr
 
 logical err_flag
 
-!
+! slave%key = int_garbage$ is used by the controller_function_plot program to bypass 
+! some of the bookkeeping of this routine.
 
-call pointer_to_attribute (slave, ctl%attribute, .true., a_ptr, err_flag, .false.)
-if (err_flag .or. .not. associated(a_ptr%r)) then
-  ctl%value = real_garbage$
-  return
+if (slave%key /= int_garbage$) then
+  call pointer_to_attribute (slave, ctl%attribute, .true., a_ptr, err_flag, .false.)
+  if (err_flag .or. .not. associated(a_ptr%r)) then
+    ctl%value = real_garbage$
+    return
+  endif
 endif
 
 if (this_ramp%control%type == expression$) then
@@ -151,8 +159,10 @@ else
   endif
 endif
 
-a_ptr%r = ctl%value
-call set_flags_for_changed_attribute (slave, a_ptr%r, .true.)
+if (slave%key /= int_garbage$) then
+  a_ptr%r = ctl%value
+  call set_flags_for_changed_attribute (slave, a_ptr%r, .true.)
+endif
 
 end subroutine this_slave_bookkeeper
 

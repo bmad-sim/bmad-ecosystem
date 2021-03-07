@@ -197,7 +197,7 @@ do ib = 0, ubound(lat%branch, 1)
       ibr(ib)%loc(i2)%old_ix_ele    = i
       ibr(ib)%loc(i2)%old_ix_branch = ib
       if (i2 /= i) then
-        branch%ele(i2) = ele        ! Note: Overloaded equal sign code does not touch %ix_ele.
+        call ele_equals_ele (branch%ele(i2), ele, .false.) ! Note: Nametable will be updated at end.
         branch%ele(i2)%ix_ele = i2
       endif
     endif

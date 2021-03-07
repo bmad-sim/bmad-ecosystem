@@ -74,7 +74,6 @@ if (err) return
 
 lord%lord_status = group_lord$
 lord%key = group$
-call set_ele_defaults (lord)
 
 if (n_control == 0) return ! If no slaves then nothing to do.
 

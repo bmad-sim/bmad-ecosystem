@@ -180,12 +180,13 @@ Controller elements have a set of one or more ``\vn{variables}'' that are used t
 of attributes of other elements (called ``\vn{slave}'' attributes).
 
 There are two types of controllers in terms of how slave attribute values are computed ---
-\vn{Expression} based controllers and \vn{Spline} based controllers. \vn{Expression} based
-controllers use mathematical expressions (\sref{s:arith}) to define how slave attribute values are
-calculated based upon the values of the controller variables. \vn{Spline} based controllers use a
-spline fit (in particular, the cubic non-smoothing Akima spline\cite{b:akima}) to a set of points
-(called ``\vn{knots}'') to determine the relationship between variables and slave attributes. With a
-spline based controller, the number of controller variables is restricted to be one.
+\vn{Expression} based controllers and \vn{knot} based controllers. \vn{Expression} based controllers
+use mathematical expressions (\sref{s:arith}) to define how slave attribute values are calculated
+based upon the values of the controller variables. \vn{Knot} based controllers use an array of
+points (called ``\vn{knots}'') with either linear or cubic spline interpolation (in particular, the
+cubic non-smoothing Akima spline\cite{b:akima}) to determine the relationship between variables and
+slave attributes. With a knot based controller, the number of controller variables is restricted
+to be one.
 
 The general syntax for an expression based \vn{group} element is
 \begin{example}
@@ -218,16 +219,17 @@ varied. In the above example, the variables are \vn{a} and \vn{b}, and the slave
 \vn{k1} attribute of element \vn{q1} and the \vn{tilt} attribute of element \vn{q2}. The arithmetic
 expressions used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
 
-The general syntax for For a \vn{spline} based \vn{group} element is:
+The general syntax for For a \vn{knot} based \vn{group} element is:
 \begin{example}
   name: GROUP = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
-              VAR = \{var1\}, X_KNOT = \{x_knot_points\},
+              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, INTERPOLATION = \{type\},
               var1 = init_val1, old_var1 = init_val_old1, ..., GANG = logical, ... 
 \end{example}
-and the general syntax for a \vn{spline} based \vn{overlay} element is similar:
+and the general syntax for a \vn{knot} based \vn{overlay} element is similar:
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
-        VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ..., GANG = logical, ...
+        VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ..., 
+        GANG = logical, INTERPOLATION = \{type\}, ...
 \end{example}
 For \vn{ramper} elements, the syntax is similar to the \vn{overlay} syntax except that \vn{OVERLAY} 
 is replaced by \vn{RAMPER} and there is no \vn{GANG} attribute.
@@ -236,6 +238,16 @@ Example:
   ov: overlay = \{q1[k1]:\{0.234, 0.534\}, q2[k1], q3[k1], q4[k1]:\{0.375, 0.923\}\}, 
         var = {time}, x_knot = \{0.0, 1.0\}
 \end{example}
+
+The method used to interpolate between the knot points is determined by the setting of the
+\vn{interpolate} parameter which may be one of
+\begin{example}
+  linear      ! Linear interpolation.
+  spline      ! Cubic spline interpolation (default).
+\end{example}
+For variable values outside of the range specified by \vn{x_knot}, the slave parmeter value will be
+extrapolated.  For the cubic spline, extrapolation is only permitted over a distance outside the
+x_knot range equal to the time difference between an end point and the next nearest point.
 
 The array sizes of all knot arrays must be the same. If a \vn{y_knot_points} array is not present
 for a particular slave attribute, the knot array of the previous slave attribute is used. Thus, in
@@ -1921,13 +1933,13 @@ electric multipole fields. In this case, the magnetic fields are specified using
 as the \vn{ab_multipole}.  For such non-multipole elements, the magnetic multipole strength is
 scaled via (\Eq{ababf}) 
 \begin{equation}
-a_n(\text{actual}) = F \, \frac{r_0^{n_\text{ref}}}{r_0^n} \, a_n(\text{input}), \qquad
-b_n(\text{actual}) = F \, \frac{r_0^{n_\text{ref}}}{r_0^n} \, b_n(\text{input})
+a_n(\text{actual}) = F \, \frac{r_0^{n_\REF}}{r_0^n} \, a_n(\text{input}), \qquad
+b_n(\text{actual}) = F \, \frac{r_0^{n_\REF}}{r_0^n} \, b_n(\text{input})
 \end{equation}
 where ``\vn{input}'' denotes the input value set in the lattice file, ``\vn{actual}'' denotes the
 value that is used to compute the field, $F$ is the strength of the element (for example $F$ is $K1 \cdot
 L$ for a quadrupole), and $r_0$ is the ``measurement radius'' and is set by the \vn{r0_mag}
-attribute. The default value of $r_0$ is 0 in which case the factor of $r_0^{n_\text{ref}}/r_0^n$ is
+attribute. The default value of $r_0$ is 0 in which case the factor of $r_0^{n_\REF}/r_0^n$ is
 omitted. The scaling may be turned off altogether by setting the \vn{scale_multipoles} attribute.
 Example:
 \begin{example}
@@ -2379,11 +2391,11 @@ Example:
 
 The actual fields $\bfE$ and $\bfB$ are computed from the complex fields $\bfE_c$ and $\bfB_c$ via
 \begin{equation}
-  \bfE = \Re \Bigl[ \bfE_c \exp \left( -2 \, \pi \, i \, (\phi_t + \phi_\text{ref}) \right) \Bigr]
+  \bfE = \Re \Bigl[ \bfE_c \exp \left( -2 \, \pi \, i \, (\phi_t + \phi_\REF) \right) \Bigr]
 \end{equation}
 with a similar equation for $\bfB$. $\phi_t$ is the part of the phase due to when the particle
 arrives at the cavity and depends upon whether \vn{absolute time tracking} or \vn{relative time
-tracking} is being used as discussed in \sref{s:rf.time}. The phase $\phi_{\text{ref}}$ for the
+tracking} is being used as discussed in \sref{s:rf.time}. The phase $\phi_\REF$ for the
 $j$\Th grid field in an \vn{rfcavity} element is
 \begin{example}
   \(\phi_\text{ref,j}\) = harmonic(j) * [0.25 - (phi0 + phi0_multipass + phi0_err + 

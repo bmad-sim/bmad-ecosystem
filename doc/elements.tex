@@ -177,8 +177,8 @@ field is calculated in two steps:
 \begin{enumerate}
 \item Calculate the field the same as for a \vn{kicker} element (\sref{s:kicker}).
 \item Scale the field using the function $A(\delta t)$. If \vn{ref_time_offset} is set to \vn{True} (the 
-default), $\delta t = t - t_0 - t_{ref}$ where $t$ is the time, $t_0$ is the value of the
-\vn{t_offset} attribute, and $t_{ref}$ is the reference time at the entrance end of the element. If
+default), $\delta t = t - t_0 - t_\REF$ where $t$ is the time, $t_0$ is the value of the
+\vn{t_offset} attribute, and $t_\REF$ is the reference time at the entrance end of the element. If
 \vn{ref_time_offset} is set to \vn{False}, $\delta t = t - t_0$. Note: Unlike RF cavity elements,
 the time $t$ here is always the absolute time (\sref{s:rf.time}) and not the relative time.
 \end{enumerate}
@@ -197,10 +197,9 @@ determined by the setting of the \vn{interpolate} parameter which may be one of
   linear      ! Linear interpolation.
   spline      ! Cubic spline interpolation (default).
 \end{example}
-For times before of the range specified by \vn{amp_vs_time}, the amplitude is extrapolated either
-linearly or using a cubic based upon the setting for \vn{interpolate}. For the cubic spline, 
-extrapolation is permitted over a distance outside the time range equal to the time difference
-between an end point and the next nearest point.
+For times outside of the range specified by \vn{amp_vs_time}, the amplitude will be extrapolated.
+For the cubic spline, extrapolation is only permitted over a distance outside the time range equal
+to the time difference between an end point and the next nearest point.
 
 The second way to specify $A(\delta t)$ is to specify the frequencies in the $A(t)$ spectrum using the
 \vn{frequencies} attribute:
@@ -1594,10 +1593,10 @@ discussed in Section~\sref{s:autoscale}. Autoscaling can be toggled on/off by us
 \vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
 
 An \vn{e_gun} may either be DC if the \vn{rf_frequency} component is zero of AC if
-not. For an AC \vn{e_gun}, the phase of the \vn{e_gun}, The phase $\phi_{\text{ref}}$
+not. For an AC \vn{e_gun}, the phase of the \vn{e_gun}, The phase $\phi_\REF$
 is 
 \begin{example} 
-  \(\phi_{\text{ref}}\) = phi0 + phi0_err + phi0_autoscale 
+  \(\phi_\REF\) = phi0 + phi0_err + phi0_autoscale 
 \end{example}
 
 \index{marker}\index{null_ele}
@@ -2362,7 +2361,7 @@ General \vn{group} attributes are:
 \toffset
 See \sref{s:list.group} for a full list of element attributes along with a their units.
 
-There are two types of \vn{group} elements: \vn{Expression} based and \vn{spline} based.
+There are two types of \vn{group} elements: \vn{Expression} based and \vn{knot} based.
 The general syntax for a \vn{expression} based \vn{group} element is
 \begin{example}
   name: GROUP = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
@@ -2372,10 +2371,10 @@ where \vn{ele1}[\vn{attrib1}], \vn{ele2}[\vn{attrib2}], etc. specify the slave a
 \vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1},
 \vn{var2}, etc., and are used to determine a value for the slave attributes.
 
-The general syntax for a \vn{spline} based  \vn{group} element is
+The general syntax for a \vn{knot} based  \vn{group} element is
 \begin{example}
   name: GROUP = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
-              VAR = \{var1\}, X_KNOT = \{x_knot_points\},
+              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, INTERPOLATION = \{type\}, 
               var1 = init_val1, old_var1 = init_val_old1, ...
 \end{example}
 When using knot points, the \vn{group} may only have one variable parameter.
@@ -2393,13 +2392,13 @@ these old values prepend the string ``old_'' to the variable name. Thus, in the 
 old variable values have names \vn{old_a} and \vn{old_b} and these old values can be set in the same
 manner as the present values.
 
-Example of a \vn{spline} based \vn{group} element:
+Example of a \vn{knot} based \vn{group} element:
 \begin{example}
   gr2: group = \{beginning[E_tot]]:\{4e6,...\}\}, 
-      var = \{time\}, x_knot = \{...\}
+      var = \{time\}, x_knot = \{...\}, interpolate = spline
 \end{example}
 Here the function used to translate from the \vn{group}'s variables to the slave attribute values is
-a spline interpolation based upon the knot points specified (\sref{s:go.syntax}).
+a cubic spline interpolation based upon the knot points specified (\sref{s:go.syntax}).
 
 A \vn{group} element is like an \vn{overlay} element in that a \vn{group} element controls the
 attribute values of other ``slave'' elements. The difference is that the value of a slave attribute
@@ -2713,7 +2712,7 @@ The dependent variable \vn{voltage} attribute can be used in place of \vn{gradie
 
 The energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = q_{rel} * gradient_tot * L * cos(\(2\,\pi\) * (\(\phi_t\) + \(\phi_\text{ref}\)))
+  dE = q_{rel} * gradient_tot * L * cos(\(2\,\pi\) * (\(\phi_t\) + \(\phi_\REF\)))
 \end{example}
 where $q_{rel}$ is the charge of the particle relative to the charge of the reference particle.
 \index{multipass}
@@ -2723,9 +2722,9 @@ where the total gradient is
 \end{example}
 $\phi_t$ is the part of the phase due to when the particle arrives at the cavity and depends upon
 whether \vn{absolute time tracking} or \vn{relative time tracking} is being used as discussed in
-\sref{s:rf.time}.  The phase $\phi_{\text{ref}}$ is
+\sref{s:rf.time}.  The phase $\phi_\REF$ is
 \begin{example}
-  \(\phi_{\text{ref}}\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
+  \(\phi_\REF\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
   \label{lcav.phi}
 \end{example}
 
@@ -2739,14 +2738,14 @@ Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off b
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus
 \begin{example}
-  dE(reference) = gradient * L * cos(\(2\,\pi\) * \(\phi_{\text{ref}}\))
+  dE(reference) = gradient * L * cos(\(2\,\pi\) * \(\phi_\REF\))
 \end{example}
 
 The energy kick for a \bmad \vn{lcavity} is consistent with MAD. 
 Note: The MAD8 documentation for an \vn{lcavity} has a wrong
 sign. Essentially the MAD8 documentation gives
 \begin{example}
-  dE = gradient * L * cos(\(2\,\pi\) * (\(\phi_{\text{ref}}\) - phi(z))) ! WRONG
+  dE = gradient * L * cos(\(2\,\pi\) * (\(\phi_\REF\) - phi(z))) ! WRONG
 \end{example}
 This is incorrect. 
 
@@ -3336,7 +3335,7 @@ General \vn{overlay} attributes are:
 \toffset
 See \sref{s:list.overlay} for a full list of element attributes along with a their units.
 
-There are two types of \vn{overlay} elements: \vn{Expression} based and \vn{spline} based.
+There are two types of \vn{overlay} elements: \vn{Expression} based and \vn{knot} based.
 The general syntax for a \vn{expression} based \vn{overlay} element is
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
@@ -3346,10 +3345,11 @@ where \vn{ele1}[\vn{attrib1}], \vn{ele2}[\vn{attrib2}], etc. specify the slave a
 \vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1},
 \vn{var2}, etc., and are used to determine a value for the slave attributes.
 
-The general syntax for a \vn{spline} based  \vn{overlay} element is
+The general syntax for a \vn{knot} based \vn{overlay} element is
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
-              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ...
+              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, INTERPOLATION = \{type\},
+              var1 = init_val1, ...
 \end{example}
 
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
@@ -3904,7 +3904,7 @@ The syntax for \vn{ramper} elements is exactly the same as for \vn{overlay} (\sr
 except that \vn{ramper} elements do not have a \vn{gang} attribute.
 
 Like \vn{overlay}s, There are two types of \vn{ramper} elements: \vn{Expression} based and
-\vn{spline} based.  The general syntax for a \vn{expression} based \vn{ramper} element is
+\vn{knot} based.  The general syntax for a \vn{expression} based \vn{ramper} element is
 \begin{example}
   name: RAMPER = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
                                                        default_attrib = init_value
@@ -3913,10 +3913,11 @@ where \vn{ele1[attrib1]}, \vn{ele2[attrib2]}, etc. specify the slave attributes 
 \vn{exp1}, \vn{exp2}, etc. are the arithmetical expressions, that are functions of \vn{var1},
 \vn{var2}, etc., and are used to determine a value for the slave attributes.
 
-The general syntax for a \vn{spline} based  \vn{ramper} element is
+The general syntax for a \vn{knot} based  \vn{ramper} element is
 \begin{example}
   name: RAMPER = \{ele1[attrib1]:\{y_knot_points1\}, ele2[attrib2]:\{y_knot_points2\}, ...\}, 
-              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ...
+              VAR = \{var1\}, X_KNOT = \{x_knot_points\}, INTERPOLATION = \{type\},
+              var1 = init_val1, ...
 \end{example}
 
 \textbf{See Section~\sref{s:go.syntax} for a detailed description of this syntax.}
@@ -3924,19 +3925,19 @@ The general syntax for a \vn{spline} based  \vn{ramper} element is
 Examples:
 \begin{example}
   ramp_e: ramper = \{*[e_tot]:\{4e+08, 4.00532e+08, 4.01982e+08, ...\}\},
-                var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}
+                var = \{time\}, x_knot = \{0, 0.001, 0.002, ...\}, interpolation = spline
   amp = 1e9;  omega = 0.167;  t0 = 0.053
   ramp_rf: ramper = \{rfcavity::*[voltage]:amp*sin(omega *(t + t0)),
         rfcavity::*[phi0]:0.00158*t^2 + 3*q\}, var = \{t, q\}
 \end{example}
-\vn{Ramp_e} uses a spline fit to interpolate between the knot points specified in the element
-definition.  The ``\vn{*[e_tot]}'' construct in the definition of \vn{ramp_e} means that the ramper will
-be applied to the \vn{e_tot} attribute (\sref{s:energy}) of all elements (since the wild card
+\vn{Ramp_e} uses a cubic spline fit to interpolate between the knot points specified in the element
+definition.  The ``\vn{*[e_tot]}'' construct in the definition of \vn{ramp_e} means that the ramper
+will be applied to the \vn{e_tot} attribute (\sref{s:energy}) of all elements (since the wild card
 character ``\vn{*}'' (\sref{s:ele.match}) will match to all element names).
 
 The \vn{ramp_rf} ramper in the above example varias the \vn{voltage} and \vn{phase} (\vn{phi0})
 attributes of all elements that match to \vn{rfcavity::*}. That is, all \vn{rfcavity} elements. Here mathematical
-expressions are used instead of spline interpolation.
+expressions are used instead of knot points.
 
 \vn{Ramper} elements can control the variables of other controller element but in this case it is
 not permitted to use wild card characters. That is, in the above example, ``\vn{*}'' will not match
@@ -3997,12 +3998,12 @@ Attributes specific to an \vn{rfcavity} are:
 
 The integrated energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = -e_charge * voltage * sin(\(2\,\pi\) * (\(\phi_\text{t}\) - \(\phi_\text{ref}\)))
+  dE = -e_charge * voltage * sin(\(2\,\pi\) * (\(\phi_\text{t}\) - \(\phi_\REF\)))
 \end{example}
 \index{multipass}
 where
 \begin{example}
-  \(\phi_\text{ref}\) = phi0 + phi0_multipass + phi0_autoscale
+  \(\phi_\REF\) = phi0 + phi0_multipass + phi0_autoscale
   \label{rfcav.phi}
 \end{example}
 and $\phi_t$ is the part of the phase due to when the particle arrives at the cavity and depends
@@ -4023,7 +4024,7 @@ that the energy kick is independent of the sign of the charge of the particle
 Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off by using the
 \vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
 
-Note: Zero phase for $\phi_\text{ref}$ corresponds to the stable fixed point above transition.
+Note: Zero phase for $\phi_\REF$ corresponds to the stable fixed point above transition.
 
 If \vn{harmon} is non--zero the \vn{rf_frequency} is calculated by
 \begin{example}

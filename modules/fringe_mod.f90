@@ -1004,30 +1004,30 @@ endif
 
 fac = 1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(2)**2-X(4)**2
 if (fac < 0) return
+radix = 1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(4)**2
+if (radix < 1e-10) return
 pz=sqrt(fac)
-dpz_dx2 = -X(2)/pz
-dpz_dx4 = -X(4)/pz
-dpz_dx5 = (1/beta0+X(5))/pz
-
-if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
+pt=sqrt(radix)
 
 Xn(2)=X(2)*cos(a)+(pz-b1*X(1))*sin(a)
+
 if (logic_option(.false., make_matrix)) then
+  call mat_make_unit(mat6)
+  dpz_dx2 = -X(2)/pz
+  dpz_dx4 = -X(4)/pz
+  dpz_dx5 = (1/beta0+X(5))/pz
+  dpt_dx4 = -X(4)/pt
+  dpt_dx5 = (1/beta0+X(5))/pt
   mat6(2,1) = -b1*sin(a)
   mat6(2,2) = cos(a)+sin(a)*dpz_dx2
   mat6(2,4) = sin(a)*dpz_dx4
   mat6(2,5) = sin(a)*dpz_dx5
 end if
 
-radix = 1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(4)**2
-if (radix < 1e-10) return
-pt=sqrt(radix)
-dpt_dx4 = -X(4)/pt
-dpt_dx5 = (1/beta0+X(5))/pt
-
 radix = 1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-Xn(2)**2-X(4)**2
 if (radix < 1e-10) return
 pzs=sqrt(radix)
+
 if (logic_option(.false., make_matrix)) then
   dpzs_dx1 = -Xn(2)*mat6(2,1)/pzs
   dpzs_dx2 = -Xn(2)*mat6(2,2)/pzs
@@ -1036,6 +1036,7 @@ if (logic_option(.false., make_matrix)) then
 end if
 
 Xn(1)=X(1)*cos(a)+(X(1)*X(2)*sin(2.0_rp*a)+sin(a)**2*(2.0_rp*X(1)*pz-b1*X(1)**2)) / (pzs+pz*cos(a)-X(2)*sin(a))
+
 if (logic_option(.false., make_matrix)) then
   factor1 = cos(a)*pz+pzs-X(2)*sin(a)
   factor2 = (-b1*X(1)**2+2*X(1)*pz)*sin(a)**2+X(1)*X(2)*sin(2*a)
@@ -1047,6 +1048,7 @@ if (logic_option(.false., make_matrix)) then
 end if
 
 Xn(3)=(a+asin(X(2)/pt)-asin(Xn(2)/pt))/b1
+
 if (logic_option(.false., make_matrix)) then
   factor1 = sqrt(1-(Xn(2)/pt)**2)
   factor2 = sqrt(1-(X(2)/pt)**2)
@@ -1114,8 +1116,8 @@ real(rp), optional :: mat6(6,6)
 real(rp) :: X(6) !PTC phase space coordinates
 real(rp) :: FINT, HGAP
 real(rp) :: beta0, g_tot, fac
-real(rp) :: PZ,XP,YP,TIME_FAC
-real(rp) :: D(3,3),FI(3),FI0,B,co1,co2
+real(rp) :: pz, xp, yp, time_fac
+real(rp) :: d(3,3), fi(3), fi0, fi0t, b, bb, co1, co2
 real(rp) :: dpz_dx2, dpz_dx4, dpz_dx5, dtime_fac_dx5
 real(rp) :: dxp_dx2, dxp_dx4, dxp_dx5, dyp_dx2, dyp_dx4, dyp_dx5
 real(rp) :: d11_dx2, d11_dx4, d11_dx5, d21_dx2, d21_dx4, d21_dx5, d31_dx2, d31_dx4, d31_dx5
@@ -1147,168 +1149,167 @@ endif
 fac = 1.0_rp+2.0_rp*x(5)/beta0+x(5)**2-x(2)**2-x(4)**2
 if (fac == 0) return
 pz=sqrt(fac)
-dpz_dx2 = -X(2)/pz
-dpz_dx4 = -X(4)/pz
-dpz_dx5 = (1/beta0+X(5))/pz
-
 time_fac=1.0_rp/beta0+x(5)
 dtime_fac_dx5 = 1
 
 xp=x(2)/pz
-dxp_dx2 = 1/pz-x(2)*dpz_dx2/pz**2
-dxp_dx4 = -x(2)*dpz_dx4/pz**2
-dxp_dx5 = -x(2)*dpz_dx5/pz**2
-
 yp=x(4)/pz
-dyp_dx2 = -x(4)*dpz_dx2/pz**2
-dyp_dx4 = 1/pz-x(4)*dpz_dx4/pz**2
-dyp_dx5 = -x(4)*dpz_dx5/pz**2
 
 d(1,1)=(1.0_rp+xp**2)/pz
-d11_dx2 = 2*xp*dxp_dx2/pz-(1+xp**2)*dpz_dx2/pz**2
-d11_dx4 = 2*xp*dxp_dx4/pz-(1+xp**2)*dpz_dx4/pz**2
-d11_dx5 = 2*xp*dxp_dx5/pz-(1+xp**2)*dpz_dx5/pz**2
-
 d(2,1)=xp*yp/pz
-d21_dx2 = xp*dyp_dx2/pz+yp*dxp_dx2/pz-xp*yp*dpz_dx2/pz**2
-d21_dx4 = xp*dyp_dx4/pz+yp*dxp_dx4/pz-xp*yp*dpz_dx4/pz**2
-d21_dx5 = xp*dyp_dx5/pz+yp*dxp_dx5/pz-xp*yp*dpz_dx5/pz**2
-
 d(3,1)=-xp
-d31_dx2 = -dxp_dx2
-d31_dx4 = -dxp_dx4
-d31_dx5 = -dxp_dx5
-
 d(1,2)=xp*yp/pz
-d12_dx2 = d21_dx2
-d12_dx4 = d21_dx4
-d12_dx5 = d21_dx5
-
 d(2,2)=(1.0_rp+yp**2)/pz
-d22_dx2 = 2*yp*dyp_dx2/pz-(1+yp**2)*dpz_dx2/pz**2
-d22_dx4 = 2*yp*dyp_dx4/pz-(1+yp**2)*dpz_dx4/pz**2
-d22_dx5 = 2*yp*dyp_dx5/pz-(1+yp**2)*dpz_dx5/pz**2
-
 d(3,2)=-yp
-d32_dx2 = -dyp_dx2
-d32_dx4 = -dyp_dx4
-d32_dx5 = -dyp_dx5
-
 d(1,3)=-time_fac*xp/pz**2
-d13_dx2 = 2*time_fac*xp*dpz_dx2/pz**3-time_fac*dxp_dx2/pz**2
-d13_dx4 = 2*time_fac*xp*dpz_dx4/pz**3-time_fac*dxp_dx4/pz**2
-d13_dx5 = 2*time_fac*xp*dpz_dx5/pz**3-time_fac*dxp_dx5/pz**2-xp*dtime_fac_dx5/pz**2
-
 d(2,3)=-time_fac*yp/pz**2
-d23_dx2 = 2*time_fac*yp*dpz_dx2/pz**3-time_fac*dyp_dx2/pz**2
-d23_dx4 = 2*time_fac*yp*dpz_dx4/pz**3-time_fac*dyp_dx4/pz**2
-d23_dx5 = 2*time_fac*yp*dpz_dx5/pz**3-time_fac*dyp_dx5/pz**2-yp*dtime_fac_dx5/pz**2
-
 d(3,3)= time_fac/pz
-d33_dx2 = -time_fac*dpz_dx2/pz**2
-d33_dx4 = -time_fac*dpz_dx4/pz**2
-d33_dx5 = -time_fac*dpz_dx5/pz**2-dtime_fac_dx5/pz
 
 fi0= atan((xp/(1.0_rp+yp**2)))-b*fint*hgap*2.0_rp*( 1.0_rp + xp**2*(2.0_rp+yp**2) )*pz
-factor1 = b*fint*hgap
-factor2 = 1+yp**2
-dfi0_dx2 = -2*factor1*(1+xp**2*(2+yp**2))*dpz_dx2-2*factor1*pz*(2*xp*(2+yp**2)*dxp_dx2+2*xp**2*yp*dyp_dx2) &
-           +(dxp_dx2/factor2-2*xp*yp*dyp_dx2/factor2**2)/(1+(xp/factor2)**2) 
-dfi0_dx4 = -2*factor1*(1+xp**2*(2+yp**2))*dpz_dx4-2*factor1*pz*(2*xp*(2+yp**2)*dxp_dx4+2*xp**2*yp*dyp_dx4) &
-           +(dxp_dx4/factor2-2*xp*yp*dyp_dx4/factor2**2)/(1+(xp/factor2)**2)
-dfi0_dx5 = -2*factor1*(1+xp**2*(2+yp**2))*dpz_dx5-2*factor1*pz*(2*xp*(2+yp**2)*dxp_dx5+2*xp**2*yp*dyp_dx5) &
-           +(dxp_dx5/factor2-2*xp*yp*dyp_dx5/factor2**2)/(1+(xp/factor2)**2)
 
 co2=b/cos(fi0)**2
-dco2_dx2 = 2*b*tan(fi0)*dfi0_dx2/cos(fi0)**2
-dco2_dx4 = 2*b*tan(fi0)*dfi0_dx4/cos(fi0)**2
-dco2_dx5 = 2*b*tan(fi0)*dfi0_dx5/cos(fi0)**2
-
 co1=co2/(1.0_rp+(xp/(1.0_rp+yp**2))**2 )
-dco1_dx2 = dco2_dx2/(1+(xp/factor2)**2)-co2*(2*xp*dxp_dx2/factor2**2-4*xp**2*yp*dyp_dx2/factor2**3)/(1+(xp/factor2)**2)**2
-dco1_dx4 = dco2_dx4/(1+(xp/factor2)**2)-co2*(2*xp*dxp_dx4/factor2**2-4*xp**2*yp*dyp_dx4/factor2**3)/(1+(xp/factor2)**2)**2
-dco1_dx5 = dco2_dx5/(1+(xp/factor2)**2)-co2*(2*xp*dxp_dx5/factor2**2-4*xp**2*yp*dyp_dx5/factor2**3)/(1+(xp/factor2)**2)**2
 
 fi(1)=co1/(1.0_rp+yp**2)-co2*b*fint*hgap*2.0_rp*( 2.0_rp*xp*(2.0_rp+yp**2)*pz )
-dfi1_dx2 = -4*factor1*pz*xp*(2+yp**2)*dco2_dx2-4*factor1*co2*xp*(2+yp**2)*dpz_dx2-4*factor1*co2*pz*(2+yp**2)*dxp_dx2 &
-           -8*factor1*co2*pz*xp*yp*dyp_dx2+dco1_dx2/factor2-2*co1*yp*dyp_dx2/factor2**2
-dfi1_dx4 = -4*factor1*pz*xp*(2+yp**2)*dco2_dx4-4*factor1*co2*xp*(2+yp**2)*dpz_dx4-4*factor1*co2*pz*(2+yp**2)*dxp_dx4 &
-           -8*factor1*co2*pz*xp*yp*dyp_dx4+dco1_dx4/factor2-2*co1*yp*dyp_dx4/factor2**2
-dfi1_dx5 = -4*factor1*pz*xp*(2+yp**2)*dco2_dx5-4*factor1*co2*xp*(2+yp**2)*dpz_dx5-4*factor1*co2*pz*(2+yp**2)*dxp_dx5 &
-           -8*factor1*co2*pz*xp*yp*dyp_dx5+dco1_dx5/factor2-2*co1*yp*dyp_dx5/factor2**2
-
 fi(2)=-co1*2.0_rp*xp*yp/(1.0_rp+yp**2)**2-co2*b*fint*hgap*2.0_rp*( 2.0_rp*xp**2*yp)*pz
-dfi2_dx2 = -4*factor1*pz*xp**2*yp*dco2_dx2-4*factor1*co2*xp**2*yp*dpz_dx2-8*factor1*co2*pz*xp*yp*dxp_dx2 &
-           -4*factor1*co2*pz*xp**2*dyp_dx2-2*xp*yp*dco1_dx2/factor2**2-2*co1*yp*dxp_dx2/factor2**2 &
-           +8*co1*xp*yp**2*dyp_dx2/factor2**3-2*co1*xp*dyp_dx2/factor2**2
-dfi2_dx4 = -4*factor1*pz*xp**2*yp*dco2_dx4-4*factor1*co2*xp**2*yp*dpz_dx4-8*factor1*co2*pz*xp*yp*dxp_dx4 &
-           -4*factor1*co2*pz*xp**2*dyp_dx4-2*xp*yp*dco1_dx4/factor2**2-2*co1*yp*dxp_dx4/factor2**2 &
-           +8*co1*xp*yp**2*dyp_dx4/factor2**3-2*co1*xp*dyp_dx4/factor2**2
-dfi2_dx5 = -4*factor1*pz*xp**2*yp*dco2_dx5-4*factor1*co2*xp**2*yp*dpz_dx5-8*factor1*co2*pz*xp*yp*dxp_dx5 &
-           -4*factor1*co2*pz*xp**2*dyp_dx5-2*xp*yp*dco1_dx5/factor2**2-2*co1*yp*dxp_dx5/factor2**2 &
-           +8*co1*xp*yp**2*dyp_dx5/factor2**3-2*co1*xp*dyp_dx5/factor2**2
-
 fi(3)=-co2*b*fint*hgap*2.0_rp*( 1.0_rp + xp**2*(2.0_rp+yp**2) )
-dfi3_dx2 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx2-2*co2*factor1*(2*xp*(2+yp**2)*dxp_dx2+2*xp**2*yp*dyp_dx2)
-dfi3_dx4 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx4-2*co2*factor1*(2*xp*(2+yp**2)*dxp_dx4+2*xp**2*yp*dyp_dx4)
-dfi3_dx5 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx5-2*co2*factor1*(2*xp*(2+yp**2)*dxp_dx5+2*xp**2*yp*dyp_dx5)
-
-dfi0_dx2 = b*dfi0_dx2/cos(fi0)**2
-dfi0_dx4 = b*dfi0_dx4/cos(fi0)**2
-dfi0_dx5 = b*dfi0_dx5/cos(fi0)**2
-fi0=b*tan(fi0)
-
-if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
-
-b=0
-do i=1,3
-   b=fi(i)*d(i,2)+b
-enddo
 
 if (logic_option(.false., make_matrix)) then
-  factor1 = sqrt(1-2*b*x(3))
-  factor2 = (1+sqrt(1-2*b*x(3)))**2
+  call mat_make_unit(mat6)
+
+  dpz_dx2 = -X(2)/pz
+  dpz_dx4 = -X(4)/pz
+  dpz_dx5 = (1/beta0+X(5))/pz
+
+  dxp_dx2 = 1/pz-x(2)*dpz_dx2/pz**2
+  dxp_dx4 = -x(2)*dpz_dx4/pz**2
+  dxp_dx5 = -x(2)*dpz_dx5/pz**2
+
+  dyp_dx2 = -x(4)*dpz_dx2/pz**2
+  dyp_dx4 = 1/pz-x(4)*dpz_dx4/pz**2
+  dyp_dx5 = -x(4)*dpz_dx5/pz**2
+
+  d11_dx2 = 2*xp*dxp_dx2/pz-(1+xp**2)*dpz_dx2/pz**2
+  d11_dx4 = 2*xp*dxp_dx4/pz-(1+xp**2)*dpz_dx4/pz**2
+  d11_dx5 = 2*xp*dxp_dx5/pz-(1+xp**2)*dpz_dx5/pz**2
+
+  d21_dx2 = xp*dyp_dx2/pz+yp*dxp_dx2/pz-xp*yp*dpz_dx2/pz**2
+  d21_dx4 = xp*dyp_dx4/pz+yp*dxp_dx4/pz-xp*yp*dpz_dx4/pz**2
+  d21_dx5 = xp*dyp_dx5/pz+yp*dxp_dx5/pz-xp*yp*dpz_dx5/pz**2
+
+  d31_dx2 = -dxp_dx2
+  d31_dx4 = -dxp_dx4
+  d31_dx5 = -dxp_dx5
+
+  d12_dx2 = d21_dx2
+  d12_dx4 = d21_dx4
+  d12_dx5 = d21_dx5
+
+  d22_dx2 = 2*yp*dyp_dx2/pz-(1+yp**2)*dpz_dx2/pz**2
+  d22_dx4 = 2*yp*dyp_dx4/pz-(1+yp**2)*dpz_dx4/pz**2
+  d22_dx5 = 2*yp*dyp_dx5/pz-(1+yp**2)*dpz_dx5/pz**2
+
+  d32_dx2 = -dyp_dx2
+  d32_dx4 = -dyp_dx4
+  d32_dx5 = -dyp_dx5
+
+  d13_dx2 = 2*time_fac*xp*dpz_dx2/pz**3-time_fac*dxp_dx2/pz**2
+  d13_dx4 = 2*time_fac*xp*dpz_dx4/pz**3-time_fac*dxp_dx4/pz**2
+  d13_dx5 = 2*time_fac*xp*dpz_dx5/pz**3-time_fac*dxp_dx5/pz**2-xp*dtime_fac_dx5/pz**2
+
+  d23_dx2 = 2*time_fac*yp*dpz_dx2/pz**3-time_fac*dyp_dx2/pz**2
+  d23_dx4 = 2*time_fac*yp*dpz_dx4/pz**3-time_fac*dyp_dx4/pz**2
+  d23_dx5 = 2*time_fac*yp*dpz_dx5/pz**3-time_fac*dyp_dx5/pz**2-yp*dtime_fac_dx5/pz**2
+
+  d33_dx2 = -time_fac*dpz_dx2/pz**2
+  d33_dx4 = -time_fac*dpz_dx4/pz**2
+  d33_dx5 = -time_fac*dpz_dx5/pz**2-dtime_fac_dx5/pz
+
+  factor1 = b*fint*hgap
+  factor2 = 1+yp**2
+  dfi0_dx2 = -2*factor1*(1+xp**2*(2+yp**2))*dpz_dx2-2*factor1*pz*(2*xp*(2+yp**2)*dxp_dx2+2*xp**2*yp*dyp_dx2) &
+             +(dxp_dx2/factor2-2*xp*yp*dyp_dx2/factor2**2)/(1+(xp/factor2)**2) 
+  dfi0_dx4 = -2*factor1*(1+xp**2*(2+yp**2))*dpz_dx4-2*factor1*pz*(2*xp*(2+yp**2)*dxp_dx4+2*xp**2*yp*dyp_dx4) &
+             +(dxp_dx4/factor2-2*xp*yp*dyp_dx4/factor2**2)/(1+(xp/factor2)**2)
+  dfi0_dx5 = -2*factor1*(1+xp**2*(2+yp**2))*dpz_dx5-2*factor1*pz*(2*xp*(2+yp**2)*dxp_dx5+2*xp**2*yp*dyp_dx5) &
+             +(dxp_dx5/factor2-2*xp*yp*dyp_dx5/factor2**2)/(1+(xp/factor2)**2)
+
+  dco2_dx2 = 2*b*tan(fi0)*dfi0_dx2/cos(fi0)**2
+  dco2_dx4 = 2*b*tan(fi0)*dfi0_dx4/cos(fi0)**2
+  dco2_dx5 = 2*b*tan(fi0)*dfi0_dx5/cos(fi0)**2
+
+  dco1_dx2 = dco2_dx2/(1+(xp/factor2)**2)-co2*(2*xp*dxp_dx2/factor2**2-4*xp**2*yp*dyp_dx2/factor2**3)/(1+(xp/factor2)**2)**2
+  dco1_dx4 = dco2_dx4/(1+(xp/factor2)**2)-co2*(2*xp*dxp_dx4/factor2**2-4*xp**2*yp*dyp_dx4/factor2**3)/(1+(xp/factor2)**2)**2
+  dco1_dx5 = dco2_dx5/(1+(xp/factor2)**2)-co2*(2*xp*dxp_dx5/factor2**2-4*xp**2*yp*dyp_dx5/factor2**3)/(1+(xp/factor2)**2)**2
+
+  dfi1_dx2 = -4*factor1*pz*xp*(2+yp**2)*dco2_dx2-4*factor1*co2*xp*(2+yp**2)*dpz_dx2-4*factor1*co2*pz*(2+yp**2)*dxp_dx2 &
+             -8*factor1*co2*pz*xp*yp*dyp_dx2+dco1_dx2/factor2-2*co1*yp*dyp_dx2/factor2**2
+  dfi1_dx4 = -4*factor1*pz*xp*(2+yp**2)*dco2_dx4-4*factor1*co2*xp*(2+yp**2)*dpz_dx4-4*factor1*co2*pz*(2+yp**2)*dxp_dx4 &
+             -8*factor1*co2*pz*xp*yp*dyp_dx4+dco1_dx4/factor2-2*co1*yp*dyp_dx4/factor2**2
+  dfi1_dx5 = -4*factor1*pz*xp*(2+yp**2)*dco2_dx5-4*factor1*co2*xp*(2+yp**2)*dpz_dx5-4*factor1*co2*pz*(2+yp**2)*dxp_dx5 &
+             -8*factor1*co2*pz*xp*yp*dyp_dx5+dco1_dx5/factor2-2*co1*yp*dyp_dx5/factor2**2
+
+  dfi2_dx2 = -4*factor1*pz*xp**2*yp*dco2_dx2-4*factor1*co2*xp**2*yp*dpz_dx2-8*factor1*co2*pz*xp*yp*dxp_dx2 &
+             -4*factor1*co2*pz*xp**2*dyp_dx2-2*xp*yp*dco1_dx2/factor2**2-2*co1*yp*dxp_dx2/factor2**2 &
+             +8*co1*xp*yp**2*dyp_dx2/factor2**3-2*co1*xp*dyp_dx2/factor2**2
+  dfi2_dx4 = -4*factor1*pz*xp**2*yp*dco2_dx4-4*factor1*co2*xp**2*yp*dpz_dx4-8*factor1*co2*pz*xp*yp*dxp_dx4 &
+             -4*factor1*co2*pz*xp**2*dyp_dx4-2*xp*yp*dco1_dx4/factor2**2-2*co1*yp*dxp_dx4/factor2**2 &
+             +8*co1*xp*yp**2*dyp_dx4/factor2**3-2*co1*xp*dyp_dx4/factor2**2
+  dfi2_dx5 = -4*factor1*pz*xp**2*yp*dco2_dx5-4*factor1*co2*xp**2*yp*dpz_dx5-8*factor1*co2*pz*xp*yp*dxp_dx5 &
+             -4*factor1*co2*pz*xp**2*dyp_dx5-2*xp*yp*dco1_dx5/factor2**2-2*co1*yp*dxp_dx5/factor2**2 &
+             +8*co1*xp*yp**2*dyp_dx5/factor2**3-2*co1*xp*dyp_dx5/factor2**2
+
+  dfi3_dx2 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx2-2*co2*factor1*(2*xp*(2+yp**2)*dxp_dx2+2*xp**2*yp*dyp_dx2)
+  dfi3_dx4 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx4-2*co2*factor1*(2*xp*(2+yp**2)*dxp_dx4+2*xp**2*yp*dyp_dx4)
+  dfi3_dx5 = -2*factor1*(1+xp**2*(2+yp**2))*dco2_dx5-2*co2*factor1*(2*xp*(2+yp**2)*dxp_dx5+2*xp**2*yp*dyp_dx5)
+
+  dfi0_dx2 = b*dfi0_dx2/cos(fi0)**2
+  dfi0_dx4 = b*dfi0_dx4/cos(fi0)**2
+  dfi0_dx5 = b*dfi0_dx5/cos(fi0)**2
+endif
+
+fi0t=b*tan(fi0)
+bb = sum(fi * d(:,2))
+
+if (logic_option(.false., make_matrix)) then
+  factor1 = sqrt(1-2*bb*x(3))
+  factor2 = (1+sqrt(1-2*bb*x(3)))**2
   mat6(3,2) = 2*x(3)**2*(fi(1)*d12_dx2+fi(2)*d22_dx2+fi(3)*d32_dx2+d(1,2)*dfi1_dx2+d(2,2)*dfi2_dx2+d(3,2)*dfi3_dx2)/(factor1*factor2)
-  mat6(3,3) = 2/(1+factor1)+2*x(3)*b/(factor1*factor2)
+  mat6(3,3) = 2/(1+factor1)+2*x(3)*bb/(factor1*factor2)
   mat6(3,4) = 2*x(3)**2*(fi(1)*d12_dx4+fi(2)*d22_dx4+fi(3)*d32_dx4+d(1,2)*dfi1_dx4+d(2,2)*dfi2_dx4+d(3,2)*dfi3_dx4)/(factor1*factor2)
   mat6(3,5) = 2*x(3)**2*(fi(1)*d12_dx5+fi(2)*d22_dx5+fi(3)*d32_dx5+d(1,2)*dfi1_dx5+d(2,2)*dfi2_dx5+d(3,2)*dfi3_dx5)/(factor1*factor2)
 end if
-fac = 1.0_rp-2.0_rp*b*x(3)
+
+fac = 1.0_rp-2.0_rp*bb*x(3)
 if (fac < 0) return
 x(3)=2.0_rp*x(3)/(1.0_rp+ sqrt(fac))
+x(4)=x(4)-fi0t*x(3)
 
-x(4)=x(4)-fi0*x(3)
 if (logic_option(.false., make_matrix)) then
-  mat6(4,2) = -fi0*mat6(3,2)-x(3)*dfi0_dx2
-  mat6(4,3) = -fi0*mat6(3,3)
-  mat6(4,4) = -fi0*mat6(3,4)-x(3)*dfi0_dx4+1
-  mat6(4,5) = -fi0*mat6(3,5)-x(3)*dfi0_dx5
+  mat6(4,2) = -fi0t*mat6(3,2)-x(3)*dfi0_dx2
+  mat6(4,3) = -fi0t*mat6(3,3)
+  mat6(4,4) = -fi0t*mat6(3,4)-x(3)*dfi0_dx4+1
+  mat6(4,5) = -fi0t*mat6(3,5)-x(3)*dfi0_dx5
 end if
 
-b=0
-do i=1,3
-   b=fi(i)*d(i,1)+b
-enddo
+bb = sum(fi * d(:,1))
+x(1)=x(1)+0.5_rp*bb*x(3)**2
 
-x(1)=x(1)+0.5_rp*b*x(3)**2
 if (logic_option(.false., make_matrix)) then
-  mat6(1,2) = x(3)*b*mat6(3,2)+0.5*x(3)**2*(fi(1)*d11_dx2+fi(2)*d21_dx2+fi(3)*d31_dx2+d(1,1)*dfi1_dx2+d(2,1)*dfi2_dx2+d(3,1)*dfi3_dx2)
-  mat6(1,3) = x(3)*b*mat6(3,3)
-  mat6(1,4) = x(3)*b*mat6(3,4)+0.5*x(3)**2*(fi(1)*d11_dx4+fi(2)*d21_dx4+fi(3)*d31_dx4+d(1,1)*dfi1_dx4+d(2,1)*dfi2_dx4+d(3,1)*dfi3_dx4)
-  mat6(1,5) = x(3)*b*mat6(3,5)+0.5*x(3)**2*(fi(1)*d11_dx5+fi(2)*d21_dx5+fi(3)*d31_dx5+d(1,1)*dfi1_dx5+d(2,1)*dfi2_dx5+d(3,1)*dfi3_dx5)
+  mat6(1,2) = x(3)*bb*mat6(3,2)+0.5*x(3)**2*(fi(1)*d11_dx2+fi(2)*d21_dx2+fi(3)*d31_dx2+d(1,1)*dfi1_dx2+d(2,1)*dfi2_dx2+d(3,1)*dfi3_dx2)
+  mat6(1,3) = x(3)*bb*mat6(3,3)
+  mat6(1,4) = x(3)*bb*mat6(3,4)+0.5*x(3)**2*(fi(1)*d11_dx4+fi(2)*d21_dx4+fi(3)*d31_dx4+d(1,1)*dfi1_dx4+d(2,1)*dfi2_dx4+d(3,1)*dfi3_dx4)
+  mat6(1,5) = x(3)*bb*mat6(3,5)+0.5*x(3)**2*(fi(1)*d11_dx5+fi(2)*d21_dx5+fi(3)*d31_dx5+d(1,1)*dfi1_dx5+d(2,1)*dfi2_dx5+d(3,1)*dfi3_dx5)
 end if
 
-b=0
-do i=1,3
-   b=fi(i)*d(i,3)+b
-enddo
+bb = sum(fi * d(:,3))
+x(6)=x(6)-0.5_rp*bb*x(3)**2
 
-x(6)=x(6)-0.5_rp*b*x(3)**2
 if (logic_option(.false., make_matrix)) then
-  mat6(6,2) = -x(3)*b*mat6(3,2)-0.5*x(3)**2*(fi(1)*d13_dx2+fi(2)*d23_dx2+fi(3)*d33_dx2+d(1,3)*dfi1_dx2+d(2,3)*dfi2_dx2+d(3,3)*dfi3_dx2)
-  mat6(6,3) = -x(3)*b*mat6(3,3)
-  mat6(6,4) = -x(3)*b*mat6(3,4)-0.5*x(3)**2*(fi(1)*d13_dx4+fi(2)*d23_dx4+fi(3)*d33_dx4+d(1,3)*dfi1_dx4+d(2,3)*dfi2_dx4+d(3,3)*dfi3_dx4)
-  mat6(6,5) = -x(3)*b*mat6(3,5)-0.5*x(3)**2*(fi(1)*d13_dx5+fi(2)*d23_dx5+fi(3)*d33_dx5+d(1,3)*dfi1_dx5+d(2,3)*dfi2_dx5+d(3,3)*dfi3_dx5)
+  mat6(6,2) = -x(3)*bb*mat6(3,2)-0.5*x(3)**2*(fi(1)*d13_dx2+fi(2)*d23_dx2+fi(3)*d33_dx2+d(1,3)*dfi1_dx2+d(2,3)*dfi2_dx2+d(3,3)*dfi3_dx2)
+  mat6(6,3) = -x(3)*bb*mat6(3,3)
+  mat6(6,4) = -x(3)*bb*mat6(3,4)-0.5*x(3)**2*(fi(1)*d13_dx4+fi(2)*d23_dx4+fi(3)*d33_dx4+d(1,3)*dfi1_dx4+d(2,3)*dfi2_dx4+d(3,3)*dfi3_dx4)
+  mat6(6,5) = -x(3)*bb*mat6(3,5)-0.5*x(3)**2*(fi(1)*d13_dx5+fi(2)*d23_dx5+fi(3)*d33_dx5+d(1,3)*dfi1_dx5+d(2,3)*dfi2_dx5+d(3,3)*dfi3_dx5)
 end if
 
 err_flag = .false.
@@ -1341,7 +1342,7 @@ subroutine ptc_rot_xz(a, X, beta0, err_flag, mat6, make_matrix)
 implicit none
 
 real(rp) :: x(6)
-real(rp) :: xn(6),pz,pt
+real(rp) :: x1,pz,pt
 real(rp) :: a, beta0
 character(20) :: r_name = 'ptc_rot_xz'
 real(rp), optional :: mat6(6,6)
@@ -1357,22 +1358,18 @@ err_flag = .true.
 arg = 1.0_rp+2.0_rp*x(5)/ beta0+x(5)**2-x(2)**2-x(4)**2
 if (arg < 0) return
 pz=sqrt(arg)
-dpz_dx2 = -X(2)/pz
-dpz_dx4 = -X(4)/pz
-dpz_dx5 = (1/beta0+X(5))/pz
-
 pt=1.0_rp-x(2)*tan(a)/pz
-dpt_dx2 = -tan(a)/pz+x(2)*tan(a)*dpz_dx2/pz**2
-dpt_dx4 = x(2)*tan(a)*dpz_dx4/pz**2
-dpt_dx5 = x(2)*tan(a)*dpz_dx5/pz**2
-
-xn(1)=x(1)/cos(a)/pt
-xn(2)=x(2)*cos(a)+sin(a)*pz
-xn(3)=x(3)+x(4)*x(1)*tan(a)/pz/pt
-xn(6)=x(6)+x(1)*tan(a)/pz/pt*(1.0_rp/ beta0+x(5))
 
 if (logic_option(.false., make_matrix)) then 
   call mat_make_unit(mat6)
+
+  dpz_dx2 = -X(2)/pz
+  dpz_dx4 = -X(4)/pz
+  dpz_dx5 = (1/beta0+X(5))/pz
+  dpt_dx2 = -tan(a)/pz+x(2)*tan(a)*dpz_dx2/pz**2
+  dpt_dx4 = x(2)*tan(a)*dpz_dx4/pz**2
+  dpt_dx5 = x(2)*tan(a)*dpz_dx5/pz**2
+
   mat6(1,1) = 1/(cos(a)*pt)
   mat6(1,2) = -x(1)*dpt_dx2/(cos(a)*pt**2)
   mat6(1,4) = -x(1)*dpt_dx4/(cos(a)*pt**2)
@@ -1390,10 +1387,11 @@ if (logic_option(.false., make_matrix)) then
   mat6(6,5) = -x(1)*(1/beta0+x(5))*tan(a)*(dpt_dx5/(pt**2*pz)+dpz_dx5/(pt*pz**2))+x(1)*tan(a)/(pt*pz)
 end if
 
-x(1)=xn(1)
-x(2)=xn(2)
-x(3)=xn(3)
-x(6)=xn(6)
+x1=x(1)
+x(1)=x1/cos(a)/pt
+x(2)=x(2)*cos(a)+sin(a)*pz
+x(3)=x(3)+x(4)*x1*tan(a)/pz/pt
+x(6)=x(6)+x1*tan(a)/pz/pt*(1.0_rp/ beta0+x(5))
 
 err_flag = .false.
 

@@ -25,9 +25,9 @@ lattice is \vn{parameter[absolute_time_tracking]} (\sref{s:param}).
 
 The phase of the RF, $\phi_\text{rf}$, is determined by
 \begin{equation}
-  \phi_\text{rf} = \phi_\text{t} + \phi_\text{ref}
+  \phi_\text{rf} = \phi_\text{t} + \phi_\REF
 \end{equation}
-where $\phi_\text{t}$ is the part of the phase that depends upon the time $t$ and $\phi_\text{ref}$
+where $\phi_\text{t}$ is the part of the phase that depends upon the time $t$ and $\phi_\REF$
 is a fixed phase offset (generally set in the lattice file) and independent of the particle
 coordinates. See \Eqs{lcav.phi} and \eq{rfcav.phi}
 
@@ -336,7 +336,7 @@ follows:
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Bend Element: Body Tracking with k1 = 0}
+\section{Bend: Exact Body Tracking with k1 = 0}
 \label{s:bend.body.std}
 \index{sbend}
 
@@ -384,7 +384,8 @@ The coordinates $(u_0, v_0)$ of the center of curvature of the particle trajecto
   u_0 &= u_1 - \rho_p \, \cos(\theta + \phi_1) \\
   v_0 &= v_1 - \rho_p \, \sin(\theta + \phi_1)
 \end{align}
-where $\rho_p$ is the radius of curvature of the particle trajectory in the $(u, v)$ plane.
+where $\rho_p$ is the radius of curvature of the particle trajectory in the $(u, v)$ plane (see
+\Eq{g1rg}).
 
 The coordinates of the particle at the exit face is $(u_2, 0)$ where
 \begin{equation}
@@ -404,12 +405,12 @@ where $g \equiv 1/\rho$  and
 \begin{align}
   \alpha &= 2 \, (1 + g \, x_1) \, \sin(\theta + \phi_1) \, L \, \sinc(\theta) - 
         g_p \, (1 + g \, x_1)^2 \, L^2 \, \sinc^2(\theta) \\
-  g_p &= \frac{1}{\rho_p} = \frac{g_\tot}{\sqrt{(1 + p_z)^2 - p_y^2}}
+  g_p &= \frac{1}{\rho_p} = \frac{g_\tot}{\sqrt{(1 + p_z)^2 - p_y^2}} \label{g1rg}
 \end{align}
 and $g_\tot$ is the bending strength of the actual field. Both \Eq{xctlg1} and \Eq{xctlg2} are
-needed since \Eq{xctlg1} is singular when $g_p$ is zero and \Eq{xctlg2} is singular when $\alpha
-= 0$ and $\theta + \phi_1 = \pi$ which happens when the particle is bent by 180\Deg. A simple way to
-implement the calculation for $x_2$ is to use \Eq{xctlg1} when $|\theta + \phi_1| < \pi/2$ and
+needed since \Eq{xctlg1} is singular when $\alpha = 0$ and $\theta + \phi_1 = \pi$ (which happens
+when the particle is bent by 180\Deg), and \Eq{xctlg2} is singular when $g_p$ is zero. A simple way
+to implement the calculation for $x_2$ is to use \Eq{xctlg1} when $|\theta + \phi_1| < \pi/2$ and
 otherwise use \Eq{xctlg2}.
 
 Once $x_2$ is computed, the arc length of the particle $L_p$ is 
@@ -433,9 +434,9 @@ Once $L_p$ is computed, $p_{x2}$, $y_2$ and $z_2$ are easily derived from
 \begin{align}
   p_{x2} &= \sqrt{(1 + p_z)^2 - p_y^2} \, \sin(\theta + \phi_1 - \theta_p) \\
   y_2 &= y_1 + \frac{p_y \, L_p}{\sqrt{(1+p_z)^2 - p_y^2}} \\
-  z_2 &= z_1 + \frac{\beta \, L}{\beta_{ref}} - \frac{(1 + p_z) \, L_p}{\sqrt{(1+p_z)^2 - p_y^2}}
+  z_2 &= z_1 + \frac{\beta \, L}{\beta_\REF} - \frac{(1 + p_z) \, L_p}{\sqrt{(1+p_z)^2 - p_y^2}}
 \end{align}
-where $\beta$ is the normalized velocity of the particle and $\beta_{ref}$ if the normalized
+where $\beta$ is the normalized velocity of the particle and $\beta_\REF$ if the normalized
 velocity of the reference particle.
 
 Using the above equation, round-off error will give a non-zero final position even if the initial
@@ -465,7 +466,7 @@ where
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Bend Element: Body Tracking with finite k1}
+\section{Bend: Body Tracking with finite k1}
 \label{s:bend.body.std.k1}
 \index{sbend}
 
@@ -719,10 +720,10 @@ This gives the map
   p_{x2} &= p_{x1}  \CRNO
   y_2    &= y_1 + \frac{L \, p_{y1}}{(1 + p_{z1}) \, p_l} \CRNO
   p_{y2} &= p_{y1}  \\
-  z_2    &= z_1 + \left( \frac{\beta}{\beta_\txt{ref}} - \frac{1}{p_l} \right) \, L \CRNO
+  z_2    &= z_1 + \left( \frac{\beta}{\beta_\REF} - \frac{1}{p_l} \right) \, L \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
-where $\beta$ is the normalized particle velocity, $\beta_\txt{ref}$ is 
+where $\beta$ is the normalized particle velocity, $\beta_\REF$ is 
 the reference particle's normalized velocity, and $p_l$ is the
 longitudinal momentum
 \begin{equation}
@@ -976,7 +977,7 @@ $-r_z$ to intersect the $r_z = 0$ plane of the exit face.
 
 The final $\bfr$ and $\bfP$ can now be used compute the particles
 phase space coordinates, along with the time $t$ and the reference time
-$t_{\text{ref}}$ at the exit end.
+$t_\REF$ at the exit end.
 \begin{alignat}{3}
   x &\rightarrow r_x \qquad &p_x &\rightarrow \frac{P_x}{P_{0\text{exi}}} \CRNO
   y &\rightarrow r_y \qquad &p_y &\rightarrow \frac{P_y}{P_{0\text{exi}}} \\
@@ -984,7 +985,7 @@ $t_{\text{ref}}$ at the exit end.
     \beta \, \text{t_offset} \qquad
     &p_z &\rightarrow \frac{(1+p_z) \, P_{0\text{ent}} - P_{0\text{exi}}}{P_{0\text{exi}}} \CRNO
   t &\rightarrow t - r_z \, \frac{|\bfP|}{P_z \, \beta} \qquad
-  &t_{\text{ref}} &\rightarrow t_{\text{ref}} + \text{t_offset} + L_0 \, \frac{1}{\beta_0} \nonumber
+  &t_\REF &\rightarrow t_\REF + \text{t_offset} + L_0 \, \frac{1}{\beta_0} \nonumber
 \end{alignat}
 where the exit reference momentum $P_{0\text{exi}}$ is related to the
 entrance reference momentum $P_{0\text{ent}}$ through
