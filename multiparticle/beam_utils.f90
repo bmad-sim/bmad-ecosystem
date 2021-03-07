@@ -316,9 +316,8 @@ end subroutine init_beam_distribution
 !   'KV'       -- Kapchinsky-Vladimirsky distribution
 ! See the Bmad manual for more information.
 !
-! The distribution is matched to the Twiss parameters, centroid position,
-! and Energy - z correlation as specified. Coupling in the element ele is 
-! incorporated into the distribution.
+! The distribution is matched to the Twiss parameters, centroid position, and Energy - z 
+! correlation as specified. Coupling in the element ele is incorporated into the distribution.
 !
 ! Note: Except for the random number seed, the random number generator 
 ! parameters used for this routine are set from the beam_init argument.
@@ -334,8 +333,7 @@ end subroutine init_beam_distribution
 !
 ! Note: To get good results, It is important to make sure that for 
 ! circular rings that beam_init%center is the correct closed orbit. 
-! The closed orbit will shift if, for example, radiation damping is
-! turned on.
+! The closed orbit will shift if, for example, radiation damping is turned on.
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at (downstream end).
@@ -2000,12 +1998,13 @@ enddo
 
 !
 
-bunch%t_center      = ix_bunch * beam_init%dt_bunch
-bunch%z_center      = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
-bunch%particle(:)%t = bunch%particle(:)%t + bunch%t_center
-bunch%n_live        = size(bunch%particle)
-bunch%charge_live   = sum(bunch%particle%charge)
-bunch%ix_bunch      = ix_bunch
+bunch%t_center           = ix_bunch * beam_init%dt_bunch
+bunch%z_center           = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
+bunch%particle(:)%t      = bunch%particle(:)%t + bunch%t_center
+bunch%particle(:)%vec(5) = bunch%particle(:)%vec(5) + bunch%z_center
+bunch%n_live             = size(bunch%particle)
+bunch%charge_live        = sum(bunch%particle%charge)
+bunch%ix_bunch           = ix_bunch
 
 
 ! If from a file, scale the particle charge.

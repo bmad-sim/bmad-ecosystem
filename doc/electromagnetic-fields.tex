@@ -135,10 +135,10 @@ energy normalized
 \begin{equation}
   \bigl[ a_n, b_n \bigr] \longrightarrow
   \bigl[ a_n, b_n \bigr]
-  \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
+  \cdot F \cdot \frac{r_0^{n_\REF}}{r_0^n}
   \label{ababf}
 \end{equation}
-$r_0$ is set by the \vn{r0_mag} attribute of an element. $F$ and $n_\text{ref}$ are set
+$r_0$ is set by the \vn{r0_mag} attribute of an element. $F$ and $n_\REF$ are set
 automatically depending upon the type of element as shown in Table~\ref{t:ab}. The
 $\gamma_p$ term is
 
@@ -150,7 +150,7 @@ $\gamma_p$ term is
 \centering
 \begin{tabular}{lll} \toprule
 \tt
-  {\em Element} & $F$                              & $n_\text{ref}$ \\ \midrule
+  {\em Element} & $F$                              & $n_\REF$ \\ \midrule
   \vn{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
   \vn{Hkicker}     & Kick                                   & 0 \\
   \vn{Kicker},\vn{AC_Kicker}
@@ -166,7 +166,7 @@ $\gamma_p$ term is
   \vn{Sextupole}   & K2 * L                                 & 2 \\
   \vn{Octupole}    & K3 * L                                 & 3 \\ \bottomrule
 \end{tabular}
-\caption{$F$ and $n_\text{ref}$ for various elements.}
+\caption{$F$ and $n_\REF$ for various elements.}
 \label{t:ab}
 \end{table}
 

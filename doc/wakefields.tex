@@ -206,10 +206,10 @@ Here $t$ is the passage time of the particle with respect to the reference parti
 where $a' \equiv da/dt$ and $b' \equiv db/dt$.
 
 When simulating trains of bunches, the exponential factor $d \, t_w$ in \Eq{ac2rq} can
-become very large. To prevent numerical overflow, \bmad uses a reference time $z_{\text{ref}}$ so
+become very large. To prevent numerical overflow, \bmad uses a reference time $z_\REF$ so
 that all times $t$ in the above equations are replaced by
 \begin{equation}
-  t \longrightarrow t - t_{\text{ref}}
+  t \longrightarrow t - t_\REF
   \label{ttt}
 \end{equation}
 

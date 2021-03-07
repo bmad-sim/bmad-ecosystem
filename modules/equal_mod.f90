@@ -71,7 +71,7 @@ end function em_field_plus_em_field
 !		ele_out = ele_in
 !
 ! Input:
-!   ele_in -- Ele_struct: Input element.
+!   ele_in  -- Ele_struct: Input element.
 !
 ! Output:
 !   ele_out -- Ele_struct: Output element.
@@ -83,12 +83,43 @@ implicit none
 	
 type (ele_struct), intent(inout), target :: ele_out
 type (ele_struct), intent(in), target :: ele_in
+
+call ele_equals_ele(ele_out, ele_in, .true.)
+
+end subroutine ele_equal_ele
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine ele_equals_ele (ele_out, ele_in, update_nametable)
+!
+! Subroutine that is used to set an element equal to another.
+! Note: Use ele_equal_ele instead unless you know what you are doing.
+! 
+!
+! Input:
+!   ele_in            -- Ele_struct: Input element.
+!   update_nametable  -- logical: If true, update the nametable. If false, do not.
+!                         Note: nametable updates can take time if this routine
+!                         is called a many times. See remove_eles_from_lat as an example.
+!
+! Output:
+!   ele_out -- Ele_struct: Output element.
+!-
+
+subroutine ele_equals_ele (ele_out, ele_in, update_nametable)
+
+implicit none
+	
+type (ele_struct), intent(inout), target :: ele_out
+type (ele_struct), intent(in), target :: ele_in
 type (ele_struct) ele_save
 type (nametable_struct), pointer :: nt
 type (converter_sub_distribution_struct), pointer :: sd_in, sd_out
 
 integer i, j, n, n1, n2, ub(2), ub1
-logical comensurate
+logical update_nametable, comensurate
 
 ! 1) Save ele_out pointers in ele_save
 ! 2) Set ele_out = ele_in.
@@ -104,7 +135,7 @@ call transfer_ele (ele_in, ele_out)
 ele_out%ix_ele    = ele_save%ix_ele    ! This should not change.
 ele_out%ix_branch = ele_save%ix_branch ! This should not change.
 
-if (ele_out%ix_ele > -1) then          ! If part of a lattice...
+if (update_nametable .and. ele_out%ix_ele > -1) then          ! If part of a lattice...
   ele_out%branch => ele_save%branch    !   then ele_out%branch should not change.
   if (associated(ele_out%branch)) then
     n = ele_nametable_index(ele_out)
@@ -260,8 +291,6 @@ else
   if (associated (ele_save%converter)) deallocate(ele_save%converter)
 endif
 
-
-
 ! %taylor
 
 do i = 1, 6
@@ -367,7 +396,7 @@ endif
 ele_out%wake => ele_save%wake  ! reinstate
 call transfer_wake (ele_in%wake, ele_out%wake)
 
-end subroutine ele_equal_ele
+end subroutine ele_equals_ele
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

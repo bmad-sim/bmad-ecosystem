@@ -81,7 +81,6 @@ if (err) return
 
 lord%lord_status = overlay_lord$
 lord%key = overlay$
-call set_ele_defaults(lord)
 
 if (n_slave == 0) return ! If no slaves then nothing to do.
 

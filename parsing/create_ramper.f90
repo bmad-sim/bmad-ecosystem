@@ -12,7 +12,7 @@
 !     %control%type
 !   contrl(:)      -- Control_struct: control info. 1 element for each slave.
 !     %stack(:)      -- Arithmetic expression stack for evaluating the controlled parameter value.
-!     %y_knot(:)     -- Knot points for spline interpolation.
+!     %y_knot(:)     -- Knot points for spline or linear interpolation.
 !     %attribute     -- name of attribute to be controlled
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
 !
@@ -61,7 +61,6 @@ if (err) return
 
 lord%lord_status = ramper_lord$
 lord%key = ramper$
-call set_ele_defaults(lord)
 
 if (n_slave == 0) return ! If no slaves then nothing to do.
 
