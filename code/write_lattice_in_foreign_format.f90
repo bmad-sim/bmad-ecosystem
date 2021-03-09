@@ -501,14 +501,14 @@ do
               'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
           call find_element_ends (lord, ele1, ele2)
           ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
-          lord%ix_ele = -1 ! mark for deletion
+          lord%key = -1 ! mark for deletion
           ! If the wiggler wraps around the origin we are in trouble.
           if (ix2 < ix1) then 
             call out_io (s_fatal$, r_name, 'Wiggler wraps around origin. Cannot translate this!')
             if (global_com%exit_on_error) call err_exit
           endif
           do i = ix1+1, ix2
-            branch_out%ele(i)%ix_ele = -1  ! mark for deletion
+            branch_out%ele(i)%key = -1  ! mark for deletion
           enddo
           ix_ele = ix_ele + (ix2 - ix1 - 1)
         else
@@ -674,8 +674,9 @@ do   ! ix_ele = 1e1, ie2
 
     ! OPAL-T
     case default
-      call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO TRANSLATE AN ELEMENT OF TYPE: ' // key_name(ele%key), &
-             'CONVERTING TO DRIFT')
+      call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO TRANSLATE ELEMENT: ' // ele%name, &
+                                     'WHICH IS OF TYPE: ' // key_name(ele%key), &
+                                     'CONVERTING TO DRIFT')
       write (line_out, '(2a)') trim(ele%name) // ': drift, l = ', re_str(val(l$))
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'R', .false.)
 
@@ -1022,9 +1023,10 @@ do   ! ix_ele = 1e1, ie2
 
   case default
 
-    call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO TRANSLATE AN ELEMENT OF TYPE: ' // key_name(ele%key), &
-                                  'CONVERTING TO MARKER')
-    line_out = trim(ele%name) // ': marker'
+    call out_io (s_error$, r_name, 'I DO NOT KNOW HOW TO TRANSLATE ELEMENT: ' // ele%name, &
+                                   'WHICH IS OF TYPE: ' // key_name(ele%key), &
+                                   'CONVERTING TO DRIFT')
+    line_out = trim(ele%name) // ': drift, l = ' // re_str(val(l$))
 
   end select
 

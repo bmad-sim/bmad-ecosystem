@@ -236,14 +236,13 @@ endif
 
 if (n_pole == 2) then
   n_pole = 3
-  call out_io (s_fatal$, r_name, 'WIGGLER: ' // wiggler%name, &
+  call out_io (s_error$, r_name, 'WIGGLER: ' // wiggler%name, &
              'HAS ONLY 2 POLES (1 PERIOD). THE WIGGLER MODEL WILL NOT BE ACCURATE.')
 
 elseif (n_pole < 2  .and. g_max /= 0) then
-  call out_io (s_fatal$, r_name, 'WIGGLER: ' // wiggler%name, &
-             'HAS LESS THAN 2 POLES (1 PERIOD). CANNOT CREATE A WIGGLER MODEL.')
-  if (global_com%exit_on_error) call err_exit
-  call out_io (s_fatal$, r_name, 'WILL MODEL AS A DRIFT...')
+  call out_io (s_error$, r_name, 'WIGGLER: ' // wiggler%name, &
+             'HAS LESS THAN 2 POLES (1 PERIOD). CANNOT CREATE A WIGGLER MODEL.', &
+             'WILL MODEL AS A DRIFT...')
   call init_lat (lat, 1)
   ele => lat%ele(1)
   ele%key = drift$
