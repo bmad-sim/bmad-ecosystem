@@ -31,10 +31,6 @@ do i = 1, size(contrl)
   c1 => contrl(i)
   do j = i+1, size(contrl)
     c2 => contrl(j)
-    if (c1%slave == c2%slave .and. c1%ix_attrib == c2%ix_attrib) then
-      call parser_error ('DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
-      return
-    endif
     if (c1%slave == c2%slave .and. c1%attribute == c2%attribute) then
       call parser_error ('DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
       return

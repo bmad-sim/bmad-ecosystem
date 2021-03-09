@@ -554,9 +554,9 @@ dy_origin [m]                    & ref_tilt_tot [rad]               & x_pitch_to
  \label{s:list.group}
  
  \begin{tabular}{llll} \toprule
-accordion_edge [m]               & end_edge [m]                     & start_edge                       & x_knot                           \\
-alias                            & gang                             & type                             &                                  \\
-descrip                          & s_position [m]                   & var                              &                                  \\
+accordion_edge [m]               & end_edge [m]                     & s_position [m]                   & var                              \\
+alias                            & gang                             & start_edge                       & x_knot                           \\
+descrip                          & interpolation                    & type                             &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -906,8 +906,8 @@ field_master                     & offset [m]                       & tilt_tot [
  \label{s:list.overlay}
  
  \begin{tabular}{llll} \toprule
-alias                            & gang                             & type                             & x_knot                           \\
-descrip                          & is_on                            & var                              &                                  \\
+alias                            & gang                             & is_on                            & var                              \\
+descrip                          & interpolation                    & type                             & x_knot                           \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -1054,8 +1054,8 @@ ele_origin                       & n_cell                           & tilt_tot [
  \label{s:list.ramper}
  
  \begin{tabular}{llll} \toprule
-alias                            & is_on                            & var                              &                                  \\
-descrip                          & type                             & x_knot                           &                                  \\
+alias                            & interpolation                    & type                             & x_knot                           \\
+descrip                          & is_on                            & var                              &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
