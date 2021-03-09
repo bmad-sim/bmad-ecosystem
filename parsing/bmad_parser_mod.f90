@@ -5917,26 +5917,13 @@ main_loop: do n_in = 1, n_ele_max
         cs(ip)%stack = pc%stack(1:pc%n_stk)
       endif
 
+      ! Note: It is not possible to check attrib_name for a misspelling since the ramper may control
+      ! an overlay or group variable that has a non-standard variable name.
       attrib_name = pc%attrib_name
       if (attrib_name == blank_name$) attrib_name = pele%default_attrib
-      ix = attribute_index(0, attrib_name)
-      ! If attribute not found it may be a special attribute like accordion_edge$.
-      ! A special attribute will have ix > num_ele_attrib$
-      if (ix < 1 .and. lord%key == group$) then
-        ix = attribute_index(lord, attrib_name)
-        if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
-      endif
-      cs(ip)%ix_attrib = ix
+      cs(ip)%ix_attrib = attribute_index(0, attrib_name)
       cs(ip)%attribute = attrib_name
       cs(ip)%slave_name = pc%name
-
-      if (ix < 1) then
-        call parser_error ('IN RAMPER ELEMENT: ' // lord%name, &
-                          'ATTRIBUTE: ' // attrib_name, &
-                          'IS NOT A VALID ATTRIBUTE', &
-                          pele = pele)
-        return
-      endif
     enddo
 
     ! Create the ramper
