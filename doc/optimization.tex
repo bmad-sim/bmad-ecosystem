@@ -96,6 +96,7 @@ are:
   "target"                       ! Default
   "average"                      ! Uses evaluation range
   "integral"                     ! Uses evaluation range
+  "rms"                          ! Uses evaluation range
   "min", "max"
   "abs_min", "abs_max"
   "max-min"                      ! Uses evaluation range
@@ -131,13 +132,15 @@ With \vn{merit_type} set to\vn{"target"}, an evaluation range is not permitted s
 make sense to have one.
 %
 \item["average"] \Newline
-With \vn{"average"} as the \vn{merit_type}, the value for a lattice is the average of the
-\vn{data_type} over the evaluation region. This is just the integral normalized by the length
-of the region.
+With \vn{"average"} as the \vn{merit_type}, the value is the mean of the
+\vn{data_type} over the evaluation region. This is just the integral normalized by the length of the
+region. To save time, the data is only evaluated at the ends of elements
+and the average is evaluated assuming linear vaiation between points.
+%
 \item["integral"] \Newline
-% With \vn{"integral"} as the \vn{merit_type}, the value for a lattice is the integral of the
-\vn{data_type} over the evaluation region. The integral is evaluated using a simple trapezoid
-formula.
+With \vn{"integral"} as the \vn{merit_type}, the value is the integral of the \vn{data_type} over
+the evaluation region. To save time, the data is only evaluated at the ends of elements and the
+integral is evaluated assuming linear vaiation between points.
 %
 \item["min" or "max"] \Newline
 With \vn{"min"} or \vn{"max"} as the \vn{merit_type}, the value
@@ -150,6 +153,11 @@ or maximum value of the absolute value of the \vn{data_type} over the evaluation
 \item["max-min"] \Newline
 With \vn{"max-min"} as the \vn{merit_type}, the value for a lattice is the maximum value of the
 \vn{data_type} over the evaluation region minus the minimum value over the evaluation region.
+%
+\item["rms"] \Newline
+With \vn{"rms"} as the \vn{merit_type}, the value is the RMS of the
+\vn{data_type} over the evaluation region. To save time, the data is only evaluated at the ends of elements
+and the RMS is evaluated assuming linear vaiation between points.
 \end{description}
 
   %
