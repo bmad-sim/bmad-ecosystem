@@ -1614,7 +1614,7 @@ case ('expression:', 'expression.')
   case ('abs_max');  datum_value = maxval(abs(expression_value_vec))
   case ('max-min');  datum_value = maxval(expression_value_vec) - minval(expression_value_vec)
 
-  case ('integral', 'average')
+  case ('integral', 'average', 'rms')
     do i = 1, size(info)
       j = i + ele_start%ix_ele - 1
       if (j > branch%n_ele_track) j = j - branch%n_ele_track - 1
@@ -3581,7 +3581,7 @@ if (ix_ele < ix_start) then   ! wrap around
     if (vec_ptr(ix_m2) < vec_ptr(ix_m2)) ix_m = ix_m2
     datum_value = datum_value - vec_ptr(ix_m)
 
-  case ('average', 'integral')
+  case ('average', 'integral', 'rms')
     n = ix_ele + n_track - ix_start + 2
     allocate(s_pos(n), value(n))
 
@@ -3644,7 +3644,7 @@ else
     ix_m = minloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
     datum_value = datum_value - vec_ptr(ix_m)
 
-  case ('average', 'integral')
+  case ('average', 'integral', 'rms')
     n = ix_ele - ix_start + 1
     allocate(s_pos(n), value(n))
 
@@ -3709,9 +3709,9 @@ end function tao_datum_s_position
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function tao_datum_integrate (datum, branch, s_pos, values, valid_value, why_invalid) result (integral)
+! Function tao_datum_integrate (datum, branch, s_pos, values, valid_value, why_invalid) result (result)
 !
-! Routine to integrate or average an array of values associated with a datum.
+! Routine to calculate the integral, rms, or average of an array of values associated with a datum.
 !
 ! Input:
 !   datum         -- tao_data_struct: Datum under consideration.
@@ -3722,17 +3722,17 @@ end function tao_datum_s_position
 ! Output:
 !   valid_value   -- logical: Set false if, for example, all s_pos(:) are the same.
 !   why_invalid   -- character(*): Information string if there is a problem.
-!   integral      -- real(rp): Integral or average depending upon datum%merit_type.
+!   result      -- real(rp): Integral, rms, or average depending upon datum%merit_type.
 !-
 
-function tao_datum_integrate (datum, branch, s_pos, values, valid_value, why_invalid) result (integral)
+function tao_datum_integrate (datum, branch, s_pos, values, valid_value, why_invalid) result (result)
 
 type (tao_data_struct) datum
 type (branch_struct) branch
 
 real(rp) values(:), s_pos(:)
-real(rp) integral,  ds1, ds2
-integer i, n
+real(rp) result, integ, integ2, ds1, ds2
+integer i, n_pt
 
 logical valid_value
 character(*) why_invalid
@@ -3746,8 +3746,8 @@ if (size(values) /= size(s_pos)) then
   return
 endif
 
-n = size(values)
-if (n < 2) then
+n_pt = size(values)
+if (n_pt < 2) then
   call tao_set_invalid (datum, 'NUMBER OF POINTS TO INTEGRATE/AVERAGE OVER LESS THAN 2!')
   return
 endif
@@ -3755,17 +3755,41 @@ endif
 ds1 = s_pos(2) - s_pos(1)
 if (ds1 < 0) ds1 = ds1 + branch%param%total_length
 
-ds2 = s_pos(n) - s_pos(n-1)
+ds2 = s_pos(n_pt) - s_pos(n_pt-1)
 if (ds2 < 0) ds2 = ds2 + branch%param%total_length
 
-integral = 0.5_rp * (values(1) * ds1 + values(n) * ds2)
+integ = 0.5_rp * (values(1) * ds1 + values(n_pt) * ds2)
+integ2 = 0.5_rp * (values(1)**2 * ds1 + values(n_pt)**2 * ds2)
 
-do i = 2, n-1
+do i = 2, n_pt-1
   ds2 = s_pos(i+1) - s_pos(i)
   if (ds2 < 0) ds2 = ds2 + branch%param%total_length
-  integral = integral + 0.5_rp * values(i) * (ds1 + ds2)
+  integ = integ + 0.5_rp * values(i) * (ds1 + ds2)
+  integ2 = integ2 + 0.5_rp * values(i)**2 * (ds1 + ds2)
   ds1 = ds2
 enddo
+
+select case (datum%merit_type)
+case ('integral')
+  result = integ
+
+case ('average', 'rms')
+  ds2 = s_pos(n_pt) - s_pos(1)
+  if (ds2 < 0) ds2 = ds2 + branch%param%total_length
+  if (ds2 == 0) then
+    call tao_set_invalid (datum, 'INTERVAL TO AVERAGE OVER HAS ZERO LENGTH!')
+    return
+  endif
+
+  if (datum%merit_type == 'average') then
+    result = integ / ds2
+  else
+    result = sqrt(max(0.0_rp, integ2/ds2 - (integ / ds2)**2))
+  endif
+
+case default
+  call err_exit
+end select
 
 valid_value = .true.
 
@@ -4444,8 +4468,8 @@ parsing_loop: do
         call pushit (op, i_op, abs$)
       case ('rms') 
         call pushit (op, i_op, rms$)
-      case ('mean') 
-        call pushit (op, i_op, mean$)
+      case ('average', 'mean') 
+        call pushit (op, i_op, average$)
       case ('sum') 
         call pushit (op, i_op, sum$)
       case ('sqrt') 
@@ -5335,7 +5359,7 @@ do i = 1, size(stack)
     info(1)%good = any(info%good)
     call tao_re_allocate_expression_info(info, 1)
 
-  case (mean$)
+  case (average$)
     if (any(info%good)) then
       stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good) / count(info%good)
     endif
