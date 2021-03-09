@@ -214,7 +214,7 @@ do
   ix_ele = ix_ele + 1
   if (ix_ele > ie2) exit
   ele => branch_out%ele(ix_ele)
-  if (ele%key == -1) cycle
+  if (ele%key == -1) cycle  ! Has been marked for delection
 
   val => ele%value
 
@@ -490,18 +490,18 @@ do
     ! out the markers that caused the slicing.
 
     else
-      if (ele%key == wiggler$ .or. ele%key == undulator$) then
-        call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // ele%name)
+      if (ele%key == wiggler$ .or. ele%key == undulator$) then  ! Not a sol_quad
         if (ele%slave_status == super_slave$) then
           ! Create the wiggler model using the super_lord
           lord => pointer_to_lord(ele, 1)
+          call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // lord%name)
           call create_planar_wiggler_model (lord, lat_model)
           ! Remove all the slave elements and markers in between.
           call out_io (s_warn$, r_name, &
               'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
-          lord%ix_ele = -1 ! mark for deletion
           call find_element_ends (lord, ele1, ele2)
           ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
+          lord%ix_ele = -1 ! mark for deletion
           ! If the wiggler wraps around the origin we are in trouble.
           if (ix2 < ix1) then 
             call out_io (s_fatal$, r_name, 'Wiggler wraps around origin. Cannot translate this!')
@@ -510,17 +510,22 @@ do
           do i = ix1+1, ix2
             branch_out%ele(i)%ix_ele = -1  ! mark for deletion
           enddo
-          ie2 = ie2 - (ix2 - ix1 - 1)
+          ix_ele = ix_ele + (ix2 - ix1 - 1)
         else
+          call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // ele%name)
           call create_planar_wiggler_model (ele, lat_model)
+          ele%key = -1 ! Mark to ignore
         endif
-      else
+
+      else   ! sol_quad
         call create_sol_quad_model (ele, lat_model)  ! NOT YET IMPLEMENTED!
+        ele%key = -1 ! Mark to ignore
       endif
-      ele%key = -1 ! Mark to ignore
+
       do j = 1, lat_model%n_ele_track
         call insert_element (lat_out, lat_model%ele(j), ix_ele+j, branch_out%ix_branch, orbit_out)
       enddo
+
       ie2 = ie2 + lat_model%n_ele_track - 1
       cycle
     endif
