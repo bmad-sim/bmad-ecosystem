@@ -220,14 +220,6 @@ if (wiggler%field_calc == fieldmap$) then
 
   enddo
 
-  ! Need at least 3 poles for the model.
-
-  if (n_pole < 3  .and. g_max /= 0) then
-    call out_io (s_fatal$, r_name, 'WIGGLER: ' // wiggler%name, &
-               'HAS LESS THAN 3 POLES. CANNOT CREATE A WIGGLER MODEL.')
-    if (global_com%exit_on_error) call err_exit
-  endif
-
 ! Else it is a periodic type wiggler
 
 else
@@ -238,7 +230,26 @@ else
   g3_int = 4 * g_max**3 / (3 * pi)  
   n_pole = nint(2 * wiggler%value(n_period$))
   if (g_max == 0) n_pole = 0
+endif
 
+! Need at least 3 poles for the model.
+
+if (n_pole == 2) then
+  n_pole = 3
+  call out_io (s_fatal$, r_name, 'WIGGLER: ' // wiggler%name, &
+             'HAS ONLY 2 POLES (1 PERIOD). THE WIGGLER MODEL WILL NOT BE ACCURATE.')
+
+elseif (n_pole < 2  .and. g_max /= 0) then
+  call out_io (s_fatal$, r_name, 'WIGGLER: ' // wiggler%name, &
+             'HAS LESS THAN 2 POLES (1 PERIOD). CANNOT CREATE A WIGGLER MODEL.')
+  if (global_com%exit_on_error) call err_exit
+  call out_io (s_fatal$, r_name, 'WILL MODEL AS A DRIFT...')
+  call init_lat (lat, 1)
+  ele => lat%ele(1)
+  ele%key = drift$
+  ele%value(l$) = wiggler_in%value(l$)
+  ele%name = trim(wiggler%name) // '_DRIFT'
+  return
 endif
 
 ! Construct the initial wiggler model.
@@ -246,12 +257,12 @@ endif
 ! If n_pole is even:
 !   D_end, B_25+, D_end2, B_75-, n_main*(D, B+, D, B-), D, B_75+, D_end2, B_25- D_end 
 ! Where
-!   n_main = (n_pole - 4) / 2
+!   2 * n_main = n_pole - 4
 !
 ! If n_pole is odd:
 !   D_end, B_50+, n_main*(D, B-, D, B+), D, B-, D, B_50+, D_end
 ! Where
-!   n_main = (n_pole - 3) / 2
+!   2 * n_main = n_pole - 3
 ! Note: Odd number of poles ensures reference orbit at end aligns with orbit at the beginning.
 !
 ! Also:
