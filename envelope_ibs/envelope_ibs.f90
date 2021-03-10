@@ -263,7 +263,7 @@ if(nturns .gt. 0) then
 
     call run_timer ('READ', now_time)
     if (now_time - last_time > 100) then
-      print '(a, f10.2, a, i8, a, i8)', 'Time (min): ', now_time/60, i, " turns ", i, ' of ', nturns
+      write(*,'(a, f10.2, i8, a, i8, a, i8)') 'Time (min): ', now_time/60.0, i, " turns ", i, ' of ', nturns
       last_time = now_time
     endif
   enddo
