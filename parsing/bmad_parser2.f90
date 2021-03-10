@@ -627,11 +627,13 @@ parsing_loop: do
     ixx = ele%ixx
     call parser2_add_superimpose (lat, ele, plat%ele(ixx), in_lat)
 
-  elseif (key == overlay$ .or. key == group$ .or. key == girder_lord$) then
+  elseif (key == overlay$ .or. key == group$ .or. key == girder$ .or. key == ramper$) then
     call parser_add_lord (lat2, 1, plat, lat)
 
   else
-    call parser_error ('ELEMENTS DEFINED AFTER LATTICE EXPANSION MUST BE AN OVERLAY, SUPERIMPOSE, ' //  'OR GROUP TYPE ELEMENTS: ' // word_1)
+    call parser_error ('ERROR FOR ELEMENT: ' // word_1, &
+                       'ELEMENTS DEFINED AFTER LATTICE EXPANSION MUST BE SUPERIMPOSED OR BE A CONTROLLER', &
+                       'TYPE ELEMENT (OVERLAY, GROUP, GIRDER, OR RAMPER ELEMENT).')
     cycle parsing_loop
   endif
 
