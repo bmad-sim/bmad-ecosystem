@@ -69,7 +69,7 @@ enddo
 
 ! init
 
-call check_controller_controls (contrl, lord%name, err)
+call check_controller_controls (group$, contrl, lord%name, err)
 if (err) return
 
 lord%lord_status = group_lord$

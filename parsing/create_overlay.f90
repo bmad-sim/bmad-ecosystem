@@ -76,7 +76,7 @@ endif
 
 ! Mark element as an overlay lord
 
-call check_controller_controls (contrl, lord%name, err)
+call check_controller_controls (overlay$, contrl, lord%name, err)
 if (err) return
 
 lord%lord_status = overlay_lord$
