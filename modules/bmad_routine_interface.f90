@@ -348,10 +348,11 @@ function coords_curvilinear_to_floor (xys, branch, err_flag) result (global)
   logical err_flag
 end function coords_curvilinear_to_floor
 
-subroutine check_controller_controls (contrl, name, err)
+subroutine check_controller_controls (ele_key, contrl, name, err)
   import
   implicit none
   type (control_struct), target :: contrl(:)
+  integer ele_key
   logical err
   character(*) name
 end subroutine
