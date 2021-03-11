@@ -206,7 +206,7 @@ logical, optional :: can_abbreviate
 
 ! Note: ele%control or ele%control%var may not be allocated during parsing.
 
-if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control)) then
+if ((ele%key == group$ .or. ele%key == overlay$ .or. ele%key == ramper$) .and. associated(ele%control)) then
   if (allocated(ele%control%var)) then
     n = min(4, len(name))
     if (name(1:n) == 'OLD_') then

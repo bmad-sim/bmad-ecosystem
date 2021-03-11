@@ -3943,6 +3943,11 @@ expressions are used instead of knot points.
 not permitted to use wild card characters. That is, in the above example, ``\vn{*}'' will not match
 to any controller elements.
 
+\etcetc.
+When a lattice is read in, no\vn{ramper} slave parameters are not 
+elements are ignored . To apply the ramper elements during\
+lattice parsing, the \vn{apply_rampers} command (\sref{s:apply.ramp}) can be used.
+
 Unlike \vn{group} or \vn{overlay} elements, it is not permitted for different \vn{ramper} elements
 to control the same parameter of a given slave element.
 

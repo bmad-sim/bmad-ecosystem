@@ -153,6 +153,7 @@ type bp_common_struct
   logical :: used_line_set_by_calling_routine = .false.
   logical :: calc_reference_orbit = .false.
   logical :: detected_expand_lattice_cmd = .false.
+  logical :: detected_apply_rampers_cmd = .false.
   real :: time0 = 0, time1 = 0, time2 = 0, time3 = 0   ! For timing parsing
 end type
 

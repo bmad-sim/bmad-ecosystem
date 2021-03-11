@@ -63,6 +63,9 @@ case (sad_mult$, patch$)
     is_valid = .true.
   end select
 
+case (group$, overlay$, girder$, ramper$)
+  ! No valid methods
+
 case default
   select case (spin_tracking_method)
   case (custom$, symp_lie_ptc$, tracking$)

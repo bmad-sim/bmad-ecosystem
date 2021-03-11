@@ -459,7 +459,7 @@ else
   case ('c_light');  stack(n_stack) = expression_atom_struct(word, constant$, c_light)
   case ('twopi');    stack(n_stack) = expression_atom_struct(word, constant$, twopi)
   case ('pi');       stack(n_stack) = expression_atom_struct(word, constant$, pi)
-  case ('e');        stack(n_stack) = expression_atom_struct(word, constant$, exp(0.0_rp))
+  case ('e');        stack(n_stack) = expression_atom_struct(word, constant$, exp(1.0_rp))
   end select
 endif
 

@@ -76,6 +76,13 @@ subroutine angle_to_canonical_coords (orbit)
   type (coord_struct) orbit
 end subroutine
 
+subroutine apply_all_rampers (lat, err_flag)
+  import
+  implicit none
+  type (lat_struct) lat
+  logical err_flag
+end subroutine
+
 subroutine apply_element_edge_kick (orb, fringe_info, track_ele, param, track_spin, mat6, make_matrix, rf_time, apply_sol_fringe)
   import
   implicit none
