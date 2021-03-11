@@ -66,11 +66,12 @@ real(rp), parameter :: anomalous_mag_moment_He3      = -4.184153686d0
 ! Should make physical_const_list "parameter" but there is a gcc bug (in Version 7.1 at least)
 ! where if you pass physical_const_list%name to a routine there will be a crash.
 
-type (named_number_struct) :: physical_const_list(31) = [ &
+type (named_number_struct) :: physical_const_list(32) = [ &
                  named_number_struct('pi', pi), &
                  named_number_struct('twopi', twopi), &
                  named_number_struct('fourpi', fourpi), &
-                 named_number_struct('e_log', 2.718281828459_rp), &
+                 named_number_struct('e_log', 2.71828182845904523_rp), &
+                 named_number_struct('e', 2.71828182845904523_rp), &
                  named_number_struct('sqrt_2', sqrt_2), &
                  named_number_struct('degrad', 180 / pi), &
                  named_number_struct('degrees', pi / 180), & ! From degrees to radians.
