@@ -212,7 +212,6 @@ ele%name = 'BMAD_COM'           ! Global bmad parameters
 call nametable_add (in_lat%nametable, ele%name, n_max)
 
 lat%n_control_max = 0
-bp_com%detected_expand_lattice_cmd = .false.
 
 call load_parse_line ('init', 1, end_of_file)
 
@@ -403,6 +402,14 @@ parsing_loop: do
   if (word_1(:ix_word) == 'EXPAND_LATTICE') then
     bp_com%detected_expand_lattice_cmd = .true.
     exit parsing_loop
+  endif
+
+  !-------------------------------------------
+  ! APPLY_RAMPERS command
+
+  if (word_1(:ix_word) == 'APPLY_RAMPERS') then
+    bp_com%detected_apply_rampers_cmd = .true.
+    cycle parsing_loop
   endif
 
   !-------------------------------------------
@@ -1205,6 +1212,13 @@ do i = 1, n_max
     endif
   enddo
 enddo
+
+! Apply ramper elements?
+
+if (bp_com%detected_apply_rampers_cmd) then
+  call apply_all_rampers(lat, err)
+  if (err) call parser_error ('ERROR APPLYING RAMPERS')
+endif
 
 ! Do we need to expand the lattice and call bmad_parser2?
 

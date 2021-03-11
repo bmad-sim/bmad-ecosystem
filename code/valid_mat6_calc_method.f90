@@ -130,7 +130,7 @@ case (fiducial$, floor_shift$)
     is_valid = .true.
   end select
 
-case (group$, overlay$, girder$)
+case (group$, overlay$, girder$, ramper$)
   ! No valid methods
 
 case (hkicker$)

@@ -780,10 +780,9 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         a_name = ''
       case default
         if (allocated(ctl%stack)) then
-          call split_expression_string (expression_stack_to_string (ctl%stack), 70, 5, li2)
+          call split_expression_string (expression_stack_to_string(ctl%stack), 70, 5, li2)
         else
-          call re_allocate (li2, 1)
-          li2(1) = '<Knots>'
+          call split_expression_string (knots_to_string(ele%control%x_knot, ctl%y_knot), 70, 5, li2)
         endif
         iv = ctl%ix_attrib
         a_name = attribute_name(ele, iv)
@@ -857,11 +856,6 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
     endif
 
-    if (ele%control%type == spline$ .or. ele%control%type == linear$) then
-      do im = 1, size(ele%control%x_knot)
-      enddo
-    endif
-
     ! Print named constants if present
 
     print_it = .true.
@@ -915,10 +909,9 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         ctl => ele%control%ramp(ix)
 
         if (allocated(ctl%stack)) then
-          call split_expression_string (expression_stack_to_string (ctl%stack), 70, 5, li2)
+          call split_expression_string (expression_stack_to_string(ctl%stack), 70, 5, li2)
         else  ! Spline
-          call re_allocate (li2, 1)
-          li2(1) = str1(1:17) // '<Knots>'
+          call split_expression_string (knots_to_string(ele%control%x_knot, ctl%y_knot), 70, 5, li2)
         endif
 
         nl=nl+1; write (li(nl), '(3x, a20, a18, a, 4x, a)') ctl%slave_name, ctl%attribute, trim(li2(1))
@@ -951,10 +944,9 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         write (str1, '(es12.4)') ctl%value
 
         if (allocated(ctl%stack)) then
-          call split_expression_string (str1(1:17) // expression_stack_to_string (ctl%stack), 70, 5, li2)
+          call split_expression_string (str1(1:17) // expression_stack_to_string(ctl%stack), 70, 5, li2)
         else  ! Spline
-          call re_allocate (li2, 1)
-          li2(1) = str1(1:17) // '<Knots>'
+          call split_expression_string (knots_to_string(ele%control%x_knot, ctl%y_knot), 70, 5, li2)
         endif
 
         nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a, 4x, a)') trim(ele_loc_name(slave)), &
@@ -1383,5 +1375,27 @@ case (is_switch$)
 end select
 
 end subroutine write_this_attribute
+
+!--------------------------------------------------------------------------
+! contains
+
+function knots_to_string (x_knot, y_knot) result (str)
+
+real(rp) x_knot(:), y_knot(:)
+integer ik
+character(:), allocatable :: str
+
+!
+
+allocate (character(1) :: str)
+str = ''
+
+do ik = 1, size(x_knot)
+  str = str // ', (' // real_str(x_knot(ik),12) // ', ' // real_str(y_knot(ik),12) // ')'
+enddo
+
+str = str(3:)
+
+end function knots_to_string
 
 end subroutine type_ele

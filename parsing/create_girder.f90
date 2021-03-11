@@ -115,7 +115,8 @@ do i = 1, girder_ele%n_slave
 
   ! You cannot control super_slaves, group or overlay elements
 
-  if (slave%slave_status == super_slave$ .or. slave%key == group$ .or. slave%key == overlay$) then
+  if (slave%slave_status == super_slave$ .or. slave%key == group$ .or. &
+                                    slave%key == overlay$ .or. slave%key == ramper$) then
     call out_io (s_fatal$, r_name, &
                  'GIRDER IS NOT ALLOWED TO CONTROL SUPER_SLAVE, GROUP OR OVERLAY ELEMENTS.', &
                  'BUT GIRDER: ' // girder_ele%name, 'IS TRYING TO CONTROL: ' // slave%name)

@@ -5365,7 +5365,7 @@ endif
 ! Find the refernce point in the lattice.
 
 select case (ref_ele%key)
-case (overlay$, girder$)
+case (overlay$, group$, girder$)
   s_ref_begin = 1d10
   s_ref_end = 0
   do i = 1, ref_ele%n_slave
@@ -5373,8 +5373,8 @@ case (overlay$, girder$)
     s_ref_begin = min(s_ref_begin, slave%s_start)
     s_ref_end = max(s_ref_end, slave%s)
   enddo
-case (group$)
-  call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON GROUP' // pele%ref_name)
+case (ramper$)
+  call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON RAMPER' // pele%ref_name)
   return
 case default
   s_ref_begin = ref_ele%s_start

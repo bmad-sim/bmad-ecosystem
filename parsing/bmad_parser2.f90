@@ -336,6 +336,15 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! APPLY_RAMPERS command
+
+  if (word_1(:ix_word) == 'APPLY_RAMPERS') then
+    call apply_all_rampers(lat, err)
+    if (err) call parser_error ('ERROR APPLYING RAMPERS')
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
   ! RETURN or END_FILE command
 
   if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then

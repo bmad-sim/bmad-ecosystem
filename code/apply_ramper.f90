@@ -2,10 +2,11 @@
 ! Subroutine apply_ramper (slave, ramper, err_flag)
 !
 ! Routine to apply the ramper elements of a lattice to a particular element.
+! Also see: apply_all_rampers.
 !
 ! Input:
 !   slave       -- ele_struct: Element to apply ramper elements to.
-!   ramper(:)   -- ele_pointer_struct: Pointers to ramper elements in the lattice
+!   ramper(:)   -- ele_pointer_struct: Pointers to ramper elements in the lattice to use.
 !
 ! Output:
 !   err_flag    -- logical: Set true if there is an error. False otherwise.
