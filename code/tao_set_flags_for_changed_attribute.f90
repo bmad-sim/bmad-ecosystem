@@ -45,22 +45,12 @@ endif
 
 if (present(ele_ptr)) then
   if (associated(ele_ptr)) then
-
     if (ele_ptr%key == ramper$) then
-      call lat_ele_locator ('RAMPER::*', lat, eles, n_loc, err)
-      do ib = 0, ubound(lat%branch, 1)
-        branch => lat%branch(ib)
-        do ie = 0, branch%n_ele_max
-          call apply_ramper(branch%ele(ie), eles(1:n_loc), err)
-        enddo
-      enddo
-      call set_flags_for_changed_attribute (lat)
-
+      call apply_all_rampers(lat, err)
     else
       if (ele_ptr%ix_ele == 0) u%model_branch(0)%beam%init_starting_distribution = .true.
       if (present(val_ptr)) call set_flags_for_changed_attribute (ele_ptr, val_ptr)
     endif
-
   endif
 endif
 
