@@ -405,14 +405,6 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
-  ! APPLY_RAMPERS command
-
-  if (word_1(:ix_word) == 'APPLY_RAMPERS') then
-    bp_com%detected_apply_rampers_cmd = .true.
-    cycle parsing_loop
-  endif
-
-  !-------------------------------------------
   ! RETURN or END_FILE command
 
   if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then
@@ -1215,10 +1207,8 @@ enddo
 
 ! Apply ramper elements?
 
-if (bp_com%detected_apply_rampers_cmd) then
-  call apply_all_rampers(lat, err)
-  if (err) call parser_error ('ERROR APPLYING RAMPERS')
-endif
+call apply_all_rampers(lat, err)
+if (err) call parser_error ('ERROR APPLYING RAMPERS')
 
 ! Do we need to expand the lattice and call bmad_parser2?
 

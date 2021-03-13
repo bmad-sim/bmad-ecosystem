@@ -231,13 +231,21 @@ and the general syntax for a \vn{knot} based \vn{overlay} element is similar:
         VAR = \{var1\}, X_KNOT = \{x_knot_points\}, var1 = init_val1, ..., 
         GANG = logical, INTERPOLATION = \{type\}, ...
 \end{example}
-For \vn{ramper} elements, the syntax is similar to the \vn{overlay} syntax except that \vn{OVERLAY} 
-is replaced by \vn{RAMPER} and there is no \vn{GANG} attribute.
+For \vn{ramper} elements, the syntax is similar to the \vn{overlay} syntax except that \vn{OVERLAY}
+is replaced by \vn{RAMPER} and there is no \vn{GANG} attribute. The \vn{x_knot} array is combined
+with a given \vn{y_knot} array to give a series of $N$ knot points where $N$ is the size of the
+\vn{x_knot} and \vn{y_knot} arrays. As such, the size of all knot arrays must be the same with the
+additional restriction that the \vn{x_knot} array must have values that are strickly ascending.
 Example:
 \begin{example}
   ov: overlay = \{q1[k1]:\{0.234, 0.534\}, q2[k1], q3[k1], q4[k1]:\{0.375, 0.923\}\}, 
         var = {time}, x_knot = \{0.0, 1.0\}
-\end{example}
+\end{example}K
+In this example there are two knot points for each slave parameter. For the slave parameter
+\vn{q1[k1]} the knot points are $(0.0, 0.375)$ and $(1.0, 0.923)$.  If a \vn{y_knot_points} array is
+not present for a particular slave attribute, the knot array of the previous slave attribute is
+used. Thus, in the above example, the y_knot array used for \vn{q2[k1]} and \vn{q3[k1]} are the same
+as the y_knot array for \vn{q1[k1]}.
 
 The method used to interpolate between the knot points is determined by the setting of the
 \vn{interpolate} parameter which may be one of
@@ -248,11 +256,6 @@ The method used to interpolate between the knot points is determined by the sett
 For variable values outside of the range specified by \vn{x_knot}, the slave parmeter value will be
 extrapolated.  For the cubic spline, extrapolation is only permitted over a distance outside the
 x_knot range equal to the time difference between an end point and the next nearest point.
-
-The array sizes of all knot arrays must be the same. If a \vn{y_knot_points} array is not present
-for a particular slave attribute, the knot array of the previous slave attribute is used. Thus, in
-the above example, the y_knot array used for \vn{q2[k1]} and \vn{q3[k1]} are the same as the y_knot
-array for \vn{q1[k1]}.
 
 If the \vn{gang} attribute is \vn{True} (which is the default) a \vn{controller} will control all
 elements of a given name. Thus, in the above example, if there are multiple elements named \vn{q1}
