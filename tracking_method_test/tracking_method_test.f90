@@ -87,6 +87,7 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
     if (ele_o_sign == -1 .and. ele%key == e_gun$) cycle
+    if (ele%key == marker$ .and. ele%name == 'END') cycle
     ele%spin_tracking_method = tracking$
 
     isn = 0
@@ -184,6 +185,8 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     end do
 
+    if (isn == 0) cycle
+
     if (debug_mode) print '(t46, a, t60, a, t74, a, t91, a)', 'dSpin_x', 'dSpin_y', 'dSpin_z', 'dSpin_amp'
     do j = 1, isn
       write (1, '(a)') trim(line(j))
@@ -196,7 +199,7 @@ do ib = 0, ubound(lat%branch, 1)
       print *
     endif
 
-    write (1,*)
+    write (1, *)
   end do
 enddo
 
