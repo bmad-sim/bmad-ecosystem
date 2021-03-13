@@ -7,21 +7,23 @@ use quick_plot
 implicit none
 
 type (lat_struct) lat
-type (ele_pointer_struct), allocatable, target :: eles(:)
-type (ele_struct), pointer :: ele, slave
+type (ele_pointer_struct), allocatable, target :: eles(:), rampers(:)
+type (ele_struct), pointer :: controller, slave
+type (ele_struct) ramp_slave
 type (control_struct), pointer :: ctl
 
 real(rp) var, var_min, var_max, plot_size(2), text_scale, height
 real(rp), allocatable :: table(:,:), knots(:,:)
 
-integer n_var_points, slave_list(20)
+integer, allocatable :: ramper_list(:), slave_list2(:)
+integer n_var_points, slave_list(100)
 integer i, j, n, id, n_loc, ix_var, n_slave, n_slave_max
 
 logical make_plot, err, err_flag, ok, draw_knot_points
 
 character(200) init_file, lat_file, table_file_name, err_str, postscript_file
 character(40) controller_name, control_var, ans
-character(40) attrib_name(20)
+character(80), allocatable :: attrib_name(:)
 
 namelist / params / var_min, var_max, slave_list, table_file_name, make_plot, plot_size, &
                     controller_name, control_var, lat_file, n_var_points, postscript_file, &
@@ -50,6 +52,8 @@ close (1)
 call bmad_parser(lat_file, lat, err_flag = err)
 if (err) stop
 
+!
+
 call lat_ele_locator (controller_name, lat, eles, n_loc)
 
 if (n_loc == 0) then
@@ -62,9 +66,9 @@ if (n_loc > 1) then
   print '(a)',  'Using first one...'
 endif
 
-ele => eles(1)%ele
-if (ele%key /= overlay$ .and. ele%key /= group$ .and. ele%key /= ramper$) then
-  print '(2a)', 'ELEMENT IS NOT A CONTROLLER: ', trim(ele%name)
+controller => eles(1)%ele
+if (controller%key /= overlay$ .and. controller%key /= group$ .and. controller%key /= ramper$) then
+  print '(2a)', 'ELEMENT IS NOT A CONTROLLER: ', trim(controller%name)
   stop
 endif
 
@@ -72,8 +76,8 @@ if (control_var == '') then
   ix_var = 1
 else
   ix_var = -1
-  do i = 1, size(ele%control%var)
-    if (control_var == ele%control%var(i)%name) ix_var = i
+  do i = 1, size(controller%control%var)
+    if (control_var == controller%control%var(i)%name) ix_var = i
   enddo
   if (ix_var == -1) then
     print '(2a)', 'NO CONTROL VARIABLE FOUND WITH THIS NAME: ', trim(control_var)
@@ -81,10 +85,10 @@ else
   endif
 endif
 
-if (ele%key == ramper$) then
-  n_slave_max = size(ele%control%ramp)
+if (controller%key == ramper$) then
+  n_slave_max = size(controller%control%ramp)
 else
-  n_slave_max = ele%n_slave
+  n_slave_max = controller%n_slave
 endif
 
 do j = 1, size(slave_list)
@@ -97,59 +101,73 @@ enddo
 
 n_slave = j - 1
 if (n_slave == 0) then
+  allocate (slave_list2(n_slave_max))
   n_slave = n_slave_max
   do j = 1, n_slave
-    slave_list(j) = j
+    slave_list2(j) = j
   enddo
+else
+  allocate (slave_list2(n_slave))
+  slave_list2 = slave_list(1:n_slave)
 endif
 
 allocate (table(0:n_var_points, 0:n_slave))
 
 if (var_min == var_max) then
-  if (ele%control%type == expression$) then
+  if (controller%control%type == expression$) then
     print '(a)', 'CANNOT FIND CONTROL BOUNDS SINCE CONTROLLER USES EXPRESSIONS AND NOT A LIST OF KNOT POINTS.'
     print '(a)', 'IN THIS CASE PLEASE SET VAR_MIN AND VAR_MAX SO THAT THERE IS A FINITE RANGE THAT CAN BE USED.'
     stop
   endif
 
-  n = size(ele%control%x_knot)
-  var_min = ele%control%x_knot(1)
-  var_max = ele%control%x_knot(n)
+  n = size(controller%control%x_knot)
+  var_min = controller%control%x_knot(1)
+  var_max = controller%control%x_knot(n)
 endif
 
 ! Start knot table
 
-if (ele%control%type == expression$) then
+if (controller%control%type == expression$) then
   draw_knot_points = .false.
 elseif (draw_knot_points) then
-  allocate (knots(size(ele%control%x_knot), 0:n_slave))
-  knots(:,0) = ele%control%x_knot
+  allocate (knots(size(controller%control%x_knot), 0:n_slave))
+  knots(:,0) = controller%control%x_knot
 endif
 
-! Make table
+! Make table and plot
+
+ramp_slave%key = int_garbage$   ! Signals routines to skip some inconvienient bookkeeping.
+call lat_ele_locator ('RAMPER::*', lat, rampers, n_loc)
 
 do i = 0, n_var_points
   var = var_min + i * (var_max - var_min) / n_var_points
-  ele%control%var(ix_var)%value = var
+  controller%control%var(ix_var)%value = var
   table(i,0) = var
 
+  select case (controller%key)
+  case (ramper$)
+    call apply_ramper (ramp_slave, rampers, err_flag)
+  case (overlay$)
   do j = 1, n_slave
-    if (ele%key == ramper$) then
-      ctl => ele%control%ramp(slave_list(j))
+    slave => pointer_to_slave(controller, slave_list2(j))
+    call makeup_control_slave(lat, slave, err_flag)
+  enddo
+  case (group$)
+    call makeup_group_lord (lat, controller, err_flag)
+  end select
+
+  call re_allocate(attrib_name, n_slave)
+
+  do j = 1, n_slave
+    if (controller%key == ramper$) then
+      ctl => controller%control%ramp(slave_list2(j))
     else
-      slave => pointer_to_slave(ele, slave_list(j), ctl)
+      slave => pointer_to_slave(controller, slave_list2(j), ctl)
     endif
 
     if (draw_knot_points .and. i == 0) knots(:,j) = ctl%y_knot
-
-    if (ele%control%type == expression$) then
-      ctl%value = expression_stack_value(ctl%stack, err_flag, err_str, ele%control%var, .false.)
-    else
-      call spline_akima_interpolate (ele%control%x_knot, ctl%y_knot, ele%control%var(1)%value, ok, ctl%value)
-    endif
-
     table(i,j) = ctl%value
-    attrib_name(j) = ctl%attribute
+    attrib_name(j) = trim(ctl%slave_name) // '[' // trim(ctl%attribute) // ']'
   enddo
 enddo
 
@@ -173,12 +191,15 @@ contains
 
 subroutine make_this_plot(who)
 
-type (qp_line_struct) line(20)
-type (qp_symbol_struct) symbol(20)
+type (qp_line_struct), allocatable :: line(:)
+type (qp_symbol_struct), allocatable :: symbol(:)
 
 character(*) who
+integer j, k, n
 
 !
+
+allocate (line(n_slave), symbol(n_slave))
 
 line(1:6)%color = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
 symbol(1:6)%color = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
@@ -203,12 +224,15 @@ call qp_set_box (1, 1, 1, 1)
 call qp_calc_and_set_axis ('X', var_min, var_max, 4, 8, 'GENERAL')
 call qp_calc_and_set_axis ('Y', minval(table(:,1:)), maxval(table(:,1:)), 4, 8, 'GENERAL')
 if (n_slave == 1) then
-  call qp_draw_axes (ele%control%var(ix_var)%name, attrib_name(1))
+  call qp_draw_axes (controller%control%var(ix_var)%name, attrib_name(1))
 else
-  call qp_draw_axes (ele%control%var(ix_var)%name, 'Slave Value')
+  call qp_draw_axes (controller%control%var(ix_var)%name, 'Slave Value')
 endif
 
 do j = 1, n_slave
+  k = modulo(j-1,6) + 1
+  line(j) = line(k)
+  symbol(j) = symbol(k)
   call qp_set_line_attrib ('PLOT', color = line(j)%color)
   call qp_draw_data (table(:,0), table(:,j), .true., 0)
   if (draw_knot_points) then
@@ -216,7 +240,9 @@ do j = 1, n_slave
     call qp_draw_symbols (knots(:,0), knots(:,j))
   endif
 enddo
-call qp_draw_curve_legend (0.1_rp, -0.1_rp, '%/GRAPH/LT', line(1:n_slave), text = attrib_name(1:n_slave))
+
+n = max(n_slave, 20)
+call qp_draw_curve_legend (0.1_rp, -0.1_rp, '%/GRAPH/LT', line(1:n), text = attrib_name(1:n))
 
 if (who == 'X') then
   write (*, '(a)', advance = 'NO') 'Hit any key to continue.'

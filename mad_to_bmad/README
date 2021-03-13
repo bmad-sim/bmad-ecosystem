@@ -18,12 +18,9 @@ This README file is contained in the directory:
 Where <bmad-dist-or-release> is the directory of the Distribution or Release that you are using (See
 the online Bmad documentation or your local Bmad Guru for more details on Distributions and Releases).
 
-Note: If you are setup to run Bmad based programs, the ACC_ROOT_DIR environmental variable will be
-set to the <bmad-dist-or-release> directory.
-
 There are two python scrips in this directory:
-  mad8_to_bmad.py    -- Convertes from MAD8 to Bmad format.
-  madx_to_bmad.py    -- Convertes from MADX to Bmad format.
+  mad8_to_bmad.py    -- Converts from MAD8 to Bmad format.
+  madx_to_bmad.py    -- Converts from MADX to Bmad format.
 
 
 How to Convert:
@@ -43,6 +40,8 @@ where <path-to-script> is the path to the directory where the script is.
 Example conversion command:
   python $ACC_ROOT_DIR/util_programs/mad_to_bmad/madx_to_bmad -f lhc.madx
 This example converts a MADX file called "lhc.madx".
+[Note: If you are setup to run Bmad based programs, the ACC_ROOT_DIR environmental variable will be
+set to the <bmad-dist-or-release> directory.]
 
 The Bmad output file name is the input file name with the .mad8 or .madx suffix removed (if it
 exists) and with a .bmad suffix appended.
@@ -51,7 +50,7 @@ The optional arguments are:
   -h, --help              Show a help message and exit
   -d, --debug             Print debug info while running (not of general interest).
   -f, --many_files        Create a Bmad file for each MAD8 input file.
-	-s, --superimpose       Superimpose elements in a sequence (madx only).
+  -s, --superimpose       Superimpose elements in a sequence (madx only).
   -v, --no_prepend_vars   Do not move variables to the beginning of the Bmad file.
 
 If the --debug (or -d) option is present, the script will print information on the parsing process
@@ -61,19 +60,19 @@ By default, only one Bmad output file is produced even when the MAD input is spl
 files that call each other. If The --many_files (or -f) option is present, the script will produce
 multiple Bmad output files, one for each MAD input file.
 
-For the MADX conversion, the original scheme for converting sequencies was to create a drift the
-length of the sequence and then to superimpose the individual lattice elements on top of this.  The
-parsing of the generated Bmad lattice file turned out to be slow for very large lattices due to the
-amount of shuffling of lattice elements superposition entailed (essentially, the parsing scalled as
-N^2 where N is the number of lattice elements). To get around this, the current translation scheme
-converts sequencies into lines without any superposition. If the --superimpose (or -s) option is
-present. The original superposition algorithm is used.
+For the MADX conversion, the original scheme for converting sequences was to create a drift whose
+length was the length of the sequence and then to superimpose the individual lattice elements on top
+of this. The parsing of the generated Bmad lattice file turned out to be slow for very large
+lattices due to the amount of shuffling of lattice elements superposition entailed (essentially, the
+parsing scaled as N^2 where N is the number of lattice elements). To avoid this, the current
+translation scheme converts sequences into lines without any superposition. If the --superimpose
+(or -s) option is present. The original superposition algorithm is used.
 
-In a MAD lattice file, it is permissable to define a variable after it has been used in an expression.
+In a MAD lattice file, it is permissible to define a variable after it has been used in an expression.
 For example:
   q: quadrupole, k1 = 4*a_var
   a_var = 0.03
-Bmad does not allow this. To get around this, the conversion scripts move varible definitions to the
+Bmad does not allow this. To get around this, the conversion scripts move variable definitions to the
 top of the output file. If, for some reason, you do not want this (say you know that the variable
 ordering is OK and you want the layout of the output file to reflect the layout of the input file),
 the --no_prepend_vars (or -v) option will prevent variable definitions from being moved.
@@ -87,10 +86,12 @@ other variables will appear after the other variables have been defined as requi
 Additionally, if there are multiple definitions of the same variable, all but the last one will be
 commented out.
 
-Note: If the string "!!verbatim" appears in the MAD8 or MADX file, everything after this string will
-be put in the Bmad file. This is useful for transfering extra information to the Bmad file without
-affecting the reading of the MAD file by MAD. Example:
-	!!verbatim parameter[geometry] = open
+Note: If a line in the MAD8 or MADX file begins with the string "!!verbatim", everything after
+"!!verbatim" on the line will be put in the Bmad file. This is useful for transferring extra
+information to the Bmad file without affecting the reading of the MAD file by MAD. Example:
+  !!verbatim parameter[geometry] = open
+will appear in the Bmad file as:
+  parameter[geometry] = open
 
 
 Limitations:
@@ -107,7 +108,7 @@ file to include definitions for the missing variables.
 
 Bmad, unlike MAD, does not allow variable values to be redefined. The conversion scripts will catch
 this error. Both definitions of a variable will be put in the output file and it is up to the User
-to modify the output file appropraitely. If not resolved, the error will be caught when a Bmad based
+to modify the output file appropriately. If not resolved, the error will be caught when a Bmad based
 program reads in a lattice file.
 
 
@@ -115,7 +116,7 @@ Notes:
 ------
 
 By default, Bmad will treat a lattice without \vn{lcavity} elements as having a closed geometry and
-a lattice with a \vn{lcavity} as having an open geometry. To override the default, put the following
+a lattice with an \vn{lcavity} as having an open geometry. To override the default, put the following
 in the Bmad file (or use the "!!verbatim" construct discussed above):
   parameter[geometry] = open  ! or closed
 
@@ -132,4 +133,26 @@ Help:
 If you find a problem with the conversion, please send a message along with the original MAD files
 to a Bmad maintainer. Contact info can be obtained on the Bmad site by clicking on the "Help &
 Mailing Lists" button.
-  
+
+
+Tips:
+-----
+
+If you have a lattice with a closed geometry, and the Bmad computed orbit or Twiss parameters are
+different enough from the MAD ones where you suspect a conversion problem, one way to try to
+diagnose things is to track in MAD and Bmad as if the lattice had an open geometry to see if there
+are any particular spots in the lattice where differences suddenly become much larger. If you can
+spot such places, you can examine the lattice element at that location. 
+
+To track using an open geometry in Bmad, see the Notes section above. To track using an open
+geometry in MAD, define starting orbit and Twiss parameters in the appropriate twiss statement.
+
+If there are no spots where there is a jump in the differences, that is, the differences grow
+somewhat uniformly, it is probable that the differences are due to differing tracking algorithms
+between Bmad and MAD. For example, Bmad scales the strength of a magnet by a particle's energy. So
+tracking a particle in Bmad whose energy is very different from the reference energy is not a
+problem. When tracking in MAD using second order maps, however, the accuracy of the maps will
+be degraded for particles whose energy is far from the reference energy.
+
+Another diagnosis tool is to back translate the Bmad lattice to MAD. The resulting lattice can then
+be compared to the original lattice.

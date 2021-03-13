@@ -1,15 +1,15 @@
- 2020-07-27 14:20:39 
+ 2021-03-05 14:23:53 
  
-   1   Drift                 28   !Beginning
-   2   Sbend                 20   !Bmad_Com
-   3   Quadrupole            29   !Line
-   4   Group                 21   !Mad_Beam
-   5   Sextupole             26   !Parameter
-   6   Overlay               39   !Particle_Start
-   7   Custom                22   AB_multipole
-   8   Taylor                58   AC_Kicker
-   9   RFcavity              11   BeamBeam
-  10   ELseparator           60   Beam_Init
+   1   Drift                 20   !Bmad_Com
+   2   Sbend                 29   !Line
+   3   Quadrupole            21   !Mad_Beam
+   4   Group                 26   !Parameter
+   5   Sextupole             39   !Particle_Start
+   6   Overlay               22   AB_multipole
+   7   Custom                58   AC_Kicker
+   8   Taylor                11   BeamBeam
+   9   RFcavity              60   Beam_Init
+  10   ELseparator           28   Beginning_Ele
   11   BeamBeam              45   Capillary
   12   Wiggler               38   Converter
   13   Sol_Quad              61   Crab_Cavity
@@ -27,7 +27,7 @@
   25   Lcavity               41   Fork
   26   !Parameter            37   Girder
   27   Null_Ele               4   Group
-  28   !Beginning            33   Hkicker
+  28   Beginning_Ele         33   Hkicker
   29   !Line                 16   Hybrid
   30   Match                 32   Instrument
   31   Monitor               15   Kicker
@@ -49,53 +49,19 @@
   47   E_Gun                 44   Pipe
   48   EM_Field               3   Quadrupole
   49   Floor_Shift            9   RFcavity
-  50   Fiducial              18   Rbend
-  51   Undulator             35   Rcollimator
-  52   Diffraction_Plate     56   Sad_Mult
-  53   Photon_Init           54   Sample
-  54   Sample                 2   Sbend
-  55   Detector               5   Sextupole
-  56   Sad_Mult              13   Sol_Quad
-  57   Mask                  23   Solenoid
-  58   AC_Kicker              8   Taylor
-  59   Lens                  51   Undulator
-  60   Beam_Init             34   Vkicker
-  61   Crab_Cavity           12   Wiggler
- 
- !---------------------------------
- 28  !Beginning          
-         1  l                                         [private]
-         2  INHERIT_FROM_FORK                       
-        29  CMAT_11                                 
-        30  CMAT_12                                 
-        31  CMAT_21                                 
-        32  CMAT_22                                 
-        50  delta_ref_time                            [private]
-        51  P0C_START                               
-        52  E_TOT_START                             
-        53  P0C                                     
-        54  E_TOT                                   
-        64  ref_time_start                            [private]
-        75  check_sum                                 [private]
-        82  ETA_X                                   
-        83  ETA_Y                                   
-        84  ETAP_X                                  
-        85  ETAP_Y                                  
-        86  PHI_A                                   
-        87  ETA_Z                                   
-        92  S                                       
-        93  REF_TIME                                
-        99  ALPHA_A                                 
-       100  ALPHA_B                                 
-       102  X_POSITION                              
-       103  Y_POSITION                              
-       104  Z_POSITION                              
-       105  THETA_POSITION                          
-       106  PHI_POSITION                            
-       107  PSI_POSITION                            
-       108  BETA_A                                  
-       109  BETA_B                                  
-       116  PHI_B                                   
+  50   Fiducial              62   Ramper
+  51   Undulator             18   Rbend
+  52   Diffraction_Plate     35   Rcollimator
+  53   Photon_Init           56   Sad_Mult
+  54   Sample                54   Sample
+  55   Detector               2   Sbend
+  56   Sad_Mult               5   Sextupole
+  57   Mask                  13   Sol_Quad
+  58   AC_Kicker             23   Solenoid
+  59   Lens                   8   Taylor
+  60   Beam_Init             51   Undulator
+  61   Crab_Cavity           34   Vkicker
+  62   Ramper                12   Wiggler
  
  !---------------------------------
  20  !Bmad_Com           
@@ -125,7 +91,6 @@
         43  HIGH_ENERGY_SPACE_CHARGE_ON             
         46  LIVE_BRANCH                             
         47  GEOMETRY                                
-        48  PARTICLE                                
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
@@ -152,13 +117,14 @@
        108  BETA_A                                  
        109  BETA_B                                  
        116  PHI_B                                   
+       132  PARTICLE                                
  
  !---------------------------------
  21  !Mad_Beam           
          2  N_PART                                  
-        48  PARTICLE                                
         53  PC                                      
         54  ENERGY                                  
+       132  PARTICLE                                
  
  !---------------------------------
  26  !Parameter          
@@ -171,7 +137,6 @@
         45  LATTICE_TYPE                            
         46  LIVE_BRANCH                             
         47  GEOMETRY                                
-        48  PARTICLE                                
         53  P0C                                     
         54  E_TOT                                   
         55  NO_END_MARKER                           
@@ -182,6 +147,7 @@
        100  PTC_EXACT_MISALIGN                      
        102  PTC_EXACT_MODEL                         
        109  RAN_SEED                                
+       132  PARTICLE                                
  
  !---------------------------------
  39  !Particle_Start     
@@ -498,6 +464,41 @@
        131  S_Position                                [private]
  
  !---------------------------------
+ 28  Beginning_Ele       
+         1  l                                         [private]
+         2  INHERIT_FROM_FORK                       
+        29  CMAT_11                                 
+        30  CMAT_12                                 
+        31  CMAT_21                                 
+        32  CMAT_22                                 
+        50  delta_ref_time                            [private]
+        51  P0C_START                               
+        52  E_TOT_START                             
+        53  P0C                                     
+        54  E_TOT                                   
+        64  ref_time_start                            [private]
+        75  check_sum                                 [private]
+        82  ETA_X                                   
+        83  ETA_Y                                   
+        84  ETAP_X                                  
+        85  ETAP_Y                                  
+        86  PHI_A                                   
+        87  ETA_Z                                   
+        92  S                                       
+        93  REF_TIME                                
+        99  ALPHA_A                                 
+       100  ALPHA_B                                 
+       102  X_POSITION                              
+       103  Y_POSITION                              
+       104  Z_POSITION                              
+       105  THETA_POSITION                          
+       106  PHI_POSITION                            
+       107  PSI_POSITION                            
+       108  BETA_A                                  
+       109  BETA_B                                  
+       116  PHI_B                                   
+ 
+ !---------------------------------
  45  Capillary           
          1  L                                       
          2  TILT                                    
@@ -609,6 +610,7 @@
          2  TILT                                    
          3  RF_FREQUENCY                            
          4  HARMON                                  
+         5  RF_WAVELENGTH                           
          6  GRADIENT                                
          8  VOLTAGE                                 
         18  AUTOSCALE_AMPLITUDE                       [private]
@@ -622,6 +624,10 @@
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
+        39  HKICK                                   
+        40  VKICK                                   
+        41  BL_HKICK                                
+        42  BL_VKICK                                
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -669,6 +675,7 @@
        107  WALL                                    
        108  APERTURE_AT                             
        110  FIELD_OVERLAPS                          
+       111  FIELD_MASTER                            
        112  DESCRIP                                 
        114  SR_WAKE                                 
        115  LR_WAKE                                 
@@ -871,6 +878,10 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
+        27  X_DISPERSION_ERR                        
+        28  Y_DISPERSION_ERR                        
+        29  X_DISPERSION_CALIB                      
+        30  Y_DISPERSION_CALIB                      
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1488,7 +1499,6 @@
          6  NEW_BRANCH                              
          7  IX_TO_BRANCH                            
          8  IX_TO_ELEMENT                           
-        27  REF_SPECIES                             
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -1522,6 +1532,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       132  REF_SPECIES                             
  
  !---------------------------------
  37  Girder              
@@ -1712,6 +1723,10 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
+        27  X_DISPERSION_ERR                        
+        28  Y_DISPERSION_ERR                        
+        29  X_DISPERSION_CALIB                      
+        30  Y_DISPERSION_CALIB                      
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1879,6 +1894,7 @@
          1  L                                       
          2  TILT                                    
          3  RF_FREQUENCY                            
+         5  RF_WAVELENGTH                           
          6  GRADIENT                                
          7  GRADIENT_ERR                            
          8  VOLTAGE                                 
@@ -1896,7 +1912,7 @@
         26  PHI0_MULTIPASS                          
         27  PHI0_AUTOSCALE                          
         29  FIELD_AUTOSCALE                         
-        31  L_HARD_EDGE                             
+        31  L_ACTIVE                                
         33  N_CELL                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -2048,7 +2064,10 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
-        27  REF_SPECIES                             
+        27  X_DISPERSION_ERR                        
+        28  Y_DISPERSION_ERR                        
+        29  X_DISPERSION_CALIB                      
+        30  Y_DISPERSION_CALIB                      
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2100,6 +2119,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       132  REF_SPECIES                             
  
  !---------------------------------
  57  Mask                
@@ -2312,6 +2332,10 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
+        27  X_DISPERSION_ERR                        
+        28  Y_DISPERSION_ERR                        
+        29  X_DISPERSION_CALIB                      
+        30  Y_DISPERSION_CALIB                      
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2607,6 +2631,7 @@
         81  X_KNOT                                  
         82  ALIAS                                   
         89  VAR                                     
+       105  IS_ON                                   
        112  DESCRIP                                 
        117  TYPE                                    
  
@@ -2667,7 +2692,6 @@
          6  NEW_BRANCH                              
          7  IX_TO_BRANCH                            
          8  IX_TO_ELEMENT                           
-        27  REF_SPECIES                             
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -2701,6 +2725,7 @@
        121  OFFSET                                  
        122  REFERENCE                               
        127  CREATE_JUMBO_SLAVE                      
+       132  REF_SPECIES                             
  
  !---------------------------------
  53  Photon_Init         
@@ -2790,6 +2815,10 @@
         24  TILT_CALIB                              
         25  DE_ETA_MEAS                             
         26  N_SAMPLE                                
+        27  X_DISPERSION_ERR                        
+        28  Y_DISPERSION_ERR                        
+        29  X_DISPERSION_CALIB                      
+        30  Y_DISPERSION_CALIB                      
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2960,6 +2989,7 @@
          2  TILT                                    
          3  RF_FREQUENCY                            
          4  HARMON                                  
+         5  RF_WAVELENGTH                           
          6  GRADIENT                                
          7  gradient_err                              [private]
          8  VOLTAGE                                 
@@ -2977,7 +3007,7 @@
         27  PHI0_AUTOSCALE                          
         28  phi0_max                                  [private]
         29  FIELD_AUTOSCALE                         
-        31  L_HARD_EDGE                             
+        31  L_ACTIVE                                
         33  N_CELL                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -3059,6 +3089,16 @@
        131  S_Position                                [private]
  
  !---------------------------------
+ 62  Ramper              
+        75  check_sum                                 [private]
+        81  X_KNOT                                  
+        82  ALIAS                                   
+        89  VAR                                     
+       105  IS_ON                                   
+       112  DESCRIP                                 
+       117  TYPE                                    
+ 
+ !---------------------------------
  18  Rbend               
          1  L                                       
          2  ROLL                                    
@@ -3066,7 +3106,7 @@
          4  K1                                      
          5  K2                                      
          6  G                                       
-         7  G_ERR                                   
+         7  DG                                      
          8  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
@@ -3096,7 +3136,7 @@
         41  BL_HKICK                                
         42  BL_VKICK                                
         43  B_FIELD                                 
-        44  B_FIELD_ERR                             
+        44  DB_FIELD                                
         45  B1_GRADIENT                             
         46  B2_GRADIENT                             
         47  PTC_CANONICAL_COORDS                    
@@ -3401,7 +3441,7 @@
          4  K1                                      
          5  K2                                      
          6  G                                       
-         7  G_ERR                                   
+         7  DG                                      
          8  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
@@ -3431,7 +3471,7 @@
         41  BL_HKICK                                
         42  BL_VKICK                                
         43  B_FIELD                                 
-        44  B_FIELD_ERR                             
+        44  DB_FIELD                                
         45  B1_GRADIENT                             
         46  B2_GRADIENT                             
         47  PTC_CANONICAL_COORDS                    
@@ -3854,10 +3894,12 @@
  51  Undulator           
          1  L                                       
          2  TILT                                    
-         4  K1_PSEUDO                               
+         4  KX                                      
          5  B_MAX                                   
          6  G_MAX                                   
          7  OSC_AMPLITUDE                           
+         8  K1X                                     
+         9  K1Y                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -4036,10 +4078,12 @@
  12  Wiggler             
          1  L                                       
          2  TILT                                    
-         4  K1_PSEUDO                               
+         4  KX                                      
          5  B_MAX                                   
          6  G_MAX                                   
          7  OSC_AMPLITUDE                           
+         8  K1X                                     
+         9  K1Y                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
@@ -4136,11 +4180,11 @@
      2    53
      3    26
      4    19
-     5    23
+     5    26
      6    24
      7    20
-     8    23
-     9     8
+     8    25
+     9    10
     10    29
     11    32
     12     6
@@ -4158,10 +4202,10 @@
     24    20
     25    16
     26    22
-    27    15
-    28     7
-    29    19
-    30    14
+    27    17
+    28    12
+    29    24
+    30    19
     31    13
     32     9
     33     6
@@ -4170,16 +4214,16 @@
     36    48
     37    48
     38    47
-    39    24
-    40    26
-    41    25
-    42    22
+    39    25
+    40    27
+    41    26
+    42    23
     43     8
     44     6
     45     8
     46     8
     47    20
-    48     7
+    48     4
     49     6
     50    53
     51    53
@@ -4206,21 +4250,21 @@
     72    50
     73    50
     74    50
-    75    57
+    75    58
     76     0
     77     0
     78     0
     79     0
     80     0
-    81    11
-    82    58
+    81    12
+    82    59
     83    33
     84    37
     85    37
     86    26
     87    54
     88    36
-    89    31
+    89    32
     90    29
     91    52
     92    53
@@ -4236,19 +4280,19 @@
    102     3
    103    33
    104     3
-   105    42
+   105    44
    106    31
    107    48
    108    52
    109     6
    110    28
-   111    20
-   112    55
+   111    21
+   112    56
    113    14
    114    27
    115    28
    116     5
-   117    55
+   117    56
    118    52
    119    52
    120    52
@@ -4263,7 +4307,7 @@
    129    38
    130    38
    131    38
-   132     0
+   132     6
    133     0
    134     0
    135     0
@@ -4429,7 +4473,7 @@ Index: 1
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -4488,7 +4532,7 @@ Index: 2
     Patch               
     Lcavity             
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -4576,6 +4620,7 @@ Index: 5
     Drift               
     Sbend               
     Sextupole           
+    RFcavity            
     Wiggler             
     Sol_Quad            
     Marker              
@@ -4583,6 +4628,7 @@ Index: 5
     Rbend               
     Solenoid            
     Patch               
+    Lcavity             
     Match               
     Monitor             
     Instrument          
@@ -4596,6 +4642,7 @@ Index: 5
     Detector            
     Sad_Mult            
     Lens                
+    Crab_Cavity         
  
  !---------------------------------
 Index: 6
@@ -4655,6 +4702,7 @@ Index: 8
     RFcavity            
     ELseparator         
     BeamBeam            
+    Wiggler             
     Marker              
     Hybrid              
     Rbend               
@@ -4668,6 +4716,7 @@ Index: 8
     Crystal             
     Pipe                
     E_Gun               
+    Undulator           
     Detector            
     Sad_Mult            
     AC_Kicker           
@@ -4677,11 +4726,13 @@ Index: 8
 Index: 9
     RFcavity            
     ELseparator         
+    Wiggler             
     Lcavity             
     Match               
     !Particle_Start     
     Crystal             
     E_Gun               
+    Undulator           
     Sad_Mult            
  
  !---------------------------------
@@ -5034,66 +5085,83 @@ Index: 27
     Marker              
     Lcavity             
     Match               
+    Monitor             
+    Instrument          
     Rcollimator         
     Ecollimator         
     Girder              
-    Photon_Fork         
-    Fork                
     Crystal             
+    Pipe                
     E_Gun               
     EM_Field            
     Fiducial            
     Photon_Init         
+    Detector            
     Crab_Cavity         
  
  !---------------------------------
 Index: 28
     RFcavity            
+    Marker              
     Match               
+    Monitor             
+    Instrument          
     Rcollimator         
     Ecollimator         
     Girder              
+    Pipe                
     Fiducial            
     Photon_Init         
+    Detector            
  
  !---------------------------------
 Index: 29
     Sbend               
     RFcavity            
     BeamBeam            
+    Marker              
     Rbend               
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
+    Monitor             
+    Instrument          
     Rcollimator         
     Ecollimator         
     Girder              
     Crystal             
+    Pipe                
     E_Gun               
     EM_Field            
     Floor_Shift         
     Fiducial            
     Photon_Init         
+    Detector            
     Crab_Cavity         
  
  !---------------------------------
 Index: 30
     Sbend               
     BeamBeam            
+    Marker              
     Rbend               
     Patch               
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
+    Monitor             
+    Instrument          
     Rcollimator         
     Ecollimator         
     Girder              
     Crystal             
+    Pipe                
     Floor_Shift         
     Fiducial            
     Photon_Init         
+    Detector            
  
  !---------------------------------
 Index: 31
@@ -5101,7 +5169,7 @@ Index: 31
     BeamBeam            
     Solenoid            
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Rcollimator         
@@ -5115,7 +5183,7 @@ Index: 31
 Index: 32
     BeamBeam            
     Patch               
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Girder              
@@ -5408,6 +5476,7 @@ Index: 39
     Sad_Mult            
     AC_Kicker           
     Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 40
@@ -5437,6 +5506,7 @@ Index: 40
     Sad_Mult            
     AC_Kicker           
     Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 41
@@ -5465,6 +5535,7 @@ Index: 41
     Sad_Mult            
     AC_Kicker           
     Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 42
@@ -5490,6 +5561,7 @@ Index: 42
     Sad_Mult            
     AC_Kicker           
     Beam_Init           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 43
@@ -5561,10 +5633,7 @@ Index: 48
     Sbend               
     Octupole            
     Rbend               
-    !Mad_Beam           
     Patch               
-    !Parameter          
-    !Line               
  
  !---------------------------------
 Index: 49
@@ -5598,7 +5667,7 @@ Index: 50
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -5654,7 +5723,7 @@ Index: 51
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -5710,7 +5779,7 @@ Index: 52
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -5768,7 +5837,7 @@ Index: 53
     Patch               
     Lcavity             
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -5826,7 +5895,7 @@ Index: 54
     Patch               
     Lcavity             
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -6209,7 +6278,7 @@ Index: 64
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -6671,7 +6740,7 @@ Index: 75
     Patch               
     Lcavity             
     Null_Ele            
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -6704,6 +6773,7 @@ Index: 75
     Lens                
     Beam_Init           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 76
@@ -6733,6 +6803,7 @@ Index: 81
     Diffraction_Plate   
     Sample              
     Detector            
+    Ramper              
  
  !---------------------------------
 Index: 82
@@ -6761,7 +6832,7 @@ Index: 82
     Patch               
     Lcavity             
     Null_Ele            
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -6794,6 +6865,7 @@ Index: 82
     Lens                
     Beam_Init           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 83
@@ -6814,7 +6886,7 @@ Index: 83
     Solenoid            
     Lcavity             
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Monitor             
     Instrument          
@@ -6849,7 +6921,7 @@ Index: 84
     !Bmad_Com           
     Solenoid            
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Monitor             
     Instrument          
@@ -6889,7 +6961,7 @@ Index: 85
     !Bmad_Com           
     Solenoid            
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Monitor             
     Instrument          
@@ -6927,7 +6999,7 @@ Index: 86
     AB_multipole        
     Solenoid            
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Hkicker             
     Vkicker             
@@ -6965,7 +7037,7 @@ Index: 87
     Patch               
     Lcavity             
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -7069,6 +7141,7 @@ Index: 89
     AC_Kicker           
     Beam_Init           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 90
@@ -7180,7 +7253,7 @@ Index: 92
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -7236,7 +7309,7 @@ Index: 93
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -7539,7 +7612,7 @@ Index: 98
  !---------------------------------
 Index: 99
     !Bmad_Com           
-    !Beginning          
+    Beginning_Ele       
     !Line               
  
  !---------------------------------
@@ -7559,7 +7632,7 @@ Index: 100
     Solenoid            
     Lcavity             
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Monitor             
     Instrument          
@@ -7585,7 +7658,7 @@ Index: 101
  !---------------------------------
 Index: 102
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
  
  !---------------------------------
@@ -7606,7 +7679,7 @@ Index: 103
     Rbend               
     Solenoid            
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Monitor             
     Instrument          
@@ -7626,7 +7699,7 @@ Index: 103
  
  !---------------------------------
 Index: 104
-    !Beginning          
+    Beginning_Ele       
     !Line               
     AC_Kicker           
  
@@ -7635,6 +7708,7 @@ Index: 105
     Sbend               
     Quadrupole          
     Sextupole           
+    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -7650,7 +7724,7 @@ Index: 105
     AB_multipole        
     Solenoid            
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -7674,6 +7748,7 @@ Index: 105
     AC_Kicker           
     Beam_Init           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 106
@@ -7693,7 +7768,7 @@ Index: 106
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Monitor             
     Instrument          
@@ -7731,7 +7806,7 @@ Index: 107
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Monitor             
     Instrument          
@@ -7783,7 +7858,7 @@ Index: 108
     Solenoid            
     Patch               
     Lcavity             
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -7818,7 +7893,7 @@ Index: 108
  !---------------------------------
 Index: 109
     !Parameter          
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Girder              
     Floor_Shift         
@@ -7877,6 +7952,7 @@ Index: 111
     Fork                
     Undulator           
     AC_Kicker           
+    Crab_Cavity         
  
  !---------------------------------
 Index: 112
@@ -7935,6 +8011,7 @@ Index: 112
     Lens                
     Beam_Init           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 113
@@ -8016,7 +8093,7 @@ Index: 115
  
  !---------------------------------
 Index: 116
-    !Beginning          
+    Beginning_Ele       
     !Line               
     Crystal             
     Multilayer_Mirror   
@@ -8079,6 +8156,7 @@ Index: 117
     Lens                
     Beam_Init           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 118
@@ -8662,6 +8740,12 @@ Index: 131
  
  !---------------------------------
 Index: 132
+    Marker              
+    !Mad_Beam           
+    !Parameter          
+    !Line               
+    Photon_Fork         
+    Fork                
  
  !---------------------------------
 Index: 133
