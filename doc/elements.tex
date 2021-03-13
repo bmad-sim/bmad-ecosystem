@@ -3425,11 +3425,12 @@ taken if that element attribute is changed. This is discussed in \sref{s:arith} 
   \centering
   \includegraphics[width=5in]{patch.pdf}
   \caption[Patch Element.]
-{A) A \vn{patch} element can align its exit face arbitrarily with respect to its entrance face. B)
-The reference length of a \vn{patch} element, if \vn{ref_coords} is set to the default value of
+{A) A \vn{patch} element can align its exit face arbitrarily with respect to its entrance face. The
+red arrow illustrates a possible particle trajectory form entrance face to exit face. B) The
+reference length of a \vn{patch} element, if \vn{ref_coords} is set to the default value of
 \vn{exit_end}, is the longitudinal distance from the entrance origin to the exit origin using the
-reference coordinates at the exit end as shown. If \vn{ref_coords} is set to \vn{entrance_end}, 
-the length of the patch will be equal to the \vn{z_offset$}.}
+reference coordinates at the exit end as shown. If \vn{ref_coords} is set to \vn{entrance_end}, the
+length of the patch will be equal to the \vn{z_offset}.}
   \label{f:patch}
 \end{figure}
 
@@ -3494,7 +3495,7 @@ determined by the setting of the \vn{flexible} attribute.  With the \vn{flexible
 \vn{False}, the default, The exit face of the \vn{patch} will be determined from the offset, tilt
 and pitch attributes as described in \sref{s:patch.coords}. This type of \vn{patch} is called
 ``rigid'' or ``inflexible'' since the geometry of the \vn{patch} is solely determined by the
-\vn{patch}'s attributes and is independent of everything else.  Example:
+\vn{patch}'s attributes as set in the lattice file and is independent of everything else.  Example:
 \begin{example}
   pt: patch, z_offset = 3.2   ! Equivalent to a drift
 \end{example}
@@ -3553,6 +3554,42 @@ transformation. This matters when the speed of the reference particle is less th
 reason, and due to complications involving PTC, it is recommended to use two patches in a row when
 both the orbit and energy are to be patched.
 
+Unfortunately, there is no intuative way to define the ``\vn{length}'' \vn{L} of a patch. This is
+important since the transit time of the reference particle is the length divided by the reference
+velocity. And the reference transit time will affect how the phase space $z$ coordinate changes
+through the patch via \Eq{zbctt}. To provide flexibility, a \vn{patch} has a \vn{ref_coords}
+parameter which can be set which will affect how the length is calculated. Possible settings of
+\vn{ref_coords} are:
+\begin{example}
+  entrance_end  ! Results in L = z_offset
+  no_end        ! Results in L = 0
+  exit_end      ! Default
+\end{example}
+The default setting of \vn{ref_coords} is \vn{exit_end} and with this, the length is calculated as
+the perpendicular distance between the origin of the patch's entrance coordinate system and the exit
+face of the patch using as shown in \fig{f:patch}. If \vn{ref_coords} is set to \vn{entrance_end},
+the length is calulated as the perpendicular distance between the entrance face and the origin of
+the exit coordinate system. In this case, the length has the same value as \vn{z_offset}. Finally,
+if \vn{ref_coords} is set to \vn{no_end}, the length is taken to be zero. Example:
+\begin{example}
+  p1: patch, x_offset = 1, x_pitch = 0.4   ! L = 0.289418
+  p2: p1, ref_coords = entrance_end        ! L = 0
+\end{example}
+Here \vn{p1} has \vn{ref_coords} set to \vn{exit_end} (the default). \vn{p2} inherits the parameters
+of \vn{p1} and sets \vn{ref_coords} to \vn{entrance_end}.
+
+It is important to keep in mind that if there are multiple patches in a row, while two different
+configurations may be the same in a geometrical sense the total length may not be the same. For
+example:
+\begin{example}
+  pA: patch, x_offset = 1    ! L = 0
+  pB: patch, x_pitch = 0.4   ! L = 0
+  sum: line = (pA, pB)
+\end{example}
+The configuration of \vn{pA} followed by \vn{pB} is equivalent geometrically to the \vn{p1} patch
+above but the total length of the \vn{(pA, pB)} line is zero which is different from the length of
+\vn{p1}.
+
 The \vn{t_offset} attribute offsets the reference time so that the reference time at the exit end of
 the patch \vn{t_ref(exit)} is related to the reference time at the beginning of the patch
 \vn{t_ref(entrance)} via
@@ -3564,11 +3601,11 @@ where \vn{dt_travel_ref} is the time for the reference particle to travel throug
 \begin{example}
   dt_travel_ref = L / beta_ref
 \end{example}
-Where \vn{L} is the length of the \vn{patch} as shown in \fig{f:patch} and \vn{beta_ref} is the
-reference velocity/c at the exit end of the element. That is, the reference energy offset is applied
-{\em before} the reference particle is tracked through the patch. Since this point can be confusing,
-it is recommended that a \vn{patch} element be split into two consecutive patches if the \vn{patch}
-has finite \vn{l} and \vn{E_tot_offset} values.
+Where \vn{L} is the length of the \vn{patch} and \vn{beta_ref} is the reference velocity/c at the
+exit end of the element. That is, the reference energy offset is applied {\em before} the reference
+particle is tracked through the patch. Since this point can be confusing, it is recommended that a
+\vn{patch} element be split into two consecutive patches if the \vn{patch} has finite \vn{l} and
+\vn{E_tot_offset} values.
 
 While a finite \vn{t_offset} will affect the reference time at the end of a patch, a finite
 \vn{t_offset} will {\em not} affect the time that is calculated for a particle to reach the end of
@@ -4658,7 +4695,7 @@ Attributes specific to wiggler and undulator elements are:
   n_pole     = <Real>  ! The number of poles. DEPRECATED. USE N_PERIOD INSTEAD.
   polarity   = <Real>  ! For scaling the field.
   kx         = <Real>  ! Planar wiggler horizontal wave number.
-  k1x                  ! Planar wiggler hoizontal defocusing strength. Dependent attribute (\sref{s:depend}).
+  k1x                  ! Planar wiggler horizontal defocusing strength. Dependent attribute (\sref{s:depend}).
   k1y                  ! Planar wiggler vertical focusing strength. Dependent attribute (\sref{s:depend}).
   g_max                ! Maximum bending strength. Dependent attribute.
   osc_amplitude        ! Amplitude of the particle oscillations. Dependent attribute.

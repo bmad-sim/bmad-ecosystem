@@ -1205,12 +1205,7 @@ do i = 1, n_max
   enddo
 enddo
 
-! Apply ramper elements?
-
-call apply_all_rampers(lat, err)
-if (err) call parser_error ('ERROR APPLYING RAMPERS')
-
-! Do we need to expand the lattice and call bmad_parser2?
+! Do we need to call bmad_parser2?
 
 if (bp_com%detected_expand_lattice_cmd) then
   exit_on_error = global_com%exit_on_error
@@ -1220,6 +1215,12 @@ if (bp_com%detected_expand_lattice_cmd) then
   call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false., in_lat = in_lat)
   bp_com%bmad_parser_calling = .false.
   global_com%exit_on_error = exit_on_error
+
+else
+  ! Apply ramper elements?
+  call apply_all_rampers(lat, err)
+  if (err) call parser_error ('ERROR APPLYING RAMPERS')
+  call lattice_bookkeeper (lat)
 endif
 
 !
