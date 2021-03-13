@@ -511,7 +511,7 @@ if (ix_c /= 0) then
   if (nr > -1) then
     allocate(ele%control%ramp(nr))
     do i = 1, nr
-      call read_this_control_struct(ele%control%ramp(nr), err); if (err) return
+      call read_this_control_struct(ele%control%ramp(i), err); if (err) return
     enddo
   endif
 endif

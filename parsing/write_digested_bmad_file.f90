@@ -348,7 +348,7 @@ if (ix_c == 1) then
     write (d_unit) ele%control%var(i)
   enddo
   do i = 1, nr
-    call write_this_control_struct(ele%control%ramp(nr))
+    call write_this_control_struct(ele%control%ramp(i))
   enddo
 endif
 
