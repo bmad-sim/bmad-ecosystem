@@ -36,7 +36,7 @@ type (ele_struct), target :: ele
 type (coord_struct) orbit, orb_in
 
 real(rp), pointer :: v(:)
-real(rp) p_vec(3), r_vec(3), rel_p, ww(3,3), beta0, ds0, s_vec(3), r_s
+real(rp) p_vec(3), r_vec(3), rel_p, ww(3,3), beta0, ds0, length, s_vec(3), r_s
 real(rp) pz_out, mc2, pz_in, beta_ref, dps_dpx, dps_dpy, dps_dpz, dp_ratio
 real(rp), optional :: mat6(6,6), s_ent, ds_ref
 
@@ -115,6 +115,12 @@ orbit%vec(3) = r_vec(2)
 if (present(s_ent))  s_ent = r_vec(3)
 if (present(ds_ref)) ds_ref = ds0
 
+select case (nint(v(ref_coords$)))
+case (entrance_end$); length = v(z_offset$)
+case (no_end$);       length = 0
+case (exit_end$);     length = ds0
+end select
+
 ! Drift to exit face.
 ! Notice that the drift distance is -r_vec(3). 
 
@@ -128,9 +134,9 @@ if (logic_option(.true., drift_to_exit)) then
   beta0 = v(p0c$) / v(e_tot$)
   orbit%vec(1) = orbit%vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
   orbit%vec(3) = orbit%vec(3) - r_vec(3) * p_vec(2) / p_vec(3)
-  orbit%vec(5) = orbit%vec(5) + r_vec(3) * rel_p / p_vec(3) + ds0 * orbit%beta / beta0
+  orbit%vec(5) = orbit%vec(5) + r_vec(3) * rel_p / p_vec(3) + length * orbit%beta / beta0
   orbit%t = orbit%t - r_vec(3) * rel_p / (p_vec(3) * orbit%beta * c_light)
-  orbit%s = orbit%s + ds0
+  orbit%s = orbit%s + length
 endif
 
 ! Matrix
@@ -189,7 +195,7 @@ if (logic_option(.false., make_matrix)) then
   mat6(5,4) = -r_s * rel_p * dps_dpy / pz_out**2
   mat6(5,6) = v(t_offset$) * c_light * mc2**2 * orb_in%beta**3 / (v(p0c_start$)**2 * rel_p**3) + &
               r_s / pz_out - r_s * rel_p * dps_dpz / pz_out**2 + &
-              ds0 * mc2**2 * orbit%beta**3 / (rel_p**3 * v(p0c_start$)**2 * beta_ref)
+              length * mc2**2 * orbit%beta**3 / (rel_p**3 * v(p0c_start$)**2 * beta_ref)
 
   ! Energy offset
 

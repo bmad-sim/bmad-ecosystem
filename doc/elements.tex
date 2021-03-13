@@ -3426,10 +3426,10 @@ taken if that element attribute is changed. This is discussed in \sref{s:arith} 
   \includegraphics[width=5in]{patch.pdf}
   \caption[Patch Element.]
 {A) A \vn{patch} element can align its exit face arbitrarily with respect to its entrance face. B)
-The reference length of a \vn{patch} element is the longitudinal distance from the entrance origin
-to the exit origin using the reference coordinates at the exit end. Notice that while the length of
-the patch is defined with respect to the exit coordinates, the offsets that define the position of
-the exit end coordinates are defined with respect to the entrance coordinates.  }
+The reference length of a \vn{patch} element, if \vn{ref_coords} is set to the default value of
+\vn{exit_end}, is the longitudinal distance from the entrance origin to the exit origin using the
+reference coordinates at the exit end as shown. If \vn{ref_coords} is set to \vn{entrance_end}, 
+the length of the patch will be equal to the \vn{z_offset$}.}
   \label{f:patch}
 \end{figure}
 
@@ -3470,8 +3470,9 @@ Attributes specific to a \vn{patch} elements are:
   tilt            = <Real>    ! Exit face orientation from Entrance.
   E_tot_offset    = <Real>    ! Reference energy offset (eV).
   E_tot_set       = <Real>    ! Reference energy at exit end (eV).
-  p0c_set         = <Real>    ! Reference momentum at exit end (eV).
   flexible        = <Logic>   ! Default: False.
+  p0c_set         = <Real>    ! Reference momentum at exit end (eV).
+  ref_coords      = <Switch>  ! Coordinate system defining the length.
   l               = <Real>    ! Reference length. Dependent attribute (\sref{s:depend}). 
 \end{example}
 \index{x_offset}
@@ -3942,11 +3943,6 @@ expressions are used instead of knot points.
 \vn{Ramper} elements can control the variables of other controller element but in this case it is
 not permitted to use wild card characters. That is, in the above example, ``\vn{*}'' will not match
 to any controller elements.
-
-\etcetc.
-When a lattice is read in, no\vn{ramper} slave parameters are not 
-elements are ignored . To apply the ramper elements during\
-lattice parsing, the \vn{apply_rampers} command (\sref{s:apply.ramp}) can be used.
 
 Unlike \vn{group} or \vn{overlay} elements, it is not permitted for different \vn{ramper} elements
 to control the same parameter of a given slave element.

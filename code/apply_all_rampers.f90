@@ -28,6 +28,7 @@ logical err_flag
 !
 
 call lat_ele_locator('RAMPER::*', lat, rampers, n_ramp)
+if (n_ramp == 0) return
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
