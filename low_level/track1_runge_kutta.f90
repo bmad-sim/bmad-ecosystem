@@ -36,7 +36,7 @@ type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 
 real(rp), optional :: mat6(6,6)
-real(rp) rel_tol, abs_tol, beta_ref, s0_body, s1_body, ds_ref, dref_time
+real(rp) rel_tol, abs_tol, beta_ref, s0_body, s1_body, ds_ref, dref_time, length
 
 logical err_flag, set_spin
 logical, optional :: make_matrix
@@ -72,13 +72,15 @@ if (ele%key == patch$) then
   beta_ref = ele%value(p0c$) / ele%value(e_tot$)
   if (ele%orientation*end_orb%direction == 1) then
     end_orb%vec(5) = end_orb%vec(5) + (ds_ref + s0_body) * end_orb%beta / beta_ref 
-    s0_body = ele%value(l$) + s0_body
-    s1_body = ele%value(l$)
+    length = patch_length(ele, exit_end$)
+    s0_body = length + s0_body
+    s1_body = length
   else
     end_orb%vec(5) = end_orb%vec(5) + (ds_ref - s0_body) * end_orb%beta / beta_ref 
     s0_body = s0_body
     s1_body = 0
   endif
+
 else
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., &
                                       set_spin = set_spin, mat6 = mat6, make_matrix = make_matrix)

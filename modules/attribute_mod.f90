@@ -1313,7 +1313,7 @@ call init_attribute_name1 (patch$, flexible$,                       'FLEXIBLE')
 call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (patch$, upstream_coord_dir$,             'UPSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, downstream_coord_dir$,           'DOWNSTREAM_ELE_DIR', dependent$)
-call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
+call init_attribute_name1 (patch$, ref_coords$,                     'REF_COORDS')
 
 call init_attribute_name1 (crab_cavity$, voltage$,                  'VOLTAGE')
 call init_attribute_name1 (crab_cavity$, phi0$,                     'PHI0')
@@ -1788,7 +1788,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
-      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
+      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
       'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE')
@@ -2306,15 +2306,13 @@ case ('PTC_INTEGRATION_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_integration_type_name, lbound(ptc_integration_type_name, 1))
   if (present(is_default)) is_default = (ix_attrib_val == matrix_kick$)
 
-case ('REF_COORDINATES')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name(1:2), 1)
+case ('REF_COORDS')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name(1:4), 1, [both_ends$])
   if (present(is_default)) is_default = (ix_attrib_val == exit_end$)
 
 case ('REF_ORBIT_FOLLOWS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, ref_orbit_follows_name, lbound(ref_orbit_follows_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib_val == bragg_diffracted$)
-  endif
+  if (present(is_default)) is_default = (ix_attrib_val == bragg_diffracted$)
 
 case ('SECTION^TYPE')    ! This is for the Tao "python" command
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, wall3d_section_type_name, lbound(wall3d_section_type_name, 1))  
@@ -2360,9 +2358,10 @@ end select
 !---------------------------------------
 contains
 
-subroutine get_this_attrib_name (val_name, ix_attrib_val, name_array, min_arr)
+subroutine get_this_attrib_name (val_name, ix_attrib_val, name_array, min_arr, exceptions)
 
-integer ix_attrib_val, min_arr, i
+integer ix_attrib_val, min_arr, i, j, n
+integer, optional :: exceptions(:)
 character(*) val_name
 character(*) name_array(min_arr:)
 
@@ -2372,12 +2371,23 @@ if (ix_attrib_val < lbound(name_array, 1) .or. ix_attrib_val > ubound(name_array
   val_name = null_name$
 else
   val_name = name_array(ix_attrib_val)
+  if (present(exceptions)) then
+    if (any (ix_attrib_val == exceptions)) val_name = null_name$
+  endif
 endif
 
+n = 0
+if (present(exceptions)) n = size(exceptions)
+
 if (present(name_list)) then
-  allocate (name_list(lbound(name_array, 1):ubound(name_array, 1)))
+  allocate (name_list(lbound(name_array,1):ubound(name_array,1)-n))
+  j = lbound(name_array, 1) - 1
   do i = lbound(name_array, 1), ubound(name_array, 1)
-    name_list(i) = name_array(i)
+    if (present(exceptions)) then
+      if (any (i == exceptions)) cycle
+    endif
+    j = j + 1
+    name_list(j) = name_array(i)
   enddo
 endif
 
