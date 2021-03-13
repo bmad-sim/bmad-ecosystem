@@ -34,6 +34,7 @@ type (taylor_field_struct), pointer :: t_field
 type (ele_attribute_struct) info
 
 real(rp) s1, s2, ds, ds_small, l_lord, g(3)
+real(rp), pointer :: array(:)
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2, ib, ie
 integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is, tm, ix_match, dir1, dir2
@@ -1053,7 +1054,18 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
     ! Check knots
 
     if (associated(ele%control)) then
-      if (ele%control%type == spline$) then
+      if (allocated(ele%control%x_knot)) then
+        array => ele%control%x_knot
+        do i = 2, size(array)
+          if (array(i-1) >= array(i)) then
+            call out_io (s_fatal$, r_name, &
+                    'CONTROLLER USING KNOT POINTS: ' // ele%name, &
+                    'HAS X_KNOT VALUES THAT ARE NOT STRICKLY ASCENDING: ' // real_str(array(i-1), 12) // &
+                                                                                 ', ' // real_str(array(i), 12))
+            err_flag = .true.
+          endif
+        enddo
+
         if (ele%key == ramper$) then
           do i = 1, size(ele%control%ramp)
             if (size(ele%control%x_knot) /= size(ele%control%ramp(i)%y_knot)) then
@@ -1074,6 +1086,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
             endif
           enddo
         endif
+
       endif
     endif
 
@@ -1372,6 +1385,6 @@ enddo branch_loop
 
 !
 
-if (err_flag .and. global_com%exit_on_error) call err_exit
+if (err_flag .and. global_com%exit_on_error) stop
 
 end subroutine
