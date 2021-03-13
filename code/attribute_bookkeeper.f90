@@ -490,10 +490,8 @@ case (lcavity$)
 
 ! Patch
 
-case (patch$) 
-
-  call floor_angles_to_w_mat (val(x_pitch$), val(y_pitch$), val(tilt$), w_mat_inv = w_inv)
-  val(l$) = (w_inv(3,1) * val(x_offset$) + w_inv(3,2) * val(y_offset$) + w_inv(3,3) * val(z_offset$))
+case (patch$)
+  val(l$) = patch_length (ele)
 
 ! Quadrupole
 

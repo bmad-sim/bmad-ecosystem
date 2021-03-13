@@ -1372,6 +1372,14 @@ function patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)
   logical is_flip
 end function patch_flips_propagation_direction
 
+function patch_length (patch, ref_coords) result (length)
+  import
+  implicit none
+  type (ele_struct) patch
+  real(rp) length
+  integer, optional :: ref_coords
+end function
+
 subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
   import
   implicit none

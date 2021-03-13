@@ -231,7 +231,7 @@ case (multipole$)
 
 case (patch$)
   ele%value(flexible$) = false$ 
-  ele%value(ref_coordinates$)= exit_end$
+  ele%value(ref_coords$)= exit_end$
   ele%value(upstream_coord_dir$) = 1
   ele%value(downstream_coord_dir$) = 1
 
