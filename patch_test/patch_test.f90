@@ -85,6 +85,14 @@ write (1, '(a, 6es10.2)') '"Flexible" REL 1E-15 ', ele%floor%r, ele%floor%theta,
 
 !
 
+branch => lat%branch(2)
+do ip = 1, 3
+  ele => branch%ele(ip)
+  write (1, '(a, i0, a, f20.15)') '"L', ip, '-ref" ABS 1E-15 ', ele%value(l$)
+enddo
+
+!
+
 close (1)
 
 !------------------------------------------------------
