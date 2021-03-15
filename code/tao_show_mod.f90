@@ -2460,13 +2460,14 @@ case ('lattice')
     column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false., 1.0_rp)
     column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false., 1.0_rp)
     column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false., 1.0_rp)
-    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false., 1.0_rp)
-    column( 6)  = show_lat_column_struct('ele::#[x_position]',     'f12.5',    12, 'X',     .false., 1.0_rp)
-    column( 7)  = show_lat_column_struct('ele::#[y_position]',     'f12.5',    12, 'Y',     .false., 1.0_rp)
-    column( 8)  = show_lat_column_struct('ele::#[z_position]',     'f12.5',    12, 'Z',     .false., 1.0_rp)
-    column( 9)  = show_lat_column_struct('ele::#[theta_position]', 'f12.5',    12, 'Theta', .false., 1.0_rp)
-    column(10)  = show_lat_column_struct('ele::#[phi_position]',   'f12.5',    12, 'Phi',   .false., 1.0_rp)
-    column(11)  = show_lat_column_struct('ele::#[psi_position]',   'f12.5',    12, 'Psi',   .false., 1.0_rp)
+    column( 5)  = show_lat_column_struct('ele::#[s]',              'f12.5',    12, '', .false., 1.0_rp)
+    column( 6)  = show_lat_column_struct('ele::#[l]',              'f10.5',    10, '', .false., 1.0_rp)
+    column( 7)  = show_lat_column_struct('ele::#[x_position]',     'f12.5',    12, 'X',     .false., 1.0_rp)
+    column( 8)  = show_lat_column_struct('ele::#[y_position]',     'f12.5',    12, 'Y',     .false., 1.0_rp)
+    column( 9)  = show_lat_column_struct('ele::#[z_position]',     'f12.5',    12, 'Z',     .false., 1.0_rp)
+    column(10)  = show_lat_column_struct('ele::#[theta_position]', 'f12.5',    12, 'Theta', .false., 1.0_rp)
+    column(11)  = show_lat_column_struct('ele::#[phi_position]',   'f12.5',    12, 'Phi',   .false., 1.0_rp)
+    column(12)  = show_lat_column_struct('ele::#[psi_position]',   'f12.5',    12, 'Psi',   .false., 1.0_rp)
 
   case ('orbit')
     column( 1)  = show_lat_column_struct('#',                      'i7',        7, '', .false., 1.0_rp)
@@ -2753,13 +2754,18 @@ case ('lattice')
   do i = 1, size(column)
     if (column(i)%name == '') cycle
 
-    ! Use finer scale for s if needed.
+    ! Use finer scale for s and l if needed.
 
-    if (what_to_print /= 'custom' .and. column(i)%name == 'ele::#[s]') then
-      if (branch%ele(branch%n_ele_track)%s < 0.1) then
-        column(i)%label = 's [mm]'
-        column(i)%format = '3p, f10.3'
-      endif
+    if (branch%param%total_length < 1.0_rp .and. what_to_print /= 'custom') then
+      select case (column(i)%name)
+      case ('ele::#[s]')
+        column(i)%format = 'f13.6'
+        column(i)%width = 13
+
+      case ('ele::#[l]')
+        column(i)%format = 'f11.6'
+        column(i)%width = 11
+      end select
     endif
 
     !
