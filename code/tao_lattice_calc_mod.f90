@@ -907,6 +907,7 @@ if (ix_branch > 0) then
     bb%ix_track_end = branch%n_ele_track
   else
     bb%ix_track_end = bb%ix_track_start - 1
+    if (bb%ix_track_end == -1) bb%ix_track_end = branch%n_ele_track
   endif
 
   if (.not. allocated (u%model_branch(ib0)%ele(ie0)%beam%bunch)) then
@@ -953,6 +954,7 @@ if (bb%ix_track_end == not_set$) then
     bb%ix_track_end = branch%n_ele_track
   else
     bb%ix_track_end = bb%ix_track_start - 1
+    if (bb%ix_track_end == -1) bb%ix_track_end = branch%n_ele_track
   endif
 endif
 
