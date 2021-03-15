@@ -27,7 +27,8 @@
 !                       at the split point. If choose_max = True, ix_split will be chosen to be the maximum possible 
 !                       index and if choose_max = False ix_split will be chosen to be the minimal possible index.
 !                       If s_split is not at an element boundary, the setting of choose_max is immaterial.
-!                       If ix_insert is present then the default value of choose_max is set to give the closest element to ix_insert.
+!                       If ix_insert is present, the default value of choose_max is set to give the closest element to ix_insert.
+!                       If ix_insert is not present, the default value of choose_max is False.
 !   ix_insert       -- integer, optional: Element index near the point to be split. ix_insert is useful in the case where
 !                       there is a patch with a negative length which can create an ambiguity as to where to do the split
 !                       In this case ix_insert will remove the ambiguity. Ignored if negative.
