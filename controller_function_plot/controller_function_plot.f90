@@ -195,14 +195,12 @@ type (qp_line_struct), allocatable :: line(:)
 type (qp_symbol_struct), allocatable :: symbol(:)
 
 character(*) who
+character(16) :: color(6) = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
 integer j, k, n
 
 !
 
 allocate (line(n_slave), symbol(n_slave))
-
-line(1:6)%color = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
-symbol(1:6)%color = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
 
 if (who == 'X') then
   call qp_open_page ('X', id, plot_size(1), plot_size(2), 'POINTS')
@@ -231,8 +229,8 @@ endif
 
 do j = 1, n_slave
   k = modulo(j-1,6) + 1
-  line(j) = line(k)
-  symbol(j) = symbol(k)
+  line(j)%color = color(k)
+  symbol(j)%color = color(k)
   call qp_set_line_attrib ('PLOT', color = line(j)%color)
   call qp_draw_data (table(:,0), table(:,j), .true., 0)
   if (draw_knot_points) then
@@ -241,7 +239,7 @@ do j = 1, n_slave
   endif
 enddo
 
-n = max(n_slave, 20)
+n = min(n_slave, 20)
 call qp_draw_curve_legend (0.1_rp, -0.1_rp, '%/GRAPH/LT', line(1:n), text = attrib_name(1:n))
 
 if (who == 'X') then
