@@ -2307,7 +2307,7 @@ case ('PTC_INTEGRATION_TYPE')
   if (present(is_default)) is_default = (ix_attrib_val == matrix_kick$)
 
 case ('REF_COORDS')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name(1:4), 1, [both_ends$])
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ref_coords_name(1:4), 1)
   if (present(is_default)) is_default = (ix_attrib_val == exit_end$)
 
 case ('REF_ORBIT_FOLLOWS')

@@ -1731,7 +1731,7 @@ case ('REF_ORIGIN')
   call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele, delim, delim_found); if (err_flag) return
 
 case ('REF_COORDS')
-  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  call get_switch (attrib_word, ref_coords_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(ref_coords$) = ix
 
 case ('REF_ORBIT_FOLLOWS')

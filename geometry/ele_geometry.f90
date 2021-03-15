@@ -52,10 +52,10 @@ real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
 real(rp) r0(3), w0_mat(3,3), rot_angle, graze_angle_in, graze_angle_out
 real(rp) chord_len, angle, ang, leng, rho, len_factor
-real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3), eps
+real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3), eps, signif(6)
 real(rp) :: w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer i, k, ie, key, n_loc, ix_pass, n_links, ix_pole_max, ib_to, ix
+integer i, k, ie, key, n_loc, ix_pass, n_links, ix_pole_max, ib_to, ix, iv(6)
 
 logical err, doit, finished, has_multipole_rot_tilt, ele_floor_geometry_calc
 logical, optional :: ignore_patch_err
@@ -387,10 +387,11 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
         ele%value(x_offset$) = r_vec(1)
         ele%value(y_offset$) = r_vec(2)
         ele%value(z_offset$) = r_vec(3)
-        w_mat_inv = transpose(w_mat)
-        ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
-                        w_mat_inv(3,3) * ele%value(z_offset$)
-        if (ele_floor_geometry_calc .and. ele_value_has_changed(ele, [l$], [bmad_com%significant_length], .true.)) then
+        ele%value(l$) = patch_length(ele)
+
+        iv = [x_offset$, y_offset$, z_offset$, x_pitch$, y_pitch$, tilt$]
+        signif(1:3) = bmad_com%significant_length;  signif(4:6) = 1d-12
+        if (ele_floor_geometry_calc .and. ele_value_has_changed(ele, iv, signif, .true.)) then
           call set_ele_status_stale (ele, s_position_group$)
         endif
 
