@@ -325,6 +325,10 @@ character(16), parameter :: end_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
       'No_End       ']
 
+character(16), parameter :: ref_coords_name(0:4) = [ &
+      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'GARBAGE!     ', &
+      'No_End       ']
+
 integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
 integer, parameter :: inside$ = 3, center_pt$ = 3, start_end$ = 99
 
