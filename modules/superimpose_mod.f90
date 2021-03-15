@@ -155,7 +155,7 @@ endif
 if (super_saved%value(l$) == 0) then
   super_saved%lord_status  = not_a_lord$
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, check_sanity = .false., &
-              save_null_drift = save_null_drift, err_flag = err, ix_insert = ix_insert)
+              save_null_drift = save_null_drift, err_flag = err, choose_max = .true., ix_insert = ix_insert)
   if (err) return
 
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)

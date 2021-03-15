@@ -50,16 +50,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%key /= fiducial$) cycle
     call ele_geometry (floor_dum, ele)
 
-    do i2 = i+1, branch%n_ele_track
-      ele2 => branch%ele(i2)
-      if (ele2%key == patch$ .and. is_true(ele2%value(flexible$))) exit
-      if (ele2%key == fiducial$) then
-        call out_io (s_fatal$, r_name, 'FIDUCIAL ELEMENTS IN A BRANCH MUST BE SEPARATED BY A FLEXIBLE PATCH')
-        if (global_com%exit_on_error) call err_exit
-        exit
-      endif
-      call ele_geometry (branch%ele(i2-1)%floor, ele2)
-    enddo
+    ! It is important to do the preceding elements first in case the following elements includes a patch.
 
     branch%ele(i-1)%floor = ele%floor  ! Save time
 
@@ -73,6 +64,17 @@ do ib = 0, ubound(lat%branch, 1)
       endif
       call ele_geometry (ele2%floor, ele2, branch%ele(i2-1)%floor, -1.0_rp)
       branch%ele(i2-1)%bookkeeping_state%floor_position = ok$
+    enddo
+
+    do i2 = i+1, branch%n_ele_track
+      ele2 => branch%ele(i2)
+      if (ele2%key == patch$ .and. is_true(ele2%value(flexible$))) exit
+      if (ele2%key == fiducial$) then
+        call out_io (s_fatal$, r_name, 'FIDUCIAL ELEMENTS IN A BRANCH MUST BE SEPARATED BY A FLEXIBLE PATCH')
+        if (global_com%exit_on_error) call err_exit
+        exit
+      endif
+      call ele_geometry (branch%ele(i2-1)%floor, ele2)
     enddo
   enddo
 

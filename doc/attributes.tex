@@ -238,14 +238,14 @@ with a given \vn{y_knot} array to give a series of $N$ knot points where $N$ is 
 additional restriction that the \vn{x_knot} array must have values that are strickly ascending.
 Example:
 \begin{example}
-  ov: overlay = \{q1[k1]:\{0.234, 0.534\}, q2[k1], q3[k1], q4[k1]:\{0.375, 0.923\}\}, 
-        var = {time}, x_knot = \{0.0, 1.0\}
+  ov: overlay = \{q1[k1]:\{0.234, 0.534\}, q2[k1], q3[k1], q4[k1]:\{0.37, 0.12, 0.92\}\}, 
+        var = {time}, x_knot = \{0.0, 0.7, 1.0\}
 \end{example}K
-In this example there are two knot points for each slave parameter. For the slave parameter
-\vn{q1[k1]} the knot points are $(0.0, 0.375)$ and $(1.0, 0.923)$.  If a \vn{y_knot_points} array is
-not present for a particular slave attribute, the knot array of the previous slave attribute is
-used. Thus, in the above example, the y_knot array used for \vn{q2[k1]} and \vn{q3[k1]} are the same
-as the y_knot array for \vn{q1[k1]}.
+In this example there are three knot points for each slave parameter. For the slave parameter
+\vn{q1[k1]} the knot points are $(0.0, 0.37)$, $(0.7, 0.12)$, and $(1.0, 0.92)$.  If a
+\vn{y_knot_points} array is not present for a particular slave attribute, the knot array of the
+previous slave attribute is used. Thus, in the above example, the y_knot array used for \vn{q2[k1]}
+and \vn{q3[k1]} are the same as the y_knot array for \vn{q1[k1]}.
 
 The method used to interpolate between the knot points is determined by the setting of the
 \vn{interpolate} parameter which may be one of
@@ -254,8 +254,14 @@ The method used to interpolate between the knot points is determined by the sett
   spline      ! Cubic spline interpolation (default).
 \end{example}
 For variable values outside of the range specified by \vn{x_knot}, the slave parmeter value will be
-extrapolated.  For the cubic spline, extrapolation is only permitted over a distance outside the
-x_knot range equal to the time difference between an end point and the next nearest point.
+extrapolated using the interpolation function calculated from the three points nearest the end. That
+is, extrapolation will be linear if \vn{interpolate} is set to \vn{linear} and will be cubic if
+\vn{interpolate} is set to \vn{spline}. For the cubic spline, extrapolation is only permitted over a
+distance outside the x_knot range equal to the difference between the value of the x_knot end point
+and its neighbor point. Thus in the above example, exterpolation will be allowed in the intervals
+$[-0.7, 0.0]$ and $[1.0, 1.7]$.
+
+an end point and the next nearest point.
 
 If the \vn{gang} attribute is \vn{True} (which is the default) a \vn{controller} will control all
 elements of a given name. Thus, in the above example, if there are multiple elements named \vn{q1}
