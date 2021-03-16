@@ -35,5 +35,9 @@ if (present(ele_name)) name = ele_name
 if (ix_ele > ubound(lat%ele, 1)) call allocate_lat_ele_array (lat)
 if (present(ele_name)) lat%ele(ix_ele)%name = name
 call nametable_add(lat%nametable, lat%ele(ix_ele)%name, ix_ele)
+lat%lord_state%attributes = stale$
+lat%lord_state%control = stale$
+lat%lord_state%s_position = stale$
+lat%lord_state%floor_position = stale$
 
 end subroutine

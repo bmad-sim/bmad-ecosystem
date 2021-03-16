@@ -61,9 +61,9 @@ enddo
 ! Note: The s-position of a overlay, group, or control lord will not make sense if the lord
 ! controls multiple disjoint elements.
 
-lat%lord_state%s_position = ok$
 
-if (.not. s_shift) return
+if (.not. s_shift .and. lat%lord_state%s_position /= stale$) return
+lat%lord_state%s_position = ok$
 
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
