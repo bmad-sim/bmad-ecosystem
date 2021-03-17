@@ -5327,7 +5327,7 @@ type (branch_struct), pointer :: branch
 
 integer i, ix, ix_insert, ele_pt, ref_pt
 
-real(rp) s_ref_begin, s_ref_end
+real(rp) s_ref_begin, s_ref_end, s0
 logical reflected_or_reversed
 
 ! Find the reference point on the element being superimposed.
@@ -5408,15 +5408,16 @@ endif
 ! independent is that it is sometimes convenient to treat a closed lattice as open.
 
 branch => pointer_to_branch(ref_ele)
+s0 = branch%ele(0)%s
 
 if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
   super_ele%s = super_ele%s - branch%param%total_length
-elseif (super_ele%s < 0) then
+elseif (super_ele%s < s0) then
   super_ele%s = super_ele%s + branch%param%total_length
 endif
 
 super_ele%s_start = super_ele%s - super_ele%value(l$)
-if (super_ele%s_start < 0) then
+if (super_ele%s_start < s0) then
   super_ele%s_start = super_ele%s_start + branch%param%total_length
 endif
 
