@@ -106,10 +106,11 @@ do i = 1, size(s%plot_page%region)
     call qp_set_layout (box = graph%box)
 
     if (.not. graph%is_valid) then
+      call tao_draw_graph_axes(plot, graph)
       call qp_draw_text ('Graph: ' // trim(plot%name) // '.' // trim(graph%name) // '  ' // graph%title, &
                                                        0.5_rp, 0.6_rp, '%BOX', color = 'red', justify = 'CC')
       call qp_draw_text (graph%why_invalid, 0.5_rp, 0.4_rp, '%BOX', color = 'red', justify = 'CC')
-      return
+      cycle
     endif
 
     if (allocated(graph%curve)) then
@@ -184,7 +185,7 @@ logical have_data
 
 ! Draw the graph outline.
 
-call tao_draw_data_graph (plot, graph)
+call tao_draw_graph_axes (plot, graph)
 
 ! loop over all the curves of the graph and draw them
 
@@ -1223,6 +1224,14 @@ else
   x1 = graph%x%min
   x2 = min(graph%x%max, graph%x%min + lat_len)
 endif
+
+if (x2 <= x1) then
+  call qp_draw_text ('Graph: ' // trim(plot%name) // '.' // trim(graph%name) // '  ' // graph%title, &
+                                                       0.5_rp, 0.6_rp, '%BOX', color = 'red', justify = 'CC')
+  call qp_draw_text ('Horzontal range does not overlap lattice', 0.5_rp, 0.4_rp, '%BOX', color = 'red', justify = 'CC')
+  return
+endif
+
 call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
 
 ! loop over all elements in the branch. Only draw those element that
@@ -1630,7 +1639,7 @@ logical have_data
 
 ! Draw the graph outline.
 
-call tao_draw_data_graph (plot, graph)
+call tao_draw_graph_axes (plot, graph)
 
 ! loop over all the curves of the graph and draw them
 
@@ -1806,7 +1815,7 @@ end subroutine tao_draw_histogram_data
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_draw_data_graph (plot, graph)
+! Subroutine tao_draw_graph_axes (plot, graph)
 !
 ! Routine to draw a just the graph part of a data graph.
 ! The calling routine takes care of drawing any curves.
@@ -1816,7 +1825,7 @@ end subroutine tao_draw_histogram_data
 !   graph -- Tao_graph_struct: Graph to plot.
 !-
 
-subroutine tao_draw_data_graph (plot, graph)
+subroutine tao_draw_graph_axes (plot, graph)
 
 implicit none
 
@@ -1927,6 +1936,6 @@ endif
 
 deallocate (text, symbol, line)
 
-end subroutine tao_draw_data_graph
+end subroutine tao_draw_graph_axes
 
 end module
