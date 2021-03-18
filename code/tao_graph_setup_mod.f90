@@ -1955,6 +1955,7 @@ if (curve%data_type(1:9) == 'aperture.') then
   case ('s')
     len_branch = branch%param%total_length
     call tao_graph_s_min_max_calc(graph, branch, x_min, x_max)
+    if (.not. graph%is_valid) return
 
     if (x_min < branch%ele(0)%s) then  ! Wrap case
       ix1 = bracket_index(x_min+len_branch-10*bmad_com%significant_length, x_arr(1:ir), 1, restrict = .true.) 
@@ -2246,6 +2247,7 @@ endif
 ! x1 and x2 are the longitudinal end points of the plot
 
 call tao_graph_s_min_max_calc(curve%g, branch, x1, x2)
+if (.not. curve%g%is_valid) return
 
 radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
@@ -2979,6 +2981,11 @@ if (graph%x%min /= graph%x%max) then
     s_min = min(branch%ele(n)%s, max(graph%x%min, s_min))
     s_max = min(s_max, max(graph%x%max, branch%ele(0)%s))
   endif
+endif
+
+if (s_min == s_max) then
+  graph%is_valid = .false.
+  graph%why_invalid = 'Graph S-position range does not overlap lattice branch range.'
 endif
 
 end subroutine tao_graph_s_min_max_calc
