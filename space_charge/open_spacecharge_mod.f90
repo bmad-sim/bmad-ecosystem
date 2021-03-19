@@ -70,8 +70,36 @@ igfflag=1 ! =0 for ordinary Green function; =1 for integrated Green function
 if(present(integrated_green_function) .and. .not. integrated_green_function) igfflag = 0
 
 call osc_freespace_solver(mesh3d%rho, mesh3d%gamma, &
-  mesh3d%delta(1), mesh3d%phi, mesh3d%efield, mesh3d%bfield, &
+  mesh3d%delta, mesh3d%phi, mesh3d%efield, mesh3d%bfield, &
   mesh3d%nlo, mesh3d%nhi, mesh3d%nlo, mesh3d%nhi, mesh3d%npad, idirectfieldcalc,igfflag)
+end subroutine
+
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+
+subroutine space_charge_cathodeimages(mesh3d, direct_field_calc, integrated_green_function,image_method)
+type(mesh3d_struct) :: mesh3d
+integer :: idirectfieldcalc=1
+integer :: igfflag=1
+logical, optional :: direct_field_calc, integrated_green_function
+integer, optional :: image_method
+integer :: imethod
+
+idirectfieldcalc=1 ! =0 to compute phi and use finite differences for E; =1 to compute E directly
+if(present(direct_field_calc) .and. .not. direct_field_calc)idirectfieldcalc=0
+
+igfflag=1 ! =0 for ordinary Green function; =1 for integrated Green function
+if(present(integrated_green_function) .and. .not. integrated_green_function) igfflag = 0
+
+imethod=1 ! =1 for convolution/correlation, =2 for shift method
+if(present(image_method) .and. image_method.eq.2)imethod=2
+
+call osc_cathodeimages_solver(mesh3d%rho, mesh3d%gamma, &
+  mesh3d%min,mesh3d%delta, mesh3d%phi, mesh3d%efield, mesh3d%bfield, &
+  mesh3d%nlo, mesh3d%nhi, mesh3d%nlo, mesh3d%nhi, mesh3d%npad, idirectfieldcalc,igfflag,imethod)
 end subroutine
 
 !------------------------------------------------------------------------
@@ -316,6 +344,8 @@ endif
 if(kp<1 .or. kp>mesh3d%nhi(3)-1)then
     nflag=1
     write(6,*)'kerror:  kp=',kp
+    write(6,*)'z=',z
+    write(6,*)'mesh3d%min(3)=',mesh3d%min(3)
 !!!!!!!!!!write(6,*)ab,de,gh
   if(kp<1)then
     kp=1
@@ -358,6 +388,355 @@ if (present(B)) then
 endif
 
 end subroutine
+
+
+!------------------------------------------------------------------------
+!+
+! Subroutine space_charge_3d(mesh3d, offset, at_cathode, calc_bfield)
+!
+! Performs the space charge calculation using the integrated Green function method
+! and FFT-based convolutions. 
+!
+! Input:
+!   mesh3d        -- mesh3d_struct: populated with %rho
+!
+!   offset        -- real(3), optional: Offset coordinates x0, y0, z0 to evaluate the field,
+!                    relative to rho. 
+!                    Default: (0,0,0)
+!                        For example, an offset of (0,0,10) can be used to compute 
+!                        the field at z=+10 m relative to rho. 
+!
+!   at_cathode    -- logical, optional: Maintain constant voltage at the cathode 
+!                       using image charges. Default is False. 
+!
+!   calc_bfield    -- logical, optional: Calculate the magnetic field mesh3d%bfield
+!
+!                     Default: False
+!
+!
+! Output:
+!   mesh3d        -- mesh3d_struct: populated with %efield, and optionally %bfield                             
+!
+!
+!
+! Notes: 
+!   The magnetic field components can be calculated by:
+!     Bx = -(beta/c) * Ey
+!     By =  (beta/c) * Ex
+!     Bz = 0
+!   The image charges move in the opposite direction, so the signs are flipped. 
+!     
+!
+!-
+subroutine space_charge_3d(mesh3d, offset, at_cathode, calc_bfield)
+type(mesh3d_struct) :: mesh3d
+real(dp), allocatable, dimension(:,:,:,:) :: image_efield   ! electric field grid
+real(dp), optional :: offset(3)
+real(dp) :: offset0(3), beta
+real(dp), parameter :: c_light = 299792458.0
+logical, optional :: at_cathode, calc_bfield
+logical :: bcalc
+
+if (present(calc_bfield)) then
+  bcalc = calc_bfield
+else
+  bcalc = .false.
+endif
+
+if (.not. present(offset)) then
+  offset0 = 0
+else
+  offset0 = offset
+endif
+
+! Free space field
+call osc_freespace_solver2(mesh3d%rho, mesh3d%gamma, mesh3d%delta, efield=mesh3d%efield, offset=offset0)
+
+! Optional B field
+if (bcalc) then
+  beta = sqrt(1-1/mesh3d%gamma**2)
+  mesh3d%bfield = 0
+  mesh3d%bfield(:,:,:,1) = -(beta/c_light)*mesh3d%efield(:,:,:,2)
+  mesh3d%bfield(:,:,:,2) =  (beta/c_light)*mesh3d%efield(:,:,:,1)
+endif
+
+! Cathode calc
+if (.not. present(at_cathode)) return
+if (.not. at_cathode) return
+
+! Allocate scratch array for the image field
+allocate(image_efield, mold=mesh3d%efield)
+
+! Image field, with an offset assuming the cathode is at z=0.
+! The offset is the z width of the mesh, plus 2 times the distance of the mesh from the cathode.
+offset0(3) = offset0(3) + 2*mesh3d%min(3) + (mesh3d%max(3)-mesh3d%min(3))
+
+! Flip the charge mesh in z, with opposite charge sign
+call osc_freespace_solver2(-mesh3d%rho(:,:,size(mesh3d%rho,3):1:-1), &
+  mesh3d%gamma, mesh3d%delta, efield=image_efield, offset=offset0)  
+  
+  
+! Finally add fields
+
+if (bcalc) then
+  ! Opposite sign for beta, because image charges are moving in the negative z direction
+  mesh3d%bfield(:,:,:,1) = mesh3d%bfield(:,:,:,1) + (beta/c_light)*image_efield(:,:,:,2)
+  mesh3d%bfield(:,:,:,2) = mesh3d%bfield(:,:,:,2) - (beta/c_light)*image_efield(:,:,:,1)
+endif  
+    
+mesh3d%efield = mesh3d%efield + image_efield
+
+end subroutine
+
+
+
+!------------------------------------------------------------------------
+!+
+! Subroutine osc_freespace_solver2(rho, gamma, delta, efield, phi, offset)
+!
+! Deposits particle arrays onto mesh
+!
+! Input:
+!   rho          -- REAL64(:,:,:): charge density array in x, y, z
+!   delta        -- REAL64(3): vector of grid spacings dx, dy, dz
+!   gamma        -- REAL64: relativistic gamma
+!   icomp        -- integer: Field component requested:
+!                        0: phi (scalar potential)
+!                       
+!
+!   efield        -- REAL64(:,:,:,3), optional: allocated electric field array to populate.
+!                      
+!                                     The final index corresponds to components
+!                                     1: Ex
+!                                     2: Ey
+!                                     3: Ez                                   
+!                                     If present, all components will be computed.    
+!
+!   phi           -- REAL64(:,:,:), optional: allocated potential array to populate
+!
+!   offset        -- real(3), optional: Offset coordinates x0, y0, z0 to evaluate the field,
+!                    relative to rho. 
+!                    Default: (0,0,0)
+!                        For example, an offset of (0,0,10) can be used to compute 
+!                        the field at z=+10 m relative to rho. 
+!
+! Output:
+!   efield        -- REAL64(:,:,:,:) : electric field                                 
+!   phi           -- REAL64(:,:,:)   : potential
+!
+!
+! Notes: 
+!   The magnetic field components can be calculated by:
+!     Bx = -(beta/c) * Ey
+!     By =  (beta/c) * Ex
+!     Bz = 0
+!
+!-
+subroutine osc_freespace_solver2(rho, gamma, delta, efield, phi, offset)
+
+
+real(dp), intent(in), dimension(:,:,:) :: rho
+real(dp), intent(in) :: gamma, delta(3)
+real(dp), optional, intent(out), dimension(:,:,:,:) :: efield
+real(dp), optional, intent(out), dimension(:,:,:) :: phi
+real(dp), intent(in), optional :: offset(3)
+! internal arrays
+complex(dp), allocatable, dimension(:,:,:) :: crho, cgrn
+real(dp) :: factr, offset0=0
+real(dp), parameter :: clight=299792458.0
+real(dp), parameter :: fpei=299792458.0**2*1.00000000055d-7  ! this is 1/(4 pi eps0) after the 2019 SI changes
+
+integer :: nx, ny, nz, nx2, ny2, nz2
+integer :: icomp, ishift, jshift, kshift
+
+! Sizes
+nx = size(rho, 1); ny = size(rho, 2); nz = size(rho, 3)
+nx2 = 2*nx; ny2 = 2*ny; nz2 = 2*nz; 
+
+! Allocate complex scratch arrays
+allocate(crho(nx2, ny2, nz2))
+allocate(cgrn(nx2, ny2, nz2))
+
+! rho -> crho -> FFT(crho)
+crho = 0
+crho(1:nx, 1:ny, 1:nz) = rho ! Place in one octant
+call ccfft3d(crho, crho, [1,1,1], nx2, ny2, nz2, 0) 
+
+! Loop over phi, Ex, Ey, Ez
+do icomp=0, 3
+  if ((icomp == 0) .and. (.not. present(phi))) cycle
+  if ((icomp == 1) .and. (.not. present(efield))) exit
+
+  call osc_get_cgrn_freespace(cgrn, delta, gamma, icomp, offset=offset)
+  
+  !  cgrn -> FFT(cgrn)
+  call ccfft3d(cgrn, cgrn, [1,1,1], nx2, ny2, nz2, 0)  
+  
+  ! Multiply FFT'd arrays, re-use cgrn
+  cgrn=crho*cgrn
+
+  ! Inverse FFT
+  call ccfft3d(cgrn, cgrn, [-1,-1,-1], nx2, ny2, nz2, 0)  
+  
+  ! This is where the output is shifted to
+  ishift = nx-1
+  jshift = ny-1
+  kshift = nz-1
+  
+  ! Extract field
+  factr = fpei/(nx2*ny2*nz2)
+  
+  if (icomp == 0) then
+    phi(:,:,:) = factr * real(cgrn(1+ishift:nx+ishift, 1+jshift:ny+jshift, 1+kshift:nz+kshift), dp)  
+  else
+    efield(:,:,:,icomp) = factr * real(cgrn(1+ishift:nx+ishift, 1+jshift:ny+jshift, 1+kshift:nz+kshift), dp)
+  endif
+    
+enddo
+
+end subroutine osc_freespace_solver2
+
+
+!------------------------------------------------------------------------
+!+
+! Subroutine osc_get_cgrn_freespace(cgrn, delta, gamma, icomp, offset)
+!
+! Computes the free space Green function on a mesh with given spacings in the lab frame.
+! The computation is performed in the rest fram by boosting the coordinates by gamma.
+!
+!
+! Input:
+!   cgrn         -- COMPLEX128(:,:,:): pre-allocated array 
+!   delta        -- REAL64(3): vector of grid spacings dx, dy, dz
+!   gamma        -- REAL64: relativistic gamma
+!   icomp        -- integer: Field component requested:
+!                        0: phi (scalar potential)
+!                        1: Ex
+!                        2: Ey
+!                        3: Ez
+!   offset        -- real(3), optional: Offset coordinates for the center of the grid in [m]. 
+!                    Default: (0,0,0)
+!                        For example, an offset of (0,0,10) can be used to compute 
+!                        the field at z=+10 m relative to the rho_mesh center. 
+!                              
+! Output:
+!   cgrn         -- COMPLEX128(:,:,:): Green function array
+!   
+!                
+! Notes:
+!   Internally, dz -> dz*gamma.             
+!   For efficients, the indefinite functions lafun2, xlafun2 are actually evaluated 
+!   on a grid slightly offset by -dx/2, -dy/2, -dz/2,
+!   and these points are used to evaluate the integral with array addition and subtraction. 
+!
+!-
+subroutine osc_get_cgrn_freespace(cgrn, delta, gamma, icomp, offset)
+
+complex(dp), intent(out), dimension(0:,0:,0:) :: cgrn ! Convenient indexing 
+real(dp), intent(in), dimension(3) :: delta
+integer, intent(in) :: icomp
+real(dp), intent(in) :: gamma
+real(dp), intent(in), optional :: offset(3)
+! Local
+real(dp) :: dx,dy,dz
+real(dp) :: u,v,w, umin, vmin, wmin
+real(dp) :: gval, factor
+integer :: imin, imax, jmin, jmax, kmin, kmax
+integer :: i,j,k, isize, jsize, ksize
+
+! Mesh spacings. dz is stretched in the rest frame.
+dx=delta(1); dy=delta(2); dz=delta(3)*gamma
+
+! Special cases: Ex and Ey are enhanced by gamma
+if ((icomp==1) .or. (icomp==2)) then
+  factor = gamma /(dx*dy*dz)
+else
+  factor = 1.0 /(dx*dy*dz)
+endif
+
+! Evaluate on an offset grid, for use in the indefinite integral evaluation below. 
+isize = size(cgrn,1); jsize=size(cgrn,2); ksize=size(cgrn,3)
+umin = (0.5-isize/2) *dx
+vmin = (0.5-jsize/2) *dy
+wmin = (0.5-ksize/2) *dz
+
+! Add optional offset
+if (present(offset)) then
+  umin = umin + offset(1)
+  vmin = vmin + offset(2) 
+  wmin = wmin + offset(3)*gamma ! Don't forget this!
+endif
+
+! !$ print *, 'OpenMP Green function calc osc_get_cgrn_freespace'
+!$OMP PARALLEL DO &
+!$OMP DEFAULT(FIRSTPRIVATE), &
+!$OMP SHARED(cgrn)
+do k = 0, ksize-1
+  w = k*dz + wmin
+
+  do j=0, jsize-1
+    v=j*dy + vmin
+
+   do i=0, isize-1
+     u = i*dx + umin
+     
+     if(icomp == 0) gval=lafun2(u,v,w)*factor
+     if(icomp == 1) gval=xlafun2(u,v,w)*factor
+     if(icomp == 2) gval=xlafun2(v,w,u)*factor
+     if(icomp == 3) gval=xlafun2(w,u,v)*factor
+     cgrn(i,j,k)= cmplx(gval, 0, dp)
+     
+    enddo
+  enddo
+enddo
+!$OMP END PARALLEL DO
+
+! Evaluate the indefinite integral over the cube     
+!cgrn = cgrn(1:,1:,1:) - cgrn(:-1,1:,1:) - cgrn(1:,:-1,1:) - cgrn(1:,1:,:-1) - cgrn(:-1,:-1,:-1) + cgrn(:-1,:-1,1:) + cgrn(:-1,1:,:-1)  + cgrn(1:,:-1,:-1)
+!       (x2,y2,z2) -      (x1,y2,z2) -     (x2,y1,z2) -    (x2,y2,z1) -    (x1,y1,z1)   +    (x1,y1,z2)   +    (x1,y2,z1)  +    (x2,y1,z1)
+cgrn = cgrn(1:,1:,1:) - cgrn(0:,1:,1:) - cgrn(1:,0:,1:) - cgrn(1:,1:,0:) - cgrn(0:,0:,0:) + cgrn(0:,0:,1:) + cgrn(0:,1:,0:)  + cgrn(1:,0:,0:)
+
+end subroutine osc_get_cgrn_freespace
+
+
+!------------------------------------------------------------------------
+!+
+! elemental real(dp) function xlafun2(x, y, z)
+!
+! The indefinite integral:
+! \int x/r^3 dx dy dz = x*atan((y*z)/(r*x)) -z*log(r+y) + y*log((r-z)/(r+z))/2
+!
+! This corresponds to the electric field component Ex.
+! Other components can be computed by permuting the arguments
+!
+!-
+elemental real(dp) function xlafun2(x, y, z)
+  real(dp), intent(in) :: x, y, z
+  real(dp) :: r
+  r=sqrt(x**2+y**2+z**2)
+  xlafun2 = x*atan((y*z)/(r*x)) -z*log(r+y) + y*log((r-z)/(r+z))/2
+end function
+
+!------------------------------------------------------------------------
+!+
+! elemental real(dp) function lafun2(x,y,z)
+!
+! The indefinite integral:
+! \int 1/r^3 dx dy dz = 
+!          -z**2*atan(x*y/(z*r))/2 - y**2*atan(x*z/(y*r))/2 -x**2*atan(y*z/(x*r))/2 
+!           +y*z*log(x+r) + x*z*log(y+r) + x*y*log(z+r)
+!
+! This corresponds to the scalar potential.
+! Other components can be computed by permuting the arguments
+!
+!-
+elemental real(dp) function lafun2(x,y,z)
+  real(dp), intent(in) :: x, y, z
+  real(dp) :: r
+  r=sqrt(x**2+y**2+z**2)
+  lafun2 = -z**2*atan(x*y/(z*r))/2 - y**2*atan(x*z/(y*r))/2 -x**2*atan(y*z/(x*r))/2 &
+           +y*z*log(x+r) + x*z*log(y+r) + x*y*log(z+r)
+end function 
 
 
 end module
