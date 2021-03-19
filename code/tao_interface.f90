@@ -122,7 +122,7 @@ function tao_constraint_type_name(datum) result (datum_name)
   import
   implicit none
   type (tao_data_struct) datum
-  character(200) datum_name
+  character(400) datum_name
 end function
 
 subroutine tao_count_strings (string, pattern, num)
