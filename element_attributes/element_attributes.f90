@@ -80,6 +80,9 @@ if (arg /= 'tex') then
         write (1, '(i10, 2x, 2a)') j, attrib%name, '  [private]'
       else
         write (1, '(i10, 2x, a)') j, attrib%name
+        if (attribute_type(attrib%name, ele) == is_real$ .and. attribute_units(attrib%name, '???') == '???') then
+          print *, 'No units for: ' // trim(attrib%name)
+        endif
       endif
       
       n_used(j) = n_used(j) + 1
@@ -266,9 +269,6 @@ do it = 1, n_key$
   write (1, *) '\end{tabular}'
   write (1, *) '\vfill'
   write (1, *) 
-
 enddo
-
-
 
 end program
