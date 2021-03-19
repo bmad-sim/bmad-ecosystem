@@ -4880,7 +4880,7 @@ case ('variable')
   if (attrib0 == '') then
     ! Bmad format
     if (bmad_format) then
-      call tao_print_vars_bmad_format (0, 0, good_opt_only)
+      call tao_print_vars (0, 0, good_opt_only)
       result_id = 'variable:bmad'
       return
     endif
@@ -4912,7 +4912,7 @@ case ('variable')
 
   ! Bmad format
   if (bmad_format) then
-    call tao_print_vars_bmad_format (0, 0, good_opt_only, v_array)
+    call tao_print_vars (0, 0, good_opt_only, .false., v_array)
     result_id = 'variable:bmad'
     return
   endif

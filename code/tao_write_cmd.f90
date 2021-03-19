@@ -55,7 +55,7 @@ integer i_min, i_max, n_len
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
-logical write_high_lim, write_low_lim
+logical write_high_lim, write_low_lim, tao_format
 
 !
 
@@ -888,14 +888,16 @@ case ('variable')
   good_opt_only = .false.
   ix_word = 0
   file_name = ''
+  tao_format = .false.
 
   do 
     ix_word = ix_word + 1
     if (ix_word >= size(word)-1) exit
-    call tao_next_switch (word(ix_word), ['-good_opt_only'], .true., switch, err, ix)
+    call tao_next_switch (word(ix_word), [character(20):: '-good_opt_only', '-tao_format'], .true., switch, err, ix)
     if (err) return
     select case (switch)
     case (''); exit
+    case ('-tao_format'); tao_format = .true.
     case ('-good_opt_only'); good_opt_only = .true.
     case default
       if (file_name /= '') then
@@ -907,9 +909,9 @@ case ('variable')
   enddo  
 
   if (file_name == '') then
-    call tao_var_write (s%global%var_out_file, good_opt_only)
+    call tao_var_write (s%global%var_out_file, good_opt_only, tao_format)
   else
-    call tao_var_write (file_name, good_opt_only)
+    call tao_var_write (file_name, good_opt_only, tao_format)
   endif
 
 !---------------------------------------------------
