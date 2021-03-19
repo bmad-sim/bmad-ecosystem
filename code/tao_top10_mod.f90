@@ -314,12 +314,13 @@ character(40) location, con_var, max_loc, loc_ele, loc_start, loc_ref
 character(80) fmt, fmt2
 character(1) plane
 character(24) :: r_name = 'tao_show_constraints'
+character(400) name
 character(300), allocatable, save :: line(:)
 character(300) l1
 
 type constraint_struct
   character(40) d2_d1_name
-  character(100) name
+  character(80) name
   character(40) loc_ele, loc_start, loc_ref, max_loc
   real(rp) target_value
   real(rp) actual_value
@@ -349,7 +350,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     data => s%u(i)%data(j)
     if (.not. data%useit_opt) cycle
     nc = nc + 1
-    con(nc)%name = tao_constraint_type_name(data)
+    name = tao_constraint_type_name(data)
+    n = len_trim(name)
+    if (n > len(con(nc)%name)) then
+      con(nc)%name = name(1:40) // ' ... ' // name(n-34:n)
+    else
+      con(nc)%name = name
+    endif
     con(nc)%d2_d1_name = trim(tao_datum_name(data))
     if (data%data_type(1:11) == 'expression:') con(nc)%expression = .true.
 
@@ -456,8 +463,8 @@ do j = 1, n_max
   n_loc_ref   = max(n_loc_ref, len_trim(con(i)%loc_ref))
 enddo
 
-n_tot = max(n_tot,  n_name + n_loc_ref + n_loc_start + n_loc_ele + 4)
-n_loc_ele = n_tot - n_name - n_loc_ref - n_loc_start - 4
+n_tot = max(n_tot,  n_name + n_loc_ref + n_loc_start + n_loc_ele + 6)
+n_loc_ele = n_tot - n_name - n_loc_ref - n_loc_start - 6
 
 !
 
