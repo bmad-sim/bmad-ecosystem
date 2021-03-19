@@ -69,7 +69,8 @@ private reallocate_coord_n, reallocate_coord_lat
 !   element_end  -- integer, optional: upstream_end$, downstream_end$, inside$, or start_end$.
 !                     Must be present if ele argument is present.
 !                     start_end$ -> upstream_end$ if dir = 1 and start_end$ -> downstream_end$ if dir = -1.
-!                     Default is upstream_end$.
+!                     Default is upstream_end$. Note: If ele is the beginning element (index zero), the
+!                     setting of element_end will not matter.
 !   particle     -- integer, optional: Particle type (electron$, etc.). 
 !                     If particle = not_set$ and orb_in is present, use orb_in%species instead.
 !   dirction     -- integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.

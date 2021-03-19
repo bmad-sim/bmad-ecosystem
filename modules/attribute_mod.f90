@@ -1002,7 +1002,7 @@ call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type
 call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
 call init_attribute_name1 (drift$, drift_id$,                       'drift_id', private$)
 
-
+call init_attribute_name1 (e_gun$, l_cathode_region$,               'L_CATHODE_REGION')
 call init_attribute_name1 (e_gun$, e_tot_ref_init$,                 'e_tot_ref_init', private$)
 call init_attribute_name1 (e_gun$, p0c_ref_init$,                   'p0c_ref_init', private$)
 call init_attribute_name1 (e_gun$, field_autoscale$,                'FIELD_AUTOSCALE', quasi_free$)
@@ -1877,7 +1877,8 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', &
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS', &
-      'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER')
+      'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'L_CATHODE_REGION', 'RF_WAVELENGTH', &
+      'X_DISPERSION_ERR', 'Y_DISPERSION_ERR', 'X_DISPERSION_CALIB', 'Y_DISPERSION_CALIB')
   attrib_units = 'm'
 
 
