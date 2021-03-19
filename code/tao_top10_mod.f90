@@ -113,7 +113,7 @@ do i = 1, size(tao_merit)
   endif
 enddo
 
-call tao_write_out (iunit, lines(1:nl))
+call tao_write_lines (iunit, lines(1:nl))
 
 deallocate (tao_merit, temp_merit, n_points, chi2)
 
@@ -501,7 +501,7 @@ nl=nl+1; line(nl) = l1
 nl=nl+1; line(nl) = ' '
 nl=nl+1; write (line(nl), '(1x, a, es13.6)') 'figure of merit:', this_merit
 
-call tao_write_out (iunit, line(1:nl))
+call tao_write_lines (iunit, line(1:nl))
 
 deallocate (con, ixm)
 
@@ -511,10 +511,9 @@ end subroutine tao_show_constraints
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_var_write (out_file, show_good_opt_only)
+! Subroutine tao_var_write (out_file, show_good_opt_only, tao_format)
 !
-! Routine to write the optimized variables. 
-! One file will be created for each universe.
+! Routine to write the optimized variables. One file will be created for each universe.
 ! The created file will have three sections:
 !   1) The variable values
 !   2) The list of constraints.
@@ -522,18 +521,20 @@ end subroutine tao_show_constraints
 ! If out_file = '' the information will be dumped to the terminal.
 ! In this case, only the variable values will be printed.
 !
+! When tao_format = True, the output is in the form "set variable <name> = <value>"
+! so the file can be used as a Tao command file. If tao_format = False, the format
+! is suitable for inclusion in a Bmad lattice file.
+!
 ! Input:
-!   out_file    -- Character(*): Name of output file. 
-!                  If blank. Ouput to the terminal.
-!   show_good_opt_only
-!               -- Logical, optional: Write only the variables used in
-!                  the optimization. Default is False.
+!   out_file            -- character(*): Name of output file. If blank. Ouput to the terminal.
+!   show_good_opt_only  -- logical, optional: Write only the variables used in the optimization?
+!                           Default is False.
+!   tao_format          -- logical, optional: Output format. Default False. See above.
 !-
 
-subroutine tao_var_write (out_file, show_good_opt_only)
+subroutine tao_var_write (out_file, show_good_opt_only, tao_format)
 
 implicit none
-
 
 integer i, j, iu, iu2, ix, ios, ix_hash
 
@@ -542,12 +543,12 @@ character(200) file_name, file_name2
 character(20) :: r_name = 'tao_var_write'
 character(200) str(1)
 
-logical, optional :: show_good_opt_only
+logical, optional :: show_good_opt_only, tao_format
 
 ! Output to terminal?
 
 if (out_file == '') then
-  call tao_print_vars_bmad_format (0, 0, show_good_opt_only)
+  call tao_print_vars (0, 0, show_good_opt_only, tao_format)
   return
 endif
 
@@ -557,8 +558,7 @@ iu = lunget()
 ix_hash = index (out_file, '#')
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-
-  if (.not. s%com%common_lattice .and. .not. s%u(i)%is_on) cycle
+  if (.not. s%u(i)%is_on .and. .not. logic_option(.false., tao_format)) cycle
 
   if (ix_hash /= 0) then
     write (file_name, '(a, i0, a)') out_file(1:ix_hash-1), i, trim(out_file(ix_hash+1:))
@@ -572,17 +572,16 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     return
   endif
 
-  call tao_print_vars_bmad_format (iu, i, show_good_opt_only)
-  call tao_write_out (iu, ['        ', 'end_file', '        '])
+  call tao_print_vars (iu, i, show_good_opt_only, tao_format)
+  call tao_write_lines (iu, ['        ', 'end_file', '        '])
   call tao_show_constraints (iu, 'TOP10')
-  call tao_top10_merit_categories_print (0)
+  call tao_top10_merit_categories_print (iu)
   if (size(s%u) == 1) call tao_show_constraints (iu, 'ALL')
 
   close (iu)
   call out_io (s_blank$, r_name, 'Written: ' // file_name)
 
-  if (s%com%common_lattice) exit
-
+  if (logic_option(.false., tao_format)) return
 enddo
 
 ! Write all constraints to a separate file when there are multiple universes.
@@ -596,48 +595,33 @@ if (size(s%u) > 1) then
   call out_io (s_blank$, r_name, 'Written constraints file: ' // file_name)
 endif
 
-! For unified lattices write a file for those variables affecting a specific universe.
-
-if (s%com%common_lattice) then
-
-  file_name = 'lat_specific_vars.list'
-  open (iu, file = file_name, recl = 300, iostat = ios)
-
-  do j = 1, s%n_var_used
-    if (.not. s%var(j)%exists) cycle
-    if (all (s%var(j)%slave(:)%ix_uni == 0)) cycle
-    if (logic_option(.false., show_good_opt_only) .and. .not. s%var(j)%useit_opt) cycle
-    write (str(1), '(3a, es22.14)')  "set var ", trim(tao_var1_name(s%var(j))), &
-                                                    '|model =', s%var(j)%model_value
-
-    call tao_write_out (iu, str(1:1))
-  enddo  
-
-  close (iu)
-  call out_io (s_blank$, r_name, 'Written: ' // file_name)
-
-endif
-
 end subroutine tao_var_write
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_print_vars_bmad_format (iu, ix_uni, show_good_opt_only, v_array)
+! Subroutine tao_print_vars (iu, ix_uni, show_good_opt_only, tao_format, v_array)
 !
 ! Routine to print a list of set statements for the Bmad parameters controlled by the Tao variables.
 ! The set statements are Bmad lattice format compatible.
 !
+! When tao_format = True, the output is in the form "set variable <name> = <value>"
+! so the file can be used as a Tao command file. If tao_format = False, the format
+! is suitable for inclusion in a Bmad lattice file.
+!
 ! Input:
-!   iu                 -- integer: File unit number. 0 => print to the terminal.
-!   ix_uni             -- integer: Universe index. If zero print slave parameters for all universes.
-!                           If non-zero, only print set statements for slave parameters of this universe.
-!   show_good_opt_only -- logical: If True, only show slave parameters of variables used in optimization.
-!   v_array(:)         -- tao_var_array_struct, optional: Variable array. If present, restrict printing to parameters of these variables.
+!   iu                  -- integer: File unit number. 0 => print to the terminal.
+!   ix_uni              -- integer: Universe index. If zero print slave parameters for all universes.
+!                            If non-zero, only print set statements for slave parameters of this universe.
+!                            Ignored if tao_format = True.
+!   show_good_opt_only  -- logical: If True, only show slave parameters of variables used in optimization.
+!   tao_format          -- logical, optional: Output format. Default False. See above.
+!   v_array(:)          -- tao_var_array_struct, optional: Variable array. 
+!                            If present, restrict printing to parameters of these variables.
 !-
 
-subroutine tao_print_vars_bmad_format (iu, ix_uni, show_good_opt_only, v_array)
+subroutine tao_print_vars (iu, ix_uni, show_good_opt_only, tao_format, v_array)
 
 implicit none
 
@@ -648,7 +632,7 @@ type (lat_struct), pointer :: lat
 integer iu, ix_uni, j, n_line
 character(40) useit_str
 character(200), allocatable :: str(:)
-logical, optional :: show_good_opt_only
+logical, optional :: show_good_opt_only, tao_format
 
 !
 
@@ -657,34 +641,36 @@ n_line = 0
 if (present(v_array)) then
   allocate (str(size(v_array)))
   do j = 1, size(v_array)
-    call print_this_var(v_array(j)%v, n_line)
+    call print_this_var(v_array(j)%v, str, n_line, tao_format)
   enddo
 
 else
   allocate (str(s%n_var_used))
   do j = 1, s%n_var_used
-    call print_this_var(s%var(j), n_line)
+    call print_this_var(s%var(j), str, n_line, tao_format)
   enddo
 endif
 
-call tao_write_out (iu, str(1:n_line))
+call tao_write_lines (iu, str(1:n_line))
 
-!----------------
+!----------------------------------------------------------------------------------
 contains
-subroutine print_this_var (var, n_line)
+subroutine print_this_var (var, str, n_line, tao_format)
 
 type (tao_var_struct), target :: var
 type (ele_struct), pointer :: ele
 type (tao_var_slave_struct), pointer :: slave(:)
 integer n_line
 integer ix, n_ele, i_uni
+logical, optional :: tao_format
+character(*), allocatable :: str(:)
 
 !
 
 slave => var%slave
 
 if (.not. var%exists) return
-if (ix_uni /= 0 .and. .not. any (slave(:)%ix_uni == ix_uni)) return
+if (ix_uni /= 0 .and. .not. any (slave(:)%ix_uni == ix_uni) .and. .not. logic_option(.false., tao_format)) return
 if (logic_option(.false., show_good_opt_only) .and. .not. var%useit_opt) return
 if (var%useit_opt) then
   useit_str = ''
@@ -692,40 +678,44 @@ else
   useit_str = '! Not used in optimizing'
 endif
 
+n_line = n_line + 1
+if (n_line >= size(str)) call re_allocate (str, 2*n_line)
+
 ! A potential problem is that the variable may not control all elements named var%ele_name in a universe.
 ! If this is the case, must use ele name order index to qualify the name.
 
+! Tao "set" format.
+
+if (logic_option(.false., tao_format)) then
+  write (str(n_line), '(3a, i0, a, es22.15)') 'set var ', trim(var%v1%name), '[', var%ix_v1, ']|model =', var%model_value
+
 ! Controlling non-element parameter.
-if (slave(1)%ix_ele == -1) then
-  n_line = n_line + 1
-  if (n_line >= size(str)) call re_allocate (str, 2*n_line)
+
+elseif (slave(1)%ix_ele == -1) then
   write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
 
 ! Universe independent.
+
 elseif (ix_uni == 0) then
   i_uni = slave(1)%ix_uni
   u => s%u(i_uni)
   lat => u%model%lat
-  n_line = n_line + 1
-  if (n_line >= size(str)) call re_allocate (str, 2*n_line)
   ele => lat%branch(slave(1)%ix_branch)%ele(slave(1)%ix_ele)
   write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
                                                             '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
 
 ! Universe is given.
+
 else
   u => s%u(ix_uni)
   lat => u%model%lat
 
   ix = nametable_bracket_indexx(lat%nametable, var%ele_name, n_ele)
   if (n_ele == count(slave%ix_uni == ix_uni)) then
-    n_line = n_line + 1
-    if (n_line >= size(str)) call re_allocate (str, 2*n_line)
     write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
   else
     ! Qualified names can only be used after an expand_lattice command.
     if (str(1) /= 'expand_lattice') then
-      n_line = n_line + 1
       str(2:n_line) = str(1:n_line-1)
       str(1) = 'expand_lattice'
     endif
@@ -743,13 +733,13 @@ endif
 
 end subroutine print_this_var
 
-end subroutine tao_print_vars_bmad_format
+end subroutine tao_print_vars
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_write_out (iunit, line)
+! Subroutine tao_write_lines (iunit, line)
 !
 ! Subroutine to write out a series of lines to a file or to the terminal.
 ! It is assumed that any file has already been opened.
@@ -759,7 +749,7 @@ end subroutine tao_print_vars_bmad_format
 !   line(:) -- Character(*): A series of lines.
 !-
 
-subroutine tao_write_out (iunit, line)
+subroutine tao_write_lines (iunit, line)
 
 implicit none
 
@@ -776,6 +766,6 @@ else
   enddo
 endif
 
-end subroutine tao_write_out
+end subroutine tao_write_lines
 
 end module
