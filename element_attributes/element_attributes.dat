@@ -1,4 +1,4 @@
- 2021-03-05 14:23:53 
+ 2021-03-18 23:16:34 
  
    1   Drift                 20   !Bmad_Com
    2   Sbend                 29   !Line
@@ -1239,6 +1239,7 @@
          1  L                                       
          2  TILT                                    
          3  RF_FREQUENCY                            
+         4  L_CATHODE_REGION                        
          6  GRADIENT                                
          7  GRADIENT_ERR                            
          8  VOLTAGE                                 
@@ -1567,6 +1568,7 @@
  
  !---------------------------------
   4  Group               
+         8  INTERPOLATION                           
         11  GANG                                    
         75  check_sum                                 [private]
         81  X_KNOT                                  
@@ -2626,6 +2628,7 @@
  
  !---------------------------------
   6  Overlay             
+         8  INTERPOLATION                           
         11  GANG                                    
         75  check_sum                                 [private]
         81  X_KNOT                                  
@@ -2639,7 +2642,7 @@
  24  Patch               
          1  L                                       
          2  TILT                                    
-         4  REF_COORDINATES                         
+         4  REF_COORDS                              
          5  FLEXIBLE                                
         29  UPSTREAM_ELE_DIR                        
         30  DOWNSTREAM_ELE_DIR                      
@@ -3090,6 +3093,7 @@
  
  !---------------------------------
  62  Ramper              
+         8  INTERPOLATION                           
         75  check_sum                                 [private]
         81  X_KNOT                                  
         82  ALIAS                                   
@@ -4179,11 +4183,11 @@
      1    55
      2    53
      3    26
-     4    19
+     4    20
      5    26
      6    24
      7    20
-     8    25
+     8    28
      9    10
     10    29
     11    32
@@ -4611,6 +4615,7 @@ Index: 4
     Crystal             
     Pipe                
     Capillary           
+    E_Gun               
     Undulator           
     Detector            
     Crab_Cavity         
@@ -4697,6 +4702,8 @@ Index: 7
  !---------------------------------
 Index: 8
     Sbend               
+    Group               
+    Overlay             
     Custom              
     Taylor              
     RFcavity            
@@ -4721,6 +4728,7 @@ Index: 8
     Sad_Mult            
     AC_Kicker           
     Crab_Cavity         
+    Ramper              
  
  !---------------------------------
 Index: 9
