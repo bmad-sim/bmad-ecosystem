@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# Downloads the latest open_spacecharge_mod.f90 open_spacecharge_core_mod.f90
+# from https://github.com/RobertRyne/OpenSpaceCharge
+#
+# Only open_spacecharge_mod.f90 is actually needed for Bmad
+#
 
 VERSION=1.0
 PACKAGE=OpenSpaceCharge
