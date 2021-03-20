@@ -3564,16 +3564,58 @@ The default file name is \vn{lat_\#.sad} where \vn{\#} is replaced by the univer
 \subsection{write variable}
 \label{s:write.variable}
 
-The \vn{write variable} command writes a number of files, one for each universe, of the \tao
-variables.
+The \vn{write variable} command writes \tao variable values to a file or files.
 Syntax:
 \begin{example}
-    write variable \{-good_var_only\} \{<file_name>\} 
+    write variable \{-good_var_only\} \{-tao_format\} \{<file_name>\} 
 \end{example}
+This is useful, for example, for recording changes when a lattice is optimized.
+
+If the \vn{-tao_format} switch is absent, the output is a list of lines with each line of the form:
+\begin{example}
+  slave_ele[slave_param] = value
+\end{example}
+where \vn{slave_param} is a paramter of \bmad element \vn{slave_ele} that is controlled by a \tao
+variable. And \vn{value} is the value of that parameter. For example, if \vn{quad_rot[14]} is a \tao
+variable that controls the \vn{tilt} parameter of \bmad lattice element \vn{q_arc_12}, the output
+will contain a line like:
+\begin{example}
+  q_arc12[tilt] = 0.23465e-4
+\end{example}
+This output can be used construct a lattice with optimized values. For example, if the output file
+name of the \vn{write variable} command is called \vn{var1.out}, a three line lattice file with the
+optimized values can be constructed which looks like:
+\begin{example}
+  call, file = original_lattice.bmad
+  expand_lattice
+  call, file = var1.out
+\end{example}
+where ``\vn{original_lattice.bmad}'' is the name of the original unoptimized lattice file. The
+\vn{expand_lattice} command may not be needed if the controlled \bmad elements have unique names.
+
+If the \vn{tao_format} switch is present, the output is a set of lines of the form:
+\begin{example}
+  set tao_var[index]|model = value
+\end{example}
+where \vn{tao_var[index]} designates a \tao variable which has the given \vn{model} value. For
+example, if \vn{quad_rot[14]} is a \tao variable, the output
+will contain a line like:
+\begin{example}
+  set quad_rot[14]|model = 0.23465e-4
+\end{example}
+With this format, the output of \vn{write variable} can be read back into \tao useing a \vn{call}
+command.
+
+Note: after the \bmad or \tao compatible set lines, there will be an \vn{end_file} command (so \bmad
+or \tao will ignore the rest of the file), and following this will be information on the
+optimization state.
+
+When there are multiple universes, and if \vn{-tao_format} is not present, the \vn{write variable}
+command writes a number of files, one for each universe.
 
 The default file name is \vn{var\#.out} where \vn{\#} is replaced by the universe number. 
 
-The optional \vn{-good_var_only} switch.  If present, only the information on variables that are
+If the optional \vn{-good_var_only} switch is present, only the information on variables that are
 currently used in the optimization is written.
 
 %% write madx --------------------------------------------------------------

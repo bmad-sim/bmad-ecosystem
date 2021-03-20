@@ -128,9 +128,9 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call tao_inject_particle (u, tao_lat, ib)
       call tao_single_track (u, tao_lat, this_calc_ok, ib)
       if (.not. this_calc_ok) calc_ok = .false.
-      if (.not. this_calc_ok) exit
 
-      !
+      ! Need to beam track even if single tracking is not OK since the merit function may depend
+      ! upon the beam tracking.
 
       if (s%global%track_type == 'beam' .and. branch%param%particle /= photon$) then
         call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
