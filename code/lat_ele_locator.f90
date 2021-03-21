@@ -63,9 +63,9 @@
 ! elements. Since super_lord elements always have a greater index (at least in branch 0), order by index
 ! will place any super_lord elements at the end of the list.
 !
-! Note: When there are multiple element names in lat_str (which will be separated by a comma or blank), 
-! the elements in the eles(:) array will be in the same order as they appear lat_str. For example,
-! with lat_str = "quad::*,sbend::*", all the quadrupoles will appear in eles(:) before all of the sbends.
+! Note: When there are multiple element names in loc_str (which will be separated by a comma or blank), 
+! the elements in the eles(:) array will be in the same order as they appear loc_str. For example,
+! with loc_str = "quad::*,sbend::*", all the quadrupoles will appear in eles(:) before all of the sbends.
 ! This is independent of the setting of order_by_index but the setting of order_by_index can affect
 ! the ordering of the quads among themselves and the ordering of the sbends among themselves.
 ! 
@@ -79,8 +79,9 @@
 !   ix_dflt_branch -- integer, optional: If present and not -1 then restrict search to specified branch.
 !                       If not present or -1: Search all branches. Exception: For elements specified using 
 !                       an integer index (EG: "43"), if ix_dflt_branch is not present or -1 use branch 0.
-!   order_by_index -- logical, optional: False is default. If True, order by element index instead of 
-!                       longitudinal s-position. 
+!   order_by_index -- logical, optional: False is default. If True, order a component of loc_str like "quad::*" 
+!                       by element index instead of longitudinal s-position. Index ordering and s-position ordering
+!                       are different when there are super lords and super slaves.
 !
 ! Output:
 !   eles(:)       -- ele_pointer_struct, allocatable: Array of matching elements.
