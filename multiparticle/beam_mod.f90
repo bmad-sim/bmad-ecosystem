@@ -222,7 +222,9 @@ endif
 csr_sc_on = bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. ele%space_charge_method /= off$)
 
 if (csr_sc_on .and. ele%key /= match$) then
-  if (csr_param%use_csr_old) then
+  if (ele%key == e_gun$ .and. ele%value(l_cathode_region$) /= 0) then
+    call track1_bunch_e_gun_space_charge (bunch_start, ele, bunch_end, err)
+  elseif (csr_param%use_csr_old) then
     call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
     if (err) return
   else
@@ -268,6 +270,5 @@ if (associated(wake_ele)) then
 endif
 
 end subroutine track1_bunch
-
 
 end module

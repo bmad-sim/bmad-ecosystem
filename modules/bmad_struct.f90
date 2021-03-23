@@ -463,7 +463,7 @@ integer, parameter :: alive$ = 1, lost$ = 2
 integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
 integer, parameter :: lost_pz_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
-integer, parameter :: unborn$ = 8    ! EG: For electrons not yet emitted from a cathode.
+integer, parameter :: pre_born$ = 8    ! EG: For electrons not yet emitted from a cathode.
 
 ! The %location component gives the particle location with respect to the element being tracked through
 ! even if that element is a super_slave or slice_slave. For example, a particle at the beginning of a
@@ -2240,7 +2240,7 @@ case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
 case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
 case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
 case (lost_pz_aperture$);      state_str = 'Hit Z Side'
-case (unborn$);                state_str = 'Unborn'
+case (pre_born$);              state_str = 'Pre_Born'
 case default;                  state_str = 'UNKNOWN!'
 end select
 
