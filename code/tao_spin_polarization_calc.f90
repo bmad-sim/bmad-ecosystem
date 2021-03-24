@@ -96,7 +96,6 @@ integral_dn_dpz    = 0 ! Integral of g^3 (11/18) dn_dpz
 integral_dn_dpz_partial = 0
 
 do ie = 0, branch%n_ele_track
-  ele => branch%ele(ie)
   if (ie /= 0) q_1turn = q_ele(ie) * q_1turn * q_ele(ie)**(-1)
   
   dn_dpz = spin_dn_dpz_from_qmap(real(q_1turn%mat, rp), real(q_1turn%q, rp), partial)

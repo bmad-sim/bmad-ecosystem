@@ -1028,8 +1028,16 @@ If spin tracking is desired then \vn{beam_init%init_spin} must be set to true.
 \tao re-tracks the beam through the lattice every time a lattice parameter is changed. For example,
 during optimizations or when the \vn{set} command (\sref{s:set}) is used. For the re-tracking, the
 particle distribution at the beginning of the lattice is fixed. That is, the a new random
-distribution is {\emph not} generated. To force a new distribution, use the \vn{reinitialize beam}
-command (\sref{s:reinit}).
+distribution is {\emph not} generated. This can be important during optimizations since variations of
+the initial distribution may hinder finding the merit function minimum.
+
+To force a new distribution, use the \vn{reinitialize beam} command (\sref{s:reinit}). The exception
+here is that if the Twiss parameters at the place where the beam is started changes, \tao will
+reinitialize the beam. For example, in a lattice branch with a closed geometry, any changes to
+magnet strengths will result in Twiss parameters changing everywhere. One trick to keep the initial
+distribution constant here is to change the geometry from closed to open. Another possibility is to
+specify the initial distribution using a beam position initialization file by setting
+\vn[beam_init%position_file}.
 
 The default is single particle tracking. To turn on particle tracking the \vn{global%track_type}
 parameter must be set to \vn{"beam"}. This can be placed in the \vn{tao_params} namelist above, for
