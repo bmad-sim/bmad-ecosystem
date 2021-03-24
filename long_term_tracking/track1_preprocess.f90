@@ -41,10 +41,23 @@ type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
 real(rp) r, t
-integer ir, n
-logical err_flag, finished, radiation_included
+integer ir, n, iu
+logical err_flag, finished, radiation_included, is_there
 
 character(*), parameter :: r_name = 'track1_preprocess'
+
+! Recording a particle track?
+
+if (start_orb%ix_user > 0 .and. start_orb%state == alive$) then
+  iu = lunget()
+  if (ele%ix_ele <= 1) then
+    open (iu, file = 'particle_track.dat')
+  else
+    open (iu, file = 'particle_track.dat', access = 'append')
+  endif
+  write (iu, '(i8, 2x, a20, 6es16.8)') ele%ix_ele, ele%name, start_orb%vec
+  close (iu)
+endif
 
 ! If bunch tracking, ramper bookkeeping is handled by track1_bunch_hook.
 
