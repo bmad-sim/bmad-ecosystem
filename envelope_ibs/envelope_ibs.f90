@@ -297,7 +297,7 @@ if (regression_test) then
   write (1, '(a, 3es16.8)') '"init-emit" REL 1E-8', mode%a%emittance, mode%b%emittance, mode%z%emittance
 
   do i = 1, 6
-    write (1, '(a, 6es16.8)') '"sigma-ent-' // int_str(i) // '" ABS 2E-13', sigma_ent(i,:)
+    write (1, '(a, 6es16.8)') '"sigma-ent-' // int_str(i) // '" ABS 1E-12', sigma_ent(i,:)
   enddo
 
   do i = 1, 6
@@ -310,24 +310,10 @@ if (regression_test) then
   write(1, '(a, 3es16.8)') '"normal" REL 1e-6', normal
 
   do i = 1, 6
-    write(1, '(a, 6es16.8)') '"sigma-exi-' // int_str(i) // '" ABS 2e-13', sigma_exit(i,:)
+    write(1, '(a, 6es16.8)') '"sigma-exi-' // int_str(i) // '" ABS 1e-12', sigma_exit(i,:)
   enddo 
 
   close (1)
 endif
 
-
-
 end program
-
-
-
-
-
-
-
-
-
-
-
-
