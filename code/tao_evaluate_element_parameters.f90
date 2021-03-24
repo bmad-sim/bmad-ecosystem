@@ -19,22 +19,14 @@
 !   values(:) -- Real(rp), allocatable: Array of datum valuse.
 !-
 
-subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_source, dflt_component, dflt_uni)
+subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele, dflt_source, dflt_component, dflt_uni)
 
 use tao_interface, except_dummy => tao_evaluate_element_parameters
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (lat_struct), pointer :: lat
-type (ele_struct), pointer :: ele0
-type (ele_struct) ele3
-type (tao_lattice_struct), pointer :: tao_lat
-type (coord_struct) orb
-type (coord_struct), pointer :: orb0
-type (branch_struct), pointer :: branch
-type (all_pointer_struct) a_ptr
-type (tao_lattice_branch_struct), pointer :: tao_branch
+type (ele_struct), pointer, optional :: dflt_ele
 
 character(*) param_name
 character(*) dflt_source
@@ -46,11 +38,11 @@ real(rp), allocatable :: values(:)
 real(rp) :: real_val
 
 integer, optional :: dflt_uni
-integer i, j, ix, num, ixe, ix1, ios, n_tot, ix_start, ib, where
+integer i, j, ix, num, ix1, ios, n_tot, ix_start, where
 
 integer, parameter :: beginning$ = 1, middle$ = 2, end$ = 3
 
-logical err, valid
+logical err, valid, use_dflt_ele
 logical :: print_err
 
 !
@@ -59,6 +51,8 @@ call tao_pick_universe (param_name, name, scratch%this_u, err, dflt_uni = dflt_u
 if (err) return
 
 err = .true.
+where = end$
+use_dflt_ele = .false.
 
 if (name(1:5) == 'ele::') then
   name = name(6:)  ! Strip off 'ele::'
@@ -69,7 +63,9 @@ elseif (name(1:9) == 'ele_mid::') then
 elseif (name(1:11) == 'ele_begin::') then   
   name = name(12:)  ! Strip off 'ele_begin::'
   where = beginning$
-elseif (dflt_source /= 'element') then
+elseif (present(dflt_ele)) then
+  use_dflt_ele = .true.
+elseif (dflt_source /= 'ele') then
   return
 endif
 
@@ -88,15 +84,16 @@ endif
 
 ! Get class:name
 
-ix1 = index(name, '[');
-if (ix1 == 0) return
-
-ix1 = index(name, '[');  if (ix1 == 0) return
-class_ele = name(1:ix1-1)
-name = name(ix1+1:)
-if (class_ele(1:2) == '::') class_ele = class_ele(3:)
-ix1 = index(name, ']');  if (ix1 == 0) return
-parameter = name(1:ix1-1)
+if (use_dflt_ele) then
+  parameter = name
+else
+  ix1 = index(name, '[');  if (ix1 == 0) return
+  class_ele = name(1:ix1-1)
+  name = name(ix1+1:)
+  if (class_ele(1:2) == '::') class_ele = class_ele(3:)
+  ix1 = index(name, ']');  if (ix1 == 0) return
+  parameter = name(1:ix1-1)
+endif
 
 ! "Intrinsic" element parameter values are not affected by evaluation in the middle.
 ! It is easier to list what is not intrinsic.
@@ -122,102 +119,138 @@ endif
 ! Evaluate
 
 n_tot = 0
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  if (.not. scratch%this_u(i)) cycle
-  u => s%u(i)
-  call tao_locate_elements (class_ele, u%ix_uni, scratch%eles, err)
-  if (err) return
-  call re_allocate (values, n_tot + size(scratch%eles))
 
-  do j = 1, size(scratch%eles)
-    ixe = scratch%eles(j)%ele%ix_ele
+if (use_dflt_ele) then
+    call re_allocate (values, 1)
+  call evaluate_this_parameter(dflt_ele, parameter, component, where, s%u(dflt_uni), n_tot, values, err)
 
-    if (parameter == 'index') then
-      values(n_tot+j) = ixe
-      cycle
-    endif
+else
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. scratch%this_u(i)) cycle
+    u => s%u(i)
+    call tao_locate_elements (class_ele, u%ix_uni, scratch%eles, err)
+    if (err) return
+    call re_allocate (values, n_tot + size(scratch%eles))
 
-    ib = scratch%eles(j)%ele%ix_branch
-    select case (component)
-    case ('model');     tao_lat => u%model
-    case ('base');      tao_lat => u%base
-    case ('design');    tao_lat => u%design
+    do j = 1, size(scratch%eles)
+      call evaluate_this_parameter(scratch%eles(j)%ele, parameter, component, where, u, n_tot, values, err)
+      if (err) return
+    enddo
+  enddo
+endif
+
+!-------------------------------------------------------------------------------
+contains
+
+subroutine evaluate_this_parameter(ele, parameter, component, where, u, n_tot, values, err)
+
+type (ele_struct) ele
+type (tao_universe_struct) :: u
+type (tao_lattice_struct), pointer :: tao_lat
+type (lat_struct), pointer :: lat
+type (branch_struct), pointer :: branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
+type (ele_struct), pointer :: ele0
+type (ele_struct) ele3
+type (coord_struct) orb
+type (coord_struct), pointer :: orb0
+type (all_pointer_struct) a_ptr
+
+real(rp), allocatable :: values(:)
+integer n_tot, where, ib, ixe
+character(*) parameter, component
+logical err
+
+!
+
+n_tot = n_tot + 1
+ixe = ele%ix_ele
+err = .true.
+
+if (parameter == 'index') then
+  values(n_tot) = ixe
+  err = .false.
+  return
+endif
+
+ib = ele%ix_branch
+select case (component)
+case ('model');     tao_lat => u%model
+case ('base');      tao_lat => u%base
+case ('design');    tao_lat => u%design
+case default
+  call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
+  return
+end select
+
+lat        => tao_lat%lat
+tao_branch => tao_lat%tao_branch(ib)
+branch     => lat%branch(ib)
+
+if (where /= end$ .and. ixe /= 0) then
+  ! Need to find element just before the element under consideration. 
+  ! This is complicated if the element under consideration is a lord.
+  ele0 => branch%ele(ixe)
+  do 
+    if (ele0%ix_ele <= branch%lat%branch(ele0%ix_branch)%n_ele_track) exit
+    ele0 => pointer_to_slave(ele0, 1)
+  enddo
+  ele0 => pointer_to_next_ele(ele0, -1)
+  orb0 => tao_lat%tao_branch(ele0%ix_branch)%orbit(ele0%ix_ele)
+
+  if (where == middle$) then
+    select case (parameter)
+    case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position')
+      call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
+                                                     .true., .false., orb0, orb, ele0, ele3, compute_floor_coords = .true.)
+      err = .true. ! To trigger call to pointer_to_attribute
     case default
-      call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
-      return
+      call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
+                                                                    .true., .false., orb0, orb, ele0, ele3, err)
+      values(n_tot) = tao_param_value_at_s (parameter, ele3, orb, err)
     end select
 
-      lat        => tao_lat%lat
-      tao_branch => tao_lat%tao_branch(ib)
-      branch     => lat%branch(ib)
-
-    if (where /= end$ .and. ixe /= 0) then
-      ! Need to find element just before the element under consideration. 
-      ! This is complicated if the element under consideration is a lord.
-      ele0 => branch%ele(ixe)
-      do 
-        if (ele0%ix_ele <= branch%lat%branch(ele0%ix_branch)%n_ele_track) exit
-        ele0 => pointer_to_slave(ele0, 1)
-      enddo
-      ele0 => pointer_to_next_ele(ele0, -1)
-      orb0 => tao_lat%tao_branch(ele0%ix_branch)%orbit(ele0%ix_ele)
-
-      if (where == middle$) then
-        select case (parameter)
-        case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position')
-          call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
-                                                         .true., .false., orb0, orb, ele0, ele3, compute_floor_coords = .true.)
-          err = .true. ! To trigger call to pointer_to_attribute
-        case default
-          call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
-                                                                        .true., .false., orb0, orb, ele0, ele3, err)
-          values(n_tot+j) = tao_param_value_at_s (parameter, ele3, orb, err)
-        end select
-
-        if (err) then
-          call pointer_to_attribute (ele3, parameter, .true., a_ptr, err, print_err)
-          if (err) return
-          values(n_tot+j) = value_of_all_ptr(a_ptr)
-        endif
-
-      else
-        values(n_tot+j) = tao_param_value_at_s (parameter, ele0, orb0, err)
-        if (err) then
-          call pointer_to_attribute (ele0, parameter, .true., a_ptr, err, print_err)
-          if (err) return
-          values(n_tot+j) = value_of_all_ptr(a_ptr)
-        endif
-      endif
-
-    else
-      select case (parameter)
-      case ('spin_dn_dpz.x')
-        if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
-        values(n_tot+j) = tao_branch%dn_dpz(ixe)%vec(1)
-      case ('spin_dn_dpz.y')
-        if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
-        values(n_tot+j) = tao_branch%dn_dpz(ixe)%vec(2)
-      case ('spin_dn_dpz.z')
-        if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch) ;err = .not. tao_branch%spin_valid
-        values(n_tot+j) = tao_branch%dn_dpz(ixe)%vec(3)
-      case ('spin_dn_dpz.amp')
-        if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
-        values(n_tot+j) = norm2(tao_branch%dn_dpz(ixe)%vec)
-      case default
-        values(n_tot+j) = tao_param_value_at_s (parameter, branch%ele(ixe), tao_branch%orbit(ixe), err)
-        if (err) then
-          call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
-          if (err) return
-          values(n_tot+j) = value_of_all_ptr(a_ptr)
-        endif
-      end select
+    if (err) then
+      call pointer_to_attribute (ele3, parameter, .true., a_ptr, err, print_err)
+      if (err) return
+      values(n_tot) = value_of_all_ptr(a_ptr)
     endif
 
-  enddo
+  else
+    values(n_tot) = tao_param_value_at_s (parameter, ele0, orb0, err)
+    if (err) then
+      call pointer_to_attribute (ele0, parameter, .true., a_ptr, err, print_err)
+      if (err) return
+      values(n_tot) = value_of_all_ptr(a_ptr)
+    endif
+  endif
 
-  n_tot = n_tot + size(scratch%eles)
-enddo
+else
+  select case (parameter)
+  case ('spin_dn_dpz.x')
+    if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
+    values(n_tot) = tao_branch%dn_dpz(ixe)%vec(1)
+  case ('spin_dn_dpz.y')
+    if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
+    values(n_tot) = tao_branch%dn_dpz(ixe)%vec(2)
+  case ('spin_dn_dpz.z')
+    if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch) ;err = .not. tao_branch%spin_valid
+    values(n_tot) = tao_branch%dn_dpz(ixe)%vec(3)
+  case ('spin_dn_dpz.amp')
+    if (.not. tao_branch%spin_valid) call tao_spin_polarization_calc(branch, tao_branch); err = .not. tao_branch%spin_valid
+    values(n_tot) = norm2(tao_branch%dn_dpz(ixe)%vec)
+  case default
+    values(n_tot) = tao_param_value_at_s (parameter, branch%ele(ixe), tao_branch%orbit(ixe), err)
+    if (err) then
+      call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
+      if (err) return
+      values(n_tot) = value_of_all_ptr(a_ptr)
+    endif
+  end select
+endif
 
 err = .false.
+
+end subroutine evaluate_this_parameter
 
 end subroutine tao_evaluate_element_parameters

@@ -230,9 +230,10 @@ subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
   integer ix_universe, ix_branch, ix_ele, ix_ele_track
 end subroutine
 
-subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_source, dflt_component, dflt_uni)
+subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele, dflt_source, dflt_component, dflt_uni)
   import
   implicit none
+  type (ele_struct), pointer, optional :: dflt_ele
   character(*) param_name
   character(*) dflt_source
   character(*), optional :: dflt_component

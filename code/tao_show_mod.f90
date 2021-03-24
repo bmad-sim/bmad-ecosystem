@@ -273,6 +273,7 @@ integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word, species
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
+integer eval_pt
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
@@ -2439,7 +2440,7 @@ case ('lattice')
         endif
       endif
 
-      column(i0+i) = show_lat_column_struct('ele::#[' // trim(attrib) // ']', fmt, width, '', .false., 1.0_rp)
+      column(i0+i) = show_lat_column_struct(attrib, fmt, width, attrib, .false., 1.0_rp)
     enddo
 
   case ('energy')
@@ -3034,13 +3035,17 @@ case ('lattice')
         write (nam, '(i0, a, i0)') ix_branch, '>>', ie
         call str_substitute (name, '#', trim(nam))
         ix = index(name, 'ele::')
-        if (where == 'middle' .and. ix /= 0) then
-          name = name(:ix+2) // '_mid' // trim(name(ix+3:))
-        elseif (where == 'beginning' .and. ix /= 0) then
-          name = name(:ix+2) // '_begin' // trim(name(ix+3:))
-        endif
+
+        select case (where)
+        case ('middle');    eval_pt = anchor_center$
+        case ('beginning'); eval_pt = anchor_beginning$
+        case default;       eval_pt = anchor_end$
+        end select
+
         call tao_evaluate_expression (name, 1, .false., value, info, err, .false., &
-                                                  dflt_component = tao_lat_type_name(lat_type), dflt_uni = u%ix_uni)
+                      dflt_component = tao_lat_type_name(lat_type), dflt_source = 'ele', dflt_ele = ele, &
+                      dflt_uni = u%ix_uni, dflt_eval_point = eval_pt)
+
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           if (column(i)%remove_line_if_zero) n_zeros_found = n_zeros_found + 1
           if (undef_uses_column_format .and. index(column(i)%format, 'A') == 0) then

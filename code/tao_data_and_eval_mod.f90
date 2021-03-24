@@ -4913,7 +4913,7 @@ if (source == 'lat' .or. source == 'beam') then
 ! Look for a lattice element parameter 
 
 elseif (source == 'ele') then
-  call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_source, dflt_component, dflt_uni)
+  call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_ele, dflt_source, dflt_component, dflt_uni)
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = (.not. err_flag)
   stack%type = ele_num$
