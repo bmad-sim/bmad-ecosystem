@@ -21,7 +21,7 @@ real(rp) time_now, mpi_particles_per_run
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size
-integer ix0_p, ix1_p, mpi_n_proc, n_pass, ix_path, n_out, iu, ios, i_turn
+integer ix0_p, ix1_p, mpi_n_proc, n_pass, ix_path, n_out, iu, ios, i_turn, iarr(2)
 integer, allocatable :: turn(:)
 
 logical am_i_done, err_flag, ok
@@ -123,7 +123,7 @@ if (ltt_com%mpi_rank == master_rank$) then
 
   call ltt_allocate_beam_data(lttp, beam_data_sum, size(beam%bunch))
   call ltt_allocate_beam_data(lttp, beam_data, size(beam%bunch))
-  bd_size = storage_size(beam_data%turn(1)%bunch) / 8
+  bd_size = size(beam_data%turn(1)%bunch) * storage_size(beam_data%turn(1)%bunch(1)) / 8
 
   ! Init positions to slaves
 
@@ -155,12 +155,15 @@ if (ltt_com%mpi_rank == master_rank$) then
     call ltt_print_mpi_info (lttp, ltt_com, 'Master: Waiting for data from a Slave... ' // int_str(bd_size))
     slave_rank = MPI_ANY_SOURCE
     do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
+      call mpi_recv (iarr, 2, MPI_INTEGER, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
+      beam_data%turn(ix)%status = iarr(1);  beam_data%turn(ix)%i_turn = iarr(2)
       call mpi_recv (beam_data%turn(ix)%bunch, bd_size, MPI_BYTE, slave_rank, results_tag$, MPI_COMM_WORLD, stat, ierr)
       slave_rank = stat(MPI_SOURCE)
     enddo
 
     ! Merge with existing data
     do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
+      if (beam_data%turn(ix)%status /= valid$) cycle
       do ib = 1, size(beam%bunch)
         bd => beam_data_sum%turn(ix)%bunch(ib)
         beam_data_sum%turn(ix)%i_turn   = beam_data%turn(ix)%i_turn
@@ -173,7 +176,8 @@ if (ltt_com%mpi_rank == master_rank$) then
         bd%time_sum = bd%time_sum + beam_data%turn(ix)%bunch(ib)%time_sum
         bd%species  = beam%bunch(1)%particle(1)%species
       enddo
-      if (beam_data%turn(ix)%status == valid$) beam_data_sum%turn(ix)%status = valid$
+      beam_data_sum%turn(ix)%i_turn = beam_data%turn(ix)%i_turn
+      beam_data_sum%turn(ix)%status = valid$
     enddo
 
     call ltt_print_mpi_info (lttp, ltt_com, 'Master: Gathered data from Slave: ' // int_str(slave_rank))
@@ -247,7 +251,6 @@ if (ltt_com%mpi_rank == master_rank$) then
         enddo
         close (iu)
       enddo
-      print *, 'Here:', i_turn, turn(nn)
       call ltt_write_particle_data (lttp, ltt_com, i_turn, beam, .false.)
     enddo
   endif
@@ -296,11 +299,13 @@ else  ! Is a slave
     ! Run
     call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Track beam.')
     call ltt_run_beam_mode(lttp, ltt_com, beam_init, beam_data, beam2)  ! Beam tracking
-    bd_size = storage_size(beam_data%turn(1)%bunch) / 8
+    bd_size = size(beam_data%turn(1)%bunch) * storage_size(beam_data%turn(1)%bunch(1)) / 8
 
     ! Send data to master
     call ltt_print_mpi_info (lttp, ltt_com, 'Slave: Sending Beam Size Data... ' // int_str(bd_size))
     do ix = lbound(beam_data%turn, 1), ubound(beam_data%turn, 1)
+      call mpi_send ([beam_data%turn(ix)%status, beam_data%turn(ix)%i_turn], 2, MPI_INTEGER, &
+                                                            master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
       call mpi_send (beam_data%turn(ix)%bunch, bd_size, MPI_BYTE, master_rank$, results_tag$, MPI_COMM_WORLD, ierr)
     enddo
 
