@@ -1002,6 +1002,8 @@ call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type
 call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
 call init_attribute_name1 (drift$, drift_id$,                       'drift_id', private$)
 
+call init_attribute_name1 (e_gun$, dt_max$,                         'DT_MAX')
+call init_attribute_name1 (e_gun$, emit_fraction$,                  'EMIT_FRACTION')
 call init_attribute_name1 (e_gun$, l_cathode_region$,               'L_CATHODE_REGION')
 call init_attribute_name1 (e_gun$, e_tot_ref_init$,                 'e_tot_ref_init', private$)
 call init_attribute_name1 (e_gun$, p0c_ref_init$,                   'p0c_ref_init', private$)
@@ -1850,7 +1852,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', &
       'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
       'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
-      'ETAP_X_OUT', 'ETAP_Y_OUT', &
+      'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', &
       'FIELD_AUTOSCALE', 'FIELD_SCALE_FACTOR', 'FIELD_X', 'FIELD_Y', 'FINT', 'FINTX', 'GAP', 'HARMON', 'HKICK', &
       'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_PERIOD', 'N_SAMPLE', 'N_SLICE_SPLINE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
@@ -1858,8 +1860,8 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
       'X_PITCH', 'Y_PITCH', 'X_PITCH_MULT', 'Y_PITCH_MULT', 'X_PITCH_TOT', 'Y_PITCH_TOT', 'AUTOSCALE_AMP_REL_TOL', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
-      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', &
-      'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2', 'PZ_APERTURE_CENTER')
+      'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', 'PZ_APERTURE_CENTER', &
+      'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2')
   attrib_units = ''
 
 case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTURE', &
@@ -1902,7 +1904,8 @@ case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', '
 case ('CRITICAL_ANGLE_FACTOR')
   attrib_units = 'rad*eV'
 
-case ('SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', 'ELLIPTICAL_CURVATURE_Z', 'FOCAL_STRENGTH')
+case ('SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', 'ELLIPTICAL_CURVATURE_Z', &
+      'FOCAL_STRENGTH')
   attrib_units = '1/m'
 
 case ('C21_MAT0', 'C21_MAT1', 'CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'DG', 'G_MAX', &
@@ -1929,7 +1932,7 @@ case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E2_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT
       'PC_OUT_MIN', 'PC_OUT_MAX')
   attrib_units = 'eV'
 
-case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET', 'DELTA_TIME')
+case ('DELTA_REF_TIME', 'REF_TIME', 'T', 'T_OFFSET', 'DELTA_TIME', 'DT_MAX')
   attrib_units = 'sec'
 
 case ('EMITTANCE_A', 'EMITTANCE_B', 'EMITTANCE_Z')

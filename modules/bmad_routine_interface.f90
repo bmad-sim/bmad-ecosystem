@@ -2245,10 +2245,10 @@ subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine track1_bunch_e_gun_space_charge (bunch_start, ele, bunch_end, err)
+subroutine track1_bunch_e_gun_space_charge (bunch, ele, err)
   import
   implicit none
-  type (bunch_struct) bunch_start, bunch_end
+  type (bunch_struct) bunch
   type (ele_struct) :: ele
   logical err
 end subroutine

@@ -223,7 +223,8 @@ csr_sc_on = bmad_com%csr_and_space_charge_on .and. (ele%csr_method /= off$ .or. 
 
 if (csr_sc_on .and. ele%key /= match$) then
   if (ele%key == e_gun$ .and. ele%value(l_cathode_region$) /= 0) then
-    call track1_bunch_e_gun_space_charge (bunch_start, ele, bunch_end, err)
+    bunch_end = bunch_start
+    call track1_bunch_e_gun_space_charge (bunch_end, ele, err)
   elseif (csr_param%use_csr_old) then
     call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
     if (err) return
