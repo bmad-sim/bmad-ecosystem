@@ -225,8 +225,8 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 integer, parameter :: horizontally_pure$ = 2, vertically_pure$ = 3
 character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', 'Horizontally_Pure', 'Vertically_Pure']
 
-integer, parameter :: one_dim$ = 2
-character(8), parameter :: csr_method_name(2) = [character(8):: 'Off', '1_Dim']
+integer, parameter :: one_dim$ = 2, three_dim_steady_state$ = 3
+character(20), parameter :: csr_method_name(3) = [character(20):: 'Off', '1_Dim', '3_Dim_Steady_State']
 
 integer, parameter :: slice$ = 2, fft_3D$ = 3
 character(20), parameter :: space_charge_method_name(3) = [character(20):: 'Off', 'Slice', 'fft_3D']
@@ -1256,7 +1256,7 @@ type ele_struct
   integer :: mat6_calc_method = bmad_standard$    ! taylor$, symp_lie_ptc$, etc.
   integer :: tracking_method = bmad_standard$     ! taylor$, linear$, etc.
   integer :: spin_tracking_method = tracking$     ! symp_lie_ptc$, etc.
-  integer :: csr_method = off$                    ! or one_dim$ ("1_dim")
+  integer :: csr_method = off$                    ! or one_dim$ ("1_dim"), three_dim_steady_state$ ("3_dim_steady_state")
   integer :: space_charge_method = off$           ! slice$, slice_longitudinal$, slice_transverse$, fft_3D$
   integer :: ptc_integration_type = matrix_kick$  ! drift_kick$, matrix_kick$, or ripken_kick$
   integer :: field_calc = bmad_standard$          ! no_field$, fieldmap$, refer_to_lords$, or custom$
@@ -1541,10 +1541,11 @@ integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, constant_ref_energy$ = 
 integer, parameter :: longitudinal_mode$ = 20, sig_e2$ = 20
 integer, parameter :: fb1$ = 21, polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: beta_a_strong$ = 21, beta_a_out$ = 21, e_loss$ = 21, gap$ = 21, spin_x$ = 21, E_center$ = 21
-integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
+integer, parameter :: fb2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, dt_max$ = 22
 integer, parameter :: beta_b_strong$ = 22, beta_b_out$ = 22, spin_y$ = 22, E2_center$ = 22, n_period$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23, l_period$ = 23
 integer, parameter :: fq1$ = 23, alpha_a_strong$ = 23, alpha_a_out$ = 23, cavity_type$ = 23, E2_probability$ = 23
+integer, parameter :: emit_fraction$ = 23
 integer, parameter :: fq2$ = 24, phi0$ = 24, tilt_calib$ = 24, E_center_relative_to_ref$ = 24
 integer, parameter :: alpha_b_strong$ = 24, alpha_b_out$ = 24, is_mosaic$ = 24, px_aperture_width2$ = 24
 integer, parameter :: phi0_err$ = 25, current$ = 25, mosaic_thickness$ = 25, px_aperture_center$ = 25
