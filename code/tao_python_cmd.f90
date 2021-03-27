@@ -4956,8 +4956,8 @@ case ('shape_pattern_point_manage')
 ! lat_layout or floor_plan shape set
 ! Command syntax:
 !   python shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
-!                    {shape_size}^^{type_label}^^{shape_draw?}^^
-!                    {multi_shape?}^^{line_width}
+!                    {shape_size}^^{type_label}^^{shape_draw}^^
+!                    {multi_shape}^^{line_width}
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
@@ -4972,8 +4972,8 @@ case ('shape_pattern_point_manage')
 ! color
 ! shape_size
 ! type_label
-! shape_draw?
-! multi_shape?
+! shape_draw
+! multi_shape
 ! line_width
 !
 !    
