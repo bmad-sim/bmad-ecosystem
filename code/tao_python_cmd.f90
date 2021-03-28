@@ -3,6 +3,9 @@
 !
 ! Print information in a form easily parsed by a scripting program like python.
 !
+! Output will be printed to the terminal or written to a file depending upon the switches embedded
+! in the input_str string argument. See the contained routine end_stuff below.
+!
 ! Note: The syntax for "parameter list form" is:
 !   {component_name};{type};{variable};{component_value}
 !
