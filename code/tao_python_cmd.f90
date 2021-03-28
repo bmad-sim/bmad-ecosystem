@@ -4,7 +4,9 @@
 ! Print information in a form easily parsed by a scripting program like python.
 !
 ! Output will be printed to the terminal or written to a file depending upon the switches embedded
-! in the input_str string argument. See the contained routine end_stuff below.
+! in the input_str string argument. See the contained routine end_stuff below. For a few commands (for
+! example, the "python lat_list" command), the output can be stored on the tao_c_interface_com%c_integer
+! or tao_c_interface_com%c_real arrays for faster processing.
 !
 ! Note: The syntax for "parameter list form" is:
 !   {component_name};{type};{variable};{component_value}
