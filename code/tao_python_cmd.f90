@@ -3609,6 +3609,7 @@ case ('lat_ele_list')
 !   -index_order is optional. If present, order elements by element index instead of the standard s-position.
 !   -real_out is optional. If present, the output will be available in the tao_c_interface_com%c_real or
 !     tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
+!     Note: Only a single {who} item permitted when -real_out is present.
 !
 !   {which} is one of:
 !     model
@@ -3635,8 +3636,6 @@ case ('lat_ele_list')
 !     Use "*" to match to all elements.
 ! 
 ! Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
-! Note: To output through the real array buffer, add the prefix "real:" to {who}.
-! Note: Only a single item permitted with real buffer out.
 ! 
 ! Examples:
 !   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
