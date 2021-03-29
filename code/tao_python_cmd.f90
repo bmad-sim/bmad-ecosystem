@@ -5,8 +5,8 @@
 !
 ! Output will be printed to the terminal or written to a file depending upon the switches embedded
 ! in the input_str string argument. See the contained routine end_stuff below. For a few commands (for
-! example, the "python lat_list" command), the output can be stored on the tao_c_interface_com%c_integer
-! or tao_c_interface_com%c_real arrays for faster processing.
+! example, the "python lat_list" command), the output can be stored on the tao_c_interface_com%c_integer (for 
+! integer output) or tao_c_interface_com%c_real (for real output) arrays for faster processing.
 !
 ! Note: The syntax for "parameter list form" is:
 !   {component_name};{type};{variable};{component_value}
@@ -3601,15 +3601,15 @@ case ('lat_ele_list')
 !%% lat_list -----------------------
 ! List of parameters at ends of lattice elements
 ! Command syntax:
-!   python lat_list -no_slaves -track_only -index_order 
+!   python lat_list -no_slaves -track_only -index_order -real_out
 !                   {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 ! where:
-!   -no_slaves is optional. If present, multipass_slave and super_slave elements
-!              will not be matched to.
+!   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
 !   -track_only is optional. If present, lord elements will not be matched to.
-!   -index_order is optional. If present, order elements by element index instead 
-!                of the standard s-position.
-! 
+!   -index_order is optional. If present, order elements by element index instead of the standard s-position.
+!   -real_out is optional. If present, the output will be available in the tao_c_interface_com%c_real or
+!     tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
+!
 !   {which} is one of:
 !     model
 !     base
@@ -3648,6 +3648,8 @@ case ('lat_list')
   no_slaves = .false.
   track_only = .false.
   index_order = .false.
+  use_real_array_buffer = .false.
+
   do
     if (ix_line == 0) then
       call invalid ('List of elements not present.')
@@ -3672,13 +3674,20 @@ case ('lat_list')
       cycle
     endif
 
+    if (index('-real_out', line(1:ix_line)) == 1) then
+      call string_trim(line(ix_line+1:), line, ix_line)
+      use_real_array_buffer = .true.
+      cycle
+    endif
+
     exit
   enddo
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err, tail_str = all_who); if (err) return
-  use_real_array_buffer = (all_who(1:5) == 'real:')
-  if (use_real_array_buffer) then
+
+  if (all_who(1:5) == 'real:') then  ! Old style
+    use_real_array_buffer = .true.
     all_who = all_who(6:)
     call re_allocate(real_arr, 1000)
   endif
