@@ -2204,6 +2204,8 @@ is_eq = is_eq .and. (f1%beam_chamber_height == f2%beam_chamber_height)
 is_eq = is_eq .and. (f1%sigma_cutoff == f2%sigma_cutoff)
 !! f_side.equality_test[integer, 1, NOT]
 is_eq = is_eq .and. all(f1%space_charge_mesh_size == f2%space_charge_mesh_size)
+!! f_side.equality_test[integer, 1, NOT]
+is_eq = is_eq .and. all(f1%csr3d_mesh_size == f2%csr3d_mesh_size)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_bin == f2%n_bin)
 !! f_side.equality_test[integer, 0, NOT]
