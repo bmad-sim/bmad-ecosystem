@@ -777,7 +777,7 @@ case ('constraints')
 
         ie = data%ix_ele_merit
         a_name = ''
-        if (ie /= 0) then
+        if (ie >= 0) then
           branch => s%u(i)%model%lat%branch(data%ix_branch)
           a_name = branch%ele(ie)%name
         endif
