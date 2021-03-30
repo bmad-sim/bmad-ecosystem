@@ -3601,15 +3601,15 @@ case ('lat_ele_list')
 !%% lat_list -----------------------
 ! List of parameters at ends of lattice elements
 ! Command syntax:
-!   python lat_list -no_slaves -track_only -index_order -real_out
+!   python lat_list -no_slaves -track_only -index_order -array_out
 !                   {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 ! where:
 !   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
 !   -track_only is optional. If present, lord elements will not be matched to.
 !   -index_order is optional. If present, order elements by element index instead of the standard s-position.
-!   -real_out is optional. If present, the output will be available in the tao_c_interface_com%c_real or
+!   -array_out is optional. If present, the output will be available in the tao_c_interface_com%c_real or
 !     tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
-!     Note: Only a single {who} item permitted when -real_out is present.
+!     Note: Only a single {who} item permitted when -array_out is present.
 !
 !   {which} is one of:
 !     model
@@ -3639,7 +3639,7 @@ case ('lat_ele_list')
 ! 
 ! Examples:
 !   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
-!   python lat_list 3@0>>Q*|base real:ele.s    
+!   python lat_list -real 3@0>>Q*|base ele.s    
 ! 
 
 case ('lat_list')
@@ -3673,7 +3673,7 @@ case ('lat_list')
       cycle
     endif
 
-    if (index('-real_out', line(1:ix_line)) == 1) then
+    if (index('-array_out', line(1:ix_line)) == 1) then
       call string_trim(line(ix_line+1:), line, ix_line)
       use_real_array_buffer = .true.
       cycle
