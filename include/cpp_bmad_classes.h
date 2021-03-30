@@ -1604,7 +1604,7 @@ public:
   Real psi;
 
   CPP_floor_position() :
-    r([0, 0, 0], 3),
+    r(0.0, 3),
     w(Real_ARRAY(0.0, 3), 3),
     theta(0.0),
     phi(0.0),
@@ -2906,6 +2906,7 @@ public:
   Real beam_chamber_height;
   Real sigma_cutoff;
   Int_ARRAY space_charge_mesh_size;
+  Int_ARRAY csr3d_mesh_size;
   Int n_bin;
   Int particle_bin_span;
   Int n_shield_images;
@@ -2921,7 +2922,8 @@ public:
     ds_track_step(0.0),
     beam_chamber_height(0.0),
     sigma_cutoff(0.1),
-    space_charge_mesh_size([32, 32, 64], 3),
+    space_charge_mesh_size(32, 3),
+    csr3d_mesh_size(32, 3),
     n_bin(0),
     particle_bin_span(2),
     n_shield_images(0),

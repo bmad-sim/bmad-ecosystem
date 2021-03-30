@@ -3018,26 +3018,27 @@ extern "C" void csr_parameter_to_c (const Opaque_csr_parameter_class*, CPP_csr_p
 
 // c_side.to_f2_arg
 extern "C" void csr_parameter_to_f2 (Opaque_csr_parameter_class*, c_Real&, c_Real&, c_Real&,
-    c_IntArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Char);
+    c_IntArr, c_IntArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Char);
 
 extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Opaque_csr_parameter_class* F) {
 
   // c_side.to_f2_call
   csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff,
-      &C.space_charge_mesh_size[0], C.n_bin, C.particle_bin_span, C.n_shield_images,
-      C.sc_min_in_bin, C.lsc_kick_transverse_dependence, C.print_taylor_warning,
-      C.write_csr_wake, C.use_csr_old, C.small_angle_approx, C.wake_output_file.c_str());
+      &C.space_charge_mesh_size[0], &C.csr3d_mesh_size[0], C.n_bin, C.particle_bin_span,
+      C.n_shield_images, C.sc_min_in_bin, C.lsc_kick_transverse_dependence,
+      C.print_taylor_warning, C.write_csr_wake, C.use_csr_old, C.small_angle_approx,
+      C.wake_output_file.c_str());
 
 }
 
 // c_side.to_c2_arg
 extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_step, c_Real&
-    z_beam_chamber_height, c_Real& z_sigma_cutoff, c_IntArr z_space_charge_mesh_size, c_Int&
-    z_n_bin, c_Int& z_particle_bin_span, c_Int& z_n_shield_images, c_Int& z_sc_min_in_bin,
-    c_Bool& z_lsc_kick_transverse_dependence, c_Bool& z_print_taylor_warning, c_Bool&
-    z_write_csr_wake, c_Bool& z_use_csr_old, c_Bool& z_small_angle_approx, c_Char
-    z_wake_output_file) {
+    z_beam_chamber_height, c_Real& z_sigma_cutoff, c_IntArr z_space_charge_mesh_size, c_IntArr
+    z_csr3d_mesh_size, c_Int& z_n_bin, c_Int& z_particle_bin_span, c_Int& z_n_shield_images,
+    c_Int& z_sc_min_in_bin, c_Bool& z_lsc_kick_transverse_dependence, c_Bool&
+    z_print_taylor_warning, c_Bool& z_write_csr_wake, c_Bool& z_use_csr_old, c_Bool&
+    z_small_angle_approx, c_Char z_wake_output_file) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_track_step = z_ds_track_step;
@@ -3047,6 +3048,8 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
   C.sigma_cutoff = z_sigma_cutoff;
   // c_side.to_c2_set[integer, 1, NOT]
   C.space_charge_mesh_size << z_space_charge_mesh_size;
+  // c_side.to_c2_set[integer, 1, NOT]
+  C.csr3d_mesh_size << z_csr3d_mesh_size;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_bin = z_n_bin;
   // c_side.to_c2_set[integer, 0, NOT]

@@ -7372,27 +7372,32 @@ do jd1 = 1, size(F%space_charge_mesh_size,1); lb1 = lbound(F%space_charge_mesh_s
   rhs = 100 + jd1 + 4 + offset
   F%space_charge_mesh_size(jd1+lb1) = rhs
 enddo
+!! f_side.test_pat[integer, 1, NOT]
+do jd1 = 1, size(F%csr3d_mesh_size,1); lb1 = lbound(F%csr3d_mesh_size,1) - 1
+  rhs = 100 + jd1 + 5 + offset
+  F%csr3d_mesh_size(jd1+lb1) = rhs
+enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 5 + offset; F%n_bin = rhs
+rhs = 6 + offset; F%n_bin = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%particle_bin_span = rhs
+rhs = 7 + offset; F%particle_bin_span = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%n_shield_images = rhs
+rhs = 8 + offset; F%n_shield_images = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%sc_min_in_bin = rhs
+rhs = 9 + offset; F%sc_min_in_bin = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 9 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
+rhs = 10 + offset; F%lsc_kick_transverse_dependence = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 10 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
+rhs = 11 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%write_csr_wake = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
+rhs = 13 + offset; F%use_csr_old = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 13 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+rhs = 14 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%wake_output_file)
-  F%wake_output_file(jd1:jd1) = char(ichar("a") + modulo(100+14+offset+jd1, 26))
+  F%wake_output_file(jd1:jd1) = char(ichar("a") + modulo(100+15+offset+jd1, 26))
 enddo
 
 end subroutine set_csr_parameter_test_pattern

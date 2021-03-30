@@ -8208,14 +8208,15 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
-      z_space_charge_mesh_size, z_n_bin, z_particle_bin_span, z_n_shield_images, &
-      z_sc_min_in_bin, z_lsc_kick_transverse_dependence, z_print_taylor_warning, &
-      z_write_csr_wake, z_use_csr_old, z_small_angle_approx, z_wake_output_file) bind(c)
+      z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, z_particle_bin_span, &
+      z_n_shield_images, z_sc_min_in_bin, z_lsc_kick_transverse_dependence, &
+      z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx, &
+      z_wake_output_file) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
-    integer(c_int) :: z_space_charge_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
+    integer(c_int) :: z_space_charge_mesh_size(*), z_csr3d_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
     logical(c_bool) :: z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx
     character(c_char) :: z_wake_output_file(*)
   end subroutine
@@ -8234,10 +8235,11 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, &
-    fvec2vec(F%space_charge_mesh_size, 3), F%n_bin, F%particle_bin_span, F%n_shield_images, &
-    F%sc_min_in_bin, c_logic(F%lsc_kick_transverse_dependence), &
-    c_logic(F%print_taylor_warning), c_logic(F%write_csr_wake), c_logic(F%use_csr_old), &
-    c_logic(F%small_angle_approx), trim(F%wake_output_file) // c_null_char)
+    fvec2vec(F%space_charge_mesh_size, 3), fvec2vec(F%csr3d_mesh_size, 3), F%n_bin, &
+    F%particle_bin_span, F%n_shield_images, F%sc_min_in_bin, &
+    c_logic(F%lsc_kick_transverse_dependence), c_logic(F%print_taylor_warning), &
+    c_logic(F%write_csr_wake), c_logic(F%use_csr_old), c_logic(F%small_angle_approx), &
+    trim(F%wake_output_file) // c_null_char)
 
 end subroutine csr_parameter_to_c
 
@@ -8258,9 +8260,10 @@ end subroutine csr_parameter_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
-    z_space_charge_mesh_size, z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
-    z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, &
-    z_small_angle_approx, z_wake_output_file) bind(c)
+    z_space_charge_mesh_size, z_csr3d_mesh_size, z_n_bin, z_particle_bin_span, &
+    z_n_shield_images, z_sc_min_in_bin, z_lsc_kick_transverse_dependence, &
+    z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx, &
+    z_wake_output_file) bind(c)
 
 
 implicit none
@@ -8270,7 +8273,7 @@ type(csr_parameter_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
-integer(c_int) :: z_space_charge_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
+integer(c_int) :: z_space_charge_mesh_size(*), z_csr3d_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
 logical(c_bool) :: z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx
 character(c_char) :: z_wake_output_file(*)
 
@@ -8284,6 +8287,8 @@ F%beam_chamber_height = z_beam_chamber_height
 F%sigma_cutoff = z_sigma_cutoff
 !! f_side.to_f2_trans[integer, 1, NOT]
 F%space_charge_mesh_size = z_space_charge_mesh_size(1:3)
+!! f_side.to_f2_trans[integer, 1, NOT]
+F%csr3d_mesh_size = z_csr3d_mesh_size(1:3)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_bin = z_n_bin
 !! f_side.to_f2_trans[integer, 0, NOT]

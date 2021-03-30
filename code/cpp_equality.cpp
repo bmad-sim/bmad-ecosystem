@@ -1240,6 +1240,7 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.beam_chamber_height == y.beam_chamber_height);
   is_eq = is_eq && (x.sigma_cutoff == y.sigma_cutoff);
   is_eq = is_eq && is_all_equal(x.space_charge_mesh_size, y.space_charge_mesh_size);
+  is_eq = is_eq && is_all_equal(x.csr3d_mesh_size, y.csr3d_mesh_size);
   is_eq = is_eq && (x.n_bin == y.n_bin);
   is_eq = is_eq && (x.particle_bin_span == y.particle_bin_span);
   is_eq = is_eq && (x.n_shield_images == y.n_shield_images);

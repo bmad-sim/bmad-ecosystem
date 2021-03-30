@@ -4954,37 +4954,40 @@ void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
   // c_side.test_pat[integer, 1, NOT]
   for (unsigned int i = 0; i < C.space_charge_mesh_size.size(); i++)
     {int rhs = 101 + i + 4 + offset; C.space_charge_mesh_size[i] = rhs;}
+  // c_side.test_pat[integer, 1, NOT]
+  for (unsigned int i = 0; i < C.csr3d_mesh_size.size(); i++)
+    {int rhs = 101 + i + 5 + offset; C.csr3d_mesh_size[i] = rhs;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.n_bin = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.particle_bin_span = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.n_shield_images = rhs;
+  rhs = 6 + offset; C.n_bin = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.sc_min_in_bin = rhs;
+  rhs = 7 + offset; C.particle_bin_span = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.n_shield_images = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 9 + offset; C.sc_min_in_bin = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 9 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
+  rhs = 10 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 10 + offset; C.print_taylor_warning = (rhs % 2 == 0);
+  rhs = 11 + offset; C.print_taylor_warning = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.write_csr_wake = (rhs % 2 == 0);
+  rhs = 12 + offset; C.write_csr_wake = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.use_csr_old = (rhs % 2 == 0);
+  rhs = 13 + offset; C.use_csr_old = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 13 + offset; C.small_angle_approx = (rhs % 2 == 0);
+  rhs = 14 + offset; C.small_angle_approx = (rhs % 2 == 0);
 
   // c_side.test_pat[character, 0, NOT]
   C.wake_output_file.resize(200);
   for (unsigned int i = 0; i < C.wake_output_file.size(); i++)
-    {int rhs = 101 + i + 14 + offset; C.wake_output_file[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 15 + offset; C.wake_output_file[i] = 'a' + rhs % 26;}
 
 }
 
