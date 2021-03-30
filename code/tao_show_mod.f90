@@ -1810,7 +1810,6 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %taylor_order                    = ', bmad_com%taylor_order
     nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
     nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order            = ', bmad_com%ptc_max_fringe_order
-    nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size          = ', bmad_com%space_charge_mesh_size
 
     nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
@@ -1849,6 +1848,8 @@ case ('global')
     nl=nl+1; write(lines(nl), imt) '  %particle_bin_span              = ', csr_param%particle_bin_span
     nl=nl+1; write(lines(nl), imt) '  %n_shield_images                = ', csr_param%n_shield_images
     nl=nl+1; write(lines(nl), imt) '  %sc_min_in_bin                  = ', csr_param%sc_min_in_bin
+    nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size         = ', csr_param%space_charge_mesh_size
+    nl=nl+1; write(lines(nl), imt) '  %csr3d_mesh_size                = ', csr_param%csr3d_mesh_size
     nl=nl+1; write(lines(nl), lmt) '  %print_taylor_warning           = ', csr_param%print_taylor_warning
     nl=nl+1; write(lines(nl), lmt) '  %lsc_kick_transverse_dependence = ', csr_param%lsc_kick_transverse_dependence
     nl=nl+1; write(lines(nl), lmt) '  %write_csr_wake                 = ', csr_param%write_csr_wake
