@@ -18,7 +18,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 259
+integer, parameter :: bmad_inc_version$ = 260
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1880,6 +1880,7 @@ type csr_parameter_struct                  ! Common block for csr calc
   real(rp) :: beam_chamber_height = 0      ! Used in shielding calculation.
   real(rp) :: sigma_cutoff = 0.1           ! Cutoff for the lsc calc. If a bin sigma
                                            !  is < cutoff * sigma_ave then ignore.
+  integer :: space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
   integer :: n_bin = 0                     ! Number of bins used
   integer :: particle_bin_span = 2         ! Longitudinal particle length / dz_bin
   integer :: n_shield_images = 0           ! Chamber wall shielding. 0 = no shielding.
@@ -1927,7 +1928,6 @@ type extra_parsing_info_struct
   logical :: ran_function_was_called                = .false.
   logical :: deterministic_ran_function_was_called  = .false.
   logical :: d_orb_set                              = .false.
-  logical :: space_charge_mesh_size_set             = .false.
   logical :: max_aperture_limit_set                 = .false.
   logical :: default_ds_step_set                    = .false.
   logical :: significant_length_set                 = .false.
@@ -2004,7 +2004,6 @@ type bmad_common_struct
   real(rp) :: ptc_cut_factor = 0.006                   ! Cut factor for PTC tracking
   real(rp) :: sad_eps_scale = 5.0d-3                   ! Used in sad_mult step length calc.
   real(rp) :: sad_amp_max = 5.0d-2                     ! Used in sad_mult step length calc.
-  integer :: space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
   integer :: sad_n_div_max = 1000                      ! Used in sad_mult step length calc.
   integer :: taylor_order = 0                          ! Input Taylor order. 0 -> default = ptc%taylor_order_saved
                                                        !   ptc_com%taylor_order_ptc gives actual order in use. 

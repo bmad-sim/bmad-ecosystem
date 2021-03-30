@@ -152,7 +152,7 @@ branch => pointer_to_branch(ele)
 if (ele%space_charge_method == fft_3d$) then
   c0 => centroid(ele%ix_ele)
   call convert_pc_to((1+c0%vec(6)) * c0%p0c, c0%species, gamma = csr%mesh3d%gamma)
-  csr%mesh3d%nhi = bmad_com%space_charge_mesh_size
+  csr%mesh3d%nhi = csr_param%space_charge_mesh_size
 endif
 
 ! No CSR for a zero length element.
