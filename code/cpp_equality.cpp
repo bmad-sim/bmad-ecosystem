@@ -966,6 +966,7 @@ bool operator== (const CPP_controller& x, const CPP_controller& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && is_all_equal(x.var, y.var);
+  is_eq = is_eq && is_all_equal(x.ramp, y.ramp);
   is_eq = is_eq && is_all_equal(x.x_knot, y.x_knot);
   return is_eq;
 };
@@ -1238,6 +1239,7 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.ds_track_step == y.ds_track_step);
   is_eq = is_eq && (x.beam_chamber_height == y.beam_chamber_height);
   is_eq = is_eq && (x.sigma_cutoff == y.sigma_cutoff);
+  is_eq = is_eq && is_all_equal(x.space_charge_mesh_size, y.space_charge_mesh_size);
   is_eq = is_eq && (x.n_bin == y.n_bin);
   is_eq = is_eq && (x.particle_bin_span == y.particle_bin_span);
   is_eq = is_eq && (x.n_shield_images == y.n_shield_images);
@@ -1276,7 +1278,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.ptc_cut_factor == y.ptc_cut_factor);
   is_eq = is_eq && (x.sad_eps_scale == y.sad_eps_scale);
   is_eq = is_eq && (x.sad_amp_max == y.sad_amp_max);
-  is_eq = is_eq && is_all_equal(x.space_charge_mesh_size, y.space_charge_mesh_size);
   is_eq = is_eq && (x.sad_n_div_max == y.sad_n_div_max);
   is_eq = is_eq && (x.taylor_order == y.taylor_order);
   is_eq = is_eq && (x.runge_kutta_order == y.runge_kutta_order);

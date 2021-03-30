@@ -6600,13 +6600,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine controller_to_c2 (C, z_type, z_var, n1_var, z_x_knot, n1_x_knot) bind(c)
+  subroutine controller_to_c2 (C, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_type
-    type(c_ptr) :: z_var(*)
-    integer(c_int), value :: n1_var, n1_x_knot
+    type(c_ptr) :: z_var(*), z_ramp(*)
+    integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
     real(c_double) :: z_x_knot(*)
   end subroutine
 end interface
@@ -6618,6 +6619,8 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_var(:)
 integer(c_int) :: n1_var
+type(c_ptr), allocatable :: z_ramp(:)
+integer(c_int) :: n1_ramp
 integer(c_int) :: n1_x_knot
 
 !
@@ -6633,6 +6636,15 @@ if (allocated(F%var)) then
     z_var(jd1) = c_loc(F%var(jd1+lb1))
   enddo
 endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_ramp = 0
+if (allocated(F%ramp)) then
+  n1_ramp = size(F%ramp); lb1 = lbound(F%ramp, 1) - 1
+  allocate (z_ramp(n1_ramp))
+  do jd1 = 1, n1_ramp
+    z_ramp(jd1) = c_loc(F%ramp(jd1+lb1))
+  enddo
+endif
 !! f_side.to_c_trans[real, 1, ALLOC]
 n1_x_knot = 0
 if (allocated(F%x_knot)) then
@@ -6640,7 +6652,8 @@ if (allocated(F%x_knot)) then
 endif
 
 !! f_side.to_c2_call
-call controller_to_c2 (C, F%type, z_var, n1_var, fvec2vec(F%x_knot, n1_x_knot), n1_x_knot)
+call controller_to_c2 (C, F%type, z_var, n1_var, z_ramp, n1_ramp, fvec2vec(F%x_knot, &
+    n1_x_knot), n1_x_knot)
 
 end subroutine controller_to_c
 
@@ -6660,7 +6673,8 @@ end subroutine controller_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine controller_to_f2 (Fp, z_type, z_var, n1_var, z_x_knot, n1_x_knot) bind(c)
+subroutine controller_to_f2 (Fp, z_type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot) &
+    bind(c)
 
 
 implicit none
@@ -6670,8 +6684,8 @@ type(controller_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int) :: z_type
-type(c_ptr) :: z_var(*)
-integer(c_int), value :: n1_var, n1_x_knot
+type(c_ptr) :: z_var(*), z_ramp(*)
+integer(c_int), value :: n1_var, n1_ramp, n1_x_knot
 type(c_ptr), value :: z_x_knot
 real(c_double), pointer :: f_x_knot(:)
 
@@ -6690,6 +6704,20 @@ else
   if (.not. allocated(F%var)) allocate(F%var(1:n1_var+1-1))
   do jd1 = 1, n1_var
     call controller_var1_to_f (z_var(jd1), c_loc(F%var(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_ramp == 0) then
+  if (allocated(F%ramp)) deallocate(F%ramp)
+else
+  if (allocated(F%ramp)) then
+    if (n1_ramp == 0 .or. any(shape(F%ramp) /= [n1_ramp])) deallocate(F%ramp)
+    if (any(lbound(F%ramp) /= 1)) deallocate(F%ramp)
+  endif
+  if (.not. allocated(F%ramp)) allocate(F%ramp(1:n1_ramp+1-1))
+  do jd1 = 1, n1_ramp
+    call control_to_f (z_ramp(jd1), c_loc(F%ramp(jd1+1-1)))
   enddo
 endif
 
@@ -8180,14 +8208,14 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
-      z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
-      z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, &
-      z_use_csr_old, z_small_angle_approx, z_wake_output_file) bind(c)
+      z_space_charge_mesh_size, z_n_bin, z_particle_bin_span, z_n_shield_images, &
+      z_sc_min_in_bin, z_lsc_kick_transverse_dependence, z_print_taylor_warning, &
+      z_write_csr_wake, z_use_csr_old, z_small_angle_approx, z_wake_output_file) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
-    integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
+    integer(c_int) :: z_space_charge_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
     logical(c_bool) :: z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx
     character(c_char) :: z_wake_output_file(*)
   end subroutine
@@ -8205,11 +8233,11 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, F%n_bin, &
-    F%particle_bin_span, F%n_shield_images, F%sc_min_in_bin, &
-    c_logic(F%lsc_kick_transverse_dependence), c_logic(F%print_taylor_warning), &
-    c_logic(F%write_csr_wake), c_logic(F%use_csr_old), c_logic(F%small_angle_approx), &
-    trim(F%wake_output_file) // c_null_char)
+call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, &
+    fvec2vec(F%space_charge_mesh_size, 3), F%n_bin, F%particle_bin_span, F%n_shield_images, &
+    F%sc_min_in_bin, c_logic(F%lsc_kick_transverse_dependence), &
+    c_logic(F%print_taylor_warning), c_logic(F%write_csr_wake), c_logic(F%use_csr_old), &
+    c_logic(F%small_angle_approx), trim(F%wake_output_file) // c_null_char)
 
 end subroutine csr_parameter_to_c
 
@@ -8230,7 +8258,7 @@ end subroutine csr_parameter_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
-    z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
+    z_space_charge_mesh_size, z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin, &
     z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, &
     z_small_angle_approx, z_wake_output_file) bind(c)
 
@@ -8242,7 +8270,7 @@ type(csr_parameter_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
-integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
+integer(c_int) :: z_space_charge_mesh_size(*), z_n_bin, z_particle_bin_span, z_n_shield_images, z_sc_min_in_bin
 logical(c_bool) :: z_lsc_kick_transverse_dependence, z_print_taylor_warning, z_write_csr_wake, z_use_csr_old, z_small_angle_approx
 character(c_char) :: z_wake_output_file(*)
 
@@ -8254,6 +8282,8 @@ F%ds_track_step = z_ds_track_step
 F%beam_chamber_height = z_beam_chamber_height
 !! f_side.to_f2_trans[real, 0, NOT]
 F%sigma_cutoff = z_sigma_cutoff
+!! f_side.to_f2_trans[integer, 1, NOT]
+F%space_charge_mesh_size = z_space_charge_mesh_size(1:3)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_bin = z_n_bin
 !! f_side.to_f2_trans[integer, 0, NOT]
@@ -8303,21 +8333,21 @@ interface
       z_rel_tol_adaptive_tracking, z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, &
       z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, &
       z_autoscale_amp_rel_tol, z_autoscale_phase_tol, z_electric_dipole_moment, &
-      z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max, z_space_charge_mesh_size, &
-      z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
-      z_ptc_max_fringe_order, z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, &
-      z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, &
-      z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
-      z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_fluctuations_on, &
-      z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, &
-      z_aperture_limit_on, z_ptc_print_info_messages, z_debug) bind(c)
+      z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max, z_sad_n_div_max, z_taylor_order, &
+      z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, &
+      z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, z_sr_wakes_on, &
+      z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_csr_and_space_charge_on, &
+      z_spin_tracking_on, z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, &
+      z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, &
+      z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, z_aperture_limit_on, &
+      z_ptc_print_info_messages, z_debug) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
     real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
-    integer(c_int) :: z_space_charge_mesh_size(*), z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
+    integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
     logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on
     logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum
     logical(c_bool) :: z_aperture_limit_on, z_ptc_print_info_messages, z_debug
@@ -8341,16 +8371,16 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     F%abs_tol_adaptive_tracking, F%init_ds_adaptive_tracking, F%min_ds_adaptive_tracking, &
     F%fatal_ds_adaptive_tracking, F%autoscale_amp_abs_tol, F%autoscale_amp_rel_tol, &
     F%autoscale_phase_tol, F%electric_dipole_moment, F%ptc_cut_factor, F%sad_eps_scale, &
-    F%sad_amp_max, fvec2vec(F%space_charge_mesh_size, 3), F%sad_n_div_max, F%taylor_order, &
-    F%runge_kutta_order, F%default_integ_order, F%ptc_max_fringe_order, &
-    F%max_num_runge_kutta_step, c_logic(F%rf_phase_below_transition_ref), &
-    c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%mat6_track_symmetric), &
-    c_logic(F%auto_bookkeeper), c_logic(F%csr_and_space_charge_on), &
-    c_logic(F%spin_tracking_on), c_logic(F%backwards_time_tracking_on), &
-    c_logic(F%spin_sokolov_ternov_flipping_on), c_logic(F%radiation_damping_on), &
-    c_logic(F%radiation_fluctuations_on), c_logic(F%conserve_taylor_maps), &
-    c_logic(F%absolute_time_tracking_default), c_logic(F%convert_to_kinetic_momentum), &
-    c_logic(F%aperture_limit_on), c_logic(F%ptc_print_info_messages), c_logic(F%debug))
+    F%sad_amp_max, F%sad_n_div_max, F%taylor_order, F%runge_kutta_order, F%default_integ_order, &
+    F%ptc_max_fringe_order, F%max_num_runge_kutta_step, &
+    c_logic(F%rf_phase_below_transition_ref), c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), &
+    c_logic(F%mat6_track_symmetric), c_logic(F%auto_bookkeeper), &
+    c_logic(F%csr_and_space_charge_on), c_logic(F%spin_tracking_on), &
+    c_logic(F%backwards_time_tracking_on), c_logic(F%spin_sokolov_ternov_flipping_on), &
+    c_logic(F%radiation_damping_on), c_logic(F%radiation_fluctuations_on), &
+    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
+    c_logic(F%convert_to_kinetic_momentum), c_logic(F%aperture_limit_on), &
+    c_logic(F%ptc_print_info_messages), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -8375,14 +8405,13 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, &
     z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, &
     z_autoscale_phase_tol, z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, &
-    z_sad_amp_max, z_space_charge_mesh_size, z_sad_n_div_max, z_taylor_order, &
-    z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, &
-    z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, &
-    z_mat6_track_symmetric, z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on, &
-    z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, &
-    z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-    z_convert_to_kinetic_momentum, z_aperture_limit_on, z_ptc_print_info_messages, z_debug) &
-    bind(c)
+    z_sad_amp_max, z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, &
+    z_ptc_max_fringe_order, z_max_num_runge_kutta_step, z_rf_phase_below_transition_ref, &
+    z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, &
+    z_csr_and_space_charge_on, z_spin_tracking_on, z_backwards_time_tracking_on, &
+    z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_fluctuations_on, &
+    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum, &
+    z_aperture_limit_on, z_ptc_print_info_messages, z_debug) bind(c)
 
 
 implicit none
@@ -8394,7 +8423,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_autoscale_amp_abs_tol, z_autoscale_amp_rel_tol, z_autoscale_phase_tol
 real(c_double) :: z_electric_dipole_moment, z_ptc_cut_factor, z_sad_eps_scale, z_sad_amp_max
-integer(c_int) :: z_space_charge_mesh_size(*), z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
+integer(c_int) :: z_sad_n_div_max, z_taylor_order, z_runge_kutta_order, z_default_integ_order, z_ptc_max_fringe_order, z_max_num_runge_kutta_step
 logical(c_bool) :: z_rf_phase_below_transition_ref, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_csr_and_space_charge_on, z_spin_tracking_on
 logical(c_bool) :: z_backwards_time_tracking_on, z_spin_sokolov_ternov_flipping_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_convert_to_kinetic_momentum
 logical(c_bool) :: z_aperture_limit_on, z_ptc_print_info_messages, z_debug
@@ -8437,8 +8466,6 @@ F%ptc_cut_factor = z_ptc_cut_factor
 F%sad_eps_scale = z_sad_eps_scale
 !! f_side.to_f2_trans[real, 0, NOT]
 F%sad_amp_max = z_sad_amp_max
-!! f_side.to_f2_trans[integer, 1, NOT]
-F%space_charge_mesh_size = z_space_charge_mesh_size(1:3)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%sad_n_div_max = z_sad_n_div_max
 !! f_side.to_f2_trans[integer, 0, NOT]

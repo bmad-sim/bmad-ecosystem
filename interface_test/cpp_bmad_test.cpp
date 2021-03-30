@@ -3837,13 +3837,21 @@ void set_CPP_controller_test_pattern (CPP_controller& C, int ix_patt) {
     for (unsigned int i = 0; i < C.var.size(); i++)  {set_CPP_controller_var1_test_pattern(C.var[i], ix_patt+i+1);}
   }
 
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.ramp.resize(0);
+  else {
+    C.ramp.resize(3);
+    for (unsigned int i = 0; i < C.ramp.size(); i++)  {set_CPP_control_test_pattern(C.ramp[i], ix_patt+i+1);}
+  }
+
   // c_side.test_pat[real, 1, ALLOC]
   if (ix_patt < 3) 
     C.x_knot.resize(0);
   else {
     C.x_knot.resize(3);
     for (unsigned int i = 0; i < C.x_knot.size(); i++)
-      {int rhs = 101 + i + 4 + offset; C.x_knot[i] = rhs;}  }
+      {int rhs = 101 + i + 6 + offset; C.x_knot[i] = rhs;}  }
 
 
 }
@@ -4943,37 +4951,40 @@ void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 3 + offset; C.sigma_cutoff = rhs;
 
+  // c_side.test_pat[integer, 1, NOT]
+  for (unsigned int i = 0; i < C.space_charge_mesh_size.size(); i++)
+    {int rhs = 101 + i + 4 + offset; C.space_charge_mesh_size[i] = rhs;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.n_bin = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.particle_bin_span = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.n_shield_images = rhs;
+  rhs = 5 + offset; C.n_bin = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.sc_min_in_bin = rhs;
+  rhs = 6 + offset; C.particle_bin_span = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 7 + offset; C.n_shield_images = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.sc_min_in_bin = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 8 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
+  rhs = 9 + offset; C.lsc_kick_transverse_dependence = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 9 + offset; C.print_taylor_warning = (rhs % 2 == 0);
+  rhs = 10 + offset; C.print_taylor_warning = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 10 + offset; C.write_csr_wake = (rhs % 2 == 0);
+  rhs = 11 + offset; C.write_csr_wake = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.use_csr_old = (rhs % 2 == 0);
+  rhs = 12 + offset; C.use_csr_old = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.small_angle_approx = (rhs % 2 == 0);
+  rhs = 13 + offset; C.small_angle_approx = (rhs % 2 == 0);
 
   // c_side.test_pat[character, 0, NOT]
   C.wake_output_file.resize(200);
   for (unsigned int i = 0; i < C.wake_output_file.size(); i++)
-    {int rhs = 101 + i + 13 + offset; C.wake_output_file[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 14 + offset; C.wake_output_file[i] = 'a' + rhs % 26;}
 
 }
 
@@ -5076,77 +5087,74 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 18 + offset; C.sad_amp_max = rhs;
 
-  // c_side.test_pat[integer, 1, NOT]
-  for (unsigned int i = 0; i < C.space_charge_mesh_size.size(); i++)
-    {int rhs = 101 + i + 19 + offset; C.space_charge_mesh_size[i] = rhs;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 20 + offset; C.sad_n_div_max = rhs;
+  rhs = 19 + offset; C.sad_n_div_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 21 + offset; C.taylor_order = rhs;
+  rhs = 20 + offset; C.taylor_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 22 + offset; C.runge_kutta_order = rhs;
+  rhs = 21 + offset; C.runge_kutta_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 23 + offset; C.default_integ_order = rhs;
+  rhs = 22 + offset; C.default_integ_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 24 + offset; C.ptc_max_fringe_order = rhs;
+  rhs = 23 + offset; C.ptc_max_fringe_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 25 + offset; C.max_num_runge_kutta_step = rhs;
+  rhs = 24 + offset; C.max_num_runge_kutta_step = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.rf_phase_below_transition_ref = (rhs % 2 == 0);
+  rhs = 25 + offset; C.rf_phase_below_transition_ref = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.sr_wakes_on = (rhs % 2 == 0);
+  rhs = 26 + offset; C.sr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.lr_wakes_on = (rhs % 2 == 0);
+  rhs = 27 + offset; C.lr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
+  rhs = 28 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
+  rhs = 29 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.csr_and_space_charge_on = (rhs % 2 == 0);
+  rhs = 30 + offset; C.csr_and_space_charge_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.spin_tracking_on = (rhs % 2 == 0);
+  rhs = 31 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.backwards_time_tracking_on = (rhs % 2 == 0);
+  rhs = 32 + offset; C.backwards_time_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
+  rhs = 33 + offset; C.spin_sokolov_ternov_flipping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 34 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 35 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 37 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 36 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 38 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 37 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 39 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+  rhs = 38 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 40 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+  rhs = 39 + offset; C.aperture_limit_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 41 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
+  rhs = 40 + offset; C.ptc_print_info_messages = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 42 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 41 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

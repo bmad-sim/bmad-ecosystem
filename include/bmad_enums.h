@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 257;
+  const int BMAD_INC_VERSION = 260;
   const int N_POLE_MAXX = 21;
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
@@ -60,13 +60,13 @@ namespace Bmad {
   const int NONE = 1;
   const int SAVE_STATE = 3, RESTORE_STATE = 4, OFF_AND_SAVE = 5;
   const int HORIZONTALLY_PURE = 2, VERTICALLY_PURE = 3;
-  const int ONE_DIM = 2;
+  const int ONE_DIM = 2, THREE_DIM_STEADY_STATE = 3;
   const int SLICE = 2, FFT_3D = 3;
   const int MAGNETIC = 1, ELECTRIC = 2, MIXED = 3;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
   const int REFLECTION = 1, TRANSMISSION = 2;
   const int ANCHOR_BEGINNING = 1, ANCHOR_CENTER = 2, ANCHOR_END = 3;
-  const int ENTRANCE_END = 1, EXIT_END = 2, BOTH_ENDS = 3, NO_END = 4, NO_APERTURE = 4;
+  const int ENTRANCE_END = 1, EXIT_END = 2, BOTH_ENDS = 3, NO_END = 4, NO_APERTURE = 4, NOWHERE = 4;
   const int CONTINUOUS = 5, SURFACE = 6, WALL_TRANSITION = 7;
   const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12, IN_BETWEEN = 13;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
@@ -81,7 +81,7 @@ namespace Bmad {
   const int LOST_NEG_X_APERTURE = 3, LOST_POS_X_APERTURE = 4;
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
   const int LOST_PZ_APERTURE = 7;
-  const int UNBORN = 8;
+  const int PRE_BORN = 8;
   const int X_POLARIZATION = 2, Y_POLARIZATION = 3;
   const int LEADING = 2, TRAILING = 3;
   const int X_LEADING = 2, Y_LEADING = 3, X_TRAILING = 4, Y_TRAILING = 5;
@@ -137,8 +137,8 @@ namespace Bmad {
   const int REF_TILT = 3, RF_FREQUENCY = 3, DIRECTION = 3, REF_TIME_OFFSET = 3;
   const int KICK = 3, X_GAIN_ERR = 3, TAYLOR_ORDER = 3, R_SOLENOID = 3;
   const int RF_FREQUENCY_ERR = 4, K1 = 4, KX = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4;
-  const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDINATES = 4;
-  const int GRAZE_ANGLE = 5, K2 = 5, B_MAX = 5, V_DISPLACE = 5, DRIFT_ID = 5;
+  const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDS = 4, L_CATHODE_REGION = 4;
+  const int GRAZE_ANGLE = 5, K2 = 5, B_MAX = 5, V_DISPLACE = 5, DRIFT_ID = 5, RF_WAVELENGTH = 5;
   const int KS = 5, FLEXIBLE = 5, CRUNCH = 5, REF_ORBIT_FOLLOWS = 5, PC_OUT_MIN = 5;
   const int GRADIENT = 6, K3 = 6, NOISE = 6, NEW_BRANCH = 6, IX_BRANCH = 6, G_MAX = 6;
   const int G = 6, SYMMETRY = 6, FIELD_SCALE_FACTOR = 6, PC_OUT_MAX = 6;
@@ -162,10 +162,11 @@ namespace Bmad {
   const int LONGITUDINAL_MODE = 20, SIG_E2 = 20;
   const int FB1 = 21, POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;
   const int BETA_A_STRONG = 21, BETA_A_OUT = 21, E_LOSS = 21, GAP = 21, SPIN_X = 21, E_CENTER = 21;
-  const int FB2 = 22, X_OFFSET_CALIB = 22, V1_UNITCELL = 22, PSI_ANGLE = 22;
+  const int FB2 = 22, X_OFFSET_CALIB = 22, V1_UNITCELL = 22, PSI_ANGLE = 22, DT_MAX = 22;
   const int BETA_B_STRONG = 22, BETA_B_OUT = 22, SPIN_Y = 22, E2_CENTER = 22, N_PERIOD = 22;
   const int Y_OFFSET_CALIB = 23, V_UNITCELL = 23, V2_UNITCELL = 23, SPIN_Z = 23, L_PERIOD = 23;
   const int FQ1 = 23, ALPHA_A_STRONG = 23, ALPHA_A_OUT = 23, CAVITY_TYPE = 23, E2_PROBABILITY = 23;
+  const int EMIT_FRACTION = 23;
   const int FQ2 = 24, PHI0 = 24, TILT_CALIB = 24, E_CENTER_RELATIVE_TO_REF = 24;
   const int ALPHA_B_STRONG = 24, ALPHA_B_OUT = 24, IS_MOSAIC = 24, PX_APERTURE_WIDTH2 = 24;
   const int PHI0_ERR = 25, CURRENT = 25, MOSAIC_THICKNESS = 25, PX_APERTURE_CENTER = 25;
@@ -180,10 +181,10 @@ namespace Bmad {
   const int CMAT_11 = 29, FIELD_AUTOSCALE = 29, L_SAGITTA = 29, E_FIELD_Y = 29, X_DISPERSION_CALIB = 29;
   const int CMAT_12 = 30, DTHETA_ORIGIN = 30, B_PARAM = 30, L_CHORD = 30, SCALE_FIELD_TO_ONE = 30;
   const int DOWNSTREAM_COORD_DIR = 30, PZ_APERTURE_WIDTH2 = 30, Y_DISPERSION_CALIB = 30;
-  const int CMAT_21 = 31, L_HARD_EDGE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31;
+  const int CMAT_21 = 31, L_ACTIVE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31;
   const int L_SOFT_EDGE = 31, TRANSVERSE_SIGMA_CUT = 31, PZ_APERTURE_CENTER = 31;
   const int CMAT_22 = 32, DPSI_ORIGIN = 32, T_OFFSET = 32, DS_SLICE = 32;
-  const int ANGLE = 33, N_CELL = 33, X_RAY_LINE_LEN = 33;
+  const int ANGLE = 33, N_CELL = 33;
   const int X_PITCH = 34;
   const int Y_PITCH = 35;
   const int X_OFFSET = 36;
@@ -352,8 +353,6 @@ namespace Bmad {
   const double ANOMALOUS_MAG_MOMENT_DEUTERON = -0.14298726925E0;
   const double ANOMALOUS_MAG_MOMENT_NEUTRON  = -1.91304273E0;
   const double ANOMALOUS_MAG_MOMENT_HE3      = -4.184153686E0;
-  const int INVALID = -666;
-  const int NOT_SET = -999;
   const int PION_0            = +8;
   const int REF_PARTICLE      = +7;
   const int NEUTRON            = +6;
@@ -370,8 +369,11 @@ namespace Bmad {
   const int ANTI_DEUTERON     = -5;
   const int ANTI_NEUTRON       = -6;
   const int ANTI_REF_PARTICLE = -7;
+  const int LBOUND_SUBATOMIC = -7, UBOUND_SUBATOMIC = 8;
   const int INT_GARBAGE = -987654;
   const double REAL_GARBAGE = -987654.3;
+  const int INVALID = -666;
+  const int NOT_SET = -999;
   const int X_AXIS = 1, Y_AXIS = 2, Z_AXIS = 3;
   const double TRUE = 1, FALSE = 0;
   const int TRUE_INT = 1, FALSE_INT = 0;

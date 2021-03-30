@@ -2334,7 +2334,7 @@ extern "C" void controller_to_c (const Opaque_controller_class*, CPP_controller&
 
 // c_side.to_f2_arg
 extern "C" void controller_to_f2 (Opaque_controller_class*, c_Int&, const
-    CPP_controller_var1**, Int, c_RealArr, Int);
+    CPP_controller_var1**, Int, const CPP_control**, Int, c_RealArr, Int);
 
 extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -2344,6 +2344,13 @@ extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_clas
     z_var = new const CPP_controller_var1*[n1_var];
     for (int i = 0; i < n1_var; i++) z_var[i] = &C.var[i];
   }
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_ramp = C.ramp.size();
+  const CPP_control** z_ramp = NULL;
+  if (n1_ramp != 0) {
+    z_ramp = new const CPP_control*[n1_ramp];
+    for (int i = 0; i < n1_ramp; i++) z_ramp[i] = &C.ramp[i];
+  }
   // c_side.to_f_setup[real, 1, ALLOC]
   int n1_x_knot = C.x_knot.size();
   c_RealArr z_x_knot = NULL;
@@ -2352,21 +2359,28 @@ extern "C" void controller_to_f (const CPP_controller& C, Opaque_controller_clas
   }
 
   // c_side.to_f2_call
-  controller_to_f2 (F, C.type, z_var, n1_var, z_x_knot, n1_x_knot);
+  controller_to_f2 (F, C.type, z_var, n1_var, z_ramp, n1_ramp, z_x_knot, n1_x_knot);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_var;
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_ramp;
 }
 
 // c_side.to_c2_arg
 extern "C" void controller_to_c2 (CPP_controller& C, c_Int& z_type,
-    Opaque_controller_var1_class** z_var, Int n1_var, c_RealArr z_x_knot, Int n1_x_knot) {
+    Opaque_controller_var1_class** z_var, Int n1_var, Opaque_control_class** z_ramp, Int
+    n1_ramp, c_RealArr z_x_knot, Int n1_x_knot) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
   // c_side.to_c2_set[type, 1, ALLOC]
   C.var.resize(n1_var);
   for (int i = 0; i < n1_var; i++) controller_var1_to_c(z_var[i], C.var[i]);
+
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.ramp.resize(n1_ramp);
+  for (int i = 0; i < n1_ramp; i++) control_to_c(z_ramp[i], C.ramp[i]);
 
   // c_side.to_c2_set[real, 1, ALLOC]
 
@@ -3004,24 +3018,26 @@ extern "C" void csr_parameter_to_c (const Opaque_csr_parameter_class*, CPP_csr_p
 
 // c_side.to_f2_arg
 extern "C" void csr_parameter_to_f2 (Opaque_csr_parameter_class*, c_Real&, c_Real&, c_Real&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Char);
+    c_IntArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Char);
 
 extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Opaque_csr_parameter_class* F) {
 
   // c_side.to_f2_call
-  csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff, C.n_bin,
-      C.particle_bin_span, C.n_shield_images, C.sc_min_in_bin,
-      C.lsc_kick_transverse_dependence, C.print_taylor_warning, C.write_csr_wake,
-      C.use_csr_old, C.small_angle_approx, C.wake_output_file.c_str());
+  csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff,
+      &C.space_charge_mesh_size[0], C.n_bin, C.particle_bin_span, C.n_shield_images,
+      C.sc_min_in_bin, C.lsc_kick_transverse_dependence, C.print_taylor_warning,
+      C.write_csr_wake, C.use_csr_old, C.small_angle_approx, C.wake_output_file.c_str());
 
 }
 
 // c_side.to_c2_arg
 extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_step, c_Real&
-    z_beam_chamber_height, c_Real& z_sigma_cutoff, c_Int& z_n_bin, c_Int& z_particle_bin_span,
-    c_Int& z_n_shield_images, c_Int& z_sc_min_in_bin, c_Bool& z_lsc_kick_transverse_dependence,
-    c_Bool& z_print_taylor_warning, c_Bool& z_write_csr_wake, c_Bool& z_use_csr_old, c_Bool&
-    z_small_angle_approx, c_Char z_wake_output_file) {
+    z_beam_chamber_height, c_Real& z_sigma_cutoff, c_IntArr z_space_charge_mesh_size, c_Int&
+    z_n_bin, c_Int& z_particle_bin_span, c_Int& z_n_shield_images, c_Int& z_sc_min_in_bin,
+    c_Bool& z_lsc_kick_transverse_dependence, c_Bool& z_print_taylor_warning, c_Bool&
+    z_write_csr_wake, c_Bool& z_use_csr_old, c_Bool& z_small_angle_approx, c_Char
+    z_wake_output_file) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_track_step = z_ds_track_step;
@@ -3029,6 +3045,8 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
   C.beam_chamber_height = z_beam_chamber_height;
   // c_side.to_c2_set[real, 0, NOT]
   C.sigma_cutoff = z_sigma_cutoff;
+  // c_side.to_c2_set[integer, 1, NOT]
+  C.space_charge_mesh_size << z_space_charge_mesh_size;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_bin = z_n_bin;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -3060,9 +3078,9 @@ extern "C" void bmad_common_to_c (const Opaque_bmad_common_class*, CPP_bmad_comm
 // c_side.to_f2_arg
 extern "C" void bmad_common_to_f2 (Opaque_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_IntArr, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_class* F) {
 
@@ -3072,14 +3090,14 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Opaque_bmad_common_c
       C.rel_tol_adaptive_tracking, C.abs_tol_adaptive_tracking, C.init_ds_adaptive_tracking,
       C.min_ds_adaptive_tracking, C.fatal_ds_adaptive_tracking, C.autoscale_amp_abs_tol,
       C.autoscale_amp_rel_tol, C.autoscale_phase_tol, C.electric_dipole_moment,
-      C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, &C.space_charge_mesh_size[0],
-      C.sad_n_div_max, C.taylor_order, C.runge_kutta_order, C.default_integ_order,
-      C.ptc_max_fringe_order, C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref,
-      C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper,
-      C.csr_and_space_charge_on, C.spin_tracking_on, C.backwards_time_tracking_on,
-      C.spin_sokolov_ternov_flipping_on, C.radiation_damping_on, C.radiation_fluctuations_on,
-      C.conserve_taylor_maps, C.absolute_time_tracking_default, C.convert_to_kinetic_momentum,
-      C.aperture_limit_on, C.ptc_print_info_messages, C.debug);
+      C.ptc_cut_factor, C.sad_eps_scale, C.sad_amp_max, C.sad_n_div_max, C.taylor_order,
+      C.runge_kutta_order, C.default_integ_order, C.ptc_max_fringe_order,
+      C.max_num_runge_kutta_step, C.rf_phase_below_transition_ref, C.sr_wakes_on,
+      C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper, C.csr_and_space_charge_on,
+      C.spin_tracking_on, C.backwards_time_tracking_on, C.spin_sokolov_ternov_flipping_on,
+      C.radiation_damping_on, C.radiation_fluctuations_on, C.conserve_taylor_maps,
+      C.absolute_time_tracking_default, C.convert_to_kinetic_momentum, C.aperture_limit_on,
+      C.ptc_print_info_messages, C.debug);
 
 }
 
@@ -3091,16 +3109,16 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_min_ds_adaptive_tracking, c_Real& z_fatal_ds_adaptive_tracking, c_Real&
     z_autoscale_amp_abs_tol, c_Real& z_autoscale_amp_rel_tol, c_Real& z_autoscale_phase_tol,
     c_Real& z_electric_dipole_moment, c_Real& z_ptc_cut_factor, c_Real& z_sad_eps_scale,
-    c_Real& z_sad_amp_max, c_IntArr z_space_charge_mesh_size, c_Int& z_sad_n_div_max, c_Int&
-    z_taylor_order, c_Int& z_runge_kutta_order, c_Int& z_default_integ_order, c_Int&
-    z_ptc_max_fringe_order, c_Int& z_max_num_runge_kutta_step, c_Bool&
-    z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on, c_Bool&
-    z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool& z_csr_and_space_charge_on,
-    c_Bool& z_spin_tracking_on, c_Bool& z_backwards_time_tracking_on, c_Bool&
-    z_spin_sokolov_ternov_flipping_on, c_Bool& z_radiation_damping_on, c_Bool&
-    z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
-    z_absolute_time_tracking_default, c_Bool& z_convert_to_kinetic_momentum, c_Bool&
-    z_aperture_limit_on, c_Bool& z_ptc_print_info_messages, c_Bool& z_debug) {
+    c_Real& z_sad_amp_max, c_Int& z_sad_n_div_max, c_Int& z_taylor_order, c_Int&
+    z_runge_kutta_order, c_Int& z_default_integ_order, c_Int& z_ptc_max_fringe_order, c_Int&
+    z_max_num_runge_kutta_step, c_Bool& z_rf_phase_below_transition_ref, c_Bool& z_sr_wakes_on,
+    c_Bool& z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
+    z_csr_and_space_charge_on, c_Bool& z_spin_tracking_on, c_Bool&
+    z_backwards_time_tracking_on, c_Bool& z_spin_sokolov_ternov_flipping_on, c_Bool&
+    z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
+    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
+    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool&
+    z_ptc_print_info_messages, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -3138,8 +3156,6 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.sad_eps_scale = z_sad_eps_scale;
   // c_side.to_c2_set[real, 0, NOT]
   C.sad_amp_max = z_sad_amp_max;
-  // c_side.to_c2_set[integer, 1, NOT]
-  C.space_charge_mesh_size << z_space_charge_mesh_size;
   // c_side.to_c2_set[integer, 0, NOT]
   C.sad_n_div_max = z_sad_n_div_max;
   // c_side.to_c2_set[integer, 0, NOT]

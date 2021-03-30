@@ -1604,7 +1604,7 @@ public:
   Real psi;
 
   CPP_floor_position() :
-    r(0.0, 3),
+    r([0, 0, 0], 3),
     w(Real_ARRAY(0.0, 3), 3),
     theta(0.0),
     phi(0.0),
@@ -2330,11 +2330,13 @@ class CPP_controller {
 public:
   Int type;
   CPP_controller_var1_ARRAY var;
+  CPP_control_ARRAY ramp;
   Real_ARRAY x_knot;
 
   CPP_controller() :
     type(Bmad::EXPRESSION),
     var(CPP_controller_var1_ARRAY(CPP_controller_var1(), 0)),
+    ramp(CPP_control_ARRAY(CPP_control(), 0)),
     x_knot(0.0, 0)
     {}
 
@@ -2903,6 +2905,7 @@ public:
   Real ds_track_step;
   Real beam_chamber_height;
   Real sigma_cutoff;
+  Int_ARRAY space_charge_mesh_size;
   Int n_bin;
   Int particle_bin_span;
   Int n_shield_images;
@@ -2918,6 +2921,7 @@ public:
     ds_track_step(0.0),
     beam_chamber_height(0.0),
     sigma_cutoff(0.1),
+    space_charge_mesh_size([32, 32, 64], 3),
     n_bin(0),
     particle_bin_span(2),
     n_shield_images(0),
@@ -2966,7 +2970,6 @@ public:
   Real ptc_cut_factor;
   Real sad_eps_scale;
   Real sad_amp_max;
-  Int_ARRAY space_charge_mesh_size;
   Int sad_n_div_max;
   Int taylor_order;
   Int runge_kutta_order;
@@ -3010,7 +3013,6 @@ public:
     ptc_cut_factor(0.006),
     sad_eps_scale(5.0e-3),
     sad_amp_max(5.0e-2),
-    space_charge_mesh_size(32, 3),
     sad_n_div_max(1000),
     taylor_order(0),
     runge_kutta_order(4),
