@@ -21,6 +21,16 @@ call bmad_parser ('coord_test.bmad', lat)
 
 open (1, file = 'output.now')
 
+!
+
+orb0%vec = [0.1_rp, -0.2_rp, 0.3_rp, -0.4_rp, 0.5_rp, 0.6_rp]
+orbit = orb0
+call canonical_to_angle_coords(orbit)
+call angle_to_canonical_coords(orbit)
+write (1, '(a, 6es16.8)') '"dAngle" ABS 1E-15', orbit%vec - orb0%vec
+
+!
+
 orb0%vec = lat%particle_start%vec
 ele => lat%ele(1)
 call init_coord (orbit, orb0%vec, ele, upstream_end$, ele%branch%param%particle)
