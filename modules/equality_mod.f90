@@ -2202,6 +2202,8 @@ is_eq = is_eq .and. (f1%ds_track_step == f2%ds_track_step)
 is_eq = is_eq .and. (f1%beam_chamber_height == f2%beam_chamber_height)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sigma_cutoff == f2%sigma_cutoff)
+!! f_side.equality_test[integer, 1, NOT]
+is_eq = is_eq .and. all(f1%space_charge_mesh_size == f2%space_charge_mesh_size)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_bin == f2%n_bin)
 !! f_side.equality_test[integer, 0, NOT]
@@ -2274,8 +2276,6 @@ is_eq = is_eq .and. (f1%ptc_cut_factor == f2%ptc_cut_factor)
 is_eq = is_eq .and. (f1%sad_eps_scale == f2%sad_eps_scale)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sad_amp_max == f2%sad_amp_max)
-!! f_side.equality_test[integer, 1, NOT]
-is_eq = is_eq .and. all(f1%space_charge_mesh_size == f2%space_charge_mesh_size)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%sad_n_div_max == f2%sad_n_div_max)
 !! f_side.equality_test[integer, 0, NOT]

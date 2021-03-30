@@ -89,12 +89,6 @@ case ('BMAD_COM')
       ptr_array(i)%r => bmad_com%d_orb(i)
     enddo
     return
-  case ('SPACE_CHARGE_MESH_SIZE')
-    call re_allocate (ptr_array, 3)
-    do i = 1, 3
-      ptr_array(i)%i => bmad_com%space_charge_mesh_size(i)
-    enddo
-    return
   end select
 
   if (attrib_name(1:5) == 'D_ORB') then
@@ -112,22 +106,6 @@ case ('BMAD_COM')
       return
     endif
   endif    
-
-  if (attrib_name(1:22) == 'SPACE_CHARGE_MESH_SIZE') then
-    str = attrib_name(23:)
-    if (str(1:1) /= '(') err_flag = .true.
-    call string_trim(str(2:), str, ix)
-    n = index('123', str(1:1))
-    if (n == 0) err_flag = .true.
-    call string_trim(str(2:), str, ix)
-    if (str /= ')') err_flag = .true.
-    if (.not. err_flag) then
-      call re_allocate (ptr_array, 1)
-      if (present(eles)) call re_allocate_eles (eles, 1)
-      ptr_array(1)%i => bmad_com%space_charge_mesh_size(n)
-      return
-    endif
-  endif
 
   call re_allocate (ptr_array, 1)
   if (present(eles)) call re_allocate_eles (eles, 1)

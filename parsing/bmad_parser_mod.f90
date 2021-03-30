@@ -365,10 +365,6 @@ if (key == def_particle_start$ .or. key == def_bmad_com$) then
     if (.not. parse_real_list (lat, trim(ele%name) // ' ' // word, bmad_com%d_orb, .true., delim, delim_found)) return
     bp_com%extra%d_orb_set = .true.
     return
-  elseif (name == 'SPACE_CHARGE_MESH_SIZE') then
-    if (.not. parse_integer_list (trim(ele%name) // ' ' // word, lat, bmad_com%space_charge_mesh_size, .true., delim, delim_found)) return
-    bp_com%extra%space_charge_mesh_size_set = .true.
-    return
   endif
 
   if (associated(a_ptrs(1)%r)) then
