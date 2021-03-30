@@ -64,7 +64,7 @@ one global instance (\sref{c:param.structs}) of this structure and this instance
 \index{rel_tol_tracking}\index{abs_tol_tracking}
 \index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 \index{taylor_order}\index{default_integ_order}
-\index{sr_wakes_on}\index{lr_wakes_on}\index{space_charge_mesh_size}
+\index{sr_wakes_on}\index{lr_wakes_on}
 \index{mat6_track_symmetric}\index{auto_bookkeeper}\index{csr_and_space_charge_on}
 \index{spin_tracking_on}\index{radiation_damping_on}\index{spin_sokolov_ternov_flipping_on}
 \index{radiation_fluctuations_on}\index{be_thread_safe}
@@ -95,7 +95,6 @@ one global instance (\sref{c:param.structs}) of this structure and this instance
     integer default_integ_order = 2             ! PTC integration order
     integer ptc_max_fringe_order = 2            ! PTC max fringe order (2 => Quadrupole !).
     integer max_num_runge_kutta_step = 10000    ! Max num RK steps before particle is lost.
-    integer space_charge_mesh_size = (32,32,64) ! Mesh size with fft_3d space charge calc.
     logical rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
     logical sr_wakes_on = T                     ! Short range wakefields?
     logical lr_wakes_on = T                     ! Long range wakefields
@@ -262,12 +261,6 @@ when finding the closed orbit.
 Sets the scale to decide if two length values are significantly different. For example, The
 superposition code will not create any super_slave elements that have a length less then this.
 %
-\item[\vn{\%space_charge_mesh_size}] \Newline
-The \vn{%space_charge_mesh_size} sets the size of the grid used when an element's
-\vn{space_charge_method} is set to \vn{fft_3d} (\sref{s:csr.sc.meth}). The value of this parameter is a
-3-element array $(n_x, n_y, n_z)$ giving the mesh size in the $x$, $y$, and $z$ directions
-respectively. Default values are $(32, 32, 64)$.
-%
 \item[\vn{\%sr_wakes_on}] \Newline
 Toggle for turning on or off short-range higher order mode wakefield effects.
 %
@@ -325,19 +318,22 @@ be restricted to places where the \vn{CSR} effect is significant.
 
 The CSR parameter structure has a \vn{type name} of \vn{csr_parameter_struct} and an \vn{instance
 name} of \vn{csr_param}.  This structure has components
+\index{space_charge_mesh_size}
 \begin{example}
   type csr_parameter_struct 
-    real(rp) ds_track_step = 0        ! Tracking step size
-    real(rp) beam_chamber_height = 0  ! Used in shielding calculation.
-    real(rp) sigma_cutoff = 0.1       ! Cutoff for the lsc calc. If a bin sigma
-                                      !  is < cutoff * sigma_ave then ignore.
-    integer n_bin = 0                 ! Number of bins used
-    integer particle_bin_span = 2     ! Longitudinal particle length / dz_bin
-    integer n_shield_images = 0       ! Chamber wall shielding. 0 = no shielding.
-    integer sc_min_in_bin = 10        ! Min number of particle needed to compute sigmas.
-    logical small_angle_approx = T    ! Use lcsr small angle approximation?
-    logical print_taylor_warning = T  ! Print Taylor element warning?
-    logical write_csr_wake = F        ! Write a CSR wake file?
+    real(rp) ds_track_step = 0                  ! Tracking step size
+    real(rp) beam_chamber_height = 0            ! Used in shielding calculation.
+    real(rp) sigma_cutoff = 0.1                 ! Cutoff for the lsc calc. If a bin sigma
+                                                !  is < cutoff * sigma_ave then ignore.
+    integer n_bin = 0                           ! Number of bins used
+    integer particle_bin_span = 2               ! Longitudinal particle length / dz_bin
+    integer n_shield_images = 0                 ! Chamber wall shielding. 0 = no shielding.
+    integer sc_min_in_bin = 10                  ! Min number of particle needed to compute sigmas.
+    integer space_charge_mesh_size = [32,32,64] ! Mesh size with fft_3d space charge calc.
+    integer csr_3d_mesh_size = [32,32,64]       ! Mesh size for 3D CSR calc.
+    logical small_angle_approx = T              ! Use lcsr small angle approximation?
+    logical print_taylor_warning = T            ! Print Taylor element warning?
+    logical write_csr_wake = F                  ! Write a CSR wake file?
   end type
 \end{example}
 The values for the various quantities shown above are their default values. 
@@ -372,6 +368,18 @@ is too small.  ``Typical'' values are in the range 100 --- 1000.
 \vn{particle_bin_span} is the width of a particle's triangular density distribution
 (cf.~\sref{s:csr}) in multiples of the bin width. A larger span will give better smoothing of the
 computed particle density with an attendant loss in resolution.
+%
+\item[\vn{\%space_charge_mesh_size}] \Newline
+The \vn{%space_charge_mesh_size} sets the size of the grid used when an element's
+\vn{space_charge_method} is set to \vn{fft_3d} (\sref{s:csr.sc.meth}). The value of this parameter
+is a 3-element array $(n_x, n_y, n_z)$ giving the mesh size in the $x$, $y$, and $z$ directions
+respectively. Default values are $(32, 32, 64)$.
+%
+\item[\vn{\%csr3d_mesh_size}] \Newline
+The \vn{%csr3d_mesh_size} sets the size of the grid used when an element's
+\vn{csr_method} is set to \vn{steady_state_3d} (\sref{s:csr.sc.meth}). The value of this parameter is a
+3-element array $(n_x, n_y, n_z)$ giving the mesh size in the $x$, $y$, and $z$ directions
+respectively. Default values are $(32, 32, 64)$.
 %
 \item{n_shield_images} \Newline
 \vn{n_shield_images} is the number of shielding current layers used in the shielding calculation. A

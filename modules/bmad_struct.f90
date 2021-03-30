@@ -225,8 +225,8 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 integer, parameter :: horizontally_pure$ = 2, vertically_pure$ = 3
 character(20), parameter :: exact_multipoles_name(3) = [character(20):: 'Off', 'Horizontally_Pure', 'Vertically_Pure']
 
-integer, parameter :: one_dim$ = 2, three_dim_steady_state$ = 3
-character(20), parameter :: csr_method_name(3) = [character(20):: 'Off', '1_Dim', '3_Dim_Steady_State']
+integer, parameter :: one_dim$ = 2, steady_state_3d$ = 3
+character(20), parameter :: csr_method_name(3) = [character(20):: 'Off', '1_Dim', 'Steady_State_3D']
 
 integer, parameter :: slice$ = 2, fft_3D$ = 3
 character(20), parameter :: space_charge_method_name(3) = [character(20):: 'Off', 'Slice', 'fft_3D']
