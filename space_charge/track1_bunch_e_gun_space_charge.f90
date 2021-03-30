@@ -24,9 +24,9 @@ type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
 type (coord_struct), pointer :: p
 
-real(rp) s0, dt_step, t_now, t_end, n_pre_born, n_emit_max
+real(rp) s0, dt_step, t_now, t_end
 real(rp) :: t_emit(size(bunch%particle))
-integer i, j, n
+integer i, j, n, n_pre_born, n_emit_max
 integer :: ix_t_emit(size(bunch%particle))
 
 logical err, finished, radiation_included
