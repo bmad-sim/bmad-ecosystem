@@ -1881,6 +1881,7 @@ type csr_parameter_struct                  ! Common block for csr calc
   real(rp) :: sigma_cutoff = 0.1           ! Cutoff for the lsc calc. If a bin sigma
                                            !  is < cutoff * sigma_ave then ignore.
   integer :: space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
+  integer :: csr3d_mesh_size(3) = [32, 32, 64]         ! Gird size for CSR.
   integer :: n_bin = 0                     ! Number of bins used
   integer :: particle_bin_span = 2         ! Longitudinal particle length / dz_bin
   integer :: n_shield_images = 0           ! Chamber wall shielding. 0 = no shielding.
