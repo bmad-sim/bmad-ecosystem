@@ -178,7 +178,7 @@ end subroutine track_bunch
 subroutine track1_bunch (bunch_start, lat, ele, bunch_end, err, centroid, direction)
 
 use csr_old_mod, only: track1_bunch_csr_old
-use csr_and_space_charge_mod, only: track1_bunch_csr
+use csr_and_space_charge_mod, only: track1_bunch_csr, track1_bunch_csr3d
 use beam_utils, only: track1_bunch_hom
 
 implicit none
@@ -225,9 +225,13 @@ if (csr_sc_on .and. ele%key /= match$) then
   if (ele%key == e_gun$ .and. ele%value(l_cathode_region$) /= 0) then
     bunch_end = bunch_start
     call track1_bunch_e_gun_space_charge (bunch_end, ele, err)
+    
   elseif (csr_param%use_csr_old) then
     call track1_bunch_csr_old (bunch_start, lat, ele, bunch_end, err)
-    if (err) return
+    
+  elseif (ele%csr_method == steady_state_3d$) then
+     call track1_bunch_csr3d(bunch_start, ele, centroid, bunch_end, err)
+     
   else
     if (.not. present(centroid)) then
       call out_io (s_fatal$, r_name, 'BUNCH CENTROID MUST BE SUPPLIED FOR CSR CALCULATION!')
@@ -235,7 +239,7 @@ if (csr_sc_on .and. ele%key /= match$) then
       return
     endif
     call track1_bunch_csr (bunch_start, ele, centroid, bunch_end, err)
-    if (err) return
+
   endif
   bunch_end%ix_ele = ele%ix_ele
 
