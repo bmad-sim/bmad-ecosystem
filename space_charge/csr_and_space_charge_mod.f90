@@ -2,6 +2,8 @@
 ! See the paper:
 !   "Coherent Synchrotron Radiation Simulations for Off-Axis Beams Using the Bmad Toolkit"
 !   D. Sagan & C. Mayes
+!   Proceedings of IPAC2017, Copenhagen, Denmark THPAB076
+!   https://accelconf.web.cern.ch/ipac2017/papers/thpab076.pdf
 !-
 
 module csr_and_space_charge_mod
@@ -11,6 +13,7 @@ use bmad_interface
 use spline_mod
 use nr, only: zbrent
 use open_spacecharge_mod
+use csr3d_mod, only: csr3d_steady_state_solver
 
 ! csr_ele_info_struct holds info for a particular lattice element
 ! The centroid "chord" is the line from the centroid position at the element entrance to
@@ -1397,8 +1400,8 @@ if (ele%space_charge_method == fft_3d$) then
 
   call deposit_particles (csr%position%r(1), csr%position%r(2), csr%position%r(3), csr%mesh3d, qa=csr%position%charge)
   ! OLD ROUTINE: call space_charge_freespace(csr%mesh3d)
-  call space_charge_3d(csr%mesh3d)
-
+   call space_charge_3d(csr%mesh3d)
+   
   do i = 1, size(particle)
     p => particle(i)
     if (p%state /= alive$) cycle
@@ -1411,8 +1414,11 @@ if (ele%space_charge_method == fft_3d$) then
     p%vec(6) = sqrt(p%vec(2)**2 + p%vec(4)**2 + (Evec(3)*factor + pz0)**2) -1.0_rp
     ! Set beta
     call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = p%beta)
-
   enddo
+
+ 
+  
+  
 endif
 
 end subroutine csr_and_sc_apply_kicks
@@ -1510,5 +1516,197 @@ else
 endif
 
 end function s_ref_to_s_chord
+
+
+
+
+
+
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine track1_bunch_csr3d (bunch_start, ele, centroid, bunch_end, err)
+!
+! EXPERIMENTAL
+!
+! Routine to track a bunch of particles through an element using
+! steady-state 3D CSR.
+!
+!
+! Input:
+!   bunch_start  -- Bunch_struct: Starting bunch position.
+!   ele          -- Ele_struct: The element to track through. Must be part of a lattice.
+!   centroid(0:) -- coord_struct, Approximate beam centroid orbit for the lattice branch.
+!                     Calculate this before beam tracking by tracking a single particle.
+!   s_start      -- real(rp), optional: Starting position relative to ele. Default = 0
+!   s_end        -- real(rp), optional: Ending position. Default is ele length.
+!
+! Output:
+!   bunch_end -- Bunch_struct: Ending bunch position.
+!   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
+!
+!
+! Notes:
+!   The core routines are from the OpenCSR package developed at:
+!   https://github.com/ChristopherMayes/OpenCSR
+!
+!-
+
+subroutine track1_bunch_csr3d (bunch_start, ele, centroid, bunch_end, err, s_start, s_end)
+
+implicit none
+
+type (bunch_struct), target :: bunch_start, bunch_end
+type (coord_struct), pointer :: c0, p
+type (ele_struct), target :: ele
+type (branch_struct), pointer :: branch
+type (ele_struct) :: runt
+type (csr_struct), target :: csr
+type (coord_struct), target :: centroid(0:)
+type (coord_struct), pointer :: particle(:)
+real(rp), optional :: s_start, s_end
+real(rp) s0_step
+real(rp) e_tot, ds_step
+real(rp) Evec(3), factor, pz0
+integer i, j, n, ie, ns, nb, n_step, n_live, i_step
+
+character(*), parameter :: r_name = 'track1_bunch_csr3d'
+logical err, auto_bookkeeper, err_flag, parallel0, parallel1
+
+! Init
+
+err = .true.
+branch => pointer_to_branch(ele)
+
+! This calc is only valid in SBEND elements, nonzero length
+! No CSR for a zero length element.
+! And taylor elements get ignored.
+if (ele%value(l$) == 0 .or. ele%key /= sbend$) then
+  call track1_bunch_hom (bunch_end, ele, branch%param, bunch_end)
+  err = .false.
+  return
+endif
+
+! Set gamma, mesh size
+c0 => centroid(ele%ix_ele)
+call convert_pc_to((1+c0%vec(6)) * c0%p0c, c0%species, gamma = csr%mesh3d%gamma)
+! TODO: add bmad_com%csr3d_mesh_size
+csr%mesh3d%nhi = csr_param%csr3d_mesh_size
+
+
+! n_step is the number of steps to take when tracking through the element.
+! csr%ds_step is the true step length.
+
+bunch_end = bunch_start
+particle => bunch_end%particle
+! make sure that ele_len / track_step is an integer.
+
+csr%ds_track_step = ele%value(csr_ds_step$)
+if (csr%ds_track_step == 0) csr%ds_track_step = csr_param%ds_track_step
+if (csr%ds_track_step == 0) then
+  call out_io (s_fatal$, r_name, 'NEITHER CSR_PARAM%DS_TRACK_STEP NOR CSR_TRACK_STEP FOR THIS ELEMENT ARE SET! ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+n_step = max (1, nint(ele%value(l$) / csr%ds_track_step))
+csr%ds_track_step = ele%value(l$) / n_step
+csr%species = bunch_start%particle(1)%species
+
+auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
+bmad_com%auto_bookkeeper = .false.   ! make things go faster
+
+
+if (.not. allocated(csr%position)) allocate(csr%position(size(particle)))
+if (size(csr%position) < size(particle)) then
+  deallocate(csr%position)
+  allocate(csr%position(size(particle)))
+endif
+
+!----------------------------------------------------------------------------------------
+! Loop over the tracking steps
+! runt is the element that is tracked through at each step.
+
+do i_step = 0, n_step
+
+  ! track through the runt
+
+  if (i_step /= 0) then
+    call create_uniform_element_slice (ele, branch%param, i_step, n_step, runt, s_start, s_end)
+    call track1_bunch_hom (bunch_end, runt, branch%param, bunch_end)
+  endif
+  particle => bunch_end%particle
+  
+  s0_step = i_step * csr%ds_track_step
+  if (present(s_start)) s0_step = s0_step + s_start
+
+  e_tot = ele%value(e_tot$)
+  call convert_total_energy_to (e_tot, branch%param%particle, csr%gamma, beta = csr%beta)
+  csr%gamma2 = csr%gamma**2
+
+  ! Bin particles
+  ! TODO: simplify this into a function, and use the function above for fft_3d
+  n = 0
+  do i = 1, size(particle)
+    p => particle(i)
+    if (p%state /= alive$) cycle
+    n = n + 1
+    csr%position(n)%r = p%vec(1:5:2)
+    csr%position(n)%charge = p%charge
+  enddo
+  call deposit_particles (csr%position%r(1), csr%position%r(2), csr%position%r(3), csr%mesh3d, qa=csr%position%charge)  
+
+  ! Give particles a kick
+  ! TODO: simplify with fft_3d
+  print *, '---------- CSR Steady_State_3D ----------'
+  
+  call csr3d_steady_state_solver(csr%mesh3d%rho/product(csr%mesh3d%delta), &
+    csr%mesh3d%gamma, &
+    ele%value(rho$), &
+    csr%mesh3d%delta, &
+    csr%mesh3d%efield, normalize=.false.)
+  
+  ! Handle first and last steps for half-kicks
+  csr%kick_factor = csr%ds_track_step
+  if (i_step == 0 .or. i_step == n_step) csr%kick_factor = csr%kick_factor / 2
+  print *, 'kick by ds', csr%kick_factor, i_step
+  
+  
+  print *, 'Interpolating field and kicking particles'
+  do i = 1, size(particle)
+    p => particle(i)
+    if (p%state /= alive$) cycle
+    call interpolate_field(p%vec(1), p%vec(3), p%vec(5),  csr%mesh3d, E=Evec)
+     
+    
+    factor = csr%kick_factor / (p%p0c  * p%beta) 
+
+    pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
+    p%vec(2) = p%vec(2) + Evec(1)*factor
+    p%vec(4) = p%vec(4) + Evec(2)*factor
+    p%vec(6) = sqrt(p%vec(2)**2 + p%vec(4)**2 + (Evec(3)*factor + pz0)**2) -1.0_rp
+    ! Set beta
+    call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = p%beta)
+  enddo
+  
+  call save_bunch_track (bunch_end, ele, s0_step)
+
+enddo
+
+bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
+err = .false.
+
+end subroutine track1_bunch_csr3d
+
+
+
+
+
+
+
+
+
 
 end module
