@@ -271,7 +271,6 @@ logical, optional :: follow_undiffracted
 logical to_alpha_branch, do_branch_calc, follow_diffracted
 
 ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
-! Note: Avoid using (eta - eta1) in equations to avoid round off when eta ~ eta1.
 
 e_phase = 0
 follow_diffracted = (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$ .and. .not. logic_option(.false., follow_undiffracted))
@@ -284,11 +283,21 @@ eta = (cp%b_eff * cp%dtheta_sin_2theta + pms%f_0 * cp%cap_gamma * (1.0_rp - cp%b
 eta1 = sqrt(eta**2 + sign_of(cp%b_eff))
 f_cmp = abs(p_factor) * sqrt_b * cp%cap_gamma * pms%f_hkl / 2
 
-xi_0k_b = -f_cmp * sign_of(cp%b_eff) / (eta + eta1)     ! = f_cmp * (eta - eta1)  beta branch xi
-xi_hk_b = -f_cmp * (eta + eta1) / cp%b_eff              ! = f_cmp / (abs(cp%b_eff) * (eta - eta1))
+! It can happen that eta - eta1 or eta + eta1 is near zero.
 
-xi_0k_a = f_cmp * (eta + eta1)                          ! alpha branch xi
-xi_hk_a = f_cmp / (abs(cp%b_eff) * (eta + eta1))
+if (abs(eta + eta1) > abs(eta - eta1)) then
+  xi_0k_b = -f_cmp * sign_of(cp%b_eff) / (eta + eta1)     ! = f_cmp * (eta - eta1)  beta branch xi
+  xi_hk_b = -f_cmp * (eta + eta1) / cp%b_eff              ! = f_cmp / (abs(cp%b_eff) * (eta - eta1))
+
+  xi_0k_a = f_cmp * (eta + eta1)                          ! alpha branch xi
+  xi_hk_a = f_cmp / (abs(cp%b_eff) * (eta + eta1))
+else
+  xi_0k_b = f_cmp * (eta - eta1)
+  xi_hk_b = f_cmp / (abs(cp%b_eff) * (eta - eta1))
+
+  xi_0k_a = -f_cmp * sign_of(cp%b_eff) / (eta - eta1)                          ! alpha branch xi
+  xi_hk_a = -f_cmp * (eta - eta1) / cp%b_eff
+endif
 
 !---------------
 ! Bragg calc
