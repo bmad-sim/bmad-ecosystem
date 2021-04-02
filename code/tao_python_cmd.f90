@@ -281,12 +281,21 @@ select case (command)
 !
 ! Parameters
 ! ----------
-! ix_universe
+! ix_universe : default=1
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! -------- 
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  args:
+!    ix_universe: 1
 
 case ('beam')
 
@@ -310,12 +319,21 @@ case ('beam')
 !
 ! Parameters
 ! ----------
-! ix_universe
+! ix_universe : default=1
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! -------- 
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  args:
+!    ix_universe: 1
 
 case ('beam_init')
 
@@ -353,6 +371,21 @@ case ('beam_init')
 ! Command syntax:
 !   python bmad_com
 ! 
+! Parameters
+! ----------
+!
+!    
+! Returns
+! -------
+! string_list 
+!
+!
+! Examples
+! -------- 
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
 
 case ('bmad_com')
 
@@ -409,13 +442,23 @@ case ('bmad_com')
 !
 ! Parameters
 ! ----------
-! ix_universe
-! ix_branch
+! ix_universe : default=1
+! ix_branch : default=0
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_universe: 1
+!    ix_branch: 0
 
 case ('branch1')
 
@@ -453,14 +496,38 @@ case ('branch1')
 ! Parameters
 ! ----------
 ! ele_id
-! which
-! ix_bunch
-! coordinate
+! which : default=model
+! ix_bunch : default=1
+! coordinate : optional
 !
-!    
+!  
 ! Returns
 ! -------
-! ?? 
+! string_list
+!   if not coordinate
+! real_array
+!   if coordinate
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  args:
+!    ele_id: end
+!    which: model
+!    ix_bunch: 1
+!    coordinate:
+!
+!Example: 2
+!  init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+!  args:
+!    ele_id: end
+!    which: model
+!    ix_bunch: 1
+!    coordinate: x
+
 
 case ('bunch1')
 
@@ -534,12 +601,26 @@ case ('bunch1')
 !
 ! Parameters
 ! ----------
-! ix_section
+! ix_section : optional
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  args:
+!    ix_section:
+!
+! Example: 2
+!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  args:
+!    ix_section: 1
 
 case ('building_wall_list')
 
@@ -580,7 +661,16 @@ case ('building_wall_list')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  args:
+!    graph:
 
 case ('building_wall_graph')
 
@@ -634,7 +724,22 @@ case ('building_wall_graph')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  args:
+!    ix_section: 1
+!    ix_point: 1
+!    z: 0
+!    x: 0
+!    radius: 0
+!    z_center: 0
+!    x_center: 0
 
 case ('building_wall_point')
 
@@ -764,7 +869,21 @@ case ('building_wall_section')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    who: data
+!
+! Example: 2
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    who:var
 
 case ('constraints')
 
@@ -813,12 +932,21 @@ case ('constraints')
 !
 ! Parameters
 ! ----------
-! ix_uni
+! ix_uni : default=1
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_uni:1
 
 case ('da_aperture')
 
@@ -845,12 +973,21 @@ case ('da_aperture')
 !
 ! Parameters
 ! ----------
-! ix_uni
+! ix_uni : default=1
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_uni:1
 
 case ('da_params')
 
@@ -878,20 +1015,41 @@ case ('da_params')
 ! Use the "python data-d1" command to get detailed info on a specific d1 array.
 ! Output syntax is parameter list form. See documentation at the beginning of this file.
 ! Example:
-!   python data_d1 1@orbit.x[10]
+!   python data 1@orbit.x[10]
+! Note : By default dat_index is 1.
 ! 
 !
 ! Parameters
 ! ----------
-! ix_universe
+! ix_universe : default=1
 ! d2_name
 ! d1_datum
-! dat_index
+! dat_index : default=1
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    ix_universe:
+!    d2_name: twiss
+!    d1_datum: end 
+!    dat_index: 
+!
+! Example: 2
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    ix_universe: 1
+!    d2_name: twiss
+!    d1_datum: end
+!    dat_index: 1
 
 case ('data')
 
@@ -975,6 +1133,7 @@ case ('data')
 !
 ! Parameters
 ! ----------
+! ix_uni : default=1
 ! d2_name
 ! n_d1_data
 ! d_data_arrays_name_min_max
@@ -982,7 +1141,19 @@ case ('data')
 !    
 ! Returns
 ! -------
-! ?? 
+! None
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    ix_uni: 1
+!    d2_name: orbit
+!    n_d1_data: 2 
+!    d_data_arrays_name_min_max: x^^0^^45^^y^^1^^47
 
 case ('data_d2_create')
 
@@ -1094,12 +1265,23 @@ case ('data_d2_create')
 !
 ! Parameters
 ! ----------
+! ix_uni : default=1
 ! d2_datum
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! None
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    ix_uni: 1
+!    d2_datum: orbit
 
 case ('data_d2_destroy')
 
@@ -1115,12 +1297,23 @@ call destroy_this_data_d2(line)
 !
 ! Parameters
 ! ----------
+! ix_uni : default=1
 ! d2_datum
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    ix_uni: 1
+!    d2_datum: twiss
 
 case ('data_d2')
 
@@ -1157,12 +1350,24 @@ case ('data_d2')
 !
 ! Parameters
 ! ----------
+! ix_uni : default=1
 ! d1_datum
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    ix_uni: 1 
+!    d1_datum: twiss.end
+
 
 case ('data_d_array')
 
@@ -1195,12 +1400,23 @@ case ('data_d_array')
 !
 ! Parameters
 ! ----------
+! ix_uni : default=1
 ! d2_datum
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    ix_uni: 1 
+!    d2_datum: twiss
 
 case ('data_d1_array')
 
@@ -1229,12 +1445,24 @@ case ('data_d1_array')
 !
 ! Parameters
 ! ----------
-! ix_universe
+! data_array
+! parameter
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    data_array: twiss.end 
+!    parameter: model_value
+
 
 case ('data_parameter')
 
@@ -1366,7 +1594,17 @@ case ('data_parameter')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list  
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_universe : 1 
+
 
 case ('data_d2_array')
 
@@ -1387,6 +1625,22 @@ case ('data_d2_array')
 ! 
 ! Note: Use the "data_d2_create" and "datum_create" first to create datums.
 ! 
+! Parameters
+! ----------
+! data_set_design_value
+!
+!    
+! Returns
+! -------
+! None
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
 
 case ('data_set_design_value')
 
@@ -1469,7 +1723,15 @@ case ('data_set_design_value')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
 
 case ('datum_create')
 
@@ -1567,7 +1829,16 @@ case ('datum_create')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
+!    datum_type: twiss.end 
 
 case ('datum_has_ele')
 
@@ -1585,6 +1856,21 @@ case ('datum_has_ele')
 ! Note: To save time, this command will not recalculate derivatives. 
 ! Use the "derivative" command beforehand to recalcuate if needed.
 ! 
+! Parameters
+! ----------
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+!  args:
 
 case ('derivative')
 
@@ -1616,13 +1902,23 @@ case ('derivative')
 !
 ! Parameters
 ! ----------
-! ele_id
-! which
+! ele_id 
+! which : default=model
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:head')
 
@@ -1692,12 +1988,22 @@ case ('ele:head')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
-!    
+!
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:methods')
 
@@ -1769,12 +2075,22 @@ case ('ele:methods')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
-!    
+!
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:gen_attribs')
 
@@ -1836,12 +2152,22 @@ case ('ele:gen_attribs')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
-!    
+!
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:multipoles')
 
@@ -1910,12 +2236,22 @@ case ('ele:multipoles')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 !
-!    
+!
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:ac_kicker')
 
@@ -1960,14 +2296,25 @@ case ('ele:ac_kicker')
 ! Parameters
 ! ----------
 ! ele_id
-! which
-! index
+! which : default=model
+! index 
 ! who
 !
-!    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   index: 1
+!   who: base
 
 case ('ele:cartesian_map')
 
@@ -2023,14 +2370,26 @@ case ('ele:cartesian_map')
 ! Parameters
 ! ----------
 ! ele_id
-! which
+! which : default=model
 ! index
 ! who
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list 
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   index: 1
+!   who: x
 
 case ('ele:chamber_wall')
 
@@ -2089,7 +2448,19 @@ case ('ele:chamber_wall')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   index: 1
+!   who: base
 
 case ('ele:cylindrical_map')
 
@@ -2151,7 +2522,17 @@ case ('ele:cylindrical_map')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:taylor')
 
@@ -2197,7 +2578,18 @@ case ('ele:taylor')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+ 
 
 case ('ele:spin_taylor')
 
@@ -2244,7 +2636,18 @@ case ('ele:spin_taylor')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   who: base
 
 case ('ele:wake')
 
@@ -2329,7 +2732,19 @@ case ('ele:wake')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   index: 1
+!   who: base
 
 case ('ele:wall3d')
 
@@ -2400,7 +2815,17 @@ case ('ele:wall3d')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:twiss')
 
@@ -2439,7 +2864,17 @@ case ('ele:twiss')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:control')
 
@@ -2476,7 +2911,17 @@ case ('ele:control')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
 
 case ('ele:orbit')
 
@@ -2512,7 +2957,18 @@ case ('ele:orbit')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   who: mat6
 
 case ('ele:mat6')
 
@@ -2564,7 +3020,19 @@ case ('ele:mat6')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   index: 1
+!   who: base
 
 case ('ele:taylor_field')
 
@@ -2630,7 +3098,19 @@ case ('ele:taylor_field')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   index: 1
+!   who: base 
 
 case ('ele:grid_field')
 
@@ -2715,12 +3195,30 @@ case ('ele:grid_field')
 ! ----------
 ! ele_id
 ! which
-! where
+! where: default=end
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   where 
+!
+! Example: 2
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   where: center
 
 case ('ele:floor')
 
@@ -2791,7 +3289,19 @@ case ('ele:floor')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   who: base
+ 
 
 case ('ele:photon')
 
@@ -2854,7 +3364,18 @@ case ('ele:photon')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+ 
 
 case ('ele:lord_slave')
 
@@ -2904,7 +3425,18 @@ case ('ele:lord_slave')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+ 
 
 case ('ele:elec_multipoles')
 
@@ -2948,7 +3480,17 @@ case ('ele:elec_multipoles')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    expression: 2*data::cbar.11[1:10]|model
+ 
 
 case ('evaluate')
 
@@ -2988,7 +3530,21 @@ case ('evaluate')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ele_id: 1@0>>1
+!    which: model
+!    x: 0
+!    y: 0
+!    z: 0
+!    t_or_z: z
 
 case ('em_field')
 
@@ -3026,7 +3582,16 @@ case ('em_field')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    enum_name: tracking_method
 
 case ('enum')
 
@@ -3177,7 +3742,16 @@ case ('enum')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    graph:
 
 case ('floor_plan')
 
@@ -3258,7 +3832,16 @@ case ('floor_plan')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    graph: 
 
 case ('floor_orbit')
 
@@ -3401,7 +3984,23 @@ case ('floor_orbit')
 !   single_step
 !   prompt_color
 !   prompt_string
-! 
+!
+!
+! Parameters
+! ----------
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
 
 case ('global')
 
@@ -3459,7 +4058,23 @@ case ('global')
 ! returns list of "help xxx" topics
 ! Command syntax:
 !   python help
-! 
+!
+!
+! Parameters
+! ----------
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
 
 case ('help')
 
@@ -3492,7 +4107,16 @@ case ('help')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    who: ix_universe
 
 case ('inum')
 
@@ -3538,6 +4162,24 @@ case ('inum')
 ! Command syntax:
 !   python lat_calc_done
 ! 
+!
+! Parameters
+! ----------
+! branch_name
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    branch_name: 1@0
 
 case ('lat_calc_done')
 
@@ -3559,7 +4201,16 @@ case ('lat_calc_done')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    branch_name: 1@0
 
 case ('lat_ele_list')
 
@@ -3582,13 +4233,21 @@ case ('lat_ele_list')
 !
 ! Parameters
 ! ----------
-! ix_universe
+! ix_universe : default=1
 !
 !    
 ! Returns
 ! -------
-! ?? 
-
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_universe: 1
 
   u => point_to_uni(line, .false., err); if (err) return
   lat => u%model%lat
@@ -3601,7 +4260,7 @@ case ('lat_ele_list')
 !%% lat_list -----------------------
 ! List of parameters at ends of lattice elements
 ! Command syntax:
-!   python lat_list -no_slaves -track_only -index_order -array_out
+!   python lat_list -no_slaves -track_only -index_order -real_out
 !                   {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 ! where:
 !   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
@@ -3639,8 +4298,34 @@ case ('lat_ele_list')
 ! 
 ! Examples:
 !   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
-!   python lat_list -real 3@0>>Q*|base ele.s    
+!   python lat_list 3@0>>Q*|base real:ele.s    
 ! 
+!
+! Parameters
+! ----------
+! ix_uni 
+! ix_branch 
+! elements 
+! which 
+! who 
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_uni: 1  
+!    ix_branch: 0 
+!    elements: Q* 
+!    which: model
+!    who: orbit.floor.x
 
 case ('lat_list')
 
@@ -3885,7 +4570,16 @@ case ('lat_list')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    param_name: L   
 
 case ('lat_param_units')
 
@@ -3905,6 +4599,28 @@ case ('lat_param_units')
 !
 ! Example:
 !   python matrix 2@1>>q01w|design q02w
+! 
+!
+! Parameters
+! ----------
+! ele1_id
+! ele2_id
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ele1_id: 2@1>>q01w|design
+!    ele2_id: q02w
+
 
 case ('matrix')
 
@@ -3933,6 +4649,22 @@ case ('matrix')
 ! Command syntax:
 !   python merit
 ! 
+!
+! Parameters
+! ----------
+
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
 
 case ('merit')
 
@@ -3960,7 +4692,19 @@ case ('merit')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_uni: 1
+!    ix_branch: 0
+!    s: 0.001
+!    which: model
 
 
   u => point_to_uni(line, .true., err); if (err) return
@@ -3977,6 +4721,22 @@ case ('merit')
 ! Command syntax:
 !   python place_buffer
 ! 
+!
+! Parameters
+! ----------
+!
+!    
+! Returns
+! -------
+! None
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
 
 case ('place_buffer')
 
@@ -4001,7 +4761,16 @@ case ('place_buffer')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    curve_name: c1 
 
 case ('plot_curve')
 
@@ -4064,13 +4833,23 @@ case ('plot_curve')
 !
 ! Parameters
 ! ----------
-! ix_universe
-! ix_branch
+! ix_universe: 1
+! ix_branch: 0
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_uni: 1
+!    ix_branch: 0 
 
 case ('plot_lat_layout')
 
@@ -4110,7 +4889,16 @@ case ('plot_lat_layout')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    r_or_g: r
 
 
 case ('plot_list')
@@ -4154,7 +4942,16 @@ case ('plot_list')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    graph_name: r13.g
 
 case ('plot_graph')
 
@@ -4267,7 +5064,16 @@ case ('plot_graph')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    curve_name: c1
 
 case ('plot_histogram')
 
@@ -4310,7 +5116,21 @@ case ('plot_histogram')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    plot_location: r11
+!    plot_name: beta
+!    n_graph: 1
+!    graph1_name: g
+!    graph2_name:
+!    graphN_name:
 
 case ('plot_plot_manage')
 
@@ -4373,7 +5193,18 @@ case ('plot_plot_manage')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    graph_name: g
+!    curve_index: 1
+!    curve_name: c1
 
 case ('plot_curve_manage')
 
@@ -4435,7 +5266,18 @@ case ('plot_curve_manage')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    plot_name: beta
+!    graph_index: 1
+!    graph_name: g
 
 case ('plot_graph_manage')
 
@@ -4502,7 +5344,19 @@ case ('plot_graph_manage')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    region_name: r11
+!    graph_name: g
+!    curve_name: a
+!    x_or_y: x
 
 case ('plot_line')
 
@@ -4580,7 +5434,19 @@ endif
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    region_name: r11
+!    graph_name: g
+!    curve_name: a
+!    x_or_y: x 
 
 case ('plot_symbol')
 
@@ -4648,7 +5514,17 @@ case ('plot_symbol')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    from_plot: r13
+!    to_plot: 
 
 case ('plot_transfer')
 
@@ -4702,7 +5578,16 @@ case ('plot_transfer')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    name: r11
 
 case ('plot1')
 
@@ -4748,7 +5633,16 @@ case ('plot1')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    who: floor_plan  
 
 case ('shape_list')
 
@@ -4800,7 +5694,18 @@ case ('shape_list')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    who: floor_plan
+!    index: 1
+!    add_or_delete: add
 
 case ('shape_manage')
 
@@ -4844,12 +5749,26 @@ case ('shape_manage')
 !
 ! Parameters
 ! ----------
-! ix_pattern
+! ix_pattern : optional
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_pattern: 
+!
+! Example: 2
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_pattern: 1 
 
 case ('shape_pattern_list')
 
@@ -4888,7 +5807,18 @@ case ('shape_pattern_list')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_pattern : 5
+!    pat_name : new_pat
+!    pat_line_width : 1
 
 case ('shape_pattern_manage')
 
@@ -4936,7 +5866,19 @@ case ('shape_pattern_manage')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_pattern: 1
+!    ix_point: 1
+!    s: 0
+!    x: 0
 
 case ('shape_pattern_point_manage')
 
@@ -4992,7 +5934,26 @@ case ('shape_pattern_point_manage')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    who: floor_plan
+!    shape_index: 1
+!    ele_name: Q1
+!    shape:
+!    color:
+!    shape_size:
+!    type_label:
+!    shape_draw:
+!    multi_shape:
+!    line_width:
+ 
 
 case ('shape_set')
 
@@ -5039,7 +6000,16 @@ case ('shape_set')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    line: -python
 
 case ('show')
 
@@ -5060,7 +6030,16 @@ case ('show')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    species_str: CO2++
 
 case ('species_to_int')
 
@@ -5087,7 +6066,16 @@ case ('species_to_int')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    species_int: -1
 
 case ('species_to_str')
 
@@ -5117,14 +6105,25 @@ case ('species_to_str')
 !
 ! Parameters
 ! ----------
-! ix_uni
-! ix_branch
+! ix_uni : default=1
+! ix_branch : default=0
 ! which
 !
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args: 
+!    ix_uni: 1
+!    ix_branch: 0
+!    which: model
 
 case ('spin_polarization')
 
@@ -5150,6 +6149,22 @@ case ('spin_polarization')
 ! Command syntax:
 !   python super_universe
 ! 
+!
+! Parameters
+! ----------
+!
+!    
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args: 
 
 case ('super_universe')
 
@@ -5177,7 +6192,19 @@ case ('super_universe')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args: 
+!    ix_uni: 1
+!    ix_branch: 0
+!    s: 0
+!    which: model 
 
 case ('twiss_at_s')
 
@@ -5204,7 +6231,16 @@ case ('twiss_at_s')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args: 
+!    ix_universe: 1
 
 case ('universe')
 
@@ -5221,7 +6257,6 @@ case ('universe')
 !   python var {var}        or
 !   python var {var} slaves
 ! 
-! 
 !
 ! Parameters
 ! ----------
@@ -5230,7 +6265,16 @@ case ('universe')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args: 
+!    var: quad_k1[1]
 
 case ('var')
 
@@ -5323,7 +6367,27 @@ case ('var')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    var_name: kick[5]
+!    ele_name: Q01W
+!    attribute: L
+!    universes: 1
+!    weight: 0.001
+!    step: 0.001
+!    low_lim: -10
+!    high_lim: 10
+!    merit_type: 
+!    good_user: 1
+!    key_bound: T
+!    key_delta: 0.01 
 
 case ('var_create')
 
@@ -5416,7 +6480,23 @@ case ('var_create')
 !   python var_general
 ! Output syntax:
 !   {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
-! 
+!
+!
+! Parameters
+! ----------
+!
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
 
 case ('var_general')
 
@@ -5442,7 +6522,16 @@ case ('var_general')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    v1_var: quad_k1
 
 case ('var_v_array')
 
@@ -5475,7 +6564,16 @@ case ('var_v_array')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    v1_var: quad_k1 
 
 case ('var_v1_array')
 
@@ -5531,7 +6629,18 @@ case ('var_v1_array')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    v1_name: quad_k1 
+!    n_var_min: 0 
+!    n_var_max: 45 
 
 case ('var_v1_create')
 
@@ -5599,7 +6708,16 @@ case ('var_v1_create')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    v1_datum: quad_k1
 
 case ('var_v1_destroy')
 
@@ -5623,7 +6741,16 @@ case ('var_v1_destroy')
 !    
 ! Returns
 ! -------
-! ?? 
+! string_list
+!
+!
+! Examples
+! -------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    what: plot1 
 
 case ('wave')
 
