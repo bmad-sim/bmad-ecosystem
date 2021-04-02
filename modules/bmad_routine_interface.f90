@@ -70,10 +70,11 @@ function angle_between_polars (polar1, polar2) result (angle)
   real(rp) :: angle
 end function
 
-subroutine angle_to_canonical_coords (orbit)
+subroutine angle_to_canonical_coords (orbit, coord_type)
   import
   implicit none
   type (coord_struct) orbit
+  character(*), optional :: coord_type
 end subroutine
 
 subroutine apply_all_rampers (lat, err_flag)
@@ -251,10 +252,11 @@ subroutine calc_z_tune (lat, ix_branch)
   integer, optional :: ix_branch
 end subroutine
 
-subroutine canonical_to_angle_coords (orbit)
+subroutine canonical_to_angle_coords (orbit, coord_type)
   import
   implicit none
   type (coord_struct) orbit
+  character(*), optional :: coord_type
 end subroutine
 
 subroutine cbar_to_c (cbar_mat, a, b, c_mat)

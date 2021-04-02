@@ -1256,7 +1256,7 @@ type ele_struct
   integer :: mat6_calc_method = bmad_standard$    ! taylor$, symp_lie_ptc$, etc.
   integer :: tracking_method = bmad_standard$     ! taylor$, linear$, etc.
   integer :: spin_tracking_method = tracking$     ! symp_lie_ptc$, etc.
-  integer :: csr_method = off$                    ! or one_dim$ ("1_dim"), three_dim_steady_state$ ("3_dim_steady_state")
+  integer :: csr_method = off$                    ! or one_dim$ ("1_dim"), steady_state_3d$
   integer :: space_charge_method = off$           ! slice$, slice_longitudinal$, slice_transverse$, fft_3D$
   integer :: ptc_integration_type = matrix_kick$  ! drift_kick$, matrix_kick$, or ripken_kick$
   integer :: field_calc = bmad_standard$          ! no_field$, fieldmap$, refer_to_lords$, or custom$
