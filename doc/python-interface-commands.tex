@@ -11,12 +11,21 @@ To set beam_init parameters use the "set beam" command
 
 Parameters
 ----------
-ix_universe
+ix_universe : default=1
 
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+-------- 
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+ args:
+   ix_universe: 1
 
 \end{example}
 \item[beam_init] \Newline\begin{example}
@@ -30,12 +39,21 @@ To set beam_init parameters use the "set beam_init" command
 
 Parameters
 ----------
-ix_universe
+ix_universe : default=1
 
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+-------- 
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+ args:
+   ix_universe: 1
 
 \end{example}
 \item[bmad_com] \Newline\begin{example}
@@ -43,6 +61,21 @@ Bmad_com structure components
 Command syntax:
   python bmad_com
 
+Parameters
+----------
+
+   
+Returns
+-------
+string_list 
+
+
+Examples
+-------- 
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
 
 \end{example}
 \item[branch1] \Newline\begin{example}
@@ -56,13 +89,23 @@ where
 
 Parameters
 ----------
-ix_universe
-ix_branch
+ix_universe : default=1
+ix_branch : default=0
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_universe: 1
+   ix_branch: 0
 
 \end{example}
 \item[bunch1] \Newline\begin{example}
@@ -82,14 +125,37 @@ and will return an array.
 Parameters
 ----------
 ele_id
-which
-ix_bunch
-coordinate
+which : default=model
+ix_bunch : default=1
+coordinate : optional
 
-   
+ 
 Returns
 -------
-?? 
+string_list
+  if not coordinate
+real_array
+  if coordinate
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+ args:
+   ele_id: end
+   which: model
+   ix_bunch: 1
+   coordinate:
+
+Example: 2
+ init: $ACC_ROOT_DIR/tao/examples/csr_beam_tracking/tao.init
+ args:
+   ele_id: end
+   which: model
+   ix_bunch: 1
+   coordinate: x
 
 \end{example}
 \item[building_wall_list] \Newline\begin{example}
@@ -102,12 +168,26 @@ If {ix_section} is present then a list of section points is given
 
 Parameters
 ----------
-ix_section
+ix_section : optional
 
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ args:
+   ix_section:
+
+Example: 2
+ init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ args:
+   ix_section: 1
 
 \end{example}
 \item[building_wall_graph] \Newline\begin{example}
@@ -124,7 +204,16 @@ graph
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ args:
+   graph:
 
 \end{example}
 \item[building_wall_point] \Newline\begin{example}
@@ -152,7 +241,22 @@ x_center
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ args:
+   ix_section: 1
+   ix_point: 1
+   z: 0
+   x: 0
+   radius: 0
+   z_center: 0
+   x_center: 0
 
 \end{example}
 \item[building_wall_section] \Newline\begin{example}
@@ -221,7 +325,21 @@ who
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   who: data
+
+Example: 2
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   who:var
 
 \end{example}
 \item[da_aperture] \Newline\begin{example}
@@ -232,12 +350,21 @@ Command syntax:
 
 Parameters
 ----------
-ix_uni
+ix_uni : default=1
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_uni:1
 
 \end{example}
 \item[da_params] \Newline\begin{example}
@@ -248,12 +375,21 @@ Command syntax:
 
 Parameters
 ----------
-ix_uni
+ix_uni : default=1
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_uni:1
 
 \end{example}
 \item[data] \Newline\begin{example}
@@ -263,20 +399,41 @@ Command syntax:
 Use the "python data-d1" command to get detailed info on a specific d1 array.
 Output syntax is parameter list form. See documentation at the beginning of this file.
 Example:
-  python data_d1 1@orbit.x[10]
+  python data 1@orbit.x[10]
+Note : By default dat_index is 1.
 
 
 Parameters
 ----------
-ix_universe
+ix_universe : default=1
 d2_name
 d1_datum
-dat_index
+dat_index : default=1
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   ix_universe:
+   d2_name: twiss
+   d1_datum: end 
+   dat_index: 
+
+Example: 2
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   ix_universe: 1
+   d2_name: twiss
+   d1_datum: end
+   dat_index: 1
 
 \end{example}
 \item[data_d2_create] \Newline\begin{example}
@@ -308,6 +465,7 @@ Note: When setting multiple data parameters,
 
 Parameters
 ----------
+ix_uni : default=1
 d2_name
 n_d1_data
 d_data_arrays_name_min_max
@@ -315,7 +473,19 @@ d_data_arrays_name_min_max
    
 Returns
 -------
-?? 
+None
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   ix_uni: 1
+   d2_name: orbit
+   n_d1_data: 2 
+   d_data_arrays_name_min_max: x^^0^^45^^y^^1^^47
 
 \end{example}
 \item[data_d2_destroy] \Newline\begin{example}
@@ -328,12 +498,23 @@ Command syntax:
 
 Parameters
 ----------
+ix_uni : default=1
 d2_datum
 
    
 Returns
 -------
-?? 
+None
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   ix_uni: 1
+   d2_datum: orbit
 
 \end{example}
 \item[data_d2] \Newline\begin{example}
@@ -346,12 +527,23 @@ Command syntax:
 
 Parameters
 ----------
+ix_uni : default=1
 d2_datum
 
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   ix_uni: 1
+   d2_datum: twiss
 
 \end{example}
 \item[data_d_array] \Newline\begin{example}
@@ -366,12 +558,23 @@ Example:
 
 Parameters
 ----------
+ix_uni : default=1
 d1_datum
 
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   ix_uni: 1 
+   d1_datum: twiss.end
 
 \end{example}
 \item[data_d1_array] \Newline\begin{example}
@@ -384,12 +587,23 @@ Command syntax:
 
 Parameters
 ----------
+ix_uni : default=1
 d2_datum
 
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   ix_uni: 1 
+   d2_datum: twiss
 
 \end{example}
 \item[data_parameter] \Newline\begin{example}
@@ -402,12 +616,23 @@ Example:
 
 Parameters
 ----------
-ix_universe
+data_array
+parameter
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   data_array: twiss.end 
+   parameter: model_value
 
 \end{example}
 \item[data_d2_array] \Newline\begin{example}
@@ -425,7 +650,16 @@ ix_universe
    
 Returns
 -------
-?? 
+string_list  
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_universe : 1 
 
 \end{example}
 \item[data_set_design_value] \Newline\begin{example}
@@ -437,6 +671,22 @@ Example:
 
 Note: Use the "data_d2_create" and "datum_create" first to create datums.
 
+Parameters
+----------
+data_set_design_value
+
+   
+Returns
+-------
+None
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
 
 \end{example}
 \item[datum_create] \Newline\begin{example}
@@ -485,7 +735,15 @@ spin_axis%l(3)
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
 
 \end{example}
 \item[datum_has_ele] \Newline\begin{example}
@@ -501,7 +759,16 @@ datum_type
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
+   datum_type: twiss.end 
 
 \end{example}
 \item[derivative] \Newline\begin{example}
@@ -511,6 +778,21 @@ Command syntax:
 Note: To save time, this command will not recalculate derivatives. 
 Use the "derivative" command beforehand to recalcuate if needed.
 
+Parameters
+----------
+
+
+Returns
+-------
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ args:
 
 \end{example}
 \item[ele:head] \Newline\begin{example}
@@ -528,13 +810,23 @@ This gives element number 7 in branch 1 of universe 3.
 
 Parameters
 ----------
-ele_id
-which
+ele_id 
+which : default=model
 
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:methods] \Newline\begin{example}
@@ -553,12 +845,22 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
-   
+
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:gen_attribs] \Newline\begin{example}
@@ -577,12 +879,22 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
-   
+
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:multipoles] \Newline\begin{example}
@@ -601,12 +913,22 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
-   
+
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:ac_kicker] \Newline\begin{example}
@@ -625,12 +947,22 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
+which : default=model
 
-   
+
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:cartesian_map] \Newline\begin{example}
@@ -653,14 +985,25 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which
-index
+which : default=model
+index 
 who
 
-   
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  index: 1
+  who: base
 
 \end{example}
 \item[ele:chamber_wall] \Newline\begin{example}
@@ -680,14 +1023,26 @@ where {ele_id} is an element name or index and {which} is one of
 Parameters
 ----------
 ele_id
-which
+which : default=model
 index
 who
 
    
 Returns
 -------
-?? 
+string_list 
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  index: 1
+  who: x
 
 \end{example}
 \item[ele:cylindrical_map] \Newline\begin{example}
@@ -717,7 +1072,19 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  index: 1
+  who: base
 
 \end{example}
 \item[ele:taylor] \Newline\begin{example}
@@ -741,7 +1108,17 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:spin_taylor] \Newline\begin{example}
@@ -765,7 +1142,17 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:wake] \Newline\begin{example}
@@ -795,7 +1182,18 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  who: base
 
 \end{example}
 \item[ele:wall3d] \Newline\begin{example}
@@ -825,7 +1223,19 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  index: 1
+  who: base
 
 \end{example}
 \item[ele:twiss] \Newline\begin{example}
@@ -849,7 +1259,17 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:control] \Newline\begin{example}
@@ -873,7 +1293,17 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:orbit] \Newline\begin{example}
@@ -897,7 +1327,17 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:mat6] \Newline\begin{example}
@@ -926,7 +1366,18 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  who: mat6
 
 \end{example}
 \item[ele:taylor_field] \Newline\begin{example}
@@ -956,7 +1407,19 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  index: 1
+  who: base
 
 \end{example}
 \item[ele:grid_field] \Newline\begin{example}
@@ -983,7 +1446,19 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  index: 1
+  who: base 
 
 \end{example}
 \item[ele:floor] \Newline\begin{example}
@@ -1009,12 +1484,30 @@ Parameters
 ----------
 ele_id
 which
-where
+where: default=end
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  where 
+
+Example: 2
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  where: center
 
 \end{example}
 \item[ele:photon] \Newline\begin{example}
@@ -1043,7 +1536,18 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
+  who: base
 
 \end{example}
 \item[ele:lord_slave] \Newline\begin{example}
@@ -1073,7 +1577,17 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[ele:elec_multipoles] \Newline\begin{example}
@@ -1097,7 +1611,17 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+  ele_id: 1@0>>1
+  which: model
 
 \end{example}
 \item[evaluate] \Newline\begin{example}
@@ -1115,7 +1639,16 @@ expression
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   expression: 2*data::cbar.11[1:10]|model
 
 \end{example}
 \item[em_field] \Newline\begin{example}
@@ -1144,7 +1677,21 @@ t_or_z
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ele_id: 1@0>>1
+   which: model
+   x: 0
+   y: 0
+   z: 0
+   t_or_z: z
 
 \end{example}
 \item[enum] \Newline\begin{example}
@@ -1162,7 +1709,16 @@ enum_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   enum_name: tracking_method
 
 \end{example}
 \item[floor_plan] \Newline\begin{example}
@@ -1178,7 +1734,16 @@ graph
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   graph:
 
 \end{example}
 \item[floor_orbit] \Newline\begin{example}
@@ -1194,7 +1759,16 @@ graph
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   graph: 
 
 \end{example}
 \item[global] \Newline\begin{example}
@@ -1211,12 +1785,44 @@ Note: The follow is intentionally left out:
   prompt_string
 
 
+Parameters
+----------
+
+
+Returns
+-------
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+
 \end{example}
 \item[help] \Newline\begin{example}
 returns list of "help xxx" topics
 Command syntax:
   python help
 
+
+Parameters
+----------
+
+
+Returns
+-------
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
 
 \end{example}
 \item[inum] \Newline\begin{example}
@@ -1232,7 +1838,16 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   who: ix_universe
 
 \end{example}
 \item[lat_calc_done] \Newline\begin{example}
@@ -1241,6 +1856,24 @@ Check if a lattice recalculation has been proformed since the last time
 Command syntax:
   python lat_calc_done
 
+
+Parameters
+----------
+branch_name
+
+
+Returns
+-------
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   branch_name: 1@0
 
 \end{example}
 \item[lat_ele_list] \Newline\begin{example}
@@ -1258,7 +1891,16 @@ branch_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   branch_name: 1@0
 
 \end{example}
 \item[lat_general] \Newline\begin{example}
@@ -1272,25 +1914,35 @@ Output syntax:
 
 Parameters
 ----------
-ix_universe
+ix_universe : default=1
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_universe: 1
 
 \end{example}
 \item[lat_list] \Newline\begin{example}
 List of parameters at ends of lattice elements
 Command syntax:
-  python lat_list -no_slaves -track_only -index_order 
+  python lat_list -no_slaves -track_only -index_order -real_out
                   {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 where:
-  -no_slaves is optional. If present, multipass_slave and super_slave elements
-             will not be matched to.
+  -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
   -track_only is optional. If present, lord elements will not be matched to.
-  -index_order is optional. If present, order elements by element index instead 
-               of the standard s-position.
+  -index_order is optional. If present, order elements by element index instead of the standard s-position.
+  -array_out is optional. If present, the output will be available in the tao_c_interface_com%c_real or
+    tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
+    Note: Only a single {who} item permitted when -array_out is present.
 
   {which} is one of:
     model
@@ -1317,13 +1969,37 @@ where:
     Use "*" to match to all elements.
 
 Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
-Note: To output through the real array buffer, add the prefix "real:" to {who}.
-Note: Only a single item permitted with real buffer out.
 
 Examples:
   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
   python lat_list 3@0>>Q*|base real:ele.s    
 
+
+Parameters
+----------
+ix_uni 
+ix_branch 
+elements 
+which 
+who 
+
+
+Returns
+-------
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_uni: 1  
+   ix_branch: 0 
+   elements: Q* 
+   which: model
+   who: orbit.floor.x
 
 \end{example}
 \item[lat_param_units] \Newline\begin{example}
@@ -1339,7 +2015,16 @@ param_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   param_name: L   
 
 \end{example}
 \item[matrix] \Newline\begin{example}
@@ -1355,12 +2040,36 @@ Note: {ele2_id} should just be an element name or index without universe, branch
 Example:
   python matrix 2@1>>q01w|design q02w
 
+
+Parameters
+----------
+ele1_id
+ele2_id
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ele1_id: 2@1>>q01w|design
+   ele2_id: q02w
+
 \end{example}
 \item[merit] \Newline\begin{example}
 Merit value.
 Command syntax:
   python merit
 
+
+Parameters
+----------
 
 \end{example}
 \item[orbit_at_s] \Newline\begin{example}
@@ -1385,7 +2094,19 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_uni: 1
+   ix_branch: 0
+   s: 0.001
+   which: model
 
 \end{example}
 \item[place_buffer] \Newline\begin{example}
@@ -1394,6 +2115,22 @@ The contents of the buffer are the place commands that the user has issued.
 Command syntax:
   python place_buffer
 
+
+Parameters
+----------
+
+   
+Returns
+-------
+None
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
 
 \end{example}
 \item[plot_curve] \Newline\begin{example}
@@ -1409,7 +2146,16 @@ curve_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   curve_name: c1 
 
 \end{example}
 \item[plot_lat_layout] \Newline\begin{example}
@@ -1422,13 +2168,23 @@ Note: The returned list of element positions is not ordered in increasing
 
 Parameters
 ----------
-ix_universe
-ix_branch
+ix_universe: 1
+ix_branch: 0
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_uni: 1
+   ix_branch: 0 
 
 \end{example}
 \item[plot_list] \Newline\begin{example}
@@ -1447,7 +2203,16 @@ r_or_g
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   r_or_g: r
 
 \end{example}
 \item[plot_graph] \Newline\begin{example}
@@ -1469,7 +2234,16 @@ graph_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   graph_name: r13.g
 
 \end{example}
 \item[plot_histogram] \Newline\begin{example}
@@ -1485,7 +2259,16 @@ curve_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   curve_name: c1
 
 \end{example}
 \item[plot_plot_manage] \Newline\begin{example}
@@ -1510,7 +2293,21 @@ graphN_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   plot_location: r11
+   plot_name: beta
+   n_graph: 1
+   graph1_name: g
+   graph2_name:
+   graphN_name:
 
 \end{example}
 \item[plot_curve_manage] \Newline\begin{example}
@@ -1532,7 +2329,18 @@ curve_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   graph_name: g
+   curve_index: 1
+   curve_name: c1
 
 \end{example}
 \item[plot_graph_manage] \Newline\begin{example}
@@ -1554,7 +2362,18 @@ graph_name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   plot_name: beta
+   graph_index: 1
+   graph_name: g
 
 \end{example}
 \item[plot_line] \Newline\begin{example}
@@ -1581,7 +2400,19 @@ x_or_y
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   region_name: r11
+   graph_name: g
+   curve_name: a
+   x_or_y: x
 
 \end{example}
 \item[plot_symbol] \Newline\begin{example}
@@ -1610,7 +2441,19 @@ x_or_y
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   region_name: r11
+   graph_name: g
+   curve_name: a
+   x_or_y: x 
 
 \end{example}
 \item[plot_transfer] \Newline\begin{example}
@@ -1631,7 +2474,17 @@ to_plot
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   from_plot: r13
+   to_plot: 
 
 \end{example}
 \item[plot1] \Newline\begin{example}
@@ -1649,7 +2502,16 @@ name
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   name: r11
 
 \end{example}
 \item[shape_list] \Newline\begin{example}
@@ -1668,7 +2530,16 @@ who
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   who: floor_plan  
 
 \end{example}
 \item[shape_manage] \Newline\begin{example}
@@ -1700,7 +2571,18 @@ add_or_delete
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   who: floor_plan
+   index: 1
+   add_or_delete: add
 
 \end{example}
 \item[shape_pattern_list] \Newline\begin{example}
@@ -1712,12 +2594,26 @@ If optional {ix_pattern} index is omitted then list all the patterns
 
 Parameters
 ----------
-ix_pattern
+ix_pattern : optional
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_pattern: 
+
+Example: 2
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_pattern: 1 
 
 \end{example}
 \item[shape_pattern_manage] \Newline\begin{example}
@@ -1741,7 +2637,18 @@ pat_line_width
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_pattern : 5
+   pat_name : new_pat
+   pat_line_width : 1
 
 \end{example}
 \item[shape_pattern_point_manage] \Newline\begin{example}
@@ -1765,7 +2672,19 @@ x
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_pattern: 1
+   ix_point: 1
+   s: 0
+   x: 0
 
 \end{example}
 \item[shape_set] \Newline\begin{example}
@@ -1795,7 +2714,25 @@ line_width
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   who: floor_plan
+   shape_index: 1
+   ele_name: Q1
+   shape:
+   color:
+   shape_size:
+   type_label:
+   shape_draw:
+   multi_shape:
+   line_width:
 
 \end{example}
 \item[show] \Newline\begin{example}
@@ -1814,7 +2751,16 @@ line
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   line: -python
 
 \end{example}
 \item[species_to_int] \Newline\begin{example}
@@ -1832,7 +2778,16 @@ species_str
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   species_str: CO2++
 
 \end{example}
 \item[species_to_str] \Newline\begin{example}
@@ -1850,7 +2805,16 @@ species_int
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   species_int: -1
 
 \end{example}
 \item[spin_polarization] \Newline\begin{example}
@@ -1869,14 +2833,25 @@ Note: This command is under development. If you want to use please contact David
 
 Parameters
 ----------
-ix_uni
-ix_branch
+ix_uni : default=1
+ix_branch : default=0
 which
 
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args: 
+   ix_uni: 1
+   ix_branch: 0
+   which: model
 
 \end{example}
 \item[super_universe] \Newline\begin{example}
@@ -1884,6 +2859,22 @@ Super_Universe information
 Command syntax:
   python super_universe
 
+
+Parameters
+----------
+
+   
+Returns
+-------
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args: 
 
 \end{example}
 \item[twiss_at_s] \Newline\begin{example}
@@ -1906,7 +2897,19 @@ which
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args: 
+   ix_uni: 1
+   ix_branch: 0
+   s: 0
+   which: model 
 
 \end{example}
 \item[universe] \Newline\begin{example}
@@ -1923,7 +2926,16 @@ ix_universe
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args: 
+   ix_universe: 1
 
 \end{example}
 \item[var] \Newline\begin{example}
@@ -1933,7 +2945,6 @@ Command syntax:
   python var {var} slaves
 
 
-
 Parameters
 ----------
 var
@@ -1941,7 +2952,16 @@ var
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args: 
+   var: quad_k1[1]
 
 \end{example}
 \item[var_create] \Newline\begin{example}
@@ -1973,7 +2993,27 @@ key_delta
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   var_name: kick[5]
+   ele_name: Q01W
+   attribute: L
+   universes: 1
+   weight: 0.001
+   step: 0.001
+   low_lim: -10
+   high_lim: 10
+   merit_type: 
+   good_user: 1
+   key_bound: T
+   key_delta: 0.01 
 
 \end{example}
 \item[var_general] \Newline\begin{example}
@@ -1983,6 +3023,22 @@ Command syntax:
 Output syntax:
   {v1_var name};{v1_var%v lower bound};{v1_var%v upper bound}
 
+
+Parameters
+----------
+
+
+Returns
+-------
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
 
 \end{example}
 \item[var_v_array] \Newline\begin{example}
@@ -2000,7 +3056,16 @@ v1_var
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   v1_var: quad_k1
 
 \end{example}
 \item[var_v1_array] \Newline\begin{example}
@@ -2016,7 +3081,16 @@ v1_var
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   v1_var: quad_k1 
 
 \end{example}
 \item[var_v1_create] \Newline\begin{example}
@@ -2051,7 +3125,18 @@ n_var_max
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   v1_name: quad_k1 
+   n_var_min: 0 
+   n_var_max: 45 
 
 \end{example}
 \item[var_v1_destroy] \Newline\begin{example}
@@ -2067,7 +3152,16 @@ v1_datum
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   v1_datum: quad_k1
 
 \end{example}
 \item[wave] \Newline\begin{example}
@@ -2088,7 +3182,16 @@ what
    
 Returns
 -------
-?? 
+string_list
+
+
+Examples
+-------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   what: plot1 
 
 \end{example}
 \end{description}
