@@ -675,26 +675,37 @@ Examples
 The \vn{read} command is used to modify the (\bmad) \vn{model} lattice or the associated
 \vn{PTC} lattice. Format:
 \begin{example}
-  read lattice \{-universes <universe-list>\} <file_name>
-  read ptc \{-old\} <file_name>
+  read lattice \{-silent\} \{-universes <universe-list>\} <file_name>
+  read ptc <file_name>
 \end{example}
 
 \vskip 10pt 
 
 With the \vn{read lattice} command, the \vn{model} lattices contained in the universes specified by
 \vn{<universe-list>} are modified using a ``secondary lattice'' file.  [See the \bmad manual for the
-definition of ``secondary lattice''.] If \vn{-universes} is not present, only the \vn{model} lattice
+definition of ``secondary lattice''.] For example, with the appropriate file, the \vn{read} command
+can be used to misalign the lattice elements. For the \vn{read lattice} command, the input file must
+be in Bmad standard lattice format.
+
+If \vn{-universes} is not present, only the \vn{model} lattice
 in the default universe is modified.
 
-For example, with the appropriate file, the \vn{read} command can be used to misalign the
-lattice elements. The input file must be in Bmad standard lattice format.
+If, after the lattice file has been read in, a given \tao variable has slave parameters that have
+different values there is a problem. For example, if a \tao variable controls the \vn{k2} value of
+sextupoles elements \vn{S1} and \vn{S2}, and if \vn{S1} is set to a different value than \vn{S2},
+there is an inconsistancey which needs to be corrected. This can be done in a number of ways. For
+example, by using the \vn{set ele -update} command or using a further \vn{read lattice} command with
+a lattice that corrects the problem.
+
+If desired, the \vn{-silent} switch can be used to suppress error messages about differing \tao
+variable slave parameter values.
 
 Note: Due to bookkeeping complications, the number of lattice elements may not be
 modified. If it is desired to initiate \tao using both ``primary'' and secondary lattice
 files, this can be done as illustrated in \sref{s:init.lat}.
 
-The \vn{read ptc} command reads in a PTC lattice. WARNING: This command is
-untested. Please contact David Sagan if you want to use it.
+The \vn{read ptc} command reads in a PTC lattice. WARNING: This command is untested. Please contact
+David Sagan if you want to use it.
 
 Examples:
 \begin{example}

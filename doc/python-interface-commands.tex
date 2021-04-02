@@ -1934,7 +1934,7 @@ Example: 1
 \item[lat_list] \Newline\begin{example}
 List of parameters at ends of lattice elements
 Command syntax:
-  python lat_list -no_slaves -track_only -index_order -real_out
+  python lat_list -no_slaves -track_only -index_order -array_out
                   {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 where:
   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
@@ -1972,7 +1972,7 @@ Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 
 Examples:
   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
-  python lat_list 3@0>>Q*|base real:ele.s    
+  python lat_list -real 3@0>>Q*|base ele.s    
 
 
 Parameters

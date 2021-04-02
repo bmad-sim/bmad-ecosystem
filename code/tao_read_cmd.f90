@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_read_cmd (who, unis, file_name)
+! Subroutine tao_read_cmd (who, unis, file_name, silent)
 !
 ! Routine to read in stuff.
 !
@@ -7,9 +7,10 @@
 !   who       -- character(*): Must be 'lattice'.
 !   unis      -- character(*): Universes to apply to
 !   file_name -- character(*): Input file name.
+!   silent    -- logical: Silent 
 !-
 
-subroutine tao_read_cmd (who, unis, file_name)
+subroutine tao_read_cmd (who, unis, file_name, silent)
 
 use tao_interface, dummy => tao_read_cmd
 use madx_ptc_module, only: m_u, m_t, read_universe_pointed
@@ -25,7 +26,7 @@ character(20) :: names(2) = ['lattice', 'ptc    ']
 character(*), parameter :: r_name = 'tao_read_cmd'
 
 integer i, j, iv, is, ix, iu, nd, ii
-logical err
+logical silent, err
 logical, allocatable :: u_pick(:)
 
 !
@@ -63,15 +64,18 @@ case ('lattice')
     ! Also Tao routines are allowed to assume that elements in the design and model lattices are commensurate.
     ! Therefore, it is forbidden for any Tao command (for example the "read lattice" command) to modify element positions.
 
-    do i = 0, ubound(u%model%lat%branch, 1)
-      if (u%model%lat%branch(i)%n_ele_track /= u%design%lat%branch(i)%n_ele_track .or. &
-          u%model%lat%branch(i)%n_ele_max /= u%design%lat%branch(i)%n_ele_max) then
-        call out_io (s_fatal$, r_name, &
-                'IT IS FORBIDDEN TO USE THE "read Lattice" COMMAND TO MODIFY THE NUMBER OF LATTICE ELEMENTS.', &
-                'WILL STOP HERE.')
-        stop
-      endif
-    enddo
+    if (.not. silent) then
+      do i = 0, ubound(u%model%lat%branch, 1)
+        if (u%model%lat%branch(i)%n_ele_track /= u%design%lat%branch(i)%n_ele_track .or. &
+            u%model%lat%branch(i)%n_ele_max /= u%design%lat%branch(i)%n_ele_max) then
+          call out_io (s_fatal$, r_name, &
+                  'IT IS FORBIDDEN TO USE THE "read Lattice" COMMAND TO MODIFY THE NUMBER OF LATTICE ELEMENTS.', &
+                  'WILL STOP HERE.')
+          stop
+        endif
+      enddo
+    endif
+
   enddo
 
   ! Check for consistancy of variable slaves.
