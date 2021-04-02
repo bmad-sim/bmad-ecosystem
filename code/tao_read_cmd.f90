@@ -54,8 +54,9 @@ case ('lattice')
     if (.not. u_pick(iu)) cycle
     u => s%u(iu)
 
-    call bmad_parser2 (file_name, u%model%lat)
+    call bmad_parser2 (file_name, u%model%lat, err_flag = err)
     u%calc%lattice = .true.
+    if (err) call tao_abort_command_file()
 
     ! If the lattice is perturbed in terms of the number of elements, tao_var_repoint will fail. 
     ! The reason is that tao_var_repoint will not be able to find the variable slave elements if they have moved.
