@@ -1979,10 +1979,10 @@ case ('ele:cartesian_map')
     call invalid ('cartesian_map not allocated')
     return
   endif
-  ix = parse_int (line, err, 0, size(ele%cartesian_map));  if (err) return
+  ix = parse_int (tail_str, err, 0, size(ele%cartesian_map));  if (err) return
   ct_map => ele%cartesian_map(ix)
 
-  select case (line)
+  select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          ct_map%ptr%file
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale

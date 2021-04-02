@@ -1,3 +1,12 @@
+!+
+! Module tao_c_interface_mod
+!
+! Module containing a set of routines primarily used to communicate with Python via ctypes.
+! The python side code is in:
+!   tao/python/pytao/tao_ctypes/core.py
+!-
+
+
 module tao_c_interface_mod
 
 use tao_interface
