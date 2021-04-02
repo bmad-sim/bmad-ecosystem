@@ -560,6 +560,7 @@ case ('beam')
 
     nl=nl+1; lines(nl) = 'Cached bunch parameters:'
     nl=nl+1; write(lines(nl), imt)  '  Parameters for bunch:       ', n
+    nl=nl+1; write(lines(nl), imt)  '  In branch:                  ', ix_branch
     nl=nl+1; write(lines(nl), imt)  '  Particles surviving:        ', n_live
     nl=nl+1; write(lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
     nl=nl+1; write(lines(nl), f3mt) '  Particles lost (%):         ', 100 * real(n_tot - n_live) / n_tot

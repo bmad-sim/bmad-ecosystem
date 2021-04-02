@@ -2346,10 +2346,15 @@ endif
 
 select case (switch)
 case ('universe')
-  call tao_set_integer_value (s%com%default_universe, 'UNIVERSE', value_str, &
-                                                                     err, lbound(s%u, 1), ubound(s%u, 1))
+  call tao_set_integer_value (s%com%default_universe, 'UNIVERSE', value_str, err, lbound(s%u, 1), ubound(s%u, 1))
   if (err) return
   call tao_turn_on_special_calcs_if_needed_for_plotting()
+  u => tao_pointer_to_universe(-1)
+  if (s%com%default_branch > ubound(u%model%lat%branch, 1)) then
+    call out_io (s_error$, r_name, 'DEFAULT_BRANCH VALUE NOW OUT OF RANGE: ' // int_str(s%com%default_branch), &
+                                   'SETTING TO ZERO')
+    s%com%default_branch = 0
+  endif
 
 case ('branch')
   u => tao_pointer_to_universe(-1)
