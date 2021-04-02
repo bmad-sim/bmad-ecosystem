@@ -136,6 +136,8 @@ case ('change')
   silent = .false.
   update = .false.
   do
+    if (len_trim(cmd_word(1)) == 1) exit
+
     if (index('-silent', trim(cmd_word(1))) == 1) then
       silent = .true.
       call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) goto 9000
@@ -381,12 +383,15 @@ case ('re_execute')
 
 case ('read')
 
-  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) goto 9000
+  silent = .false.
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) goto 9000
   word = ''
-  do i = 1, 3
+  do i = 1, 5
     if (cmd_word(i) == '') exit
-    call match_word (cmd_word(i), [character(16):: '-universe'], ix, .true., matched_name=switch)
+    call match_word (cmd_word(i), [character(16):: '-universe', '-silent'], ix, .true., matched_name=switch)
     select case (switch)
+    case ('-silent')
+      silent = .true.
     case ('-universe')
       word = cmd_word(i+1)
       cmd_word(i:i+1) = cmd_word(i+2:i+3)
@@ -394,7 +399,7 @@ case ('read')
     end select
   enddo
 
-  call tao_read_cmd (cmd_word(1), word, cmd_word(2))
+  call tao_read_cmd (cmd_word(1), word, cmd_word(2), silent)
 
 !--------------------------------
 ! RESTORE, USE, VETO
@@ -403,7 +408,7 @@ case ('restore', 'use', 'veto')
 
   call tao_cmd_split(cmd_line, 2, cmd_word, .true., err);  if (err) goto 9000
   
-  call match_word (cmd_word(1), ["data    ", "variable"], which, .true., matched_name = switch)
+  call match_word (cmd_word(1), [character(8) :: "data", "variable"], which, .true., matched_name = switch)
   
   if (switch == 'data') then
     call tao_use_data (cmd_name, cmd_word(2))
