@@ -1,5 +1,6 @@
 !+
-! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_source, dflt_component, dflt_uni)
+! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele,
+!                                                 dflt_source, dflt_component, dflt_uni, dflt_eval_point)
 !
 ! Routine to evaluate a lattice element parameter of the form 
 !     <universe>@ele::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
@@ -10,16 +11,19 @@
 ! Input:
 !   param_name      -- character(*): parameter name.
 !   print_err       -- logical: Print error message? 
+!   dflt_ele        -- ele_struct, pointer, optional: Default element if not specified by param_name.
 !   dflt_source     -- character(*): Default source
 !   dflt_component  -- character(*), optional: Default component
-!   dflt_uni        -- integer, optional :: Default universe to use.
+!   dflt_uni        -- integer, optional: Default universe to use.
+!   dflt_eval_point -- integer, optional: Evaluation point: anchor_beginning$, anchor_center$, or anchor_end$.
 !
 ! Output:
 !   err       -- Logical: True if there is an error in syntax. False otherwise
 !   values(:) -- Real(rp), allocatable: Array of datum valuse.
 !-
 
-subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele, dflt_source, dflt_component, dflt_uni)
+subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_ele, &
+                                             dflt_source, dflt_component, dflt_uni, dflt_eval_point)
 
 use tao_interface, except_dummy => tao_evaluate_element_parameters
 
@@ -37,10 +41,8 @@ character(*), parameter :: r_name = 'tao_evaluate_element_parameters'
 real(rp), allocatable :: values(:)
 real(rp) :: real_val
 
-integer, optional :: dflt_uni
+integer, optional :: dflt_uni, dflt_eval_point
 integer i, j, ix, num, ix1, ios, n_tot, ix_start, where
-
-integer, parameter :: beginning$ = 1, middle$ = 2, end$ = 3
 
 logical err, valid, use_dflt_ele
 logical :: print_err
@@ -51,23 +53,23 @@ call tao_pick_universe (param_name, name, scratch%this_u, err, dflt_uni = dflt_u
 if (err) return
 
 err = .true.
-where = end$
+where = integer_option(anchor_end$, dflt_eval_point)
 use_dflt_ele = .false.
 
 if (name(1:5) == 'ele::') then
   name = name(6:)  ! Strip off 'ele::'
-  where = end$
 elseif (name(1:9) == 'ele_mid::') then   
   name = name(10:)  ! Strip off 'ele_mid::'
-  where = middle$
+  where = anchor_center$
 elseif (name(1:11) == 'ele_begin::') then   
   name = name(12:)  ! Strip off 'ele_begin::'
-  where = beginning$
+  where = anchor_beginning$
 elseif (present(dflt_ele)) then
   use_dflt_ele = .true.
 elseif (dflt_source /= 'ele') then
   return
 endif
+
 
 ! Get component
 
@@ -98,7 +100,7 @@ endif
 ! "Intrinsic" element parameter values are not affected by evaluation in the middle.
 ! It is easier to list what is not intrinsic.
 
-if (where /= end$) then
+if (where /= anchor_end$) then
   select case (parameter)
   ! These are non-intrinsic
   case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position', &
@@ -112,7 +114,7 @@ if (where /= end$) then
         'phase_x', 'phase.x', 'phase_y', 'phase.y', 't', 'time', 'beta', 'energy', 'pc', 's')
 
   case default
-    where = end$
+    where = anchor_end$
   end select
 endif
 
@@ -187,7 +189,7 @@ lat        => tao_lat%lat
 tao_branch => tao_lat%tao_branch(ib)
 branch     => lat%branch(ib)
 
-if (where /= end$ .and. ixe /= 0) then
+if (where /= anchor_end$ .and. ixe /= 0) then
   ! Need to find element just before the element under consideration. 
   ! This is complicated if the element under consideration is a lord.
   ele0 => branch%ele(ixe)
@@ -198,7 +200,7 @@ if (where /= end$ .and. ixe /= 0) then
   ele0 => pointer_to_next_ele(ele0, -1)
   orb0 => tao_lat%tao_branch(ele0%ix_branch)%orbit(ele0%ix_ele)
 
-  if (where == middle$) then
+  if (where == anchor_center$) then
     select case (parameter)
     case ('x_position', 'y_position', 'z_position', 'theta_position', 'phi_position', 'psi_position')
       call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &

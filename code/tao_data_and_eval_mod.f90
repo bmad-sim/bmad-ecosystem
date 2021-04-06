@@ -4903,8 +4903,8 @@ endif
 ! Look for a lat datum.
 
 if (source == 'lat' .or. source == 'beam') then
-  call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, dflt_source, &
-                              dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
+  call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, dflt_source, dflt_ele_ref, &
+                              dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = (.not. err_flag)
   stack%type = lat_num$
@@ -4913,7 +4913,8 @@ if (source == 'lat' .or. source == 'beam') then
 ! Look for a lattice element parameter 
 
 elseif (source == 'ele') then
-  call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_ele, dflt_source, dflt_component, dflt_uni)
+  call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_ele, &
+                                                  dflt_source, dflt_component, dflt_uni, dflt_eval_point)
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = (.not. err_flag)
   stack%type = ele_num$
