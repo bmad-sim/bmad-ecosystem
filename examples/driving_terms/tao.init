@@ -51,7 +51,7 @@
   ix_min_data = 1
   ix_max_data = 10
 
-  datum(1:10)%data_type      = 'chrom.dtune.a', 'chrom.dtune.b', 'srdt.h21000.a', 'srdt.h30000.a', 'srdt.h10110.a',
+  datum(1:10)%data_type      = 'chrom.a', 'chrom.b', 'srdt.h21000.a', 'srdt.h30000.a', 'srdt.h10110.a',
                               'srdt.h10020.a', 'srdt.h10200.a', 'srdt.h20001.a', 'srdt.h00201.a', 'srdt.h10002.a',
   datum(1:10)%merit_type     = 'target', 'target', 'target', 'target', 'target', 'target', 'target', 'target', 'target', 'target'
   datum(1:10)%meas           = 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
@@ -100,7 +100,7 @@
   ix_min_data = 1
   ix_max_data = 2
 
-  datum(1:2)%data_type      = 'chrom.dtune.a', 'chrom.dtune.b'
+  datum(1:2)%data_type      = 'chrom.a', 'chrom.b'
   datum(1:10)%meas           = 1.0, 1.0
   datum(1:2)%weight         = 10.0, 10.0
 /
