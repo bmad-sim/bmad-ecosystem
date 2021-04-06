@@ -169,7 +169,8 @@ logical, allocatable :: picked(:), logic_arr(:)
 
 character(*) input_str
 character(len(input_str)) line
-character(n_char_show), allocatable :: li(:)
+character(n_char_show), allocatable, target :: li(:)
+character(n_char_show), pointer :: li_ptr(:)
 character(n_char_show) li2
 character(200) file_name, all_who
 character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
@@ -900,12 +901,13 @@ case ('constraints')
           branch => s%u(i)%model%lat%branch(data%ix_branch)
           a_name = branch%ele(ie)%name
         endif
+        li_ptr => li  
 
-        nl=incr(nl); write (li(nl), '(10a, 5(es22.14, a), 2a)') trim(tao_datum_name(data)), ';', &
+        nl=incr(nl); write (li(nl), '(10a, 6(es22.14, a), 2a)') trim(tao_datum_name(data)), ';', &
             trim(tao_constraint_type_name(data)), ';', &
             trim(data%ele_name), ';', trim(data%ele_start_name), ';', trim(data%ele_ref_name), ';', &
             data%meas_value, ';', data%ref_value, ';', data%model_value, ';', data%base_value, ';', &
-            data%weight, data%merit, ';', a_name
+            data%weight, ';', data%merit, ';', a_name
       enddo
     enddo
 
@@ -1687,8 +1689,8 @@ case ('data_set_design_value')
 !                       {spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
 !                       {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
 ! 
-! Note: The 3 values for spin_axis%n0, as a group, are optional and the 3 values 
-!       for spin_axis%l are, as a group, optional.
+! Note: The 3 values for spin_axis%n0, as a group, are optional. 
+!       Also the 3 values for spin_axis%l are, as a group, optional.
 ! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
 ! Note: After creating all your datums, use the "data_set_design_value" routine to 
 !       set the design (and model) values.
@@ -1696,8 +1698,8 @@ case ('data_set_design_value')
 !
 ! Parameters
 ! ----------
-! datum_name
-! data_type
+! datum_name          ! EG: orb.x[3]
+! data_type           ! EG: orbit.x
 ! ele_ref_name
 ! ele_start_name
 ! ele_name
