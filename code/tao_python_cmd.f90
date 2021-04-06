@@ -6842,6 +6842,11 @@ case ('wave')
     end select
 
   case ('plot1', 'plot2', 'plot3')
+    if (.not. associated(s%wave%region)) then
+      call invalid ('Wave plot regions not yet setup.')
+      return
+    endif
+
     select case (line)
     case ('plot1')
       g => s%wave%region%plot%graph(1)
