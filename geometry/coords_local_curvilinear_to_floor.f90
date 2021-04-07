@@ -10,19 +10,17 @@
 !   ele                 -- ele_struct: element that local_position coordinates are relative to.
 !   in_ele_frame        -- logical, optional: True => local_position is in ele body frame and includes misalignments.
 !                            Ignored if element is a patch. Default: False. 
+!   calculate_angles    -- logical, optional: calculate angles for global_position 
+!                            Default: True.
+!                            False returns local_position angles (%theta, %phi, %psi) = 0.
 !   use_patch_entrance  -- logical, optional: Default is False. If True and ele is a patch, use the
 !                            position of the previous lattice element as a starting point.
 !
 ! Output:
-!   global_position     -- floor_position_struct: Position in global coordinates.
-!                           %r and %w
 !   w_mat(3,3)          -- real(rp), optional: W matrix at z, to transform vectors. 
 !                                    v_global = w_mat . v_local
 !                                    v_local = transpose(w_mat) . v_global
-!   
-!   calculate_angles    -- logical, optional: calculate angles for global_position 
-!                            Default: True.
-!                            False returns local_position angles (%theta, %phi, %psi) = 0.
+!   global_position     -- floor_position_struct: Position in global coordinates.
 !-  
 
 function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, &
