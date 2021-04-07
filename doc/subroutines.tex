@@ -33,7 +33,8 @@ solely meant for \bmad internal use.
   Lattice: Low Level Stuff                    & \ref{r:lat.low}        \\
   Lattice: Manipulation                       & \ref{r:trans}          \\
   Lattice: Miscellaneous                      & \ref{r:lat.misc}       \\
-  Lattice: Reading and Writing Files          & \ref{r:read}           \\
+  Lattice: Nametable                          & \ref{r:lat.nametab}    \\
+  Lattice: Reading and Writing Files          & \ref{r:lat.read}       \\
   Matrices                                    & \ref{r:mat}            \\
   Matrix: Low Level Routines                  & \ref{r:low.mat}        \\
   Measurement Simulation Routines             & \ref{r:meas}           \\
@@ -76,11 +77,6 @@ The following helper routines are generally not useful for general use.
 \item[bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix, track_spin)] \Newline 
 Subroutine to track through the edge field of an sbend.
 Reverse tracking starts with the particle just outside the bend and
-
-\index[routine]{find_bunch_sigma_matrix}
-\label{r:find.bunch.sigma.matrix}
-\item[find_bunch_sigma_matrix (particle, charge, bunch_params, sigma_s)] \Newline 
-Routine to find the sigma matrix elements of a particle distribution.
 
 \index[routine]{init_spin_distribution}
 \label{r:init.spin.distribution}
@@ -136,13 +132,13 @@ Finds all bunch parameters for a slice through the beam distribution.
 
 \index[routine]{init_beam_distribution}
 \label{r:init.beam.distribution}
-\item[init_beam_distribution (ele, param, beam_init, beam, err_flag)] \Newline 
+\item[init_beam_distribution (ele, param, beam_init, beam, err_flag, modes)] \Newline 
 Routine to initialize a distribution of particles matched to
 the Twiss parameters, centroid position, and Energy - z correlation
 
 \index[routine]{init_bunch_distribution}
 \label{r:init.bunch.distribution}
-\item[init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag)] \Newline 
+\item[init_bunch_distribution (ele, param, beam_init, ix_bunch, bunch, err_flag, modes)] \Newline 
 Routine to initialize either a random or tail-weighted distribution of particles.  
 
 \index[routine]{reallocate_beam}
@@ -197,12 +193,12 @@ This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{csr_bin_particles}
 \label{r:csr.bin.particles}
-\item[csr_bin_particles (ele, particle, csr, err_flag)] \Newline 
+\item[csr_bin_particles (ele, particle, bin)] \Newline 
 Routine to bin the particles longitudinally in s. 
 
 \index[routine]{csr_bin_kicks}
 \label{r:csr.bin.kicks}
-\item[csr_bin_kicks (ele, ds_kick_pt, csr, err_flag)] \Newline 
+\item[csr_bin_kicks (lat, ele, s_travel, bin, small_angle_approx)] \Newline 
 Routine to cache intermediate values needed for the csr calculations.
 
 \index[routine]{csr_kick_calc}
@@ -212,7 +208,7 @@ Routine to calculate the longitudinal coherent synchrotron radiation kick.
 
 \index[routine]{i_csr}
 \label{r:i.csr}
-\item[i_csr (kick1, i_bin, csr) result (i_this)] \Newline 
+\item[i_csr (kick1, i_bin, k_factor, bin) result (i_this)] \Newline 
 Routine to calculate the CSR kick integral.
 
 \index[routine]{z_calc_csr}
@@ -372,26 +368,6 @@ Custom routine for calculating fields.
 \label{r:hdf5.write.attribute.string}
 \item[hdf5_write_attribute_string(root_id, attrib_name, string, error)] \Newline 
 Routine to create an HDF5 attribute whose value is a string.
-
-\index[routine]{hdf5_write_attribute_int_rank_0}
-\label{r:hdf5.write.attribute.int.rank.0}
-\item[hdf5_write_attribute_int_rank_0(root_id, attrib_name, ival, error)] \Newline 
-Routine to create an attribute with a scalar integer value.
-
-\index[routine]{hdf5_write_attribute_int_rank_1}
-\label{r:hdf5.write.attribute.int.rank.1}
-\item[hdf5_write_attribute_int_rank_1(root_id, attrib_name, ival, error)] \Newline 
-Routine to create an attribute with a vector integer value.
-
-\index[routine]{hdf5_write_attribute_real_rank_0}
-\label{r:hdf5.write.attribute.real.rank.0}
-\item[hdf5_write_attribute_real_rank_0(root_id, attrib_name, rval, error)] \Newline 
-Routine to create an attribute with a scalar real value.
-
-\index[routine]{hdf5_write_attribute_real_rank_1}
-\label{r:hdf5.write.attribute.real.rank.1}
-\item[hdf5_write_attribute_real_rank_1(root_id, attrib_name, rval, error)] \Newline 
-Routine to create an attribute with a real vector value.
 
 \index[routine]{hdf5_open_file}
 \label{r:hdf5.open.file}
@@ -661,7 +637,7 @@ the directory path and the base file name.
 
 \index[routine]{system_command}
 \label{r:system.command}
-\item[system_command (line)] \Newline 
+\item[system_command (line, err_flag)] \Newline 
 Routine to execute an operating system command from within the program.
 
 \index[routine]{type_this_file}
@@ -687,6 +663,46 @@ the complex plane.
 \label{r:cross.product}
 \item[cross_product (a, b)] \Newline 
 Returns the cross product of a x b
+
+\index[routine]{find_indexx0}
+\label{r:find.indexx0}
+\item[find_indexx0 (name, var_str_index, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
+Subroutine to find a matching name in a list of names.
+This name is overloaded by find_indexx.
+
+\index[routine]{find_indexx1}
+\item[find_indexx1 (name, nametable, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
+Subroutine to find a matching name in a list of names.
+This name is overloaded by find_indexx.
+
+\index[routine]{find_indexx2}
+\label{r:find.indexx2}
+\item[find_indexx2 (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
+Subroutine to find a matching name in a list of names.
+This name is overloaded by find_indexx.
+
+\index[routine]{find_indexx3}
+\label{r:find.indexx3}
+\item[find_indexx3 (name, names, n_min, an_indexx, n_max, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
+Subroutine to find a matching name in a list of names.
+This name is overloaded by find_indexx.
+
+\index[routine]{indexx_str}
+\label{r:indexx.str}
+\item[indexx_str (str_arr, indx_arr)] \Newline 
+Subroutine to sort a character array.
+This subroutine is used to overload the generic name indexx.
+
+\index[routine]{indexx_var_str}
+\label{r:indexx.var.str}
+\item[indexx_var_str (str_arr, indx_arr)] \Newline 
+Subroutine to sort a character array.
+This subroutine is used to overload the generic name indexx.
+
+\index[routine]{init_str_indexx_struct}
+\label{r:init.str.indexx.struct}
+\item[init_str_indexx_struct(var_str_indexx, n_min)] \Newline 
+Routine to initialize a str_indexx_struct instance.
 
 \index[routine]{linear_fit}
 \label{r:linear.fit}
@@ -879,6 +895,16 @@ optional string.
 
 \begin{description}
 
+\index[routine]{all_pointer_to_string}
+\label{r:all.pointer.to.string}
+\item[all_pointer_to_string (a_ptr, err) result (str)] \Newline 
+Routine to turn the value pointed to by an all_pointer_struct into a string for printing.
+
+\index[routine]{downcase}
+\label{r:downcase}
+\item[downcase (str_in) result (str_out)] \Newline 
+Routine to convert a string to lower case.
+
 \index[routine]{downcase_string}
 \label{r:downcase.string}
 \item[downcase_string (string)] \Newline 
@@ -889,6 +915,22 @@ Routine to convert a string to lowercase:
 \item[index_nocase (string, match_str) result (indx)] \Newline 
 Function to look for a sub-string of string that matches match_str.
 This routine is similar to the fortran INDEX function
+
+\index[routine]{indexx_str}
+\item[indexx_str (str_arr, indx_arr)] \Newline 
+Subroutine to sort a character array.
+This subroutine is used to overload the generic name indexx.
+
+\index[routine]{int_str}
+\label{r:int.str}
+\item[int_str(int, width) result (str)] \Newline 
+Routine to return a string representation of an integer.
+
+\index[routine]{is_alphabetic}
+\label{r:is.alphabetic}
+\item[is_alphabetic (string, valid_chars) result (is_alpha)] \Newline 
+Function to tell if a string has all alphabetical characters.
+Spaces are counted as not alphabetic
 
 \index[routine]{is_integer}
 \label{r:is.integer}
@@ -905,6 +947,22 @@ Accepted possibilities are (individual characters can be either case):
 \label{r:is.real}
 \item[is_real (string, ignore, real_num) result (good)] \Newline 
 Function to test if a string represents a real number.
+
+\index[routine]{location_decode}
+\label{r:location.decode}
+\item[location_decode (string, array, ix_min, num, names, exact_case, print_err)] \Newline 
+Subroutine to set a list of locations in a logical array to True.
+
+\index[routine]{location_encode1}
+\label{r:location.encode1}
+\item[location_encode1 (string, loc, exists, ix_min, names, separator, err_flag)] \Newline 
+Routine to encode a list of locations. 
+This routine is overloaded by the routine: location_encode.
+
+\index[routine]{logic_str}
+\label{r:logic.str}
+\item[logic_str(logic) result (str)] \Newline 
+Routine to return a string representation (T/F) of a logical.
 
 \index[routine]{match_reg}
 \label{r:match.reg}
@@ -929,10 +987,93 @@ Abbreviations are accepted.
 \item[on_off_logic (logic, true_str, false_str) result (name)] \Newline 
 Function to return the string "ON" or "OFF".
 
+\index[routine]{ordinal_str}
+\label{r:ordinal.str}
+\item[ordinal_str(n) result (str)] \Newline 
+Routine to return a string representing the ordinal position of n.
+EG n = 1 -> "1st", n = 2 -> "2nd", etc.
+
+\index[routine]{parse_fortran_format}
+\label{r:parse.fortran.format}
+\item[parse_fortran_format (format_str, multiplyer, power, code, width, digits)] \Newline 
+Routine to parse a Fortran edit descriptor.
+This routine assumes that format_str will be a edit descriptor for a single entity like '3f10.6'.
+
+\index[routine]{quote}
+\label{r:quote}
+\item[quote(str) result (q_str)] \Newline 
+Function to put double quote marks (") around a string.
+The string will not be modified if there are already quote marks of either kind.
+
+\index[routine]{quoten}
+\label{r:quoten}
+\item[quoten(str, delim) result (q_str)] \Newline 
+Function to put double quote marks (") around each string in an array and
+return the concatenated string with a delimitor between the strings.
+
+\index[routine]{real_num_fortran_format}
+\label{r:real.num.fortran.format}
+\item[real_num_fortran_format (number, width, n_blanks) result (fmt_str)] \Newline 
+Routine to find a "nice" edit descriptor format for a real number.
+The format will either be "es" for numbers that are very small or very large or "f".
+
+\index[routine]{real_str}
+\label{r:real.str}
+\item[real_str(r_num, n_signif) result (str)] \Newline 
+Routine to return a string representing a real number.
+Trailing zeros will be supressed. 
+
+\index[routine]{real_to_string}
+\label{r:real.to.string}
+\item[real_to_string (real_num, width, n_signif, n_decimal) result (str)] \Newline 
+Routine to turn a real number into a string for printing. 
+Printing the number without an explicit exponent is preferred.
+
+\index[routine]{reals_to_string}
+\label{r:reals.to.string}
+\item[reals_to_string (real_arr, width, n_blank, n_signif, n_decimal) result (str)] \Newline 
+Routine to turn a n array of reals into a string for printing. 
+
+\index[routine]{reals_to_table_row}
+\label{r:reals.to.table.row}
+\item[reals_to_table_row (real_arr, width, n_decimal, n_blank) result (str)] \Newline 
+Routine to turn an array of real numbers into a string for printing tables.
+Fixed format is preferred and floating format will only be used if necessary.
+
+\index[routine]{str_find_first_in_set}
+\label{r:str.find.first.in.set}
+\item[str_find_first_in_set (line, set)] \Newline 
+Function to locate the first character in "line" that matches
+a character in "set". If no match is found, function returns 0.
+
+\index[routine]{str_find_first_not_in_set}
+\label{r:str.find.first.not.in.set}
+\item[str_find_first_not_in_set (line, set)] \Newline 
+Function to locate the first character in "line" that
+does not match a character in "set". If all characters match,
+
+\index[routine]{str_find_last_in_set}
+\label{r:str.find.last.in.set}
+\item[str_find_last_in_set (line, set)] \Newline 
+Function to locate the last character in "line" that matches
+a character in "set". If no match is found, function returns 0.
+
+\index[routine]{str_find_last_not_in_set}
+\label{r:str.find.last.not.in.set}
+\item[str_find_last_not_in_set (line, set)] \Newline 
+Function to locate the last character in "line" that
+does not match a character in "set". If all characters match,
+
 \index[routine]{str_match_wild}
 \label{r:str.match.wild}
 \item[str_match_wild(str, pat) result (a_match)] \Newline 
 Function to match a character string against a regular expression pattern.
+
+\index[routine]{str_set}
+\label{r:str.set}
+\item[str_set(str_out, str_in)] \Newline 
+Routine to set a variable length string.
+Trailing blanks will be trimmed.
 
 \index[routine]{string_to_int}
 \label{r:string.to.int}
@@ -966,6 +1107,17 @@ Routine to convert a string to down case.
 \label{r:str.substitute}
 \item[str_substitute (string, str_match, str_replace, do_trim)] \Newline 
 Routine to substitute all instances of one sub-string for another in a string
+
+\index[routine]{to_str}
+\label{r:to.str}
+\item[to_str(num, max_signif) result (string)] \Newline 
+Routine to return the string representation of a number.
+
+\index[routine]{unquote}
+\label{r:unquote}
+\item[unquote (str_in) result (str_out)] \Newline 
+Routine to remove quotation marks at the ends of a string.
+Quotation marks will only be removed if they match at both ends.
 
 \index[routine]{upcase}
 \label{r:upcase}
@@ -1158,6 +1310,11 @@ in the array of elements in a lattice branch.
   }] \Newline 
 Routine to point to a given element.
 
+\index[routine]{pointer_to_ele_multipole}
+\label{r:pointer.to.ele.multipole}
+\item[pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)] \Newline 
+Routine to point to the appropriate magnetic or electric poles in an element.
+
 \index[routine]{pointer_to_element_at_s}
 \label{r:pointer.to.element.at.s}
 \item[pointer_to_element_at_s (branch, s, choose_max, err_flag, s_eff, position) result (ele)] \Newline 
@@ -1205,17 +1362,29 @@ Returns the value of an element attribute.
 
 \begin{description}
 
-\index[routine]{ele_geometry}
-\label{r:ele.geometry}
-\item[ele_geometry (floor_start, ele, floor_end, len_scale, ignore_patch_err)] \Newline 
-Routine to calculate the physical (floor) placement of an element given the
-placement of the preceding element. This is the same as the MAD convention.
+\index[routine]{bend_shift}
+\label{r:bend.shift}
+\item[bend_shift(position1, g, delta_s, w_mat, ref_tilt) result(position2)] \Newline 
+Function to shift a particle's coordinates from one coordinate frame of reference 
+to another within a bend with curvature g and reference tilt ref_tilt.
 
-\index[routine]{floor_angles_to_w_mat}
-\label{r:floor.angles.to.w.mat}
-\item[floor_angles_to_w_mat (theta, phi, psi, w_mat, w_mat_inv)] \Newline 
-Routine to construct the W matrix that specifies the orientation of an element
-in the global "floor" coordinates. See the Bmad manual for more details.
+\index[routine]{coords_curvilinear_to_floor}
+\label{r:coords.curvilinear.to.floor}
+\item[coords_curvilinear_to_floor (xys, branch, err_flag) result (global)] \Newline 
+Routine to find the global position of a local lab (x, y, s) position.
+s = position from beginning of lattice branch.
+
+\index[routine]{coords_element_frame_to_local}
+\label{r:coords.element.frame.to.local}
+\item[coords_element_frame_to_local (body_position, ele, w_mat, calculate_angles) result (local_position)] \Newline 
+Returns Cartesian coordinates relative to the exit end lab frame floor coordinates (which
+is ele\%floor if ele\%orientation == 1).
+
+\index[routine]{coords_floor_to_curvilinear}
+\label{r:coords.floor.to.curvilinear}
+\item[coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) result (local_coords)] \Newline 
+Given a position in global "floor" coordinates, return local curvilinear (ie element) coordinates 
+for an appropriate element, ele1, near ele0. That is, the s-position of local_coords will be within
 
 \index[routine]{coords_floor_to_relative}
 \label{r:floor.to.local}
@@ -1225,29 +1394,11 @@ in the global "floor" coordinates. See the Bmad manual for more details.
 Returns local floor position relative to floor0 given a global floor position.
 This is an essentially an inverse of routine coords_relative_to_floor.
 
-\index[routine]{floor_w_mat_to_angles}
-\label{r:floor.w.mat.to.angles}
-\item[floor_w_mat_to_angles (w_mat, theta, phi, psi, floor0)] \Newline 
-Routine to construct the angles that define the orientation of an element
-in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
-
-\index[routine]{lat_geometry}
-\label{r:lat.geometry}
-\item[lat_geometry (lat)] \Newline
-Routine to calculate the physical placement of all the elements in a lattice. 
-That is, the physical machine layout on the floor. 
-
 \index[routine]{coords_relative_to_floor}
 \label{r:local.to.floor}
 \item[coords_relative_to_floor (floor0, dr, theta, phi, psi) result (floor1)] \Newline 
 Starting from a given reference frame and given a shift in position, return
 the resulting reference frame.
-
-\index[routine]{patch_flips_propagation_direction}
-\label{r:patch.flips.propagation.direction}
-\item[patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)] \Newline 
-Routine to determine if the propagation direction is flipped in a patch.
-This is true if the tranformation matrix element S(3,3) = cos(x_pitch) * cos(y_pitch) 
 
 \index[routine]{coords_local_curvilinear_to_floor}
 \label{r:position.in.global.frame}
@@ -1264,10 +1415,68 @@ Given a position local to ele, return global floor coordinates.
 Given a position in global coordinates, return local curvilinear coordinates in ele
   relative to floor0
 
+\index[routine]{ele_geometry}
+\label{r:ele.geometry}
+\item[ele_geometry (floor_start, ele, floor_end, len_scale, ignore_patch_err)] \Newline 
+Routine to calculate the physical (floor) placement of an element given the
+placement of the preceding element. This is the same as the MAD convention.
+
+\index[routine]{ele_geometry_with_misalignments}
+\label{r:ele.geometry.with.misalignments}
+\item[ele_geometry_with_misalignments (ele, len_scale) result (floor)] \Newline 
+Routine to calculate the element body coordinates (that is, coordinates with misalignments) 
+for an element at some distance s_offset from the upstream end.
+
+\index[routine]{ele_misalignment_l_s_calc}
+\label{r:ele.misalignment.l.s.calc}
+\item[ele_misalignment_l_s_calc (ele, l_mis, s_mis)] \Newline 
+Calculates transformation vector L_mis and matrix S_mis due to misalignments for an ele
+Used to transform coordinates and vectors relative to the center of the element
+
+\index[routine]{floor_angles_to_w_mat}
+\label{r:floor.angles.to.w.mat}
+\item[floor_angles_to_w_mat (theta, phi, psi, w_mat, w_mat_inv)] \Newline 
+Routine to construct the W matrix that specifies the orientation of an element
+in the global "floor" coordinates. See the Bmad manual for more details.
+
+\index[routine]{floor_w_mat_to_angles}
+\label{r:floor.w.mat.to.angles}
+\item[floor_w_mat_to_angles (w_mat, theta, phi, psi, floor0)] \Newline 
+Routine to construct the angles that define the orientation of an element
+in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
+
+\index[routine]{lat_geometry}
+\label{r:lat.geometry}
+\item[lat_geometry (lat)] \Newline
+Routine to calculate the physical placement of all the elements in a lattice. 
+That is, the physical machine layout on the floor. 
+
+\index[routine]{orbit_to_local_curvilinear}
+\label{r:orbit.to.local.curvilinear}
+\item[orbit_to_local_curvilinear (orbit, ele) result (local_position)] \Newline 
+Routine to return the local curvilinear position and orientation of a particle.
+
+\index[routine]{patch_flips_propagation_direction}
+\label{r:patch.flips.propagation.direction}
+\item[patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)] \Newline 
+Routine to determine if the propagation direction is flipped in a patch.
+This is true if the tranformation matrix element S(3,3) = cos(x_pitch) * cos(y_pitch) 
+
 \index[routine]{s_calc}
 \label{r:s.calc}
 \item[s_calc (lat)] \Newline
 Routine to calculate the longitudinal distance S for the elements in a lat. 
+
+\index[routine]{update_floor_angles}
+\label{r:update.floor.angles}
+\item[update_floor_angles (floor, floor0)] \Newline 
+Routine to calculate floor angles from its W matrix.
+
+\index[routine]{w_mat_for_bend_angle}
+\label{r:w.mat.for.bend.angle}
+\item[w_mat_for_bend_angle (angle, ref_tilt, r_vec) result (w_mat)] \Newline 
+Routine to compute the W matrix for the angle transformation in a bend.
+Using the notation in the Bmad manual:
 
 \index[routine]{w_mat_for_x_pitch}
 \label{r:w.mat.for.x.pitch}
@@ -1473,7 +1682,7 @@ If s $<$ s(1) then ix = 0
 
 \index[routine]{check_controller_controls}
 \label{r:check.controller.controls}
-\item[check_controller_controls (contrl, name, err)] \Newline 
+\item[check_controller_controls (ele_key, contrl, name, err)] \Newline 
 Routine to check for problems when setting up group or overlay controllers.
 
 \index[routine]{deallocate_ele_pointers}
@@ -1501,7 +1710,7 @@ Routine to propagate the twiss parameters of a single mode.
 
 \index[routine]{allocate_element_array}
 \label{r:allocate.element.array}
-\item[allocate_element_array (ele, upper_bound, init_ele0)] \Newline 
+\item[allocate_element_array (ele, upper_bound)] \Newline 
 Routine to allocate or re-allocate an element array.
 
 \index[routine]{allocate_lat_ele_array}
@@ -1658,8 +1867,59 @@ Routine to mark an element as modified for use with "intelligent" bookkeeping.
 \end{description}
 
 %------------------------------------------------------------------------
+\section{Lattice: Nametable}
+\label{r:lat.nametab}
+
+\begin{description}
+
+\index[routine]{create_lat_ele_nametable}
+\label{r:create.lat.ele.nametable}
+\item[create_lat_ele_nametable (lat, nametable)] \Newline 
+Routine to create a sorted nametable of element names for a lattice.
+
+\index[routine]{ele_nametable_index}
+\label{r:ele.nametable.index}
+\item[ele_nametable_index(ele) result(ix_nt)] \Newline 
+Routine to return the index in the nametable corresponding to ele.
+The reverse routine is: pointer_to_ele.
+
+\index[routine]{nametable_add}
+\label{r:nametable.add}
+\item[nametable_add (nametable, name, ix_name)] \Newline 
+Routine to add a name to the nametable at index ix_name.
+
+\index[routine]{nametable_bracket_indexx}
+\label{r:nametable.bracket.indexx}
+\item[nametable_bracket_indexx (nametable, name, n_match) result (ix_max)] \Newline 
+Routine to find the index ix_max such that:
+  nametable\%name(nametable\%indexx(ix_max)) <= name < nametable\%name(nametable\%indexx(ix_max+1))
+
+\index[routine]{nametable_change1}
+\label{r:nametable.change1}
+\item[nametable_change1 (nametable, name, ix_name)] \Newline 
+Routine to change one entry in a nametable.
+
+\index[routine]{find_indexx1}
+\label{r:find.indexx1}
+\item[find_indexx1 (name, nametable, ix_match, ix2_match, add_to_list, n_match, has_been_added)] \Newline 
+Subroutine to find a matching name in a list of names.
+This name is overloaded by find_indexx.
+
+\index[routine]{nametable_init}
+\label{r:nametable.init}
+\item[nametable_init(nametable, n_min, n_max)] \Newline 
+Routine to initialize a nametable_struct instance.
+
+\index[routine]{nametable_remove}
+\label{r:nametable.remove}
+\item[nametable_remove (nametable, ix_name)] \Newline 
+Routine to remove a name from the nametable at index ix_name.
+
+\end{description}
+
+%------------------------------------------------------------------------
 \section{Lattice: Reading and Writing Files} 
-\label{r:read}
+\label{r:lat.read}
 \index{lattice files!reading and writing routines}
 
 \begin{description}
@@ -1701,7 +1961,8 @@ Routine to give elements in a lattice unique names.
 
 \index[routine]{read_digested_bmad_file}
 \label{r:read.digested.bmad.file}
-\item[read_digested_bmad_file (digested_file, lat, inc_version, err_flag, parser_calling)] \Newline
+\item[\protect\parbox{6in}{read_digested_bmad_file (digested_file, lat, inc_version, \\
+  \hspace*{1in} err_flag, parser_calling, lat_files)}] \Newline
 Routine to read in a digested file. 
 
 \index[routine]{write_bmad_lattice_file}
@@ -1953,7 +2214,7 @@ Routine to convert ab type multipoles to kt (MAD standard) multipoles.
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
-\item[multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks)] \Newline
+\item[multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)] \Newline
 Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
@@ -2075,7 +2336,7 @@ structure equal to another.
 
 \index[routine]{angle_to_canonical_coords}
 \label{r:angle.to.canonical.coords}
-\item[angle_to_canonical_coords (orbit)] \Newline 
+\item[angle_to_canonical_coords (orbit, coord_type)] \Newline 
 Routine to convert from angle (x, x', y, y', z, z') coordinates to
 canonical (x, px, y, py, z, pz) coordinates.
 
@@ -2149,7 +2410,7 @@ Routine to concatenate two real_8 taylor series.
 \label{r:ele.to.fibre}
 \item[\protect\parbox{6in}{
     ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, \\
-    \hspace*{1in} for_layout, track_particle, kill_layout) }] \Newline
+    \hspace*{1in} for_layout, track_particle) }] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -2819,7 +3080,7 @@ Note: This affects both lines and symbols.
 
 \index[routine]{qp_set_color_basic}
 \label{r:qp.set.color.basic}
-\item[qp_set_color_basic (ix_color, set_background)  ] \Newline 
+\item[qp_set_color_basic (ix_color)  ] \Newline 
 Routine to set the color taking into account that GIF
 inverts the black for white.
 
@@ -3179,7 +3440,7 @@ Routine to throw out all terms in a taylor map that are above a certain order.
 
 \index[routine]{type_taylors}
 \label{r:type.taylors}
-\item[type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_type, clean)] \Newline
+\item[type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_style, clean)] \Newline
 Routine to output a Bmad taylor map.
 
 \end{description}
@@ -3261,7 +3522,7 @@ Routine to find the closed orbit via tracking.
 
 \index[routine]{dynamic_aperture1}
 \label{r:dynamic.aperture1}
-\item[dynamic_aperture1 (lat, orb0, theta_xy, S_xy, aperture_param, aperture, check_xy_init)] \Newline
+\item[dynamic_aperture1 (branch, orb0, theta_xy, S_xy, aperture_param, aperture, check_xy_init)] \Newline
 Routine to determine the dynamic aperture of a lattice via tracking. 
 
 \index[routine]{multi_turn_tracking_analysis}
@@ -3319,7 +3580,9 @@ instead rotating the particle position with negative the angle.
 
 \index[routine]{track1}
 \label{r:track1}
-\item[track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, mat6, make_matrix)] \Newline
+\item[\protect\parbox{6in}{
+    track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, \\
+    \hspace*{1in} mat6, make_matrix, init_to_edge)}] \Newline
 Routine to track through a single element. 
 
 \index[routine]{track1_bunch_csr}
@@ -3618,7 +3881,7 @@ Routine to track through an element using the elements taylor series.
 
 \index[routine]{track1_time_runge_kutta}
 \label{r:track1.time.runge.kutta}
-\item[track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track)] \Newline 
+\item[track1_time_runge_kutta(start_orb, ele, param, end_orb, err_flag, track, t_end, dt_step)] \Newline 
 Routine to track a particle through an element using 
 Runge-Kutta time-based tracking.
 
