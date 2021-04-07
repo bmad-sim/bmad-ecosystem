@@ -25,12 +25,18 @@ if (.not. allocated(lat%branch)) return
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  if (associated(branch%ptc%m_t_layout)) call kill_layout_in_universe(branch%ptc%m_t_layout)
-  if (.not. allocated(branch%ptc%m_u_layout)) cycle
-  do il = 1, size(branch%ptc%m_u_layout)
-    call kill_layout_in_universe(branch%ptc%m_u_layout(il)%ptr)
-  enddo
-  deallocate(branch%ptc%m_u_layout)
+
+  if (associated(branch%ptc%m_t_layout)) then
+    call kill_layout_in_universe(branch%ptc%m_t_layout)
+    deallocate(branch%ptc%m_t_layout)
+  endif
+
+  if (allocated(branch%ptc%m_u_layout)) then
+    do il = 1, size(branch%ptc%m_u_layout)
+      call kill_layout_in_universe(branch%ptc%m_u_layout(il)%ptr)
+    enddo
+    deallocate(branch%ptc%m_u_layout)
+  endif
 enddo
 
 end subroutine kill_ptc_layouts
