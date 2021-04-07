@@ -350,10 +350,19 @@ loop: do
   ix = index(name_out(ix_last:), '/..')
   if (ix == 0) return
   ix = ix + ix_last - 1
-  if (name_out(ix+3:ix+3) /= '/') then
+
+  if (name_out(ix+3:ix+3) /= '/' .and. name_out(ix+3:ix+3) /= ' ') then
     ix_last = ix + 3
     cycle
   endif
+
+  if (ix > 2) then
+    if (name_out(ix-2:ix-1) == '..') then
+      ix_last = ix + 3
+      cycle
+    endif
+  endif
+
   do i = ix-1, 1, -1
     if (name_out(i:i) == '/') then
       name_out = name_out(:i) // name_out(ix+4:)

@@ -1,5 +1,5 @@
 !+
-! Function int_str(int) result (str, width)
+! Function int_str(int, width) result (str)
 !
 ! Routine to return a string representation of an integer.
 !
