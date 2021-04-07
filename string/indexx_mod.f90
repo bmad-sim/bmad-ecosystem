@@ -569,8 +569,9 @@ end subroutine indexx_str
 !                 For all j, str_arr(i1) < str_arr(i2) where i1 = indx_arr(j), i2 = indx_arr(j+1).
 !-
 
-SUBROUTINE indexx_var_str(str_arr,indx_arr)
-USE nrtype; USE nrutil, ONLY : arth,assert_eq,nrerror,swap
+SUBROUTINE indexx_var_str(str_arr, indx_arr)
+
+use nrtype; use nrutil, only : arth,assert_eq,nrerror,swap
 
 type(var_length_string_struct) :: str_arr(:)
 integer(i4b) :: indx_arr(:)
