@@ -653,6 +653,12 @@ subroutine str_set(str_out, str_in)
   character(*) str_in
 end subroutine
 
+function real_path (path_in, path_out) result (is_ok)
+  implicit none
+  character(*) path_in, path_out
+  logical is_ok
+end function
+
 function real_str(r_num, n_signif) result (str)
   import
   implicit none
