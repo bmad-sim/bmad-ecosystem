@@ -135,7 +135,7 @@ export ACC_ENABLE_SHARED="N"
 # shared libraries (.so files ) but will not explicitly 
 # enable -fPIC in static libraries (.a files).
 #-----------------------------------------------------------
-export ACC_ENABLE_FPIC="N"
+export ACC_ENABLE_FPIC="Y"
 
 
 #-----------------------------------------------------------
