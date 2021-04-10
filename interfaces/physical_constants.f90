@@ -12,8 +12,8 @@ use precision_def
 real(rp), parameter :: pi = 3.141592653589793238462643383279d0
 real(rp), parameter :: twopi = 2 * pi
 real(rp), parameter :: fourpi = 4 * pi
-real(rp), parameter :: sqrt_2 = sqrt(2.0_rp)               ! 1.414213562373095048801688724209698d0
-real(rp), parameter :: sqrt_3 = sqrt(3.0_rp)               ! 1.732050807568877293527446341505872d0 
+real(rp), parameter :: sqrt_2 = 1.414213562373095048801688724209698_rp
+real(rp), parameter :: sqrt_3 = 1.732050807568877293527446341505872_rp
 
 real(rp), parameter :: m_electron = 0.51099895000d6         ! Mass [eV]
 real(rp), parameter :: m_proton   = 0.93827208816d9         ! Mass [eV]
