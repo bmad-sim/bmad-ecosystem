@@ -176,13 +176,8 @@ endif
 if (resize) then
   min = [minval(xa), minval(ya), minval(za)]
   max = [maxval(xa), maxval(ya), maxval(za)] 
-  delta =(max(:) - min(:) ) / (mesh3d%nhi(:) - mesh3d%nlo(:) + 1)
-  ! Pad by by 1.1 bins
-  pad = delta*1.1
-  min = min !- pad
-  max = max + pad
-  delta =(max(:) - min(:) ) / (mesh3d%nhi(:) - mesh3d%nlo(:) + 1)
-
+  delta =(max(:) - min(:) ) / (mesh3d%nhi(:) - mesh3d%nlo(:) )
+  
   mesh3d%min = min
   mesh3d%max = max
   mesh3d%delta = delta
@@ -238,8 +233,6 @@ ymin = mesh3d%min(2)
 zmin = mesh3d%min(3)
 
 n_particles = size(xa)
-
-
 
 if (present(qa)) then
     mesh3d%charge = sum(qa)
@@ -722,7 +715,7 @@ end function
 ! elemental real(dp) function lafun2(x,y,z)
 !
 ! The indefinite integral:
-! \int 1/r^3 dx dy dz = 
+! \int 1/r dx dy dz = 
 !          -z**2*atan(x*y/(z*r))/2 - y**2*atan(x*z/(y*r))/2 -x**2*atan(y*z/(x*r))/2 
 !           +y*z*log(x+r) + x*z*log(y+r) + x*y*log(z+r)
 !
