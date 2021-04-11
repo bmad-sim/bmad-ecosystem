@@ -6,7 +6,7 @@
 # Only open_spacecharge_mod.f90 is actually needed for Bmad
 #
 
-VERSION=1.0
+VERSION=1.0.1
 PACKAGE=OpenSpaceCharge
 
 F=v$VERSION.tar.gz
