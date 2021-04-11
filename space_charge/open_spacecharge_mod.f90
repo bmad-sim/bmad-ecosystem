@@ -178,6 +178,11 @@ if (resize) then
   max = [maxval(xa), maxval(ya), maxval(za)] 
   delta =(max(:) - min(:) ) / (mesh3d%nhi(:) - mesh3d%nlo(:) )
   
+  ! Small padding to protect against indexing errors
+  min = min - 1.0e-6_dp*delta
+  max = max + 1.0e-6_dp*delta
+  delta =(max(:) - min(:) ) / (mesh3d%nhi(:) - mesh3d%nlo(:) )
+  
   mesh3d%min = min
   mesh3d%max = max
   mesh3d%delta = delta
@@ -233,6 +238,8 @@ ymin = mesh3d%min(2)
 zmin = mesh3d%min(3)
 
 n_particles = size(xa)
+
+
 
 if (present(qa)) then
     mesh3d%charge = sum(qa)
