@@ -1398,7 +1398,7 @@ if (ele%space_charge_method == fft_3d$) then
     csr%position(n)%charge = p%charge
   enddo
 
-  call deposit_particles (csr%position%r(1), csr%position%r(2), csr%position%r(3), csr%mesh3d, qa=csr%position%charge)
+  call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge)
   ! OLD ROUTINE: call space_charge_freespace(csr%mesh3d)
    call space_charge_3d(csr%mesh3d)
    
@@ -1656,7 +1656,7 @@ do i_step = 0, n_step
     csr%position(n)%r = p%vec(1:5:2)
     csr%position(n)%charge = p%charge
   enddo
-  call deposit_particles (csr%position%r(1), csr%position%r(2), csr%position%r(3), csr%mesh3d, qa=csr%position%charge)  
+  call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge)  
 
   ! Give particles a kick
   ! TODO: simplify with fft_3d
@@ -1678,7 +1678,7 @@ do i_step = 0, n_step
   do i = 1, size(particle)
     p => particle(i)
     if (p%state /= alive$) cycle
-    call interpolate_field(p%vec(1), p%vec(3), p%vec(5),  csr%mesh3d, E=Evec)
+    call interpolate_field(p%vec(1), p%vec(3), p%vec(5), csr%mesh3d, E=Evec)
      
     
     factor = csr%kick_factor / (p%p0c  * p%beta) 
