@@ -23,7 +23,7 @@
 # during the build.
 #
 #    NOTE: gfortran support is limited to version
-#          5.3 and later.
+#          6.3 and later.
 #
 #    NOTE: ifort support is limited to version
 #          17.0.7.259 and later.

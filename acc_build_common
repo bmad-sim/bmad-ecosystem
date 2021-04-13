@@ -213,7 +213,7 @@ func_check_macports () {
 func_check_fortran_version () {
 
     # Set minimum Fortran compiler versions 
-    GCC_REQ_VER=5.3
+    GCC_REQ_VER=6.3
     IFORT_REQ_VER=17.0.7.259
 
     func_echo_fortran () {
@@ -231,7 +231,7 @@ func_check_fortran_version () {
 
 	    AVAIL_DEV=()
 
-	    for ((NUM=4 ; NUM < 29 ; NUM++))
+	    for ((NUM=6 ; NUM < 29 ; NUM++))
 	    {
 		[ -d "${DEVTOOLSET_DIR}-${NUM}" ] && AVAIL_DEV=("${AVAIL_DEV[@]}" "${NUM}")
 	    }
