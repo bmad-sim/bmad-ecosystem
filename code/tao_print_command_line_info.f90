@@ -22,6 +22,7 @@ call out_io (s_blank$, r_name, [ &
         '  -beam_init_position_file <file_name> # File containing initial particle positions.            ', &
         '  -beam_track_data_file <file_name>    # Beam info from previous tracking                       ', &
         '  -building_wall_file <file_name>      # Define the building tunnel wall                        ', &
+        '  -command <command_string>            # Commands to run after startup file commands            ', &
         '  -data_file <file_name>               # Define data for plotting and optimization              ', &
         '  -debug                               # Debug mode for Wizards                                 ', &
         '  -disable_smooth_line_calc            # Disable the smooth line calc used in plotting          ', &

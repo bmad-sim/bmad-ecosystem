@@ -122,7 +122,7 @@ endif
 
 s%com%single_mode_buffer = '' ! Reset buffer when not in single mode
 
-! If recalling a command from the cmd history stack...
+! If a command was recalled from the cmd history stack use it.
 
 if (s%com%use_cmd_here) then
   cmd_out = s%com%cmd
@@ -222,13 +222,12 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
     ! Check if in a do loop
     call do_loop(lev_loop, loop, n_level, cmd_out)
-    
   endif
 
   !
 
   cmd_out = tao_alias_translate (cmd_out, err)
-  call check_for_multi_commands ()
+  call check_for_multi_commands()
 
   if (using_saved_cmd .or. s%com%saved_cmd_line /= '') then
     call out_io (s_blank$, r_name, '', trim(prompt_string_with_color) // ': ' // trim(cmd_out))
@@ -246,6 +245,9 @@ endif
 if (cmd_out == '') then
   if (present(cmd_in)) then
     cmd_out = cmd_in
+  elseif (s%com%command_arg /= '' .and. .not. s%com%command_arg_has_been_executed) then
+    cmd_out = s%com%command_arg
+    s%com%command_arg_has_been_executed = .true.
   else
     s%com%cmd_from_cmd_file = .false.
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
