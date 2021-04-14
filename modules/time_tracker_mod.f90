@@ -289,14 +289,23 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
 end do
 
-! Did not get to end
+! Did not get to end.
+! If this due to the particle moving too slowly this is not an error.
 
-call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
-                               'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
-                               'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
-                               'OFTEN TIMES THE FIELD IS NOT EVEN CONTINUOUS!', &
-                               'THE PARTICLE WILL BE MARKED AS LOST.', &
-                               r_array = [orb%vec(1), orb%vec(3), s_body, orb%t])
+if (orb%beta < 1e-4) then
+  call out_io (s_error$, r_name, 'TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
+                                 'DUE TO VELOCITY BEING TOO SMALL.', &
+                                 'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
+                                 r_array = [orb%vec(1), orb%vec(3), s_body, orb%t])
+  err_flag = .false.
+else
+  call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
+                                 'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
+                                 'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
+                                 '[OFTEN TIMES THE FIELD IS NOT EVEN BE CONTINUOUS IN THIS CASE!]', &
+                                 'THE PARTICLE WILL BE MARKED AS LOST.', &
+                                 r_array = [orb%vec(1), orb%vec(3), s_body, orb%t])
+endif
 
 orb%location = inside$
 orb%state = lost$

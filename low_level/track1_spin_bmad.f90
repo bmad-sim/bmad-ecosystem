@@ -184,7 +184,9 @@ do j = 2, j_max
 
   eps = eps_abs + eps_rel * sum(abs(q_array(j)%omega))
 
-  if (ele%key == wiggler$ .and. j < 5) cycle  ! Cannot trust until have enough points
+  select case (ele%key)
+  case (wiggler$, rfcavity$, lcavity$);  if (j < 5) cycle  ! Cannot trust until have enough points
+  end select
 
   do k = 1, 3
     call polint (q_array(1:j)%h, q_array(1:j)%omega(k), 0.0_rp, omega(k), dint)

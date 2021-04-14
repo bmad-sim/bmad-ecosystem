@@ -113,7 +113,7 @@ type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
 type (cylindrical_map_term1_struct), pointer :: cl_term
-type (grid_field_struct), pointer :: g_field
+type (grid_field_struct), pointer :: g_field, g_field_ptr
 type (grid_field_pt1_struct) g_pt
 type (taylor_field_struct), pointer :: t_field
 type (taylor_field_plane1_struct), pointer :: t_plane
@@ -135,8 +135,10 @@ real(rp) phi0_autoscale, field_autoscale, ds, beta_ref, ds_small, abs_tol
 real(rp) rho, a, b, B0, gamma, Brho, voltage, k_rf
 real(rp) rad_p, z_p, alpha_p, beta_p, k_p, rad_m, z_m, alpha_m, beta_m, k_m
 
-complex(rp) exp_kz, expt, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
+complex(rp) exp_kz, dEp, dEr, E_rho, E_phi, E_z, B_rho, B_phi, B_z
 complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
+complex(rp), target :: expt
+complex(rp), pointer :: expt_ptr
 
 integer i, j, m, n, ix, trig_x, trig_y, status, im, iz0, iz1, izp, ix_pole_max
 
@@ -1334,10 +1336,12 @@ case(fieldmap$)
 
   if (associated(ele%grid_field)) then
   
+    expt_ptr => expt  ! To get around ifort bug where debug info for variables used in contained routines is missing.
     ! loop over grid modes
 
     do i = 1, size(ele%grid_field)
       g_field => ele%grid_field(i)
+      g_field_ptr => ele%grid_field(i)  ! To get around ifort bug.
 
       if (g_field%harmonic /= 0) then
         freq0 = ele%value(rf_frequency$)
@@ -1621,9 +1625,9 @@ integer i
 !
 
 do i = 1, size(x)
-  call grid_field_interpolate(ele, local_orb, g_field, g_pt, err, x(i), z, &
+  call grid_field_interpolate(ele, local_orb, g_field_ptr, g_pt, err, x(i), z, &
               allow_s_out_of_bounds = .true., err_print_out_of_bounds = err_print_out_of_bounds)
-  rb_field(i) = x(i) * expt * g_pt%b(3)
+  rb_field(i) = x(i) * expt_ptr * g_pt%b(3)
 enddo
 
 end function rb_field
