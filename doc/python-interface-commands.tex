@@ -283,7 +283,18 @@ sec_constraint
    
 Returns
 -------
-?? 
+None
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_section: 1
+   sec_name: test
+   sec_constraint: none
 
 \end{example}
 \item[constraints] \Newline\begin{example}
@@ -337,7 +348,7 @@ Example: 1
    who: data
 
 Example: 2
- init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
  args:
    who:var
 
@@ -508,7 +519,7 @@ None
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -537,7 +548,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -568,7 +579,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -597,7 +608,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -626,7 +637,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -654,7 +665,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -673,7 +684,6 @@ Note: Use the "data_d2_create" and "datum_create" first to create datums.
 
 Parameters
 ----------
-data_set_design_value
 
    
 Returns
@@ -682,7 +692,7 @@ None
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -699,8 +709,8 @@ Command syntax:
                       {spin_axis%n0(1)}^^{spin_axis%n0(2)}^^{spin_axis%n0(3)}^^
                       {spin_axis%l(1)}^^{spin_axis%l(2)}^^{spin_axis%l(3)}
 
-Note: The 3 values for spin_axis%n0, as a group, are optional and the 3 values 
-      for spin_axis%l are, as a group, optional.
+Note: The 3 values for spin_axis%n0, as a group, are optional. 
+      Also the 3 values for spin_axis%l are, as a group, optional.
 Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
 Note: After creating all your datums, use the "data_set_design_value" routine to 
       set the design (and model) values.
@@ -708,10 +718,10 @@ Note: After creating all your datums, use the "data_set_design_value" routine to
 
 Parameters
 ----------
-datum_name
-data_type
-ele_ref_name
-ele_start_name
+datum_name          ! EG: orb.x[3]
+data_type           ! EG: orbit.x
+ele_ref_name : optional
+ele_start_name : optional
 ele_name
 merit_type
 meas
@@ -725,12 +735,12 @@ eval_point
 s_offset
 ix_bunch
 invalid_value
-spin_axis%n0(1)
-spin_axis%n0(2)
-spin_axis%n0(3)
-spin_axis%l(1)
-spin_axis%l(2)
-spin_axis%l(3)
+spin_axis%n0(1) : optional
+spin_axis%n0(2) : optional
+spin_axis%n0(3) : optional
+spin_axis%l(1) : optional
+spin_axis%l(2) : optional
+spin_axis%l(3) : optional
 
    
 Returns
@@ -739,11 +749,28 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
  args:
+   datum_name: twiss.end[6]
+   data_type: beta.y
+   ele_ref_name:
+   ele_start_name:
+   ele_name: P1
+   merit_type: target
+   meas: 0
+   good_meas: T
+   ref: 0
+   good_ref: T
+   weight: 0.3
+   good_user: T
+   data_source: lat
+   eval_point: END
+   s_offset: 0
+   ix_bunch: 1
+   invalid_value: 0
 
 \end{example}
 \item[datum_has_ele] \Newline\begin{example}
@@ -763,7 +790,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -788,7 +815,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/optics_matching/tao.init
@@ -820,7 +847,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -854,7 +881,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -888,7 +915,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -922,7 +949,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -956,7 +983,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -995,7 +1022,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1034,7 +1061,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/examples/tutorial_bmad_tao/lattice_files/building_wall_optimization/tao.init
@@ -1076,7 +1103,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1112,7 +1139,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1146,7 +1173,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1186,7 +1213,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1227,7 +1254,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1263,7 +1290,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1297,7 +1324,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1331,7 +1358,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1370,7 +1397,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1411,7 +1438,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1450,7 +1477,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1484,7 +1511,7 @@ Parameters
 ----------
 ele_id
 which
-where: default=end
+where : default=end
 
    
 Returns
@@ -1493,7 +1520,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1540,7 +1567,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1581,7 +1608,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1615,7 +1642,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1643,7 +1670,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1681,7 +1708,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1713,7 +1740,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1738,7 +1765,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1763,7 +1790,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1795,7 +1822,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1818,7 +1845,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1842,7 +1869,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1868,7 +1895,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1895,7 +1922,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1923,7 +1950,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -1934,7 +1961,7 @@ Example: 1
 \item[lat_list] \Newline\begin{example}
 List of parameters at ends of lattice elements
 Command syntax:
-  python lat_list -no_slaves -track_only -index_order -array_out
+  python lat_list -no_slaves -track_only -index_order -real_out
                   {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 where:
   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
@@ -1972,7 +1999,7 @@ Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
 
 Examples:
   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
-  python lat_list -real 3@0>>Q*|base ele.s    
+  python lat_list 3@0>>Q*|base real:ele.s    
 
 
 Parameters
@@ -1990,7 +2017,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2019,7 +2046,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2053,7 +2080,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2070,6 +2097,19 @@ Command syntax:
 
 Parameters
 ----------
+
+
+Returns
+-------
+string_list
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
 
 \end{example}
 \item[orbit_at_s] \Newline\begin{example}
@@ -2098,7 +2138,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2126,7 +2166,7 @@ None
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2150,7 +2190,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2178,12 +2218,12 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
  args:
-   ix_uni: 1
+   ix_universe: 1
    ix_branch: 0 
 
 \end{example}
@@ -2207,7 +2247,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2238,7 +2278,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2263,7 +2303,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2297,7 +2337,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2333,7 +2373,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2366,7 +2406,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2404,7 +2444,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2445,7 +2485,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2478,7 +2518,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2506,7 +2546,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2534,7 +2574,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2575,7 +2615,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2603,7 +2643,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2641,7 +2681,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2676,7 +2716,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2718,7 +2758,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2755,7 +2795,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2782,7 +2822,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2809,7 +2849,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2844,7 +2884,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2870,7 +2910,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2901,7 +2941,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2930,7 +2970,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2956,7 +2996,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -2997,7 +3037,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -3034,7 +3074,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -3060,7 +3100,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -3085,7 +3125,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -3129,7 +3169,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -3156,7 +3196,7 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
@@ -3186,12 +3226,12 @@ string_list
 
 
 Examples
--------
+--------
 
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
  args:
-   what: plot1 
+   what: params
 
 \end{example}
 \end{description}

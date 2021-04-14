@@ -166,7 +166,7 @@ character(len(cmd_line)) line
 character(1), parameter :: tab = char(9)
 
 logical err
-logical extra_words_is_error, comma_here
+logical extra_words_is_error, comma_here, comma_in_separator
 
 !
 
@@ -175,6 +175,8 @@ line = cmd_line
 cmd_word(:) = ''
 nw = 0
 comma_here = .false.
+comma_in_separator = .false.
+if (present(separator)) comma_in_separator = (index(separator, ',') /= 0)
 
 forall (i = 1:len(line), line(i:i) == tab) line(i:i) = ' '
 
@@ -182,7 +184,7 @@ nw_loop: do
   call string_trim (line, line, ix)
   ix_comma = 0
 
-  if (nw > 0 .and. line(1:1) == ',') then  ! append to previous
+  if (nw > 0 .and. line(1:1) == ',' .and. .not. comma_in_separator) then  ! append to previous
     line = trim(cmd_word(nw)) // line
     ix_comma = len_trim(cmd_word(nw)) + 1
     nw = nw - 1

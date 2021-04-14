@@ -135,7 +135,7 @@ do
   if (line(1:2) == '%%') exit
 
   if (index(line, '\begin{example}') /= 0) in_example = .true.
-  if (index(line, '\end{example}') /= 0) in_example = .true.
+  if (index(line, '\end{example}') /= 0) in_example = .false.
 
   if (line(1:8)  == '\section')    cycle
   if (line(1:11) == '\subsection') cycle
@@ -156,6 +156,7 @@ do
     endif
   endif
 
+  has_subbed = .false.
   call substitute (line, "{}", "")
   call eliminate2 (line, '\item[\vn{\{', '\}}]', '   Argument: ', '')
   call substitute (line, "``\vn", '"')
@@ -189,6 +190,7 @@ do
   call substitute (line, '\\')
   call substitute (line, '\W ', '^')
   call substitute (line, '"\W"', '"^"')
+  call substitute (line, "\Bf ", "")
   call substitute (line, "\B", "\")       ! "
 
   if (line(1:2) == '% ') line = line(3:)

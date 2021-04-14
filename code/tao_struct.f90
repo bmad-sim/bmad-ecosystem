@@ -705,7 +705,7 @@ type tao_common_struct
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   logical :: initialized = .false.              ! Does tao_init() need to be called?
   logical :: cmd_file_paused
-  logical :: use_cmd_here  = .false.            ! Used for the cmd history stack
+  logical :: use_cmd_here  = .false.            ! Used for commands recalled from the cmd history stack
   logical :: cmd_from_cmd_file = .false.        ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
@@ -719,13 +719,14 @@ type tao_common_struct
   logical :: parse_cmd_args        = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
-  logical :: print_to_terminal = .true.          ! Print command prompt to the terminal? For use with GUIs.
-  logical :: lattice_calc_done = .false.         ! Used by GUI for deciding when to refresh.
-  logical :: add_measurement_noise = .true.      ! Turn off to take data derivatives.
-  logical :: is_err_message_printed(2) = .false. ! Used by tao_set_invalid
-  character(100) :: cmd                          ! Used for the cmd history
-  character(16) :: init_name = 'Tao'             ! label for initialization          
-  character(200) :: hook_init_file = ''          ! 
+  logical :: print_to_terminal = .true.            ! Print command prompt to the terminal? For use with GUIs.
+  logical :: lattice_calc_done = .false.           ! Used by GUI for deciding when to refresh.
+  logical :: add_measurement_noise = .true.        ! Turn off to take data derivatives.
+  logical :: is_err_message_printed(2) = .false.   ! Used by tao_set_invalid
+  logical :: command_arg_has_been_executed = .false. ! Has the -command command line argument been executed?
+  character(100) :: cmd                            ! Used for the cmd history
+  character(16) :: init_name = 'Tao'               ! label for initialization          
+  character(200) :: hook_init_file = ''            ! 
   character(200) :: hook_lat_file = ''             ! To be set by tao_hook_parse_command_args
   character(200) :: hook_beam_file = ''            ! To be set by tao_hook_parse_command_args
   character(200) :: hook_data_file = ''            ! To be set by tao_hook_parse_command_args
@@ -741,6 +742,7 @@ type tao_common_struct
   character(200) :: beam_file_arg = ''             ! -beam_file           command line argument.
   character(200) :: beam_track_data_file_arg = ''  ! -beam_track_data_file       command line argument.
   character(200) :: beam_init_position_file_arg = '' ! -beam_init_position_file command line argument.
+  character(500) :: command_arg = ''               ! -command             command line argument.
   character(200) :: data_file_arg = ''             ! -data_file           command line argument.
   character(200) :: plot_file_arg = ''             ! -plot_file           command line argument.
   character(200) :: startup_file_arg = ''          ! -startup_file        command line argument.

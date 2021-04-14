@@ -49,62 +49,67 @@ Specifies the file containing initial particle positions.  Overrides the setting
 \vn{beam_init%position_file} (\sref{s:beam.init}) specified in the \vn{tao_beam_init} namelist.
 %
 \item[\vn{-building_wall_file <file_name>}] \Newline
-Overrides the \vn{building_wall_file} (\sref{s:init.global}) 
-specified in the \tao initialization file.
+Overrides the \vn{building_wall_file} (\sref{s:init.global}) specified in the \tao initialization
+file.
+%
+\item[\vn{-command <command_list>}] \Newline
+List of commands to run at startup. This will be in addition to the commands run by the startup file
+(\sref{s:init.global}). The startup file commands will be run before the commands specified by
+\vn{-command}. Put the \vn{<command_list>} in quotes in order to embed blanks or if semicolons are
+used to separate multiple commands. The \vn{-command} option is useful when running \tao from a
+script. Example:
+\begin{example}
+  tao -command "show lat 12:14; quit"
+\end{example}
+In this example \tao will print some information on lattice elements 12 through 14 and then quit. The
+output of the \vn{show} command can be captured by a script and processed.
 %
 \item[\vn{-data_file <file_name>}] \Newline
-Overrides the \vn{data_file} (\sref{s:init.global}) specified in the
-\tao initialization file.
+Overrides the \vn{data_file} (\sref{s:init.global}) specified in the \tao initialization file.
 %
 \item[\vn{-disable_smooth_line_calc}] \Newline
-Disable computation of the ``smooth curves'' used in plotting. 
-This can be used to speed up \tao as discussed in \sref{s:plot.data}.
+Disable computation of the ``smooth curves'' used in plotting.  This can be used to speed up \tao as
+discussed in \sref{s:plot.data}.
 %
 \item[\vn{-external_plotting}] \Newline
 This tells \tao that plotting is done externally to \tao. This is done, for example, when using a
 Graphics User Interface (GUI) (\sref{s:gui.plot}).
 %
 \item[\vn{-geometry <width>x<height>}] \Newline
-Overrides the plot window geometry. \vn{<width>} and \vn{<height>}
-are in Points. This is equivalent to setting \vn{plot_page%size}
-in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
+Overrides the plot window geometry. \vn{<width>} and \vn{<height>} are in Points. This is equivalent
+to setting \vn{plot_page%size} in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
 %
 \item[\vn{-hook_init_file}] \Newline
 Specifies an input file for customized versions of Tao. Default file
 name is \vn{tao_hook.init}.
 %
 \item[\vn{-init_file <file_name>}] \Newline
-replaces the default \tao initialization file name
-(\vn{tao.init}). Note: A \tao initialization file is actually not
-needed. If no \tao initialization file is used, the use of the
-\vn{-lattice_file} switch is mandatory and \tao will use a set of default plot
-templates for plotting.
+Replaces the default \tao initialization file name (\vn{tao.init}). Note: A \tao initialization file
+is actually not needed. If no \tao initialization file is used, the use of the \vn{-lattice_file}
+switch is mandatory and \tao will use a set of default plot templates for plotting.
 %
 \item[\vn{-lattice_file <file_name>}] \Newline
-Overrides the \vn{design_lattice}
-lattice file specified in the \tao initialization file
+Overrides the \vn{design_lattice} lattice file specified in the \tao initialization file
 (\sref{s:init.lat}). Example:
 \begin{example}
   tao -init my.init -lat slac.bmad
 \end{example}
-If there is more than one universe and the universes have different
-lattices, separate the different lattice names using a "|" character.
-Do not put any spaces in between. Example:
+If there is more than one universe and the universes have different lattices, separate the different
+lattice names using a "|" character.  Do not put any spaces in between. Example:
 \begin{example}
   tao -lat slac.bmad|cesr.bmad
 \end{example}
 %
 \item[\vn{-log_startup}]
-If there is a problem with \tao is started, \vn{-log_startup} can be used
-to create a log file of the initialization process.
+If there is a problem with starting \tao, \vn{-log_startup} can be used to create a log file of the
+initialization process.
 %
 \item[\vn{-no_stopping}] \Newline
 For debugging purposes. Prevents \tao from stopping where there is a fatal error.
 %
 \item[\vn{-noinit}] \Newline
-Suppresses use of a \tao initialization file. In this case the use of
-the \vn{-lattice_file} switch is mandatory and \tao will use a set of default
-plot templates for plotting.
+Suppresses use of a \tao initialization file. In this case the use of the \vn{-lattice_file} switch
+is mandatory and \tao will use a set of default plot templates for plotting.
 %
 \item[\vn{-noplot}] \Newline
 Suppresses the opening of the plot window.
@@ -115,12 +120,11 @@ things as emittances, etc. Generally the calculation is not a problem but in som
 circumstances the calculation can take appreciable time.
 %
 \item[\vn{-plot_file <file_name>}] \Newline
-Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the
-\tao initialization file.
+Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the \tao initialization file.
 %
 \item[\vn{-prompt_color}] \Newline
-Sets the prompt string color to Blue. For different colors, use the
-\vn{set global prompt_color} command (\sref{s:set}).
+Sets the prompt string color to Blue. For different colors, use the \vn{set global prompt_color}
+command (\sref{s:set}).
 %
 \item[\vn{-rf_on}]
 Leaves \vn{rfcavity} elements on. Normally \tao turns off these elements since Twiss and dispersion

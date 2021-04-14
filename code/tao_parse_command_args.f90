@@ -28,6 +28,7 @@ logical error, negate
 ! Get command line input
 
 error = .false.
+s%com%command_arg_has_been_executed = .false.
 
 call tao_hook_parse_command_args()
 if (.not. s%com%parse_cmd_args) return
@@ -63,7 +64,7 @@ do
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', '-beam_track_data_file', &
         '-beam_init_file_name', '-slice_lattice', '-prompt_color', '-beam_init_position_file', &
-        '-plot_file', '-external_plotting', '-quiet', '-no_rad_int'], ix, .true., matched_name=switch)
+        '-plot_file', '-external_plotting', '-quiet', '-no_rad_int', '-command'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
@@ -87,6 +88,9 @@ do
 
   case ('-building_wall_file')
     call get_next_arg (arg0, s%com%building_wall_file_arg, i_arg, n_arg)
+
+  case ('-command')
+    call get_next_arg (arg0, s%com%command_arg, i_arg, n_arg, .true.)
 
   case ('-data_file')
     call get_next_arg (arg0, s%com%data_file_arg, i_arg, n_arg)
@@ -177,6 +181,7 @@ do
                                                   s%com%beam_init_position_file_arg = ''
   case ('--beam_init_position_file');             s%com%beam_init_position_file_arg = ''
   case ('--building_wall_file');                  s%com%building_wall_file_arg = ''
+  case ('--command');                             s%com%command_arg = ''
   case ('--data_file');                           s%com%data_file_arg = ''
   case ('--disable_smooth_line_calc');            s%com%disable_smooth_line_calc_arg = '<negated>'
   case ('--debug');        s%com%debug_arg = '<negated>';  s%global%debug_on = .false.;  s%global%stop_on_error = .true.
