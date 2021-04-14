@@ -313,8 +313,7 @@ else
 
 
     ! Correction to z for finite x', y'
-    ! Note: Corrections to kmat(5,5) and kmat(5,6) are ignored since these are small (quadratic
-    ! in the transvers coords).
+    ! Note: Corrections to kmat(5,5) and kmat(5,6) are ignored since these are small (quadratic in the transvers coords).
 
     c_plu = sqrt_2 * cos_phi * cos_a + sin_a
 

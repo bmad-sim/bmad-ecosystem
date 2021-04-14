@@ -253,7 +253,7 @@ else
   call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
                                  'AT (X,Y,Z) POSITION FROM ENTRANCE: \3F12.7\ ', &
                                  'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
-                                 'OFTEN TIMES THE FIELD IS NOT EVEN CONTINUOUS!', &
+                                 '[OFTEN TIMES THE FIELD IS NOT EVEN BE CONTINUOUS IN THIS CASE!]', &
                                  'THE PARTICLE WILL BE MARKED AS LOST.', &
                                  r_array = [orbit%vec(1), orbit%vec(3), s_body])
   orbit%state = lost$

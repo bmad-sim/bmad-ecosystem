@@ -20,9 +20,7 @@ where $\bfg$ is the bend curvature function which points away from the center of
 of the particle's reference orbit (see \fig{f:local.coords}), $\Bf r_t = (x, y)$ are the
 transverse coordinates, $c \, \beta_z$ is the longitudinal component of the velocity, and
 $\bfhat z$ is the unit vector in the $z$-direction. $\pmb\Omega_{BMT}$ is the usual T-BMT
-precession vector due to the particle's magnetic moment and $\pmb\Omega_{EDM}$ is the
-precession vector due to a finite Electric Dipole Moment (EDM) \cite{b:silenko}. Note:
-The value for the EDM is set by \vn{bmad_com%electric_dipole_moment} (\sref{s:bmad.common}).
+precession vector due to the particle's magnetic moment
 \begin{align}
   {\pmb\Omega}_{BMT} (\mathbf{r,P},t) &= 
     - \frac{q}{m \, c} \left[ 
@@ -36,7 +34,11 @@ The value for the EDM is set by \vn{bmad_com%electric_dipole_moment} (\sref{s:bm
     \left( a + \frac{1}{1 + \gamma} \right) \mathbf{\bfbeta \times E} 
     \right] \nonumber
 \end{align}
-and
+and $\pmb\Omega_{EDM}$ is the
+precession vector due to a finite Electric Dipole Moment (EDM) \cite{b:silenko}\footnote
+  {
+Note: The value for the EDM is set by \vn{bmad_com%electric_dipole_moment} (\sref{s:bmad.common}.
+  }
 \begin{equation}
   {\pmb\Omega}_{EDM} (\mathbf{r,P},t) = 
   - \frac{q \, \eta}{2 \, m \, c} \left[

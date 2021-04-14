@@ -160,7 +160,7 @@ do
   ix = index(name, '>>')
   if (ix /= 0) then
     if (in_range /= 0) then
-      call out_io (s_error$, r_name, 'ERROR: BAD BRANCH/RANGE CONSTRUCT')
+      call out_io (s_error$, r_name, 'BAD BRANCH/RANGE CONSTRUCT')
       return
     endif
 
@@ -171,17 +171,22 @@ do
   ! Have key?
   if (str(1:1) == ':') then
     if (in_range /= 0) then
-      call out_io (s_error$, r_name, 'ERROR: BAD CLASS/RANGE CONSTRUCT')
+      call out_io (s_error$, r_name, 'BAD CLASS/RANGE CONSTRUCT')
       return
     endif
 
     key = extended_key_name_to_key_index (name, .true., match_name_to)
     if (key < 0) then
-      call out_io (s_error$, r_name, 'ERROR: BAD ELEMENT CLASS: ' // name)
+      call out_io (s_error$, r_name, 'BAD ELEMENT CLASS: ' // name)
       return
     endif
 
     call word_read (str(2:), ':, ', name, ix_word, delim, delim_found, str, ignore_interior = .true.)
+    if (name == '') then
+      call out_io (s_error$, r_name, '"CLASS::NAME" CONSTRUCT NOT VALID WITH BLANK NAME. IN: ' // loc_str, &
+                                     'Note: USE "*" TO MATCH TO ALL NAMES')
+      return
+    endif
   endif
 
   !
@@ -205,7 +210,7 @@ do
   if (in_range == 3) then  ! Must be step
     read (name, *, iostat = ios) step
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'ERROR: BAD STEP: ' // loc_str)
+      call out_io (s_error$, r_name, 'BAD STEP: ' // loc_str)
       return
     endif
     in_range = in_range + 1
@@ -275,7 +280,7 @@ do
   ele_end => find_this_end(ele_end, exit_end$, err2);  if (err2) return
 
   if (ele_start%ix_branch /= ele_end%ix_branch) then
-    call out_io (s_error$, r_name, 'ERROR: ELEMENTS NOT OF THE SAME BRANCH IN RANGE: ' // loc_str)
+    call out_io (s_error$, r_name, 'ELEMENTS NOT OF THE SAME BRANCH IN RANGE: ' // loc_str)
     return
   endif
   ib = ele_start%ix_branch

@@ -468,6 +468,8 @@ parsing_loop: do
       if (ix == -1) then
         if (index(name, '##') /= 0) then
           call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
+        elseif (is_integer(name)) then
+          call parser_error ('USING AN ELEMENT INDEX NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
         else
           call parser_error ('ELEMENT NOT FOUND: ' // word_1)
         endif

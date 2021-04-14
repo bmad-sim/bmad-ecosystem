@@ -405,8 +405,7 @@ parsing_loop: do
 
     call lat_ele_locator (name, lat, eles, n_loc, err)
     if (err) then
-      bp_com%error_flag = .true.
-      bp_com%parse_line = ''
+      call parser_error ('MALFORMED ELEMENT(S) NAME: ' // quote(name))
       cycle parsing_loop
     endif
 
