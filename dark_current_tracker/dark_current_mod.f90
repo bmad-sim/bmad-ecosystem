@@ -1,9 +1,31 @@
 module dark_current_mod
 
-use bmad
-use dark_current_struct
+use bmad_struct
+use wall3d_mod
 use time_tracker_mod
 use quick_plot
+
+
+
+type dark_current_param_struct
+  character(100) particle_file_name
+  logical save_tracks                       ! track points will be saved
+  logical save_field                        ! em field at track points will be saved
+  logical global_frame                      ! tracks are written in the global frame 
+  real(rp) dt_save                          ! time interval to save track point
+  logical verbose                           ! print extra information to the screen
+  logical plot_on                           ! tracks will be plotted
+  integer id                                ! id for debugging parallel
+
+end type dark_current_param_struct
+
+type dark_current_tally_struct
+  real(rp) :: charge = 0                 ! Total charge deposited
+  real(rp) :: energy = 0                 ! Total energy deposited 
+end type
+
+
+
 
 contains
 
