@@ -88,7 +88,8 @@ case ('lattice')
       if (var%slave(is)%model_value == var%slave(1)%model_value) cycle
       call out_io (s_error$, r_name, 'TAO VARIABLE: ' // tao_var1_name(var), &
               'WHICH HAS MULTIPLE SLAVE PARAMETERS NOW DOES NOT HAVE ALL SLAVE PARAMETER VALUES THE SAME.', &
-              'THIS CAN CAUSE BEHAVIOR MOST STRANGE. RECOMMENDATION: USE THE "set ele -update" TO RECTIFY THE SITUATION.')
+              'THIS CAN CAUSE BEHAVIOR MOST STRANGE.', &
+              'NOTE: "set var <var_name>|model = <value>" CAN BE USED TO RECTIFY THE SITUATION.')
       exit
     enddo
   enddo
