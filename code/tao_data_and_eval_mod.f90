@@ -5420,15 +5420,19 @@ do i = 1, size(stack)
   end select
 enddo
 
+!
+
 if (i2 /= 1) then
   call out_io (s_warn$, r_name, 'INTERNAL ERROR')
   call err_exit
 endif
 
-
 if (size(stk2(1)%value) == 1 .and. n_size_in > 1) then
   call re_allocate(value, n_size_in)
   value = stk2(1)%value(1)
+  if (.not. info(1)%good) value = 0
+elseif (size(stk2(1)%value) > 1 .and. size(info) == 1) then
+  call value_transfer (value, stk2(1)%value)
   if (.not. info(1)%good) value = 0
 else
   call value_transfer (value, stk2(1)%value)
