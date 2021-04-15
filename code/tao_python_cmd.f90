@@ -482,24 +482,16 @@ case ('branch1')
 
 !%% bunch1 -----------------------
 ! Bunch parameters at the exit end of a given lattice element.
-! Command syntax:
-!   python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
-!  where {ele_id} is an element name or index  and {which} is one of:
-!   model
-!   base
-!   design
-! 
-! Optional {coordinate} is one of:
-!   x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
-! and will return an array.
-! 
 !
 ! Parameters
 ! ----------
 ! ele_id
+!   Element name or index
 ! which : default=model
+!   One of: "model", "base" or "design"
 ! ix_bunch : default=1
 ! coordinate : optional
+!   If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
 !
 !  
 ! Returns
@@ -528,6 +520,11 @@ case ('branch1')
 !    which: model
 !    ix_bunch: 1
 !    coordinate: x
+!
+! Notes
+! -----
+! Command syntax:
+! python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
 
 
 case ('bunch1')
@@ -4290,10 +4287,41 @@ case ('lat_ele_list')
 
 !%% lat_list -----------------------
 ! List of parameters at ends of lattice elements
+!
+! Parameters
+! ----------
+! elements 
+! who 
+! ix_uni : default=1
+! ix_branch : default=0
+! which : default=model
+! flags : optional
+!
+! Returns
+! -------
+! string_list
+!
+!
+! Examples
+! --------
+!
+! Example: 1
+!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+!  args:
+!    ix_uni: 1  
+!    ix_branch: 0 
+!    elements: Q* 
+!    which: model
+!    who: orbit.floor.x
+!
+!
+! Notes
+! -----
+!
 ! Command syntax:
-!   python lat_list -no_slaves -track_only -index_order -real_out
-!                   {ix_uni}@{ix_branch}>>{elements}|{which} {who}
+!   python lat_list {flags} {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 ! where:
+!  {flags} is one or more of:
 !   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
 !   -track_only is optional. If present, lord elements will not be matched to.
 !   -index_order is optional. If present, order elements by element index instead of the standard s-position.
@@ -4330,33 +4358,8 @@ case ('lat_ele_list')
 ! Examples:
 !   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
 !   python lat_list 3@0>>Q*|base real:ele.s    
-! 
 !
-! Parameters
-! ----------
-! ix_uni 
-! ix_branch 
-! elements 
-! which 
-! who 
-!
-!
-! Returns
-! -------
-! string_list
-!
-!
-! Examples
-! --------
-!
-! Example: 1
-!  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
-!  args:
-!    ix_uni: 1  
-!    ix_branch: 0 
-!    elements: Q* 
-!    which: model
-!    who: orbit.floor.x
+
 
 case ('lat_list')
 
