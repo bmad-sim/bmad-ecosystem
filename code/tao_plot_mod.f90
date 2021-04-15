@@ -1509,6 +1509,9 @@ end subroutine tao_draw_lat_layout
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+
+! NOTE: THIS ROUTINE IS NOT CURRENTLY ACITVE (NOT CALLED BY ANY OTHER ROUTINE).
+
 !+
 ! Subroutine tao_draw_beam_chamber_wall (plot, graph)
 !

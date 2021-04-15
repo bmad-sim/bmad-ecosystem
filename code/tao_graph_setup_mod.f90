@@ -1897,18 +1897,10 @@ case ('lat', 'beam')
   endif
 
 !----------------------------------------------------------------------------
-! Case: Bad data_source
+! Case: Aperture
 
-case default
-  call out_io (s_error$, r_name, 'UNKNOWN DATA_SOURCE: ' // curve%data_source)
-  return
-end select
+case ('aperture')
 
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! Now calculate the points for drawing the curve through the symbols...
-
-if (curve%data_type(1:9) == 'aperture.') then
   branch => u%model%lat%branch(curve%ix_branch)
   call re_allocate (xx_arr, 100)
   call re_allocate (x_arr, 100)
@@ -1919,10 +1911,14 @@ if (curve%data_type(1:9) == 'aperture.') then
     ele => branch%ele(i)
 
     select case (curve%data_type)
-    case ('aperture.-x'); limit = -ele%value(x1_limit$)
-    case ('aperture.+x'); limit =  ele%value(x2_limit$)
-    case ('aperture.-y'); limit = -ele%value(y1_limit$)
-    case ('aperture.+y'); limit =  ele%value(y2_limit$)
+    case ('+x'); limit = -ele%value(x1_limit$)
+    case ('-x'); limit =  ele%value(x2_limit$)
+    case ('+y'); limit = -ele%value(y1_limit$)
+    case ('-y'); limit =  ele%value(y2_limit$)
+    case default
+      call out_io (s_error$, r_name, &
+              'BAD CURVE%DATA_TYPE VALUE FOR CURVE WITH %DATA_SOURCE SET TO "APERTURE": ' // quote(curve%data_type), &
+              'SHOULD BE ONE OF: "+x", "-x", "+y", or "-y".')
     end select
 
     if (limit == 0) cycle
@@ -1947,9 +1943,6 @@ if (curve%data_type(1:9) == 'aperture.') then
       x_arr(ir) = ele%s
     endif
   enddo
-
-  !
-
 
   select case (plot%x_axis_type)
   case ('s')
@@ -2008,8 +2001,17 @@ if (curve%data_type(1:9) == 'aperture.') then
   curve%y_line = curve%y_symb
     
   return
-endif
 
+!----------------------------------------------------------------------------
+! Case: Bad data_source
+
+case default
+  call out_io (s_error$, r_name, 'UNKNOWN DATA_SOURCE: ' // curve%data_source)
+  return
+end select
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! If the x-axis is by index or ele_index then these points are the same as the symbol points.
 ! That is, for x-axis = 'index' or 'ele_index' the line is piece-wise linear between the symbols.
 
