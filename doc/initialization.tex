@@ -2944,8 +2944,7 @@ attribute of the \vn{ele_shape}. The color of the line segments is set by the de
 of the line segments is set by the pattern definition.
 
 %-----------------------------------------------------------------
-\subsection{Drawing the Beam Aperture}
-\index{beam aperture drawing}
+\subsection{Drawing Apertures}
 \index{aperture drawing}
 \label{s:draw.ap}
 
@@ -2969,15 +2968,16 @@ To simplify things, the drawing of the beam aperture ignores any \vn{mask} eleme
 geometry can be very complicated here) and ignores any three-dimensional walls (which are only
 used for Runge-Kutta type tracking). \fig{f:aperture} shows an example of a aperture drawing.
 
-To draw an aperture, the \vn{data_type} parameter of a \vn{curve} is set to one of
+To draw an aperture, a curve's \vn{data_source} parameter must be set to \vn{"aperture"} and the \vn{data_type} parameter is set to one of
 \begin{example}
-  "aperture.+x"     ! Aperture in +X direction
-  "aperture.-x"     ! Aperture in -X direction
-  "aperture.+y"     ! Aperture in +Y direction
-  "aperture.-y"     ! Aperture in -Y direction
+  "+x"     ! Aperture in +X direction
+  "-x"     ! Aperture in -X direction
+  "+y"     ! Aperture in +Y direction
+  "-y"     ! Aperture in -Y direction
 \end{example}
 The apertures in the $+x$ and $+y$ directions will have positive values and the apertures in the
-$-x$ and $-y$ directions will have negative values.
+$-x$ and $-y$ directions will have negative values. Set the curve's \vn{y_axis_scale_factor} to scale
+tye aperture curve if needed.
 
 The following example will graphs the horizontal orbit along with the horizontal apertures.
 \begin{example}
@@ -2992,10 +2992,12 @@ The following example will graphs the horizontal orbit along with the horizontal
     graph_index   = 1
     graph%n_curve = 3
 
-    curve(1)%data_type    = "aperture.+x"
+    curve(1)%data_source  = "aperture"
+    curve(1)%data_type    = "+x"
     curve(1)%draw_symbols = T
     curve(1)%draw_line    = F
-    curve(2)%data_type    = "aperture.-x"
+    curve(1)%data_source  = "aperture"
+    curve(2)%data_type    = "-x"
     curve(2)%draw_symbols = T
     curve(2)%draw_line    = F
     curve(3)%data_type = "orbit.x"
@@ -3165,22 +3167,22 @@ versus \vn{px}, then there must be \vn{d1_data} arrays named \vn{"x"} and \vn{"p
 turns is determined by the setting of \vn{ix_max_data} in the \vn{tao_d1_data} namelist
 (\sref{s:init.data}).
 
-%-----------------------------------------------------------------
-\subsection{Drawing the Beam Chamber Wall}
-\index{beam chamber wall}
-\label{s:beam.wall.draw}
-
-If a beam chamber wall has been defined in the lattice file, This wall can be drawn in a \vn{curve}
-by setting \vn{curve%type} to \vn{"beam_chamber_wall"}.
-
-Beam chamber walls are drawn, like a \vn{lat_layout}, on a one dimensional line as a function of
-longitudinal position along the machine centerline.
-
-Note: Use the command \vn{show ele -wall} to print information about the beam chamber wall for a
-particular element.
+%%-----------------------------------------------------------------
+%\subsection{Drawing the Beam Chamber Wall}
+%\index{beam chamber wall}
+%\label{s:beam.wall.draw}
+%
+%If a beam chamber wall has been defined in the lattice file, This wall can be drawn in a \vn{curve}
+%by setting \vn{curve%type} to \vn{"beam_chamber_wall"}.
+%
+%Beam chamber walls are drawn, like a \vn{lat_layout}, on a one dimensional line as a function of
+%longitudinal position along the machine centerline.
+%
+%Note: Use the command \vn{show ele -wall} to print information about the beam chamber wall for a
+%particular element.
 
 %%-----------------------------------------------------------------
-%\subsection{Drawing a Controller Element Curves}
+%\subsection{Drawing Controller Element Curves}
 %\index{drawing controller element curves}
 %\label{s:draw.control}
 %
