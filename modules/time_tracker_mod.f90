@@ -73,7 +73,7 @@ real(rp), optional :: t_end, dt_step
 real(rp), target :: old_t, dt_tol, s_fringe_edge
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_time
 real(rp), target  :: dvec_dt(10), vec_err(10), s_target, dt_next_save
-real(rp) :: stop_time, s_stop_fwd, old_dt_ref
+real(rp) :: stop_time, s_stop_fwd, old_dt_ref, s_body_old
 real(rp), pointer :: s_body, s_fringe_ptr
 
 integer :: t_dir, n_step, n_pt, old_direction
@@ -123,6 +123,7 @@ exit_flag = .false.
 err_flag = .true.
 has_hit = .false. 
 edge_kick_applied  = .false.
+s_body_old = s_body
 
 ! Note: orb%direction * ele%orientation should be equal to sign_of(orb%vec(6)).
 
@@ -132,9 +133,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   ! edge?
 
-  if ((s_body - s_fringe_edge)*sign_of(orb%vec(6))*t_dir > -ds_safe) then  
+  if ((s_body - s_fringe_edge > -ds_safe .and. s_body_old - s_fringe_edge < 0) .or. &
+      (s_body - s_fringe_edge < -ds_safe .and. s_body_old - s_fringe_edge > 0)) then  
     zbrent_needed = .true.
-    if ((s_body-s_fringe_edge)*sign_of(orb%vec(6))*t_dir < ds_safe) zbrent_needed = .false.
+    if (abs(s_body-s_fringe_edge) < ds_safe) zbrent_needed = .false.
     if (n_step == 1) zbrent_needed = .false.
 
     add_ds_safe = .true.
@@ -179,6 +181,8 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
       endif
     enddo
   endif
+
+  s_body_old = s_body
 
   ! Check if hit wall.
   ! If so, interpolate position particle at the hit point.
@@ -449,6 +453,10 @@ do
     return
   endif
 end do
+
+! Aperture sanity check
+
+if (orbit_too_large(orb)) return
 
 ! Calculate next step
 
