@@ -4276,6 +4276,7 @@ case ('lat_ele_list')
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
 !    ix_universe: 1
+case ('lat_general')
 
   u => point_to_uni(line, .false., err); if (err) return
   lat => u%model%lat
@@ -4295,14 +4296,11 @@ case ('lat_ele_list')
 ! ix_uni : default=1
 ! ix_branch : default=0
 ! which : default=model
-! flags : default=-array_out
+! flags : optional
 !
 ! Returns
 ! -------
 ! string_list
-!   if '-array_out' not in flags
-! real_array
-!   if '-array_out' in flags
 !
 !
 ! Examples
@@ -4743,7 +4741,7 @@ case ('merit')
 !    ix_branch: 0
 !    s: 0.001
 !    which: model
-
+case ('orbit_at_s')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, err); if (err) return
