@@ -270,6 +270,15 @@ ELSEIF (CMAKE_SYSTEM_NAME MATCHES "HARDWARE-DEVEL")
   SET (BASE_CXX_FLAGS)
 ENDIF ()
 
+#--------------------------------------
+# Set STDCXX_LINK_LIBS and STDCXX_LINK_FLAGS variables
+# As defined in build_flags_config
+# See RT#58127
+#--------------------------------------
+
+SET (STDCXX_LINK_LIBS $ENV{STDCXX_LINK_LIBS})
+SET (STDCXX_LINK_FLAGS $ENV{STDCXX_LINK_FLAGS})
+
 #-----------------------------------
 # Readline Library Definitions 
 #-----------------------------------
@@ -303,9 +312,9 @@ IF ($ENV{ACC_ENABLE_SHARED})
 ENDIF ()
 
 IF (${DISTRIBUTION_BUILD})
-    SET (ACC_LINK_FLAGS ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS})
+    SET (ACC_LINK_FLAGS ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS} ${STDCXX_LINK_FLAGS})
 ELSE ()
-    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS}")
+    SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread ${STDCXX_LINK_FLAGS} -lactivemq-cpp ${ACC_LINK_FLAGS} ${MPI_LINK_FLAGS} ${PLOT_LINK_FLAGS}")
 ENDIF ()
 
 if (FORTRAN_COMPILER MATCHES "gfortran")
@@ -314,7 +323,7 @@ endif()
 
 IF (${MSYS})
     SET (ACC_LINK_FLAGS)
-    SET (SHARED_LINK_LIBS ${SHARED_LINK_LIBS} stdc++ readline termcap gdi32 Comdlg32)
+    SET (SHARED_LINK_LIBS ${SHARED_LINK_LIBS} ${STDCXX_LINK_LIBS} readline termcap gdi32 Comdlg32)
 ENDIF ()
 
 string (STRIP "${ACC_LINK_FLAGS}" ACC_LINK_FLAGS)
