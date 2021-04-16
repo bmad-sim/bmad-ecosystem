@@ -4395,6 +4395,7 @@ case ('lat_list')
     if (index('-array_out', line(1:ix_line)) == 1) then
       call string_trim(line(ix_line+1:), line, ix_line)
       use_real_array_buffer = .true.
+      call re_allocate(real_arr, 1000)
       cycle
     endif
 
@@ -4406,8 +4407,8 @@ case ('lat_list')
 
   if (all_who(1:5) == 'real:') then  ! Old style
     use_real_array_buffer = .true.
-    all_who = all_who(6:)
     call re_allocate(real_arr, 1000)
+    all_who = all_who(6:)
   endif
 
   call upcase_string(line)
