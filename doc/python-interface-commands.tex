@@ -110,24 +110,16 @@ Example: 1
 \end{example}
 \item[bunch1] \Newline\begin{example}
 Bunch parameters at the exit end of a given lattice element.
-Command syntax:
-  python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
- where {ele_id} is an element name or index  and {which} is one of:
-  model
-  base
-  design
-
-Optional {coordinate} is one of:
-  x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
-and will return an array.
-
 
 Parameters
 ----------
 ele_id
+  Element name or index
 which : default=model
+  One of: "model", "base" or "design"
 ix_bunch : default=1
 coordinate : optional
+  If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
 
  
 Returns
@@ -156,6 +148,11 @@ Example: 2
    which: model
    ix_bunch: 1
    coordinate: x
+
+Notes
+-----
+Command syntax:
+python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
 
 \end{example}
 \item[building_wall_list] \Newline\begin{example}
@@ -1960,10 +1957,44 @@ Example: 1
 \end{example}
 \item[lat_list] \Newline\begin{example}
 List of parameters at ends of lattice elements
+
+Parameters
+----------
+elements 
+who 
+ix_uni : default=1
+ix_branch : default=0
+which : default=model
+flags : default=-array_out
+
+Returns
+-------
+string_list
+  if '-array_out' not in flags
+real_array
+  if '-array_out' in flags
+
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_uni: 1  
+   ix_branch: 0 
+   elements: Q* 
+   which: model
+   who: orbit.floor.x
+
+
+Notes
+-----
+
 Command syntax:
-  python lat_list -no_slaves -track_only -index_order -real_out
-                  {ix_uni}@{ix_branch}>>{elements}|{which} {who}
+  python lat_list {flags} {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 where:
+ {flags} is one or more of:
   -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
   -track_only is optional. If present, lord elements will not be matched to.
   -index_order is optional. If present, order elements by element index instead of the standard s-position.
@@ -2001,32 +2032,6 @@ Examples:
   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
   python lat_list 3@0>>Q*|base real:ele.s    
 
-
-Parameters
-----------
-ix_uni 
-ix_branch 
-elements 
-which 
-who 
-
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
- args:
-   ix_uni: 1  
-   ix_branch: 0 
-   elements: Q* 
-   which: model
-   who: orbit.floor.x
 
 \end{example}
 \item[lat_param_units] \Newline\begin{example}
