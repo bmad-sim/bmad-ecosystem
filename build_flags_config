@@ -14,3 +14,8 @@ fi
 
 # Set base Bmad Library Linker Flags as updated by dcs16 in RT#56661
 export ACC_BMAD_LINK_LIBS="xrlf03;xrl;recipes_f-90_LEPP;forest;fgsl;gsl;gslcblas;lapack95;lapack;blas;hdf5hl_fortran;hdf5_hl;hdf5_fortran;hdf5;fftw3;fftw3_omp"
+
+# Set base Linker Flags for C++ stdc++, as per RT#58127  
+export STDCXX_LINK_LIBS="stdc++"
+export STDCXX_LINK_FLAGS="-lstdc++"
+
