@@ -4295,11 +4295,14 @@ case ('lat_ele_list')
 ! ix_uni : default=1
 ! ix_branch : default=0
 ! which : default=model
-! flags : optional
+! flags : default=-array_out
 !
 ! Returns
 ! -------
 ! string_list
+!   if '-array_out' not in flags
+! real_array
+!   if '-array_out' in flags
 !
 !
 ! Examples
