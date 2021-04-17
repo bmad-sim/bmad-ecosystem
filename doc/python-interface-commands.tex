@@ -402,6 +402,9 @@ Example: 1
 \end{example}
 \item[data] \Newline\begin{example}
 Individual datum info.
+
+Notes
+-----
 Command syntax:
   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
 Use the "python data-d1" command to get detailed info on a specific d1 array.
@@ -413,9 +416,9 @@ Note : By default dat_index is 1.
 
 Parameters
 ----------
-ix_universe : default=1
 d2_name
 d1_datum
+ix_universe : default=1
 dat_index : default=1
 
    
@@ -473,11 +476,11 @@ Note: When setting multiple data parameters,
 
 Parameters
 ----------
-ix_uni : default=1
+
 d2_name
 n_d1_data
 d_data_arrays_name_min_max
-
+ix_uni : default=1
    
 Returns
 -------
@@ -506,9 +509,8 @@ Command syntax:
 
 Parameters
 ----------
-ix_uni : default=1
 d2_datum
-
+ix_uni : default=1
    
 Returns
 -------
@@ -535,8 +537,8 @@ Command syntax:
 
 Parameters
 ----------
-ix_uni : default=1
 d2_datum
+ix_uni : default=1
 
    
 Returns
@@ -566,8 +568,8 @@ Example:
 
 Parameters
 ----------
-ix_uni : default=1
 d1_datum
+ix_uni : default=1
 
    
 Returns
@@ -595,8 +597,8 @@ Command syntax:
 
 Parameters
 ----------
-ix_uni : default=1
 d2_datum
+ix_uni : default=1
 
    
 Returns
@@ -719,19 +721,19 @@ datum_name          ! EG: orb.x[3]
 data_type           ! EG: orbit.x
 ele_ref_name : optional
 ele_start_name : optional
-ele_name
-merit_type
-meas
-good_meas
-ref
-good_ref
-weight
-good_user
-data_source
-eval_point
-s_offset
-ix_bunch
-invalid_value
+ele_name : optional
+merit_type : optional
+meas : default=0
+good_meas : default=F
+ref : default=0
+good_ref : default=F
+weight : default=0
+good_user : default=T
+data_source : default=lat
+eval_point : default=END
+s_offset : default=0
+ix_bunch : default=0
+invalid_value : default=0
 spin_axis%n0(1) : optional
 spin_axis%n0(2) : optional
 spin_axis%n0(3) : optional
@@ -1009,9 +1011,9 @@ This gives element number 7 in branch 1 of universe 3.
 Parameters
 ----------
 ele_id
-which : default=model
 index 
 who
+which : default=model
 
 Returns
 -------
@@ -1047,9 +1049,9 @@ where {ele_id} is an element name or index and {which} is one of
 Parameters
 ----------
 ele_id
-which : default=model
 index
 who
+which : default=model
 
    
 Returns
@@ -1651,20 +1653,24 @@ Example: 1
 \item[evaluate] \Newline\begin{example}
 Evaluate an expression. The result may be a vector.
 Command syntax:
-  python evaluate {expression}
+  python evaluate {flags} {expression}
+
 Example:
-  python evaluate 2*data::cbar.11[1:10]|model
+  python evaluate data::cbar.11[1:10]|model
 
 
 Parameters
 ----------
 expression
+flags : default=-array_out
+  If -array_out, the output will be available in the tao_c_interface_com%c_real.!
 
-   
 Returns
 -------
 string_list
-
+  if '-array_out' not in flags
+real_array
+  if '-array_out' in flags
 
 Examples
 --------
@@ -1672,7 +1678,7 @@ Examples
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
  args:
-   expression: 2*data::cbar.11[1:10]|model
+   expression: data::cbar.11[1:10]|model
 
 \end{example}
 \item[em_field] \Newline\begin{example}
@@ -1965,14 +1971,11 @@ who
 ix_uni : default=1
 ix_branch : default=0
 which : default=model
-flags : default=-array_out
+flags : optional
 
 Returns
 -------
 string_list
-  if '-array_out' not in flags
-real_array
-  if '-array_out' in flags
 
 
 Examples
@@ -1994,11 +1997,11 @@ Notes
 Command syntax:
   python lat_list {flags} {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 where:
- {flags} is one or more of:
-  -no_slaves is optional. If present, multipass_slave and super_slave elements will not be matched to.
-  -track_only is optional. If present, lord elements will not be matched to.
-  -index_order is optional. If present, order elements by element index instead of the standard s-position.
-  -array_out is optional. If present, the output will be available in the tao_c_interface_com%c_real or
+ Optional {flags} are:
+  -no_slaves : If present, multipass_slave and super_slave elements will not be matched to.
+  -track_only : If present, lord elements will not be matched to.
+  -index_order : If present, order elements by element index instead of the standard s-position.
+  -array_out : If present, the output will be available in the tao_c_interface_com%c_real or
     tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
     Note: Only a single {who} item permitted when -array_out is present.
 
@@ -2119,6 +2122,9 @@ Example: 1
 \end{example}
 \item[orbit_at_s] \Newline\begin{example}
 Twiss at given s position.
+
+Notes
+-----
 Command syntax:
   python orbit_at_s {ix_uni}@{ix_branch}>>{s}|{which}
 where:
@@ -2131,10 +2137,10 @@ where:
 
 Parameters
 ----------
-ix_uni
-ix_branch
-s
-which
+s 
+ix_uni : default=1
+ix_branch : default=0
+which : default=model
 
    
 Returns
@@ -2180,8 +2186,12 @@ Example: 1
 \end{example}
 \item[plot_curve] \Newline\begin{example}
 Curve information for a plot
+
+
+Notes
+-----
 Command syntax:
-  pyton plot_curve {curve_name}
+  python plot_curve {curve_name}
 
 
 Parameters
@@ -2200,7 +2210,7 @@ Examples
 Example: 1
  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
  args:
-   curve_name: c1 
+   curve_name: top.x.c1
 
 \end{example}
 \item[plot_lat_layout] \Newline\begin{example}
@@ -2880,7 +2890,7 @@ Parameters
 ----------
 ix_uni : default=1
 ix_branch : default=0
-which
+which : default=model
 
    
 Returns

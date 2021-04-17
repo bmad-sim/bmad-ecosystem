@@ -3,7 +3,7 @@
 !
 ! Print information in a form easily parsed by a scripting program like python.
 !
-! Output will be printed to the terminal or written to a file depending upon the switches embedded
+! Output will be printed to the terminal or written to a file depending upon the switch!%% es embedded
 ! in the input_str string argument. See the contained routine end_stuff below. For a few commands (for
 ! example, the "python lat_list" command), the output can be stored on the tao_c_interface_com%c_integer (for 
 ! integer output) or tao_c_interface_com%c_real (for real output) arrays for faster processing.
@@ -1021,6 +1021,9 @@ case ('da_params')
 
 !%% data -----------------------
 ! Individual datum info.
+!
+! Notes
+! -----
 ! Command syntax:
 !   python data {ix_universe}@{d2_name}.{d1_datum}[{dat_index}]
 ! Use the "python data-d1" command to get detailed info on a specific d1 array.
@@ -1032,9 +1035,9 @@ case ('da_params')
 !
 ! Parameters
 ! ----------
-! ix_universe : default=1
 ! d2_name
 ! d1_datum
+! ix_universe : default=1
 ! dat_index : default=1
 !
 !    
@@ -1144,11 +1147,11 @@ case ('data')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
+!
 ! d2_name
 ! n_d1_data
 ! d_data_arrays_name_min_max
-!
+! ix_uni : default=1
 !    
 ! Returns
 ! -------
@@ -1276,9 +1279,8 @@ case ('data_d2_create')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
 ! d2_datum
-!
+! ix_uni : default=1
 !    
 ! Returns
 ! -------
@@ -1308,8 +1310,8 @@ call destroy_this_data_d2(line)
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
 ! d2_datum
+! ix_uni : default=1
 !
 !    
 ! Returns
@@ -1361,8 +1363,8 @@ case ('data_d2')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
 ! d1_datum
+! ix_uni : default=1
 !
 !    
 ! Returns
@@ -1411,8 +1413,8 @@ case ('data_d_array')
 !
 ! Parameters
 ! ----------
-! ix_uni : default=1
 ! d2_datum
+! ix_uni : default=1
 !
 !    
 ! Returns
@@ -1710,19 +1712,19 @@ case ('data_set_design_value')
 ! data_type           ! EG: orbit.x
 ! ele_ref_name : optional
 ! ele_start_name : optional
-! ele_name
-! merit_type
-! meas
-! good_meas
-! ref
-! good_ref
-! weight
-! good_user
-! data_source
-! eval_point
-! s_offset
-! ix_bunch
-! invalid_value
+! ele_name : optional
+! merit_type : optional
+! meas : default=0
+! good_meas : default=F
+! ref : default=0
+! good_ref : default=F
+! weight : default=0
+! good_user : default=T
+! data_source : default=lat
+! eval_point : default=END
+! s_offset : default=0
+! ix_bunch : default=0
+! invalid_value : default=0
 ! spin_axis%n0(1) : optional
 ! spin_axis%n0(2) : optional
 ! spin_axis%n0(3) : optional
@@ -2324,9 +2326,9 @@ case ('ele:ac_kicker')
 ! Parameters
 ! ----------
 ! ele_id
-! which : default=model
 ! index 
 ! who
+! which : default=model
 !
 ! Returns
 ! -------
@@ -2398,9 +2400,9 @@ case ('ele:cartesian_map')
 ! Parameters
 ! ----------
 ! ele_id
-! which : default=model
 ! index
 ! who
+! which : default=model
 !
 !    
 ! Returns
@@ -3496,20 +3498,24 @@ case ('ele:elec_multipoles')
 !%% evaluate -----------------------
 ! Evaluate an expression. The result may be a vector.
 ! Command syntax:
-!   python evaluate {-array_out} {expression}
+!   python evaluate {flags} {expression}
 !
 ! Example:
-!   python evaluate 2*data::cbar.11[1:10]|model
+!   python evaluate data::cbar.11[1:10]|model
 ! 
 !
 ! Parameters
 ! ----------
-!   -array_out : Optional. If present, the output will be available in the tao_c_interface_com%c_real.
-!   expression
-!    
+! expression
+! flags : default=-array_out
+!   If -array_out, the output will be available in the tao_c_interface_com%c_real.!
+!
 ! Returns
 ! -------
-!   string_list
+! string_list
+!   if '-array_out' not in flags
+! real_array
+!   if '-array_out' in flags
 !
 ! Examples
 ! --------
@@ -3517,7 +3523,7 @@ case ('ele:elec_multipoles')
 ! Example: 1
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!    expression: 2*data::cbar.11[1:10]|model
+!    expression: data::cbar.11[1:10]|model
  
 
 case ('evaluate')
@@ -3535,15 +3541,16 @@ case ('evaluate')
     return
   endif
 
-  do i = 1, size(value_arr)
-    nl=incr(nl); write (li(nl), '(i0, a, es22.14)') i, ';', value_arr(i)
-  enddo
-
   if (use_real_array_buffer) then
     n_arr = size(value_arr)
     call re_allocate_c_double(tao_c_interface_com%c_real, n_arr, .false.)
     tao_c_interface_com%n_real = n_arr
     tao_c_interface_com%c_real(1:n_arr) = value_arr(1:n_arr)
+  else
+    ! string_list
+    do i = 1, size(value_arr)
+      nl=incr(nl); write (li(nl), '(i0, a, es22.14)') i, ';', value_arr(i)
+    enddo
   endif
 
 !%% em_field -----------------------
@@ -4717,6 +4724,9 @@ case ('merit')
 
 !%% orbit_at_s -----------------------
 ! Twiss at given s position.
+!
+! Notes
+! -----
 ! Command syntax:
 !   python orbit_at_s {ix_uni}@{ix_branch}>>{s}|{which}
 ! where:
@@ -4729,10 +4739,10 @@ case ('merit')
 !
 ! Parameters
 ! ----------
-! ix_uni
-! ix_branch
-! s
-! which
+! s 
+! ix_uni : default=1
+! ix_branch : default=0
+! which : default=model
 !
 !    
 ! Returns
@@ -4795,8 +4805,12 @@ case ('place_buffer')
 
 !%% plot_curve -----------------------
 ! Curve information for a plot
+!
+!
+! Notes
+! -----
 ! Command syntax:
-!   pyton plot_curve {curve_name}
+!   python plot_curve {curve_name}
 ! 
 !
 ! Parameters
@@ -4815,7 +4829,7 @@ case ('place_buffer')
 ! Example: 1
 !  init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
 !  args:
-!    curve_name: c1 
+!    curve_name: top.x.c1
 
 case ('plot_curve')
 
@@ -6152,7 +6166,7 @@ case ('species_to_str')
 ! ----------
 ! ix_uni : default=1
 ! ix_branch : default=0
-! which
+! which : default=model
 !
 !    
 ! Returns
