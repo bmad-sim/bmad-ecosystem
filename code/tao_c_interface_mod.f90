@@ -25,6 +25,59 @@ type (tao_c_interface_common_struct), target, save :: tao_c_interface_com
 
 contains
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine re_allocate_c_double (re, n, exact, init_val)
+!
+! Routine to reallocate an array of c_double reals.
+! This is modeled after the reallocate functions in Numerical Recipes.
+! Note: The data of the array is preserved but data at the end of the
+! array will be lost if n is less than the original size of the array
+!
+! Input:
+!   re(:)  -- Real(c_double), Allocatable: Real array.
+!   n      -- Integer: Size wanted.
+!   exact  -- Logical, optional: If present and False then the size of 
+!                 the output array is permitted to be larger than n. 
+!                 Default is True.
+!
+! Output:
+!   re(:)  -- Real(c_double), Allocatable: Allocated array with size(re) >= n.
+!-
+
+subroutine re_allocate_c_double (re, n, exact, init_val)
+
+implicit none
+
+real(c_double), allocatable :: re(:), temp_re(:)
+real(c_double), optional :: init_val
+
+integer, intent(in) :: n
+integer n_save, n_old
+
+logical, optional :: exact
+
+!
+
+if (allocated(re)) then
+  n_old = size(re)
+  if (n == n_old) return
+  if (.not. logic_option(.true., exact) .and. n < n_old) return
+  call move_alloc (re, temp_re)
+  allocate (re(n))
+  if (present(init_val)) re = init_val
+  n_save = min(n, n_old)
+  re(1:n_save) = temp_re(1:n_save)
+  deallocate (temp_re)  
+else
+  allocate (re(n))
+  if (present(init_val)) re = init_val
+endif
+
+end subroutine re_allocate_c_double
+
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
