@@ -399,6 +399,12 @@ case ('beam')
 
   if (word1 == '') then
 
+    if (.not. u%beam%track_beam_in_universe) then
+      nl=nl+1; lines(nl) = 'Beam tracking not done in universe: ' // int_str(u%ix_uni)
+      nl=nl+1; lines(nl) = 'Create a tao_beam_init namelist for this universe in the appropriate init file if beam tracking wanted.'
+      return
+    endif
+
     nl=nl+1; write(lines(nl), '(2(a, i0))') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'global%track_type           = ', quote(s%global%track_type)

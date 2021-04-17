@@ -50,7 +50,7 @@ real(rp) tt
 
 integer iuni, j, ib, ix, n_max, iu, it, id
 
-character(20) :: r_name = "tao_lattice_calc"
+character(*), parameter :: r_name = "tao_lattice_calc"
 character(20) name
 
 logical calc_ok, this_calc_ok, err, mat_changed
@@ -89,6 +89,11 @@ call tao_hook_lattice_calc (calc_ok)
 if (s%global%track_type /= 'single' .and. s%global%track_type /= 'beam') then
   call out_io (s_error$, r_name, 'UNKNOWN TRACK_TYPE: ' // quote(s%global%track_type), 'DEFAULTING TO "single"')
   s%global%track_type = 'single'
+endif
+
+if (s%global%track_type == 'beam' .and. count(s%u(:)%beam%track_beam_in_universe) == 0) then
+  call out_io (s_error$, r_name, 'BEAM TRACKING CANNOT BE DONE UNLESS A TAO_BEAM_INIT NAMELIST HAS', &
+                                 'BEEN DEFINED IN THE APPROPRIATE INIT FILE.')
 endif
 
 ! To save time, s%u(:)%calc%lattice are used to determine what gets calculated. 
@@ -132,7 +137,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       ! Need to beam track even if single tracking is not OK since the merit function may depend
       ! upon the beam tracking.
 
-      if (s%global%track_type == 'beam' .and. branch%param%particle /= photon$) then
+      if (s%global%track_type == 'beam' .and. branch%param%particle /= photon$ .and. u%beam%track_beam_in_universe) then
         call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
         if (.not. this_calc_ok) calc_ok = .false.
         if (this_calc_ok) then
@@ -320,7 +325,7 @@ real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6)
 integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
 
 character(80) :: lines(10)
-character(20) :: r_name = "tao_single_track"
+character(*), parameter :: r_name = "tao_single_track"
 
 logical calc_ok, err, radiation_fluctuations_on
 
@@ -757,7 +762,7 @@ type (coord_struct), pointer :: p(:)
 real(rp) charge_tot
 integer n_bunch, particle
 logical no_beam, all_lost
-character(24) :: r_name = "tao_no_beam_left"
+character(*), parameter :: r_name = "tao_no_beam_left"
 
 !
 
@@ -876,7 +881,7 @@ type (tao_beam_branch_struct), pointer :: bb
 real(rp) v(6)
 integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib0, ie0
 
-character(20) :: r_name = "tao_inject_beam"
+character(*), parameter :: r_name = "tao_inject_beam"
 character(100) line
 
 logical err, init_ok

@@ -924,10 +924,11 @@ end type
 ! Beam information for a universe 
 
 type tao_beam_uni_struct
-  character(200) :: track_data_file = ''               ! track data from previous simulation for reanalysis.
+  character(200) :: track_data_file = ''         ! Track data from previous simulation for reanalysis.
   character(200) :: saved_at = ''
   character(200) :: dump_file = ''
   character(200) :: dump_at = ''
+  logical :: track_beam_in_universe = .false.    ! Beam tracking enabled in this universe?
 end type
 
 ! Logicals that determine what calculations need to be done.

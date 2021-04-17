@@ -198,6 +198,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   bb%ix_track_start = not_set$
   bb%ix_track_end   = not_set$
   s%u(i)%beam%track_data_file = s%com%beam_track_data_file_arg
+  s%u(i)%beam%track_beam_in_universe = .false.
 enddo
 
 if (.not. s%com%init_beam .or. init_file == '') return
@@ -333,6 +334,7 @@ character(60) at, class, ele_name, line
 
 ! Set tracking start/stop
 
+u%beam%track_beam_in_universe = .true.
 bb => u%model_branch(0)%beam
 bb%track_start = beam_track_start
 bb%track_end   = beam_track_end
