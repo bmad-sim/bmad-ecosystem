@@ -139,6 +139,7 @@ determine these three quantities are:
 \index{ref_origin}\index{ele_origin}
 \begin{example}
   create_jumbo_slave = <Logical>     ! See \sref{s:jumbo.slave}
+  wrap_superimpose   = <Logical>     ! Wrap if element extends past lattice ends?
   ref          = <lattice_element>
   offset       = <length>            ! default = 0
   ele_origin   = <origin_location>   ! Origin pt on element.
@@ -181,24 +182,41 @@ superimposed element may be a \vn{group} or \vn{overlay} element as long as the 
 used as the reference element.
 
 \index{geometry}\index{open}
-A superimposed element that extends beyond either end of the lattice will be wrapped around so part
-of the element will be at the beginning of the lattice and part of the element will be at the
-end. For consistency's sake, this is done even if the \vn{geometry} is set to \vn{open} (for
-example, it is sometimes convenient to treat a circular lattice as linear). Example:
+By default, a superimposed element that extends beyond either end of the lattice will be wrapped
+around so part of the element will be at the beginning of the lattice and part of the element will
+be at the end. For consistency's sake, this is done even if the \vn{geometry} is set to \vn{open}
+(for example, it is sometimes convenient to treat a circular lattice as linear). Example:
 \begin{example}
   d: drift, l = 10
-  q: quad, l = 2, superimpose
+  q: quad, l = 4, superimpose, offset = 1
   machine: line = (d)
   use, machine
 \end{example}
-The lattice will have three elements in the tracking section:
+The lattice will have five elements in the tracking section:
 \begin{example}
-        Element   Key           Length
-  3)    Q{\#}2       Quadrupole    1
-  2)    D{\#}1       Drift         8
-  1)    Q{\#}1       Quadrupole    1
+        Element    Key             Length
+  0)    BEGINNING  Beginning_ele   0
+  1)    Q{\#}2        Quadrupole      3   ! Slave representing beginning of Q element
+  2)    D{\#}1        Drift           6
+  3)    Q{\#}1        Quadrupole      1   ! Slave representing end of Q element
+  4)    END        Marker          0
 \end{example}
-The lord section of the lattice will have the element \vn{Q}. 
+And the lord section of the lattice will have the element \vn{Q}. 
+
+To not wrap an element that is being superimposed, set the \vn{wrap_superimpose} logical to \vn{False}.
+Following the above example, if the definition of\vn{q} is extended by adding \vn{wrap_superimpose}:
+\begin{example}
+  q: quad, l = 4, superimpose, offset = 1, wrap_superimpose = F
+\end{example}
+In this instance there are four elements in the tracking section:
+\begin{example}
+        Element    Key             Length
+  0)    BEGINNING  Beginning_ele   0
+  1)    Q          Quadrupole      4    
+  2)    D{\#}1        Drift           7
+  4)    END        Marker          0
+\end{example}
+And the lord section of the lattice will not have any elements.
 
 To superimpose a zero length element ``\vn{S}'' next to a zero length element ``\vn{Z}'', and to
 make sure that \vn{S} will be on the correct side of \vn{Z}, set the \vn{ref_origin} appropriately.

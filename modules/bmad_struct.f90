@@ -1683,6 +1683,7 @@ integer, parameter :: start_edge$  = 129
 integer, parameter :: end_edge$  = 130
 integer, parameter :: s_position$ = 131
 integer, parameter :: ref_species$ = 132, particle$ = 132
+integer, parameter :: wrap_superimpose$ = 133
 
 integer, parameter :: a0$  = 140, a21$  = 161
 integer, parameter :: b0$  = 162, b21$  = 183

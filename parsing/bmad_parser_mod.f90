@@ -1796,6 +1796,11 @@ case ('VELOCITY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(velocity_distribution$) = ix
 
+case ('WRAP_SUPERIMPOSE')
+  call parser_get_logical (attrib_word, pele%wrap_superimpose, ele%name, delim, delim_found, err_flag); if (err_flag) return
+
+
+!------------------------------------------------
 case default   ! normal attribute
 
   if (ele%key == def_line$) then
@@ -4999,11 +5004,11 @@ if (ref_branch%ix_branch /= branch%ix_branch) return
 
 call compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
 super_ele%iyy = ref_ele%iyy   ! Multipass info
-call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
+call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele, pele%wrap_superimpose); if (err_flag) return
 call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
 super_ele%name = super_ele_saved%name(:ix)            
 call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, save_null_drift = .true., &
-              create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false.)
+      create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false., wrap = pele%wrap_superimpose)
 if (err_flag) bp_com%error_flag = .true.
 call control_bookkeeper (lat, super_ele_out)
 
@@ -5225,7 +5230,7 @@ if (ref_ele%lord_status == multipass_lord$) then
     branch => pointer_to_branch(slave)
     call compute_super_lord_s (slave, super_ele, pele2, ix_insert)
     call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, save_null_drift = .false., &
-                 create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false.) 
+                 create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false., wrap = pele2%wrap_superimpose) 
     if (err_flag) bp_com%error_flag = .true.
     super_ele_out%iyy = n_super  ! Is unique
   enddo
@@ -5286,11 +5291,11 @@ else
 
   call compute_super_lord_s (ref_ele, super_ele, pele2, ix_insert)
   super_ele%iyy = ref_ele%iyy   ! Multipass info
-  call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele); if (err_flag) return
+  call check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele, pele%wrap_superimpose); if (err_flag) return
   call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
   super_ele%name = super_ele_saved%name(:ix)            
   call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, save_null_drift = .true., &
-              create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false.)
+              create_jumbo_slave = pele2%create_jumbo_slave, ix_insert = ix_insert, mangle_slave_names = .false., wrap = pele2%wrap_superimpose)
   if (err_flag) bp_com%error_flag = .true.
   call control_bookkeeper (lat, super_ele_out)
 endif
@@ -5406,15 +5411,17 @@ endif
 branch => pointer_to_branch(ref_ele)
 s0 = branch%ele(0)%s
 
-if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
-  super_ele%s = super_ele%s - branch%param%total_length
-elseif (super_ele%s < s0) then
-  super_ele%s = super_ele%s + branch%param%total_length
-endif
+if (pele%wrap_superimpose) then
+  if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
+    super_ele%s = super_ele%s - branch%param%total_length
+  elseif (super_ele%s < s0) then
+    super_ele%s = super_ele%s + branch%param%total_length
+  endif
 
-super_ele%s_start = super_ele%s - super_ele%value(l$)
-if (super_ele%s_start < s0) then
-  super_ele%s_start = super_ele%s_start + branch%param%total_length
+  super_ele%s_start = super_ele%s - super_ele%value(l$)
+  if (super_ele%s_start < s0) then
+    super_ele%s_start = super_ele%s_start + branch%param%total_length
+  endif
 endif
 
 ! The "nominal" insert point is at the downstream end of element with index ix_insert.
@@ -5450,7 +5457,7 @@ end subroutine compute_super_lord_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele)
+! Subroutine check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele, wrap)
 !
 ! Subroutine to check if there is a problem superimposing an element when there is multipass.
 ! In particular will check that:
@@ -5464,7 +5471,7 @@ end subroutine compute_super_lord_s
 ! This subroutine is not intended for general use.
 !-
 
-subroutine check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele)
+subroutine check_for_superimpose_problem (branch, super_ele, err_flag, ref_ele, wrap)
 
 implicit none
 
@@ -5473,25 +5480,34 @@ type (ele_struct), optional :: ref_ele
 type (ele_struct), pointer :: ele, ele1, ele2, ele_stop
 type (branch_struct) :: branch
 real(rp) eps
-logical err_flag
+logical err_flag, wrap
 integer ix1, ix2
 
 
 ! Check for out-of-bounds.
+! If wrap = False then out-of-bounds is not an error.
 
 err_flag = .true.
 eps = bmad_com%significant_length
 
 ele1 => pointer_to_element_at_s (branch, super_ele%s_start + eps, .true., err_flag)
 if (err_flag) then
-  call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'UPSTREAM ELEMENT EDGE OUT OF BOUNDS.')
-  return
+  if (wrap) then
+    call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'UPSTREAM ELEMENT EDGE OUT OF BOUNDS.')
+    return
+  else
+    ele1 => branch%ele(0)
+  endif
 endif
 
 ele2 => pointer_to_element_at_s (branch, super_ele%s - eps, .false., err_flag)
 if (err_flag) then
-  call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'DOWNSTREAM ELEMENT EDGE OUT OF BOUNDS.')
-  return
+  if (wrap) then
+    call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'DOWNSTREAM ELEMENT EDGE OUT OF BOUNDS.')
+    return
+  else
+    ele2 => branch%ele(branch%n_ele_track)
+  endif
 endif
 
 ! Ref ele check.
