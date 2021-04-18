@@ -12,7 +12,7 @@ contains
 !-----------------------------------------------------------------------------------------
 !+
 ! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out,
-!                        save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names)
+!                save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names, wrap)
 !
 ! Routine to superimpose an element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -43,8 +43,13 @@ contains
 !                           use ix_insert as the index to insert super_ele_in at. ix_insert is useful when superposing 
 !                           next to another element that has zero or negative length (EG a patch) and you want 
 !                           to make sure that the superimposed element is on the correct side of the element.
-!   mangle_slave_names  -- logical, optional: If True (default) adjust slave names appropriately. Name
+!   mangle_slave_names  -- logical, optional: If True (default), adjust slave names appropriately. Name
 !                           mangeling can take time so bmad_parser will do this all at once at the end.
+!   wrap                -- logical, optional: If True (default), and if the superimposed element has an end that
+!                            extends beyond the starting or ending edge of the lattice, wrap the element around the
+!                            lattice so that the beginning portion of the element is at the lattice ending edge and
+!                            the rest of the element is at the lattice start edge. If wrap = False, and the superimposed 
+!                            element has an end that extends beyound a lattice edge, extend the lattice to accommodate.
 !
 ! Output:
 !   lat             -- lat_struct: Modified lat.
@@ -53,7 +58,7 @@ contains
 !-
 
 subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, &
-                                     save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names)
+                                 save_null_drift, create_jumbo_slave, ix_insert, mangle_slave_names, wrap)
 
 implicit none
 
@@ -75,7 +80,7 @@ integer i, j, jj, k, ix, ix2, n, i2, ic, n_con, ixs, ix_branch, ii
 integer ix1_split, ix2_split, ix_super, ix_super_con, ix_ic
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
-logical, optional :: save_null_drift, create_jumbo_slave, mangle_slave_names
+logical, optional :: save_null_drift, create_jumbo_slave, mangle_slave_names, wrap
 logical err_flag, setup_lord, split1_done, split2_done, all_drift, err, zero_length_lord
 
 character(100) name
@@ -109,7 +114,6 @@ branch => lat%branch(ix_branch)
 
 ! s1 is the entrance edge of the superimpose.
 ! s2 is the exit edge of the superimpose.
-! For a lat a superimpose can wrap around the ends of the lattice.
 
 ix_lord_max_old = lat%n_ele_max
 
@@ -125,25 +129,36 @@ s2_in = super_saved%s
 s1 = s1_in
 s2 = s2_in
 
-if (s1 < s1_lat_fudge) then
-  if (branch%param%geometry == open$) call out_io (s_warn$, &
-         r_name, 'Superimpose is being wrapped around an open lattice for: ' // super_saved%name)
-  s1 = s1 + branch%param%total_length
-endif
+if (logic_option(.true., wrap)) then
+  if (s1 < s1_lat_fudge) then
+    if (branch%param%geometry == open$) call out_io (s_warn$, r_name, &
+           'Superimpose is being wrapped around an open lattice for: ' // super_saved%name, &
+           'Set "wrap_superimpose = False" if you do not want this.')
+    s1 = s1 + branch%param%total_length
+  endif
 
-if (s2 > s2_lat_fudge) then
-  if (branch%param%geometry == open$) call out_io (s_warn$, &
-         r_name, 'Superimpose is being wrapped around an open lattice for: ' // super_saved%name)
-  s2 = s2 - branch%param%total_length
-endif
+  if (s2 > s2_lat_fudge) then
+    if (branch%param%geometry == open$) call out_io (s_warn$, r_name, &
+           'Superimpose is being wrapped around an open lattice for: ' // super_saved%name, &
+           'Set "wrap_superimpose = False" if you do not want this.')
+    s2 = s2 - branch%param%total_length
+  endif
 
-if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2_lat_fudge) then
-  call out_io (s_abort$, r_name, &
-    'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_saved%name, &
-    'ELEMENT WANTS TO BE PLACED AT: [\F10.1\, \F10.1\] ', &
-    'lATTICE EXTENT:                [\f10.1\, \F10.1\]', r_array = [s1_in, s2_in, s1_lat, s2_lat])
-  if (global_com%exit_on_error) call err_exit
-  return
+  if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2_lat_fudge) then
+    call out_io (s_abort$, r_name, &
+      'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_saved%name, &
+      'ELEMENT WANTS TO BE PLACED AT: [\F10.1\, \F10.1\] ', &
+      'lATTICE EXTENT:                [\f10.1\, \F10.1\]', r_array = [s1_in, s2_in, s1_lat, s2_lat])
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+else
+  if (s1 < s1_lat_fudge .or. s2 > s2_lat_fudge) then
+    if (branch%param%geometry == closed$) call out_io (s_warn$, r_name, &
+           'Superimpose is not being wrapped around a closed lattice for: ' // super_saved%name, &
+           'Set "wrap_superimpose = True" if you do not want this.')
+  endif
 endif
 
 !-------------------------------------------------------------------------
@@ -178,7 +193,9 @@ if (s2 < s1) then
   if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_jumbo_slave, ix_insert)) return
 
 ! no wrap case...
-else                  
+! If s1 is outside of lattice start edge, the s-positions of all element will be shifted
+else
+  if (s1 < branch%ele(0)%s) s2 = s2 + (branch%ele(0)%s - s1)
   if (split_this_lat(1, branch, s1, ix1_split, split1_done, save_null_drift, create_jumbo_slave, ix_insert)) return
   if (split_this_lat(2, branch, s2, ix2_split, split2_done, save_null_drift, create_jumbo_slave, ix_insert)) return
 endif
@@ -619,11 +636,14 @@ function split_this_lat (which, branch, s_here, ix_split, split_done, &
 
 implicit none
 
-type (branch_struct) branch
+type (branch_struct), target :: branch
+type (lat_struct), pointer :: lat
+type (ele_struct) ele
+type (ele_struct), pointer :: lord
 
-real(rp) s_here
+real(rp) s_here, ds
 
-integer ix_split, which
+integer ix_split, which, n, ie
 integer, optional :: ix_insert
 
 logical split_done, err, choose_max
@@ -631,17 +651,60 @@ logical, optional :: save_null_drift, create_jumbo_slave
 
 ! Try to split so that the minimum number of elements are to be superimposed upon.
 
+lat => branch%lat
+
 if (which == 1) then
   choose_max = .true.
 else
   choose_max = .false.
 endif
 
+! If superimpose extends beyound beginning edge...
+
+if (s_here < branch%ele(0)%s - bmad_com%significant_length) then
+  call init_ele(ele, drift$)
+  ds = branch%ele(0)%s - s_here
+  ele%value(l$) = ds
+  ! Beginning element (index 0) must remain at index 0 so insert at index 1.
+  call insert_element (lat, ele, 1, branch%ix_branch)
+  call s_calc(lat)
+  ! Must shift s-positions of any drifts that were converted null_ele elements.
+  do ie = lat%n_ele_track+1, lat%n_ele_max
+    lord => lat%ele(ie)
+    if (lord%key /= null_ele$) cycle
+    if (lord%sub_key /= drift$) cycle
+    if (nint(lord%value(ix_branch$)) /= branch%ix_branch) cycle
+    lord%s = lord%s + ds
+    lord%s_start = lord%s_start + ds
+  enddo
+  !
+  ix_split = 0
+  split_done = .false.
+  err = .false.
+  return
+endif
+
+! If extending past the end edge...
+! If the END marker element is present, keep this element at the end of the lattice.
+
+n = branch%n_ele_track
+if (branch%ele(n)%name == 'END' .and. branch%ele(n)%key == marker$) n = n - 1
+if (s_here > branch%ele(n)%s + bmad_com%significant_length) then
+  call init_ele(ele, drift$)
+  ele%value(l$) = s_here - branch%ele(n)%s
+  call insert_element (lat, ele, n+1, branch%ix_branch)
+  call s_calc(lat)
+  split_done = .false.
+  ix_split = n + 1
+  err = .false.
+  return
+endif
+
 ! If creating a jumbo slave then only split at drift elements
 
 if (logic_option(.false., create_jumbo_slave)) then
   split_done = .false.
-  ix_split = element_at_s(branch%lat, s_here, choose_max, branch%ix_branch, err)
+  ix_split = element_at_s(lat, s_here, choose_max, branch%ix_branch, err)
   if (err) return
   if (branch%ele(ix_split)%key /= drift$) then
     if (which == 1) ix_split = ix_split - 1
@@ -649,7 +712,7 @@ if (logic_option(.false., create_jumbo_slave)) then
   endif
 endif
 
-call split_lat (branch%lat, s_here, branch%ix_branch, ix_split, split_done, .false., .false., &
+call split_lat (lat, s_here, branch%ix_branch, ix_split, split_done, .false., .false., &
                              save_null_drift, err, choose_max = choose_max, ix_insert = ix_insert)
 
 end function split_this_lat 

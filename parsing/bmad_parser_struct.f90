@@ -94,6 +94,7 @@ type parser_ele_struct
   integer indexx
   logical :: superposition_command_here = .false.
   logical :: superposition_has_been_set = .false.
+  logical :: wrap_superimpose = .true.
   logical :: create_jumbo_slave = .false.
   logical :: is_range = .false.               ! For girders
   character(40) :: default_attrib = ''        ! For group/overlay elements: slave attribute 

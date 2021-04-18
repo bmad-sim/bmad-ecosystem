@@ -772,7 +772,7 @@ do i = 1, iseq_tot-1
   if (sequence(ix1)%name == sequence(ix2)%name) call parser_error  ('DUPLICATE LINE NAME ' // sequence(ix1)%name)
 enddo
 
-do i = 1, n_max-1
+do i = 1, in_lat%nametable%n_max-1
   ix1 = in_lat%nametable%indexx(i)
   ix2 = in_lat%nametable%indexx(i+1)
   if (in_lat%ele(ix1)%name == in_lat%ele(ix2)%name) call parser_error ('DUPLICATE ELEMENT NAME ' // in_lat%ele(ix1)%name)
