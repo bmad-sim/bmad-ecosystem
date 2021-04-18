@@ -1010,10 +1010,6 @@ After initialization, the \vn{set beam_init} (\sref{s:set.beam.init}) command ca
 \vn{beam_track_end} are \vn{track_start} and \vn{track_end} respectively.
 %
 \item[\vn{beam_init}] \Newline
-
-The charge per particle is
-set to $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield effects.
-
 The \vn{beam_init} parameter is an instance of a \vn{beam_init_struct} structure which holds
 parameters (for example, the beam emittances) from which a distribution of particles can be
 constructed. Documentation on this can be found in the \bmad manual in the \vn{Beam Initialization}
@@ -1038,6 +1034,9 @@ initializing the beam distribution.  For circular lattices the Twiss parameters 
 the closed orbit, and the emittance will be calculated using the \bmad routine
 \vn{radiation_integrals}.
 
+The charge per particle is
+set to $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield effects.
+
 If spin tracking is desired then \vn{beam_init%init_spin} must be set to true.  
 
 The three random number generator parameters (\vn{%random_engine}, \vn{%random_gauss_converter}, and
@@ -1049,10 +1048,8 @@ Section~\sref{s:globals}.
 
 \end{description}
 
-
-
-\tao re-tracks the beam through the lattice every time a lattice parameter is changed. For example,
-during optimizations or when the \vn{set} command (\sref{s:set}) is used. For the re-tracking, the
+\tao retracks the beam through the lattice every time a lattice parameter is changed. For example,
+during optimizations or when the \vn{set} command (\sref{s:set}) is used. For the retracking, the
 particle distribution at the beginning of the lattice is fixed. That is, the a new random
 distribution is {\emph not} generated. This can be important during optimizations since variations of
 the initial distribution may hinder finding the merit function minimum.
