@@ -549,14 +549,14 @@ The DC \vn{cylindrical} parametrization used by \bmad essentially follows Ventur
 al.\cite{b:vent.map}. See Section~\sref{s:fieldmap} for details on the syntax used to cylindrical
 maps in \bmad. The electric and magnetic fields are both described by a scalar potential
 \begin{equation}
-  \bfB = -\nabla \, \psi_B, \qquad \bfE = \nabla \, -\psi_E
+  \bfB = -\nabla \, \psi_B, \qquad \bfE = -\nabla \, \psi_E
 \end{equation}
 The scalar potentials both satisfy the Laplace equation $\nabla^2 \, \psi = 0$.
 The scalar potentials are decomposed as a sum of modes indexed by an integer $m$
 \begin{equation}
   \psi_B = \re \left[ \sum_{m = 0}^\infty \, \psi_{Bm} \right]
 \end{equation}
-[Here and below, only equations for the magnetic field will be shown, the equations for the electric
+[Here and below, only equations for the magnetic field will be shown. The equations for the electric
 fields are similar.] The $\psi_{Bm}$ are decomposed in $z$ using a discrete Fourier
 sum.\footnote{Venturini uses a continuous Fourier transformation but \bmad uses a discrete
 transformation so that only a finite number of coefficients are needed.}

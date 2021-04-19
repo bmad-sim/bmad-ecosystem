@@ -456,7 +456,7 @@ end do
 
 ! Aperture sanity check
 
-if (orbit_too_large(orb)) return
+if (orbit_too_large(orb, check_momentum = .false.)) return
 
 ! Calculate next step
 

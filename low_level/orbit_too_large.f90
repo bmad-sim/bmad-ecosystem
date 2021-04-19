@@ -1,5 +1,5 @@
 !+
-! Function orbit_too_large (orbit, param) result (is_too_large)
+! Function orbit_too_large (orbit, param, check_momentum) result (is_too_large)
 !
 ! Routine to check if an orbit is too large.
 ! This routine is used to prevent floating point overflow.
@@ -12,7 +12,8 @@
 !   check_aperture_limit
 !
 ! Input:
-!   orbit         -- coord_struct: Particle orbit.
+!   orbit           -- coord_struct: Particle orbit.
+!   check_momentum  -- logical, optional: If True (default) check the momentum.
 !
 ! Output:
 !   orbit         -- coord_struct: Particle orbit.
@@ -22,7 +23,7 @@
 !     %unstable_factor  -- Set if orbit is too large. Otherwise not set
 !-
 
-function orbit_too_large (orbit, param) result (is_too_large)
+function orbit_too_large (orbit, param, check_momentum) result (is_too_large)
 
 use bmad_interface, dummy => orbit_too_large
 
@@ -31,8 +32,10 @@ implicit none
 type (coord_struct) orbit
 type (lat_param_struct), optional :: param
 
-logical is_too_large
 real(rp) rel_p
+
+logical, optional :: check_momentum
+logical is_too_large
 
 ! Assume the worst
 
@@ -60,7 +63,14 @@ elseif (-orbit%vec(3) > bmad_com%max_aperture_limit) then
   return
 endif
 
-! Test photons
+! Momentum check
+
+if (.not. logic_option(.true., check_momentum)) then
+  is_too_large = .false.
+  return
+endif
+
+! Photon momentum
 
 if (orbit%species == photon$) then
   if (abs(orbit%vec(6)) > 1) then
@@ -68,41 +78,39 @@ if (orbit%species == photon$) then
     if (present(param)) param%unstable_factor = abs(orbit%vec(6)) - 1
     return
   endif
-
-! charged particle test
-
-else
-  rel_p = 1 + orbit%vec(6)
-
-  if (rel_p < 0) then
-    orbit%state = lost_pz_aperture$
-    return
-  endif
-
-  if (orbit%vec(2)**2 + orbit%vec(4)**2 > rel_p**2) then
-    if (present(param)) param%unstable_factor = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 - rel_p**2)
-
-    if (abs(orbit%vec(2)) > abs(orbit%vec(4))) then
-      if (orbit%vec(2) > 0) then
-        orbit%state = lost_pos_x_aperture$
-      else
-        orbit%state = lost_neg_x_aperture$
-      endif
-
-    else
-      if (orbit%vec(4) > 0) then
-        orbit%state = lost_pos_y_aperture$
-      else
-        orbit%state = lost_neg_y_aperture$
-      endif
-    endif
-
-    return
-  endif
-
+  is_too_large = .false.
+  return
 endif
 
-! Passed tests.
+! Charged particle momentum
+
+rel_p = 1 + orbit%vec(6)
+
+if (rel_p < 0) then
+  orbit%state = lost_pz_aperture$
+  return
+endif
+
+if (orbit%vec(2)**2 + orbit%vec(4)**2 > rel_p**2) then
+  if (present(param)) param%unstable_factor = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 - rel_p**2)
+
+  if (abs(orbit%vec(2)) > abs(orbit%vec(4))) then
+    if (orbit%vec(2) > 0) then
+      orbit%state = lost_pos_x_aperture$
+    else
+      orbit%state = lost_neg_x_aperture$
+    endif
+
+  else
+    if (orbit%vec(4) > 0) then
+      orbit%state = lost_pos_y_aperture$
+    else
+      orbit%state = lost_neg_y_aperture$
+    endif
+  endif
+
+  return
+endif
 
 is_too_large = .false.
 
