@@ -2776,18 +2776,19 @@ matrix for an \vn{lcavity} with finite \vn{gradient} is never symplectic. See
 \sref{s:phase.space}. In addition, couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes}) can
 be modeled.
 
-When an element's \vn{tracking_method} is set to \vn{runge_kutta} (\sref{s:tkm}), the ``active
-region'' over which there is a finite field is \vn{n_cell} half-wave pillbox resonators where each
-pillbox has length $\lambda/2$ (\sref{s:rf.fields}). The default setting for \vn{n_cell} is 1. The
-dependent parameter \vn{l_active} is set to the length of the active region. The active region
-should have a length less than the length of the element. If the length of the element is not equal
-to the active region, the active region is centered in the element and the regions to either side
-are treated as field free.
-
 When an element's \vn{tracking_method} is set to \vn{runge_kutta}, the fields used with
-\vn{field_calc} set to \vn{bmad_standard} is described in Section~(\sref{s:rf.fields}). With
+\vn{field_calc} set to \vn{bmad_standard} are described in Section~(\sref{s:rf.fields}). With
 \vn{cavity_type} set to \vn{standing_wave}, the longitudinal mode is set by the
 \vn{longitudinal_mode} parameter. The possible values are 0 or 1 and the default setting is 1. 
+
+If an element's \vn{cavity_type} parameter is set to \vn{standing_wave}, and if the \vn{field_calc}
+parameter is set to \vn{bmad_standard}, and if an element's \vn{tracking_method} is set to
+\vn{runge_kutta} (\sref{s:tkm}), the ``active region'' over which there is a finite field is
+\vn{n_cell} half-wave pillbox resonators where each pillbox has length $\lambda/2$
+(\sref{s:rf.fields}). The default setting for \vn{n_cell} is 1. The dependent parameter
+\vn{l_active} is set to the length of the active region. The active region should have a length less
+than the length of the element. If the length of the element is not equal to the active region, the
+active region is centered in the element and the regions to either side are treated as field free.
 
 Note: When an element's \vn{tracking_method} is set to \vn{bmad_standard}, settings for the
 parameters \vn{n_cell}, and \vn{longitudinal_mode} are ignored.

@@ -1320,13 +1320,13 @@ function orbit_to_local_curvilinear (orbit, ele) result (local_position)
   type (floor_position_struct) local_position
 end function
 
-function orbit_too_large (orbit, param) result (is_too_large)
+function orbit_too_large (orbit, param, check_momentum) result (is_too_large)
   import
   implicit none
   type (coord_struct) orbit
   type (lat_param_struct), optional :: param
+  logical, optional :: check_momentum
   logical is_too_large
-  real(rp) rel_p
 end function
 
 subroutine order_super_lord_slaves (lat, ix_lord)
