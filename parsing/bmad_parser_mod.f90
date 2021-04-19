@@ -1372,7 +1372,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
 
   if (abs(ky**2 - kx**2 - kz**2) < tol) then
     ct_term%form = hyper_y$
-    ky = sign_of(ky) * sqrt(kx**2 + kz**2)
+    ky = sign_of(ky, .false.) * sqrt(kx**2 + kz**2)
 
     if (old_style_input) then
       if (ct_term%kx == 0) ct_term%kx = 1d-30  ! Something small to prevent divide by zero problems.
@@ -1380,7 +1380,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
 
   elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
     ct_term%form = hyper_xy$
-    kz = sign_of(kz) * sqrt(kx**2 + ky**2)
+    kz = sign_of(kz, .false.) * sqrt(kx**2 + ky**2)
 
     if (old_style_input) then
       ct_term%coef = ct_term%coef * ct_term%kz / ct_term%ky
@@ -1390,7 +1390,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
 
   elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
     ct_term%form = hyper_x$
-    kx = sign_of(kx) * sqrt(ky**2 + kz**2)
+    kx = sign_of(kx, .false.) * sqrt(ky**2 + kz**2)
 
     if (old_style_input) then
       ct_term%coef = ct_term%coef * ct_term%kx / ct_term%ky
@@ -7608,15 +7608,15 @@ do
 
     if (abs(ky**2 - kx**2 - kz**2) < tol) then
       tm%form = hyper_y$
-      ky = sign_of(ky) * sqrt(kx**2 + kz**2)
+      ky = sign_of(ky, .false.) * sqrt(kx**2 + kz**2)
 
     elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
       tm%form = hyper_xy$
-      kz = sign_of(kz) * sqrt(kx**2 + ky**2)
+      kz = sign_of(kz, .false.) * sqrt(kx**2 + ky**2)
 
     elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
       tm%form = hyper_x$
-      kx = sign_of(kx) * sqrt(ky**2 + kz**2)
+      kx = sign_of(kx, .false.) * sqrt(ky**2 + kz**2)
 
     else
       call parser_error ('CARTESIAN_MAP TERM DOES NOT HAVE CONSISTANT Kx, Ky, and Kz', &

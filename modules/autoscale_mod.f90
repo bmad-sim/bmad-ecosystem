@@ -2,6 +2,7 @@ module autoscale_mod
 
 use em_field_mod
 use changed_attribute_bookkeeper
+use time_tracker_mod
 
 integer, private, save :: n_call ! Used for debugging.
 logical, private, save :: is_lost
@@ -514,9 +515,12 @@ logical err_flag
 
 ! 
 
+
+time_runge_kutta_com%print_too_many_step_err = .false.
 ele%value(phi0_autoscale$) = phi
 call init_coord (start_orb, ele = ele, element_end = upstream_end$)
 call track1 (start_orb, ele, param, end_orb, err_flag = err_flag, ignore_radiation = .true.)
+time_runge_kutta_com%print_too_many_step_err = .true.
 
 pz = end_orb%vec(6)
 is_lost = .not. particle_is_moving_forward(end_orb)

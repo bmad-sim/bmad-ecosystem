@@ -5,6 +5,7 @@ use element_at_s_mod
 
 type time_runge_kutta_common_struct
   integer :: num_steps_done = -1              ! Number of integration steps. Not used by Bmad. For external use.
+  logical :: print_too_many_step_err = .true.
 end type
 
 type (time_runge_kutta_common_struct), save :: time_runge_kutta_com
@@ -133,8 +134,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
 
   ! edge?
 
-  if ((s_body - s_fringe_edge > -ds_safe .and. s_body_old - s_fringe_edge < 0) .or. &
-      (s_body - s_fringe_edge < -ds_safe .and. s_body_old - s_fringe_edge > 0)) then  
+  if ((s_body - s_fringe_edge) * sign_of(orb%vec(6)) * t_dir > -ds_safe .and. orb%vec(6) /= 0) then 
     zbrent_needed = .true.
     if (abs(s_body-s_fringe_edge) < ds_safe) zbrent_needed = .false.
     if (n_step == 1) zbrent_needed = .false.
@@ -297,11 +297,14 @@ end do
 ! If this due to the particle moving too slowly this is not an error.
 
 if (orb%beta < 1e-4) then
-  call out_io (s_error$, r_name, 'TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
-                                 'DUE TO VELOCITY BEING TOO SMALL.', &
-                                 'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
-                                 r_array = [orb%vec(1), orb%vec(3), s_body, orb%t])
+  if (time_runge_kutta_com%print_too_many_step_err)  then
+    call out_io (s_error$, r_name, 'TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
+                                   'DUE TO VELOCITY BEING TOO SMALL.', &
+                                   'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
+                                   r_array = [orb%vec(1), orb%vec(3), s_body, orb%t])
+  endif
   err_flag = .false.
+
 else
   call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
                                  'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
@@ -384,7 +387,7 @@ real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
 integer t_dir
 
 logical err_flag
-character(24), parameter :: r_name = 'rk_adaptive_time_step'
+character(*), parameter :: r_name = 'rk_adaptive_time_step'
 
 ! Calc tolerances
 ! Note that s is in the element frame
@@ -441,7 +444,7 @@ do
   t_new = rf_time + dt
 
   if (t_new == rf_time) then ! Can only happen if dt is very small
-    call out_io (s_error$, r_name, 'STEPSIZE UNDERFLOW IN ELEMENT: ' // ele%name, &
+    call out_io (s_error$, r_name, 'STEP SIZE UNDERFLOW IN ELEMENT: ' // ele%name, &
                                    'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
                                    'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
                                    'OFTEN TIMES THE FIELD IS NOT EVEN CONTINUOUS!', &
