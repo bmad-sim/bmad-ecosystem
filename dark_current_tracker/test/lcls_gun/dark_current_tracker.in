@@ -5,9 +5,9 @@
 save_tracks = true				 ! save_tracks on
 save_field = T
 
-
-!parallel=T
 plot_on = T
+
+parallel=F
 plot_y_min = -.12
 plot_y_max = .12
 plot_color_scale = 1
