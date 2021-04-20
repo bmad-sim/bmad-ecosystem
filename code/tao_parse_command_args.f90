@@ -20,7 +20,7 @@ implicit none
 character(*), optional :: cmd_line
 character(200) :: cmd_words(12)
 character(80) arg0, arg1, base, switch
-character(24) :: r_name = 'tao_parse_command_args'
+character(*), parameter :: r_name = 'tao_parse_command_args'
 
 integer n_arg, i_arg, ix
 logical error, negate

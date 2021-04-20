@@ -52,7 +52,7 @@ integer graph_index, i_graph, ic
 
 character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
-character(100) plot_file, full_file_name
+character(200) plot_file, full_file_name
 character(100) graph_name
 character(80) label
 character(40) str, old_name
