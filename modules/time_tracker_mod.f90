@@ -1210,10 +1210,14 @@ track_loop: do iteration = 1, max_iteration
   !Place end_orb%s correctly 
   if (end_orb%direction == +1) then
     ! particle arrives at the beginning of the element
-    end_orb%s = ele%s_start
+    end_orb%s        = ele%s_start
+    end_orb%location = upstream_end$
+    end_orb%ix_ele   = ele%ix_ele
   else
     ! particle arrives at the beginning of the element
-    end_orb%s = ele%s 
+    end_orb%s        = ele%s 
+    end_orb%location = downstream_end$
+    end_orb%ix_ele   = ele%ix_ele
   endif
 
   ! Sanity check
@@ -1221,7 +1225,6 @@ track_loop: do iteration = 1, max_iteration
   !  call out_io (s_fatal$, r_name, 'IX_ELE INCONSISTENCY IN ELE: ' // ele%name)
   !   if (global_com%exit_on_error) call err_exit
   ! endif
-  
 
   !New start coords for ele
   start2_orb = end_orb  
