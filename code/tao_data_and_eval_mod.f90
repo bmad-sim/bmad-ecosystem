@@ -187,7 +187,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         datum%ix_ele_ref = eles(1)%ele%ix_ele
       endif
 
-      call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err_flag)
+      call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err_flag, order_by_index = .true.)
       if (err_flag) return
     endif
 
