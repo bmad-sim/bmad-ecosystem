@@ -52,7 +52,7 @@ type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 character(*) data_name
 character(*) default_source
 character(*), optional :: dflt_component
-character(60) name, ele_name, component
+character(100) name, ele_name, component
 character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
 real(rp), allocatable :: values(:)
@@ -187,7 +187,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
         datum%ix_ele_ref = eles(1)%ele%ix_ele
       endif
 
-      call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err_flag, order_by_index = .true.)
+      ! If ele_name = "*" throw out group, overlay, and girder elements
+      if (ele_name == '*') ele_name = trim(ele_name) // ' ~group::* ~overlay::* ~girder::*'
+      call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err_flag)
       if (err_flag) return
     endif
 
