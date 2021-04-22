@@ -294,6 +294,10 @@ end subroutine tao_cmd_split
 ! If return_next_word = False then, when a non-switch word is encountered, the switch argument 
 ! will be set to '' and the non-switch word will be left on the line argument.
 !
+! If the first non-blank character in line is a single or double quote. The word returned will be the
+! substring from the initial quote mark to the next matching quote mark. The quote marks will be removed
+! from the returned switch argument.
+!
 ! Input:
 !   line                -- character(*): Command line
 !   switch_list(:)      -- character(*): List of valid switches. 
@@ -313,13 +317,16 @@ end subroutine tao_cmd_split
 
 subroutine tao_next_switch (line, switch_list, return_next_word, switch, err, ix_word, neg_num_not_switch)
 
+implicit none
+
 character(*) line, switch, switch_list(:)
-character(20) :: r_name = 'tao_next_switch'
+character(*), parameter :: r_name = 'tao_next_switch'
 logical err
 logical, optional :: neg_num_not_switch
 
-integer ix, n, ix_word
+integer i, ix, n, ix_word
 logical return_next_word, switch_starts_with_hyphon
+character(1) quote_mark
 
 !
 
@@ -329,6 +336,22 @@ switch_starts_with_hyphon = (switch_list(1)(1:1) == '-')
 
 call string_trim(line, line, ix_word)
 if (ix_word == 0) return
+
+! If quoted string...
+
+if (line(1:1) == "'" .or. line(1:1) == '"') then
+  quote_mark = line(1:1)
+  do i = 2, len(line)
+    if (line(i:i) /= quote_mark) cycle
+    if (line(i-1:i-1) == '\') cycle  ! '
+    switch = line(2:i-1)
+    call string_trim(line(i+1:), line, ix_word)
+    return
+  enddo
+
+  call out_io (s_error$, r_name, 'CLOSING QUOTE MARK NOT FOUND FOR:' // line)
+  return
+endif
 
 ! If not a switch...
 
@@ -346,7 +369,7 @@ endif
 call match_word (line(:ix_word), switch_list, n, .true., matched_name=switch)
 if (n < 1) then
   err = .true.
-  if (n == 0) then 
+  if (n == 0) then
     call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // line(:ix_word))
   else
     call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // line(:ix_word))
