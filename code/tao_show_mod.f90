@@ -228,7 +228,7 @@ type (show_lat_column_struct) column(60)
 type (show_lat_column_info_struct) col_info(60) 
 type (tao_expression_info_struct), allocatable, save :: info(:)
 
-real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, dt, angle, r
+real(rp) phase_units, s_pos, l_lat, gam, s_ele, s0, s1, s2, gamma2, val, z, z_in, dt, angle, r
 real(rp) mat6(6,6), vec0(6), vec_in(6), vec3(3), pc, e_tot, value_min, value_here, pz1, pz2
 real(rp) g_vec(3), dr(3), v0(3), v2(3), g_bend, c_const, mc2, del, b_emit, time1, ds
 real(rp) gamma, E_crit, E_ave, c_gamma, P_gam, N_gam, N_E2, H_a, H_b, rms, mean, s_last, s_now
@@ -273,7 +273,7 @@ integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, ig, nb, id, iv, jd, jv
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, n_print, show_index, ju, ios1, ios2, i_uni, i_con, i_ic
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, print_lords, ix_word, species
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_remove, n_zeros_found
-integer eval_pt
+integer eval_pt, n_count
 integer, allocatable :: ix_c(:), ix_remove(:)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
@@ -1568,102 +1568,113 @@ case ('field')
   orb%t = 0
   z = 0
   show_all = .false.   ! Show derivatives?
+  s_fmt = 'relative'
+  n_count = 0          ! Counter for non-switch args. 
 
-  i0 = index(what2, '-d')
-  if (i0 /= 0) then
-    call string_trim (what2(i0:), line1, ix)
-    aname = line1(1:ix)
-    what2 = what2(:i0-1) // line1(ix+1:)
-    if (index('-derivative', aname(:ix)) /= 1) then
-      call out_io (s_error$, r_name, 'UNKNOWN SWITCH: ' // aname)
-      return
-    endif
-    show_all = .true.
-  endif
+  do
+    call tao_next_switch (what2, [character(16):: '-derivatives', '-percent_len', '-absolute_s'], &
+                                                                       .true., switch, err, ix, .true.)
+    if (err) return
+    select case (switch)
+    case ('');               exit
+    case ('-derivatives');   show_all = .true.
+    case ('-percent_len');   s_fmt = 'percent'
+    case ('-absolute_s');    s_fmt = 'absolute'
+    case default
+      n_count = n_count + 1
 
-  ! 
+      select case (n_count)
+      case (1)
+        call str_upcase(ele_name, switch)
+        call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+        if (err) return
+        u => s%u(ix_u)
+        call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
+        if (err) return
+        ele => eles(1)%ele
+        call init_coord (orb, ele = ele, element_end = downstream_end$)
 
-  call  str_upcase(ele_name, word1)
-  call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
-  if (err) return
-  u => s%u(ix_u)
-  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
-  if (err) return
-  ele => eles(1)%ele
-  call init_coord (orb, ele = ele, element_end = downstream_end$)
+      case (2)
+        call tao_evaluate_expression(switch, 1, .false., value, info, err)
+        if (err) then
+          nl = 1; lines(1) = 'Bad X value';  result_id = 'field:bad-x'
+          return
+        endif
+        orb%vec(1) = value(1)
 
-  call string_trim(what2(ix_word+1:), what2, ix_word)
-  if (ix_word /= 0) then
-    call tao_evaluate_expression(what2(1:ix_word), 1, .false., value, info, err)
-    if (err) then
-      nl = 1; lines(1) = 'Bad X value'
-      result_id = 'field:bad-x'
-      return
-    endif
-    orb%vec(1) = value(1)
-  endif
+      case (3)
+        call tao_evaluate_expression(switch, 1, .false., value, info, err)
+        if (err) then
+          nl = 1; lines(1) = 'Bad Y value';  result_id = 'field:bad-y'
+          return
+        endif
+        orb%vec(3) = value(1)
 
-  call string_trim(what2(ix_word+1:), what2, ix_word)
-  if (ix_word /= 0) then
-    call tao_evaluate_expression(what2(1:ix_word), 1, .false., value, info, err)
-    if (err) then
-      nl = 1; lines(1) = 'Bad Y value'
-      result_id = 'field:bad-y'
-      return
-    endif
-    orb%vec(3) = value(1)
-  endif
+      case (4)
+        call tao_evaluate_expression(switch, 1, .false., value, info, err)
+        if (err) then
+          nl = 1; lines(1) = 'Bad Z value';  result_id = 'field:bad-z'
+          return
+        endif
+        z_in = value(1)
 
-  call string_trim(what2(ix_word+1:), what2, ix_word)
-  if (ix_word /= 0) then
-    call tao_evaluate_expression(what2(1:ix_word), 1, .false., value, info, err)
-    if (err) then
-      nl = 1; lines(1) = 'Bad Z value'
-      result_id = 'field:bad-z'
-      return
-    endif
-    z = value(1)
-  endif
+      case (5)
+        call tao_evaluate_expression(switch, 1, .false., value, info, err)
+        if (err) then
+          nl = 1; lines(1) = 'Bad T value';  result_id = 'field:bad-t'
+          return
+        endif
+        z = value(1)
+        if (ele%branch%lat%absolute_time_tracking) then
+          orb%t = value(1)
+        else
+          orb%vec(5) = value(1)
+        endif
 
-  call string_trim(what2(ix_word+1:), what2, ix_word)
-  if (ix_word /= 0) then
-    call tao_evaluate_expression(what2(1:ix_word), 1, .false., value, info, err)
-    if (err) then
-      nl = 1; lines(1) = 'Bad T value'
-      result_id = 'field:bad-t'
-      return
-    endif
+      case (6)
+        nl = 1; lines(1) = 'Extra stuff on line. Remember: expressions with blanks need to be quoted'
+        result_id = 'field:extra'
+        return
+      end select
 
-    if (ele%branch%lat%absolute_time_tracking) then
-      orb%t = value(1)
-    else
-      orb%vec(5) = value(1)
-    endif
-  endif
+    end select
+  enddo
+
+  !
 
   do i = 1, size(eles)
     ele => eles(i)%ele
+
+    select case (s_fmt)
+    case ('percent');   z = z_in * ele%value(l$)
+    case ('absolute');  z = z_in - ele%s_start
+    case ('relative');  z = z_in
+    end select
+
     call em_field_calc (ele, ele%branch%param, z, orb, .false., field, calc_dfield = show_all, err_flag = err);  if (err) return
-    if (size(eles) > 1) then
-      if (i > 1) then
-        nl=nl+1; lines(nl) = ''
-      endif
-      nl=nl+1; lines(nl) = trim(ele%name) // '  ' // ele_loc_name(ele, parens = '()')
+    if (i > 1) then
+      nl=nl+1; lines(nl) = ''
+      nl=nl+1; lines(nl) = '=================================================='
     endif
+    nl=nl+1; lines(nl) = trim(ele_loc_name(ele)) // ': ' // trim(ele%name) 
     nl=nl+1; write (lines(nl), '(2a)') '   B (T):    ', reals_to_string(field%B, 12, 2, 6, 6)
     nl=nl+1; write (lines(nl), '(2a)') '   E (V/m):  ', reals_to_string(field%E, 12, 2, 6, 2)
 
     if (show_all) then
+      nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dx (T/m):         ', field%dB(1,:)
       nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dy (T/m):         ', field%dB(2,:)
       nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dB/dz (T/m):         ', field%dB(3,:)
+      nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, 3es16.8, a, es16.8)') &
                                                  '  Curl_B, Div_B (T/m): ', field%dB(3,2) - field%dB(2,3), &
                                             field%dB(1,3) - field%dB(3,1), field%dB(2,1) - field%dB(1,2), ',', &
                                             field%dB(1,1) + field%dB(2,2) + field%dB(3,3)
+      nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dx (V/m^2):         ', field%dE(1,:)
       nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dy (V/m^2):         ', field%dE(2,:)
       nl=nl+1; write (lines(nl), '(a, 3es16.8)') '  dE/dz (V/m^2):         ', field%dE(3,:)
+      nl=nl+1; lines(nl) = ''
       nl=nl+1; write (lines(nl), '(a, 3es16.8, a, es16.8)') &
                                                  '  Curl_E, Div_E (V/m^2): ', field%dE(3,2) - field%dE(2,3), &
                                             field%dE(1,3) - field%dE(3,1), field%dE(2,1) - field%dE(1,2), ',', &

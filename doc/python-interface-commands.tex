@@ -2,6 +2,9 @@
 \begin{description}
 \item[beam] \Newline\begin{example}
 Output beam parameters that are not in the beam_init structure.
+
+Notes
+-----
 Command syntax:
   python beam {ix_universe}
 where
@@ -30,6 +33,9 @@ Example: 1
 \end{example}
 \item[beam_init] \Newline\begin{example}
 Output beam_init parameters.
+
+Notes
+-----
 Command syntax:
   python beam_init {ix_universe}
 where
@@ -58,6 +64,9 @@ Example: 1
 \end{example}
 \item[bmad_com] \Newline\begin{example}
 Bmad_com structure components
+
+Notes
+-----
 Command syntax:
   python bmad_com
 
@@ -80,6 +89,9 @@ Example: 1
 \end{example}
 \item[branch1] \Newline\begin{example}
 Lattice element list.
+
+Notes
+-----
 Command syntax:
   python branch1 {ix_universe}@{ix_branch}
 where
@@ -110,6 +122,11 @@ Example: 1
 \end{example}
 \item[bunch1] \Newline\begin{example}
 Bunch parameters at the exit end of a given lattice element.
+
+Notes
+-----
+Command syntax:
+python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
 
 Parameters
 ----------
@@ -149,14 +166,13 @@ Example: 2
    ix_bunch: 1
    coordinate: x
 
-Notes
------
-Command syntax:
-python bunch1 {ele_id}|{which} {ix_bunch} {coordinate}
 
 \end{example}
 \item[building_wall_list] \Newline\begin{example}
 List of building wall sections or section points
+
+Notes
+-----
 Command syntax:
   python building_wall_list {ix_section}
 If {ix_section} is not present then a list of building wall sections is given.
@@ -189,6 +205,9 @@ Example: 2
 \end{example}
 \item[building_wall_graph] \Newline\begin{example}
 (x, y) points for drawing the building wall for a particular graph.
+
+Notes
+-----
 The graph defines the coordinate system for the (x, y) points.
 Command syntax:
   python building_wall_graph {graph}
@@ -215,6 +234,9 @@ Example: 1
 \end{example}
 \item[building_wall_point] \Newline\begin{example}
 add or delete a building wall point
+
+Notes
+-----
 Command syntax:
   python building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
 Where:
@@ -258,6 +280,9 @@ Example: 1
 \end{example}
 \item[building_wall_section] \Newline\begin{example}
 add or delete a building wall section
+
+Notes
+-----
 Command syntax:
   python building_wall_section {ix_section}^^{sec_name}^^{sec_constraint}
 Where:
@@ -296,6 +321,9 @@ Example: 1
 \end{example}
 \item[constraints] \Newline\begin{example}
 Optimization data and variables that contribute to the merit function.
+
+Notes
+-----
 Command syntax:
   python constraints {who}
 {who} is one of:
@@ -352,6 +380,9 @@ Example: 2
 \end{example}
 \item[da_aperture] \Newline\begin{example}
 Dynamic aperture data
+
+Notes
+-----
 Command syntax:
   python da_aperture {ix_uni}
 
@@ -377,6 +408,9 @@ Example: 1
 \end{example}
 \item[da_params] \Newline\begin{example}
 Dynamic aperture input parameters
+
+Notes
+-----
 Command syntax:
   python da_params {ix_uni}
 
@@ -450,6 +484,8 @@ Example: 2
 \item[data_d2_create] \Newline\begin{example}
 Create a d2 data structure along with associated d1 and data arrays.
 
+Notes
+-----
 Command syntax:
   python data_d2_create {d2_name}^^{n_d1_data}^^{d_data_arrays_name_min_max}
 {d2_name} should be of the form {ix_uni}@{d2_datum_name}
@@ -501,6 +537,9 @@ Example: 1
 \end{example}
 \item[data_d2_destroy] \Newline\begin{example}
 Destroy a d2 data structure along with associated d1 and data arrays.
+
+Notes
+-----
 Command syntax:
   python data_d2_destroy {d2_datum}
 {d2_datum} should be of the form
@@ -529,6 +568,9 @@ Example: 1
 \end{example}
 \item[data_d2] \Newline\begin{example}
 Information on a d2_datum.
+
+Notes
+-----
 Command syntax:
   python data_d2 {d2_datum}
 {d2_datum} should be of the form
@@ -558,6 +600,9 @@ Example: 1
 \end{example}
 \item[data_d_array] \Newline\begin{example}
 List of datums for a given data_d1.
+
+Notes
+-----
 Command syntax:
   python data_d_array {d1_datum}
 {d1_datum} should be for the form
@@ -589,6 +634,9 @@ Example: 1
 \end{example}
 \item[data_d1_array] \Newline\begin{example}
 List of d1 arrays for a given data_d2.
+
+Notes
+-----
 Command syntax:
   python data_d1_array {d2_datum}
 {d2_datum} should be of the form
@@ -618,6 +666,9 @@ Example: 1
 \end{example}
 \item[data_parameter] \Newline\begin{example}
 Given an array of datums, generate an array of values for a particular datum parameter.
+
+Notes
+-----
 Command syntax:
   python data_parameter {data_array} {parameter}
 {parameter} may be any tao_data_struct parameter.
@@ -647,6 +698,9 @@ Example: 1
 \end{example}
 \item[data_d2_array] \Newline\begin{example}
 Data d2 info for a given universe.
+
+Notes
+-----
 Command syntax:
   python data_d2_array {ix_universe}
 Example:
@@ -674,6 +728,9 @@ Example: 1
 \end{example}
 \item[data_set_design_value] \Newline\begin{example}
 Set the design (and base & model) values for all datums.
+
+Notes
+-----
 Command syntax:
   python data_set_design_value
 Example:
@@ -700,6 +757,9 @@ Example: 1
 \end{example}
 \item[datum_create] \Newline\begin{example}
 Create a datum.
+
+Notes
+-----
 Command syntax:
   python datum_create {datum_name}^^{data_type}^^{ele_ref_name}^^{ele_start_name}^^
                       {ele_name}^^{merit_type}^^{meas}^^{good_meas}^^{ref}^^
@@ -774,6 +834,9 @@ Example: 1
 \end{example}
 \item[datum_has_ele] \Newline\begin{example}
 Does datum type have an associated lattice element?
+
+Notes
+-----
 Command syntax:
   python datum_has_ele {datum_type}
 
@@ -799,6 +862,9 @@ Example: 1
 \end{example}
 \item[derivative] \Newline\begin{example}
 Optimization derivatives
+
+Notes
+-----
 Command syntax:
   python derivative
 Note: To save time, this command will not recalculate derivatives. 
@@ -823,6 +889,9 @@ Example: 1
 \end{example}
 \item[ele:head] \Newline\begin{example}
 "Head" Element attributes
+
+Notes
+-----
 Command syntax:
   python ele:head {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -857,6 +926,9 @@ Example: 1
 \end{example}
 \item[ele:methods] \Newline\begin{example}
 Element methods
+
+Notes
+-----
 Command syntax:
   python ele:methods {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -891,6 +963,9 @@ Example: 1
 \end{example}
 \item[ele:gen_attribs] \Newline\begin{example}
 Element general attributes
+
+Notes
+-----
 Command syntax:
   python ele:gen_attribs {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -925,6 +1000,9 @@ Example: 1
 \end{example}
 \item[ele:multipoles] \Newline\begin{example}
 Element multipoles
+
+Notes
+-----
 Command syntax:
   python ele:multipoles {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -959,6 +1037,9 @@ Example: 1
 \end{example}
 \item[ele:ac_kicker] \Newline\begin{example}
 Element ac_kicker
+
+Notes
+-----
 Command syntax:
   python ele:ac_kicker {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -993,6 +1074,9 @@ Example: 1
 \end{example}
 \item[ele:cartesian_map] \Newline\begin{example}
 Element cartesian_map
+
+Notes
+-----
 Command syntax:
   python ele:cartesian_map {ele_id}|{which} {index} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1034,6 +1118,9 @@ Example: 1
 \end{example}
 \item[ele:chamber_wall] \Newline\begin{example}
 Element beam chamber wall
+
+Notes
+-----
 Command syntax:
   python ele:chamber_wall {ele_id}|{which} {index} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1073,6 +1160,9 @@ Example: 1
 \end{example}
 \item[ele:cylindrical_map] \Newline\begin{example}
 Element cylindrical_map
+
+Notes
+-----
 Command syntax:
   python ele:cylindrical_map {ele_id}|{which} {index} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1115,6 +1205,9 @@ Example: 1
 \end{example}
 \item[ele:taylor] \Newline\begin{example}
 Element taylor
+
+Notes
+-----
 Command syntax:
   python ele:taylor {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -1149,6 +1242,9 @@ Example: 1
 \end{example}
 \item[ele:spin_taylor] \Newline\begin{example}
 Element spin_taylor
+
+Notes
+-----
 Command syntax:
   python ele:spin_taylor {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -1183,6 +1279,9 @@ Example: 1
 \end{example}
 \item[ele:wake] \Newline\begin{example}
 Element wake
+
+Notes
+-----
 Command syntax:
   python ele:wake {ele_id}|{which} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1224,6 +1323,9 @@ Example: 1
 \end{example}
 \item[ele:wall3d] \Newline\begin{example}
 Element wall3d
+
+Notes
+-----
 Command syntax:
   python ele:wall3d {ele_id}|{which} {index} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1266,6 +1368,9 @@ Example: 1
 \end{example}
 \item[ele:twiss] \Newline\begin{example}
 Element twiss
+
+Notes
+-----
 Command syntax:
   python ele:twiss {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -1300,6 +1405,9 @@ Example: 1
 \end{example}
 \item[ele:control] \Newline\begin{example}
 Element control
+
+Notes
+-----
 Command syntax:
   python ele:control {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -1334,6 +1442,9 @@ Example: 1
 \end{example}
 \item[ele:orbit] \Newline\begin{example}
 Element orbit
+
+Notes
+-----
 Command syntax:
   python ele:orbit {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -1368,6 +1479,9 @@ Example: 1
 \end{example}
 \item[ele:mat6] \Newline\begin{example}
 Element mat6
+
+Notes
+-----
 Command syntax:
   python ele:mat6 {ele_id}|{which} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1408,6 +1522,9 @@ Example: 1
 \end{example}
 \item[ele:taylor_field] \Newline\begin{example}
 Element taylor_field
+
+Notes
+-----
 Command syntax:
   python ele:taylor_field {ele_id}|{which} {index} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1450,6 +1567,9 @@ Example: 1
 \end{example}
 \item[ele:grid_field] \Newline\begin{example}
 Element grid_field
+
+Notes
+-----
 Command syntax:
   python ele:grid_field {ele_id}|{which} {index} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1490,6 +1610,9 @@ Example: 1
 \item[ele:floor] \Newline\begin{example}
 Element floor coordinates. The output gives two lines. "Reference" is
 without element misalignments and "Actual" is with misalignments.
+
+Notes
+-----
 Command syntax:
   python ele:floor {ele_id}|{which} {where}
 where {ele_id} is an element name or index and {which} is one of
@@ -1538,6 +1661,9 @@ Example: 2
 \end{example}
 \item[ele:photon] \Newline\begin{example}
 Element photon
+
+Notes
+-----
 Command syntax:
   python ele:photon {ele_id}|{which} {who}
 where {ele_id} is an element name or index and {which} is one of
@@ -1578,6 +1704,9 @@ Example: 1
 \end{example}
 \item[ele:lord_slave] \Newline\begin{example}
 Lists the lord/slave tree of an element.
+
+Notes
+-----
 Command syntax:
   python ele:lord_slave {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -1618,6 +1747,9 @@ Example: 1
 \end{example}
 \item[ele:elec_multipoles] \Newline\begin{example}
 Element electric multipoles
+
+Notes
+-----
 Command syntax:
   python ele:elec_multipoles {ele_id}|{which}
 where {ele_id} is an element name or index and {which} is one of
@@ -1652,6 +1784,9 @@ Example: 1
 \end{example}
 \item[evaluate] \Newline\begin{example}
 Evaluate an expression. The result may be a vector.
+
+Notes
+-----
 Command syntax:
   python evaluate {flags} {expression}
 
@@ -1683,6 +1818,9 @@ Example: 1
 \end{example}
 \item[em_field] \Newline\begin{example}
 EM field at a given point generated by a given element.
+
+Notes
+-----
 Command syntax:
   python em_field {ele_id}|{which} {x}, {y}, {z}, {t_or_z}
 where {which} is one of:
@@ -1726,6 +1864,9 @@ Example: 1
 \end{example}
 \item[enum] \Newline\begin{example}
 List of possible values for enumerated numbers.
+
+Notes
+-----
 Command syntax:
   python enum {enum_name}
 Example:
@@ -1753,6 +1894,9 @@ Example: 1
 \end{example}
 \item[floor_plan] \Newline\begin{example}
 Floor plan elements
+
+Notes
+-----
 Command syntax:
   python floor_plan {graph}
 
@@ -1778,6 +1922,9 @@ Example: 1
 \end{example}
 \item[floor_orbit] \Newline\begin{example}
 (x, y) coordinates for drawing the particle orbit on a floor plan.
+
+Notes
+-----
 Command syntax:
   python floor_orbit {graph}
 
@@ -1803,6 +1950,9 @@ Example: 1
 \end{example}
 \item[global] \Newline\begin{example}
 Global parameters
+
+Notes
+-----
 Command syntax:
   python global
 Output syntax is parameter list form. See documentation at the beginning of this file.
@@ -1834,6 +1984,9 @@ Example: 1
 \end{example}
 \item[help] \Newline\begin{example}
 returns list of "help xxx" topics
+
+Notes
+-----
 Command syntax:
   python help
 
@@ -1857,6 +2010,9 @@ Example: 1
 \end{example}
 \item[inum] \Newline\begin{example}
 INUM
+
+Notes
+-----
 Command syntax:
   python inum {who}
 
@@ -1883,6 +2039,9 @@ Example: 1
 \item[lat_calc_done] \Newline\begin{example}
 Check if a lattice recalculation has been proformed since the last time
   "python lat_calc_done" was called.
+
+Notes
+-----
 Command syntax:
   python lat_calc_done
 
@@ -1908,6 +2067,9 @@ Example: 1
 \end{example}
 \item[lat_ele_list] \Newline\begin{example}
 Lattice element list.
+
+Notes
+-----
 Command syntax:
   python lat_ele {branch_name}
 {branch_name} should have the form:
@@ -1935,6 +2097,9 @@ Example: 1
 \end{example}
 \item[lat_general] \Newline\begin{example}
 Lattice general
+
+Notes
+-----
 Command syntax:
   python lat_general {ix_universe}
 
@@ -1964,36 +2129,8 @@ Example: 1
 \item[lat_list] \Newline\begin{example}
 List of parameters at ends of lattice elements
 
-Parameters
-----------
-elements 
-who 
-ix_uni : default=1
-ix_branch : default=0
-which : default=model
-flags : optional
-
-Returns
--------
-string_list
-
-
-Examples
---------
-
-Example: 1
- init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
- args:
-   ix_uni: 1  
-   ix_branch: 0 
-   elements: Q* 
-   which: model
-   who: orbit.floor.x
-
-
 Notes
 -----
-
 Command syntax:
   python lat_list {flags} {ix_uni}@{ix_branch}>>{elements}|{which} {who}
 where:
@@ -2029,16 +2166,50 @@ where:
   {elements} is a string to match element names to.
     Use "*" to match to all elements.
 
-Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
-
 Examples:
   python lat_list -track 3@0>>Q*|base ele.s,orbit.vec.2
   python lat_list 3@0>>Q*|base real:ele.s    
+
+Note: vector layout of mat6(6,6) is: [mat6(1,:), mat6(2,:), ...mat6(6,:)]
+
+Parameters
+----------
+elements 
+who 
+ix_uni : default=1
+ix_branch : default=0
+which : default=model
+flags : optional, default=-array_out -track_only
+
+Returns
+-------
+string_list
+  if ('-array_out' not in flags) or (who in ['ele.name'])
+real_array
+   if ('-array_out' in flags or 'real:' in who) and (who not in ['orbit.state'])
+integer_array
+   if '-array_out' in flags and who in ['orbit.state']
+
+Examples
+--------
+
+Example: 1
+ init: $ACC_ROOT_DIR/tao/examples/cesr/tao.init
+ args:
+   ix_uni: 1  
+   ix_branch: 0 
+   elements: Q* 
+   which: model
+   who: orbit.floor.x
+
 
 
 \end{example}
 \item[lat_param_units] \Newline\begin{example}
 Units of a parameter associated with a lattice or lattice element.
+
+Notes
+-----
 Command syntax:
   python lat_param_units {param_name}
 
@@ -2064,6 +2235,9 @@ Example: 1
 \end{example}
 \item[matrix] \Newline\begin{example}
 Matrix value from the exit end of one element to the exit end of the other.
+
+Notes
+-----
 Command syntax:
   python matrix {ele1_id} {ele2_id}
 where:
@@ -2099,6 +2273,9 @@ Example: 1
 \end{example}
 \item[merit] \Newline\begin{example}
 Merit value.
+
+Notes
+-----
 Command syntax:
   python merit
 
@@ -2163,6 +2340,9 @@ Example: 1
 \item[place_buffer] \Newline\begin{example}
 Output place command buffer and reset the buffer.
 The contents of the buffer are the place commands that the user has issued.
+
+Notes
+-----
 Command syntax:
   python place_buffer
 
@@ -2215,6 +2395,9 @@ Example: 1
 \end{example}
 \item[plot_lat_layout] \Newline\begin{example}
 Plot Lat_layout info
+
+Notes
+-----
 Command syntax:
   python plot_lat_layout {ix_universe}@{ix_branch}
 Note: The returned list of element positions is not ordered in increasing
@@ -2244,6 +2427,9 @@ Example: 1
 \end{example}
 \item[plot_list] \Newline\begin{example}
 List of plot templates or plot regions.
+
+Notes
+-----
 Command syntax:
   python plot_list {r_or_g}
 where "{r/g}" is:
@@ -2272,6 +2458,9 @@ Example: 1
 \end{example}
 \item[plot_graph] \Newline\begin{example}
 Graph
+
+Notes
+-----
 Command syntax:
   python plot_graph {graph_name}
 {graph_name} is in the form:
@@ -2303,6 +2492,9 @@ Example: 1
 \end{example}
 \item[plot_histogram] \Newline\begin{example}
 Plot Histogram
+
+Notes
+-----
 Command syntax:
   python plot_histograph {curve_name}
 
@@ -2328,6 +2520,9 @@ Example: 1
 \end{example}
 \item[plot_plot_manage] \Newline\begin{example}
 Template plot creation or destruction.
+
+Notes
+-----
 Command syntax:
   pyton plot_plot_manage {plot_location}^^{plot_name}^^
                          {n_graph}^^{graph1_name}^^{graph2_name}...{graphN_name}
@@ -2367,6 +2562,9 @@ Example: 1
 \end{example}
 \item[plot_curve_manage] \Newline\begin{example}
 Template plot curve creation/destruction
+
+Notes
+-----
 Command syntax:
   pyton plot_curve_manage {graph_name}^^{curve_index}^^{curve_name}
 If {curve_index} corresponds to an existing curve then this curve is deleted.
@@ -2400,6 +2598,9 @@ Example: 1
 \end{example}
 \item[plot_graph_manage] \Newline\begin{example}
 Template plot graph creation/destruction
+
+Notes
+-----
 Command syntax:
   pyton plot_graph_manage {plot_name}^^{graph_index}^^{graph_name}
 If {graph_index} corresponds to an existing graph then this graph is deleted.
@@ -2433,6 +2634,9 @@ Example: 1
 \end{example}
 \item[plot_line] \Newline\begin{example}
 Points used to construct a smooth line for a plot curve.
+
+Notes
+-----
 Command syntax:
   python plot_line {region_name}.{graph_name}.{curve_name} {x_or_y}
 Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y 
@@ -2472,6 +2676,9 @@ Example: 1
 \end{example}
 \item[plot_symbol] \Newline\begin{example}
 Locations to draw symbols for a plot curve.
+
+Notes
+-----
 Command syntax:
   python plot_symbol {region_name}.{graph_name}.{curve_name} {x_or_y}
 Optional {x_or_y} may be set to "x" or "y" to get the symbol x or y 
@@ -2513,6 +2720,9 @@ Example: 1
 \end{example}
 \item[plot_transfer] \Newline\begin{example}
 Transfer plot parameters from the "from plot" to the "to plot" (or plots).
+
+Notes
+-----
 Command syntax:
   python plot_transfer {from_plot} {to_plot}
 To avoid confusion, use "@Tnnn" and "@Rnnn" syntax for {from_plot}.
@@ -2544,6 +2754,9 @@ Example: 1
 \end{example}
 \item[plot1] \Newline\begin{example}
 Info on a given plot.
+
+Notes
+-----
 Command syntax:
   python plot1 {name}
 {name} should be the region name if the plot is associated with a region.
@@ -2571,6 +2784,9 @@ Example: 1
 \end{example}
 \item[shape_list] \Newline\begin{example}
 lat_layout and floor_plan shapes list
+
+Notes
+-----
 Command syntax:
   python shape_list {who}
 {who} is one of:
@@ -2599,6 +2815,9 @@ Example: 1
 \end{example}
 \item[shape_manage] \Newline\begin{example}
 element shape creation or destruction
+
+Notes
+-----
 Command syntax:
   python shape_manage {who} {index} {add_or_delete}
 
@@ -2642,6 +2861,9 @@ Example: 1
 \end{example}
 \item[shape_pattern_list] \Newline\begin{example}
 List of shape patterns
+
+Notes
+-----
 Command syntax:
   python shape_pattern_list {ix_pattern}
 If optional {ix_pattern} index is omitted then list all the patterns
@@ -2673,6 +2895,9 @@ Example: 2
 \end{example}
 \item[shape_pattern_manage] \Newline\begin{example}
 Add or remove shape pattern
+
+Notes
+-----
 Command syntax:
   python shape_pattern_manage {ix_pattern}^^{pat_name}^^{pat_line_width}
 where:
@@ -2708,6 +2933,9 @@ Example: 1
 \end{example}
 \item[shape_pattern_point_manage] \Newline\begin{example}
 Add or remove shape pattern point
+
+Notes
+-----
 Command syntax:
   python shape_pattern_point_manage {ix_pattern}^^{ix_point}^^{s}^^{x}
 where:
@@ -2744,6 +2972,9 @@ Example: 1
 \end{example}
 \item[shape_set] \Newline\begin{example}
 lat_layout or floor_plan shape set
+
+Notes
+-----
 Command syntax:
   python shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
                    {shape_size}^^{type_label}^^{shape_draw}^^
@@ -2792,6 +3023,9 @@ Example: 1
 \end{example}
 \item[show] \Newline\begin{example}
 Show command pass through
+
+Notes
+-----
 Command syntax:
   python show {line}
 {line} is the string to pass through to the show command.
@@ -2820,6 +3054,9 @@ Example: 1
 \end{example}
 \item[species_to_int] \Newline\begin{example}
 Convert species name to corresponding integer
+
+Notes
+-----
 Command syntax:
   python species_to_int {species_str}
 Example:
@@ -2847,6 +3084,9 @@ Example: 1
 \end{example}
 \item[species_to_str] \Newline\begin{example}
 Convert species integer id to corresponding
+
+Notes
+-----
 Command syntax:
   python species_to_str {species_int}
 Example:
@@ -2874,6 +3114,9 @@ Example: 1
 \end{example}
 \item[spin_polarization] \Newline\begin{example}
 Spin information
+
+Notes
+-----
 Command syntax:
   python spin {ix_uni}@{ix_branch}|{which}
 where {which} is one of:
@@ -2911,6 +3154,9 @@ Example: 1
 \end{example}
 \item[super_universe] \Newline\begin{example}
 Super_Universe information
+
+Notes
+-----
 Command syntax:
   python super_universe
 
@@ -2934,6 +3180,9 @@ Example: 1
 \end{example}
 \item[twiss_at_s] \Newline\begin{example}
 Twiss at given s position
+
+Notes
+-----
 Command syntax:
   python twiss_at_s {ix_uni}@{ix_branch}>>{s}|{which}
 where {which} is one of:
@@ -2969,6 +3218,9 @@ Example: 1
 \end{example}
 \item[universe] \Newline\begin{example}
 Universe info
+
+Notes
+-----
 Command syntax:
   python universe {ix_universe}
 Use "python global" to get the number of universes.
@@ -2995,6 +3247,9 @@ Example: 1
 \end{example}
 \item[var] \Newline\begin{example}
 Info on an individual variable
+
+Notes
+-----
 Command syntax:
   python var {var}        or
   python var {var} slaves
@@ -3021,6 +3276,9 @@ Example: 1
 \end{example}
 \item[var_create] \Newline\begin{example}
 Create a single variable
+
+Notes
+-----
 Command syntax:
   python var_create {var_name}^^{ele_name}^^{attribute}^^{universes}^^
                     {weight}^^{step}^^{low_lim}^^{high_lim}^^{merit_type}^^
@@ -3073,6 +3331,9 @@ Example: 1
 \end{example}
 \item[var_general] \Newline\begin{example}
 List of all variable v1 arrays
+
+Notes
+-----
 Command syntax:
   python var_general
 Output syntax:
@@ -3098,6 +3359,9 @@ Example: 1
 \end{example}
 \item[var_v_array] \Newline\begin{example}
 List of variables for a given data_v1.
+
+Notes
+-----
 Command syntax:
   python var_v_array {v1_var}
 Example:
@@ -3125,6 +3389,9 @@ Example: 1
 \end{example}
 \item[var_v1_array] \Newline\begin{example}
 List of variables in a given variable v1 array
+
+Notes
+-----
 Command syntax:
   python var_v1_array {v1_var}
 
@@ -3150,6 +3417,9 @@ Example: 1
 \end{example}
 \item[var_v1_create] \Newline\begin{example}
 Create a v1 variable structure along with associated var array.
+
+Notes
+-----
 Command syntax:
   python var_v1_create {v1_name} {n_var_min} {n_var_max}
 {n_var_min} and {n_var_max} are the lower and upper bounds of the var
@@ -3196,6 +3466,9 @@ Example: 1
 \end{example}
 \item[var_v1_destroy] \Newline\begin{example}
 Destroy a v1 var structure along with associated var sub-array.
+
+Notes
+-----
 Command syntax:
   python var_v1_destroy {v1_datum}
 
@@ -3221,6 +3494,9 @@ Example: 1
 \end{example}
 \item[wave] \Newline\begin{example}
 Wave analysis info.
+
+Notes
+-----
 Command syntax:
   python wave {what}
 Where {what} is one of:
