@@ -136,7 +136,7 @@ which : default=model
   One of: "model", "base" or "design"
 ix_bunch : default=1
 coordinate : optional
-  If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c'
+  If one of: x, px, y, py, z, pz, 's', 't', 'charge', 'p0c', 'state'
 
  
 Returns
@@ -144,7 +144,9 @@ Returns
 string_list
   if not coordinate
 real_array
-  if coordinate
+  if coordinate and coordinate != 'state'
+integer_array
+  if coordinate == 'state'
 
 
 Examples
