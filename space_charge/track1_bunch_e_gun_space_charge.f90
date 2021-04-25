@@ -24,7 +24,7 @@ type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
 type (coord_struct), pointer :: p
 
-real(rp) s0, dt_step, t_now, t_end
+real(rp) s0, dt_step, t_now, t_end, dt_max
 real(rp) :: t_emit(size(bunch%particle))
 integer i, j, n, n_pre_born, n_emit_max
 integer :: ix_t_emit(size(bunch%particle))
@@ -66,8 +66,17 @@ call indexx(t_emit, ix_t_emit)
 
 ! Track
 
+t_end = 0
+dt_max = ele%value(dt_max$)
+if (dt_max == 0) then
+  dt_max = 1e-10   !!! Arbitrary for testing!!
+  call out_io (s_warn$, r_name, 'Element: ' // ele%name, 'Does not have dt_max set!')
+endif
+
+t_end = 0
+
 do
-  t_end = t_end + ele%value(dt_max$)
+  t_end = t_end + dt_max
 
   if (n_pre_born == 0) then
     call track_bunch_time(branch%lat, bunch, t_end)
@@ -106,7 +115,6 @@ do
 
   ! Apply SC kick
   ! Need to apply SC kick to newly born particles proportional to the time from birth to the end of the time step.
-  call err_exit  ! Place holder
 
 enddo
 
@@ -116,6 +124,8 @@ do i = 1, size(bunch%particle)
   call track1_postprocess (bunch%particle(i), ele, branch%param, bunch%particle(i))
   if (finished) call err_exit   ! I don't know what to do with this.
 enddo
+
+call out_io (s_error$, r_name, 'E_GUN TRACKING WITH CATHODE NOT YET IMPLEMENTED!')
 
 end subroutine track1_bunch_e_gun_space_charge
 

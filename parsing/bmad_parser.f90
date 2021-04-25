@@ -497,6 +497,11 @@ parsing_loop: do
     else                    ! "key::name" syntax
       key = key_name_to_key_index(word_1(1:ixc-1), .true.)
       name = word_1(ixc+2:)
+      if (name == '') then
+        call parser_error('ELEMENT NAME IN "CLASS::NAME" SYNTAX CANNOT BE BLANK', &
+                          'NOTE: USE "*" TO MATCH TO ALL NAMES')
+        cycle parsing_loop
+      endif
       if (key == -1) then
         bp_com%parse_line = ''
         call parser_error ('BAD ELEMENT CLASS NAME: ' // word_1(1:ixc-1))

@@ -802,12 +802,10 @@ and
   \wt E \equiv \frac{1}{\beta_0} + \delta = \frac{E}{P_0 \, c}
 \end{equation}
  
-\Eqs{xxlp} predict that for $x < x_c$ and $p_{x0} = 0$ a particle
-will, unphysically, accelerate in the negative $x$ direction. In
-actuality, a particle in this instance will be reflected backwards by
-the longitudinal component of the edge field. Specifically, the
-argument of the square root in \Eq{hp1b} must be non-negative and
-a particle will only make it through the separator if
+\Eqs{xxlp} predict that for $x < x_c$ and $p_{x0} = 0$ a particle will, unphysically, accelerate in
+the negative $x$ direction. In actuality, a particle in this instance will be reflected backwards by
+the longitudinal component of the edge field. Specifically, the argument of the square root in
+\Eq{hp1b} must be non-negative and a particle will only make it through the separator if
 \begin{equation}
   x_0 > \frac{1}{k_E} \, \left( \sqrt{\wt m^2 + p_{x0}^2 + p_{y0}^2} - \wt E \right)
 \end{equation}
@@ -826,36 +824,37 @@ The Hamiltonian for a horizontally deflecting kicker or separator is
   H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} - k_0 \, x 
 \end{equation}
 This gives the map
-\begin{align}
-  x_2    &= x_1 + \frac{1}{1 + p_{z1}} \, \left( L \, p_{x1} + \frac{1}{2} k_0 \, L^2 \right) \CRNO
-  p_{x2} &= p_{x1} + k_0 \, L \CRNO
-  y_2    &= y_1 + \frac{L \, p_{y1}}{1 + p_{z1}} \CRNO
-  p_{y2} &= p_{y1}  \\
-  z_2    &= z_1 - \frac{L}{2 (1 + p_{z1})^2} \, 
-    \left( p_{x1}^2 + p_{y1}^2 + p_{x1} \, k_0 \, L + \frac{1}{3} k_0^2 \, L^2 \right) \CRNO
+\begin{alignat}{2}
+  x_2 &= x_1 + \frac{1}{1 + p_{z1}} \, \left( L \, p_{x1} + \frac{1}{2} k_0 \, L^2 \right), &
+    p_{x2} &= p_{x1} + k_0 \, L, \CRNO
+  y_2 &= y_1 + \frac{L \, p_{y1}}{1 + p_{z1}}, &
+    p_{y2} &= p_{y1},  \\
+  z_2 &= z_1 - \frac{L}{2 (1 + p_{z1})^2} \, 
+    \left( p_{x1}^2 + p_{y1}^2 + p_{x1} \, k_0 \, L + \frac{1}{3} k_0^2 \, L^2 \right), \quad &
   p_{z2} &= p_{z1} \nonumber
-\end{align}
+\end{alignat}
 The generalization when the kick is not in the horizontal plane is easily derived.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Lcavity Tracking}
+\section{LCavity Tracking}
 \label{s:lcavity.std}
 \index{lcavity}
 
-The transverse trajectory through an \vn{Lcavity} is modeled using equations
-developed by Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S) with
-\begin{align}
-  b_0 &= 1 \CRNO
-  b_{-1} &= 1 
-\end{align}
+%---------------------------------------------------------------------------------
+\subsection{LCavity Bmad\_Standard Tracking}
+
+For \vn{bmad_standard} tracking, and with \vn{cavity_type} set to \vn{standing_wave}, the transverse
+trajectory through an \vn{Lcavity} is modeled using equations developed by Rosenzweig and
+Serafini\cite{b:rosenzweig} (R\&S) with
+\begin{equation}
+  b_0 = 1, \qquad \text{and} \qquad b_{-1} = 1 
+\end{equation}
 and all other $b_n$ set to zero.
 
-The transport equations in R\&S were developed in the
-ultra-relativistic limit with $\beta = 1$.  To extend these equations,
-the transport through the cavity body (R\&S Eq.~(9)) has been modified
-to give the correct phase-space area at non ultra-relativistic
-energies:
+The transport equations in R\&S were developed in the ultra-relativistic limit with $\beta = 1$.  To
+extend these equations, the transport through the cavity body (R\&S Eq.~(9)) has been modified to
+give the correct phase-space area at non ultra-relativistic energies:
 \begin{equation}
   \begin{pmatrix}
     x \\ 
@@ -874,14 +873,13 @@ energies:
     x \\ 
     x'
   \end{pmatrix}_1
+  \label{xxpc}
 \end{equation}
-The added factors of $\beta$ give the matrix the correct determinate
-of $\beta_1 \, \gamma_1 / \beta_2 \, \gamma_2$. {\em While the added
-factors of $\beta$ do correct the phase space area, the above equation
-can only be considered as a rough approximation for simulating
-particles when $\beta$ is significantly different from 1. Indeed, the
-only accurate way to simulate such particles is by integrating through
-the actual field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
+The added factors of $\beta$ give the matrix the correct determinate of $\beta_1 \, \gamma_1 /
+\beta_2 \, \gamma_2$. {\em While the added factors of $\beta$ do correct the phase space area, the
+above equation can only be considered as a rough approximation for simulating particles when $\beta$
+is significantly different from 1. Indeed, the only accurate way to simulate such particles is by
+integrating through the actual field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}. 
 
 The change in $z$ going through a cavity is calculated by first calculating the particle
 transit time $\Delta t$
@@ -890,9 +888,8 @@ transit time $\Delta t$
   &= \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
   &= \frac{c \, P_{z2} - c \, P_{z1}}{G} \nonumber
 \end{align}
-where it has been assumed that the accelerating gradient $G$ is
-constant through the cavity. In this equation $\beta = v / c$, $E$ is
-the energy, and $P_{z1}$ and $P_{z2}$ are the entrance and exit
+where it has been assumed that the accelerating gradient $G$ is constant through the cavity. In this
+equation $\beta = v / c$, $E$ is the energy, and $P_{z1}$ and $P_{z2}$ are the entrance and exit
 momenta. Using \Eq{zbctt}, the change in $z$ is thus
 \begin{equation}
   z_2 = \frac{\beta_2}{\beta_1} \, z_1 - 
@@ -905,11 +902,77 @@ momenta. Using \Eq{zbctt}, the change in $z$ is thus
 where $\Pbar$ and $\BAR G$ are the momentum and gradient of the
 reference particle.
 
-Note that the above transport equations are only symplectic on-axis
-There are second order terms in the transverse coordinates that are
-missing. To obtain a proper symplectic matrix, the \vn{symplectify}
-attribute of an \vn{lcavity} element (\sref{s:symp}) can be set to
-True.
+Note that the above transport equations are only symplectic on-axis There are second order terms in
+the transverse coordinates that are missing. To obtain a proper symplectic matrix, the
+\vn{symplectify} attribute of an \vn{lcavity} element (\sref{s:symp}) can be set to True.
+
+%---------------------------------------------------------------------------------
+\subsection{LCavity Runge Kutta Tracking}
+
+With \vn{cavity_type} set to \vn{standing_wave}, and with \vn{longitudinal_mode} set to 0 (the
+default), the field in a cavity is modeled by
+\begin{align}
+  E_z    &=           2 \, G \,      \sin(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \CRNO
+  E_r    &=               -G \, k \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \\
+  B_\phi &= \frac{1}{c} \, G \, k \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \nonumber
+\end{align}
+and with \vn{lognitudinal_mode} set to 1:
+\begin{align}
+  E_z    &=            2 \, G \,      \cos(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \CRNO
+  E_r    &=            r \, G \, k \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \\
+  B_\phi &= -\frac{r}{c} \, G \, k \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \nonumber
+\end{align}
+
+With \vn{cavity_type} set to \vn{standing_wave}, the field is given by
+\begin{align}
+  \theta &= \omega \, t - k \, s + 2 \, \pi \, \phi_\text{ref} \CRNO
+  E_z    &=                      G \,      \cos(\theta) \CRNO
+  E_r    &= -\frac{r}{2}      \, G \, k \, \sin(\theta) \\
+  B_\phi &= -\frac{r}{2 \, c} \, G \, k \, \sin(\theta) \nonumber
+\end{align}
+
+\etcetc
+
+%---------------------------------------------------------------------------------
+\subsection{LCavity Fringe Fields}
+
+Assuming cylindrical symmetry, the radial and asimuthal fields near the axis 
+can be related to the longitudinal electric field via Maxwell's equations\cite{b:hartman}
+\begin{equation}
+  E_r = -\frac{r}{2} \, \frac{\partial E_z}{\partial z}, \qquad
+  B_\phi = \frac{r}{2 \, c} \, \frac{\partial E_z}{\partial t}
+\end{equation}
+Assuming the particle velocity is $c$, these equations can be combined with the force equation
+\begin{equation}
+  F_r = q \, \left( E_r - c \, B_\phi \right)
+\end{equation}
+to give\cite{b:rosenzweig}
+\begin{equation}
+  F_r = - \frac{q \, r}{2} \, \frac{d E_z}{dz}
+  \label{fqr2}
+\end{equation}
+where the total derivative is used here\footnote
+  {
+Hartman\cite{b:hartman} Eq~(16) is not valid for a forward propagating wave component of
+the field. Thus Hartman Eq~(17) is only valid for a backward propagating wave component. \Eq{fqr2},
+on the other hand, is valid for all wave components.
+  }.
+From \Eq{fqr2}, the fringe field kick in the horizontal plane at the entrance end, valid for both
+traveling wave and standing wave cavities, is (cf. Rosenzweig\cite{b:rosenzweig} Eq~(10))
+\begin{equation}
+  \Delta p_x = - \frac{q \, \what E_z}{2 \, c \, P_0} \, x
+  \label{pqe2c}
+\end{equation}
+with a similar equation in the vertical. Here $\what E_z$ is the longitudinal electric field just inside
+the fringe, and $P_0$ is the reference momentum. At the exit end, the kick is the negative of
+\Eq{pqe2c}.
+
+The integrated fringe fields, needed to calculate the spin precession, are at the entrance end
+\begin{align}
+  \int E_r \, ds &= -\frac{r}{4} \, \what E_z \CRNO
+  \int B_\phi \, ds &= \frac{r}{4 \, c} \, \what E_z
+\end{align}
+The integrated fields at the exit end are the negative of these quantities.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -934,31 +997,27 @@ An octupole is modeled using a kick-drift-kick model.
   \centering
   \includegraphics[width=5in]{patch.pdf}
   \caption[Standard patch transformation.]
-{Standard tracking through a patch element. A particle's starting coordinate at
-the entrance end of the patch has, by construction, coordinate $z$ =
-0. The particle is drifted, as in a field free region, between the
-entrance $z = 0$ plane and the exit $z = 0$ plane.}
+{Standard tracking through a patch element. A particle's starting coordinate at the entrance end of
+the patch has, by construction, coordinate $z$ = 0. The particle is drifted, as in a field free
+region, between the entrance $z = 0$ plane and the exit $z = 0$ plane.}
   \label{f:patch.track}
 \end{figure}
 
 %---------------------------------------------------------------------------------
 
-The transformation of the reference coordinates through a ``standard''
-patch (a patch where custom fields are not used) is given by
-\Eqs{vwlv} and \eq{wws}. At the entrance end of the patch, a
+The transformation of the reference coordinates through a ``standard'' patch (a patch where custom
+fields are not used) is given by \Eqs{vwlv} and \eq{wws}. At the entrance end of the patch, a
 particle's position and momentum in the entrance coordinate system will be
 \begin{alignat}{1}
   \bfr &= (x, y, 0) \CRNO
   \bfP &= (P_x, P_y, P_z) = 
     \left( p_x, p_y, \pm \sqrt{(1+p_z)^2 - p_x^2 - p_y^2} \right) \, P_{0\text{ent}}
 \end{alignat}
-where $p_x$, $p_y$ and $p_z$ are the phase space momenta, and $z$,
-which is coordinate $z$ and not phase space $z$, is always zero by
-construction as shown in \fig{f:patch.track} [Also see \fig{f:local.coords}
-and the discussion in \sref{s:phase.space}.] The sign of the
-longitudinal momentum $P_z$ is determined by whether the particle is
-traveling in the positive $s$ or negative $s$ direction (which will
-occur when an element is flipped longitudinally).
+where $p_x$, $p_y$ and $p_z$ are the phase space momenta, and $z$, which is coordinate $z$ and not
+phase space $z$, is always zero by construction as shown in \fig{f:patch.track} [Also see
+\fig{f:local.coords} and the discussion in \sref{s:phase.space}.] The sign of the longitudinal
+momentum $P_z$ is determined by whether the particle is traveling in the positive $s$ or negative
+$s$ direction (which will occur when an element is flipped longitudinally).
 
 The transformation between entrance and exit coordinate systems is given by \Eqs{rwlr} and \eq{pps}
 \begin{alignat}{1}

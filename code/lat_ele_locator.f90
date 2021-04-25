@@ -749,44 +749,27 @@ use nr
 
 type (ele_pointer_struct) eles(:), eles2(:)
 integer n_ele
-integer i, i2, j, ix, nn
-integer :: ix_arr(n_ele), indx(n_ele), sorted(n_ele), ix_rev(n_ele)
+integer i, n
 integer :: remove(size(eles2))
 
 !
 
 do i = 1, n_ele
-  ix_arr(i) = ele_nametable_index(eles(i)%ele)
+  eles(i)%ele%ixx = 1   ! Mark to keep
 enddo
 
-call indexx(ix_arr, indx)
+do i = 1, size(eles2)
+  eles2(i)%ele%ix_ele = 0  ! Mark to remove
+enddo
 
+n = 0
 do i = 1, n_ele
-  sorted(i) = ix_arr(indx(i))
-  ix_rev(indx(i)) = i
+  if (eles(i)%ele%ix_ele == 0) cycle
+  n = n + 1
+  eles(n)%ele => eles(i)%ele
 enddo
 
-do j = 1, size(eles2)
-  i2 = ele_nametable_index(eles2(j)%ele)
-  ix = min(1, bracket_index_int(i2, sorted, 1))
-  do  ! There may be multiple matches
-    if (ix > n_ele) cycle
-    if (i2 /= sorted(ix)) cycle   ! No match
-    nullify(eles(ix_rev(ix))%ele)
-    ix = ix + 1
-  enddo
-enddo
-
-j = 1
-do i = 1, n_ele
-  if (associated(eles(j)%ele)) then
-    j = j + 1
-  else
-    eles(j:n_ele-1) = eles(j+1:n_ele)
-  endif
-enddo
-
-n_ele = j - 1 
+n_ele = n
 
 end subroutine negate_eles
 
