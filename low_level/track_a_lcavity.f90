@@ -123,19 +123,19 @@ if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbi
 
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit(kmat)
-    kmat(2,1) = f * (-field%dE(3,1) * orbit%vec(1) + c_light * field%dB(3,1) * orbit%vec(3) - field%E(3))
-    kmat(2,3) = f * (-field%dE(3,2) * orbit%vec(1) + c_light * field%dB(3,2) * orbit%vec(3) + c_light * field%B(3))
-    kmat(2,5) = f * (-field%dE(3,3) * orbit%vec(1) + c_light * field%dB(3,3) * orbit%vec(3)) * beta_start
-    kmat(2,6) = -(-field%E(3) * orbit%vec(1) * f + c_light * field%B(3) * orbit%vec(3)) * f / pc_start
-    kmat(4,1) = f * (-field%dE(3,1) * orbit%vec(3) - c_light * field%dB(3,1) * orbit%vec(1) - c_light * field%B(3))
-    kmat(4,3) = f * (-field%dE(3,2) * orbit%vec(3) - c_light * field%dB(3,2) * orbit%vec(1) - field%E(3))
-    kmat(4,5) = f * (-field%dE(3,3) * orbit%vec(3) - c_light * field%dB(3,3) * orbit%vec(1)) * beta_start
-    kmat(4,6) = -(-field%E(3) * orbit%vec(1) * f - c_light * field%B(3) * orbit%vec(3)) * f / pc_start
+    kmat(2,1) = -f * (field%dE(3,1) * orbit%vec(1) + field%E(3))
+    kmat(2,3) = -f * field%dE(3,2) * orbit%vec(1) 
+    kmat(2,5) = -f * field%dE(3,3) * orbit%vec(1) * beta_start
+    kmat(2,6) =  f * field%E(3) * orbit%vec(1) * f / pc_start
+    kmat(4,1) = -f * field%dE(3,1) * orbit%vec(3)
+    kmat(4,3) = -f * (field%dE(3,2) * orbit%vec(3) + field%E(3))
+    kmat(4,5) = -f * field%dE(3,3) * orbit%vec(3) * beta_start
+    kmat(4,6) =  f * field%E(3) * orbit%vec(1) * f / pc_start
     mat6 = matmul(kmat, mat6)
   endif
 
-  orbit%vec(2) = orbit%vec(2) - field%E(3) * orbit%vec(1) * f + c_light * field%B(3) * orbit%vec(3) * f
-  orbit%vec(4) = orbit%vec(4) - field%E(3) * orbit%vec(3) * f - c_light * field%B(3) * orbit%vec(1) * f
+  orbit%vec(2) = orbit%vec(2) - f * field%E(3) * orbit%vec(1)
+  orbit%vec(4) = orbit%vec(4) - f * field%E(3) * orbit%vec(3)
 endif
 
 ! Body tracking longitudinal
@@ -410,20 +410,19 @@ if (nint(ele%value(cavity_type$)) == traveling_wave$ .and. fringe_here(ele, orbi
 
   if (logic_option(.false., make_matrix)) then
     call mat_make_unit(kmat)
-    kmat(2,1) = f * (-field%dE(3,1) * orbit%vec(1) + c_light * field%dB(3,1) * orbit%vec(3) - field%E(3))
-    kmat(2,3) = f * (-field%dE(3,2) * orbit%vec(1) + c_light * field%dB(3,2) * orbit%vec(3) + c_light * field%B(3))
-    kmat(2,5) = f * (-field%dE(3,3) * orbit%vec(1) + c_light * field%dB(3,3) * orbit%vec(3)) * beta_end
-    kmat(2,6) = -(-field%E(3) * orbit%vec(1) * f + c_light * field%B(3) * orbit%vec(3)) * f / pc_end
-    kmat(4,1) = f * (-field%dE(3,1) * orbit%vec(3) - c_light * field%dB(3,1) * orbit%vec(1) - c_light * field%B(3))
-    kmat(4,3) = f * (-field%dE(3,2) * orbit%vec(3) - c_light * field%dB(3,2) * orbit%vec(1) - field%E(3))
-    kmat(4,5) = f * (-field%dE(3,3) * orbit%vec(3) - c_light * field%dB(3,3) * orbit%vec(1)) * beta_end
-    kmat(4,6) = -(-field%E(3) * orbit%vec(1) * f - c_light * field%B(3) * orbit%vec(3)) * f / pc_end
+    kmat(2,1) = -f * (field%dE(3,1) * orbit%vec(1) + field%E(3))
+    kmat(2,3) = -f * field%dE(3,2) * orbit%vec(1) 
+    kmat(2,5) = -f * field%dE(3,3) * orbit%vec(1) * beta_end
+    kmat(2,6) =  f * field%E(3) * orbit%vec(1) * f / pc_end
+    kmat(4,1) = -f * field%dE(3,1) * orbit%vec(3)
+    kmat(4,3) = -f * (field%dE(3,2) * orbit%vec(3) + field%E(3))
+    kmat(4,5) = -f * field%dE(3,3) * orbit%vec(3) * beta_end
+    kmat(4,6) =  f * field%E(3) * orbit%vec(1) * f / pc_end
     mat6 = matmul(kmat, mat6)
   endif
 
-  ds = bmad_com%significant_length / 10  ! Make sure inside field region
-  orbit%vec(2) = orbit%vec(2) - field%E(3) * orbit%vec(1) * f + c_light * field%B(3) * orbit%vec(3) * f
-  orbit%vec(4) = orbit%vec(4) - field%E(3) * orbit%vec(3) * f - c_light * field%B(3) * orbit%vec(1) * f
+  orbit%vec(2) = orbit%vec(2) - f * field%E(3) * orbit%vec(1)
+  orbit%vec(4) = orbit%vec(4) - f * field%E(3) * orbit%vec(3)
 endif
 
 ! Coupler kick

@@ -177,31 +177,42 @@ depolarization processes. Notice that what is calculated is a time averaged quan
 Instantaneously, the beam can be fully polarized but the average over many turns, at some given
 position $s$, cannot exceed $\left< \bfS \right>_{\max}$.
 
-Another quantity that can be computed from knowledge of $\bfn$ is the equilibrium polarization of a beam
-$\bfP_{dk}$ using the Derbenev-Kondratenko-Mane formula\cite{b:barber99}.
-\begin{align}
-  \bfP_{dk}(s) &= -\bfn(s) \, P_{dk} \\
-  P_{dk} &= -\frac{8}{5 \, \sqrt{3}}
-  \frac{\displaystyle \oint ds \,\left< g^3 \, \what\bfb \dotproduct 
-    \left( \bfn - \frac{\partial \bfn}{\partial \delta} \right) \right>}
-  {\displaystyle \oint ds \, \left< g^3 \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 + 
-    \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>}
-    \nonumber
-\end{align}
-This formula neglects any non-radiative processes so it is generally only valid for positrons and
-electrons.  In the above formula, $<>$ denotes an average over phase space, $g = 1/\rho$ is the
-bending strength ($\rho$ is the bending radius), $\what\bfs$ is the unit vector in the direction of
-motion, and $\delta$ is the fractional energy deviation which, for ultra-relativistic particles, is
-the same as phase space $p_z$. In the above equation $\what\bfb$ is defined to be
+Another quantity that can be computed from knowledge of $\bfn$ is the equilibrium polarization of a
+beam. The \vn{Sokolov-Ternov} polarization $P_{sk}$ is calulated by ignoring deviations of the beam
+from the closed orbit\cite{b:barber99}
+\begin{equation}
+  P_{sk} = \pm \frac{8}{5 \, \sqrt{3}}
+  \frac{\displaystyle \oint ds \, g^3 \, \what\bfb \dotproduct \bfn_0}
+  {\displaystyle \oint ds \, g^3 \left( 1 - \frac{2}{9} (\bfn_0 \dotproduct \what\bfs)^2 \right)}
+\end{equation}
+where $g = 1/\rho$ is the bending strength ($\rho$ is the bending radius), $\what\bfs$ is the unit
+vector in the direction of motion, and $\what\bfb$ is defined to be
 \begin{equation}
   \what\bfb \equiv \frac{\what\bfs \cross d\what\bfs/ds}{|d\what\bfs/ds|}
 \end{equation}
 Notice that $\what\bfb$ is the direction of the magnetic field when $\what\bfs$ is perpendicular to
-the magnetic field and when there is no electric field.
+the magnetic field and when there is no electric field. In the above equation, the plus sign is for
+positrons (polarized parallel to the field) and the minus sign is for electrons. Since the above
+formula neglects any non-radiative processes, it is generally only valid for positrons and
+electrons.
+
+If the the finite emittance of the beam is taken into account, the generalized Sokolov-Ternov
+polarization is called the \vn{Derbenev-Kondratenko-Mane} formula
+\begin{equation}
+  P_{dk} = \pm \frac{8}{5 \, \sqrt{3}}
+  \frac{\displaystyle \oint ds \, \left< g^3 \, \what\bfb \dotproduct 
+    \left( \bfn - \frac{\partial \bfn}{\partial \delta} \right) \right>}
+  {\displaystyle \oint ds \, \left< g^3 \left( 1 - \frac{2}{9} (\bfn \dotproduct \what\bfs)^2 + 
+    \frac{11}{18} \left| \frac{\partial \bfn}{\partial \delta} \right|^2 \right) \right>}
+\end{equation}
+where $<>$ denotes an average over phase space, and $\delta$ is the fractional energy deviation
+which, for ultra-relativistic particles, is the same as phase space $p_z$. Since, away from any
+resonances, $\bfn$ is very close to $\bfn_0$, and since generally machines are tuned away from any
+resonances, $\bfn_0$ can be used in place of $\bfn$ when evaluating $P_{dk}$.
 
 The time dependence of the polarization is \cite{b:barber99})
 \begin{equation}
-  \bfP(t) = \bfP_{dk} \, \left( 1 - \exp{-t/\tau_{dk}} \right) + \bfP_0 \, \exp{-t/\tau_{dk}}
+  \bfP(t) = \bfP_{dk} \, \left( 1 - \exp(-t/\tau_{dk}) \right) + \bfP_0 \, \exp(-t/\tau_{dk})
 \end{equation}
 where $\bfP_0$ is the initial polarization and the polarization rate $\tau_{dk}^{-1}$ is 
 \begin{equation}

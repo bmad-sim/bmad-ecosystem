@@ -845,15 +845,13 @@ situation is left to any custom code that a program implements to handle custom 
 %--------------------------------------------------------------------------
 \section{Bmad Reserved Variables}
 
-index{ele_struct!\%ixx}
-index{ele_struct!\%bmad_logic}
-index{ele_struct!\%const}
-A number of \vn{ele_struct} components are reserved for use by \bmad routines
-only. These are:
+\index{ele_struct!\%ixx} \index{ele_struct!\%bmad_logic} \index{ele_struct!\%iyy} 
+A number of \vn{ele_struct} components are reserved for \bmad internal use only. These are:
 \begin{example}
   %ixx
+  %iyy
   %bmad_logic
 \end{example}
-
-The \vn{%ixx} and \vn{%bmad_logic} components are used for internal \bmad bookkeeping purposes. 
+To avoid conflict with multiple routines trying to use these components simultaneously, these
+components are only used for short term bookkeeping within individual routines.
 

@@ -40,7 +40,8 @@ character(*), parameter :: r_name = 'init_finge_info'
 ! Calc fringe_info%has_fringe
 
 select case (ele%key)
-case (solenoid$, sol_quad$, wiggler$, rfcavity$, lcavity$, crab_cavity$, elseparator$, e_gun$, sad_mult$, custom$)
+case (em_field$, solenoid$, sol_quad$, wiggler$, rfcavity$, lcavity$, crab_cavity$, &
+                                                                 elseparator$, e_gun$, sad_mult$, custom$)
   fringe_info%has_fringe = .true.
 case default
   if (attribute_name(ele, fringe_at$) /= 'FRINGE_AT') then

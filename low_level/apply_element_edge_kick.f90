@@ -102,7 +102,7 @@ if (finished) return
 
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 fringe_at = nint(track_ele%value(fringe_at$))
-if (track_ele%key /= solenoid$ .and. track_ele%key /= sol_quad$) then
+if (hard_ele%key /= solenoid$ .and. hard_ele%key /= sol_quad$) then
   if (.not. at_this_ele_end(physical_end, fringe_at)) return
 endif
 track_spn = (track_spin .and. bmad_com%spin_tracking_on .and. is_true(hard_ele%value(spin_fringe_on$)))
@@ -149,7 +149,8 @@ if (hard_ele%key == e_gun$ .and. physical_end == entrance_end$) return ! E_gun d
 ! order to conserve the particle's energy.
 
 call multipole_ele_to_ab (hard_ele, .false., ix_elec_max, a_pole_elec, b_pole_elec, electric$)
-if (particle_at == second_track_edge$) call electric_longitudinal_fringe(orb, hard_ele, a_pole_elec, b_pole_elec, ix_elec_max)
+if (particle_at == second_track_edge$) call electric_longitudinal_fringe(orb, hard_ele, &
+                                                  a_pole_elec, b_pole_elec, ix_elec_max, hard_ele_field_calc)
 
 ! Static magnetic and electromagnetic fringes
 
@@ -208,10 +209,16 @@ case (lcavity$, rfcavity$, e_gun$)
     orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
     if (track_spn) then
-      f = at_sign * charge_of(orb%species) / 2.0_rp
-      call rotate_spin_given_field (orb, sign_z_vel, &
-                                           -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
-                                           -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
+    select case (hard_ele%key)
+      case (lcavity$, rfcavity$)
+        f = at_sign * charge_of(orb%species) / 4.0_rp  ! Notice factor of 4 here
+        call rotate_spin_given_field (orb, sign_z_vel, [-orb%vec(3), orb%vec(1), 0.0_rp] * (f * field%e(3) / c_light), &
+                                                       -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
+      case default
+        f = at_sign * charge_of(orb%species) / 2.0_rp
+        call rotate_spin_given_field (orb, sign_z_vel, -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%b(3)), &
+                                                       -[orb%vec(1), orb%vec(3), 0.0_rp] * (f * field%e(3)))
+      end select
     endif
 
     ! orb%phase(1) is set by em_field_calc.
@@ -233,12 +240,13 @@ end select
 
 ! Entrance Static electric longitudinal field
 
-if (particle_at == first_track_edge$) call electric_longitudinal_fringe(orb, hard_ele, a_pole_elec, b_pole_elec, ix_elec_max)
+if (particle_at == first_track_edge$) call electric_longitudinal_fringe(orb, hard_ele, &
+                                                       a_pole_elec, b_pole_elec, ix_elec_max, hard_ele_field_calc)
 
 !--------------------------------------------------------------------------------
 contains
 
-subroutine electric_longitudinal_fringe(orb, hard_ele, a_pole_elec, b_pole_elec, ix_elec_max)
+subroutine electric_longitudinal_fringe(orb, hard_ele, a_pole_elec, b_pole_elec, ix_elec_max, hard_ele_field_calc)
 
 type (ele_struct) hard_ele
 type (coord_struct) orb
@@ -248,6 +256,7 @@ type (cylindrical_map_struct), pointer :: cy
 
 real(rp) a_pole_elec(0:), b_pole_elec(0:), f, E_r(2)
 complex(rp) ab_elec, xiy_old
+integer hard_ele_field_calc
 integer i, ix_elec_max
 logical err_flag
 
