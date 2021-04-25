@@ -13,15 +13,22 @@ q: quad, l = 1, k1 = 1e-2
 ll: line = (s1, d)
 superimpose, element = q, ref = d, offset = 2, ref_origin = beginning, ele_origin = end
 
-d1: drift, l = 1
 q2: quad, l = 1
+
+d1: drift, l = 1
+d2: drift, l = 1
 d3: drift, l = 1
-b0: line = (d1, q2, d3)
+b0: line = (d1, q2, d2)
 b1: line = (-b0)
+b1[geometry] = open
 b2: line = (--b0)
+b2[geometry] = open
+b3: line = (d3)
+b3[geometry] = open
 
 ss: sextupole, l = 0.2, superimpose, ref = q2, offset = 0.3, ref_origin = end, ele_origin = beginning
 
+q1: quadrupole, l = 1, superimpose, ref = d3, wrap_superimpose = F, offset = -0.5
+q3: quadrupole, l = 1, superimpose, ref = d3, wrap_superimpose = F, offset = 0.7
 
-
-use, ll, b1, b2
+use, ll, b1, b2, b3
