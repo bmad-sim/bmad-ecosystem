@@ -835,7 +835,7 @@ subroutine tao_split_component (comp_str, comp, err)
   logical err
 end subroutine
 
-subroutine tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
+subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
   import
   implicit none
   type (tao_data_struct) datum

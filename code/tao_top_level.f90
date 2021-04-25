@@ -3,13 +3,10 @@
 !
 ! Top level Tao routine.
 !
-! The basic idea is this: If the command argument is not present, this routine will go into an endless loop
-! reading commands from the terminal. If the command argument is present, for example when Python is calling
-! Tao via ctypes, this routine handles one command "chunk" (which may be multiple commands in a command file)
-! and then returns.
-!
-! Modules needed:
-!   use tao_interface
+! Basic idea: If the command argument is not present, this routine will go into an endless loop
+! reading commands from the terminal. If the command argument is present, for example when 
+! interfacing with Python, this routine handles a command and then returns.
+! [When being called from Python, Python calls tao_c_command which in turn calls this routine.]
 !
 ! Input:
 !   command    -- character(*), optional: Tao command string. If present, getting user 
