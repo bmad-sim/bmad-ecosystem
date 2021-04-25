@@ -690,7 +690,7 @@ in the default universe is modified.
 If, after the lattice file has been read in, a given \tao variable has slave parameters that have
 different values there is a problem. For example, if a \tao variable controls the \vn{k2} value of
 sextupoles elements \vn{S1} and \vn{S2}, and if \vn{S1} is set to a different value than \vn{S2},
-there is an inconsistancey which needs to be corrected. This can be done in a number of ways. For
+there is an inconsistency which needs to be corrected. This can be done in a number of ways. For
 example, by using the \vn{set ele -update} command or using a further \vn{read lattice} command with
 a lattice that corrects the problem.
 
@@ -1724,7 +1724,7 @@ Format:
   show optimizer ...         ! Show optimizer info \sref{s:show.optimizer}.
   show particle ...          ! Show tracked particle beam info \sref{s:show.particle}.
   show plot ...              ! Show plot info \sref{s:show.plot}.
-  show spin                  ! Show information on spin simulations \sref{s:show.spin}.
+  show spin ...              ! Show information on spin simulations \sref{s:show.spin}.
   show string ...            ! Print a string \sref{s:show.string}.
   show symbolic_numbers ...  ! Show symbolic constants \sref{s:show.symbolic}.
   show taylor_map ...        ! Show transport Taylor map\sref{s:show.taylor}.
@@ -2658,7 +2658,7 @@ Examples:
 
 Syntax:
 \begin{example}
-  show spin \{-element \{<ref_ele_name\} <ele_name\} 
+  show spin \{-element \{<ref_ele_name\} <ele_name\} \{-q_map\} \{g_map\}
                                     \{-n_axis <nx>, <ny>, <nz>\} \{-l_axis <lx>, <ly>, <lz>\}
 \end{example}
 
@@ -2670,17 +2670,21 @@ If \vn{-element} is not present, \vn{show spin} will show various quantities inc
 equilibrium polarization, polarization rates, and any G matrices needed to evaluate datums that have
 been defined of type \vn{spin_g_matrix.$ij$} (\sref{s:data.source}).
 
-If \vn{-element} is present, the output will be the 8x8 G-matrix from the downstream end of the
-element given by \vn{<ref_ele_name>} to the downstream end of the element given by \vn{<ele_name>}.
-If \vn{<ref_ele_name>} is not given, the default is to use the element before the element given by
-\vn{<ele_name>}. This gives the G-matrix for transport through the \vn{<ele_name>} element.  The
-G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin vector (see the
-\vn{SLIM Formalism} section of the Spin chapter in the Bmad manual). The $\Bf n$ and $\Bf l$ axes
-can be specified using the \vn{-n_axis} and \vn{-l_axis} switches. The $\Bf m$-axis is calculated
-from knowledge of the other two axes. If not given, the $\Bf n$-axes will be set to the reference
-orbit $\bfn_0$ value (the reference orbit is the closed orbit if the lattice geometry is closed).
-The $\Bf l$-axis, if not given, will be choosen to be perpendicular to $\Bf n$.  Commas between axis
-components are optional.
+If \vn{-element} is present, the output will be the first order spin transfer map from the
+downstream end of the element given by \vn{<ref_ele_name>} to the downstream end of the element
+given by \vn{<ele_name>}.  If \vn{<ref_ele_name>} is not given, the default is to use the element
+before the element given by \vn{<ele_name>}. This gives the spin transport through the
+\vn{<ele_name>} element. The spin map can be displayed in two different forms. If the \vn{-l_axis}
+or \vn{-n_axis} is given, or if \vn{g_map} is present, the G-matrix form of the spin map will be
+printed.  The G-matrix is dependent upon the $(\Bf l, \Bf n, \Bf m)$ axes used to define the spin
+vector (see the \vn{SLIM Formalism} section of the Spin chapter in the Bmad manual). The $\Bf n$ and
+$\Bf l$ axes can be specified using the \vn{-n_axis} and \vn{-l_axis} switches. The $\Bf m$-axis is
+calculated from knowledge of the other two axes. If not given, the $\Bf n$-axes will be set to the
+reference orbit $\bfn_0$ value (the reference orbit is the closed orbit if the lattice geometry is
+closed).  The $\Bf l$-axis, if not given, will be chosen to be perpendicular to $\Bf n$. Commas
+between axis components are optional. If \vn{q_map} is present, or if the G-matrix is not being
+printed, the quaternion form of the map will be printed.
+
 
 Example:
 \begin{example}
@@ -3577,7 +3581,7 @@ If the \vn{-tao_format} switch is absent, the output is a list of lines with eac
 \begin{example}
   slave_ele[slave_param] = value
 \end{example}
-where \vn{slave_param} is a paramter of \bmad element \vn{slave_ele} that is controlled by a \tao
+where \vn{slave_param} is a parameter of \bmad element \vn{slave_ele} that is controlled by a \tao
 variable. And \vn{value} is the value of that parameter. For example, if \vn{quad_rot[14]} is a \tao
 variable that controls the \vn{tilt} parameter of \bmad lattice element \vn{q_arc_12}, the output
 will contain a line like:
@@ -3605,7 +3609,7 @@ will contain a line like:
 \begin{example}
   set quad_rot[14]|model = 0.23465e-4
 \end{example}
-With this format, the output of \vn{write variable} can be read back into \tao useing a \vn{call}
+With this format, the output of \vn{write variable} can be read back into \tao using a \vn{call}
 command.
 
 Note: after the \bmad or \tao compatible set lines, there will be an \vn{end_file} command (so \bmad

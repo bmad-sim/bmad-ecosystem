@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
+! Subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
 !
 ! Routine to calculate the spin g-matrix for a datum.
 !
@@ -15,9 +15,9 @@
 !   why_invalid   -- Character(*), optional: Tells why datum value is invalid.
 !-
 
-subroutine tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
+subroutine tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
 
-use tao_data_and_eval_mod, dummy => tao_spin_g_matrix_calc
+use tao_data_and_eval_mod, dummy => tao_spin_matrix_calc
 use ptc_interface_mod
 use pointer_lattice
 
@@ -233,4 +233,4 @@ enddo
 
 end subroutine concat_this
 
-end subroutine tao_spin_g_matrix_calc
+end subroutine tao_spin_matrix_calc

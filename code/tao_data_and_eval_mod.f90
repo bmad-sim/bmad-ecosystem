@@ -2899,7 +2899,7 @@ case ('spin.')
     case ('spin.polarization_rate')
       datum_value = tao_branch%spin%pol_rate
     case ('spin.polarization_limit')
-      datum_value = tao_branch%spin%pol_limit
+      datum_value = tao_branch%spin%pol_limit_dkm
     end select
 
   case default
@@ -2990,7 +2990,7 @@ case ('spin_tune_ptc.')
 
 case ('spin_g_matrix.')
 
-  call tao_spin_g_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
+  call tao_spin_matrix_calc (datum, u, ix_ref, ix_ele, spin_map, valid_value, why_invalid)
   if (.not. valid_value) return
 
   select case (datum%data_type)
