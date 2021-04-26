@@ -387,6 +387,8 @@ endif
 call tao_data_check (err)
 if (err) return
 
+!
+
 select case (who)
 case ('optimizer')
   if (all(global%optimizer /= tao_optimizer_name)) then
@@ -421,7 +423,21 @@ case ('srdt_gen_n_slices', 'srdt_sxt_n_slices', 'srdt_use_cache')
   s%u%calc%lattice = .true.
 end select
 
+!
+
 s%global = global
+
+!
+
+select case (who)
+case ('lattice_calc_on')
+  if (s%global%lattice_calc_on) then
+    do iuni = lbound(s%u, 1), ubound(s%u, 1)
+      u => s%u(iuni)
+      call lattice_bookkeeper(u%model%lat)
+    enddo
+  endif
+end select
 
 end subroutine tao_set_global_cmd
 
@@ -2691,7 +2707,7 @@ if (attribute_type(upcase(attribute), eles(1)%ele) == is_real$) then
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
-    if (.not. u%calc%lattice) cycle
+    if (.not. u%calc%lattice .or. .not. s%global%lattice_calc_on) cycle
     call lattice_bookkeeper (u%model%lat)
   enddo
 
@@ -2779,7 +2795,7 @@ endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
-  if (.not. u%calc%lattice) cycle
+  if (.not. u%calc%lattice .or. .not. s%global%lattice_calc_on) cycle
   call lattice_bookkeeper (u%model%lat)
 enddo
 
