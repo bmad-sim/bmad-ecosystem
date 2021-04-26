@@ -144,6 +144,8 @@ ele_type_translate = {
 
 ignore_madx_param = ['lrad', 'slot_id', 'aper_tol', 'apertype', 'thick', 'add_angle', 'assembly_id', 
                      'mech_sep', 'betrf', 'tfill', 'shunt', 'pg']
+ignore_madx_ele_param = {}
+ignore_madx_ele_param['beambeam'] = ['particle', 'pc']
 
 bmad_param_name = {
     'volt':   'voltage',
@@ -571,6 +573,12 @@ def parse_element(dlist, write_to_file, command):
     else:
       ele.bmad_inherit = 'rcollimator'
 
+  elif ele.madx_base_type == 'beambeam':
+    if 'npart' in params:
+      f_out = common.f_out[-1]
+      f_out.write(f"parameter[n_part] = {params['npart']}\n")
+      params.pop('npart')
+
   # collimator conversion
 
   if 'apertype' in params:
@@ -600,6 +608,7 @@ def parse_element(dlist, write_to_file, command):
     line = ele.name + ': ' + ele.bmad_inherit
     for param in ele.param:
       if param in ignore_madx_param: continue
+      if ele.madx_base_type in ignore_madx_ele_param and param in ignore_madx_ele_param[ele.madx_base_type]: continue
       line += ', ' + bmad_param(param, ele.name) + ' = ' + bmad_expression(params[param], param)
     f_out = common.f_out[-1]
     wrap_write(line, f_out)
@@ -656,6 +665,7 @@ def parse_command(command, dlist):
   if dlist[0] in ['aperture', 'show', 'value', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
                   'emit', 'help', 'set', 'eoption', 'system', 'ealign', 'sixtrack', 'flatten', 
                   'elseif', 'else', 'savebeta']:
+    print ('Note! Ignoring command: ' + command)
     return
 
   if 'macro' in dlist:
@@ -966,8 +976,9 @@ def parse_command(command, dlist):
 
   # Beam
 
-  if dlist[0] == 'beam':
-    param = parameter_dictionary(dlist[2:])
+  if dlist[0] == 'beam' or dlist[2] == 'beam':
+    if dlist[0] == 'beam': param = parameter_dictionary(dlist[2:])
+    if dlist[2] == 'beam': param = parameter_dictionary(dlist[4:])
     if 'particle' in param:  f_out.write('parameter[particle] = ' + bmad_expression(param['particle'], '') + '\n')
     if 'energy'   in param:  f_out.write('parameter[E_tot] = ' + bmad_expression(param['energy'], 'energy') + '\n')
     if 'pc'       in param:  f_out.write('parameter[p0c] = ' + bmad_expression(param['pc'], 'pc') + '\n')
