@@ -506,6 +506,7 @@ def parse_command(command, dlist):
 
   if dlist[0] in ['show', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
                   'emit', 'twiss', 'help', 'set', 'eoption', 'system', 'ealign', 'savebeta']:
+    print ('Note! Ignoring command: ' + command)
     return
 
   # Flag this
