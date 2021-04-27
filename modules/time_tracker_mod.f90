@@ -216,7 +216,10 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! Check time
 
   if (present(t_end)) then
-    if (abs(orb%t-t_end) < bmad_com%significant_length / c_light) exit_flag = .true.
+    if (abs(orb%t-t_end) < bmad_com%significant_length / c_light) then
+      exit_flag = .true.
+      orb%location = inside$
+    endif
   endif
 
   ! Save track
