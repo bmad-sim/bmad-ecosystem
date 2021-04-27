@@ -14,7 +14,7 @@ particle_start[x] = 2e-4
 particle_start[y] = 1e-4
 
 ben01: sbend, l = 0.1, b_field = 0.17, b1_gradient = -10
-eg1: e_gun, l = 1, voltage = 1e6, l_cathode_region = 0.1, space_charge_method = fft_3d
+eg1: e_gun, l = 1, l_cathode_region = 0.1, space_charge_method = fft_3d
 
 br0: line = (ben01)
 br1: line = (eg1)
