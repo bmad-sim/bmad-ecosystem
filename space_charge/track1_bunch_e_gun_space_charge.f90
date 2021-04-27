@@ -40,82 +40,66 @@ branch => pointer_to_branch(ele)
 t_emit = 1e30_rp  ! Something large
 n_emit_max = max(1, nint(ele%value(emit_fraction$) * size(bunch%particle)))
 
-! If starting from the cathode, init all elements to be pre_born. The element to track through 
+! If a particle is marked as still being in a preceding element then update. 
+! Also if starting from the cathode, init all elements to be pre_born. The element to track through 
 ! could be a slice or super_slave so must check if The beginning of the element is at the cathode.
 
 s0 = branch%ele(0)%s
-if (ele%s_start == s0) then
-  where (bunch%particle%location == upstream_end$) bunch%particle%state = pre_born$ 
-else
-  ! Track particles from current position to equal time.
-endif
-
+t_now = 1e30_rp  ! Something large
 n_pre_born = 0
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
-  call track1_preprocess (p, ele, branch%param, err, finished, radiation_included)
-  if (finished) call err_exit   ! I don't know what to do with this!
+
+  if (p%ix_ele < ele%ix_ele) then
+    p%ix_ele = ele%ix_ele
+    p%location = upstream_end$
+  endif
+
+  if (ele%s_start == s0 .and. p%location == upstream_end$) p%state = pre_born$
+
   if (p%state == pre_born$) then
     t_emit(i) = p%t
     n_pre_born = n_pre_born + 1
   endif
+
+  t_now = min(p%t, t_now)
 enddo
 
 call indexx(t_emit, ix_t_emit)
 
-! Track
-
-t_end = 0
 dt_max = ele%value(dt_max$)
 if (dt_max == 0) then
   dt_max = 1e-10   !!! Arbitrary for testing!!
   call out_io (s_warn$, r_name, 'Element: ' // ele%name, 'Does not have dt_max set!')
 endif
 
-t_end = 0
+! Track
 
 do
-  t_end = t_end + dt_max
-
-  if (n_pre_born == 0) then
-    call track_bunch_time(branch%lat, bunch, t_end)
-    cycle
-  endif
-
-  do n = 1, min(n_pre_born, n_emit_max)
-    if (t_emit(ix_t_emit(n)) > t_end) exit
-  enddo
-
-  n = n - 1
-
-  if (n < 1) then ! No particle emitted here
-    call track_bunch_time(branch%lat, bunch, t_end)
-    cycle
-  endif
-
-  is_tracked = .false.
-
-  do i = 1, n
-    j = ix_t_emit(i)
-    p => bunch%particle(j)
-    p%state = alive$
-    call track1_time_runge_kutta (p, ele, branch%param, p, err, t_end = t_end)
-    is_tracked(j) = .true.
-  enddo
-
-  ix_t_emit(1:n_pre_born-n) = ix_t_emit(n+1:n_pre_born)  
-  n_pre_born = n_pre_born - n
+  t_end = t_now + dt_max
 
   do i = 1, size(bunch%particle)
-    if (is_tracked(i)) cycle
     p => bunch%particle(i)
-    call track1_time_runge_kutta (p, ele, branch%param, p, err, t_end = t_end)
-  enddo    
+    if (p%state == pre_born$ .and. p%t <= t_end) p%state = alive$
+  enddo 
+
+  call track_bunch_time(branch%lat, bunch, t_end, ele%s)
 
   ! Apply SC kick
   ! Need to apply SC kick to newly born particles proportional to the time from birth to the end of the time step.
 
+  t_now = t_end
+
+  finished = .true.
+  do i = 1, size(bunch%particle)
+    p => bunch%particle(i)
+    if (p%state == pre_born$ .or. (p%s < ele%s .and. p%state == alive$)) then
+      finished = .false.
+      exit
+    endif
+  enddo 
+  if (finished) exit
 enddo
 
 !

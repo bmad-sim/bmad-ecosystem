@@ -171,6 +171,11 @@ elseif (end_orb%state /= alive$) then
   call convert_particle_coordinates_t_to_s(end_orb, dt_ref, ele, s_body)
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
 
+elseif (present(t_end)) then
+  end_orb%p0c = ele%value(p0c$)
+  call convert_particle_coordinates_t_to_s(end_orb, dt_ref, ele, s_body)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., s_pos = s_body, set_spin = set_spin)
+
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE LEAVING ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
