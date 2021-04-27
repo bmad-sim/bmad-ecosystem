@@ -49,18 +49,18 @@ do i = 1, size(bunch%particle)
   orbit => bunch%particle(i)
 
   do
+    if (orbit%t >= t_end - significant_time) exit
+    if (orbit%s >= s_end - 0.1_rp * bmad_com%significant_length) exit
     if (orbit%state /= alive$) exit
-    ele => pointer_to_next_track_ele(orbit, lat)
-    branch => pointer_to_branch(ele)
-    call track1_time_runge_kutta (orbit, ele, branch%param, orbit, err, t_end = t_end, dt_step = dt)
 
     if (orbit%direction == -1) then
       orbit%state = lost_pz_aperture$
       exit
     endif
 
-    if (orbit%t >= t_end - significant_time) exit
-    if (orbit%s >= s_end - 0.1_rp * bmad_com%significant_length) exit
+    ele => pointer_to_next_track_ele(orbit, lat)
+    branch => pointer_to_branch(ele)
+    call track1_time_runge_kutta (orbit, ele, branch%param, orbit, err, t_end = t_end, dt_step = dt)
   enddo
 
   if (present(dt_step)) dt_step(i) = dt
