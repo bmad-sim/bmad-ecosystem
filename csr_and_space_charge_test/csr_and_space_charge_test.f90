@@ -24,7 +24,7 @@ call bmad_parser ('csr_and_space_charge_test.bmad', lat)
 
 branch => lat%branch(1)
 call ran_seed_put(1)
-beam_init%n_particle = 1000
+beam_init%n_particle = 100
 beam_init%a_norm_emit = 1.0e-6
 beam_init%b_norm_emit = 1.0e-6
 beam_init%dPz_dz = 0.0
@@ -34,7 +34,7 @@ beam_init%sig_z = 0.000899377 ! 3 ps * cLight
 
 call init_bunch_distribution (branch%ele(0), branch%param, beam_init, 0, bunch_init)
 
-!!!call track1_bunch(bunch_init, lat, branch%ele(1), bunch2, err)
+call track1_bunch(bunch_init, lat, branch%ele(1), bunch2, err)
 
 ! Branch 0: CSR
 
