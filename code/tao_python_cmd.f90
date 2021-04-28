@@ -157,7 +157,7 @@ real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp) mat6(6,6), vec0(6), array(7)
 real(rp), allocatable :: real_arr(:), value_arr(:)
 
-integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write
+integer :: i, j, k, ib, id, iv, iv0, ie, ip, is, iu, nn, n0, md, nl, ct, nl2, n, ix, ix2, iu_write, data_type
 integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_bunch, ix_d2, n_who, ix_pole_max, attrib_type, loc
 integer :: ios, n_loc, ix_line, n_d1, ix_min(20), ix_max(20), n_delta, why_not_free, ix_uni, ix_shape_min
 integer line_width, n_bend, ic, num_ele, n_arr, n_add, n1, n2, i0, i1, i2
@@ -4509,6 +4509,7 @@ case ('lat_general')
 !     ele.s, ele.l
 !     ele.e_tot, ele.p0c
 !     ele.mat6, ele.vec0
+!     ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (ele.beta_a, etc.)
 ! 
 !   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
@@ -4623,7 +4624,9 @@ case ('lat_list')
     call invalid ('Number of "who" must be 1 for real buffered output.')
   endif
 
+  data_type = is_real$
   n_arr = 0
+
   do ie = 1, n_loc
     ele => eles(ie)%ele
     if (track_only .and. ele%ix_ele > lat%n_ele_track) cycle
@@ -4669,6 +4672,7 @@ case ('lat_list')
         values(1) = orbit%beta
       case ('orbit.state')
         values(1) = orbit%state
+        data_type = is_integer$
       case ('orbit.energy')
         values(1) = (1 + orbit%vec(6)) * orbit%p0c
       case ('orbit.pc')
@@ -4729,8 +4733,27 @@ case ('lat_list')
         n_add = 6
         values(1:6) = ele%vec0
       case default
-        call invalid ('Bad {who}: ' // name1(i)); return
+        call str_upcase (attrib_name, name1(i))
+        ix = index(attrib_name, '.')
+        attrib_name = attrib_name(ix+1:)
+
+        call pointer_to_attribute (ele, attrib_name, .true., a_ptr, err, .false.)
+
+        if (err) then
+          call invalid ('Bad {who}: ' // name1(i)); return
+        endif
+
+        if (associated(a_ptr%r)) then
+          values(1) = a_ptr%r
+        elseif (associated(a_ptr%i)) then
+          data_type = is_integer$
+          values(1) = a_ptr%i
+        else
+          call invalid ('{who} is not integer or real: ' // name1(i)); return
+        endif
       end select
+
+      !
 
       if (use_real_array_buffer) then
         n_arr = n_arr
@@ -4740,7 +4763,7 @@ case ('lat_list')
 
       else
         do ix = 1, n_add
-          if (name1(1) == 'orbit.state') then
+          if (data_type == is_integer$) then
             if (i == 1 .and. ix == 1) then
               nl=incr(nl); write (li(nl), '(i0)') nint(values(ix))
             else
@@ -4761,7 +4784,7 @@ case ('lat_list')
   enddo ! ie = 1, n_loc
 
   if (use_real_array_buffer) then
-    if (name1(1) == 'orbit.state') then
+    if (data_type == is_integer$) then
       if (.not. allocated(tao_c_interface_com%c_integer)) allocate (tao_c_interface_com%c_integer(n_arr))
       if (size(tao_c_interface_com%c_integer) < n_arr) then
         deallocate (tao_c_interface_com%c_integer)
