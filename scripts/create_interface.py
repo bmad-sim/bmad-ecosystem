@@ -1706,6 +1706,10 @@ for struct in struct_definitions:
     else:
       arg.c_side.construct_value = arg.init_value
 
+    # If there is an array of values, just use first one.
+    if len(arg.c_side.construct_value) > 0 and arg.c_side.construct_value[0] == '[':       
+      arg.c_side.construct_value = arg.c_side.construct_value[1:].split(',')[0]      
+
     arg.c_side.constructor = arg.c_side.constructor.replace('VALUE', arg.c_side.construct_value)
 
 ##################################################################################
