@@ -3758,7 +3758,7 @@ case ('spin')
       nl=nl+1; lines(nl) = ''
       if (tao_branch%spin_valid) then
         r = c_light * tao_branch%orbit(0)%beta / branch%param%total_length
-        nl=nl+1; write(lines(nl), '(2x, a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_dkm
+        nl=nl+1; write(lines(nl), '(2x, a, f12.8, es12.4)')  'Polarization Limit ST:                ', tao_branch%spin%pol_limit_st
         nl=nl+1; write(lines(nl), '(2x, a, f12.8, es12.4)')  'Polarization Limit DKM:               ', tao_branch%spin%pol_limit_dkm
         nl=nl+1; write(lines(nl), '(2x, a, f12.8, 3es12.4)') 'Partial Polarization Limits DKM:      ', tao_branch%spin%pol_limit_dkm_partial
         nl=nl+1; write(lines(nl), '(2x, a, f12.2, es12.4)')  'Polarization Time (minutes, turns):   ', 1 / (60*tao_branch%spin%pol_rate), r / tao_branch%spin%pol_rate
