@@ -159,12 +159,12 @@ ele1%b%phi    = v(dphi_b$)
 ele1%y%eta    = v(eta_y1$)
 ele1%y%etap   = v(etap_y1$)
 
-ele0%c_mat(1,:) = v(c11_mat0$:c12_mat0$)
-ele0%c_mat(2,:) = v(c11_mat0$:c12_mat0$)
+ele0%c_mat(1,:) = [v(c11_mat0$), v(c12_mat0$)]
+ele0%c_mat(2,:) = [v(c21_mat0$), v(c22_mat0$)]
 ele0%gamma_c    = sqrt(1 - determinant(ele0%c_mat))
 
-ele1%c_mat(1,:) = v(c11_mat1$:c12_mat1$)
-ele1%c_mat(2,:) = v(c11_mat1$:c12_mat1$)
+ele1%c_mat(1,:) = [v(c11_mat1$), v(c12_mat1$)]
+ele1%c_mat(2,:) = [v(c21_mat1$), v(c22_mat1$)]
 ele1%gamma_c    = sqrt(1 - determinant(ele1%c_mat))
 
 ele0%name = ele%name
