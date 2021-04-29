@@ -20,7 +20,7 @@ open (1, file = 'output.now')
 
 call bmad_parser ('csr_and_space_charge_test.bmad', lat)
 
-! Branch 1: e_gun
+! Branch 1: e_gun with cathode
 
 branch => lat%branch(1)
 call ran_seed_put(1)

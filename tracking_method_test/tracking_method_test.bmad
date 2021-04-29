@@ -36,6 +36,9 @@ lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_st
 lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1, phi0 = 0.15, phi0_err = -0.34
 lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
                             tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10, phi0 = 0.15, phi0_err = -0.34, cavity_type = traveling_wave
+match1:            match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3,
+                            c11_mat0 = 0.1, c12_mat0 = 0.2, c21_mat0 = 0.3, c22_mat0 = 0.4, 
+                            c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1
 monitor1:          monitor, l = 4.5, num_steps = 10
 multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi, x_offset = 0.05
 
@@ -120,7 +123,7 @@ l1[beta_b] = 10
 
 ! Put lcavity elements last since they shift reference energy
 l2: line = (ab_multipole1, ac_kicker1, ac_kicker2, beambeam1, crab_cavity1, drift1, ecollimator1, elseparator1, elseparator2, 
-            fiducial1, floor_shift1, hkicker1, instrument1, kicker1, monitor1, multipole1, octupole1, patch1, quadrupole1, 
+            fiducial1, floor_shift1, hkicker1, instrument1, kicker1, match1, monitor1, multipole1, octupole1, patch1, quadrupole1, 
             quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, rfcavity1, rfcavity2, sad_mult1, sad_mult2, 
             sbend1, sbend2, sbend3, sbend4, sbend5, sbend6, sbend7, sextupole1, solenoid1, solenoid2, sol_quad1, sol_quad2, 
             taylor1, vkicker1, wiggler_map1, wiggler_flat1, wiggler_heli1, lcavity1, lcavity2, lcavity3)
