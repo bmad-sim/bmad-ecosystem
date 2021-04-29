@@ -63,6 +63,8 @@ do i = 1, size(bunch%particle)
     n_pre_born = n_pre_born + 1
   endif
 
+  call track1_preprocess (p, ele, branch%param, err, finished, radiation_included)
+
   t_now = min(p%t, t_now)
 enddo
 
@@ -106,7 +108,6 @@ enddo
 
 do i = 1, size(bunch%particle)
   call track1_postprocess (bunch%particle(i), ele, branch%param, bunch%particle(i))
-  if (finished) call err_exit   ! I don't know what to do with this.
 enddo
 
 call out_io (s_error$, r_name, 'E_GUN TRACKING WITH CATHODE NOT YET IMPLEMENTED!')

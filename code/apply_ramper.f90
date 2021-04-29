@@ -105,7 +105,7 @@ do ir = 1, this_ramp%n_lord
 enddo
 
 if (this_ramp%is_on) then
-  do is = 1, this_ramp%n_slave
+  do is = 1, size(this_ramp%control%ramp)
     ctl => this_ramp%control%ramp(is)
     if (index(ctl%slave_name, '*') /= 0 .or. index(ctl%slave_name,'%') /= 0) cycle
     do ir = 1, size(ramper)
