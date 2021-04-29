@@ -34,7 +34,9 @@ lcavity1_abs_time: lcavity1  ! Will use absolute time tracking
 lcavity2_abs_time: lcavity2  ! Will use absolute time tracking  
 lcavity3_abs_time: lcavity3  ! Will use absolute time tracking  
 
-match1:            match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3
+match1:            match, delta_time = 1e-9, beta_a0 = 1, beta_b0 = 2, beta_a1 = 2, beta_b1 = 3,
+                            c11_mat0 = 0.1, c12_mat0 = 0.2, c21_mat0 = 0.3, c22_mat0 = 0.4, 
+                            c11_mat1 = 0.4, c12_mat1 = 0.3, c21_mat1 = 0.2, c22_mat1 = 0.1
 monitor1:          monitor, l = 4.5, num_steps = 10
 multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi, x_offset = 0.05
 
