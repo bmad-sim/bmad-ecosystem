@@ -2657,6 +2657,7 @@ if (ele%key == match$ .or. &
             .not. associated(ele%taylor_field) .and. (ele%key == wiggler$ .or. ele%key == undulator$) .and. &
             ele%field_calc == helical_model$)) then
   call mat6_to_taylor (ele%vec0, ele%mat6, orb_tylr)
+  call taylor_make_quaternion_unit (ele%spin_taylor)
   return
 endif
 
