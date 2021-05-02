@@ -31,7 +31,7 @@ type random_state_struct
   integer :: seed = 0
   real(sp) :: am = 0
   integer :: gauss_converter = exact_gaussian$
-  real(rp) :: gauss_sigma_cut = -1
+  real(rp) :: gauss_sigma_cut = -1  ! Only used if positive.
   integer(i4_b) :: in_sobseq = 0
   integer(i4_b) :: ix_sobseq(sobseq_maxdim) = 0
   real(rp) :: x_sobseq(sobseq_maxdim) = 0
@@ -43,7 +43,7 @@ type (random_state_struct), private, target, save :: ran_state_dflt
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss (harvest, ran_state)
+! Subroutine ran_gauss (harvest, ran_state, sigma_cut)
 !
 ! Routine to return a gaussian distributed random number with unit sigma.
 ! This routine uses the same algorithm as gasdev from Numerical Recipes.
@@ -58,12 +58,14 @@ type (random_state_struct), private, target, save :: ran_state_dflt
 !
 ! Input:
 !   ran_state -- random_state_struct, optional: Internal state.
-!                     See the ran_seed_put documentation for more details.
+!                   See the ran_seed_put documentation for more details.
+!   sigma_cut -- real(rp), optional: If present and positive will override setting 
+!                   of ran_state%gauss_sigma_cut.
 !
 ! Output:
-!   harvest    -- Real(rp): Random number. 
+!   harvest    -- real(rp): Random number. 
 ! Or
-!   harvest(:) -- Real(rp): Random number array. 
+!   harvest(:) -- real(rp): Random number array. 
 !                  For quasi_random$ numbers, the array size must be less than 6.
 !-
 
@@ -115,7 +117,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss_scalar (harvest, ran_state, index_quasi)
+! Subroutine ran_gauss_scalar (harvest, ran_state, sigma_cut, index_quasi)
 !
 ! Routine to return a gaussian distributed random number with unit sigma.
 ! See ran_gauss for more details.
@@ -123,7 +125,7 @@ contains
 ! Note: The index_quasi argument is used internally for the quasi-random number generator.
 !-
 
-subroutine ran_gauss_scalar (harvest, ran_state, index_quasi)
+subroutine ran_gauss_scalar (harvest, ran_state, sigma_cut, index_quasi)
 
 use nr, only: erf_s, erf
 
@@ -136,7 +138,8 @@ integer, parameter :: sigma_max = 8, n_pts_per_sigma = 25
 integer, parameter :: max_g = sigma_max * n_pts_per_sigma
 
 real(rp), intent(out) :: harvest
-real(rp) a(2), v1, v2, r, sigma_cut, fac
+real(rp), optional :: sigma_cut
+real(rp) a(2), v1, v2, r, sig_cut, fac
 real(rp), save :: g(0:max_g) = 0
 
 integer, optional :: index_quasi
@@ -169,8 +172,11 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
 
   !
 
-  sigma_cut = sigma_max
-  if (r_state%gauss_sigma_cut > 0) sigma_cut = min(r_state%gauss_sigma_cut, sigma_cut)
+  sig_cut = sigma_max
+  if (r_state%gauss_sigma_cut > 0) sig_cut = min(r_state%gauss_sigma_cut, sig_cut)
+  if (present(sigma_cut)) then
+    if (sigma_cut > 0) sig_cut = sigma_cut
+  endif
 
   call ran_uniform_scalar (r, r_state, index_quasi)
   if (r > 0.5) then
@@ -182,8 +188,8 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
   endif
   ix = bracket_index(r, g, 0)
   harvest = (ix + (r - g(ix)) / (g(ix+1) - g(ix))) * ss / n_pts_per_sigma
-  if (harvest >  sigma_cut) harvest =  sigma_cut
-  if (harvest < -sigma_cut) harvest = -sigma_cut
+  if (harvest >  sig_cut) harvest =  sig_cut
+  if (harvest < -sig_cut) harvest = -sig_cut
   return
 
 endif
@@ -225,25 +231,26 @@ end subroutine ran_gauss_scalar
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss_vector (harvest, ran_state)
+! Subroutine ran_gauss_vector (harvest, ran_state, sigma_cut)
 !
 ! Routine to return a gaussian distributed random number with unit sigma.
 ! See ran_gauss for more details.
 !-
 
-subroutine ran_gauss_vector (harvest, ran_state)
+subroutine ran_gauss_vector (harvest, ran_state, sigma_cut)
 
 implicit none
 
 type (random_state_struct), optional, target :: ran_state
 
+real(rp), optional :: sigma_cut
 real(rp), intent(out) :: harvest(:)
 integer i
 
 !
 
 do i = 1, size(harvest)
-  call ran_gauss_scalar (harvest(i), ran_state, i)
+  call ran_gauss_scalar (harvest(i), ran_state, sigma_cut, i)
 enddo
 
 end subroutine ran_gauss_vector
