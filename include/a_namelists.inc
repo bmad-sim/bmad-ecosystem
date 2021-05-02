@@ -122,7 +122,7 @@ namelist / k160name / k160
  namelist / aperturename / aplist
 
   TYPE tcav_list   
-   real(dp) PSI_DPHAS_DVDS(3)
+   real(dp) PSI_DPHAS_DVDS_phase0(4)
    logical always_on
   END TYPE tcav_list
 type(tcav_list) tcav0

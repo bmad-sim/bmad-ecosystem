@@ -459,6 +459,7 @@ TYPE c_normal_form
 !!!Envelope radiation stuff to normalise radiation (Sand's like theory)
  complex(dp) s_ij0(6,6)  !@1  equilibrium beam sizes
  complex(dp) s_ijr(6,6)  !@1  equilibrium beam sizes in resonance basis
+ complex(dp) b_ijr(6,6)  !@1   stochastic kick in resonance basis
  real(dp) emittance(3)   !@1  Equilibrium emittances as defined by Chao (computed from s_ijr(2*i-1,2*i) i=1,2,3 )
 END TYPE c_normal_form
   !@2 the routine c_canonize(at,a_cs,a0,a1,a2,phase) factors neatly the map "at"
