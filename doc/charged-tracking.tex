@@ -910,12 +910,13 @@ the transverse coordinates that are missing. To obtain a proper symplectic matri
 \subsection{LCavity Runge Kutta Tracking}
 
 With \vn{cavity_type} set to \vn{standing_wave}, and with \vn{longitudinal_mode} set to 0 (the
-default), the field in a cavity is modeled by
+default), the field in a cavity, in cylindrical coordinates, is modeled by
 \begin{align}
-  E_z    &=           2 \, G \,      \sin(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \CRNO
+  E_z    &=           2 \, G \,      \sin(k \, s) \, \sin(2 \, \pi \, (f \, t + \phi_\text{ref})) \CRNO
   E_r    &=               -G \, k \, \cos(k \, s) \, \sin(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \\
   B_\phi &= \frac{1}{c} \, G \, k \, \sin(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \nonumber
 \end{align}
+where $G$ is the voltage gradient, $k$ is the wave number. $\omega$ is frequency, 
 and with \vn{lognitudinal_mode} set to 1:
 \begin{align}
   E_z    &=            2 \, G \,      \cos(k \, s) \, \cos(\omega \, t + 2 \, \pi \, \phi_\text{ref}) \CRNO
