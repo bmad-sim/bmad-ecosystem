@@ -378,8 +378,8 @@ do i = 1, size(names)
   ele_name = names(i) // '______'
   ele_name(9-j:8) = nc(1:j)
 
-!  write (line((ne-1)*22+1:), '(a, f13.6)') ele_name, s
-  write (line((ne-1)*22+1:), '(a, i12)') ele_name, nint(s*1d4)
+  write (line((ne-1)*22+1:), '(a, f13.6)') ele_name, s
+!  write (line((ne-1)*22+1:), '(a, i12)') ele_name, nint(s*1d4)
 enddo
 
 end subroutine write_insert_ele_position
@@ -402,8 +402,8 @@ if (ne == 5) then
   ne = 1
 endif
 
-! write (line((ne-1)*22+1:), '(a, f13.6)') name(1:8), s
-write (line((ne-1)*22+1:), '(a, i12)') name(1:8), nint(s*1d4)
+write (line((ne-1)*22+1:), '(a, f13.6)') name(1:8), s
+! write (line((ne-1)*22+1:), '(a, i12)') name(1:8), nint(s*1d4)
 
 end subroutine write_ele_position
 
