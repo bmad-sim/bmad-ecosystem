@@ -70,7 +70,7 @@ do ir = 1, size(ramper)
       endif
 
       if ((key /= 0 .and. key /= slave%key) .or. .not. match_wild(slave%name, name)) then
-        ctl%value = real_garbage$
+        ctl%value = real_garbage$  ! This ramper does not control this slave.
         cycle
       endif
     endif
