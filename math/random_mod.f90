@@ -134,16 +134,17 @@ implicit none
 type (random_state_struct), optional, target :: ran_state
 type (random_state_struct), pointer :: r_state
 
-integer, parameter :: sigma_max = 8, n_pts_per_sigma = 25
-integer, parameter :: max_g = sigma_max * n_pts_per_sigma
-
 real(rp), intent(out) :: harvest
 real(rp), optional :: sigma_cut
 real(rp) a(2), v1, v2, r, sig_cut, fac
-real(rp), save :: g(0:max_g) = 0
+real(rp), parameter :: sigma_max = 8
 
+integer, parameter :: n_pts_per_sigma = 25
+integer, parameter :: max_g = sigma_max * n_pts_per_sigma
 integer, optional :: index_quasi
 integer i, ss, ix
+
+real(rp), save :: erf_array(0:max_g) = 0
 
 ! quasi-random must use the quick_gaussian since the exact_gaussian can
 ! use several uniform random numbers to generate a single Gaussian random number.
@@ -158,25 +159,28 @@ else
   r_state => ran_state_dflt
 endif
 
-if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussian$) then
+sig_cut = 1000
+if (r_state%gauss_sigma_cut > 0) sig_cut = r_state%gauss_sigma_cut
+if (present(sigma_cut)) then
+  if (sigma_cut > 0) sig_cut = sigma_cut
+endif
 
+!
+
+if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussian$) then
   ! Init g
 
-  if (g(1) == 0) then
+  sig_cut = min(sigma_max, sig_cut)
+
+  if (erf_array(1) == 0) then
     fac = 2 * erf_s (sigma_max/sqrt_2)
     do i = 0, max_g-1
-      g(i) = erf_s (i / (n_pts_per_sigma * sqrt_2)) / fac
+      erf_array(i) = erf_s (i / (n_pts_per_sigma * sqrt_2)) / fac
     enddo
-    g(max_g) = 0.50000000001_rp
+    erf_array(max_g) = 0.50000000001_rp
   endif
 
   !
-
-  sig_cut = sigma_max
-  if (r_state%gauss_sigma_cut > 0) sig_cut = min(r_state%gauss_sigma_cut, sig_cut)
-  if (present(sigma_cut)) then
-    if (sigma_cut > 0) sig_cut = sigma_cut
-  endif
 
   call ran_uniform_scalar (r, r_state, index_quasi)
   if (r > 0.5) then
@@ -186,24 +190,29 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
     r = 0.5 - r
     ss = -1
   endif
-  ix = bracket_index(r, g, 0)
-  harvest = (ix + (r - g(ix)) / (g(ix+1) - g(ix))) * ss / n_pts_per_sigma
-  if (harvest >  sig_cut) harvest =  sig_cut
-  if (harvest < -sig_cut) harvest = -sig_cut
-  return
 
+  if (sig_cut < sigma_max) then
+    fac = n_pts_per_sigma * sig_cut
+    ix = int(fac)
+    fac = fac - ix
+    fac = 2.0_rp * (erf_array(ix) * (1 - fac) + erf_array(ix+1) * fac)
+    r = fac * r  
+  endif
+
+  ix = bracket_index(r, erf_array, 0)
+  harvest = (ix + (r - erf_array(ix)) / (erf_array(ix+1) - erf_array(ix))) * ss / n_pts_per_sigma
+  return
 endif
 
 ! Loop until we get an acceptable number
 
 do 
-
   ! If we have a stored value then just use it
 
   if (r_state%number_stored) then
     r_state%number_stored = .false.
     harvest = r_state%h_saved
-    if (r_state%gauss_sigma_cut < 0 .or. abs(harvest) < r_state%gauss_sigma_cut) return
+    if (sig_cut < 0 .or. abs(harvest) < sig_cut) return
   endif
 
   ! else we generate a number
@@ -221,8 +230,7 @@ do
   r_state%number_stored = .true.
 
   harvest = v1 * r
-  if (r_state%gauss_sigma_cut < 0 .or. abs(harvest) < r_state%gauss_sigma_cut) return
-
+  if (abs(harvest) < sig_cut) return
 enddo
 
 end subroutine ran_gauss_scalar
