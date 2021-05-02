@@ -116,7 +116,7 @@ MODULE S_DEF_KIND
   PRIVATE A_TRANSR,A_TRANSP
   PRIVATE feval_CAVr,feval_CAVP,feval_CAV
   PRIVATE feval_CAV_bmadr,feval_CAV_bmadp
-  private  FRINGECAVR_TRAV,FRINGECAVP_TRAV !,FRINGECAV_TRAV
+  private  FRINGECAV_TRAVR,FRINGECAV_TRAVP !,FRINGECAV_TRAV
   private rk2_cavr,rk2_cavp !,rk2_cav
   private rk4_cavr,rk4_cavp !,rk4_cav
   private rk6_cavr,rk6_cavp !,rk6_cav
@@ -127,7 +127,7 @@ MODULE S_DEF_KIND
   real(dp), target :: phase0=-pi
   real(dp), target :: wedge_coeff(2)
   logical(lp), target :: MAD8_WEDGE=.TRUE.
-  logical(lp) :: bug_intentional=.false.
+  logical(lp) :: bug_intentional=.false.,herecav21=.false.
   real(dp) :: e1_cas=0
   !  logical(lp) :: old_solenoid=.true.
   INTEGER :: N_CAV4_F=1
@@ -404,23 +404,34 @@ logical :: old_thick_bend = .false.
      MODULE PROCEDURE rk6abellp
   END INTERFACE
 
-  INTERFACE rk2_cav
+
+
+  INTERFACE rk2_cav_trav
      MODULE PROCEDURE rk2_cavr
      MODULE PROCEDURE rk2_cavp
+  END INTERFACE
+
+  INTERFACE rk2_cav
      MODULE PROCEDURE rk2bmad_cavr
      MODULE PROCEDURE rk2bmad_cavp
   END INTERFACE
 
-  INTERFACE rk4_cav
+  INTERFACE rk4_cav_trav
      MODULE PROCEDURE rk4_cavr
      MODULE PROCEDURE rk4_cavp
+  END INTERFACE
+
+  INTERFACE rk4_cav
      MODULE PROCEDURE rk4bmad_cavr
      MODULE PROCEDURE rk4bmad_cavp
   END INTERFACE
 
-  INTERFACE rk6_cav
+  INTERFACE rk6_cav_trav
      MODULE PROCEDURE rk6_cavr
      MODULE PROCEDURE rk6_cavp
+  END INTERFACE
+
+  INTERFACE rk6_cav
      MODULE PROCEDURE rk6bmad_cavr
      MODULE PROCEDURE rk6bmad_cavp
   END INTERFACE
@@ -457,8 +468,8 @@ logical :: old_thick_bend = .false.
   END INTERFACE
 
   INTERFACE FRINGECAV_TRAV
-     MODULE PROCEDURE FRINGECAVR_TRAV
-     MODULE PROCEDURE FRINGECAVP_TRAV       ! CAVITY FRINGE FIELDS
+     MODULE PROCEDURE FRINGECAV_TRAVr
+     MODULE PROCEDURE FRINGECAV_TRAVp       ! CAVITY FRINGE FIELDS
   END INTERFACE
 
   INTERFACE FRINGE_CAV_TRAV
@@ -1909,6 +1920,7 @@ CONTAINS !----------------------------------------------------------------------
     y=m+xcav
      call CAVEP(el,y,default0)
     m=y
+call print(m%v(5))
      call checksymp(m,norm)
     call kill(m)
     call kill(y)
@@ -14518,15 +14530,15 @@ endif
     SELECT CASE(EL%P%METHOD)
     CASE(2)
 
-       call rk2_cav(z0,d1,el,X,k)
+       call rk2_cav_trav(z0,d1,el,X,k)
 
     CASE(4)
 
-       call rk4_cav(z0,d1,el,X,k)
+       call rk4_cav_trav(z0,d1,el,X,k)
 
     CASE(6)
 
-       call rk6_cav(z0,d1,el,X,k)
+       call rk6_cav_trav(z0,d1,el,X,k)
     CASE DEFAULT
        !w_p=0
        !w_p%nc=1
@@ -14568,15 +14580,15 @@ endif
     SELECT CASE(EL%P%METHOD)
     CASE(2)
 
-       call rk2_cav(z0,d1,el,X,k)
+       call rk2_cav_trav(z0,d1,el,X,k)
 
     CASE(4)
 
-       call rk4_cav(z0,d1,el,X,k)
+       call rk4_cav_trav(z0,d1,el,X,k)
 
     CASE(6)
 
-       call rk6_cav(z0,d1,el,X,k)
+       call rk6_cav_trav(z0,d1,el,X,k)
 
     CASE DEFAULT
        !w_p=0
@@ -14604,8 +14616,7 @@ endif
     INTEGER I
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
-    !    IF(k%FRINGE)
-    !
+  
     CALL FRINGE_CAV_TRAV(EL,X,k,1)
 
     ! IF(PRESENT(MID)) CALL XMID(MID,X,0)
@@ -14644,7 +14655,7 @@ endif
 
   END SUBROUTINE CAVEP_TRAV
 
-  SUBROUTINE FRINGECAVR_TRAV(EL,I,X,k)
+  SUBROUTINE FRINGECAV_TRAVR(EL,I,X,k)
     IMPLICIT NONE
     real(dp),INTENT(INOUT):: X(6)
     TYPE(CAV_TRAV),INTENT(INOUT):: EL
@@ -14695,9 +14706,9 @@ endif
     X(4)=X(4)+V*(CPSI*S1+SPSI*S2)*X(3)
     x(5)=x(5)-0.5_dp*(X(1)**2+X(3)**2)*V*(CPSI*C1+SPSI*C2)*O
 
-  END SUBROUTINE FRINGECAVR_TRAV
+  END SUBROUTINE FRINGECAV_TRAVR
 
-  SUBROUTINE FRINGECAVP_TRAV(EL,I,X,k)
+  SUBROUTINE FRINGECAV_TRAVP(EL,I,X,k)
     IMPLICIT NONE
     TYPE(REAL_8),INTENT(INOUT):: X(6)
     TYPE(CAV_TRAVP),INTENT(INOUT):: EL
@@ -14758,7 +14769,7 @@ endif
 
     call PRTP("FRNG_TWCAV:1", X)
 
-  END SUBROUTINE FRINGECAVP_TRAV
+  END SUBROUTINE FRINGECAV_TRAVP
 
   SUBROUTINE  FRINGE_CAV_TRAVR(EL,X,k,J)
     IMPLICIT NONE
@@ -18947,7 +18958,12 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
      E(2)=-ad(2)*x(3)/EL%P%CHARGE
      E(3)=EL%P%DIR*A(3)/EL%P%CHARGE
     endif
-
+!if(herecav21) then
+!write(6,*)
+!write(6,format4) z0,x(6)-Z0,EL%p%nst,EL%P%P0C
+!write(6,format6) b,e
+!write(6,format6) x
+!endif
   END SUBROUTINE A_TRANSR
 
 
@@ -19103,9 +19119,10 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     real(dp), intent(inout) :: ti
     real(dp) TT
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
-
+ 
     call feval_cav(tI,y,k,f,gr)
+ 
+
     do  j=1,ne
        a(j)=h*f(j)
     enddo
@@ -19161,6 +19178,7 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     integer j
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
+
     call alloc(tt)
     call alloc(yt)
     call alloc(f)
@@ -19168,8 +19186,11 @@ call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
     call alloc(b)
     call alloc(c)
     call alloc(d)
+ 
 
     call feval_cav(tI,y,k,f,gr)
+ 
+
     do  j=1,ne
        a(j)=h*f(j)
     enddo

@@ -3511,9 +3511,10 @@ if(present(dir)) then
 if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
 
 
- tcav0%PSI_DPHAS_DVDS(1)=F%cav21%psi
- tcav0%PSI_DPHAS_DVDS(2)=F%cav21%dphas
- tcav0%PSI_DPHAS_DVDS(3)=F%cav21%dvds
+ tcav0%PSI_DPHAS_DVDS_phase0(1)=F%cav21%psi
+ tcav0%PSI_DPHAS_DVDS_phase0(2)=F%cav21%dphas
+ tcav0%PSI_DPHAS_DVDS_phase0(3)=F%cav21%dvds
+ tcav0%PSI_DPHAS_DVDS_phase0(4)=F%cav21%phase0
  tcav0%always_on=F%cav21%always_on
     if(present(mf)) then
      write(mf,NML=tCAVname)
@@ -3524,9 +3525,10 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
      read(mf,NML=tCAVname)
     endif   
 
- F%cav21%psi=tcav0%PSI_DPHAS_DVDS(1)
- F%cav21%dphas=tcav0%PSI_DPHAS_DVDS(2)
- F%cav21%dvds=tcav0%PSI_DPHAS_DVDS(3)
+ F%cav21%psi=tcav0%PSI_DPHAS_DVDS_phase0(1)
+ F%cav21%dphas=tcav0%PSI_DPHAS_DVDS_phase0(2)
+ F%cav21%dvds=tcav0%PSI_DPHAS_DVDS_phase0(3)
+ F%cav21%phase0=tcav0%PSI_DPHAS_DVDS_phase0(4)
  F%cav21%always_on=tcav0%always_on
 endif
 

@@ -3322,7 +3322,7 @@ contains
     return
   end subroutine c_dainv
 
-  subroutine dainvt(ma,ia,mb,ib)
+  subroutine dainvt(ma,ia,mb,ib,success)
     implicit none
     !     *****************************
     !
@@ -3337,6 +3337,8 @@ contains
     integer,dimension(:)::ma,mb
     complex(dp),dimension(c_lnv,c_lnv)::aa,ai
     complex(dp) amjj,amsjj,prod
+    logical, optional :: success
+    if(present(success)) success=.true.
     if((.not.C_STABLE_DA)) then
        if(C_watch_user) then
           write(6,*) "big problem in dabnew ", sqrt(crash)
@@ -3365,6 +3367,8 @@ contains
     !etienne
     !
     if(ia.ne.ib) then
+    if(present(success)) success=.false.
+
        write(line,'(a26)')  'ERROR IN DAINV, IA .NE. IB'
        ipause=mypauses(35,line)
        call dadeb !(31,'ERR DAINV1',1)
@@ -3372,6 +3376,8 @@ contains
        write(line,'(a40)')  'ERROR IN DAINV, IA.NE.INVA.OR.IB.NE.INVB'
        ipause=mypauses(35,line)
        call dadeb !(31,'ERR DAINV2',1)
+    if(present(success)) success=.false.
+
     endif
     !
     !     ALLOCATING LOCAL VECTORS
@@ -3407,6 +3413,8 @@ contains
     call c_matinv(aa,ai,ia,c_lnv,ier)
     !
     if(ier.eq.132) then
+    if(present(success)) success=.false.
+
        if(check_da) then
           C_STABLE_DA=.false.
           C_check_stable=.false.
@@ -3432,6 +3440,8 @@ contains
           enddo
           if(i.eq.j) prod = prod - 1.0_dp
           if(abs(prod).gt.100.0_dp*epsmac) then
+          if(present(success)) success=.false.
+
              write(6,*) " abs(prod) > 100.0_dp*epsmac in dainvt",abs(prod), 100.0_dp*epsmac
              if(check_da) then
                 C_STABLE_DA=.false.

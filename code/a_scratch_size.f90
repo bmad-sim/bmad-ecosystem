@@ -42,6 +42,10 @@ module precision_constants
   logical(lp),parameter:: my_false=.false.
   logical(lp),target :: global_verbose=.false.
   logical(lp),target :: no_hyperbolic_in_normal_form=.true.
+  integer,private,parameter::nmax=400
+  real(dp),private,parameter::tiny=1e-20_dp
+  private ludcmp_nr,lubksb_nr
+  private ludcmp_nr0,lubksb_nr0
   !Numbers double
   real(dp),parameter::zero=0e0_dp,one=1e0_dp,two=2e0_dp,three=3e0_dp,four=4e0_dp,five=5e0_dp
   real(dp),parameter::six=6e0_dp,seven=7e0_dp,eight=8e0_dp,nine=9e0_dp,ten=10e0_dp
@@ -781,6 +785,368 @@ ak8(11,8) = (295.0_dp/98.0_dp)*b8*s21 + (215.0_dp/14.0_dp)*b8
       return
       
    end subroutine dofma
+
+
+  subroutine c_matinv(a,ai,n,nmx,ier)
+
+    implicit none
+
+    integer i,ier,j,n,nmx
+    integer,dimension(nmax)::indx
+    complex(dp) d
+    complex(dp),dimension(nmx,nmx)::a,ai
+    complex(dp),dimension(nmax,nmax)::aw
+    !
+    !    if((.not.C_%STABLE_DA)) then
+    !       if(c_%watch_user) then
+    !          write(6,*) "big problem in dabnew ", sqrt(crash)
+    !       endif
+    !       return
+    !    endif
+
+    aw(1:n,1:n) = a(1:n,1:n)
+
+    call ludcmp_nr(aw,n,nmax,indx,d,ier)
+    if (ier .eq. 132) return
+
+    ai(1:n,1:n) = 0.0_dp
+    !    forall (i = 1:n) ai(i,i) = one
+    do i=1,n
+       ai(i,i) = 1.0_dp
+    enddo
+
+    do j=1,n
+       call lubksb_nr(aw,n,nmax,indx,ai(1,j),nmx)
+    enddo
+
+  end subroutine c_matinv
+
+
+  !
+  subroutine ludcmp_nr(a,n,np,indx,d,ier)
+    implicit none
+    !     ************************************
+    !
+    !     THIS SUBROUTINE DECOMPOSES A MATRIX INTO LU FORMAT
+    !     INPUT A: NXN MATRIX - WILL BE OVERWRITTEN BY THE LU DECOMP.
+    !           NP: PHYSICAL DIMENSION OF A
+    !           INDX: ROW PERMUTATION VECTOR
+    !           D: EVEN OR ODD ROW INTERCHANGES
+    !
+    !     REFERENCE: NUMERICAL RECIPIES BY PRESS ET AL (CAMBRIDGE) PG. 35
+    !
+    !-----------------------------------------------------------------------------
+    !
+    integer i,ier,imax,j,k,n,np
+    integer,dimension(np)::indx
+    complex(dp) d,dum,sum
+    real(dp) aamax
+    complex(dp),dimension(np,np)::a
+    complex(dp),dimension(nmax)::vv
+    !
+    !    if((.not.C_%STABLE_DA)) then
+    !       if(c_%watch_user) then
+    !          write(6,*) "big problem in dabnew ", sqrt(crash)
+    !       endif
+    !       return
+    !    endif
+    ier=0
+    d=1.0_dp
+    do i=1,n
+       aamax=0.0_dp
+       do j=1,n
+          if(abs(a(i,j)).gt.aamax) aamax=abs(a(i,j))
+       enddo
+       if(aamax.eq.0.0_dp) then
+          ier=132
+          return
+       endif
+       vv(i)=1.0_dp/aamax
+    enddo
+    do j=1,n
+       if(j.gt.1) then
+          do i=1,j-1
+             sum=a(i,j)
+             if(i.gt.1) then
+                do k=1,i-1
+                   sum=sum-a(i,k)*a(k,j)
+                enddo
+                a(i,j)=sum
+             endif
+          enddo
+       endif
+       aamax=0.0_dp
+       do i=j,n
+          sum=a(i,j)
+          if (j.gt.1) then
+             do k=1,j-1
+                sum=sum-a(i,k)*a(k,j)
+             enddo
+             a(i,j)=sum
+          endif
+          dum=vv(i)*abs(sum)
+          if(abs(dum).ge.aamax) then
+             imax=i
+             aamax=dum
+          endif
+       enddo
+       if (j.ne.imax) then
+          do k=1,n
+             dum=a(imax,k)
+             a(imax,k)=a(j,k)
+             a(j,k)=dum
+          enddo
+          d=-d
+          vv(imax)=vv(j)
+       endif
+       indx(j)=imax
+       if(j.ne.n) then
+          if(a(j,j).eq.0.0_dp) a(j,j)=tiny
+          dum=1.0_dp/a(j,j)
+          do i=j+1,n
+             a(i,j)=a(i,j)*dum
+          enddo
+       endif
+    enddo
+    if(a(n,n).eq.0.0_dp) a(n,n)=tiny
+    return
+  end subroutine ludcmp_nr
+  !
+  subroutine lubksb_nr(a,n,np,indx,b,nmx)
+    implicit none
+    !     ************************************
+    !
+    !     THIS SUBROUTINE SOLVES SET OF LINEAR EQUATIONS AX=B,
+    !     INPUT A: NXN MATRIX IN lu FORM GIVEN BY ludcmp_nr
+    !           NP: PHYSICAL DIMENSION OF A
+    !           INDX: ROW PERMUTATION VECTOR
+    !           D: EVEN OR ODD ROW INTERCHANGES
+    !           B: RHS OF LINEAR EQUATION - WILL BE OVERWRITTEN BY X
+    !
+    !     REFERENCE: NUMERICAL RECIPIES BY PRESS ET AL (CAMBRIDGE) PG. 36
+    !
+    !-----------------------------------------------------------------------------
+    !
+    integer i,ii,j,ll,n,nmx,np
+    integer,dimension(np)::indx
+    complex(dp) sum
+    complex(dp),dimension(np,np)::a
+    complex(dp),dimension(nmx)::b
+    !
+    !    if((.not.C_%STABLE_DA)) then
+    !       if(c_%watch_user) then
+    !          write(6,*) "big problem in dabnew ", sqrt(crash)
+    !       endif
+    !       return
+    !    endif
+    ii = 0
+    do i=1,n
+       ll = indx(i)
+       sum = b(ll)
+       b(ll) = b(i)
+       if(ii.ne.0) then
+          do j=ii,i-1
+             sum = sum-a(i,j)*b(j)
+          enddo
+       else if (abs(sum).ne.0.0_dp) then
+          ii = i
+       endif
+       b(i)=sum
+    enddo
+    do i=n,1,-1
+       sum=b(i)
+       if(i.lt.n) then
+          do j=i+1,n
+             sum = sum-a(i,j)*b(j)
+          enddo
+       endif
+
+       b(i)=sum/a(i,i)
+
+    enddo
+    return
+  end subroutine lubksb_nr
+  !
+
+  subroutine matinv(a,ai,n,nmx,ier)
+
+    implicit none
+
+    integer i,ier,j,n,nmx
+    integer,dimension(nmax)::indx
+    real(dp) d
+    real(dp),dimension(nmx,nmx)::a,ai
+    real(dp),dimension(nmax,nmax)::aw
+    !
+    !    if((.not.C_%STABLE_DA)) then
+    !       if(c_%watch_user) then
+    !          write(6,*) "big problem in dabnew ", sqrt(crash)
+    !       endif
+    !       return
+    !    endif
+
+    aw(1:n,1:n) = a(1:n,1:n)
+
+    call ludcmp_nr0(aw,n,nmax,indx,d,ier)
+    if (ier .eq. 132) return
+
+    ai(1:n,1:n) = 0.0_dp
+    !    forall (i = 1:n) ai(i,i) = one
+    do i=1,n
+       ai(i,i) = 1.0_dp
+    enddo
+
+    do j=1,n
+       call lubksb_nr0(aw,n,nmax,indx,ai(1,j),nmx)
+    enddo
+
+  end subroutine matinv
+
+
+  !
+  subroutine ludcmp_nr0(a,n,np,indx,d,ier)
+    implicit none
+    !     ************************************
+    !
+    !     THIS SUBROUTINE DECOMPOSES A MATRIX INTO LU FORMAT
+    !     INPUT A: NXN MATRIX - WILL BE OVERWRITTEN BY THE LU DECOMP.
+    !           NP: PHYSICAL DIMENSION OF A
+    !           INDX: ROW PERMUTATION VECTOR
+    !           D: EVEN OR ODD ROW INTERCHANGES
+    !
+    !     REFERENCE: NUMERICAL RECIPIES BY PRESS ET AL (CAMBRIDGE) PG. 35
+    !
+    !-----------------------------------------------------------------------------
+    !
+    integer i,ier,imax,j,k,n,np
+    integer,dimension(np)::indx
+    real(dp) aamax,d,dum,sum
+    real(dp),dimension(np,np)::a
+    real(dp),dimension(nmax)::vv
+    !
+    !    if((.not.C_%STABLE_DA)) then
+    !       if(c_%watch_user) then
+    !          write(6,*) "big problem in dabnew ", sqrt(crash)
+    !       endif
+    !       return
+    !    endif
+    ier=0
+    d=1.0_dp
+    do i=1,n
+       aamax=0.0_dp
+       do j=1,n
+          if(abs(a(i,j)).gt.aamax) aamax=abs(a(i,j))
+       enddo
+       if(aamax.eq.0.0_dp) then
+          ier=132
+          return
+       endif
+       vv(i)=1.0_dp/aamax
+    enddo
+    do j=1,n
+       if(j.gt.1) then
+          do i=1,j-1
+             sum=a(i,j)
+             if(i.gt.1) then
+                do k=1,i-1
+                   sum=sum-a(i,k)*a(k,j)
+                enddo
+                a(i,j)=sum
+             endif
+          enddo
+       endif
+       aamax=0.0_dp
+       do i=j,n
+          sum=a(i,j)
+          if (j.gt.1) then
+             do k=1,j-1
+                sum=sum-a(i,k)*a(k,j)
+             enddo
+             a(i,j)=sum
+          endif
+          dum=vv(i)*abs(sum)
+          if(dum.ge.aamax) then
+             imax=i
+             aamax=dum
+          endif
+       enddo
+       if (j.ne.imax) then
+          do k=1,n
+             dum=a(imax,k)
+             a(imax,k)=a(j,k)
+             a(j,k)=dum
+          enddo
+          d=-d
+          vv(imax)=vv(j)
+       endif
+       indx(j)=imax
+       if(j.ne.n) then
+          if(a(j,j).eq.0.0_dp) a(j,j)=tiny
+          dum=1.0_dp/a(j,j)
+          do i=j+1,n
+             a(i,j)=a(i,j)*dum
+          enddo
+       endif
+    enddo
+    if(a(n,n).eq.0.0_dp) a(n,n)=tiny
+    return
+  end subroutine ludcmp_nr0
+  !
+  subroutine lubksb_nr0(a,n,np,indx,b,nmx)
+    implicit none
+    !     ************************************
+    !
+    !     THIS SUBROUTINE SOLVES SET OF LINEAR EQUATIONS AX=B,
+    !     INPUT A: NXN MATRIX IN lu FORM GIVEN BY ludcmp_nr
+    !           NP: PHYSICAL DIMENSION OF A
+    !           INDX: ROW PERMUTATION VECTOR
+    !           D: EVEN OR ODD ROW INTERCHANGES
+    !           B: RHS OF LINEAR EQUATION - WILL BE OVERWRITTEN BY X
+    !
+    !     REFERENCE: NUMERICAL RECIPIES BY PRESS ET AL (CAMBRIDGE) PG. 36
+    !
+    !-----------------------------------------------------------------------------
+    !
+    integer i,ii,j,ll,n,nmx,np
+    integer,dimension(np)::indx
+    real(dp) sum
+    real(dp),dimension(np,np)::a
+    real(dp),dimension(nmx)::b
+    !
+    !    if((.not.C_%STABLE_DA)) then
+    !       if(c_%watch_user) then
+    !          write(6,*) "big problem in dabnew ", sqrt(crash)
+    !       endif
+    !       return
+    !    endif
+    ii = 0
+    do i=1,n
+       ll = indx(i)
+       sum = b(ll)
+       b(ll) = b(i)
+       if(ii.ne.0) then
+          do j=ii,i-1
+             sum = sum-a(i,j)*b(j)
+          enddo
+       else if (sum.ne.0.0_dp) then
+          ii = i
+       endif
+       b(i)=sum
+    enddo
+    do i=n,1,-1
+       sum=b(i)
+       if(i.lt.n) then
+          do j=i+1,n
+             sum = sum-a(i,j)*b(j)
+          enddo
+       endif
+
+       b(i)=sum/a(i,i)
+
+    enddo
+    return
+  end subroutine lubksb_nr0
+  !
 end module precision_constants
 
 
@@ -1502,6 +1868,778 @@ contains
   END FUNCTION RANF
 
 end module gauss_dis
+
+
+module my_own_linear_tpsa   
+use precision_constants  
+use file_handler 
+implicit none
+!@3 <font color="#FF0000" size="5"><p>Private routines only accessible through an interface</font></p>
+ private input_my_linear_taylor_in_real
+ private input_real_in_my_linear_taylor
+ private input_comp_in_my_linear_taylor
+ private input_my_linear_taylor_in_comp
+ private input_my_linear_taylor_in_my_linear_taylor
+ private mul   
+ private dmulsc 
+ private dscmul 
+ private dmulscc
+ private dscmulc
+ private div     
+ private ddivsc  
+ private ddivscc 
+ private dscdiv  
+ private Idivsc  
+ private add      
+ private unaryADD 
+ private daddsc   
+ private dscadd   
+ private daddscc  
+ private dscaddc  
+ private subs     
+ private unarySUB 
+ private dsubsc   
+ private dscsub   
+ private dsubscc  
+ private dscsubc  
+ private POW,powr
+ private DEXPT  
+ private DLOGT  
+ private DSQRTT 
+ private DCOST
+ private DSINT
+ private atan2t,dtant,atant
+ private tpsa_expt
+ private MONOT
+ private alloc_my_linear_taylor  
+ private morpht
+ private clean_taylor
+ !@  <hr>
+  complex   (dp), parameter :: I_=(0,1) !@1 &nbsp; complex number <font face="Times New Roman">&#8730;-1</font>
+  real(dp) ::  epsclean=1.d-10   !@1 &nbsp; number used to insure that small numbers are set to zero
+ integer :: n_tpsa_exp = 10      !@1 &nbsp; used in a "bad" way to do the exponential of a Taylor series
+  real(dp) ::  epsprint=1.d-10
+
+integer,parameter :: n_mono =6
+
+
+! Definitions                
+ TYPE my_linear_taylor             
+    complex(dp) a(0:n_mono)      !@2  &nbsp; Taylor series テイラー展開（テイラーてんかい) 浮動小数点数（ふどうしょうすうてんすう）
+END TYPE my_linear_taylor
+ 
+type(my_linear_taylor) dxl(n_mono)
+!type(my_linear_taylor) dx_1,dx_2,dx_3
+
+
+ 
+
+  INTERFACE assignment (=)
+     MODULE PROCEDURE input_my_linear_taylor_in_my_linear_taylor   !@1 &nbsp; Taylor=Taylor
+     MODULE PROCEDURE input_my_linear_taylor_in_real   !@1 &nbsp; real=Taylor
+     MODULE PROCEDURE input_real_in_my_linear_taylor  !@1 &nbsp; Taylor=real 
+     MODULE PROCEDURE input_real_in_my_linear_taylors  !@1 &nbsp; Taylor=real 
+     MODULE PROCEDURE input_comp_in_my_linear_taylor  !@1 &nbsp; complex=Taylor
+     MODULE PROCEDURE input_my_linear_taylor_in_comp   !@1 &nbsp; complex=Taylor
+  end  INTERFACE     
+!@ <font color="#800000"><b>N.B. </b></font>In this toy DA, Taylor=Taylor is not 
+!@ needed because Fortran90 does automatically the correct job. This is <b>
+!@ <font color="#FF0000">not</font></b> true when we overload a pointer as in the 
+!@ case of Berz's package.
+
+  INTERFACE OPERATOR (*)  !@2  &nbsp; Operator overloading (or ad hoc polymorphism)  オペレータ(演算子)のオーバーロード
+!@3  <b><font color="#FF0000">Taylor=Taylor*Taylor is interesting </font></b> click below </br>
+     MODULE PROCEDURE mul   !@1 &nbsp; Taylor * Taylor   
+     MODULE PROCEDURE dmulsc    !@1 &nbsp; Taylor * Real(dp)
+     MODULE PROCEDURE dscmul     !@1 &nbsp;  Real(dp) * Taylor
+     MODULE PROCEDURE dmulscc    !@1 &nbsp; Taylor * complex(dp)
+     MODULE PROCEDURE dscmulc     !@1 &nbsp;  complex(dp) * Taylor
+  END INTERFACE
+  
+  INTERFACE OPERATOR (/)  !@2  &nbsp; Operator overloading (or ad hoc polymorphism)  オペレータ(演算子)のオーバーロード
+!@3  <b><font color="#FF0000">Taylor=Taylor/Taylor is also interesting because first case separating TPSA from DA part to create a nilpotent operator!</font></b> click below </br>
+     MODULE PROCEDURE div    !@1 &nbsp; Taylor / Taylor
+     MODULE PROCEDURE ddivsc  !@1 &nbsp; Taylor / Real(dp)
+     MODULE PROCEDURE ddivscc  !@1 &nbsp; Taylor / complex(dp)
+     MODULE PROCEDURE dscdiv  !@1 &nbsp; Real(dp) / Taylor
+     MODULE PROCEDURE Idivsc  !@1 &nbsp; Taylor / Integer  <font color="#FF0000">&nbsp; &#8594; &nbsp; added because useful in example code</font>
+  END INTERFACE
+
+  INTERFACE OPERATOR (+)  !@2  &nbsp; Operator overloading (or ad hoc polymorphism)  オペレータ(演算子)のオーバーロード
+     MODULE PROCEDURE add       !@1 &nbsp; Taylor + Taylor
+     MODULE PROCEDURE unaryADD  !@1 &nbsp;  +Taylor
+     MODULE PROCEDURE daddsc    !@1 &nbsp;  Taylor + Real(dp)
+     MODULE PROCEDURE dscadd    !@1 &nbsp;  Real(dp) + Taylor
+     MODULE PROCEDURE daddscc    !@1 &nbsp;  Taylor + complex(dp)
+     MODULE PROCEDURE dscaddc    !@1 &nbsp;  complex(dp) + Taylor
+  END INTERFACE
+
+  INTERFACE OPERATOR (-)  !@2  &nbsp; Operator overloading (or ad hoc polymorphism)  オペレータ(演算子)のオーバーロード
+     MODULE PROCEDURE subs      !@1 &nbsp; Taylor - Taylor
+     MODULE PROCEDURE unarySUB     !@1 &nbsp;  -Taylor
+     MODULE PROCEDURE dsubsc   !@1 &nbsp;  Taylor - Real(dp)
+     MODULE PROCEDURE dscsub    !@1 &nbsp;  Real(dp) - Taylor
+     MODULE PROCEDURE dsubscc   !@1 &nbsp;  Taylor - complex(dp)
+     MODULE PROCEDURE dscsubc    !@1 &nbsp;  complex(dp) - Taylor
+  END INTERFACE
+
+
+  INTERFACE OPERATOR (**)  !@2  &nbsp; Operator overloading (or ad hoc polymorphism)  オペレータ(演算子)のオーバーロード
+     MODULE PROCEDURE POW    !@1 &nbsp; Taylor ** Integer 
+     MODULE PROCEDURE POWr    !@1 &nbsp; Taylor ** real(dp) 
+  END INTERFACE
+
+
+!@3  <p><i><font size="5">&nbsp;Overloading standard procedures </font></i></p>
+
+  INTERFACE exp
+     MODULE PROCEDURE DEXPT   !@1 &nbsp; exp(Taylor)
+  END INTERFACE
+
+  INTERFACE tpsa_exp
+     MODULE PROCEDURE tpsa_expt   !@1 &nbsp; exp(Taylor) using a sum up to n_tpsa_exp
+  END INTERFACE
+
+  INTERFACE LOG
+     MODULE PROCEDURE DLOGT   !@1 &nbsp; log(Taylor)
+  END INTERFACE
+
+  INTERFACE SQRT
+     MODULE PROCEDURE DSQRTT    !@1 &nbsp; sqrt(Taylor)
+  END INTERFACE
+
+  INTERFACE COS
+     MODULE PROCEDURE DCOST    !@1 &nbsp; cos(Taylor)
+  END INTERFACE
+
+  INTERFACE SIN
+     MODULE PROCEDURE DSINT   !@1 &nbsp; sin(Taylor)
+  END INTERFACE
+
+  INTERFACE tan
+     MODULE PROCEDURE dtant   !@1 &nbsp; tan(Taylor)
+  END INTERFACE
+
+  INTERFACE atan
+     MODULE PROCEDURE atant   !@1 &nbsp; tan(Taylor)
+  END INTERFACE
+
+  INTERFACE atan2
+     MODULE PROCEDURE atan2t   !@1 &nbsp; Atan2(Taylor,Taylor)
+  END INTERFACE
+
+
+
+
+!@3  <p><i><font size="5">User defined operator</font></i></p>
+
+  INTERFACE OPERATOR (.mon.)
+     MODULE PROCEDURE MONOT    !@1 <font color="#FF0000">Creates the monomial </font><font color="#0000FF">r x<sub>i</sub></font>
+  END INTERFACE
+ 
+! Destructors and Constructors for my_linear_taylor
+
+  INTERFACE alloc
+     MODULE PROCEDURE alloc_my_linear_taylor   !@1 &nbsp; for compatibility with FPP
+  END INTERFACE
+
+  INTERFACE kill
+     MODULE PROCEDURE alloc_my_linear_taylor   !@1 &nbsp; for compatibility with FPP
+  END INTERFACE
+
+  INTERFACE morph
+     MODULE PROCEDURE morpht   !@1 &nbsp; for compatibility with FPP
+  END INTERFACE
+
+  INTERFACE clean
+     MODULE PROCEDURE clean_taylor   !@1 &nbsp;  removes numbers smaller than epsclean
+  END INTERFACE
+
+contains
+
+
+  subroutine init_linear_taylor 
+  implicit none
+  integer i
+
+   do i=1,n_mono
+    dxl(i)%a=0.0_dp
+    dxl(i)%a(i)=1
+   enddo
+ end subroutine init_linear_taylor
+
+  subroutine clean_taylor( S2 )
+    implicit none
+    TYPE (my_linear_taylor), INTENT (INout) :: S2
+    integer i
+    
+    do i=0,n_mono
+     if(abs (real(S2%a(i),kind=dp) ) <epsclean) S2%a(i)= i_*aimag(S2%a(i))
+     if(abs(aimag(S2%a(i)))  <epsclean)         S2%a(i)=real(S2%a(i),kind=dp)
+    enddo     
+  END subroutine clean_taylor
+
+  subroutine clean_taylor_PRINT( S2 )
+    implicit none
+    TYPE (my_linear_taylor), INTENT (INout) :: S2
+    integer i
+    
+    do i=0,n_mono
+     if(abs (real(S2%a(i),kind=dp) ) <EPSPRINT) S2%a(i)= i_*aimag(S2%a(i))
+     if(abs(aimag(S2%a(i)))  <EPSPRINT)         S2%a(i)=real(S2%a(i),kind=dp)
+    enddo     
+  END subroutine clean_taylor_PRINT
+
+
+  subroutine alloc_my_linear_taylor( S2 )
+    implicit none
+    TYPE (my_linear_taylor), INTENT (INout) :: S2
+
+     S2%a=0.0_dp
+     
+  END subroutine alloc_my_linear_taylor
+
+
+
+  FUNCTION morpht( t )
+    implicit none
+    TYPE (my_linear_taylor) morpht
+    TYPE (my_linear_taylor), INTENT(IN) :: t
+    
+	morpht= t
+  
+  END FUNCTION morpht
+
+  FUNCTION MONOT( R, I )
+    implicit none
+    TYPE (my_linear_taylor) MONOT
+    REAL(DP), INTENT(IN) :: R
+    INTEGER, INTENT(IN) :: I
+ 
+ 
+
+ 
+     MONOT=0.0_DP
+     MONOT%a(i)= R
+
+  END FUNCTION MONOT
+
+ 
+
+ 
+ 
+ 
+
+  FUNCTION add( S1, S2 )
+    implicit none
+    TYPE (my_linear_taylor) add
+    TYPE (my_linear_taylor), INTENT (IN) :: S1, S2
+
+     add%a=S1%a + S2%a     
+
+  END FUNCTION add
+
+  FUNCTION daddsc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) daddsc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    real(dp), INTENT (IN) :: sc
+     
+     daddsc=s1
+     daddsc%a(0)= s1%a(0) + sc    
+     call clean(daddsc)
+  END FUNCTION daddsc
+
+  FUNCTION dscadd( sc ,  S1)
+    implicit none
+    TYPE (my_linear_taylor) dscadd
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    real(dp), INTENT (IN) :: sc
+     
+     dscadd=s1
+     dscadd%a(0)= s1%a(0) + sc    
+     call clean(dscadd)
+
+  END FUNCTION dscadd
+
+  FUNCTION daddscc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) daddscc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    complex(dp), INTENT (IN) :: sc
+     
+     daddscc=s1
+     daddscc%a(0)= s1%a(0) + sc    
+     call clean(daddscc)
+
+  END FUNCTION daddscc
+
+  FUNCTION dscaddc( sc ,  S1)
+    implicit none
+    TYPE (my_linear_taylor) dscaddc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    complex(dp), INTENT (IN) :: sc
+     
+     dscaddc=s1
+     dscaddc%a(0)= s1%a(0) + sc    
+     call clean(dscaddc)
+  END FUNCTION dscaddc
+
+  FUNCTION unaryadd( S1 )
+    implicit none
+    TYPE (my_linear_taylor) unaryadd
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+     
+     unaryadd=s1
+
+  END FUNCTION unaryadd
+
+
+  FUNCTION subs( S1, S2 )
+    implicit none
+    TYPE (my_linear_taylor) subs
+    TYPE (my_linear_taylor), INTENT (IN) :: S1, S2
+
+     subs%a=S1%a - S2%a     
+     call clean(subs)
+
+  END FUNCTION subs
+
+  FUNCTION unarySUB( S1 )
+    implicit none
+    TYPE (my_linear_taylor) unarySUB
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+     
+     unarySUB%a=-s1%a
+
+  END FUNCTION unarySUB
+
+  FUNCTION dsubsc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) dsubsc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    real(dp), INTENT (IN) :: sc
+     
+     dsubsc=s1
+     dsubsc%a(0)= s1%a(0) - sc    
+     call clean(dsubsc)
+
+  END FUNCTION dsubsc
+
+
+  FUNCTION dscsub( sc , S1 )
+    implicit none
+    TYPE (my_linear_taylor) dscsub
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    real(dp), INTENT (IN) :: sc
+     
+     dscsub=-s1   ! uses unary sub
+     dscsub=sc + dscsub   ! uses add   
+     call clean(dscsub)
+
+  END FUNCTION dscsub
+
+  FUNCTION dsubscc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) dsubscc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    complex(dp), INTENT (IN) :: sc
+     
+     dsubscc=s1
+     dsubscc%a(0)= s1%a(0) - sc    
+     call clean(dsubscc)
+  END FUNCTION dsubscc
+
+
+  FUNCTION dscsubc( sc , S1 )
+    implicit none
+    TYPE (my_linear_taylor) dscsubc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    complex(dp), INTENT (IN) :: sc
+     
+     dscsubc=-s1   ! uses unary sub
+     dscsubc=sc + dscsubc   ! uses add   
+     call clean(dscsubc)
+
+  END FUNCTION dscsubc
+
+
+  FUNCTION mul( S1, S2 )
+    implicit none
+    TYPE (my_linear_taylor) mul
+    TYPE (my_linear_taylor), INTENT (IN) :: S1, S2
+    integer i
+ 
+      mul%a=0.0_dp
+     mul%a(0)=S1%a(0)*S2%a(0)
+     do i=1,n_mono
+
+ 
+      
+      mul%a(i)=S1%a(i)*S2%a(0) +S2%a(i)*S1%a(0) 
+     
+     
+     enddo
+     
+
+  END FUNCTION mul
+
+
+  
+
+  FUNCTION dmulsc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) dmulsc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    real(dp), INTENT (IN) :: sc
+
+     dmulsc%a= s1%a*sc    
+     call clean(dmulsc)
+
+  END FUNCTION dmulsc
+
+  FUNCTION dscmul( sc ,S1 )
+    implicit none
+    TYPE (my_linear_taylor) dscmul
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    real(dp), INTENT (IN) :: sc
+
+     dscmul%a= s1%a*sc    
+
+
+  END FUNCTION dscmul
+
+  FUNCTION dmulscc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) dmulscc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    complex(dp), INTENT (IN) :: sc
+
+     dmulscc%a= s1%a*sc    
+
+
+  END FUNCTION dmulscc
+
+  FUNCTION dscmulc( sc ,S1 )
+    implicit none
+    TYPE (my_linear_taylor) dscmulc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    complex(dp), INTENT (IN) :: sc
+
+     dscmulc%a= s1%a*sc    
+
+  END FUNCTION dscmulc
+
+  FUNCTION ddivsc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) ddivsc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    real(dp), INTENT (IN) :: sc
+     
+     ddivsc%a= s1%a/sc    
+
+
+  END FUNCTION ddivsc
+
+  FUNCTION ddivscc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) ddivscc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    complex(dp), INTENT (IN) :: sc
+     
+     ddivscc%a= s1%a/sc    
+
+  END FUNCTION ddivscc
+
+
+
+  FUNCTION Idivsc( S1, sc )
+    implicit none
+    TYPE (my_linear_taylor) Idivsc
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    INTEGER, INTENT (IN) :: sc
+     
+     Idivsc%a= s1%a/sc    
+
+  END FUNCTION Idivsc
+
+  FUNCTION POW( S1,N )
+    implicit none
+    TYPE (my_linear_taylor) POW , T
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    INTEGER, INTENT (IN) :: N
+INTEGER I
+
+    POW=1.D0
+
+    IF(N<0) THEN
+     T=1.D0/S1
+     DO I=1,-N
+ POW=POW*T
+ ENDDO
+ELSE
+     DO I=1,N
+ POW=POW*S1
+ ENDDO
+
+ENDIF
+
+    END FUNCTION POW
+
+  FUNCTION POWr( S1,N )
+    implicit none
+    TYPE (my_linear_taylor) POWr  
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    real(dp), INTENT (IN) :: N
+ 
+
+       powr=log(s1)*n
+       powr=exp(powr)
+
+
+    END FUNCTION POWr
+
+  FUNCTION inv( S1 )
+    implicit none
+    TYPE (my_linear_taylor) inv,t,tt
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    integer i
+    
+T=S1/S1%A(0)
+T%A(0)=0.D0
+ INV=1.0_DP
+ TT=1.0_DP
+ TT=-T*TT
+ INV=inv+TT
+
+    INV=INV/S1%A(0)
+
+  END FUNCTION inv
+
+  FUNCTION DIV( S1, S2 )
+    implicit none
+    TYPE (my_linear_taylor) DIV
+    TYPE (my_linear_taylor), INTENT (IN) :: S1, S2
+!@3<b><font color="#FF0000">Go to function </font></b><a href="#INV">INV</a></br>
+   DIV=INV(S2)
+   DIV=S1*DIV
+
+  END FUNCTION DIV
+
+  FUNCTION dscdiv(  sc , S1)
+    implicit none
+    TYPE (my_linear_taylor) dscdiv
+    TYPE (my_linear_taylor), INTENT (IN) :: S1 
+    real(dp), INTENT (IN) :: sc
+     
+     dscdiv=INV(S1)
+     dscdiv= SC *  dscdiv
+
+
+  END FUNCTION dscdiv
+
+!  DEFININING my_linear_taylor=CONSTANT   
+  subroutine input_real_in_my_linear_taylor( S2, S1 )
+    implicit none
+    real(dp), INTENT (IN) :: S1
+    TYPE (my_linear_taylor), INTENT (inout) :: S2
+
+     S2%a=0.0_dp 
+     S2%a(0)=s1
+
+  END subroutine input_real_in_my_linear_taylor
+
+!  DEFININING my_linear_taylor=CONSTANT   
+  subroutine input_real_in_my_linear_taylors( S2, S1 )
+    implicit none
+    real(dp), INTENT (IN) :: S1
+    TYPE (my_linear_taylor), INTENT (inout) :: S2(:)
+    integer i
+     do i=1,size(s2)
+      S2(i)%a=0.0_dp 
+      S2(i)%a(0)=s1
+     enddo
+  END subroutine input_real_in_my_linear_taylors
+
+  subroutine input_comp_in_my_linear_taylor( S2, S1 )
+    implicit none
+    complex(dp), INTENT (IN) :: S1
+    TYPE (my_linear_taylor), INTENT (inout) :: S2
+
+     S2%a=0.0_dp 
+     S2%a(0)=s1
+
+  END subroutine input_comp_in_my_linear_taylor
+
+  subroutine input_my_linear_taylor_in_comp( S2, S1 )
+    implicit none
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    complex(dp), INTENT (inout) :: S2
+
+     S2=S1%a(0) 
+     
+  END subroutine input_my_linear_taylor_in_comp
+  
+    subroutine input_my_linear_taylor_in_my_linear_taylor( S2, S1 )
+    implicit none
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    TYPE (my_linear_taylor), INTENT (inout) :: S2
+
+     S2%a=S1%a 
+     
+  END subroutine input_my_linear_taylor_in_my_linear_taylor
+
+    subroutine input_my_linear_taylor_in_real( S2, S1 )
+    implicit none
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    real(dp), INTENT (inout) :: S2
+
+     S2=S1%a(0) 
+     
+  END subroutine input_my_linear_taylor_in_real
+
+
+!  DEFININING EXP
+
+  FUNCTION DEXPT( S1 )
+    implicit none
+    TYPE (my_linear_taylor) DEXPT,t,tt
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+
+T=S1
+T%A(0)=0.0_DP
+    
+
+DEXPT=1.0_dp
+tt=1.0_dp
+
+
+	 tt=tt*t
+     DEXPT=DEXPT + tt
+
+
+    DEXPT=EXP(S1%A(0))*DEXPT
+
+
+  END FUNCTION DEXPT 
+
+
+  FUNCTION DLOGT( S1 )
+    implicit none
+    TYPE (my_linear_taylor) DLOGT,T,TT
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+
+T=S1/S1%A(0); T%A(0)=0.0_DP;
+      DLOGT=0.0_dp
+     TT=-1.0_DP
+
+      TT=-T*TT
+      DLOGT=DLOGT+TT    
+
+     
+    DLOGT=DLOGT+ LOG(S1%A(0))
+     call clean(DLOGT)
+
+  END FUNCTION  DLOGT 
+
+  FUNCTION DSQRTT( S1 )
+    implicit none
+    TYPE (my_linear_taylor) DSQRTT
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+!@3  <p><i><sup><font size="4" color="#0066FF"> </font></sup></i></p>
+
+    DSQRTT= log(s1)/2.0_dp
+    DSQRTT=exp(DSQRTT)
+
+
+
+  END FUNCTION  DSQRTT 
+
+  FUNCTION DCOST(S1)
+    implicit none
+    TYPE (my_linear_taylor) DCOST
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+!@3  <p><i><sup><font size="4" color="#0066FF"> </font></sup></i></p>
+
+DCOST=(exp(i_*s1)+exp(-i_*s1))/2.0_dp
+
+
+  END FUNCTION  DCOST 
+
+  FUNCTION atant(S1)
+    implicit none
+    TYPE (my_linear_taylor) atant,c
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+ 
+!@3  <p><i><sup><font size="4" color="#0066FF"> </font></sup></i></p>
+     c=sqrt(1.0_dp/(1.0_dp+s1**2))
+     c=c+i_*s1*c  ! cos(atant)+i * sin(atant)
+
+     atant=log(c)/i_
+
+
+
+  END FUNCTION  atant 
+
+  FUNCTION DtanT(S1)
+    implicit none
+    TYPE (my_linear_taylor) DtanT
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    integer i
+!@3  <p><i><sup><font size="4" color="#0066FF"> </font></sup></i></p>
+
+    DtanT=sin(s1)/cos(s1)
+
+
+  END FUNCTION  DtanT 
+
+  FUNCTION atan2t(S1,s2)
+    implicit none
+    TYPE (my_linear_taylor) atan2t
+    TYPE (my_linear_taylor), INTENT (IN) :: S1,s2
+
+
+     atan2t=atan(s1/s2)
+     atan2t%a(0)=0.0_dp
+
+     atan2t= atan2t + atan2(real(s1%a(0),kind=dp),real(s2%a(0),kind=dp))
+
+
+  END FUNCTION  atan2t 
+
+  FUNCTION DSINT(S1)
+    implicit none
+    TYPE (my_linear_taylor) DSINT
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    
+!@3  <p><i><sup><font size="4" color="#0066FF">Lazy implementation: should be  generalized, only good to 4th order.</font></sup></i></p>
+ 
+DSINT=(exp(i_*s1)-exp(-i_*s1))/2.0_dp/i_
+
+  END FUNCTION  DSINT 
+
+  FUNCTION tpsa_expt( S1 )
+    implicit none
+    TYPE (my_linear_taylor) tpsa_expt,t
+    TYPE (my_linear_taylor), INTENT (IN) :: S1
+    integer i
+
+   
+   T=1.0_DP
+   tpsa_expt=1.0_DP
+
+   do i=1,n_tpsa_exp
+    T=S1*T/I
+    tpsa_expt=tpsa_expt+T
+   enddo
+ 
+   
+  END FUNCTION tpsa_expt 
+
+
+end module my_own_linear_tpsa
+
+
 
  
  
