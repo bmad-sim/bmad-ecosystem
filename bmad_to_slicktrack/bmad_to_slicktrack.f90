@@ -6,6 +6,12 @@
 !
 ! The output file name will be the bmad_file_name with the '.bmad' suffix
 ! (or whatever suffix is there) replaced by '.slick'.
+!
+! General rule:
+! Bends and quadrupoles will be split into two pieces in the slicktrack file. 
+! Exception: If two bends or two quadrupoles have the same name and are next to each other 
+! then they will will be considered to be split elements and will not be further split. 
+! In this case an ending "H" suffix will still be applied.
 !-
 
 program bmad_to_slicktrack
@@ -61,16 +67,17 @@ open (1, file = slick_name)
 
 call bmad_parser (bmad_name, lat)
 
-
 !------------------------------
 ! Write element defs
+
+write (1, '(a)') '    1 IP        0.00000000  0.00000000  0.00000000    1   0.000000    0'
 
 call nametable_init(nametab)
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
   call find_indexx(ele%name, nametab, ix, add_to_list = .true., has_been_added = added)
-  if (.not. added) cycle
+  if (.not. added) cycle   ! To avoid duplicates.
 
   select case (ele%key)
   case (sbend$, quadrupole$)
@@ -128,7 +135,7 @@ enddo
 write (1, '(a)') '    1 END'
 
 !------------------------------
-! Write lattice
+! Write lattice element positions
 
 write (1, *)
 write (1, '(a)') '----------------------------------------------------------------------------'
@@ -137,6 +144,8 @@ write (1, *)
 nb = 0
 nq = 0
 ne = 0
+
+write (1, '(a)') 'IP              0'
 
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
@@ -210,8 +219,9 @@ do i = 1, lat%n_ele_track
   end select
 enddo
 
-name = 'END'
-call write_ele_position (line, ne, name, lat%ele(lat%n_ele_track)%s)
+call write_ele_position (line, ne, 'IP', lat%ele(lat%n_ele_track)%s)
+call write_ele_position (line, ne, 'END', lat%ele(lat%n_ele_track)%s)
+
 write (1, '(a)') line
 
 !---------------------------------------------------------------------------
@@ -277,7 +287,7 @@ case (quadrupole$)
 
 case (rfcavity$)
   slick_class = 5
-  slick_params = [1d-9*ele%value(voltage$), 0.0_rp, 0.0_rp]
+  slick_params = [1d-6*ele%value(voltage$), 0.0_rp, 0.0_rp]
 
 case (sextupole$)
   if (ele%value(tilt$) /= 0) then
@@ -392,6 +402,7 @@ subroutine write_ele_position (line, ne, name, s)
 real(rp) s
 integer ne
 character(*) line, name
+character(8) nam
 
 !
 
@@ -402,8 +413,9 @@ if (ne == 5) then
   ne = 1
 endif
 
-write (line((ne-1)*22+1:), '(a, f13.6)') name(1:8), s
-! write (line((ne-1)*22+1:), '(a, i12)') name(1:8), nint(s*1d4)
+nam = name   ! In case name has less than 8 characters.
+write (line((ne-1)*22+1:), '(a, f13.6)') nam, s
+! write (line((ne-1)*22+1:), '(a, i12)') nam, nint(s*1d4)
 
 end subroutine write_ele_position
 
