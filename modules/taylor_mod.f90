@@ -378,11 +378,40 @@ end subroutine type_taylors
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine taylor_make_quaternion_unit (bmad_taylor)
+!
+! Subroutine to make the "unit" quaternion Taylor map. Used for spin maps.
+!
+! Output:
+!   bmad_taylor(0:3)  -- taylor_struct: Unit quaternion Taylor map.
+!-
+
+subroutine taylor_make_quaternion_unit (bmad_taylor)
+
+implicit none
+
+type (taylor_struct) bmad_taylor(0:3)
+integer i
+
+!
+
+do i = 0, 3
+  call init_taylor_series (bmad_taylor(i), 1)
+  if (i == 0) bmad_taylor(i)%term(1)%coef = 1.0
+  bmad_taylor(i)%term(1)%expn = 0
+enddo
+
+end subroutine taylor_make_quaternion_unit
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine taylor_make_unit (bmad_taylor, ref_orbit)
 !
 ! Subroutine to make the "unit" Taylor map around the reference orbit:
 !   r(out) = Map * dr(in) = dr(in) + ref_orbit = r(in) 
-! were
+! where
 !   dr(in) = r(in) - ref_orbit
 !
 ! Input:
