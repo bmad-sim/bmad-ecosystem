@@ -229,6 +229,42 @@ def bmad_param(param, ele_name):
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 # Return dictionary of "A = value" parameter definitions.
+# Also see parameter_dictionary routine.
+# The difference is that this routine will not split on commas.
+
+def action_parameter_dictionary(word_lst):
+  pdict = OrderedDict()
+  while True:
+    if len(word_lst) == 0:
+      return pdict
+
+    elif len(word_lst) == 1:
+      pdict[word_lst[0]] = ''
+      return pdict
+
+    elif word_lst[1] == '=':
+      try:
+        ix = word_lst.index(',')
+        pdict[word_lst[0]] = ' '.join(word_lst[2:ix])
+        word_lst = word_lst[ix+1:]
+      except:
+        pdict[word_lst[0]] = ' '.join(word_lst[2:])
+        return pdict
+
+    elif word_lst[1] == ',':
+      pdict[word_lst[0]] = ''
+      word_lst = word_lst[2:]
+
+    else:
+      print (f'CANNOT PARSE: {word_lst}')
+      return pdict
+
+    
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+# Return dictionary of "A = value" parameter definitions.
+# Also see action_parameter_dictionary routine.
+# The difference is that this routine will not split on commas.
 
 def parameter_dictionary(word_lst):
 
@@ -505,7 +541,10 @@ def parse_command(command, dlist):
   # Ignore this
 
   if dlist[0] in ['show', 'efcomp', 'print', 'select', 'optics', 'option', 'survey',
-                  'emit', 'twiss', 'help', 'set', 'eoption', 'system', 'ealign', 'savebeta']:
+                  'emit', 'twiss', 'help', 'eoption', 'system', 'ealign', 'savebeta', 'assign']:
+    return
+
+  if dlist[0] in ['set']:
     print ('Note! Ignoring command: ' + command)
     return
 
@@ -733,7 +772,7 @@ def parse_command(command, dlist):
     if len(dlist) == 3:
       common.use = dlist[2]
     else:
-      params = parameter_dictionary(dlist[2:])
+      params = action_parameter_dictionary(dlist[2:])
       if 'period' in params:  common.use = params.get('period')
 
     f_out.write('use, ' + common.use + '\n')
@@ -743,9 +782,10 @@ def parse_command(command, dlist):
 
   if dlist[0] == 'beam' or (dlist[1] == ':' and dlist[2] == 'beam'):
     if dlist[0] == 'beam':
-      params = parameter_dictionary(dlist[2:])
+      params = action_parameter_dictionary(dlist[2:])
     else:
-      params = parameter_dictionary(dlist[4:])
+      params = action_parameter_dictionary(dlist[4:])
+
     if 'particle' in params:  f_out.write('parameter[particle] = ' + bmad_expression(params['particle'], '') + '\n')
     if 'energy' in params:    f_out.write('parameter[E_tot] = ' + bmad_expression(params['energy'], 'energy') + '\n')
     if 'pc' in params:        f_out.write('parameter[p0c] = ' + bmad_expression(params['pc'], 'pc') + '\n')

@@ -1,0 +1,230 @@
+!+
+! Translated from MAD8 file: ZDR20_2.0.mad8
+!-
+
+
+! The lattice of electron ring of eRHIC,  version: ZDR 2.0
+! By Dong Wang & Fuhua Wang, MIT-Bates, Nov., 2003
+!
+!	1/3 of RHIC circumference
+!	For 10 GeV lepton-250 GeV proton collisions
+!	0.192/0.266m lepton beta functions at IP
+!	Chris Montag's separation scheme mostly kept
+!	Zero crossing-angle, horizontal separation at IR
+!	Asymmetric IR layout due to SR considerations
+!	Sector bends adopted for convenience in other calculations
+! 	New DS sections(more flexibilities)
+!	Reduced beta functions at IR straights
+!	Anti-symmetric dipole-solenoid spin rotators
+!	Local coupling compensations for rotator solenoids
+!	FODO lattice in arc(72/60 degree per cell)
+! 	Flexible emittance, nominal emittance=56 nm.rad
+!	Low nature chromaticities
+!	Above-integer working points
+!	Sextupole correction schemes embeded, specifically for this optics
+!	Good dynamic aperture(on- and off-momentum particles, with LEGO&SAD) 
+!
+!
+!
+!BEAM, ENERGY= 10.0, PARTICLE=ELECTRON
+!
+barc: sbend, l = 3.03, angle = twopi/168
+bro1: sbend, l = 0.5, angle = 0.00535
+bro1r: sbend, l = 0.5, angle = -0.00839
+bro2: sbend, l = 4.5, angle = 0.039
+bro2r: sbend, l = 4.5, angle = -0.03805
+!-0.039773
+but: sbend, l = 3.0, angle = -0.0562895
+! 0.039773
+butr: sbend, l = 3.0, angle = 0.0562895
+!
+sol1: solenoid, type = solenoid, l = 3.0, ks = 0.261801
+sol2: solenoid, type = solenoid, l = 3.0, ks = -0.261801
+!
+qsc1: sbend, l = 0.6, k1 = 2.5, angle = 0.00274
+qsc2: sbend, l = 0.8, k1 = -2.3, angle = 0.00201
+qsc3: sbend, l = 0.6, k1 = 1.722144, angle = 0.00419
+qsc1r: sbend, l = 0.6, k1 = 2.5, angle = -0.0025
+qsc2r: sbend, l = 0.8, k1 = -2.3, angle = -0.0053
+qsc3r: sbend, l = 0.6, k1 = 1.745752, angle = 0
+q0: quadrupole, l = 0.4, k1 = 0.6093209
+q1: quadrupole, l = 0.4, k1 = -0.6391538
+q2: quadrupole, l = 0.4, k1 = 0.7543689
+q3: quadrupole, l = 0.8, k1 = -0.3132699
+q4: quadrupole, l = 0.8, k1 = 0.2242323
+q5: quadrupole, l = 0.4, k1 = -0.01964348
+q6: quadrupole, l = 0.8, k1 = 0.2988943
+q7: quadrupole, l = 0.8, k1 = -0.3423671
+q8: quadrupole, l = 0.4, k1 = 0.7712494
+q9: quadrupole, l = 0.8, k1 = 0.07772668
+q10: quadrupole, l = 0.8, k1 = -0.4269618
+q11: quadrupole, l = 0.8, k1 = 0.4301674
+q12: quadrupole, l = 0.4, k1 = -0.4059777
+q0r: quadrupole, l = 0.4, k1 = 0.5752486
+q1r: quadrupole, l = 0.4, k1 = -0.6008347
+q2r: quadrupole, l = 0.4, k1 = 0.7518256
+q3r: quadrupole, l = 0.8, k1 = -0.2876831
+q4r: quadrupole, l = 0.8, k1 = 0.3094805
+q5r: quadrupole, l = 0.4, k1 = -0.1713745
+q6r: quadrupole, l = 0.8, k1 = 0.3350093
+q7r: quadrupole, l = 0.8, k1 = -0.3988017
+q8r: quadrupole, l = 0.4, k1 = 0.7257891
+q9r: quadrupole, l = 0.8, k1 = 0.09817876
+q10r: quadrupole, l = 0.8, k1 = -0.5315871
+q11r: quadrupole, l = 0.8, k1 = 0.4369449
+q12r: quadrupole, l = 0.4, k1 = -0.3612281
+q13: quadrupole, l = 0.8, k1 = 0.735529
+q14: quadrupole, l = 0.8, k1 = -0.854456
+q15: quadrupole, l = 0.4, k1 = 1.19967
+qds1: quadrupole, l = 0.2, k1 = -0.6870273
+qds2: quadrupole, l = 0.2, k1 = 0.8146488
+qds3: quadrupole, l = 0.2, k1 = -0.7284371
+qds4: quadrupole, l = 0.2, k1 = 0.5703837
+qds5: quadrupole, l = 0.2, k1 = -0.5984203
+qds6: quadrupole, l = 0.2, k1 = 0.4941384
+qds7: quadrupole, l = 0.2, k1 = -0.4335389
+qds8: quadrupole, l = 0.2, k1 = 0.5084891
+qds9: quadrupole, l = 0.2, k1 = -0.5457713
+qof: quadrupole, l = 0.2, k1 = 0.5365299
+qod: quadrupole, l = 0.2, k1 = -0.4932184
+qds10: quadrupole, l = 0.2, k1 = -0.6898561
+qds11: quadrupole, l = 0.2, k1 = 0.5787275
+qds12: quadrupole, l = 0.2, k1 = -0.6752046
+qds13: quadrupole, l = 0.2, k1 = 0.5193019
+qds14: quadrupole, l = 0.2, k1 = -0.5369769
+qds15: quadrupole, l = 0.2, k1 = 0.5278425
+qds16: quadrupole, l = 0.2, k1 = -0.6913662
+qut1: quadrupole, l = 0.4, k1 = 0.5651434
+qut2: quadrupole, l = 0.4, k1 = -0.5791606
+qut3: quadrupole, l = 0.4, k1 = 0.4871678
+qut4: quadrupole, l = 0.4, k1 = -0.4639346
+qut5: quadrupole, l = 0.4, k1 = 0.5306835
+qut6: quadrupole, l = 0.4, k1 = -0.5109716
+qut7: quadrupole, l = 0.2, k1 = 0.3620351
+quta: quadrupole, l = 0.2, k1 = 0.7063903
+qutb: quadrupole, l = 0.4, k1 = -0.01921092
+qutc: quadrupole, l = 0.4, k1 = -0.5514523
+qutd: quadrupole, l = 0.4, k1 = 0.4305812
+qut10: quadrupole, l = 0.4, k1 = -0.0
+qut11: quadrupole, l = 0.2, k1 = -0.6150865
+qut12: quadrupole, l = 0.2, k1 = 0.6150707
+!
+sf: sextupole, l = 0.2, k2 = 3.782607e+00
+sd: sextupole, l = 0.2, k2 = -1.201537e-02
+sf0: sextupole, l = 0.2, k2 = 9.267518e-01
+sd0: sextupole, l = 0.2, k2 = -2.036401e+00
+sf1: sextupole, l = 0.2, k2 = 3.353104e+00
+sd1: sextupole, l = 0.2, k2 = -2.667253e+00
+sf2: sextupole, l = 0.2, k2 = 2.198592e+00
+sd2: sextupole, l = 0.2, k2 = -7.104540e+00
+sf3: sextupole, l = 0.2, k2 = 3.976751e-01
+sd3: sextupole, l = 0.2, k2 = -4.822842e+00
+sf4: sextupole, l = 0.2, k2 = 2.604448e+00
+sd4: sextupole, l = 0.2, k2 = -2.575820e+00
+sf5: sextupole, l = 0.2, k2 = 2.250033e+00
+sd5: sextupole, l = 0.2, k2 = -2.142966e-01
+sf6: sextupole, l = 0.2, k2 = -1.859849e-02
+sd6: sextupole, l = 0.2, k2 = -1.157586e+00
+!
+d0100: drift, l = 0.1
+d0200: drift, l = 0.2
+d0300: drift, l = 0.3
+d0400: drift, l = 0.4
+d0420: drift, l = 0.42
+d0500: drift, l = 0.5
+d0600: drift, l = 0.6
+d0700: drift, l = 0.7
+d0800: drift, l = 0.8
+d1000: drift, l = 1.0
+d1500: drift, l = 1.5
+d1600: drift, l = 1.6
+d1800: drift, l = 1.8
+d2000: drift, l = 2.0
+d1360: drift, l = 1.36
+d2300: drift, l = 2.3
+d2500: drift, l = 2.5
+d2800: drift, l = 2.8
+d3000: drift, l = 3.0
+d3030: drift, l = 3.03
+d4000: drift, l = 4.0
+d4500: drift, l = 4.5
+d5000: drift, l = 5.0
+d6000: drift, l = 6.0
+d14173: drift, l = 1.41732
+dtuneir: drift, l = 2.98525
+dtuneut: drift, l = 2.79411
+!
+rf0: rfcavity, l = 0, voltage = 25.0 * 1e6, harmon = 2040, phi0 = 0.495 - 0.5
+!
+septum: marker
+dipolend: marker
+endarc: marker
+!
+!
+IR: LINE=(D1000, QSC1, D0100, QSC2, D0100, QSC3,D0300,9*D0500,D0200,D2000,D2000,Q0, D2000,D1600,Q1,D2000,D1600,Q2,D0600,
+         D3000,Q3,D3000, D0600,Q4,DTUNEIR, Q5, D0500, BRO1, D3000, Q6, D2500,Q7, D0500, BRO2,D0500,  Q8, D2000, Q9, D2000, Q10,
+          D2000, Q11, D2000, BRO2,DIPOLEND,D0500, Q12)
+!
+IRR: LINE=(D1000, QSC1R, D0100, QSC2R, D0100, QSC3R,D0300,9*D0500,D0200,D2000,D2000,Q0R,D2000,D1600,Q1R,D2000,D1600,Q2R,
+         D0600,D3000,Q3R,D3000,D0600,Q4R,DTUNEIR, Q5R, D0500, BRO1R, D3000, Q6R, D2500,Q7R, D0500, BRO2R,D0500,  Q8R, D2000, Q9R,
+          D2000, Q10R, D2000, Q11R,D2000,BRO2R,DIPOLEND,D0500, Q12R)
+!
+SNAKE: LINE=(D1500,SOL1, D0400, Q13, D0400, Q14, D14173,Q15,Q15, D14173, Q14, D0400, Q13, D0400, SOL1, D0420)
+!
+SNAKER: LINE=(D1500,SOL2, D0400, Q13, D0400, Q14, D14173,Q15,Q15, D14173, Q14, D0400, Q13, D0400, SOL2, D0420)
+!
+DS1: LINE=(2*QDS1,D1000,2*QDS2, D1000, BARC,D1000,2*QDS3,D1000,BARC,D1000,2*QDS4,D1000,D3030,D0600,SD,D0200,2*QDS5,
+         D0200,SD,D0600,D3030,D1000,QDS6,QDS6,D1000,BARC,D1000,2*QDS7,D0200,D0200,D0600,BARC,D0600,SF,D0200,QDS8,QDS8,D0200,SF,
+         D0600,BARC,D0600,D0200,D0200,QDS9,QDS9,D0200,D0200,D0600,BARC,D0600,SF,D0200,QOF)
+!
+FODO: LINE=(QOF,D0200,SF,D0600,BARC,D0600,SD,D0200,QOD,QOD,D0200,SD,D0600,BARC,D0600,SF,D0200,QOF)
+!
+FODO1: LINE=(QOF,D0200,SF1,D0600,BARC,D0600,SD1,D0200,QOD,QOD,D0200,SD2,D0600,BARC,D0600,SF2,D0200,QOF)
+!
+FODO2: LINE=(QOF,D0200,SF3,D0600,BARC,D0600,SD3,D0200,QOD,QOD,D0200,SD4,D0600,BARC,D0600,SF4,D0200,QOF)
+!
+FODO3: LINE=(QOF,D0200,SF5,D0600,BARC,D0600,SD5,D0200,QOD,QOD,D0200,SD6,D0600,BARC,D0600,SF6,D0200,QOF)
+!
+FODO4: LINE=(QOF,D0200,SF1,D0600,BARC,D0600,SD1,D0200,QOD,QOD,D0200,SD2,D0600,BARC,D0600,SF2,D0200,QOF)
+!
+FODO5: LINE=(QOF,D0200,SF3,D0600,BARC,D0600,SD3,D0200,QOD,QOD,D0200,SD4,D0600,BARC,D0600,SF4,D0200,QOF)
+!
+FODO6: LINE=(QOF,D0200,SF5,D0600,BARC,D0600,SD5,D0200,QOD,QOD,D0200,SD6,D0600,BARC,D0600,SF6,D0200,QOF)
+!
+SUPERFODO: LINE=(FODO1,FODO2,FODO3,FODO4,FODO5,FODO6)
+!
+DS2: LINE=(QOF,D0200,SF0,D0600,BARC,D0600,SD0,D0200,QDS10,QDS10,D0200,SD0,D0600,BARC,D0600,SF0,D0200,QDS11,QDS11,D0200,
+         SF0,D0600,BARC,D0600,SD0,D0200,2*QDS12,D1000,BARC,D1000,2*QDS13,D1000,D3030,D1000,2*QDS14,D1000,D3030,D1000,2*QDS15,
+         D1000,BARC,D1000,2*QDS16,D1000,BARC)
+!
+TUNE: LINE=(DTUNEUT, QUT1, D4500,QUT2,D4500,QUT3,D4500,QUT4,D4500,QUT5,D4500,QUT6,D4500,QUT7)
+!
+UT0: LINE=(QUTA,D2500,QUTB,D0500,BUT,D0500,QUTC,D4000,QUTD)
+!
+UT: LINE=(QUTA,D2500,QUTB,D0500,BUT,D0500,QUTC,D4000,QUTD,QUTD,D4000,QUTC,D0500,BUT,D0500,QUTB,D2500,QUTA,QUT12,D6000,
+         QUT11,QUT11,D6000,QUT12,QUT12,D6000,QUT11,QUT11,D6000,QUT12)
+!
+UTR: LINE=(QUTA,D2500,QUTB,D0500,BUTR,D0500,QUTC,D4000,QUTD,QUTD,D4000,QUTC,D0500,BUTR,D0500,QUTB,D2500,QUTA,QUT12,
+         D6000,QUT11,QUT11,D6000,QUT12,QUT12,D6000,QUT11,QUT11,D6000,QUT12)
+!
+HRING: LINE=(IR,SNAKE,DS1,6*(SUPERFODO), DS2, TUNE, UT)
+HRINGR: LINE=(-UTR,-TUNE,-DS2,6*(-SUPERFODO),-DS1,-SNAKER,-IRR)
+RING: LINE=(HRING,RF0,HRINGR)
+!
+
+
+use, ring
+
+
+use, ring
+
+parameter[particle] = electron
+parameter[E_tot] = 10.00 * 1e9
+
+!i.e. from start to end.
+
+!TWISS, CHROM
+
+
+!MAKESEQUENCE, LABEL=TOSPRINT, REFER=CENTRE
+!SAVE, FILENAME='sequ', PATTERN=TOSPRINT 

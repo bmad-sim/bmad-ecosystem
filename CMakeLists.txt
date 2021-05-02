@@ -16,6 +16,7 @@ set (EXE_SPECS
   cmake.bmad_to_gpt
   cmake.bmad_to_mad_and_sad
   cmake.bmad_to_merlin
+  cmake.bmad_to_slicktrack
   cmake.compare_tracking_methods_plot
   cmake.compare_tracking_methods_text
   cmake.element_attributes
