@@ -896,12 +896,10 @@ dependent element attributes (\sref{s:depend}). For example:
   b01w: sbend, l = 0.5, angle = 0.02
   a_const = b01w[g]    ! No: bend g has not yet been computed!
 \end{example}
-Here the bend strength \vn{g} (\sref{s:bend}) will eventually be
-computed to be 0.04 (= angle / l) but that computation does not happen
-until lattice expansion (\sref{s:expand}). In this case, the value of
-\vn{a_const} will be the default value of \vn{g} which is zero.  As a
-rule of thumb, never rely on dependent attributes having their correct
-value.
+Here the bend strength \vn{g} (\sref{s:bend}) will eventually be computed to be 0.04 (= angle / l)
+but that computation does not happen until lattice expansion (\sref{s:expand}). In this case, the
+value of \vn{a_const} will be the default value of \vn{g} which is zero.  As a rule of thumb, never
+rely on dependent attributes having their correct value.
 
 %---------------------------------------------------------------------------
 \section{Intrinsic functions}
@@ -928,6 +926,7 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
   \vn{factorial}(n)             & Factorial                                      \\
   \vn{ran}()                    & Random number between 0 and 1                  \\
   \vn{ran_gauss}()              & Gaussian distributed random number             \\
+  \vn{ran_gauss}(sig_cut)       & Gaussian distributed random number             \\
   \vn{int}(x)                   & Nearest integer with magnitude less then x     \\
   \vn{nint}(x)                  & Nearest integer to x                           \\
   \vn{floor}(x)                 & Nearest integer less than x                    \\
@@ -939,33 +938,33 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
 \end{tabular}
 
 \index{ran_seed}
-\vn{ran_gauss} is a Gaussian distributed random number with unit RMS. 
-Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
-To choose the seed set 
+\vn{ran_gauss} is a Gaussian distributed random number with unit RMS.  Both \vn{ran} and
+\vn{ran_gauss} use a seeded random number generator.  To choose the seed set
 \begin{example}
   parameter[ran_seed] = <Integer>
 \end{example}
-A \vn{value} of zero will set the seed using the system clock so that
-different sequences of random numbers will be generated each time a
-program is run.  The default behavior if \vn{parameter[ran_seed]} is
-not present is to use the system clock for the seed.
+A \vn{value} of zero will set the seed using the system clock so that different sequences of random
+numbers will be generated each time a program is run.  The default behavior if
+\vn{parameter[ran_seed]} is not present is to use the system clock for the seed.
+
+The \vn{ran_gauss(cut)} function with an argument truncates the distribution so that no values are returnd
+with an absolute value greater than \vn{cut}. If \vn{cut} is non-positive, it is ignored so that, for example,
+\vn{ran_gauss(-1)} is equivalent to \vn{ran_gauss()}.
 
 \index{expand_lattice}
-If an element is used multiple times in a lattice, and if \vn{ran} or
-\vn{gauss_ran} is used to set an attribute value of this element, then
-to have all instances of the element have different attribute values
-the setting of the attribute must be after the lattice has been
-expanded (\sref{s:expand}). For example:
+If an element is used multiple times in a lattice, and if \vn{ran} or \vn{gauss_ran} is used to set
+an attribute value of this element, then to have all instances of the element have different
+attribute values the setting of the attribute must be after the lattice has been expanded
+(\sref{s:expand}). For example:
 \begin{example}
   a: quad, ... 
   a[x_offset] = 0.001*ran_gauss()
   my_line: line = (a, a)
   use, my_line
 \end{example}
-Here, because \bmad does immediate evaluation, the \vn{x_offset}
-values for \vn{a} gets set in line 2 and so both copies of \vn{a} in
-the lattice get the same value. This is probably not what is wanted.
-On the other hand if the attribute is set after lattice expansion:
+Here, because \bmad does immediate evaluation, the \vn{x_offset} values for \vn{a} gets set in line
+2 and so both copies of \vn{a} in the lattice get the same value. This is probably not what is
+wanted.  On the other hand if the attribute is set after lattice expansion:
 \begin{example}
   a: quad, ...
   my_line: line = (a, a)
@@ -973,8 +972,7 @@ On the other hand if the attribute is set after lattice expansion:
   expand_lattice
   a[x_offset] = 0.001*ran_gauss()
 \end{example}
-Here the two \vn{a} elements in the lattice get different values for
-\vn{x_offset}.
+Here the two \vn{a} elements in the lattice get different values for \vn{x_offset}.
 
 The following functions take a species ID as the argument:
 \begin{example}
@@ -983,9 +981,8 @@ The following functions take a species ID as the argument:
 \end{example}
 See \sref{s:species.name} for the syntax of naming particles.
 
-The \vn{mass_of}, \vn{charge_of}, and \vn{anomalous_moment_of} functions give the mass of,
-charge of (in units of the elementary charge), and anomalous moment of, a particle.
-Example:
+The \vn{mass_of}, \vn{charge_of}, and \vn{anomalous_moment_of} functions give the mass of, charge of
+(in units of the elementary charge), and anomalous moment of, a particle.  Example:
 \begin{example}
   parameter[particle] = deuteron
   am = anomalous_moment_of(parameter[particle])^2

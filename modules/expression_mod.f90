@@ -19,21 +19,21 @@ integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ =
 integer, parameter :: factorial$ = 24, int$ = 25, nint$ = 26, floor$ = 27, ceiling$ = 28
 integer, parameter :: numeric$ = 29, variable$ = 30
 integer, parameter :: mass_of$ = 31, charge_of$ = 32, anomalous_moment_of$ = 33, species$ = 34, species_const$ = 35
-integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38, rms$ = 39, average$ = 40, sum$ = 41
+integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38, rms$ = 39, average$ = 40, sum$ = 41, l_func_parens$ = 42, arg_count$ = 43
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "rms" and "average" are not implemented here but is used by Tao.
 
-character(20), parameter :: expression_op_name(41) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(43) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
                                     '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
-                                    'species', '?!+Species', 'sinc', '?!+Constant', ',', 'rms', 'average', 'sum']
+                                    'species', '?!+Species', 'sinc', '?!+Constant', ',', 'rms', 'average', 'sum', '(', '?!+Arg Count']
 
 
-integer, parameter :: expression_eval_level(41) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                      9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9]
+integer, parameter :: expression_eval_level(43) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                      9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9, 0, 9]
 
 private pushit
 
@@ -53,6 +53,10 @@ contains
 ! Stack elements with stack(i)%type = variable$ are elements that need
 ! to be evaluated before calling expression_stack_value.
 !
+! Also see:
+!   expression_value
+!   expression_stack_value
+!
 ! Input:
 !   string    -- character(*): Expression to be converted.
 !
@@ -65,10 +69,17 @@ contains
 
 subroutine expression_string_to_stack (string, stack, n_stack, err_flag, err_str)
 
+type expression_func_struct
+  character(12) :: name = ''      ! Name of function
+  integer :: n_arg_target = 0     ! Number of arguments the function should have. -1 => 0 or 1 arg
+  integer :: n_arg_count = 0      ! Number of arguments found.
+end type
+
 type (expression_atom_struct), allocatable :: stack(:)
+type (expression_func_struct) func(0:20)
 
 integer i_op, i, var_type
-integer op(100), ix_word, i_delim, i2, ix_word2, n_stack, op0, n_comma(100)
+integer op(100), ix_word, i_delim, i2, ix_word2, n_stack, op0, n_func
 
 real(rp) value
 
@@ -77,8 +88,7 @@ character(1) delim, old_delim
 character(80) word, word2
 character(len(string)) parse_line
 
-
-logical delim_found, split, zero_arg_function_pending
+logical delim_found, split
 logical err_flag, err
 
 ! The general idea is to rewrite the expression on a stack in reverse polish.
@@ -94,8 +104,8 @@ logical err_flag, err
 delim = ''
 err_flag = .true.
 n_stack = 0
+n_func = 0
 i_op = 0
-zero_arg_function_pending = .false.
 if (.not. allocated(stack)) allocate(stack(10))
 stack(:)%type = end_stack$
 parse_line = string
@@ -124,9 +134,10 @@ parsing_loop: do
     return
   endif
 
-  if (zero_arg_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
-    err_str = 'RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT'
-    return
+  ! Args are counted counted at the beginning of the function and at each comma.
+
+  if (n_func > 0 .and. ix_word /= 0) then
+    if (func(n_func)%n_arg_count == 0) func(n_func)%n_arg_count = func(n_func)%n_arg_count + 1
   endif
 
   !--------------------------
@@ -167,7 +178,6 @@ parsing_loop: do
       err_str = 'Malformed number: ' // trim(word) // word2
       return
     endif
-
   endif
 
   ! Something like "lcav[lr(2).freq]" will get split on the "["
@@ -191,9 +201,9 @@ parsing_loop: do
   ! For a "(" delim we must have a function
 
   if (delim == '(') then
-
-    zero_arg_function_pending = .false.
     if (ix_word /= 0) then
+      n_func = n_func + 1
+      func(n_func) = expression_func_struct(upcase(word), 1, 0)
       select case (upcase(word))
       case ('SIN') 
         call pushit (op, i_op, sin$)
@@ -211,7 +221,7 @@ parsing_loop: do
         call pushit (op, i_op, atan$)
       case ('ATAN2') 
         call pushit (op, i_op, atan2$)
-        n_comma(i_op) = 0
+        func(n_func)%n_arg_target = 2
       case ('ABS') 
         call pushit (op, i_op, abs$)
       case ('SQRT') 
@@ -220,14 +230,14 @@ parsing_loop: do
         call pushit (op, i_op, log$)
       case ('EXP') 
         call pushit (op, i_op, exp$)
-      case ('FACTORIAL') 
+      case ('FACTORIAL')
         call pushit (op, i_op, factorial$)
       case ('RAN') 
         call pushit (op, i_op, ran$)
-        zero_arg_function_pending = .true.
+        func(n_func)%n_arg_target = 0
       case ('RAN_GAUSS') 
         call pushit (op, i_op, ran_gauss$)
-        zero_arg_function_pending = .true.
+        func(n_func)%n_arg_target = -1        ! 0 or 1 args.
       case ('INT')
         call pushit (op, i_op, int$)
       case ('NINT')
@@ -248,9 +258,13 @@ parsing_loop: do
         err_str = 'UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word
         return
       end select
+
+      call pushit (op, i_op, l_func_parens$)
+
+    else
+      call pushit (op, i_op, l_parens$)
     endif
 
-    call pushit (op, i_op, l_parens$)
     cycle parsing_loop
 
   ! for a unary "-"
@@ -269,18 +283,17 @@ parsing_loop: do
 
   elseif (delim == ')') then
     if (ix_word == 0) then
-      if (.not. zero_arg_function_pending) then
+      if (n_func == 0 .or. (func(n_func)%n_arg_target /= 0 .and. func(n_func)%n_arg_target /= -1)) then
         err_str = 'CONSTANT OR VARIABLE MISSING BEFORE ")"'
         return
       endif
-      zero_arg_function_pending = .false.
     else
-      call push_numeric_or_var(word, err, op, i_op); if (err) return
+      call push_numeric_or_var(word, err, op, i_op, stack, n_stack, var_type); if (err) return
     endif
 
     do
       do i = i_op, 1, -1     ! release pending ops
-        if (op(i) == l_parens$) exit          ! break do loop
+        if (op(i) == l_parens$ .or. op(i) == l_func_parens$) exit          ! break do loop
         call pushit_stack (stack, n_stack, op(i))
       enddo
 
@@ -290,6 +303,25 @@ parsing_loop: do
       endif
 
       i_op = i - 1
+
+      if (op(i) == l_func_parens$) then
+        if (func(n_func)%n_arg_target == -1) then
+          if (func(n_func)%n_arg_count /= 0 .and. func(n_func)%n_arg_count /= 1) then
+            err_str = 'FUNCTION: ' // trim(func(n_func)%name) // ' DOES NOT HAVE 0 OR 1 ARGUMENTS.'
+            return
+          endif
+          call pushit_stack (stack, n_stack, arg_count$)
+          stack(n_stack)%value = func(n_func)%n_arg_count
+
+        else
+          if (func(n_func)%n_arg_count /= func(n_func)%n_arg_target) then
+            err_str = 'FUNCTION: ' // trim(func(n_func)%name) // ' DOES NOT HAVE THE CORRECT NUMBER OF ARGUMENTS.'
+            return
+          endif
+        endif
+
+        n_func = n_func - 1
+      endif
 
       call get_next_chunk (parse_line, word, ix_word, '+-*/()^,:}', delim, delim_found)
       if (ix_word /= 0) then
@@ -317,7 +349,7 @@ parsing_loop: do
       endif
       return
     endif
-    call push_numeric_or_var (word, err, op, i_op); if (err) return
+    call push_numeric_or_var (word, err, op, i_op, stack, n_stack, var_type); if (err) return
   endif
 
   ! If we are here then we have an operation that is waiting to be identified
@@ -337,6 +369,7 @@ parsing_loop: do
     i_delim = power$
   case (',')
     i_delim = comma$
+    func(n_func)%n_arg_count = func(n_func)%n_arg_count + 1
   case ('}', ':', ')')   ! End of expression delims
     i_delim = no_delim$
   case default
@@ -344,30 +377,26 @@ parsing_loop: do
     return
   end select
 
-  ! now see if there are operations on the OP stack that need to be transferred
+  ! Now see if there are operations on the OP stack that need to be transferred
   ! to the STACK stack
 
   do i = i_op, 1, -1
     if (expression_eval_level(op(i)) < expression_eval_level(i_delim)) exit
 
     if (op(i) == l_parens$) then
-      if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. i_delim == comma$) then
-        if (n_comma(i-1) /= 0) then
-          err_str = 'TOO MANY COMMAS IN ATAN2 CONSTRUCT'
-          return
-        endif
-        n_comma(i-1) = n_comma(i-1) + 1
-        i_op = i
-        cycle parsing_loop
-      endif
       err_str = 'UNMATCHED "("'
       return
     endif
 
-    if (op(i) == atan2$ .and. n_comma(i) /= 1) then
-      err_str = 'MALFORMED ATAN2 ARGUMENT'
-      return
+    if (op(i) == l_func_parens$) then
+      if (i_delim /= comma$) then
+        err_str = 'UNMATCHED "("'
+        return
+      endif
+      i_op = i
+      cycle parsing_loop
     endif
+
     call pushit_stack (stack, n_stack, op(i))
   enddo
 
@@ -419,10 +448,11 @@ end subroutine get_next_chunk
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine push_numeric_or_var (word, err, op, i_op)
+subroutine push_numeric_or_var (word, err, op, i_op, stack, n_stack, var_type)
 
+type (expression_atom_struct), allocatable :: stack(:)
 logical err
-integer op(:), i_op, ios, ix
+integer op(:), i_op, n_stack, var_type, ios, ix
 character(*) word
 
 !
@@ -470,10 +500,10 @@ end subroutine push_numeric_or_var
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine pushit_stack (stack, ix_stack, value)
+subroutine pushit_stack (stack, ix_stack, this_type)
 
 type (expression_atom_struct), allocatable :: stack(:), temp_stack(:)
-integer ix_stack, value
+integer ix_stack, this_type
 
 !
 
@@ -483,7 +513,7 @@ if (ix_stack == size(stack)) then
   stack(1:ix_stack) = temp_stack
 endif
 
-call pushit (stack%type, ix_stack, value)
+call pushit (stack%type, ix_stack, this_type)
 
 end subroutine pushit_stack
 
@@ -493,16 +523,16 @@ end subroutine expression_string_to_stack
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine pushit (array, ix_arr, value)
+! subroutine pushit (array, ix_arr, this_type)
 !
 ! Private routine used by expression_string_to_stack
 !-
 
-subroutine pushit (array, ix_arr, value)
+subroutine pushit (array, ix_arr, this_type)
 
 implicit none
 
-integer array(:), ix_arr, value
+integer array(:), ix_arr, this_type
 character(*), parameter :: r_name = 'pushit'
 
 !
@@ -515,21 +545,88 @@ if (ix_arr > size(array)) then
   return
 endif
 
-array(ix_arr) = value
+array(ix_arr) = this_type
 
 end subroutine pushit
-                     
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function expression_value (expression, err_flag, err_str, var, use_old) result (value)
+!
+! Routine to evaluate a mathematical expression encoded in a string.
+!
+! Also see:
+!   expression_string_to_stack
+!   expression_stack_value
+!
+! Input:
+!   expression  -- character(*): Expression string.
+!   var(:)      -- controller_var1_struct, optional: Array of control variables. 
+!                   Used with Bmad controller elements.
+!   use_old     -- logical, optional: Use var%old_value? Must be present if var(:) is present.
+!
+! Output:
+!   value       -- real(rp): Value of the expression.
+!   err_flag    -- logical: True if there is an evaluation problem. False otherwise.
+!   err_str     -- character(*), optional: Error string explaining error if there is one.
+!-
+
+function expression_value (expression, err_flag, err_str, var, use_old) result (value)
+
+type (expression_atom_struct), allocatable :: stack(:)
+type (controller_var1_struct), optional :: var(:)
+
+real(rp) value
+integer i, i2, ix, n_stack
+
+logical, optional :: use_old
+logical err_flag
+
+character(*) expression
+character(*), optional :: err_str
+character(100) err_string
+character(*), parameter :: r_name = 'expression_value'
+
+!
+
+call expression_string_to_stack (expression, stack, n_stack, err_flag, err_string)
+if (err_flag) then
+  if (present(err_str)) then
+    err_str = err_string
+  else
+    call out_io (s_error$, r_name, err_string, 'FOR EXPRESSION: ' // expression)
+  endif
+  return
+endif
+
+value = expression_stack_value (stack, err_flag, err_str, var, use_old) 
+if (err_flag) then
+  if (present(err_str)) then
+    err_str = err_string
+  else
+    call out_io (s_error$, r_name, err_string, 'FOR EXPRESSION: ' // expression)
+  endif
+endif
+
+end function expression_value
+
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
 ! Function expression_stack_value (stack, err_flag, err_str, var, use_old) result (value)
 !
-! Routine to evaluate an mathematical expression represented by an "expression stack".
+! Routine to evaluate a mathematical expression represented by an "expression stack".
 ! Expression stacks are created by expression_string_to_stack.
 !
 ! Note: Stack elements with stack(i)%type == variable$ need to be evalauated before
 ! calling this routine and the value placed in stack(i)%value.
+!
+! Also see:
+!   expression_value
+!   expression_string_to_stack
 !
 ! Input:
 !   stack(:)    -- expression_atom_struct: Expression to evaluate.
@@ -571,6 +668,9 @@ do i = 1, size(stack)
 
   case (end_stack$)
     exit
+
+  case (arg_count$)
+    cycle
 
   case (numeric$, variable$, constant$)
     i2 = i2 + 1
@@ -692,8 +792,13 @@ do i = 1, size(stack)
     call ran_uniform(stack2(i2)%value)
 
   case (ran_gauss$)
-    i2 = i2 + 1
-    call ran_gauss(stack2(i2)%value)
+    if (nint(stack(i-1)%value) == 0) then
+      i2 = i2 + 1
+      call ran_gauss(stack2(i2)%value)
+    else
+      call ran_gauss(value, sigma_cut = stack2(i2)%value)
+      stack2(i2)%value = value
+    endif
 
   case (species_const$)
     i2 = i2 + 1
@@ -843,20 +948,32 @@ else
       if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
       s2_name(i2) = '-' // s2_name(i2)
  
-    case (ran$, ran_gauss$)
+    case (ran$)
       i2 = i2 + 1
       s2_name(i2) = trim(expression_op_name(atom%type)) // '()'
       s2%type = atom%type
 
+    case (ran_gauss$)
+      if (nint(stack(i-1)%value) == 0) then
+        i2 = i2 + 1
+        s2_name(i2) = trim(expression_op_name(atom%type)) // '()'
+      else
+        s2_name(i2) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)) // ')'
+      endif
+      s2%type = atom%type
+
     case (atan2$)
-      s2_name(i2-1) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2-1)) // ',' // trim(s2_name(i2)) // ')'
       i2 = i2 - 1
+      s2_name(i2) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)) // ',' // trim(s2_name(i2+1)) // ')'
       s2%type = atom%type
 
     case (factorial$)
       if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
       s2_name(i2) = trim(s2_name(i2)) // '!'
       s2%type = atom%type
+
+    case (arg_count$)
+      cycle
 
     case default ! Function
       s2_name(i2) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)) // ')'
